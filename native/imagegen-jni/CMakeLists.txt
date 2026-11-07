@@ -1,5 +1,5 @@
-# libwmimagegen: wm_imagegen_jni.cpp and imagegen.cpp over a static MNN (CPU
-# backend only). Driven by build.sh, which builds MNN first and passes its
+# libwmimagegen: wm_imagegen_jni.cpp and imagegen.cpp over a static MNN (the
+# CPU backend, and on arm64 the OpenCL and Vulkan ones). Driven by build.sh, which builds MNN first and passes its
 # source and build trees in MNN_SRC and MNN_BUILD; see README.md.
 cmake_minimum_required(VERSION 3.18)
 project(wmimagegen CXX)

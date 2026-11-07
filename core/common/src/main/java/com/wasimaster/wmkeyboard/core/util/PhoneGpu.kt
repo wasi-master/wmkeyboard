@@ -16,6 +16,9 @@ object PhoneGpu {
     /** What the package manager reports for Vulkan 1.2, `VK_MAKE_API_VERSION(0, 1, 2, 0)`. */
     private const val VULKAN_1_2 = 0x402000
 
+    /** And for Vulkan 1.1. */
+    private const val VULKAN_1_1 = 0x401000
+
     /**
      * An Adreno GPU: the kgsl device node Qualcomm's driver makes, or the chip
      * maker Android reports.
@@ -48,4 +51,7 @@ object PhoneGpu {
      * ggml's Vulkan backend needs: the phones the Vulkan builds are for.
      */
     val vulkan: Boolean get() = !adreno && vulkanVersion >= VULKAN_1_2
+
+    /** Any GPU, Adreno included, whose driver speaks Vulkan 1.1: ExecuTorch's Vulkan backend. */
+    val vulkan11: Boolean get() = vulkanVersion >= VULKAN_1_1
 }

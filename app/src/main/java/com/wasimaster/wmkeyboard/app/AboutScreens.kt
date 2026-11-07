@@ -309,7 +309,7 @@ private val bundledAttributions: List<Attribution> = buildList {
         ),
     )
     // Language detection on builds without ML Kit: a library of its own,
-    // never in an APK. See native/cld3-jni.
+    // never in an APK. See native/cld3-jni and native/fasttext-jni.
     add(
         Attribution(
             "CLD3 and protobuf",
@@ -317,6 +317,24 @@ private val bundledAttributions: List<Attribution> = buildList {
             "Copyright 2016 Google Inc.; protobuf Copyright 2008 Google Inc.",
             "Apache-2.0 / BSD-3-Clause", "apache-2.0.txt",
             "https://github.com/google/cld3",
+        ),
+    )
+    add(
+        Attribution(
+            "fastText",
+            R.string.about_bundled_cld3_used,
+            "Copyright 2016-present Facebook, Inc.",
+            "MIT", "mit-fasttext.txt",
+            "https://github.com/facebookresearch/fastText",
+        ),
+    )
+    add(
+        Attribution(
+            "fastText language identification model (lid.176)",
+            R.string.about_bundled_cld3_used,
+            "Copyright Facebook, Inc.; trained on Wikipedia, Tatoeba and SETimes",
+            "CC-BY-SA-3.0", "cc-by-sa-3.0.txt",
+            "https://fasttext.cc/docs/en/language-identification.html",
         ),
     )
     // GiellaLT spellers, in the same library module as Hunspell. See
@@ -800,6 +818,16 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "Copyright Meta Platforms, Inc.; ONNX conversion by Will Wade",
                 "CC-BY-NC-4.0", "cc-by-nc-4.0.txt",
                 "https://huggingface.co/facebook/mms-tts",
+            ),
+        )
+        // And Kokoro, which reads English and Mandarin ahead of MMS once fetched.
+        add(
+            Attribution(
+                "Kokoro-82M",
+                R.string.about_bundled_kokoro_used,
+                "Copyright hexgrad; ONNX conversion by the k2-fsa project",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://huggingface.co/hexgrad/Kokoro-82M",
             ),
         )
         // Reduce background noise at Strong: the model the phone downloads

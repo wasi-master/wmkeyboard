@@ -153,6 +153,19 @@ Java_com_wasimaster_wmkeyboard_core_voice_executorch_EtNative_nativeHasQnn(JNIEn
 }
 
 /**
+ * The delegate this build carries beside XNNPACK: "qnn", "vulkan" or
+ * "neuron", or "" for the plain library.
+ */
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_wasimaster_wmkeyboard_core_voice_executorch_EtNative_nativeDelegate(JNIEnv* env, jclass) {
+#ifdef WM_DELEGATE
+    return env->NewStringUTF(WM_DELEGATE);
+#else
+    return env->NewStringUTF("");
+#endif
+}
+
+/**
  * Where the DSP finds the HTP skel: the directory the NPU runtime was
  * unpacked into, ahead of the system's own. The QNN libraries themselves are
  * already loaded by then (Kotlin preloads them by path), so the backend's

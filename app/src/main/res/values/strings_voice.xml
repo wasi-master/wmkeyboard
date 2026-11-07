@@ -317,6 +317,15 @@
     <string name="voice_sherpa_custom_not_streaming">This model decodes whole files, not while you speak. Sherpa needs a streaming model.</string>
     <string name="voice_sherpa_custom_needs_vad">Also pick silero_vad.onnx, or download one of the models above first. It hears where a phrase ends.</string>
     <string name="voice_sherpa_custom_failed">The import did not finish. Check that the phone has room for the model.</string>
+    <string name="speech_kokoro_group">Kokoro</string>
+    <string name="speech_kokoro_info">Kokoro reads English and Mandarin aloud on the phone in natural-sounding voices, more lifelike than the MMS voices below, from one download. Where it is downloaded it reads those languages first. Each sentence takes about as long to make as to say on a recent phone, longer on an older one. Words it does not know, such as unusual names, are skipped; numbers are spelled out first. The model is Apache-2.0.</string>
+    <string name="speech_kokoro_title">Kokoro voices</string>
+    <string name="speech_kokoro_ready">Downloaded. Reads English and Mandarin offline</string>
+    <string name="speech_kokoro_voice_us">American English voice</string>
+    <string name="speech_kokoro_voice_gb">British English voice</string>
+    <string name="speech_kokoro_voice_zh">Mandarin voice</string>
+    <string name="speech_kokoro_voice_female"><xliff:g id="name" example="Heart">%1$s</xliff:g> (female)</string>
+    <string name="speech_kokoro_voice_male"><xliff:g id="name" example="Michael">%1$s</xliff:g> (male)</string>
     <string name="speech_voices_group">Offline voices</string>
     <string name="speech_voices_offline_build_info">This is the offline build, so it cannot download voices, and there is no import for them yet. Read back uses the phone\'s text-to-speech voice instead. For these voices, install the standard build over this one from the same release page. Your settings and learned words stay.</string>
     <string name="speech_voices_info">Meta\'s MMS voices, one per language, read text aloud on the phone with no connection. Once a language\'s voice is downloaded, Read back and the speaker buttons on vocabulary cards and Look up use it instead of the phone\'s voice. Each voice is about 114 MB.</string>

@@ -20,9 +20,14 @@ The same library reads text aloud with Meta's MMS-TTS voices
 (`vits_jni.cpp`, driven by `core.voice.speech.MmsSpeech`). That part is not
 sherpa-onnx: it runs the VITS network through ONNX Runtime's C++ API. An MMS
 voice reads characters, so its whole text frontend (lower-casing, one id per
-character, the blank between them) is a few lines of Kotlin, and building
-sherpa-onnx's TTS would link espeak-ng, which is GPL-3.0, for phonemes these
-voices never use.
+character, the blank between them) is a few lines of Kotlin.
+
+Kokoro voices go through sherpa-onnx's own offline TTS (`kokoro_jni.cpp`,
+driven by `core.voice.speech.KokoroSpeech`). Since 2.0 sherpa-onnx phonemises
+from the lexicon files a model ships (English and Chinese for Kokoro v1.0)
+and no longer links espeak-ng, so turning its TTS on brings no GPL code into
+this library. A word missing from the lexicon is skipped; `KokoroText` spells
+out English numbers before the text gets here.
 
 Add punctuation and capitals runs here too (`tagger_jni.cpp`, driven by
 `core.voice.punctuation.DictationPunctuation`): a generic token classifier on

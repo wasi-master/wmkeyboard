@@ -4,8 +4,8 @@
 //
 // Meta's MMS-TTS voices are VITS models whose text frontend is one token per
 // character, so the Kotlin side turns text into ids and this file only runs
-// the network. sherpa-onnx's own TTS is not used: building it links espeak-ng
-// (GPL-3.0) into this library for phonemes these voices never need.
+// the network; sherpa-onnx's own TTS (kokoro_jni.cpp) wants a lexicon these
+// voices do not ship.
 //
 // Same rules as sherpa_jni.cpp: ONNX Runtime is found by soname at load time
 // (the link stub only names OrtGetApiBase, which is all the C++ API calls),

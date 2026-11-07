@@ -178,7 +178,7 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/divvungrammar-jni/build.sh
 
 ## Rebuilding the CLD3 library
 
-Language identification on the builds without ML Kit runs on Google's [CLD3](https://github.com/google/cld3) with a static protobuf-lite, built into `libwmcld3.so` from `native/cld3-jni/`. `Cld3.kt` in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/translate/` is the Kotlin entry point; the gate is `langid`.
+Language identification on the builds without ML Kit runs on Google's [CLD3](https://github.com/google/cld3) with a static protobuf-lite, built into `libwmcld3.so` from `native/cld3-jni/`. `LanguageId.kt` in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/translate/` is the Kotlin entry point; the gate is `langid`, which also carries fastText (below).
 
 ```sh
 # Needs git, CMake, Ninja and a host C++ compiler; NDK r29 reproduces the committed bytes
@@ -186,6 +186,17 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/cld3-jni/build.sh
 ```
 
 The script fetches CLD3 and protobuf 3.21.12 at pinned commits, builds protoc from the same protobuf for the machine it runs on, generates CLD3's three protos with it, and builds the three ABIs.
+
+## Rebuilding the fastText library
+
+The same gate's first identifier is [fastText](https://github.com/facebookresearch/fastText)'s `lid.176` model (176 languages, CC BY-SA 3.0), built into `libwmfasttext.so` from `native/fasttext-jni/` with the 938 KB quantised model compiled into the library (`model.S`), so the gate brings it and nothing is read from storage. `LanguageId` asks CLD3 only when fastText's top answer is under 0.5.
+
+```sh
+# Needs git, CMake and Ninja; NDK r29 reproduces the committed bytes
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/fasttext-jni/build.sh
+```
+
+The script fetches fastText at a pinned commit (the repository is archived) and the model from Meta's download server, checks the model's SHA-256, and builds the three ABIs. `FASTTEXT_SRC` and `LID_MODEL` point it at local copies instead.
 
 ## Rebuilding the Voikko library
 
@@ -268,7 +279,7 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/zxingcpp-jni/build.sh
 
 ## Rebuilding the sticker generator's libraries
 
-The [sticker generator](/emoji/sticker-generator/) runs on two native libraries. `libwmimagegen.so`, from `native/imagegen-jni/`, is [MNN](https://github.com/alibaba/MNN) 3.6.1 built static with only its CPU backend, under a small JNI bridge (`imagegen.cpp`) that loads one `.mnn` module per handle and moves tensors in and out; the denoising loop, the schedulers and the CLIP tokenizer are Kotlin, in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/imagegen/`. The scanner's PaddleOCR reader runs its two graphs through the same library in builds without LiteRT (`MnnPaddleRuntime`), so the app carries one MNN, not two. Its prebuilt files sit under `core/intelligence/src/imagegen/jniLibs/<abi>/`. GitHub builds pin them for download (gate `imagegen` in `native/gates.json`), Play builds ship them in the on-demand `:feature:imagegen` split, and F-Droid builds them from source through `native/build-fdroid-libs.sh`.
+The [sticker generator](/emoji/sticker-generator/) runs on two native libraries. `libwmimagegen.so`, from `native/imagegen-jni/`, is [MNN](https://github.com/alibaba/MNN) 3.6.1 built static with its CPU backend (and on arm64 its OpenCL and Vulkan backends, which open the phone's own `libOpenCL.so` or `libvulkan.so` at run time for the sticker generator's **Draw on the GPU**), under a small JNI bridge (`imagegen.cpp`) that loads one `.mnn` module per handle and moves tensors in and out; the denoising loop, the schedulers and the CLIP tokenizer are Kotlin, in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/imagegen/`. The scanner's PaddleOCR reader runs its two graphs through the same library in builds without LiteRT (`MnnPaddleRuntime`), so the app carries one MNN, not two. Its prebuilt files sit under `core/intelligence/src/imagegen/jniLibs/<abi>/`. GitHub builds pin them for download (gate `imagegen` in `native/gates.json`), Play builds ship them in the on-demand `:feature:imagegen` split, and F-Droid builds them from source through `native/build-fdroid-libs.sh`.
 
 ```sh
 # Needs git, CMake and Ninja; NDK r29 reproduces the committed bytes
@@ -284,6 +295,8 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/imagegen-qnn/build.sh
 ```
 
 `libwmexecutorch_qnn.so` is ExecuTorch built a second time on arm64 with its Qualcomm delegate beside XNNPACK, so a program exported for the Snapdragon NPU runs its delegated parts there. `native/executorch-jni/build.sh` builds it after the plain library unless `WMKB_ET_QNN=0` (which `build-fdroid-libs.sh` sets). The delegate needs more of the QNN headers than `geniex-qairt-plugin` carries, so `qnn_headers.py` reads `include/QNN` out of the QAIRT SDK zip ExecuTorch pins, by range requests rather than downloading all 1.35 GB, and checks the extracted tree against a pinned digest. The delegate is built static, so it registers with the same runtime the JNI code calls, and it loads Qualcomm's libraries from the NPU runtime's directory at run time. It sits under `core/voice/src/executorchqnn/jniLibs/` and is its own gate, `executorchqnn`.
+
+Two more arm64 variants come out of the same script, each its own gate. `libwmexecutorch_vulkan.so` (`executorchvulkan`, `WMKB_ET_VULKAN=0` skips it) adds ExecuTorch's Vulkan GPU delegate, whose GLSL shaders are compiled into the library with the glslc `native/vulkan.sh` builds (or the one `GLSLC` names); it opens the phone's `libvulkan.so` at run time and needs Vulkan 1.1. `libwmexecutorch_neuron.so` (`executorchneuron`, `WMKB_ET_NEURON=0` skips it, as F-Droid's build does) adds MediaTek's NeuroPilot delegate for the Dimensity 9300 and 9400. It opens the phone's own NeuroPilot adapter at run time and compiles against MediaTek's `NeuronAdapter.h`, which is not in ExecuTorch's repository but is in AOSP's copy of it, so the script fetches it from AOSP at a pinned commit, checks its hash and never commits it. `patch_neuron.py` builds that delegate static and makes its buffer allocator, a library from MediaTek's SDK that phones do not have, optional: ExecuTorch otherwise calls it from a static initialiser and would crash the process on load without it. `EtNative` loads the first variant whose gate is on the phone and whose hardware the phone has, QNN before NeuroPilot before Vulkan, and the plain library otherwise. None of the keyboard's models is exported for these delegates yet; a program that is runs on whichever variant carries its delegate.
 
 `tools/imagegen/convert_sd.py` turns a Stable Diffusion 1.x or 2.x checkpoint into the bundle the app imports; see [Importing a model](/emoji/sticker-generator/#importing-a-model).
 

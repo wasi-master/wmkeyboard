@@ -95,6 +95,8 @@ vulkan_setup() {
     stub=$(cd "$bin/.." && pwd -P)/sysroot/usr/lib/aarch64-linux-android/28/libvulkan.so
     [ -f "$stub" ] || { echo "no libvulkan.so stub at $stub" >&2; return 1; }
 
+    # For builds that want the shader compiler alone (ExecuTorch's Vulkan backend).
+    VULKAN_GLSLC=$glslc
     VULKAN_CMAKE=(
         -DVulkan_INCLUDE_DIR="$sdk/include" -DVulkan_LIBRARY="$stub"
         -DVulkan_GLSLC_EXECUTABLE="$glslc" -DSPIRV-Headers_DIR="$sdk/share/cmake/SPIRV-Headers"

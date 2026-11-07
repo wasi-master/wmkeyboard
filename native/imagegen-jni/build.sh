@@ -75,7 +75,8 @@ fi
 MAP="-ffile-prefix-map=$SRC=mnn -ffile-prefix-map=$KLEIDIAI_SRC=kleidiai -ffile-prefix-map=$WORK=build -ffile-prefix-map=$HERE=. -ffile-prefix-map=$NDK=ndk"
 SECTIONS="-ffunction-sections -fdata-sections"
 
-# The CPU backend only, float32 compute. KleidiAI on arm64 (below), on by
+# The CPU backend everywhere, and on arm64 MNN's OpenCL and Vulkan backends
+# too, float32 compute on all three. KleidiAI on arm64 (below), on by
 # default: MNN hands it the convolutions it has kernels for when the CPU has
 # them (SME2 for float, dot product and i8mm for int8), and its own kernels
 # the rest. MNN's own i8mm and SME2 kernels are picked at run time as well,
@@ -89,7 +90,7 @@ MNN_OPTIONS=(
     -DMNN_INTERNAL=OFF -DMNN_USE_LOGCAT=ON -DMNN_USE_THREAD_POOL=ON -DMNN_OPENMP=OFF
     -DMNN_ARM82=OFF -DMNN_SUPPORT_FP16_ARMV7=OFF -DMNN_SUPPORT_BF16=OFF
     -DMNN_SUPPORT_TRANSFORMER_FUSE=OFF -DMNN_LOW_MEMORY=ON
-    -DMNN_OPENCL=OFF -DMNN_VULKAN=OFF -DMNN_OPENGL=OFF -DMNN_NNAPI=OFF -DMNN_QNN=OFF
+    -DMNN_OPENGL=OFF -DMNN_NNAPI=OFF -DMNN_QNN=OFF
 )
 
 build() {
@@ -101,17 +102,23 @@ build() {
         -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON
     )
     local extra=()
-    # SME2 and KleidiAI kernels are arm64 only.
+    # SME2 and KleidiAI kernels are arm64 only, and so are the GPU backends:
+    # the sticker generator's Compute choice is for phones that draw on
+    # their GPU, which 32-bit and x86 ones do not. Both open the system's
+    # libOpenCL.so or libvulkan.so at run time (MNN_USE_SYSTEM_LIB off), so a
+    # phone without one keeps the CPU; their kernels and shaders are compiled
+    # into MNN's source, so the build needs no shader compiler.
     if [ "$abi" = arm64-v8a ]; then
-        extra+=(-DMNN_KLEIDIAI=ON -DMNN_KLEIDIAI_DEFAULT_ON=ON -DKLEIDIAI_SRC_DIR="$KLEIDIAI_SRC")
+        extra+=(-DMNN_KLEIDIAI=ON -DMNN_KLEIDIAI_DEFAULT_ON=ON -DKLEIDIAI_SRC_DIR="$KLEIDIAI_SRC"
+                -DMNN_OPENCL=ON -DMNN_VULKAN=ON -DMNN_USE_SYSTEM_LIB=OFF)
     else
-        extra+=(-DMNN_SME2=OFF -DMNN_KLEIDIAI=OFF)
+        extra+=(-DMNN_SME2=OFF -DMNN_KLEIDIAI=OFF -DMNN_OPENCL=OFF -DMNN_VULKAN=OFF)
     fi
     cmake -S "$SRC" -B "$mnn" -G Ninja "${android[@]}" "${MNN_OPTIONS[@]}" "${extra[@]}" \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_C_FLAGS="$MAP $SECTIONS" -DCMAKE_CXX_FLAGS="$MAP $SECTIONS" > "$mnn.log" 2>&1 \
         || { tail -40 "$mnn.log"; exit 1; }
-    cmake --build "$mnn" --target MNN >> "$mnn.log" 2>&1 || { tail -40 "$mnn.log"; exit 1; }
+    cmake --build "$mnn" --target MNN >> "$mnn.log" 2>&1 || { grep -m1 -B2 -A12 "error:\|Stack dump\|PLEASE submit" "$mnn.log"; tail -20 "$mnn.log"; exit 1; }
     cmake -S "$HERE" -B "$out" -G Ninja "${android[@]}" \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_CXX_FLAGS="$MAP" \

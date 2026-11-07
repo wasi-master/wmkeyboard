@@ -31,6 +31,8 @@ internal class FeatureLibraryInfo(@StringRes val description: Int, val route: St
             "opus" to FeatureLibraryInfo(R.string.storage_lib_opus, VOICE),
             "executorch" to FeatureLibraryInfo(R.string.storage_lib_executorch, VOICE),
             "executorchqnn" to FeatureLibraryInfo(R.string.storage_lib_executorch, VOICE),
+            "executorchvulkan" to FeatureLibraryInfo(R.string.storage_lib_executorch, VOICE),
+            "executorchneuron" to FeatureLibraryInfo(R.string.storage_lib_executorch, VOICE),
             "onnx" to FeatureLibraryInfo(R.string.storage_lib_onnx, VOICE),
             "vosk" to FeatureLibraryInfo(R.string.storage_lib_vosk, VOICE),
             "kiwi" to FeatureLibraryInfo(R.string.storage_lib_kiwi, LANGUAGES),

@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 
 /**
  * sherpa-onnx, through `native/sherpa-onnx-jni`: k2-fsa's speech toolkit over
- * Microsoft's ONNX Runtime, plus the VITS runner that reads text aloud with
+ * Microsoft's ONNX Runtime, its offline TTS for Kokoro voices
+ * ([com.wasimaster.wmkeyboard.core.voice.speech.KokoroSpeech]), plus the VITS runner that reads text aloud with
  * Meta's MMS voices ([com.wasimaster.wmkeyboard.core.voice.speech.MmsSpeech])
  * and the token classifier that punctuates dictation. Two libraries, both behind the `onnx` gate
  * (`:feature:onnx` on Play): `libonnxruntime.so`, Microsoft's own build from
@@ -248,6 +249,29 @@ object SherpaNative {
         lengthScale: Float,
         noiseScaleW: Float,
     ): FloatArray?
+
+    // Speech out: one Kokoro model through sherpa-onnx's offline TTS, which
+    // phonemises from the model's lexicons. [lexicons] and [ruleFsts] are
+    // comma-separated paths, [lang] the model's default (`en-us`); 0 when it
+    // will not load.
+    @JvmStatic external fun nativeKokoro(
+        model: String,
+        voices: String,
+        tokens: String,
+        lexicons: String,
+        ruleFsts: String,
+        lang: String,
+        threads: Int,
+    ): Long
+
+    @JvmStatic external fun nativeKokoroFree(tts: Long)
+
+    @JvmStatic external fun nativeKokoroSampleRate(tts: Long): Int
+
+    @JvmStatic external fun nativeKokoroSpeakers(tts: Long): Int
+
+    /** [utf8] read by speaker [sid] at [speed] (1 = the voice's pace), or null when nothing came out. */
+    @JvmStatic external fun nativeKokoroRun(tts: Long, utf8: ByteArray, sid: Int, speed: Float): FloatArray?
 
     // Speech enhancement: a streaming DPDFNet denoiser (the Strong level of
     // Reduce background noise, [com.wasimaster.wmkeyboard.core.voice.StrongDenoise]).

@@ -11,9 +11,11 @@ if (NOT EXISTS "${SHERPA_SRC}/sherpa-onnx/c-api/c-api.h")
     message(FATAL_ERROR "SHERPA_SRC must point at a sherpa-onnx checkout")
 endif()
 
-# Static, recognition only: no TTS, diarization, audio I/O, servers or tools.
-# Speech out (vits_jni.cpp) runs MMS VITS voices on ONNX Runtime directly:
-# sherpa-onnx's TTS would link espeak-ng (GPL-3.0) for phonemes they never use.
+# Static: recognition and offline TTS, no diarization, audio I/O, servers or
+# tools. The TTS is for Kokoro voices (kokoro_jni.cpp): since sherpa-onnx 2.0
+# it phonemises from a model's own lexicons and links no espeak-ng, so no GPL
+# code comes with it. MMS VITS voices (vits_jni.cpp) run on ONNX Runtime
+# directly, their text frontend being one token per character.
 # The Omnilingual model (omnilingual_jni.cpp) runs on it directly as well, so
 # its logits can be held to one script before the CTC pick, and so do the
 # token classifiers (tagger_jni.cpp) that punctuate dictation, and FireRedVAD
@@ -29,7 +31,7 @@ set(SHERPA_ONNX_ENABLE_CHECK               OFF CACHE BOOL "" FORCE)
 set(SHERPA_ONNX_ENABLE_PORTAUDIO           OFF CACHE BOOL "" FORCE)
 set(SHERPA_ONNX_ENABLE_WEBSOCKET           OFF CACHE BOOL "" FORCE)
 set(SHERPA_ONNX_ENABLE_BINARY              OFF CACHE BOOL "" FORCE)
-set(SHERPA_ONNX_ENABLE_TTS                 OFF CACHE BOOL "" FORCE)
+set(SHERPA_ONNX_ENABLE_TTS                 ON  CACHE BOOL "" FORCE)
 set(SHERPA_ONNX_ENABLE_SPEAKER_DIARIZATION OFF CACHE BOOL "" FORCE)
 set(SHERPA_ONNX_BUILD_C_API_EXAMPLES       OFF CACHE BOOL "" FORCE)
 set(SHERPA_ONNX_ENABLE_GPU                 OFF CACHE BOOL "" FORCE)
@@ -47,8 +49,8 @@ if (NOT EXISTS "${kaldi_native_fbank_SOURCE_DIR}/kaldi-native-fbank/csrc/online-
     message(FATAL_ERROR "sherpa-onnx did not fetch kaldi-native-fbank")
 endif()
 
-add_library(wmsherpa SHARED sherpa_jni.cpp vits_jni.cpp omnilingual_jni.cpp dpdfnet_jni.cpp tagger_jni.cpp
-    vad_jni.cpp smart_turn_jni.cpp)
+add_library(wmsherpa SHARED sherpa_jni.cpp vits_jni.cpp kokoro_jni.cpp omnilingual_jni.cpp dpdfnet_jni.cpp
+    tagger_jni.cpp vad_jni.cpp smart_turn_jni.cpp)
 target_include_directories(wmsherpa PRIVATE "${SHERPA_SRC}" "$ENV{SHERPA_ONNXRUNTIME_INCLUDE_DIR}"
     "${kaldi_native_fbank_SOURCE_DIR}")
 target_link_libraries(wmsherpa PRIVATE sherpa-onnx-c-api kaldi-native-fbank-core log)

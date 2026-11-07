@@ -10458,6 +10458,14 @@ open class WMKeyboardService : InputMethodService() {
         // A GiellaLT grammar checker holds hundreds of MB (North Sámi's about
         // 650); the next check opens it again, in a few seconds.
         if (panel != PanelMode.GRAMMAR) com.wasimaster.wmkeyboard.core.grammar.DivvunGrammar.release()
+        // Kokoro's 114 MB model and its ONNX Runtime session; the next reading
+        // opens it again in about a second. On the speech-out thread, behind
+        // any sentence it is making.
+        if (com.wasimaster.wmkeyboard.core.voice.speech.KokoroSpeech.loaded() != null) {
+            serviceScope.launch(com.wasimaster.wmkeyboard.core.voice.speech.MmsSpeech.dispatcher) {
+                com.wasimaster.wmkeyboard.core.voice.speech.KokoroSpeech.release()
+            }
+        }
         if (!onScreen) BackgroundBitmapCache.evictAll()
     }
 

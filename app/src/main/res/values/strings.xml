@@ -59,6 +59,8 @@
     <string name="llamagpu_module_title">llama.cpp for Adreno GPUs</string>
     <string name="divvungrammar_module_title">GiellaLT grammar checking</string>
     <string name="executorchqnn_module_title">ExecuTorch for Snapdragon NPUs</string>
+    <string name="executorchvulkan_module_title">ExecuTorch for GPUs</string>
+    <string name="executorchneuron_module_title">ExecuTorch for MediaTek NPUs</string>
     <string name="langid_module_title">Language detection</string>
     <string name="llamavulkan_module_title">llama.cpp for Mali and other GPUs</string>
     <string name="whispervulkan_module_title">Offline Whisper for Mali and other GPUs</string>

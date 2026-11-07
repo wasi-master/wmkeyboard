@@ -20,6 +20,8 @@ import com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation
 import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
+import com.wasimaster.wmkeyboard.core.voice.speech.KokoroSpeech
+import com.wasimaster.wmkeyboard.core.voice.speech.KokoroVoices
 import com.wasimaster.wmkeyboard.core.voice.speech.MmsSpeech
 import com.wasimaster.wmkeyboard.core.voice.vad.SmartTurn
 import com.wasimaster.wmkeyboard.core.voice.vosk.VoskEngine
@@ -160,6 +162,18 @@ object ResidentModels {
             "mms_tts", ModelKind.READ_ALOUD,
             { MmsSpeech.loadedVoice()?.let { LoadedModel("mms_tts", ModelKind.READ_ALOUD, it, null) } },
             { withContext(MmsSpeech.dispatcher) { MmsSpeech.release() } },
+        ),
+        Part(
+            "kokoro", ModelKind.READ_ALOUD,
+            { context ->
+                KokoroSpeech.loaded()?.let {
+                    LoadedModel(
+                        "kokoro", ModelKind.READ_ALOUD, "Kokoro ($it)",
+                        KokoroVoices.file(context.filesDir, KokoroVoices.MODEL).length().takeIf { n -> n > 0 },
+                    )
+                }
+            },
+            { withContext(MmsSpeech.dispatcher) { KokoroSpeech.release() } },
         ),
         Part(
             "nllb", ModelKind.TRANSLATION,

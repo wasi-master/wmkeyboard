@@ -20,14 +20,21 @@ import kotlinx.coroutines.asCoroutineDispatcher
  * first use, so [shipped] says whether the build has the runtime and
  * [available] whether it is loaded.
  *
- * Two builds of the library bind these JNI names, and a process keeps the
- * first it loads: the plain one, and on arm64 the QNN one
- * (`libwmexecutorch_qnn.so`, its own gate [FeatureModules.executorchQnn],
- * never in F-Droid's build), which adds ExecuTorch's Qualcomm delegate so a
- * program exported for a Snapdragon NPU runs its delegated parts there. The
- * QNN build is loaded instead of the plain one once its gate is on the phone
- * and [qnnPossible] says the phone has an NPU the `npu` gate serves; every
- * program the plain build runs, it runs the same.
+ * Four builds of the library bind these JNI names, and a process keeps the
+ * first it loads: the plain one, and on arm64 three that each add one of
+ * ExecuTorch's delegates beside XNNPACK, each its own gate, so a program
+ * exported for that hardware runs its delegated parts there:
+ * - `libwmexecutorch_qnn.so` ([FeatureModules.executorchQnn], never in
+ *   F-Droid's build): Qualcomm's QNN, for a Snapdragon NPU the `npu` gate
+ *   serves ([qnnPossible]);
+ * - `libwmexecutorch_neuron.so` ([FeatureModules.executorchNeuron], never in
+ *   F-Droid's build): MediaTek's NeuroPilot, for a Dimensity 9300 or 9400
+ *   NPU ([neuronPossible]), through the phone's own adapter library;
+ * - `libwmexecutorch_vulkan.so` ([FeatureModules.executorchVulkan]): the GPU
+ *   through Vulkan 1.1 ([vulkanPossible]).
+ * The first of those whose gate is on the phone and whose hardware the phone
+ * has is loaded instead of the plain one ([delegate] says which); every
+ * program the plain build runs, each runs the same.
  *
  * A program is not thread-safe, and the speech models are large, so every
  * speech call runs on [dispatcher], one thread, and [programs] keeps one set
@@ -38,9 +45,41 @@ import kotlinx.coroutines.asCoroutineDispatcher
 object EtNative {
 
     private val library = GatedLibrary({ FeatureModules.executorch }) {
-        val qnn = FeatureModules.executorchQnn.installed && qnnPossible() &&
-            runCatching { FeatureModules.loadLibrary("wmexecutorch_qnn") }.isSuccess
-        qnn || runCatching { FeatureModules.loadLibrary("wmexecutorch") }.isSuccess
+        fun load(name: String) = runCatching { FeatureModules.loadLibrary(name) }.isSuccess
+        (FeatureModules.executorchQnn.installed && qnnPossible() && load("wmexecutorch_qnn")) ||
+            (FeatureModules.executorchNeuron.installed && neuronPossible() && load("wmexecutorch_neuron")) ||
+            (FeatureModules.executorchVulkan.installed && vulkanPossible() && load("wmexecutorch_vulkan")) ||
+            load("wmexecutorch")
+    }
+
+    /**
+     * A MediaTek Dimensity NPU ExecuTorch's NeuroPilot backend supports: the
+     * 9300 (MT6989) and 9400 (MT6991). Android 12 is the first to name the chip.
+     */
+    fun neuronPossible(): Boolean =
+        android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S &&
+            android.os.Build.SOC_MANUFACTURER.equals("Mediatek", ignoreCase = true) &&
+            android.os.Build.SOC_MODEL.uppercase() in NEURON_SOCS
+
+    /** A GPU whose driver speaks Vulkan 1.1, which ExecuTorch's Vulkan backend needs. */
+    fun vulkanPossible(): Boolean = com.wasimaster.wmkeyboard.core.util.PhoneGpu.vulkan11
+
+    private val NEURON_SOCS = setOf("MT6989", "MT6991")
+
+    /**
+     * The delegate the loaded build carries: `qnn`, `neuron`, `vulkan`, or
+     * empty for the plain build. Loads the library.
+     */
+    val delegate: String get() = if (available) runCatching { nativeDelegate() }.getOrDefault("") else ""
+
+    /** Asks for the NeuroPilot build's gate, ahead of a program exported for a Dimensity NPU. */
+    fun requestNeuron() {
+        if (neuronPossible() && !FeatureModules.executorchNeuron.installed) FeatureModules.executorchNeuron.requestInstall()
+    }
+
+    /** Asks for the Vulkan build's gate, ahead of a program exported for the GPU. */
+    fun requestVulkan() {
+        if (vulkanPossible() && !FeatureModules.executorchVulkan.installed) FeatureModules.executorchVulkan.requestInstall()
     }
 
     /**
@@ -186,6 +225,8 @@ object EtNative {
     }
 
     @JvmStatic private external fun nativeHasQnn(): Boolean
+
+    @JvmStatic private external fun nativeDelegate(): String
 
     @JvmStatic private external fun nativeSetQnnDirectory(dir: String)
 

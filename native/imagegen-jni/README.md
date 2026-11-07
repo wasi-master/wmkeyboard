@@ -1,13 +1,17 @@
 # imagegen-jni: the sticker generator's MNN runtime
 
 `libwmimagegen.so` is [MNN](https://github.com/alibaba/MNN) 3.6.1 (Apache-2.0),
-built static with its CPU backend only, under a small JNI layer:
+built static with its CPU backend, and on arm64 its OpenCL and Vulkan
+backends too, under a small JNI layer:
 
 - `imagegen.cpp` / `imagegen.hpp` load one `.mnn` module per handle (a text
   encoder, a UNet, an image decoder or the safety classifier) and run it on
   float or int32 tensors, returning the first output as NCHW floats. Compute is
-  always float32 (`Precision_Normal`): MNN's float16 path gives a wrong UNet
-  output, and a one-step model multiplies any error in its noise prediction.
+  always float32 (`Precision_Normal` on the CPU, `Precision_High` on the GPU
+  backends): MNN's float16 path gives a wrong UNet output, and a one-step
+  model multiplies any error in its noise prediction. Asked for the GPU
+  (`nativeLoadOn`), it tries OpenCL, then Vulkan, then the CPU, and keeps the
+  GPU's compiled kernels in a cache file for the next load.
 - `wm_imagegen_jni.cpp` is the surface `ImageGenNative` in
   `core/intelligence/.../imagegen/` binds to.
 

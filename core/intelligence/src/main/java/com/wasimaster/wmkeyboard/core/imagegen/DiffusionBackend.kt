@@ -30,8 +30,11 @@ internal interface DiffusionBackend : Closeable {
     val sizes: List<Int>
 }
 
-/** A model bundle on MNN, the CPU path every phone has. */
-internal class MnnBackend(dir: File, private val spec: ModelSpec, threads: Int) : DiffusionBackend {
+/**
+ * A model bundle on MNN, the CPU path every phone has, or its GPU backends
+ * when [gpuCache] is given: the file the GPU's compiled kernels are kept in.
+ */
+internal class MnnBackend(dir: File, private val spec: ModelSpec, threads: Int, gpuCache: File? = null) : DiffusionBackend {
 
     private val text: Long
     private val net: Long
@@ -39,16 +42,18 @@ internal class MnnBackend(dir: File, private val spec: ModelSpec, threads: Int) 
 
     init {
         if (!ImageGenNative.available) throw IOException("the MNN runtime is not here")
-        text = load(dir, "text_encoder.mnn", arrayOf("ids"), arrayOf("h"), threads)
+        // The text encoder runs once per prompt: the CPU, so the GPU's
+        // compile time goes to the two networks that run many times.
+        text = load(dir, "text_encoder.mnn", arrayOf("ids"), arrayOf("h"), threads, null)
         val unetInputs = if (spec.lcmDim > 0) arrayOf("x", "t", "e", "w") else arrayOf("x", "t", "e")
         net = try {
-            load(dir, "unet.mnn", unetInputs, arrayOf("y"), threads)
+            load(dir, "unet.mnn", unetInputs, arrayOf("y"), threads, gpuCache?.let { File(it.path + ".unet") })
         } catch (e: IOException) {
             ImageGenNative.nativeFree(text)
             throw e
         }
         vae = try {
-            load(dir, "vae_decoder.mnn", arrayOf("z"), arrayOf("img"), threads)
+            load(dir, "vae_decoder.mnn", arrayOf("z"), arrayOf("img"), threads, gpuCache?.let { File(it.path + ".vae") })
         } catch (e: IOException) {
             ImageGenNative.nativeFree(text)
             ImageGenNative.nativeFree(net)
@@ -57,6 +62,9 @@ internal class MnnBackend(dir: File, private val spec: ModelSpec, threads: Int) 
     }
 
     override val sizes: List<Int> get() = spec.sizes
+
+    /** What the UNet runs on: [ImageGenNative.BACKEND_CPU], `_OPENCL` or `_VULKAN`. */
+    val backend: Int get() = ImageGenNative.nativeBackend(net)
 
     override fun encode(ids: IntArray): FloatArray =
         run(text, arrayOf(ids), arrayOf(intArrayOf(1, ClipTokenizer.MAX_TOKENS)))
@@ -88,9 +96,17 @@ internal class MnnBackend(dir: File, private val spec: ModelSpec, threads: Int) 
         fun find(dir: File, suffix: String): File? =
             dir.listFiles()?.filter { it.isFile && it.name.endsWith(suffix) }?.minByOrNull { it.name.length }
 
-        private fun load(dir: File, suffix: String, inputs: Array<String>, outputs: Array<String>, threads: Int): Long {
+        private fun load(
+            dir: File, suffix: String, inputs: Array<String>, outputs: Array<String>, threads: Int, gpuCache: File?,
+        ): Long {
             val file = find(dir, suffix) ?: throw IOException("no $suffix in ${dir.name}")
-            val handle = ImageGenNative.nativeLoad(file.absolutePath, inputs, outputs, threads)
+            val handle = if (gpuCache == null) {
+                ImageGenNative.nativeLoad(file.absolutePath, inputs, outputs, threads)
+            } else {
+                ImageGenNative.nativeLoadOn(
+                    file.absolutePath, inputs, outputs, threads, ImageGenNative.COMPUTE_GPU, gpuCache.absolutePath,
+                )
+            }
             if (handle == 0L) throw IOException("MNN could not load ${file.name}")
             return handle
         }

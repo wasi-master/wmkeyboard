@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 /**
  * JNI surface of libwmimagegen.so (native/imagegen-jni): MNN's CPU runtime,
- * one loaded module per handle, tensors in and the first output back as NCHW
+ * and on arm64 its OpenCL and Vulkan ones ([nativeLoadOn]), one loaded module per handle, tensors in and the first output back as NCHW
  * floats. Optional at runtime: GitHub builds fetch it the first time it is
  * asked for, F-Droid builds it from source, Play carries it in the
  * on-demand `:feature:imagegen` split.
@@ -38,6 +38,25 @@ object ImageGenNative {
 
     /** 0 when the file does not load or lacks the named tensors. */
     external fun nativeLoad(path: String, inputs: Array<String>, outputs: Array<String>, threads: Int): Long
+
+    /**
+     * Like [nativeLoad], on the GPU when [compute] is [COMPUTE_GPU]: MNN's
+     * OpenCL backend, else its Vulkan one, else the CPU after all, float32
+     * on each. A GPU backend's compiled kernels go into [cache] after the
+     * first run, so the next load starts from them; null for none.
+     */
+    external fun nativeLoadOn(
+        path: String, inputs: Array<String>, outputs: Array<String>, threads: Int, compute: Int, cache: String?,
+    ): Long
+
+    /** What a handle runs on: [BACKEND_CPU], [BACKEND_OPENCL] or [BACKEND_VULKAN]. */
+    external fun nativeBackend(handle: Long): Int
+
+    const val COMPUTE_CPU = 0
+    const val COMPUTE_GPU = 1
+    const val BACKEND_CPU = 0
+    const val BACKEND_OPENCL = 3
+    const val BACKEND_VULKAN = 7
 
     /**
      * [inputs] holds one FloatArray or IntArray per input, [shapes] their

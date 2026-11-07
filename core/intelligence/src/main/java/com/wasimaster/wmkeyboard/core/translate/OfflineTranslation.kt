@@ -67,13 +67,13 @@ object OfflineTranslation {
         hints: List<String> = emptyList(),
     ): OfflineTranslateResult {
         // ML Kit's identifier, where the phone has it, beats a guess from the
-        // script for the two engines that have none of their own; CLD3 stands
-        // in for it on the builds without ML Kit.
+        // script for the two engines that have none of their own; fastText and
+        // CLD3 stand in for it on the builds without ML Kit.
         val identified: suspend () -> List<OfflineTranslatePlan.Candidate> = {
             when {
                 sourceOverride.isNotBlank() -> emptyList()
                 OnDeviceTranslator.AVAILABLE -> OnDeviceTranslator.identify(context, text)
-                else -> withContext(Dispatchers.Default) { Cld3.identify(text) }
+                else -> withContext(Dispatchers.Default) { LanguageId.identify(text) }
             }
         }
         return when (engine) {

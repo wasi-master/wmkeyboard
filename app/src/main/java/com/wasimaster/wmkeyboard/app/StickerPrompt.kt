@@ -7,7 +7,7 @@ import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.tools.AiClient
 import com.wasimaster.wmkeyboard.core.tools.OnlineTranslate
-import com.wasimaster.wmkeyboard.core.translate.Cld3
+import com.wasimaster.wmkeyboard.core.translate.LanguageId
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslateResult
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
@@ -77,8 +77,8 @@ internal object StickerPrompt {
         val candidates = if (OnDeviceTranslator.AVAILABLE) {
             runCatching { OnDeviceTranslator.identify(context, text) }.getOrNull()
         } else {
-            // F-Droid and the offline build: CLD3, when its library is here.
-            withContext(Dispatchers.Default) { Cld3.identify(text) }
+            // F-Droid and the offline build: fastText and CLD3, when their libraries are here.
+            withContext(Dispatchers.Default) { LanguageId.identify(text) }
         }
         val best = candidates?.maxByOrNull { it.confidence } ?: return true
         // Short prompts are easy to misread ("pizza" is Italian); only a sure,

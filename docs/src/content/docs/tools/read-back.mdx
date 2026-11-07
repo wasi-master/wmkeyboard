@@ -1,6 +1,6 @@
 ---
 title: "Read back and offline voices"
-description: "Hear what you typed, read aloud in the keyboard's language, with Meta's MMS voices offline in more than a thousand languages."
+description: "Hear what you typed, read aloud in the keyboard's language, with Kokoro's natural voices for English and Mandarin and Meta's MMS voices in more than a thousand languages, offline."
 sidebar:
   order: 17.8
 ---
@@ -10,6 +10,16 @@ import SettingsPath from '@components/SettingsPath.astro';
 **Read back** reads your text aloud. With something selected it reads the selection; with nothing selected it reads everything in the field, up to about 4,000 characters. It reads in the keyboard's current language, so switching to Bangla and tapping it reads Bangla. Tap it again while it reads to stop. The tool stays lit while it is reading. It never reads a password field.
 
 Add it from the toolbox like any other tool. It sits in the **Create and convert** group on the Tools screen, and its page there is <SettingsPath path="Tools / Read back" />.
+
+## Kokoro voices
+
+<SettingsPath path="Tools / Read back / Kokoro" /> offers [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M), a small open speech model (Apache-2.0) that reads English and Mandarin in voices close to a person's. It is one download of 132 MB, about 160 MB once unpacked, that holds every voice: 20 American English, 8 British English and 8 Mandarin. With it downloaded, it reads those languages ahead of the MMS voices below and the phone's own voice; other languages carry on as before.
+
+Once it is here, the group shows a row of voices for each language. Tap a name to pick it; each is marked female or male. British English reads keyboards set to the UK, Ireland, Australia, New Zealand, South Africa or India, and American English the rest.
+
+The download is sherpa-onnx's packaging of Kokoro v1.0, checked against its SHA-256 and resumed if it stops. It runs on the same ONNX Runtime as the MMS voices, so the GitHub and Play builds fetch that first if it is not on the phone yet. Swipe or tap the bin to delete it; it also shows under <SettingsPath path="Storage / Voice models" />.
+
+Kokoro reads from pronunciation dictionaries, and a word missing from them, such as an unusual name, is skipped. Before it reads English, the keyboard spells out numbers ("$12.50" becomes "twelve dollars fifty cents", "3rd" becomes "third") and splits words run together in camel case. Making a sentence takes about as long as saying it on a recent phone, and longer on an older one. The model holds a few hundred megabytes of memory while it reads, and the keyboard unloads it with its other models when it has been hidden for 2 minutes.
 
 ## Offline voices
 

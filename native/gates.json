@@ -102,6 +102,24 @@
       ]
     },
     {
+      "id": "executorchvulkan",
+      "property": "executorchVulkan",
+      "doc": "`:feature:executorchvulkan`: ExecuTorch with its Vulkan GPU delegate beside XNNPACK (`libwmexecutorch_vulkan`, arm64, `:core:voice`), loaded instead of `libwmexecutorch` on a phone with Vulkan 1.1 once fetched, so a program exported with the Vulkan partitioner runs its delegated parts on the GPU. Its shaders are compiled in with native/vulkan.sh's glslc.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmexecutorch_vulkan.so", "dir": "core/voice/src/executorchvulkan/jniLibs", "fdroidBuild": "native/executorch-jni/build.sh", "abis": ["arm64-v8a"] }
+      ]
+    },
+    {
+      "id": "executorchneuron",
+      "property": "executorchNeuron",
+      "doc": "`:feature:executorchneuron`: ExecuTorch with MediaTek's NeuroPilot delegate beside XNNPACK (`libwmexecutorch_neuron`, arm64, `:core:voice`), loaded instead of `libwmexecutorch` on a Dimensity 9300 or 9400 once fetched, so a program exported for that NPU runs its delegated parts there through the phone's own NeuroPilot adapter. Compiled against MediaTek's NeuronAdapter.h, so never F-Droid's.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmexecutorch_neuron.so", "dir": "core/voice/src/executorchneuron/jniLibs", "abis": ["arm64-v8a"] }
+      ]
+    },
+    {
       "id": "onnx",
       "property": "onnx",
       "doc": "`:feature:onnx`: Microsoft's ONNX Runtime and the sherpa-onnx bridge built on it (`libwmsherpa`), behind the Sherpa voice engine (`:core:voice`). Outside Play the runtime is read straight out of Microsoft's AAR on Maven Central, never mirrored. Other ONNX models can ride the same runtime later; only sherpa-onnx's bridge is specific.",
@@ -220,10 +238,11 @@
     {
       "id": "langid",
       "property": "langid",
-      "doc": "`:feature:langid`: CLD3, Google's language identifier (`libwmcld3`, `:core:intelligence`), which reads the source language for the translate tool's Bergamot and NLLB engines and the sticker prompt on builds without ML Kit's identifier (F-Droid, offline). Fetched the first time it is asked.",
+      "doc": "`:feature:langid`: language identification on builds without ML Kit's identifier (F-Droid, offline): fastText's lid.176 (`libwmfasttext`, model compiled in) first and CLD3 (`libwmcld3`) when it is unsure, both `:core:intelligence`. Reads the source language for the translate tool's Bergamot and NLLB engines and the sticker prompt. Fetched the first time it is asked.",
       "play": "split",
       "libraries": [
-        { "name": "libwmcld3.so", "dir": "core/intelligence/src/langid/jniLibs", "fdroidBuild": "native/cld3-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.translate.Cld3Native"] }
+        { "name": "libwmcld3.so", "dir": "core/intelligence/src/langid/jniLibs", "fdroidBuild": "native/cld3-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.translate.Cld3Native"] },
+        { "name": "libwmfasttext.so", "dir": "core/intelligence/src/langid/jniLibs", "fdroidBuild": "native/fasttext-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.translate.FastTextNative"] }
       ]
     },
     {
