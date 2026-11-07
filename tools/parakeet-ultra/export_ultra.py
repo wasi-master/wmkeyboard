@@ -17,6 +17,12 @@ export loads a NeMo model. So this script:
 5. exports with ExecuTorch's functions and flags, then transcribes the clips
    again through the ExecuTorch runtime.
 
+With --backend vulkan the same program is lowered to ExecuTorch's Vulkan
+delegate instead (libwmexecutorch_vulkan on the phone), same quantization,
+into vulkan/int4/; the pip runtime cannot run it, so the manifest lists what
+it left to the CPU in place of transcripts. --source v3 skips steps 2 and 3
+and exports NVIDIA's v3 itself.
+
 Run with ExecuTorch's export script on disk (the copy at the tag the app's
 runtime is built from) and its install requirements; see
 .github/workflows/parakeet-ultra.yml.
@@ -201,17 +207,44 @@ def sha256(path: str) -> str:
     return h.hexdigest()
 
 
+def cpu_ops(et) -> dict[str, list[str]]:
+    """Per method, the operators left outside any delegate (they run on the CPU kernels)."""
+    from executorch.exir.schema import DelegateCall, KernelCall
+
+    found = {}
+    for plan in et.executorch_program.execution_plan:
+        names = set()
+        for chain in plan.chains:
+            for ins in chain.instructions:
+                if isinstance(ins.instr_args, KernelCall):
+                    op = plan.operators[ins.instr_args.op_index]
+                    names.add(op.name + (f".{op.overload}" if op.overload else ""))
+        delegates = sum(isinstance(i.instr_args, DelegateCall) for c in plan.chains for i in c.instructions)
+        found[plan.name] = sorted(names) + [f"({delegates} delegate calls)"]
+    return found
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--export-script", required=True, help="ExecuTorch's export_parakeet_tdt.py")
     parser.add_argument("--output-dir", default="parakeet-ultra-executorch")
+    parser.add_argument(
+        "--source", choices=("ultra", "v3"), default="ultra",
+        help="ultra: Moondream's weights in v3 (the default); v3: NVIDIA's v3 as it is",
+    )
+    parser.add_argument(
+        "--backend", choices=("xnnpack", "vulkan"), default="xnnpack",
+        help="vulkan: the phone GPU, for libwmexecutorch_vulkan (same 8da4w quantization)",
+    )
+    parser.add_argument("--vulkan-fp16", action="store_true", help="Vulkan computes in fp16")
     args = parser.parse_args()
+    folder = f"{args.backend}/int4" + ("-fp16" if args.backend == "vulkan" and args.vulkan_fp16 else "")
 
     import nemo.collections.asr as nemo_asr
 
     et_export = load_export_module(args.export_script)
 
-    out_dir = os.path.join(args.output_dir, "xnnpack", "int4")
+    out_dir = os.path.join(args.output_dir, folder)
     os.makedirs(out_dir, exist_ok=True)
 
     nemo_path = hf_hub_download(V3_REPO, "parakeet-tdt-0.6b-v3.nemo", revision=V3_REVISION)
@@ -221,44 +254,58 @@ def main() -> None:
     model.cpu()
 
     mapping = names(model)
-    check_mapping(model, mapping)
-    gc.collect()
+    if args.source == "ultra":
+        check_mapping(model, mapping)
+        gc.collect()
 
     clips = {c: hf_hub_download(CLIPS_REPO, f"test_wavs/{c}.wav", revision=CLIPS_REVISION) for c in CLIPS}
     report = {"v3": {}, "ultra": {}, "executorch": {}}
     for c, path in clips.items():
         report["v3"][c] = et_export.transcribe_eager(path, model)
 
-    load_ultra(model, mapping)
-    gc.collect()
-    for c, path in clips.items():
-        report["ultra"][c] = et_export.transcribe_eager(path, model)
+    if args.source == "ultra":
+        load_ultra(model, mapping)
+        gc.collect()
+        for c, path in clips.items():
+            report["ultra"][c] = et_export.transcribe_eager(path, model)
+    else:
+        del report["ultra"]
 
     programs, metadata = et_export.export_all(
         model,
         dtype=torch.float,
-        backend="xnnpack",
+        backend=args.backend,
         qlinear_encoder="8da4w",
         qlinear_encoder_group_size=32,
         qlinear="8da4w",
         qlinear_group_size=32,
     )
-    et = et_export.lower_to_executorch(programs, metadata=metadata, backend="xnnpack")
+    et = et_export.lower_to_executorch(
+        programs, metadata=metadata, backend=args.backend, vulkan_force_fp16=args.vulkan_fp16,
+    )
     pte = os.path.join(out_dir, "model.pte")
     with open(pte, "wb") as f:
         et.write_to_file(f)
     del programs
     gc.collect()
 
-    for c, path in clips.items():
-        report["executorch"][c] = et_export.transcribe_executorch(path, model, et.buffer)
+    # The pip runtime has no Vulkan backend: a Vulkan program is checked on
+    # a phone instead, and here only for what it left to the CPU.
+    if args.backend == "xnnpack":
+        for c, path in clips.items():
+            report["executorch"][c] = et_export.transcribe_executorch(path, model, et.buffer)
+    else:
+        del report["executorch"]
+        report["cpu_ops"] = cpu_ops(et)
 
     files = {}
     for name in ("tokenizer.model", "model.pte"):
         path = os.path.join(out_dir, name)
-        files[f"xnnpack/int4/{name}"] = {"bytes": os.path.getsize(path), "sha256": sha256(path)}
+        files[f"{folder}/{name}"] = {"bytes": os.path.getsize(path), "sha256": sha256(path)}
+    source = {"repo": ULTRA_REPO, "revision": ULTRA_REVISION} if args.source == "ultra" else {"repo": V3_REPO, "revision": V3_REVISION}
     manifest = {
-        "source": {"repo": ULTRA_REPO, "revision": ULTRA_REVISION},
+        "backend": args.backend,
+        "source": source,
         "tokenizer_and_config_from": {"repo": V3_REPO, "revision": V3_REVISION},
         "metadata": metadata,
         "files": files,

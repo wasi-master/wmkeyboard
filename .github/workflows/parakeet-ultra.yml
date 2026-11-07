@@ -12,6 +12,20 @@ on:
         description: Hugging Face model repo to push to (empty = artifact only)
         required: false
         default: ''
+      source:
+        description: ultra (Moondream's weights) or v3 (NVIDIA's own)
+        type: choice
+        options: [ultra, v3]
+        default: ultra
+      backend:
+        description: xnnpack (CPU) or vulkan (phone GPU, libwmexecutorch_vulkan)
+        type: choice
+        options: [xnnpack, vulkan]
+        default: xnnpack
+      vulkan_fp16:
+        description: Vulkan computes in fp16
+        type: boolean
+        default: false
 
 jobs:
   export:
@@ -68,21 +82,24 @@ jobs:
         run: |
           . /opt/et/bin/activate
           python tools/parakeet-ultra/export_ultra.py \
-            --export-script /tmp/export_parakeet_tdt.py --output-dir out
-          cp tools/parakeet-ultra/MODEL_CARD.md out/README.md
-          ls -la out out/xnnpack/int4
+            --export-script /tmp/export_parakeet_tdt.py --output-dir out \
+            --source "${{ inputs.source }}" --backend "${{ inputs.backend }}" \
+            ${{ inputs.vulkan_fp16 && '--vulkan-fp16' || '' }}
+          # The model card describes Ultra; a v3 export goes into a repo of its own.
+          if [ "${{ inputs.source }}" = ultra ]; then cp tools/parakeet-ultra/MODEL_CARD.md out/README.md; fi
+          ls -laR out
 
       - name: Summary
         run: |
           {
             echo '```json'
-            cat out/manifest.json
+            cat out/manifest*.json
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v7
         with:
-          name: parakeet-ultra-executorch
+          name: parakeet-${{ inputs.source }}-${{ inputs.backend }}-executorch
           path: out/
           compression-level: 0
 
@@ -91,6 +108,7 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_REPO: ${{ inputs.hf_repo }}
+          WHAT: Parakeet ${{ inputs.source }}, ExecuTorch v1.5.1 ${{ inputs.backend }} 8da4w
         run: |
           . /opt/et/bin/activate
           python - <<'EOF'
@@ -99,7 +117,11 @@ jobs:
           api = HfApi()
           repo = os.environ["HF_REPO"]
           api.create_repo(repo, repo_type="model", exist_ok=True)
-          commit = api.upload_folder(repo_id=repo, folder_path="out", commit_message="Parakeet Ultra, ExecuTorch v1.5.1 XNNPACK 8da4w")
+          # The manifest is per backend, so pushes of other backends keep theirs.
+          backend = "${{ inputs.backend }}"
+          if backend != "xnnpack":
+              os.rename("out/manifest.json", f"out/manifest-{backend}.json")
+          commit = api.upload_folder(repo_id=repo, folder_path="out", commit_message=os.environ["WHAT"])
           print("revision", commit.oid)
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
               f.write(f"\nPushed to https://huggingface.co/{repo} at revision `{commit.oid}`\n")
