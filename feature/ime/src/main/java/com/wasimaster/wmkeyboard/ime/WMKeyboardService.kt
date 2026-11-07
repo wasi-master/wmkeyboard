@@ -13424,6 +13424,9 @@ open class WMKeyboardService : InputMethodService() {
     private fun processTypedText(input: String, applyDeadKeys: Boolean) {
         commitSteppedCandidateBeforeTyping()
         closeRecentClips()
+        // Before anything reads the keyboard's own space after the mark: this
+        // may take it out.
+        restoreHuggedSpace(input)
         val state = _uiState.value
         var text = input
         // A typed character is new text, so the span a pattern was told to
@@ -13864,6 +13867,8 @@ open class WMKeyboardService : InputMethodService() {
                     RevertibleCommit.Kind.JOIN, original = hugged + text, committed = text,
                 )
                 armRevertGuard()
+                // And so does the next key, when it makes the mark a face (#1166).
+                huggedMark = caretOffset(ic)?.let { HuggedMark(text[0], hugged, it) }
             } else if (isSpacedOpener(text, state)) {
                 // "«" opens a French quotation and the space is part of it, so
                 // it is typed here rather than left for the user — and, being
@@ -14329,6 +14334,43 @@ open class WMKeyboardService : InputMethodService() {
         ic.commitText(SpacedPunctuation.SPACE.toString(), 1)
         invalidateExpectedSelection()
         return removed
+    }
+
+    /**
+     * A mark [takeBackStraySpace] pulled onto the word before it, the spaces
+     * it took, and the caret just past the mark, while the next key may yet
+     * make it an emoticon (#1166). Spent by that key whatever it is.
+     */
+    private data class HuggedMark(val mark: Char, val spaces: String, val at: Int)
+
+    private var huggedMark: HuggedMark? = null
+
+    /**
+     * Puts back the spaces the user typed before a mark the hug rule took them
+     * from, when [next] makes the mark the eyes of an emoticon
+     * ([hugTurnsEmoticon], #1166): `word ;` then `)` is `word ;)`, not
+     * `word;)`. The keyboard's own space after the mark goes, since the face
+     * is one piece. Only right where the hug left the caret, with the mark
+     * (and that space) still standing there; anything else leaves the field
+     * alone. The spaces were the user's own: the rule never takes the
+     * keyboard's.
+     */
+    private fun restoreHuggedSpace(next: String) {
+        val hug = huggedMark ?: return
+        huggedMark = null
+        val ic = currentInputConnection ?: return
+        val caret = caretOffset(ic) ?: return
+        val autoSpaced = pendingPunctuationSpace && caret == hug.at + 1
+        if (caret != hug.at && !autoSpaced) return
+        if (!hugTurnsEmoticon(hug.mark, next, afterSpace = autoSpaced)) return
+        val tail = if (autoSpaced) "${hug.mark} " else hug.mark.toString()
+        if (ic.getTextBeforeCursor(tail.length, 0)?.toString() != tail) return
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(tail.length, 0)
+        ic.commitText(hug.spaces + hug.mark, 1)
+        ic.endBatchEdit()
+        invalidateExpectedSelection()
+        pendingPunctuationSpace = false
     }
 
     /**
