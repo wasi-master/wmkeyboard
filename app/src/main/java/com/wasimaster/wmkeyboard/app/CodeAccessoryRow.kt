@@ -59,54 +59,6 @@ internal enum class AccessoryPage { SYMBOLS, COMMANDS }
 @Immutable
 internal data class AccessoryKey(val label: String, val insert: String, val held: String? = null)
 
-/**
- * The symbol keys, in the order a Lua author reaches for them: what a phone
- * keyboard hides behind a layer switch first, then the keywords. This list is
- * the knob to tune the row with.
- */
-internal val LuaAccessoryKeys: List<AccessoryKey> = listOf(
-    AccessoryKey("=", "=", "=="),
-    AccessoryKey("(", "("),
-    AccessoryKey(")", ")"),
-    AccessoryKey("{", "{"),
-    AccessoryKey("}", "}"),
-    AccessoryKey("\"", "\""),
-    AccessoryKey(",", ","),
-    AccessoryKey(".", ".", ".."),
-    AccessoryKey(":", ":"),
-    AccessoryKey("[", "["),
-    AccessoryKey("]", "]"),
-    AccessoryKey("'", "'"),
-    AccessoryKey("#", "#"),
-    AccessoryKey("~=", "~="),
-    AccessoryKey("<", "<", "<="),
-    AccessoryKey(">", ">", ">="),
-    AccessoryKey("+", "+"),
-    AccessoryKey("-", "-", "--"),
-    AccessoryKey("*", "*"),
-    AccessoryKey("/", "/"),
-    AccessoryKey("%", "%"),
-    AccessoryKey("^", "^"),
-    AccessoryKey("_", "_"),
-    AccessoryKey(";", ";"),
-    AccessoryKey("local", "local "),
-    AccessoryKey("function", "function "),
-    AccessoryKey("return", "return "),
-    AccessoryKey("end", "end"),
-    AccessoryKey("if", "if "),
-    AccessoryKey("then", "then"),
-    AccessoryKey("else", "else"),
-    AccessoryKey("for", "for "),
-    AccessoryKey("in", "in "),
-    AccessoryKey("do", "do"),
-    AccessoryKey("nil", "nil"),
-    AccessoryKey("true", "true"),
-    AccessoryKey("false", "false"),
-    AccessoryKey("and", "and "),
-    AccessoryKey("or", "or "),
-    AccessoryKey("not", "not "),
-)
-
 /** [value] with its selection replaced by [text] and the caret after it, exactly as if typed. */
 internal fun typed(value: TextFieldValue, text: String): TextFieldValue {
     val start = value.selection.min
@@ -150,7 +102,7 @@ internal fun CodeAccessoryRow(
     /** The blocks of the text, for Block start and Block end. */
     blocks: (String) -> List<TextRange> = { emptyList() },
     /** The symbol keys, in the order and with the keys the author chose. */
-    keys: List<AccessoryKey> = LuaAccessoryKeys,
+    keys: List<AccessoryKey> = PythonAccessoryKeys,
     /** Suggestions the field hands over when it is too short to list them at the caret. */
     suggestionBar: CodeSuggestionBar? = null,
 ) {

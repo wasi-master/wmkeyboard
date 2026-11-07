@@ -126,7 +126,7 @@ private const val CHECK_PAUSE_MS = 250L
 /**
  * A layout or a panel layout as JSON, in an editor with the whole window: the
  * suggestions, checks, doc strip, find, folds and code keys of the plugin
- * editor, over the schema of the layout format instead of a Lua API.
+ * editor, over the schema of the layout format instead of the plugin API.
  *
  * Its own Scaffold rather than a settings page, like the plugin editor, because
  * the code needs the height. The draft lives only on this screen, as it always

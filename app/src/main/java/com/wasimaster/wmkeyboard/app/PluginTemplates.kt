@@ -36,26 +36,26 @@ internal enum class PluginTemplate(
     TEXT_TOOLS(
         R.string.plugin_ide_template_text_tools_name,
         R.string.plugin_ide_template_text_tools_description,
-        "text-tools.lua",
+        "text-tools.py",
         emptyList(),
     ),
-    CIPHER(R.string.plugin_ide_template_cipher_name, R.string.plugin_ide_template_cipher_description, "cipher-tool.lua", emptyList()),
+    CIPHER(R.string.plugin_ide_template_cipher_name, R.string.plugin_ide_template_cipher_description, "cipher-tool.py", emptyList()),
     TODO(
         R.string.plugin_ide_template_todo_name,
         R.string.plugin_ide_template_todo_description,
-        "todo-list.lua",
+        "todo-list.py",
         listOf(PluginPermission.Storage, PluginPermission.Reminders),
     ),
     KITCHEN_SINK(
         R.string.plugin_ide_template_kitchen_sink_name,
         R.string.plugin_ide_template_kitchen_sink_description,
-        "ui-kitchen-sink.lua",
+        "ui-kitchen-sink.py",
         emptyList(),
     ),
     TEXT_ACTIONS(
         R.string.plugin_ide_template_text_actions_name,
         R.string.plugin_ide_template_text_actions_description,
-        "text-actions.lua",
+        "text-actions.py",
         listOf(PluginPermission.Storage, PluginPermission.SelectedText),
         listOf(
             PluginActionSpec(id = "rot13", name = "ROT13", summary = "Shift each letter 13 places", icon = "lock"),

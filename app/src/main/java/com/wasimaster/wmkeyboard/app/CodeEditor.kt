@@ -80,7 +80,7 @@ internal fun rememberCodeTextSize(default: Int): MutableState<Int> {
  * tidy it, where its brackets pair up, and what is wrong with it right now.
  *
  * [JsonCode] colours and prints JSON; [LayoutJsonLanguage] adds the layout
- * schema's suggestions and checks on top of it for the two JSON screens; [LuaCode]
+ * schema's suggestions and checks on top of it for the two JSON screens; [PythonCode]
  * serves the plugin editor. The editor itself knows about none of them.
  */
 @Immutable
@@ -107,7 +107,7 @@ internal interface CodeLanguage {
 
     // Everything below has a default, so a language with nothing to say about it
     // says nothing and the editor draws nothing. JsonCode overrides none of them;
-    // LayoutJsonLanguage and LuaCode fill them in.
+    // LayoutJsonLanguage and PythonCode fill them in.
 
     /** What starts a line comment, or null for a language that has none. */
     val lineComment: String?
@@ -540,7 +540,7 @@ internal class CodeEditorState(
         private const val HISTORY_CHARS = 32 * 1024
 
         /**
-         * A saver that restores with [rules], so a Lua document does not come back
+         * A saver that restores with [rules], so a Python document does not come back
          * from a rotation typing like JSON. [keepHistory] also carries the newest
          * undo steps, capped by size: a bundle that is too large is a crash, not a
          * slow save.

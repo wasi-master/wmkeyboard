@@ -46,5 +46,5 @@ private val ImportHubRows = listOf(
     ImportHubRow(R.string.import_hub_stickers_title, R.string.import_hub_stickers_subtitle, "sticker_packs"),
     ImportHubRow(R.string.import_hub_sounds_title, R.string.import_hub_sounds_subtitle, "keypress"),
     ImportHubRow(R.string.import_hub_vocab_title, R.string.import_hub_vocab_subtitle, "vocab/lists"),
-    ImportHubRow(R.string.import_hub_plugins_title, R.string.import_hub_plugins_subtitle, "plugins"),
+    ImportHubRow(R.string.import_hub_plugins_title, R.string.import_hub_plugins_subtitle_python, "plugins"),
 )

@@ -22,7 +22,7 @@
     <string name="import_hub_vocab_title">Vocabulary</string>
     <string name="import_hub_vocab_subtitle">Word lists to study</string>
     <string name="import_hub_plugins_title">Plugins</string>
-    <string name="import_hub_plugins_subtitle">Lua plugins</string>
+    <string name="import_hub_plugins_subtitle_python">Python plugins</string>
     <string name="about_storage_subtitle">See what the app keeps on your device, and delete it</string>
 
     <!-- the summary at the top -->

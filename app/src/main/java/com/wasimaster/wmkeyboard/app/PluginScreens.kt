@@ -157,7 +157,7 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
             WmRow(
                 title = stringResource(R.string.plugin_ide_entry_title),
                 icon = SettingsRowIcons[R.string.plugin_ide_entry_title],
-                subtitle = stringResource(R.string.plugin_ide_entry_subtitle),
+                subtitle = stringResource(R.string.plugin_ide_entry_subtitle_python),
                 trailing = { Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null) },
                 onClick = { onNavigate("plugin_ide") },
             )
@@ -397,12 +397,11 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
                 ),
             ) { store.setEnabled(pluginId, it) }
         }
-        // The editor is Lua's; a Python plugin (a Clink action) is read, not edited, here.
-        item(visible = !plugin.isPython, level = SettingLevel.ADVANCED) {
+        item(level = SettingLevel.ADVANCED) {
             WmRow(
                 title = stringResource(R.string.plugin_ide_edit_title),
                 icon = SettingsRowIcons[R.string.plugin_ide_edit_title],
-                subtitle = stringResource(R.string.plugin_ide_edit_subtitle),
+                subtitle = stringResource(R.string.plugin_ide_edit_subtitle_python),
                 trailing = { Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null) },
                 onClick = {
                     scope.launch {

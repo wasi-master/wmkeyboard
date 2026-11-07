@@ -21,7 +21,7 @@ internal const val MAX_FIND_MATCHES = 10_000
  * `^` and `$` match at every line, and `.` stops at a line break, which is what a
  * search in a code file means. Case folding is Unicode's rather than the phone
  * locale's, so a Turkish phone still finds `I` with `i`. A whole word is bounded
- * by letters, digits and the underscore, the characters a Lua name is made of.
+ * by letters, digits and the underscore, the characters a Python name is made of.
  */
 internal fun findPattern(query: String, options: CodeFindOptions): Pattern? {
     if (query.isEmpty()) return null

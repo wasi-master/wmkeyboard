@@ -453,8 +453,8 @@ data class ResolvedShape(val shape: JsonShape, val property: PropertyShape?)
 
 /**
  * How a shape reads in a suggestion's detail and the doc strip: the words a JSON
- * author already uses. Deliberately untranslated, for the reason `LuaApiDocs`
- * gives: these name the types of a programming format.
+ * author already uses. Deliberately untranslated, for the reason the plugin API docs
+ * give: these name the types of a programming format.
  */
 fun JsonShape.summary(): String = when (this) {
     is ObjectShape -> if (typeName.startsWith("action:")) "action" else typeName

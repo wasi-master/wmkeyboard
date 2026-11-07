@@ -57,7 +57,8 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginDates
 import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
 import com.wasimaster.wmkeyboard.core.plugins.PluginStorage
 import com.wasimaster.wmkeyboard.core.plugins.PluginTargets
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaApi
+import com.wasimaster.wmkeyboard.core.plugins.PythonSession
+import com.wasimaster.wmkeyboard.core.plugins.PythonTooling
 import java.text.NumberFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -201,11 +202,13 @@ internal fun EventsPane(targets: PluginTargets, earlier: List<PluginEvent>, onSe
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.semantics { heading() },
         )
-        var type by rememberSaveable { mutableStateOf(LuaApi.eventTypes.first()) }
+        // The API model's list, which is what on_event is documented to receive.
+        val eventTypes = remember { PythonTooling.api.eventTypes.ifEmpty { PythonSession.EVENT_TYPES } }
+        var type by rememberSaveable { mutableStateOf(eventTypes.first()) }
         var id by rememberSaveable { mutableStateOf("") }
         var value by rememberSaveable { mutableStateOf("") }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            for (option in LuaApi.eventTypes) {
+            for (option in eventTypes) {
                 FilterChip(
                     selected = type == option,
                     onClick = { type = option },

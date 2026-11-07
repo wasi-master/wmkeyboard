@@ -1004,7 +1004,7 @@ object WMFileTypes {
      * The manifest names the archive formats use. Sticker, icon and sound packs
      * all share `pack.json` and are told apart by their format tag; a plugin
      * names its manifest differently so that a `.wmplugin` is recognisable
-     * without reading any Lua.
+     * without reading its code.
      */
     private val ARCHIVE_MANIFESTS =
         setOf(

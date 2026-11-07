@@ -140,6 +140,9 @@ class PythonSession private constructor(@Volatile private var handle: Long) {
     companion object {
         private val json = Json { ignoreUnknownKeys = true }
 
+        /** The `type` of every event [eventJson] sends, in the order the editor offers them. */
+        val EVENT_TYPES = listOf("click", "toggle", "input_changed", "tab_selected", "date_changed")
+
         /**
          * A session for [config], or null when the library is missing or
          * refused the config. A missing library is asked for on the way out,

@@ -4,8 +4,8 @@ package com.wasimaster.wmkeyboard.core.layout.json
  * One short paragraph for each property and each action a layout document can
  * hold, shown in the JSON editor's doc strip for the name under the caret.
  *
- * Kept in Kotlin rather than in string resources, for the reason `LuaApiDocs`
- * gives: this documents a file format whose property names are never translated,
+ * Kept in Kotlin rather than in string resources, for the reason the plugin API docs
+ * give: this documents a file format whose property names are never translated,
  * and a hundred paragraphs in the translation pipeline would cost more than they
  * give. Filed by [PropertyShape.docKey]; an action is `action:<tag>` and its
  * fields `action:<tag>.<field>`. `LayoutJsonSchemaDriftTest` checks that every

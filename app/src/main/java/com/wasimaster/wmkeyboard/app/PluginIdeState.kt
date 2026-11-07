@@ -221,21 +221,21 @@ internal fun uniquePluginId(name: String, taken: Set<String>): String {
 }
 
 /** The plugin a new draft starts as: small, working, and in the house style. */
-internal const val BLANK_PLUGIN_SCRIPT = """-- A plugin draws a panel in the keyboard. render() says what the panel shows,
--- and on_event(e) hears what the user pressed.
+internal const val BLANK_PLUGIN_SCRIPT = """# A plugin draws a panel in the keyboard. render() says what the panel shows,
+# and on_event(e) hears what the user pressed.
 
-local count = 0
+count = 0
 
-function on_event(e)
-  if e.type == "click" and e.id == "add" then
-    count = count + 1
-  end
-end
 
-function render()
-  return ui.column {
-    ui.label { text = "Pressed " .. count .. " times", style = "title" },
-    ui.button { id = "add", text = "Press me", style = "primary" },
-  }
-end
+def on_event(e):
+    global count
+    if e.type == "click" and e.id == "add":
+        count += 1
+
+
+def render():
+    return ui.column(
+        ui.label("Pressed " + str(count) + " times", style="title"),
+        ui.button("add", "Press me", style="primary"),
+    )
 """
