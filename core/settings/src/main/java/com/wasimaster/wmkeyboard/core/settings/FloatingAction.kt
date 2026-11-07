@@ -193,8 +193,12 @@ fun FloatingAction.fitsMenu(): Boolean = this != FloatingAction.None && this != 
 /** A category's slot is anything a menu slot can be but another category: one level deep (#923). */
 fun FloatingAction.fitsCategory(): Boolean = fitsMenu() && this !is FloatingAction.Category
 
-/** How many slots the quick menu fans out; past this the ring stops reading as a ring. */
-const val MAX_FLOATING_MENU_ITEMS = 8
+/**
+ * How many slots the quick menu, or a category, fans out (#1172): eight on
+ * the ring round the button, and up to eight more on a second ring outside
+ * it. Past that the rings stop fitting on a phone's screen.
+ */
+const val MAX_FLOATING_MENU_ITEMS = 16
 
 /** The quick menu a fresh install opens with: the reasons people asked for the button. */
 val DefaultFloatingMenu: List<FloatingAction> = listOf(

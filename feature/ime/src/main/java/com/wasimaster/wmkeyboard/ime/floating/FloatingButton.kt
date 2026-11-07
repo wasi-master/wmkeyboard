@@ -676,7 +676,7 @@ internal class FloatingButton(
         val labels = setting.menuLabels
         val itemHalf = FLOATING_MENU_ITEM_DP * density / 2f
         menu.anchor = anchor
-        menu.centers = floatingFan(
+        menu.centers = floatingRings(
             count = slots.size,
             anchor = anchor,
             width = width.toFloat(),
@@ -972,6 +972,14 @@ internal class FloatingButton(
         R.id.floating_button_action_slot_5,
         R.id.floating_button_action_slot_6,
         R.id.floating_button_action_slot_7,
+        R.id.floating_button_action_slot_8,
+        R.id.floating_button_action_slot_9,
+        R.id.floating_button_action_slot_10,
+        R.id.floating_button_action_slot_11,
+        R.id.floating_button_action_slot_12,
+        R.id.floating_button_action_slot_13,
+        R.id.floating_button_action_slot_14,
+        R.id.floating_button_action_slot_15,
     )
 
     /**

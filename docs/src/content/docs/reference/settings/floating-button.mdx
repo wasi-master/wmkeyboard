@@ -34,7 +34,7 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 | Swipe up, Swipe up and right, Swipe right, Swipe down and right, Swipe down, Swipe down and left, Swipe left, Swipe up and left *(shown only while Fixed in place is on)* | Action each | **Nothing** |
 | Tap while open *(shown only while Show while typing is on)* | Action | **Same as Tap** |
 | Double tap while open *(shown only while Show while typing is on)* | Action | **Same as Double tap** |
-| Quick menu | List of up to 8 actions | Voice, Ask AI about this screen, Clipboard, Emoji, Show keyboard |
+| Quick menu | List of up to 16 actions | Voice, Ask AI about this screen, Clipboard, Emoji, Show keyboard |
 | Show names | Toggle | On |
 | Distance from the button | Slider, 8 to 96 dp | 22 dp |
 | Opening animation | Choice of 5 | **Spring** |
@@ -119,7 +119,7 @@ Set **Tap while open** to **Leave field** and the button opens the keyboard with
 
 The quick menu fans out around the button, facing the middle of the screen, so a button on the right edge opens to the left and one near a top corner opens down and inwards. Near the top or bottom of the screen the whole fan turns away from the edge, and widens if it has to, so every action stays on screen with the same gap between them. Opened by **Press and hold**, it can be used without letting go: slide your finger onto an action and lift it there to run it. Let go without moving and the menu stays open for a tap. Tap anywhere else, the cross where the button was, or Back (the button or the back gesture) to close it. Back closes only the menu: the app underneath doesn't see it, and the keyboard stays up if it was.
 
-The list on the screen is the menu in the order it fans out. Drag an action by its handle to move it, and use its bin to remove it. **Add an action** offers the same list as the gestures, without **Quick menu** and **Nothing**, and without what's already in the menu, plus **New category** (see [Categories](#categories)). The menu holds up to eight actions.
+The list on the screen is the menu in the order it fans out. Drag an action by its handle to move it, and use its bin to remove it. **Add an action** offers the same list as the gestures, without **Quick menu** and **Nothing**, and without what's already in the menu, plus **New category** (see [Categories](#categories)). The menu holds up to sixteen actions. The first eight fan out round the button as before; from the ninth on, a second, wider ring opens outside the first, its actions sitting in the gaps between the inner ones. Both rings stay on screen, and a slide from **Press and hold** reaches either one. Sixteen actions with names under them take most of a phone's screen, so turning **Show names** off is worth it for a full menu.
 
 If no gesture opens the menu, a row says so, and tapping it sets **Press and hold** to **Quick menu**.
 
@@ -139,7 +139,7 @@ If no gesture opens the menu, a row says so, and tapping it sets **Press and hol
 
 ### Categories
 
-A category is an action in the quick menu that opens a ring of up to eight more actions in place of the menu's own. Make one with **Add an action** › **New category**: it joins the end of the menu, named **Category**, and its page opens. There you can rename it, give it an **Icon** so it can be told apart from your other categories in the menu (it's a folder until you pick one, and **Folder** in the picker puts that back), add actions with **Add an action** (anything a menu action can be except another category, so a category is one level deep), drag them into order and remove them. **Remove the category** takes it and everything in it out of the menu. Later, the pencil beside the category in the menu list opens its page again. Removing a category from the menu list removes it too.
+A category is an action in the quick menu that opens a ring of up to sixteen more actions in place of the menu's own, on two rings past eight, like the menu. Make one with **Add an action** › **New category**: it joins the end of the menu, named **Category**, and its page opens. There you can rename it, give it an **Icon** so it can be told apart from your other categories in the menu (it's a folder until you pick one, and **Folder** in the picker puts that back), add actions with **Add an action** (anything a menu action can be except another category, so a category is one level deep), drag them into order and remove them. **Remove the category** takes it and everything in it out of the menu. Later, the pencil beside the category in the menu list opens its page again. Removing a category from the menu list removes it too.
 
 On the button, tap a category in the open menu and its ring replaces the menu's. The cross where the button was turns into a back arrow: tap it, or press Back, to go back to the quick menu, and tap anywhere else to close it all. When you open the menu with **Press and hold**, slide onto a category and rest there for a moment, and its ring opens under your finger. Keep sliding onto one of its actions and lift your finger to run it. A category with nothing in it says so instead of opening.
 

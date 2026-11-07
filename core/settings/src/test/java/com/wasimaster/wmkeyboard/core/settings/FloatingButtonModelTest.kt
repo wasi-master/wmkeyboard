@@ -117,6 +117,13 @@ class FloatingButtonModelTest {
     }
 
     @Test
+    fun aMenuHoldsSixteenSlots() {
+        val many = (1..20).map { FloatingAction.App("com.a.p$it") }
+        assertEquals(16, FloatingAction.parseMenu(FloatingAction.menuToken(many)).size)
+        assertEquals(MAX_FLOATING_MENU_ITEMS, categoryItems(many).size)
+    }
+
+    @Test
     fun aCategoryKeepsItsIcon() {
         val categories = listOf(FloatingCategory("c1", "Work", listOf(maps), icon = "work"), FloatingCategory("c2", "B"))
         assertEquals(categories, decodeFloatingCategories(encodeFloatingCategories(categories)))

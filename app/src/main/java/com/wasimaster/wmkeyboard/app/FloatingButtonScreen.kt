@@ -101,7 +101,8 @@ import com.wasimaster.wmkeyboard.ime.floating.FloatingEdgePill
 import com.wasimaster.wmkeyboard.ime.floating.FloatingMenuItem
 import com.wasimaster.wmkeyboard.ime.floating.floatingActionIcon
 import com.wasimaster.wmkeyboard.ime.floating.floatingActionLabel
-import com.wasimaster.wmkeyboard.ime.floating.floatingFan
+import com.wasimaster.wmkeyboard.ime.floating.FLOATING_RING_SIZE
+import com.wasimaster.wmkeyboard.ime.floating.floatingRings
 import com.wasimaster.wmkeyboard.ime.floating.rememberFloatingAppIcon
 import com.wasimaster.wmkeyboard.ime.ui.ModeIcons
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
@@ -671,7 +672,14 @@ private fun FloatingButtonPreview(button: SummonButtonSettings) {
         BoxWithConstraints(
             Modifier
                 .fillMaxWidth()
-                .height(if (button.menuLabels) 300.dp else 260.dp)
+                // Taller once a second ring is out (#1172), so the preview still holds it.
+                .height(
+                    when {
+                        slots.size > FLOATING_RING_SIZE -> if (button.menuLabels) 460.dp else 400.dp
+                        button.menuLabels -> 300.dp
+                        else -> 260.dp
+                    },
+                )
                 .clip(RoundedCornerShape(24.dp))
                 .background(colors.surfaceContainerHighest)
                 .alpha(if (button.enabled) 1f else 0.55f),
@@ -700,7 +708,7 @@ private fun FloatingButtonPreview(button: SummonButtonSettings) {
             )
             val centers = remember(slots.size, widthPx, heightPx, anchor, button.menuLabels, disc, button.menuGapDp) {
                 with(density) {
-                    floatingFan(
+                    floatingRings(
                         count = slots.size,
                         anchor = anchor,
                         width = widthPx,
