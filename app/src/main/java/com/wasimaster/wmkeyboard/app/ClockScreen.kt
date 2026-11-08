@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.app
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -320,9 +321,13 @@ private fun AlarmDialog(
             }
         },
         text = {
+            // Scrolls: the time picker alone fills most of a phone's dialog,
+            // and the rows under it, this alarm's snooze count among them,
+            // were cut off below it with no way down to them (#970).
             Column(
                 Modifier
                     .heightIn(max = 560.dp)
+                    .verticalScroll(rememberScrollState())
                     .animateContentSize(),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
