@@ -474,12 +474,15 @@ internal fun HighlightableRow(
             title == null || NewSettings.titles.isEmpty() -> false
             else -> NewSettings.entries.any { it.title == title }
         }
+        // Inside a group card the border takes the card's own corners: the
+        // card clips to them, and a rounder end corner cut a 12 dp outline (#1184).
+        val newBorderShape = LocalGroupCardShape.current ?: RoundedCornerShape(12.dp)
         HighlightFrame(
             requested = requested,
             rank = if (coarse) HighlightRank.SECTION else HighlightRank.ROW,
             modifier = Modifier
                 .settingLinkHold(hold, disabledReason, whatIsThis)
-                .then(if (isNew) Modifier.border(1.5.dp, NewSettingGold, RoundedCornerShape(12.dp)) else Modifier),
+                .then(if (isNew) Modifier.border(1.5.dp, NewSettingGold, newBorderShape) else Modifier),
         ) {
             if (LocalRowPeeked.current) PeekedContent(content) else content()
             RowHoldMenu(hold)
