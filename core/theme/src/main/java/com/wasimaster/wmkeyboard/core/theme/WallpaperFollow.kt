@@ -189,10 +189,35 @@ private fun ThemeSpec.anchorHue(): Float? =
         .firstOrNull { it.chroma >= CHROMATIC }
         ?.hue
 
-private fun toneRemap(tones: WallpaperTones, anchorHue: Float?): (Long) -> Long = remap@{ color ->
-    // Fully transparent draws nothing, and the black it usually carries is
-    // not a colour anybody chose.
-    if (color and ALPHA == 0L) return@remap color
+private fun toneRemap(tones: WallpaperTones, anchorHue: Float?): (Long) -> Long {
+    val shades = paletteShades(tones)
+    return remap@{ color ->
+        // Fully transparent draws nothing, and the black it usually carries is
+        // not a colour anybody chose.
+        if (color and ALPHA == 0L) return@remap color
+        // Already one of the wallpaper's own shades: picked off the colour
+        // picker's Palette tab, which shows exactly these. Moving it again by
+        // chroma and lightness put a different palette or tone on the keys
+        // from the swatch the user chose.
+        if ((color and RGB) in shades) return@remap color
+        toneMoved(tones, anchorHue, color)
+    }
+}
+
+/**
+ * Every shade the colour picker's Palette tab can offer from [tones]: each of
+ * the five palettes at each whole tone, as [WallpaperTones.shade] mixes them.
+ */
+private fun paletteShades(tones: WallpaperTones): Set<Long> {
+    val shades = HashSet<Long>()
+    for (palette in tones.palettes) {
+        if (palette.size != WallpaperTones.TONES.size) continue
+        for (tone in 0..100) shades += WallpaperTones.shade(palette, tone) and RGB
+    }
+    return shades
+}
+
+private fun toneMoved(tones: WallpaperTones, anchorHue: Float?, color: Long): Long {
     val lab = Lab.of(color)
     val palette = when {
         lab.chroma < NEUTRAL -> tones.neutral
@@ -201,7 +226,7 @@ private fun toneRemap(tones: WallpaperTones, anchorHue: Float?): (Long) -> Long 
         anchorHue != null && hueDistance(lab.hue, anchorHue) > FAR_HUE -> tones.tertiary
         else -> tones.primary
     }
-    (color and ALPHA) or (atTone(palette, lab.l) and RGB)
+    return (color and ALPHA) or (atTone(palette, lab.l) and RGB)
 }
 
 /** The palette's colour at [tone], between the two published shades around it. */
