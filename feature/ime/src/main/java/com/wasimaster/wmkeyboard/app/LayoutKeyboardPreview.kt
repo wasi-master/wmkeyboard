@@ -1,13 +1,11 @@
 package com.wasimaster.wmkeyboard.app
 
 import android.os.SystemClock
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -43,7 +41,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.focusGroup
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalConfiguration
@@ -240,6 +240,33 @@ fun LayoutKeyboardPreview(
         render = null
     }
 
+    // The picture on top, and what it is fading in over. Not a Crossfade:
+    // that fades the old picture out while the new one fades in, and two
+    // opaque pictures at half strength each let a quarter of the card show
+    // through at the midpoint. A card swapping a stale picture for the exact
+    // one — which a fast scroll does on card after card — dipped and came
+    // back. Here the old one stays solid until the new one is fully in.
+    var top by remember(layoutId) { mutableStateOf(picture) }
+    var below by remember(layoutId) { mutableStateOf<ImageBitmap?>(null) }
+    var belowSkeleton by remember(layoutId) { mutableStateOf(false) }
+    val fadeIn = remember(layoutId) { Animatable(1f) }
+    LaunchedEffect(picture) {
+        val next = picture
+        if (next === top) return@LaunchedEffect
+        if (fade && next != null) {
+            below = top
+            belowSkeleton = top == null
+            top = next
+            fadeIn.snapTo(0f)
+            fadeIn.animateTo(1f, tween(PICTURE_FADE_MS))
+        } else {
+            fadeIn.snapTo(1f)
+            top = next
+        }
+        below = null
+        belowSkeleton = false
+    }
+
     Box(
         modifier = modifier
             .onSizeChanged { widthPx = it.width }
@@ -250,29 +277,23 @@ fun LayoutKeyboardPreview(
             .focusGroup(),
     ) {
         val job = render
-        Crossfade(
-            picture,
-            animationSpec = if (fade) tween(PICTURE_FADE_MS) else snap(),
-            label = "layoutPreview",
-        ) { shown ->
-            if (shown != null) {
-                Image(
-                    bitmap = shown,
-                    contentDescription = null,
-                    contentScale = ContentScale.FillBounds,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(shown.width.toFloat() / shown.height.coerceAtLeast(1)),
-                )
-            } else if (job == null) {
-                BoardSkeleton(LayoutPreviewCache.lastAspect)
-            }
+        // What was showing before, held fully opaque underneath while the
+        // new picture fades in over it — or the skeleton, when that was it.
+        val under = below
+        if (under != null) {
+            PreviewPicture(under)
+        } else if (top == null || belowSkeleton) {
+            if (job == null || belowSkeleton) BoardSkeleton(LayoutPreviewCache.lastAspect)
+        }
+        val shownTop = top
+        if (shownTop != null) {
+            PreviewPicture(shownTop, Modifier.graphicsLayer { alpha = fadeIn.value })
         }
         if (job != null) {
             // Drawn only when there is no picture to show: otherwise the board
             // is recorded for the picture and nothing else, and the old
             // picture stays up until the new one replaces it.
-            val visible = picture == null
+            val visible = shownTop == null
             LiveBoard(
                 state = job.state,
                 modifier = Modifier.drawWithContent {
@@ -283,6 +304,19 @@ fun LayoutKeyboardPreview(
             )
         }
     }
+}
+
+/** One picture of a board, as wide as the card and as tall as its own shape. */
+@Composable
+private fun PreviewPicture(picture: ImageBitmap, modifier: Modifier = Modifier) {
+    Image(
+        bitmap = picture,
+        contentDescription = null,
+        contentScale = ContentScale.FillBounds,
+        modifier = modifier
+            .fillMaxWidth()
+            .aspectRatio(picture.width.toFloat() / picture.height.coerceAtLeast(1)),
+    )
 }
 
 /**
