@@ -496,6 +496,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Reorder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Checklist
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FilterList
 import com.wasimaster.wmkeyboard.core.settings.isOwnRow
+import com.wasimaster.wmkeyboard.core.settings.stripToolboxSwipes
 import com.wasimaster.wmkeyboard.core.settings.stripHidden
 import com.wasimaster.wmkeyboard.core.settings.autoBottomPaddingDp
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
@@ -3803,7 +3804,10 @@ private fun TopBar(
     // Suggestions-first mode keeps the strip as the resting state (an empty
     // strip plus the chevron into the toolbar); the override then survives
     // idle gaps and instead resets when fresh candidates arrive.
-    val suggestionsFirst = state.settings.suggestionStrip.suggestionsFirst && state.settings.suggestions
+    // Tools on a swipe (#970) rest on the strip the same way: the toolbar only
+    // comes up when the toolbox button is swiped, never because the strip ran dry.
+    val suggestionsFirst = (state.settings.suggestionStrip.suggestionsFirst && state.settings.suggestions) ||
+        state.settings.toolbarBehavior.placement == ToolbarPlacement.ON_SWIPE
     // An empty field predicts its first word (#119), so the strip always had
     // words at rest and turning "Suggestion strip always visible" off did
     // nothing. With it off those openers do not exist (#629): the toolbar
@@ -4160,12 +4164,18 @@ private fun TopBar(
         LayoutDirection.Ltr
     }
     val pinnedFeedback = LocalKeyPressFeedback.current
-    val onPinnedTools = {
-        pinnedFeedback()
-        if (toolsOwnRow) {
-            onToolsRowToggle()
-        } else {
-            toolbarOverride = !toolbarOverride
+    // A swipe on a toolbox button (#970): up opens the pinned tools, down
+    // closes them, and a swipe that asks for what is already there does nothing.
+    val onPinnedTools: (Boolean) -> Unit = { open ->
+        when {
+            toolsOwnRow -> if (toolsRowOpen != open) {
+                pinnedFeedback()
+                onToolsRowToggle()
+            }
+            toolbarOverride != open -> {
+                pinnedFeedback()
+                toolbarOverride = open
+            }
         }
     }
     // One layout cache for every word and emoji the strip draws, kept for as
@@ -4357,13 +4367,19 @@ private fun TopBar(
         // emoji then slid right, was handed to the strip, and slid back left
         // past where it started. One decision, and the row moves once, when the
         // surface it belongs to arrives.
+        // The arrow can go (#970) where a toolbox button on screen does its
+        // job by a swipe: the strip's own while the strip shows, the bar's
+        // while the toolbar covers the strip. Without that button the arrow
+        // stays, as the only way in or out.
+        val swipeInstead = (placement == ToolbarPlacement.ON_SWIPE || !state.settings.toolbarBehavior.toolsArrow) &&
+            if (showToolbar) barToolboxShown(state) else state.settings.stripToolboxSwipes()
         AnimatedVisibility(
-            visible = !toolsColumn && when (placement) {
+            visible = !toolsColumn && !swipeInstead && when (placement) {
                 // The row is always there; there is nothing for a chevron to do.
                 ToolbarPlacement.ALWAYS_ROW -> false
                 // The chevron *is* the way to that row, so it is always offered.
                 ToolbarPlacement.ON_DEMAND_ROW -> true
-                ToolbarPlacement.STRIP -> !showToolbar ||
+                ToolbarPlacement.STRIP, ToolbarPlacement.ON_SWIPE -> !showToolbar ||
                     (
                         wantToolbar && state.panel == PanelMode.NONE &&
                             (hasSuggestions || suggestionsFirst)
@@ -4432,6 +4448,7 @@ private fun TopBar(
                 state, onPanelChange, onToolTap, drag, toolContentAlpha,
                 sharedTools = stripToolSet(state),
                 fadeShared = emojiFadesWithTools && wantToolbar,
+                onToolboxSwipeDown = { onPinnedTools(false) },
             )
             if (state.settings.emojiBarMode == EmojiBarMode.BUTTON) {
                 IconHint(stringResource(R.string.ime_emoji_row_show_desc)) {
@@ -11108,7 +11125,7 @@ private fun StripTools(
     toolsRowVisible: Boolean,
     drag: ToolDragController,
     onToolTap: (ToolbarTool) -> Unit,
-    onPinnedTools: () -> Unit,
+    onPinnedTools: (Boolean) -> Unit,
     onToolbox: () -> Unit,
 ) {
     val onRow = if (toolsRowVisible) visibleToolbarTools(state) else emptyList()
@@ -11155,27 +11172,51 @@ private fun stripToolsAtEnd(state: KeyboardUiState): Boolean =
 
 private const val ToolboxSwipeUpDp = 16
 
+/**
+ * Whether the pinned tools start with their toolbox button (#970). Always
+ * while a tool is open, since that bar covers the strip and the strip's own
+ * button with it, and always when the strip has no toolbox button: hiding
+ * both would leave the toolbox reachable only from a key.
+ */
+private fun barToolboxShown(state: KeyboardUiState): Boolean =
+    state.settings.toolbarBehavior.barToolbox || state.panel != PanelMode.NONE ||
+        !state.settings.stripToolboxSwipes()
+
+/**
+ * A vertical swipe on a toolbox button (#970): [onSwipe] with true for up,
+ * false for down, once the finger has travelled [ToolboxSwipeUpDp]. A shorter
+ * drag is nothing, and the tap underneath stays the button's own.
+ */
+private fun Modifier.toolboxSwipes(onSwipe: (up: Boolean) -> Unit): Modifier = pointerInput(Unit) {
+    var travel = 0f
+    detectVerticalDragGestures(
+        onDragStart = { travel = 0f },
+        onDragEnd = {
+            val threshold = ToolboxSwipeUpDp.dp.toPx()
+            when {
+                travel < -threshold -> onSwipe(true)
+                travel > threshold -> onSwipe(false)
+            }
+        },
+    ) { change, amount ->
+        change.consume()
+        travel += amount
+    }
+}
+
 /** The toolbox launcher among the buttons beside the suggestions (#970). */
 @Composable
-private fun StripToolboxButton(state: KeyboardUiState, onPinnedTools: () -> Unit, onToolbox: () -> Unit) {
+private fun StripToolboxButton(state: KeyboardUiState, onPinnedTools: (Boolean) -> Unit, onToolbox: () -> Unit) {
     val behavior = state.settings.toolbarBehavior
     val label = stringResource(R.string.ime_toolbox_desc)
-    val swipedUp by rememberUpdatedState(onPinnedTools)
+    val swiped by rememberUpdatedState(onPinnedTools)
     ToolCircle(
         slot = IconSlots.CHROME_TOOLBOX,
         description = label,
         active = false,
-        // A swipe up does what the chevron does: the pinned tools (#970).
-        modifier = Modifier.pointerInput(Unit) {
-            var travel = 0f
-            detectVerticalDragGestures(
-                onDragStart = { travel = 0f },
-                onDragEnd = { if (travel < -ToolboxSwipeUpDp.dp.toPx()) swipedUp() },
-            ) { change, amount ->
-                change.consume()
-                travel += amount
-            }
-        },
+        // A swipe up does what the chevron does: the pinned tools (#970). A
+        // swipe down puts them away again.
+        modifier = Modifier.toolboxSwipes { up -> swiped(up) },
         longPressLabel = label,
         wide = true,
         widthDp = behavior.stripToolWidthDp.takeIf { behavior.stripOwnSize },
@@ -11338,6 +11379,8 @@ private fun ToolsRow(
     onPanelChange: (PanelMode) -> Unit,
     onToolTap: (ToolbarTool) -> Unit,
     drag: ToolDragController,
+    /** A swipe down on the row's toolbox button, to close a row that opens on demand (#970). */
+    onToolboxSwipeDown: (() -> Unit)? = null,
 ) {
     val direction = if (toolbarReadsRtl(state)) LayoutDirection.Rtl else LayoutDirection.Ltr
     CompositionLocalProvider(LocalLayoutDirection provides direction) {
@@ -11348,7 +11391,7 @@ private fun ToolsRow(
                 .toolbarPadding(state.settings),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            ToolbarRow(state, onPanelChange, onToolTap, drag)
+            ToolbarRow(state, onPanelChange, onToolTap, drag, onToolboxSwipeDown = onToolboxSwipeDown)
         }
     }
 }
@@ -11452,7 +11495,7 @@ private fun ToolsColumn(
             ) { onPanelChange(state.panel) }
         }
         if (toolboxSearchShown && !searchAtEnd) toolboxSearch()
-        ToolCircle(
+        if (barToolboxShown(state)) ToolCircle(
             slot = IconSlots.CHROME_TOOLBOX,
             description = stringResource(R.string.ime_toolbox_desc),
             active = customizing,
@@ -11648,6 +11691,12 @@ private fun RowScope.ToolbarRow(
     // The tools the suggestion strip also draws a copy of (see [stripToolSet]).
     sharedTools: Set<ToolbarTool> = emptySet(),
     fadeShared: Boolean = false,
+    /**
+     * A swipe down on the toolbox button (#970): puts the pinned tools away,
+     * the way a swipe up on the strip's own toolbox button brought them.
+     * Null where the bar is not one that can be put away.
+     */
+    onToolboxSwipeDown: (() -> Unit)? = null,
 ) {
     val customizing = state.panel == PanelMode.TOOLBOX
     // Scrolling wants the tools at their natural width, so it overrides the
@@ -11794,7 +11843,9 @@ private fun RowScope.ToolbarRow(
         // The toolbox's search, when it sits beside the way back rather than
         // at the far end (see [toolboxSearchCell]).
         if (toolboxSearchShown && !searchAtEnd) toolboxSearchCell(cell)
-        Box(cell, contentAlignment = Alignment.Center) {
+        // Left out at rest when the strip's own button is the way in (#970).
+        // An open tool covers the strip, so the bar keeps it then.
+        if (barToolboxShown(state)) Box(cell, contentAlignment = Alignment.Center) {
             ToolCircle(
                 slot = IconSlots.CHROME_TOOLBOX,
                 description = stringResource(R.string.ime_toolbox_desc),
@@ -11819,6 +11870,13 @@ private fun RowScope.ToolbarRow(
                     // The width a pinned button actually gets, published for the
                     // strip's emoji shortcut to match (see [pinnedToolWidthPx]).
                     .onSizeChanged { drag.pinnedToolWidthPx = it.width }
+                    .then(
+                        if (onToolboxSwipeDown != null && !panelOpen) {
+                            Modifier.toolboxSwipes { up -> if (!up) onToolboxSwipeDown() }
+                        } else {
+                            Modifier
+                        },
+                    )
                     .animatePlacement(enabled = motion, inRow = true) { drag.bodyCoords }
                     // Under the slide, never over it: a fade renders offscreen
                     // and clips to its own node, so a stationary fade around a
@@ -14828,7 +14886,12 @@ private fun KeyboardBody(
                                     ExitTransition.None
                                 },
                             ) {
-                                ToolsRow(state, onPanelChange, onToolTap, drag)
+                                ToolsRow(
+                                    state, onPanelChange, onToolTap, drag,
+                                    onToolboxSwipeDown = { toolsRowOpen = false }.takeIf {
+                                        placement == ToolbarPlacement.ON_DEMAND_ROW
+                                    },
+                                )
                             }
                         }
                         // Stickers the text asked for (#329), in a row of

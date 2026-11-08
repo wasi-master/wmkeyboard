@@ -37,6 +37,7 @@ import com.wasimaster.wmkeyboard.core.settings.BoardCornerRadiusRange
 import com.wasimaster.wmkeyboard.core.settings.SidePadScaleRange
 import com.wasimaster.wmkeyboard.core.settings.ToolbarHeightRange
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPaddingRange
+import com.wasimaster.wmkeyboard.core.settings.stripToolboxSwipes
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts
@@ -339,6 +340,7 @@ internal fun AppearanceToolbarSettings(
     val toolbarOn = settings.watch { it.toolbarBehavior.enabled }
     val toolbarOnlyHw = settings.watch { it.toolbarBehavior.onlyWithHardwareKeyboard }
     val placement = settings.watch { it.toolbarBehavior.placement }
+    val stripSwipes = settings.watch { it.stripToolboxSwipes() }
     val labelsOn = settings.watch { it.toolbarLabels }
     val toolCircleOn = settings.watch { it.toolCircleRadiusDp > 0 }
     val toolbarMoved = settings.watch { s ->
@@ -413,6 +415,8 @@ internal fun AppearanceToolbarSettings(
                             stringResource(R.string.appearance_toolbar_placement_button_label),
                         ToolbarPlacement.ALWAYS_ROW to
                             stringResource(R.string.appearance_toolbar_placement_always_label),
+                        ToolbarPlacement.ON_SWIPE to
+                            stringResource(R.string.appearance_toolbar_placement_swipe_label),
                     ),
                     selected = placement,
                     detail = { placement -> ChoiceDetail(stringResource(toolbarPlacementDescRes(placement))) },
@@ -430,6 +434,29 @@ internal fun AppearanceToolbarSettings(
                     info = stringResource(R.string.appearance_toolbar_show_strip_info),
                     default = SettingsDefaults.toolbarBehavior.showStrip,
                 ) { scope.launch { repository.setToolbarShowStrip(it) } }
+            }
+            // The toolbox button before the pinned tools, and the strip's arrow
+            // to them (#970): both can go once the strip has a toolbox button
+            // of its own, whose swipe up and down opens and closes the tools.
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
+                    R.string.appearance_toolbar_bar_toolbox_title,
+                    stringResource(R.string.appearance_toolbar_bar_toolbox_subtitle),
+                    settings.watch { it.toolbarBehavior.barToolbox || !it.stripToolboxSwipes() },
+                    enabled = stripSwipes,
+                    disabledReason = DisabledReason(stringResource(R.string.appearance_toolbar_needs_strip_toolbox)),
+                    default = SettingsDefaults.toolbarBehavior.barToolbox,
+                ) { scope.launch { repository.setToolbarBarToolbox(it) } }
+            }
+            if (placement == ToolbarPlacement.STRIP || placement == ToolbarPlacement.ON_DEMAND_ROW) item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
+                    R.string.appearance_toolbar_tools_arrow_title,
+                    stringResource(R.string.appearance_toolbar_tools_arrow_subtitle),
+                    settings.watch { it.toolbarBehavior.toolsArrow || !it.stripToolboxSwipes() },
+                    enabled = stripSwipes,
+                    disabledReason = DisabledReason(stringResource(R.string.appearance_toolbar_needs_strip_toolbox)),
+                    default = SettingsDefaults.toolbarBehavior.toolsArrow,
+                ) { scope.launch { repository.setToolbarToolsArrow(it) } }
             }
             // Sideways only (#970): a column down one side of the keys in
             // place of anything along the top, for a screen with width to
@@ -2175,6 +2202,7 @@ private fun toolbarPlacementDescRes(placement: ToolbarPlacement): Int = when (pl
     ToolbarPlacement.STRIP -> R.string.appearance_toolbar_placement_strip_desc
     ToolbarPlacement.ON_DEMAND_ROW -> R.string.appearance_toolbar_placement_button_desc
     ToolbarPlacement.ALWAYS_ROW -> R.string.appearance_toolbar_placement_always_desc
+    ToolbarPlacement.ON_SWIPE -> R.string.appearance_toolbar_placement_swipe_desc
 }
 
 private val DefaultToolbarFit = when {

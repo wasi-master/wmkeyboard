@@ -2067,6 +2067,20 @@ data class ToolbarBehavior(
      */
     val stripToolbox: Boolean = false,
     /**
+     * The toolbox button at the head of the pinned tools (#970). Off leaves it
+     * out while no tool is open, for someone who reaches the toolbox from
+     * [stripToolbox] instead. An open tool still shows it: that bar covers
+     * the strip, and the strip's button with it.
+     */
+    val barToolbox: Boolean = true,
+    /**
+     * The arrow on the suggestion strip that opens and closes the pinned tools
+     * (#970). Off counts only while the strip has its own toolbox button
+     * ([stripToolboxSwipes]), whose swipe up and down does the same; without
+     * one the arrow stays, as the only way in.
+     */
+    val toolsArrow: Boolean = true,
+    /**
      * The pinned tools wear their own colours, the ones Colorful tool icons
      * gives them in the toolbox (#970). Off by default: the bar keeps the
      * theme's one toolbar-icon colour.
@@ -2128,7 +2142,19 @@ sealed interface ToolHoldAction {
  * (FUTO's arrangement); [ALWAYS_ROW] keeps it open (LeanType's). Both cost one
  * strip's worth of keyboard height while the row is up, which is the trade.
  */
-enum class ToolbarPlacement { STRIP, ON_DEMAND_ROW, ALWAYS_ROW }
+enum class ToolbarPlacement {
+    STRIP,
+    ON_DEMAND_ROW,
+    ALWAYS_ROW,
+
+    /**
+     * The tools share the strip as in [STRIP], but only when asked for (#970):
+     * the strip rests on the suggestions, a swipe up on its toolbox button
+     * flips it to the tools and a swipe down flips it back. No arrow while
+     * that button is there to swipe.
+     */
+    ON_SWIPE,
+}
 
 /**
  * Which side of the keys the pinned tools stand on in landscape
@@ -2162,7 +2188,14 @@ fun KeyboardSettings.bottomPaddingOr(gestureBar: Boolean): Int =
     bottomPaddingDp ?: autoBottomPaddingDp(gestureBar)
 
 /** True while the tools have a row of their own rather than sharing the strip. */
-val ToolbarPlacement.isOwnRow: Boolean get() = this != ToolbarPlacement.STRIP
+val ToolbarPlacement.isOwnRow: Boolean
+    get() = this == ToolbarPlacement.ON_DEMAND_ROW || this == ToolbarPlacement.ALWAYS_ROW
+
+/**
+ * True while the strip has a toolbox button among its own ([ToolbarBehavior.stripToolbox]),
+ * the one a swipe up and down opens and closes the pinned tools from (#970).
+ */
+fun KeyboardSettings.stripToolboxSwipes(): Boolean = emojiToolbar && toolbarBehavior.stripToolbox
 
 /**
  * True while the suggestion strip has given up its row (#302): the tools are
@@ -12048,6 +12081,8 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_STRIP_ICON_SIZE = intPreferencesKey("toolbar_strip_icon_size")
         private val TOOLBAR_STRIP_AT_END = booleanPreferencesKey("toolbar_strip_at_end")
         private val TOOLBAR_STRIP_TOOLBOX = booleanPreferencesKey("toolbar_strip_toolbox")
+        private val TOOLBAR_BAR_TOOLBOX = booleanPreferencesKey("toolbar_bar_toolbox")
+        private val TOOLBAR_TOOLS_ARROW = booleanPreferencesKey("toolbar_tools_arrow")
         private val TOOLBAR_DRAG_REARRANGE = booleanPreferencesKey("toolbar_drag_rearrange")
         private val THEMES_PANEL_BUILTINS = stringSetPreferencesKey("themes_panel_builtins")
         private val COMMA_AS_EMOJI = booleanPreferencesKey("comma_as_emoji")
@@ -14528,6 +14563,8 @@ class SettingsRepository(private val context: Context) {
             stripIconSizeDp = p[TOOLBAR_STRIP_ICON_SIZE] ?: defaults.toolbarBehavior.stripIconSizeDp,
             stripShortcutsAtEnd = p[TOOLBAR_STRIP_AT_END] ?: defaults.toolbarBehavior.stripShortcutsAtEnd,
             stripToolbox = p[TOOLBAR_STRIP_TOOLBOX] ?: defaults.toolbarBehavior.stripToolbox,
+            barToolbox = p[TOOLBAR_BAR_TOOLBOX] ?: defaults.toolbarBehavior.barToolbox,
+            toolsArrow = p[TOOLBAR_TOOLS_ARROW] ?: defaults.toolbarBehavior.toolsArrow,
             holdDelayMs = p[TOOLBAR_HOLD_DELAY] ?: defaults.toolbarBehavior.holdDelayMs,
         )
 
@@ -17114,6 +17151,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setStripToolbox(value: Boolean) =
         editPrefs { it[TOOLBAR_STRIP_TOOLBOX] = value }
+
+    suspend fun setToolbarBarToolbox(value: Boolean) =
+        editPrefs { it[TOOLBAR_BAR_TOOLBOX] = value }
+
+    suspend fun setToolbarToolsArrow(value: Boolean) =
+        editPrefs { it[TOOLBAR_TOOLS_ARROW] = value }
 
     /**
      * Sets or clears one tool's press-and-hold action. Null puts that tool back
@@ -20716,6 +20759,8 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOLBAR_ICON_SIZE)
         it.remove(TOOLBAR_PADDING_TOP)
         it.remove(TOOLBAR_PADDING_BOTTOM)
+        it.remove(TOOLBAR_BAR_TOOLBOX)
+        it.remove(TOOLBAR_TOOLS_ARROW)
     }
 
     /** The Toolbox page's reset: the tool grid's layout, columns, paging, labels, search and sort. */
