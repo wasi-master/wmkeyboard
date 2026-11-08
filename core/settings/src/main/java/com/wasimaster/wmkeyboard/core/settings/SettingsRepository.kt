@@ -24437,7 +24437,7 @@ val SwiftKeyHoldSymbols: Map<String, String> = mapOf(
 
 /**
  * The hold symbols Gboard's English QWERTY puts on its letters with "Long
- * press for symbols" on, as its board carries them (`en_gboard_plus`): digits
+ * press for symbols" on, as its board carries them: digits
  * along the top row, then `@ # $ _ & - + ( )` and `* " ' : ; ! ?`.
  */
 val GboardHoldSymbols: Map<String, String> = mapOf(
