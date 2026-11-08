@@ -1184,13 +1184,15 @@
              keyboard up with the tool's panel open, so a level or a compass
              works like an app. Exported for the launchers that pin through the
              old install-shortcut broadcast; the extra is checked against the
-             tools with a panel and nothing else is read.
+             tools with a panel and nothing else is read. Each tool is a
+             document of its own, so the compass and the clock are two entries
+             in Recents to switch between, and opening one again comes back to it.
         -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.ToolShortcutActivity"
+            android:documentLaunchMode="intoExisting"
             android:enableOnBackInvokedCallback="true"
             android:exported="true"
-            android:launchMode="singleTask"
             android:taskAffinity="com.wasimaster.wmkeyboard.tool"
             android:theme="@style/Theme.WMKeyboard"
             android:windowSoftInputMode="stateAlwaysVisible|adjustResize" />
