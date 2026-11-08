@@ -1,8 +1,11 @@
 package com.wasimaster.wmkeyboard.app
 
 import android.os.Build
+import android.view.ViewTreeObserver
 import android.view.Window
 import android.view.WindowManager
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
 import androidx.compose.runtime.Composable
@@ -12,6 +15,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import java.util.WeakHashMap
 
 /**
@@ -74,6 +80,51 @@ internal fun RepanOnKeyboardResize() {
     val ime = WindowInsets.ime
     LaunchedEffect(view, density, ime) {
         snapshotFlow { ime.getBottom(density) }.collect { view.requestLayout() }
+    }
+}
+
+/**
+ * Back with the keyboard up puts the keyboard away and does nothing else
+ * (Telegram, Priyanshu Mishra): the screen under it stays as it was, the way
+ * Back behaves in any app that leaves it to the system.
+ *
+ * From Android 13 that order is a matter of who registered last. The keyboard's
+ * own back callback is forwarded into this window when it comes up, at the same
+ * priority as the screens' BackHandlers, and the newest of those wins. A
+ * handler that switches on after the keyboard is already up (the theme editor's
+ * docked preview, picking, a part's sheet, a search) went in on top of it, and
+ * Back closed the screen's layer, or the screen, with the keyboard still open.
+ * An overlay-priority callback, held only while the keyboard is showing, sits
+ * above all of them. Before 13 Back reaches the keyboard first anyway.
+ */
+@Composable
+internal fun ImeBackFirst() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+    val activity = LocalContext.current.findActivity() ?: return
+    val view = LocalView.current
+    DisposableEffect(activity, view) {
+        val dispatcher = activity.onBackInvokedDispatcher
+        val callback = OnBackInvokedCallback {
+            WindowCompat.getInsetsController(activity.window, view).hide(WindowInsetsCompat.Type.ime())
+        }
+        var registered = false
+        // Every layout, which is cheap to look at: the keyboard coming or going
+        // changes the window's insets, and that lays the window out again.
+        val listener = ViewTreeObserver.OnGlobalLayoutListener {
+            val up = ViewCompat.getRootWindowInsets(view)?.isVisible(WindowInsetsCompat.Type.ime()) == true
+            if (up && !registered) {
+                dispatcher.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_OVERLAY, callback)
+                registered = true
+            } else if (!up && registered) {
+                dispatcher.unregisterOnBackInvokedCallback(callback)
+                registered = false
+            }
+        }
+        view.viewTreeObserver.addOnGlobalLayoutListener(listener)
+        onDispose {
+            view.viewTreeObserver.removeOnGlobalLayoutListener(listener)
+            if (registered) dispatcher.unregisterOnBackInvokedCallback(callback)
+        }
     }
 }
 

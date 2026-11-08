@@ -426,6 +426,8 @@ class MainActivity : FragmentActivity() {
                     // Settings fields rely on the window panning; keep it in
                     // step with a keyboard that changes height under them.
                     RepanOnKeyboardResize()
+                    // Back with the keyboard up closes the keyboard and nothing else.
+                    ImeBackFirst()
                     // The app lock's own PIN, password or pattern sheet. Once,
                     // up here, like the system prompt it stands in for.
                     AppLockSecretPrompt(appLock)
