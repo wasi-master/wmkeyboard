@@ -10245,6 +10245,17 @@ data class SuggestionStripSettings(
      */
     val undoChipObviousness: Float = 0.5f,
     /**
+     * After backspace takes text away, a chip on the strip puts it back, and
+     * once it has, the same chip deletes it again (Telegram, Priyanshu Mishra).
+     * One chip for a whole run of presses, so holding backspace through a
+     * sentence brings the sentence back in one tap.
+     *
+     * Off by default: it is a chip after every backspace, beside the words the
+     * strip offers, and each press reads the text before the caret twice to
+     * learn what went. Nobody pays for that until they ask for it.
+     */
+    val undoDeleteChip: Boolean = false,
+    /**
      * Learn from the typos you fix by hand. A word you go back and change is
      * remembered as a pair — after two such fixes the keyboard makes the fix
      * for you, after one it offers to — and the slip behind it (a `3` where an
@@ -12480,6 +12491,7 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("offer_near_miss_corrections")
         private val UNDO_CORRECTION_CHIP = booleanPreferencesKey("undo_correction_chip")
         private val UNDO_CHIP_OBVIOUSNESS = floatPreferencesKey("undo_chip_obviousness")
+        private val UNDO_DELETE_CHIP = booleanPreferencesKey("undo_delete_chip")
         private val LEARN_FROM_CORRECTIONS = booleanPreferencesKey("learn_from_corrections")
         private val ADAPT_TO_TAPS = booleanPreferencesKey("adapt_to_taps")
         private val MISTYPE_TOLERANCE = intPreferencesKey("mistype_tolerance")
@@ -14163,6 +14175,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.undoCorrectionChip,
             undoChipObviousness = p[UNDO_CHIP_OBVIOUSNESS]
                 ?: defaults.suggestionStrip.undoChipObviousness,
+            undoDeleteChip = p[UNDO_DELETE_CHIP] ?: defaults.suggestionStrip.undoDeleteChip,
             learnFromCorrections = p[LEARN_FROM_CORRECTIONS]
                 ?: defaults.suggestionStrip.learnFromCorrections,
             adaptToTaps = p[ADAPT_TO_TAPS] ?: defaults.suggestionStrip.adaptToTaps,
@@ -17011,6 +17024,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setUndoChipObviousness(value: Float) =
         editPrefs { it[UNDO_CHIP_OBVIOUSNESS] = value.coerceIn(0f, 1f) }
+
+    /** See [SuggestionStripSettings.undoDeleteChip]. */
+    suspend fun setUndoDeleteChip(value: Boolean) =
+        editPrefs { it[UNDO_DELETE_CHIP] = value }
 
     suspend fun setLearnFromCorrections(value: Boolean) =
         editPrefs { it[LEARN_FROM_CORRECTIONS] = value }

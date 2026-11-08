@@ -2644,7 +2644,20 @@ sealed interface StripOfferAction {
 
     /** The same chip's ✕: not in this field. */
     data object DismissPasswordManager : StripOfferAction
+
+    /** The backspace undo chip: put the deleted text back, or delete it again. */
+    data object UndoDelete : StripOfferAction
+
+    /** The same chip's ✕: leave the text as it is. */
+    data object DismissDeleteUndo : StripOfferAction
 }
+
+/**
+ * The strip's backspace undo chip: [text] is what the run of presses deleted,
+ * as the chip shows it (one line, cut short; empty for nothing but spaces).
+ * With [redo] it is back in the field and the chip deletes it again.
+ */
+data class DeletionChip(val text: String, val redo: Boolean)
 
 /**
  * What the strip's Zawgyi chip is offering: text the keyboard found in
@@ -3452,6 +3465,13 @@ data class KeyboardUiState(
      * switched off.
      */
     val correctionUndo: String? = null,
+    /**
+     * What a run of backspaces took away, offered back on the strip, or
+     * deleted again once it has been put back ([DeletionChip.redo]). Null
+     * while the setting is off, and as soon as anything but a backspace
+     * moves the caret.
+     */
+    val deletionUndo: DeletionChip? = null,
     /** Spacing form of the dead-key accent waiting for a letter, if any. */
     val pendingDeadKey: String? = null,
     /**

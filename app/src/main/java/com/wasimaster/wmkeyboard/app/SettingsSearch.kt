@@ -413,6 +413,7 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_undo_memory_title, R.string.typing_undo_memory_subtitle),
         row(R.string.typing_stop_after_declines_title, R.string.typing_stop_after_declines_subtitle),
         row(R.string.typing_learned_gate_title, R.string.typing_learned_gate_subtitle),
+        row(R.string.typing_undo_delete_chip_title, R.string.typing_undo_delete_chip_subtitle),
         row(R.string.typing_learn_corrections_title, R.string.typing_learn_corrections_subtitle),
         row(R.string.typing_adapt_taps_title, R.string.typing_adapt_taps_subtitle),
         row(R.string.typing_mistype_tolerance_title, R.string.typing_mistype_tolerance_subtitle),

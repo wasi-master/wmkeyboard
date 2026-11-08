@@ -3838,6 +3838,9 @@ private fun TopBar(
     val hasSuggestions =
         (!openersAtRest && (state.suggestions.isNotEmpty() || state.emojiSuggestions.isNotEmpty())) ||
         state.smart != null || recentClipChip || recentClipsBar ||
+        // The backspace undo chip: a field just emptied is exactly where it
+        // is wanted, and where the toolbar would otherwise take the row.
+        state.deletionUndo != null ||
         // Stickers a typed word asked for, in the styles that draw them here.
         stickerStripShows(state) ||
         // The one-time-code chip counts as strip content for the same reason
@@ -4904,6 +4907,34 @@ private fun RowScope.StripOfferChips(
             },
         )
         if (!otpShares) return true
+    }
+    // What backspace just took, offered back (Telegram, Priyanshu Mishra), and
+    // once it is back, offered for deleting again. Beside the words while
+    // there are any, since the word being typed may be what comes next;
+    // across the strip when there are none, the field just emptied.
+    val deletion = state.deletionUndo
+    if (deletion != null) {
+        val shares = suggestionsShowing || state.smart != null
+        val label = when {
+            deletion.text.isEmpty() && deletion.redo -> stringResource(R.string.ime_delete_redo_plain)
+            deletion.text.isEmpty() -> stringResource(R.string.ime_delete_undo_plain)
+            deletion.redo -> stringResource(R.string.ime_delete_redo_chip, deletion.text)
+            else -> stringResource(R.string.ime_delete_undo_chip, deletion.text)
+        }
+        OfferChip(
+            label = label,
+            icon = if (deletion.redo) Icons.AutoMirrored.Outlined.Redo else Icons.AutoMirrored.Outlined.Undo,
+            declineDescription = stringResource(R.string.ime_delete_undo_dismiss_desc),
+            onAccept = { onStripOfferAction(StripOfferAction.UndoDelete) },
+            onDecline = { onStripOfferAction(StripOfferAction.DismissDeleteUndo) },
+            stretch = !shares,
+            modifier = if (shares) {
+                Modifier.widthIn(max = 200.dp).padding(horizontal = 4.dp)
+            } else {
+                Modifier.weight(1f).padding(horizontal = 4.dp)
+            },
+        )
+        if (!shares) return true
     }
     // A task that has fallen due. Below a code, which expires, and above
     // everything else, which is still there after it is dealt with.

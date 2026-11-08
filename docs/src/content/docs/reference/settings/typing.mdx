@@ -37,6 +37,7 @@ The Typing screen is a hub. Seven of its groups are pages of their own (Automati
 | Correct the word before Enter | Toggle | On | Autocorrect on |
 | Correct the word before punctuation | Toggle | Off | Autocorrect on |
 | Add missing spaces | Toggle | On | Autocorrect on |
+| Undo backspace from the strip | Toggle | Off | always |
 | Learn from my fixes | Toggle | On | always |
 | Learned corrections | Screen | | always |
 | Capitals from the word list | Toggle | On | always |
@@ -57,9 +58,11 @@ The Typing screen is a hub. Seven of its groups are pages of their own (Automati
 | Adapt to app tone | Toggle | On | always |
 | Fix missing apostrophes | Toggle | On | always |
 
-**Autocorrect** is this group's master switch, and thirteen rows hang off it: the ones that tune when and how hard it corrects, from Autocorrect confidence down to Add missing spaces. How often to offer the undo also needs Undo a correction from the strip on. From **Learn from my fixes** downwards the rows stay whether autocorrect is on or off, because none of them needs it: the keyboard still learns from the typos you fix by hand, spells, filters and ranks the strip, and detects the language you type. Detection strength and Remember each app's language need Detect the language you type on. Fix number row slips shows up only while the [number row](/reference/settings/layout/) is on screen, since it corrects a digit to the letter below it.
+**Autocorrect** is this group's master switch, and thirteen rows hang off it: the ones that tune when and how hard it corrects, from Autocorrect confidence down to Add missing spaces. How often to offer the undo also needs Undo a correction from the strip on. From **Undo backspace from the strip** downwards the rows stay whether autocorrect is on or off, because none of them needs it: the keyboard still learns from the typos you fix by hand, spells, filters and ranks the strip, and detects the language you type. Detection strength and Remember each app's language need Detect the language you type on. Fix number row slips shows up only while the [number row](/reference/settings/layout/) is on screen, since it corrects a digit to the letter below it.
 
 **Undo a correction from the strip** puts the word you typed on a chip so you can take a correction back after backspace can no longer reach it, and **How often to offer the undo** is the bar a correction has to fall under to earn that chip. See [Autocorrect](/smart/autocorrect/#taking-a-correction-back-later).
+
+**Undo backspace from the strip** puts whatever backspace took on a chip on the suggestion strip. Press the chip and the text comes back where it was; the chip then reads Redo and deletes it again, so you can flip between the two. A run of presses, a held backspace or a backspace swipe is one delete, and comes back with one press, and the chip takes the whole strip when you have just emptied the field. It goes as soon as you type, move the cursor or select something, and never shows in a password field. Off by default, because it is a chip after every backspace.
 
 **Remember my undos** is one choice of four, and it governs how long the keyboard holds on to a correction you undid, not whether undoing works. See [Autocorrect](/smart/autocorrect/#how-long-an-undo-lasts).
 

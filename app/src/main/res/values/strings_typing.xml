@@ -136,6 +136,9 @@
 
     <string name="typing_undo_chip_title">Undo a correction from the strip</string>
     <string name="typing_undo_chip_subtitle">Show a chip that puts back the word you typed</string>
+    <string name="typing_undo_delete_chip_title">Undo backspace from the strip</string>
+    <string name="typing_undo_delete_chip_subtitle">After you delete, a chip puts the text back, then deletes it again</string>
+    <string name="typing_undo_delete_chip_info">With this on, whatever backspace takes away waits on a chip on the suggestion strip. Press it and the text comes back where it was, and the chip turns into Redo, which deletes it again. Holding backspace or swiping on it counts as one delete, so a whole sentence comes back with one press.\n\nThe chip goes as soon as you type, move the cursor or select something. It never appears in password fields.</string>
     <string name="typing_undo_chip_info">Backspace undoes a correction only in the moment. Type one more letter and the correction is out of reach, and this is when you usually see it. With this on, the keyboard puts a chip at the start of the suggestion strip with your own spelling on it. Press the chip and the keyboard puts that word back, and learns not to make the same correction again. The chip appears between words and stands until you end the sentence. Not every correction gets one. The setting below says which corrections do.</string>
 
     <string name="typing_undo_chip_obviousness_title">How often to offer the undo</string>

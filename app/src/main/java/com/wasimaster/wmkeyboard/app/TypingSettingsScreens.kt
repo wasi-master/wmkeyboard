@@ -457,6 +457,15 @@ internal fun TypingCorrectionsSettings(
         // with autocorrect off, so they stay on the page with it off (#1112).
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
+                R.string.typing_undo_delete_chip_title,
+                stringResource(R.string.typing_undo_delete_chip_subtitle),
+                settings.watch { it.suggestionStrip.undoDeleteChip },
+                info = stringResource(R.string.typing_undo_delete_chip_info),
+                default = SettingsDefaults.suggestionStrip.undoDeleteChip,
+            ) { scope.launch { repository.setUndoDeleteChip(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
                 R.string.typing_learn_corrections_title,
                 stringResource(R.string.typing_learn_corrections_subtitle),
                 settings.watch { it.suggestionStrip.learnFromCorrections },

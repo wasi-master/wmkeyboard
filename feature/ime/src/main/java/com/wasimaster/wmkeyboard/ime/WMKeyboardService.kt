@@ -2641,6 +2641,14 @@ open class WMKeyboardService : InputMethodService() {
     private val UNDO_CHIP_LOOKBEHIND = 96
 
     /**
+     * How long after a backspace a caret echo further left still counts as
+     * that backspace's own rather than the user moving the caret; see
+     * [followDeletionCaret]. Held backspace repeats faster than echoes
+     * always come back, so several can be in flight at once.
+     */
+    private val DELETION_ECHO_MS = 600L
+
+    /**
      * How much of the text in front of a corrected word an entry keeps to
      * find it again by ([UndoableCorrection.before]). Three or four words:
      * enough that the same word twice in a sentence is told apart, short
@@ -8198,6 +8206,8 @@ open class WMKeyboardService : InputMethodService() {
         expectedSelStart = attribute?.initialSelStart ?: -1
         expectedSelEnd = attribute?.initialSelEnd ?: -1
         trackCaretAtFieldStart(expectedSelStart, expectedSelEnd)
+        // The backspace undo chip's text belongs to the field it came out of.
+        clearDeletionRun()
         // A drag still holding the magnifier up follows the field onto its new
         // connection; the one it was reading from is gone.
         if (caretMagnifier.active) {
@@ -9261,6 +9271,7 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         lastSelectionUpdateAt = SystemClock.uptimeMillis()
+        followDeletionCaret(newSelStart, newSelEnd)
         // The first half of a caret nudge (#662): the caret is on its way
         // straight back, so nothing about where it is now is worth acting on.
         if (revealDetourStart >= 0) {
@@ -10836,7 +10847,7 @@ open class WMKeyboardService : InputMethodService() {
             }
             KeyAction.Shift -> onShift()
             KeyAction.CapsLock -> onCapsLock()
-            KeyAction.Delete -> onDelete()
+            KeyAction.Delete -> trackDeletion(::onDelete)
             KeyAction.ForwardDelete -> onForwardDelete()
             KeyAction.Space -> {
                 onSpace()
@@ -15095,6 +15106,142 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * A run of backspaces the strip's undo chip can put back (Telegram,
+     * Priyanshu Mishra), or put back already and able to delete again. Null
+     * when there is none; see [trackDeletion].
+     */
+    private var deletionRun: DeletionRun? = null
+
+    /** A tracked press is running, so the delete paths it calls in turn are not counted again. */
+    private var trackingDeletion = false
+
+    /**
+     * [text] is what the run took, in field order. [gone] and [back] are the
+     * [DeletionUndo.WINDOW] characters before the caret without it and with
+     * it, which is how the chip checks the field is still where it left it
+     * before it touches anything. [caret] is pinned by the first echo after
+     * [editedAt]; see [followDeletionCaret].
+     */
+    private class DeletionRun(
+        val text: String,
+        val gone: String,
+        val restored: Boolean,
+        val editedAt: Long,
+    ) {
+        var caret = -1
+        val back: String get() = (gone + text).takeLast(DeletionUndo.WINDOW)
+    }
+
+    /** The field as it really is, under any styling or legacy encoding the edits go through. */
+    private fun rawFieldConnection(): InputConnection? = super.getCurrentInputConnection()?.let { traced(it) }
+
+    /**
+     * Runs [delete], one backspace in whichever form it came (the key and its
+     * repeat, a swipe, a hardware key), and hands what it took to the strip's
+     * undo chip. With the chip off, in a password field or in one of the
+     * keyboard's own boxes it is [delete] and nothing more: no extra reads.
+     */
+    private fun trackDeletion(delete: () -> Unit) {
+        val state = _uiState.value
+        val raw = super.getCurrentInputConnection()
+        if (trackingDeletion || raw == null || !state.settings.suggestionStrip.undoDeleteChip ||
+            state.secureField || state.captureTarget() != null || keypadSum != null || isNullField()
+        ) {
+            delete()
+            return
+        }
+        val ic = traced(raw)
+        trackingDeletion = true
+        try {
+            val selected = ic.getSelectedText(0)?.toString().orEmpty()
+            val before = ic.getTextBeforeCursor(DeletionUndo.WINDOW, 0)?.toString()
+            delete()
+            if (super.getCurrentInputConnection() !== raw) return
+            val after = ic.getTextBeforeCursor(DeletionUndo.WINDOW, 0)?.toString()
+            if (before != null && after != null) noteDeletion(before, selected, after)
+        } finally {
+            trackingDeletion = false
+        }
+    }
+
+    /**
+     * Adds one press to the run, or starts a run: a press continues it when
+     * the field in front of the caret is exactly as the last press left it.
+     * A press that put text in as well as taking some out (backspace taking
+     * a correction back) is not a deletion, and the chip goes.
+     */
+    private fun noteDeletion(before: String, selected: String, after: String) {
+        val deleted = DeletionUndo.deleted(before, selected, after)
+        if (deleted == null) {
+            clearDeletionRun()
+            return
+        }
+        if (deleted.isEmpty()) return
+        val run = deletionRun
+        val text = if (run != null && !run.restored && run.gone == before) deleted + run.text else deleted
+        if (text.length > DeletionUndo.MAX_RUN) {
+            clearDeletionRun()
+            return
+        }
+        deletionRun = DeletionRun(text, gone = after, restored = false, editedAt = SystemClock.uptimeMillis())
+        showDeletionChip()
+    }
+
+    private fun showDeletionChip() {
+        val chip = deletionRun?.let { DeletionChip(DeletionUndo.label(it.text), it.restored) }
+        if (_uiState.value.deletionUndo != chip) _uiState.update { it.copy(deletionUndo = chip) }
+    }
+
+    private fun clearDeletionRun() {
+        deletionRun = null
+        if (_uiState.value.deletionUndo != null) _uiState.update { it.copy(deletionUndo = null) }
+    }
+
+    /**
+     * The caret moved: a range selected, or the caret anywhere but where the
+     * run's own edits put it, ends the run. Echoes arrive late, so one that
+     * lands left of the pinned caret just after a press is that press's own.
+     */
+    private fun followDeletionCaret(newSelStart: Int, newSelEnd: Int) {
+        val run = deletionRun ?: return
+        when {
+            newSelStart != newSelEnd -> clearDeletionRun()
+            run.caret < 0 || newSelStart == run.caret -> run.caret = newSelStart
+            newSelStart < run.caret && SystemClock.uptimeMillis() - run.editedAt < DELETION_ECHO_MS ->
+                run.caret = newSelStart
+            else -> clearDeletionRun()
+        }
+    }
+
+    /**
+     * The chip tapped: the run's text goes back in at the caret, or, put back
+     * already, comes out again. Only when the text in front of the caret is
+     * exactly what the run left there; anything else and the chip goes with
+     * the field untouched, because putting text in at the wrong place is worse
+     * than not putting it back.
+     */
+    private fun undoOrRedoDeletion() {
+        val run = deletionRun ?: return
+        val wrapped = currentInputConnection ?: return
+        val ic = rawFieldConnection() ?: return
+        vibrate()
+        endCompositionForCaretKey(wrapped)
+        val now = ic.getTextBeforeCursor(DeletionUndo.WINDOW, 0)?.toString()
+        if (now != (if (run.restored) run.back else run.gone) || !ic.getSelectedText(0).isNullOrEmpty()) {
+            clearDeletionRun()
+            return
+        }
+        invalidateExpectedSelection()
+        if (run.restored) ic.deleteSurroundingText(run.text.length, 0) else ic.commitText(run.text, 1)
+        deletionRun = DeletionRun(run.text, run.gone, restored = !run.restored, editedAt = SystemClock.uptimeMillis())
+        showDeletionChip()
+        lastGestureWord = null
+        lastRevertible = null
+        syncPreviousWordFromField(wrapped)
+        refreshSuggestions()
+    }
+
+    /**
      * How much of [before] one character-sized delete takes: a whole
      * multi-code-point emoji (☠️, 👍🏽, 👨‍👩‍👧) rather than a piece of one, a
      * whole Bengali-style conjunct where the language asks for it, and
@@ -17160,7 +17307,7 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         if (byWord) {
-            onDeleteWord()
+            trackDeletion(::onDeleteWord)
             return
         }
         // A swipe is not a tap: its first step must delete the character the
@@ -17169,7 +17316,7 @@ open class WMKeyboardService : InputMethodService() {
         // drops both for the same reason.
         lastGestureWord = null
         lastRevertible = null
-        onDelete()
+        trackDeletion(::onDelete)
     }
 
     /**
@@ -17295,7 +17442,7 @@ open class WMKeyboardService : InputMethodService() {
         // The swipe recorded the range it selected (see growDeleteSwipe).
         noteDeletedForLearning(expectedSelStart, expectedSelEnd)
         invalidateExpectedSelection()
-        ic.commitText("", 1)
+        if (forward) ic.commitText("", 1) else trackDeletion { ic.commitText("", 1) }
         lastGestureWord = null
         lastRevertible = null
         clearSwapOffer()
@@ -20878,6 +21025,14 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update { it.copy(passwordManagerApp = null) }
             return
         }
+        if (action == StripOfferAction.UndoDelete) {
+            undoOrRedoDeletion()
+            return
+        }
+        if (action == StripOfferAction.DismissDeleteUndo) {
+            clearDeletionRun()
+            return
+        }
         if (_uiState.value.learnOffer != null) {
             when (action) {
                 is StripOfferAction.Accept -> acceptLearnOffer()
@@ -20949,6 +21104,7 @@ open class WMKeyboardService : InputMethodService() {
             StripOfferAction.Explain -> Unit
             StripOfferAction.ToggleAnsi, StripOfferAction.ToggleZawgyi, StripOfferAction.ToggleTraditional,
             StripOfferAction.OpenPasswordManager, StripOfferAction.DismissPasswordManager,
+            StripOfferAction.UndoDelete, StripOfferAction.DismissDeleteUndo,
             -> Unit
         }
     }
@@ -49968,7 +50124,7 @@ open class WMKeyboardService : InputMethodService() {
         // Ahead of the input-connection check because both cope without one.
         if (action == TextEditAction.BACKSPACE || action == TextEditAction.FORWARD_DELETE) {
             if (haptic) vibrate()
-            if (action == TextEditAction.BACKSPACE) onDelete() else onForwardDelete()
+            if (action == TextEditAction.BACKSPACE) trackDeletion(::onDelete) else onForwardDelete()
             return
         }
         // A word at a time (#980): one step of the delete key's word swipe,
@@ -55853,7 +56009,7 @@ open class WMKeyboardService : InputMethodService() {
                 // Routed through onDelete so it edits the composing buffer, undoes
                 // a swipe/autocorrect, and deletes whole grapheme clusters — all
                 // of which a raw backspace against the field would get wrong.
-                onDelete()
+                trackDeletion(::onDelete)
                 consumeHardwareKey(keyCode)
             }
             KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> {

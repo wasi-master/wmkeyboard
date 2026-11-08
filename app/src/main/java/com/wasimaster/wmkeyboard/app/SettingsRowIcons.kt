@@ -1083,6 +1083,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_offer_near_miss_title) { Icons.Outlined.Spellcheck }
         put(R.string.typing_undo_autocorrect_title) { Icons.AutoMirrored.Outlined.Undo }
         put(R.string.typing_undo_chip_title) { Icons.AutoMirrored.Outlined.Undo }
+        put(R.string.typing_undo_delete_chip_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.typing_undo_chip_obviousness_title) { Icons.Outlined.Tune }
         put(R.string.typing_undo_memory_title) { Icons.Outlined.History }
         put(R.string.typing_stop_after_declines_title) { Icons.Outlined.Loop }
