@@ -58,6 +58,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashlightOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashlightOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
@@ -642,6 +643,17 @@ private fun OcrContent(
                 ) {
                     feedback()
                     runCatching { FilePicks.open(context, FilePickRequest.OcrPicture) }
+                }
+            }
+            // The screen above the keyboard, through Shizuku or root.
+            if (state.screenCapture) {
+                val capture = LocalScreenCapture.current
+                CameraChipButton(
+                    icon = Icons.Outlined.Screenshot,
+                    description = stringResource(R.string.ime_screen_capture_desc),
+                    active = false,
+                ) {
+                    capture(ScreenCaptureTarget.OCR)
                 }
             }
             if (camera?.cameraInfo?.hasFlashUnit() == true) {

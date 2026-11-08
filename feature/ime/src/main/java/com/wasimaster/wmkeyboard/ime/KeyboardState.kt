@@ -4232,6 +4232,19 @@ data class KeyboardUiState(
      * returns to the clipboard. Cleared on every panel change, like [ocrImage].
      */
     val cameraImage: String? = null,
+    /**
+     * [ocrImage] or [cameraImage] is a capture of the screen (Shizuku or
+     * root) rather than a clip's picture, so back stays in the tool instead
+     * of going to the clipboard. Cleared on every panel change.
+     */
+    val pictureFromScreen: Boolean = false,
+    /**
+     * The open OCR, camera or AI reply panel offers "Capture screen"
+     * ([com.wasimaster.wmkeyboard.core.shell.ScreenCapture]): the F-Droid or
+     * GitHub build, the user's switches on, and Shizuku or root ready. Set by
+     * [WMKeyboardService.onPanelChange].
+     */
+    val screenCapture: Boolean = false,
     val translate: TranslateUi = TranslateUi(),
     val grammar: GrammarUi = GrammarUi(),
     val wiki: WikiUi = WikiUi.Idle,
@@ -4858,8 +4871,12 @@ data class KeyboardUiState(
         CaptureTarget.KDE_HOST -> kde.hostDraft
         CaptureTarget.KDE_REMOTE, CaptureTarget.KDE_COMPOSE -> kde.line
         CaptureTarget.PLUGIN -> pluginFocusedInput?.let { pluginInputs[it] }.orEmpty()
-        CaptureTarget.FIND_QUERY -> findReplace?.query.orEmpty()
-        CaptureTarget.FIND_REPLACEMENT -> findReplace?.replacement.orEmpty()
+        // A term left from last time reads as empty to the keys (#970): it is
+        // drawn selected, so the first key types over it instead of after it.
+        CaptureTarget.FIND_QUERY ->
+            findReplace?.takeUnless { FindReplaceField.FIND in it.remembered }?.query.orEmpty()
+        CaptureTarget.FIND_REPLACEMENT ->
+            findReplace?.takeUnless { FindReplaceField.REPLACE in it.remembered }?.replacement.orEmpty()
         CaptureTarget.LEARN_EDIT -> learnFromText?.editText.orEmpty()
         CaptureTarget.CALC -> calcExpression
         CaptureTarget.CONVERTER -> converterValue

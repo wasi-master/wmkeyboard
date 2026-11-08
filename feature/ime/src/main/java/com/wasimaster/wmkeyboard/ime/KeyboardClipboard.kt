@@ -50,6 +50,17 @@ object KeyboardClipboard {
         held = null
     }
 
+    /**
+     * Makes [text] what the paste keys paste next while private (#1178),
+     * without telling [onPrivateCopy]: the clip is already in the history and
+     * stays where it is there. False outside the private mode.
+     */
+    fun holdForPaste(text: String): Boolean {
+        if (!isPrivate) return false
+        held = text
+        return true
+    }
+
     /** Forgets [held] when it is a clip [gone] says was deleted (#612). */
     fun forgetIf(gone: (String) -> Boolean) {
         val kept = held ?: return

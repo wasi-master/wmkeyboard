@@ -1,10 +1,12 @@
 package com.wasimaster.wmkeyboard.app
 
+import android.app.ActivityManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.net.Uri
 import android.provider.Settings
 import android.text.InputType
 import android.view.Gravity
@@ -60,8 +62,10 @@ import com.wasimaster.wmkeyboard.ime.KeyboardAutomation
  * whatever a tool types (a sum, a translation, a generated password) lands in
  * the box, to copy or share.
  *
- * One task for every such shortcut: a second one opens its tool in the same
- * screen, over a fresh box.
+ * One task for each tool (#970): the shortcut's address names the tool, and
+ * the manifest makes each address a document of its own, so every tool opened
+ * this way is its own entry in Recents, named after it, and opening it again
+ * brings that entry back.
  */
 class ToolShortcutActivity : FragmentActivity() {
 
@@ -71,10 +75,12 @@ class ToolShortcutActivity : FragmentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         tool = toolOf(intent)
-        if (tool == null) {
+        val opened = tool
+        if (opened == null) {
             finish()
             return
         }
+        nameTask(opened)
         val repository = SettingsRepository(applicationContext)
         setContent {
             val stored = repository.settings
@@ -89,7 +95,16 @@ class ToolShortcutActivity : FragmentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        toolOf(intent)?.let { tool = it }
+        toolOf(intent)?.let {
+            tool = it
+            nameTask(it)
+        }
+    }
+
+    /** Recents shows the tool's name on this task, not the app's. */
+    @Suppress("DEPRECATION")
+    private fun nameTask(tool: ToolbarTool) {
+        setTaskDescription(ActivityManager.TaskDescription(getString(toolTitle(tool))))
     }
 
     companion object {
@@ -99,11 +114,19 @@ class ToolShortcutActivity : FragmentActivity() {
         fun intent(context: Context, tool: ToolbarTool): Intent =
             Intent(context, ToolShortcutActivity::class.java)
                 .setAction(Intent.ACTION_VIEW)
+                // The address is what makes each tool its own document, and
+                // so its own task: extras play no part in telling two apart.
+                .setData(Uri.parse("$TOOL_SCHEME:${tool.name}"))
                 .putExtra(EXTRA_TOOL, tool.name)
 
-        /** Only a tool with a panel: anything else in the extra is ignored. */
+        private const val TOOL_SCHEME = "wmkeyboard-tool"
+
+        /** Only a tool with a panel: anything else in the extra or the address is ignored. */
         private fun toolOf(intent: Intent?): ToolbarTool? =
-            intent?.getStringExtra(EXTRA_TOOL)?.let(KeyboardAutomation::panelTool)
+            (
+                intent?.getStringExtra(EXTRA_TOOL)
+                    ?: intent?.data?.takeIf { it.scheme == TOOL_SCHEME }?.schemeSpecificPart
+                )?.let(KeyboardAutomation::panelTool)
     }
 }
 

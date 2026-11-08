@@ -73,7 +73,17 @@ internal fun LayoutGalleryScreen(
             val inner = maxWidth - start - end - GalleryEdge * 2
             val columns = galleryColumns(inner)
             val cardWidth = (inner - GalleryGap * (columns - 1)) / columns
-            val nameLines = rememberLayoutNameLines(names, withMore = overflow.isNotEmpty(), cardWidth = cardWidth)
+            // Each grid row's names level to the longest in that row only, so
+            // one long name does not leave every other card over empty lines.
+            val moreName = stringResource(R.string.languages_more_layouts_title)
+            val texts = remember(listed, names, overflow.isEmpty(), moreName) {
+                listed.map { names[it].orEmpty() } + if (overflow.isEmpty()) emptyList() else listOf(moreName)
+            }
+            val lineCounts = rememberLayoutNameLineCounts(texts, cardWidth)
+            val rowLines = { index: Int ->
+                val first = index / columns * columns
+                (first until minOf(first + columns, lineCounts.size)).maxOfOrNull { lineCounts[it] } ?: 1
+            }
             // The tallest board so far, which the More card stands as tall as.
             val boardHeight = remember(cardWidth) { mutableIntStateOf(0) }
             val gridState = rememberLazyGridState()
@@ -99,7 +109,7 @@ internal fun LayoutGalleryScreen(
                             layoutId = layoutId,
                             on = on,
                             settings = settings,
-                            nameLines = nameLines,
+                            nameLines = rowLines(index),
                             boardHeight = boardHeight,
                             onToggle = { enable -> toggle(layoutId, enable) },
                             modifier = Modifier.layoutCardFlight(layoutCardFlightKey(layoutId)) { index },
@@ -111,7 +121,7 @@ internal fun LayoutGalleryScreen(
                                 count = overflow.size,
                                 boardHeight = boardHeight.intValue,
                                 width = cardWidth,
-                                nameLines = nameLines,
+                                nameLines = rowLines(listed.size),
                                 onClick = { onNavigate(moreLayoutsRoute(langId)) },
                                 modifier = Modifier.layoutCardFlight(MORE_CARD_FLIGHT) { listed.size },
                             )

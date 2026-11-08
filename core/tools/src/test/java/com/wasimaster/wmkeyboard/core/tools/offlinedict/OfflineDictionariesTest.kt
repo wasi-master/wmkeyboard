@@ -78,6 +78,8 @@ class OfflineDictionariesTest {
         installText(pack("de_wiktionary"), name = "de_wiktionary.wmdict.gz")
         assertEquals("mouse", OfflineDictionaries.lookup("de_wiktionary", "mice").single().word)
         assertTrue(OfflineDictionaries.lookup("de_wiktionary", "houses").isEmpty())
+        // Whose word it is rides the entry, for the card and the speaker (#1085).
+        assertEquals("de", OfflineDictionaries.lookup("de_wiktionary", "mice").single().language)
     }
 
     @Test

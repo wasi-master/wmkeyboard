@@ -90,6 +90,13 @@
     <string name="ime_clock_vibrate_desc">Vibrate</string>
     <string name="ime_clock_cancel">Cancel</string>
     <string name="ime_clock_save">Save</string>
+    <string name="ime_clock_auto_snooze_default">Unanswered: as in settings</string>
+    <string name="ime_clock_auto_snooze_none">Unanswered: no snooze</string>
+    <string name="ime_clock_auto_snooze_forever">Unanswered: snooze until answered</string>
+    <plurals name="ime_clock_auto_snooze_times">
+        <item quantity="one">Unanswered: snooze %d time</item>
+        <item quantity="other">Unanswered: snooze %d times</item>
+    </plurals>
     <plurals name="ime_clock_snooze_minutes">
         <item quantity="one">Snooze %d min</item>
         <item quantity="other">Snooze %d min</item>

@@ -267,6 +267,7 @@ internal fun BergamotModelManager(settings: LiveSettings) {
             OfflineImportRow(
                 subtitle = stringResource(R.string.offline_import_bergamot_subtitle),
                 links = links(near),
+                linksNote = stringResource(R.string.offline_import_bergamot_browser_note),
                 onImported = onImported,
             )
         }
@@ -281,6 +282,7 @@ internal fun BergamotModelManager(settings: LiveSettings) {
                 OfflineImportRow(
                     subtitle = stringResource(R.string.offline_import_bergamot_subtitle),
                     links = links(far),
+                    linksNote = stringResource(R.string.offline_import_bergamot_browser_note),
                     onImported = onImported,
                 )
             }

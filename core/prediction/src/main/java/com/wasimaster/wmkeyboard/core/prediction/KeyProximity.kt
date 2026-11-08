@@ -185,7 +185,7 @@ class KeyProximity private constructor(
          * grid cannot express: a staggered or split arrangement whose rows do not
          * share a column origin.
          */
-        fun forLayout(spec: LayoutSpec, numberRow: Boolean = false): KeyProximity {
+        fun forLayout(spec: LayoutSpec, numberRow: Boolean = false, customRow: List<Key>? = null): KeyProximity {
             val rows = spec.proximityRows ?: letterRows(spec)
             // The number row is injected at render time (it is a setting, not
             // part of any LayoutSpec), so it is stitched on here the same way:
@@ -194,7 +194,10 @@ class KeyProximity private constructor(
             // substitution instead of a distant one. The layout's own number
             // row when it authored one (#970): Eastern Arabic digits, or a row
             // that is not digits at all, sit over the letters just the same.
-            val authored = if (numberRow) spec.numberRowFor(LayoutLayer.LETTERS) else null
+            // Else the keyboard-wide custom row from the settings, which every
+            // layout without its own draws there: its keys, not the built-in
+            // digits, are what a typed slip landed beside.
+            val authored = if (numberRow) spec.numberRowFor(LayoutLayer.LETTERS) ?: customRow else null
             val top = authored?.let(::rowString)?.takeIf { it.length > 1 } ?: NUMBER_ROW
             val keys = spec.layer(LayoutLayer.LETTERS)?.rows.orEmpty().flatten() + authored.orEmpty()
             return KeyProximity(if (numberRow) listOf(top) + rows else rows, carriedLetters(keys))

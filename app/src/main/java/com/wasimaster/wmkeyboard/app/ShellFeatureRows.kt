@@ -40,6 +40,7 @@ internal fun ShellFeaturesGroup(repository: SettingsRepository) {
     val scope = rememberCoroutineScope()
     var enabled by remember { mutableStateOf(ShellFeatures.isEnabled(context)) }
     var readsScreen by remember { mutableStateOf(ShellFeatures.replyReadsScreenSetting(context)) }
+    var captures by remember { mutableStateOf(ShellFeatures.capturesScreenSetting(context)) }
     // Bumped after each grant, so the rows re-read what changed.
     var version by remember { mutableIntStateOf(0) }
     val settings by repository.settings.collectAsStateWithLifecycle(initialValue = null)
@@ -162,6 +163,17 @@ internal fun ShellFeaturesGroup(repository: SettingsRepository) {
             ) {
                 readsScreen = it
                 ShellFeatures.setReplyReadsScreen(context, it)
+            }
+        }
+        item(visible = enabled) {
+            ToggleSetting(
+                R.string.shell_access_capture_title,
+                stringResource(R.string.shell_access_capture_subtitle),
+                captures,
+                default = false,
+            ) {
+                captures = it
+                ShellFeatures.setCapturesScreen(context, it)
             }
         }
     }

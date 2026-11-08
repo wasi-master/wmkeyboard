@@ -10,6 +10,12 @@ python3 -I generate.py <repo> gboard.json          # prints the plan, writes pla
 python3 -I generate.py <repo> gboard.json --write
 ```
 
+The `gb_*` layouts' symbol pages come from Gboard's `symbol` keyboards, which `generate.py` does not follow:
+
+```bash
+python3 -I symbols.py base.apk resources.txt <repo>
+```
+
 ## How Gboard stores a keyboard
 
 Resource names are obfuscated, so everything is reached through its id. An `ime` names a language and includes `keyboard_group`s, one per variant. A variant's `keyboard` has a language definition (`lang_def`, the keys) merged with a grid definition (`main_def`, the layout and which key goes in which view). A `softkey` carries `press_data`, `long_press_data` and `slide*_data`, and `key_mapping` entries with a `state` give the other pages: `SHIFT` and `SUB_CATEGORY_n`.

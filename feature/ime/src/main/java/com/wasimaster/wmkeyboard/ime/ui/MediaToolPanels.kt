@@ -209,6 +209,12 @@ internal fun SearchQueryText(
     placeholderColor: Color,
     fontSize: TextUnit,
     modifier: Modifier = Modifier,
+    /**
+     * The whole query drawn selected, with no caret: a term left from last
+     * time that the first key replaces (#970), shown the way a real field
+     * shows text it is about to type over.
+     */
+    selectedAll: Boolean = false,
 ) {
     val handle = LocalCaptureCaret.current
     // The focus switch sent this field's keys to the app's field (#665): no
@@ -239,6 +245,7 @@ internal fun SearchQueryText(
             overlay = overlay,
             caretBar = caretBar,
             setCaretBar = { caretBar = it },
+            selectedAll = selectedAll,
         )
         // Only on the field that has the keys, or had them until the switch
         // sent them to the app: one switch on screen, beside its field.
@@ -263,6 +270,7 @@ private fun RowScope.SearchQueryLine(
     overlay: SelectionOverlayState?,
     caretBar: Boolean,
     setCaretBar: (Boolean) -> Unit,
+    selectedAll: Boolean = false,
 ) {
     val line = Modifier.weight(1f)
     Row(
@@ -317,6 +325,7 @@ private fun RowScope.SearchQueryLine(
                 fontSize = fontSize,
                 handle = handle,
                 modifier = Modifier.weight(1f, fill = false),
+                selectedAll = selectedAll,
             )
         }
     }
@@ -340,6 +349,7 @@ private fun CaretQueryText(
     fontSize: TextUnit,
     handle: CaptureCaretHandle,
     modifier: Modifier = Modifier,
+    selectedAll: Boolean = false,
 ) {
     val scroll = rememberScrollState()
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
@@ -349,7 +359,7 @@ private fun CaretQueryText(
     val overlay = LocalSelectionOverlay.current
     val owner = remember { SelectionAnchor() }
     val active = caret >= 0
-    val selecting = active && handle.hasSelection
+    val selecting = active && handle.hasSelection && !selectedAll
     val latestHandle by androidx.compose.runtime.rememberUpdatedState(handle)
     // Paste offered at the caret by a long press on no word (#434).
     var caretBar by remember(query) { mutableStateOf(false) }
@@ -389,7 +399,11 @@ private fun CaretQueryText(
                 .selectionHighlight(
                     query,
                     if (selecting) handle.selectionStart else 0,
-                    if (selecting) handle.selectionEnd else 0,
+                    when {
+                        selectedAll -> query.length
+                        selecting -> handle.selectionEnd
+                        else -> 0
+                    },
                     LocalKbTheme.current.accent.copy(alpha = HighlightAlpha),
                 ) { layout },
         )
@@ -413,7 +427,7 @@ private fun CaretQueryText(
         // schedules the recomposition that draws it.
         val result = layout?.takeIf { it.layoutInput.text.text == query }
         // No caret while a span is selected: the highlight marks where typing lands.
-        if (caret >= 0 && result != null && !selecting) {
+        if (caret >= 0 && result != null && !selecting && !selectedAll) {
             // Clamped against the layout's own text and not against [query]:
             // they are the same string here, and it is the layout that defines
             // the legal range.

@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.app.ChannelFeatures
 import com.wasimaster.wmkeyboard.core.clock.Alarm
 import com.wasimaster.wmkeyboard.core.clock.AlarmMath
+import com.wasimaster.wmkeyboard.core.clock.ClockConfig
 import com.wasimaster.wmkeyboard.core.clock.ClockFormats
 import com.wasimaster.wmkeyboard.core.clock.Weekdays
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
@@ -477,6 +478,21 @@ private fun AlarmEditor(edit: AlarmEdit, ui: ClockUi, act: (ClockAction) -> Unit
                     val i = SNOOZE_STEPS.indexOf(edit.snoozeMinutes)
                     act(ClockAction.AlarmDraft(edit.copy(snoozeMinutes = SNOOZE_STEPS[(i + 1) % SNOOZE_STEPS.size])))
                 }
+                // This alarm's own count of snoozes when nobody answers (#970),
+                // stepped like the snooze length: the setting's, a few, or until
+                // someone answers.
+                ToolPanelChip(
+                    when (edit.autoSnoozes) {
+                        -1 -> stringResource(R.string.ime_clock_auto_snooze_default)
+                        0 -> stringResource(R.string.ime_clock_auto_snooze_none)
+                        ClockConfig.SNOOZE_UNTIL_ANSWERED -> stringResource(R.string.ime_clock_auto_snooze_forever)
+                        else -> pluralStringResource(R.plurals.ime_clock_auto_snooze_times, edit.autoSnoozes, edit.autoSnoozes)
+                    },
+                    selected = edit.autoSnoozes != -1,
+                ) {
+                    val i = AUTO_SNOOZE_STEPS.indexOf(edit.autoSnoozes)
+                    act(ClockAction.AlarmDraft(edit.copy(autoSnoozes = AUTO_SNOOZE_STEPS[(i + 1) % AUTO_SNOOZE_STEPS.size])))
+                }
             }
         }
         ActionBar(
@@ -510,6 +526,9 @@ private fun weekdayShort(): List<String> {
 
 private val QUICK_MINUTES = listOf(10, 20, 30, 60, 90)
 private val SNOOZE_STEPS = listOf(0, 5, 10, 15, 20, 30)
+
+/** The per-alarm snooze counts the chip steps through; -1 is the tool's setting. */
+private val AUTO_SNOOZE_STEPS = listOf(-1, 0, 1, 2, 3, 5, 10, ClockConfig.SNOOZE_UNTIL_ANSWERED)
 
 /** A weekday pip on an alarm card. */
 private val PIP = 16.dp

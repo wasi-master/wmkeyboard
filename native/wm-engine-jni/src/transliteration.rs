@@ -288,7 +288,12 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_Engin
     guarded(&mut env, null_mut(), |env| give(env, wm_engine::khipro::bundled_revision().to_string()))
 }
 
-strings_fn!(Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_khiproSpellings, wm_engine::khipro_romanizer::spellings);
+strings_fn!(Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_khiproSpellings, |word| {
+    wm_engine::khipro_romanizer::spellings(word, wm_engine::khipro::Variant::Touchscreen)
+});
+strings_fn!(Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_khiproDarkSpellings, |word| {
+    wm_engine::khipro_romanizer::spellings(word, wm_engine::khipro::Variant::DarkTouchscreen)
+});
 
 #[no_mangle]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_khiproRomanizerWarm(
@@ -296,7 +301,18 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_Engin
     _class: JClass,
 ) {
     guarded(&mut env, (), |_| {
-        wm_engine::khipro_romanizer::warm();
+        wm_engine::khipro_romanizer::warm(wm_engine::khipro::Variant::Touchscreen);
+        Some(())
+    })
+}
+
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_khiproDarkRomanizerWarm(
+    mut env: JNIEnv,
+    _class: JClass,
+) {
+    guarded(&mut env, (), |_| {
+        wm_engine::khipro_romanizer::warm(wm_engine::khipro::Variant::DarkTouchscreen);
         Some(())
     })
 }

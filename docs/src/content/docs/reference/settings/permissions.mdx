@@ -87,6 +87,7 @@ Only in the F-Droid and GitHub builds. The Play Store build has no such group. E
 | Write secure settings | Grants `WRITE_SECURE_SETTINGS`, which the app launcher's freeform row uses |
 | System spell checker | Makes WM Keyboard's spell checker the one every app's text fields use |
 | AI reply reads the chat | When the [AI reply](/tools/ai-reply/) panel opens, the keyboard reads the messages on screen and adds them, guessing yours from bubbles on the right and theirs from bubbles on the left. Tap a message to flip it. Times, the top bar and text fields are skipped, along with anything that looks like a password, and only the newest twelve are kept. Nothing is read in a password field |
+| Capture the screen | Adds a **Capture screen** button to [Text scan](/tools/scanner/#scanning-text-ocr), the camera's [photo translation](/tools/camera/#translating-a-photo) and [AI reply](/tools/ai-reply/#screenshots). It takes a screenshot through `screencap` with no screen recording prompt, so the keyboard keeps the box you're typing in. Text scan and Translate get the screen above the keyboard; AI reply gets the whole screen and skips the keyboard's part when reading it. The picture is kept only in the app's cache, and captures older than an hour are cleared on the next one. Apps that block screenshots come out black |
 
 These switches aren't part of a settings backup. A Shizuku or root grant belongs to one phone.
 

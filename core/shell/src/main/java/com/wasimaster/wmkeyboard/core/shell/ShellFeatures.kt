@@ -38,6 +38,7 @@ object ShellFeatures {
     private const val PREFS = "shell_features"
     private const val KEY_ENABLED = "enabled"
     private const val KEY_REPLY_SCREEN = "reply_screen"
+    private const val KEY_CAPTURE = "screen_capture"
 
     /** The master switch: "Use Shizuku or root for keyboard features". */
     fun isEnabled(context: Context): Boolean = offered && prefs(context).getBoolean(KEY_ENABLED, false)
@@ -55,6 +56,18 @@ object ShellFeatures {
 
     fun setReplyReadsScreen(context: Context, on: Boolean) {
         prefs(context).edit().putBoolean(KEY_REPLY_SCREEN, on).apply()
+    }
+
+    /**
+     * OCR, Translate's photo side and the AI reply panel offer a "Capture
+     * screen" button ([ScreenCapture]) that needs no consent dialog.
+     */
+    fun capturesScreen(context: Context): Boolean = isEnabled(context) && capturesScreenSetting(context)
+
+    fun capturesScreenSetting(context: Context): Boolean = prefs(context).getBoolean(KEY_CAPTURE, false)
+
+    fun setCapturesScreen(context: Context, on: Boolean) {
+        prefs(context).edit().putBoolean(KEY_CAPTURE, on).apply()
     }
 
     private fun prefs(context: Context) = deviceContext(context).getSharedPreferences(PREFS, Context.MODE_PRIVATE)

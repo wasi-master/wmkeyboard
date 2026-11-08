@@ -105,5 +105,6 @@ class ToolHoldActionsTest {
         assertFalse(ToolbarPlacement.STRIP.isOwnRow)
         assertTrue(ToolbarPlacement.ON_DEMAND_ROW.isOwnRow)
         assertTrue(ToolbarPlacement.ALWAYS_ROW.isOwnRow)
+        assertFalse(ToolbarPlacement.ON_SWIPE.isOwnRow)
     }
 }

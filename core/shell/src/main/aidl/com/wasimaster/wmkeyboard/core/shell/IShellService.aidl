@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.shell;
 
+import android.os.ParcelFileDescriptor;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
@@ -22,4 +23,11 @@ interface IShellService {
 
     /** Injects a key event (Back, mostly) into the given display. */
     boolean injectKey(in KeyEvent event, int displayId) = 3;
+
+    /**
+     * Runs one `sh -c` command and hands back the read end of a pipe carrying
+     * its stdout, uncapped: for binary output such as `screencap -p`, which
+     * [exec]'s string and 64 KiB cap cannot carry. Null when it failed to start.
+     */
+    ParcelFileDescriptor execStream(String command) = 4;
 }

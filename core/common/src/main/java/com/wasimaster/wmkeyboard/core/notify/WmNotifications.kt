@@ -78,13 +78,20 @@ object WmNotifications {
         context: Context,
         kind: NotificationKind,
         id: Int,
+        /**
+         * A channel of its own inside [kind] (#970), for posts the system
+         * should keep apart in the shade and the status bar. [kind]'s switch
+         * still decides whether it posts at all.
+         */
+        channel: NotificationSubChannel? = null,
         build: NotificationCompat.Builder.() -> Unit,
     ) {
         val app = context.applicationContext
         if (!NotificationSwitches.isOn(app, kind)) return
         if (!canPost(app)) return
         ensureChannel(app, kind)
-        val builder = NotificationCompat.Builder(app, kind.channelId)
+        channel?.let { ensureSubChannel(app, kind, it) }
+        val builder = NotificationCompat.Builder(app, channel?.id ?: kind.channelId)
             .setSmallIcon(R.drawable.common_ic_notification)
             .setCategory(kind.category)
             .setShowWhen(false)
@@ -124,6 +131,45 @@ object WmNotifications {
             channel.enableVibration(false)
         }
         runCatching { manager.createNotificationChannel(channel) }
+    }
+
+    /** [ensureChannel] for a [NotificationSubChannel], at its kind's importance. */
+    private fun ensureSubChannel(context: Context, kind: NotificationKind, sub: NotificationSubChannel) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        if (!channelsMade.add(sub.id)) return
+        val manager = context.getSystemService(NotificationManager::class.java) ?: return
+        val channel = NotificationChannel(sub.id, context.getString(sub.nameRes), kind.importance)
+        channel.description = context.getString(sub.bodyRes)
+        if (kind.importance <= NotificationManager.IMPORTANCE_LOW) {
+            channel.setShowBadge(false)
+            channel.enableVibration(false)
+        }
+        runCatching { manager.createNotificationChannel(channel) }
+    }
+}
+
+/**
+ * A channel inside a [NotificationKind] (#970): the clock's stopwatch and its
+ * alarm notices each have one, apart from the timers, so Android files them
+ * separately and lets each be set on its own. The kind's switch in this app
+ * still covers all of them.
+ */
+class NotificationSubChannel private constructor(
+    internal val id: String,
+    internal val nameRes: Int,
+    internal val bodyRes: Int,
+) {
+    companion object {
+        val CLOCK_STOPWATCH = NotificationSubChannel(
+            "clock_stopwatch",
+            R.string.common_notify_channel_stopwatch_title,
+            R.string.common_notify_channel_stopwatch_body,
+        )
+        val CLOCK_ALARMS = NotificationSubChannel(
+            "clock_alarms",
+            R.string.common_notify_channel_alarms_title,
+            R.string.common_notify_channel_alarms_body,
+        )
     }
 }
 

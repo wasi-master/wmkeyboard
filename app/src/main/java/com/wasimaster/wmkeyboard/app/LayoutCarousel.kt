@@ -6,6 +6,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope.ResizeMode.Companion.scaleToBounds
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.ArcMode
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.animateContentSize
@@ -145,11 +146,10 @@ internal fun LayoutCarousel(
         // The tallest board drawn so far, which the More card borrows so it
         // stands as tall as the cards beside it.
         val boardHeight = remember(cardWidth) { mutableIntStateOf(0) }
-        // Names wrap rather than cut off, and every card's name takes as many
-        // lines as the longest one needs, so the pills stay level along the
-        // row and a board never sits higher than its neighbour for its name.
+        // Names wrap rather than cut off, and each card is as tall as its own
+        // name. Levelling them to the longest name on the shelf left a one-line
+        // name over two or three lines of nothing on every other card.
         val names = rememberLayoutNames(layoutIds, settings)
-        val nameLines = rememberLayoutNameLines(names, withMore = moreCount > 0, cardWidth = cardWidth)
         // No card composes a keyboard to capture while the row moves, or while
         // the cards are flying to or from the layout gallery.
         val scrolling = rememberPreviewsHeld { listState.isScrollInProgress }
@@ -162,9 +162,9 @@ internal fun LayoutCarousel(
                 state = listState,
                 contentPadding = PaddingValues(horizontal = CarouselEdge),
                 horizontalArrangement = Arrangement.spacedBy(CardGap),
-                // Bottom, so every name pill sits on one line whatever the height
-                // of the board above it.
-                verticalAlignment = Alignment.Bottom,
+                // Top, so the boards start level along the row and each card
+                // ends where its own name does, the way a store's shelf does.
+                verticalAlignment = Alignment.Top,
                 modifier = Modifier
                     .fillMaxWidth()
                     .then(
@@ -176,7 +176,7 @@ internal fun LayoutCarousel(
                         tallest[0] = maxOf(tallest[0], placeable.height)
                         val height = constraints.constrainHeight(tallest[0])
                         layout(placeable.width, height) {
-                            placeable.place(0, height - placeable.height)
+                            placeable.place(0, 0)
                         }
                     },
             ) {
@@ -187,7 +187,6 @@ internal fun LayoutCarousel(
                         layoutId = layoutId,
                         on = on,
                         settings = settings,
-                        nameLines = nameLines,
                         modifier = Modifier
                             .width(cardWidth)
                             .layoutCardFlight(layoutCardFlightKey(layoutId)) { index - firstShown() },
@@ -201,7 +200,7 @@ internal fun LayoutCarousel(
                             count = moreCount,
                             boardHeight = boardHeight.intValue,
                             width = cardWidth,
-                            nameLines = nameLines,
+                            nameLines = 1,
                             onClick = onMore,
                             modifier = Modifier.layoutCardFlight(MORE_CARD_FLIGHT) { layoutIds.size - firstShown() },
                         )
@@ -229,7 +228,7 @@ internal fun LayoutCarousel(
  * drawn, for a neighbour that wants to match it.
  *
  * The name wraps onto as many lines as it needs, and takes at least
- * [nameLines], so a row of cards can keep its pills level.
+ * [nameLines], so a grid row of cards can keep its pills level.
  */
 @Composable
 internal fun LayoutCard(
@@ -500,21 +499,19 @@ internal fun rememberLayoutNames(layoutIds: List<String>, settings: LiveSettings
 }
 
 /**
- * How many lines the longest of [names] (and the More card's, [withMore])
- * takes on a card [cardWidth] wide. Names wrap rather than cut off, and every
- * card's name takes that many lines, so the pills stay level along a row and a
- * board never sits higher than its neighbour for its name.
+ * How many lines each of [texts] takes as a card's name on a card [cardWidth]
+ * wide, in order. A grid levels each row of cards to the longest name in that
+ * row, so a row of one-line names stays tight and only the row with a long one
+ * grows.
  */
 @Composable
-internal fun rememberLayoutNameLines(names: Map<String, String>, withMore: Boolean, cardWidth: Dp): Int {
+internal fun rememberLayoutNameLineCounts(texts: List<String>, cardWidth: Dp): List<Int> {
     val density = LocalDensity.current
-    val moreName = stringResource(R.string.languages_more_layouts_title)
     val nameStyle = layoutNameStyle()
     val measurer = rememberTextMeasurer()
-    return remember(names, withMore, moreName, nameStyle, cardWidth, density) {
+    return remember(texts, nameStyle, cardWidth, density) {
         val width = with(density) { (cardWidth - CardInset * 2 - PillInset * 2 - TickSize - TickGap).roundToPx() }
-        val shown = if (withMore) names.values + moreName else names.values
-        shown.maxOfOrNull { name ->
+        texts.map { name ->
             measurer.measure(
                 name,
                 style = nameStyle,
@@ -522,7 +519,7 @@ internal fun rememberLayoutNameLines(names: Map<String, String>, withMore: Boole
                 // Measured without the cache: each name is measured once.
                 skipCache = true,
             ).lineCount
-        } ?: 1
+        }
     }
 }
 
@@ -569,7 +566,10 @@ internal fun Modifier.layoutCardFlight(key: String, order: () -> Int): Modifier 
             keyframes {
                 delayMillis = delay
                 durationMillis = NavTransitionMs - delay
-                initial at 0 using ArcMode.ArcBelow using NavTransitionEasing
+                // The standard curve rather than the screens' decelerate one,
+                // which spends most of its travel in the first few frames:
+                // the card has to be seen leaving its place to read as moving.
+                initial at 0 using ArcMode.ArcBelow using FastOutSlowInEasing
                 target at durationMillis
             }
         }

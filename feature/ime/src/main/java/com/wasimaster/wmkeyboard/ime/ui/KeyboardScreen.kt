@@ -210,6 +210,7 @@ import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.LocalConfiguration
 import com.wasimaster.wmkeyboard.core.prediction.GlideSandboxPolicy
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
+import com.wasimaster.wmkeyboard.core.settings.ToolbarHeightRange
 import com.wasimaster.wmkeyboard.core.settings.holdSymbolList
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.sizingValuesFor
@@ -495,6 +496,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Reorder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Checklist
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FilterList
 import com.wasimaster.wmkeyboard.core.settings.isOwnRow
+import com.wasimaster.wmkeyboard.core.settings.stripToolboxSwipes
 import com.wasimaster.wmkeyboard.core.settings.stripHidden
 import com.wasimaster.wmkeyboard.core.settings.autoBottomPaddingDp
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
@@ -647,6 +649,7 @@ import com.wasimaster.wmkeyboard.core.layout.deletesForward
 import com.wasimaster.wmkeyboard.core.layout.drawnFontScale
 import com.wasimaster.wmkeyboard.core.layout.drawnLabel
 import com.wasimaster.wmkeyboard.core.layout.drawnHintScale
+import com.wasimaster.wmkeyboard.core.layout.drawnFlickScale
 import com.wasimaster.wmkeyboard.core.layout.drawnLabelScale
 import com.wasimaster.wmkeyboard.core.layout.fallbackLabel
 import com.wasimaster.wmkeyboard.core.layout.shiftLabelReplacesIcon
@@ -751,6 +754,15 @@ internal val LocalClipboardKeyAction = staticCompositionLocalOf<(ClipboardKeyAct
  * chip: the strip cannot take another parameter (see ToolHoldCallbacks), so
  * the chip reaches the tool through this local instead.
  */
+/** Which tool a "Capture screen" press is for; see [LocalScreenCapture]. */
+enum class ScreenCaptureTarget { OCR, TRANSLATE, REPLY }
+
+/**
+ * "Capture screen" (Shizuku or root) in OCR, Translate's camera and AI reply.
+ * The button shows only while [KeyboardUiState.screenCapture] is set.
+ */
+internal val LocalScreenCapture = staticCompositionLocalOf<(ScreenCaptureTarget) -> Unit> { {} }
+
 internal val LocalSendAction = staticCompositionLocalOf<(com.wasimaster.wmkeyboard.ime.send.SendAction) -> Unit> { {} }
 
 /** The AI continuation chip's tap and hold (#944), reached the way [LocalSendAction] is. */
@@ -2466,6 +2478,7 @@ private fun DockedKeyboardFrame(
                 val card = state.television && state.settings.oneHandedModeFor(landscape) == OneHandedMode.OFF
                 if (!card) {
                     BoardBackground(LocalKbTheme.current)
+                    IncognitoWatermark(state.incognitoOn)
                     // Under the keys and over the board, so a theme that gives the
                     // gesture bar a colour of its own paints only that band (#109).
                     NavigationBarBackground(LocalKbTheme.current)
@@ -2877,6 +2890,28 @@ internal fun dockedWidthArrangement(
 }
 
 /**
+ * Incognito's mark on the board (#1177): faint, in the middle, under the keys
+ * and under any panel. The toolbar's badge goes away with the toolbar, so a
+ * tool or the clipboard filling the keyboard took the one sign that incognito
+ * was on with it. On the board, the way SwiftKey and FlorisBoard draw theirs,
+ * it shows wherever the board does.
+ */
+@Composable
+private fun BoxScope.IncognitoWatermark(on: Boolean) {
+    if (!on) return
+    SlotIcon(
+        IconSlots.CHROME_INCOGNITO,
+        contentDescription = null,
+        modifier = Modifier.align(Alignment.Center).size(IncognitoWatermarkSize),
+        tint = LocalKbTheme.current.secondaryText.copy(alpha = IncognitoWatermarkAlpha),
+    )
+}
+
+/** How big [IncognitoWatermark] is drawn, and how faint. */
+private val IncognitoWatermarkSize = 112.dp
+private const val IncognitoWatermarkAlpha = 0.14f
+
+/**
  * The docked board on a television: a card with rounded top corners and a
  * soft shadow, standing on the bottom edge of the screen, with the app left
  * visible on either side of it. It is how Gboard draws itself on Android TV,
@@ -3181,6 +3216,7 @@ private fun FloatingKeyboardFrame(
         ) {
             Box {
                 BoardBackground(LocalKbTheme.current)
+                IncognitoWatermark(state.incognitoOn)
                 val handleAtBottom = state.settings.floatingHandle == FloatingHandlePosition.BOTTOM
                 // One bar, placed above or below the keys; see the frame's KDoc.
                 val handleBar: @Composable () -> Unit = {
@@ -3778,7 +3814,10 @@ private fun TopBar(
     // Suggestions-first mode keeps the strip as the resting state (an empty
     // strip plus the chevron into the toolbar); the override then survives
     // idle gaps and instead resets when fresh candidates arrive.
-    val suggestionsFirst = state.settings.suggestionStrip.suggestionsFirst && state.settings.suggestions
+    // Tools on a swipe (#970) rest on the strip the same way: the toolbar only
+    // comes up when the toolbox button is swiped, never because the strip ran dry.
+    val suggestionsFirst = (state.settings.suggestionStrip.suggestionsFirst && state.settings.suggestions) ||
+        state.settings.toolbarBehavior.placement == ToolbarPlacement.ON_SWIPE
     // An empty field predicts its first word (#119), so the strip always had
     // words at rest and turning "Suggestion strip always visible" off did
     // nothing. With it off those openers do not exist (#629): the toolbar
@@ -4135,12 +4174,18 @@ private fun TopBar(
         LayoutDirection.Ltr
     }
     val pinnedFeedback = LocalKeyPressFeedback.current
-    val onPinnedTools = {
-        pinnedFeedback()
-        if (toolsOwnRow) {
-            onToolsRowToggle()
-        } else {
-            toolbarOverride = !toolbarOverride
+    // A swipe on a toolbox button (#970): up opens the pinned tools, down
+    // closes them, and a swipe that asks for what is already there does nothing.
+    val onPinnedTools: (Boolean) -> Unit = { open ->
+        when {
+            toolsOwnRow -> if (toolsRowOpen != open) {
+                pinnedFeedback()
+                onToolsRowToggle()
+            }
+            toolbarOverride != open -> {
+                pinnedFeedback()
+                toolbarOverride = open
+            }
         }
     }
     // One layout cache for every word and emoji the strip draws, kept for as
@@ -4332,13 +4377,19 @@ private fun TopBar(
         // emoji then slid right, was handed to the strip, and slid back left
         // past where it started. One decision, and the row moves once, when the
         // surface it belongs to arrives.
+        // The arrow can go (#970) where a toolbox button on screen does its
+        // job by a swipe: the strip's own while the strip shows, the bar's
+        // while the toolbar covers the strip. Without that button the arrow
+        // stays, as the only way in or out.
+        val swipeInstead = (placement == ToolbarPlacement.ON_SWIPE || !state.settings.toolbarBehavior.toolsArrow) &&
+            if (showToolbar) barToolboxShown(state) else state.settings.stripToolboxSwipes()
         AnimatedVisibility(
-            visible = !toolsColumn && when (placement) {
+            visible = !toolsColumn && !swipeInstead && when (placement) {
                 // The row is always there; there is nothing for a chevron to do.
                 ToolbarPlacement.ALWAYS_ROW -> false
                 // The chevron *is* the way to that row, so it is always offered.
                 ToolbarPlacement.ON_DEMAND_ROW -> true
-                ToolbarPlacement.STRIP -> !showToolbar ||
+                ToolbarPlacement.STRIP, ToolbarPlacement.ON_SWIPE -> !showToolbar ||
                     (
                         wantToolbar && state.panel == PanelMode.NONE &&
                             (hasSuggestions || suggestionsFirst)
@@ -4407,6 +4458,7 @@ private fun TopBar(
                 state, onPanelChange, onToolTap, drag, toolContentAlpha,
                 sharedTools = stripToolSet(state),
                 fadeShared = emojiFadesWithTools && wantToolbar,
+                onToolboxSwipeDown = { onPinnedTools(false) },
             )
             if (state.settings.emojiBarMode == EmojiBarMode.BUTTON) {
                 IconHint(stringResource(R.string.ime_emoji_row_show_desc)) {
@@ -11083,7 +11135,7 @@ private fun StripTools(
     toolsRowVisible: Boolean,
     drag: ToolDragController,
     onToolTap: (ToolbarTool) -> Unit,
-    onPinnedTools: () -> Unit,
+    onPinnedTools: (Boolean) -> Unit,
     onToolbox: () -> Unit,
 ) {
     val onRow = if (toolsRowVisible) visibleToolbarTools(state) else emptyList()
@@ -11130,27 +11182,51 @@ private fun stripToolsAtEnd(state: KeyboardUiState): Boolean =
 
 private const val ToolboxSwipeUpDp = 16
 
+/**
+ * Whether the pinned tools start with their toolbox button (#970). Always
+ * while a tool is open, since that bar covers the strip and the strip's own
+ * button with it, and always when the strip has no toolbox button: hiding
+ * both would leave the toolbox reachable only from a key.
+ */
+private fun barToolboxShown(state: KeyboardUiState): Boolean =
+    state.settings.toolbarBehavior.barToolbox || state.panel != PanelMode.NONE ||
+        !state.settings.stripToolboxSwipes()
+
+/**
+ * A vertical swipe on a toolbox button (#970): [onSwipe] with true for up,
+ * false for down, once the finger has travelled [ToolboxSwipeUpDp]. A shorter
+ * drag is nothing, and the tap underneath stays the button's own.
+ */
+private fun Modifier.toolboxSwipes(onSwipe: (up: Boolean) -> Unit): Modifier = pointerInput(Unit) {
+    var travel = 0f
+    detectVerticalDragGestures(
+        onDragStart = { travel = 0f },
+        onDragEnd = {
+            val threshold = ToolboxSwipeUpDp.dp.toPx()
+            when {
+                travel < -threshold -> onSwipe(true)
+                travel > threshold -> onSwipe(false)
+            }
+        },
+    ) { change, amount ->
+        change.consume()
+        travel += amount
+    }
+}
+
 /** The toolbox launcher among the buttons beside the suggestions (#970). */
 @Composable
-private fun StripToolboxButton(state: KeyboardUiState, onPinnedTools: () -> Unit, onToolbox: () -> Unit) {
+private fun StripToolboxButton(state: KeyboardUiState, onPinnedTools: (Boolean) -> Unit, onToolbox: () -> Unit) {
     val behavior = state.settings.toolbarBehavior
     val label = stringResource(R.string.ime_toolbox_desc)
-    val swipedUp by rememberUpdatedState(onPinnedTools)
+    val swiped by rememberUpdatedState(onPinnedTools)
     ToolCircle(
         slot = IconSlots.CHROME_TOOLBOX,
         description = label,
         active = false,
-        // A swipe up does what the chevron does: the pinned tools (#970).
-        modifier = Modifier.pointerInput(Unit) {
-            var travel = 0f
-            detectVerticalDragGestures(
-                onDragStart = { travel = 0f },
-                onDragEnd = { if (travel < -ToolboxSwipeUpDp.dp.toPx()) swipedUp() },
-            ) { change, amount ->
-                change.consume()
-                travel += amount
-            }
-        },
+        // A swipe up does what the chevron does: the pinned tools (#970). A
+        // swipe down puts them away again.
+        modifier = Modifier.toolboxSwipes { up -> swiped(up) },
         longPressLabel = label,
         wide = true,
         widthDp = behavior.stripToolWidthDp.takeIf { behavior.stripOwnSize },
@@ -11313,6 +11389,8 @@ private fun ToolsRow(
     onPanelChange: (PanelMode) -> Unit,
     onToolTap: (ToolbarTool) -> Unit,
     drag: ToolDragController,
+    /** A swipe down on the row's toolbox button, to close a row that opens on demand (#970). */
+    onToolboxSwipeDown: (() -> Unit)? = null,
 ) {
     val direction = if (toolbarReadsRtl(state)) LayoutDirection.Rtl else LayoutDirection.Ltr
     CompositionLocalProvider(LocalLayoutDirection provides direction) {
@@ -11323,7 +11401,7 @@ private fun ToolsRow(
                 .toolbarPadding(state.settings),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            ToolbarRow(state, onPanelChange, onToolTap, drag)
+            ToolbarRow(state, onPanelChange, onToolTap, drag, onToolboxSwipeDown = onToolboxSwipeDown)
         }
     }
 }
@@ -11427,7 +11505,7 @@ private fun ToolsColumn(
             ) { onPanelChange(state.panel) }
         }
         if (toolboxSearchShown && !searchAtEnd) toolboxSearch()
-        ToolCircle(
+        if (barToolboxShown(state)) ToolCircle(
             slot = IconSlots.CHROME_TOOLBOX,
             description = stringResource(R.string.ime_toolbox_desc),
             active = customizing,
@@ -11623,6 +11701,12 @@ private fun RowScope.ToolbarRow(
     // The tools the suggestion strip also draws a copy of (see [stripToolSet]).
     sharedTools: Set<ToolbarTool> = emptySet(),
     fadeShared: Boolean = false,
+    /**
+     * A swipe down on the toolbox button (#970): puts the pinned tools away,
+     * the way a swipe up on the strip's own toolbox button brought them.
+     * Null where the bar is not one that can be put away.
+     */
+    onToolboxSwipeDown: (() -> Unit)? = null,
 ) {
     val customizing = state.panel == PanelMode.TOOLBOX
     // Scrolling wants the tools at their natural width, so it overrides the
@@ -11769,7 +11853,9 @@ private fun RowScope.ToolbarRow(
         // The toolbox's search, when it sits beside the way back rather than
         // at the far end (see [toolboxSearchCell]).
         if (toolboxSearchShown && !searchAtEnd) toolboxSearchCell(cell)
-        Box(cell, contentAlignment = Alignment.Center) {
+        // Left out at rest when the strip's own button is the way in (#970).
+        // An open tool covers the strip, so the bar keeps it then.
+        if (barToolboxShown(state)) Box(cell, contentAlignment = Alignment.Center) {
             ToolCircle(
                 slot = IconSlots.CHROME_TOOLBOX,
                 description = stringResource(R.string.ime_toolbox_desc),
@@ -11794,6 +11880,13 @@ private fun RowScope.ToolbarRow(
                     // The width a pinned button actually gets, published for the
                     // strip's emoji shortcut to match (see [pinnedToolWidthPx]).
                     .onSizeChanged { drag.pinnedToolWidthPx = it.width }
+                    .then(
+                        if (onToolboxSwipeDown != null && !panelOpen) {
+                            Modifier.toolboxSwipes { up -> if (!up) onToolboxSwipeDown() }
+                        } else {
+                            Modifier
+                        },
+                    )
                     .animatePlacement(enabled = motion, inRow = true) { drag.bodyCoords }
                     // Under the slide, never over it: a fade renders offscreen
                     // and clips to its own node, so a stationary fade around a
@@ -14803,7 +14896,12 @@ private fun KeyboardBody(
                                     ExitTransition.None
                                 },
                             ) {
-                                ToolsRow(state, onPanelChange, onToolTap, drag)
+                                ToolsRow(
+                                    state, onPanelChange, onToolTap, drag,
+                                    onToolboxSwipeDown = { toolsRowOpen = false }.takeIf {
+                                        placement == ToolbarPlacement.ON_DEMAND_ROW
+                                    },
+                                )
                             }
                         }
                         // Stickers the text asked for (#329), in a row of
@@ -15099,7 +15197,7 @@ private fun KeyboardBody(
                             onPanelChange(
                                 when {
                                     state.cameraSearchOnly -> PanelMode.WEB_SEARCH
-                                    state.cameraImage != null -> PanelMode.CLIPBOARD
+                                    state.cameraImage != null && !state.pictureFromScreen -> PanelMode.CLIPBOARD
                                     else -> PanelMode.CAMERA
                                 },
                             )
@@ -15115,7 +15213,9 @@ private fun KeyboardBody(
                         onInsert = onScannedInsert,
                         onRequestPermission = onCameraPermissionRequest,
                         // Opened on a clip's picture (#371), back goes back to the clipboard.
-                        onClose = { onPanelChange(if (state.ocrImage != null) PanelMode.CLIPBOARD else PanelMode.OCR) },
+                        onClose = {
+                            onPanelChange(if (state.ocrImage != null && !state.pictureFromScreen) PanelMode.CLIPBOARD else PanelMode.OCR)
+                        },
                         onTranslate = toolHold.photo.onTranslateText,
                     )
                 }
@@ -16729,6 +16829,20 @@ private const val SpaceCursorEdgeRepeatMs = 125L
 
 /** The fastest the caret repeats at the edge, at any top speed: about a frame. */
 private const val SpaceCursorEdgeRepeatMinMs = 16L
+
+/** The slowest a drawn-back joystick runs, as a multiple of its full-speed interval. */
+private const val SpaceCursorJoySlowest = 6f
+
+/**
+ * How many times slower than full speed a spacebar cursor joystick runs with
+ * the finger [out] from where it went down, when [reach] is full speed (#970):
+ * 1 at [reach] and beyond, up to [SpaceCursorJoySlowest] near the start.
+ */
+internal fun joySlowdown(out: Float, reach: Float): Float {
+    if (reach <= 0f || out >= reach) return 1f
+    val share = (out / reach).coerceAtLeast(1f / SpaceCursorJoySlowest)
+    return 1f / share
+}
 
 /**
  * The same for lines, with the whole keyboard as a 2-D pad (#444): five a
@@ -24601,7 +24715,10 @@ private fun toolbarReadsRtl(state: KeyboardUiState): Boolean =
  */
 internal fun topBarHeight(settings: KeyboardSettings): Dp =
     if (settings.toolbarBehavior.enabled) {
-        (settings.toolbarHeightDp + settings.toolbarBehavior.paddingTopDp + settings.toolbarBehavior.paddingBottomDp).dp
+        // A padding below zero (#970) takes height off the strip, never past
+        // the slider floor, and never past a bar a theme made shorter still.
+        val padded = settings.toolbarHeightDp + settings.toolbarBehavior.paddingTopDp + settings.toolbarBehavior.paddingBottomDp
+        padded.coerceAtLeast(minOf(settings.toolbarHeightDp, ToolbarHeightRange.first)).dp
     } else {
         0.dp
     }
@@ -24613,9 +24730,11 @@ internal fun topBarHeight(settings: KeyboardSettings): Dp =
  */
 internal fun Modifier.toolbarPadding(settings: KeyboardSettings): Modifier =
     if (settings.toolbarBehavior.enabled) {
+        // A negative padding has nothing to pad: it only shortened the row
+        // in [topBarHeight], and `padding` refuses a value under zero.
         padding(
-            top = settings.toolbarBehavior.paddingTopDp.dp,
-            bottom = settings.toolbarBehavior.paddingBottomDp.dp,
+            top = settings.toolbarBehavior.paddingTopDp.coerceAtLeast(0).dp,
+            bottom = settings.toolbarBehavior.paddingBottomDp.coerceAtLeast(0).dp,
         )
     } else {
         this
@@ -28059,13 +28178,19 @@ private fun ActionKeyIcon(
     slot: String,
     contentDescription: String?,
     tint: Color,
+    /** The key's own [Key.labelScale], which sizes its icon too (#970); 1 draws the icon's own size. */
+    scale: Float = 1f,
 ) {
+    val sized = if (scale != 1f) Modifier.size((ActionKeyIconDp * scale).dp) else Modifier
     if (named != null) {
-        Icon(named, contentDescription = contentDescription, tint = tint)
+        Icon(named, contentDescription = contentDescription, tint = tint, modifier = sized)
     } else {
-        SlotIcon(slot, contentDescription = contentDescription, tint = tint)
+        SlotIcon(slot, contentDescription = contentDescription, tint = tint, modifier = sized)
     }
 }
+
+/** The side an action key's icon is drawn at when nothing sizes it: Material's own 24 dp. */
+private const val ActionKeyIconDp = 24f
 
 /**
  * The words a shift or caps-lock key wears in place of its arrow (issue #559),
@@ -28140,6 +28265,11 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
     // An icon the layout named for this key (issue #187). Every branch below
     // honours it, so a space bar or a shift key can wear one as well as a letter.
     val namedIcon = KeyIcons.byName(key.icon)
+    // A label size set on the key itself sizes its icon when it draws one
+    // (#970): an action in the middle of a flick key, say, which has no text
+    // for the size to reach. The layout's own value only, so a theme's
+    // per-key label size keeps meaning the label.
+    val iconScale = key.drawnLabelScale() ?: 1f
     when (key.action) {
         // The shift slot and its spoken name both track the live shift state, and
         // [spokenLabel] already words it the way this key wants read out. A label
@@ -28179,6 +28309,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                         },
                         contentDescription = visual.spoken.resolved(),
                         tint = tint,
+                        scale = iconScale,
                     )
                 }
             }
@@ -28188,12 +28319,14 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             IconSlots.KEY_BACKSPACE,
             contentDescription = stringResource(R.string.ime_key_delete),
             tint = contentColor,
+            scale = iconScale,
         )
         KeyAction.ForwardDelete -> ActionKeyIcon(
             namedIcon,
             IconSlots.KEY_FORWARD_DELETE,
             contentDescription = stringResource(R.string.ime_key_forward_delete),
             tint = contentColor,
+            scale = iconScale,
         )
         // An app-supplied actionLabel is drawn as text — that is the whole
         // point of it, and no icon can stand in for wording the app chose.
@@ -28220,6 +28353,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     visual.iconSlot ?: IconSlots.KEY_ENTER,
                     contentDescription = stringResource(R.string.ime_enter_default),
                     tint = contentColor,
+                    scale = iconScale,
                 )
             }
             // The other thing this key does right now, drawn small in the same
@@ -28253,24 +28387,28 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             IconSlots.KEY_ENTER,
             contentDescription = stringResource(R.string.ime_key_newline),
             tint = contentColor,
+            scale = iconScale,
         )
         KeyAction.LanguageSwitch -> ActionKeyIcon(
             namedIcon,
             IconSlots.KEY_GLOBE,
             contentDescription = stringResource(R.string.ime_key_language_switch),
             tint = contentColor,
+            scale = iconScale,
         )
         KeyAction.InputMethodPicker, is KeyAction.SwitchInputMethod -> ActionKeyIcon(
             namedIcon,
             IconSlots.KEY_INPUT_METHOD_PICKER,
             contentDescription = stringResource(R.string.ime_key_input_method_picker),
             tint = contentColor,
+            scale = iconScale,
         )
         KeyAction.Emoji -> ActionKeyIcon(
             namedIcon,
             IconSlots.KEY_EMOJI,
             contentDescription = stringResource(R.string.ime_key_emoji),
             tint = contentColor,
+            scale = iconScale,
         )
         // A text-editing key wears its operation's icon, or the short word the
         // old panel drew for the ones no glyph explains (Select, Select all,
@@ -28283,7 +28421,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     mainIcon,
                     contentDescription = visual.spoken.resolved(),
                     tint = contentColor,
-                    modifier = Modifier.size((22f * fontScale).dp),
+                    modifier = Modifier.size((22f * fontScale * iconScale).dp),
                 )
             } else {
                 Text(
@@ -28332,7 +28470,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                             namedIcon,
                             contentDescription = if (showText) null else visual.spoken.resolved(),
                             tint = if (showText) contentColor.copy(alpha = 0.5f) else contentColor,
-                            modifier = Modifier.size(((if (showText) 16f else 22f) * fontScale).dp),
+                            modifier = Modifier.size(((if (showText) 16f else 22f) * fontScale * iconScale).dp),
                         )
                     }
                     // A custom label replaces the language name; %s inside it
@@ -28387,7 +28525,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     tint = contentColor,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size((22f * fontScale).dp),
+                        .size((22f * fontScale * iconScale).dp),
                 )
             } else if (toolSlot != null) {
                 SlotIcon(
@@ -28396,7 +28534,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     tint = contentColor,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size((22f * fontScale).dp),
+                        .size((22f * fontScale * iconScale).dp),
                 )
             } else if (fallbackIcon != null) {
                 Icon(
@@ -28405,7 +28543,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     tint = contentColor,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size((22f * fontScale).dp),
+                        .size((22f * fontScale * iconScale).dp),
                 )
             } else {
                 // A blank label on an action key used to draw literally nothing,
@@ -28577,7 +28715,9 @@ private fun BoxScope.FlickFaceArms(visual: KeyVisual, settings: KeyboardSettings
     val key = visual.key
     val keyman = key.action is KeyAction.KeymanKey
     val color = visual.hintColor ?: visual.contentColor.copy(alpha = 0.55f)
-    val fontScale = settings.fontScale * visual.fontScale * settings.layoutBehavior.hintFontScale
+    // The key's own arm size on top (#970), apart from its label and its hint.
+    val fontScale = settings.fontScale * visual.fontScale * settings.layoutBehavior.hintFontScale *
+        key.drawnFlickScale()
     val bold = settings.accessibility.boldLabels
     val base = keyHintTextStyle()
     val style = remember(base, fontScale, color, bold) {
@@ -28614,13 +28754,15 @@ private fun BoxScope.FlickFaceArms(visual: KeyVisual, settings: KeyboardSettings
         }
     }
     val measurer = rememberTextMeasurer()
-    val topOffsetDp = settings.layoutBehavior.hintOffsetDp
+    // Moved further in, or out, on this key alone (#970).
+    val nudgeDp = key.flickInsetDp?.takeIf { it.isFinite() } ?: 0f
+    val topOffsetDp = settings.layoutBehavior.hintOffsetDp + nudgeDp
     val iconDp = HintIconDp * fontScale
     Spacer(
         modifier = Modifier
             .matchParentSize()
             .drawWithCache {
-                val inset = FlickArmEdgeInsetDp.toPx()
+                val inset = (FlickArmEdgeInsetDp + nudgeDp.dp).toPx()
                 val top = topOffsetDp.dp.toPx()
                 val iconPx = iconDp.dp.toPx()
                 val laid = faces.map { (direction, face) ->
@@ -29746,6 +29888,16 @@ private fun Modifier.pointerInputKey(
                     // going up or down, on a deadline of its own.
                     var edgeDirY = 0
                     var nextRepeatYAt = 0L
+                    // Once the caret goes on by itself, the drag is a joystick
+                    // (#970): the finger's side of where it went down says which
+                    // way, its distance out says how fast. Drawing back slows the
+                    // caret instead of walking it back, and only crossing the
+                    // start turns it round. [joyReach] is how far out the finger
+                    // was when it began, the distance that means full speed.
+                    var joyReach = 0f
+                    // How much slower than full speed the joystick runs: 1 out at
+                    // [joyReach] or past the key's end, more drawn back.
+                    var joySlow = 1f
                     while (true) {
                         val event = if (edgeDir != 0 || edgeDirY != 0) {
                             val due = minOf(
@@ -29758,6 +29910,9 @@ private fun Modifier.pointerInputKey(
                             awaitPointerEvent()
                         }
                         if (edgeDir != 0 && SystemClock.uptimeMillis() >= nextRepeatAt) {
+                            // The first step it takes by itself makes the drag a
+                            // joystick, out as far as the finger is now.
+                            if (joyReach == 0f) joyReach = abs(lastX - down.position.x).coerceAtLeast(cursorStepPx)
                             onCursorMove(edgeDir)
                             // At the pace the drag had reached (#970): a finger parked
                             // at the edge dropped a fast run to a crawl.
@@ -29765,7 +29920,7 @@ private fun Modifier.pointerInputKey(
                                 cursorStepPx, cursorRampX.travel, cursorRampStartPx, cursorRampEndPx, cursorTopSpeed,
                             ) / cursorStepPx
                             nextRepeatAt = SystemClock.uptimeMillis() +
-                                (SpaceCursorEdgeRepeatMs * pace).toLong().coerceAtLeast(SpaceCursorEdgeRepeatMinMs)
+                                (SpaceCursorEdgeRepeatMs * pace * joySlow).toLong().coerceAtLeast(SpaceCursorEdgeRepeatMinMs)
                         }
                         if (edgeDirY != 0 && SystemClock.uptimeMillis() >= nextRepeatYAt) {
                             onCursorMoveVertical(edgeDirY)
@@ -30107,7 +30262,42 @@ private fun Modifier.pointerInputKey(
                         accumulated += dx
                         lastX = change.position.x
                         when (action) {
-                            SpaceSwipeAction.CURSOR -> {
+                            SpaceSwipeAction.CURSOR -> if (joyReach > 0f) {
+                                // The joystick (see [joyReach]): no steps of its
+                                // own, and the ramp keeps the pace it reached.
+                                accumulated = 0f
+                                change.consume()
+                                val grid = spaceTouchpad?.gridBounds
+                                val leftEdge: Float
+                                val rightEdge: Float
+                                if (grid != null && grid.width > 0f) {
+                                    val origin = keyBounds().left
+                                    leftEdge = grid.left - origin + touchpadEdgePx
+                                    rightEdge = grid.right - origin - touchpadEdgePx
+                                } else {
+                                    leftEdge = 0f
+                                    rightEdge = size.width.toFloat()
+                                }
+                                val x = change.position.x
+                                val offset = x - down.position.x
+                                val pastEdge = x < leftEdge || x > rightEdge
+                                val dir = when {
+                                    // Back over the start: still, until it leaves
+                                    // the other way.
+                                    abs(offset) < cursorStepPx -> 0
+                                    offset > 0f -> 1
+                                    else -> -1
+                                }
+                                joySlow = if (pastEdge) {
+                                    1f
+                                } else {
+                                    joySlowdown(abs(offset), joyReach)
+                                }
+                                if (dir != edgeDir) {
+                                    edgeDir = dir
+                                    if (dir != 0) nextRepeatAt = SystemClock.uptimeMillis() + SpaceCursorEdgeRepeatMs
+                                }
+                            } else {
                                 cursorRampX.add(dx)
                                 val stepPx = spaceCursorStepPx(
                                     cursorStepPx, cursorRampX.travel, cursorRampStartPx, cursorRampEndPx, cursorTopSpeed,
@@ -30156,6 +30346,10 @@ private fun Modifier.pointerInputKey(
                                     nextRepeatAt = SystemClock.uptimeMillis() +
                                         if (pastEdge) SpaceCursorEdgeRepeatMs else SpaceCursorHoldDelayMs
                                 }
+                                // Going by itself past the key's end, the drag
+                                // turns joystick at once; held still inside it,
+                                // only once the pause has run (see the repeat).
+                                if (pastEdge && dir != 0) joyReach = abs(offset).coerceAtLeast(cursorStepPx)
                             }
                             SpaceSwipeAction.LANGUAGE -> {
                                 if (twoModes) {
@@ -33296,6 +33490,8 @@ internal fun ClipInfoPopup(
     onJump: (() -> Unit)? = null,
     /** The clip's tags, in the editor (#612). */
     onTags: (() -> Unit)? = null,
+    /** Paste next (#1178): what pastes next, the history left as it is. */
+    onPasteNext: (() -> Unit)? = null,
     /** Pastes the clip, as a tap on it does; at the end of the action row (#612). */
     onPaste: (() -> Unit)? = null,
     onDismiss: () -> Unit,
@@ -33402,6 +33598,9 @@ internal fun ClipInfoPopup(
                                 }
                                 onTags?.let {
                                     ClipTextActionIcon(Icons.Outlined.Sell, stringResource(R.string.ime_clip_tags), tint, it)
+                                }
+                                onPasteNext?.let {
+                                    ClipTextActionIcon(Icons.Outlined.ContentPaste, stringResource(R.string.ime_clip_paste_next), tint, it)
                                 }
                                 onEdit?.let {
                                     ClipTextActionIcon(Icons.Outlined.Edit, stringResource(R.string.ime_clip_edit), tint, it)

@@ -136,4 +136,6 @@
     <string name="ime_docscan_save_error">The page could not be saved.</string>
     <string name="ime_docscan_unavailable_error">The document scanner is not available. It needs Google Play services.</string>
 
+    <string name="ime_screen_capture_desc">Capture the screen</string>
+    <string name="ime_screen_capture_failed">Could not capture the screen. Check Shizuku or your root manager.</string>
 </resources>

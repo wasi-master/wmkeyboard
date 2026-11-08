@@ -47,7 +47,9 @@ internal object EngineNative {
     external fun khipro(roman: String, variant: Int): String
     external fun khiproWarm(variant: Int)
     external fun khiproSpellings(word: String): Array<String>
+    external fun khiproDarkSpellings(word: String): Array<String>
     external fun khiproRomanizerWarm()
+    external fun khiproDarkRomanizerWarm()
     external fun khiproInstall(variant: Int, spec: String): String
     external fun khiproReset(variant: Int)
     external fun khiproCheck(spec: String, cases: String, skip: String): String

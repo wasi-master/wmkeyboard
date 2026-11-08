@@ -60,6 +60,7 @@
     <string name="ime_reply_notice_no_clip">Nothing copied yet. Copy their message first.</string>
     <string name="ime_reply_notice_no_selection">Select their message first.</string>
     <string name="ime_reply_notice_no_images_permission">WM Keyboard needs permission to read your images before it can show screenshots.</string>
+    <string name="ime_reply_capture_screen">Capture screen</string>
     <string name="ime_reply_notice_no_shots">No screenshots on this device yet.</string>
     <!-- The chosen AI provider has no way to accept a picture. -->
     <string name="ime_reply_notice_no_vision">This AI provider cannot read pictures. Choose another, or set screenshots to be read on the device.</string>
