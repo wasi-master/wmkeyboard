@@ -54011,7 +54011,7 @@ open class WMKeyboardService : InputMethodService() {
             item.kind == ClipKind.IMAGE && !KeyboardClipboard.isPrivate &&
                 _uiState.value.settings.clipboard.stripMediaMetadata -> {
                 // The cleaned copy goes on the clipboard (#1179), made off the main thread.
-                val file = item.imagePath?.let(::File)?.takeIf { it.exists() } ?: return
+                val file = item.imagePath?.let(::File)?.takeIf { it.exists() } ?: return false
                 withCleanedClip(item, file) { clean ->
                     val uri = runCatching {
                         FileProvider.getUriForFile(this, clipboardFileProviderAuthority, clean.file)
@@ -54023,7 +54023,9 @@ open class WMKeyboardService : InputMethodService() {
                         toast(R.string.ime_clip_paste_next_toast)
                     }
                 }
-                return
+                // Not yet: the copy is still being made, and it says so itself
+                // once it is on the clipboard, so the caller must not as well.
+                return false
             }
             item.kind == ClipKind.IMAGE && !KeyboardClipboard.isPrivate -> {
                 val file = item.imagePath?.let(::File)?.takeIf { it.exists() }
