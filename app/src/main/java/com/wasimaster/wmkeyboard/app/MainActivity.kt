@@ -4820,6 +4820,7 @@ internal fun SliderSetting(
     onReset: (() -> Unit)? = null,
     preview: ((Float) -> Unit)? = null,
     typed: Boolean = true,
+    steps: Int = 0,
     onChange: (Float) -> Unit,
 ) = SliderSetting(
     title = stringResource(title),
@@ -4836,6 +4837,7 @@ internal fun SliderSetting(
     onReset = onReset,
     preview = preview,
     typed = typed,
+    steps = steps,
     onChange = onChange,
 )
 
@@ -4890,6 +4892,11 @@ internal fun SliderSetting(
      * "1 day"), where a bare number cannot say which one it means.
      */
     typed: Boolean = true,
+    /**
+     * Stops between the ends, for a whole-number setting: dots on the track,
+     * and the thumb lands on the nearest one. See [wholeSteps].
+     */
+    steps: Int = 0,
     onChange: (Float) -> Unit,
 ) {
     val slider = rememberLiveSlider(value, onChange, live = live, preview = preview)
@@ -4971,6 +4978,7 @@ internal fun SliderSetting(
                         onValueChangeFinished = slider::onRelease,
                         valueRange = range,
                         enabled = enabled,
+                        steps = steps,
                     )
                     Spacer(Modifier.width(SliderPillGap))
                 }
@@ -5003,6 +5011,7 @@ internal fun SliderSetting(
                     onValueChangeFinished = slider::onRelease,
                     valueRange = range,
                     enabled = enabled,
+                    steps = steps,
                 )
             }
         }
@@ -5024,6 +5033,13 @@ internal fun SliderSetting(
         }
     }
 }
+
+/**
+ * The [SliderSetting] `steps` for a whole-number [range]: one stop per number
+ * between the ends, so 2..6 is three.
+ */
+internal fun wholeSteps(range: ClosedFloatingPointRange<Float>): Int =
+    ((range.endInclusive - range.start).roundToInt() - 1).coerceAtLeast(0)
 
 /** [StepperSetting] for a row named by a string resource. */
 @Composable

@@ -288,6 +288,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 R.string.clock_long_every_title,
                 value = config.longBreakEvery.toFloat(),
                 range = 2f..8f,
+                steps = wholeSteps(2f..8f),
                 display = { v -> context.resources.getQuantityString(R.plurals.clock_sessions_value, v.roundToInt(), v.roundToInt()) },
                 default = defaults.longBreakEvery.toFloat(),
             ) { v -> set { it.copy(longBreakEvery = v.roundToInt()) } }

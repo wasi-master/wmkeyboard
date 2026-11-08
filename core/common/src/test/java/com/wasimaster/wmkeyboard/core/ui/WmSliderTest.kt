@@ -191,6 +191,10 @@ class WmSliderTest {
         assertEquals("right to left", 0.25f, sliderValueAt(77f, 104, 4, rtl = true, range = 0f..1f), EXACT)
         assertEquals("scaled to the range", 30f, sliderValueAt(52f, 104, 4, rtl = false, range = 10f..50f), EXACT)
         assertEquals("no room for a track", 10f, sliderValueAt(1f, 2, 4, rtl = false, range = 10f..50f), 0f)
+        // 2..6 with three stops between: 2, 3, 4, 5, 6 at quarters of the track.
+        // A finger just past the halfway mark between two stops takes the next.
+        assertEquals("nearest stop below", 3f, sliderValueAt(30f, 104, 4, rtl = false, range = 2f..6f, steps = 3), 0f)
+        assertEquals("nearest stop above", 4f, sliderValueAt(42f, 104, 4, rtl = false, range = 2f..6f, steps = 3), 0f)
     }
 
     @Test
