@@ -5433,7 +5433,7 @@
     <string name="layout_editor_width_increase_desc">Aumentar a largura da tecla</string>
     <string name="layout_editor_width_percent_label">Parte da linha</string>
     <string name="layout_editor_your_layouts_title">Seus layouts</string>
-    <string name="layout_extend_edge_keys_info">Algumas linhas são mais curtas que o teclado, por exemplo, a linha de A a L do QWERTY. Elas têm espaço em branco nas extremidades esquerda e direita. Com esta configuração ativada, um toque nesse espaço digita a tecla na extremidade da linha, então um toque à esquerda de A digita A. As teclas não mudam de tamanho ou posição. Apenas a área que você pode tocar fica maior. Esta configuração está ativada por padrão.</string>
+    <string name="layout_extend_edge_keys_info">Algumas linhas são mais curtas que o teclado, por exemplo, a linha de A a L do QWERTY. Elas têm espaço em branco nas extremidades esquerda e direita. Com esta configuração ativada, um toque nesse espaço digita a tecla na extremidade da linha, então um toque à esquerda de A digita A. As teclas não mudam de tamanho ou posição. Apenas a área que você pode tocar fica maior.</string>
     <string name="layout_extend_edge_keys_subtitle">Um toque no espaço em branco no final de uma linha curta digita a tecla mais próxima</string>
     <string name="layout_extend_edge_keys_title">Estender teclas de borda para os espaços</string>
     <string name="layout_floating_handle_bottom_label">Abaixo das teclas</string>

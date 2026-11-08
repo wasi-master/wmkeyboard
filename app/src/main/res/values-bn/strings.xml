@@ -5453,7 +5453,7 @@
     <string name="layout_editor_width_increase_desc">কী-টিকে আরও চওড়া করুন</string>
     <string name="layout_editor_width_percent_label">সারির অংশ</string>
     <string name="layout_editor_your_layouts_title">আপনার লেআউটগুলি</string>
-    <string name="layout_extend_edge_keys_info">কিছু সারি কীবোর্ডের চেয়ে ছোট হয়, যেমন QWERTY-এর A থেকে L সারি। এগুলোর বাম ও ডান প্রান্তে ফাঁকা জায়গা থাকে। এই সেটিং চালু থাকলে, সেই ফাঁকা জায়গায় ট্যাপ করলে সারির প্রান্তের কি-টি টাইপ হবে, অর্থাৎ A-এর বামে ট্যাপ করলে A টাইপ হবে। কি-গুলোর আকার বা অবস্থান পরিবর্তন হয় না। শুধুমাত্র ট্যাপ করার এলাকাটি বড় হয়। এই সেটিংটি ডিফল্টভাবে চালু থাকে।</string>
+    <string name="layout_extend_edge_keys_info">কিছু সারি কীবোর্ডের চেয়ে ছোট হয়, যেমন QWERTY-এর A থেকে L সারি। এগুলোর বাম ও ডান প্রান্তে ফাঁকা জায়গা থাকে। এই সেটিং চালু থাকলে, সেই ফাঁকা জায়গায় ট্যাপ করলে সারির প্রান্তের কি-টি টাইপ হবে, অর্থাৎ A-এর বামে ট্যাপ করলে A টাইপ হবে। কি-গুলোর আকার বা অবস্থান পরিবর্তন হয় না। শুধুমাত্র ট্যাপ করার এলাকাটি বড় হয়।</string>
     <string name="layout_extend_edge_keys_subtitle">ছোট সারির শেষে ফাঁকা জায়গায় ট্যাপ করলে নিকটতম কি টাইপ হবে</string>
     <string name="layout_extend_edge_keys_title">প্রান্তের কীগুলোকে ফাঁকা জায়গায় প্রসারিত করুন</string>
     <string name="layout_floating_handle_bottom_label">কী-এর নিচে</string>

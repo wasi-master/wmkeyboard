@@ -5428,7 +5428,7 @@
     <string name="layout_editor_width_increase_desc">Billentyű szélesítése</string>
     <string name="layout_editor_width_percent_label">A sor része</string>
     <string name="layout_editor_your_layouts_title">Saját elrendezések</string>
-    <string name="layout_extend_edge_keys_info">Egyes sorok rövidebbek, mint a billentyűzet, például a QWERTY A-tól L-ig tartó sora. A bal és jobb végükön üres hely van. Ha ez a beállítás be van kapcsolva, az üres területen történő koppintás a sor végén lévő billentyűt írja be, így az A-tól balra történő koppintás az A-t írja be. A billentyűk mérete vagy pozíciója nem változik. Csak az érinthető terület lesz nagyobb. Ez a beállítás alapértelmezés szerint be van kapcsolva.</string>
+    <string name="layout_extend_edge_keys_info">Egyes sorok rövidebbek, mint a billentyűzet, például a QWERTY A-tól L-ig tartó sora. A bal és jobb végükön üres hely van. Ha ez a beállítás be van kapcsolva, az üres területen történő koppintás a sor végén lévő billentyűt írja be, így az A-tól balra történő koppintás az A-t írja be. A billentyűk mérete vagy pozíciója nem változik. Csak az érinthető terület lesz nagyobb.</string>
     <string name="layout_extend_edge_keys_subtitle">A rövid sor végén lévő üres hely megérintése a legközelebbi billentyűt gépeli</string>
     <string name="layout_extend_edge_keys_title">Szélbillentyűk kiterjesztése a résekbe</string>
     <string name="layout_floating_handle_bottom_label">A billentyűk alatt</string>

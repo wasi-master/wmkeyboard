@@ -5432,7 +5432,7 @@
     <string name="layout_editor_width_increase_desc">Fes la tecla més ampla</string>
     <string name="layout_editor_width_percent_label">Part de la fila</string>
     <string name="layout_editor_your_layouts_title">Els vostres dissenys</string>
-    <string name="layout_extend_edge_keys_info">Algunes files són més curtes que el teclat, per exemple la fila de la A a la L del QWERTY. Tenen espai en blanc als extrems esquerre i dret. Amb aquesta configuració activada, un toc en aquest espai escriu la tecla d\'aquest extrem de la fila, de manera que un toc a l\'esquerra de la A escriu la A. Les tecles no canvien de mida ni de posició. Només l\'àrea que pots tocar es fa més gran. Aquesta configuració està activada per defecte.</string>
+    <string name="layout_extend_edge_keys_info">Algunes files són més curtes que el teclat, per exemple la fila de la A a la L del QWERTY. Tenen espai en blanc als extrems esquerre i dret. Amb aquesta configuració activada, un toc en aquest espai escriu la tecla d\'aquest extrem de la fila, de manera que un toc a l\'esquerra de la A escriu la A. Les tecles no canvien de mida ni de posició. Només l\'àrea que pots tocar es fa més gran.</string>
     <string name="layout_extend_edge_keys_subtitle">Un toc a l\'espai en blanc al final d\'una fila curta escriu la tecla més propera</string>
     <string name="layout_extend_edge_keys_title">Estén les tecles de les vores cap als espais buits</string>
     <string name="layout_floating_handle_bottom_label">Sota les tecles</string>

@@ -5435,7 +5435,7 @@
     <string name="layout_editor_width_increase_desc">Maak de toets breder</string>
     <string name="layout_editor_width_percent_label">Deel van de rij</string>
     <string name="layout_editor_your_layouts_title">Jouw lay-outs</string>
-    <string name="layout_extend_edge_keys_info">Sommige rijen zijn korter dan het toetsenbord, bijvoorbeeld de A tot L-rij van QWERTY. Ze hebben lege ruimte aan de linker- en rechterkant. Met deze instelling ingeschakeld, typt een tik in die ruimte de toets aan dat uiteinde van de rij, dus een tik links van de A typt A. De toetsen veranderen niet van grootte of positie. Alleen het gebied dat je kunt aantikken wordt groter. Deze instelling staat standaard aan.</string>
+    <string name="layout_extend_edge_keys_info">Sommige rijen zijn korter dan het toetsenbord, bijvoorbeeld de A tot L-rij van QWERTY. Ze hebben lege ruimte aan de linker- en rechterkant. Met deze instelling ingeschakeld, typt een tik in die ruimte de toets aan dat uiteinde van de rij, dus een tik links van de A typt A. De toetsen veranderen niet van grootte of positie. Alleen het gebied dat je kunt aantikken wordt groter.</string>
     <string name="layout_extend_edge_keys_subtitle">Een tik in de lege ruimte aan het einde van een korte rij typt de dichtstbijzijnde toets</string>
     <string name="layout_extend_edge_keys_title">Randtoetsen uitbreiden in de tussenruimtes</string>
     <string name="layout_floating_handle_bottom_label">Onder de toetsen</string>

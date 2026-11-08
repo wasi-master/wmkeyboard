@@ -5437,7 +5437,7 @@
     <string name="layout_editor_width_increase_desc">Zväčšiť šírku klávesy</string>
     <string name="layout_editor_width_percent_label">Podiel riadku</string>
     <string name="layout_editor_your_layouts_title">Vaše rozloženia</string>
-    <string name="layout_extend_edge_keys_info">Niektoré riadky sú kratšie ako klávesnica, napríklad riadok od A po L na QWERTY. Na ľavom a pravom konci majú prázdne miesto. Keď je toto nastavenie zapnuté, klepnutie na toto miesto napíše kláves na danom konci riadku, takže klepnutie vľavo od A napíše A. Klávesy nemenia svoju veľkosť ani polohu. Zväčší sa iba oblasť, na ktorú môžete klepnúť. Toto nastavenie je predvolene zapnuté.</string>
+    <string name="layout_extend_edge_keys_info">Niektoré riadky sú kratšie ako klávesnica, napríklad riadok od A po L na QWERTY. Na ľavom a pravom konci majú prázdne miesto. Keď je toto nastavenie zapnuté, klepnutie na toto miesto napíše kláves na danom konci riadku, takže klepnutie vľavo od A napíše A. Klávesy nemenia svoju veľkosť ani polohu. Zväčší sa iba oblasť, na ktorú môžete klepnúť.</string>
     <string name="layout_extend_edge_keys_subtitle">Ťuknutie do prázdneho priestoru na konci krátkeho riadku napíše najbližší kláves</string>
     <string name="layout_extend_edge_keys_title">Rozšíriť okrajové klávesy do medzier</string>
     <string name="layout_floating_handle_bottom_label">Pod klávesami</string>

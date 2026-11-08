@@ -5434,7 +5434,7 @@
     <string name="layout_editor_width_increase_desc">הגדל את רוחב המקש</string>
     <string name="layout_editor_width_percent_label">חלק מהשורה</string>
     <string name="layout_editor_your_layouts_title">הפריסות שלך</string>
-    <string name="layout_extend_edge_keys_info">חלק מהשורות קצרות יותר מהמקלדת, למשל שורת A עד L ב-QWERTY. יש להן שטח ריק בקצוות השמאלי והימני. כאשר הגדרה זו מופעלת, הקשה בשטח זה מקלידה את המקש בקצה השורה, כך שהקשה משמאל ל-A מקלידה A. המקשים אינם משנים גודל או מיקום. רק האזור שניתן להקיש עליו גדל. הגדרה זו מופעלת כברירת מחדל.</string>
+    <string name="layout_extend_edge_keys_info">חלק מהשורות קצרות יותר מהמקלדת, למשל שורת A עד L ב-QWERTY. יש להן שטח ריק בקצוות השמאלי והימני. כאשר הגדרה זו מופעלת, הקשה בשטח זה מקלידה את המקש בקצה השורה, כך שהקשה משמאל ל-A מקלידה A. המקשים אינם משנים גודל או מיקום. רק האזור שניתן להקיש עליו גדל.</string>
     <string name="layout_extend_edge_keys_subtitle">הקשה בחלל הריק בסוף שורה קצרה מקלידה את המקש הקרוב ביותר</string>
     <string name="layout_extend_edge_keys_title">הרחב מקשי קצה לתוך הרווחים</string>
     <string name="layout_floating_handle_bottom_label">מתחת למקשים</string>

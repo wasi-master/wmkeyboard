@@ -5440,7 +5440,7 @@
     <string name="layout_editor_width_increase_desc">Gjør tasten bredere</string>
     <string name="layout_editor_width_percent_label">Andel av raden</string>
     <string name="layout_editor_your_layouts_title">Dine oppsett</string>
-    <string name="layout_extend_edge_keys_info">Noen rader er kortere enn tastaturet, for eksempel A til L-raden på QWERTY. De har tomrom i venstre og høyre ende. Med denne innstillingen på, vil et trykk i det tomrommet skrive tasten i den enden av raden, så et trykk til venstre for A skriver A. Tastene endrer ikke størrelse eller posisjon. Bare området du kan trykke på blir større. Denne innstillingen er på som standard.</string>
+    <string name="layout_extend_edge_keys_info">Noen rader er kortere enn tastaturet, for eksempel A til L-raden på QWERTY. De har tomrom i venstre og høyre ende. Med denne innstillingen på, vil et trykk i det tomrommet skrive tasten i den enden av raden, så et trykk til venstre for A skriver A. Tastene endrer ikke størrelse eller posisjon. Bare området du kan trykke på blir større.</string>
     <string name="layout_extend_edge_keys_subtitle">Et trykk i det tomme feltet på slutten av en kort rad skriver den nærmeste tasten</string>
     <string name="layout_extend_edge_keys_title">Utvid kanttaster inn i mellomrommene</string>
     <string name="layout_floating_handle_bottom_label">Under tastene</string>

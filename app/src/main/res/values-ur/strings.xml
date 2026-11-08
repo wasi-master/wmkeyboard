@@ -5432,7 +5432,7 @@
     <string name="layout_editor_width_increase_desc">کلید کو چوڑا کریں</string>
     <string name="layout_editor_width_percent_label">قطار کا حصہ</string>
     <string name="layout_editor_your_layouts_title">آپ کے لے آؤٹس</string>
-    <string name="layout_extend_edge_keys_info">کچھ قطاریں کی بورڈ سے چھوٹی ہوتی ہیں، مثال کے طور پر QWERTY کی A سے L تک کی قطار۔ ان کے بائیں اور دائیں سروں پر خالی جگہ ہوتی ہے۔ اس سیٹنگ کے آن ہونے پر، اس جگہ پر ٹیپ کرنے سے اس سرے پر موجود کی ٹائپ ہوتی ہے، لہذا A کے بائیں جانب ٹیپ کرنے سے A ٹائپ ہوتا ہے۔ کیز کا سائز یا پوزیشن تبدیل نہیں ہوتی۔ صرف وہ علاقہ جہاں آپ ٹیپ کر سکتے ہیں بڑا ہو جاتا ہے۔ یہ سیٹنگ ڈیفالٹ طور پر آن ہے۔</string>
+    <string name="layout_extend_edge_keys_info">کچھ قطاریں کی بورڈ سے چھوٹی ہوتی ہیں، مثال کے طور پر QWERTY کی A سے L تک کی قطار۔ ان کے بائیں اور دائیں سروں پر خالی جگہ ہوتی ہے۔ اس سیٹنگ کے آن ہونے پر، اس جگہ پر ٹیپ کرنے سے اس سرے پر موجود کی ٹائپ ہوتی ہے، لہذا A کے بائیں جانب ٹیپ کرنے سے A ٹائپ ہوتا ہے۔ کیز کا سائز یا پوزیشن تبدیل نہیں ہوتی۔ صرف وہ علاقہ جہاں آپ ٹیپ کر سکتے ہیں بڑا ہو جاتا ہے۔</string>
     <string name="layout_extend_edge_keys_subtitle">ایک چھوٹی قطار کے آخر میں خالی جگہ پر ٹیپ کرنے سے قریب ترین کلید ٹائپ ہوتی ہے</string>
     <string name="layout_extend_edge_keys_title">کنارے کی کلیدوں کو خلا میں پھیلائیں</string>
     <string name="layout_floating_handle_bottom_label">کلیدوں کے نیچے</string>

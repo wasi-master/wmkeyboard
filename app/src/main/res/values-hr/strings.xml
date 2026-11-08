@@ -5442,7 +5442,7 @@
     <string name="layout_editor_width_increase_desc">Učini tipku širom</string>
     <string name="layout_editor_width_percent_label">Udio retka</string>
     <string name="layout_editor_your_layouts_title">Vaši rasporedi</string>
-    <string name="layout_extend_edge_keys_info">Neki su redovi kraći od tipkovnice, na primjer red od A do L na QWERTY tipkovnici. Imaju prazan prostor na lijevom i desnom kraju. S uključenom ovom postavkom, dodir u tom prostoru upisuje tipku na tom kraju reda, tako da dodir lijevo od A upisuje A. Tipke ne mijenjaju veličinu ni položaj. Samo se područje koje možete dodirnuti povećava. Ova je postavka uključena prema zadanim postavkama.</string>
+    <string name="layout_extend_edge_keys_info">Neki su redovi kraći od tipkovnice, na primjer red od A do L na QWERTY tipkovnici. Imaju prazan prostor na lijevom i desnom kraju. S uključenom ovom postavkom, dodir u tom prostoru upisuje tipku na tom kraju reda, tako da dodir lijevo od A upisuje A. Tipke ne mijenjaju veličinu ni položaj. Samo se područje koje možete dodirnuti povećava.</string>
     <string name="layout_extend_edge_keys_subtitle">Dodir u praznom prostoru na kraju kratkog retka upisuje najbližu tipku</string>
     <string name="layout_extend_edge_keys_title">Proširi rubne tipke u praznine</string>
     <string name="layout_floating_handle_bottom_label">Ispod tipki</string>

@@ -5430,7 +5430,7 @@
     <string name="layout_editor_width_increase_desc">Zvětšit šířku klávesy</string>
     <string name="layout_editor_width_percent_label">Podíl řádku</string>
     <string name="layout_editor_your_layouts_title">Vaše rozvržení</string>
-    <string name="layout_extend_edge_keys_info">Některé řady jsou kratší než klávesnice, například řada A až L u QWERTY. Na levém a pravém konci mají prázdné místo. Se zapnutým tímto nastavením klepnutí do tohoto prostoru napíše klávesu na konci řady, takže klepnutí vlevo od A napíše A. Klávesy nemění svou velikost ani pozici. Zvětší se pouze oblast, na kterou lze klepnout. Toto nastavení je ve výchozím stavu zapnuto.</string>
+    <string name="layout_extend_edge_keys_info">Některé řady jsou kratší než klávesnice, například řada A až L u QWERTY. Na levém a pravém konci mají prázdné místo. Se zapnutým tímto nastavením klepnutí do tohoto prostoru napíše klávesu na konci řady, takže klepnutí vlevo od A napíše A. Klávesy nemění svou velikost ani pozici. Zvětší se pouze oblast, na kterou lze klepnout.</string>
     <string name="layout_extend_edge_keys_subtitle">Klepnutí do prázdného místa na konci krátké řady napíše nejbližší klávesu</string>
     <string name="layout_extend_edge_keys_title">Rozšířit okrajové klávesy do mezer</string>
     <string name="layout_floating_handle_bottom_label">Pod klávesami</string>

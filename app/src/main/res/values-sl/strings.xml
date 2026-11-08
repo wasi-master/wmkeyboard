@@ -5440,7 +5440,7 @@
     <string name="layout_editor_width_increase_desc">Povečaj širino tipke</string>
     <string name="layout_editor_width_percent_label">Delež vrstice</string>
     <string name="layout_editor_your_layouts_title">Vaše razporeditve</string>
-    <string name="layout_extend_edge_keys_info">Nekatere vrstice so krajše od tipkovnice, na primer vrstica od A do L na QWERTY. Na levi in desni strani imajo prazen prostor. Če je ta nastavitev vklopljena, dotik v tem prostoru vnese tipko na tistem koncu vrstice, tako da dotik levo od A vnese A. Tipke ne spremenijo velikosti ali položaja. Poveča se le območje, ki ga lahko tapnete. Ta nastavitev je privzeto vklopljena.</string>
+    <string name="layout_extend_edge_keys_info">Nekatere vrstice so krajše od tipkovnice, na primer vrstica od A do L na QWERTY. Na levi in desni strani imajo prazen prostor. Če je ta nastavitev vklopljena, dotik v tem prostoru vnese tipko na tistem koncu vrstice, tako da dotik levo od A vnese A. Tipke ne spremenijo velikosti ali položaja. Poveča se le območje, ki ga lahko tapnete.</string>
     <string name="layout_extend_edge_keys_subtitle">Tap v praznem prostoru na koncu kratke vrstice vnese najbližjo tipko</string>
     <string name="layout_extend_edge_keys_title">Razširi robne tipke v vrzeli</string>
     <string name="layout_floating_handle_bottom_label">Pod tipkami</string>

@@ -5436,7 +5436,7 @@
     <string name="layout_editor_width_increase_desc">Zwiększ szerokość klawisza</string>
     <string name="layout_editor_width_percent_label">Udział w wierszu</string>
     <string name="layout_editor_your_layouts_title">Twoje układy</string>
-    <string name="layout_extend_edge_keys_info">Niektóre rzędy są krótsze niż klawiatura, na przykład rząd od A do L w układzie QWERTY. Mają one puste miejsce po lewej i prawej stronie. Gdy to ustawienie jest włączone, dotknięcie w tym miejscu powoduje wpisanie znaku znajdującego się na końcu rzędu, więc dotknięcie na lewo od A wpisuje A. Klawisze nie zmieniają rozmiaru ani położenia. Powiększa się tylko obszar, który można dotknąć. To ustawienie jest domyślnie włączone.</string>
+    <string name="layout_extend_edge_keys_info">Niektóre rzędy są krótsze niż klawiatura, na przykład rząd od A do L w układzie QWERTY. Mają one puste miejsce po lewej i prawej stronie. Gdy to ustawienie jest włączone, dotknięcie w tym miejscu powoduje wpisanie znaku znajdującego się na końcu rzędu, więc dotknięcie na lewo od A wpisuje A. Klawisze nie zmieniają rozmiaru ani położenia. Powiększa się tylko obszar, który można dotknąć.</string>
     <string name="layout_extend_edge_keys_subtitle">Stuknięcie w puste miejsce na końcu krótkiego rzędu wpisuje najbliższy klawisz</string>
     <string name="layout_extend_edge_keys_title">Rozszerz klawisze krawędziowe na puste miejsca</string>
     <string name="layout_floating_handle_bottom_label">Pod klawiszami</string>

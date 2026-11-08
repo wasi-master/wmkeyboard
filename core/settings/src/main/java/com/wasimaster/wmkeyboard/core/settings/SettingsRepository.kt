@@ -9311,10 +9311,10 @@ data class LayoutBehaviorSettings(
      * space beside them (#530): a tap left of QWERTY's `a` or right of its `l`
      * types that letter instead of landing on nothing, the way Gboard does.
      * Only the touch area grows; the key is drawn, and reports its centre to
-     * glide and autopilot, exactly where it was. On by default, since a tap in
-     * the gap has never done anything else.
+     * glide and autopilot, exactly where it was. Off by default, by the
+     * owner's call: a tap in the gap does nothing until someone asks for it.
      */
-    val extendEdgeKeys: Boolean = true,
+    val extendEdgeKeys: Boolean = false,
     /**
      * A short, quick swipe down on a key types its corner hint — the first of
      * its long-press characters — without waiting out the hold (issue #178).

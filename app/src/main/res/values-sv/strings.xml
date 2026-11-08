@@ -5438,7 +5438,7 @@
     <string name="layout_editor_width_increase_desc">Gör tangenten bredare</string>
     <string name="layout_editor_width_percent_label">Andel av raden</string>
     <string name="layout_editor_your_layouts_title">Dina layouter</string>
-    <string name="layout_extend_edge_keys_info">Vissa rader är kortare än tangentbordet, till exempel A till L-raden på QWERTY. De har tomt utrymme i vänster och höger ände. Med denna inställning aktiverad skriver ett tryck i det utrymmet tangenten i den änden av raden, så ett tryck till vänster om A skriver A. Tangenterna ändrar inte storlek eller position. Endast området du kan trycka på blir större. Denna inställning är aktiverad som standard.</string>
+    <string name="layout_extend_edge_keys_info">Vissa rader är kortare än tangentbordet, till exempel A till L-raden på QWERTY. De har tomt utrymme i vänster och höger ände. Med denna inställning aktiverad skriver ett tryck i det utrymmet tangenten i den änden av raden, så ett tryck till vänster om A skriver A. Tangenterna ändrar inte storlek eller position. Endast området du kan trycka på blir större.</string>
     <string name="layout_extend_edge_keys_subtitle">Ett tryck i det tomma utrymmet i slutet av en kort rad skriver den närmaste tangenten</string>
     <string name="layout_extend_edge_keys_title">Utöka kanttangenter till mellanrummen</string>
     <string name="layout_floating_handle_bottom_label">Under tangenterna</string>

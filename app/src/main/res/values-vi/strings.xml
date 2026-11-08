@@ -5428,7 +5428,7 @@
     <string name="layout_editor_width_increase_desc">Làm cho phím rộng hơn</string>
     <string name="layout_editor_width_percent_label">Tỷ lệ của hàng</string>
     <string name="layout_editor_your_layouts_title">Bố cục của bạn</string>
-    <string name="layout_extend_edge_keys_info">Một số hàng ngắn hơn bàn phím, ví dụ như hàng từ A đến L của QWERTY. Chúng có khoảng trống ở hai đầu trái và phải. Khi cài đặt này được bật, chạm vào khoảng trống đó sẽ nhập phím ở đầu hàng đó, vì vậy chạm vào bên trái của A sẽ nhập A. Các phím không thay đổi kích thước hoặc vị trí. Chỉ khu vực bạn có thể chạm vào được mở rộng. Cài đặt này được bật theo mặc định.</string>
+    <string name="layout_extend_edge_keys_info">Một số hàng ngắn hơn bàn phím, ví dụ như hàng từ A đến L của QWERTY. Chúng có khoảng trống ở hai đầu trái và phải. Khi cài đặt này được bật, chạm vào khoảng trống đó sẽ nhập phím ở đầu hàng đó, vì vậy chạm vào bên trái của A sẽ nhập A. Các phím không thay đổi kích thước hoặc vị trí. Chỉ khu vực bạn có thể chạm vào được mở rộng.</string>
     <string name="layout_extend_edge_keys_subtitle">Chạm vào khoảng trống ở cuối hàng ngắn sẽ gõ phím gần nhất</string>
     <string name="layout_extend_edge_keys_title">Mở rộng các phím cạnh vào khoảng trống</string>
     <string name="layout_floating_handle_bottom_label">Bên dưới các phím</string>

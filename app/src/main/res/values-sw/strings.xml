@@ -5444,7 +5444,7 @@
     <string name="layout_editor_width_increase_desc">Fanya ufunguo kuwa mpana zaidi</string>
     <string name="layout_editor_width_percent_label">Sehemu ya safu</string>
     <string name="layout_editor_your_layouts_title">Mipangilio yako</string>
-    <string name="layout_extend_edge_keys_info">Mistari mingine ni mifupi kuliko kibodi, kwa mfano mstari wa A hadi L wa QWERTY. Ina nafasi tupu kwenye ncha za kushoto na kulia. Kwa mpangilio huu ukiwa umewashwa, kugusa kwenye nafasi hiyo huandika ufunguo ulio kwenye ncha hiyo ya mstari, kwa hivyo kugusa upande wa kushoto wa A huandika A. Funguo hazibadilishi ukubwa au nafasi. Eneo ambalo unaweza kugusa tu ndilo linalokuwa kubwa. Mpangilio huu umewashwa kwa chaguo-msingi.</string>
+    <string name="layout_extend_edge_keys_info">Mistari mingine ni mifupi kuliko kibodi, kwa mfano mstari wa A hadi L wa QWERTY. Ina nafasi tupu kwenye ncha za kushoto na kulia. Kwa mpangilio huu ukiwa umewashwa, kugusa kwenye nafasi hiyo huandika ufunguo ulio kwenye ncha hiyo ya mstari, kwa hivyo kugusa upande wa kushoto wa A huandika A. Funguo hazibadilishi ukubwa au nafasi. Eneo ambalo unaweza kugusa tu ndilo linalokuwa kubwa.</string>
     <string name="layout_extend_edge_keys_subtitle">Kugusa nafasi tupu mwishoni mwa safu fupi huchapa ufunguo wa karibu zaidi</string>
     <string name="layout_extend_edge_keys_title">Panua vitufe vya ukingo kwenye nafasi zilizo wazi</string>
     <string name="layout_floating_handle_bottom_label">Chini ya funguo</string>

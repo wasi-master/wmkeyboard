@@ -5433,7 +5433,7 @@
     <string name="layout_editor_width_increase_desc">Buat tombol lebih lebar</string>
     <string name="layout_editor_width_percent_label">Bagian dari baris</string>
     <string name="layout_editor_your_layouts_title">Tata letak Anda</string>
-    <string name="layout_extend_edge_keys_info">Beberapa baris lebih pendek dari papan ketik, misalnya baris A sampai L pada QWERTY. Baris tersebut memiliki ruang kosong di ujung kiri dan kanan. Dengan pengaturan ini aktif, ketukan di ruang tersebut akan mengetik tombol di ujung baris itu, jadi ketukan di sebelah kiri A akan mengetik A. Tombol tidak berubah ukuran atau posisi. Hanya area yang bisa Anda ketuk yang menjadi lebih besar. Pengaturan ini aktif secara default.</string>
+    <string name="layout_extend_edge_keys_info">Beberapa baris lebih pendek dari papan ketik, misalnya baris A sampai L pada QWERTY. Baris tersebut memiliki ruang kosong di ujung kiri dan kanan. Dengan pengaturan ini aktif, ketukan di ruang tersebut akan mengetik tombol di ujung baris itu, jadi ketukan di sebelah kiri A akan mengetik A. Tombol tidak berubah ukuran atau posisi. Hanya area yang bisa Anda ketuk yang menjadi lebih besar.</string>
     <string name="layout_extend_edge_keys_subtitle">Ketukan di ruang kosong di akhir baris pendek akan mengetik tombol terdekat</string>
     <string name="layout_extend_edge_keys_title">Perluas tombol tepi ke celah</string>
     <string name="layout_floating_handle_bottom_label">Di bawah tombol</string>

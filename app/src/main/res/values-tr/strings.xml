@@ -5429,7 +5429,7 @@
     <string name="layout_editor_width_increase_desc">Tuşu genişlet</string>
     <string name="layout_editor_width_percent_label">Satır payı</string>
     <string name="layout_editor_your_layouts_title">Düzenleriniz</string>
-    <string name="layout_extend_edge_keys_info">Bazı satırlar klavyeden daha kısadır, örneğin QWERTY\'nin A\'dan L\'ye olan satırı. Sol ve sağ uçlarında boşluk vardır. Bu ayar açıkken, o boşluğa dokunmak o satırın ucundaki tuşu yazar, yani A\'nın soluna dokunmak A yazar. Tuşlar boyut veya konum değiştirmez. Sadece dokunabileceğiniz alan genişler. Bu ayar varsayılan olarak açıktır.</string>
+    <string name="layout_extend_edge_keys_info">Bazı satırlar klavyeden daha kısadır, örneğin QWERTY\'nin A\'dan L\'ye olan satırı. Sol ve sağ uçlarında boşluk vardır. Bu ayar açıkken, o boşluğa dokunmak o satırın ucundaki tuşu yazar, yani A\'nın soluna dokunmak A yazar. Tuşlar boyut veya konum değiştirmez. Sadece dokunabileceğiniz alan genişler.</string>
     <string name="layout_extend_edge_keys_subtitle">Kısa bir satırın sonundaki boş alana dokunmak en yakın tuşu yazar</string>
     <string name="layout_extend_edge_keys_title">Kenar tuşlarını boşluklara kadar genişlet</string>
     <string name="layout_floating_handle_bottom_label">Tuşların altında</string>

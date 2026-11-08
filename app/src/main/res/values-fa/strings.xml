@@ -5441,7 +5441,7 @@
     <string name="layout_editor_width_increase_desc">پهن‌تر کردن کلید</string>
     <string name="layout_editor_width_percent_label">سهم از ردیف</string>
     <string name="layout_editor_your_layouts_title">طرح‌های شما</string>
-    <string name="layout_extend_edge_keys_info">برخی از ردیف‌ها کوتاه‌تر از صفحه‌کلید هستند، برای مثال ردیف A تا L در QWERTY. آن‌ها در دو طرف چپ و راست فضای خالی دارند. با روشن بودن این تنظیم، ضربه در آن فضا، کلید موجود در آن انتهای ردیف را تایپ می‌کند، بنابراین ضربه به سمت چپ A، حرف A را تایپ می‌کند. کلیدها اندازه یا موقعیت خود را تغییر نمی‌دهند. فقط ناحیه‌ای که می‌توانید ضربه بزنید بزرگ‌تر می‌شود. این تنظیم به‌طور پیش‌فرض روشن است.</string>
+    <string name="layout_extend_edge_keys_info">برخی از ردیف‌ها کوتاه‌تر از صفحه‌کلید هستند، برای مثال ردیف A تا L در QWERTY. آن‌ها در دو طرف چپ و راست فضای خالی دارند. با روشن بودن این تنظیم، ضربه در آن فضا، کلید موجود در آن انتهای ردیف را تایپ می‌کند، بنابراین ضربه به سمت چپ A، حرف A را تایپ می‌کند. کلیدها اندازه یا موقعیت خود را تغییر نمی‌دهند. فقط ناحیه‌ای که می‌توانید ضربه بزنید بزرگ‌تر می‌شود.</string>
     <string name="layout_extend_edge_keys_subtitle">ضربه در فضای خالی در انتهای یک ردیف کوتاه، نزدیک‌ترین کلید را تایپ می‌کند</string>
     <string name="layout_extend_edge_keys_title">گسترش کلیدهای لبه به فواصل خالی</string>
     <string name="layout_floating_handle_bottom_label">زیر کلیدها</string>

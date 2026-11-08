@@ -5438,7 +5438,7 @@
     <string name="layout_editor_width_increase_desc">Fă tasta mai lată</string>
     <string name="layout_editor_width_percent_label">Ponderea rândului</string>
     <string name="layout_editor_your_layouts_title">Layout-urile tale</string>
-    <string name="layout_extend_edge_keys_info">Unele rânduri sunt mai scurte decât tastatura, de exemplu rândul de la A la L pe QWERTY. Acestea au spațiu gol la capetele din stânga și din dreapta. Cu această setare activată, o atingere în acel spațiu scrie tasta de la capătul respectiv al rândului, deci o atingere la stânga tastei A scrie A. Tastele nu își schimbă dimensiunea sau poziția. Doar zona pe care o poți atinge devine mai mare. Această setare este activată implicit.</string>
+    <string name="layout_extend_edge_keys_info">Unele rânduri sunt mai scurte decât tastatura, de exemplu rândul de la A la L pe QWERTY. Acestea au spațiu gol la capetele din stânga și din dreapta. Cu această setare activată, o atingere în acel spațiu scrie tasta de la capătul respectiv al rândului, deci o atingere la stânga tastei A scrie A. Tastele nu își schimbă dimensiunea sau poziția. Doar zona pe care o poți atinge devine mai mare.</string>
     <string name="layout_extend_edge_keys_subtitle">O atingere în spațiul gol de la capătul unui rând scurt tastează cea mai apropiată tastă</string>
     <string name="layout_extend_edge_keys_title">Extinde tastele de margine în spațiile libere</string>
     <string name="layout_floating_handle_bottom_label">Sub taste</string>

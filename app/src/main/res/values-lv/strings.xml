@@ -5439,7 +5439,7 @@
     <string name="layout_editor_width_increase_desc">Padarīt taustiņu platāku</string>
     <string name="layout_editor_width_percent_label">Rindas daļa</string>
     <string name="layout_editor_your_layouts_title">Jūsu izkārtojumi</string>
-    <string name="layout_extend_edge_keys_info">Dažas rindas ir īsākas par tastatūru, piemēram, QWERTY rinda no A līdz L. Tām ir tukša vieta kreisajā un labajā galā. Kad šis iestatījums ir ieslēgts, pieskāriens šajā vietā ievada taustiņu rindas galā, tāpēc pieskāriens pa kreisi no A ievada A. Taustiņi nemaina izmēru vai pozīciju. Palielinās tikai apgabals, kuram varat pieskarties. Šis iestatījums pēc noklusējuma ir ieslēgts.</string>
+    <string name="layout_extend_edge_keys_info">Dažas rindas ir īsākas par tastatūru, piemēram, QWERTY rinda no A līdz L. Tām ir tukša vieta kreisajā un labajā galā. Kad šis iestatījums ir ieslēgts, pieskāriens šajā vietā ievada taustiņu rindas galā, tāpēc pieskāriens pa kreisi no A ievada A. Taustiņi nemaina izmēru vai pozīciju. Palielinās tikai apgabals, kuram varat pieskarties.</string>
     <string name="layout_extend_edge_keys_subtitle">Pieskāriens tukšajā vietā īsas rindas beigās ievada tuvāko taustiņu</string>
     <string name="layout_extend_edge_keys_title">Paplašināt malu taustiņus līdz atstarpēm</string>
     <string name="layout_floating_handle_bottom_label">Zem taustiņiem</string>

@@ -5431,7 +5431,7 @@
     <string name="layout_editor_width_increase_desc">Gera lykilinn breiðari</string>
     <string name="layout_editor_width_percent_label">Hlutdeild í röðinni</string>
     <string name="layout_editor_your_layouts_title">Skipulögin þín</string>
-    <string name="layout_extend_edge_keys_info">Sumar raðir eru styttri en lyklaborðið, til dæmis A til L röðin á QWERTY. Þær hafa autt pláss á vinstri og hægri enda. Með þessa stillingu virka, bankarðu á það pláss til að slá inn lykilinn á þeim enda raðarinnar, svo bank til vinstri við A slær inn A. Lyklarnir breyta ekki stærð eða staðsetningu. Aðeins svæðið sem þú getur bankað á verður stærra. Þessi stilling er virk sjálfgefið.</string>
+    <string name="layout_extend_edge_keys_info">Sumar raðir eru styttri en lyklaborðið, til dæmis A til L röðin á QWERTY. Þær hafa autt pláss á vinstri og hægri enda. Með þessa stillingu virka, bankarðu á það pláss til að slá inn lykilinn á þeim enda raðarinnar, svo bank til vinstri við A slær inn A. Lyklarnir breyta ekki stærð eða staðsetningu. Aðeins svæðið sem þú getur bankað á verður stærra.</string>
     <string name="layout_extend_edge_keys_subtitle">Snerting í tóma rýminu við enda stuttrar raðar skrifar næsta takka</string>
     <string name="layout_extend_edge_keys_title">Framlengja jaðarlykla inn í eyðurnar</string>
     <string name="layout_floating_handle_bottom_label">Undir tökkunum</string>

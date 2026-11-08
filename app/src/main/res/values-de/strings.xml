@@ -5435,7 +5435,7 @@
     <string name="layout_editor_width_increase_desc">Taste breiter machen</string>
     <string name="layout_editor_width_percent_label">Anteil der Zeile</string>
     <string name="layout_editor_your_layouts_title">Deine Layouts</string>
-    <string name="layout_extend_edge_keys_info">Einige Zeilen sind kürzer als die Tastatur, zum Beispiel die A- bis L-Reihe bei QWERTY. Sie haben leeren Platz an den linken und rechten Enden. Wenn diese Einstellung aktiviert ist, tippt ein Tippen in diesen Bereich die Taste an diesem Ende der Zeile, also tippt ein Tippen links von A das A. Die Tasten ändern weder Größe noch Position. Nur der Bereich, den Sie antippen können, wird größer. Diese Einstellung ist standardmäßig aktiviert.</string>
+    <string name="layout_extend_edge_keys_info">Einige Zeilen sind kürzer als die Tastatur, zum Beispiel die A- bis L-Reihe bei QWERTY. Sie haben leeren Platz an den linken und rechten Enden. Wenn diese Einstellung aktiviert ist, tippt ein Tippen in diesen Bereich die Taste an diesem Ende der Zeile, also tippt ein Tippen links von A das A. Die Tasten ändern weder Größe noch Position. Nur der Bereich, den Sie antippen können, wird größer.</string>
     <string name="layout_extend_edge_keys_subtitle">Ein Tippen in den leeren Bereich am Ende einer kurzen Zeile schreibt die nächstgelegene Taste</string>
     <string name="layout_extend_edge_keys_title">Randtasten in die Lücken erweitern</string>
     <string name="layout_floating_handle_bottom_label">Unter den Tasten</string>

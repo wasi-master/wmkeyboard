@@ -5427,7 +5427,7 @@
     <string name="layout_editor_width_increase_desc">Élargir la touche</string>
     <string name="layout_editor_width_percent_label">Part de la rangée</string>
     <string name="layout_editor_your_layouts_title">Vos dispositions</string>
-    <string name="layout_extend_edge_keys_info">Certaines lignes sont plus courtes que le clavier, par exemple la ligne A à L du QWERTY. Elles ont un espace vide aux extrémités gauche et droite. Avec ce paramètre activé, un appui dans cet espace saisit la touche située à cette extrémité de la ligne, donc un appui à gauche de A saisit A. Les touches ne changent ni de taille ni de position. Seule la zone que vous pouvez toucher s\'agrandit. Ce paramètre est activé par défaut.</string>
+    <string name="layout_extend_edge_keys_info">Certaines lignes sont plus courtes que le clavier, par exemple la ligne A à L du QWERTY. Elles ont un espace vide aux extrémités gauche et droite. Avec ce paramètre activé, un appui dans cet espace saisit la touche située à cette extrémité de la ligne, donc un appui à gauche de A saisit A. Les touches ne changent ni de taille ni de position. Seule la zone que vous pouvez toucher s\'agrandit.</string>
     <string name="layout_extend_edge_keys_subtitle">Un appui dans l\'espace vide à la fin d\'une ligne courte saisit la touche la plus proche</string>
     <string name="layout_extend_edge_keys_title">Étendre les touches de bord dans les espaces</string>
     <string name="layout_floating_handle_bottom_label">Sous les touches</string>

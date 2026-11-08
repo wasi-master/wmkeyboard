@@ -5438,7 +5438,7 @@
     <string name="layout_editor_width_increase_desc">Hacer la tecla más ancha</string>
     <string name="layout_editor_width_percent_label">Parte de la fila</string>
     <string name="layout_editor_your_layouts_title">Tus diseños</string>
-    <string name="layout_extend_edge_keys_info">Algunas filas son más cortas que el teclado, por ejemplo, la fila de la A a la L de QWERTY. Tienen espacio en blanco en los extremos izquierdo y derecho. Con este ajuste activado, un toque en ese espacio escribe la tecla en ese extremo de la fila, por lo que un toque a la izquierda de la A escribe la A. Las teclas no cambian de tamaño ni de posición. Solo el área que puedes tocar se vuelve más grande. Este ajuste está activado de forma predeterminada.</string>
+    <string name="layout_extend_edge_keys_info">Algunas filas son más cortas que el teclado, por ejemplo, la fila de la A a la L de QWERTY. Tienen espacio en blanco en los extremos izquierdo y derecho. Con este ajuste activado, un toque en ese espacio escribe la tecla en ese extremo de la fila, por lo que un toque a la izquierda de la A escribe la A. Las teclas no cambian de tamaño ni de posición. Solo el área que puedes tocar se vuelve más grande.</string>
     <string name="layout_extend_edge_keys_subtitle">Un toque en el espacio en blanco al final de una fila corta escribe la tecla más cercana</string>
     <string name="layout_extend_edge_keys_title">Extender las teclas de borde hacia los espacios</string>
     <string name="layout_floating_handle_bottom_label">Debajo de las teclas</string>

@@ -5434,7 +5434,7 @@
     <string name="layout_editor_width_increase_desc">Gør tasten bredere</string>
     <string name="layout_editor_width_percent_label">Andel af rækken</string>
     <string name="layout_editor_your_layouts_title">Dine layouts</string>
-    <string name="layout_extend_edge_keys_info">Nogle rækker er kortere end tastaturet, for eksempel A til L-rækken på QWERTY. De har tomt rum i venstre og højre ende. Med denne indstilling slået til, vil et tryk i det rum skrive tasten i den ende af rækken, så et tryk til venstre for A skriver A. Tasterne ændrer ikke størrelse eller position. Kun det område, du kan trykke på, bliver større. Denne indstilling er slået til som standard.</string>
+    <string name="layout_extend_edge_keys_info">Nogle rækker er kortere end tastaturet, for eksempel A til L-rækken på QWERTY. De har tomt rum i venstre og højre ende. Med denne indstilling slået til, vil et tryk i det rum skrive tasten i den ende af rækken, så et tryk til venstre for A skriver A. Tasterne ændrer ikke størrelse eller position. Kun det område, du kan trykke på, bliver større.</string>
     <string name="layout_extend_edge_keys_subtitle">Et tryk i det tomme felt for enden af en kort række skriver den nærmeste tast</string>
     <string name="layout_extend_edge_keys_title">Udvid kanttaster ind i mellemrummene</string>
     <string name="layout_floating_handle_bottom_label">Under tasterne</string>

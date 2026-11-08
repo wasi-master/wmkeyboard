@@ -5445,7 +5445,7 @@
     <string name="layout_editor_width_increase_desc">कुंजी को चौड़ा करें</string>
     <string name="layout_editor_width_percent_label">पंक्ति का हिस्सा</string>
     <string name="layout_editor_your_layouts_title">आपके लेआउट</string>
-    <string name="layout_extend_edge_keys_info">कुछ पंक्तियाँ कीबोर्ड से छोटी होती हैं, उदाहरण के लिए QWERTY की A से L पंक्ति। उनके बाएं और दाएं सिरों पर खाली जगह होती है। इस सेटिंग के चालू होने पर, उस जगह में टैप करने से उस पंक्ति के अंत वाली कुंजी टाइप होती है, इसलिए A के बाईं ओर टैप करने से A टाइप होता है। कुंजियों का आकार या स्थिति नहीं बदलती है। केवल वह क्षेत्र जिसे आप टैप कर सकते हैं, बड़ा हो जाता है। यह सेटिंग डिफ़ॉल्ट रूप से चालू रहती है।</string>
+    <string name="layout_extend_edge_keys_info">कुछ पंक्तियाँ कीबोर्ड से छोटी होती हैं, उदाहरण के लिए QWERTY की A से L पंक्ति। उनके बाएं और दाएं सिरों पर खाली जगह होती है। इस सेटिंग के चालू होने पर, उस जगह में टैप करने से उस पंक्ति के अंत वाली कुंजी टाइप होती है, इसलिए A के बाईं ओर टैप करने से A टाइप होता है। कुंजियों का आकार या स्थिति नहीं बदलती है। केवल वह क्षेत्र जिसे आप टैप कर सकते हैं, बड़ा हो जाता है।</string>
     <string name="layout_extend_edge_keys_subtitle">एक छोटी पंक्ति के अंत में खाली जगह में टैप करने पर निकटतम कुंजी टाइप होती है</string>
     <string name="layout_extend_edge_keys_title">एज कीज़ (edge keys) को अंतराल तक बढ़ाएं</string>
     <string name="layout_floating_handle_bottom_label">कुंजियों के नीचे</string>

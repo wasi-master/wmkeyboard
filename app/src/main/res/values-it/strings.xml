@@ -5428,7 +5428,7 @@
     <string name="layout_editor_width_increase_desc">Rendi il tasto più largo</string>
     <string name="layout_editor_width_percent_label">Quota della riga</string>
     <string name="layout_editor_your_layouts_title">I tuoi layout</string>
-    <string name="layout_extend_edge_keys_info">Alcune righe sono più corte della tastiera, ad esempio la riga dalla A alla L di QWERTY. Hanno spazio vuoto alle estremità sinistra e destra. Con questa impostazione attiva, un tocco in quello spazio digita il tasto all\'estremità della riga, quindi un tocco a sinistra della A digita A. I tasti non cambiano dimensione o posizione. Solo l\'area che puoi toccare diventa più grande. Questa impostazione è attiva per impostazione predefinita.</string>
+    <string name="layout_extend_edge_keys_info">Alcune righe sono più corte della tastiera, ad esempio la riga dalla A alla L di QWERTY. Hanno spazio vuoto alle estremità sinistra e destra. Con questa impostazione attiva, un tocco in quello spazio digita il tasto all\'estremità della riga, quindi un tocco a sinistra della A digita A. I tasti non cambiano dimensione o posizione. Solo l\'area che puoi toccare diventa più grande.</string>
     <string name="layout_extend_edge_keys_subtitle">Un tocco nello spazio vuoto alla fine di una riga corta digita il tasto più vicino</string>
     <string name="layout_extend_edge_keys_title">Estendi i tasti laterali negli spazi vuoti</string>
     <string name="layout_floating_handle_bottom_label">Sotto i tasti</string>

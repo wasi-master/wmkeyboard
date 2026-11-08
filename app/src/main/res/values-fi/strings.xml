@@ -5430,7 +5430,7 @@
     <string name="layout_editor_width_increase_desc">Tee näppäimestä leveämpi</string>
     <string name="layout_editor_width_percent_label">Osuus rivistä</string>
     <string name="layout_editor_your_layouts_title">Omat asettelusi</string>
-    <string name="layout_extend_edge_keys_info">Jotkut rivit ovat näppäimistöä lyhyempiä, esimerkiksi QWERTY-asettelun A–L-rivi. Niissä on tyhjää tilaa vasemmassa ja oikeassa päädyssä. Kun tämä asetus on päällä, napautus kyseisellä tyhjällä alueella kirjoittaa rivin päädyssä olevan näppäimen, joten A-kirjaimen vasemmalta puolelta napauttaminen kirjoittaa A:n. Näppäinten koko tai sijainti ei muutu. Vain napautettava alue suurenee. Tämä asetus on oletuksena päällä.</string>
+    <string name="layout_extend_edge_keys_info">Jotkut rivit ovat näppäimistöä lyhyempiä, esimerkiksi QWERTY-asettelun A–L-rivi. Niissä on tyhjää tilaa vasemmassa ja oikeassa päädyssä. Kun tämä asetus on päällä, napautus kyseisellä tyhjällä alueella kirjoittaa rivin päädyssä olevan näppäimen, joten A-kirjaimen vasemmalta puolelta napauttaminen kirjoittaa A:n. Näppäinten koko tai sijainti ei muutu. Vain napautettava alue suurenee.</string>
     <string name="layout_extend_edge_keys_subtitle">Napautus tyhjässä tilassa lyhyen rivin lopussa kirjoittaa lähimmän näppäimen</string>
     <string name="layout_extend_edge_keys_title">Laajenna reunanäppäimet aukkoihin</string>
     <string name="layout_floating_handle_bottom_label">Näppäinten alla</string>

@@ -5435,7 +5435,7 @@
     <string name="layout_editor_width_increase_desc">Padaryti klavišą platesnį</string>
     <string name="layout_editor_width_percent_label">Eilutės dalis</string>
     <string name="layout_editor_your_layouts_title">Jūsų išdėstymai</string>
-    <string name="layout_extend_edge_keys_info">Kai kurios eilutės yra trumpesnės už klaviatūrą, pavyzdžiui, QWERTY eilutė nuo A iki L. Kairiajame ir dešiniajame galuose yra tuščios vietos. Įjungus šį nustatymą, bakstelėjus toje vietoje įvedamas tos eilutės galo klavišas, todėl bakstelėjus į kairę nuo A įvedama A. Klavišai nekeičia dydžio ar padėties. Padidėja tik sritis, kurią galite paliesti. Šis nustatymas pagal numatytuosius nustatymus yra įjungtas.</string>
+    <string name="layout_extend_edge_keys_info">Kai kurios eilutės yra trumpesnės už klaviatūrą, pavyzdžiui, QWERTY eilutė nuo A iki L. Kairiajame ir dešiniajame galuose yra tuščios vietos. Įjungus šį nustatymą, bakstelėjus toje vietoje įvedamas tos eilutės galo klavišas, todėl bakstelėjus į kairę nuo A įvedama A. Klavišai nekeičia dydžio ar padėties. Padidėja tik sritis, kurią galite paliesti.</string>
     <string name="layout_extend_edge_keys_subtitle">Bakstelėjus tuščią vietą trumpos eilutės pabaigoje, įvedamas artimiausias klavišas</string>
     <string name="layout_extend_edge_keys_title">Išplėsti kraštinius klavišus į tarpus</string>
     <string name="layout_floating_handle_bottom_label">Po klavišais</string>

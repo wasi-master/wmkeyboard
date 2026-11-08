@@ -5430,7 +5430,7 @@
     <string name="layout_editor_width_increase_desc">キーの幅を広げる</string>
     <string name="layout_editor_width_percent_label">行の割合</string>
     <string name="layout_editor_your_layouts_title">自分のレイアウト</string>
-    <string name="layout_extend_edge_keys_info">QWERTY配列のAからLの行のように、キーボードより短い行があります。これらの行の左右の端には空白スペースがあります。この設定をオンにすると、そのスペースをタップしたときに端のキーが入力されます（例：Aの左側をタップするとAが入力される）。キーのサイズや位置は変わりません。タップ可能な領域のみが広がります。この設定はデフォルトでオンになっています。</string>
+    <string name="layout_extend_edge_keys_info">QWERTY配列のAからLの行のように、キーボードより短い行があります。これらの行の左右の端には空白スペースがあります。この設定をオンにすると、そのスペースをタップしたときに端のキーが入力されます（例：Aの左側をタップするとAが入力される）。キーのサイズや位置は変わりません。タップ可能な領域のみが広がります。</string>
     <string name="layout_extend_edge_keys_subtitle">短い行の端にある空白スペースをタップすると、最も近いキーが入力されます</string>
     <string name="layout_extend_edge_keys_title">端のキーを隙間まで拡張する</string>
     <string name="layout_floating_handle_bottom_label">キーの下</string>

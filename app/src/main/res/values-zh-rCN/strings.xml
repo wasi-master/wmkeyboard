@@ -5423,7 +5423,7 @@
     <string name="layout_editor_width_increase_desc">加宽按键</string>
     <string name="layout_editor_width_percent_label">行占比</string>
     <string name="layout_editor_your_layouts_title">您的布局</string>
-    <string name="layout_extend_edge_keys_info">某些行比键盘短，例如 QWERTY 布局的 A 到 L 行。它们在左右两端有空白区域。开启此设置后，点击该区域会输入该行末尾的按键，例如点击 A 的左侧会输入 A。按键的大小或位置不会改变。只有可点击的区域变大了。此设置默认开启。</string>
+    <string name="layout_extend_edge_keys_info">某些行比键盘短，例如 QWERTY 布局的 A 到 L 行。它们在左右两端有空白区域。开启此设置后，点击该区域会输入该行末尾的按键，例如点击 A 的左侧会输入 A。按键的大小或位置不会改变。只有可点击的区域变大了。</string>
     <string name="layout_extend_edge_keys_subtitle">点击短行末尾的空白区域可输入最近的按键</string>
     <string name="layout_extend_edge_keys_title">将边缘按键延伸至间隙中</string>
     <string name="layout_floating_handle_bottom_label">按键下方</string>

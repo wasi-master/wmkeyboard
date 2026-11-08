@@ -5435,7 +5435,7 @@
     <string name="layout_editor_width_increase_desc">की अधिक रुंद करा</string>
     <string name="layout_editor_width_percent_label">ओळीचा वाटा</string>
     <string name="layout_editor_your_layouts_title">तुमचे लेआउट्स</string>
-    <string name="layout_extend_edge_keys_info">काही ओळी कीबोर्डपेक्षा लहान असतात, उदाहरणार्थ QWERTY मधील A ते L ओळ. त्यांच्या डाव्या आणि उजव्या टोकाला रिकामी जागा असते. हे सेटिंग सुरू असल्यास, त्या जागेवर टॅप केल्यास ओळीच्या टोकाची की टाईप होते, त्यामुळे A च्या डावीकडे टॅप केल्यास A टाईप होतो. कीजचा आकार किंवा जागा बदलत नाही. फक्त टॅप करता येण्याजोगा भाग मोठा होतो. हे सेटिंग डीफॉल्टनुसार सुरू असते.</string>
+    <string name="layout_extend_edge_keys_info">काही ओळी कीबोर्डपेक्षा लहान असतात, उदाहरणार्थ QWERTY मधील A ते L ओळ. त्यांच्या डाव्या आणि उजव्या टोकाला रिकामी जागा असते. हे सेटिंग सुरू असल्यास, त्या जागेवर टॅप केल्यास ओळीच्या टोकाची की टाईप होते, त्यामुळे A च्या डावीकडे टॅप केल्यास A टाईप होतो. कीजचा आकार किंवा जागा बदलत नाही. फक्त टॅप करता येण्याजोगा भाग मोठा होतो.</string>
     <string name="layout_extend_edge_keys_subtitle">लहान ओळीच्या शेवटी रिकाम्या जागेत टॅप केल्यास जवळची की टाईप होते</string>
     <string name="layout_extend_edge_keys_title">एज कीज रिकाम्या जागेत वाढवा</string>
     <string name="layout_floating_handle_bottom_label">कीजच्या खाली</string>

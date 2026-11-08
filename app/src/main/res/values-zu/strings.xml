@@ -5443,7 +5443,7 @@
     <string name="layout_editor_width_increase_desc">Yenza inkinobho ibe banzi</string>
     <string name="layout_editor_width_percent_label">Isabelo somugqa</string>
     <string name="layout_editor_your_layouts_title">Izakhiwo zakho</string>
-    <string name="layout_extend_edge_keys_info">Ezinye imigqa imifushane kune-khibhodi, isibonelo umugqa ka-A kuya ku-L we-QWERTY. Zinesikhala esingenalutho emaphethelweni angakwesobunxele nangakwesokudla. Ngalolu hlelo oluvuliwe, ukuthepha kuleso sikhala kuthayipha inkinobho esekupheleni kwalowo mugqa, ngakho ukuthepha kwesobunxele sika-A kuthayipha u-A. Izinkinobho azishintshi usayizi noma indawo. Indawo kuphela ongayithepha iba nkulu. Lolu hlelo luvuliwe ngokuzenzakalelayo.</string>
+    <string name="layout_extend_edge_keys_info">Ezinye imigqa imifushane kune-khibhodi, isibonelo umugqa ka-A kuya ku-L we-QWERTY. Zinesikhala esingenalutho emaphethelweni angakwesobunxele nangakwesokudla. Ngalolu hlelo oluvuliwe, ukuthepha kuleso sikhala kuthayipha inkinobho esekupheleni kwalowo mugqa, ngakho ukuthepha kwesobunxele sika-A kuthayipha u-A. Izinkinobho azishintshi usayizi noma indawo. Indawo kuphela ongayithepha iba nkulu.</string>
     <string name="layout_extend_edge_keys_subtitle">Ukuthepha esikhaleni esingenalutho ekupheleni komugqa omfushane kuthayipha ukhiye oseduze</string>
     <string name="layout_extend_edge_keys_title">Nweba okhiye bomphetho ezikhaleni</string>
     <string name="layout_floating_handle_bottom_label">Ngaphansi kokhiye</string>

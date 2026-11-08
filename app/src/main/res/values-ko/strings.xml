@@ -5427,7 +5427,7 @@
     <string name="layout_editor_width_increase_desc">키 너비 늘리기</string>
     <string name="layout_editor_width_percent_label">행에서의 비율</string>
     <string name="layout_editor_your_layouts_title">내 레이아웃</string>
-    <string name="layout_extend_edge_keys_info">일부 행은 QWERTY의 A~L 행처럼 키보드보다 짧습니다. 양쪽 끝에 빈 공간이 있습니다. 이 설정을 켜면 해당 공간을 탭하여 행 끝에 있는 키를 입력할 수 있습니다. 즉, A 왼쪽을 탭하면 A가 입력됩니다. 키의 크기나 위치는 변경되지 않으며 탭할 수 있는 영역만 넓어집니다. 이 설정은 기본적으로 켜져 있습니다.</string>
+    <string name="layout_extend_edge_keys_info">일부 행은 QWERTY의 A~L 행처럼 키보드보다 짧습니다. 양쪽 끝에 빈 공간이 있습니다. 이 설정을 켜면 해당 공간을 탭하여 행 끝에 있는 키를 입력할 수 있습니다. 즉, A 왼쪽을 탭하면 A가 입력됩니다. 키의 크기나 위치는 변경되지 않으며 탭할 수 있는 영역만 넓어집니다.</string>
     <string name="layout_extend_edge_keys_subtitle">짧은 행 끝의 빈 공간을 탭하면 가장 가까운 키가 입력됩니다.</string>
     <string name="layout_extend_edge_keys_title">가장자리 키를 빈 공간까지 확장</string>
     <string name="layout_floating_handle_bottom_label">키 아래</string>

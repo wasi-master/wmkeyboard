@@ -5433,7 +5433,7 @@
     <string name="layout_editor_width_increase_desc">કીને પહોળી કરો</string>
     <string name="layout_editor_width_percent_label">હરોળનો હિસ્સો</string>
     <string name="layout_editor_your_layouts_title">તમારા લેઆઉટ્સ</string>
-    <string name="layout_extend_edge_keys_info">કેટલીક હરોળ કીબોર્ડ કરતા ટૂંકી હોય છે, ઉદાહરણ તરીકે QWERTY ની A થી L હરોળ. તેમની ડાબી અને જમણી બાજુએ ખાલી જગ્યા હોય છે. આ સેટિંગ ચાલુ હોય ત્યારે, તે જગ્યામાં ટેપ કરવાથી હરોળના તે છેડે રહેલી કી ટાઈપ થાય છે, તેથી A ની ડાબી બાજુએ ટેપ કરવાથી A ટાઈપ થાય છે. કીનું કદ કે સ્થાન બદલાતું નથી. ફક્ત તમે જ્યાં ટેપ કરી શકો તે વિસ્તાર મોટો થાય છે. આ સેટિંગ ડિફોલ્ટ રૂપે ચાલુ હોય છે.</string>
+    <string name="layout_extend_edge_keys_info">કેટલીક હરોળ કીબોર્ડ કરતા ટૂંકી હોય છે, ઉદાહરણ તરીકે QWERTY ની A થી L હરોળ. તેમની ડાબી અને જમણી બાજુએ ખાલી જગ્યા હોય છે. આ સેટિંગ ચાલુ હોય ત્યારે, તે જગ્યામાં ટેપ કરવાથી હરોળના તે છેડે રહેલી કી ટાઈપ થાય છે, તેથી A ની ડાબી બાજુએ ટેપ કરવાથી A ટાઈપ થાય છે. કીનું કદ કે સ્થાન બદલાતું નથી. ફક્ત તમે જ્યાં ટેપ કરી શકો તે વિસ્તાર મોટો થાય છે.</string>
     <string name="layout_extend_edge_keys_subtitle">ટૂંકી હરોળના અંતે ખાલી જગ્યામાં ટેપ કરવાથી નજીકની કી ટાઇપ થાય છે</string>
     <string name="layout_extend_edge_keys_title">એજ કીને ખાલી જગ્યાઓમાં વિસ્તૃત કરો</string>
     <string name="layout_floating_handle_bottom_label">કીની નીચે</string>

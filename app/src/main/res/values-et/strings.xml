@@ -5437,7 +5437,7 @@
     <string name="layout_editor_width_increase_desc">Tee klahv laiemaks</string>
     <string name="layout_editor_width_percent_label">Osa reast</string>
     <string name="layout_editor_your_layouts_title">Teie paigutused</string>
-    <string name="layout_extend_edge_keys_info">Mõned read on klaviatuurist lühemad, näiteks QWERTY A kuni L rida. Neil on vasakus ja paremas otsas tühi ruum. Kui see säte on sisse lülitatud, sisestab puudutus selles ruumis selle rea otsas oleva klahvi, nii et puudutus A-st vasakul sisestab A. Klahvid ei muuda suurust ega asukohta. Ainult puudutatav ala muutub suuremaks. See säte on vaikimisi sisse lülitatud.</string>
+    <string name="layout_extend_edge_keys_info">Mõned read on klaviatuurist lühemad, näiteks QWERTY A kuni L rida. Neil on vasakus ja paremas otsas tühi ruum. Kui see säte on sisse lülitatud, sisestab puudutus selles ruumis selle rea otsas oleva klahvi, nii et puudutus A-st vasakul sisestab A. Klahvid ei muuda suurust ega asukohta. Ainult puudutatav ala muutub suuremaks.</string>
     <string name="layout_extend_edge_keys_subtitle">Lühikese rea lõpus tühjas kohas koputamine sisestab lähima klahvi</string>
     <string name="layout_extend_edge_keys_title">Laienda servaklahvid tühimikesse</string>
     <string name="layout_floating_handle_bottom_label">Klahvide all</string>

@@ -5439,7 +5439,7 @@
     <string name="layout_editor_width_increase_desc">اجعل المفتاح أعرض</string>
     <string name="layout_editor_width_percent_label">حصة الصف</string>
     <string name="layout_editor_your_layouts_title">تخطيطاتك</string>
-    <string name="layout_extend_edge_keys_info">بعض الصفوف أقصر من لوحة المفاتيح، على سبيل المثال صف A إلى L في لوحة مفاتيح QWERTY. تحتوي هذه الصفوف على مساحة فارغة عند الطرفين الأيمن والأيسر. عند تفعيل هذا الإعداد، فإن النقر في تلك المساحة يؤدي إلى كتابة المفتاح الموجود في ذلك الطرف من الصف، لذا فإن النقر يسار A يكتب A. لا تتغير أحجام المفاتيح أو مواقعها، فقط المنطقة التي يمكنك النقر عليها تصبح أكبر. هذا الإعداد مفعل افتراضياً.</string>
+    <string name="layout_extend_edge_keys_info">بعض الصفوف أقصر من لوحة المفاتيح، على سبيل المثال صف A إلى L في لوحة مفاتيح QWERTY. تحتوي هذه الصفوف على مساحة فارغة عند الطرفين الأيمن والأيسر. عند تفعيل هذا الإعداد، فإن النقر في تلك المساحة يؤدي إلى كتابة المفتاح الموجود في ذلك الطرف من الصف، لذا فإن النقر يسار A يكتب A. لا تتغير أحجام المفاتيح أو مواقعها، فقط المنطقة التي يمكنك النقر عليها تصبح أكبر.</string>
     <string name="layout_extend_edge_keys_subtitle">النقر في المساحة الفارغة في نهاية صف قصير يكتب المفتاح الأقرب</string>
     <string name="layout_extend_edge_keys_title">تمديد مفاتيح الحواف إلى الفراغات</string>
     <string name="layout_floating_handle_bottom_label">تحت المفاتيح</string>

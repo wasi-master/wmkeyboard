@@ -5438,7 +5438,7 @@
     <string name="layout_editor_width_increase_desc">Сделать клавишу шире</string>
     <string name="layout_editor_width_percent_label">Доля строки</string>
     <string name="layout_editor_your_layouts_title">Ваши раскладки</string>
-    <string name="layout_extend_edge_keys_info">Некоторые ряды короче клавиатуры, например, ряд от A до L в QWERTY. У них есть пустое пространство по краям слева и справа. Если эта настройка включена, нажатие в этом пространстве вводит клавишу на краю ряда, поэтому нажатие слева от A вводит A. Клавиши не меняют размер или положение. Увеличивается только область, которую можно нажать. Эта настройка включена по умолчанию.</string>
+    <string name="layout_extend_edge_keys_info">Некоторые ряды короче клавиатуры, например, ряд от A до L в QWERTY. У них есть пустое пространство по краям слева и справа. Если эта настройка включена, нажатие в этом пространстве вводит клавишу на краю ряда, поэтому нажатие слева от A вводит A. Клавиши не меняют размер или положение. Увеличивается только область, которую можно нажать.</string>
     <string name="layout_extend_edge_keys_subtitle">Нажатие в пустом месте в конце короткого ряда вводит ближайшую клавишу</string>
     <string name="layout_extend_edge_keys_title">Расширить крайние клавиши в пустые области</string>
     <string name="layout_floating_handle_bottom_label">Под клавишами</string>
