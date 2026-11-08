@@ -26,7 +26,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
+import com.wasimaster.wmkeyboard.core.script.RomanizedSpeech
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.VoiceChoiceRef
 import com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled
@@ -38,6 +40,17 @@ import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import kotlinx.coroutines.launch
 
 /**
+ * [languages] as dictation hears them: Hinglish as Hindi, Banglish as Bangla
+ * (#948), each once. The keyboard looks a language's engine, model and server
+ * up under the spoken language, so a screen that listed `hi_rom` stored a
+ * choice nothing read, and offered a Hinglish-only user no Hindi models at all
+ * (Telegram 6331).
+ */
+internal fun voiceLanguages(languages: List<LanguageDef>): List<LanguageDef> =
+    languages.map { language -> RomanizedSpeech.spokenAs(language.id)?.let(LanguageRegistry::byId) ?: language }
+        .distinctBy { it.id }
+
+/**
  * The engine, and the model, for each of the user's languages: English on the
  * system recognizer and Bangla on a Whisper model, say. A language left on
  * the default follows the Recognition engine row. The voice panel's engine
@@ -47,7 +60,7 @@ import kotlinx.coroutines.launch
 internal fun VoiceEngineLanguagesRow(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     val byLang = settings.watch { it.whisper.voiceByLang }
-    val languages = settings.watch { it.enabledLanguages }
+    val languages = settings.watch { voiceLanguages(it.enabledLanguages) }
     var open by remember { mutableStateOf(false) }
     NavRow(
         R.string.voice_engine_languages_title,

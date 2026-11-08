@@ -158,7 +158,9 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
     // The routing below answers for every language at once, and the routing
     // card, the model rows and the dialog all read that one answer, so what it
     // is worked out from is read here.
-    val enabledLanguages = settings.watch { it.enabledLanguages }
+    // As dictation hears them, Hinglish as Hindi (voiceLanguages): the
+    // models are routed by the spoken language.
+    val enabledLanguages = settings.watch { voiceLanguages(it.enabledLanguages) }
     val fallbackId = settings.watch { it.whisper.modelId }
     val pinnedByLang = settings.watch { it.whisper.modelByLang }
 

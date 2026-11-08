@@ -52,7 +52,8 @@ import kotlinx.coroutines.withContext
 @Composable
 internal fun VoiceServerLanguages(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
-    val languages = settings.watch { it.enabledLanguages }
+    // As dictation hears them; see voiceLanguages.
+    val languages = settings.watch { voiceLanguages(it.enabledLanguages) }
     if (languages.size < 2) return
     val byLang = settings.watch { it.whisper.serverByLang }
     var editing by remember { mutableStateOf<LanguageDef?>(null) }
