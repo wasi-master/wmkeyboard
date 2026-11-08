@@ -404,15 +404,8 @@ private fun QueryPill(
             textColor = kb.suggestionText,
             placeholderColor = kb.secondaryText,
             fontSize = 13.sp,
-            modifier = Modifier
-                .weight(1f)
-                .then(
-                    if (highlighted) {
-                        Modifier.background(kb.suggestionText.copy(alpha = 0.18f), RoundedCornerShape(4.dp))
-                    } else {
-                        Modifier
-                    },
-                ),
+            modifier = Modifier.weight(1f),
+            selectedAll = highlighted,
         )
         // Every key edits the field one character at a time, so a long query
         // was a long hold on backspace; the × empties it in one tap.
