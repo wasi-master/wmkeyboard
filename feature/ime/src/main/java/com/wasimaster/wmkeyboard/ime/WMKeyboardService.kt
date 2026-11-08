@@ -5849,6 +5849,7 @@ open class WMKeyboardService : InputMethodService() {
                     activeLayoutSpec(_uiState.value.settings),
                     numberRow = _uiState.value.settings.numberRow &&
                         _uiState.value.settings.suggestionStrip.numberRowCorrections,
+                    customRow = _uiState.value.settings.layoutBehavior.customNumberRow,
                 )
                 spaceAdjacentKeys = KeyProximity.spaceAdjacentKeys(activeLayoutSpec(_uiState.value.settings))
                     .ifEmpty { SuggestionEngine.SPACE_ADJACENT_DEFAULT }
@@ -18295,6 +18296,8 @@ open class WMKeyboardService : InputMethodService() {
             engine,
             spec,
             settings.numberRow && settings.suggestionStrip.numberRowCorrections,
+            // The custom number row is part of the grid the slips are read on (#970).
+            settings.layoutBehavior.customNumberRow,
             settings.secondaryLanguages[lang.id],
             customDictionaries,
             correctionMemory.version,
@@ -18313,6 +18316,7 @@ open class WMKeyboardService : InputMethodService() {
         engine.proximity = KeyProximity.forLayout(
             spec,
             numberRow = settings.numberRow && settings.suggestionStrip.numberRowCorrections,
+            customRow = settings.layoutBehavior.customNumberRow,
         )
         // The letters a space-bar miss lands on follow the layout too —
         // this was a QWERTY constant for every layout before.
