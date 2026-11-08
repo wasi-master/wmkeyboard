@@ -8691,7 +8691,6 @@ internal fun fancyStyleFor(state: KeyboardUiState): FancyStyle? =
  * setting of its own: it appears with the fancy layout and leaves with it.
  */
 @Composable
-@Suppress("UnusedParameter")
 private fun FancyStyleStrip(
     state: KeyboardUiState,
     active: FancyStyle,
@@ -8700,6 +8699,18 @@ private fun FancyStyleStrip(
 ) {
     var pickerOpen by remember { mutableStateOf(false) }
     val feedback = LocalKeyPressFeedback.current
+    // The user's order, less the styles they hid; the active one always stays.
+    // Keyed on the lists that feed the table too, which is not snapshot state.
+    val behavior = state.settings.layoutBehavior
+    val styles = remember(
+        behavior.fancyStyleOrder,
+        behavior.fancyHiddenStyles,
+        behavior.zalgoStyles,
+        behavior.customFancyFonts,
+        active.id,
+    ) {
+        FancyStyles.arranged(behavior.fancyStyleOrder, behavior.fancyHiddenStyles, keep = active.id)
+    }
     // Land on the active chip when the strip appears — with thirty-odd styles
     // the selected one is otherwise likely off-screen to the right.
     //
@@ -8709,7 +8720,7 @@ private fun FancyStyleStrip(
     // and it appears on the same frame the fancy layout does, which is exactly
     // when the eye is already on it.
     val listState = rememberLazyListState(
-        initialFirstVisibleItemIndex = FancyStyles.all
+        initialFirstVisibleItemIndex = styles
             .indexOfFirst { it.id == active.id }
             .coerceAtLeast(0),
     )
@@ -8752,7 +8763,7 @@ private fun FancyStyleStrip(
                     onDismissRequest = { pickerOpen = false },
                     properties = MenuPopupProperties,
                 ) {
-                    for (style in FancyStyles.all) {
+                    for (style in styles) {
                         DropdownMenuItem(
                             // WYSIWYG like the chips: the name written in its
                             // own style, with the plain name left for TalkBack.
@@ -8791,7 +8802,7 @@ private fun FancyStyleStrip(
                 modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                lazyRowItems(FancyStyles.all) { style ->
+                lazyRowItems(styles) { style ->
                     val selected = style.id == active.id
                     val kb = LocalKbTheme.current
                     val chipShape = kb.chipShape()

@@ -28032,7 +28032,8 @@ open class WMKeyboardService : InputMethodService() {
             emptyList()
         }
         val fancy = if (strip.pagesFancy && ToolbarTool.FANCY in state.settings.enabledTools && !state.secureField) {
-            FancyStyles.all.asSequence()
+            val behavior = state.settings.layoutBehavior
+            FancyStyles.arranged(behavior.fancyStyleOrder, behavior.fancyHiddenStyles).asSequence()
                 .filter { it.id != FancyStyles.NORMAL_ID }
                 .map { FancyStyles.transform(seed, it) }
                 .filter { it != seed }

@@ -1269,6 +1269,7 @@ internal fun LanguageDetailScreen(
                 // Read so the options are drawn again when a font of the
                 // user's own is added; the table itself is not snapshot state.
                 settings.watch { it.layoutBehavior.customFancyFonts }
+                settings.watch { it.layoutBehavior.zalgoStyles }
                 ChoiceSetting(
                     R.string.languages_fancy_style_row_title,
                     subtitle = stringResource(R.string.languages_fancy_style_row_subtitle),
@@ -1280,7 +1281,9 @@ internal fun LanguageDetailScreen(
                 ) { scope.launch { repository.setFancyStyle(it.id) } }
             }
         }
+        ZalgoStylesGroup(repository, settings)
         CustomFancyFontsGroup(repository, settings)
+        FancyStyleArrangementGroup(repository, settings)
     }
 
     // Vietnamese tone marking. One answer for both boards: Telex and VNI are

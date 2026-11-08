@@ -12,7 +12,7 @@ import LayoutExplorer from '@components/LayoutExplorer.astro';
 import fancy from '../../../../../app/src/main/assets/layouts/fancy.wmlayout.json';
 import Shot from '@components/Shot.astro';
 
-Fancy Text isn't a language. It's 32 Unicode "font" styles on a single keyboard, plus a Normal style that types plain letters and any [fonts you make yourself](#your-own-fonts). Add it once, pick a style from the strip above the keys, and every letter key immediately shows the styled glyph. What you type is already 𝓯𝓪𝓷𝓬𝔂: there's no separate conversion step afterward, and the suggestion strip and autocorrect work on the plain letters underneath.
+Fancy Text isn't a language. It's 50 Unicode "font" styles on a single keyboard, plus [zalgo](#zalgo) at levels you pick, a Normal style that types plain letters, and any [fonts you make yourself](#your-own-fonts). Add it once, pick a style from the strip above the keys, and every letter key immediately shows the styled glyph. What you type is already 𝓯𝓪𝓷𝓬𝔂: there's no separate conversion step afterward, and the suggestion strip and autocorrect work on the plain letters underneath.
 
 <PhoneFrame caption="The Bold style active in a text field: typing hello commits 𝐡𝐞𝐥𝐥𝐨 directly, and the style strip sits above the keys.">
   <Shot id="languages/fancy-text-bold-field" alt="The Bold style active in a text field: typing hello commits 𝐡𝐞𝐥𝐥𝐨 directly." />
@@ -40,7 +40,7 @@ The same switch also lives in Settings as the **Fancy text** toggle on <Settings
 
 ## Picking a style
 
-While the fancy keyboard is active, a strip appears above the keys with every style written in itself: Normal, 𝐁𝐨𝐥𝐝, 𝘐𝘵𝘢𝘭𝘪𝘤, 𝔉𝔯𝔞𝔨𝔱𝔲𝔯, 🅒🅘🅡🅒🅛🅔🅓 and so on. Tap a chip and the keys restyle instantly. Normal, first in the strip, puts the plain letters back without leaving the fancy keyboard. The strip sits nearest the keys by default; <SettingsPath path="Rows & bars / Row order" /> moves it above the other rows. The pick is remembered until you change it. The dropdown on the strip's left edge names the current style. Open it and every style appears written in itself, exactly like the chips above; a screen reader still gets the plain name for each one.
+While the fancy keyboard is active, a strip appears above the keys with every style written in itself: Normal, 𝐁𝐨𝐥𝐝, 𝘐𝘵𝘢𝘭𝘪𝘤, 𝔉𝔯𝔞𝔨𝔱𝔲𝔯, 🅒🅘🅡🅒🅛🅔🅓 and so on. Tap a chip and the keys restyle instantly. Normal, first in the strip, puts the plain letters back without leaving the fancy keyboard. The strip sits nearest the keys by default; <SettingsPath path="Rows & bars / Row order" /> moves it above the other rows. The pick is remembered until you change it, and [Styles on the strip](#choosing-which-styles-show) decides which styles the strip offers and in what order. The dropdown on the strip's left edge names the current style. Open it and every style appears written in itself, exactly like the chips above; a screen reader still gets the plain name for each one.
 
 The same choice also lives in Settings, on the Fancy Text language screen, as a **Style** row.
 
@@ -58,7 +58,35 @@ The full set, with the name each one shows:
 | Underline | Regional Indicator | Parenthesized |
 | Double Underline | Overline | Slashthrough |
 | Wavy Underline | Dotted | Upside Down |
-| Currency | Bypass | |
+| Currency | Bypass | Subscript |
+| Mirror | Faux Cyrillic | Faux Greek |
+| Syllabics | Thai Look | Kanji Look |
+| Ethiopic Look | Bracketed | Lenticular |
+| Tilde Strike | Cross Above | Seagull Below |
+| Arrow Below | Boxed | Ringed |
+| Glitch | Vaporwave | |
+
+After them come the zalgo styles, Zalgo 3 and Zalgo 7 unless you change them.
+
+## Zalgo
+
+<SettingsPath path="Languages & layouts / Fancy Text / Zalgo" />
+
+Zalgo piles random combining marks above, below and through every letter and digit, so text looks like it's melting. How much is up to you: every zalgo style has a level from 1, a mark or two on each side of a letter, to 10, a tower of them, with strokes through the letters from level 4 up. Two come with the app, Zalgo 3 and Zalgo 7.
+
+Tap **Add a zalgo level** to make another. The dialog shows "He comes 666" at the level you're on and redraws it as you drag the slider. A name is optional; left empty, the style is named after its level. Each zalgo style is its own chip on the strip, so a light one and a heavy one can sit side by side. Tap a row to change its level or name, or swipe it away to delete it. You can keep up to 10. Deleting the one you're typing in sends the keyboard back to Bold.
+
+The marks are drawn at random, but not on every keystroke. A letter's marks depend on the letter, its place in the word and a number picked when the keyboard starts. The word you're typing keeps its marks as it grows instead of reshuffling under your fingers, and the same word comes out differently after the keyboard restarts. Zalgo composes like the other styles, with suggestions and autocorrect on the plain word underneath.
+
+Only marks that no Latin-script language writes with are used: never an acute, a grave, a cedilla, a caron or the like. That keeps every mark safe to strip back off when the keyboard reads the field, and none of them merges with a letter when an app normalises its text. **Glitch**, in the main table, is a fixed version: the same two or three marks on a letter every time.
+
+## Choosing which styles show
+
+<SettingsPath path="Languages & layouts / Fancy Text / Styles on the strip" />
+
+With fifty-odd styles, the strip is long. This group, folded until you open it, lists every style written in itself. Drag one by its handle to move it along the strip, and switch it off to take it off the strip. Its heading counts how many are shown. **Reset the strip** brings back every style in the order they ship.
+
+The same order and choice apply to the strip's dropdown, the Fancy conversions in the [selection actions](/smart/selection-actions/) and the fancy row of the suggestion pages. A style you switch off isn't gone. The **Fancy style** row and the Fancy text tool's **Style to start with** still list every style, so it can be picked on purpose, and the style you're typing in always stays on the strip, switched off or not. Styles added in a later release, zalgo levels you add and fonts you make join at the end, switched on. Switching every style off shows them all again rather than leaving the strip empty.
 
 ## Your own fonts
 
@@ -115,7 +143,15 @@ Fancy Text is exempt from the keyboard's normal ASCII-only safeguard. Fields tha
 
 Tap a different style while a word is being typed and that word switches style with it. Moving the caret back into a styled word doesn't pick it up for editing the way it does on other layouts: the field holds styled glyphs, and the keyboard only edits words it can read as plain letters.
 
-**Upside Down types letter by letter.** Its glyphs only read correctly once the whole line is reversed, so it keeps substituting each key as you press it, with no suggestions or autocorrect.
+**Upside Down and Mirror type letter by letter.** Their glyphs only read correctly once the whole line is reversed (a mirrored line reads right to left), so they keep substituting each key as you press it, with no suggestions or autocorrect. Letters that look the same in a mirror stay plain in Mirror.
+
+**Subscript is mostly lowercase and partly plain.** Unicode has subscript forms for only 17 letters (a e h i j k l m n o p r s t u v x), so b, c, d, f, g, q, w, y and z type plain, and capitals type the small forms. All ten digits have subscripts.
+
+**The look-alike styles borrow other alphabets.** Faux Cyrillic, Faux Greek, Syllabics, Thai Look, Kanji Look and Ethiopic Look are built from real letters of other scripts that resemble Latin ones, the way fancy-text websites do it: Д for A, ᗩ for A, 卂 for A. A screen reader reads them as those scripts' letters. Faux Cyrillic has capitals of its own; the others are single-case, with a few plain letters where nothing looks close enough. Currency avoids letters other languages write with; these can't, and needn't, because the keyboard only reads styled text back to plain letters while the fancy keyboard is the one typing.
+
+**Bracketed, Lenticular, Boxed and Ringed wrap digits too.** Bracketed writes 【a】, Lenticular 『a』, Boxed draws a square around each letter and Ringed a circle. Boxed and Ringed use enclosing marks that some fonts draw off-centre or not at all.
+
+**Vaporwave spaces the letters out.** It types fullwidth letters with a narrow four-per-em space between each pair, for the ａ ｅ ｓ ｔ ｈ ｅ ｔ ｉ ｃ look. Your own spaces stay normal ones, and the keyboard takes the narrow spaces back out when it reads the word.
 
 **Everything the keyboard puts in the field is styled.** Besides typing, that covers text pasted from the clipboard panel, dictation and snippet expansions while the fancy keyboard is active. Emoji and punctuation have no styled forms and go in unchanged. The selection actions' own conversions are the exception: a Fancy or colour conversion of selected text goes in exactly as the action wrote it.
 

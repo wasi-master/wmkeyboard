@@ -1,6 +1,8 @@
 package com.wasimaster.wmkeyboard.core.script
 
+import java.text.Normalizer
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -14,14 +16,15 @@ import org.junit.Test
 class FancyStylesTest {
 
     @Test
-    fun `normal plus the 31 styles are present, in the shipped order, with a default`() {
-        assertEquals(33, FancyStyles.all.size)
+    fun `normal plus the 50 styles and the two starting zalgo levels are present, in order`() {
+        assertEquals(53, FancyStyles.all.size)
         assertEquals(FancyStyles.NORMAL_ID, FancyStyles.all.first().id)
         assertEquals("bold", FancyStyles.all[1].id)
         // The tail of the original 22, then the tail of the whole table: the
         // order is append-only, and both ends pin it.
         assertEquals("underline", FancyStyles.all[22].id)
-        assertEquals("bypass", FancyStyles.all.last().id)
+        assertEquals("bypass", FancyStyles.all[32].id)
+        assertEquals("zalgo_heavy", FancyStyles.all.last().id)
         assertNotNull(FancyStyles.byId(FancyStyles.DEFAULT_ID))
         assertEquals(FancyStyles.all.size, FancyStyles.all.distinctBy { it.id }.size)
     }
@@ -198,12 +201,12 @@ class FancyStylesTest {
 
     @Test
     fun `custom styles follow the built-in ones, cannot shadow them, and unstyle`() {
-        val builtInCount = FancyStyles.builtIn.size
+        val before = FancyStyles.all.size
         try {
             val mine = FancyStyles.fromAlphabets(FancyStyles.CUSTOM_PREFIX + "x", "Mine", "(a) (b)")
             val shadow = FancyStyles.fromAlphabets("bold", "Fake", "x")
             FancyStyles.useCustom(listOf(mine, shadow))
-            assertEquals(builtInCount + 1, FancyStyles.all.size)
+            assertEquals(before + 1, FancyStyles.all.size)
             assertEquals(mine, FancyStyles.all.last())
             assertEquals(mine, FancyStyles.byId(mine.id))
             assertEquals("\uD835\uDC1B", FancyStyles.transform("b", FancyStyles.byId("bold")!!))
@@ -211,6 +214,103 @@ class FancyStylesTest {
         } finally {
             FancyStyles.useCustom(emptyList())
         }
-        assertEquals(builtInCount, FancyStyles.all.size)
+        assertEquals(before, FancyStyles.all.size)
+    }
+
+    @Test
+    fun `subscript styles the letters it has and every digit`() {
+        val subscript = FancyStyles.byId("subscript")!!
+        // No subscript b: it stays plain, and a capital types the small form.
+        assertEquals("\u2090b\u2080\u2089", FancyStyles.transform("Ab09", subscript))
+    }
+
+    @Test
+    fun `mirror is laid out back to front like upside down`() {
+        val mirror = FancyStyles.byId("mirror")!!
+        assertEquals(FancyAssembly.REVERSED, mirror.assembly)
+        assertEquals("\u0252d", FancyStyles.transform("ba", mirror))
+    }
+
+    @Test
+    fun `bracketed and boxed wrap letters and digits whole, and read back`() {
+        assertEquals("\u3010h\u3011\u30101\u3011", FancyStyles.transform("h1", FancyStyles.byId("bracketed")!!))
+        assertEquals("h\u20DE1\u20DE", FancyStyles.transform("h1", FancyStyles.byId("boxed")!!))
+        assertEquals("h1", FancyStyles.unstyle("\u3010h\u3011\u30101\u3011"))
+    }
+
+    @Test
+    fun `vaporwave spaces fullwidth letters apart and reads back without the gaps`() {
+        val vaporwave = FancyStyles.byId("vaporwave")!!
+        val styled = FancyStyles.transform("ab cd", vaporwave)
+        assertEquals("\uFF41\u2005\uFF42 \uFF43\u2005\uFF44", styled)
+        assertEquals(styled, FancyStyles.transform(styled, vaporwave))
+        assertEquals("ab cd", FancyStyles.unstyle(styled))
+    }
+
+    @Test
+    fun `zalgo marks every letter, the same way each time, and only once`() {
+        for (id in listOf("zalgo", "zalgo_heavy")) {
+            val zalgo = FancyStyles.byId(id)!!
+            val styled = FancyStyles.transform("hey 7!", zalgo)
+            assertTrue(id, styled.length > "hey 7!".length + 4)
+            // The word being typed keeps its marks as it grows.
+            assertEquals(id, styled, FancyStyles.transform("hey 7!", zalgo))
+            assertTrue(id, FancyStyles.transform("heya", zalgo).startsWith(FancyStyles.transform("hey", zalgo)))
+            // Styling styled text adds nothing, and reading it back drops every mark.
+            assertEquals(id, styled, FancyStyles.transform(styled, zalgo))
+            assertEquals(id, "hey 7!", FancyStyles.unstyle(styled))
+            // Spaces and punctuation stay bare; the digit after the space is marked.
+            assertEquals(id, '7', styled[styled.indexOf(' ') + 1])
+            assertTrue(id, styled.endsWith("!"))
+        }
+    }
+
+    @Test
+    fun `the marked styles survive NFC, so a normalising app keeps them`() {
+        val text = "The quick brown fox jumps over the lazy dog 0123456789"
+        for (id in listOf("glitch", "zalgo", "zalgo_heavy", "tilde_strike", "cross_above", "seagull_below", "arrow_below", "boxed", "ringed")) {
+            val styled = FancyStyles.transform(text + text.uppercase(), FancyStyles.byId(id)!!)
+            assertEquals(id, styled, Normalizer.normalize(styled, Normalizer.Form.NFC))
+        }
+    }
+
+    @Test
+    fun `arranged follows the user's order, hides, and keeps the rest in table order`() {
+        val ids = { styles: List<FancyStyle> -> styles.map { it.id } }
+        val all = ids(FancyStyles.all)
+        assertEquals(all, ids(FancyStyles.arranged(emptyList(), emptySet())))
+        // Named first, unknown ids skipped, everything else after in table order.
+        val arranged = ids(FancyStyles.arranged(listOf("zalgo", "gone", "bold"), setOf("italic", "script")))
+        assertEquals(listOf("zalgo", "bold", FancyStyles.NORMAL_ID), arranged.take(3))
+        assertFalse("italic" in arranged)
+        assertEquals(all.size - 2, arranged.size)
+        // The style in use stays, hidden or not.
+        assertTrue("italic" in ids(FancyStyles.arranged(emptyList(), setOf("italic"), keep = "italic")))
+        // Hiding everything shows everything rather than nothing.
+        assertEquals(all, ids(FancyStyles.arranged(emptyList(), all.toSet())))
+    }
+
+    @Test
+    fun `a higher zalgo level stacks taller, and the levels are the user's to set`() {
+        val text = "the quick brown fox jumps over the lazy dog"
+        val low = FancyStyles.transform(text, FancyStyles.zalgo("zalgo_t1", 1))
+        val high = FancyStyles.transform(text, FancyStyles.zalgo("zalgo_t2", 10))
+        assertTrue(high.length > low.length * 2)
+        // Out-of-range levels are pulled into range, and an unnamed level names itself.
+        assertEquals(10, FancyStyles.zalgo("zalgo_t3", 99).zalgoLevel)
+        assertEquals("Zalgo 1", FancyStyles.zalgo("zalgo_t4", 0).name)
+        assertEquals("Mine", FancyStyles.zalgo("zalgo_t5", 4, " Mine ").name)
+        val defaults = FancyStyles.zalgoStyles
+        try {
+            FancyStyles.useZalgo(listOf(FancyStyles.zalgo("zalgo_t6", 5)))
+            assertEquals(listOf("zalgo_t6"), FancyStyles.zalgoStyles.map { it.id })
+            assertNotNull(FancyStyles.byId("zalgo_t6"))
+            assertEquals(null, FancyStyles.byId("zalgo_heavy"))
+            // Zalgo sits between the built-in styles and the user's fonts.
+            assertEquals("zalgo_t6", FancyStyles.all[FancyStyles.builtIn.size].id)
+        } finally {
+            FancyStyles.useZalgo(defaults)
+        }
+        assertEquals(listOf("zalgo", "zalgo_heavy"), FancyStyles.zalgoStyles.map { it.id })
     }
 }

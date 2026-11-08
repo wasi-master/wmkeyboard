@@ -30,17 +30,22 @@ data class FancyStyle(
      * the same.
      */
     val digits: Map<Char, String> = emptyMap(),
+    /**
+     * How tall [FancyAssembly.ZALGO] stacks its marks, [FancyStyles.ZALGO_LEVELS];
+     * 0 for every other style.
+     */
+    val zalgoLevel: Int = 0,
 )
 
 /**
  * How [FancyStyles.transform] reassembles the letters a style has mapped.
  *
- * A per-letter table cannot express either of the two odd ones out, because
- * neither is a property of a letter: one is about the order of the line and
- * the other about what sits between its letters.
+ * A per-letter table cannot express the odd ones out, because none is a
+ * property of a letter: one is about the order of the line, two about what
+ * sits between its letters, and one draws something new every time.
  */
 enum class FancyAssembly {
-    /** Straight concatenation. Every style but the two below. */
+    /** Straight concatenation. Every style but the ones below. */
     IN_ORDER,
 
     /**
@@ -63,15 +68,43 @@ enum class FancyAssembly {
      * where the text has no break of its own.
      */
     ZERO_WIDTH_SEPARATED,
+
+    /**
+     * [ZERO_WIDTH_SEPARATED]'s rules with a visible gap instead: a four-per-em
+     * space (U+2005) between every pair of visible characters, for the spaced
+     * "vaporwave" look. That space is a character nothing else types, so
+     * reading the text back can take every one out without touching the
+     * user's own spaces.
+     */
+    SPACED,
+
+    /**
+     * Random combining marks stacked above, below and (from level 4) through
+     * every ASCII letter and digit: "zalgo", as tall as the style's
+     * [FancyStyle.zalgoLevel]. The marks are drawn per letter from a seed of
+     * the letter, its place in the text and a number picked once per process,
+     * so the word being typed keeps its marks from one keystroke to the next
+     * rather than reshuffling under the finger, and the same word looks
+     * different after the keyboard restarts.
+     *
+     * A letter that already carries a mark is left alone, so styling styled
+     * text adds nothing (everything committed is styled, #950).
+     *
+     * Zalgo styles are not in [FancyStyles.builtIn]: the user keeps a list of
+     * them, each at its own level (see [FancyStyles.useZalgo]).
+     */
+    ZALGO,
 }
 
 /**
  * The Fancy Text styles: [NORMAL_ID] first, then the 22 Unicode styles in
- * the order the old per-style layouts shipped, then the nine added since.
+ * the order the old per-style layouts shipped, then the ones added since.
  * The first 22 were generated from those layouts' key labels, so the glyphs
- * are exactly what each style always typed. Do not retype by hand: several
- * values are surrogate pairs or letter+combining-mark sequences that editors
- * love to normalise.
+ * are exactly what each style always typed; the batch from Subscript on was
+ * generated from code points by a script that also checked every form
+ * survives NFC unchanged. Do not retype by hand: several values are
+ * surrogate pairs or letter+combining-mark sequences that editors love to
+ * normalise.
  *
  * Order is append-only. The stored setting names a style by id, so moving
  * one would not break it, but the settings list is drawn in this order and
@@ -151,7 +184,50 @@ object FancyStyles {
         "circled_filled" to NEGATIVE_CIRCLED_DIGITS,
         "superscript" to SUPERSCRIPT_DIGITS,
         "parenthesized" to PARENTHESIZED_DIGITS,
+        "subscript" to SUBSCRIPT_DIGITS,
+        "vaporwave" to FULLWIDTH_DIGITS,
+        "bracketed" to wrappedDigits("\u3010", "\u3011"),
+        "lenticular" to wrappedDigits("\u300E", "\u300F"),
+        "boxed" to markedDigits('\u20DE'),
+        "ringed" to markedDigits('\u20DD'),
     )
+
+    /**
+     * The marks [FancyAssembly.ZALGO] draws from, by where they sit. None is a
+     * mark a Latin-script language writes with once decomposed (acute, grave,
+     * caron, cedilla, comma below, horn…), none is one a combining style uses,
+     * and none composes with a plain letter or digit under NFC, so an app
+     * that normalises what it stores keeps them as typed. Above are all
+     * class 230 and below all 220, so the order they are appended in (through,
+     * below, above) is already canonical.
+     */
+    private val ZALGO_ABOVE = codePoints(
+        0x030D, 0x030E, 0x0310, 0x0312, 0x0313, 0x0314, 0x033E, 0x033F, 0x0342, 0x0346, 0x034A,
+        0x034B, 0x034C, 0x0350, 0x0351, 0x0352, 0x0357, 0x035B, 0x0363, 0x0364, 0x0365, 0x0366,
+        0x0367, 0x0368, 0x0369, 0x036A, 0x036B, 0x036C, 0x036D, 0x036E, 0x036F,
+    )
+    private val ZALGO_BELOW = codePoints(
+        0x0316, 0x0317, 0x0318, 0x0319, 0x031C, 0x031D, 0x031E, 0x031F, 0x0320, 0x0329, 0x032A,
+        0x032B, 0x032C, 0x032F, 0x0339, 0x033A, 0x033B, 0x0347, 0x0348, 0x0349, 0x034D, 0x0353,
+        0x0354, 0x0355, 0x0356, 0x0359, 0x035A,
+    )
+    private val ZALGO_THROUGH = codePoints(0x0335, 0x0337)
+
+    /** Every zalgo mark, for [unstyle] to take back out. */
+    private val ZALGO_MARKS: Set<Char> = (ZALGO_ABOVE + ZALGO_BELOW + ZALGO_THROUGH).toHashSet()
+
+    /** Picked once per process; see [FancyAssembly.ZALGO]. */
+    private val ZALGO_SALT: Long = kotlin.random.Random.nextLong()
+
+    // Both read while [table] is first built, so they sit above it.
+    /** How tall a zalgo style can stack: 1 is a mark or so a side, 10 a tower. */
+    val ZALGO_LEVELS = 1..10
+
+    /**
+     * The zalgo styles an install starts with, until the user changes the
+     * list: one light, one heavy.
+     */
+    val DEFAULT_ZALGO: List<Pair<String, Int>> = listOf("zalgo" to 3, "zalgo_heavy" to 7)
 
     /**
      * Every set, in the order a digit key's long press lists them: the
@@ -609,6 +685,254 @@ object FancyStyles {
             ),
             assembly = FancyAssembly.ZERO_WIDTH_SEPARATED,
         ),
+        // Unicode has subscripts for only 17 letters; the rest type plain, and
+        // capitals type the small forms, as superscript's do.
+        style(
+            "subscript", "Subscript", "ₛᵤbₛcᵣᵢₚₜ",
+            listOf(
+                "ₐ", "b", "c", "d", "ₑ", "f", "g", "ₕ", "ᵢ",
+                "ⱼ", "ₖ", "ₗ", "ₘ", "ₙ", "ₒ", "ₚ", "q", "ᵣ",
+                "ₛ", "ₜ", "ᵤ", "ᵥ", "w", "ₓ", "y", "z",
+            ),
+            listOf(
+                "ₐ", "b", "c", "d", "ₑ", "f", "g", "ₕ", "ᵢ",
+                "ⱼ", "ₖ", "ₗ", "ₘ", "ₙ", "ₒ", "ₚ", "q", "ᵣ",
+                "ₛ", "ₜ", "ᵤ", "ᵥ", "w", "ₓ", "y", "z",
+            ),
+        ),
+        // Flipped glyphs laid out back to front: a mirrored line reads right to
+        // left, so it needs the reversal upside down does. Letters that are
+        // their own mirror image stay plain.
+        style(
+            "mirror", "Mirror", "ɿoɿɿiM",
+            listOf(
+                "ɒ", "d", "ɔ", "b", "ɘ", "ʇ", "ϱ", "ʜ", "i",
+                "į", "ʞ", "l", "m", "n", "o", "q", "p", "ɿ",
+                "ƨ", "ƚ", "υ", "v", "w", "x", "γ", "z",
+            ),
+            listOf(
+                "A", "ꓭ", "Ɔ", "ꓷ", "Ǝ", "ꟻ", "Ꭾ", "H", "I",
+                "Ⴑ", "ꓘ", "⅃", "M", "И", "O", "ꟼ", "Ϙ", "Я",
+                "Ƨ", "T", "U", "V", "W", "X", "Y", "Ƹ",
+            ),
+            assembly = FancyAssembly.REVERSED,
+        ),
+        // Look-alike scripts. They borrow real letters of other alphabets, which
+        // Currency avoids; that is safe here because unstyle only ever runs
+        // while the fancy keyboard is the one typing.
+        style(
+            "faux_cyrillic", "Faux Cyrillic", "Fацх Ҁугіllіс",
+            listOf(
+                "а", "в", "с", "ԁ", "э", "f", "б", "ђ", "і",
+                "ј", "к", "l", "м", "и", "о", "р", "q", "г",
+                "ѕ", "т", "ц", "v", "ш", "х", "у", "z",
+            ),
+            listOf(
+                "Д", "Б", "Ҁ", "ↁ", "Є", "F", "Ԍ", "Н", "І",
+                "Ј", "Ќ", "L", "М", "И", "Ф", "Р", "Q", "Я",
+                "Ѕ", "Г", "Ц", "V", "Щ", "Ж", "Ч", "Z",
+            ),
+        ),
+        style(
+            "faux_greek", "Faux Greek", "ϜΛЦΞ GЯΣΣƘ",
+            listOf(
+                "Λ", "β", "Ͼ", "D", "Σ", "Ϝ", "G", "Ή", "Ϊ",
+                "J", "Ƙ", "L", "M", "П", "Ө", "Ρ", "Q", "Я",
+                "Ƨ", "Ƭ", "Ц", "V", "Щ", "Ξ", "Ψ", "Z",
+            ),
+            listOf(
+                "Λ", "β", "Ͼ", "D", "Σ", "Ϝ", "G", "Ή", "Ϊ",
+                "J", "Ƙ", "L", "M", "П", "Ө", "Ρ", "Q", "Я",
+                "Ƨ", "Ƭ", "Ц", "V", "Щ", "Ξ", "Ψ", "Z",
+            ),
+        ),
+        style(
+            "syllabics", "Syllabics", "ᔕYᒪᒪᗩᗷIᑕᔕ",
+            listOf(
+                "ᗩ", "ᗷ", "ᑕ", "ᗪ", "E", "ᖴ", "G", "ᕼ", "I",
+                "ᒍ", "K", "ᒪ", "ᗰ", "ᑎ", "O", "ᑭ", "ᑫ", "ᖇ",
+                "ᔕ", "T", "ᑌ", "ᐯ", "ᗯ", "᙭", "Y", "ᘔ",
+            ),
+            listOf(
+                "ᗩ", "ᗷ", "ᑕ", "ᗪ", "E", "ᖴ", "G", "ᕼ", "I",
+                "ᒍ", "K", "ᒪ", "ᗰ", "ᑎ", "O", "ᑭ", "ᑫ", "ᖇ",
+                "ᔕ", "T", "ᑌ", "ᐯ", "ᗯ", "᙭", "Y", "ᘔ",
+            ),
+        ),
+        style(
+            "thai_look", "Thai Look", "Շђคเ ɭ๏๏к",
+            listOf(
+                "ค", "๒", "ς", "๔", "є", "Ŧ", "ﻮ", "ђ", "เ",
+                "ן", "к", "ɭ", "๓", "ภ", "๏", "ק", "ɋ", "г",
+                "ร", "Շ", "ย", "ש", "ฬ", "א", "ץ", "չ",
+            ),
+            listOf(
+                "ค", "๒", "ς", "๔", "є", "Ŧ", "ﻮ", "ђ", "เ",
+                "ן", "к", "ɭ", "๓", "ภ", "๏", "ק", "ɋ", "г",
+                "ร", "Շ", "ย", "ש", "ฬ", "א", "ץ", "չ",
+            ),
+        ),
+        style(
+            "kanji_look", "Kanji Look", "Ҝ卂几ﾌ丨 ㄥㄖㄖҜ",
+            listOf(
+                "卂", "乃", "匚", "ᗪ", "乇", "千", "Ꮆ", "卄", "丨",
+                "ﾌ", "Ҝ", "ㄥ", "爪", "几", "ㄖ", "卩", "Ɋ", "尺",
+                "丂", "ㄒ", "ㄩ", "ᐯ", "山", "乂", "ㄚ", "乙",
+            ),
+            listOf(
+                "卂", "乃", "匚", "ᗪ", "乇", "千", "Ꮆ", "卄", "丨",
+                "ﾌ", "Ҝ", "ㄥ", "爪", "几", "ㄖ", "卩", "Ɋ", "尺",
+                "丂", "ㄒ", "ㄩ", "ᐯ", "山", "乂", "ㄚ", "乙",
+            ),
+        ),
+        style(
+            "ethiopic_look", "Ethiopic Look", "ቿፕዘጎዐየጎር ረዐዐጕ",
+            listOf(
+                "ል", "ገ", "ር", "ዕ", "ቿ", "ቻ", "ኗ", "ዘ", "ጎ",
+                "ጋ", "ጕ", "ረ", "ጠ", "ክ", "ዐ", "የ", "ዒ", "ዪ",
+                "ነ", "ፕ", "ሁ", "ሀ", "ሠ", "ሸ", "ሃ", "ጊ",
+            ),
+            listOf(
+                "ል", "ገ", "ር", "ዕ", "ቿ", "ቻ", "ኗ", "ዘ", "ጎ",
+                "ጋ", "ጕ", "ረ", "ጠ", "ክ", "ዐ", "የ", "ዒ", "ዪ",
+                "ነ", "ፕ", "ሁ", "ሀ", "ሠ", "ሸ", "ሃ", "ጊ",
+            ),
+        ),
+        style(
+            "bracketed", "Bracketed", "【B】【r】【a】【c】【k】【e】【t】【e】【d】",
+            listOf(
+                "【a】", "【b】", "【c】", "【d】", "【e】", "【f】", "【g】", "【h】", "【i】",
+                "【j】", "【k】", "【l】", "【m】", "【n】", "【o】", "【p】", "【q】", "【r】",
+                "【s】", "【t】", "【u】", "【v】", "【w】", "【x】", "【y】", "【z】",
+            ),
+            listOf(
+                "【A】", "【B】", "【C】", "【D】", "【E】", "【F】", "【G】", "【H】", "【I】",
+                "【J】", "【K】", "【L】", "【M】", "【N】", "【O】", "【P】", "【Q】", "【R】",
+                "【S】", "【T】", "【U】", "【V】", "【W】", "【X】", "【Y】", "【Z】",
+            ),
+        ),
+        style(
+            "lenticular", "Lenticular", "『L』『e』『n』『t』『i』『c』『u』『l』『a』『r』",
+            listOf(
+                "『a』", "『b』", "『c』", "『d』", "『e』", "『f』", "『g』", "『h』", "『i』",
+                "『j』", "『k』", "『l』", "『m』", "『n』", "『o』", "『p』", "『q』", "『r』",
+                "『s』", "『t』", "『u』", "『v』", "『w』", "『x』", "『y』", "『z』",
+            ),
+            listOf(
+                "『A』", "『B』", "『C』", "『D』", "『E』", "『F』", "『G』", "『H』", "『I』",
+                "『J』", "『K』", "『L』", "『M』", "『N』", "『O』", "『P』", "『Q』", "『R』",
+                "『S』", "『T』", "『U』", "『V』", "『W』", "『X』", "『Y』", "『Z』",
+            ),
+        ),
+        style(
+            "tilde_strike", "Tilde Strike", "T̴i̴l̴d̴e̴ S̴t̴r̴i̴k̴e̴",
+            listOf(
+                "a̴", "b̴", "c̴", "d̴", "e̴", "f̴", "g̴", "h̴", "i̴",
+                "j̴", "k̴", "l̴", "m̴", "n̴", "o̴", "p̴", "q̴", "r̴",
+                "s̴", "t̴", "u̴", "v̴", "w̴", "x̴", "y̴", "z̴",
+            ),
+            listOf(
+                "A̴", "B̴", "C̴", "D̴", "E̴", "F̴", "G̴", "H̴", "I̴",
+                "J̴", "K̴", "L̴", "M̴", "N̴", "O̴", "P̴", "Q̴", "R̴",
+                "S̴", "T̴", "U̴", "V̴", "W̴", "X̴", "Y̴", "Z̴",
+            ),
+        ),
+        style(
+            "cross_above", "Cross Above", "C̽r̽o̽s̽s̽ A̽b̽o̽v̽e̽",
+            listOf(
+                "a̽", "b̽", "c̽", "d̽", "e̽", "f̽", "g̽", "h̽", "i̽",
+                "j̽", "k̽", "l̽", "m̽", "n̽", "o̽", "p̽", "q̽", "r̽",
+                "s̽", "t̽", "u̽", "v̽", "w̽", "x̽", "y̽", "z̽",
+            ),
+            listOf(
+                "A̽", "B̽", "C̽", "D̽", "E̽", "F̽", "G̽", "H̽", "I̽",
+                "J̽", "K̽", "L̽", "M̽", "N̽", "O̽", "P̽", "Q̽", "R̽",
+                "S̽", "T̽", "U̽", "V̽", "W̽", "X̽", "Y̽", "Z̽",
+            ),
+        ),
+        style(
+            "seagull_below", "Seagull Below", "S̼e̼a̼g̼u̼l̼l̼ B̼e̼l̼o̼w̼",
+            listOf(
+                "a̼", "b̼", "c̼", "d̼", "e̼", "f̼", "g̼", "h̼", "i̼",
+                "j̼", "k̼", "l̼", "m̼", "n̼", "o̼", "p̼", "q̼", "r̼",
+                "s̼", "t̼", "u̼", "v̼", "w̼", "x̼", "y̼", "z̼",
+            ),
+            listOf(
+                "A̼", "B̼", "C̼", "D̼", "E̼", "F̼", "G̼", "H̼", "I̼",
+                "J̼", "K̼", "L̼", "M̼", "N̼", "O̼", "P̼", "Q̼", "R̼",
+                "S̼", "T̼", "U̼", "V̼", "W̼", "X̼", "Y̼", "Z̼",
+            ),
+        ),
+        style(
+            "arrow_below", "Arrow Below", "A͎r͎r͎o͎w͎ B͎e͎l͎o͎w͎",
+            listOf(
+                "a͎", "b͎", "c͎", "d͎", "e͎", "f͎", "g͎", "h͎", "i͎",
+                "j͎", "k͎", "l͎", "m͎", "n͎", "o͎", "p͎", "q͎", "r͎",
+                "s͎", "t͎", "u͎", "v͎", "w͎", "x͎", "y͎", "z͎",
+            ),
+            listOf(
+                "A͎", "B͎", "C͎", "D͎", "E͎", "F͎", "G͎", "H͎", "I͎",
+                "J͎", "K͎", "L͎", "M͎", "N͎", "O͎", "P͎", "Q͎", "R͎",
+                "S͎", "T͎", "U͎", "V͎", "W͎", "X͎", "Y͎", "Z͎",
+            ),
+        ),
+        style(
+            "boxed", "Boxed", "B⃞o⃞x⃞e⃞d⃞",
+            listOf(
+                "a⃞", "b⃞", "c⃞", "d⃞", "e⃞", "f⃞", "g⃞", "h⃞", "i⃞",
+                "j⃞", "k⃞", "l⃞", "m⃞", "n⃞", "o⃞", "p⃞", "q⃞", "r⃞",
+                "s⃞", "t⃞", "u⃞", "v⃞", "w⃞", "x⃞", "y⃞", "z⃞",
+            ),
+            listOf(
+                "A⃞", "B⃞", "C⃞", "D⃞", "E⃞", "F⃞", "G⃞", "H⃞", "I⃞",
+                "J⃞", "K⃞", "L⃞", "M⃞", "N⃞", "O⃞", "P⃞", "Q⃞", "R⃞",
+                "S⃞", "T⃞", "U⃞", "V⃞", "W⃞", "X⃞", "Y⃞", "Z⃞",
+            ),
+        ),
+        style(
+            "ringed", "Ringed", "R⃝i⃝n⃝g⃝e⃝d⃝",
+            listOf(
+                "a⃝", "b⃝", "c⃝", "d⃝", "e⃝", "f⃝", "g⃝", "h⃝", "i⃝",
+                "j⃝", "k⃝", "l⃝", "m⃝", "n⃝", "o⃝", "p⃝", "q⃝", "r⃝",
+                "s⃝", "t⃝", "u⃝", "v⃝", "w⃝", "x⃝", "y⃝", "z⃝",
+            ),
+            listOf(
+                "A⃝", "B⃝", "C⃝", "D⃝", "E⃝", "F⃝", "G⃝", "H⃝", "I⃝",
+                "J⃝", "K⃝", "L⃝", "M⃝", "N⃝", "O⃝", "P⃝", "Q⃝", "R⃝",
+                "S⃝", "T⃝", "U⃝", "V⃝", "W⃝", "X⃝", "Y⃝", "Z⃝",
+            ),
+        ),
+        // The same few marks on a letter every time, so it reads back like any
+        // other style. Zalgo below is the random one.
+        style(
+            "glitch", "Glitch", "G̜͋̿l̘͒̍i̹ͪͮt̺͆ͫc̫͑ͪh̩ͣͤ",
+            listOf(
+                "a̗̍̒", "b̞̿͑", "c̫͑ͪ", "d̻ͦ̔", "e͓ͭ͗", "f͚̓ͬ", "g̜͋̿", "h̩ͣͤ", "i̹ͪͮ",
+                "j͉̎͆", "k͖͂ͥ", "l̘͒̍", "m̟ͧ͋", "n̬ͮͧ", "o͇̔̐", "p͔͌͐", "q̖ͤͩ", "r̝ͫ̓",
+                "s̪̐͒", "t̺͆ͫ", "u͍͗̾", "v͙ͨ͛", "w̙ͯͭ", "x̠̾͂", "y̯͐ͤ", "z͈ͥͯ",
+            ),
+            listOf(
+                "A̗̍̒", "B̞̿͑", "C̫͑ͪ", "D̻ͦ̔", "E͓ͭ͗", "F͚̓ͬ", "G̜͋̿", "H̩ͣͤ", "I̹ͪͮ",
+                "J͉̎͆", "K͖͂ͥ", "L̘͒̍", "M̟ͧ͋", "N̬ͮͧ", "O͇̔̐", "P͔͌͐", "Q̖ͤͩ", "R̝ͫ̓",
+                "S̪̐͒", "T̺͆ͫ", "U͍͗̾", "V͙ͨ͛", "W̙ͯͭ", "X̠̾͂", "Y̯͐ͤ", "Z͈ͥͯ",
+            ),
+        ),
+        // Fullwidth letters held apart by a four-per-em space; see
+        // [FancyAssembly.SPACED].
+        style(
+            "vaporwave", "Vaporwave", "Ｖ\u2005ａ\u2005ｐ\u2005ｏ\u2005ｒ\u2005ｗ\u2005ａ\u2005ｖ\u2005ｅ",
+            listOf(
+                "ａ", "ｂ", "ｃ", "ｄ", "ｅ", "ｆ", "ｇ", "ｈ", "ｉ",
+                "ｊ", "ｋ", "ｌ", "ｍ", "ｎ", "ｏ", "ｐ", "ｑ", "ｒ",
+                "ｓ", "ｔ", "ｕ", "ｖ", "ｗ", "ｘ", "ｙ", "ｚ",
+            ),
+            listOf(
+                "Ａ", "Ｂ", "Ｃ", "Ｄ", "Ｅ", "Ｆ", "Ｇ", "Ｈ", "Ｉ",
+                "Ｊ", "Ｋ", "Ｌ", "Ｍ", "Ｎ", "Ｏ", "Ｐ", "Ｑ", "Ｒ",
+                "Ｓ", "Ｔ", "Ｕ", "Ｖ", "Ｗ", "Ｘ", "Ｙ", "Ｚ",
+            ),
+            assembly = FancyAssembly.SPACED,
+        ),
     )
 
     /**
@@ -616,8 +940,8 @@ object FancyStyles {
      * lookups built from it. Swapped whole by [useCustom] rather than edited,
      * so a reader on the keyboard's thread never sees half an update.
      */
-    private class Table(val custom: List<FancyStyle>) {
-        val all: List<FancyStyle> = builtIn + custom
+    private class Table(val zalgo: List<FancyStyle>, val custom: List<FancyStyle>) {
+        val all: List<FancyStyle> = builtIn + zalgo + custom
         val index: Map<String, FancyStyle> = all.associateBy { it.id }
 
         /**
@@ -645,7 +969,7 @@ object FancyStyles {
     }
 
     @Volatile
-    private var table = Table(emptyList())
+    private var table = Table(DEFAULT_ZALGO.map { (id, level) -> zalgo(id, level) }, emptyList())
 
     /**
      * Every style: the built-in ones, then the fonts the user made, in the
@@ -659,6 +983,26 @@ object FancyStyles {
     fun byId(id: String): FancyStyle? = table.index[id]
 
     /**
+     * The styles as the user arranged them: the ids in [order] first, in that
+     * order, then every style [order] does not name in table order (so a
+     * style added by a later release, or a font the user just made, still
+     * turns up, at the end), less the ones in [hidden]. Ids of styles that no
+     * longer exist are skipped.
+     *
+     * [keep] (the style in use) is never hidden, so the strip always has a
+     * chip to show as selected; and hiding everything shows everything,
+     * rather than an empty strip with no way back to it from the keyboard.
+     */
+    fun arranged(order: List<String>, hidden: Set<String>, keep: String? = null): List<FancyStyle> {
+        val table = table
+        val ordered = LinkedHashSet<FancyStyle>(table.all.size)
+        for (id in order) table.index[id]?.let(ordered::add)
+        ordered.addAll(table.all)
+        if (hidden.isEmpty()) return ordered.toList()
+        return ordered.filter { it.id !in hidden || it.id == keep }.ifEmpty { ordered.toList() }
+    }
+
+    /**
      * Installs the user's own styles after the built-in ones. Called with
      * every settings read, so the keyboard, the settings app and the
      * selection actions all see a font the moment it is saved; an unchanged
@@ -667,7 +1011,50 @@ object FancyStyles {
      */
     fun useCustom(styles: List<FancyStyle>) {
         if (styles == table.custom) return
-        table = Table(styles.filter { isFreeId(it.id) })
+        table = Table(table.zalgo, styles.filter { isFreeId(it.id) })
+    }
+
+    /**
+     * Installs the user's zalgo styles, in their order, between the built-in
+     * styles and the user's fonts. Like [useCustom], called with every
+     * settings read and a no-op when nothing changed. A style is rebuilt
+     * only when its id, name or level did, so its chip keeps the stack it
+     * was drawn with.
+     */
+    fun useZalgo(styles: List<FancyStyle>) {
+        if (styles.map { Triple(it.id, it.name, it.zalgoLevel) } ==
+            table.zalgo.map { Triple(it.id, it.name, it.zalgoLevel) }
+        ) {
+            return
+        }
+        table = Table(styles.filter { isFreeId(it.id) && it.assembly == FancyAssembly.ZALGO }, table.custom)
+    }
+
+    /** The zalgo styles in force, as last handed to [useZalgo]. */
+    val zalgoStyles: List<FancyStyle> get() = table.zalgo
+
+
+    /** What every zalgo style's id starts with. */
+    const val ZALGO_PREFIX = "zalgo"
+
+
+    /**
+     * A zalgo style at [level], named [name], or "Zalgo" and the level when
+     * the user gave it no name. Its chip shows this process's draw of the
+     * name, since a random style has no fixed spelling to write down.
+     */
+    fun zalgo(id: String, level: Int, name: String = ""): FancyStyle {
+        val shown = name.trim().ifEmpty { "Zalgo ${level.coerceIn(ZALGO_LEVELS)}" }
+        val draft = FancyStyle(
+            id = id,
+            name = shown,
+            sample = shown,
+            lower = ('a'..'z').associateWith { it.toString() },
+            upper = ('A'..'Z').associateWith { it.toString() },
+            assembly = FancyAssembly.ZALGO,
+            zalgoLevel = level.coerceIn(ZALGO_LEVELS),
+        )
+        return draft.copy(sample = transform(shown, draft))
     }
 
     /** A user style may not shadow a built-in one. */
@@ -733,8 +1120,8 @@ object FancyStyles {
      */
     fun transform(text: String, style: FancyStyle): String {
         if (text.isEmpty()) return text
-        // The path every style but two takes: one builder, no intermediate
-        // list, nothing to reverse or interleave.
+        // The path nearly every style takes: one builder, no intermediate
+        // list, nothing to reverse, interleave or stack.
         if (style.assembly == FancyAssembly.IN_ORDER) {
             val out = StringBuilder(text.length * 2)
             for (ch in text) {
@@ -742,7 +1129,7 @@ object FancyStyles {
             }
             return out.toString()
         }
-        // Mapped forms, kept whole: the two remaining assemblies both work on
+        // Mapped forms, kept whole: the remaining assemblies all work on
         // letters rather than on chars, and a mapped form can be longer than
         // one char (an astral pair, a letter plus a combining mark).
         val units = ArrayList<String>(text.length)
@@ -753,9 +1140,19 @@ object FancyStyles {
         when (style.assembly) {
             FancyAssembly.REVERSED -> for (i in units.indices.reversed()) out.append(units[i])
             // One unit per char of [text], so text[i] is what units[i] came from.
-            FancyAssembly.ZERO_WIDTH_SEPARATED -> for (i in units.indices) {
-                if (i > 0 && startsCharacter(text[i]) && endsCharacter(text[i - 1])) out.append(ZERO_WIDTH_SPACE)
+            FancyAssembly.ZERO_WIDTH_SEPARATED, FancyAssembly.SPACED -> {
+                val separator = if (style.assembly == FancyAssembly.SPACED) SPACED_SEPARATOR else ZERO_WIDTH_SPACE
+                for (i in units.indices) {
+                    if (i > 0 && startsCharacter(text[i]) && endsCharacter(text[i - 1])) out.append(separator)
+                    out.append(units[i])
+                }
+            }
+            FancyAssembly.ZALGO -> for (i in units.indices) {
                 out.append(units[i])
+                val c = text[i]
+                val plain = c in 'a'..'z' || c in 'A'..'Z' || c in '0'..'9'
+                val marked = i + 1 < text.length && isMark(text[i + 1])
+                if (plain && !marked) appendZalgo(out, c, i, style.zalgoLevel.coerceIn(ZALGO_LEVELS))
             }
             FancyAssembly.IN_ORDER -> for (unit in units) out.append(unit)
         }
@@ -763,6 +1160,50 @@ object FancyStyles {
     }
 
     private const val ZERO_WIDTH_SPACE = '\u200B'
+
+    /** What [FancyAssembly.SPACED] puts between characters: a four-per-em space. */
+    private const val SPACED_SEPARATOR = '\u2005'
+
+    /** A combining mark, of any kind: something drawn on the character before it. */
+    private fun isMark(c: Char): Boolean = when (Character.getType(c).toByte()) {
+        Character.NON_SPACING_MARK, Character.ENCLOSING_MARK, Character.COMBINING_SPACING_MARK -> true
+        else -> false
+    }
+
+    /**
+     * The zalgo stack for [c] at [index] at [level]: maybe a mark through it
+     * (from level 4, likelier as the level rises), then between half the
+     * level and the level's worth of marks below, and as many above. Drawn
+     * from a splitmix64 stream seeded by [ZALGO_SALT], the place and the
+     * letter, so the same letter in the same place of the word being typed
+     * gets the same stack every time the word is drawn again.
+     */
+    private fun appendZalgo(out: StringBuilder, c: Char, index: Int, level: Int) {
+        var state = ZALGO_SALT xor (index.toLong() shl 20) xor c.code.toLong()
+        fun next(bound: Int): Int {
+            state += GOLDEN_GAMMA
+            var z = state
+            z = (z xor (z ushr 30)) * MIX_1
+            z = (z xor (z ushr 27)) * MIX_2
+            z = z xor (z ushr 31)
+            return ((z ushr 1) % bound).toInt()
+        }
+        val fewest = (level + 1) / 2
+        val through = if (level > ZALGO_THROUGH_FROM && next(ZALGO_LEVELS.last) < level - ZALGO_THROUGH_FROM) 1 else 0
+        val below = fewest + next(level - fewest + 1)
+        val above = fewest + next(level - fewest + 1)
+        repeat(through) { out.append(ZALGO_THROUGH[next(ZALGO_THROUGH.size)]) }
+        repeat(below) { out.append(ZALGO_BELOW[next(ZALGO_BELOW.size)]) }
+        repeat(above) { out.append(ZALGO_ABOVE[next(ZALGO_ABOVE.size)]) }
+    }
+
+    /** Levels at or below this never strike through. */
+    private const val ZALGO_THROUGH_FROM = 3
+
+    // splitmix64's constants.
+    private const val GOLDEN_GAMMA = -0x61c8864680b583ebL
+    private const val MIX_1 = -0x40a7b892e31b1a47L
+    private const val MIX_2 = -0x6b2fb644ecceee15L
 
     /**
      * Whether [c] starts a character of its own, which a separator may go in
@@ -788,8 +1229,10 @@ object FancyStyles {
 
     /**
      * [text] with every styled letter and digit put back to plain, and the
-     * separators [FancyAssembly.ZERO_WIDTH_SEPARATED] adds taken out: the
-     * words a styled field holds, for anything that reads them as words.
+     * separators [FancyAssembly.ZERO_WIDTH_SEPARATED] and
+     * [FancyAssembly.SPACED] add and the marks [FancyAssembly.ZALGO] stacks
+     * taken out: the words a styled field holds, for anything that reads them
+     * as words.
      * Reversed text stays in the order it is written.
      */
     fun unstyle(text: CharSequence): String {
@@ -799,7 +1242,10 @@ object FancyStyles {
         val out = StringBuilder(text.length)
         var i = 0
         while (i < text.length) {
-            if (text[i] == ZERO_WIDTH_SPACE) {
+            // No styled form starts with one of these, so none can be the
+            // first char of a form the lookup below would have matched.
+            val c = text[i]
+            if (c == ZERO_WIDTH_SPACE || c == SPACED_SEPARATOR || c in ZALGO_MARKS) {
                 i++
                 continue
             }
@@ -833,6 +1279,16 @@ object FancyStyles {
         assembly = assembly,
         digits = DIGITS_BY_STYLE[id].orEmpty(),
     )
+
+    /** 0–9, each written between [open] and [close]: 【1】. */
+    private fun wrappedDigits(open: String, close: String): Map<Char, String> =
+        ('0'..'9').associateWith { open + it + close }
+
+    /** 0–9, each with [mark] drawn on it: an enclosing square or circle. */
+    private fun markedDigits(mark: Char): Map<Char, String> =
+        ('0'..'9').associateWith { "$it$mark" }
+
+    private fun codePoints(vararg points: Int): CharArray = CharArray(points.size) { points[it].toChar() }
 
     /**
      * 0–9 from a run of consecutive code points: [base] is the 0 when [zero]

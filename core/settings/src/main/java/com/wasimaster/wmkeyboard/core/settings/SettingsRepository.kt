@@ -9809,6 +9809,26 @@ data class LayoutBehaviorSettings(
      */
     val customFancyFonts: List<CustomFancyFont> = emptyList(),
     /**
+     * The zalgo styles on the Fancy Text strip, each at its own level, in
+     * the user's order. Read into [FancyStyles] with every settings read (see
+     * [FancyStyles.useZalgo]) and listed between the built-in styles and
+     * [customFancyFonts].
+     */
+    val zalgoStyles: List<ZalgoStyle> = DefaultZalgoStyles,
+    /**
+     * Fancy Text style ids in the order the strip shows them. Styles it does
+     * not name follow in table order, so one added by a later release or
+     * made by the user since still turns up, at the end. See
+     * [FancyStyles.arranged].
+     */
+    val fancyStyleOrder: List<String> = emptyList(),
+    /**
+     * Fancy Text styles left off the strip over the keys, the selection
+     * actions and the suggestion pages. The Style row and the Fancy tool's
+     * start style still list them, so a hidden style can be picked on purpose.
+     */
+    val fancyHiddenStyles: Set<String> = emptySet(),
+    /**
      * The secondary layout the Secondary layout tool shows (a `LayoutSpec.id`),
      * or null for the first one the user has. Null rather than a required pick
      * so the tool works the moment a first secondary layout exists; the page
@@ -11629,6 +11649,9 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("fancy_tool_keeps_language")
         private val FANCY_TOOL_AUTO_OFF = booleanPreferencesKey("fancy_tool_auto_off")
         private val FANCY_CUSTOM_FONTS = stringPreferencesKey("fancy_custom_fonts")
+        private val FANCY_ZALGO_STYLES = stringPreferencesKey("fancy_zalgo_styles")
+        private val FANCY_STYLE_ORDER = stringPreferencesKey("fancy_style_order")
+        private val FANCY_HIDDEN_STYLES = stringSetPreferencesKey("fancy_hidden_styles")
         private val CUSTOM_LAYOUT_TOOL = stringPreferencesKey("custom_layout_tool")
         private val NUMBER_ROW_SHIFT_SYMBOLS = booleanPreferencesKey("number_row_shift_symbols")
         private val NUMBER_ROW_IN_SYMBOLS = booleanPreferencesKey("number_row_in_symbols")
@@ -14432,6 +14455,11 @@ class SettingsRepository(private val context: Context) {
             // knows the user's fonts before the first style is looked up.
             customFancyFonts = decodeCustomFancyFonts(p[FANCY_CUSTOM_FONTS])
                 .also { fonts -> FancyStyles.useCustom(fonts.map { it.toFancyStyle() }) },
+            zalgoStyles = decodeZalgoStyles(p[FANCY_ZALGO_STYLES])
+                .also { list -> FancyStyles.useZalgo(list.map { it.toFancyStyle() }) },
+            fancyStyleOrder = p[FANCY_STYLE_ORDER]?.split('\t')?.filter { it.isNotEmpty() }
+                ?: defaults.layoutBehavior.fancyStyleOrder,
+            fancyHiddenStyles = p[FANCY_HIDDEN_STYLES] ?: defaults.layoutBehavior.fancyHiddenStyles,
             // Empty is "the first one", the same spelling the fancy style uses.
             customLayoutToolId = p[CUSTOM_LAYOUT_TOOL]?.takeIf { it.isNotEmpty() }
                 ?: defaults.layoutBehavior.customLayoutToolId,
@@ -23692,6 +23720,34 @@ class SettingsRepository(private val context: Context) {
             fun gone(id: String?) = id != null && id.startsWith(FancyStyles.CUSTOM_PREFIX) && id !in kept
             if (gone(prefs[FANCY_STYLE])) prefs.remove(FANCY_STYLE)
             if (gone(prefs[FANCY_TOOL_STYLE])) prefs.remove(FANCY_TOOL_STYLE)
+        }
+
+    /**
+     * Rewrites the zalgo styles; see [LayoutBehaviorSettings.zalgoStyles].
+     * Cleaned like a read, and an empty result is stored as an empty list
+     * (the user deleted them all) rather than removed, which would bring the
+     * defaults back. A deleted entry that was the picked style or the Fancy
+     * tool's pinned one takes that pick with it, as a deleted font does.
+     */
+    suspend fun editZalgoStyles(transform: (List<ZalgoStyle>) -> List<ZalgoStyle>) =
+        editPrefs { prefs ->
+            val next = cleanZalgoStyles(transform(decodeZalgoStyles(prefs[FANCY_ZALGO_STYLES])))
+            prefs[FANCY_ZALGO_STYLES] = encodeZalgoStyles(next)
+            val kept = next.mapTo(HashSet()) { it.id }
+            fun gone(id: String?) = id != null && id.startsWith(FancyStyles.ZALGO_PREFIX) && id !in kept
+            if (gone(prefs[FANCY_STYLE])) prefs.remove(FANCY_STYLE)
+            if (gone(prefs[FANCY_TOOL_STYLE])) prefs.remove(FANCY_TOOL_STYLE)
+        }
+
+    /**
+     * The strip's order and hidden styles, written together so a drag and a
+     * switch never race each other. Empty values are removed, which reads
+     * back as table order with nothing hidden.
+     */
+    suspend fun setFancyStyleArrangement(order: List<String>, hidden: Set<String>) =
+        editPrefs { prefs ->
+            if (order.isEmpty()) prefs.remove(FANCY_STYLE_ORDER) else prefs[FANCY_STYLE_ORDER] = order.joinToString("\t")
+            if (hidden.isEmpty()) prefs.remove(FANCY_HIDDEN_STYLES) else prefs[FANCY_HIDDEN_STYLES] = hidden
         }
 
     /** The secondary layout the Secondary layout tool shows; null (stored empty) is the first one. */

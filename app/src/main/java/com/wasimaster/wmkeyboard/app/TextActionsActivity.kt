@@ -514,7 +514,8 @@ private fun TextActionsScreen(
                     }
                 }
                 Ladder.FANCY -> LadderRow(onBack = { ladder = Ladder.NONE }) {
-                    FancyStyles.all.forEach { style ->
+                    // The user's strip order, less the styles they hid there.
+                    FancyStyles.arranged(current.layoutBehavior.fancyStyleOrder, current.layoutBehavior.fancyHiddenStyles).forEach { style ->
                         ActionChip(style.sample, null, enabled = busy == null) {
                             if (fancyPicked && history.size > 1) history.removeAt(history.lastIndex)
                             val before = history.size

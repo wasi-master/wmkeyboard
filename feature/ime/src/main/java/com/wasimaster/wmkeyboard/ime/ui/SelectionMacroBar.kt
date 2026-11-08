@@ -244,7 +244,7 @@ internal fun SelectionMacroBar(
         if (open != null) MacroBackButton(onClick = { ladder = null })
         when (open) {
             is MacroLadder.Fancy -> {
-                FancyStyleLadder(chips, modifier = Modifier.weight(1f)) { id ->
+                FancyStyleLadder(state.settings, chips, modifier = Modifier.weight(1f)) { id ->
                     feedback()
                     callbacks.onPick(SelectionMacro.FANCY, id, open.source)
                 }
@@ -375,6 +375,7 @@ private fun zoneChoices(hit: DateTimeHit, settings: KeyboardSettings, hour24: Bo
  */
 @Composable
 private fun FancyStyleLadder(
+    settings: KeyboardSettings,
     chips: Animatable<Float, AnimationVector1D>,
     modifier: Modifier = Modifier,
     onPick: (String) -> Unit,
@@ -383,7 +384,9 @@ private fun FancyStyleLadder(
     // would put the list order at odds with the layout — as on the fancy strip.
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         PickLadder(
-            FancyStyles.all.map { it.id to it.sample },
+            // In the user's strip order, less the styles they hid there.
+            FancyStyles.arranged(settings.layoutBehavior.fancyStyleOrder, settings.layoutBehavior.fancyHiddenStyles)
+                .map { it.id to it.sample },
             chips,
             modifier = modifier,
             // The samples are astral soup to TalkBack; speak the plain name instead.

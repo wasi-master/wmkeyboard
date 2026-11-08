@@ -1321,6 +1321,8 @@ private fun SearchStrings.languageRows(): List<SettingsSearchEntry> {
         row(R.string.languages_zawgyi_key_font_title, R.string.languages_zawgyi_key_font_subtitle),
         row(R.string.languages_fancy_style_row_title, R.string.languages_fancy_style_row_subtitle),
         row(R.string.languages_fancy_fonts_add_title, R.string.languages_fancy_fonts_add_subtitle),
+        row(R.string.languages_fancy_zalgo_add_title, R.string.languages_fancy_zalgo_add_subtitle),
+        row(R.string.languages_fancy_arrange_reset_title, R.string.languages_fancy_arrange_reset_subtitle),
         row(R.string.languages_vietnamese_strict_tones_title, R.string.languages_vietnamese_strict_tones_subtitle),
         row(R.string.languages_vietnamese_restore_marks_title, R.string.languages_vietnamese_restore_marks_subtitle),
         // The subtitle names the language it is about, so it is a format string
