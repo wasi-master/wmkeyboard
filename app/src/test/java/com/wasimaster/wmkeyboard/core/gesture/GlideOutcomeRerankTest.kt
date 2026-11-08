@@ -88,14 +88,35 @@ class GlideOutcomeRerankTest {
     }
 
     @Test
-    fun `a clear reading is never overturned`() {
-        // The runner-up is a thousand times rarer: several nats of gap, more
-        // than the outcomes can ever swing.
-        val engine = engine(listOf("the" to 800, "thee" to 1))
+    fun `a clear reading survives a couple of picks`() {
+        // The runner-up is far rarer: more gap than two picks can swing.
+        val engine = engine(listOf("the" to 800, "thee" to 80))
         val base = decode(engine)
         assertEquals("the", base[0].word)
         val rival = base[1].word
         assertTrue("gap ${base[0].score - base[1].score}", base[0].score - base[1].score > GlideOutcomes.MAX_LIFT_NATS + GlideOutcomes.MAX_DROP_NATS)
+        repeat(2) { engine.glideOutcomes.observeAlternative(rejected = "the", chosen = rival) }
+        assertEquals("the", decode(engine).first().word)
+    }
+
+    @Test
+    fun `three corrections the same way overturn a clear reading`() {
+        // #1051: `machst` glided as the far commoner `macht` however often the
+        // reporter put it right. Ten times rarer here, and three picks win.
+        val engine = engine(listOf("the" to 800, "thee" to 80))
+        val rival = decode(engine)[1].word
+        repeat(3) { engine.glideOutcomes.observeAlternative(rejected = "the", chosen = rival) }
+        assertEquals(rival, decode(engine).first().word)
+        // One pick back the other way, and the stroke reads as the list says.
+        engine.glideOutcomes.observeAlternative(rejected = rival, chosen = "the")
+        assertEquals("the", decode(engine).first().word)
+    }
+
+    @Test
+    fun `a word the lists barely hold is never forced in`() {
+        val engine = engine(listOf("the" to 800, "thee" to 1))
+        val base = decode(engine)
+        val rival = base[1].word
         repeat(12) { engine.glideOutcomes.observeAlternative(rejected = "the", chosen = rival) }
         assertEquals("the", decode(engine).first().word)
     }

@@ -74,9 +74,14 @@ class GlideOutcomesTest {
     @Test
     fun liftsAndDropsAreClamped() {
         val store = GlideOutcomes(null)
-        repeat(12) { store.observeAlternative("there", "three") }
+        repeat(2) { store.observeAlternative("there", "three") }
+        assertEquals(GlideOutcomes.MAX_LIFT_NATS, deltas(store, "there", "three")!![1], 1e-9)
+        // A third pick the same way teaches the pair (#1051).
+        store.observeAlternative("there", "three")
+        assertEquals(GlideOutcomes.MAX_TAUGHT_LIFT_NATS, deltas(store, "there", "three")!![1], 1e-9)
+        repeat(9) { store.observeAlternative("there", "three") }
         val shift = deltas(store, "there", "three")!!
-        assertEquals(GlideOutcomes.MAX_LIFT_NATS, shift[1], 1e-9)
+        assertEquals(GlideOutcomes.MAX_TAUGHT_LIFT_NATS, shift[1], 1e-9)
         assertEquals(-GlideOutcomes.STRENGTH_CAP * GlideOutcomes.REJECTED_NATS, shift[0], 1e-9)
         repeat(12) { store.observeImmediateUndo("these") }
         assertEquals(-GlideOutcomes.MAX_DROP_NATS, deltas(store, "these", "three")!![0], 1e-9)
