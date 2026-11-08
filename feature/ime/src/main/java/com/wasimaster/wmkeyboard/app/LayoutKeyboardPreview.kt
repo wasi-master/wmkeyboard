@@ -1,6 +1,8 @@
 package com.wasimaster.wmkeyboard.app
 
+import android.os.SystemClock
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -154,6 +156,11 @@ fun LayoutKeyboardPreview(
     var fade by remember { mutableStateOf(true) }
     var widthPx by remember { mutableIntStateOf(0) }
     val layer = rememberGraphicsLayer()
+    // When the card came into view. A picture that turns up within a few
+    // frames of it — the memory or disk cache answering while a fling carries
+    // the card in — replaces the skeleton outright: a skeleton crossfading to
+    // a keyboard on every card a fling passes reads as the row flickering.
+    val bornAt = remember(layoutId) { SystemClock.uptimeMillis() }
 
     LaunchedEffect(settings, layoutId, form, television, environment, widthPx) {
         if (widthPx == 0) return@LaunchedEffect
@@ -184,7 +191,8 @@ fun LayoutKeyboardPreview(
         if (cached != null) {
             LayoutPreviewCache.put(layoutId, key, cached)
             if (picture !== cached) {
-                fade = render == null || picture != null
+                val quick = SystemClock.uptimeMillis() - bornAt < QUICK_PICTURE_MS
+                fade = picture != null || (render == null && !quick)
                 picture = cached
             }
             render = null
@@ -220,6 +228,7 @@ fun LayoutKeyboardPreview(
         // before then keeps nothing and simply renders again next time.
         delay(SETTLE_MS)
         val first = layer.toImageBitmap()
+        LayoutPreviewCache.putProvisional(layoutId, key, first)
         fade = picture != null
         picture = first
         delay(KEEP_SETTLE_MS)
@@ -359,13 +368,22 @@ private fun BoardSkeleton(aspect: Float) {
         animationSpec = infiniteRepeatable(tween(SKELETON_PULSE_MS), RepeatMode.Reverse),
         label = "boardSkeletonPulse",
     )
+    // The keys come in only once the wait is a real one. Most cards find
+    // their picture in a frame or two, and a skeleton's keys flashing up for
+    // those frames is the flicker a fast fling showed on every card.
+    val reveal = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        delay(SKELETON_DELAY_MS)
+        reveal.animateTo(1f, tween(SKELETON_REVEAL_MS))
+    }
     Canvas(
         Modifier
             .fillMaxWidth()
             .aspectRatio(aspect),
     ) {
         drawRect(colors.surfaceContainerHighest)
-        val key = colors.surface.copy(alpha = pulse.value)
+        if (reveal.value == 0f) return@Canvas
+        val key = colors.surface.copy(alpha = pulse.value * reveal.value)
         val pad = 4.dp.toPx()
         val gap = 3.dp.toPx()
         val radius = CornerRadius(3.dp.toPx())
@@ -413,6 +431,11 @@ private const val SETTLE_MS = 250L
 private const val KEEP_SETTLE_MS = 1_200L
 private const val PICTURE_FADE_MS = 180
 private const val SKELETON_PULSE_MS = 700
+private const val SKELETON_DELAY_MS = 160L
+private const val SKELETON_REVEAL_MS = 220
+
+/** How soon after a card appears a picture still counts as already there. */
+private const val QUICK_PICTURE_MS = 160L
 
 /**
  * The callbacks every preview hands the keyboard. Nothing reaches them, since

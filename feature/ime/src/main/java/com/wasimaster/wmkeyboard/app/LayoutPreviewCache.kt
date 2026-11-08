@@ -68,6 +68,11 @@ internal object LayoutPreviewCache {
      * The inputs each layout's key was last worked out from, so a card that
      * scrolls back into view with none of them changed has its key, and its
      * picture, without computing either again.
+     *
+     * One slot per layout and width: the carousel and the layout gallery draw
+     * the same layout at two widths, and a single slot per layout made each
+     * screen throw the other's key away, so every visit to one worked the key
+     * out again and swapped the picture under the card.
      */
     private val keys = HashMap<String, Pair<PreviewInputs, String>>()
 
@@ -102,12 +107,14 @@ internal object LayoutPreviewCache {
     /** The key last worked out for [layoutId], if [inputs] are what it was worked out from. */
     @Synchronized
     fun knownKey(layoutId: String, inputs: PreviewInputs): String? =
-        keys[layoutId]?.takeIf { it.first.sameAs(inputs) }?.second
+        keys[slot(layoutId, inputs.widthPx)]?.takeIf { it.first.sameAs(inputs) }?.second
 
     @Synchronized
     fun noteKey(layoutId: String, inputs: PreviewInputs, key: String) {
-        keys[layoutId] = inputs to key
+        keys[slot(layoutId, inputs.widthPx)] = inputs to key
     }
+
+    private fun slot(layoutId: String, widthPx: Int) = "$layoutId\u0000$widthPx"
 
     /** Whether this is a television, asked once: it is a binder call, and it never changes. */
     fun television(context: Context): Boolean =
@@ -137,7 +144,28 @@ internal object LayoutPreviewCache {
     @Synchronized
     fun put(layoutId: String, key: String, picture: ImageBitmap) {
         memory.put(key, picture)
+        memory.remove(key + PROVISIONAL)
         latest[layoutId] = key
+        lastAspect = picture.width.toFloat() / picture.height.coerceAtLeast(1)
+    }
+
+    /**
+     * A card's first picture, taken before what the board loads for itself
+     * (a photo, an icon pack) has surely arrived: shown by [stale] when the
+     * card comes back, never found by [get].
+     *
+     * Without it a card scrolled away in the second between its first picture
+     * and the one kept came back with nothing, and a fast fling back and forth
+     * along a row turned pictures that had already loaded back into skeletons.
+     * Kept out of [get] so the card still renders again and keeps a settled
+     * picture, rather than holding a photo-less one for the life of the
+     * process.
+     */
+    @Synchronized
+    fun putProvisional(layoutId: String, key: String, picture: ImageBitmap) {
+        if (memory.get(key) != null) return
+        memory.put(key + PROVISIONAL, picture)
+        latest[layoutId] = key + PROVISIONAL
         lastAspect = picture.width.toFloat() / picture.height.coerceAtLeast(1)
     }
 
@@ -264,6 +292,9 @@ internal object LayoutPreviewCache {
     }
 
     private const val FALLBACK_ASPECT = 1.45f
+
+    /** Marks a provisional picture's memory key; a key is hex, so it never ends in this. */
+    private const val PROVISIONAL = "~first"
 }
 
 /**
@@ -277,7 +308,7 @@ internal class PreviewInputs(
     private val form: DeviceForm,
     private val television: Boolean,
     private val environment: String,
-    private val widthPx: Int,
+    val widthPx: Int,
 ) {
     // The shipped layouts parsing moves every asset layout's key along.
     private val generation = AssetLayouts.generation

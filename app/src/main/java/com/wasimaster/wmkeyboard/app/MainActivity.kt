@@ -2252,6 +2252,18 @@ private fun SettingsNavGraph(
                 onBack = { navController.popBackStack() },
             )
         }
+        // The language's layout cards opened out into a grid; the cards fly
+        // between the row and the grid (see LayoutGalleryScreen).
+        composable("language/{langId}/layouts") { backStackEntry ->
+            LayoutGalleryScreen(
+                anim = this,
+                langId = backStackEntry.arguments?.getString("langId").orEmpty(),
+                repository = repository,
+                settings = settings,
+                onBack = { navController.popBackStack() },
+                onNavigate = { route -> navController.navigate(route) },
+            )
+        }
         composable("emoji") {
             SettingsScreen(
                 stringResource(R.string.home_emoji_title),

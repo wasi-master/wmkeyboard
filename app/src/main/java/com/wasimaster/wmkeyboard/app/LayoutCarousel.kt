@@ -1,6 +1,13 @@
 package com.wasimaster.wmkeyboard.app
 
+import androidx.compose.animation.BoundsTransform
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope.ResizeMode.Companion.scaleToBounds
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.ArcMode
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -26,7 +33,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,6 +52,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,6 +61,7 @@ import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -112,9 +121,7 @@ internal fun LayoutCarousel(
         // Small enough that the next card shows at the edge and says the row
         // scrolls, as a store's shelf of keyboards does; large enough that the
         // keys still read. Capped for tablets and landscape.
-        val cardWidth = (maxWidth * CARD_WIDTH_SHARE)
-            .coerceIn(CardMinWidth, CardMaxWidth)
-            .coerceAtMost(maxWidth - CarouselEdge * 2)
+        val cardWidth = layoutCardWidth(maxWidth)
         val density = LocalDensity.current
         // How far into the card before it the row starts: all of that card
         // and its gap, less the sliver left showing.
@@ -141,28 +148,15 @@ internal fun LayoutCarousel(
         // Names wrap rather than cut off, and every card's name takes as many
         // lines as the longest one needs, so the pills stay level along the
         // row and a board never sits higher than its neighbour for its name.
-        val customLayouts = settings.watch { it.customLayouts }
-        val names = remember(customLayouts, layoutIds) {
-            layoutIds.associateWith { resolveLayout(customLayouts, it).name }
-        }
-        val moreName = stringResource(R.string.languages_more_layouts_title)
-        val nameStyle = MaterialTheme.typography.labelLarge
-        val measurer = rememberTextMeasurer()
-        val nameLines = remember(names, moreCount, moreName, nameStyle, cardWidth, density) {
-            val width = with(density) { (cardWidth - CardInset * 2 - PillInset * 2 - TickSize - TickGap).roundToPx() }
-            val shown = if (moreCount > 0) names.values + moreName else names.values
-            shown.maxOfOrNull { name ->
-                measurer.measure(
-                    name,
-                    style = nameStyle,
-                    constraints = Constraints(maxWidth = width.coerceAtLeast(1)),
-                    // Measured without the cache: each name is measured once.
-                    skipCache = true,
-                ).lineCount
-            } ?: 1
-        }
-        // No card composes a keyboard to capture while the row moves.
-        val scrolling = remember(listState) { { listState.isScrollInProgress } }
+        val names = rememberLayoutNames(layoutIds, settings)
+        val nameLines = rememberLayoutNameLines(names, withMore = moreCount > 0, cardWidth = cardWidth)
+        // No card composes a keyboard to capture while the row moves, or while
+        // the cards are flying to or from the layout gallery.
+        val scrolling = rememberPreviewsHeld { listState.isScrollInProgress }
+        // Where the row is, for the flights: the card at the row's start
+        // leaves first, so the stagger runs from the reader's left edge
+        // whatever the scroll.
+        val firstShown = remember(listState) { { listState.firstVisibleItemIndex } }
         CompositionLocalProvider(LocalLayoutPreviewScrolling provides scrolling) {
             LazyRow(
                 state = listState,
@@ -186,7 +180,7 @@ internal fun LayoutCarousel(
                         }
                     },
             ) {
-                items(layoutIds, key = { it }) { layoutId ->
+                itemsIndexed(layoutIds, key = { _, id -> id }) { index, layoutId ->
                     val on = settings.watch { layoutId in it.enabledLayoutIds }
                     LayoutCard(
                         name = names[layoutId].orEmpty(),
@@ -194,7 +188,9 @@ internal fun LayoutCarousel(
                         on = on,
                         settings = settings,
                         nameLines = nameLines,
-                        modifier = Modifier.width(cardWidth),
+                        modifier = Modifier
+                            .width(cardWidth)
+                            .layoutCardFlight(layoutCardFlightKey(layoutId)) { index - firstShown() },
                         boardHeight = boardHeight,
                         onToggle = { enable -> onToggle(layoutId, enable) },
                     )
@@ -207,6 +203,7 @@ internal fun LayoutCarousel(
                             width = cardWidth,
                             nameLines = nameLines,
                             onClick = onMore,
+                            modifier = Modifier.layoutCardFlight(MORE_CARD_FLIGHT) { layoutIds.size - firstShown() },
                         )
                     }
                 }
@@ -333,13 +330,13 @@ internal fun LayoutCard(
                 verticalAlignment = Alignment.Top,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = PillInset, vertical = 2.dp),
+                    .padding(horizontal = PillInset, vertical = PillPad),
             ) {
                 Tick(selection)
                 Spacer(Modifier.width(TickGap))
                 Text(
                     name,
-                    style = MaterialTheme.typography.labelLarge,
+                    style = layoutNameStyle(),
                     color = if (on) colors.onSecondaryContainer else colors.onSurface,
                     minLines = nameLines,
                     modifier = Modifier.weight(1f),
@@ -360,12 +357,13 @@ internal fun LayoutCard(
  * has been drawn it falls back to a keyboard's usual proportions.
  */
 @Composable
-private fun MoreLayoutsCard(
+internal fun MoreLayoutsCard(
     count: Int,
     boardHeight: Int,
     width: Dp,
     nameLines: Int,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
     val density = LocalDensity.current
@@ -375,7 +373,7 @@ private fun MoreLayoutsCard(
         (width - CardInset * 2) / FALLBACK_BOARD_ASPECT
     }
     Column(
-        modifier = Modifier
+        modifier = modifier
             .width(width)
             .clip(CardShape)
             .background(colors.surfaceContainer)
@@ -413,7 +411,7 @@ private fun MoreLayoutsCard(
             verticalAlignment = Alignment.Top,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = PillInset, vertical = 2.dp),
+                .padding(horizontal = PillInset, vertical = PillPad),
         ) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -432,7 +430,7 @@ private fun MoreLayoutsCard(
             Spacer(Modifier.width(TickGap))
             Text(
                 stringResource(R.string.languages_more_layouts_title),
-                style = MaterialTheme.typography.labelLarge,
+                style = layoutNameStyle(),
                 minLines = nameLines,
                 modifier = Modifier.weight(1f),
             )
@@ -478,6 +476,121 @@ private fun Tick(selection: Float) {
         )
     }
 }
+
+/**
+ * How wide a card in the row is, given the width the row has: small enough that
+ * the next card shows at the edge, large enough that the keys still read.
+ */
+internal fun layoutCardWidth(maxWidth: Dp): Dp =
+    (maxWidth * CARD_WIDTH_SHARE)
+        .coerceIn(CardMinWidth, CardMaxWidth)
+        .coerceAtMost(maxWidth - CarouselEdge * 2)
+
+/** A card's name, in the label size the compact pill is drawn with. */
+@Composable
+private fun layoutNameStyle() = MaterialTheme.typography.labelMedium
+
+/** Each layout's name, resolved once per custom-layout list. */
+@Composable
+internal fun rememberLayoutNames(layoutIds: List<String>, settings: LiveSettings): Map<String, String> {
+    val customLayouts = settings.watch { it.customLayouts }
+    return remember(customLayouts, layoutIds) {
+        layoutIds.associateWith { resolveLayout(customLayouts, it).name }
+    }
+}
+
+/**
+ * How many lines the longest of [names] (and the More card's, [withMore])
+ * takes on a card [cardWidth] wide. Names wrap rather than cut off, and every
+ * card's name takes that many lines, so the pills stay level along a row and a
+ * board never sits higher than its neighbour for its name.
+ */
+@Composable
+internal fun rememberLayoutNameLines(names: Map<String, String>, withMore: Boolean, cardWidth: Dp): Int {
+    val density = LocalDensity.current
+    val moreName = stringResource(R.string.languages_more_layouts_title)
+    val nameStyle = layoutNameStyle()
+    val measurer = rememberTextMeasurer()
+    return remember(names, withMore, moreName, nameStyle, cardWidth, density) {
+        val width = with(density) { (cardWidth - CardInset * 2 - PillInset * 2 - TickSize - TickGap).roundToPx() }
+        val shown = if (withMore) names.values + moreName else names.values
+        shown.maxOfOrNull { name ->
+            measurer.measure(
+                name,
+                style = nameStyle,
+                constraints = Constraints(maxWidth = width.coerceAtLeast(1)),
+                // Measured without the cache: each name is measured once.
+                skipCache = true,
+            ).lineCount
+        } ?: 1
+    }
+}
+
+/**
+ * Whether the cards on this screen should hold off composing a keyboard:
+ * while [scrolling] says the list moves, and while a shared-element flight is
+ * in the air. A board composed mid-flight is a frame or more of the main
+ * thread taken out of the one animation that cannot afford it.
+ */
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+internal fun rememberPreviewsHeld(scrolling: () -> Boolean): () -> Boolean {
+    val shared = LocalSharedTransition.current
+    return remember(shared, scrolling) { { scrolling() || shared?.isTransitionActive == true } }
+}
+
+/**
+ * Flies a layout card between the language's row and its gallery: the card
+ * lifts out of one screen and lands in its place on the other, on a slight arc,
+ * while the screens slide under it.
+ *
+ * The cards leave one after another from [order] (the card's place counted
+ * from the first one in view) but all land on the frame the screen does, so
+ * the set reads as a wave that settles together rather than a queue still
+ * arriving after the page has stopped. Past the first few the stagger stops
+ * growing, so a long gallery does not keep the last card waiting.
+ *
+ * Only the arriving copy fades in, over the departing one, which stays solid
+ * underneath: two copies of an opaque card at part alpha let the page show
+ * through the pair. A card with no partner on the other screen, one scrolled
+ * out of the row, simply travels with its own screen.
+ */
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+internal fun Modifier.layoutCardFlight(key: String, order: () -> Int): Modifier {
+    val shared = LocalSharedTransition.current ?: return this
+    val anim = LocalNavAnimatedScope.current ?: return this
+    // Asked when the flight starts, not when the card composed: the row may
+    // have scrolled in between.
+    val currentOrder by rememberUpdatedState(order)
+    val bounds = remember {
+        BoundsTransform { initial, target ->
+            val delay = currentOrder().coerceIn(0, FLIGHT_STAGGER_STEPS) * FLIGHT_STAGGER_MS
+            keyframes {
+                delayMillis = delay
+                durationMillis = NavTransitionMs - delay
+                initial at 0 using ArcMode.ArcBelow using NavTransitionEasing
+                target at durationMillis
+            }
+        }
+    }
+    return with(shared) {
+        this@layoutCardFlight.sharedBounds(
+            rememberSharedContentState(key),
+            anim,
+            enter = fadeIn(tween(FLIGHT_FADE_MS)),
+            exit = ExitTransition.None,
+            boundsTransform = bounds,
+            resizeMode = scaleToBounds(ContentScale.FillWidth, Alignment.TopCenter),
+            zIndexInOverlay = FLIGHT_Z,
+        )
+    }
+}
+
+private const val FLIGHT_STAGGER_MS = 18
+private const val FLIGHT_STAGGER_STEPS = 6
+private const val FLIGHT_FADE_MS = 120
+private const val FLIGHT_Z = 2f
 
 /** Share of the screen's width a card takes, before the caps below. */
 private const val CARD_WIDTH_SHARE = 0.42f
@@ -537,13 +650,17 @@ private fun KeymanPackPlaceholder(modifier: Modifier) {
 
 private val PackPlaceholderHeight = 96.dp
 
-private val CardShape = RoundedCornerShape(20.dp)
-private val BoardShape = RoundedCornerShape(12.dp)
-private val CardInset = 5.dp
-private val PillGap = 4.dp
-private val TickSize = 18.dp
-private val TickGap = 8.dp
-private val PillInset = 4.dp
+// Compact: the frame round a board is as thin as the ring and the tick still
+// read at, so the keyboard is most of the card and a gallery of them is a page
+// of keyboards rather than a page of frames.
+private val CardShape = RoundedCornerShape(16.dp)
+private val BoardShape = RoundedCornerShape(10.dp)
+private val CardInset = 4.dp
+private val PillGap = 3.dp
+private val PillPad = 1.dp
+private val TickSize = 16.dp
+private val TickGap = 6.dp
+private val PillInset = 3.dp
 
 private val RingOff = 1.dp
 private val RingOn = 2.dp
@@ -552,6 +669,12 @@ private val RingOn = 2.dp
 private const val FALLBACK_BOARD_ASPECT = 1.45f
 
 private const val MORE_CARD_KEY = "\u0000more"
+
+/** The More card's flight: one per screen pair, as there is one per language. */
+internal const val MORE_CARD_FLIGHT = "layoutCard/\u0000more"
+
+/** The flight a layout's card takes between the row and the gallery. */
+internal fun layoutCardFlightKey(layoutId: String): String = "layoutCard/$layoutId"
 
 /** How far a card sinks under the finger. */
 private const val PRESSED_SCALE = 0.97f

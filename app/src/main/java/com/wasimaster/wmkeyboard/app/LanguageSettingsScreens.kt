@@ -18,6 +18,7 @@ import com.wasimaster.wmkeyboard.core.gesture.GlideTolerances
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInFull
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -871,11 +872,30 @@ internal fun addLanguage(
  * detail screen whatever its origin — a screen that lists what this language
  * types must not hide half of the answer behind a tap.
  */
-private fun overflowLayoutIds(lang: LanguageDef, settings: KeyboardSettings): List<String> =
+internal fun overflowLayoutIds(lang: LanguageDef, settings: KeyboardSettings): List<String> =
     lang.layoutIds.filter { id ->
         id !in settings.enabledLayoutIds &&
             resolveLayoutKeyman(settings.customLayouts, id) != null
     }
+
+/**
+ * The layouts on [lang]'s shelf — the row of cards on its screen and the grid in
+ * its gallery: the layouts written for it, less the [overflow] sent to More
+ * layouts, plus the user's own.
+ *
+ * The user's own layouts for this language sit on the same shelf as the
+ * shipped ones: a grid made in the editor or imported as a file used to be
+ * reachable only from Layout & size, and "turn it on under Languages" sent
+ * people to a screen that did not list it. Edited copies of shipped layouts
+ * keep the shipped id and are already on the shelf; secondary layouts have no
+ * on/off at all.
+ */
+internal fun shelfLayoutIds(lang: LanguageDef, settings: KeyboardSettings, overflow: List<String>): List<String> {
+    val own = settings.customLayouts
+        .filter { it.langId == lang.id && !it.secondary && !isShippedLayoutId(it.id) }
+        .map { it.id }
+    return (lang.layoutIds - overflow.toSet()) + own
+}
 
 /**
  * The Layouts group for one language: the layouts we wrote for it plus whichever
@@ -906,18 +926,7 @@ private fun LayoutsGroup(
     val toggle = rememberLayoutToggle(settings, repository, scope) { rulesRefresh++ }
 
     val overflow = settings.watch { overflowLayoutIds(lang, it) }
-    // The user's own layouts for this language sit on the same shelf as the
-    // shipped ones: a grid made in the editor or imported as a file used to be
-    // reachable only from Layout & size, and "turn it on under Languages" sent
-    // people to a screen that did not list it. Edited copies of shipped layouts
-    // keep the shipped id and are already on the shelf; secondary layouts have
-    // no on/off at all.
-    val own = settings.watch { s ->
-        s.customLayouts
-            .filter { it.langId == lang.id && !it.secondary && !isShippedLayoutId(it.id) }
-            .map { it.id }
-    }
-    val listed = (lang.layoutIds - overflow.toSet()) + own
+    val listed = settings.watch { shelfLayoutIds(lang, it, overflow) }
     val title = stringResource(R.string.languages_layouts_title)
 
     HighlightableRow(title, coarse = true) {
@@ -926,6 +935,21 @@ private fun LayoutsGroup(
                 title,
                 info = stringResource(R.string.languages_layouts_info),
                 modifier = Modifier.padding(start = 32.dp, end = 16.dp, top = 4.dp, bottom = 8.dp),
+                // The whole shelf at once, as a grid the cards fly out to. Only
+                // once there is more than the row shows at a glance.
+                action = if (listed.size + (if (overflow.isEmpty()) 0 else 1) > 2) {
+                    {
+                        IconButton(onClick = { onNavigate(layoutGalleryRoute(lang.id)) }) {
+                            Icon(
+                                Icons.Outlined.OpenInFull,
+                                contentDescription = stringResource(R.string.languages_layouts_gallery_open),
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
+                } else {
+                    null
+                },
             )
             LayoutCarousel(
                 layoutIds = listed,
