@@ -1973,7 +1973,12 @@ data class ToolbarBehavior(
      * keyboard's top edge, closer than any two key rows sit to each other.
      */
     val paddingTopDp: Int = 4,
-    /** Space between the toolbar's content and the keys, in dp, added to the strip's height. */
+    /**
+     * Space between the toolbar's content and the keys, in dp, added to the
+     * strip's height. Either padding may go below zero (#970), down to
+     * [ToolbarPaddingRange]'s start: the strip then gets shorter than its
+     * content height, never under [ToolbarHeightRange]'s floor.
+     */
     val paddingBottomDp: Int = 0,
     /**
      * Which built-in themes the keyboard's Themes tool offers, by id — a
@@ -9875,6 +9880,13 @@ val BottomRowHeightRange = 32..96
  */
 val ToolbarHeightRange = 24..80
 
+/**
+ * Bounds for [ToolbarBehavior.paddingTopDp] and [ToolbarBehavior.paddingBottomDp].
+ * Below zero takes height off the strip (#970), for a bar that is too tall even
+ * with no padding at all.
+ */
+val ToolbarPaddingRange = -12..24
+
 /** The built-in currency glyphs, used when [LayoutBehaviorSettings.currencyKeys] is empty. */
 val DefaultCurrencyKeys = listOf("৳", "€", "£", "¥", "₹", "₿")
 
@@ -17069,10 +17081,10 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[TOOLBAR_ICON_SIZE] = value.coerceIn(14, 30) }
 
     suspend fun setToolbarPaddingTopDp(value: Int) =
-        editPrefs { it[TOOLBAR_PADDING_TOP] = value.coerceIn(0, 24) }
+        editPrefs { it[TOOLBAR_PADDING_TOP] = value.coerceIn(ToolbarPaddingRange.first, ToolbarPaddingRange.last) }
 
     suspend fun setToolbarPaddingBottomDp(value: Int) =
-        editPrefs { it[TOOLBAR_PADDING_BOTTOM] = value.coerceIn(0, 24) }
+        editPrefs { it[TOOLBAR_PADDING_BOTTOM] = value.coerceIn(ToolbarPaddingRange.first, ToolbarPaddingRange.last) }
 
     suspend fun setToolbarPlacement(value: ToolbarPlacement) =
         editPrefs { it[TOOLBAR_PLACEMENT] = value.name }

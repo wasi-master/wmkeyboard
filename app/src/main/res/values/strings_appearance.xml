@@ -96,11 +96,11 @@
     <string name="appearance_toolbar_padding_top_title">Toolbar top padding</string>
     <string name="appearance_toolbar_padding_top_subtitle">Space above the tools and the suggestions</string>
     <!-- dp is the Android unit for screen size. Keep the two letters. -->
-    <string name="appearance_toolbar_padding_top_info">This adds space between the top edge of the keyboard and the toolbar. The default is 4 dp. The toolbar and the keyboard get taller by the same amount.</string>
+    <string name="appearance_toolbar_padding_top_info">This adds space between the top edge of the keyboard and the toolbar. The default is 4 dp. The toolbar and the keyboard get taller by the same amount. Below 0 the toolbar gets shorter instead.</string>
     <string name="appearance_toolbar_padding_bottom_title">Toolbar bottom padding</string>
     <string name="appearance_toolbar_padding_bottom_subtitle">Space between the toolbar and the keys</string>
     <!-- dp is the Android unit for screen size. Keep the two letters. -->
-    <string name="appearance_toolbar_padding_bottom_info">This adds space between the toolbar and the first row of keys. The default is 0 dp. The toolbar and the keyboard get taller by the same amount.</string>
+    <string name="appearance_toolbar_padding_bottom_info">This adds space between the toolbar and the first row of keys. The default is 0 dp. The toolbar and the keyboard get taller by the same amount. Below 0 the toolbar gets shorter instead.</string>
     <string name="appearance_toolbar_lock_title">Hide the toolbar and the clipboard on the lock screen</string>
     <string name="appearance_toolbar_lock_subtitle">Hide the top strip and block the clipboard while your device is locked</string>
     <string name="appearance_toolbar_lock_info">The keyboard opens over your lock screen when you answer a notification or use a search box there. This setting then hides the full top strip and blocks the clipboard panel. The strip holds the word suggestions and every pinned tool, so the clipboard tool and its paste chip also go. Copied text such as one-time codes and passwords stays off a screen that anyone can wake. This setting is off by default. When your device is unlocked, the keyboard does not change.</string>

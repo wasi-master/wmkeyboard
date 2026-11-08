@@ -210,6 +210,7 @@ import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.LocalConfiguration
 import com.wasimaster.wmkeyboard.core.prediction.GlideSandboxPolicy
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
+import com.wasimaster.wmkeyboard.core.settings.ToolbarHeightRange
 import com.wasimaster.wmkeyboard.core.settings.holdSymbolList
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.sizingValuesFor
@@ -24625,7 +24626,10 @@ private fun toolbarReadsRtl(state: KeyboardUiState): Boolean =
  */
 internal fun topBarHeight(settings: KeyboardSettings): Dp =
     if (settings.toolbarBehavior.enabled) {
-        (settings.toolbarHeightDp + settings.toolbarBehavior.paddingTopDp + settings.toolbarBehavior.paddingBottomDp).dp
+        // A padding below zero (#970) takes height off the strip, never past
+        // the slider floor, and never past a bar a theme made shorter still.
+        val padded = settings.toolbarHeightDp + settings.toolbarBehavior.paddingTopDp + settings.toolbarBehavior.paddingBottomDp
+        padded.coerceAtLeast(minOf(settings.toolbarHeightDp, ToolbarHeightRange.first)).dp
     } else {
         0.dp
     }
@@ -24637,9 +24641,11 @@ internal fun topBarHeight(settings: KeyboardSettings): Dp =
  */
 internal fun Modifier.toolbarPadding(settings: KeyboardSettings): Modifier =
     if (settings.toolbarBehavior.enabled) {
+        // A negative padding has nothing to pad: it only shortened the row
+        // in [topBarHeight], and `padding` refuses a value under zero.
         padding(
-            top = settings.toolbarBehavior.paddingTopDp.dp,
-            bottom = settings.toolbarBehavior.paddingBottomDp.dp,
+            top = settings.toolbarBehavior.paddingTopDp.coerceAtLeast(0).dp,
+            bottom = settings.toolbarBehavior.paddingBottomDp.coerceAtLeast(0).dp,
         )
     } else {
         this

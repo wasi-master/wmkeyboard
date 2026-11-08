@@ -36,6 +36,7 @@ import com.wasimaster.wmkeyboard.core.settings.BoardCorner
 import com.wasimaster.wmkeyboard.core.settings.BoardCornerRadiusRange
 import com.wasimaster.wmkeyboard.core.settings.SidePadScaleRange
 import com.wasimaster.wmkeyboard.core.settings.ToolbarHeightRange
+import com.wasimaster.wmkeyboard.core.settings.ToolbarPaddingRange
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts
@@ -558,7 +559,7 @@ internal fun AppearanceToolbarSettings(
                 R.string.appearance_toolbar_padding_top_title,
                 subtitle = stringResource(R.string.appearance_toolbar_padding_top_subtitle),
                 value = settings.watch { it.toolbarBehavior.paddingTopDp }.toFloat(),
-                range = 0f..24f,
+                range = ToolbarPaddingRange.first.toFloat()..ToolbarPaddingRange.last.toFloat(),
                 display = { dpFormat.format(it.roundToInt()) },
                 info = stringResource(R.string.appearance_toolbar_padding_top_info),
                 default = SettingsDefaults.toolbarBehavior.paddingTopDp.toFloat(),
@@ -569,7 +570,7 @@ internal fun AppearanceToolbarSettings(
                 R.string.appearance_toolbar_padding_bottom_title,
                 subtitle = stringResource(R.string.appearance_toolbar_padding_bottom_subtitle),
                 value = settings.watch { it.toolbarBehavior.paddingBottomDp }.toFloat(),
-                range = 0f..24f,
+                range = ToolbarPaddingRange.first.toFloat()..ToolbarPaddingRange.last.toFloat(),
                 display = { dpFormat.format(it.roundToInt()) },
                 info = stringResource(R.string.appearance_toolbar_padding_bottom_info),
                 default = SettingsDefaults.toolbarBehavior.paddingBottomDp.toFloat(),
