@@ -1712,7 +1712,14 @@ private fun SettingsNavGraph(
             }
         }
         composable("theme_assets/{themeId}") { backStackEntry ->
-            val themeId = backStackEntry.arguments?.getString("themeId").orEmpty()
+            val requested = backStackEntry.arguments?.getString("themeId").orEmpty()
+            // Same reading of a copied link as theme_edit above.
+            val darkSlot = isSystemInDarkTheme()
+            val themeId = settings.watch { s ->
+                SettingLinks.themeEditTarget(requested, s.effectiveThemeId(darkSlot)) { id ->
+                    s.customThemes.findThemeFamily(id) != null
+                }
+            }
             SettingsScreen(
                 stringResource(R.string.theme_assets_title),
                 { navController.popBackStack() },
