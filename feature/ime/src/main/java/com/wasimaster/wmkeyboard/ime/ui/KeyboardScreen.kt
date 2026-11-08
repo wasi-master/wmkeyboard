@@ -423,6 +423,7 @@ import com.wasimaster.wmkeyboard.core.script.ComposerType
 import com.wasimaster.wmkeyboard.core.script.FancyStyle
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.FancyStyles
+import com.wasimaster.wmkeyboard.core.script.IndicSyllable
 import com.wasimaster.wmkeyboard.core.script.TextDirection
 import com.wasimaster.wmkeyboard.core.script.ASCII_DIGITS
 import com.wasimaster.wmkeyboard.core.script.NumeralCommitScope
@@ -23610,6 +23611,10 @@ internal fun rememberCurrentLayout(state: KeyboardUiState): KeyboardLayout = rem
     // Issue #340: only ever true on a board with a key that becomes 小゛゜, so
     // no other board rebuilds on it.
     state.kanaVariantReady,
+    // The syllable an Indic layout's vowel-sign keys show, and whether the
+    // letters were asked for over them: empty and false on every other board.
+    state.consonantSyllable,
+    state.vowelsPinned,
     // Discussion #382: whose letters lead the long-press popups.
     state.language.localeTag,
 ) {
@@ -23728,6 +23733,43 @@ private fun typesQuestionMark(key: Key, mark: String): Boolean {
     return text == mark || (text == "?" && key.role != KeyRole.Plain)
 }
 
+/**
+ * The page an Indic layout draws in place of its letters while the text before
+ * the caret ends in a consonant (`LayerSpec.afterConsonant`), or null to draw
+ * the letters: no such page, no consonant, or the letters asked for by hand
+ * ([KeyboardUiState.vowelsPinned]).
+ */
+private fun consonantPage(state: KeyboardUiState): KeyboardLayout? {
+    if (state.consonantSyllable.isEmpty() || state.vowelsPinned) return null
+    val name = state.layouts.consonantLayer ?: return null
+    return state.layouts.named[name]
+}
+
+/**
+ * This grid with each key that types a vowel sign, virama, nukta or bindu
+ * labelled with the syllable a tap on it would leave, while the text ends in
+ * one (Samsung's क → का कि की). The key still types its mark: the service
+ * puts it in its place on the syllable (`IndicSyllable.edit`). The same grid
+ * on every board without a consonant page and on every other layer.
+ */
+internal fun KeyboardLayout.withSyllablePreviews(state: KeyboardUiState): KeyboardLayout {
+    if (state.layouts.consonantLayer == null || state.consonantSyllable.isEmpty()) return this
+    if (state.layoutMode != LayoutMode.LETTERS && state.layoutMode != LayoutMode.NAMED) return this
+    val syllable = IndicSyllable.trailing(state.consonantSyllable) ?: return this
+    var changed = false
+    val previewed = rows.map { row ->
+        row.map { key ->
+            val mark = (key.output ?: key.label).singleOrNull()
+                ?.takeIf { key.action == KeyAction.Text }
+                ?: return@map key
+            val shown = IndicSyllable.place(syllable, mark) ?: return@map key
+            changed = true
+            key.copy(label = shown, output = mark.toString())
+        }
+    }
+    return if (changed) copy(rows = previewed) else this
+}
+
 internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     if (numericPadActive(state)) {
         state.layouts.numeric?.let { pad ->
@@ -23751,7 +23793,9 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                 state.layouts.keymanCaps
             state.shiftState != ShiftState.OFF && state.layouts.keymanShift != null ->
                 state.layouts.keymanShift
-            else -> state.layouts.letters
+            // An Indic layout's page of vowel signs, while the text ends in a
+            // consonant (LayerSpec.afterConsonant).
+            else -> consonantPage(state) ?: state.layouts.letters
         }
         // Same fallback as Fn, for the same reason: the layout named can have
         // been deleted between the state being set and this draw.
@@ -23759,7 +23803,7 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
             state.secondaryLayoutId?.let { state.layouts.secondaries[it] } ?: state.layouts.letters
         LayoutMode.NAMED ->
             state.namedLayer?.let { state.layouts.named[it] } ?: state.layouts.letters
-    }
+    }.withSyllablePreviews(state)
     // The Bottom row settings that move keys: the 🌐 key hidden (#139), put in
     // the slot every layout shares (#310), and traded with the comma. One pass
     // shared with the layout editor, so the grid it shows is the grid drawn here

@@ -223,7 +223,8 @@
               "width": 1.5
             }
           ]
-        ]
+        ],
+        "afterConsonant": "page2"
       },
       "page2": {
         "rows": [
@@ -236,16 +237,32 @@
               }
             },
             {
-              "label": "්"
+              "label": "්",
+              "longPress": [
+                "අ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ා"
+              "label": "ා",
+              "longPress": [
+                "ආ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ැ"
+              "label": "ැ",
+              "longPress": [
+                "ඇ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ෑ"
+              "label": "ෑ",
+              "longPress": [
+                "ඈ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ක"
@@ -265,19 +282,39 @@
           ],
           [
             {
-              "label": "ි"
+              "label": "ි",
+              "longPress": [
+                "ඉ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ී"
+              "label": "ී",
+              "longPress": [
+                "ඊ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ු"
+              "label": "ු",
+              "longPress": [
+                "උ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ූ"
+              "label": "ූ",
+              "longPress": [
+                "ඌ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ෙ"
+              "label": "ෙ",
+              "longPress": [
+                "එ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ච"
@@ -297,19 +334,39 @@
           ],
           [
             {
-              "label": "ේ"
+              "label": "ේ",
+              "longPress": [
+                "ඒ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ො"
+              "label": "ො",
+              "longPress": [
+                "ඔ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ෝ"
+              "label": "ෝ",
+              "longPress": [
+                "ඕ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ෞ"
+              "label": "ෞ",
+              "longPress": [
+                "ඖ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ං"
+              "label": "ං",
+              "longPress": [
+                "අං"
+              ],
+              "hideHint": true
             },
             {
               "label": "ට"

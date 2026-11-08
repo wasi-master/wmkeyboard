@@ -225,7 +225,8 @@
               "width": 1.5
             }
           ]
-        ]
+        ],
+        "afterConsonant": "page2"
       },
       "page2": {
         "rows": [
@@ -238,16 +239,32 @@
               }
             },
             {
-              "label": "্"
+              "label": "্",
+              "longPress": [
+                "অ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "া"
+              "label": "া",
+              "longPress": [
+                "আ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ি"
+              "label": "ি",
+              "longPress": [
+                "ই"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ী"
+              "label": "ী",
+              "longPress": [
+                "ঈ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ক"
@@ -267,19 +284,39 @@
           ],
           [
             {
-              "label": "ু"
+              "label": "ু",
+              "longPress": [
+                "উ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ূ"
+              "label": "ূ",
+              "longPress": [
+                "ঊ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ৃ"
+              "label": "ৃ",
+              "longPress": [
+                "ঋ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ে"
+              "label": "ে",
+              "longPress": [
+                "এ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ৈ"
+              "label": "ৈ",
+              "longPress": [
+                "ঐ"
+              ],
+              "hideHint": true
             },
             {
               "label": "চ"
@@ -299,19 +336,39 @@
           ],
           [
             {
-              "label": "ো"
+              "label": "ো",
+              "longPress": [
+                "ও"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ৌ"
+              "label": "ৌ",
+              "longPress": [
+                "ঔ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ং"
+              "label": "ং",
+              "longPress": [
+                "অং"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ঃ"
+              "label": "ঃ",
+              "longPress": [
+                "অঃ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ঁ"
+              "label": "ঁ",
+              "longPress": [
+                "অঁ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ট"

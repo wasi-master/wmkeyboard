@@ -193,7 +193,8 @@
               "width": 1.5
             }
           ]
-        ]
+        ],
+        "afterConsonant": "page2"
       },
       "page2": {
         "rows": [
@@ -206,13 +207,25 @@
               }
             },
             {
-              "label": "்"
+              "label": "்",
+              "longPress": [
+                "அ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ா"
+              "label": "ா",
+              "longPress": [
+                "ஆ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ி"
+              "label": "ி",
+              "longPress": [
+                "இ"
+              ],
+              "hideHint": true
             },
             {
               "label": "க"
@@ -229,16 +242,32 @@
           ],
           [
             {
-              "label": "ீ"
+              "label": "ீ",
+              "longPress": [
+                "ஈ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ு"
+              "label": "ு",
+              "longPress": [
+                "உ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ூ"
+              "label": "ூ",
+              "longPress": [
+                "ஊ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ெ"
+              "label": "ெ",
+              "longPress": [
+                "எ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ட"
@@ -255,16 +284,32 @@
           ],
           [
             {
-              "label": "ே"
+              "label": "ே",
+              "longPress": [
+                "ஏ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ை"
+              "label": "ை",
+              "longPress": [
+                "ஐ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ொ"
+              "label": "ொ",
+              "longPress": [
+                "ஒ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ோ"
+              "label": "ோ",
+              "longPress": [
+                "ஓ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ப"
@@ -281,7 +326,11 @@
           ],
           [
             {
-              "label": "ௌ"
+              "label": "ௌ",
+              "longPress": [
+                "ஔ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ல"

@@ -226,19 +226,32 @@
               "width": 1.5
             }
           ]
-        ]
+        ],
+        "afterConsonant": "page2"
       },
       "page2": {
         "rows": [
           [
             {
-              "label": "ಂ"
+              "label": "ಂ",
+              "longPress": [
+                "ಅಂ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "್"
+              "label": "್",
+              "longPress": [
+                "ಅ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ಾ"
+              "label": "ಾ",
+              "longPress": [
+                "ಆ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ಕ"
@@ -264,13 +277,25 @@
           ],
           [
             {
-              "label": "ೌ"
+              "label": "ೌ",
+              "longPress": [
+                "ಔ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ಿ"
+              "label": "ಿ",
+              "longPress": [
+                "ಇ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ೀ"
+              "label": "ೀ",
+              "longPress": [
+                "ಈ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ಖ"
@@ -296,13 +321,25 @@
           ],
           [
             {
-              "label": "ೃ"
+              "label": "ೃ",
+              "longPress": [
+                "ಋ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ು"
+              "label": "ು",
+              "longPress": [
+                "ಉ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ೂ"
+              "label": "ೂ",
+              "longPress": [
+                "ಊ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ಗ"
@@ -328,13 +365,25 @@
           ],
           [
             {
-              "label": "ೈ"
+              "label": "ೈ",
+              "longPress": [
+                "ಐ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ೆ"
+              "label": "ೆ",
+              "longPress": [
+                "ಎ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ೇ"
+              "label": "ೇ",
+              "longPress": [
+                "ಏ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ಘ"
@@ -367,10 +416,18 @@
               }
             },
             {
-              "label": "ೊ"
+              "label": "ೊ",
+              "longPress": [
+                "ಒ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ೋ"
+              "label": "ೋ",
+              "longPress": [
+                "ಓ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ಙ"

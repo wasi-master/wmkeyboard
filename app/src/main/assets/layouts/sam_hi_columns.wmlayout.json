@@ -226,19 +226,32 @@
               "width": 1.5
             }
           ]
-        ]
+        ],
+        "afterConsonant": "page2"
       },
       "page2": {
         "rows": [
           [
             {
-              "label": "ं"
+              "label": "ं",
+              "longPress": [
+                "अं"
+              ],
+              "hideHint": true
             },
             {
-              "label": "्"
+              "label": "्",
+              "longPress": [
+                "अ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ा"
+              "label": "ा",
+              "longPress": [
+                "आ"
+              ],
+              "hideHint": true
             },
             {
               "label": "क"
@@ -264,13 +277,25 @@
           ],
           [
             {
-              "label": "ः"
+              "label": "ः",
+              "longPress": [
+                "अः"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ि"
+              "label": "ि",
+              "longPress": [
+                "इ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ी"
+              "label": "ी",
+              "longPress": [
+                "ई"
+              ],
+              "hideHint": true
             },
             {
               "label": "ख"
@@ -296,13 +321,25 @@
           ],
           [
             {
-              "label": "ॅ"
+              "label": "ॅ",
+              "longPress": [
+                "ऑ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ु"
+              "label": "ु",
+              "longPress": [
+                "उ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ू"
+              "label": "ू",
+              "longPress": [
+                "ऊ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ग"
@@ -328,13 +365,25 @@
           ],
           [
             {
-              "label": "ृ"
+              "label": "ृ",
+              "longPress": [
+                "ऋ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "े"
+              "label": "े",
+              "longPress": [
+                "ए"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ै"
+              "label": "ै",
+              "longPress": [
+                "ऐ"
+              ],
+              "hideHint": true
             },
             {
               "label": "घ"
@@ -367,10 +416,18 @@
               }
             },
             {
-              "label": "ो"
+              "label": "ो",
+              "longPress": [
+                "ओ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ौ"
+              "label": "ौ",
+              "longPress": [
+                "औ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ङ"

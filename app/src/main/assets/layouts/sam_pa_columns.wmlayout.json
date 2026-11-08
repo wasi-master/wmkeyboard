@@ -226,16 +226,25 @@
               "width": 1.5
             }
           ]
-        ]
+        ],
+        "afterConsonant": "page2"
       },
       "page2": {
         "rows": [
           [
             {
-              "label": "ਿ"
+              "label": "ਿ",
+              "longPress": [
+                "ਇ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ੀ"
+              "label": "ੀ",
+              "longPress": [
+                "ਈ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ੳ"
@@ -264,10 +273,18 @@
           ],
           [
             {
-              "label": "ੁ"
+              "label": "ੁ",
+              "longPress": [
+                "ਉ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ੂ"
+              "label": "ੂ",
+              "longPress": [
+                "ਊ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ਅ"
@@ -296,10 +313,18 @@
           ],
           [
             {
-              "label": "ੇ"
+              "label": "ੇ",
+              "longPress": [
+                "ਏ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ੈ"
+              "label": "ੈ",
+              "longPress": [
+                "ਐ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ੲ"
@@ -328,10 +353,18 @@
           ],
           [
             {
-              "label": "ੋ"
+              "label": "ੋ",
+              "longPress": [
+                "ਓ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ੌ"
+              "label": "ੌ",
+              "longPress": [
+                "ਔ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ਸ"
@@ -367,7 +400,11 @@
               }
             },
             {
-              "label": "ਾ"
+              "label": "ਾ",
+              "longPress": [
+                "ਆ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ਹ"

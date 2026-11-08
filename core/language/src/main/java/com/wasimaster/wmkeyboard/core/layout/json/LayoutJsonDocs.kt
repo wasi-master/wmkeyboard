@@ -92,6 +92,9 @@ object LayoutJsonDocs {
         "LayerSpec.themeId" to "A theme for while this layer is on screen, over the layout's theme and the settings.",
         "LayerSpec.flickHints" to
             "Whether this layer's flick keys draw their arms on the key face. Leave it out to follow the keyboard's setting.",
+        "LayerSpec.afterConsonant" to
+            "On the letters layer of an Indic layout, the page of vowel signs to show after a consonant. Its keys show the " +
+            "consonant with each sign, and a tap replaces the vowel sign already there.",
 
         "LayoutAppearance.fontId" to
             "The label font: \"default\", \"google:<Name>\", \"installed:<name>\" or \"custom\". A font this device does not have falls " +

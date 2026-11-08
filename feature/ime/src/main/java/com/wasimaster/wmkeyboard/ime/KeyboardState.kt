@@ -378,6 +378,12 @@ data class LayoutSet(
      */
     val keymanLayerKeys: Set<String>? = null,
     /**
+     * The page of [named] drawn in place of [letters] while the text before
+     * the caret ends in a consonant (`LayerSpec.afterConsonant`): an Indic
+     * layout's page of vowel signs. Null for every other layout.
+     */
+    val consonantLayer: String? = null,
+    /**
      * Whether the letters layer is a handwriting canvas over [letters]' one
      * row (`LayoutSpec.handwriting`, issue #557).
      */
@@ -3621,6 +3627,23 @@ data class KeyboardUiState(
      * it is a key of the grid's `remember`, and it moves kana by kana.
      */
     val kanaVariantReady: Boolean = false,
+    /**
+     * The syllable the text before the caret ends in (`IndicSyllable`), on a
+     * layout with a consonant page ([LayoutSet.consonantLayer]); empty when it
+     * ends in anything else. While it is set the letters draw that page, each
+     * of its vowel-sign keys showing the syllable a tap would write.
+     *
+     * Empty on every other layout: it is a key of the grid's `remember`, and
+     * it moves with every keystroke.
+     */
+    val consonantSyllable: String = "",
+    /**
+     * The letters were asked for by hand from a page of the paginated cycle
+     * while [consonantSyllable] was set, so they stay up in place of the
+     * consonant page until the next key: an independent vowel after a
+     * consonant (कई) is typed from there.
+     */
+    val vowelsPinned: Boolean = false,
     /**
      * Probability weight (0..1) of each letter being typed next, given the
      * current composing word. Drives smart key-hit detection, which nudges

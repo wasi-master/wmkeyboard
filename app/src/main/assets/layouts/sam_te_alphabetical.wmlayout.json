@@ -223,7 +223,8 @@
               "width": 1.5
             }
           ]
-        ]
+        ],
+        "afterConsonant": "page2"
       },
       "page2": {
         "rows": [
@@ -236,16 +237,32 @@
               }
             },
             {
-              "label": "్"
+              "label": "్",
+              "longPress": [
+                "అ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ా"
+              "label": "ా",
+              "longPress": [
+                "ఆ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ి"
+              "label": "ి",
+              "longPress": [
+                "ఇ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ీ"
+              "label": "ీ",
+              "longPress": [
+                "ఈ"
+              ],
+              "hideHint": true
             },
             {
               "label": "క"
@@ -265,19 +282,39 @@
           ],
           [
             {
-              "label": "ు"
+              "label": "ు",
+              "longPress": [
+                "ఉ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ూ"
+              "label": "ూ",
+              "longPress": [
+                "ఊ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ృ"
+              "label": "ృ",
+              "longPress": [
+                "ఋ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ె"
+              "label": "ె",
+              "longPress": [
+                "ఎ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ే"
+              "label": "ే",
+              "longPress": [
+                "ఏ"
+              ],
+              "hideHint": true
             },
             {
               "label": "చ"
@@ -297,19 +334,39 @@
           ],
           [
             {
-              "label": "ై"
+              "label": "ై",
+              "longPress": [
+                "ఐ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ొ"
+              "label": "ొ",
+              "longPress": [
+                "ఒ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ో"
+              "label": "ో",
+              "longPress": [
+                "ఓ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ౌ"
+              "label": "ౌ",
+              "longPress": [
+                "ఔ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ం"
+              "label": "ం",
+              "longPress": [
+                "అం"
+              ],
+              "hideHint": true
             },
             {
               "label": "ట"

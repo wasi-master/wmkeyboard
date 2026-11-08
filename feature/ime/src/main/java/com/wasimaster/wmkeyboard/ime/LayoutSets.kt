@@ -121,6 +121,10 @@ fun compileLayoutSet(
         keymanLayerKeys = safe.layers.keys.takeIf { keys ->
             safe.keyman != null || keys.any { it.startsWith(KeymanLayers.PREFIX) }
         },
+        // The vowel-sign page an Indic layout shows after a consonant, when
+        // the page it names is one of the pages compiled above.
+        consonantLayer = safe.layer(LayoutLayer.LETTERS)?.afterConsonant
+            ?.takeIf { it.isAnExtraGrid() && it in safe.layers },
         handwriting = safe.handwriting,
         authoredHolds = authored,
     )

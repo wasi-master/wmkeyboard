@@ -841,6 +841,7 @@ import com.wasimaster.wmkeyboard.core.input.imported.ImportedInputMethods
 import com.wasimaster.wmkeyboard.core.script.FancyAssembly
 import com.wasimaster.wmkeyboard.core.script.FancyStyle
 import com.wasimaster.wmkeyboard.core.script.FancyStyles
+import com.wasimaster.wmkeyboard.core.script.IndicSyllable
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.NumeralCommitScope
@@ -10862,7 +10863,14 @@ open class WMKeyboardService : InputMethodService() {
             KeyAction.EditorAction -> onEditorAction()
             KeyAction.Symbols -> toggleSymbols()
             KeyAction.Letters -> _uiState.update {
-                it.copy(layoutMode = LayoutMode.LETTERS, fnLocked = false, fnReturn = null)
+                it.copy(
+                    layoutMode = LayoutMode.LETTERS,
+                    fnLocked = false,
+                    fnReturn = null,
+                    // The last page of a paginated Indic cycle back to the
+                    // letters, over its consonant page: see vowelsPinned.
+                    vowelsPinned = it.vowelsPinned || pinsVowels(it),
+                )
             }
             KeyAction.LanguageSwitch -> switchLanguage()
             KeyAction.InputMethodPicker -> showInputMethodPicker()
@@ -13576,6 +13584,10 @@ open class WMKeyboardService : InputMethodService() {
             consumeShift()
             return
         }
+        if (!fancyByKey && typeSyllableMark(ic, text)) {
+            consumeShift()
+            return
+        }
         // contextualForm is the identity for every composer except the
         // cluster-shaping (fixed Indic) ones, so only they are worth the
         // synchronous getTextBeforeCursor round-trip on the keypress path.
@@ -14707,6 +14719,7 @@ open class WMKeyboardService : InputMethodService() {
      * word position both in output and on the key labels.
      */
     private fun refreshKarContext() {
+        refreshConsonantSyllable()
         if (!_uiState.value.composer.isClusterShaping) return
         // A keyboard-owned field answers from its own caret, not from the end
         // of its text: with a movable caret (#161) those stopped being the
@@ -14719,6 +14732,75 @@ open class WMKeyboardService : InputMethodService() {
         }
         val form = BengaliGraphemes.vowelFormAfter(previous)
         _uiState.update { if (it.vowelForm == form) it else it.copy(vowelForm = form) }
+    }
+
+    /**
+     * Mirrors the syllable the text before the caret ends in into
+     * [KeyboardUiState.consonantSyllable], on a layout with a consonant page
+     * (`LayerSpec.afterConsonant`): the letters give way to that page after a
+     * consonant and come back after anything else. Reached through
+     * [refreshKarContext], which every change of the caret's context calls;
+     * each of those also ends a pin of the letters
+     * ([KeyboardUiState.vowelsPinned]), which lasts until the next key.
+     *
+     * Empty in a keyboard-owned field, which types its marks as they come
+     * ([captureTyped]), so its keys must not promise a vowel sign replaced.
+     */
+    private fun refreshConsonantSyllable() {
+        val state = _uiState.value
+        val syllable = if (state.layouts.consonantLayer == null || state.captureCaretText() != null) {
+            ""
+        } else {
+            currentInputConnection?.getTextBeforeCursor(IndicSyllable.CONTEXT, 0)
+                ?.let { IndicSyllable.trailing(it)?.text }
+                .orEmpty()
+        }
+        _uiState.update {
+            if (it.consonantSyllable == syllable && !it.vowelsPinned) {
+                it
+            } else {
+                it.copy(consonantSyllable = syllable, vowelsPinned = false)
+            }
+        }
+    }
+
+    /**
+     * A vowel sign, virama, nukta or bindu typed on a layout with a consonant
+     * page: it takes its own place on the syllable before the caret, so a
+     * second vowel sign replaces the first (का then ी gives की, never काी), the
+     * way Samsung's Indic keyboards type and the way those keys label
+     * themselves (`withSyllablePreviews`). True when typed here; false leaves
+     * the key to the ordinary path, which types it as it is.
+     *
+     * Ahead of the fixed Bengali vowel forms, which would turn a kar after a
+     * vowel sign into a য়-glide where the key promised a replacement.
+     */
+    private fun typeSyllableMark(ic: InputConnection, text: String): Boolean {
+        if (_uiState.value.layouts.consonantLayer == null || keymanSession != null) return false
+        val mark = text.singleOrNull()?.takeIf { IndicSyllable.slotOf(it) != null } ?: return false
+        if (hasSelection(ic)) return false
+        // A buffer still open here is a resumed word, and it already is the
+        // text in front of the caret (see the cluster branch of the typing path).
+        val before = composing.takeIf { it.isNotEmpty() }?.toString()
+            ?: ic.getTextBeforeCursor(IndicSyllable.CONTEXT, 0)?.toString()
+            ?: return false
+        val edit = IndicSyllable.edit(before, mark) ?: return false
+        lastVowelGlide = null
+        // The same vowel sign again: the syllable already says it.
+        if (edit.delete == 0 && edit.text.isEmpty()) return true
+        if (composing.isNotEmpty()) commitComposing(ic, autocorrect = false)
+        ic.beginBatchEdit()
+        if (edit.delete > 0) {
+            revision?.expectDelete(edit.delete, 0)
+            ic.deleteSurroundingText(edit.delete, 0)
+        }
+        if (edit.text.isNotEmpty()) commitTypedCharacter(ic, edit.text)
+        ic.endBatchEdit()
+        invalidateExpectedSelection()
+        _uiState.update {
+            it.copy(composingPreview = "", suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap())
+        }
+        return true
     }
 
     private fun onShift() {
@@ -18204,10 +18286,28 @@ open class WMKeyboardService : InputMethodService() {
             if (known) {
                 it.copy(layoutMode = LayoutMode.NAMED, namedLayer = name, fnLocked = false, fnReturn = null)
             } else {
-                it.copy(layoutMode = LayoutMode.LETTERS, namedLayer = null, fnLocked = false, fnReturn = null)
+                it.copy(
+                    layoutMode = LayoutMode.LETTERS,
+                    namedLayer = null,
+                    fnLocked = false,
+                    fnReturn = null,
+                    vowelsPinned = it.vowelsPinned || pinsVowels(it),
+                )
             }
         }
     }
+
+    /**
+     * Whether a key back to the letters from [state] keeps the letters up over
+     * an Indic layout's consonant page ([KeyboardUiState.vowelsPinned]): it is
+     * pressed on a page of the layout, after a consonant. That page key is the
+     * only way to the independent vowels then (कई), since the letters otherwise
+     * give way to the vowel signs. ABC from the symbols is not one: it goes back
+     * to the page that was showing.
+     */
+    private fun pinsVowels(state: KeyboardUiState): Boolean =
+        state.layoutMode == LayoutMode.NAMED && state.layouts.consonantLayer != null &&
+            state.consonantSyllable.isNotEmpty()
 
     /**
      * Whether the panel on screen is a panel layout whose grid asked to stay

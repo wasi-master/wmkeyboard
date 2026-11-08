@@ -223,7 +223,8 @@
               "width": 1.5
             }
           ]
-        ]
+        ],
+        "afterConsonant": "page2"
       },
       "page2": {
         "rows": [
@@ -236,16 +237,32 @@
               }
             },
             {
-              "label": "്"
+              "label": "്",
+              "longPress": [
+                "അ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ാ"
+              "label": "ാ",
+              "longPress": [
+                "ആ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ി"
+              "label": "ി",
+              "longPress": [
+                "ഇ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ീ"
+              "label": "ീ",
+              "longPress": [
+                "ഈ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ക"
@@ -265,19 +282,39 @@
           ],
           [
             {
-              "label": "ു"
+              "label": "ു",
+              "longPress": [
+                "ഉ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ൂ"
+              "label": "ൂ",
+              "longPress": [
+                "ഊ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ൃ"
+              "label": "ൃ",
+              "longPress": [
+                "ഋ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "െ"
+              "label": "െ",
+              "longPress": [
+                "എ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "േ"
+              "label": "േ",
+              "longPress": [
+                "ഏ"
+              ],
+              "hideHint": true
             },
             {
               "label": "ച"
@@ -297,19 +334,39 @@
           ],
           [
             {
-              "label": "ൈ"
+              "label": "ൈ",
+              "longPress": [
+                "ഐ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ൊ"
+              "label": "ൊ",
+              "longPress": [
+                "ഒ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ോ"
+              "label": "ോ",
+              "longPress": [
+                "ഓ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ൗ"
+              "label": "ൗ",
+              "longPress": [
+                "ഔ"
+              ],
+              "hideHint": true
             },
             {
-              "label": "ം"
+              "label": "ം",
+              "longPress": [
+                "അം"
+              ],
+              "hideHint": true
             },
             {
               "label": "ട"
