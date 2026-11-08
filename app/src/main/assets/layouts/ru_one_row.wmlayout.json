@@ -1,0 +1,398 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_ru_one_row",
+    "name": "One-row ЙЦУКЕН",
+    "langId": "ru",
+    "tabletExpand": false,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "й",
+              "output": "й",
+              "letters": "йфя",
+              "longPress": [
+                "1",
+                "й"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "ф",
+              "output": "ф",
+              "letters": "фйяц",
+              "longPress": [
+                "@",
+                "ф"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "я",
+              "output": "я",
+              "letters": "яфцйы",
+              "longPress": [
+                "*",
+                "я"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "ц",
+              "output": "ц",
+              "letters": "цяыфч",
+              "longPress": [
+                "2",
+                "ц"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "ы",
+              "output": "ы",
+              "letters": "ыцчяу",
+              "longPress": [
+                "#",
+                "ы"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "ч",
+              "output": "ч",
+              "letters": "чыуцв",
+              "longPress": [
+                "\"",
+                "ч"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "у",
+              "output": "у",
+              "letters": "учвыс",
+              "longPress": [
+                "3",
+                "у"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "в",
+              "output": "в",
+              "letters": "вусчк",
+              "longPress": [
+                "$",
+                "в",
+                "₽"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "с",
+              "output": "с",
+              "letters": "свкуа",
+              "longPress": [
+                "'",
+                "с"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "к",
+              "output": "к",
+              "letters": "ксавм",
+              "longPress": [
+                "4",
+                "к"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "а",
+              "output": "а",
+              "letters": "акмсеё",
+              "longPress": [
+                "_",
+                "а"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "м",
+              "output": "м",
+              "letters": "маеёкп",
+              "longPress": [
+                ":",
+                "м"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "е",
+              "output": "е",
+              "letters": "еёмпаи",
+              "longPress": [
+                "5",
+                "е",
+                "ё"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "п",
+              "output": "п",
+              "letters": "пеёимн",
+              "longPress": [
+                "&",
+                "п"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "и",
+              "output": "и",
+              "letters": "ипнеёр",
+              "longPress": [
+                ";",
+                "и"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "н",
+              "output": "н",
+              "letters": "нирпт",
+              "longPress": [
+                "6",
+                "н"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "р",
+              "output": "р",
+              "letters": "рнтиг",
+              "longPress": [
+                "-",
+                "р"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "т",
+              "output": "т",
+              "letters": "тргно",
+              "longPress": [
+                "!",
+                "т"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "г",
+              "output": "г",
+              "letters": "гторьъ",
+              "longPress": [
+                "7",
+                "г"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "о",
+              "output": "о",
+              "letters": "огьътш",
+              "longPress": [
+                "+",
+                "о"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "ь",
+              "output": "ь",
+              "letters": "ьъошгл",
+              "longPress": [
+                "?",
+                "ь",
+                "ъ"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "ш",
+              "output": "ш",
+              "letters": "шьълоб",
+              "longPress": [
+                "8",
+                "ш"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "л",
+              "output": "л",
+              "letters": "лшбьъщ",
+              "longPress": [
+                "(",
+                "л"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "б",
+              "output": "б",
+              "letters": "блщшд",
+              "longPress": [
+                "«",
+                "б",
+                "»"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "щ",
+              "output": "щ",
+              "letters": "щбдлю",
+              "longPress": [
+                "9",
+                "щ"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "д",
+              "output": "д",
+              "letters": "дщюбз",
+              "longPress": [
+                ")",
+                "д"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "ю",
+              "output": "ю",
+              "letters": "юдзщж",
+              "longPress": [
+                "»",
+                "ю",
+                "«"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "з",
+              "output": "з",
+              "letters": "зюждхъ",
+              "longPress": [
+                "0",
+                "з"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "ж",
+              "output": "ж",
+              "letters": "жзхъюэ",
+              "longPress": [
+                "/",
+                "ж"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "х",
+              "output": "х",
+              "letters": "хъжэз",
+              "longPress": [
+                "х",
+                "ъ"
+              ],
+              "width": 0.32258065
+            },
+            {
+              "label": "э",
+              "output": "э",
+              "letters": "эхъж",
+              "longPress": [
+                "=",
+                "э"
+              ],
+              "width": 0.32258065
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              }
+            },
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              }
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "'",
+                "!",
+                "?"
+              ],
+              "role": "Comma",
+              "width": 0.75
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              },
+              "width": 0.75
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 3.5
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period",
+              "width": 0.75
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.25
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

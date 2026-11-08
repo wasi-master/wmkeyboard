@@ -644,7 +644,7 @@ import com.wasimaster.wmkeyboard.core.layout.KeyRole
 import com.wasimaster.wmkeyboard.core.layout.KeymanTarget
 import com.wasimaster.wmkeyboard.core.layout.ModifierKey
 import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
-import com.wasimaster.wmkeyboard.core.layout.letterSet
+import com.wasimaster.wmkeyboard.core.layout.lettersPlacedHere
 import com.wasimaster.wmkeyboard.core.layout.deletesBackward
 import com.wasimaster.wmkeyboard.core.layout.deletesForward
 import com.wasimaster.wmkeyboard.core.layout.drawnFontScale
@@ -21153,9 +21153,10 @@ private fun KeyRows(
                             // same key. That is what puts all of `abc` into the
                             // touch model — so the decoder can price a reading
                             // through any of them — and it costs nothing on the
-                            // 1:1 boards, where the set is the anchor alone.
-                            for (extra in key.letterSet()) {
-                                val code = Character.toLowerCase(extra.code)
+                            // 1:1 boards, where the set is the anchor alone. A
+                            // set letter with a key of its own (One-row QWERTY's
+                            // overlapping sets) reports from that key only.
+                            for (code in key.lettersPlacedHere(liveLayouts.value.letterOwners)) {
                                 if (code == Character.toLowerCase(letter)) continue
                                 keyCenters[code] = center
                                 keyBounds[code] = bounds

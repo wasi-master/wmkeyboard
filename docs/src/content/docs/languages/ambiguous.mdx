@@ -1,6 +1,6 @@
 ---
 title: "T9 & Compact QWERTY"
-description: "Layouts that let the prediction engine work out which letter you meant: T9 in 446 languages, Compact QWERTY, and One-row QWERTY with the whole alphabet on a single row."
+description: "Layouts that let the prediction engine work out which letter you meant: T9 in 446 languages, Compact QWERTY, and One-row QWERTY with the whole alphabet on a single row, in 36 languages including Avro."
 sidebar:
   order: 7
 ---
@@ -14,7 +14,7 @@ Most keyboards give every letter its own key. Twenty-six keys across a phone scr
 
 Two of the shipped layouts don't do that. **T9** puts the alphabet on eight keys, the way phone keypads did. **Compact QWERTY** keeps QWERTY's exact letter order but pairs the keys up, five to a row instead of ten. Both give you keys two to four times the usual size, and both work out what you meant afterwards rather than asking you to be precise.
 
-A third, **One-row QWERTY**, goes the other way: every letter keeps a key of its own, but all 26 sit on a single row, so the keyboard takes about half its usual height. It's covered in [its own section](#one-row-qwerty).
+A third, **One-row QWERTY**, puts the whole alphabet on a single row, so the keyboard takes about half its usual height. It comes in 36 languages, from German and Russian to Banglish and Avro, and is covered in [its own section](#one-row-qwerty).
 
 None of them starts enabled. Turn them on under <SettingsPath path="Languages & layouts / English" />, where they sit with English's other layouts alongside Dvorak and Colemak. T9 also comes in 315 more languages, each listed under its own language: see [T9 in other languages](#t9-in-other-languages).
 
@@ -124,20 +124,65 @@ The digits keep their QWERTY positions in the long-press alternates, so `1` and 
 
 ## One-row QWERTY
 
-The whole alphabet on one row, in the order you get by reading QWERTY's columns top to bottom: `q a z`, `w s x`, `e d c`, and so on to `p`. Each letter stays next to the ones above and below it on a normal keyboard, so your thumb goes to roughly the right spot without relearning anything. Minuum, a keyboard from 2013 that's no longer sold, worked the same way.
+The whole alphabet on one row, in the order you get by reading QWERTY's columns top to bottom: `q a z`, `w s x`, `e d c`, and so on to `p`. Each letter stays next to the ones above and below it on a normal keyboard, so your thumb goes to roughly the right spot without relearning anything. The keyboard takes about half its usual height. Minuum, a keyboard from 2013 that's no longer sold, worked the same way.
 
 | Row | Keys |
 |---|---|
 | Letters | `q a z w s x e d c r f v t g b y h n u j m i k o l p` |
 | Controls | <KeyCap>⇧</KeyCap> <KeyCap>?123</KeyCap> <KeyCap>,</KeyCap> <KeyCap>🌐</KeyCap> space <KeyCap>.</KeyCap> <KeyCap>⌫</KeyCap> <KeyCap>⏎</KeyCap> |
 
-Each letter key is under half the usual width, too narrow to hit exactly every time, and it doesn't need to be. Where your finger lands is scored against every key nearby, and the dictionary decides between them, so a tap halfway between `e` and `d` comes out as whichever one makes the word. This runs on the same typo model as any other layout. Unlike T9, nothing about a key is ambiguous: each tap types a real letter, and the word is corrected at the space the way it is on QWERTY.
+Each letter key is well under half the usual width, too narrow to hit exactly every time, and it doesn't need to be. Every key stands for its own letter and the two letters either side of it, plus their accents, the way a T9 key stands for `abc`. Where your finger landed decides how likely each of those letters is, and the dictionary decides between the words they spell. A tap halfway between `e` and `d` comes out as whichever one makes the word.
 
-- **Raise the tolerance if words come out wrong.** **Mistype tolerance**, under <SettingsPath path="Typing / Automatic corrections" />, sets how far a tap can land from a key and still count as that key.
-- **Exact letters are on the long press,** which holds the same digit and accents as the QWERTY key: `1` on `q`, `é` on `e`, `ñ` on `n`.
+The field shows the best reading as you type and space commits it, as on T9. If it picked the wrong word, the right one is usually on the strip. Hold a key to type its own letter exactly: the letter sits in the popup right after the digit or symbol, with its accents after that, so a name or a word the dictionary doesn't know can still be spelled.
+
+### Languages
+
+Each one-row board folds that language's own keyboard, so French folds AZERTY (`a q w`, `z s x`, ...) and German folds QWERTZ:
+
+- **The languages Minuum shipped:** English, German, French, Spanish, Italian, Dutch, Portuguese and Russian.
+- **More Latin and Cyrillic:** Swedish, Polish, Czech and Turkish. Turkish has the longest row, 32 keys.
+- **Romanized South Asian languages:** Banglish, Hinglish, Roman Urdu, Tanglish, and romanized Telugu, Marathi, Gujarati, Kannada, Malayalam (Manglish), Punjabi, Nepali and Sinhala, each reading its own word list.
+- **Avro and the Indic phonetic layouts:** One-row Avro for Bangla, and one-row versions of the Hindi, Urdu, Marathi, Gujarati, Punjabi, Odia, Assamese, Tamil, Telugu, Kannada and Malayalam phonetic layouts. The keys are decoded against the language's romanized spellings first, so `vzlo`, with the second tap landing on `z` two keys from `a`, is read as `valo`, and Avro's rules turn that into ভালো. The field shows the Bangla word, not the Latin keys.
+
+Each board is listed under its language in <SettingsPath path="Languages & layouts" /> and starts switched off.
+
+### How well it reads
+
+These figures come from a simulation, not from people typing. Words were drawn from each language's list in proportion to how often they're used, and typed with taps scattered around each key the way a thumb scatters. The scatter was the same physical size on both boards, so the one-row keys, at under half the width, are much harder to hit. The table shows how often the field held the right word after the space:
+
+| Language | QWERTY, careful | One row, careful | QWERTY, loose | One row, loose |
+|---|---:|---:|---:|---:|
+| English | 86% | 85% | 64% | 76% |
+| German | 83% | 79% | 65% | 76% |
+| French | 77% | 74% | 64% | 71% |
+| Spanish | 80% | 80% | 67% | 76% |
+| Italian | 87% | 80% | 67% | 76% |
+| Dutch | 88% | 78% | 66% | 75% |
+| Portuguese | 80% | 77% | 67% | 74% |
+| Russian | 89% | 81% | 71% | 75% |
+| Swedish | 69% | 75% | 57% | 72% |
+| Polish | 66% | 80% | 66% | 76% |
+| Czech | 58% | 76% | 57% | 72% |
+| Turkish | 73% | 79% | 64% | 76% |
+| Banglish (and Avro) | 76% | 78% | 46% | 73% |
+| Hinglish (and Hindi phonetic) | 77% | 84% | 47% | 79% |
+| Roman Urdu (and Urdu phonetic) | 77% | 70% | 46% | 65% |
+| Tanglish (and Tamil phonetic) | 74% | 90% | 44% | 87% |
+| Romanized Telugu | 77% | 88% | 46% | 85% |
+| Romanized Marathi | 77% | 85% | 44% | 81% |
+| Romanized Gujarati | 77% | 79% | 46% | 76% |
+| Romanized Kannada | 76% | 89% | 45% | 86% |
+| Manglish | 81% | 87% | 55% | 84% |
+| Romanized Punjabi | 75% | 78% | 46% | 74% |
+| Romanized Nepali | 77% | 76% | 50% | 72% |
+| Singlish | 91% | 82% | 71% | 80% |
+
+Careful typing on one row lands within ten points of QWERTY, and ahead of it on most of the romanized South Asian lists and in Polish, Czech, Swedish and Turkish. Loose typing comes out ahead on one row in every language, by 25 to 40 points on the romanized lists. QWERTY commits a missed key as typed unless autocorrect is sure, while one row always commits its best reading. The Avro and phonetic boards are read against the same romanized spellings, so they track the romanized row of their language.
+
+- **Raise the tolerance if words come out wrong.** **Mistype tolerance**, under <SettingsPath path="Typing / Automatic corrections" />, sets how far from a key a tap can land and still count as that key.
 - **Glide works,** though a stroke along one row has less shape to match than one across three.
 
-It's English only for now, under <SettingsPath path="Languages & layouts / English" />. If you build your own, a row can have up to 26 keys.
+If you build your own, a row can have up to 32 keys.
 
 ## Glide typing
 

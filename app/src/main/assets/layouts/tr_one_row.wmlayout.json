@@ -1,0 +1,419 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_tr_one_row",
+    "name": "One-row Q (Türkçe)",
+    "langId": "tr",
+    "tabletExpand": false,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "q",
+              "output": "q",
+              "letters": "qaâäázž",
+              "longPress": [
+                "q"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "a",
+              "output": "a",
+              "letters": "aâäáqzžw",
+              "longPress": [
+                "a",
+                "â",
+                "ä",
+                "á"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "z",
+              "output": "z",
+              "letters": "zžaâäáwqsşßśš",
+              "longPress": [
+                "z",
+                "ž"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "w",
+              "output": "w",
+              "letters": "wzžsşßśšaâäáx",
+              "longPress": [
+                "w"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "s",
+              "output": "s",
+              "letters": "sşßśšwxzžeəéê",
+              "longPress": [
+                "s",
+                "ş",
+                "ß",
+                "ś",
+                "š"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "x",
+              "output": "x",
+              "letters": "xsşßśšeəéêwd",
+              "longPress": [
+                "x"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "e",
+              "output": "e",
+              "letters": "eəéêxdsşßśšcçćč",
+              "longPress": [
+                "e",
+                "ə",
+                "é",
+                "ê"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "d",
+              "output": "d",
+              "letters": "deəéêcçćčxr",
+              "longPress": [
+                "d"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "c",
+              "output": "c",
+              "letters": "cçćčdreəéêf",
+              "longPress": [
+                "c",
+                "ç",
+                "ć",
+                "č"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "r",
+              "output": "r",
+              "letters": "rcçćčfdv",
+              "longPress": [
+                "r"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "f",
+              "output": "f",
+              "letters": "frvcçćčt",
+              "longPress": [
+                "f"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "v",
+              "output": "v",
+              "letters": "vftrgğ",
+              "longPress": [
+                "v"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "t",
+              "output": "t",
+              "letters": "tvgğfb",
+              "longPress": [
+                "t"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "g",
+              "output": "g",
+              "letters": "gğtbvyý",
+              "longPress": [
+                "g",
+                "ğ"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "b",
+              "output": "b",
+              "letters": "bgğyýth",
+              "longPress": [
+                "b"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "y",
+              "output": "y",
+              "letters": "yýbhgğnňñŋ",
+              "longPress": [
+                "y",
+                "ý"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "h",
+              "output": "h",
+              "letters": "hyýnňñŋbuüûùúū",
+              "longPress": [
+                "h"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "n",
+              "output": "n",
+              "letters": "nňñŋhuüûùúūyýj",
+              "longPress": [
+                "n",
+                "ň",
+                "ñ",
+                "ŋ"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "u",
+              "output": "u",
+              "letters": "uüûùúūnňñŋjhm",
+              "longPress": [
+                "u",
+                "ü",
+                "û",
+                "ù",
+                "ú",
+                "ū"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "j",
+              "output": "j",
+              "letters": "juüûùúūmnňñŋıiîïìíįī",
+              "longPress": [
+                "j"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "m",
+              "output": "m",
+              "letters": "mjıiîïìíįīuüûùúūk",
+              "longPress": [
+                "m"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "ı",
+              "shiftLabel": "I",
+              "output": "ı",
+              "letters": "ıiîïìíįīmkjö",
+              "longPress": [
+                "ı",
+                "i",
+                "î",
+                "ï",
+                "ì",
+                "í",
+                "į",
+                "ī"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "k",
+              "output": "k",
+              "letters": "kıiîïìíįīömoôœòóõøō",
+              "longPress": [
+                "k"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "ö",
+              "output": "ö",
+              "letters": "ökoôœòóõøōıiîïìíįīl",
+              "longPress": [
+                "ö"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "o",
+              "output": "o",
+              "letters": "oöôœòóõøōlkç",
+              "longPress": [
+                "o",
+                "ö",
+                "ô",
+                "œ",
+                "ò",
+                "ó",
+                "õ",
+                "ø",
+                "ō"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "l",
+              "output": "l",
+              "letters": "loöôœòóõøōçp",
+              "longPress": [
+                "l"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "ç",
+              "output": "ç",
+              "letters": "çlpoöôœòóõøōş",
+              "longPress": [
+                "ç"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "p",
+              "output": "p",
+              "letters": "pçşlğ",
+              "longPress": [
+                "p"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "ş",
+              "output": "ş",
+              "letters": "şpğçiıîïìíįī",
+              "longPress": [
+                "ş"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "ğ",
+              "output": "ğ",
+              "letters": "ğşiıîïìíįīpü",
+              "longPress": [
+                "ğ"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "i",
+              "shiftLabel": "İ",
+              "output": "i",
+              "letters": "iıîïìíįīğüş",
+              "longPress": [
+                "i",
+                "ı",
+                "î",
+                "ï",
+                "ì",
+                "í",
+                "į",
+                "ī"
+              ],
+              "width": 0.3125
+            },
+            {
+              "label": "ü",
+              "output": "ü",
+              "letters": "üiıîïìíįīğ",
+              "longPress": [
+                "ü"
+              ],
+              "width": 0.3125
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              }
+            },
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              }
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "'",
+                "!",
+                "?"
+              ],
+              "role": "Comma",
+              "width": 0.75
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              },
+              "width": 0.75
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 3.5
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period",
+              "width": 0.75
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.25
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -21,7 +21,9 @@ import com.wasimaster.wmkeyboard.core.layout.Layouts
 import com.wasimaster.wmkeyboard.core.layout.hasAmbiguousKeys
 import com.wasimaster.wmkeyboard.core.layout.hasKanaVariantKeys
 import com.wasimaster.wmkeyboard.core.layout.isAmbiguous
+import com.wasimaster.wmkeyboard.core.layout.letterOwners
 import com.wasimaster.wmkeyboard.core.layout.letterSet
+import com.wasimaster.wmkeyboard.core.layout.lettersPlacedHere
 import com.wasimaster.wmkeyboard.core.media.MediaSnapshot
 import com.wasimaster.wmkeyboard.core.input.composer.Composer
 import com.wasimaster.wmkeyboard.core.input.composer.NoComposer
@@ -561,8 +563,8 @@ data class LayoutSet(
                         // anchor, so a word continuing with any letter of a T9
                         // key floats over that key.
                         BASE_PASS -> if (key.isAmbiguous()) {
-                            for (letter in key.letterSet()) {
-                                out.putIfAbsent(Character.toLowerCase(letter.code), anchor)
+                            for (letter in key.lettersPlacedHere(letterOwners)) {
+                                out.putIfAbsent(letter, anchor)
                             }
                         } else {
                             claim(key.output ?: key.label, anchor)
@@ -587,6 +589,9 @@ data class LayoutSet(
      * would be a row scan per character typed.
      */
     val ambiguousKeys: Boolean = letters.hasAmbiguousKeys()
+
+    /** See [letterOwners]: set letters with a key of their own are placed only there. */
+    val letterOwners: Map<Int, Int> by lazy { letters.letterOwners() }
 
     /**
      * The letter grid a glide is decoded against: one entry per character the
@@ -665,8 +670,8 @@ data class LayoutSet(
                         // is emitted exactly as it always was, composed and
                         // decomposed spellings and all.
                         BASE_PASS -> if (key.isAmbiguous()) {
-                            for (letter in key.letterSet()) {
-                                out.add(KeyCenter(Character.toLowerCase(letter.code), x, y))
+                            for (letter in key.lettersPlacedHere(letterOwners)) {
+                                out.add(KeyCenter(letter, x, y))
                             }
                         } else {
                             emit(key.output ?: key.label, x, y)

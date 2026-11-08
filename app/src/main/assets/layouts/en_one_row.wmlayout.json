@@ -12,15 +12,21 @@
           [
             {
               "label": "q",
+              "output": "q",
+              "letters": "qaàáâäåzżź",
               "longPress": [
-                "1"
+                "1",
+                "q"
               ],
               "width": 0.38461538
             },
             {
               "label": "a",
+              "output": "a",
+              "letters": "aàáâäåqzżźw",
               "longPress": [
                 "@",
+                "a",
                 "à",
                 "á",
                 "â",
@@ -31,8 +37,11 @@
             },
             {
               "label": "z",
+              "output": "z",
+              "letters": "zżźaàáâäåwqsßś",
               "longPress": [
                 "*",
+                "z",
                 "ż",
                 "ź"
               ],
@@ -40,15 +49,21 @@
             },
             {
               "label": "w",
+              "output": "w",
+              "letters": "wzżźsßśaàáâäåx",
               "longPress": [
-                "2"
+                "2",
+                "w"
               ],
               "width": 0.38461538
             },
             {
               "label": "s",
+              "output": "s",
+              "letters": "sßśwxzżźeèéêë",
               "longPress": [
                 "#",
+                "s",
                 "ß",
                 "ś"
               ],
@@ -56,15 +71,21 @@
             },
             {
               "label": "x",
+              "output": "x",
+              "letters": "xsßśeèéêëwd",
               "longPress": [
-                "\""
+                "\"",
+                "x"
               ],
               "width": 0.38461538
             },
             {
               "label": "e",
+              "output": "e",
+              "letters": "eèéêëxdsßścçć",
               "longPress": [
                 "3",
+                "e",
                 "è",
                 "é",
                 "ê",
@@ -74,15 +95,21 @@
             },
             {
               "label": "d",
+              "output": "d",
+              "letters": "deèéêëcçćxr",
               "longPress": [
-                "$"
+                "$",
+                "d"
               ],
               "width": 0.38461538
             },
             {
               "label": "c",
+              "output": "c",
+              "letters": "cçćdreèéêëf",
               "longPress": [
                 "'",
+                "c",
                 "ç",
                 "ć"
               ],
@@ -90,64 +117,91 @@
             },
             {
               "label": "r",
+              "output": "r",
+              "letters": "rcçćfdv",
               "longPress": [
-                "4"
+                "4",
+                "r"
               ],
               "width": 0.38461538
             },
             {
               "label": "f",
+              "output": "f",
+              "letters": "frvcçćt",
               "longPress": [
-                "_"
+                "_",
+                "f"
               ],
               "width": 0.38461538
             },
             {
               "label": "v",
+              "output": "v",
+              "letters": "vftrg",
               "longPress": [
-                ":"
+                ":",
+                "v"
               ],
               "width": 0.38461538
             },
             {
               "label": "t",
+              "output": "t",
+              "letters": "tvgfb",
               "longPress": [
-                "5"
+                "5",
+                "t"
               ],
               "width": 0.38461538
             },
             {
               "label": "g",
+              "output": "g",
+              "letters": "gtbvy",
               "longPress": [
-                "&"
+                "&",
+                "g"
               ],
               "width": 0.38461538
             },
             {
               "label": "b",
+              "output": "b",
+              "letters": "bgyth",
               "longPress": [
-                ";"
+                ";",
+                "b"
               ],
               "width": 0.38461538
             },
             {
               "label": "y",
+              "output": "y",
+              "letters": "ybhgnñń",
               "longPress": [
-                "6"
+                "6",
+                "y"
               ],
               "width": 0.38461538
             },
             {
               "label": "h",
+              "output": "h",
+              "letters": "hynñńbuùúûü",
               "longPress": [
-                "-"
+                "-",
+                "h"
               ],
               "width": 0.38461538
             },
             {
               "label": "n",
+              "output": "n",
+              "letters": "nñńhuùúûüyj",
               "longPress": [
                 "!",
+                "n",
                 "ñ",
                 "ń"
               ],
@@ -155,8 +209,11 @@
             },
             {
               "label": "u",
+              "output": "u",
+              "letters": "uùúûünñńjhm",
               "longPress": [
                 "7",
+                "u",
                 "ù",
                 "ú",
                 "û",
@@ -166,22 +223,31 @@
             },
             {
               "label": "j",
+              "output": "j",
+              "letters": "juùúûümnñńiìíîï",
               "longPress": [
-                "+"
+                "+",
+                "j"
               ],
               "width": 0.38461538
             },
             {
               "label": "m",
+              "output": "m",
+              "letters": "mjiìíîïuùúûük",
               "longPress": [
-                "?"
+                "?",
+                "m"
               ],
               "width": 0.38461538
             },
             {
               "label": "i",
+              "output": "i",
+              "letters": "iìíîïmkjoòóôö",
               "longPress": [
                 "8",
+                "i",
                 "ì",
                 "í",
                 "î",
@@ -191,15 +257,21 @@
             },
             {
               "label": "k",
+              "output": "k",
+              "letters": "kiìíîïoòóôöml",
               "longPress": [
-                "("
+                "(",
+                "k"
               ],
               "width": 0.38461538
             },
             {
               "label": "o",
+              "output": "o",
+              "letters": "oòóôökliìíîïp",
               "longPress": [
                 "9",
+                "o",
                 "ò",
                 "ó",
                 "ô",
@@ -209,15 +281,21 @@
             },
             {
               "label": "l",
+              "output": "l",
+              "letters": "loòóôöpk",
               "longPress": [
-                ")"
+                ")",
+                "l"
               ],
               "width": 0.38461538
             },
             {
               "label": "p",
+              "output": "p",
+              "letters": "ploòóôö",
               "longPress": [
-                "0"
+                "0",
+                "p"
               ],
               "width": 0.38461538
             }
@@ -238,6 +316,7 @@
             {
               "label": ",",
               "longPress": [
+                "'",
                 "!",
                 "?"
               ],

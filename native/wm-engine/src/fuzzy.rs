@@ -1571,4 +1571,162 @@ mod tests {
         assert!((plain.edit_cost - cost_sub_far()).abs() < 1e-9);
         assert!(learned.edit_cost < plain.edit_cost && learned.edit_cost >= habit_floor());
     }
+    /// One-row boards (Minuum's layout) against the same language's three-row
+    /// grid: words drawn by frequency from a real list, typed by a Gaussian
+    /// finger whose scatter is in *normal* key widths, so a row of 26 keys
+    /// each 10/26 wide is as hard to hit as it is on a phone. Prints how often
+    /// the word you meant is what ends up in the field. Run with
+    /// `ONE_ROW_LIST=<word freq file> ONE_ROW_ROWS=qwertyuiop,asdfghjkl,zxcvbnm
+    /// cargo test --release one_row_eval -- --ignored --nocapture`.
+    #[test]
+    #[ignore]
+    fn one_row_eval() {
+        let list = std::env::var("ONE_ROW_LIST").expect("ONE_ROW_LIST");
+        let rows: Vec<Vec<u16>> = std::env::var("ONE_ROW_ROWS")
+            .expect("ONE_ROW_ROWS")
+            .split(',')
+            .map(|r| r.chars().map(|c| c as u16).collect())
+            .collect();
+        let words: usize = std::env::var("ONE_ROW_WORDS").ok().and_then(|n| n.parse().ok()).unwrap_or(100_000);
+        // Accented letters behind each base key's long press ("eéè aà"), typed
+        // at the base key and carried by the one-row sets beside it.
+        let groups: Vec<Vec<u16>> = std::env::var("ONE_ROW_GROUPS")
+            .unwrap_or_default()
+            .split(' ')
+            .filter(|g| !g.is_empty())
+            .map(|g| g.chars().map(|c| c as u16).collect())
+            .collect();
+        let base_of = |u: u16| groups.iter().find(|g| g.contains(&u)).map_or(u, |g| g[0]);
+        let accents_of = |u: u16| groups.iter().find(|g| g[0] == u).map(|g| g[1..].to_vec()).unwrap_or_default();
+        let mut alphabet: std::collections::HashSet<u16> = rows.iter().flatten().copied().collect();
+        alphabet.extend(groups.iter().flatten().copied());
+        let mut entries: Vec<(String, i32)> = crate::wordlist::parse(&std::fs::read_to_string(&list).unwrap())
+            .into_iter()
+            .map(|(w, f)| (w.to_lowercase(), f))
+            .filter(|(w, _)| w.encode_utf16().all(|u| alphabet.contains(&u)))
+            .collect();
+        entries.sort_by(|a, b| b.1.cmp(&a.1));
+        entries.dedup_by(|a, b| a.0 == b.0);
+        entries.truncate(words);
+        let d = Dict::open(wmdict::write(&PackedTrie::of(&entries))).unwrap();
+        let usable: Vec<&(String, i32)> = entries.iter().filter(|(w, _)| w.chars().count() >= 2).collect();
+        // Word frequencies in these lists are log-scaled scores; sample by rank
+        // with Zipf weights instead, which is what running text looks like.
+        let mut cumulative = Vec::with_capacity(usable.len());
+        let mut total = 0f64;
+        for i in 0..usable.len() {
+            total += 1.0 / (i as f64 + 10.0);
+            cumulative.push(total);
+        }
+        // Three rows centred on the widest, a key apart; one row of n keys each 10/n wide.
+        let widest = rows.iter().map(Vec::len).max().unwrap() as f32;
+        let grid: Vec<(u16, f32, f32)> = rows
+            .iter()
+            .enumerate()
+            .flat_map(|(r, row)| {
+                let offset = (widest - row.len() as f32) / 2.0;
+                row.iter().enumerate().map(move |(c, &u)| (u, offset + c as f32, r as f32))
+            })
+            .collect();
+        let order: Vec<u16> = (0..widest as usize)
+            .flat_map(|c| rows.iter().filter_map(move |row| row.get(c).copied()))
+            .collect();
+        let pitch = widest / order.len() as f32;
+        let strip: Vec<(u16, f32, f32)> =
+            order.iter().enumerate().map(|(i, &u)| (u, (i as f32 + 0.5) * pitch, 0.0)).collect();
+        let row_strings: Vec<String> = rows.iter().map(|r| String::from_utf16_lossy(r)).collect();
+        let boards = [
+            ("three rows", grid, KeyProximity::of_rows(&row_strings)),
+            ("one row   ", strip, KeyProximity::of_rows(&[String::from_utf16_lossy(&order)])),
+        ];
+        println!("{list}: {} words, one row = {}", entries.len(), String::from_utf16_lossy(&order));
+        let ws = &mut Workspace::new();
+        for (sx, sy) in [(0.25f64, 0.3f64), (0.35, 0.45)] {
+            for (name, keys, proximity) in &boards {
+                let nearest = |p: (f32, f32)| {
+                    keys.iter()
+                        .min_by(|a, b| {
+                            let da = (a.1 - p.0).powi(2) + (a.2 - p.1).powi(2);
+                            let db = (b.1 - p.0).powi(2) + (b.2 - p.1).powi(2);
+                            da.total_cmp(&db)
+                        })
+                        .unwrap()
+                        .0
+                };
+                let sigma: f64 = std::env::var("ONE_ROW_SIGMA").ok().and_then(|v| v.parse().ok()).unwrap_or(TouchModel::SIGMA);
+                // Accents sit at their base key, as the app places them.
+                let mut model_keys = keys.clone();
+                for g in &groups {
+                    if let Some(&(_, x, y)) = keys.iter().find(|k| k.0 == g[0]) {
+                        model_keys.extend(g[1..].iter().map(|&u| (u, x, y)));
+                    }
+                }
+                let model = TouchModel::new(model_keys, sigma).with_slip_radius(1.25);
+                let one_row = keys.iter().all(|k| k.2 == 0.0);
+                let mut seed = 0x2545_f491_4f6c_dd1du64;
+                let mut uniform = move || {
+                    seed ^= seed << 13;
+                    seed ^= seed >> 7;
+                    seed ^= seed << 17;
+                    (seed >> 11) as f64 / (1u64 << 53) as f64
+                };
+                // Policies, each "is the meant word what the field holds after space".
+                let labels = ["exact", "gate", "top1", "top3", "set1", "set2", "set3", "set2 top3", "set1 no-tap", "set2 no-tap"];
+                let mut hits = [0usize; 10];
+                let n = 3000;
+                for _ in 0..n {
+                    let target = uniform() * total;
+                    let word = &usable[cumulative.partition_point(|&c| c <= target).min(usable.len() - 1)].0;
+                    let meant: Vec<u16> = word.encode_utf16().collect();
+                    let mut taps = Vec::new();
+                    for u in &meant {
+                        let (_, x, y) = *keys.iter().find(|k| k.0 == base_of(*u)).unwrap();
+                        let (u1, u2) = (uniform().max(1e-12), uniform());
+                        let (u3, u4) = (uniform().max(1e-12), uniform());
+                        let g1 = (-2.0 * u1.ln()).sqrt() * (2.0 * std::f64::consts::PI * u2).cos();
+                        let g2 = (-2.0 * u3.ln()).sqrt() * (2.0 * std::f64::consts::PI * u4).cos();
+                        taps.push(Some((x + (g1 * sx) as f32, y + (g2 * sy) as f32)));
+                    }
+                    let typed: Vec<u16> = taps.iter().map(|p| nearest(p.unwrap())).collect();
+                    let max_edits = default_max_edits(typed.len());
+                    let scoring = TouchScoring::new(&model, taps.clone());
+                    let got = search_units(&[src(&d, 0.0)], &typed, proximity, 4, ws, max_edits, Some(&scoring), &NO_HABITS, None);
+                    let is = |c: Option<&Candidate>| c.is_some_and(|c| c.word == meant);
+                    if typed == meant { hits[0] += 1; hits[1] += 1; }
+                    else if d.frequency_of(&String::from_utf16_lossy(&typed)) == 0 && is(fires(&got, Gate::Careful)) { hits[1] += 1; }
+                    if is(got.first()) { hits[2] += 1; }
+                    if got.iter().take(3).any(|c| c.word == meant) { hits[3] += 1; }
+                    if !one_row { continue; }
+                    // The pressed key and its k neighbours either side, pressed letter first.
+                    let sets = |k: usize| {
+                        KeySets::new(
+                            typed.iter().map(|t| {
+                                let i = order.iter().position(|o| o == t).unwrap();
+                                let mut window: Vec<usize> = (i.saturating_sub(k)..=(i + k).min(order.len() - 1)).collect();
+                                window.sort_by_key(|j| j.abs_diff(i));
+                                let mut set = Vec::new();
+                                for j in window {
+                                    for u in std::iter::once(order[j]).chain(accents_of(order[j])) {
+                                        if !set.contains(&u) { set.push(u); }
+                                    }
+                                }
+                                set
+                            }).collect(),
+                            vec![None; typed.len()],
+                        )
+                    };
+                    for (slot, k, touch) in [(4, 1, true), (5, 2, true), (6, 3, true), (8, 1, false), (9, 2, false)] {
+                        let ks = sets(k);
+                        let r = search_units(&[src(&d, 0.0)], &typed, proximity, 4, ws, max_edits,
+                            if touch { Some(&scoring) } else { None }, &NO_HABITS, Some(&ks));
+                        if is(r.first()) { hits[slot] += 1; }
+                        if k == 2 && touch && r.iter().take(3).any(|c| c.word == meant) { hits[7] += 1; }
+                    }
+                }
+                let cells: Vec<String> = labels.iter().zip(hits).filter(|(_, h)| one_row || *h > 0)
+                    .map(|(l, h)| format!("{l} {:.1}", 100.0 * h as f64 / n as f64)).collect();
+                println!("  scatter ({sx}, {sy}) {name}: {}", cells.join(" | "));
+            }
+        }
+    }
 }

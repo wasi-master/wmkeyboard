@@ -113,6 +113,20 @@ class AssetLayoutHygieneTest {
         // for typing English words without switching layouts.
         "asset_he_gboard_plus",
         "asset_he_gboard_plus_swipe_safe",
+        // One-row Avro and the other phonetic one-row boards: QWERTY's letters
+        // on one row, read by the language's phonetic scheme like Avro's.
+        "asset_bn_avro_one_row",
+        "asset_hi_phonetic_one_row",
+        "asset_ur_phonetic_one_row",
+        "asset_mr_phonetic_one_row",
+        "asset_gu_phonetic_one_row",
+        "asset_pa_phonetic_one_row",
+        "asset_or_phonetic_one_row",
+        "asset_as_phonetic_one_row",
+        "asset_ta_phonetic_one_row",
+        "asset_te_phonetic_one_row",
+        "asset_kn_phonetic_one_row",
+        "asset_ml_phonetic_one_row",
     )
 
     @Test
@@ -191,8 +205,10 @@ class AssetLayoutHygieneTest {
             .filter { group ->
                 group.size > 1 &&
                     // A T9 keypad is the script's keypad standard, shared by
-                    // design the way InScript is (#332).
-                    group.any { (name, _) -> !name.endsWith("_t9") } &&
+                    // design the way InScript is (#332), and the phonetic
+                    // one-row boards are QWERTY folded onto one row for every
+                    // scheme that reads QWERTY.
+                    group.any { (name, _) -> !name.endsWith("_t9") && !name.endsWith("_one_row") } &&
                     group.any { (_, l) -> l.id !in latinByDesign && l.script().id != ScriptId.LATIN } &&
                     // Membership, not an exact group match: fixing one language's
                     // letters moves it in or out of a shared-grid cluster, and a

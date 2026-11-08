@@ -3013,6 +3013,9 @@ class SuggestionEngine(
         /** How many spellings [phoneticWalk] asks for; the search returns up to twice this. */
         private const val PHONETIC_FIX_WALK = 16
 
+        /** Readings asked of the walk behind [phoneticKeyedSpelling]: it keeps the first. */
+        private const val KEYED_SPELLING_WALK = 4
+
         /** Corrections shown behind the head when none of them takes the space. */
         private const val PHONETIC_FIX_OFFERS = 2
 
@@ -4477,6 +4480,68 @@ class SuggestionEngine(
         return PhoneticWalk(language, typed, gen, found.filter { it.edits > 0 && it.completedChars == 0 })
             .also { lastPhoneticWalk = it }
     }
+
+    /**
+     * What a phonetic layout's keystrokes spelled, when its keys stand for
+     * several letters each: the romanized spelling the key sets and taps most
+     * likely meant, read against [phoneticRomanized]'s spellings the way a T9
+     * buffer is read against a word list. [composing] holds only the anchor of
+     * each key, so everything downstream — Avro's rules, the reading, the
+     * strip, the commit — runs on this instead, as if the spelling had been
+     * typed key for key. One-row Avro is the board that needs it.
+     *
+     * A completion's head counts: mid-word, `valo` is the best reading of
+     * `vak` (keys v, a, k) only because the word goes on. A letter typed in
+     * capitals keeps its case, since Avro reads `T` and `t` as two letters.
+     * [composing] itself when the keys are not ambiguous, the language has no
+     * spellings, or nothing decodes.
+     */
+    fun phoneticKeyedSpelling(
+        language: String,
+        composing: String,
+        touch: List<TouchPoint?>?,
+        keys: KeySets?,
+    ): String {
+        if (keys?.isAmbiguous != true || composing.isEmpty()) return composing
+        val romanized = phoneticRomanized[language]?.takeUnless { it.isEmpty } ?: return composing
+        val gen = generation.get()
+        lastKeyedSpelling?.takeIf {
+            it.generation == gen && it.language == language && it.typed == composing && it.touch == touch &&
+                it.keys == keys
+        }?.let { return it.spelled }
+        val model = touchModelField
+        val scoring = if (model != null && touch != null && touch.any { it != null }) {
+            FuzzyBeamSearch.TouchScoring(model, touch)
+        } else {
+            null
+        }
+        val best = beam.search(
+            romanized.walkSources(), composing.lowercase(), proximity, KEYED_SPELLING_WALK, beamWorkspace.get(),
+            maxEdits = 1, touch = scoring, habits = editHabitsField, keys = keys,
+        ).firstOrNull()
+        val head = best?.let { it.word.substring(0, it.word.length - it.completedChars) }
+        val spelled = when {
+            head.isNullOrEmpty() -> composing
+            head.length != composing.length -> head
+            else -> String(CharArray(head.length) { i ->
+                if (composing[i].isUpperCase() && composing[i].lowercaseChar() == head[i]) composing[i] else head[i]
+            })
+        }
+        lastKeyedSpelling = KeyedSpelling(language, composing, touch, keys, gen, spelled)
+        return spelled
+    }
+
+    private class KeyedSpelling(
+        val language: String,
+        val typed: String,
+        val touch: List<TouchPoint?>?,
+        val keys: KeySets?,
+        val generation: Long,
+        val spelled: String,
+    )
+
+    @Volatile
+    private var lastKeyedSpelling: KeyedSpelling? = null
 
     /** See [phoneticFix]: the word that may take a space, and what else to offer. */
     private class PhoneticFix(val lead: String?, val offers: List<String>)

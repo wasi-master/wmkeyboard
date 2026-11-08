@@ -513,6 +513,51 @@ fun Key.withLetters(raw: String): Key {
 }
 
 /**
+ * Which key each set letter of this grid is placed at, by that key's anchor, for the letters that
+ * have one place: the key that types it as its anchor, or failing that the key
+ * that holds it behind a long press. A letter with neither is absent, and sits
+ * at every key whose set carries it.
+ *
+ * What decides where a set letter goes for glide, the touch model and the
+ * next-letter lookup. On T9 and Compact QWERTY a set letter has no key of its
+ * own, so it sits at the centre of the key that carries it, as it always has.
+ * On One-row QWERTY every key also carries its neighbours and their accents, so
+ * the sets overlap: placing `a` at the centre of the `q` key that merely lists
+ * it, or `é` at `d`, would move it from where it is drawn.
+ */
+fun KeyboardLayout.letterOwners(): Map<Int, Int> {
+    val out = HashMap<Int, Int>()
+    for (row in rows) {
+        for (key in row) key.anchorCode()?.let { out.putIfAbsent(it, it) }
+    }
+    for (row in rows) {
+        for (key in row) {
+            if (!key.isAmbiguous()) continue
+            val anchor = key.anchorCode() ?: continue
+            for (alternate in key.longPress) {
+                val ch = alternate.singleOrNull()?.takeIf { it.spellsAWord() } ?: continue
+                out.putIfAbsent(Character.toLowerCase(ch.code), anchor)
+            }
+        }
+    }
+    return out
+}
+
+/**
+ * The letters of this key's set to place at its centre: its anchor, and every
+ * other letter that [owners] places nowhere else.
+ */
+fun Key.lettersPlacedHere(owners: Map<Int, Int>): List<Int> {
+    val anchor = anchorCode()
+    return letterSet().mapIndexedNotNull { i, ch ->
+        Character.toLowerCase(ch.code).takeIf { code -> i == 0 || owners[code].let { it == null || it == anchor } }
+    }
+}
+
+/** The first letter of this key's set, lowercased: what identifies it in [letterOwners]. */
+private fun Key.anchorCode(): Int? = letterSet().firstOrNull()?.let { Character.toLowerCase(it.code) }
+
+/**
  * Whether any key of this grid is ambiguous — whether the whole board needs the
  * key-set decode rather than reading its keystrokes literally.
  */

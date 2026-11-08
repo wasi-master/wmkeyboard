@@ -80,7 +80,7 @@ private const val MaxKeysAddedByExpansion = 2
 
 /**
  * Widest row the rebuild leaves a grid with. Held at 24, under [MaxKeysPerRow]:
- * that cap grew to 26 for One-row QWERTY, which declines anyway (two rows), and
+ * that cap grew to 32 for the one-row boards, which decline anyway (two rows), and
  * the converted Keyman grids it would otherwise start widening already run
  * narrower keys than a tablet wants.
  */

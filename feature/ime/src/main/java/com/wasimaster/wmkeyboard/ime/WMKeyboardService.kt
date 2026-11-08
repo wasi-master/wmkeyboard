@@ -1844,6 +1844,7 @@ open class WMKeyboardService : InputMethodService() {
             composingKeys.clear()
             composingHints.clear()
             ambiguousReading = null
+            phoneticKeyed = null
             // Same boundary for the typing-rhythm signal: a fresh (or
             // re-armed) word starts with no rhythm history.
             keystrokeTiming.reset()
@@ -1949,6 +1950,12 @@ open class WMKeyboardService : InputMethodService() {
      * it wrote and quietly drop the composition.
      */
     private var ambiguousReading: Pair<String, String>? = null
+
+    /**
+     * [phoneticTyped]'s last answer, as (buffer, spelling), cleared with
+     * [ambiguousReading] and for the same reasons.
+     */
+    private var phoneticKeyed: Pair<String, String>? = null
 
     /**
      * Typing rhythm of the word being composed, for the timing-signal
@@ -11284,6 +11291,7 @@ open class WMKeyboardService : InputMethodService() {
             repeat(length) { composingKeys.removeLastOrNull() }
             repeat(length) { composingHints.removeLastOrNull() }
             ambiguousReading = null
+            phoneticKeyed = null
             // A step that was the whole buffer (ㄱ becoming ㅋ as the first
             // letter) leaves the region on screen for the next step to
             // overwrite. Writing the empty buffer out ends the composition, and
@@ -15570,6 +15578,7 @@ open class WMKeyboardService : InputMethodService() {
                 composingKeys.clear()
                 composingHints.clear()
                 ambiguousReading = null
+                phoneticKeyed = null
                 readingCaret = head.length
                 updateComposingText(ic)
                 refreshSuggestions()
@@ -15627,6 +15636,7 @@ open class WMKeyboardService : InputMethodService() {
                 composingHints.clear()
             }
             ambiguousReading = null
+            phoneticKeyed = null
             updateComposingText(ic)
             refreshSuggestions()
         } else if (isNullField()) {
@@ -17203,6 +17213,7 @@ open class WMKeyboardService : InputMethodService() {
             composingKeys.clear()
             composingHints.clear()
             ambiguousReading = null
+            phoneticKeyed = null
             keystrokeTiming.reset()
             updateComposingText(ic)
             refreshSuggestions()
@@ -17283,6 +17294,7 @@ open class WMKeyboardService : InputMethodService() {
             composingKeys.clear()
             composingHints.clear()
             ambiguousReading = null
+            phoneticKeyed = null
             keystrokeTiming.reset()
             updateComposingText(ic)
             clearCaretWord()
@@ -19296,7 +19308,7 @@ open class WMKeyboardService : InputMethodService() {
         // so everything that measures or reads back the region finds the
         // styled word it holds (#950).
         fancyOutputStyle(state)?.let { return FancyStyles.transform(buffer, it) }
-        if (state.layouts.ambiguousKeys && buffer.isNotEmpty()) {
+        if (state.layouts.ambiguousKeys && buffer.isNotEmpty() && state.composer.phoneticLanguage == null) {
             ambiguousReading?.takeIf { it.first == buffer }?.let { return it.second }
             val reading = ambiguousDecode(buffer) ?: buffer
             ambiguousReading = buffer to reading
@@ -19304,10 +19316,12 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (!state.composer.isTransliterating) return buffer
         state.composer.phoneticLanguage?.let { language ->
+            // What the keys spelled, which on One-row Avro is not the buffer.
+            val spelled = phoneticTyped(state, buffer)
             // An English word the space bar is about to commit as English
             // shows as English, for the reason the map's spelling shows early.
-            suggestionEngine?.phoneticLatinPreview(language, buffer, previousWord)?.let {
-                return sentenceCasedLatin(it, buffer, state)
+            suggestionEngine?.phoneticLatinPreview(language, spelled, previousWord)?.let {
+                return sentenceCasedLatin(it, spelled, state)
             }
             // Once the strip has ranked this buffer, the word it put first is
             // the one a space commits, and the field shows that one. Showing the
@@ -19321,7 +19335,8 @@ open class WMKeyboardService : InputMethodService() {
                 ?.let { it.phoneticUncorrected ?: it.phoneticTop }
                 ?.takeUnless { isLatinOnPhonetic(it, state) }
                 ?.let { return it }
-            suggestionEngine?.phoneticSpelling(language, buffer, previousWord, previousWord2)?.let { return it }
+            suggestionEngine?.phoneticSpelling(language, spelled, previousWord, previousWord2)?.let { return it }
+            if (spelled != buffer) return state.composer.composeBuffer(spelled)
         }
         completionLatin(state, buffer)?.let { return it }
         return state.composer.composeBuffer(buffer)
@@ -19346,6 +19361,7 @@ open class WMKeyboardService : InputMethodService() {
      * the engine's ranked-walk cache rather than repeating it.
      */
     private fun ambiguousDecode(buffer: String): String? {
+        if (_uiState.value.composer.phoneticLanguage != null) return null
         val engine = suggestionEngine ?: return null
         val keys = composingKeyFrame()?.takeIf { it.isAmbiguous } ?: return null
         return engine.suggest(
@@ -19356,6 +19372,24 @@ open class WMKeyboardService : InputMethodService() {
             touch = composingTouchFrame(),
             keys = keys,
         ).firstOrNull()
+    }
+
+    /**
+     * A phonetic buffer as its keys spelled it: [buffer] itself on every board
+     * whose keys type one letter each, and on One-row Avro (keys that stand for
+     * their neighbours too) the romanized spelling the key sets and taps most
+     * likely meant ([SuggestionEngine.phoneticKeyedSpelling]). Every phonetic
+     * step — the field's reading, the strip, the commit — reads this rather
+     * than the anchors the buffer holds. Main thread, memoised per buffer.
+     */
+    private fun phoneticTyped(state: KeyboardUiState, buffer: String): String {
+        val language = state.composer.phoneticLanguage ?: return buffer
+        if (!state.layouts.ambiguousKeys || buffer.isEmpty()) return buffer
+        phoneticKeyed?.takeIf { it.first == buffer }?.let { return it.second }
+        val keys = composingKeyFrame()?.takeIf { it.isAmbiguous } ?: return buffer
+        val spelled = suggestionEngine?.phoneticKeyedSpelling(language, buffer, composingTouchFrame(), keys) ?: buffer
+        phoneticKeyed = buffer to spelled
+        return spelled
     }
 
     /**
@@ -19927,30 +19961,32 @@ open class WMKeyboardService : InputMethodService() {
         val output = when {
             state.composer.phoneticLanguage != null -> {
                 val language = state.composer.phoneticLanguage.orEmpty()
+                // What the keys spelled: the buffer, except on One-row Avro.
+                val spelled = phoneticTyped(state, typed)
                 var uncorrected: String? = null
                 val ranked = if (pre != null && pre.isPhonetic) {
                     scriptAlternate = pre.phoneticAlternate
                     uncorrected = pre.phoneticUncorrected
                     pre.phoneticTop
                 } else {
-                    val commit = suggestionEngine?.phoneticCommit(language, typed, previousWord, previousWord2)
+                    val commit = suggestionEngine?.phoneticCommit(language, spelled, previousWord, previousWord2)
                     scriptAlternate = commit?.alternate
                     uncorrected = commit?.uncorrected
                     commit?.output
-                } ?: state.composer.composeBuffer(typed)
+                } ?: state.composer.composeBuffer(spelled)
                 // Everything that stops a Latin correction stops this one, and
                 // the word then goes in as the field has been showing it.
                 val mayCorrect = autocorrect && state.allowsTypingIntelligence && uncorrected != null &&
                     !declinedSpots.blocks(wordStart, uncorrected, state.settings.correction.stopAfterDeclines)
                 val top = if (mayCorrect) ranked else uncorrected ?: ranked
-                val led = neuralCommit(state, language, typed, top) ?: top
+                val led = neuralCommit(state, language, spelled, top) ?: top
                 if (mayCorrect && led == ranked) {
                     corrected = led
                     correctedReading = uncorrected
                     // Nothing about it is obvious: the field said one thing until now.
                     obviousness = 0.0
                 }
-                if (isLatinOnPhonetic(led, state)) sentenceCasedLatin(led, typed, state) else led
+                if (isLatinOnPhonetic(led, state)) sentenceCasedLatin(led, spelled, state) else led
             }
             // Vietnamese commits a composed Vietnamese word, and a word list
             // knows more about that word than the composer does: the spelling
@@ -22005,6 +22041,7 @@ open class WMKeyboardService : InputMethodService() {
         val edited = edit(composing.toString(), state.composer) ?: return
         composing.replace(0, composing.length, edited)
         ambiguousReading = null
+        phoneticKeyed = null
         updateComposingText(ic)
         refreshSuggestions()
     }
@@ -22039,6 +22076,7 @@ open class WMKeyboardService : InputMethodService() {
         composingKeys.clear()
         composingHints.clear()
         ambiguousReading = null
+        phoneticKeyed = null
         updateComposingText(ic)
         refreshSuggestions()
     }
@@ -27313,6 +27351,9 @@ open class WMKeyboardService : InputMethodService() {
             pendingResolution = null
         }
 
+        // What the keys spelled, which on One-row Avro is not the buffer: the
+        // phonetic steps below read this, and the frames stay with the buffer.
+        val spelled = phoneticTyped(state, typed)
         suggestionJob?.cancel()
         suggestionJob = serviceScope.launch {
             // Short adaptive debounce: fast bursts of keystrokes cancel the
@@ -27381,7 +27422,7 @@ open class WMKeyboardService : InputMethodService() {
             var candidateBar = emptyList<String>()
             // IndicXlit's readings, when the language has them on: asked now,
             // read after the walk, so the two overlap.
-            val neural = if (state.composer.completionLanguage == null) requestNeuralReadings(state, typed) else null
+            val neural = if (state.composer.completionLanguage == null) requestNeuralReadings(state, spelled) else null
             val (walkResults, emojis, bias, floating) = withContext(suggestionDispatcher) {
                 // A layout whose keys already spell the word (Khipro) is
                 // completed from what they spelled, not from the roman keys;
@@ -27389,15 +27430,17 @@ open class WMKeyboardService : InputMethodService() {
                 val completing = state.composer.completionLanguage
                 val deepAll = trace(ImeTrace.SUGGEST) {
                     engine.suggest(
-                        composing = if (completing != null) state.composer.composeBuffer(typed) else typed,
+                        composing = if (completing != null) state.composer.composeBuffer(typed) else spelled,
                         previousWord = previousWord,
                         phoneticLanguage = state.composer.phoneticLanguage,
                         limit = askDeep,
-                        touch = touchFrame.takeIf { completing == null },
+                        // A spelling the keys were read as is already decoded;
+                        // the anchors' taps and sets describe another string.
+                        touch = touchFrame.takeIf { completing == null && spelled == typed },
                         previousWord2 = previousWord2,
                         recentWords = recentSnapshot,
                         allowRerank = true,
-                        keys = keyFrame.takeIf { completing == null },
+                        keys = keyFrame.takeIf { completing == null && spelled == typed },
                         previousWord3 = previousWord3,
                         phoneticSlots = state.settings.suggestionStrip.slotCount,
                         completionLanguage = completing,
@@ -27415,13 +27458,13 @@ open class WMKeyboardService : InputMethodService() {
                             if (ask.isDone && !ask.isCancelled && composing.toString() == typed) refreshSuggestions()
                         }
                     }
-                    engine.withNeuralReadings(lang, walked, readings, typed, lead = neuralLeads(state, lang))
+                    engine.withNeuralReadings(lang, walked, readings, spelled, lead = neuralLeads(state, lang))
                 }
                 val deep = deepAll.take(askFor)
                 state.composer.phoneticLanguage?.let { lang ->
                     val where = state.settings.suggestionStrip.phoneticCandidateListFor(lang)
                     if (typed.isNotEmpty() && where == PhoneticCandidateList.BAR) {
-                        candidateBar = engine.phoneticCandidates(lang, typed, PHONETIC_CANDIDATE_BAR_MAX)
+                        candidateBar = engine.phoneticCandidates(lang, spelled, PHONETIC_CANDIDATE_BAR_MAX)
                     }
                 }
                 // The walk itself cannot be interrupted — the engine has no
@@ -27567,7 +27610,7 @@ open class WMKeyboardService : InputMethodService() {
                     typed.isEmpty() -> null
                     state.composer.phoneticLanguage != null -> {
                         val commit = engine
-                            .phoneticCommit(state.composer.phoneticLanguage.orEmpty(), typed, previousWord, previousWord2)
+                            .phoneticCommit(state.composer.phoneticLanguage.orEmpty(), spelled, previousWord, previousWord2)
                         // The ordinary strip's head is what a space commits. A
                         // fixed strip's head is the buffer in Latin letters,
                         // whatever the space will do, so there the commit is

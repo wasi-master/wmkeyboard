@@ -56,7 +56,7 @@ class TabletExpansionCorpusTest {
 
     @Test
     fun `the corpus is the whole shipped set`() {
-        assertEquals("built-ins plus hand-authored assets", 39 + 1_109, handAuthored.size)
+        assertEquals("built-ins plus hand-authored assets", 39 + 1_144, handAuthored.size)
         assertTrue(
             "converted Keyman grids are missing from the corpus",
             corpus.size - handAuthored.size > 800,
@@ -84,6 +84,9 @@ class TabletExpansionCorpusTest {
     fun `exactly the non-alphabetic layouts decline`() {
         // The per-language T9 keypads (#332) decline for the reason builtin_t9 does.
         val keypads = handAuthored.map { it.id }.filter { it.endsWith("_t9") }.toSet()
+        // The one-row boards: the whole alphabet on one row over the control
+        // row, two rows where the rebuild needs four.
+        val oneRows = handAuthored.map { it.id }.filter { it.endsWith("_one_row") }.toSet()
         val declined = handAuthored
             .filter { tabletGridWidth(it.letters, DeviceForm.LARGE_TABLET) == null }
             .map { it.id }
@@ -119,9 +122,6 @@ class TabletExpansionCorpusTest {
                 "ipa_qwerty", "ipa_qwerty_g",
                 // Toki Pona's fourteen letters fit on two short rows.
                 "tok_compact",
-                // One-row QWERTY: the whole alphabet on one row over the
-                // control row, two rows where the rebuild needs four.
-                "en_one_row",
                 // Arabic as Gboard and AOSP draw it (#427): no shift key to mirror.
                 "ar_letters",
                 // Persian as Gboard draws it, and the alphabetical Devanagari
@@ -140,7 +140,7 @@ class TabletExpansionCorpusTest {
                 "ckb_alt", "ckb_four_rows", "ckb_phonetic", "ckb_sorani",
                 // Samsung's alphabet-order Bangla grid has no shift key.
                 "bn_samsung",
-            ) + keypads,
+            ) + keypads + oneRows,
             declined,
         )
     }

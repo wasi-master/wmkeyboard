@@ -117,12 +117,13 @@ const val MaxKeyWidth = 12f
 const val MaxRowWidth = 40f
 
 /**
- * A whole Latin alphabet in one row, and no more. Below roughly 2 mm per key a
- * row stops being tappable *as keys*; One-row QWERTY's 26 are read by the touch
- * model and the dictionary instead, the way Minuum read its strip, so this is
- * the width of that board rather than the width of a finger.
+ * A whole alphabet in one row, and no more: Turkish's 32 letters on One-row Q.
+ * Below roughly 2 mm per key a row stops being tappable *as keys*; the one-row
+ * boards are read by the touch model and the dictionary instead, the way
+ * Minuum read its strip, so this is the width of those boards rather than the
+ * width of a finger.
  */
-const val MaxKeysPerRow = 26
+const val MaxKeysPerRow = 32
 
 /** Taller than any phone shows without eating the whole screen. */
 const val MaxRowsPerLayer = 8
