@@ -16336,6 +16336,67 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Whether a caret on a word may take it up on a phonetic layout (#1181).
+     *
+     * [composingResumable] turns every transliterator down, because the buffer
+     * of one is the keys, not the word: Avro's is the roman spelling of the
+     * Bengali in the field. So these resume through [phoneticResumeBuffer],
+     * which spells the word back into those keys, and a caret inside a word
+     * gets the strip through [phoneticSpellings]. Only the layouts whose buffer
+     * is plain roman letters, outside a conversion, with a word list loaded
+     * for the language to answer about the word.
+     */
+    private fun phoneticResumable(state: KeyboardUiState): Boolean {
+        val composer = state.composer
+        val language = composer.phoneticLanguage ?: return false
+        return composer.isRomanBuffer && !composer.isConversion && composer.completionLanguage == null &&
+            PhoneticSchemes.forLanguage(language) != null && suggestionEngine?.phoneticBackend(language) != null
+    }
+
+    /**
+     * The roman keys that type [word] on the phonetic layout now on screen, or
+     * null when none of [phoneticSpellings] does. One is taken only when the
+     * field would show exactly [word] for it ([composedPreview], which is also
+     * what Space commits), judged after the text [ahead] of the word: a spelling
+     * that reads as some other word would respell the user's word the moment
+     * they typed on, and leaving it read-only is better than that.
+     */
+    private fun phoneticResumeBuffer(state: KeyboardUiState, word: String, ahead: CharSequence): String? {
+        val spellings = phoneticSpellings(word)
+        if (spellings.isEmpty()) return null
+        // The reading depends on the word before; the resume sets the same
+        // context straight after, and the read-only fall-through sets it too.
+        setContextFrom(ahead)
+        return spellings.firstOrNull { composedPreview(state, it) == word }
+    }
+
+    /**
+     * The roman spellings worth trying for [word] on a phonetic layout, likeliest
+     * first: a word already in roman letters as it stands (an English word typed
+     * on Avro), else the spelling the word list writes it back with (তোমার as
+     * "tomar"), then the scheme's own rules. Letters only, since no other key
+     * reaches the buffer. The word list's spellings are built off the main
+     * thread on first need, so the very first caret may only get the rules'.
+     */
+    private fun phoneticSpellings(word: String): List<String> {
+        fun roman(spelling: String) = spelling.isNotEmpty() && spelling.all { it in 'a'..'z' || it in 'A'..'Z' }
+        if (roman(word)) return listOf(word)
+        val language = _uiState.value.composer.phoneticLanguage ?: return emptyList()
+        val scheme = PhoneticSchemes.forLanguage(language) ?: return emptyList()
+        if (word.none(scheme.isNative)) return emptyList()
+        val converter = romanizedConverter(language)
+        val known = converter?.knownSpelling(word)
+        if (converter != null && known == null && preparingConverter !== converter) {
+            preparingConverter = converter
+            serviceScope.launch(Dispatchers.Default) { converter.prepare() }
+        }
+        return listOfNotNull(known, scheme.romanizeWord(scheme.normalize(word))).filter(::roman).distinct()
+    }
+
+    /** The converter whose spellings [phoneticSpellings] last asked to have built. */
+    private var preparingConverter: RomanizedConverter? = null
+
+    /**
      * Re-reads the context around a cursor that moved without going through a
      * keystroke — a tap elsewhere, a selection-handle drag, a spacebar-swipe
      * caret move, or an edit the app itself made — so the strip reflects where
@@ -16357,7 +16418,8 @@ open class WMKeyboardService : InputMethodService() {
      * `composingMode`). Vietnamese is in too, and is the one that hands back
      * something other than the word: its buffer is the keystrokes that spell it
      * ([Composer.resumeBuffer]), so a tone key typed after the resume lands on
-     * the word rather than being spelled into it.
+     * the word rather than being spelled into it. The phonetic layouts come
+     * back in by their own gate, [phoneticResumable], the same way (#1181).
      * [newSelStart] is the caret offset the field just reported, used to place
      * the composing region.
      */
@@ -16488,7 +16550,7 @@ open class WMKeyboardService : InputMethodService() {
             fancyOutputStyle(state) == null &&
             // Last, so the one term that asks the engine anything is only
             // reached once the screen and the field have already said yes.
-            composingResumable(state.composer, suggestionEngine?.hasWordSources == true)
+            (composingResumable(state.composer, suggestionEngine?.hasWordSources == true) || phoneticResumable(state))
 
         // Held outside the block so the fall-through below can reuse it rather
         // than asking the editor for the same 64 characters again — that read
@@ -16529,7 +16591,15 @@ open class WMKeyboardService : InputMethodService() {
                 // this word back — one of the several spellings that would not
                 // compose it — leaves the caret where the fall-through below
                 // treats it: read-only.
+                // A phonetic layout spells the word back into the roman keys
+                // that type it, and only takes it when they type exactly it
+                // (#1181); see [phoneticResumeBuffer].
                 val buffer = state.composer.resumeBuffer(word)
+                    ?: if (phoneticResumable(state)) {
+                        phoneticResumeBuffer(state, word, before.subSequence(0, before.length - word.length))
+                    } else {
+                        null
+                    }
                 if (buffer != null && caretStillAt(ic, newSelStart) &&
                     ic.setComposingRegion(newSelStart - word.length, newSelStart)
                 ) {
@@ -26851,6 +26921,15 @@ open class WMKeyboardService : InputMethodService() {
             publishCaretWordSuggestions(engine, caret)
             return
         }
+        // On a phonetic layout the strip is asked with the roman spelling of
+        // the word, the way it is while the word is being typed (#1181).
+        if (typed.isEmpty() && caret != null && phoneticResumable(state)) {
+            val spelling = phoneticSpellings(caret.word).firstOrNull()
+            if (spelling != null) {
+                publishCaretWordSuggestions(engine, caret, spelling, state.composer.phoneticLanguage)
+                return
+            }
+        }
 
         // The caret right after digits typed on their own: the numbers the
         // user typed before that start with them (#431).
@@ -27429,7 +27508,13 @@ open class WMKeyboardService : InputMethodService() {
      * and no typing rhythm to weigh; and there is nothing to commit, so the
      * space/enter resolution is cleared rather than computed.
      */
-    private fun publishCaretWordSuggestions(engine: SuggestionEngine, caret: CaretWord) {
+    private fun publishCaretWordSuggestions(
+        engine: SuggestionEngine,
+        caret: CaretWord,
+        /** What the engine is asked with: the word, or on a phonetic layout its roman spelling (#1181). */
+        query: String = caret.word,
+        phoneticLanguage: String? = null,
+    ) {
         val word = caret.word
         suggestionJob?.cancel()
         commitResolution = null
@@ -27438,12 +27523,13 @@ open class WMKeyboardService : InputMethodService() {
         suggestionJob = serviceScope.launch {
             val others = withContext(suggestionDispatcher) {
                 engine.suggest(
-                    composing = word,
+                    composing = query,
                     previousWord = previousWord,
                     previousWord2 = previousWord2,
                     recentWords = recentSnapshot,
                     allowRerank = true,
                     previousWord3 = previousWord3,
+                    phoneticLanguage = phoneticLanguage,
                 ).filterNot { it.equals(word, ignoreCase = true) }
             }
             // Filtered out above and put back here, so the word holds one slot

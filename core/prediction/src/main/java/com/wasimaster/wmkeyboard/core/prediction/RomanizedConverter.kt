@@ -69,7 +69,7 @@ class RomanizedConverter(
                     var j = i
                     while (j < norm.length && scheme.isNative(norm[j])) j++
                     val word = norm.substring(i, j)
-                    out.append(inverted[word] ?: respelled[word] ?: scheme.romanizeWord(word))
+                    out.append(inverted.value[word] ?: respelled[word] ?: scheme.romanizeWord(word))
                     changed = true
                     i = j
                 }
@@ -97,7 +97,7 @@ class RomanizedConverter(
                 var j = i
                 while (j < norm.length && scheme.isNative(norm[j])) j++
                 val word = norm.substring(i, j)
-                if (word !in inverted) out += word
+                if (word !in inverted.value) out += word
                 i = j
             } else {
                 i++
@@ -111,7 +111,7 @@ class RomanizedConverter(
      * caller on the main thread does not pay for it.
      */
     fun prepare() {
-        inverted
+        inverted.value
     }
 
     private fun wordToNative(word: String): String {
@@ -138,7 +138,15 @@ class RomanizedConverter(
     private fun isLatinLetter(c: Char): Boolean = c in 'a'..'z' || c in 'A'..'Z'
 
     /** Native word → the spelling to write it with. */
-    private val inverted: Map<String, String> by lazy { buildInverted() }
+    private val inverted: Lazy<Map<String, String>> = lazy { buildInverted() }
+
+    /**
+     * The spelling the map writes [word] back with, or null when it has none
+     * or has not been built yet. Never builds it: this is asked on the main
+     * thread, from a caret landing on a word, and the build is [prepare]'s.
+     */
+    fun knownSpelling(word: String): String? =
+        if (inverted.isInitialized()) inverted.value[scheme.normalize(word)] else null
 
     private fun buildInverted(): Map<String, String> {
         // Every listed spelling of each word, in the lists' order.

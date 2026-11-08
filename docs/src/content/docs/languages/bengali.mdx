@@ -149,6 +149,12 @@ A capital that changes the letter also goes around the list and the dictionary, 
 
 You can switch this off per language if you'd rather have the letter-for-letter reading (see **Spellings** under [Options](#options) below). See [Downloadable dictionaries](/languages/dictionaries/) for how Bangla's dictionary and these lists fit into suggestions generally.
 
+### Going back to a word
+
+Put the cursor in a Bangla word you have already written, by tapping it or by walking the caret with the spacebar, and the strip answers about that word, the same as it does for an English one (see [When the cursor lands in a word](/smart/suggestions/#when-the-cursor-lands-in-a-word)). The keyboard looks for the Latin spelling that types the word: the one the spelling list writes it with (তোমার is `tomar`), then the transliteration rules read backwards. With the cursor right after the word, a spelling that gives back exactly that word picks the word up again, underlined, so the next letter you type goes on the end of it and Space commits it as usual. A word no spelling gives back is left as it is: the strip still offers words for it, and a chip replaces it, but what you type next starts a new word. So does any word with the cursor in the middle of it.
+
+The spelling list is read the first time this is needed, in the background, so the very first word you go back to may only get the rules' spelling.
+
 ## Typing with Khipro
 
 **Borno phonetic** is the keymap of Codepotro's Borno keyboard, read by rules of WM Keyboard's own and ranked against the same word list as Avro, so the strip and Space behave as they do on Avro. It wears the same QWERTY grid, and turning it on next to Avro lets the globe key flip between them. The keys that differ from Avro are `c` for চ and `ch` for ছ, `z` for য, `y` after a consonant for য-ফলা and `w` for ব-ফলা, `kkh` for ক্ষ, `gg` for জ্ঞ, and `A` or `xx` for চন্দ্রবিন্দু. The reph takes `rr`, so `korrm` is কর্ম and `korm` is করম. `ng` is ং, and ঙ্গ before a vowel, so `bangla` is বাংলা and `ranga` is রাঙ্গা. Consonants join only where Bangla usually writes them together, and `n` becomes the nasal of the row it joins: `onk` is অঙ্ক, `onj` is অঞ্জ. Digits come out in Bangla and `$` is ৳.
