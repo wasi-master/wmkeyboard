@@ -37,6 +37,23 @@ class SettingLinksTest {
     }
 
     @Test
+    fun `a link into a theme's editor names the reader's theme, not the sender's`() {
+        assertEquals(
+            "wmkeyboard://settings/theme_edit/current?setting=theme_touch_bloom_title&since=0.6.5",
+            SettingLinks.appLink("theme_edit/custom_1793115110139", "theme_touch_bloom_title", "0.6.5"),
+        )
+    }
+
+    @Test
+    fun `the editor opens the applied theme for current or for an id this phone lacks`() {
+        val mine = setOf("custom_1", "custom_2")
+        assertEquals("custom_2", SettingLinks.themeEditTarget("custom_2", "custom_1", mine::contains))
+        assertEquals("custom_1", SettingLinks.themeEditTarget("current", "custom_1", mine::contains))
+        assertEquals("custom_1", SettingLinks.themeEditTarget("custom_9", "custom_1", mine::contains))
+        assertEquals("built-in applied", "custom_9", SettingLinks.themeEditTarget("custom_9", "default", mine::contains))
+    }
+
+    @Test
     fun `a version that is not a number is left out`() {
         assertEquals(
             "wmkeyboard://settings/typing?setting=typing_autocorrect_title",

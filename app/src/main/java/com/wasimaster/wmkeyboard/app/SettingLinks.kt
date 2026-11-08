@@ -89,6 +89,7 @@ internal object SettingLinks {
             ?.let { "${SettingsDeepLink.SINCE_PARAM}=$it" }
         val screen = route?.takeIf { it.isNotEmpty() && !it.contains('{') }
             ?.let { SettingsRoutes.resolve(it) }
+            ?.let(::portable)
         return if (screen != null) {
             val params = listOfNotNull("${SettingsDeepLink.SETTING_PARAM}=$name", since)
             "${SettingsDeepLink.SCHEME}://${SettingsDeepLink.SCREEN_HOST}/$screen?${params.joinToString("&")}"
@@ -111,6 +112,34 @@ internal object SettingLinks {
     }
 
     /** [appLink] inside the documentation site's `/open/` page; see [WebOpenLink]. */
+    /**
+     * The theme id a copied link puts in place of the sender's own: a custom
+     * theme's id (`custom_1793115110139`) exists on one phone only, so a link
+     * to its editor opened anywhere else said the theme did not exist. The
+     * editor reads this as "the theme this keyboard is wearing"; see
+     * [themeEditTarget].
+     */
+    const val CURRENT_THEME = "current"
+
+    private val PER_THEME = Regex("^(theme_edit|theme_assets)/[^/?]+")
+
+    /** [route] with anything that names one phone's own theme made to name the reader's. */
+    fun portable(route: String): String = PER_THEME.replace(route) { "${it.groupValues[1]}/$CURRENT_THEME" }
+
+    /**
+     * The theme the editor at `theme_edit/[requested]` opens: [requested]
+     * when it is one of [customThemeIds], else the [appliedId] theme when
+     * that one is, else [requested] as it was, which the editor answers by
+     * saying it is gone. A link copied on another phone, or one written
+     * before links said [CURRENT_THEME], lands on the reader's own theme
+     * rather than a dead end.
+     */
+    fun themeEditTarget(requested: String, appliedId: String, isCustom: (String) -> Boolean): String = when {
+        requested != CURRENT_THEME && isCustom(requested) -> requested
+        isCustom(appliedId) -> appliedId
+        else -> requested
+    }
+
     fun webLink(appLink: String): String = "$DOCS_URL${WebOpenLink.PATH}/#$appLink"
 
     /**

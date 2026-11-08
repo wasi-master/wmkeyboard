@@ -136,6 +136,8 @@ import com.wasimaster.wmkeyboard.core.ui.rememberLiveSlider
 import com.wasimaster.wmkeyboard.core.ui.toolAccentColor
 import com.wasimaster.wmkeyboard.core.ui.toolAccentPaint
 import androidx.compose.ui.platform.LocalConfiguration
+import com.wasimaster.wmkeyboard.core.settings.effectiveThemeId
+import com.wasimaster.wmkeyboard.core.theme.findThemeFamily
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import com.wasimaster.wmkeyboard.core.settings.settingsDepthResolved
 import com.wasimaster.wmkeyboard.core.settings.Extension
@@ -1684,7 +1686,16 @@ private fun SettingsNavGraph(
             }
         }
         composable("theme_edit/{themeId}") { backStackEntry ->
-            val themeId = backStackEntry.arguments?.getString("themeId").orEmpty()
+            val requested = backStackEntry.arguments?.getString("themeId").orEmpty()
+            // A copied setting link says "current" (or, written before it did,
+            // a theme id from the sender's phone): open this keyboard's own
+            // applied theme rather than "this theme does not exist".
+            val darkSlot = isSystemInDarkTheme()
+            val themeId = settings.watch { s ->
+                SettingLinks.themeEditTarget(requested, s.effectiveThemeId(darkSlot)) { id ->
+                    s.customThemes.findThemeFamily(id) != null
+                }
+            }
             // The look's own name, not "Edit theme": it is what the gallery
             // card said, and the card's name flies up into it. A theme that is
             // no longer there keeps the generic heading, which is all the
