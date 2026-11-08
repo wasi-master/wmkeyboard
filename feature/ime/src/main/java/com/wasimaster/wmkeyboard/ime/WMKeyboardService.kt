@@ -899,6 +899,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
@@ -3071,7 +3072,8 @@ open class WMKeyboardService : InputMethodService() {
         PhoneticIndexCache.retain(backends.keys)
         engine.extraPhonetic = backends
         romanizedGlides = romanizedGlides.filterKeys {
-            it == PhoneticSchemes.BENGALI.languageId || it == KHIPRO_GLIDE || it == PINYIN_GLIDE || it == KANA_GLIDE
+            it == PhoneticSchemes.BENGALI.languageId || it == KHIPRO_GLIDE || it == KHIPRO_DARK_GLIDE ||
+                it == PINYIN_GLIDE || it == KANA_GLIDE
         } +
             backends.mapValues { (_, backend) ->
                 RomanizedIndex.of(
@@ -4967,8 +4969,8 @@ open class WMKeyboardService : InputMethodService() {
         // The Khipro glide table landed, or could not be fetched: Khipro's
         // glide is set up again, from the table or, failing it, on the device.
         serviceScope.launch {
-            KhiproGlideDownloads.completions.collect {
-                if (_uiState.value.composer is KhiproComposer) ensureKhiproGlide()
+            merge(KhiproGlideDownloads.CLASSIC.completions, KhiproGlideDownloads.DARK.completions).collect {
+                (_uiState.value.composer as? KhiproComposer)?.let { ensureKhiproGlide(it === KhiproComposer.DARK) }
             }
         }
 
@@ -4976,7 +4978,7 @@ open class WMKeyboardService : InputMethodService() {
         // spellings were read off the old one.
         serviceScope.launch {
             KhiproSpecs.installs.collect {
-                if (_uiState.value.composer is KhiproComposer) ensureKhiproGlide()
+                (_uiState.value.composer as? KhiproComposer)?.let { ensureKhiproGlide(it === KhiproComposer.DARK) }
             }
         }
 
@@ -15729,38 +15731,49 @@ open class WMKeyboardService : InputMethodService() {
      * for it. Only when it cannot be had (offline, or a build with no internet)
      * are they all worked out on the device by running Khipro backwards, which
      * on a downloaded list is minutes of every core (#593).
+     *
+     * Khipro Dark ([dark]) has spellings, a table and an index of its own:
+     * it spells by its own rules (হবে is `hbe`, Classic's `hobe`), and read
+     * against Classic's a Dark `hbe` came back as হচ্ছে.
      */
-    private fun ensureKhiproGlide() {
+    private fun ensureKhiproGlide(dark: Boolean) {
         val engine = suggestionEngine ?: return
         val words = engine.bengaliIndex.sortedWords ?: return
+        val glide = khiproGlides[if (dark) 1 else 0]
+        val downloads = KhiproGlideDownloads.of(dark)
         val learned = userLexicon.mutationCount()
         val unlocked = userUnlocked
-        val table = KhiproGlideDownloads.file(filesDir).takeIf { unlocked && it.isFile }
+        val table = downloads.file(filesDir).takeIf { unlocked && it.isFile }
         val tableSize = table?.length() ?: -1L
         val spec = KhiproSpecs.activeRevision()
-        if (khiproGlideList === words && khiproGlideLearned == learned && khiproGlideTable == tableSize &&
-            khiproGlideSpec == spec
-        ) {
+        if (glide.list === words && glide.learned == learned && glide.table == tableSize && glide.spec == spec) {
             return
         }
-        if (khiproGlideJob?.isActive == true) return
-        if (unlocked && table == null && !KhiproGlideDownloads.failed) {
+        if (glide.job?.isActive == true) return
+        if (unlocked && table == null && !downloads.failed) {
             // Back here through the completions once it lands or fails.
-            KhiproGlideDownloads.start(filesDir)
+            downloads.start(filesDir)
             return
         }
         val dir = File(File(filesDir, "dict"), "bn")
-        khiproGlideJob = serviceScope.launch {
+        val variant = Khipro.Variant.of(dark, desktop = false)
+        glide.job = serviceScope.launch {
             // Shown only when the spellings are really being worked out, which
             // on a downloaded list is minutes; a cached list says nothing.
             var notify: DownloadNotifications.Handle? = null
             val (main, personal) = withContext(Dispatchers.Default) {
-                val main = khiproGlideMain.takeIf {
-                    khiproGlideList === words && khiproGlideTable == tableSize && khiproGlideSpec == spec
+                val main = glide.main.takeIf {
+                    glide.list === words && glide.table == tableSize && glide.spec == spec
                 }
                     ?: if (unlocked) {
                         val downloaded = KhiproSpecs.state.value.takeIf { it.downloaded }?.revision
-                        KhiproGlideSpellings.load(words, dir, premade = table, downloadedSpec = downloaded) { done, total ->
+                        KhiproGlideSpellings.load(
+                            words,
+                            dir,
+                            premade = table,
+                            downloadedSpec = downloaded,
+                            dark = dark,
+                        ) { done, total ->
                             synchronized(this@WMKeyboardService) {
                                 val handle = notify ?: DownloadNotifications.start(
                                     this@WMKeyboardService,
@@ -15778,16 +15791,18 @@ open class WMKeyboardService : InputMethodService() {
                         null
                     }
                 val own = userLexicon.allWords().filter { (word, _) -> word.any { it in '\u0980'..'\u09FF' } }
-                main to KhiproGlideSpellings.ofWords(own)
+                main to KhiproGlideSpellings.ofWords(own, dark)
             }
             if (main != null) notify?.done() else notify?.failed()
-            khiproGlideMain = main
-            khiproGlideList = words
-            khiproGlideLearned = learned
-            khiproGlideTable = tableSize
-            khiproGlideSpec = spec
-            romanizedGlides = romanizedGlides +
-                (KHIPRO_GLIDE to RomanizedIndex.deterministic(main ?: PackedTrie.EMPTY, personal, KhiproRomanizer.KEYS, Khipro::convert))
+            glide.main = main
+            glide.list = words
+            glide.learned = learned
+            glide.table = tableSize
+            glide.spec = spec
+            val index = RomanizedIndex.deterministic(main ?: PackedTrie.EMPTY, personal, KhiproRomanizer.KEYS) {
+                Khipro.convert(it, variant)
+            }
+            romanizedGlides = romanizedGlides + ((if (dark) KHIPRO_DARK_GLIDE else KHIPRO_GLIDE) to index)
             glideSourcesEpoch.update { it + 1 }
         }
     }
@@ -15864,12 +15879,18 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    private var khiproGlideJob: Job? = null
-    private var khiproGlideMain: WordSource? = null
-    private var khiproGlideList: SortedWords? = null
-    private var khiproGlideLearned = -1L
-    private var khiproGlideTable = -1L
-    private var khiproGlideSpec: String? = null
+    /** What one Khipro edition's glide spellings were last built from, and the build in flight. */
+    private class KhiproGlide {
+        var job: Job? = null
+        var main: WordSource? = null
+        var list: SortedWords? = null
+        var learned = -1L
+        var table = -1L
+        var spec: String? = null
+    }
+
+    /** Classic's, then Dark's. */
+    private val khiproGlides = arrayOf(KhiproGlide(), KhiproGlide())
 
     /**
      * Looks for a newer Khipro spec set (#909), at most once a day, as a word
@@ -30234,9 +30255,10 @@ open class WMKeyboardService : InputMethodService() {
                     languageId = state.language.id,
                     converts = state.composer.isTransliterating || state.composer.isConversion,
                     phonetic = state.composer.phoneticLanguage
-                        // Dark glides on Classic's spellings too: a stroke
-                        // can't draw Dark's `/` joins, and the keys are the
-                        // same, so it commits the word Classic would.
+                        // Each edition glides on its own spellings: Dark
+                        // leaves consonants apart where Classic joins them,
+                        // so the same word is a different stroke.
+                        ?: KHIPRO_DARK_GLIDE.takeIf { state.composer === KhiproComposer.DARK }
                         ?: KHIPRO_GLIDE.takeIf { state.composer is KhiproComposer }
                         // Full pinyin spells readings on QWERTY (#580). Not
                         // Double Pinyin, whose two keys per syllable no
@@ -30266,7 +30288,9 @@ open class WMKeyboardService : InputMethodService() {
                     // phonetic layout coverage is a question about the
                     // romanization rather than about the Bengali word list.
                     val engine = suggestionEngine
-                    if (gate.phonetic == KHIPRO_GLIDE) ensureKhiproGlide()
+                    if (gate.phonetic == KHIPRO_GLIDE || gate.phonetic == KHIPRO_DARK_GLIDE) {
+                        ensureKhiproGlide(dark = gate.phonetic == KHIPRO_DARK_GLIDE)
+                    }
                     if (gate.phonetic == PINYIN_GLIDE) ensurePinyinGlide()
                     if (gate.phonetic == KANA_GLIDE) ensureKanaGlide()
                     engine?.glideRomanization =
@@ -57886,6 +57910,9 @@ private const val PAGES_EMOJI_MAX = 24
 private const val FIXED_PHONETIC_CHIPS = 2
 /** [romanizedGlides]' key for Khipro, whose spellings are not a language's. */
 private const val KHIPRO_GLIDE = "bn_khipro"
+
+/** [romanizedGlides]' key for Khipro Dark, which spells words its own way. */
+private const val KHIPRO_DARK_GLIDE = "bn_khipro_dark"
 private const val TODO_SNOOZE_MS = 60L * 60 * 1000
 
 /** [romanizedGlides]' key for full Pinyin, whose spellings are readings (#580). */

@@ -20,7 +20,10 @@ import kotlinx.coroutines.launch
 
 /**
  * The Khipro spellings of the Bangla word list, worked out ahead of time and
- * published beside it in the data repo as `bn_khipro_glide.txt.gz` (#593).
+ * published beside it in the data repo as `bn_khipro_glide.txt.gz` (#593),
+ * and Khipro Dark's as `bn_khipro_dark_glide.txt.gz`: the two editions spell
+ * most words differently (হবে is `hobe` in Classic, `hbe` in Dark), so each
+ * has its own table, fetched for the edition that is glided on.
  *
  * Gliding on the Khipro grid needs every word's Khipro spelling, and working
  * them out means running Khipro backwards over the whole list: minutes of
@@ -29,25 +32,19 @@ import kotlinx.coroutines.launch
  * file and spells on the device only the words it does not list).
  *
  * Fetched the first time the Khipro grid is glided on, kept at
- * `dict/bn/khipro_glide.txt.gz`, and checked (it has to inflate and hold
+ * `dict/bn/khipro_glide.txt.gz` (`khipro_dark_glide.txt.gz`), and checked (it has to inflate and hold
  * spellings) before the `.part` is renamed into place, so presence means
  * valid. [failed] is set when the fetch could not happen (no connection, or a
  * build with no internet permission), which is when the phone falls back to
  * working the spellings out itself.
  */
-object KhiproGlideDownloads {
-
+class KhiproGlideDownloads private constructor(
     /** The name the data repo publishes it under, which an offline import is recognised by. */
-    const val PUBLISHED_NAME = "bn_khipro_glide.txt.gz"
+    val publishedName: String,
+    private val fileName: String,
+) {
 
-    private const val FILE_NAME = "khipro_glide.txt.gz"
-    private const val REPO_PATH = "data/bn/$PUBLISHED_NAME"
-    private const val USER_AGENT = "WMKeyboard Khipro glide downloader"
-
-    /** Far above the real file (about 4 MB); a response past it is not this file. */
-    private const val MAX_BYTES = 32L * 1024 * 1024
-
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val repoPath = "data/bn/$publishedName"
     private var job: Job? = null
 
     /** The last fetch failed; cleared by the next [start] or [install]. */
@@ -60,7 +57,7 @@ object KhiproGlideDownloads {
     /** Emits once the file has landed, or a fetch has failed, and glide should be set up again. */
     val completions: SharedFlow<Unit> = _completions.asSharedFlow()
 
-    fun file(filesDir: File): File = File(File(File(filesDir, "dict"), "bn"), FILE_NAME)
+    fun file(filesDir: File): File = File(File(File(filesDir, "dict"), "bn"), fileName)
 
     fun isDownloaded(filesDir: File): Boolean = file(filesDir).isFile
 
@@ -102,7 +99,7 @@ object KhiproGlideDownloads {
         val target = file(filesDir)
         target.parentFile?.mkdirs()
         val part = File(target.path + ".part")
-        val url = ServiceEndpoints.repo(ServiceRepo.DATA).rawUrl(REPO_PATH)
+        val url = ServiceEndpoints.repo(ServiceRepo.DATA).rawUrl(repoPath)
         val connection = URL(url).openConnection() as HttpURLConnection
         val netCall = NetLog.call(NetSource.DOWNLOAD_WORDLIST, "GET", url, route = NetLog.pathOf(url))
         try {
@@ -148,4 +145,28 @@ object KhiproGlideDownloads {
             }
         }
     }.getOrDefault(false)
+
+    companion object {
+        /** Khipro Classic's table. */
+        val CLASSIC = KhiproGlideDownloads("bn_khipro_glide.txt.gz", "khipro_glide.txt.gz")
+
+        /** Khipro Dark's table. */
+        val DARK = KhiproGlideDownloads("bn_khipro_dark_glide.txt.gz", "khipro_dark_glide.txt.gz")
+
+        /** Both editions' tables. */
+        val ALL = listOf(CLASSIC, DARK)
+
+        /** The table of Khipro Dark if [dark], Classic if not. */
+        fun of(dark: Boolean): KhiproGlideDownloads = if (dark) DARK else CLASSIC
+
+        /** The table published as [name], or null when that is neither's name. */
+        fun byPublishedName(name: String): KhiproGlideDownloads? = ALL.firstOrNull { it.publishedName == name }
+
+        private const val USER_AGENT = "WMKeyboard Khipro glide downloader"
+
+        /** Far above the real file (about 4 MB); a response past it is not this file. */
+        private const val MAX_BYTES = 32L * 1024 * 1024
+
+        private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    }
 }
