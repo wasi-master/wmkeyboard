@@ -23,6 +23,17 @@
                 android:value="androidx.startup"
                 tools:node="remove" />
         </provider>
+        <!-- ML Kit initialises itself from this provider, which Android skips
+             for a process started on the lock screen and installs late, after
+             unlock. By then the keyboard has often initialised ML Kit by hand
+             (MlKitInit.ensure), and the provider's strict init threw "MlKitContext
+             is already initialized" and took the whole process down (Telegram
+             6320, 0.6.4 crash on a TECNO CM6). The application does it instead;
+             see WMFullApplication.onCreate. -->
+        <provider
+            android:name="com.google.mlkit.common.internal.MlKitInitProvider"
+            android:authorities="${applicationId}.mlkitinitprovider"
+            tools:node="remove" />
     </application>
 
 </manifest>
