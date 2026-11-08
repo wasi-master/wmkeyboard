@@ -8210,6 +8210,9 @@ open class WMKeyboardService : InputMethodService() {
         // A field of WM Pass's own may offer its buttons on the strip; any other drops them.
         readWmPassChips(attribute)
         if (!restarting) {
+            // The address seen in the last field was remembered as it closed,
+            // or that field was never one to remember.
+            emailFieldText = null
             // The conversions backspace can re-pick (#711) were written into
             // the field that just went.
             recentConversions.clear()
@@ -9000,6 +9003,7 @@ open class WMKeyboardService : InputMethodService() {
         // The field just spoke, so it is answering again: stop skipping reads.
         stallGuard?.noteResponsive()
         refreshModeForFieldText()
+        noteEmailFieldText()
         // The settings app's own fields live in this process, and there the
         // echo is not a message at all. Every hop from our commitText to the
         // editor and back through InputMethodManager.updateSelection is a local
@@ -26037,13 +26041,43 @@ open class WMKeyboardService : InputMethodService() {
      * not a complete address.
      */
     private fun rememberTypedEmail() {
-        val state = _uiState.value
-        if (state.fieldKind != FieldKind.EMAIL || state.secureField || !userUnlocked) return
-        if (!state.settings.suggestionSources.typedEmails) return
+        val seen = emailFieldText
+        emailFieldText = null
+        if (!remembersTypedEmail(_uiState.value)) return
+        // Read live first, for an address the app put there itself (autofill,
+        // a picked account) with no edit of ours after it. A field left for
+        // the next one has already lost its connection, and that read comes
+        // back empty: then the copy kept while typing is the field's text.
+        val live = currentInputConnection?.let(::emailFieldTextOf)
+        typedEmails.record(live?.takeIf { it.isNotBlank() } ?: seen ?: return)
+    }
+
+    /**
+     * The email field's whole text as last seen while it was being edited
+     * (#475). An email field is mostly left by its own Next, onto a password
+     * box, with the keyboard staying up. Android runs [onFinishInputView] for
+     * the old field then, but the app has already cut that field's connection,
+     * so reading it there finds nothing. Google's sign-in is exactly that
+     * flow, which is why @gmail.com addresses, the ones people sign in with,
+     * were the ones that never showed up again.
+     */
+    private var emailFieldText: String? = null
+
+    /** Keeps [emailFieldText] current: on every edit and caret move in a field it is about. */
+    private fun noteEmailFieldText() {
+        if (!remembersTypedEmail(_uiState.value)) return
         val ic = currentInputConnection ?: return
-        val before = ic.getTextBeforeCursor(EMAIL_FIELD_LOOKBEHIND, 0)?.toString() ?: return
-        val after = ic.getTextAfterCursor(EMAIL_FIELD_LOOKBEHIND, 0)?.toString().orEmpty()
-        typedEmails.record(before + after)
+        emailFieldText = emailFieldTextOf(ic) ?: return
+    }
+
+    private fun remembersTypedEmail(state: KeyboardUiState): Boolean =
+        state.fieldKind == FieldKind.EMAIL && !state.secureField && userUnlocked &&
+            state.settings.suggestionSources.typedEmails
+
+    /** Both sides of the caret, so an address corrected in the middle is read as it now stands. */
+    private fun emailFieldTextOf(ic: InputConnection): String? {
+        val before = ic.getTextBeforeCursor(EMAIL_FIELD_LOOKBEHIND, 0)?.toString() ?: return null
+        return before + ic.getTextAfterCursor(EMAIL_FIELD_LOOKBEHIND, 0)?.toString().orEmpty()
     }
 
     /** The email-address token immediately before the cursor (may be empty). */
