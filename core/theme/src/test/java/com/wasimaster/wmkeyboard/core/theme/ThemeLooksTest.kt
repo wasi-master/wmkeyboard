@@ -104,4 +104,17 @@ class ThemeLooksTest {
         assertNull(keyLightingPatternOrNull("DISCO"))
         assertEquals(BoardEffectKind.CODE_RAIN, boardEffectKindOrNull("code_rain"))
     }
+
+    @Test
+    fun `press splashes, key colours and key motions read back by name`() {
+        assertTrue(BoardEffectKind.PAINT.onPress)
+        assertFalse(BoardEffectKind.RIPPLES.onPress)
+        assertEquals(BoardEffectKind.LIGHT_POOL, boardEffectKindOrNull("light_pool"))
+        assertEquals(KeyLightingColorMode.PASTEL, keyLightingColorModeOrNull("pastel"))
+        assertEquals(KeyLightingTarget.GLITTER, keyLightingTargetOrNull("GLITTER"))
+        assertEquals(KeyPressMotion.TILT, keyPressMotionOrNull("tilt"))
+        // A theme written before the fields existed keeps the old behaviour.
+        assertNull(TouchBloomSpec().motion)
+        assertNull(KeyLightingSpec(pattern = "KEY").colorMode)
+    }
 }

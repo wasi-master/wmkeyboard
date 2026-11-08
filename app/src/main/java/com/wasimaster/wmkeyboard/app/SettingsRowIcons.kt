@@ -2420,12 +2420,14 @@ internal object SettingsRowIcons {
         put(R.string.theme_lighting_speed_title) { Icons.Outlined.Speed }
         put(R.string.theme_lighting_hue_span_title) { Icons.Outlined.Palette }
         put(R.string.theme_lighting_decay_title) { Icons.Outlined.HourglassBottom }
+        put(R.string.theme_lighting_color_mode_title) { Icons.Outlined.Palette }
         put(R.string.theme_touch_bloom_title) { Icons.Outlined.TouchApp }
         put(R.string.theme_touch_bloom_color_title) { Icons.Outlined.ColorLens }
         put(R.string.theme_touch_bloom_light_title) { Icons.Outlined.LightMode }
         put(R.string.theme_touch_bloom_radius_title) { Icons.Outlined.ZoomOutMap }
         put(R.string.theme_touch_bloom_dip_title) { Icons.Outlined.Compress }
         put(R.string.theme_touch_bloom_wobble_title) { Icons.Outlined.Waves }
+        put(R.string.theme_touch_bloom_motion_title) { Icons.Outlined.Animation }
         put(R.string.theme_skin_load_title) { Icons.Outlined.FileOpen }
         put(R.string.appearance_toolbox_back_lowers_title) { Icons.Outlined.Keyboard }
         put(R.string.backup_pcloud_region_title) { Icons.Outlined.Public }

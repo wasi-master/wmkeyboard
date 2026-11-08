@@ -441,22 +441,23 @@ Every control after the first shows the material's own value until you change it
 
 | Setting | Control | Range | Default |
 |---|---|---|---|
-| Effect | Choice | None / Snow / Rain / Code rain / Bokeh / Stars / Warp speed / Fireflies / Dust / Embers / Bubbles / Confetti / Fireworks / Aurora / Nebula / Lava lamp / Waves / Smoke / Dot grid / Contour lines / Equaliser / Scanner / Sheen / Ripples | None |
+| Effect | Choice | None / Snow / Rain / Code rain / Bokeh / Stars / Warp speed / Fireflies / Dust / Embers / Bubbles / Confetti / Fireworks / Aurora / Nebula / Lava lamp / Waves / Smoke / Dot grid / Contour lines / Equaliser / Scanner / Sheen / Ripples / Paint splash / Ink blot / Light pool / Colour flood / Smoke puff / Glint / Pop / Swoosh / Specks | None |
 | Amount | Slider | 0–100% | 50% |
 | Speed | Slider | 0–3× | 1× |
 | Brightness | Slider | 0–100% | 60% |
 | Size | Slider | 0.5–2× | 1× |
-| Reacts to typing | Slider | 0–100% | 0% |
-| First colour, Second colour | Colour, or Auto | Any | The accent, the label colour |
+| Reacts to typing *(not on splashes)* | Slider | 0–100% | 0% |
+| First colour, Second colour | Colour, or Auto | Any | The accent, the label colour; on a splash, a new colour for each press |
 
-A still picture under reduce motion or power saving.
+A still picture under reduce motion or power saving. The splashes, from Paint splash to Specks, are drawn over the keys only while you type, and not at all under reduce motion or power saving.
 
 ### Key lighting
 
 | Setting | Control | Range | Default |
 |---|---|---|---|
 | Pattern | Choice | None / Steady / Breathe / Wave / Sweep / Twinkle / Heartbeat / Pressed key / Ripple / Echo / Splash / Cross / Rain | None |
-| Light on | Choice | Key faces / Key edges / Behind the keys | Behind the keys |
+| Light on | Choice | Key faces / Key edges / Behind the keys / Filled key / Two-tone fill / Glitter | Behind the keys |
+| Colour choice | Choice | Light colour / Bright, each press / Pastel, each press | Light colour |
 | Light colour | Colour, or Auto | Any | The accent |
 | Brightness | Slider | 0–100% | 60% |
 | Glow size | Slider | 0–24 dp | 8 dp |
@@ -471,6 +472,7 @@ Off under reduce motion and power saving.
 | Setting | Control | Range | Default |
 |---|---|---|---|
 | Touch bloom | Toggle | On / Off | Off |
+| Key motion | Choice | Sink / Grow / Shrink / Rise / Tilt / Jelly | Sink |
 | Light colour | Colour, or Auto | Any | The accent |
 | Light strength | Slider | 0–100% | 60% |
 | Reach | Slider | 40–240 dp | 96 dp |

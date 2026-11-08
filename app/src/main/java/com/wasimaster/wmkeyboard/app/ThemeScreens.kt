@@ -219,6 +219,14 @@ import com.wasimaster.wmkeyboard.core.theme.TOUCH_BLOOM_RADIUS_RANGE
 import com.wasimaster.wmkeyboard.core.theme.TOUCH_BLOOM_WOBBLE_RANGE
 import com.wasimaster.wmkeyboard.core.theme.TouchBloomSpec
 import com.wasimaster.wmkeyboard.core.theme.KeyLightingTarget
+import com.wasimaster.wmkeyboard.core.theme.KeyLightingColorMode
+import com.wasimaster.wmkeyboard.core.theme.KeyPressMotion
+import com.wasimaster.wmkeyboard.core.theme.keyLightingColorModeOrNull
+import com.wasimaster.wmkeyboard.core.theme.keyPressMotionOrNull
+import com.wasimaster.wmkeyboard.ime.ui.BoardEffectPickerTile
+import com.wasimaster.wmkeyboard.ime.ui.KeyLightPickerTile
+import com.wasimaster.wmkeyboard.ime.ui.KeyMotionPickerTile
+import com.wasimaster.wmkeyboard.ime.ui.SwatchColors
 import com.wasimaster.wmkeyboard.core.theme.KeyMaterialKind
 import com.wasimaster.wmkeyboard.core.theme.KeyMaterialSpec
 import com.wasimaster.wmkeyboard.core.theme.KeySkinSpec
@@ -5984,6 +5992,10 @@ private fun ThemeEditorContent(
     if (anyMotion && (motionHeld || systemStill)) {
         MotionHeldNote(bySystem = !motionHeld) { scope.launch { repository.setReduceMotion(false) } }
     }
+    // The picker tiles play each effect in the theme's own colours, and hold
+    // still while motion is held, as the keyboard would.
+    val swatchColors = look.watch { SwatchColors(it.boardBackground, it.keyBackground, it.keyText, it.accent) }
+    val swatchesMove = !motionHeld && !systemStill
 
     val boardEffect = look.watch { it.boardEffect }
     fun updateBoardEffect(change: (BoardEffectSpec) -> BoardEffectSpec) =
@@ -6000,6 +6012,12 @@ private fun ThemeEditorContent(
                     kind to if (kind == null) stringResource(CommonR.string.common_none) else stringResource(boardEffectLabel(kind))
                 },
                 selected = boardEffect?.kind?.let(::boardEffectKindOrNull),
+                info = stringResource(R.string.theme_board_effect_kind_body),
+                detail = { kind ->
+                    kind?.let {
+                        ChoiceDetail(leading = { BoardEffectPickerTile(it, boardEffect, swatchColors, swatchesMove) })
+                    }
+                },
             ) { kind ->
                 update { t ->
                     t.copy(
@@ -6044,7 +6062,8 @@ private fun ThemeEditorContent(
                     display = { "%.1f×".format(it) },
                 ) { v -> updateBoardEffect { it.copy(scale = (v * 10).roundToInt() / 10f) } }
             }
-            item {
+            // A splash already answers every press; there is nothing for typing to speed up.
+            if (boardEffectKindOrNull(boardEffect.kind)?.onPress != true) item {
                 SliderRow(
                     R.string.theme_board_effect_reactive_title,
                     value = boardEffect.reactive,
@@ -6107,7 +6126,27 @@ private fun ThemeEditorContent(
                     title = R.string.theme_lighting_target_title,
                     options = KeyLightingTarget.entries.map { it to stringResource(lightingTargetLabel(it)) },
                     selected = keyLightingTargetOrNull(lighting.target) ?: KeyLightingTarget.GLOW,
+                    detail = { target ->
+                        ChoiceDetail(
+                            leading = { KeyLightPickerTile(lighting.copy(target = target.name), swatchColors, swatchesMove) },
+                        )
+                    },
                 ) { picked -> updateLighting { it.copy(target = picked.name) } }
+            }
+            item {
+                ChoiceSetting(
+                    title = R.string.theme_lighting_color_mode_title,
+                    info = stringResource(R.string.theme_lighting_color_mode_body),
+                    options = KeyLightingColorMode.entries.map { it to stringResource(lightingColorModeLabel(it)) },
+                    selected = keyLightingColorModeOrNull(lighting.colorMode) ?: KeyLightingColorMode.FIXED,
+                    detail = { mode ->
+                        ChoiceDetail(
+                            leading = { KeyLightPickerTile(lighting.copy(colorMode = mode.name), swatchColors, swatchesMove) },
+                        )
+                    },
+                ) { picked ->
+                    updateLighting { it.copy(colorMode = picked.name.takeUnless { picked == KeyLightingColorMode.FIXED }) }
+                }
             }
             item {
                 NullableColorRow(
@@ -6178,6 +6217,21 @@ private fun ThemeEditorContent(
             ) { on -> update { t -> t.copy(touchBloom = if (on) t.touchBloom ?: TouchBloomSpec() else null) } }
         }
         if (bloom != null) {
+            item {
+                ChoiceSetting(
+                    title = R.string.theme_touch_bloom_motion_title,
+                    info = stringResource(R.string.theme_touch_bloom_motion_body),
+                    options = KeyPressMotion.entries.map { it to stringResource(keyPressMotionLabel(it)) },
+                    selected = keyPressMotionOrNull(bloom.motion) ?: KeyPressMotion.SINK,
+                    detail = { motion ->
+                        ChoiceDetail(
+                            leading = { KeyMotionPickerTile(motion, bloom.dip, bloom.wobble, swatchColors, swatchesMove) },
+                        )
+                    },
+                ) { picked ->
+                    updateBloom { it.copy(motion = picked.name.takeUnless { picked == KeyPressMotion.SINK }) }
+                }
+            }
             item {
                 NullableColorRow(
                     R.string.theme_touch_bloom_color_title,
@@ -8093,6 +8147,15 @@ private fun boardEffectLabel(value: BoardEffectKind): Int = when (value) {
     BoardEffectKind.SCAN -> R.string.theme_board_effect_kind_scan_label
     BoardEffectKind.SHEEN -> R.string.theme_board_effect_kind_sheen_label
     BoardEffectKind.RIPPLES -> R.string.theme_board_effect_kind_ripples_label
+    BoardEffectKind.PAINT -> R.string.theme_board_effect_kind_paint_label
+    BoardEffectKind.INK -> R.string.theme_board_effect_kind_ink_label
+    BoardEffectKind.LIGHT_POOL -> R.string.theme_board_effect_kind_light_pool_label
+    BoardEffectKind.FLOOD -> R.string.theme_board_effect_kind_flood_label
+    BoardEffectKind.PUFF -> R.string.theme_board_effect_kind_puff_label
+    BoardEffectKind.GLINT -> R.string.theme_board_effect_kind_glint_label
+    BoardEffectKind.POP -> R.string.theme_board_effect_kind_pop_label
+    BoardEffectKind.SWOOSH -> R.string.theme_board_effect_kind_swoosh_label
+    BoardEffectKind.SPECKS -> R.string.theme_board_effect_kind_specks_label
 }
 @StringRes
 private fun lightingPatternLabel(value: KeyLightingPattern): Int = when (value) {
@@ -8114,6 +8177,24 @@ private fun lightingTargetLabel(value: KeyLightingTarget): Int = when (value) {
     KeyLightingTarget.FACE -> R.string.theme_lighting_target_face_label
     KeyLightingTarget.EDGE -> R.string.theme_lighting_target_edge_label
     KeyLightingTarget.GLOW -> R.string.theme_lighting_target_glow_label
+    KeyLightingTarget.FILL -> R.string.theme_lighting_target_fill_label
+    KeyLightingTarget.GRADIENT -> R.string.theme_lighting_target_gradient_label
+    KeyLightingTarget.GLITTER -> R.string.theme_lighting_target_glitter_label
+}
+@StringRes
+private fun lightingColorModeLabel(value: KeyLightingColorMode): Int = when (value) {
+    KeyLightingColorMode.FIXED -> R.string.theme_lighting_color_mode_fixed_label
+    KeyLightingColorMode.RANDOM -> R.string.theme_lighting_color_mode_random_label
+    KeyLightingColorMode.PASTEL -> R.string.theme_lighting_color_mode_pastel_label
+}
+@StringRes
+private fun keyPressMotionLabel(value: KeyPressMotion): Int = when (value) {
+    KeyPressMotion.SINK -> R.string.theme_touch_bloom_motion_sink_label
+    KeyPressMotion.GROW -> R.string.theme_touch_bloom_motion_grow_label
+    KeyPressMotion.SHRINK -> R.string.theme_touch_bloom_motion_shrink_label
+    KeyPressMotion.RISE -> R.string.theme_touch_bloom_motion_rise_label
+    KeyPressMotion.TILT -> R.string.theme_touch_bloom_motion_tilt_label
+    KeyPressMotion.JELLY -> R.string.theme_touch_bloom_motion_jelly_label
 }
 
 /** The largest key-art file read; a skin is paths and colours, a few hundred kilobytes at most. */

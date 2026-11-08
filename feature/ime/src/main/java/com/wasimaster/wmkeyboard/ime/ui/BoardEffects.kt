@@ -47,10 +47,16 @@ import kotlin.math.sqrt
  *
  * The frame loop runs while the layer is composed; the caller composes it only
  * when motion is allowed. [still] draws one frame and stops, which is what the
- * theme previews use.
+ * theme previews use. A press kind ([BoardEffectKind.onPress]) is handed to
+ * [PressEffectOverlay], or as a picture to [PressEffectSample].
  */
 @Composable
 fun BoardEffectLayer(effect: KbBoardEffect, modifier: Modifier = Modifier, still: Boolean = false) {
+    // A press kind has no clock of its own: it draws the presses (PressEffects.kt).
+    if (effect.kind.onPress) {
+        if (still) PressEffectSample(effect, modifier) else PressEffectOverlay(effect, modifier)
+        return
+    }
     var clock by remember { mutableFloatStateOf(STILL_CLOCK_S) }
     var energy by remember { mutableFloatStateOf(0f) }
     var origin by remember { mutableStateOf(Offset.Zero) }
@@ -104,6 +110,8 @@ fun DrawScope.paintBoardEffect(effect: KbBoardEffect, t: Float, energy: Float, o
         BoardEffectKind.SCAN -> p.scan()
         BoardEffectKind.SHEEN -> p.sheen()
         BoardEffectKind.RIPPLES -> p.ripples()
+        // The press kinds are drawn from the presses themselves, in PressEffects.kt.
+        else -> Unit
     }
 }
 
