@@ -188,6 +188,18 @@ fun LayoutKeyboardPreview(
         }
         LayoutPreviewCache.noteKey(layoutId, inputs, key)
         val cached = LayoutPreviewCache.get(key) ?: LayoutPreviewCache.load(context, key)
+        if (cached == null && picture == null) {
+            // No picture for these settings, and nothing on the card yet:
+            // the last one kept of this layout goes up straight away, and the
+            // new one is drawn over it, rather than a skeleton in between.
+            LayoutPreviewCache.loadLast(context, layoutId, widthPx)?.let { (lastKey, last) ->
+                LayoutPreviewCache.put(layoutId, lastKey, last)
+                if (picture == null) {
+                    fade = SystemClock.uptimeMillis() - bornAt >= QUICK_PICTURE_MS
+                    picture = last
+                }
+            }
+        }
         if (cached != null) {
             LayoutPreviewCache.put(layoutId, key, cached)
             if (picture !== cached) {
@@ -234,7 +246,7 @@ fun LayoutKeyboardPreview(
         delay(KEEP_SETTLE_MS)
         val kept = layer.toImageBitmap()
         LayoutPreviewCache.put(layoutId, key, kept)
-        LayoutPreviewCache.save(context, key, kept)
+        LayoutPreviewCache.save(context, layoutId, widthPx, key, kept)
         fade = false
         picture = kept
         render = null
