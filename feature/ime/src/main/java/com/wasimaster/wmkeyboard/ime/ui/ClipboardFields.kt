@@ -3903,7 +3903,13 @@ internal fun ClipCombineDialog(
                 // The clips themselves, out of the scrolling part (#612): the
                 // pattern is written against them, and they used to be gone
                 // from view the moment one was being typed.
-                ClipCombineOriginals(texts, ranges, Modifier.padding(end = 6.dp, bottom = 6.dp))
+                ClipCombineOriginals(texts, ranges, Modifier.padding(end = 6.dp, bottom = 2.dp))
+                // Out of the scrolling part too (#1155): whether the clips go
+                // is decided before Combine, and at the foot of the boxes it
+                // sat below the fold on every phone.
+                Box(Modifier.padding(end = 6.dp, bottom = 4.dp)) {
+                    ClipCombineDeleteSwitch(combine.deleteOriginals, actions.onCombineDeleteToggle)
+                }
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -3972,7 +3978,6 @@ internal fun ClipCombineDialog(
                             modifier = Modifier.padding(horizontal = 2.dp, vertical = 4.dp),
                         )
                     }
-                    ClipCombineDeleteSwitch(combine.deleteOriginals, actions.onCombineDeleteToggle)
                 }
             }
         }
