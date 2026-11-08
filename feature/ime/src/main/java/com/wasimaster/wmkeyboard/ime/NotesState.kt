@@ -347,6 +347,17 @@ object NotesLogic {
         return edit.copy(original = stored, titleDraft = stored.title, bodyDraft = stored.body, tags = stored.tags)
     }
 
+    /**
+     * Where in [body] the match of a passage sits (#1099): the passage [text]
+     * found in the body, plus [matchStart] into it. The body's end when the
+     * note has changed since the search and the passage is no longer there.
+     */
+    fun passageOffset(body: String, text: String, matchStart: Int): Int {
+        val at = body.indexOf(text)
+        if (at < 0) return body.length
+        return (at + matchStart).coerceIn(0, body.length)
+    }
+
     /** The UTF-16 offset where line [line] of [body] starts; the end for a line past the last. */
     fun lineStartOffset(body: String, line: Int): Int {
         if (line <= 0) return 0

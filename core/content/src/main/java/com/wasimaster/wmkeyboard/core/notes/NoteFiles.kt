@@ -167,8 +167,7 @@ object NoteFiles {
                 body = body.substring(0, body.lastIndexOf(lastLine)).trimEnd()
             }
         }
-        // A file whose body is empty still has a name worth keeping as the title.
-        val title = if (body.isBlank()) stem(fileName) else ""
+        val title = importedTitle(stem(fileName), body)
         return Note(
             id = 0,
             body = body,
@@ -237,6 +236,28 @@ object NoteFiles {
     /** Letters and digits kept, everything else one dash, at most 60 characters. */
     fun slug(text: String): String =
         text.replace(SLUG_KEEP, "-").trim('-').take(60).trim('-')
+
+    /**
+     * The title a file named [stem] gives a note of [body] (#1099): the file's
+     * name, since that is what a text file is called, and what an Obsidian note
+     * is titled by. Not when the body opens on a heading, which is already the
+     * title the note shows, and not for a name this app wrote itself from the
+     * note's first line ([fileName]), so an exported note comes back as it went
+     * out and the import still knows it for a duplicate.
+     */
+    private fun importedTitle(stem: String, body: String): String {
+        if (body.isBlank()) return stem
+        val firstLine = body.lineSequence().firstOrNull { it.isNotBlank() }?.trim()
+        if (firstLine != null && HEADING.matches(firstLine)) return ""
+        val written = slug(Note(0, body).displayTitle())
+        val ours = stem.equals(written, ignoreCase = true) ||
+            (written.isNotEmpty() && Regex(Regex.escape(written) + "-\\d+", RegexOption.IGNORE_CASE).matches(stem)) ||
+            NOTE_ID_NAME.matches(stem)
+        return if (ours) "" else stem
+    }
+
+    /** The name [fileName] gives a note whose title spells nothing: `note-12`. */
+    private val NOTE_ID_NAME = Regex("note-\\d+(-\\d+)?")
 
     private fun stem(fileName: String): String =
         fileName.substringAfterLast('/').substringBeforeLast('.').trim()

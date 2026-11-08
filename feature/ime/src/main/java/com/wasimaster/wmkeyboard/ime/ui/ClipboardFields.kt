@@ -263,8 +263,8 @@ data class ClipboardPanelActions(
     val onSearch: (ClipItem, Boolean) -> Unit = { _, _ -> },
     /** A note's passage the search found (#1104), tapped: typed into the field, as the note has it. */
     val onNotePassage: (NotePassageHit) -> Unit = {},
-    /** A note's passage held: the Notes panel, open on the note it is from. */
-    val onNotePassageOpen: (Long) -> Unit = {},
+    /** A note's passage held: the Notes panel, editing the note it is from at the match (#1099). */
+    val onNotePassageOpen: (NotePassageHit) -> Unit = {},
 )
 
 /**

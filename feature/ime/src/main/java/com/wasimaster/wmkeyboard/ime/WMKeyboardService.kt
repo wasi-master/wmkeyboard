@@ -46939,6 +46939,7 @@ open class WMKeyboardService : InputMethodService() {
         onTagTypeCancel = ::onNoteTagTypeCancel,
         onInsert = ::onNoteInsert,
         onPassageInsert = ::onNotePassageInsert,
+        onPassageOpen = ::onNotePassageEdit,
         onCopy = ::onNoteCopy,
         onShare = ::onNoteShare,
         onPin = ::onNotePin,
@@ -47390,12 +47391,29 @@ open class WMKeyboardService : InputMethodService() {
         ic.commitText(hit.text, 1)
     }
 
-    /** A note passage held in the clipboard's search (#1104): the Notes panel, open on its note. */
-    fun onClipNotePassageOpen(id: Long) {
-        if (noteStore.item(id) == null) return
+    /** A note passage held in the clipboard's search (#1104): the Notes panel, editing its note at the match. */
+    fun onClipNotePassageOpen(hit: NotePassageHit) {
+        if (noteStore.item(hit.noteId) == null) return
         if (_uiState.value.panel != PanelMode.NOTES) onPanelChange(PanelMode.NOTES)
         if (_uiState.value.panel != PanelMode.NOTES) return
-        onNoteOpen(id)
+        onNotePassageEdit(hit)
+    }
+
+    /**
+     * A passage held (#1099): its note in the editor with the caret on the
+     * match, rather than the note's reading view to find it again in. A note
+     * past the editor's size opens to read, as a tap on it would.
+     */
+    fun onNotePassageEdit(hit: NotePassageHit) {
+        val note = noteStore.item(hit.noteId) ?: return
+        if (note.locked || note.body.length > NoteEdit.EDITOR_MAX_LENGTH) {
+            onNoteOpen(note.id)
+            return
+        }
+        val at = NotesLogic.passageOffset(note.body, hit.text, hit.matchStart)
+        onNoteEditStart(note.id, line = null)
+        if (_uiState.value.notes.editing?.id != note.id) return
+        _uiState.update { it.copy(captureCaret = CaptureCaret(CaptureTarget.NOTE_BODY.name, at, note.body)) }
     }
 
     fun onNoteCopy(id: Long) {
