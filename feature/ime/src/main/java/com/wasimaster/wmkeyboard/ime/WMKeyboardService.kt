@@ -13570,10 +13570,32 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
 
+        // A transliterating board's key is a spelling, not text: Avro's `a` is
+        // আ, a Hangul jamo is half a syllable. Over a selection the selection
+        // goes and the key opens a word the ordinary way below, rather than
+        // landing in the field as the bare Latin letter on the key. The
+        // selection can also be only the mirror's: an app that selects its
+        // whole text on a tap and then drops the caret at its start (Google's
+        // search box) reports the selection first, and a key typed before the
+        // caret's own report took that path too, so a fast first letter came
+        // out as a Latin j or k in front of the Bengali after it. Deleting an
+        // empty selection deletes nothing, so the stale case types the word too.
+        val overSelection = hasSelection(ic)
+        val spellsOverSelection = overSelection && state.composer.isTransliterating && !fancyByKey &&
+            text.length == 1 && (
+                text[0].isLetter() || state.composer.buffersChar(text[0], "") ||
+                    (state.composer.bufferDigits && state.composer.digitsStartBuffer && text[0].isDigit())
+                )
+        if (spellsOverSelection) {
+            dropComposingForSelectionEdit(ic)
+            invalidateExpectedSelection()
+            ic.commitText("", 1)
+        }
+
         // Typing over a selection replaces it and puts the cursor after the
         // new character, like every other keyboard. Never route through the
         // composing buffer in that case.
-        if (hasSelection(ic)) {
+        if (overSelection && !spellsOverSelection) {
             dropComposingForSelectionEdit(ic)
             // Bracket/brace/quote over a selection wraps it in the pair
             // ("foo" → "(foo)") instead of replacing it, and leaves the inner
