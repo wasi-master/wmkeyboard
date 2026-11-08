@@ -448,6 +448,9 @@ object WMFileTypes {
         /** A theme from the iOS keyboard Clink (`.clinktheme`), already converted. */
         data class ClinkThemeFile(val result: ClinkThemeResult.Converted) : Opened
 
+        /** One of Clink's encrypted export packages, which this app does not open. */
+        data object ClinkProtected : Opened
+
         /** A layout from FlorisBoard's JSON or a Keyman touch layout, already converted. */
         data class ForeignLayout(val converted: ConvertedLayout) : Opened
 
@@ -692,6 +695,7 @@ object WMFileTypes {
         // The plugin reader converts it again from the file, so only the
         // decision is made here.
         if (ClinkAction.looksLikeClinkAction(text)) return Opened.Plugin
+        if (ClinkTheme.looksLikeProtectedPackage(text)) return Opened.ClinkProtected
         if (ClinkTheme.looksLikeClinkTheme(text)) {
             (ClinkTheme.read(text) as? ClinkThemeResult.Converted)?.let { return Opened.ClinkThemeFile(it) }
         }
@@ -2278,6 +2282,12 @@ private fun rememberProposal(
             body = context.getString(R.string.import_text_body, WMFileTypes.displayName(context, uri)),
             confirmLabelRes = R.string.import_open_editor_action,
             open = { FileEditorActivity.start(context, uri) },
+        )
+
+        WMFileTypes.Opened.ClinkProtected -> ImportProposal(
+            titleRes = R.string.import_unrecognized_title,
+            body = context.getString(R.string.import_clink_protected_body),
+            apply = null,
         )
 
         WMFileTypes.Opened.Unrecognized -> ImportProposal(

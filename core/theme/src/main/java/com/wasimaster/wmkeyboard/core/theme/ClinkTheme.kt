@@ -70,8 +70,22 @@ object ClinkTheme {
             text.contains("\"keyFill\"") &&
             text.contains("\"specialKeyFill\"")
 
+    /**
+     * True when [text] is the wrapper Clink's own Export writes since its
+     * portable packages: `{"clinkPackage": 1, "kind": …, "payload": …}`, the
+     * theme inside encrypted. Clink's code calls that "casual-copy protection",
+     * so this app does not open it. It is recognised only to say so, rather
+     * than calling the file unreadable. The plain `.clinktheme` files Clink's
+     * GitHub repositories publish are still read.
+     */
+    fun looksLikeProtectedPackage(text: String): Boolean {
+        val head = text.trimStart().removePrefix(BOM).trimStart()
+        return head.startsWith("{") && head.contains("\"clinkPackage\"") && head.contains("\"payload\"")
+    }
+
     /** Converts [text]. Never throws. */
     fun read(text: String): ClinkThemeResult {
+        if (looksLikeProtectedPackage(text)) return ClinkThemeResult.ProtectedPackage
         if (!looksLikeClinkTheme(text)) return ClinkThemeResult.NotATheme
         val root = runCatching { json.parseToJsonElement(text.trimStart().removePrefix(BOM)) }.getOrNull()
             as? JsonObject ?: return ClinkThemeResult.NotATheme
@@ -459,6 +473,9 @@ sealed interface ClinkThemeResult {
 
     /** Not a Clink theme. */
     data object NotATheme : ClinkThemeResult
+
+    /** One of Clink's encrypted export packages; see [ClinkTheme.looksLikeProtectedPackage]. */
+    data object ProtectedPackage : ClinkThemeResult
 }
 
 /**

@@ -181,6 +181,11 @@ class ClinkThemeTest {
     fun `other JSON is not a Clink theme`() {
         assertEquals(ClinkThemeResult.NotATheme, ClinkTheme.read("""{"id": "x", "name": "Y", "boardBackground": 1}"""))
         assertEquals(ClinkThemeResult.NotATheme, ClinkTheme.read("not json"))
+        // Clink's encrypted Export package (Telegram 6224): named, never opened.
+        assertEquals(
+            ClinkThemeResult.ProtectedPackage,
+            ClinkTheme.read("""{"clinkPackage":1,"payload":"ARbG245R","kind":"theme"}"""),
+        )
         assertFalse(ClinkTheme.looksLikeClinkTheme("""{"keyBackground": 1}"""))
     }
 }

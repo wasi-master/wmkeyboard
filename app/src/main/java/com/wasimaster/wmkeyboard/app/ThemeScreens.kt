@@ -1517,6 +1517,9 @@ fun ThemesScreen(
                 context.contentResolver.readTextCapped(uri)?.let(ClinkTheme::read)
             }.getOrNull() ?: ClinkThemeResult.NotATheme
         }
+        if (result == ClinkThemeResult.ProtectedPackage) {
+            return ThemeFileOutcome.failed(context.getString(R.string.import_clink_protected_body))
+        }
         if (result !is ClinkThemeResult.Converted) {
             return ThemeFileOutcome.failed(context.getString(R.string.import_clink_unreadable_body))
         }

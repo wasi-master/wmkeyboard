@@ -260,6 +260,7 @@
     <!-- ==== Clink themes. Clink is an iOS keyboard; keep its name as it is.
          Its themes are files that end in .clinktheme. ==== -->
 
+    <string name="import_clink_protected_body">This is a packaged Clink export. Clink encrypts these so only Clink opens them, and WM Keyboard does not break that. Themes from Clink\'s theme repositories on GitHub are plain files and import as they are: add one as an add-on repository, or download its .clinktheme file.</string>
     <string name="import_clink_unreadable_body">The app cannot read that as a Clink theme. In Clink, open the theme menu and choose Export, then pick the .clinktheme file it saves.</string>
     <string name="import_clink_file_body">This is a theme from Clink. The app saves it as a theme of yours, and does not switch to it.</string>
     <!-- %1$s is the name of the theme, for example "Brick". -->
