@@ -16462,7 +16462,7 @@ open class WMKeyboardService : InputMethodService() {
                 !state.settings.voiceBar.interactiveTyping()
             else -> false
         }
-        val canResume = !scrubbing && state.settings.suggestions &&
+        val caretGates = !scrubbing && state.settings.suggestions &&
             state.panel == PanelMode.NONE &&
             !keyboardHandwriteActive(state) &&
             !state.secureField && !state.fieldNoSuggestions &&
@@ -16484,17 +16484,23 @@ open class WMKeyboardService : InputMethodService() {
             outputEncoding == null &&
             // Fancy Text's words are styled in the field, and the buffer holds
             // plain letters: a word read back from there is not one it can take.
-            fancyOutputStyle(state) == null &&
-            // Last, so the one term that asks the engine anything is only
-            // reached once the screen and the field have already said yes.
+            fancyOutputStyle(state) == null
+        // Last, so the one term that asks the engine anything is only
+        // reached once the screen and the field have already said yes.
+        val canResume = caretGates &&
             composingResumable(state.composer, suggestionEngine?.hasWordSources == true)
+        // A phonetic layout (Avro) cannot take a word back into its roman
+        // buffer, but a caret dropped on a word it wrote still gets that word's
+        // strip, read-only, the way English does (#1181).
+        val phoneticCaret = caretGates && !canResume && state.composer.phoneticLanguage != null &&
+            suggestionEngine?.phoneticBackend(state.composer.phoneticLanguage) != null
 
         // Held outside the block so the fall-through below can reuse it rather
         // than asking the editor for the same 64 characters again — that read
         // is a blocking round-trip into the focused app, and this runs from
         // onUpdateSelection.
         var beforeText: CharSequence? = null
-        if (canResume && newSelStart >= 0) {
+        if ((canResume || phoneticCaret) && newSelStart >= 0) {
             val before = ic.getTextBeforeCursor(64, 0)
             beforeText = before
             // Enough to carry the rest of the word the caret may be sitting
@@ -16567,7 +16573,10 @@ open class WMKeyboardService : InputMethodService() {
                 setContextFrom(ahead)
                 rebuildRecentWords(ahead)
                 caretWord = CaretWord(head, tail, newSelStart - head.length)
-                armFieldRevision(head, tail, newSelStart)
+                // Not on a phonetic layout: its next key composes roman letters
+                // in front of the word rather than editing it, and the field
+                // tracker would read that as a respelling to learn from.
+                if (!phoneticCaret) armFieldRevision(head, tail, newSelStart)
                 refreshSuggestions()
                 return
             }
@@ -26846,8 +26855,11 @@ open class WMKeyboardService : InputMethodService() {
         // commit resolution, the next-letter bias, the join and revision chips
         // — has anything to say about it.
         val caret = caretWord
-        if (typed.isEmpty() && caret != null && !state.composer.isTransliterating) {
-            publishCaretWordSuggestions(engine, caret)
+        if (typed.isEmpty() && caret != null && (
+                !state.composer.isTransliterating || state.composer.phoneticLanguage != null
+                )
+        ) {
+            publishCaretWordSuggestions(engine, caret, nativeLanguageOf(state, caret.word))
             return
         }
 
@@ -27428,7 +27440,7 @@ open class WMKeyboardService : InputMethodService() {
      * and no typing rhythm to weigh; and there is nothing to commit, so the
      * space/enter resolution is cleared rather than computed.
      */
-    private fun publishCaretWordSuggestions(engine: SuggestionEngine, caret: CaretWord) {
+    private fun publishCaretWordSuggestions(engine: SuggestionEngine, caret: CaretWord, nativeLanguage: String? = null) {
         val word = caret.word
         suggestionJob?.cancel()
         commitResolution = null
@@ -27443,6 +27455,9 @@ open class WMKeyboardService : InputMethodService() {
                     recentWords = recentSnapshot,
                     allowRerank = true,
                     previousWord3 = previousWord3,
+                    // A Bengali word under the caret on Avro is completed from
+                    // the phonetic layout's own word list, as Khipro's keys are.
+                    completionLanguage = nativeLanguage,
                 ).filterNot { it.equals(word, ignoreCase = true) }
             }
             // Filtered out above and put back here, so the word holds one slot
@@ -27485,6 +27500,18 @@ open class WMKeyboardService : InputMethodService() {
                 )
             }
         }
+    }
+
+    /**
+     * The phonetic language whose word list completes [word] under the caret
+     * (#1181): the layout's own, when the word is written in its script rather
+     * than in roman letters. Null for a roman word, which the ordinary walk
+     * answers, and on every other layout.
+     */
+    private fun nativeLanguageOf(state: KeyboardUiState, word: String): String? {
+        val language = state.composer.phoneticLanguage ?: return null
+        if (!state.composer.isTransliterating) return null
+        return language.takeIf { word.any { it.isLetter() && it.code > 0x24F } }
     }
 
     /**
