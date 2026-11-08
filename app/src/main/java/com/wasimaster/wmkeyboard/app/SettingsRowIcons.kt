@@ -1381,6 +1381,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_swipe_pin_title) { Icons.Outlined.SwipeRight }
         put(R.string.clipboard_line_spacing_title) { Icons.Outlined.UnfoldMore }
         put(R.string.clipboard_private_copies_title) { Icons.Outlined.Lock }
+        put(R.string.clipboard_strip_media_title) { Icons.Outlined.PrivacyTip }
         put(R.string.clipboard_copy_rules_title) { Icons.AutoMirrored.Outlined.Rule }
         put(R.string.clipboard_copy_rules_system_title) { Icons.Outlined.ContentPaste }
         put(R.string.clipboard_plain_letters_title) { Icons.Outlined.TextFormat }
