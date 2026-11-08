@@ -48,6 +48,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -122,20 +123,27 @@ internal fun ClockScreen(initialTab: String?, onNavigate: (String) -> Unit) {
         }
     }
     // A swipe across moves between the sections (#970). A row with swipe
-    // actions takes the drag first, so those keep working.
+    // actions takes the drag first, so those keep working. At least most of a
+    // screen tall: a short section (the stopwatch, an empty list) left the
+    // swipe only the strip its few rows covered, and a swipe in the empty
+    // space under them did nothing.
+    val swipeFloor = (LocalConfiguration.current.screenHeightDp * SECTION_SWIPE_MIN_HEIGHT).dp
     Column(
-        Modifier.pointerInput(Unit) {
-            var travel = 0f
-            detectHorizontalDragGestures(
-                onDragStart = { travel = 0f },
-                onDragEnd = {
-                    if (abs(travel) > SECTION_SWIPE_DP.dp.toPx()) {
-                        val step = if (travel < 0) 1 else -1
-                        ClockSection.entries.getOrNull(section.ordinal + step)?.let { section = it }
-                    }
-                },
-            ) { _, amount -> travel += amount }
-        },
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = swipeFloor)
+            .pointerInput(Unit) {
+                var travel = 0f
+                detectHorizontalDragGestures(
+                    onDragStart = { travel = 0f },
+                    onDragEnd = {
+                        if (abs(travel) > SECTION_SWIPE_DP.dp.toPx()) {
+                            val step = if (travel < 0) 1 else -1
+                            ClockSection.entries.getOrNull(section.ordinal + step)?.let { section = it }
+                        }
+                    },
+                ) { _, amount -> travel += amount }
+            },
     ) {
         when (section) {
             ClockSection.ALARMS -> AlarmsSection(data, hour24)
@@ -156,6 +164,9 @@ internal fun ClockScreen(initialTab: String?, onNavigate: (String) -> Unit) {
 }
 
 private const val SECTION_SWIPE_DP = 64
+
+/** The share of the screen's height the section area takes at least, so a swipe has somewhere to land. */
+private const val SECTION_SWIPE_MIN_HEIGHT = 0.6f
 
 private fun sectionLabel(s: ClockSection): Int = when (s) {
     ClockSection.ALARMS -> ImeR.string.ime_clock_tab_alarms
