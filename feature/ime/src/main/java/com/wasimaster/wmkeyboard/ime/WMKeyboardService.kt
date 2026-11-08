@@ -17171,12 +17171,16 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val ic = currentInputConnection
-        if (deleteSwipeActive && ic != null && deleteSwipeUnits > 0) {
+        val restored = deleteSwipeActive && ic != null && deleteSwipeUnits > 0
+        if (restored && ic != null) {
             ic.setSelection(deleteSwipeBase, deleteSwipeEnd)
             expectedSelStart = deleteSwipeBase
             expectedSelEnd = deleteSwipeEnd
         }
         resetDeleteSwipe()
+        // A selection the swipe started from is back, and the bar the swipe
+        // kept down with it: the editor may report no change for it.
+        if (restored) refreshSelectionMacros()
     }
 
     /**
@@ -47906,6 +47910,12 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
         if (!settings.selectionMacros.enabled) return clear()
+        // A backspace swipe's preview is a selection only to the editor: it is
+        // text about to go, and a bar of Copy, Cut and Paste popping up over a
+        // quick slide is the one thing the typist did not ask for (Telegram
+        // 5944). The swipe's end puts it back: [onDeleteSwipeCancel] asks
+        // again, and a delete reaches here through the field's own update.
+        if (deleteSwipeActive) return clear()
         // A password is never a number to dial or text to share, and putting a
         // field's contents in front of a Share chooser is exactly the mistake
         // this bar must not make. No setting reaches past this one.
