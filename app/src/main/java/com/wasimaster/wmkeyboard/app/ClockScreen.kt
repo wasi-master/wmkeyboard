@@ -111,6 +111,35 @@ internal fun ClockScreen(initialTab: String?, onNavigate: (String) -> Unit) {
     val hour24 = config.is24(android.text.format.DateFormat.is24HourFormat(context))
     LaunchedEffect(Unit) { ClockEngine.prune(context) }
 
+    // Something still ringing (#970): the way back to the ring screen when its
+    // notification is gone, swiped away or never seen.
+    data.ringing.firstOrNull()?.let { ring ->
+        SettingsGroup {
+            item {
+                NavRow(
+                    R.string.clock_ringing_now_title,
+                    ring.label.ifEmpty {
+                        stringResource(
+                            if (ring.kind == com.wasimaster.wmkeyboard.core.clock.RingKind.TIMER) {
+                                R.string.clock_ringing_now_timer
+                            } else {
+                                R.string.clock_ringing_now_alarm
+                            },
+                        )
+                    },
+                ) {
+                    runCatching {
+                        context.startActivity(
+                            android.content.Intent()
+                                .setClassName(context, com.wasimaster.wmkeyboard.core.clock.ClockNotifications.RING_ACTIVITY)
+                                .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     Row(
         Modifier
             .fillMaxWidth()

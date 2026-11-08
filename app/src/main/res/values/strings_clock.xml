@@ -75,6 +75,9 @@
     <string name="clock_auto_snooze_title">Snooze when nobody answers</string>
     <string name="clock_auto_snooze_subtitle">An alarm that stops ringing by itself snoozes instead, up to this many times or until someone answers, before it counts as missed</string>
     <string name="clock_auto_snooze_forever">Until answered</string>
+    <string name="clock_ringing_now_title">Ringing now</string>
+    <string name="clock_ringing_now_alarm">An alarm. Tap to answer it</string>
+    <string name="clock_ringing_now_timer">A timer. Tap to answer it</string>
     <string name="clock_upcoming_title">Notice before an alarm</string>
     <string name="clock_upcoming_subtitle">Shows the next alarm in the notifications this long before it rings, with a button to skip it</string>
     <string name="clock_snoozed_notice_title">Notice while snoozed</string>

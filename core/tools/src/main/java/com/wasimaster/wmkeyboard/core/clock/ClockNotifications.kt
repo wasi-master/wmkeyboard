@@ -227,6 +227,10 @@ object ClockNotifications {
             .setFullScreenIntent(ring, true)
             .addAction(0, context.getString(R.string.core_tools_clock_snooze), action(context, ClockReceiver.ACTION_SNOOZE_ALL))
             .addAction(0, context.getString(R.string.core_tools_clock_dismiss), action(context, ClockReceiver.ACTION_DISMISS_ALL))
+            // Swiped away while it still rings (#970): Android 14 lets a
+            // service's notification go, and with it the only way back to
+            // the ring screen. It comes straight back; see [reshowRing].
+            .setDeleteIntent(action(context, ClockReceiver.ACTION_RING_SWIPED))
             .apply { if (timeoutMs != null) setTimeoutAfter(timeoutMs) }
             .build()
             .apply { if (loud) flags = flags or Notification.FLAG_INSISTENT }
@@ -246,6 +250,22 @@ object ClockNotifications {
     }
 
     fun cancelRing(context: Context) = WmNotifications.cancel(context, NotificationIds.CLOCK_RING)
+
+    /**
+     * Puts the ring's notification back after it was swiped away while
+     * something still rings (#970), so Snooze, Dismiss and the ring screen
+     * are in reach again. Quietly: the ring service, where there is one, is
+     * still playing the sound, and where there is none the swipe was the
+     * user silencing it.
+     */
+    fun reshowRing(context: Context) {
+        val ringing = ClockStore.get(context).data.ringing
+        if (ringing.isEmpty() || !WmNotifications.canPost(context)) return
+        runCatching {
+            NotificationManagerCompat.from(context)
+                .notify(NotificationIds.CLOCK_RING, ringNotification(context, ringing, loud = false))
+        }
+    }
 
     /** Whether Android will let the ring screen take over a locked phone (asked from Android 14). */
     fun canUseFullScreen(context: Context): Boolean {

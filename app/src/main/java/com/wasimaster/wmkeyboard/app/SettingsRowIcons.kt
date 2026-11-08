@@ -2115,6 +2115,7 @@ internal object SettingsRowIcons {
         // ---- Clock tool ----
         put(R.string.clock_open_title) { Icons.Outlined.OpenInNew }
         put(R.string.clock_settings_title) { Icons.Outlined.Settings }
+        put(R.string.clock_ringing_now_title) { Icons.Outlined.NotificationsActive }
         put(R.string.clock_hour_format_title) { Icons.Outlined.Schedule }
         put(R.string.clock_show_seconds_title) { Icons.Outlined.Timer }
         put(R.string.clock_sort_zones_title) { Icons.AutoMirrored.Outlined.Sort }
