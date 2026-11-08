@@ -2466,6 +2466,7 @@ private fun DockedKeyboardFrame(
                 val card = state.television && state.settings.oneHandedModeFor(landscape) == OneHandedMode.OFF
                 if (!card) {
                     BoardBackground(LocalKbTheme.current)
+                    IncognitoWatermark(state.incognitoOn)
                     // Under the keys and over the board, so a theme that gives the
                     // gesture bar a colour of its own paints only that band (#109).
                     NavigationBarBackground(LocalKbTheme.current)
@@ -2877,6 +2878,28 @@ internal fun dockedWidthArrangement(
 }
 
 /**
+ * Incognito's mark on the board (#1177): faint, in the middle, under the keys
+ * and under any panel. The toolbar's badge goes away with the toolbar, so a
+ * tool or the clipboard filling the keyboard took the one sign that incognito
+ * was on with it. On the board, the way SwiftKey and FlorisBoard draw theirs,
+ * it shows wherever the board does.
+ */
+@Composable
+private fun BoxScope.IncognitoWatermark(on: Boolean) {
+    if (!on) return
+    SlotIcon(
+        IconSlots.CHROME_INCOGNITO,
+        contentDescription = null,
+        modifier = Modifier.align(Alignment.Center).size(IncognitoWatermarkSize),
+        tint = LocalKbTheme.current.secondaryText.copy(alpha = IncognitoWatermarkAlpha),
+    )
+}
+
+/** How big [IncognitoWatermark] is drawn, and how faint. */
+private val IncognitoWatermarkSize = 112.dp
+private const val IncognitoWatermarkAlpha = 0.14f
+
+/**
  * The docked board on a television: a card with rounded top corners and a
  * soft shadow, standing on the bottom edge of the screen, with the app left
  * visible on either side of it. It is how Gboard draws itself on Android TV,
@@ -3181,6 +3204,7 @@ private fun FloatingKeyboardFrame(
         ) {
             Box {
                 BoardBackground(LocalKbTheme.current)
+                IncognitoWatermark(state.incognitoOn)
                 val handleAtBottom = state.settings.floatingHandle == FloatingHandlePosition.BOTTOM
                 // One bar, placed above or below the keys; see the frame's KDoc.
                 val handleBar: @Composable () -> Unit = {
