@@ -219,6 +219,10 @@ def read_keyboard(apk, rid, env, kb=None, seen=None):
             href = c.attrs.get("href")
             if isinstance(href, Ref):
                 read_keyboard(apk, href, env, kb, seen)
+        elif c.tag == "view" and c.attrs.get("type") == "body":
+            # A body included from inside a keyboard (the symbol keyboards
+            # pick their grid this way, per device and mode).
+            visit_view(apk, c, env, kb, set())
         elif c.tag == "keyboard":
             for k, v in c.attrs.items():
                 kb.attrs.setdefault(k, v)
