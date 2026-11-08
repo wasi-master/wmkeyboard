@@ -23,6 +23,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.shadows.ShadowSystemClock
+import java.time.Duration
 
 /**
  * A caret put back at the end of a Bengali word on Avro takes the word up
@@ -88,7 +90,9 @@ class AvroCaretWordTest {
         val editor = RecordingEditor(initial = "কেমন")
         val service = keyboardOn(editor)
 
-        // The caret lands at the end of the word.
+        // The caret lands at the end of the word, past the window in which a
+        // caret move still counts as a drag in progress.
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(2))
         service.onUpdateSelection(0, 0, 4, 4, -1, -1)
 
         assertEquals("kemon", composing(service))
