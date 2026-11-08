@@ -8110,6 +8110,14 @@ data class ClipboardSettings(
      */
     val extraTrackers: List<String> = emptyList(),
     /**
+     * Pictures and videos lose the metadata that identifies them (#1179): the
+     * location, the camera or phone, its serial numbers, the owner and the
+     * time taken. A picture is cleaned as the history keeps it and again as it
+     * is pasted; a video or a picture kept by reference is pasted as a cleaned
+     * copy. Off by default.
+     */
+    val stripMediaMetadata: Boolean = false,
+    /**
      * The last rule clips were combined with in the panel (#612): the text
      * between them, a text put in front, and a pattern that keeps only part
      * of each clip. Remembered for the next Combine, set in the panel.
@@ -11876,6 +11884,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_COPY_RULES_TO_SYSTEM = booleanPreferencesKey("clipboard_copy_rules_to_system")
         private val CLIPBOARD_CLEAN_COPIED_LINKS = booleanPreferencesKey("clipboard_clean_copied_links")
         private val CLIPBOARD_EXTRA_TRACKERS = stringPreferencesKey("clipboard_extra_trackers")
+        private val CLIPBOARD_STRIP_MEDIA_METADATA = booleanPreferencesKey("clipboard_strip_media_metadata")
         private val CLIPBOARD_COMBINE_JOINER = stringPreferencesKey("clipboard_combine_joiner")
         private val CLIPBOARD_COMBINE_BASE = stringPreferencesKey("clipboard_combine_base")
         private val CLIPBOARD_COMBINE_APPEND = stringPreferencesKey("clipboard_combine_append")
@@ -13934,6 +13943,7 @@ class SettingsRepository(private val context: Context) {
             copyRulesToSystem = p[CLIPBOARD_COPY_RULES_TO_SYSTEM] ?: defaults.clipboard.copyRulesToSystem,
             cleanCopiedLinks = p[CLIPBOARD_CLEAN_COPIED_LINKS] ?: defaults.clipboard.cleanCopiedLinks,
             extraTrackers = p[CLIPBOARD_EXTRA_TRACKERS]?.let(::decodeTrackerNames) ?: defaults.clipboard.extraTrackers,
+            stripMediaMetadata = p[CLIPBOARD_STRIP_MEDIA_METADATA] ?: defaults.clipboard.stripMediaMetadata,
             combineJoiner = p[CLIPBOARD_COMBINE_JOINER] ?: defaults.clipboard.combineJoiner,
             combineBase = p[CLIPBOARD_COMBINE_BASE] ?: defaults.clipboard.combineBase,
             combineAppend = p[CLIPBOARD_COMBINE_APPEND] ?: defaults.clipboard.combineAppend,
@@ -22616,6 +22626,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardCleanCopiedLinks(value: Boolean) =
         editPrefs { it[CLIPBOARD_CLEAN_COPIED_LINKS] = value }
+
+    suspend fun setClipboardStripMediaMetadata(value: Boolean) =
+        editPrefs { it[CLIPBOARD_STRIP_MEDIA_METADATA] = value }
 
     /** The user's own tracking parameters (#665), one name per entry. */
     suspend fun setClipboardExtraTrackers(names: List<String>) =

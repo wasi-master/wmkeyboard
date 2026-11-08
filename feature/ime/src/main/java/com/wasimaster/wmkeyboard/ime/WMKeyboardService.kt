@@ -91,6 +91,7 @@ import com.wasimaster.wmkeyboard.app.SpecialAccessActivity
 import com.wasimaster.wmkeyboard.app.StoragePermissionActivity
 import com.wasimaster.wmkeyboard.core.media.GallerySaver
 import com.wasimaster.wmkeyboard.core.media.MediaMime
+import com.wasimaster.wmkeyboard.core.media.MediaScrub
 import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.ModuleGate
@@ -4093,9 +4094,16 @@ open class WMKeyboardService : InputMethodService() {
                     } ?: return@runCatching null
                     target
                 }.getOrNull()
+                // The history keeps it already cleaned, when asked (#1179): a
+                // HEIF comes back a JPEG, so the clip takes the type it is now.
+                val keptMime = if (copied != null && state.settings.clipboard.stripMediaMetadata) {
+                    MediaScrub.image(this@WMKeyboardService, copied, imageMime) ?: imageMime
+                } else {
+                    imageMime
+                }
                 if (copied != null) {
                     val added = clipboardStore.addImage(
-                        copied, imageMime, source, sensitive = flaggedSensitive, sourcePackage = sourcePackage,
+                        copied, keptMime, source, sensitive = flaggedSensitive, sourcePackage = sourcePackage,
                     )
                     clipboardStore.systemClipChanged(added, secret = clipMarkedSensitive(clip))
                     saveClipboardSoon()
@@ -4405,7 +4413,12 @@ open class WMKeyboardService : InputMethodService() {
                     }.getOrNull()
 
                     if (copied != null) {
-                        val added = clipboardStore.addImage(copied, mimeType, "System UI")
+                        val keptMime = if (state.settings.clipboard.stripMediaMetadata) {
+                            MediaScrub.image(this@WMKeyboardService, copied, mimeType) ?: mimeType
+                        } else {
+                            mimeType
+                        }
+                        val added = clipboardStore.addImage(copied, keptMime, "System UI")
                         saveClipboardSoon()
                         _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
                         if (added != null && state.settings.clipboard.suggestRecent) {
@@ -52956,13 +52969,29 @@ open class WMKeyboardService : InputMethodService() {
      * system clipboard so a long-press paste still works.
      */
     private fun commitFileClip(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
-        val uri = item.uriString?.let { runCatching { Uri.parse(it) }.getOrNull() } ?: return
-        val label = item.fileName.orEmpty()
+        val original = item.uriString?.let { runCatching { Uri.parse(it) }.getOrNull() } ?: return
+        if (_uiState.value.settings.clipboard.stripMediaMetadata && MediaScrub.isMedia(item.mimeType)) {
+            // A video or picture kept by reference goes as a cleaned copy in
+            // the keyboard's cache (#1179); the file the other app owns is
+            // never changed.
+            withCleanedClip(item, null) { clean ->
+                val uri = runCatching {
+                    FileProvider.getUriForFile(this, clipboardFileProviderAuthority, clean.file)
+                }.getOrNull() ?: return@withCleanedClip
+                commitFileUri(uri, clean.mime, item.fileName.orEmpty(), ownFile = true)
+            }
+            return
+        }
+        commitFileUri(original, item.mimeType, item.fileName.orEmpty())
+    }
+
+    /** A file into the field through commitContent, or onto the system clipboard when the field will not take it. */
+    private fun commitFileUri(uri: Uri, mimeType: String, label: String, ownFile: Boolean = false) {
         val ic = currentInputConnection
         val editorInfo = currentInputEditorInfo
         val supported = editorInfo != null &&
             EditorInfoCompat.getContentMimeTypes(editorInfo)
-                .any { ClipDescription.compareMimeTypes(item.mimeType, it) }
+                .any { ClipDescription.compareMimeTypes(mimeType, it) }
 
         if (ic != null && editorInfo != null && supported) {
             val committed = runCatching {
@@ -52971,10 +53000,12 @@ open class WMKeyboardService : InputMethodService() {
                     editorInfo,
                     InputContentInfoCompat(
                         uri,
-                        ClipDescription(label, arrayOf(item.mimeType)),
+                        ClipDescription(label, arrayOf(mimeType)),
                         null,
                     ),
-                    0,
+                    // A copy in the keyboard's own provider needs the read
+                    // grant passed on; another app's URI is passed as it came.
+                    if (ownFile) InputConnectionCompat.INPUT_CONTENT_GRANT_READ_URI_PERMISSION else 0,
                     null,
                 )
             }.getOrDefault(false)
@@ -52982,7 +53013,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         DebugLog.w(
             "clipboard",
-            "field would not take ${item.mimeType} via commitContent; fell back to the system clipboard",
+            "field would not take $mimeType via commitContent; fell back to the system clipboard",
         )
         copyUriToSystemClipboard(uri, label)
         Toast.makeText(
@@ -53013,7 +53044,44 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
             return
         }
+        if (_uiState.value.settings.clipboard.stripMediaMetadata) {
+            // A cleaned copy, not the kept file: a clip kept before the
+            // setting was on still has its metadata (#1179).
+            withCleanedClip(item, file) { clean -> commitImageFile(clean.file, clean.mime, refused = { shareOrCopyRefusedImage(it, clean.mime) }) }
+            return
+        }
         commitImageFile(file, item.mimeType, refused = { shareOrCopyRefusedImage(it, item.mimeType) })
+    }
+
+    /**
+     * Makes the cleaned copy of a picture or video clip off the main thread
+     * and hands it to [then] back on it (#1179): [file] for a picture the
+     * history holds, the clip's URI otherwise. When it cannot be cleaned,
+     * nothing is pasted and a toast says why: the user asked for the
+     * metadata to go, so the original is not sent in its place.
+     */
+    private fun withCleanedClip(
+        item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem,
+        file: File?,
+        then: (MediaScrub.Clean) -> Unit,
+    ) {
+        // A long video takes a moment to copy; say that something is happening.
+        if (file == null && item.mimeType.startsWith("video/")) toast(R.string.ime_clip_metadata_working_toast)
+        serviceScope.launch {
+            val clean = withContext(Dispatchers.IO) {
+                if (file != null) {
+                    MediaScrub.imageCopy(this@WMKeyboardService, file, item.mimeType)
+                } else {
+                    item.uriString?.let { runCatching { Uri.parse(it) }.getOrNull() }
+                        ?.let { MediaScrub.copyOf(this@WMKeyboardService, it, item.mimeType) }
+                }
+            }
+            if (clean == null) {
+                toast(R.string.ime_clip_metadata_failed_toast)
+                return@launch
+            }
+            then(clean)
+        }
     }
 
     /**
@@ -53767,6 +53835,23 @@ open class WMKeyboardService : InputMethodService() {
                 restoringSystemClipText = item.text
                 manager.setPrimaryClip(android.content.ClipData.newPlainText(null, item.text))
             }.isSuccess
+            item.kind == ClipKind.IMAGE && !KeyboardClipboard.isPrivate &&
+                _uiState.value.settings.clipboard.stripMediaMetadata -> {
+                // The cleaned copy goes on the clipboard (#1179), made off the main thread.
+                val file = item.imagePath?.let(::File)?.takeIf { it.exists() } ?: return
+                withCleanedClip(item, file) { clean ->
+                    val uri = runCatching {
+                        FileProvider.getUriForFile(this, clipboardFileProviderAuthority, clean.file)
+                    }.getOrNull()
+                    if (uri != null && runCatching {
+                            manager.setPrimaryClip(android.content.ClipData.newUri(contentResolver, "image", uri))
+                        }.isSuccess
+                    ) {
+                        toast(R.string.ime_clip_paste_next_toast)
+                    }
+                }
+                return
+            }
             item.kind == ClipKind.IMAGE && !KeyboardClipboard.isPrivate -> {
                 val file = item.imagePath?.let(::File)?.takeIf { it.exists() }
                 val uri = file?.let { runCatching { FileProvider.getUriForFile(this, clipboardFileProviderAuthority, it) }.getOrNull() }
