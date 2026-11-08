@@ -649,6 +649,7 @@ import com.wasimaster.wmkeyboard.core.layout.deletesForward
 import com.wasimaster.wmkeyboard.core.layout.drawnFontScale
 import com.wasimaster.wmkeyboard.core.layout.drawnLabel
 import com.wasimaster.wmkeyboard.core.layout.drawnHintScale
+import com.wasimaster.wmkeyboard.core.layout.drawnFlickScale
 import com.wasimaster.wmkeyboard.core.layout.drawnLabelScale
 import com.wasimaster.wmkeyboard.core.layout.fallbackLabel
 import com.wasimaster.wmkeyboard.core.layout.shiftLabelReplacesIcon
@@ -28152,13 +28153,19 @@ private fun ActionKeyIcon(
     slot: String,
     contentDescription: String?,
     tint: Color,
+    /** The key's own [Key.labelScale], which sizes its icon too (#970); 1 draws the icon's own size. */
+    scale: Float = 1f,
 ) {
+    val sized = if (scale != 1f) Modifier.size((ActionKeyIconDp * scale).dp) else Modifier
     if (named != null) {
-        Icon(named, contentDescription = contentDescription, tint = tint)
+        Icon(named, contentDescription = contentDescription, tint = tint, modifier = sized)
     } else {
-        SlotIcon(slot, contentDescription = contentDescription, tint = tint)
+        SlotIcon(slot, contentDescription = contentDescription, tint = tint, modifier = sized)
     }
 }
+
+/** The side an action key's icon is drawn at when nothing sizes it: Material's own 24 dp. */
+private const val ActionKeyIconDp = 24f
 
 /**
  * The words a shift or caps-lock key wears in place of its arrow (issue #559),
@@ -28233,6 +28240,11 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
     // An icon the layout named for this key (issue #187). Every branch below
     // honours it, so a space bar or a shift key can wear one as well as a letter.
     val namedIcon = KeyIcons.byName(key.icon)
+    // A label size set on the key itself sizes its icon when it draws one
+    // (#970): an action in the middle of a flick key, say, which has no text
+    // for the size to reach. The layout's own value only, so a theme's
+    // per-key label size keeps meaning the label.
+    val iconScale = key.drawnLabelScale() ?: 1f
     when (key.action) {
         // The shift slot and its spoken name both track the live shift state, and
         // [spokenLabel] already words it the way this key wants read out. A label
@@ -28272,6 +28284,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                         },
                         contentDescription = visual.spoken.resolved(),
                         tint = tint,
+                        scale = iconScale,
                     )
                 }
             }
@@ -28281,12 +28294,14 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             IconSlots.KEY_BACKSPACE,
             contentDescription = stringResource(R.string.ime_key_delete),
             tint = contentColor,
+            scale = iconScale,
         )
         KeyAction.ForwardDelete -> ActionKeyIcon(
             namedIcon,
             IconSlots.KEY_FORWARD_DELETE,
             contentDescription = stringResource(R.string.ime_key_forward_delete),
             tint = contentColor,
+            scale = iconScale,
         )
         // An app-supplied actionLabel is drawn as text — that is the whole
         // point of it, and no icon can stand in for wording the app chose.
@@ -28313,6 +28328,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     visual.iconSlot ?: IconSlots.KEY_ENTER,
                     contentDescription = stringResource(R.string.ime_enter_default),
                     tint = contentColor,
+                    scale = iconScale,
                 )
             }
             // The other thing this key does right now, drawn small in the same
@@ -28346,24 +28362,28 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             IconSlots.KEY_ENTER,
             contentDescription = stringResource(R.string.ime_key_newline),
             tint = contentColor,
+            scale = iconScale,
         )
         KeyAction.LanguageSwitch -> ActionKeyIcon(
             namedIcon,
             IconSlots.KEY_GLOBE,
             contentDescription = stringResource(R.string.ime_key_language_switch),
             tint = contentColor,
+            scale = iconScale,
         )
         KeyAction.InputMethodPicker, is KeyAction.SwitchInputMethod -> ActionKeyIcon(
             namedIcon,
             IconSlots.KEY_INPUT_METHOD_PICKER,
             contentDescription = stringResource(R.string.ime_key_input_method_picker),
             tint = contentColor,
+            scale = iconScale,
         )
         KeyAction.Emoji -> ActionKeyIcon(
             namedIcon,
             IconSlots.KEY_EMOJI,
             contentDescription = stringResource(R.string.ime_key_emoji),
             tint = contentColor,
+            scale = iconScale,
         )
         // A text-editing key wears its operation's icon, or the short word the
         // old panel drew for the ones no glyph explains (Select, Select all,
@@ -28376,7 +28396,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     mainIcon,
                     contentDescription = visual.spoken.resolved(),
                     tint = contentColor,
-                    modifier = Modifier.size((22f * fontScale).dp),
+                    modifier = Modifier.size((22f * fontScale * iconScale).dp),
                 )
             } else {
                 Text(
@@ -28425,7 +28445,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                             namedIcon,
                             contentDescription = if (showText) null else visual.spoken.resolved(),
                             tint = if (showText) contentColor.copy(alpha = 0.5f) else contentColor,
-                            modifier = Modifier.size(((if (showText) 16f else 22f) * fontScale).dp),
+                            modifier = Modifier.size(((if (showText) 16f else 22f) * fontScale * iconScale).dp),
                         )
                     }
                     // A custom label replaces the language name; %s inside it
@@ -28480,7 +28500,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     tint = contentColor,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size((22f * fontScale).dp),
+                        .size((22f * fontScale * iconScale).dp),
                 )
             } else if (toolSlot != null) {
                 SlotIcon(
@@ -28489,7 +28509,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     tint = contentColor,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size((22f * fontScale).dp),
+                        .size((22f * fontScale * iconScale).dp),
                 )
             } else if (fallbackIcon != null) {
                 Icon(
@@ -28498,7 +28518,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     tint = contentColor,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size((22f * fontScale).dp),
+                        .size((22f * fontScale * iconScale).dp),
                 )
             } else {
                 // A blank label on an action key used to draw literally nothing,
@@ -28670,7 +28690,9 @@ private fun BoxScope.FlickFaceArms(visual: KeyVisual, settings: KeyboardSettings
     val key = visual.key
     val keyman = key.action is KeyAction.KeymanKey
     val color = visual.hintColor ?: visual.contentColor.copy(alpha = 0.55f)
-    val fontScale = settings.fontScale * visual.fontScale * settings.layoutBehavior.hintFontScale
+    // The key's own arm size on top (#970), apart from its label and its hint.
+    val fontScale = settings.fontScale * visual.fontScale * settings.layoutBehavior.hintFontScale *
+        key.drawnFlickScale()
     val bold = settings.accessibility.boldLabels
     val base = keyHintTextStyle()
     val style = remember(base, fontScale, color, bold) {
@@ -28707,13 +28729,15 @@ private fun BoxScope.FlickFaceArms(visual: KeyVisual, settings: KeyboardSettings
         }
     }
     val measurer = rememberTextMeasurer()
-    val topOffsetDp = settings.layoutBehavior.hintOffsetDp
+    // Moved further in, or out, on this key alone (#970).
+    val nudgeDp = key.flickInsetDp?.takeIf { it.isFinite() } ?: 0f
+    val topOffsetDp = settings.layoutBehavior.hintOffsetDp + nudgeDp
     val iconDp = HintIconDp * fontScale
     Spacer(
         modifier = Modifier
             .matchParentSize()
             .drawWithCache {
-                val inset = FlickArmEdgeInsetDp.toPx()
+                val inset = (FlickArmEdgeInsetDp + nudgeDp.dp).toPx()
                 val top = topOffsetDp.dp.toPx()
                 val iconPx = iconDp.dp.toPx()
                 val laid = faces.map { (direction, face) ->

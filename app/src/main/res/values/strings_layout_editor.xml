@@ -468,7 +468,14 @@
     <!-- Size of the text on one key. %1$.2f is the multiple, for example 1.30. -->
     <string name="layout_editor_key_label_scale_label">Label size ×<xliff:g id="multiple" example="1.30">%1$.2f</xliff:g></string>
     <string name="layout_editor_key_label_scale_auto_label">Label size: automatic</string>
-    <string name="layout_editor_key_label_scale_hint">Automatic draws one letter large and a word small. Set a size to choose for this key.</string>
+    <string name="layout_editor_key_label_scale_hint">Automatic draws one letter large and a word small. Set a size to choose for this key. On a key that shows an icon, this sizes the icon.</string>
+    <string name="layout_editor_key_flick_scale_label">Flick labels ×<xliff:g id="multiple" example="1.25">%1$.2f</xliff:g></string>
+    <string name="layout_editor_key_flick_scale_auto_label">Flick labels: usual size</string>
+    <string name="layout_editor_key_flick_scale_hint">The size of the swipe labels on this key alone, apart from its own label and hint</string>
+    <string name="layout_editor_key_flick_inset_label">Flick labels: <xliff:g id="inset" example="2">%1$d</xliff:g> dp further in</string>
+    <string name="layout_editor_key_flick_inset_hint">Moves the swipe labels on this key in from its edges, or out towards them, one dp a press</string>
+    <string name="layout_editor_key_flick_inset_in">In</string>
+    <string name="layout_editor_key_flick_inset_out">Out</string>
     <string name="layout_editor_key_hint_shift_label">Hint position: <xliff:g id="across" example="2">%1$d</xliff:g> in, <xliff:g id="down" example="1">%2$d</xliff:g> down</string>
     <string name="layout_editor_key_hint_shift_hint">Moves the corner hint on this key alone, one dp a press</string>
     <string name="layout_editor_key_hint_scale_auto_label">Hint size: same as every key</string>
