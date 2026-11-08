@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.resources
 
 import android.content.Context
+import com.wasimaster.wmkeyboard.core.grammar.DivvunGrammar
 import com.wasimaster.wmkeyboard.core.grammar.GrammarChecker
 import com.wasimaster.wmkeyboard.core.input.composer.ArabicTashkeel
 import com.wasimaster.wmkeyboard.core.input.composer.HebrewNikud
@@ -19,6 +20,8 @@ import com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation
 import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
+import com.wasimaster.wmkeyboard.core.voice.speech.KokoroSpeech
+import com.wasimaster.wmkeyboard.core.voice.speech.KokoroVoices
 import com.wasimaster.wmkeyboard.core.voice.speech.MmsSpeech
 import com.wasimaster.wmkeyboard.core.voice.vad.SmartTurn
 import com.wasimaster.wmkeyboard.core.voice.vosk.VoskEngine
@@ -161,6 +164,18 @@ object ResidentModels {
             { withContext(MmsSpeech.dispatcher) { MmsSpeech.release() } },
         ),
         Part(
+            "kokoro", ModelKind.READ_ALOUD,
+            { context ->
+                KokoroSpeech.loaded()?.let {
+                    LoadedModel(
+                        "kokoro", ModelKind.READ_ALOUD, "Kokoro ($it)",
+                        KokoroVoices.file(context.filesDir, KokoroVoices.MODEL).length().takeIf { n -> n > 0 },
+                    )
+                }
+            },
+            { withContext(MmsSpeech.dispatcher) { KokoroSpeech.release() } },
+        ),
+        Part(
             "nllb", ModelKind.TRANSLATION,
             { if (NllbTranslator.isLoaded) LoadedModel("nllb", ModelKind.TRANSLATION, "NLLB", NllbTranslator.modelBytes) else null },
             { OfflineTranslation.release() },
@@ -205,6 +220,16 @@ object ResidentModels {
             "grammar", ModelKind.GRAMMAR,
             { if (GrammarChecker.isLoaded) LoadedModel("grammar", ModelKind.GRAMMAR, "Harper", null) else null },
             { GrammarChecker.release() },
+        ),
+        Part(
+            "giella_grammar", ModelKind.GRAMMAR,
+            { context ->
+                DivvunGrammar.loadedLanguage?.let { lang ->
+                    model("giella_grammar", ModelKind.GRAMMAR, DivvunGrammar.bundleFile(context.filesDir, lang))
+                        .copy(name = "GiellaLT ($lang)")
+                }
+            },
+            { DivvunGrammar.release() },
         ),
         Part(
             "futo_swipe", ModelKind.GLIDE,

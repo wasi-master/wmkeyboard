@@ -83,6 +83,16 @@ sealed interface FloatingAction {
     }
 
     /**
+     * Presses one of Android's own system buttons (#1170): Back, recent apps,
+     * the app drawer, the notification shade or quick settings, through the
+     * system buttons accessibility service. With the service off, a press
+     * explains it and opens Android's accessibility settings.
+     */
+    data class System(val button: SystemButton) : FloatingAction {
+        override val token get() = "$SYSTEM_PREFIX${button.name}"
+    }
+
+    /**
      * Opens one of the button's categories (#923): a ring of its own, in
      * place of the one it sits in, that a hold can slide on into. Its name
      * and slots live in [SummonButtonSettings.categories], under [id].
@@ -97,6 +107,7 @@ sealed interface FloatingAction {
         private const val CATEGORY_PREFIX = "category:"
         private const val PAIR_PREFIX = "pair:"
         private const val APPLET_PREFIX = "applet:"
+        private const val SYSTEM_PREFIX = "system:"
 
         /** Between a pair's two packages; no package name has one. */
         private const val PAIR_JOIN = '+'
@@ -114,6 +125,9 @@ sealed interface FloatingAction {
                     .let { name -> ToolbarTool.entries.firstOrNull { it.name == name } }
                     ?.let(::Tool)
                 token.startsWith(APP_PREFIX) -> parseApp(token.removePrefix(APP_PREFIX))
+                token.startsWith(SYSTEM_PREFIX) -> token.removePrefix(SYSTEM_PREFIX)
+                    .let { name -> SystemButton.entries.firstOrNull { it.name == name } }
+                    ?.let(::System)
                 token.startsWith(APPLET_PREFIX) -> token.removePrefix(APPLET_PREFIX)
                     .let { name -> AppletTools.firstOrNull { it.name == name } }
                     ?.let(::Applet)
@@ -179,8 +193,12 @@ fun FloatingAction.fitsMenu(): Boolean = this != FloatingAction.None && this != 
 /** A category's slot is anything a menu slot can be but another category: one level deep (#923). */
 fun FloatingAction.fitsCategory(): Boolean = fitsMenu() && this !is FloatingAction.Category
 
-/** How many slots the quick menu fans out; past this the ring stops reading as a ring. */
-const val MAX_FLOATING_MENU_ITEMS = 8
+/**
+ * How many slots the quick menu, or a category, fans out (#1172): eight on
+ * the ring round the button, and up to eight more on a second ring outside
+ * it. Past that the rings stop fitting on a phone's screen.
+ */
+const val MAX_FLOATING_MENU_ITEMS = 16
 
 /** The quick menu a fresh install opens with: the reasons people asked for the button. */
 val DefaultFloatingMenu: List<FloatingAction> = listOf(

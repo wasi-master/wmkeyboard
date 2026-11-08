@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Simpan data di perangkat Anda</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” memiliki skrip yang bukan teks UTF-8 yang valid.</string>
     <string name="core_plugins_reject_bad_id">Plugin ini memiliki id yang tidak valid. Id harus sepanjang 3 hingga 64 karakter. Id dapat berisi huruf kecil, angka, titik, tanda hubung, dan garis bawah.</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” berisi kode Lua yang dikompilasi. Plugin harus menggunakan kode sumber biasa, sehingga Anda dapat membacanya sebelum dijalankan.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” memiliki skrip kosong.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” tidak memiliki file skripnya (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Plugin ini memerlukan versi WM Keyboard yang lebih baru.</string>

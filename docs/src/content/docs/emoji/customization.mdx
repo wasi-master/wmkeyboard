@@ -32,6 +32,8 @@ Text you send is always plain Unicode, whichever font you pick. The app or phone
 An emoji font converted from a color format usually has no variation-selector table, so ❤️ (U+2764 + the invisible U+FE0F that makes it draw as color) can't resolve in it. WM Keyboard strips that invisible selector before handing the glyph to your chosen font, rather than let it fall back to the system font and look inconsistent with the rest of the row.
 :::
 
+Not every emoji font your phone can open is one it can draw. Android paints colour emoji from bitmap (CBDT) and layered (COLR) fonts, and the newer COLRv1 kind only from Android 13. A font whose pictures are stored as SVG or as Apple's `sbix`, or a COLRv1 font on an older phone, maps every emoji and then draws an empty space for each. WM Keyboard draws one emoji from the font when you pick it, and if nothing comes out it uses your phone's own emoji font instead, so the panel never turns into a grid of blank cells. The preview row shows the phone's emoji in that case: pick a different font file to get a different look.
+
 ## Fixing emoji that won't display
 
 Older phones and some OEM skins ship an emoji font that predates the newest emoji, and those show up as an empty "tofu" box. There's a one-tap fix for that, plus a toggle for tidying away whatever it can't reach.

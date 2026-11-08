@@ -54,6 +54,28 @@ Java_com_wasimaster_wmkeyboard_core_imagegen_ImageGenNative_nativeLoad(JNIEnv* e
 // inputs: one FloatArray or IntArray per declared input; shapes: one IntArray
 // each. Returns the first output as NCHW floats, or null; its shape goes into
 // outShape when that array is large enough.
+// Like nativeLoad, on the GPU when compute is 1 (OpenCL, else Vulkan, else
+// the CPU after all) with GPU kernels cached in the file cache. Which one it
+// got: nativeBackend.
+JNIEXPORT jlong JNICALL
+Java_com_wasimaster_wmkeyboard_core_imagegen_ImageGenNative_nativeLoadOn(JNIEnv* env, jobject, jstring path,
+                                                                         jobjectArray inputs, jobjectArray outputs,
+                                                                         jint threads, jint compute, jstring cache) {
+    try {
+        auto m = wmimagegen::Model::load(str(env, path), strs(env, inputs), strs(env, outputs), threads, compute,
+                                         str(env, cache));
+        return reinterpret_cast<jlong>(m.release());
+    } catch (...) {
+        return 0;
+    }
+}
+
+// 0 for the CPU, 3 for OpenCL, 7 for Vulkan (MNN's forward types).
+JNIEXPORT jint JNICALL
+Java_com_wasimaster_wmkeyboard_core_imagegen_ImageGenNative_nativeBackend(JNIEnv*, jobject, jlong handle) {
+    return handle ? model(handle)->backend() : -1;
+}
+
 JNIEXPORT jfloatArray JNICALL
 Java_com_wasimaster_wmkeyboard_core_imagegen_ImageGenNative_nativeRun(JNIEnv* env, jobject, jlong handle,
                                                                       jobjectArray inputs, jobjectArray shapes,

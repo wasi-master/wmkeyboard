@@ -2,7 +2,7 @@
 <!--
   Strings owned by :core:plugins.
 
-  This module parses, installs and runs Lua plugins. None of it has a Context:
+  This module parses, installs and runs plugins, which are written in Python. None of it has a Context:
   the manifest reader and the runtime are plain classes that unit tests drive
   directly, so every line the user reads leaves the module as a string resource
   id (see PluginText) and the screen that shows it resolves the words.
@@ -11,9 +11,9 @@
   com.wasimaster.wmkeyboard.plugins.R.string.core_plugins_… - the R classes are
   non-transitive, so the import has to name this module.
 
-  Not here on purpose: the `wm.*` Lua API names, the error text a script gets
-  back from wm.storage and wm.json, and the messages the Lua virtual machine
-  itself writes. A script reads those, not a person, and translating them would
+  Not here on purpose: the `wm.*` and `ui.*` API names, the error text a script
+  gets back from wm.storage, and the messages the Python interpreter itself
+  writes. A script reads those, not a person, and translating them would
   break every plugin that checks them.
 -->
 <resources xmlns:tools="http://schemas.android.com/tools">
@@ -27,6 +27,9 @@
     <!-- The plugin can ask the app to show a notification at a time it sets,
          for example when a task on a to-do list is due. -->
     <string name="core_plugins_permission_reminders_label">Show reminders at times that you set in it</string>
+    <!-- The plugin adds buttons to the bar that appears over selected text.
+         It sees the selected text only when the user taps one of them. -->
+    <string name="core_plugins_permission_selection_label">Change text you select, when you tap one of its actions</string>
 
     <!-- ================================================================== -->
     <!-- Install refused: the manifest. Each of these replaces the install,  -->
@@ -39,6 +42,23 @@
     <!-- %1$s is the name of the plugin. -->
     <string name="core_plugins_reject_no_version">“%1$s” does not say which version it is.</string>
     <!-- %1$s is the permission the manifest asked for. %2$s is the name of the plugin. -->
+    <!-- %1$s is the name of the plugin. Lua and Python are programming languages. -->
+    <string name="core_plugins_reject_lua">“%1$s” is written in Lua, which WM Keyboard no longer runs. Look for its Python version.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” is written in a language this version of WM Keyboard cannot run. Plugins are written in Python.</string>
+    <!-- %1$s is the name of the plugin. An action is a button on the bar over selected text. -->
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” adds actions for selected text but does not ask permission to change it.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” asks to change text you select but does not add any actions.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” has no panel and no actions, so there is nothing for it to do.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_too_many_actions">“%1$s” adds more than 16 actions.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_bad_action_id">“%1$s” has an action whose id is missing, repeated, or not valid. An action id is up to 32 lowercase letters, numbers, dashes and underscores.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_action_no_name">“%1$s” has an action without a name.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_action_input">“%1$s” has an action that asks for text this version of WM Keyboard cannot give it.</string>
     <string name="core_plugins_reject_unknown_permission">This version of WM Keyboard does not know the permission “%1$s”. The app cannot tell you what “%2$s” is allowed to do.</string>
 
     <!-- ================================================================== -->
@@ -53,8 +73,6 @@
          Not a plural: "KB" is a unit symbol, not a countable noun, and it does
          not inflect. -->
     <string name="core_plugins_reject_script_too_large" tools:ignore="PluralsCandidate">“%1$s” has a script larger than %2$d KB.</string>
-    <!-- %1$s is the name of the plugin. Lua is the language plugins are written in. -->
-    <string name="core_plugins_reject_compiled_lua">“%1$s” contains compiled Lua code. A plugin must use plain source code, so you can read it before it runs.</string>
     <!-- %1$s is the name of the plugin. UTF-8 is the text format the file must use. -->
     <string name="core_plugins_reject_bad_encoding">“%1$s” has a script that is not valid UTF-8 text.</string>
 
@@ -69,6 +87,9 @@
     <!-- render() is the name of the function a plugin script must write. It stays in English. -->
     <string name="core_plugins_error_no_render">This plugin has no render() function.</string>
     <string name="core_plugins_error_script_failed">The script failed.</string>
+    <!-- transform() is the name of the function a plugin writes for its selection actions. It stays in English. -->
+    <string name="core_plugins_error_no_transform">This plugin has no transform() function.</string>
+    <string name="core_plugins_error_action_missing">That plugin no longer has that action.</string>
 
     <!-- ================================================================== -->
     <!-- The plugin panel: the session is over. The panel goes back to the  -->
@@ -79,6 +100,10 @@
     <string name="core_plugins_stopped_deadline">This plugin took too long. The app stopped it.</string>
     <string name="core_plugins_stopped_cancelled">The app stopped this plugin.</string>
     <string name="core_plugins_stopped_recursion">This plugin called itself too many times. The app stopped it.</string>
+    <!-- The script built a list or a piece of text larger than plugins may hold. -->
+    <string name="core_plugins_stopped_memory">This plugin tried to hold too much data. The app stopped it.</string>
+    <!-- Shown while the part of the app that runs plugins is downloaded on demand. -->
+    <string name="core_plugins_error_not_ready">Plugins are still downloading. Try again in a moment.</string>
     <string name="core_plugins_stopped_unexpected">This plugin stopped unexpectedly.</string>
     <string name="core_plugins_stopped_not_responding">This plugin stopped responding. The app closed it.</string>
     <string name="core_plugins_stopped_not_responding_disabled">This plugin stopped responding again. The app turned it off.</string>

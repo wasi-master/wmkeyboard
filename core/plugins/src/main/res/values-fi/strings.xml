@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Tallenna tietoja laitteellesi</string>
     <string name="core_plugins_reject_bad_encoding">”%1$s” sisältää skriptin, joka ei ole kelvollista UTF-8-tekstiä.</string>
     <string name="core_plugins_reject_bad_id">Tämän liitännäisen tunnus ei ole kelvollinen. Tunnuksen on oltava 3–64 merkkiä pitkä. Tunnus voi sisältää pieniä kirjaimia, numeroita, pisteitä, viivoja ja alaviivoja.</string>
-    <string name="core_plugins_reject_compiled_lua">”%1$s” sisältää käännettyä Lua-koodia. Laajennuksen on käytettävä tavallista lähdekoodia, jotta voit lukea sen ennen kuin se suoritetaan.</string>
     <string name="core_plugins_reject_empty_script">”%1$s” sisältää tyhjän skriptin.</string>
     <string name="core_plugins_reject_missing_script">Kohteelta ”%1$s” puuttuu skriptitiedosto (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Tämä laajennus vaatii WM Keyboardin uudemman version.</string>

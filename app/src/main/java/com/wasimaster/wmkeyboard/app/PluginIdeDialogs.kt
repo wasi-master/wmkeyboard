@@ -26,9 +26,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaDocuments
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaNavigation
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaRenameProblem
+import com.wasimaster.wmkeyboard.core.plugins.PyRenameProblem
+import com.wasimaster.wmkeyboard.core.plugins.PythonTooling
 
 /** Asks for a line number and hands it over once it names a line of the document. */
 @Composable
@@ -69,9 +68,9 @@ internal fun GoToLineDialog(lines: Int, onDismiss: () -> Unit, onGo: (Int) -> Un
 @Immutable
 internal data class RenamePlan(val oldName: String, val spans: List<TextRange>, val snapshot: String, val caret: Int)
 
-/** The rename of the name at [caret], or null where [LuaNavigation] does not offer one. Run off the main thread. */
+/** The rename of the name at [caret], or null where the tooling does not offer one. Run off the main thread. */
 internal fun renamePlanAt(source: String, caret: Int): RenamePlan? {
-    val spans = LuaNavigation.renameSpans(LuaDocuments.of(source), caret) ?: return null
+    val spans = PythonTooling.rename(source, caret, "")?.spans ?: return null
     val first = spans.firstOrNull() ?: return null
     return RenamePlan(source.substring(first.start, first.end), spans.map { TextRange(it.start, it.end) }, source, caret)
 }
@@ -88,7 +87,7 @@ internal fun RenameDialog(plan: RenamePlan, onDismiss: () -> Unit, onRename: (St
     }
     val name = field.text
     val problem = remember(name) {
-        if (name == plan.oldName) null else LuaNavigation.renameProblem(LuaDocuments.of(plan.snapshot), plan.caret, name)
+        if (name == plan.oldName) null else PythonTooling.rename(plan.snapshot, plan.caret, name)?.problem
     }
     val ready = name != plan.oldName && problem == null
     val focus = remember { FocusRequester() }
@@ -128,9 +127,12 @@ internal fun RenameDialog(plan: RenamePlan, onDismiss: () -> Unit, onRename: (St
 }
 
 @get:StringRes
-private val LuaRenameProblem.messageRes: Int
+private val PyRenameProblem.messageRes: Int
     get() = when (this) {
-        LuaRenameProblem.NOT_A_NAME -> R.string.plugin_ide_rename_not_a_name
-        LuaRenameProblem.KEYWORD -> R.string.plugin_ide_rename_keyword
-        LuaRenameProblem.TAKEN -> R.string.plugin_ide_rename_taken
+        PyRenameProblem.NOT_A_NAME -> R.string.plugin_ide_rename_not_a_name
+        PyRenameProblem.KEYWORD -> R.string.plugin_ide_rename_python_keyword
+        PyRenameProblem.BUILTIN -> R.string.plugin_ide_rename_builtin
+        PyRenameProblem.TAKEN -> R.string.plugin_ide_rename_taken
+        PyRenameProblem.API -> R.string.plugin_ide_rename_api
+        PyRenameProblem.HOOK -> R.string.plugin_ide_rename_hook
     }

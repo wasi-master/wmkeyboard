@@ -1,0 +1,6 @@
+{
+  global:
+    Java_com_wasimaster_wmkeyboard_core_translate_Cld3Native_*;
+  local:
+    *;
+};

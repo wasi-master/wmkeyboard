@@ -108,7 +108,7 @@ internal fun CodeKeysDialog(
     onHidden: (Set<String>) -> Unit,
     onReset: () -> Unit,
     onDismiss: () -> Unit,
-    keys: List<AccessoryKey> = LuaAccessoryKeys,
+    keys: List<AccessoryKey> = PythonAccessoryKeys,
 ) {
     val labels = arrangeKeys(keys, order, emptySet()).map { it.label }
     val rail = rememberScrollRailState()

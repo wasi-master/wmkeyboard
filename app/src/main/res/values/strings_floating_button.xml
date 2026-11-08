@@ -9,8 +9,8 @@
     <string name="floating_button_enable_subtitle">A small round button floats over every app</string>
     <string name="floating_button_enable_info">A small round button floats over every app, with the keyboard open or closed. Tap it, double tap it or press and hold it, and it does what you set below: open the keyboard, even on a screen with no text field, start voice typing, ask the AI about the screen, or open any tool. Press and hold opens a quick menu of more actions round the button; slide onto one and let go to run it. Drag the button to move it, and it settles against the nearer side. Drag it onto the cross at the bottom of the screen to hide it until the keyboard next opens or closes. Needs Android\'s Display over other apps permission.</string>
     <string name="floating_button_screen_title">Let the button read the screen</string>
-    <string name="floating_button_screenshot_title">Let the button take screenshots</string>
-    <string name="floating_button_screenshot_subtitle">Screenshot needs the screenshot service on in Android\'s accessibility settings</string>
+    <string name="floating_button_system_buttons_title">Let the button press system buttons</string>
+    <string name="floating_button_system_buttons_subtitle">Screenshot, Back, Recent apps and the other system buttons need the system buttons service on in Android\'s accessibility settings</string>
     <string name="floating_button_screen_subtitle">Ask AI can bring the text on screen with it, and Look up can find the word you tap, once the screen reading service is on</string>
 
     <string name="floating_button_preview_caption">Tap: %1$s · Hold: %2$s</string>
@@ -21,6 +21,17 @@
     <string name="floating_button_tap_title">Tap</string>
     <string name="floating_button_double_tap_title">Double tap</string>
     <string name="floating_button_hold_title">Press and hold</string>
+    <string name="floating_button_docked_title">Fixed in place</string>
+    <string name="floating_button_docked_subtitle">The button stays where it is, and a swipe from it runs the action set for that direction</string>
+    <string name="floating_button_flick_unbound">Nothing</string>
+    <string name="floating_button_flick_up_title">Swipe up</string>
+    <string name="floating_button_flick_up_right_title">Swipe up and right</string>
+    <string name="floating_button_flick_right_title">Swipe right</string>
+    <string name="floating_button_flick_down_right_title">Swipe down and right</string>
+    <string name="floating_button_flick_down_title">Swipe down</string>
+    <string name="floating_button_flick_down_left_title">Swipe down and left</string>
+    <string name="floating_button_flick_left_title">Swipe left</string>
+    <string name="floating_button_flick_up_left_title">Swipe up and left</string>
     <string name="floating_button_pick_title">%1$s does</string>
 
     <!-- The tap and double tap again, for while the keyboard is up (#626). -->
@@ -84,6 +95,10 @@
     <string name="floating_button_app_picker_work_group">Work apps</string>
     <string name="floating_button_pick_pair">Open an app pair</string>
     <string name="floating_button_pick_group_applets">Floating boxes</string>
+    <string name="floating_button_pick_group_system">System buttons</string>
+    <string name="floating_button_pick_system_subtitle">Presses Android\'s own button for you</string>
+    <string name="floating_button_pick_system_off_title">Turn on system buttons</string>
+    <string name="floating_button_pick_system_off_subtitle">Back, Recent apps, the app drawer, notifications and quick settings need the system buttons service. Tap to see what it does</string>
     <string name="floating_button_pick_applet_subtitle">Opens the tool in a box over the app, without the keyboard</string>
     <string name="floating_button_pick_pair_subtitle">Two apps together, from the app launcher\'s split screen pairs</string>
     <string name="floating_button_pair_picker_title">Pick an app pair</string>

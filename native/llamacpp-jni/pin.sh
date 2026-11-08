@@ -12,3 +12,11 @@ OPENCL_HEADERS_TAG=v2026.05.29
 OPENCL_HEADERS_COMMIT=6fe718c31a45fe25151362a72ef041c3a1047cbd
 OPENCL_LOADER_TAG=v2026.05.29
 OPENCL_LOADER_COMMIT=b7bd2803acc779c03d96588e9ca9e9568a18698a
+# KleidiAI, Arm's matrix kernels, built into every arm64 libwmllama: the
+# release archive ggml's own CMake names for this llama.cpp (its
+# KLEIDIAI_COMMIT_TAG), fetched by build.sh and checked against this hash
+# rather than downloaded at configure time. Bump with llama.cpp.
+KLEIDIAI_TAG=v1.32.0
+KLEIDIAI_SHA256=a48d373e7c5d721a0aecbf5ddaf0bdf245bc8064e6b84086f13db0e102b553a6
+# What the Vulkan variant (libwmllama_vulkan.so) compiles against is pinned in
+# native/vulkan.sh, shared with whisper.cpp's build.

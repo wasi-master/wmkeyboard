@@ -20,6 +20,22 @@
 # on that.
 set -euo pipefail
 
+# The QNN API headers ExecuTorch's Qualcomm backend compiles against: the
+# QAIRT SDK release ExecuTorch pins (backends/qualcomm/scripts/qnn_config.sh),
+# include/QNN only, read out of Qualcomm's public 1.35 GB zip by range
+# requests (qnn_headers.py) and checked against this digest of the tree.
+# geniex-qairt-plugin's copy, which native/imagegen-qnn uses, lacks the
+# Saver, GPU, LPAI and IR headers the delegate includes. Compiled against,
+# never committed. QNN_INCLUDE points at a QAIRT SDK's include/QNN instead.
+QNN_VERSION=2.37.0.250724
+QNN_ZIP_URL=https://softwarecenter.qualcomm.com/api/download/software/sdks/Qualcomm_AI_Runtime_Community/All/$QNN_VERSION/v$QNN_VERSION.zip
+QNN_HEADERS_DIGEST=fa3ceeff00ab4316c974e94e5cb6093ec15782c75ebf558840079518a869d08f
+
+# MediaTek's NeuronAdapter.h for the NeuroPilot variant: AOSP's
+# platform/external/executorch at this commit, and the file's SHA-256.
+NEURON_ADAPTER_AOSP=28d3bc0b28d9375d346e88e4ddbaaba700638b2d
+NEURON_ADAPTER_SHA256=1719d8b33b87ed6aedd860eb4793e013286ec1f5675e401ae4575875f9b80938
+
 ET_TAG=v1.5.1
 ET_COMMIT=3b60683923245cf472b7323426920e15623ba361
 # The PyTorch release ExecuTorch v1.5.1 pins (torch_pin.py), for torchgen.
@@ -145,33 +161,186 @@ SRC=$(cd "$SRC" && pwd -P)
 OPS=$(grep -v '^\s*$' "$HERE/ops.txt" | paste -sd, -)
 MAP="-ffile-prefix-map=$SRC=executorch -ffile-prefix-map=$STUB/torch/include=torch -ffile-prefix-map=$WORK=build -ffile-prefix-map=$HERE=. -ffile-prefix-map=$NDK=ndk"
 
-for abi in ${ET_ABIS:-${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64}}; do
-    et=$WORK/et-$abi
-    prefix=$WORK/et-install-$abi
+# QNN: the Qualcomm backend beside XNNPACK, in a second arm64 library,
+# libwmexecutorch_qnn.so, its own gate (`executorchqnn`, never F-Droid's:
+# build-fdroid-libs.sh sets WMKB_ET_QNN=0). EtNative loads it instead of
+# libwmexecutorch.so on a Snapdragon with an NPU, and models exported for
+# that NPU run their delegated parts there through the QNN libraries the
+# `npu` gate delivers. Its build reads only include/QNN of an SDK root.
+QNN_ROOT=
+if [ "${WMKB_ET_QNN:-1}" = 1 ]; then
+    QNN_ROOT=$WORK/qnn-sdk
+    if [ -n "${QNN_INCLUDE:-}" ]; then
+        mkdir -p "$QNN_ROOT/include" && ln -sfn "$(cd "$QNN_INCLUDE" && pwd -P)" "$QNN_ROOT/include/QNN"
+    elif [ ! -f "$QNN_ROOT/include/QNN/Saver/QnnSaver.h" ]; then
+        rm -rf "$QNN_ROOT/include" && mkdir -p "$QNN_ROOT/include"
+        retry "$PY" -I "$HERE/qnn_headers.py" "$QNN_ZIP_URL" "$QNN_HEADERS_DIGEST" "$QNN_ROOT/include"
+    fi
+    [ -f "$QNN_ROOT/include/QNN/QnnInterface.h" ] || { echo "no QNN headers under $QNN_ROOT" >&2; exit 1; }
+    MAP="$MAP -ffile-prefix-map=$(cd "$QNN_ROOT/include/QNN" && pwd -P)=qnn"
+    # ExecuTorch builds the Qualcomm delegate as a shared library with its own
+    # static copy of the runtime, whose backend registry ours would never see.
+    # Built static instead, and not installed (its static parts are not in the
+    # export set); the JNI step links the archives straight out of the build
+    # tree, the delegate's own whole so its registration is kept.
+    q=$SRC/backends/qualcomm/CMakeLists.txt
+    if grep -q 'add_library(qnn_executorch_backend SHARED)' "$q"; then
+        "$PY" - "$q" <<'EOF'
+import re, sys
+p = sys.argv[1]
+s = open(p).read()
+s = s.replace("add_library(qnn_executorch_backend SHARED)", "add_library(qnn_executorch_backend STATIC)", 1)
+s, n = re.subn(r"install\(\n  TARGETS qnn_executorch_backend\n.*?\n\)\n", "", s, count=1, flags=re.S)
+assert n == 1, "install block not found"
+open(p, "w").write(s)
+EOF
+    fi
+    # Nor in executorch_backends, the installed target that links every
+    # delegate built, whose export would then need it.
+    top=$SRC/CMakeLists.txt
+    if grep -q 'list(APPEND _executorch_backends qnn_executorch_backend)' "$top"; then
+        "$PY" - "$top" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read()
+old = "  list(APPEND _executorch_backends qnn_executorch_backend)\n"
+assert s.count(old) == 1, "QNN backend list entry not found"
+open(p, "w").write(s.replace(old, "", 1))
+EOF
+    fi
+fi
+
+# Vulkan: ExecuTorch's GPU backend beside XNNPACK, in libwmexecutorch_vulkan.so
+# (arm64, gate `executorchvulkan`), for programs exported with its Vulkan
+# partitioner. It opens the system's libvulkan.so through volk at run time
+# and compiles its GLSL shaders into the library at build time, with a
+# shaderc glslc newer than the NDK's (native/vulkan.sh builds one, or GLSLC
+# names one). Its three headers-only submodules are fetched here.
+VULKAN_GLSLC=
+if [ "${WMKB_ET_VULKAN:-1}" = 1 ]; then
+    retry git -C "$SRC" submodule update --init --depth 1 --quiet \
+        backends/vulkan/third-party/Vulkan-Headers backends/vulkan/third-party/volk \
+        backends/vulkan/third-party/VulkanMemoryAllocator
+    # shellcheck source=../vulkan.sh
+    . "$HERE/../vulkan.sh"
+    vulkan_setup "$WORK" "$BIN"
+fi
+
+# MediaTek: ExecuTorch's NeuroPilot backend beside XNNPACK, in
+# libwmexecutorch_neuron.so (arm64, gate `executorchneuron`), for programs
+# exported for a Dimensity NPU (the 9300 and 9400 so far) with MediaTek's
+# converter. Open source throughout: it opens the phone's own NeuroPilot
+# adapter (libneuronusdk_adapter.mtk.so or libneuron_adapter.so) at run time.
+# Patched like QNN's: built static and kept out of the export set. Its buffer
+# allocator, a library from MediaTek's SDK that apps would have to ship, is
+# made optional: ExecuTorch sets it up from a static initialiser that calls a
+# null function where that library is missing, which would take the process
+# down as soon as ours loads; without it, the backend copies its inputs as
+# it already does for memory the allocator did not hand out.
+if [ "${WMKB_ET_NEURON:-1}" = 1 ]; then
+    "$PY" -I "$HERE/patch_neuron.py" "$SRC"
+    # NeuronAdapter.h, MediaTek's NNAPI-like interface the backend calls
+    # through: not in ExecuTorch's repository but in AOSP's copy of it, with
+    # MediaTek's notice, so it is fetched at a pinned commit, checked, and
+    # never committed (nor built by F-Droid).
+    na=$SRC/backends/mediatek/runtime/include/api/NeuronAdapter.h
+    if [ "$(shasum -a 256 "$na" 2>/dev/null | cut -c1-64)" != "$NEURON_ADAPTER_SHA256" ]; then
+        retry curl -sSfL -o "$WORK/NeuronAdapter.b64" \
+            "https://android.googlesource.com/platform/external/executorch/+/$NEURON_ADAPTER_AOSP/backends/mediatek/runtime/include/api/NeuronAdapter.h?format=TEXT"
+        "$PY" -c 'import base64, sys; open(sys.argv[2], "wb").write(base64.b64decode(open(sys.argv[1], "rb").read()))' \
+            "$WORK/NeuronAdapter.b64" "$na"
+        [ "$(shasum -a 256 "$na" | cut -c1-64)" = "$NEURON_ADAPTER_SHA256" ] ||
+            { echo "NeuronAdapter.h does not match $NEURON_ADAPTER_SHA256" >&2; exit 1; }
+    fi
+fi
+
+# XNNPACK downloads Arm's KleidiAI from gitlab.arm.com while configuring,
+# once per build directory and with no retry, and that host refuses a
+# request now and then. Fetched here instead, from the URL and hash XNNPACK
+# pins, with retries, and handed over as KLEIDIAI_SOURCE_DIR.
+KLEIDIAI_SRC=$WORK/kleidiai-xnnpack
+if [ ! -f "$KLEIDIAI_SRC/CMakeLists.txt" ]; then
+    dl=$SRC/backends/xnnpack/third-party/XNNPACK/cmake/DownloadKleidiAI.cmake
+    url=$(sed -n 's/^ *URL \(https:[^ ]*\)$/\1/p' "$dl")
+    sha=$(sed -n 's/^ *URL_HASH SHA256=\([0-9a-f]*\)$/\1/p' "$dl")
+    [ -n "$url" ] && [ -n "$sha" ] || { echo "no KleidiAI URL in $dl" >&2; exit 1; }
+    retry curl -fsSL -o "$WORK/kleidiai-xnnpack.zip" "$url"
+    echo "$sha  $WORK/kleidiai-xnnpack.zip" | shasum -a 256 -c - > /dev/null ||
+        { echo "KleidiAI archive does not match $sha" >&2; exit 1; }
+    rm -rf "$KLEIDIAI_SRC" "$WORK/kleidiai-unzip"
+    "$PY" -c 'import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])' \
+        "$WORK/kleidiai-xnnpack.zip" "$WORK/kleidiai-unzip"
+    mv "$WORK/kleidiai-unzip"/kleidiai-* "$KLEIDIAI_SRC"
+    rm -rf "$WORK/kleidiai-unzip" "$WORK/kleidiai-xnnpack.zip"
+fi
+
+# abi, then "qnn", "vulkan" or "neuron" for a delegate variant, then where to
+build_et() {
+    local abi=$1 variant=${2:-}
+    local et=$WORK/et-$abi$variant
+    local prefix=$WORK/et-install-$abi$variant
+    local name=wmexecutorch${variant:+_$variant}
+    local backend=()
+    case $variant in
+        qnn) backend=(-DEXECUTORCH_BUILD_QNN=ON -DQNN_SDK_ROOT="$QNN_ROOT") ;;
+        vulkan) backend=(-DEXECUTORCH_BUILD_VULKAN=ON -DGLSLC_PATH="$VULKAN_GLSLC") ;;
+        neuron) backend=(-DEXECUTORCH_BUILD_NEURON=ON) ;;
+    esac
+    # MediaTek's adapter calls AHardwareBuffer (Android 8); every phone
+    # with a NeuroPilot NPU ExecuTorch supports runs Android 14 or later.
+    local platform=24
+    [ "$variant" = neuron ] && platform=26
     common=(
         -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake"
-        -DANDROID_ABI="$abi" -DANDROID_PLATFORM=android-24 -DANDROID_STL=c++_static
+        -DANDROID_ABI="$abi" -DANDROID_PLATFORM=android-$platform -DANDROID_STL=c++_static
         -DCMAKE_BUILD_TYPE=Release
         -DCMAKE_C_FLAGS="$MAP" -DCMAKE_CXX_FLAGS="$MAP" -DCMAKE_ASM_FLAGS="$MAP"
     )
     cmake -S "$SRC" -B "$et" -G Ninja "${common[@]}" -DCMAKE_INSTALL_PREFIX="$prefix" \
         -DPYTHON_EXECUTABLE="$PY" -DBUILD_TESTING=OFF \
-        -DEXECUTORCH_BUILD_XNNPACK=ON \
+        -DEXECUTORCH_BUILD_XNNPACK=ON -DKLEIDIAI_SOURCE_DIR="$KLEIDIAI_SRC" \
         -DEXECUTORCH_BUILD_EXTENSION_MODULE=ON -DEXECUTORCH_BUILD_EXTENSION_TENSOR=ON \
         -DEXECUTORCH_BUILD_EXTENSION_DATA_LOADER=ON -DEXECUTORCH_BUILD_EXTENSION_FLAT_TENSOR=ON \
         -DEXECUTORCH_BUILD_EXTENSION_NAMED_DATA_MAP=ON \
         -DEXECUTORCH_BUILD_KERNELS_OPTIMIZED=ON -DEXECUTORCH_BUILD_KERNELS_QUANTIZED=OFF \
         -DEXECUTORCH_BUILD_DEVTOOLS=OFF -DEXECUTORCH_BUILD_ANDROID_JNI=OFF \
         -DEXECUTORCH_ENABLE_LOGGING=OFF \
-        -DEXECUTORCH_SELECT_OPS_LIST="$OPS" > "$et.log" 2>&1 || { tail -30 "$et.log"; exit 1; }
+        -DEXECUTORCH_SELECT_OPS_LIST="$OPS" "${backend[@]}" > "$et.log" 2>&1 || { tail -30 "$et.log"; exit 1; }
     cmake --build "$et" --target install >> "$et.log" 2>&1 || { tail -40 "$et.log"; exit 1; }
 
-    jni=$WORK/jni-$abi
-    cmake -S "$HERE" -B "$jni" -G Ninja "${common[@]}" -DET_PREFIX="$prefix" > "$jni.log" 2>&1 \
+    # A delegate's archives straight out of the build tree: the one that
+    # registers the backend whole, the rest as a group (CMakeLists.txt).
+    local jni=$WORK/jni-$abi$variant
+    local backend_libs="" backend_dir="" backend_whole=""
+    case $variant in
+        qnn) backend_dir=backends/qualcomm backend_whole=libqnn_executorch_backend.a ;;
+        vulkan) backend_dir=backends/vulkan backend_whole=libvulkan_backend.a ;;
+        neuron) backend_dir=backends/mediatek backend_whole=libneuron_backend.a ;;
+    esac
+    if [ -n "$backend_dir" ]; then
+        backend_libs=$(find "$et/$backend_dir" -name '*.a' | LC_ALL=C sort | paste -sd';' -)
+        [ -n "$backend_libs" ] || { echo "no $variant backend archives in $et" >&2; exit 1; }
+    fi
+    cmake -S "$HERE" -B "$jni" -G Ninja "${common[@]}" -DET_PREFIX="$prefix" \
+        -DWM_LIB_NAME="$name" -DWM_BACKEND="$variant" -DWM_BACKEND_LIBS="$backend_libs" \
+        -DWM_BACKEND_WHOLE="$backend_whole" > "$jni.log" 2>&1 \
         || { tail -30 "$jni.log"; exit 1; }
     cmake --build "$jni" >> "$jni.log" 2>&1 || { tail -40 "$jni.log"; exit 1; }
-    dest=$OUT/$abi
+    local dest=${3:-$OUT}/$abi
     mkdir -p "$dest"
-    "$BIN/llvm-strip" --strip-unneeded -o "$dest/libwmexecutorch.so" "$jni/libwmexecutorch.so"
-    echo "$abi libwmexecutorch.so: $(wc -c < "$dest/libwmexecutorch.so") bytes"
+    "$BIN/llvm-strip" --strip-unneeded -o "$dest/lib$name.so" "$jni/lib$name.so"
+    echo "$abi lib$name.so: $(wc -c < "$dest/lib$name.so") bytes"
+}
+
+for abi in ${ET_ABIS:-${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64}}; do
+    [ "${WMKB_ET_CPU:-1}" = 1 ] && build_et "$abi"
+    if [ "$abi" = arm64-v8a ] && [ -n "$QNN_ROOT" ]; then
+        build_et "$abi" qnn "${ET_QNN_OUT:-$REPO/core/voice/src/executorchqnn/jniLibs}"
+    fi
+    if [ "$abi" = arm64-v8a ] && [ -n "$VULKAN_GLSLC" ]; then
+        build_et "$abi" vulkan "${ET_VULKAN_OUT:-$REPO/core/voice/src/executorchvulkan/jniLibs}"
+    fi
+    if [ "$abi" = arm64-v8a ] && [ "${WMKB_ET_NEURON:-1}" = 1 ]; then
+        build_et "$abi" neuron "${ET_NEURON_OUT:-$REPO/core/voice/src/executorchneuron/jniLibs}"
+    fi
 done

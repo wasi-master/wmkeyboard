@@ -1,6 +1,6 @@
 ---
 title: "Grammar check"
-description: "Grammar checking with Harper on the phone, or LanguageTool on a server for more than 30 languages."
+description: "Grammar checking with Harper on the phone, GiellaLT's checkers for the Sámi languages and Faroese, or LanguageTool on a server for more than 30 languages."
 sidebar:
   order: 7
 ---
@@ -9,7 +9,7 @@ import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 import Shot from '@components/Shot.astro';
 
-Grammar check runs your writing past Harper, the same open-source engine behind `harper-ls`, and surfaces fixable issues right above the keys as you type. Harper runs on the phone, so by default nothing you type leaves it to get checked. For other languages than English you can switch on [LanguageTool](#checkers-harper-and-languagetool), which checks on a server instead.
+Grammar check runs your writing past Harper, the same open-source engine behind `harper-ls`, and surfaces fixable issues right above the keys as you type. Harper runs on the phone, so by default nothing you type leaves it to get checked. For other languages than English you can switch on [LanguageTool](#checkers-harper-and-languagetool), which checks on a server instead, and for North, Lule, South and Inari Sámi and Faroese you can download [GiellaLT's own checker](#giellalt-grammar-checkers), which runs on the phone.
 
 <PhoneFrame caption="The Grammar panel open above the key rows, with a spelling issue and its fix chips.">
   {/* shot: smart/grammar-panel-open */}
@@ -69,6 +69,26 @@ Tap the LanguageTool row to set it up:
 LanguageTool's server is free software (LGPL), so you can run your own on a computer at home, or anywhere else, from the [jar](https://dev.languagetool.org/http-server) or one of the Docker images. Your text then never reaches a third party. Add it with **Add a provider / LanguageTool**: each server is its own row, with its own address and nickname. This is the same in every edition, F-Droid's included.
 
 The public server takes 20 checks a minute, 75 KB of text a minute and 20 KB a check. Grammar check keeps to that: a long note is cut into pieces of at most 18 KB at paragraph ends, then sentence ends, then spaces, and a piece already checked isn't sent again until it changes. If a minute's allowance is used up, the next check waits for it when that takes seconds, and the panel says the server is busy when it would take longer. Edit the text and it tries again. A Premium account or your own server is sent bigger pieces, up to 60 KB, with no pacing.
+
+## GiellaLT grammar checkers
+
+<SettingsPath path="Tools / Grammar check" />
+
+[GiellaLT](https://giellalt.github.io/), the language technology group at UiT The Arctic University of Norway, writes grammar checkers for the languages it works on. Five have a published release, and the grammar settings list them under **GiellaLT grammar checkers** at the Advanced level, each with a **Download** button:
+
+| Language | Download |
+|---|---|
+| North Sámi | 1.5 GB |
+| Lule Sámi | 375 MB |
+| Faroese | 353 MB |
+| South Sámi | 290 MB |
+| Inari Sámi | 186 MB |
+
+Each is one file holding the whole checker: its tokeniser, its rules, the speller it suggests spellings from and its messages. It is kept as downloaded and read in place, so its size is what it takes on the phone. The download is checked against the release's SHA-256 before it replaces anything.
+
+With a checker downloaded, it checks first whenever the keyboard is in its language, before anything on the **Checkers** list, and it needs no row there. It runs on the phone, so nothing leaves it. The panel's title then reads **Grammar · GiellaLT**, and each card shows GiellaLT's title for the error, its explanation (in your phone's language where the checker has one, else English) and its suggestions. The first check after the keyboard starts loads the checker, which takes a few seconds; later checks do not. A loaded checker also takes memory, roughly half its download: North Sámi's holds about 650 MB, so on a phone with 4 GB or less, Android may close the keyboard while it is loaded. The keyboard unloads it with its other models once it has been hidden for 2 minutes, and [Resources](/reference/settings/about/#seeing-what-the-keyboard-holds-in-memory) lists it while it is loaded, with a button to unload it sooner.
+
+The checkers run on GiellaLT's divvun-runtime, which is a download of its own the first time you download a checker. Unlike the rest of the app it is GPL-3.0, because its VISL CG-3 rule engine is.
 
 ## Using the panel
 

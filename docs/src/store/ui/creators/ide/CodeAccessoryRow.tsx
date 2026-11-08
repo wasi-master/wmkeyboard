@@ -5,8 +5,8 @@
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Signal } from '@preact/signals';
-import * as E from '../../../lua/edits';
-import type { LuaCompletions, LuaCompletionItem } from '../../../lua/completion';
+import * as E from './edits';
+import type { PyCompletions, PyCompletionItem } from '../../../lib/python';
 import type { CodeEditorController } from './CodeSurface';
 import { S } from './strings';
 
@@ -16,45 +16,45 @@ export interface AccessoryKey {
 	held?: string;
 }
 
-/** The symbol keys, in the order a Lua author reaches for them. */
-export const LUA_ACCESSORY_KEYS: AccessoryKey[] = [
+/**
+ * The symbol keys, in the order a Python author reaches for them: what a phone
+ * keyboard hides behind a layer switch first, then the keywords (PythonAccessoryKeys).
+ */
+export const PYTHON_ACCESSORY_KEYS: AccessoryKey[] = [
 	{ label: '=', insert: '=', held: '==' },
 	{ label: '(', insert: '(' },
 	{ label: ')', insert: ')' },
-	{ label: '{', insert: '{' },
-	{ label: '}', insert: '}' },
+	{ label: ':', insert: ':' },
 	{ label: '"', insert: '"' },
 	{ label: ',', insert: ',' },
-	{ label: '.', insert: '.', held: '..' },
-	{ label: ':', insert: ':' },
+	{ label: '.', insert: '.' },
 	{ label: '[', insert: '[' },
 	{ label: ']', insert: ']' },
-	{ label: "'", insert: "'" },
-	{ label: '#', insert: '#' },
-	{ label: '~=', insert: '~=' },
+	{ label: '{', insert: '{' },
+	{ label: '}', insert: '}' },
+	{ label: '\'', insert: '\'' },
+	{ label: '#', insert: '# ' },
+	{ label: '!=', insert: '!=' },
 	{ label: '<', insert: '<', held: '<=' },
 	{ label: '>', insert: '>', held: '>=' },
-	{ label: '+', insert: '+' },
-	{ label: '-', insert: '-', held: '--' },
-	{ label: '*', insert: '*' },
-	{ label: '/', insert: '/' },
+	{ label: '+', insert: '+', held: '+=' },
+	{ label: '-', insert: '-', held: '-=' },
+	{ label: '*', insert: '*', held: '**' },
+	{ label: '/', insert: '/', held: '//' },
 	{ label: '%', insert: '%' },
-	{ label: '^', insert: '^' },
 	{ label: '_', insert: '_' },
-	{ label: ';', insert: ';' },
-	{ label: 'local', insert: 'local ' },
-	{ label: 'function', insert: 'function ' },
+	{ label: 'def', insert: 'def ' },
 	{ label: 'return', insert: 'return ' },
-	{ label: 'end', insert: 'end' },
 	{ label: 'if', insert: 'if ' },
-	{ label: 'then', insert: 'then' },
-	{ label: 'else', insert: 'else' },
+	{ label: 'elif', insert: 'elif ' },
+	{ label: 'else', insert: 'else:' },
 	{ label: 'for', insert: 'for ' },
 	{ label: 'in', insert: 'in ' },
-	{ label: 'do', insert: 'do' },
-	{ label: 'nil', insert: 'nil' },
-	{ label: 'true', insert: 'true' },
-	{ label: 'false', insert: 'false' },
+	{ label: 'while', insert: 'while ' },
+	{ label: 'global', insert: 'global ' },
+	{ label: 'None', insert: 'None' },
+	{ label: 'True', insert: 'True' },
+	{ label: 'False', insert: 'False' },
 	{ label: 'and', insert: 'and ' },
 	{ label: 'or', insert: 'or ' },
 	{ label: 'not', insert: 'not ' },
@@ -164,7 +164,7 @@ export function CodeAccessoryRow({ controller, keys, onFind, onFormat, onSuggest
 	onFormat: () => void;
 	onSuggest: () => void;
 	/** Suggestions the field hands over when it is too short to list them at the caret. */
-	suggestions: Signal<LuaCompletions | null>;
+	suggestions: Signal<PyCompletions | null>;
 }) {
 	const [page, setPage] = useState<'SYMBOLS' | 'COMMANDS'>('SYMBOLS');
 	const offered = suggestions.value?.items ?? [];
@@ -177,7 +177,7 @@ export function CodeAccessoryRow({ controller, keys, onFind, onFormat, onSuggest
 		{ label: S.commandSuggest, run: onSuggest },
 		{ label: S.commandUndo, run: () => controller.undo() },
 		{ label: S.commandRedo, run: () => controller.redo() },
-		{ label: S.commandComment, run: () => controller.applyEdit(E.toggleLineComment(controller.text, controller.selection, E.LUA_LINE_COMMENT)) },
+		{ label: S.commandComment, run: () => controller.applyEdit(E.toggleLineComment(controller.text, controller.selection, E.PY_LINE_COMMENT)) },
 		{ label: S.commandDuplicate, run: () => controller.applyEdit(E.duplicateLines(controller.text, controller.selection)) },
 		{ label: S.commandLineUp, run: () => { const e = E.moveLines(controller.text, controller.selection, -1); if (e) controller.applyEdit(e); } },
 		{ label: S.commandLineDown, run: () => { const e = E.moveLines(controller.text, controller.selection, 1); if (e) controller.applyEdit(e); } },
@@ -188,7 +188,7 @@ export function CodeAccessoryRow({ controller, keys, onFind, onFormat, onSuggest
 		{ label: S.commandFind, run: onFind },
 		{ label: S.commandFormat, run: onFormat },
 	];
-	const choose = (item: LuaCompletionItem) => controller.choose(item);
+	const choose = (item: PyCompletionItem) => controller.choose(item);
 	return (
 		<div class="wm-keys" role="toolbar">
 			<button type="button" class="wm-key wm-key-icon" aria-label={S.keyIndentDesc} title={S.keyIndentDesc} {...indent} onMouseDown={(e) => e.preventDefault()}>

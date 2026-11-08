@@ -32,6 +32,9 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
 import com.wasimaster.wmkeyboard.core.settings.FloatingCategory
+import com.wasimaster.wmkeyboard.core.settings.FlickDirection
+import com.wasimaster.wmkeyboard.core.settings.activeFlicks
+import com.wasimaster.wmkeyboard.core.settings.flickDirectionOf
 import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
 import com.wasimaster.wmkeyboard.core.settings.categoryOf
 import com.wasimaster.wmkeyboard.core.settings.doubleTapFor
@@ -673,7 +676,7 @@ internal class FloatingButton(
         val labels = setting.menuLabels
         val itemHalf = FLOATING_MENU_ITEM_DP * density / 2f
         menu.anchor = anchor
-        menu.centers = floatingFan(
+        menu.centers = floatingRings(
             count = slots.size,
             anchor = anchor,
             width = width.toFloat(),
@@ -948,6 +951,18 @@ internal class FloatingButton(
 
     // ---- the button's own view ----
 
+    /** The fixed button's swipes as accessibility actions (#1171), one per [FlickDirection], in its order. */
+    private val flickActions = intArrayOf(
+        R.id.floating_button_action_flick_0,
+        R.id.floating_button_action_flick_1,
+        R.id.floating_button_action_flick_2,
+        R.id.floating_button_action_flick_3,
+        R.id.floating_button_action_flick_4,
+        R.id.floating_button_action_flick_5,
+        R.id.floating_button_action_flick_6,
+        R.id.floating_button_action_flick_7,
+    )
+
     private val slotActions = intArrayOf(
         R.id.floating_button_action_slot_0,
         R.id.floating_button_action_slot_1,
@@ -957,6 +972,14 @@ internal class FloatingButton(
         R.id.floating_button_action_slot_5,
         R.id.floating_button_action_slot_6,
         R.id.floating_button_action_slot_7,
+        R.id.floating_button_action_slot_8,
+        R.id.floating_button_action_slot_9,
+        R.id.floating_button_action_slot_10,
+        R.id.floating_button_action_slot_11,
+        R.id.floating_button_action_slot_12,
+        R.id.floating_button_action_slot_13,
+        R.id.floating_button_action_slot_14,
+        R.id.floating_button_action_slot_15,
     )
 
     /**
@@ -981,6 +1004,10 @@ internal class FloatingButton(
         private var held = false
         private var travelled = false
         private var pendingTap = false
+
+        /** A swipe from the fixed button (#1171) is under way, and the direction it points at so far. */
+        private var flicking = false
+        private var flickDirection: FlickDirection? = null
 
         private val longPress = Runnable {
             held = true
@@ -1023,9 +1050,11 @@ internal class FloatingButton(
                             }
                         } else {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                // A swipe from the fixed button shows what letting go will run (#1171).
+                                val flick = face.flickIcon
                                 FloatingButtonFace(
-                                    icon = face.icon,
-                                    image = face.image,
+                                    icon = flick ?: face.icon,
+                                    image = if (flick != null) null else face.image,
                                     style = face.style,
                                     shape = face.shape,
                                     sizeDp = face.sizeDp,
@@ -1062,6 +1091,8 @@ internal class FloatingButton(
                     dragging = false
                     held = false
                     travelled = false
+                    flicking = false
+                    flickDirection = null
                     face.pressed = true
                     if (setting.hold != FloatingAction.None) {
                         postDelayed(longPress, ViewConfiguration.getLongPressTimeout().toLong())
@@ -1073,6 +1104,11 @@ internal class FloatingButton(
                     if (abs(dx) > slop || abs(dy) > slop) travelled = true
                     if (held) {
                         if (menuFromPress) hover(event.rawX, event.rawY)
+                        return true
+                    }
+                    // Fixed in place (#1171): the finger swipes rather than drags.
+                    if (setting.docked) {
+                        if (travelled) flick(dx, dy)
                         return true
                     }
                     if (!dragging && travelled) {
@@ -1089,6 +1125,7 @@ internal class FloatingButton(
                     removeCallbacks(longPress)
                     when {
                         held -> releaseHold()
+                        flicking -> releaseFlick()
                         dragging -> endDrag(layout)
                         else -> tap()
                     }
@@ -1104,6 +1141,7 @@ internal class FloatingButton(
                         endDrag(layout)
                     }
                     if (held && menuFromPress) menu.hovered = null
+                    if (flicking) endFlick()
                     dragging = false
                     scheduleIdle()
                 }
@@ -1134,6 +1172,42 @@ internal class FloatingButton(
                 haptic(HapticFeedbackConstants.VIRTUAL_KEY)
                 postDelayed(singleTap, ViewConfiguration.getDoubleTapTimeout().toLong())
             }
+        }
+
+        /**
+         * The finger has left the fixed button (#1171): once it has gone far
+         * enough to mean it, the direction it points at is the swipe, and the
+         * button shows that direction's action. A tick each time it changes.
+         */
+        private fun flick(dx: Float, dy: Float) {
+            if (!flicking) {
+                flicking = true
+                face.pressed = false
+                removeCallbacks(longPress)
+            }
+            val far = dx * dx + dy * dy >= (FLICK_MIN_DP * density).let { it * it }
+            val direction = if (far) flickDirectionOf(dx, dy, setting.activeFlicks.keys) else null
+            if (direction == flickDirection) return
+            flickDirection = direction
+            face.flickIcon = direction?.let { setting.activeFlicks[it] }?.let {
+                floatingActionIcon(it, keyboardUp, setting.categories)
+            }
+            if (direction != null) haptic(HapticFeedbackConstants.CLOCK_TICK)
+        }
+
+        /** The swipe let go: its direction's action runs, or nothing for one near no bound direction. */
+        private fun releaseFlick() {
+            val action = flickDirection?.let { setting.activeFlicks[it] }
+            endFlick()
+            if (action == null) return
+            haptic(confirmHaptic)
+            fire(action)
+        }
+
+        private fun endFlick() {
+            flicking = false
+            flickDirection = null
+            face.flickIcon = null
         }
 
         /** The hold's finger is on its way to a slot. */
@@ -1240,6 +1314,11 @@ internal class FloatingButton(
                     AccessibilityNodeInfo.AccessibilityAction(R.id.floating_button_action_double_tap, name(doubleTap)),
                 )
             }
+            // Each swipe of the fixed button (#1171), since a swipe is no way in
+            // for someone exploring by touch either.
+            setting.activeFlicks.entries.forEach { (direction, action) ->
+                info.addAction(AccessibilityNodeInfo.AccessibilityAction(flickActions[direction.ordinal], name(action)))
+            }
             // Every menu slot straight from the button: a slide is no way in
             // for someone exploring by touch. A category's slot opens its ring,
             // whose slots are then on screen to be found.
@@ -1255,6 +1334,11 @@ internal class FloatingButton(
                 fire(setting.doubleTapFor(keyboardUp))
                 return true
             }
+            val flick = flickActions.indexOf(action)
+            if (flick >= 0) {
+                setting.activeFlicks[FlickDirection.entries[flick]]?.let(::fire)
+                return true
+            }
             val slot = slotActions.indexOf(action)
             if (slot in setting.menu.indices) {
                 fire(setting.menu[slot])
@@ -1267,6 +1351,9 @@ internal class FloatingButton(
     private companion object {
         /** Room left between the button's disc and the top of a docked keyboard. */
         const val KEYBOARD_GAP_DP = 4f
+
+        /** How far a swipe from the fixed button goes before it counts as one (#1171). */
+        const val FLICK_MIN_DP = 28f
 
         /** How long a hold's finger rests on a category before its ring opens (#923). */
         const val CATEGORY_DWELL_MS = 380L

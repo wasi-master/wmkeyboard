@@ -1,0 +1,1 @@
+ERROR: Line 1: TypeError: join() requires str items, found 'int'

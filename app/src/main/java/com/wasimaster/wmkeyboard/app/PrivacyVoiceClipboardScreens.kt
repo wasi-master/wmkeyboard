@@ -1491,6 +1491,16 @@ internal fun ClipboardRulesSettings(
                 default = SettingsDefaults.clipboard.clearAfterPasswordPaste,
             ) { scope.launch { repository.setClipboardClearAfterPasswordPaste(it) } }
         }
+        // Pictures and videos lose their location, camera and dates (#1179).
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.clipboard_strip_media_title,
+                stringResource(R.string.clipboard_strip_media_subtitle),
+                settings.watch { it.clipboard.stripMediaMetadata },
+                info = stringResource(R.string.clipboard_strip_media_info),
+                default = SettingsDefaults.clipboard.stripMediaMetadata,
+            ) { scope.launch { repository.setClipboardStripMediaMetadata(it) } }
+        }
         item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.clipboard_sensitive_title,
@@ -1562,6 +1572,7 @@ private fun clipHoldActionLabels(): Map<ClipHoldAction, String> = ClipHoldAction
     stringResource(
         when (it) {
             ClipHoldAction.DETAILS -> ImeR.string.ime_clip_details_desc
+            ClipHoldAction.PASTE_NEXT -> ImeR.string.ime_clip_paste_next
             ClipHoldAction.SELECT -> ImeR.string.ime_clip_select
             ClipHoldAction.REORDER -> ImeR.string.ime_clip_reorder
             ClipHoldAction.SHOW_IN_HISTORY -> ImeR.string.ime_clip_show_in_history

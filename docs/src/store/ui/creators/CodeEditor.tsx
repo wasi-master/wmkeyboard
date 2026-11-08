@@ -1,13 +1,12 @@
-/** CodeMirror 6 wrapper: Lua/JSON/plain modes, follows the site's dark/light theme. */
+/** CodeMirror 6 wrapper: JSON and plain modes, follows the site's dark/light theme. */
 import { useEffect, useRef } from 'preact/hooks';
 import { EditorState, Compartment } from '@codemirror/state';
 import { EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection, highlightActiveLineGutter } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
-import { StreamLanguage, syntaxHighlighting, defaultHighlightStyle, bracketMatching, indentOnInput } from '@codemirror/language';
-import { lua } from '@codemirror/legacy-modes/mode/lua';
+import { syntaxHighlighting, defaultHighlightStyle, bracketMatching, indentOnInput } from '@codemirror/language';
 import { json } from '@codemirror/lang-json';
 
-export type Lang = 'lua' | 'json' | 'text';
+export type Lang = 'json' | 'text';
 
 const theme = EditorView.theme({
 	'&': { fontSize: '0.84rem', border: '1px solid var(--st-card-border)', borderRadius: 'var(--st-radius-sm)', background: 'var(--sl-color-gray-7)', color: 'var(--st-text)' },
@@ -27,7 +26,7 @@ export function CodeEditor({ value, onChange, lang, height, readOnly }: { value:
 	const latest = useRef(onChange);
 	latest.current = onChange;
 
-	const langExt = (l: Lang) => (l === 'lua' ? StreamLanguage.define(lua) : l === 'json' ? json() : []);
+	const langExt = (l: Lang) => (l === 'json' ? json() : []);
 
 	useEffect(() => {
 		if (!host.current) return;

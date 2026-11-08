@@ -30,7 +30,7 @@ import com.wasimaster.wmkeyboard.core.settings.SearchResultTap
 import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
 import com.wasimaster.wmkeyboard.core.settings.MAX_SEARCH_RESULTS
 import com.wasimaster.wmkeyboard.ime.AppLaunchModes
-import com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService
+import com.wasimaster.wmkeyboard.core.accessibility.SystemButtonsService
 import com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelperService
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
@@ -969,6 +969,7 @@ internal fun ToolDetailSettings(
                     subtitle = stringResource(R.string.expander_grid_columns_subtitle),
                     value = settings.watch { it.suggestionStrip.snippetGridColumns }.toFloat(),
                     range = 1f..6f,
+                    steps = wholeSteps(1f..6f),
                     display = { it.roundToInt().toString() },
                     info = stringResource(R.string.expander_grid_columns_info),
                     default = SettingsDefaults.suggestionStrip.snippetGridColumns.toFloat(),
@@ -2824,6 +2825,7 @@ internal fun ToolDetailSettings(
                         subtitle = stringResource(R.string.tooldetail_image_columns_subtitle),
                         value = settings.watch { it.emoji.mediaGridColumns }.toFloat(),
                         range = 2f..5f,
+                        steps = wholeSteps(2f..5f),
                         display = { numberFormat.format(it.roundToInt()) },
                         info = stringResource(R.string.tooldetail_image_columns_info),
                         default = SettingsDefaults.emoji.mediaGridColumns.toFloat(),
@@ -2990,6 +2992,8 @@ internal fun ToolDetailSettings(
                 // A server's answers were for its old setup.
                 onChanged = { LanguageToolChecker.reset() },
             )
+            // GiellaLT's own checkers for the Sámi languages and Faroese, on the phone.
+            GiellaGrammarGroup(settings)
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
                 item(level = SettingLevel.STANDARD) {
                     ChoiceSetting(
@@ -3191,6 +3195,7 @@ internal fun ToolDetailSettings(
                     subtitle = stringResource(R.string.tooldetail_calc_precision_subtitle),
                     value = settings.watch { it.calcPrecision }.toFloat(),
                     range = 0f..12f,
+                    steps = wholeSteps(0f..12f),
                     display = { numberFormat.format(it.roundToInt()) },
                     default = SettingsDefaults.calcPrecision.toFloat(),
                 ) { scope.launch { repository.setCalcPrecision(it.roundToInt()) } }
@@ -3253,6 +3258,7 @@ internal fun ToolDetailSettings(
                         subtitle = stringResource(R.string.tooldetail_currency_decimals_subtitle),
                         value = settings.watch { it.currencyDecimals }.toFloat(),
                         range = 0f..6f,
+                        steps = wholeSteps(0f..6f),
                         display = { numberFormat.format(it.toInt()) },
                         default = SettingsDefaults.currencyDecimals.toFloat(),
                     ) { scope.launch { repository.setCurrencyDecimals(it.toInt()) } }
@@ -3314,6 +3320,7 @@ internal fun ToolDetailSettings(
                             subtitle = stringResource(R.string.tooldetail_crypto_decimals_subtitle),
                             value = settings.watch { it.rateSources.cryptoDecimals }.toFloat(),
                             range = 0f..12f,
+                            steps = wholeSteps(0f..12f),
                             display = {
                                 if (it.toInt() == 0) auto else numberFormat.format(it.toInt())
                             },
@@ -3492,6 +3499,7 @@ internal fun ToolDetailSettings(
                         R.string.tooldetail_passphrase_words_title,
                         value = settings.watch { it.passwordGenerator.ppWordCount }.toFloat(),
                         range = 2f..10f,
+                        steps = wholeSteps(2f..10f),
                         display = { numberFormat.format(it.roundToInt()) },
                         default = SettingsDefaults.passwordGenerator.ppWordCount.toFloat(),
                     ) { scope.launch { repository.setPpWordCount(it.roundToInt()) } }
@@ -3570,8 +3578,8 @@ internal fun ToolDetailSettings(
         ToolbarTool.LOCATION -> LocationToolSettings(repository, settings)
         // Its one setting is Android's: the service that presses the button (#1148).
         ToolbarTool.SCREENSHOT -> {
-            val on = rememberGrantState { ScreenshotService.isEnabled(it) }
-            val ask = rememberDisclosedSpecialAccess(SpecialAccess.SCREENSHOT)
+            val on = rememberGrantState { SystemButtonsService.isEnabled(it) }
+            val ask = rememberDisclosedSpecialAccess(SpecialAccess.SYSTEM_BUTTONS)
             SettingsGroup {
                 item {
                     NavRow(

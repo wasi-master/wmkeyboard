@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Desa dades al vostre dispositiu</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” té un script que no és un text UTF-8 vàlid.</string>
     <string name="core_plugins_reject_bad_id">Aquest connector té un identificador que no és vàlid. Un identificador té entre 3 i 64 caràcters. Un identificador pot contenir lletres minúscules, números, punts, guions i guions baixos.</string>
-    <string name="core_plugins_reject_compiled_lua">«%1$s» conté codi Lua compilat. Un connector ha d\'utilitzar codi font senzill perquè el pugueu llegir abans que s\'executi.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” té un script buit.</string>
     <string name="core_plugins_reject_missing_script">«%1$s» no té el seu fitxer d\'script (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Aquest connector necessita una versió més recent del teclat WM.</string>

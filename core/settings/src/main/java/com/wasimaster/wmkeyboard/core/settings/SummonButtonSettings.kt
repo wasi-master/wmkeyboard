@@ -51,6 +51,18 @@ data class SummonButtonSettings(
      * at once instead of waiting out the double-tap window.
      */
     val doubleTapTyping: FloatingAction? = null,
+    /**
+     * Fixed in place (#1171): a drag no longer moves the button, and a swipe
+     * from it runs the action of the direction it goes ([flicks]) instead. It
+     * stays where it was last put; turning this off is how to move it again.
+     */
+    val docked: Boolean = false,
+    /**
+     * What a swipe from the fixed button does, by direction (#1171). Only
+     * read while [docked]; a direction with nothing here does nothing, and a
+     * swipe near it goes to the nearest one bound ([flickDirectionOf]).
+     */
+    val flicks: Map<FlickDirection, FloatingAction> = emptyMap(),
     /** The quick menu's slots, in the order they fan out; at most [MAX_FLOATING_MENU_ITEMS]. */
     val menu: List<FloatingAction> = DefaultFloatingMenu,
     /**
@@ -136,9 +148,13 @@ fun SummonButtonSettings.tapFor(keyboardUp: Boolean): FloatingAction =
 fun SummonButtonSettings.doubleTapFor(keyboardUp: Boolean): FloatingAction =
     if (keyboardUp) doubleTapTyping ?: doubleTap else doubleTap
 
-/** Every action a gesture is bound to, the keyboard-up ones included. */
+/** Every action a gesture is bound to, the keyboard-up ones and, while fixed in place, the swipes (#1171) included. */
 fun SummonButtonSettings.gestureActions(): List<FloatingAction> =
-    listOfNotNull(tap, doubleTap, hold, tapTyping, doubleTapTyping)
+    listOfNotNull(tap, doubleTap, hold, tapTyping, doubleTapTyping) + activeFlicks.values
+
+/** The swipes that run (#1171): the bound ones while the button is fixed in place, else none. */
+val SummonButtonSettings.activeFlicks: Map<FlickDirection, FloatingAction>
+    get() = if (docked) flicks else emptyMap()
 
 /** Whether any of the button's gestures, or its quick menu, asks the AI. */
 fun SummonButtonSettings.usesAskAi(): Boolean =
@@ -150,9 +166,15 @@ fun SummonButtonSettings.readsScreen(): Boolean {
     return FloatingAction.AskAi in bound || FloatingAction.LookUp in bound
 }
 
-/** Whether any of the button's gestures, or its quick menu, takes a screenshot (#1148). */
-fun SummonButtonSettings.takesScreenshots(): Boolean =
-    FloatingAction.Tool(ToolbarTool.SCREENSHOT).let { it in gestureActions() || it in opensMenuItems() }
+/**
+ * Whether any of the button's gestures, or its quick menu, presses a system
+ * button through the system buttons service: Screenshot (#1148), or Back,
+ * recent apps and the rest (#1170).
+ */
+fun SummonButtonSettings.pressesSystemButtons(): Boolean =
+    (gestureActions() + opensMenuItems()).any {
+        it is FloatingAction.System || it == FloatingAction.Tool(ToolbarTool.SCREENSHOT)
+    }
 
 /**
  * Every slot a gesture can reach: the quick menu's when some gesture opens

@@ -1,0 +1,20 @@
+[package]
+name = "wm-python-cli"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Runs WM Keyboard Python plugins and their test.py headless, for the addon repository's CI."
+license = "MIT"
+
+[[bin]]
+name = "wm-python-cli"
+path = "src/main.rs"
+
+[dependencies]
+wm-python = { path = "../wm-python" }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

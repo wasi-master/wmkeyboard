@@ -153,6 +153,7 @@ This group is about the press-and-hold popup, not the preview bubble above it. T
 | Alternate key size | Slider | ×0.70–×3.20 | ×1.00 |
 | Alternate key spacing | Slider | 0–32 dp | 10 dp |
 | Alternate key columns | Stepper | Auto, then 3–11 | Auto |
+| Even rows | Toggle | On / Off | Off |
 | Closest to the key first | Toggle | On / Off | Off |
 | Centre on the key | Toggle | On / Off | On |
 | Remember the punctuation key's pick | Toggle | On / Off | Off |
@@ -166,6 +167,8 @@ This group is about the press-and-hold popup, not the preview bubble above it. T
 **Alternate key columns** is Auto by default, which fits as many per row as the screen allows and lets the popup's shape follow the width of the characters. Pick a number instead and every row gets that many equal columns, so a key with a dozen alternates reads as a block and each character stays where you last found it. The stepper walks Auto, 3, 4 and up to 11 one press at a time.
 
 The number you pick is a ceiling. If that many columns at your spacing don't fit across the screen, the spacing on either side of each character shrinks first, evenly, so every character stays whole and centred in its column. If even the bare characters don't fit, for example 11 columns at a big **Alternate key size**, the popup uses as many columns as do fit. Either way the popup keeps a small margin from both edges of the screen, so one as wide as the screen sits centred rather than pushed against a side.
+
+**Even rows** changes what the number means. Off, every row is filled to it, so with 4 columns a key with 5 alternates shows 4 on one row and 1 on its own below. On, the number is the most a row holds: the popup keeps the rows it needs and shares the alternates evenly between them, the longer rows first. With 4 columns, 5 alternates show as 3 and 2, 6 as 3 and 3, and 4 still fit on one row of 4. On Auto it evens out the rows that the screen width makes, as long as every evened row still fits across the screen. A key's own count from the layout editor follows this switch too.
 
 This one is the keyboard-wide default. A single key can carry a count of its own, set on **Columns in the popup** in the [layout editor's key sheet](/languages/custom-layouts/#editing-a-key), and where it does, that wins. Keys start at "From settings", so this row is what they all follow until you say otherwise.
 

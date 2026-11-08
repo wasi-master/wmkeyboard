@@ -13,9 +13,9 @@
 
     <string name="plugin_ide_group_title">Write your own</string>
     <string name="plugin_ide_entry_title">Write a plugin</string>
-    <string name="plugin_ide_entry_subtitle">Write the Lua code for a plugin and test it before you install it</string>
+    <string name="plugin_ide_entry_subtitle_python">Write the Python code for a plugin and test it before you install it</string>
     <string name="plugin_ide_edit_title">Edit the code</string>
-    <string name="plugin_ide_edit_subtitle">Change the Lua code of this plugin and test it</string>
+    <string name="plugin_ide_edit_subtitle_python">Change the Python code of this plugin and test it</string>
     <string name="plugin_ide_edit_error">The code of this plugin could not be opened</string>
 
     <!-- ================================================================== -->
@@ -105,7 +105,7 @@
     <string name="plugin_ide_rename_action">Rename</string>
     <string name="plugin_ide_no_definition_message">The script does not declare this name</string>
     <string name="plugin_ide_no_rename_message">Put the caret on a name the script declares. Rename works when the script has no syntax errors.</string>
-    <!-- Dialog title. %1$s is the Lua name being renamed. -->
+    <!-- Dialog title. %1$s is the name in the code being renamed. -->
     <string name="plugin_ide_rename_title">Rename %1$s</string>
     <string name="plugin_ide_rename_label">New name</string>
     <!-- %1$d is how many places in the script the rename changes. -->
@@ -114,7 +114,13 @@
         <item quantity="other">Changes %1$d places</item>
     </plurals>
     <string name="plugin_ide_rename_not_a_name">Use letters, digits and underscores, with no digit first.</string>
-    <string name="plugin_ide_rename_keyword">This is a Lua keyword.</string>
+    <string name="plugin_ide_rename_python_keyword">This is a Python keyword.</string>
+    <!-- A built-in function such as len or print. -->
+    <string name="plugin_ide_rename_builtin">This is the name of a built-in function.</string>
+    <!-- wm and ui are the plugin API objects; keep the code names as they are. -->
+    <string name="plugin_ide_rename_api">This name is part of the plugin API, wm or ui.</string>
+    <!-- render, on_event and transform are function names the keyboard calls; keep them as they are. -->
+    <string name="plugin_ide_rename_hook">The keyboard calls this function by name: render, on_event or transform.</string>
     <string name="plugin_ide_rename_taken">Another name with this spelling is already in use here.</string>
 
     <!-- ================================================================== -->
@@ -131,6 +137,8 @@
     <string name="plugin_ide_template_todo_name">Todo list</string>
     <string name="plugin_ide_template_todo_description">A list the plugin keeps on this device with the storage permission</string>
     <string name="plugin_ide_template_kitchen_sink_name">Every widget</string>
+    <string name="plugin_ide_template_text_actions_name">Selection actions</string>
+    <string name="plugin_ide_template_text_actions_description">Adds ROT13 and Wrap in quotes to the bar over selected text, with a panel that picks the quotes</string>
     <string name="plugin_ide_template_kitchen_sink_description">Each widget and each event in one panel, to copy from</string>
     <string name="plugin_ide_import_title">Open a plugin file</string>
     <string name="plugin_ide_import_subtitle">Edit a .wmplugin file as a new draft. Nothing is installed.</string>
@@ -223,10 +231,6 @@
         <item quantity="other">Send %1$d earlier events again</item>
     </plurals>
 
-    <!-- A console line for a failure inside the prelude, the code every plugin runs first. %1$d is the line number there. -->
-    <string name="plugin_ide_console_prelude_line_label">Prelude line %1$d</string>
-    <string name="plugin_ide_prelude_title">The prelude</string>
-    <string name="plugin_ide_prelude_caption">Every plugin runs this code before its own script, to make the ui helpers. It cannot be changed.</string>
 
     <string name="plugin_ide_fold_all_action">Fold every block</string>
     <string name="plugin_ide_unfold_all_action">Unfold every block</string>

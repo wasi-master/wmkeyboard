@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">在您的设备上保存数据</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s”包含无效的 UTF-8 文本脚本。</string>
     <string name="core_plugins_reject_bad_id">此插件的 ID 无效。ID 长度应为 3 到 64 个字符。ID 可以包含小写字母、数字、点、连字符和下划线。</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s”包含已编译的 Lua 代码。插件必须使用纯源代码，以便您在运行前可以阅读它。</string>
     <string name="core_plugins_reject_empty_script">“%1$s”的脚本为空。</string>
     <string name="core_plugins_reject_missing_script">“%1$s”缺少其脚本文件 (%2$s)。</string>
     <string name="core_plugins_reject_newer_version">此插件需要更新版本的 WM Keyboard。</string>

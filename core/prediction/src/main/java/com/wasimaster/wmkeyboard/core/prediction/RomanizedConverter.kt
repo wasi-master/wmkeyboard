@@ -18,7 +18,7 @@ import com.wasimaster.wmkeyboard.core.transliteration.PhoneticIndex
  * stop.
  *
  * Backward, a known word takes the most readable spelling the map has for
- * it, then the caller's own spelling when it has one ([toRoman]'s
+ * it (see [pickSpelling]), then the caller's own spelling when it has one ([toRoman]'s
  * `respelled`, a neural model's for romanized dictation), and anything else
  * goes through the scheme's romanizer. The inverted map
  * is built once, lazily, on whichever thread first asks; the service asks
@@ -141,32 +141,78 @@ class RomanizedConverter(
     private val inverted: Map<String, String> by lazy { buildInverted() }
 
     private fun buildInverted(): Map<String, String> {
-        val best = HashMap<String, Pair<String, Int>>()
-        val romanised = HashMap<String, String>()
+        // Every listed spelling of each word, in the lists' order.
+        val listed = LinkedHashMap<String, MutableList<String>>()
         for (spelling in spellings.spellings) {
-            if (spelling.length < MIN_READABLE_SPELLING) continue
             if (!spelling.all { it in 'a'..'z' }) continue
             if (TRIPLED.containsMatchIn(spelling)) continue
             for (form in spellings.lookup(spelling)) {
                 if (form.any { it.isWhitespace() }) continue
-                val key = scheme.normalize(form)
-                val roman = romanised.getOrPut(key) { scheme.romanizeWord(key) }
-                val distance = EditOps.distance(spelling, roman)
-                val current = best[key]
-                val better = current == null ||
-                    spelling.length > current.first.length ||
-                    (spelling.length == current.first.length && distance < current.second)
-                if (better) best[key] = spelling to distance
+                listed.getOrPut(scheme.normalize(form)) { ArrayList() }.add(spelling)
             }
         }
-        return best.mapValues { it.value.first }
+        val out = HashMap<String, String>(listed.size * 2)
+        for ((word, candidates) in listed) pickSpelling(word, candidates)?.let { out[word] = it }
+        return out
+    }
+
+    /**
+     * The spelling [word] is written back with, out of the map's [candidates]
+     * (in list order), or null to leave it to the rules.
+     *
+     * A loanword's own spelling first: ফোন is "phone", not "phon". Otherwise
+     * the readable ones — not chat shorthand ([isShorthand]: tmi, amr, kmn) and
+     * not an elongation of another listed spelling (amarr, chaii, boloo) — and
+     * of those the nearest to the rules' reading, earlier in the list on a tie.
+     * That keeps the spelling a reader expects (ami bhalo achhi, kotha, hobe)
+     * where the old pick, the longest spelling, wrote amie, ashche, khotha and
+     * hobee, and it lets a short word (ami, ki, na) come from the map at all.
+     */
+    private fun pickSpelling(word: String, candidates: List<String>): String? {
+        candidates.firstOrNull(spellings::isLoanword)?.let { return it }
+        val readable = candidates.filter { spelling ->
+            !isShorthand(spelling) &&
+                !(spelling.length >= 3 && spelling.last() == spelling[spelling.length - 2] && spelling.dropLast(1) in candidates)
+        }
+        if (readable.isEmpty()) return null
+        val rules = scheme.romanizeWord(word)
+        return readable.withIndex()
+            .minWith(compareBy<IndexedValue<String>>({ EditOps.distance(it.value, rules) }, { it.index }))
+            .value
+    }
+
+    /**
+     * Chat shorthand that drops the vowels a reader needs: no vowel at all
+     * (kmn, llb), or two consonants at the start or the end that no word is
+     * written with (tmi, tmr; amr). The pairs a romanization does write — kh,
+     * th and the other aspirates, tr, st, nd, rk — pass.
+     */
+    private fun isShorthand(spelling: String): Boolean {
+        if (spelling.none { it in VOWELS }) return true
+        if (spelling.length < 3) return false
+        fun cluster(pair: String) = pair[0] !in VOWELS && pair[1] !in VOWELS && pair[1] != 'y'
+        val start = spelling.take(2)
+        if (cluster(start) && start !in ONSETS) return true
+        val end = spelling.takeLast(2)
+        return cluster(end) && end !in CODAS
     }
 
     private companion object {
         /** Same rule and constant as SuggestionEngine's phonetic strip. */
         const val SIBLING_CONFIDENCE = 2.0
-        /** Shorter than this is chat shorthand (tmr, amk), not a spelling anyone reads. */
-        const val MIN_READABLE_SPELLING = 4
+        const val VOWELS = "aeiou"
+
+        /** Two consonants a romanized word may start with. */
+        val ONSETS = (
+            "bl br by cl cr dr dw fl fr gl gr gy kl kr kw ky pl pr py sc sk sl sm sn sp st sw tr tw vr " +
+                "ph wh sh ch th kh gh dh bh jh rh zh"
+            ).split(' ').toSet()
+
+        /** Two consonants a romanized word may end with. */
+        val CODAS = (
+            "nd nt nk ng ns nc nj rd rt rk rm rn rs rb rp rl rg rj rc rv rf st sk sp ft ct pt kt lt ld lk " +
+                "lp lm lf mp ms ts ks ds ps xt ll ss ff tt zz ck sh ch th kh gh dh bh ph jh ny"
+            ).split(' ').toSet()
         /** An elongation (valoooo) is not a spelling either. */
         val TRIPLED = Regex("""(.)\1\1""")
     }

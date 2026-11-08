@@ -1,12 +1,14 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.plugins.PluginManifest
+import com.wasimaster.wmkeyboard.core.plugins.PluginManifestCodec
 import com.wasimaster.wmkeyboard.core.plugins.PluginPermission
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaDiagnostics
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaDocument
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaHostShape
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaSeverity
+import com.wasimaster.wmkeyboard.core.plugins.PyHostShape
+import com.wasimaster.wmkeyboard.core.plugins.PySeverity
+import com.wasimaster.wmkeyboard.core.plugins.PythonTooling
 import java.io.File
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** The templates a new plugin starts from, held to the demo plugins they copy. */
@@ -25,10 +27,21 @@ class PluginTemplatesTest {
             .bufferedReader()
             .use { it.readText() }
 
+    /** The manifest a draft from [template] starts with, as [newDraftFromTemplate] writes it. */
+    private fun manifest(template: PluginTemplate) = PluginManifest(
+        format = PluginManifestCodec.FORMAT,
+        id = "my.${template.name.lowercase().replace('_', '-')}",
+        name = "Template",
+        pluginVersion = "0.1.0",
+        permissions = template.permissions.map { it.wire },
+        actions = template.actions,
+    )
+
     @Test
     fun `every template file is its demo plugin, character for character`() {
         for (template in PluginTemplate.entries) {
             val file = template.asset ?: continue
+            assertTrue(file, file.endsWith(".py"))
             assertEquals(file, demo(file), script(template))
         }
     }
@@ -41,21 +54,35 @@ class PluginTemplatesTest {
     @Test
     fun `a template declares each permission exactly when it uses it`() {
         for (template in PluginTemplate.entries) {
-            assertEquals(template.name, "wm.storage" in script(template), PluginPermission.Storage in template.permissions)
-            assertEquals(template.name, "wm.reminders" in script(template), PluginPermission.Reminders in template.permissions)
+            val script = script(template)
+            assertEquals(template.name, "wm.storage" in script, PluginPermission.Storage in template.permissions)
+            assertEquals(template.name, "wm.reminders" in script, PluginPermission.Reminders in template.permissions)
+            assertEquals(template.name, "def transform(" in script, PluginPermission.SelectedText in template.permissions)
+            assertEquals(template.name, "def transform(" in script, template.actions.isNotEmpty())
+        }
+    }
+
+    @Test
+    fun `a draft from any template has a manifest the importer accepts`() {
+        for (template in PluginTemplate.entries) {
+            assertEquals(template.name, emptyList<PluginManifestCodec.Problem>(), PluginManifestCodec.problems(manifest(template)))
+        }
+    }
+
+    @Test
+    fun `every template runs as far as the interpreter's parser goes`() {
+        for (template in PluginTemplate.entries) {
+            assertTrue(template.name, PythonCode.parses(script(template)))
         }
     }
 
     @Test
     fun `no template draws an error or a warning from the checks`() {
         val problems = PluginTemplate.entries.flatMap { template ->
-            val host = LuaHostShape(
-                storage = PluginPermission.Storage in template.permissions,
-                reminders = PluginPermission.Reminders in template.permissions,
-            )
-            LuaDiagnostics.of(LuaDocument.of(script(template)), host)
-                .filter { it.severity != LuaSeverity.INFO }
-                .map { "${template.name} ${it.code} ${it.arg1.orEmpty()}" }
+            val host = PyHostShape.of(manifest(template))
+            PythonTooling.analyse(script(template), host).diagnostics
+                .filter { it.severity != PySeverity.INFO }
+                .map { "${template.name} ${it.code} ${it.args}" }
         }
         assertEquals(emptyList<String>(), problems)
     }

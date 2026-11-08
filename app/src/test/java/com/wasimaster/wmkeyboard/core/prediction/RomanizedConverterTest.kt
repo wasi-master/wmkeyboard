@@ -83,6 +83,35 @@ class RomanizedConverterTest {
     }
 
     @Test
+    fun `back to banglish skips shorthand and elongations and keeps loanwords`() {
+        // Listed most-typed first, as the real lists are.
+        val chat = SpellingMap.load(
+            """
+            phone	ফোন
+            """.trimIndent().byteInputStream(Charsets.UTF_8),
+            """
+            ami	আমি
+            amie	আমি
+            tmi	তুমি
+            tumi	তুমি
+            amr	আমার
+            amar	আমার
+            amarr	আমার
+            ase	আছে
+            ache	আছে
+            ashche	আছে
+            kemon	কেমন
+            kmn	কেমন
+            """.trimIndent().byteInputStream(Charsets.UTF_8),
+            loanwordStreams = 1,
+        )
+        val back = RomanizedConverter(PhoneticSchemes.BENGALI, chat, index)
+        assertEquals("ami tumi amar", back.toRoman("আমি তুমি আমার"))
+        assertEquals("kemon ache", back.toRoman("কেমন আছে"))
+        assertEquals("phone", back.toRoman("ফোন"))
+    }
+
+    @Test
     fun `back to banglish over a sentence`() {
         assertEquals("ami bhalo achhi", converter.toRoman("আমি ভালো আছি"))
         assertEquals("ami OK achhi!", converter.toRoman("আমি OK আছি!"))

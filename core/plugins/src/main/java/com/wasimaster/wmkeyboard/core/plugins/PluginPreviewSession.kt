@@ -52,7 +52,7 @@ class PluginPreviewSession(
 
     /**
      * One console line. [at] is milliseconds since its run started. [text] is the
-     * script's or the virtual machine's own words; [message] is a line this build
+     * script's or the interpreter's own words; [message] is a line this build
      * writes, resolved where it is drawn.
      */
     data class ConsoleEntry(
@@ -82,7 +82,7 @@ class PluginPreviewSession(
     /** The repairs the last render reported, so an unchanged list is not repeated. Screen thread only. */
     private var lastRepairs: List<PluginText> = emptyList()
 
-    /** The storage a draft's runs share. One instance per draft: two over one file would disagree. */
+    /** The storage inspector's view of a draft's file. One instance per draft. */
     private var storageOwner: String? = null
     private var sharedStorage: PluginStorage? = null
     private var remindersOwner: String? = null
@@ -115,8 +115,10 @@ class PluginPreviewSession(
             apiVersion = manifest.apiVersion,
             permissions = permissions.map { it.wire },
         )
-        val storage = if (PluginPermission.Storage in permissions) storageOf(draftId) else null
-        val reminders = if (PluginPermission.Reminders in permissions) remindersOf(draftId) else null
+        // The files live in the draft's preview folder whether or not the
+        // manifest asks for them; the permissions decide what the script reaches.
+        val storage = workspace.previewStorageFile(draftId)
+        val reminders = workspace.previewRemindersFile(draftId)
         runStartedAt = clock()
         lastRepairs = emptyList()
         _state.update {
@@ -133,6 +135,9 @@ class PluginPreviewSession(
         runtime.open(
             PluginRuntime.Draft(plugin, source, PluginLog(workspace.previewLogFile(draftId)), storage, reminders = reminders),
         )
+        // The inspectors read the same files the run writes.
+        storageOf(draftId)
+        remindersOf(draftId)
     }
 
     /** Hands [event] to the running draft. Text typed into a preview input is kept for the input to show. */
@@ -166,15 +171,16 @@ class PluginPreviewSession(
     }
 
     /**
-     * The reminders preview runs of [draftId] set. Kept in memory and never
-     * shown in the shade: a draft is not installed, and a half-written script
-     * that set a reminder every second would otherwise be a notification storm.
+     * The reminders preview runs of [draftId] set. Kept in the draft's preview
+     * folder and never shown in the shade: the alarms read installed plugins'
+     * files only, and a half-written script that set a reminder every second
+     * would otherwise be a notification storm.
      */
     @Synchronized
     fun remindersOf(draftId: String): PluginReminders {
         if (remindersOwner != draftId) {
             remindersOwner = draftId
-            sharedReminders = PluginReminders(null)
+            sharedReminders = PluginReminders(workspace.previewRemindersFile(draftId))
         }
         return sharedReminders ?: PluginReminders(null).also { sharedReminders = it }
     }
@@ -243,7 +249,7 @@ class PluginPreviewSession(
         }
 
         override fun onError(pluginId: String, message: PluginText) {
-            // The virtual machine's own words already reached the console, whole,
+            // The interpreter's own words already reached the console, whole,
             // through the observer. Only this build's lines are added here.
             if (message is PluginText.Script) return
             append(ConsoleEntry(elapsed(), ConsoleEntry.Kind.ERROR, message = message))

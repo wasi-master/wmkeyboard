@@ -245,13 +245,14 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/zxing/zxing",
         ),
     )
+    // The interpreter every plugin runs in (native/wm-python), ported from PyMini.
     add(
         Attribution(
-            "LuaJ",
-            R.string.about_bundled_luaj_used,
-            "Copyright (c) 2007 LuaJ. All rights reserved.",
-            "MIT", "mit-luaj.txt",
-            "https://github.com/luaj/luaj",
+            "PyMini",
+            R.string.about_bundled_pymini_plugins,
+            "Copyright (c) 2026 Anti Limited",
+            "MIT", "mit-pymini.txt",
+            "https://github.com/anti-ltd/PyMini",
         ),
     )
     // Spell checking against an imported Hunspell dictionary, in every build:
@@ -274,6 +275,66 @@ private val bundledAttributions: List<Attribution> = buildList {
             "Copyright (c) 2005-2007, Taku Kudo",
             "BSD-3-Clause", "bsd-zinnia.txt",
             "https://github.com/taku910/zinnia",
+        ),
+    )
+    // GiellaLT grammar checkers: divvun-runtime with its VISL CG-3 and HFST
+    // ports, a library of its own, never in an APK (downloaded or Play's
+    // split). GPL-3.0, unlike the rest of the app. See native/divvungrammar-jni;
+    // the checkers themselves are fetched, never shipped.
+    add(
+        Attribution(
+            "divvun-runtime",
+            R.string.about_bundled_divvun_runtime_used,
+            "Copyright UiT The Arctic University of Norway and divvun-runtime contributors",
+            "MIT OR Apache-2.0", "apache-2.0.txt",
+            "https://github.com/divvun/divvun-runtime",
+        ),
+    )
+    add(
+        Attribution(
+            "cg3-rs (VISL CG-3)",
+            R.string.about_bundled_divvun_runtime_used,
+            "Copyright GrammarSoft ApS, UiT The Arctic University of Norway and contributors",
+            "GPL-3.0-or-later", "gpl-3.0.txt",
+            "https://github.com/divvun/cg3-rs",
+        ),
+    )
+    add(
+        Attribution(
+            "hfst-rs (HFST)",
+            R.string.about_bundled_divvun_runtime_used,
+            "Copyright the HFST team, UiT The Arctic University of Norway and contributors",
+            "LGPL-3.0-or-later", "lgpl-3.0.txt",
+            "https://github.com/divvun/hfst-rs",
+        ),
+    )
+    // Language detection on builds without ML Kit: a library of its own,
+    // never in an APK. See native/cld3-jni and native/fasttext-jni.
+    add(
+        Attribution(
+            "CLD3 and protobuf",
+            R.string.about_bundled_cld3_used,
+            "Copyright 2016 Google Inc.; protobuf Copyright 2008 Google Inc.",
+            "Apache-2.0 / BSD-3-Clause", "apache-2.0.txt",
+            "https://github.com/google/cld3",
+        ),
+    )
+    add(
+        Attribution(
+            "fastText",
+            R.string.about_bundled_cld3_used,
+            "Copyright 2016-present Facebook, Inc.",
+            "MIT", "mit-fasttext.txt",
+            "https://github.com/facebookresearch/fastText",
+        ),
+    )
+    add(
+        Attribution(
+            "fastText language identification model (lid.176)",
+            R.string.about_bundled_cld3_used,
+            "Copyright Facebook, Inc.; trained on Wikipedia, Tatoeba and SETimes",
+            "CC-BY-SA-3.0", "cc-by-sa-3.0.txt",
+            "https://fasttext.cc/docs/en/language-identification.html",
         ),
     )
     // GiellaLT spellers, in the same library module as Hunspell. See
@@ -333,6 +394,18 @@ private val bundledAttributions: List<Attribution> = buildList {
             ),
         )
     }
+    // Arm's matrix kernels, compiled into the arm64 builds of llama.cpp,
+    // whisper.cpp, MNN and ExecuTorch (through XNNPACK), and its image kernels
+    // into the document scanner's OpenCV. See native/*/build.sh.
+    add(
+        Attribution(
+            "KleidiAI and KleidiCV",
+            R.string.about_bundled_kleidi_used,
+            "Copyright 2024-2026 Arm Limited and/or its affiliates",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/ARM-software/kleidiai",
+        ),
+    )
     // The sticker generator's runtime, in every build: packaged, pinned for
     // download, or a Play split. See native/imagegen-jni.
     add(
@@ -629,7 +702,7 @@ private val bundledAttributions: List<Attribution> = buildList {
         add(
             Attribution(
                 "Vosk",
-                R.string.about_bundled_vosk_used,
+                R.string.about_bundled_vosk_library_used,
                 "Copyright 2019-2025 Alpha Cephei Inc.",
                 "Apache-2.0", "apache-2.0.txt",
                 "https://github.com/alphacep/vosk-api",
@@ -745,6 +818,16 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "Copyright Meta Platforms, Inc.; ONNX conversion by Will Wade",
                 "CC-BY-NC-4.0", "cc-by-nc-4.0.txt",
                 "https://huggingface.co/facebook/mms-tts",
+            ),
+        )
+        // And Kokoro, which reads English and Mandarin ahead of MMS once fetched.
+        add(
+            Attribution(
+                "Kokoro-82M",
+                R.string.about_bundled_kokoro_used,
+                "Copyright hexgrad; ONNX conversion by the k2-fsa project",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://huggingface.co/hexgrad/Kokoro-82M",
             ),
         )
         // Reduce background noise at Strong: the model the phone downloads

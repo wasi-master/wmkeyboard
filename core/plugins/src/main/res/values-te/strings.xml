@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">మీ పరికరంలో డేటాను సేవ్ చేయండి</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s”లో చెల్లుబాటు కాని UTF-8 వచన స్క్రిప్ట్ ఉంది.</string>
     <string name="core_plugins_reject_bad_id">ఈ ప్లగిన్ ఐడి చెల్లుబాటు కాదు. ఐడి 3 నుండి 64 అక్షరాల పొడవు ఉండాలి. ఐడిలో చిన్న అక్షరాలు, సంఖ్యలు, చుక్కలు, డాష్‌లు మరియు అండర్‌స్కోర్‌లు ఉండవచ్చు.</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” కంపైల్ చేయబడిన Lua కోడ్‌ను కలిగి ఉంది. ప్లగిన్ తప్పనిసరిగా సాధారణ సోర్స్ కోడ్‌ను ఉపయోగించాలి, తద్వారా అది రన్ అవ్వడానికి ముందే మీరు దాన్ని చదవగలరు.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” ఖాళీ స్క్రిప్ట్‌ను కలిగి ఉంది.</string>
     <string name="core_plugins_reject_missing_script">“%1$s”కి దాని స్క్రిప్ట్ ఫైల్ (%2$s) లేదు.</string>
     <string name="core_plugins_reject_newer_version">ఈ ప్లగిన్‌కు WM కీబోర్డ్ యొక్క కొత్త వెర్షన్ అవసరం.</string>

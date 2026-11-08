@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.voice.whisper
 
+import com.wasimaster.wmkeyboard.core.util.PhoneGpu
+
 /**
  * How the keyboard asks [WhisperCpp] for a clip: which languages, how hard to
  * search, how long a clip may run and what to prompt with. Kept apart from the
@@ -37,12 +39,15 @@ object WhisperCppPlan {
      * Whether [model] asks for the GPU under [compute] (a [WhisperCompute]
      * value). Auto leaves Tiny on the CPU: its encoder takes a few hundred
      * milliseconds on a phone's cores, about what starting the GPU costs.
+     * Auto also stays on the CPU unless the GPU is an [adreno]: the Vulkan
+     * build other GPUs take is a large download of its own, and on many Mali
+     * GPUs no faster than the cores, so only GPU itself asks for it.
      * Whether the phone can is [WhisperCpp]'s question, not this one.
      */
-    fun wantsGpu(model: WhisperModel, compute: String): Boolean = when (compute) {
+    fun wantsGpu(model: WhisperModel, compute: String, adreno: Boolean = PhoneGpu.adreno): Boolean = when (compute) {
         WhisperCompute.GPU -> true
         WhisperCompute.CPU -> false
-        else -> model.size != WhisperSize.TINY
+        else -> adreno && model.size != WhisperSize.TINY
     }
 
     /**

@@ -1,0 +1,28 @@
+[package]
+name = "wm-python-jni"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "MIT"
+description = "JNI bridge from the Android app to the wm-python plugin interpreter and its editor tooling"
+
+[lib]
+name = "wm_python_jni"
+crate-type = ["cdylib"]
+
+[dependencies]
+wm-python = { path = "../wm-python" }
+wm-python-tooling = { path = "../wm-python-tooling" }
+jni = "0.21"
+serde_json = { version = "1", features = ["preserve_order"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"
+# Plugins run on a background thread and the editor's tooling on another;
+# neither is per-keystroke work in the IME, so size wins.
+opt-level = "s"
+# A panic in the interpreter must not take the keyboard down with it: every
+# entry point catches it and answers with an internal error instead.
+panic = "unwind"

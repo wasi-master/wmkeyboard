@@ -656,6 +656,7 @@ internal object SettingsRowIcons {
         put(R.string.keypress_alternates_size_title) { Icons.Outlined.FormatSize }
         put(R.string.keypress_alternates_padding_title) { Icons.Outlined.Padding }
         put(R.string.keypress_alternates_columns_title) { Icons.Outlined.ViewWeek }
+        put(R.string.keypress_alternates_balanced_title) { Icons.Outlined.GridView }
         put(R.string.keypress_alternates_nearest_title) { Icons.Outlined.SwapVert }
         put(R.string.keypress_alternates_centred_title) { Icons.Outlined.SwapHoriz }
         put(R.string.keypress_remember_punctuation_title) { Icons.Outlined.History }
@@ -849,10 +850,19 @@ internal object SettingsRowIcons {
         put(R.string.share_sheet_pins_title) { Icons.Outlined.PushPin }
         put(R.string.share_sheet_recents_clear_title) { Icons.Outlined.History }
         put(R.string.floating_button_screen_title) { Icons.Outlined.Preview }
-        put(R.string.floating_button_screenshot_title) { Icons.Outlined.Screenshot }
+        put(R.string.floating_button_system_buttons_title) { Icons.Outlined.Screenshot }
         put(R.string.floating_button_tap_title) { Icons.Outlined.TouchApp }
         put(R.string.floating_button_double_tap_title) { Icons.Outlined.AdsClick }
         put(R.string.floating_button_hold_title) { Icons.Outlined.Gesture }
+        put(R.string.floating_button_docked_title) { Icons.Outlined.PushPin }
+        put(R.string.floating_button_flick_up_title) { Icons.Outlined.Swipe }
+        put(R.string.floating_button_flick_up_right_title) { Icons.Outlined.Swipe }
+        put(R.string.floating_button_flick_right_title) { Icons.Outlined.Swipe }
+        put(R.string.floating_button_flick_down_right_title) { Icons.Outlined.Swipe }
+        put(R.string.floating_button_flick_down_title) { Icons.Outlined.Swipe }
+        put(R.string.floating_button_flick_down_left_title) { Icons.Outlined.Swipe }
+        put(R.string.floating_button_flick_left_title) { Icons.Outlined.Swipe }
+        put(R.string.floating_button_flick_up_left_title) { Icons.Outlined.Swipe }
         put(R.string.floating_button_tap_typing_title) { Icons.Outlined.TouchApp }
         put(R.string.floating_button_double_tap_typing_title) { Icons.Outlined.AdsClick }
         put(R.string.floating_button_menu_unreached_title) { Icons.Outlined.Apps }
@@ -1221,6 +1231,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_glide_backspace_undo_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.appearance_toolbar_placement_title) { Icons.Outlined.ViewAgenda }
         put(R.string.appearance_toolbar_show_strip_title) { Icons.AutoMirrored.Outlined.ShortText }
+        put(R.string.appearance_toolbar_bar_toolbox_title) { Icons.Outlined.GridView }
+        put(R.string.appearance_toolbar_tools_arrow_title) { Icons.Outlined.UnfoldMore }
         put(R.string.appearance_toolbar_landscape_column_title) { Icons.Outlined.ViewColumn }
         put(R.string.tooldetail_hold_title) { Icons.Outlined.TouchApp }
         put(R.string.tooldetail_show_in_toolbox_title) { Icons.Outlined.Apps }
@@ -1369,6 +1381,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_swipe_pin_title) { Icons.Outlined.SwipeRight }
         put(R.string.clipboard_line_spacing_title) { Icons.Outlined.UnfoldMore }
         put(R.string.clipboard_private_copies_title) { Icons.Outlined.Lock }
+        put(R.string.clipboard_strip_media_title) { Icons.Outlined.PrivacyTip }
         put(R.string.clipboard_copy_rules_title) { Icons.AutoMirrored.Outlined.Rule }
         put(R.string.clipboard_copy_rules_system_title) { Icons.Outlined.ContentPaste }
         put(R.string.clipboard_plain_letters_title) { Icons.Outlined.TextFormat }
@@ -2103,6 +2116,7 @@ internal object SettingsRowIcons {
         // ---- Clock tool ----
         put(R.string.clock_open_title) { Icons.Outlined.OpenInNew }
         put(R.string.clock_settings_title) { Icons.Outlined.Settings }
+        put(R.string.clock_ringing_now_title) { Icons.Outlined.NotificationsActive }
         put(R.string.clock_hour_format_title) { Icons.Outlined.Schedule }
         put(R.string.clock_show_seconds_title) { Icons.Outlined.Timer }
         put(R.string.clock_sort_zones_title) { Icons.AutoMirrored.Outlined.Sort }
@@ -2429,7 +2443,7 @@ internal object SettingsRowIcons {
         put(R.string.notes_vault_action) { Icons.Outlined.Lock }
         put(R.string.privacy_permissions_all_files_title) { Icons.Outlined.Storage }
         put(R.string.privacy_permissions_split_screen_title) { Icons.Outlined.ViewColumn }
-        put(R.string.privacy_permissions_screenshot_title) { Icons.Outlined.Screenshot }
+        put(R.string.privacy_permissions_system_buttons_title) { Icons.Outlined.Screenshot }
         put(R.string.tooldetail_screenshot_service_title) { Icons.Outlined.Screenshot }
         put(R.string.voice_system_service_title) { Icons.Outlined.Mic }
         put(R.string.modes_number_row_title) { Icons.Outlined.Dialpad }

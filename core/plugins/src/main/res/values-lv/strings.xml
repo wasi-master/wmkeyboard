@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Saglabāt datus jūsu ierīcē</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” satur skriptu, kas nav derīgs UTF-8 teksts.</string>
     <string name="core_plugins_reject_bad_id">Šim spraudnim ir nederīgs ID. ID garumam jābūt no 3 līdz 64 rakstzīmēm. ID var saturēt mazos burtus, ciparus, punktus, domuzīmes un pasvītrojumus.</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” satur kompilētu Lua kodu. Spraudnim ir jāizmanto vienkāršs pirmkods, lai jūs varētu to izlasīt pirms palaišanas.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” ir tukšs skripts.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” nav skripta faila (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Šim spraudnim ir nepieciešama jaunāka WM Keyboard versija.</string>

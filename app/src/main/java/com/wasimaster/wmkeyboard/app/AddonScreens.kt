@@ -466,7 +466,12 @@ internal fun AddonsScreen(
         }
     }
 
-    var showAdd by remember { mutableStateOf(prefillUrl.isNotBlank()) }
+    // Saveable, not remember: the `add` argument stays on this back-stack
+    // entry after the dialog is answered, so a plain remember re-seeded it to
+    // open every time the entry was composed again — coming Back from the
+    // repository it led to, and during that screen's transitions, where the
+    // dialog's own window flashed over the page in front.
+    var showAdd by rememberSaveable { mutableStateOf(prefillUrl.isNotBlank()) }
     var refreshing by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
 
@@ -2828,6 +2833,14 @@ private fun PluginPreview(plugin: AddonPreviewContent.Plugin) {
         }
         item {
             CaptionText(stringResource(R.string.addon_plugin_sandbox_body))
+        }
+    }
+    if (plugin.actions.isNotEmpty()) {
+        SettingsGroup(stringResource(R.string.plugins_actions_title)) {
+            for (name in plugin.actions) {
+                item { WmRow(title = name) }
+            }
+            item { CaptionText(stringResource(R.string.plugins_actions_info)) }
         }
     }
 }

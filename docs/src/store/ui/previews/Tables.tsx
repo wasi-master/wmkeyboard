@@ -165,7 +165,7 @@ export function PluginPreview({ read }: { read: PluginRead }) {
 			<div class="st-pv-pad">
 				<Notice icon={<IconShield />} kind={m.permissions.length ? 'warn' : 'ok'}>
 					<b>{m.permissions.length ? `Asks for: ${m.permissions.join(', ')}` : 'Asks for no permissions.'}</b>{' '}
-					<span class="st-muted">Plugins run in a Lua sandbox with no access to what you type, the clipboard or the network; <code>storage</code> is on-device only. Installed plugins start switched off.</span>
+					<span class="st-muted">Plugins run in a Python sandbox with no access to what you type, the clipboard or the network; <code>storage</code> is on-device only. Installed plugins start switched off.</span>
 				</Notice>
 				<dl class="st-kv" style="margin-top:0.9rem">
 					<dt>Plugin id</dt><dd><code>{m.id}</code></dd>

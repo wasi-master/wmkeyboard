@@ -20,6 +20,22 @@ import kotlinx.coroutines.asCoroutineDispatcher
  * first use, so [shipped] says whether the build has the runtime and
  * [available] whether it is loaded.
  *
+ * Four builds of the library bind these JNI names, and a process keeps the
+ * first it loads: the plain one, and on arm64 three that each add one of
+ * ExecuTorch's delegates beside XNNPACK, each its own gate, so a program
+ * exported for that hardware runs its delegated parts there:
+ * - `libwmexecutorch_qnn.so` ([FeatureModules.executorchQnn], never in
+ *   F-Droid's build): Qualcomm's QNN, for a Snapdragon NPU the `npu` gate
+ *   serves ([qnnPossible]);
+ * - `libwmexecutorch_neuron.so` ([FeatureModules.executorchNeuron], never in
+ *   F-Droid's build): MediaTek's NeuroPilot, for a Dimensity 9300 or 9400
+ *   NPU ([neuronPossible]), through the phone's own adapter library;
+ * - `libwmexecutorch_vulkan.so` ([FeatureModules.executorchVulkan]): the GPU
+ *   through Vulkan 1.1 ([vulkanPossible]).
+ * The first of those whose gate is on the phone and whose hardware the phone
+ * has is loaded instead of the plain one ([delegate] says which); every
+ * program the plain build runs, each runs the same.
+ *
  * A program is not thread-safe, and the speech models are large, so every
  * speech call runs on [dispatcher], one thread, and [programs] keeps one set
  * of speech programs at a time: opening another engine's model closes the
@@ -29,7 +45,65 @@ import kotlinx.coroutines.asCoroutineDispatcher
 object EtNative {
 
     private val library = GatedLibrary({ FeatureModules.executorch }) {
-        runCatching { FeatureModules.loadLibrary("wmexecutorch") }.isSuccess
+        fun load(name: String) = runCatching { FeatureModules.loadLibrary(name) }.isSuccess
+        (FeatureModules.executorchQnn.installed && qnnPossible() && load("wmexecutorch_qnn")) ||
+            (FeatureModules.executorchNeuron.installed && neuronPossible() && load("wmexecutorch_neuron")) ||
+            (FeatureModules.executorchVulkan.installed && vulkanPossible() && load("wmexecutorch_vulkan")) ||
+            load("wmexecutorch")
+    }
+
+    /**
+     * A MediaTek Dimensity NPU ExecuTorch's NeuroPilot backend supports: the
+     * 9300 (MT6989) and 9400 (MT6991). Android 12 is the first to name the chip.
+     */
+    fun neuronPossible(): Boolean =
+        android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S &&
+            android.os.Build.SOC_MANUFACTURER.equals("Mediatek", ignoreCase = true) &&
+            android.os.Build.SOC_MODEL.uppercase() in NEURON_SOCS
+
+    /** A GPU whose driver speaks Vulkan 1.1, which ExecuTorch's Vulkan backend needs. */
+    fun vulkanPossible(): Boolean = com.wasimaster.wmkeyboard.core.util.PhoneGpu.vulkan11
+
+    private val NEURON_SOCS = setOf("MT6989", "MT6991")
+
+    /**
+     * The delegate the loaded build carries: `qnn`, `neuron`, `vulkan`, or
+     * empty for the plain build. Loads the library.
+     */
+    val delegate: String get() = if (available) runCatching { nativeDelegate() }.getOrDefault("") else ""
+
+    /** Asks for the NeuroPilot build's gate, ahead of a program exported for a Dimensity NPU. */
+    fun requestNeuron() {
+        if (neuronPossible() && !FeatureModules.executorchNeuron.installed) FeatureModules.executorchNeuron.requestInstall()
+    }
+
+    /** Asks for the Vulkan build's gate, ahead of a program exported for the GPU. */
+    fun requestVulkan() {
+        if (vulkanPossible() && !FeatureModules.executorchVulkan.installed) FeatureModules.executorchVulkan.requestInstall()
+    }
+
+    /**
+     * Whether this phone has a Snapdragon NPU the `npu` gate has a runtime
+     * for. Set by the app at start (`NpuSupport` lives in :core:intelligence);
+     * false until then, so the plain build is what loads.
+     */
+    @Volatile
+    var qnnPossible: () -> Boolean = { false }
+
+    /**
+     * Unpacks or finds the QNN runtime for this phone's NPU and loads its
+     * libraries into the process, returning their directory, or null where
+     * there is none. Set by the app at start (`NpuRuntime`).
+     */
+    @Volatile
+    var qnnRuntime: () -> File? = { null }
+
+    /** Whether the loaded build carries the Qualcomm delegate. Loads the library. */
+    val qnn: Boolean get() = available && runCatching { nativeHasQnn() }.getOrDefault(false)
+
+    /** Asks for the QNN build's gate, ahead of a program exported for the NPU. */
+    fun requestQnn() {
+        if (qnnPossible() && !FeatureModules.executorchQnn.installed) FeatureModules.executorchQnn.requestInstall()
     }
 
     /** Whether the runtime is loaded on this device and build. */
@@ -75,6 +149,19 @@ object EtNative {
             handle = 0L
             if (h != 0L) nativeClose(h)
         }
+    }
+
+    /**
+     * Opens [file], a program exported with the Qualcomm delegate, with the
+     * NPU runtime loaded and the DSP pointed at its skel first. Null when this
+     * build or phone cannot: the plain build, no NPU runtime, or a program for
+     * another chip.
+     */
+    fun openQnn(file: File): Program? {
+        if (!qnn) return null
+        val dir = qnnRuntime() ?: return null
+        nativeSetQnnDirectory(dir.absolutePath)
+        return open(file)
     }
 
     /** Opens [file], or null when it is not a program this runtime can load. */
@@ -136,6 +223,12 @@ object EtNative {
         val outputs = List(flat[1].toInt()) { next() }
         return MethodShape(inputs, outputs)
     }
+
+    @JvmStatic private external fun nativeHasQnn(): Boolean
+
+    @JvmStatic private external fun nativeDelegate(): String
+
+    @JvmStatic private external fun nativeSetQnnDirectory(dir: String)
 
     @JvmStatic private external fun nativeOpen(path: String): Long
 

@@ -23,7 +23,6 @@ import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
 import com.wasimaster.wmkeyboard.core.translate.NllbTranslator
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
-import com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService
 import com.wasimaster.wmkeyboard.ime.AppLaunchModes
 
 /**
@@ -863,6 +862,10 @@ private fun SearchStrings.keyPressRows(): List<SettingsSearchEntry> {
             R.string.keypress_alternates_columns_subtitle,
         ),
         row(
+            R.string.keypress_alternates_balanced_title,
+            R.string.keypress_alternates_balanced_subtitle,
+        ),
+        row(
             R.string.keypress_alternates_nearest_title,
             R.string.keypress_alternates_nearest_subtitle,
         ),
@@ -1056,6 +1059,8 @@ private fun SearchStrings.appearanceToolbarRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_toolbar_show_title, R.string.appearance_toolbar_show_subtitle),
         row(R.string.appearance_toolbar_placement_title, R.string.appearance_toolbar_placement_subtitle),
         row(R.string.appearance_toolbar_show_strip_title, R.string.appearance_toolbar_show_strip_subtitle),
+        row(R.string.appearance_toolbar_bar_toolbox_title, R.string.appearance_toolbar_bar_toolbox_subtitle),
+        row(R.string.appearance_toolbar_tools_arrow_title, R.string.appearance_toolbar_tools_arrow_subtitle),
         row(R.string.appearance_toolbar_landscape_column_title, R.string.appearance_toolbar_landscape_column_subtitle),
         row(R.string.appearance_toolbar_swipe_down_title, R.string.appearance_toolbar_swipe_down_subtitle),
         row(R.string.appearance_toolbar_drag_title, R.string.appearance_toolbar_drag_subtitle),
@@ -1229,11 +1234,20 @@ private fun SearchStrings.floatingButtonRows(): List<SettingsSearchEntry> {
     return listOfNotNull(
         row(R.string.floating_button_enable_title, R.string.floating_button_enable_subtitle),
         row(R.string.floating_button_screen_title, R.string.floating_button_screen_subtitle),
-        row(R.string.floating_button_screenshot_title, R.string.floating_button_screenshot_subtitle)
-            .takeIf { ChannelFeatures.SCREENSHOT },
+        row(R.string.floating_button_system_buttons_title, R.string.floating_button_system_buttons_subtitle)
+            .takeIf { ChannelFeatures.SYSTEM_BUTTONS },
         row(R.string.floating_button_tap_title),
         row(R.string.floating_button_double_tap_title),
         row(R.string.floating_button_hold_title),
+        row(R.string.floating_button_docked_title, R.string.floating_button_docked_subtitle),
+        row(R.string.floating_button_flick_up_title),
+        row(R.string.floating_button_flick_up_right_title),
+        row(R.string.floating_button_flick_right_title),
+        row(R.string.floating_button_flick_down_right_title),
+        row(R.string.floating_button_flick_down_title),
+        row(R.string.floating_button_flick_down_left_title),
+        row(R.string.floating_button_flick_left_title),
+        row(R.string.floating_button_flick_up_left_title),
         row(R.string.floating_button_tap_typing_title),
         row(R.string.floating_button_double_tap_typing_title),
         row(R.string.floating_button_menu_add_title),
@@ -1472,6 +1486,12 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
             R.string.voice_system_on_device_title, R.string.voice_system_on_device_subtitle,
         ),
         providerEntry(ProviderTool.VOICE, ProviderTypes.WHISPER, R.string.voice_translate_title, R.string.voice_translate_subtitle),
+        // The pause and the detector, on the page of an engine that shows words as you speak (#1174).
+        providerEntry(
+            ProviderTool.VOICE, ProviderTypes.PARAKEET,
+            R.string.voice_silence_stop_title, R.string.voice_silence_stop_subtitle,
+        ),
+        providerEntry(ProviderTool.VOICE, ProviderTypes.PARAKEET, R.string.voice_vad_title, R.string.voice_vad_subtitle),
         providerEntry(
             ProviderTool.VOICE, ProviderTypes.WHISPER,
             R.string.models_whisper_compute_title, R.string.models_whisper_compute_subtitle,
@@ -1579,6 +1599,7 @@ private fun SearchStrings.clipboardRulesRows(): List<SettingsSearchEntry> {
     return listOf(
         row(R.string.clipboard_private_copies_title, R.string.clipboard_private_copies_subtitle),
         row(R.string.clipboard_password_paste_title, R.string.clipboard_password_paste_subtitle),
+        row(R.string.clipboard_strip_media_title, R.string.clipboard_strip_media_subtitle),
         row(R.string.clipboard_sensitive_title, R.string.clipboard_sensitive_subtitle),
         row(R.string.clipboard_detect_sensitive_title, R.string.clipboard_detect_sensitive_subtitle),
         row(R.string.clipboard_sensitive_expiry_title, R.string.clipboard_sensitive_expiry_subtitle),
@@ -2596,7 +2617,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         plugin(R.string.plugins_allow_title, R.string.plugins_allow_subtitle),
         plugin(R.string.tooldetail_plugins_manage_title, R.string.tooldetail_plugins_manage_subtitle),
         plugin(R.string.plugins_install_file_title, R.string.plugins_install_file_subtitle),
-        plugin(R.string.plugin_ide_entry_title, R.string.plugin_ide_entry_subtitle),
+        plugin(R.string.plugin_ide_entry_title, R.string.plugin_ide_entry_subtitle_python),
         privacy(R.string.privacy_learn_typing_title, R.string.privacy_learn_typing_subtitle),
         privacy(R.string.privacy_system_dictionary_title, R.string.privacy_system_dictionary_subtitle),
         privacy(R.string.privacy_dict_shortcuts_title, R.string.privacy_dict_shortcuts_subtitle),
@@ -2702,9 +2723,9 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             R.string.privacy_permissions_screen_content_subtitle,
         ).takeIf { ChannelFeatures.SCREEN_CONTEXT },
         permission(
-            R.string.privacy_permissions_screenshot_title,
-            R.string.privacy_permissions_screenshot_subtitle,
-        ).takeIf { ChannelFeatures.SCREENSHOT && ScreenshotService.supported },
+            R.string.privacy_permissions_system_buttons_title,
+            R.string.privacy_permissions_system_buttons_subtitle,
+        ).takeIf { ChannelFeatures.SYSTEM_BUTTONS },
         permission(
             R.string.privacy_permissions_split_screen_title,
             R.string.privacy_permissions_split_screen_subtitle,

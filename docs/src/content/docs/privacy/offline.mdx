@@ -57,20 +57,28 @@ The libraries come from two places:
 | On-device AI with LiteRT-LM models (`.task`, `.litertlm`) | `liblitertlm_jni.so` |
 | The LiteRT Whisper models for offline voice typing, and the sticker editor's background remover | `libtensorflowlite_jni.so` |
 | Google's handwriting recognition (ML Kit) | `libdigitalink.so` |
-| whisper.cpp Whisper models, the Whistle engine and voice noise reduction | `libwmwhispercpp.so`, `libwmwhispercpp_v82.so`, `libwmwhispercpp_opencl.so`, `libwmwhistle.so`, `libwmdenoise.so` |
+| whisper.cpp Whisper models, the Whistle engine and voice noise reduction | `libwmwhispercpp.so`, `libwmwhispercpp_v82.so`, `libwmwhispercpp_i8mm.so`, `libwmwhispercpp_opencl.so`, `libwmwhistle.so`, `libwmdenoise.so` |
+| whisper.cpp on Mali, Xclipse and PowerVR GPUs | `libwmwhispercpp_vulkan.so` |
 | Smaller voice uploads to a transcription server | `libwmopus.so` |
 | The Asr4All, Parakeet and Moonshine voice engines, and the FUTO swipe engine | `libwmexecutorch.so` |
+| The same with Qualcomm's NPU delegate, for models exported for a Snapdragon NPU | `libwmexecutorch_qnn.so` |
+| The same with MediaTek's NPU delegate, for models exported for a Dimensity 9300 or 9400 | `libwmexecutorch_neuron.so` |
+| The same with the Vulkan GPU delegate, for models exported for the GPU | `libwmexecutorch_vulkan.so` |
 | The Sherpa and Omnilingual voice engines, Read back voices, neural phonetic typing, Add niqqud and Add tashkeel | `libonnxruntime.so`, `libwmsherpa.so`, `libwmxlit.so` |
 | The Vosk voice engine | `libvosk.so`, `libwmvosk.so` |
 | Grammar checking with Harper | `libharper_jni.so` |
+| GiellaLT's grammar checkers (Sámi languages, Faroese) | `libwmdivvungrammar.so` |
+| Plugins, and the plugin editor's checks | `libwm_python_jni.so` |
+| Telling the language of a text to translate, on builds without ML Kit | `libwmfasttext.so`, `libwmcld3.so` |
 | Spell checking with an imported Hunspell dictionary | `libwmhunspell.so`, `libwmdivvun.so`, `libwmvoikko.so` |
 | Offline text scanning with Tesseract | `libwmtess.so` |
 | The RIME engine for Chinese | `libwmrime.so` |
 | The Mozc engine for Japanese | `libwmmozc.so` |
 | Firefox Translations (Bergamot), the on-device translation engine | `libwmbergamot.so` |
 | Chinese and Japanese handwriting without Google | `libwmzinnia.so` |
-| On-device AI with any GGUF model (llama.cpp) | `libwmllama.so`, `libwmllama_v82.so` |
+| On-device AI with any GGUF model (llama.cpp) | `libwmllama.so`, `libwmllama_v82.so`, `libwmllama_i8mm.so` |
 | llama.cpp on Adreno GPUs | `libwmllama_opencl.so` |
+| llama.cpp on Mali, Xclipse and PowerVR GPUs | `libwmllama_vulkan.so` |
 | The built-in document scanner | `libwmdocscan.so` |
 | QR and barcode reading without Google | `libwmzxing.so` |
 | The sticker generator, picture upscaling and PaddleOCR text scanning | `libwmimagegen.so`, `libwmimagegen_qnn.so` |
@@ -123,7 +131,7 @@ Files are recognised by name, which is the name they are published under. Renami
 
 A language pack is one zip holding everything a language downloads: its word lists, its word-pair data, its emoji names, and for Chinese, Japanese and Cantonese their conversion tables. There is one per folder of the [data repository](https://github.com/wasi-master/wmkeyboard-data), named `wmkb-lang-<code>.zip`, on its [language packs release](https://github.com/wasi-master/wmkeyboard-data/releases/tag/language-packs). **Get the files** on a language's screen links its own pack directly. The packs are rebuilt whenever the data changes. A pack, or one of its files on its own, can also be opened straight from a file manager or a chat app: WM Keyboard asks before installing it, then shows the same report. The same works for every other file in the table above, and the question names what the file is: a model, a dictionary, a GIF pack, RIME schemas, an interface language, a feature library or Google's gesture library. A `.so` file is never offered as language files.
 
-Some folders serve two languages. The Bangla pack also carries Banglish, and importing it installs both (of Bangla's two word lists, the counted `bn_full_v2`; `bn_full` is there for older app versions), along with desktop Avro's dictionary (`bn_avro_dictionary.txt.gz`) for the Avro candidate list and the Khipro spellings (`bn_khipro_glide.txt.gz`) that glide typing on Khipro reads. The packs of Bangla, Assamese, Hindi, Urdu, Persian, Arabic and the eight Indic phonetic languages also carry the phonetic index built over the word list (`<code>_phonetic_v1r1.wmpi.gz`, `v1r2` for Bangla and Assamese), which the phonetic layout reads instead of folding the list on the phone. Where a pack holds more than one word list for a language, the import asks which one to install, since a language uses one at a time. English's pack has five: the AOSP lists for **United States**, **United Kingdom**, **Canada** and **Australia**, and the counted **Frequency** list. The dialog opens on the one a download would start on, the others are listed as not used, and **Cancel** installs none of them. To switch later, import the pack again and pick another; the new list replaces the old one. The word list is kept at the size you last chose for downloads (Large, 300,000 words, until you pick another), the same cap a download applies.
+Some folders serve two languages. The Bangla pack also carries Banglish, and importing it installs both (of Bangla's two word lists, the counted `bn_full_v2`; `bn_full` is there for older app versions), along with desktop Avro's dictionary (`bn_avro_dictionary.txt.gz`) for the Avro candidate list and the Khipro spellings that glide typing on Khipro reads (`bn_khipro_glide.txt.gz` for Classic, `bn_khipro_dark_glide.txt.gz` for Dark). The packs of Bangla, Assamese, Hindi, Urdu, Persian, Arabic and the eight Indic phonetic languages also carry the phonetic index built over the word list (`<code>_phonetic_v1r1.wmpi.gz`, `v1r2` for Bangla and Assamese), which the phonetic layout reads instead of folding the list on the phone. Where a pack holds more than one word list for a language, the import asks which one to install, since a language uses one at a time. English's pack has five: the AOSP lists for **United States**, **United Kingdom**, **Canada** and **Australia**, and the counted **Frequency** list. The dialog opens on the one a download would start on, the others are listed as not used, and **Cancel** installs none of them. To switch later, import the pack again and pick another; the new list replaces the old one. The word list is kept at the size you last chose for downloads (Large, 300,000 words, until you pick another), the same cap a download applies.
 
 ## Voice models
 
@@ -142,6 +150,8 @@ The offline build translates with Firefox Translations, on a 64-bit phone with A
 3. Press **Import** and pick them all. A direction is ready once it has all its files. Translate's language menus then list it.
 
 Mozilla's addresses end in long codes rather than names, so the app knows each file by its size and SHA-256, whatever your browser calls it. Files imported before the library wait for it.
+
+Mozilla's server turns away Chrome and the browsers built on it: the links answer with an error there, which reads as if the files were gone. Open them in Firefox, or fetch them with `curl -O` or `wget` on a computer. The sheet says so above the links.
 
 ## GIF packs
 

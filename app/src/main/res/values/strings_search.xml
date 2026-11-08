@@ -378,6 +378,8 @@
     <string name="search_kw_cliprules">regex, pattern, tidy, strip, remove, replace, https, links, copy, clipboard, trackers, tracking, clean</string>
     <!-- Search words for removing tracking parameters from copied links. -->
     <string name="search_kw_clean_links">tracker, trackers, tracking, utm, fbclid, clean, url, link, privacy, remove, delete</string>
+    <!-- Search words for removing EXIF, GPS and other metadata from pictures and videos. -->
+    <string name="search_kw_strip_media">exif, gps, location, geotag, metadata, xmp, iptc, camera, serial number, privacy, remove, strip, photo, picture, video</string>
     <string name="search_kw_phoneformats">phone number, dial code, country code, mobile number, clipboard chips</string>
     <string name="search_kw_codes">otp, one time password, 2fa, two factor, verification code, sms code, login code</string>
     <string name="search_kw_musicapps">music apps, spotify, player apps, now playing, podcast apps</string>

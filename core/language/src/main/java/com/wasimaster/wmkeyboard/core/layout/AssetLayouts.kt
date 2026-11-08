@@ -901,8 +901,6 @@ object AssetLayouts {
     const val EE_LETTERS_ID = "asset_ee_letters"
     const val EN_CLEARFLOW_ID = "asset_en_clearflow"
     const val EN_COLEMAK_DH_ANSI_ID = "asset_en_colemak_dh_ansi"
-    const val EN_GBOARD_PLUS_ID = "asset_en_gboard_plus"
-    const val EN_GBOARD_PLUS_SWIPE_SAFE_ID = "asset_en_gboard_plus_swipe_safe"
     const val EN_KASROZ_ID = "asset_en_kasroz"
     const val EN_SHAVIAN_ID = "asset_en_shavian"
     const val EN_SHAVIAN_TWO_LAYER_ID = "asset_en_shavian_two_layer"

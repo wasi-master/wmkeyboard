@@ -525,7 +525,7 @@ Kinetica has no layouts to bring across. Its boards are built into the app, one 
 
 <SettingsPath path="Appearance / Keyboard themes / Clink" />
 
-Clink is a keyboard for iPhone and iPad. A theme from it is a `.clinktheme` file: what **Export** in its theme menu saves, and what its theme repositories publish. The **Clink** button reads one, and so does opening it from a file manager. A whole Clink theme repository can be added under Addons as well; see [Clink repositories](/addons/installing/#clink-repositories).
+Clink is a keyboard for iPhone and iPad. A theme from it is a `.clinktheme` file: what **Export** in its theme menu saves, and what its theme repositories publish. The **Clink** button reads one, and so does opening it from a file manager. A whole Clink theme repository can be added under Addons as well; see [Clink repositories](/addons/installing/#clink-repositories). Newer versions of Clink wrap what **Export** saves in an encrypted package that only Clink opens. WM Keyboard recognises one and says so instead of importing it; the plain files Clink's theme repositories publish still import.
 
 | Clink | Here |
 |---|---|
@@ -551,11 +551,19 @@ The finer touches of a Clink finish (its painted edges, the glitch of a terminal
 
 A `.clinklayout` is a name and rows of letters. It comes across like any other foreign grid: the letters in their rows, with this keyboard's own shift, delete and bottom row round them, and the language guessed from the letters for you to confirm.
 
+#### Clink actions
+
+A Clink action is a `.clinkext` file: a short Python function, `transform(text)`, that turns some text into other text, such as Reverse, Title Case or Word Count. Open one from a file manager, import it under <SettingsPath path="Tools / Plugins / Manage plugins" />, or add a whole actions repository such as [`anti-ltd/clink-actions`](https://github.com/anti-ltd/clink-actions) under Addons. Each action becomes a plugin with one button on the [selection bar](/smart/selection-actions/#from-plugins), so plugins have to be turned on first, and the install screen says what it asks for before anything is saved.
+
+Every plugin here is written in Python and runs on a port of [PyMini](https://github.com/anti-ltd/PyMini), the interpreter Clink itself uses, so a Clink action runs on the same interpreter as every other plugin and behaves as it does in Clink: the same language subset, and the modules `math`, `re`, `json`, `time`, `random` and `sys`. It gets the same sandbox too, with no files and no network, and a step budget that stops a runaway loop. The converted plugin is an ordinary one, so you can open it in the plugin editor and change it.
+
+Clink runs an action on the word before the cursor, the text before it, or nothing, as the action says. Here every action works on the selection instead: select the text and tap the button. An action that asks for nothing, such as Shrug, puts its text in place of the selection. One that keeps its input, such as Word Count, leaves the selection and adds its result after it.
+
 #### Open in Clink links
 
 Every item on [Clink's community page](https://www.anti.ltd/store/clink/community) has an **Open in Clink** button, a `clink://community/…` link. Clink has no Android app, so on an Android phone WM Keyboard answers it. The link opens a preview with the item's picture, name, author, kind and description, looked up in the page's public list.
 
-The file itself is not part of that list. Clink hands community items only to a signed-in Clink app, so WM Keyboard cannot download one. Export the theme or layout from Clink (or ask whoever shared it for the file), then press **Import a Clink file** on the preview. It goes through the same import as opening the file from a file manager. Plugins, sounds, actions and Clink's other kinds have nothing to become here, and the preview says so.
+The file itself is not part of that list. Clink hands community items only to a signed-in Clink app, so WM Keyboard cannot download one. Export the theme or layout from Clink (or ask whoever shared it for the file), then press **Import a Clink file** on the preview. It goes through the same import as opening the file from a file manager. An exported action (`.clinkext`) imports the same way, as a plugin. Plugins, sounds and Clink's other kinds have nothing to become here, and the preview says so.
 
 ### FUTO Keyboard themes
 

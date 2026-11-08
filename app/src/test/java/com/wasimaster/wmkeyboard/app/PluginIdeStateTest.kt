@@ -1,11 +1,18 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.plugins.InstalledPlugin
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifest
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifestCodec
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
+import com.wasimaster.wmkeyboard.core.plugins.PluginText
+import com.wasimaster.wmkeyboard.core.plugins.PluginThumbnail
+import com.wasimaster.wmkeyboard.core.plugins.PluginWidget
 import com.wasimaster.wmkeyboard.core.plugins.PluginWorkspace
+import com.wasimaster.wmkeyboard.core.plugins.PyHostShape
+import com.wasimaster.wmkeyboard.core.plugins.PySeverity
+import com.wasimaster.wmkeyboard.core.plugins.PythonTooling
 import com.wasimaster.wmkeyboard.core.plugins.SnapshotReason
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaFormat
+import com.wasimaster.wmkeyboard.plugins.R as PluginsR
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -42,9 +49,22 @@ class PluginIdeStateTest {
     }
 
     @Test
-    fun `the blank plugin is already formatted and has no lexical problem`() {
-        assertEquals(BLANK_PLUGIN_SCRIPT, LuaFormat.reindent(BLANK_PLUGIN_SCRIPT))
-        assertNull(LuaCode.problem(BLANK_PLUGIN_SCRIPT))
+    fun `the blank plugin is already formatted and the checks find nothing in it`() {
+        assertEquals(BLANK_PLUGIN_SCRIPT, PythonTooling.format(BLANK_PLUGIN_SCRIPT))
+        assertNull(PythonCode.problem(BLANK_PLUGIN_SCRIPT))
+        assertTrue(PythonCode.parses(BLANK_PLUGIN_SCRIPT))
+        val (_, ide) = setUp()
+        val found = PythonTooling.analyse(BLANK_PLUGIN_SCRIPT, PyHostShape.of(ide.manifest)).diagnostics
+            .filter { it.severity != PySeverity.INFO }
+        assertEquals(emptyList<Any>(), found)
+    }
+
+    @Test
+    fun `the blank plugin runs and draws its counter`() {
+        val ui = PluginThumbnail.render(InstalledPlugin(id = "my.counter", name = "Counter", version = "0.1.0"), BLANK_PLUGIN_SCRIPT)
+        val column = ui!!.root.single() as PluginWidget.Column
+        assertEquals("Pressed 0 times", (column.children.first() as PluginWidget.Label).text)
+        assertTrue(column.children.any { it is PluginWidget.Button && it.id == "add" && it.primary })
     }
 
     @Test
@@ -60,10 +80,10 @@ class PluginIdeStateTest {
     fun `saving writes only a change`() {
         val (draftId, ide) = setUp()
         assertFalse(ide.isDirty(BLANK_PLUGIN_SCRIPT))
-        assertTrue(ide.save("-- changed"))
-        assertEquals("-- changed", workspace.script(draftId))
-        assertFalse(ide.isDirty("-- changed"))
-        assertTrue(ide.isDirty("-- changed again"))
+        assertTrue(ide.save("# changed"))
+        assertEquals("# changed", workspace.script(draftId))
+        assertFalse(ide.isDirty("# changed"))
+        assertTrue(ide.isDirty("# changed again"))
     }
 
     @Test
@@ -78,8 +98,19 @@ class PluginIdeStateTest {
     @Test
     fun `install refuses a script larger than an import would take`() {
         val (_, ide) = setUp()
-        val huge = "-- " + "x".repeat(260 * 1024)
+        val huge = "# " + "x".repeat(260 * 1024)
         assertTrue(ide.publish(huge) is PublishOutcome.Invalid)
+        assertTrue(store.plugins().isEmpty())
+    }
+
+    @Test
+    fun `install refuses a Lua manifest in the importer's words`() {
+        val (_, ide) = setUp()
+        ide.updateManifest(ide.manifest.copy(language = PluginManifestCodec.LANGUAGE_LUA))
+        assertEquals(
+            PublishOutcome.Invalid(PluginText.of(PluginsR.string.core_plugins_reject_lua, "Counter")),
+            ide.publish(BLANK_PLUGIN_SCRIPT),
+        )
         assertTrue(store.plugins().isEmpty())
     }
 
@@ -100,7 +131,7 @@ class PluginIdeStateTest {
         ide.publish(BLANK_PLUGIN_SCRIPT)
         store.setEnabled("my.counter", false)
         ide.updateManifest(ide.manifest.copy(pluginVersion = "0.2.0"))
-        val outcome = ide.publish("$BLANK_PLUGIN_SCRIPT-- two\n") as PublishOutcome.Published
+        val outcome = ide.publish("$BLANK_PLUGIN_SCRIPT# two\n") as PublishOutcome.Published
         assertTrue(outcome.replaced)
         assertFalse(store.plugin("my.counter")!!.enabled)
         assertEquals("0.2.0", store.plugin("my.counter")!!.version)
@@ -111,7 +142,7 @@ class PluginIdeStateTest {
         val (_, ide) = setUp()
         assertNotNull(ide.saveVersion(BLANK_PLUGIN_SCRIPT))
         assertNull(ide.saveVersion(BLANK_PLUGIN_SCRIPT))
-        assertNotNull(ide.saveVersion("-- different"))
+        assertNotNull(ide.saveVersion("# different"))
     }
 
     @Test
@@ -120,13 +151,17 @@ class PluginIdeStateTest {
         store = PluginStore(temp.newFolder("plugins"))
         store.adopt(
             PluginManifest(format = PluginManifestCodec.FORMAT, id = "com.example.tool", name = "Tool", pluginVersion = "1.0.0"),
-            "function render() return ui.label { text = 'installed' } end",
+            INSTALLED,
         )
 
         val first = draftForInstalled(workspace, store, "com.example.tool")!!
-        assertEquals("function render() return ui.label { text = 'installed' } end", workspace.script(first))
+        assertEquals(INSTALLED, workspace.script(first))
         assertEquals("com.example.tool", workspace.manifest(first)!!.id)
         assertEquals(first, draftForInstalled(workspace, store, "com.example.tool"))
         assertNull(draftForInstalled(workspace, store, "com.example.absent"))
+    }
+
+    private companion object {
+        const val INSTALLED = "def render():\n    return ui.label(\"installed\")\n"
     }
 }

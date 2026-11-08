@@ -14,7 +14,7 @@ appcompat = "1.8.0"
 # BiometricPrompt for the settings app's optional fingerprint lock. GMS-free
 # and with no native code, so it needs no flavour or channel handling and is
 # fine for F-Droid. 1.1.0 is the last stable line; 1.2.0 has been alpha since
-# 2021, same rule as luaj and detekt below.
+# 2021, same rule as detekt below.
 #
 # It needs androidx.fragment — which appcompat above already puts on the
 # classpath, so nothing new is dragged in. The note on playAppUpdate below is
@@ -131,13 +131,6 @@ webrtcAndroid = "137.7151.05"
 # wmkeyboard.vosk convention. The AAR's Java API (over JNA) goes nowhere;
 # native/vosk-jni calls libvosk's C API, which has not changed since 0.3.32.
 vosk = "0.3.75"
-# Lua interpreter for the plugin sandbox. Pure JVM, MIT, no transitive deps.
-# 3.0.1 is the LAST version published to Maven Central — the 3.0.2 git tag was
-# never released as an artifact. Do not bump without re-auditing PluginSandbox:
-# it depends on interpreter internals (which exceptions pcall catches, the
-# DebugLib.onInstruction hook path, the process-global LuaString.s_metatable)
-# that no public API pins down.
-luaj = "3.0.1"
 # Test only: the ART fold reference in WordKeyParityTest. Robolectric 4.17 pins
 # the same version, so it is already in every cache that runs the doc shots.
 icu4j = "78.3"
@@ -291,7 +284,6 @@ litert = { group = "com.google.ai.edge.litert", name = "litert", version.ref = "
 webrtc-android = { group = "io.github.webrtc-sdk", name = "android", version.ref = "webrtcAndroid" }
 onnxruntime-android = { group = "com.microsoft.onnxruntime", name = "onnxruntime-android", version.ref = "onnxruntime" }
 vosk-android = { group = "com.alphacephei", name = "vosk-android", version.ref = "vosk" }
-luaj-jse = { group = "org.luaj", name = "luaj-jse", version.ref = "luaj" }
 icu4j = { group = "com.ibm.icu", name = "icu4j", version.ref = "icu4j" }
 snakeyaml = { group = "org.yaml", name = "snakeyaml", version.ref = "snakeyaml" }
 play-app-update = { group = "com.google.android.play", name = "app-update", version.ref = "playAppUpdate" }

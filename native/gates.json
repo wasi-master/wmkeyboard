@@ -59,9 +59,19 @@
       "libraries": [
         { "name": "libwmwhispercpp.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/whispercpp-jni/build.sh" },
         { "name": "libwmwhispercpp_v82.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/whispercpp-jni/build.sh", "abis": ["arm64-v8a"] },
+        { "name": "libwmwhispercpp_i8mm.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/whispercpp-jni/build.sh", "abis": ["arm64-v8a"] },
         { "name": "libwmwhispercpp_opencl.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/whispercpp-jni/build.sh", "abis": ["arm64-v8a"] },
         { "name": "libwmwhistle.so", "dir": "core/voice/src/whistle/jniLibs", "abis": ["arm64-v8a"] },
         { "name": "libwmdenoise.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/rnnoise-jni/build.sh" }
+      ]
+    },
+    {
+      "id": "whispervulkan",
+      "property": "whisperVulkan",
+      "doc": "`:feature:whispervulkan`: whisper.cpp's Vulkan build for the phone GPUs Qualcomm's OpenCL backend refuses (Mali, Xclipse, PowerVR; `:core:voice`), loaded by `WhisperCppGpu` beside a CPU build when Compute on the Offline Whisper screen asks for the GPU on such a phone. Its own gate because its compiled shaders make it many times the size of the CPU builds.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmwhispercpp_vulkan.so", "dir": "core/voice/src/whispervulkan/jniLibs", "fdroidBuild": "native/whispercpp-jni/build.sh", "abis": ["arm64-v8a"] }
       ]
     },
     {
@@ -80,6 +90,33 @@
       "play": "split",
       "libraries": [
         { "name": "libwmexecutorch.so", "dir": "core/voice/src/executorch/jniLibs", "fdroidBuild": "native/executorch-jni/build.sh" }
+      ]
+    },
+    {
+      "id": "executorchqnn",
+      "property": "executorchQnn",
+      "doc": "`:feature:executorchqnn`: ExecuTorch with Qualcomm's QNN delegate beside XNNPACK (`libwmexecutorch_qnn`, arm64, `:core:voice`), loaded instead of `libwmexecutorch` on a Snapdragon with an NPU once fetched, so a program exported for that NPU runs its delegated parts there through the `npu` gate's QNN libraries. Compiled against Qualcomm's QNN headers, so never F-Droid's.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmexecutorch_qnn.so", "dir": "core/voice/src/executorchqnn/jniLibs", "abis": ["arm64-v8a"] }
+      ]
+    },
+    {
+      "id": "executorchvulkan",
+      "property": "executorchVulkan",
+      "doc": "`:feature:executorchvulkan`: ExecuTorch with its Vulkan GPU delegate beside XNNPACK (`libwmexecutorch_vulkan`, arm64, `:core:voice`), loaded instead of `libwmexecutorch` on a phone with Vulkan 1.1 once fetched, so a program exported with the Vulkan partitioner runs its delegated parts on the GPU. Its shaders are compiled in with native/vulkan.sh's glslc.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmexecutorch_vulkan.so", "dir": "core/voice/src/executorchvulkan/jniLibs", "fdroidBuild": "native/executorch-jni/build.sh", "abis": ["arm64-v8a"] }
+      ]
+    },
+    {
+      "id": "executorchneuron",
+      "property": "executorchNeuron",
+      "doc": "`:feature:executorchneuron`: ExecuTorch with MediaTek's NeuroPilot delegate beside XNNPACK (`libwmexecutorch_neuron`, arm64, `:core:voice`), loaded instead of `libwmexecutorch` on a Dimensity 9300 or 9400 once fetched, so a program exported for that NPU runs its delegated parts there through the phone's own NeuroPilot adapter. Compiled against MediaTek's NeuronAdapter.h, so never F-Droid's.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmexecutorch_neuron.so", "dir": "core/voice/src/executorchneuron/jniLibs", "abis": ["arm64-v8a"] }
       ]
     },
     {
@@ -143,6 +180,24 @@
       ]
     },
     {
+      "id": "plugins",
+      "property": "plugins",
+      "doc": "`:feature:plugins`: the Python interpreter that runs plugins and the plugin editor's language tooling (`libwm_python_jni`, `native/wm-python-jni`, `:core:plugins`). Fetched when the user turns plugins on or opens the plugin editor; until then nothing about plugins runs.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwm_python_jni.so", "dir": "core/plugins/src/plugins/jniLibs", "fdroidBuild": "native/wm-python-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.plugins.PythonNative"] }
+      ]
+    },
+    {
+      "id": "divvungrammar",
+      "property": "divvunGrammar",
+      "doc": "`:feature:divvungrammar`: divvun-runtime, which runs GiellaLT's grammar checker bundles (Sámi languages, Faroese) for the grammar tool (`:core:intelligence`). GPL-3.0, unlike the rest of the app: its VISL CG-3 port is. Fetched the first time a grammar bundle is downloaded.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmdivvungrammar.so", "dir": "core/intelligence/src/divvungrammar/jniLibs", "fdroidBuild": "native/divvungrammar-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.grammar.DivvunGrammarNative"] }
+      ]
+    },
+    {
       "id": "spell",
       "property": "spell",
       "doc": "`:feature:spell`: the Hunspell library behind spell checking against an imported `.aff` and `.dic` (`:core:prediction`).",
@@ -181,6 +236,16 @@
       ]
     },
     {
+      "id": "langid",
+      "property": "langid",
+      "doc": "`:feature:langid`: language identification on builds without ML Kit's identifier (F-Droid, offline): fastText's lid.176 (`libwmfasttext`, model compiled in) first and CLD3 (`libwmcld3`) when it is unsure, both `:core:intelligence`. Reads the source language for the translate tool's Bergamot and NLLB engines and the sticker prompt. Fetched the first time it is asked.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmcld3.so", "dir": "core/intelligence/src/langid/jniLibs", "fdroidBuild": "native/cld3-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.translate.Cld3Native"] },
+        { "name": "libwmfasttext.so", "dir": "core/intelligence/src/langid/jniLibs", "fdroidBuild": "native/fasttext-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.translate.FastTextNative"] }
+      ]
+    },
+    {
       "id": "bergamot",
       "property": "bergamot",
       "doc": "`:feature:bergamot`: Mozilla's Bergamot translator behind the translate tool's free on-device engine (`:core:intelligence`). Only the library moves; the models are downloaded per language direction.",
@@ -214,7 +279,8 @@
       "play": "split",
       "libraries": [
         { "name": "libwmllama.so", "dir": "core/intelligence/src/llama/jniLibs", "fdroidBuild": "native/llamacpp-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.localllm.LlamaNative"] },
-        { "name": "libwmllama_v82.so", "dir": "core/intelligence/src/llama/jniLibs", "fdroidBuild": "native/llamacpp-jni/build.sh", "abis": ["arm64-v8a"] }
+        { "name": "libwmllama_v82.so", "dir": "core/intelligence/src/llama/jniLibs", "fdroidBuild": "native/llamacpp-jni/build.sh", "abis": ["arm64-v8a"] },
+        { "name": "libwmllama_i8mm.so", "dir": "core/intelligence/src/llama/jniLibs", "fdroidBuild": "native/llamacpp-jni/build.sh", "abis": ["arm64-v8a"] }
       ]
     },
     {
@@ -224,6 +290,29 @@
       "play": "split",
       "libraries": [
         { "name": "libwmllama_opencl.so", "dir": "core/intelligence/src/llamagpu/jniLibs", "fdroidBuild": "native/llamacpp-jni/build.sh", "abis": ["arm64-v8a"] }
+      ]
+    },
+    {
+      "id": "llamavulkan",
+      "property": "llamaVulkan",
+      "doc": "`:feature:llamavulkan`: llama.cpp's Vulkan build for the phone GPUs Qualcomm's OpenCL backend refuses (Mali, Xclipse, PowerVR; `:core:intelligence`), an arm64 libwmllama that a process loads instead of a CPU one when Compute is GPU on such a phone. Its own gate because its compiled shaders make it several times the size of the CPU builds; asked for by `LlamaCpp` and the Compute chips.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmllama_vulkan.so", "dir": "core/intelligence/src/llamavulkan/jniLibs", "fdroidBuild": "native/llamacpp-jni/build.sh", "abis": ["arm64-v8a"] }
+      ]
+    },
+    {
+      "id": "llamanpu",
+      "property": "llamaNpu",
+      "doc": "`:feature:llamanpu`: llama.cpp with ggml's Hexagon backend for the Snapdragon NPU (`libwmllama_hexagon`, arm64, `:core:intelligence`), loaded instead of a CPU build when Compute is NPU on a Snapdragon 8 Gen 2 or later, with the DSP half of the backend, one skel per Hexagon generation (`libggml-htp-v73.so` to `v85`), which `LlamaHexagon` points the DSP at. Built in Qualcomm's toolchain container by .github/workflows/llama-hexagon.yml, so never F-Droid's.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmllama_hexagon.so", "dir": "core/intelligence/src/llamanpu/jniLibs", "abis": ["arm64-v8a"] },
+        { "name": "libggml-htp-v73.so", "dir": "core/intelligence/src/llamanpu/jniLibs", "abis": ["arm64-v8a"] },
+        { "name": "libggml-htp-v75.so", "dir": "core/intelligence/src/llamanpu/jniLibs", "abis": ["arm64-v8a"] },
+        { "name": "libggml-htp-v79.so", "dir": "core/intelligence/src/llamanpu/jniLibs", "abis": ["arm64-v8a"] },
+        { "name": "libggml-htp-v81.so", "dir": "core/intelligence/src/llamanpu/jniLibs", "abis": ["arm64-v8a"] },
+        { "name": "libggml-htp-v85.so", "dir": "core/intelligence/src/llamanpu/jniLibs", "abis": ["arm64-v8a"] }
       ]
     },
     {

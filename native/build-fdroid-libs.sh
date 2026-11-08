@@ -60,6 +60,12 @@ if ! command -v rustup >/dev/null 2>&1; then
     rm -f "$init"
 fi
 
+# No Qualcomm code in F-Droid's libraries: ExecuTorch's QNN variant is
+# compiled against Qualcomm's proprietary QNN headers.
+export WMKB_ET_QNN=0
+# Nor MediaTek's NeuroPilot one: it compiles against MediaTek's NeuronAdapter.h.
+export WMKB_ET_NEURON=0
+
 scripts=$(python3 "$HERE/gates.py" fdroid-scripts)
 [ -n "$scripts" ] || { echo "native/gates.py listed no build scripts" >&2; exit 1; }
 for script in $scripts; do

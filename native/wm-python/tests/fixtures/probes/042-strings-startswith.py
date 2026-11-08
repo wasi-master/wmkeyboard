@@ -1,0 +1,1 @@
+["hello".startswith("he"), "hello".endswith(("x", "lo")), "hello".removeprefix("he"), "hello".removesuffix("lo"), "hello".removeprefix("x"), "a=b=c".partition("="), "a=b=c".rpartition("="), "abc".partition("x")]

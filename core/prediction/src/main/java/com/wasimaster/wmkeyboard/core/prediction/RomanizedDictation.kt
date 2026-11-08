@@ -85,8 +85,8 @@ class RomanizedDictation(private val openAsset: (String) -> InputStream) {
      * the rules: the ones of [MODEL_MIN_LETTERS] or more. Empty for Sinhala
      * and Russian, which have no maps, and for a phrase with no such words.
      *
-     * A short word stays with the rules. The maps leave out spellings under
-     * four letters, so a common short word (है, की, কি) reaches this; the
+     * A short word stays with the rules. A common short word the maps have no
+     * readable spelling for (only shorthand like `h` for है) reaches this; the
      * model learned from lists full of names and English words, and reads
      * those as an English word that sounds the same (की as key, कब as cub).
      * On the 955 words of the `*_rom` maps the inverted maps leave out, the

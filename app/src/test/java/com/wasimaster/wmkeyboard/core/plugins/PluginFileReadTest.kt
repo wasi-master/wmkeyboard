@@ -19,7 +19,7 @@ class PluginFileReadTest {
 
     private fun store(): PluginStore = PluginStore(temp.newFolder())
 
-    private fun manifest(entry: String = "main.lua", permissions: List<String> = emptyList()) = PluginManifest(
+    private fun manifest(entry: String = "main.py", permissions: List<String> = emptyList()) = PluginManifest(
         format = PluginManifestCodec.FORMAT,
         version = PluginManifestCodec.VERSION,
         id = "com.example.demo",
@@ -27,7 +27,7 @@ class PluginFileReadTest {
         pluginVersion = "1.0.0",
         author = "Example",
         description = "A demo.",
-        apiVersion = 1,
+        apiVersion = PluginManifestCodec.API_VERSION,
         entry = entry,
         permissions = permissions,
     )
@@ -54,15 +54,15 @@ class PluginFileReadTest {
 
     @Test
     fun `a good archive reads with its script and permissions`() {
-        val result = read(archive(manifest(permissions = listOf("storage")), "return 1")) as PluginReadResult.Ok
-        assertEquals("return 1", result.script)
+        val result = read(archive(manifest(permissions = listOf("storage")), "x = 1")) as PluginReadResult.Ok
+        assertEquals("x = 1", result.script)
         assertEquals("com.example.demo", result.manifest.id)
         assertEquals(listOf<PluginPermission>(PluginPermission.Storage), result.permissions)
     }
 
     @Test
     fun `import installs exactly what read returned`() {
-        val bytes = archive(manifest(), "return 42")
+        val bytes = archive(manifest(), "x = 42")
         val read = read(bytes) as PluginReadResult.Ok
         val store = store()
 
@@ -74,30 +74,33 @@ class PluginFileReadTest {
 
     @Test
     fun `a script under a folder resolves as it does for import`() {
-        val bytes = rawArchive(manifestEntry(), "src/main.lua" to "return 7".toByteArray())
-        assertEquals("return 7", (read(bytes) as PluginReadResult.Ok).script)
+        val bytes = rawArchive(manifestEntry(), "src/main.py" to "x = 7".toByteArray())
+        assertEquals("x = 7", (read(bytes) as PluginReadResult.Ok).script)
     }
 
     @Test
     fun `read refuses everything import refuses, in the same words`() {
         val cases = listOf(
             "garbage" to byteArrayOf(1, 2, 3, 4),
-            "no manifest" to rawArchive("main.lua" to "return 1".toByteArray()),
+            "no manifest" to rawArchive("main.py" to "x = 1".toByteArray()),
             "another format" to rawArchive(
                 PluginFile.MANIFEST to """{"format":"something-else"}""".toByteArray(),
-                "main.lua" to "return 1".toByteArray(),
+                "main.py" to "x = 1".toByteArray(),
             ),
-            "missing script" to rawArchive(manifestEntry(manifest(entry = "other.lua")), "main.lua" to "x".toByteArray()),
-            "empty script" to rawArchive(manifestEntry(), "main.lua" to ByteArray(0)),
+            "missing script" to rawArchive(manifestEntry(manifest(entry = "other.py")), "main.py" to "x".toByteArray()),
+            "empty script" to rawArchive(manifestEntry(), "main.py" to ByteArray(0)),
             "oversized script" to rawArchive(
                 manifestEntry(),
-                "main.lua" to ByteArray(PluginFile.MAX_SCRIPT_BYTES + 1) { 'a'.code.toByte() },
+                "main.py" to ByteArray(PluginFile.MAX_SCRIPT_BYTES + 1) { 'a'.code.toByte() },
             ),
-            "compiled Lua" to rawArchive(manifestEntry(), "main.lua" to byteArrayOf(0x1B, 0x4C, 0x75, 0x61)),
-            "not UTF-8" to rawArchive(manifestEntry(), "main.lua" to byteArrayOf(0xC3.toByte(), 0x28)),
+            "a Lua plugin" to rawArchive(
+                PluginFile.MANIFEST to LUA_MANIFEST.toByteArray(),
+                "main.lua" to "function render() return ui.label { text = 'x' } end".toByteArray(),
+            ),
+            "not UTF-8" to rawArchive(manifestEntry(), "main.py" to byteArrayOf(0xC3.toByte(), 0x28)),
             "unknown permission" to rawArchive(
                 manifestEntry(manifest(permissions = listOf("network"))),
-                "main.lua" to "x".toByteArray(),
+                "main.py" to "x".toByteArray(),
             ),
         )
         var refusals = 0
@@ -114,5 +117,13 @@ class PluginFileReadTest {
             }
         }
         assertTrue("expected the six script and manifest refusals, got $refusals", refusals >= 6)
+    }
+
+    private companion object {
+        /** A manifest as a Lua plugin's was written: API 2, no language. */
+        val LUA_MANIFEST = """
+            {"format": "wmkeyboard-plugin", "version": 1, "id": "com.example.demo", "name": "Demo",
+             "pluginVersion": "1.0.0", "apiVersion": 2, "entry": "main.lua", "permissions": []}
+        """.trimIndent()
     }
 }

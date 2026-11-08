@@ -1,11 +1,11 @@
 package com.wasimaster.wmkeyboard.app
 
-import androidx.compose.animation.Crossfade
+import android.os.SystemClock
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -41,7 +41,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.focusGroup
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalConfiguration
@@ -154,6 +156,11 @@ fun LayoutKeyboardPreview(
     var fade by remember { mutableStateOf(true) }
     var widthPx by remember { mutableIntStateOf(0) }
     val layer = rememberGraphicsLayer()
+    // When the card came into view. A picture that turns up within a few
+    // frames of it — the memory or disk cache answering while a fling carries
+    // the card in — replaces the skeleton outright: a skeleton crossfading to
+    // a keyboard on every card a fling passes reads as the row flickering.
+    val bornAt = remember(layoutId) { SystemClock.uptimeMillis() }
 
     LaunchedEffect(settings, layoutId, form, television, environment, widthPx) {
         if (widthPx == 0) return@LaunchedEffect
@@ -181,10 +188,23 @@ fun LayoutKeyboardPreview(
         }
         LayoutPreviewCache.noteKey(layoutId, inputs, key)
         val cached = LayoutPreviewCache.get(key) ?: LayoutPreviewCache.load(context, key)
+        if (cached == null && picture == null) {
+            // No picture for these settings, and nothing on the card yet:
+            // the last one kept of this layout goes up straight away, and the
+            // new one is drawn over it, rather than a skeleton in between.
+            LayoutPreviewCache.loadLast(context, layoutId, widthPx)?.let { (lastKey, last) ->
+                LayoutPreviewCache.put(layoutId, lastKey, last)
+                if (picture == null) {
+                    fade = SystemClock.uptimeMillis() - bornAt >= QUICK_PICTURE_MS
+                    picture = last
+                }
+            }
+        }
         if (cached != null) {
             LayoutPreviewCache.put(layoutId, key, cached)
             if (picture !== cached) {
-                fade = render == null || picture != null
+                val quick = SystemClock.uptimeMillis() - bornAt < QUICK_PICTURE_MS
+                fade = picture != null || (render == null && !quick)
                 picture = cached
             }
             render = null
@@ -220,15 +240,43 @@ fun LayoutKeyboardPreview(
         // before then keeps nothing and simply renders again next time.
         delay(SETTLE_MS)
         val first = layer.toImageBitmap()
+        LayoutPreviewCache.putProvisional(layoutId, key, first)
         fade = picture != null
         picture = first
         delay(KEEP_SETTLE_MS)
         val kept = layer.toImageBitmap()
         LayoutPreviewCache.put(layoutId, key, kept)
-        LayoutPreviewCache.save(context, key, kept)
+        LayoutPreviewCache.save(context, layoutId, widthPx, key, kept)
         fade = false
         picture = kept
         render = null
+    }
+
+    // The picture on top, and what it is fading in over. Not a Crossfade:
+    // that fades the old picture out while the new one fades in, and two
+    // opaque pictures at half strength each let a quarter of the card show
+    // through at the midpoint. A card swapping a stale picture for the exact
+    // one — which a fast scroll does on card after card — dipped and came
+    // back. Here the old one stays solid until the new one is fully in.
+    var top by remember(layoutId) { mutableStateOf(picture) }
+    var below by remember(layoutId) { mutableStateOf<ImageBitmap?>(null) }
+    var belowSkeleton by remember(layoutId) { mutableStateOf(false) }
+    val fadeIn = remember(layoutId) { Animatable(1f) }
+    LaunchedEffect(picture) {
+        val next = picture
+        if (next === top) return@LaunchedEffect
+        if (fade && next != null) {
+            below = top
+            belowSkeleton = top == null
+            top = next
+            fadeIn.snapTo(0f)
+            fadeIn.animateTo(1f, tween(PICTURE_FADE_MS))
+        } else {
+            fadeIn.snapTo(1f)
+            top = next
+        }
+        below = null
+        belowSkeleton = false
     }
 
     Box(
@@ -241,29 +289,23 @@ fun LayoutKeyboardPreview(
             .focusGroup(),
     ) {
         val job = render
-        Crossfade(
-            picture,
-            animationSpec = if (fade) tween(PICTURE_FADE_MS) else snap(),
-            label = "layoutPreview",
-        ) { shown ->
-            if (shown != null) {
-                Image(
-                    bitmap = shown,
-                    contentDescription = null,
-                    contentScale = ContentScale.FillBounds,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(shown.width.toFloat() / shown.height.coerceAtLeast(1)),
-                )
-            } else if (job == null) {
-                BoardSkeleton(LayoutPreviewCache.lastAspect)
-            }
+        // What was showing before, held fully opaque underneath while the
+        // new picture fades in over it — or the skeleton, when that was it.
+        val under = below
+        if (under != null) {
+            PreviewPicture(under)
+        } else if (top == null || belowSkeleton) {
+            if (job == null || belowSkeleton) BoardSkeleton(LayoutPreviewCache.lastAspect)
+        }
+        val shownTop = top
+        if (shownTop != null) {
+            PreviewPicture(shownTop, Modifier.graphicsLayer { alpha = fadeIn.value })
         }
         if (job != null) {
             // Drawn only when there is no picture to show: otherwise the board
             // is recorded for the picture and nothing else, and the old
             // picture stays up until the new one replaces it.
-            val visible = picture == null
+            val visible = shownTop == null
             LiveBoard(
                 state = job.state,
                 modifier = Modifier.drawWithContent {
@@ -274,6 +316,19 @@ fun LayoutKeyboardPreview(
             )
         }
     }
+}
+
+/** One picture of a board, as wide as the card and as tall as its own shape. */
+@Composable
+private fun PreviewPicture(picture: ImageBitmap, modifier: Modifier = Modifier) {
+    Image(
+        bitmap = picture,
+        contentDescription = null,
+        contentScale = ContentScale.FillBounds,
+        modifier = modifier
+            .fillMaxWidth()
+            .aspectRatio(picture.width.toFloat() / picture.height.coerceAtLeast(1)),
+    )
 }
 
 /**
@@ -359,13 +414,22 @@ private fun BoardSkeleton(aspect: Float) {
         animationSpec = infiniteRepeatable(tween(SKELETON_PULSE_MS), RepeatMode.Reverse),
         label = "boardSkeletonPulse",
     )
+    // The keys come in only once the wait is a real one. Most cards find
+    // their picture in a frame or two, and a skeleton's keys flashing up for
+    // those frames is the flicker a fast fling showed on every card.
+    val reveal = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        delay(SKELETON_DELAY_MS)
+        reveal.animateTo(1f, tween(SKELETON_REVEAL_MS))
+    }
     Canvas(
         Modifier
             .fillMaxWidth()
             .aspectRatio(aspect),
     ) {
         drawRect(colors.surfaceContainerHighest)
-        val key = colors.surface.copy(alpha = pulse.value)
+        if (reveal.value == 0f) return@Canvas
+        val key = colors.surface.copy(alpha = pulse.value * reveal.value)
         val pad = 4.dp.toPx()
         val gap = 3.dp.toPx()
         val radius = CornerRadius(3.dp.toPx())
@@ -413,6 +477,11 @@ private const val SETTLE_MS = 250L
 private const val KEEP_SETTLE_MS = 1_200L
 private const val PICTURE_FADE_MS = 180
 private const val SKELETON_PULSE_MS = 700
+private const val SKELETON_DELAY_MS = 160L
+private const val SKELETON_REVEAL_MS = 220
+
+/** How soon after a card appears a picture still counts as already there. */
+private const val QUICK_PICTURE_MS = 160L
 
 /**
  * The callbacks every preview hands the keyboard. Nothing reaches them, since

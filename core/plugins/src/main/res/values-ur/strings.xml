@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">اپنے آلے پر ڈیٹا محفوظ کریں</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” میں ایک اسکرپٹ ہے جو درست UTF-8 متن نہیں ہے۔</string>
     <string name="core_plugins_reject_bad_id">اس پلگ ان کی ایک آئی ڈی ہے جو درست نہیں ہے۔ ایک آئی ڈی 3 سے 64 حروف لمبی ہوتی ہے۔ ایک آئی ڈی میں چھوٹے حروف، نمبر، نقطے، ڈیش اور انڈر سکور ہو سکتے ہیں۔</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” میں کمپائلڈ Lua کوڈ شامل ہے۔ پلگ ان کو سادہ سورس کوڈ استعمال کرنا چاہیے، تاکہ آپ اسے چلنے سے پہلے پڑھ سکیں۔</string>
     <string name="core_plugins_reject_empty_script">“%1$s” میں ایک خالی اسکرپٹ ہے۔</string>
     <string name="core_plugins_reject_missing_script">“%1$s” کے پاس اس کی اسکرپٹ فائل (%2$s) نہیں ہے۔</string>
     <string name="core_plugins_reject_newer_version">اس پلگ ان کو WM کی بورڈ کے نئے ورژن کی ضرورت ہے۔</string>

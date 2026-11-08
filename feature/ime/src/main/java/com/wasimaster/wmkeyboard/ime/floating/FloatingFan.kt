@@ -74,6 +74,34 @@ fun floatingFan(
     return best.map { Offset((it.x + dx).coerceIn(margin, maxX), (it.y + dy).coerceIn(margin, maxY)) }
 }
 
+/**
+ * [floatingFan] for a menu of any size up to two rings (#1172): the first
+ * [FLOATING_RING_SIZE] slots on the arc they always had, so a menu of eight or
+ * fewer looks as it did, and the rest on a second arc outside it, one
+ * [spacing] further out. The outer arc is longer, so its slots sit in the
+ * gaps between the inner ones rather than behind them, and a hold's slide
+ * reaches either ring.
+ */
+fun floatingRings(
+    count: Int,
+    anchor: Offset,
+    width: Float,
+    height: Float,
+    radius: Float,
+    spacing: Float,
+    margin: Float,
+): List<Offset> {
+    if (count <= FLOATING_RING_SIZE) return floatingFan(count, anchor, width, height, radius, spacing, margin)
+    val inner = floatingFan(FLOATING_RING_SIZE, anchor, width, height, radius, spacing, margin)
+    // Out from wherever the inner arc settled, which grows past [radius] to fit its slots.
+    val innerRadius = inner.maxOf { (it - anchor).getDistance() }
+    val outer = floatingFan(count - FLOATING_RING_SIZE, anchor, width, height, innerRadius + spacing, spacing, margin)
+    return inner + outer
+}
+
+/** How many slots the first ring holds before a second one starts (#1172): the eight it always held. */
+const val FLOATING_RING_SIZE = 8
+
 /** How far the arc turns per try while looking for a fit: 5°, up to a half turn either way. */
 private const val FAN_TURN_STEP = (PI / 36).toFloat()
 private const val FAN_MAX_TURN_STEPS = 36

@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Gegevens opslaan op uw apparaat</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” bevat een script dat geen geldige UTF-8-tekst is.</string>
     <string name="core_plugins_reject_bad_id">Deze plugin heeft een id die niet geldig is. Een id is 3 tot 64 tekens lang. Een id kan kleine letters, cijfers, punten, koppeltekens en underscores bevatten.</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” bevat gecompileerde Lua-code. Een plug-in moet gewone broncode gebruiken, zodat je deze kunt lezen voordat deze wordt uitgevoerd.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” heeft een leeg script.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” heeft geen scriptbestand (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Deze plug-in heeft een nieuwere versie van WM Keyboard nodig.</string>

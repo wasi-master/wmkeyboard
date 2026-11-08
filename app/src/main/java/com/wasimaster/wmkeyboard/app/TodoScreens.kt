@@ -773,9 +773,14 @@ private fun syncMessage(context: android.content.Context, result: TodoSyncResult
     is TodoSyncResult.Failed -> context.getString(R.string.tooldetail_todo_sync_failed, result.message)
 }
 
-/** The Todo List plugin's saved `items`, or null when it is not installed or holds nothing. */
+/**
+ * The Todo List plugin's saved `items`, or null when it holds nothing. Read from
+ * the installed plugin, else from the copy kept when its Lua version was retired.
+ */
 private fun readPluginItems(context: android.content.Context): String? {
-    val file = PluginStore.get(context).storageFile(TodoPluginImport.PLUGIN_ID) ?: return null
-    if (!file.isFile) return null
+    val store = PluginStore.get(context)
+    val file = store.storageFile(TodoPluginImport.PLUGIN_ID)?.takeIf { it.isFile }
+        ?: store.parkedStorageFile(TodoPluginImport.PLUGIN_ID)
+        ?: return null
     return PluginStorage(file).get(TodoPluginImport.STORAGE_KEY)?.takeIf { TodoPluginImport.parse(it).isNotEmpty() }
 }

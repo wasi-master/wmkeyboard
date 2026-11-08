@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">שמירת נתונים במכשיר שלך</string>
     <string name="core_plugins_reject_bad_encoding">ל-\"%1$s\" יש סקריפט שאינו טקסט UTF-8 חוקי.</string>
     <string name="core_plugins_reject_bad_id">לתוסף זה יש מזהה שאינו תקין. מזהה חייב להיות באורך של 3 עד 64 תווים. מזהה יכול להכיל אותיות קטנות, מספרים, נקודות, מקפים וקווים תחתונים.</string>
-    <string name="core_plugins_reject_compiled_lua">‏\"%1$s\" מכיל קוד Lua מהודר. תוסף חייב להשתמש בקוד מקור פשוט, כדי שתוכל לקרוא אותו לפני שהוא מופעל.</string>
     <string name="core_plugins_reject_empty_script">ל-\"%1$s\" יש סקריפט ריק.</string>
     <string name="core_plugins_reject_missing_script">ל-\"%1$s\" אין קובץ סקריפט (%2$s).</string>
     <string name="core_plugins_reject_newer_version">תוסף זה זקוק לגרסה חדשה יותר של WM Keyboard.</string>

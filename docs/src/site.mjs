@@ -79,7 +79,7 @@ export const SECTIONS = [
 	{ label: 'Tools', directory: 'tools' },
 	{ label: 'Themes & appearance', directory: 'themes' },
 	{ label: 'Addons', directory: 'addons' },
-	{ label: 'Plugins', directory: 'plugins', badge: { text: 'Lua', variant: 'tip' } },
+	{ label: 'Plugins', directory: 'plugins', badge: { text: 'Python', variant: 'tip' } },
 	{ label: 'Privacy & security', directory: 'privacy' },
 	{ label: 'Accessibility', directory: 'accessibility' },
 	{ label: 'Reference', directory: 'reference', collapsed: true },

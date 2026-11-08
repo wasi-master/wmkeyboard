@@ -12,6 +12,7 @@ import android.media.MediaMuxer
 import android.net.Uri
 import android.os.Build
 import androidx.exifinterface.media.ExifInterface
+import com.wasimaster.wmkeyboard.core.media.MediaScrub
 import java.io.File
 import java.nio.ByteBuffer
 import java.security.SecureRandom
@@ -92,13 +93,23 @@ object MediaPrep {
         from: Uri = item.uri,
         edit: ((Bitmap) -> Bitmap)? = null,
     ): Prepared? = runCatching {
-        // A GIF goes as the GIF it is: re-encoding would keep one frame.
-        if (item.kind == GalleryKind.GIF && edit == null) return@runCatching copyAsIs(context, item, "image/gif", "gif", options)
+        // A GIF goes as the GIF it is: re-encoding would keep one frame. Its
+        // comments and XMP block come out with the camera details (#1179).
+        if (item.kind == GalleryKind.GIF && edit == null) {
+            val copy = copyAsIs(context, item, "image/gif", "gif", options) ?: return@runCatching null
+            if (options.stripAll) MediaScrub.image(context, copy.file, copy.mime, reencode = false)
+            return@runCatching copy
+        }
         val keepBytes = options.quality == GalleryQuality.ORIGINAL && edit == null && canRewriteExif(item.mime)
         if (keepBytes) {
             val ext = extensionFor(item.mime)
             val copy = copyAsIs(context, item, item.mime, ext, options) ?: return@runCatching null
-            if (options.stripLocation || options.stripAll) clearExif(copy.file, options.stripAll)
+            // Every metadata block out, byte for byte (#1179): IPTC, comments
+            // and a motion photo's trailer too, which ExifInterface leaves. The
+            // tag-by-tag clear stays for the location alone, and as the
+            // fallback for a file the block walk will not take.
+            val scrubbed = options.stripAll && MediaScrub.image(context, copy.file, copy.mime, reencode = false) != null
+            if (!scrubbed && (options.stripLocation || options.stripAll)) clearExif(copy.file, options.stripAll)
             return@runCatching copy
         }
         val maxEdge = if (options.quality.maxEdge > 0) options.quality.maxEdge else MAX_DECODE_EDGE
@@ -377,6 +388,21 @@ object MediaPrep {
             out.delete()
         }
         return copyAsIs(context, item, item.mime, extensionFor(item.mime), options)
+    }
+
+    /**
+     * A copy of the video at [uri] in a fresh container, with its streams and
+     * turn and none of its tags (#1179): the clipboard's paste of a video
+     * kept by reference. Null when the muxer cannot write the container or
+     * fails on it; the caller decides what that means.
+     */
+    fun remuxClean(context: Context, uri: Uri, mime: String, outDir: File): Prepared? {
+        val format = muxerFormatFor(mime) ?: return null
+        val outMime = if (format == MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM) "video/webm" else "video/mp4"
+        val out = File(outDir, "VID_${randomToken()}.${extensionFor(outMime)}")
+        if (runCatching { remux(context, uri, out, format) }.getOrDefault(false)) return Prepared(out, outMime, 0, 0)
+        out.delete()
+        return null
     }
 
     /** The muxer format for a container it can write, or null. */

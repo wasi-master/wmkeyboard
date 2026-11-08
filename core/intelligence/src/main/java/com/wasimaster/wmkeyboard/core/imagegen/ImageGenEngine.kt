@@ -25,6 +25,8 @@ data class ImageGenRequest(
     val seed: Long = 0L,
     val variants: Int = 1,
     val safetyFilter: Boolean = true,
+    /** Draw on the phone's GPU (MNN's OpenCL or Vulkan backend) rather than its CPU; MNN models only. */
+    val gpu: Boolean = false,
 )
 
 /** What the generator says while it works. */
@@ -73,7 +75,7 @@ class ImageGenEngine internal constructor(private val context: Context) : Closea
             emit(ImageGenEvent.Blocked(PROMPT, request.seed))
             return
         }
-        val model = load(request.modelId, emit)
+        val model = load(request.modelId, request.gpu, emit)
         val spec = model.spec
         val size = request.size.takeIf { it in model.backend.sizes }
             ?: model.backend.sizes.minByOrNull { kotlin.math.abs(it - spec.size) }
@@ -140,8 +142,9 @@ class ImageGenEngine internal constructor(private val context: Context) : Closea
         return model.backend.encode(ids).also { textCache[key] = it }
     }
 
-    private fun load(modelId: String, emit: (ImageGenEvent) -> Unit): Loaded {
-        loaded?.takeIf { it.key == modelId }?.let { return it }
+    private fun load(modelId: String, gpu: Boolean, emit: (ImageGenEvent) -> Unit): Loaded {
+        val key = if (gpu) "$modelId\u0000gpu" else modelId
+        loaded?.takeIf { it.key == key }?.let { return it }
         emit(ImageGenEvent.Loading)
         unload()
         val noBackup = context.noBackupFilesDir
@@ -155,10 +158,10 @@ class ImageGenEngine internal constructor(private val context: Context) : Closea
                 val tokenizer = ClipTokenizer.fromFile(File(dir, catalog.parts.first().fileName))
                 Loaded(modelId, ImageGenModels.npuSpec(), QnnBackend(File(dir, build.soc), runtime), tokenizer)
             }
-            catalog != null -> mnn(modelId, ImageGenModels.dir(noBackup, catalog))
+            catalog != null -> mnn(key, modelId, ImageGenModels.dir(noBackup, catalog), gpu)
             else -> {
                 val dir = File(ImageGenModels.importedRoot(noBackup), modelId)
-                if (File(dir, ImageGenModels.NPU_UNET).isFile) npu(modelId, dir) else mnn(modelId, dir)
+                if (File(dir, ImageGenModels.NPU_UNET).isFile) npu(modelId, dir) else mnn(key, modelId, dir, gpu)
             }
         }
         loaded = result
@@ -173,11 +176,16 @@ class ImageGenEngine internal constructor(private val context: Context) : Closea
         return Loaded(id, ImageGenModels.npuSpec(id), QnnBackend(dir, runtime), ClipTokenizer.fromFile(merges))
     }
 
-    private fun mnn(id: String, dir: File): Loaded {
+    private fun mnn(key: String, id: String, dir: File, gpu: Boolean): Loaded {
         val json = MnnBackend.find(dir, "wmimage.json")?.readText() ?: throw IOException("no wmimage.json in ${dir.name}")
         val spec = ModelSpec.parse(id, json) ?: throw IOException("${dir.name} is not a model this version understands")
         val merges = MnnBackend.find(dir, "merges.txt") ?: throw IOException("no merges.txt in ${dir.name}")
-        return Loaded(id, spec, MnnBackend(dir, spec, threads()), ClipTokenizer.fromFile(merges))
+        // The GPU's compiled kernels, one cache file per model, beside the
+        // driver's own caches: rebuilt by the next run when the system clears it.
+        val cache = if (gpu) File(context.codeCacheDir, "mnn-gpu").apply { mkdirs() }.let { File(it, "$id.cache") } else null
+        val backend = MnnBackend(dir, spec, threads(), cache)
+        DebugLog.d(TAG, "$id on MNN backend ${backend.backend}")
+        return Loaded(key, spec, backend, ClipTokenizer.fromFile(merges))
     }
 
     private fun safetyFilter(): NsfwFilter? {

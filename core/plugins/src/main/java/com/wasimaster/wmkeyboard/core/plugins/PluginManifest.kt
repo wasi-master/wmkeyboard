@@ -84,10 +84,53 @@ data class PluginManifest(
     val description: String = "",
     /** The `wm.*` API level this script needs. Higher than the host's is refused. */
     val apiVersion: Int = PluginManifestCodec.API_VERSION,
-    /** The archive entry holding the Lua source. A lookup key, never a path. */
+    /** The archive entry holding the Python source. A lookup key, never a path. */
     val entry: String = PluginManifestCodec.DEFAULT_ENTRY,
     val permissions: List<String> = emptyList(),
+    /**
+     * What the script is written in. Only [PluginManifestCodec.LANGUAGE_PYTHON]
+     * runs. A file that leaves it out is Python from API level 4 on and Lua
+     * before it, which [PluginManifestCodec.read] refuses with a reason: Lua
+     * plugins were retired in API 4.
+     */
+    val language: String = PluginManifestCodec.LANGUAGE_PYTHON,
+    /**
+     * Whether the plugin draws a panel. False for a plugin that only adds
+     * [actions]: it has no `render`, and the keyboard's plugin list leaves it out.
+     */
+    val panel: Boolean = true,
+    /** Selection actions: chips on the bar over selected text. Needs the `selection` permission. */
+    val actions: List<PluginActionSpec> = emptyList(),
 )
+
+/**
+ * One selection action a plugin adds.
+ *
+ * When the user selects text and taps the chip, the keyboard calls the script's
+ * `transform(text, action_id)` with the selection and puts the string it returns
+ * in place of the selection, or after it when [replaces] is false.
+ */
+@Serializable
+data class PluginActionSpec(
+    /** Unique within the plugin. Lowercase letters, digits, `-` and `_`. */
+    val id: String = "",
+    /** The chip's label. */
+    val name: String = "",
+    /** One line for the settings list. */
+    val summary: String = "",
+    /** A Material Symbols name, or an SF Symbols name from a Clink action. Blank for the default. */
+    val icon: String = "",
+    /** False keeps the selection and adds the result after it. */
+    val replaces: Boolean = true,
+    /** [INPUT_SELECTION] passes the selection; [INPUT_NONE] passes an empty string. */
+    val input: String = INPUT_SELECTION,
+) {
+    companion object {
+        const val INPUT_SELECTION = "selection"
+        const val INPUT_NONE = "none"
+        val INPUTS = setOf(INPUT_SELECTION, INPUT_NONE)
+    }
+}
 
 /** What reading a manifest produced. */
 sealed interface PluginManifestResult {
@@ -127,10 +170,33 @@ object PluginManifestCodec {
      * widget and `os.time(table)`. A plugin that uses any of them says 2, so an
      * older build refuses it with "needs a newer version" rather than drawing a
      * panel with a widget missing.
+     *
+     * 3 added selection actions: the manifest's `actions`, `language` and
+     * `panel`, the `selection` permission and the `transform` hook.
+     *
+     * 4 made Python the only plugin language, on the Rust port of PyMini
+     * (`native/wm-python`), with `wm` and `ui` as globals. A manifest below 4
+     * that does not say `"language": "python"` is a Lua plugin, and refused.
      */
-    const val API_VERSION = 2
+    const val API_VERSION = 4
 
-    const val DEFAULT_ENTRY = "main.lua"
+    /** The first level whose plugins are Python unless they say otherwise. */
+    const val PYTHON_ONLY_API = 4
+
+    const val DEFAULT_ENTRY = "main.py"
+
+    /** Lua plugins, retired in API 4: recognised only so they can be refused, and migrated away. */
+    const val LANGUAGE_LUA = "lua"
+
+    /** A Python subset matching PyMini, run by `native/wm-python`. The only language that runs. */
+    const val LANGUAGE_PYTHON = "python"
+
+    /** More chips than this is a toolbar, not a plugin. */
+    const val MAX_ACTIONS = 16
+    const val MAX_ACTION_NAME = 24
+    private const val MAX_ACTION_SUMMARY = 80
+    private const val MAX_ACTION_ICON = 48
+    private val ACTION_ID = Regex("^[a-z0-9_-]{1,32}$")
 
     /**
      * A single safe path segment, lowercase so two ids cannot collide into one
@@ -155,7 +221,7 @@ object PluginManifestCodec {
     fun encode(manifest: PluginManifest): String = json.encodeToString(manifest)
 
     /** The manifest fields a form edits, in the order [read] checks them. */
-    enum class Field { API_VERSION, ID, NAME, VERSION, AUTHOR, DESCRIPTION, ENTRY, PERMISSIONS }
+    enum class Field { API_VERSION, ID, NAME, VERSION, AUTHOR, DESCRIPTION, ENTRY, PERMISSIONS, ACTIONS }
 
     /** One thing wrong with one field, in the same words [read] refuses with. */
     data class Problem(val field: Field, val text: PluginText)
@@ -169,7 +235,10 @@ object PluginManifestCodec {
         // The class defaults to this build's level, which is right for a
         // manifest built in code. A file that leaves the field out was written
         // against the first level, before the field mattered, so it says 1.
-        val raw = if ("apiVersion" in element) decoded else decoded.copy(apiVersion = 1)
+        val leveled = if ("apiVersion" in element) decoded else decoded.copy(apiVersion = 1)
+        // Likewise the language: unsaid, it is what plugins at that level were
+        // written in, so an old Lua manifest reads as Lua and is refused below.
+        val raw = if ("language" in element) leveled else leveled.copy(language = languageFor(apiLevel(leveled)))
         if (raw.format != FORMAT) return PluginManifestResult.NotAPlugin
         problems(raw).firstOrNull()?.let { return PluginManifestResult.Rejected(it.text) }
 
@@ -184,8 +253,11 @@ object PluginManifestCodec {
             author = sanitise(raw.author, Field.AUTHOR),
             description = sanitise(raw.description, Field.DESCRIPTION),
             apiVersion = apiLevel(raw),
-            entry = sanitise(raw.entry, Field.ENTRY),
+            entry = entryOf(raw),
             permissions = permissions.map { it.wire },
+            language = raw.language.trim(),
+            panel = raw.panel,
+            actions = raw.actions.map { sanitiseAction(it) },
         )
         return PluginManifestResult.Ok(manifest, permissions)
     }
@@ -228,8 +300,63 @@ object PluginManifestCodec {
                     ),
                 )
             }
+        out += actionProblems(manifest, name)
         return out
     }
+
+    /**
+     * The rules for [PluginManifest.actions], [PluginManifest.language] and
+     * [PluginManifest.panel]. As strict as the permission check: a plugin this
+     * build cannot fully describe to the user does not install.
+     */
+    private fun actionProblems(manifest: PluginManifest, name: String): List<Problem> {
+        val out = ArrayList<Problem>()
+        fun problem(field: Field, @StringRes res: Int) {
+            out += Problem(field, PluginText.of(res, name))
+        }
+        val language = manifest.language.trim()
+        val actions = manifest.actions
+        val declaresSelection = manifest.permissions.any { it.trim() == PluginPermission.SelectedText.wire }
+        when (language) {
+            LANGUAGE_PYTHON -> Unit
+            LANGUAGE_LUA -> problem(Field.API_VERSION, R.string.core_plugins_reject_lua)
+            else -> problem(Field.ENTRY, R.string.core_plugins_reject_unknown_language)
+        }
+        when {
+            actions.isNotEmpty() && !declaresSelection ->
+                problem(Field.PERMISSIONS, R.string.core_plugins_reject_actions_need_selection)
+            actions.isEmpty() && declaresSelection ->
+                problem(Field.ACTIONS, R.string.core_plugins_reject_selection_without_actions)
+            actions.isEmpty() && !manifest.panel ->
+                problem(Field.ACTIONS, R.string.core_plugins_reject_nothing_to_show)
+            actions.size > MAX_ACTIONS -> problem(Field.ACTIONS, R.string.core_plugins_reject_too_many_actions)
+        }
+        val ids = actions.map { it.id.trim() }
+        if (ids.any { !ACTION_ID.matches(it) } || ids.toSet().size != ids.size) {
+            problem(Field.ACTIONS, R.string.core_plugins_reject_bad_action_id)
+        } else if (actions.any { displayText(it.name, MAX_ACTION_NAME).isEmpty() }) {
+            problem(Field.ACTIONS, R.string.core_plugins_reject_action_no_name)
+        } else if (actions.any { it.input.trim() !in PluginActionSpec.INPUTS }) {
+            problem(Field.ACTIONS, R.string.core_plugins_reject_action_input)
+        }
+        return out
+    }
+
+    /** [action] as [read] stores it: trimmed, and every displayed string cut to its length. */
+    fun sanitiseAction(action: PluginActionSpec): PluginActionSpec = action.copy(
+        id = action.id.trim(),
+        name = displayText(action.name, MAX_ACTION_NAME),
+        summary = displayText(action.summary, MAX_ACTION_SUMMARY),
+        icon = displayText(action.icon, MAX_ACTION_ICON),
+        input = action.input.trim(),
+    )
+
+    /** The entry the manifest names, or `main.py` when it names none. */
+    private fun entryOf(manifest: PluginManifest): String =
+        displayText(manifest.entry, MAX_ENTRY).ifEmpty { DEFAULT_ENTRY }
+
+    /** The language a manifest that does not name one was written in, by its API level. */
+    fun languageFor(apiLevel: Int): String = if (apiLevel >= PYTHON_ONLY_API) LANGUAGE_PYTHON else LANGUAGE_LUA
 
     /**
      * What [read] stores for [raw] in [field]. The id is trimmed and lowercased;
@@ -244,7 +371,7 @@ object PluginManifestCodec {
         Field.AUTHOR -> displayText(raw, MAX_AUTHOR)
         Field.DESCRIPTION -> displayText(raw, MAX_DESCRIPTION)
         Field.ENTRY -> displayText(raw, MAX_ENTRY).ifEmpty { DEFAULT_ENTRY }
-        Field.API_VERSION, Field.PERMISSIONS -> raw.trim()
+        Field.API_VERSION, Field.PERMISSIONS, Field.ACTIONS -> raw.trim()
     }
 
     /**

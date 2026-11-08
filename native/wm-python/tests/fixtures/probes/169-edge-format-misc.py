@@ -1,0 +1,1 @@
+[format(-0.0, ".1f"), format(1e300, ",.0f")[:20], format(255, "+#x") if False else 0, format(3, "=+5"), format("abc", ".2") if False else 0, format(0.1, ".20f"), format(1.0, "g"), format(100000.0, "g"), format(1000000.0, "g"), format(1e-5, ".3e"), format(9.99999, ".2f"), format(0.0005, ".3g")]

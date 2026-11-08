@@ -7,7 +7,7 @@
 // UTF-8 has no room for a half character or a four-byte emoji.
 //
 // The same file builds the CPU libraries (bound to WhisperCpp) and the
-// OpenCL one (WM_GPU, bound to WhisperCppGpu). Different JNI names let both
+// OpenCL and Vulkan ones (WM_GPU, bound to WhisperCppGpu). Different JNI names let both
 // sit in one process, so Compute can change, and a GPU that fails can hand
 // the clip to the CPU build, without a restart.
 
@@ -38,7 +38,7 @@ namespace {
 
 struct Session {
     whisper_context* ctx = nullptr;
-    // whisper.cpp put the model on a GPU device (the OpenCL build only).
+    // whisper.cpp put the model on a GPU device (the GPU builds only).
     bool on_gpu = false;
     // One transcription at a time per model; Kotlin serialises too.
     std::mutex run_mutex;
@@ -130,10 +130,11 @@ void watchBackend(ggml_log_level, const char* text, void*) {
 
 #ifdef WM_GPU
 /**
- * Starts ggml's OpenCL backend and lists the GPU devices it accepted, one
- * description a line ("QUALCOMM Adreno(TM) 740"), as UTF-8; empty when it
- * found none. [cacheDir] keeps the kernels the driver compiles, which takes
- * seconds on first use, for the next process.
+ * Starts ggml's GPU backend (OpenCL or Vulkan) and lists the GPU devices it
+ * accepted, one description a line ("QUALCOMM Adreno(TM) 740", "Mali-G57"),
+ * as UTF-8; empty when it found none. [cacheDir] keeps the kernels the
+ * OpenCL driver compiles, which takes seconds on first use, for the next
+ * process; the Vulkan build ships its shaders compiled and ignores it.
  */
 extern "C" JNIEXPORT jbyteArray JNICALL
 JNI_FN(nativeGpuInit)(JNIEnv* env, jclass, jstring cacheDir) {

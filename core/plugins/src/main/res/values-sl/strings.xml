@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Shrani podatke v svojo napravo</string>
     <string name="core_plugins_reject_bad_encoding">»%1$s« vsebuje skript, ki ni veljavno besedilo UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Ta vtičnik ima neveljaven ID. ID mora biti dolg od 3 do 64 znakov. ID lahko vsebuje male črke, številke, pike, pomišljaje in podčrtaje.</string>
-    <string name="core_plugins_reject_compiled_lua">„%1$s“ vsebuje prevedeno kodo Lua. Vtičnik mora uporabljati navadno izvorno kodo, da jo lahko preberete, preden se izvede.</string>
     <string name="core_plugins_reject_empty_script">»%1$s« ima prazen skript.</string>
     <string name="core_plugins_reject_missing_script">»%1$s« nima svoje skriptne datoteke (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Ta vtičnik potrebuje novejšo različico tipkovnice WM Keyboard.</string>

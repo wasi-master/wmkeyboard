@@ -1,6 +1,6 @@
 ---
 title: "The plugin sandbox"
-description: "What the Lua sandbox can do, how that is enforced, and where the limits are."
+description: "What the Python plugin sandbox can do, how that is enforced, and where the limits are."
 sidebar:
   label: "Security"
   order: 5
@@ -22,17 +22,25 @@ could be configured differently. Each has a test.
    plugin cannot observe, alter or delay a single keystroke on its way to your
    app.
 2. **Plugins cannot read the text field.** No `InputConnection` read path is
-   exposed. No function returns the contents of what you are writing in.
+   exposed. No function returns the contents of what you are writing in. A
+   plugin with the `selection` permission is handed one thing: the text you
+   selected, when you tap one of its buttons on the selection bar. Never
+   without the tap, never more than the selection, never on a password field.
+   Each tap runs in a fresh interpreter that is discarded afterwards, so the text
+   outlives the call only if the plugin writes it to its own storage, which
+   has nowhere to send it.
 3. **Plugins cannot read the clipboard.** No API.
 4. **Plugins cannot reach the network.** No HTTP client, no sockets, no URL
-   handling. The sandbox has zero egress.
-5. **Plugins cannot execute downloaded code.** `load`, `loadstring`, `dofile`
-   and `loadfile` are removed and no bytecode undumper is installed, so a
-   plugin cannot turn a string into runnable Lua. Precompiled Lua is refused at
-   install.
-6. **Plugins cannot reach Android.** No `luajava`, no `require`, no reflection,
-   no class loading, no `io`, no `os` beyond the clock, no file paths, no
-   Intents, no `Context`.
+   handling. The interpreter has zero egress.
+5. **Plugins cannot execute downloaded code.** There is no `eval`, `exec`,
+   `compile` or `__import__`, and `import` reaches six built-in modules and
+   nothing else, so a plugin cannot turn a string into code that runs. There is
+   no bytecode format to smuggle one in either: a plugin is source, read by
+   the interpreter's own parser.
+6. **Plugins cannot reach Android.** No `open`, no `os`, no `subprocess`, no
+   reflection, no class loading, no file paths, no Intents, no `Context`. The
+   interpreter is native code that never calls back into the app: the app
+   hands it JSON and reads JSON back, and that is the whole connection.
 7. **Plugins cannot see other apps or the device.** No package enumeration, no
    identifiers, no location, contacts, camera, microphone, SMS or
    accessibility.
@@ -45,7 +53,8 @@ could be configured differently. Each has a test.
    host-drawn title bar, and cannot alter keyboard behaviour, request
    permissions, or affect any other feature.
 
-Anything a plugin holds, you gave it on purpose. It also has nowhere to send it.
+Anything a plugin holds, you gave it on purpose: typed or pasted into its
+panel, or selected and handed to it with a tap. It also has nowhere to send it.
 
 :::note[Data safety]
 The app collects and shares nothing new because of this feature.
@@ -55,55 +64,49 @@ The app collects and shares nothing new because of this feature.
 
 ### The interpreter
 
-Lua 5.2 via [LuaJ](https://github.com/luaj/luaj) 3.0.1, a pure-JVM interpreter
-with no native code. Each plugin session gets a fresh environment holding only
-`BaseLib`, `Bit32Lib`, `TableLib`, `StringLib`, `JseMathLib` and the compiler.
+Plugins run on `wm-python`, a Rust port of
+[PyMini](https://github.com/anti-ltd/PyMini), the small Python interpreter
+written for Clink. The app loads it as a native library over JNI; the web
+editor's preview runs the same code compiled to WebAssembly.
 
-The omissions matter more than the inclusions:
+The sandbox is mostly a matter of what was never written. PyMini has no file,
+network or process access because none exists in it, not because a check stands
+in the way. `import` reaches `math`, `re`, `json`, `time`, `random` and `sys`,
+and each of those only computes: `time` reads the clock, `random` draws from a
+seedable generator, `sys` holds a version string. The built-in functions have no
+`open`, `eval`, `exec`, `compile`, `getattr` or `__import__`, and there are no
+classes, so there is no object model to climb through to reach something the
+API left out.
 
-- **`PackageLib` is never installed.** Its `require` resolves module names
-  through `Class.forName` and instantiates the result, which is a straight line
-  from a script to arbitrary JVM classes. This is the single most important
-  library not to install.
-- **`CoroutineLib` is never installed.** LuaJ implements coroutines as real,
-  non-daemon Java threads and reclaims them only when they yield, so a script
-  spawning non-yielding coroutines would leak OS threads that outlive the
-  keyboard.
-- **`IoLib` and `OsLib` are never installed.** `os` is replaced by a
-  pure-Kotlin table that can tell the time and nothing else.
-- **`LuajavaLib` is never installed.** Nothing references it, so R8 strips it
-  from the shipped APK entirely, along with the JVM-coercion helpers, the
-  bytecode backend and the JSR-223 engine. Verified against the release build's
-  mapping file: the reflective interop surface is not in the binary.
-
-The `debug` library *is* loaded, because the interpreter's per-instruction hook
-lives on it, and then removed from the environment so no script can reach it.
+The boundary with the app is coarse on purpose. The app passes in a plugin's
+source, its settings and each event as JSON, and gets JSON back: a widget tree,
+an error, log lines, writes to its own input boxes. The interpreter never calls
+into the JVM, so no host object is ever within a script's reach. Storage and
+reminders are files the interpreter itself reads and writes, at the paths and
+under the quotas the app gives it when it opens the session.
 
 ### Stopping runaway scripts
 
-Two mechanisms, because one is not enough.
+Every statement, every turn of a loop and every step of a regular expression's
+matching spends from a step budget. Each step also checks a cancel flag and a
+wall-clock deadline. When the budget or the time runs out, or the flag is set,
+the interpreter unwinds and returns an error that no `try` in the script can
+catch. A script cannot swallow its own termination.
 
-The interpreter calls a hook before every bytecode instruction. That hook spends
-an instruction budget and checks a wall-clock deadline, and throws when either
-runs out. The abort extends `java.lang.Error` rather than `Exception`
-specifically because LuaJ's `pcall` catches `LuaError` and `Exception` only. A
-script therefore cannot swallow its own termination in a `pcall` loop. There is
-a test that proves exactly that.
+Regular expressions run on PyMini's own backtracking engine, and that engine
+spends steps like everything else. A pattern that backtracks for ever is
+stopped the same way a `while True:` is, which closes the usual gap where an
+interpreter hands a regex to a library it cannot interrupt.
 
-What the hook cannot catch is a thread inside LuaJ's own Java code, where no
-bytecode boundary is crossed. A pathological `string.gsub` is the realistic
-case. A watchdog covers it: the watchdog notices a call past its deadline with
-the hook plainly not firing, and *abandons* the thread.
+The app also keeps a watchdog. When a call passes its deadline, the watchdog
+sets the cancel flag from its own thread, and since the flag is checked on
+every step, the call stops. Abandoning the thread is now only a fallback for a
+call that does not return even then. Abandoning is not killing: the session is
+revoked so nothing the thread does afterwards reaches anything, its priority is
+dropped, and the runtime forgets it.
 
-Abandoning is not killing, and it is worth being precise. `Thread.stop` is gone
-from the platform and LuaJ never polls for interrupts, so a thread spinning in
-Java keeps spinning. What abandonment does is sever it. The session is revoked,
-so every host call the thread might still make throws instead of acting. Its
-executor is shut down, its priority is dropped to minimum, and the runtime
-forgets it. It burns CPU as a background daemon until the process ends, and can
-affect nothing else.
-
-A plugin that does this twice is switched off until the user re-enables it. The
+A plugin that runs out of steps or time, or has to be abandoned, takes a
+strike. Two strikes and it is switched off until the user re-enables it. The
 one exception is a user who has turned **Switch off a plugin that hangs** off
 (Tools / Plugins, on by default). With it off, the strikes are still counted and
 still shown, so the user keeps the evidence and gives up only the automatic
@@ -113,31 +116,25 @@ is the real cause.
 ### Memory
 
 There is no per-thread heap limit on Android, so this is layered rather than
-absolute. The script is capped at 256 KB, and the instruction budget bounds the
-allocation *rate*. `string.rep`, the pattern functions and `table.concat` are
-wrapped with output caps. Every string crossing the API boundary is capped, the
+absolute. The script is capped at 256 KB, and the step budget bounds the
+allocation *rate*. No string can pass 100,000 characters, no list, dict or set
+10,000 items, and no call chain 300 calls, so the doubling trick
+(`s = s + s`) stops after a few turns with an error instead of reaching
+gigabytes. Every string crossing the boundary with the app is capped, the
 widget tree is capped, storage is quota'd, and only one plugin runs at a time.
 
-Honest residual: repeated string doubling (`s = s .. s`) reaches gigabytes in
-about twenty instructions, and concatenation is not something the hook can price.
-The allocating thread gets an `OutOfMemoryError`, caught at the session boundary,
-which drops the environment. Worst case, the OS kills the keyboard process and it
-restarts clean. That is a crash rather than a leak: no data crosses any boundary.
-No strike is counted for it, though. Strikes come from the instruction and
-deadline aborts and from the watchdog, so a plugin that runs the heap out ends
-its session and stays switched on.
+Honest residual: those caps bound each value, not the total. A script that
+fills many containers with long strings can still use a lot of memory before its
+steps run out. Worst case, Android ends the keyboard process and it restarts
+clean. That is a crash rather than a leak: no data crosses any boundary.
 
 ### Cross-plugin isolation
 
-LuaJ's string metatable is a **process-global static**, populated from whichever
-environment is built first. Left alone, one plugin writing to
-`getmetatable("").__index` would rewrite string methods for every other plugin in
-the process and for every session afterwards. It is replaced with a frozen table
-that refuses writes and hides itself behind `__metatable`, so `getmetatable("")`
-returns an opaque marker and no reference escapes.
-
-Everything else is per-session: a fresh environment per plugin per panel opening,
-discarded when the panel closes.
+Every session is its own interpreter, with its own globals and its own modules,
+created when the panel opens and discarded when it closes. A selection action
+gets a fresh one per tap. Nothing a script can write to is shared with another
+plugin or with a later session, so one plugin has no way to change how Python
+behaves for the next.
 
 ### The key-routing gate
 
@@ -167,6 +164,12 @@ Archive entry names are never used as filesystem paths, the plugin id is proven
 to be a single safe lowercase path segment before it becomes a directory, and
 archives are capped in size and entry count.
 
+The interpreter is a feature library rather than part of the APK. It is
+fetched when plugins are first turned on, or the editor first opened. A Play
+install gets it from Google Play. Every other build gets it from the project's
+data repository and checks it against the checksum the app was built with
+before loading it.
+
 For plugins alone, a **SHA-256 is mandatory**. For every other addon type a
 missing checksum only means "unverified". The app will not install code it
 cannot verify.
@@ -178,7 +181,7 @@ The in-app plugin editor is the exception. Its live preview runs a script as
 you write it. Its Install button writes the plugin straight to disk the same
 way a catalogue install would, both before you ever turn the switch on. Since
 you already wrote the manifest yourself, Install skips the confirmation screen
-described below. Both still go through the same sandbox as an installed
+described below. Both still go through the same interpreter as an installed
 plugin, so every invariant above still holds.
 
 Before installing from a file or the catalogue, the user sees what the plugin
@@ -190,21 +193,24 @@ build that screen, never the script.
 Stated plainly, because a security document that only lists strengths is not
 useful.
 
-- **A bug in LuaJ itself.** The interpreter runs in the app's process, so an
-  interpreter escape would be an app compromise. Mitigations: no `luajava`, no
-  reflection surface, no class loading, minimal host objects (plain functions
-  over immutable strings and numbers), and a pinned version whose relevant
-  internals were audited. The runtime is kept behind an interface so it could be
-  moved into an `isolatedProcess` later. That is not done today.
-- **A plugin that wastes CPU.** Contained rather than prevented. See abandonment
-  above. A determined script can burn one background thread until the process
-  ends.
+- **A bug in the interpreter itself.** It runs in the app's process, so an
+  interpreter escape would be an app compromise. Mitigations: it is written in
+  Rust, which rules out the memory-corruption bugs that usually turn an
+  interpreter flaw into an escape, outside the thin JNI layer; it holds no host
+  objects at all, only JSON in and out; and it has no reflection, no class
+  loading and no file or network code to misuse. The runtime is kept behind an
+  interface so it could be moved into an `isolatedProcess` later. That is not
+  done today.
+- **A plugin that wastes CPU.** Contained rather than prevented. Every call is
+  bounded by its step budget and deadline, so the waste ends when the call
+  does, and a plugin that keeps hitting the limit is switched off.
 - **A plugin that lies about what it does.** Nothing stops a plugin called
   "Calculator" from being a poem generator. It still cannot read your text or
   reach the network, so the worst case is a waste of your time.
-- **Anything you paste into it.** If you paste a password into a plugin's box,
-  that plugin has your password. It cannot send it anywhere, but it is worth
-  saying out loud.
+- **Anything you paste into it, or select and hand to it.** If you paste a
+  password into a plugin's box, or select one and tap a plugin's action, that
+  plugin has your password. It cannot send it anywhere, but it is worth saying
+  out loud.
 
 ## Reporting
 

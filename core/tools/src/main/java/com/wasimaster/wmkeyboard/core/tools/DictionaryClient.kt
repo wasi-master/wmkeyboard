@@ -55,6 +55,13 @@ data class DictEntry(
     val frequency: String = "",
     /** The imported dictionary this entry is from, for the card's "From …" line; empty for the built-in sources. */
     val origin: String = "",
+    /**
+     * The language the headword is a word of, as a BCP 47 tag, when the source
+     * says (#1085): a language pack's, an imported dictionary's own. The card
+     * names it, and the speaker reads the word in it. Empty for the English
+     * sources and any that do not say.
+     */
+    val language: String = "",
 )
 
 /**

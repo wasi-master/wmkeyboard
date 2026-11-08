@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">तुमच्या डिव्हाइसवर डेटा सेव्ह करा</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” मध्ये अशी स्क्रिप्ट आहे जी वैध UTF-8 मजकूर नाही.</string>
     <string name="core_plugins_reject_bad_id">या प्लगइनचा आयडी वैध नाही. आयडी ३ ते ६४ अक्षरांचा असतो. आयडीमध्ये लहान अक्षरे, अंक, ठिपके, डॅश आणि अंडरस्कोअर असू शकतात.</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” मध्ये कंपाईल केलेला Lua कोड आहे. प्लगइनने साध्या सोर्स कोडचा वापर करणे आवश्यक आहे, जेणेकरून ते रन होण्यापूर्वी तुम्ही तो वाचू शकाल.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” मध्ये रिकामी स्क्रिप्ट आहे.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” मध्ये त्याची स्क्रिप्ट फाईल (%2$s) नाही.</string>
     <string name="core_plugins_reject_newer_version">या प्लगइनला WM कीबोर्डची नवीन आवृत्ती आवश्यक आहे.</string>

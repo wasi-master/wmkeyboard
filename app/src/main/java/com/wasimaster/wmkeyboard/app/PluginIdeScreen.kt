@@ -122,12 +122,11 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginSnapshot
 import com.wasimaster.wmkeyboard.core.plugins.PluginStorage
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.plugins.PluginWorkspace
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaApiEntry
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaDocuments
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaHostShape
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaNavigation
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaOutlineItem
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaSyntax
+import com.wasimaster.wmkeyboard.core.plugins.PyApiEntry
+import com.wasimaster.wmkeyboard.core.plugins.PyHostShape
+import com.wasimaster.wmkeyboard.core.plugins.PyOutlineItem
+import com.wasimaster.wmkeyboard.core.plugins.PythonNative
+import com.wasimaster.wmkeyboard.core.plugins.PythonTooling
 import com.wasimaster.wmkeyboard.core.plugins.resolve
 import com.wasimaster.wmkeyboard.core.plugins.ui.LocalPluginPanelStyle
 import com.wasimaster.wmkeyboard.core.plugins.ui.PluginInputHost
@@ -145,7 +144,7 @@ private const val AUTOSAVE_MS = 400L
 private enum class IdePanel { CLOSED, PREVIEW, CONSOLE, PROBLEMS, OUTLINE, EVENTS, STORAGE }
 
 /** What one pass of the checks found: the problems, and the outline of the last text that parsed. */
-private data class IdeInspection(val diagnostics: List<CodeDiagnostic>, val outline: List<LuaOutlineItem>) {
+private data class IdeInspection(val diagnostics: List<CodeDiagnostic>, val outline: List<PyOutlineItem>) {
     companion object {
         val None = IdeInspection(emptyList(), emptyList())
     }
@@ -355,7 +354,7 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
         return
     }
     val ide = remember(draftId) { PluginIdeState(draftId, WorkspaceIdePorts(workspace, store, draftId)) }
-    val editor = rememberCodeEditorState(draftId, rules = LuaSmartRules, keepHistory = true) { ide.savedText }
+    val editor = rememberCodeEditorState(draftId, rules = PythonSmartRules, keepHistory = true) { ide.savedText }
     val scope = rememberCoroutineScope()
     val preview = remember(draftId) { PluginPreviewSession(workspace, store, post = { body -> scope.launch { body() } }) }
     val previewState by preview.state.collectAsStateWithLifecycle()
@@ -370,9 +369,8 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
     var hiddenKeys by remember { mutableStateOf(keyPrefs.hidden) }
     var keysOpen by rememberSaveable { mutableStateOf(false) }
     val suggestionBar = remember { CodeSuggestionBar() }
-    var preludeLine by remember { mutableStateOf<Int?>(null) }
     var textSize by rememberCodeTextSize(DEFAULT_TEXT_SIZE)
-    // Wrapped at first: a phone is narrow, and a Lua line reads better whole than scrolled sideways.
+    // Wrapped at first: a phone is narrow, and a line of code reads better whole than scrolled sideways.
     var wrap by rememberCodeWrap(true)
     var autoRun by rememberSaveable { mutableStateOf(true) }
     // The text the plugin last ran, typed or pressed, so a pause does not run it again.
@@ -418,7 +416,7 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
     LaunchedEffect(text, autoRun) {
         if (!autoRun) return@LaunchedEffect
         delay(AUTO_RUN_MS)
-        val parses = withContext(Dispatchers.Default) { LuaDocuments.of(text).syntax == LuaSyntax.Valid }
+        val parses = withContext(Dispatchers.Default) { PythonCode.parses(text) }
         if (shouldRunAsTyped(autoRun, text, lastRun, parses)) {
             lastRun = text
             preview.run(draftId, text, ide.manifest)
@@ -445,8 +443,8 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
     val caretNow = editor.value.selection.end
     val positionLine = lineOf(lineStarts, caretNow.coerceIn(0, text.length))
     val positionColumn = caretNow.coerceIn(0, text.length) - lineStarts[positionLine]
-    val apiHere by produceState<LuaApiEntry?>(null, text, caretNow) {
-        value = withContext(Dispatchers.Default) { LuaCode.apiAt(text, caretNow) }
+    val apiHere by produceState<PyApiEntry?>(null, text, caretNow) {
+        value = withContext(Dispatchers.Default) { PythonCode.apiAt(text, caretNow) }
     }
     // The events from runs before this one, taken as it starts, for the Events tab to send again.
     val replayable = remember(previewState.runs) { preview.recordedEvents() }
@@ -459,19 +457,22 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
     }
     // The permission checks follow the manifest as it is edited, not as it was saved.
     val storage = PluginPermission.Storage.wire in ide.manifest.permissions
-    val reminders = PluginPermission.Reminders.wire in ide.manifest.permissions
-    val inspection by produceState(IdeInspection.None, text, storage, reminders) {
+    val host = remember(ide.manifest) { PyHostShape.of(ide.manifest) }
+    // The tooling is in the on-demand library: the checks wait for it, and the
+    // module is asked for as the editor opens.
+    val toolingState by PythonNative.moduleState.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) { if (!PythonTooling.ready) PythonNative.requestModule() }
+    val inspection by produceState(IdeInspection.None, text, host, toolingState) {
         delay(250)
         val previous = value
         value = withContext(Dispatchers.Default) {
-            val found = LuaCode.diagnostics(text, LuaHostShape(storage, reminders))
-            // The same document the checks just built, so this is not a second parse.
-            val outline = LuaDocuments.of(text).analysis?.let(LuaNavigation::outline) ?: previous.outline
-            IdeInspection(found, outline)
+            val analysis = PythonCode.analyse(text, host)
+            // A file that broke mid-edit keeps the outline it had.
+            IdeInspection(analysis.diagnostics, analysis.outline.ifEmpty { previous.outline })
         }
     }
     val diagnostics = inspection.diagnostics
-    val failureLine = previewState.failure?.takeIf { it.chunk == MAIN_CHUNK }?.line?.minus(1)
+    val failureLine = previewState.failure?.takeIf { it.chunk == PluginRuntime.SCRIPT_CHUNK }?.line?.minus(1)
     val matches by produceState(emptyList<TextRange>(), text, find.query, find.options, findOpen) {
         if (!findOpen || find.query.isEmpty()) {
             value = emptyList()
@@ -521,9 +522,7 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
         val source = editor.text
         val caret = editor.value.selection.min
         scope.launch {
-            val span = withContext(Dispatchers.Default) {
-                LuaNavigation.definitionAt(LuaDocuments.of(source), caret)
-            }
+            val span = withContext(Dispatchers.Default) { PythonTooling.definition(source, caret) }
             if (span != null && editor.text == source) {
                 editor.select(TextRange(span.start, span.end))
             } else {
@@ -560,7 +559,7 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
             CodeCommand.GO_TO_DEFINITION -> goToDefinition()
             CodeCommand.RENAME -> startRename()
             CodeCommand.GO_TO_SYMBOL -> panel = IdePanel.OUTLINE
-            CodeCommand.FORMAT -> editor.replace(LuaCode.format(editor.text))
+            CodeCommand.FORMAT -> editor.replace(PythonCode.format(editor.text))
             CodeCommand.TOGGLE_WRAP -> wrap = !wrap
             CodeCommand.ZOOM_IN -> textSize = (textSize + 1).coerceAtMost(MAX_TEXT_SIZE)
             CodeCommand.ZOOM_OUT -> textSize = (textSize - 1).coerceAtLeast(MIN_TEXT_SIZE)
@@ -720,7 +719,7 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                                 trailingIcon = shortcutSlot(keyboard, CodeCommand.FOLD_ALL),
                                 onClick = {
                                     menuOpen = false
-                                    editor.foldAll(LuaCode.foldRegions(editor.text).map { it.min })
+                                    editor.foldAll(PythonCode.foldRegions(editor.text).map { it.min })
                                 },
                             )
                             DropdownMenuItem(
@@ -747,7 +746,7 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                                 trailingIcon = shortcutSlot(keyboard, CodeCommand.FORMAT),
                                 onClick = {
                                     menuOpen = false
-                                    editor.replace(LuaCode.format(editor.text))
+                                    editor.replace(PythonCode.format(editor.text))
                                 },
                             )
                             DropdownMenuItem(
@@ -841,7 +840,7 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
             }
             CodeSurface(
                 state = editor,
-                language = LuaCode,
+                language = PythonCode,
                 modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 8.dp, vertical = 4.dp),
                 lineStarts = lineStarts,
                 decorations = decorations,
@@ -878,7 +877,7 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                 Box(Modifier.fillMaxWidth().fillMaxHeight(PANEL_FRACTION)) {
                     when (panel) {
                         IdePanel.PREVIEW -> PreviewPane(preview, previewState, autoRun, { autoRun = it }, renderHistory)
-                        IdePanel.CONSOLE -> ConsolePane(preview, previewState.consoleRevision, { preludeLine = it }) { line ->
+                        IdePanel.CONSOLE -> ConsolePane(preview, previewState.consoleRevision) { line ->
                             editor.moveTo(offsetOfLine(editor.text, line - 1))
                         }
                         IdePanel.PROBLEMS -> ProblemsPane(diagnostics, lineStarts) { range -> editor.select(range) }
@@ -895,12 +894,12 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                 CodeAccessoryRow(
                     state = editor,
                     colors = rememberCodeColors(),
-                    lineComment = LuaCode.lineComment,
+                    lineComment = PythonCode.lineComment,
                     onFind = { findOpen = true },
-                    onFormat = { editor.replace(LuaCode.format(editor.text)) },
+                    onFormat = { editor.replace(PythonCode.format(editor.text)) },
                     onSuggest = { suggestRequests++ },
-                    blocks = LuaCode::foldRegions,
-                    keys = remember(keyOrder, hiddenKeys) { arrangeKeys(LuaAccessoryKeys, keyOrder, hiddenKeys) },
+                    blocks = PythonCode::foldRegions,
+                    keys = remember(keyOrder, hiddenKeys) { arrangeKeys(PythonAccessoryKeys, keyOrder, hiddenKeys) },
                     suggestionBar = suggestionBar,
                 )
             }
@@ -972,7 +971,6 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
         )
     }
 
-    preludeLine?.let { line -> PreludeDialog(line) { preludeLine = null } }
 
     if (keysOpen) {
         CodeKeysDialog(
@@ -1012,12 +1010,6 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
         )
     }
 }
-
-/** The chunk name the runtime gives the plugin's own script. */
-private const val MAIN_CHUNK = "main.lua"
-
-/** The chunk name the runtime gives the prelude that runs before every plugin. */
-private const val PRELUDE_CHUNK = "prelude.lua"
 
 /** How much of the screen the panel under the code takes when it is open. */
 private const val PANEL_FRACTION = 0.42f
@@ -1178,7 +1170,7 @@ private fun PreviewPane(
 
 /** What the plugin printed, where it failed and when it stopped, oldest first. */
 @Composable
-private fun ConsolePane(preview: PluginPreviewSession, revision: Int, onPrelude: (Int) -> Unit, onJump: (Int) -> Unit) {
+private fun ConsolePane(preview: PluginPreviewSession, revision: Int, onJump: (Int) -> Unit) {
     val entries = remember(revision) { preview.console() }
     val list = rememberLazyListState()
     LaunchedEffect(entries.size) {
@@ -1202,13 +1194,13 @@ private fun ConsolePane(preview: PluginPreviewSession, revision: Int, onPrelude:
             modifier = Modifier.fillMaxWidth().weight(1f),
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
         ) {
-            items(entries) { entry -> ConsoleLine(entry, onPrelude, onJump) }
+            items(entries) { entry -> ConsoleLine(entry, onJump) }
         }
     }
 }
 
 @Composable
-private fun ConsoleLine(entry: PluginPreviewSession.ConsoleEntry, onPrelude: (Int) -> Unit, onJump: (Int) -> Unit) {
+private fun ConsoleLine(entry: PluginPreviewSession.ConsoleEntry, onJump: (Int) -> Unit) {
     val context = LocalContext.current
     val words = when (entry.kind) {
         PluginPreviewSession.ConsoleEntry.Kind.STARTED -> stringResource(R.string.plugin_ide_console_started)
@@ -1220,17 +1212,12 @@ private fun ConsoleLine(entry: PluginPreviewSession.ConsoleEntry, onPrelude: (In
         PluginPreviewSession.ConsoleEntry.Kind.PRINT -> MaterialTheme.colorScheme.onSurface
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
-    val line = entry.line?.takeIf { entry.chunk == MAIN_CHUNK }
-    val preludeLine = entry.line?.takeIf { entry.chunk == PRELUDE_CHUNK }
+    val line = entry.line?.takeIf { entry.chunk == PluginRuntime.SCRIPT_CHUNK }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .then(
-                when {
-                    line != null -> Modifier.clickable { onJump(line) }
-                    preludeLine != null -> Modifier.clickable { onPrelude(preludeLine) }
-                    else -> Modifier
-                },
+                if (line != null) Modifier.clickable { onJump(line) } else Modifier,
             )
             .padding(vertical = 2.dp),
         verticalAlignment = Alignment.Top,
@@ -1242,14 +1229,6 @@ private fun ConsoleLine(entry: PluginPreviewSession.ConsoleEntry, onPrelude: (In
             color = colour,
             modifier = Modifier.weight(1f),
         )
-        if (preludeLine != null) {
-            Text(
-                stringResource(R.string.plugin_ide_console_prelude_line_label, preludeLine),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(start = 8.dp),
-            )
-        }
         if (line != null) {
             Text(
                 stringResource(R.string.plugin_ide_console_line_label, line),

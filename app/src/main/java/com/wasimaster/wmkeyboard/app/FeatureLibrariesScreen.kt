@@ -36,6 +36,7 @@ import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import com.wasimaster.wmkeyboard.core.modules.NativePin
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCppGpu
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -70,12 +71,14 @@ internal object FeatureLibraryList {
 
     /** The NPU's gate; each chip's own is this with `-<arch>` after it. */
     private const val NPU = "npu"
-    private const val GPU_LLAMA = "llamagpu"
+
+    /** The GPU and NPU builds' gates: a phone can use at most one of each kind per runtime. */
+    private val GPU_GATES = setOf("llamagpu", "llamavulkan", "llamanpu", "whispervulkan")
 
     /** Every library this phone can use. Empty on a build that carries them all in its APK. */
     val rows: List<FeatureLibraryRow> by lazy {
         val chip = NpuSupport.soc?.let(NpuSupport::runtimeLibraries).orEmpty()
-        val gpu = LlamaCpp.gpuLibraryUsable
+        val gpu = setOfNotNull(LlamaCpp.gpuGateId, LlamaCpp.npuGateId, WhisperCppGpu.gateId)
         if (NativeDelivery.active) {
             fromPins(NativeDelivery.pins(), chip, gpu, offline = !InternetPermission.granted)
         } else {
@@ -89,20 +92,20 @@ internal object FeatureLibraryList {
 
     /**
      * A build with native delivery. A library the phone could never run is
-     * left out: another chip's NPU files, the OpenCL build without an Adreno
-     * GPU, and on the offline build the engines whose models it cannot get.
+     * left out: another chip's NPU files, the GPU builds this phone's GPU does
+     * not take ([gpuGates] holds the ones it does), and on the offline build the engines whose models it cannot get.
      * "Download all" would fetch them for nothing.
      */
     fun fromPins(
         pins: List<NativePin>,
         chipLibraries: List<String>,
-        gpuUsable: Boolean,
+        gpuGates: Set<String>,
         offline: Boolean,
     ): List<FeatureLibraryRow> = pins
         .filter { pin ->
             when {
                 offline && pin.gate in OFFLINE_USELESS_GATES -> false
-                pin.gate == GPU_LLAMA -> gpuUsable
+                pin.gate in GPU_GATES -> pin.gate in gpuGates
                 pin.gate == NPU -> chipLibraries.isNotEmpty()
                 pin.gate.startsWith("$NPU-") -> pin.name in chipLibraries
                 else -> true
@@ -122,11 +125,11 @@ internal object FeatureLibraryList {
         }
 
     /** The Play build: whole modules, with no file names or sizes until Play reports them. */
-    fun fromModules(modules: List<String>, hasNpu: Boolean, gpuUsable: Boolean): List<FeatureLibraryRow> = modules
+    fun fromModules(modules: List<String>, hasNpu: Boolean, gpuGates: Set<String>): List<FeatureLibraryRow> = modules
         .filter { module ->
             when (module) {
                 NPU -> hasNpu
-                GPU_LLAMA -> gpuUsable
+                in GPU_GATES -> module in gpuGates
                 else -> true
             }
         }

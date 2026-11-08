@@ -11,12 +11,8 @@ import { Annotation, Compartment, EditorState, RangeSet, RangeSetBuilder, StateE
 import { Decoration, EditorView, GutterMarker, drawSelection, gutterLineClass, highlightActiveLine, highlightActiveLineGutter, keymap, lineNumbers, type DecorationSet, type KeyBinding, type ViewUpdate } from '@codemirror/view';
 import { codeFolding, foldEffect, foldGutter as cmFoldGutter, foldService, foldedRanges, unfoldEffect } from '@codemirror/language';
 import { cursorPageDown, cursorPageUp, selectPageDown, selectPageUp } from '@codemirror/commands';
-import { lex, LuaTokenKind, type LuaTokens } from '../../../lua/tokens';
-import type { LuaAnalysis } from '../../../lua/analyse';
-import { completionsFromTokens, type LuaCompletionItem, type LuaCompletionKind, type LuaCompletions } from '../../../lua/completion';
-import type { LuaHostShape } from '../../../lua/diagnostics';
-import { foldRegions } from '../../../lua/navigation';
-import * as E from '../../../lua/edits';
+import { complete, folds, lex, PyNameStyle, PyTokenKind, type PyCompletionItem, type PyCompletionKind, type PyCompletions, type PyHost, type PyTokens } from '../../../lib/python';
+import * as E from './edits';
 
 export { E };
 
@@ -77,7 +73,7 @@ interface Snapshot {
 // Tokens and colours
 // ---------------------------------------------------------------------------
 
-const tokensField = StateField.define<LuaTokens>({
+const tokensField = StateField.define<PyTokens>({
 	create: (state) => lex(state.doc.toString()),
 	update: (value, tr) => (tr.docChanged ? lex(tr.newDoc.toString()) : value),
 });
@@ -92,28 +88,29 @@ const styles = {
 	problem: Decoration.mark({ class: 'wmc-problem' }),
 };
 
-function styleOf(tokens: LuaTokens, index: number): Decoration | null {
-	const kind = tokens.kind(index);
-	switch (kind) {
-		case LuaTokenKind.COMMENT:
-		case LuaTokenKind.LONG_COMMENT:
-		case LuaTokenKind.SHEBANG:
-			return tokens.unterminated(index) ? styles.problem : styles.comment;
-		case LuaTokenKind.STRING:
-		case LuaTokenKind.LONG_STRING:
+/** PythonCode.styleOf: colours from the token and, for a name, what the tooling says it is. */
+function styleOf(tokens: PyTokens, index: number): Decoration | null {
+	switch (tokens.kind(index)) {
+		case PyTokenKind.COMMENT: return styles.comment;
+		case PyTokenKind.STRING:
+		case PyTokenKind.FSTRING:
 			return tokens.unterminated(index) ? styles.problem : styles.string;
-		case LuaTokenKind.NUMBER: return styles.number;
-		case LuaTokenKind.KEYWORD: return styles.keyword;
-		case LuaTokenKind.UNKNOWN: return styles.problem;
-		case LuaTokenKind.NAME: {
-			const next = tokens.nextCode(index);
-			const previous = tokens.prevCode(index);
-			const called = next >= 0 && (tokens.matches(next, '(') || tokens.matches(next, '{') || tokens.kind(next) === LuaTokenKind.STRING || tokens.kind(next) === LuaTokenKind.LONG_STRING);
-			const declared = previous >= 0 && tokens.matches(previous, 'function');
-			if (called || declared) return styles.fn;
-			if (previous >= 0 && (tokens.matches(previous, '.') || tokens.matches(previous, ':'))) return styles.key;
-			return null;
-		}
+		case PyTokenKind.NUMBER: return styles.number;
+		case PyTokenKind.KEYWORD:
+		case PyTokenKind.SOFT_KEYWORD:
+			return styles.keyword;
+		case PyTokenKind.UNKNOWN: return styles.problem;
+		case PyTokenKind.NAME:
+			switch (tokens.nameStyle(index)) {
+				case PyNameStyle.FUNCTION:
+				case PyNameStyle.BUILTIN:
+					return styles.fn;
+				case PyNameStyle.ATTRIBUTE:
+				case PyNameStyle.API:
+					return styles.key;
+				case PyNameStyle.CONSTANT: return styles.number;
+				default: return null;
+			}
 		default: return null;
 	}
 }
@@ -124,7 +121,7 @@ const highlightField = StateField.define<DecorationSet>({
 	provide: (f) => EditorView.decorations.from(f),
 });
 
-function colour(tokens: LuaTokens): DecorationSet {
+function colour(tokens: PyTokens): DecorationSet {
 	const builder = new RangeSetBuilder<Decoration>();
 	for (let i = 0; i < tokens.size; i++) {
 		const style = styleOf(tokens, i);
@@ -142,10 +139,10 @@ const bracketsField = StateField.define<number[]>({
 	update: (value, tr) => (tr.docChanged ? bracketsOf(tr.state.field(tokensField), tr.newDoc.toString()) : value),
 });
 
-function bracketsOf(tokens: LuaTokens, source: string): number[] {
+function bracketsOf(tokens: PyTokens, source: string): number[] {
 	const found: number[] = [];
 	for (let i = 0; i < tokens.size; i++) {
-		if (tokens.kind(i) !== LuaTokenKind.OPERATOR) continue;
+		if (tokens.kind(i) !== PyTokenKind.OPERATOR) continue;
 		const start = tokens.start(i);
 		if (tokens.end(i) - start === 1 && '(){}[]'.includes(source[start]!)) found.push(start);
 	}
@@ -170,8 +167,8 @@ const bracketField = StateField.define<DecorationSet>({
 
 /** The fold regions of the text, from tokens, in document order. */
 const regionsField = StateField.define<E.Range[]>({
-	create: (state) => foldRegions(state.field(tokensField)),
-	update: (value, tr) => (tr.docChanged ? foldRegions(tr.state.field(tokensField)) : value),
+	create: (state) => folds(state.doc.toString()),
+	update: (value, tr) => (tr.docChanged ? folds(tr.newDoc.toString()) : value),
 });
 
 // ---------------------------------------------------------------------------
@@ -241,7 +238,7 @@ const gutterMarksField = StateField.define<RangeSet<GutterMarker>>({
 // Folding (CodeFolding.kt over CodeMirror's fold state)
 // ---------------------------------------------------------------------------
 
-const luaFolds = foldService.of((state, lineStart, lineEnd) => {
+const pythonFolds = foldService.of((state, lineStart, lineEnd) => {
 	const regions = state.field(regionsField, false);
 	if (!regions) return null;
 	const text = state.field(tokensField).source;
@@ -269,15 +266,14 @@ function chevron(open: boolean): HTMLElement {
 // ---------------------------------------------------------------------------
 
 export interface CodeSuggestionBar {
-	shown: Signal<LuaCompletions | null>;
-	choose: (item: LuaCompletionItem) => void;
+	shown: Signal<PyCompletions | null>;
+	choose: (item: PyCompletionItem) => void;
 }
 
 export interface SurfaceOptions {
 	onCommand: (command: ScreenCommand) => boolean;
 	onGutterPress?: (line: number) => void;
-	host?: () => LuaHostShape | null;
-	analysis?: () => LuaAnalysis | null;
+	host?: () => PyHost | null;
 	suggestionBar?: CodeSuggestionBar;
 	/** When the screen closes over the code, the field takes the keys back. */
 	completions: boolean;
@@ -289,7 +285,7 @@ export class CodeEditorController {
 	readonly revision = signal(0);
 	readonly canUndo = signal(false);
 	readonly canRedo = signal(false);
-	readonly suggestions = signal<LuaCompletions | null>(null);
+	readonly suggestions = signal<PyCompletions | null>(null);
 	readonly chosen = signal(0);
 	readonly compact = signal(false);
 	private past: Snapshot[] = [];
@@ -329,7 +325,7 @@ export class CodeEditorController {
 				highlightActiveLineGutter(),
 				cmFoldGutter({ markerDOM: chevron }),
 				codeFolding({ placeholderText: E.FOLD_PLACEHOLDER }),
-				luaFolds,
+				pythonFolds,
 				highlightActiveLine(),
 				drawSelection(),
 				EditorState.allowMultipleSelections.of(false),
@@ -340,7 +336,7 @@ export class CodeEditorController {
 				this.wrapComp.of(wrap ? EditorView.lineWrapping : []),
 				this.sizeComp.of(sizeTheme(fontSize)),
 				baseTheme,
-				EditorView.contentAttributes.of({ autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', 'aria-label': 'Lua code' }),
+				EditorView.contentAttributes.of({ autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', 'aria-label': 'Python code' }),
 			],
 		});
 		this.view = new EditorView({ state, parent });
@@ -357,7 +353,7 @@ export class CodeEditorController {
 		return this.view.state.field(tokensField).source;
 	}
 
-	get tokens(): LuaTokens {
+	get tokens(): PyTokens {
 		return this.view.state.field(tokensField);
 	}
 
@@ -554,7 +550,7 @@ export class CodeEditorController {
 
 	private ask(explicit: boolean) {
 		if (!this.options.completions) return;
-		const found = completionsFromTokens(this.tokens, this.view.state.selection.main.head, this.options.host?.() ?? null, explicit, this.options.analysis?.() ?? null);
+		const found = complete(this.text, this.view.state.selection.main.head, explicit, this.options.host?.() ?? null);
 		this.suggestions.value = found && found.items.length ? found : null;
 		this.chosen.value = 0;
 		this.publish();
@@ -564,7 +560,7 @@ export class CodeEditorController {
 		this.ask(true);
 	}
 
-	choose = (item: LuaCompletionItem) => {
+	choose = (item: PyCompletionItem) => {
 		const shown = this.suggestions.value;
 		if (!shown) return;
 		this.suggestions.value = null;
@@ -723,8 +719,7 @@ export class CodeEditorController {
 			{ key: 'Mod-z', run: () => (this.undo(), true) },
 			{ key: 'Mod-y', run: () => (this.redo(), true) },
 			{ key: 'Mod-Shift-z', run: () => (this.redo(), true) },
-			{ key: 'Mod-/', run: edit(() => E.toggleLineComment(text(), sel(), E.LUA_LINE_COMMENT)) },
-			{ key: 'Shift-Alt-a', run: edit(() => E.toggleBlockComment(text(), sel(), E.LUA_BLOCK_COMMENT[0], E.LUA_BLOCK_COMMENT[1])) },
+			{ key: 'Mod-/', run: edit(() => E.toggleLineComment(text(), sel(), E.PY_LINE_COMMENT)) },
 			{ key: 'Alt-ArrowUp', run: edit(() => E.moveLines(text(), sel(), -1)) },
 			{ key: 'Alt-ArrowDown', run: edit(() => E.moveLines(text(), sel(), 1)) },
 			{ key: 'Shift-Alt-ArrowUp', run: edit(() => E.copyLines(text(), sel(), true)) },
@@ -940,7 +935,7 @@ export function CodeSurface({ controller, initial, options, wrap, fontSize, clas
 	optionsRef.current = options;
 	useEffect(() => {
 		if (!host.current) return;
-		const c = new CodeEditorController(host.current, initial, { ...options, onCommand: (cmd) => optionsRef.current.onCommand(cmd), onGutterPress: (line) => optionsRef.current.onGutterPress?.(line), host: () => optionsRef.current.host?.() ?? null, analysis: () => optionsRef.current.analysis?.() ?? null }, wrap, fontSize);
+		const c = new CodeEditorController(host.current, initial, { ...options, onCommand: (cmd) => optionsRef.current.onCommand(cmd), onGutterPress: (line) => optionsRef.current.onGutterPress?.(line), host: () => optionsRef.current.host?.() ?? null }, wrap, fontSize);
 		controller.value = c;
 		const frame = host.current;
 		const observer = new ResizeObserver(() => {
@@ -1018,32 +1013,27 @@ function CompletionList({ controller, host }: { controller: Signal<CodeEditorCon
 }
 
 /** A mark in code characters rather than words. */
-function kindMark(kind: LuaCompletionKind): string {
+function kindMark(kind: PyCompletionKind): string {
 	switch (kind) {
-		case 'LOCAL':
-		case 'PARAMETER':
-		case 'GLOBAL': return 'x';
-		case 'FUNCTION': return 'f';
-		case 'FIELD': return '.';
-		case 'TABLE': return '{}';
-		case 'CONSTANT': return '=';
-		case 'KEYWORD': return 'k';
-		case 'SNIPPET': return '<>';
-		case 'VALUE': return '""';
+		case 'variable':
+		case 'parameter': return 'x';
+		case 'function':
+		case 'method': return 'f';
+		case 'field': return '.';
+		case 'module': return '{}';
+		case 'constant': return '=';
+		case 'keyword': return 'k';
+		case 'snippet': return '<>';
+		case 'value': return '""';
 	}
 }
 
-function kindClass(kind: LuaCompletionKind): string {
+function kindClass(kind: PyCompletionKind): string {
 	switch (kind) {
-		case 'LOCAL':
-		case 'PARAMETER':
-		case 'GLOBAL': return 'variable';
-		case 'FUNCTION': return 'function';
-		case 'FIELD': return 'field';
-		case 'TABLE': return 'module';
-		case 'CONSTANT': return 'constant';
-		case 'KEYWORD': return 'keyword';
-		case 'SNIPPET': return 'snippet';
-		case 'VALUE': return 'value';
+		case 'variable':
+		case 'parameter': return 'variable';
+		case 'function':
+		case 'method': return 'function';
+		default: return kind;
 	}
 }

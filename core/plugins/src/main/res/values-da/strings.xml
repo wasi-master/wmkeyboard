@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Gem data på din enhed</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” har et script, der ikke er gyldig UTF-8-tekst.</string>
     <string name="core_plugins_reject_bad_id">Dette plugin har et id, der ikke er gyldigt. Et id er 3 til 64 tegn langt. Et id kan indeholde små bogstaver, tal, prikker, bindestreger og understregninger.</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” indeholder kompileret Lua-kode. Et plugin skal bruge almindelig kildekode, så du kan læse den, før den køres.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” har et tomt script.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” har ikke sin scriptfil (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Dette plugin kræver en nyere version af WM Keyboard.</string>

@@ -44,6 +44,22 @@
     <string name="plugins_installed_title">Installed</string>
     <string name="plugins_installed_empty">No plugins are installed yet.</string>
 
+    <!-- Group shown after an update removed plugins written in Lua. -->
+    <string name="plugins_retired_title">Removed Lua plugins</string>
+    <!-- %1$s is a comma-separated list of plugin names. -->
+    <string name="plugins_retired_notice">Plugins are now written in Python, so these were removed: %1$s. Their saved data is kept below. Install the Python version of a plugin and it gets its data back.</string>
+    <string name="plugins_retired_dismiss">Got it</string>
+    <!-- Subtitle of a removed plugin's kept data. %1$d is kilobytes, %2$d is days left before it is deleted. -->
+    <plurals name="plugins_parked_subtitle">
+        <item quantity="one">%1$d KB kept, deleted in %2$d day</item>
+        <item quantity="other">%1$d KB kept, deleted in %2$d days</item>
+    </plurals>
+    <!-- Content description of the delete button on a removed plugin's kept data. %1$s is the plugin name. -->
+    <string name="plugins_parked_delete">Delete the data %1$s kept</string>
+    <!-- Dialog title. %1$s is the plugin name. -->
+    <string name="plugins_parked_delete_confirm_title">Delete the data %1$s kept?</string>
+    <string name="plugins_parked_delete_confirm_body">This cannot be undone. Installing the plugin again will start it empty.</string>
+
     <!-- Row subtitle under a plugin name. %1$s is the version the plugin states. -->
     <string name="plugins_row_version">Version %1$s</string>
     <!-- %1$s is the version, %2$s is the author name. -->
@@ -76,6 +92,12 @@
     <string name="plugins_permissions_title">What it can do</string>
     <string name="plugins_permissions_none">Nothing outside its own panel</string>
     <string name="plugins_permissions_info">The plugin declares this when you install it. A plugin cannot ask for more while it runs, because there is nothing more to ask for.</string>
+    <!-- Heading over the buttons a plugin adds to the bar over selected text. -->
+    <string name="plugins_actions_title">Selection actions</string>
+    <string name="plugins_actions_info">Buttons this plugin adds to the bar over text you select. Tapping one hands the plugin that text, and it puts back what it made of it. Undo on the bar takes the change back.</string>
+    <string name="plugins_actions_settings_link">Choose which ones the bar shows</string>
+    <!-- Before installing: followed by a bulleted list of the plugin's selection actions. -->
+    <string name="plugins_install_actions_intro">It adds these to the bar over text you select:</string>
 
     <string name="plugins_storage_title">Stored data</string>
     <!-- %1$d is the space the plugin uses, %2$d is the space it may use. Both are in kilobytes.

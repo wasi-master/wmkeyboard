@@ -452,7 +452,7 @@ internal fun CodeSurface(
             val caret = selection.end.coerceIn(0, text.length)
             when (command) {
                 CodeCommand.INDENT ->
-                    if (tabShiftsLines(text, selection)) state.shiftLines(1) else state.applyEdit(insertIndent(text, selection))
+                    if (tabShiftsLines(text, selection)) state.shiftLines(1) else state.applyEdit(insertIndent(text, selection, state.rules.indentWidth))
                 CodeCommand.OUTDENT, CodeCommand.OUTDENT_LINES -> state.shiftLines(-1)
                 CodeCommand.INDENT_LINES -> state.shiftLines(1, wholeLines = true)
                 CodeCommand.UNDO -> state.undo()

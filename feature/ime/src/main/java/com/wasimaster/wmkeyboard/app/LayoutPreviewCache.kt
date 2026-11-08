@@ -11,10 +11,12 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.Density
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
+import com.wasimaster.wmkeyboard.core.settings.AppUiSettings
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import com.wasimaster.wmkeyboard.core.settings.FloatingHandlePosition
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.OneHandedMode
+import com.wasimaster.wmkeyboard.core.settings.OnboardingSettings
 import com.wasimaster.wmkeyboard.core.settings.isTelevision
 import com.wasimaster.wmkeyboard.ime.ui.layoutSwitchLabel
 import kotlinx.coroutines.CoroutineScope
@@ -47,11 +49,16 @@ internal object LayoutPreviewCache {
     private const val DIR = "layout-previews"
 
     /**
-     * Files kept on disk. A card is ~50 KB as lossless WebP, so this is a few
-     * megabytes: every layout of a dozen languages, twice over for a theme
-     * change.
+     * Pictures kept on disk. A card is ~50 KB as lossless WebP, so this is a
+     * few megabytes: every layout of a dozen languages, twice over for a
+     * theme change. Whichever limit is reached first, the pictures shown
+     * longest ago go first.
      */
     private const val DISK_MAX_FILES = 200
+    private const val DISK_MAX_BYTES = 12L shl 20
+
+    /** Pointers to each layout's last picture (see [loadLast]); a few dozen bytes each. */
+    private const val DISK_MAX_POINTERS = 400
 
     private val memory = object : LruCache<String, ImageBitmap>(memoryBudget()) {
         override fun sizeOf(key: String, value: ImageBitmap): Int = value.width * value.height * 4
@@ -68,6 +75,11 @@ internal object LayoutPreviewCache {
      * The inputs each layout's key was last worked out from, so a card that
      * scrolls back into view with none of them changed has its key, and its
      * picture, without computing either again.
+     *
+     * One slot per layout and width: the carousel and the layout gallery draw
+     * the same layout at two widths, and a single slot per layout made each
+     * screen throw the other's key away, so every visit to one worked the key
+     * out again and swapped the picture under the card.
      */
     private val keys = HashMap<String, Pair<PreviewInputs, String>>()
 
@@ -102,12 +114,14 @@ internal object LayoutPreviewCache {
     /** The key last worked out for [layoutId], if [inputs] are what it was worked out from. */
     @Synchronized
     fun knownKey(layoutId: String, inputs: PreviewInputs): String? =
-        keys[layoutId]?.takeIf { it.first.sameAs(inputs) }?.second
+        keys[slot(layoutId, inputs.widthPx)]?.takeIf { it.first.sameAs(inputs) }?.second
 
     @Synchronized
     fun noteKey(layoutId: String, inputs: PreviewInputs, key: String) {
-        keys[layoutId] = inputs to key
+        keys[slot(layoutId, inputs.widthPx)] = inputs to key
     }
+
+    private fun slot(layoutId: String, widthPx: Int) = "$layoutId\u0000$widthPx"
 
     /** Whether this is a television, asked once: it is a binder call, and it never changes. */
     fun television(context: Context): Boolean =
@@ -137,7 +151,28 @@ internal object LayoutPreviewCache {
     @Synchronized
     fun put(layoutId: String, key: String, picture: ImageBitmap) {
         memory.put(key, picture)
+        memory.remove(key + PROVISIONAL)
         latest[layoutId] = key
+        lastAspect = picture.width.toFloat() / picture.height.coerceAtLeast(1)
+    }
+
+    /**
+     * A card's first picture, taken before what the board loads for itself
+     * (a photo, an icon pack) has surely arrived: shown by [stale] when the
+     * card comes back, never found by [get].
+     *
+     * Without it a card scrolled away in the second between its first picture
+     * and the one kept came back with nothing, and a fast fling back and forth
+     * along a row turned pictures that had already loaded back into skeletons.
+     * Kept out of [get] so the card still renders again and keeps a settled
+     * picture, rather than holding a photo-less one for the life of the
+     * process.
+     */
+    @Synchronized
+    fun putProvisional(layoutId: String, key: String, picture: ImageBitmap) {
+        if (memory.get(key) != null) return
+        memory.put(key + PROVISIONAL, picture)
+        latest[layoutId] = key + PROVISIONAL
         lastAspect = picture.width.toFloat() / picture.height.coerceAtLeast(1)
     }
 
@@ -161,8 +196,29 @@ internal object LayoutPreviewCache {
         bitmap.asImageBitmap()
     }
 
-    /** Saves [picture] for the next visit, in the background. */
-    fun save(context: Context, key: String, picture: ImageBitmap) {
+    /**
+     * The last picture kept of [layoutId] at [widthPx], whatever settings or
+     * build it was drawn for, with its key; null if there is none on disk.
+     *
+     * What a card shows while its exact picture is drawn, so a card that has
+     * ever had a picture never goes back to a skeleton. The exact picture
+     * misses more often than it hits across visits: its key moves with every
+     * app update, and with any setting the board is drawn from. Drawn over
+     * this one when it is ready, it changes nothing on screen unless the
+     * board really did change.
+     */
+    suspend fun loadLast(context: Context, layoutId: String, widthPx: Int): Pair<String, ImageBitmap>? =
+        withContext(Dispatchers.IO) {
+            val pointer = File(dir(context), lastName(layoutId, widthPx))
+            val key = runCatching { pointer.readText().trim() }.getOrNull()
+                ?.takeIf { it.isNotEmpty() } ?: return@withContext null
+            load(context, key)?.let { key to it }
+        }
+
+    private fun lastName(layoutId: String, widthPx: Int) = "last-" + sha256("$layoutId\u0000$widthPx") + POINTER
+
+    /** Saves [picture] for the next visit, in the background, as [layoutId]'s last picture at [widthPx] too. */
+    fun save(context: Context, layoutId: String, widthPx: Int, key: String, picture: ImageBitmap) {
         // Before the shipped layouts have parsed, an asset layout resolves to
         // the default grid; a picture of that is fine for a moment but must
         // not outlive the process.
@@ -192,17 +248,31 @@ internal object LayoutPreviewCache {
                 }
                 if (bitmap !== source) bitmap.recycle()
                 temp.renameTo(File(dir, "$key.webp"))
+                File(dir, lastName(layoutId, widthPx)).writeText(key)
                 trim(dir)
             }
         }
     }
 
+    /**
+     * Keeps the folder within its limits: the pictures shown most recently,
+     * up to [DISK_MAX_FILES] and [DISK_MAX_BYTES], and the newest pointers.
+     * A picture is touched each time it is loaded, so the ones still in use
+     * stay and the ones from older builds and settings age out.
+     */
     private fun trim(dir: File) {
         val files = dir.listFiles() ?: return
-        if (files.size <= DISK_MAX_FILES) return
-        files.sortedByDescending { it.lastModified() }
-            .drop(DISK_MAX_FILES)
-            .forEach { it.delete() }
+        val (pointers, pictures) = files.partition { it.name.endsWith(POINTER) }
+        var bytes = 0L
+        pictures.sortedByDescending { it.lastModified() }.forEachIndexed { index, file ->
+            bytes += file.length()
+            if (index >= DISK_MAX_FILES || bytes > DISK_MAX_BYTES) file.delete()
+        }
+        if (pointers.size > DISK_MAX_POINTERS) {
+            pointers.sortedByDescending { it.lastModified() }
+                .drop(DISK_MAX_POINTERS)
+                .forEach { it.delete() }
+        }
     }
 
     private fun dir(context: Context) = File(context.cacheDir, DIR)
@@ -264,6 +334,11 @@ internal object LayoutPreviewCache {
     }
 
     private const val FALLBACK_ASPECT = 1.45f
+
+    private const val POINTER = ".last"
+
+    /** Marks a provisional picture's memory key; a key is hex, so it never ends in this. */
+    private const val PROVISIONAL = "~first"
 }
 
 /**
@@ -277,7 +352,7 @@ internal class PreviewInputs(
     private val form: DeviceForm,
     private val television: Boolean,
     private val environment: String,
-    private val widthPx: Int,
+    val widthPx: Int,
 ) {
     // The shipped layouts parsing moves every asset layout's key along.
     private val generation = AssetLayouts.generation
@@ -325,6 +400,14 @@ internal object SettingsDigest {
             customLayouts = emptyList(),
             enabledLayoutIds = emptyList(),
             activeLayoutId = "",
+            // Written while the keyboard is used or the settings app is
+            // browsed, and never drawn on a board: kept in, every switch of
+            // layout or visit to a tool made every picture a miss.
+            recentLayoutIds = emptyList(),
+            statsVersion = 0,
+            unitConvertLast = "",
+            appUi = AppUiSettings(),
+            onboarding = OnboardingSettings(),
             floatingKeyboard = false,
             floatingKeyboardLandscape = null,
             floatingHandle = FloatingHandlePosition.BOTTOM,

@@ -69,6 +69,9 @@ class EmojiShaper internal constructor(source: (() -> EmojiFontCoverage?)?) {
     }
 
     private fun pick(tables: EmojiFontCoverage, emoji: String): EmojiSpelling {
+        // A font this phone cannot draw at all gives every emoji back to the
+        // system font, or the panel is a grid of empty cells (#1175).
+        if (!tables.drawable) return EmojiSpelling(emoji, systemFont = true)
         val authored = EmojiFontShaping.codePoints(emoji)
         val stripped = EmojiFontShaping.stripSelectors(authored, tables)
         if (EmojiFontShaping.draws(tables, stripped)) {
@@ -139,7 +142,11 @@ object EmojiFontShaping {
         // Deliberately outside the lock: two threads racing to read the same
         // font waste a few milliseconds, holding a lock across file IO on the
         // main thread would cost rather more.
-        val read = EmojiFontCoverage.read(file)
+        // Then one emoji drawn from it: nothing in the tables says whether
+        // this phone's renderer supports the font's colour format (#1175).
+        val read = EmojiFontCoverage.read(file)?.let { tables ->
+            if (EmojiFontProbe.draws(file, tables)) tables else tables.undrawable()
+        }
         synchronized(coverageCache) {
             if (coverageCache.size >= MAX_CACHED_FONTS) coverageCache.clear()
             coverageCache[key] = read

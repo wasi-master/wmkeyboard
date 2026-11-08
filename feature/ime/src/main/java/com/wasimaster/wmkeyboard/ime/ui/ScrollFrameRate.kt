@@ -93,7 +93,7 @@ private class ScrollFrameRateConnection(
 
     fun start() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-            window?.isFrameRateBoostOnTouchEnabled = true
+            window?.frameRateBoostOnTouchEnabled = true
         }
     }
 

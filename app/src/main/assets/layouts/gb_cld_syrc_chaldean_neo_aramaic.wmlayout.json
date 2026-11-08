@@ -228,6 +228,486 @@
             }
           ]
         ]
+      },
+      "symbols": {
+        "rows": [
+          [
+            {
+              "label": "1",
+              "longPress": [
+                "١",
+                "¹",
+                "½",
+                "⅓",
+                "¼",
+                "⅕",
+                "⅙",
+                "⅐",
+                "⅛",
+                "⅑",
+                "⅒"
+              ]
+            },
+            {
+              "label": "2",
+              "longPress": [
+                "٢",
+                "²",
+                "⅔",
+                "⅖"
+              ]
+            },
+            {
+              "label": "3",
+              "longPress": [
+                "٣",
+                "³",
+                "¾",
+                "⅗",
+                "⅜"
+              ]
+            },
+            {
+              "label": "4",
+              "longPress": [
+                "٤",
+                "⁴",
+                "⅘"
+              ]
+            },
+            {
+              "label": "5",
+              "longPress": [
+                "٥",
+                "⁵",
+                "⅚",
+                "⅝"
+              ]
+            },
+            {
+              "label": "6",
+              "longPress": [
+                "٦",
+                "⁶"
+              ]
+            },
+            {
+              "label": "7",
+              "longPress": [
+                "٧",
+                "⁷",
+                "⅞"
+              ]
+            },
+            {
+              "label": "8",
+              "longPress": [
+                "٨",
+                "⁸"
+              ]
+            },
+            {
+              "label": "9",
+              "longPress": [
+                "٩",
+                "⁹"
+              ]
+            },
+            {
+              "label": "0",
+              "longPress": [
+                "٠",
+                "⁰",
+                "ⁿ",
+                "∅"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "@"
+            },
+            {
+              "label": "#",
+              "longPress": [
+                "№"
+              ]
+            },
+            {
+              "label": "$",
+              "longPress": [
+                "¢",
+                "£",
+                "€",
+                "¥",
+                "₱",
+                "₹"
+              ]
+            },
+            {
+              "label": "_"
+            },
+            {
+              "label": "&"
+            },
+            {
+              "label": "-",
+              "longPress": [
+                "_",
+                "–",
+                "—",
+                "·"
+              ]
+            },
+            {
+              "label": "+",
+              "longPress": [
+                "±"
+              ]
+            },
+            {
+              "label": "(",
+              "output": ")",
+              "longPress": [
+                "﴾",
+                ">",
+                "}",
+                "]"
+              ]
+            },
+            {
+              "label": ")",
+              "output": "(",
+              "longPress": [
+                "﴿",
+                "<",
+                "{",
+                "["
+              ]
+            },
+            {
+              "label": "/"
+            }
+          ],
+          [
+            {
+              "label": "=\\<",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "٫",
+              "longPress": [
+                "٬",
+                "'",
+                "\"",
+                "*"
+              ]
+            },
+            {
+              "label": "\"",
+              "longPress": [
+                "„",
+                "“",
+                "”",
+                "»",
+                "«"
+              ]
+            },
+            {
+              "label": "'",
+              "longPress": [
+                "‚",
+                "‘",
+                "’",
+                "›",
+                "‹"
+              ]
+            },
+            {
+              "label": ":"
+            },
+            {
+              "label": "؛",
+              "longPress": [
+                ";"
+              ]
+            },
+            {
+              "label": "!",
+              "longPress": [
+                "¡"
+              ]
+            },
+            {
+              "label": "؟",
+              "longPress": [
+                "?",
+                "¿"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "ABC",
+              "action": {
+                "type": "letters"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      },
+      "symbols2": {
+        "rows": [
+          [
+            {
+              "label": "~"
+            },
+            {
+              "label": "`"
+            },
+            {
+              "label": "|"
+            },
+            {
+              "label": "•",
+              "longPress": [
+                "♪",
+                "♥",
+                "♠",
+                "♦",
+                "♣"
+              ]
+            },
+            {
+              "label": "√"
+            },
+            {
+              "label": "π",
+              "longPress": [
+                "Π",
+                "μ",
+                "Ω"
+              ]
+            },
+            {
+              "label": "÷"
+            },
+            {
+              "label": "×"
+            },
+            {
+              "label": "§",
+              "longPress": [
+                "¶"
+              ]
+            },
+            {
+              "label": "∆"
+            }
+          ],
+          [
+            {
+              "label": "£"
+            },
+            {
+              "label": "€"
+            },
+            {
+              "label": "¥"
+            },
+            {
+              "label": "﷼",
+              "longPress": [
+                "$",
+                "¢",
+                "€",
+                "£",
+                "¥",
+                "₱",
+                "₹"
+              ]
+            },
+            {
+              "label": "^",
+              "longPress": [
+                "↑",
+                "↓",
+                "←",
+                "→"
+              ]
+            },
+            {
+              "label": "°",
+              "longPress": [
+                "′",
+                "″"
+              ]
+            },
+            {
+              "label": "=",
+              "longPress": [
+                "≠",
+                "≈",
+                "∞"
+              ]
+            },
+            {
+              "label": "{",
+              "output": "}"
+            },
+            {
+              "label": "}",
+              "output": "{"
+            },
+            {
+              "label": "\\"
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "%",
+              "longPress": [
+                "‰",
+                "℅",
+                "٪"
+              ]
+            },
+            {
+              "label": "©"
+            },
+            {
+              "label": "®"
+            },
+            {
+              "label": "™"
+            },
+            {
+              "label": "✓"
+            },
+            {
+              "label": "[",
+              "output": "]"
+            },
+            {
+              "label": "]",
+              "output": "["
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "ABC",
+              "action": {
+                "type": "letters"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
       }
     }
   }

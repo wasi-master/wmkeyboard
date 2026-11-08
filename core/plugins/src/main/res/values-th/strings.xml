@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">บันทึกข้อมูลบนอุปกรณ์ของคุณ</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” มีสคริปต์ที่ไม่ใช่ข้อความ UTF-8 ที่ถูกต้อง</string>
     <string name="core_plugins_reject_bad_id">ปลั๊กอินนี้มีรหัสที่ไม่ถูกต้อง รหัสต้องมีความยาว 3 ถึง 64 ตัวอักษร และประกอบด้วยตัวอักษรพิมพ์เล็ก ตัวเลข จุด ขีดกลาง และขีดล่างเท่านั้น</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” มีโค้ด Lua ที่คอมไพล์แล้ว ปลั๊กอินต้องใช้ซอร์สโค้ดแบบธรรมดา เพื่อให้คุณสามารถอ่านได้ก่อนที่จะเรียกใช้งาน</string>
     <string name="core_plugins_reject_empty_script">“%1$s” มีสคริปต์ที่ว่างเปล่า</string>
     <string name="core_plugins_reject_missing_script">“%1$s” ไม่มีไฟล์สคริปต์ (%2$s)</string>
     <string name="core_plugins_reject_newer_version">ปลั๊กอินนี้ต้องการ WM Keyboard เวอร์ชันใหม่กว่า</string>

@@ -91,7 +91,7 @@ const appNode = (site) => ({
 		'843 language layouts',
 		'Clipboard history and text tools',
 		'Themes, fonts and icon packs',
-		'Sandboxed Lua plugins',
+		'Sandboxed Python plugins',
 		'No analytics and no network access for typing',
 	],
 	keywords:

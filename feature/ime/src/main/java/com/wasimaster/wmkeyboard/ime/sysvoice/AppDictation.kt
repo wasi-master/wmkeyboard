@@ -349,8 +349,8 @@ class AppDictation(
     private fun startCapture(voice: Local?) {
         val live = (voice as? Local.Et)?.model?.takeIf { liveEngine(it.engine) }
         val maxSeconds = when {
-            (voice as? Local.Whisper)?.model?.ggml == true || live != null -> WhisperCppPlan.MAX_CLIP_SECONDS
             (voice as? Local.Et)?.model?.engine == EtEngine.PARAKEET -> ParakeetEngine.MAX_CLIP_SECONDS
+            (voice as? Local.Whisper)?.model?.ggml == true || live != null -> WhisperCppPlan.MAX_CLIP_SECONDS
             else -> WhisperMel.CHUNK_SECONDS
         }
         val denoise = settings.whisper.denoise
@@ -474,6 +474,10 @@ class AppDictation(
             EtEngine.OMNILINGUAL -> OmnilingualEngine.newStream(filesDir, model, pauseMs, languageIds, vad)
             EtEngine.VOSK -> VoiceVad.endpointed(
                 VoskEngine.newStream(filesDir, model),
+                VoiceVad.phraseEnd(filesDir, vad, null, pauseMs),
+            )
+            EtEngine.PARAKEET -> VoiceVad.endpointed(
+                ParakeetEngine.newStream(filesDir, model),
                 VoiceVad.phraseEnd(filesDir, vad, null, pauseMs),
             )
             else -> VoiceVad.endpointed(

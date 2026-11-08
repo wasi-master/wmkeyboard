@@ -45,6 +45,8 @@
     <string name="ime_grammar_module_installing_info">The grammar checker is an extra part of the keyboard, and it is downloading…</string>
     <string name="ime_grammar_module_failed_info">The grammar checker did not download. Check the connection, then open this panel again.</string>
     <string name="ime_grammar_module_data_saver_info">The grammar checker is an extra part of the keyboard that downloads separately, and data saving is holding downloads.</string>
+    <!-- Name of GiellaLT, whose grammar checkers (Sámi languages, Faroese) the tool runs on the phone. -->
+    <string name="ime_grammar_giella_name" translatable="false">GiellaLT</string>
     <string name="ime_grammar_languagetool_private_info">LanguageTool is never sent a password field or text typed in incognito, so nothing checks this field. Harper checks English here when it is on the list.</string>
     <string name="ime_grammar_languagetool_data_saver_info">Data saving is holding online grammar checks, so LanguageTool is not asked. Harper checks English when it is on the list.</string>
     <string name="ime_grammar_nothing_on_info">Every grammar checker is off. Switch one on in the Grammar check settings.</string>
@@ -225,6 +227,8 @@
     <!-- Plugins panel, from the keyboard service. -->
     <string name="ime_service_plugins_off_notice">Plugins are turned off. Turn them on in Settings to install and run them.</string>
     <string name="ime_service_plugins_all_off_notice">Every plugin you installed is turned off. Turn one on under Manage plugins.</string>
+    <!-- %1$s is a comma-separated list of plugin names. -->
+    <string name="ime_service_plugins_retired_notice">Plugins are now written in Python, so these Lua plugins were removed: %1$s. Settings › Plugins keeps their data.</string>
 
     <!-- GIFs, stickers and images the keyboard sends or saves. -->
     <string name="ime_service_sticker_pack_default_name">My stickers</string>
@@ -285,6 +289,12 @@
     <string name="ime_floating_app_missing">That app is no longer installed</string>
     <string name="ime_floating_pair_label">Open an app pair</string>
     <string name="ime_floating_applet_name">%1$s in a box</string>
+    <string name="ime_floating_system_back">Back</string>
+    <string name="ime_floating_system_recents">Recent apps</string>
+    <string name="ime_floating_system_app_drawer">App drawer</string>
+    <string name="ime_floating_system_notifications">Notifications</string>
+    <string name="ime_floating_system_quick_settings">Quick settings</string>
+    <string name="ime_floating_system_failed">Android did not press that button</string>
     <string name="ime_applet_close">Close the box</string>
     <string name="ime_applet_open_in_keyboard">Open in the keyboard</string>
     <string name="ime_applet_resize">Drag to resize</string>

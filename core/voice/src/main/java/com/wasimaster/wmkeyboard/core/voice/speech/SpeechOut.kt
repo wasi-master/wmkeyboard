@@ -17,9 +17,10 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
- * Speech out: reads text aloud with a downloaded MMS voice, offline. The
- * speaker buttons and Read back ask it first and fall back to the phone's own
- * synthesiser when it has no voice for the language ([speak] returns false).
+ * Speech out: reads text aloud offline, with Kokoro where it is downloaded and
+ * reads the language (English, Mandarin), else with the language's downloaded
+ * MMS voice. The speaker buttons and Read back ask it first and fall back to
+ * the phone's own synthesiser when it has neither ([speak] returns false).
  *
  * Sentences are synthesised one after another and played as each is ready, so
  * the first is heard while the rest are still being made. One instance per
@@ -39,6 +40,11 @@ class SpeechOut(context: Context) {
         return voice.takeIf { MmsVoices.isDownloaded(appContext.filesDir, it) }
     }
 
+    /** Whether Kokoro reads [locale] here: downloaded, a language it has, and the runtime in this build. */
+    fun kokoroReads(locale: Locale): Boolean =
+        MmsSpeech.runtimeShipped && KokoroVoices.languageFor(locale) != null &&
+            KokoroVoices.isDownloaded(appContext.filesDir)
+
     /**
      * Reads [text] in [locale] at [rate] (1 = the voice's pace), stopping
      * whatever this instance was reading. False, with nothing started, when
@@ -46,16 +52,24 @@ class SpeechOut(context: Context) {
      * background thread, when the reading ends, fails or is stopped.
      */
     fun speak(text: String, locale: Locale, rate: Float, onDone: (() -> Unit)? = null): Boolean {
-        val voice = voiceFor(locale) ?: return false
+        val kokoro = kokoroReads(locale)
+        val voice = if (kokoro) null else voiceFor(locale) ?: return false
         stop()
         val pieces = MmsText.pieces(text)
         if (pieces.isEmpty()) {
             onDone?.invoke()
             return true
         }
+        val filesDir = appContext.filesDir
+        val make: (String) -> FloatArray? = if (voice == null) {
+            { piece -> KokoroSpeech.synthesize(filesDir, piece, locale, rate) }
+        } else {
+            { piece -> MmsSpeech.synthesize(filesDir, voice, piece, locale, rate) }
+        }
+        val sampleRate: () -> Int = if (voice == null) ({ KokoroSpeech.sampleRate }) else ({ MmsSpeech.sampleRate })
         job = scope.launch {
             try {
-                play(voice, pieces, locale, rate)
+                play(pieces, make, sampleRate)
             } finally {
                 closeTrack()
                 onDone?.invoke()
@@ -64,8 +78,7 @@ class SpeechOut(context: Context) {
         return true
     }
 
-    private suspend fun play(voice: MmsVoice, pieces: List<String>, locale: Locale, rate: Float) = coroutineScope {
-        val filesDir = appContext.filesDir
+    private suspend fun play(pieces: List<String>, make: (String) -> FloatArray?, sampleRate: () -> Int) = coroutineScope {
         // The next sentence is made while this one plays: on a phone a
         // sentence takes about as long to make as to say, and made one after
         // the other each would wait out the whole of the one before.
@@ -73,7 +86,7 @@ class SpeechOut(context: Context) {
         launch(MmsSpeech.dispatcher) {
             try {
                 for (piece in pieces) {
-                    MmsSpeech.synthesize(filesDir, voice, piece, locale, rate)?.let { ready.send(it) }
+                    make(piece)?.let { ready.send(it) }
                 }
             } finally {
                 ready.close()
@@ -82,14 +95,14 @@ class SpeechOut(context: Context) {
         var written = 0L
         var out: AudioTrack? = null
         for (samples in ready) {
-            val sink = out ?: openTrack(MmsSpeech.sampleRate)?.also { out = it }
+            val sink = out ?: openTrack(sampleRate())?.also { out = it }
             if (sink == null) {
                 // No player: stop the maker too, or it waits on the channel forever.
                 ready.cancel()
                 break
             }
             // A short breath between sentences; VITS ends each one abruptly.
-            if (written > 0) written += write(sink, FloatArray(MmsSpeech.sampleRate * GAP_MS / 1000))
+            if (written > 0) written += write(sink, FloatArray(sampleRate() * GAP_MS / 1000))
             written += write(sink, samples)
         }
         val sink = out ?: return@coroutineScope

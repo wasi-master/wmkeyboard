@@ -32,7 +32,7 @@ WM Keyboard writes several file formats: themes, layouts, snippet packs, sticker
 | `.wmicons` | An icon pack (ZIP) | Icons screen → export |
 | `.zip` of theme, sticker or icon pack files | Several themes or packs, one ordinary file each | Long-press in Your themes, the Stickers screen or the Icons screen, tick several, then the upload icon. The matching **Import** button reads it back |
 | `.wmsoundpack` | A key-sound pack: many recordings, played one after another (ZIP) | Not produced by the app; built by pack authors, see [Sound packs](/development/addon-repos/sound-packs/) |
-| `.wmplugin` | A Lua tool plugin (ZIP) | Not produced by the app; built by plugin authors |
+| `.wmplugin` | A Python tool plugin (ZIP) | Not produced by the app; built by plugin authors |
 | `.wmconfig.json` | A full settings-and-data backup | **Data / Backup & restore** → export |
 | `.wmconfig.enc` | The same bundle, encrypted under a passphrase | Only the automatic backup writes this, and only with encryption switched on |
 | `.wmsettings.json` | A settings-only backup (legacy) | No export path anymore; still accepted on import |
@@ -108,7 +108,7 @@ The full manifest shape, slot-id tables, and supported SVG subset for icon packs
 
 ## Plugins
 
-`.wmplugin` is a ZIP containing a `plugin.json` manifest and a Lua script, the only format here that's code rather than data. The script is capped at 256 KB, and the archive as a whole at 16 entries / 1 MB. Precompiled Lua bytecode is rejected outright, source only. A device can hold up to 50 installed plugins. Nothing about a plugin is silently repaired on import. See [Opening a file](#opening-a-file) above.
+`.wmplugin` is a ZIP containing a `plugin.json` manifest and a Python script, the only format here that's code rather than data. The script is capped at 256 KB, and the archive as a whole at 16 entries / 1 MB. A Lua plugin from before 0.6.6 is refused, since the app no longer runs Lua. A device can hold up to 50 installed plugins. Nothing about a plugin is silently repaired on import. See [Opening a file](#opening-a-file) above.
 
 One difference matters here. An addon repository's index requires a `sha256` hash for every plugin entry, and the app verifies it before installing from a repository. Opening a `.wmplugin` file directly (from a file manager or a chat attachment) skips that check entirely, and only the manifest and script validation above apply. See the [plugin developer guide](/plugins/overview/) and its [security model](/plugins/security/) for what a plugin can and can't do once installed.
 

@@ -103,6 +103,8 @@
     <string name="stickergen_cutout_title">Remove the background</string>
     <string name="stickergen_cutout_subtitle">Lift the subject off the background before the editor opens</string>
     <string name="stickergen_cutout_unsupported">This build has no background remover; the editor\'s eraser still works</string>
+    <string name="stickergen_gpu_title">Draw on the GPU</string>
+    <string name="stickergen_gpu_subtitle">Run the model on the phone\'s graphics chip instead of its processor. Often faster, but the first picture waits while the GPU compiles its code, and on some phones the processor is quicker. Where the GPU cannot run it, the processor draws instead.</string>
     <string name="stickergen_safety_title">Safety filter</string>
     <string name="stickergen_safety_subtitle">Check every picture with an on-device classifier and hold back unsafe ones. Prompts are always checked.</string>
     <string name="stickergen_safety_subtitle_online">Ask the service to hold back unsafe pictures, where it has a switch for that. Prompts are always checked first.</string>

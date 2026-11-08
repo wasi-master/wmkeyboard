@@ -7,10 +7,16 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Smart editing under Lua's rules. JSON's are pinned, unchanged, by [CodeEditorTest]. */
+/**
+ * Smart editing under Python's rules, which read `libwm_python`'s lexer for
+ * what is a string or a comment. JSON's are pinned, unchanged, by [CodeEditorTest].
+ */
 class CodeSmartRulesTest {
 
-    private fun type(text: String, caret: Int, character: Char, rules: CodeSmartRules = LuaSmartRules): TextFieldValue {
+    /** One step of indentation, as the editor adds it. */
+    private val indent = " ".repeat(CODE_TAB_STOP)
+
+    private fun type(text: String, caret: Int, character: Char, rules: CodeSmartRules = PythonSmartRules): TextFieldValue {
         val old = TextFieldValue(text, TextRange(caret))
         val typed = TextFieldValue(text.substring(0, caret) + character + text.substring(caret), TextRange(caret + 1))
         return smartEdit(old, typed, rules)
@@ -18,7 +24,7 @@ class CodeSmartRulesTest {
 
     private fun backspace(text: String, caret: Int): TextFieldValue {
         val old = TextFieldValue(text, TextRange(caret))
-        return smartEdit(old, TextFieldValue(text.removeRange(caret - 1, caret), TextRange(caret - 1)), LuaSmartRules)
+        return smartEdit(old, TextFieldValue(text.removeRange(caret - 1, caret), TextRange(caret - 1)), PythonSmartRules)
     }
 
     @Test
@@ -44,14 +50,14 @@ class CodeSmartRulesTest {
     }
 
     @Test
-    fun `nothing closes inside a line comment`() {
-        assertEquals("-- note {", type("-- note ", 8, '{').text)
-        assertEquals("--[", type("--", 2, '[').text)
+    fun `nothing closes inside a comment`() {
+        assertEquals("# note {", type("# note ", 7, '{').text)
+        assertEquals("x = 1  # (", type("x = 1  # ", 9, '(').text)
     }
 
     @Test
-    fun `nothing closes inside a long string`() {
-        assertEquals("s = [[ (", type("s = [[ ", 7, '(').text)
+    fun `nothing closes inside a triple-quoted string`() {
+        assertEquals("s = \"\"\" (", type("s = \"\"\" ", 8, '(').text)
     }
 
     @Test
@@ -65,33 +71,31 @@ class CodeSmartRulesTest {
     }
 
     @Test
-    fun `a newline after then indents`() {
-        val result = type("if x then", 9, '\n')
-        assertEquals("if x then\n  ", result.text)
-        assertEquals(12, result.selection.end)
+    fun `a newline after a colon indents`() {
+        val result = type("if x:", 5, '\n')
+        assertEquals("if x:\n$indent", result.text)
+        assertEquals(6 + indent.length, result.selection.end)
     }
 
     @Test
-    fun `a newline after a function header indents`() {
-        assertEquals("function render()\n  ", type("function render()", 17, '\n').text)
-        assertEquals("  local f = function(a)\n    ", type("  local f = function(a)", 23, '\n').text)
+    fun `a newline after a function header indents from where it stands`() {
+        assertEquals("def render():\n$indent", type("def render():", 13, '\n').text)
+        assertEquals("    def f(a):\n    $indent", type("    def f(a):", 13, '\n').text)
+        assertEquals("if x:  # why\n$indent", type("if x:  # why", 12, '\n').text)
     }
 
     @Test
-    fun `a newline after a call holding a whole function does not indent`() {
-        assertEquals("  foo(function() return 1 end)\n  ", type("  foo(function() return 1 end)", 30, '\n').text)
-    }
-
-    @Test
-    fun `a newline after a comment ending in then does not indent`() {
-        assertEquals("x = 1 -- then\n", type("x = 1 -- then", 13, '\n').text)
+    fun `a colon that does not end the code does not indent`() {
+        assertEquals("d = {1: 2}\n", type("d = {1: 2}", 10, '\n').text)
+        assertEquals("x = 1  # note:\n", type("x = 1  # note:", 14, '\n').text)
+        assertEquals("    s = \"a:\"\n    ", type("    s = \"a:\"", 12, '\n').text)
     }
 
     @Test
     fun `a newline between round brackets opens them up`() {
         val result = type("f()", 2, '\n')
-        assertEquals("f(\n  \n)", result.text)
-        assertEquals(5, result.selection.end)
+        assertEquals("f(\n$indent\n)", result.text)
+        assertEquals(3 + indent.length, result.selection.end)
     }
 
     @Test
@@ -103,22 +107,23 @@ class CodeSmartRulesTest {
 
     @Test
     fun `inside a string or comment, judged from the text before the caret`() {
-        assertFalse(luaInert("x = 1", 5))
-        assertFalse(luaInert("x", 0))
-        assertTrue(luaInert("-- c", 4))
-        assertTrue(luaInert("s = 'ab", 7))
-        assertFalse(luaInert("s = 'ab'", 8))
-        assertTrue(luaInert("[[ x", 4))
-        assertFalse(luaInert("--[[ x ]] y", 11))
+        assertFalse(pythonInert("x = 1", 5))
+        assertFalse(pythonInert("x", 0))
+        assertTrue(pythonInert("# c", 3))
+        assertTrue(pythonInert("x = 1  # c", 10))
+        assertTrue(pythonInert("s = 'ab", 7))
+        assertFalse(pythonInert("s = 'ab'", 8))
+        assertTrue(pythonInert("s = \"\"\" x", 9))
+        assertFalse(pythonInert("s = \"\"\"a\"\"\" y", 13))
     }
 
     @Test
     fun `which lines open a block`() {
-        for (line in listOf("if x then", "for i = 1, 3 do", "else", "repeat", "function render()", "local f = function(a, b)")) {
-            assertTrue(line, luaOpensBlock(line))
+        for (line in listOf("if x:", "for i in range(3):", "else:", "def render():", "    while True:", "try:", "if x:  # why")) {
+            assertTrue(line, pythonOpensBlock(line))
         }
-        for (line in listOf("foo(function() return 1 end)", "x = f()", "if x then return end", "-- then", "")) {
-            assertFalse(line, luaOpensBlock(line))
+        for (line in listOf("x = f()", "d = {1: 2}", "# if x:", "", "return x", "s = 'a:'", "f = lambda x: x")) {
+            assertFalse(line, pythonOpensBlock(line))
         }
     }
 }

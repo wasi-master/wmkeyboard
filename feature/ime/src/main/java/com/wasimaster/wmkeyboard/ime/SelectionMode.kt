@@ -90,7 +90,10 @@ data class SelectionMacroOffer(
     /** The selected text, trimmed, exactly as the macros will act on it. */
     val text: String,
     val kind: SelectionKind,
-    /** The chips, in the order they are drawn. Never empty; a null offer is used instead. */
+    /**
+     * The built-in chips, in the order they are drawn. Empty only when
+     * [plugin] is not; with neither, a null offer is used instead.
+     */
     val macros: List<SelectionMacro>,
     /**
      * Whether the selection spans the whole field, which takes Select all off
@@ -110,4 +113,24 @@ data class SelectionMacroOffer(
     val busy: SelectionMacro? = null,
     /** The selection is being read aloud, so that chip reads Stop. */
     val speaking: Boolean = false,
+    /** Selection actions from plugins, drawn after the built-in chips. */
+    val plugin: List<PluginMacroSpec> = emptyList(),
+    /** The plugin chip whose call is still running, by [PluginMacroSpec.key]. */
+    val busyKey: String? = null,
+)
+
+/**
+ * A plugin's selection action as the bar draws it. Copied out of the plugin
+ * store when the offer is built, so drawing never reads the store.
+ */
+data class PluginMacroSpec(
+    /** `plugin:<pluginId>/<actionId>`: what settings and the busy spinner key on. */
+    val key: String,
+    val pluginId: String,
+    val actionId: String,
+    val label: String,
+    /** A Material Symbols or SF Symbols name, resolved by the bar; blank for the default. */
+    val icon: String,
+    /** The plugin's own name, for the chip's accessibility label. */
+    val pluginName: String,
 )

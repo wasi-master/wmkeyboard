@@ -566,6 +566,13 @@
     <string name="theme_editor_undo_desc">Undo the last change to this theme</string>
     <string name="theme_editor_redo_desc">Redo the change you undid</string>
     <string name="theme_pick_hint">Press a key, a tool or the strip</string>
+    <string name="theme_pick_several_chip">Several keys</string>
+    <string name="theme_pick_several_hint">Press the keys to style together</string>
+    <string name="theme_pick_several_style">Style</string>
+    <plurals name="theme_pick_several_title">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> key</item>
+        <item quantity="other"><xliff:g id="count" example="10">%1$d</xliff:g> keys</item>
+    </plurals>
     <!-- Words the preview's suggestion strip shows while the strip is being styled, separated by commas. -->
     <string name="theme_pick_strip_sample_words">Hello,Thanks,Okay</string>
     <string name="theme_parts_section_title">Toolbar, strip and popups</string>

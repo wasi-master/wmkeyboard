@@ -19,34 +19,75 @@ struct Model::Impl {
     std::shared_ptr<Executor::RuntimeManager> runtime;
     std::shared_ptr<Module> module;
     std::vector<std::string> inputs;
+    int backend;
+    std::string cache;
+    // Whether the GPU kernels compiled for this module were written to the cache.
+    bool cached = false;
 };
 
 Model::Model(Impl* impl) : impl_(impl) {}
 
 Model::~Model() { delete impl_; }
 
-std::unique_ptr<Model> Model::load(const std::string& path, const std::vector<std::string>& inputs,
-                                   const std::vector<std::string>& outputs, int threads) {
+namespace {
+
+std::unique_ptr<Model::Impl> loadOn(MNNForwardType type, const std::string& path,
+                                    const std::vector<std::string>& inputs,
+                                    const std::vector<std::string>& outputs, int threads,
+                                    const std::string& cache) {
     ScheduleConfig schedule;
-    schedule.type = MNN_FORWARD_CPU;
-    schedule.numThread = threads > 0 ? threads : 4;
+    schedule.type = type;
+    schedule.backupType = MNN_FORWARD_CPU;
     BackendConfig backend;
     // Float32 compute always. MNN's float16 path gives a wrong UNet output
     // (measured: cosine 0.41-0.59 against the reference at most timesteps),
-    // and a one-step model magnifies any error in its noise prediction.
-    backend.precision = BackendConfig::Precision_Normal;
+    // and a one-step model magnifies any error in its noise prediction. On
+    // the CPU Normal is float32 already; the GPU backends need High for it.
+    backend.precision = type == MNN_FORWARD_CPU ? BackendConfig::Precision_Normal : BackendConfig::Precision_High;
     backend.power = BackendConfig::Power_High;
     backend.memory = BackendConfig::Memory_Low;
     schedule.backendConfig = &backend;
+    if (type == MNN_FORWARD_CPU) {
+        schedule.numThread = threads > 0 ? threads : 4;
+    } else {
+        // For the GPU backends numThread is a mode: buffer memory, kernels
+        // tuned once and kept in the cache (MNN_GPU_MEMORY_BUFFER |
+        // MNN_GPU_TUNING_FAST).
+        schedule.mode = MNN_GPU_MEMORY_BUFFER | MNN_GPU_TUNING_FAST;
+    }
     std::shared_ptr<Executor::RuntimeManager> runtime(Executor::RuntimeManager::createRuntimeManager(schedule));
     if (!runtime) return nullptr;
+    if (type != MNN_FORWARD_CPU && !cache.empty()) runtime->setCache(cache);
     Module::Config config;
     config.shapeMutable = true;
     std::shared_ptr<Module> module(Module::load(inputs, outputs, path.c_str(), runtime, &config));
     if (!module) return nullptr;
-    auto* impl = new Impl{runtime, module, inputs};
-    return std::unique_ptr<Model>(new Model(impl));
+    return std::unique_ptr<Model::Impl>(new Model::Impl{runtime, module, inputs, static_cast<int>(type), cache});
 }
+
+}  // namespace
+
+std::unique_ptr<Model> Model::load(const std::string& path, const std::vector<std::string>& inputs,
+                                   const std::vector<std::string>& outputs, int threads, int compute,
+                                   const std::string& cache) {
+    std::unique_ptr<Impl> impl;
+    if (compute == kGpu) {
+        // isBackendSupport loads the backend's system library to answer, so a
+        // phone without OpenCL (or Vulkan) says no here rather than later.
+        ScheduleConfig probe;
+        probe.type = MNN_FORWARD_CPU;
+        std::shared_ptr<Executor::RuntimeManager> cpu(Executor::RuntimeManager::createRuntimeManager(probe));
+        std::vector<bool> support = cpu ? cpu->isBackendSupport({MNN_FORWARD_OPENCL, MNN_FORWARD_VULKAN})
+                                        : std::vector<bool>{false, false};
+        if (support[0]) impl = loadOn(MNN_FORWARD_OPENCL, path, inputs, outputs, threads, cache);
+        if (!impl && support[1]) impl = loadOn(MNN_FORWARD_VULKAN, path, inputs, outputs, threads, cache);
+    }
+    if (!impl) impl = loadOn(MNN_FORWARD_CPU, path, inputs, outputs, threads, {});
+    if (!impl) return nullptr;
+    return std::unique_ptr<Model>(new Model(impl.release()));
+}
+
+int Model::backend() const { return impl_->backend; }
 
 bool Model::run(const std::vector<Tensor>& inputs, std::vector<float>& out, std::vector<int>& outShape) {
     using namespace MNN::Express;
@@ -86,6 +127,12 @@ bool Model::run(const std::vector<Tensor>& inputs, std::vector<float>& out, std:
     if (!p) return false;
     out.assign(p, p + info->size);
     outShape.assign(info->dim.begin(), info->dim.end());
+    // A GPU backend compiles and tunes its kernels on the first run; written
+    // out once, so the next load of this model starts from them.
+    if (impl_->backend != MNN_FORWARD_CPU && !impl_->cache.empty() && !impl_->cached) {
+        impl_->runtime->updateCache();
+        impl_->cached = true;
+    }
     return true;
 }
 

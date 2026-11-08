@@ -27,6 +27,28 @@ fun straySpacesBefore(before: CharSequence, mark: Char, marks: String): Int {
 }
 
 /**
+ * Whether [next], typed after a [mark] the rule above pulled onto the word in
+ * front of it, makes that mark the eyes of an emoticon (#1166): `;` then `)`
+ * is a wink, and the space the user typed before it was meant. Only `;` and
+ * `:`, the eyes the marks list holds.
+ *
+ * [afterSpace] is true when the keyboard's own space after the mark stands
+ * between the two. A letter there starts the next word (`word ; Do`), and so
+ * may an opening bracket or a dash, so then only a mouth that closes counts.
+ */
+fun hugTurnsEmoticon(mark: Char, next: String, afterSpace: Boolean): Boolean {
+    if (mark != ';' && mark != ':') return false
+    val c = next.singleOrNull() ?: return false
+    return c in if (afterSpace) EMOTICON_CLOSING_MOUTHS else EMOTICON_MOUTHS
+}
+
+/** What can follow the eyes of an emoticon straight away: `:)`, `;(`, `:-)`, `;P`, `:D`, `:3`. */
+private const val EMOTICON_MOUTHS = ")(][|/\\*-'<>@DPpOoXx3"
+
+/** The mouths that cannot open anything, the only ones read across a space. */
+private const val EMOTICON_CLOSING_MOUTHS = ")]|>"
+
+/**
  * Whether a mark landing with [before] behind the caret belongs to a number,
  * so the automatic space after punctuation (`AutoTextSettings.spaceAfterPunctuation`)
  * holds off (#206). "5,000", "3.14" and "5:00" carry on past the mark, and a

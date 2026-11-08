@@ -28,6 +28,12 @@
     <string name="selection_macros_caret_info">Normally the row only appears while text is selected. On, it stays above the keys all the time, so the actions are there before you select anything.\n\nWith nothing selected it holds Select all and Paste, whichever of them you have switched on. Tap Select all and the full row for the whole text takes its place: Copy, Translate and the rest.\n\nOnly for the row of its own. Over the suggestion strip it would take the suggestions away while you type, so this switch is hidden there.\n\nPassword fields never show the row, whichever way this is set.</string>
 
     <string name="selection_macros_actions_group">Actions</string>
+    <!-- Heading over the actions that installed plugins add to the selection bar. -->
+    <string name="selection_macros_plugins_group">From plugins</string>
+    <string name="selection_macros_plugins_info">Plugins can add their own actions to the bar, after the built-in ones. A plugin sees the text you selected only when you tap one of its actions. Clink actions install as plugins too.</string>
+    <string name="selection_macros_plugins_none_title">No plugin actions</string>
+    <string name="selection_macros_plugins_none_subtitle">Install a plugin or a Clink action that adds selection actions</string>
+    <string name="selection_macros_plugins_off_subtitle">Plugins are off. Turn them on to use actions from plugins and Clink.</string>
 
     <string name="selection_macros_detect_title">Read what is selected</string>
     <string name="selection_macros_detect_subtitle">Offer Call for a phone number, Open for a link, Email for an address</string>

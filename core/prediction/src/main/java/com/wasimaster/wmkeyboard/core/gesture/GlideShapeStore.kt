@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.gesture
 
 import com.wasimaster.wmkeyboard.core.util.SnapshotFile
+import com.wasimaster.wmkeyboard.core.prediction.WordContext
 import com.wasimaster.wmkeyboard.core.prediction.WordKey
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -132,7 +133,7 @@ class GlideShapeStore(private val storageFile: File?) {
         private val byStart: HashMap<Int, IntArray> = bucketByStart(shapes)
 
         override fun minDistance(word: String, drawn: ByteArray): Float {
-            val indices = byWord[WordKey.of(word)] ?: return -1f
+            val indices = byWord[shapeKey(word)] ?: return -1f
             var best = Float.MAX_VALUE
             for (i in indices) {
                 val d = distance(shapes[i], drawn, best)
@@ -142,7 +143,7 @@ class GlideShapeStore(private val storageFile: File?) {
         }
 
         override fun shapesOf(word: String): List<ByteArray> {
-            val indices = byWord[WordKey.of(word)] ?: return emptyList()
+            val indices = byWord[shapeKey(word)] ?: return emptyList()
             return indices.map { shapes[it] }
         }
 
@@ -271,7 +272,7 @@ class GlideShapeStore(private val storageFile: File?) {
      */
     @Synchronized
     fun learn(sample: GlideShapeSample, word: String) {
-        val key = WordKey.of(word)
+        val key = shapeKey(word)
         if (key.isEmpty() || sample.shape.size != POINTS) return
         tick++
         val words = layouts.getOrPut(sample.layoutKey) { HashMap() }
@@ -312,7 +313,7 @@ class GlideShapeStore(private val storageFile: File?) {
     @Synchronized
     fun reject(layoutKey: Long, word: String, drawn: ByteArray): Boolean {
         val words = layouts[layoutKey] ?: return false
-        val key = WordKey.of(word)
+        val key = shapeKey(word)
         val entry = words[key] ?: return false
         val nearest = nearest(entry, drawn) ?: return false
         if (distance(nearest.points, drawn, REJECT_RADIUS) > REJECT_RADIUS) return false
@@ -329,7 +330,7 @@ class GlideShapeStore(private val storageFile: File?) {
     /** Drops every shape of [word], on every layout. True when there were any. */
     @Synchronized
     fun forget(word: String): Boolean {
-        val key = WordKey.of(word)
+        val key = shapeKey(word)
         var any = false
         val iterator = layouts.entries.iterator()
         while (iterator.hasNext()) {
@@ -344,7 +345,7 @@ class GlideShapeStore(private val storageFile: File?) {
     /** How many shapes [word] has that the decoder reads, across every layout. */
     @Synchronized
     fun countFor(word: String): Int {
-        val key = WordKey.of(word)
+        val key = shapeKey(word)
         var count = 0
         for (words in layouts.values) count += minOf(words[key]?.shapes?.size ?: 0, shapeLimit)
         return count
@@ -528,7 +529,7 @@ class GlideShapeStore(private val storageFile: File?) {
 
     /**
      * Takes [image] in, with the same checks whichever file it came from: a
-     * key [WordKey] would not produce is re-keyed, a shape of the wrong size
+     * key [shapeKey] would not produce is re-keyed, a shape of the wrong size
      * or never accepted is dropped, and a word keeps at most
      * [MAX_SHAPES_PER_WORD]; past [MAX_WORDS] the oldest go.
      */
@@ -537,7 +538,7 @@ class GlideShapeStore(private val storageFile: File?) {
         for ((layoutKey, words) in image.layouts) {
             val entries = HashMap<String, Entry>()
             for ((word, stored) in words) {
-                val key = WordKey.of(word)
+                val key = shapeKey(word)
                 if (key.isEmpty()) continue
                 val shapes = ArrayList<Shape>(minOf(stored.shapes.size, MAX_SHAPES_PER_WORD))
                 for (s in stored.shapes) {
@@ -545,7 +546,16 @@ class GlideShapeStore(private val storageFile: File?) {
                     shapes.add(Shape(s.points.copyOf(), s.accepted, s.rejected.coerceAtLeast(0)))
                     if (shapes.size >= MAX_SHAPES_PER_WORD) break
                 }
-                if (shapes.isNotEmpty()) entries[key] = Entry(stored.tick.coerceIn(0L, tick), shapes)
+                if (shapes.isEmpty()) continue
+                // Two keys that differ only by an apostrophe, from before
+                // [shapeKey] dropped it, are one word's shapes now.
+                val held = entries[key]
+                if (held == null) {
+                    entries[key] = Entry(stored.tick.coerceIn(0L, tick), shapes)
+                } else {
+                    for (shape in shapes) if (held.shapes.size < MAX_SHAPES_PER_WORD) held.shapes.add(shape)
+                    held.tick = maxOf(held.tick, stored.tick.coerceIn(0L, tick))
+                }
             }
             if (entries.isNotEmpty()) layouts[layoutKey] = entries
         }
@@ -553,6 +563,15 @@ class GlideShapeStore(private val storageFile: File?) {
     }
 
     companion object {
+        /**
+         * The key a word's shapes are kept under: [WordKey] with every
+         * apostrophe taken out (#1051). The grid has no apostrophe, so
+         * *geht's* is drawn as `gehts` and decoded as `gehts`, and a shape
+         * kept under the spelling with the apostrophe, which is what the user
+         * typed to replace a wrong glide, was never asked for again.
+         */
+        fun shapeKey(word: String): String = WordKey.of(word).filterNot(WordContext::isApostrophe)
+
         /** The JSON format's version, which the backup carries. */
         private const val VERSION = 2
 

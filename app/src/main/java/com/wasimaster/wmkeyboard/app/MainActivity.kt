@@ -130,12 +130,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.ui.WmSlider
 import com.wasimaster.wmkeyboard.core.ui.rememberLiveSlider
 import com.wasimaster.wmkeyboard.core.ui.toolAccentColor
 import com.wasimaster.wmkeyboard.core.ui.toolAccentPaint
 import androidx.compose.ui.platform.LocalConfiguration
+import com.wasimaster.wmkeyboard.core.settings.effectiveThemeId
+import com.wasimaster.wmkeyboard.core.theme.findThemeFamily
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import com.wasimaster.wmkeyboard.core.settings.settingsDepthResolved
 import com.wasimaster.wmkeyboard.core.settings.Extension
@@ -1684,7 +1687,16 @@ private fun SettingsNavGraph(
             }
         }
         composable("theme_edit/{themeId}") { backStackEntry ->
-            val themeId = backStackEntry.arguments?.getString("themeId").orEmpty()
+            val requested = backStackEntry.arguments?.getString("themeId").orEmpty()
+            // A copied setting link says "current" (or, written before it did,
+            // a theme id from the sender's phone): open this keyboard's own
+            // applied theme rather than "this theme does not exist".
+            val darkSlot = isSystemInDarkTheme()
+            val themeId = settings.watch { s ->
+                SettingLinks.themeEditTarget(requested, s.effectiveThemeId(darkSlot)) { id ->
+                    s.customThemes.findThemeFamily(id) != null
+                }
+            }
             // The look's own name, not "Edit theme": it is what the gallery
             // card said, and the card's name flies up into it. A theme that is
             // no longer there keeps the generic heading, which is all the
@@ -1701,7 +1713,14 @@ private fun SettingsNavGraph(
             }
         }
         composable("theme_assets/{themeId}") { backStackEntry ->
-            val themeId = backStackEntry.arguments?.getString("themeId").orEmpty()
+            val requested = backStackEntry.arguments?.getString("themeId").orEmpty()
+            // Same reading of a copied link as theme_edit above.
+            val darkSlot = isSystemInDarkTheme()
+            val themeId = settings.watch { s ->
+                SettingLinks.themeEditTarget(requested, s.effectiveThemeId(darkSlot)) { id ->
+                    s.customThemes.findThemeFamily(id) != null
+                }
+            }
             SettingsScreen(
                 stringResource(R.string.theme_assets_title),
                 { navController.popBackStack() },
@@ -2250,6 +2269,18 @@ private fun SettingsNavGraph(
                 repository = repository,
                 settings = settings,
                 onBack = { navController.popBackStack() },
+            )
+        }
+        // The language's layout cards opened out into a grid; the cards fly
+        // between the row and the grid (see LayoutGalleryScreen).
+        composable("language/{langId}/layouts") { backStackEntry ->
+            LayoutGalleryScreen(
+                anim = this,
+                langId = backStackEntry.arguments?.getString("langId").orEmpty(),
+                repository = repository,
+                settings = settings,
+                onBack = { navController.popBackStack() },
+                onNavigate = { route -> navController.navigate(route) },
             )
         }
         composable("emoji") {
@@ -3883,6 +3914,13 @@ internal fun SettingsGroup(
     }
 }
 
+/**
+ * The shape of the group card a row sits on, or null outside a group. A row's
+ * own outline (the new-setting border) is drawn in it, so the card's clip
+ * never cuts the outline's corners.
+ */
+internal val LocalGroupCardShape = compositionLocalOf<Shape?> { null }
+
 /** The radius at the two ends of a group's stack of cards. */
 private val GroupEndCorner = 24.dp
 
@@ -3900,18 +3938,23 @@ private val GroupInnerCorner = 6.dp
 private fun GroupCard(top: Dp, bottom: Dp, content: @Composable () -> Unit) {
     val topCorner by animateDpAsState(top, label = "groupCardTop")
     val bottomCorner by animateDpAsState(bottom, label = "groupCardBottom")
+    val shape = RoundedCornerShape(
+        topStart = topCorner, topEnd = topCorner,
+        bottomStart = bottomCorner, bottomEnd = bottomCorner,
+    )
     Surface(
-        shape = RoundedCornerShape(
-            topStart = topCorner, topEnd = topCorner,
-            bottomStart = bottomCorner, bottomEnd = bottomCorner,
-        ),
+        shape = shape,
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.fillMaxWidth(),
     ) {
         // No padding of its own: a row brings its own (ListItem's 8 dp, a
         // slider row's 8 dp), and 4 dp on top of that made every row 80 dp
         // where 72 is the height the list is designed around.
-        Column { content() }
+        // The card's shape goes down to the row, so a new setting's gold
+        // border follows the card's corners instead of being cut by them (#1184).
+        CompositionLocalProvider(LocalGroupCardShape provides shape) {
+            Column { content() }
+        }
     }
 }
 
@@ -4808,6 +4851,7 @@ internal fun SliderSetting(
     onReset: (() -> Unit)? = null,
     preview: ((Float) -> Unit)? = null,
     typed: Boolean = true,
+    steps: Int = 0,
     onChange: (Float) -> Unit,
 ) = SliderSetting(
     title = stringResource(title),
@@ -4824,6 +4868,7 @@ internal fun SliderSetting(
     onReset = onReset,
     preview = preview,
     typed = typed,
+    steps = steps,
     onChange = onChange,
 )
 
@@ -4878,6 +4923,11 @@ internal fun SliderSetting(
      * "1 day"), where a bare number cannot say which one it means.
      */
     typed: Boolean = true,
+    /**
+     * Stops between the ends, for a whole-number setting: dots on the track,
+     * and the thumb lands on the nearest one. See [wholeSteps].
+     */
+    steps: Int = 0,
     onChange: (Float) -> Unit,
 ) {
     val slider = rememberLiveSlider(value, onChange, live = live, preview = preview)
@@ -4959,6 +5009,7 @@ internal fun SliderSetting(
                         onValueChangeFinished = slider::onRelease,
                         valueRange = range,
                         enabled = enabled,
+                        steps = steps,
                     )
                     Spacer(Modifier.width(SliderPillGap))
                 }
@@ -4991,6 +5042,7 @@ internal fun SliderSetting(
                     onValueChangeFinished = slider::onRelease,
                     valueRange = range,
                     enabled = enabled,
+                    steps = steps,
                 )
             }
         }
@@ -5012,6 +5064,13 @@ internal fun SliderSetting(
         }
     }
 }
+
+/**
+ * The [SliderSetting] `steps` for a whole-number [range]: one stop per number
+ * between the ends, so 2..6 is three.
+ */
+internal fun wholeSteps(range: ClosedFloatingPointRange<Float>): Int =
+    ((range.endInclusive - range.start).roundToInt() - 1).coerceAtLeast(0)
 
 /** [StepperSetting] for a row named by a string resource. */
 @Composable

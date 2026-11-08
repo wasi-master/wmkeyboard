@@ -52,7 +52,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
-import com.wasimaster.wmkeyboard.core.accessibility.ScreenshotService
+import com.wasimaster.wmkeyboard.core.accessibility.SystemButtonsService
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
@@ -69,6 +69,7 @@ import com.wasimaster.wmkeyboard.core.settings.FloatingButtonShape
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonSizeRange
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonStyle
 import com.wasimaster.wmkeyboard.core.settings.FloatingCategory
+import com.wasimaster.wmkeyboard.core.settings.FlickDirection
 import com.wasimaster.wmkeyboard.core.settings.FloatingMenuAnimation
 import com.wasimaster.wmkeyboard.core.settings.LauncherSplitCombo
 import com.wasimaster.wmkeyboard.core.settings.FloatingAnimationSpeedRange
@@ -80,6 +81,7 @@ import com.wasimaster.wmkeyboard.core.settings.MAX_FLOATING_MENU_ITEMS
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
+import com.wasimaster.wmkeyboard.core.settings.SystemButton
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.categoryById
 import com.wasimaster.wmkeyboard.core.settings.categoryItems
@@ -89,7 +91,7 @@ import com.wasimaster.wmkeyboard.core.settings.gestureActions
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.pillTouchWidthDp
 import com.wasimaster.wmkeyboard.core.settings.readsScreen
-import com.wasimaster.wmkeyboard.core.settings.takesScreenshots
+import com.wasimaster.wmkeyboard.core.settings.pressesSystemButtons
 import com.wasimaster.wmkeyboard.ime.AppCatalog
 import com.wasimaster.wmkeyboard.ime.KeyboardControls
 import com.wasimaster.wmkeyboard.ime.floating.FLOATING_MENU_ITEM_DP
@@ -99,7 +101,8 @@ import com.wasimaster.wmkeyboard.ime.floating.FloatingEdgePill
 import com.wasimaster.wmkeyboard.ime.floating.FloatingMenuItem
 import com.wasimaster.wmkeyboard.ime.floating.floatingActionIcon
 import com.wasimaster.wmkeyboard.ime.floating.floatingActionLabel
-import com.wasimaster.wmkeyboard.ime.floating.floatingFan
+import com.wasimaster.wmkeyboard.ime.floating.FLOATING_RING_SIZE
+import com.wasimaster.wmkeyboard.ime.floating.floatingRings
 import com.wasimaster.wmkeyboard.ime.floating.rememberFloatingAppIcon
 import com.wasimaster.wmkeyboard.ime.ui.ModeIcons
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
@@ -110,7 +113,19 @@ import kotlinx.coroutines.launch
 internal const val FloatingButtonRoute = "floating_button"
 
 /** Which gesture a picker is choosing for, or the quick menu's add. */
-private enum class FloatingPick { TAP, DOUBLE_TAP, HOLD, TAP_TYPING, DOUBLE_TAP_TYPING, MENU_ADD }
+private enum class FloatingPick { TAP, DOUBLE_TAP, HOLD, TAP_TYPING, DOUBLE_TAP_TYPING, MENU_ADD, FLICK }
+
+/** A swipe direction's row on the page (#1171). */
+private fun flickTitle(direction: FlickDirection): Int = when (direction) {
+    FlickDirection.UP -> R.string.floating_button_flick_up_title
+    FlickDirection.UP_RIGHT -> R.string.floating_button_flick_up_right_title
+    FlickDirection.RIGHT -> R.string.floating_button_flick_right_title
+    FlickDirection.DOWN_RIGHT -> R.string.floating_button_flick_down_right_title
+    FlickDirection.DOWN -> R.string.floating_button_flick_down_title
+    FlickDirection.DOWN_LEFT -> R.string.floating_button_flick_down_left_title
+    FlickDirection.LEFT -> R.string.floating_button_flick_left_title
+    FlickDirection.UP_LEFT -> R.string.floating_button_flick_up_left_title
+}
 
 /**
  * Advanced › Floating button (#755): the one button over other apps that the
@@ -131,14 +146,16 @@ internal fun FloatingButtonSettingsScreen(
     val askOverlay = rememberDisclosedSpecialAccess(SpecialAccess.OVERLAY)
     val screenReading = rememberGrantState { ScreenContextService.isEnabled(it) }
     val askScreenReading = rememberDisclosedSpecialAccess(SpecialAccess.SCREEN_CONTENT)
-    val screenshots = rememberGrantState { ScreenshotService.isEnabled(it) }
-    val askScreenshots = rememberDisclosedSpecialAccess(SpecialAccess.SCREENSHOT)
+    val systemButtons = rememberGrantState { SystemButtonsService.isEnabled(it) }
+    val askSystemButtons = rememberDisclosedSpecialAccess(SpecialAccess.SYSTEM_BUTTONS)
     // The keyboard only re-checks the grant when it next closes; coming back
     // from the system screen with it is worth showing the button at once.
     LaunchedEffect(button.enabled, overlayGranted) {
         KeyboardControls.host?.syncSummonButton()
     }
     var picking by remember { mutableStateOf<FloatingPick?>(null) }
+    // The swipe direction a FLICK pick answers for (#1171).
+    var flickPicking by remember { mutableStateOf<FlickDirection?>(null) }
     // The gesture or the menu an app picker answers for (#922), once "Open an app" is chosen.
     var pickingApp by remember { mutableStateOf<FloatingPick?>(null) }
     // The same for a pair of apps (#1140), once "Open an app pair" is chosen.
@@ -184,13 +201,13 @@ internal fun FloatingButtonSettingsScreen(
         }
         // Screenshot bound to a gesture or the menu (#1148), its service off.
         item(
-            visible = button.enabled && overlayGranted && button.takesScreenshots() &&
-                !screenshots && ChannelFeatures.SCREENSHOT,
+            visible = button.enabled && overlayGranted && button.pressesSystemButtons() &&
+                !systemButtons && ChannelFeatures.SYSTEM_BUTTONS,
         ) {
             NavRow(
-                R.string.floating_button_screenshot_title,
-                subtitle = stringResource(R.string.floating_button_screenshot_subtitle),
-            ) { askScreenshots() }
+                R.string.floating_button_system_buttons_title,
+                subtitle = stringResource(R.string.floating_button_system_buttons_subtitle),
+            ) { askSystemButtons() }
         }
     }
 
@@ -211,6 +228,27 @@ internal fun FloatingButtonSettingsScreen(
         item(level = SettingLevel.STANDARD) {
             NavRow(R.string.floating_button_hold_title, value = floatingActionLabel(button.hold)) {
                 picking = FloatingPick.HOLD
+            }
+        }
+        // Pinned where it is, its swipes running actions by direction (#1171).
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.floating_button_docked_title,
+                stringResource(R.string.floating_button_docked_subtitle),
+                button.docked,
+                default = defaults.docked,
+            ) { scope.launch { repository.setFloatingButtonDocked(it) } }
+        }
+        for (direction in FlickDirection.entries) {
+            item(visible = button.docked, level = SettingLevel.STANDARD) {
+                NavRow(
+                    flickTitle(direction),
+                    value = button.flicks[direction]?.let { floatingActionLabel(it, categories = button.categories) }
+                        ?: stringResource(R.string.floating_button_flick_unbound),
+                ) {
+                    flickPicking = direction
+                    picking = FloatingPick.FLICK
+                }
             }
         }
     }
@@ -472,6 +510,17 @@ internal fun FloatingButtonSettingsScreen(
         }
     }
 
+    /** What the gesture a pick answers for is bound to now; null for the menu's add. */
+    fun currentFor(pick: FloatingPick): FloatingAction? = when (pick) {
+        FloatingPick.TAP -> button.tap
+        FloatingPick.DOUBLE_TAP -> button.doubleTap
+        FloatingPick.HOLD -> button.hold
+        FloatingPick.TAP_TYPING -> button.tapTyping
+        FloatingPick.DOUBLE_TAP_TYPING -> button.doubleTapTyping
+        FloatingPick.FLICK -> flickPicking?.let { button.flicks[it] }
+        FloatingPick.MENU_ADD -> null
+    }
+
     /** What a pick answers: the gesture's binding, or a slot added to the menu. */
     fun answer(pick: FloatingPick, action: FloatingAction?) {
         scope.launch {
@@ -479,6 +528,7 @@ internal fun FloatingButtonSettingsScreen(
             when {
                 pick == FloatingPick.TAP_TYPING -> repository.setFloatingButtonTapTyping(action)
                 pick == FloatingPick.DOUBLE_TAP_TYPING -> repository.setFloatingButtonDoubleTapTyping(action)
+                pick == FloatingPick.FLICK -> flickPicking?.let { repository.setFloatingButtonFlick(it, action) }
                 action == null -> Unit
                 pick == FloatingPick.TAP -> repository.setFloatingButtonTap(action)
                 pick == FloatingPick.DOUBLE_TAP -> repository.setFloatingButtonDoubleTap(action)
@@ -496,6 +546,7 @@ internal fun FloatingButtonSettingsScreen(
             FloatingPick.HOLD -> R.string.floating_button_hold_title
             FloatingPick.TAP_TYPING -> R.string.floating_button_tap_typing_title
             FloatingPick.DOUBLE_TAP_TYPING -> R.string.floating_button_double_tap_typing_title
+            FloatingPick.FLICK -> flickPicking?.let(::flickTitle) ?: R.string.floating_button_docked_title
             FloatingPick.MENU_ADD -> 0
         }
         FloatingActionPicker(
@@ -504,14 +555,7 @@ internal fun FloatingButtonSettingsScreen(
             } else {
                 stringResource(R.string.floating_button_pick_title, stringResource(gestureTitle))
             },
-            current = when (pick) {
-                FloatingPick.TAP -> button.tap
-                FloatingPick.DOUBLE_TAP -> button.doubleTap
-                FloatingPick.HOLD -> button.hold
-                FloatingPick.TAP_TYPING -> button.tapTyping
-                FloatingPick.DOUBLE_TAP_TYPING -> button.doubleTapTyping
-                FloatingPick.MENU_ADD -> null
-            },
+            current = currentFor(pick),
             sameAs = when (pick) {
                 FloatingPick.TAP_TYPING -> R.string.floating_button_tap_title
                 FloatingPick.DOUBLE_TAP_TYPING -> R.string.floating_button_double_tap_title
@@ -546,14 +590,7 @@ internal fun FloatingButtonSettingsScreen(
 
     pickingApp?.let { pick ->
         FloatingAppPicker(
-            current = when (pick) {
-                FloatingPick.TAP -> button.tap
-                FloatingPick.DOUBLE_TAP -> button.doubleTap
-                FloatingPick.HOLD -> button.hold
-                FloatingPick.TAP_TYPING -> button.tapTyping
-                FloatingPick.DOUBLE_TAP_TYPING -> button.doubleTapTyping
-                FloatingPick.MENU_ADD -> null
-            },
+            current = currentFor(pick),
             already = if (pick == FloatingPick.MENU_ADD) button.menu.toSet() else emptySet(),
             onDismiss = { pickingApp = null },
             onPick = { app ->
@@ -566,14 +603,7 @@ internal fun FloatingButtonSettingsScreen(
     pickingPair?.let { pick ->
         FloatingPairPicker(
             combos = combos,
-            current = when (pick) {
-                FloatingPick.TAP -> button.tap
-                FloatingPick.DOUBLE_TAP -> button.doubleTap
-                FloatingPick.HOLD -> button.hold
-                FloatingPick.TAP_TYPING -> button.tapTyping
-                FloatingPick.DOUBLE_TAP_TYPING -> button.doubleTapTyping
-                FloatingPick.MENU_ADD -> null
-            },
+            current = currentFor(pick),
             already = if (pick == FloatingPick.MENU_ADD) button.menu.toSet() else emptySet(),
             onDismiss = { pickingPair = null },
             onPick = { pair ->
@@ -642,7 +672,14 @@ private fun FloatingButtonPreview(button: SummonButtonSettings) {
         BoxWithConstraints(
             Modifier
                 .fillMaxWidth()
-                .height(if (button.menuLabels) 300.dp else 260.dp)
+                // Taller once a second ring is out (#1172), so the preview still holds it.
+                .height(
+                    when {
+                        slots.size > FLOATING_RING_SIZE -> if (button.menuLabels) 460.dp else 400.dp
+                        button.menuLabels -> 300.dp
+                        else -> 260.dp
+                    },
+                )
                 .clip(RoundedCornerShape(24.dp))
                 .background(colors.surfaceContainerHighest)
                 .alpha(if (button.enabled) 1f else 0.55f),
@@ -671,7 +708,7 @@ private fun FloatingButtonPreview(button: SummonButtonSettings) {
             )
             val centers = remember(slots.size, widthPx, heightPx, anchor, button.menuLabels, disc, button.menuGapDp) {
                 with(density) {
-                    floatingFan(
+                    floatingRings(
                         count = slots.size,
                         anchor = anchor,
                         width = widthPx,
@@ -1177,6 +1214,34 @@ private fun FloatingActionPicker(
         leading = { SlotIcon(IconSlots.forTool(tool), contentDescription = null) },
         onPick = { onPick(FloatingAction.Tool(tool)) },
     )
+    // Android's own system buttons (#1170), once their service is on; before
+    // that, one row that says what the service is and opens its switch.
+    val systemOn = rememberGrantState { SystemButtonsService.isEnabled(it) }
+    val askSystem = rememberDisclosedSpecialAccess(SpecialAccess.SYSTEM_BUTTONS)
+    val systemRows = when {
+        !ChannelFeatures.SYSTEM_BUTTONS -> emptyList()
+        !systemOn -> listOf(
+            PickerRow(
+                key = "system-off",
+                title = stringResource(R.string.floating_button_pick_system_off_title),
+                subtitle = stringResource(R.string.floating_button_pick_system_off_subtitle),
+                onPick = askSystem,
+            ),
+        )
+        else -> SystemButton.entries
+            .filter { it.available && offered(FloatingAction.System(it)) }
+            .map { button ->
+                val action = FloatingAction.System(button)
+                PickerRow(
+                    key = action.token,
+                    title = floatingActionLabel(action),
+                    subtitle = stringResource(R.string.floating_button_pick_system_subtitle),
+                    selected = current == action,
+                    leading = { Icon(floatingActionIcon(action), contentDescription = null) },
+                    onPick = { onPick(action) },
+                )
+            }
+    }
     // A tool straight into a floating box over the app (#1155).
     val appletRows = AppletTools
         .filter { isSupportedTool(it) && offered(FloatingAction.Applet(it)) }
@@ -1194,6 +1259,9 @@ private fun FloatingActionPicker(
     val groups = buildList {
         if (ownRows.isNotEmpty()) {
             add(PickerGroup("own", stringResource(R.string.floating_button_pick_group_button), ownRows))
+        }
+        if (systemRows.isNotEmpty()) {
+            add(PickerGroup("system", stringResource(R.string.floating_button_pick_group_system), systemRows))
         }
         if (appletRows.isNotEmpty()) {
             add(PickerGroup("applets", stringResource(R.string.floating_button_pick_group_applets), appletRows))

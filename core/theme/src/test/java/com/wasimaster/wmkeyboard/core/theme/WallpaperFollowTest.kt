@@ -123,6 +123,24 @@ class WallpaperFollowTest {
     }
 
     @Test
+    fun `a shade picked off the wallpaper's own palettes stays exactly as picked`() {
+        val tones = palette().tones
+        // Tertiary at tone 40 on a theme whose accent would otherwise send a
+        // colour this saturated to the primary palette.
+        val picked = WallpaperTones.shade(tones.tertiary, 40)
+        val spec = ThemeSpec(
+            id = "t",
+            name = "T",
+            followWallpaper = true,
+            accent = 0xFFFF00FF,
+            enterKeyBackground = 0xFFFF00FF,
+            keyBackground = (picked and 0x00FFFFFF) or 0xCC000000,
+        )
+        val shown = spec.followingWallpaper(palette())
+        assertEquals((picked and 0x00FFFFFF) or 0xCC000000, shown.keyBackground)
+    }
+
+    @Test
     fun `reseeding drops the roles so the switch keeps working`() {
         val spec = ThemeSpec(
             id = "t",

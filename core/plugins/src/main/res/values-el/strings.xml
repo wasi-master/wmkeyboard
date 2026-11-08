@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Αποθήκευση δεδομένων στη συσκευή σας</string>
     <string name="core_plugins_reject_bad_encoding">Το «%1$s» περιέχει ένα σενάριο που δεν είναι έγκυρο κείμενο UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Αυτό το πρόσθετο έχει μη έγκυρο αναγνωριστικό. Ένα αναγνωριστικό πρέπει να έχει μήκος από 3 έως 64 χαρακτήρες. Μπορεί να περιέχει πεζά γράμματα, αριθμούς, τελείες, παύλες και κάτω παύλες.</string>
-    <string name="core_plugins_reject_compiled_lua">Το “%1$s” περιέχει μεταγλωττισμένο κώδικα Lua. Ένα πρόσθετο πρέπει να χρησιμοποιεί απλό πηγαίο κώδικα, ώστε να μπορείτε να τον διαβάσετε πριν εκτελεστεί.</string>
     <string name="core_plugins_reject_empty_script">Το «%1$s» έχει κενό σενάριο.</string>
     <string name="core_plugins_reject_missing_script">Το “%1$s” δεν διαθέτει το αρχείο δέσμης ενεργειών του (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Αυτό το πρόσθετο χρειάζεται μια νεότερη έκδοση του WM Keyboard.</string>

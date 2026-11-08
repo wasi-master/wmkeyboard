@@ -6,15 +6,16 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The Gboard+ layouts and their swipe-safe twins (#794, #836). Each twin is its
+ * The Hebrew Gboard+ layout and its swipe-safe twin (#794, #836). Each twin is its
  * plain layout with the flicks on the bottom letter row taken off, so a glide
  * starting there is never read as a flick, and nothing else:
  *
  * | Layout | Bottom-row letters | Plain | Swipe-safe |
  * |---|---|---|---|
- * | en | z x c v b n m | flick down `*` `"` `'` `:` `;` `!` `?` | no flicks |
  * | he | ז ס ב ה נ מ צ | flick down `*` `"` `'` `:` `;` `!` `?`, flick up z x c v b n m | no flicks |
  * | he | ת ץ | flick down `,` `.` | no flicks |
+ *
+ * The English pair moved to the addon repository (`gboard-plus`).
  */
 class GboardPlusTwinsTest {
 
@@ -34,7 +35,7 @@ class GboardPlusTwinsTest {
 
     @Test
     fun `each swipe-safe twin is its plain layout without the bottom row's flicks`() {
-        for (lang in listOf("en", "he")) {
+        for (lang in listOf("he")) {
             val plain = spec("${lang}_gboard_plus")
             val safe = spec("${lang}_gboard_plus_swipe_safe")
             assertEquals(lang, withoutBottomFlicks(plain), safe.copy(id = "", name = ""))
@@ -43,17 +44,9 @@ class GboardPlusTwinsTest {
 
     @Test
     fun `no letter of a swipe-safe twin has a flick`() {
-        for (lang in listOf("en", "he")) {
+        for (lang in listOf("he")) {
             val keys = letters(spec("${lang}_gboard_plus_swipe_safe")).rows.flatten()
             assertTrue(lang, keys.none { it.flick.isNotEmpty() })
-        }
-    }
-
-    @Test
-    fun `the English bottom row flicks down to its marks and nowhere else`() {
-        val row = letters(spec("en_gboard_plus")).rows[BOTTOM_LETTERS].associateBy { it.label }
-        for ((label, mark) in "zxcvbnm".map(Char::toString).zip(MARKS)) {
-            assertEquals(label, mapOf(FlickDirection.DOWN to mark), row.getValue(label).flick)
         }
     }
 

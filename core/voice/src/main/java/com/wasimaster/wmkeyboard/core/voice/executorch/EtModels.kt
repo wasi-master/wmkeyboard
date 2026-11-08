@@ -75,9 +75,11 @@ enum class EtEngine(val id: String, val dirName: String, val languages: Set<Stri
 
     /**
      * Whether the engine decodes while the user speaks rather than when the
-     * clip ends. Omnilingual counts: it decodes each phrase at the pause after it.
+     * clip ends. Omnilingual counts: it decodes each phrase at the pause after
+     * it. So does Parakeet (#1168), which passes over the clip as it grows.
      */
-    val live: Boolean get() = this == ASR4ALL || this == SHERPA || this == OMNILINGUAL || this == VOSK
+    val live: Boolean
+        get() = this == ASR4ALL || this == SHERPA || this == OMNILINGUAL || this == VOSK || this == PARAKEET
 
     /** The one thread the engine's model calls run on. */
     val dispatcher: CoroutineDispatcher

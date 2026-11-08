@@ -4,11 +4,12 @@ import android.app.ActivityManager
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Build
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.ModuleGate
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.settings.LocalLlmBackend
+import com.wasimaster.wmkeyboard.core.util.PhoneGpu
 import com.wasimaster.wmkeyboard.intelligence.R
 import java.io.File
 import java.io.IOException
@@ -36,17 +37,25 @@ object LlamaCpp {
 
     fun requestModule() = FeatureModules.llama.requestInstall()
 
-    /** Whether this phone can use the OpenCL build (gate `llamagpu`) at all. */
+    /** Whether this phone can use a GPU build at all: OpenCL (gate `llamagpu`) or Vulkan (gate `llamavulkan`). */
     val gpuLibraryUsable: Boolean get() = LlamaGpu.usable
 
+    /** The gate of the GPU build this phone would take, or null where it can take none. */
+    val gpuGateId: String? get() = LlamaGpu.gateId
+
+    /** The gate of the NPU build this phone would take (`llamanpu`), or null where it can take none. */
+    val npuGateId: String? get() = LlamaHexagon.GATE.takeIf { LlamaHexagon.usable }
+
     /**
-     * Fetches the OpenCL build (gate `llamagpu`) ahead of the first GGUF
-     * answer, when Compute is set to GPU on a phone that can use it; does
-     * nothing anywhere else. Its own download, so that only Adreno phones
-     * with GPU picked pay for it.
+     * Fetches the build [backend] would load (gate `llamagpu` on an Adreno,
+     * `llamavulkan` on other GPUs, `llamanpu` for the NPU of a Snapdragon
+     * that has one) ahead of the first GGUF answer; does nothing for the CPU
+     * or a phone without one. Their own downloads, so that only phones with
+     * GPU or NPU picked pay for them.
      */
-    fun prepareGpu() {
-        if (LlamaGpu.usable && !FeatureModules.llamaGpu.installed) FeatureModules.llamaGpu.requestInstall()
+    fun prepareGpu(backend: LocalLlmBackend = LocalLlmBackend.GPU) {
+        val gate = LlamaGpu.gateFor(backend) ?: return
+        if (!gate.installed) gate.requestInstall()
     }
 
     /**
@@ -72,8 +81,9 @@ object LlamaCpp {
      * [IOException]: the library is still on its way (a Play split, or a
      * GitHub build's download), it needs the download opt-in first, or this
      * build has none. [backend] decides which build of the library the first
-     * call loads: Compute = GPU (or NPU, which a GGUF has no build for) on an
-     * Adreno phone loads the OpenCL one.
+     * call loads: Compute = GPU loads the OpenCL one on an Adreno phone and
+     * the Vulkan one on other GPUs; NPU loads the Hexagon one on a Snapdragon
+     * [LlamaHexagon] knows, and is GPU anywhere else.
      */
     fun runtime(context: Context, backend: LocalLlmBackend = LocalLlmBackend.CPU): LlmRuntime {
         val gate = FeatureModules.llama
@@ -97,6 +107,7 @@ object LlamaCpp {
                 ),
             )
         }
+        LlamaGpu.npu = backend == LocalLlmBackend.NPU && LlamaHexagon.usable
         if (!LlamaNative.loaded) LlamaNative.wantGpuLibrary = instance.gpuLibraryWanted(context, backend)
         if (!LlamaNative.available) {
             throw IOException(context.getString(R.string.core_intel_llm_llama_missing))
@@ -146,27 +157,62 @@ object LlamaCpp {
 internal object LlamaGpu {
 
     /**
-     * An Adreno GPU, the one llama.cpp's OpenCL backend is written for: the
-     * kgsl device node Qualcomm's driver makes, or the chip maker Android
-     * reports. Other GPUs (Mali, PowerVR, Xclipse) have no llama.cpp backend
-     * here: its Vulkan one ran slower than the CPU on them (see
-     * native/llamacpp-jni/README.md).
+     * The GPU build for this phone: OpenCL on an Adreno, the GPU llama.cpp's
+     * OpenCL backend is written for; Vulkan on any other GPU with a Vulkan 1.2
+     * driver (Mali, Xclipse, PowerVR), where public reports put it anywhere
+     * from much faster to slower than the CPU, so it stays the user's pick
+     * (native/llamacpp-jni/README.md). Null without ARMv8.2 cores, which both
+     * builds need, or without either GPU.
      */
-    val adreno: Boolean by lazy {
-        File("/dev/kgsl-3d0").exists() ||
-            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && Build.SOC_MANUFACTURER.equals("QTI", ignoreCase = true)) ||
-            Build.HARDWARE.equals("qcom", ignoreCase = true)
+    val library: String?
+        get() = libraryFor(if (npu) LocalLlmBackend.NPU else LocalLlmBackend.GPU)
+
+    /**
+     * Compute is NPU on a phone whose NPU [LlamaHexagon] can use: [library]
+     * is then the Hexagon build. Set by [LlamaCpp.runtime] from Compute.
+     */
+    @Volatile
+    var npu = false
+
+    /** The build [backend] loads on this phone: Hexagon for NPU where there is one, else the GPU's. */
+    fun libraryFor(backend: LocalLlmBackend): String? = when {
+        !LlamaNative.gpuLibraryPossible || backend == LocalLlmBackend.CPU -> null
+        backend == LocalLlmBackend.NPU && LlamaHexagon.usable -> LlamaNative.LIBRARY_HEXAGON
+        PhoneGpu.adreno -> LlamaNative.LIBRARY_OPENCL
+        PhoneGpu.vulkan -> LlamaNative.LIBRARY_VULKAN
+        else -> null
     }
 
-    /** An Adreno GPU beside cores that run the OpenCL build (ARMv8.2): the phones it is for. */
-    val usable: Boolean get() = adreno && LlamaNative.gpuLibraryPossible
+    /** The gate that carries [library]. */
+    val gate: ModuleGate?
+        get() = gateOf(library)
+
+    fun gateFor(backend: LocalLlmBackend): ModuleGate? = gateOf(libraryFor(backend))
+
+    private fun gateOf(library: String?): ModuleGate? = when (library) {
+        LlamaNative.LIBRARY_OPENCL -> FeatureModules.llamaGpu
+        LlamaNative.LIBRARY_VULKAN -> FeatureModules.llamaVulkan
+        LlamaNative.LIBRARY_HEXAGON -> FeatureModules.llamaNpu
+        else -> null
+    }
+
+    /** The id of the GPU build's gate in native/gates.json, for the Feature libraries page. */
+    val gateId: String?
+        get() = when (libraryFor(LocalLlmBackend.GPU)) {
+            LlamaNative.LIBRARY_OPENCL -> "llamagpu"
+            LlamaNative.LIBRARY_VULKAN -> "llamavulkan"
+            else -> null
+        }
+
+    /** A GPU and cores that run its build: the phones a GPU build is for. */
+    val usable: Boolean get() = libraryFor(LocalLlmBackend.GPU) != null
 
     @Volatile
     private var devices: List<String>? = null
 
     /**
      * The GPU devices the loaded library found, by description ("QUALCOMM
-     * Adreno(TM) 740"); empty for a CPU build or a driver that offered none.
+     * Adreno(TM) 740", "Mali-G57"); empty for a CPU build or a driver that offered none.
      * The first call starts the backend. Lock of the runtime held.
      */
     fun devices(): List<String> = devices ?: String(LlamaNative.nativeGpuDevices(), Charsets.UTF_8)
@@ -187,11 +233,13 @@ internal object LlamaGpu {
  * Unlike the LiteRT-LM runtime, an answer here can be stopped part way
  * ([stop]): the caller gets the text so far, and the cache keeps exactly it.
  *
- * Compute = GPU runs the model on an Adreno GPU through llama.cpp's OpenCL
- * backend, when the OpenCL build of the library is the one loaded and the
- * driver offers the GPU; everything else runs on the CPU, as does a model
+ * Compute = GPU runs the model on the GPU: an Adreno through llama.cpp's
+ * OpenCL backend, other GPUs through its Vulkan backend, when that GPU build
+ * of the library is the one loaded and the driver offers the GPU; everything else runs on the CPU, as does a model
  * that failed on the GPU before (remembered on disk, like LiteRT-LM's
- * verdicts). A GGUF has no NPU build, so NPU means GPU here.
+ * verdicts). Compute = NPU puts it on a Snapdragon's NPU through ggml's
+ * Hexagon backend ([LlamaHexagon]) where the phone has one, and means GPU
+ * anywhere else.
  *
  * Pictures go to a vision model through its projector (an `mmproj` GGUF
  * beside the model, see [LlamaCpp.projectorFor]), loaded with the model the
@@ -222,7 +270,7 @@ internal class LlamaCppRuntime : LlmRuntime {
     private val gpuVerdicts = AcceleratorVerdicts(GPU_FAILED_FILE, GPU_ATTEMPT_FILE)
 
     /**
-     * The OpenCL build itself, keyed [GPU_LIBRARY_KEY]: a driver that takes
+     * The GPU build itself, keyed by its backend ([libraryKey]): a driver that takes
      * the process down while the backend starts (before any model) leaves
      * its attempt behind, and the next process loads a CPU build instead.
      */
@@ -252,22 +300,28 @@ internal class LlamaCppRuntime : LlmRuntime {
     private val visionRefused = mutableSetOf<String>()
 
     /**
-     * Whether the first load should take the OpenCL build: Compute is not
-     * CPU, the phone has an Adreno GPU, and the build has not taken a process
-     * down here since the last update.
+     * The GPU build the first load should take, or null for a CPU one: Compute
+     * is not CPU, the phone has a GPU one of the builds runs on, and that
+     * build has not taken a process down here since the last update.
      */
-    fun gpuLibraryWanted(context: Context, backend: LocalLlmBackend): Boolean {
-        if (backend == LocalLlmBackend.CPU || !LlamaGpu.usable) return false
+    fun gpuLibraryWanted(context: Context, backend: LocalLlmBackend): String? {
+        if (backend == LocalLlmBackend.CPU) return null
+        val library = LlamaGpu.library ?: return null
+        val gate = LlamaGpu.gate ?: return null
         // Still to come: this process runs on the CPU, and the next one
         // loads the GPU build once it is here.
-        if (!FeatureModules.llamaGpu.installed) {
-            FeatureModules.llamaGpu.requestInstall()
-            return false
+        if (!gate.installed) {
+            gate.requestInstall()
+            return null
         }
         lock.lock()
         try {
             libraryVerdicts.load(context)
-            return libraryKey(context) !in libraryVerdicts
+            if (libraryKey(context) in libraryVerdicts) return null
+            // The NPU's DSP finds its half of the library by a search path
+            // that has to be set before the library starts its backend.
+            if (library == LlamaNative.LIBRARY_HEXAGON && !LlamaHexagon.prepare(context)) return null
+            return library
         } finally {
             lock.unlock()
         }
@@ -599,7 +653,7 @@ internal class LlamaCppRuntime : LlmRuntime {
         val wanted = if (contextTokens > 0) contextTokens else DEFAULT_CONTEXT
         val gpuKey = AcceleratorVerdicts.key(context, modelFile)
         val wantGpu = backend != LocalLlmBackend.CPU && gpuKey !in gpuVerdicts && gpuReady(context)
-        waitsForGpuRestart = backend != LocalLlmBackend.CPU && LlamaGpu.usable && FeatureModules.llamaGpu.installed &&
+        waitsForGpuRestart = backend != LocalLlmBackend.CPU && LlamaGpu.gate?.installed == true &&
             !LlamaNative.gpuLibrary && libraryKey(context) !in libraryVerdicts
         val key = "${modelFile.path}|${modelFile.length()}|${modelFile.lastModified()}|$wanted|" +
             if (wantGpu) "gpu" else "cpu"
@@ -644,8 +698,8 @@ internal class LlamaCppRuntime : LlmRuntime {
     }
 
     /**
-     * Whether the loaded library can put a model on the GPU: the OpenCL
-     * build, and a driver that offers a device. Starting the backend is the
+     * Whether the loaded library can put a model on the GPU: a GPU build,
+     * and a driver that offers a device. Starting the backend is the
      * moment a bad driver takes the process down, so it runs inside the
      * library's own attempt. Lock held.
      */
@@ -660,8 +714,16 @@ internal class LlamaCppRuntime : LlmRuntime {
         return found.isNotEmpty()
     }
 
-    /** The [libraryVerdicts] key: this phone and install, no model. */
-    private fun libraryKey(context: Context): String = AcceleratorVerdicts.keyPrefix(context) + GPU_LIBRARY_KEY
+    /**
+     * The [libraryVerdicts] key: this phone and install, no model, and the
+     * backend, so a Vulkan build that failed says nothing about OpenCL.
+     */
+    private fun libraryKey(context: Context): String = AcceleratorVerdicts.keyPrefix(context) +
+        when (LlamaGpu.library) {
+            LlamaNative.LIBRARY_VULKAN -> GPU_LIBRARY_KEY_VULKAN
+            LlamaNative.LIBRARY_HEXAGON -> GPU_LIBRARY_KEY_HEXAGON
+            else -> GPU_LIBRARY_KEY
+        }
 
     /** Opens the model and a context that fits, or throws. Lock held. */
     private fun openSession(
@@ -801,10 +863,12 @@ internal class LlamaCppRuntime : LlmRuntime {
         /** The key of a GPU model that has not answered yet. */
         const val GPU_ATTEMPT_FILE = "llama-gpu-attempt"
 
-        /** The OpenCL build of the library, when starting its backend took a process down. */
+        /** A GPU build of the library, when starting its backend took a process down. */
         const val GPU_LIBRARY_FAILED_FILE = "llama-gpu-library-failed"
         const val GPU_LIBRARY_ATTEMPT_FILE = "llama-gpu-library-attempt"
         const val GPU_LIBRARY_KEY = "opencl"
+        const val GPU_LIBRARY_KEY_VULKAN = "vulkan"
+        const val GPU_LIBRARY_KEY_HEXAGON = "hexagon"
 
         /**
          * [bytes] (a JPEG or PNG) as RGB pixels for the projector, scaled so

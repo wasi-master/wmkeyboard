@@ -77,6 +77,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileUpload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
 import androidx.compose.material3.AlertDialog
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.CompositionLocalProvider
 import com.wasimaster.wmkeyboard.ime.layoutKind
 import com.wasimaster.wmkeyboard.ime.PanelMode
@@ -253,6 +254,7 @@ import com.wasimaster.wmkeyboard.core.theme.DecalSpec
 import com.wasimaster.wmkeyboard.core.theme.KeyEffectKind
 import com.wasimaster.wmkeyboard.core.theme.KEY_OVERRIDE_LABEL_SCALE_RANGE
 import com.wasimaster.wmkeyboard.core.theme.KeyOverride
+import com.wasimaster.wmkeyboard.core.theme.withChangesOf
 import com.wasimaster.wmkeyboard.core.theme.popupOnKeyOrNull
 import com.wasimaster.wmkeyboard.core.theme.EFFECT_DURATION_RANGE
 import com.wasimaster.wmkeyboard.core.theme.EFFECT_GRAVITY_RANGE
@@ -1514,6 +1516,9 @@ fun ThemesScreen(
             runCatching {
                 context.contentResolver.readTextCapped(uri)?.let(ClinkTheme::read)
             }.getOrNull() ?: ClinkThemeResult.NotATheme
+        }
+        if (result == ClinkThemeResult.ProtectedPackage) {
+            return ThemeFileOutcome.failed(context.getString(R.string.import_clink_protected_body))
         }
         if (result !is ClinkThemeResult.Converted) {
             return ThemeFileOutcome.failed(context.getString(R.string.import_clink_unreadable_body))
@@ -3268,14 +3273,26 @@ private fun ThemeEditorContent(
     // The picked key's own name for the sheet's heading ("Left", "Clipboard"),
     // which an id alone cannot always give back.
     var overrideEditorTitle by rememberSaveable(lookId) { mutableStateOf<String?>(null) }
+    // Several keys at once (Telegram 6201, a whole number row in one colour):
+    // with the chip on, a press adds the key to [severalIds] or takes it back
+    // out, and Style opens one sheet whose every change reaches them all
+    // ([overrideGroup]). Off, a press opens the key's own sheet as before.
+    var pickSeveral by rememberSaveable(familyId) { mutableStateOf(false) }
+    var severalIds by rememberSaveable(lookId) { mutableStateOf(listOf<String>()) }
+    var overrideGroup by rememberSaveable(lookId) { mutableStateOf(listOf<String>()) }
     val picker = remember(lookId) {
         PreviewPicker(
             // One part open at a time: the section for what was pressed takes
             // the place of whatever was open under the preview.
             onKey = { pick ->
-                partSheet = null
-                overrideEditorTitle = pick.title
-                overrideEditorId = pick.id
+                if (pickSeveral) {
+                    severalIds = if (pick.id in severalIds) severalIds - pick.id else severalIds + pick.id
+                } else {
+                    partSheet = null
+                    overrideGroup = emptyList()
+                    overrideEditorTitle = pick.title
+                    overrideEditorId = pick.id
+                }
             },
             onToolbar = {
                 overrideEditorId = null
@@ -3291,6 +3308,8 @@ private fun ThemeEditorContent(
     BackHandler(enabled = keyboardDocked) { keyboardDocked = false }
     // …and leaves picking once nothing it opened is still up.
     BackHandler(enabled = picking && partSheet == null && overrideEditorId == null) { picking = false }
+    // Leaving picking, or the several-keys chip, drops the keys gathered so far.
+    LaunchedEffect(picking, pickSeveral) { if (!picking || !pickSeveral) severalIds = emptyList() }
     // Picking happens on the pinned miniature, where an open sheet leaves the
     // keyboard in sight above it; the docked one would sit under the sheet.
     LaunchedEffect(picking) { if (picking) keyboardDocked = false }
@@ -3328,6 +3347,19 @@ private fun ThemeEditorContent(
                             partSheet = it
                         },
                         onDone = { picking = false },
+                        several = SeveralKeys(
+                            on = pickSeveral,
+                            ids = severalIds,
+                            onToggle = { pickSeveral = it },
+                            onStyle = {
+                                severalIds.firstOrNull()?.let { first ->
+                                    partSheet = null
+                                    overrideGroup = severalIds
+                                    overrideEditorTitle = null
+                                    overrideEditorId = first
+                                }
+                            },
+                        ),
                     )
                 }
                 // Edge to edge (#769): inset, the miniature drew every key a
@@ -3443,20 +3475,38 @@ private fun ThemeEditorContent(
         overrideEditorTitle = null
     }
     overrideEditorId?.let { id ->
+        // The keys this sheet styles together, when it was opened from Style
+        // on several picked keys; just [id] otherwise.
+        val group = overrideGroup.takeIf { id in it && it.size > 1 }
         KeyOverrideDialog(
             id = id,
-            title = overrideEditorTitle,
+            title = overrideEditorTitle
+                ?: group?.let { pluralStringResource(R.plurals.theme_pick_several_title, it.size, it.size) },
             look = look,
             popupsShown = popupsOn,
             // The theme's own effect group hides itself under reduce motion,
             // and a per-key burst is the same burst.
             effectsShown = !reduceMotion,
             onChange = { changed ->
-                update { t -> t.copy(keyOverrides = t.keyOverrides + (id to changed)) }
+                if (group == null) {
+                    update { t -> t.copy(keyOverrides = t.keyOverrides + (id to changed)) }
+                } else {
+                    // What changed on the first key, and only that, on every
+                    // key picked: a key's own border survives a new fill.
+                    update { t ->
+                        val before = t.keyOverrides[id] ?: KeyOverride()
+                        t.copy(
+                            keyOverrides = t.keyOverrides + group.associateWith { other ->
+                                (t.keyOverrides[other] ?: KeyOverride()).withChangesOf(before, changed)
+                            },
+                        )
+                    }
+                }
             },
             onDismiss = {
                 overrideEditorId = null
                 overrideEditorTitle = null
+                overrideGroup = emptyList()
             },
         )
     }
@@ -6775,12 +6825,22 @@ private const val PopupPreviewLit = 1
  * panels are every panel that is a grid of keys, the same set the layout
  * editor lists, named the way it names them.
  */
+/** [PickBar]'s several-keys mode: whether it is on, the keys picked so far, and its two actions. */
+@Immutable
+private class SeveralKeys(
+    val on: Boolean,
+    val ids: List<String>,
+    val onToggle: (Boolean) -> Unit,
+    val onStyle: () -> Unit,
+)
+
 @Composable
 private fun PickBar(
     settings: LiveSettings,
     sandbox: MutableState<ThemePreviewSandbox>,
     onPart: (ThemePart) -> Unit,
     onDone: () -> Unit,
+    several: SeveralKeys,
 ) {
     val box = sandbox.value
     val activeLayoutId = settings.watch { it.activeLayoutId }
@@ -6805,18 +6865,38 @@ private fun PickBar(
             modifier = Modifier.padding(start = 16.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // With several keys on, the line says which ones are gathered, as
+            // the preview does not mark them.
+            val names = several.ids.map { keyOverrideDisplayName(it) }
             Text(
-                stringResource(R.string.theme_pick_hint),
+                when {
+                    !several.on -> stringResource(R.string.theme_pick_hint)
+                    names.isEmpty() -> stringResource(R.string.theme_pick_several_hint)
+                    else -> names.joinToString(", ")
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
-            TextButton(onClick = onDone) { Text(stringResource(CommonR.string.common_done)) }
+            if (several.on && several.ids.isNotEmpty()) {
+                TextButton(onClick = several.onStyle) { Text(stringResource(R.string.theme_pick_several_style)) }
+            } else {
+                TextButton(onClick = onDone) { Text(stringResource(CommonR.string.common_done)) }
+            }
         }
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
+            item {
+                FilterChip(
+                    selected = several.on,
+                    onClick = { several.onToggle(!several.on) },
+                    label = { Text(stringResource(R.string.theme_pick_several_chip), maxLines = 1) },
+                )
+            }
             items(layers) { (layer, mode) ->
                 FilterChip(
                     selected = box.panel == PanelMode.NONE && box.layoutMode == mode,

@@ -30,6 +30,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VolumeUp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Waves
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.VoiceSilenceStopRange
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.vad.VadModels
 import com.wasimaster.wmkeyboard.core.voice.vad.VoiceVad
@@ -38,6 +39,44 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+/**
+ * The end of a phrase on a live engine's own page (#1174): **Stop after a
+ * pause** and the [VoicePhraseEndSetting] under it. The same settings as on
+ * the Voice typing screen, shown where someone setting up Parakeet or Sherpa
+ * looks for why a phrase does not end.
+ */
+@Composable
+internal fun VoicePhraseEndGroup(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    SettingsGroup(
+        stringResource(R.string.voice_phrase_end_group),
+        info = stringResource(R.string.voice_phrase_end_group_info),
+    ) {
+        item {
+            val offLabel = stringResource(R.string.voice_silence_stop_off)
+            val secondsFormat = stringResource(R.string.voice_silence_stop_seconds)
+            SliderSetting(
+                R.string.voice_silence_stop_title,
+                subtitle = stringResource(R.string.voice_silence_stop_subtitle),
+                value = settings.watch { it.voiceBar.silenceStopMs }.toFloat(),
+                range = 0f..VoiceSilenceStopRange.last.toFloat(),
+                display = { picked ->
+                    val ms = (picked / PAUSE_STEP_MS).roundToInt() * PAUSE_STEP_MS.toInt()
+                    if (ms == 0) offLabel else secondsFormat.format(ms / 1000f)
+                },
+                info = stringResource(R.string.voice_silence_stop_info),
+                default = SettingsDefaults.voiceBar.silenceStopMs.toFloat(),
+            ) { picked ->
+                scope.launch { repository.setVoiceSilenceStopMs((picked / PAUSE_STEP_MS).roundToInt() * PAUSE_STEP_MS.toInt()) }
+            }
+        }
+        item { VoicePhraseEndSetting(repository, settings, scope) }
+    }
+}
+
+/** The pause slider's step, as on the Voice typing screen. */
+private const val PAUSE_STEP_MS = 250f
 
 /**
  * Phrase end detector (#976), for the engines that decode while the user

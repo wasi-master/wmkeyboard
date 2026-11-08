@@ -84,6 +84,11 @@ class FileImportSniffTest {
             WMFileTypes.textKindFor("""{"shopping":["milk","eggs"]}""", "list.json"),
         )
         assertEquals(WMFileTypes.Opened.Unrecognized, WMFileTypes.textKindFor("hello", "notes.txt"))
+        // Clink's encrypted export package is named as such, not called unreadable.
+        assertEquals(
+            WMFileTypes.Opened.ClinkProtected,
+            WMFileTypes.textKindFor("""{"clinkPackage":1,"payload":"ARbG","kind":"theme"}""", "M&M.clinktheme.json"),
+        )
         assertEquals(WMFileTypes.Opened.Unrecognized, WMFileTypes.textKindFor("", "empty.json"))
     }
 

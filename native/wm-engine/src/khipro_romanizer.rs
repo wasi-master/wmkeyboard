@@ -11,6 +11,11 @@
 //! word that comes back is right by construction, and any word of any list
 //! can be spelled.
 //!
+//! Each edition has its own pieces, read off its own touchscreen spec:
+//! Classic joins `hb` into হ্ব and Dark leaves it apart, so the same word is
+//! a different spelling, and a stroke read against the other edition's
+//! spellings lands on some other word.
+//!
 //! Letters and the slicer `/`, which a swipe over the Khipro grid passes
 //! through (see [`KEYS`]). A word that needs any other key (the separator
 //! `;`, the blinder) has no spelling here and is typed.
@@ -68,38 +73,48 @@ struct Tables {
     longest: usize,
 }
 
-fn convert(keys: &str) -> String {
-    khipro::convert(keys, Variant::Touchscreen)
+fn convert(keys: &str, variant: Variant) -> String {
+    khipro::convert(keys, variant)
 }
 
-/// The pieces, read off the touchscreen spec in use: built once, and again
-/// after a newer spec is installed ([`khipro::generation`]).
-fn tables() -> Arc<Tables> {
-    static TABLES: RwLock<Option<(u64, Arc<Tables>)>> = RwLock::new(None);
+/// The touchscreen spec of `variant`'s edition: a swipe is a touchscreen
+/// stroke, and the editions spell differently (Classic joins `hb` into হ্ব,
+/// so হবে is `hobe`; Dark leaves consonants apart until `/` joins them, so
+/// হবে is `hbe`), which is why each has its own pieces.
+fn edition(variant: Variant) -> Variant {
+    Variant::of(variant.dark(), false)
+}
+
+/// The pieces of `variant`'s edition, read off its touchscreen spec in use:
+/// built once, and again after a newer spec is installed
+/// ([`khipro::generation`]).
+fn tables(variant: Variant) -> Arc<Tables> {
+    static TABLES: [RwLock<Option<(u64, Arc<Tables>)>>; 2] = [RwLock::new(None), RwLock::new(None)];
+    let slot = &TABLES[variant.dark() as usize];
     let generation = khipro::generation();
-    if let Some((built, tables)) = &*TABLES.read().unwrap_or_else(|poisoned| poisoned.into_inner()) {
+    if let Some((built, tables)) = &*slot.read().unwrap_or_else(|poisoned| poisoned.into_inner()) {
         if *built == generation {
             return tables.clone();
         }
     }
-    let tables = Arc::new(build());
-    *TABLES.write().unwrap_or_else(|poisoned| poisoned.into_inner()) = Some((generation, tables.clone()));
+    let tables = Arc::new(build(edition(variant)));
+    *slot.write().unwrap_or_else(|poisoned| poisoned.into_inner()) = Some((generation, tables.clone()));
     tables
 }
 
-/// Builds the pieces now, off the thread that will first need them.
-pub fn warm() {
-    tables();
+/// Builds `variant`'s pieces now, off the thread that will first need them.
+pub fn warm(variant: Variant) {
+    tables(variant);
 }
 
-/// Reads the pieces off Khipro's touchscreen rules. About 55,000 conversions, once.
-fn build() -> Tables {
+/// Reads the pieces off one edition's touchscreen rules. About 55,000 conversions, once.
+fn build(variant: Variant) -> Tables {
     let mut start: Pieces = HashMap::new();
     let mut after_consonant: Pieces = HashMap::new();
     let mut after_vowel: Pieces = HashMap::new();
     let mut after_reph: Pieces = HashMap::new();
-    let consonant_carrier = convert(CONSONANT_KEY);
-    let vowel_carrier = convert(VOWEL_KEY);
+    let consonant_carrier = convert(CONSONANT_KEY, variant);
+    let vowel_carrier = convert(VOWEL_KEY, variant);
     // `rr` shows as রর until a consonant follows and turns it into a reph, so
     // a reph is recorded by what it becomes, and what follows one is read
     // after a vowel and a reph that has already joined.
@@ -120,16 +135,16 @@ fn build() -> Tables {
         }
     }
     for keys in sequences() {
-        record(&mut start, &convert(&keys), &keys);
-        let out = convert(&format!("{CONSONANT_KEY}{keys}"));
+        record(&mut start, &convert(&keys, variant), &keys);
+        let out = convert(&format!("{CONSONANT_KEY}{keys}"), variant);
         if let Some(rest) = out.strip_prefix(consonant_carrier.as_str()) {
             record(&mut after_consonant, rest, &keys);
         }
-        let out = convert(&format!("{VOWEL_KEY}{keys}"));
+        let out = convert(&format!("{VOWEL_KEY}{keys}"), variant);
         if let Some(rest) = out.strip_prefix(vowel_carrier.as_str()) {
             record(&mut after_vowel, rest, &keys);
         }
-        let out = convert(&format!("{VOWEL_KEY}{REPH_KEYS}{keys}"));
+        let out = convert(&format!("{VOWEL_KEY}{REPH_KEYS}{keys}"), variant);
         if let Some(rest) = out.strip_prefix(reph_carrier.as_str()) {
             record(&mut after_reph, rest, &keys);
         }
@@ -183,15 +198,15 @@ struct Cut {
 
 /// The fewest letters that Khipro turns into `word`, or `None` when no cut
 /// of it converts back exactly (a word that needs a non-letter key, mostly).
-pub fn romanize(word: &str) -> Option<String> {
-    cut(&precomposed(word)).map(|c| c.keys)
+pub fn romanize(word: &str, variant: Variant) -> Option<String> {
+    cut(&precomposed(word), edition(variant)).map(|c| c.keys)
 }
 
-fn cut(word: &str) -> Option<Cut> {
+fn cut(word: &str, variant: Variant) -> Option<Cut> {
     if word.is_empty() {
         return None;
     }
-    let t = tables();
+    let t = tables(variant);
     let chars: Vec<char> = word.chars().collect();
     let n = chars.len();
     // cuts[i]: the cheapest few ways of typing word[0, i).
@@ -203,7 +218,7 @@ fn cut(word: &str) -> Option<Cut> {
     for i in 0..n {
         let Some(here) = cuts[i].take() else { continue };
         let typed: String = chars[..i].iter().collect();
-        let kept = prune(here, &typed);
+        let kept = prune(here, &typed, variant);
         cuts[i] = Some(kept.clone());
         for c in &kept {
             let maps: Vec<&Pieces> = match c.context {
@@ -235,7 +250,7 @@ fn cut(word: &str) -> Option<Cut> {
     candidates
         .into_iter()
         .take(FINAL_TRIES)
-        .find(|c| convert(&c.keys) == word)
+        .find(|c| convert(&c.keys, variant) == word)
 }
 
 fn distinct_by_keys(cuts: Vec<Cut>) -> Vec<Cut> {
@@ -249,7 +264,7 @@ fn distinct_by_keys(cuts: Vec<Cut>) -> Vec<Cut> {
 /// are more, the ones Khipro already turns into exactly `typed` go first:
 /// shortness alone keeps joined spellings (`durbl`) that read as some other
 /// word and pushes the right one out.
-fn prune(cuts: Vec<Cut>, typed: &str) -> Vec<Cut> {
+fn prune(cuts: Vec<Cut>, typed: &str, variant: Variant) -> Vec<Cut> {
     let mut distinct = distinct_by_keys(cuts);
     sort::by_key(&mut distinct, |c| c.keys.len());
     if distinct.len() <= BEAM {
@@ -258,7 +273,7 @@ fn prune(cuts: Vec<Cut>, typed: &str) -> Vec<Cut> {
     let mut exact: Vec<Cut> = Vec::with_capacity(BEAM);
     let mut rest: Vec<Cut> = Vec::new();
     for c in distinct {
-        if exact.len() < BEAM && convert(&c.keys) == typed {
+        if exact.len() < BEAM && convert(&c.keys, variant) == typed {
             exact.push(c);
         } else {
             rest.push(c);
@@ -273,9 +288,10 @@ fn prune(cuts: Vec<Cut>, typed: &str) -> Vec<Cut> {
 /// letters, and the same with the inherent `o` written out between
 /// consonants where Khipro still reads the word (`ekhn` and `ekhon` for
 /// এখন), since people swipe the vowel they say. Empty when there is none.
-pub fn spellings(text: &str) -> Vec<String> {
+pub fn spellings(text: &str, variant: Variant) -> Vec<String> {
+    let variant = edition(variant);
     let word = precomposed(text);
-    let Some(best) = cut(&word) else {
+    let Some(best) = cut(&word, variant) else {
         return Vec::new();
     };
     let shortest = best.keys;
@@ -292,7 +308,7 @@ pub fn spellings(text: &str) -> Vec<String> {
             continue;
         }
         let tried = format!("{}o{}", &spelled[..at], &spelled[at..]);
-        if convert(&tried) == word {
+        if convert(&tried, variant) == word {
             spelled = tried;
         }
     }
@@ -362,7 +378,7 @@ mod tests {
             "উৎসব",
         ];
         for word in words {
-            let spellings = spellings(word);
+            let spellings = spellings(word, Variant::Touchscreen);
             assert!(!spellings.is_empty(), "{word} has no spelling");
             for spelling in spellings {
                 assert!(
@@ -380,11 +396,31 @@ mod tests {
 
     #[test]
     fn the_inherent_vowel_may_be_written_out() {
-        assert_eq!(vec!["ekhn", "ekhon"], spellings("এখন"));
+        assert_eq!(vec!["ekhn", "ekhon"], spellings("এখন", Variant::Touchscreen));
+    }
+
+    #[test]
+    fn dark_spells_with_its_own_rules() {
+        // Classic joins `hb` into হ্ব and so needs the `o`; Dark leaves the
+        // two apart and joins only on `/`. Reading Dark's swipes against
+        // Classic's spellings turned `hbe` into হচ্ছে (`hccfe`).
+        let dark = Variant::DarkTouchscreen;
+        assert_eq!(vec!["hobe"], spellings("হবে", Variant::Touchscreen));
+        assert_eq!("hbe", spellings("হবে", dark)[0]);
+        assert_eq!("hccfe", spellings("হচ্ছে", Variant::Touchscreen)[0]);
+        assert_eq!("hccf/e", spellings("হচ্ছে", dark)[0]);
+        for word in ["হবে", "হচ্ছে", "লাগবে", "ক্ষিপ্র", "দুর্বল", "ধন্যবাদ", "চাঁদ", "উৎসব", "রাষ্ট্র"] {
+            let spellings = spellings(word, dark);
+            assert!(!spellings.is_empty(), "{word} has no Dark spelling");
+            for spelling in spellings {
+                assert_eq!(precomposed(word), precomposed(&khipro::convert(&spelling, dark)), "{spelling}");
+            }
+        }
     }
 
     #[test]
     fn the_slicer_is_a_key_of_the_spelling() {
-        assert!(spellings("চাঁদ").iter().all(|s| s.contains('/')));
+        assert!(spellings("চাঁদ", Variant::Touchscreen).iter().all(|s| s.contains('/')));
     }
 }
+

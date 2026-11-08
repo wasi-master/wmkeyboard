@@ -104,6 +104,10 @@ Below that, a **Write your own** group always shows, whether or not Allow plugin
 
 With plugins allowed, two more groups appear. **Installed** carries one row per plugin: its name, then "Version X by Y" underneath, with ". Turned off" appended for a disabled one. The row is the link, so tapping anywhere on it opens that plugin. With nothing installed the group says so instead. **Add** carries a **Download more** row into the addon catalogue and **Install from a file**, which asks for a `.wmplugin` file, plus a note that plugins also install from Addons. Either install path shows the same confirmation dialog first: name, description, version, author, and either a line saying it doesn't ask for anything outside its own panel or an "It can:" list of the permissions it declared. Installing reports success by name. A wrong file reports that it isn't a WM Keyboard plugin, the cap reports how many plugins you already have, and anything else reports that the plugin could not be installed. The cap is 50 plugins.
 
+Turning Allow plugins on the first time also fetches the library that runs plugins, a Python interpreter, like any other [feature library](/privacy/offline/#feature-libraries).
+
+After the update to 0.6.6, which retired Lua plugins, the screen says once which of yours were removed. The data they saved stays listed here, each entry with a button to delete it, until a Python plugin with the same id is installed and takes it back or 90 days pass. See [Lua plugins were retired](/plugins/overview/#lua-plugins-were-retired).
+
 <PhoneFrame side caption="A plugin's own screen: enabled switch, capabilities, stored data, and the log.">
   <Shot id="reference/settings/plugin-detail-screen" alt="A plugin's own screen: enabled switch, capabilities, stored data, and the log." />
 </PhoneFrame>
@@ -111,7 +115,7 @@ With plugins allowed, two more groups appear. **Installed** carries one row per 
 Opening a plugin (route `plugin/{pluginId}`, title "Plugin") shows its name, description, version and author, then:
 
 - **Turned on**: a per-plugin switch, independent of "Allow plugins" above. Its subtitle normally reads "Show this plugin in the Plugins panel". Once the plugin has been auto-disabled it says the app turned the plugin off because it stopped responding two times. While "Allow plugins" itself is off, this switch is greyed out instead. Its subtitle then takes priority over the auto-disabled one, saying no plugin runs while Allow plugins is off, under Tools then Plugins. WM Keyboard tracks failures per plugin and switches one off after two in a row, rather than leaving a broken panel in your toolbar.
-- **Edit the code**: opens the same in-app editor as "Write a plugin". It preloads a draft made from this plugin's installed code, so you can change and test its Lua.
+- **Edit the code**: opens the same in-app editor as "Write a plugin". It preloads a draft made from this plugin's installed code, so you can change and test its Python.
 - **What it can do**: its declared permissions, or "Nothing outside its own panel" if it asked for none.
 - **Stored data**: "Uses X KB of Y KB", where the ceiling is 64 KB per plugin, plus a button to delete the stored data.
 - **Log**: shown only once the plugin has printed something or errored. It holds the last 40 lines, plus a button to delete the log.

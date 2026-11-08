@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">તમારા ઉપકરણ પર ડેટા સાચવો</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” માં એવી સ્ક્રિપ્ટ છે જે માન્ય UTF-8 ટેક્સ્ટ નથી.</string>
     <string name="core_plugins_reject_bad_id">આ પ્લગિન પાસે એવું ID છે જે માન્ય નથી. ID 3 થી 64 અક્ષરો લાંબુ હોય છે. ID માં નાના અક્ષરો, નંબરો, ટપકાં, ડેશ અને અન્ડરસ્કોર હોઈ શકે છે.</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” માં કમ્પાઇલ કરેલ Lua કોડ છે. પ્લગઇને સાદા સોર્સ કોડનો ઉપયોગ કરવો આવશ્યક છે, જેથી તમે તેને ચલાવતા પહેલા વાંચી શકો.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” પાસે ખાલી સ્ક્રિપ્ટ છે.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” પાસે તેની સ્ક્રિપ્ટ ફાઇલ (%2$s) નથી.</string>
     <string name="core_plugins_reject_newer_version">આ પ્લગિનને WM કીબોર્ડના નવા વર્ઝનની જરૂર છે.</string>

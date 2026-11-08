@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Salvesta andmed oma seadmesse</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ sisaldab skripti, mis ei ole kehtiv UTF-8 tekst.</string>
     <string name="core_plugins_reject_bad_id">Sellel pistikprogrammil on kehtetu ID. ID peab olema 3 kuni 64 tähemärki pikk. ID võib sisaldada väiketähti, numbreid, punkte, sidekriipse ja allkriipse.</string>
-    <string name="core_plugins_reject_compiled_lua">„%1$s“ sisaldab kompileeritud Lua koodi. Plugin peab kasutama lihtsat lähtekoodi, et saaksite seda enne käivitamist lugeda.</string>
     <string name="core_plugins_reject_empty_script">„%1$s“ skript on tühi.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” skriptifaili (%2$s) ei leitud.</string>
     <string name="core_plugins_reject_newer_version">See pistikprogramm vajab WM-klaviatuuri uuemat versiooni.</string>

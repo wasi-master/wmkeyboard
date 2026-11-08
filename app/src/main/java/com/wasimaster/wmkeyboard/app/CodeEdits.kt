@@ -212,7 +212,7 @@ private fun isBlank(character: Char): Boolean = character == ' ' || character ==
 // The edits behind the keys. See CodeShortcuts.kt for which key runs which.
 // ---------------------------------------------------------------------------
 
-/** How many columns apart the indent stops are: the width of one step of [CodeEditorState.shiftLines]. */
+/** How many columns apart the indent stops are, unless a language's [CodeSmartRules.indentWidth] says otherwise. */
 internal const val CODE_TAB_STOP = 2
 
 /**
@@ -226,10 +226,10 @@ internal fun tabShiftsLines(text: String, selection: TextRange): Boolean {
     return selection.max > line.max || (selection.min == line.min && selection.max == line.max)
 }
 
-/** Spaces from the caret to the next indent stop, typed over [selection]. */
-internal fun insertIndent(text: String, selection: TextRange): CodeTextEdit {
+/** Spaces from the caret to the next indent stop, [width] columns apart, typed over [selection]. */
+internal fun insertIndent(text: String, selection: TextRange, width: Int = CODE_TAB_STOP): CodeTextEdit {
     val column = selection.min - lineRangeAt(text, selection.min).min
-    val spaces = " ".repeat(CODE_TAB_STOP - column % CODE_TAB_STOP)
+    val spaces = " ".repeat(width - column % width)
     return CodeTextEdit(TextRange(selection.min, selection.max), spaces, TextRange(selection.min + spaces.length))
 }
 

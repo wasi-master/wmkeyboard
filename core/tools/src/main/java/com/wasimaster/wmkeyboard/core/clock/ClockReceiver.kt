@@ -24,6 +24,7 @@ class ClockReceiver : BroadcastReceiver() {
             ACTION_TIMER -> ClockEngine.onTimerWake(app, now)
             ACTION_DISMISS_ALL -> ClockEngine.dismissAll(app)
             ACTION_SNOOZE_ALL -> ClockEngine.snoozeAll(app)
+            ACTION_RING_SWIPED -> ClockNotifications.reshowRing(app)
             ACTION_SILENCE -> ClockEngine.onSilenceWake(app, now)
             ACTION_UPCOMING -> ClockNotifications.refresh(app, ClockStore.get(app).data)
             ACTION_END_SNOOZE -> ClockEngine.endSnooze(app, id)
@@ -54,6 +55,7 @@ class ClockReceiver : BroadcastReceiver() {
         const val ACTION_TIMER = P + "TIMER"
         const val ACTION_DISMISS_ALL = P + "DISMISS_ALL"
         const val ACTION_SNOOZE_ALL = P + "SNOOZE_ALL"
+        const val ACTION_RING_SWIPED = P + "RING_SWIPED"
         const val ACTION_SILENCE = P + "SILENCE"
         const val ACTION_UPCOMING = P + "UPCOMING"
         const val ACTION_END_SNOOZE = P + "END_SNOOZE"

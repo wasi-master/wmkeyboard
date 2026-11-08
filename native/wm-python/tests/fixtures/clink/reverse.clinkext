@@ -1,0 +1,1 @@
+{"id":"repo-reverse","name":"Reverse","icon":"arrow.left.arrow.right","summary":"Flip the text backwards","source":"def transform(text):\n    return text[::-1]","input":"word","replacesInput":true,"enabled":true}

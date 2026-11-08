@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Enregistrer des données sur votre appareil</string>
     <string name="core_plugins_reject_bad_encoding">« %1$s » contient un script qui n\'est pas un texte UTF-8 valide.</string>
     <string name="core_plugins_reject_bad_id">Cet identifiant de plugin n\'est pas valide. Un identifiant doit comporter entre 3 et 64 caractères. Il peut contenir des lettres minuscules, des chiffres, des points, des tirets et des traits de soulignement.</string>
-    <string name="core_plugins_reject_compiled_lua">« %1$s » contient du code Lua compilé. Un plugin doit utiliser du code source brut afin que vous puissiez le lire avant son exécution.</string>
     <string name="core_plugins_reject_empty_script">« %1$s » a un script vide.</string>
     <string name="core_plugins_reject_missing_script">« %1$s » n\'a pas son fichier de script (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Ce plugin nécessite une version plus récente de WM Keyboard.</string>

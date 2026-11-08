@@ -1,0 +1,1 @@
+[[x * x for x in range(5) if x % 2], {k: v for k, v in [("a", 1), ("b", 2)]}, {c for c in "hello"}, [(a, b) for a in range(2) for b in "xy"], sum(x for x in range(4)), [y for y in [[1, 2], [3]] for y in y]]

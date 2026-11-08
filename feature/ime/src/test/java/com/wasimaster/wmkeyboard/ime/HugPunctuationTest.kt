@@ -105,4 +105,32 @@ class HugPunctuationTest {
         assertNull(dotSuffixJoin("google, ", "com"))
         assertNull(dotSuffixJoin(". ", "com"))
     }
+
+    // #1166: a space typed before the eyes of an emoticon was meant.
+
+    @Test
+    fun `a mouth after the eyes makes an emoticon`() {
+        for (mouth in listOf(")", "(", "P", "p", "D", "-", "3", "/", "|", "*")) {
+            assertTrue(mouth, hugTurnsEmoticon(';', mouth, afterSpace = false))
+            assertTrue(mouth, hugTurnsEmoticon(':', mouth, afterSpace = false))
+        }
+    }
+
+    @Test
+    fun `other marks and other keys are no emoticon`() {
+        assertFalse(hugTurnsEmoticon('.', ")", afterSpace = false))
+        assertFalse(hugTurnsEmoticon(',', "D", afterSpace = false))
+        assertFalse(hugTurnsEmoticon(';', "a", afterSpace = false))
+        assertFalse(hugTurnsEmoticon(':', " ", afterSpace = false))
+        assertFalse(hugTurnsEmoticon(':', ":)", afterSpace = false))
+    }
+
+    @Test
+    fun `across the keyboard's own space only a closing mouth counts`() {
+        assertTrue(hugTurnsEmoticon(';', ")", afterSpace = true))
+        // `word : Do this`, `word: (see below)`: the next word, not a face.
+        assertFalse(hugTurnsEmoticon(':', "D", afterSpace = true))
+        assertFalse(hugTurnsEmoticon(':', "(", afterSpace = true))
+        assertFalse(hugTurnsEmoticon(':', "-", afterSpace = true))
+    }
 }

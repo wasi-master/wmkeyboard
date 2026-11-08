@@ -60,7 +60,7 @@ export function mimeFor(name: string): string {
 			otf: 'font/otf',
 			json: 'application/json',
 			txt: 'text/plain',
-			lua: 'text/x-lua',
+			py: 'text/x-python',
 		} as Record<string, string>
 	)[ext] ?? 'application/octet-stream';
 }

@@ -1,0 +1,1 @@
+{"id":"repo-snake","name":"snake_case","icon":"lasso","summary":"Convert spaces to underscores","source":"def transform(text):\n    return text.strip().lower().replace(\" \", \"_\")","input":"before","replacesInput":true,"enabled":true}

@@ -91,6 +91,8 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 import com.wasimaster.wmkeyboard.core.voice.futoswipe.FutoSwipe
+import com.wasimaster.wmkeyboard.core.voice.speech.KokoroDownloads
+import com.wasimaster.wmkeyboard.core.voice.speech.KokoroVoices
 import com.wasimaster.wmkeyboard.core.voice.speech.MmsVoices
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
@@ -272,6 +274,7 @@ internal object StorageCategories {
     /** The ExecuTorch engines' items among them: one per model, the catalog id after this prefix. */
     private const val ET_ITEM_PREFIX = "et:"
     private const val MMS_ITEM_PREFIX = "mms:"
+    private const val KOKORO_ITEM_ID = "kokoro"
     private const val DENOISE_ITEM_ID = "denoise"
     private const val VAD_ITEM_ID = "vad"
     private const val PUNCTUATION_ITEM_ID = "punctuation"
@@ -511,7 +514,7 @@ internal object StorageCategories {
                     WhisperStore.rootDir(it.files),
                     WhistleModelStore.rootDir(it.files),
                 ) + EtEngine.entries.map { engine -> EtStore.rootDir(it.files, engine) } +
-                    MmsVoices.rootDir(it.files) + StrongDenoise.rootDir(it.files) +
+                    MmsVoices.rootDir(it.files) + KokoroVoices.rootDir(it.files) + StrongDenoise.rootDir(it.files) +
                     DictationPunctuation.rootDir(it.files) + VadModels.rootDir(it.files)
             },
             itemsOf = { env ->
@@ -579,7 +582,17 @@ internal object StorageCategories {
                         bytes = diskUsage(dir, env.roots.blockSize),
                         files = listOf(dir),
                     )
-                }
+                } + listOfNotNull(
+                    // Read back's Kokoro voices (English and Mandarin), one model.
+                    KokoroVoices.rootDir(env.roots.files).takeIf { it.isDirectory }?.let { dir ->
+                        StorageItem(
+                            id = KOKORO_ITEM_ID,
+                            label = "Kokoro voices",
+                            bytes = diskUsage(dir, env.roots.blockSize),
+                            files = listOf(dir),
+                        )
+                    },
+                )
             },
             deleteOne = { env, item ->
                 if (item.id == WHISTLE_ITEM_ID) {
@@ -595,6 +608,8 @@ internal object StorageCategories {
                         ?.let { EtDownloadManager.delete(env.roots.files, it) }
                 } else if (item.id.startsWith(MMS_ITEM_PREFIX)) {
                     item.files.forEach { it.deleteRecursively() }
+                } else if (item.id == KOKORO_ITEM_ID) {
+                    KokoroDownloads.delete(env.roots.files)
                 } else {
                     // The selection goes first: the keyboard must never be pointed
                     // at a model file that is about to disappear.
@@ -611,6 +626,7 @@ internal object StorageCategories {
                 WhistleModelDownloadManager.delete(env.roots.files)
                 EtCatalog.models.forEach { EtDownloadManager.delete(env.roots.files, it) }
                 emptyOut(MmsVoices.rootDir(env.roots.files))
+                KokoroDownloads.delete(env.roots.files)
                 StrongDenoise.delete(env.roots.files)
                 DictationPunctuation.deleteAll(env.roots.files)
                 VadModels.deleteAll(env.roots.files)

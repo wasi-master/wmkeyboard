@@ -80,6 +80,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FontDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Gesture
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwipeVertical
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
@@ -354,6 +355,7 @@ internal object ChoiceOptionIcons {
         put(ToolbarPlacement.STRIP) { Icons.Outlined.ViewCompact }
         put(ToolbarPlacement.ON_DEMAND_ROW) { Icons.Outlined.SmartButton }
         put(ToolbarPlacement.ALWAYS_ROW) { Icons.Outlined.TableRows }
+        put(ToolbarPlacement.ON_SWIPE) { Icons.Outlined.SwipeVertical }
 
         put(ToolboxLayout.ICONS) { Icons.Outlined.Apps }
         put(ToolboxLayout.PILLS) { Icons.Outlined.ViewAgenda }

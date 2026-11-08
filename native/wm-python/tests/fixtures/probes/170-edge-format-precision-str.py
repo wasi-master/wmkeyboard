@@ -1,0 +1,1 @@
+"{:.2}".format("abcdef")

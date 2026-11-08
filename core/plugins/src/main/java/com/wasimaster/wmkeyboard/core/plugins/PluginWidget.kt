@@ -13,7 +13,7 @@ enum class PluginLabelStyle { TITLE, BODY, CAPTION }
  *
  * Immutable and made only of strings, booleans and ints: this crosses from the
  * plugin thread to the UI thread on every render, and nothing that crosses is
- * allowed to be a Lua value or a mutable reference back into the script's world.
+ * allowed to be a reference back into the interpreter.
  */
 sealed interface PluginWidget {
 
@@ -65,7 +65,7 @@ sealed interface PluginWidget {
      * A date, and with [time] a time of day, the user picks with the host's own
      * buttons: a day back or forward, earlier or later, today, clear.
      *
-     * [value] is seconds since the epoch, the unit `os.time` gives, or null for
+     * [value] is seconds since the epoch, the unit `wm.timestamp` gives, or null for
      * no date yet. Like [Input], the widget keeps nothing: each press sends the
      * new value to the script as `date_changed`, and the next render draws
      * whatever the script kept. Without [time] the value is the start of a day.
@@ -109,8 +109,8 @@ data class RenderedUi(
  *
  * The plugin editor turns these into advice, and turns [UNKNOWN_TYPE] into a
  * search of the source for the type it names. None carries a line number, and
- * none can: the codec walks a Lua table, and a table does not know where in the
- * file it was built.
+ * none can: the tree is built from values, and a value does not know where in
+ * the file it was made.
  */
 enum class PluginRepair {
     NOT_A_WIDGET,

@@ -164,7 +164,7 @@ export const BOILERPLATE = {
 	short: 'WM Keyboard is a free, open-source Android keyboard that keeps prediction, autocorrect and voice typing on the phone.',
 	long: [
 		'WM Keyboard is a free and open-source keyboard for Android. Prediction, autocorrect, glide typing, transliteration and offline voice typing all run on the device, and the app carries no ads and no analytics.',
-		'It types in more than 800 languages, with phonetic input for Bangla, Hindi and Urdu, CJK input methods and downloadable dictionaries. A built-in tool belt adds a clipboard manager, translation, OCR and QR scanning, handwriting, GIFs and stickers, a calculator and an on-device AI model. Themes, addon repositories and sandboxed Lua plugins let people make it their own.',
+		'It types in more than 800 languages, with phonetic input for Bangla, Hindi and Urdu, CJK input methods and downloadable dictionaries. A built-in tool belt adds a clipboard manager, translation, OCR and QR scanning, handwriting, GIFs and stickers, a calculator and an on-device AI model. Themes, addon repositories and sandboxed Python plugins let people make it their own.',
 		`WM Keyboard is MIT licensed and available on Google Play, F-Droid and GitHub. Documentation lives at ${SITE_URL}.`,
 	].join('\n\n'),
 };

@@ -22,6 +22,10 @@ OUT=${LLAMA_OUT:-$REPO/core/intelligence/src/llama/jniLibs}
 # The OpenCL build is a gate of its own (`llamagpu`): only an Adreno phone
 # with Compute on GPU fetches it.
 GPU_OUT=${LLAMA_GPU_OUT:-$REPO/core/intelligence/src/llamagpu/jniLibs}
+# The Vulkan build is another (`llamavulkan`), for every other phone GPU
+# (Mali, Xclipse, PowerVR): its shaders make it several times the size of
+# the CPU builds, so only a phone with Compute on GPU fetches it.
+VULKAN_OUT=${LLAMA_VULKAN_OUT:-$REPO/core/intelligence/src/llamavulkan/jniLibs}
 NDK=${ANDROID_NDK:-${ANDROID_NDK_HOME:-}}
 [ -n "$NDK" ] && [ -f "$NDK/build/cmake/android.toolchain.cmake" ] || {
     echo "Set ANDROID_NDK to an NDK install (r27 or newer)" >&2; exit 1; }
@@ -67,10 +71,24 @@ khronos() {
     echo "$src"
 }
 
+# KleidiAI's release archive, checked against the pinned hash, unpacked once
+# and handed to every arm64 configuration (WM_KLEIDIAI in CMakeLists.txt).
+KLEIDIAI_SRC=${KLEIDIAI_SRC:-}
+if [ -z "$KLEIDIAI_SRC" ]; then
+    retry curl -sSfL -o "$WORK/kleidiai.tar.gz" \
+        "https://github.com/ARM-software/kleidiai/releases/download/$KLEIDIAI_TAG/kleidiai-$KLEIDIAI_TAG-src.tar.gz"
+    got=$(shasum -a 256 "$WORK/kleidiai.tar.gz" | cut -c1-64)
+    [ "$got" = "$KLEIDIAI_SHA256" ] || { echo "KleidiAI archive is $got, expected $KLEIDIAI_SHA256" >&2; exit 1; }
+    mkdir -p "$WORK/kleidiai"
+    tar xzf "$WORK/kleidiai.tar.gz" -C "$WORK/kleidiai" --strip-components 1
+    KLEIDIAI_SRC=$WORK/kleidiai
+fi
+KLEIDIAI=(-DWM_KLEIDIAI=ON -DFETCHCONTENT_SOURCE_DIR_KLEIDIAI="$KLEIDIAI_SRC")
+
 # Every path on the build machine is mapped out of the library (__FILE__ in
 # asserts, the NDK's libc++ headers), so two machines with the same NDK build
 # the same bytes. F-Droid's reproducible build relies on that.
-MAP="-ffile-prefix-map=$SRC=llama.cpp -ffile-prefix-map=$WORK=build -ffile-prefix-map=$HERE=. -ffile-prefix-map=$NDK=ndk"
+MAP="-ffile-prefix-map=$SRC=llama.cpp -ffile-prefix-map=$KLEIDIAI_SRC=kleidiai -ffile-prefix-map=$WORK=build -ffile-prefix-map=$HERE=. -ffile-prefix-map=$NDK=ndk"
 
 # abi  library-name  extra cmake flags
 build() {
@@ -84,11 +102,18 @@ build() {
         -DLLAMA_SRC="$SRC" -DWM_LIB_NAME="$name" \
         -DWM_LLAMA_BUILD="$LLAMA_BUILD" -DWM_LLAMA_COMMIT="$LLAMA_SHORT" "$@" > "$out.log" 2>&1 \
         || { tail -30 "$out.log"; exit 1; }
-    cmake --build "$out" --target wmllama >> "$out.log" 2>&1 || { tail -40 "$out.log"; exit 1; }
+    # shellcheck disable=SC2086
+    cmake --build "$out" --target wmllama ${EXTRA_TARGETS:-} >> "$out.log" 2>&1 || { tail -40 "$out.log"; exit 1; }
     local dest=${DEST_ROOT:-$OUT}/$abi
     mkdir -p "$dest"
     "$BIN/llvm-strip" --strip-unneeded -o "$dest/lib$name.so" "$out/lib$name.so"
     echo "$abi lib$name.so: $(wc -c < "$dest/lib$name.so") bytes"
+    # Libraries built beside it that ship with it (the Hexagon skels), as
+    # built: they run on the DSP, which the NDK's strip does not know.
+    local extra
+    for extra in ${EXTRA_FILES:-}; do
+        cp "$out/$extra" "$dest/" && echo "$abi $(basename "$extra"): $(wc -c < "$dest/$(basename "$extra")") bytes"
+    done
     # Each configuration's build tree is a few hundred megabytes: gone before
     # the next one starts.
     rm -rf "$out"
@@ -97,13 +122,19 @@ build() {
 # WMKB_ABIS narrows the build to some of the three (native/build-fdroid-libs.sh).
 wanted() { case " ${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64} " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
 
-# arm64: a baseline ARMv8.0 build every 64-bit phone runs, and one for
-# ARMv8.2 cores with dot-product and half-precision instructions (2018 on),
-# which quantized matrix maths runs several times faster on. LlamaNative picks
-# between them from /proc/cpuinfo at load, the way WhisperCpp does.
-if wanted arm64-v8a; then
-    build arm64-v8a wmllama     -DGGML_CPU_ARM_ARCH=armv8-a
-    build arm64-v8a wmllama_v82 -DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16
+# arm64: a baseline ARMv8.0 build every 64-bit phone runs, one for ARMv8.2
+# cores with dot-product and half-precision instructions (2018 on), which
+# quantized matrix maths runs several times faster on, and one that adds the
+# int8 matrix-multiply instructions (i8mm: Cortex-A510/A710/X2 and later,
+# 2022 on), which ggml's repacked Q4_0/Q8_0 kernels and its plain Q4/Q8 dot
+# products use when compiled in. LlamaNative picks the newest every core can
+# run from /proc/cpuinfo at load, the way WhisperCpp does. All three carry
+# KleidiAI, whose kernels are chosen at run time.
+# WMKB_LLAMA_CPU=0 skips them, to rebuild only a GPU variant.
+if wanted arm64-v8a && [ "${WMKB_LLAMA_CPU:-1}" = 1 ]; then
+    build arm64-v8a wmllama      -DGGML_CPU_ARM_ARCH=armv8-a "${KLEIDIAI[@]}"
+    build arm64-v8a wmllama_v82  -DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16 "${KLEIDIAI[@]}"
+    build arm64-v8a wmllama_i8mm -DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16+i8mm "${KLEIDIAI[@]}"
 fi
 # arm64 with OpenCL: the ARMv8.2 build plus Qualcomm's Adreno backend.
 # LlamaNative loads it only when Compute is GPU on an Adreno phone; it does
@@ -122,7 +153,44 @@ if wanted arm64-v8a && [ "${WMKB_LLAMA_GPU:-1}" = 1 ]; then
         && cmake --build "$WORK/cl-loader" --target OpenCL >> "$WORK/cl-loader.log" 2>&1 \
         || { tail -30 "$WORK/cl-loader.log"; exit 1; }
     DEST_ROOT=$GPU_OUT build arm64-v8a wmllama_opencl -DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16 -DWM_GPU=opencl \
-        -DOpenCL_INCLUDE_DIR="$CL_HEADERS" -DOpenCL_LIBRARY="$WORK/cl-loader/libOpenCL.so"
+        -DOpenCL_INCLUDE_DIR="$CL_HEADERS" -DOpenCL_LIBRARY="$WORK/cl-loader/libOpenCL.so" "${KLEIDIAI[@]}"
+fi
+# arm64 with Vulkan: the ARMv8.2 build plus ggml's Vulkan backend, for the
+# GPUs Qualcomm's OpenCL backend refuses (Mali, Xclipse, PowerVR).
+# LlamaNative loads it only when Compute is GPU on such a phone. ggml compiles
+# its shaders with a pinned glslc (native/vulkan.sh) through a host tool
+# (vulkan-shaders-gen, built with this machine's compiler) and embeds the
+# SPIR-V; it links the NDK's libvulkan.so stub, and the phone's loader at run
+# time.
+if wanted arm64-v8a && [ "${WMKB_LLAMA_VULKAN:-1}" = 1 ]; then
+    # shellcheck disable=SC1091
+    . "$HERE/../vulkan.sh"
+    vulkan_setup "$WORK" "$BIN"
+    DEST_ROOT=$VULKAN_OUT build arm64-v8a wmllama_vulkan -DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16 -DWM_GPU=vulkan \
+        "${VULKAN_CMAKE[@]}" "${KLEIDIAI[@]}"
+fi
+# arm64 with Qualcomm's Hexagon NPU backend, and its DSP skels, one per HTP
+# generation (v73: Snapdragon 8 Gen 2, through v85). Needs the Hexagon SDK,
+# which runs on x86-64 Linux only: built by .github/workflows/llama-hexagon.yml
+# in Qualcomm's toolchain container, never by F-Droid (the SDK is proprietary),
+# so it is off unless HEXAGON_SDK_ROOT is set.
+if wanted arm64-v8a && [ -n "${HEXAGON_SDK_ROOT:-}" ] && [ "${WMKB_LLAMA_HEXAGON:-1}" = 1 ]; then
+    HTP_VERSIONS="v73 v75 v79 v81 v85"
+    htp_targets=""
+    htp_files=""
+    for v in $HTP_VERSIONS; do
+        htp_targets="$htp_targets htp-$v"
+        htp_files="$htp_files llama/ggml/src/ggml-hexagon/libggml-htp-$v.so"
+    done
+    # The skels travel in lib/arm64-v8a like any library, where Play holds
+    # every ELF to 16 KB segment alignment, Hexagon ones too; the Hexagon SDK
+    # links at 4 KB. CMake hands LDFLAGS to the skels' own configure as well.
+    LDFLAGS="-Wl,-z,max-page-size=16384" \
+    EXTRA_TARGETS=$htp_targets EXTRA_FILES=$htp_files \
+    DEST_ROOT=${LLAMA_NPU_OUT:-$REPO/core/intelligence/src/llamanpu/jniLibs} \
+        build arm64-v8a wmllama_hexagon -DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16 -DWM_GPU=hexagon \
+        -DHEXAGON_SDK_ROOT="$HEXAGON_SDK_ROOT" ${HEXAGON_TOOLS_ROOT:+-DHEXAGON_TOOLS_ROOT="$HEXAGON_TOOLS_ROOT"} \
+        -DPREBUILT_LIB_DIR=android_aarch64 "${KLEIDIAI[@]}"
 fi
 # armeabi-v7a: small models only in practice (a 32-bit process cannot map
 # much more than a gigabyte), but the phones that run it are the ones a

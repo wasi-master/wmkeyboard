@@ -49,6 +49,8 @@ class ClinkCommunityTest {
         // Only an inline picture is shown; a link to one elsewhere is not followed.
         assertNull(page.items[1].preview)
         assertFalse(page.items[1].importable)
+        // An action's exported .clinkext installs as a plugin.
+        assertTrue(page.items[0].copy(kind = "action").importable)
         assertNull(ClinkCommunity.parsePage("""{"error": "Sign in to continue."}"""))
     }
 

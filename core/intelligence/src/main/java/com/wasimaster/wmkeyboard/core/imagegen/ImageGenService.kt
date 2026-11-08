@@ -202,6 +202,7 @@ class ImageGenService : Service() {
             putLong("seed", r.seed)
             putInt("variants", r.variants)
             putBoolean("safety", r.safetyFilter)
+            putBoolean("gpu", r.gpu)
         }
 
         internal fun fromBundle(b: Bundle) = ImageGenRequest(
@@ -215,6 +216,7 @@ class ImageGenService : Service() {
             variants = b.getInt("variants", 1),
             // A request that did not say is filtered.
             safetyFilter = b.getBoolean("safety", true),
+            gpu = b.getBoolean("gpu", false),
         )
 
         internal fun upscaleToBundle(r: UpscaleRequest) = Bundle().apply {

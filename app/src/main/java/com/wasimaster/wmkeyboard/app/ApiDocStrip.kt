@@ -17,8 +17,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.R
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaApiDocs
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaApiEntry
+import com.wasimaster.wmkeyboard.core.plugins.PyApiEntry
 
 /**
  * The API name at the caret, how it is called, and the first line of what it
@@ -27,9 +26,9 @@ import com.wasimaster.wmkeyboard.core.plugins.lua.LuaApiEntry
  * gesture at all. A tap opens the whole paragraph and a second tap folds it.
  */
 @Composable
-internal fun ApiDocStrip(entry: LuaApiEntry, colors: CodeColors) {
+internal fun ApiDocStrip(entry: PyApiEntry, colors: CodeColors) {
     val call = entry.signature?.let { if (entry.parent.isEmpty()) it else "${entry.parent}.$it" } ?: entry.path
-    CodeDocStrip(entry.path, call, LuaApiDocs.of(entry.path).orEmpty(), colors)
+    CodeDocStrip(entry.path, call, entry.doc, colors)
 }
 
 /**

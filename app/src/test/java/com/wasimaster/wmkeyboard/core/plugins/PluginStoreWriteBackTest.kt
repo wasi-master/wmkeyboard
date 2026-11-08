@@ -25,8 +25,8 @@ class PluginStoreWriteBackTest {
         pluginVersion = version,
         author = "Example",
         description = "A demo.",
-        apiVersion = 1,
-        entry = "main.lua",
+        apiVersion = PluginManifestCodec.API_VERSION,
+        entry = PluginManifestCodec.DEFAULT_ENTRY,
         permissions = permissions,
     )
 

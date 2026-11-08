@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">உங்கள் சாதனத்தில் தரவைச் சேமிக்கவும்</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s”-இல் செல்லுபடியாகாத UTF-8 உரை ஸ்கிரிப்ட் உள்ளது.</string>
     <string name="core_plugins_reject_bad_id">இந்த செருகுநிரல் செல்லுபடியாகாத ஐடியைக் கொண்டுள்ளது. ஐடி 3 முதல் 64 எழுத்துக்கள் நீளம் கொண்டது. ஐடியில் சிறிய எழுத்துக்கள், எண்கள், புள்ளிகள், கோடுகள் மற்றும் அடிக்கோடுகள் இருக்கலாம்.</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” தொகுக்கப்பட்ட லூவா குறியீட்டைக் கொண்டுள்ளது. ஒரு செருகுநிரல் எளிய மூலக் குறியீட்டைப் பயன்படுத்த வேண்டும், எனவே அது இயங்குவதற்கு முன்பு நீங்கள் அதைப் படிக்கலாம்.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” இல் காலியான ஸ்கிரிப்ட் உள்ளது.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” இல் அதன் ஸ்கிரிப்ட் கோப்பு (%2$s) இல்லை.</string>
     <string name="core_plugins_reject_newer_version">இந்த பிளகினுக்கு WM கீபோர்டின் புதிய பதிப்பு தேவை.</string>

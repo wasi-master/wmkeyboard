@@ -22,7 +22,7 @@
     <string name="import_hub_vocab_title">Vocabulary</string>
     <string name="import_hub_vocab_subtitle">Word lists to study</string>
     <string name="import_hub_plugins_title">Plugins</string>
-    <string name="import_hub_plugins_subtitle">Lua plugins</string>
+    <string name="import_hub_plugins_subtitle_python">Python plugins</string>
     <string name="about_storage_subtitle">See what the app keeps on your device, and delete it</string>
 
     <!-- the summary at the top -->
@@ -113,10 +113,12 @@
     <string name="storage_lib_kiwi">Korean spacing correction</string>
     <string name="storage_lib_webrtc">PairDrop in Send files</string>
     <string name="storage_lib_grammar">Harper, the on-device grammar checker</string>
+    <string name="storage_lib_plugins">The Python interpreter plugins run in, and the plugin editor\'s checks</string>
     <string name="storage_lib_spell">Spell checking with Hunspell, Divvunspell and Voikko dictionaries</string>
     <string name="storage_lib_ocr">Tesseract, for offline text scanning</string>
     <string name="storage_lib_rime">The RIME engine for Chinese</string>
     <string name="storage_lib_mozc">The Mozc engine for Japanese</string>
+    <string name="storage_lib_langid">fastText and CLD3, which tell the Translate tool what language a text is in on builds without Google\'s</string>
     <string name="storage_lib_bergamot">Bergamot, the free on-device engine in the Translate tool</string>
     <string name="storage_lib_ct2">The NLLB engine in the Translate tool</string>
     <string name="storage_lib_zinnia">Offline handwriting for Chinese and Japanese</string>

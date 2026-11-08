@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">デバイスにデータを保存</string>
     <string name="core_plugins_reject_bad_encoding">「%1$s」には有効なUTF-8テキストではないスクリプトが含まれています。</string>
     <string name="core_plugins_reject_bad_id">このプラグインのIDは無効です。IDは3〜64文字である必要があります。IDには小文字、数字、ドット、ハイフン、アンダースコアを使用できます。</string>
-    <string name="core_plugins_reject_compiled_lua">「%1$s」にはコンパイル済みのLuaコードが含まれています。プラグインはプレーンなソースコードを使用する必要があるため、実行前に内容を確認できます。</string>
     <string name="core_plugins_reject_empty_script">「%1$s」には空のスクリプトが含まれています。</string>
     <string name="core_plugins_reject_missing_script">「%1$s」にはスクリプトファイル（%2$s）がありません。</string>
     <string name="core_plugins_reject_newer_version">このプラグインには、より新しいバージョンのWM Keyboardが必要です。</string>

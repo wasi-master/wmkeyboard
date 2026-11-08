@@ -1,10 +1,6 @@
 package com.wasimaster.wmkeyboard.core.plugins
 
 import com.wasimaster.wmkeyboard.plugins.R
-import org.luaj.vm2.Globals
-import org.luaj.vm2.LuaError
-import org.luaj.vm2.LuaTable
-import org.luaj.vm2.LuaValue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
@@ -16,42 +12,38 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Runs one plugin at a time, off the keyboard's thread, with a watchdog.
  *
  * The contract the rest of the app relies on: **nothing here can make the
- * keyboard wait.** Every Lua call happens on a dedicated daemon thread, results
- * come back through [Listener], and the worst a broken plugin can do is fail to
- * draw its own panel.
+ * keyboard wait.** Every call into the script happens on a dedicated daemon
+ * thread, results come back through [Listener], and the worst a broken plugin
+ * can do is fail to draw its own panel.
  *
  * ## Stopping a plugin that will not stop
  *
- * Two mechanisms, because one is not enough. [PluginBudget]'s instruction hook
- * catches everything that is executing Lua — an infinite loop dies in
- * microseconds. What it cannot catch is a thread inside luaj's own Java code,
- * where no bytecode boundary is ever crossed; a pathological `string.gsub` is
- * the realistic case. The watchdog covers that: it notices a call that is past
- * its deadline with the hook plainly not firing, and *abandons* the thread.
- *
- * Abandoning is not killing. `Thread.stop` is gone from the platform for good
- * reasons and luaj never polls for interrupts, so a thread spinning in Java is a
- * thread that keeps spinning. What abandonment does is sever it: the session is
- * marked revoked so every `wm.*` call it might still make throws instead of
- * doing anything, its executor is shut down, its priority is dropped, and the
- * runtime forgets it exists. It burns CPU until the process ends and can affect
- * nothing else. A plugin that does this twice is disabled — see
- * [PluginStore.recordAbandon] — because a plugin that hangs the panel twice has
- * used up the benefit of the doubt.
+ * The interpreter (`libwm_python_jni`, through [PythonSession]) counts steps and
+ * reads the clock on every one, and checks a cancel flag as often, so an
+ * infinite loop, a runaway regex or an overlong call all stop themselves
+ * within one step of their limit. The watchdog is the fallback for a call
+ * that is somehow still running [Limits.watchdogGraceMillis] past its
+ * deadline: it cancels it, and if that has not helped after another grace
+ * period it *abandons* the thread. Abandoning severs rather than kills: the
+ * session is marked revoked so nothing it produces reaches the app, its
+ * executor is shut down, its priority dropped, and the runtime forgets it.
+ * A plugin that is abandoned twice is disabled ([PluginStore.recordAbandon]).
  *
  * ## Drafts
  *
  * The plugin editor runs a script nobody has installed, through [open] with a
  * [Draft]. A draft is never in the store, earns no strikes, and uses whatever
- * log and storage the editor hands it, so running half-written code can never
- * disable or overwrite the installed plugin it will one day replace.
+ * log, storage and reminders files the editor hands it, so running half-written
+ * code can never disable or overwrite the installed plugin it will replace.
  *
  * ## Threading
  *
- * [open], [dispatch] and [close] are called from the keyboard's thread. Every
- * [Listener] callback is handed to [post], which the host supplies to hop back
- * to its own thread; tests pass a direct runner. Nothing in here calls back into
- * itself, and the listener must not re-enter the runtime synchronously.
+ * [open], [dispatch] and [close] are called from the keyboard's thread and
+ * never wait on the script: freeing an interpreter is queued behind whatever
+ * call it is in. Every [Listener] callback is handed to [post], which the host
+ * supplies to hop back to its own thread; tests pass a direct runner. Nothing
+ * in here calls back into itself, and the listener must not re-enter the
+ * runtime synchronously.
  */
 class PluginRuntime(
     private val store: PluginStore,
@@ -95,8 +87,8 @@ class PluginRuntime(
 
     /**
      * Why a call failed, told the way an author needs it. Unlike the [Listener]'s
-     * message, [text] is not cut short, so a runtime error keeps its traceback.
-     * [chunk] and [line] are read off the first line of [text], when it names one.
+     * message, [text] is not cut short. [line] is the line of `main.py` the
+     * interpreter named, when it named one; [chunk] is then [SCRIPT_CHUNK].
      */
     data class Failure(
         val kind: Kind,
@@ -105,7 +97,7 @@ class PluginRuntime(
         val line: Int?,
         val phase: Phase,
     ) {
-        enum class Kind { COMPILE, RUNTIME, INSTRUCTIONS, DEADLINE, CANCELLED, ABANDONED, RECURSION, UNEXPECTED }
+        enum class Kind { COMPILE, RUNTIME, INSTRUCTIONS, DEADLINE, CANCELLED, ABANDONED, RECURSION, MEMORY, UNEXPECTED }
     }
 
     /**
@@ -114,10 +106,8 @@ class PluginRuntime(
      * arrives.
      *
      * Called **on the plugin thread**, not through [post], and [onFailure] for an
-     * abandoned session on the watchdog's. Posting one runnable per printed line
-     * would be a flood, and printing inside a render loop is what everyone does
-     * the first time they debug one. An implementation must not block and must not
-     * touch UI state directly. Every method has a do-nothing default.
+     * abandoned session on the watchdog's. An implementation must not block and
+     * must not touch UI state directly. Every method has a do-nothing default.
      */
     interface Observer {
         fun onPrint(pluginId: String, line: String) {}
@@ -129,16 +119,22 @@ class PluginRuntime(
         fun onEvent(pluginId: String, event: PluginEvent) {}
     }
 
-    /** A session supplied in full, rather than one read out of the store. */
+    /**
+     * A session supplied in full, rather than one read out of the store.
+     * [storage] and [reminders] are the files the interpreter keeps
+     * `wm.storage` and `wm.reminders` in, or null for memory only; the
+     * plugin's permissions still decide whether the script can reach them.
+     */
     data class Draft(
         val plugin: InstalledPlugin,
         val script: String,
         val log: PluginLog,
-        val storage: PluginStorage?,
+        val storage: java.io.File?,
         /** Runaway strikes belong to installed plugins. A draft never earns one. */
         val recordStrikes: Boolean = false,
-        /** `wm.reminders`, when the manifest declares it. The editor's never reach the shade. */
-        val reminders: PluginReminders? = null,
+        val reminders: java.io.File? = null,
+        /** Whether a change to [reminders] should move the app's wake-up: only an installed plugin's. */
+        val liveReminders: Boolean = false,
     )
 
     data class Limits(
@@ -182,19 +178,17 @@ class PluginRuntime(
             post { listener.onError(pluginId, PluginText.of(R.string.core_plugins_error_script_missing)) }
             return
         }
-
-        val log = PluginLog(store.logFile(pluginId))
-        val storage = if (plugin.grants(PluginPermission.Storage)) {
-            PluginStorage(store.storageFile(pluginId))
-        } else {
-            null
-        }
-        val reminders = if (plugin.grants(PluginPermission.Reminders)) {
-            PluginReminders(store.remindersFile(pluginId), onRemindersChanged)
-        } else {
-            null
-        }
-        start(Draft(plugin, script, log, storage, recordStrikes = true, reminders = reminders))
+        start(
+            Draft(
+                plugin = plugin,
+                script = script,
+                log = PluginLog(store.logFile(pluginId)),
+                storage = store.storageFile(pluginId),
+                recordStrikes = true,
+                reminders = store.remindersFile(pluginId),
+                liveReminders = true,
+            ),
+        )
     }
 
     /** Loads a script the caller supplies, installed or not, and renders it. Replaces whatever was open. */
@@ -211,15 +205,17 @@ class PluginRuntime(
         submit(current, limits.event, Phase.EVENT) { handle(current, event) }
     }
 
-    /** Ends the session. Safe to call when nothing is open. */
+    /** Ends the session. Safe to call when nothing is open, and never waits for the script. */
     @Synchronized
     fun close() {
         val current = session ?: return
         session = null
         current.revoked = true
-        current.budget.cancel()
+        current.python?.cancel()
         current.watch?.cancel(false)
         current.log.flush()
+        // Freed on the plugin thread, after the call it may be in has stopped.
+        runCatching { current.executor.execute { current.python?.close() } }
         current.executor.shutdown()
     }
 
@@ -231,7 +227,7 @@ class PluginRuntime(
     }
 
     private fun start(draft: Draft) {
-        val fresh = Session(draft.plugin, draft.log, draft.storage, draft.recordStrikes, draft.reminders)
+        val fresh = Session(draft.plugin, draft.log, draft.recordStrikes)
         session = fresh
         fresh.watch = watchdog.scheduleWithFixedDelay(
             { patrol(fresh) },
@@ -239,114 +235,72 @@ class PluginRuntime(
             limits.watchdogPeriodMillis,
             TimeUnit.MILLISECONDS,
         )
-        submit(fresh, limits.load, Phase.LOAD) { load(fresh, draft.script) }
+        submit(fresh, limits.load, Phase.LOAD) { load(fresh, draft) }
     }
 
     // ---- work on the plugin thread ---------------------------------------
 
-    private fun load(current: Session, script: String) {
-        val globals = PluginSandbox.create(current.budget) { line ->
-            current.log.add(line)
-            observer?.onPrint(current.plugin.id, line)
-        }
-        val api = PluginHostApi(
-            plugin = current.plugin,
-            log = current.log,
-            storage = current.storage,
-            setInput = { id, text -> current.pendingInputs.add(id to text) },
-            revoked = { current.revoked },
-            onLine = { line -> observer?.onPrint(current.plugin.id, line) },
-            reminders = current.reminders,
+    private fun load(current: Session, draft: Draft) {
+        val python = PythonSession.create(
+            PythonSession.Config(
+                plugin = current.plugin,
+                mode = PythonSession.Config.PANEL,
+                storagePath = draft.storage?.path,
+                remindersPath = draft.reminders?.path,
+                load = limits.load,
+                event = limits.event,
+                render = limits.render,
+            ),
         )
-        globals.set("wm", api.table())
-        PluginSandbox.compile(globals, PluginPrelude.SOURCE, PluginPrelude.CHUNK_NAME).call()
-        // Split so a compile error can be told from a runtime one. The keyboard
-        // hears both the same way; only an observer learns which it was.
-        val chunk = try {
-            PluginSandbox.compile(globals, script)
-        } catch (error: LuaError) {
-            throw CompileFailure(error)
-        }
-        chunk.call()
-        current.globals = globals
-        finishPhase(current)
-        render(current)
-    }
-
-    private fun handle(current: Session, event: PluginEvent) {
-        val globals = current.globals ?: return
-        observer?.onEvent(current.plugin.id, event)
-        val handler = globals.get("on_event")
-        if (handler.isfunction()) handler.call(eventTable(event))
-        flushInputs(current)
-        finishPhase(current)
-        render(current)
-    }
-
-    private fun render(current: Session) {
-        val globals = current.globals ?: return
-        // A fresh allowance every time: drawing is not charged against whatever
-        // ran before it, or a plugin that thinks hard once could never draw again.
-        current.budget.begin(limits.render)
-        current.phase = Phase.RENDER
-        val renderFn = globals.get("render")
-        if (!renderFn.isfunction()) {
-            val message = PluginText.of(R.string.core_plugins_error_no_render)
+        if (python == null) {
+            val message = PluginText.of(R.string.core_plugins_error_not_ready)
             deliver(current) { listener.onError(current.plugin.id, message) }
             return
         }
-        val ui = PluginUiCodec.fromLua(renderFn.call())
-        flushInputs(current)
-        deliver(current) { listener.onUi(current.plugin.id, ui) }
+        current.python = python
+        current.liveReminders = draft.liveReminders
+        handleResult(current, python.load(draft.script), Phase.LOAD)
+    }
+
+    private fun handle(current: Session, event: PluginEvent) {
+        val python = current.python ?: return
+        observer?.onEvent(current.plugin.id, event)
+        handleResult(current, python.event(event), Phase.EVENT)
     }
 
     /**
-     * Tells an observer what the phase that just ran spent, before render begins
-     * the next allowance and the numbers are gone. Only with an observer: without
-     * one the budget runs exactly as it always has.
+     * Everything a result carries, in the order it happened: printed lines,
+     * what each phase spent, input writes, then the panel or the failure.
      */
-    private fun finishPhase(current: Session) {
-        val watcher = observer ?: return
-        current.budget.end()
-        watcher.onPhase(current.plugin.id, current.phase, current.budget.usage())
-    }
-
-    private fun flushInputs(current: Session) {
-        if (current.pendingInputs.isEmpty()) return
-        val writes = current.pendingInputs.toList()
-        current.pendingInputs.clear()
-        for ((id, text) in writes) {
+    private fun handleResult(current: Session, result: PythonSession.Result, phase: Phase) {
+        for (line in result.log) {
+            current.log.add(line)
+            observer?.onPrint(current.plugin.id, line)
+        }
+        for (spent in result.phases) {
+            val which = when (spent.phase) {
+                "load" -> Phase.LOAD
+                "event" -> Phase.EVENT
+                "render" -> Phase.RENDER
+                else -> null
+            } ?: continue
+            current.phase = which
+            observer?.onPhase(current.plugin.id, which, spent.usage)
+        }
+        if (result.remindersChanged && current.liveReminders) onRemindersChanged()
+        for ((id, text) in result.inputs) {
             deliver(current) { listener.onInputWrite(current.plugin.id, id, text) }
         }
-    }
-
-    private fun eventTable(event: PluginEvent): LuaTable {
-        val table = LuaTable()
-        table.set("id", event.id)
-        when (event) {
-            is PluginEvent.Click -> table.set("type", "click")
-            is PluginEvent.ToggleChanged -> {
-                table.set("type", "toggle")
-                table.set("value", LuaValue.valueOf(event.value))
+        val error = result.error
+        when {
+            result.ok && result.ui != null -> {
+                val ui = result.ui
+                deliver(current) { listener.onUi(current.plugin.id, ui) }
             }
 
-            is PluginEvent.InputChanged -> {
-                table.set("type", "input_changed")
-                table.set("value", event.value)
-            }
-
-            is PluginEvent.TabSelected -> {
-                table.set("type", "tab_selected")
-                table.set("index", event.index)
-            }
-
-            is PluginEvent.DateChanged -> {
-                table.set("type", "date_changed")
-                // nil for a cleared date, which is how a script tells "no date".
-                table.set("value", event.value?.let { LuaValue.valueOf(it.toDouble()) } ?: LuaValue.NIL)
-            }
+            // The phase the result ended in: a render() failing after a load is a render failure.
+            error != null -> failed(current, error, if (result.phases.isEmpty()) phase else current.phase)
         }
-        return table
     }
 
     // ---- scheduling and failure -------------------------------------------
@@ -365,16 +319,20 @@ class PluginRuntime(
         )
         val submitted = runCatching {
             current.executor.execute {
+                if (current.revoked) {
+                    busy.cancel(false)
+                    return@execute
+                }
                 current.thread = Thread.currentThread()
                 current.phase = phase
-                current.budget.begin(limit)
+                // Render follows load and event in the same call, on its own allowance.
+                current.deadlineNanos = System.nanoTime() + (limit.wallMillis + limits.render.wallMillis) * NANOS_PER_MILLI
                 try {
                     body()
                 } catch (failure: Throwable) {
-                    onFailure(current, failure)
+                    unexpected(current, failure)
                 } finally {
-                    current.budget.end()
-                    observer?.onPhase(current.plugin.id, current.phase, current.budget.usage())
+                    current.deadlineNanos = Long.MAX_VALUE
                     finished.set(true)
                     busy.cancel(false)
                     deliver(current) { listener.onBusy(current.plugin.id, false) }
@@ -386,64 +344,65 @@ class PluginRuntime(
         if (!submitted) busy.cancel(false)
     }
 
-    @Suppress("TooGenericExceptionCaught")
-    private fun onFailure(current: Session, failure: Throwable) {
-        when (failure) {
-            is PluginAbort -> {
-                val reason = failure.reason.name.lowercase()
-                current.log.add("stopped: $reason")
-                observe(current, abortKind(failure.reason), "stopped: $reason")
+    private fun failed(current: Session, error: PythonSession.Error, phase: Phase) {
+        when (error.kind) {
+            PythonSession.Error.ABORT -> {
+                val reason = PluginAbortReason.ofWire(error.abort) ?: PluginAbortReason.INSTRUCTIONS
+                val wire = error.abort ?: "steps"
+                current.log.add("stopped: $wire")
+                observe(current, abortKind(reason), "stopped: $wire", null, phase)
                 // Cancellation is the host closing the panel, which the user did
                 // on purpose and does not need to be told about.
-                if (failure.reason != PluginAbortReason.CANCELLED) {
-                    stop(current, PluginText.of(failure.reason.messageRes), strike = true)
+                if (reason != PluginAbortReason.CANCELLED && !current.revoked) {
+                    stop(current, PluginText.of(reason.messageRes), strike = reason.strikes)
                 }
             }
 
-            is CompileFailure -> scriptFailed(current, failure.error, Failure.Kind.COMPILE)
-            is LuaError -> scriptFailed(current, failure, Failure.Kind.RUNTIME)
+            PythonSession.Error.NO_RENDER -> {
+                val message = PluginText.of(R.string.core_plugins_error_no_render)
+                deliver(current) { listener.onError(current.plugin.id, message) }
+            }
 
-            is StackOverflowError -> {
-                current.log.add("error: stack overflow")
-                observe(current, Failure.Kind.RECURSION, "stack overflow")
-                stop(current, PluginText.of(R.string.core_plugins_stopped_recursion), strike = false)
+            PythonSession.Error.COMPILE, PythonSession.Error.RUNTIME -> {
+                val raw = error.message.take(MAX_ERROR)
+                current.log.add("error: ${raw.ifEmpty { "the script failed" }}")
+                val kind = if (error.kind == PythonSession.Error.COMPILE) Failure.Kind.COMPILE else Failure.Kind.RUNTIME
+                observe(current, kind, error.message, error.line, phase)
+                // The interpreter wrote this, so it goes to the panel as it
+                // arrived. Only the stand-in for a missing message is ours.
+                val message = raw.takeIf { it.isNotEmpty() }?.let { PluginText.Script(locatedText(it, error.line)) }
+                    ?: PluginText.of(R.string.core_plugins_error_script_failed)
+                deliver(current) { listener.onError(current.plugin.id, message) }
             }
 
             else -> {
-                // The class name alone is not a bug report. A bare
-                // "NoClassDefFoundError" in someone's log says a plugin broke and
-                // nothing about what broke it, so the message comes too.
-                val name = failure.javaClass.simpleName
-                val detail = failure.message?.take(MAX_ERROR)
-                current.log.add("error: " + if (detail != null) "$name: $detail" else name)
-                observe(current, Failure.Kind.UNEXPECTED, failure.message?.let { "$name: $it" } ?: name)
+                current.log.add("error: ${error.kind}: ${error.message.take(MAX_ERROR)}")
+                observe(current, Failure.Kind.UNEXPECTED, error.message, error.line, phase)
                 stop(current, PluginText.of(R.string.core_plugins_stopped_unexpected), strike = false)
             }
         }
     }
 
-    /** A script that failed to compile or raised an error. The session survives either. */
-    private fun scriptFailed(current: Session, error: LuaError, kind: Failure.Kind) {
-        val raw = error.message?.take(MAX_ERROR)
-        current.log.add("error: ${raw ?: "the script failed"}")
-        observe(current, kind, error.message.orEmpty())
-        // The Lua virtual machine wrote this, so it goes to the panel as
-        // it arrived. Only the stand-in for a missing message is ours.
-        val message = raw?.let { PluginText.Script(it) }
-            ?: PluginText.of(R.string.core_plugins_error_script_failed)
-        deliver(current) { listener.onError(current.plugin.id, message) }
+    /** Something in this process threw: never the script's doing, so never a strike. */
+    private fun unexpected(current: Session, failure: Throwable) {
+        val name = failure.javaClass.simpleName
+        val detail = failure.message?.take(MAX_ERROR)
+        current.log.add("error: " + if (detail != null) "$name: $detail" else name)
+        observe(current, Failure.Kind.UNEXPECTED, failure.message?.let { "$name: $it" } ?: name, null, current.phase)
+        stop(current, PluginText.of(R.string.core_plugins_stopped_unexpected), strike = false)
     }
 
-    private fun observe(current: Session, kind: Failure.Kind, text: String) {
+    private fun observe(current: Session, kind: Failure.Kind, text: String, line: Int?, phase: Phase) {
         val watcher = observer ?: return
-        val (chunk, line) = locate(text)
-        watcher.onFailure(current.plugin.id, Failure(kind, text, chunk, line, current.phase))
+        watcher.onFailure(current.plugin.id, Failure(kind, text, line?.let { SCRIPT_CHUNK }, line, phase))
     }
 
     private fun abortKind(reason: PluginAbortReason): Failure.Kind = when (reason) {
         PluginAbortReason.INSTRUCTIONS -> Failure.Kind.INSTRUCTIONS
         PluginAbortReason.DEADLINE -> Failure.Kind.DEADLINE
         PluginAbortReason.CANCELLED -> Failure.Kind.CANCELLED
+        PluginAbortReason.RECURSION -> Failure.Kind.RECURSION
+        PluginAbortReason.MEMORY -> Failure.Kind.MEMORY
     }
 
     /** Ends the session for a reason the user should see. */
@@ -460,26 +419,30 @@ class PluginRuntime(
     }
 
     /**
-     * One watchdog tick. Only fires for a thread that is past its deadline and
-     * is not in a host call — by which point the instruction hook has plainly
-     * not run, so waiting longer would not help.
+     * One watchdog tick. A call past its deadline by a grace period is
+     * cancelled; one still running a grace period after that is abandoned.
      */
     private fun patrol(current: Session) {
         if (current.revoked) return
-        if (!current.budget.isStuck(limits.watchdogGraceMillis)) return
-        abandon(current)
+        val deadline = current.deadlineNanos
+        if (deadline == Long.MAX_VALUE) return
+        val over = System.nanoTime() - deadline
+        val grace = limits.watchdogGraceMillis * NANOS_PER_MILLI
+        when {
+            over > 2 * grace -> abandon(current)
+            over > grace -> current.python?.cancel()
+        }
     }
 
     private fun abandon(current: Session) {
         current.revoked = true
-        current.budget.cancel()
         current.watch?.cancel(false)
         current.log.add("abandoned: exceeded its time limit")
         current.log.flush()
-        observe(current, Failure.Kind.ABANDONED, "abandoned: exceeded its time limit")
-        // Severed rather than stopped: it may still be running, but every route
-        // from it back into the app now refuses, and it is the lowest-priority
-        // daemon on the device.
+        observe(current, Failure.Kind.ABANDONED, "abandoned: exceeded its time limit", null, current.phase)
+        // Severed rather than stopped: it may still be running, but nothing it
+        // returns reaches the app now, and it is the lowest-priority daemon on
+        // the device. Its interpreter is never freed, since it may still be in it.
         runCatching { current.executor.shutdownNow() }
         runCatching { current.thread?.priority = Thread.MIN_PRIORITY }
 
@@ -524,14 +487,14 @@ class PluginRuntime(
     private class Session(
         val plugin: InstalledPlugin,
         val log: PluginLog,
-        val storage: PluginStorage?,
         val recordStrikes: Boolean,
-        val reminders: PluginReminders?,
     ) {
-        val budget = PluginBudget()
+        /** Set on the plugin thread by the load; read by the watchdog and [close]. */
+        @Volatile
+        var python: PythonSession? = null
 
-        /** Written on the plugin thread inside a handler, drained straight after. */
-        val pendingInputs = ArrayList<Pair<String, String>>()
+        @Volatile
+        var liveReminders = false
 
         @Volatile
         var revoked = false
@@ -539,40 +502,44 @@ class PluginRuntime(
         @Volatile
         var thread: Thread? = null
 
+        /** When the call in flight should have finished; [Long.MAX_VALUE] when idle. */
+        @Volatile
+        var deadlineNanos = Long.MAX_VALUE
+
         /** The call the plugin thread is in, for an observer's reports. */
         @Volatile
         var phase = Phase.LOAD
 
-        var globals: Globals? = null
         var watch: ScheduledFuture<*>? = null
 
         val executor: ExecutorService = Executors.newSingleThreadExecutor { runnable ->
-            Thread(runnable, "wm-plugin-${plugin.id}").apply {
+            Thread(null, runnable, "wm-plugin-${plugin.id}", PLUGIN_STACK_BYTES).apply {
                 isDaemon = true
                 priority = Thread.NORM_PRIORITY - 1
             }
         }
     }
 
-    /** A compile error, carried past the chunk call so [onFailure] can say which kind it was. */
-    private class CompileFailure(val error: LuaError) : RuntimeException(error.message, error) {
-        override fun fillInStackTrace(): Throwable = this
-    }
-
     companion object {
         private const val MAX_ERROR = 300
-
-        /** `main.lua:12: ...`, `@main.lua:12 ...`, or the prelude's equivalent, at the start of a line. */
-        private val LOCATION = Regex("""^\s*@?(main\.lua|prelude\.lua):(\d+)\b""")
+        private const val NANOS_PER_MILLI = 1_000_000L
 
         /**
-         * The chunk and line a luaj message starts with, or nulls when it names
-         * none. Only the first line is read: the frames of a traceback below it
-         * name other places, and the first line is where the error happened.
+         * The interpreter recurses on the native stack, 300 calls deep at most,
+         * which wants about 1 MB; `libwm_python_jni` asks its hosts for 8 MB so a
+         * recursion stop can never be a stack overflow that takes the process.
          */
-        fun locate(text: String): Pair<String?, Int?> {
-            val match = LOCATION.find(text.substringBefore('\n')) ?: return null to null
-            return match.groupValues[1] to match.groupValues[2].toIntOrNull()
-        }
+        const val PLUGIN_STACK_BYTES = 8L * 1024 * 1024
+
+        /** The file a [Failure]'s line is in. */
+        const val SCRIPT_CHUNK = PluginStore.SCRIPT_FILE
+
+        /** `main.py:12: message`, the shape the keyboard's panel shows an error in. */
+        fun locatedText(message: String, line: Int?): String =
+            if (line == null) message else "$SCRIPT_CHUNK:$line: $message"
     }
 }
+
+/** Whether stopping for this reason counts toward disabling the plugin. */
+private val PluginAbortReason.strikes: Boolean
+    get() = this == PluginAbortReason.INSTRUCTIONS || this == PluginAbortReason.DEADLINE

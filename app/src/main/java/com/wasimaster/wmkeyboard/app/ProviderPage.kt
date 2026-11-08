@@ -346,6 +346,8 @@ internal fun ProviderOwnSettings(
         -> EtEngine.byId(type.id)?.takeIf { it.runtimeShipped }?.let {
             EtModelManager(it, settings)
             if (it == EtEngine.SHERPA) SherpaCustomModels(settings)
+            // Where the engine's phrase ends, next to the engine (#1174).
+            if (it.live) VoicePhraseEndGroup(repository, settings)
         }
         ProviderTypes.TRANSCRIPTION_SERVER.id -> VoiceServerSettings(repository, settings)
         // ---- Translate: the model lists that sat above the list, and DeepL's own use besides translating.

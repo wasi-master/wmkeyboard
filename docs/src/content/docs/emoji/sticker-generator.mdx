@@ -94,6 +94,7 @@ Tap a finished picture, then **Cut out and edit**. The background remover lifts 
 - **Steps**, **Guidance** and the **Negative prompt** (what to leave out) appear only for a model that uses them: the NPU model, or a model you imported. SDXS draws in one step without guidance, so it has none of them.
 - **Remove the background**: on by default. Off, the editor opens on the picture as drawn. A picture that came back with a transparent background (GPT Image draws them that way) skips it. The F-Droid build has no background remover, so there the editor's eraser does the job.
 - **Safety filter**: see below.
+- **Draw on the GPU**: off by default, and listed only on a phone with a GPU the generator can use: an Adreno, or another GPU with Vulkan 1.2 (Mali, Xclipse, PowerVR). On, the on-device models (not the NPU model, which has its own) run on the graphics chip through OpenCL, or Vulkan where the phone has no OpenCL, at the same full precision as on the processor, so a seed draws nearly the same picture. The first picture after switching it on waits while the GPU compiles its code, which is kept for next time. Whether it is faster depends on the phone, so compare it with a generation on the processor. If the GPU cannot load a model, the processor draws it.
 
 ## The safety filter
 

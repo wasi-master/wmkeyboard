@@ -4,12 +4,16 @@ import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -20,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -34,6 +39,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager.Status
+import com.wasimaster.wmkeyboard.core.voice.speech.KokoroDownloads
+import com.wasimaster.wmkeyboard.core.voice.speech.KokoroVoices
 import com.wasimaster.wmkeyboard.core.voice.speech.MmsSpeech
 import com.wasimaster.wmkeyboard.core.voice.speech.MmsVoice
 import com.wasimaster.wmkeyboard.core.voice.speech.MmsVoiceDownloads
@@ -43,7 +50,143 @@ import com.wasimaster.wmkeyboard.core.voice.speech.MmsVoices
 @Composable
 internal fun ReadBackToolSettings(settings: LiveSettings) {
     CaptionText(stringResource(R.string.read_back_tool_caption))
+    KokoroGroup(settings)
     SpeechVoicesGroup(settings)
+}
+
+/**
+ * Kokoro: one download that reads English (American and British voices) and
+ * Mandarin, ahead of MMS for those languages, with a voice to pick per
+ * language once it is here. Apache-2.0, so nothing to agree to first.
+ */
+@Composable
+internal fun KokoroGroup(settings: LiveSettings) {
+    if (!MmsSpeech.runtimeShipped) return
+    val context = LocalContext.current
+    val filesDir = context.filesDir
+    val status by KokoroDownloads.status.collectAsState()
+    var meteredAsk by remember { mutableStateOf(false) }
+    var meteredBlocked by remember { mutableStateOf(false) }
+    // Bumped when a voice is picked, so the chips read the choice back.
+    var picks by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) { KokoroDownloads.refresh(filesDir) }
+
+    fun download() {
+        when (downloadDecisionNow(context, settings.value)) {
+            MeteredDecision.ALLOWED -> KokoroDownloads.start(filesDir)
+            MeteredDecision.ASK -> meteredAsk = true
+            MeteredDecision.BLOCKED -> meteredBlocked = true
+        }
+    }
+
+    SettingsGroup(
+        stringResource(R.string.speech_kokoro_group),
+        info = stringResource(R.string.speech_kokoro_info),
+    ) {
+        item {
+            val title = stringResource(R.string.speech_kokoro_title)
+            Column(modifier = Modifier.fillMaxWidth()) {
+                WmRow(
+                    title = title,
+                    subtitle = when (val s = status) {
+                        Status.Downloaded -> stringResource(R.string.speech_kokoro_ready)
+                        is Status.Paused -> stringResource(R.string.models_paused_progress, formatBytes(s.bytes))
+                        else -> stringResource(R.string.speech_voice_missing, formatBytes(KokoroVoices.ARCHIVE_BYTES))
+                    },
+                    trailing = {
+                        when (val s = status) {
+                            Status.Downloaded -> IconButton(onClick = { KokoroDownloads.delete(filesDir) }) {
+                                Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.models_delete_model_desc, title))
+                            }
+                            is Status.Downloading -> IconButton(onClick = { KokoroDownloads.cancel() }) {
+                                Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.models_cancel_download_desc))
+                            }
+                            is Status.Paused -> TextButton(onClick = { download() }) {
+                                Text(stringResource(R.string.models_resume_action))
+                            }
+                            Status.NotDownloaded, is Status.Failed -> if (InternetPermission.granted) {
+                                TextButton(onClick = { download() }) {
+                                    Text(stringResource(if (s is Status.Failed) CommonR.string.common_retry else CommonR.string.common_download))
+                                }
+                            }
+                        }
+                    },
+                )
+                when (val s = status) {
+                    is Status.Downloading -> LinearProgressIndicator(
+                        progress = { (s.bytes.toFloat() / s.total).coerceIn(0f, 1f) },
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
+                    is Status.Failed -> CaptionText(
+                        if (s.messageArg.isEmpty()) stringResource(s.messageRes) else stringResource(s.messageRes, s.messageArg),
+                        error = true,
+                    )
+                    else -> Unit
+                }
+            }
+        }
+        if (status == Status.Downloaded) {
+            for ((language, label) in listOf(
+                KokoroVoices.Language.EN_US to R.string.speech_kokoro_voice_us,
+                KokoroVoices.Language.EN_GB to R.string.speech_kokoro_voice_gb,
+                KokoroVoices.Language.ZH to R.string.speech_kokoro_voice_zh,
+            )) {
+                item {
+                    val chosen = remember(picks) { KokoroVoices.chosen(filesDir, language) }
+                    VoiceChips(
+                        title = stringResource(label),
+                        speakers = KokoroVoices.SPEAKERS.filter { it.language == language },
+                        selected = chosen,
+                    ) {
+                        KokoroVoices.choose(filesDir, it)
+                        picks++
+                    }
+                }
+            }
+        }
+    }
+    if (meteredAsk) {
+        MeteredDownloadDialog(
+            detail = null,
+            onConfirm = {
+                meteredAsk = false
+                KokoroDownloads.start(filesDir)
+            },
+            onDismiss = { meteredAsk = false },
+        )
+    }
+    if (meteredBlocked) MeteredBlockedDialog(onDismiss = { meteredBlocked = false })
+}
+
+@Composable
+private fun VoiceChips(
+    title: String,
+    speakers: List<KokoroVoices.Speaker>,
+    selected: KokoroVoices.Speaker,
+    onSelect: (KokoroVoices.Speaker) -> Unit,
+) {
+    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+        Text(title, style = MaterialTheme.typography.bodyLarge)
+        Row(
+            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(top = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            for (speaker in speakers) {
+                FilterChip(
+                    selected = speaker == selected,
+                    onClick = { onSelect(speaker) },
+                    label = {
+                        Text(
+                            stringResource(
+                                if (speaker.female) R.string.speech_kokoro_voice_female else R.string.speech_kokoro_voice_male,
+                                speaker.label,
+                            ),
+                        )
+                    },
+                )
+            }
+        }
+    }
 }
 
 /**

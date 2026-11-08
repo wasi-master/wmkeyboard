@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.app
 import android.content.Context
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.plugins.PluginActionSpec
 import com.wasimaster.wmkeyboard.core.plugins.PluginDraft
 import com.wasimaster.wmkeyboard.core.plugins.PluginFile
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifest
@@ -28,26 +29,38 @@ internal enum class PluginTemplate(
     val asset: String?,
     /** What the script uses beyond its panel, so the new manifest declares it. */
     val permissions: List<PluginPermission>,
+    /** The selection actions the script's `transform` answers, so the new manifest lists them. */
+    val actions: List<PluginActionSpec> = emptyList(),
 ) {
     BLANK(R.string.plugin_ide_template_blank_name, R.string.plugin_ide_template_blank_description, null, emptyList()),
     TEXT_TOOLS(
         R.string.plugin_ide_template_text_tools_name,
         R.string.plugin_ide_template_text_tools_description,
-        "text-tools.lua",
+        "text-tools.py",
         emptyList(),
     ),
-    CIPHER(R.string.plugin_ide_template_cipher_name, R.string.plugin_ide_template_cipher_description, "cipher-tool.lua", emptyList()),
+    CIPHER(R.string.plugin_ide_template_cipher_name, R.string.plugin_ide_template_cipher_description, "cipher-tool.py", emptyList()),
     TODO(
         R.string.plugin_ide_template_todo_name,
         R.string.plugin_ide_template_todo_description,
-        "todo-list.lua",
+        "todo-list.py",
         listOf(PluginPermission.Storage, PluginPermission.Reminders),
     ),
     KITCHEN_SINK(
         R.string.plugin_ide_template_kitchen_sink_name,
         R.string.plugin_ide_template_kitchen_sink_description,
-        "ui-kitchen-sink.lua",
+        "ui-kitchen-sink.py",
         emptyList(),
+    ),
+    TEXT_ACTIONS(
+        R.string.plugin_ide_template_text_actions_name,
+        R.string.plugin_ide_template_text_actions_description,
+        "text-actions.py",
+        listOf(PluginPermission.Storage, PluginPermission.SelectedText),
+        listOf(
+            PluginActionSpec(id = "rot13", name = "ROT13", summary = "Shift each letter 13 places", icon = "lock"),
+            PluginActionSpec(id = "quote", name = "Wrap in quotes", summary = "Put quotes around the selection"),
+        ),
     ),
     ;
 
@@ -76,6 +89,7 @@ internal fun newDraftFromTemplate(
         name = PluginManifestCodec.sanitise(name, PluginManifestCodec.Field.NAME),
         pluginVersion = "0.1.0",
         permissions = template.permissions.map { it.wire },
+        actions = template.actions,
     )
     return workspace.create(manifest, template.script(context), "template:${template.name.lowercase()}")
 }

@@ -41,6 +41,17 @@ class LayoutPreviewCacheKeyTest {
     }
 
     @Test
+    fun stateWrittenWhileTypingLeavesTheDigestAlone() {
+        val base = KeyboardSettings()
+        val used = base.copy(
+            recentLayoutIds = listOf("en_qwerty", "bn_avro"),
+            statsVersion = base.statsVersion + 1,
+            unitConvertLast = "km>mi",
+        )
+        assertEquals(SettingsDigest.compute(base), SettingsDigest.compute(used))
+    }
+
+    @Test
     fun aVisibleSettingMovesTheDigest() {
         val base = KeyboardSettings()
         val taller = base.copy(keyHeightDp = base.keyHeightDp + 4)

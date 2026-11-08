@@ -1154,7 +1154,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Per-script pinned fonts and per-script font pickers (Noto Music, Noto Sans Symbols 2, Noto Sans <script>) | fetched through the Google Play Services downloadable-fonts provider; on a GMS-free or offline device the async font falls back to the platform default |
 | Android subtype auto-enabling for every layout | needs API 34+ (setExplicitlyEnabledInputMethodSubtypes); on Android 13 and below the user must tick languages in system settings |
 | Layout import from FlorisBoard/HeliBoard files, and addon-repo layout installs | file picker / repository URL; foreign files capped at 4 MB |
-| Everything else in this area (1,555-language registry, 3,688 layouts, all composers, Avro, Bengali spelling maps, fancy text, notation layouts, layout editor) | no build gate: all of it ships in every build, F-Droid's included |
+| Everything else in this area (1,555-language registry, 3,687 layouts, all composers, Avro, Bengali spelling maps, fancy text, notation layouts, layout editor) | no build gate: all of it ships in every build, F-Droid's included |
 
 ## Themes and appearance
 
@@ -2311,7 +2311,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Not built, on purpose — SMS and telephony, notification mirroring, SFTP, contacts, find-my-phone, mouse receiver
     - Identity out of every backup — `filesDir/kdeconnect` (key.pk8, cert.der, devices.json) is excluded in backup_rules and data_extraction_rules: a restored key would clone the device id onto a second phone
     - Nested KdeConnectSettings — one KeyboardSettings slot, flat `kde_*` keys; hidden in direct boot (restrictedToDirectBoot turns it off); NotificationKind.CONNECT for a pair request, file or ping that arrives while the keyboard is hidden
-  - Plugins `RARE` — Runs installed .wmplugin Lua plugins in a panel
+  - Plugins `RARE` — Runs installed .wmplugin Python plugins in a panel
     - List then running view — Cards for installed plugins, Manage row at the end
     - Plugin-owned input field — Panel takes keystrokes; copy/paste/insert callbacks are host-mediated
     - No text, clipboard or network API for plugins — Deliberate Play-policy limit on what a plugin can reach
@@ -3637,57 +3637,75 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Two shipped defaults — The sample add-on repository and the monkeytype sound-pack repository
     - Removal sticks — A per-URL marker file records what has been offered, so a removed default never comes back
     - New defaults reach old installs — Appending to the seed list offers it once on existing devices too
-- **Lua plugins** `RARE` — .wmplugin tool panels running in a locked-down luaj sandbox; 50 installs max, subsystem off until enabled
-  - .wmplugin package `RARE` — ZIP with plugin.json + a Lua source file
-    - Source only — Precompiled Lua rejected at import by its 0x1B signature, and no undumper is installed anywhere
+- **Python plugins** `RARE` — .wmplugin tool panels and selection actions in Python, run by wm-python, a Rust port of PyMini (Clink's interpreter); 50 installs max, subsystem off until enabled
+  - .wmplugin package `RARE` — ZIP with plugin.json + a main.py source file
+    - Source only — Plugins are parsed from source by the interpreter's own parser; there is no bytecode format to load
     - Zip-bomb caps — 16 entries, 1 MB archive, 256 KB script, 64 KB manifest; sizes counted from bytes actually read
     - Entry names never used as paths — manifest entry field is a map key; ../ in an entry name or the manifest has nowhere to go
     - Manifest-only read for disclosure — Showing what a plugin may do never touches the code that would do it
   - Manifest validation is total `RARE` — Any problem is a refusal with a reason; nothing about a plugin is repaired
     - Id must be a safe path segment — ^[a-z0-9][a-z0-9._-]{2,63}$, re-checked by the store because the id becomes a directory
     - Display strings sanitised — Control, format (bidi overrides), surrogate and private-use code points stripped; name capped at 40 chars
-    - API level gate — apiVersion above the host's (currently 1) is refused rather than run
+    - API level gate — apiVersion 4; above the host's is refused rather than run
+    - Lua refused — language "lua", or no language with apiVersion 3 or lower, is refused as "written in Lua, which WM Keyboard no longer runs; look for its Python version"
     - Unknown permission = refused install — Forward-compat guard: an old build declines rather than running with a capability it can't describe
-  - Permission model `RARE` — Exactly one permission exists: storage
-    - No API for typed text — No wm.text, no keystroke feed — a plugin only ever sees the contents of its own visible input box
+  - Lua retirement `RARE` — 0.6.6 removes installed Lua plugins on upgrade (PluginStore snapshot format 2)
+    - Parked data — Each removed plugin's storage.json moves to plugins/.parked/<id>/; installing a plugin with the same id restores it
+    - Demos kept their ids — Cipher, Text tools, Kitchen sink, Math Mode and Todo come back with their data; Todo import also reads the parked copy
+    - One-time notice — The Plugins screen and the keyboard's plugin list name what was removed
+    - Parked data listed — Deletable from the Plugins screen, purged after 90 days
+  - Permission model `RARE` — Three permissions: storage, reminders, selection
+    - No API for typed text — No wm.text, no keystroke feed — a plugin only ever sees the contents of its own visible input box, or a selection the user tapped it on
     - No clipboard API — Not behind a prompt, not behind a grant — the function does not exist
     - No network API — Deliberate: a plugin that could read text and open a socket is keyboard malware, and consent doesn't change that
-    - Storage isn't prompted at use — Disclosed before install; with no egress anywhere it is app-local scratch space
-  - Host API surface `RARE` — wm.log, wm.json, wm.ui.set_input, wm.storage — the whole of it, pinned by a test
-    - wm.json — decode/encode with 24-level depth cap and 256 KB text cap; whole numbers round-trip as integers
-    - wm.storage quotas — 128 keys, 64-char keys, 8 KB per value, 64 KB per plugin; enforced before every write
-    - wm.ui.set_input — Writes into one of the plugin's own text boxes, 8 KB cap; applied after the handler returns
-    - Revocation — Once a session is abandoned every wm.* call throws instead of doing anything
-  - Sandbox `RARE` — 5 stdlib modules in, 6 kept out, each for a stated reason
-    - Installed — BaseLib, Bit32Lib, TableLib, StringLib, JseMathLib and the LuaC compiler
-    - PackageLib omitted — require resolves through Class.forName — the single most important omission; a decoy package table absorbs the libs' own writes
-    - CoroutineLib omitted — luaj coroutines are real non-daemon threads that leak past the keyboard if they never yield
-    - io/os/luajava omitted — os replaced with time/clock/date only, over a small fixed strftime subset
-    - Every string-to-code route nulled — load, loadstring, loadfile, dofile, require, package, io, luajava, coroutine, debug
-    - Frozen string metatable — LuaString.s_metatable is a process-global static; replaced with a sealed table hidden behind __metatable so one plugin can't rewrite ('x'):rep for every other
-    - Amplifier guards — string.rep capped at 256 KB, pattern subject/pattern bounded (256 KB / 256 B), table.concat at 1 MB
-    - No stdout, no resource finder — STDOUT/STDERR sink to nowhere, STDIN null, finder returns null; collectgarbage is a stub
+    - Not prompted at use — Disclosed before install; with no egress anywhere there is nothing for a prompt to protect
+  - Host API surface `RARE` — wm and ui are globals, no import; wm.api_version == 4
+    - Hooks — render() returns a widget or a list; on_event(e) with e.type/e.id/e.value/e.index; transform(text, action); state in module globals via `global`
+    - wm.log / print — One log, 512-char lines
+    - wm.ui.set_input — Writes into one of the plugin's own text boxes, 8 KB cap; applied after the handler returns; panel only
+    - wm.storage — get(key, default), set (strings only, ValueError on quota), remove, keys; 128 keys, 64-char keys, 8 KB per value, 64 KB per plugin
+    - wm.reminders — set(id, seconds, text) raises ValueError, cancel returns a bool, list gives [{id, time, text}]; 64 pending, 200 chars
+    - wm.timestamp — year, month, day, hour=12, minute=0, second=0 in local time with lenient rollover
+    - Dict attribute reads — d.key reads a key when present, else a dict method, so e.type works on an event
+  - Interpreter `RARE` — wm-python crate: PyMini-faithful semantics in Rust, one core for the phone (JNI) and the web editor (wasm)
+    - Modules — math, re, json, time, random, sys; nothing else is importable; no files, network or processes because none exist
+    - No string-to-code route — No eval, exec, compile, getattr or __import__; no classes, so no object model to climb
+    - Language subset — No class, with, yield, async, match, decorators, nonlocal, assert or **kwargs; refused with a message naming the feature
+    - Grapheme strings — len, indexing and iteration count user-perceived characters; equality compares NFC
+    - Coarse JSON boundary — create/load/render/event/transform/cancel/usage over JNI, results as JSON; no callbacks into the JVM, so no host object is reachable
+    - Storage and reminders written by the interpreter — Same storage.json/reminders.json formats as before, atomically through .part + rename
+    - Delivered on demand — Its own native gate; fetched when plugins are turned on or the editor opened
   - Runaway containment
-    - Per-instruction budget — Load 30M instructions/3 s, event 20M/2 s, render 4M/0.5 s; clock read every 1024 instructions via a bitmask
-    - Abort can't be caught — PluginAbort extends Error, so luaj's pcall/xpcall and the interpreter loop pass it straight through
-    - Hook is unreachable from Lua — Lives on DebugLib, which is loaded then removed from globals; no debug.sethook to unset
-    - Watchdog abandons stuck threads — Covers time spent inside luaj's Java pattern matcher where the hook never fires: session revoked, executor shut down, priority dropped
-    - Two strikes — A plugin abandoned twice is disabled until the user turns it back on; re-enabling forgives the strikes
-    - Host-call time isn't charged — enterHostCall/exitHostCall push the deadline out so a slow disk write can't kill a well-behaved script
-  - Plugin UI vocabulary `RARE` — 11 widget kinds, drawn by the keyboard in its own theme
-    - Widgets — tabs, column, row, label, output, button, toggle, input, spacer, divider, progress
+    - Step budget — Load 3M steps/3 s, event 2M/2 s, render 400k/0.5 s, action 3M/3 s; every statement, loop turn and regex step spends one
+    - Cancel polled every step — The deadline watchdog sets a cancel flag from any thread; abandoning the thread is only a fallback
+    - Abort can't be caught — Budget, deadline and cancel aborts pass straight through any try/except
+    - Budgeted regex — PyMini's own backtracking engine spends steps, so catastrophic backtracking is stopped like a loop
+    - Value caps — 10k items per list/dict/set, 100k chars per string, recursion depth 300
+    - Two strikes — A plugin that times out or is abandoned twice is disabled until the user turns it back on; re-enabling forgives the strikes; a setting keeps the strikes but skips the switch-off
+  - Plugin UI vocabulary `RARE` — 12 widget kinds, drawn by the keyboard in its own theme
+    - Widgets — tabs/page, column, row, label, output, button, toggle, input, date, spacer, divider, progress
+    - Plain dicts — ui.* builders return dicts with keyword arguments, so the widget format is data an author could write by hand
     - Insert button is the only text route — An output widget gets the host's own Insert/Copy buttons; no API types for the user
     - Inputs are host-owned — No Compose TextField in the IME — a tap re-routes keystrokes into the panel's buffer and the script is told the new contents as an event
-    - 4 event kinds — Click, ToggleChanged, InputChanged, TabSelected — all user-initiated
-    - UI is repaired, not refused — 256 nodes, depth 12 (also breaks cycles), 2 KB per string, 64 KB per tree, 8 tabs; drops are reported as captions
-    - Pure-Lua prelude — ui.* helpers just build plain tables, so the widget format is data an author could write by hand
+    - 5 event kinds — click, toggle, input_changed, tab_selected, date_changed — all user-initiated
+    - UI is repaired, not refused — Validated in Rust: 256 nodes, depth 12 (also breaks cycles), 2 KB per string, 64 KB per tree, 8 tabs; drops are reported as captions
   - Install and lifecycle
     - Master switch, off by default — Gates installing as well as running; kept out of KeyboardSettings so it never rides the keyboard's hot path
-    - On-disk layout — filesDir/plugins/<id>/ holds plugin.json, main.lua, storage.json and log.txt; delete removes all four
+    - On-disk layout — filesDir/plugins/<id>/ holds plugin.json, main.py, storage.json and log.txt; delete removes all four
     - Updates keep user data — storage.json survives an upgrade; enabled state and abandon strikes reset
-    - Ring-buffer log — print() and script errors, 200 lines x 512 chars, flushed at session end and shown in settings
+    - Ring-buffer log — print(), wm.log and script errors, 200 lines x 512 chars, flushed at session end and shown in settings
     - Index reconcile — Records whose script file vanished are dropped on load
     - Capability disclosure screen — Settings lists what plugins cannot do (typing, text field, clipboard, internet) beside what they can
+  - Selection actions `RARE` — Plugins add chips to the selection bar and the PROCESS_TEXT sheet; manifest `actions` + `selection` permission
+    - transform(text, action) — Returns the replacement, or None to leave it; one parameter is fine for a single action; `replaces: false` appends after the selection; `input: none` passes ""
+    - Fresh interpreter per tap — Globals die with the call; only wm.storage persists, and wm.ui.set_input is absent
+    - Own runner — PluginActionRunner, separate from the panel session, so an action never closes an open plugin panel; same strikes and watchdog
+    - Undo for free — Results go through rewriteSelection, so the bar's Undo puts the selection back
+    - Per-action off switch — Selection actions › From plugins, stored as plugin:<id>/<action> keys
+    - Never on secure fields — The bar is gone there, and the tap re-checks before text reaches the script
+  - Clink actions `RARE` — .clinkext (JSON + Python transform) converted to an actions-only API 4 plugin, run on the same interpreter as every plugin, wherever plugins are read: catalogue, file picker, file manager, disclosure
+    - Clink action repositories — `actions` lists in a Clink manifest become plugin entries carrying Clink's SHA-256
+    - Scopes map to the selection — Clink's word/before scopes act on the selection; none gets ""; replacesInput false appends
 - **Native file formats** `RARE` — 10 file-associated extensions plus 4 import-only/internal ones; every one is plain JSON or a ZIP
   - Theme .wmtheme.json `uncommon` — Bare ThemeSpec object, ARGB colours as 0xAARRGGBB longs
     - No format tag — Every field defaults, so any JSON decodes; the extension is the only evidence a file was meant to be a theme, checked last
@@ -3814,11 +3832,11 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 |---|---|
 | Add-on repository browsing, install, update and preview | needs network (HTTPS only; plain http is refused, not upgraded) |
 | Add-on store and installed-add-on list | unavailable during direct boot — filesDir/addons is credential-encrypted, so the store is empty and addRepo refuses before first unlock |
-| Lua plugins (install and run) | needs the plugin subsystem master switch turned on by the user; off by default, and it gates installing as well as running |
-| Lua plugins | unavailable during direct boot; scripts and their storage live in credential-encrypted storage |
+| Python plugins (install and run) | needs the plugin subsystem master switch turned on by the user; off by default, and it gates installing as well as running |
+| Python plugins | unavailable during direct boot; scripts and their storage live in credential-encrypted storage |
 | Word list and emoji keyword pack import from a URL | needs network; http/https only |
 | Installing a plugin from a repository | requires a sha256 in the manifest — the install is refused without one (opening a .wmplugin file directly skips that check) |
-| Plugin runtime (luaj) | no build gate — luaj-jse ships in every build |
+| Plugin runtime (wm-python) | native gate `plugins` — libwm_python.so downloads when plugins are turned on (a Play feature module on Play) |
 | Font import validation | the second validation stage calls android.graphics.Typeface, so it only runs on device (injected as a lambda for JVM tests) |
 
 ## Modes, rows, field adaptation, runtime
@@ -4160,7 +4178,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 - **Input behaviour: glide, gestures, cursor, editing, keys**: Read in full or in the relevant sections: core/input (DeadKeys, BrailleChord, MorseCode), core/prediction/gesture (GlideBeam, GlideCoverage, GlideKeyMap, GlideWorkspace, RomanizedIndex, GestureGeometry), core/language KeyActions.kt, core/tools/HardwareShortcuts.kt, core/settings/SettingsRepository.kt (KeyPopupSettings, KeyRepeatSettings, OneHandedSettings, HardwareKeyboardSettings, FeedbackSettings, LongPressLetterActions, GestureSettings, LayoutBehaviorSettings, TextEditingSettings, SpaceSwipeAction/LetterSwipeAction/SpacebarDisplay, and the input-related fields of KeyboardSettings), core/common ToolbarTool.kt. In feature/ime: KeyboardScreen.kt gesture detectors, pointerInputKey (spacebar / backspace / flick / generic branches), smart-hit observers, popups, one-handed rail, docked and floating frames; ResizeOverlay.kt; TextEditPanel.kt; ComposingResume.kt; LanguageSwitchOverlay.kt; and WMKeyboardService.kt onKey/onShift/onCapsLock/onDelete/deleteFromField/onDeleteWord/onSpace/onCursorMove(+Vertical)/onUndoRedo/onTextEdit/glide decode+commit paths/hardware key dispatch/autoCapitalizeShift/onModifier/onSizingAction/onComputeInsets. Selection macros were added later and read from core/content/.../core/selection/SelectionMacros.kt, the SelectionMacroSettings/SelectionMacroPlacement block and DirectBootSettings entry in core/settings, feature/ime/.../ui/SelectionMacroBar.kt, and WMKeyboardService's refreshSelectionMacros/onSelectionMacro/replaceSelection paths. Cross-checked against docs/src/content/docs/reference/gestures.mdx but every entry is grounded in code. Not covered (other areas): the suggestion strip and autocorrect scoring itself, prediction engine internals, emoji/GIF/sticker panel gestures, clipboard panel swipes, toolbar drag-to-pin, voice bar dragging, theme/appearance, layout editor, per-app language, and the CJK/Avro composers beyond how they gate glide and hardware interception. I did not count shipped layouts or languages (another area's job) — the only layout count here is the single shipped flick layout (app/src/main/assets/layouts/ja_flick.wmlayout.json). Nothing was run or device-verified; this is a static read.
 - **Languages, scripts, layouts, transliteration**: Read in full: core/language (Script.kt, Language.kt, Numerals.kt, FancyStyles.kt, LanguageSuggestions.kt, DeviceLocales.kt, RomanizedPairing.kt; core/layout's LayoutSpec, BuiltInLayouts, AssetLayouts, KeyActions, KeyboardLayout, LayoutFile, LayoutSelection, ForeignLayout end to end, LayoutRepair head, TabletExpansion head; transliteration/AvroPhonetic, BengaliGraphemes, BengaliPhoneticIndex). Read in core/input: Composer.kt, PinyinComposer, DoublePinyin, CjkConfig, CjkDictCatalog, CjkDictDownloadManager head, HanVariant, PinyinFuzzy, JyutpingFuzzy, CjkUserHistory, CjkNgrams, StrokeComposer, CangjieComposer, T9/Zhuyin/Japanese/Jyutping heads, HangulComposer, VietnameseComposer head, IndicClusterComposer, DeadKeys, MorseCode, BrailleChord. Also Subtypes.kt, the per-app-language and fullStop/emoji-key rewrite paths in WMKeyboardService and KeyboardScreen, KeyIcons, KeyboardFonts, LanguageSettingsScreens, LayoutEditorScreens (action catalog + foreign import), SpellingMap, FieldLanguageMix, LanguageMixConfidence, and all 8 docs/src/content/docs/languages/*.mdx.
 
-Counts come from code and assets and are pinned by `ShippedCountsTest`: 1,555 languages (515 hand-written + 440 generated from the Keyman corpus + 306 from Gboard + 285 from Samsung) and 3,688 layouts (39 built-in + 3,359 .wmlayout.json assets, 862 of them converted Keyman keyboards). Run that test rather than recounting by hand; it also lists every file that quotes these figures. Spelling-map figures are data lines excluding comments (11,914 bn_rom + 2,369 en_bn); the docs round these to 12,000 and 2,300. The editor's action picker has 28 entries in 6 groups, which the docs now match.
+Counts come from code and assets and are pinned by `ShippedCountsTest`: 1,555 languages (515 hand-written + 440 generated from the Keyman corpus + 306 from Gboard + 285 from Samsung) and 3,687 layouts (39 built-in + 3,648 .wmlayout.json assets, 862 of them converted Keyman keyboards). Run that test rather than recounting by hand; it also lists every file that quotes these figures. Spelling-map figures are data lines excluding comments (11,914 bn_rom + 2,369 en_bn); the docs round these to 12,000 and 2,300. The editor's action picker has 28 entries in 6 groups, which the docs now match.
 
 Not covered (other areas or not read): the suggestion/prediction engine itself, glide typing, autocorrect, the downloadable word-list catalogue and its per-language sizes, emoji keyword packs, handwriting, voice/dictation languages, theme-side script font storage (ThemeSpec.scriptFontIds), and the addon repository format beyond noting "layout" is one of its types. I did not read Lattice.kt, ConversionDictionary.kt, CodeTableDictionary.kt or SyllableSegmenter.kt in full (headers and call sites only), nor LayoutRepair.kt past its rule constants, TabletExpansion.kt past its eligibility contract, or the 354 asset layout files individually - those I analysed programmatically for composer/layer/flick distribution. IPA and music layer contents come from the asset JSON structure plus the docs, not a key-by-key read.
 - **Themes and appearance**: Read in full: core/theme (ThemeSpec.kt, PaletteThemes.kt, ThemeRendering.kt, ColorVision.kt, PhotoPalette.kt, BackgroundBitmaps.kt, FlexTheme.kt, SnyggMapper.kt head), core/settings (ThemeOverrides.kt, RotationPool.kt, PhotoBackgroundSettings.kt, ThemePhotoSweep.kt, RotatingBackground.kt, DirectBootSettings.kt theme half, AutoThemeSettings + ThemeMode + KeySoundStyle + ThemeGalleryStyle in SettingsRepository.kt), feature/ime/ui/KbTheme.kt, feature/tools/PhotoBackgroundManager.kt, core/tools/PhotoSources.kt, app/PhotoBackgroundUi.kt. Read in full or by section: app/ThemeScreens.kt (4180 lines — gallery, editor, all pickers, gradient editor, cropper, colour picker), core/icons (IconSlots.kt, IconOverrides.kt, IconPacks.kt, IconPackFile.kt head, IconPackStore constants), feature/ime/ui/KeyboardFonts.kt, KeyTextures.kt, KeyPressEffects.kt, BoardDecals.kt, BuiltinIcons.kt catalog. Counts verified from code/assets: 28 built-in looks in 12 entries (4 families), 10 palette ports, 12 key shapes, 24 editor colour rows, 15 seed swatches, 6 texture slots, 6 decals, 12 variants, 6 effect kinds, 6 effect images, 97 icon slots, 181 bundled glyphs, 20 Latin Google Fonts, 27 automatic script faces, 22 script pickers, 12 photo topics, 14 photo colours, 6 rotation intervals, 3 scopes. Skipped or only skimmed: Snygg.kt stylesheet parser internals, SvgParser.kt, IconPackStore.kt beyond its constants, PhotoDetailScreens.kt and the photo library/rotation settings screens (read only their entry points and the shared UI in PhotoBackgroundUi.kt), UnsplashClient/PexelsClient request building, AddonScreens/AddonInstaller theme-install UI beyond the theme branches, MainActivity route plumbing, onboarding theme picks (OnboardingPages.kt), and the docs prose (used only to cross-check — note docs/themes/overview.mdx says 26 built-ins, which is stale against the 28 in code). Did not run the app or verify anything on a device.

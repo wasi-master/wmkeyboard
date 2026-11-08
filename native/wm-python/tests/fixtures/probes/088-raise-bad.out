@@ -1,0 +1,1 @@
+ERROR: Line 1: TypeError: exceptions must be an exception type, not 'int'

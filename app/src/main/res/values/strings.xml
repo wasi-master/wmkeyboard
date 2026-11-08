@@ -39,6 +39,7 @@
     <string name="opus_module_title">Voice upload compression</string>
     <string name="executorch_module_title">Offline voice and glide models</string>
     <string name="grammar_module_title">Grammar checker</string>
+    <string name="plugins_module_title">Plugins</string>
     <string name="spell_module_title">Hunspell spell checker</string>
     <string name="ocr_module_title">Offline text reader</string>
     <!-- :feature:rime, librime behind the optional RIME engine for Chinese.
@@ -56,6 +57,14 @@
     <!-- :feature:llamagpu, llama.cpp's build for Adreno GPUs (Compute = GPU
          for GGUF models). llama.cpp, GGUF and Adreno stay in Latin letters. -->
     <string name="llamagpu_module_title">llama.cpp for Adreno GPUs</string>
+    <string name="divvungrammar_module_title">GiellaLT grammar checking</string>
+    <string name="executorchqnn_module_title">ExecuTorch for Snapdragon NPUs</string>
+    <string name="executorchvulkan_module_title">ExecuTorch for GPUs</string>
+    <string name="executorchneuron_module_title">ExecuTorch for MediaTek NPUs</string>
+    <string name="langid_module_title">Language detection</string>
+    <string name="llamavulkan_module_title">llama.cpp for Mali and other GPUs</string>
+    <string name="llamanpu_module_title">llama.cpp for Snapdragon NPUs</string>
+    <string name="whispervulkan_module_title">Offline Whisper for Mali and other GPUs</string>
     <!-- :feature:docscan, the built-in document scanner (OpenCV) used where
          Google's scanner is missing. -->
     <string name="docscan_module_title">Built-in document scanner</string>
@@ -79,9 +88,9 @@
     <string name="passthrough_service_label">WM Keyboard gestures</string>
     <string name="passthrough_service_summary">Keeps WM Keyboard\'s gestures working with a screen reader</string>
     <string name="passthrough_service_description">This service keeps the keyboard gestures available while a screen reader runs. The gestures are the spacebar cursor slide, the backspace word swipe, glide typing and handwriting.\n\nThe service reads nothing. It receives no accessibility events. It cannot see the screen content. Its only action is to mark the keyboard window to pass touches straight through. Every touch outside the keyboard still goes to your screen reader as usual.</string>
-    <string name="screenshot_service_label">WM Keyboard screenshots</string>
-    <string name="screenshot_service_summary">Lets the Screenshot tool and the floating button take a screenshot</string>
-    <string name="screenshot_service_description">When you press WM Keyboard\'s Screenshot tool, or a floating button action set to it, this service presses Android\'s own screenshot button, the same one the power and volume keys press. Android saves the picture where every screenshot goes.\n\nThe service does nothing at any other time. It does not read the screen, does not watch what you type and keeps nothing.</string>
+    <string name="system_buttons_service_label">WM Keyboard system buttons</string>
+    <string name="system_buttons_service_summary">Lets the Screenshot tool and the floating button take a screenshot, go back, and open recent apps, the app drawer, notifications and quick settings</string>
+    <string name="system_buttons_service_description">When you press WM Keyboard\'s Screenshot tool, or a floating button action set to one of Android\'s system buttons, this service presses that button for you: a screenshot, Back, recent apps, the app drawer, the notification shade or quick settings. They are the same buttons Android\'s own navigation and shade have.\n\nThe service does nothing at any other time. It does not read the screen, does not watch what you type and keeps nothing.</string>
     <string name="split_screen_helper_service_label">WM Keyboard split screen</string>
     <string name="split_screen_helper_service_summary">Lets the app launcher open apps in split screen on phones where it otherwise opens them full screen</string>
     <string name="split_screen_helper_service_description">When you open an app in split screen from WM Keyboard\'s app launcher, or open a split screen pair, this service presses Android\'s split screen switch, the same one the Recents menu has. Then the app opens in the free half.\n\nBefore pressing it, the service checks whether split screen is already up, from where the app windows are on screen. While a pair opens, it also waits for the first app\'s window to come up, by its app name alone. It never reads what is in any window. It does nothing at any other time, does not watch what you type and keeps nothing.</string>
@@ -110,6 +119,7 @@
     <string name="shortcut_tools_long">Keyboard tools</string>
     <!-- Importing downloads fetched on another device (offline import) -->
     <string name="offline_import_row_title">Import from a file</string>
+    <string name="offline_import_bergamot_browser_note">Mozilla\'s server turns away Chrome and the browsers built on it, so these links fail there. Open them in Firefox, or fetch them with curl or wget on a computer.</string>
     <string name="offline_import_bergamot_subtitle">A direction\'s three or four files fetched on another device, all at once</string>
     <!-- %1$s names language directions, such as "French → English". -->
     <string name="offline_import_bergamot_waiting">Kept for %1$s. It still needs its other files, or the Firefox Translations library</string>

@@ -131,6 +131,8 @@ sealed interface AddonPreviewContent {
         val author: String,
         val description: String,
         val permissions: List<PluginPermission>,
+        /** The names of the selection actions it adds, in manifest order. */
+        val actions: List<String> = emptyList(),
     ) : AddonPreviewContent
 
     /** The payload downloaded but couldn't be read as its declared type. */
@@ -217,6 +219,7 @@ object AddonPreviewReader {
                 author = read.manifest.author,
                 description = read.manifest.description,
                 permissions = read.permissions,
+                actions = read.manifest.actions.map { it.name },
             )
 
             is PluginManifestResult.Rejected ->

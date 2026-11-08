@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Зберігати дані на вашому пристрої</string>
     <string name="core_plugins_reject_bad_encoding">«%1$s» містить скрипт, який не є дійсним текстом у кодуванні UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Цей плагін має недійсний ідентифікатор. Ідентифікатор має довжину від 3 до 64 символів. Ідентифікатор може містити малі літери, цифри, крапки, дефіси та підкреслення.</string>
-    <string name="core_plugins_reject_compiled_lua">«%1$s» містить скомпільований код Lua. Плагін повинен використовувати звичайний вихідний код, щоб ви могли прочитати його перед виконанням.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” має порожній скрипт.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” не має свого файлу сценарію (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Цей плагін потребує новішої версії WM Keyboard.</string>

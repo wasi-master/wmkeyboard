@@ -93,6 +93,7 @@ import com.wasimaster.wmkeyboard.core.settings.providerMode
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
 import com.wasimaster.wmkeyboard.core.stickers.SubjectCutout
+import com.wasimaster.wmkeyboard.core.util.PhoneGpu
 import java.io.ByteArrayOutputStream
 import java.io.File
 import kotlin.random.Random
@@ -182,6 +183,7 @@ internal fun StickerGeneratorScreen(
     var seed by remember { mutableStateOf(Random.nextLong(0, MAX_SEED)) }
     var safety by remember { mutableStateOf(prefs.getBoolean(KEY_SAFETY, true)) }
     var removeBackground by remember { mutableStateOf(prefs.getBoolean(KEY_CUTOUT, true)) }
+    var onGpu by remember { mutableStateOf(prefs.getBoolean(KEY_GPU, false)) }
 
     var job by remember { mutableStateOf<Job?>(null) }
     var status by remember { mutableStateOf<String?>(null) }
@@ -311,6 +313,7 @@ internal fun StickerGeneratorScreen(
                             seed = seed,
                             variants = count,
                             safetyFilter = safety,
+                            gpu = onGpu && current!!.runtime == ImageRuntime.MNN,
                         ),
                     )
                 } else {
@@ -758,6 +761,20 @@ internal fun StickerGeneratorScreen(
                 prefs.edit().putBoolean(KEY_SAFETY, it).apply()
             }
         }
+        // MNN's OpenCL and Vulkan backends, for a model that runs on MNN on a
+        // phone with a GPU either can drive; the NPU's models have their own.
+        if (current != null && current.runtime == ImageRuntime.MNN && (PhoneGpu.adreno || PhoneGpu.vulkan)) {
+            item {
+                ToggleSetting(
+                    title = R.string.stickergen_gpu_title,
+                    subtitle = stringResource(R.string.stickergen_gpu_subtitle),
+                    checked = onGpu,
+                ) {
+                    onGpu = it
+                    prefs.edit().putBoolean(KEY_GPU, it).apply()
+                }
+            }
+        }
     }
 
     // --- Engines ---------------------------------------------------------------
@@ -1033,6 +1050,7 @@ private const val KEY_SIZE = "size"
 private const val KEY_VARIANTS = "variants"
 private const val KEY_SAFETY = "safety"
 private const val KEY_CUTOUT = "cutout"
+private const val KEY_GPU = "gpu"
 private const val KEY_PACK = "pack"
 private const val KEY_ENGINE = "engine"
 

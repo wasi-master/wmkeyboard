@@ -185,7 +185,7 @@ enum class ToolbarTool {
     // LibreSpeed server, from the tool's own provider list.
     SPEED_TEST,
     // Android's own screenshot (#1148), the keyboard put away first so it is
-    // not in the picture. Pressed through ScreenshotService, an accessibility
+    // not in the picture. Pressed through SystemButtonsService, an accessibility
     // service of its own; not in the Play build, and needs Android 9.
     SCREENSHOT,
 }
@@ -316,7 +316,7 @@ fun isSupportedTool(tool: ToolbarTool): Boolean = when {
     // An accessibility service's action (#1148): not in the Play build, and
     // Android has no screenshot action to press before 9.
     tool == ToolbarTool.SCREENSHOT ->
-        com.wasimaster.wmkeyboard.app.ChannelFeatures.SCREENSHOT && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+        com.wasimaster.wmkeyboard.app.ChannelFeatures.SYSTEM_BUTTONS && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
     // The document scanner is offered everywhere: Google's (an activity
     // inside Play services) where it can run, the built-in OpenCV one
     // everywhere else, F-Droid's build and phones without Play services.

@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * Material's [Slider], taking only a drag that is more sideways than up or down,
@@ -59,6 +60,12 @@ import kotlin.math.min
  * the topmost of overlapping siblings only, and moves the value itself — see
  * [detectSliderTouches]. Up and down leave the row rather than moving the
  * value — see [moveFocusOffSlider].
+ *
+ * [steps] works as on Material's slider: that many stops between the ends,
+ * drawn as dots on the track, and a finger lands on the nearest one. Without it
+ * a whole-number setting is a continuous track cut down to an integer
+ * afterwards, which reads as dead zones: the thumb snaps back unless dragged
+ * all the way to the next number.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,6 +76,7 @@ fun WmSlider(
     enabled: Boolean = true,
     valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
     onValueChangeFinished: (() -> Unit)? = null,
+    steps: Int = 0,
 ) {
     val interactions = remember { MutableInteractionSource() }
     val colors = SliderDefaults.colors()
@@ -99,6 +107,7 @@ fun WmSlider(
                 )
             },
             valueRange = valueRange,
+            steps = steps,
         )
         // A disabled slider takes no touches, Material's or this layer's.
         if (enabled) {
@@ -106,6 +115,7 @@ fun WmSlider(
             // mid-drag is used without restarting the gesture it is part of.
             val range by rememberUpdatedState(valueRange)
             val rtl by rememberUpdatedState(LocalLayoutDirection.current == LayoutDirection.Rtl)
+            val stops by rememberUpdatedState(steps)
             val change by rememberUpdatedState(onValueChange)
             val finish by rememberUpdatedState(onValueChangeFinished)
             Box(
@@ -114,7 +124,7 @@ fun WmSlider(
                     .pointerInput(interactions) {
                         detectSliderTouches(
                             interactions = interactions,
-                            valueAt = { x -> sliderValueAt(x, size.width, thumbWidth.intValue, rtl, range) },
+                            valueAt = { x -> sliderValueAt(x, size.width, thumbWidth.intValue, rtl, range, stops) },
                             onValueChange = { change(it) },
                             onValueChangeFinished = { finish?.invoke() },
                         )
@@ -264,7 +274,8 @@ internal fun isSliderDrag(travel: Offset, slop: Float): Boolean =
  * The value under a finger at [x] on a slider [width] pixels wide, by the
  * geometry Material draws it with: the thumb's centre travels from half a
  * [thumbWidth] in from one edge to half a thumb in from the other, starting at
- * the right edge when [rtl]. Clamped to [range] past either end.
+ * the right edge when [rtl]. Clamped to [range] past either end, and moved
+ * to the nearest of [steps] evenly spaced stops when there are any.
  */
 internal fun sliderValueAt(
     x: Float,
@@ -272,11 +283,13 @@ internal fun sliderValueAt(
     thumbWidth: Int,
     rtl: Boolean,
     range: ClosedFloatingPointRange<Float>,
+    steps: Int = 0,
 ): Float {
     val along = if (rtl) width - x else x
     val last = max(width - thumbWidth / 2f, 0f)
     val first = min(thumbWidth / 2f, last)
-    val fraction = if (last == first) 0f else ((along - first) / (last - first)).coerceIn(0f, 1f)
+    val raw = if (last == first) 0f else ((along - first) / (last - first)).coerceIn(0f, 1f)
+    val fraction = if (steps > 0) (raw * (steps + 1)).roundToInt() / (steps + 1f) else raw
     return range.start + (range.endInclusive - range.start) * fraction
 }
 

@@ -253,6 +253,12 @@ Mono on several lines uses the app's fenced block where it has one. These four a
 
 None of these send anything anywhere themselves: each hands the text to an app you picked and stops.
 
+## From plugins
+
+[Plugins](/plugins/overview/) can add their own buttons to the bar. They come after the built-in ones, each with the name and picture its plugin gave it, and a tap replaces the selection with what the plugin made of it; Undo puts it back. A few keep the selection and add their result after it instead, such as a word count. Clink's text actions install this way too: add a Clink actions repository under Addons, or open a `.clinkext` file (see [Clink actions](/reference/importing-other-keyboards/#clink-actions)).
+
+A plugin's script sees the selected text only when you tap its button, and never on a password field, where the bar does not appear at all. Each tap starts the script afresh, and it has no way to send anything off the phone; see [the plugin sandbox](/plugins/security/). Plugins are off until you turn them on under <SettingsPath path="Tools / Plugins / Manage plugins" />, and each plugin's actions can be switched off one by one under <SettingsPath path="Advanced / Selection actions / From plugins" />. They also appear under Rewrite on the sheet the **WM Keyboard** entry in other apps' selection menus opens.
+
 ## Where the bar draws
 
 <SettingsPath path="Advanced / Selection actions / Where it appears" />

@@ -10,6 +10,11 @@ set -euo pipefail
 
 OPENCV_TAG=5.0.0
 OPENCV_COMMIT=40738fb16ceddb5fb3fea747585f7ce6abb0605b
+# KleidiCV, Arm's image-processing kernels, as OpenCV's HAL on arm64: the
+# release OpenCV 5.0.0's hal/kleidicv/kleidicv.cmake names, fetched here and
+# checked against this hash so configuring downloads nothing. Bump with OpenCV.
+KLEIDICV_TAG=26.03
+KLEIDICV_SHA256=1bb4078fd215565f3906c33f76a00e7b843328965230d765afcd0d51141c434f
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
@@ -52,6 +57,22 @@ SRC=$(cd "$SRC" && pwd -P)
 got=$(git -C "$SRC" rev-parse HEAD)
 [ "$got" = "$OPENCV_COMMIT" ] || { echo "OpenCV is at $got, expected $OPENCV_COMMIT" >&2; exit 1; }
 
+# KleidiCV's release archive, checked once, for the arm64 build only, and
+# handed to OpenCV as the URL its own download step reads from. Not as
+# KLEIDICV_SOURCE_PATH: OpenCV 5.0.0 switches KleidiCV off when that path is
+# valid (cmake/OpenCVFindLibsPerf.cmake turns HAVE_KLEIDICV on, then off in
+# the else branch), so a source tree passed that way builds without it. The
+# archive is the one OpenCV pins by MD5, so its check passes too.
+KLEIDICV_DL=
+if [[ " ${WMKB_ABIS:-arm64-v8a} " == *" arm64-v8a "* ]]; then
+    KLEIDICV_DL=$WORK/kleidicv-dl
+    mkdir -p "$KLEIDICV_DL"
+    retry curl -sSfL -o "$KLEIDICV_DL/kleidicv-$KLEIDICV_TAG.tar.gz" \
+        "https://gitlab.arm.com/kleidi/kleidicv/-/archive/$KLEIDICV_TAG/kleidicv-$KLEIDICV_TAG.tar.gz"
+    got=$(shasum -a 256 "$KLEIDICV_DL/kleidicv-$KLEIDICV_TAG.tar.gz" | cut -c1-64)
+    [ "$got" = "$KLEIDICV_SHA256" ] || { echo "KleidiCV archive is $got, expected $KLEIDICV_SHA256" >&2; exit 1; }
+fi
+
 # Every path on the build machine is mapped out of the library (__FILE__ in
 # CV_Error and asserts, the NDK's libc++ headers), so two machines with the
 # same NDK build the same bytes. F-Droid's reproducible build relies on that.
@@ -66,7 +87,17 @@ build() {
         -DANDROID_ABI="$abi" -DANDROID_PLATFORM=android-24 -DANDROID_STL=c++_static
         -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON
     )
-    cmake -C "$HERE/opencv.cmake" -S "$SRC" -B "$ocv" -G Ninja "${android[@]}" \
+    # KleidiCV on arm64: OpenCV routes the scanner's blur, colour, threshold,
+    # morphology and warp calls to it where it has a kernel (NEON, SVE2 or
+    # SME, picked at run time), and to its own code otherwise.
+    local hal=()
+    if [ "$abi" = arm64-v8a ]; then
+        # OpenCV unpacks it under its build tree, inside $WORK, so the
+        # prefix map above covers its paths too.
+        hal=(-DWITH_KLEIDICV=ON -DOPENCV_KLEIDICV_URL="file://$KLEIDICV_DL/"
+             -DOPENCV_DOWNLOAD_PATH="$WORK/opencv-downloads")
+    fi
+    cmake -C "$HERE/opencv.cmake" -S "$SRC" -B "$ocv" -G Ninja "${android[@]}" "${hal[@]}" \
         -DCMAKE_INSTALL_PREFIX="$ocv/install" \
         -DCMAKE_C_FLAGS="$MAP $SECTIONS" -DCMAKE_CXX_FLAGS="$MAP $SECTIONS" > "$ocv.log" 2>&1 \
         || { tail -40 "$ocv.log"; exit 1; }
@@ -76,6 +107,9 @@ build() {
     # instead, or no two machines would build the same bytes.
     printf '"OpenCV %s, core, imgproc and geometry, built by native/docscan-jni\\n"\n' "$OPENCV_TAG" \
         > "$ocv/modules/core/version_string.inc"
+    if [ "$abi" = arm64-v8a ]; then
+        grep -q "KleidiCV (ver" "$ocv.log" || { echo "OpenCV configured without KleidiCV; see $ocv.log" >&2; exit 1; }
+    fi
     cmake --build "$ocv" --target install >> "$ocv.log" 2>&1 || { tail -40 "$ocv.log"; exit 1; }
     cmake -S "$HERE" -B "$out" -G Ninja "${android[@]}" \
         -DCMAKE_BUILD_TYPE=MinSizeRel \

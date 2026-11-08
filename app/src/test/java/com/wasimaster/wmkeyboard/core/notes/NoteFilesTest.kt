@@ -70,6 +70,20 @@ class NoteFilesTest {
     }
 
     @Test
+    fun `an imported text file is titled by its name, unless the note names itself`() {
+        // #1099: a .txt imported came in untitled, its first line standing in.
+        assertEquals("Moby Dick", NoteFiles.fromText("Moby Dick.txt", "Call me Ishmael.").title)
+        // A heading is the note's title already.
+        assertEquals("", NoteFiles.fromText("whale.md", "# Moby Dick\n\nCall me Ishmael.").title)
+        // A name this app wrote from the first line comes back as it went out.
+        val untitled = Note(1, "Buy milk & eggs!")
+        val name = NoteFiles.fileName(untitled, NoteFiles.Format.TEXT, HashSet())
+        assertEquals("", NoteFiles.fromText(name, "Buy milk & eggs!").title)
+        assertEquals("", NoteFiles.fromText("Buy-milk-eggs-2.txt", "Buy milk & eggs!").title)
+        assertEquals("", NoteFiles.fromText("note-3.txt", "   x").title)
+    }
+
+    @Test
     fun `file names are slugs, deduped, with the id as a fallback`() {
         val taken = HashSet<String>()
         assertEquals("Buy-milk-eggs.md", NoteFiles.fileName(Note(1, "Buy milk & eggs!"), NoteFiles.Format.MARKDOWN, taken))

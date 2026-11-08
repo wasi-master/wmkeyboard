@@ -31,7 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.R
-import com.wasimaster.wmkeyboard.core.plugins.lua.LuaOutlineItem
+import com.wasimaster.wmkeyboard.core.plugins.PyOutlineItem
 
 /**
  * What the checks found, errors first and then in document order, each with
@@ -93,9 +93,9 @@ internal fun ProblemsPane(diagnostics: List<CodeDiagnostic>, lineStarts: List<In
     }
 }
 
-/** The named functions, each indented under the one it is written in. A tap selects the name. */
+/** The functions and top-level names, each indented under the function it is written in. A tap selects the name. */
 @Composable
-internal fun OutlinePane(outline: List<LuaOutlineItem>, lineStarts: List<Int>, onJump: (TextRange) -> Unit) {
+internal fun OutlinePane(outline: List<PyOutlineItem>, lineStarts: List<Int>, onJump: (TextRange) -> Unit) {
     if (outline.isEmpty()) {
         EmptyPane(R.string.plugin_ide_outline_empty)
         return
@@ -112,10 +112,10 @@ internal fun OutlinePane(outline: List<LuaOutlineItem>, lineStarts: List<Int>, o
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    "f",
+                    if (item.kind == "function") "f" else "x",
                     fontFamily = CodeFontFamily,
                     fontSize = 13.sp,
-                    color = colors.function,
+                    color = if (item.kind == "function") colors.function else colors.key,
                     modifier = Modifier.width(18.dp).clearAndSetSemantics {},
                 )
                 Text(

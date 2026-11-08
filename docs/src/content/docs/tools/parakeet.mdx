@@ -26,9 +26,21 @@ With both downloaded, dictation uses Ultra, and v3 can be deleted to free its sp
 
 ## How it works
 
-Like [Whisper](/tools/whisper/), Parakeet transcribes a phrase once you stop, and a phrase can run to 50 seconds. Unlike Whisper it doesn't write its answer a word at a time: an encoder reads the whole clip once, and a small transducer then walks through it, writing a word piece where it hears one and skipping ahead where the model's own duration head says nothing more is coming. That is most of why it's quick for its size. The first phrase after the keyboard starts takes a few seconds longer while the model's weights are prepared.
+Parakeet doesn't write its answer a word at a time: an encoder reads a whole clip, and a small transducer then walks through it, writing a word piece where it hears one and skipping ahead where the model's own duration head says nothing more is coming. That is most of why it's quick for its size. A phrase can run to 50 seconds. The first phrase after the keyboard starts takes a few seconds longer while the model's weights are prepared.
+
+The words show while you speak, as they do with [Asr4All](/tools/asr4all/) and [Sherpa](/tools/sherpa/): under the microphone, and in the field as underlined text in the default voice typing mode. Parakeet isn't a streaming model, so the keyboard gets them by transcribing the phrase as it stands, again and again while it grows. A new pass starts once there is more than half a second of new audio, and never sooner than three times as long as the last pass took, so a slower phone shows the words less often rather than falling behind. The words can still change as the rest of the sentence arrives. When the phrase ends, one last pass over all of it gives the text that goes in, the same text Parakeet gave before it showed words as you spoke. Each pass covers the whole phrase, so the phone works harder during a long one; a pause that ends the phrase (see [Hearing the end of a phrase](/tools/voice/#hearing-the-end-of-a-phrase)) keeps phrases short.
 
 The text arrives punctuated and capitalised by the model itself, and then goes through the same spacing, spoken punctuation and undo as any other dictation (see [Voice typing](/tools/voice/)).
+
+## Ending a phrase
+
+<SettingsPath path="Voice typing / Stop after a pause" />
+
+A phrase ends when you stop talking for as long as **Stop after a pause** says, heard by the **Phrase end detector** you picked (see [Hearing the end of a phrase](/tools/voice/#hearing-the-end-of-a-phrase)). Both are also in the **End of a phrase** group on Parakeet's own page, under its models. **Stop after a pause** is off by default; while it is off, a phrase only ends when you press the microphone or it reaches 50 seconds. Set it to a second or so and each phrase goes in at the pause, and with **Keep listening** on the next one starts by itself.
+
+Parakeet has no detector of its own, so **Auto** gives it Silero once ONNX Runtime and a Silero copy are on the phone, and loudness until then. Silero is the better choice in a noisy room, where loudness can keep a phrase open.
+
+Moondream's Parakeet Ultra carries a small voice activity head of its own, which their Photon runtime uses to cut long recordings at pauses. The keyboard's ExecuTorch export of Ultra was made with the four parts the Parakeet runner uses and left that head out, so it is not used yet; the phrase end detector does that job. Using it would take a new export of Ultra with the head as a fifth part, and a new download.
 
 ## Details & edge cases
 

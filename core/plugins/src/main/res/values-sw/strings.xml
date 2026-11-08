@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Hifadhi data kwenye kifaa chako</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” ina hati ambayo si maandishi halali ya UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Programu-jalizi hii ina kitambulisho kisicho sahihi. Kitambulisho kina urefu wa herufi 3 hadi 64. Kitambulisho kinaweza kuwa na herufi ndogo, namba, nukta, vistari na mistari ya chini.</string>
-    <string name="core_plugins_reject_compiled_lua">“%1$s” ina nambari ya Lua iliyokusanywa. Programu-jalizi lazima itumie nambari ya chanzo wazi, ili uweze kuisoma kabla haijaanza kufanya kazi.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” ina hati tupu.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” haina faili yake ya hati (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Programu-jalizi hii inahitaji toleo jipya zaidi la Kibodi ya WM.</string>

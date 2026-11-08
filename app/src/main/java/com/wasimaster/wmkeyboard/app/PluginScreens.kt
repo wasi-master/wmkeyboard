@@ -10,6 +10,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowF
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -23,6 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wasimaster.wmkeyboard.R
@@ -31,15 +33,18 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginFile
 import com.wasimaster.wmkeyboard.core.plugins.PluginImportResult
 import com.wasimaster.wmkeyboard.core.plugins.PluginLog
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifestResult
+import com.wasimaster.wmkeyboard.core.plugins.ParkedPlugin
 import com.wasimaster.wmkeyboard.core.plugins.PluginPermission
 import com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms
 import com.wasimaster.wmkeyboard.core.plugins.PluginReminders
 import com.wasimaster.wmkeyboard.core.plugins.PluginStorage
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.plugins.PluginWorkspace
+import com.wasimaster.wmkeyboard.core.plugins.PythonNative
 import com.wasimaster.wmkeyboard.core.plugins.resolve
 import com.wasimaster.wmkeyboard.core.notify.WmNotifications
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
+import com.wasimaster.wmkeyboard.ime.ui.pluginActionIcon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -73,6 +78,8 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
     val enabled = remember(revision) { store.subsystemEnabled() }
     val autoDisable = remember(revision) { store.autoDisableOnAbandon() }
     val plugins = remember(revision) { store.plugins() }
+    val retired = remember(revision) { store.retiredNames() }
+    val parked = remember(revision) { store.parked() }
     var importMessage by remember { mutableStateOf<String?>(null) }
     var pending by remember { mutableStateOf<Uri?>(null) }
     val scope = rememberCoroutineScope()
@@ -106,7 +113,12 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
                             RowExtras { ResetSetting(title, enabled) { store.setSubsystemEnabled(false) } }
                             Switch(
                                 checked = enabled,
-                                onCheckedChange = { store.setSubsystemEnabled(it) },
+                                onCheckedChange = { on ->
+                                    store.setSubsystemEnabled(on)
+                                    // The interpreter is an on-demand download: fetch
+                                    // it now rather than at the first plugin opened.
+                                    if (on) PythonNative.requestModule()
+                                },
                             )
                         }
                     },
@@ -145,12 +157,16 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
             WmRow(
                 title = stringResource(R.string.plugin_ide_entry_title),
                 icon = SettingsRowIcons[R.string.plugin_ide_entry_title],
-                subtitle = stringResource(R.string.plugin_ide_entry_subtitle),
+                subtitle = stringResource(R.string.plugin_ide_entry_subtitle_python),
                 trailing = { Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null) },
                 onClick = { onNavigate("plugin_ide") },
             )
         }
     }
+
+    // Outside the master switch: the Lua plugins went whether or not plugins
+    // are on now, and their data is the user's either way.
+    if (retired.isNotEmpty() || parked.isNotEmpty()) RetiredPluginsGroup(store, retired, parked)
 
     if (enabled) {
         SettingsGroup(stringResource(R.string.plugins_installed_title)) {
@@ -242,6 +258,64 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
     }
 }
 
+/**
+ * What an update did to plugins written in Lua: a one-time notice naming them,
+ * and the data each one kept, which waits [PluginStore.PARKED_DAYS] days for
+ * the plugin's Python version to be installed.
+ */
+@Composable
+private fun RetiredPluginsGroup(store: PluginStore, retired: List<String>, parked: List<ParkedPlugin>) {
+    var confirm by remember { mutableStateOf<ParkedPlugin?>(null) }
+    val now = remember(parked) { System.currentTimeMillis() }
+    SettingsGroup(stringResource(R.string.plugins_retired_title)) {
+        if (retired.isNotEmpty()) {
+            item { CaptionText(stringResource(R.string.plugins_retired_notice, retired.joinToString(", "))) }
+            item {
+                TextButton(onClick = { store.dismissRetired() }) {
+                    Text(stringResource(R.string.plugins_retired_dismiss))
+                }
+            }
+        }
+        for (entry in parked) {
+            item(key = "parked:${entry.id}") {
+                val daysLeft = (PluginStore.PARKED_DAYS - ((now - entry.parkedAt) / DAY_MILLIS).toInt())
+                    .coerceIn(1, PluginStore.PARKED_DAYS)
+                val kilobytes = ((entry.bytes + 1023) / 1024).toInt()
+                WmRow(
+                    title = entry.name,
+                    subtitle = pluralStringResource(R.plurals.plugins_parked_subtitle, daysLeft, kilobytes, daysLeft),
+                    trailing = {
+                        IconButton(onClick = { confirm = entry }) {
+                            Icon(
+                                Icons.Outlined.Delete,
+                                contentDescription = stringResource(R.string.plugins_parked_delete, entry.name),
+                            )
+                        }
+                    },
+                )
+            }
+        }
+    }
+    confirm?.let { entry ->
+        AlertDialog(
+            onDismissRequest = { confirm = null },
+            title = { Text(stringResource(R.string.plugins_parked_delete_confirm_title, entry.name)) },
+            text = { Text(stringResource(R.string.plugins_parked_delete_confirm_body)) },
+            confirmButton = {
+                TextButton({
+                    store.deleteParked(entry.id)
+                    confirm = null
+                }) { Text(stringResource(CommonR.string.common_delete)) }
+            },
+            dismissButton = {
+                TextButton({ confirm = null }) { Text(stringResource(CommonR.string.common_cancel)) }
+            },
+        )
+    }
+}
+
+private const val DAY_MILLIS = 24L * 60 * 60 * 1000
+
 @Composable
 private fun PluginFact(text: String, allowed: Boolean) {
     WmRow(
@@ -327,7 +401,7 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
             WmRow(
                 title = stringResource(R.string.plugin_ide_edit_title),
                 icon = SettingsRowIcons[R.string.plugin_ide_edit_title],
-                subtitle = stringResource(R.string.plugin_ide_edit_subtitle),
+                subtitle = stringResource(R.string.plugin_ide_edit_subtitle_python),
                 trailing = { Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null) },
                 onClick = {
                     scope.launch {
@@ -358,6 +432,29 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
                 item {
                     WmRow(title = stringResource(permission.labelRes))
                 }
+            }
+        }
+    }
+
+    if (plugin.actions.isNotEmpty()) {
+        SettingsGroup(
+            stringResource(R.string.plugins_actions_title),
+            info = stringResource(R.string.plugins_actions_info),
+        ) {
+            for (action in plugin.actions) {
+                item(key = "action:${action.id}") {
+                    WmRow(
+                        title = action.name,
+                        subtitle = action.summary.takeIf { it.isNotBlank() },
+                        icon = pluginActionIcon(action.icon),
+                    )
+                }
+            }
+            item {
+                NavRow(
+                    R.string.plugins_actions_settings_link,
+                    route = SelectionMacroRoute,
+                ) { onNavigate(SelectionMacroRoute) }
             }
         }
     }
@@ -551,6 +648,7 @@ private fun PluginInstallDialog(
                         append(permissionsIntro)
                         for (label in permissionLabels) append("\n• $label")
                     }
+                    append(pluginActionsLine(context, ok.manifest.actions.map { it.name }))
                 }
             } else {
                 (read as? PluginManifestResult.Rejected)?.reasonText?.resolve(context) ?: notAPlugin

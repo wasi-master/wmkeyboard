@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">ذخیره داده‌ها روی دستگاه شما</string>
     <string name="core_plugins_reject_bad_encoding">«%1$s» دارای اسکریپتی است که متن UTF-8 معتبر نیست.</string>
     <string name="core_plugins_reject_bad_id">این افزونه دارای شناسه‌ای است که معتبر نیست. شناسه باید بین ۳ تا ۶۴ کاراکتر باشد. شناسه می‌تواند شامل حروف کوچک، اعداد، نقطه، خط تیره و زیرخط باشد.</string>
-    <string name="core_plugins_reject_compiled_lua">«%1$s» حاوی کد Lua کامپایل‌شده است. یک افزونه باید از کد منبع ساده استفاده کند تا بتوانید قبل از اجرا آن را بخوانید.</string>
     <string name="core_plugins_reject_empty_script">«%1$s» دارای اسکریپت خالی است.</string>
     <string name="core_plugins_reject_missing_script">«%1$s» فایل اسکریپت خود (%2$s) را ندارد.</string>
     <string name="core_plugins_reject_newer_version">این افزونه به نسخه جدیدتری از صفحه‌کلید WM نیاز دارد.</string>

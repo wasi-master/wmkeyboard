@@ -1,0 +1,1 @@
+[type(1), type(1.0), type("s"), type([]), type(()), type({}), type(set()), type(None), type(len), type(lambda: 0), isinstance(True, int), isinstance(1, float), isinstance([], (dict, list)), callable(len), callable(1)]

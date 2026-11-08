@@ -347,6 +347,11 @@ object LayoutJsonHints {
                 examples = listOf(JsonValueExample("0.8"), JsonValueExample("1"), JsonValueExample("1.2")),
                 range = KeyLabelScaleRange.toDoubles(),
             ),
+            "Key.flickScale" to PropertyHint(
+                examples = listOf(JsonValueExample("0.8"), JsonValueExample("1.5")),
+                range = KeyHintScaleRange.toDoubles(),
+            ),
+            "Key.flickInsetDp" to PropertyHint(examples = listOf(JsonValueExample("2"), JsonValueExample("-1"))),
             "Key.hintShiftXDp" to PropertyHint(examples = listOf(JsonValueExample("2"), JsonValueExample("-2"))),
             "Key.hintShiftYDp" to PropertyHint(examples = listOf(JsonValueExample("2"), JsonValueExample("-2"))),
             "Key.hintScale" to PropertyHint(
@@ -453,8 +458,8 @@ data class ResolvedShape(val shape: JsonShape, val property: PropertyShape?)
 
 /**
  * How a shape reads in a suggestion's detail and the doc strip: the words a JSON
- * author already uses. Deliberately untranslated, for the reason `LuaApiDocs`
- * gives: these name the types of a programming format.
+ * author already uses. Deliberately untranslated, for the reason the plugin API docs
+ * give: these name the types of a programming format.
  */
 fun JsonShape.summary(): String = when (this) {
     is ObjectShape -> if (typeName.startsWith("action:")) "action" else typeName

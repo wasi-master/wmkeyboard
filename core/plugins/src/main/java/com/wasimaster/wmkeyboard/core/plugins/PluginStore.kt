@@ -28,13 +28,66 @@ data class InstalledPlugin(
      * has earned the benefit of the doubt being withdrawn.
      */
     val abandonedCount: Int = 0,
+    /**
+     * [PluginManifestCodec.LANGUAGE_PYTHON] for every plugin the store keeps.
+     * The default is Lua because an index written before this field existed
+     * held only Lua plugins, and [PluginStore.reload] retires those.
+     */
+    val language: String = PluginManifestCodec.LANGUAGE_LUA,
+    /** False for a plugin of actions alone, which the keyboard's plugin list leaves out. */
+    val panel: Boolean = true,
+    /**
+     * The selection actions it declared, copied here so the keyboard can draw
+     * their chips on every selection change without reading `plugin.json`.
+     */
+    val actions: List<PluginActionSpec> = emptyList(),
 ) {
+    val isPython: Boolean
+        get() = language == PluginManifestCodec.LANGUAGE_PYTHON
+
     /** The declared permissions this build understands; unknown ones never survive install. */
     val grantedPermissions: List<PluginPermission>
         get() = permissions.mapNotNull { PluginPermission.parse(it) }
 
     fun grants(permission: PluginPermission): Boolean = permission.wire in permissions
 }
+
+/** One selection action, with the plugin that declared it. */
+data class PluginActionRef(val plugin: InstalledPlugin, val action: PluginActionSpec) {
+    /** Stable across launches and unique across plugins: what settings and the bar key on. */
+    val key: String
+        get() = keyOf(plugin.id, action.id)
+
+    companion object {
+        const val PREFIX = "plugin:"
+
+        fun keyOf(pluginId: String, actionId: String): String = "$PREFIX$pluginId/$actionId"
+
+        /** The plugin and action ids in [key], or null when it is not a plugin action key. */
+        fun parse(key: String): Pair<String, String>? {
+            if (!key.startsWith(PREFIX)) return null
+            val rest = key.removePrefix(PREFIX)
+            val slash = rest.lastIndexOf('/')
+            if (slash <= 0 || slash == rest.length - 1) return null
+            return rest.substring(0, slash) to rest.substring(slash + 1)
+        }
+    }
+}
+
+/**
+ * The saved data of a plugin that was removed without the user asking: a Lua
+ * plugin, retired when plugins became Python only. Installing a plugin with the
+ * same id puts the data back, so the Python version of a demo finds the list
+ * its Lua version kept.
+ */
+@Serializable
+data class ParkedPlugin(
+    val id: String = "",
+    val name: String = "",
+    val parkedAt: Long = 0L,
+    /** Size of the parked `storage.json`, for the Plugins screen. */
+    val bytes: Long = 0L,
+)
 
 /** The outcome of writing a plugin into the store. */
 sealed interface PluginAdoptResult {
@@ -53,13 +106,18 @@ sealed interface PluginAdoptResult {
  * ```
  * plugins/
  * ├── plugins.json                the index
- * └── <pluginId>/
- *     ├── plugin.json             the manifest as accepted
- *     ├── main.lua                the script as imported
- *     ├── storage.json            wm.storage, if the plugin declared it
- *     ├── reminders.json          wm.reminders still to show, if it declared that
- *     └── log.txt                 print() output and script errors
+ * ├── <pluginId>/
+ * │   ├── plugin.json             the manifest as accepted
+ * │   ├── main.py                 the script as imported
+ * │   ├── storage.json            wm.storage, if the plugin declared it
+ * │   ├── reminders.json          wm.reminders still to show, if it declared that
+ * │   └── log.txt                 print() output and script errors
+ * └── .parked/<pluginId>/
+ *     └── storage.json            a retired plugin's data, kept for its reinstall
  * ```
+ *
+ * `.parked` can never be a plugin's directory: an id starts with a letter or
+ * a digit.
  *
  * Same shape and the same reasons as
  * [com.wasimaster.wmkeyboard.core.addons.AddonStore]: one store per process,
@@ -73,7 +131,10 @@ sealed interface PluginAdoptResult {
  * a single safe lowercase path segment before anything reaches this class, and
  * why [dirFor] re-checks it rather than trusting its caller.
  */
-class PluginStore(private var baseDir: File?) {
+class PluginStore(
+    private var baseDir: File?,
+    private val clock: () -> Long = System::currentTimeMillis,
+) {
 
     @Serializable
     private data class Snapshot(
@@ -83,9 +144,14 @@ class PluginStore(private var baseDir: File?) {
         // Defaults true so an index written before this existed keeps the
         // behaviour it was written under.
         val autoDisableOnAbandon: Boolean = true,
+        val parked: List<ParkedPlugin> = emptyList(),
+        /** Names of plugins retired since the user last saw the notice. */
+        val retired: List<String> = emptyList(),
     )
 
     private val pluginList = ArrayList<InstalledPlugin>()
+    private val parkedList = ArrayList<ParkedPlugin>()
+    private val retiredNames = ArrayList<String>()
     private var subsystem = false
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
@@ -122,7 +188,8 @@ class PluginStore(private var baseDir: File?) {
                 null
             }
 
-        private const val FORMAT_VERSION = 1
+        /** 2: plugins are Python only; Lua ones are retired on read. */
+        private const val FORMAT_VERSION = 2
 
         const val DIR_NAME = "plugins"
 
@@ -133,8 +200,16 @@ class PluginStore(private var baseDir: File?) {
         const val MAX_ABANDONS = 2
 
         const val MANIFEST_FILE = "plugin.json"
-        const val SCRIPT_FILE = "main.lua"
+        const val SCRIPT_FILE = "main.py"
         const val STORAGE_FILE = "storage.json"
+
+        /** What a plugin's script was called while plugins were Lua. */
+        private const val LUA_SCRIPT_FILE = "main.lua"
+        private const val PARKED_DIR = ".parked"
+
+        /** How long a retired plugin's data waits for its reinstall. */
+        const val PARKED_DAYS = 90
+        private const val PARKED_MILLIS = PARKED_DAYS * 24L * 60 * 60 * 1000
         const val LOG_FILE = "log.txt"
         const val REMINDERS_FILE = "reminders.json"
 
@@ -207,6 +282,22 @@ class PluginStore(private var baseDir: File?) {
     @Synchronized
     fun runnablePlugins(): List<InstalledPlugin> = pluginList.filter { it.enabled }
 
+    /** Runnable plugins that draw a panel: what the keyboard's plugin list offers. */
+    @Synchronized
+    fun panelPlugins(): List<InstalledPlugin> = pluginList.filter { it.enabled && it.panel }
+
+    /**
+     * Every selection action that may run right now, in install order: the
+     * subsystem is on, the plugin is on and granted [PluginPermission.SelectedText].
+     */
+    @Synchronized
+    fun selectionActions(): List<PluginActionRef> {
+        if (!subsystem) return emptyList()
+        return pluginList
+            .filter { it.enabled && it.grants(PluginPermission.SelectedText) }
+            .flatMap { plugin -> plugin.actions.map { PluginActionRef(plugin, it) } }
+    }
+
     /**
      * The plugin's own directory, or null when the id is not a safe path segment
      * or there is nowhere to write. Never creates it.
@@ -227,11 +318,56 @@ class PluginStore(private var baseDir: File?) {
 
     fun remindersFile(id: String): File? = dirFor(id)?.let { File(it, REMINDERS_FILE) }
 
-    /** The Lua source, or null if it has gone missing — which the reconciler treats as uninstalled. */
+    /** The script, or null if it has gone missing — which the reconciler treats as uninstalled. */
     fun script(id: String): String? {
         val file = scriptFile(id) ?: return null
         if (!file.isFile) return null
         return runCatching { file.readText() }.getOrNull()
+    }
+
+    // ---- retired Lua plugins -------------------------------------------
+
+    /** Data kept for retired plugins, oldest first. */
+    @Synchronized
+    fun parked(): List<ParkedPlugin> = parkedList.toList()
+
+    /**
+     * The parked `storage.json` of a retired plugin, or null when none is kept.
+     * The Todo tool's import reads it, so a list survives the Todo plugin being
+     * retired even if its Python version is never installed.
+     */
+    fun parkedStorageFile(id: String): File? {
+        val dir = baseDir ?: return null
+        if (!SAFE_ID.matches(id)) return null
+        return File(File(File(dir, PARKED_DIR), id), STORAGE_FILE).takeIf { it.isFile }
+    }
+
+    /** Throws a retired plugin's data away. */
+    @Synchronized
+    fun deleteParked(id: String) {
+        if (!parkedList.removeAll { it.id == id }) return
+        parkedDir(id)?.let { runCatching { it.deleteRecursively() } }
+        save()
+    }
+
+    /**
+     * Names of plugins retired since [dismissRetired]: shown once, on the
+     * Plugins screen and in the keyboard's plugin list.
+     */
+    @Synchronized
+    fun retiredNames(): List<String> = retiredNames.toList()
+
+    @Synchronized
+    fun dismissRetired() {
+        if (retiredNames.isEmpty()) return
+        retiredNames.clear()
+        save()
+    }
+
+    private fun parkedDir(id: String): File? {
+        val dir = baseDir ?: return null
+        if (!SAFE_ID.matches(id)) return null
+        return File(File(dir, PARKED_DIR), id)
     }
 
     // ---- writing -------------------------------------------------------
@@ -251,9 +387,12 @@ class PluginStore(private var baseDir: File?) {
      * turned off, or forgiving strikes the runaway guard counted, is not what
      * saving an edit means, so the existing record's flag and count carry over.
      *
-     * Both files go through [writeAtomically]. The keyboard can load `main.lua`
+     * Both files go through [writeAtomically]. The keyboard can load `main.py`
      * at any moment, and a write cut short must leave the previous script whole
      * rather than a truncated one that fails to parse.
+     *
+     * A plugin with the id of a retired one gets the retired one's parked data
+     * back, unless it already has data of its own.
      */
     @Synchronized
     fun adopt(
@@ -271,6 +410,7 @@ class PluginStore(private var baseDir: File?) {
             writeAtomically(File(dir, SCRIPT_FILE), script)
         if (!written) return PluginAdoptResult.Failed
         val carried = existing?.takeIf { keepState }
+        unpark(manifest.id, dir)
 
         val record = InstalledPlugin(
             id = manifest.id,
@@ -283,6 +423,9 @@ class PluginStore(private var baseDir: File?) {
             enabled = carried?.enabled ?: true,
             installedAt = existing?.installedAt ?: now,
             abandonedCount = carried?.abandonedCount ?: 0,
+            language = manifest.language,
+            panel = manifest.panel,
+            actions = manifest.actions,
         )
         // A permission the new version dropped must stop applying, which happens
         // for free: the record is rebuilt from the new manifest rather than
@@ -291,6 +434,26 @@ class PluginStore(private var baseDir: File?) {
         pluginList.add(record)
         save()
         return PluginAdoptResult.Adopted(record, replaced = existing != null)
+    }
+
+    /**
+     * Moves parked data for [id] into [dir]. A plugin that already keeps data
+     * of its own leaves the parked copy where it is, listed and deletable, so
+     * neither is thrown away without the user seeing it.
+     */
+    private fun unpark(id: String, dir: File) {
+        if (parkedList.none { it.id == id }) return
+        val from = parkedDir(id) ?: return
+        val parkedFile = File(from, STORAGE_FILE)
+        val target = File(dir, STORAGE_FILE)
+        if (target.exists()) return
+        if (parkedFile.isFile) {
+            val moved = runCatching { parkedFile.renameTo(target) || parkedFile.copyTo(target).exists() }
+                .getOrDefault(false)
+            if (!moved) return
+        }
+        runCatching { from.deleteRecursively() }
+        parkedList.removeAll { it.id == id }
     }
 
     /** Removes the plugin and everything it owns, including its storage and log. */
@@ -368,6 +531,8 @@ class PluginStore(private var baseDir: File?) {
                         plugins = pluginList.toList(),
                         subsystemEnabled = subsystem,
                         autoDisableOnAbandon = autoDisable,
+                        parked = parkedList.toList(),
+                        retired = retiredNames.toList(),
                     ),
                 ),
             )
@@ -397,13 +562,17 @@ class PluginStore(private var baseDir: File?) {
     @Synchronized
     fun reload() {
         pluginList.clear()
+        parkedList.clear()
+        retiredNames.clear()
         subsystem = false
         autoDisable = true
         val dir = baseDir ?: run { _revision.value++; return }
         val index = File(dir, INDEX_FILE)
+        var version = FORMAT_VERSION
         if (index.exists()) {
             runCatching {
                 val snapshot = json.decodeFromString<Snapshot>(index.readText())
+                version = snapshot.version
                 subsystem = snapshot.subsystemEnabled
                 autoDisable = snapshot.autoDisableOnAbandon
                 pluginList.addAll(
@@ -412,8 +581,68 @@ class PluginStore(private var baseDir: File?) {
                         .distinctBy { it.id }
                         .take(MAX_PLUGINS),
                 )
+                parkedList.addAll(snapshot.parked.filter { SAFE_ID.matches(it.id) }.distinctBy { it.id })
+                retiredNames.addAll(snapshot.retired)
             }
         }
-        _revision.value++
+        val retiredAny = retireLua()
+        val purged = purgeParked()
+        if (retiredAny || purged || (index.exists() && version < FORMAT_VERSION)) save() else _revision.value++
+    }
+
+    /**
+     * Retires every Lua plugin: its directory goes, its `storage.json` is parked
+     * and its name is queued for the notice. A Python plugin installed while the
+     * script was still called `main.lua` gets it renamed. True if anything changed.
+     */
+    private fun retireLua(): Boolean {
+        var changed = false
+        val lua = pluginList.filter { it.language != PluginManifestCodec.LANGUAGE_PYTHON }
+        for (record in lua) {
+            park(record)
+            dirFor(record.id)?.let { runCatching { it.deleteRecursively() } }
+            pluginList.remove(record)
+            retiredNames += record.name.ifBlank { record.id }
+            changed = true
+        }
+        for (record in pluginList) {
+            val dir = dirFor(record.id) ?: continue
+            val old = File(dir, LUA_SCRIPT_FILE)
+            val new = File(dir, SCRIPT_FILE)
+            if (old.isFile && !new.exists()) {
+                runCatching { old.renameTo(new) }
+                changed = true
+            }
+        }
+        return changed
+    }
+
+    private fun park(record: InstalledPlugin) {
+        val source = storageFile(record.id)?.takeIf { it.isFile && it.length() > 0 } ?: return
+        val to = parkedDir(record.id) ?: return
+        val moved = runCatching {
+            to.deleteRecursively()
+            to.mkdirs()
+            val target = File(to, STORAGE_FILE)
+            source.renameTo(target) || source.copyTo(target, overwrite = true).exists()
+        }.getOrDefault(false)
+        if (!moved) return
+        parkedList.removeAll { it.id == record.id }
+        parkedList += ParkedPlugin(
+            id = record.id,
+            name = record.name.ifBlank { record.id },
+            parkedAt = clock(),
+            bytes = File(to, STORAGE_FILE).length(),
+        )
+    }
+
+    /** Drops parked data older than [PARKED_DAYS], and entries whose files have gone. */
+    private fun purgeParked(): Boolean {
+        val now = clock()
+        val gone = parkedList.filter { now - it.parkedAt > PARKED_MILLIS || parkedStorageFile(it.id) == null }
+        if (gone.isEmpty()) return false
+        for (entry in gone) parkedDir(entry.id)?.let { runCatching { it.deleteRecursively() } }
+        parkedList.removeAll(gone.toSet())
+        return true
     }
 }

@@ -1,0 +1,33 @@
+/* tslint:disable */
+/* eslint-disable */
+export const memory: WebAssembly.Memory;
+export const __wbg_pysession_free: (a: number, b: number) => void;
+export const analyse: (a: number, b: number, c: number, d: number) => [number, number];
+export const apiAt: (a: number, b: number, c: number) => [number, number];
+export const apiEntries: () => [number, number];
+export const check: (a: number, b: number) => [number, number];
+export const complete: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
+export const definition: (a: number, b: number, c: number) => [number, number];
+export const diagnosticCodes: () => [number, number];
+export const format: (a: number, b: number) => [number, number];
+export const inInert: (a: number, b: number, c: number) => number;
+export const opensBlock: (a: number, b: number) => number;
+export const pysession_cancel: (a: number) => void;
+export const pysession_event: (a: number, b: number, c: number) => [number, number];
+export const pysession_load: (a: number, b: number, c: number) => [number, number];
+export const pysession_new: (a: number, b: number) => [number, number, number];
+export const pysession_render: (a: number) => [number, number];
+export const pysession_storage: (a: number) => [number, number];
+export const pysession_storageRemove: (a: number, b: number, c: number) => void;
+export const pysession_storageSet: (a: number, b: number, c: number, d: number, e: number) => [number, number];
+export const pysession_transform: (a: number, b: number, c: number, d: number, e: number) => [number, number];
+export const pysession_usage: (a: number) => [number, number];
+export const references: (a: number, b: number, c: number) => [number, number];
+export const rename: (a: number, b: number, c: number, d: number, e: number) => [number, number];
+export const tokens: (a: number, b: number) => [number, number];
+export const __wbindgen_externrefs: WebAssembly.Table;
+export const __wbindgen_malloc: (a: number, b: number) => number;
+export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
+export const __wbindgen_free: (a: number, b: number, c: number) => void;
+export const __externref_table_dealloc: (a: number) => void;
+export const __wbindgen_start: () => void;

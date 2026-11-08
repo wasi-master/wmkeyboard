@@ -11,7 +11,6 @@
     <string name="core_plugins_permission_storage_label">Adatok mentése az eszközre</string>
     <string name="core_plugins_reject_bad_encoding">A(z) „%1$s” olyan szkriptet tartalmaz, amely nem érvényes UTF-8 szöveg.</string>
     <string name="core_plugins_reject_bad_id">Ennek a bővítménynek az azonosítója érvénytelen. Az azonosító 3–64 karakter hosszú lehet. Tartalmazhat kisbetűket, számokat, pontokat, kötőjeleket és aláhúzásokat.</string>
-    <string name="core_plugins_reject_compiled_lua">A(z) „%1$s” lefordított Lua-kódot tartalmaz. A bővítményeknek egyszerű forráskódot kell használniuk, hogy elolvashasd, mielőtt futnának.</string>
     <string name="core_plugins_reject_empty_script">A(z) „%1$s” szkriptje üres.</string>
     <string name="core_plugins_reject_missing_script">A(z) „%1$s” nem rendelkezik parancsfájllal (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Ehhez a bővítményhez a WM Keyboard újabb verziója szükséges.</string>

@@ -1,0 +1,1 @@
+{"id":"repo-shrug","name":"Shrug","icon":"face.dashed","summary":"Insert a shrug emoticon","source":"def transform(text):\n    return \"¯\\_(ツ)_/¯\"","input":"none","replacesInput":true,"enabled":true}

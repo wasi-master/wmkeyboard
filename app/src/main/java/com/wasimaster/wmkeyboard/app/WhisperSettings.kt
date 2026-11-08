@@ -158,7 +158,9 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
     // The routing below answers for every language at once, and the routing
     // card, the model rows and the dialog all read that one answer, so what it
     // is worked out from is read here.
-    val enabledLanguages = settings.watch { it.enabledLanguages }
+    // As dictation hears them, Hinglish as Hindi (voiceLanguages): the
+    // models are routed by the spoken language.
+    val enabledLanguages = settings.watch { voiceLanguages(it.enabledLanguages) }
     val fallbackId = settings.watch { it.whisper.modelId }
     val pinnedByLang = settings.watch { it.whisper.modelByLang }
 
@@ -420,9 +422,14 @@ private fun WhisperComputeGroup(repository: SettingsRepository, settings: LiveSe
     val subtitle = when (support) {
         WhisperCppGpu.Support.NO_GPU -> stringResource(R.string.models_whisper_compute_no_gpu)
         WhisperCppGpu.Support.FAILED -> stringResource(R.string.models_whisper_compute_failed)
-        WhisperCppGpu.Support.READY -> WhisperCppGpu.deviceName
-            ?.let { stringResource(R.string.models_whisper_compute_subtitle_named, it) }
-            ?: stringResource(R.string.models_whisper_compute_subtitle)
+        WhisperCppGpu.Support.DOWNLOADING -> stringResource(R.string.models_whisper_compute_downloading)
+        WhisperCppGpu.Support.READY -> when {
+            // Auto keeps a Vulkan GPU out of it; only GPU itself uses one.
+            !WhisperCppGpu.adreno -> stringResource(R.string.models_whisper_compute_vulkan)
+            else -> WhisperCppGpu.deviceName
+                ?.let { stringResource(R.string.models_whisper_compute_subtitle_named, it) }
+                ?: stringResource(R.string.models_whisper_compute_subtitle)
+        }
     }
     SettingsGroup(stringResource(R.string.models_whisper_compute_title), level = SettingLevel.ADVANCED) {
         item {
@@ -447,7 +454,12 @@ private fun WhisperComputeGroup(repository: SettingsRepository, settings: LiveSe
                     )
                 },
             ) { choice ->
-                if (choice == WhisperCompute.GPU) WhisperCppGpu.forgetFailures()
+                if (choice == WhisperCompute.GPU) {
+                    WhisperCppGpu.forgetFailures()
+                    // A Mali, Xclipse or PowerVR phone's Vulkan build is a
+                    // download of its own: started now, not at the first clip.
+                    WhisperCppGpu.prepare()
+                }
                 scope.launch { repository.setWhisperCompute(choice) }
             }
         }

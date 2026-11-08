@@ -58,6 +58,39 @@ class GlideSavedApostropheWordTest {
     }
 
     @Test
+    fun `a learned geht's glides though the list counts gehts`() {
+        // #1051: German lists hold `gehts` far above *geht's* (4,057 against
+        // 145), and the reporter glided `gehe` every time. Typing *geht's*
+        // in its place three times put it in the lexicon, where the walk
+        // never looked, because the bare spelling was a list word.
+        val list = Trie().apply {
+            insert("gehe", 2500)
+            insert("geht", 9000)
+            insert("gehts", 40)
+            insert("geht's", 2)
+        }
+        val lexicon = UserLexicon(null)
+        val e = SuggestionEngine(list, BengaliPhoneticIndex(emptyList()), lexicon)
+        e.primaryLanguageId = "de"
+        val before = e.glide(gestureFor("gehts"), grid, keyWidth, limit = 4).map { it.word }
+        assertTrue("$before", "geht's" !in before)
+        repeat(3) { lexicon.addWord("geht's") }
+        val words = e.glide(gestureFor("gehts"), grid, keyWidth, limit = 4).map { it.word }
+        assertEquals("$words", "geht's", words.first())
+    }
+
+    @Test
+    fun `a shape learned for geht's is the shape of the stroke gehts`() {
+        val store = GlideShapeStore(null)
+        val shape = ByteArray(GlideShapeStore.POINTS) { 10 }
+        store.learn(GlideShapeSample(0x5e1fL, shape), "geht's")
+        val source = store.forLayout(0x5e1fL) ?: error("no source")
+        assertEquals(0f, source.minDistance("gehts", shape), 1e-6f)
+        assertEquals(0f, source.minDistance("geht’s", shape), 1e-6f)
+        assertEquals(listOf("gehts"), source.wordsNear(shape, radius = 1f, limit = 3))
+    }
+
+    @Test
     fun `a bare spelling that is a word stays itself`() {
         val words = engine("it's").glide(gestureFor("its"), grid, keyWidth, limit = 4).map { it.word }
         assertTrue("$words", "its" in words)

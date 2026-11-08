@@ -71,6 +71,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
                 subtitle = stringResource(R.string.tooldetail_speed_connections_subtitle),
                 value = settings.watch { it.speedTest.connections }.toFloat(),
                 range = 1f..8f,
+                steps = wholeSteps(1f..8f),
                 display = { numberFormat.format(it.roundToInt()) },
                 default = SettingsDefaults.speedTest.connections.toFloat(),
             ) { scope.launch { repository.setSpeedTestConnections(it.roundToInt()) } }

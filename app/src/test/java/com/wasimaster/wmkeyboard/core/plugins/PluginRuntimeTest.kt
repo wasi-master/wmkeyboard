@@ -9,14 +9,17 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * The runtime, driven with real threads.
+ * The runtime, driven with real threads and the real interpreter.
  *
- * Not fast tests, but the things worth proving here — that a runaway script is
- * contained, that a stuck one is abandoned, that a second offence disables the
- * plugin — are all about real concurrency, and a fake executor would prove none
- * of them.
+ * Not fast tests, but the things worth proving here (that a runaway script is
+ * stopped and reported, that a second offence disables the plugin, that a
+ * closed session goes quiet) are all about real concurrency, and a fake
+ * executor would prove none of them. What the interpreter itself does with a
+ * script is `cargo test`'s business in `native/wm-python`; these check what
+ * the runtime makes of its answers.
  */
 class PluginRuntimeTest {
 
@@ -29,6 +32,7 @@ class PluginRuntimeTest {
     private val lock = Any()
     private val events = ArrayList<String>()
     private val uis = ArrayList<RenderedUi>()
+    private val remindersMoved = AtomicInteger()
 
     /** The message behind every `error` and `stopped:` event, in arrival order. */
     private val messages = ArrayList<PluginText>()
@@ -68,13 +72,14 @@ class PluginRuntimeTest {
     // ---- helpers ---------------------------------------------------------
 
     private fun runtime(limits: PluginRuntime.Limits = PluginRuntime.Limits()): PluginRuntime {
-        store = PluginStore(temp.newFolder("plugins-${counter++}"))
-        return PluginRuntime(store, listener, limits).also { runtime = it }
+        store = PluginStore(temp.newFolder())
+        return PluginRuntime(store, listener, limits, onRemindersChanged = { remindersMoved.incrementAndGet() })
+            .also { runtime = it }
     }
 
     private fun install(
         script: String,
-        id: String = "com.example.demo",
+        id: String = ID,
         permissions: List<String> = emptyList(),
     ): String {
         store.adopt(
@@ -127,12 +132,13 @@ class PluginRuntimeTest {
     @Test
     fun `opening a plugin renders it`() {
         val engine = runtime()
-        install("function render() return ui.column { ui.label { text = 'hello' } } end")
-        engine.open("com.example.demo")
+        install("def render():\n    return ui.column(ui.label(\"hello\"))")
+        engine.open(ID)
         awaitUis(1)
 
         val column = synchronized(lock) { uis.last().root.single() as PluginWidget.Column }
         assertEquals("hello", (column.children.single() as PluginWidget.Label).text)
+        assertEquals(ID, engine.activePluginId)
     }
 
     @Test
@@ -140,14 +146,18 @@ class PluginRuntimeTest {
         val engine = runtime()
         install(
             """
-            local count = 0
-            function on_event(e)
-              if e.type == "click" then count = count + 1 end
-            end
-            function render() return ui.label { text = "clicks: " .. count } end
+            count = 0
+
+            def on_event(e):
+                global count
+                if e.type == "click":
+                    count += 1
+
+            def render():
+                return ui.label("clicks: " + str(count))
             """.trimIndent(),
         )
-        engine.open("com.example.demo")
+        engine.open(ID)
         awaitUis(1)
 
         engine.dispatch(PluginEvent.Click("go"))
@@ -163,19 +173,23 @@ class PluginRuntimeTest {
         val engine = runtime()
         install(
             """
-            local typed = ""
-            function on_event(e)
-              if e.type == "input_changed" then typed = e.value end
-            end
-            function render() return ui.label { text = typed } end
+            typed = ""
+
+            def on_event(e):
+                global typed
+                if e.type == "input_changed":
+                    typed = e.id + ": " + e.value
+
+            def render():
+                return ui.label(typed)
             """.trimIndent(),
         )
-        engine.open("com.example.demo")
+        engine.open(ID)
         awaitUis(1)
 
         engine.dispatch(PluginEvent.InputChanged("msg", "typed by the user"))
         awaitUis(2)
-        assertEquals("typed by the user", lastLabel())
+        assertEquals("msg: typed by the user", lastLabel())
     }
 
     @Test
@@ -183,19 +197,55 @@ class PluginRuntimeTest {
         val engine = runtime()
         install(
             """
-            local on = false
-            function on_event(e)
-              if e.type == "toggle" then on = e.value end
-            end
-            function render() return ui.label { text = tostring(on) } end
+            on = False
+
+            def on_event(e):
+                global on
+                if e["type"] == "toggle":
+                    on = e["value"]
+
+            def render():
+                return ui.label(str(on))
             """.trimIndent(),
         )
-        engine.open("com.example.demo")
+        engine.open(ID)
         awaitUis(1)
 
         engine.dispatch(PluginEvent.ToggleChanged("caps", true))
         awaitUis(2)
-        assertEquals("true", lastLabel())
+        assertEquals("True", lastLabel())
+    }
+
+    @Test
+    fun `a tab carries its index and a cleared date carries None`() {
+        val engine = runtime()
+        install(
+            """
+            seen = "nothing"
+
+            def on_event(e):
+                global seen
+                if e.type == "tab_selected":
+                    seen = "tab " + str(e.index)
+                if e.type == "date_changed":
+                    seen = "date " + str(e.value)
+
+            def render():
+                return ui.label(seen)
+            """.trimIndent(),
+        )
+        engine.open(ID)
+        awaitUis(1)
+
+        engine.dispatch(PluginEvent.TabSelected("pages", 2))
+        awaitUis(2)
+        assertEquals("tab 2", lastLabel())
+        engine.dispatch(PluginEvent.DateChanged("due", 1_790_000_000L))
+        awaitUis(3)
+        assertEquals("date 1790000000", lastLabel())
+        engine.dispatch(PluginEvent.DateChanged("due", null))
+        awaitUis(4)
+        assertEquals("date None", lastLabel())
     }
 
     @Test
@@ -203,11 +253,14 @@ class PluginRuntimeTest {
         val engine = runtime()
         install(
             """
-            function on_event(e) wm.ui.set_input("box", "cleared") end
-            function render() return ui.input { id = "box" } end
+            def on_event(e):
+                wm.ui.set_input("box", "cleared")
+
+            def render():
+                return ui.input("box")
             """.trimIndent(),
         )
-        engine.open("com.example.demo")
+        engine.open(ID)
         awaitUis(1)
 
         engine.dispatch(PluginEvent.Click("go"))
@@ -219,22 +272,54 @@ class PluginRuntimeTest {
         val engine = runtime()
         install(
             """
-            function on_event(e) wm.storage.set("note", "kept") end
-            function render() return ui.label { text = wm.storage.get("note") or "empty" } end
+            def on_event(e):
+                wm.storage.set("note", "kept")
+
+            def render():
+                return ui.label(wm.storage.get("note", "empty"))
             """.trimIndent(),
             permissions = listOf("storage"),
         )
-        engine.open("com.example.demo")
+        engine.open(ID)
         awaitUis(1)
+        assertEquals("empty", lastLabel())
         engine.dispatch(PluginEvent.Click("save"))
         awaitUis(2)
         assertEquals("kept", lastLabel())
         engine.close()
 
         reset()
-        engine.open("com.example.demo")
+        engine.open(ID)
         awaitUis(1)
         assertEquals("kept", lastLabel())
+        // Written where the app reads it, in the format it reads.
+        assertEquals("kept", PluginStorage(store.storageFile(ID)).get("note"))
+    }
+
+    @Test
+    fun `a reminder set by an installed plugin moves the app's wake-up`() {
+        val engine = runtime()
+        install(
+            """
+            import time
+
+            def on_event(e):
+                wm.reminders.set("r1", int(time.time()) + 3600, "stretch")
+
+            def render():
+                return ui.label(str(len(wm.reminders.list())))
+            """.trimIndent(),
+            permissions = listOf("reminders"),
+        )
+        engine.open(ID)
+        awaitUis(1)
+        assertEquals(0, remindersMoved.get())
+
+        engine.dispatch(PluginEvent.Click("set"))
+        awaitUis(2)
+        assertEquals("1", lastLabel())
+        waitUntil { remindersMoved.get() == 1 }
+        assertEquals("stretch", PluginReminders(store.remindersFile(ID)).list().single().text)
     }
 
     // ---- broken plugins ---------------------------------------------------
@@ -242,19 +327,20 @@ class PluginRuntimeTest {
     @Test
     fun `a script that fails to load reports an error`() {
         val engine = runtime()
-        install("this is not lua at all !!!")
-        engine.open("com.example.demo")
+        install("this is not python at all !!!")
+        engine.open(ID)
         awaitTag("error")
-        // The Lua virtual machine wrote the complaint, so it reaches the panel as
-        // the script's own words rather than as one of this build's strings.
+        // The interpreter wrote the complaint, so it reaches the panel as the
+        // script's own words rather than as one of this build's strings.
         assertTrue(lastMessage() is PluginText.Script)
+        assertTrue(store.plugin(ID)!!.enabled)
     }
 
     @Test
     fun `a script with no render function says so`() {
         val engine = runtime()
-        install("local x = 1")
-        engine.open("com.example.demo")
+        install("x = 1")
+        engine.open(ID)
         awaitTag("error")
         // "says so" is the point of the test, so check which line it said.
         assertEquals(PluginText.Resource(R.string.core_plugins_error_no_render), lastMessage())
@@ -265,80 +351,80 @@ class PluginRuntimeTest {
         val engine = runtime()
         install(
             """
-            function on_event(e) error("handler exploded") end
-            function render() return ui.label { text = "still here" } end
+            def on_event(e):
+                raise ValueError("handler exploded")
+
+            def render():
+                return ui.label("still here")
             """.trimIndent(),
         )
-        engine.open("com.example.demo")
+        engine.open(ID)
         awaitUis(1)
 
         engine.dispatch(PluginEvent.Click("boom"))
         awaitTag("error")
-        // Text from the virtual machine keeps its own words, so what the script
-        // author wrote is still what the user reads.
+        // The interpreter's words, with the line the panel shows them at.
         val failure = lastMessage() as PluginText.Script
         assertTrue(failure.text, failure.text.contains("handler exploded"))
+        assertTrue(failure.text, failure.text.startsWith("${PluginRuntime.SCRIPT_CHUNK}:2: "))
 
         // Still loaded, so the next event still arrives.
         reset()
         engine.dispatch(PluginEvent.Click("again"))
         awaitTag("error")
-        assertTrue(store.plugin("com.example.demo")!!.enabled)
+        assertTrue(store.plugin(ID)!!.enabled)
+        assertEquals(0, store.plugin(ID)!!.abandonedCount)
     }
 
     @Test
-    fun `an infinite loop is stopped and reported`() {
-        val engine = runtime(
-            PluginRuntime.Limits(load = PluginLimit(instructions = 200_000, wallMillis = 5_000)),
-        )
-        install("while true do end function render() return ui.label{text='x'} end")
-        engine.open("com.example.demo")
+    fun `an infinite loop is stopped, reported and counted`() {
+        val engine = runtime(PluginRuntime.Limits(load = PluginLimit(instructions = 200_000, wallMillis = 5_000)))
+        install("while True:\n    pass\n\ndef render():\n    return ui.label(\"x\")")
+        engine.open(ID)
         awaitTag("stopped")
-        // Reported as the reason it was stopped for: the instruction allowance ran
+        // Reported as the reason it was stopped for: the step allowance ran
         // out, which is a different line from a deadline or a cancellation.
-        assertEquals(
-            PluginText.Resource(PluginAbortReason.INSTRUCTIONS.messageRes),
-            lastMessage(),
-        )
+        assertEquals(PluginText.Resource(PluginAbortReason.INSTRUCTIONS.messageRes), lastMessage())
+        assertEquals(1, store.plugin(ID)!!.abandonedCount)
     }
 
     @Test
-    fun `an unresponsive plugin is abandoned and a repeat offence disables it`() {
-        // Chained lazy quantifiers over a long subject. Lua patterns have no
-        // alternation and no nested group repeats, so the classic regex bomb does
-        // not apply -- but `.-` sequences do backtrack, and each one multiplies
-        // the work. This runs entirely inside luaj's Java matcher, where the
-        // instruction hook never fires, which is the exact case the watchdog
-        // exists for and the only way to reach it.
-        val engine = runtime(
-            PluginRuntime.Limits(
-                load = PluginLimit(instructions = Long.MAX_VALUE, wallMillis = 200),
-                watchdogPeriodMillis = 50,
-                watchdogGraceMillis = 100,
-            ),
-        )
-        install(
-            """
-            local subject = ("x"):rep(4000)
-            subject:match(".-.-.-.-.-.-.-.-.-.-zzz")
-            function render() return ui.label { text = "never reached" } end
-            """.trimIndent(),
-        )
+    fun `a plugin past its deadline is stopped and a repeat offence disables it`() {
+        // Steps enough for minutes; the clock is what stops it.
+        val engine = runtime(PluginRuntime.Limits(load = PluginLimit(instructions = HUGE_STEPS, wallMillis = 200)))
+        install("while True:\n    pass\n\ndef render():\n    return ui.label(\"never reached\")")
 
-        engine.open("com.example.demo")
+        engine.open(ID)
         awaitTag("stopped")
-        assertEquals(1, store.plugin("com.example.demo")!!.abandonedCount)
-        assertTrue(store.plugin("com.example.demo")!!.enabled)
+        assertEquals(PluginText.Resource(PluginAbortReason.DEADLINE.messageRes), lastMessage())
+        assertEquals(1, store.plugin(ID)!!.abandonedCount)
+        assertTrue(store.plugin(ID)!!.enabled)
 
         reset()
-        engine.open("com.example.demo")
+        engine.open(ID)
         awaitTag("stopped:disabled=true")
-        assertFalse(store.plugin("com.example.demo")!!.enabled)
+        assertFalse(store.plugin(ID)!!.enabled)
 
         // Once disabled it will not open at all.
         reset()
-        engine.open("com.example.demo")
+        engine.open(ID)
         awaitTag("error")
+        assertEquals(PluginText.Resource(R.string.core_plugins_error_turned_off), lastMessage())
+    }
+
+    @Test
+    fun `with auto-disable off the strikes are counted and the plugin stays on`() {
+        val engine = runtime(PluginRuntime.Limits(load = PluginLimit(instructions = 200_000, wallMillis = 5_000)))
+        store.setAutoDisableOnAbandon(false)
+        install("while True:\n    pass")
+        repeat(2) { round ->
+            reset()
+            engine.open(ID)
+            awaitTag("stopped")
+            assertEquals(round + 1, store.plugin(ID)!!.abandonedCount)
+        }
+        assertTrue(synchronized(lock) { "stopped:disabled=false" in events })
+        assertTrue(store.plugin(ID)!!.enabled)
     }
 
     // ---- lifecycle ---------------------------------------------------------
@@ -346,13 +432,8 @@ class PluginRuntimeTest {
     @Test
     fun `closing stops callbacks arriving`() {
         val engine = runtime()
-        install(
-            """
-            function on_event(e) end
-            function render() return ui.label { text = "hi" } end
-            """.trimIndent(),
-        )
-        engine.open("com.example.demo")
+        install("def on_event(e):\n    pass\n\ndef render():\n    return ui.label(\"hi\")")
+        engine.open(ID)
         awaitUis(1)
 
         engine.close()
@@ -366,13 +447,28 @@ class PluginRuntimeTest {
     }
 
     @Test
+    fun `closing a plugin mid-loop is silent and earns no strike`() {
+        // Allowances it cannot reach before the close, so only the close can stop it.
+        val engine = runtime(PluginRuntime.Limits(load = PluginLimit(instructions = HUGE_STEPS, wallMillis = 5_000)))
+        install("while True:\n    pass")
+        engine.open(ID)
+        Thread.sleep(150)
+
+        engine.close()
+        Thread.sleep(500)
+        // The user closed the panel on purpose: nothing to tell them, nothing to hold against the plugin.
+        synchronized(lock) { assertTrue("$events", events.none { it.startsWith("stopped") || it == "error" }) }
+        assertEquals(0, store.plugin(ID)!!.abandonedCount)
+    }
+
+    @Test
     fun `opening a second plugin replaces the first`() {
         val engine = runtime()
-        install("function render() return ui.label { text = 'one' } end")
-        engine.open("com.example.demo")
+        install("def render():\n    return ui.label(\"one\")")
+        engine.open(ID)
         awaitUis(1)
 
-        install("function render() return ui.label { text = 'two' } end", id = "com.example.other")
+        install("def render():\n    return ui.label(\"two\")", id = "com.example.other")
 
         reset()
         engine.open("com.example.other")
@@ -392,16 +488,29 @@ class PluginRuntimeTest {
     @Test
     fun `a disabled plugin refuses to open`() {
         val engine = runtime()
-        install("function render() return ui.label { text = 'x' } end")
-        store.setEnabled("com.example.demo", false)
-        engine.open("com.example.demo")
+        install("def render():\n    return ui.label(\"x\")")
+        store.setEnabled(ID, false)
+        engine.open(ID)
         awaitTag("error")
         // Turned off rather than missing: two different lines for two different
         // fixes, and only the resource id can tell them apart here.
         assertEquals(PluginText.Resource(R.string.core_plugins_error_turned_off), lastMessage())
     }
 
+    @Test
+    fun `a plugin whose script has gone says so`() {
+        val engine = runtime()
+        install("def render():\n    return ui.label(\"x\")")
+        store.scriptFile(ID)!!.delete()
+        engine.open(ID)
+        awaitTag("error")
+        assertEquals(PluginText.Resource(R.string.core_plugins_error_script_missing), lastMessage())
+    }
+
     private companion object {
-        var counter = 0
+        const val ID = "com.example.demo"
+
+        /** A step allowance no test reaches, so a deadline is the only way out. */
+        const val HUGE_STEPS = 1_000_000_000_000L
     }
 }

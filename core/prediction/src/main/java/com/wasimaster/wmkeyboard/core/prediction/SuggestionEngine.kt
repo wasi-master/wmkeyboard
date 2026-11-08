@@ -2328,6 +2328,13 @@ class SuggestionEngine(
      * Only where the bare spelling is no word of its own, in any list or in
      * the lexicon: `its` against *it's* and `were` against *we're* stay the
      * coin tosses the docs say they are, and keep their own key.
+     *
+     * A bare spelling a list holds only as the word with its apostrophe left
+     * off is no word of its own, though (#1051): German lists count `gehts`
+     * far above *geht's*, and [Apostrophes] repairs one to the other. Kept
+     * out, the user's own *geht's*, learned three times over, never reached
+     * the walk, and the stroke went on reading `gehe`. Such a spelling stands
+     * in at the user's count like any other.
      */
     private fun glideApostropheSources(): List<FuzzyBeamSearch.WalkSource> =
         apostropheFree().trie.walkers().map {
@@ -2345,11 +2352,13 @@ class SuggestionEngine(
         apostropheFreeCache?.takeIf { it.stamp == stamp }?.let { return it }
         val words = HashMap<String, String>()
         val entries = ArrayList<Pair<String, Int>>()
+        val repairs = mixLanguageIds().map { Apostrophes.repairs(it) }.filter { it.isNotEmpty() }
         for ((word, count) in userLexicon.allWords()) {
             if (word.none(WordContext::isApostrophe)) continue
             val bare = word.filterNot(WordContext::isApostrophe).lowercase()
             if (bare.length < 2 || bare.none { it.isLetter() }) continue
-            if (inDictionaries(bare) || userLexicon.contains(bare)) continue
+            if (userLexicon.contains(bare)) continue
+            if (inDictionaries(bare) && repairs.none { bare in it }) continue
             if (words.putIfAbsent(bare, word) == null) entries += bare to count.coerceAtLeast(1)
         }
         return ApostropheFree(stamp, if (entries.isEmpty()) PackedTrie.EMPTY else PackedTrie.of(entries), words)
@@ -5223,9 +5232,12 @@ class SuggestionEngine(
         } else if (word == lower) {
             dictionaryCapital(lower)?.let { return it }
         }
-        if (lower.length < 3) return NO_CORRECTION
         // An all-caps word is a deliberate acronym or shout, not a typo of a
         // lowercase word — don't "correct" it away when the user asked us not to.
+        if (lower.length < 3) {
+            if (skipAllCapsAutocorrect && isAllCaps(word)) return NO_CORRECTION
+            return shortAccentFix(word, lower, touch)
+        }
         if (skipAllCapsAutocorrect && isAllCaps(word)) return NO_CORRECTION
         val ordinary = decideOrdinary(word, lower, touch, timingMultiplier, keys)
         return withTaughtFix(word, lower, previousWord, ordinary)
@@ -5418,6 +5430,38 @@ class SuggestionEngine(
         if (taught.count >= CorrectionMemory.APPLY_AT) return applied()
         if (ordinary.apply?.equals(fixed, ignoreCase = true) == true) return ordinary
         return CorrectionDecision(offer = matchCase(word, fixed))
+    }
+
+    /**
+     * The one fix a word under three letters gets (#1182): its accents put
+     * back. Romanian writes `în` and `și` dozens of times a page, and with
+     * every two-letter word off limits `in` and `si` were never fixed.
+     *
+     * Nothing else is guessed at that length, since a slip in two letters
+     * reaches half the language. An accent twin spends every key as pressed,
+     * so it is safe: it applies when the typed spelling is no word of its own,
+     * or is one only as the twin typed without its accents ([accentShadowed]).
+     * Two twins within [ACCENT_SHADOW_RATIO] of each other are offered, not
+     * applied, and an undone pair is left to the penalty memory as usual.
+     */
+    private fun shortAccentFix(word: String, lower: String, touch: List<TouchPoint?>?): CorrectionDecision {
+        if (lower.length != 2 || lower.any { !it.isLetter() }) return NO_CORRECTION
+        val known = inDictionaries(lower) || userLexicon.isEstablished(lower, learnedWordMinCount)
+        if (known && !accentShadowed(lower, touch)) return NO_CORRECTION
+        if (spellAccepted(word)) return NO_CORRECTION
+        val twins = rankedFor(lower, FuzzyBeamSearch.AUTOCORRECT_K / 2, touch)
+            .filter { it.edits == 0 && it.completedChars == 0 && it.accents > 0 && !suppressed(it.word) }
+            .filter { correctionStats.penalty(lower, it.word) != CorrectionStats.Penalty.BLOCKED }
+            .sortedByDescending { it.dictScore + it.accents * FuzzyBeamSearch.COST_ACCENT }
+        val best = twins.firstOrNull() ?: return NO_CORRECTION
+        val fixed = matchCase(word, best.word)
+        val bestScore = best.dictScore + best.accents * FuzzyBeamSearch.COST_ACCENT
+        val rival = twins.getOrNull(1)?.let { it.dictScore + it.accents * FuzzyBeamSearch.COST_ACCENT }
+        val clear = rival == null || bestScore - rival >= ln(ACCENT_SHADOW_RATIO)
+        if (!clear || correctionStats.penalty(lower, best.word) != CorrectionStats.Penalty.NONE) {
+            return CorrectionDecision(offer = fixed)
+        }
+        return CorrectionDecision(apply = fixed, certainty = 1.0)
     }
 
     /**

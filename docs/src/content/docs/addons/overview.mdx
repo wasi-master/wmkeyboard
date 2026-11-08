@@ -66,7 +66,7 @@ A few rules keep that trust model intact even before an addon reaches your devic
 - **Checksums, verified when present.** A repository can publish a `sha256` for any file. If it does, the app verifies it after download and refuses the install on a mismatch.
 - **Size caps are enforced mid-download.** A download that exceeds its type's limit (the table above) is aborted in flight rather than flagged after the fact.
 
-Plugins are the sole exception: they carry Lua that actually runs. That code is sandboxed with no way to read what you type and no access to the text field, the clipboard, or the network. The sandbox has no such API to withhold in the first place. A plugin can ask for local on-device storage and nothing else, and because nothing in the sandbox can reach the network, whatever it stores can't leave the device either.
+Plugins are the sole exception: they carry Python that actually runs. That code is sandboxed with no way to read what you type and no access to the text field, the clipboard, or the network. The sandbox has no such API to withhold in the first place. A plugin can ask for local on-device storage and nothing else, and because nothing in the sandbox can reach the network, whatever it stores can't leave the device either.
 
 Because a plugin runs code, it's held to stricter rules than the other thirteen types:
 
