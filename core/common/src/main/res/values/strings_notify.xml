@@ -18,10 +18,14 @@
 
     <string name="common_notify_channel_connect_title">Paired computers</string>
     <string name="common_notify_channel_connect_body">A computer paired over KDE Connect asked to pair, sent a file, or pinged while the keyboard was hidden.</string>
-    <string name="common_notify_channel_clock_title">Timers and stopwatch</string>
+    <string name="common_notify_channel_clock_title">Timers</string>
+    <string name="common_notify_channel_stopwatch_title">Stopwatch</string>
+    <string name="common_notify_channel_stopwatch_body">The stopwatch while it runs or is paused, with buttons for laps, pausing and resetting.</string>
+    <string name="common_notify_channel_alarms_title">Alarm notices</string>
+    <string name="common_notify_channel_alarms_body">An alarm that is snoozed or about to ring, and one that rang with nobody there. The ringing itself has a channel of its own.</string>
     <string name="common_notify_channel_send_title">Sending and receiving files</string>
     <string name="common_notify_channel_send_body">An upload or a download the Send files tool finished while the keyboard was hidden, with the link to copy, and a file a device nearby sent.</string>
-    <string name="common_notify_channel_clock_body">Timers and the stopwatch while they run, with buttons to pause, add a minute or stop them.</string>
+    <string name="common_notify_channel_clock_body">Timers while they run, with buttons to pause, add a minute or stop them.</string>
     <string name="common_notify_channel_keyboard_title">Keyboard controls</string>
     <string name="common_notify_channel_keyboard_body">A permanent entry in the shade for showing the keyboard and unpinning it. Only while you turn it on.</string>
 

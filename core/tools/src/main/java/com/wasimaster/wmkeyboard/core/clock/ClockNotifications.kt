@@ -14,6 +14,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.wasimaster.wmkeyboard.app.MainActivityContract
 import com.wasimaster.wmkeyboard.core.notify.NotificationIds
 import com.wasimaster.wmkeyboard.core.notify.NotificationKind
+import com.wasimaster.wmkeyboard.core.notify.NotificationSubChannel
 import com.wasimaster.wmkeyboard.core.notify.WmNotifications
 import com.wasimaster.wmkeyboard.tools.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
@@ -39,6 +40,13 @@ object ClockNotifications {
 
     const val CHANNEL_RING = "clock_ring"
     const val CHANNEL_RING_SOUND = "clock_ring_sound"
+
+    // A group each (#970): Android bundles an app's loose notifications into
+    // one, which hid the timer, stopwatch and alarm icons behind a single one
+    // in the status bar. Each kind in a group of its own stays apart.
+    private const val GROUP_TIMERS = "clock_timers"
+    private const val GROUP_STOPWATCH = "clock_stopwatch"
+    private const val GROUP_ALARMS = "clock_alarms"
 
     /** The ring screen, in `:app`, named as a string like the settings activity. */
     const val RING_ACTIVITY = "com.wasimaster.wmkeyboard.app.clock.ClockRingActivity"
@@ -88,8 +96,9 @@ object ClockNotifications {
             val at = if (snoozed) alarm.snoozedUntil else next!!
             val title = alarm.label.ifEmpty { context.getString(R.string.core_tools_clock_alarm) }
             val time = ClockFormats.time(at, zone, hour24)
-            WmNotifications.post(context, NotificationKind.CLOCK, id) {
+            WmNotifications.post(context, NotificationKind.CLOCK, id, NotificationSubChannel.CLOCK_ALARMS) {
                 setSmallIcon(R.drawable.core_tools_ic_alarm)
+                setGroup(GROUP_ALARMS)
                 setContentTitle(title)
                 setContentText(
                     context.getString(
@@ -115,8 +124,9 @@ object ClockNotifications {
     fun postMissed(context: Context, ring: Ringing) {
         val title = ring.label.ifEmpty { context.getString(R.string.core_tools_clock_alarm) }
         val time = ClockFormats.time(ring.since, java.util.TimeZone.getDefault(), android.text.format.DateFormat.is24HourFormat(context))
-        WmNotifications.post(context, NotificationKind.CLOCK, NotificationIds.forMissedAlarm(ring.ref)) {
+        WmNotifications.post(context, NotificationKind.CLOCK, NotificationIds.forMissedAlarm(ring.ref), NotificationSubChannel.CLOCK_ALARMS) {
             setSmallIcon(R.drawable.core_tools_ic_alarm)
+            setGroup(GROUP_ALARMS)
             setContentTitle(context.getString(R.string.core_tools_clock_missed_title, title))
             setContentText(context.getString(R.string.core_tools_clock_missed_at, time))
             setAutoCancel(true)
@@ -131,6 +141,7 @@ object ClockNotifications {
         }
         WmNotifications.post(context, NotificationKind.CLOCK, id) {
             setSmallIcon(R.drawable.core_tools_ic_timer)
+            setGroup(GROUP_TIMERS)
             setContentTitle(title)
             setOngoing(true)
             setOnlyAlertOnce(true)
@@ -155,8 +166,9 @@ object ClockNotifications {
 
     private fun postStopwatch(context: Context, s: Stopwatch) {
         val now = System.currentTimeMillis()
-        WmNotifications.post(context, NotificationKind.CLOCK, NotificationIds.CLOCK_STOPWATCH) {
+        WmNotifications.post(context, NotificationKind.CLOCK, NotificationIds.CLOCK_STOPWATCH, NotificationSubChannel.CLOCK_STOPWATCH) {
             setSmallIcon(R.drawable.core_tools_ic_stopwatch)
+            setGroup(GROUP_STOPWATCH)
             setContentTitle(context.getString(R.string.core_tools_clock_stopwatch))
             setOngoing(s.running)
             setOnlyAlertOnce(true)
