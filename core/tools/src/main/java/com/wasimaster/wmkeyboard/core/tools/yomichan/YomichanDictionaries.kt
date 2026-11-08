@@ -351,6 +351,7 @@ object YomichanDictionaries {
                     .firstNotNullOfOrNull { YomichanFormat.frequency(it.second, reading) }
                     .orEmpty(),
                 origin = info.title,
+                language = info.sourceLanguage,
             )
         }
     }
