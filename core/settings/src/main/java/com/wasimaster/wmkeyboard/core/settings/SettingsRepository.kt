@@ -18260,7 +18260,7 @@ class SettingsRepository(private val context: Context) {
         editFloatingButton { it[FLOATING_BUTTON_DOCKED] = value }
 
     /** What a swipe in [direction] from the fixed button does (#1171); null or None unbinds it. */
-    suspend fun setFloatingButtonFlick(direction: FlickDirection, action: FloatingAction?) =
+    suspend fun setFloatingButtonFlick(direction: com.wasimaster.wmkeyboard.core.settings.FlickDirection, action: FloatingAction?) =
         editFloatingButton { prefs ->
             val flicks = decodeFloatingFlicks(prefs[FLOATING_BUTTON_FLICKS]).toMutableMap()
             if (action == null || action == FloatingAction.None) flicks.remove(direction) else flicks[direction] = action
