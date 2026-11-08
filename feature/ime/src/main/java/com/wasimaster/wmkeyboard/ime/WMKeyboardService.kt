@@ -3932,6 +3932,8 @@ open class WMKeyboardService : InputMethodService() {
     private suspend fun purgeBlacklisted(blacklist: Set<String>) {
         val added = blacklist - purgedBlacklist
         purgedBlacklist = blacklist
+        // An address put on the list from settings leaves the remembered ones too.
+        forgetTypedEmails(added)
         if (added.isEmpty() || !::userLexicon.isInitialized) return
         withContext(Dispatchers.Default) {
             userLexicon.forgetAll(added)
@@ -26073,11 +26075,19 @@ open class WMKeyboardService : InputMethodService() {
             }
             return
         }
+        // The never-suggest list holds addresses too (Telegram, DENZ'): this
+        // path fills the strip itself rather than through the engine, so it
+        // asks the list itself. The engine's copy is read as well, since a
+        // hold's "Never suggest" reaches it before the setting round-trips.
+        val sources = state.settings.suggestionSources
+        val languageId = state.language.id
+        val held = suggestionEngine?.blacklist.orEmpty()
+        fun allowed(address: String) = address.lowercase() !in held && !sources.blacklisted(address, languageId)
         suggestionJob = serviceScope.launch {
             val results = withContext(Dispatchers.Default) {
-                val own = if (typed) typedEmails.complete(token, EMAIL_FIELD_SUGGESTION_LIMIT) else emptyList()
-                val book = if (contacts) contactEmails.complete(token, EMAIL_FIELD_SUGGESTION_LIMIT) else emptyList()
-                (own + book).distinct().take(EMAIL_FIELD_SUGGESTION_LIMIT)
+                val own = if (typed) typedEmails.complete(token, EMAIL_FIELD_SUGGESTION_LIMIT * 2) else emptyList()
+                val book = if (contacts) contactEmails.complete(token, EMAIL_FIELD_SUGGESTION_LIMIT * 2) else emptyList()
+                (own + book).distinct().filter(::allowed).take(EMAIL_FIELD_SUGGESTION_LIMIT)
             }
             _uiState.update {
                 it.copy(suggestions = results, emojiSuggestions = emptyList(), inlineEmoji = false)
@@ -51185,6 +51195,19 @@ open class WMKeyboardService : InputMethodService() {
         stopSuggesting(trimmed)
         val target = blacklistTarget(_uiState.value)
         serviceScope.launch { settingsRepository.addSuggestionBlacklistWord(trimmed, target) }
+        // An address the keyboard remembered from an email field is forgotten
+        // outright, not only hidden: it was the keyboard's own record of it.
+        if ('@' in trimmed) forgetTypedEmails(listOf(trimmed))
+    }
+
+    /** Drops [addresses] from the remembered email-field addresses (#475) and saves. */
+    private fun forgetTypedEmails(addresses: Collection<String>) {
+        val emails = addresses.filter { '@' in it }
+        if (emails.isEmpty()) return
+        serviceScope.launch(Dispatchers.IO) {
+            for (address in emails) typedEmails.forget(address)
+            typedEmails.save()
+        }
     }
 
     /**
