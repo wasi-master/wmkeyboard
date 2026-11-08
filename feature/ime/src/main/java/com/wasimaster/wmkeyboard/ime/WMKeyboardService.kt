@@ -13651,8 +13651,16 @@ open class WMKeyboardService : InputMethodService() {
         // of committing. A digit on an empty buffer is a literal digit as usual —
         // except for a composer whose whole alphabet is digits (T9 pinyin), where
         // that rule would make the first key of every word commit as a number.
+        // With Close quotes for me on (#970), an apostrophe that opens a word
+        // is a quote, not its first letter: it went into the buffer and never
+        // reached the pairing rule, so `'` alone was never closed. Nor is one
+        // typed in front of the closer that rule left: that one steps over it
+        // instead of joining the word ahead of a second quote. Mid-word it is
+        // still the letter in "don't".
+        val quoteMark = text == "'" && state.settings.textEditing.autoCloseQuotes && state.allowsBracketPairs &&
+            (composing.isEmpty() || ic.getTextAfterCursor(1, 0)?.firstOrNull() == '\'')
         val singleWordChar = text.length == 1 && (
-            text[0].isLetter() || text[0] == '\'' ||
+            text[0].isLetter() || (text[0] == '\'' && !quoteMark) ||
                 state.composer.buffersChar(text[0], composing) ||
                 (
                     state.composer.bufferDigits && text[0].isDigit() &&
