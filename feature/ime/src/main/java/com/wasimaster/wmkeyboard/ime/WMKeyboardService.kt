@@ -53761,8 +53761,14 @@ open class WMKeyboardService : InputMethodService() {
     fun onClipboardPasteNext(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
         if (!isClipboardAccessible() || item.sensitive) return
         vibrate()
+        if (holdClipForPaste(item)) toast(R.string.ime_clip_paste_next_toast)
+    }
+
+    /** [onClipboardPasteNext] without the buzz and the toast; true when the paste keys now paste [item]. */
+    private fun holdClipForPaste(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem): Boolean {
+        if (item.sensitive) return false
         val manager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val done = when {
+        return when {
             item.kind.isTextual -> KeyboardClipboard.holdForPaste(item.text) || runCatching {
                 restoringSystemClipText = item.text
                 manager.setPrimaryClip(android.content.ClipData.newPlainText(null, item.text))
@@ -53776,7 +53782,6 @@ open class WMKeyboardService : InputMethodService() {
             }
             else -> false
         }
-        if (done) toast(R.string.ime_clip_paste_next_toast)
     }
 
     fun onClipboardQr(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
@@ -54168,13 +54173,10 @@ open class WMKeyboardService : InputMethodService() {
         if (!clipboardStore.move(item.id, toIndex)) return
         saveClipboardSoon()
         // The top of the list is what the keyboard pastes next (#970), the way a
-        // clip pasted with "Move a pasted clip to the top" becomes it.
-        if (toIndex == 0 && item.kind.isTextual && !item.sensitive && !KeyboardClipboard.isPrivate) {
-            runCatching {
-                (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-                    .setPrimaryClip(android.content.ClipData.newPlainText(null, item.text))
-            }
-        }
+        // clip pasted with "Move a pasted clip to the top" becomes it. With the
+        // private clipboard on, that is the keyboard's own held copy, not the
+        // system clipboard, which private mode never writes to.
+        if (toIndex == 0) holdClipForPaste(item)
         _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
     }
 
