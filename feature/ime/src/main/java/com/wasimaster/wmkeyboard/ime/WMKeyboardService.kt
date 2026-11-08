@@ -53576,6 +53576,7 @@ open class WMKeyboardService : InputMethodService() {
         onTagAdd = ::onClipTagAdd,
         onQr = ::onClipboardQr,
         onSearch = ::onClipboardSearch,
+        onPasteNext = ::onClipboardPasteNext,
     )
 
     /**
@@ -53693,6 +53694,39 @@ open class WMKeyboardService : InputMethodService() {
      * of the field's, where it can be sent as a picture or edited first. Not a
      * secret's text, which the panel never shows.
      */
+    /**
+     * A clip's Paste next (#1178, #970): the paste keys, and the app's own
+     * Paste, give this clip next, and the history stays exactly as it is.
+     * Moving it to the top or copying it again did the same but reordered the
+     * history, which loses the place Show in history goes back to.
+     *
+     * Private, the keyboard's own copy holds it and nothing reaches the
+     * system clipboard. Otherwise it goes there with the echo marked as the
+     * keyboard's own, so the copy listener does not file it again: text by
+     * [restoringSystemClipText], a picture by the keyboard's file provider,
+     * which the listener already skips.
+     */
+    fun onClipboardPasteNext(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+        if (!isClipboardAccessible() || item.sensitive) return
+        vibrate()
+        val manager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val done = when {
+            item.kind.isTextual -> KeyboardClipboard.holdForPaste(item.text) || runCatching {
+                restoringSystemClipText = item.text
+                manager.setPrimaryClip(android.content.ClipData.newPlainText(null, item.text))
+            }.isSuccess
+            item.kind == ClipKind.IMAGE && !KeyboardClipboard.isPrivate -> {
+                val file = item.imagePath?.let(::File)?.takeIf { it.exists() }
+                val uri = file?.let { runCatching { FileProvider.getUriForFile(this, clipboardFileProviderAuthority, it) }.getOrNull() }
+                uri != null && runCatching {
+                    manager.setPrimaryClip(android.content.ClipData.newUri(contentResolver, "image", uri))
+                }.isSuccess
+            }
+            else -> false
+        }
+        if (done) toast(R.string.ime_clip_paste_next_toast)
+    }
+
     fun onClipboardQr(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
         if (!isClipboardAccessible() || !item.kind.isTextual || item.sensitive) return
         val current = clipboardStore.items().firstOrNull { it.id == item.id } ?: return

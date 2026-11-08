@@ -63,6 +63,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCut
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DragHandle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.RadioButtonUnchecked
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Reorder
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapVert
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalAlignTop
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
@@ -256,6 +257,8 @@ data class ClipboardPanelActions(
     val onTagAdd: (String) -> Unit = {},
     /** A text clip's QR code: the QR tool, on the clip's text (#766). */
     val onQr: (ClipItem) -> Unit = {},
+    /** Paste next (#1178): what the paste keys and the app's Paste give next, the history left as it is. */
+    val onPasteNext: (ClipItem) -> Unit = {},
     /** A text clip searched for (#914): on Wikipedia when true, else the web search tool. */
     val onSearch: (ClipItem, Boolean) -> Unit = { _, _ -> },
     /** A note's passage the search found (#1104), tapped: typed into the field, as the note has it. */
@@ -2292,6 +2295,14 @@ private fun ClipHoldPopup(
         ClipExtractPopup(hold.entities, onPick = { onDismiss(); callbacks.onEntity(it) }, onDismiss = onDismiss)
         return
     }
+    // Paste next (#1178): text that is not a secret, or a picture while the
+    // clipboard is not private, since the private copy holds text alone.
+    val pasteNext: (() -> Unit)? = if (
+        hold.picked == null && !item.sensitive &&
+        (textual || (image && !com.wasimaster.wmkeyboard.ime.KeyboardClipboard.isPrivate))
+    ) {
+        { onDismiss(); callbacks.actions.onPasteNext(item) }
+    } else null
     // Picking and reordering are for the history as it is drawn; not while a
     // search or a filter has cut it down, or while clips are already picked.
     val onPick: (() -> Unit)? = if (hold.picked == null) {
@@ -2306,6 +2317,7 @@ private fun ClipHoldPopup(
             plainLinks = hold.plainLinks,
             actions = ClipTextActions(
                 onInfo = { fullText = false },
+                onPasteNext = pasteNext,
                 onPick = onPick,
                 onReorder = onReorder,
                 onJump = hold.onJump?.let { jump -> { onDismiss(); jump() } },
@@ -2380,6 +2392,7 @@ private fun ClipHoldPopup(
         onTags = if (hold.picked == null) {
             { onDismiss(); callbacks.actions.onTags(item) }
         } else null,
+        onPasteNext = pasteNext,
         onPaste = { onDismiss(); callbacks.onItem(item) },
         onDismiss = onDismiss,
     )
@@ -2393,6 +2406,8 @@ private fun ClipHoldPopup(
 @Immutable
 private class ClipTextActions(
     val onInfo: () -> Unit,
+    /** What pastes next, the history left as it is (#1178). */
+    val onPasteNext: (() -> Unit)? = null,
     /** Start picking clips, with this one (#612). */
     val onPick: (() -> Unit)? = null,
     /** The Reorder view (#612). */
@@ -2521,6 +2536,9 @@ private fun ClipTextActionButton(action: ClipHoldAction, item: ClipItem, actions
     when (action) {
         ClipHoldAction.DETAILS ->
             ClipTextActionIcon(Icons.Outlined.Info, stringResource(R.string.ime_clip_details_desc), tint, actions.onInfo)
+        ClipHoldAction.PASTE_NEXT -> actions.onPasteNext?.let {
+            ClipTextActionIcon(Icons.Outlined.ContentPaste, stringResource(R.string.ime_clip_paste_next), tint, it)
+        }
         ClipHoldAction.SELECT -> actions.onPick?.let {
             ClipTextActionIcon(Icons.Outlined.Checklist, stringResource(R.string.ime_clip_select), tint, it)
         }

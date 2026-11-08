@@ -33296,6 +33296,8 @@ internal fun ClipInfoPopup(
     onJump: (() -> Unit)? = null,
     /** The clip's tags, in the editor (#612). */
     onTags: (() -> Unit)? = null,
+    /** Paste next (#1178): what pastes next, the history left as it is. */
+    onPasteNext: (() -> Unit)? = null,
     /** Pastes the clip, as a tap on it does; at the end of the action row (#612). */
     onPaste: (() -> Unit)? = null,
     onDismiss: () -> Unit,
@@ -33402,6 +33404,9 @@ internal fun ClipInfoPopup(
                                 }
                                 onTags?.let {
                                     ClipTextActionIcon(Icons.Outlined.Sell, stringResource(R.string.ime_clip_tags), tint, it)
+                                }
+                                onPasteNext?.let {
+                                    ClipTextActionIcon(Icons.Outlined.ContentPaste, stringResource(R.string.ime_clip_paste_next), tint, it)
                                 }
                                 onEdit?.let {
                                     ClipTextActionIcon(Icons.Outlined.Edit, stringResource(R.string.ime_clip_edit), tint, it)

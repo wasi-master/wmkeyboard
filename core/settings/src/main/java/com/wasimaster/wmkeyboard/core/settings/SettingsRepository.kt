@@ -7679,6 +7679,9 @@ enum class ClipCardShortcut {
  */
 enum class ClipHoldAction {
     DETAILS,
+
+    /** What pastes next, without moving the clip in the history (#1178). */
+    PASTE_NEXT,
     SELECT,
     REORDER,
     SHOW_IN_HISTORY,
