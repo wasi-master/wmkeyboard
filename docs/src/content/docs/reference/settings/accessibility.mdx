@@ -85,6 +85,7 @@ All four follow **Reduce motion**: with it on, none of them animates, whatever e
 | Screen transitions | Toggle | On / Off | On |
 | Keyboard test button | Toggle | On / Off | On |
 | Favourites button | Toggle | On / Off | On |
+| Sections open at once | Choice | No limit / 1 / 2 / 3 | No limit |
 
 **Icons in settings** draws the coloured icon beside every setting, including the theme editor's colours and sliders and the layout editor's rows, on the home list, beside search results and in each screen's heading. Lists of your own languages, layouts, words and packs have no icons. Turn it off for plain rows with words only, the way the settings looked in earlier versions. The icons on the screen you are on shrink away as the words slide over; with **Reduce motion** on they go at once.
 
@@ -95,6 +96,8 @@ It affects this settings app only. The keyboard and its toolbar keep their icons
 **Keyboard test button** puts a small keyboard button in the bottom corner of every settings screen. Tap it and a text field opens above the real keyboard, so you can try a change right where you made it. See [Trying a change](/reference/settings/#trying-a-change). Turn it off if you don't want the button on your screens.
 
 **Favourites button** puts a star at the top of every settings screen that opens your [favourite settings](/reference/settings/#favourite-settings) and pins the screen you are on. Turn it off and the star and the **Add to favourites** entry on a setting's touch and hold are gone. Your favourites are kept for when you turn it back on.
+
+**Sections open at once** is for screens whose sections open and close with a press on their heading, which the theme editor has a dozen of. Pick a number and a screen keeps at most that many open. Opening one more closes the section you went longest without opening or touching, so the one you just opened stays, and so does the one you were last changing something in. Sections left open on an earlier visit count as the oldest. A group's "N more settings" row is part of its group and is never closed by this. With **No limit**, the default, a section stays open until you close it.
 
 ### Screen reader
 
@@ -149,7 +152,7 @@ Tap the row and a disclosure appears first, explaining what the service reads (n
 - **Text size here and the key-preview popup's font scale are two different settings.** Both scale text, but changing one doesn't change the other.
 - **Ignore repeated presses only filters a repeat of the same key.** It cannot slow down typing in general by blocking different keys pressed close together.
 - **The gesture pass-through service needs Android 11 (API 30).** WM Keyboard's minimum supported version is Android 7.0 (API 24). Anywhere from Android 7 through Android 10 you can still grant the "WM Keyboard gestures" service, but the system call it depends on is unavailable, so the service does nothing. Gestures mode quietly behaves like Explore even with the service on.
-- **Icons in settings, Screen transitions, Keyboard test button and Favourites button are settings-app preferences, not keyboard ones.** Nothing you see while typing changes with them.
+- **Icons in settings, Screen transitions, Keyboard test button, Favourites button and Sections open at once are settings-app preferences, not keyboard ones.** Nothing you see while typing changes with them.
 - **No build differences.** Every setting on this screen, and the pass-through service behind it, works the same in every build.
 - **Not in the Play Store build: Gestures.** That build carries no accessibility service, so TalkBack support offers Off, Labels and Explore, and there is no service row. A Gestures choice brought over in a backup shows, and behaves, as Explore. GitHub and F-Droid builds have all four modes.
 

@@ -7280,6 +7280,14 @@ data class AppUiSettings(
      */
     val advancedOpen: Set<String> = emptySet(),
     /**
+     * How many folds one screen keeps open at once (Telegram, Priyanshu
+     * Mishra), or 0 for no limit. Opening one more closes the fold the user
+     * has gone longest without opening or touching, so the section being
+     * worked in and the one just opened are the ones that stay. No limit by
+     * default, which is how folds always behaved.
+     */
+    val openFoldsLimit: Int = 0,
+    /**
      * Which size tier a word-list download offers first.
      *
      * The tier used to be per-composition state that reset to LARGE on every
@@ -11776,6 +11784,7 @@ class SettingsRepository(private val context: Context) {
         private val ONBOARDING_PERSONA_PRIVACY = stringPreferencesKey("onboarding_persona_privacy")
         private val THEME_GALLERY_STYLE = stringPreferencesKey("theme_gallery_style")
         private val ADVANCED_OPEN = stringSetPreferencesKey("advanced_open")
+        private val OPEN_FOLDS_LIMIT = intPreferencesKey("open_folds_limit")
         private val DEFAULT_WORDLIST_SIZE = stringPreferencesKey("default_wordlist_size")
         private val DICTIONARY_SORT = stringPreferencesKey("dictionary_sort")
         private val SETTINGS_ROW_ICONS = booleanPreferencesKey("settings_row_icons")
@@ -13800,6 +13809,7 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { ThemeGalleryStyle.valueOf(it) }.getOrNull() }
                 ?: defaults.appUi.themeGalleryStyle,
             advancedOpen = p[ADVANCED_OPEN] ?: defaults.appUi.advancedOpen,
+            openFoldsLimit = p[OPEN_FOLDS_LIMIT] ?: defaults.appUi.openFoldsLimit,
             defaultWordlistSize = p[DEFAULT_WORDLIST_SIZE]
                 ?.let {
                     runCatching { DictionaryCatalog.DictionarySize.valueOf(it) }.getOrNull()
@@ -22158,6 +22168,20 @@ class SettingsRepository(private val context: Context) {
         val now = it[ADVANCED_OPEN] ?: emptySet()
         it[ADVANCED_OPEN] = if (open) now + key else now - key
     }
+
+    /**
+     * Opens the fold [key] and closes [close] in the same write, for
+     * [AppUiSettings.openFoldsLimit]: two writes would draw the screen once
+     * with one fold too many.
+     */
+    suspend fun setAdvancedFoldOpenClosing(key: String, close: Collection<String>) = editPrefs {
+        val now = it[ADVANCED_OPEN] ?: emptySet()
+        it[ADVANCED_OPEN] = now - close.toSet() + key
+    }
+
+    /** See [AppUiSettings.openFoldsLimit]. */
+    suspend fun setOpenFoldsLimit(value: Int) =
+        editPrefs { it[OPEN_FOLDS_LIMIT] = value.coerceAtLeast(0) }
 
     suspend fun setDefaultWordlistSize(value: DictionaryCatalog.DictionarySize) =
         editPrefs { it[DEFAULT_WORDLIST_SIZE] = value.name }

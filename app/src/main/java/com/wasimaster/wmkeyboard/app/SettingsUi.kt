@@ -561,10 +561,65 @@ internal val LocalReduceMotion = compositionLocalOf { false }
  * would have reached every group on the screen, and every row in them.
  */
 @Stable
-internal class AdvancedFolds(private val settings: LiveSettings, val toggle: (String, Boolean) -> Unit) {
+internal class AdvancedFolds(
+    private val settings: LiveSettings,
+    val toggle: (String, Boolean) -> Unit,
+    /** Opens the first fold and closes the others in one write. */
+    private val openClosing: (String, Collection<String>) -> Unit = { id, _ -> toggle(id, true) },
+) {
     /** Whether the fold [id] is open, subscribing the caller to that answer only. */
     @Composable
     fun isOpen(id: String): Boolean = settings.watch { id in it.appUi.advancedOpen }
+
+    /**
+     * When each fold was last opened or touched, by a counter rather than a
+     * clock. Kept for the life of the screen stack, not saved: a fold left
+     * open from an earlier visit counts as the oldest, which it is.
+     */
+    private val used = HashMap<String, Long>()
+    private var tick = 0L
+
+    /** The folds drawn right now, so a limit only closes ones on screen. */
+    private val onScreen = HashSet<String>()
+
+    /** [id] was pressed inside, so it is the one being worked in. */
+    fun touch(id: String) {
+        used[id] = ++tick
+    }
+
+    fun drawn(id: String, shown: Boolean) {
+        if (shown) onScreen += id else onScreen -= id
+    }
+
+    /**
+     * Opens or closes the fold [id] on the screen at [route]. Opening one past
+     * [AppUiSettings.openFoldsLimit] closes the folds of that screen the user
+     * went longest without opening or touching (Telegram, Priyanshu Mishra).
+     * A group's "more settings" fold is a part of its group, not a section,
+     * and neither counts nor is closed.
+     */
+    fun setOpen(id: String, route: String, open: Boolean) {
+        if (!open) {
+            toggle(id, false)
+            return
+        }
+        touch(id)
+        val limit = settings.value.appUi.openFoldsLimit
+        if (limit <= 0) {
+            toggle(id, true)
+            return
+        }
+        val others = settings.value.appUi.advancedOpen.filter {
+            it != id && it in onScreen && it.startsWith("$route/") && !it.endsWith(MORE_FOLD_SUFFIX)
+        }
+        val close = others.sortedBy { used[it] ?: 0L }.take((others.size - (limit - 1)).coerceAtLeast(0))
+        if (close.isEmpty()) toggle(id, true) else openClosing(id, close)
+    }
+
+    companion object {
+        /** What ends the id of a group's "more settings" fold. */
+        const val MORE_FOLD_SUFFIX = "#more"
+    }
 }
 
 internal val LocalAdvancedFolds = compositionLocalOf<AdvancedFolds?> { null }

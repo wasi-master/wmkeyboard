@@ -231,6 +231,21 @@ internal fun AccessibilitySettings(
                 default = SettingsDefaults.appUi.favouritesButton,
             ) { scope.launch { repository.setFavouritesButton(it) } }
         }
+        item(level = SettingLevel.STANDARD) {
+            ChoiceSetting(
+                R.string.accessibility_open_folds_title,
+                subtitle = stringResource(R.string.accessibility_open_folds_subtitle),
+                info = stringResource(R.string.accessibility_open_folds_info),
+                options = listOf(
+                    0 to stringResource(R.string.accessibility_open_folds_any),
+                    1 to "1",
+                    2 to "2",
+                    3 to "3",
+                ),
+                selected = settings.watch { it.appUi.openFoldsLimit },
+                default = SettingsDefaults.appUi.openFoldsLimit,
+            ) { scope.launch { repository.setOpenFoldsLimit(it) } }
+        }
     }
 
     SettingsGroup(stringResource(R.string.accessibility_screen_reader_title)) {

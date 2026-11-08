@@ -351,6 +351,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.South
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StayCurrentLandscape
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwipeRightAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Texture
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.UnfoldLess
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.UnfoldMore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Verified
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ToggleOn
@@ -469,6 +470,7 @@ internal object SettingsRowIcons {
         put(R.string.accessibility_keyboard_font_title) { Icons.Outlined.TextFields }
         put(R.string.accessibility_reduce_motion_title) { Icons.Outlined.MotionPhotosOff }
         put(R.string.accessibility_classic_popup_title) { Icons.Outlined.Keyboard }
+        put(R.string.accessibility_open_folds_title) { Icons.Outlined.UnfoldLess }
         put(R.string.accessibility_panel_motion_title) { Icons.Outlined.Animation }
         put(R.string.accessibility_selection_motion_title) { Icons.Outlined.SelectAll }
         put(R.string.accessibility_language_switch_motion_title) { Icons.Outlined.Flip }

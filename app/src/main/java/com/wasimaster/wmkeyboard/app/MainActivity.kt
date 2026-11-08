@@ -113,6 +113,10 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -773,9 +777,11 @@ private fun SettingsNavHost(
     // repository through for the sake of one chevron.
     val foldScope = rememberCoroutineScope()
     val folds = remember(settings) {
-        AdvancedFolds(settings) { key, open ->
-            foldScope.launch { repository.setAdvancedFoldOpen(key, open) }
-        }
+        AdvancedFolds(
+            settings,
+            toggle = { key, open -> foldScope.launch { repository.setAdvancedFoldOpen(key, open) } },
+            openClosing = { key, close -> foldScope.launch { repository.setAdvancedFoldOpenClosing(key, close) } },
+        )
     }
     // How much of the app is showing (settings depth), resolved once here and
     // read by every group; changed from Home, a page's footer or Accessibility.
@@ -3847,6 +3853,13 @@ internal fun SettingsGroup(
     // one screen must not share a remembered state.
     val foldId = (foldKey ?: if (foldsWhole) "level:$title" else null)?.let { "$route/$it" }
     val open = foldId == null || (depthReveal?.holdsOpen(foldId) ?: highlighted) || (folds?.isOpen(foldId) ?: false)
+    // A limit on open folds closes only the ones the reader can see here.
+    if (foldId != null && folds != null) {
+        DisposableEffect(folds, foldId) {
+            folds.drawn(foldId, true)
+            onDispose { folds.drawn(foldId, false) }
+        }
+    }
     // The heading of a group above the depth is itself a row the depth hid.
     val groupRevealedAt = level.takeIf { groupAbove && !depthControl.hiddenRows }
     // A named group is a scroll target in its own right. Some things the user
@@ -3865,7 +3878,7 @@ internal fun SettingsGroup(
                 summary = if (open) null else foldSummary?.invoke(),
             ) {
                 depthReveal?.letGo(foldId)
-                folds?.toggle(foldId, !open)
+                folds?.setOpen(foldId, route, !open)
             }
         } else if (title != null) {
             SectionHeader(title, info = info, action = action, modifier = GroupHeadingPadding, linkable = true)
@@ -3877,7 +3890,20 @@ internal fun SettingsGroup(
             // that has collapsed to nothing, and the group would keep a sliver
             // of air where a row used to be. Carried by the row, the gap goes
             // away with it.
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            // A press anywhere in an open fold marks it as the one being
+            // worked in, which a limit on open folds keeps open. Watched on
+            // the way down and never consumed, so the rows get every press.
+            val touched = if (foldId != null && folds != null) {
+                Modifier.pointerInput(folds, foldId) {
+                    awaitEachGesture {
+                        awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                        folds.touch(foldId)
+                    }
+                }
+            } else {
+                Modifier
+            }
+            Column(modifier = touched.padding(horizontal = 16.dp)) {
                 // Which rows are drawn, and how keyed ones arrive and leave,
                 // is GroupRows' business (SettingsGroupMotion.kt); the card
                 // each one sits on is this file's.
