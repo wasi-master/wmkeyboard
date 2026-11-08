@@ -20,11 +20,13 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.GraphicsLayerScope
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import com.wasimaster.wmkeyboard.core.theme.KeyPressMotion
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.math.abs
 import kotlin.math.cos
@@ -146,6 +148,39 @@ internal object TouchBloom {
             val held = if (upAt[i] == 0L) STILL_DOWN else upAt[i] - downAt[i]
             val v = q * q * dipEnvelope(now - downAt[i], held, wobble)
             if (abs(v) > abs(best)) best = v
+        }
+        return best
+    }
+
+    /**
+     * Which side of its key the touch that last answered [pressIn] landed on,
+     * -1 (left) to 1 (right). Read straight after the call; the draw that
+     * reads it runs on the same thread.
+     */
+    var pressSide = 0f
+        private set
+
+    /**
+     * How far in the key whose root rect is [bounds] is pushed by a finger on
+     * it, as [dipAt] measures it but with no falloff and nothing for a finger
+     * on another key: the key-only motions move the pressed key and no other.
+     * A finger that has lifted counts where it lifted, so the key springs back
+     * on its own.
+     */
+    fun pressIn(bounds: Rect, wobble: Float, now: Long): Float {
+        var best = 0f
+        for (i in 0 until SLOTS) {
+            if (ids[i] == -1L) continue
+            val x = xs[i]
+            val y = ys[i]
+            if (x < bounds.left || x >= bounds.right || y < bounds.top || y >= bounds.bottom) continue
+            val held = if (upAt[i] == 0L) STILL_DOWN else upAt[i] - downAt[i]
+            val v = dipEnvelope(now - downAt[i], held, wobble)
+            if (abs(v) > abs(best)) {
+                best = v
+                val half = bounds.width / 2f
+                pressSide = if (half > 0f) ((x - bounds.center.x) / half).coerceIn(-1f, 1f) else 0f
+            }
         }
         return best
     }
@@ -324,14 +359,83 @@ internal fun Modifier.touchDip(bloom: KbTouchBloom, bounds: () -> Rect): Modifie
 private fun GraphicsLayerScope.applyDip(bloom: KbTouchBloom, bounds: Rect) {
     val now = TouchBloom.frame
     if (bounds.isEmpty) return
+    if (bloom.motion != KeyPressMotion.SINK) {
+        applyKeyMotion(bloom, bounds, now)
+        return
+    }
     val c = bounds.center
     val d = TouchBloom.dipAt(c.x, c.y, bloom.radiusDp * density, bloom.wobble, now) * bloom.dip
     if (d == 0f) return
-    val s = 1f - DIP_SCALE * d
-    scaleX = s
-    scaleY = s
-    translationY = DIP_DROP_DP * density * d
+    pressMotion(KeyPressMotion.SINK, d, 0f)
 }
+
+/**
+ * The key-only motions: the key under the finger grows, shrinks, rises, tips
+ * or squashes, by [KbTouchBloom.dip] at full press, and rings back past rest
+ * by the wobble when the finger lifts (the envelope goes below zero there, so
+ * a grown key briefly shrinks, a risen key briefly sinks).
+ */
+private fun GraphicsLayerScope.applyKeyMotion(bloom: KbTouchBloom, bounds: Rect, now: Long) {
+    val d = TouchBloom.pressIn(bounds, bloom.wobble, now) * bloom.dip
+    if (d == 0f) return
+    pressMotion(bloom.motion, d, TouchBloom.pressSide)
+}
+
+/**
+ * A key [d] of the way into [motion] (below zero on the spring back), [side]
+ * being where the finger landed across it, -1 to 1. Shared with the editor's
+ * preview tile, which plays a press by hand.
+ */
+internal fun GraphicsLayerScope.pressMotion(motion: KeyPressMotion, d: Float, side: Float) {
+    when (motion) {
+        KeyPressMotion.SINK -> {
+            scaleX = 1f - DIP_SCALE * d
+            scaleY = 1f - DIP_SCALE * d
+            translationY = DIP_DROP_DP * density * d
+        }
+        KeyPressMotion.GROW -> {
+            scaleX = 1f + GROW_SCALE * d
+            scaleY = 1f + GROW_SCALE * d
+        }
+        KeyPressMotion.SHRINK -> {
+            scaleX = 1f - SHRINK_SCALE * d
+            scaleY = 1f - SHRINK_SCALE * d
+        }
+        KeyPressMotion.RISE -> {
+            translationY = -RISE_DP * density * d
+            scaleX = 1f + RISE_SCALE * d
+            scaleY = 1f + RISE_SCALE * d
+        }
+        KeyPressMotion.TILT -> {
+            // Toward the side the finger landed on; a hit dead centre still tips a little.
+            rotationZ = TILT_DEG * d * (if (side < 0f) -1f else 1f) * (0.6f + 0.4f * abs(side))
+        }
+        KeyPressMotion.JELLY -> {
+            scaleX = 1f + JELLY_SCALE * d
+            scaleY = 1f - JELLY_SCALE * d
+            // Squashed toward the board rather than about its middle.
+            transformOrigin = JellyOrigin
+        }
+    }
+}
+
+/** How much larger a grown key is at full press. */
+private const val GROW_SCALE = 0.22f
+
+/** How much smaller a shrunk key is at full press. */
+private const val SHRINK_SCALE = 0.24f
+
+/** How far a risen key lifts, in dp, and how much nearer it looks. */
+private const val RISE_DP = 6f
+private const val RISE_SCALE = 0.06f
+
+/** How far a tipped key turns at full press, in degrees. */
+private const val TILT_DEG = 9f
+
+/** How far a jelly key squashes. */
+private const val JELLY_SCALE = 0.16f
+
+private val JellyOrigin = TransformOrigin(0.5f, 1f)
 
 /**
  * The key preview bubble lit from below, where the finger is, in the bloom's

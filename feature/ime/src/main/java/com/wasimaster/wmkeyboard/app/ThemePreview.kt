@@ -236,9 +236,8 @@ private fun ThemePreviewContent(
                 },
             )
         }
-        theme.boardEffect
-            ?.let { resolveBoardEffect(it, colorOf(theme.accent), colorOf(theme.keyText)) }
-            ?.let { BoardEffectLayer(it, Modifier.matchParentSize(), still = true) }
+        val boardEffect = theme.boardEffect?.let { resolveBoardEffect(it, colorOf(theme.accent), colorOf(theme.keyText)) }
+        boardEffect?.takeUnless { it.kind.onPress }?.let { BoardEffectLayer(it, Modifier.matchParentSize(), still = true) }
         val glass = PreviewGlass(frost, backdrop)
         // Weighted rather than fixed heights, so the mock-up keeps its
         // proportions at whatever size it is drawn.
@@ -312,6 +311,9 @@ private fun ThemePreviewContent(
         // real grid uses. The toolbar row is excluded there and included here;
         // at this scale the difference does not read.
         DecalsCanvas(theme.decals)
+        // A press splash lands over the keys on the keyboard, so it does here,
+        // caught part way as a picture.
+        boardEffect?.takeIf { it.kind.onPress }?.let { BoardEffectLayer(it, Modifier.matchParentSize(), still = true) }
         if (animatedBadge && theme.animation != ThemeAnimation.NONE) {
             AnimatedThemeBadge(
                 theme = theme,

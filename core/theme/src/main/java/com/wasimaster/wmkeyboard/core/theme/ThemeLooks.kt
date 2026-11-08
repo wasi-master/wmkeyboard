@@ -248,8 +248,14 @@ fun resolveMaterial(spec: KeyMaterialSpec): ResolvedMaterial {
 
 // ---- board effects ----------------------------------------------------------
 
-/** Something that moves on the board behind the keys. */
-enum class BoardEffectKind {
+/**
+ * Something that moves on the board behind the keys, or, for the kinds marked
+ * [onPress], a splash that a key press throws over the keys and that is gone
+ * again a second later. The press kinds draw nothing while nobody types, run
+ * no clock between presses and, having no still picture, draw nothing at all
+ * under reduce motion or power saving.
+ */
+enum class BoardEffectKind(val onPress: Boolean = false) {
     SNOW,
     RAIN,
     CODE_RAIN,
@@ -273,11 +279,39 @@ enum class BoardEffectKind {
     SCAN,
     SHEEN,
     RIPPLES,
+
+    /** A splat of paint with flung drops and drips running down. */
+    PAINT(onPress = true),
+
+    /** A soft, uneven blot of ink that blooms out and fades. */
+    INK(onPress = true),
+
+    /** A round pool of soft light a few keys wide. */
+    LIGHT_POOL(onPress = true),
+
+    /** A wash of colour that spreads from the key across the whole board. */
+    FLOOD(onPress = true),
+
+    /** A puff of smoke that drifts up and thins out. */
+    PUFF(onPress = true),
+
+    /** A four-point glint of light on the key. */
+    GLINT(onPress = true),
+
+    /** A ring that pops outward and throws small bits. */
+    POP(onPress = true),
+
+    /** Short curved strokes that sweep round the key. */
+    SWOOSH(onPress = true),
+
+    /** A scatter of tiny specks round the key. */
+    SPECKS(onPress = true),
 }
 
 /**
  * A moving board. [colors] are one to four ARGB colours; empty takes the
- * theme's accent and label colour. [reactive] is how much typing drives it:
+ * theme's accent and label colour, except on a press kind, where empty gives
+ * every press a colour of its own. [reactive] is how much typing drives it:
  * each press adds energy that speeds the effect up and brightens it, and the
  * energy halves every [halfLifeMs].
  */
@@ -340,6 +374,25 @@ enum class KeyLightingTarget {
     EDGE,
     /** A halo behind each key, showing in the gaps. */
     GLOW,
+    /** The key face filled with the colour, the label showing through. */
+    FILL,
+    /** The key face filled with two tones running corner to corner. */
+    GRADIENT,
+    /** Twinkling specks of glitter scattered over the key. */
+    GLITTER,
+}
+
+/**
+ * Where the light's colour comes from. [FIXED] is the one colour (turned by
+ * the rainbow spread); the others give each press, or on the patterns that
+ * run on their own each key, a colour of its own.
+ */
+enum class KeyLightingColorMode {
+    FIXED,
+    /** Bright colours, a different one each time. */
+    RANDOM,
+    /** Soft pale colours, a different one each time. */
+    PASTEL,
 }
 
 @Serializable
@@ -360,6 +413,8 @@ data class KeyLightingSpec(
     val hueSpanDeg: Float = 0f,
     /** How long a press stays lit, for the patterns that answer presses. */
     val decayMs: Int = 700,
+    /** A [KeyLightingColorMode] name; null is [KeyLightingColorMode.FIXED]. */
+    val colorMode: String? = null,
 )
 
 val LIGHTING_INTENSITY_RANGE = 0f..1f
@@ -370,6 +425,7 @@ val LIGHTING_DECAY_RANGE = 100..2400
 
 fun keyLightingPatternOrNull(name: String?): KeyLightingPattern? = enumOrNull<KeyLightingPattern>(name)
 fun keyLightingTargetOrNull(name: String?): KeyLightingTarget? = enumOrNull<KeyLightingTarget>(name)
+fun keyLightingColorModeOrNull(name: String?): KeyLightingColorMode? = enumOrNull<KeyLightingColorMode>(name)
 
 // ---- touch bloom ------------------------------------------------------------
 
@@ -395,7 +451,35 @@ data class TouchBloomSpec(
     val dip: Float = 0.5f,
     /** How much the keys wobble as they spring back, 0..1; 0 settles with no overshoot. */
     val wobble: Float = 0.5f,
+    /**
+     * How the keys move, as a [KeyPressMotion] name; null is
+     * [KeyPressMotion.SINK], the dip every theme written before the field had.
+     */
+    val motion: String? = null,
 )
+
+/**
+ * How a key moves under the finger. [SINK] moves every key within the reach,
+ * the nearer the deeper; the rest move only the key under the finger.
+ * [TouchBloomSpec.dip] sets how far, [TouchBloomSpec.wobble] how much it rings
+ * on the way back.
+ */
+enum class KeyPressMotion {
+    /** The keys near the finger sink a little and drop. */
+    SINK,
+    /** The key grows larger. */
+    GROW,
+    /** The key shrinks. */
+    SHRINK,
+    /** The key lifts up off the board. */
+    RISE,
+    /** The key tips toward the side the finger landed on. */
+    TILT,
+    /** The key squashes flat and wide, like jelly. */
+    JELLY,
+}
+
+fun keyPressMotionOrNull(name: String?): KeyPressMotion? = enumOrNull<KeyPressMotion>(name)
 
 val TOUCH_BLOOM_LIGHT_RANGE = 0f..1f
 val TOUCH_BLOOM_RADIUS_RANGE = 40f..240f

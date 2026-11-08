@@ -19282,8 +19282,15 @@ private fun KeyRows(
     // clock sleeps whenever nothing is moving.
     val touchBloom = kbTheme.liveTouchBloom
     touchBloom?.let { TouchBloomClock(it) }
+    // The moving board's press kinds (paint, ink, light and the rest) splash
+    // over the keys rather than move behind them. They have no still picture,
+    // so reduce motion and power saving's moving-theme drop leave them out.
+    val pressEffect = kbTheme.boardEffect?.takeIf {
+        it.kind.onPress && !kbTheme.reduceMotion && !kbTheme.boardEffectStill
+    }
     val pulseOn = !kbTheme.reduceMotion && (
         keyLighting?.pattern?.reactive == true ||
+            pressEffect != null ||
             kbTheme.boardEffect?.let { it.reactive > 0f || it.kind in PRESS_DRAWN_EFFECTS } == true
         )
     val particlesOn = particleBurst > 0 && !particleGlyphs.isEmpty
@@ -21163,6 +21170,10 @@ private fun KeyRows(
         // typing goes straight through a decal; it draws only when the board
         // draws, with no clock of its own.
         BoardDecalsOverlay(kbTheme)
+
+        // The press splashes, over the keys so a solid key still shows them,
+        // asleep whenever nobody is typing.
+        pressEffect?.let { PressEffectOverlay(it, Modifier.matchParentSize()) }
 
         // The key lighting's face and outline half, over the keys.
         keyLighting?.let {
