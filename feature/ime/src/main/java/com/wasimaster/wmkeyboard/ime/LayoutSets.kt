@@ -19,6 +19,7 @@ import com.wasimaster.wmkeyboard.core.layout.arrowRowFor
 import com.wasimaster.wmkeyboard.core.layout.gridForTelevision
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
 import com.wasimaster.wmkeyboard.core.layout.numberRowFor
+import com.wasimaster.wmkeyboard.core.layout.pageLayerKeys
 import com.wasimaster.wmkeyboard.core.layout.panelLayers
 import com.wasimaster.wmkeyboard.core.layout.repair
 import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
@@ -66,6 +67,10 @@ fun compileLayoutSet(
     val reflow = television && safe.tabletExpand && televisionGridColumns(letters) != null
     val expand = !reflow && form.isTablet && safe.tabletExpand
     val gridWidth = if (expand) tabletGridWidth(letters, form) else null
+    // The vowel-sign page an Indic layout shows after a consonant, when the
+    // page it names is one of the pages compiled below.
+    val consonantLayer = safe.layer(LayoutLayer.LETTERS)?.afterConsonant
+        ?.takeIf { it.isAnExtraGrid() && it in safe.layers }
     return LayoutSet(
         letters = when {
             reflow -> letters.gridForTelevision()
@@ -121,10 +126,8 @@ fun compileLayoutSet(
         keymanLayerKeys = safe.layers.keys.takeIf { keys ->
             safe.keyman != null || keys.any { it.startsWith(KeymanLayers.PREFIX) }
         },
-        // The vowel-sign page an Indic layout shows after a consonant, when
-        // the page it names is one of the pages compiled above.
-        consonantLayer = safe.layer(LayoutLayer.LETTERS)?.afterConsonant
-            ?.takeIf { it.isAnExtraGrid() && it in safe.layers },
+        consonantLayer = consonantLayer,
+        consonantPages = if (consonantLayer == null) emptyList() else safe.pageLayerKeys(),
         handwriting = safe.handwriting,
         authoredHolds = authored,
     )

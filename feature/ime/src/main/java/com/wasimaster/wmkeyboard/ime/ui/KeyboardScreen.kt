@@ -23770,6 +23770,48 @@ internal fun KeyboardLayout.withSyllablePreviews(state: KeyboardUiState): Keyboa
     return if (changed) copy(rows = previewed) else this
 }
 
+/**
+ * This grid's page key (the one labelled `1/4`) stepping through the pages of
+ * a layout with a consonant page the way Samsung's does, and saying where it
+ * is: after a consonant the vowel signs, the further pages, then the vowels
+ * (1/4 to 4/4); otherwise the vowels and the further pages, the vowel signs
+ * left out (1/3 to 3/3). The keys as written step through every page in file
+ * order, which is the same cycle with the vowels first.
+ */
+internal fun KeyboardLayout.withMatraPager(state: KeyboardUiState): KeyboardLayout {
+    val consonant = state.layouts.consonantLayer ?: return this
+    val others = state.layouts.consonantPages.filter { it != consonant }
+    // Null stands for the letters.
+    val cycle: List<String?> = if (state.consonantSyllable.isNotEmpty()) {
+        listOf<String?>(consonant) + others + null
+    } else {
+        listOf<String?>(null) + others
+    }
+    val showing: String? = when (state.layoutMode) {
+        LayoutMode.LETTERS -> if (consonantPage(state) != null) consonant else null
+        LayoutMode.NAMED -> state.namedLayer
+        else -> return this
+    }
+    val at = cycle.indexOf(showing).takeIf { it >= 0 } ?: return this
+    val next = cycle[(at + 1) % cycle.size]
+    val label = "${at + 1}/${cycle.size}"
+    val action = next?.let { KeyAction.LayerSwitch(it) } ?: KeyAction.Letters
+    var changed = false
+    val paged = rows.map { row ->
+        row.map { key ->
+            val pageKey = (key.action is KeyAction.LayerSwitch || key.action == KeyAction.Letters) &&
+                PageKeyLabel.matches(key.label)
+            if (!pageKey) return@map key
+            changed = true
+            key.copy(label = label, action = action)
+        }
+    }
+    return if (changed) copy(rows = paged) else this
+}
+
+/** A page key's label: `1/4`. */
+private val PageKeyLabel = Regex("""\d+/\d+""")
+
 internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     if (numericPadActive(state)) {
         state.layouts.numeric?.let { pad ->
@@ -23803,7 +23845,7 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
             state.secondaryLayoutId?.let { state.layouts.secondaries[it] } ?: state.layouts.letters
         LayoutMode.NAMED ->
             state.namedLayer?.let { state.layouts.named[it] } ?: state.layouts.letters
-    }.withSyllablePreviews(state)
+    }.withSyllablePreviews(state).withMatraPager(state)
     // The Bottom row settings that move keys: the 🌐 key hidden (#139), put in
     // the slot every layout shares (#310), and traded with the comma. One pass
     // shared with the layout editor, so the grid it shows is the grid drawn here

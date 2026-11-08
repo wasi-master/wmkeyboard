@@ -46,6 +46,23 @@ class IndicSyllableTest {
     }
 
     @Test
+    fun `a vowel sign is awaited after a consonant, a nukta or a vowel sign`() {
+        assertEquals("क", IndicSyllable.awaitingVowel("क")?.text)
+        assertEquals("ज़", IndicSyllable.awaitingVowel("ज़")?.text)
+        assertEquals("का", IndicSyllable.awaitingVowel("का")?.text)
+        assertEquals("क्ष", IndicSyllable.awaitingVowel("क्ष")?.text)
+    }
+
+    @Test
+    fun `no vowel sign is awaited after a virama, a bindu or Tamil shri`() {
+        assertNull(IndicSyllable.awaitingVowel("क्"))
+        assertNull(IndicSyllable.awaitingVowel("कं"))
+        assertNull(IndicSyllable.awaitingVowel("काः"))
+        assertNull(IndicSyllable.awaitingVowel("ஸ்ரீ"))
+        assertEquals("கீ", IndicSyllable.awaitingVowel("கீ")?.text)
+    }
+
+    @Test
     fun `a vowel sign goes on a consonant and replaces the one already there`() {
         assertEquals("का", typed("क", 'ा'))
         assertEquals("की", typed("का", 'ी'))

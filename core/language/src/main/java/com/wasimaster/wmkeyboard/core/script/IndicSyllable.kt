@@ -64,6 +64,7 @@ object IndicSyllable {
 
     private const val ZWJ = '‍'
     private const val ZWNJ = '‌'
+    private const val TAMIL_SHRI = "ஸ்ரீ"
 
     /**
      * The syllable [before] ends with, or null when it does not end in a
@@ -101,6 +102,21 @@ object IndicSyllable {
             vowel = before.substring(vowelStart, binduStart),
             bindu = before.substring(binduStart, end),
         )
+    }
+
+    /**
+     * The syllable [before] ends with when the next key is likely to be its
+     * vowel sign: a consonant, maybe with a nukta, maybe with a vowel sign
+     * already (a second one replaces it). Null after a virama, which waits for
+     * the next consonant, after a bindu, which closes the syllable, and after
+     * Tamil ஸ்ரீ, which is written as one sign. Samsung's keyboard brings up its
+     * vowel-sign page on exactly these.
+     */
+    fun awaitingVowel(before: CharSequence): Syllable? {
+        if (before.endsWith(TAMIL_SHRI)) return null
+        val syllable = trailing(before) ?: return null
+        if (syllable.bindu.isNotEmpty() || syllable.vowel.any(::isVirama)) return null
+        return syllable
     }
 
     /**

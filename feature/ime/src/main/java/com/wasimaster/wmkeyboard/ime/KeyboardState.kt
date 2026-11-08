@@ -384,6 +384,14 @@ data class LayoutSet(
      */
     val consonantLayer: String? = null,
     /**
+     * Every page of that layout after the letters, in order, while it has a
+     * [consonantLayer]; empty otherwise. What its page key steps through,
+     * the way Samsung's does: after a consonant the vowel signs, the further
+     * pages and then the vowels (1/4 to 4/4); otherwise the vowels and the
+     * further pages, with no vowel signs (1/3 to 3/3).
+     */
+    val consonantPages: List<String> = emptyList(),
+    /**
      * Whether the letters layer is a handwriting canvas over [letters]' one
      * row (`LayoutSpec.handwriting`, issue #557).
      */

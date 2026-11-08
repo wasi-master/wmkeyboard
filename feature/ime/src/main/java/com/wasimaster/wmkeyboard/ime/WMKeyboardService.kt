@@ -14738,31 +14738,48 @@ open class WMKeyboardService : InputMethodService() {
      * Mirrors the syllable the text before the caret ends in into
      * [KeyboardUiState.consonantSyllable], on a layout with a consonant page
      * (`LayerSpec.afterConsonant`): the letters give way to that page after a
-     * consonant and come back after anything else. Reached through
-     * [refreshKarContext], which every change of the caret's context calls;
-     * each of those also ends a pin of the letters
-     * ([KeyboardUiState.vowelsPinned]), which lasts until the next key.
+     * consonant and come back after anything else, by Samsung's test
+     * ([IndicSyllable.awaitingVowel]). Reached through [refreshKarContext],
+     * which every change of the caret's context calls.
+     *
+     * When the text in front of the caret has changed, a page of the layout
+     * the page key opened goes too, and so does a pin of the letters
+     * ([KeyboardUiState.vowelsPinned]): Samsung's keyboard goes back to the
+     * vowel signs or the vowels after every key, so a conjunct typed from page
+     * three is followed by its vowel signs.
      *
      * Empty in a keyboard-owned field, which types its marks as they come
      * ([captureTyped]), so its keys must not promise a vowel sign replaced.
      */
     private fun refreshConsonantSyllable() {
         val state = _uiState.value
-        val syllable = if (state.layouts.consonantLayer == null || state.captureCaretText() != null) {
-            ""
+        val pages = state.layouts.consonantPages
+        val before = if (state.layouts.consonantLayer == null || state.captureCaretText() != null) {
+            null
         } else {
-            currentInputConnection?.getTextBeforeCursor(IndicSyllable.CONTEXT, 0)
-                ?.let { IndicSyllable.trailing(it)?.text }
-                .orEmpty()
+            currentInputConnection?.getTextBeforeCursor(IndicSyllable.CONTEXT, 0)?.toString()
         }
+        val moved = before != consonantContext
+        consonantContext = before
+        val syllable = before?.let { IndicSyllable.awaitingVowel(it)?.text }.orEmpty()
         _uiState.update {
-            if (it.consonantSyllable == syllable && !it.vowelsPinned) {
-                it
-            } else {
-                it.copy(consonantSyllable = syllable, vowelsPinned = false)
+            val onPage = it.layoutMode == LayoutMode.NAMED && it.namedLayer in pages
+            when {
+                moved && onPage -> it.copy(
+                    consonantSyllable = syllable,
+                    vowelsPinned = false,
+                    layoutMode = LayoutMode.LETTERS,
+                    namedLayer = null,
+                )
+                moved || it.consonantSyllable != syllable ->
+                    it.copy(consonantSyllable = syllable, vowelsPinned = false)
+                else -> it
             }
         }
     }
+
+    /** The text in front of the caret [refreshConsonantSyllable] last read; null where it reads none. */
+    private var consonantContext: String? = null
 
     /**
      * A vowel sign, virama, nukta or bindu typed on a layout with a consonant
