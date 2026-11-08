@@ -16819,6 +16819,20 @@ private const val SpaceCursorEdgeRepeatMs = 125L
 /** The fastest the caret repeats at the edge, at any top speed: about a frame. */
 private const val SpaceCursorEdgeRepeatMinMs = 16L
 
+/** The slowest a drawn-back joystick runs, as a multiple of its full-speed interval. */
+private const val SpaceCursorJoySlowest = 6f
+
+/**
+ * How many times slower than full speed a spacebar cursor joystick runs with
+ * the finger [out] from where it went down, when [reach] is full speed (#970):
+ * 1 at [reach] and beyond, up to [SpaceCursorJoySlowest] near the start.
+ */
+internal fun joySlowdown(out: Float, reach: Float): Float {
+    if (reach <= 0f || out >= reach) return 1f
+    val share = (out / reach).coerceAtLeast(1f / SpaceCursorJoySlowest)
+    return 1f / share
+}
+
 /**
  * The same for lines, with the whole keyboard as a 2-D pad (#444): five a
  * second, slower than characters because each one jumps the eye a line.
@@ -29863,6 +29877,16 @@ private fun Modifier.pointerInputKey(
                     // going up or down, on a deadline of its own.
                     var edgeDirY = 0
                     var nextRepeatYAt = 0L
+                    // Once the caret goes on by itself, the drag is a joystick
+                    // (#970): the finger's side of where it went down says which
+                    // way, its distance out says how fast. Drawing back slows the
+                    // caret instead of walking it back, and only crossing the
+                    // start turns it round. [joyReach] is how far out the finger
+                    // was when it began, the distance that means full speed.
+                    var joyReach = 0f
+                    // How much slower than full speed the joystick runs: 1 out at
+                    // [joyReach] or past the key's end, more drawn back.
+                    var joySlow = 1f
                     while (true) {
                         val event = if (edgeDir != 0 || edgeDirY != 0) {
                             val due = minOf(
@@ -29875,6 +29899,9 @@ private fun Modifier.pointerInputKey(
                             awaitPointerEvent()
                         }
                         if (edgeDir != 0 && SystemClock.uptimeMillis() >= nextRepeatAt) {
+                            // The first step it takes by itself makes the drag a
+                            // joystick, out as far as the finger is now.
+                            if (joyReach == 0f) joyReach = abs(lastX - down.position.x).coerceAtLeast(cursorStepPx)
                             onCursorMove(edgeDir)
                             // At the pace the drag had reached (#970): a finger parked
                             // at the edge dropped a fast run to a crawl.
@@ -29882,7 +29909,7 @@ private fun Modifier.pointerInputKey(
                                 cursorStepPx, cursorRampX.travel, cursorRampStartPx, cursorRampEndPx, cursorTopSpeed,
                             ) / cursorStepPx
                             nextRepeatAt = SystemClock.uptimeMillis() +
-                                (SpaceCursorEdgeRepeatMs * pace).toLong().coerceAtLeast(SpaceCursorEdgeRepeatMinMs)
+                                (SpaceCursorEdgeRepeatMs * pace * joySlow).toLong().coerceAtLeast(SpaceCursorEdgeRepeatMinMs)
                         }
                         if (edgeDirY != 0 && SystemClock.uptimeMillis() >= nextRepeatYAt) {
                             onCursorMoveVertical(edgeDirY)
@@ -30224,7 +30251,42 @@ private fun Modifier.pointerInputKey(
                         accumulated += dx
                         lastX = change.position.x
                         when (action) {
-                            SpaceSwipeAction.CURSOR -> {
+                            SpaceSwipeAction.CURSOR -> if (joyReach > 0f) {
+                                // The joystick (see [joyReach]): no steps of its
+                                // own, and the ramp keeps the pace it reached.
+                                accumulated = 0f
+                                change.consume()
+                                val grid = spaceTouchpad?.gridBounds
+                                val leftEdge: Float
+                                val rightEdge: Float
+                                if (grid != null && grid.width > 0f) {
+                                    val origin = keyBounds().left
+                                    leftEdge = grid.left - origin + touchpadEdgePx
+                                    rightEdge = grid.right - origin - touchpadEdgePx
+                                } else {
+                                    leftEdge = 0f
+                                    rightEdge = size.width.toFloat()
+                                }
+                                val x = change.position.x
+                                val offset = x - down.position.x
+                                val pastEdge = x < leftEdge || x > rightEdge
+                                val dir = when {
+                                    // Back over the start: still, until it leaves
+                                    // the other way.
+                                    abs(offset) < cursorStepPx -> 0
+                                    offset > 0f -> 1
+                                    else -> -1
+                                }
+                                joySlow = if (pastEdge) {
+                                    1f
+                                } else {
+                                    joySlowdown(abs(offset), joyReach)
+                                }
+                                if (dir != edgeDir) {
+                                    edgeDir = dir
+                                    if (dir != 0) nextRepeatAt = SystemClock.uptimeMillis() + SpaceCursorEdgeRepeatMs
+                                }
+                            } else {
                                 cursorRampX.add(dx)
                                 val stepPx = spaceCursorStepPx(
                                     cursorStepPx, cursorRampX.travel, cursorRampStartPx, cursorRampEndPx, cursorTopSpeed,
@@ -30273,6 +30335,10 @@ private fun Modifier.pointerInputKey(
                                     nextRepeatAt = SystemClock.uptimeMillis() +
                                         if (pastEdge) SpaceCursorEdgeRepeatMs else SpaceCursorHoldDelayMs
                                 }
+                                // Going by itself past the key's end, the drag
+                                // turns joystick at once; held still inside it,
+                                // only once the pause has run (see the repeat).
+                                if (pastEdge && dir != 0) joyReach = abs(offset).coerceAtLeast(cursorStepPx)
                             }
                             SpaceSwipeAction.LANGUAGE -> {
                                 if (twoModes) {
