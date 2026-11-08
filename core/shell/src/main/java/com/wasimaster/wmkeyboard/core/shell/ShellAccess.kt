@@ -126,6 +126,49 @@ object ShellAccess {
         }
     }
 
+    /**
+     * Runs [command] and reads its whole stdout as bytes, for binary output
+     * (`screencap -p`). Through the user service's pipe under Shizuku, or
+     * straight from `su`'s stdout under root. Null when no door is open, it
+     * failed, or the output passed [maxBytes].
+     */
+    suspend fun execBytes(context: Context, command: String, maxBytes: Int = 64 * 1024 * 1024): ByteArray? =
+        withContext(Dispatchers.IO) {
+            when (kind()) {
+                ShellKind.SHIZUKU -> withTimeoutOrNull(ROOT_TIMEOUT_MS) {
+                    runCatching {
+                        userService(context)?.execStream(command)?.let { pfd ->
+                            android.os.ParcelFileDescriptor.AutoCloseInputStream(pfd).use { readCapped(it, maxBytes) }
+                        }
+                    }.getOrNull()
+                }
+                ShellKind.ROOT -> withTimeoutOrNull(ROOT_TIMEOUT_MS) {
+                    runCatching {
+                        val process = ProcessBuilder(listOf("su", "-c", command))
+                            .redirectError(ProcessBuilder.Redirect.to(java.io.File("/dev/null"))).start()
+                        try {
+                            process.inputStream.use { readCapped(it, maxBytes) }
+                        } finally {
+                            process.destroy()
+                        }
+                    }.getOrNull()
+                }
+                ShellKind.NONE -> null
+            }
+        }
+
+    private fun readCapped(input: java.io.InputStream, maxBytes: Int): ByteArray? {
+        val out = java.io.ByteArrayOutputStream()
+        val buffer = ByteArray(64 * 1024)
+        while (true) {
+            val n = input.read(buffer)
+            if (n < 0) break
+            out.write(buffer, 0, n)
+            if (out.size() > maxBytes) return null
+        }
+        return out.toByteArray().takeIf { it.isNotEmpty() }
+    }
+
     /** Touch injection for the emulated window. Shizuku only: root has no binder to call. */
     suspend fun injectMotion(context: Context, event: MotionEvent, displayId: Int): Boolean =
         runCatching { userService(context)?.injectMotion(event, displayId) ?: false }.getOrDefault(false)
@@ -181,5 +224,5 @@ object ShellAccess {
     }
 
     /** Bump when [IShellService] changes, so Shizuku replaces a running old copy. */
-    private const val SERVICE_VERSION = 1
+    private const val SERVICE_VERSION = 2
 }

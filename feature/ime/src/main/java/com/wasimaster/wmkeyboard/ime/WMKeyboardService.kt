@@ -6448,6 +6448,7 @@ open class WMKeyboardService : InputMethodService() {
                 LocalHandwritingFullScreen provides hwFullScreenControls,
                 LocalWindowFrost provides windowFrost,
                 com.wasimaster.wmkeyboard.ime.ui.LocalClipChipDelete provides ::onClipChipDelete,
+                com.wasimaster.wmkeyboard.ime.ui.LocalScreenCapture provides ::onCaptureScreen,
                 com.wasimaster.wmkeyboard.ime.ui.LocalSearchActions provides searchActions,
             ) {
                 ScrollFrameRateVote { ServiceKeyboardContent() }
@@ -33006,6 +33007,8 @@ open class WMKeyboardService : InputMethodService() {
                 ocrImage = null,
                 // Only a clip's Translate sets this, after the change (#807).
                 cameraImage = null,
+                pictureFromScreen = false,
+                screenCapture = next in SCREEN_CAPTURE_PANELS && canCaptureScreen(),
             )
         }
         // Whichever of emoji, GIFs and stickers is now up is the one the
@@ -40246,6 +40249,58 @@ open class WMKeyboardService : InputMethodService() {
             android.content.pm.PackageManager.PERMISSION_GRANTED
     }
 
+    /**
+     * Whether "Capture screen" can work now: the user's switches in Privacy ›
+     * Permissions › Shizuku or root (never in the Play build) and a door open.
+     */
+    private fun canCaptureScreen(): Boolean {
+        if (!com.wasimaster.wmkeyboard.core.shell.ShellFeatures.capturesScreen(this)) return false
+        syncShellAccess()
+        com.wasimaster.wmkeyboard.core.shell.ShellAccess.refresh()
+        return com.wasimaster.wmkeyboard.core.shell.ShellAccess.available
+    }
+
+    /**
+     * "Capture screen" in OCR, Translate's camera and AI reply: a screenshot
+     * through `screencap` as the shell user, with no consent dialog, so the
+     * keyboard keeps its field. The keyboard stays up, so the picture is cut
+     * at its top edge for OCR and Translate; AI reply keeps the whole screen
+     * and passes the edge along, as it does for a screenshot the user took.
+     * A floating keyboard has no edge to cut at and may be in the picture.
+     */
+    fun onCaptureScreen(target: com.wasimaster.wmkeyboard.ime.ui.ScreenCaptureTarget) {
+        vibrate()
+        if (!canCaptureScreen()) {
+            _uiState.update { it.copy(screenCapture = false) }
+            return
+        }
+        val panel = _uiState.value.panel
+        val boardTop = boardTopOnScreen()
+        val forReply = target == com.wasimaster.wmkeyboard.ime.ui.ScreenCaptureTarget.REPLY
+        serviceScope.launch {
+            val file = com.wasimaster.wmkeyboard.core.shell.ScreenCapture.capture(
+                this@WMKeyboardService,
+                cropBottomPx = if (forReply) null else boardTop,
+            )
+            if (_uiState.value.panel != panel) {
+                file?.delete()
+                return@launch
+            }
+            if (file == null) {
+                android.widget.Toast.makeText(this@WMKeyboardService, R.string.ime_screen_capture_failed, android.widget.Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            when (target) {
+                com.wasimaster.wmkeyboard.ime.ui.ScreenCaptureTarget.OCR ->
+                    _uiState.update { it.copy(ocrImage = file.absolutePath, pictureFromScreen = true) }
+                com.wasimaster.wmkeyboard.ime.ui.ScreenCaptureTarget.TRANSLATE ->
+                    _uiState.update { it.copy(cameraImage = file.absolutePath, pictureFromScreen = true) }
+                com.wasimaster.wmkeyboard.ime.ui.ScreenCaptureTarget.REPLY ->
+                    addReplyShot(android.net.Uri.fromFile(file).toString(), file.absolutePath, boardTop ?: 0)
+            }
+        }
+    }
+
     /** Opens (or closes) the screenshot picker, reading the gallery once as it opens. */
     fun onReplyPickShots(open: Boolean) {
         vibrate()
@@ -40920,6 +40975,11 @@ open class WMKeyboardService : InputMethodService() {
             val kept = ArrayList<android.net.Uri>()
             for (shot in shots) {
                 val uri = shot.shotUri?.let { android.net.Uri.parse(it) }
+                // A screen capture (#onCaptureScreen) is only the cache copy.
+                if (uri?.scheme == "file") {
+                    shot.shotFile?.let { java.io.File(it).delete() }
+                    continue
+                }
                 val removed = ReplyShots.delete(
                     this@WMKeyboardService,
                     uri,
@@ -57535,6 +57595,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** Screenshots the picker offers. */
         private const val REPLY_SHOT_CHOICES = 24
+
+        /** The panels with a "Capture screen" button ([onCaptureScreen]). */
+        private val SCREEN_CAPTURE_PANELS = setOf(PanelMode.OCR, PanelMode.CAMERA, PanelMode.AI_REPLY)
 
         /** How far back "just copied" and "just screenshotted" reach when the reply panel opens. */
         private const val REPLY_RECENT_WINDOW_SEC = 120L

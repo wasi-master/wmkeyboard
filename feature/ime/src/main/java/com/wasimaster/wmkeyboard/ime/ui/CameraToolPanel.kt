@@ -57,6 +57,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Cameraswitch
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Download
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashAuto
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashOn
@@ -1146,6 +1147,18 @@ private fun CameraContent(
                     ) {
                         feedback()
                         runCatching { FilePicks.open(context, FilePickRequest.CameraPicture) }
+                    }
+                    if (hasFront && hasBack) Spacer(Modifier.width(8.dp))
+                }
+                // The screen above the keyboard to translate, through Shizuku or root.
+                if (canTranslate && state.screenCapture) {
+                    val capture = LocalScreenCapture.current
+                    CameraChipButton(
+                        icon = Icons.Outlined.Screenshot,
+                        description = stringResource(R.string.ime_screen_capture_desc),
+                        active = false,
+                    ) {
+                        capture(ScreenCaptureTarget.TRANSLATE)
                     }
                     if (hasFront && hasBack) Spacer(Modifier.width(8.dp))
                 }

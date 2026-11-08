@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.shell
 
 import android.os.Build
+import android.os.ParcelFileDescriptor
 import android.view.InputEvent
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -23,6 +24,18 @@ class ShellUserService : IShellService.Stub() {
     }
 
     override fun exec(command: String): String = runCommand(listOf("sh", "-c", command))
+
+    override fun execStream(command: String): ParcelFileDescriptor? = runCatching {
+        val (read, write) = ParcelFileDescriptor.createPipe()
+        val process = ProcessBuilder(listOf("sh", "-c", command)).redirectError(ProcessBuilder.Redirect.to(java.io.File("/dev/null"))).start()
+        Thread {
+            runCatching {
+                ParcelFileDescriptor.AutoCloseOutputStream(write).use { out -> process.inputStream.use { it.copyTo(out) } }
+            }
+            if (!process.waitFor(TIMEOUT_S, TimeUnit.SECONDS)) process.destroy()
+        }.start()
+        read
+    }.getOrNull()
 
     override fun injectMotion(event: MotionEvent, displayId: Int): Boolean = inject(event, displayId)
 
