@@ -44,7 +44,6 @@ class HebrewGboardPlusAssetTest {
     @Test
     fun `every bundled Gboard+ layout is listed under its language`() {
         val listed = mapOf(
-            "en" to listOf(AssetLayouts.EN_GBOARD_PLUS_ID, AssetLayouts.EN_GBOARD_PLUS_SWIPE_SAFE_ID),
             "he" to listOf(AssetLayouts.HE_GBOARD_PLUS_ID, AssetLayouts.HE_GBOARD_PLUS_SWIPE_SAFE_ID),
         )
         for ((lang, ids) in listed) {

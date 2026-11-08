@@ -163,7 +163,7 @@ object OfflineImport {
                 CjkDictCatalog.byFileName(leaf) != null ||
                 ContextModelCatalog.byFileName(leaf) != null ||
                 leaf == AvroDictionaryDownloads.PUBLISHED_NAME ||
-                leaf == KhiproGlideDownloads.PUBLISHED_NAME ||
+                KhiproGlideDownloads.byPublishedName(leaf) != null ||
                 KhiproSpecs.isSetFile(leaf) ||
                 PhoneticIndexDownloads.languageOfPublishedName(leaf) != null -> Kind.LANGUAGE_FILES
             OfflineDictionaries.recognises(leaf) -> Kind.DICTIONARY
@@ -678,9 +678,9 @@ object OfflineImport {
                 Outcome(name, true, R.string.offline_import_avro_done)
             }
         }
-        if (name == KhiproGlideDownloads.PUBLISHED_NAME) {
-            return attempt(name, busy = KhiproGlideDownloads.isBusy) {
-                KhiproGlideDownloads.install(filesDir, file)
+        KhiproGlideDownloads.byPublishedName(name)?.let { table ->
+            return attempt(name, busy = table.isBusy) {
+                table.install(filesDir, file)
                 Outcome(name, true, R.string.offline_import_khipro_glide_done)
             }
         }

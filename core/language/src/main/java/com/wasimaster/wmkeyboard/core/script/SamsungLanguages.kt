@@ -3017,6 +3017,8 @@ internal object SamsungExtraLayouts {
         "ee" to listOf("asset_sam_ee_qwerty_open_vowels"),
         "efi" to listOf("asset_sam_efi_qwerty"),
         "el" to listOf("asset_sam_el_qwerty"),
+        // Samsung's English board, kept for its own symbol pages: its letters are the plain QWERTY's.
+        "en" to listOf("asset_sam_en_qwerty"),
         "ewo" to listOf("asset_sam_ewo_qwerty", "asset_sam_ewo_qwerty_open_vowels"),
         "fa" to listOf("asset_sam_fa_farsi_expanded_qwerty", "asset_sam_fa_qwerty"),
         "fon" to listOf("asset_sam_fon_qwerty_open_vowels"),

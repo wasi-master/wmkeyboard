@@ -23,9 +23,13 @@ import java.io.File
  *
  * Applied in nats on the decoder's own scores, before the context rerank and
  * beside the user's rank adjustments, and bounded: a word can be lifted at
- * most [MAX_LIFT_NATS] — one close-call margin, so three consistent picks flip
- * a close call and the ambiguity picker stops asking about it — and sunk at
- * most [MAX_DROP_NATS], so a clear reading is never overturned by a habit.
+ * most [MAX_LIFT_NATS] — one close-call margin, so a couple of consistent picks
+ * flip a close call and the ambiguity picker stops asking about it — and sunk
+ * at most [MAX_DROP_NATS]. A pair corrected the same way three times
+ * ([TAUGHT_STRENGTH]) is taught rather than a habit, and lifts its word by
+ * [MAX_TAUGHT_LIFT_NATS], enough to overturn a reading a list counts a few
+ * dozen times as often (#1051: German `machst` glided as `macht` however often
+ * it was put right). One pick the other way drops it back under the line.
  *
  * Nothing here is text. Words are stored as the first eight bytes of a
  * salted SHA-256, the salt is rotated when the store is cleared, and a row
@@ -83,14 +87,23 @@ class GlideOutcomes(private val storageFile: File?) {
             for (i in words.indices) {
                 val keyI = keys[i] ?: continue
                 var lift = 0.0
+                var taught = false
                 var drop = (undone[keyI] ?: 0) * UNDONE_NATS
                 for (j in words.indices) {
                     if (j == i) continue
                     val keyJ = keys[j] ?: continue
-                    pairs[PairKey(keyJ, keyI)]?.let { lift += it * CHOSEN_NATS }
+                    pairs[PairKey(keyJ, keyI)]?.let {
+                        lift += it * CHOSEN_NATS
+                        if (it >= TAUGHT_STRENGTH) taught = true
+                    }
                     pairs[PairKey(keyI, keyJ)]?.let { drop += it * REJECTED_NATS }
                 }
-                val delta = (lift - drop).coerceIn(-MAX_DROP_NATS, MAX_LIFT_NATS)
+                // Corrected the same way three times: the user has said what
+                // the stroke means, and a list that counts the other word more
+                // often is no answer to that (#1051).
+                val ceiling = if (taught) MAX_TAUGHT_LIFT_NATS else MAX_LIFT_NATS
+                if (taught) lift = MAX_TAUGHT_LIFT_NATS
+                val delta = (lift - drop).coerceIn(-MAX_DROP_NATS, ceiling)
                 if (delta != 0.0) {
                     out[i] = delta
                     any = true
@@ -324,6 +337,20 @@ class GlideOutcomes(private val storageFile: File?) {
          * The most a word is ever lifted.
          */
         const val MAX_LIFT_NATS = 1.2
+
+        /**
+         * Pair strength at which a correction is taught, not a nudge: three
+         * picks or undo-and-retypes ([ALTERNATIVE_STEP] each) the same way.
+         */
+        const val TAUGHT_STRENGTH = 3 * ALTERNATIVE_STEP
+
+        /**
+         * What a taught pair lifts its word by: e^4, about 55 times the
+         * frequency, which covers an inflection against its commoner sibling
+         * (`machst` and `macht`, `gehen` and `geben`) and stops short of a
+         * word the lists barely hold.
+         */
+        const val MAX_TAUGHT_LIFT_NATS = 4.0
 
         /** The most a word is ever sunk. */
         const val MAX_DROP_NATS = 0.4

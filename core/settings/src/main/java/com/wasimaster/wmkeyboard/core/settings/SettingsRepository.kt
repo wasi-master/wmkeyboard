@@ -1973,7 +1973,12 @@ data class ToolbarBehavior(
      * keyboard's top edge, closer than any two key rows sit to each other.
      */
     val paddingTopDp: Int = 4,
-    /** Space between the toolbar's content and the keys, in dp, added to the strip's height. */
+    /**
+     * Space between the toolbar's content and the keys, in dp, added to the
+     * strip's height. Either padding may go below zero (#970), down to
+     * [ToolbarPaddingRange]'s start: the strip then gets shorter than its
+     * content height, never under [ToolbarHeightRange]'s floor.
+     */
     val paddingBottomDp: Int = 0,
     /**
      * Which built-in themes the keyboard's Themes tool offers, by id — a
@@ -2062,6 +2067,20 @@ data class ToolbarBehavior(
      */
     val stripToolbox: Boolean = false,
     /**
+     * The toolbox button at the head of the pinned tools (#970). Off leaves it
+     * out while no tool is open, for someone who reaches the toolbox from
+     * [stripToolbox] instead. An open tool still shows it: that bar covers
+     * the strip, and the strip's button with it.
+     */
+    val barToolbox: Boolean = true,
+    /**
+     * The arrow on the suggestion strip that opens and closes the pinned tools
+     * (#970). Off counts only while the strip has its own toolbox button
+     * ([stripToolboxSwipes]), whose swipe up and down does the same; without
+     * one the arrow stays, as the only way in.
+     */
+    val toolsArrow: Boolean = true,
+    /**
      * The pinned tools wear their own colours, the ones Colorful tool icons
      * gives them in the toolbox (#970). Off by default: the bar keeps the
      * theme's one toolbar-icon colour.
@@ -2123,7 +2142,19 @@ sealed interface ToolHoldAction {
  * (FUTO's arrangement); [ALWAYS_ROW] keeps it open (LeanType's). Both cost one
  * strip's worth of keyboard height while the row is up, which is the trade.
  */
-enum class ToolbarPlacement { STRIP, ON_DEMAND_ROW, ALWAYS_ROW }
+enum class ToolbarPlacement {
+    STRIP,
+    ON_DEMAND_ROW,
+    ALWAYS_ROW,
+
+    /**
+     * The tools share the strip as in [STRIP], but only when asked for (#970):
+     * the strip rests on the suggestions, a swipe up on its toolbox button
+     * flips it to the tools and a swipe down flips it back. No arrow while
+     * that button is there to swipe.
+     */
+    ON_SWIPE,
+}
 
 /**
  * Which side of the keys the pinned tools stand on in landscape
@@ -2157,7 +2188,14 @@ fun KeyboardSettings.bottomPaddingOr(gestureBar: Boolean): Int =
     bottomPaddingDp ?: autoBottomPaddingDp(gestureBar)
 
 /** True while the tools have a row of their own rather than sharing the strip. */
-val ToolbarPlacement.isOwnRow: Boolean get() = this != ToolbarPlacement.STRIP
+val ToolbarPlacement.isOwnRow: Boolean
+    get() = this == ToolbarPlacement.ON_DEMAND_ROW || this == ToolbarPlacement.ALWAYS_ROW
+
+/**
+ * True while the strip has a toolbox button among its own ([ToolbarBehavior.stripToolbox]),
+ * the one a swipe up and down opens and closes the pinned tools from (#970).
+ */
+fun KeyboardSettings.stripToolboxSwipes(): Boolean = emojiToolbar && toolbarBehavior.stripToolbox
 
 /**
  * True while the suggestion strip has given up its row (#302): the tools are
@@ -7679,6 +7717,9 @@ enum class ClipCardShortcut {
  */
 enum class ClipHoldAction {
     DETAILS,
+
+    /** What pastes next, without moving the clip in the history (#1178). */
+    PASTE_NEXT,
     SELECT,
     REORDER,
     SHOW_IN_HISTORY,
@@ -8106,6 +8147,14 @@ data class ClipboardSettings(
      * family (`abc_*`). Empty by default.
      */
     val extraTrackers: List<String> = emptyList(),
+    /**
+     * Pictures and videos lose the metadata that identifies them (#1179): the
+     * location, the camera or phone, its serial numbers, the owner and the
+     * time taken. A picture is cleaned as the history keeps it and again as it
+     * is pasted; a video or a picture kept by reference is pasted as a cleaned
+     * copy. Off by default.
+     */
+    val stripMediaMetadata: Boolean = false,
     /**
      * The last rule clips were combined with in the panel (#612): the text
      * between them, a text put in front, and a pattern that keeps only part
@@ -9871,6 +9920,13 @@ val BottomRowHeightRange = 32..96
  * the settings sliders share them. The theme editor's slider has its own.
  */
 val ToolbarHeightRange = 24..80
+
+/**
+ * Bounds for [ToolbarBehavior.paddingTopDp] and [ToolbarBehavior.paddingBottomDp].
+ * Below zero takes height off the strip (#970), for a bar that is too tall even
+ * with no padding at all.
+ */
+val ToolbarPaddingRange = -12..24
 
 /** The built-in currency glyphs, used when [LayoutBehaviorSettings.currencyKeys] is empty. */
 val DefaultCurrencyKeys = listOf("৳", "€", "£", "¥", "₹", "₿")
@@ -11873,6 +11929,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_COPY_RULES_TO_SYSTEM = booleanPreferencesKey("clipboard_copy_rules_to_system")
         private val CLIPBOARD_CLEAN_COPIED_LINKS = booleanPreferencesKey("clipboard_clean_copied_links")
         private val CLIPBOARD_EXTRA_TRACKERS = stringPreferencesKey("clipboard_extra_trackers")
+        private val CLIPBOARD_STRIP_MEDIA_METADATA = booleanPreferencesKey("clipboard_strip_media_metadata")
         private val CLIPBOARD_COMBINE_JOINER = stringPreferencesKey("clipboard_combine_joiner")
         private val CLIPBOARD_COMBINE_BASE = stringPreferencesKey("clipboard_combine_base")
         private val CLIPBOARD_COMBINE_APPEND = stringPreferencesKey("clipboard_combine_append")
@@ -12033,6 +12090,8 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_STRIP_ICON_SIZE = intPreferencesKey("toolbar_strip_icon_size")
         private val TOOLBAR_STRIP_AT_END = booleanPreferencesKey("toolbar_strip_at_end")
         private val TOOLBAR_STRIP_TOOLBOX = booleanPreferencesKey("toolbar_strip_toolbox")
+        private val TOOLBAR_BAR_TOOLBOX = booleanPreferencesKey("toolbar_bar_toolbox")
+        private val TOOLBAR_TOOLS_ARROW = booleanPreferencesKey("toolbar_tools_arrow")
         private val TOOLBAR_DRAG_REARRANGE = booleanPreferencesKey("toolbar_drag_rearrange")
         private val THEMES_PANEL_BUILTINS = stringSetPreferencesKey("themes_panel_builtins")
         private val COMMA_AS_EMOJI = booleanPreferencesKey("comma_as_emoji")
@@ -13931,6 +13990,7 @@ class SettingsRepository(private val context: Context) {
             copyRulesToSystem = p[CLIPBOARD_COPY_RULES_TO_SYSTEM] ?: defaults.clipboard.copyRulesToSystem,
             cleanCopiedLinks = p[CLIPBOARD_CLEAN_COPIED_LINKS] ?: defaults.clipboard.cleanCopiedLinks,
             extraTrackers = p[CLIPBOARD_EXTRA_TRACKERS]?.let(::decodeTrackerNames) ?: defaults.clipboard.extraTrackers,
+            stripMediaMetadata = p[CLIPBOARD_STRIP_MEDIA_METADATA] ?: defaults.clipboard.stripMediaMetadata,
             combineJoiner = p[CLIPBOARD_COMBINE_JOINER] ?: defaults.clipboard.combineJoiner,
             combineBase = p[CLIPBOARD_COMBINE_BASE] ?: defaults.clipboard.combineBase,
             combineAppend = p[CLIPBOARD_COMBINE_APPEND] ?: defaults.clipboard.combineAppend,
@@ -14513,6 +14573,8 @@ class SettingsRepository(private val context: Context) {
             stripIconSizeDp = p[TOOLBAR_STRIP_ICON_SIZE] ?: defaults.toolbarBehavior.stripIconSizeDp,
             stripShortcutsAtEnd = p[TOOLBAR_STRIP_AT_END] ?: defaults.toolbarBehavior.stripShortcutsAtEnd,
             stripToolbox = p[TOOLBAR_STRIP_TOOLBOX] ?: defaults.toolbarBehavior.stripToolbox,
+            barToolbox = p[TOOLBAR_BAR_TOOLBOX] ?: defaults.toolbarBehavior.barToolbox,
+            toolsArrow = p[TOOLBAR_TOOLS_ARROW] ?: defaults.toolbarBehavior.toolsArrow,
             holdDelayMs = p[TOOLBAR_HOLD_DELAY] ?: defaults.toolbarBehavior.holdDelayMs,
         )
 
@@ -17066,10 +17128,10 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[TOOLBAR_ICON_SIZE] = value.coerceIn(14, 30) }
 
     suspend fun setToolbarPaddingTopDp(value: Int) =
-        editPrefs { it[TOOLBAR_PADDING_TOP] = value.coerceIn(0, 24) }
+        editPrefs { it[TOOLBAR_PADDING_TOP] = value.coerceIn(ToolbarPaddingRange.first, ToolbarPaddingRange.last) }
 
     suspend fun setToolbarPaddingBottomDp(value: Int) =
-        editPrefs { it[TOOLBAR_PADDING_BOTTOM] = value.coerceIn(0, 24) }
+        editPrefs { it[TOOLBAR_PADDING_BOTTOM] = value.coerceIn(ToolbarPaddingRange.first, ToolbarPaddingRange.last) }
 
     suspend fun setToolbarPlacement(value: ToolbarPlacement) =
         editPrefs { it[TOOLBAR_PLACEMENT] = value.name }
@@ -17099,6 +17161,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setStripToolbox(value: Boolean) =
         editPrefs { it[TOOLBAR_STRIP_TOOLBOX] = value }
+
+    suspend fun setToolbarBarToolbox(value: Boolean) =
+        editPrefs { it[TOOLBAR_BAR_TOOLBOX] = value }
+
+    suspend fun setToolbarToolsArrow(value: Boolean) =
+        editPrefs { it[TOOLBAR_TOOLS_ARROW] = value }
 
     /**
      * Sets or clears one tool's press-and-hold action. Null puts that tool back
@@ -20701,6 +20769,8 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOLBAR_ICON_SIZE)
         it.remove(TOOLBAR_PADDING_TOP)
         it.remove(TOOLBAR_PADDING_BOTTOM)
+        it.remove(TOOLBAR_BAR_TOOLBOX)
+        it.remove(TOOLBAR_TOOLS_ARROW)
     }
 
     /** The Toolbox page's reset: the tool grid's layout, columns, paging, labels, search and sort. */
@@ -22614,6 +22684,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setClipboardCleanCopiedLinks(value: Boolean) =
         editPrefs { it[CLIPBOARD_CLEAN_COPIED_LINKS] = value }
 
+    suspend fun setClipboardStripMediaMetadata(value: Boolean) =
+        editPrefs { it[CLIPBOARD_STRIP_MEDIA_METADATA] = value }
+
     /** The user's own tracking parameters (#665), one name per entry. */
     suspend fun setClipboardExtraTrackers(names: List<String>) =
         editPrefs { it[CLIPBOARD_EXTRA_TRACKERS] = names.joinToString("\n") }
@@ -24434,7 +24507,7 @@ val SwiftKeyHoldSymbols: Map<String, String> = mapOf(
 
 /**
  * The hold symbols Gboard's English QWERTY puts on its letters with "Long
- * press for symbols" on, as its board carries them (`en_gboard_plus`): digits
+ * press for symbols" on, as its board carries them: digits
  * along the top row, then `@ # $ _ & - + ( )` and `* " ' : ; ! ?`.
  */
 val GboardHoldSymbols: Map<String, String> = mapOf(

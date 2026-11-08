@@ -264,6 +264,17 @@ data class Key(
     val hintShiftXDp: Float? = null,
     val hintShiftYDp: Float? = null,
     /**
+     * The size of the flick arms drawn on this key's face, as a multiple of
+     * the size they follow (#970), apart from the key's label and its corner
+     * hint. Null follows the setting. Clamped at draw time to [KeyHintScaleRange].
+     */
+    val flickScale: Float? = null,
+    /**
+     * How far this key's flick arms sit further in from its edges, in dp
+     * (#970); negative moves them out towards the edge. Null follows the setting.
+     */
+    val flickInsetDp: Float? = null,
+    /**
      * Every letter this one key stands for — `"abc"` on a T9 keypad's 2, `"qw"`
      * on a compact grid's first key — for a layout that puts more than one
      * letter on a key and lets the language model say which was meant
@@ -711,6 +722,10 @@ fun LayoutSpec.hasDigitRowOfItsOwn(): Boolean =
 
 /** What a [Key.hintScale] is honoured at. */
 val KeyHintScaleRange = 0.5f..3f
+
+/** This key's [Key.flickScale], clamped; 1 when it follows the setting. */
+fun Key.drawnFlickScale(): Float =
+    flickScale?.takeIf { it.isFinite() }?.coerceIn(KeyHintScaleRange) ?: 1f
 
 /** This key's [Key.hintScale], clamped; 1 when it follows the setting. */
 fun Key.drawnHintScale(): Float =

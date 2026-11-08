@@ -4858,8 +4858,12 @@ data class KeyboardUiState(
         CaptureTarget.KDE_HOST -> kde.hostDraft
         CaptureTarget.KDE_REMOTE, CaptureTarget.KDE_COMPOSE -> kde.line
         CaptureTarget.PLUGIN -> pluginFocusedInput?.let { pluginInputs[it] }.orEmpty()
-        CaptureTarget.FIND_QUERY -> findReplace?.query.orEmpty()
-        CaptureTarget.FIND_REPLACEMENT -> findReplace?.replacement.orEmpty()
+        // A term left from last time reads as empty to the keys (#970): it is
+        // drawn selected, so the first key types over it instead of after it.
+        CaptureTarget.FIND_QUERY ->
+            findReplace?.takeUnless { FindReplaceField.FIND in it.remembered }?.query.orEmpty()
+        CaptureTarget.FIND_REPLACEMENT ->
+            findReplace?.takeUnless { FindReplaceField.REPLACE in it.remembered }?.replacement.orEmpty()
         CaptureTarget.LEARN_EDIT -> learnFromText?.editText.orEmpty()
         CaptureTarget.CALC -> calcExpression
         CaptureTarget.CONVERTER -> converterValue

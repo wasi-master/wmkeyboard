@@ -11,10 +11,12 @@ import com.wasimaster.wmkeyboard.core.voice.speech.SpeechOut
 import java.util.Locale
 
 /**
- * The voice a dictionary entry's word is read in: the language of the imported
- * dictionary it came from, else American English.
+ * The voice a dictionary entry's word is read in: the language the entry says
+ * it is a word of (#1085), else that of the imported dictionary it came from,
+ * else American English.
  */
 fun DictEntry.spokenLocale(): Locale {
+    if (this.language.isNotEmpty()) return Locale.forLanguageTag(this.language)
     val language = origin.takeIf { it.isNotEmpty() }?.let { title ->
         YomichanDictionaries.installed().firstOrNull { it.info.title == title }?.info?.sourceLanguage
     }.orEmpty()

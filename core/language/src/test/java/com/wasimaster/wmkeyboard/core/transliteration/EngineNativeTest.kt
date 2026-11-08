@@ -72,6 +72,9 @@ class EngineNativeTest {
         assertEquals(listOf("ekhn", "ekhon"), KhiproRomanizer.spellings("এখন"))
         assertEquals("ekhn", KhiproRomanizer.romanize("এখন"))
         assertTrue(KhiproRomanizer.spellings("চাঁদ").all { '/' in it })
+        KhiproRomanizer.warm(dark = true)
+        assertEquals("hbe", KhiproRomanizer.romanize("হবে", dark = true))
+        assertEquals("hccf/e", KhiproRomanizer.romanize("হচ্ছে", dark = true))
         // Run-time specs (#909): the bundled copy's revision, a check that
         // refuses what is not a spec, and an install and a reset.
         assertTrue(Regex("""\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ""").matches(EngineNative.khiproBundledRevision()))

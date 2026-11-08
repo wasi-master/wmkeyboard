@@ -298,6 +298,18 @@ private fun DictionaryEntries(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
+                            // Whose word it is (#1085), when the source says and
+                            // it is not English: a word from an imported
+                            // language's dictionary read as English otherwise.
+                            dictLanguageName(entry.language)?.let { name ->
+                                Text(
+                                    name,
+                                    color = kb.toolbarIcon,
+                                    fontSize = 11.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
                         }
                         if (entry.phonetic.isNotEmpty()) {
                             Spacer(Modifier.width(10.dp))
@@ -630,4 +642,14 @@ private fun DictionaryChip(label: String, filled: Boolean, onClick: () -> Unit) 
             maxLines = 1,
         )
     }
+}
+
+/** The name of the language [tag] in the phone's language, or null for none or English (#1085). */
+private fun dictLanguageName(tag: String): String? {
+    if (tag.isEmpty()) return null
+    val locale = java.util.Locale.forLanguageTag(tag)
+    if (locale.language.isEmpty() || locale.language == "en") return null
+    return locale.getDisplayLanguage(java.util.Locale.getDefault())
+        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
+        .takeIf { it.isNotEmpty() }
 }

@@ -130,6 +130,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.ui.WmSlider
 import com.wasimaster.wmkeyboard.core.ui.rememberLiveSlider
@@ -3913,6 +3914,13 @@ internal fun SettingsGroup(
     }
 }
 
+/**
+ * The shape of the group card a row sits on, or null outside a group. A row's
+ * own outline (the new-setting border) is drawn in it, so the card's clip
+ * never cuts the outline's corners.
+ */
+internal val LocalGroupCardShape = compositionLocalOf<Shape?> { null }
+
 /** The radius at the two ends of a group's stack of cards. */
 private val GroupEndCorner = 24.dp
 
@@ -3930,18 +3938,23 @@ private val GroupInnerCorner = 6.dp
 private fun GroupCard(top: Dp, bottom: Dp, content: @Composable () -> Unit) {
     val topCorner by animateDpAsState(top, label = "groupCardTop")
     val bottomCorner by animateDpAsState(bottom, label = "groupCardBottom")
+    val shape = RoundedCornerShape(
+        topStart = topCorner, topEnd = topCorner,
+        bottomStart = bottomCorner, bottomEnd = bottomCorner,
+    )
     Surface(
-        shape = RoundedCornerShape(
-            topStart = topCorner, topEnd = topCorner,
-            bottomStart = bottomCorner, bottomEnd = bottomCorner,
-        ),
+        shape = shape,
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.fillMaxWidth(),
     ) {
         // No padding of its own: a row brings its own (ListItem's 8 dp, a
         // slider row's 8 dp), and 4 dp on top of that made every row 80 dp
         // where 72 is the height the list is designed around.
-        Column { content() }
+        // The card's shape goes down to the row, so a new setting's gold
+        // border follows the card's corners instead of being cut by them (#1184).
+        CompositionLocalProvider(LocalGroupCardShape provides shape) {
+            Column { content() }
+        }
     }
 }
 

@@ -972,6 +972,10 @@
     <string name="ime_clip_edit_placeholder">Type the clip’s text</string>
     <!-- A clip's own labels (#612): the hold popup's action, and the editor opened on them. -->
     <string name="ime_clip_tags">Tags</string>
+    <string name="ime_clip_paste_next">Paste next</string>
+    <string name="ime_clip_paste_next_toast">This clip pastes next</string>
+    <string name="ime_clip_metadata_working_toast">Removing the video\'s metadata…</string>
+    <string name="ime_clip_metadata_failed_toast">The keyboard could not remove the metadata from this file, so it did not paste it</string>
     <string name="ime_clip_tags_title">Tags</string>
     <string name="ime_clip_tags_placeholder">Tags, with a comma between them</string>
     <!-- The hold popup's action and the clip shortcut button that open the QR code tool on a text clip (#766). -->

@@ -6222,7 +6222,7 @@ internal fun KeyEditSheet(
         item(level = SettingLevel.STANDARD) {
             KeyScreenRow(key.showOn) { screen -> onChange { it.copy(showOn = screen) } }
         }
-        if (!isField && drawsScalableLabel(key)) item(level = SettingLevel.STANDARD) {
+        if (!isField && takesLabelScale(key)) item(level = SettingLevel.STANDARD) {
             KeyLabelScaleRow(key) { scale -> onChange { it.copy(labelScale = scale) } }
         }
         if (!isField && !key.hideHint) item(level = SettingLevel.ADVANCED) {
@@ -6230,6 +6230,14 @@ internal fun KeyEditSheet(
         }
         if (!isField && !key.hideHint) item(level = SettingLevel.ADVANCED) {
             KeyHintShiftRow(key) { x, y -> onChange { it.copy(hintShiftXDp = x, hintShiftYDp = y) } }
+        }
+        // The arms on a flick key's face, sized and placed apart from its
+        // label and its hint (#970).
+        if (!isField && key.hasFlicks()) item(level = SettingLevel.ADVANCED) {
+            KeyFlickScaleRow(key) { scale -> onChange { it.copy(flickScale = scale) } }
+        }
+        if (!isField && key.hasFlicks()) item(level = SettingLevel.ADVANCED) {
+            KeyFlickInsetRow(key) { inset -> onChange { it.copy(flickInsetDp = inset) } }
         }
         // Every key but a component's cell can wear an icon (issue #187). The
         // space bar and the action keys used to have no field for one, and the
@@ -6581,7 +6589,7 @@ private fun MultiKeySection(
                 onChange { it.copy(width = width) }
             }
         }
-        keys.firstOrNull(::drawsScalableLabel)?.let { sample ->
+        keys.firstOrNull(::takesLabelScale)?.let { sample ->
             item(level = SettingLevel.STANDARD) { KeyLabelScaleRow(sample) { scale -> onChange { it.copy(labelScale = scale) } } }
         }
         item(level = SettingLevel.STANDARD) { HintRow(first, onChange, always = true) }
@@ -8003,6 +8011,60 @@ private fun KeyHintShiftRow(key: Key, onChange: (Float?, Float?) -> Unit) {
 }
 
 /**
+ * The size of one flick key's arms on its face (#970), as a multiple of the
+ * size every arm follows, apart from the key's label and corner hint.
+ */
+@Composable
+private fun KeyFlickScaleRow(key: Key, onChange: (Float?) -> Unit) {
+    val scale = key.flickScale
+    ControlSetting(
+        if (scale == null) {
+            stringResource(R.string.layout_editor_key_flick_scale_auto_label)
+        } else {
+            stringResource(R.string.layout_editor_key_flick_scale_label, scale)
+        },
+        subtitle = stringResource(R.string.layout_editor_key_flick_scale_hint),
+        icon = SettingsRowIcons[R.string.layout_editor_key_label_scale_label],
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FilterChip(
+                selected = scale == null,
+                onClick = { onChange(null) },
+                label = { Text(stringResource(R.string.layout_editor_font_scale_auto_chip)) },
+            )
+            for (preset in listOf(0.75f, 1.25f, 1.5f, 2f)) {
+                FilterChip(
+                    selected = scale != null && kotlin.math.abs(scale - preset) < 0.01f,
+                    onClick = { onChange(preset) },
+                    label = { Text("×%.2f".format(preset).trimEnd('0').trimEnd('.')) },
+                )
+            }
+        }
+    }
+}
+
+/** How far in from the edges one flick key's arms sit, nudged from where every key's do (#970). */
+@Composable
+private fun KeyFlickInsetRow(key: Key, onChange: (Float?) -> Unit) {
+    val inset = key.flickInsetDp ?: 0f
+    ControlSetting(
+        stringResource(R.string.layout_editor_key_flick_inset_label, inset.toInt()),
+        subtitle = stringResource(R.string.layout_editor_key_flick_inset_hint),
+        icon = SettingsRowIcons[R.string.layout_editor_key_label_scale_label],
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FilterChip(
+                selected = key.flickInsetDp == null,
+                onClick = { onChange(null) },
+                label = { Text(stringResource(R.string.layout_editor_font_scale_auto_chip)) },
+            )
+            FilterChip(selected = false, onClick = { onChange(inset + 1f) }, label = { Text(stringResource(R.string.layout_editor_key_flick_inset_in)) })
+            FilterChip(selected = false, onClick = { onChange(inset - 1f) }, label = { Text(stringResource(R.string.layout_editor_key_flick_inset_out)) })
+        }
+    }
+}
+
+/**
  * Corner hint size for one key, as a multiple of every hint's size (#970): for
  * the key whose hint is a mark too small to read, an Arabic haraka on a corner,
  * without making every other hint bigger with it.
@@ -8047,13 +8109,11 @@ private fun KeyHintScaleRow(key: Key, onChange: (Float?) -> Unit) {
  */
 @Composable
 private fun KeyLabelScaleRow(key: Key, onChange: (Float?) -> Unit) {
-    // Only for a key that draws a label at letter size. The keyboard draws the
-    // shift, delete and enter keys from icon slots, prints the spacebar's
-    // language name at its own small size, and an icon key draws no text at
-    // all — so on those this control would move a number nothing reads. Same
-    // rule as the hide-hint and row-span rows: a control that cannot do
-    // anything here does not take a row here.
-    if (!drawsScalableLabel(key)) return
+    // Not on the spacebar, which prints its language name at its own small
+    // size, nor on a component, which draws no face. An icon key takes it as
+    // its icon's size (#970). Same rule as the hide-hint and row-span rows: a
+    // control that cannot do anything here does not take a row here.
+    if (!takesLabelScale(key)) return
     val scale = key.labelScale
     val shown = scale ?: 1f
     val travel = sliderTravel(
@@ -8099,27 +8159,16 @@ private fun KeyLabelScaleRow(key: Key, onChange: (Float?) -> Unit) {
 }
 
 /**
- * Whether this key's label is the one `KeyContent` draws at letter size, which
- * is the only label a [Key.labelScale] reaches.
+ * Whether [Key.labelScale] reaches anything on this key: its label, or the
+ * icon it draws instead (#970), the action keys' and an action in the middle
+ * of a flick key included. Not the spacebar, whose language name has a size
+ * of its own, nor a component, which draws no face.
  *
  * Kept beside the control rather than inside it so the list reads against
  * `KeyContent`'s own `when`, which is what it has to stay in step with.
  */
-private fun drawsScalableLabel(key: Key): Boolean = when (key.action) {
-    // A worded shift key draws its label in place of the arrow (#559).
-    KeyAction.Shift, KeyAction.CapsLock ->
-        KeyIcons.byName(key.icon) == null && shiftLabelReplacesIcon(key.label)
-    KeyAction.Delete, KeyAction.ForwardDelete,
-    KeyAction.Enter, KeyAction.Newline, KeyAction.LanguageSwitch,
-    KeyAction.InputMethodPicker, KeyAction.Emoji, KeyAction.Space,
-    is KeyAction.SwitchInputMethod,
-    -> false
-    // A component draws no label at all; an edit key draws its icon.
-    is KeyAction.Field -> false
-    is KeyAction.Edit -> key.label.isNotBlank() || textEditIcon((key.action as KeyAction.Edit).op) == null
-    // An icon in place of the glyph means there is no text to size.
-    else -> KeyIcons.byName(key.icon) == null
-}
+private fun takesLabelScale(key: Key): Boolean =
+    key.action != KeyAction.Space && key.action !is KeyAction.Field
 
 /**
  * The row-level answer to a row that does not add up to the grid: scale every

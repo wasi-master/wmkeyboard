@@ -164,6 +164,8 @@ data class NotesCallbacks(
     val onInsert: (Long) -> Unit = {},
     /** A passage the search found (#1099), typed into the field as the note has it. */
     val onPassageInsert: (NotePassageHit) -> Unit = {},
+    /** A passage held: its note in the editor, the caret on the match (#1099). */
+    val onPassageOpen: (NotePassageHit) -> Unit = {},
     val onCopy: (Long) -> Unit = {},
     val onShare: (Long) -> Unit = {},
     val onPin: (Long, Boolean) -> Unit = { _, _ -> },
@@ -800,23 +802,23 @@ private fun passageKey(passages: List<NotePassageHit>, index: Int): String = "pa
 /**
  * A passage the search found (#1099): its text with the match picked out,
  * and the note it is from under it. A tap types the passage into the field,
- * as the note has it; a hold opens the note.
+ * as the note has it; a hold opens the note in the editor at the match.
  */
 @Composable
 private fun PassageRow(hit: NotePassageHit, index: Int, callbacks: NotesCallbacks, modifier: Modifier = Modifier) {
-    NotePassageCard(hit, index, onInsert = callbacks.onPassageInsert, onOpen = callbacks.onOpen, modifier = modifier)
+    NotePassageCard(hit, index, onInsert = callbacks.onPassageInsert, onOpen = callbacks.onPassageOpen, modifier = modifier)
 }
 
 /**
  * [PassageRow]'s card, which the clipboard's search lists too (#1104): a tap
- * hands [onInsert] the passage, a hold hands [onOpen] its note's id.
+ * hands [onInsert] the passage, a hold hands it to [onOpen].
  */
 @Composable
 internal fun NotePassageCard(
     hit: NotePassageHit,
     index: Int,
     onInsert: (NotePassageHit) -> Unit,
-    onOpen: (Long) -> Unit,
+    onOpen: (NotePassageHit) -> Unit,
     modifier: Modifier = Modifier,
     focused: Boolean = false,
 ) {
@@ -844,7 +846,7 @@ internal fun NotePassageCard(
                 onClick = { onInsert(hit) },
                 onLongClick = {
                     feedback()
-                    onOpen(hit.noteId)
+                    onOpen(hit)
                 },
             )
             .padding(horizontal = 11.dp, vertical = 8.dp)

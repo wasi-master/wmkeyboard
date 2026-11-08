@@ -147,6 +147,8 @@ object LayoutJsonDocs {
         "Key.multitap" to "What tapping the key again types in place of the last tap, in order. After the last entry the cycle goes back to the key itself.",
         "Key.labelScale" to "This key's label size, as a multiple of a letter's. Leave it out and the keyboard decides.",
         "Key.hintScale" to "This key's corner hint size, as a multiple of every hint's size, from 0.5 to 3. Leave it out to follow the setting.",
+        "Key.flickScale" to "The size of the flick arms drawn on this key, as a multiple of their usual size, from 0.5 to 3. Leave it out to follow the setting.",
+        "Key.flickInsetDp" to "How much further in from the key's edges its flick arms sit, in dp. Negative moves them out.",
         "Key.hintShiftXDp" to "How far this key's corner hint moves in from the corner, in dp. Negative moves it out.",
         "Key.hintShiftYDp" to "How far this key's corner hint moves down, in dp. Negative moves it up.",
         "Key.letters" to "Every letter this key stands for, such as \"abc\" on a T9 key. The prediction works out which one you meant.",

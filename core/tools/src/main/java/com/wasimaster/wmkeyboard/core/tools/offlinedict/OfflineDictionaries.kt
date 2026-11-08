@@ -148,8 +148,11 @@ object OfflineDictionaries {
         val file = File(folder, packId + EXTENSION)
         if (!file.isFile) return emptyList()
         val dict = runCatching { WmDictFile.open(file) }.getOrNull() ?: return emptyList()
-        val english = OfflineDictionaryCatalog.byId(packId)?.langId == "en"
-        return dict.use { lookup(it, word, englishRules = english) }
+        val langId = OfflineDictionaryCatalog.byId(packId)?.langId.orEmpty()
+        val english = langId == "en"
+        // Whose word it is goes on the entry (#1085): the card names it, and
+        // the speaker reads it in that language rather than in English.
+        return dict.use { lookup(it, word, englishRules = english) }.map { it.copy(language = langId) }
     }
 
     /**

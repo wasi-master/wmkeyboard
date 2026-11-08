@@ -87,6 +87,8 @@ internal fun OfflineImportRow(
     links: List<OfflineLink>,
     wordlistSize: DictionaryCatalog.DictionarySize = DictionaryCatalog.DictionarySize.LARGE,
     title: String = stringResource(R.string.offline_import_row_title),
+    /** Said under the links' explanation, for files with a catch of their own in fetching them. */
+    linksNote: String? = null,
     onImported: () -> Unit = {},
 ) {
     var showLinks by remember { mutableStateOf(false) }
@@ -108,7 +110,7 @@ internal fun OfflineImportRow(
         },
         modifier = Modifier.padding(horizontal = 4.dp),
     )
-    if (showLinks) OfflineLinksDialog(links) { showLinks = false }
+    if (showLinks) OfflineLinksDialog(links, note = linksNote) { showLinks = false }
 }
 
 /**
@@ -313,7 +315,12 @@ private fun OfflineImportReport(outcomes: List<OfflineImport.Outcome>, onDismiss
  * for the files once they are on the phone.
  */
 @Composable
-internal fun OfflineLinksDialog(links: List<OfflineLink>, onImport: (() -> Unit)? = null, onDismiss: () -> Unit) {
+internal fun OfflineLinksDialog(
+    links: List<OfflineLink>,
+    onImport: (() -> Unit)? = null,
+    note: String? = null,
+    onDismiss: () -> Unit,
+) {
     val context = LocalContext.current
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -325,6 +332,14 @@ internal fun OfflineLinksDialog(links: List<OfflineLink>, onImport: (() -> Unit)
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
+                if (note != null) {
+                    Text(
+                        note,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                }
                 for (link in links) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {

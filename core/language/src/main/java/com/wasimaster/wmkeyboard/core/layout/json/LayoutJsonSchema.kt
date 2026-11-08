@@ -347,6 +347,11 @@ object LayoutJsonHints {
                 examples = listOf(JsonValueExample("0.8"), JsonValueExample("1"), JsonValueExample("1.2")),
                 range = KeyLabelScaleRange.toDoubles(),
             ),
+            "Key.flickScale" to PropertyHint(
+                examples = listOf(JsonValueExample("0.8"), JsonValueExample("1.5")),
+                range = KeyHintScaleRange.toDoubles(),
+            ),
+            "Key.flickInsetDp" to PropertyHint(examples = listOf(JsonValueExample("2"), JsonValueExample("-1"))),
             "Key.hintShiftXDp" to PropertyHint(examples = listOf(JsonValueExample("2"), JsonValueExample("-2"))),
             "Key.hintShiftYDp" to PropertyHint(examples = listOf(JsonValueExample("2"), JsonValueExample("-2"))),
             "Key.hintScale" to PropertyHint(
