@@ -902,6 +902,8 @@ object AssetLayouts {
     const val EN_CLEARFLOW_ID = "asset_en_clearflow"
     const val EN_COLEMAK_DH_ANSI_ID = "asset_en_colemak_dh_ansi"
     const val EN_KASROZ_ID = "asset_en_kasroz"
+    /** QWERTY's columns laid end to end on one row, read like Minuum's strip. */
+    const val EN_ONE_ROW_ID = "asset_en_one_row"
     const val EN_SHAVIAN_ID = "asset_en_shavian"
     const val EN_SHAVIAN_TWO_LAYER_ID = "asset_en_shavian_two_layer"
     const val ENF_CYRILLIC_ID = "asset_enf_cyrillic"

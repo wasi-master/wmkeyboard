@@ -74,9 +74,17 @@ private const val WidenBy = 2f
 /**
  * Most keys the tablet rebuild can add to a single row: a mirrored shift, and
  * backspace when the number row displaces it from its own. A row without that
- * much headroom under [MaxKeysPerRow] is not expanded at all.
+ * much headroom under [MaxKeysAfterExpansion] is not expanded at all.
  */
 private const val MaxKeysAddedByExpansion = 2
+
+/**
+ * Widest row the rebuild leaves a grid with. Held at 24, under [MaxKeysPerRow]:
+ * that cap grew to 26 for One-row QWERTY, which declines anyway (two rows), and
+ * the converted Keyman grids it would otherwise start widening already run
+ * narrower keys than a tablet wants.
+ */
+private const val MaxKeysAfterExpansion = 24
 
 private fun List<Key>.gridWidth(): Float = sumOf { it.width.toDouble() }.toFloat()
 
@@ -171,9 +179,8 @@ private fun locate(layout: KeyboardLayout, form: DeviceForm): Plan? {
     //
     // Our own grids top out around a dozen keys and are nowhere near this.
     // Converted Keyman grids run much wider: `laz` has a 23-key row that reaches
-    // 25 with the number row shown, past MaxKeysPerRow, which repair would then
-    // trim — silently dropping whichever key fell off the end.
-    if (rows.any { it.size + MaxKeysAddedByExpansion > MaxKeysPerRow }) return null
+    // 25 with the number row shown, past the 24 this stops at.
+    if (rows.any { it.size + MaxKeysAddedByExpansion > MaxKeysAfterExpansion }) return null
 
     for (row in rows) {
         for (key in row) {

@@ -1,6 +1,6 @@
 ---
 title: "T9 & Compact QWERTY"
-description: "Layouts that put more than one letter on a key and let the prediction engine work out which one you meant: T9 in 446 languages and Compact QWERTY, with glide typing on both."
+description: "Layouts that let the prediction engine work out which letter you meant: T9 in 446 languages, Compact QWERTY, and One-row QWERTY with the whole alphabet on a single row."
 sidebar:
   order: 7
 ---
@@ -14,7 +14,9 @@ Most keyboards give every letter its own key. Twenty-six keys across a phone scr
 
 Two of the shipped layouts don't do that. **T9** puts the alphabet on eight keys, the way phone keypads did. **Compact QWERTY** keeps QWERTY's exact letter order but pairs the keys up, five to a row instead of ten. Both give you keys two to four times the usual size, and both work out what you meant afterwards rather than asking you to be precise.
 
-Neither one starts enabled. Turn them on under <SettingsPath path="Languages & layouts / English" />, where they sit with English's other layouts alongside Dvorak and Colemak. T9 also comes in 315 more languages, each listed under its own language: see [T9 in other languages](#t9-in-other-languages).
+A third, **One-row QWERTY**, goes the other way: every letter keeps a key of its own, but all 26 sit on a single row, so the keyboard takes about half its usual height. It's covered in [its own section](#one-row-qwerty).
+
+None of them starts enabled. Turn them on under <SettingsPath path="Languages & layouts / English" />, where they sit with English's other layouts alongside Dvorak and Colemak. T9 also comes in 315 more languages, each listed under its own language: see [T9 in other languages](#t9-in-other-languages).
 
 <PhoneFrame caption="The T9 keypad: eight letter keys, each carrying three or four letters.">
   <Shot id="languages/ambiguous-t9-field" alt="The T9 keypad: eight letter keys, each carrying three or four letters." />
@@ -119,6 +121,23 @@ Same idea, gentler. The rows are QWERTY's own, folded two letters to a key:
 Every letter is still where your thumb expects it, so there's nothing to relearn. Two letters per key is much less ambiguity than three or four, which means the decode is closer to certain and the suggestion strip has less work to do. Shift and delete flank the bottom row at half width, which on this grid is the width of an ordinary QWERTY key.
 
 The digits keep their QWERTY positions in the long-press alternates, so `1` and `2` are both behind the `qw` key and they still read left to right across the top row.
+
+## One-row QWERTY
+
+The whole alphabet on one row, in the order you get by reading QWERTY's columns top to bottom: `q a z`, `w s x`, `e d c`, and so on to `p`. Each letter stays next to the ones above and below it on a normal keyboard, so your thumb goes to roughly the right spot without relearning anything. Minuum, a keyboard from 2013 that's no longer sold, worked the same way.
+
+| Row | Keys |
+|---|---|
+| Letters | `q a z w s x e d c r f v t g b y h n u j m i k o l p` |
+| Controls | <KeyCap>⇧</KeyCap> <KeyCap>?123</KeyCap> <KeyCap>,</KeyCap> <KeyCap>🌐</KeyCap> space <KeyCap>.</KeyCap> <KeyCap>⌫</KeyCap> <KeyCap>⏎</KeyCap> |
+
+Each letter key is under half the usual width, too narrow to hit exactly every time, and it doesn't need to be. Where your finger lands is scored against every key nearby, and the dictionary decides between them, so a tap halfway between `e` and `d` comes out as whichever one makes the word. This runs on the same typo model as any other layout. Unlike T9, nothing about a key is ambiguous: each tap types a real letter, and the word is corrected at the space the way it is on QWERTY.
+
+- **Raise the tolerance if words come out wrong.** **Mistype tolerance**, under <SettingsPath path="Typing / Automatic corrections" />, sets how far a tap can land from a key and still count as that key.
+- **Exact letters are on the long press,** which holds the same digit and accents as the QWERTY key: `1` on `q`, `é` on `e`, `ñ` on `n`.
+- **Glide works,** though a stroke along one row has less shape to match than one across three.
+
+It's English only for now, under <SettingsPath path="Languages & layouts / English" />. If you build your own, a row can have up to 26 keys.
 
 ## Glide typing
 
