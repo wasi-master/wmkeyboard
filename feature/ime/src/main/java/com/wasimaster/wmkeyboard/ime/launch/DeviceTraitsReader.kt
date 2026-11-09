@@ -47,8 +47,8 @@ object DeviceTraitsReader {
     /** The skin, resolved once per process: it cannot change without a reboot. */
     val family: RomFamily by lazy {
         RomFamily.resolve(
-            brand = Build.BRAND,
-            manufacturer = Build.MANUFACTURER,
+            brand = Build.BRAND.orEmpty(),
+            manufacturer = Build.MANUFACTURER.orEmpty(),
             prop = ::systemProperty,
             hasClass = { runCatching { Class.forName(it) }.isSuccess },
             // ARC++ builds name their device "<board>_cheets".
