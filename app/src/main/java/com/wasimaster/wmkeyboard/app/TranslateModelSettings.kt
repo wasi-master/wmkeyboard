@@ -40,6 +40,7 @@ import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
 import com.wasimaster.wmkeyboard.core.translate.BergamotCatalog
 import com.wasimaster.wmkeyboard.core.translate.BergamotLanguages
+import com.wasimaster.wmkeyboard.core.translate.BergamotSources
 import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
 import com.wasimaster.wmkeyboard.core.translate.NllbTranslator
 import com.wasimaster.wmkeyboard.core.translate.OfflineModelState
@@ -201,6 +202,8 @@ internal fun BergamotModelManager(settings: LiveSettings) {
     val downloadDecision = rememberDownloadDecision(settings)
     var confirmMetered by remember { mutableStateOf<String?>(null) }
     var blockedMetered by remember { mutableStateOf(false) }
+    // The direction whose own links are open, on the offline build.
+    var linksFor by remember { mutableStateOf<String?>(null) }
     val offerPermission = rememberNotificationPermissionOffer()
     val engineName = stringResource(R.string.tooldetail_translate_bergamot_engine)
     val label: (String) -> String = { key -> OfflineTranslation.label(key, TranslateClient::languageName, engineName) }
@@ -240,14 +243,34 @@ internal fun BergamotModelManager(settings: LiveSettings) {
             onDownload = { ask(key) },
             onCancel = { OfflineTranslation.cancelDownload(context.applicationContext, key) },
             onDelete = { scope.launch { BergamotTranslator.delete(context.applicationContext, key) } },
+            onGetFiles = if (offlineBuild && key != BergamotTranslator.ENGINE_KEY) {
+                { linksFor = key }
+            } else {
+                null
+            },
         )
     }
-    // The files of the directions not here yet, each with where it is published (#1035).
+    // The files of the directions not here yet, each with where it is
+    // published (#1035): the data repository's copy, which any browser gets,
+    // where Mozilla's own server turns Chrome away (#1085).
     fun links(directions: List<BergamotCatalog.Direction>): List<OfflineLink> =
         directions.filter { models[BergamotTranslator.keyOf(it)] !is OfflineModelState.Downloaded }.flatMap { direction ->
-            direction.files.map { OfflineLink("${label(BergamotTranslator.keyOf(direction))} · ${it.name}", it.url) }
+            direction.files.map {
+                OfflineLink("${label(BergamotTranslator.keyOf(direction))} · ${it.name}", BergamotSources.browserUrl(it))
+            }
         }
     val onImported: () -> Unit = { scope.launch { BergamotTranslator.refresh(context.applicationContext) } }
+    val runner = rememberOfflineImport(onImported = onImported)
+    linksFor?.let(BergamotTranslator::directionOf)?.let { direction ->
+        OfflineLinksDialog(
+            links(listOf(direction)),
+            onImport = {
+                linksFor = null
+                runner.pick()
+            },
+            note = stringResource(R.string.offline_import_bergamot_browser_note),
+        ) { linksFor = null }
+    }
     // The offline build's way to the library every direction needs.
     if (offlineBuild) {
         val library by FeatureModules.bergamot.state.collectAsState()
@@ -481,6 +504,8 @@ private fun TranslateModelRow(
     onDelete: () -> Unit,
     sizeBytes: Long = OfflineTranslateLanguages.APPROX_MODEL_BYTES,
     builtIn: Boolean = code == OfflineTranslateLanguages.PIVOT,
+    /** On the offline build, where Download cannot work: shows where this model's files are published. */
+    onGetFiles: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val reduceMotion = LocalReduceMotion.current
@@ -548,7 +573,7 @@ private fun TranslateModelRow(
                         fun live(action: () -> Unit): () -> Unit = {
                             if (latest.value?.let { it::class } == kind) action()
                         }
-                        TranslateModelAction(shown, name, live(onDownload), live(onCancel), live(onDelete))
+                        TranslateModelAction(shown, name, live(onDownload), live(onCancel), live(onDelete), onGetFiles)
                     }
                 }
             }
@@ -564,6 +589,7 @@ private fun TranslateModelAction(
     onDownload: () -> Unit,
     onCancel: () -> Unit,
     onDelete: () -> Unit,
+    onGetFiles: (() -> Unit)? = null,
 ) {
     when (state) {
         null -> CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
@@ -596,12 +622,17 @@ private fun TranslateModelAction(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        is OfflineModelState.Missing -> if (!offlineBuild) TextButton(onClick = onDownload) {
-            Text(
-                stringResource(
-                    if (state.failed) CommonR.string.common_retry else CommonR.string.common_download,
-                ),
-            )
+        is OfflineModelState.Missing -> if (!offlineBuild) {
+            TextButton(onClick = onDownload) {
+                Text(
+                    stringResource(
+                        if (state.failed) CommonR.string.common_retry else CommonR.string.common_download,
+                    ),
+                )
+            }
+        } else if (onGetFiles != null) {
+            // The offline build's way to one model's files (#1085): its own links, not the whole list's.
+            TextButton(onClick = onGetFiles) { Text(stringResource(R.string.offline_import_get_action)) }
         }
     }
 }

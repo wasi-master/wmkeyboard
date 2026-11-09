@@ -146,12 +146,10 @@ The models of the other offline engines, [Asr4All](/tools/asr4all/), Parakeet, M
 The offline build translates with Firefox Translations, on a 64-bit phone with Android 9 or later. To set it up:
 
 1. Under <SettingsPath path="Tools / Translate / Providers / On device (Firefox Translations)" />, press **Get the files** on the banner, get `libwmbergamot.so` and import it.
-2. Press **Get the files** on the import row below the directions, and download every file of each direction you want. French into German needs French → English and English → German.
+2. Press **Get the files** on a direction's row for that direction's files, or on the import row below the directions for every direction not on the phone, and download every file of each direction you want. French into German needs French → English and English → German.
 3. Press **Import** and pick them all. A direction is ready once it has all its files. Translate's language menus then list it.
 
-Mozilla's addresses end in long codes rather than names, so the app knows each file by its size and SHA-256, whatever your browser calls it. Files imported before the library wait for it.
-
-Mozilla's server turns away Chrome and the browsers built on it: the links answer with an error there, which reads as if the files were gone. Open them in Firefox, or fetch them with `curl -O` or `wget` on a computer. The sheet says so above the links.
+The links go to WM Keyboard's copy of Mozilla's files, the `translations` release of the [data repository](https://github.com/wasi-master/wmkeyboard-data/releases/tag/translations) on GitHub, which opens in any browser. Mozilla's own server answers Chrome and the browsers built on it with an error, so its addresses work only in Firefox, curl or wget. The copy holds the same files, packed as Mozilla publishes them and named by their SHA-256, under the MPL-2.0 with Mozilla's licence beside them. The app knows each file by its size and SHA-256 rather than its name, so a file from either place, renamed or not, packed or unpacked, imports the same. Files imported before the library wait for it.
 
 ## GIF packs
 

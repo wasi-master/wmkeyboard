@@ -87,7 +87,7 @@ internal fun OfflineImportRow(
     links: List<OfflineLink>,
     wordlistSize: DictionaryCatalog.DictionarySize = DictionaryCatalog.DictionarySize.LARGE,
     title: String = stringResource(R.string.offline_import_row_title),
-    /** Said under the links' explanation, for files with a catch of their own in fetching them. */
+    /** Said under the links' explanation, for files with something of their own to know about where they come from. */
     linksNote: String? = null,
     onImported: () -> Unit = {},
 ) {
@@ -336,7 +336,7 @@ internal fun OfflineLinksDialog(
                     Text(
                         note,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 8.dp),
                     )
                 }

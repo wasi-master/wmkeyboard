@@ -32,7 +32,8 @@ import kotlin.coroutines.coroutineContext
  * Mozilla's Bergamot translator behind the translate tool: the free on-device
  * engine, which needs no Google services. It runs the models Firefox
  * Translations uses, downloaded one language direction at a time from
- * Mozilla's own servers and checked against [BergamotCatalog]'s pins.
+ * Mozilla's own servers, or the data repository's copy when those fail
+ * ([BergamotSources]), and checked against [BergamotCatalog]'s pins.
  *
  * The same shape as [OnDeviceTranslator], and one object per process for the
  * same reason: the keyboard and the settings app share it, so a download the
@@ -238,11 +239,16 @@ object BergamotTranslator {
             }
             target.delete()
             val packed = File(dir, "${file.name}.zst")
-            transfer(file.url, file.size, packed) { bytes -> progress(key, done + bytes, total) }
-            if (FileDownloader.sha256(packed) != file.sha256) {
-                packed.delete()
-                throw IOException("${file.name} did not match its pinned checksum")
+            // Mozilla first, then the data repository's copy (#1085). Pieces
+            // one host wrote are kept for the next: the bytes are the same file.
+            BergamotSources.firstOf(BergamotSources.downloadUrls(file)) { url ->
+                transfer(url, file.size, packed) { bytes -> progress(key, done + bytes, total) }
+                if (FileDownloader.sha256(packed) != file.sha256) {
+                    FileDownloader.discard(packed)
+                    throw IOException("${file.name} from $url did not match its pinned checksum")
+                }
             }
+            FileDownloader.rangesOf(packed).delete()
             coroutineContext.ensureActive()
             unpack(dir, file, packed)
             done += file.size

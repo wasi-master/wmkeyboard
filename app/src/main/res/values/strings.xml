@@ -119,7 +119,7 @@
     <string name="shortcut_tools_long">Keyboard tools</string>
     <!-- Importing downloads fetched on another device (offline import) -->
     <string name="offline_import_row_title">Import from a file</string>
-    <string name="offline_import_bergamot_browser_note">Mozilla\'s server turns away Chrome and the browsers built on it, so these links fail there. Open them in Firefox, or fetch them with curl or wget on a computer.</string>
+    <string name="offline_import_bergamot_browser_note">These links go to WM Keyboard\'s copy of Mozilla\'s files on GitHub, which opens in any browser.</string>
     <string name="offline_import_bergamot_subtitle">A direction\'s three or four files fetched on another device, all at once</string>
     <!-- %1$s names language directions, such as "French → English". -->
     <string name="offline_import_bergamot_waiting">Kept for %1$s. It still needs its other files, or the Firefox Translations library</string>
