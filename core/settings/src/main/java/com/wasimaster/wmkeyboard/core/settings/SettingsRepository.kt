@@ -6944,6 +6944,17 @@ data class TextEditingSettings(
      */
     val doubleSpaceWindowMs: Int = 400,
     /**
+     * Send the word being typed without the field's composing underline.
+     *
+     * A field underlines the composing region with its theme's default spans
+     * only when the keyboard hands it plain text; handed a Spannable, even an
+     * empty one, it adds none. Off by default: the underline is how the user
+     * sees which part of the text is still open (an Avro word, an unfinished
+     * suggestion). Editors that draw their own composition marker (Chrome,
+     * WebView, some code editors) keep it whatever this says.
+     */
+    val hideComposingUnderline: Boolean = false,
+    /**
      * How far the finger travels along the spacebar per character, when a
      * spacebar swipe is set to cursor control.
      *
@@ -12495,6 +12506,7 @@ class SettingsRepository(private val context: Context) {
         private val NOTES_TRASH_DAYS = intPreferencesKey("notes_trash_days")
         private val NOTES_VERSION = intPreferencesKey("notes_version")
         private val DOUBLE_SPACE_WINDOW_MS = intPreferencesKey("double_space_window_ms")
+        private val HIDE_COMPOSING_UNDERLINE = booleanPreferencesKey("hide_composing_underline")
         private val SPACE_CURSOR_STEP_DP = intPreferencesKey("space_cursor_step_dp")
         private val SPACE_SWIPE_DISTANCE_DP = intPreferencesKey("space_swipe_distance_dp")
         private val SPACE_HOLD_DELAY_MS = intPreferencesKey("space_hold_delay_ms")
@@ -15122,6 +15134,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.textEditing.cursorWordStopsAtDigits,
             doubleSpaceWindowMs = p[DOUBLE_SPACE_WINDOW_MS]
                 ?: defaults.textEditing.doubleSpaceWindowMs,
+            hideComposingUnderline = p[HIDE_COMPOSING_UNDERLINE]
+                ?: defaults.textEditing.hideComposingUnderline,
             spaceHoldDelayMs = (p[SPACE_HOLD_DELAY_MS] ?: defaults.textEditing.spaceHoldDelayMs).coerceIn(0, 1500),
             spaceCursorStepDp = p[SPACE_CURSOR_STEP_DP]
                 ?: defaults.textEditing.spaceCursorStepDp,
@@ -16773,6 +16787,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDoubleSpaceWindowMs(value: Int) =
         editPrefs { it[DOUBLE_SPACE_WINDOW_MS] = value.coerceIn(200, 800) }
+
+    suspend fun setHideComposingUnderline(value: Boolean) =
+        editPrefs { it[HIDE_COMPOSING_UNDERLINE] = value }
 
     suspend fun setSpaceHoldDelayMs(value: Int) =
         editPrefs { it[SPACE_HOLD_DELAY_MS] = value.coerceIn(0, 1500) }

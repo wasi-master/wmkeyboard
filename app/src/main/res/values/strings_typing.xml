@@ -32,6 +32,7 @@
     <string name="typing_group_capitals_title">Capitals</string>
     <string name="typing_group_punctuation_title">Punctuation and spacing</string>
     <string name="typing_group_brackets_title">Brackets and lists</string>
+    <string name="typing_group_composing_title">Word being typed</string>
 
     <!-- The Gestures hub's three pages (SETTINGS_REDESIGN.md §4). The glide
          page keeps typing_group_glide_title as its name. -->
@@ -223,6 +224,9 @@
     <string name="typing_smart_punctuation_comma_subtitle">The key shows , when the sentence looks unfinished</string>
     <string name="typing_smart_punctuation_comma_info">With this on, the smart punctuation key may also show a comma when the model reads the sentence so far as a clause you are going on from, as after \"if you want\". Off, the key only ever shows one of the three sentence-ending marks, and a comma stays where the layout put it.</string>
     <string name="typing_continue_lists_info">This setting is off by default. With it on, pressing Enter on a line that starts with a list marker starts the next line with the next one: - * + and • carry on as they are, 1. and 1) count up, and a task box such as - [x] or ☐ carries on as an empty box. The indentation in front of the marker is kept. Pressing Enter on an item with nothing after its marker ends the list: the marker is taken off and no new line is typed. A number has to be three digits or fewer, so a line that opens with a year is left alone. Only fields where Enter makes a new line take part; a chat box that sends on Enter sends as usual, and Shift+Enter there makes the list line. Passwords, email fields, web addresses and number pads are left alone.</string>
+    <string name="typing_hide_composing_underline_title">Hide the underline under the word being typed</string>
+    <string name="typing_hide_composing_underline_subtitle">The word you are typing shows as plain text, the way Gboard shows it</string>
+    <string name="typing_hide_composing_underline_info">This setting is off by default. While you type a word, the app you are typing in underlines the part the keyboard can still change: an Avro word before it becomes Bengali, or a word a suggestion may still replace. With this on, the keyboard asks the app to show that word without the underline. Typing, suggestions and corrections work the same; you just no longer see where the open word starts. Chrome, web pages inside other apps and some code editors draw their own underline whatever this says. A Japanese conversion keeps its underline, because it marks the segments the arrow keys move between.</string>
     <string name="typing_auto_close_quotes_title">Close quotes for me</string>
     <string name="typing_auto_close_quotes_subtitle">Press \" or \' and the keyboard types the closing one too, unless it comes right after a letter or number</string>
     <string name="typing_auto_close_brackets_title">Close brackets for me</string>

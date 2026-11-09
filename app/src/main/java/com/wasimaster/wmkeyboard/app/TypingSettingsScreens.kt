@@ -901,6 +901,17 @@ internal fun TypingWritingSettings(
             ) { scope.launch { repository.setContinueLists(it) } }
         }
     }
+    SettingsGroup(stringResource(R.string.typing_group_composing_title), level = SettingLevel.STANDARD) {
+        item {
+            ToggleSetting(
+                R.string.typing_hide_composing_underline_title,
+                stringResource(R.string.typing_hide_composing_underline_subtitle),
+                settings.watch { it.textEditing.hideComposingUnderline },
+                info = stringResource(R.string.typing_hide_composing_underline_info),
+                default = SettingsDefaults.textEditing.hideComposingUnderline,
+            ) { scope.launch { repository.setHideComposingUnderline(it) } }
+        }
+    }
 }
 
 @Composable

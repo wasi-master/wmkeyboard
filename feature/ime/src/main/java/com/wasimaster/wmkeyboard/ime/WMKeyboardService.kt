@@ -2914,7 +2914,10 @@ open class WMKeyboardService : InputMethodService() {
         if (tracedFor !== raw) {
             tracedFor = raw
             val guarded = FieldStallGuard(raw).also { stallGuard = it }
-            tracedConnection = if (TracingInputConnection.enabled()) TracingInputConnection(guarded) else guarded
+            val plain = PlainComposingConnection(guarded) {
+                _uiState.value.settings.textEditing.hideComposingUnderline
+            }
+            tracedConnection = if (TracingInputConnection.enabled()) TracingInputConnection(plain) else plain
         }
         return tracedConnection ?: raw
     }

@@ -1117,6 +1117,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_auto_close_brackets_title) { Icons.Outlined.DataArray }
         put(R.string.typing_auto_close_quotes_title) { Icons.Outlined.DataArray }
         put(R.string.typing_continue_lists_title) { Icons.Outlined.FormatListNumbered }
+        put(R.string.typing_hide_composing_underline_title) { Icons.Outlined.FormatUnderlined }
         put(R.string.typing_shift_recase_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.typing_suggestions_title) { Icons.Outlined.Lightbulb }
         put(R.string.typing_suggestions_all_fields_title) { Icons.Outlined.Lightbulb }
