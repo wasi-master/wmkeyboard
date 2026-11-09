@@ -1952,8 +1952,10 @@ class SuggestionEngine(
      * In nats on the decoder's own scores rather than as a reorder after the
      * context rerank, so a preference the user has taught also widens the
      * gap the ambiguity picker measures: a stroke they have corrected three
-     * times stops asking. A rank adjustment is ten times anything the
-     * outcomes can say, so where the user put a word by hand always wins.
+     * times stops asking. Where the user put a word by hand always wins: a
+     * word with a rank adjustment takes that and no outcome nudge, since a
+     * taught pair lifts by [GlideOutcomes.MAX_TAUGHT_LIFT_NATS], more than a
+     * couple of rank steps.
      */
     private fun shiftGlideScores(decoded: List<GlideBeam.Candidate>): List<GlideBeam.Candidate> {
         if (decoded.isEmpty()) return decoded
@@ -1961,7 +1963,8 @@ class SuggestionEngine(
         if (rankOffsets.isEmpty() && nudges == null) return decoded
         var moved = false
         val shifted = decoded.mapIndexed { i, c ->
-            val shift = rankOffset(c.word) + (nudges?.get(i) ?: 0.0)
+            val hand = rankOffset(c.word)
+            val shift = if (hand != 0.0) hand else nudges?.get(i) ?: 0.0
             if (shift == 0.0) {
                 c
             } else {
