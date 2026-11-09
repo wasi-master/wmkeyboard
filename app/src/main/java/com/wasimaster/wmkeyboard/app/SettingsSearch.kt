@@ -429,9 +429,6 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_shortcuts_converting_title, R.string.typing_shortcuts_converting_subtitle),
         row(R.string.typing_chips_at_end_title, R.string.typing_chips_at_end_subtitle),
         row(R.string.typing_phrase_completion_title, R.string.typing_phrase_completion_subtitle),
-        row(R.string.typing_smart_punctuation_title, R.string.typing_smart_punctuation_subtitle),
-        row(R.string.typing_smart_punctuation_comma_title, R.string.typing_smart_punctuation_comma_subtitle),
-        row(R.string.typing_smart_punctuation_size_title, R.string.typing_smart_punctuation_size_subtitle),
         row(R.string.typing_autocorrect_splits_title, R.string.typing_autocorrect_splits_subtitle),
         row(
             R.string.typing_language_detection_by_app_title,
@@ -470,6 +467,9 @@ private fun SearchStrings.typingWritingRows(): List<SettingsSearchEntry> {
             R.string.typing_language_punctuation_spacing_title,
             R.string.typing_language_punctuation_spacing_subtitle,
         ),
+        row(R.string.typing_smart_punctuation_title, R.string.typing_smart_punctuation_subtitle),
+        row(R.string.typing_smart_punctuation_size_title, R.string.typing_smart_punctuation_size_subtitle),
+        row(R.string.typing_smart_punctuation_comma_title, R.string.typing_smart_punctuation_comma_subtitle),
         row(R.string.typing_space_after_suggestion_title, R.string.typing_space_after_suggestion_subtitle),
         row(R.string.typing_wrap_selection_title, R.string.typing_wrap_selection_subtitle),
         row(R.string.typing_auto_close_quotes_title, R.string.typing_auto_close_quotes_subtitle),
@@ -1054,7 +1054,6 @@ private fun SearchStrings.appearanceRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_key_hint_offset_x_title, R.string.appearance_key_hint_offset_x_subtitle),
         row(R.string.appearance_key_label_offset_x_title, R.string.appearance_key_label_offset_x_subtitle),
         row(R.string.appearance_key_label_offset_y_title, R.string.appearance_key_label_offset_y_subtitle),
-        row(R.string.home_reset_pinned_tools_title, R.string.home_reset_pinned_tools_subtitle),
     )
 }
 
@@ -1089,6 +1088,7 @@ private fun SearchStrings.appearanceToolbarRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_suggestion_spacing_title, R.string.appearance_suggestion_spacing_subtitle),
         row(R.string.appearance_suggestion_primary_color_title, R.string.appearance_suggestion_primary_color_subtitle),
         row(R.string.appearance_suggestion_new_word_color_title, R.string.appearance_suggestion_new_word_color_subtitle),
+        row(R.string.home_reset_pinned_tools_title, R.string.home_reset_pinned_tools_subtitle),
         row(R.string.appearance_tool_circle_title, R.string.appearance_tool_circle_subtitle),
         row(R.string.appearance_tool_shape_title, R.string.appearance_tool_shape_subtitle),
         row(R.string.appearance_tool_width_title, R.string.appearance_tool_width_subtitle),
