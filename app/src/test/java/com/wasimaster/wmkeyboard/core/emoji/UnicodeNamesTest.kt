@@ -36,7 +36,10 @@ class UnicodeNamesTest {
         assertTrue("\uD834\uDD1E" in UnicodeNames.search("musical symbol g clef").map { it.emoji })
         assertTrue(UnicodeNames.isMadeUpName(0x4E00, "CJK UNIFIED IDEOGRAPH-4E00"))
         assertTrue(!UnicodeNames.isMadeUpName(0x2014, "EM DASH"))
-        assertTrue(UnicodeNames.search("cjk unified ideograph").isEmpty())
+        // The ideographs themselves are left out; what is left is the
+        // enclosed forms Unicode names after one (SQUARED CJK UNIFIED
+        // IDEOGRAPH-7121 is U+1F210), which are characters of their own.
+        assertTrue(UnicodeNames.search("cjk unified ideograph", limit = 200).none { Character.isIdeographic(it.emoji.codePointAt(0)) })
     }
 
     @Test
