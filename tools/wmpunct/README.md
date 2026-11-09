@@ -85,6 +85,8 @@ once the corpora are in; fetching them is the longer half.
 | e64 d192 L4 + `lang_token=1` (v3 Standard) | 49,152 + 59 | 60k | .874 (en .937, hu .82, es .88) | 5.3 MB |
 | e96 d256 L6 + `lang_token=1` (v3 Large) | 49,152 + 59 | 100k | .874 | 9.5 MB |
 
+Every language, every variant and the per-mark precision and recall where they were measured: [RESULTS.md](RESULTS.md).
+
 Size barely matters and the language token is worth a quarter of a point
 (a point or two in Hungarian and Spanish); the misses are exclamations (5.8% of ends, recall
 .02) and questions asked in statement order (`?` recall .86 in English,
