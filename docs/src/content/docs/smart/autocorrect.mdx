@@ -254,6 +254,18 @@ A web address or a file name typed into a message closes back up. The space afte
 
 In a browser's address bar the punctuation rule stays out, because a full stop or a colon there is part of an address. Once what you type there has a space in it, it is a search and not an address, and the closing `)` and closing quotes get their space as in a message.
 
+## The smart punctuation key
+
+**Smart punctuation key** (<SettingsPath path="Typing / Capitals, punctuation and spacing" />, off) makes the key beside the spacebar show the mark your sentence is heading for. Type `how are you` and the key reads <KeyCap>?</KeyCap>; type `thanks so much` and it reads <KeyCap>!</KeyCap>; on a plain statement it stays <KeyCap>.</KeyCap>. Tap it and that mark goes in, with the same spacing and auto-capital rules as any other mark. The full stop is never more than a hold away: whatever the key shows, holding it opens its usual popup with <KeyCap>.</KeyCap> first, so a plain hold types the full stop the key would otherwise have typed.
+
+Turning the switch on downloads a small model once (a few megabytes, from the same place the word lists come from) and the key reads `.` until it has landed; the row under Settings says when it is ready. The model runs on the phone and reads only the sentence you have typed so far, back to the last full stop, question mark or exclamation mark, word being typed included, so the key is right at the moment the last word is finished. Nothing you type leaves the phone. It was trained on sentences in some sixty languages at once, Tatoeba and film subtitles mostly, and tells the languages apart from the words, so it needs no telling which keyboard you are on. A script with its own sentence mark keeps it: on a Bangla keyboard the key shows the danda for a statement and `?` for a question, and an Arabic-script keyboard gets its reversed `؟`.
+
+The guess is a guess. A question with a question word in it or a verb in front of its subject is read right nearly every time; one that only the tone of voice makes a question (`you are coming`) reads as a statement, which is also how the model's training sentences were punctuated. Exclamation marks are the hardest call, since the same words end either way, so the key only shows one when the sentence leans that way clearly. When the key is wrong, the mark you wanted is one hold away, the same hold that typed it before the switch was on.
+
+**Also offer the comma** (off, under the switch) lets the key show <KeyCap>,</KeyCap> as well, when the model reads the sentence so far as a clause you are going on from, as after `if you want` or `on the other hand`. With it off the key only ever shows one of the three sentence-ending marks, and a sentence the model thinks unfinished still gets the likeliest of those.
+
+The key is left as laid out in email and web-address fields, where its hold carries domain endings, in password fields, on the symbol pages, on a conversion keyboard (Chinese, Japanese), and on a key the layout editor tags Exactly as laid out. **Remember the punctuation key's pick** (see [Typing basics](/typing/basics/)) still works beside it, and the model's reading of the sentence wins over the remembered pick while both are on.
+
 ## Lists carry on
 
 **Continue lists** is off by default. Turn it on and Enter on a list line starts the next line with the next marker, in any app, not only the [Notes](/tools/notes/) editor. Type `1. milk`, press Enter, and the new line already reads `2. `. The markers it knows:
@@ -328,6 +340,8 @@ Android has a spell checker of its own, separate from the keyboard: it draws the
 | Close brackets for me | Off | always |
 | Close quotes for me | Off | always |
 | Continue lists | Off | always |
+| Smart punctuation key | Off | always |
+| Also offer the comma | Off | Smart punctuation key on |
 
 The table covers the rows this page is about. The same group also carries **Adapt to app tone** and **Space after a suggestion** (both described on [Suggestions & prediction](/smart/suggestions/)), **Automatic capital letters**, and the two selection rules, wrap-with-a-pair and shift-re-cases-the-selection.
 

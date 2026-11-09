@@ -638,6 +638,40 @@ class CurrentLayoutTest {
         assertEquals("。", period.longPress.first())
     }
 
+    /**
+     * The smart punctuation key: the model's mark takes the period key's face
+     * and the full stop leads its hold, on the letters page of an ordinary
+     * text field only.
+     */
+    @Test
+    fun `the smart punctuation mark takes the period key and the full stop leads its hold`() {
+        val s = state(settings = plain()).copy(smartPunctuation = "?")
+        val period = currentLayout(s).rows.last().first { it.role == KeyRole.Period }
+        assertEquals("?", period.output ?: period.label)
+        assertEquals(".", period.longPress.first())
+        assertTrue("the mark the key now types must not also sit in its popup", period.longPress.none { it == "?" })
+        // An email field's period key is spoken for by its domain endings.
+        val email = state(fieldKind = FieldKind.EMAIL, settings = plain()).copy(smartPunctuation = "?")
+        val emailPeriod = currentLayout(email).rows.last().first { it.role == KeyRole.Period }
+        assertEquals(".", emailPeriod.output ?: emailPeriod.label)
+        // And the symbols pages keep their full stop for numbers and files.
+        val symbols = state(settings = plain()).copy(smartPunctuation = "?", layoutMode = LayoutMode.SYMBOLS)
+        assertTrue(currentLayout(symbols).keys().none { it.role == KeyRole.Period && (it.output ?: it.label) == "?" })
+    }
+
+    /** On a danda script the model's full stop is the danda itself, so the key is left as swapped. */
+    @Test
+    fun `the smart punctuation mark on a bengali layout is the danda`() {
+        val s = state(BuiltInLayouts.AVRO, settings = plain())
+            .copy(script = ScriptRegistry[ScriptId.BENGALI], smartPunctuation = "\u0964")
+        val period = currentLayout(s).rows.last().first { it.role == KeyRole.Period }
+        assertEquals("\u0964", period.output ?: period.label)
+        assertEquals(".", period.longPress.first())
+        val asked = currentLayout(s.copy(smartPunctuation = "!")).rows.last().first { it.role == KeyRole.Period }
+        assertEquals("!", asked.output ?: asked.label)
+        assertEquals("\u0964", asked.longPress.first())
+    }
+
     /** And on the letters page the swap still happens, as it has since #489. */
     @Test
     fun `a japanese letters page types the ideographic full stop`() {

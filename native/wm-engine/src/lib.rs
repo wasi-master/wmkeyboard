@@ -46,6 +46,9 @@
 //! - [`fuzzy`]: the trie-guided correction and completion walk, with the
 //!   key [`proximity`] model and the [`accents`] fold it prices edits by.
 //!
+//! - [`punct`]: the smart punctuation key's classifier, a small encoder over
+//!   the sentence so far saying which mark it is heading for.
+//!
 //! - [`predict`]: the typed path of the suggestion engine on top of it:
 //!   strip ranking with context, next words, the autocorrect decision with
 //!   its offer, certainty and complexity, missing-space splits, and an
@@ -116,6 +119,7 @@ pub mod phonetic_index;
 pub mod phonetic_key_map;
 pub mod predict;
 pub mod proximity;
+pub mod punct;
 pub mod punjabi;
 pub mod rerank;
 pub mod segment;

@@ -261,6 +261,7 @@ import com.wasimaster.wmkeyboard.core.prediction.VoikkoRuntime
 import com.wasimaster.wmkeyboard.core.prediction.ContextAdapter
 import com.wasimaster.wmkeyboard.core.prediction.ContextField
 import com.wasimaster.wmkeyboard.core.prediction.ContextModel
+import com.wasimaster.wmkeyboard.core.prediction.PunctuationModel
 import com.wasimaster.wmkeyboard.core.prediction.MappedNgramPack
 import com.wasimaster.wmkeyboard.core.prediction.MappedTrie
 import com.wasimaster.wmkeyboard.core.prediction.SpellingMap
@@ -281,6 +282,7 @@ import com.wasimaster.wmkeyboard.core.prediction.DeclinedSpots
 import com.wasimaster.wmkeyboard.core.prediction.EditOps
 import com.wasimaster.wmkeyboard.core.prediction.GlideOutcomes
 import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelDownloadManager
+import com.wasimaster.wmkeyboard.core.dictionaries.PunctuationModelDownloadManager
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackDownloadManager
 import com.wasimaster.wmkeyboard.core.prediction.NgramPack
 import com.wasimaster.wmkeyboard.core.prediction.NgramReranker
@@ -1592,6 +1594,18 @@ open class WMKeyboardService : InputMethodService() {
     private var contextModel: ContextModel? = null
     private var contextModelKey: Pair<String, Long>? = null
 
+    /**
+     * The smart punctuation key's model, opened from its downloaded file
+     * while the setting is on; null otherwise. Keyed by the file's stamp so
+     * a fresh download reopens it and nothing else does. See
+     * [schedulePunctuationGuess].
+     */
+    private var punctuationModel: PunctuationModel? = null
+    private var punctuationModelStamp: Long? = null
+
+    /** The guess in flight for the sentence as it stands; a keystroke cancels it. */
+    private var punctuationJob: Job? = null
+
     /** The user's record with the context model, scaling its say in the rerank; see [ContextAdapter]. Memory-only until the personal stores attach. */
     private var contextAdapter: ContextAdapter = ContextAdapter(null)
 
@@ -1616,11 +1630,72 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Opens or closes the smart punctuation key's model as the setting and
+     * the downloaded file stand. Cheap when nothing changed; a change asks
+     * for a fresh guess, or takes the mark off the key.
+     */
+    private fun refreshPunctuationModel() {
+        val file = PunctuationModelDownloadManager.modelFile(filesDir)
+        val wanted = _uiState.value.settings.autoText.smartPunctuation && userUnlocked && file.isFile
+        val stamp = if (wanted) file.lastModified() else null
+        if (stamp == punctuationModelStamp && (wanted == (punctuationModel != null))) return
+        punctuationModel?.close()
+        punctuationModel = if (wanted) PunctuationModel.open(file) else null
+        punctuationModelStamp = stamp
+        if (punctuationModel == null) publishSmartPunctuation(null) else schedulePunctuationGuess()
+    }
+
+    /**
+     * Asks the smart punctuation model which mark the sentence so far is
+     * heading for, and puts it on the period key: the words of [recentWords]
+     * after the last sentence end with the word being typed last, so the key
+     * is right at the moment the sentence's last word is finished and the
+     * mark is wanted. Off the main thread on the strip's lane, after a short
+     * debounce so a burst of keystrokes costs one pass. No guess in a field
+     * the key is spoken for in (an address, a password) or on a conversion
+     * board, and none for an empty sentence, which leaves the key as laid out.
+     */
+    private fun schedulePunctuationGuess() {
+        val model = punctuationModel ?: return
+        punctuationJob?.cancel()
+        val state = _uiState.value
+        if (state.fieldKind != FieldKind.TEXT || state.secureField || state.composer.isConversion) {
+            publishSmartPunctuation(null)
+            return
+        }
+        val words = ArrayList<String>(recentWords.size + 1)
+        for (token in recentWords) {
+            if (token.any { it in SENTENCE_ENDERS }) words.clear()
+            val word = token.trim { !WordContext.isWordChar(it) }
+            if (word.isNotEmpty()) words.add(word)
+        }
+        val typed = composing.toString().trim { !WordContext.isWordChar(it) }
+        if (typed.isNotEmpty()) words.add(typed)
+        if (words.isEmpty()) {
+            publishSmartPunctuation(null)
+            return
+        }
+        val allowComma = state.settings.autoText.smartPunctuationComma
+        val script = state.script
+        punctuationJob = serviceScope.launch(suggestionDispatcher) {
+            delay(SMART_PUNCTUATION_DEBOUNCE_MS)
+            val mark = PunctuationModel.markFor(model.predict(words), allowComma) ?: return@launch
+            publishSmartPunctuation(SmartPunctuation.glyph(mark, script))
+        }
+    }
+
+    private fun publishSmartPunctuation(glyph: String?) {
+        if (_uiState.value.smartPunctuation != glyph) _uiState.update { it.copy(smartPunctuation = glyph) }
+    }
+
+    /**
      * Hands the engine the sentence so far for its context model: the words
      * of [recentWords] after the last sentence end, oldest first, under the
      * field being written in. Called wherever the run of words changes.
      */
     private fun pushSentenceContext() {
+        // The smart punctuation key reads the same run of words.
+        schedulePunctuationGuess()
         val engine = suggestionEngine ?: return
         if (engine.contextModel == null) return
         val words = ArrayList<String>(recentWords.size)
@@ -5075,6 +5150,10 @@ open class WMKeyboardService : InputMethodService() {
                 if (userUnlocked && _uiState.value.language.id == langId) refreshContextModel()
             }
         }
+        // And the smart punctuation key's model.
+        serviceScope.launch {
+            PunctuationModelDownloadManager.completions.collect { if (userUnlocked) refreshPunctuationModel() }
+        }
 
         serviceScope.launch {
             var voiceBarPersisted: Pair<Boolean, Boolean>? = null
@@ -5317,6 +5396,7 @@ open class WMKeyboardService : InputMethodService() {
                 suggestionEngine?.adaptiveConfidence = settings.correction.adaptive
                 suggestionEngine?.learnedGate = settings.correction.learnedGate
                 refreshContextModel()
+                refreshPunctuationModel()
                 correctionStats.memory = settings.correction.undoMemory
                 glideOutcomes.applied = settings.gesture.learnSwipeStyle
                 glideShapes.setShapesPerWord(settings.gesture.shapesPerWord)
@@ -5979,6 +6059,7 @@ open class WMKeyboardService : InputMethodService() {
                 reranker = resolveReranker(_uiState.value.settings)
             }
             refreshContextModel()
+            refreshPunctuationModel()
             // A fresh engine has no touch model until the layout next reports
             // its key centres; the ones it last reported serve until then.
             applyTouchModel()
@@ -6096,6 +6177,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         NgramPackDownloadManager.ensure(filesDir, languages)
         if (settings.suggestionStrip.neuralContext) ContextModelDownloadManager.ensure(filesDir, languages)
+        if (settings.autoText.smartPunctuation) PunctuationModelDownloadManager.ensure(filesDir)
         val metered = runCatching {
             getSystemService(ConnectivityManager::class.java)?.isActiveNetworkMetered
         }.getOrNull() ?: true
@@ -18974,6 +19056,7 @@ open class WMKeyboardService : InputMethodService() {
         refreshWordChecker(engine, lang.id)
         engine.ngramPack = loadNgramPack(lang.id)
         refreshContextModel()
+        refreshPunctuationModel()
         // Secondary languages feed the strip alongside the primary. English
         // rides its bundled list (englishAsSecondary); every other language
         // its imported list. Each is tagged with its id so its share of the
@@ -27496,6 +27579,9 @@ open class WMKeyboardService : InputMethodService() {
         // returns below so none of them leaves it stale.
         val typing = composing.isNotEmpty()
         if (_uiState.value.wordComposing != typing) _uiState.update { it.copy(wordComposing = typing) }
+        // The smart punctuation key reads the word being typed too, so it is
+        // right when the sentence's last word is done and the mark is next.
+        schedulePunctuationGuess()
         val state = _uiState.value
         suggestionEngine?.bornoRules = state.composer === BornoPhoneticComposer
         if (emailFieldForceActive(state)) {
@@ -57045,6 +57131,7 @@ open class WMKeyboardService : InputMethodService() {
             engine.customDictionary = primaryWordLists(lang.id, customDictionaries)
             engine.ngramPack = loadNgramPack(lang.id)
             refreshContextModel()
+            refreshPunctuationModel()
             val secondaryIds = _uiState.value.settings.secondaryLanguages[lang.id].orEmpty()
             engine.secondaryDictionaries = secondaryIds.filter { it != "en" }
                 .map { id -> SecondaryDictionary(id, customDictionaries[id] ?: PackedTrie.EMPTY) }
@@ -58210,6 +58297,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** Inline emoji search is a local index lookup — no network wait. */
         private const val EMOJI_SEARCH_DEBOUNCE_MS = 24L
+
+        /** How long the smart punctuation key waits after a keystroke before asking its model. */
+        private const val SMART_PUNCTUATION_DEBOUNCE_MS = 40L
 
         /** The typing test's suggestion row: how long a keystroke burst is left to settle. */
         private const val TYPING_TEST_SUGGEST_DEBOUNCE_MS = 24L

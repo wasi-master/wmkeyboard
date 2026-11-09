@@ -2959,6 +2959,21 @@ data class AutoTextSettings(
      * types in every app, and a chat box that sends on Enter never sees it.
      */
     val continueLists: Boolean = false,
+    /**
+     * The smart punctuation key: a small downloaded model reads the sentence
+     * so far and the key beside the spacebar shows the mark it expects the
+     * sentence to end with, "?" after "how are you", with the full stop a
+     * hold away. Off by default: it changes what the period key types, and
+     * turning it on fetches the model (a few MB) once.
+     */
+    val smartPunctuation: Boolean = false,
+    /**
+     * With [smartPunctuation], the key may also show a comma when the model
+     * reads the sentence as a clause the writer goes on from. Off by default:
+     * a comma on the key where the full stop was is what most people would
+     * call the key being wrong, so it is asked for.
+     */
+    val smartPunctuationComma: Boolean = false,
 ) {
     companion object {
         /**
@@ -11468,6 +11483,8 @@ class SettingsRepository(private val context: Context) {
         private val LANGUAGE_PUNCTUATION_SPACING =
             booleanPreferencesKey("language_punctuation_spacing")
         private val CONTINUE_LISTS = booleanPreferencesKey("continue_lists")
+        private val SMART_PUNCTUATION = booleanPreferencesKey("smart_punctuation")
+        private val SMART_PUNCTUATION_COMMA = booleanPreferencesKey("smart_punctuation_comma")
         private val WRAP_SELECTION_WITH_PAIR = booleanPreferencesKey("wrap_selection_with_pair")
         private val AUTO_CLOSE_BRACKETS = booleanPreferencesKey("auto_close_brackets")
         private val AUTO_CLOSE_QUOTES = booleanPreferencesKey("auto_close_quotes")
@@ -13698,6 +13715,8 @@ class SettingsRepository(private val context: Context) {
             languagePunctuationSpacing = p[LANGUAGE_PUNCTUATION_SPACING]
                 ?: defaults.autoText.languagePunctuationSpacing,
             continueLists = p[CONTINUE_LISTS] ?: defaults.autoText.continueLists,
+            smartPunctuation = p[SMART_PUNCTUATION] ?: defaults.autoText.smartPunctuation,
+            smartPunctuationComma = p[SMART_PUNCTUATION_COMMA] ?: defaults.autoText.smartPunctuationComma,
         )
 
     private fun readSuggestionSources(p: Preferences, defaults: KeyboardSettings) =
@@ -20658,6 +20677,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setContinueLists(value: Boolean) =
         editPrefs { it[CONTINUE_LISTS] = value }
+
+    suspend fun setSmartPunctuation(value: Boolean) =
+        editPrefs { it[SMART_PUNCTUATION] = value }
+
+    suspend fun setSmartPunctuationComma(value: Boolean) =
+        editPrefs { it[SMART_PUNCTUATION_COMMA] = value }
 
     /** Whitespace can never be a mark, and a very long list is a typo. */
     suspend fun setHugPunctuationMarks(value: String) = editPrefs {

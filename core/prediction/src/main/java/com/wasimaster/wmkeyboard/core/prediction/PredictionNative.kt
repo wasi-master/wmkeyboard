@@ -217,6 +217,18 @@ internal object PredictionNative {
      */
     external fun lmRevise(session: Long, register: Int, field: Int, lang: Int, context: Array<String>, candidates: Array<String>, followers: Array<String>): FloatArray
 
+    // The smart punctuation model (punct.rs), behind [PunctuationModel]: a
+    // mapped `.wmpt`, stateless, so one handle serves every thread.
+    external fun punctOpen(path: String): Long
+    external fun punctClose(handle: Long)
+
+    /** `[name, languages joined by commas, the marks in answer order, vocabulary size, context length]`. */
+    external fun punctInfo(handle: Long): Array<String>
+    external fun punctKnows(handle: Long, word: String): Boolean
+
+    /** The probability of each mark, in `punctInfo`'s order, for the sentence so far (oldest word first). */
+    external fun punctPredict(handle: Long, words: Array<String>): FloatArray
+
     // The stores autocorrect learns from: CorrectionMemory (cm*) and
     // CorrectionStats (cs*). Spellings arrive folded.
     external fun cmNew(): Long

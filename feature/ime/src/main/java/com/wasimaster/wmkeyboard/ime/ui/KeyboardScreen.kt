@@ -23651,6 +23651,9 @@ internal fun rememberCurrentLayout(state: KeyboardUiState): KeyboardLayout = rem
     state.vowelsPinned,
     // Discussion #382: whose letters lead the long-press popups.
     state.language.localeTag,
+    // The mark the smart punctuation key shows; null on every board without
+    // the model, so nothing else rebuilds on a keystroke.
+    state.smartPunctuation,
 ) {
     currentLayout(state)
 }
@@ -24110,8 +24113,12 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     } else {
         emptyMap()
     }
+    // The smart punctuation key: the mark the model expects the sentence to
+    // end with takes the period key's face on the letters page. Not in an
+    // address field, whose period key is spoken for by domain endings.
+    val smartMark = state.smartPunctuation?.takeIf { lettersLayer && fieldKey == null && domainAlternates.isEmpty() }
     if (!commaAsEmoji && !globeAsEmoji && !stripDigits && !digitSymbols && holdSymbols.isEmpty() &&
-        punctuationPicks.isEmpty() &&
+        punctuationPicks.isEmpty() && smartMark == null &&
         clipboardKeys.isEmpty() && fieldKey == null && domainAlternates.isEmpty() &&
         currencyKeys.isEmpty() && !allAccents && !noAccents && !shiftedKeys && fullStop == null &&
         !newlineAlternate && !emojiAlternate && spaceHoldKeys.isEmpty() &&
@@ -24215,6 +24222,12 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                 (role == KeyRole.Comma || role == KeyRole.Period)
             ) {
                 mapped = mapped.withRememberedPick(punctuationPicks)
+            }
+            // After the remembered pick, so the model's reading of this
+            // sentence outranks what was picked last time; [KeyRole.Plain]
+            // never reaches here, its role being neither slot.
+            if (smartMark != null && role == KeyRole.Period) {
+                mapped = mapped.withSmartPunctuation(smartMark)
             }
             if (currencyOnHolds != null && mapped.action == KeyAction.Text && rowKey !in state.layouts.authoredHolds) {
                 mapped = mapped.holdingCurrency(currencyOnHolds)
@@ -24495,6 +24508,33 @@ internal fun Key.withRememberedPick(picks: Map<String, String>): Key {
         longPress = listOf(typed) + longPress.filterNot { it == pick },
     )
 }
+
+/**
+ * This period key showing [mark], the end the smart punctuation model expects
+ * for the sentence so far, with the mark it typed as laid out leading its
+ * hold, so a plain hold still types the full stop. Left alone when the key
+ * already types the mark, or types something that is not a sentence mark at
+ * all (a layout that put a letter in the slot).
+ *
+ * The same shape as [withRememberedPick] and the script's full-stop swap: the
+ * key keeps its width, span and everything else about the slot, and the mark
+ * goes out through `output ?: label`, so hug-punctuation, auto-space and the
+ * undo chip see an ordinary typed mark.
+ */
+internal fun Key.withSmartPunctuation(mark: String): Key {
+    if (action != KeyAction.Text) return this
+    val typed = output ?: label
+    if (typed == mark || typed !in SmartPunctuationSlotMarks) return this
+    return copy(
+        label = mark,
+        output = null,
+        shiftLabel = null,
+        longPress = listOf(typed) + longPress.filterNot { it == mark || it == typed },
+    )
+}
+
+/** What a period-slot key may type for the smart punctuation key to take it over. */
+private val SmartPunctuationSlotMarks = setOf(".", "?", "!", ",", "\u0964", "\u3002", "\u06D4", "\u061F", "\u060C", "\u0589", "\u17D4", "\u104B", "\u1362", "\u0F0D")
 
 /**
  * Issue #423: this symbols page with a 1234 key straight after its ABC key,

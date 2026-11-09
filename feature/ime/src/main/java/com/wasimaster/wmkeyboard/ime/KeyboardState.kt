@@ -4215,6 +4215,14 @@ data class KeyboardUiState(
      * key in place of an action icon.
      */
     val enterActionLabel: String? = null,
+    /**
+     * The mark the smart punctuation key shows in place of the full stop:
+     * what the model expects the sentence so far to end with, already in the
+     * script's own form (`SmartPunctuation.glyph`), or null to leave the key
+     * as laid out. Published by the service off the keystroke's thread; the
+     * grid rebuilds when it changes (`rememberCurrentLayout`).
+     */
+    val smartPunctuation: String? = null,
     /** Torch state, mirrored from CameraManager for the flashlight tool. */
     val torchOn: Boolean = false,
     /** The Notes panel (#560); survives the panel closing like [vocab]. */

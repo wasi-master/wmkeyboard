@@ -653,6 +653,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - User-shift vs auto-shift distinction `RARE` — shiftPressedByUser is tracked separately so Shift+Enter's newline override never fires on an auto-capitalised empty chat box
     - Shift+Enter newline — Opt-in: types a real newline instead of firing the field's declared Send action
 - **Space and punctuation behaviour**
+  - Smart punctuation key `RARE` — A downloaded 4 MB int8 encoder (`tools/wmpunct`, wm-engine `punct.rs`) reads the sentence so far on every keystroke and the period key shows the mark it is heading for (`how are you` → `?`), full stop first in its hold; one model for some sixty languages, told apart from the words; opt-in, comma on request, left alone in address, password and symbol pages
   - Double-space period — Inserts '. ' within 400 ms, plain text fields only so email/URI/number boxes keep two spaces
   - Double-space tab `RARE` — Second space inserts a tab instead; wins over the period rule and works even at a line start
   - Auto-space after punctuation `uncommon` — 'hello,world' becomes 'hello, world'; plain-text fields only, and typing a space yourself right after does not double it

@@ -18,6 +18,8 @@
 //!   `NgramReranker`.
 //! - [`lm`]: `PredictionNative` again, the neural context model behind
 //!   `ContextModel`.
+//! - [`punct`]: `PredictionNative` again, the smart punctuation key's
+//!   model behind `PunctuationModel`.
 //! - [`corrections`]: `PredictionNative` again, the stores autocorrect
 //!   learns from, behind `CorrectionMemory` and `CorrectionStats`.
 //! - [`words`]: `PredictionNative` again, the word key, the learnability
@@ -48,6 +50,7 @@ mod handles;
 mod kernels;
 mod lexicon;
 mod lm;
+mod punct;
 mod rerank;
 mod sources;
 mod transliteration;

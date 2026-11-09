@@ -71,6 +71,7 @@ import androidx.compose.ui.res.stringResource
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtpCapture
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.dictionaries.PunctuationModelDownloadManager
 import com.wasimaster.wmkeyboard.core.settings.usableTools
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
 import com.wasimaster.wmkeyboard.core.tools.leaderLabel
@@ -692,6 +693,7 @@ internal fun TypingWritingSettings(
     // What decides which rows the groups hold; each row reads its own value.
     val doubleSpaceOn = settings.watch { it.autoText.doubleSpacePeriod || it.autoText.doubleSpaceTab }
     val hugOn = settings.watch { it.autoText.hugPunctuation }
+    val smartPunctuationOn = settings.watch { it.autoText.smartPunctuation }
     val recaseOn = settings.watch { it.textEditing.recapitalizeSelectionWithShift }
     SettingsGroup(stringResource(R.string.typing_group_capitals_title)) {
         item {
@@ -800,6 +802,42 @@ internal fun TypingWritingSettings(
                 info = stringResource(R.string.typing_language_punctuation_spacing_info),
                 default = SettingsDefaults.autoText.languagePunctuationSpacing,
             ) { scope.launch { repository.setLanguagePunctuationSpacing(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            // The model's download state in the subtitle, so a key that still
+            // reads "." right after the switch says why.
+            val filesDir = context.filesDir
+            val modelState by PunctuationModelDownloadManager.state.collectAsState()
+            LaunchedEffect(smartPunctuationOn) { PunctuationModelDownloadManager.refresh(filesDir) }
+            val subtitle = when {
+                !smartPunctuationOn -> stringResource(R.string.typing_smart_punctuation_subtitle)
+                modelState is PunctuationModelDownloadManager.DownloadStatus.Downloading ->
+                    stringResource(CommonR.string.common_downloading)
+                modelState == PunctuationModelDownloadManager.DownloadStatus.Failed ->
+                    stringResource(R.string.typing_smart_punctuation_failed)
+                modelState is PunctuationModelDownloadManager.DownloadStatus.Downloaded ->
+                    stringResource(R.string.typing_smart_punctuation_ready)
+                else -> stringResource(R.string.typing_smart_punctuation_subtitle)
+            }
+            ToggleSetting(
+                R.string.typing_smart_punctuation_title,
+                subtitle,
+                smartPunctuationOn,
+                info = stringResource(R.string.typing_smart_punctuation_info),
+                default = SettingsDefaults.autoText.smartPunctuation,
+            ) {
+                scope.launch { repository.setSmartPunctuation(it) }
+                if (it) PunctuationModelDownloadManager.start(filesDir)
+            }
+        }
+        item(visible = smartPunctuationOn, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_smart_punctuation_comma_title,
+                stringResource(R.string.typing_smart_punctuation_comma_subtitle),
+                settings.watch { it.autoText.smartPunctuationComma },
+                info = stringResource(R.string.typing_smart_punctuation_comma_info),
+                default = SettingsDefaults.autoText.smartPunctuationComma,
+            ) { scope.launch { repository.setSmartPunctuationComma(it) } }
         }
         item(level = SettingLevel.STANDARD) {
             // Bangla's own switch is off out of the box (#813), so with this

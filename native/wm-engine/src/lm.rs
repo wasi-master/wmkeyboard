@@ -71,12 +71,12 @@ pub struct Prefix {
     pub lang: u8,
 }
 
-struct I8Matrix {
+pub(crate) struct I8Matrix {
     /// Byte offset of the first weight in the file.
-    data: usize,
-    rows: usize,
-    cols: usize,
-    scales: Vec<f32>,
+    pub(crate) data: usize,
+    pub(crate) rows: usize,
+    pub(crate) cols: usize,
+    pub(crate) scales: Vec<f32>,
 }
 
 struct Layer {
@@ -122,16 +122,16 @@ pub struct Lm<B: AsRef<[u8]> = Vec<u8>> {
     ln_b: Vec<f32>,
 }
 
-fn u32_at(b: &[u8], at: usize) -> Option<u32> {
+pub(crate) fn u32_at(b: &[u8], at: usize) -> Option<u32> {
     Some(u32::from_le_bytes(b.get(at..at + 4)?.try_into().ok()?))
 }
 
-fn f32s(b: &[u8], at: usize, n: usize) -> Option<Vec<f32>> {
+pub(crate) fn f32s(b: &[u8], at: usize, n: usize) -> Option<Vec<f32>> {
     let s = b.get(at..at + n * 4)?;
     Some(s.chunks_exact(4).map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]])).collect())
 }
 
-fn pad4(n: usize) -> usize {
+pub(crate) fn pad4(n: usize) -> usize {
     (n + 3) & !3
 }
 
@@ -282,29 +282,7 @@ impl<B: AsRef<[u8]>> Lm<B> {
     /// `key` spelled in pieces, greedy longest match from the left, or
     /// `None` when a letter has no piece (or the model has none).
     pub fn pieces_of(&self, key: &str) -> Option<Vec<u32>> {
-        if self.start_pieces.is_empty() || key == "<num>" {
-            return None;
-        }
-        let chars: Vec<char> = key.chars().collect();
-        let mut out = Vec::new();
-        let mut i = 0;
-        while i < chars.len() {
-            let table = if i == 0 { &self.start_pieces } else { &self.cont_pieces };
-            let mut taken = 0;
-            for j in (i + 1..=chars.len().min(i + MAX_PIECE)).rev() {
-                let piece: String = chars[i..j].iter().collect();
-                if let Some(&id) = table.get(&piece) {
-                    out.push(id);
-                    taken = j;
-                    break;
-                }
-            }
-            if taken == 0 {
-                return None;
-            }
-            i = taken;
-        }
-        Some(out)
+        pieces_greedy(&self.start_pieces, &self.cont_pieces, key)
     }
 
     /// Whether token `id` is a subword piece rather than a word.
@@ -351,6 +329,36 @@ impl<B: AsRef<[u8]>> Lm<B> {
     }
 }
 
+/// `key` spelled in pieces out of the two tables, greedy longest match from
+/// the left (`tools/wmlm/common.py`'s `Pieces.encode`), or `None` when a
+/// letter has no piece or the model has none. Shared with the punctuation
+/// model's reader (`punct.rs`), which carries the same two tables.
+pub(crate) fn pieces_greedy(start: &HashMap<String, u32>, cont: &HashMap<String, u32>, key: &str) -> Option<Vec<u32>> {
+    if start.is_empty() || key == "<num>" {
+        return None;
+    }
+    let chars: Vec<char> = key.chars().collect();
+    let mut out = Vec::new();
+    let mut i = 0;
+    while i < chars.len() {
+        let table = if i == 0 { start } else { cont };
+        let mut taken = 0;
+        for j in (i + 1..=chars.len().min(i + MAX_PIECE)).rev() {
+            let piece: String = chars[i..j].iter().collect();
+            if let Some(&id) = table.get(&piece) {
+                out.push(id);
+                taken = j;
+                break;
+            }
+        }
+        if taken == 0 {
+            return None;
+        }
+        i = taken;
+    }
+    Some(out)
+}
+
 /// The key a word is scored under: the engine's fold ([`word_key::of_str`])
 /// with the edges trimmed of punctuation, as `tools/wmlm/common.py` does it.
 /// `None` for something that is not a word; a word with a digit in it is
@@ -372,7 +380,7 @@ pub fn token_key(word: &str) -> Option<String> {
 }
 
 /// `x` as int8 into `out`; returns the scale (`x ≈ out * scale`).
-fn quantize(x: &[f32], out: &mut Vec<i8>) -> f32 {
+pub(crate) fn quantize(x: &[f32], out: &mut Vec<i8>) -> f32 {
     out.clear();
     let max = x.iter().fold(0.0f32, |m, v| m.max(v.abs()));
     if max == 0.0 {
@@ -385,7 +393,7 @@ fn quantize(x: &[f32], out: &mut Vec<i8>) -> f32 {
     scale
 }
 
-fn layer_norm(x: &[f32], w: &[f32], b: &[f32], out: &mut [f32]) {
+pub(crate) fn layer_norm(x: &[f32], w: &[f32], b: &[f32], out: &mut [f32]) {
     let n = x.len() as f32;
     let mean = x.iter().sum::<f32>() / n;
     let var = x.iter().map(|v| (v - mean) * (v - mean)).sum::<f32>() / n;
@@ -395,7 +403,7 @@ fn layer_norm(x: &[f32], w: &[f32], b: &[f32], out: &mut [f32]) {
     }
 }
 
-fn gelu(x: f32) -> f32 {
+pub(crate) fn gelu(x: f32) -> f32 {
     const C: f32 = 0.797_884_56; // sqrt(2 / pi)
     0.5 * x * (1.0 + (C * (x + 0.044715 * x * x * x)).tanh())
 }
