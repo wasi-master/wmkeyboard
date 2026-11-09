@@ -64,23 +64,24 @@ object PunctuationModelCatalog {
     private val V2_LANGUAGES = listOf("af", "ar", "az", "bg", "bn", "bs", "ca", "cs", "da", "de", "el", "en", "eo", "es", "et", "eu", "fa", "fi", "fr", "gl", "he", "hi", "hr", "hu", "hy", "id", "is", "it", "ka", "kk", "lt", "lv", "mk", "ml", "mr", "ms", "nb", "nl", "pl", "pt", "pt_br", "ro", "ru", "si", "sk", "sl", "sq", "sr", "sv", "sw", "ta", "te", "tl", "tr", "uk", "ur", "uz", "vi")
 
     val entries: List<PunctuationModelEntry> = listOf(
-        // v2: e64 d192, four layers, 4.6M parameters, 49k vocabulary, 60k
-        // steps; 87.2% of held-out sentence ends right over the 58 languages,
-        // English 93.7% (see the data repo's models/README.md).
+        // v3: e64 d192, four layers, 4.6M parameters, 49k vocabulary plus a
+        // token for the keyboard's language, 60k steps; 87.4% of held-out
+        // sentence ends right over the 58 languages, English 93.7% (see the
+        // data repo's models/README.md).
         PunctuationModelEntry(
             variant = PunctuationModelVariant.STANDARD,
-            path = "models/punct/smart_punct_v2.wmpt",
-            bytes = 5_255_776L,
-            sha256 = "5e463c42eea1d308273d89e39275d033a5fbf8e3b83a2e6987407679e9489ad2",
+            path = "models/punct/smart_punct_v3.wmpt",
+            bytes = 5_255_848L,
+            sha256 = "bb79c3c405a55772439c16094dc756601bf79b701fbc6f6b6064bbd87605a881",
             languages = V2_LANGUAGES,
         ),
-        // v2 large: e96 d256, six layers, 8.8M parameters, 100k steps; 87.5%,
-        // English 93.9%: a few tenths of a point for twice the file.
+        // v3 large: e96 d256, six layers, 8.8M parameters, 100k steps; 87.4%,
+        // within noise of Standard on this data, kept as the size to grow.
         PunctuationModelEntry(
             variant = PunctuationModelVariant.LARGE,
-            path = "models/punct/smart_punct_v2_large.wmpt",
-            bytes = 9_476_584L,
-            sha256 = "24b755df006a7ae4066182685b9287bb30c91aaac9c636972e9a955bce2cb381",
+            path = "models/punct/smart_punct_v3_large.wmpt",
+            bytes = 9_476_652L,
+            sha256 = "96c98a04d3635a4492aae32ffd8da51ec11ccd9d8cde791097f55d181ff3b383",
             languages = V2_LANGUAGES,
         ),
     )

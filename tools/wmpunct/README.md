@@ -82,8 +82,11 @@ once the corpora are in; fetching them is the longer half.
 | e64 d192 L4, `exclaim_weight=2` | 32,768 | 40k | .867 (`!` recall .07) | |
 | **e64 d192 L4 (v2 Standard)** | 49,152 | 60k | **.872** (en .937) | 5.3 MB |
 | **e96 d256 L6 (v2 Large)** | 49,152 | 100k | **.875** (en .939) | 9.5 MB |
+| e64 d192 L4 + `lang_token=1` (v3 Standard) | 49,152 + 59 | 60k | .874 (en .937, hu .82, es .88) | 5.3 MB |
+| e96 d256 L6 + `lang_token=1` (v3 Large) | 49,152 + 59 | 100k | .874 | 9.5 MB |
 
-Size barely matters; the misses are exclamations (5.8% of ends, recall
+Size barely matters and the language token is worth a quarter of a point
+(a point or two in Hungarian and Spanish); the misses are exclamations (5.8% of ends, recall
 .02) and questions asked in statement order (`?` recall .86 in English,
 .55–.66 in French, Spanish, Hungarian, Persian). Short subtitle lines
 (≤3 words) score .81 in English against .95 for 8+ words.
