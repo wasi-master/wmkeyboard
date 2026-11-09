@@ -3428,6 +3428,7 @@ private fun ThemeEditorContent(
     val effectImages = look.watch { it.keyEffectImages }
     val effectColourCustom = look.watch { keyEffectColorMode(it.keyEffectColor) == KeyEffectColorMode.CUSTOM }
     val scriptFontIds = look.watch { it.scriptFontIds }
+    val settingsKeyFontId = settings.watch { it.keyFontId }
 
     sourceDialogSlot?.let { slot ->
         val landscape = slot == BackgroundSlot.LANDSCAPE
@@ -6529,9 +6530,18 @@ private fun ThemeEditorContent(
         info = stringResource(R.string.theme_font_sound_section_body),
     ) {
         item {
+            // The keyboard font setting beats a theme's font (#561: a theme
+            // that shipped with a face hid the user's own pick). So a pick made
+            // here sets that setting back to Default, and the row says so --
+            // or, where the setting already hides this theme's font, says that.
+            val themeFont = look.watch { it.fontId }
+            val hidden = themeFont != null && settingsKeyFontId != KeyboardFonts.DEFAULT_ID
             NavRow(
                 R.string.theme_font_title,
-                value = look.watch { it.fontId }?.let { KeyboardFonts.displayName(context, it, "") }
+                subtitle = stringResource(
+                    if (hidden) R.string.theme_font_hidden_body else R.string.theme_font_overrides_body,
+                ),
+                value = themeFont?.let { KeyboardFonts.displayName(context, it, "") }
                     ?: stringResource(R.string.theme_follow_settings_label),
             ) { fontPickerOpen = true }
         }
@@ -6578,6 +6588,12 @@ private fun ThemeEditorContent(
             onPick = { id ->
                 fontPickerOpen = false
                 update { t -> t.copy(fontId = id) }
+                // Last pick wins: the keyboard font setting would otherwise go
+                // on hiding the face just picked. Picking a font there later
+                // wins again, as #561 asked.
+                if (id != null && settingsKeyFontId != KeyboardFonts.DEFAULT_ID) {
+                    scope.launch { repository.setKeyFontId(KeyboardFonts.DEFAULT_ID) }
+                }
             },
             onDismiss = { fontPickerOpen = false },
         )
@@ -6609,6 +6625,11 @@ private fun ThemeEditorContent(
                     val next = t.scriptFontIds.toMutableMap()
                     if (id == null) next.remove(script) else next[script] = id
                     t.copy(scriptFontIds = next.toMap())
+                }
+                // Same rule as the key font: the user's own font for this
+                // script would hide the one just picked.
+                if (id != null && script in settings.value.scriptFontIds) {
+                    scope.launch { repository.setScriptFontId(script, KeyboardFonts.DEFAULT_ID) }
                 }
             },
             onDismiss = { scriptFontPicker = null },

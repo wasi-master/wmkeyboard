@@ -636,12 +636,14 @@
     <string name="theme_font_sound_section_title">Font and sound</string>
     <string name="theme_font_sound_section_body">The theme can bring its own key font and key sound. If the device does not have them, the keyboard uses your global choices. Fonts and sounds install as add-ons, so you can also use them with other themes.</string>
     <string name="theme_font_title">Key font</string>
+    <string name="theme_font_overrides_body">Overrides your keyboard font setting. Picking a font here sets that setting back to Default.</string>
+    <string name="theme_font_hidden_body">Your keyboard font setting hides this font. Pick it again here to use it.</string>
     <string name="theme_sound_title">Key sound</string>
     <string name="theme_follow_settings_label">Follow settings</string>
     <!-- %1$s is the name of a script, such as Bengali. -->
     <string name="theme_script_font_title">%1$s font</string>
     <string name="theme_script_font_add_title">Add a font for a script</string>
-    <string name="theme_script_font_add_body">The key font above is used for Latin, Cyrillic and Greek. Other scripts keep their own font unless the theme gives them one.</string>
+    <string name="theme_script_font_add_body">The key font above is used for Latin, Cyrillic and Greek. Other scripts keep their own font unless the theme gives them one. A font picked here overrides your own font for that script.</string>
     <string name="theme_script_font_default_label">Use the script default</string>
     <string name="theme_script_font_all_set_body">Every script already has a font in this theme.</string>
 

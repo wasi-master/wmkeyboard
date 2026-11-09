@@ -262,19 +262,49 @@ fun ThemeKeyboardPreview(
     // that mean "no sound of my own", which is what [ThemeSpec.keySound]
     // exists to spell out.
     val themeSound = remember(theme.soundStyle, theme.soundCustomId) { theme.keySound() }
-    val haptic: (KeySoundTarget) -> Unit = remember(view, hapticsOn) {
-        { _ -> if (hapticsOn) view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP) }
-    }
-    val plainHaptic: () -> Unit = remember(haptic) { { haptic(KeySoundTarget.DEFAULT) } }
     val sound: (KeySoundTarget, KeySoundPhase) -> Unit = remember(context, soundSettings, themeSound) {
         { target, phase ->
-            if (soundSettings.enabled && (phase == KeySoundPhase.PRESS || soundSettings.playRelease)) {
+            if (soundSettings.enabled &&
+                (phase == KeySoundPhase.PRESS || soundSettings.playRelease) &&
+                KeySoundPlayer.outputAllows(context, soundSettings.output)
+            ) {
                 val style = themeSound?.first ?: soundSettings.style
                 val id = themeSound?.second
                     ?: if (style == KeySoundStyle.PACK) soundSettings.packId else soundSettings.customId
                 KeySoundPlayer.play(context, style, soundSettings.volume, id, target, phase)
             }
         }
+    }
+    // Decoded ahead, as the service does at start: otherwise the first presses
+    // pay for synthesising the built-in sounds, or play the system click while
+    // a pack is still loading.
+    LaunchedEffect(soundSettings, themeSound) {
+        if (!soundSettings.enabled) return@LaunchedEffect
+        withContext(Dispatchers.IO) {
+            runCatching {
+                KeySoundPlayer.warmUp(context)
+                val style = themeSound?.first ?: soundSettings.style
+                if (style == KeySoundStyle.PACK) {
+                    KeySoundPlayer.preload(context, themeSound?.second ?: soundSettings.packId)
+                }
+            }
+        }
+    }
+    // The key's own press. The service's handler for this one plays the key
+    // sound as well as buzzing, and every ordinary key reaches its sound only
+    // through it — [sound] alone is the separate channel for repeats, swipes
+    // and the key coming back up. Handing in the buzz alone left the preview
+    // silent on every tap.
+    val haptic: (KeySoundTarget) -> Unit = remember(view, hapticsOn, sound) {
+        { target ->
+            sound(target, KeySoundPhase.PRESS)
+            if (hapticsOn) view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+        }
+    }
+    // A cue that is not a keypress (a popup opening): the buzz without the
+    // click, as the service's vibrateOnly.
+    val plainHaptic: () -> Unit = remember(view, hapticsOn) {
+        { if (hapticsOn) view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP) }
     }
     // One set of callbacks for the life of the preview. The screen hands
     // several of them to every key, and a fresh lambda per recomposition there
