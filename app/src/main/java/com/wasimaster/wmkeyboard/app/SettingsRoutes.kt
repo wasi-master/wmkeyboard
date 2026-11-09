@@ -170,6 +170,7 @@ internal object SettingsRoutes {
         "add_language",
         "language/{langId}",
         "language/{langId}/more",
+        "language/{langId}/layouts",
         "double_pinyin_custom",
         "emoji",
         "emoji/panel",
