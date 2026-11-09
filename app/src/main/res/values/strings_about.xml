@@ -264,6 +264,7 @@
     <string name="about_bundled_opencc_used">The map between simplified and traditional characters, and the vocabulary of Taiwan and Hong Kong</string>
     <string name="about_bundled_lshk_used">The Cantonese Jyutping syllable inventory</string>
     <string name="about_bundled_palettes_used">The themes in the app: Dracula, Nord, Solarized, Catppuccin and Tokyo Night</string>
+    <string name="about_bundled_expressive_used">Theme effects: the meld press effect, soft, pixel and dot-matrix keys, colour orbs, and the Soft, Dot matrix, Blocks and Droplet themes</string>
     <string name="about_bundled_fonts_used">The keyboard typefaces, which the system downloads when you need them</string>
     <!-- Inter and Manrope are the names of the typefaces. Keep them as they are. -->
     <string name="about_bundled_ui_fonts_used">The typefaces of this app: Manrope for the headings, Inter for the text</string>

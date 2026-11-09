@@ -11,7 +11,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -70,6 +72,12 @@ internal class PressKit(val effect: KbBoardEffect) {
     /** The same spots greyed down, for smoke. */
     val smokes: Array<Brush> = Array(colors.size) { softBrush(lerp(colors[it], Color.Gray, 0.55f)) }
 
+    /** The meld's shader and buffers, for that kind only. */
+    val meld: MeldPaint? = if (effect.kind == BoardEffectKind.MELD) MeldPaint() else null
+
+    /** The meld's bridge colour: the theme's own when it chose one, else the board's light or dark glass. */
+    val meldTint: Color? = if (effect.ownColors) effect.colors.firstOrNull() else null
+
     /** How long one splash runs at the effect's speed. */
     val lifeMs: Long = (baseLifeMs(effect.kind) / effect.speed.coerceAtLeast(0.25f)).toLong()
 
@@ -110,6 +118,7 @@ internal class PressKit(val effect: KbBoardEffect) {
             BoardEffectKind.POP -> 650f
             BoardEffectKind.SWOOSH -> 650f
             BoardEffectKind.SPECKS -> 900f
+            BoardEffectKind.MELD -> 750f
             else -> 1000f
         }
     }
@@ -118,10 +127,22 @@ internal class PressKit(val effect: KbBoardEffect) {
 /**
  * The splashes over the keys, as the keyboard draws them: composed only for a
  * press kind and only while motion is allowed, asleep between presses.
+ *
+ * The meld needs the keys themselves, not just where the press was: [cells]
+ * gives every key's cell in root space and [gapHDp], [gapVDp] the gap each
+ * cell keeps round its face, [keyRadiusDp] the faces' corners.
  */
 @Composable
-internal fun PressEffectOverlay(effect: KbBoardEffect, modifier: Modifier = Modifier) {
+internal fun PressEffectOverlay(
+    effect: KbBoardEffect,
+    modifier: Modifier = Modifier,
+    cells: () -> List<Rect> = { emptyList() },
+    keyRadiusDp: Float = 8f,
+    gapHDp: Float = 0f,
+    gapVDp: Float = 0f,
+) {
     val kit = remember(effect) { PressKit(effect) }
+    val night = LocalKbTheme.current.dark
     var now by remember { mutableLongStateOf(0L) }
     var origin by remember { mutableStateOf(Offset.Zero) }
     val pulse = ThemePulse.revision
@@ -137,6 +158,20 @@ internal fun PressEffectOverlay(effect: KbBoardEffect, modifier: Modifier = Modi
         if (t == 0L) return@Canvas
         kit.strokesFor(density)
         val at = origin
+        val meld = kit.meld
+        if (meld != null) {
+            val gx = gapHDp * density
+            val gy = gapVDp * density
+            val faces = cells().map { Rect(it.left - at.x + gx, it.top - at.y + gy, it.right - at.x - gx, it.bottom - at.y - gy) }
+            var shown = 0
+            ThemePulse.forEachRecent(t, kit.lifeMs) { x, y, age ->
+                if (shown < MELD_MAX_ACTIVE) {
+                    meld.draw(this, faces, x - at.x, y - at.y, meldPress(age, kit.lifeMs), keyRadiusDp * density, night, kit.meldTint)
+                    shown++
+                }
+            }
+            return@Canvas
+        }
         ThemePulse.forEachRecent(t, kit.lifeMs) { x, y, age ->
             splash(kit, x - at.x, y - at.y, age, seedOf(t - age))
         }
@@ -153,6 +188,11 @@ internal fun PressEffectSample(effect: KbBoardEffect, modifier: Modifier = Modif
     Canvas(modifier = modifier) {
         kit.strokesFor(density)
         val life = kit.lifeMs
+        if (kit.meld != null) {
+            // One meld caught at its widest; three would overlap their little grids.
+            splash(kit, size.width / 2f, size.height / 2f, (life * 0.2f).toLong(), 11)
+            return@Canvas
+        }
         splash(kit, size.width * 0.26f, size.height * 0.42f, (life * 0.22f).toLong(), 11)
         splash(kit, size.width * 0.62f, size.height * 0.32f, (life * 0.40f).toLong(), 23)
         splash(kit, size.width * 0.80f, size.height * 0.72f, (life * 0.12f).toLong(), 37)
@@ -310,6 +350,14 @@ private fun DrawScope.splash(kit: PressKit, cx: Float, cy: Float, age: Long, see
                     topLeft = Offset(cx - r, cy - r), size = Size(r * 2f, r * 2f), style = kit.arc,
                 )
             }
+        }
+        BoardEffectKind.MELD -> kit.meld?.let { meld ->
+            // A picture has no keys of its own: a little grid stands in for them.
+            val faces = meldSampleFaces(cx, cy, k * 0.6f)
+            val face = (if (fx.colors.isNotEmpty()) fx.colors.last() else Color.White).copy(alpha = 0.22f)
+            val r = k * 0.12f
+            for (f in faces) drawRoundRect(face, f.topLeft, f.size, CornerRadius(r))
+            meld.draw(this, faces, cx, cy, meldPress(age, life), r, night = true, tint = kit.meldTint)
         }
         BoardEffectKind.SPECKS -> {
             val e = easeOut(u)

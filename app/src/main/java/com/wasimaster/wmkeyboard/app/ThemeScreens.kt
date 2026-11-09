@@ -263,6 +263,7 @@ import com.wasimaster.wmkeyboard.core.theme.MATERIAL_EDGE_WIDTH_RANGE
 import com.wasimaster.wmkeyboard.core.theme.MATERIAL_GLOSS_RANGE
 import com.wasimaster.wmkeyboard.core.theme.MATERIAL_INSET_RANGE
 import com.wasimaster.wmkeyboard.core.theme.MATERIAL_IRIDESCENCE_RANGE
+import com.wasimaster.wmkeyboard.core.theme.MATERIAL_SOFT_SHADOW_RANGE
 import com.wasimaster.wmkeyboard.core.theme.MATERIAL_LIGHT_RANGE
 import com.wasimaster.wmkeyboard.core.theme.MATERIAL_SKIRT_RANGE
 import com.wasimaster.wmkeyboard.core.theme.MATERIAL_TEXTURE_OPACITY_RANGE
@@ -6184,6 +6185,14 @@ private fun ThemeEditorContent(
                     display = { "%d%%".format((it * 100).roundToInt()) },
                 ) { v -> updateMaterial { it.copy(iridescence = (v * 20).roundToInt() / 20f) } }
             }
+            item(level = SettingLevel.STANDARD) {
+                SliderRow(
+                    R.string.theme_material_soft_shadow_title,
+                    value = material.softShadow,
+                    range = MATERIAL_SOFT_SHADOW_RANGE,
+                    display = { "%d%%".format((it * 100).roundToInt()) },
+                ) { v -> updateMaterial { it.copy(softShadow = (v * 20).roundToInt() / 20f) } }
+            }
         }
     }
 
@@ -8441,6 +8450,9 @@ private fun materialKindLabel(value: KeyMaterialKind): Int = when (value) {
     KeyMaterialKind.TYPEWRITER -> R.string.theme_material_kind_typewriter_label
     KeyMaterialKind.INSTRUMENT -> R.string.theme_material_kind_instrument_label
     KeyMaterialKind.MOLTEN -> R.string.theme_material_kind_molten_label
+    KeyMaterialKind.NEUMORPH -> R.string.theme_material_kind_neumorph_label
+    KeyMaterialKind.PIXEL -> R.string.theme_material_kind_pixel_label
+    KeyMaterialKind.DOT_MATRIX -> R.string.theme_material_kind_dot_matrix_label
 }
 @StringRes
 private fun materialTextureLabel(value: MaterialTexture): Int = when (value) {
@@ -8455,6 +8467,8 @@ private fun materialTextureLabel(value: MaterialTexture): Int = when (value) {
     MaterialTexture.PAPER -> R.string.theme_material_texture_paper_label
     MaterialTexture.CARBON -> R.string.theme_material_texture_carbon_label
     MaterialTexture.LEATHER -> R.string.theme_material_texture_leather_label
+    MaterialTexture.PIXELS -> R.string.theme_material_texture_pixels_label
+    MaterialTexture.PLANKS -> R.string.theme_material_texture_planks_label
 }
 @StringRes
 private fun materialEdgeLabel(value: MaterialEdge): Int = when (value) {
@@ -8465,6 +8479,8 @@ private fun materialEdgeLabel(value: MaterialEdge): Int = when (value) {
     MaterialEdge.RIM -> R.string.theme_material_edge_rim_label
     MaterialEdge.INSET -> R.string.theme_material_edge_inset_label
     MaterialEdge.DOUBLE -> R.string.theme_material_edge_double_label
+    MaterialEdge.DOTTED -> R.string.theme_material_edge_dotted_label
+    MaterialEdge.BEVEL -> R.string.theme_material_edge_bevel_label
 }
 @StringRes
 private fun materialLabelLabel(value: MaterialLabel): Int = when (value) {
@@ -8473,6 +8489,7 @@ private fun materialLabelLabel(value: MaterialLabel): Int = when (value) {
     MaterialLabel.DEBOSS -> R.string.theme_material_label_deboss_label
     MaterialLabel.EMBOSS -> R.string.theme_material_label_emboss_label
     MaterialLabel.SHADOW -> R.string.theme_material_label_shadow_label
+    MaterialLabel.DOTS -> R.string.theme_material_label_dots_label
 }
 @StringRes
 private fun boardEffectLabel(value: BoardEffectKind): Int = when (value) {
@@ -8499,6 +8516,7 @@ private fun boardEffectLabel(value: BoardEffectKind): Int = when (value) {
     BoardEffectKind.SCAN -> R.string.theme_board_effect_kind_scan_label
     BoardEffectKind.SHEEN -> R.string.theme_board_effect_kind_sheen_label
     BoardEffectKind.RIPPLES -> R.string.theme_board_effect_kind_ripples_label
+    BoardEffectKind.ORBS -> R.string.theme_board_effect_kind_orbs_label
     BoardEffectKind.PAINT -> R.string.theme_board_effect_kind_paint_label
     BoardEffectKind.INK -> R.string.theme_board_effect_kind_ink_label
     BoardEffectKind.LIGHT_POOL -> R.string.theme_board_effect_kind_light_pool_label
@@ -8508,6 +8526,7 @@ private fun boardEffectLabel(value: BoardEffectKind): Int = when (value) {
     BoardEffectKind.POP -> R.string.theme_board_effect_kind_pop_label
     BoardEffectKind.SWOOSH -> R.string.theme_board_effect_kind_swoosh_label
     BoardEffectKind.SPECKS -> R.string.theme_board_effect_kind_specks_label
+    BoardEffectKind.MELD -> R.string.theme_board_effect_kind_meld_label
 }
 @StringRes
 private fun lightingPatternLabel(value: KeyLightingPattern): Int = when (value) {
@@ -8547,6 +8566,9 @@ private fun keyPressMotionLabel(value: KeyPressMotion): Int = when (value) {
     KeyPressMotion.RISE -> R.string.theme_touch_bloom_motion_rise_label
     KeyPressMotion.TILT -> R.string.theme_touch_bloom_motion_tilt_label
     KeyPressMotion.JELLY -> R.string.theme_touch_bloom_motion_jelly_label
+    KeyPressMotion.POP -> R.string.theme_touch_bloom_motion_pop_label
+    KeyPressMotion.SQUISH -> R.string.theme_touch_bloom_motion_squish_label
+    KeyPressMotion.FADE -> R.string.theme_touch_bloom_motion_fade_label
 }
 
 /** The largest key-art file read; a skin is paths and colours, a few hundred kilobytes at most. */

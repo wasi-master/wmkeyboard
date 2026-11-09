@@ -72,6 +72,18 @@
     <string name="core_theme_builtin_frost_light_label">Frost light</string>
     <!-- Dark glass with clear, lens-like keys (Apple's "liquid glass" look). -->
     <string name="core_theme_builtin_frost_liquid_label">Frost liquid</string>
+    <string name="core_theme_builtin_soft_label">Soft</string>
+    <string name="core_theme_builtin_soft_dark_label">Soft dark</string>
+    <string name="core_theme_builtin_dot_matrix_label">Dot matrix</string>
+    <string name="core_theme_builtin_dot_matrix_dark_label">Dot matrix dark</string>
+    <string name="core_theme_builtin_blocks_label">Stone</string>
+    <string name="core_theme_builtin_blocks_planks_label">Planks</string>
+    <string name="core_theme_builtin_blocks_basalt_label">Basalt</string>
+    <string name="core_theme_builtin_blocks_magma_label">Magma</string>
+    <string name="core_theme_builtin_droplet_label">Droplet</string>
+    <string name="core_theme_builtin_droplet_dark_label">Droplet dark</string>
+    <string name="core_theme_builtin_droplet_orbs_label">Orbs</string>
+    <string name="core_theme_builtin_droplet_orbs_dark_label">Orbs dark</string>
     <!-- Light theme, pale blue ice. -->
     <string name="core_theme_builtin_glacier_label">Glacier</string>
 
@@ -117,6 +129,10 @@
     <string name="core_theme_family_gradient_label">Gradients</string>
     <!-- The family of the frosted-glass themes (Frost, Frost wallpaper, Frost light). -->
     <string name="core_theme_family_frost_label">Frost</string>
+    <string name="core_theme_family_soft_label">Soft</string>
+    <string name="core_theme_family_dot_matrix_label">Dot matrix</string>
+    <string name="core_theme_family_blocks_label">Blocks</string>
+    <string name="core_theme_family_droplet_label">Droplet</string>
     <!-- The names of these three families are project names. Keep in English. -->
     <string name="core_theme_family_dracula_label" translatable="false">Dracula</string>
     <string name="core_theme_family_solarized_label" translatable="false">Solarized</string>

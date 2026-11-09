@@ -1654,6 +1654,7 @@ private val FrostTheme: ThemeSpec = ThemeSpec(
  * auto-theme slot from before the grouping still resolves — through the
  * variant search in `findThemeSpec`.
  *
+ * [ExpressiveThemes] (designs after Expressive Keyboard's) and
  * [PaletteThemes] (ports of well-known editor colour schemes) are appended
  * rather than inlined: they are transcriptions of external palettes with
  * their own attribution rules, so they live in their own file.
@@ -1699,7 +1700,7 @@ val BuiltInThemes: List<ThemeSpec> = listOf(
         keyBorderWidthDp = 1f,
     ),
     FrostTheme,
-) + PaletteThemes
+) + ExpressiveThemes + PaletteThemes
 
 /**
  * The name resource of every theme in [BuiltInThemes], keyed by the id of the
@@ -1731,7 +1732,7 @@ private val BuiltInThemeNameRes: Map<String, Int> = mapOf(
     "builtin_frost_wallpaper" to R.string.core_theme_builtin_frost_wallpaper_label,
     "builtin_frost_light" to R.string.core_theme_builtin_frost_light_label,
     "builtin_frost_liquid" to R.string.core_theme_builtin_frost_liquid_label,
-) + PaletteThemeNameRes
+) + ExpressiveThemeNameRes + PaletteThemeNameRes
 
 /**
  * The name resource of the built-in theme with this [id], or null when the id
@@ -1750,7 +1751,7 @@ private val BuiltInThemeFamilyNameRes: Map<String, Int> = mapOf(
     "builtin_snow" to R.string.core_theme_family_snow_label,
     "builtin_deep_sea" to R.string.core_theme_family_gradient_label,
     "builtin_frost" to R.string.core_theme_family_frost_label,
-) + PaletteThemeFamilyNameRes
+) + ExpressiveThemeFamilyNameRes + PaletteThemeFamilyNameRes
 
 /**
  * The family-label resource of the built-in family headed by [parentId], or

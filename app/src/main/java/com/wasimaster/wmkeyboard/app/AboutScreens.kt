@@ -1056,6 +1056,15 @@ private val bundledAttributions: List<Attribution> = buildList {
     )
     add(
         Attribution(
+            "Expressive Keyboard",
+            R.string.about_bundled_expressive_used,
+            "Copyright (c) 2026 kotlalipopus",
+            "MIT", "mit-expressive-keyboard.txt",
+            "https://github.com/kotlalipopus/Expressive-Keyboard",
+        ),
+    )
+    add(
+        Attribution(
             "Google Fonts",
             R.string.about_bundled_fonts_used,
             "Copyright the respective font authors",

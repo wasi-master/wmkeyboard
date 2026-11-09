@@ -60,7 +60,11 @@ fun BoardEffectLayer(effect: KbBoardEffect, modifier: Modifier = Modifier, still
     var clock by remember { mutableFloatStateOf(STILL_CLOCK_S) }
     var energy by remember { mutableFloatStateOf(0f) }
     var origin by remember { mutableStateOf(Offset.Zero) }
-    if (!still) {
+    // A board turned all the way down (no speed, deaf to typing) never moves:
+    // still colour pools, a frozen aurora. It draws once, with no frame loop
+    // waking the phone sixty times a second to draw the same picture.
+    val frozen = effect.speed <= 0f && effect.reactive <= 0f && effect.kind !in PRESS_DRAWN_EFFECTS
+    if (!still && !frozen) {
         LaunchedEffect(effect) {
             var last = withFrameMillis { it }
             while (true) {
@@ -129,6 +133,7 @@ fun DrawScope.paintBoardEffect(effect: KbBoardEffect, t: Float, energy: Float, o
         BoardEffectKind.SCAN -> p.scan()
         BoardEffectKind.SHEEN -> p.sheen()
         BoardEffectKind.RIPPLES -> p.ripples()
+        BoardEffectKind.ORBS -> p.orbs()
         // The press kinds are drawn from the presses themselves, in PressEffects.kt.
         else -> Unit
     }
@@ -261,6 +266,33 @@ private class Painter(
             val y = rnd(i, 4) * h + cos(t * 0.11f * (0.5f + rnd(i, 5)) + i) * 20 * dp
             val pulse = 0.55f + 0.45f * sin(t * (0.3f + 0.4f * rnd(i, 6)) + i * 1.7f)
             glow(Offset(x, y), r, color(i), alpha * 0.5f * pulse)
+        }
+    }
+
+    /**
+     * Expressive Keyboard's colour pools: a few big soft spots, each a plain
+     * radial fade from its colour to nothing, wandering slowly round where it
+     * started. Under glass keys they are what the glass has to show.
+     */
+    fun orbs() {
+        val n = (2 + (fx.density * 4).toInt()).coerceIn(2, 6)
+        val big = max(w, h)
+        for (i in 0 until n) {
+            val r = big * (0.28f + 0.22f * rnd(i, 1)) * scale
+            val x = (rnd(i, 2) * 1.1f - 0.05f) * w + sin(t * 0.09f * (0.6f + rnd(i, 3)) + i * 2.1f) * w * 0.06f
+            val y = (rnd(i, 4) * 1.2f - 0.1f) * h + cos(t * 0.07f * (0.6f + rnd(i, 5)) + i * 1.3f) * h * 0.12f
+            val c = color(i)
+            val center = Offset(x, y)
+            d.drawCircle(
+                Brush.radialGradient(
+                    0f to c.copy(alpha = c.alpha * alpha),
+                    1f to c.copy(alpha = 0f),
+                    center = center,
+                    radius = r,
+                ),
+                r,
+                center,
+            )
         }
     }
 

@@ -21239,7 +21239,12 @@ private fun KeyRows(
 
         // The press splashes, over the keys so a solid key still shows them,
         // asleep whenever nobody is typing.
-        pressEffect?.let { PressEffectOverlay(it, Modifier.matchParentSize()) }
+        pressEffect?.let {
+            PressEffectOverlay(
+                it, Modifier.matchParentSize(), keyRects::cellRects, kbTheme.keyRadiusDp.toFloat(),
+                keyGapH(state.settings).value, keyGapV(state.settings).value,
+            )
+        }
 
         // The key lighting's face and outline half, over the keys.
         keyLighting?.let {
@@ -27760,8 +27765,15 @@ private fun KeyLabel(visual: KeyVisual, settings: KeyboardSettings, pressed: Sta
     val color = if (recolours && pressed.value) visual.pressedContentColor else visual.contentColor
     // The material's label treatment — a neon glow, letters pressed into paper
     // or standing out of metal — rides on the text style every label inherits.
-    val shadow = LocalKbTheme.current.material?.let { materialLabelShadow(it, color) }
-    if (shadow == null) {
+    val material = LocalKbTheme.current.material
+    val shadow = material?.let { materialLabelShadow(it, color) }
+    // A dot-matrix label is a mask over the whole face content, so it wraps
+    // the content instead of riding on the text style.
+    if (material?.label == com.wasimaster.wmkeyboard.core.theme.MaterialLabel.DOTS) {
+        Box(Modifier.dotMatrixLabel(), contentAlignment = Alignment.Center) {
+            KeyContent(visual, settings, color)
+        }
+    } else if (shadow == null) {
         KeyContent(visual, settings, color)
     } else {
         ProvideTextStyle(LocalTextStyle.current.copy(shadow = shadow)) {

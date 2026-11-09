@@ -416,8 +416,40 @@ internal fun GraphicsLayerScope.pressMotion(motion: KeyPressMotion, d: Float, si
             // Squashed toward the board rather than about its middle.
             transformOrigin = JellyOrigin
         }
+        // The next three are Expressive Keyboard's press animations, as the
+        // same scale, lift and fade it builds every one of its presets from.
+        KeyPressMotion.POP -> {
+            scaleX = 1f + POP_SCALE * d
+            scaleY = 1f + POP_SCALE * d
+            translationY = -POP_LIFT_DP * density * d
+        }
+        KeyPressMotion.SQUISH -> {
+            scaleX = 1f + SQUISH_WIDE * d
+            scaleY = 1f - SQUISH_FLAT * d
+            translationY = SQUISH_DROP_DP * density * d
+            transformOrigin = JellyOrigin
+        }
+        KeyPressMotion.FADE -> {
+            scaleX = 1f - FADE_SCALE * d
+            scaleY = 1f - FADE_SCALE * d
+            // The spring back takes d below zero; a key is never more than opaque.
+            alpha = (1f - FADE_ALPHA * d).coerceIn(0f, 1f)
+        }
     }
 }
+
+/** A popped key grows by this much and hops this far, in dp. */
+private const val POP_SCALE = 0.1f
+private const val POP_LIFT_DP = 5f
+
+/** A squished key widens and flattens by these shares and drops this far, in dp. */
+private const val SQUISH_WIDE = 0.12f
+private const val SQUISH_FLAT = 0.18f
+private const val SQUISH_DROP_DP = 2f
+
+/** A fading key shrinks by this much and loses this share of its opacity. */
+private const val FADE_SCALE = 0.03f
+private const val FADE_ALPHA = 0.5f
 
 /** How much larger a grown key is at full press. */
 private const val GROW_SCALE = 0.22f

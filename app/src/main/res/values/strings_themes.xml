@@ -792,6 +792,7 @@
     <string name="theme_material_edge_width_title">Edge width</string>
     <string name="theme_material_label_title">Label effect</string>
     <string name="theme_material_iridescence_title">Rainbow sheen</string>
+    <string name="theme_material_soft_shadow_title">Soft shadow</string>
     <string name="theme_board_effect_section_title">Moving background</string>
     <string name="theme_board_effect_section_body">Something that moves on the board behind the keys, such as snow, stars, bubbles or an aurora. It stops when Reduce motion or power saving is on.</string>
     <string name="theme_board_effect_title">Effect</string>
@@ -858,6 +859,9 @@
     <string name="theme_material_kind_typewriter_label">Typewriter</string>
     <string name="theme_material_kind_instrument_label">Instrument panel</string>
     <string name="theme_material_kind_molten_label">Molten</string>
+    <string name="theme_material_kind_neumorph_label">Soft (neumorphic)</string>
+    <string name="theme_material_kind_pixel_label">Pixel block</string>
+    <string name="theme_material_kind_dot_matrix_label">Dot matrix</string>
     <string name="theme_material_texture_none_label">None</string>
     <string name="theme_material_texture_noise_label">Grain</string>
     <string name="theme_material_texture_linen_label">Linen</string>
@@ -869,6 +873,8 @@
     <string name="theme_material_texture_paper_label">Paper</string>
     <string name="theme_material_texture_carbon_label">Carbon weave</string>
     <string name="theme_material_texture_leather_label">Leather</string>
+    <string name="theme_material_texture_pixels_label">Pixels</string>
+    <string name="theme_material_texture_planks_label">Planks</string>
     <string name="theme_material_edge_none_label">None</string>
     <string name="theme_material_edge_stitch_label">Stitching</string>
     <string name="theme_material_edge_glow_label">Glow</string>
@@ -876,11 +882,14 @@
     <string name="theme_material_edge_rim_label">Glazed rim</string>
     <string name="theme_material_edge_inset_label">Pressed in</string>
     <string name="theme_material_edge_double_label">Double ring</string>
+    <string name="theme_material_edge_dotted_label">Dotted</string>
+    <string name="theme_material_edge_bevel_label">Pixel bevel</string>
     <string name="theme_material_label_none_label">None</string>
     <string name="theme_material_label_glow_label">Glow</string>
     <string name="theme_material_label_deboss_label">Pressed in</string>
     <string name="theme_material_label_emboss_label">Raised</string>
     <string name="theme_material_label_shadow_label">Shadow</string>
+    <string name="theme_material_label_dots_label">Dot matrix</string>
     <string name="theme_board_effect_kind_snow_label">Snow</string>
     <string name="theme_board_effect_kind_rain_label">Rain</string>
     <string name="theme_board_effect_kind_code_rain_label">Code rain</string>
@@ -904,6 +913,7 @@
     <string name="theme_board_effect_kind_scan_label">Scanner</string>
     <string name="theme_board_effect_kind_sheen_label">Sheen</string>
     <string name="theme_board_effect_kind_ripples_label">Ripples</string>
+    <string name="theme_board_effect_kind_orbs_label">Colour orbs</string>
     <string name="theme_board_effect_kind_paint_label">Paint splash</string>
     <string name="theme_board_effect_kind_ink_label">Ink blot</string>
     <string name="theme_board_effect_kind_light_pool_label">Light pool</string>
@@ -913,6 +923,7 @@
     <string name="theme_board_effect_kind_pop_label">Pop</string>
     <string name="theme_board_effect_kind_swoosh_label">Swoosh</string>
     <string name="theme_board_effect_kind_specks_label">Specks</string>
+    <string name="theme_board_effect_kind_meld_label">Meld</string>
     <string name="theme_board_effect_kind_body">Snow, Stars and the effects up to Ripples move behind the keys all the time. Paint splash, Ink blot and the effects after them splash over the keys each time you press one, and go away a moment later. If you do not choose a colour, each press gets a colour of its own.</string>
     <string name="theme_lighting_pattern_steady_label">Steady</string>
     <string name="theme_lighting_pattern_breathe_label">Breathe</string>
@@ -945,6 +956,9 @@
     <string name="theme_touch_bloom_motion_rise_label">Rise</string>
     <string name="theme_touch_bloom_motion_tilt_label">Tilt</string>
     <string name="theme_touch_bloom_motion_jelly_label">Jelly</string>
+    <string name="theme_touch_bloom_motion_pop_label">Pop</string>
+    <string name="theme_touch_bloom_motion_squish_label">Squish</string>
+    <string name="theme_touch_bloom_motion_fade_label">Fade</string>
     <string name="theme_deleted_snackbar">Deleted %1$s</string>
     <!-- Accessibility label for long-pressing a theme card: it ticks the card for deleting several themes at once. -->
     <string name="theme_pick_label">Select</string>

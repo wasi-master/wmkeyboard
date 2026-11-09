@@ -1,6 +1,12 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
 import android.graphics.Bitmap
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -30,6 +36,9 @@ import com.wasimaster.wmkeyboard.core.theme.hueShift
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.pow
+import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -57,12 +66,14 @@ internal class MaterialPaint private constructor(
     private val inner: Outline?,
     private val iridescent: Brush?,
     private val fullPath: Path,
+    private val soft: SoftShadow?,
 ) {
 
     /** The top face of a raised cap: its outline, where it sits, and the light across it. */
     private class FaceGeometry(val outline: Outline, val offset: Offset, val size: Size, val light: Brush, val gloss: Brush?)
 
     fun drawUnder(scope: DrawScope, down: Boolean) = with(scope) {
+        soft?.draw(this, down)
         if (material.edge == MaterialEdge.INK) {
             val drop = (if (down) 0.6f else 2.4f) * px * (material.edgeWidthDp / 2f).coerceIn(0.6f, 1.6f)
             translate(0f, drop) { drawOutline(outline, edgeColor) }
@@ -131,6 +142,33 @@ internal class MaterialPaint private constructor(
                     translate(STITCH_INSET_DP * px, STITCH_INSET_DP * px) {
                         drawOutline(it, lerp(edgeColor, Color.White, 0.35f).copy(alpha = 0.7f), style = Stroke(width = width))
                     }
+                }
+            }
+            // A dash of next to no length with a round cap is a dot; the gap
+            // between dots scales with their size so the ring reads as even.
+            MaterialEdge.DOTTED -> drawOutline(
+                outline, edgeColor,
+                style = Stroke(
+                    width = width,
+                    cap = StrokeCap.Round,
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(0.01f, width * DOT_PITCH)),
+                ),
+            )
+            MaterialEdge.BEVEL -> clipPath(fullPath) {
+                // Whole pixels, so the bands stay crisp the way a game block's do.
+                val b = max(1f, width.roundToInt().toFloat())
+                val w = size.width
+                val h = size.height
+                if (w > b * 2 && h > b * 2) {
+                    val lit = Color.White.copy(alpha = 0.4f)
+                    val shade = Color.Black.copy(alpha = 0.36f)
+                    // Pushed in, the light and the shade change sides.
+                    val tl = if (down) shade else lit
+                    val br = if (down) lit else shade
+                    drawRect(tl, Offset.Zero, Size(w - b, b))
+                    drawRect(tl, Offset(0f, b), Size(b, h - b * 2))
+                    drawRect(br, Offset(0f, h - b), Size(w, b))
+                    drawRect(br, Offset(w - b, 0f), Size(b, h - b))
                 }
             }
         }
@@ -210,6 +248,11 @@ internal class MaterialPaint private constructor(
                 inner = inner,
                 iridescent = iridescent,
                 fullPath = outline.toPath(),
+                soft = if (material.softShadow > 0f) {
+                    SoftShadow.of(material, shape, size, layoutDirection, density, face)
+                } else {
+                    null
+                },
             )
         }
 
@@ -218,6 +261,114 @@ internal class MaterialPaint private constructor(
 
         /** How far a stitch or an inner ring sits inside the outline. */
         private const val STITCH_INSET_DP = 2.5f
+
+        /** Centre-to-centre spacing of a dotted edge, in dot widths. */
+        private const val DOT_PITCH = 2.4f
+    }
+}
+
+/**
+ * The two soft shadows of a neumorphic key, light toward the light and dark
+ * away from it. A blur would need a mask filter, which older phones draw in
+ * software, so each shadow is a stack of the key's own outline grown a little
+ * more each time and drawn faint: where they all overlap, at the key's edge,
+ * it is darkest, and it thins out to nothing at the reach. The outlines are
+ * made here, once per key size; a press only draws them, fainter and closer.
+ */
+internal class SoftShadow private constructor(
+    private val rings: Array<Outline>,
+    private val spreads: FloatArray,
+    private val toLight: Offset,
+    private val lightColor: Color,
+    private val darkColor: Color,
+) {
+    fun draw(scope: DrawScope, down: Boolean) = with(scope) {
+        // Held, the key sinks into the board: its shadows draw in and fade.
+        val k = if (down) PRESSED_SHARE else 1f
+        for (i in rings.indices) {
+            val e = spreads[i] * (if (down) 0.6f else 1f)
+            translate(-toLight.x * k - e, -toLight.y * k - e) { drawOutline(rings[i], darkColor, alpha = k) }
+            translate(toLight.x * k - e, toLight.y * k - e) { drawOutline(rings[i], lightColor, alpha = k) }
+        }
+    }
+
+    companion object {
+        private const val RINGS = 6
+        private const val PRESSED_SHARE = 0.35f
+
+        fun of(
+            material: ResolvedMaterial,
+            shape: Shape,
+            size: Size,
+            layoutDirection: LayoutDirection,
+            density: Density,
+            face: Color,
+        ): SoftShadow {
+            val px = density.density
+            val s = material.softShadow
+            // Kept short so a shadow stays in the gap rather than on the next key.
+            val reach = (3.5f + 3.5f * s) * px
+            val rad = material.lightAngleDeg * PI.toFloat() / 180f
+            val shift = reach * 0.45f
+            val toLight = Offset(-sin(rad) * shift, -cos(rad) * shift)
+            val opaque = face.copy(alpha = 1f)
+            val lightBoard = opaque.luminance() > 0.5f
+            // A pale board takes a bright highlight and a gentle shade; a dark
+            // one barely any highlight (it would read as a grey halo) and a deep shade.
+            val lightEdge = s * if (lightBoard) 0.9f else 0.18f
+            val darkEdge = s * if (lightBoard) 0.5f else 0.75f
+            val lit = lerp(opaque, Color.White, if (lightBoard) 0.9f else 0.45f)
+            val dark = lerp(opaque, Color.Black, if (lightBoard) 0.4f else 0.65f)
+            val rings = Array(RINGS) { i ->
+                val grow = reach * (i + 1) / RINGS
+                shape.createOutline(Size(size.width + grow * 2, size.height + grow * 2), layoutDirection, density)
+            }
+            val spreads = FloatArray(RINGS) { reach * (it + 1) / RINGS }
+            // Each ring's alpha, so that all of them stacked reach the edge strength.
+            fun layer(edge: Float): Float = 1f - (1f - edge.coerceIn(0f, 0.95f)).pow(1f / RINGS)
+            return SoftShadow(
+                rings, spreads, toLight,
+                lightColor = lit.copy(alpha = layer(lightEdge)),
+                darkColor = dark.copy(alpha = layer(darkEdge)),
+            )
+        }
+    }
+}
+
+/**
+ * A label drawn as a grid of dots, the way a dot-matrix display shows text:
+ * the label is drawn into a layer of its own and only the dots of a fixed
+ * grid are kept. After Expressive Keyboard's dot-matrix labels.
+ */
+internal fun Modifier.dotMatrixLabel(cellDp: Float = DOT_MATRIX_CELL_DP): Modifier = this
+    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+    .drawWithCache {
+        val mask = DotMatrixMask.brush((cellDp * density).roundToInt().coerceAtLeast(2))
+        onDrawWithContent {
+            drawContent()
+            drawRect(mask, blendMode = BlendMode.DstIn)
+        }
+    }
+
+/** About 2.3 dp from dot to dot: fine enough to read a letter, coarse enough to see the dots. */
+private const val DOT_MATRIX_CELL_DP = 2.3f
+
+/** One opaque dot per cell on a clear ground, made once per cell size. */
+private object DotMatrixMask {
+    private val tiles = HashMap<Int, ImageBitmap>()
+
+    fun brush(cellPx: Int): ShaderBrush {
+        val tile = synchronized(tiles) {
+            tiles.getOrPut(cellPx) {
+                val bmp = Bitmap.createBitmap(cellPx, cellPx, Bitmap.Config.ARGB_8888)
+                val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                    color = android.graphics.Color.WHITE
+                }
+                android.graphics.Canvas(bmp).drawCircle(cellPx / 2f, cellPx / 2f, cellPx * 0.4f, paint)
+                bmp.asImageBitmap()
+            }
+        }
+        return ShaderBrush(ImageShader(tile, TileMode.Repeated, TileMode.Repeated))
     }
 }
 
@@ -363,6 +514,42 @@ internal object MaterialTextures {
                 val shade = if (horizontal) sin(v * PI.toFloat()) else sin(u * PI.toFloat())
                 put(x, y, shade > 0.6f, if (shade > 0.6f) (shade - 0.6f) * 0.45f else (0.6f - shade) * 0.5f)
             }
+            MaterialTexture.PIXELS -> {
+                // Square cells, mostly the plain colour, some lighter or darker:
+                // the stone and earth of a game block. 8 px cells, so 16 to the tile.
+                val cell = 8
+                for (cy in 0 until TILE / cell) for (cx in 0 until TILE / cell) {
+                    val v = random.nextFloat()
+                    if (v < 0.45f) continue
+                    val light = v > 0.75f
+                    val a = 0.1f + random.nextFloat() * 0.16f
+                    for (y in 0 until cell) for (x in 0 until cell) put(cx * cell + x, cy * cell + y, light, a)
+                }
+            }
+            MaterialTexture.PLANKS -> {
+                // Boards four cells deep with a dark seam under each, a shade of
+                // their own, a grain line here and there and the odd darker cell.
+                val cell = 8
+                val boardRows = 4
+                val cols = TILE / cell
+                val tones = FloatArray(TILE / cell / boardRows) { (random.nextFloat() - 0.5f) * 0.12f }
+                for (cy in 0 until TILE / cell) {
+                    val board = cy / boardRows
+                    val tone = tones[board]
+                    for (cx in 0 until cols) {
+                        val seam = cy % boardRows == boardRows - 1
+                        val join = (cx + board * 5) % cols == 0
+                        val knot = random.nextInt(9) == 0
+                        val (light, a) = when {
+                            seam -> false to 0.34f
+                            join -> false to 0.26f
+                            knot -> false to 0.14f
+                            else -> (tone > 0f) to abs(tone)
+                        }
+                        for (y in 0 until cell) for (x in 0 until cell) put(cx * cell + x, cy * cell + y, light, a)
+                    }
+                }
+            }
             MaterialTexture.LEATHER -> {
                 for (y in 0 until TILE) for (x in 0 until TILE) put(x, y, false, random.nextFloat() * 0.06f)
                 repeat(240) {
@@ -400,5 +587,7 @@ internal fun materialLabelShadow(material: ResolvedMaterial, label: Color): andr
             androidx.compose.ui.graphics.Shadow(tint ?: Color.Black.copy(alpha = 0.5f), Offset(0f, 1.2f * px), 1f * px)
         com.wasimaster.wmkeyboard.core.theme.MaterialLabel.SHADOW ->
             androidx.compose.ui.graphics.Shadow(tint ?: Color.Black.copy(alpha = 0.55f), Offset(0f, 2f * px), 3f * px)
+        // Not a shadow at all: the dots are a mask over the label, [dotMatrixLabel].
+        com.wasimaster.wmkeyboard.core.theme.MaterialLabel.DOTS -> null
     }
 }
