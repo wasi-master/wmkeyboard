@@ -695,6 +695,7 @@ internal fun TypingWritingSettings(
     val context = LocalContext.current
     // What decides which rows the groups hold; each row reads its own value.
     val doubleSpaceOn = settings.watch { it.autoText.doubleSpacePeriod || it.autoText.doubleSpaceTab }
+    val autoSpaceOn = settings.watch { it.autoText.spaceAfterPunctuation }
     val hugOn = settings.watch { it.autoText.hugPunctuation }
     val smartPunctuationOn = settings.watch { it.autoText.smartPunctuation }
     val recaseOn = settings.watch { it.textEditing.recapitalizeSelectionWithShift }
@@ -775,10 +776,18 @@ internal fun TypingWritingSettings(
             ToggleSetting(
                 R.string.typing_auto_space_punctuation_title,
                 stringResource(R.string.typing_auto_space_punctuation_subtitle),
-                settings.watch { it.autoText.spaceAfterPunctuation },
+                autoSpaceOn,
                 info = stringResource(R.string.typing_auto_space_punctuation_info),
                 default = SettingsDefaults.autoText.spaceAfterPunctuation,
             ) { scope.launch { repository.setAutoSpaceAfterPunctuation(it) } }
+        }
+        item(visible = autoSpaceOn, level = SettingLevel.ADVANCED) {
+            TextFieldSetting(
+                label = stringResource(R.string.typing_auto_space_punctuation_marks_title),
+                value = settings.watch { it.autoText.spaceAfterPunctuationMarks },
+                hint = stringResource(R.string.typing_auto_space_punctuation_marks_hint),
+                default = SettingsDefaults.autoText.spaceAfterPunctuationMarks,
+            ) { repository.setAutoSpacePunctuationMarks(it) }
         }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(

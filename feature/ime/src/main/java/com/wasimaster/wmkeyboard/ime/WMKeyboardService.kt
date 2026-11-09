@@ -12296,7 +12296,7 @@ open class WMKeyboardService : InputMethodService() {
         if (!state.settings.autoText.spaceAfterPunctuation || state.composer.isConversion || unspacedKey) return false
         val head = after.text.substring(0, (after.at - 1).coerceAtLeast(0))
         return when (mark) {
-            in AUTO_SPACE_PUNCTUATION -> !markContinuesNumber(head) && !markContinuesAddress(head, mark)
+            in state.settings.autoText.spaceAfterPunctuationMarks -> !markContinuesNumber(head) && !markContinuesAddress(head, mark)
             SPACED_CLOSER -> closerTakesSpace(after.text.substring(after.at))
             else -> false
         }
@@ -14164,7 +14164,7 @@ open class WMKeyboardService : InputMethodService() {
                 // spaces this rule types, so the one from the previous mark is
                 // taken back before the new mark lands.
                 val before = ic.getTextBeforeCursor(2, 0)?.toString().orEmpty()
-                if (before.length == 2 && before[1] == ' ' && before[0] in AUTO_SPACE_PUNCTUATION) {
+                if (before.length == 2 && before[1] == ' ' && before[0] in state.settings.autoText.spaceAfterPunctuationMarks) {
                     ic.deleteSurroundingText(1, 0)
                 }
             }
@@ -14270,7 +14270,7 @@ open class WMKeyboardService : InputMethodService() {
      * into an address or a password is a typo, not a courtesy. Scripts that
      * write without spaces (Chinese, Japanese, Thai…) are excluded too — their
      * punctuation is followed by nothing, and the wide forms (。、！) are not in
-     * [AUTO_SPACE_PUNCTUATION] for the same reason. A mark typed straight after
+     * the default [AutoTextSettings.spaceAfterPunctuationMarks] for the same reason. A mark typed straight after
      * a digit is part of the number ("5,000", "5:00") and gets no space
      * (#206, [markContinuesNumber]), and a full stop inside an email address
      * typed into a plain text field is the address's own dot ([markContinuesAddress]);
@@ -14318,7 +14318,7 @@ open class WMKeyboardService : InputMethodService() {
             return closerTakesSpace(ic.getTextAfterCursor(1 + skip, 0)?.drop(skip))
         }
         return state.allowsTypingIntelligence &&
-            mark in AUTO_SPACE_PUNCTUATION &&
+            mark in state.settings.autoText.spaceAfterPunctuationMarks &&
             (ic.getTextBeforeCursor(ADDRESS_LOOKBACK, 0) ?: "").let { before ->
                 !markContinuesNumber(before) && !markContinuesAddress(before, mark)
             }
@@ -14365,7 +14365,7 @@ open class WMKeyboardService : InputMethodService() {
      * press and the shift press that take that space back ask this.
      */
     private fun isAutoSpacedMark(c: Char): Boolean =
-        c in AUTO_SPACE_PUNCTUATION || c == SPACED_CLOSER || mayCloseQuote(c)
+        c in _uiState.value.settings.autoText.spaceAfterPunctuationMarks || c == SPACED_CLOSER || mayCloseQuote(c)
 
     /**
      * Types the space that follows an auto-spaced punctuation mark, unless the
@@ -15838,7 +15838,7 @@ open class WMKeyboardService : InputMethodService() {
                 val committed = fieldForm(revert.committed, state)
                 val wide = ic.getTextBeforeCursor(committed.length + 2, 0)?.toString()
                 val markAndSpace = wide != null && wide.length == committed.length + 2 &&
-                    wide.endsWith(' ') && wide[wide.length - 2] in AUTO_SPACE_PUNCTUATION &&
+                    wide.endsWith(' ') && wide[wide.length - 2] in state.settings.autoText.spaceAfterPunctuationMarks &&
                     wide.dropLast(2) == committed
                 val probe = if (markAndSpace) wide else wide?.takeLast(committed.length + 1)
                 val tail = when {
@@ -36532,7 +36532,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun spacedAfterVoiceMark(ic: InputConnection, text: String): String {
         val state = _uiState.value
         if (!state.settings.autoText.spaceAfterPunctuation || !state.allowsTypingIntelligence) return text
-        if (text.lastOrNull()?.let { it in AUTO_SPACE_PUNCTUATION } != true) return text
+        if (text.lastOrNull()?.let { it in state.settings.autoText.spaceAfterPunctuationMarks } != true) return text
         val after = ic.getTextAfterCursor(1, 0)?.firstOrNull()
         return if (after != null && after.isWhitespace()) text else "$text "
     }
@@ -58510,14 +58510,10 @@ open class WMKeyboardService : InputMethodService() {
         private const val IMMEDIATE_TRIGGER_LOOKBACK = 128
 
         /**
-         * Marks that get a space typed after them when
-         * [AutoTextSettings.spaceAfterPunctuation] is on — the sentence
-         * enders plus the clause separators.
-         *
-         * Deliberately ASCII-and-danda only. The CJK wide forms (。、！？) are
-         * followed by no space in their own typography, and the closing
-         * brackets and quotes are left out because the space belongs after
-         * whatever *they* close, not after the mark itself.
+         * The marks that end a word for pattern expansion and the
+         * autocorrect-on-punctuation rule: the sentence enders plus the
+         * clause separators. Which marks get a space typed after them is the
+         * user's list, [AutoTextSettings.spaceAfterPunctuationMarks].
          */
         private val AUTO_SPACE_PUNCTUATION = charArrayOf('.', '!', '?', '।', ',', ';', ':')
         private const val SHIFT_DOUBLE_TAP_MS = 350L

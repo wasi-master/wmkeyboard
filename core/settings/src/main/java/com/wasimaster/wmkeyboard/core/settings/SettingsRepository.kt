@@ -2922,6 +2922,14 @@ data class AutoTextSettings(
      */
     val spaceAfterPunctuation: Boolean = false,
     /**
+     * The marks [spaceAfterPunctuation] types a space after, one character
+     * each with no separators. Defaults to the sentence enders and clause
+     * separators, danda included. The closing bracket and the closing quotes
+     * are spaced by their own rule (only where they end what they close), so
+     * listing them here changes nothing.
+     */
+    val spaceAfterPunctuationMarks: String = SPACE_AFTER_PUNCTUATION_MARKS_DEFAULT,
+    /**
      * Take back a space typed in front of a punctuation mark, so "Hey ." lands
      * as "Hey." and "yes , no" as "yes, no".
      *
@@ -3003,6 +3011,12 @@ data class AutoTextSettings(
          * caught.
          */
         const val HUG_PUNCTUATION_MARKS_DEFAULT = ".,?!;:\u0964\u060C\u061B\u061F\u06D4"
+
+        /**
+         * Deliberately ASCII-and-danda only. The CJK wide forms (。、！？) are
+         * followed by no space in their own typography.
+         */
+        const val SPACE_AFTER_PUNCTUATION_MARKS_DEFAULT = ".!?\u0964,;:"
 
         /** Longest mark list the app stores. */
         const val HUG_PUNCTUATION_MARKS_MAX = 24
@@ -11503,6 +11517,7 @@ class SettingsRepository(private val context: Context) {
         private val DOUBLE_SPACE_TAB = booleanPreferencesKey("double_space_tab")
         private val AUTO_SPACE_AFTER_PUNCTUATION =
             booleanPreferencesKey("auto_space_after_punctuation")
+        private val AUTO_SPACE_PUNCTUATION_MARKS = stringPreferencesKey("auto_space_punctuation_marks")
         private val HUG_PUNCTUATION = booleanPreferencesKey("hug_punctuation")
         private val HUG_PUNCTUATION_MARKS = stringPreferencesKey("hug_punctuation_marks")
         private val LANGUAGE_PUNCTUATION_SPACING =
@@ -13736,6 +13751,8 @@ class SettingsRepository(private val context: Context) {
             doubleSpaceTab = p[DOUBLE_SPACE_TAB] ?: defaults.autoText.doubleSpaceTab,
             spaceAfterPunctuation = p[AUTO_SPACE_AFTER_PUNCTUATION]
                 ?: defaults.autoText.spaceAfterPunctuation,
+            spaceAfterPunctuationMarks = p[AUTO_SPACE_PUNCTUATION_MARKS]?.takeIf { it.isNotBlank() }
+                ?: defaults.autoText.spaceAfterPunctuationMarks,
             hugPunctuation = p[HUG_PUNCTUATION] ?: defaults.autoText.hugPunctuation,
             hugPunctuationMarks = p[HUG_PUNCTUATION_MARKS]?.takeIf { it.isNotBlank() }
                 ?: defaults.autoText.hugPunctuationMarks,
@@ -20701,6 +20718,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutoSpaceAfterPunctuation(value: Boolean) =
         editPrefs { it[AUTO_SPACE_AFTER_PUNCTUATION] = value }
+
+    /** Same rules as [setHugPunctuationMarks]: no whitespace, and a capped length. */
+    suspend fun setAutoSpacePunctuationMarks(value: String) = editPrefs {
+        it[AUTO_SPACE_PUNCTUATION_MARKS] = value
+            .filterNot { c -> c.isWhitespace() }
+            .take(AutoTextSettings.HUG_PUNCTUATION_MARKS_MAX)
+    }
 
     suspend fun setHugPunctuation(value: Boolean) =
         editPrefs { it[HUG_PUNCTUATION] = value }
