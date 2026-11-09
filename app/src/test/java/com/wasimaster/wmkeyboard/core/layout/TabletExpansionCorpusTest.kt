@@ -56,7 +56,7 @@ class TabletExpansionCorpusTest {
 
     @Test
     fun `the corpus is the whole shipped set`() {
-        assertEquals("built-ins plus hand-authored assets", 39 + 1_144, handAuthored.size)
+        assertEquals("built-ins plus hand-authored assets", 39 + 1_145, handAuthored.size)
         assertTrue(
             "converted Keyman grids are missing from the corpus",
             corpus.size - handAuthored.size > 800,
@@ -104,6 +104,9 @@ class TabletExpansionCorpusTest {
                 // its neighbours on flick arms, and the transform declines any
                 // key with flicks.
                 "en_flick",
+                // Unexpected Keyboard's grid: every letter carries digits and
+                // symbols on its corner flicks, so it declines for the same reason.
+                "en_unexpected_qwerty",
                 // Its Khipro and Avro twins (Telegram group), the same grid.
                 "bn_khipro_flick", "bn_avro_flick",
                 "ipa", "music", "nqo_nko",

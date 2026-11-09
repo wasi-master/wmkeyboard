@@ -225,7 +225,7 @@ fun validateLayout(spec: LayoutSpec): List<LayoutFinding> {
             )
         }
         if (layer != LayoutLayer.LETTERS && layer.isCycled && rows.isNotEmpty() &&
-            rows.flatten().none { it.action == KeyAction.Letters || it.action == KeyAction.Symbols }
+            rows.flatten().none { it.leavesCycledLayer(layer) }
         ) {
             findings += LayoutFinding(
                 LayoutSeverity.BLOCKING,
@@ -558,8 +558,7 @@ fun LayoutSpec.repair(): RepairedLayout {
     for (layer in LayoutLayer.entries) {
         if (layer == LayoutLayer.LETTERS || !layer.isCycled) continue
         val spec = layers[layer.key] ?: continue
-        val hasWayBack = spec.rows.flatten()
-            .any { it.action == KeyAction.Letters || it.action == KeyAction.Symbols }
+        val hasWayBack = spec.rows.flatten().any { it.leavesCycledLayer(layer) }
         if (!hasWayBack) {
             repairs += LayoutMessage(
                 R.string.core_lang_repair_letters_key_added,
@@ -575,6 +574,15 @@ fun LayoutSpec.repair(): RepairedLayout {
 
     return RepairedLayout(copy(layers = layers), repairs)
 }
+
+/**
+ * Whether pressing this key takes the user off [layer], one of the cycled
+ * layers: the ABC or symbols key on any of them, and on the Fn layer its own
+ * Fn key too, which toggles back to the layer Fn was pressed on.
+ */
+private fun Key.leavesCycledLayer(layer: LayoutLayer): Boolean =
+    action == KeyAction.Letters || action == KeyAction.Symbols ||
+        (layer == LayoutLayer.FN && action == KeyAction.Fn)
 
 /**
  * Whether pressing this key can take the user off a secondary layout: back to

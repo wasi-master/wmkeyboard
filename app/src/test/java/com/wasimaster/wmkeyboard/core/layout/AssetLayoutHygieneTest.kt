@@ -307,7 +307,7 @@ class AssetLayoutHygieneTest {
      * has to be one the layouts actually mean to show.
      */
     private val wordLabelsInUse = setOf(
-        "ABC", "abc", "OK", "Fn", "Esc", "Tab", "Del", "Ins", "IPA",
+        "ABC", "abc", "OK", "Fn", "Ctrl", "Esc", "Tab", "Del", "Ins", "IPA",
         // The T9 pinyin pad labels its keys with the letter group, Nokia-style.
         "DEF", "GHI", "JKL", "MNO", "PQRS", "TUV", "WXYZ",
         // A single letter of the Klingon alphabet, written with three Latin

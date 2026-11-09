@@ -5,7 +5,6 @@
     "id": "asset_en_unexpected_qwerty",
     "name": "QWERTY corner swipes (Unexpected Keyboard)",
     "langId": "en",
-    "tabletExpand": false,
     "version": 2,
     "layers": {
       "letters": {
