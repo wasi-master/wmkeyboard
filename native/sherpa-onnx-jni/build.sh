@@ -15,6 +15,17 @@ SHERPA_COMMIT=af2d8d81dbfa61c4cea4c568da78f3982edca005
 # gradle/libs.versions.toml.
 ORT_TAG=v1.31.1
 ORT_COMMIT=6af1a932e2286d5c58166085d24c68783033edee
+# libwmsherpa_qnn.so (qnn_jni.cpp), arm64 only, its own gate (`sherpaqnn`,
+# never F-Droid's: build-fdroid-libs.sh sets WMKB_SHERPA_QNN=0). It is
+# compiled against Qualcomm's QNN API headers: include/QNN of QAIRT
+# 2.40.0.251030, the release k2-fsa compiled the context binaries this library
+# runs with, read out of Qualcomm's public SDK zip by range requests
+# (../executorch-jni/qnn_headers.py) and checked against this digest of the
+# tree. Compiled against, never committed. QNN_INCLUDE points at a QAIRT SDK's
+# include/QNN instead.
+QNN_VERSION=2.40.0.251030
+QNN_ZIP_URL=https://softwarecenter.qualcomm.com/api/download/software/sdks/Qualcomm_AI_Runtime_Community/All/$QNN_VERSION/v$QNN_VERSION.zip
+QNN_HEADERS_DIGEST=dde637c3e8093ef8b987d3696dbeaf406e383fd9e79a3522668ac11b9703524b
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
@@ -86,34 +97,73 @@ triple() {
     esac
 }
 
+# build ABI [qnn]: libwmsherpa.so, or with qnn libwmsherpa_qnn.so from a
+# tree of its own configured with WMSHERPA_QNN.
 build() {
-    local abi=$1
-    local out=$WORK/build-$abi
+    local abi=$1 variant=${2:-}
+    local out=$WORK/build-$abi${variant:+-$variant}
     local stub=$WORK/stub-$abi
+    local target=wmsherpa lib=libwmsherpa.so dest_root=$OUT
+    local extra=() map=$MAP
+    if [ "$variant" = qnn ]; then
+        target=wmsherpa_qnn lib=libwmsherpa_qnn.so dest_root=$QNN_OUT
+        extra=(-DWMSHERPA_QNN=ON)
+        map="$MAP -ffile-prefix-map=$(cd "$QNN_ROOT/include/QNN" && pwd -P)=qnn"
+    fi
     mkdir -p "$stub"
     "$BIN/$(triple "$abi")-clang" -shared -fPIC -O2 -Wl,-soname,libonnxruntime.so \
         -o "$stub/libonnxruntime.so" "$HERE/ort_stub.c"
     # sherpa-onnx's own dependencies (kaldi-native-fbank, kaldi-decoder,
     # simple-sentencepiece, OpenFst, ...) come from its CMake at the
     # versions this tag pins.
-    SHERPA_ONNXRUNTIME_INCLUDE_DIR=$HEADERS SHERPA_ONNXRUNTIME_LIB_DIR=$stub \
+    SHERPA_ONNXRUNTIME_INCLUDE_DIR=$HEADERS SHERPA_ONNXRUNTIME_LIB_DIR=$stub QNN_SDK_ROOT=$QNN_ROOT \
     cmake -S "$HERE" -B "$out" -G Ninja \
         -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake" \
         -DANDROID_ABI="$abi" -DANDROID_PLATFORM=android-24 -DANDROID_STL=c++_static \
         -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_C_FLAGS="$MAP" -DCMAKE_CXX_FLAGS="$MAP" \
-        -DSHERPA_SRC="$SRC" > "$out.log" 2>&1 \
+        -DCMAKE_C_FLAGS="$map" -DCMAKE_CXX_FLAGS="$map" \
+        -DSHERPA_SRC="$SRC" ${extra[@]+"${extra[@]}"} > "$out.log" 2>&1 \
         || { tail -40 "$out.log"; exit 1; }
-    cmake --build "$out" --target wmsherpa >> "$out.log" 2>&1 || { tail -60 "$out.log"; exit 1; }
-    local dest=$OUT/$abi
+    cmake --build "$out" --target "$target" >> "$out.log" 2>&1 || { tail -60 "$out.log"; exit 1; }
+    local dest=$dest_root/$abi
     mkdir -p "$dest"
-    "$BIN/llvm-strip" --strip-unneeded -o "$dest/libwmsherpa.so" "$out/libwmsherpa.so"
-    echo "$abi libwmsherpa.so: $(wc -c < "$dest/libwmsherpa.so") bytes"
+    "$BIN/llvm-strip" --strip-unneeded -o "$dest/$lib" "$out/$lib"
+    echo "$abi $lib: $(wc -c < "$dest/$lib") bytes"
 }
 
 # WMKB_ABIS narrows the build to some of the three (native/build-fdroid-libs.sh).
 wanted() { case " ${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64} " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
 
-for abi in arm64-v8a armeabi-v7a x86_64; do
-    if wanted "$abi"; then build "$abi"; fi
-done
+QNN_ROOT=
+QNN_OUT=${SHERPA_QNN_OUT:-$REPO/core/voice/src/sherpaqnn/jniLibs}
+if [ "${WMKB_SHERPA_QNN:-1}" = 1 ] && wanted arm64-v8a; then
+    QNN_ROOT=$WORK/qnn-sdk
+    mkdir -p "$QNN_ROOT/include"
+    if [ -n "${QNN_INCLUDE:-}" ]; then
+        ln -sfn "$(cd "$QNN_INCLUDE" && pwd -P)" "$QNN_ROOT/include/QNN"
+    else
+        retry python3 -I "$HERE/../executorch-jni/qnn_headers.py" "$QNN_ZIP_URL" "$QNN_HEADERS_DIGEST" "$QNN_ROOT/include"
+    fi
+    [ -f "$QNN_ROOT/include/QNN/QnnInterface.h" ] || { echo "no QNN headers under $QNN_ROOT" >&2; exit 1; }
+fi
+
+# WMKB_SHERPA_PLAIN=0 builds the QNN library alone, leaving libwmsherpa.so
+# as it is.
+if [ "${WMKB_SHERPA_PLAIN:-1}" = 1 ]; then
+    for abi in arm64-v8a armeabi-v7a x86_64; do
+        if wanted "$abi"; then build "$abi"; fi
+    done
+fi
+if [ -n "$QNN_ROOT" ]; then
+    build arm64-v8a qnn
+    # The split's armeabi-v7a and x86_64 stand-ins (feature/sherpaqnn/stub/
+    # stub.c says why), made with the arm64 library so the two never part:
+    # Play's bundle refuses a module that covers other ABIs than the base.
+    STUBS=${SHERPA_QNN_STUBS:-$REPO/feature/sherpaqnn/src/main/jniLibs}
+    for t in armv7a-linux-androideabi28:armeabi-v7a x86_64-linux-android28:x86_64; do
+        mkdir -p "$STUBS/${t##*:}"
+        "$BIN/clang" --target="${t%%:*}" -O2 -shared -fPIC -nostdlib++ -Wl,--build-id=sha1 \
+            -Wl,-z,max-page-size=16384 -o "$WORK/stub.so" "$REPO/feature/sherpaqnn/stub/stub.c"
+        "$BIN/llvm-strip" --strip-unneeded -o "$STUBS/${t##*:}/libwmsherpa_qnn.so" "$WORK/stub.so"
+    done
+fi

@@ -63,6 +63,8 @@ fi
 # No Qualcomm code in F-Droid's libraries: ExecuTorch's QNN variant is
 # compiled against Qualcomm's proprietary QNN headers.
 export WMKB_ET_QNN=0
+# The same for sherpa-onnx's QNN library (libwmsherpa_qnn).
+export WMKB_SHERPA_QNN=0
 # Nor MediaTek's NeuroPilot one: it compiles against MediaTek's NeuronAdapter.h.
 export WMKB_ET_NEURON=0
 

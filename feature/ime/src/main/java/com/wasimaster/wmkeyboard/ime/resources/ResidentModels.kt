@@ -18,6 +18,7 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
 import com.wasimaster.wmkeyboard.core.voice.futoswipe.FutoSwipe
 import com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation
 import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualEngine
+import com.wasimaster.wmkeyboard.core.voice.sherpa.QnnSpeech
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.speech.KokoroSpeech
@@ -136,6 +137,13 @@ object ResidentModels {
             // knows whether one is running; it checks before it lets go. With
             // no keyboard running there is no dictation either.
             { keyboardRelease?.invoke() ?: withContext(EtNative.dispatcher) { EtNative.release() } },
+        ),
+        Part(
+            "qnn_speech", ModelKind.VOICE_TYPING,
+            { QnnSpeech.loadedModel()?.let { model("qnn_speech", ModelKind.VOICE_TYPING, it) } },
+            // Parakeet's and Moonshine's NPU builds run on the ExecuTorch
+            // thread, under the same dictation check as their CPU builds.
+            { keyboardRelease?.invoke() ?: withContext(EtNative.dispatcher) { QnnSpeech.release() } },
         ),
         Part(
             "punctuation", ModelKind.PUNCTUATION,

@@ -7,6 +7,8 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtRunner
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 import com.wasimaster.wmkeyboard.core.voice.executorch.PieceVocab
 import com.wasimaster.wmkeyboard.core.voice.executorch.Tensor
+import com.wasimaster.wmkeyboard.core.voice.parakeet.ParakeetEngine
+import com.wasimaster.wmkeyboard.core.voice.sherpa.QnnSpeech
 import java.io.File
 import kotlin.math.ceil
 
@@ -20,6 +22,10 @@ import kotlin.math.ceil
  * `forward_cached` takes the tokens so far plus the encoder's output and
  * returns them with the next token on the end, keeping its attention cache
  * inside the program between calls. Every call runs on [EtNative.dispatcher].
+ *
+ * An NPU build ([EtModel.npu], k2-fsa's QNN context binaries for one
+ * Snapdragon chip, compiled for 10 s clips) runs through [QnnSpeech] instead,
+ * on the same thread; a longer clip is decoded in pieces.
  */
 object MoonshineEngine {
 
@@ -46,12 +52,16 @@ object MoonshineEngine {
     /** Opens [model] ahead of a clip. On [EtNative.dispatcher] only. Throws when it will not load. */
     fun warm(filesDir: File, model: EtModel) {
         require(model.engine == EtEngine.MOONSHINE)
-        EtNative.programs(files(filesDir, model))
-        vocabFor(filesDir, model)
+        val runs = ParakeetEngine.cpuIfNeeded(filesDir, model)
+        if (runs.npu != null) return QnnSpeech.warm(filesDir, runs)
+        EtNative.programs(files(filesDir, runs))
+        vocabFor(filesDir, runs)
     }
 
     /** [pcm] (16 kHz mono, in [-1, 1]) as text. On [EtNative.dispatcher] only. */
-    fun transcribe(filesDir: File, model: EtModel, pcm: FloatArray): String {
+    fun transcribe(filesDir: File, chosen: EtModel, pcm: FloatArray): String {
+        val model = ParakeetEngine.cpuIfNeeded(filesDir, chosen)
+        if (model.npu != null) return QnnSpeech.transcribe(filesDir, model, pcm)
         val (encoder, decoder) = EtNative.programs(files(filesDir, model))
         return vocabFor(filesDir, model).decode(decode(encoder, decoder, pcm)).trim()
     }

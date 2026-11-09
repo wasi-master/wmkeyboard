@@ -19,6 +19,10 @@ Add **Moonshine** to the **Recognition engine** list and move it to the top, the
 
 Moonshine transcribes a phrase once you stop, and a phrase can run to 30 seconds. Where Whisper always pads what you said to a 30-second window, Moonshine reads only as much audio as there is, so a three-second phrase costs a three-second encode, which is what makes it quick on a phone. The text arrives punctuated and capitalised, then goes through the same spacing, spoken punctuation and undo as any other dictation (see [Voice typing](/tools/voice/)).
 
+## On a Snapdragon NPU
+
+On a phone with a Snapdragon 8 Gen 3, 8 Elite or 8 Elite Gen 5, the model list also has **Moonshine Tiny (NPU, 10 s)**: the same model compiled for that chip's NPU by the [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) project, one 58 MB archive from its GitHub releases, checked against its SHA-256. It is compiled for 10-second clips: a shorter phrase is padded to 10 seconds, and a longer one is cut at its quietest moments and transcribed piece by piece. Once downloaded it is used over the standard build. The first time, dictation also fetches sherpa-onnx's NPU library and the phone's NPU runtime; until both are there it uses the standard build if that is downloaded. It has not been measured on a phone yet. The F-Droid build does not offer it.
+
 ## Moonshine, Asr4All or Whisper
 
 For English, [Asr4All](/tools/asr4all/) shows the words while you speak, and the [whisper.cpp Whisper models](/tools/whisper/) take your own words as hints and run to two minutes. Moonshine is the small, quick one: the least to download among them for its accuracy, and the fastest to answer a short phrase.

@@ -43,6 +43,21 @@ DPDFNet baseline model (DeepFilterNet2 with dual-path RNN blocks, Apache-2.0,
 [Choosing the Strong model](#choosing-the-strong-model) below for why that model
 and that mix.
 
+A second library, `libwmsherpa_qnn.so` (`qnn_jni.cpp`, arm64 only, its own
+gate `sherpaqnn`), is sherpa-onnx configured again with
+`SHERPA_ONNX_ENABLE_QNN`, for the NPU builds of Parakeet TDT 0.6B v3 and
+Moonshine Tiny: k2-fsa's QNN context binaries from the `asr-models-qnn-binary-2`
+and `-3` releases, one set per Snapdragon chip and fixed clip length, run by
+sherpa-onnx's offline recognizer (`provider=qnn`). The C API has no QNN
+fields, so this bridge uses the C++ API. It compiles against QAIRT
+2.40.0.251030's `include/QNN` (the SDK k2-fsa compiled the binaries with,
+fetched by `../executorch-jni/qnn_headers.py`) and opens Qualcomm's
+`libQnnHtp.so` and `libQnnSystem.so` by path from the `npu` gate's runtime
+directory at run time; `ADSP_LIBRARY_PATH` points the DSP at the chip's skel
+there. Kotlin side: `SherpaQnnNative` and `QnnSpeech`. Built by `build.sh`
+unless `WMKB_SHERPA_QNN=0`; `WMKB_SHERPA_PLAIN=0 WMKB_ABIS=arm64-v8a` builds
+only it.
+
 The bridge is a thin JNI layer over sherpa-onnx's C API, which is linked in
 statically with only speech recognition switched on (no TTS, no diarization,
 no audio I/O, no servers). ONNX Runtime is not linked in. `libwmsherpa.so`

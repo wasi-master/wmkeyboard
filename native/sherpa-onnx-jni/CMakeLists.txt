@@ -7,6 +7,11 @@ project(wmsherpa C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(SHERPA_SRC "" CACHE PATH "sherpa-onnx source tree")
+# The second library, libwmsherpa_qnn (qnn_jni.cpp): the same sherpa-onnx with
+# its QNN recognizers switched on, which needs QNN_SDK_ROOT in the environment
+# (only its include/QNN is read). A tree of its own, since the switch changes
+# how all of sherpa-onnx compiles; build.sh configures it apart.
+option(WMSHERPA_QNN "Build libwmsherpa_qnn instead of libwmsherpa" OFF)
 if (NOT EXISTS "${SHERPA_SRC}/sherpa-onnx/c-api/c-api.h")
     message(FATAL_ERROR "SHERPA_SRC must point at a sherpa-onnx checkout")
 endif()
@@ -36,6 +41,11 @@ set(SHERPA_ONNX_ENABLE_SPEAKER_DIARIZATION OFF CACHE BOOL "" FORCE)
 set(SHERPA_ONNX_BUILD_C_API_EXAMPLES       OFF CACHE BOOL "" FORCE)
 set(SHERPA_ONNX_ENABLE_GPU                 OFF CACHE BOOL "" FORCE)
 set(SHERPA_ONNX_USE_PRE_INSTALLED_ONNXRUNTIME_IF_AVAILABLE ON CACHE BOOL "" FORCE)
+set(SHERPA_ONNX_ENABLE_QNN                 ${WMSHERPA_QNN} CACHE BOOL "" FORCE)
+if (WMSHERPA_QNN)
+    # Recognition only: the QNN library reads no text aloud.
+    set(SHERPA_ONNX_ENABLE_TTS OFF CACHE BOOL "" FORCE)
+endif()
 
 add_subdirectory("${SHERPA_SRC}" sherpa-onnx EXCLUDE_FROM_ALL)
 
@@ -47,6 +57,23 @@ include(FetchContent)
 FetchContent_GetProperties(kaldi_native_fbank)
 if (NOT EXISTS "${kaldi_native_fbank_SOURCE_DIR}/kaldi-native-fbank/csrc/online-feature.h")
     message(FATAL_ERROR "sherpa-onnx did not fetch kaldi-native-fbank")
+endif()
+
+if (WMSHERPA_QNN)
+    # sherpa-onnx's C++ API; its QNN code dlopens Qualcomm's libraries at run
+    # time, so nothing of Qualcomm's is linked.
+    add_library(wmsherpa_qnn SHARED qnn_jni.cpp)
+    target_include_directories(wmsherpa_qnn PRIVATE "${SHERPA_SRC}" "$ENV{SHERPA_ONNXRUNTIME_INCLUDE_DIR}")
+    target_link_libraries(wmsherpa_qnn PRIVATE sherpa-onnx-core log dl)
+    target_compile_options(wmsherpa_qnn PRIVATE -fvisibility=hidden -ffunction-sections -fdata-sections)
+    target_link_options(wmsherpa_qnn PRIVATE
+        -Wl,--no-undefined
+        -Wl,--gc-sections
+        -Wl,--exclude-libs,ALL
+        -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/jni_qnn.map
+        -Wl,--build-id=sha1
+        -Wl,-z,max-page-size=16384)
+    return()
 endif()
 
 add_library(wmsherpa SHARED sherpa_jni.cpp vits_jni.cpp kokoro_jni.cpp omnilingual_jni.cpp dpdfnet_jni.cpp

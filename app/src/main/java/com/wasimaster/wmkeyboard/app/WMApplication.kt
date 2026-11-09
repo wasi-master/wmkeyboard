@@ -162,6 +162,11 @@ open class WMApplication : Application() {
                 com.wasimaster.wmkeyboard.core.localllm.NpuRuntime.directory(this, it)
             }
         }
+        // The same chip picks the NPU builds of Parakeet and Moonshine that
+        // sherpa-onnx's QNN library runs.
+        com.wasimaster.wmkeyboard.core.voice.executorch.EtNative.qnnSoc = {
+            com.wasimaster.wmkeyboard.core.localllm.NpuSupport.soc
+        }
         // Sync between devices: keeps its jobs in step with the settings and
         // pushes shortly after a synced setting changes. Here because the
         // keyboard and the settings app share this process, and either may be

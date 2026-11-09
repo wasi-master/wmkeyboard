@@ -10597,8 +10597,15 @@ open class WMKeyboardService : InputMethodService() {
         WhisperEngine.release()
         WhisperCpp.release()
         // Only between dictations: the program is the running stream's.
-        if (asr4allJob?.isActive != true && EtNative.isOpen) {
-            serviceScope.launch(EtNative.dispatcher) { if (asr4allJob?.isActive != true) EtNative.release() }
+        // Parakeet's and Moonshine's NPU builds (QnnSpeech) share the thread and the check.
+        val qnn = com.wasimaster.wmkeyboard.core.voice.sherpa.QnnSpeech
+        if (asr4allJob?.isActive != true && (EtNative.isOpen || qnn.isOpen)) {
+            serviceScope.launch(EtNative.dispatcher) {
+                if (asr4allJob?.isActive != true) {
+                    EtNative.release()
+                    qnn.release()
+                }
+            }
         }
         if (asr4allJob?.isActive != true &&
             (SherpaEngine.isOpen || OmnilingualEngine.isOpen || DictationPunctuation.isOpen)

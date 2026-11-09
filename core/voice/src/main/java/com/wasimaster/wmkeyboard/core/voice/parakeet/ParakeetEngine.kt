@@ -8,6 +8,7 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtRunner
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 import com.wasimaster.wmkeyboard.core.voice.executorch.PieceVocab
 import com.wasimaster.wmkeyboard.core.voice.executorch.Tensor
+import com.wasimaster.wmkeyboard.core.voice.sherpa.QnnSpeech
 import java.io.File
 
 /**
@@ -22,6 +23,9 @@ import java.io.File
  * joint) and its own constants as methods (blank_id, num_rnn_layers,
  * pred_hidden), so nothing about the model's shape is hard-coded here beyond
  * defaults for those. Every call runs on [EtNative.dispatcher].
+ *
+ * An NPU build ([EtModel.npu], k2-fsa's QNN context binaries for one
+ * Snapdragon chip) runs through [QnnSpeech] instead, on the same thread.
  */
 object ParakeetEngine {
 
@@ -44,6 +48,7 @@ object ParakeetEngine {
     fun warm(filesDir: File, model: EtModel) {
         require(model.engine == EtEngine.PARAKEET)
         val runs = runnable(filesDir, model)
+        if (runs.npu != null) return QnnSpeech.warm(filesDir, runs)
         EtNative.programs(listOf(EtStore.file(filesDir, runs, PROGRAM)))
         vocabFor(filesDir, runs)
     }
@@ -51,6 +56,7 @@ object ParakeetEngine {
     /** [pcm] (16 kHz mono, in [-1, 1]) as text. On [EtNative.dispatcher] only. */
     fun transcribe(filesDir: File, chosen: EtModel, pcm: FloatArray): String {
         val model = runnable(filesDir, chosen)
+        if (model.npu != null) return QnnSpeech.transcribe(filesDir, model, pcm, minOf(pcm.size, MAX_CLIP_SECONDS * 16_000))
         val program = EtNative.programs(listOf(EtStore.file(filesDir, model, PROGRAM))).single()
         val tokens = decode(program, pcm, program.constant("blank_id")?.toInt() ?: DEFAULT_BLANK)
         return vocabFor(filesDir, model).decode(tokens).trim()
@@ -65,6 +71,15 @@ object ParakeetEngine {
     fun newStream(filesDir: File, chosen: EtModel): ParakeetStream {
         require(chosen.engine == EtEngine.PARAKEET)
         val model = runnable(filesDir, chosen)
+        if (model.npu != null) {
+            QnnSpeech.warm(filesDir, model)
+            // Each pass pads to the bucket it lands in, so a pass costs the
+            // same however little was said; QnnSpeech moves to a longer
+            // bucket, if one is on the device, as the phrase outgrows it.
+            return ParakeetStream(MAX_CLIP_SECONDS * 16_000, transcribe = { pcm, count ->
+                QnnSpeech.transcribe(filesDir, model, pcm, count)
+            })
+        }
         val program = EtNative.programs(listOf(EtStore.file(filesDir, model, PROGRAM))).single()
         val vocab = vocabFor(filesDir, model)
         val blank = program.constant("blank_id")?.toInt() ?: DEFAULT_BLANK
@@ -81,11 +96,26 @@ object ParakeetEngine {
      * delegate; with no twin to fall back on, it throws, as any model that
      * will not load does.
      */
-    private fun runnable(filesDir: File, model: EtModel): EtModel {
-        if (!model.gpu || EtNative.delegate == "vulkan") return model
-        EtNative.requestVulkan()
+    private fun runnable(filesDir: File, model: EtModel): EtModel = cpuIfNeeded(filesDir, model)
+
+    /**
+     * [model], or the CPU model of the same weights when [model] is a GPU or
+     * NPU build that cannot run in this process right now: ExecuTorch's
+     * Vulkan build not the one loaded, or sherpa-onnx's QNN library or the
+     * chip's QNN runtime not here yet (each is asked for, so a later
+     * dictation has it). With no CPU twin on the device, it throws, as any
+     * model that will not load does. Moonshine's NPU builds go through it too.
+     */
+    internal fun cpuIfNeeded(filesDir: File, model: EtModel): EtModel {
+        val runsNow = when {
+            model.npu != null -> QnnSpeech.usable()
+            model.gpu -> EtNative.delegate == "vulkan" || run { EtNative.requestVulkan(); false }
+            else -> true
+        }
+        if (runsNow) return model
         val twin = model.cpuTwin?.let(EtCatalog::byId)?.takeIf { EtStore.isDownloaded(filesDir, it) }
-        return twin ?: error("${model.label} needs ExecuTorch's Vulkan build, which is not loaded")
+        val needs = if (model.npu != null) "sherpa-onnx's NPU library and this phone's NPU runtime" else "ExecuTorch's Vulkan build"
+        return twin ?: error("${model.label} needs $needs, which is not loaded")
     }
 
     /** The longest clip the preprocessor takes, in samples; 50 s for v3. */

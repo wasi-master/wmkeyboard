@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.voice.executorch
 import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualLanguages
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
+import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaQnnNative
 import com.wasimaster.wmkeyboard.core.voice.vosk.VoskNative
 import java.io.File
 import java.security.MessageDigest
@@ -164,13 +165,34 @@ class EtModel(
      * slower than the CPU build.
      */
     val gpu: Boolean = false,
-    /** For a [gpu] model, the id of the CPU model exported from the same weights, used while the GPU build cannot run. */
+    /**
+     * For a [gpu] or [npu] model, the id of the CPU model of the same weights,
+     * used while the GPU or NPU build cannot run.
+     */
     val cpuTwin: String? = null,
+    /**
+     * The Snapdragon chip (`SM8750`) a set of QNN context binaries was
+     * compiled for: k2-fsa's ready-made builds, which run on that chip's NPU
+     * through sherpa-onnx's QNN library ([SherpaQnnNative], the `sherpaqnn`
+     * gate) and nowhere else. Offered only on that chip
+     * ([EtNative.qnnSoc]), and it outranks a CPU model of the same size.
+     */
+    val npu: String? = null,
+    /**
+     * For an [npu] model, the clip length in seconds its binaries were
+     * compiled for: sherpa-onnx pads a shorter clip to it, and
+     * [com.wasimaster.wmkeyboard.core.voice.sherpa.QnnSpeech] cuts a longer
+     * one into pieces no longer than it.
+     */
+    val npuSeconds: Int = 0,
 ) {
     val bytes: Long get() = files.sumOf { it.bytes }
 
     /** Whether an engine runs this rather than [other] when both are on the device. */
     fun outranks(other: EtModel): Boolean = ORDER.compare(this, other) > 0
+
+    /** For an [npu] model, the longest piece of audio one decode takes, in 16 kHz samples. */
+    val npuSamples: Int get() = npuSeconds * 16_000
 
     /** A Sherpa transducer has one; a Paraformer does not, and hears no hotwords. */
     val hasJoiner: Boolean get() = files.any { it.name.startsWith("joiner") }
@@ -195,15 +217,60 @@ class EtModel(
     companion object {
         /**
          * Smallest to largest; of two the same size, a GPU build first (the
-         * CPU one wins unless the user picks the GPU one), then the one
-         * superseded first.
+         * CPU one wins unless the user picks the GPU one), then a CPU build
+         * before an NPU one (a downloaded NPU build is used, being several
+         * times faster, even over a post-trained CPU model such as Parakeet
+         * Ultra), then the one superseded first, then the NPU build for the
+         * longer clip first.
          */
-        val ORDER: Comparator<EtModel> = compareBy<EtModel> { it.millions }.thenBy { !it.gpu }.thenBy { it.supersedes != null }
+        val ORDER: Comparator<EtModel> = compareBy<EtModel> { it.millions }
+            .thenBy { !it.gpu }
+            .thenBy { it.npu != null }
+            .thenBy { it.supersedes != null }
+            .thenByDescending { it.npuSeconds }
     }
 }
 
 /** Every model the ExecuTorch engines can download. */
 object EtCatalog {
+
+    /** Where k2-fsa publishes sherpa-onnx's ready-made QNN context binaries, each release a folder. */
+    private const val QNN_RELEASES = "https://github.com/k2-fsa/sherpa-onnx/releases/download"
+
+    /**
+     * k2-fsa's QNN context binaries of Parakeet TDT 0.6B v3 for [soc]'s NPU,
+     * compiled for clips of [seconds] (release asr-models-qnn-binary-2, built
+     * with QAIRT 2.40.0.251030): one tar.bz2 of encoder.bin, decoder.bin,
+     * joiner.bin and tokens.txt, pinned by the SHA-256 GitHub lists for it.
+     */
+    private fun parakeetNpu(soc: String, seconds: Int, bytes: Long, sha256: String): EtModel {
+        val name = "sherpa-onnx-qnn-$soc-binary-parakeet-tdt-0.6b-v3-${seconds}s-transducer"
+        val tag = soc.lowercase()
+        return EtModel(
+            "parakeet-v3-npu-$tag-${seconds}s", EtEngine.PARAKEET, "tdt-0.6b-v3-npu-$tag-${seconds}s",
+            "Parakeet TDT 0.6B v3 (NPU, $seconds s)", 600,
+            "github.com/k2-fsa/sherpa-onnx", "asr-models-qnn-binary-2",
+            listOf(EtFile("$name.tar.bz2", bytes, sha256, url = "$QNN_RELEASES/asr-models-qnn-binary-2/$name.tar.bz2", archive = true)),
+            cpuTwin = "parakeet-v3",
+            npu = soc,
+            npuSeconds = seconds,
+        )
+    }
+
+    /** The same for Moonshine Tiny English, from asr-models-qnn-binary-3: encoder.bin, decoder.bin and tokens.txt. */
+    private fun moonshineNpu(soc: String, seconds: Int, bytes: Long, sha256: String): EtModel {
+        val name = "sherpa-onnx-qnn-$soc-binary-moonshine-tiny-en-${seconds}s"
+        val tag = soc.lowercase()
+        return EtModel(
+            "moonshine-tiny-npu-$tag-${seconds}s", EtEngine.MOONSHINE, "tiny-npu-$tag-${seconds}s",
+            "Moonshine Tiny (NPU, $seconds s)", 27,
+            "github.com/k2-fsa/sherpa-onnx", "asr-models-qnn-binary-3",
+            listOf(EtFile("$name.tar.bz2", bytes, sha256, url = "$QNN_RELEASES/asr-models-qnn-binary-3/$name.tar.bz2", archive = true)),
+            cpuTwin = "moonshine-tiny",
+            npu = soc,
+            npuSeconds = seconds,
+        )
+    }
 
     /** Where Alpha Cephei keeps the Vosk models, each `<name>.zip`. */
     private const val VOSK_MODELS = "https://alphacephei.com/vosk/models"
@@ -359,6 +426,20 @@ object EtCatalog {
                 ),
             ),
         ),
+        // k2-fsa's QNN context binaries of the two models above, for the
+        // Snapdragon chips the `npu` gate has a runtime for (8 Gen 3, 8 Elite,
+        // 8 Elite Gen 5), each offered only on its own chip. Parakeet for 10 s
+        // and 30 s clips (k2-fsa compiles 3 to 30 s), Moonshine for 10 s, the
+        // longest they compile it for.
+        parakeetNpu("SM8650", 10, 441_106_642L, "78342bad3ca5d380d5a7d34b730fefd58e1bd8fa55d133fec0e3256eaf056263"),
+        parakeetNpu("SM8650", 30, 449_334_315L, "8ad2bb5902cbde3b922c53f4a119fcac47730b53e90ad1dff726b3ff0f7607df"),
+        parakeetNpu("SM8750", 10, 440_771_028L, "48a8b6db3f5749697a2a6e5331aecd314ed092d3621b7e5b3c17bc49c78cafeb"),
+        parakeetNpu("SM8750", 30, 449_456_731L, "2efa5ccd76b1b21d0b41310a21114eabbd8ed62d573333b74f7598bdc90c1fbb"),
+        parakeetNpu("SM8850", 10, 440_901_766L, "ff072c4ef523d4af64766e75b6ad1f1b6a02315ead681b0f506f46edbe0704dc"),
+        parakeetNpu("SM8850", 30, 449_680_863L, "604c9a55d66e0355cd475ecccbc581d5432b19e3d419eadafdd89d3664b60c36"),
+        moonshineNpu("SM8650", 10, 57_759_597L, "f092d5c95eeaf8b06866a4e124a39956aa311ec585dec1ecd64cc342a244786f"),
+        moonshineNpu("SM8750", 10, 57_726_276L, "8657f68fab42978040b5979ffa560699cac427645b1dcbc573457362d2943524"),
+        moonshineNpu("SM8850", 10, 57_758_480L, "e40bd70eea0b7bc798c6565ce7fd9b8498c625bf948aba7b4047c5562022d7ae"),
         // Sherpa (sherpa-onnx on ONNX Runtime): streaming Zipformer
         // transducers, one per language unless said otherwise. Each carries
         // its own copy of Silero VAD (2 MB), so a model is whole on its own.
@@ -744,9 +825,16 @@ object EtCatalog {
     /** Sherpa's English punctuation model: English dictation from the engines that write no marks uses it once it is downloaded. */
     val sherpaPunctuation: EtModel get() = models.first { it.engine == EtEngine.SHERPA && it.punctuation }
 
-    /** [engine]'s models this phone can run: a GPU build only where the GPU speaks Vulkan 1.1. */
+    /**
+     * [engine]'s models this phone can run: a GPU build only where the GPU
+     * speaks Vulkan 1.1, an NPU build only on its own chip in a build that
+     * has sherpa-onnx's QNN library.
+     */
     fun forEngine(engine: EtEngine): List<EtModel> =
-        models.filter { it.engine == engine && (!it.gpu || EtNative.vulkanPossible()) }
+        models.filter {
+            it.engine == engine && (!it.gpu || EtNative.vulkanPossible()) &&
+                (it.npu == null || (it.npu == EtNative.qnnSoc() && SherpaQnnNative.shipped))
+        }
 }
 
 /**

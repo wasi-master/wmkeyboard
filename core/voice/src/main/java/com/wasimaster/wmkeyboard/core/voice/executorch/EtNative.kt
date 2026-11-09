@@ -98,6 +98,15 @@ object EtNative {
     @Volatile
     var qnnRuntime: () -> File? = { null }
 
+    /**
+     * This phone's Snapdragon chip (`SM8750`) when the `npu` gate has a QNN
+     * runtime for it, else null; what picks the NPU builds of Parakeet and
+     * Moonshine ([EtModel.npu]) to offer. Set by the app at start
+     * (`NpuSupport.soc`); null until then, and in tests.
+     */
+    @Volatile
+    var qnnSoc: () -> String? = { null }
+
     /** Whether the loaded build carries the Qualcomm delegate. Loads the library. */
     val qnn: Boolean get() = available && runCatching { nativeHasQnn() }.getOrDefault(false)
 
@@ -189,6 +198,9 @@ object EtNative {
         val paths = files.map { it.absolutePath }
         if (paths == openFiles && openPrograms.isNotEmpty()) return openPrograms
         release()
+        // An NPU build open on sherpa-onnx's QNN library goes back too: one
+        // dictation model in memory at a time.
+        com.wasimaster.wmkeyboard.core.voice.sherpa.QnnSpeech.release()
         val opened = ArrayList<Program>(files.size)
         try {
             for (f in files) opened += open(f) ?: error("${f.name} did not load")

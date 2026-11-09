@@ -138,6 +138,15 @@
       ]
     },
     {
+      "id": "sherpaqnn",
+      "property": "sherpaQnn",
+      "doc": "`:feature:sherpaqnn`: sherpa-onnx built a second time with its QNN recognizers (`libwmsherpa_qnn`, arm64, `:core:voice`), which run k2-fsa's ready-made QNN context binaries of Parakeet TDT 0.6B v3 and Moonshine Tiny on a Snapdragon NPU through the `npu` gate's QNN libraries. Loaded beside the `onnx` gate's ONNX Runtime, which it names as a dependency, once an NPU build of either model is used. Compiled against Qualcomm's QNN headers, so never F-Droid's.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmsherpa_qnn.so", "dir": "core/voice/src/sherpaqnn/jniLibs", "abis": ["arm64-v8a"], "keep": ["com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaQnnNative"] }
+      ]
+    },
+    {
       "id": "vosk",
       "property": "vosk",
       "doc": "`:feature:vosk`: Alpha Cephei's Vosk (`libvosk`, Kaldi inside, about 10 MB on arm64) and this project's bridge to its C API (`libwmvosk`), behind the Vosk voice engine (`:core:voice`). Outside Play the library is read straight out of Alpha Cephei's AAR on Maven Central, never mirrored. A prebuilt binary, so not in F-Droid's build.",
