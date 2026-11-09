@@ -162,7 +162,7 @@ class FloatingButtonModelTest {
         val raw = """[
             {"id":"c1","name":"  A  ","items":["category:c2","tool:VOICE","tool:VOICE","menu","app:com.a.b"]},
             {"id":"c1","name":"again","items":[]},
-            {"id":"c2","name":"${"x".repeat(80)}","items":[${(1..12).joinToString(",") { "\"app:com.a.p$it\"" }}]}
+            {"id":"c2","name":"${"x".repeat(80)}","items":[${(1..MAX_FLOATING_MENU_ITEMS + 4).joinToString(",") { "\"app:com.a.p$it\"" }}]}
         ]"""
         val read = decodeFloatingCategories(raw)
         assertEquals(listOf("c1", "c2"), read.map { it.id })
