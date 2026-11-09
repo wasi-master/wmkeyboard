@@ -65,11 +65,18 @@ object UnicodeNames {
      * for the ideographs and a few other large scripts: the name ends in the
      * code point's hex digits and holds nothing else to search by.
      *
+     * Android's ICU writes those as `CJK UNIFIED IDEOGRAPH-4E00`. A desktop
+     * JDK, where the unit tests run, falls back to the block name and a space
+     * for every character UnicodeData does not name (`CJK UNIFIED IDEOGRAPHS
+     * 4E00`, `HANGUL SYLLABLES AC00`), so both spellings count.
+     *
      * Public rather than internal so `UnicodeNamesTest` can reach it: that
      * test compiles in `:app`, a different Kotlin module from this one.
      */
-    fun isMadeUpName(cp: Int, name: String): Boolean =
-        name.endsWith("-" + Integer.toHexString(cp).uppercase(Locale.ROOT))
+    fun isMadeUpName(cp: Int, name: String): Boolean {
+        val hex = Integer.toHexString(cp).uppercase(Locale.ROOT)
+        return name.endsWith("-$hex") || name.endsWith(" $hex")
+    }
 
     /** Builds the index ahead of the first search, off whatever thread calls it. */
     fun warm() {
