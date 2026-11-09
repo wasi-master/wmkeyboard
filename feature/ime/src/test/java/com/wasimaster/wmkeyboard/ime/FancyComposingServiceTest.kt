@@ -8,6 +8,7 @@ import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.prediction.SuggestionEngine
 import com.wasimaster.wmkeyboard.core.prediction.Trie
 import com.wasimaster.wmkeyboard.core.prediction.UserLexicon
+import com.wasimaster.wmkeyboard.core.script.FancyAssembly
 import com.wasimaster.wmkeyboard.core.script.FancyStyles
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.transliteration.BengaliPhoneticIndex
@@ -174,7 +175,8 @@ class FancyComposingServiceTest {
     fun `a styled field reads back as plain words`() {
         val text = "hello world 123"
         for (style in FancyStyles.all) {
-            if (style.id == "upside_down") continue
+            // unstyle leaves reversed text (upside down, mirror) in written order.
+            if (style.assembly == FancyAssembly.REVERSED) continue
             val plain = FancyStyles.unstyle(FancyStyles.transform(text, style))
             // Small caps and superscript have no capitals, and a style with
             // no digits leaves them plain, so lowercase is all that is asked.

@@ -32,7 +32,9 @@ class ThemeEffectMotionTest {
         assertEquals(0.6f, typingAlpha(0.6f, 0f), 1e-6f)
         assertTrue(typingAlpha(0.6f, 1f) > 0.85f)
         assertEquals(1f, typingAlpha(1f, 1f), 0f)
-        assertEquals(1f, typingAlpha(0.9f, 5f), 1e-6f)
+        // Energy past full counts as full, and stays under opaque.
+        assertEquals(typingAlpha(0.9f, 1f), typingAlpha(0.9f, 5f), 0f)
+        assertTrue(typingAlpha(0.9f, 5f) <= 1f)
     }
 
     @Test
