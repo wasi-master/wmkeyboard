@@ -35168,15 +35168,14 @@ open class WMKeyboardService : InputMethodService() {
                     }
                     val (status, message) = when (kind) {
                         VoiceInputEngine.ErrorKind.NO_SPEECH -> VoiceStatus.IDLE to null
-                        VoiceInputEngine.ErrorKind.PERMISSION -> VoiceStatus.NEED_PERMISSION to null
+                        VoiceInputEngine.ErrorKind.PERMISSION -> recognizerRefused()
                         VoiceInputEngine.ErrorKind.NETWORK ->
                             VoiceStatus.ERROR to getString(CommonR.string.common_error_network)
                         VoiceInputEngine.ErrorKind.BUSY ->
                             VoiceStatus.ERROR to getString(R.string.ime_service_voice_error_busy)
                         VoiceInputEngine.ErrorKind.LANGUAGE ->
                             VoiceStatus.ERROR to getString(R.string.ime_service_voice_error_language)
-                        VoiceInputEngine.ErrorKind.OTHER ->
-                            VoiceStatus.ERROR to getString(R.string.ime_service_voice_error_other)
+                        VoiceInputEngine.ErrorKind.OTHER -> VoiceStatus.ERROR to recognizerFailed()
                     }
                     _uiState.update {
                         it.copy(
@@ -35193,6 +35192,30 @@ open class WMKeyboardService : InputMethodService() {
             },
         )
     }
+
+    /**
+     * What to show when the phone's recognizer answers that the microphone is
+     * not allowed. A session only starts with the keyboard's own permission
+     * granted, so while that still holds it is the recognizer's app that lacks
+     * it, and sending the user to grant the keyboard's again would go round in
+     * a circle.
+     */
+    private fun recognizerRefused(): Pair<VoiceStatus, String?> =
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            VoiceStatus.ERROR to getString(R.string.ime_service_voice_error_recognizer_permission)
+        } else {
+            VoiceStatus.NEED_PERMISSION to null
+        }
+
+    /**
+     * The phone's recognizer failed in a way that has no message of its own.
+     * Its error number goes into the line: on a phone the developer does not
+     * have, it is the only thing that tells one failure from the next.
+     */
+    private fun recognizerFailed(): String =
+        voiceEngine.lastErrorCode.takeIf { it != 0 }
+            ?.let { getString(R.string.ime_service_voice_error_code, it) }
+            ?: getString(R.string.ime_service_voice_error_other)
 
     /**
      * The offline Whisper model to run for the language currently being typed in,

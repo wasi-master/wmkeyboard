@@ -290,6 +290,16 @@ On Android 12 and up the system recognizer prefers to run fully on-device, once 
 
 **Recognition service**, on the same screen, picks which app does the recognising. **Phone's default** is whichever one Android has set; the list also holds every other app on the phone that offers speech recognition to other apps, such as Marmalade, Transcribro or FUTO Voice Input. Pick one and the mic sends your speech to it instead, with no change to anything else on this page. **Prefer on-device recognition** is hidden while another app is picked, since it only steers the phone's default. If that app is uninstalled, dictation goes back to the phone's default, and the row says the app is gone until you pick again.
 
+**Phone's default** is a short list rather than one recognizer. A recognizer that can't start hands the phrase to the next one, and you only see an error when the last of them has failed. The on-device recognizer is asked first, then the one Android has set as the default, then the other recognition apps on the phone, Google's ahead of the rest. Three kinds of phone need this:
+
+- Android can report an on-device recognizer that isn't installed. The phone's maker named one in the system configuration, and nothing is behind the name.
+- Some phones ship with no default recognizer set, several Xiaomi and Honor models among them. Google's recognizer is installed and answers when it is asked by name.
+- A maker's own assistant, set as the default, can refuse a keyboard or not know your language.
+
+On all three, voice typing used to stop at "Speech recognition did not work" before the microphone opened.
+
+Two limits keep your audio where you put it. A service you picked under **Recognition service** is the only one asked. And when the default is a recognizer you installed yourself, such as FUTO Voice Input, nothing stands in for it: a phrase it can't take ends in its own error.
+
 ### Hinglish, Banglish and other romanized languages
 
 A romanized language is dictated as the language itself. No engine knows "Hindi in Latin letters" as a language of its own, so with **Hinglish · Hindi (Romanized)** picked, every engine is asked for Hindi, and the Devanagari it writes is then spelled the way you'd type it on the Hinglish layout. "कल मीटिंग है, प्लीज कैलेंडर पे डाल देना" lands as "Kal meeting hai, please calendar pe daal dena". A word the layout's spelling lists know is written with the listed spelling nearest its plain reading, skipping chat shorthand like `tmi` or `amr` and stretched words like `amarr`, so Bangla comes back as "ami bhalo achhi" and "kemon ache". An English loanword keeps its English spelling: ফোন is "phone". The live words change script before they reach the field, so you never see the Devanagari.
@@ -428,7 +438,7 @@ The first request needs the microphone permission. The voice input window asks f
 
 ## Privacy: what leaves your device
 
-On-device recognition (Android 12+, once the language's model is installed) never sends audio anywhere. Without that model installed, dictating with the system recognizer sends your audio to the OS's speech recognition service while you talk (the same behavior any app using Android's standard speech APIs has). See [Network policy](/privacy/network/) for the fuller picture of what WM Keyboard can and can't send.
+On-device recognition (Android 12+, once the language's model is installed) never sends audio anywhere. Without that model installed, dictating with the system recognizer sends your audio to the OS's speech recognition service while you talk (the same behavior any app using Android's standard speech APIs has). If that service can't start and it came with the phone, the phrase goes to another recognition app installed on the phone, as [Language and engine](#language-and-engine) describes. To hold it to one app, pick that app under **Recognition service**. See [Network policy](/privacy/network/) for the fuller picture of what WM Keyboard can and can't send.
 
 Want a hard guarantee that audio never leaves the device, whichever model is installed? [Offline voice typing with Whisper](/tools/whisper/) is a second dictation engine that transcribes entirely on-device. It's a bigger download and it doesn't stream words live the way the system recognizer does. In exchange it makes no network calls at all, beyond the one-time model download.
 
@@ -442,7 +452,7 @@ With **Tidy dictation with AI** on, the text of each phrase (never the audio) al
 
 ## Details & edge cases
 
-**Errors show specific messages.** A network problem says "No connection. Check your network and try again." A busy recognizer, or another app holding the mic, says "The microphone is busy. Close the other apps that use it and try again." A language the device can't recognise at all says "Speech recognition does not support this language on your device." A network hiccup mid-utterance keeps whatever was already heard instead of throwing it away. The Microphone access tile in Quick Settings, or the developer Sensors off toggle, can let a session start and then hand it silence. The panel notices and says "The microphone is blocked. Turn on Microphone access in Quick Settings, then try again." Either bar says "Microphone blocked in Quick Settings". Tap the mic again once you've turned access back on.
+**Errors show specific messages.** A network problem says "No connection. Check your network and try again." A busy recognizer, or another app holding the mic, says "The microphone is busy. Close the other apps that use it and try again." A language the device can't recognise at all says "Speech recognition does not support this language on your device." A failure with no message of its own says "Speech recognition did not work (error 5). Try again, or choose a different voice engine." The number is Android's own error code for what the recognizer answered, so quote it when you report a problem. When the recognizer's app, rather than the keyboard, is the one without the microphone permission, the panel says "The speech recognizer of your phone is not allowed to use the microphone." and points you to the phone's settings, because allowing the keyboard a second time changes nothing. A network hiccup mid-utterance keeps whatever was already heard instead of throwing it away. The Microphone access tile in Quick Settings, or the developer Sensors off toggle, can let a session start and then hand it silence. The panel notices and says "The microphone is blocked. Turn on Microphone access in Quick Settings, then try again." Either bar says "Microphone blocked in Quick Settings". Tap the mic again once you've turned access back on.
 
 **Switching tools closes dictation.** Opening any other panel (Handwriting, Clipboard, Emoji, and so on) ends the current dictation session first.
 

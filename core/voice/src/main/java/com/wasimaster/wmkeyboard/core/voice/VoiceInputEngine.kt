@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.voice
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.speech.RecognitionService
 import android.os.Build
 import android.os.Bundle
@@ -21,6 +22,10 @@ import androidx.core.content.ContextCompat
  * tool. One instance lives in the service; each dictation session creates
  * a fresh recognizer (reusing one across sessions strands BUSY state on
  * several OEM implementations) and destroys it when the session ends.
+ *
+ * A session is asked of the recognizers in [VoiceRoutes.plan] one after the
+ * other: one that cannot start hands the phrase to the next, and the listener
+ * hears of an error only when the last of them has failed.
  *
  * Every method must be called on the main thread — SpeechRecognizer's own
  * requirement.
@@ -56,20 +61,26 @@ class VoiceInputEngine(private val context: Context) {
     private var recognizer: SpeechRecognizer? = null
 
     /**
-     * Languages the on-device recognizer rejected; those go straight to the
-     * network recognizer from then on (typically bn-BD without a local model).
+     * The recognizers that are no use for a language, for the rest of the
+     * process. Either one said it does not know the language (typically the
+     * on-device one for bn-BD, which has no local model), or the on-device one
+     * opened the microphone and then heard nothing at all: no level, no
+     * partial. Android System Intelligence's SODA pipeline can stall that way
+     * (seen on Android 15, en-US: "Pipeline lagging", then NO_SPEECH for every
+     * phrase), and from outside it looks exactly like a dead microphone. Such
+     * a pair is passed over from then on, so that a continuous dictation does
+     * not pay for the same failure before every phrase.
      */
-    private val onDeviceFailedTags = mutableSetOf<String>()
+    private val deaf = mutableSetOf<Pair<VoiceRoute, String>>()
 
     /**
-     * Languages whose on-device recognizer opened the microphone and then
-     * heard nothing at all: no level, no partial. Android System
-     * Intelligence's SODA pipeline can stall that way (seen on Android 15,
-     * en-US: "Pipeline lagging", then NO_SPEECH for every phrase), and from
-     * outside it looks exactly like a dead microphone. Those go to the
-     * network recognizer for the rest of the process.
+     * The recognizer's own number for the error the listener was last told of
+     * (`SpeechRecognizer.ERROR_*`), and 0 when there was none. [ErrorKind.OTHER]
+     * covers a dozen different failures; the number is what tells them apart
+     * in a report.
      */
-    private val onDeviceStalledTags = mutableSetOf<String>()
+    var lastErrorCode: Int = 0
+        private set
 
     private val main = Handler(Looper.getMainLooper())
 
@@ -105,36 +116,40 @@ class VoiceInputEngine(private val context: Context) {
      */
     var avoidDefault: Boolean = false
 
-    /** [service], when its app still offers it. */
-    private fun pickedService(): ComponentName? =
-        service?.takeIf { picked -> recognitionServices(context).any { it.first == picked } }
-
-    /**
-     * Another app's recognizer to use where the default would be asked, when
-     * the default must not be: [avoidDefault], or the default is WM
-     * Keyboard's own service (#1142), which would hand the keyboard's own
-     * "phone's recognizer" choice straight back to the keyboard. Null leaves
-     * the default as it is.
-     */
-    private fun defaultStandIn(): ComponentName? {
-        if (!avoidDefault && defaultRecognitionService(context)?.packageName != context.packageName) return null
-        return otherRecognitionService(context)
+    /** What [VoiceRoutes.plan] needs to know about this phone, read now. */
+    private fun phone(allowOnDevice: Boolean): VoiceRoutes.Phone {
+        val others = recognitionServices(context).map { it.first }
+        val default = defaultRecognitionService(context)
+        return VoiceRoutes.Phone(
+            // A pick whose app has since gone is passed over.
+            picked = service?.takeIf { it in others }?.flattenToString(),
+            onDevice = allowOnDevice &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                SpeechRecognizer.isOnDeviceRecognitionAvailable(context),
+            default = default?.flattenToString(),
+            defaultIsOurs = default?.packageName == context.packageName,
+            defaultPreinstalled = default != null && preinstalled(default.packageName),
+            others = others.map { it.flattenToString() },
+            avoidDefault = avoidDefault,
+        )
     }
 
-    /** False on devices without any recognition service (no GMS). */
-    fun isAvailable(): Boolean =
-        pickedService() != null ||
-            (avoidDefault && otherRecognitionService(context) != null) ||
-            (!avoidDefault && SpeechRecognizer.isRecognitionAvailable(context)) ||
-            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-                SpeechRecognizer.isOnDeviceRecognitionAvailable(context))
+    /** Whether [packageName] came with the phone, updated since or not. */
+    private fun preinstalled(packageName: String): Boolean = runCatching {
+        context.packageManager.getApplicationInfo(packageName, 0).flags and ApplicationInfo.FLAG_SYSTEM != 0
+    }.getOrDefault(false)
+
+    /** False on devices without any recognizer to ask (no GMS). */
+    fun isAvailable(): Boolean = VoiceRoutes.plan(phone(allowOnDevice = true)).isNotEmpty()
 
     /**
      * Starts one utterance session; results stream to [listener]. Prefers
      * the on-device recognizer (API 31+): faster, offline, and it skips the
      * per-utterance beep that makes continuous dictation grating. A
-     * language the on-device model can't handle falls back to the network
-     * recognizer transparently, once, and is remembered.
+     * recognizer that cannot take the phrase (it is not really installed, no
+     * default is set, it does not know the language, it refuses the keyboard)
+     * hands it to the next one in [VoiceRoutes.plan], and one that fails on a
+     * language is remembered for it.
      *
      * [formatting] asks the recognizer for punctuation and capital letters
      * (API 33+). Plain voice typing turns it off, because there the words are
@@ -155,24 +170,58 @@ class VoiceInputEngine(private val context: Context) {
         alsoListenFor: List<String> = emptyList(),
     ) {
         cancel()
-        val picked = pickedService()
-        val onDevice = picked == null && allowOnDevice &&
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-            languageTag !in onDeviceFailedTags &&
-            languageTag !in onDeviceStalledTags &&
-            SpeechRecognizer.isOnDeviceRecognitionAvailable(context)
-        val standIn = if (picked == null && !onDevice) defaultStandIn() else null
-        if (picked == null && !onDevice && standIn == null && avoidDefault) {
+        lastErrorCode = 0
+        val all = VoiceRoutes.plan(phone(allowOnDevice))
+        if (all.isEmpty()) {
             // Nothing to ask but the default, which is not to be asked.
             main.post { listener.onError(ErrorKind.LANGUAGE) }
             return
         }
-        val session = when {
-            picked != null -> SpeechRecognizer.createSpeechRecognizer(context, picked)
-            onDevice -> SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
-            standIn != null -> SpeechRecognizer.createSpeechRecognizer(context, standIn)
-            else -> SpeechRecognizer.createSpeechRecognizer(context)
-        }
+        // Every one of them deaf to this language leaves nothing, and then
+        // they are all asked again: the user may have put that right since.
+        val routes = all.filterNot { (it to languageTag) in deaf }.ifEmpty { all }
+        listen(Request(languageTag, listener, formatting, bias, alsoListenFor), routes, 0, emptyList())
+    }
+
+    /** What [start] was asked for, carried from one recognizer to the next. */
+    private class Request(
+        val languageTag: String,
+        val listener: Listener,
+        val formatting: Boolean,
+        val bias: VoiceBiasRequest,
+        val alsoListenFor: List<String>,
+    )
+
+    private fun open(route: VoiceRoute): SpeechRecognizer = when (route) {
+        VoiceRoute.OnDevice ->
+            // Only ever planned on API 31 and later.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
+            } else {
+                SpeechRecognizer.createSpeechRecognizer(context)
+            }
+        VoiceRoute.Default -> SpeechRecognizer.createSpeechRecognizer(context)
+        is VoiceRoute.Service ->
+            SpeechRecognizer.createSpeechRecognizer(context, ComponentName.unflattenFromString(route.component))
+    }
+
+    /** Tells the listener of the error [code], after everything is released. */
+    private fun report(listener: Listener, code: Int) {
+        lastErrorCode = code
+        listener.onError(errorKind(code))
+    }
+
+    /**
+     * Asks [routes]`[index]` for the phrase. [failed] are the recognizers
+     * before it that could not start, kept so that the error told at the end
+     * is the most useful one and not merely the last.
+     */
+    private fun listen(ask: Request, routes: List<VoiceRoute>, index: Int, failed: List<VoiceRoutes.Failure>) {
+        val route = routes[index]
+        val hasNext = index < routes.lastIndex
+        val onDevice = route == VoiceRoute.OnDevice
+        val listener = ask.listener
+        val session = open(route)
         recognizer = session
         finishing = false
         // A healthy recognizer reports a level many times a second, silence
@@ -197,23 +246,26 @@ class VoiceInputEngine(private val context: Context) {
             val check = Runnable {
                 if (recognizer === session) {
                     cancel()
-                    if (lastPartial.isBlank()) listener.onError(ErrorKind.NO_SPEECH) else listener.onFinal(lastPartial)
+                    if (lastPartial.isBlank()) report(listener, VoiceRoutes.ERROR_NO_MATCH) else listener.onFinal(lastPartial)
                 }
             }
             resultCheck = check
             main.postDelayed(check, delay)
         }
         awaitResult = { waitForResult(RESULT_MS) }
-        fun stalled() {
-            onDeviceStalledTags += languageTag
+
+        /** This recognizer is done with: the next takes the phrase. Only with [hasNext]. */
+        fun moveOn(code: Int) {
             release(session)
-            start(
-                languageTag, listener, allowOnDevice = false,
-                formatting = formatting, bias = bias, alsoListenFor = alsoListenFor,
-            )
+            listen(ask, routes, index + 1, failed + VoiceRoutes.Failure(route, code))
         }
-        if (onDevice) {
-            val check = Runnable { if (recognizer === session && !heard) stalled() }
+        if (onDevice && hasNext) {
+            val check = Runnable {
+                if (recognizer === session && !heard) {
+                    deaf += route to ask.languageTag
+                    moveOn(VoiceRoutes.ERROR_NO_MATCH)
+                }
+            }
             stallCheck = check
             main.postDelayed(check, STALL_MS)
         }
@@ -236,46 +288,44 @@ class VoiceInputEngine(private val context: Context) {
             }
 
             override fun onError(error: Int) {
+                // Android reports some failures twice (no default set is one);
+                // the first report has already moved the phrase on.
                 if (recognizer !== session) return
                 val kind = errorKind(error)
-                if (onDevice && !heard && kind == ErrorKind.NO_SPEECH) {
-                    // Ended before the check ran: the same stall. Stopped by
-                    // the user, it is only remembered for the next phrase.
-                    if (!finishing) {
-                        stalled()
-                        return
-                    }
-                    onDeviceStalledTags += languageTag
-                }
-                release(session)
-                if (onDevice && kind == ErrorKind.LANGUAGE) {
-                    onDeviceFailedTags += languageTag
-                    start(
-                        languageTag, listener, allowOnDevice = false,
-                        formatting = formatting, bias = bias, alsoListenFor = alsoListenFor,
-                    )
+                // Ended before the stall check ran: the same stall.
+                val stall = onDevice && !heard && kind == ErrorKind.NO_SPEECH
+                if (stall || kind == ErrorKind.LANGUAGE) deaf += route to ask.languageTag
+                // Before a single sound came through, most errors mean the
+                // recognizer never got going: it is not installed, no default
+                // is set, it is busy, it refuses the keyboard.
+                val neverStarted = !heard && VoiceRoutes.cannotStart(error)
+                // Stopped by the user, a failure is only remembered for the
+                // next phrase: nobody is waiting to be heard any more.
+                if (!finishing && hasNext && (stall || neverStarted || (onDevice && kind == ErrorKind.LANGUAGE))) {
+                    moveOn(error)
                     return
                 }
-                listener.onError(kind)
+                release(session)
+                // The last of several that could not start: say the most
+                // useful of their reasons.
+                val told = if (neverStarted) VoiceRoutes.toTell(failed + VoiceRoutes.Failure(route, error)).code else error
+                report(listener, told)
             }
 
             override fun onResults(results: Bundle?) {
                 if (recognizer !== session) return
-                release(session)
                 val text = results
                     ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     ?.firstOrNull()
                     .orEmpty()
-                if (text.isBlank() && onDevice && !heard && !finishing) {
+                if (text.isBlank() && onDevice && !heard && !finishing && hasNext) {
                     // An empty final from a recognizer that never heard a thing.
-                    onDeviceStalledTags += languageTag
-                    start(
-                        languageTag, listener, allowOnDevice = false,
-                        formatting = formatting, bias = bias, alsoListenFor = alsoListenFor,
-                    )
+                    deaf += route to ask.languageTag
+                    moveOn(VoiceRoutes.ERROR_NO_MATCH)
                     return
                 }
-                if (text.isBlank()) listener.onError(ErrorKind.NO_SPEECH) else listener.onFinal(text)
+                release(session)
+                if (text.isBlank()) report(listener, VoiceRoutes.ERROR_NO_MATCH) else listener.onFinal(text)
             }
 
             override fun onPartialResults(partialResults: Bundle?) {
@@ -294,7 +344,7 @@ class VoiceInputEngine(private val context: Context) {
 
             override fun onEvent(eventType: Int, params: Bundle?) {}
         })
-        session.startListening(recognizerIntent(languageTag, formatting, bias, alsoListenFor))
+        session.startListening(recognizerIntent(ask.languageTag, ask.formatting, ask.bias, ask.alsoListenFor))
     }
 
     private fun recognizerIntent(
@@ -426,8 +476,7 @@ class VoiceInputEngine(private val context: Context) {
                         downloader.destroy()
                         // The earlier network fallback for this language is
                         // stale now — the next session goes on-device.
-                        onDeviceFailedTags.remove(languageTag)
-                        onDeviceStalledTags.remove(languageTag)
+                        deaf -= VoiceRoute.OnDevice to languageTag
                         callback.onSuccess()
                     }
 
@@ -447,8 +496,7 @@ class VoiceInputEngine(private val context: Context) {
             // background and support re-checks pick up the result.
             downloader.triggerModelDownload(intent)
             downloader.destroy()
-            onDeviceFailedTags.remove(languageTag)
-            onDeviceStalledTags.remove(languageTag)
+            deaf -= VoiceRoute.OnDevice to languageTag
             callback.onScheduled()
         }
     }

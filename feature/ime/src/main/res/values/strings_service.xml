@@ -151,6 +151,10 @@
     <string name="ime_service_voice_error_busy">The microphone is busy. Close the other apps that use it and try again.</string>
     <string name="ime_service_voice_error_language">Speech recognition does not support this language on your device.</string>
     <string name="ime_service_voice_error_other">Speech recognition did not work. Try again.</string>
+    <!-- %1$d is the error number Android's speech recognizer gave, for example 5. -->
+    <string name="ime_service_voice_error_code">Speech recognition did not work (error %1$d). Try again, or choose a different voice engine.</string>
+    <!-- The keyboard has the microphone permission; the app that does the recognising does not. -->
+    <string name="ime_service_voice_error_recognizer_permission">The speech recognizer of your phone is not allowed to use the microphone. Allow it in the settings of your phone, or choose a different voice engine.</string>
     <string name="ime_service_voice_mic_error">The keyboard cannot start the microphone. Close the other apps that use it and try again.</string>
     <string name="ime_service_voice_transcribe_error">The transcription did not work. Try again.</string>
     <string name="ime_service_voice_model_download_error">The download of the offline model did not work. Try again later.</string>
