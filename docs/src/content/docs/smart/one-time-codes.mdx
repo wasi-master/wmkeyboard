@@ -101,9 +101,9 @@ Check these in order:
 
 1. **Codes from notifications** is off by default, so turn it on, and allow notification access when asked.
 2. The notification has to carry the code. An app that says only "you have a new message", or a phone set to hide notification content, leaves nothing to read.
-3. Android 15 and later can hide codes in notifications from apps like this keyboard, showing it "Sensitive notification content hidden" instead. When that happens the settings row says **Android hid a code from the keyboard**. The keyboard can't get around it, and no switch in Settings or Developer options turns it off. Copy the code from the notification instead, and the strip offers it from the clipboard.
+3. Android 15 and later can hide codes in notifications from apps like this keyboard, showing it "Sensitive notification content hidden" instead. When that happens the settings row says **Android hid a code from the keyboard**. No switch in Settings or Developer options turns it off. Copy the code from the notification instead, and the strip offers it from the clipboard.
 
-   To lift the block for good, tap that row to copy an adb command, then run it from a computer with USB or wireless debugging on:
+   To lift the block for good, the keyboard needs a permission only the shell can give. With [Shizuku or root](/reference/settings/permissions/) set up (not in the Google Play build), tap the row and the keyboard grants it to itself. Otherwise the tap copies an adb command; run it from a computer with USB or wireless debugging on:
 
    ```bash
    adb shell cmd appops set --user 0 com.wasimaster.wmkeyboard RECEIVE_SENSITIVE_NOTIFICATIONS allow

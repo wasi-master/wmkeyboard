@@ -497,6 +497,9 @@
     <string name="typing_otp_chip_info">The keyboard watches incoming notifications for a one-time code. When it finds one, a chip with the code and the name of the app that sent it appears above the keys. Press the chip to type the code. This needs notification access. The keyboard reads notifications on your device only, keeps the code in memory only, and sends nothing anywhere. Turn this off and the keyboard stops reading notifications at once.</string>
     <string name="typing_otp_redacted_title">Android hid a code from the keyboard</string>
     <string name="typing_otp_redacted_subtitle">Android 15 and later hide codes in notifications from apps like this one, so no chip can appear. Copy the code from the notification and the keyboard offers it from there. To lift the block, run the adb command from a computer: tap to copy it</string>
+    <string name="typing_otp_redacted_subtitle_shizuku">Android 15 and later hide codes in notifications from apps like this one, so no chip can appear. Copy the code from the notification and the keyboard offers it from there. To lift the block, set up Shizuku or root under Privacy › Permissions, or tap to copy an adb command to run from a computer</string>
+    <string name="typing_otp_redacted_subtitle_shell">Android 15 and later hide codes in notifications from apps like this one, so no chip can appear. Tap to let the keyboard read them, using Shizuku or root</string>
+    <string name="typing_otp_redacted_unblocked">Done. The next code that arrives shows up as a chip</string>
     <string name="typing_otp_redacted_copied">adb command copied. If it fails with MANAGE_APP_OPS_MODES, turn on Disable permission monitoring in Developer options, restart and run it again</string>
     <string name="typing_otp_access_title">Allow notification access</string>
     <string name="typing_otp_access_subtitle">The chip cannot see codes arrive yet. Press to open the system switch</string>

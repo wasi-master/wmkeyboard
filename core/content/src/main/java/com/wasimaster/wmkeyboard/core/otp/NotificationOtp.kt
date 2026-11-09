@@ -126,6 +126,11 @@ object NotificationOtpCapture {
         prefs(context).edit().putLong("redacted_at", at).apply()
     }
 
+    /** Forgets [lastRedactedAt], once the listener has been allowed to read codes. */
+    fun clearRedacted(context: Context) {
+        prefs(context).edit().remove("redacted_at").apply()
+    }
+
     fun isEnabled(context: Context): Boolean =
         cached ?: prefs(context).getBoolean(KEY_ENABLED, false).also { cached = it }
 

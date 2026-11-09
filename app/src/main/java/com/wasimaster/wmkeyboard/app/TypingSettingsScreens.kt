@@ -2033,6 +2033,60 @@ private fun SettingsGroupScope.chipToolsOffItem(
     }
 }
 
+/**
+ * Android 15+ hid a code from the listener. No Settings screen lifts that:
+ * RECEIVE_SENSITIVE_NOTIFICATIONS is signature|role, so only the shell can
+ * allow its app op. With Shizuku or root (not in the Play build, same gate as
+ * [ShellFeaturesGroup]) a tap does it here; otherwise it copies the adb command.
+ */
+@Composable
+private fun RedactedCodesRow(settings: LiveSettings, onUnblocked: () -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val useRoot = settings.watch { it.launcher.useRoot }
+    LaunchedEffect(Unit) { com.wasimaster.wmkeyboard.core.shell.ShellAccess.init() }
+    androidx.compose.runtime.SideEffect { com.wasimaster.wmkeyboard.core.shell.ShellAccess.rootAllowed = useRoot }
+    val granted = com.wasimaster.wmkeyboard.core.shell.ShellAccess.shizukuGranted
+    val shizuku by produceState(granted.value) { granted.collect { value = it } }
+    val offered = com.wasimaster.wmkeyboard.core.shell.ShellFeatures.offered
+    val shell = offered && (shizuku || (useRoot && com.wasimaster.wmkeyboard.core.shell.ShellAccess.suPresent))
+    val copied = stringResource(R.string.typing_otp_redacted_copied)
+    WmRow(
+        title = stringResource(R.string.typing_otp_redacted_title),
+        subtitle = stringResource(
+            when {
+                shell -> R.string.typing_otp_redacted_subtitle_shell
+                offered -> R.string.typing_otp_redacted_subtitle_shizuku
+                else -> R.string.typing_otp_redacted_subtitle
+            },
+        ),
+    ) {
+        if (shell) {
+            scope.launch {
+                val ok = com.wasimaster.wmkeyboard.core.shell.ShellGrants.allowSensitiveNotifications(
+                    context,
+                    "com.wasimaster.wmkeyboard.core.media.MediaNotificationListener",
+                ) == true
+                if (ok) {
+                    NotificationOtpCapture.clearRedacted(context)
+                    onUnblocked()
+                }
+                android.widget.Toast.makeText(
+                    context,
+                    if (ok) R.string.typing_otp_redacted_unblocked else R.string.shell_access_result_failed,
+                    android.widget.Toast.LENGTH_LONG,
+                ).show()
+            }
+        } else {
+            val command = "adb shell cmd appops set --user 0 " +
+                "${context.packageName} RECEIVE_SENSITIVE_NOTIFICATIONS allow"
+            context.getSystemService(android.content.ClipboardManager::class.java)
+                ?.setPrimaryClip(android.content.ClipData.newPlainText("adb", command))
+            android.widget.Toast.makeText(context, copied, android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+}
+
 @Composable
 internal fun TypingCodesSettings(
     repository: SettingsRepository,
@@ -2044,6 +2098,9 @@ internal fun TypingCodesSettings(
     // Decides which rows the group holds; the rows read everything else.
     val otpOn = settings.watch { it.otp.enabled }
     val otpContext = LocalContext.current
+    var codesUnblocked by remember {
+        mutableStateOf(com.wasimaster.wmkeyboard.core.shell.ShellGrants.readsSensitiveNotifications(otpContext))
+    }
     val codesRedacted = remember(otpOn) {
         val at = NotificationOtpCapture.lastRedactedAt(otpContext)
         at > 0L && System.currentTimeMillis() - at < 7L * 24 * 60 * 60 * 1000
@@ -2076,20 +2133,8 @@ internal fun TypingCodesSettings(
                 ) { codesAccessRow() }
             }
             // Android's own redaction: said here because the chip simply never comes.
-            item(visible = codesRedacted) {
-                val copied = stringResource(R.string.typing_otp_redacted_copied)
-                WmRow(
-                    title = stringResource(R.string.typing_otp_redacted_title),
-                    subtitle = stringResource(R.string.typing_otp_redacted_subtitle),
-                ) {
-                    // No Settings screen lifts it: the app op is signature|role, so
-                    // only adb can grant it. Hand over the exact command.
-                    val command = "adb shell cmd appops set --user 0 " +
-                        "${otpContext.packageName} RECEIVE_SENSITIVE_NOTIFICATIONS allow"
-                    otpContext.getSystemService(android.content.ClipboardManager::class.java)
-                        ?.setPrimaryClip(android.content.ClipData.newPlainText("adb", command))
-                    android.widget.Toast.makeText(otpContext, copied, android.widget.Toast.LENGTH_LONG).show()
-                }
+            item(visible = codesRedacted && !codesUnblocked) {
+                RedactedCodesRow(settings) { codesUnblocked = true }
             }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(

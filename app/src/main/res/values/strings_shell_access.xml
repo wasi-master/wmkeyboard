@@ -11,6 +11,8 @@
     <string name="shell_access_grant_permissions_subtitle">Microphone, camera, contacts and the rest at once, without a prompt each</string>
     <string name="shell_access_notification_access_title">Notification access</string>
     <string name="shell_access_notification_access_subtitle">For one-time codes on the suggestion strip and media controls</string>
+    <string name="shell_access_sensitive_codes_title">Codes Android hides</string>
+    <string name="shell_access_sensitive_codes_subtitle">Android 15 and later hide one-time codes in notifications from the keyboard. This lets it read them for the code chip</string>
     <string name="shell_access_screen_content_title">Screen reading service</string>
     <string name="shell_access_screen_content_subtitle">Turns on the accessibility service the floating AI button reads the screen with</string>
     <string name="shell_access_secure_settings_title">Write secure settings</string>

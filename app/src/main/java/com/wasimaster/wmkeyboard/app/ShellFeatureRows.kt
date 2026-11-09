@@ -17,6 +17,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.launcher.LauncherShizukuRow
 import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
+import com.wasimaster.wmkeyboard.core.otp.NotificationOtpCapture
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.shell.ShellAccess
 import com.wasimaster.wmkeyboard.core.shell.ShellFeatures
@@ -122,6 +123,21 @@ internal fun ShellFeaturesGroup(repository: SettingsRepository) {
                 value = statusText(granted),
             ) {
                 if (!granted) run { ShellGrants.allowNotificationListener(context, LISTENER_SERVICE) }
+            }
+        }
+        item(visible = enabled && android.os.Build.VERSION.SDK_INT >= 35) {
+            val granted = remember(version) { ShellGrants.readsSensitiveNotifications(context) }
+            NavRow(
+                R.string.shell_access_sensitive_codes_title,
+                stringResource(R.string.shell_access_sensitive_codes_subtitle),
+                value = statusText(granted),
+            ) {
+                if (!granted) {
+                    run {
+                        ShellGrants.allowSensitiveNotifications(context, LISTENER_SERVICE)
+                            ?.also { if (it) NotificationOtpCapture.clearRedacted(context) }
+                    }
+                }
             }
         }
         item(visible = enabled) {

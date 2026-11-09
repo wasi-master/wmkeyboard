@@ -141,6 +141,44 @@ object ShellGrants {
         return ShellAccess.exec(context, "cmd notification allow_listener $component")?.ok
     }
 
+    private const val SENSITIVE_PERMISSION = "android.permission.RECEIVE_SENSITIVE_NOTIFICATIONS"
+
+    /**
+     * Whether Android 15+ lets the notification listener read one-time codes.
+     * Without RECEIVE_SENSITIVE_NOTIFICATIONS (signature|role, so no prompt
+     * can grant it) the listener gets "Sensitive notification content hidden"
+     * instead of the code. Always true before Android 15.
+     */
+    fun readsSensitiveNotifications(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < 35) return true
+        if (ContextCompat.checkSelfPermission(context, SENSITIVE_PERMISSION) == PackageManager.PERMISSION_GRANTED) {
+            return true
+        }
+        return runCatching {
+            val appOps = context.getSystemService(android.app.AppOpsManager::class.java)
+            val op = android.app.AppOpsManager.permissionToOp(SENSITIVE_PERMISSION) ?: return false
+            appOps.unsafeCheckOpNoThrow(op, android.os.Process.myUid(), context.packageName) ==
+                android.app.AppOpsManager.MODE_ALLOWED
+        }.getOrDefault(false)
+    }
+
+    /**
+     * Allows the app op behind RECEIVE_SENSITIVE_NOTIFICATIONS, then rebinds
+     * [listenerService] so the listener is trusted from its next notification
+     * on. The rebind's allow_listener always runs, so a failed disallow never
+     * leaves notification access off.
+     */
+    suspend fun allowSensitiveNotifications(context: Context, listenerService: String): Boolean? {
+        if (Build.VERSION.SDK_INT < 35) return true
+        val user = android.os.Process.myUid() / 100_000
+        val component = ComponentName(context.packageName, listenerService).flattenToString()
+        return ShellAccess.exec(
+            context,
+            "cmd appops set --user $user ${context.packageName} RECEIVE_SENSITIVE_NOTIFICATIONS allow && " +
+                "{ cmd notification disallow_listener $component; cmd notification allow_listener $component; }",
+        )?.ok
+    }
+
     /**
      * Turns [service] on in Accessibility, keeping every service already on.
      * `settings` writes the list as given, so the current one is read first.

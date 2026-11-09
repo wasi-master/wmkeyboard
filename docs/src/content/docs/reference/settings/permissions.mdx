@@ -83,6 +83,7 @@ Only in the F-Droid and GitHub builds. The Play Store build has no such group. E
 | Make this the keyboard | Turns WM Keyboard on in Android's keyboard list and switches to it (`ime enable`, `ime set`) |
 | Grant every permission | Grants every runtime permission the app declares and doesn't hold yet, without a prompt for each. The value shows how many are missing. Background location is never included |
 | Notification access | Allows the listener behind [media controls](/tools/media/) and the [one-time code chip](/smart/one-time-codes/). The chip still needs its own setting on |
+| Codes Android hides | Android 15 and later only. Lets the listener read the one-time codes Android otherwise hides from it ("Sensitive notification content hidden"), by allowing `RECEIVE_SENSITIVE_NOTIFICATIONS`. No prompt or Settings screen can give this |
 | Screen reading service | Turns on the accessibility service that the [floating button's](/reference/settings/floating-button/#asking-the-ai-about-the-screen) **Ask AI** and **Look up** use, keeping any other services you already have on |
 | Write secure settings | Grants `WRITE_SECURE_SETTINGS`, which the app launcher's freeform row uses |
 | System spell checker | Makes WM Keyboard's spell checker the one every app's text fields use |
