@@ -60,16 +60,28 @@ class PunctuationModelEntry(
 
 /** The published smart punctuation models, one per size. */
 object PunctuationModelCatalog {
+    /** The 58 languages v2 was trained on (Tatoeba and OpenSubtitles), by keyboard id. */
+    private val V2_LANGUAGES = listOf("af", "ar", "az", "bg", "bn", "bs", "ca", "cs", "da", "de", "el", "en", "eo", "es", "et", "eu", "fa", "fi", "fr", "gl", "he", "hi", "hr", "hu", "hy", "id", "is", "it", "ka", "kk", "lt", "lv", "mk", "ml", "mr", "ms", "nb", "nl", "pl", "pt", "pt_br", "ro", "ru", "si", "sk", "sl", "sq", "sr", "sv", "sw", "ta", "te", "tl", "tr", "uk", "ur", "uz", "vi")
+
     val entries: List<PunctuationModelEntry> = listOf(
-        // v1: English and German, e64 d160, three layers, 1.8M parameters;
-        // 97.3% of held-out sentence ends right. The sixty-language model
-        // from `tools/wmpunct/remote` replaces it as v2.
+        // v2: e64 d192, four layers, 4.6M parameters, 49k vocabulary, 60k
+        // steps; 87.2% of held-out sentence ends right over the 58 languages,
+        // English 93.7% (see the data repo's models/README.md).
         PunctuationModelEntry(
             variant = PunctuationModelVariant.STANDARD,
-            path = "models/punct/smart_punct_v1.wmpt",
-            bytes = 2_077_464L,
-            sha256 = "2cdac4e7ff15b902a3cedc6ebd8f61ec579af8de0c9b8b04728fa5b8c288163d",
-            languages = listOf("en", "de"),
+            path = "models/punct/smart_punct_v2.wmpt",
+            bytes = 5_255_776L,
+            sha256 = "5e463c42eea1d308273d89e39275d033a5fbf8e3b83a2e6987407679e9489ad2",
+            languages = V2_LANGUAGES,
+        ),
+        // v2 large: e96 d256, six layers, 8.8M parameters, 100k steps; 87.5%,
+        // English 93.9%: a few tenths of a point for twice the file.
+        PunctuationModelEntry(
+            variant = PunctuationModelVariant.LARGE,
+            path = "models/punct/smart_punct_v2_large.wmpt",
+            bytes = 9_476_584L,
+            sha256 = "24b755df006a7ae4066182685b9287bb30c91aaac9c636972e9a955bce2cb381",
+            languages = V2_LANGUAGES,
         ),
     )
 

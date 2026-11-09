@@ -73,6 +73,21 @@ and OUT from the environment; a sweep is the same script with another OUT.
 An RTX 4090-class card does 40k steps at batch 512 in well under an hour
 once the corpora are in; fetching them is the longer half.
 
+## Results (2026-11-09, RTX 5080, 41.4M examples, 58 languages)
+
+| run | vocab | steps | acc over `. ? !` | file |
+|---|---|---|---|---|
+| e64 d192 L4 ff512 | 32,768 | 40k | .869 | 3.7 MB |
+| e96 d256 L6 ff768 | 32,768 | 40k | .868 | |
+| e64 d192 L4, `exclaim_weight=2` | 32,768 | 40k | .867 (`!` recall .07) | |
+| **e64 d192 L4 (v2 Standard)** | 49,152 | 60k | **.872** (en .937) | 5.3 MB |
+| **e96 d256 L6 (v2 Large)** | 49,152 | 100k | **.875** (en .939) | 9.5 MB |
+
+Size barely matters; the misses are exclamations (5.8% of ends, recall
+.02) and questions asked in statement order (`?` recall .86 in English,
+.55–.66 in French, Spanish, Hungarian, Persian). Short subtitle lines
+(≤3 words) score .81 in English against .95 for 8+ words.
+
 ## Publishing
 
 Copy `smart_punct.wmpt` to the data repo as `models/punct/smart_punct_v<n>.wmpt`
