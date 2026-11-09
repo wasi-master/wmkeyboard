@@ -155,11 +155,14 @@ object IndicXlitModels {
     /**
      * The languages where the model may also choose the space bar's word when
      * the rules' reading is not a known word. Measured with the spelling map on
-     * (top-1, Aksharantar test words): Bengali 25.0% to 56.4%, Hindi 40.9% to
-     * 48.6%, and chat spellings the map lacks 41.8% to 52.8% and 78.2% to 80.1%.
-     * Urdu gained one point (29.1% to 30.1%), not worth what the swap costs.
+     * (top-1, 4,000 Aksharantar test words each, beam 4, the default 300,000
+     * word list): Bengali 25.3% to 53.3%, Kannada 44.0% to 62.0%, Telugu 50.0%
+     * to 66.1%, Assamese 26.7% to 38.5%, Gujarati 46.9% to 57.0%, Malayalam
+     * 25.6% to 35.0%, Marathi 49.2% to 58.1%, Punjabi 40.1% to 48.1%, Odia
+     * 24.5% to 32.2%, Hindi 40.0% to 47.6%. Tamil (30.3% to 31.5%) and Urdu
+     * (27.8% to 28.7%) gained about one point, not worth what the swap costs.
      */
-    val LEADS: Set<String> = setOf("bn", "hi")
+    val LEADS: Set<String> = setOf("bn", "hi", "as", "gu", "kn", "ml", "mr", "or", "pa", "te")
 
     fun canLead(languageId: String): Boolean = languageId in LEADS
 

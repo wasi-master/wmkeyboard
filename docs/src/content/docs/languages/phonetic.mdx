@@ -87,9 +87,9 @@ The last row of the group is the **Romanized dictation model**, the same model f
 
 ### Let it choose the word
 
-<SettingsPath path="Languages & layouts / Bangla or Hindi / Suggestion strip / Let it choose the word" />
+<SettingsPath path="Languages & layouts / your language / Suggestion strip / Let it choose the word" />
 
-Bangla and Hindi have a second switch, under Neural suggestions and off by default. With it on, the model may also pick what the space bar writes, but only in one case: the rules spell something that is not a word in the language's word list or among your own words, and the known-spellings list has nothing for what you typed. Then the model's best reading that is in the word list goes first in the strip, and a space writes it. The rules' spelling moves to second place, one tap away. Whenever the rules spell a known word, or the known-spellings list has the spelling, nothing changes.
+Bangla, Hindi, Assamese, Gujarati, Kannada, Malayalam, Marathi, Odia, Punjabi and Telugu have a second switch, under Neural suggestions and off by default. With it on, the model may also pick what the space bar writes, but only in one case: the rules spell something that is not a word in the language's word list or among your own words, and the known-spellings list has nothing for what you typed. Then the model's best reading that is in the word list goes first in the strip, and a space writes it. The rules' spelling moves to second place, one tap away. Whenever the rules spell a known word, or the known-spellings list has the spelling, nothing changes.
 
 The text in the field still shows the rules' spelling while you type, as it does when the space bar is about to write a dictionary word that sounds the same. The strip's first word is what a space writes. If you press space before the model has answered, the keyboard waits up to 30&nbsp;ms for it, so typing fast does not change which word you get.
 
@@ -97,12 +97,20 @@ Measured with the known-spellings list on, how often the space bar writes the ri
 
 | Words | Without | With | Made worse |
 |---|---:|---:|---:|
-| Bangla, Aksharantar test words (4,000) | 25.0% | 56.4% | 22 |
+| Bangla, Aksharantar test words (4,000) | 25.3% | 53.3% | 16 |
 | Bangla, chat spellings the known-spellings list doesn't have (2,500) | 41.8% | 52.8% | 31 |
-| Hindi, Aksharantar test words (4,000) | 40.9% | 48.6% | 24 |
+| Hindi, Aksharantar test words (4,000) | 40.0% | 47.6% | 27 |
 | Hindi, chat spellings the known-spellings list doesn't have (692) | 78.2% | 80.1% | 0 |
+| Assamese, Aksharantar test words (4,000) | 26.7% | 38.5% | 18 |
+| Gujarati, Aksharantar test words (4,000) | 46.9% | 57.0% | 15 |
+| Kannada, Aksharantar test words (4,000) | 44.0% | 62.0% | 4 |
+| Malayalam, Aksharantar test words (4,000) | 25.6% | 35.0% | 13 |
+| Marathi, Aksharantar test words (4,000) | 49.2% | 58.1% | 5 |
+| Odia, Aksharantar test words (4,000) | 24.5% | 32.2% | 25 |
+| Punjabi, Aksharantar test words (4,000) | 40.1% | 48.1% | 7 |
+| Telugu, Aksharantar test words (4,000) | 50.0% | 66.1% | 11 |
 
-What it gives up is Avro's rule that the space bar writes exactly what you spelled. A name or rare word spelled exactly to the rules, but missing from the word list, can turn into a listed word that looks like it: `ananto` আনান্ত becomes অনন্ত, `bharotpur` ভারতপুর becomes ভরতপুর. On words spelled exactly to the rules and missing from the list, that happened to about one in six in Bangla and one in fifteen in Hindi. For words the list has, it happened to 2 of 305 in Bangla and none of 427 in Hindi. Urdu gained one point, too little for that trade, so it does not have the switch. It does nothing while the strip is fixed to the word as typed, or while desktop Avro's candidate list is shown in its own row, since the first word there would then disagree with the space bar.
+What it gives up is Avro's rule that the space bar writes exactly what you spelled. A name or rare word spelled exactly to the rules, but missing from the word list, can turn into a listed word that looks like it: `ananto` আনান্ত becomes অনন্ত, `bharotpur` ভারতপুর becomes ভরতপুর. On words spelled exactly to the rules and missing from the list, that happened to about one in six in Bangla and one in fifteen in Hindi. For words the list has, it happened to 2 of 305 in Bangla and none of 427 in Hindi. In the other eight languages, of the test words the rules spelled right but the word list lacks, between 2% (Kannada) and 14% (Odia) were swapped. Urdu and Tamil gained about one point each, too little for that trade, so they do not have the switch. It does nothing while the strip is fixed to the word as typed, or while desktop Avro's candidate list is shown in its own row, since the first word there would then disagree with the space bar.
 
 ## What each language does
 
