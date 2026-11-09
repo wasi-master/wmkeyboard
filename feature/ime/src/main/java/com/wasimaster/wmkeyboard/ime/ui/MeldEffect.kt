@@ -124,7 +124,7 @@ internal fun meldPress(ageMs: Long, lifeMs: Long): Float {
     val rise = (ageMs / 90f).coerceIn(0f, 1f)
     val hold = 140f
     if (ageMs <= hold) return rise
-    val u = ((ageMs - hold) / (lifeMs - hold).coerceAtLeast(1L).toFloat()).coerceIn(0f, 1f)
+    val u = ((ageMs - hold) / (lifeMs - hold).coerceAtLeast(1f)).coerceIn(0f, 1f)
     val f = 1f - u
     return rise * f * f * (3f - 2f * f)
 }
