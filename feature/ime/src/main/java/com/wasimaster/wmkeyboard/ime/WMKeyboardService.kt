@@ -455,6 +455,7 @@ import com.wasimaster.wmkeyboard.core.settings.GLIDE_SHAPES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SANDBOX_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_CHECKUP_FILE
 import com.wasimaster.wmkeyboard.core.settings.GestureSettings
+import com.wasimaster.wmkeyboard.core.settings.TwoThumbBackspace
 import com.wasimaster.wmkeyboard.core.settings.TwoThumbWordEnd
 import com.wasimaster.wmkeyboard.core.settings.glideTuning
 import com.wasimaster.wmkeyboard.core.settings.floatingFor
@@ -1752,6 +1753,22 @@ open class WMKeyboardService : InputMethodService() {
     )
     private var committedDuet: CommittedDuet? = null
 
+    /**
+     * A two-thumb word was just typed, by either word end, and the caret has
+     * not left it (#1188). What lets Backspace under an explicit
+     * [TwoThumbBackspace] choice act on a word of taps, which arms no
+     * [lastGestureWord]; disarmed with the other immediate-revert states.
+     */
+    private var twoThumbWordBehind = false
+
+    /**
+     * Whether the Delete key being handled found the keyboard's word space
+     * still armed: [dispatchKey] spends [pendingWordSpace] before [onDelete]
+     * runs, and a two-thumb Backspace that takes only that space, or Retype
+     * that takes it with the word, needs to know it was ours (#1188).
+     */
+    private var deleteFoundWordSpace = false
+
     /** Numbers each [AllUpCountdown], so a pause that ends late cannot clear a newer one's band. */
     private var allUpCountdownId = 0
 
@@ -1817,6 +1834,8 @@ open class WMKeyboardService : InputMethodService() {
             )
             revisionFragment = ""
             field = value
+            // A word open again, or a new one, is not the one just typed (#1188).
+            if (value.isNotEmpty()) twoThumbWordBehind = false
             // A word replaced wholesale (committed, picked, re-armed) is no
             // longer the one those gestures spelled, and a decode still running
             // for it must not land after it (#640).
@@ -8289,6 +8308,7 @@ open class WMKeyboardService : InputMethodService() {
             pendingAutoSpace = false
             pendingPunctuationSpace = false
             pendingWordSpace = false
+            twoThumbWordBehind = false
             glueNextWord = false
             setNoSpaceArmed(false)
             // The last field's text is behind us and nobody is going back to
@@ -9369,7 +9389,7 @@ open class WMKeyboardService : InputMethodService() {
         // arming is the commit's own echo and records the anchor, anything
         // that moves the caret afterwards disarms them.
         if (lastRevertible != null || lastGestureWord != null || pendingAutoSpace ||
-            pendingWordSpace || deferredWordSpace
+            pendingWordSpace || deferredWordSpace || twoThumbWordBehind
         ) {
             val settling = SystemClock.uptimeMillis() - revertArmedAt < REVERT_SETTLE_MS
             fun disarm() {
@@ -9384,6 +9404,7 @@ open class WMKeyboardService : InputMethodService() {
                     _uiState.update { it.copy(suggestions = emptyList()) }
                 }
                 lastGestureWord = null
+                twoThumbWordBehind = false
                 pendingAutoSpace = false
                 pendingPunctuationSpace = false
                 pendingWordSpace = false
@@ -10759,7 +10780,10 @@ open class WMKeyboardService : InputMethodService() {
         // Delete keeps it so one backspace can undo the whole swipe.
         if (key.action != KeyAction.Shift && key.action != KeyAction.Delete) {
             lastGestureWord = null
+            twoThumbWordBehind = false
         }
+        // Read before the line below spends it (#1188).
+        deleteFoundWordSpace = key.action == KeyAction.Delete && pendingWordSpace
         // The auto-space cancel is a one-shot for the shift press immediately
         // after the ". " — any other key means the user typed on past it.
         if (key.action != KeyAction.Shift) pendingAutoSpace = false
@@ -15437,11 +15461,92 @@ open class WMKeyboardService : InputMethodService() {
      * so the emoji search bar's field-backspace can reach it while the
      * backspace key is busy editing the query.
      */
+    /**
+     * Whether Backspace may take back a commit of [kind]: a correction or a
+     * script the keyboard chose asks the user's switch; a snippet, a tapped
+     * join or a tapped revision is always taken back.
+     */
+    private fun revertAllowedOnBackspace(kind: RevertibleCommit.Kind, state: KeyboardUiState): Boolean = when (kind) {
+        RevertibleCommit.Kind.AUTOCORRECT -> state.settings.correction.revertOnBackspace
+        // A pattern snippet eats several typed words at once, so being
+        // able to take it back is not a preference. There is also no
+        // settings field left to hang one on.
+        RevertibleCommit.Kind.SNIPPET -> true
+        // Undoing a tapped join is not a preference either.
+        RevertibleCommit.Kind.JOIN -> true
+        // Nor is undoing a tapped revision chip.
+        RevertibleCommit.Kind.REVISION -> true
+        // The keyboard chose the script, the way it chooses a
+        // correction, so the same switch says whether backspace argues.
+        RevertibleCommit.Kind.SCRIPT -> state.settings.correction.revertOnBackspace
+    }
+
+    /**
+     * What a two-thumb Backspace under an explicit choice can act on (#1188),
+     * each fact checked against the field before it is reported: a space
+     * counts only when it is the keyboard's and really behind the caret, a
+     * join only when the letters past it are still there to keep. Reads the
+     * field only when the choice is on and a space could matter.
+     */
+    private fun twoThumbBackspaceFacts(
+        ic: InputConnection,
+        state: KeyboardUiState,
+        foundWordSpace: Boolean,
+    ): TwoThumbBackspaceFacts {
+        val gesture = state.settings.gesture
+        if (!gesture.twoThumbGlide || gesture.twoThumbBackspace == TwoThumbBackspace.CURRENT) {
+            return TwoThumbBackspaceFacts()
+        }
+        val open = composing.isNotEmpty() || duetWord.active
+        val reopened = reopenedWord
+        val join = open && reopened != null && if (duetWord.active) {
+            duetWord.snapshot().size > reopened.headGestures
+        } else {
+            composing.length > reopened.word.length && composing.startsWith(reopened.word, ignoreCase = true)
+        }
+        val spaceBehind = !open && gesture.twoThumbBackspaceSpaceFirst && foundWordSpace &&
+            ic.getTextBeforeCursor(1, 0)?.toString() == " "
+        return TwoThumbBackspaceFacts(
+            joinUndoable = join,
+            autoSpaceBehind = spaceBehind,
+            spaceOwed = !open && deferredWordSpace,
+            correctionUndoable = !open && lastRevertible?.let { revertAllowedOnBackspace(it.kind, state) } == true,
+            wordOpen = open,
+            wordBehind = !open && (lastGestureWord != null || twoThumbWordBehind),
+        )
+    }
+
+    /**
+     * Takes only the keyboard's space behind a just-typed two-thumb word
+     * (#1188). Whatever would take the word or its correction back stays
+     * armed for the next press: the caret moved by this edit alone, so the
+     * guard re-anchors on its echo instead of reading it as the user moving.
+     */
+    private fun deleteTwoThumbAutoSpace(ic: InputConnection) {
+        revision?.expectDelete(1, 0)
+        ic.deleteSurroundingText(1, 0)
+        pendingWordSpace = false
+        // Gone: nothing is left for a letter to take back and join.
+        allUpSpace = null
+        armRevertGuard()
+    }
+
+    /** The just-typed two-thumb word stops being one unit: this press deletes as any other. */
+    private fun dropTwoThumbWordUndo() {
+        lastGestureWord = null
+        lastGestureStroke = null
+        committedDuet = null
+        twoThumbWordBehind = false
+    }
+
     private fun deleteFromField() {
         // Inside rather than in onDelete, so the emoji bar's field-backspace
         // gets the same offer.
         if (runKeymanFrameKey(VK_BACKSPACE)) return
         val state = _uiState.value
+        // Spent by this press whatever it does, so a later one cannot read it.
+        val foundWordSpace = deleteFoundWordSpace || pendingWordSpace
+        deleteFoundWordSpace = false
         val ic = currentInputConnection ?: return
         settlePendingUndoOnDelete()
         recordStat { onBackspace(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
@@ -15466,12 +15571,52 @@ open class WMKeyboardService : InputMethodService() {
                 return
             }
         }
+        // Two-thumb typing's own Backspace (#1188), when the user chose one:
+        // one step a press, in the order the settings page shows. The steps
+        // that end the press here return; the rest pick which of the paths
+        // below runs. Under "Current behavior" this is LEGACY and nothing
+        // below changes.
+        val twoThumbStep = twoThumbBackspaceStep(
+            state.settings.gesture,
+            twoThumbBackspaceFacts(ic, state, foundWordSpace),
+        )
+        when (twoThumbStep) {
+            TwoThumbBackspaceStep.UNDO_JOIN -> {
+                splitReopenedWord(ic)
+                // Still being typed: the lift off Backspace must not end it.
+                allUpArmed = false
+                return
+            }
+            TwoThumbBackspaceStep.DELETE_AUTO_SPACE -> {
+                deleteTwoThumbAutoSpace(ic)
+                return
+            }
+            TwoThumbBackspaceStep.CANCEL_OWED_SPACE -> {
+                deferredWordSpace = false
+                return
+            }
+            // The correction is the word's newest edit: the gesture undo
+            // below would take the corrected word, not the correction.
+            TwoThumbBackspaceStep.UNDO_CORRECTION -> dropTwoThumbWordUndo()
+            TwoThumbBackspaceStep.RETYPE_WORD -> {
+                // The space the press found is still the keyboard's, and goes with the word.
+                if (composing.isEmpty() && foundWordSpace) pendingWordSpace = true
+                if (retypeWord()) return
+                // Refused (a caret the editor will not prove, a mark behind
+                // it): an ordinary Backspace rather than a press that does nothing.
+                pendingWordSpace = false
+                dropTwoThumbWordUndo()
+            }
+            TwoThumbBackspaceStep.DELETE_CHARACTER, TwoThumbBackspaceStep.ORDINARY -> dropTwoThumbWordUndo()
+            TwoThumbBackspaceStep.LEGACY, TwoThumbBackspaceStep.UNDO_STEP -> Unit
+        }
+        val undoGlide = twoThumbStep.undoesGestures(state.settings.gesture)
         // Backspace straight after a glide removes the whole swiped word —
         // a wrong swipe shouldn't cost a letter-by-letter cleanup. Unless the
         // user turned that off (#455): a swipe that got a letter or two wrong
         // is fixed faster by deleting those letters than by redrawing it, so
         // the word stops being one unit and this press deletes like any other.
-        if (lastGestureWord != null && !state.settings.gesture.backspaceUndoesGlide) {
+        if (lastGestureWord != null && !undoGlide) {
             lastGestureWord = null
             lastGestureStroke = null
             pendingWordSpace = false
@@ -15552,20 +15697,7 @@ open class WMKeyboardService : InputMethodService() {
         lastRevertible?.let { revert ->
             lastRevertible = null
             clearSwapOffer()
-            val allowed = when (revert.kind) {
-                RevertibleCommit.Kind.AUTOCORRECT -> state.settings.correction.revertOnBackspace
-                // A pattern snippet eats several typed words at once, so being
-                // able to take it back is not a preference. There is also no
-                // settings field left to hang one on.
-                RevertibleCommit.Kind.SNIPPET -> true
-                // Undoing a tapped join is not a preference either.
-                RevertibleCommit.Kind.JOIN -> true
-                // Nor is undoing a tapped revision chip.
-                RevertibleCommit.Kind.REVISION -> true
-                // The keyboard chose the script, the way it chooses a
-                // correction, so the same switch says whether backspace argues.
-                RevertibleCommit.Kind.SCRIPT -> state.settings.correction.revertOnBackspace
-            }
+            val allowed = revertAllowedOnBackspace(revert.kind, state)
             if (composing.isEmpty() && allowed) {
                 // A correction is always followed by the space that triggered
                 // it, but an expansion can be followed by a newline, a full
@@ -15617,7 +15749,7 @@ open class WMKeyboardService : InputMethodService() {
         // A two-thumb word takes back its latest tap or swipe (#638) — even
         // before its first reading lands, while the buffer is still empty and
         // this press would otherwise delete the text in front of it (#732).
-        if (duetWord.active && duetBackspace(ic)) return
+        if (duetWord.active && duetBackspace(ic, undoGlide)) return
         if (composing.isNotEmpty()) {
             // A correction re-armed as the composing word and backspaced is
             // being deleted all the same; the buffer path just never reaches
@@ -17185,6 +17317,7 @@ open class WMKeyboardService : InputMethodService() {
         val body = if (before.endsWith(' ') && !before.endsWith("  ")) before.dropLast(1) else before
         val word = body.takeLastWhile { isComposingWordChar(it) }
         if (word.none { it.isLetter() } || (word.length == body.length && before.length >= RETYPE_LOOKBEHIND)) return null
+        if (body.length == before.length && caretInsideWord(ic)) return null
         return word
     }
 
@@ -17330,11 +17463,15 @@ open class WMKeyboardService : InputMethodService() {
      * has nothing more to offer, and nothing is made up for it. The word is
      * deleted the way a backspace swipe deletes one, so it is dropped from
      * the learning buffer with it.
+     *
+     * Only a whole word: with the caret right after letters and more letters
+     * after it (`wo⌶rd`), the part behind the caret is not a word, and
+     * nothing happens (#1188). True when a word was taken.
      */
-    private fun retypeWord() {
-        if (backspaceEditsBuffer()) return
-        val ic = currentInputConnection ?: return
-        if (hasSelection(ic) || isNullField()) return
+    private fun retypeWord(): Boolean {
+        if (backspaceEditsBuffer()) return false
+        val ic = currentInputConnection ?: return false
+        if (hasSelection(ic) || isNullField()) return false
         val engine = suggestionEngine
         if (composing.isNotEmpty()) {
             // The word as the field shows it (#840): a transliterating
@@ -17346,6 +17483,13 @@ open class WMKeyboardService : InputMethodService() {
                 .filterNot { it.equals(word, ignoreCase = true) }
                 .filterNot { it != word && it == keys && _uiState.value.composer.isTransliterating }
                 .filterNot { engine?.suppresses(it) == true }
+            // A two-thumb word's decode still running, or its all-up pause,
+            // must not put the word back or type it once it is gone (#1188).
+            duetJob?.cancel()
+            duetGeneration++
+            allUpJob?.cancel()
+            allUpArmed = false
+            reopenedWord = null
             composing.setLength(0)
             duetWord.clear()
             composingTouch.clear()
@@ -17356,12 +17500,13 @@ open class WMKeyboardService : InputMethodService() {
             keystrokeTiming.reset()
             updateComposingText(ic)
             clearCaretWord()
+            twoThumbWordBehind = false
             publishRetypeOffer(RetypeOffer(word, -1, shown))
-            return
+            return true
         }
         val at = expectedSelStart
-        if (at < 0 || !caretProvenAt(ic, at)) return
-        val before = runCatching { ic.getTextBeforeCursor(RETYPE_LOOKBEHIND, 0)?.toString() }.getOrNull() ?: return
+        if (at < 0 || !caretProvenAt(ic, at)) return false
+        val before = runCatching { ic.getTextBeforeCursor(RETYPE_LOOKBEHIND, 0)?.toString() }.getOrNull() ?: return false
         val trailing = before.endsWith(' ') && !before.endsWith("  ")
         val body = if (trailing) before.dropLast(1) else before
         val keepSpace = trailing && !pendingWordSpace
@@ -17370,7 +17515,8 @@ open class WMKeyboardService : InputMethodService() {
         val word = body.substring(from)
         // No letter, no word; and one that runs back past what was read may
         // be longer than it looks.
-        if (word.none { it.isLetter() } || (from == 0 && before.length >= RETYPE_LOOKBEHIND)) return
+        if (word.none { it.isLetter() } || (from == 0 && before.length >= RETYPE_LOOKBEHIND)) return false
+        if (!trailing && caretInsideWord(ic)) return false
         val length = before.length - from
         val start = at - length
         val readings = glideReadings.readingsAt(word, start).filterNot { engine?.suppresses(it) == true }
@@ -17386,10 +17532,18 @@ open class WMKeyboardService : InputMethodService() {
         ic.endBatchEdit()
         pendingWordSpace = false
         lastGestureWord = null
+        twoThumbWordBehind = false
         lastRevertible = null
         clearSwapOffer()
         syncPreviousWordFromField(ic)
         publishRetypeOffer(RetypeOffer(word, start, readings))
+        return true
+    }
+
+    /** Whether the character after the caret carries the word behind it on (`wo⌶rd`). */
+    private fun caretInsideWord(ic: InputConnection): Boolean {
+        val after = runCatching { ic.getTextAfterCursor(1, 0)?.toString() }.getOrNull().orEmpty()
+        return after.isNotEmpty() && isComposingWordChar(after[0])
     }
 
     /**
@@ -17942,6 +18096,9 @@ open class WMKeyboardService : InputMethodService() {
             lastSpaceTime = now
             return
         }
+        // A two-thumb word ended by the space key (#1188): the space is the
+        // user's, the word is still the one Backspace may act on.
+        if (typedWord && committed) armTwoThumbWordBehind()
 
         // How close together the two spaces have to be. One number for both
         // rules below, so the tab and the full stop never disagree about what
@@ -31464,11 +31621,15 @@ open class WMKeyboardService : InputMethodService() {
      *
      * With "Backspace undoes swipe" off (#455) the word stops being gestures
      * instead, and the press takes one letter of it, as after a glide (#732):
-     * false, so the caller's buffer delete runs.
+     * false, so the caller's buffer delete runs. [undo] is that switch, or
+     * the two-thumb Backspace choice when there is one (#1188).
      */
-    private fun duetBackspace(ic: InputConnection): Boolean {
+    private fun duetBackspace(
+        ic: InputConnection,
+        undo: Boolean = _uiState.value.settings.gesture.backspaceUndoesGlide,
+    ): Boolean {
         if (!duetWord.active) return false
-        if (!_uiState.value.settings.gesture.backspaceUndoesGlide) {
+        if (!undo) {
             // Settled first, so a swipe still being read is not lost; dropped
             // without the setter, which would take the word's text and its
             // all-up pause with the gestures.
@@ -31791,6 +31952,17 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Notes that a two-thumb word was just typed (#1188), for a Backspace
+     * under an explicit choice to act on; anchored at the caret the commit
+     * leaves, like the other immediate-revert states.
+     */
+    private fun armTwoThumbWordBehind() {
+        if (!_uiState.value.settings.gesture.twoThumbGlide) return
+        twoThumbWordBehind = true
+        armRevertGuard()
+    }
+
+    /**
      * Ends a word of taps alone at the all-thumbs-up pause (#676) the way a
      * swiped word ends there: corrected as a Space would correct it, then
      * followed by [commitGestureSpace]. That space is the keyboard's own, so a
@@ -31821,6 +31993,7 @@ open class WMKeyboardService : InputMethodService() {
         } else if (committed) {
             commitGestureSpace(ic, state)
             if (pendingWordSpace) recordStat { onSeparator(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
+            armTwoThumbWordBehind()
         }
         ic.endBatchEdit()
         maybeAutoCapitalize()
@@ -31901,6 +32074,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (unspaced) joinAfterMarkedWord() else commitGestureSpace(ic, state)
         ic.endBatchEdit()
+        twoThumbWordBehind = undoable
         if (undoable) armRevertGuard()
         if (undoable && (alternates.isNotEmpty() || split != null)) {
             if (alternates.isNotEmpty()) glideReadings.remember(word, alternates)

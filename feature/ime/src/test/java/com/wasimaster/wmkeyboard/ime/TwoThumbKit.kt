@@ -13,6 +13,7 @@ import com.wasimaster.wmkeyboard.core.prediction.UserLexicon
 import com.wasimaster.wmkeyboard.core.settings.GestureSettings
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.TwoThumbBackspace
 import com.wasimaster.wmkeyboard.core.settings.TwoThumbWordEnd
 import com.wasimaster.wmkeyboard.core.settings.applyMode
 import com.wasimaster.wmkeyboard.core.transliteration.BengaliPhoneticIndex
@@ -45,6 +46,9 @@ internal object TwoThumbKit {
         noAutoSpaceMode: Boolean = false,
         retractMs: Int = 0,
         band: Boolean = true,
+        backspace: TwoThumbBackspace = TwoThumbBackspace.CURRENT,
+        spaceFirst: Boolean = false,
+        joinFirst: Boolean = false,
     ): KeyboardSettings {
         val base = KeyboardSettings(
             learnFromTyping = false,
@@ -60,6 +64,9 @@ internal object TwoThumbKit {
                 // pause starts a new word whatever the planted dictionary holds.
                 twoThumbRetractWindowMs = retractMs,
                 twoThumbPauseBand = band,
+                twoThumbBackspace = backspace,
+                twoThumbBackspaceSpaceFirst = spaceFirst,
+                twoThumbBackspaceJoinFirst = joinFirst,
             ),
         )
         if (!noAutoSpaceMode) return base
@@ -73,8 +80,11 @@ internal object TwoThumbKit {
             EditorInfo().also { it.inputType = InputType.TYPE_CLASS_TEXT }
     }
 
-    fun keyboard(settings: KeyboardSettings, initial: String = ""): Pair<WMKeyboardService, RecordingEditor> {
-        val editor = RecordingEditor(initial = initial)
+    fun keyboard(
+        settings: KeyboardSettings,
+        initial: String = "",
+        editor: RecordingEditor = RecordingEditor(initial = initial),
+    ): Pair<WMKeyboardService, RecordingEditor> {
         val service = TextKeyboard(editor)
         plantPersonalStores(service)
         seedState(service, glideReadyState(settings = settings))

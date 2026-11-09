@@ -725,6 +725,37 @@
     <string name="typing_glide_backspace_undo_title">Backspace removes a glided word</string>
     <string name="typing_glide_backspace_undo_subtitle">One backspace after a glide deletes the whole word</string>
     <string name="typing_glide_backspace_undo_info">This setting is on by default. Right after you glide a word, one backspace deletes the whole word and its space, and the suggestion strip shows other words for the same glide. Turn this off to delete one letter at a time, as for a word you typed on the keys. Use this when your glides are usually correct except for one or two letters.</string>
+    <string name="typing_glide_backspace_undo_two_thumb_own_subtitle">For ordinary glides. Two-thumb typing uses Two-thumb Backspace</string>
+    <string name="typing_glide_backspace_undo_two_thumb_current_subtitle">For ordinary glides, and for two-thumb typing while Two-thumb Backspace is on Current behavior</string>
+
+    <!-- One-of-four choice (#1188): what Backspace does to a word typed with both thumbs. -->
+    <string name="typing_two_thumb_backspace_title">Two-thumb Backspace</string>
+    <string name="typing_two_thumb_backspace_current_subtitle">Current behavior: Backspace removes a glided word decides</string>
+    <!-- %1$s: the steps in the order one press takes them, joined by commas. -->
+    <string name="typing_two_thumb_backspace_order">One step a press: %1$s</string>
+    <string name="typing_two_thumb_backspace_step_join">restore the joined space</string>
+    <string name="typing_two_thumb_backspace_step_space">remove the auto-space</string>
+    <string name="typing_two_thumb_backspace_step_correction">undo a correction</string>
+    <string name="typing_two_thumb_backspace_step_undo">undo the last tap or swipe</string>
+    <string name="typing_two_thumb_backspace_step_retype">retype the word</string>
+    <string name="typing_two_thumb_backspace_step_character">delete a character</string>
+    <string name="typing_two_thumb_backspace_info">This applies only to words you type with Two-thumb typing on. One press does one step, in the order shown under the title. A selection is always deleted first. Away from a word you just typed, Backspace deletes one character. Holding Backspace uses your normal repeat after the first press. Current behavior keeps the rules from before this setting existed, where the switch Backspace removes a glided word decides for two-thumb words too.</string>
+    <string name="typing_two_thumb_backspace_current_label">Current behavior</string>
+    <string name="typing_two_thumb_backspace_current_desc">Keep the existing rules. Backspace removes a glided word decides, and the two switches below are not used.</string>
+    <string name="typing_two_thumb_backspace_undo_label">Undo input step</string>
+    <string name="typing_two_thumb_backspace_undo_desc">Remove the last tap or swipe and show the earlier reading again. This works on the open word, and on a word the all thumbs up pause just typed.</string>
+    <string name="typing_two_thumb_backspace_retype_label">Retype word</string>
+    <string name="typing_two_thumb_backspace_retype_desc">Clear the word so you can enter it again, and offer its old spelling on the strip. One press clears one word. The next press deletes a character.</string>
+    <string name="typing_two_thumb_backspace_character_label">Delete character</string>
+    <string name="typing_two_thumb_backspace_character_desc">Delete one character at a time, as for a word typed on the keys.</string>
+    <string name="typing_two_thumb_backspace_needs_action">Choose a Two-thumb Backspace action other than Current behavior to use this</string>
+    <string name="typing_two_thumb_backspace_space_first_title">Delete auto-space first</string>
+    <string name="typing_two_thumb_backspace_space_first_subtitle">The first press removes only the space the keyboard added after the word</string>
+    <string name="typing_two_thumb_backspace_space_first_info">After a word, the first Backspace removes only the space the keyboard typed. The next press undoes a correction or does the Two-thumb Backspace action. A space you typed with the spacebar is not an auto-space, so this never removes it. A space the keyboard was still holding back before a closing mark is cancelled, and no text is deleted. When this is off, Retype word and Undo input step take the auto-space together with the word.</string>
+    <string name="typing_two_thumb_backspace_join_first_title">Undo Take the space back first</string>
+    <string name="typing_two_thumb_backspace_join_first_subtitle">The first press puts back a space that Take the space back removed</string>
+    <string name="typing_two_thumb_backspace_join_first_needs_retract">Needs Finish a two-thumb word set to All thumbs up, and Take the space back above Off</string>
+    <string name="typing_two_thumb_backspace_join_first_info">Take the space back can join a letter to the word before it: car, the space, then p gives carp. With this on, the first Backspace puts the space back and keeps the letters you typed after it as a word of their own, so carp becomes car p. The space is not taken back again until you type a new word. The next press uses the Two-thumb Backspace action on that word. It works only for the latest join while you are still typing the word, and never for No space or a space you typed.</string>
     <string name="typing_space_after_glide_title">Space after a glided word</string>
     <string name="typing_space_after_glide_subtitle">Add a space when you lift your finger at the end of a glide</string>
     <string name="typing_space_after_glide_info">This setting is on by default. The keyboard types a space after a glided word, so the next word does not join it. You can glide the next word, or type it on the keys. Type . , ? ! ; : or a closing bracket next, and the keyboard removes the space first. A press on the spacebar counts as the space that is already there. Backspace takes back the glided word and its space together. The keyboard adds no space in a password, an email address, a web address, a number pad or a phone pad.</string>

@@ -1410,6 +1410,21 @@ enum class ShiftGlideMode { WORD, LETTER }
 enum class TwoThumbWordEnd { SPACE, ALL_UP }
 
 /**
+ * What Backspace does to a two-thumb word (#1188), apart from ordinary
+ * glide's [GestureSettings.backspaceUndoesGlide].
+ *
+ * [CURRENT] keeps the rules two-thumb typing had before the choice existed:
+ * that shared switch decides, and the two first-tap stages
+ * ([GestureSettings.twoThumbBackspaceSpaceFirst],
+ * [GestureSettings.twoThumbBackspaceJoinFirst]) are not used. [UNDO_STEP]
+ * takes back the word's latest tap or swipe, open or just typed.
+ * [RETYPE_WORD] clears the whole word for fresh entry, the way Retype (#791)
+ * does, once per word. [DELETE_CHARACTER] deletes one character, the word
+ * being ordinary text.
+ */
+enum class TwoThumbBackspace { CURRENT, UNDO_STEP, RETYPE_WORD, DELETE_CHARACTER }
+
+/**
  * The range [GestureSettings.twoThumbPauseMs], [GestureSettings.twoThumbTapPauseMs]
  * and [GestureSettings.twoThumbOneLetterPauseMs] are held to, in ms.
  */
@@ -9156,6 +9171,25 @@ data class GestureSettings(
      */
     val backspaceUndoesGlide: Boolean = true,
     /**
+     * What Backspace does to a word typed with both thumbs (#1188); see
+     * [TwoThumbBackspace]. [TwoThumbBackspace.CURRENT] for everyone until
+     * they choose, so nothing changes under an existing install.
+     */
+    val twoThumbBackspace: TwoThumbBackspace = TwoThumbBackspace.CURRENT,
+    /**
+     * Under a [twoThumbBackspace] other than CURRENT, the first Backspace
+     * after a two-thumb word takes only the space the keyboard typed after
+     * it (or calls off one it still owes), and the next press reaches the
+     * word. A space the user typed is never one of these.
+     */
+    val twoThumbBackspaceSpaceFirst: Boolean = false,
+    /**
+     * Under a [twoThumbBackspace] other than CURRENT, the first Backspace
+     * after "Take the space back" joined a word puts the space back and
+     * keeps what was typed after it as a word of its own: `carp` → `car p`.
+     */
+    val twoThumbBackspaceJoinFirst: Boolean = false,
+    /**
      * Bumped by the gestures screen's "forget" so a running keyboard drops
      * its in-memory copies of the swipe-style stores — the contract of
      * [KeyboardSettings.lexiconVersion], on a counter of its own so
@@ -11613,6 +11647,11 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_CHECKUP_DECISION = stringPreferencesKey("gesture_checkup_decision")
         private val GESTURE_BACKSPACE_UNDOES_GLIDE =
             booleanPreferencesKey("gesture_backspace_undoes_glide")
+        private val GESTURE_TWO_THUMB_BACKSPACE = stringPreferencesKey("gesture_two_thumb_backspace")
+        private val GESTURE_TWO_THUMB_BACKSPACE_SPACE_FIRST =
+            booleanPreferencesKey("gesture_two_thumb_backspace_space_first")
+        private val GESTURE_TWO_THUMB_BACKSPACE_JOIN_FIRST =
+            booleanPreferencesKey("gesture_two_thumb_backspace_join_first")
         private val GESTURE_SWIPE_STYLE_VERSION = intPreferencesKey("gesture_swipe_style_version")
         // Legacy boolean, read only to migrate into SPACE_LONG_SWIPE.
         private val SPACEBAR_CURSOR = booleanPreferencesKey("spacebar_cursor")
@@ -13799,6 +13838,13 @@ class SettingsRepository(private val context: Context) {
             checkupDecision = p[GESTURE_CHECKUP_DECISION] ?: defaults.gesture.checkupDecision,
             backspaceUndoesGlide = p[GESTURE_BACKSPACE_UNDOES_GLIDE]
                 ?: defaults.gesture.backspaceUndoesGlide,
+            twoThumbBackspace = p[GESTURE_TWO_THUMB_BACKSPACE]
+                ?.let { runCatching { TwoThumbBackspace.valueOf(it) }.getOrNull() }
+                ?: defaults.gesture.twoThumbBackspace,
+            twoThumbBackspaceSpaceFirst = p[GESTURE_TWO_THUMB_BACKSPACE_SPACE_FIRST]
+                ?: defaults.gesture.twoThumbBackspaceSpaceFirst,
+            twoThumbBackspaceJoinFirst = p[GESTURE_TWO_THUMB_BACKSPACE_JOIN_FIRST]
+                ?: defaults.gesture.twoThumbBackspaceJoinFirst,
             swipeStyleVersion = p[GESTURE_SWIPE_STYLE_VERSION] ?: defaults.gesture.swipeStyleVersion,
         )
 
@@ -21481,6 +21527,15 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGestureBackspaceUndoesGlide(value: Boolean) =
         editPrefs { it[GESTURE_BACKSPACE_UNDOES_GLIDE] = value }
+
+    suspend fun setGestureTwoThumbBackspace(value: TwoThumbBackspace) =
+        editPrefs { it[GESTURE_TWO_THUMB_BACKSPACE] = value.name }
+
+    suspend fun setGestureTwoThumbBackspaceSpaceFirst(value: Boolean) =
+        editPrefs { it[GESTURE_TWO_THUMB_BACKSPACE_SPACE_FIRST] = value }
+
+    suspend fun setGestureTwoThumbBackspaceJoinFirst(value: Boolean) =
+        editPrefs { it[GESTURE_TWO_THUMB_BACKSPACE_JOIN_FIRST] = value }
 
     /**
      * Deletes everything a swipe style is made of — where the finger lands,

@@ -86,6 +86,7 @@ import com.wasimaster.wmkeyboard.core.settings.GlideApostropheKey
 import com.wasimaster.wmkeyboard.core.settings.ShiftGlideMode
 import com.wasimaster.wmkeyboard.core.settings.TWO_THUMB_PAUSE_RANGE
 import com.wasimaster.wmkeyboard.core.settings.TWO_THUMB_RETRACT_RANGE
+import com.wasimaster.wmkeyboard.core.settings.TwoThumbBackspace
 import com.wasimaster.wmkeyboard.core.settings.TwoThumbWordEnd
 import com.wasimaster.wmkeyboard.core.settings.GlidePickerChoicesRange
 import com.wasimaster.wmkeyboard.core.settings.GlideRadiusRange
@@ -2331,6 +2332,9 @@ internal fun TypingGlideSettings(
                         default = SettingsDefaults.gesture.twoThumbPauseBand,
                     ) { scope.launch { repository.setGestureTwoThumbPauseBand(it) } }
                 }
+                // What Backspace does to a two-thumb word (#1188), apart from
+                // the ordinary glide switch further down.
+                twoThumbBackspaceRows(settings, repository, scope, twoThumb, twoThumbWordEnd)
                 item(visible = !twoThumb, level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.typing_swipe_continues_typed_title,
@@ -2485,9 +2489,18 @@ internal fun TypingGlideSettings(
                     ) { scope.launch { repository.setGestureAutoSpace(it) } }
                 }
                 item(level = SettingLevel.STANDARD) {
+                    // Two-thumb typing has its own Backspace choice (#1188);
+                    // under "Current behavior" this switch still decides there.
+                    val twoThumbOwn = settings.watch { it.gesture.twoThumbBackspace } != TwoThumbBackspace.CURRENT
                     ToggleSetting(
                         R.string.typing_glide_backspace_undo_title,
-                        stringResource(R.string.typing_glide_backspace_undo_subtitle),
+                        stringResource(
+                            when {
+                                !twoThumb -> R.string.typing_glide_backspace_undo_subtitle
+                                twoThumbOwn -> R.string.typing_glide_backspace_undo_two_thumb_own_subtitle
+                                else -> R.string.typing_glide_backspace_undo_two_thumb_current_subtitle
+                            },
+                        ),
                         settings.watch { it.gesture.backspaceUndoesGlide },
                         info = stringResource(R.string.typing_glide_backspace_undo_info),
                         default = SettingsDefaults.gesture.backspaceUndoesGlide,
@@ -3960,6 +3973,124 @@ private fun suggestionHotkeyDescRes(mode: SuggestionHotkeyMode): Int = when (mod
  * beside one another, so they are written and read together.
  */
 @Suppress("LongMethod")
+/**
+ * Two-thumb Backspace (#1188): what one press does to a word typed with
+ * both thumbs, and the two first-tap stages ahead of it. "Current behavior"
+ * keeps the rules from before the choice, so it hides the stages, which it
+ * does not use. The subtitle spells the tap order out as text.
+ */
+private fun SettingsGroupScope.twoThumbBackspaceRows(
+    settings: LiveSettings,
+    repository: SettingsRepository,
+    scope: CoroutineScope,
+    twoThumb: Boolean,
+    wordEnd: TwoThumbWordEnd,
+) {
+    item(visible = twoThumb, level = SettingLevel.STANDARD) {
+        val action = settings.watch { it.gesture.twoThumbBackspace }
+        val spaceFirst = settings.watch { it.gesture.twoThumbBackspaceSpaceFirst }
+        val joinFirst = settings.watch { it.gesture.twoThumbBackspaceJoinFirst }
+        val correctionUndo = settings.watch { it.correction.revertOnBackspace }
+        val joinPossible = wordEnd == TwoThumbWordEnd.ALL_UP &&
+            settings.watch { it.gesture.twoThumbRetractWindowMs } > 0
+        val subtitle = if (action == TwoThumbBackspace.CURRENT) {
+            stringResource(R.string.typing_two_thumb_backspace_current_subtitle)
+        } else {
+            val steps = buildList {
+                if (joinFirst && joinPossible) add(stringResource(R.string.typing_two_thumb_backspace_step_join))
+                if (spaceFirst) add(stringResource(R.string.typing_two_thumb_backspace_step_space))
+                if (correctionUndo) add(stringResource(R.string.typing_two_thumb_backspace_step_correction))
+                add(
+                    stringResource(
+                        when (action) {
+                            TwoThumbBackspace.RETYPE_WORD -> R.string.typing_two_thumb_backspace_step_retype
+                            TwoThumbBackspace.DELETE_CHARACTER -> R.string.typing_two_thumb_backspace_step_character
+                            else -> R.string.typing_two_thumb_backspace_step_undo
+                        },
+                    ),
+                )
+            }
+            stringResource(R.string.typing_two_thumb_backspace_order, steps.joinToString(", "))
+        }
+        ChoiceSetting(
+            title = R.string.typing_two_thumb_backspace_title,
+            subtitle = subtitle,
+            info = stringResource(R.string.typing_two_thumb_backspace_info),
+            options = listOf(
+                TwoThumbBackspace.CURRENT to stringResource(R.string.typing_two_thumb_backspace_current_label),
+                TwoThumbBackspace.UNDO_STEP to stringResource(R.string.typing_two_thumb_backspace_undo_label),
+                TwoThumbBackspace.RETYPE_WORD to stringResource(R.string.typing_two_thumb_backspace_retype_label),
+                TwoThumbBackspace.DELETE_CHARACTER to
+                    stringResource(R.string.typing_two_thumb_backspace_character_label),
+            ),
+            selected = action,
+            onChange = { scope.launch { repository.setGestureTwoThumbBackspace(it) } },
+            default = SettingsDefaults.gesture.twoThumbBackspace,
+            detail = { option ->
+                ChoiceDetail(
+                    stringResource(
+                        when (option) {
+                            TwoThumbBackspace.CURRENT -> R.string.typing_two_thumb_backspace_current_desc
+                            TwoThumbBackspace.UNDO_STEP -> R.string.typing_two_thumb_backspace_undo_desc
+                            TwoThumbBackspace.RETYPE_WORD -> R.string.typing_two_thumb_backspace_retype_desc
+                            TwoThumbBackspace.DELETE_CHARACTER -> R.string.typing_two_thumb_backspace_character_desc
+                        },
+                    ),
+                )
+            },
+        )
+    }
+    item(visible = twoThumb, level = SettingLevel.STANDARD) {
+        val custom = settings.watch { it.gesture.twoThumbBackspace } != TwoThumbBackspace.CURRENT
+        ToggleSetting(
+            R.string.typing_two_thumb_backspace_space_first_title,
+            stringResource(
+                if (custom) {
+                    R.string.typing_two_thumb_backspace_space_first_subtitle
+                } else {
+                    R.string.typing_two_thumb_backspace_needs_action
+                },
+            ),
+            settings.watch { it.gesture.twoThumbBackspaceSpaceFirst },
+            info = stringResource(R.string.typing_two_thumb_backspace_space_first_info),
+            enabled = custom,
+            disabledReason = rememberDisabledReason(
+                stringResource(R.string.typing_two_thumb_backspace_needs_action),
+                R.string.typing_two_thumb_backspace_title,
+            ),
+            default = SettingsDefaults.gesture.twoThumbBackspaceSpaceFirst,
+        ) { scope.launch { repository.setGestureTwoThumbBackspaceSpaceFirst(it) } }
+    }
+    item(visible = twoThumb, level = SettingLevel.STANDARD) {
+        val custom = settings.watch { it.gesture.twoThumbBackspace } != TwoThumbBackspace.CURRENT
+        val joinPossible = wordEnd == TwoThumbWordEnd.ALL_UP &&
+            settings.watch { it.gesture.twoThumbRetractWindowMs } > 0
+        val reason = stringResource(
+            if (custom) {
+                R.string.typing_two_thumb_backspace_join_first_needs_retract
+            } else {
+                R.string.typing_two_thumb_backspace_needs_action
+            },
+        )
+        ToggleSetting(
+            R.string.typing_two_thumb_backspace_join_first_title,
+            if (custom && joinPossible) {
+                stringResource(R.string.typing_two_thumb_backspace_join_first_subtitle)
+            } else {
+                reason
+            },
+            settings.watch { it.gesture.twoThumbBackspaceJoinFirst },
+            info = stringResource(R.string.typing_two_thumb_backspace_join_first_info),
+            enabled = custom && joinPossible,
+            disabledReason = rememberDisabledReason(
+                reason,
+                if (custom) R.string.typing_two_thumb_retract_title else R.string.typing_two_thumb_backspace_title,
+            ),
+            default = SettingsDefaults.gesture.twoThumbBackspaceJoinFirst,
+        ) { scope.launch { repository.setGestureTwoThumbBackspaceJoinFirst(it) } }
+    }
+}
+
 private fun SettingsGroupScope.glideVocabularyRows(
     settings: LiveSettings,
     repository: SettingsRepository,
