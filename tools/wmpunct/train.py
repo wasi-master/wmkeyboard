@@ -10,6 +10,11 @@ last one or two words are taken off at training time, so the model also has
 an opinion while the last word of a sentence is still being typed (the
 keyboard asks on every keystroke, not only at the space).
 
+`exclaim_weight` scales the exclamation class in the loss (1.0 is the
+natural prior, which is what maximises plain accuracy; the mark is 2% of
+sentences and its recall is low at 1.0, so a sweep over 1.5 to 3 is worth a
+look against acc3).
+
 Saves out/last.pt and out/best.pt, best by held-out accuracy over the three
 end marks (the comma class is reported but not what the key is judged on),
 with the config inside, and prints per-class precision and recall and
@@ -32,7 +37,8 @@ PAD = SPECIALS.index("<pad>")
 
 def opts(argv):
     o = dict(steps=20000, batch=512, lr=1e-3, e=64, d=192, layers=4, heads=4, ff=512, seed=0, eval_every=1000,
-             label_smoothing=0.05, warm=500, drop_tail=0.1, device="auto", resume="", weight_decay=0.1)
+             label_smoothing=0.05, warm=500, drop_tail=0.1, device="auto", resume="", weight_decay=0.1,
+             exclaim_weight=1.0)
     for a in argv:
         k, v = a.split("=", 1)
         o[k] = type(o[k])(v)
@@ -141,12 +147,14 @@ def main():
             sched.step()
         print("resumed from", o["resume"], "at step", start, flush=True)
     use_amp = dev.type == "cuda"
+    class_weight = torch.ones(len(LABELS), device=dev)
+    class_weight[LABELS.index("!")] = o["exclaim_weight"]
     for step in range(start + 1, o["steps"] + 1):
         idx = torch.randint(0, train.n, (o["batch"],), generator=gen).tolist()
         x, m, y = train.batch(idx, dev, gen, o["drop_tail"])
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=use_amp):
             logits = model(x, m)
-        loss = F.cross_entropy(logits.float(), y, label_smoothing=o["label_smoothing"])
+        loss = F.cross_entropy(logits.float(), y, weight=class_weight, label_smoothing=o["label_smoothing"])
         opt.zero_grad(set_to_none=True)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)

@@ -10,6 +10,7 @@
 #   STEPS      40000
 #   BATCH      512
 #   E/D/LAYERS/HEADS/FF   64/192/4/4/512
+#   EXCLAIM    1.0     weight of the exclamation class in the loss
 #   OUT        out
 #
 # Bring back OUT/smart_punct.wmpt (a few MB) and OUT/best.pt.
@@ -19,6 +20,7 @@ PY=${PY:-python3}
 VOCAB=${VOCAB:-32768}; PIECES=${PIECES:-8192}; CTX=${CTX:-48}
 STEPS=${STEPS:-40000}; BATCH=${BATCH:-512}
 E=${E:-64}; D=${D:-192}; LAYERS=${LAYERS:-4}; HEADS=${HEADS:-4}; FF=${FF:-512}
+EXCLAIM=${EXCLAIM:-1.0}
 OUT=${OUT:-out}
 DATA=${DATA:-data/punct}
 mkdir -p "$OUT"
@@ -37,7 +39,7 @@ else
     $PY prep.py data/examples.tsv "$DATA" vocab="$VOCAB" pieces="$PIECES" ctx="$CTX" 2>&1 | tee "$OUT/prep.log"
 fi
 echo "== train e$E d$D L$LAYERS ff$FF, $STEPS steps, batch $BATCH"
-$PY train.py "$DATA" "$OUT" steps="$STEPS" batch="$BATCH" e="$E" d="$D" layers="$LAYERS" heads="$HEADS" ff="$FF" eval_every=2000 2>&1 | tee "$OUT/train.log"
+$PY train.py "$DATA" "$OUT" steps="$STEPS" batch="$BATCH" e="$E" d="$D" layers="$LAYERS" heads="$HEADS" ff="$FF" exclaim_weight="$EXCLAIM" eval_every=2000 2>&1 | tee "$OUT/train.log"
 echo "== export"
 $PY export.py "$OUT/best.pt" "$DATA" "$OUT/smart_punct.wmpt"
 $PY check.py "$OUT/best.pt" "$DATA" "how are you" "i am fine" "what a day" "if you want" "wie geht es dir" "je ne sais pas"

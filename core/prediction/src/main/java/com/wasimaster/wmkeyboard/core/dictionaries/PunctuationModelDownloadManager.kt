@@ -32,13 +32,18 @@ object PunctuationModelCatalog {
     const val PATH = "models/punct/smart_punct_v1.wmpt"
 
     /** Exact file size, checked after download. */
-    const val BYTES = 1L
+    const val BYTES = 2_077_464L
 
     /** SHA-256 of the file, checked after download. */
-    const val SHA256 = "0000000000000000000000000000000000000000000000000000000000000000"
+    const val SHA256 = "2cdac4e7ff15b902a3cedc6ebd8f61ec579af8de0c9b8b04728fa5b8c288163d"
 
-    /** The languages the model was trained on, for the settings row. */
-    val languages: List<String> = listOf("en")
+    /**
+     * The languages the model was trained on, for the settings row. v1 is the
+     * first model: English and German (e64 d160, three layers, 1.8M
+     * parameters), 97.3% of held-out sentence ends right; the sixty-language
+     * model from `tools/wmpunct/remote` replaces it as v2.
+     */
+    val languages: List<String> = listOf("en", "de")
 
     fun url(): String = ServiceEndpoints.repo(ServiceRepo.DATA).rawUrl(PATH)
 }
