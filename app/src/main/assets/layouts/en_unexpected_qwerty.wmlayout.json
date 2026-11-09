@@ -1,0 +1,971 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_en_unexpected_qwerty",
+    "name": "QWERTY corner swipes (Unexpected Keyboard)",
+    "langId": "en",
+    "tabletExpand": false,
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "q",
+              "flick": {
+                "up_right": "1"
+              },
+              "longPress": [
+                "1"
+              ],
+              "flickActions": {
+                "down_left": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 111
+                  },
+                  "label": "Esc"
+                }
+              },
+              "hideHint": true
+            },
+            {
+              "label": "w",
+              "flick": {
+                "up_left": "~",
+                "up_right": "2",
+                "down_left": "@"
+              },
+              "longPress": [
+                "~",
+                "2",
+                "@"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "e",
+              "flick": {
+                "up_left": "!",
+                "up_right": "3",
+                "down_left": "#"
+              },
+              "longPress": [
+                "!",
+                "3",
+                "#"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "r",
+              "flick": {
+                "up_right": "4",
+                "down_left": "$"
+              },
+              "longPress": [
+                "4",
+                "$"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "t",
+              "flick": {
+                "up_right": "5",
+                "down_left": "%"
+              },
+              "longPress": [
+                "5",
+                "%"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "y",
+              "flick": {
+                "up_right": "6",
+                "down_left": "^"
+              },
+              "longPress": [
+                "6",
+                "^"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "u",
+              "flick": {
+                "up_right": "7",
+                "down_left": "&"
+              },
+              "longPress": [
+                "7",
+                "&"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "i",
+              "flick": {
+                "up_right": "8",
+                "down_left": "*"
+              },
+              "longPress": [
+                "8",
+                "*"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "o",
+              "flick": {
+                "up_right": "9",
+                "down_left": "(",
+                "down_right": ")"
+              },
+              "longPress": [
+                "9",
+                "(",
+                ")"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "p",
+              "flick": {
+                "up_right": "0"
+              },
+              "longPress": [
+                "0"
+              ],
+              "hideHint": true
+            }
+          ],
+          [
+            {
+              "label": "a",
+              "flick": {
+                "up_right": "`"
+              },
+              "longPress": [
+                "`"
+              ],
+              "flickActions": {
+                "up_left": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 61
+                  },
+                  "label": "⇥"
+                }
+              },
+              "hideHint": true
+            },
+            {
+              "label": "s"
+            },
+            {
+              "label": "d"
+            },
+            {
+              "label": "f"
+            },
+            {
+              "label": "g",
+              "flick": {
+                "up_right": "-",
+                "down_left": "_"
+              },
+              "longPress": [
+                "-",
+                "_"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "h",
+              "flick": {
+                "up_right": "=",
+                "down_left": "+"
+              },
+              "longPress": [
+                "=",
+                "+"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "j",
+              "flick": {
+                "down_left": "{",
+                "down_right": "}"
+              },
+              "longPress": [
+                "{",
+                "}"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "k",
+              "flick": {
+                "down_left": "[",
+                "down_right": "]"
+              },
+              "longPress": [
+                "[",
+                "]"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "l",
+              "flick": {
+                "up_right": "|",
+                "down_left": "\\"
+              },
+              "longPress": [
+                "|",
+                "\\"
+              ],
+              "hideHint": true
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "z"
+            },
+            {
+              "label": "x"
+            },
+            {
+              "label": "c",
+              "flick": {
+                "up_right": "<",
+                "down_left": "."
+              },
+              "longPress": [
+                "<",
+                "."
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "v",
+              "flick": {
+                "up_right": ">",
+                "down_left": ","
+              },
+              "longPress": [
+                ">",
+                ","
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "b",
+              "flick": {
+                "up_right": "?",
+                "down_left": "/"
+              },
+              "longPress": [
+                "?",
+                "/"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "n",
+              "flick": {
+                "up_right": ":",
+                "down_left": ";"
+              },
+              "longPress": [
+                ":",
+                ";"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "m",
+              "flick": {
+                "up_right": "\"",
+                "down_left": "'"
+              },
+              "longPress": [
+                "\"",
+                "'"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5,
+              "flickActions": {
+                "up_right": {
+                  "action": {
+                    "type": "forward_delete"
+                  },
+                  "label": "⌦"
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "Ctrl",
+              "action": {
+                "type": "mod",
+                "key": "CTRL"
+              },
+              "width": 1.7,
+              "flickActions": {
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "CLIPBOARD"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "symbols"
+                  },
+                  "label": "123+"
+                }
+              }
+            },
+            {
+              "label": "Fn",
+              "action": {
+                "type": "fn"
+              },
+              "width": 1.1,
+              "flickActions": {
+                "up_right": {
+                  "action": {
+                    "type": "input_method_picker"
+                  },
+                  "label": "⌨"
+                },
+                "down_left": {
+                  "action": {
+                    "type": "emoji"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "SETTINGS"
+                  }
+                }
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.4,
+              "flickActions": {
+                "left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "LEFT"
+                  },
+                  "label": "←"
+                },
+                "right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "RIGHT"
+                  },
+                  "label": "→"
+                }
+              }
+            },
+            {
+              "label": "",
+              "width": 1.1,
+              "flickActions": {
+                "up": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 19
+                  }
+                },
+                "down": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 20
+                  }
+                },
+                "left": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 21
+                  }
+                },
+                "right": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 22
+                  }
+                }
+              }
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.7,
+              "flickActions": {
+                "up_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "VOICE"
+                  }
+                },
+                "up_right": {
+                  "action": {
+                    "type": "editor_action"
+                  }
+                }
+              }
+            }
+          ]
+        ],
+        "rowHeights": [
+          1,
+          1,
+          1,
+          0.95
+        ],
+        "bottomRowAsLaidOut": true
+      },
+      "fn": {
+        "rows": [
+          [
+            {
+              "label": "q",
+              "flickActions": {
+                "up_right": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 131
+                  },
+                  "label": "F1"
+                },
+                "down_left": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 124
+                  },
+                  "label": "Ins"
+                }
+              },
+              "hideHint": true
+            },
+            {
+              "label": "w",
+              "flick": {
+                "up_left": "~",
+                "down_left": "@"
+              },
+              "longPress": [
+                "~",
+                "@"
+              ],
+              "flickActions": {
+                "up_right": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 132
+                  },
+                  "label": "F2"
+                }
+              },
+              "hideHint": true
+            },
+            {
+              "label": "e",
+              "flick": {
+                "up_left": "!",
+                "down_left": "#"
+              },
+              "longPress": [
+                "!",
+                "#"
+              ],
+              "flickActions": {
+                "up_right": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 133
+                  },
+                  "label": "F3"
+                }
+              },
+              "hideHint": true
+            },
+            {
+              "label": "r",
+              "flick": {
+                "down_left": "$"
+              },
+              "longPress": [
+                "$"
+              ],
+              "flickActions": {
+                "up_right": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 134
+                  },
+                  "label": "F4"
+                }
+              },
+              "hideHint": true
+            },
+            {
+              "label": "t",
+              "flick": {
+                "down_left": "%"
+              },
+              "longPress": [
+                "%"
+              ],
+              "flickActions": {
+                "up_right": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 135
+                  },
+                  "label": "F5"
+                }
+              },
+              "hideHint": true
+            },
+            {
+              "label": "y",
+              "flick": {
+                "down_left": "^"
+              },
+              "longPress": [
+                "^"
+              ],
+              "flickActions": {
+                "up_right": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 136
+                  },
+                  "label": "F6"
+                }
+              },
+              "hideHint": true
+            },
+            {
+              "label": "u",
+              "flick": {
+                "down_left": "&"
+              },
+              "longPress": [
+                "&"
+              ],
+              "flickActions": {
+                "up_right": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 137
+                  },
+                  "label": "F7"
+                }
+              },
+              "hideHint": true
+            },
+            {
+              "label": "i",
+              "flick": {
+                "down_left": "*"
+              },
+              "longPress": [
+                "*"
+              ],
+              "flickActions": {
+                "up_right": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 138
+                  },
+                  "label": "F8"
+                }
+              },
+              "hideHint": true
+            },
+            {
+              "label": "o",
+              "flick": {
+                "down_left": "(",
+                "down_right": ")"
+              },
+              "longPress": [
+                "(",
+                ")"
+              ],
+              "flickActions": {
+                "up_right": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 139
+                  },
+                  "label": "F9"
+                }
+              },
+              "hideHint": true
+            },
+            {
+              "label": "p",
+              "flickActions": {
+                "up_right": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 140
+                  },
+                  "label": "F10"
+                }
+              },
+              "hideHint": true
+            }
+          ],
+          [
+            {
+              "label": "a",
+              "flick": {
+                "up_right": "`"
+              },
+              "longPress": [
+                "`"
+              ],
+              "flickActions": {
+                "up_left": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 61
+                  },
+                  "label": "⇥"
+                }
+              },
+              "hideHint": true
+            },
+            {
+              "label": "s"
+            },
+            {
+              "label": "d"
+            },
+            {
+              "label": "f"
+            },
+            {
+              "label": "g",
+              "flick": {
+                "up_right": "-",
+                "down_left": "_"
+              },
+              "longPress": [
+                "-",
+                "_"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "h",
+              "flick": {
+                "up_right": "=",
+                "down_left": "+"
+              },
+              "longPress": [
+                "=",
+                "+"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "j",
+              "flick": {
+                "down_left": "{",
+                "down_right": "}"
+              },
+              "longPress": [
+                "{",
+                "}"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "k",
+              "flick": {
+                "down_left": "[",
+                "down_right": "]"
+              },
+              "longPress": [
+                "[",
+                "]"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "l",
+              "flick": {
+                "up_right": "|",
+                "down_left": "\\"
+              },
+              "longPress": [
+                "|",
+                "\\"
+              ],
+              "hideHint": true
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "z"
+            },
+            {
+              "label": "x"
+            },
+            {
+              "label": "c",
+              "flick": {
+                "up_right": "<",
+                "down_left": "."
+              },
+              "longPress": [
+                "<",
+                "."
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "v",
+              "flick": {
+                "up_right": ">",
+                "down_left": ","
+              },
+              "longPress": [
+                ">",
+                ","
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "b",
+              "flick": {
+                "up_right": "?",
+                "down_left": "/"
+              },
+              "longPress": [
+                "?",
+                "/"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "n",
+              "flick": {
+                "up_right": ":",
+                "down_left": ";"
+              },
+              "longPress": [
+                ":",
+                ";"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "m",
+              "flick": {
+                "up_right": "\"",
+                "down_left": "'"
+              },
+              "longPress": [
+                "\"",
+                "'"
+              ],
+              "hideHint": true
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5,
+              "flickActions": {
+                "up_right": {
+                  "action": {
+                    "type": "forward_delete"
+                  },
+                  "label": "⌦"
+                }
+              }
+            }
+          ],
+          [
+            {
+              "label": "Ctrl",
+              "action": {
+                "type": "mod",
+                "key": "CTRL"
+              },
+              "width": 1.7,
+              "flickActions": {
+                "down_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "CLIPBOARD"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "symbols"
+                  },
+                  "label": "123+"
+                }
+              }
+            },
+            {
+              "label": "Fn",
+              "action": {
+                "type": "fn"
+              },
+              "width": 1.1,
+              "flickActions": {
+                "up_right": {
+                  "action": {
+                    "type": "input_method_picker"
+                  },
+                  "label": "⌨"
+                },
+                "down_left": {
+                  "action": {
+                    "type": "emoji"
+                  }
+                },
+                "down_right": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "SETTINGS"
+                  }
+                }
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.4,
+              "flickActions": {
+                "left": {
+                  "action": {
+                    "type": "edit",
+                    "op": "LEFT"
+                  },
+                  "label": "←"
+                },
+                "right": {
+                  "action": {
+                    "type": "edit",
+                    "op": "RIGHT"
+                  },
+                  "label": "→"
+                }
+              }
+            },
+            {
+              "label": "",
+              "width": 1.1,
+              "flickActions": {
+                "up": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 92
+                  },
+                  "label": "PgUp"
+                },
+                "down": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 93
+                  },
+                  "label": "PgDn"
+                },
+                "left": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 122
+                  },
+                  "label": "Home"
+                },
+                "right": {
+                  "action": {
+                    "type": "send_key",
+                    "keyCode": 123
+                  },
+                  "label": "End"
+                }
+              }
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.7,
+              "flickActions": {
+                "up_left": {
+                  "action": {
+                    "type": "tool",
+                    "tool": "VOICE"
+                  }
+                },
+                "up_right": {
+                  "action": {
+                    "type": "editor_action"
+                  }
+                }
+              }
+            }
+          ]
+        ],
+        "rowHeights": [
+          1,
+          1,
+          1,
+          0.95
+        ],
+        "bottomRowAsLaidOut": true
+      }
+    }
+  }
+}
