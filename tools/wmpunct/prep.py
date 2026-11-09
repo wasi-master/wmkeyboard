@@ -138,10 +138,11 @@ def main():
         if w in ids:
             return [ids[w]]
         if w not in cache:
-            enc = pieces.encode(w)
-            cache[w] = [ids[p] for p in enc] if enc else [unk]
+            # Bounded: the cache is cleared before the insert, never after.
             if len(cache) > 2_000_000:
                 cache.clear()
+            enc = pieces.encode(w)
+            cache[w] = [ids[p] for p in enc] if enc else [unk]
         return cache[w]
 
     # Pass 2: every deduped row goes to the held-out set with probability
