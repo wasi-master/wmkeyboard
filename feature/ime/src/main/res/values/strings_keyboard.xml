@@ -1056,6 +1056,15 @@
     <string name="ime_clip_filter_duplicates">Duplicates</string>
     <!-- A tag filter chip pressed a second time: only the clips that do not carry tag %1$s. -->
     <string name="ime_clip_filter_without_tag">Not #%1$s</string>
+    <!-- A kind filter chip (Text, Links…) pressed a second time (#1187): only the clips that are not %1$s. -->
+    <string name="ime_clip_filter_without">Not %1$s</string>
+    <!-- TalkBack name of a filter chip's press and hold (#1187): the chip joins the filters already set instead of replacing them. -->
+    <string name="ime_clip_filter_add_desc">Add to the filters</string>
+    <!-- The chip at the end of the clipboard's filter row while filters are set (#1187); it shows only the count. %1$d is how many chips are set. -->
+    <plurals name="ime_clip_filter_clear_desc">
+        <item quantity="one">Clear %1$d filter</item>
+        <item quantity="other">Clear %1$d filters</item>
+    </plurals>
     <!-- Hold popup: delete the other clips the duplicates filter groups with this one (#612). -->
     <string name="ime_clip_keep_only">Keep only this one</string>
     <!-- Hold popup, while searching: close the search and scroll the history to this clip (#612). -->

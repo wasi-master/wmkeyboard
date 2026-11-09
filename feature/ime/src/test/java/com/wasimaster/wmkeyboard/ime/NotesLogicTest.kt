@@ -150,4 +150,22 @@ class NotesLogicTest {
             NotesLogic.clipboardPassages(notes, "\\d{6}", regex = true, tag = "Quotes", tagExcluded = true).map { it.noteId },
         )
     }
+
+    @Test
+    fun `the clipboard's combined tag filters reach the notes too`() {
+        val store = NoteStore(null)
+        val quotes = store.add("Quote 123456.", tags = listOf("Quotes"), now = 1)
+        val work = store.add("Ticket 223456.", tags = listOf("work", "urgent"), now = 2)
+        val plain = store.add("Code 654321 here.", now = 3)
+        val notes = listOf(quotes, work, plain).map { store.item(it.id)!! }
+        val search = { tags: List<String>, without: List<String> ->
+            NotesLogic.clipboardPassages(notes, "\\d{6}", regex = true, tags = tags, withoutTags = without).map { it.noteId }
+        }
+
+        // Any of the tags (#1187).
+        assertEquals(listOf(quotes.id, work.id), search(listOf("quotes", "Work"), emptyList()))
+        // None of the left-out ones.
+        assertEquals(listOf(plain.id), search(emptyList(), listOf("Quotes", "urgent")))
+        assertEquals(listOf(quotes.id), search(listOf("Quotes", "work"), listOf("URGENT")))
+    }
 }

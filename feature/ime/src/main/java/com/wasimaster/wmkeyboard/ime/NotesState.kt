@@ -219,6 +219,8 @@ object NotesLogic {
      * of [notes]: read as a pattern with [regex] on, the way the clips are,
      * and narrowed by the clipboard's [tag] filter to the notes with a tag of
      * that name, any case, or with [tagExcluded] to the notes without it.
+     * The filters combined (#1187): a note carrying any of [tags], when there
+     * are some, and none of [withoutTags].
      */
     fun clipboardPassages(
         notes: List<Note>,
@@ -227,11 +229,20 @@ object NotesLogic {
         tag: String? = null,
         tagExcluded: Boolean = false,
         limit: Int = CLIPBOARD_PASSAGES_MAX,
+        tags: List<String> = emptyList(),
+        withoutTags: List<String> = emptyList(),
     ): List<NotePassageHit> {
         val trimmed = query.trim()
         if (trimmed.length < NotePassages.MIN_QUERY_LENGTH) return emptyList()
         val pattern = if (regex) NotePassages.pattern(trimmed) else null
-        val shelf = if (tag == null) notes else notes.filter { note -> note.tags.any { it.equals(tag, ignoreCase = true) } != tagExcluded }
+        val anyOf = if (tag != null && !tagExcluded) tags + tag else tags
+        val noneOf = if (tag != null && tagExcluded) withoutTags + tag else withoutTags
+        fun Note.carries(wanted: String) = this.tags.any { it.equals(wanted, ignoreCase = true) }
+        val shelf = if (anyOf.isEmpty() && noneOf.isEmpty()) {
+            notes
+        } else {
+            notes.filter { note -> (anyOf.isEmpty() || anyOf.any { note.carries(it) }) && noneOf.none { note.carries(it) } }
+        }
         return collectPassages(shelf, limit) { body, room ->
             if (pattern != null) NotePassages.find(body, pattern, room) else NotePassages.find(body, trimmed, room)
         }
