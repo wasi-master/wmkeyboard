@@ -222,12 +222,12 @@ internal object PredictionNative {
     external fun punctOpen(path: String): Long
     external fun punctClose(handle: Long)
 
-    /** `[name, languages joined by commas, the marks in answer order, vocabulary size, context length]`. */
+    /** `[name, languages joined by commas, the marks in answer order, vocabulary size, context length, "1" if it reads a language token]`. */
     external fun punctInfo(handle: Long): Array<String>
     external fun punctKnows(handle: Long, word: String): Boolean
 
-    /** The probability of each mark, in `punctInfo`'s order, for the sentence so far (oldest word first). */
-    external fun punctPredict(handle: Long, words: Array<String>): FloatArray
+    /** The probability of each mark, in `punctInfo`'s order, for the sentence so far (oldest word first) typed in [lang] (empty for none). */
+    external fun punctPredict(handle: Long, lang: String, words: Array<String>): FloatArray
 
     // The stores autocorrect learns from: CorrectionMemory (cm*) and
     // CorrectionStats (cs*). Spellings arrive folded.

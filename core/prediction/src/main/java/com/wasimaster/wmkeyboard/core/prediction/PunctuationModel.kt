@@ -24,6 +24,8 @@ class PunctuationModel private constructor(
     val languages: List<String>,
     val name: String,
     val vocabularySize: Int,
+    /** Whether the model reads the keyboard's language after `<s>` (v3 and later); a language it lacks reads as unknown. */
+    val readsLanguage: Boolean,
 ) {
 
     @Volatile
@@ -31,11 +33,13 @@ class PunctuationModel private constructor(
 
     /**
      * The probability of each of [MARKS] for the sentence so far, words
-     * oldest first (the word being typed last). An empty array when closed.
+     * oldest first (the word being typed last), typed in [languageId] (the
+     * keyboard's; read only by a model that [readsLanguage]). An empty array
+     * when closed.
      */
-    fun predict(words: List<String>): FloatArray {
+    fun predict(words: List<String>, languageId: String = ""): FloatArray {
         if (closed) return FloatArray(0)
-        return PredictionNative.punctPredict(handle, words.toTypedArray())
+        return PredictionNative.punctPredict(handle, languageId, words.toTypedArray())
     }
 
     /** Whether the vocabulary holds [word] as one token. */
@@ -70,6 +74,7 @@ class PunctuationModel private constructor(
                 languages = info.getOrNull(1)?.split(',')?.filter { it.isNotEmpty() }.orEmpty(),
                 name = info.getOrNull(0).orEmpty(),
                 vocabularySize = info.getOrNull(3)?.toIntOrNull() ?: 0,
+                readsLanguage = info.getOrNull(5) == "1",
             )
             NativeHandles.track(out, handle, PredictionNative::punctClose)
             return out

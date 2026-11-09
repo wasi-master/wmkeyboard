@@ -3,8 +3,11 @@
 //! Checks the reader against `tools/wmpunct/check.py`.
 //!
 //! ```text
-//! cargo run --release --example punct_probe -- model.wmpt "how are you" "i am fine" "if you want"
+//! PUNCT_LANG=en cargo run --release --example punct_probe -- model.wmpt "how are you" "i am fine" "if you want"
 //! ```
+//!
+//! `PUNCT_LANG` is the keyboard's language id for a model with language tokens;
+//! unset, the sentence is read as a language the model does not know.
 
 use std::time::Instant;
 
@@ -25,9 +28,11 @@ fn main() {
         m.vocab_size(),
         m.langs.len()
     );
+    let lang = std::env::var("PUNCT_LANG").ok().filter(|l| !l.is_empty());
+    println!("language tokens: {}, language: {:?}", m.has_language_tokens(), lang);
     for sentence in args.iter().skip(2) {
         let words: Vec<&str> = sentence.split_whitespace().collect();
-        let tokens = m.tokens_for(&words);
+        let tokens = m.tokens_for(&words, lang.as_deref());
         let started = Instant::now();
         let p = m.predict_tokens(&tokens);
         let took = started.elapsed();

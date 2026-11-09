@@ -70,7 +70,8 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
 }
 
 /// `punctInfo(handle)`: `[name, languages joined by commas, marks joined by
-/// nothing (".?!,"), vocabulary size, context length]`.
+/// nothing (".?!,"), vocabulary size, context length, "1" when the model
+/// reads a language token]`.
 #[no_mangle]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_punctInfo(
     mut env: JNIEnv,
@@ -81,7 +82,14 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         let m = object!(env, MODELS, handle);
         give_all(
             env,
-            vec![m.name.clone(), m.langs.join(","), LABELS.concat(), m.vocab_size().to_string(), m.ctx.to_string()],
+            vec![
+                m.name.clone(),
+                m.langs.join(","),
+                LABELS.concat(),
+                m.vocab_size().to_string(),
+                m.ctx.to_string(),
+                if m.has_language_tokens() { "1" } else { "0" }.to_string(),
+            ],
         )
     })
 }
@@ -101,19 +109,23 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     })
 }
 
-/// `punctPredict(handle, words)`: the probability of each mark, in the
-/// order `punctInfo` names them, for the sentence so far (oldest word first).
+/// `punctPredict(handle, lang, words)`: the probability of each mark, in the
+/// order `punctInfo` names them, for the sentence so far (oldest word first)
+/// typed in the keyboard's language `lang` (empty for none; read only by a
+/// model with language tokens).
 #[no_mangle]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_punctPredict(
     mut env: JNIEnv,
     _class: JClass,
     handle: jlong,
+    lang: JString,
     words: JObjectArray,
 ) -> jfloatArray {
     guarded(&mut env, null_mut(), |env| {
         let m = object!(env, MODELS, handle);
+        let lang = read(env, &lang)?;
         let words = strings(env, &words)?;
         let refs: Vec<&str> = words.iter().map(String::as_str).collect();
-        give_floats(env, &m.predict(&refs))
+        give_floats(env, &m.predict(&refs, Some(lang.as_str()).filter(|l| !l.is_empty())))
     })
 }

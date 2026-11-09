@@ -2,13 +2,18 @@
 
 usage: train.py <data dir> <out dir> [steps=20000 batch=512 lr=1e-3 e=64 d=192 layers=4 heads=4 ff=512
                                      seed=0 eval_every=1000 label_smoothing=0.05 warm=500
-                                     drop_tail=0.1 device=auto resume=out/last.pt]
+                                     drop_tail=0.1 drop_lang=0.2 device=auto resume=out/last.pt]
 
 Examples are packed one per row, padded to the longest in the batch, with a
 mask so padding is never attended to. `drop_tail` is the share of rows whose
 last one or two words are taken off at training time, so the model also has
 an opinion while the last word of a sentence is still being typed (the
 keyboard asks on every keystroke, not only at the space).
+
+`drop_lang` is the share of rows whose `<lang:xx>` token (prep.py
+`lang_token=1`) is swapped for `<lang:?>`, so the model serves a language it
+was not trained on and never leans on the token alone; nothing when the
+vocabulary has no language tokens.
 
 `exclaim_weight` scales the exclamation class in the loss (1.0 is the
 natural prior, which is what maximises plain accuracy; the mark is 2% of
@@ -29,7 +34,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from punct_common import LABELS, SPECIALS
+from punct_common import LABELS, LANG_UNKNOWN, SPECIALS
 from punct_model import PunctEncoder
 
 PAD = SPECIALS.index("<pad>")
@@ -37,7 +42,7 @@ PAD = SPECIALS.index("<pad>")
 
 def opts(argv):
     o = dict(steps=20000, batch=512, lr=1e-3, e=64, d=192, layers=4, heads=4, ff=512, seed=0, eval_every=1000,
-             label_smoothing=0.05, warm=500, drop_tail=0.1, device="auto", resume="", weight_decay=0.1,
+             label_smoothing=0.05, warm=500, drop_tail=0.1, drop_lang=0.2, device="auto", resume="", weight_decay=0.1,
              exclaim_weight=1.0)
     for a in argv:
         k, v = a.split("=", 1)
@@ -54,8 +59,16 @@ class Data:
         self.langs = z["langs"]
         self.n = len(self.starts) - 1
 
-    def batch(self, idx, dev, gen=None, drop_tail=0.0):
+    def batch(self, idx, dev, gen=None, drop_tail=0.0, drop_lang=0.0, lang_unknown=None):
         rows = [self.tokens[self.starts[i]:self.starts[i + 1]] for i in idx]
+        if drop_lang > 0 and lang_unknown is not None:
+            swapped = []
+            for r in rows:
+                if torch.rand((), generator=gen).item() < drop_lang:
+                    r = r.clone()
+                    r[1] = lang_unknown
+                swapped.append(r)
+            rows = swapped
         if drop_tail > 0:
             dropped = []
             for r in rows:
@@ -128,7 +141,11 @@ def main():
     print("device", dev, flush=True)
     torch.manual_seed(o["seed"])
     gen = torch.Generator().manual_seed(o["seed"])
-    vocab = sum(1 for _ in open(os.path.join(data_dir, "vocab.txt"), encoding="utf-8"))
+    vocab_list = [l.rstrip("\n") for l in open(os.path.join(data_dir, "vocab.txt"), encoding="utf-8")]
+    vocab = len(vocab_list)
+    lang_unknown = vocab_list.index(LANG_UNKNOWN) if LANG_UNKNOWN in vocab_list else None
+    if lang_unknown is not None:
+        print("language tokens on; <lang:?> is", lang_unknown, flush=True)
     lang_names = [l.strip() for l in open(os.path.join(data_dir, "langs.txt"), encoding="utf-8")]
     train = Data(os.path.join(data_dir, "train.npz"))
     held = Data(os.path.join(data_dir, "heldout.npz"))
@@ -151,7 +168,7 @@ def main():
     class_weight[LABELS.index("!")] = o["exclaim_weight"]
     for step in range(start + 1, o["steps"] + 1):
         idx = torch.randint(0, train.n, (o["batch"],), generator=gen).tolist()
-        x, m, y = train.batch(idx, dev, gen, o["drop_tail"])
+        x, m, y = train.batch(idx, dev, gen, o["drop_tail"], o["drop_lang"], lang_unknown)
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=use_amp):
             logits = model(x, m)
         loss = F.cross_entropy(logits.float(), y, weight=class_weight, label_smoothing=o["label_smoothing"])

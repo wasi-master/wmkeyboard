@@ -8,9 +8,9 @@ with a digit into `<num>`, and spells a word the vocabulary lacks in pieces
 (`wm-engine/src/punct.rs`) applies the same rules, so a token here is a token
 there. Keep the three in step.
 
-The model reads `<s> word word ...` with nothing else in front: no register,
-field or language token. One model serves every language it was trained on
-and tells them apart from the words.
+The model reads `<s> word word ...`, or `<s> <lang:xx> word word ...` when
+trained with a language token (see LANG_UNKNOWN below). One model serves
+every language it was trained on.
 
 Its answer is one of four marks, in this order, which the file's header
 repeats and the reader checks:
@@ -39,6 +39,18 @@ LABELS = [".", "?", "!", ","]
 PERIOD, QUESTION, EXCLAIM, COMMA = range(4)
 SPECIALS = [PAD, BOS, UNK, NUM]
 assert len(SPECIALS) == 4
+
+# With `prep.py lang_token=1` the sentence is `<s> <lang:xx> words...`: the
+# keyboard knows which language it is on and the model need not guess it
+# from the words, which is where the languages that ask questions in
+# statement order lose most. `<lang:?>` stands for a language the model was
+# not trained on (and for a share of training rows, so it never leans on the
+# token alone); a model without these tokens reads `<s> words...` as before.
+LANG_UNKNOWN = "<lang:?>"
+
+
+def lang_token(lang: str) -> str:
+    return f"<lang:{lang}>"
 
 # Every mark a sentence may end with, mapped to the label it stands for. The
 # fullwidth and Arabic forms are kept so a sentence in those scripts is a

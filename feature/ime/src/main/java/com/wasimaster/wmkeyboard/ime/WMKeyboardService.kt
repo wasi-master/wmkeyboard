@@ -1679,9 +1679,10 @@ open class WMKeyboardService : InputMethodService() {
         }
         val allowComma = state.settings.autoText.smartPunctuationComma
         val script = state.script
+        val languageId = state.language.id
         punctuationJob = serviceScope.launch(suggestionDispatcher) {
             delay(SMART_PUNCTUATION_DEBOUNCE_MS)
-            val mark = PunctuationModel.markFor(model.predict(words), allowComma) ?: return@launch
+            val mark = PunctuationModel.markFor(model.predict(words, languageId), allowComma) ?: return@launch
             publishSmartPunctuation(SmartPunctuation.glyph(mark, script))
         }
     }

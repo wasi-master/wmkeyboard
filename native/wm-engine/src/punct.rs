@@ -16,9 +16,11 @@
 //! over the classes. Weights are int8 with one scale per output row, the
 //! activations quantised per vector before each product (`dot_i8`), the rest
 //! f32: the same kernels as the context model in [`crate::lm`], whose
-//! container format and word tokenisation this shares. One language's
-//! sentences and another's are told apart from their words: the model
-//! carries no language token.
+//! container format and word tokenisation this shares. A model trained with
+//! language tokens reads `<s> <lang:xx> words...`, the keyboard's language
+//! id after the sentence start, and `<lang:?>` for a language it was not
+//! trained on; a model without them reads `<s> words...` and tells the
+//! languages apart from the words alone.
 //!
 //! The whole sentence is a few dozen tokens, so there is no cache: every
 //! call is one pass, a couple of milliseconds, off the keystroke's thread.
@@ -36,6 +38,9 @@ pub const BOS: u32 = 1;
 pub const UNK: u32 = 2;
 pub const NUM: u32 = 3;
 pub const SPECIALS: u32 = 4;
+/// The language tokens' spelling in the vocabulary, when the model has them.
+pub const LANG_PREFIX: &str = "<lang:";
+pub const LANG_UNKNOWN: &str = "<lang:?>";
 
 /// The classes, in the order the head gives them; the file's header lists
 /// the same marks and the reader refuses one that does not.
@@ -76,6 +81,10 @@ pub struct Punct<B: AsRef<[u8]> = Vec<u8>> {
     pub langs: Vec<String>,
     vocab_len: usize,
     ids: HashMap<String, u32>,
+    /// `<lang:xx>` tokens by language id; empty in a model without them.
+    lang_ids: HashMap<String, u32>,
+    /// `<lang:?>`, when the model has language tokens.
+    lang_unknown: Option<u32>,
     start_pieces: HashMap<String, u32>,
     cont_pieces: HashMap<String, u32>,
     emb: I8Matrix,
@@ -136,6 +145,8 @@ impl<B: AsRef<[u8]>> Punct<B> {
         }
         at += 4;
         let mut ids = HashMap::with_capacity(count * 2);
+        let mut lang_ids = HashMap::new();
+        let mut lang_unknown = None;
         let mut start_pieces = HashMap::new();
         let mut cont_pieces = HashMap::new();
         for i in 0..count {
@@ -147,9 +158,16 @@ impl<B: AsRef<[u8]>> Punct<B> {
                 start_pieces.insert(rest.to_string(), i as u32);
             } else if let Some(rest) = word.strip_prefix(PIECE_CONT) {
                 cont_pieces.insert(rest.to_string(), i as u32);
+            } else if word == LANG_UNKNOWN {
+                lang_unknown = Some(i as u32);
+            } else if let Some(lang) = word.strip_prefix(LANG_PREFIX).and_then(|r| r.strip_suffix('>')) {
+                lang_ids.insert(lang.to_string(), i as u32);
             } else {
                 ids.entry(word.to_string()).or_insert(i as u32);
             }
+        }
+        if lang_unknown.is_none() {
+            lang_ids.clear();
         }
         let data_start = pad4(at);
 
@@ -221,6 +239,8 @@ impl<B: AsRef<[u8]>> Punct<B> {
             langs,
             vocab_len,
             ids,
+            lang_ids,
+            lang_unknown,
             start_pieces,
             cont_pieces,
             emb,
@@ -237,6 +257,28 @@ impl<B: AsRef<[u8]>> Punct<B> {
 
     pub fn vocab_size(&self) -> usize {
         self.vocab_len
+    }
+
+    /// Whether the model reads a language token after `<s>`.
+    pub fn has_language_tokens(&self) -> bool {
+        self.lang_unknown.is_some()
+    }
+
+    /// The token for the keyboard's language `lang` (`"en"`, `"pt_br"`,
+    /// `"en-GB"`): its own, else its base language's (the part before `-` or
+    /// `_`), else `<lang:?>`; `None` in a model without language tokens or
+    /// with no language given.
+    pub fn lang_token(&self, lang: Option<&str>) -> Option<u32> {
+        let unknown = self.lang_unknown?;
+        let lang = lang?.trim();
+        if lang.is_empty() {
+            return Some(unknown);
+        }
+        if let Some(&id) = self.lang_ids.get(lang) {
+            return Some(id);
+        }
+        let base = lang.split(['-', '_']).next().unwrap_or(lang);
+        Some(self.lang_ids.get(base).copied().unwrap_or(unknown))
     }
 
     /// Whether the vocabulary holds `word` as one token.
@@ -257,14 +299,18 @@ impl<B: AsRef<[u8]>> Punct<B> {
         pieces_greedy(&self.start_pieces, &self.cont_pieces, &key).unwrap_or_else(|| vec![UNK])
     }
 
-    /// The tokens a sentence so far is read as: `<s>` then the words, cut
-    /// from the middle to `ctx` when a sentence spelled in pieces runs over
-    /// (`tools/wmpunct/prep.py` cuts the same way), so both its first words
-    /// and its last survive. A word that is not one (the sentence sentinel,
-    /// an empty string) is skipped.
-    pub fn tokens_for(&self, words: &[&str]) -> Vec<u32> {
-        let mut seq = Vec::with_capacity(words.len() + 1);
+    /// The tokens a sentence so far is read as: `<s>`, the language token
+    /// when the model has them (see [`Punct::lang_token`]; `<lang:?>` with no
+    /// language given), then the words, cut from the middle to `ctx` when a
+    /// sentence spelled in pieces runs over (`tools/wmpunct/prep.py` cuts the
+    /// same way), so both its first words and its last survive. A word that
+    /// is not one (the sentence sentinel, an empty string) is skipped.
+    pub fn tokens_for(&self, words: &[&str], lang: Option<&str>) -> Vec<u32> {
+        let mut seq = Vec::with_capacity(words.len() + 2);
         seq.push(BOS);
+        if let Some(t) = self.lang_token(lang.or(Some(""))) {
+            seq.push(t);
+        }
         for w in words.iter().copied().filter(|w| !w.starts_with('\u{1}') && !w.is_empty()) {
             seq.extend(self.tokens_of(w));
         }
@@ -280,9 +326,10 @@ impl<B: AsRef<[u8]>> Punct<B> {
     }
 
     /// The probability of each mark ([`LABELS`] order) for the sentence so
-    /// far, words oldest first. An empty sentence is read as just `<s>`.
-    pub fn predict(&self, words: &[&str]) -> Vec<f32> {
-        let tokens = self.tokens_for(words);
+    /// far, words oldest first, typed in `lang` (the keyboard's language id,
+    /// or `None`). An empty sentence is read as just `<s>` (and the language).
+    pub fn predict(&self, words: &[&str], lang: Option<&str>) -> Vec<f32> {
+        let tokens = self.tokens_for(words, lang);
         self.predict_tokens(&tokens)
     }
 
@@ -526,27 +573,47 @@ mod tests {
         assert_eq!(vec![UNK], m.tokens_of("zebra"));
         assert_eq!(vec![7, 8], m.tokens_of("quick"));
         assert!(m.knows("you") && !m.knows("quick"));
-        let p = m.predict(&["how", "are", "you"]);
+        let p = m.predict(&["how", "are", "you"], None);
         assert_eq!(4, p.len());
         let total: f32 = p.iter().sum();
         assert!((total - 1.0).abs() < 1e-4, "a distribution sums to one: {total}");
         assert!(p.iter().all(|v| v.is_finite() && *v >= 0.0));
         // The same words give the same answer; different words another.
-        assert_eq!(p, m.predict(&["how", "are", "you"]));
-        assert_ne!(p, m.predict(&["you"]));
-        // An empty sentence is read as <s> alone.
-        assert_eq!(vec![BOS], m.tokens_for(&[]));
-        assert_eq!(4, m.predict(&[]).len());
+        assert_eq!(p, m.predict(&["how", "are", "you"], None));
+        assert_ne!(p, m.predict(&["you"], None));
+        // An empty sentence is read as <s> alone; without language tokens the
+        // language is ignored.
+        assert_eq!(vec![BOS], m.tokens_for(&[], None));
+        assert_eq!(vec![BOS], m.tokens_for(&[], Some("en")));
+        assert!(!m.has_language_tokens());
+        assert_eq!(4, m.predict(&[], None).len());
+    }
+
+    #[test]
+    fn a_model_with_language_tokens_reads_the_keyboards_language() {
+        let m = Punct::open(tiny_model(&["<lang:?>", "<lang:en>", "<lang:pt_br>", "how"])).expect("opens");
+        assert!(m.has_language_tokens());
+        assert_eq!(vec![BOS, 5, 7], m.tokens_for(&["how"], Some("en")));
+        // A region tag falls back to its base language; an unknown language
+        // and no language both read as <lang:?>.
+        assert_eq!(vec![BOS, 5, 7], m.tokens_for(&["how"], Some("en-GB")));
+        assert_eq!(vec![BOS, 6, 7], m.tokens_for(&["how"], Some("pt_br")));
+        assert_eq!(vec![BOS, 4, 7], m.tokens_for(&["how"], Some("xx")));
+        assert_eq!(vec![BOS, 4, 7], m.tokens_for(&["how"], None));
+        assert_eq!(vec![BOS, 4], m.tokens_for(&[], None));
+        // The language tokens are not words.
+        assert_eq!(vec![UNK], m.tokens_of("<lang:en>"));
+        assert_ne!(m.predict(&["how"], Some("en")), m.predict(&["how"], None));
     }
 
     #[test]
     fn a_long_sentence_is_cut_from_the_middle_to_ctx() {
         let m = Punct::open(tiny_model(&["how", "are", "you"])).expect("opens");
         let words = ["how"; 20];
-        let t = m.tokens_for(&words);
+        let t = m.tokens_for(&words, None);
         assert_eq!(8, t.len());
         assert_eq!(BOS, t[0]);
-        assert_eq!(4, m.predict(&words).len());
+        assert_eq!(4, m.predict(&words, None).len());
     }
 
     #[test]

@@ -1,6 +1,10 @@
 """Vocabulary and token arrays from corpus.py's examples.
 
-usage: prep.py <examples.tsv> <out dir> [vocab=24576 pieces=8192 ctx=48 min_count=3 heldout=40000 seed=0 langs=en,de,...]
+usage: prep.py <examples.tsv> <out dir> [vocab=24576 pieces=8192 ctx=48 min_count=3 heldout=40000 seed=0 langs=en,de,... lang_token=0]
+
+`lang_token=1` puts `<lang:?>` and one `<lang:xx>` per language right after
+the specials and starts every example `<s> <lang:xx>`; train.py swaps a
+share of them for `<lang:?>`.
 
 Writes out/vocab.txt (one token per line, index = id; the four specials
 first, then words, then pieces), out/langs.txt (the language ids in slot
@@ -30,11 +34,11 @@ import sys
 
 import numpy as np
 
-from punct_common import BOS, LABELS, NUM, SPECIALS, UNK, Pieces, tokens_of
+from punct_common import BOS, LABELS, LANG_UNKNOWN, NUM, SPECIALS, UNK, Pieces, lang_token, tokens_of
 
 
 def opts(argv):
-    o = dict(vocab=24576, pieces=8192, ctx=48, min_count=3, heldout=40000, seed=0, langs="")
+    o = dict(vocab=24576, pieces=8192, ctx=48, min_count=3, heldout=40000, seed=0, langs="", lang_token=0)
     for a in argv:
         k, v = a.split("=", 1)
         o[k] = type(o[k])(v) if k in o and not isinstance(o[k], str) else v
@@ -87,10 +91,14 @@ def main():
     if len(lang_ids) > 255:
         raise SystemExit("more than 255 languages")
 
-    word_slots = o["vocab"] - o["pieces"] - len(SPECIALS)
+    vocab = list(SPECIALS)
+    if o["lang_token"]:
+        vocab.append(LANG_UNKNOWN)
+        for i in range(len(lang_ids)):
+            vocab.append(lang_token([l for l, j in lang_ids.items() if j == i][0]))
+    word_slots = o["vocab"] - o["pieces"] - len(vocab)
     weights = {l: math.sqrt(sum(c.values())) for l, c in per_lang_counts.items()}
     z = sum(weights.values()) or 1.0
-    vocab = list(SPECIALS)
     chosen = set(vocab)
     for l, c in per_lang_counts.items():
         share = int(word_slots * 0.8 * weights[l] / z)
@@ -187,6 +195,8 @@ def main():
         if not toks:
             continue
         seq = [ids[BOS]]
+        if o["lang_token"]:
+            seq.append(ids[lang_token(lang)])
         for w in toks:
             seq += encode(w)
         if rng.random() < held_share and len(held.labels) < o["heldout"]:
