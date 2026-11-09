@@ -11,7 +11,7 @@
 # the check then names the new one and warns about the stale line.
 
 # ---- Run once, at class initialisation or on load ----
-com.wasimaster.wmkeyboard.core.layout.BuiltInLayoutsKt.<clinit>  34600  1152  # class init: the built-in layouts table, once per process
+com.wasimaster.wmkeyboard.core.layout.BuiltInLayoutsKt.<clinit>  34600  1216  # class init: the built-in layouts table, once per process
 com.wasimaster.wmkeyboard.app.SettingsRowIcons.<clinit>  26500  256  # class init: icon builders (lambdas), settings app only
 com.wasimaster.wmkeyboard.core.script.LanguageRegistry.<clinit>  19200  832  # class init: language table, once per process
 com.wasimaster.wmkeyboard.core.script.FancyStyles.<clinit>  11500  576  # class init: Fancy Text alphabets, once per process
@@ -26,7 +26,6 @@ com.wasimaster.wmkeyboard.core.dictionaries.NgramPackCatalog.<clinit>  10100  38
 # ---- Settings app screens: composed on open, not on the typing path ----
 com.wasimaster.wmkeyboard.app.ToolDetailScreensKt.ToolDetailSettings  13300  832  # settings screen
 com.wasimaster.wmkeyboard.app.LayoutEditorScreensKt.KeyLayoutEditorScreen  18700  2944  # settings screen
-com.wasimaster.wmkeyboard.app.ThemeScreensKt.ThemeEditorScreen  12100  1600  # settings screen
 com.wasimaster.wmkeyboard.app.ThemeKeyboardPreviewKt.ThemeKeyboardPreview  4400  5248  # theme editor preview: settings app, not the typing keyboard
 com.wasimaster.wmkeyboard.app.ThemeAssetBoardKt.ThemeAssetBoard  1400  3328  # theme editor asset board: settings app, not the typing keyboard
 com.wasimaster.wmkeyboard.app.LayoutKeyboardPreviewKt.layoutPreviewShown  600  3136  # settings app, composed or run on open
