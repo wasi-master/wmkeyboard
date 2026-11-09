@@ -53,6 +53,34 @@ class VoicePunctuationTest {
     }
 
     @Test
+    fun `a name the recognizer punctuated still types its mark`() {
+        // A recognizer that punctuates on its own writes "Period." and "line,".
+        assertEquals("done. And then", en("done Period. And then"))
+        assertEquals("one\ntwo", en("one new line, two"))
+        assertEquals("see (this) now", en("see open parenthesis, this close parenthesis. now"))
+    }
+
+    @Test
+    fun `a spoken mark replaces the recognizer's guess before it`() {
+        assertEquals("hello, world", en("hello, comma world"))
+        assertEquals("really?", en("really. question mark"))
+        // Not a line break, which keeps the full stop in front of it.
+        assertEquals("done.\nnext", en("done. new line next"))
+    }
+
+    @Test
+    fun `pairs answer to the names people use for them`() {
+        assertEquals("she said \"hi\" twice", en("she said begin quote hi end quote twice"))
+        assertEquals("he said \"no\"", en("he said open quotes no unquote"))
+        assertEquals("see (page two)", en("see left paren page two right paren"))
+        assertEquals("see (page two)", en("see open parentheses page two end parentheses"))
+        assertEquals("[x]", en("open square bracket x close square bracket"))
+        assertEquals("{x}", en("left curly brace x end curly brace"))
+        // A bare "quote" or "brackets" is a word.
+        assertEquals("a quote in brackets", en("a quote in brackets"))
+    }
+
+    @Test
     fun `Bangla keeps its own table`() {
         assertEquals("আমি ভালো।", VoicePunctuation.apply("আমি ভালো দাঁড়ি", "bn-BD"))
         // English names mean nothing in a Bangla dictation.

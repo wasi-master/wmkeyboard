@@ -187,7 +187,9 @@ With this on (the default), saying certain words types the punctuation mark inst
 | "colon" | `:` | "কোলন" | `:` |
 | "semicolon" | `;` | "সেমিকোলন" | `;` |
 
-Punctuation attaches straight to the word before it with no space. The trade-off is deliberate. While this is on, a sentence that uses one of these words as a word types the symbol instead. Turn it off if you want to say "period" or "comma" out loud and have it come out as a word.
+Punctuation attaches straight to the word before it with no space. "New line" also works written as one word. The trade-off is deliberate. While this is on, a sentence that uses one of these words as a word types the symbol instead. Turn it off if you want to say "period" or "comma" out loud and have it come out as a word.
+
+Most recognizers punctuate on their own as well, so what reaches the keyboard is often "Period." or "new line," rather than the bare words. The marks they hang on a name are ignored and the name still types its symbol. A mark you say also replaces one the recognizer guessed just before it, so "hello, comma world" comes out with one comma.
 
 English also knows the marks past the end of a sentence. Each one sits against its neighbours the way it would if you had typed it: an opening mark closes up to the word after it, a joining mark closes up on both sides, and an operator keeps a space on each side.
 
@@ -198,6 +200,8 @@ English also knows the marks past the end of a sentence. Each one sits against i
 | "open parenthesis", "close parenthesis" | `(` `)` | around the words: `see (page two) now` |
 | "open bracket", "close bracket" | `[` `]` | same |
 | "open brace", "close brace" | `{` `}` | same |
+
+The pairs answer to the other names people use too. "Begin quote", "start quote", "end quote" and "unquote" work for quotes. Parentheses, brackets and braces take "left", "begin" or "start" for the opening half and "right" or "end" for the closing one, and "paren", "parentheses", "square bracket" and "curly brace" (or "curly bracket") all count, singular or plural. A bare "quote" or "brackets" stays a word.
 | "apostrophe" | `'` | joins: `rock'n` |
 | "hyphen" | `-` | joins: `well-known` |
 | "dash" | `-` | stands apart: `one - two` |
