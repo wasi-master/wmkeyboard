@@ -10,15 +10,19 @@ cut to `ctx` tokens from the middle when a sentence spelled in pieces runs
 over, so both its first words and its last survive.
 
 The word slots are shared out between the languages by the square root of
-their example counts, so English does not crowd a smaller language out of
-the vocabulary, and the rest is filled by overall frequency. Words outside
-the vocabulary are spelled in pieces (common.Pieces) built over every
+their token counts, so English does not crowd a smaller language out of the
+vocabulary, and the rest is filled by overall frequency. Words outside the
+vocabulary are spelled in pieces (common.Pieces) built over every
 language's letters, so any word of any training language can be spelled.
 
-Held-out examples are drawn after a global dedupe on the lower-cased text, so
-no held-out sentence is also a training one.
+Two passes over the file, so tens of millions of examples fit in a few GB:
+the first counts words per language and dedupes on a hash of the lower-cased
+text, the second encodes straight into the arrays. Held-out examples are a
+random share of the deduped rows, so no held-out sentence is also a
+training one.
 """
 import collections
+import hashlib
 import math
 import os
 import random
@@ -37,41 +41,53 @@ def opts(argv):
     return o
 
 
-def main():
-    src, out = sys.argv[1:3]
-    o = opts(sys.argv[3:])
-    os.makedirs(out, exist_ok=True)
-    per_lang_counts = collections.defaultdict(collections.Counter)
-    examples = []
-    seen = set()
-    lang_ids = {}
-    if o["langs"]:
-        for l in o["langs"].split(","):
-            lang_ids.setdefault(l, len(lang_ids))
+def text_hash(text: str) -> int:
+    return int.from_bytes(hashlib.blake2b(text.lower().encode("utf-8"), digest_size=8).digest(), "little")
+
+
+def rows(src, seen=None):
+    """`(lang, label, text)` per usable line; with `seen`, the first of each
+    text only (the set is filled as it goes)."""
     with open(src, encoding="utf-8") as f:
         for line in f:
             try:
                 lang, label, text = line.rstrip("\n").split("\t", 2)
             except ValueError:
                 continue
-            key = text.lower()
-            if key in seen:
-                continue
-            seen.add(key)
-            toks = tokens_of(text)
-            if not toks:
-                continue
-            lang_ids.setdefault(lang, len(lang_ids))
-            per_lang_counts[lang].update(toks)
-            examples.append((lang_ids[lang], int(label), toks))
-    del seen
+            if seen is not None:
+                h = text_hash(text)
+                if h in seen:
+                    continue
+                seen.add(h)
+            yield lang, int(label), text
+
+
+def main():
+    src, out = sys.argv[1:3]
+    o = opts(sys.argv[3:])
+    os.makedirs(out, exist_ok=True)
+    lang_ids = {}
+    if o["langs"]:
+        for l in o["langs"].split(","):
+            lang_ids.setdefault(l, len(lang_ids))
+
+    # Pass 1: counts per language, over deduped rows.
+    per_lang_counts = collections.defaultdict(collections.Counter)
+    seen = set()
+    n_rows = 0
+    for lang, label, text in rows(src, seen):
+        toks = tokens_of(text)
+        if not toks:
+            continue
+        lang_ids.setdefault(lang, len(lang_ids))
+        per_lang_counts[lang].update(toks)
+        n_rows += 1
     total_tokens = sum(sum(c.values()) for c in per_lang_counts.values())
-    print(f"{len(examples)} examples, {total_tokens} tokens, {len(lang_ids)} languages", file=sys.stderr)
+    print(f"{n_rows} examples, {total_tokens} tokens, {len(lang_ids)} languages", file=sys.stderr)
     if len(lang_ids) > 255:
         raise SystemExit("more than 255 languages")
 
     word_slots = o["vocab"] - o["pieces"] - len(SPECIALS)
-    # Fair shares by the square root of each language's token count.
     weights = {l: math.sqrt(sum(c.values())) for l, c in per_lang_counts.items()}
     z = sum(weights.values()) or 1.0
     vocab = list(SPECIALS)
@@ -88,6 +104,7 @@ def main():
     overall = collections.Counter()
     for c in per_lang_counts.values():
         overall.update(c)
+    del per_lang_counts
     for w, n in overall.most_common():
         if len(vocab) >= word_slots + len(SPECIALS):
             break
@@ -99,17 +116,20 @@ def main():
     oov = {w: n for w, n in overall.items() if w not in chosen and w != NUM}
     alphabet = {ch for w in overall if w != NUM for ch in w}
     pieces = Pieces.build(oov, o["pieces"], alphabet)
+    del oov
     vocab.extend(pieces.tokens())
     print(f"{len(pieces.starts)} start + {len(pieces.conts)} continuation pieces; vocab {len(vocab)}", file=sys.stderr)
     ids = {w: i for i, w in enumerate(vocab)}
     covered = sum(n for w, n in overall.items() if w in ids) / max(1, sum(overall.values()))
     print(f"word coverage {covered:.4f}", file=sys.stderr)
+    del overall
     with open(os.path.join(out, "vocab.txt"), "w", encoding="utf-8") as f:
         for w in vocab:
             f.write(w + "\n")
+    inv = {i: l for l, i in lang_ids.items()}
     with open(os.path.join(out, "langs.txt"), "w", encoding="utf-8") as f:
-        for l, i in sorted(lang_ids.items(), key=lambda kv: kv[1]):
-            f.write(l + "\n")
+        for i in range(len(inv)):
+            f.write(inv[i] + "\n")
 
     unk = ids[UNK]
     cache = {}
@@ -120,48 +140,62 @@ def main():
         if w not in cache:
             enc = pieces.encode(w)
             cache[w] = [ids[p] for p in enc] if enc else [unk]
+            if len(cache) > 2_000_000:
+                cache.clear()
         return cache[w]
 
+    # Pass 2: every deduped row goes to the held-out set with probability
+    # heldout / rows, else to training, encoded straight into the arrays.
     rng = random.Random(o["seed"])
-    rng.shuffle(examples)
-    held = examples[: o["heldout"]]
-    train = examples[o["heldout"]:]
+    held_share = min(1.0, o["heldout"] / max(1, n_rows))
     ctx = o["ctx"]
 
-    def pack(items, name):
-        tokens, starts, labels, langs = [], [], [], []
-        over = 0
-        for lang, label, toks in items:
-            seq = [ids[BOS]]
-            for w in toks:
-                seq += encode(w)
-            if len(seq) > ctx:
-                over += 1
-                keep_head = ctx // 3
-                keep_tail = ctx - keep_head
-                seq = seq[:keep_head] + seq[-keep_tail:]
-            starts.append(len(tokens))
-            tokens.extend(seq)
-            labels.append(label)
-            langs.append(lang)
-        starts.append(len(tokens))
-        np.savez(
-            os.path.join(out, name),
-            tokens=np.array(tokens, dtype=np.int32),
-            starts=np.array(starts, dtype=np.int64),
-            labels=np.array(labels, dtype=np.uint8),
-            langs=np.array(langs, dtype=np.uint8),
-        )
-        dist = collections.Counter(labels)
-        print(f"{name}: {len(items)} examples, {len(tokens)} tokens, {over} cut to ctx; "
-              + " ".join(f"{LABELS[k]} {dist[k]}" for k in range(len(LABELS))), file=sys.stderr)
+    class Pack:
+        def __init__(self, name):
+            self.name = name
+            self.tokens, self.starts, self.labels, self.langs = [], [0], [], []
+            self.over = 0
 
-    pack(train, "train.npz")
-    pack(held, "heldout.npz")
-    with open(os.path.join(out, "heldout.tsv"), "w", encoding="utf-8") as f:
-        inv = {i: l for l, i in lang_ids.items()}
-        for lang, label, toks in held:
-            f.write(f"{inv[lang]}\t{label}\t{' '.join(toks)}\n")
+        def add(self, lang, label, seq):
+            if len(seq) > ctx:
+                self.over += 1
+                head = ctx // 3
+                seq = seq[:head] + seq[-(ctx - head):]
+            self.tokens.extend(seq)
+            self.starts.append(len(self.tokens))
+            self.labels.append(label)
+            self.langs.append(lang)
+
+        def save(self):
+            np.savez(
+                os.path.join(out, self.name),
+                tokens=np.array(self.tokens, dtype=np.int32),
+                starts=np.array(self.starts, dtype=np.int64),
+                labels=np.array(self.labels, dtype=np.uint8),
+                langs=np.array(self.langs, dtype=np.uint8),
+            )
+            dist = collections.Counter(self.labels)
+            print(f"{self.name}: {len(self.labels)} examples, {len(self.tokens)} tokens, {self.over} cut to ctx; "
+                  + " ".join(f"{LABELS[k]} {dist[k]}" for k in range(len(LABELS))), file=sys.stderr)
+
+    train, held = Pack("train.npz"), Pack("heldout.npz")
+    held_text = open(os.path.join(out, "heldout.tsv"), "w", encoding="utf-8")
+    seen = set()
+    for lang, label, text in rows(src, seen):
+        toks = tokens_of(text)
+        if not toks:
+            continue
+        seq = [ids[BOS]]
+        for w in toks:
+            seq += encode(w)
+        if rng.random() < held_share and len(held.labels) < o["heldout"]:
+            held.add(lang_ids[lang], label, seq)
+            held_text.write(f"{lang}\t{label}\t{' '.join(toks)}\n")
+        else:
+            train.add(lang_ids[lang], label, seq)
+    held_text.close()
+    train.save()
+    held.save()
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Fetches the corpora remote/languages.tsv names into data/raw/ and writes
-# data/examples.tsv. Tatoeba per-language exports are small and taken whole;
+# $EXAMPLES (data/examples.tsv). Tatoeba per-language exports are small and taken whole;
 # OpenSubtitles (OPUS 2018 mono) is streamed and cut at the line cap, so a
 # 3.6 GB English file costs only its first few hundred MB.
 #
@@ -9,10 +9,10 @@ set -euo pipefail
 [ -f .env ] && . ./.env
 PY=${PY:-python3}
 RAW=${RAW:-data/raw}
-OUT=${OUT:-data/examples.tsv}
+EXAMPLES=${EXAMPLES:-data/examples.tsv}
 LANGS=${LANGS:-}
 mkdir -p "$RAW"
-: > "$OUT"
+: > "$EXAMPLES"
 while IFS=$'\t' read -r id iso3 opus cap; do
     [[ -z "$id" || "$id" == \#* ]] && continue
     if [ -n "$LANGS" ] && ! [[ " $LANGS " == *" $id "* ]]; then continue; fi
@@ -32,6 +32,6 @@ while IFS=$'\t' read -r id iso3 opus cap; do
         [ -s "$f" ] && specs+=("opus:$f")
     fi
     [ ${#specs[@]} -eq 0 ] && continue
-    $PY corpus.py "$id" "${specs[@]}" >> "$OUT"
+    $PY corpus.py "$id" "${specs[@]}" >> "$EXAMPLES"
 done < remote/languages.tsv
-wc -l "$OUT"
+wc -l "$EXAMPLES"
