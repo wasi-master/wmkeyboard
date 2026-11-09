@@ -27,6 +27,9 @@ object NotificationOtpMonitor {
     /** The top of the "Offer a code for" slider; anything older can't be offered. */
     private const val MAX_SCAN_AGE_MS = 10 * 60_000L
 
+    /** Four digits in a row: the shortest code a notification could carry. */
+    private val DIGIT_RUN = Regex("\\d{4}")
+
     /**
      * Recently processed notifications, so an app updating the same
      * notification (progress ticks, group re-sorts) does not re-raise a chip
@@ -77,7 +80,15 @@ object NotificationOtpMonitor {
         // Why no chip came, for About > Diagnostics. Never the text itself.
         val code = NotificationOtpExtractor.extract(text)
         if (code == null) {
-            DebugLog.d(TAG, "${sbn.packageName}: ${if (redacted) "text hidden by Android" else "no code"}, ${text.length} chars")
+            // Only where a code could have been missed: Android hid the text,
+            // or it holds a run of digits the extractor turned down. Every
+            // other notification (each chat message, each app's update) used
+            // to log a line too, and pushed everything else out of the log.
+            if (redacted) {
+                DebugLog.d(TAG, "${sbn.packageName}: text hidden by Android")
+            } else if (DIGIT_RUN.containsMatchIn(text)) {
+                DebugLog.d(TAG, "${sbn.packageName}: digits but no code, ${text.length} chars")
+            }
             return false
         }
         DebugLog.d(TAG, "${sbn.packageName}: code found")
