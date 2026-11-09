@@ -8,11 +8,11 @@
 //!   "mode": "panel" | "action",
 //!   "storagePath": "/…/storage.json" | null,      // null or absent: in memory
 //!   "remindersPath": "/…/reminders.json" | null,
-//!   "limits": { "load": {"steps": 3000000, "millis": 3000}, "event": {…}, "render": {…}, "action": {…} } }
+//!   "limits": { "load": {"steps": 9000000, "millis": 3000}, "event": {…}, "render": {…}, "action": {…} } }
 //! ```
 //!
-//! Every limit is optional; defaults are load 3M/3000 ms, event 2M/2000,
-//! render 400k/500, action 3M/3000. Container (10,000 items) and string
+//! Every limit is optional; defaults are load 9M/3000 ms, event 6M/2000,
+//! render 1.2M/500, action 9M/3000. Container (10,000 items) and string
 //! (100,000 characters) caps are fixed.
 //!
 //! # Result (every call)
@@ -92,10 +92,10 @@ pub struct PhaseLimits {
 impl Default for PhaseLimits {
     fn default() -> Self {
         PhaseLimits {
-            load: PhaseLimit { steps: 3_000_000, millis: 3_000 },
-            event: PhaseLimit { steps: 2_000_000, millis: 2_000 },
-            render: PhaseLimit { steps: 400_000, millis: 500 },
-            action: PhaseLimit { steps: 3_000_000, millis: 3_000 },
+            load: PhaseLimit { steps: 9_000_000, millis: 3_000 },
+            event: PhaseLimit { steps: 6_000_000, millis: 2_000 },
+            render: PhaseLimit { steps: 1_200_000, millis: 500 },
+            action: PhaseLimit { steps: 9_000_000, millis: 3_000 },
         }
     }
 }

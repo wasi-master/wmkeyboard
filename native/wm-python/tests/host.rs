@@ -84,15 +84,15 @@ fn a_panel_load_runs_the_top_level_then_renders() {
     let phases = r["phases"].as_array().unwrap();
     assert_eq!(phases.len(), 2);
     assert_eq!(phases[0]["phase"], "load");
-    assert_eq!(phases[0]["stepsLimit"], 3_000_000);
+    assert_eq!(phases[0]["stepsLimit"], 9_000_000);
     assert_eq!(phases[0]["millisLimit"], 3000);
     assert!(phases[0]["steps"].as_u64().unwrap() > 0);
     assert_eq!(phases[1]["phase"], "render");
-    assert_eq!(phases[1]["stepsLimit"], 400_000);
+    assert_eq!(phases[1]["stepsLimit"], 1_200_000);
     assert_eq!(phases[1]["millisLimit"], 500);
     assert!(phases[1].get("elapsedMicros").unwrap().is_u64());
     let usage: Json = serde_json::from_str(&s.usage()).unwrap();
-    assert_eq!(usage["steps_limit"], 400_000);
+    assert_eq!(usage["steps_limit"], 1_200_000);
     assert_eq!(usage["millis_limit"], 500);
 }
 
@@ -192,7 +192,7 @@ fn action_sessions_call_transform_fresh_each_time() {
     assert_eq!(parse(s.transform("hi", "shout"))["value"], "shout:HI:1");
     let p = &r["phases"][0];
     assert_eq!(p["phase"], "action");
-    assert_eq!(p["stepsLimit"], 3_000_000);
+    assert_eq!(p["stepsLimit"], 9_000_000);
     assert!(p["steps"].as_u64().unwrap() > 10);
     // No wm.ui in an action.
     load(&mut s, "def transform(text):\n    wm.ui.set_input('a', 'b')");

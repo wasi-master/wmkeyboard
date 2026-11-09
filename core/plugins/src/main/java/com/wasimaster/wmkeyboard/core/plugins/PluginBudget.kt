@@ -46,24 +46,31 @@ enum class PluginAbortReason(@StringRes val messageRes: Int) {
  * per regex backtrack) and [wallMillis] of wall-clock time. The interpreter
  * checks both on every step and stops the script itself, so a call can never
  * outrun them by more than one step.
+ *
+ * The step counts are three times what LuaJ was given. A Python step is one
+ * expression node, a much smaller unit than a Lua VM instruction, and at about
+ * 30 million steps a second (an M-series Mac, release build) the old 2 million
+ * per event was 70 ms against a 2-second wall limit: the steps stopped an
+ * honest 8 KB paste into Math Mode long before time was any concern. Tripled,
+ * a call still reaches its step limit well inside its wall limit on a phone.
  */
 data class PluginLimit(val instructions: Long, val wallMillis: Long) {
     companion object {
         /** Running the script top to bottom. The most expensive entry. */
-        val LOAD = PluginLimit(instructions = 3_000_000, wallMillis = 3_000)
+        val LOAD = PluginLimit(instructions = 9_000_000, wallMillis = 3_000)
 
         /** Handling one tap, toggle or keystroke. */
-        val EVENT = PluginLimit(instructions = 2_000_000, wallMillis = 2_000)
+        val EVENT = PluginLimit(instructions = 6_000_000, wallMillis = 2_000)
 
         /**
          * One tap on a selection action: a fresh interpreter, the script, and
          * the `transform` call, all on one allowance. As much as [LOAD], since a
          * load is part of every action call.
          */
-        val ACTION = PluginLimit(instructions = 3_000_000, wallMillis = 3_000)
+        val ACTION = PluginLimit(instructions = 9_000_000, wallMillis = 3_000)
 
         /** Building the widget tree. Runs after every event, so it is kept tight. */
-        val RENDER = PluginLimit(instructions = 400_000, wallMillis = 500)
+        val RENDER = PluginLimit(instructions = 1_200_000, wallMillis = 500)
     }
 }
 

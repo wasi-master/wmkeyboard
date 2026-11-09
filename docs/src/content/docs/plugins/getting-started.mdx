@@ -379,9 +379,9 @@ message that names it. The
 [API reference](/plugins/api-reference/#the-python-you-get) has the whole list.
 
 :::caution[Two limits worth knowing before you hit them]
-Your code gets 2 million steps and two seconds per event, and a tighter 400,000
-steps and half a second for each render. A step is roughly a statement or a turn
-of a loop. An accidental infinite loop is stopped and reported rather than left
+Your code gets 6 million steps and two seconds per event, and a tighter 1.2
+million steps and half a second for each render. A step is one expression or
+statement the interpreter evaluates, so a turn of a loop costs several. An accidental infinite loop is stopped and reported rather than left
 to hang the keyboard.
 
 Running out of steps or time counts a strike, and so does going unresponsive
