@@ -1211,6 +1211,22 @@ internal fun LanguageDetailScreen(
         }
     }
 
+    // The smart punctuation key, per language the same way: the model reads
+    // some languages thinly, and one it never saw gets a guess from the words
+    // it half knows. Only while the Typing switch is on, which rules them all.
+    val smartPunctuationOn = settings.watch { it.autoText.smartPunctuation }
+    SettingsGroup(stringResource(R.string.languages_punctuation_group)) {
+        item(visible = smartPunctuationOn, level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.languages_smart_punctuation_title,
+                stringResource(R.string.languages_smart_punctuation_subtitle),
+                settings.watch { langId !in it.autoText.smartPunctuationOffLangs },
+                info = stringResource(R.string.languages_smart_punctuation_info, lang.englishName),
+                default = true,
+            ) { scope.launch { repository.setSmartPunctuationForLanguage(langId, it) } }
+        }
+    }
+
     LanguageGlideRadiiGroup(langId, lang.englishName, settings, repository, scope)
 
     // Fancy Text: the style the one fancy layout draws and types. The strip

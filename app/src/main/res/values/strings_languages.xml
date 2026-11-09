@@ -158,6 +158,10 @@
     <string name="languages_autocorrect_info">Turn this off to keep each word you type in <xliff:g id="language" example="Bengali">%1$s</xliff:g> as you typed it, while other languages are still corrected. The suggestion strip still shows its suggestions, and you can tap one. The autocorrect switch in Typing turns autocorrect off for all languages.</string>
 
     <string name="languages_spacing_group">Spacing</string>
+    <string name="languages_punctuation_group">Punctuation</string>
+    <string name="languages_smart_punctuation_title">Smart punctuation key</string>
+    <string name="languages_smart_punctuation_subtitle">The period key shows the mark the sentence is heading for in this language</string>
+    <string name="languages_smart_punctuation_info">Turn this off to keep an ordinary period key while typing <xliff:g id="language" example="Bengali">%1$s</xliff:g>; other languages keep the guessing key. Worth turning off for a language the model reads thinly or was never trained on. The Smart punctuation key switch in Typing turns it off for all languages.</string>
     <string name="languages_space_after_suggestion_title">Space after a suggestion</string>
     <string name="languages_space_after_suggestion_subtitle">Add a space when you select a word from the suggestion strip</string>
     <!-- %1$s is the English name of the language, for example "Bengali". -->

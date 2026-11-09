@@ -1659,7 +1659,9 @@ open class WMKeyboardService : InputMethodService() {
         val model = punctuationModel ?: return
         punctuationJob?.cancel()
         val state = _uiState.value
-        if (state.fieldKind != FieldKind.TEXT || state.secureField || state.composer.isConversion) {
+        if (state.fieldKind != FieldKind.TEXT || state.secureField || state.composer.isConversion ||
+            !state.settings.autoText.smartPunctuationFor(state.language.id)
+        ) {
             publishSmartPunctuation(null)
             return
         }

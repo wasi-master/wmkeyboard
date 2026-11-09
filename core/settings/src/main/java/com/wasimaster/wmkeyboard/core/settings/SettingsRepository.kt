@@ -2974,7 +2974,21 @@ data class AutoTextSettings(
      * call the key being wrong, so it is asked for.
      */
     val smartPunctuationComma: Boolean = false,
+    /**
+     * Languages the smart punctuation key stays an ordinary period key in
+     * while [smartPunctuation] is on for the rest: the model reads some of
+     * the keyboard's languages well and others thinly, and a language the
+     * model was never trained on gets a guess from the words it half knows.
+     * Only the switched-off languages are stored, so a language added later
+     * takes part. Each language's row sits on its own page under Languages &
+     * layouts; the switch in Typing still rules them all.
+     */
+    val smartPunctuationOffLangs: Set<String> = emptySet(),
 ) {
+    /** Whether the smart punctuation key is on while typing [langId]. */
+    fun smartPunctuationFor(langId: String): Boolean =
+        smartPunctuation && langId !in smartPunctuationOffLangs
+
     companion object {
         /**
          * Written as escapes, not as the marks themselves. Four of them are
@@ -11485,6 +11499,7 @@ class SettingsRepository(private val context: Context) {
         private val CONTINUE_LISTS = booleanPreferencesKey("continue_lists")
         private val SMART_PUNCTUATION = booleanPreferencesKey("smart_punctuation")
         private val SMART_PUNCTUATION_COMMA = booleanPreferencesKey("smart_punctuation_comma")
+        private val SMART_PUNCTUATION_OFF_LANGS = stringSetPreferencesKey("smart_punctuation_off_langs")
         private val WRAP_SELECTION_WITH_PAIR = booleanPreferencesKey("wrap_selection_with_pair")
         private val AUTO_CLOSE_BRACKETS = booleanPreferencesKey("auto_close_brackets")
         private val AUTO_CLOSE_QUOTES = booleanPreferencesKey("auto_close_quotes")
@@ -13717,6 +13732,7 @@ class SettingsRepository(private val context: Context) {
             continueLists = p[CONTINUE_LISTS] ?: defaults.autoText.continueLists,
             smartPunctuation = p[SMART_PUNCTUATION] ?: defaults.autoText.smartPunctuation,
             smartPunctuationComma = p[SMART_PUNCTUATION_COMMA] ?: defaults.autoText.smartPunctuationComma,
+            smartPunctuationOffLangs = p[SMART_PUNCTUATION_OFF_LANGS] ?: defaults.autoText.smartPunctuationOffLangs,
         )
 
     private fun readSuggestionSources(p: Preferences, defaults: KeyboardSettings) =
@@ -20683,6 +20699,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSmartPunctuationComma(value: Boolean) =
         editPrefs { it[SMART_PUNCTUATION_COMMA] = value }
+
+    /** The smart punctuation key for one language, on its page; the Typing switch still rules them all. */
+    suspend fun setSmartPunctuationForLanguage(langId: String, enabled: Boolean) =
+        editPrefs {
+            val off = it[SMART_PUNCTUATION_OFF_LANGS] ?: emptySet()
+            it[SMART_PUNCTUATION_OFF_LANGS] = if (enabled) off - langId else off + langId
+        }
 
     /** Whitespace can never be a mark, and a very long list is a typo. */
     suspend fun setHugPunctuationMarks(value: String) = editPrefs {
