@@ -10378,6 +10378,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         zenObserver?.let { contentResolver.unregisterContentObserver(it) }
         zenObserver = null
+        unregisterPackageChangeReceiver()
         userDictObserver?.let { runCatching { contentResolver.unregisterContentObserver(it) } }
         userDictObserver = null
         // The deferred buzz used to be cancelled by serviceScope.cancel() below;
@@ -24827,10 +24828,14 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * Stays registered for the rest of the process's life, like the DND
-     * observer ([startDndWatch]): an IME process dies with its receivers, and
-     * an install/removal while the keyboard is up is exactly the case the
-     * cache invalidation has to catch.
+     * Registered for this service's life and taken down in [onDestroy] by
+     * [unregisterPackageChangeReceiver]. Not the process's: the system
+     * destroys and recreates the service many times in one process (every
+     * keyboard switch, and on some phones every few minutes), and a
+     * [android.content.pm.LauncherApps] callback left registered is a binder
+     * the system holds for ever. Through its LauncherApps and that one's
+     * context it kept each destroyed service alive with its whole keyboard,
+     * about 12 MB a time, until the heap ran out (0.6.4, GrapheneOS).
      */
     internal fun registerPackageChangeReceiver() {
         val filter = IntentFilter().apply {
@@ -24854,6 +24859,16 @@ open class WMKeyboardService : InputMethodService() {
             getSystemService(android.content.pm.LauncherApps::class.java)
                 ?.registerCallback(launcherProfileCallback, android.os.Handler(mainLooper))
         }
+    }
+
+    /** Undoes [registerPackageChangeReceiver]; each part may never have registered. */
+    private fun unregisterPackageChangeReceiver() {
+        runCatching {
+            getSystemService(android.content.pm.LauncherApps::class.java)
+                ?.unregisterCallback(launcherProfileCallback)
+        }
+        runCatching { unregisterReceiver(packageChangeReceiver) }
+        runCatching { unregisterReceiver(profileStateReceiver) }
     }
 
     /** Fills [KeyboardUiState.launcherApps] from the cache or a fresh query. */
