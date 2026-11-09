@@ -65,6 +65,9 @@ licensee {
     allowUrl("https://www.bouncycastle.org/licence.html") {
         because("the Bouncy Castle licence is the MIT licence, word for word; for its other modules")
     }
+    allowUrl("https://github.com/RikkaApps/Shizuku-API/blob/master/LICENSE") {
+        because("MIT, per the repo's LICENSE; Shizuku's api, provider, aidl and shared modules")
+    }
 
     // Google's own terms: ML Kit, Play services and Play Core. Allowed only
     // outside the F-Droid channel, which must not ship them at all; there the
