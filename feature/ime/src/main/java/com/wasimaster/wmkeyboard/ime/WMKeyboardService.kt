@@ -12004,7 +12004,7 @@ open class WMKeyboardService : InputMethodService() {
         when (target) {
             CaptureTarget.TYPING_TEST -> { typingTestType(text); return true }
             CaptureTarget.WORD_SPELL -> {
-                wordSpellEdit { it.typed(text, UserLexicon.MAX_WORD_LENGTH) }
+                wordSpellTyped(state.composer, text)
                 return true
             }
             else -> Unit
@@ -12168,7 +12168,15 @@ open class WMKeyboardService : InputMethodService() {
         val target = state.captureTarget() ?: return false
         when (target) {
             CaptureTarget.TYPING_TEST -> { typingTestBackspace(); return true }
-            CaptureTarget.WORD_SPELL -> { wordSpellEdit { it.deletedBackward() }; return true }
+            CaptureTarget.WORD_SPELL -> {
+                val composer = state.composer
+                wordSpellEdit { spell ->
+                    spell.takeIf { spellComposes(composer) }
+                        ?.uncomposed(composer::composeBuffer, composer::backspaceBuffer)
+                        ?: spell.deletedBackward()
+                }
+                return true
+            }
             else -> Unit
         }
         val before = state.captureCaretText() ?: return false
@@ -12257,10 +12265,37 @@ open class WMKeyboardService : InputMethodService() {
         run: CaptureComposition?,
     ): Boolean {
         if (!composesInCapture(composer) || !target.takesWords || text.length != 1) return false
-        val c = text[0]
-        val keys = run?.keys.orEmpty()
-        return c.isLetter() || composer.buffersChar(c, keys) ||
+        return spellsWithKey(composer, text[0], run?.keys.orEmpty())
+    }
+
+    /** Whether [c] is a key [composer] spells with, after [keys] of the word it is composing. */
+    private fun spellsWithKey(composer: Composer, c: Char, keys: String): Boolean =
+        c.isLetter() || composer.buffersChar(c, keys) ||
             (composer.bufferDigits && c.isDigit() && (keys.isNotEmpty() || composer.digitsStartBuffer))
+
+    /**
+     * Whether the word card's spelling bar shows what [composer]'s keys spell
+     * rather than the keys (#1190): every transliterating layout, Avro's
+     * phonetic Bangla among them, unlike the other keyboard-owned fields,
+     * where a phonetic word stays roman for their own strip to convert. The
+     * bar has no strip, so a roman draft could only ever respell a Bangla
+     * word in English letters. Not the conversion IMEs, whose word is a pick
+     * off a candidate list the bar does not have.
+     */
+    private fun spellComposes(composer: Composer): Boolean = composer.isTransliterating && !composer.isConversion
+
+    /**
+     * [text] typed into the spelling bar: a key [composer] spells with joins
+     * the word it is composing there, and anything else goes in as it is.
+     */
+    private fun wordSpellTyped(composer: Composer, text: String) {
+        val render: (String) -> String = composer::composeBuffer
+        val keys = _uiState.value.wordSpell?.liveRun(render)?.keys.orEmpty()
+        if (spellComposes(composer) && text.length == 1 && spellsWithKey(composer, text[0], keys)) {
+            wordSpellEdit { it.composed(text, render, UserLexicon.MAX_WORD_LENGTH) }
+        } else {
+            wordSpellEdit { it.typed(text, UserLexicon.MAX_WORD_LENGTH) }
+        }
     }
 
     /**
@@ -12838,16 +12873,39 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun capturePaste(): Boolean {
         val target = _uiState.value.captureTarget() ?: return false
-        // The word card and the typing test run editors of their own.
-        if (target == CaptureTarget.WORD_SPELL || !target.movableCaret) return false
+        // The word card's spelling runs an editor of its own, and takes the
+        // paste there (#1190): returning false sent it to the app's field.
+        if (target == CaptureTarget.WORD_SPELL) {
+            pasteIntoWordSpell()
+            return true
+        }
+        // The typing test's run is the keys, not a clip.
+        if (!target.movableCaret) return false
         if (!isClipboardAccessible()) return true
+        val clip = captureClipText()
+        if (clip.isNotEmpty()) captureTyped(clip)
+        return true
+    }
+
+    /** What a paste into a keyboard-owned field types; see [capturePaste]. */
+    private fun captureClipText(): String {
         val system = runCatching {
             (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
                 .primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.text?.toString()
         }.getOrNull()
-        val clip = KeyboardClipboard.held ?: system?.takeIf { it.isNotEmpty() } ?: clipboardStore.latestText().orEmpty()
-        if (clip.isNotEmpty()) captureTyped(clip)
-        return true
+        return KeyboardClipboard.held ?: system?.takeIf { it.isNotEmpty() } ?: clipboardStore.latestText().orEmpty()
+    }
+
+    /**
+     * The clipboard's first word into the spelling bar at its caret (#1190):
+     * the bar's Paste button, or a paste key while the bar is up. The way in
+     * for a spelling the keys cannot type, a Bangla word copied from
+     * elsewhere for one.
+     */
+    private fun pasteIntoWordSpell() {
+        if (_uiState.value.wordSpell == null || !isClipboardAccessible()) return
+        val clip = captureClipText()
+        wordSpellEdit { it.pasted(clip, UserLexicon.MAX_WORD_LENGTH) }
     }
 
     /** Moves the shared caret, and its selection, without touching the text. */
@@ -28060,6 +28118,49 @@ open class WMKeyboardService : InputMethodService() {
         if (state.panel != PanelMode.NONE) return
         val (forWord, words) = suggestionPages ?: return
         if (forWord != composing.toString()) return
+        // A phonetic layout's word has more readings than its pass ranked
+        // (#1190): fetched off the main thread, then the grid opens if the
+        // word and the keys are still where they were.
+        val lang = state.composer.phoneticLanguage
+        val engine = suggestionEngine
+        if (lang != null && forWord.isNotEmpty() && engine != null) {
+            serviceScope.launch {
+                val all = withPhoneticReadings(engine, lang, forWord, words, state.suggestions)
+                val now = _uiState.value
+                if (forWord == composing.toString() && now.panel == PanelMode.NONE) openSuggestionPages(now, forWord, all)
+            }
+            return
+        }
+        openSuggestionPages(state, forWord, words)
+    }
+
+    /**
+     * [words], a phonetic layout's pages for [typed], with the language's
+     * whole candidate list behind the strip's own words (#1190): the
+     * readings desktop Avro offers, কিযে beside কিজে for `kije`. The pass
+     * ranks a handful, and on Bangla most of those are other words that
+     * start the same way, so the pages had one reading of the word typed
+     * and nothing else to choose. The same list the language's Let it
+     * choose the word setting puts on the strip, whether or not that is on.
+     */
+    private suspend fun withPhoneticReadings(
+        engine: SuggestionEngine,
+        lang: String,
+        typed: String,
+        words: List<String>,
+        strip: List<String>,
+    ): List<String> {
+        val readings = withContext(suggestionDispatcher) {
+            runCatching { engine.phoneticCandidates(lang, typed, SUGGEST_PAGES_POOL) }.getOrDefault(emptyList())
+        }
+        if (readings.isEmpty()) return words
+        val shown = strip.toSet()
+        val head = words.takeWhile { it in shown }
+        return (head + readings + words.drop(head.size)).distinct()
+    }
+
+    /** The pages grid for [forWord], from its [words]; see [onSuggestionPagesToggle]. */
+    private fun openSuggestionPages(state: KeyboardUiState, forWord: String, words: List<String>) {
         // After the words, what else the word could become (#970): the emoji
         // that match it, more than the strip has room for, and the word in
         // every fancy style, so the look can be picked by looking at it.
@@ -28146,12 +28247,35 @@ open class WMKeyboardService : InputMethodService() {
     fun onMoreSuggestionsPopup(open: Boolean) {
         val state = _uiState.value
         if (!open) {
+            moreSuggestionsAsk?.cancel()
+            moreSuggestionsAsk = null
             if (state.moreSuggestions.isNotEmpty()) _uiState.update { it.copy(moreSuggestions = emptyList()) }
             return
         }
         if (state.composer.isConversion || state.panel != PanelMode.NONE) return
         val (forWord, words) = suggestionPages ?: return
         if (forWord != composing.toString()) return
+        val lang = state.composer.phoneticLanguage
+        val engine = suggestionEngine
+        if (lang != null && forWord.isNotEmpty() && engine != null) {
+            // The same readings the pages get (#1190), while the finger is
+            // still down; a popup the lift already closed stays closed.
+            moreSuggestionsAsk?.cancel()
+            moreSuggestionsAsk = serviceScope.launch {
+                val all = withPhoneticReadings(engine, lang, forWord, words, state.suggestions)
+                if (forWord == composing.toString() && _uiState.value.panel == PanelMode.NONE) {
+                    showMoreSuggestions(_uiState.value, all)
+                }
+            }
+            return
+        }
+        showMoreSuggestions(state, words)
+    }
+
+    /** The swipe-up popup's ask for a phonetic word's readings, cancelled when the finger lifts. */
+    private var moreSuggestionsAsk: Job? = null
+
+    private fun showMoreSuggestions(state: KeyboardUiState, words: List<String>) {
         val shown = state.suggestions.toSet()
         val more = words.filter { it !in shown }.take(MORE_SUGGESTIONS_MAX)
         if (more.isEmpty()) return
@@ -52659,6 +52783,10 @@ open class WMKeyboardService : InputMethodService() {
             }
             WordCardAction.CommitSpelling -> commitWordSpell()
             WordCardAction.CancelSpelling -> cancelWordSpell()
+            WordCardAction.PasteSpelling -> {
+                vibrate()
+                pasteIntoWordSpell()
+            }
             is WordCardAction.SelectSpelling -> wordSpellEdit { it.selected(action.start, action.end) }
             WordCardAction.Add -> {
                 card.typed?.let { addTypedWord(it, composing = !card.fromSelection) }

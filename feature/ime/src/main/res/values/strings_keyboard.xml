@@ -246,9 +246,10 @@
     <!-- The spelling bar, before anything has been typed into it. %1$s is the
          word being respelled. -->
     <string name="ime_word_spell_hint">Type a new spelling for \"<xliff:g id="word" example="teh">%1$s</xliff:g>\"</string>
-    <!-- Screen reader names of the spelling bar's two buttons. -->
+    <!-- Screen reader names of the spelling bar's buttons. -->
     <string name="ime_word_spell_apply_desc">Use this spelling</string>
     <string name="ime_word_spell_cancel_desc">Leave the spelling alone</string>
+    <string name="ime_word_spell_paste_desc">Paste a word</string>
 
     <!-- Heading over the control that edits the personal dictionary's count. -->
     <string name="ime_word_card_weight_title">Learned weight</string>

@@ -110,4 +110,87 @@ class WordSpellTest {
         assertEquals(0, s.selectionStart)
         assertEquals(3, s.selectionEnd)
     }
+
+    // ---- a transliterating layout's keys (#1190) ----
+
+    /** A toy scheme whose `h` changes the letter before it, as Avro's does. */
+    private val render: (String) -> String = { it.replace("kh", "খ").replace("k", "ক").replace("i", "ি") }
+
+    private fun WordSpell.keys(text: String): WordSpell =
+        text.fold(this) { spell, c -> spell.composed(c.toString(), render, 32) }
+
+    @Test
+    fun `a composing key shows the reading of the whole word, not the key`() {
+        val s = spell("").keys("kh")
+        assertEquals("খ", s.draft)
+        assertEquals(1, s.cursor)
+        assertEquals(SpellRun(0, "kh"), s.run)
+    }
+
+    @Test
+    fun `Avro keys spell Bangla in the draft`() {
+        val avro = com.wasimaster.wmkeyboard.core.input.composer.BengaliTransliterateComposer
+        val s = "kize".fold(spell("")) { spell, c -> spell.composed(c.toString(), avro::composeBuffer, 32) }
+        assertEquals(avro.composeBuffer("kize"), s.draft)
+        assertTrue(s.draft.none { it in 'a'..'z' })
+    }
+
+    @Test
+    fun `composing starts at the caret and keeps what is around it`() {
+        val s = spell("ab", cursor = 1).keys("ki")
+        assertEquals("aকিb", s.draft)
+        assertEquals(3, s.cursor)
+    }
+
+    @Test
+    fun `composing replaces the selection`() {
+        val s = spell("abc", cursor = 3, anchor = 0).keys("k")
+        assertEquals("ক", s.draft)
+        assertFalse(s.hasSelection)
+    }
+
+    @Test
+    fun `backspace in a composing word takes back a key`() {
+        val s = spell("").keys("kh").uncomposed(render) { it.dropLast(1) }
+        assertEquals("ক", s?.draft)
+        assertEquals(SpellRun(0, "k"), s?.run)
+        val empty = s?.uncomposed(render) { it.dropLast(1) }
+        assertEquals("", empty?.draft)
+        assertNull(empty?.run)
+    }
+
+    @Test
+    fun `moving the caret ends the composing word`() {
+        val s = spell("").keys("ki").caretMoved(-1, extend = false)
+        assertNull(s.liveRun(render))
+        assertNull(s.uncomposed(render) { it.dropLast(1) })
+        // The next key starts a word of its own rather than rewriting the old one.
+        assertEquals("ককি", s.keys("k").draft)
+    }
+
+    @Test
+    fun `a key that types itself ends the composing word`() {
+        val s = spell("").keys("k").typed("-", 32)
+        assertNull(s.run)
+        assertEquals("ক-ক", s.keys("k").draft)
+    }
+
+    @Test
+    fun `a key that would overflow the draft is refused`() {
+        val s = spell("abc").composed("k", render, 3)
+        assertEquals("abc", s.draft)
+    }
+
+    @Test
+    fun `a paste takes the clip's first word at the caret`() {
+        val s = spell("ab", cursor = 1).pasted("  কিযে আমি\n", 32)
+        assertEquals("aকিযেb", s.draft)
+        assertEquals(5, s.cursor)
+    }
+
+    @Test
+    fun `an empty clip changes nothing`() {
+        val s = spell("ab")
+        assertEquals(s, s.pasted("   ", 32))
+    }
 }

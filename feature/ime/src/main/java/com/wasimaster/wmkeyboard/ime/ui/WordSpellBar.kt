@@ -23,6 +23,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -146,6 +147,18 @@ internal fun WordSpellBar(
                     )
                 }
             }
+        }
+        // The way in for a spelling the keys cannot type (#1190): the bar is
+        // no field of the app's, so the system's own Paste never reaches it.
+        SpellBarButton(
+            icon = Icons.Outlined.ContentPaste,
+            description = stringResource(R.string.ime_word_spell_paste_desc),
+            enabled = true,
+            tint = kb.suggestionText,
+            animate = animate,
+        ) {
+            feedback()
+            onAction(WordCardAction.PasteSpelling)
         }
         SpellBarButton(
             icon = Icons.Outlined.Close,

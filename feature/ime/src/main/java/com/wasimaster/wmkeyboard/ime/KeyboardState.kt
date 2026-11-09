@@ -2776,6 +2776,9 @@ sealed interface WordCardAction {
     /** Leave the spelling bar without respelling anything (#138). */
     data object CancelSpelling : WordCardAction
 
+    /** Paste the clipboard's first word into the spelling bar at its caret (#1190). */
+    data object PasteSpelling : WordCardAction
+
     /**
      * Put the spelling bar's selection from [start] to [end] — a tap is a
      * caret, a drag a selection (#204). [end] is the end that moves.
@@ -3068,6 +3071,12 @@ data class WordSpell(
     val cursor: Int = draft.length,
     /** The fixed end of the selection; [cursor] when nothing is selected. */
     val anchor: Int = cursor,
+    /**
+     * The word a transliterating layout is spelling at the caret (#1190): its
+     * keys so far and where their reading starts in [draft]. Null when the
+     * keys type themselves.
+     */
+    val run: SpellRun? = null,
 ) {
     val selectionStart: Int get() = minOf(cursor, anchor).coerceIn(0, draft.length)
     val selectionEnd: Int get() = maxOf(cursor, anchor).coerceIn(0, draft.length)
@@ -3146,9 +3155,71 @@ data class WordSpell(
         )
     }
 
-    private fun collapsedAt(text: String, at: Int) = copy(draft = text, cursor = at, anchor = at)
+    /**
+     * [key] typed on a layout whose keys spell another script (#1190): Avro's
+     * roman letters, Hangul jamo, a Telex vowel. It joins the word being
+     * composed at the caret, and the draft shows [render]'s reading of all of
+     * that word's keys, the way the app's field shows its composing word. The
+     * bar used to take the bare key, so a Bangla word could only be respelled
+     * in Latin letters. A key that would push the draft past [maxLength] is
+     * refused whole, since cutting a reading in half spells nothing.
+     */
+    fun composed(key: String, render: (String) -> String, maxLength: Int): WordSpell {
+        val live = liveRun(render)
+        val start = live?.start ?: selectionStart
+        val replaced = live?.let { render(it.keys).length } ?: (selectionEnd - selectionStart)
+        val keys = live?.keys.orEmpty() + key
+        val shown = render(keys)
+        val next = draft.substring(0, start) + shown + draft.substring(start + replaced)
+        if (next.length > maxLength) return this
+        val at = start + shown.length
+        return copy(draft = next, cursor = at, anchor = at, run = SpellRun(start, keys))
+    }
+
+    /**
+     * Backspace inside the word being composed: [unkey] takes back a key and
+     * the reading is drawn again, as the app's field does (#1190). Null when
+     * no word is being composed at the caret, for an ordinary backspace.
+     */
+    fun uncomposed(render: (String) -> String, unkey: (String) -> String): WordSpell? {
+        val live = liveRun(render) ?: return null
+        val keys = unkey(live.keys)
+        val shown = if (keys.isEmpty()) "" else render(keys)
+        val end = live.start + render(live.keys).length
+        val next = draft.substring(0, live.start) + shown + draft.substring(end)
+        val at = live.start + shown.length
+        return copy(draft = next, cursor = at, anchor = at, run = SpellRun(live.start, keys).takeIf { keys.isNotEmpty() })
+    }
+
+    /**
+     * [run], while the draft still shows its reading with the caret right
+     * after it and nothing selected; else null. A tap or a selection that
+     * moved the caret elsewhere ends the word, as it does in a field.
+     */
+    fun liveRun(render: (String) -> String): SpellRun? {
+        val r = run ?: return null
+        if (hasSelection) return null
+        val shown = render(r.keys)
+        val live = r.start >= 0 && cursor == r.start + shown.length && cursor <= draft.length &&
+            draft.regionMatches(r.start, shown, 0, shown.length)
+        return r.takeIf { live }
+    }
+
+    /**
+     * The clipboard's [text] pasted at the caret (#1190). A spelling is one
+     * word, so only the clip's first word goes in; the rest of a copied
+     * sentence would make a word no list could hold.
+     */
+    fun pasted(text: String, maxLength: Int): WordSpell {
+        val word = text.trim().split(WHITESPACE, limit = 2).firstOrNull().orEmpty()
+        return if (word.isEmpty()) this else typed(word, maxLength)
+    }
+
+    private fun collapsedAt(text: String, at: Int) = copy(draft = text, cursor = at, anchor = at, run = null)
 
     private companion object {
+        val WHITESPACE = Regex("\\s+")
+
         fun stepBack(s: String, at: Int): Int =
             if (at >= 2 && Character.isLowSurrogate(s[at - 1]) && Character.isHighSurrogate(s[at - 2])) at - 2
             else (at - 1).coerceAtLeast(0)
@@ -3163,6 +3234,9 @@ data class WordSpell(
     }
 }
 
+
+/** A word [WordSpell] is composing (#1190): its [keys], and where their reading starts in the draft. */
+data class SpellRun(val start: Int, val keys: String)
 
 /**
  * The snippets panel showing what one snippet offers, after a tile was held.
