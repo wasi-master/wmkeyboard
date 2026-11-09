@@ -2480,6 +2480,23 @@ internal object SettingsRowIcons {
         put(R.string.tools_file_manager_title) { Icons.Outlined.Folder }
         put(R.string.typing_password_manager_chip_title) { Icons.Outlined.Password }
         put(R.string.typing_password_manager_chip_wm_pass_title) { Icons.Outlined.Password }
+        put(R.string.typing_smart_punctuation_title) { Icons.Outlined.FormatQuote }
+        put(R.string.typing_smart_punctuation_size_title) { Icons.Outlined.Storage }
+        put(R.string.typing_smart_punctuation_comma_title) { Icons.Outlined.Tune }
+        put(R.string.languages_smart_punctuation_title) { Icons.Outlined.FormatQuote }
+        put(R.string.plugins_actions_settings_link) { Icons.Outlined.SelectAll }
+        put(R.string.selection_macros_plugins_none_title) { Icons.Outlined.Extension }
+        put(R.string.stickergen_gpu_title) { Icons.Outlined.Memory }
+        put(R.string.shell_access_enabled_title) { Icons.Outlined.Terminal }
+        put(R.string.shell_access_default_keyboard_title) { Icons.Outlined.Keyboard }
+        put(R.string.shell_access_grant_permissions_title) { Icons.Outlined.Key }
+        put(R.string.shell_access_notification_access_title) { Icons.Outlined.NotificationsActive }
+        put(R.string.shell_access_sensitive_codes_title) { Icons.Outlined.Password }
+        put(R.string.shell_access_screen_content_title) { Icons.Outlined.Visibility }
+        put(R.string.shell_access_secure_settings_title) { Icons.Outlined.Security }
+        put(R.string.shell_access_spell_checker_title) { Icons.Outlined.Spellcheck }
+        put(R.string.shell_access_reply_screen_title) { Icons.Outlined.Quickreply }
+        put(R.string.shell_access_capture_title) { Icons.Outlined.Screenshot }
     }
 
     operator fun get(@StringRes id: Int): ImageVector? = map[id]?.invoke()
