@@ -469,6 +469,7 @@ internal object SettingsRowIcons {
         put(R.string.accessibility_text_size_title) { Icons.Outlined.FormatSize }
         put(R.string.accessibility_keyboard_font_title) { Icons.Outlined.TextFields }
         put(R.string.accessibility_reduce_motion_title) { Icons.Outlined.MotionPhotosOff }
+        put(R.string.accessibility_theme_effects_title) { Icons.Outlined.Animation }
         put(R.string.accessibility_classic_popup_title) { Icons.Outlined.Keyboard }
         put(R.string.accessibility_open_folds_title) { Icons.Outlined.UnfoldLess }
         put(R.string.accessibility_panel_motion_title) { Icons.Outlined.Animation }

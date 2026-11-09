@@ -2794,6 +2794,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         access(R.string.accessibility_text_size_title, R.string.accessibility_text_size_subtitle),
         access(R.string.accessibility_keyboard_font_title, R.string.accessibility_keyboard_font_subtitle),
         access(R.string.accessibility_reduce_motion_title, R.string.accessibility_reduce_motion_subtitle),
+        access(R.string.accessibility_theme_effects_title, R.string.accessibility_theme_effects_subtitle),
         access(R.string.accessibility_classic_popup_title, R.string.accessibility_classic_popup_subtitle),
         access(R.string.accessibility_open_folds_title, R.string.accessibility_open_folds_subtitle),
         access(R.string.accessibility_panel_motion_title, R.string.accessibility_panel_motion_subtitle),

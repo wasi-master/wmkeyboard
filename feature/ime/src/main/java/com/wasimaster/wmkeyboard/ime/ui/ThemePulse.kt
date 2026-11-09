@@ -23,8 +23,12 @@ internal object ThemePulse {
 
     private const val CAPACITY = 32
 
-    /** How much one press adds to the energy before it decays. */
-    private const val KICK = 0.14f
+    /**
+     * How much one press adds to the energy before it decays. A third, so a
+     * single key already shows on a reactive board and three in quick
+     * succession reach full; at 0.14 one press moved nothing visible (#1129).
+     */
+    internal const val KICK = 0.35f
 
     private val xs = FloatArray(CAPACITY)
     private val ys = FloatArray(CAPACITY)

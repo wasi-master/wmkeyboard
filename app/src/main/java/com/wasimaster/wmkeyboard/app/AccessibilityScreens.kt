@@ -149,6 +149,15 @@ internal fun AccessibilitySettings(
         }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
+                R.string.accessibility_theme_effects_title,
+                stringResource(R.string.accessibility_theme_effects_subtitle),
+                settings.watch { it.accessibility.themeEffectsWithReduceMotion },
+                info = stringResource(R.string.accessibility_theme_effects_info),
+                default = SettingsDefaults.accessibility.themeEffectsWithReduceMotion,
+            ) { scope.launch { repository.setThemeEffectsWithReduceMotion(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
                 R.string.accessibility_classic_popup_title,
                 stringResource(R.string.accessibility_classic_popup_subtitle),
                 settings.watch { it.popup.alternatesClassic },

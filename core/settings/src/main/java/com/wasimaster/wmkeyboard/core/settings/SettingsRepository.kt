@@ -1867,6 +1867,15 @@ data class AccessibilitySettings(
      */
     val toolResultMotion: Boolean = false,
     /**
+     * Lets the theme's moving looks play while [KeyboardSettings.reduceMotion]
+     * is on (#1129): the moving background and Reacts to typing, key lighting
+     * and the touch bloom. Reduce motion is mostly about the keyboard's own
+     * transitions, and someone who chose a moving theme may still want it to
+     * move. Off by default, so reduce motion stills everything as it always
+     * has. Power saving's moving-theme drop ([themeMotion]) still stops them.
+     */
+    val themeEffectsWithReduceMotion: Boolean = false,
+    /**
      * A theme's own motion: animated backgrounds, board effects, key
      * lighting, the touch bloom and press particles. Not persisted and not on
      * any screen: only power saving's view clears it (#1160), so a theme can
@@ -11381,6 +11390,7 @@ class SettingsRepository(private val context: Context) {
         private val SELECTION_MOTION = booleanPreferencesKey("selection_motion")
         private val LANGUAGE_SWITCH_MOTION = booleanPreferencesKey("language_switch_motion")
         private val TOOL_RESULT_MOTION = booleanPreferencesKey("tool_result_motion")
+        private val THEME_EFFECTS_WITH_REDUCE_MOTION = booleanPreferencesKey("theme_effects_with_reduce_motion")
         private val NUMBER_ROW = booleanPreferencesKey("number_row")
         private val AUTOCORRECT = booleanPreferencesKey("autocorrect")
         private val AUTOCORRECT_CONFIDENCE = floatPreferencesKey("autocorrect_confidence")
@@ -13584,6 +13594,8 @@ class SettingsRepository(private val context: Context) {
             languageSwitchMotion = p[LANGUAGE_SWITCH_MOTION]
                 ?: defaults.accessibility.languageSwitchMotion,
             toolResultMotion = p[TOOL_RESULT_MOTION] ?: defaults.accessibility.toolResultMotion,
+            themeEffectsWithReduceMotion = p[THEME_EFFECTS_WITH_REDUCE_MOTION]
+                ?: defaults.accessibility.themeEffectsWithReduceMotion,
         )
 
     private fun readCorrection(p: Preferences, defaults: KeyboardSettings) =
@@ -20441,6 +20453,9 @@ class SettingsRepository(private val context: Context) {
     /** See [AccessibilitySettings.toolResultMotion]. */
     suspend fun setToolResultMotion(value: Boolean) =
         editPrefs { it[TOOL_RESULT_MOTION] = value }
+
+    suspend fun setThemeEffectsWithReduceMotion(value: Boolean) =
+        editPrefs { it[THEME_EFFECTS_WITH_REDUCE_MOTION] = value }
 
     suspend fun setNumberRow(value: Boolean) =
         editPrefs { it[NUMBER_ROW] = value }

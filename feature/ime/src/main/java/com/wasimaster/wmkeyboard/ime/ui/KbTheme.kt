@@ -448,7 +448,7 @@ internal fun resolveTouchBloom(spec: TouchBloomSpec, accent: Color): KbTouchBloo
  * saving (which sets it), since there is no still picture of a touch.
  */
 internal val KbTheme.liveTouchBloom: KbTouchBloom?
-    get() = touchBloom?.takeUnless { reduceMotion }
+    get() = touchBloom?.takeIf { motion.themeEffects }
 
 internal fun resolveLighting(spec: KeyLightingSpec, accent: Color): KbLighting? {
     val pattern = keyLightingPatternOrNull(spec.pattern) ?: return null
@@ -537,6 +537,14 @@ data class KbMotion(
     val autopilot: Boolean = false,
     /** Grammar fixes and translations animate into place. Opt-in. */
     val toolResults: Boolean = false,
+    /**
+     * The theme's own moving looks play: the moving background and Reacts to
+     * typing, key lighting and the touch bloom. Off under reduce motion unless
+     * the user let them play anyway (#1129), since reduce motion is mostly
+     * about the keyboard's transitions. Power saving's moving-theme drop still
+     * stops them, through [KbTheme.boardEffectStill] and the nulled looks.
+     */
+    val themeEffects: Boolean = true,
 ) {
     companion object {
         /** Everything still. */
@@ -547,12 +555,16 @@ data class KbMotion(
             languageSwitch = false,
             autopilot = false,
             toolResults = false,
+            themeEffects = false,
         )
 
-        /** The flags [settings] asks for, all off under reduce motion. */
+        /**
+         * The flags [settings] asks for, all off under reduce motion but the
+         * theme's own effects, which have a switch to play through it.
+         */
         fun of(settings: KeyboardSettings): KbMotion =
             if (settings.reduceMotion) {
-                None
+                None.copy(themeEffects = settings.accessibility.themeEffectsWithReduceMotion)
             } else {
                 KbMotion(
                     any = true,
@@ -2307,11 +2319,12 @@ fun BoxScope.BoardBackground(kb: KbTheme) {
         )
     }
     // What moves on the board. Reduce motion (and power saving, which sets
-    // it) keeps the picture and stops the clock; so does power saving's
-    // moving-theme drop on its own. A press splash is drawn over the keys
+    // it) keeps the picture and stops the clock, unless the user let the
+    // theme's effects play through it (#1129); power saving's moving-theme
+    // drop stops it either way. A press splash is drawn over the keys
     // instead, by the key grid ([PressEffectOverlay]).
     kb.boardEffect?.takeUnless { it.kind.onPress }?.let {
-        BoardEffectLayer(it, Modifier.matchParentSize(), still = kb.reduceMotion || kb.boardEffectStill)
+        BoardEffectLayer(it, Modifier.matchParentSize(), still = !kb.motion.themeEffects || kb.boardEffectStill)
     }
 }
 

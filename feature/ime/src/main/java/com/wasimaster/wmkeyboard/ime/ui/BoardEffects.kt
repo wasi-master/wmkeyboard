@@ -69,7 +69,7 @@ fun BoardEffectLayer(effect: KbBoardEffect, modifier: Modifier = Modifier, still
                     last = now
                     val e = if (effect.reactive > 0f) ThemePulse.energy(SystemClock.uptimeMillis(), effect.halfLifeMs) else 0f
                     energy = e * effect.reactive
-                    clock += dt * effect.speed * (1f + 1.6f * energy)
+                    clock += boardClockStep(dt, effect.speed, energy)
                 }
             }
         }
@@ -78,6 +78,22 @@ fun BoardEffectLayer(effect: KbBoardEffect, modifier: Modifier = Modifier, still
         paintBoardEffect(effect, clock, energy, origin)
     }
 }
+
+/**
+ * How far the effect's clock moves in [dtS] seconds at [speed] with typing
+ * [energy] 0..1. Typing multiplies the pace and also adds some of its own, so
+ * a board whose speed is turned down to nothing still stirs while it is typed
+ * on (#1129). The surge used to be 1.6 times the energy alone, which one key
+ * press barely moved: it read as Reacts to typing doing nothing.
+ */
+internal fun boardClockStep(dtS: Float, speed: Float, energy: Float): Float =
+    dtS * (speed * (1f + REACT_SPEED_GAIN * energy) + REACT_OWN_PACE * energy)
+
+/** How much faster a board runs at full typing energy, over its own speed. */
+private const val REACT_SPEED_GAIN = 2.5f
+
+/** The pace typing alone gives a board, at full energy, in the effect's own seconds per second. */
+private const val REACT_OWN_PACE = 1f
 
 /** A moment into the effect where every kind has something on screen; what a still preview shows. */
 private const val STILL_CLOCK_S = 7.3f
@@ -115,6 +131,19 @@ fun DrawScope.paintBoardEffect(effect: KbBoardEffect, t: Float, energy: Float, o
     }
 }
 
+/**
+ * An effect's opacity at [intensity] under typing [energy] 0..1: brighter by
+ * a share of the room left above it, so a faint board brightens visibly and a
+ * bright one does not clip.
+ */
+internal fun typingAlpha(intensity: Float, energy: Float): Float {
+    val base = intensity.coerceIn(0f, 1f)
+    return (base + (1f - base) * TYPING_BRIGHTEN * energy.coerceIn(0f, 1f)).coerceIn(0f, 1f)
+}
+
+/** The share of the room above an effect's opacity that full typing energy takes up. */
+private const val TYPING_BRIGHTEN = 0.7f
+
 /** A stable 0..1 value for particle [i]'s [salt]th property. */
 private fun rnd(i: Int, salt: Int): Float {
     var h = i * 374761393 + salt * 668265263
@@ -136,8 +165,8 @@ private class Painter(
     val h = d.size.height
     val dp = d.density
     val scale = fx.scale
-    /** Brighter under typing, never past opaque. */
-    val alpha = (fx.intensity * (1f + 0.5f * e)).coerceIn(0f, 1f)
+    /** Brighter under typing, most of the way to opaque at full energy. */
+    val alpha = typingAlpha(fx.intensity, e)
 
     /** How many of a thing, by density and by how big the board is against a phone's. */
     fun count(base: Int, cap: Int = base * 3): Int {

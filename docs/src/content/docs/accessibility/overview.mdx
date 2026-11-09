@@ -96,6 +96,8 @@ It deliberately leaves in place any feedback that tells you something: the key-p
 
 The keyboard also follows the device's own **Remove animations** (Android's Accessibility screen, or `Animator duration scale` in developer options). While that is on, the keyboard behaves as if Reduce motion were on, and it writes nothing to this switch. Turn the system setting back off and your own choice returns untouched.
 
+Reduce motion also holds a theme's own moving looks still: the moving background stops and key lighting, touch bloom and press splashes go. If you want those to keep playing while everything else stays still, turn on **Theme effects with Reduce motion** right under it. It covers the phone's **Remove animations** as well. Power saving can still stop them on its own.
+
 Four switches below it let you keep motion in general but drop or add one kind of it. **Animate panels** (on by default) is the panel growing out of the button or tool name that opened it. **Animate text selection** (on by default) is the highlight sliding while you select and the selection bar's buttons coming in one by one. **Animate language switch** (off by default) flips the keys that change when you switch language. **Animate grammar and translate results** (off by default) slides an applied grammar fix into place and fades in the part of a translation that changed. Reduce motion overrides all four.
 
 <SettingsPath path="Accessibility / Motion / Classic press-and-hold popup" />

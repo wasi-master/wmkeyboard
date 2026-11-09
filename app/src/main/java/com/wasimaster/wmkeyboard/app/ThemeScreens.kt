@@ -5986,11 +5986,18 @@ private fun ThemeEditorContent(
     // and touch bloom off, which reads as "these settings do nothing" unless
     // the editor says so where they are (#1129). The phone's own Remove
     // animations does the same on the keyboard, though not in this preview.
+    // Either way the theme's effects can be let through it, which is the
+    // second way out the note offers; once they are, it has nothing to say.
     val anyMotion = look.watch { it.boardEffect != null || it.keyLighting != null || it.touchBloom != null }
     val motionHeld = settings.watch { it.reduceMotion }
+    val effectsLetThrough = settings.watch { it.accessibility.themeEffectsWithReduceMotion }
     val systemStill = remember { SystemMotion.animationsOff(context) }
-    if (anyMotion && (motionHeld || systemStill)) {
-        MotionHeldNote(bySystem = !motionHeld) { scope.launch { repository.setReduceMotion(false) } }
+    if (anyMotion && (motionHeld || systemStill) && !effectsLetThrough) {
+        MotionHeldNote(
+            bySystem = !motionHeld,
+            onTurnOff = { scope.launch { repository.setReduceMotion(false) } },
+            onPlayAnyway = { scope.launch { repository.setThemeEffectsWithReduceMotion(true) } },
+        )
     }
     // The picker tiles play each effect in the theme's own colours, and hold
     // still while motion is held, as the keyboard would.
@@ -8216,18 +8223,23 @@ private fun readKeySkin(text: String): KeySkinSpec? =
 /**
  * Why the moving background, key lighting and touch bloom hold still: Reduce
  * motion, with the switch to turn it off, or the phone's Remove animations,
- * which only the phone's own settings can change.
+ * which only the phone's own settings can change. Either way the theme's
+ * effects can be let play through it (#1129), which keeps Reduce motion for
+ * everything else.
  */
 @Composable
-private fun MotionHeldNote(bySystem: Boolean, onTurnOff: () -> Unit) {
+private fun MotionHeldNote(bySystem: Boolean, onTurnOff: () -> Unit, onPlayAnyway: () -> Unit) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
         Text(
             stringResource(if (bySystem) R.string.theme_motion_held_system_body else R.string.theme_motion_held_body),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        if (!bySystem) {
-            TextButton(onClick = onTurnOff) { Text(stringResource(R.string.theme_motion_held_turn_off)) }
+        Row {
+            TextButton(onClick = onPlayAnyway) { Text(stringResource(R.string.theme_motion_held_play_anyway)) }
+            if (!bySystem) {
+                TextButton(onClick = onTurnOff) { Text(stringResource(R.string.theme_motion_held_turn_off)) }
+            }
         }
     }
 }

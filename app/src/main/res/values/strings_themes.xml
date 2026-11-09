@@ -805,9 +805,10 @@
     <string name="theme_lighting_hue_span_title">Rainbow spread</string>
     <string name="theme_lighting_hue_span_body">How far the colour turns from the left of the keyboard to the right. At 0 every key has the same colour. At 360 the keys show the whole rainbow.</string>
     <string name="theme_lighting_decay_title">Fade time</string>
-    <string name="theme_motion_held_body">Reduce motion is on, so the moving background holds still, and key lighting, touch bloom and Reacts to typing are off. Turn it off to see them move.</string>
-    <string name="theme_motion_held_system_body">Your phone is set to remove animations, so on the keyboard the moving background holds still, and key lighting, touch bloom and Reacts to typing are off. The preview here still moves.</string>
+    <string name="theme_motion_held_body">Reduce motion is on, so the moving background holds still, and key lighting, touch bloom and Reacts to typing are off. Let the theme\'s effects play anyway and Reduce motion keeps everything else still, or turn it off.</string>
+    <string name="theme_motion_held_system_body">Your phone is set to remove animations, so on the keyboard the moving background holds still, and key lighting, touch bloom and Reacts to typing are off. The preview here still moves. Let the theme\'s effects play anyway to see them move on the keyboard too.</string>
     <string name="theme_motion_held_turn_off">Turn off Reduce motion</string>
+    <string name="theme_motion_held_play_anyway">Play effects anyway</string>
     <string name="theme_touch_bloom_section_title">Touch bloom</string>
     <string name="theme_touch_bloom_section_body">The keyboard answers your finger. A soft light blooms out from where you touch, and the keys near your finger dip and spring back with a small wobble while the rest stay still. When you glide, the light and the dip follow your finger, and the bubble over a pressed key lights up in the same colour. It stops when Reduce motion or power saving is on.</string>
     <string name="theme_touch_bloom_title">Touch bloom</string>

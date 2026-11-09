@@ -19318,8 +19318,10 @@ private fun KeyRows(
     val particlePhysics = rememberEffectPhysics(kbTheme)
     // Key lighting, and the board's answer to typing: both read the presses
     // through [ThemePulse], so the press path feeds it only while the theme
-    // has something that listens. Reduce motion stills both.
-    val keyLighting = kbTheme.keyLighting?.takeIf { !kbTheme.reduceMotion }
+    // has something that listens. Reduce motion stills both, unless the theme's
+    // effects were let through it (#1129).
+    val themeEffects = kbTheme.motion.themeEffects
+    val keyLighting = kbTheme.keyLighting?.takeIf { themeEffects }
     // The touch bloom: light from the finger and the keys near it dipping. Fed
     // from the grid's own pointer pass below, so it follows a glide too; its
     // clock sleeps whenever nothing is moving.
@@ -19327,11 +19329,12 @@ private fun KeyRows(
     touchBloom?.let { TouchBloomClock(it) }
     // The moving board's press kinds (paint, ink, light and the rest) splash
     // over the keys rather than move behind them. They have no still picture,
-    // so reduce motion and power saving's moving-theme drop leave them out.
+    // so reduce motion (unless the theme's effects were let through it) and
+    // power saving's moving-theme drop leave them out.
     val pressEffect = kbTheme.boardEffect?.takeIf {
-        it.kind.onPress && !kbTheme.reduceMotion && !kbTheme.boardEffectStill
+        it.kind.onPress && themeEffects && !kbTheme.boardEffectStill
     }
-    val pulseOn = !kbTheme.reduceMotion && (
+    val pulseOn = themeEffects && (
         keyLighting?.pattern?.reactive == true ||
             pressEffect != null ||
             kbTheme.boardEffect?.let { it.reactive > 0f || it.kind in PRESS_DRAWN_EFFECTS } == true
