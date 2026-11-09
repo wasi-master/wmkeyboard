@@ -473,6 +473,8 @@ private fun syncOutcomeText(context: Context, outcome: SyncRunner.Outcome, auto:
         is SyncRunner.Outcome.Done -> when {
             SyncRunner.ERROR_PASSPHRASE in outcome.failed.values ->
                 context.getString(R.string.backup_sync_error_passphrase)
+            SyncRunner.ERROR_NEWER in outcome.failed.values ->
+                context.getString(R.string.backup_sync_error_newer)
             outcome.applied == 0 -> context.getString(R.string.backup_sync_done_nothing)
             else -> context.resources.getQuantityString(
                 R.plurals.backup_sync_done_changes,
@@ -489,6 +491,8 @@ private fun syncOutcomeText(context: Context, outcome: SyncRunner.Outcome, auto:
 private fun syncErrorText(context: Context, reason: String, auto: AutoBackupSettings): String =
     if (reason == SyncRunner.ERROR_PASSPHRASE) {
         context.getString(R.string.backup_sync_error_passphrase)
+    } else if (reason == SyncRunner.ERROR_NEWER) {
+        context.getString(R.string.backup_sync_error_newer)
     } else {
         val type = auto.sync.targets(auto.locations).firstOrNull()?.type ?: BackupDestination.FOLDER
         autoBackupErrorText(context, reason, type) ?: context.getString(R.string.backup_auto_error_io)

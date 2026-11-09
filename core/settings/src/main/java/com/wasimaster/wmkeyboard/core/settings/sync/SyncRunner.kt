@@ -59,6 +59,13 @@ object SyncRunner {
     /** A sync-only reason, beside the `SinkError` names, for a file sealed under another passphrase. */
     const val ERROR_PASSPHRASE = "SYNC_PASSPHRASE"
 
+    /**
+     * A sync-only reason for a file another device sealed in a way this
+     * version cannot open yet: the passphrase may well be right, and the fix
+     * is an update, not a new passphrase.
+     */
+    const val ERROR_NEWER = "SYNC_NEWER"
+
 
     /** Whether the active network costs data; true with none, which is no Wi-Fi either. */
     private fun onMeteredNetwork(context: Context): Boolean {
@@ -146,14 +153,18 @@ object SyncRunner {
             val group = groupAt(location, sync.group)
             val name = SyncNaming.name(me, device, encrypt, group).also { names[location.id] = it }
             val read = runCancellable { readRemotes(sink, me, auto, group) }
-            read.onSuccess { (files, passphraseMiss, mine) ->
+            read.onSuccess { (files, passphraseMiss, mine, newerMiss) ->
                 readable += location to sink
                 if (name in mine) hasMine += location.id
                 for (file in files) {
                     val known = remotes[file.installId]
                     if (known == null || file.writtenAtMs > known.writtenAtMs) remotes[file.installId] = file
                 }
-                if (passphraseMiss) failed[location.id] = ERROR_PASSPHRASE
+                if (passphraseMiss) {
+                    failed[location.id] = ERROR_PASSPHRASE
+                } else if (newerMiss) {
+                    failed[location.id] = ERROR_NEWER
+                }
             }.onFailure { failure ->
                 failed[location.id] = ((failure as? BackupSinkException)?.reason ?: SinkError.IO).name
             }
@@ -370,7 +381,13 @@ object SyncRunner {
         }
     }
 
-    private data class Remote(val files: List<SyncFile>, val passphraseMiss: Boolean, val mine: Set<String>)
+    private data class Remote(
+        val files: List<SyncFile>,
+        val passphraseMiss: Boolean,
+        val mine: Set<String>,
+        /** A file was sealed by a newer version, in a form this one cannot open. */
+        val newerMiss: Boolean = false,
+    )
 
     /**
      * The other devices' newest files in [group] at one location, whether any
@@ -389,6 +406,7 @@ object SyncRunner {
         val mine = all.filter { SyncNaming.installId(it.name) == me }.mapTo(HashSet()) { it.name }
         val newest = SyncNaming.newestOfOthers(all, me, group)
         var passphraseMiss = false
+        var newerMiss = false
         val files = newest.mapNotNull { entry ->
             // Read from the stream, not from a copy of the whole file: a plain
             // file is parsed as it comes, and an encrypted one is opened a
@@ -398,17 +416,24 @@ object SyncRunner {
             // held once, by the cipher.
             sink.read(entry).getOrNull()?.buffered()?.use { input ->
                 if (looksEncrypted(input)) {
+                    var newer = false
                     val opened = auto.passphrase.takeIf { it.isNotEmpty() }?.let {
-                        BackupCrypto.decrypting(input, it.toCharArray())
+                        BackupCrypto.decrypting(input, it.toCharArray()) { why ->
+                            newer = why == BackupCrypto.DecryptResult.UnsupportedVersion
+                        }
                     }
-                    if (opened == null) passphraseMiss = true
+                    // Not the passphrase's fault when the file is from a newer
+                    // version: saying so would send the user to change a
+                    // passphrase that is right.
+                    if (opened == null && newer) newerMiss = true
+                    if (opened == null && !newer) passphraseMiss = true
                     opened?.let { SyncFile.decode(it.buffered()) }
                 } else {
                     SyncFile.decode(input)
                 }
             }
         }
-        return Remote(files, passphraseMiss, mine)
+        return Remote(files, passphraseMiss, mine, newerMiss)
     }
 
     /** Whether [input] starts like an encrypted file, leaving it where it was. */

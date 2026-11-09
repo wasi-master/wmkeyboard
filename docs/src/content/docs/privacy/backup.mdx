@@ -355,6 +355,11 @@ off by default, and like the backup switch it strongly suggests a passphrase
 first without requiring one. Use the same passphrase on every device, or the
 others can't read this one's file, and the screen says so.
 
+Devices on different versions sync with each other. An encrypted sync file
+over 4 MiB is the one exception (see the passphrase section above): an
+older release can't open it, and from this release on the screen says the
+other device runs a newer version instead of blaming the passphrase.
+
 Sync settings are never exported, backed up or synced themselves, the pause
 and the sync group included. A phone restored from a backup doesn't start
 syncing until you turn it on.
