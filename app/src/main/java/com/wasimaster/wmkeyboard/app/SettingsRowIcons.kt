@@ -2419,6 +2419,7 @@ internal object SettingsRowIcons {
         put(R.string.theme_material_inset_title) { Icons.Outlined.VerticalAlignBottom }
         put(R.string.theme_material_skirt_title) { Icons.Outlined.AspectRatio }
         put(R.string.theme_material_gloss_title) { Icons.Outlined.Contrast }
+        put(R.string.theme_material_soft_shadow_title) { Icons.Outlined.BlurOn }
         put(R.string.theme_material_light_title) { Icons.Outlined.WbSunny }
         put(R.string.theme_material_texture_opacity_title) { Icons.Outlined.Opacity }
         put(R.string.theme_material_edge_color_title) { Icons.Outlined.ColorLens }
