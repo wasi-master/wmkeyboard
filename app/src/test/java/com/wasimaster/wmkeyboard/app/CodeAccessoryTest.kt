@@ -41,8 +41,9 @@ class CodeAccessoryTest {
         for (lua in listOf("local", "end", "then", "nil", "--", "..")) {
             assertFalse(lua, lua in labels)
         }
-        // A comment key leaves a space for the words; a tab is one indent of the formatter's four.
+        // A comment key leaves a space for the words. No Tab key: indenting is
+        // the editor's Tab command, four columns for Python (bcede9a78).
         assertEquals("# ", PythonAccessoryKeys.single { it.label == "#" }.insert)
-        assertEquals("    ", PythonAccessoryKeys.single { it.label == "Tab" }.insert)
+        assertFalse("Tab" in labels)
     }
 }

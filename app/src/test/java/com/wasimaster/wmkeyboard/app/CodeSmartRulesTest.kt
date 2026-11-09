@@ -13,8 +13,8 @@ import org.junit.Test
  */
 class CodeSmartRulesTest {
 
-    /** One step of indentation, as the editor adds it. */
-    private val indent = " ".repeat(CODE_TAB_STOP)
+    /** One step of Python indentation, as the editor adds it: four, per PEP 8. */
+    private val indent = PythonSmartRules.indent
 
     private fun type(text: String, caret: Int, character: Char, rules: CodeSmartRules = PythonSmartRules): TextFieldValue {
         val old = TextFieldValue(text, TextRange(caret))
