@@ -155,7 +155,7 @@
     <string name="search_kw_languages_fancy_style_row">unicode aesthetic cursive strikethrough</string>
     <string name="search_kw_languages_fancy_fonts_add">custom own style make create</string>
     <string name="search_kw_languages_fancy_zalgo_add">glitch creepy cursed scary crazy demonic</string>
-    <string name="search_kw_languages_fancy_arrange">hide reorder order styles strip fancy</string>
+    <string name="search_kw_languages_fancy_arrange">hide reorder styles fancy</string>
     <string name="search_kw_languages_translit_hints_row">transliteration phonetic romanized</string>
     <string name="search_kw_languages_phonetic_strip_fixed">avro ridmik suggestion strip order fixed pinned english typed word</string>
     <string name="search_kw_languages_raw_keys_chip">khipro raw input typed roman latin modifier suggestion</string>
@@ -262,7 +262,7 @@
     <string name="search_kw_translate_nllb">offline translation model download delete storage nllb meta facebook ctranslate2 200 languages swahili amharic yoruba non commercial</string>
     <string name="search_kw_translate_bergamot">offline translation model download delete storage firefox mozilla bergamot free fdroid degoogled</string>
     <string name="search_kw_translate_downloaded_first">order sort top offline model picker menu list</string>
-    <string name="search_kw_translate_clear_on_insert">empty reset text box after send</string>
+    <string name="search_kw_translate_clear_on_insert">empty reset text send</string>
     <string name="search_kw_translate_only_downloaded">hide filter offline model picker menu short</string>
 
     <string-array name="search_word_groups">
@@ -381,7 +381,9 @@
     <!-- Search words for removing tracking parameters from copied links. -->
     <string name="search_kw_clean_links">tracker, trackers, tracking, utm, fbclid, clean, url, link, privacy, remove, delete</string>
     <!-- Search words for removing EXIF, GPS and other metadata from pictures and videos. -->
-    <string name="search_kw_strip_media">exif, gps, location, geotag, metadata, xmp, iptc, camera, serial number, privacy, remove, strip, photo, picture, video</string>
+    <string name="search_kw_strip_media">exif gps geotag xmp iptc serial number privacy strip picture</string>
+    <string name="search_kw_strip_location">exif geotag coordinates metadata privacy strip picture</string>
+    <string name="search_kw_strip_camera">exif metadata xmp iptc privacy strip photo picture video</string>
     <string name="search_kw_phoneformats">phone number, dial code, country code, mobile number, clipboard chips</string>
     <string name="search_kw_codes">otp, one time password, 2fa, two factor, verification code, sms code, login code</string>
     <string name="search_kw_musicapps">music apps, spotify, player apps, now playing, podcast apps</string>
