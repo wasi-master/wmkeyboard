@@ -2077,10 +2077,19 @@ internal fun TypingCodesSettings(
             }
             // Android's own redaction: said here because the chip simply never comes.
             item(visible = codesRedacted) {
+                val copied = stringResource(R.string.typing_otp_redacted_copied)
                 WmRow(
                     title = stringResource(R.string.typing_otp_redacted_title),
                     subtitle = stringResource(R.string.typing_otp_redacted_subtitle),
-                )
+                ) {
+                    // No Settings screen lifts it: the app op is signature|role, so
+                    // only adb can grant it. Hand over the exact command.
+                    val command = "adb shell cmd appops set --user 0 " +
+                        "${otpContext.packageName} RECEIVE_SENSITIVE_NOTIFICATIONS allow"
+                    otpContext.getSystemService(android.content.ClipboardManager::class.java)
+                        ?.setPrimaryClip(android.content.ClipData.newPlainText("adb", command))
+                    android.widget.Toast.makeText(otpContext, copied, android.widget.Toast.LENGTH_LONG).show()
+                }
             }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
