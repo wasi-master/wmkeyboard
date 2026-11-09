@@ -6452,6 +6452,12 @@ open class WMKeyboardService : InputMethodService() {
 
     override fun onCreateInputView(): View = trace(ImeTrace.CREATE_INPUT_VIEW) { createInputView() }
 
+    /**
+     * The input view's navigation bar record, for [onComputeInsets]: the band
+     * the system draws its keyboard bar in, at the bottom of this window.
+     */
+    private var imeNavigationBars: ImeNavigationBars? = null
+
     private fun createInputView(): View {
         // The window is about to draw for the first time, so the gated state
         // starts from whatever the service has now rather than from an empty
@@ -6460,6 +6466,7 @@ open class WMKeyboardService : InputMethodService() {
         val view = ComposeView(this)
         inputRootView = view
         val navigationBars = ImeNavigationBars()
+        imeNavigationBars = navigationBars
         lifecycleOwner.attachTo(requireNotNull(window.window).decorView)
         view.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
         // A named composable, not an inline lambda: the argument list below
@@ -6950,8 +6957,9 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * Floating mode: the compose root covers the whole IME window, but the
      * app behind must neither resize nor lose touches. Content insets say
-     * "the keyboard occupies nothing"; the touchable region shrinks to the
-     * floating panel so all other touches pass through.
+     * "the keyboard occupies nothing" but the system's keyboard bar band; the
+     * touchable region shrinks to the floating panel and that band, so all
+     * other touches pass through.
      */
     override fun onComputeInsets(outInsets: Insets) {
         super.onComputeInsets(outInsets)
@@ -7028,12 +7036,27 @@ open class WMKeyboardService : InputMethodService() {
             }
             return
         }
-        val decorHeight = window?.window?.decorView?.height ?: return
-        outInsets.contentTopInsets = decorHeight
-        outInsets.visibleTopInsets = decorHeight
+        val decorView = window?.window?.decorView ?: return
+        val decorHeight = decorView.height
+        // The system still draws its keyboard bar (the hide chevron, on a
+        // black band) across the bottom of this window while the keyboard
+        // floats. Over an app that hides its own navigation bar, such as a
+        // full-screen game, that band sat on the app's text field (Minecraft's
+        // chat box). So the band counts as taken: the app moves its field up
+        // above it, and the chevron in it can be tapped. The band is the
+        // navigation inset this window was handed, the one the docked keys
+        // clear; it is zero below Android 15, where the bar is outside the
+        // window, and shrinks when the keyboard bar is hidden (#582).
+        val band = (imeNavigationBars?.bottom ?: 0).coerceIn(0, decorHeight)
+        val top = decorHeight - band
+        outInsets.contentTopInsets = top
+        outInsets.visibleTopInsets = top
         outInsets.touchableInsets = Insets.TOUCHABLE_INSETS_REGION
         outInsets.touchableRegion.setEmpty()
         floatingPanelBounds?.let { outInsets.touchableRegion.set(it) }
+        if (band > 0) {
+            outInsets.touchableRegion.op(0, top, decorView.width, decorHeight, android.graphics.Region.Op.UNION)
+        }
     }
 
     /**
