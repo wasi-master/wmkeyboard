@@ -12,13 +12,13 @@
 
 # ---- Run once, at class initialisation or on load ----
 com.wasimaster.wmkeyboard.core.layout.BuiltInLayoutsKt.<clinit>  34600  1216  # class init: the built-in layouts table, once per process
-com.wasimaster.wmkeyboard.app.SettingsRowIcons.<clinit>  27800  256  # class init: icon builders (lambdas), settings app only
+com.wasimaster.wmkeyboard.app.SettingsRowIcons.<clinit>  27900  256  # class init: icon builders (lambdas), settings app only
 com.wasimaster.wmkeyboard.core.script.LanguageRegistry.<clinit>  19500  832  # class init: language table, once per process
 com.wasimaster.wmkeyboard.core.script.FancyStyles.<clinit>  16800  640  # class init: Fancy Text alphabets, once per process
 com.wasimaster.wmkeyboard.core.settings.SettingsRepository.<clinit>  12300  320  # class init: the DataStore keys, once per process
 com.wasimaster.wmkeyboard.core.translate.BergamotCatalog.<clinit>  10600  384  # class init: the Bergamot model catalogue, once per process, and only when translation is opened
 com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog.<clinit>  14100  384  # class init: the downloadable dictionaries table, once per process
-com.wasimaster.wmkeyboard.core.theme.ThemeSpecKt.<clinit>  5600  4288  # class init: built-in themes, once per process
+com.wasimaster.wmkeyboard.core.theme.ThemeSpecKt.<clinit>  5700  4288  # class init: built-in themes, once per process
 com.wasimaster.wmkeyboard.app.ThemeCopyImportKt.readTheme  1400  3200  # decode once per imported theme; 296 registers past the nterp frame
 com.wasimaster.wmkeyboard.core.theme.ThemeSpec$$serializer.deserialize  17200  2496  # generated serializer: runs when a theme is loaded, not per key
 com.wasimaster.wmkeyboard.core.dictionaries.NgramPackCatalog.<clinit>  10100  384  # class init: the n-gram pack table, once per process
@@ -113,7 +113,7 @@ com.wasimaster.wmkeyboard.ime.KeyboardUiState.<init>  5100  4992  # generated: o
 com.wasimaster.wmkeyboard.ime.KeyboardUiState.copy  1300  4672  # generated: one register per field
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.<init>  9500  4992  # generated: one register per field
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.copy  1500  4800  # generated: one register per field
-com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyRows  9800  2240  # 513 insns past 9,000 (ART's hard limit is 10,000, so it still compiles); grew back after bed2b803a split it; fix: lift more of its setup into composables of their own, as that commit did
+com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyRows  9900  2240  # 858 insns past 9,000 (ART's hard limit is 10,000, so it still compiles); grew back after bed2b803a split it; fix: lift more of its setup into composables of their own, as that commit did
 com.wasimaster.wmkeyboard.ime.KeyboardUiState.copy$default  3100  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshStrip$3.invokeSuspend  2700  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$startGesturePreviewConsumer$1.invokeSuspend  1800  3136  # a copy of the state or settings in it: a few registers past nterp's frame
