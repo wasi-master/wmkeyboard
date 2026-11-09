@@ -85,6 +85,22 @@ class EtModelsTest {
         assertEquals(ultra, listOf(ultra, v3).maxWithOrNull(EtModel.ORDER))
     }
 
+    @Test
+    fun `a GPU build of parakeet loses to any CPU build the same size, and names its twin`() {
+        val ultra = EtCatalog.byId("parakeet-ultra")!!
+        val v3 = EtCatalog.byId("parakeet-v3")!!
+        val ultraGpu = EtCatalog.byId("parakeet-ultra-gpu")!!
+        val v3Gpu = EtCatalog.byId("parakeet-v3-gpu")!!
+        assertTrue(ultraGpu.gpu && v3Gpu.gpu && !ultra.gpu)
+        assertEquals(ultra, listOf(ultraGpu, ultra).maxWithOrNull(EtModel.ORDER))
+        assertEquals(v3, listOf(ultraGpu, v3).maxWithOrNull(EtModel.ORDER))
+        assertTrue(ultraGpu.outranks(v3Gpu))
+        assertEquals(ultra.id, ultraGpu.cpuTwin)
+        assertEquals(v3.id, v3Gpu.cpuTwin)
+        // No Vulkan in a unit test: the GPU builds are not offered.
+        assertTrue(EtCatalog.forEngine(EtEngine.PARAKEET).none { it.gpu })
+    }
+
     /**
      * A transducer that emits [script] in order, one token per joint call,
      * then blanks; durations from [durations]. Two encoder frames.

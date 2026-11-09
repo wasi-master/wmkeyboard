@@ -70,6 +70,8 @@ object EtDownloadManager {
 
     fun start(filesDir: File, model: EtModel) {
         if (isBusy || EtStore.isDownloaded(filesDir, model)) return
+        // A GPU build needs ExecuTorch's Vulkan build, a download of its own.
+        if (model.gpu) EtNative.requestVulkan()
         activeId = model.id
         set(model, Status.Downloading(EtStore.bytesOnDisk(filesDir, model), model.bytes))
         job = scope.launch {

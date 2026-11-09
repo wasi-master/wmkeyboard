@@ -155,6 +155,17 @@ class EtModel(
      * post-trained copy of it: kept side by side, this one is used.
      */
     val supersedes: String? = null,
+    /**
+     * A program exported for ExecuTorch's Vulkan delegate: it runs on the
+     * GPU, and only once `libwmexecutorch_vulkan` is the build loaded
+     * ([EtNative.delegate]). Offered only on a phone with Vulkan 1.1, and
+     * outranked by a CPU model of the same size, so it is used only when the
+     * user keeps it alone or picks it: on a Mali-G57 it ran 2.2-2.7 times
+     * slower than the CPU build.
+     */
+    val gpu: Boolean = false,
+    /** For a [gpu] model, the id of the CPU model exported from the same weights, used while the GPU build cannot run. */
+    val cpuTwin: String? = null,
 ) {
     val bytes: Long get() = files.sumOf { it.bytes }
 
@@ -182,8 +193,12 @@ class EtModel(
             (languages ?: engine.languages)
 
     companion object {
-        /** Smallest to largest; of two the same size, the one superseded first. */
-        val ORDER: Comparator<EtModel> = compareBy<EtModel> { it.millions }.thenBy { it.supersedes != null }
+        /**
+         * Smallest to largest; of two the same size, a GPU build first (the
+         * CPU one wins unless the user picks the GPU one), then the one
+         * superseded first.
+         */
+        val ORDER: Comparator<EtModel> = compareBy<EtModel> { it.millions }.thenBy { !it.gpu }.thenBy { it.supersedes != null }
     }
 }
 
@@ -287,6 +302,42 @@ object EtCatalog {
                     "cd9c75c84b49c4bf2b20a383742e413fe49cd1eb9c01c3fd84c5ac7fd496453e",
                 ),
             ),
+        ),
+        // The two Parakeets above exported for ExecuTorch's Vulkan delegate by
+        // tools/parakeet-ultra (same 8da4w quantization, every method but the
+        // preprocessor on the GPU). Opt-in: see [EtModel.gpu].
+        EtModel(
+            "parakeet-ultra-gpu", EtEngine.PARAKEET, "ultra-gpu", "Parakeet Ultra (GPU)", 600,
+            "wasi-master/parakeet-ultra-executorch", "c3ca7a8d62377b995a49ffda12af50a0cf2b67ca",
+            listOf(
+                EtFile(
+                    "vulkan/int4/tokenizer.model", 360_916L,
+                    "eacec2b0a77f336d4a2ca4a25a7047575d3c2b74de47e997f4c205126ed3135e",
+                ),
+                EtFile(
+                    "vulkan/int4/model.pte", 818_608_408L,
+                    "4cf5e3b78e6bcfc2d9285f6ccd03e356ee653bdd3cd45c2e4707f3ec1b25b390",
+                ),
+            ),
+            supersedes = "parakeet-v3-gpu",
+            gpu = true,
+            cpuTwin = "parakeet-ultra",
+        ),
+        EtModel(
+            "parakeet-v3-gpu", EtEngine.PARAKEET, "tdt-0.6b-v3-gpu", "Parakeet TDT 0.6B v3 (GPU)", 600,
+            "wasi-master/parakeet-tdt-0.6b-v3-executorch", "efff6424e13521cddb2ce8965be9b424c57379db",
+            listOf(
+                EtFile(
+                    "vulkan/int4/tokenizer.model", 360_916L,
+                    "eacec2b0a77f336d4a2ca4a25a7047575d3c2b74de47e997f4c205126ed3135e",
+                ),
+                EtFile(
+                    "vulkan/int4/model.pte", 818_608_408L,
+                    "114f05b427f28d82ecbc8e87d5478cb71d42a089e6b5bfb61f81998daa168967",
+                ),
+            ),
+            gpu = true,
+            cpuTwin = "parakeet-v3",
         ),
         // Useful Sensors' Moonshine Tiny (MIT), exported by Software Mansion
         // for react-native-executorch.
@@ -693,7 +744,9 @@ object EtCatalog {
     /** Sherpa's English punctuation model: English dictation from the engines that write no marks uses it once it is downloaded. */
     val sherpaPunctuation: EtModel get() = models.first { it.engine == EtEngine.SHERPA && it.punctuation }
 
-    fun forEngine(engine: EtEngine): List<EtModel> = models.filter { it.engine == engine }
+    /** [engine]'s models this phone can run: a GPU build only where the GPU speaks Vulkan 1.1. */
+    fun forEngine(engine: EtEngine): List<EtModel> =
+        models.filter { it.engine == engine && (!it.gpu || EtNative.vulkanPossible()) }
 }
 
 /**

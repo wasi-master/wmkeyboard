@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.parakeet
 
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
@@ -42,12 +43,14 @@ object ParakeetEngine {
     /** Opens [model] ahead of a clip. On [EtNative.dispatcher] only. Throws when it will not load. */
     fun warm(filesDir: File, model: EtModel) {
         require(model.engine == EtEngine.PARAKEET)
-        EtNative.programs(listOf(EtStore.file(filesDir, model, PROGRAM)))
-        vocabFor(filesDir, model)
+        val runs = runnable(filesDir, model)
+        EtNative.programs(listOf(EtStore.file(filesDir, runs, PROGRAM)))
+        vocabFor(filesDir, runs)
     }
 
     /** [pcm] (16 kHz mono, in [-1, 1]) as text. On [EtNative.dispatcher] only. */
-    fun transcribe(filesDir: File, model: EtModel, pcm: FloatArray): String {
+    fun transcribe(filesDir: File, chosen: EtModel, pcm: FloatArray): String {
+        val model = runnable(filesDir, chosen)
         val program = EtNative.programs(listOf(EtStore.file(filesDir, model, PROGRAM))).single()
         val tokens = decode(program, pcm, program.constant("blank_id")?.toInt() ?: DEFAULT_BLANK)
         return vocabFor(filesDir, model).decode(tokens).trim()
@@ -59,14 +62,30 @@ object ParakeetEngine {
      * See [ParakeetStream]. On [EtNative.dispatcher] only. Throws when [model]
      * will not load.
      */
-    fun newStream(filesDir: File, model: EtModel): ParakeetStream {
-        require(model.engine == EtEngine.PARAKEET)
+    fun newStream(filesDir: File, chosen: EtModel): ParakeetStream {
+        require(chosen.engine == EtEngine.PARAKEET)
+        val model = runnable(filesDir, chosen)
         val program = EtNative.programs(listOf(EtStore.file(filesDir, model, PROGRAM))).single()
         val vocab = vocabFor(filesDir, model)
         val blank = program.constant("blank_id")?.toInt() ?: DEFAULT_BLANK
         return ParakeetStream(maxSamples(program), transcribe = { pcm, count ->
             vocab.decode(decode(program, if (count == pcm.size) pcm else pcm.copyOf(count), blank)).trim()
         })
+    }
+
+    /**
+     * [model], or for a GPU build while ExecuTorch's Vulkan build is not the
+     * one loaded (its gate still downloading, or this process loaded the
+     * plain build before it came), the CPU model from the same weights when
+     * that is on the device. A GPU program does not load without the Vulkan
+     * delegate; with no twin to fall back on, it throws, as any model that
+     * will not load does.
+     */
+    private fun runnable(filesDir: File, model: EtModel): EtModel {
+        if (!model.gpu || EtNative.delegate == "vulkan") return model
+        EtNative.requestVulkan()
+        val twin = model.cpuTwin?.let(EtCatalog::byId)?.takeIf { EtStore.isDownloaded(filesDir, it) }
+        return twin ?: error("${model.label} needs ExecuTorch's Vulkan build, which is not loaded")
     }
 
     /** The longest clip the preprocessor takes, in samples; 50 s for v3. */

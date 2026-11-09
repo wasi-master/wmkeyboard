@@ -24,6 +24,12 @@ There are two models, the same size and speed:
 
 With both downloaded, dictation uses Ultra, and v3 can be deleted to free its space. [Engine for each language](/tools/voice/#an-engine-for-each-language) can still give a language v3.
 
+### GPU builds
+
+On a phone whose GPU supports Vulkan 1.1, the list also has **Parakeet Ultra (GPU)** and **Parakeet TDT 0.6B v3 (GPU)**: the same models exported to run on the GPU, 819 MB each, with the same 4-bit weights and the same output. Downloading one also fetches ExecuTorch's GPU runtime, a download of its own of about 13 MB. They are opt-in because the GPU is often the slower choice: on a phone with a Helio G99 and a Mali-G57 GPU they took 2.2 to 2.7 times as long as the standard builds (14 to 17 seconds for a 10-second clip, against about 5). Newer GPUs may do better, but none has been measured here.
+
+A standard build of the same size wins over a GPU one, so a GPU build dictates only when it is the one you keep, or when you pick it for a language under [Engine for each language](/tools/voice/#an-engine-for-each-language). Until the GPU runtime is loaded (it loads with the keyboard, so the first time it can take a restart of the keyboard), dictation uses the standard build of the same model if that is downloaded, and otherwise reports the model as not loading.
+
 ## How it works
 
 Parakeet doesn't write its answer a word at a time: an encoder reads a whole clip, and a small transducer then walks through it, writing a word piece where it hears one and skipping ahead where the model's own duration head says nothing more is coming. That is most of why it's quick for its size. A phrase can run to 50 seconds. The first phrase after the keyboard starts takes a few seconds longer while the model's weights are prepared.
