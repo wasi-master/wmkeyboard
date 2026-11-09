@@ -231,6 +231,41 @@ fun KeyboardSettings.extensionOn(extension: Extension): Boolean = extension in e
 fun Set<Extension>.allows(tool: ToolbarTool): Boolean =
     Extension.owning(tool)?.let { it in this } ?: true
 
+/** The bundle's tools this build has: what its switch and the Tools page's switches share. */
+fun Extension.liveTools(): List<ToolbarTool> = tools.filter(::isSupportedTool)
+
+/**
+ * The bundles on after [tool] is switched [enabled] on its own, with
+ * [disabledAfter] the switched-off tools once that is written (#1067). The
+ * Tools page and a bundle switch the same things, so they have to agree:
+ * switching a tool on switches its bundle on, and switching off the last of
+ * a bundle's tools switches the bundle off, rather than leave it reading on
+ * with nothing in it. A tool no bundle owns changes nothing here.
+ */
+fun Set<Extension>.afterToolSwitch(
+    tool: ToolbarTool,
+    enabled: Boolean,
+    disabledAfter: Collection<ToolbarTool>,
+): Set<Extension> {
+    val owner = Extension.owning(tool) ?: return this
+    return when {
+        enabled -> this + owner
+        owner.liveTools().all { it in disabledAfter } -> this - owner
+        else -> this
+    }
+}
+
+/**
+ * The tools to switch back on with [this] bundle, out of [disabled]: all of
+ * its tools when every one of them was switched off one by one (#1067), so the
+ * bundle's switch never turns on a bundle with nothing in it, and none
+ * otherwise, so a choice made among its tools comes back as it was.
+ */
+fun Extension.toolsToRestore(disabled: Collection<ToolbarTool>): Set<ToolbarTool> {
+    val live = liveTools()
+    return if (live.isNotEmpty() && live.all { it in disabled }) live.toSet() else emptySet()
+}
+
 /** Whether the screen [pattern] names is free to open; see [allows]. */
 fun Set<Extension>.allowsRoute(pattern: String): Boolean =
     Extension.owningRoute(pattern)?.let { it in this } ?: true

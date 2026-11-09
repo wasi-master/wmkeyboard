@@ -32,7 +32,7 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.extensionOn
 import com.wasimaster.wmkeyboard.core.settings.extensionsResolved
-import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
+import com.wasimaster.wmkeyboard.core.settings.liveTools
 import com.wasimaster.wmkeyboard.core.ui.toolAccentPaint
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import kotlinx.coroutines.launch
@@ -278,7 +278,20 @@ internal fun ExtensionGate(route: String, content: @Composable () -> Unit) {
     }
 }
 
-/** Switches one bundle; the master switch a bundle carries moves inside [SettingsRepository.setExtensionEnabled]. */
+/**
+ * What a bundle's switch covers, as names: its tools this build has, then the
+ * settings screens it owns. Its row lists them once there are two or more,
+ * since a switch over one thing is already named by its title (#1067).
+ */
+internal fun extensionMembers(extension: Extension): List<Int> =
+    extension.liveTools().map(::toolTitle) + extensionScreens(extension).map { it.second }
+
+/**
+ * Switches one bundle; the master switch a bundle carries moves inside
+ * [SettingsRepository.setExtensionEnabled], and so do its tools when every one
+ * of them had been switched off on the Tools page (#1067). The other way, the
+ * last of its tools switched off there switches the bundle off with it.
+ */
 internal suspend fun setExtensionEnabled(repository: SettingsRepository, extension: Extension, enabled: Boolean) {
     repository.setExtensionEnabled(extension, enabled)
 }
@@ -299,9 +312,19 @@ internal fun ExtensionsSettings(
     ) {
         for (extension in Extension.entries) {
             item {
+                // A bundle of several things says which (#1067): a switch for
+                // "App launcher" that also took split-screen pairs away, and
+                // stayed on after the app launcher was switched off on the
+                // Tools page, read as two settings disagreeing.
+                val members = extensionMembers(extension).map { stringResource(it) }
+                val description = stringResource(extensionDescription(extension))
                 ToggleNavRow(
                     title = extensionTitle(extension),
-                    subtitle = stringResource(extensionDescription(extension)),
+                    subtitle = if (members.size < 2) {
+                        description
+                    } else {
+                        description + "\n" + stringResource(R.string.extension_covers, members.joinToString(", "))
+                    },
                     checked = extension in enabled,
                     route = extensionRoute(extension),
                     onChange = { on -> scope.launch { setExtensionEnabled(repository, extension, on) } },
@@ -338,7 +361,7 @@ internal fun ExtensionDetailSettings(
             )
         }
     }
-    val tools = extension.tools.filter(::isSupportedTool)
+    val tools = extension.liveTools()
     if (tools.isNotEmpty()) {
         SettingsGroup(
             stringResource(R.string.extension_tools_title),

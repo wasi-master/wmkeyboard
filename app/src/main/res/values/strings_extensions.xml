@@ -6,6 +6,8 @@
     <string name="extensions_intro">These are the features most people never expect a keyboard to have. Each is off until you switch it on here, and off means gone: no tool, no button on the keyboard, no search result, no background work. Switch it back on and it returns with the settings it had.</string>
     <string name="extensions_group_title">Features</string>
     <string name="extensions_count_summary">%1$d of %2$d on</string>
+    <!-- Under a bundle that switches several things: the tools and screens it covers (#1067). -->
+    <string name="extension_covers">Covers %1$s</string>
 
     <!-- One bundle's own page. -->
     <string name="extension_enabled_title">Turned on</string>

@@ -15624,6 +15624,14 @@ class SettingsRepository(private val context: Context) {
             val disabled = decodeDisabledTools(prefs[DISABLED_TOOLS])
             val next = if (enabled) disabled - tool else (disabled + tool).distinct()
             prefs[DISABLED_TOOLS] = next.joinToString(",") { it.name }
+            // The tool's bundle follows it (#1067): on with it, and off with
+            // the last of its tools, so Extensions and Tools never disagree.
+            val bundles = prefs[EXTENSIONS_ENABLED]?.let(Extension::decode) ?: Extension.All
+            val after = bundles.afterToolSwitch(tool, enabled, next)
+            if (after != bundles) {
+                prefs[EXTENSIONS_ENABLED] = after.mapTo(LinkedHashSet()) { ext -> ext.name }
+                Extension.owning(tool)?.let(::extensionMasterSwitch)?.let { prefs[it] = enabled }
+            }
         }
 
     /**
@@ -22315,6 +22323,16 @@ class SettingsRepository(private val context: Context) {
             val next = if (enabled) now + extension else now - extension
             prefs[EXTENSIONS_ENABLED] = next.mapTo(LinkedHashSet()) { ext -> ext.name }
             extensionMasterSwitch(extension)?.let { prefs[it] = enabled }
+            // A bundle whose tools were all switched off on the Tools page
+            // comes back with them on (#1067); otherwise its switch would turn
+            // on a bundle with nothing in it.
+            if (enabled) {
+                val disabled = decodeDisabledTools(prefs[DISABLED_TOOLS])
+                val restore = extension.toolsToRestore(disabled)
+                if (restore.isNotEmpty()) {
+                    prefs[DISABLED_TOOLS] = (disabled - restore).joinToString(",") { it.name }
+                }
+            }
         }
     }
 
