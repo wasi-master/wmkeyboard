@@ -3678,6 +3678,8 @@ internal class SettingsGroupScope {
         val key: Any?,
         /** How far down the settings depth the row sits; see [SettingLevel]. */
         val level: SettingLevel = SettingLevel.BASIC,
+        /** What the row costs to compose, in ordinary rows; see [item]. */
+        val weight: Int = 1,
         val content: @Composable () -> Unit,
     )
 
@@ -3697,9 +3699,18 @@ internal class SettingsGroupScope {
      * [level] is how far down the settings depth the row sits. At a depth
      * above it the row is not drawn in its place but behind the group's
      * "more settings" row; see [SettingsDepth.kt]. Untagged rows are basic.
+     *
+     * [weight] is for one item that draws several controls of its own — a
+     * repository's forge and five text fields — so the group lets it in as
+     * that many rows' worth of work rather than one; see [rememberRowStage].
      */
-    fun item(key: Any? = null, level: SettingLevel = SettingLevel.BASIC, content: @Composable () -> Unit) {
-        items += Entry(visible = true, conditional = false, key = key, level = level, content = content)
+    fun item(
+        key: Any? = null,
+        level: SettingLevel = SettingLevel.BASIC,
+        weight: Int = 1,
+        content: @Composable () -> Unit,
+    ) {
+        items += Entry(visible = true, conditional = false, key = key, level = level, weight = weight, content = content)
     }
 
     /**
@@ -3721,9 +3732,10 @@ internal class SettingsGroupScope {
         visible: Boolean,
         key: Any? = null,
         level: SettingLevel = SettingLevel.BASIC,
+        weight: Int = 1,
         content: @Composable () -> Unit,
     ) {
-        items += Entry(visible = visible, conditional = true, key = key, level = level, content = content)
+        items += Entry(visible = visible, conditional = true, key = key, level = level, weight = weight, content = content)
     }
 }
 
@@ -3806,7 +3818,7 @@ internal fun SettingsGroup(
             scope.items.map { entry ->
                 if (!tucked(entry)) return@map entry
                 val revealedAt = maxOf(entry.level, level)
-                SettingsGroupScope.Entry(entry.visible, entry.conditional, entry.key, entry.level) {
+                SettingsGroupScope.Entry(entry.visible, entry.conditional, entry.key, entry.level, entry.weight) {
                     CompositionLocalProvider(LocalRevealedLevel provides revealedAt, entry.content)
                 }
             }
@@ -3837,6 +3849,7 @@ internal fun SettingsGroup(
                             conditional = true,
                             key = null,
                             level = entry.level,
+                            weight = entry.weight,
                             content = entry.content,
                         ),
                     )
@@ -3852,18 +3865,22 @@ internal fun SettingsGroup(
     // says it is holding.
     val shown = entries.count { it.visible }
     if (shown == 0) return
+    // What the group costs to compose, in ordinary rows: a row drawing
+    // several controls counts as that many ([SettingsGroupScope.item]).
+    val weight = entries.sumOf { if (it.visible) it.weight else 0 }
     // Below the fold while the screen is still animating in: come back for
     // the rows once the entrance can spare them — see [rememberGroupRevealed].
     // Until then the group holds its place as slabs the size of its rows, so
     // the screen opens at its full height instead of growing under the reader.
-    if (!rememberGroupRevealed(shown)) {
+    if (!rememberGroupRevealed(weight)) {
         GroupSkeleton(shown, hasTitle = title != null)
         return
     }
     // A large group comes in a few rows a frame, the rest held as slabs
     // under the rows already drawn — see [rememberRowStage].
-    val stage = rememberRowStage(shown)
-    val staged = if (stage.count >= shown) entries else entries.firstShown(stage.count)
+    val stage = rememberRowStage(weight)
+    val staged = if (stage.count >= weight) entries else entries.firstShown(stage.count)
+    val stagedRows = staged.count { it.visible }
     // A group folded by its level is named by its title: two such groups on
     // one screen must not share a remembered state.
     val foldId = (foldKey ?: if (foldsWhole) "level:$title" else null)?.let { "$route/$it" }
@@ -3951,24 +3968,27 @@ internal fun SettingsGroup(
                 cards()
             }
         }
-        if (open && stage.count < shown) {
-            GroupSkeleton(shown - stage.count, hasTitle = false, modifier = Modifier.padding(top = 3.dp))
+        if (open && stagedRows < shown) {
+            GroupSkeleton(shown - stagedRows, hasTitle = false, modifier = Modifier.padding(top = 3.dp))
         }
         Spacer(Modifier.height(GroupTail))
     }
 }
 
 /**
- * The entries up to and including the [count]th one that is showing, with the
- * hidden conditional rows among them kept in their places.
+ * The entries whose showing rows fit in [budget] rows' worth of [weight][SettingsGroupScope.Entry.weight],
+ * with the hidden conditional rows among them kept in their places. The first
+ * showing row always fits, however heavy.
  */
-private fun List<SettingsGroupScope.Entry>.firstShown(count: Int): List<SettingsGroupScope.Entry> {
-    var seen = 0
-    val out = ArrayList<SettingsGroupScope.Entry>(count)
+private fun List<SettingsGroupScope.Entry>.firstShown(budget: Int): List<SettingsGroupScope.Entry> {
+    var spent = 0
+    val out = ArrayList<SettingsGroupScope.Entry>()
     for (entry in this) {
-        if (seen >= count) break
+        if (entry.visible) {
+            if (spent > 0 && spent + entry.weight > budget) break
+            spent += entry.weight
+        }
         out += entry
-        if (entry.visible) seen++
     }
     return out
 }

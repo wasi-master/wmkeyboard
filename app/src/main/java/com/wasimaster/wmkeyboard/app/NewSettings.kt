@@ -334,7 +334,13 @@ internal fun peekHiddenRows(entries: List<SettingsGroupScope.Entry>): List<Setti
     if (peeked.isEmpty()) return entries
     return entries.mapIndexed { i, entry ->
         if (i !in peeked || entry.visible) return@mapIndexed entry
-        SettingsGroupScope.Entry(visible = true, conditional = true, key = entry.key, level = entry.level) {
+        SettingsGroupScope.Entry(
+            visible = true,
+            conditional = true,
+            key = entry.key,
+            level = entry.level,
+            weight = entry.weight,
+        ) {
             CompositionLocalProvider(LocalRowPeeked provides true, entry.content)
         }
     }
