@@ -45,8 +45,8 @@ com.wasimaster.wmkeyboard.ime.WMKeyboardService.captureWriteLists  9100  4928  #
 com.wasimaster.wmkeyboard.core.settings.KeyboardModesKt.applyMode  3000  3584  # once per settings or mode change: one register per KeyboardSettings field, like its copy
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.copy$default  3200  3264  # generated: the copy every settings change goes through, not per key
 com.wasimaster.wmkeyboard.core.settings.ProviderSettingsKt.withProviderChoices  2100  5056  # once per settings read: copies KeyboardSettings and its provider sections
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.startInputView  3700  3392  # once per field shown
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.cycleVoiceMic  900  3264  # a tap on the mic key's mode cycle: writes a KeyboardSettings copy
+com.wasimaster.wmkeyboard.ime.WMKeyboardService.startInputView  3800  3392  # once per field shown
+com.wasimaster.wmkeyboard.ime.WMKeyboardService.cycleVoiceMic  1000  3264  # a tap on the mic key's mode cycle: writes a KeyboardSettings copy
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.onVoiceModePick  1000  3328  # a pick in the voice mode menu: the same
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.onVoiceEnginePick  900  3392  # a pick in the voice engine menu: the same
 com.wasimaster.wmkeyboard.core.settings.DeviceFormDefaultsKt.applyDeviceForm  600  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
@@ -59,9 +59,9 @@ com.wasimaster.wmkeyboard.core.settings.ThemeOverridesKt.applyLayoutTheme  600  
 com.wasimaster.wmkeyboard.core.settings.ThemeOverridesKt.applyThemeOverrides  1400  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$armTypingClock$2.invokeSuspend  800  3200  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$handleScreenshotAdded$1.invokeSuspend  1300  3200  # a tool or a setting's action: a copy of the state or settings in it, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService$loadDictionariesAndEmoji$1.invokeSuspend  3500  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
+com.wasimaster.wmkeyboard.ime.WMKeyboardService$loadDictionariesAndEmoji$1.invokeSuspend  3600  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$onAiPickModel$1.invokeSuspend  1400  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService$onCreate$35$2.emit  5900  3264  # the settings collector (stored settings, power, form, network): per settings or field change
+com.wasimaster.wmkeyboard.ime.WMKeyboardService$onCreate$37$2.emit  5900  3264  # the settings collector (stored settings, power, form, network): per settings or field change
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$onReplyPickShots$3.invokeSuspend  700  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshCurrencyRates$2.invokeSuspend  800  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshFindMatches$1.invokeSuspend  2100  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
@@ -109,21 +109,21 @@ com.wasimaster.wmkeyboard.ime.ui.ResizeOverlayKt.ResizeOverlay$lambda$1$0  800  
 # classes' is fewer fields, which is a split of the classes themselves.
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardBody  9300  3648  # ~157 parameters, and a lambda capturing them
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardBody$lambda$24  400  3520  # same parameter list
-com.wasimaster.wmkeyboard.ime.KeyboardUiState.<init>  4900  4992  # generated: one register per field
+com.wasimaster.wmkeyboard.ime.KeyboardUiState.<init>  5100  4992  # generated: one register per field
 com.wasimaster.wmkeyboard.ime.KeyboardUiState.copy  1300  4672  # generated: one register per field
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.<init>  9500  4992  # generated: one register per field
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.copy  1500  4800  # generated: one register per field
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyRows  9800  2240  # 513 insns past 9,000 (ART's hard limit is 10,000, so it still compiles); grew back after bed2b803a split it; fix: lift more of its setup into composables of their own, as that commit did
 com.wasimaster.wmkeyboard.ime.KeyboardUiState.copy$default  3100  3136  # a copy of the state or settings in it: a few registers past nterp's frame
-com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshStrip$3.invokeSuspend  2600  3136  # a copy of the state or settings in it: a few registers past nterp's frame
+com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshStrip$3.invokeSuspend  2700  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$startGesturePreviewConsumer$1.invokeSuspend  1800  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.absorbGluedWord  900  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.commitComposing  3000  3264  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.joinDotSuffix  700  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.onOctopusPick  1000  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.onSuggestionTapped  6100  3136  # a copy of the state or settings in it: a few registers past nterp's frame
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.processTypedText  3400  3136  # a copy of the state or settings in it: a few registers past nterp's frame
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.updateSelection  2000  3136  # a copy of the state or settings in it: a few registers past nterp's frame
+com.wasimaster.wmkeyboard.ime.WMKeyboardService.processTypedText  3600  3136  # a copy of the state or settings in it: a few registers past nterp's frame
+com.wasimaster.wmkeyboard.ime.WMKeyboardService.updateSelection  2100  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$145  700  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$145$2  500  3392  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$160  500  3968  # a copy of the state or settings in it: a few registers past nterp's frame
@@ -131,4 +131,4 @@ com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreenFrame$lambda$12$
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.applyLayoutSizing  800  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.withKeyHeights  500  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.withLayerFlickHints  700  3136  # a copy of the state or settings in it: a few registers past nterp's frame
-com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.withResizePreview  600  3136  # a copy of the state or settings in it: a few registers past nterp's frame
+com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.withResizePreview  700  3136  # a copy of the state or settings in it: a few registers past nterp's frame
