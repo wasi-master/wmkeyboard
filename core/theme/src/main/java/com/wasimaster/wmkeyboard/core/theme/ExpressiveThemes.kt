@@ -8,7 +8,7 @@ import com.wasimaster.wmkeyboard.theme.R
  * this keyboard's own looks: its Neumorphism as Soft, its dot-matrix design
  * as Dot matrix, its pixel-block design as Blocks and its Liquid Glass as
  * Droplet. The colours are taken from that project's skin files
- * (assets/plugins/*.json); the names are generic, because the designs it
+ * (the JSON files in assets/plugins); the names are generic, because the designs it
  * named after other products are only styles here, not imitations of them.
  *
  * Where a colour had to change, the comment says why: this keyboard has no
