@@ -2098,7 +2098,11 @@ private fun rememberProposal(
                     // The tag cannot tell a wrong passphrase from a damaged
                     // file, and pretending otherwise would be a lie in one of
                     // the two cases. Say both.
-                    if (decrypted != null) {
+                    if (decrypted == BackupCrypto.DecryptResult.UnsupportedVersion) {
+                        // Not the passphrase: a later build wrote this file in a
+                        // way this one cannot read yet.
+                        context.getString(R.string.import_encrypted_newer)
+                    } else if (decrypted != null) {
                         context.getString(R.string.import_encrypted_failed)
                     } else {
                         when (

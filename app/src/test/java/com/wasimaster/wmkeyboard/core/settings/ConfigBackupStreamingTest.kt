@@ -164,7 +164,7 @@ class ConfigBackupStreamingTest {
         val file = File.createTempFile("wmkb-bundle", ".enc")
         try {
             file.outputStream().buffered().use { raw ->
-                BackupCrypto.encrypting(raw, passphrase, salt, 1_000).buffered().use { out ->
+                BackupCrypto.encrypting(raw, passphrase, salt, 1_000, 1_000).buffered().use { out ->
                     ConfigBackup.encodeSectionsTo(out, 3, "big", sections.toSet()) { section ->
                         buildJsonObject { put("data", JsonPrimitive(section.id.first().toString().repeat(size))) }
                     }

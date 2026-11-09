@@ -136,8 +136,8 @@ Backups are optional and written to the destination you choose. That can be
 local storage, a cloud drive you connect, a WebDAV server, an S3-compatible
 bucket, an SFTP, SMB or FTP server you run, a Git repository you own, or a
 folder in your own mail account. By default the file is plain JSON. Turn on
-a backup passphrase and it is encrypted with AES-GCM under a PBKDF2-HMAC-SHA512
-key. Nothing is uploaded anywhere by default and no copy is sent to the
+a backup passphrase and it is encrypted with AES-GCM under a PBKDF2
+key (HMAC-SHA256 for most backups, HMAC-SHA512 for large ones). Nothing is uploaded anywhere by default and no copy is sent to the
 developer. See [Backup and restore](/privacy/backup/).
 
 ## Children

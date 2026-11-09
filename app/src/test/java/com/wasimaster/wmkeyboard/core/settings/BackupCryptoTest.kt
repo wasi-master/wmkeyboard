@@ -31,15 +31,24 @@ class BackupCryptoTest {
         key: CharArray = passphrase,
         iterations: Int = rounds,
     ): ByteArray = ByteArrayOutputStream()
-        .also { BackupCrypto.encrypt(it, key, salt, text, iterations) }
+        .also { BackupCrypto.encrypt(it, key, salt, text, iterations, iterations) }
         .toByteArray()
 
     private fun open(bytes: ByteArray, key: CharArray = passphrase) =
         BackupCrypto.decrypt(ByteArrayInputStream(bytes), key)
 
     private fun sealBytes(plain: ByteArray): ByteArray = ByteArrayOutputStream()
-        .also { out -> BackupCrypto.encrypting(out, passphrase, salt, rounds).use { it.write(plain) } }
+        .also { out -> BackupCrypto.encrypting(out, passphrase, salt, rounds, rounds).use { it.write(plain) } }
         .toByteArray()
+
+    /** Past [BackupCrypto.COMPAT_LIMIT], so the file is the chunked container. */
+    private val chunkedFloor = BackupCrypto.COMPAT_LIMIT
+
+    /** [sealBytes] of [extra] bytes beyond [chunkedFloor], each byte from [fill]. */
+    private fun sealChunked(extra: Int, fill: (Int) -> Byte = { it.toByte() }): Pair<ByteArray, ByteArray> {
+        val plain = ByteArray(chunkedFloor + extra, fill)
+        return plain to sealBytes(plain)
+    }
 
     /**
      * A file as builds before #1080 wrote it: container version 1, the whole
@@ -132,8 +141,50 @@ class BackupCryptoTest {
     }
 
     @Test
-    fun `a new file says sha-512 in its header`() {
-        assertEquals(2.toByte(), seal()[KDF_OFFSET])
+    fun `a small new file is the one every older build opens`() {
+        // Google Play can lag the GitHub release by weeks, and a build up to
+        // 0.6.3 reads container 1 under kdf 1 and nothing else. A backup made
+        // on one has to restore on the other.
+        val sealed = seal()
+        assertEquals(1.toByte(), sealed[VERSION_OFFSET])
+        assertEquals(1.toByte(), sealed[KDF_OFFSET])
+        assertEquals(sealed.size, HEADER_SIZE + bundle.length + TAG_SIZE)
+    }
+
+    @Test
+    fun `a small new file is sealed the way older builds open it`() {
+        // Opened here by hand, exactly as the 0.6.3 decrypt did: PBKDF2 over
+        // HMAC-SHA256 at the header's count, one GCM pass, the header as AAD.
+        val sealed = seal()
+        val header = sealed.copyOf(HEADER_SIZE)
+        val iterations = java.nio.ByteBuffer.wrap(header, ITERATIONS_OFFSET, 4).int
+        val key = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+            .generateSecret(PBEKeySpec(passphrase, salt, iterations, 32 * 8))
+            .encoded
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding").apply {
+            init(
+                Cipher.DECRYPT_MODE,
+                SecretKeySpec(key, "AES"),
+                GCMParameterSpec(128, header.copyOfRange(NONCE_OFFSET, NONCE_OFFSET + 12)),
+            )
+            updateAAD(header)
+        }
+        assertEquals(bundle, cipher.doFinal(sealed, HEADER_SIZE, sealed.size - HEADER_SIZE).toString(Charsets.UTF_8))
+    }
+
+    @Test
+    fun `the shipped rounds are owasp's for each hash`() {
+        val out = ByteArrayOutputStream()
+        BackupCrypto.encrypting(out, passphrase, salt, rounds).use { it.write(1) }
+        val iterations = java.nio.ByteBuffer.wrap(out.toByteArray(), ITERATIONS_OFFSET, 4).int
+        assertEquals(600_000, iterations)
+        assertEquals(BackupCrypto.COMPAT_ITERATIONS, iterations)
+        assertEquals(210_000, BackupCrypto.DEFAULT_ITERATIONS)
+    }
+
+    @Test
+    fun `a large new file says sha-512 in its header`() {
+        assertEquals(2.toByte(), sealChunked(1).second[KDF_OFFSET])
     }
 
     @Test
@@ -165,8 +216,9 @@ class BackupCryptoTest {
     }
 
     @Test
-    fun `a new file is the chunked container`() {
-        assertEquals(2.toByte(), seal()[VERSION_OFFSET])
+    fun `a file past the limit is the chunked container`() {
+        assertEquals(2.toByte(), sealChunked(1).second[VERSION_OFFSET])
+        assertEquals(1.toByte(), sealBytes(ByteArray(chunkedFloor))[VERSION_OFFSET])
     }
 
     // ---- pieces (#1080) ----
@@ -174,7 +226,13 @@ class BackupCryptoTest {
     @Test
     fun `every length around a piece boundary comes back`() {
         val chunk = BackupCrypto.CHUNK_SIZE
-        for (length in listOf(0, 1, chunk - 1, chunk, chunk + 1, 2 * chunk, 2 * chunk + 7)) {
+        val floor = chunkedFloor
+        for (
+            length in listOf(
+                0, 1, chunk - 1, chunk, chunk + 1, 2 * chunk + 7,
+                floor - 1, floor, floor + 1, floor + chunk, floor + chunk + 1, floor + 2 * chunk + 7,
+            )
+        ) {
             val plain = ByteArray(length) { (it * 31).toByte() }
             val sealed = sealBytes(plain)
             val out = ByteArrayOutputStream()
@@ -188,8 +246,9 @@ class BackupCryptoTest {
         // The cut that a length check alone would miss: every piece left is
         // whole and verifies, but none of them was sealed as the last.
         val chunk = BackupCrypto.CHUNK_SIZE
-        val sealed = sealBytes(ByteArray(chunk * 5 / 2) { it.toByte() })
-        for (pieces in 1..2) {
+        val sealed = sealChunked(chunk * 5 / 2).second
+        val whole = (chunkedFloor + chunk * 5 / 2) / chunk
+        for (pieces in listOf(1, whole - 1, whole)) {
             val cut = sealed.copyOf(HEADER_SIZE + pieces * (chunk + TAG_SIZE))
             assertEquals("pieces=$pieces", BackupCrypto.DecryptResult.BadPassphraseOrCorrupt, open(cut))
             assertEquals(
@@ -203,7 +262,7 @@ class BackupCryptoTest {
     @Test
     fun `swapped pieces are refused`() {
         val chunk = BackupCrypto.CHUNK_SIZE
-        val sealed = sealBytes(ByteArray(chunk * 3) { (it / chunk).toByte() })
+        val sealed = sealChunked(chunk * 3) { (it / chunk).toByte() }.second
         val piece = chunk + TAG_SIZE
         val swapped = sealed.copyOf()
         System.arraycopy(sealed, HEADER_SIZE, swapped, HEADER_SIZE + piece, piece)
@@ -214,7 +273,7 @@ class BackupCryptoTest {
     @Test
     fun `a bad piece after the first throws from the stream`() {
         val chunk = BackupCrypto.CHUNK_SIZE
-        val sealed = sealBytes(ByteArray(chunk * 3) { it.toByte() })
+        val sealed = sealChunked(chunk * 3).second
         sealed[HEADER_SIZE + chunk + TAG_SIZE + 5] = (sealed[HEADER_SIZE + chunk + TAG_SIZE + 5].toInt() xor 1).toByte()
         val stream = requireNotNull(BackupCrypto.decrypting(ByteArrayInputStream(sealed), passphrase))
         val failure = runCatching { stream.use { it.readBytes() } }.exceptionOrNull()
@@ -225,7 +284,7 @@ class BackupCryptoTest {
     fun `the wrong passphrase is refused when the stream opens, not later`() {
         var why: BackupCrypto.DecryptResult? = null
         val stream = BackupCrypto.decrypting(
-            ByteArrayInputStream(sealBytes(ByteArray(10))),
+            ByteArrayInputStream(sealChunked(10).second),
             "wrong".toCharArray(),
         ) { why = it }
         assertEquals(null, stream)
@@ -234,17 +293,22 @@ class BackupCryptoTest {
 
     @Test
     fun `sealing writes each piece out once it is full`() {
-        // What keeps the encrypt side from holding the bundle: once a piece
-        // is full and another byte arrives, the piece is already in [out].
+        // What keeps the encrypt side from holding the bundle: past the
+        // single-piece limit, once a piece is full and another byte arrives,
+        // the piece is already in [out]. Below it nothing is written until the
+        // close, which seals the one piece.
         val chunk = BackupCrypto.CHUNK_SIZE
+        val held = chunkedFloor / chunk
         val out = ByteArrayOutputStream()
-        val sealing = BackupCrypto.encrypting(out, passphrase, salt, rounds)
-        sealing.write(ByteArray(chunk + 1))
-        assertEquals(HEADER_SIZE + chunk + TAG_SIZE, out.size())
+        val sealing = BackupCrypto.encrypting(out, passphrase, salt, rounds, rounds)
+        sealing.write(ByteArray(chunkedFloor))
+        assertEquals(0, out.size())
+        sealing.write(ByteArray(1))
+        assertEquals(HEADER_SIZE + held * (chunk + TAG_SIZE), out.size())
         sealing.write(ByteArray(chunk))
-        assertEquals(HEADER_SIZE + 2 * (chunk + TAG_SIZE), out.size())
+        assertEquals(HEADER_SIZE + (held + 1) * (chunk + TAG_SIZE), out.size())
         sealing.close()
-        assertEquals(HEADER_SIZE + 2 * (chunk + TAG_SIZE) + 1 + TAG_SIZE, out.size())
+        assertEquals(HEADER_SIZE + (held + 1) * (chunk + TAG_SIZE) + 1 + TAG_SIZE, out.size())
     }
 
     @Test
@@ -253,7 +317,7 @@ class BackupCryptoTest {
         // plaintext costs the header and a piece, plus the byte that tells a
         // piece from the last one.
         val chunk = BackupCrypto.CHUNK_SIZE
-        val sealed = sealBytes(ByteArray(chunk * 40))
+        val sealed = sealChunked(chunk * 40).second
         val counted = CountingInputStream(ByteArrayInputStream(sealed))
         val stream = requireNotNull(BackupCrypto.decrypting(counted, passphrase))
         stream.read()
@@ -272,7 +336,7 @@ class BackupCryptoTest {
         try {
             val written = MessageDigest.getInstance("SHA-256")
             sealedFile.outputStream().buffered().use { raw ->
-                BackupCrypto.encrypting(raw, passphrase, salt, rounds).use { sealing ->
+                BackupCrypto.encrypting(raw, passphrase, salt, rounds, rounds).use { sealing ->
                     val block = ByteArray(1 shl 20)
                     var left = total
                     var n = 0

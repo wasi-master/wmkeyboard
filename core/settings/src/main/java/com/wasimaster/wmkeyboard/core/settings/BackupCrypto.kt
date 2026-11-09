@@ -49,6 +49,33 @@ object BackupCrypto {
     const val DEFAULT_ITERATIONS = 210_000
 
     /**
+     * PBKDF2-HMAC-SHA256 rounds for a file small enough to go out in the
+     * single-piece container (see [COMPAT_LIMIT]): OWASP's figure for
+     * SHA-256, the same strength by their measure as [DEFAULT_ITERATIONS]
+     * over SHA-512.
+     *
+     * SHA-256 because that is the only key derivation builds up to 0.6.3
+     * know (they read kdf id 1 and nothing else), and those builds are still
+     * what Google Play hands out while a newer one waits for review. A backup
+     * made on the GitHub build has to restore on the Play one, and the other
+     * way round, or moving between them costs the user their backup.
+     */
+    const val COMPAT_ITERATIONS = 600_000
+
+    /**
+     * The largest bundle written in the single-piece container every build
+     * reads. A larger one is cut into pieces instead (#1080), which builds
+     * before 0.6.5 cannot open.
+     *
+     * One GCM pass holds the whole bundle on both ends, and an older build
+     * opens it by reading the file into memory, so this has to stay small
+     * enough for that on a 256 MiB heap: a few copies of 4 MiB is nothing.
+     * Nearly every backup is under it; the ones over it carry sticker packs
+     * or a large learned dictionary.
+     */
+    const val COMPAT_LIMIT = 4 * 1024 * 1024
+
+    /**
      * A ceiling on what a *file* may ask for.
      *
      * The iteration count is read out of the header before any of it is
@@ -63,16 +90,20 @@ object BackupCrypto {
     private const val KEY_SIZE = 32
     private const val TAG_BITS = 128
 
-    /** What files written before SHA-512 carry. Still read, never written. */
+    /**
+     * What files written before SHA-512 carry, and what a single-piece file
+     * is written under still: see [COMPAT_ITERATIONS].
+     */
     private const val KDF_PBKDF2_SHA256: Byte = 1
     private const val KDF_PBKDF2_SHA512: Byte = 2
     private const val CIPHER_AES_GCM: Byte = 1
 
     /**
-     * One GCM pass over the whole bundle. Still read, never written: the
-     * cipher on Android holds every byte it is given until `doFinal`, in
-     * both directions, so a file like this costs its whole size in heap to
-     * make and again to open (#1080).
+     * One GCM pass over the whole bundle. The cipher on Android holds every
+     * byte it is given until `doFinal`, in both directions, so a file like
+     * this costs its whole size in heap to make and again to open (#1080).
+     * Written only up to [COMPAT_LIMIT], because it is the one container
+     * builds before 0.6.5 can open.
      */
     private const val CONTAINER_SINGLE: Byte = 1
 
@@ -111,8 +142,8 @@ object BackupCrypto {
      * off len  field
      *   0   4  magic 'W' 'M' 'K' 'B'
      *   4   3  'E' 'N' 'C'
-     *   7   1  container version: 2 chunked, 1 one piece (older files)
-     *   8   1  kdf id: 2 PBKDF2-HMAC-SHA512, 1 PBKDF2-HMAC-SHA256 (older files)
+     *   7   1  container version: 2 chunked, 1 one piece (up to COMPAT_LIMIT)
+     *   8   1  kdf id: 2 PBKDF2-HMAC-SHA512 (chunked), 1 PBKDF2-HMAC-SHA256
      *   9   1  cipher id
      *  10   4  iterations, big-endian
      *  14   1  salt length
@@ -190,33 +221,76 @@ object BackupCrypto {
         salt: ByteArray,
         plaintext: String,
         iterations: Int = DEFAULT_ITERATIONS,
+        compatIterations: Int = COMPAT_ITERATIONS,
     ) {
         // Encoding straight into the cipher stream keeps the bundle from being
         // copied again as a ByteArray on the way past.
-        OutputStreamWriter(encrypting(out, passphrase, salt, iterations), Charsets.UTF_8).use { it.write(plaintext) }
+        OutputStreamWriter(
+            encrypting(out, passphrase, salt, iterations, compatIterations),
+            Charsets.UTF_8,
+        ).use { it.write(plaintext) }
     }
 
     /**
-     * A stream that encrypts what is written to it into [out], one
-     * [CHUNK_SIZE] piece at a time, so neither the bundle nor its ciphertext
-     * is ever held whole (#1080). Its close seals the last piece, so it must
-     * happen exactly once, and a stream never closed is a file that does not
-     * open; [out] stays open.
+     * A stream that encrypts what is written to it into [out]. Its close
+     * seals the file, so it must happen exactly once, and a stream never
+     * closed is a file that does not open; [out] stays open.
+     *
+     * Up to [COMPAT_LIMIT] bytes are held and, at the close, sealed in one
+     * piece under [compatIterations] rounds of PBKDF2-HMAC-SHA256: the file
+     * every build back to the first encrypted backup opens. Past that, the
+     * file becomes the chunked container under [iterations] rounds of
+     * PBKDF2-HMAC-SHA512, written one [CHUNK_SIZE] piece at a time so neither
+     * the bundle nor its ciphertext is ever held whole (#1080).
      */
     fun encrypting(
         out: OutputStream,
         passphrase: CharArray,
         salt: ByteArray,
         iterations: Int = DEFAULT_ITERATIONS,
+        compatIterations: Int = COMPAT_ITERATIONS,
     ): OutputStream {
         require(salt.size == SALT_SIZE) { "salt must be $SALT_SIZE bytes" }
         require(iterations in 1..MAX_ITERATIONS) { "iterations out of range" }
+        require(compatIterations in 1..MAX_ITERATIONS) { "iterations out of range" }
+        return CompatSealer(out, passphrase.copyOf(), salt.copyOf(), iterations, compatIterations)
+    }
 
+    /** The chunked container's header and sealer, opened on [out]. */
+    private fun chunked(out: OutputStream, passphrase: CharArray, salt: ByteArray, iterations: Int): ChunkSealer {
         val nonce = ByteArray(NONCE_SIZE).also { SecureRandom().nextBytes(it) }
-        val header = header(iterations, salt, nonce)
+        val header = header(CONTAINER_CHUNKED, KDF_PBKDF2_SHA512, iterations, salt, nonce)
         val key = chunkKey(pbkdf2(passphrase, salt, iterations, KEY_SIZE, "HmacSHA512"), header)
         out.write(header)
         return ChunkSealer(out, key, header)
+    }
+
+    /** [plain] as a single-piece file under PBKDF2-HMAC-SHA256, written to [out]. */
+    private fun singlePiece(
+        out: OutputStream,
+        passphrase: CharArray,
+        salt: ByteArray,
+        iterations: Int,
+        plain: ByteArray,
+        length: Int,
+    ) {
+        val nonce = ByteArray(NONCE_SIZE).also { SecureRandom().nextBytes(it) }
+        val header = header(CONTAINER_SINGLE, KDF_PBKDF2_SHA256, iterations, salt, nonce)
+        val key = pbkdf2(passphrase, salt, iterations, KEY_SIZE, "HmacSHA256")
+        val sealed = try {
+            Cipher.getInstance(TRANSFORMATION).run {
+                init(Cipher.ENCRYPT_MODE, SecretKeySpec(key, "AES"), GCMParameterSpec(TAG_BITS, nonce))
+                updateAAD(header)
+                doFinal(plain, 0, length)
+            }
+        } catch (failure: GeneralSecurityException) {
+            throw IOException(failure)
+        } finally {
+            key.fill(0)
+        }
+        out.write(header)
+        out.write(sealed)
+        out.flush()
     }
 
     /** What came back out of [decrypt]. */
@@ -444,12 +518,12 @@ object BackupCrypto {
             header[SALT_LENGTH_OFFSET].toInt() == SALT_SIZE &&
             header[NONCE_LENGTH_OFFSET].toInt() == NONCE_SIZE
 
-    private fun header(iterations: Int, salt: ByteArray, nonce: ByteArray): ByteArray {
+    private fun header(container: Byte, kdf: Byte, iterations: Int, salt: ByteArray, nonce: ByteArray): ByteArray {
         val header = ByteArray(HEADER_SIZE)
         System.arraycopy(MAGIC, 0, header, 0, MAGIC.size)
         System.arraycopy(ENC, 0, header, TAG_OFFSET, ENC.size)
-        header[VERSION_OFFSET] = CONTAINER_CHUNKED
-        header[KDF_OFFSET] = KDF_PBKDF2_SHA512
+        header[VERSION_OFFSET] = container
+        header[KDF_OFFSET] = kdf
         header[CIPHER_OFFSET] = CIPHER_AES_GCM
         System.arraycopy(bigEndian(iterations), 0, header, ITERATIONS_OFFSET, Int.SIZE_BYTES)
         header[SALT_LENGTH_OFFSET] = SALT_SIZE.toByte()
@@ -501,6 +575,80 @@ object BackupCrypto {
             filled += read
         }
         return filled
+    }
+
+    /**
+     * Holds what is written to it until it outgrows [COMPAT_LIMIT]: closed
+     * before then, it seals a single-piece file older builds open; past it,
+     * it starts the chunked container and hands everything to a
+     * [ChunkSealer] from then on. Either way the key is derived once, when
+     * the choice is made.
+     */
+    private class CompatSealer(
+        private val out: OutputStream,
+        private val passphrase: CharArray,
+        private val salt: ByteArray,
+        private val iterations: Int,
+        private val compatIterations: Int,
+    ) : OutputStream() {
+        private var held = ByteArray(INITIAL_HOLD)
+        private var filled = 0
+        private var chunks: ChunkSealer? = null
+        private var closed = false
+
+        override fun write(b: Int) {
+            write(byteArrayOf(b.toByte()), 0, 1)
+        }
+
+        override fun write(b: ByteArray, off: Int, len: Int) {
+            if (closed) throw IOException("closed")
+            chunks?.let { return it.write(b, off, len) }
+            if (filled + len > COMPAT_LIMIT) {
+                val sealer = chunked(out, passphrase, salt, iterations)
+                chunks = sealer
+                sealer.write(held, 0, filled)
+                forget()
+                sealer.write(b, off, len)
+                return
+            }
+            if (filled + len > held.size) {
+                val grown = held.copyOf(minOf(COMPAT_LIMIT, maxOf(held.size * 2, filled + len)))
+                held.fill(0)
+                held = grown
+            }
+            System.arraycopy(b, off, held, filled, len)
+            filled += len
+        }
+
+        override fun flush() {
+            chunks?.flush() ?: out.flush()
+        }
+
+        override fun close() {
+            if (closed) return
+            closed = true
+            try {
+                val sealer = chunks
+                if (sealer != null) {
+                    sealer.close()
+                } else {
+                    singlePiece(out, passphrase, salt, compatIterations, held, filled)
+                }
+            } finally {
+                forget()
+                passphrase.fill('\u0000')
+            }
+        }
+
+        private fun forget() {
+            held.fill(0)
+            held = ByteArray(0)
+            filled = 0
+        }
+
+        private companion object {
+            const val INITIAL_HOLD = 64 * 1024
+        }
     }
 
     /**

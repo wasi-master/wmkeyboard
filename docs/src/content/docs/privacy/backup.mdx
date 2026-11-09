@@ -219,14 +219,20 @@ So it protects the file where it lands, in a cloud folder for instance, and
 not against a person holding your unlocked device. Write it down. Without it,
 a backup cannot be restored. The same passphrase protects the sync files.
 The file is sealed with AES-256-GCM under a key derived from the passphrase
-by PBKDF2-HMAC-SHA512, 210,000 rounds over a random salt kept on this
-device. It is sealed in 64 KiB pieces, each with its own tag, so a backup of
-any size is made and opened a piece at a time instead of all at once in the
-keyboard's memory. Each piece is numbered and the last one is marked, so a
-file that was cut short, edited or reordered fails to open rather than
-restoring part of a backup. Backups made by older versions, sealed in one
-piece or keyed with PBKDF2-HMAC-SHA256, still restore. An encrypted backup or
-sync file made by this version doesn't open in versions before it.
+over a random salt kept on this device. A backup of up to 4 MiB, which is
+nearly all of them, is sealed in one piece under PBKDF2-HMAC-SHA256 at
+600,000 rounds. That is the form every version since encrypted backups
+began can open, so a backup made on the GitHub build restores on the Google
+Play one even while Play is a version behind, and the other way round. A
+larger backup, one carrying sticker packs or a big learned dictionary, is
+keyed by PBKDF2-HMAC-SHA512 at 210,000 rounds and sealed in 64 KiB pieces,
+each with its own tag, so it is made and opened a piece at a time instead
+of all at once in the keyboard's memory. Each piece is numbered and the
+last one is marked, so a file that was cut short, edited or reordered fails
+to open rather than restoring part of a backup. Earlier releases can't open
+that larger kind, and say the passphrase is wrong or the file is damaged;
+from this one on, a file made by a newer version says so instead. Backups
+made by any older version still restore. Sync files follow the same rules.
 
 With the frequent backup on, **What goes in a backup** shows one list with two ticks per row, Main and Frequent, instead of a list for each.
 

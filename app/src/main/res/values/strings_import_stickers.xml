@@ -89,6 +89,7 @@
     <!-- The app cannot tell these two apart: a file that fails its check is
          either the wrong passphrase or a damaged file, so the message says both. -->
     <string name="import_encrypted_failed">The app could not open the backup. The passphrase is wrong, or the file is damaged. Nothing on your device changed.</string>
+    <string name="import_encrypted_newer">This backup was made by a newer version of WM Keyboard, which seals it in a way this version cannot open. Update the app, then import it again. Nothing on your device changed.</string>
 
     <!-- ==== The older settings-only backup file. ==== -->
 
