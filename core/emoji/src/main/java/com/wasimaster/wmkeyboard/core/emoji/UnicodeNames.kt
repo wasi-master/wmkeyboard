@@ -64,8 +64,11 @@ object UnicodeNames {
      * Whether Unicode spelled [name] out of the code point itself, as it does
      * for the ideographs and a few other large scripts: the name ends in the
      * code point's hex digits and holds nothing else to search by.
+     *
+     * Public rather than internal so `UnicodeNamesTest` can reach it: that
+     * test compiles in `:app`, a different Kotlin module from this one.
      */
-    internal fun isMadeUpName(cp: Int, name: String): Boolean =
+    fun isMadeUpName(cp: Int, name: String): Boolean =
         name.endsWith("-" + Integer.toHexString(cp).uppercase(Locale.ROOT))
 
     /** Builds the index ahead of the first search, off whatever thread calls it. */
