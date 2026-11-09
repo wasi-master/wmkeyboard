@@ -97,7 +97,7 @@ class ClipFiltersTest {
         assertEquals(kinds.copy(tags = listOf("critical")), combined.tappedTag("critical"))
     }
 
-    @Test fun `a set chip goes on, Not, off; Pinned has no Not and goes straight off`() {
+    @Test fun `a set chip goes on, Not, off, and Pinned has no Not and goes straight off`() {
         val text = ClipFilters().tapped(ClipFilter.TEXT)
         assertEquals(ClipChipState.ON, text.stateOf(ClipFilter.TEXT))
         assertEquals(ClipChipState.NOT, text.tapped(ClipFilter.TEXT).stateOf(ClipFilter.TEXT))
