@@ -1,0 +1,54 @@
+---
+title: "Backup converter"
+description: "Convert an encrypted WM Keyboard backup made on 0.6.4 or later into the form version 0.6.3, the Google Play build, can restore. Runs in your browser; the file and passphrase never leave it."
+sidebar:
+  order: 11
+---
+
+import BackupConverter from '@components/BackupConverter.tsx';
+
+Version 0.6.3, the one Google Play hands out until the next update clears
+review, opens an encrypted backup only in its original form. Backups and sync
+files encrypted by 0.6.4 or 0.6.5, and any encrypted backup over 4 MiB from a
+later build, use a newer form, and 0.6.3 says the passphrase is wrong or the
+file is damaged. This page rewrites such a file into the form 0.6.3 reads,
+under the same passphrase.
+
+<BackupConverter client:load />
+
+## Using it
+
+1. Pick the backup: a `.wmconfig.enc` file, or an encrypted
+   `wmkeyboard-sync` file. The page reads its header and says whether it
+   needs converting at all.
+2. Type the passphrase the backup was made with.
+3. Press **Convert and download**. The converted file downloads under the
+   same name. Restore it on 0.6.3 from **Backup & restore** with the same
+   passphrase.
+
+A plain `.wmconfig.json` backup is not encrypted, and every version imports
+it as it is. An encrypted file 0.6.3 can already open is left alone, and the
+page says so.
+
+## What it does
+
+The conversion runs in this page with your browser's built-in cryptography.
+Nothing is uploaded, and the page makes no network request with the file or
+the passphrase in it.
+
+The page opens the file exactly as the app does: PBKDF2-HMAC-SHA512 or
+PBKDF2-HMAC-SHA256 at the round count the file names, then AES-256-GCM over
+the whole file or over each 64 KiB piece of a large one, every tag checked.
+It then seals the contents again in one piece under PBKDF2-HMAC-SHA256 at
+600,000 rounds, with the file's own salt and a fresh nonce. That is the same
+form the app now writes for every backup up to 4 MiB, described under
+[Backup & restore](/privacy/backup/#automatic-backup).
+
+- **A wrong passphrase and a damaged file look the same.** The tag check
+  cannot tell them apart, so the page gives one message for both, as the app
+  does.
+- **Version 0.6.3 refuses a file over 32 MiB.** The page converts it anyway
+  and warns you. Make a smaller backup by leaving sticker packs or other large
+  items out under **What goes in a backup**, then convert that one.
+- **A file from a version newer than this page** is refused rather than
+  guessed at.
