@@ -244,6 +244,12 @@ private val InertRow: Modifier = Modifier
 @Composable
 internal fun GroupRows(
     items: List<SettingsGroupScope.Entry>,
+    /**
+     * True while the rows arriving are the rest of a group being let in a
+     * few at a time ([rememberRowStage]) rather than rows the list gained:
+     * they appear in place, as a group's first pass does.
+     */
+    quietArrivals: Boolean = false,
     card: @Composable (
         modifier: Modifier,
         gapAbove: Boolean,
@@ -257,7 +263,9 @@ internal fun GroupRows(
     // Read here so a row finishing its way out redraws the group without it.
     @Suppress("UNUSED_EXPRESSION")
     ledger.departures
-    val pass = planRows(items, ledger, motion = !still)
+    val pass = planRows(items, ledger, motion = !still).let { planned ->
+        if (quietArrivals && planned.animateArrivals) GroupPass(planned.rows, animateArrivals = false) else planned
+    }
     SideEffect {
         ledger.settled = true
         ledger.drawn = pass.rows

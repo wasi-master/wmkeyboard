@@ -19,6 +19,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -463,7 +465,14 @@ internal fun HighlightableRow(
     // press here: its link and its place in favourites (#898). A group's
     // heading takes its own, in [SettingsGroup]: the whole group would
     // otherwise answer a hold on any row inside it.
-    CompositionLocalProvider(LocalRowLinkKey provides RowLinkKey(title, highlightKey)) {
+    // A row's name stays one plain text until the row is first pressed; see
+    // [RowTouch]. A group's wrapper passes on whatever it sits in, so the rows
+    // inside it each keep their own.
+    val touch = if (coarse) LocalRowTouch.current else remember { RowTouch() }
+    CompositionLocalProvider(
+        LocalRowLinkKey provides RowLinkKey(title, highlightKey),
+        LocalRowTouch provides touch,
+    ) {
         val bare = LocalSettingsDepth.current.depth == SettingsDepth.SIMPLE
         val whatIsThis = if (info != null && bare) remember(title, info) { RowInfo(title.orEmpty(), info) } else null
         val hold = if (coarse) null else rememberRowHold(disabledReason, whatIsThis)
@@ -481,12 +490,24 @@ internal fun HighlightableRow(
             requested = requested,
             rank = if (coarse) HighlightRank.SECTION else HighlightRank.ROW,
             modifier = Modifier
+                .then(if (coarse || touch == null) Modifier else Modifier.armRowTouch(touch))
                 .settingLinkHold(hold, disabledReason, whatIsThis)
                 .then(if (isNew) Modifier.border(1.5.dp, NewSettingGold, newBorderShape) else Modifier),
         ) {
             if (LocalRowPeeked.current) PeekedContent(content) else content()
             RowHoldMenu(hold)
         }
+    }
+}
+
+/**
+ * Marks [touch] on the row's first press, watched on the way down and never
+ * consumed, so every control inside still gets the whole gesture.
+ */
+private fun Modifier.armRowTouch(touch: RowTouch): Modifier = pointerInput(touch) {
+    awaitEachGesture {
+        awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+        touch.touched = true
     }
 }
 

@@ -176,14 +176,31 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     fun langsIn(lex: UserLexicon, all: List<Pair<String, Int>>): Map<String, String> =
         all.mapNotNull { (word, _) -> lex.languageOf(word)?.let { word to it } }.toMap()
 
-    LaunchedEffect(loads) {
-        val lex = withContext(Dispatchers.IO) { UserLexicon(file) }
+    // The lists the rows read, worked out where the file was read: on a
+    // dictionary of thousands of words each is a pass over all of them, and
+    // four of those on the main thread were a long frame of their own.
+    class Read(
+        val all: List<Pair<String, Int>>,
+        val pinned: Set<String>,
+        val added: Set<String>,
+        val born: Map<String, Long>,
+        val langs: Map<String, String>,
+    )
+    fun readOf(lex: UserLexicon): Read {
         val all = lex.allWords()
-        words = all
-        pinned = pinnedIn(lex, all)
-        added = addedIn(lex, all)
-        born = bornIn(lex, all)
-        langs = langsIn(lex, all)
+        return Read(all, pinnedIn(lex, all), addedIn(lex, all), bornIn(lex, all), langsIn(lex, all))
+    }
+    fun show(read: Read) {
+        words = read.all
+        pinned = read.pinned
+        added = read.added
+        born = read.born
+        langs = read.langs
+    }
+
+    LaunchedEffect(loads) {
+        val (lex, read) = withContext(Dispatchers.IO) { UserLexicon(file).let { it to readOf(it) } }
+        show(read)
         lexicon = lex
         val adjustments = withContext(Dispatchers.IO) { WordRanks(ranksFile) }
         rankEntries = adjustments.all()
@@ -217,7 +234,7 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     fun persist(mutate: (UserLexicon) -> Unit) {
         val lex = lexicon ?: return
         scope.launch {
-            withContext(Dispatchers.IO) {
+            val read = withContext(Dispatchers.IO) {
                 val before = lex.allWords().mapTo(HashSet()) { it.first }
                 mutate(lex)
                 lex.save()
@@ -231,13 +248,9 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
                         save()
                     }
                 }
+                readOf(lex)
             }
-            val all = lex.allWords()
-            words = all
-            pinned = pinnedIn(lex, all)
-            added = addedIn(lex, all)
-            born = bornIn(lex, all)
-            langs = langsIn(lex, all)
+            show(read)
             repository.bumpLexiconVersion()
         }
     }
@@ -428,7 +441,18 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
             }
         }
     }
-    val sorted = remember(words, born, sort) { sortDictionaryWords(words, sort, born) }
+    // Sorted off the main thread: a collation key per word, which on a full
+    // dictionary was tens of milliseconds of the frame the list arrived in.
+    // The previous order stands for the frame or two this takes.
+    // Held with the list it was sorted from, so "no matches" is said only
+    // once the words on screen have actually been sorted.
+    var sortedFrom by remember { mutableStateOf<Pair<List<Pair<String, Int>>, List<Pair<String, Int>>>?>(null) }
+    LaunchedEffect(words, born, sort) {
+        val list = words
+        sortedFrom = list to withContext(Dispatchers.Default) { sortDictionaryWords(list, sort, born) }
+    }
+    val sorted = sortedFrom?.second.orEmpty()
+    val sortedNow = sortedFrom?.first === words
     val shown = remember(sorted, query, filter, langs) {
         val needle = query.trim().lowercase()
         val inLanguage = filter?.let { f -> sorted.filter { langs[it.first] == f.languageId } } ?: sorted
@@ -436,7 +460,7 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     }
     if (words.isEmpty()) {
         CaptionText(stringResource(R.string.backup_dictionary_empty))
-    } else if (shown.isEmpty()) {
+    } else if (shown.isEmpty() && sortedNow) {
         CaptionText(stringResource(R.string.backup_dictionary_no_matches, query))
     }
     // Drawn in pages. The screen is not a lazy list (see WmScreen), so every

@@ -10,7 +10,6 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,6 +42,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Constraints
@@ -203,13 +203,22 @@ fun SwipeActionsRow(
         onDispose { if (OpenSwipeRow.owner === token) OpenSwipeRow.owner = null }
     }
 
-    BoxWithConstraints(modifier.fillMaxWidth()) {
-        val widthPx = constraints.maxWidth.toFloat()
-        val fullAt = if (fullSwipe == null) Float.MAX_VALUE else maxOf(widthPx * FullSwipeFraction, openPx * 1.5f)
+    // The row's width, read only by the drag. A plain box measured in layout
+    // rather than `BoxWithConstraints`, which subcomposed every swipeable row
+    // on its own: a list of a hundred words paid a hundred extra compositions
+    // to open.
+    val width = remember { FloatArray(1) }
+    Box(modifier.fillMaxWidth().onSizeChanged { width[0] = it.width.toFloat() }) {
         // Where the finger has put the row, kept apart from the animatable so
         // deltas that arrive before the last snap has landed still add up.
         var dragPos by remember { mutableStateOf(0f) }
         val dragState = rememberDraggableState { delta ->
+            val widthPx = width[0]
+            val fullAt = if (currentFullSwipe == null) {
+                Float.MAX_VALUE
+            } else {
+                maxOf(widthPx * FullSwipeFraction, openPx * 1.5f)
+            }
             val toward = if (rtl) delta else -delta
             val limit = if (currentFullSwipe != null) widthPx else openPx + with(density) { 24.dp.toPx() }
             dragPos = (dragPos + toward).coerceIn(0f, limit)
@@ -221,27 +230,32 @@ fun SwipeActionsRow(
             scope.launch { reveal.snapTo(dragPos) }
         }
         val open by remember { derivedStateOf { reveal.value > 0.5f } }
+        // The buttons are composed only while there is a gap to show them in;
+        // a row at rest draws nothing behind it.
+        val showing by remember { derivedStateOf { reveal.value > 0f } }
 
         // The buttons, at the row's end, as wide as the row has moved.
-        Box(
-            Modifier
-                .matchParentSize()
-                .clipToBounds(),
-            contentAlignment = Alignment.CenterEnd,
-        ) {
-            SwipeStrip(
-                actions = actions,
-                armedAction = fullSwipe.takeIf { armed },
-                colors = colors,
-                buttonSize = buttonSize,
-                slotWidth = slotWidth,
-                openPx = openPx,
-                reveal = { reveal.value },
-                onAction = { action ->
-                    close()
-                    action.onClick()
-                },
-            )
+        if (showing || armed) {
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .clipToBounds(),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                SwipeStrip(
+                    actions = actions,
+                    armedAction = fullSwipe.takeIf { armed },
+                    colors = colors,
+                    buttonSize = buttonSize,
+                    slotWidth = slotWidth,
+                    openPx = openPx,
+                    reveal = { reveal.value },
+                    onAction = { action ->
+                        close()
+                        action.onClick()
+                    },
+                )
+            }
         }
         Box(
             Modifier
@@ -262,7 +276,7 @@ fun SwipeActionsRow(
                         if (fire == null) armed = false
                         when {
                             fire != null -> {
-                                settle(widthPx)
+                                settle(width[0])
                                 fire.onClick()
                                 // A row the action removed is gone by now and
                                 // this never runs; one it kept (a dialog

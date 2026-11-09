@@ -3860,6 +3860,10 @@ internal fun SettingsGroup(
         GroupSkeleton(shown, hasTitle = title != null)
         return
     }
+    // A large group comes in a few rows a frame, the rest held as slabs
+    // under the rows already drawn — see [rememberRowStage].
+    val stage = rememberRowStage(shown)
+    val staged = if (stage.count >= shown) entries else entries.firstShown(stage.count)
     // A group folded by its level is named by its title: two such groups on
     // one screen must not share a remembered state.
     val foldId = (foldKey ?: if (foldsWhole) "level:$title" else null)?.let { "$route/$it" }
@@ -3918,7 +3922,7 @@ internal fun SettingsGroup(
                 // Which rows are drawn, and how keyed ones arrive and leave,
                 // is GroupRows' business (SettingsGroupMotion.kt); the card
                 // each one sits on is this file's.
-                GroupRows(entries) { modifier, gapAbove, first, last, content ->
+                GroupRows(staged, quietArrivals = stage.growing) { modifier, gapAbove, first, last, content ->
                     Column(modifier = modifier) {
                         if (gapAbove) Spacer(Modifier.height(3.dp))
                         GroupCard(
@@ -3947,8 +3951,26 @@ internal fun SettingsGroup(
                 cards()
             }
         }
+        if (open && stage.count < shown) {
+            GroupSkeleton(shown - stage.count, hasTitle = false, modifier = Modifier.padding(top = 3.dp))
+        }
         Spacer(Modifier.height(GroupTail))
     }
+}
+
+/**
+ * The entries up to and including the [count]th one that is showing, with the
+ * hidden conditional rows among them kept in their places.
+ */
+private fun List<SettingsGroupScope.Entry>.firstShown(count: Int): List<SettingsGroupScope.Entry> {
+    var seen = 0
+    val out = ArrayList<SettingsGroupScope.Entry>(count)
+    for (entry in this) {
+        if (seen >= count) break
+        out += entry
+        if (entry.visible) seen++
+    }
+    return out
 }
 
 /**

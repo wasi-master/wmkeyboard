@@ -79,6 +79,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import com.wasimaster.wmkeyboard.core.settings.SettingsDepth
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.awaitCancellation
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -98,6 +99,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
@@ -128,14 +130,15 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -840,6 +843,91 @@ internal class ScreenReveal {
 
     /** How many queued groups have been let in, advanced one per frame. */
     var wave by mutableIntStateOf(0)
+
+    /** [isSettled] as snapshot state, for the groups waiting on it to grow; see [rememberRowStage]. */
+    var landed by mutableStateOf(false)
+
+    /**
+     * True on a screen that came back off the back stack with its scroll
+     * restored: everything composes at once there, or the offset would be
+     * clamped against rows that are not there yet. See [WmScreen].
+     */
+    var restored = false
+}
+
+/** Rows a large group adds per frame once the screen has landed; see [rememberRowStage]. */
+private const val StagedRowStep = 8
+
+/** The ledger behind [rememberRowStage], one per group. */
+@Stable
+private class RowStageState(initial: Int) {
+    /** How many of the group's rows may compose. */
+    var cap by mutableIntStateOf(initial)
+
+    /** True while the rows coming in are the stager's, not an edit; see [RowStage.growing]. */
+    var growing by mutableStateOf(false)
+}
+
+/**
+ * How much of a group composes on this pass: [count] of its rows, the rest
+ * standing in as a skeleton. [growing] is true while rows arrive because the
+ * stage moved on rather than because the list changed, so the rows do not
+ * open into place one batch at a time as if each batch had just been added.
+ */
+internal class RowStage(val count: Int, val growing: Boolean)
+
+/**
+ * Lets a large group in a few rows at a time.
+ *
+ * [rememberGroupRevealed] decides *when* a group composes, but a group is let
+ * in whole, and one group can be most of a screen: a hundred learnt words, a
+ * clipboard's worth of rules, the first group of a screen (which always
+ * composes) holding thirty switches. Each of those landed as one frame of a
+ * third to half a second on a mid-range phone, either inside the entrance or
+ * as the freeze straight after it. Here a group composes [EagerRowBudget] rows
+ * while the screen is still arriving (a group let in later starts at
+ * [StagedRowStep]), and once it has landed adds [StagedRowStep] more a frame
+ * until it is whole. The rows still to come hold their place as a skeleton.
+ *
+ * A group that grows by a step or less after the screen has landed — a word
+ * added, a switch showing its sub-rows — takes the new rows at once, as it
+ * always has. A screen coming back off the back stack composes everything at
+ * once for the reason [ScreenReveal.restored] gives. Outside a [WmScreen] the
+ * group is always whole.
+ */
+@Composable
+internal fun rememberRowStage(total: Int): RowStage {
+    val reveal = LocalScreenReveal.current
+    if (reveal == null || reveal.restored) return RowStage(total, growing = false)
+    val stage = remember { RowStageState(if (reveal.isSettled) StagedRowStep else EagerRowBudget) }
+    val cap = stage.cap
+    val count = when {
+        total <= cap -> total
+        reveal.landed && total <= cap + StagedRowStep -> total
+        else -> cap
+    }
+    if (count < total) {
+        val latest = rememberUpdatedState(total)
+        LaunchedEffect(stage) {
+            try {
+                snapshotFlow { reveal.landed }.first { it }
+                stage.growing = true
+                while (stage.cap < latest.value) {
+                    withFrameNanos { }
+                    stage.cap += StagedRowStep
+                }
+                // Held until the pass that takes the last rows has composed
+                // and this effect leaves with the skeleton.
+                awaitCancellation()
+            } finally {
+                stage.growing = false
+            }
+        }
+    } else if (total > cap) {
+        // Taken at once: the next comparison is against what is drawn now.
+        SideEffect { stage.cap = total }
+    }
+    return RowStage(count, stage.growing)
 }
 
 /**
@@ -1596,14 +1684,53 @@ private fun Modifier.animatePlacement(): Modifier {
  */
 @Composable
 private fun rememberSpaceWidth(style: TextStyle): Dp {
-    val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
-    return remember(style, density) {
-        val apart = measurer.measure("x x", style, maxLines = 1).size.width
-        val together = measurer.measure("xx", style, maxLines = 1).size.width
-        with(density) { (apart - together).coerceAtLeast(0).toDp() }
+    val direction = LocalLayoutDirection.current
+    val resolver = LocalFontFamilyResolver.current
+    // Once per style for the whole app rather than once per row: every name
+    // on a screen asks the same question about the same two or three styles,
+    // and each asking was two paragraph layouts on the screen's first frame.
+    return remember(style, density, direction) {
+        SpaceWidths.getOrPut(SpaceWidthKey(style, density.density, density.fontScale, direction)) {
+            val measurer = TextMeasurer(resolver, density, direction)
+            val apart = measurer.measure("x x", style, maxLines = 1).size.width
+            val together = measurer.measure("xx", style, maxLines = 1).size.width
+            with(density) { (apart - together).coerceAtLeast(0).toDp() }
+        }
     }
 }
+
+/** What a space's width depends on; see [rememberSpaceWidth]. */
+private data class SpaceWidthKey(
+    val style: TextStyle,
+    val density: Float,
+    val fontScale: Float,
+    val direction: LayoutDirection,
+)
+
+/** [rememberSpaceWidth]'s answers, kept for the life of the process. */
+private val SpaceWidths = java.util.concurrent.ConcurrentHashMap<SpaceWidthKey, Dp>()
+
+/**
+ * Whether anyone has touched the row a [ReflowingText] sits in. Published by
+ * [HighlightableRow], which wraps every settings row.
+ *
+ * A name only re-wraps when its row's furniture changes width, and that
+ * furniture changes because the row was used: the reset control arrives after
+ * a switch is flipped, a slider's readout widens under the finger. So the name
+ * is drawn as one plain [Text] until the first press anywhere on the row, and
+ * becomes the word-by-word layout that can animate only then, a frame before
+ * the change it is there for. Drawn as one text a name costs one paragraph; as
+ * words it cost a node, a paragraph and a placement animation per word, which
+ * on a screen of thirty switches was most of what made it slow to open.
+ */
+@Stable
+internal class RowTouch {
+    var touched by mutableStateOf(false)
+}
+
+/** The [RowTouch] of the row being drawn; null outside [HighlightableRow]. */
+internal val LocalRowTouch = compositionLocalOf<RowTouch?> { null }
 
 /**
  * A row's name, drawn so that it re-wraps by moving rather than by jumping.
@@ -1622,6 +1749,8 @@ private fun rememberSpaceWidth(style: TextStyle): Dp {
  *
  * Falls back to a plain [Text] when there is nothing to animate:
  *
+ * - The row has not been touched yet ([RowTouch]), which is how every name on
+ *   a screen that has just opened is drawn.
  * - **Reduce motion** is on, and the point of the whole thing is the motion.
  * - The name has no spaces in it, which is one word in a script that writes
  *   them separately and a whole sentence in one that does not. Chinese,
@@ -1647,7 +1776,10 @@ internal fun ReflowingText(
     // orders its words by the text.
     val rtlText = remember(text) { firstStrongIsRtl(text) }
     val crossDirection = rtlText != null && rtlText != (LocalLayoutDirection.current == LayoutDirection.Rtl)
-    if (LocalReduceMotion.current || words.size < 2 || crossDirection) {
+    // Untouched, the name has nothing to animate yet; see [RowTouch]. A name
+    // drawn outside any row keeps the word layout from the start.
+    val untouched = LocalRowTouch.current?.touched == false
+    if (LocalReduceMotion.current || words.size < 2 || crossDirection || untouched) {
         Text(text, modifier = modifier, style = resolved)
         return
     }
@@ -2685,7 +2817,12 @@ internal fun WmScreen(
         // so deferring rows on the way back would throw the user's place away.
         // Deferral is for fresh opens, which always start at the top.
         val reveal = remember {
-            ScreenReveal().apply { if (scrollState.value > 0) isSettled = true }
+            ScreenReveal().apply {
+                if (scrollState.value > 0) {
+                    isSettled = true
+                    restored = true
+                }
+            }
         }
         val settled = rememberScreenSettled()
         LaunchedEffect(settled) {
@@ -2693,6 +2830,7 @@ internal fun WmScreen(
             // Anything asking from here on composes straight away; the queue
             // built during the entrance is drained one group per frame.
             reveal.isSettled = true
+            reveal.landed = true
             while (reveal.wave < reveal.deferredCount) {
                 withFrameNanos { }
                 reveal.wave++
