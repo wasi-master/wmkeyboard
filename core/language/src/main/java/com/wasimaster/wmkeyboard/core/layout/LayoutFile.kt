@@ -29,7 +29,23 @@ private data class LayoutEnvelope(
     val appVersion: Int = 0,
     val appVersionName: String = "",
     val layout: LayoutSpec,
+    /** The Your icons pictures the layout's keys wear; see [LayoutIcon]. */
+    val icons: List<LayoutIcon> = emptyList(),
 )
+
+/**
+ * A picture out of the user's icon library that travels inside a layout file,
+ * because a key wearing one stores only `u:<id>` and the phone the file is
+ * opened on has no such picture yet.
+ *
+ * [data] is the file's bytes in base64; this module only carries it. The app
+ * decodes it, checks it the way any imported icon is checked, and adds it to
+ * the library, where it lands under the same [id], because the id is a hash
+ * of those bytes. An entry that fails any of that is dropped and the key draws
+ * its text.
+ */
+@Serializable
+data class LayoutIcon(val id: String, val name: String = "", val data: String)
 
 /**
  * Several layouts in one file (#970): every layout in use, to move to another
@@ -44,6 +60,7 @@ private data class LayoutBundle(
     val appVersion: Int = 0,
     val appVersionName: String = "",
     val layouts: List<LayoutSpec>,
+    val icons: List<LayoutIcon> = emptyList(),
 )
 
 /** A layout read off disk, with whatever had to be fixed to make it usable. */
@@ -53,6 +70,8 @@ data class ImportedLayout(
     val repairNotes: List<LayoutMessage>,
     /** Version code of the build that wrote the file; 0 when unstated. */
     val fromAppVersion: Int,
+    /** Pictures the file carried for its keys; see [LayoutIcon]. */
+    val icons: List<LayoutIcon> = emptyList(),
 )
 
 object LayoutFile {
@@ -97,10 +116,28 @@ object LayoutFile {
      * An export: every field of every key, indented two spaces (#970), so the
      * file reads and diffs as text. The import does not care either way.
      */
-    fun encode(layout: LayoutSpec, appVersion: Int, appVersionName: String): String =
+    fun encode(
+        layout: LayoutSpec,
+        appVersion: Int,
+        appVersionName: String,
+        icons: List<LayoutIcon> = emptyList(),
+    ): String =
         exportJson.encodeToString(
-            LayoutEnvelope(FORMAT, VERSION, appVersion, appVersionName, layout),
+            LayoutEnvelope(FORMAT, VERSION, appVersion, appVersionName, layout, icons),
         )
+
+    /** What a key's icon names to wear a picture from the user's icon library. */
+    private val LIBRARY_ICON = Regex(""""u:([0-9a-f]{16})"""")
+
+    /**
+     * The ids of every library picture [layouts] wear, for an export to carry.
+     * Read off the encoded form rather than by walking the keys, so a key in a
+     * flick, a layer or a popup is found the same as one on the board.
+     */
+    fun libraryIconIds(layouts: List<LayoutSpec>): Set<String> =
+        layouts.flatMapTo(LinkedHashSet()) { layout ->
+            LIBRARY_ICON.findAll(LayoutCodec.json.encodeToString(layout)).map { it.groupValues[1] }
+        }
 
     private val exportJson = Json(LayoutCodec.json) {
         prettyPrint = true
@@ -145,6 +182,7 @@ object LayoutFile {
             layout = repaired.spec,
             repairNotes = repaired.repairNotes,
             fromAppVersion = envelope.appVersion,
+            icons = envelope.icons,
         )
     }
 
@@ -159,8 +197,13 @@ object LayoutFile {
         "Layouts-" + SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(Date(stampMs)) + ".$BUNDLE_EXTENSION"
 
     /** [layouts] in one file, indented like [encode]. */
-    fun encodeBundle(layouts: List<LayoutSpec>, appVersion: Int, appVersionName: String): String =
-        exportJson.encodeToString(LayoutBundle(BUNDLE_FORMAT, VERSION, appVersion, appVersionName, layouts))
+    fun encodeBundle(
+        layouts: List<LayoutSpec>,
+        appVersion: Int,
+        appVersionName: String,
+        icons: List<LayoutIcon> = emptyList(),
+    ): String =
+        exportJson.encodeToString(LayoutBundle(BUNDLE_FORMAT, VERSION, appVersion, appVersionName, layouts, icons))
 
     /**
      * Every layout in a file [encodeBundle] wrote, each repaired the way
@@ -174,7 +217,7 @@ object LayoutFile {
         if (bundle.format != BUNDLE_FORMAT || bundle.layouts.isEmpty()) return null
         return bundle.layouts.map { layout ->
             val repaired = layout.repair()
-            ImportedLayout(repaired.spec, repaired.repairNotes, bundle.appVersion)
+            ImportedLayout(repaired.spec, repaired.repairNotes, bundle.appVersion, bundle.icons)
         }
     }
 

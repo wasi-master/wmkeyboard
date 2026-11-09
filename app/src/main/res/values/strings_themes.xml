@@ -647,6 +647,13 @@
     <string name="theme_script_font_default_label">Use the script default</string>
     <string name="theme_script_font_all_set_body">Every script already has a font in this theme.</string>
 
+    <!-- Theme editor: the glyphs the theme draws on the keyboard's own keys. -->
+    <string name="theme_key_icons_section_title">Key icons</string>
+    <string name="theme_key_icons_section_body">The theme can draw its own icon on the delete, shift, enter and other keys. Pick a picture from Your icons. The theme keeps its own copy, so the icon goes with the theme when you export it. An icon pack or an icon you picked under Appearance, then Icons, comes first.</string>
+    <string name="theme_key_icons_from_theme_label">From this theme</string>
+    <string name="theme_key_icons_hidden_label">Hidden by your icon pack or the Icons screen</string>
+    <string name="theme_key_icons_remove_action">Remove from the theme</string>
+
     <!-- Gradient editor. -->
     <!-- Caption over the choice of gradient shape. -->
     <string name="theme_gradient_type_label">Gradient shape</string>

@@ -41,7 +41,10 @@ import com.wasimaster.wmkeyboard.core.selection.SelectionMacro
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacroCodec
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacros
 import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
+import com.wasimaster.wmkeyboard.core.icons.IconLibrary
 import com.wasimaster.wmkeyboard.core.icons.IconOverrides
+import com.wasimaster.wmkeyboard.core.icons.IconSlots
+import com.wasimaster.wmkeyboard.core.icons.LibraryAddResult
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.core.icons.RasterIcons
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog
@@ -19244,7 +19247,9 @@ class SettingsRepository(private val context: Context) {
      * list of pack names with no icons in them.
      */
     private fun iconSection(): JsonElement? {
-        val manifest = readStore(iconManifestPath) ?: return null
+        val library = iconLibrarySection()
+        val manifest = readStore(iconManifestPath)
+            ?: return library?.let { buildJsonObject { put("library", it) } }
         val store = IconPackStore.get(context)
         val root = File(context.filesDir, IconPackStore.DIR_NAME)
         val files = buildJsonObject {
@@ -19262,6 +19267,28 @@ class SettingsRepository(private val context: Context) {
                 }
             }
         }
+        if (files.isEmpty()) return library?.let { buildJsonObject { put("library", it) } }
+        return buildJsonObject {
+            put("manifest", manifest)
+            put("files", files)
+            library?.let { put("library", it) }
+        }
+    }
+
+    /**
+     * The user's [IconLibrary] as `{manifest, files}`, carried inside the icons
+     * section under `library` so a backup from before it existed still reads.
+     */
+    private fun iconLibrarySection(): JsonElement? {
+        val library = IconLibrary.get(context)
+        val manifest = readStore("${IconLibrary.DIR_NAME}/${IconLibrary.MANIFEST}") ?: return null
+        val files = buildJsonObject {
+            for (icon in library.icons()) {
+                val file = library.fileFor(icon.id) ?: continue
+                val bytes = runCatching { file.readBytes() }.getOrNull() ?: continue
+                put(file.name, JsonPrimitive(Base64.encodeToString(bytes, Base64.NO_WRAP)))
+            }
+        }
         if (files.isEmpty()) return null
         return buildJsonObject {
             put("manifest", manifest)
@@ -19269,9 +19296,36 @@ class SettingsRepository(private val context: Context) {
         }
     }
 
+    /**
+     * Replaces the library directory with the bundle's. Each file is written
+     * under the name its own bytes hash to, whatever the bundle called it, so a
+     * name in the file can never become a path.
+     */
+    private fun restoreIconLibrary(section: JsonObject): Boolean {
+        val manifest = section["manifest"] as? JsonObject ?: return false
+        val files = section["files"] as? JsonObject ?: JsonObject(emptyMap())
+        val root = File(context.filesDir, IconLibrary.DIR_NAME)
+        return runCatching {
+            root.deleteRecursively()
+            root.mkdirs()
+            for ((_, value) in files) {
+                val bytes = (value as? JsonPrimitive)?.contentOrNull
+                    ?.let { runCatching { Base64.decode(it, Base64.DEFAULT) }.getOrNull() }
+                    ?: continue
+                val extension = IconLibrary.extensionOf(bytes) ?: continue
+                File(root, "${IconLibrary.idFor(bytes)}.$extension").writeBytes(bytes)
+            }
+            File(root, IconLibrary.MANIFEST).writeText(manifest.toString())
+            // Entries whose file did not come back are dropped by the reload.
+            IconLibrary.get(context).reload()
+            true
+        }.getOrDefault(false)
+    }
+
     /** Replaces the icon-pack directory with the bundle's packs and SVGs. */
     private fun restoreIcons(section: JsonObject): Boolean {
-        val manifest = section["manifest"] as? JsonObject ?: return false
+        val libraryRestored = (section["library"] as? JsonObject)?.let { restoreIconLibrary(it) } == true
+        val manifest = section["manifest"] as? JsonObject ?: return libraryRestored
         val files = section["files"] as? JsonObject ?: JsonObject(emptyMap())
         val root = File(context.filesDir, IconPackStore.DIR_NAME)
         return runCatching {
@@ -23442,6 +23496,74 @@ class SettingsRepository(private val context: Context) {
             if (kept.isEmpty()) prefs.remove(ICON_OVERRIDES)
             else prefs[ICON_OVERRIDES] = IconOverrides.encode(kept)
         }
+
+    /**
+     * Puts every slot wearing library picture [id] back on its default, for
+     * when the picture is deleted. The keyboard would fall back anyway; this
+     * keeps the Icons screen from naming a picture that is gone.
+     */
+    suspend fun forgetLibraryIcon(id: String) =
+        editPrefs { prefs ->
+            val kept = IconOverrides.decode(prefs[ICON_OVERRIDES])
+                .filterValues { it != IconOverrides.librarySource(id) }
+            if (kept.isEmpty()) prefs.remove(ICON_OVERRIDES)
+            else prefs[ICON_OVERRIDES] = IconOverrides.encode(kept)
+        }
+
+    /**
+     * Moves the old "My icons" pack into the [IconLibrary], once.
+     *
+     * Before the library, a picture imported for a slot was stored in that pack
+     * under the slot's id. Every such file becomes a library picture, a slot
+     * still pinned to the pack is re-pointed at its picture, and the pack goes
+     * once it is empty. Pictures a slot had already moved off come back too:
+     * they were on disk all along with nothing listing them, which is the
+     * complaint the library answers.
+     *
+     * Safe to call any number of times, from the keyboard and the settings app
+     * alike: with no "My icons" pack it returns at once. A picture the library
+     * cannot take (it is full) stays in the pack and is tried again next time.
+     */
+    suspend fun moveMyIconsIntoLibrary() {
+        val store = IconPackStore.get(context)
+        val mine = store.pack(IconPackStore.MINE_ID) ?: return
+        val library = IconLibrary.get(context)
+        val moved = HashMap<String, String>()
+        withContext(Dispatchers.IO) {
+            for (key in mine.slots) {
+                val file = store.fileFor(mine.id, key)?.takeIf { it.isFile } ?: continue
+                val bytes = runCatching { file.readBytes() }.getOrNull() ?: continue
+                val slot = IconSlots.slotOf(key)
+                val name = IconSlots.byId(slot)?.labelRes
+                    ?.let { runCatching { context.getString(it) }.getOrNull() }
+                    ?: key
+                val added = library.add(bytes, name, now = file.lastModified())
+                if (added is LibraryAddResult.Added) moved[key] = added.icon.id
+            }
+        }
+        if (moved.isNotEmpty()) {
+            editPrefs { prefs ->
+                val overrides = IconOverrides.decode(prefs[ICON_OVERRIDES]).toMutableMap()
+                val mineSource = IconOverrides.packSource(IconPackStore.MINE_ID)
+                for ((slot, source) in overrides.toMap()) {
+                    if (source != mineSource) continue
+                    val id = moved[slot]
+                    if (id != null) overrides[slot] = IconOverrides.librarySource(id)
+                }
+                prefs[ICON_OVERRIDES] = IconOverrides.encode(overrides)
+                if (prefs[ICON_PACK_ID] == IconPackStore.MINE_ID && moved.size == mine.slots.size) {
+                    prefs.remove(ICON_PACK_ID)
+                }
+            }
+        }
+        withContext(Dispatchers.IO) {
+            if (moved.size == mine.slots.size) {
+                store.deletePack(mine.id)
+            } else {
+                for (key in moved.keys) store.removeIcon(mine.id, key)
+            }
+        }
+    }
 
     suspend fun setEmojiTabMode(value: EmojiTabMode) =
         editPrefs { it[EMOJI_TAB_MODE] = value.name }

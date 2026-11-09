@@ -17,6 +17,7 @@ import com.wasimaster.wmkeyboard.core.dictionaries.WordlistDownloadManager
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
 import com.wasimaster.wmkeyboard.core.feedback.SoundStore
 import com.wasimaster.wmkeyboard.core.fonts.FontStore
+import com.wasimaster.wmkeyboard.core.icons.IconLibrary
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Article
@@ -1172,10 +1173,10 @@ internal object StorageCategories {
             group = StorageGroup.LOOKS,
             danger = Danger.PERSONAL,
             manageRoute = "icons",
-            pathsOf = { listOf(File(it.files, "iconpacks")) },
+            pathsOf = { listOf(File(it.files, "iconpacks"), File(it.files, IconLibrary.DIR_NAME)) },
             itemsOf = { env ->
                 val store = IconPackStore.get(env.context)
-                store.packs().map { pack ->
+                val packs = store.packs().map { pack ->
                     StorageItem(
                         id = pack.id,
                         label = pack.name,
@@ -1183,11 +1184,33 @@ internal object StorageCategories {
                         files = listOfNotNull(store.packDir(pack.id)),
                     )
                 }
+                // Your icons, as one item: its pictures are tidied on its own page.
+                val libraryDir = File(env.roots.files, IconLibrary.DIR_NAME)
+                val library = if (IconLibrary.get(env.context).icons().isNotEmpty()) {
+                    listOf(
+                        StorageItem(
+                            id = LIBRARY_ITEM_ID,
+                            label = env.context.getString(R.string.plugins_icons_library_title),
+                            bytes = diskUsage(libraryDir, env.roots.blockSize),
+                            files = listOf(libraryDir),
+                        ),
+                    )
+                } else {
+                    emptyList()
+                }
+                packs + library
             },
-            deleteOne = { env, item -> IconPackStore.get(env.context).deletePack(item.id) },
+            deleteOne = { env, item ->
+                if (item.id == LIBRARY_ITEM_ID) {
+                    IconLibrary.get(env.context).clear()
+                } else {
+                    IconPackStore.get(env.context).deletePack(item.id)
+                }
+            },
             clearOf = { env ->
                 val store = IconPackStore.get(env.context)
                 store.packs().forEach { store.deletePack(it.id) }
+                IconLibrary.get(env.context).clear()
                 sweepLeftovers(File(env.roots.files, "iconpacks"))
             },
         ),
@@ -1713,3 +1736,6 @@ internal object StorageCategories {
         }
     }
 }
+
+/** The Icon packs category's item for Your icons; no pack id can look like it. */
+private const val LIBRARY_ITEM_ID = ".library"

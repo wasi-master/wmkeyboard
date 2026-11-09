@@ -28336,7 +28336,7 @@ fun layoutSwitchLabel(
  */
 @Composable
 private fun ActionKeyIcon(
-    named: ImageVector?,
+    named: ResolvedIcon?,
     slot: String,
     contentDescription: String?,
     tint: Color,
@@ -28345,9 +28345,25 @@ private fun ActionKeyIcon(
 ) {
     val sized = if (scale != 1f) Modifier.size((ActionKeyIconDp * scale).dp) else Modifier
     if (named != null) {
-        Icon(named, contentDescription = contentDescription, tint = tint, modifier = sized)
+        NamedKeyIcon(named, contentDescription = contentDescription, tint = tint, modifier = sized)
     } else {
         SlotIcon(slot, contentDescription = contentDescription, tint = tint, modifier = sized)
+    }
+}
+
+/**
+ * An icon a layout named for a key: a bundled glyph, or a picture out of the
+ * user's icon library (`u:<id>`), which may be a bitmap and may carry colours
+ * of its own. A picture that does keeps them; everything else takes [tint].
+ */
+@Composable
+private fun NamedKeyIcon(icon: ResolvedIcon, contentDescription: String?, tint: Color, modifier: Modifier = Modifier) {
+    val shade = if (icon.monochrome) tint else Color.Unspecified
+    val bitmap = icon.bitmap
+    val vector = icon.vector
+    when {
+        bitmap != null -> Icon(bitmap = bitmap, contentDescription = contentDescription, modifier = modifier, tint = shade)
+        vector != null -> Icon(vector, contentDescription = contentDescription, modifier = modifier, tint = shade)
     }
 }
 
@@ -28426,7 +28442,12 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
     val fontScale = settings.fontScale * visual.fontScale
     // An icon the layout named for this key (issue #187). Every branch below
     // honours it, so a space bar or a shift key can wear one as well as a letter.
-    val namedIcon = KeyIcons.byName(key.icon)
+    // A name may also point into the user's icon library (`u:<id>`): that one
+    // is read off the main thread and arrives a frame later, drawing the
+    // key's text until it does.
+    val namedVector = KeyIcons.byName(key.icon)
+    val libraryIcon = rememberLibraryIcon(if (namedVector == null) KeyIcons.libraryIdOf(key.icon) else null)
+    val namedIcon = namedVector?.let { ResolvedIcon(vector = it) } ?: libraryIcon
     // A label size set on the key itself sizes its icon when it draws one
     // (#970): an action in the middle of a flick key, say, which has no text
     // for the size to reach. The layout's own value only, so a theme's
@@ -28577,9 +28598,9 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
         // Copy, Paste). An icon the author named still wins, like any key.
         is KeyAction.Edit -> {
             val op = (key.action as KeyAction.Edit).op
-            val mainIcon = namedIcon ?: textEditIcon(op)
+            val mainIcon = namedIcon ?: textEditIcon(op)?.let { ResolvedIcon(vector = it) }
             if (mainIcon != null && key.label.isBlank()) {
-                Icon(
+                NamedKeyIcon(
                     mainIcon,
                     contentDescription = visual.spoken.resolved(),
                     tint = contentColor,
@@ -28628,7 +28649,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     if (namedIcon != null) {
                         // Beside the name it is read at the name's weight; alone
                         // it is the key's face, like an icon on any other key.
-                        Icon(
+                        NamedKeyIcon(
                             namedIcon,
                             contentDescription = if (showText) null else visual.spoken.resolved(),
                             tint = if (showText) contentColor.copy(alpha = 0.5f) else contentColor,
@@ -28681,9 +28702,12 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                 null
             }
             if (mainIcon != null) {
-                Icon(
+                NamedKeyIcon(
                     mainIcon,
-                    contentDescription = key.label.ifBlank { key.icon.orEmpty()},
+                    // A library picture's name is an id, nothing to read out.
+                    contentDescription = key.label.ifBlank {
+                        if (libraryIcon != null) visual.spoken.resolved() else key.icon.orEmpty()
+                    },
                     tint = contentColor,
                     modifier = Modifier
                         .align(Alignment.Center)

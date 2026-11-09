@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +16,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,12 +58,15 @@ internal val IconGridGlyph = 22.dp
  * An [IconGridCell] that draws its own [glyph], for art that is not a plain
  * vector: a pack's picture, or a full-colour icon that must not take the tint.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun IconGridCell(
     name: String,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    /** A long press, for a cell that has more to offer than being picked. */
+    onLongClick: (() -> Unit)? = null,
     glyph: @Composable () -> Unit,
 ) {
     Surface(
@@ -70,7 +78,15 @@ internal fun IconGridCell(
         },
         modifier = modifier
             .fillMaxWidth()
-            .selectable(selected = selected, onClick = onClick),
+            .then(
+                if (onLongClick == null) {
+                    Modifier.selectable(selected = selected, onClick = onClick)
+                } else {
+                    Modifier
+                        .semantics { this.selected = selected }
+                        .combinedClickable(onClick = onClick, onLongClick = onLongClick, role = Role.Tab)
+                },
+            ),
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

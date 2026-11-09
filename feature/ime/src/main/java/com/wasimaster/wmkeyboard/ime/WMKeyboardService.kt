@@ -5691,6 +5691,12 @@ open class WMKeyboardService : InputMethodService() {
         // makes the keyboard redraw with the user's own icons.
         com.wasimaster.wmkeyboard.core.stickers.StickerPackStore.attach(this)
         com.wasimaster.wmkeyboard.core.icons.IconPackStore.attach(this)
+        com.wasimaster.wmkeyboard.core.icons.IconLibrary.attach(this)
+        // The old "My icons" pack moves into the icon library once the files
+        // are readable; a no-op every start after the first.
+        if (userUnlocked && ::settingsRepository.isInitialized) {
+            serviceScope.launch { runCatching { settingsRepository.moveMyIconsIntoLibrary() } }
+        }
         com.wasimaster.wmkeyboard.core.fonts.FontStore.attach(this)
         SoundStore.attach(this)
         com.wasimaster.wmkeyboard.core.feedback.SoundPackStore.attach(this)

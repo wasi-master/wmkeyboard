@@ -1,5 +1,9 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.icons.IconLibrary
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SegmentedButton
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -213,6 +217,7 @@ import com.wasimaster.wmkeyboard.core.layout.compile
 import com.wasimaster.wmkeyboard.ime.ui.BuiltinIcons
 import com.wasimaster.wmkeyboard.ime.ui.IconDefaults
 import com.wasimaster.wmkeyboard.ime.ui.KeyIcons
+import com.wasimaster.wmkeyboard.ime.ui.rememberLibraryIcon
 import com.wasimaster.wmkeyboard.ime.ui.fixedAlternateRowSizes
 import com.wasimaster.wmkeyboard.ime.ui.textEditIcon
 import com.wasimaster.wmkeyboard.core.layout.GridUnitStep
@@ -605,10 +610,14 @@ internal fun KeyLayoutsScreen(
         PickerPlaces.remember(context, PickerPlaces.LAYOUT_EXPORT, uri)
         scope.launch {
             val ok = runCancellable {
+                // The Your icons pictures its keys wear go along, or the keys
+                // would show only their text on the phone that opens the file.
+                val icons = withContext(Dispatchers.IO) { layoutIconsFor(context, listOf(layout)) }
                 val text = LayoutFile.encode(
                     layout,
                     appVersion = BuildConfig.VERSION_CODE,
                     appVersionName = BuildConfig.VERSION_NAME,
+                    icons = icons,
                 )
                 withContext(Dispatchers.IO) {
                     context.contentResolver.requireOutputStream(uri).use {
@@ -637,7 +646,8 @@ internal fun KeyLayoutsScreen(
         PickerPlaces.remember(context, PickerPlaces.LAYOUT_EXPORT, uri)
         scope.launch {
             val ok = runCancellable {
-                val text = LayoutFile.encodeBundle(bundle, BuildConfig.VERSION_CODE, BuildConfig.VERSION_NAME)
+                val icons = withContext(Dispatchers.IO) { layoutIconsFor(context, bundle) }
+                val text = LayoutFile.encodeBundle(bundle, BuildConfig.VERSION_CODE, BuildConfig.VERSION_NAME, icons)
                 withContext(Dispatchers.IO) {
                     context.contentResolver.requireOutputStream(uri).use { it.write(text.toByteArray()) }
                 }
@@ -1252,6 +1262,7 @@ internal fun KeyLayoutsScreen(
                     val id = "custom_${System.currentTimeMillis()}"
                     val name = imported.layout.name
                     scope.launch {
+                        withContext(Dispatchers.IO) { adoptLayoutIcons(context, imported.icons) }
                         repository.upsertCustomLayout(imported.layout.copy(id = id))
                         if (turnOn) {
                             repository.setEnabledLayoutIds((settings.value.enabledLayoutIds + id).distinct())
@@ -1300,6 +1311,9 @@ internal fun KeyLayoutsScreen(
                 // (a built-in, or the same file twice) gets a new id instead.
                 fun import(turnOn: Boolean) {
                     scope.launch {
+                        withContext(Dispatchers.IO) {
+                            adoptLayoutIcons(context, bundle.flatMap { it.icons }.distinctBy { it.id })
+                        }
                         val taken = settings.value.customLayouts.mapTo(HashSet()) { it.id }
                         val now = System.currentTimeMillis()
                         val ids = bundle.mapIndexed { i, imported ->
@@ -5213,6 +5227,8 @@ internal fun EditorKeyCell(
             // the field's own enter, the globe, a tool's toolbar icon. Through
             // the slot, so an icon pack redresses the preview with the board.
             val slot = editorKeySlot(key, face.enterSlot)
+            // A picture out of Your icons, read off the main thread.
+            val libraryIcon = rememberLibraryIcon(KeyIcons.libraryIdOf(key.icon))
             // A tool key draws the tool's icon on the keyboard, so it draws one
             // here too — the rule this whole pair of helpers exists to keep.
             val cellIcon = KeyIcons.byName(key.icon)
@@ -5234,6 +5250,13 @@ internal fun EditorKeyCell(
                     slot,
                     contentDescription = primary.ifBlank { null },
                     tint = foreground,
+                    modifier = Modifier.size(20.dp),
+                )
+            } else if (libraryIcon != null) {
+                TintedResolvedIcon(
+                    libraryIcon,
+                    tint = foreground,
+                    contentDescription = primary.ifBlank { null },
                     modifier = Modifier.size(20.dp),
                 )
             } else if (cellIcon != null) {
@@ -6400,6 +6423,7 @@ internal fun KeyEditSheet(
                 if (hint) R.string.layout_editor_icon_hint_field_label else R.string.layout_editor_icon_field_label,
             ),
             selected = if (hint) key.iconHint else key.icon,
+            allowLibrary = !hint,
             onDismiss = { pickingIcon = null },
             onPick = { name ->
                 pickingIcon = null
@@ -7213,10 +7237,12 @@ private fun LettersField(
  */
 @Composable
 private fun IconPickRow(@StringRes title: Int, name: String?, onClick: () -> Unit) {
+    // A picture from Your icons is stored as `u:<id>`; the row names it instead.
+    val pictureName = libraryPictureName(name)
     NavRow(
         title = title,
         subtitle = iconFieldSupport(name),
-        value = name ?: stringResource(R.string.layout_editor_icon_none_label),
+        value = pictureName ?: name ?: stringResource(R.string.layout_editor_icon_none_label),
         icon = KeyIcons.byName(name) ?: SettingsRowIcons[title],
         onClick = onClick,
     )
@@ -7235,7 +7261,13 @@ private fun KeyIconPickerDialog(
     selected: String?,
     onPick: (String?) -> Unit,
     onDismiss: () -> Unit,
+    /**
+     * Offers the Your icons tab. Off for the corner hint, which is drawn a few
+     * pixels tall in the text colour, where a picture would be a smudge.
+     */
+    allowLibrary: Boolean = true,
 ) {
+    var showLibrary by remember { mutableStateOf(allowLibrary && KeyIcons.libraryIdOf(selected) != null) }
     var query by remember { mutableStateOf("") }
     // Compared as drawings: a file may name the icon by an alias or in another
     // case ("Delete", "SEARCH"), and the cell should still light up.
@@ -7281,6 +7313,30 @@ private fun KeyIconPickerDialog(
         title = { Text(title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (allowLibrary) {
+                    val tabs = listOf(R.string.plugins_icons_tab_builtin, R.string.plugins_icons_tab_yours)
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                        tabs.forEachIndexed { index, label ->
+                            SegmentedButton(
+                                selected = showLibrary == (index == 1),
+                                onClick = { showLibrary = index == 1 },
+                                shape = SegmentedButtonDefaults.itemShape(index, tabs.size),
+                                icon = {},
+                            ) { Text(stringResource(label), maxLines = 1) }
+                        }
+                    }
+                }
+                if (showLibrary) {
+                    LibraryIconPickerGrid(
+                        selectedId = KeyIcons.libraryIdOf(selected),
+                        onPick = { picture ->
+                            IconLibrary.get(context).touch(picture.id)
+                            onPick(KeyIcons.libraryName(picture.id))
+                        },
+                        onAdded = { added -> added.firstOrNull()?.let { onPick(KeyIcons.libraryName(it.id)) } },
+                    )
+                    return@Column
+                }
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
@@ -7328,10 +7384,21 @@ private fun KeyIconPickerDialog(
 }
 
 @Composable
-private fun iconFieldSupport(name: String?): String = when {
-    name.isNullOrBlank() -> stringResource(R.string.layout_editor_icon_field_hint)
-    KeyIcons.byName(name) != null -> stringResource(R.string.layout_editor_icon_found_hint, name)
-    else -> stringResource(R.string.layout_editor_icon_missing_hint, name)
+private fun iconFieldSupport(name: String?): String {
+    val pictureName = libraryPictureName(name)
+    return when {
+        name.isNullOrBlank() -> stringResource(R.string.layout_editor_icon_field_hint)
+        KeyIcons.byName(name) != null -> stringResource(R.string.layout_editor_icon_found_hint, name)
+        pictureName != null -> stringResource(R.string.layout_editor_icon_found_hint, pictureName)
+        else -> stringResource(R.string.layout_editor_icon_missing_hint, name)
+    }
+}
+
+/** The Your icons name of the picture [name] points at, or null when it points at none. */
+@Composable
+private fun libraryPictureName(name: String?): String? {
+    val id = KeyIcons.libraryIdOf(name) ?: return null
+    return rememberLibraryIcons().firstOrNull { it.id == id }?.name
 }
 
 /**

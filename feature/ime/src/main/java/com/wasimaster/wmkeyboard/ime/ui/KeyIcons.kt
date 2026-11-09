@@ -175,6 +175,18 @@ object KeyIcons {
         aliases.entries.groupBy({ it.value }, { it.key })
     }
 
+    /**
+     * The picture in the user's icon library that [name] points at, as
+     * `u:<id>`, or null for every other name. The board, the editor's preview
+     * and the picker ask here, so the spelling lives in one place.
+     */
+    fun libraryIdOf(name: String?): String? =
+        com.wasimaster.wmkeyboard.core.icons.IconOverrides.libraryIdOf(name?.trim())
+            ?.takeIf { com.wasimaster.wmkeyboard.core.icons.IconLibrary.isId(it) }
+
+    /** The name a key stores to wear library picture [id]. */
+    fun libraryName(id: String): String = com.wasimaster.wmkeyboard.core.icons.IconOverrides.librarySource(id)
+
     /** The alias names that draw [name], for the picker's search. */
     fun aliasesFor(name: String): List<String> =
         aliasesByCanonical[name.trim().lowercase()].orEmpty()

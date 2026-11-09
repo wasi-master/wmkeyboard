@@ -6,9 +6,9 @@ package com.wasimaster.wmkeyboard.core.icons
  *
  * Safe as a flat CSV because neither half can contain a separator. Slot ids are
  * lowercase `a-z0-9._` (see [IconSlots.isWellFormed]) and a source is `b:<name>`
- * for a bundled icon, `p:<packId>` for one out of an installed pack, or
- * `v:<variant>` for one of the slot's alternative looks — no `,` and no `=` in
- * any of them.
+ * for a bundled icon, `p:<packId>` for one out of an installed pack,
+ * `v:<variant>` for one of the slot's alternative looks, or `u:<id>` for a
+ * picture in the user's [IconLibrary] — no `,` and no `=` in any of them.
  *
  * Lives here rather than inside `SettingsRepository` so it is a plain pair of
  * functions a unit test can call, with no DataStore or Android context in the
@@ -35,7 +35,20 @@ object IconOverrides {
      */
     const val VARIANT_PREFIX = "v:"
 
+    /**
+     * `u:<id>` — a picture out of the user's own [IconLibrary]. Pinned like
+     * `p:`, and to the picture rather than to a slot, so one picture can sit on
+     * any number of slots and stays listed when a slot moves off it.
+     */
+    const val LIBRARY_PREFIX = "u:"
+
     fun builtinSource(name: String): String = BUILTIN_PREFIX + name
+
+    fun librarySource(id: String): String = LIBRARY_PREFIX + id
+
+    /** The library picture a source names, or null when it is not a `u:` source. */
+    fun libraryIdOf(source: String?): String? =
+        source?.takeIf { it.startsWith(LIBRARY_PREFIX) }?.removePrefix(LIBRARY_PREFIX)
 
     fun packSource(packId: String): String = PACK_PREFIX + packId
 

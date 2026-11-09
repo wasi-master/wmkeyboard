@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import com.wasimaster.wmkeyboard.core.icons.IconArt
+import com.wasimaster.wmkeyboard.core.icons.IconLibrary
 import com.wasimaster.wmkeyboard.core.icons.IconOverrides
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
@@ -190,14 +191,17 @@ fun Modifier.paintedWith(brush: Brush): Modifier = this
 fun rememberIconSet(settings: IconSettings): State<IconSet> {
     val context = LocalContext.current
     val store = remember(context) { IconPackStore.get(context) }
+    val library = remember(context) { IconLibrary.get(context) }
     // The store's revision changes whenever a pack is added, edited or removed,
     // so an import shows up without anyone having to signal the keyboard. It is
     // an in-memory counter rather than the manifest's mtime on purpose: this
     // runs on every recomposition, and the keyboard recomposes on every
-    // keystroke, so a file stat here would be a syscall per key.
+    // keystroke, so a file stat here would be a syscall per key. The library's
+    // counter joins it: a picture renamed, recoloured or deleted redraws too.
     val revision by store.revision.collectAsState()
-    return produceState(IconSet.Builtin, settings, revision) {
-        value = withContext(Dispatchers.Default) { buildIconSet(settings, store) }
+    val libraryRevision by library.revision.collectAsState()
+    return produceState(IconSet.Builtin, settings, revision, libraryRevision) {
+        value = withContext(Dispatchers.Default) { buildIconSet(settings, store, library) }
     }
 }
 
@@ -205,7 +209,7 @@ fun rememberIconSet(settings: IconSettings): State<IconSet> {
  * The blocking half of [rememberIconSet]: reads and parses whatever the
  * settings point at. Safe to call from any thread but the main one.
  */
-fun buildIconSet(settings: IconSettings, store: IconPackStore): IconSet {
+fun buildIconSet(settings: IconSettings, store: IconPackStore, library: IconLibrary? = null): IconSet {
     // Before the early return, not after: a user with no icons customised is
     // exactly the one whose first frame would otherwise pay for building them.
     IconDefaults.warm()
@@ -256,6 +260,8 @@ fun buildIconSet(settings: IconSettings, store: IconPackStore): IconSet {
             source.startsWith(IconOverrides.PACK_PREFIX) ->
                 store.art(source.removePrefix(IconOverrides.PACK_PREFIX))[slot]
                 ?.toResolvedIcon(slot)
+            source.startsWith(IconOverrides.LIBRARY_PREFIX) ->
+                library?.let { resolveLibraryIcon(it, source.removePrefix(IconOverrides.LIBRARY_PREFIX), slot) }
             else -> null
         }
         // A source naming a pack that was uninstalled, or an icon renamed out
@@ -276,6 +282,63 @@ fun buildIconSet(settings: IconSettings, store: IconPackStore): IconSet {
  */
 fun resolvePackIcon(store: IconPackStore, packId: String, key: String): ResolvedIcon? =
     store.art(packId)[key]?.toResolvedIcon(IconSlots.slotOf(key))
+
+/**
+ * A picture out of the user's [IconLibrary], ready to draw, with the entry's own
+ * colour choice laid over the guess. Null when it was deleted or will not build,
+ * which leaves the slot or key to its default.
+ *
+ * Blocking on the first read of each picture, like [IconLibrary.art], so the
+ * pickers call it off the main thread. [slot] only names the drawing for
+ * Compose's vector builder; a layout's key passes its own icon name.
+ */
+fun resolveLibraryIcon(library: IconLibrary, id: String, slot: String = id): ResolvedIcon? {
+    val entry = library.icon(id) ?: return null
+    val art = library.art(id) ?: return null
+    val built = art.toResolvedIcon(slot) ?: return null
+    return built.copy(monochrome = IconLibrary.monochromeOf(entry, built.monochromeAs(art)))
+}
+
+/**
+ * The art with a raster's pixel verdict filled in from the decoded bitmap, so
+ * [IconLibrary.monochromeOf] decides on the same answer the keyboard would draw
+ * with when the user has left the choice to the picture.
+ */
+private fun ResolvedIcon.monochromeAs(art: IconArt): IconArt =
+    if (art is IconArt.Raster && art.mask == null) art.withMask(monochrome) else art
+
+/**
+ * A library picture for one composable, resolved off the main thread and
+ * redrawn when the library changes. Null while it loads, and for an id the
+ * library does not have — the caller falls back the way it does for an unknown
+ * icon name.
+ */
+@Composable
+fun rememberLibraryIcon(id: String?): ResolvedIcon? {
+    if (id == null) return null
+    val context = LocalContext.current
+    val library = remember(context) { IconLibrary.get(context) }
+    val revision by library.revision.collectAsState()
+    val icon by produceState<ResolvedIcon?>(null, id, revision) {
+        value = withContext(Dispatchers.Default) { resolveLibraryIcon(library, id) }
+    }
+    return icon
+}
+
+/**
+ * A theme's icon file, ready to draw the way the keyboard draws it, for the
+ * theme editor's Key icons rows. Null while it loads and for a file that has
+ * gone.
+ */
+@Composable
+fun rememberIconFile(path: String?): ResolvedIcon? {
+    val icon by produceState<ResolvedIcon?>(null, path) {
+        value = path?.let {
+            withContext(Dispatchers.IO) { readIconFile(it)?.toResolvedIcon(it, fitGlyph = true) }
+        }
+    }
+    return icon
+}
 
 /**
  * A theme's icon file as art, or null when it has gone or is not one.

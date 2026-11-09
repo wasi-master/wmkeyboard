@@ -122,6 +122,7 @@ internal object SettingsRoutes {
         "fonts",
         "fonts/{script}",
         "icons",
+        "icons/library",
         "themes",
         "theme_edit/{themeId}",
         "theme_assets/{themeId}",

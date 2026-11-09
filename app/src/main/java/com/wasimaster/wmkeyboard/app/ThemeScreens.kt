@@ -1,5 +1,15 @@
 package com.wasimaster.wmkeyboard.app
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.LocalContentColor
+import com.wasimaster.wmkeyboard.ime.ui.rememberIconFile
+import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
+import com.wasimaster.wmkeyboard.core.icons.LibraryIcon
+import com.wasimaster.wmkeyboard.core.icons.IconSlots
+import com.wasimaster.wmkeyboard.core.icons.IconSlotGroup
+import com.wasimaster.wmkeyboard.core.icons.IconSlot
+import com.wasimaster.wmkeyboard.core.icons.IconPackStore
+import com.wasimaster.wmkeyboard.core.icons.IconLibrary
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.providerCredentials
@@ -6646,7 +6656,127 @@ private fun ThemeEditorContent(
             onDismiss = { soundPickerOpen = false },
         )
     }
+    ThemeKeyIconsSection(
+        themeId = lookId,
+        keyIcons = look.watch { it.keyIcons },
+        onSet = { slot, path ->
+            update { t ->
+                t.copy(keyIcons = if (path == null) t.keyIcons - slot else t.keyIcons + (slot to path))
+            }
+        },
+    )
     Spacer(Modifier.height(24.dp))
+}
+
+/**
+ * The glyphs this theme draws on the keyboard's own keys (delete, shift,
+ * enter…), picked from Your icons. A picture is copied into the theme, the
+ * way a background photo is, so it travels in the theme's export and survives
+ * being deleted from the library.
+ *
+ * A theme's icon is the weakest layer: an icon pack or an icon picked on the
+ * Icons screen wins over it (see `IconSettings`). A row whose slot is taken
+ * that way says so, rather than leaving a pick that seems to do nothing — the
+ * same complaint the key font had.
+ */
+@Composable
+private fun ThemeKeyIconsSection(
+    themeId: String,
+    keyIcons: Map<String, String>,
+    onSet: (slot: String, path: String?) -> Unit,
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val repository = remember(context) { SettingsRepository(context.applicationContext) }
+    val stored by repository.settings.collectAsState(initial = null)
+    val icons = stored?.icons
+    val packSlots = remember(icons?.activePackId) {
+        icons?.activePackId?.takeIf { it.isNotEmpty() }
+            ?.let { IconPackStore.get(context).pack(it)?.slots?.toSet() }
+            .orEmpty()
+    }
+    var picking by remember { mutableStateOf<IconSlot?>(null) }
+    SettingsGroup(
+        stringResource(R.string.theme_key_icons_section_title),
+        foldKey = "theme/key_icons",
+        info = stringResource(R.string.theme_key_icons_section_body),
+        level = SettingLevel.STANDARD,
+    ) {
+        for (slot in IconSlots.inGroup(IconSlotGroup.KEY)) {
+            item(key = slot.id) {
+                val path = keyIcons[slot.id]
+                val hidden = path != null && (icons?.overrides?.containsKey(slot.id) == true || slot.id in packSlots)
+                val themed = rememberIconFile(path)
+                WmRow(
+                    title = slotLabel(context, slot),
+                    subtitle = stringResource(
+                        when {
+                            hidden -> R.string.theme_key_icons_hidden_label
+                            path != null -> R.string.theme_key_icons_from_theme_label
+                            else -> R.string.theme_follow_settings_label
+                        },
+                    ),
+                    leading = {
+                        if (themed != null) {
+                            TintedResolvedIcon(
+                                themed,
+                                tint = LocalContentColor.current,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        } else {
+                            SlotIcon(slot.id, contentDescription = null, modifier = Modifier.size(24.dp))
+                        }
+                    },
+                    onClick = { picking = slot },
+                )
+            }
+        }
+    }
+    picking?.let { slot ->
+        val current = keyIcons[slot.id]
+        fun put(picture: LibraryIcon) {
+            picking = null
+            scope.launch {
+                val copied = withContext(Dispatchers.IO) {
+                    runCatching {
+                        val library = IconLibrary.get(context)
+                        library.touch(picture.id)
+                        val source = library.fileFor(picture.id) ?: return@runCatching null
+                        val target = File(
+                            themeImagesDir(context),
+                            "${themeId}_icon_${slot.id}_${System.currentTimeMillis()}.${picture.extension}",
+                        )
+                        source.copyTo(target, overwrite = true)
+                        target.absolutePath
+                    }.getOrNull()
+                }
+                if (copied != null) onSet(slot.id, copied)
+            }
+        }
+        AlertDialog(
+            onDismissRequest = { picking = null },
+            title = { Text(slotLabel(context, slot)) },
+            text = {
+                LibraryIconPickerGrid(
+                    selectedId = null,
+                    onPick = ::put,
+                    onAdded = { added -> added.firstOrNull()?.let(::put) },
+                )
+            },
+            confirmButton = {
+                if (current != null) {
+                    TextButton(onClick = {
+                        picking = null
+                        onSet(slot.id, null)
+                    }) { Text(stringResource(R.string.theme_key_icons_remove_action)) }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { picking = null }) { Text(stringResource(CommonR.string.common_cancel)) }
+            },
+        )
+    }
 }
 
 /** The sound row's current-value line: a style's name, or "follow settings". */

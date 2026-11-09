@@ -1785,6 +1785,8 @@ private fun rememberProposal(
             // main thread, so they are worded here rather than there.
             repairs = state.layout.repairNotes.map { it.format(context.resources) },
             apply = {
+                // The Your icons pictures its keys wear, carried in the file.
+                withContext(Dispatchers.IO) { adoptLayoutIcons(context, state.layout.icons) }
                 repository.upsertCustomLayout(
                     state.layout.layout.copy(id = "custom_${System.currentTimeMillis()}"),
                 )

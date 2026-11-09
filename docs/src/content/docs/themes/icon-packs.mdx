@@ -45,7 +45,13 @@ SVGs are read by a small built-in parser rather than a full SVG engine. It suppo
 
 <SettingsPath path="Appearance / Icons" />
 
-Tap any slot in the list to open its picker. Choose an icon from the built-in Material Symbols set, or tap **Use my own picture…** to import a file of your own: an SVG, or a PNG, WebP, JPEG or GIF.
+Tap any slot in the list to open its picker. Three tabs sit at the top of it:
+
+- **Built-in** is the Material Symbols set, with a search box.
+- **Your icons** holds every picture you have added: an SVG, or a PNG, WebP, JPEG or GIF. **Add** opens the file picker, takes several files at once, and puts the first one on the slot.
+- **Packs** appears when an installed pack draws this slot, and borrows that one glyph without switching the whole keyboard to the pack.
+
+The picker opens on the tab the slot's current icon came from.
 
 Shift is three separate slots (off, armed, locked) and Enter is one per wording, so "a different picture when caps lock is on" is a matter of filling two slots rather than one. The Caps Lock key a tablet board adds has a slot of its own, apart from the locked Shift: both keys sit on the same board, and each keeps its own face. A key that sends Tab, whether the tablet board's or one you built in the layout editor, draws from the Tab slot.
 
@@ -53,7 +59,20 @@ Shift is three separate slots (off, armed, locked) and Enter is one per wording,
   ![Picking a replacement for the Shift icon: built-in alternatives, or an SVG of your own.](@assets/screens/themes/icons-slot-picker.webp)
 </PhoneFrame>
 
-A single icon you import this way goes into a reserved pack called **My icons**, and that slot is pinned to pull from it. Pick files for a few more slots and they land in the same pack, so "My icons" quietly becomes a real, exportable pack as you go. See [Making your own pack](#making-your-own-pack) below.
+## Your icons
+
+Every picture you add is kept in **Your icons**, apart from the slots that wear it. Pick a built-in icon for a slot and the picture is still there in the Your icons tab, one tap away. One picture can go on any number of slots, and adding the same file twice keeps one copy. **Use the default** only takes the picture off that slot; it never deletes it.
+
+Touch and hold a picture to rename it, choose how its colours are drawn, or delete it. **Automatic** follows the rule under [What you can replace](#what-you-can-replace): one colour follows the theme, more colours stay. **Keep its own colours** and **Follow the theme** overrule that guess for the one picture. Deleting a picture says which icons wear it and puts them back on their default.
+
+<SettingsPath path="Appearance / Icons / Your icons" /> shows the whole library at full size, for adding many pictures at once and tidying them. **Export as an icon pack** there saves every icon that wears one of your pictures as a `.wmicons` file. It holds up to 200 pictures.
+
+The same tab is in two other places:
+
+- The layout editor's **Icon** row on a key, so a key you built can wear one of your pictures. Exporting the layout carries the pictures inside the file, and importing it on another phone adds them to that phone's Your icons. The small corner hint stays with the built-in set.
+- The theme editor's **Key icons** section; see [Key icons in a theme](/themes/editor/#key-icons).
+
+Before Your icons, a picture went into a pack called **My icons**, stored under the one slot it was picked for. The first time the keyboard or the Icons screen opens after the update, every picture in that pack moves into Your icons, including ones a slot had already moved away from, and the pack goes.
 
 **Reset all icons** turns off the active pack and clears every per-slot choice in one tap. It's a full reset, not only the single-icon changes. Installed packs stay on the device, so delete a pack separately if you want it gone.
 
@@ -77,13 +96,13 @@ A pack can come from two places, and both end up in the same list of installed p
 
 **Several packs at once.** Long-press a pack on the Icons screen to start picking, then tap the others, or use **Select all** in the bar at the bottom. The upload icon there saves the ticked packs in one `.zip` holding a `.wmicons` file per pack, and the trash icon deletes them after asking once. **Import an icon pack** reads that zip back, installing every pack inside it. The built-in icons can't be picked.
 
-Either way, the device holds at most 20 icon packs at once (the reserved "My icons" pack counts toward that total too). Inside a pack, an SVG is limited to 256 KB and a picture to 512 KB, and the whole archive to 24 MB.
+Either way, the device holds at most 20 icon packs at once. Inside a pack, an SVG is limited to 256 KB and a picture to 512 KB, and the whole archive to 24 MB.
 
 ## Making your own pack
 
 There are two ways to end up with a pack of your own. One suits a pack you're building for yourself. The other suits one you mean to publish.
 
-**Build it in the app.** Pick files slot by slot from the per-slot picker described above. They accumulate into the reserved "My icons" pack on their own. When you're happy with it, tap the export icon on that pack's row on the Icons screen to save it as a real `.wmicons` file through the system file picker. There's no manifest to write by hand, which makes this the fastest way to get a working pack you can keep or hand on.
+**Build it in the app.** Put pictures on slots from the per-slot picker described above. When you're happy with it, open **Your icons** on the Icons screen and tap **Export as an icon pack** to save every slot that wears one of your pictures as a real `.wmicons` file. There's no manifest to write by hand, which makes this the fastest way to get a working pack you can keep or hand on.
 
 **Hand-author a manifest for a repository.** A `.wmicons` file is a renamed ZIP: a `pack.json` manifest plus one file per replaced slot, named after the slot id (`icons/tool.clipboard.svg`, `icons/key.shift.png`, and so on). Another look for a slot adds `@` and a name to the slot id, as in `icons/tool.gif@text.svg`; give it one of the app's own look names (`text`, `filled`, `simple`…) and a user who picked that look keeps it when they switch to your pack. The extension in the entry name only says where the slot id ends; what the file *is* comes from its bytes. The full manifest shape, the slot-id table, and the supported SVG subset are documented once, in [Icon packs](/development/addon-repos/repo-format/#icon-packs) under the addon repository format. Follow that spec when you publish a pack into a repository. Export a pack from the app first, as above, and you have a real seed file to edit by hand.
 
@@ -96,7 +115,7 @@ There are two ways to end up with a pack of your own. One suits a pack you're bu
 - **Import an icon pack** opens a `.wmicons` file someone shared, without going through a repository.
 - **Reset all icons** turns off the active pack and drops every per-slot override in one step. Installed packs stay on the device.
 - **Other looks** switches one slot to another drawing of the same icon, from the app or from the active pack. None by default.
-- **Use my own picture…** sets one slot from a file of your own (SVG, PNG, WebP, JPEG or GIF) from inside that slot's picker.
+- **Your icons** is the library of pictures you added (SVG, PNG, WebP, JPEG or GIF), offered as a tab in every icon picker. Empty by default.
 
 When a slot could be filled four different ways, a single icon you picked by hand wins over an active pack, an active pack wins over the glyphs the theme you are wearing brought with it, and those win over the app's own default. Overriding one icon from a pack you've installed sticks even after the pack updates or gets swapped out.
 
@@ -107,6 +126,6 @@ A related setting worth knowing about: <SettingsPath path="Tools" /> has **Color
 - **Deleting a pack cleans up after itself.** Along with the pack's own files, deleting it drops any per-slot override pinned to it, so those slots go back to the built-in icon right away rather than pointing at something that no longer exists. Installing a different pack under the same id later doesn't bring the old per-slot choices back. You'd pick them again from the slot picker.
 - **Deleting the active pack turns off the "active pack" setting** as well as removing it from the list. Any slot that was relying on it, and wasn't separately overridden, reverts to the built-in icon.
 - **No build differences.** Icon packs work the same way in every build; nothing here is limited to one.
-- **Icon packs travel with backups.** They're one of the sections you can choose to include in a full settings export (off by default, since the SVGs add to the file size), so a restore on another phone can bring your custom icons along too.
+- **Icon packs travel with backups.** They're one of the sections you can choose to include in a full settings export (off by default, since the SVGs add to the file size), so a restore on another phone can bring your custom icons along too. Your icons rides in the same section.
 - **Replacing a slot's icon replaces its file.** Put a PNG on a slot that held an SVG and the SVG is removed, so the slot never has two files and an export never carries the one you replaced.
 - **A pack's own `slots` list is advisory, not authoritative.** The app looks at what's actually inside the archive and keeps anything that matches a slot it recognizes, so a pack assembled by hand still installs correctly even if its manifest is out of date.

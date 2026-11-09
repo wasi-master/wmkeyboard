@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Collections
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileOpen
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileUpload
@@ -33,10 +34,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +59,7 @@ import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.icons.IconImportResult
+import com.wasimaster.wmkeyboard.core.icons.IconLibrary
 import com.wasimaster.wmkeyboard.core.icons.IconOverrides
 import com.wasimaster.wmkeyboard.core.icons.IconPack
 import com.wasimaster.wmkeyboard.core.icons.IconPackFile
@@ -87,9 +93,10 @@ import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
  * button is the common case, and installing a whole pack is the rare one, so
  * the slot list is the body of the screen and the pack controls sit above it.
  *
- * Everything the user changes here — a single icon or a whole pack — ends up
- * expressible as a `.wmicons` file, because the single-icon path writes into
- * the reserved "My icons" pack that Export then writes out.
+ * A picture the user brings in for one icon goes into the [IconLibrary] ("Your
+ * icons"), not into the slot: it stays listed there after the slot moves on,
+ * and one picture can sit on any number of slots. The library's own page
+ * exports the icons wearing its pictures as a `.wmicons` pack.
  */
 @Composable
 internal fun IconsScreen(
@@ -116,7 +123,6 @@ internal fun IconsScreen(
     // run off the main thread with no context, so the screen resolves the
     // wording once and hands it over.
     val importedPackName = stringResource(IconsR.string.core_icons_pack_imported_label)
-    val minePackName = stringResource(IconsR.string.core_icons_pack_mine_label)
 
     // CreateDocument cannot carry a payload, so the pack waiting to be written
     // is parked here between launching the picker and its result.
@@ -231,45 +237,11 @@ internal fun IconsScreen(
         }
     }
 
-    // The one-slot picture picker. The slot is parked the same way the export
-    // pack is, because OpenDocument carries no payload either.
-    var pendingSlot by remember { mutableStateOf<IconSlot?>(null) }
-    val svgLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
-    ) { uri ->
-        val slot = pendingSlot
-        pendingSlot = null
-        if (uri == null || slot == null) return@rememberLauncherForActivityResult
-        scope.launch {
-            val mine = store.mine(minePackName) ?: return@launch
-            val ok = withContext(Dispatchers.IO) {
-                runCatching {
-                    val bytes = context.contentResolver.requireInputStream(uri).use { input ->
-                        // Reads one byte past the cap: an oversized file is
-                        // then rejected by setIcon rather than silently
-                        // truncated into something that happens to parse.
-                        input.readBoundedBytes(ICON_FILE_CAP + 1)
-                    }
-                    // The bytes decide what the file is, so one call covers a
-                    // vector and a picture (issue #504).
-                    store.setIcon(mine.id, slot.id, bytes)
-                }.getOrDefault(false)
-            }
-            revision++
-            message = if (ok) {
-                // Pinning the slot to "My icons" is what makes the choice
-                // survive switching packs — it is an override, not a pack.
-                repository.setIconOverride(slot.id, IconOverrides.packSource(mine.id))
-                context.getString(
-                    R.string.plugins_icons_slot_custom_message,
-                    slotLabel(context, slot),
-                )
-            } else {
-                context.getString(R.string.plugins_icons_slot_svg_error, ICON_FILE_CAP / 1024)
-            }
-        }
-    }
-
+    // The old "My icons" pack becomes library pictures the first time this
+    // screen opens after the update, if the keyboard has not done it already.
+    LaunchedEffect(Unit) { runCatching { repository.moveMyIconsIntoLibrary() } }
+    val library = remember { IconLibrary.get(context) }
+    val libraryRevision by library.revision.collectAsState()
 
     // Long-pressing a pack starts picking, as in the theme gallery: taps then
     // tick packs, and the dock exports or deletes every ticked one at once.
@@ -395,6 +367,20 @@ internal fun IconsScreen(
         // these" — one from a file the user already has, one from the store.
         item { AddonStoreRow(AddonType.IconPack, onNavigate) }
         item {
+            val count = remember(libraryRevision) { library.icons().size }
+            WmRow(
+                title = stringResource(R.string.plugins_icons_library_title),
+                subtitle = if (count == 0) {
+                    stringResource(R.string.plugins_icons_library_subtitle_empty)
+                } else {
+                    pluralStringResource(R.plurals.plugins_icons_library_subtitle, count, count)
+                },
+                icon = Icons.Outlined.Collections,
+                accent = routeAccent("icons"),
+                onClick = { onNavigate(ICON_LIBRARY_ROUTE) },
+            )
+        }
+        item {
             WmRow(
                 title = stringResource(R.string.plugins_icons_import_title),
                 subtitle = stringResource(R.string.plugins_icons_import_subtitle),
@@ -445,7 +431,9 @@ internal fun IconsScreen(
                             }
                         },
                         supporting = {
-                            CaptionText(settings.watch { describeSource(context, it, slot, store) })
+                            CaptionText(
+                                settings.watch { describeSource(context, it, slot, store, library) },
+                            )
                         },
                         onClick = { picking = slot },
                     )
@@ -462,10 +450,20 @@ internal fun IconsScreen(
         val variants by produceState(emptyList<VariantChoice>(), slot, activePackId, revision) {
             value = withContext(Dispatchers.Default) { variantChoices(store, activePackId, slot.id) }
         }
+        // The installed packs that draw this slot, for the Packs tab. Off the
+        // main thread for the same reason as the variants.
+        val packChoices by produceState(emptyList<PackChoice>(), slot, revision) {
+            value = withContext(Dispatchers.Default) {
+                store.packs().filter { slot.id in it.slots }.mapNotNull { pack ->
+                    resolvePackIcon(store, pack.id, slot.id)?.let { PackChoice(pack, it) }
+                }
+            }
+        }
         IconPickerDialog(
             slot = slot,
             settings = settings,
             variants = variants,
+            packs = packChoices,
             onPickVariant = { name ->
                 scope.launch { repository.setIconOverride(slot.id, IconOverrides.variantSource(name)) }
                 picking = null
@@ -474,22 +472,18 @@ internal fun IconsScreen(
                 scope.launch { repository.setIconOverride(slot.id, IconOverrides.builtinSource(name)) }
                 picking = null
             },
-            onImportSvg = {
-                pendingSlot = slot
+            onPickPack = { packId ->
+                scope.launch { repository.setIconOverride(slot.id, IconOverrides.packSource(packId)) }
                 picking = null
-                svgLauncher.launch(ICON_PICKER_MIME_TYPES)
             },
+            onPickLibrary = { id ->
+                library.touch(id)
+                scope.launch { repository.setIconOverride(slot.id, IconOverrides.librarySource(id)) }
+                picking = null
+            },
+            // Use default only drops the choice. A picture from Your icons
+            // stays in the library, which is the whole point of it.
             onReset = {
-                // An SVG the user imported for this slot lives in "My icons".
-                // Dropping the override alone would leave the file behind, so
-                // it would keep turning up in exports of a pack they thought
-                // they had reverted.
-                if (settings.value.icons.overrides[slot.id] ==
-                    IconOverrides.packSource(IconPackStore.MINE_ID)
-                ) {
-                    store.removeIcon(IconPackStore.MINE_ID, slot.id)
-                    revision++
-                }
                 scope.launch { repository.setIconOverride(slot.id, null) }
                 picking = null
             },
@@ -548,14 +542,14 @@ internal fun IconsScreen(
  * Permissive on purpose for the same reason every other importer here is — the
  * real check is what the bytes turn out to be, in `IconPackStore.setIcon`.
  */
-private val ICON_PICKER_MIME_TYPES: Array<String> = arrayOf("image/svg+xml") +
+internal val ICON_PICKER_MIME_TYPES: Array<String> = arrayOf("image/svg+xml") +
     RasterIcons.IMPORT_MIME_TYPES + arrayOf("text/xml", "text/plain", "application/octet-stream")
 
 /**
  * The largest file the picker will read, whichever kind it is. The store
  * applies the per-kind cap itself; this one only bounds the read.
  */
-private val ICON_FILE_CAP = maxOf(SvgParser.MAX_SOURCE_BYTES, RasterIcons.MAX_SOURCE_BYTES)
+internal val ICON_FILE_CAP = maxOf(SvgParser.MAX_SOURCE_BYTES, RasterIcons.MAX_SOURCE_BYTES)
 
 /**
  * A tool slot uses the tool's own settings wording, so the two agree.
@@ -563,7 +557,7 @@ private val ICON_FILE_CAP = maxOf(SvgParser.MAX_SOURCE_BYTES, RasterIcons.MAX_SO
  * Takes a [Context] rather than reading a resource itself: the SVG picker names
  * the slot from a coroutine, where there is no composition to read from.
  */
-private fun slotLabel(context: Context, slot: IconSlot): String =
+internal fun slotLabel(context: Context, slot: IconSlot): String =
     slot.tool?.let { context.getString(toolTitle(it)) }
         ?: slot.labelRes?.let { context.getString(it) }.orEmpty()
 
@@ -573,6 +567,7 @@ private fun describeSource(
     settings: KeyboardSettings,
     slot: IconSlot,
     store: IconPackStore,
+    library: IconLibrary,
 ): String {
     val default = context.getString(CommonR.string.common_default)
     val override = settings.icons.overrides[slot.id]
@@ -591,6 +586,9 @@ private fun describeSource(
             // A name that is gone (renamed between versions) means the slot is
             // drawing its default; say so rather than naming a ghost.
             return if (BuiltinIcons.byName(builtin) != null) BuiltinIcons.label(builtin) else default
+        }
+        IconOverrides.libraryIdOf(override)?.let { id ->
+            return library.icon(id)?.name ?: default
         }
         if (override.startsWith(IconOverrides.PACK_PREFIX)) {
             val packId = override.removePrefix(IconOverrides.PACK_PREFIX)
@@ -678,35 +676,54 @@ private fun PackRow(
     )
 }
 
+/** The picker's three tabs; [PACKS] only shows when a pack draws the slot. */
+private enum class PickerTab(val labelRes: Int) {
+    BUILTIN(R.string.plugins_icons_tab_builtin),
+    YOURS(R.string.plugins_icons_tab_yours),
+    PACKS(R.string.plugins_icons_tab_packs),
+}
+
+/** An installed pack that draws the slot, with its glyph for the Packs tab. */
+private class PackChoice(val pack: IconPack, val icon: ResolvedIcon)
+
 /**
- * Picks one slot's icon: a bundled glyph, a file, or back to the default.
+ * Picks one slot's icon: a bundled glyph, one of the user's own pictures, the
+ * glyph another installed pack draws for it, or back to the default.
  *
- * The grid is the bundled Material set rather than the whole
- * `material-icons-extended` library — see [BuiltinIcons] for why — with a
- * search box, because 180 icons is well past what anyone scans by eye. Each
- * glyph carries its name, which is what the search matches.
+ * Three tabs rather than one long list. Built-in is the bundled Material set
+ * rather than the whole `material-icons-extended` library — see [BuiltinIcons]
+ * for why — with a search box, because 180 icons is well past what anyone
+ * scans by eye. Your icons is the [IconLibrary], so a picture the slot wore
+ * before is one tap away after trying something else. Packs borrows one
+ * glyph from an installed pack without switching the whole board to it.
+ *
+ * The tab that opens is the one the slot's current choice came from.
  */
 @Composable
 private fun IconPickerDialog(
     slot: IconSlot,
     settings: LiveSettings,
     variants: List<VariantChoice>,
+    packs: List<PackChoice>,
     onPickVariant: (String) -> Unit,
     onPickBuiltin: (String) -> Unit,
-    onImportSvg: () -> Unit,
+    onPickPack: (String) -> Unit,
+    onPickLibrary: (String) -> Unit,
     onReset: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
-    var query by remember { mutableStateOf("") }
-    val selected = settings.watch { it.icons.overrides[slot.id]?.removePrefix(IconOverrides.BUILTIN_PREFIX) }
-    val shown = remember(query) {
-        val needle = query.trim()
-        if (needle.isEmpty()) BuiltinIcons.names
-        else BuiltinIcons.names.filter {
-            it.contains(needle, ignoreCase = true) || BuiltinIcons.label(it).contains(needle, ignoreCase = true)
-        }
+    val override = settings.watch { it.icons.overrides[slot.id] }
+    var tab by remember(slot.id) {
+        mutableStateOf(
+            when {
+                IconOverrides.libraryIdOf(override) != null -> PickerTab.YOURS
+                override?.startsWith(IconOverrides.PACK_PREFIX) == true -> PickerTab.PACKS
+                else -> PickerTab.BUILTIN
+            },
+        )
     }
+    val tabs = PickerTab.entries.filter { it != PickerTab.PACKS || packs.isNotEmpty() }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(slotLabel(context, slot)) },
@@ -715,9 +732,8 @@ private fun IconPickerDialog(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 if (variants.isNotEmpty()) {
-                    // Above the search, because a second look of the same icon
+                    // Above the tabs, because a second look of the same icon
                     // is the likelier thing to want than a different icon.
-                    val override = settings.watch { it.icons.overrides[slot.id] }
                     val picked = IconOverrides.variantOf(override)
                     Text(
                         stringResource(R.string.plugins_icons_picker_variants_title),
@@ -744,54 +760,26 @@ private fun IconPickerDialog(
                         }
                     }
                 }
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    label = { Text(stringResource(R.string.plugins_icons_picker_search_hint)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                if (shown.isEmpty()) {
-                    Text(
-                        stringResource(
-                            R.string.plugins_icons_picker_no_match,
-                            query.trim(),
-                        ),
-                    )
-                } else {
-                    val gridState = rememberLazyGridState()
-                    // Opens on the glyph this slot already carries. The catalogue
-                    // runs to hundreds of icons in a 280dp window, so a slot that
-                    // has been changed once is otherwise a scrolling hunt.
-                    LaunchedEffect(shown) {
-                        val index = shown.indexOf(selected)
-                        if (index >= 0) gridState.scrollToItem(index)
-                    }
-                    val rail = rememberScrollRailState(gridState)
-                    ScrollRailBox(
-                        state = rail,
-                        modifier = Modifier.heightIn(max = 320.dp),
-                    ) { cells ->
-                        LazyVerticalGrid(
-                            state = gridState,
-                            columns = GridCells.Adaptive(IconGridCellMinWidth),
-                            modifier = cells,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            items(shown, key = { it }) { name ->
-                                IconGridCell(
-                                    vector = BuiltinIcons.catalog.getValue(name).invoke(),
-                                    name = name,
-                                    selected = name == selected,
-                                    onClick = { onPickBuiltin(name) },
-                                )
-                            }
-                        }
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    tabs.forEachIndexed { index, entry ->
+                        SegmentedButton(
+                            selected = tab == entry,
+                            onClick = { tab = entry },
+                            shape = SegmentedButtonDefaults.itemShape(index, tabs.size),
+                            icon = {},
+                        ) { Text(stringResource(entry.labelRes), maxLines = 1) }
                     }
                 }
-                TextButton(onClick = onImportSvg, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.plugins_icons_picker_use_svg_action))
+                when (tab) {
+                    PickerTab.BUILTIN -> BuiltinTab(override, onPickBuiltin)
+                    PickerTab.YOURS -> LibraryIconPickerGrid(
+                        selectedId = IconOverrides.libraryIdOf(override),
+                        onPick = { onPickLibrary(it.id) },
+                        // A picture added from here is for this icon, so the
+                        // first one goes straight on it.
+                        onAdded = { added -> added.firstOrNull()?.let { onPickLibrary(it.id) } },
+                    )
+                    PickerTab.PACKS -> PacksTab(packs, override, onPickPack)
                 }
             }
         },
@@ -804,6 +792,91 @@ private fun IconPickerDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
         },
     )
+}
+
+/** The bundled Material set, searchable, opening on the slot's current glyph. */
+@Composable
+private fun BuiltinTab(override: String?, onPick: (String) -> Unit) {
+    var query by remember { mutableStateOf("") }
+    val selected = override?.takeIf { it.startsWith(IconOverrides.BUILTIN_PREFIX) }
+        ?.removePrefix(IconOverrides.BUILTIN_PREFIX)
+    val shown = remember(query) {
+        val needle = query.trim()
+        if (needle.isEmpty()) BuiltinIcons.names
+        else BuiltinIcons.names.filter {
+            it.contains(needle, ignoreCase = true) || BuiltinIcons.label(it).contains(needle, ignoreCase = true)
+        }
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            label = { Text(stringResource(R.string.plugins_icons_picker_search_hint)) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        if (shown.isEmpty()) {
+            Text(stringResource(R.string.plugins_icons_picker_no_match, query.trim()))
+            return@Column
+        }
+        val gridState = rememberLazyGridState()
+        // Opens on the glyph this slot already carries. The catalogue runs to
+        // hundreds of icons in a 280dp window, so a slot that has been changed
+        // once is otherwise a scrolling hunt.
+        LaunchedEffect(shown) {
+            val index = shown.indexOf(selected)
+            if (index >= 0) gridState.scrollToItem(index)
+        }
+        val rail = rememberScrollRailState(gridState)
+        ScrollRailBox(
+            state = rail,
+            modifier = Modifier.heightIn(max = 320.dp),
+        ) { cells ->
+            LazyVerticalGrid(
+                state = gridState,
+                columns = GridCells.Adaptive(IconGridCellMinWidth),
+                modifier = cells,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                items(shown, key = { it }) { name ->
+                    IconGridCell(
+                        vector = BuiltinIcons.catalog.getValue(name).invoke(),
+                        name = name,
+                        selected = name == selected,
+                        onClick = { onPick(name) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** One cell per installed pack that draws this slot, named after the pack. */
+@Composable
+private fun PacksTab(packs: List<PackChoice>, override: String?, onPick: (String) -> Unit) {
+    if (packs.isEmpty()) {
+        Text(
+            stringResource(R.string.plugins_icons_packs_empty),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        return
+    }
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(IconGridCellMinWidth),
+        modifier = Modifier.heightIn(max = 320.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        items(packs, key = { it.pack.id }) { choice ->
+            IconGridCell(
+                name = choice.pack.name,
+                selected = override == IconOverrides.packSource(choice.pack.id),
+                onClick = { onPick(choice.pack.id) },
+            ) { ResolvedGlyph(choice.icon) }
+        }
+    }
 }
 
 /** One look a slot offers in the picker's variant row; [name] null is its default look. */
@@ -877,7 +950,7 @@ private fun variantLabel(context: Context, name: String): String {
  * monochrome, so a pack's full-colour variant previews as it will draw.
  */
 @Composable
-private fun ResolvedGlyph(icon: ResolvedIcon?) {
+internal fun ResolvedGlyph(icon: ResolvedIcon?) {
     val size = Modifier.size(IconGridGlyph)
     val tint = if (icon == null || icon.monochrome) LocalContentColor.current else Color.Unspecified
     val bitmap = icon?.bitmap
@@ -894,7 +967,7 @@ private fun ResolvedGlyph(icon: ResolvedIcon?) {
  * API 33 and this app runs back to 24, so the bound is applied by hand — an
  * unbounded read here would let a picked file of any size into memory.
  */
-private fun java.io.InputStream.readBoundedBytes(limit: Int): ByteArray {
+internal fun java.io.InputStream.readBoundedBytes(limit: Int): ByteArray {
     val out = java.io.ByteArrayOutputStream()
     val buffer = ByteArray(16 * 1024)
     while (out.size() < limit) {
@@ -904,3 +977,6 @@ private fun java.io.InputStream.readBoundedBytes(limit: Int): ByteArray {
     }
     return out.toByteArray()
 }
+
+/** The route of the Your icons page, under the Icons screen. */
+internal const val ICON_LIBRARY_ROUTE = "icons/library"

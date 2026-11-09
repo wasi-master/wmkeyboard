@@ -1042,7 +1042,7 @@ private fun SearchStrings.appearanceRows(): List<SettingsSearchEntry> {
         icon(R.string.plugins_icons_pack_title),
         icon(R.string.plugins_icons_import_title, R.string.plugins_icons_import_subtitle),
         icon(R.string.plugins_icons_reset_title, R.string.plugins_icons_reset_subtitle),
-        icon(R.string.plugins_icons_picker_use_svg_action),
+        icon(R.string.plugins_icons_library_title, R.string.plugins_icons_library_subtitle_empty),
         row(R.string.appearance_key_corner_radius_title, R.string.appearance_key_corner_radius_subtitle),
         row(R.string.appearance_key_label_size_title, R.string.appearance_key_label_size_subtitle),
         row(R.string.appearance_key_hint_size_title, R.string.appearance_key_hint_size_subtitle),

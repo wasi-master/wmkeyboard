@@ -289,6 +289,12 @@ For a theme you plan to share, use the forms that travel. Google Font ids (`goog
 
 A theme's sound is only ever a sound it can actually make. A theme whose sound is missing on this device (never installed, or since deleted) falls back to the global **Key press → Sound style** pick, and so does a theme file whose `soundStyle` is `CUSTOM` or `PACK` with no `soundCustomId` beside it. Those two styles name something installed rather than a waveform of their own, so without a name there is nothing to play, and overriding your own pick with silence-turned-system-click would leave the whole keyboard clicking with nothing on screen to say why.
 
+### Key icons
+
+A theme can draw its own icon on the keyboard's own keys: delete, shift in its three states, enter in each wording, the globe, the emoji key and the rest of the Keys group on the [Icons](/themes/icon-packs/#what-you-can-replace) screen. Tap a key's row and pick a picture from [Your icons](/themes/icon-packs/#your-icons), or add one there. The theme keeps its own copy of the picture, so the icon goes with the theme when you export it, and deleting the picture from Your icons later leaves the theme alone. **Remove from the theme** takes it off again.
+
+A theme's icon comes last: an icon pack, or an icon you picked for that key on the Icons screen, wins over it. A row whose key is taken that way says so under its name. Themes imported from Gboard fill these rows with the glyphs they brought.
+
 ### Accent
 
 - **Accent** paints the shift-on tint, the patch behind a locked Shift, the active-tool color, the buttons across the panels, and the [smart chips](/smart/chips/) on the suggestion strip, the contact chip among them. Those chips stay in Accent rather than the suggestion text color, so they read as answers rather than words.

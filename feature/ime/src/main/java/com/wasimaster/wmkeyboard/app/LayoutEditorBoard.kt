@@ -135,7 +135,7 @@ fun editorBoardView(
  * icon pack redresses the preview with the board.
  */
 fun editorKeySlot(key: Key, enterSlot: String): String? {
-    if (KeyIcons.byName(key.icon) != null) return null
+    if (KeyIcons.byName(key.icon) != null || KeyIcons.libraryIdOf(key.icon) != null) return null
     return when (val action = key.action) {
         KeyAction.Shift -> IconSlots.KEY_SHIFT.takeUnless { shiftLabelReplacesIcon(key.label) }
         KeyAction.CapsLock -> IconSlots.KEY_CAPS_LOCK.takeUnless { shiftLabelReplacesIcon(key.label) }

@@ -1668,6 +1668,15 @@ private fun SettingsNavGraph(
                 IconsScreen(repository, settings) { route -> navController.navigate(route) }
             }
         }
+        composable("icons/library") {
+            SettingsScreen(
+                stringResource(R.string.plugins_icons_library_title),
+                { navController.popBackStack() },
+                route = ICON_LIBRARY_ROUTE,
+            ) {
+                IconLibraryScreen(settings)
+            }
+        }
         composable("themes") {
             SettingsScreen(
                 stringResource(R.string.home_screen_themes_title),

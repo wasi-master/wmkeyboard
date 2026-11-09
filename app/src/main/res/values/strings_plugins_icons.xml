@@ -253,4 +253,50 @@
     <!-- A hat and glasses, the usual picture for private browsing. -->
     <string name="plugins_icons_variant_mask">Hat and glasses</string>
 
+    <!-- ================================================================== -->
+    <!-- Your icons: the library of pictures the user imported.            -->
+    <!-- ================================================================== -->
+
+    <!-- Segmented buttons at the top of the icon picker. -->
+    <string name="plugins_icons_tab_builtin">Built-in</string>
+    <string name="plugins_icons_tab_yours">Your icons</string>
+    <string name="plugins_icons_tab_packs">Packs</string>
+    <string name="plugins_icons_packs_empty">No installed pack has an icon for this.</string>
+    <string name="plugins_icons_yours_empty">Pictures you add stay here. You can put them back on any icon with one tap.</string>
+    <!-- The first cell of the grid. It opens the file picker. -->
+    <string name="plugins_icons_library_add">Add</string>
+    <string name="plugins_icons_library_title">Your icons</string>
+    <!-- %1$d is how many pictures the library holds. -->
+    <plurals name="plugins_icons_library_subtitle">
+        <item quantity="one">%1$d picture. Use it on any icon or key</item>
+        <item quantity="other">%1$d pictures. Use them on any icon or key</item>
+    </plurals>
+    <string name="plugins_icons_library_subtitle_empty">Keep your own pictures here to use on any icon or key</string>
+    <string name="plugins_icons_library_info">Every SVG, PNG, WebP, JPEG or GIF you add is kept here, also when no icon uses it. Pick it again from the Your icons tab of any icon picker, the layout editor, or the theme editor. Touch and hold a picture to rename it, set its colours, or delete it.</string>
+    <!-- %1$d is the largest number of pictures the library holds. -->
+    <plurals name="plugins_icons_library_full">
+        <item quantity="one">Your icons is full. It holds %1$d picture. Delete one to add another.</item>
+        <item quantity="other">Your icons is full. It holds %1$d pictures. Delete one to add another.</item>
+    </plurals>
+    <!-- %1$s is a comma-separated list of file names. %2$d is the size limit in kilobytes. -->
+    <string name="plugins_icons_library_rejected" tools:ignore="PluralsCandidate">The app cannot use these files: %1$s. A file must be an SVG, PNG, WebP, JPEG or GIF smaller than %2$d KB.</string>
+    <string name="plugins_icons_library_export_title">Export as an icon pack</string>
+    <string name="plugins_icons_library_export_subtitle">A .wmicons file with every icon that wears one of your pictures</string>
+    <string name="plugins_icons_library_export_empty">No icon wears one of your pictures, so there is nothing to export.</string>
+    <!-- Name of the pack that the export makes. -->
+    <string name="plugins_icons_library_pack_name">Your icons</string>
+    <!-- Long-press menu for one picture. -->
+    <string name="plugins_icons_library_rename">Rename</string>
+    <string name="plugins_icons_library_name_label">Name</string>
+    <string name="plugins_icons_library_colours_title">Colours</string>
+    <string name="plugins_icons_library_colours_auto">Automatic</string>
+    <string name="plugins_icons_library_colours_auto_body">A picture in one colour follows the theme. A picture in more colours keeps them.</string>
+    <string name="plugins_icons_library_colours_keep">Keep its own colours</string>
+    <string name="plugins_icons_library_colours_tint">Follow the theme</string>
+    <string name="plugins_icons_library_delete">Delete</string>
+    <!-- %1$s is the picture name. -->
+    <string name="plugins_icons_library_delete_title">Delete %1$s?</string>
+    <string name="plugins_icons_library_delete_body">This cannot be undone. Keys in your layouts that show it go back to their text.</string>
+    <!-- %1$s is a comma-separated list of icon names, such as "Enter, Delete". -->
+    <string name="plugins_icons_library_delete_used_body">These icons use it and go back to their default: %1$s. Keys in your layouts that show it go back to their text. This cannot be undone.</string>
 </resources>

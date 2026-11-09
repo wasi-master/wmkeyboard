@@ -67,7 +67,7 @@ Each row's subtitle names where that icon currently comes from. You get the labe
 
 Tapping any slot row opens its picker: a search field (placeholder "Search Material Symbols") over a grid of the 181 built-in icons, filtered live as you type. Tapping one sets that slot immediately and closes the dialog.
 
-<PhoneFrame caption="The per-slot picker: search, the built-in grid, and Use my own SVG…">
+<PhoneFrame caption="The per-slot picker: the tabs, search and the built-in grid.">
   {/* shot: reference/settings/icons-slot-picker */}
 </PhoneFrame>
 
@@ -93,13 +93,15 @@ With the built-in icons, these slots have other looks:
 
 When a pack is active and draws that slot, the row offers the pack's own alternatives instead, if it ships any, and hides when it ships none. A look you picked follows the pack you switch to: it shows the pack's drawing of that look when the pack has one, and the pack's ordinary icon for the slot when it doesn't. The row's subtitle on the slot list names the look while it's being drawn, for example "Letters".
 
-Below the grid, **Use my own SVG…** opens a file picker restricted to SVG-ish MIME types. A file that parses and fits under 256 KB goes into the reserved **My icons** pack, and the slot is pinned to it: "The app set a custom icon for `<slot>`." A file that doesn't gets "The app cannot use that file as an icon. The file must be an SVG smaller than 256 KB."
+Three tabs sit above the grid: **Built-in** (the Material Symbols grid and its search), **Your icons** (every picture you have added, with an **Add** cell first) and **Packs** (only when an installed pack draws this slot). **Add** opens a file picker for SVG, PNG, WebP, JPEG and GIF, takes several files at once, adds each to Your icons and puts the first on the slot. A file that does not fit reports "The app cannot use these files: `<names>`. A file must be an SVG, PNG, WebP, JPEG or GIF smaller than 512 KB." With 200 pictures already stored it reports that Your icons is full. Touching and holding a picture opens its name, its colours (Automatic, Keep its own colours, Follow the theme) and Delete.
 
-The dialog's confirm button reads **Use the default**, not "OK". It resets only the slot you're looking at, not the whole screen. If that slot had been pinned to an SVG you imported into "My icons," resetting it also deletes that file from the pack, so it doesn't linger in a later export. **Cancel** closes the dialog without changing anything.
+The dialog's confirm button reads **Use the default**, not "OK". It resets only the slot you're looking at, not the whole screen, and a picture from Your icons stays in the library. **Cancel** closes the dialog without changing anything.
+
+**Your icons** on the Icons screen opens the whole library as a page, with **Export as an icon pack**, which saves every slot wearing one of your pictures as a `.wmicons` file. The pictures in the old reserved **My icons** pack move into Your icons the first time the keyboard or this screen opens after the update.
 
 ## Details & edge cases
 
-- **Import limits.** The device holds at most 20 icon packs at once, and the reserved "My icons" pack counts toward that total. Each SVG inside a pack is capped at 256 KB, and a `.wmicons` archive itself at 8 MB. Importing past the pack limit reports "You already have 20 icon packs. Delete one first." A file that isn't a recognizable icon pack reports "That file is not a WM Keyboard icon pack." One that can't be read reports "The app could not read that file."
+- **Import limits.** The device holds at most 20 icon packs at once, and Your icons up to 200 pictures. Each SVG inside a pack is capped at 256 KB, and a `.wmicons` archive itself at 8 MB. Importing past the pack limit reports "You already have 20 icon packs. Delete one first." A file that isn't a recognizable icon pack reports "That file is not a WM Keyboard icon pack." One that can't be read reports "The app could not read that file."
 - **Resolution order** for any slot is: a per-slot override you picked by hand, then the active pack (if it covers that slot), then the app's built-in default. Setting one icon from the picker always wins over an installed pack, even after that pack is later updated or swapped for another.
 - **Deleting the active pack** turns off "active pack" entirely rather than only removing that row. Any slot that was relying on it, and wasn't separately overridden, falls back to the built-in icon.
 - **Layout key glyphs aren't here.** The per-key symbols a language layout draws into its own keys are never part of this list, so an icon pack can't touch them. That covers the layout's keys, not the app's chrome. See [Icon packs](/themes/icon-packs/#what-you-can-replace) for why.
