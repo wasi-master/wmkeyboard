@@ -238,11 +238,66 @@ export function StickerPreview({ read }: { read: StickerPackRead }) {
 
 /* ---------- icon pack ---------- */
 
+/**
+ * Whether a raster icon is a one-colour stencil, which the app draws in the
+ * theme's tint rather than as authored (IconResolver.looksLikeMask, same
+ * sampling and alpha cut). Gboard-style packs are white on transparency, so
+ * drawn as authored they vanish on a light page.
+ */
+function looksLikeMask(img: HTMLImageElement): boolean {
+	const w = img.naturalWidth;
+	const h = img.naturalHeight;
+	if (!w || !h) return false;
+	const canvas = document.createElement('canvas');
+	canvas.width = w;
+	canvas.height = h;
+	const ctx = canvas.getContext('2d', { willReadFrequently: true });
+	if (!ctx) return false;
+	ctx.drawImage(img, 0, 0);
+	const data = ctx.getImageData(0, 0, w, h).data;
+	const stride = Math.max(1, Math.floor(Math.max(w, h) / 48));
+	let seen = -1;
+	for (let y = 0; y < h; y += stride) {
+		for (let x = 0; x < w; x += stride) {
+			const o = (y * w + x) * 4;
+			if (data[o + 3]! < 0x80) continue;
+			const rgb = (data[o]! << 16) | (data[o + 1]! << 8) | data[o + 2]!;
+			if (seen === -1) seen = rgb;
+			else if (seen !== rgb) return false;
+		}
+	}
+	return seen !== -1;
+}
+
+/** A raster icon, tinted like the app tints it when it is a stencil. Carries data-pending until decided. */
+function RasterIcon({ url }: { url: string }) {
+	const [mask, setMask] = useState<boolean | null>(null);
+	useEffect(() => {
+		const img = new Image();
+		img.onload = () => {
+			let m = false;
+			try {
+				m = looksLikeMask(img);
+			} catch {
+				// A tainted canvas or a decode quirk: draw it as authored.
+			}
+			setMask(m);
+		};
+		img.onerror = () => setMask(false);
+		img.src = url;
+	}, [url]);
+	if (mask === null) return <span class="st-svg" data-pending="" />;
+	if (!mask) return <span class="st-svg"><img src={url} alt="" /></span>;
+	const m = `url("${url}") center / contain no-repeat`;
+	return <span class="st-svg"><span class="st-mask" style={{ WebkitMask: m, mask: m }} /></span>;
+}
+
 export function IconPackPreview({ read }: { read: IconPackRead }) {
 	const [group, setGroup] = useState<string | null>(null);
 	const grouped = ICON_SLOT_GROUPS.map((g) => ({ g, ids: new Set(ICON_SLOTS.filter((s) => s.group === g).map((s) => s.id)) }));
 	const icons = read.icons.filter((i) => !group || (group === 'Other' ? !i.known : grouped.find((x) => x.g === group)?.ids.has(i.slot)));
 	const covered = read.icons.filter((i) => i.known).length;
+	const art = (i: IconPackRead['icons'][number]) => (i.url ? <RasterIcon url={i.url} /> : <span class="st-svg" dangerouslySetInnerHTML={{ __html: sanitizeSvg(i.svg) }} />);
 	return (
 		<>
 			<Problems items={read.problems} />
@@ -262,7 +317,7 @@ export function IconPackPreview({ read }: { read: IconPackRead }) {
 			<div class="st-icon-grid">
 				{icons.map((i) => (
 					<figure key={i.slot} data-known={String(i.known)} title={`${i.slot} · ${fmtBytes(i.bytes)}`}>
-						{i.url ? <span class="st-svg"><img src={i.url} alt="" /></span> : <span class="st-svg" dangerouslySetInnerHTML={{ __html: sanitizeSvg(i.svg) }} />}
+						{art(i)}
 						<figcaption>{slotLabel(i.slot)}</figcaption>
 					</figure>
 				))}

@@ -1392,6 +1392,12 @@ html[data-wm-store] .main-frame {
 	height: 100%;
 	object-fit: contain;
 }
+.st-icon-grid .st-mask {
+	display: block;
+	width: 100%;
+	height: 100%;
+	background: currentColor;
+}
 .st-icon-grid figure[data-known='false'] {
 	opacity: 0.55;
 	border-style: dashed;
