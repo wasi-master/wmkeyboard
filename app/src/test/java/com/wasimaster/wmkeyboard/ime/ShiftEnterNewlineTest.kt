@@ -25,7 +25,7 @@ class ShiftEnterNewlineTest {
         ),
         shiftState = shift,
         shiftPressedByUser = byUser,
-        enterAction = action,
+        keyFaces = KeyFaces(enterAction = action),
     )
 
     @Test

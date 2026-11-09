@@ -17,6 +17,7 @@ import com.wasimaster.wmkeyboard.core.layout.shiftLabelReplacesIcon
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.ime.EnterAction
 import com.wasimaster.wmkeyboard.ime.FieldKind
+import com.wasimaster.wmkeyboard.ime.KeyFaces
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.LayoutMode
 import com.wasimaster.wmkeyboard.ime.LayoutSet
@@ -113,7 +114,7 @@ fun editorBoardView(
             EditorPreviewField.EMAIL -> FieldKind.EMAIL
             EditorPreviewField.WEB_ADDRESS -> FieldKind.URI
         },
-        enterAction = enter,
+        keyFaces = KeyFaces(enterAction = enter),
     )
     val spaceText = spacebarText(state)
     if (mode == null) return EditorBoardView(grid.rows, false, false, false, enterSlot, spaceText)

@@ -27,6 +27,7 @@ import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.ime.EnterAction
 import com.wasimaster.wmkeyboard.ime.FieldKind
+import com.wasimaster.wmkeyboard.ime.KeyFaces
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.LayoutMode
 import com.wasimaster.wmkeyboard.ime.LayoutSet
@@ -663,7 +664,7 @@ class CurrentLayoutTest {
     @Test
     fun `the smart punctuation mark on a bengali layout is the danda`() {
         val s = state(BuiltInLayouts.AVRO, settings = plain())
-            .copy(script = ScriptRegistry[ScriptId.BENGALI], smartPunctuation = "\u0964")
+            .copy(script = ScriptRegistry[ScriptId.BENGALI], keyFaces = KeyFaces(smartPunctuation = "\u0964"))
         val period = currentLayout(s).rows.last().first { it.role == KeyRole.Period }
         assertEquals("\u0964", period.output ?: period.label)
         assertEquals(".", period.longPress.first())

@@ -95,7 +95,7 @@ class UndoChipChainTest {
      * slot it shares.
      */
     private fun tapUndo(service: GlideKeyboard) {
-        seedState(service, service.uiState.value.copy(correctionUndo = chain(service).lastOrNull()))
+        seedState(service, service.uiState.value.copy(undoChips = UndoChips(correctionUndo = chain(service).lastOrNull())))
         service.onRevisionSuggestionTapped()
     }
 

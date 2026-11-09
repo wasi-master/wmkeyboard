@@ -10,6 +10,7 @@ import com.wasimaster.wmkeyboard.core.layout.compile
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.ime.EnterAction
+import com.wasimaster.wmkeyboard.ime.KeyFaces
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.LayoutSet
 import com.wasimaster.wmkeyboard.ime.R
@@ -165,7 +166,7 @@ class KeyVisualTest {
         val enter = Key("⏎", action = KeyAction.Enter)
         val custom = keyVisual(
             enter,
-            state().copy(enterAction = EnterAction.CUSTOM, enterActionLabel = "Post"),
+            state().copy(keyFaces = KeyFaces(enterAction = EnterAction.CUSTOM, enterActionLabel = "Post")),
             palette,
         )
         assertEquals("Post", custom.enterLabel)

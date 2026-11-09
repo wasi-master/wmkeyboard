@@ -1688,7 +1688,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private fun publishSmartPunctuation(glyph: String?) {
-        if (_uiState.value.smartPunctuation != glyph) _uiState.update { it.copy(smartPunctuation = glyph) }
+        if (_uiState.value.smartPunctuation != glyph) _uiState.update { it.copy(keyFaces = it.keyFaces.copy(smartPunctuation = glyph)) }
     }
 
     /**
@@ -7781,7 +7781,7 @@ open class WMKeyboardService : InputMethodService() {
                     if (tool != null) runToolFromFloatingButton(tool)
                 }
                 override fun appletTucked(tucked: Boolean) {
-                    _uiState.update { it.copy(appletTucked = tucked) }
+                    _uiState.update { it.copy(applet = it.applet.copy(appletTucked = tucked)) }
                     // Back out of the edge, Translate's text that waited gets its translation.
                     if (!tucked && _uiState.value.toolUp(PanelMode.TRANSLATE)) scheduleTranslate(immediate = true)
                 }
@@ -7887,8 +7887,7 @@ open class WMKeyboardService : InputMethodService() {
         if (panel == PanelMode.TRANSLATE && previous != PanelMode.TRANSLATE) openAppletTranslate(fromKeyboard)
         _uiState.update {
             it.copy(
-                appletPanel = panel,
-                appletTucked = false,
+                applet = AppletUi(appletPanel = panel),
                 converterValue = if (panel == PanelMode.UNIT_CONVERT || panel == PanelMode.CURRENCY) {
                     it.converterValue.ifEmpty { "1" }
                 } else {
@@ -7955,7 +7954,7 @@ open class WMKeyboardService : InputMethodService() {
         appletTool = null
         appletTypingJob?.cancel()
         appletTypingJob = null
-        _uiState.update { it.copy(appletPanel = null, appletTucked = false) }
+        _uiState.update { it.copy(applet = AppletUi()) }
     }
 
     /**
@@ -8532,7 +8531,7 @@ open class WMKeyboardService : InputMethodService() {
         val face = standardEnterAction(id)
         if (face == EnterAction.DEFAULT) return
         appEnterAction = id
-        _uiState.update { it.copy(enterAction = face, enterActionLabel = null) }
+        _uiState.update { it.copy(keyFaces = it.keyFaces.copy(enterAction = face, enterActionLabel = null)) }
     }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) =
@@ -9042,8 +9041,10 @@ open class WMKeyboardService : InputMethodService() {
                 // field it was asked for in (#612).
                 recentClipsOpen = false,
                 clipChipHeld = false,
-                enterAction = info.enterAction(),
-                enterActionLabel = info?.actionLabel?.toString()?.takeIf { label -> label.isNotBlank() },
+                keyFaces = it.keyFaces.copy(
+                    enterAction = info.enterAction(),
+                    enterActionLabel = info?.actionLabel?.toString()?.takeIf { label -> label.isNotBlank() },
+                ),
                 handwriting = it.handwriting.copy(strokes = emptyList(), recognizing = false),
                 voice = it.voice.copy(
                     status = VoiceStatus.IDLE, partial = "", level = 0f,
@@ -11024,7 +11025,7 @@ open class WMKeyboardService : InputMethodService() {
                     fnReturn = null,
                     // The last page of a paginated Indic cycle back to the
                     // letters, over its consonant page: see vowelsPinned.
-                    vowelsPinned = it.vowelsPinned || pinsVowels(it),
+                    consonantPage = it.consonantPage.copy(vowelsPinned = it.vowelsPinned || pinsVowels(it)),
                 )
             }
             KeyAction.LanguageSwitch -> switchLanguage()
@@ -14980,13 +14981,12 @@ open class WMKeyboardService : InputMethodService() {
             val onPage = it.layoutMode == LayoutMode.NAMED && it.namedLayer in pages
             when {
                 moved && onPage -> it.copy(
-                    consonantSyllable = syllable,
-                    vowelsPinned = false,
+                    consonantPage = ConsonantPageUi(consonantSyllable = syllable),
                     layoutMode = LayoutMode.LETTERS,
                     namedLayer = null,
                 )
                 moved || it.consonantSyllable != syllable ->
-                    it.copy(consonantSyllable = syllable, vowelsPinned = false)
+                    it.copy(consonantPage = ConsonantPageUi(consonantSyllable = syllable))
                 else -> it
             }
         }
@@ -15502,12 +15502,12 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun showDeletionChip() {
         val chip = deletionRun?.let { DeletionChip(DeletionUndo.label(it.text), it.restored) }
-        if (_uiState.value.deletionUndo != chip) _uiState.update { it.copy(deletionUndo = chip) }
+        if (_uiState.value.deletionUndo != chip) _uiState.update { it.copy(undoChips = it.undoChips.copy(deletionUndo = chip)) }
     }
 
     private fun clearDeletionRun() {
         deletionRun = null
-        if (_uiState.value.deletionUndo != null) _uiState.update { it.copy(deletionUndo = null) }
+        if (_uiState.value.deletionUndo != null) _uiState.update { it.copy(undoChips = it.undoChips.copy(deletionUndo = null)) }
     }
 
     /**
@@ -18659,7 +18659,7 @@ open class WMKeyboardService : InputMethodService() {
                     namedLayer = null,
                     fnLocked = false,
                     fnReturn = null,
-                    vowelsPinned = it.vowelsPinned || pinsVowels(it),
+                    consonantPage = it.consonantPage.copy(vowelsPinned = it.vowelsPinned || pinsVowels(it)),
                 )
             }
         }
@@ -23032,7 +23032,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun clearUndoChip() {
         undoChain.clear()
         if (_uiState.value.correctionUndo != null) {
-            _uiState.update { it.copy(correctionUndo = null) }
+            _uiState.update { it.copy(undoChips = it.undoChips.copy(correctionUndo = null)) }
         }
     }
 
@@ -23044,7 +23044,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun showNextUndo() {
         val shown = _uiState.value.correctionUndo ?: return
         val next = undoChain.lastOrNull()?.typed?.takeIf { composing.isEmpty() }
-        if (next != shown) _uiState.update { it.copy(correctionUndo = next) }
+        if (next != shown) _uiState.update { it.copy(undoChips = it.undoChips.copy(correctionUndo = next)) }
     }
 
     /**
@@ -28182,7 +28182,7 @@ open class WMKeyboardService : InputMethodService() {
                     joinSuggestion = join,
                     revisionSuggestion = revision,
                     correctionOffer = offer,
-                    correctionUndo = undo,
+                    undoChips = it.undoChips.copy(correctionUndo = undo),
                     // Only the correction this commit will keep (#90); a
                     // resolution left over from another word promises nothing.
                     // A fixed phonetic strip's head is not the commit, so the
@@ -28319,7 +28319,7 @@ open class WMKeyboardService : InputMethodService() {
                     joinSuggestion = null,
                     revisionSuggestion = null,
                     correctionOffer = null,
-                    correctionUndo = null,
+                    undoChips = it.undoChips.copy(correctionUndo = null),
                     autocorrectWord = null,
                 )
             }
@@ -33841,12 +33841,9 @@ open class WMKeyboardService : InputMethodService() {
                 // A trip to the file manager for a picture is still the same camera.
                 cameraSearchOnly = (next == PanelMode.CAMERA && it.panel == PanelMode.WEB_SEARCH) ||
                     (it.cameraSearchOnly && (next == PanelMode.FILES || (next == PanelMode.CAMERA && it.panel == PanelMode.FILES))),
-                // Only a clip's Extract text sets this, after the change (#371).
-                ocrImage = null,
-                // Only a clip's Translate sets this, after the change (#807).
-                cameraImage = null,
-                pictureFromScreen = false,
-                screenCapture = next in SCREEN_CAPTURE_PANELS && canCaptureScreen(),
+                // No picture: only a clip's Extract text (#371) or Translate
+                // (#807) sets one, after the change.
+                pictures = PictureUi(screenCapture = next in SCREEN_CAPTURE_PANELS && canCaptureScreen()),
             )
         }
         // Whichever of emoji, GIFs and stickers is now up is the one the
@@ -41109,7 +41106,7 @@ open class WMKeyboardService : InputMethodService() {
     fun onCaptureScreen(target: com.wasimaster.wmkeyboard.ime.ui.ScreenCaptureTarget) {
         vibrate()
         if (!canCaptureScreen()) {
-            _uiState.update { it.copy(screenCapture = false) }
+            _uiState.update { it.copy(pictures = it.pictures.copy(screenCapture = false)) }
             return
         }
         val panel = _uiState.value.panel
@@ -41130,9 +41127,9 @@ open class WMKeyboardService : InputMethodService() {
             }
             when (target) {
                 com.wasimaster.wmkeyboard.ime.ui.ScreenCaptureTarget.OCR ->
-                    _uiState.update { it.copy(ocrImage = file.absolutePath, pictureFromScreen = true) }
+                    _uiState.update { it.copy(pictures = it.pictures.copy(ocrImage = file.absolutePath, pictureFromScreen = true)) }
                 com.wasimaster.wmkeyboard.ime.ui.ScreenCaptureTarget.TRANSLATE ->
-                    _uiState.update { it.copy(cameraImage = file.absolutePath, pictureFromScreen = true) }
+                    _uiState.update { it.copy(pictures = it.pictures.copy(cameraImage = file.absolutePath, pictureFromScreen = true)) }
                 com.wasimaster.wmkeyboard.ime.ui.ScreenCaptureTarget.REPLY ->
                     addReplyShot(android.net.Uri.fromFile(file).toString(), file.absolutePath, boardTop ?: 0)
             }
@@ -54734,7 +54731,7 @@ open class WMKeyboardService : InputMethodService() {
         if (!clipOcrAvailable(_uiState.value.settings)) return
         val path = item.imagePath?.takeIf { File(it).exists() } ?: return
         onPanelChange(PanelMode.OCR)
-        _uiState.update { it.copy(ocrImage = path) }
+        _uiState.update { it.copy(pictures = it.pictures.copy(ocrImage = path)) }
     }
 
     /**
@@ -54749,7 +54746,7 @@ open class WMKeyboardService : InputMethodService() {
         val path = item.imagePath?.takeIf { File(it).exists() } ?: return
         onPanelChange(PanelMode.CAMERA)
         if (_uiState.value.panel != PanelMode.CAMERA) return
-        _uiState.update { it.copy(cameraImage = path) }
+        _uiState.update { it.copy(pictures = it.pictures.copy(cameraImage = path)) }
     }
 
     /**
