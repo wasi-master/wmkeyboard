@@ -4449,9 +4449,6 @@
     <string name="languages_context_model_variant_standard">Kawaida</string>
     <string name="languages_custom_dictionaries_subtitle">Ingiza orodha zako za maneno</string>
     <string name="languages_custom_dictionaries_title">Kamusi maalum</string>
-    <string name="languages_data_delete_body">%1$s ina orodha ya maneno iliyopakuliwa au maneno muhimu ya emoji. Uifute na upate takriban %2$s ya hifadhi?</string>
-    <string name="languages_data_delete_dismiss_action">Yahifadhi</string>
-    <string name="languages_data_delete_title">Futa faili zilizopakuliwa?</string>
     <string name="languages_data_download_body">Kibodi inaweza kupakua data ambayo %1$s inahitaji ili kutabiri na kusahihisha vyema: orodha ya maneno, maneno muhimu ya emoji na data ya jozi ya maneno, yoyote kati ya hayo yaliyopo. Hii inatumia takriban %2$s ya data. Unaweza pia kuyapakua baadaye kutoka kwenye skrini ya lugha.</string>
     <string name="languages_data_download_dismiss_action">Si sasa</string>
     <string name="languages_data_download_title">Pakua data ya lugha?</string>

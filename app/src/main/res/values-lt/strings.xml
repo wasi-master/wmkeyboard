@@ -4442,9 +4442,6 @@
     <string name="languages_context_model_variant_standard">Standartinis</string>
     <string name="languages_custom_dictionaries_subtitle">Importuokite savo žodžių sąrašus</string>
     <string name="languages_custom_dictionaries_title">Pasirinktiniai žodynai</string>
-    <string name="languages_data_delete_body">%1$s turi atsisiųstą žodžių sąrašą arba jaustukų raktinius žodžius. Ištrinti juos ir atlaisvinti apie %2$s vietos?</string>
-    <string name="languages_data_delete_dismiss_action">Palikti juos</string>
-    <string name="languages_data_delete_title">Ištrinti atsisiųstus failus?</string>
     <string name="languages_data_download_body">Klaviatūra gali atsisiųsti duomenis, kurių %1$s reikia geram numatymui ir taisymui: žodžių sąrašą, jaustukų raktinius žodžius ir žodžių porų duomenis, jei jie egzistuoja. Tai užima apie %2$s duomenų. Vėliau juos taip pat galite atsisiųsti kalbos ekrane.</string>
     <string name="languages_data_download_dismiss_action">Ne dabar</string>
     <string name="languages_data_download_title">Atsisiųsti kalbos duomenis?</string>

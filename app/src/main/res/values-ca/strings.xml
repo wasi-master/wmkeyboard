@@ -4439,9 +4439,6 @@
     <string name="languages_context_model_variant_standard">Estàndard</string>
     <string name="languages_custom_dictionaries_subtitle">Importeu les vostres pròpies llistes de paraules</string>
     <string name="languages_custom_dictionaries_title">Diccionaris personalitzats</string>
-    <string name="languages_data_delete_body">%1$s té una llista de paraules o paraules clau d\'emoji descarregades. Voleu suprimir-les i recuperar aproximadament %2$s d\'emmagatzematge?</string>
-    <string name="languages_data_delete_dismiss_action">Mantén-los</string>
-    <string name="languages_data_delete_title">Voleu suprimir els fitxers baixats?</string>
     <string name="languages_data_download_body">El teclat pot descarregar les dades que necessita %1$s per predir i corregir bé: una llista de paraules, paraules clau d\'emoji i dades de parells de paraules, si n\'existeix alguna. Això utilitza aproximadament %2$s de dades. També les pots descarregar més tard des de la pantalla d\'idiomes.</string>
     <string name="languages_data_download_dismiss_action">Ara no</string>
     <string name="languages_data_download_title">Vols baixar les dades de l\'idioma?</string>

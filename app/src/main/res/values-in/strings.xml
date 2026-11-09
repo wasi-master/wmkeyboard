@@ -4439,9 +4439,6 @@
     <string name="languages_context_model_variant_standard">Standar</string>
     <string name="languages_custom_dictionaries_subtitle">Impor daftar kata Anda sendiri</string>
     <string name="languages_custom_dictionaries_title">Kamus kustom</string>
-    <string name="languages_data_delete_body">%1$s memiliki daftar kata atau kata kunci emoji yang diunduh. Hapus dan dapatkan kembali sekitar %2$s ruang penyimpanan?</string>
-    <string name="languages_data_delete_dismiss_action">Simpan</string>
-    <string name="languages_data_delete_title">Hapus file yang diunduh?</string>
     <string name="languages_data_download_body">Papan ketik dapat mengunduh data yang diperlukan %1$s untuk memprediksi dan mengoreksi dengan baik: daftar kata, kata kunci emoji, dan data pasangan kata, mana pun yang ada. Ini menggunakan sekitar %2$s data. Anda juga dapat mengunduhnya nanti dari layar bahasa.</string>
     <string name="languages_data_download_dismiss_action">Tidak sekarang</string>
     <string name="languages_data_download_title">Unduh data bahasa?</string>

@@ -4452,9 +4452,6 @@
     <string name="languages_context_model_variant_standard">ਮਿਆਰੀ</string>
     <string name="languages_custom_dictionaries_subtitle">ਆਪਣੀਆਂ ਸ਼ਬਦ ਸੂਚੀਆਂ ਆਯਾਤ ਕਰੋ</string>
     <string name="languages_custom_dictionaries_title">ਕਸਟਮ ਸ਼ਬਦਕੋਸ਼</string>
-    <string name="languages_data_delete_body">%1$s ਵਿੱਚ ਇੱਕ ਡਾਊਨਲੋਡ ਕੀਤੀ ਸ਼ਬਦ ਸੂਚੀ ਜਾਂ ਇਮੋਜੀ ਕੀਵਰਡ ਹਨ। ਕੀ ਉਹਨਾਂ ਨੂੰ ਮਿਟਾ ਕੇ ਲਗਭਗ %2$s ਸਟੋਰੇਜ ਵਾਪਸ ਪ੍ਰਾਪਤ ਕਰਨੀ ਹੈ?</string>
-    <string name="languages_data_delete_dismiss_action">ਉਹਨਾਂ ਨੂੰ ਰੱਖੋ</string>
-    <string name="languages_data_delete_title">ਡਾਊਨਲੋਡ ਕੀਤੀਆਂ ਫਾਈਲਾਂ ਨੂੰ ਮਿਟਾਉਣਾ ਹੈ?</string>
     <string name="languages_data_download_body">ਕੀਬੋਰਡ ਉਹ ਡੇਟਾ ਡਾਊਨਲੋਡ ਕਰ ਸਕਦਾ ਹੈ ਜਿਸਦੀ %1$s ਨੂੰ ਵਧੀਆ ਅਨੁਮਾਨ ਲਗਾਉਣ ਅਤੇ ਸਹੀ ਕਰਨ ਲਈ ਲੋੜ ਹੈ: ਇੱਕ ਸ਼ਬਦ ਸੂਚੀ, ਇਮੋਜੀ ਕੀਵਰਡਸ ਅਤੇ ਸ਼ਬਦ-ਜੋੜਾ ਡੇਟਾ, ਜੋ ਵੀ ਮੌਜੂਦ ਹੋਵੇ। ਇਹ ਲਗਭਗ %2$s ਡੇਟਾ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ। ਤੁਸੀਂ ਉਹਨਾਂ ਨੂੰ ਬਾਅਦ ਵਿੱਚ ਭਾਸ਼ਾ ਸਕ੍ਰੀਨ ਤੋਂ ਵੀ ਡਾਊਨਲੋਡ ਕਰ ਸਕਦੇ ਹੋ।</string>
     <string name="languages_data_download_dismiss_action">ਹੁਣ ਨਹੀਂ</string>
     <string name="languages_data_download_title">ਭਾਸ਼ਾ ਡੇਟਾ ਡਾਊਨਲੋਡ ਕਰੀਏ?</string>

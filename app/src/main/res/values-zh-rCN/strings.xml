@@ -4431,9 +4431,6 @@
     <string name="languages_context_model_variant_standard">标准</string>
     <string name="languages_custom_dictionaries_subtitle">导入您自己的词库</string>
     <string name="languages_custom_dictionaries_title">自定义词典</string>
-    <string name="languages_data_delete_body">%1$s 包含已下载的词表或表情符号关键词。删除它们并回收约 %2$s 的存储空间？</string>
-    <string name="languages_data_delete_dismiss_action">保留它们</string>
-    <string name="languages_data_delete_title">删除已下载的文件吗？</string>
     <string name="languages_data_download_body">键盘可以下载 %1$s 所需的数据以进行良好的预测和纠错：词汇表、表情符号关键词和词对数据（如果存在）。这大约会使用 %2$s 的数据。您以后也可以在语言屏幕中下载它们。</string>
     <string name="languages_data_download_dismiss_action">以后再说</string>
     <string name="languages_data_download_title">下载语言数据？</string>

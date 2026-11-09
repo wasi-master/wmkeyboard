@@ -4437,9 +4437,6 @@
     <string name="languages_context_model_variant_standard">標準</string>
     <string name="languages_custom_dictionaries_subtitle">独自の単語リストをインポート</string>
     <string name="languages_custom_dictionaries_title">ユーザー辞書</string>
-    <string name="languages_data_delete_body">%1$s にはダウンロード済みの単語リストまたは絵文字キーワードが含まれています。これらを削除して約 %2$s のストレージを解放しますか？</string>
-    <string name="languages_data_delete_dismiss_action">保持する</string>
-    <string name="languages_data_delete_title">ダウンロードしたファイルを削除しますか？</string>
     <string name="languages_data_download_body">キーボードは、予測と修正を適切に行うために必要なデータ（単語リスト、絵文字キーワード、単語ペアデータなど、存在するデータ）をダウンロードできます。これには約%2$sのデータを使用します。後で言語画面からダウンロードすることも可能です。</string>
     <string name="languages_data_download_dismiss_action">今はしない</string>
     <string name="languages_data_download_title">言語データをダウンロードしますか？</string>

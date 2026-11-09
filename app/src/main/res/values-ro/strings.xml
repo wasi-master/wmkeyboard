@@ -4443,9 +4443,6 @@
     <string name="languages_context_model_variant_standard">Standard</string>
     <string name="languages_custom_dictionaries_subtitle">Importă propriile liste de cuvinte</string>
     <string name="languages_custom_dictionaries_title">Dicționare personalizate</string>
-    <string name="languages_data_delete_body">%1$s are o listă de cuvinte descărcată sau cuvinte cheie emoji. Să le ștergi și să recuperezi aproximativ %2$s din spațiul de stocare?</string>
-    <string name="languages_data_delete_dismiss_action">Păstrează-le</string>
-    <string name="languages_data_delete_title">Ștergeți fișierele descărcate?</string>
     <string name="languages_data_download_body">Tastatura poate descărca datele de care %1$s are nevoie pentru a prezice și a corecta bine: o listă de cuvinte, cuvinte cheie emoji și date despre perechi de cuvinte, oricare dintre acestea există. Aceasta utilizează aproximativ %2$s de date. De asemenea, le puteți descărca mai târziu din ecranul de limbă.</string>
     <string name="languages_data_download_dismiss_action">Nu acum</string>
     <string name="languages_data_download_title">Descarci datele lingvistice?</string>

@@ -4446,9 +4446,6 @@
     <string name="languages_context_model_variant_standard">Standarta</string>
     <string name="languages_custom_dictionaries_subtitle">Importējiet savus vārdu sarakstus</string>
     <string name="languages_custom_dictionaries_title">Pielāgotas vārdnīcas</string>
-    <string name="languages_data_delete_body">%1$s satur lejupielādētu vārdu sarakstu vai emocijzīmju atslēgvārdus. Vai vēlaties tos izdzēst un atbrīvot aptuveni %2$s krātuves vietas?</string>
-    <string name="languages_data_delete_dismiss_action">Paturēt tos</string>
-    <string name="languages_data_delete_title">Dzēst lejupielādētos failus?</string>
     <string name="languages_data_download_body">Tastatūra var lejupielādēt datus, kas nepieciešami %1$s, lai labi prognozētu un labotu: vārdu sarakstu, emocijzīmju atslēgvārdus un vārdu pāru datus, ja tādi pastāv. Tas aizņem aptuveni %2$s datu. Varat tos lejupielādēt arī vēlāk valodas ekrānā.</string>
     <string name="languages_data_download_dismiss_action">Ne tagad</string>
     <string name="languages_data_download_title">Lejupielādēt valodas datus?</string>

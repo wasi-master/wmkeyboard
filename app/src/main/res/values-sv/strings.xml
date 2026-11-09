@@ -4445,9 +4445,6 @@
     <string name="languages_context_model_variant_standard">Standard</string>
     <string name="languages_custom_dictionaries_subtitle">Importera dina egna ordlistor</string>
     <string name="languages_custom_dictionaries_title">Anpassade ordböcker</string>
-    <string name="languages_data_delete_body">%1$s har en nedladdad ordlista eller emoji-nyckelord. Vill du ta bort dem och frigöra cirka %2$s lagringsutrymme?</string>
-    <string name="languages_data_delete_dismiss_action">Behåll dem</string>
-    <string name="languages_data_delete_title">Ta bort de nedladdade filerna?</string>
     <string name="languages_data_download_body">Tangentbordet kan ladda ner den data %1$s behöver för att förutsäga och korrigera bra: en ordlista, emoji-nyckelord och ordparsdata, beroende på vad som finns. Detta använder cirka %2$s data. Du kan också ladda ner dem senare från språkskärmen.</string>
     <string name="languages_data_download_dismiss_action">Inte nu</string>
     <string name="languages_data_download_title">Ladda ner språkdata?</string>

@@ -3,7 +3,6 @@ package com.wasimaster.wmkeyboard.app
 import com.wasimaster.wmkeyboard.app.lock.AppLockTargets
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
-import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -57,27 +56,6 @@ internal fun LanguageSettings(
     // to fetch its dictionary comes back to Bangla, not to the top of a list of
     // eleven languages they then have to find it in again.
     val returnTo = remember { ReturnAnchor.take(LANGUAGES_ANCHOR) }
-    // A language swiped away that still has downloads on the phone: the
-    // dialog asks whether they go too, as Remove on its own page does.
-    var removing by remember { mutableStateOf<LanguageDef?>(null) }
-    removing?.let { language ->
-        LanguageDataDeleteDialog(
-            language = language,
-            bytes = downloadedLanguageBytes(context, settings.value, language.id),
-            onKeep = {
-                removing = null
-                scope.launch { removeLanguageLayouts(repository, settings, language.id) }
-            },
-            onDelete = {
-                removing = null
-                val before = settings.value
-                scope.launch {
-                    deleteLanguageData(context, repository, before, language.id)
-                    removeLanguageLayouts(repository, settings, language.id)
-                }
-            },
-        )
-    }
     // "Your languages" is the enabled set (deduped, in switch order); each opens
     // its detail. Adding one is a search over the whole registry.
     // The pencil on the heading swaps the list for the same list with drag
@@ -143,8 +121,18 @@ internal fun LanguageSettings(
                 // refuses the last row, so the keyboard always has a layout.
                 onDelete = { layoutId ->
                     scope.launch {
-                        val next = settings.value.enabledLayoutIds - layoutId
-                        if (next.isNotEmpty()) repository.setEnabledLayoutIds(next)
+                        val before = settings.value
+                        val next = before.enabledLayoutIds - layoutId
+                        if (next.isEmpty()) return@launch
+                        repository.setEnabledLayoutIds(next)
+                        // Its last layout gone, the language is too, and goes
+                        // as Remove takes it: borrowed words and downloads.
+                        val langId = resolveLayout(before.customLayouts, layoutId).language().id
+                        val stillOn = next.any { resolveLayout(before.customLayouts, it).language().id == langId }
+                        if (!stillOn) {
+                            forgetAsSecondary(repository, before, langId)
+                            deleteLanguageData(context, repository, before, langId)
+                        }
                     }
                 },
             )
@@ -168,11 +156,7 @@ internal fun LanguageSettings(
                         swipeActions = if (languages.size > 1) {
                             listOf(
                                 deleteSwipeAction(removeLabel) {
-                                    if (hasLanguageData(context, settings.value, language.id)) {
-                                        removing = language
-                                    } else {
-                                        scope.launch { removeLanguageLayouts(repository, settings, language.id) }
-                                    }
+                                    scope.launch { removeLanguage(context, repository, settings, language.id) }
                                 },
                             )
                         } else {

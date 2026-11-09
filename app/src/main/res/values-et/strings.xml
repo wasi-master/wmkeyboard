@@ -4441,9 +4441,6 @@
     <string name="languages_context_model_variant_standard">Standardne</string>
     <string name="languages_custom_dictionaries_subtitle">Impordi oma sõnaloendid</string>
     <string name="languages_custom_dictionaries_title">Kohandatud sõnastikud</string>
-    <string name="languages_data_delete_body">%1$s-l on allalaaditud sõnaloend või emotikonide märksõnad. Kas kustutada need ja vabastada umbes %2$s salvestusruumi?</string>
-    <string name="languages_data_delete_dismiss_action">Jäta alles</string>
-    <string name="languages_data_delete_title">Kas kustutada allalaaditud failid?</string>
     <string name="languages_data_download_body">Klaviatuur saab alla laadida andmed, mida %1$s vajab hästi ennustamiseks ja parandamiseks: sõnaloend, emotikonide märksõnad ja sõnapaaride andmed, olenevalt sellest, mis on olemas. See kasutab umbes %2$s andmeid. Saad need hiljem ka keelekuvalt alla laadida.</string>
     <string name="languages_data_download_dismiss_action">Mitte praegu</string>
     <string name="languages_data_download_title">Kas laadida keeleandmed alla?</string>

@@ -4445,9 +4445,6 @@
     <string name="languages_context_model_variant_standard">Štandardné</string>
     <string name="languages_custom_dictionaries_subtitle">Importujte svoje vlastné zoznamy slov</string>
     <string name="languages_custom_dictionaries_title">Vlastné slovníky</string>
-    <string name="languages_data_delete_body">%1$s má stiahnutý zoznam slov alebo kľúčové slová emoji. Odstrániť ich a získať späť približne %2$s úložného priestoru?</string>
-    <string name="languages_data_delete_dismiss_action">Ponechať ich</string>
-    <string name="languages_data_delete_title">Odstrániť stiahnuté súbory?</string>
     <string name="languages_data_download_body">Klávesnica si môže stiahnuť údaje, ktoré %1$s potrebuje na správnu predikciu a opravu: zoznam slov, kľúčové slová emodži a údaje o dvojiciach slov, ak existujú. Toto spotrebuje približne %2$s dát. Môžete si ich stiahnuť aj neskôr na obrazovke jazykov.</string>
     <string name="languages_data_download_dismiss_action">Teraz nie</string>
     <string name="languages_data_download_title">Stiahnuť jazykové údaje?</string>

@@ -4439,9 +4439,6 @@
     <string name="languages_context_model_variant_standard">நிலையானது</string>
     <string name="languages_custom_dictionaries_subtitle">உங்கள் சொந்த வார்த்தைப் பட்டியல்களை இறக்குமதி செய்யவும்</string>
     <string name="languages_custom_dictionaries_title">தனிப்பயன் அகராதிகள்</string>
-    <string name="languages_data_delete_body">%1$s பதிவிறக்கம் செய்யப்பட்ட சொல் பட்டியல் அல்லது ஈமோஜி முக்கிய வார்த்தைகளைக் கொண்டுள்ளது. அவற்றை நீக்கிவிட்டு சுமார் %2$s சேமிப்பிடத்தை மீண்டும் பெறவா?</string>
-    <string name="languages_data_delete_dismiss_action">அப்படியே வைத்திருக்கவும்</string>
-    <string name="languages_data_delete_title">பதிவிறக்கம் செய்யப்பட்ட கோப்புகளை நீக்கவா?</string>
     <string name="languages_data_download_body">விசைப்பலகை சரியாகக் கணிக்கவும் திருத்தவும் தேவையான தரவை %1$s பதிவிறக்கம் செய்யலாம்: ஒரு சொல் பட்டியல், எமோஜி முக்கிய வார்த்தைகள் மற்றும் சொல்-ஜோடி தரவு, அவற்றில் எது இருக்கிறதோ அது. இது சுமார் %2$s தரவைப் பயன்படுத்துகிறது. நீங்கள் அவற்றை மொழித் திரையிலிருந்து பின்னர் பதிவிறக்கம் செய்யலாம்.</string>
     <string name="languages_data_download_dismiss_action">இப்போது வேண்டாம்</string>
     <string name="languages_data_download_title">மொழித் தரவைப் பதிவிறக்கவா?</string>

@@ -4445,9 +4445,6 @@
     <string name="languages_context_model_variant_standard">قياسي</string>
     <string name="languages_custom_dictionaries_subtitle">استيراد قوائم الكلمات الخاصة بك</string>
     <string name="languages_custom_dictionaries_title">القواميس المخصصة</string>
-    <string name="languages_data_delete_body">يحتوي %1$s على قائمة كلمات أو كلمات مفتاحية للرموز التعبيرية تم تنزيلها. هل تريد حذفها واستعادة حوالي %2$s من مساحة التخزين؟</string>
-    <string name="languages_data_delete_dismiss_action">الاحتفاظ بها</string>
-    <string name="languages_data_delete_title">هل تريد حذف الملفات التي تم تنزيلها؟</string>
     <string name="languages_data_download_body">يمكن للوحة المفاتيح تنزيل البيانات التي يحتاجها %1$s للتنبؤ والتصحيح بشكل جيد: قائمة كلمات، وكلمات رئيسية للرموز التعبيرية، وبيانات أزواج الكلمات، أيًا كان ما هو موجود منها. يستهلك هذا حوالي %2$s من البيانات. يمكنك أيضاً تنزيلها لاحقاً من شاشة اللغة.</string>
     <string name="languages_data_download_dismiss_action">ليس الآن</string>
     <string name="languages_data_download_title">تنزيل بيانات اللغة؟</string>

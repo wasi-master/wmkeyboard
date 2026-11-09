@@ -4439,9 +4439,6 @@
     <string name="languages_context_model_variant_standard">Стандартний</string>
     <string name="languages_custom_dictionaries_subtitle">Імпортуйте власні списки слів</string>
     <string name="languages_custom_dictionaries_title">Користувацькі словники</string>
-    <string name="languages_data_delete_body">%1$s має завантажений список слів або ключові слова емодзі. Видалити їх і звільнити близько %2$s пам\'яті?</string>
-    <string name="languages_data_delete_dismiss_action">Залишити їх</string>
-    <string name="languages_data_delete_title">Видалити завантажені файли?</string>
     <string name="languages_data_download_body">Клавіатура може завантажити дані, необхідні %1$s для якісного прогнозування та виправлення: список слів, ключові слова емодзі та дані про пари слів, якщо вони існують. Це використає близько %2$s даних. Ви також можете завантажити їх пізніше на екрані мов.</string>
     <string name="languages_data_download_dismiss_action">Не зараз</string>
     <string name="languages_data_download_title">Завантажити мовні дані?</string>

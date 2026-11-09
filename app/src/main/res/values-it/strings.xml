@@ -4434,9 +4434,6 @@
     <string name="languages_context_model_variant_standard">Standard</string>
     <string name="languages_custom_dictionaries_subtitle">Importa i tuoi elenchi di parole</string>
     <string name="languages_custom_dictionaries_title">Dizionari personalizzati</string>
-    <string name="languages_data_delete_body">%1$s ha un elenco di parole o parole chiave emoji scaricate. Eliminarli e recuperare circa %2$s di spazio di archiviazione?</string>
-    <string name="languages_data_delete_dismiss_action">Mantienili</string>
-    <string name="languages_data_delete_title">Eliminare i file scaricati?</string>
     <string name="languages_data_download_body">La tastiera può scaricare i dati necessari a %1$s per prevedere e correggere meglio: un elenco di parole, parole chiave per le emoji e dati sulle coppie di parole, se esistenti. Questo utilizza circa %2$s di dati. Puoi anche scaricarli in seguito dalla schermata delle lingue.</string>
     <string name="languages_data_download_dismiss_action">Non ora</string>
     <string name="languages_data_download_title">Scaricare i dati della lingua?</string>

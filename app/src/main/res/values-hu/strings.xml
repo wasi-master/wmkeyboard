@@ -4435,9 +4435,6 @@
     <string name="languages_context_model_variant_standard">Standard</string>
     <string name="languages_custom_dictionaries_subtitle">Saját szólisták importálása</string>
     <string name="languages_custom_dictionaries_title">Egyéni szótárak</string>
-    <string name="languages_data_delete_body">A(z) %1$s letöltött szólistával vagy hangulatjel-kulcsszavakkal rendelkezik. Törli őket, és visszakap kb. %2$s tárhelyet?</string>
-    <string name="languages_data_delete_dismiss_action">Megtartás</string>
-    <string name="languages_data_delete_title">Törli a letöltött fájlokat?</string>
     <string name="languages_data_download_body">A billentyűzet le tudja tölteni azokat az adatokat, amelyekre a %1$s-nek szüksége van a megfelelő előrejelzéshez és javításhoz: egy szójegyzéket, emoji kulcsszavakat és szó-pár adatokat, attól függően, hogy melyek léteznek. Ez körülbelül %2$s adatforgalmat igényel. Később a nyelvi képernyőről is letöltheted őket.</string>
     <string name="languages_data_download_dismiss_action">Nem most</string>
     <string name="languages_data_download_title">Letöltöd a nyelvi adatokat?</string>

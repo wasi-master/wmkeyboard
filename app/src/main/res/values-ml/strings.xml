@@ -4450,9 +4450,6 @@
     <string name="languages_context_model_variant_standard">സ്റ്റാൻഡേർഡ്</string>
     <string name="languages_custom_dictionaries_subtitle">നിങ്ങളുടെ സ്വന്തം വേഡ് ലിസ്റ്റുകൾ ഇറക്കുമതി ചെയ്യുക</string>
     <string name="languages_custom_dictionaries_title">ഇഷ്‌ടാനുസൃത നിഘണ്ടുക്കൾ</string>
-    <string name="languages_data_delete_body">%1$s-ൽ ഡൗൺലോഡ് ചെയ്ത പദാവലിയോ ഇമോജി കീവേഡുകളോ ഉണ്ട്. അവ മായ്ച്ച് ഏകദേശം %2$s സ്റ്റോറേജ് തിരികെ ലഭിക്കണോ?</string>
-    <string name="languages_data_delete_dismiss_action">അവ നിലനിർത്തുക</string>
-    <string name="languages_data_delete_title">ഡൗൺലോഡ് ചെയ്ത ഫയലുകൾ നീക്കം ചെയ്യണോ?</string>
     <string name="languages_data_download_body">വാക്കുകൾ പ്രവചിക്കാനും ശരിയാക്കാനും ആവശ്യമായ ഡാറ്റ (%1$s) കീബോർഡിന് ഡൗൺലോഡ് ചെയ്യാം: ഒരു വേഡ് ലിസ്റ്റ്, ഇമോജി കീവേഡുകൾ, വേഡ്-പെയർ ഡാറ്റ എന്നിവ ഇതിൽ ഉൾപ്പെടുന്നു. ഇതിനായി ഏകദേശം %2$s ഡാറ്റ ആവശ്യമാണ്. ഭാഷാ സ്ക്രീനിൽ നിന്ന് നിങ്ങൾക്ക് പിന്നീട് ഇവ ഡൗൺലോഡ് ചെയ്യാനും സാധിക്കും.</string>
     <string name="languages_data_download_dismiss_action">ഇപ്പോൾ വേണ്ട</string>
     <string name="languages_data_download_title">ഭാഷാ ഡാറ്റ ഡൗൺലോഡ് ചെയ്യണോ?</string>

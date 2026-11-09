@@ -4447,9 +4447,6 @@
     <string name="languages_context_model_variant_standard">Standard</string>
     <string name="languages_custom_dictionaries_subtitle">Importer dine egne ordlister</string>
     <string name="languages_custom_dictionaries_title">Egendefinerte ordbøker</string>
-    <string name="languages_data_delete_body">%1$s har en nedlastet ordliste eller emoji-nøkkelord. Vil du slette dem og frigjøre omtrent %2$s lagringsplass?</string>
-    <string name="languages_data_delete_dismiss_action">Behold dem</string>
-    <string name="languages_data_delete_title">Slette de nedlastede filene?</string>
     <string name="languages_data_download_body">Tastaturet kan laste ned dataene %1$s trenger for å forutsi og korrigere godt: en ordliste, emojinøkkelord og ordpardata, avhengig av hva som finnes. Dette bruker omtrent %2$s med data. Du kan også laste dem ned senere fra språkskjermen.</string>
     <string name="languages_data_download_dismiss_action">Ikke nå</string>
     <string name="languages_data_download_title">Last ned språkdata?</string>

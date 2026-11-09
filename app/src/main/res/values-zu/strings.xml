@@ -4449,9 +4449,6 @@
     <string name="languages_context_model_variant_standard">Okujwayelekile</string>
     <string name="languages_custom_dictionaries_subtitle">Ngenisa uhlu lwakho lwamagama</string>
     <string name="languages_custom_dictionaries_title">Izichazamazwi ezenziwe ngokwezifiso</string>
-    <string name="languages_data_delete_body">I-%1$s inohlu lwamagama olulandiwe noma amagama angukhiye we-emoji. Uyafuna ukuzisusa futhi uthole cishe i-%2$s yesikhala sokugcina?</string>
-    <string name="languages_data_delete_dismiss_action">Wagcine</string>
-    <string name="languages_data_delete_title">Susa amafayela alandiwe?</string>
     <string name="languages_data_download_body">Ikhibhodi ingalanda idatha %1$s edingayo ukuze ibikezele futhi ilungise kahle: uhlu lwamagama, amagama angukhiye we-emoji nedatha yamagama amabili, noma yikuphi kwalokho okukhona. Lokhu kusebenzisa cishe %2$s yedatha. Ungaphinda uzilande kamuva kusuka esikrinini solimi.</string>
     <string name="languages_data_download_dismiss_action">Hhayi manje</string>
     <string name="languages_data_download_title">Landa idatha yolimi?</string>

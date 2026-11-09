@@ -4440,9 +4440,6 @@
     <string name="languages_context_model_variant_standard">Πρότυπο</string>
     <string name="languages_custom_dictionaries_subtitle">Εισαγάγετε τις δικές σας λίστες λέξεων</string>
     <string name="languages_custom_dictionaries_title">Προσαρμοσμένα λεξικά</string>
-    <string name="languages_data_delete_body">Το %1$s διαθέτει ληφθείσα λίστα λέξεων ή λέξεις-κλειδιά emoji. Να διαγραφούν και να ανακτήσετε περίπου %2$s αποθηκευτικού χώρου;</string>
-    <string name="languages_data_delete_dismiss_action">Διατήρηση</string>
-    <string name="languages_data_delete_title">Διαγραφή των ληφθέντων αρχείων;</string>
     <string name="languages_data_download_body">Το πληκτρολόγιο μπορεί να κατεβάσει τα δεδομένα που χρειάζεται το %1$s για σωστή πρόβλεψη και διόρθωση: μια λίστα λέξεων, λέξεις-κλειδιά emoji και δεδομένα ζευγών λέξεων, όσα από αυτά υπάρχουν. Αυτό χρησιμοποιεί περίπου %2$s δεδομένων. Μπορείτε επίσης να τα κατεβάσετε αργότερα από την οθόνη γλώσσας.</string>
     <string name="languages_data_download_dismiss_action">Όχι τώρα</string>
     <string name="languages_data_download_title">Λήψη δεδομένων γλώσσας;</string>

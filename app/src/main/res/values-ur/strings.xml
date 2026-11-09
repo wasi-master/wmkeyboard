@@ -4439,9 +4439,6 @@
     <string name="languages_context_model_variant_standard">معیاری</string>
     <string name="languages_custom_dictionaries_subtitle">اپنی الفاظ کی فہرستیں درآمد کریں</string>
     <string name="languages_custom_dictionaries_title">کسٹم لغات</string>
-    <string name="languages_data_delete_body">%1$s میں ڈاؤن لوڈ کردہ الفاظ کی فہرست یا ایموجی کی ورڈز موجود ہیں۔ کیا انہیں حذف کر کے تقریباً %2$s اسٹوریج واپس حاصل کر لیں؟</string>
-    <string name="languages_data_delete_dismiss_action">انہیں رکھیں</string>
-    <string name="languages_data_delete_title">ڈاؤن لوڈ کردہ فائلیں حذف کریں؟</string>
     <string name="languages_data_download_body">کی بورڈ وہ ڈیٹا ڈاؤن لوڈ کر سکتا ہے جس کی %1$s کو اچھی پیشین گوئی اور تصحیح کے لیے ضرورت ہے: ایک لفظ کی فہرست، ایموجی کی ورڈز اور لفظ کے جوڑے کا ڈیٹا، جو بھی موجود ہو۔ یہ تقریباً %2$s ڈیٹا استعمال کرتا ہے۔ آپ انہیں بعد میں زبان کی اسکرین سے بھی ڈاؤن لوڈ کر سکتے ہیں۔</string>
     <string name="languages_data_download_dismiss_action">ابھی نہیں</string>
     <string name="languages_data_download_title">زبان کا ڈیٹا ڈاؤن لوڈ کریں؟</string>

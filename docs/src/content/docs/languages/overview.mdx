@@ -46,7 +46,7 @@ Tap **Add language** to search the whole registry. The screen that opens leads w
 
 If the language has data to download (a word list, emoji keywords, an n-gram pack of word pairs, or any mix of the three) you're asked once, right there, with the rough size for the lot on the dialog. **Download** starts all of them in the background. **Not now** adds the language without them. **Cancel** backs out of the whole thing, for the tap that landed on the wrong row. Nothing is enabled until you answer, so Cancel really does leave your language list as it was. You can start any of them by hand later from the language's own screen. Emoji keywords also have an automatic download of their own, covered in [Emoji search in your language](/emoji/customization/#emoji-search-in-your-language), but the prompt is the one chance to get the word list at the same time.
 
-Removing a language asks the mirror question when it has files on disk: delete its downloaded word list and keywords to get the storage back, or keep them for next time. The language goes either way, because the dialog is only about the files. Deleting the keywords also tells the automatic download to leave that language alone, so they don't quietly come back.
+Removing a language deletes what was downloaded for it, without asking, since any of it can be fetched again if you add the language back. Deleting the keywords also tells the automatic download to leave that language alone, so they don't quietly come back. What the keyboard learned from your own typing stays.
 
 Language names in the list are shown as `endonym · English`, for example "বাংলা · Bangla" or "Русский · Russian". The native name comes first and the English name after it, so you can find a language whether or not you can already read its script. English itself is just "English", since repeating it would say nothing.
 
@@ -74,7 +74,7 @@ Tap any enabled language to reach its screen. **Layouts** and **Dictionaries** a
 
 Three more groups turn up on the languages that have them: **Clusters** on a conjunct script (see the note below), **Spellings** on Bangla, whose "Use known spellings" switch turns "tmr" into তোমার and "table" into টেবিল, and **Style** on the Fancy Text entry, which is where its 32 styles are listed.
 
-A **Remove** button sits at the bottom once you have more than one language enabled. Removing a language turns off every layout that belongs to it. If anything was downloaded for it, a dialog asks whether that goes too, and names the size: its word list and phonetic index, emoji keywords, word pairs, spell checker, Chinese or Japanese dictionaries and Bangla's Avro dictionary. The neural suggestions model is shared, so it's offered only when no language left on still uses it. **Keep** removes the language and leaves the files.
+A **Remove** button sits at the bottom once you have more than one language enabled. Removing a language turns off every layout that belongs to it, and no other language suggests its words any more. Its downloads are deleted with it: its word list and phonetic index, emoji keywords, word pairs, spell checker, Chinese or Japanese dictionaries and Bangla's Avro dictionary. The neural suggestions model is shared, so it goes only when no language left on still uses it. Your learned words, typing history and personal dictionary stay. Dropping a language's last layout from the switch-order list removes it the same way.
 
 ## Switching between enabled languages
 

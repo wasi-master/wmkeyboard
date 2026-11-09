@@ -790,10 +790,5 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_data_download_dismiss_action">Not now</string>
 
 
-    <!-- Dialog after the user removes a language that has downloaded files. -->
-    <string name="languages_data_delete_title">Delete the downloaded files?</string>
-    <!-- %1$s is the language name, %2$s a data size like "4.2 MB". -->
-    <string name="languages_data_delete_body"><xliff:g id="language" example="German">%1$s</xliff:g> has files downloaded for it, such as its word list, emoji keywords, spell checker or dictionaries. Delete them and get about <xliff:g id="size" example="4.2 MB">%2$s</xliff:g> of storage back?</string>
-    <string name="languages_data_delete_dismiss_action">Keep them</string>
 
 </resources>

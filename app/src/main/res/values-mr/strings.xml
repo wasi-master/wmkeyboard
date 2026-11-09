@@ -4442,9 +4442,6 @@
     <string name="languages_context_model_variant_standard">मानक</string>
     <string name="languages_custom_dictionaries_subtitle">तुमच्या स्वतःच्या शब्द सूची आयात करा</string>
     <string name="languages_custom_dictionaries_title">सानुकूल शब्दकोश</string>
-    <string name="languages_data_delete_body">%1$s कडे डाउनलोड केलेली शब्द सूची किंवा इमोजी कीवर्ड आहेत. ते हटवून सुमारे %2$s स्टोरेज परत मिळवू इच्छिता?</string>
-    <string name="languages_data_delete_dismiss_action">ते ठेवा</string>
-    <string name="languages_data_delete_title">डाउनलोड केलेल्या फाइल्स हटवायच्या?</string>
     <string name="languages_data_download_body">कीबोर्ड %1$s ला चांगल्या प्रकारे भाकीत आणि दुरुस्त करण्यासाठी आवश्यक असलेला डेटा डाउनलोड करू शकतो: शब्द सूची, इमोजी कीवर्ड आणि शब्द-जोडी डेटा, जे काही अस्तित्वात असेल ते. हे सुमारे %2$s डेटा वापरते. तुम्ही ते नंतर भाषा स्क्रीनवरून देखील डाउनलोड करू शकता.</string>
     <string name="languages_data_download_dismiss_action">आता नको</string>
     <string name="languages_data_download_title">भाषेचा डेटा डाउनलोड करायचा?</string>

@@ -4441,9 +4441,6 @@
     <string name="languages_context_model_variant_standard">Standaard</string>
     <string name="languages_custom_dictionaries_subtitle">Importeer je eigen woordenlijsten</string>
     <string name="languages_custom_dictionaries_title">Aangepaste woordenboeken</string>
-    <string name="languages_data_delete_body">%1$s heeft een gedownloade woordenlijst of emoji-trefwoorden. Wil je deze verwijderen en ongeveer %2$s aan opslagruimte terugkrijgen?</string>
-    <string name="languages_data_delete_dismiss_action">Behouden</string>
-    <string name="languages_data_delete_title">De gedownloade bestanden verwijderen?</string>
     <string name="languages_data_download_body">Het toetsenbord kan de gegevens downloaden die %1$s nodig heeft om goed te voorspellen en te corrigeren: een woordenlijst, emoji-trefwoorden en woordpaargegevens, voor zover deze bestaan. Dit verbruikt ongeveer %2$s aan data. Je kunt ze later ook downloaden via het taalscherm.</string>
     <string name="languages_data_download_dismiss_action">Niet nu</string>
     <string name="languages_data_download_title">Taalgegevens downloaden?</string>

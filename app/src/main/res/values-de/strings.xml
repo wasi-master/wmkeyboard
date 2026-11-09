@@ -4441,9 +4441,6 @@
     <string name="languages_context_model_variant_standard">Standard</string>
     <string name="languages_custom_dictionaries_subtitle">Importieren Sie Ihre eigenen Wortlisten</string>
     <string name="languages_custom_dictionaries_title">Benutzerdefinierte Wörterbücher</string>
-    <string name="languages_data_delete_body">%1$s hat eine heruntergeladene Wortliste oder Emoji-Schlüsselwörter. Möchtest du sie löschen und etwa %2$s Speicherplatz zurückgewinnen?</string>
-    <string name="languages_data_delete_dismiss_action">Behalten</string>
-    <string name="languages_data_delete_title">Die heruntergeladenen Dateien löschen?</string>
     <string name="languages_data_download_body">Die Tastatur kann die Daten herunterladen, die %1$s für gute Vorhersagen und Korrekturen benötigt: eine Wortliste, Emoji-Schlüsselwörter und Wortpaar-Daten, sofern diese existieren. Dies verbraucht etwa %2$s an Daten. Du kannst sie später auch über den Sprachbildschirm herunterladen.</string>
     <string name="languages_data_download_dismiss_action">Nicht jetzt</string>
     <string name="languages_data_download_title">Sprachdaten herunterladen?</string>

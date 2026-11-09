@@ -4446,9 +4446,6 @@
     <string name="languages_context_model_variant_standard">ప్రామాణికం</string>
     <string name="languages_custom_dictionaries_subtitle">మీ స్వంత పదాల జాబితాలను దిగుమతి చేసుకోండి</string>
     <string name="languages_custom_dictionaries_title">కస్టమ్ నిఘంటువులు</string>
-    <string name="languages_data_delete_body">%1$s డౌన్‌లోడ్ చేసిన పదాల జాబితా లేదా ఎమోజి కీవర్డ్‌లను కలిగి ఉంది. వాటిని తొలగించి సుమారు %2$s నిల్వ స్థలాన్ని తిరిగి పొందాలా?</string>
-    <string name="languages_data_delete_dismiss_action">వాటిని అలాగే ఉంచండి</string>
-    <string name="languages_data_delete_title">డౌన్‌లోడ్ చేసిన ఫైళ్లను తొలగించాలా?</string>
     <string name="languages_data_download_body">కీబోర్డ్ అంచనా వేయడానికి మరియు సరిగ్గా సరిదిద్దడానికి అవసరమైన డేటాను %1$s డౌన్‌లోడ్ చేయగలదు: పదాల జాబితా, ఎమోజి కీవర్డ్‌లు మరియు వర్డ్-పెయిర్ డేటా, వాటిలో ఏవి ఉంటే అవి. ఇది సుమారు %2$s డేటాను ఉపయోగిస్తుంది. మీరు వాటిని తర్వాత భాషా స్క్రీన్ నుండి కూడా డౌన్‌లోడ్ చేసుకోవచ్చు.</string>
     <string name="languages_data_download_dismiss_action">ఇప్పుడు వద్దు</string>
     <string name="languages_data_download_title">భాషా డేటాను డౌన్‌లోడ్ చేయాలా?</string>

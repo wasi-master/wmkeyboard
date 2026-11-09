@@ -4446,9 +4446,6 @@
     <string name="languages_context_model_variant_standard">استاندارد</string>
     <string name="languages_custom_dictionaries_subtitle">وارد کردن لیست کلمات شخصی خود</string>
     <string name="languages_custom_dictionaries_title">فرهنگ‌های لغت سفارشی</string>
-    <string name="languages_data_delete_body">%1$s دارای لیست کلمات یا کلمات کلیدی ایموجی دانلود شده است. آن‌ها را حذف کنید و حدود %2$s از فضای ذخیره‌سازی را آزاد کنید؟</string>
-    <string name="languages_data_delete_dismiss_action">نگه داشتن آن‌ها</string>
-    <string name="languages_data_delete_title">فایل‌های دانلود شده حذف شوند؟</string>
     <string name="languages_data_download_body">صفحه‌کلید می‌تواند داده‌های مورد نیاز %1$s را برای پیش‌بینی و اصلاح بهتر دانلود کند: فهرست کلمات، کلمات کلیدی ایموجی و داده‌های جفت‌کلمه، هر کدام که وجود داشته باشند. این کار حدود %2$s از داده‌ها را مصرف می‌کند. همچنین می‌توانید بعداً آن‌ها را از صفحه زبان دانلود کنید.</string>
     <string name="languages_data_download_dismiss_action">فعلاً نه</string>
     <string name="languages_data_download_title">داده‌های زبان دانلود شود؟</string>

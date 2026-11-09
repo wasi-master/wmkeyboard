@@ -4445,9 +4445,6 @@
     <string name="languages_context_model_variant_standard">Стандартный</string>
     <string name="languages_custom_dictionaries_subtitle">Импорт собственных списков слов</string>
     <string name="languages_custom_dictionaries_title">Пользовательские словари</string>
-    <string name="languages_data_delete_body">Для %1$s загружен список слов или ключевые слова эмодзи. Удалить их и освободить около %2$s места?</string>
-    <string name="languages_data_delete_dismiss_action">Оставить их</string>
-    <string name="languages_data_delete_title">Удалить загруженные файлы?</string>
     <string name="languages_data_download_body">Клавиатура может загрузить данные, необходимые %1$s для качественного прогнозирования и исправления: список слов, ключевые слова для эмодзи и данные о парах слов (если они существуют). Это займет около %2$s данных. Вы также можете загрузить их позже на экране языка.</string>
     <string name="languages_data_download_dismiss_action">Не сейчас</string>
     <string name="languages_data_download_title">Скачать языковые данные?</string>

@@ -4435,9 +4435,6 @@
     <string name="languages_context_model_variant_standard">Tiêu chuẩn</string>
     <string name="languages_custom_dictionaries_subtitle">Nhập danh sách từ của riêng bạn</string>
     <string name="languages_custom_dictionaries_title">Từ điển tùy chỉnh</string>
-    <string name="languages_data_delete_body">%1$s có danh sách từ hoặc từ khóa biểu tượng cảm xúc đã tải xuống. Xóa chúng và giải phóng khoảng %2$s dung lượng lưu trữ?</string>
-    <string name="languages_data_delete_dismiss_action">Giữ lại</string>
-    <string name="languages_data_delete_title">Xóa các tệp đã tải xuống?</string>
     <string name="languages_data_download_body">Bàn phím có thể tải xuống dữ liệu mà %1$s cần để dự đoán và sửa lỗi tốt: danh sách từ, từ khóa biểu tượng cảm xúc và dữ liệu cặp từ, tùy thuộc vào những gì tồn tại. Việc này sử dụng khoảng %2$s dữ liệu. Bạn cũng có thể tải xuống sau từ màn hình ngôn ngữ.</string>
     <string name="languages_data_download_dismiss_action">Để sau</string>
     <string name="languages_data_download_title">Tải xuống dữ liệu ngôn ngữ?</string>

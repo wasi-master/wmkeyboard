@@ -4437,9 +4437,6 @@
     <string name="languages_context_model_variant_standard">Standardi</string>
     <string name="languages_custom_dictionaries_subtitle">Tuo omia sanaluetteloitasi</string>
     <string name="languages_custom_dictionaries_title">Mukautetut sanakirjat</string>
-    <string name="languages_data_delete_body">Kohteella %1$s on ladattu sanaluettelo tai emoji-avainsanoja. Poistetaanko ne ja vapautetaanko noin %2$s tallennustilaa?</string>
-    <string name="languages_data_delete_dismiss_action">Pidä ne</string>
-    <string name="languages_data_delete_title">Poistetaanko ladatut tiedostot?</string>
     <string name="languages_data_download_body">Näppäimistö voi ladata tiedot, joita %1$s tarvitsee ennustaakseen ja korjatakseen hyvin: sanalista, emojien avainsanat ja sanaparitiedot, mikäli niitä on olemassa. Tämä käyttää noin %2$s dataa. Voit ladata ne myös myöhemmin kielinäytöstä.</string>
     <string name="languages_data_download_dismiss_action">Ei nyt</string>
     <string name="languages_data_download_title">Ladataanko kielidata?</string>

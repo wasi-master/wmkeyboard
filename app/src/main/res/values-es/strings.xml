@@ -4445,9 +4445,6 @@
     <string name="languages_context_model_variant_standard">Estándar</string>
     <string name="languages_custom_dictionaries_subtitle">Importa tus propias listas de palabras</string>
     <string name="languages_custom_dictionaries_title">Diccionarios personalizados</string>
-    <string name="languages_data_delete_body">%1$s tiene una lista de palabras descargada o palabras clave de emoji. ¿Eliminarlos y recuperar aproximadamente %2$s de almacenamiento?</string>
-    <string name="languages_data_delete_dismiss_action">Mantenerlos</string>
-    <string name="languages_data_delete_title">¿Eliminar los archivos descargados?</string>
     <string name="languages_data_download_body">El teclado puede descargar los datos que %1$s necesita para predecir y corregir correctamente: una lista de palabras, palabras clave de emojis y datos de pares de palabras, si existen. Esto utiliza alrededor de %2$s de datos. También puedes descargarlos más tarde desde la pantalla de idioma.</string>
     <string name="languages_data_download_dismiss_action">Ahora no</string>
     <string name="languages_data_download_title">¿Descargar datos de idioma?</string>

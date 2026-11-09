@@ -4447,9 +4447,6 @@
     <string name="languages_context_model_variant_standard">Standardno</string>
     <string name="languages_custom_dictionaries_subtitle">Uvozite lastne sezname besed</string>
     <string name="languages_custom_dictionaries_title">Slovarji po meri</string>
-    <string name="languages_data_delete_body">%1$s ima prenesen seznam besed ali ključne besede emoji. Jih želite izbrisati in pridobiti približno %2$s prostora za shranjevanje?</string>
-    <string name="languages_data_delete_dismiss_action">Obdrži jih</string>
-    <string name="languages_data_delete_title">Želite izbrisati prenesene datoteke?</string>
     <string name="languages_data_download_body">Tipkovnica lahko prenese podatke, ki jih %1$s potrebuje za dobro napovedovanje in popravljanje: seznam besed, ključne besede za emojije in podatke o besednih parih, karkoli od tega obstaja. To porabi približno %2$s podatkov. Pozneje jih lahko prenesete tudi na zaslonu za jezik.</string>
     <string name="languages_data_download_dismiss_action">Ne zdaj</string>
     <string name="languages_data_download_title">Prenesem jezikovne podatke?</string>

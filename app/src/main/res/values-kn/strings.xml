@@ -4456,9 +4456,6 @@
     <string name="languages_context_model_variant_standard">ಪ್ರಮಾಣಿತ</string>
     <string name="languages_custom_dictionaries_subtitle">ನಿಮ್ಮ ಸ್ವಂತ ಪದಗಳ ಪಟ್ಟಿಗಳನ್ನು ಆಮದು ಮಾಡಿಕೊಳ್ಳಿ</string>
     <string name="languages_custom_dictionaries_title">ಕಸ್ಟಮ್ ನಿಘಂಟುಗಳು</string>
-    <string name="languages_data_delete_body">%1$s ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ಪದಗಳ ಪಟ್ಟಿ ಅಥವಾ ಎಮೋಜಿ ಕೀವರ್ಡ್‌ಗಳನ್ನು ಹೊಂದಿದೆ. ಅವುಗಳನ್ನು ಅಳಿಸಿ ಮತ್ತು ಸುಮಾರು %2$s ಸಂಗ್ರಹಣೆಯನ್ನು ಮರಳಿ ಪಡೆಯುವುದೇ?</string>
-    <string name="languages_data_delete_dismiss_action">ಅವುಗಳನ್ನು ಇರಿಸಿಕೊಳ್ಳಿ</string>
-    <string name="languages_data_delete_title">ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ಫೈಲ್‌ಗಳನ್ನು ಅಳಿಸಬೇಕೆ?</string>
     <string name="languages_data_download_body">ಕೀಬೋರ್ಡ್ ಊಹಿಸಲು ಮತ್ತು ಸರಿಯಾಗಿ ತಿದ್ದಲು ಅಗತ್ಯವಿರುವ ಡೇಟಾವನ್ನು %1$s ಡೌನ್‌ಲೋಡ್ ಮಾಡಬಹುದು: ಪದಗಳ ಪಟ್ಟಿ, ಎಮೋಜಿ ಕೀವರ್ಡ್‌ಗಳು ಮತ್ತು ಪದ-ಜೋಡಿ ಡೇಟಾ, ಇವುಗಳಲ್ಲಿ ಯಾವುದು ಅಸ್ತಿತ್ವದಲ್ಲಿದೆಯೋ ಅದು. ಇದು ಸುಮಾರು %2$s ಡೇಟಾವನ್ನು ಬಳಸುತ್ತದೆ. ನೀವು ಅವುಗಳನ್ನು ನಂತರ ಭಾಷೆಯ ಪರದೆಯಿಂದಲೂ ಡೌನ್‌ಲೋಡ್ ಮಾಡಬಹುದು.</string>
     <string name="languages_data_download_dismiss_action">ಈಗ ಬೇಡ</string>
     <string name="languages_data_download_title">ಭಾಷಾ ಡೇಟಾವನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಬೇಕೆ?</string>

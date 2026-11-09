@@ -4434,9 +4434,6 @@
     <string name="languages_context_model_variant_standard">มาตรฐาน</string>
     <string name="languages_custom_dictionaries_subtitle">นำเข้ารายการคำศัพท์ของคุณเอง</string>
     <string name="languages_custom_dictionaries_title">พจนานุกรมที่กำหนดเอง</string>
-    <string name="languages_data_delete_body">%1$s มีรายการคำหรือคำหลักอีโมจิที่ดาวน์โหลดไว้ ต้องการลบข้อมูลเหล่านี้เพื่อคืนพื้นที่จัดเก็บประมาณ %2$s หรือไม่</string>
-    <string name="languages_data_delete_dismiss_action">เก็บไว้</string>
-    <string name="languages_data_delete_title">ลบไฟล์ที่ดาวน์โหลดใช่หรือไม่?</string>
     <string name="languages_data_download_body">แป้นพิมพ์สามารถดาวน์โหลดข้อมูลที่ %1$s จำเป็นต้องใช้เพื่อคาดเดาและแก้ไขคำได้อย่างแม่นยำ ได้แก่ รายการคำศัพท์ คำค้นหาอีโมจิ และข้อมูลคู่คำ (ถ้ามี) ซึ่งจะใช้ข้อมูลประมาณ %2$s คุณสามารถดาวน์โหลดข้อมูลเหล่านี้ในภายหลังได้จากหน้าจอภาษา</string>
     <string name="languages_data_download_dismiss_action">ไม่ใช่ตอนนี้</string>
     <string name="languages_data_download_title">ดาวน์โหลดข้อมูลภาษาหรือไม่</string>

@@ -4436,9 +4436,6 @@
     <string name="languages_context_model_variant_standard">Staðlað</string>
     <string name="languages_custom_dictionaries_subtitle">Flytja inn eigin orðalista</string>
     <string name="languages_custom_dictionaries_title">Sérsniðnar orðabækur</string>
-    <string name="languages_data_delete_body">%1$s er með niðurhalaðan orðalista eða emoji-leitarorð. Eyða þeim og fá um %2$s af geymsluplássi til baka?</string>
-    <string name="languages_data_delete_dismiss_action">Halda þeim</string>
-    <string name="languages_data_delete_title">Eyða niðurhölðum skrám?</string>
     <string name="languages_data_download_body">Lyklaborðið getur hlaðið niður gögnunum sem %1$s þarf til að spá fyrir um og leiðrétta vel: orðalista, emoji-lykilorð og orðapör, eftir því hvað er til. Þetta notar um %2$s af gögnum. Þú getur líka hlaðið þeim niður síðar af tungumálaskjánum.</string>
     <string name="languages_data_download_dismiss_action">Ekki núna</string>
     <string name="languages_data_download_title">Sækja tungumálagögn?</string>

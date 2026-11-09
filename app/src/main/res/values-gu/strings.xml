@@ -4440,9 +4440,6 @@
     <string name="languages_context_model_variant_standard">સ્ટાન્ડર્ડ</string>
     <string name="languages_custom_dictionaries_subtitle">તમારી પોતાની શબ્દ સૂચિઓ આયાત કરો</string>
     <string name="languages_custom_dictionaries_title">કસ્ટમ ડિક્શનરી</string>
-    <string name="languages_data_delete_body">%1$s પાસે ડાઉનલોડ કરેલી શબ્દ સૂચિ અથવા ઇમોજી કીવર્ડ્સ છે. તેમને કાઢી નાખો અને લગભગ %2$s સ્ટોરેજ પાછું મેળવો?</string>
-    <string name="languages_data_delete_dismiss_action">તેમને રાખો</string>
-    <string name="languages_data_delete_title">ડાઉનલોડ કરેલી ફાઇલો કાઢી નાખવી છે?</string>
     <string name="languages_data_download_body">કીબોર્ડ સારી રીતે અનુમાન અને સુધારા કરવા માટે જરૂરી ડેટા %1$s ડાઉનલોડ કરી શકે છે: શબ્દ સૂચિ, ઇમોજી કીવર્ડ્સ અને શબ્દ-જોડી ડેટા, જેમાંથી જે અસ્તિત્વમાં હોય તે. આ લગભગ %2$s ડેટાનો ઉપયોગ કરે છે. તમે તેને પછીથી લેંગ્વેજ સ્ક્રીન પરથી પણ ડાઉનલોડ કરી શકો છો.</string>
     <string name="languages_data_download_dismiss_action">અત્યારે નહીં</string>
     <string name="languages_data_download_title">ભાષા ડેટા ડાઉનલોડ કરવો છે?</string>

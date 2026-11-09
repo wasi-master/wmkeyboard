@@ -4433,9 +4433,6 @@
     <string name="languages_context_model_variant_standard">Standard</string>
     <string name="languages_custom_dictionaries_subtitle">Importez vos propres listes de mots</string>
     <string name="languages_custom_dictionaries_title">Dictionnaires personnalisés</string>
-    <string name="languages_data_delete_body">%1$s possède une liste de mots ou des mots-clés d\'émojis téléchargés. Les supprimer et récupérer environ %2$s d\'espace de stockage ?</string>
-    <string name="languages_data_delete_dismiss_action">Les conserver</string>
-    <string name="languages_data_delete_title">Supprimer les fichiers téléchargés ?</string>
     <string name="languages_data_download_body">Le clavier peut télécharger les données dont %1$s a besoin pour prédire et corriger efficacement : une liste de mots, des mots-clés d\'émojis et des données de paires de mots, si elles existent. Cela utilise environ %2$s de données. Vous pouvez également les télécharger plus tard depuis l\'écran des langues.</string>
     <string name="languages_data_download_dismiss_action">Pas maintenant</string>
     <string name="languages_data_download_title">Télécharger les données linguistiques ?</string>

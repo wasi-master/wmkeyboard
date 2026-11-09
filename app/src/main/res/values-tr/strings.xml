@@ -4436,9 +4436,6 @@
     <string name="languages_context_model_variant_standard">Standart</string>
     <string name="languages_custom_dictionaries_subtitle">Kendi kelime listelerinizi içe aktarın</string>
     <string name="languages_custom_dictionaries_title">Özel sözlükler</string>
-    <string name="languages_data_delete_body">%1$s indirilen bir kelime listesine veya emoji anahtar kelimelerine sahip. Bunları silip yaklaşık %2$s depolama alanı geri kazanmak ister misiniz?</string>
-    <string name="languages_data_delete_dismiss_action">Onları tut</string>
-    <string name="languages_data_delete_title">İndirilen dosyalar silinsin mi?</string>
     <string name="languages_data_download_body">Klavye, %1$s dilinin iyi tahmin etmesi ve düzeltmesi için gereken verileri indirebilir: bir kelime listesi, emoji anahtar kelimeleri ve kelime çifti verileri (hangileri mevcutsa). Bu yaklaşık %2$s veri kullanır. Bunları daha sonra dil ekranından da indirebilirsiniz.</string>
     <string name="languages_data_download_dismiss_action">Şimdi değil</string>
     <string name="languages_data_download_title">Dil verileri indirilsin mi?</string>

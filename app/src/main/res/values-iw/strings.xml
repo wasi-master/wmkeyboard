@@ -4440,9 +4440,6 @@
     <string name="languages_context_model_variant_standard">סטנדרטי</string>
     <string name="languages_custom_dictionaries_subtitle">ייבוא רשימות מילים משלך</string>
     <string name="languages_custom_dictionaries_title">מילונים מותאמים אישית</string>
-    <string name="languages_data_delete_body">ל-%1$s יש רשימת מילים שהורדה או מילות מפתח של אימוג\'י. למחוק אותם ולקבל בחזרה כ-%2$s של שטח אחסון?</string>
-    <string name="languages_data_delete_dismiss_action">שמור אותם</string>
-    <string name="languages_data_delete_title">למחוק את הקבצים שהורדו?</string>
     <string name="languages_data_download_body">המקלדת יכולה להוריד את הנתונים ש-%1$s צריכה כדי לחזות ולתקן היטב: רשימת מילים, מילות מפתח של אימוג\'י ונתוני זוגות מילים, מה שקיים מביניהם. זה משתמש בכ-%2$s של נתונים. ניתן להוריד אותם גם מאוחר יותר ממסך השפות.</string>
     <string name="languages_data_download_dismiss_action">לא עכשיו</string>
     <string name="languages_data_download_title">להוריד נתוני שפה?</string>

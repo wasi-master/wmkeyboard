@@ -4443,9 +4443,6 @@
     <string name="languages_context_model_variant_standard">Standardowy</string>
     <string name="languages_custom_dictionaries_subtitle">Importuj własne listy słów</string>
     <string name="languages_custom_dictionaries_title">Własne słowniki</string>
-    <string name="languages_data_delete_body">%1$s posiada pobraną listę słów lub słowa kluczowe emoji. Usunąć je i odzyskać około %2$s miejsca?</string>
-    <string name="languages_data_delete_dismiss_action">Zachowaj je</string>
-    <string name="languages_data_delete_title">Usunąć pobrane pliki?</string>
     <string name="languages_data_download_body">Klawiatura może pobrać dane, których %1$s potrzebuje do poprawnego przewidywania i korygowania tekstu: listę słów, słowa kluczowe emoji i dane o parach słów, jeśli istnieją. Zużyje to około %2$s danych. Możesz je również pobrać później z ekranu języka.</string>
     <string name="languages_data_download_dismiss_action">Nie teraz</string>
     <string name="languages_data_download_title">Pobrać dane językowe?</string>

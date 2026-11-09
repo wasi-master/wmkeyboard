@@ -4443,9 +4443,6 @@
     <string name="languages_context_model_variant_standard">Стандартен</string>
     <string name="languages_custom_dictionaries_subtitle">Импортирайте свои собствени списъци с думи</string>
     <string name="languages_custom_dictionaries_title">Персонализирани речници</string>
-    <string name="languages_data_delete_body">%1$s има изтеглен списък с думи или ключови думи за емоджита. Да ги изтриете ли и да освободите около %2$s място?</string>
-    <string name="languages_data_delete_dismiss_action">Запазване</string>
-    <string name="languages_data_delete_title">Изтриване на изтеглените файлове?</string>
     <string name="languages_data_download_body">Клавиатурата може да изтегли данните, от които %1$s се нуждае, за да предвижда и коригира добре: списък с думи, ключови думи за емоджита и данни за двойки думи, ако съществуват. Това използва около %2$s данни. Можете също да ги изтеглите по-късно от екрана за езици.</string>
     <string name="languages_data_download_dismiss_action">Не сега</string>
     <string name="languages_data_download_title">Изтегляне на езикови данни?</string>

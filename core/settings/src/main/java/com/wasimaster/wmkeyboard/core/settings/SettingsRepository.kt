@@ -13099,8 +13099,17 @@ class SettingsRepository(private val context: Context) {
             layoutDisplayNames = p.decoded(LAYOUT_DISPLAY_NAMES) { decodeLayoutDisplayNames(it) }
                 ?: defaults.layoutDisplayNames,
             enabledLanguages = layoutSelection.enabledLanguages,
-            secondaryLanguages = p.decoded(SECONDARY_LANGUAGES) { decodeSecondaryLanguages(it) }
-                ?: defaults.secondaryLanguages,
+            // Only languages still on lend their words. A pick of one removed
+            // since (by a build that left it behind, or a restored backup) has
+            // no switch to turn it off, yet kept its words on the strip. Kept
+            // in storage, so adding the language back brings the pick back.
+            secondaryLanguages = (
+                p.decoded(SECONDARY_LANGUAGES) { decodeSecondaryLanguages(it) }
+                    ?: defaults.secondaryLanguages
+                ).let { picks ->
+                    val on = layoutSelection.enabledLanguages.mapTo(HashSet()) { it.id }
+                    picks.mapValues { (_, ids) -> ids.filter { it in on } }.filterValues { it.isNotEmpty() }
+                },
             language = layoutSelection.active.language(),
             script = layoutSelection.active.script(),
             themeMode = p[THEME_MODE]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }

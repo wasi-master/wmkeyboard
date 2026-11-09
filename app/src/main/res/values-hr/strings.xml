@@ -4448,9 +4448,6 @@
     <string name="languages_context_model_variant_standard">Standardno</string>
     <string name="languages_custom_dictionaries_subtitle">Uvezite vlastite popise riječi</string>
     <string name="languages_custom_dictionaries_title">Prilagođeni rječnici</string>
-    <string name="languages_data_delete_body">%1$s ima preuzeti popis riječi ili ključne riječi za emojije. Izbrisati ih i osloboditi oko %2$s prostora?</string>
-    <string name="languages_data_delete_dismiss_action">Zadrži ih</string>
-    <string name="languages_data_delete_title">Izbrisati preuzete datoteke?</string>
     <string name="languages_data_download_body">Tipkovnica može preuzeti podatke koji su potrebni za %1$s za dobro predviđanje i ispravljanje: popis riječi, ključne riječi za emojije i podatke o parovima riječi, što god od toga postoji. Ovo koristi oko %2$s podataka. Također ih možete preuzeti kasnije sa zaslona jezika.</string>
     <string name="languages_data_download_dismiss_action">Ne sada</string>
     <string name="languages_data_download_title">Preuzeti jezične podatke?</string>
