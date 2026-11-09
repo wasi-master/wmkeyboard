@@ -23,35 +23,69 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * The one published smart punctuation model (`tools/wmpunct`, see its
- * README): a `.wmpt` in the data repo, pinned by exact size and SHA-256 so a
- * new model is a new file, never one replaced in place.
+ * The sizes the smart punctuation model comes in. [STANDARD] is what the
+ * automatic download fetches; [LARGE] is offered under the switch for phones
+ * with room: it reads the sentence a few points more often right, in a file
+ * about twice the size, and costs a little more per keystroke.
  */
-object PunctuationModelCatalog {
+enum class PunctuationModelVariant { STANDARD, LARGE }
+
+/**
+ * One published smart punctuation model (`tools/wmpunct`, see its README):
+ * a `.wmpt` in the data repo, pinned by exact size and SHA-256 so a new model
+ * is a new file, never one replaced in place.
+ */
+class PunctuationModelEntry(
+    val variant: PunctuationModelVariant,
     /** Where the file lives in the data repo. */
-    const val PATH = "models/punct/smart_punct_v1.wmpt"
-
+    val path: String,
     /** Exact file size, checked after download. */
-    const val BYTES = 2_077_464L
-
+    val bytes: Long,
     /** SHA-256 of the file, checked after download. */
-    const val SHA256 = "2cdac4e7ff15b902a3cedc6ebd8f61ec579af8de0c9b8b04728fa5b8c288163d"
+    val sha256: String,
+    /** The languages the model was trained on, for the settings row. */
+    val languages: List<String>,
+) {
+    init {
+        require(bytes > 0) { "$path: bytes must be positive" }
+        require(sha256.length == 64 && sha256.all { it in '0'..'9' || it in 'a'..'f' }) {
+            "$path: sha256 must be 64 lowercase hex characters"
+        }
+    }
 
-    /**
-     * The languages the model was trained on, for the settings row. v1 is the
-     * first model: English and German (e64 d160, three layers, 1.8M
-     * parameters), 97.3% of held-out sentence ends right; the sixty-language
-     * model from `tools/wmpunct/remote` replaces it as v2.
-     */
-    val languages: List<String> = listOf("en", "de")
+    val fileName: String get() = path.substringAfterLast('/')
 
-    fun url(): String = ServiceEndpoints.repo(ServiceRepo.DATA).rawUrl(PATH)
+    fun url(): String = ServiceEndpoints.repo(ServiceRepo.DATA).rawUrl(path)
+}
+
+/** The published smart punctuation models, one per size. */
+object PunctuationModelCatalog {
+    val entries: List<PunctuationModelEntry> = listOf(
+        // v1: English and German, e64 d160, three layers, 1.8M parameters;
+        // 97.3% of held-out sentence ends right. The sixty-language model
+        // from `tools/wmpunct/remote` replaces it as v2.
+        PunctuationModelEntry(
+            variant = PunctuationModelVariant.STANDARD,
+            path = "models/punct/smart_punct_v1.wmpt",
+            bytes = 2_077_464L,
+            sha256 = "2cdac4e7ff15b902a3cedc6ebd8f61ec579af8de0c9b8b04728fa5b8c288163d",
+            languages = listOf("en", "de"),
+        ),
+    )
+
+    fun entry(variant: PunctuationModelVariant): PunctuationModelEntry? = entries.firstOrNull { it.variant == variant }
+
+    /** The sizes on offer, standard first. */
+    val variants: List<PunctuationModelVariant> get() = entries.map { it.variant }.sortedBy { it.ordinal }
+
+    /** The entry published as [fileName], for an import. */
+    fun byFileName(fileName: String): PunctuationModelEntry? = entries.firstOrNull { it.fileName == fileName }
 }
 
 /**
- * Fetches [PunctuationModelCatalog]'s model into `models/punct/smart_punct.wmpt`
- * under the app's files, the same shape as [ContextModelDownloadManager]
- * with one model rather than one per language: [ensure] is the silent
+ * Fetches the chosen size of [PunctuationModelCatalog]'s model into
+ * `models/punct/smart_punct.wmpt` under the app's files, the same shape as
+ * [ContextModelDownloadManager] with one model rather than one per language: [ensure] is the silent
  * automatic pass while the setting is on, a failure remembered for the
  * process; [start] is the user asking; [delete] leaves a marker so the
  * automatic pass does not fetch it straight back; [completions] tells the
@@ -63,13 +97,16 @@ object PunctuationModelDownloadManager {
     sealed interface DownloadStatus {
         data object NotDownloaded : DownloadStatus
         data class Downloading(val fraction: Float) : DownloadStatus
-        data class Downloaded(val sizeBytes: Long) : DownloadStatus
+        data class Downloaded(val sizeBytes: Long, val variant: PunctuationModelVariant = PunctuationModelVariant.STANDARD) : DownloadStatus
         data object Failed : DownloadStatus
     }
 
     private const val DIR = "models/punct"
     private const val FILE_NAME = "smart_punct.wmpt"
     private const val DECLINED_NAME = "smart_punct.declined"
+
+    /** Holds the name of the [PunctuationModelVariant] on disk, or the one to fetch. */
+    private const val VARIANT_NAME = "smart_punct.variant"
     private const val USER_AGENT = "WMKeyboard punctuation model downloader"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -88,8 +125,25 @@ object PunctuationModelDownloadManager {
 
     private fun declinedFile(filesDir: File) = File(File(filesDir, DIR), DECLINED_NAME)
 
-    /** Whether the catalogued model is on disk, by its exact size. */
-    fun isDownloaded(filesDir: File): Boolean = modelFile(filesDir).length() == PunctuationModelCatalog.BYTES
+    /** Whether the chosen size's model is on disk, by its exact size. */
+    fun isDownloaded(filesDir: File): Boolean {
+        val entry = PunctuationModelCatalog.entry(variantOf(filesDir)) ?: return false
+        return modelFile(filesDir).length() == entry.bytes
+    }
+
+    /** The size on disk, or set to fetch: the marker, else standard. */
+    fun variantOf(filesDir: File): PunctuationModelVariant {
+        val name = runCatching { File(File(filesDir, DIR), VARIANT_NAME).readText().trim() }.getOrNull()
+        return PunctuationModelVariant.entries.firstOrNull { it.name == name } ?: PunctuationModelVariant.STANDARD
+    }
+
+    private fun rememberVariant(filesDir: File, variant: PunctuationModelVariant) {
+        runCatching {
+            val dir = File(filesDir, DIR)
+            dir.mkdirs()
+            File(dir, VARIANT_NAME).writeText(variant.name)
+        }
+    }
 
     fun bytesOnDisk(filesDir: File): Long = modelFile(filesDir).length()
 
@@ -97,21 +151,22 @@ object PunctuationModelDownloadManager {
         val live = _state.value
         _state.value = when {
             live is DownloadStatus.Downloading -> live
-            isDownloaded(filesDir) -> DownloadStatus.Downloaded(modelFile(filesDir).length())
+            isDownloaded(filesDir) -> DownloadStatus.Downloaded(modelFile(filesDir).length(), variantOf(filesDir))
             live == DownloadStatus.Failed -> live
             else -> DownloadStatus.NotDownloaded
         }
     }
 
-    /** Fetches the model if it is not here and the user has not declined it. Silent. */
+    /** Fetches the chosen size's model if it is not here and the user has not declined it. Silent. */
     fun ensure(filesDir: File) {
         synchronized(this) {
             if (givenUp || job?.isActive == true) return
             if (isDownloaded(filesDir) || declinedFile(filesDir).exists()) return
+            val entry = PunctuationModelCatalog.entry(variantOf(filesDir)) ?: return
             _state.value = DownloadStatus.Downloading(0f)
             job = scope.launch {
                 try {
-                    download(filesDir)
+                    download(filesDir, entry)
                 } finally {
                     if (_state.value is DownloadStatus.Downloading) _state.value = DownloadStatus.NotDownloaded
                 }
@@ -119,8 +174,18 @@ object PunctuationModelDownloadManager {
         }
     }
 
-    /** The user asked: retries a failed transfer and undoes a Delete. */
-    fun start(filesDir: File) {
+    /**
+     * The user asked: retries a failed transfer and undoes a Delete. With
+     * [variant], that size is fetched; a model of another size already on
+     * disk is replaced.
+     */
+    fun start(filesDir: File, variant: PunctuationModelVariant? = null) {
+        if (variant != null && variant != variantOf(filesDir)) {
+            cancel()
+            modelFile(filesDir).delete()
+            _state.value = DownloadStatus.NotDownloaded
+        }
+        if (variant != null) rememberVariant(filesDir, variant)
         synchronized(this) { givenUp = false }
         declinedFile(filesDir).delete()
         ensure(filesDir)
@@ -163,18 +228,33 @@ object PunctuationModelDownloadManager {
         if (!part.renameTo(target)) throw IOException("rename failed for $target")
         declinedFile(filesDir).delete()
         synchronized(this) { givenUp = false }
-        _state.value = DownloadStatus.Downloaded(target.length())
+        _state.value = DownloadStatus.Downloaded(target.length(), variantOf(filesDir))
         _completions.tryEmit(Unit)
     }
 
-    private fun download(filesDir: File) {
+    /**
+     * [install] for a catalogued file the user fetched elsewhere, the offline
+     * build's only way to a model: the entry's size is remembered with it.
+     */
+    fun install(filesDir: File, entry: PunctuationModelEntry, source: File) {
+        if (!source.isFile || source.length() != entry.bytes ||
+            !MessageDigest.isEqual(hex(entry.sha256), hex(ContextModelIntegrity.sha256(source)))
+        ) {
+            throw IOException("size or SHA-256 mismatch for ${source.name}")
+        }
+        rememberVariant(filesDir, entry.variant)
+        install(filesDir, source)
+    }
+
+    private fun download(filesDir: File, entry: PunctuationModelEntry) {
         if (isDownloaded(filesDir)) {
-            _state.value = DownloadStatus.Downloaded(modelFile(filesDir).length())
+            _state.value = DownloadStatus.Downloaded(modelFile(filesDir).length(), variantOf(filesDir))
             return
         }
-        val ok = runCatching { fetch(filesDir) }.isSuccess
+        val ok = runCatching { fetch(filesDir, entry) }.isSuccess
         if (ok) {
-            _state.value = DownloadStatus.Downloaded(modelFile(filesDir).length())
+            rememberVariant(filesDir, entry.variant)
+            _state.value = DownloadStatus.Downloaded(modelFile(filesDir).length(), entry.variant)
             _completions.tryEmit(Unit)
         } else {
             _state.value = DownloadStatus.Failed
@@ -182,11 +262,11 @@ object PunctuationModelDownloadManager {
         }
     }
 
-    private fun fetch(filesDir: File) {
+    private fun fetch(filesDir: File, entry: PunctuationModelEntry) {
         val target = modelFile(filesDir)
         target.parentFile?.mkdirs()
         val part = File(target.parentFile, "$FILE_NAME.part")
-        val url = PunctuationModelCatalog.url()
+        val url = entry.url()
         val connection = URL(url).openConnection() as HttpURLConnection
         val netCall = NetLog.call(NetSource.DOWNLOAD_NGRAM, "GET", url, route = NetLog.pathOf(url))
         try {
@@ -195,7 +275,7 @@ object PunctuationModelDownloadManager {
             connection.readTimeout = 30_000
             netCall.status = connection.responseCode
             if (connection.responseCode != HttpURLConnection.HTTP_OK) throw IOException("HTTP ${connection.responseCode} for $url")
-            val total = connection.contentLengthLong.takeIf { it > 0 } ?: PunctuationModelCatalog.BYTES
+            val total = connection.contentLengthLong.takeIf { it > 0 } ?: entry.bytes
             var read = 0L
             netCall.countIn(connection.inputStream).use { input ->
                 part.outputStream().use { out ->
@@ -209,10 +289,10 @@ object PunctuationModelDownloadManager {
                     }
                 }
             }
-            if (part.length() != PunctuationModelCatalog.BYTES) {
-                throw IOException("size mismatch for $url: ${part.length()} != ${PunctuationModelCatalog.BYTES}")
+            if (part.length() != entry.bytes) {
+                throw IOException("size mismatch for $url: ${part.length()} != ${entry.bytes}")
             }
-            if (!MessageDigest.isEqual(hex(PunctuationModelCatalog.SHA256), hex(ContextModelIntegrity.sha256(part)))) {
+            if (!MessageDigest.isEqual(hex(entry.sha256), hex(ContextModelIntegrity.sha256(part)))) {
                 throw IOException("SHA-256 mismatch for $url")
             }
             val probe = PunctuationModel.open(part) ?: throw IOException("not a model this keyboard reads: $url")

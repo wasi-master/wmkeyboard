@@ -431,6 +431,7 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_phrase_completion_title, R.string.typing_phrase_completion_subtitle),
         row(R.string.typing_smart_punctuation_title, R.string.typing_smart_punctuation_subtitle),
         row(R.string.typing_smart_punctuation_comma_title, R.string.typing_smart_punctuation_comma_subtitle),
+        row(R.string.typing_smart_punctuation_size_title, R.string.typing_smart_punctuation_size_subtitle),
         row(R.string.typing_autocorrect_splits_title, R.string.typing_autocorrect_splits_subtitle),
         row(
             R.string.typing_language_detection_by_app_title,

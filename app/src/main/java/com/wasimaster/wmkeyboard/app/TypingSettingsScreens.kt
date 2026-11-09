@@ -71,7 +71,9 @@ import androidx.compose.ui.res.stringResource
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtpCapture
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.dictionaries.PunctuationModelCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.PunctuationModelDownloadManager
+import com.wasimaster.wmkeyboard.core.dictionaries.PunctuationModelVariant
 import com.wasimaster.wmkeyboard.core.settings.usableTools
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
 import com.wasimaster.wmkeyboard.core.tools.leaderLabel
@@ -829,6 +831,27 @@ internal fun TypingWritingSettings(
                 scope.launch { repository.setSmartPunctuation(it) }
                 if (it) PunctuationModelDownloadManager.start(filesDir)
             }
+        }
+        item(visible = smartPunctuationOn && PunctuationModelCatalog.variants.size > 1, level = SettingLevel.STANDARD) {
+            // Which size to fetch; the choice is the marker the download
+            // manager keeps, not a setting, the way the context model's is.
+            val filesDir = context.filesDir
+            val modelState by PunctuationModelDownloadManager.state.collectAsState()
+            val chosen = remember(modelState) { PunctuationModelDownloadManager.variantOf(filesDir) }
+            ChoiceSetting(
+                R.string.typing_smart_punctuation_size_title,
+                subtitle = stringResource(R.string.typing_smart_punctuation_size_subtitle),
+                info = stringResource(R.string.typing_smart_punctuation_size_info),
+                options = PunctuationModelCatalog.entries.map { entry ->
+                    val size = android.text.format.Formatter.formatShortFileSize(context, entry.bytes)
+                    entry.variant to when (entry.variant) {
+                        PunctuationModelVariant.STANDARD -> stringResource(R.string.typing_smart_punctuation_size_standard, size)
+                        PunctuationModelVariant.LARGE -> stringResource(R.string.typing_smart_punctuation_size_large, size)
+                    }
+                },
+                selected = chosen,
+                default = PunctuationModelVariant.STANDARD,
+            ) { PunctuationModelDownloadManager.start(filesDir, it) }
         }
         item(visible = smartPunctuationOn, level = SettingLevel.ADVANCED) {
             ToggleSetting(
