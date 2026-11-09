@@ -174,7 +174,7 @@ class KeyVisualTest {
         // label's own text rather than in a resource.
         assertEquals(SpokenLabel(text = "Post"), custom.spoken)
 
-        val search = keyVisual(enter, state().copy(enterAction = EnterAction.SEARCH), palette)
+        val search = keyVisual(enter, state().copy(keyFaces = KeyFaces(enterAction = EnterAction.SEARCH)), palette)
         assertNull(search.enterLabel)
         assertEquals(IconSlots.KEY_ENTER_SEARCH, search.iconSlot)
         assertEquals(SpokenLabel(R.string.ime_enter_search), search.spoken)
@@ -190,7 +190,7 @@ class KeyVisualTest {
     @Test
     fun `a user shift swaps the enter key's face and its corner`() {
         val enter = Key("⏎", action = KeyAction.Enter)
-        val send = state().copy(enterAction = EnterAction.SEND)
+        val send = state().copy(keyFaces = KeyFaces(enterAction = EnterAction.SEND))
         val plain = keyVisual(enter, send, palette)
         assertEquals(IconSlots.KEY_ENTER_SEND, plain.iconSlot)
         assertEquals(IconSlots.KEY_ENTER, plain.enterHint)
@@ -216,14 +216,14 @@ class KeyVisualTest {
 
         // A shift the keyboard armed itself (auto-capitalize) is not a shift
         // being held for a line break, so it swaps nothing either.
-        val auto = state().copy(enterAction = EnterAction.SEND, shiftState = ShiftState.ON)
+        val auto = state().copy(keyFaces = KeyFaces(enterAction = EnterAction.SEND), shiftState = ShiftState.ON)
         assertEquals(IconSlots.KEY_ENTER_SEND, keyVisual(enter, auto, palette).iconSlot)
 
         // And with the setting off there is no shift+enter line break to offer.
         val off = KeyboardSettings().let {
             it.copy(layoutBehavior = it.layoutBehavior.copy(shiftEnterNewline = false))
         }
-        val plain = state(settings = off).copy(enterAction = EnterAction.SEND)
+        val plain = state(settings = off).copy(keyFaces = KeyFaces(enterAction = EnterAction.SEND))
         assertNull(keyVisual(enter, plain, palette).enterHint)
     }
 
