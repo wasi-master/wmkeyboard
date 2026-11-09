@@ -7522,6 +7522,13 @@ data class RowSettings(
     val recentWordSteady: Boolean = false,
 )
 
+/**
+ * Where the Retype button sits (#1189): nowhere, at the end of the
+ * suggestion strip, or at the end of the recent words' own row. One place,
+ * and it never changes which word Retype takes: the one at the cursor.
+ */
+enum class RetypeButtonPlace { OFF, SUGGESTION_BAR, RECENT_WORDS_BAR }
+
 /** Where [RowSettings.recentWordPlacement] puts the recent words. */
 enum class RecentWordPlacement {
     /** A row of their own, moved and stacked under Rows & bars like the others. */
@@ -10495,6 +10502,12 @@ data class SuggestionStripSettings(
      */
     val recentWordBar: Boolean = false,
     /**
+     * A Retype button on one of the bars (#1189), so a word can be cleared
+     * for fresh entry without the word menu or Backspace. Off by default;
+     * see [RetypeButtonPlace].
+     */
+    val retypeButton: RetypeButtonPlace = RetypeButtonPlace.OFF,
+    /**
      * Expand shortcuts stored in Android's personal dictionary: if an entry has
      * a shortcut (e.g. "omw" → "on my way"), typing the shortcut offers the full
      * phrase as a suggestion. On by default: a shortcut is only ever there
@@ -11743,6 +11756,7 @@ class SettingsRepository(private val context: Context) {
         private val RTL_WORDS_FROM_RIGHT = booleanPreferencesKey("rtl_words_from_right")
         private val REST_WORDS = stringPreferencesKey("rest_words")
         private val RECENT_WORD_BAR = booleanPreferencesKey("recent_word_bar")
+        private val RETYPE_BUTTON = stringPreferencesKey("retype_button")
         private val EXPAND_USER_DICT_SHORTCUTS = booleanPreferencesKey("expand_user_dict_shortcuts")
         private val USE_SYSTEM_DICTIONARY = booleanPreferencesKey("use_system_dictionary")
         private val SNIPPET_MULTI_EXPAND = stringPreferencesKey("snippet_multi_expand")
@@ -14307,6 +14321,9 @@ class SettingsRepository(private val context: Context) {
             restWords = p[REST_WORDS]?.split('\n')?.filter { it.isNotBlank() }
                 ?: defaults.suggestionStrip.restWords,
             recentWordBar = p[RECENT_WORD_BAR] ?: defaults.suggestionStrip.recentWordBar,
+            retypeButton = p[RETYPE_BUTTON]
+                ?.let { runCatching { RetypeButtonPlace.valueOf(it) }.getOrNull() }
+                ?: defaults.suggestionStrip.retypeButton,
             expandUserDictShortcuts = p[EXPAND_USER_DICT_SHORTCUTS]
                 ?: defaults.suggestionStrip.expandUserDictShortcuts,
             useSystemDictionary = p[USE_SYSTEM_DICTIONARY]
@@ -21873,6 +21890,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setRecentWordBar(value: Boolean) =
         editPrefs { it[RECENT_WORD_BAR] = value }
+
+    suspend fun setRetypeButton(value: RetypeButtonPlace) =
+        editPrefs { it[RETYPE_BUTTON] = value.name }
 
     suspend fun setOctopusEnabled(value: Boolean) =
         editPrefs { it[OCTOPUS_ENABLED] = value }

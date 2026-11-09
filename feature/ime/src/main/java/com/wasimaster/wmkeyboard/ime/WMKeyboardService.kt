@@ -50633,7 +50633,9 @@ open class WMKeyboardService : InputMethodService() {
         // typed is the word to retype.
         if (action == TextEditAction.RETYPE_WORD) {
             if (haptic) vibrate()
-            retypeWord()
+            // One press clears one word (#1189): a second, before anything
+            // new is typed, would reach back for the word before it.
+            if (!retypeSpent()) retypeWord()
             return
         }
         val ic = currentInputConnection ?: return
@@ -52129,8 +52131,35 @@ open class WMKeyboardService : InputMethodService() {
             onCandidateAdjust = ::onCandidateAdjust,
             onRankSlide = ::onSuggestionRankSlide,
             onRecentPick = ::onRecentWordPick,
+            onRetype = ::onRetypeButton,
         )
     }
+
+    /**
+     * The Retype button on a bar (#1189): the same Retype as the word menu
+     * and the text editing action, on the word at the cursor whichever bar
+     * holds the button, and apart from what Backspace is set to do. When
+     * there is no word it may take, nothing changes and a short message says
+     * why, rather than a button that silently does nothing.
+     */
+    private fun onRetypeButton() {
+        vibrate()
+        val message = when {
+            retypeSpent() -> R.string.ime_retype_button_spent
+            !retypeWord() -> R.string.ime_retype_button_nothing
+            else -> return
+        }
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * Whether a Retype has just cleared a word and nothing has been typed
+     * since (#1189): its offer is still on the strip at the caret it left.
+     * Another press now would take the word before it, which nobody asked
+     * for, so the button and the text editing action do nothing until a new
+     * word is typed or the caret moves.
+     */
+    private fun retypeSpent(): Boolean = retypeOffer != null && composing.isEmpty()
 
     // ---- the recent-word bar (#787) ----
 

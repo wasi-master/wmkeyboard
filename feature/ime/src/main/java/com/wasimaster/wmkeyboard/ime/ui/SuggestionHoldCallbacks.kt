@@ -53,4 +53,6 @@ class SuggestionHoldCallbacks(
      * [replacement] where [word] stands, the occurrence that starts at [start].
      */
     val onRecentPick: (start: Int, word: String, replacement: String) -> Unit = { _, _, _ -> },
+    /** The Retype button on the strip or the recent words' row was pressed (#1189). */
+    val onRetype: () -> Unit = {},
 )

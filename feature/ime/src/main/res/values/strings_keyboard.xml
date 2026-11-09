@@ -132,6 +132,11 @@
          strip, which opens the menu below. -->
     <string name="ime_suggestion_hold_label">Word options</string>
     <!-- An alternative on the recent-word row (#842), read by TalkBack as what a tap does. %1$s is the word written, %2$s the one that would replace it. -->
+    <!-- The Retype button on the suggestion strip or the recent words' row (#1189). Keep it short. -->
+    <string name="ime_retype_button">Retype</string>
+    <string name="ime_retype_button_desc">Retype the word at the cursor</string>
+    <string name="ime_retype_button_nothing">No word to retype. Put the cursor right after a word.</string>
+    <string name="ime_retype_button_spent">That word is cleared. Type it again, or pick it from the strip.</string>
     <string name="ime_recent_word_replace_desc">Change <xliff:g id="word" example="form">%1$s</xliff:g> to <xliff:g id="offer" example="from">%2$s</xliff:g></string>
     <!-- Shown over the strip while a held word is slid up or down (#790). %1$s is the word, %2$s its new rank, such as +2 or −3. -->
     <string name="ime_suggestion_rank_badge">\"<xliff:g id="word" example="mary">%1$s</xliff:g>\" rank <xliff:g id="rank" example="+2">%2$s</xliff:g></string>

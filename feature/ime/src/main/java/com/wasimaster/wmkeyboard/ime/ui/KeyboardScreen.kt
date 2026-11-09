@@ -435,6 +435,7 @@ import com.wasimaster.wmkeyboard.core.settings.BarRow
 import com.wasimaster.wmkeyboard.core.settings.barRowsAboveKeys
 import com.wasimaster.wmkeyboard.core.settings.barRowsBelowKeys
 import com.wasimaster.wmkeyboard.core.settings.RecentWordPlacement
+import com.wasimaster.wmkeyboard.core.settings.RetypeButtonPlace
 import com.wasimaster.wmkeyboard.core.settings.SelectionMacroPlacement
 import com.wasimaster.wmkeyboard.core.settings.LatinAccents
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarContent
@@ -14828,19 +14829,26 @@ private fun KeyboardBody(
                                 // words are set to go there rather than in a
                                 // row of their own (#894).
                                 val inlineRecent = recentWordsInline(state)
-                                if (inlineRecent) {
+                                // The Retype button at the strip's end (#1189).
+                                val stripRetype = retypeButtonOn(state, RetypeButtonPlace.SUGGESTION_BAR)
+                                if (inlineRecent || stripRetype) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        RecentWordRow(
-                                            state.recentBar,
-                                            suggestionHold,
-                                            Modifier.widthIn(max = InlineRecentMaxWidth).height(topBarHeight(state.settings)),
-                                        )
-                                        VerticalDivider(
-                                            modifier = Modifier.height(20.dp),
-                                            thickness = SuggestionDividerWidth,
-                                            color = MaterialTheme.colorScheme.outlineVariant,
-                                        )
+                                        if (inlineRecent) {
+                                            RecentWordRow(
+                                                state.recentBar,
+                                                suggestionHold,
+                                                Modifier.widthIn(max = InlineRecentMaxWidth).height(topBarHeight(state.settings)),
+                                            )
+                                            VerticalDivider(
+                                                modifier = Modifier.height(20.dp),
+                                                thickness = SuggestionDividerWidth,
+                                                color = MaterialTheme.colorScheme.outlineVariant,
+                                            )
+                                        }
                                         Box(Modifier.weight(1f)) { StripWithDot() }
+                                        if (stripRetype) {
+                                            RetypeBarButton(suggestionHold, Modifier.height(topBarHeight(state.settings)))
+                                        }
                                     }
                                 } else {
                                     StripWithDot()
@@ -14968,7 +14976,18 @@ private fun KeyboardBody(
                             state.wordSpell == null && topBarVisible && !stripMacros &&
                             !stripGivenToCapture && recentRowShown(state)
                         ) {
-                            if (state.recentBar.isEmpty()) {
+                            // The Retype button at the row's end (#1189).
+                            if (retypeButtonOn(state, RetypeButtonPlace.RECENT_WORDS_BAR)) {
+                                Row(
+                                    Modifier.fillMaxWidth().height(RecentRowHeight),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Box(Modifier.weight(1f)) {
+                                        if (state.recentBar.isNotEmpty()) RecentWordRow(state.recentBar, suggestionHold)
+                                    }
+                                    RetypeBarButton(suggestionHold)
+                                }
+                            } else if (state.recentBar.isEmpty()) {
                                 Spacer(Modifier.fillMaxWidth().height(RecentRowHeight))
                             } else {
                                 RecentWordRow(state.recentBar, suggestionHold)
@@ -34345,13 +34364,18 @@ internal val RecentRowHeight = 48.dp
 /**
  * Whether the recent-word row is up: the setting is on, the words have a row
  * of their own, the strip is showing, and the row has words or keeps its
- * height without them (#894).
+ * height without them (#894). A Retype button set on the row (#1189) holds
+ * it up while empty too, so the button is there before the first word is
+ * written, without touching the keep-its-height setting.
  */
 internal fun recentRowShown(state: KeyboardUiState): Boolean =
     state.settings.suggestionStrip.recentWordBar &&
         state.settings.rows.recentWordPlacement == RecentWordPlacement.OWN_ROW &&
         !state.settings.toolbarBehavior.stripHidden &&
-        (state.recentBar.isNotEmpty() || state.settings.rows.recentWordSteady)
+        (
+            state.recentBar.isNotEmpty() || state.settings.rows.recentWordSteady ||
+                retypeButtonOn(state, RetypeButtonPlace.RECENT_WORDS_BAR)
+            )
 
 /** Whether the recent words sit at the start of the strip instead (#894). */
 internal fun recentWordsInline(state: KeyboardUiState): Boolean =

@@ -122,6 +122,9 @@ import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.NumberGrouping
 import com.wasimaster.wmkeyboard.core.settings.RankControl
+import com.wasimaster.wmkeyboard.core.settings.RecentWordPlacement
+import com.wasimaster.wmkeyboard.core.settings.RetypeButtonPlace
+import com.wasimaster.wmkeyboard.core.settings.stripHidden
 import com.wasimaster.wmkeyboard.core.settings.SuggestionOverflow
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.WordMenuItem
@@ -1297,6 +1300,43 @@ internal fun TypingSuggestionsSettings(
                 info = stringResource(R.string.typing_recent_word_bar_info),
                 default = SettingsDefaults.suggestionStrip.recentWordBar,
             ) { scope.launch { repository.setRecentWordBar(it) } }
+        }
+        // The Retype button (#1189): one place for it, and the subtitle says
+        // what keeps it off that bar, every reason at once, without turning
+        // anything on by itself.
+        item(level = SettingLevel.STANDARD) {
+            val place = settings.watch { it.suggestionStrip.retypeButton }
+            val recentOn = settings.watch { it.suggestionStrip.recentWordBar }
+            val recentInline = settings.watch { it.rows.recentWordPlacement == RecentWordPlacement.INLINE }
+            val stripHidden = settings.watch { it.toolbarBehavior.stripHidden }
+            val blockers = buildList {
+                if (place != RetypeButtonPlace.OFF && stripHidden) {
+                    add(stringResource(R.string.typing_retype_button_needs_strip))
+                }
+                if (place == RetypeButtonPlace.RECENT_WORDS_BAR && !recentOn) {
+                    add(stringResource(R.string.typing_retype_button_needs_recent))
+                }
+                if (place == RetypeButtonPlace.RECENT_WORDS_BAR && recentInline) {
+                    add(stringResource(R.string.typing_retype_button_needs_own_row))
+                }
+            }
+            ChoiceSetting(
+                title = R.string.typing_retype_button_title,
+                subtitle = if (blockers.isEmpty()) {
+                    stringResource(R.string.typing_retype_button_subtitle)
+                } else {
+                    blockers.joinToString(" ")
+                },
+                info = stringResource(R.string.typing_retype_button_info),
+                options = listOf(
+                    RetypeButtonPlace.OFF to stringResource(R.string.typing_retype_button_off),
+                    RetypeButtonPlace.SUGGESTION_BAR to stringResource(R.string.typing_retype_button_strip),
+                    RetypeButtonPlace.RECENT_WORDS_BAR to stringResource(R.string.typing_retype_button_recent),
+                ),
+                selected = place,
+                onChange = { scope.launch { repository.setRetypeButton(it) } },
+                default = SettingsDefaults.suggestionStrip.retypeButton,
+            )
         }
         item(visible = !numberRowOn, level = SettingLevel.ADVANCED) {
             // Issue #181: a word typed on digit-hinted keys also offers the number.

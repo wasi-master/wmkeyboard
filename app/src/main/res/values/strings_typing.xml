@@ -311,6 +311,16 @@
     <string name="typing_recent_word_bar_title">Recent words</string>
     <string name="typing_recent_word_bar_subtitle">Your last three words in a row above the strip, each with what else it could be, so you can fix one after you have typed past it</string>
     <string name="typing_recent_word_bar_info">The three words you wrote last sit in a row above the suggestion strip, the newest on the right, each followed by what else it could have been: what the strip offered as you wrote it, the other readings of its swipe, and the spelling it had before you changed it from here. Tap one and only that word changes, where it stands; the word you are typing and the cursor stay put. Only words you wrote in the field join the row. It is left out of password fields and incognito, starts empty in every new field, and shows in web address bars. Under Rows &amp; bars you can move the row, put the words at the start of the strip instead, and keep the row\'s height while it is empty.</string>
+    <!-- One-of-three choice (#1189): where the Retype button sits. -->
+    <string name="typing_retype_button_title">Retype button</string>
+    <string name="typing_retype_button_subtitle">Clear the word at the cursor to type it again, without Backspace or the word menu</string>
+    <string name="typing_retype_button_info">A Retype button at the end of the suggestion strip or of the recent words\' row. Press it and the word at the cursor comes out of the field so you can type it again, and the strip offers it back first, followed by the other readings of its swipe. A space the keyboard added goes with the word; a space you typed stays. It is the same Retype as in the menu of a held suggestion, and it does not depend on what Backspace is set to do. It always takes the word at the cursor, never a word shown on its bar. With no word right behind the cursor, or with the cursor inside a word, it changes nothing and says so. One press clears one word. The button is never shown in a password field. This setting is off by default.</string>
+    <string name="typing_retype_button_off">Off</string>
+    <string name="typing_retype_button_strip">Suggestion bar</string>
+    <string name="typing_retype_button_recent">Previous-words bar</string>
+    <string name="typing_retype_button_needs_strip">The suggestion strip is hidden, so the button is not shown.</string>
+    <string name="typing_retype_button_needs_recent">Turn on Recent words to show the button there.</string>
+    <string name="typing_retype_button_needs_own_row">Recent words are at the start of the strip: choose A row of their own under Rows and bars to show the button there.</string>
     <string name="typing_skip_typed_word_info">The suggestion strip normally keeps one slot for the word exactly as you typed it, which is how you keep a spelling the dictionary does not know. Turn this on and that slot is given to another suggestion instead, so all three offer something new. The cost is that a word the keyboard does not recognise has one fewer way to survive a correction, and the strip no longer shows you which candidate is the literal thing you wrote.</string>
 
     <string name="typing_group_octopus_title">Words on the keys</string>
