@@ -74,7 +74,10 @@ fun BoardEffectLayer(effect: KbBoardEffect, modifier: Modifier = Modifier, still
             }
         }
     }
-    Canvas(modifier = modifier.onGloballyPositioned { origin = it.positionInRoot() }) {
+    // A still frame has no touches to place, so it does not track where it
+    // is: in a scrolling gallery that wrote state, and redrew the effect, on
+    // every frame of every scroll.
+    Canvas(modifier = if (still) modifier else modifier.onGloballyPositioned { origin = it.positionInRoot() }) {
         paintBoardEffect(effect, clock, energy, origin)
     }
 }

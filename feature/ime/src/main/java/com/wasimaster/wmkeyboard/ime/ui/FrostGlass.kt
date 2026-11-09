@@ -13,6 +13,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Brush
@@ -176,6 +177,19 @@ internal fun FrostBackdropLoader(
 internal fun Modifier.frostBoardBounds(backdrop: FrostBackdrop): Modifier =
     onGloballyPositioned {
         backdrop.boardBounds = it.boundsInRoot()
+        backdrop.boardScreenOrigin = it.positionOnScreen()
+    }
+
+/**
+ * [frostBoardBounds] for a board that moves with what it sits in: a theme
+ * preview in a scrolling list. The bounds are the board's own frame rather
+ * than the window's, so a pane's place on the board (its screen position less
+ * the board's) is the same on every frame of a scroll, and the paints built
+ * for it are kept instead of rebuilt for every key of every card each frame.
+ */
+internal fun Modifier.frostLocalBoardBounds(backdrop: FrostBackdrop): Modifier =
+    onGloballyPositioned {
+        backdrop.boardBounds = Rect(Offset.Zero, it.size.toSize())
         backdrop.boardScreenOrigin = it.positionOnScreen()
     }
 
@@ -730,7 +744,11 @@ private class FrostGlassNode(
     }
 
     override fun onObservedReadsChanged() {
-        builtFor = null
+        // Not a rebuild: the draw compares what the paints were built for
+        // (bitmap, bounds, this pane's place on the board) and rebuilds only
+        // when one of them really moved. The board's screen origin changes on
+        // every frame of a scroll or a floating-keyboard drag while every
+        // pane's place on the board stays put.
         invalidateDraw()
         watchBackdrop()
     }

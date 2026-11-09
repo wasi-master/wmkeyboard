@@ -131,6 +131,19 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Density
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -2128,6 +2141,23 @@ fun ThemesScreen(
     // The cards are drawn in the screen's own body rather than in rows, so the
     // theme that is on is read once, here, for all of them.
     val selectedThemeId = settings.watch { it.keyboardThemeId }
+    // Which rows of cards are composed: the ones near the screen, see
+    // [ThemeGalleryRow]. Saved, so coming back from the editor composes the
+    // rows that were on screen at once, at the heights they had.
+    val galleryWindow = rememberSaveable(saver = GalleryWindow.Saver) { GalleryWindow() }
+    val customRowCount = (customEntries.size + 1) / 2
+    val builtinEntries = if (grouped) BuiltInThemes else BuiltInThemes.flattenedThemes()
+    val galleryRowCount = customRowCount + (builtinEntries.size + 1) / 2
+    val gallerySettled = rememberScreenSettled()
+    LaunchedEffect(gallerySettled, galleryRowCount) {
+        if (!gallerySettled) return@LaunchedEffect
+        // One row a frame from the moment the entrance lands, so the rows
+        // near the screen fill in over a few frames rather than in one long one.
+        while (galleryWindow.admitted < galleryRowCount) {
+            withFrameNanos { }
+            galleryWindow.admitted++
+        }
+    }
     // Default (system) card first, then customs, then built-ins — two per row.
     DefaultThemeCard(
         selected = selectedThemeId == DEFAULT_THEME_ID,
@@ -2138,62 +2168,132 @@ fun ThemesScreen(
     if (customEntries.isNotEmpty()) {
         SectionHeaderPublic(stringResource(R.string.theme_custom_section_title))
     }
-    for (rowThemes in customEntries.chunked(2)) {
-        Row(modifier = Modifier.padding(horizontal = 12.dp)) {
-            for (entry in rowThemes) {
-                Box(modifier = Modifier.weight(1f)) {
-                    // Keyed on the theme, not on the slot: adding or deleting
-                    // a theme shifts every card after it along a place, and a
-                    // card must not play the selection ring and tick at a slot
-                    // that merely changed hands. See [ThemeCard].
-                    key(entry.id) {
-                        val members = if (grouped) entry.selfAndVariants() else listOf(entry)
-                        val isFamily = members.size > 1
-                        val shownId = if (isFamily) {
-                            shownVariant[entry.id]
-                                ?: members.find { it.id == selectedThemeId }?.id
-                                ?: entry.id
-                        } else {
-                            entry.id
+    customEntries.chunked(2).forEachIndexed { rowIndex, rowThemes ->
+        ThemeGalleryRow(galleryWindow, "c", rowIndex, rowThemes, grouped) {
+            Row(modifier = Modifier.padding(horizontal = 12.dp)) {
+                for (entry in rowThemes) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        // Keyed on the theme, not on the slot: adding or deleting
+                        // a theme shifts every card after it along a place, and a
+                        // card must not play the selection ring and tick at a slot
+                        // that merely changed hands. See [ThemeCard].
+                        key(entry.id) {
+                            val members = if (grouped) entry.selfAndVariants() else listOf(entry)
+                            val isFamily = members.size > 1
+                            val shownId = if (isFamily) {
+                                shownVariant[entry.id]
+                                    ?: members.find { it.id == selectedThemeId }?.id
+                                    ?: entry.id
+                            } else {
+                                entry.id
+                            }
+                            val shown = members.find { it.id == shownId } ?: entry
+                            // Downloaded themes are custom themes, so this is where an
+                            // addon's Use button lands — on the card, not on the header.
+                            // A family card answers for every id it holds.
+                            HighlightableItem(members.map { it.id }) {
+                                ThemeCard(
+                                    theme = shown,
+                                    selected = members.any { it.id == selectedThemeId },
+                                    onSelect = { scope.launch { repository.setKeyboardThemeId(shown.id) } },
+                                    onEdit = { onEditTheme(shown.id) },
+                                    editRoute = themeEditRoute(shown.id),
+                                    onExport = {
+                                        // A family card exports the family; a flat card
+                                        // exports the one look it shows.
+                                        export(
+                                            if (grouped) entry
+                                            else entry.copy(variants = emptyList(), familyName = null),
+                                        )
+                                    },
+                                    // Shared the way it exports: the family, or the one look.
+                                    onPublish = {
+                                        publishing = if (grouped) entry
+                                        else entry.copy(variants = emptyList(), familyName = null)
+                                    },
+                                    onDelete = {
+                                        val deletedName = if (isFamily && grouped) themeFamilyName(context, entry) else themeName(context, shown)
+                                        deleteThemes(
+                                            listOf(entry),
+                                            context.getString(R.string.theme_deleted_snackbar, deletedName),
+                                        )
+                                    },
+                                    picking = picking,
+                                    picked = entry.id in livePicked,
+                                    onLongClick = {
+                                        pickedIds = if (entry.id in livePicked) livePicked - entry.id else livePicked + entry.id
+                                    },
+                                    title = if (isFamily) themeFamilyName(entry) else null,
+                                    subtitle = if (isFamily) themeName(shown) else null,
+                                    swatches = if (isFamily) {
+                                        {
+                                            VariantSwatchRow(entry, shownId) { variant ->
+                                                shownVariant[entry.id] = variant.id
+                                                scope.launch { repository.setKeyboardThemeId(variant.id) }
+                                            }
+                                        }
+                                    } else {
+                                        null
+                                    },
+                                )
+                            }
                         }
-                        val shown = members.find { it.id == shownId } ?: entry
-                        // Downloaded themes are custom themes, so this is where an
-                        // addon's Use button lands — on the card, not on the header.
-                        // A family card answers for every id it holds.
-                        HighlightableItem(members.map { it.id }) {
+                    }
+                }
+                if (rowThemes.size == 1) Spacer(Modifier.weight(1f))
+            }
+        }
+    }
+    SectionHeaderPublic(
+        stringResource(R.string.theme_builtin_section_title),
+        info = stringResource(R.string.theme_panel_pin_body),
+    )
+    val panelBuiltIns = settings.watch { it.toolbarBehavior.themesPanelBuiltIns ?: DefaultThemesPanelBuiltIns }
+    builtinEntries.chunked(2).forEachIndexed { rowIndex, rowThemes ->
+        ThemeGalleryRow(galleryWindow, "b", customRowCount + rowIndex, rowThemes, grouped) {
+            Row(modifier = Modifier.padding(horizontal = 12.dp)) {
+                for (entry in rowThemes) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        // Keyed on the theme, not on the slot: switching between
+                        // grouped and flat reshuffles which card sits where, and
+                        // a card must not play the selection ring and tick at a
+                        // slot that merely changed hands. See [ThemeCard].
+                        key(entry.id) {
+                            val members = if (grouped) entry.selfAndVariants() else listOf(entry)
+                            val isFamily = members.size > 1
+                            val shownId = if (isFamily) {
+                                shownVariant[entry.id]
+                                    ?: members.find { it.id == selectedThemeId }?.id
+                                    ?: entry.id
+                            } else {
+                                entry.id
+                            }
+                            val shown = members.find { it.id == shownId } ?: entry
+                            val pinned = shown.id in panelBuiltIns
                             ThemeCard(
                                 theme = shown,
                                 selected = members.any { it.id == selectedThemeId },
                                 onSelect = { scope.launch { repository.setKeyboardThemeId(shown.id) } },
-                                onEdit = { onEditTheme(shown.id) },
-                                editRoute = themeEditRoute(shown.id),
+                                // A family card asks whether the copy is of the shown
+                                // look or of the whole set; a lone card just copies.
+                                onEdit = {
+                                    if (isFamily) copyScopeFor = entry to shown else duplicateAndEdit(shown)
+                                },
                                 onExport = {
-                                    // A family card exports the family; a flat card
-                                    // exports the one look it shows.
                                     export(
                                         if (grouped) entry
                                         else entry.copy(variants = emptyList(), familyName = null),
                                     )
                                 },
-                                // Shared the way it exports: the family, or the one look.
-                                onPublish = {
-                                    publishing = if (grouped) entry
-                                    else entry.copy(variants = emptyList(), familyName = null)
-                                },
-                                onDelete = {
-                                    val deletedName = if (isFamily && grouped) themeFamilyName(context, entry) else themeName(context, shown)
-                                    deleteThemes(
-                                        listOf(entry),
-                                        context.getString(R.string.theme_deleted_snackbar, deletedName),
-                                    )
-                                },
-                                picking = picking,
-                                picked = entry.id in livePicked,
-                                onLongClick = {
-                                    pickedIds = if (entry.id in livePicked) livePicked - entry.id else livePicked + entry.id
-                                },
+                                onDelete = null,
                                 title = if (isFamily) themeFamilyName(entry) else null,
                                 subtitle = if (isFamily) themeName(shown) else null,
+                                // The pin is per look, not per family: the keyboard
+                                // panel lists looks, so the toggle names what shows.
+                                panelShown = pinned,
+                                onTogglePanel = {
+                                    scope.launch { repository.setThemesPanelBuiltIn(shown.id, !pinned) }
+                                },
                                 swatches = if (isFamily) {
                                     {
                                         VariantSwatchRow(entry, shownId) { variant ->
@@ -2208,75 +2308,8 @@ fun ThemesScreen(
                         }
                     }
                 }
+                if (rowThemes.size == 1) Spacer(Modifier.weight(1f))
             }
-            if (rowThemes.size == 1) Spacer(Modifier.weight(1f))
-        }
-    }
-    SectionHeaderPublic(
-        stringResource(R.string.theme_builtin_section_title),
-        info = stringResource(R.string.theme_panel_pin_body),
-    )
-    val panelBuiltIns = settings.watch { it.toolbarBehavior.themesPanelBuiltIns ?: DefaultThemesPanelBuiltIns }
-    val builtinEntries = if (grouped) BuiltInThemes else BuiltInThemes.flattenedThemes()
-    for (rowThemes in builtinEntries.chunked(2)) {
-        Row(modifier = Modifier.padding(horizontal = 12.dp)) {
-            for (entry in rowThemes) {
-                Box(modifier = Modifier.weight(1f)) {
-                    // Keyed on the theme, not on the slot: switching between
-                    // grouped and flat reshuffles which card sits where, and
-                    // a card must not play the selection ring and tick at a
-                    // slot that merely changed hands. See [ThemeCard].
-                    key(entry.id) {
-                        val members = if (grouped) entry.selfAndVariants() else listOf(entry)
-                        val isFamily = members.size > 1
-                        val shownId = if (isFamily) {
-                            shownVariant[entry.id]
-                                ?: members.find { it.id == selectedThemeId }?.id
-                                ?: entry.id
-                        } else {
-                            entry.id
-                        }
-                        val shown = members.find { it.id == shownId } ?: entry
-                        val pinned = shown.id in panelBuiltIns
-                        ThemeCard(
-                            theme = shown,
-                            selected = members.any { it.id == selectedThemeId },
-                            onSelect = { scope.launch { repository.setKeyboardThemeId(shown.id) } },
-                            // A family card asks whether the copy is of the shown
-                            // look or of the whole set; a lone card just copies.
-                            onEdit = {
-                                if (isFamily) copyScopeFor = entry to shown else duplicateAndEdit(shown)
-                            },
-                            onExport = {
-                                export(
-                                    if (grouped) entry
-                                    else entry.copy(variants = emptyList(), familyName = null),
-                                )
-                            },
-                            onDelete = null,
-                            title = if (isFamily) themeFamilyName(entry) else null,
-                            subtitle = if (isFamily) themeName(shown) else null,
-                            // The pin is per look, not per family: the keyboard
-                            // panel lists looks, so the toggle names what shows.
-                            panelShown = pinned,
-                            onTogglePanel = {
-                                scope.launch { repository.setThemesPanelBuiltIn(shown.id, !pinned) }
-                            },
-                            swatches = if (isFamily) {
-                                {
-                                    VariantSwatchRow(entry, shownId) { variant ->
-                                        shownVariant[entry.id] = variant.id
-                                        scope.launch { repository.setKeyboardThemeId(variant.id) }
-                                    }
-                                }
-                            } else {
-                                null
-                            },
-                        )
-                    }
-                }
-            }
-            if (rowThemes.size == 1) Spacer(Modifier.weight(1f))
         }
     }
     // After the built-ins, where someone who has looked through everything the
@@ -2327,6 +2360,167 @@ fun ThemesScreen(
         )
     }
 }
+
+// ---- gallery windowing ----
+
+/**
+ * Which rows of the theme gallery are composed, and how tall each one was.
+ *
+ * The settings screens scroll a `Column`, not a lazy list (see [WmScreen]), so
+ * the gallery used to compose every card it had — each a whole miniature
+ * keyboard — before it could draw one, and kept all of them, with their
+ * decoded photos, for as long as the screen was open. With forty built-ins and
+ * a few dozen imported themes that was the slow open and the stutter on
+ * scroll. Rows now compose only near the screen, the way a lazy list's items
+ * do, and stand in for themselves with their measured height everywhere else.
+ */
+@Stable
+private class GalleryWindow(
+    /** Each row's height with its cards in, by row key, in pixels. */
+    val heights: HashMap<String, Int> = HashMap(),
+    /** The rows that were near the screen when it was last left. */
+    val restored: Set<String> = emptySet(),
+) {
+    /** The rows near the screen now, which is what [Saver] keeps. */
+    val nearNow = HashSet<String>()
+
+    /** How many rows the reveal after the entrance has let in; see [ThemeGalleryRow]. */
+    var admitted by mutableIntStateOf(0)
+
+    companion object {
+        val Saver: Saver<GalleryWindow, Any> = listSaver(
+            save = { window ->
+                val keys = ArrayList<String>(window.heights.size)
+                val heights = IntArray(window.heights.size)
+                window.heights.entries.forEachIndexed { index, (key, height) ->
+                    keys += key
+                    heights[index] = height
+                }
+                listOf(keys, heights, ArrayList(window.nearNow))
+            },
+            restore = { saved ->
+                @Suppress("UNCHECKED_CAST")
+                val keys = saved[0] as List<String>
+                val heights = saved[1] as IntArray
+                @Suppress("UNCHECKED_CAST")
+                val near = saved[2] as List<String>
+                GalleryWindow(HashMap(keys.zip(heights.toList()).toMap()), near.toSet())
+            },
+        )
+    }
+}
+
+/**
+ * One row of gallery cards, composed only while it is within a screen of the
+ * window, and otherwise a placeholder of the height it last had.
+ *
+ * Three things compose a row whatever its place:
+ *
+ * - it was on screen when the gallery was left for the editor, so the card the
+ *   user comes back to is there for the preview to fly back into, and the
+ *   scroll offset restored over the rows above it lands on the same card;
+ * - a search or an addon's Use button names one of its themes, so the
+ *   highlight has a card to scroll to and pulse;
+ * - it is near the screen and the entrance has landed. Rows are let in one a
+ *   frame after that, so they never pile into the opening animation.
+ *
+ * A row comes in within one screen of the window and goes only past two, so a
+ * row at the edge does not flap in and out as the list moves by a pixel.
+ */
+@Composable
+private fun ThemeGalleryRow(
+    window: GalleryWindow,
+    section: String,
+    index: Int,
+    rowThemes: List<ThemeSpec>,
+    grouped: Boolean,
+    content: @Composable () -> Unit,
+) {
+    val members = rowThemes.map { if (grouped) it.selfAndVariants() else listOf(it) }
+    val rowKey = section + rowThemes.joinToString("|") { it.id }
+    key(rowKey) {
+        val restored = rowKey in window.restored
+        var near by remember { mutableStateOf(restored) }
+        val reach = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
+        val targets = SettingsHighlight.targetItems
+        val named = targets.isNotEmpty() && members.any { looks -> looks.any { it.id in targets } }
+        // Through derivedStateOf, so each frame of the reveal recomposes the
+        // one row it lets in rather than every row on the screen.
+        val admitted by remember(index) { derivedStateOf { index < window.admitted } }
+        val shown = named || (near && (restored || admitted))
+        val slab = MaterialTheme.colorScheme.surfaceContainer
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .onGloballyPositioned { coords ->
+                    val top = coords.positionInRoot().y
+                    val margin = if (near) reach * 2 else reach
+                    val now = top + coords.size.height > -margin && top < reach + margin
+                    if (now != near) near = now
+                    if (now) window.nearNow += rowKey else window.nearNow -= rowKey
+                }
+                .then(
+                    if (shown) {
+                        Modifier.onSizeChanged { window.heights[rowKey] = it.height }
+                    } else {
+                        Modifier.galleryPlaceholder(window.heights[rowKey], members.map { it.size }, slab)
+                    },
+                ),
+        ) {
+            if (shown) content()
+        }
+    }
+}
+
+/**
+ * A row of cards that is not composed: the height it had, or a close guess at
+ * it, with the shape of its previews drawn in so a row arriving reads as one
+ * filling in. [looks] is how many looks each card holds, which decides whether
+ * it has a dot row and a second name line.
+ */
+private fun Modifier.galleryPlaceholder(known: Int?, looks: List<Int>, slab: Color): Modifier =
+    layout { measurable, constraints ->
+        val width = constraints.maxWidth
+        val height = known ?: looks.maxOf { galleryCardHeight(width, it) }
+        val placeable = measurable.measure(Constraints.fixed(width, height))
+        layout(width, height) { placeable.place(0, 0) }
+    }.drawBehind {
+        val card = (size.width - GalleryRowPadding.toPx() * 2) / 2f
+        val inset = GalleryCardInset.toPx()
+        val preview = card - inset * 2
+        looks.indices.forEach { column ->
+            drawRoundRect(
+                color = slab,
+                topLeft = Offset(GalleryRowPadding.toPx() + card * column + inset, inset),
+                size = Size(preview, preview / GalleryPreviewAspect),
+                cornerRadius = CornerRadius(10.dp.toPx()),
+            )
+        }
+    }
+
+/**
+ * About how tall a card holding [looks] looks is in a row [width] pixels wide,
+ * from the card's own measurements; only for a row never yet composed.
+ */
+private fun Density.galleryCardHeight(width: Int, looks: Int): Int {
+    val card = (width - GalleryRowPadding.toPx() * 2) / 2f
+    val inner = card - GalleryCardInset.toPx() * 2
+    var height = GalleryCardInset.toPx() * 2 + inner / GalleryPreviewAspect +
+        4.dp.toPx() + 20.sp.toPx() + 34.dp.toPx()
+    if (looks > 1) {
+        val perLine = ((inner + 2.dp.toPx()) / 30.dp.toPx()).toInt().coerceAtLeast(1)
+        val lines = (looks + perLine - 1) / perLine
+        height += 16.sp.toPx() + 6.dp.toPx() + lines * 24.dp.toPx() + (lines - 1) * 6.dp.toPx()
+    }
+    return height.roundToInt()
+}
+
+/** A gallery row's side padding, and a card's padding plus its inner padding, as [ThemeCard] lays them. */
+private val GalleryRowPadding = 12.dp
+private val GalleryCardInset = 10.dp
+
+/** Width to height of a theme preview; mirrors ThemePreview's portrait shape. */
+private const val GalleryPreviewAspect = 1.7f
 
 /** The label of one [ThemeGalleryStyle] choice. */
 /**
