@@ -72,6 +72,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.displayCutout
@@ -18015,6 +18016,11 @@ internal data class KeyVisual(
     /** Whether the theme made this one key's label bold; null follows the board. */
     val bold: Boolean? = null,
     /**
+     * A letter on a strip board (`LayoutSpec.strip`): drawn bare, at the one
+     * size every letter of the strip shares, free to reach past its narrow key.
+     */
+    val stripLetter: Boolean = false,
+    /**
      * The outline the theme gave this one key; null follows the board's own
      * shape. A round enter key on a grid of soft rectangles is a look a whole
      * family of imported themes is built on (issue #266).
@@ -18166,7 +18172,11 @@ internal fun keyVisual(
     // A per-key shape is also a per-key face: a theme whose board shape is NONE
     // still means this one key to be drawn when it names a shape for it.
     val overrideShape = keyShapeKindOrNull(override?.shape)
-    val faceless = !palette.keysHaveFaces && overrideBackground == null && overrideShape == null
+    // A strip's letters sit on the board the way Minuum's did: a face per
+    // letter at a third of a key's width is a fence of bars, not a keyboard.
+    val stripLetter = state.layouts.strip && action == KeyAction.Text && key.letters != null
+    val faceless = stripLetter ||
+        !palette.keysHaveFaces && overrideBackground == null && overrideShape == null
     val background = overrideBackground ?: when {
         latch == ModifierState.LOCKED -> palette.accent
         latch == ModifierState.ARMED -> palette.pressedKey
@@ -18217,6 +18227,7 @@ internal fun keyVisual(
             ?.takeIf { it.isFinite() }
             ?.coerceIn(KEY_OVERRIDE_LABEL_SCALE_RANGE),
         bold = override?.bold,
+        stripLetter = stripLetter,
         shapeKind = overrideShape,
         transliterationRoman = transliterationRoman(key, state),
         alternatesShifted = key.longPress.isNotEmpty() && state.shiftCasesText(),
@@ -25411,7 +25422,12 @@ internal fun hardwareKeysStepAside(state: KeyboardUiState): Boolean {
  * layer of this one.
  */
 internal fun reservedRowSpan(state: KeyboardUiState): Int =
-    if (state.layoutMode == LayoutMode.SECONDARY) {
+    if (state.layouts.strip) {
+        // A strip board is short by design: each layer is its own height, and
+        // the letters row is one key tall rather than stretched over the rows
+        // the symbols pages need.
+        currentLayout(state).rows.size.coerceAtLeast(1)
+    } else if (state.layoutMode == LayoutMode.SECONDARY) {
         maxOf(state.layouts.rowSpan, currentLayout(state).rows.size)
     } else {
         state.layouts.rowSpan
@@ -28813,8 +28829,10 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                 // it is what carries a HeliBoard label flag across (issue #18).
                 val isModeLabel = key.action != KeyAction.Text && text.length > 1
                 val keyScale = visual.drawnLabelScale()
+                val strip = visual.stripLetter
                 val baseSize = when {
                     keyScale != null -> LetterLabelSp * keyScale
+                    strip -> LetterLabelSp * StripLabelScale
                     isModeLabel -> ModeLabelSp
                     else -> LetterLabelSp
                 }
@@ -28846,13 +28864,18 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                         // clear a corner hint made large enough to read.
                         .offset(
                             x = settings.layoutBehavior.labelOffsetXDp.dp,
-                            y = settings.layoutBehavior.labelOffsetYDp.dp,
+                            y = settings.layoutBehavior.labelOffsetYDp.dp +
+                                ((key.labelShiftY ?: 0f) * settings.keyHeightDp).dp,
                         )
+                        // A strip letter is measured as wide as it is, not as
+                        // its key: shrunk to fit a third of a key, every letter
+                        // came out a different size and `m` as an ellipsis.
+                        .then(if (strip) Modifier.wrapContentWidth(unbounded = true) else Modifier)
                         .padding(
                             horizontal = if (sideArms) FlickArmInsetDp else 0.dp,
                             vertical = if (endArms) FlickArmInsetDp else 0.dp,
                         ),
-                    fontSize = (baseSize * fontScale * fit.scale).sp,
+                    fontSize = (baseSize * fontScale * (if (strip) 1f else fit.scale)).sp,
                     fontWeight = if (visual.bold ?: settings.accessibility.boldLabels) {
                         FontWeight.Bold
                     } else {
@@ -28861,8 +28884,8 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     color = contentColor,
                     maxLines = 1,
                     softWrap = false,
-                    overflow = TextOverflow.Ellipsis,
-                    onTextLayout = fit::onLayout,
+                    overflow = if (strip) TextOverflow.Visible else TextOverflow.Ellipsis,
+                    onTextLayout = { if (!strip) fit.onLayout(it) },
                 )
             }
             // Corner hint: a named icon if the key carries one, otherwise the
@@ -29211,6 +29234,9 @@ private fun BoxScope.KeyCornerHint(
  * inline.
  */
 internal const val LetterLabelSp = 23f
+
+/** A strip board's letters, as a multiple of [LetterLabelSp]: one size for all, small enough for `m` and `w`. */
+private const val StripLabelScale = 0.78f
 
 /** The smaller size a multi-character mode label (`?123`, `ABC`) falls back to. */
 private const val ModeLabelSp = 15.6f

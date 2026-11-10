@@ -129,6 +129,7 @@ fun compileLayoutSet(
         consonantLayer = consonantLayer,
         consonantPages = if (consonantLayer == null) emptyList() else safe.pageLayerKeys(),
         handwriting = safe.handwriting,
+        strip = safe.strip,
         authoredHolds = authored,
     )
 }

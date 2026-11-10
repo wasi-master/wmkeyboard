@@ -131,6 +131,8 @@ The whole alphabet on one row, in the order you get by reading QWERTY's columns 
 | Letters | `q a z w s x e d c r f v t g b y h n u j m i k o l p` |
 | Controls | <KeyCap>⇧</KeyCap> <KeyCap>?123</KeyCap> <KeyCap>,</KeyCap> <KeyCap>🌐</KeyCap> space <KeyCap>.</KeyCap> <KeyCap>⌫</KeyCap> <KeyCap>⏎</KeyCap> |
 
+The letters sit on the board itself, with no key outline around each one, all at the same size. As on Minuum, each letter sits a little higher or lower according to its row on a full keyboard: `q w e` a little up, `a s d` in the middle, `z x c` a little down, so the column you are reaching for is easy to pick out. The letters row is one key tall. Since 0.6.6 it no longer stretches to fill the height the symbols pages take, so the keyboard stays short and grows only while ?123 is up.
+
 Each letter key is well under half the usual width, too narrow to hit exactly every time, and it doesn't need to be. Every key stands for its own letter and the two letters either side of it, plus their accents, the way a T9 key stands for `abc`. Where your finger landed decides how likely each of those letters is, and the dictionary decides between the words they spell. A tap halfway between `e` and `d` comes out as whichever one makes the word.
 
 The field shows the best reading as you type and space commits it, as on T9. If it picked the wrong word, the right one is usually on the strip. Hold a key to type its own letter exactly: the letter sits in the popup right after the digit or symbol, with its accents after that, so a name or a word the dictionary doesn't know can still be spelled.
@@ -182,7 +184,7 @@ Careful typing on one row lands within ten points of QWERTY, and ahead of it on 
 - **Raise the tolerance if words come out wrong.** **Mistype tolerance**, under <SettingsPath path="Typing / Automatic corrections" />, sets how far from a key a tap can land and still count as that key.
 - **Glide works,** though a stroke along one row has less shape to match than one across three.
 
-If you build your own, a row can have up to 32 keys.
+If you build your own, a row can have up to 32 keys. Set `"strip": true` on the layout for the short, bare look, and a key's `labelShiftY` to move its letter up or down by a fraction of the key's height.
 
 ## Glide typing
 

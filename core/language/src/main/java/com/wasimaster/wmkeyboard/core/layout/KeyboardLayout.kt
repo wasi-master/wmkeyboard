@@ -264,6 +264,13 @@ data class Key(
     val hintShiftXDp: Float? = null,
     val hintShiftYDp: Float? = null,
     /**
+     * This key's label moved down from the middle of the key, as a fraction of
+     * the key height; negative moves it up. A strip board ([LayoutSpec.strip])
+     * staggers its letters with it, each by the row it has on a full board,
+     * the way Minuum did. Null leaves the label centred.
+     */
+    val labelShiftY: Float? = null,
+    /**
      * The size of the flick arms drawn on this key's face, as a multiple of
      * the size they follow (#970), apart from the key's label and its corner
      * hint. Null follows the setting. Clamped at draw time to [KeyHintScaleRange].

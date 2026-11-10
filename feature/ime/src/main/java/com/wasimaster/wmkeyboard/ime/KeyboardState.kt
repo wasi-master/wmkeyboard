@@ -399,6 +399,12 @@ data class LayoutSet(
      */
     val handwriting: Boolean = false,
     /**
+     * Whether the layout is a Minuum-style strip (`LayoutSpec.strip`): the key
+     * grid reserves only the rows of the layer on screen, and the letters are
+     * drawn bare.
+     */
+    val strip: Boolean = false,
+    /**
      * The letter keys whose long-press order the user wrote (issue #622), which
      * the "your language's letters first" pass leaves as written. See
      * [authoredHolds].

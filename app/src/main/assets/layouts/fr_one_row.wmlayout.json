@@ -6,6 +6,7 @@
     "name": "One-row AZERTY",
     "langId": "fr",
     "tabletExpand": false,
+    "strip": true,
     "layers": {
       "letters": {
         "rows": [
@@ -26,7 +27,8 @@
                 "‰",
                 "ä"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "q",
@@ -48,7 +50,8 @@
                 "w",
                 "\\"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "z",
@@ -60,7 +63,8 @@
                 "\\",
                 "`"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "s",
@@ -83,7 +87,8 @@
                 "x",
                 "©"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "e",
@@ -99,7 +104,8 @@
                 "ē",
                 "|"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "d",
@@ -121,7 +127,8 @@
                 "ç",
                 "ć"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "r",
@@ -132,7 +139,8 @@
                 "r",
                 "="
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "f",
@@ -155,7 +163,8 @@
                 "v",
                 "™"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "t",
@@ -167,7 +176,8 @@
                 "√",
                 "["
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "g",
@@ -190,7 +200,8 @@
                 "%",
                 "℅"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "y",
@@ -203,7 +214,8 @@
                 "]",
                 "π"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "h",
@@ -226,7 +238,8 @@
                 "[",
                 "ñ"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "u",
@@ -242,7 +255,8 @@
                 "<",
                 "÷"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "j",
@@ -273,7 +287,8 @@
                 ">",
                 "×"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "k",
@@ -303,7 +318,8 @@
                 "ø",
                 "§"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "l",
@@ -326,7 +342,8 @@
                 "0",
                 "p"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "m",

@@ -6,6 +6,7 @@
     "name": "One-row QWERTY (Singlish)",
     "langId": "si_rom",
     "tabletExpand": false,
+    "strip": true,
     "layers": {
       "letters": {
         "rows": [
@@ -17,7 +18,8 @@
               "longPress": [
                 "q"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "a",
@@ -35,7 +37,8 @@
               "longPress": [
                 "z"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "w",
@@ -44,7 +47,8 @@
               "longPress": [
                 "w"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "s",
@@ -62,7 +66,8 @@
               "longPress": [
                 "x"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "e",
@@ -71,7 +76,8 @@
               "longPress": [
                 "e"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "d",
@@ -89,7 +95,8 @@
               "longPress": [
                 "c"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "r",
@@ -98,7 +105,8 @@
               "longPress": [
                 "r"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "f",
@@ -116,7 +124,8 @@
               "longPress": [
                 "v"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "t",
@@ -125,7 +134,8 @@
               "longPress": [
                 "t"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "g",
@@ -143,7 +153,8 @@
               "longPress": [
                 "b"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "y",
@@ -152,7 +163,8 @@
               "longPress": [
                 "y"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "h",
@@ -170,7 +182,8 @@
               "longPress": [
                 "n"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "u",
@@ -179,7 +192,8 @@
               "longPress": [
                 "u"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "j",
@@ -197,7 +211,8 @@
               "longPress": [
                 "m"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "i",
@@ -206,7 +221,8 @@
               "longPress": [
                 "i"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "k",
@@ -224,7 +240,8 @@
               "longPress": [
                 "o"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "l",
@@ -242,7 +259,8 @@
               "longPress": [
                 "p"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             }
           ],
           [

@@ -395,6 +395,18 @@ data class LayoutSpec(
      */
     val handwriting: Boolean = false,
     /**
+     * A one-row strip of letters in the manner of Minuum: the letters row
+     * keeps one key's height instead of growing to fill the rows the other
+     * layers reserve, so the keyboard is as short as the strip, and its
+     * letters are drawn bare on the board at one size, staggered by
+     * [Key.labelShiftY]. The other layers keep their own height, so ?123
+     * makes the keyboard taller while it is up.
+     *
+     * Additive and defaulted, so no format-version bump, for the reason
+     * [tabletExpand] gives.
+     */
+    val strip: Boolean = false,
+    /**
      * A theme of this layout's own (a `ThemeSpec.id`), used while any of its
      * layers is on screen, in place of the theme the settings select and of an
      * automatic light/dark pair (issue #61). A layer's [LayerSpec.themeId]

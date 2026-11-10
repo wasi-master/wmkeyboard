@@ -6,6 +6,7 @@
     "name": "One-row QWERTZ",
     "langId": "de",
     "tabletExpand": false,
+    "strip": true,
     "layers": {
       "letters": {
         "rows": [
@@ -18,7 +19,8 @@
                 "1",
                 "q"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "a",
@@ -43,7 +45,8 @@
                 "y",
                 "ÿ"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "w",
@@ -53,7 +56,8 @@
                 "2",
                 "w"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "s",
@@ -75,7 +79,8 @@
                 "\"",
                 "x"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "e",
@@ -89,7 +94,8 @@
                 "ê",
                 "ë"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "d",
@@ -111,7 +117,8 @@
                 "ç",
                 "ć"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "r",
@@ -121,7 +128,8 @@
                 "4",
                 "r"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "f",
@@ -141,7 +149,8 @@
                 ":",
                 "v"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "t",
@@ -151,7 +160,8 @@
                 "5",
                 "t"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "g",
@@ -171,7 +181,8 @@
                 ";",
                 "b"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "z",
@@ -183,7 +194,8 @@
                 "ż",
                 "ź"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "h",
@@ -205,7 +217,8 @@
                 "ñ",
                 "ń"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "u",
@@ -219,7 +232,8 @@
                 "ú",
                 "û"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "j",
@@ -239,7 +253,8 @@
                 "?",
                 "m"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": 0.2
             },
             {
               "label": "i",
@@ -253,7 +268,8 @@
                 "î",
                 "ï"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "k",
@@ -277,7 +293,8 @@
                 "ó",
                 "ô"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             },
             {
               "label": "l",
@@ -297,7 +314,8 @@
                 "0",
                 "p"
               ],
-              "width": 0.38461538
+              "width": 0.38461538,
+              "labelShiftY": -0.2
             }
           ],
           [
