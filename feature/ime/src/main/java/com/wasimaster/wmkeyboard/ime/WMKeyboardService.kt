@@ -11055,7 +11055,7 @@ open class WMKeyboardService : InputMethodService() {
             KeyAction.Shift -> onShift()
             KeyAction.CapsLock -> onCapsLock()
             KeyAction.Delete -> trackDeletion(::onDelete)
-            KeyAction.ForwardDelete -> onForwardDelete()
+            KeyAction.ForwardDelete -> trackForwardDeletion(::onForwardDelete)
             KeyAction.Space -> {
                 onSpace()
                 returnFromSymbolsAfterSpace()
@@ -15490,15 +15490,23 @@ open class WMKeyboardService : InputMethodService() {
      * it, which is how the chip checks the field is still where it left it
      * before it touches anything. [caret] is pinned by the first echo after
      * [editedAt]; see [followDeletionCaret].
+     *
+     * A [forward] run took text after the caret (a swipe down on backspace,
+     * ⌦), so the caret never moved: [gone] is the text before it, which the
+     * run did not touch, and [ahead] and [backAhead] are the window after it
+     * without the text and with it.
      */
     private class DeletionRun(
         val text: String,
         val gone: String,
         val restored: Boolean,
         val editedAt: Long,
+        val forward: Boolean = false,
+        val ahead: String = "",
     ) {
         var caret = -1
         val back: String get() = (gone + text).takeLast(DeletionUndo.WINDOW)
+        val backAhead: String get() = (text + ahead).take(DeletionUndo.WINDOW)
     }
 
     /** The field as it really is, under any styling or legacy encoding the edits go through. */
@@ -15534,6 +15542,77 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * [trackDeletion] for a delete that eats forward, past the caret: a swipe
+     * down on backspace taking the line after it, ⌦ and its swipe. Reads the
+     * text after the caret as well, since that is where the press took from.
+     */
+    private fun trackForwardDeletion(delete: () -> Unit) {
+        val state = _uiState.value
+        val raw = super.getCurrentInputConnection()
+        if (trackingDeletion || raw == null || !state.settings.suggestionStrip.undoDeleteChip ||
+            state.secureField || state.captureTarget() != null || keypadSum != null || isNullField()
+        ) {
+            delete()
+            return
+        }
+        val ic = traced(raw)
+        trackingDeletion = true
+        try {
+            val selected = ic.getSelectedText(0)?.toString().orEmpty()
+            val before = ic.getTextBeforeCursor(DeletionUndo.WINDOW, 0)?.toString()
+            val ahead = ic.getTextAfterCursor(DeletionUndo.WINDOW, 0)?.toString()
+            delete()
+            if (super.getCurrentInputConnection() !== raw) return
+            val after = ic.getTextBeforeCursor(DeletionUndo.WINDOW, 0)?.toString()
+            val aheadAfter = ic.getTextAfterCursor(DeletionUndo.WINDOW, 0)?.toString()
+            if (before != null && after != null && ahead != null && aheadAfter != null) {
+                noteForwardDeletion(before, selected, after, ahead, aheadAfter)
+            }
+        } finally {
+            trackingDeletion = false
+        }
+    }
+
+    /**
+     * [noteDeletion] for a forward press. The text before the caret must not
+     * have changed; a selection is what was selected, and comes back with the
+     * caret in front of it, where the press left it.
+     */
+    private fun noteForwardDeletion(before: String, selected: String, after: String, ahead: String, aheadAfter: String) {
+        if (after != before) {
+            clearDeletionRun()
+            return
+        }
+        val deleted = if (selected.isNotEmpty()) {
+            if (aheadAfter == ahead) selected else null
+        } else {
+            DeletionUndo.deletedAhead(ahead, aheadAfter)
+        }
+        if (deleted == null) {
+            clearDeletionRun()
+            return
+        }
+        if (deleted.isEmpty()) return
+        val run = deletionRun
+        val text = if (run != null && run.forward && !run.restored && run.gone == before && run.ahead == ahead &&
+            selected.isEmpty()
+        ) {
+            run.text + deleted
+        } else {
+            deleted
+        }
+        if (text.length > DeletionUndo.MAX_RUN) {
+            clearDeletionRun()
+            return
+        }
+        deletionRun = DeletionRun(
+            text, gone = before, restored = false, editedAt = SystemClock.uptimeMillis(),
+            forward = true, ahead = aheadAfter,
+        )
+        showDeletionChip()
+    }
+
+    /**
      * Adds one press to the run, or starts a run: a press continues it when
      * the field in front of the caret is exactly as the last press left it.
      * A press that put text in as well as taking some out (backspace taking
@@ -15547,7 +15626,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (deleted.isEmpty()) return
         val run = deletionRun
-        val text = if (run != null && !run.restored && run.gone == before) deleted + run.text else deleted
+        val text = if (run != null && !run.forward && !run.restored && run.gone == before) deleted + run.text else deleted
         if (text.length > DeletionUndo.MAX_RUN) {
             clearDeletionRun()
             return
@@ -15596,13 +15675,30 @@ open class WMKeyboardService : InputMethodService() {
         vibrate()
         endCompositionForCaretKey(wrapped)
         val now = ic.getTextBeforeCursor(DeletionUndo.WINDOW, 0)?.toString()
-        if (now != (if (run.restored) run.back else run.gone) || !ic.getSelectedText(0).isNullOrEmpty()) {
+        val inPlace = if (run.forward) {
+            // The caret never moved: the text before it is as the run left it,
+            // and the text after it is with or without the run's.
+            now == run.gone &&
+                ic.getTextAfterCursor(DeletionUndo.WINDOW, 0)?.toString() == (if (run.restored) run.backAhead else run.ahead)
+        } else {
+            now == (if (run.restored) run.back else run.gone)
+        }
+        if (!inPlace || !ic.getSelectedText(0).isNullOrEmpty()) {
             clearDeletionRun()
             return
         }
         invalidateExpectedSelection()
-        if (run.restored) ic.deleteSurroundingText(run.text.length, 0) else ic.commitText(run.text, 1)
-        deletionRun = DeletionRun(run.text, run.gone, restored = !run.restored, editedAt = SystemClock.uptimeMillis())
+        when {
+            run.forward && run.restored -> ic.deleteSurroundingText(0, run.text.length)
+            // 0 leaves the caret in front of what goes back, where it was.
+            run.forward -> ic.commitText(run.text, 0)
+            run.restored -> ic.deleteSurroundingText(run.text.length, 0)
+            else -> ic.commitText(run.text, 1)
+        }
+        deletionRun = DeletionRun(
+            run.text, run.gone, restored = !run.restored, editedAt = SystemClock.uptimeMillis(),
+            forward = run.forward, ahead = run.ahead,
+        )
         showDeletionChip()
         lastGestureWord = null
         lastRevertible = null
@@ -17806,7 +17902,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onDeleteSwipeUnit(byWord: Boolean, forward: Boolean) {
         if (forward) {
-            if (byWord) onForwardDeleteWord() else onForwardDelete()
+            trackForwardDeletion(if (byWord) ::onForwardDeleteWord else ::onForwardDelete)
             return
         }
         if (byWord) {
@@ -17945,7 +18041,7 @@ open class WMKeyboardService : InputMethodService() {
         // The swipe recorded the range it selected (see growDeleteSwipe).
         noteDeletedForLearning(expectedSelStart, expectedSelEnd)
         invalidateExpectedSelection()
-        if (forward) ic.commitText("", 1) else trackDeletion { ic.commitText("", 1) }
+        if (forward) trackForwardDeletion { ic.commitText("", 1) } else trackDeletion { ic.commitText("", 1) }
         lastGestureWord = null
         lastRevertible = null
         clearSwapOffer()
@@ -50866,20 +50962,27 @@ open class WMKeyboardService : InputMethodService() {
         // Ahead of the input-connection check because both cope without one.
         if (action == TextEditAction.BACKSPACE || action == TextEditAction.FORWARD_DELETE) {
             if (haptic) vibrate()
-            if (action == TextEditAction.BACKSPACE) trackDeletion(::onDelete) else onForwardDelete()
+            if (action == TextEditAction.BACKSPACE) trackDeletion(::onDelete) else trackForwardDeletion(::onForwardDelete)
             return
         }
         // A word at a time (#980): one step of the delete key's word swipe,
         // which already copes with the keyboard's own boxes and a null field.
         if (action == TextEditAction.DELETE_WORD || action == TextEditAction.DELETE_WORD_FORWARD) {
             if (haptic) vibrate()
-            if (action == TextEditAction.DELETE_WORD) onDeleteWord() else onForwardDeleteWord()
+            if (action == TextEditAction.DELETE_WORD) trackDeletion(::onDeleteWord) else trackForwardDeletion(::onForwardDeleteWord)
             return
         }
-        // A line at a time (#1162).
-        if (action == TextEditAction.DELETE_LINE || action == TextEditAction.DELETE_LINE_FORWARD) {
+        // A line at a time (#1162). Both ways go on the strip's undo chip, as
+        // the swipe up that clears the field does: a swipe down on backspace
+        // taking the rest of the line is a delete like any other.
+        if (action == TextEditAction.DELETE_LINE) {
             if (haptic) vibrate()
-            deleteLine(forward = action == TextEditAction.DELETE_LINE_FORWARD)
+            trackDeletion { deleteLine(forward = false) }
+            return
+        }
+        if (action == TextEditAction.DELETE_LINE_FORWARD) {
+            if (haptic) vibrate()
+            trackForwardDeletion { deleteLine(forward = true) }
             return
         }
         // Before the composing text is committed below: the word still being

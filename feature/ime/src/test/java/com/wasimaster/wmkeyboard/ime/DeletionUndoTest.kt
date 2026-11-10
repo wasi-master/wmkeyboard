@@ -39,6 +39,21 @@ class DeletionUndoTest {
     }
 
     @Test
+    fun `a forward delete gives what went after the caret`() {
+        assertEquals("Hello, how are you doing", DeletionUndo.deletedAhead("Hello, how are you doing", ""))
+        assertEquals("one ", DeletionUndo.deletedAhead("one two", "two"))
+        assertEquals("", DeletionUndo.deletedAhead("same", "same"))
+        assertNull(DeletionUndo.deletedAhead("one two", "one"))
+    }
+
+    @Test
+    fun `a long tail lines the two forward windows up`() {
+        val text = (0 until 3000).joinToString("") { ('a' + it % 26).toString() }
+        val window = DeletionUndo.WINDOW
+        assertEquals(text.take(7), DeletionUndo.deletedAhead(text.take(window), text.drop(7).take(window)))
+    }
+
+    @Test
     fun `the label stays on one line and short`() {
         assertEquals("one two", DeletionUndo.label("one\ntwo"))
         val long = "x".repeat(100)

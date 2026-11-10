@@ -56,6 +56,31 @@ object DeletionUndo {
         return null
     }
 
+    /**
+     * [deleted] for a delete that ate forward, past the caret: a swipe down on
+     * backspace taking the line after it, or ⌦. [before] and [after] are the
+     * [WINDOW] characters after the caret either side of the press, which
+     * stays put, so what is left must be the end of what was there.
+     */
+    fun deletedAhead(before: String, after: String): String? {
+        if (after == before) return ""
+        if (before.length < WINDOW) {
+            return if (after.length < before.length && before.endsWith(after)) {
+                before.substring(0, before.length - after.length)
+            } else {
+                null
+            }
+        }
+        // A long tail: the second window starts however far into the first
+        // the press reached. A press that took more than is left after a full
+        // window cannot be lined up, and gets no chip.
+        if (after.length != WINDOW) return null
+        for (k in 1 until WINDOW) {
+            if (before.regionMatches(k, after, 0, WINDOW - k)) return before.substring(0, k)
+        }
+        return null
+    }
+
     /** The chip's line: the run on one line, cut short where it would not fit anyway. */
     fun label(text: String): String {
         val line = text.replace('\n', ' ').trim()
