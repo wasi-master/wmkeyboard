@@ -4087,6 +4087,12 @@ data class KeyboardSettings(
      * back, and leaving incognito forgets it. Off by default.
      */
     val incognitoPrivateClipboard: Boolean = false,
+    /**
+     * While incognito is on, the board wears a large, faint incognito mark
+     * behind the keys (#1177). On by default; off leaves only the toolbar's
+     * badge.
+     */
+    val incognitoWatermark: Boolean = true,
     /** Incognito stops word and emoji learning. */
     val incognitoPausesLearning: Boolean = true,
     /**
@@ -12585,6 +12591,7 @@ class SettingsRepository(private val context: Context) {
         private val NUMPAD_PHONE_LAYOUT = booleanPreferencesKey("numpad_phone_layout")
         private val INCOGNITO_PAUSES_CLIPBOARD = booleanPreferencesKey("incognito_pauses_clipboard")
         private val INCOGNITO_PRIVATE_CLIPBOARD = booleanPreferencesKey("incognito_private_clipboard")
+        private val INCOGNITO_WATERMARK = booleanPreferencesKey("incognito_watermark")
         private val INCOGNITO_PAUSES_LEARNING = booleanPreferencesKey("incognito_pauses_learning")
         private val AUTO_INCOGNITO = booleanPreferencesKey("auto_incognito")
         private val INCOGNITO_APPS = stringSetPreferencesKey("incognito_apps")
@@ -13468,6 +13475,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.numpadCalculatorLayout,
             incognitoPausesClipboard = p[INCOGNITO_PAUSES_CLIPBOARD] ?: defaults.incognitoPausesClipboard,
             incognitoPrivateClipboard = p[INCOGNITO_PRIVATE_CLIPBOARD] ?: defaults.incognitoPrivateClipboard,
+            incognitoWatermark = p[INCOGNITO_WATERMARK] ?: defaults.incognitoWatermark,
             incognitoPausesLearning = p[INCOGNITO_PAUSES_LEARNING] ?: defaults.incognitoPausesLearning,
             autoIncognito = p[AUTO_INCOGNITO] ?: defaults.autoIncognito,
             // "1:com.example" is always incognito, "0:com.example" never.
@@ -17048,6 +17056,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setIncognitoPrivateClipboard(value: Boolean) =
         editPrefs { it[INCOGNITO_PRIVATE_CLIPBOARD] = value }
+
+    suspend fun setIncognitoWatermark(value: Boolean) =
+        editPrefs { it[INCOGNITO_WATERMARK] = value }
 
     suspend fun setIncognitoPausesLearning(value: Boolean) =
         editPrefs { it[INCOGNITO_PAUSES_LEARNING] = value }

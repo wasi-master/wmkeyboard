@@ -1732,6 +1732,14 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setIncognitoPrivateClipboard(it) } }
                 }
                 item {
+                    ToggleSetting(
+                        R.string.tooldetail_incognito_watermark_title,
+                        stringResource(R.string.tooldetail_incognito_watermark_subtitle),
+                        settings.watch { it.incognitoWatermark },
+                        default = SettingsDefaults.incognitoWatermark,
+                    ) { scope.launch { repository.setIncognitoWatermark(it) } }
+                }
+                item {
                     NavRow(
                         R.string.tooldetail_incognito_auto_nav_title,
                         stringResource(R.string.tooldetail_incognito_auto_nav_subtitle),

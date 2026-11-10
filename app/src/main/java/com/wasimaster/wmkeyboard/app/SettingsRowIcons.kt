@@ -1548,6 +1548,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_incognito_learning_title) { Icons.Outlined.School }
         put(R.string.tooldetail_incognito_clipboard_title) { Icons.Outlined.ContentPaste }
         put(R.string.tooldetail_incognito_private_clipboard_title) { Icons.Outlined.ContentCopy }
+        put(R.string.tooldetail_incognito_watermark_title) { Icons.Outlined.VisibilityOff }
         put(R.string.tooldetail_incognito_auto_nav_title) { Icons.Outlined.Public }
         put(R.string.tooldetail_power_now_title) { Icons.Outlined.BatterySaver }
         put(R.string.tooldetail_power_preset_title) { Icons.Outlined.Bolt }

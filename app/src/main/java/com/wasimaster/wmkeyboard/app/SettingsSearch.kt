@@ -1930,6 +1930,7 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         R.string.tooldetail_incognito_private_clipboard_title,
         R.string.tooldetail_incognito_private_clipboard_subtitle,
     ),
+    toolEntry(ToolbarTool.INCOGNITO, R.string.tooldetail_incognito_watermark_title, R.string.tooldetail_incognito_watermark_subtitle),
     toolEntry(ToolbarTool.POWER_SAVING, R.string.tooldetail_power_now_title, R.string.tooldetail_power_now_subtitle),
     toolEntry(ToolbarTool.POWER_SAVING, R.string.tooldetail_power_preset_title, R.string.tooldetail_power_preset_subtitle),
     toolEntry(ToolbarTool.POWER_SAVING, R.string.tooldetail_power_trigger_title, R.string.tooldetail_power_trigger_subtitle),

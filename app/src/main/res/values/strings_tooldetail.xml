@@ -326,6 +326,8 @@
     <string name="tooldetail_incognito_private_clipboard_title">Keep copies in the keyboard</string>
     <string name="tooldetail_incognito_private_clipboard_subtitle">Copy and cut from the keyboard do not go to the system clipboard, so other apps cannot read them</string>
     <string name="tooldetail_incognito_private_clipboard_info">While incognito is on, text you copy or cut with the keyboard stays inside the keyboard. The paste keys of the keyboard paste it back. When incognito goes off, the keyboard forgets it.\n\nIf you have not copied with the keyboard yet, paste gives what is on the system clipboard, as usual. The copy and paste menu of the app itself still uses the system clipboard.</string>
+    <string name="tooldetail_incognito_watermark_title">Mark on the keyboard</string>
+    <string name="tooldetail_incognito_watermark_subtitle">A large, faint incognito sign behind the keys</string>
 
     <!-- Power saving tool: when power saving runs. -->
     <string name="tooldetail_chips_nav_title">Suggestion chip</string>
