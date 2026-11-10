@@ -57,7 +57,22 @@ class KeystrokeTiming {
         return 1.0 + t * MAX_SHIFT * strength.toDouble().coerceAtMost(1.0)
     }
 
+    /**
+     * Whether this word is being typed at full speed: a mean gap of
+     * [EAGER_DIGIT_MS] or less over at least [MIN_GAPS] gaps. Unlike
+     * [multiplier] it does not follow the timing setting's strength, since
+     * it only decides how readily a digit is read as a number-row slip.
+     */
+    fun isFast(): Boolean = gapCount >= MIN_GAPS && gapTotalMs <= EAGER_DIGIT_MS * gapCount
+
     companion object {
+        /**
+         * Mean inter-key gap at or under which a word counts as typed at
+         * full speed for digit slips: a phone typist's ordinary pace, well
+         * inside the hunt for a number on the top row.
+         */
+        const val EAGER_DIGIT_MS = 260L
+
         /** Mean inter-key gap of a flat-out burst, ms. */
         const val FAST_MS = 150.0
 

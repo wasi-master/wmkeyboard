@@ -96,7 +96,7 @@
 
     <string name="typing_number_row_corrections_title">Fix number row slips</string>
     <string name="typing_number_row_corrections_subtitle">Correct a stray digit to the letter below it</string>
-    <string name="typing_number_row_corrections_info">With the number row on, a tap meant for the top letter row can land on a digit, and "as3" appears instead of "ase". With this setting on, one digit inside a word can be corrected to the letter below it when you press space. The correction only ever swaps the digit for a letter. A word that starts with a digit, and a word with two or more digits, never change. This setting has an effect only while the number row is shown.</string>
+    <string name="typing_number_row_corrections_info">With the number row on, a tap meant for the top letter row can land on a digit, and "as3" appears instead of "ase". With this setting on, one digit inside a word can be corrected to the letter below it when you press space. When you type fast, the keyboard fixes these more readily: a word can have two digits (\"y97\" becomes \"you\"), and a digit you typed at the start of a word can be its first letter (\"5yped\" becomes \"typed\"). The correction only ever swaps a digit for a letter. Numbers stay as they are, \"5pm\", \"4th\" and \"10am\" included, and so does a word with three or more digits. This setting has an effect only while the number row is shown.</string>
 
     <string name="typing_autocorrect_splits_title">Add missing spaces</string>
     <string name="typing_autocorrect_splits_subtitle">Split two words typed together when you press space</string>

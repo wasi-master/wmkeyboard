@@ -2620,6 +2620,22 @@ class SuggestionEngine(
     }
 
     companion object {
+        /** Digits a word typed at full speed may have slipped onto the number row for. */
+        const val EAGER_DIGIT_SLIPS = 2
+
+        /** Factor on the confidence gate for a digit-carrying word typed at full speed. */
+        const val EAGER_DIGIT_CONFIDENCE = 0.5
+
+        /**
+         * What follows a number on purpose: ordinals, times, units. A digit
+         * in front of one of these is the number it says.
+         */
+        val NUMBER_SUFFIXES = setOf(
+            "st", "nd", "rd", "th", "am", "pm", "s", "k", "m", "g", "h", "d", "p", "x", "km", "kg", "cm",
+            "mm", "ml", "mg", "gb", "mb", "kb", "tb", "hz", "fps", "mp", "px", "pt", "min", "hr", "hrs",
+            "yr", "yrs", "mo", "wk", "ft", "in", "lb", "lbs", "oz", "ms", "sec", "secs", "mins", "kw",
+        )
+
         /** Language id of bundled English, the only special-cased secondary. */
         private const val EN = "en"
 
@@ -5293,6 +5309,11 @@ class SuggestionEngine(
      *        a word ("form" → "from"), which only fires when the context
      *        agrees. Null — a sentence start, or a caller without it — never
      *        applies such a fix.
+     * @param fastTyping the word was typed at full speed, where a digit in it
+     *        is far more likely a thumb landing on the number row than a
+     *        number: up to [EAGER_DIGIT_SLIPS] digits may then be read as the
+     *        letters under them ("y97" → "you"), and each digit fix counts as
+     *        one slip rather than a full edit.
      */
     fun decideCorrection(
         word: String,
@@ -5300,6 +5321,7 @@ class SuggestionEngine(
         timingMultiplier: Double = 1.0,
         previousWord: String? = null,
         keys: KeySets? = null,
+        fastTyping: Boolean = false,
     ): CorrectionDecision {
         val lower = word.lowercase()
         if (caseExact) {
@@ -5314,7 +5336,7 @@ class SuggestionEngine(
             return shortAccentFix(word, lower, touch)
         }
         if (skipAllCapsAutocorrect && isAllCaps(word)) return NO_CORRECTION
-        val ordinary = decideOrdinary(word, lower, touch, timingMultiplier, keys)
+        val ordinary = decideOrdinary(word, lower, touch, timingMultiplier, keys, fastTyping)
         return withTaughtFix(word, lower, previousWord, ordinary)
     }
 
@@ -6051,6 +6073,7 @@ class SuggestionEngine(
         touch: List<TouchPoint?>?,
         timingMultiplier: Double,
         keys: KeySets? = null,
+        fastTyping: Boolean = false,
     ): CorrectionDecision {
         // A shadowed spelling is protected by neither the lists nor the
         // lexicon. The lexicon learned it only because a list vouched for it.
@@ -6074,7 +6097,7 @@ class SuggestionEngine(
         // buffers those); anything more digit-heavy is deliberate input —
         // codes, model numbers — and is never rewritten.
         val digits = lower.count { it.isDigit() }
-        if (digits > 0 && (!digitSlipCorrections || digits > 1)) return NO_CORRECTION
+        if (digits > 0 && !digitSlipsPossible(lower, digits, fastTyping)) return NO_CORRECTION
 
         // The walk ranks WALK_K deep for the strip's context boosts, but the
         // silent-replacement decision stays on the same top-8 it has always
@@ -6100,7 +6123,15 @@ class SuggestionEngine(
             // edit is a fix in place, as long as nothing was completed.
             // Slips mixed with a real edit apply only when eager: that mix
             // is what rewrites a correctly typed new word (see [SlipFixes]).
-            val correctionShaped = if (c.slips > 0) {
+            // A word whose only changes are its digits put back as the
+            // letters under them is one kind of slip made once per digit, the
+            // way a run of wide taps is; at full speed it counts as such
+            // whatever the number of digits allowed.
+            val digitFix = fastTyping && digits > 0 && c.completedChars == 0 &&
+                c.edits <= digits && digitSubShape(lower, c.word)
+            val correctionShaped = if (digitFix) {
+                true
+            } else if (c.slips > 0) {
                 c.completedChars == 0 && c.edits - c.slips <= 1 &&
                     (slipFixes == SlipFixes.EAGER || !mixesSlips(c))
             } else when (c.edits) {
@@ -6204,7 +6235,11 @@ class SuggestionEngine(
         val effectiveConfidence = (
             autocorrectConfidence *
                 (if (adaptiveConfidence) correctionStats.confidenceMultiplier() else 1.0) *
-                timingMultiplier
+                timingMultiplier *
+                // A digit between letters at full speed is a thumb on the
+                // number row far more often than a code, so its fix needs
+                // less of a lead.
+                (if (fastTyping && digits > 0) EAGER_DIGIT_CONFIDENCE else 1.0)
             ).coerceIn(MIN_AUTOCORRECT_CONFIDENCE, MAX_AUTOCORRECT_CONFIDENCE)
         val gate = ln(effectiveConfidence)
         val top = candidates.firstOrNull()
@@ -6506,6 +6541,25 @@ class SuggestionEngine(
      * keys over. The walk priced that `y` as any far slip, so `ton3` had
      * `tony` close enough behind `tone` to block it (#1107).
      */
+    /**
+     * Whether a word carrying [digits] digits may still be a slip on the number
+     * row. One digit may be, when the IME buffers them at all; at full speed
+     * ([fastTyping]) up to [EAGER_DIGIT_SLIPS], as long as a letter is left
+     * for the reading to stand on. A digit leading the word is never a run of
+     * them ("10am"), and never ahead of what follows a number: "5pm", "4th"
+     * and "3kg" are what they say.
+     */
+    private fun digitSlipsPossible(lower: String, digits: Int, fastTyping: Boolean): Boolean {
+        if (!digitSlipCorrections) return false
+        val limit = if (fastTyping) EAGER_DIGIT_SLIPS else 1
+        if (digits > limit || digits >= lower.length) return false
+        if (lower[0].isDigit()) {
+            if (lower.length > 1 && lower[1].isDigit()) return false
+            if (lower.substring(1) in NUMBER_SUFFIXES) return false
+        }
+        return true
+    }
+
     private fun digitSubShape(typed: String, candidate: String): Boolean {
         if (candidate.length != typed.length) return false
         for (i in typed.indices) {

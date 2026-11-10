@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.prediction
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -58,5 +59,13 @@ class KeystrokeTimingTest {
         assertTrue(t.multiplier(1f) > 1.0)
         t.reset()
         assertEquals(1.0, t.multiplier(1f), 0.0)
+    }
+
+    @Test
+    fun fastIsAPhoneTypistsPaceWhateverTheSetting() {
+        assertTrue(timed(180, 220, 200).isFast())
+        assertFalse(timed(400, 380).isFast())
+        // One gap says nothing yet.
+        assertFalse(timed(100).isFast())
     }
 }

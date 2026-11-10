@@ -1427,6 +1427,26 @@ class SuggestionEngineTest {
         assertNull(digitEngine().shouldAutocorrect("h3lp4"))
     }
 
+    @Test fun `typed fast, two digits are both number-row slips`() {
+        assertEquals("you", digitEngine().decideCorrection("y97", fastTyping = true).apply)
+        assertNull(digitEngine().decideCorrection("y97").apply)
+    }
+
+    @Test fun `typed fast, a leading digit is the letter under it`() {
+        assertEquals("typed", digitEngine().decideCorrection("5yped", fastTyping = true).apply)
+    }
+
+    @Test fun `a number in front of what follows numbers stays`() {
+        val e = digitEngine()
+        for (typed in listOf("5pm", "4th", "10am", "3kg", "2nd")) {
+            assertNull(typed, e.decideCorrection(typed, fastTyping = true).apply)
+        }
+    }
+
+    @Test fun `typed fast, still never more than two digits`() {
+        assertNull(digitEngine().decideCorrection("h3l4p5", fastTyping = true).apply)
+    }
+
     // ---- word sources ----
     // The IME asks this before re-arming a word the caret landed on as the
     // composing region; a language it answers false for gets no underline.

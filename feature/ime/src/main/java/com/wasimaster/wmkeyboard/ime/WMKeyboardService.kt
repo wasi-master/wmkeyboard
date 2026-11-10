@@ -2063,6 +2063,16 @@ open class WMKeyboardService : InputMethodService() {
      */
     private val keystrokeTiming = KeystrokeTiming()
 
+    /**
+     * A digit typed where a word could start, and when: if a letter follows
+     * at full speed, the digit was the word's first letter landing on the
+     * number row ("5yped"), and [reclaimLooseDigit] takes it into the word.
+     * One-shot: the next keystroke of any kind spends it.
+     */
+    private var looseDigit: LooseDigit? = null
+
+    private class LooseDigit(val digit: Char, val atMs: Long)
+
     /** The timing signal's factor on the autocorrect gate, 1.0 when off. */
     private fun timingMultiplier(): Double =
         keystrokeTiming.multiplier(
@@ -13704,6 +13714,8 @@ open class WMKeyboardService : InputMethodService() {
      * our dead-key state machine over it as well would double-apply accents.
      */
     private fun processTypedText(input: String, applyDeadKeys: Boolean) {
+        val loose = looseDigit
+        looseDigit = null
         commitSteppedCandidateBeforeTyping()
         closeRecentClips()
         // Before anything reads the keyboard's own space after the mark: this
@@ -14094,6 +14106,7 @@ open class WMKeyboardService : InputMethodService() {
         if (isWordChar && composingMode && !elisionBreak && duetTap(text)) {
             consumeShift()
         } else if (isWordChar && composingMode && !elisionBreak) {
+            if (composing.isEmpty()) reclaimLooseDigit(ic, loose, text, state)
             appendComposing(text)
             // A tapped word ends at the all-thumbs-up pause too (#676).
             allUpArmed = true
@@ -14176,6 +14189,9 @@ open class WMKeyboardService : InputMethodService() {
             // the plain space the user or the keyboard typed.
             val spacedOver = if (spacedRun == null) null else insertSpaceBeforeMark(ic, text, state)
             commitTypedCharacter(ic, text)
+            if (text.length == 1 && text[0] in '0'..'9' && !committedWord) {
+                looseDigit = LooseDigit(text[0], SystemClock.uptimeMillis())
+            }
             if (hugged != null) {
                 // One backspace puts the space back, the same as any other
                 // correction: the rule removed something the user typed.
@@ -20409,6 +20425,7 @@ open class WMKeyboardService : InputMethodService() {
                         touch = taps,
                         timingMultiplier = timingMultiplier(),
                         previousWord = previousWord,
+                        fastTyping = keystrokeTiming.isFast(),
                     ) ?: SuggestionEngine.NO_CORRECTION
                 }
                 corrected = decision.apply?.takeIf { it != typed && !declinedHere }
@@ -23298,6 +23315,44 @@ open class WMKeyboardService : InputMethodService() {
             }.filterNot { isEmojiCandidate(it) }
             if (suggestionPages?.second === shown) suggestionPages = "" to (shown + more).distinct()
         }
+    }
+
+    /**
+     * Takes the digit typed just before this letter into the word it starts,
+     * so autocorrect reads "5yped" whole and the 5 can be the t under it.
+     *
+     * Only at full speed, within [LOOSE_DIGIT_WINDOW_MS] of the digit, and
+     * only for a digit that stands alone where a word starts: a number in
+     * progress ("25", "3.5") or a digit glued to a word is left alone. The
+     * engine still keeps "5pm" and "4th" as typed (see `NUMBER_SUFFIXES`),
+     * and a word it cannot fix commits exactly as it stands in the field.
+     */
+    private fun reclaimLooseDigit(ic: InputConnection, loose: LooseDigit?, text: String, state: KeyboardUiState) {
+        loose ?: return
+        if (text.length != 1 || !text[0].isLetter()) return
+        if (!digitSlipsOn(state.settings) || !state.allowsTypingIntelligence) return
+        if (state.composer.isTransliterating || state.composer.bufferDigits) return
+        val now = SystemClock.uptimeMillis()
+        if (now - loose.atMs > LOOSE_DIGIT_WINDOW_MS) return
+        val before = ic.getTextBeforeCursor(2, 0)?.toString() ?: return
+        if (before.lastOrNull() != loose.digit) return
+        if (before.length == 2 && !before[0].isWhitespace() && before[0] !in LOOSE_DIGIT_OPENERS) return
+        ic.deleteSurroundingText(1, 0)
+        invalidateExpectedSelection()
+        // The letter's own frames wait while the digit goes in first, with
+        // none of its own: it was a key, but not one the touch model saw.
+        val touch = pendingTouch
+        val letters = pendingKeyLetters
+        val hint = pendingKeyHint
+        pendingTouch = null
+        pendingKeyLetters = null
+        pendingKeyHint = null
+        appendComposing(loose.digit.toString())
+        keystrokeTiming.reset()
+        keystrokeTiming.onKeystroke(loose.atMs)
+        pendingTouch = touch
+        pendingKeyLetters = letters
+        pendingKeyHint = hint
     }
 
     /**
@@ -27586,12 +27641,15 @@ open class WMKeyboardService : InputMethodService() {
         val touch = composingTouchFrame()
         val keys = composingKeyFrame()
         val timing = timingMultiplier()
+        val fast = keystrokeTiming.isFast()
         val pending = PendingResolution(typed)
         pendingResolution = pending
         resolutionJob = serviceScope.launch(resolutionDispatcher) {
             pending.started = true
             try {
-                val decision = engine.decideCorrection(typed, touch = touch, timingMultiplier = timing, keys = keys)
+                val decision = engine.decideCorrection(
+                    typed, touch = touch, timingMultiplier = timing, keys = keys, fastTyping = fast,
+                )
                 // Withdrawn meanwhile — a word blocked mid-walk, say — lands nothing.
                 if (pendingResolution !== pending) return@launch
                 commitResolution = CommitResolution(
@@ -58491,6 +58549,12 @@ open class WMKeyboardService : InputMethodService() {
         private const val RETYPE_LOOKBEHIND = 64
 
         private const val NUMBER_RUN_LOOKBEHIND = TypedNumbers.MAX_LENGTH + 1
+
+        /** How soon a letter must follow a lone digit for the two to be one word (see [reclaimLooseDigit]). */
+        private const val LOOSE_DIGIT_WINDOW_MS = 300L
+
+        /** What may stand right before a word's first letter, besides a space. */
+        private const val LOOSE_DIGIT_OPENERS = "([{\"'“‘«¿¡"
 
         /** How far back [listStepAtCaret] looks for the start of the caret's line. */
         private const val LIST_LINE_LOOKBACK = 256
