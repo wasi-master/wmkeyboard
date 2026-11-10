@@ -4927,7 +4927,11 @@ private fun ThemeEditorContent(
                 info = stringResource(R.string.theme_glass_dispersion_body),
             ) { updateFrost { f -> f.copy(dispersion = (it * 100).roundToInt() / 100f) } }
         }
-        item(level = SettingLevel.ADVANCED) {
+        // Standard, not advanced: this is the switch that decides whether the
+        // app shows through the keyboard at all, and with it hidden a user
+        // who wanted a solid board could reach the blur's strength but not
+        // its off switch (#1222).
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.theme_glass_window_blur_title,
                 stringResource(R.string.theme_glass_window_blur_subtitle),
@@ -4946,7 +4950,7 @@ private fun ThemeEditorContent(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
-        item(level = SettingLevel.STANDARD) {
+        item(visible = frost.windowBlur, level = SettingLevel.STANDARD) {
             SliderRow(
                 R.string.theme_glass_blur_strength_title,
                 value = frost.windowBlurRadiusDp.toFloat(),
@@ -5023,7 +5027,7 @@ private fun ThemeEditorContent(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
-        item(visible = followsByRole, level = SettingLevel.ADVANCED) {
+        item(visible = followsByRole, level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.theme_glass_accent_board_title,
                 stringResource(R.string.theme_glass_accent_board_subtitle),
