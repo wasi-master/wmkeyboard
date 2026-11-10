@@ -62,6 +62,9 @@
     <string name="core_voice_model_cpp_turbo_body">This model is almost as accurate as the largest model, at half the size. Each phrase takes several seconds, and it cannot translate.</string>
     <string name="core_voice_model_cpp_medium_body">This model gives almost desktop accuracy. Each phrase takes several seconds. The model uses almost one gigabyte of memory while it runs.</string>
     <string name="core_voice_model_cpp_large_body">This is the most accurate Whisper model. The download is 1.1 GB. Only a device with a large amount of memory can load it. The Turbo model is almost as accurate and is half the size.</string>
+    <!-- Description of a whisper.cpp model the user imported from a file of
+         their own, such as a model fine-tuned for one language. -->
+    <string name="core_voice_model_custom_body">You imported this whisper.cpp model from a file. The keyboard does not know how it was trained, so choose it for the languages it was made for under Model per language.</string>
 
     <!-- ================================================================== -->
     <!-- Model download failures. Shown under the model row in settings.     -->

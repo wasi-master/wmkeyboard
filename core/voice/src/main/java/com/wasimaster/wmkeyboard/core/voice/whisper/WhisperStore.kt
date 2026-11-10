@@ -82,13 +82,16 @@ object WhisperStore {
      */
     fun selectedModel(filesDir: File, whisperModelId: String): WhisperModel? {
         if (whisperModelId.isBlank()) return null
+        WhisperCustomModels.ensure(filesDir)
         val model = WhisperCatalog.byId(whisperModelId) ?: return null
         return model.takeIf { isDownloaded(filesDir, it) }
     }
 
-    /** Every catalog model whose files are both on disk. */
-    fun downloadedModels(filesDir: File): List<WhisperModel> =
-        WhisperCatalog.models.filter { isDownloaded(filesDir, it) }
+    /** Every catalog model whose files are both on disk, and the user's own whisper.cpp models. */
+    fun downloadedModels(filesDir: File): List<WhisperModel> {
+        WhisperCustomModels.ensure(filesDir)
+        return WhisperCatalog.models.filter { isDownloaded(filesDir, it) }
+    }
 
     /** The one downloaded model's id when exactly one exists — the "only model" fallback. */
     fun soleDownloadedId(filesDir: File): String? =
@@ -157,11 +160,16 @@ object WhisperStore {
         return downloaded.firstOrNull { it.id == defaultModelId } ?: downloaded.first()
     }
 
-    /** Directories left by models dropped from the catalog — offered for cleanup. */
+    /**
+     * Directories left by models dropped from the catalog — offered for
+     * cleanup. Never a model the user imported themselves (#1224), read yet or not.
+     */
     fun orphanDirs(filesDir: File): List<File> {
         val known = WhisperCatalog.models.map { it.id }.toSet()
         return rootDir(filesDir).listFiles().orEmpty()
-            .filter { it.isDirectory && it.name !in known && it.name != VOCAB_POOL }
+            .filter {
+                it.isDirectory && it.name !in known && it.name != VOCAB_POOL && !WhisperCustomModels.isCustom(it.name)
+            }
     }
 
     fun orphanBytes(filesDir: File): Long =
@@ -175,6 +183,8 @@ object WhisperStore {
 
     fun delete(filesDir: File, model: WhisperModel) {
         modelDir(filesDir, model).deleteRecursively()
+        // An imported model has no download to come back from.
+        if (WhisperCustomModels.isCustom(model.id)) WhisperCustomModels.forget(model.id)
     }
 
     fun totalBytesUsed(filesDir: File): Long =

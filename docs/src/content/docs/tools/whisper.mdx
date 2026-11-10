@@ -112,6 +112,12 @@ The English-only LiteRT models (Tiny, Base, Small and Medium, each marked Englis
 
 A phone that cannot download can import a model instead. Below the catalog, **Get the files** lists both files of each model that suits your languages, to fetch in a browser on any device, and **Import** installs them: pick the `.tflite` and its `filters_vocab_*.bin` together, or one after the other in either order. A model imported without its vocabulary file is reported as still needing it. See [Using it without internet](/privacy/offline/#voice-models).
 
+### Your own whisper.cpp models
+
+**Import** also takes a whisper.cpp model that isn't in the catalog, such as one fine-tuned for a language or a dialect and converted to whisper.cpp's `ggml-*.bin` format. The keyboard reads the start of the file to check that it's a whisper.cpp Whisper model and doesn't care what it's called; a GGUF file, or any other kind of model, is turned away. It then lists the model under **Your models** by its file name, with a size worked out from its layers, and runs it on whisper.cpp like the catalog's own. A model built on Whisper's English-only vocabulary counts as English-only; any other is offered for every language.
+
+The keyboard can't tell which languages a fine-tune was trained for, so with other models on the phone it picks one per language by the usual rules and the fine-tune may not be the one it lands on. Open **Model per language** and pick it for the languages it was made for: a Hinglish model under Hindi or Hinglish, for example. Its row has no translate option, since a fine-tune may not have kept that task. Importing a file with the same name again replaces the earlier copy, and deleting the model removes it for good, since there's nothing to download it from again. Builds without whisper.cpp can't import one.
+
 When exactly one model is on disk, the app quietly adopts it as that fallback, so dictation works right after your first download with no setup step in between. It does the same again if you delete whichever model was holding the job.
 
 ## Options

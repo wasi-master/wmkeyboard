@@ -66,6 +66,7 @@ import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCompute
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCppGpu
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCustomModels
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager.DownloadStatus
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperEngine
@@ -316,7 +317,9 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
     // model, fetched elsewhere and imported. Suggested models first, then the
     // rest of what the browse list shows, never one already on the device.
     val offlineLinks = remember(enabledCodes, onDisk) {
-        val wanted = (suggestions + WhisperCatalog.visibleFor(enabledCodes)).distinct() - onDisk.toSet()
+        // The user's own models have nowhere to be fetched from.
+        val wanted = ((suggestions + WhisperCatalog.visibleFor(enabledCodes)).distinct() - onDisk.toSet())
+            .filterNot { WhisperCustomModels.isCustom(it.id) }
         val vocabSeen = HashSet<String>()
         wanted.flatMap { model ->
             listOfNotNull(

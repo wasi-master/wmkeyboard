@@ -82,6 +82,7 @@ object WhisperDownloadManager {
 
     /** Seeds [states] from disk; call when the model manager UI appears. */
     fun refresh(filesDir: File) {
+        WhisperCustomModels.scan(filesDir)
         // A retired graph still on disk would otherwise read as a finished
         // download of the current one (#207).
         WhisperCatalog.models.forEach { if (it.id != activeId) WhisperStore.purgeStale(filesDir, it) }
@@ -195,6 +196,18 @@ object WhisperDownloadManager {
         return Installed.Vocab(users)
     }
 
+    /**
+     * A whisper.cpp model that is in no catalog (#1224): a fine-tune the user
+     * found elsewhere, told by its [header]. Kept as their own model, which
+     * dictation routes like any other. Runs on the caller's thread.
+     */
+    fun installCustom(filesDir: File, file: File, name: String, header: WhisperCustomModels.Header): WhisperModel {
+        check(!isBusy) { "a download is running" }
+        val model = WhisperCustomModels.install(filesDir, file, name, header)
+        refresh(filesDir)
+        return model
+    }
+
     /** [source] copied to [target] through a `.part`, so [target] is only ever whole. */
     private fun copyInto(source: File, target: File) {
         val part = File(target.parentFile, "${target.name}.part")
@@ -214,7 +227,13 @@ object WhisperDownloadManager {
     fun delete(filesDir: File, model: WhisperModel) {
         if (model.id == activeId) cancel()
         WhisperStore.delete(filesDir, model)
-        set(model.id, DownloadStatus.NotDownloaded)
+        // The user's own model leaves the list with its file; there is
+        // nothing to download it from.
+        if (WhisperCustomModels.isCustom(model.id)) {
+            _states.update { it - model.id }
+        } else {
+            set(model.id, DownloadStatus.NotDownloaded)
+        }
     }
 
     private fun set(id: String, status: DownloadStatus) {

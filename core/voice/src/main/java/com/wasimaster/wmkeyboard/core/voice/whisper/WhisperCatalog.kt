@@ -263,7 +263,14 @@ object WhisperCatalog {
         "ro", "da", "hu", "no", "hr", "bg", "lt", "sk", "lv", "sl", "et", "mt", "lb",
     )
 
-    val models: List<WhisperModel> = buildList {
+    /**
+     * Every model there is: the catalog's, then the whisper.cpp models the
+     * user imported themselves ([WhisperCustomModels]), once they are read.
+     */
+    val models: List<WhisperModel>
+        get() = WhisperCustomModels.models.let { custom -> if (custom.isEmpty()) builtIn else builtIn + custom }
+
+    private val builtIn: List<WhisperModel> = buildList {
         // ---- whisper.cpp first where it runs: every language by name, prompts,
         // beam search, and faster than the LiteRT graphs of the same size.
         if (cppAvailable) addAll(ggmlModels())
@@ -572,7 +579,7 @@ object WhisperCatalog {
 
     /** Every language at least one single-language graph exists for. */
     val singleLanguageCodes: Set<String> =
-        models.mapNotNullTo(mutableSetOf()) { it.fixedLang }
+        builtIn.mapNotNullTo(mutableSetOf()) { it.fixedLang }
 
     private class Single(
         val id: String,
@@ -610,7 +617,7 @@ object WhisperCatalog {
         }
 
     init {
-        check(models.map { it.id }.toSet().size == models.size) { "catalog ids must be unique" }
+        check(builtIn.map { it.id }.toSet().size == builtIn.size) { "catalog ids must be unique" }
     }
 
     fun byId(id: String): WhisperModel? = models.firstOrNull { it.id == id }
