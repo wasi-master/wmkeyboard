@@ -53,7 +53,26 @@ On the Play Store build the interpreter that runs the LiteRT models is not in th
 
 The F-Droid build fetches whisper.cpp's library the first time too, but only after you turn on **Settings › Privacy › Feature libraries**, which F-Droid requires apps to ask for. Until then the Whisper screen shows a banner that turns it on, and dictating from the keyboard says the downloads are off rather than that something is downloading. The offline build can't download it at all, so the keyboard points you to the import on the same screen.
 
-The catalog has 10 whisper.cpp models: Tiny, Base, Small, Medium, Turbo and Large v3, which take any language, and English-only Tiny, Base, Small and Medium, which show once English is enabled. Tiny to Small are 8-bit, which loses nothing measurable; Medium and up are 5-bit, which keeps the downloads to 540 MB for Medium, 574 MB for Turbo and 1.1 GB for Large v3. Beside them sit 29 LiteRT models. Ten are multilingual graphs: seven auto-detect the spoken language, and three are grouped models you can pin to one language. The other 19 are single-language models covering 13 languages, several at more than one size: English, German, Spanish, French, Hindi, Italian, Japanese, Portuguese, Russian, Tamil, Telugu, Urdu, and Chinese. A single-language model only appears in the catalog once you've enabled that language on the Languages screen.
+The catalog has 18 whisper.cpp models, eight of them [trained for one language](#models-trained-for-one-language). Ten are Whisper's own: Tiny, Base, Small, Medium, Turbo and Large v3, which take any language, and English-only Tiny, Base, Small and Medium, which show once English is enabled. Tiny to Small are 8-bit, which loses nothing measurable; Medium and up are 5-bit, which keeps the downloads to 540 MB for Medium, 574 MB for Turbo and 1.1 GB for Large v3. Beside them sit 29 LiteRT models. Ten are multilingual graphs: seven auto-detect the spoken language, and three are grouped models you can pin to one language. The other 19 are single-language models covering 13 languages, several at more than one size: English, German, Spanish, French, Hindi, Italian, Japanese, Portuguese, Russian, Tamil, Telugu, Urdu, and Chinese. A single-language model only appears in the catalog once you've enabled that language on the Languages screen.
+
+### Models trained for one language
+
+Next to them sit eight whisper.cpp models that someone trained further on a single language. Each is fetched from a fixed revision of the repository it's published in and checked against its SHA-256, the same as whisper.cpp's own:
+
+| Model | Language | Size | Trained by |
+|---|---|---|---|
+| Whisper Base (Hinglish) | Hindi and Hinglish | 60 MB | Oriserve, converted by rohitag13 |
+| Kotoba-Whisper v2.0 | Japanese | 538 MB | Kotoba Technologies |
+| KB-Whisper Base, Small and Medium | Swedish | 55, 175 and 539 MB | the National Library of Sweden (KBLab) |
+| Whisper Turbo (German) | German | 574 MB | primeline, converted by cstr |
+| Whisper Turbo (Italian) | Italian | 574 MB | LocalAI |
+| Whisper Turbo (Persian) | Persian | 574 MB | givia, converted by hasanghaffari93 (CC BY 4.0) |
+
+Like the single-language LiteRT models, each one shows once its language is enabled, and once it's on the phone it takes that language's dictation ahead of the general models. Each is held to its own language, so a phrase in any other comes back as that language's best guess at it. The smallest one for each of your languages also joins **Suggested for your languages**, except the Hinglish model.
+
+The Hinglish model writes Hindi the way Hinglish is typed, in Latin letters, and leaves English words in English: "Main aaj subah office ja raha hoon". It does that by decoding as English, which is how Oriserve trained it; told it's hearing Hindi it would fall back to Devanagari, so the keyboard never tells it. It also gets none of your **Words to listen for**: an English word list pulls it back towards English spellings. Because dictation hears Hinglish as Hindi, it's offered to anyone with Hindi or Hinglish enabled, but it never writes Devanagari, so download it for Hinglish. It's whisper-base sized and transcribes a phrase in about a second on a recent phone. Oriserve's larger Apex model gives the same text much more slowly, so it isn't listed.
+
+Hebrew (ivrit.ai), Yiddish, Chinese (BELLE), Korean, Swiss German and a few other languages have whisper.cpp models of their own, but only as unquantized 1.6 GB files. They aren't in the catalog. You can still [import](#your-own-whispercpp-models) one if your phone has the memory.
 
 <PhoneFrame side caption="The model catalog, with a row of size filter chips over the list.">
 <Shot id="tools/whisper-catalog" alt="Model catalog with size and language filters, grouped by tier." />
@@ -116,7 +135,7 @@ A phone that cannot download can import a model instead. Below the catalog, **Ge
 
 **Import** also takes a whisper.cpp model that isn't in the catalog, such as one fine-tuned for a language or a dialect and converted to whisper.cpp's `ggml-*.bin` format. The keyboard reads the start of the file to check that it's a whisper.cpp Whisper model and doesn't care what it's called; a GGUF file, or any other kind of model, is turned away. It then lists the model under **Your models** by its file name, with a size worked out from its layers, and runs it on whisper.cpp like the catalog's own. A model built on Whisper's English-only vocabulary counts as English-only; any other is offered for every language.
 
-The keyboard can't tell which languages a fine-tune was trained for, so with other models on the phone it picks one per language by the usual rules and the fine-tune may not be the one it lands on. Open **Model per language** and pick it for the languages it was made for: a Hinglish model under Hindi or Hinglish, for example. Its row has no translate option, since a fine-tune may not have kept that task. Importing a file with the same name again replaces the earlier copy, and deleting the model removes it for good, since there's nothing to download it from again. Builds without whisper.cpp can't import one.
+The keyboard can't tell which languages a fine-tune was trained for, so with other models on the phone it picks one per language by the usual rules and the fine-tune may not be the one it lands on. Open **Model per language** and pick it for the languages it was made for. A file with the same name and size as a catalog model but different contents also imports this way: several fine-tunes are published as `ggml-model-q5_0.bin`, and a catalog file is told apart from the others by its hash. Its row has no translate option, since a fine-tune may not have kept that task. Importing a file with the same name again replaces the earlier copy, and deleting the model removes it for good, since there's nothing to download it from again. Builds without whisper.cpp can't import one.
 
 When exactly one model is on disk, the app quietly adopts it as that fallback, so dictation works right after your first download with no setup step in between. It does the same again if you delete whichever model was holding the job.
 

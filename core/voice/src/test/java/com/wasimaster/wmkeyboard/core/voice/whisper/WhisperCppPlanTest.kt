@@ -74,4 +74,19 @@ class WhisperCppPlanTest {
     fun `a word with a control character is not prompted`() {
         assertEquals("Glossary: ok.", WhisperCppPlan.prompt(listOf("bad\u0000word", "ok")))
     }
+
+    @Test
+    fun `a model held to one language is told that one, whatever is dictated`() {
+        val hinglish = model(WhisperSize.BASE).copy(langCodes = setOf("hi"), decodeAs = "en")
+        assertEquals(listOf("en"), WhisperCppPlan.languages(hinglish, listOf("hi", "en")))
+        val swedish = model(WhisperSize.SMALL).copy(langCodes = setOf("sv"), decodeAs = "sv")
+        assertEquals(listOf("sv"), WhisperCppPlan.languages(swedish, listOf("en")))
+    }
+
+    @Test
+    fun `a model that takes no prompt gets none`() {
+        val words = listOf("Arian")
+        assertEquals("Glossary: Arian.", WhisperCppPlan.prompt(model(WhisperSize.BASE), words))
+        assertNull(WhisperCppPlan.prompt(model(WhisperSize.BASE).copy(takesPrompt = false), words))
+    }
 }

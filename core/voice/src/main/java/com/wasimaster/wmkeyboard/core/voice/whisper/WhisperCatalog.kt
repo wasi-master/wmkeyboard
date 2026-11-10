@@ -122,6 +122,21 @@ data class WhisperModel(
     val sha256: String? = null,
     /** The repo revision files are fetched from: a commit, so a file cannot change under its hash. */
     val revision: String = "main",
+    /**
+     * The language whisper.cpp is told to decode in, whatever is dictated, or
+     * null to name the dictation's own. A fine-tune for one language is held
+     * to it; the Hinglish models are routed for Hindi but decode as English,
+     * which is how they were trained to write Hindi in Latin letters (forcing
+     * `hi` brings the Devanagari back).
+     */
+    val decodeAs: String? = null,
+    /**
+     * Whether the user's own words go in as a prompt. False for a model whose
+     * output is not the language the words are in: an English glossary pulls
+     * the Hinglish models back to English spellings ("office mein" came out
+     * as "officemen" in their converter's test).
+     */
+    val takesPrompt: Boolean = true,
 ) {
     /** Runs on whisper.cpp rather than LiteRT. */
     val ggml: Boolean get() = format == WhisperFormat.GGML
@@ -274,6 +289,7 @@ object WhisperCatalog {
         // ---- whisper.cpp first where it runs: every language by name, prompts,
         // beam search, and faster than the LiteRT graphs of the same size.
         if (cppAvailable) addAll(ggmlModels())
+        if (cppAvailable) addAll(fineTunedModels())
 
         // ---- Grouped, language-selectable: the best fit for a multilingual keyboard.
         add(
@@ -577,6 +593,121 @@ object WhisperCatalog {
         )
     }
 
+    /**
+     * whisper.cpp conversions of models trained further on one language
+     * (#1224), each by the people who trained it or converted it, pinned to a
+     * commit and checked against its hash like whisper.cpp's own. Only the
+     * quantized files a phone can hold; the f16 ones of 1.6 GB (ivrit.ai's
+     * Hebrew, BELLE's Chinese, the Korean and Swiss German turbos) are left
+     * to the import of the user's own models. Single-language, so each shows
+     * once its language is enabled and wins that language's routing once it
+     * is on the phone.
+     */
+    private fun fineTunedModels(): List<WhisperModel> {
+        fun entry(
+            id: String,
+            displayName: String,
+            size: WhisperSize,
+            repo: String,
+            revision: String,
+            file: String,
+            bytes: Long,
+            sha256: String,
+            language: String,
+            @StringRes descriptionRes: Int,
+            descriptionArg: String = "",
+            decodeAs: String = language,
+            takesPrompt: Boolean = true,
+        ) = WhisperModel(
+            id = id,
+            displayName = displayName,
+            size = size,
+            repo = repo,
+            modelFile = file,
+            vocabFile = "",
+            modelBytes = bytes,
+            vocabBytes = 0,
+            langCodes = setOf(language),
+            tier = WhisperTier.STANDARD,
+            descriptionRes = descriptionRes,
+            descriptionArg = descriptionArg,
+            format = WhisperFormat.GGML,
+            sha256 = sha256,
+            revision = revision,
+            decodeAs = decodeAs,
+            takesPrompt = takesPrompt,
+        )
+        return listOf(
+            // Oriserve's Hindi2Hinglish Swift (Apache 2.0), whisper-base, in
+            // rohitag13's q5_1 conversion. Its larger Apex sibling is a turbo
+            // that took 25.6 s a clip on a Snapdragon 8 Elite for the same text.
+            entry(
+                "cpp-hinglish-base", "Whisper Base (Hinglish)", WhisperSize.BASE,
+                "rohitag13/whisper-hindi2hinglish-swift-GGUF", "c630ccae346b7d84a809c9f758b72b2825d14aae",
+                "ggml-hinglish-swift-q5_1.bin", 59_707_625L,
+                "30ba7b988bb0f7b3e3abc4b8aca1a5028cf56060d2142233d240c10f3d5b070a",
+                "hi", R.string.core_voice_model_cpp_hinglish_body, decodeAs = "en", takesPrompt = false,
+            ),
+            // Kotoba Technologies' distilled large-v3 for Japanese (Apache 2.0):
+            // a two-layer decoder, so it runs at Turbo's pace.
+            entry(
+                "cpp-kotoba-ja", "Kotoba-Whisper v2.0 (${WhisperLanguages.label("ja")})", WhisperSize.TURBO,
+                "kotoba-tech/kotoba-whisper-v2.0-ggml", "e3a0cf6a62b95911703cfb97d819292e058f12c3",
+                "ggml-kotoba-whisper-v2.0-q5_0.bin", 537_819_875L,
+                "4a3b92192b5d3578ff854a5876213e2e27af0c2d357492c2d14271e82c303658",
+                "ja", R.string.core_voice_model_cpp_kotoba_body,
+            ),
+            // The National Library of Sweden's KB-Whisper (Apache 2.0), from its own repos.
+            entry(
+                "cpp-kb-base-sv", "KB-Whisper Base (${WhisperLanguages.label("sv")})", WhisperSize.BASE,
+                "KBLab/kb-whisper-base", "1499d2d2f0c7ed545bd6f2eec85287cf8d8c8b38",
+                "ggml-model-q5_0.bin", 55_295_450L,
+                "aead29b356bca8840e72a8dc2286e2d69e6702639751a1e60cb3c8eacefec546",
+                "sv", R.string.core_voice_model_cpp_kb_body,
+            ),
+            entry(
+                "cpp-kb-small-sv", "KB-Whisper Small (${WhisperLanguages.label("sv")})", WhisperSize.SMALL,
+                "KBLab/kb-whisper-small", "3564d61a42fc210ceaa55a22a96dd64478959c78",
+                "ggml-model-q5_0.bin", 175_209_680L,
+                "6768836a51abc902e420c613153e6d418c90ea2774e913274d02ab23170225b7",
+                "sv", R.string.core_voice_model_cpp_kb_body,
+            ),
+            entry(
+                "cpp-kb-medium-sv", "KB-Whisper Medium (${WhisperLanguages.label("sv")})", WhisperSize.MEDIUM,
+                "KBLab/kb-whisper-medium", "0abe10b9d7f75d0902656e5c06c5c4d549604dc5",
+                "ggml-model-q5_0.bin", 539_212_484L,
+                "7f8762e0ade9e0073674c0d5acae942a0b1ea98add9baa008ee89c94eaba43d0",
+                "sv", R.string.core_voice_model_cpp_kb_body,
+            ),
+            // primeline's German turbo (Apache 2.0) in cstr's q5_0 conversion.
+            entry(
+                "cpp-turbo-de", "Whisper Turbo (${WhisperLanguages.label("de")})", WhisperSize.TURBO,
+                "cstr/whisper-large-v3-turbo-german-ggml", "d9431a78952938533dc46e75395a9b0b7237fa69",
+                "ggml-model-q5_0.bin", 574_041_195L,
+                "15e92e3db0993c52fffa781513eec9253475331c1be808f8fb409285c9d9d030",
+                "de", R.string.core_voice_model_cpp_fine_tune_body, "primeline",
+            ),
+            // LocalAI's Italian turbo (MIT). The same name and size as the German
+            // one above: the hash tells an imported file apart.
+            entry(
+                "cpp-turbo-it", "Whisper Turbo (${WhisperLanguages.label("it")})", WhisperSize.TURBO,
+                "LocalAI-io/whisper-large-v3-turbo-it-ggml", "c9aff1689a2edd95743e2ba2df87ece57c97ff17",
+                "ggml-model-q5_0.bin", 574_041_195L,
+                "55b0dcac9cd64d51b83a30ee5297bdbef11c379da5e13c0f17807c1522dafcc8",
+                "it", R.string.core_voice_model_cpp_fine_tune_body, "LocalAI",
+            ),
+            // givia's Persian turbo (CC BY 4.0, credited in its description) in
+            // hasanghaffari93's q5_0 conversion.
+            entry(
+                "cpp-turbo-fa", "Whisper Turbo (${WhisperLanguages.label("fa")})", WhisperSize.TURBO,
+                "hasanghaffari93/whisper-large-v3-turbo-persian-ggml-q5_0", "d1ee8515dc87215becad31f80c21a1cca6430906",
+                "ggml-persian-v3-turbo-q5_0.bin", 574_041_195L,
+                "d832fe5cd81c756bc1962765cff4a33cacde00a7701809837875245870b6d5a8",
+                "fa", R.string.core_voice_model_cpp_fine_tune_body, "givia",
+            ),
+        )
+    }
+
     /** Every language at least one single-language graph exists for. */
     val singleLanguageCodes: Set<String> =
         builtIn.mapNotNullTo(mutableSetOf()) { it.fixedLang }
@@ -689,7 +820,16 @@ object WhisperCatalog {
         // English is typed, and the most accurate one a phone can hold.
         if (cppAvailable) {
             val picks = LinkedHashSet<WhisperModel>()
-            listOfNotNull(default, byId("cpp-base")).forEach { picks += it }
+            default?.let { picks += it }
+            // A language with a model trained for it alone gets the smallest
+            // of those. Not the Hinglish one: Hindi's own speakers mostly
+            // write Devanagari, which it never does.
+            for (code in codes) {
+                models.filter { it.ggml && it.fixedLang == code && it.decodeAs == code }
+                    .minByOrNull { it.sizeBytes }
+                    ?.let { picks += it }
+            }
+            byId("cpp-base")?.let { picks += it }
             if ("en" in codes) byId("cpp-base-en")?.let { picks += it }
             byId("cpp-turbo")?.let { picks += it }
             return picks.take(limit)

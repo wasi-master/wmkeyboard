@@ -35767,7 +35767,7 @@ open class WMKeyboardService : InputMethodService() {
             pcm,
             codes,
             translate,
-            WhisperCppPlan.prompt(words),
+            WhisperCppPlan.prompt(model, words),
             WhisperCppPlan.beamSize(model),
             WhisperCppPlan.wantsGpu(model, _uiState.value.settings.whisper.compute),
         ) ?: return null

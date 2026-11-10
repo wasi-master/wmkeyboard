@@ -53,10 +53,13 @@ object WhisperCppPlan {
     /**
      * The Whisper codes to hand [WhisperCpp.transcribe] for a dictation in
      * [languageIds] (keyboard ids, first is the main one). An English-only
-     * model takes none. Languages Whisper does not know are dropped; when that
-     * leaves none, the model detects among all of its own.
+     * model takes none, and a model held to one language
+     * ([WhisperModel.decodeAs]) takes that one. Languages Whisper does not
+     * know are dropped; when that leaves none, the model detects among all of
+     * its own.
      */
     fun languages(model: WhisperModel, languageIds: List<String>): List<String> {
+        model.decodeAs?.let { return listOf(it) }
         if (!model.multilingual) return emptyList()
         return languageIds.mapNotNull(WhisperLanguages::codeForLanguage).distinct()
     }
@@ -67,6 +70,10 @@ object WhisperCppPlan {
      * clip, so a short list of names and terms makes them likelier to be
      * written that way, the way FUTO's keyboard feeds its dictionary in.
      */
+    fun prompt(model: WhisperModel, words: List<String>): String? =
+        if (model.takesPrompt) prompt(words) else null
+
+    /** [prompt] for a model that takes one. */
     fun prompt(words: List<String>): String? {
         val picked = words.asSequence()
             .map { it.trim() }

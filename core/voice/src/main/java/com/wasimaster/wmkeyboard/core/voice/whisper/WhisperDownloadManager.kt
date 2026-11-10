@@ -148,10 +148,23 @@ object WhisperDownloadManager {
      * `whisper-tiny.en.tflite` and only one of them works (#207).
      */
     fun recognises(name: String, size: Long): Boolean =
-        modelFor(name, size) != null || WhisperCatalog.models.any { !it.ggml && it.vocabFile == name && it.vocabBytes == size }
+        candidates(name, size).isNotEmpty() ||
+            WhisperCatalog.models.any { !it.ggml && it.vocabFile == name && it.vocabBytes == size }
 
-    private fun modelFor(name: String, size: Long): WhisperModel? =
-        WhisperCatalog.models.firstOrNull { it.modelFile == name && it.modelBytes == size }
+    private fun candidates(name: String, size: Long): List<WhisperModel> =
+        WhisperCatalog.models.filter { it.modelFile == name && it.modelBytes == size }
+
+    /**
+     * The catalog model [file] is. Several fine-tunes share a name and a size
+     * (two `ggml-model-q5_0.bin` turbos, #1224), so between those the hash
+     * decides; a lone match is checked against its hash in [install].
+     */
+    private fun modelFor(file: File, name: String): WhisperModel? {
+        val matches = candidates(name, file.length())
+        if (matches.size <= 1) return matches.firstOrNull()
+        val sha = FileDownloader.sha256(file)
+        return matches.firstOrNull { it.sha256.equals(sha, ignoreCase = true) }
+    }
 
     /**
      * Puts a file the user fetched some other way where a download would have
@@ -163,7 +176,7 @@ object WhisperDownloadManager {
     fun install(filesDir: File, file: File, name: String): Installed? {
         check(!isBusy) { "a download is running" }
         val size = file.length()
-        val model = modelFor(name, size)
+        val model = modelFor(file, name)
         // A whisper.cpp model carries a known hash; a file of the right name
         // and size that fails it is someone else's, and not installed.
         if (model?.sha256 != null &&

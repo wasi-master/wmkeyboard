@@ -562,7 +562,7 @@ class AppDictation(
                 pcm,
                 codes,
                 translate,
-                WhisperCppPlan.prompt(biasWords(VoiceBias.RECOGNIZER_LIMIT)),
+                WhisperCppPlan.prompt(model, biasWords(VoiceBias.RECOGNIZER_LIMIT)),
                 WhisperCppPlan.beamSize(model),
                 WhisperCppPlan.wantsGpu(model, settings.whisper.compute),
             ) ?: return ""

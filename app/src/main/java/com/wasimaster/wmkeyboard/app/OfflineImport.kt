@@ -597,7 +597,7 @@ object OfflineImport {
             }
         }
         if (WhisperDownloadManager.recognises(name, file.length())) {
-            return attempt(name, busy = WhisperDownloadManager.isBusy) {
+            val outcome = attempt(name, busy = WhisperDownloadManager.isBusy) {
                 when (val result = WhisperDownloadManager.install(filesDir, file, name)) {
                     is WhisperDownloadManager.Installed.Ready ->
                         Outcome(name, true, R.string.offline_import_whisper_ready, listOf(result.model.displayName))
@@ -610,6 +610,11 @@ object OfflineImport {
                     null -> Outcome(name, false, R.string.offline_import_unknown)
                 }
             }
+            // A published name and size with other bytes is someone's own
+            // whisper.cpp model under a common name (`ggml-model-q5_0.bin`).
+            val ownModel = outcome.messageRes == R.string.offline_import_unknown &&
+                WhisperCatalog.cppAvailable && WhisperCustomModels.header(file) != null
+            if (!ownModel) return outcome
         }
         // Any other whisper.cpp model (#1224): a fine-tune in no catalog, told
         // by its header whatever it is called, and kept as the user's own.
