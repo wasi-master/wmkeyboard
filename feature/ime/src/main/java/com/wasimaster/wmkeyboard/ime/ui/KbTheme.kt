@@ -493,6 +493,8 @@ data class KbFrost(
     val blurBoard: Boolean,
     val refraction: Float,
     val dispersion: Float,
+    /** The picture shows only on the panes, the board hiding it; see `FrostSpec.cutout`. */
+    val cutout: Boolean = false,
 ) {
     fun has(surface: FrostSurface): Boolean = surface in surfaces
 
@@ -1237,6 +1239,7 @@ internal fun resolveFrost(spec: FrostSpec, dark: Boolean): KbFrost? {
         blurBoard = spec.blurBoard,
         refraction = spec.refraction.coerceIn(FROST_REFRACTION_RANGE),
         dispersion = spec.dispersion.coerceIn(FROST_DISPERSION_RANGE),
+        cutout = spec.cutout,
     )
 }
 
@@ -2234,7 +2237,7 @@ fun BoxScope.BoardBackground(kb: KbTheme) {
             alpha = kb.backgroundImageOpacity,
             modifier = Modifier.matchParentSize(),
         )
-    } else if (!boardShowsFrostedImage(kb, imagePath)) {
+    } else if (!boardShowsFrostedImage(kb, imagePath) && !boardHidesImage(kb, imagePath)) {
         ThemeBackgroundImage(
             path = imagePath,
             blur = kb.backgroundImageBlur,
@@ -2259,7 +2262,7 @@ fun BoxScope.BoardBackground(kb: KbTheme) {
     // and the backdrop sliders visibly reach the picture. Until the bake
     // lands the sharp image above stands in.
     val frostedBoard = kind == BackdropKind.WALLPAPER ||
-        (kind == BackdropKind.IMAGE && frost?.blurBoard == true)
+        (kind == BackdropKind.IMAGE && frost?.blurBoard == true && !frost.cutout)
     if (frostedBoard) {
         val picture = backdrop.bitmap
         if (picture != null) {
@@ -2338,6 +2341,22 @@ fun BoxScope.BoardBackground(kb: KbTheme) {
 private fun boardShowsFrostedImage(kb: KbTheme, imagePath: String?): Boolean {
     val frost = kb.frost ?: return false
     if (imagePath == null || !frost.blurBoard) return false
+    if (kb.backgroundAnimated && !kb.reduceMotion) return false
+    return frost.backdrop == com.wasimaster.wmkeyboard.core.theme.FrostBackdropSource.AUTO ||
+        frost.backdrop == com.wasimaster.wmkeyboard.core.theme.FrostBackdropSource.IMAGE
+}
+
+/**
+ * Whether the board leaves its image to the keys: a still image under a theme
+ * that shows its picture on the keys only (`FrostSpec.cutout`). The board is
+ * then its own colour between the keys, and each key draws its slice of the
+ * picture through the glass. A playing animation has no frame for the keys
+ * to sample, so it stays on the board, and the look falls back to an
+ * ordinary see-through-key theme until reduce motion stills it.
+ */
+private fun boardHidesImage(kb: KbTheme, imagePath: String?): Boolean {
+    val frost = kb.frost ?: return false
+    if (imagePath == null || !frost.cutout) return false
     if (kb.backgroundAnimated && !kb.reduceMotion) return false
     return frost.backdrop == com.wasimaster.wmkeyboard.core.theme.FrostBackdropSource.AUTO ||
         frost.backdrop == com.wasimaster.wmkeyboard.core.theme.FrostBackdropSource.IMAGE

@@ -323,6 +323,8 @@ import com.wasimaster.wmkeyboard.core.theme.FrostBackdropSource
 import com.wasimaster.wmkeyboard.core.theme.WallpaperBackdrop
 import com.wasimaster.wmkeyboard.core.theme.WallpaperBand
 import com.wasimaster.wmkeyboard.core.theme.dressedForGlass
+import com.wasimaster.wmkeyboard.core.theme.pictureOnKeys
+import com.wasimaster.wmkeyboard.core.theme.withPictureOnKeys
 import com.wasimaster.wmkeyboard.core.theme.ThemeAnimation
 import com.wasimaster.wmkeyboard.core.theme.ThemeCodec
 import com.wasimaster.wmkeyboard.core.theme.FutoTheme
@@ -4386,7 +4388,10 @@ private fun ThemeEditorContent(
                                 } else {
                                     t.boardBackground
                                 }
-                                t.copy(backgroundImage = null, boardBackground = board)
+                                // Picture on the keys left see-through keys
+                                // with nothing to show through them.
+                                val uncut = if (t.pictureOnKeys) t.withPictureOnKeys(false) else t
+                                uncut.copy(backgroundImage = null, boardBackground = board)
                             }
                         }) { Text(stringResource(CommonR.string.common_delete)) }
                     }
@@ -4424,6 +4429,16 @@ private fun ThemeEditorContent(
                     // so the two settings exclude each other: raising the blur
                     // stops the animation, and the switch below zeroes the blur.
                 ) { update { t -> t.copy(backgroundImageBlur = it, backgroundAnimated = false) } }
+            }
+            item {
+                // One photo cut up across the keys: the glass samples the
+                // picture sharp on every key and the board is a plain colour
+                // between them. Writes ordinary glass fields; see withPictureOnKeys.
+                ToggleSetting(
+                    R.string.theme_picture_on_keys_title,
+                    stringResource(R.string.theme_picture_on_keys_subtitle),
+                    checked = look.watch { it.pictureOnKeys },
+                ) { on -> update { t -> t.withPictureOnKeys(on) } }
             }
             if (!reduceMotion) item(level = SettingLevel.STANDARD) {
                 ToggleSetting(

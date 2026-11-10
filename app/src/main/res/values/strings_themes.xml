@@ -273,6 +273,9 @@
     <string name="theme_background_image_replace">Press to change the image</string>
     <string name="theme_image_opacity_title">Image opacity</string>
     <string name="theme_image_blur_title">Image blur</string>
+    <!-- Switch: the background photo is cut up and shown across the keys, with a plain color between them. -->
+    <string name="theme_picture_on_keys_title">Picture on the keys</string>
+    <string name="theme_picture_on_keys_subtitle">Spread the image across the keys, each key showing its own piece, with the background color between them. Turns on glass for the keys and makes them see-through. Set the color between the keys with Background, and lower the Enter key\'s opacity to put the picture there too</string>
     <string name="theme_background_image_alpha_body">The board color became transparent when you selected this image. The image shows at full strength. Increase the opacity of the background color to tint the image or to make it dark.</string>
     <string name="theme_background_image_landscape_title">Landscape background image</string>
     <string name="theme_background_image_landscape_none">Optional: the keyboard shows this image in landscape, or the image above if this one is empty</string>

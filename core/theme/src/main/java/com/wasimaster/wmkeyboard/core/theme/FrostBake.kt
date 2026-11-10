@@ -39,6 +39,10 @@ object FrostBake {
     fun bake(source: Bitmap, blur: Float, saturation: Float, brightness: Float): Bitmap {
         val width = source.width
         val height = source.height
+        // No blur: nothing gains from the quarter-size pass, and the upscale
+        // back would soften a picture the keys are meant to show sharp (the
+        // picture-on-keys look). Only the colour change runs, at full size.
+        if (blur < 0.5f) return recoloured(source, width, height, saturation, brightness)
         val smallW = max(8, width / DOWNSCALE)
         val smallH = max(8, height / DOWNSCALE)
         val small = Bitmap.createScaledBitmap(source, smallW, smallH, true)
@@ -51,12 +55,29 @@ object FrostBake {
         }
         val blurred = Bitmap.createBitmap(smallW, smallH, Bitmap.Config.ARGB_8888)
         blurred.setPixels(pixels, 0, smallW, 0, 0, smallW, smallH)
+        val out = recoloured(blurred, width, height, saturation, brightness)
+        blurred.recycle()
+        return out
+    }
+
+    /**
+     * [from] drawn at [width] x [height] into a new bitmap through the
+     * saturation and brightness matrix. Always a new bitmap, even with
+     * nothing to change, so the bake never hands out the sharp decode
+     * itself: the cache would then hold one bitmap under two keys.
+     */
+    private fun recoloured(
+        from: Bitmap,
+        width: Int,
+        height: Int,
+        saturation: Float,
+        brightness: Float,
+    ): Bitmap {
         val out = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val paint = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG).apply {
             colorFilter = ColorMatrixColorFilter(colorMatrix(saturation, brightness))
         }
-        Canvas(out).drawBitmap(blurred, null, Rect(0, 0, width, height), paint)
-        blurred.recycle()
+        Canvas(out).drawBitmap(from, null, Rect(0, 0, width, height), paint)
         return out
     }
 

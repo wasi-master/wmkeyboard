@@ -62,6 +62,21 @@ There's no separate "dim" control. The board's own background color draws as a l
 Turning on **High contrast keys** in accessibility settings strips background images (and gradients and animation) from every theme while it's active, since a photo behind the keys works against the contrast that setting is trying to guarantee.
 :::
 
+## Picture on the keys
+
+**Picture on the keys**, below **Image blur**, cuts the image up across the keys instead of laying it behind them. Each key shows the piece of the photo that sits under it, and the board between the keys is a plain color, so the picture reads as one image seen through a grid of windows. Before this switch, getting that look meant slicing a photo into one texture per key with a script.
+
+Turning it on changes a few ordinary theme settings, which you can adjust afterwards:
+
+- [Glass](/themes/glass/) goes on for the letter keys, the modifier keys, the Enter key and the space bar, with no blur, no color change, no rim and no grain, so each key shows its piece of the photo sharp.
+- The letter and modifier key colors become fully see-through. Raise their opacity again to tint the picture on every key.
+- The board's **Background** color becomes opaque, since it's now the color of the gaps between keys. Pick any color there.
+- The Enter key keeps its color, so it stays easy to find. Lower its opacity to put the picture there too.
+
+The **Crop image** frame decides which part of the photo lands on the keys. Key labels sit straight on the photo, so a busy picture may need a darker key tint or a different label color. Glass's **Backdrop blur**, **Backdrop saturation** and **Backdrop brightness** sliders still work on the pieces if you want them softer or dimmer. An animated image stays on the board while it plays, since the keys need a still frame to cut up.
+
+Turning the switch off turns glass off and puts the image back behind the keys. Key colors left fully see-through get their opacity back.
+
 ## Separate landscape image
 
 Below the portrait image controls, **Landscape background image** lets you pick a second photo (with its own crop dialog) used only when the device is in landscape orientation. If you don't set one, the portrait image is used in landscape too. There's no picture that only shows in portrait while landscape falls back to something else.

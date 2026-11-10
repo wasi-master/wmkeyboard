@@ -266,15 +266,19 @@ class GlassPaint private constructor(
                 },
             )
             val lensed = frost != null && frost.liquid && LiquidLens.available && size.minDimension > 0f
+            // A picture-on-keys theme's board colour is the colour of the
+            // gaps, not a scrim over the picture: laid over the slice it
+            // would hide the very picture the keys are there to show.
+            val fill = if (frost?.cutout == true) null else fillBrush(boardFill, board, originInRoot)
             if (!lensed || frost == null) {
-                return GlassPaint(outline, ShaderBrush(slice), fillBrush(boardFill, board, originInRoot), null, false)
+                return GlassPaint(outline, ShaderBrush(slice), fill, null, false)
             }
             val lens = LiquidLens.shader(slice, size, lensRadiusPx, frost, pxPerDp)
             val pressedLens = if (withPress) LiquidLens.shader(slice, size, lensRadiusPx, frost, pxPerDp, press = 1f) else null
             return GlassPaint(
                 outline,
                 ShaderBrush(lens),
-                fillBrush(boardFill, board, originInRoot),
+                fill,
                 pressedLens?.let { ShaderBrush(it) },
                 lensed = lens !== slice,
             )

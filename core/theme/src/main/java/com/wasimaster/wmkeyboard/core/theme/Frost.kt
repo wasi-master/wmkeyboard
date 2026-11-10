@@ -99,6 +99,14 @@ data class FrostSpec(
      * them; see `followingWallpaper`.
      */
     val accentBoard: Boolean = true,
+    /**
+     * The picture shows only through the glass surfaces: the board hides its
+     * image and paints its own colour between the keys, and each pane shows
+     * its slice of the picture without the board's colour laid over it. One
+     * photo cut up across the keys, the look people used to make by slicing
+     * an image into per-key textures by hand. Set by [withPictureOnKeys].
+     */
+    val cutout: Boolean = false,
 ) {
     val glassStyle: FrostStyle
         get() = FrostStyle.entries.firstOrNull { it.name.equals(style, ignoreCase = true) } ?: FrostStyle.FROSTED
@@ -244,6 +252,64 @@ enum class FrostPreset(
         keyAlpha = 0x2E, modifierAlpha = 0x1F, chipAlpha = 0x2E, toolAlpha = 0x2E, popupAlpha = 0x99,
         sheen = GradientSpec(listOf(0x33FFFFFF, 0x00FFFFFF), GradientType.LINEAR, 90f),
     ),
+}
+
+/** The surfaces [withPictureOnKeys] cuts the picture into: every key, nothing else. */
+val PICTURE_ON_KEYS_SURFACES: List<String> = listOf(
+    FrostSurface.KEYS,
+    FrostSurface.MODIFIER_KEYS,
+    FrostSurface.ENTER_KEY,
+    FrostSurface.SPACE_BAR,
+).map { it.name }
+
+/** Whether the theme shows its background image only on the keys; see [FrostSpec.cutout]. */
+val ThemeSpec.pictureOnKeys: Boolean
+    get() = frost?.let { it.enabled && it.cutout } == true
+
+/**
+ * The theme with its background image spread across the keys ([on]) or back
+ * on the board. On, the glass samples the image sharp — no blur, no colour
+ * change, no rim or grain — on the four key surfaces only; the letter and
+ * modifier fills go fully see-through so the picture shows as it is (the
+ * Enter key keeps its colour, lower it to put the picture there too); and
+ * the board colour goes opaque, since it is now the colour of the gaps.
+ *
+ * Off clears the flag and turns the glass off, and gives a fill this left
+ * fully see-through its opacity back, so the keys do not vanish into the
+ * picture now that it is on the board again.
+ */
+fun ThemeSpec.withPictureOnKeys(on: Boolean): ThemeSpec {
+    fun Long.opaque(): Long = this or 0xFF000000L
+    fun Long.clear(): Long = this and 0x00FFFFFFL
+    fun Long.restored(): Long = if ((this ushr 24) == 0L) opaque() else this
+    val current = frost ?: FrostSpec()
+    return if (on) {
+        copy(
+            frost = current.copy(
+                enabled = true,
+                cutout = true,
+                windowBlur = false,
+                surfaces = PICTURE_ON_KEYS_SURFACES,
+                backdrop = FrostBackdropSource.IMAGE.name,
+                style = FrostStyle.FROSTED.name,
+                backdropBlur = 0f,
+                saturation = 1f,
+                brightness = 0f,
+                rim = 0f,
+                grain = 0f,
+                blurBoard = false,
+            ),
+            keyBackground = keyBackground.clear(),
+            modifierKeyBackground = modifierKeyBackground.clear(),
+            boardBackground = boardBackground.opaque(),
+        )
+    } else {
+        copy(
+            frost = current.copy(enabled = false, cutout = false),
+            keyBackground = keyBackground.restored(),
+            modifierKeyBackground = modifierKeyBackground.restored(),
+        )
+    }
 }
 
 /**

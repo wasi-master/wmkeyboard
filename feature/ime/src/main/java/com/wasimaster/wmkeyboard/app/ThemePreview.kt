@@ -210,7 +210,7 @@ private fun ThemePreviewContent(
         }
         // The board's picture frosted, as the keyboard draws it: the wallpaper
         // band always, a theme image when the theme frosts the board too.
-        if (kind == BackdropKind.WALLPAPER || (kind == BackdropKind.IMAGE && frost?.blurBoard == true)) {
+        if (kind == BackdropKind.WALLPAPER || (kind == BackdropKind.IMAGE && frost?.blurBoard == true && !frost.cutout)) {
             backdrop?.bitmap?.let { picture ->
                 Image(
                     bitmap = picture,
@@ -237,7 +237,8 @@ private fun ThemePreviewContent(
                     .alpha(theme.backgroundImageOpacity),
                 contentScale = ContentScale.Crop,
             )
-        } else if (measured) {
+        } else if (measured && !(frost?.cutout == true && kind == BackdropKind.IMAGE && !theme.backgroundAnimated)) {
+            // A picture-on-keys theme leaves the picture to the keys' glass.
             ThemeBackgroundImage(
                 path = remote ?: themeImage,
                 blur = theme.backgroundImageBlur,

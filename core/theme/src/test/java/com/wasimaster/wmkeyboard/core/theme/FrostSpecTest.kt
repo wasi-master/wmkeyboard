@@ -162,4 +162,44 @@ class FrostSpecTest {
         assertEquals("WALLPAPER", dressed.frost?.backdrop)
         assertEquals("CENTER", dressed.frost?.wallpaperBand)
     }
+
+    @Test
+    fun `picture on keys cuts the image sharp across the keys and back`() {
+        val theme = ThemeSpec(
+            id = "t", name = "T",
+            boardBackground = 0x0017181CL,
+            keyBackground = 0xFF303338L,
+            modifierKeyBackground = 0x80222428L,
+            enterKeyBackground = 0xFF4C8DF6L,
+        )
+        val on = theme.withPictureOnKeys(true)
+        assertTrue(on.pictureOnKeys)
+        val frost = on.frost!!
+        assertEquals(0f, frost.backdropBlur)
+        assertEquals(1f, frost.saturation)
+        assertEquals(0f, frost.rim)
+        assertEquals(0f, frost.grain)
+        assertFalse(frost.blurBoard)
+        assertEquals(FrostBackdropSource.IMAGE, frost.backdropSource)
+        assertEquals(PICTURE_ON_KEYS_SURFACES.toSet(), frost.surfaces.toSet())
+        // Keys see-through, the gaps opaque, Enter left findable.
+        assertEquals(0x00303338L, on.keyBackground)
+        assertEquals(0x00222428L, on.modifierKeyBackground)
+        assertEquals(0xFF17181CL, on.boardBackground)
+        assertEquals(0xFF4C8DF6L, on.enterKeyBackground)
+        // Round-trips, so a shared theme keeps the look.
+        assertTrue(ThemeCodec.decode(ThemeCodec.encode(on))!!.pictureOnKeys)
+
+        val off = on.withPictureOnKeys(false)
+        assertFalse(off.pictureOnKeys)
+        assertFalse(off.frost!!.enabled)
+        assertEquals(0xFF303338L, off.keyBackground)
+        assertEquals(0xFF222428L, off.modifierKeyBackground)
+    }
+
+    @Test
+    fun `a glass preset drops the picture-on-keys cut`() {
+        val on = ThemeSpec(id = "t", name = "T").withPictureOnKeys(true)
+        assertFalse(on.dressedForGlass(FrostPreset.FROSTED).pictureOnKeys)
+    }
 }
