@@ -8612,6 +8612,9 @@ open class WMKeyboardService : InputMethodService() {
         // Back on screen inside the idle window: whatever is still loaded stays.
         idleReleaseJob?.cancel()
         idleReleaseJob = null
+        // And an answer the AI panel is still writing.
+        aiHiddenStopJob?.cancel()
+        aiHiddenStopJob = null
         // And the process it is drawing in.
         gpuRecycleJob?.cancel()
         gpuRecycleJob = null
@@ -10364,6 +10367,8 @@ open class WMKeyboardService : InputMethodService() {
         // and before [reshowPinned], which either brings the keyboard back —
         // and [startInputView] disarms it — or leaves it away for good.
         scheduleIdleRelease()
+        // An answer still being written has nobody to read it (#1219).
+        scheduleAiHiddenStop()
         // A GPU model that failed leaves its memory behind until the process
         // ends; with the keyboard gone, now is when to end it.
         scheduleGpuRecycle()
@@ -10764,6 +10769,52 @@ open class WMKeyboardService : InputMethodService() {
             // A GPU engine released just now may have kept its memory too.
             recycleIfGpuStranded()
         }
+    }
+
+    /** Pending [stopAiWhileHidden]; see [scheduleAiHiddenStop]. */
+    private var aiHiddenStopJob: Job? = null
+
+    /**
+     * Arms the stop of an AI panel run the keyboard went away from (#1219).
+     *
+     * A run used to carry on until the model finished, with the window gone:
+     * an on-device model on a phone's big cores for minutes at a time, and a
+     * reasoning one longer still, which is what a report of a hot phone and
+     * hours of background time in the battery screen came down to. The idle
+     * release could not help either, since a loaded model is not freed while
+     * it is answering. [AI_HIDDEN_STOP_MS] lets a quick trip to another app
+     * and back keep the answer coming; [startInputView] disarms it.
+     */
+    private fun scheduleAiHiddenStop() {
+        aiHiddenStopJob?.cancel()
+        aiHiddenStopJob = null
+        if (aiJob?.isActive != true) return
+        aiHiddenStopJob = serviceScope.launch {
+            delay(AI_HIDDEN_STOP_MS)
+            if (!keyboardVisible) stopAiWhileHidden()
+        }
+    }
+
+    /**
+     * Ends the AI panel's run: the model stops at its next step, and the panel
+     * the keyboard comes back to says so, or keeps the part of the answer
+     * that had already arrived.
+     */
+    private fun stopAiWhileHidden() {
+        if (aiJob?.isActive != true) return
+        LocalLlmEngine.stop()
+        aiJob?.cancel()
+        aiJob = null
+        // Whatever the run still hands back is for nobody now.
+        aiRunSeq++
+        _uiState.update { state ->
+            when (val ai = state.ai) {
+                is AiUi.Loading -> state.copy(ai = AiUi.Error(ai.action, getString(R.string.ime_ai_error_stopped_hidden)))
+                is AiUi.Ready -> if (ai.generating) state.copy(ai = ai.copy(generating = false)) else state
+                else -> state
+            }
+        }
+        DebugLog.i("ime", "hidden: stopped the AI panel's run")
     }
 
     /** Pending [recycleIfGpuStranded]; see [scheduleGpuRecycle]. */
@@ -26050,8 +26101,8 @@ open class WMKeyboardService : InputMethodService() {
         }
         val alive = { seq == aiSuggestSeq && SystemClock.uptimeMillis() < deadline }
         val answer = if (settings.ai.provider == AiProvider.ON_DEVICE) {
-            // The phone's model cannot be stopped part way, so one request at
-            // a time, and never beside a run the AI panel started.
+            // One request at a time on the phone's model, and never beside a
+            // run the AI panel started.
             if (aiJob?.isActive == true) return null
             if (!aiSuggestOnDeviceBusy.compareAndSet(false, true)) return null
             try {
@@ -41740,8 +41791,8 @@ open class WMKeyboardService : InputMethodService() {
     private fun runAiReply(tone: AiActionSpec, instruction: String) {
         // Somebody else's message is never worth less care than the user's own.
         if (_uiState.value.secureField) return
-        // A GGUF model's answer stops at its next token instead of running on
-        // behind the new request (LiteRT-LM's cannot, and runs to its end).
+        // The model's answer stops at its next step instead of running on
+        // behind the new request.
         if (aiJob?.isActive == true) LocalLlmEngine.stop()
         aiJob?.cancel()
         val settings = _uiState.value.settings
@@ -59383,6 +59434,13 @@ private const val IDLE_RELEASE_MS = 120_000L
  * swapping phone is unusable for.
  */
 private const val GPU_RECYCLE_DELAY_MS = 5_000L
+
+/**
+ * How long the keyboard stays hidden before an AI panel run still under way
+ * is stopped (#1219): long enough to copy something from another app and come
+ * back to the answer, short of the minutes a model on the CPU runs for.
+ */
+private const val AI_HIDDEN_STOP_MS = 30_000L
 
 /**
  * Stranded graphics memory worth a process restart. The keyboard's own window

@@ -24,6 +24,7 @@ import com.wasimaster.wmkeyboard.intelligence.R
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 
 /**
@@ -43,10 +44,26 @@ import java.util.concurrent.locks.ReentrantLock
  * NPU fails, the standard file runs exactly as Compute = GPU would, falling to
  * the CPU in turn. The facade caches the single instance of this
  * class, so instance state here has the same lifetime the old singleton had.
+ *
+ * An answer can be cut short ([stop]): `Conversation.cancelProcess` ends the
+ * native decode, and the caller gets the text so far (#1219).
  */
 class LitertLmRuntime : LlmRuntime {
 
     private val lock = ReentrantLock()
+
+    /**
+     * Counts [stop]s. Every request notes the count when it comes in, and one
+     * that finds it moved has been stopped: before it reached the lock (it
+     * then runs nothing at all) or while it was answering. Without this a
+     * request queued behind the one Stop cut short ran to its end anyway,
+     * with nobody left waiting for it.
+     */
+    private val stops = AtomicInteger()
+
+    /** The conversation answering right now, for [stop]; guarded by [runningLock]. */
+    private var running: Conversation? = null
+    private val runningLock = Any()
     private var engine: Engine? = null
     private var loadedKey: EngineKey? = null
 
@@ -132,14 +149,17 @@ class LitertLmRuntime : LlmRuntime {
         user: String,
         onPartial: ((String) -> Unit)?,
     ): String {
+        val ticket = stops.get()
         lock.lock()
         try {
+            // Stopped while it waited for the one before it.
+            if (stops.get() != ticket) return ""
             val activeEngine = obtainEngineOrThrow(context, modelFile, backend, contextTokens)
             try {
                 val conversation = newConversation(activeEngine, system)
                 // Done after this call; close it on the next drain.
                 retiredConversations.add(conversation)
-                return runMessage(conversation, user, onPartial).also { confirmAccelerator() }
+                return runMessage(conversation, user, onPartial, ticket).also { confirmAccelerator() }
             } catch (e: Throwable) {
                 throw generationFailure(context, modelFile, e)
             }
@@ -161,8 +181,10 @@ class LitertLmRuntime : LlmRuntime {
         if (images.isEmpty()) {
             return generate(context, modelFile, backend, contextTokens, system, user, onPartial)
         }
+        val ticket = stops.get()
         lock.lock()
         try {
+            if (stops.get() != ticket) return ""
             if (modelFile.path in visionUnsupported) throw noVision(context)
             val activeEngine = try {
                 obtainEngine(context, modelFile, backend, contextTokens, vision = true)
@@ -180,7 +202,7 @@ class LitertLmRuntime : LlmRuntime {
                     listOf<Content>(Content.Text(user)) +
                         images.take(MAX_IMAGES).map { Content.ImageBytes(it) },
                 )
-                val answer = runContents(conversation, contents, onPartial)
+                val answer = runContents(conversation, contents, onPartial, ticket)
                 visionProven += modelFile.path
                 confirmAccelerator()
                 return answer
@@ -245,9 +267,11 @@ class LitertLmRuntime : LlmRuntime {
          * the session itself stays usable and rebuilds on the next call.
          */
         override fun sendMessage(user: String, onPartial: ((String) -> Unit)?): String {
+            val ticket = stops.get()
             lock.lock()
             try {
                 check(!closed) { "Session is closed" }
+                if (stops.get() != ticket) return ""
                 val activeEngine =
                     obtainEngineOrThrow(context, modelFile, backend, contextTokens)
                 try {
@@ -260,8 +284,16 @@ class LitertLmRuntime : LlmRuntime {
                         conversationEpoch = engineEpoch
                         message = ChatReplay.replayMessage(history, user)
                     }
-                    val raw = runMessage(active, message, onPartial)
+                    val raw = runMessage(active, message, onPartial, ticket)
                     confirmAccelerator()
+                    if (stops.get() != ticket) {
+                        // Cut short mid-answer: the next message starts a new
+                        // conversation from the transcript rather than going
+                        // on from a cache that stops in the middle of a turn.
+                        sessionConversations.remove(active)
+                        retiredConversations.add(active)
+                        conversation = null
+                    }
                     history.add(ChatReplay.Turn(fromUser = true, text = user))
                     history.add(ChatReplay.Turn(fromUser = false, text = stripThink(raw)))
                     return raw
@@ -292,18 +324,24 @@ class LitertLmRuntime : LlmRuntime {
         }
 
         /**
-         * Records an answer the caller cut short with Stop. The native call
-         * ran to completion behind the scenes — a blocking generation cannot
-         * be interrupted — so the conversation's KV cache holds the full
-         * text; mirror it, not the partial, or a replay would diverge from
-         * what the model remembers.
+         * Records an answer the caller cut short with Stop. [sendMessage] has
+         * already recorded what the model wrote before the stop, so this only
+         * corrects the record when the caller's text differs; it used to add
+         * the turn a second time.
          */
         override fun recordStoppedTurn(user: String, fullAnswer: String) {
             lock.lock()
             try {
                 if (closed) return
-                history.add(ChatReplay.Turn(fromUser = true, text = user))
-                history.add(ChatReplay.Turn(fromUser = false, text = stripThink(fullAnswer)))
+                val answer = ChatReplay.Turn(fromUser = false, text = stripThink(fullAnswer))
+                val last = history.lastOrNull()
+                val before = history.getOrNull(history.size - 2)
+                if (last != null && !last.fromUser && before?.fromUser == true && before.text == user) {
+                    history[history.size - 1] = answer
+                } else {
+                    history.add(ChatReplay.Turn(fromUser = true, text = user))
+                    history.add(answer)
+                }
             } finally {
                 lock.unlock()
             }
@@ -382,7 +420,21 @@ class LitertLmRuntime : LlmRuntime {
     }
 
     /**
-     * Sends one message on [conversation] and blocks for the full answer.
+     * Cuts the running answer short: the native decode ends at its next step
+     * and the caller gets the text so far, as on llama.cpp. A request still
+     * waiting for the lock runs nothing ([stops]). The ending is the
+     * caller's choice, never a failure, so no accelerator is blamed for it.
+     */
+    override fun stop() {
+        stops.incrementAndGet()
+        synchronized(runningLock) {
+            runCatching { running?.cancelProcess() }
+        }
+    }
+
+    /**
+     * Sends one message on [conversation] and blocks for the full answer, or
+     * for the part written before a [stop] after [ticket].
      * Streaming goes via the raw MessageCallback overload, NOT the Flow one:
      * litertlm 0.14.0's Flow bridge was compiled against a newer
      * kotlinx-coroutines and its internal SendChannel.close call throws
@@ -394,9 +446,13 @@ class LitertLmRuntime : LlmRuntime {
         conversation: Conversation,
         text: String,
         onPartial: ((String) -> Unit)?,
-    ): String {
-        if (onPartial == null) return textOf(conversation.sendMessage(text))
-        return streamed(onPartial) { callback -> conversation.sendMessageAsync(text, callback) }
+        ticket: Int,
+    ): String = whileRunning(conversation, ticket) { stopped ->
+        if (onPartial == null) {
+            blocking(stopped) { textOf(conversation.sendMessage(text)) }
+        } else {
+            streamed(onPartial, stopped) { callback -> conversation.sendMessageAsync(text, callback) }
+        }
     }
 
     /** [runMessage] for a multimodal turn; the same callback route, never the Flow one. */
@@ -404,14 +460,53 @@ class LitertLmRuntime : LlmRuntime {
         conversation: Conversation,
         contents: Contents,
         onPartial: ((String) -> Unit)?,
-    ): String {
-        if (onPartial == null) return textOf(conversation.sendMessage(contents))
-        return streamed(onPartial) { callback -> conversation.sendMessageAsync(contents, callback) }
+        ticket: Int,
+    ): String = whileRunning(conversation, ticket) { stopped ->
+        if (onPartial == null) {
+            blocking(stopped) { textOf(conversation.sendMessage(contents)) }
+        } else {
+            streamed(onPartial, stopped) { callback -> conversation.sendMessageAsync(contents, callback) }
+        }
     }
 
-    /** Runs [send] with a callback that accumulates text, and blocks until it is done. */
+    /**
+     * Runs [run] with [conversation] where [stop] can reach it. The
+     * conversation is only closed under [lock], after this has let go of it,
+     * and [stop] cancels under [runningLock], so a cancel never meets a
+     * closed handle.
+     */
+    private inline fun whileRunning(
+        conversation: Conversation,
+        ticket: Int,
+        run: (stopped: () -> Boolean) -> String,
+    ): String {
+        val stopped = { stops.get() != ticket }
+        synchronized(runningLock) { running = conversation }
+        try {
+            // A stop that came before [running] was set found nothing to cancel.
+            if (stopped()) return ""
+            return run(stopped)
+        } finally {
+            synchronized(runningLock) { running = null }
+        }
+    }
+
+    /** A blocking send: a cancelled one throws, and then means "stopped, nothing to show". */
+    private inline fun blocking(stopped: () -> Boolean, send: () -> String): String =
+        try {
+            send()
+        } catch (e: Throwable) {
+            if (stopped()) "" else throw e
+        }
+
+    /**
+     * Runs [send] with a callback that accumulates text, and blocks until it
+     * is done. A cancelled answer ends in `onError` with a
+     * CancellationException; once [stopped], that is the text so far.
+     */
     private fun streamed(
         onPartial: (String) -> Unit,
+        stopped: () -> Boolean,
         send: (MessageCallback) -> Unit,
     ): String {
         val out = StringBuilder()
@@ -438,7 +533,7 @@ class LitertLmRuntime : LlmRuntime {
             },
         )
         done.await()
-        failure?.let { throw it }
+        failure?.let { if (!stopped()) throw it }
         return out.toString()
     }
 

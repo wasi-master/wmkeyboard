@@ -571,12 +571,10 @@ object AiChatController {
 
     /**
      * Retires the current generation. The remote stream drops its socket via
-     * `isActive`; an on-device LiteRT-LM one runs to completion in the
-     * background — its blocking native call cannot be interrupted — and
-     * [finishRun] then mirrors its full text into the session so a later
-     * replay matches what the model remembers. A GGUF model on llama.cpp
-     * stops at its next token instead, and what it wrote is what its session
-     * keeps. Either way the transcript keeps the partial, marked stopped.
+     * `isActive`; an on-device one stops at its next step (both runtimes),
+     * and [finishRun] mirrors what it wrote into the session so a later
+     * replay matches what the model remembers. Either way the transcript
+     * keeps the partial, marked stopped.
      */
     fun stop(context: Context) {
         val current = _run.value ?: return
@@ -1186,8 +1184,8 @@ object AiChatController {
     ) {
         val raw = result.getOrNull()
         if (seq != runSeq) {
-            // Retired by Stop (or a newer send). The native call still ran to
-            // its end; keep the session's mirror faithful to the KV cache.
+            // Retired by Stop (or a newer send). Keep the session's mirror
+            // faithful to what the KV cache holds of the answer.
             if (raw != null && choice.provider == AiProvider.ON_DEVICE) {
                 synchronized(this) { session }
                     ?.takeIf { sessionKey?.startsWith("$conversationId|") == true }

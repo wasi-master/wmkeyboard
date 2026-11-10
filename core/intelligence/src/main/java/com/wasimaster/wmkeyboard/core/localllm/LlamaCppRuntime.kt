@@ -16,6 +16,7 @@ import java.io.IOException
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 
 /**
@@ -261,6 +262,13 @@ internal class LlamaCppRuntime : LlmRuntime {
     @Volatile
     private var running: LlamaSession? = null
 
+    /**
+     * Counts [stop]s. A request notes the count when it comes in; one that
+     * finds it moved was stopped, maybe before it reached the lock, and
+     * answers nothing rather than running behind a Stop nobody takes back.
+     */
+    private val stops = AtomicInteger()
+
     private val idleTimer = Executors.newSingleThreadScheduledExecutor { r ->
         Thread(r, "llama-idle").apply { isDaemon = true }
     }
@@ -340,8 +348,9 @@ internal class LlamaCppRuntime : LlmRuntime {
             if (system.isNotBlank()) add(LlamaMessage(LlamaMessage.SYSTEM, system))
             add(LlamaMessage(LlamaMessage.USER, user))
         }
+        val ticket = stops.get()
         return withSession(context, modelFile, backend, contextTokens, vision = false) { active ->
-            answer(context, active, messages, emptyList(), onPartial).text
+            answer(context, active, messages, emptyList(), onPartial, ticket).text
         }
     }
 
@@ -356,13 +365,14 @@ internal class LlamaCppRuntime : LlmRuntime {
         onPartial: ((String) -> Unit)?,
     ): String {
         if (images.isEmpty()) return generate(context, modelFile, backend, contextTokens, system, user, onPartial)
+        val ticket = stops.get()
         val pictures = picturesFor(context, modelFile, images)
         val messages = buildList {
             if (system.isNotBlank()) add(LlamaMessage(LlamaMessage.SYSTEM, system))
             add(LlamaMessage(LlamaMessage.USER, user))
         }
         return withSession(context, modelFile, backend, contextTokens, vision = true) { active ->
-            answer(context, active, messages, pictures, onPartial).text
+            answer(context, active, messages, pictures, onPartial, ticket).text
         }
     }
 
@@ -384,6 +394,7 @@ internal class LlamaCppRuntime : LlmRuntime {
     }
 
     override fun stop() {
+        stops.incrementAndGet()
         running?.abort()
     }
 
@@ -449,9 +460,10 @@ internal class LlamaCppRuntime : LlmRuntime {
 
         override fun sendMessage(user: String, images: List<ByteArray>, onPartial: ((String) -> Unit)?): String {
             check(!closed) { "Session is closed" }
+            val ticket = stops.get()
             val pictures = if (images.isEmpty()) emptyList() else picturesFor(context, modelFile, images)
             return withSession(context, modelFile, backend, contextTokens, vision = pictures.isNotEmpty()) { active ->
-                val answer = answerFitting(active, user, pictures, onPartial)
+                val answer = answerFitting(active, user, pictures, onPartial, ticket)
                 history.add(ChatReplay.Turn(fromUser = true, text = user))
                 history.add(ChatReplay.Turn(fromUser = false, text = answer))
                 answer
@@ -468,6 +480,7 @@ internal class LlamaCppRuntime : LlmRuntime {
             user: String,
             pictures: List<LlamaImage>,
             onPartial: ((String) -> Unit)?,
+            ticket: Int,
         ): String {
             var skip = 0
             while (true) {
@@ -479,7 +492,7 @@ internal class LlamaCppRuntime : LlmRuntime {
                     add(LlamaMessage(LlamaMessage.USER, user))
                 }
                 try {
-                    return answer(context, active, messages, pictures, onPartial).text
+                    return answer(context, active, messages, pictures, onPartial, ticket).text
                 } catch (e: LlamaPromptTooLong) {
                     if (skip >= history.size) throw e
                     skip = (skip + 2).coerceAtMost(history.size)
@@ -531,7 +544,7 @@ internal class LlamaCppRuntime : LlmRuntime {
      * the answer. The window left after the prompt is the answer's limit,
      * capped so a model that never ends its turn stops by itself. A failure
      * on the GPU is blamed on it: the model goes to the CPU from the next try
-     * on. Lock held.
+     * on. A [stop] since [ticket] ends it with what it has. Lock held.
      */
     private fun answer(
         context: Context,
@@ -539,9 +552,12 @@ internal class LlamaCppRuntime : LlmRuntime {
         messages: List<LlamaMessage>,
         pictures: List<LlamaImage>,
         onPartial: ((String) -> Unit)?,
+        ticket: Int,
     ): LlamaAnswer {
         running = active
         try {
+            // Stopped while it waited for the lock.
+            if (stops.get() != ticket) return LlamaAnswer("", LlamaStop.ABORTED, 0)
             val promptTokens = try {
                 val loadedVision = vision
                 if (pictures.isNotEmpty() && loadedVision != null) {
@@ -571,6 +587,9 @@ internal class LlamaCppRuntime : LlmRuntime {
             // The kernels compiled and ran a whole prompt: what crashes a
             // driver has had its chance.
             gpuVerdicts.confirm()
+            // Loading the prompt clears the abort flag, so a stop that landed
+            // just before it is only seen here.
+            if (stops.get() != ticket) return LlamaAnswer("", LlamaStop.ABORTED, 0)
             val room = active.contextSize - promptTokens
             val result = active.generate(minOf(room, MAX_ANSWER_TOKENS), onPartial)
             if (result.stop == LlamaStop.ERROR && result.text.isEmpty()) {

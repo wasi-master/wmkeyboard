@@ -137,6 +137,8 @@
     <!-- AI panel: what the keyboard says when a request cannot run. -->
     <string name="ime_ai_error_no_text">There is nothing to work on. Type some text first.</string>
     <string name="ime_ai_error_empty_result">The model returned nothing.</string>
+    <!-- The keyboard stayed closed while the on-device or online model was still answering, so the answer was stopped to save battery. -->
+    <string name="ime_ai_error_stopped_hidden">Stopped because the keyboard was closed. Retry to run it again.</string>
     <!-- Data saver held an AI request back. Retry is the panel's own action, and it means yes. -->
     <string name="ime_ai_error_metered_ask">Data saver is on. Retry to send this over mobile data.</string>
     <string name="ime_ai_error_metered_blocked">AI is turned off while you are on mobile data. You can change this in Settings, under Data saver.</string>

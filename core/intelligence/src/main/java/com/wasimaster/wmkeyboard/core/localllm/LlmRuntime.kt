@@ -66,8 +66,8 @@ interface LlmRuntime {
     fun loadedModel(): File? = null
 
     /**
-     * Contract of [LocalLlmEngine.stop]. A no-op where the runtime cannot cut
-     * an answer short: LiteRT-LM's blocking generation always runs to its end.
+     * Contract of [LocalLlmEngine.stop]. Both runtimes end the running answer
+     * at their next step and skip any request still waiting for their lock.
      */
     fun stop() = Unit
 

@@ -272,7 +272,7 @@ Other providers have no field for it that they all agree on, so the switch isn't
 
 If a reasoning model spends its whole answer reasoning and writes no reply, usually because it reached the maximum response length, the turn shows as failed with a **Retry**, and what it reasoned is still in its Reasoning step.
 
-- **Stop** keeps what arrived. The partial answer stays in the transcript, labelled "Stopped", rather than vanishing as if you'd never asked. A LiteRT-LM model's generation is a native call that can't truly be interrupted. It finishes quietly in the background instead, and the model's own memory of the conversation is kept in step with what you can see. A [GGUF model](/tools/ai/#gguf-models-on-llamacpp) stops at once, and remembers exactly the partial answer.
+- **Stop** keeps what arrived. The partial answer stays in the transcript, labelled "Stopped", rather than vanishing as if you'd never asked. An on-device model stops at its next word, whether it's a LiteRT-LM model or a [GGUF model](/tools/ai/#gguf-models-on-llamacpp), and remembers exactly the partial answer.
 - **A failed turn** shows the error in its own bubble with a **Retry** button. Only the newest failed message gets one, because retrying something from the middle of a transcript would answer out of order. Retry re-sends the message the failure was answering, so nothing is duplicated.
 - **Leaving doesn't cancel anything.** Navigate away mid-answer and the generation carries on. Come back and it's either still streaming or already in the transcript.
 

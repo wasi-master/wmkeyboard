@@ -183,9 +183,11 @@ object LocalLlmEngine {
     fun loadedModel(): File? = runtime?.loadedModel() ?: LlamaCpp.loadedModel()
 
     /**
-     * Cuts the running answer short, where the runtime can: llama.cpp stops
-     * at its next token and the caller gets the text so far. LiteRT-LM's
-     * generation cannot be interrupted and runs to its end as before.
+     * Cuts the running answer short: llama.cpp stops at its next token,
+     * LiteRT-LM at its next decode step (`cancelProcess`), and the caller
+     * gets the text so far. A request that was waiting behind it and started
+     * before this call answers nothing (#1219): until now a LiteRT-LM answer
+     * ran to its end, and every retry queued another full one behind it.
      */
     fun stop() {
         runtime?.stop()
