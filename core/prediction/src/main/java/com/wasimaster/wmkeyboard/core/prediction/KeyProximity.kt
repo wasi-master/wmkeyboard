@@ -94,6 +94,9 @@ class KeyProximity private constructor(
         }
     }
 
+    /** The keys next to [c] on this layout, empty for one it does not draw. */
+    fun neighborsOf(c: Char): String = neighbors[c].orEmpty()
+
     fun areAdjacent(a: Char, b: Char): Boolean {
         val ac = a.code
         val bc = b.code

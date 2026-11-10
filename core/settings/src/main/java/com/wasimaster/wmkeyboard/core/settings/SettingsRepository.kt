@@ -4087,12 +4087,6 @@ data class KeyboardSettings(
      * back, and leaving incognito forgets it. Off by default.
      */
     val incognitoPrivateClipboard: Boolean = false,
-    /**
-     * While incognito is on, the board wears a large, faint incognito mark
-     * behind the keys (#1177). On by default; off leaves only the toolbar's
-     * badge.
-     */
-    val incognitoWatermark: Boolean = true,
     /** Incognito stops word and emoji learning. */
     val incognitoPausesLearning: Boolean = true,
     /**
@@ -4284,7 +4278,14 @@ data class KeyboardSettings(
     val otp: OtpSettings = OtpSettings(),
     /** The backup that writes itself to a folder — see [AutoBackupSettings]. */
     val autoBackup: AutoBackupSettings = AutoBackupSettings(),
-)
+) {
+    /**
+     * The faint incognito mark behind the keys (#1177); kept in
+     * [LayoutBehaviorSettings], since every field here costs each full `copy`
+     * a register and this class sits at ART's frame limit.
+     */
+    val incognitoWatermark: Boolean get() = layoutBehavior.incognitoWatermark
+}
 
 /**
  * Every setting at the value it shipped with, as one object to read a single
@@ -9369,6 +9370,12 @@ data class IconSettings(
  */
 data class LayoutBehaviorSettings(
     /**
+     * While incognito is on, the board wears a large, faint incognito mark
+     * behind the keys (#1177). On by default; off leaves only the toolbar's
+     * badge. Read through [KeyboardSettings.incognitoWatermark].
+     */
+    val incognitoWatermark: Boolean = true,
+    /**
      * Long-pressing the ?123 / symbols key opens the numeric keypad panel on
      * any field, instead of the long-press behaving like a plain tap. On by
      * default — the keypad is otherwise buried in the toolbox, and a held ?123
@@ -13475,7 +13482,6 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.numpadCalculatorLayout,
             incognitoPausesClipboard = p[INCOGNITO_PAUSES_CLIPBOARD] ?: defaults.incognitoPausesClipboard,
             incognitoPrivateClipboard = p[INCOGNITO_PRIVATE_CLIPBOARD] ?: defaults.incognitoPrivateClipboard,
-            incognitoWatermark = p[INCOGNITO_WATERMARK] ?: defaults.incognitoWatermark,
             incognitoPausesLearning = p[INCOGNITO_PAUSES_LEARNING] ?: defaults.incognitoPausesLearning,
             autoIncognito = p[AUTO_INCOGNITO] ?: defaults.autoIncognito,
             // "1:com.example" is always incognito, "0:com.example" never.
@@ -14560,6 +14566,7 @@ class SettingsRepository(private val context: Context) {
 
     private fun readLayoutBehavior(p: Preferences, defaults: KeyboardSettings) =
         LayoutBehaviorSettings(
+            incognitoWatermark = p[INCOGNITO_WATERMARK] ?: defaults.layoutBehavior.incognitoWatermark,
             symbolsLongPressNumpad =
                 p[SYMBOLS_LONGPRESS_NUMPAD] ?: defaults.layoutBehavior.symbolsLongPressNumpad,
             symbolsNumpadKey = p[SYMBOLS_NUMPAD_KEY] ?: defaults.layoutBehavior.symbolsNumpadKey,

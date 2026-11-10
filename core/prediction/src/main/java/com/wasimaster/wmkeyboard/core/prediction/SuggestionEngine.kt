@@ -2623,6 +2623,9 @@ class SuggestionEngine(
         /** Digits a word typed at full speed may have slipped onto the number row for. */
         const val EAGER_DIGIT_SLIPS = 2
 
+        /** The most spellings [fastDigitReading] tries before giving up. */
+        private const val MAX_DIGIT_READINGS = 64
+
         /** Factor on the confidence gate for a digit-carrying word typed at full speed. */
         const val EAGER_DIGIT_CONFIDENCE = 0.5
 
@@ -6098,6 +6101,12 @@ class SuggestionEngine(
         // codes, model numbers — and is never rewritten.
         val digits = lower.count { it.isDigit() }
         if (digits > 0 && !digitSlipsPossible(lower, digits, fastTyping)) return NO_CORRECTION
+        // Two slipped digits in a short word are two edits, past the one a
+        // walk of under five letters is allowed, so "y97" never reached "you".
+        // Read them directly instead: each digit as the letters under it.
+        if (fastTyping && digits >= 2) {
+            fastDigitReading(lower)?.let { return CorrectionDecision(apply = matchCase(word, it), certainty = 1.0) }
+        }
 
         // The walk ranks WALK_K deep for the strip's context boosts, but the
         // silent-replacement decision stays on the same top-8 it has always
@@ -6558,6 +6567,30 @@ class SuggestionEngine(
             if (lower.substring(1) in NUMBER_SUFFIXES) return false
         }
         return true
+    }
+
+    /**
+     * The word [lower] spells with each digit read as a letter next to it on
+     * the number row, when one listed word clearly leads (twice the next
+     * one's frequency); null otherwise. Only ever a handful of spellings: a
+     * digit sits over two or three letters.
+     */
+    private fun fastDigitReading(lower: String): String? {
+        var readings = listOf("")
+        for (ch in lower) {
+            val options = if (ch.isDigit()) proximityField.neighborsOf(ch).filter { it.isLetter() } else ch.toString()
+            if (options.isEmpty()) return null
+            readings = readings.flatMap { head -> options.map { head + it } }
+            if (readings.size > MAX_DIGIT_READINGS) return null
+        }
+        val listed = readings
+            .filter { !suppressed(it) && correctionStats.penalty(lower, it) != CorrectionStats.Penalty.BLOCKED }
+            .map { it to dictionaryFrequencyOf(it) }
+            .filter { it.second > 0 }
+            .sortedByDescending { it.second }
+        val top = listed.firstOrNull() ?: return null
+        val next = listed.getOrNull(1)
+        return top.first.takeIf { next == null || top.second >= next.second * 2 }
     }
 
     private fun digitSubShape(typed: String, candidate: String): Boolean {

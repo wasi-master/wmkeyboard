@@ -11,11 +11,11 @@
 # the check then names the new one and warns about the stale line.
 
 # ---- Run once, at class initialisation or on load ----
-com.wasimaster.wmkeyboard.core.layout.BuiltInLayoutsKt.<clinit>  34600  1216  # class init: the built-in layouts table, once per process
+com.wasimaster.wmkeyboard.core.layout.BuiltInLayoutsKt.<clinit>  35000  1216  # class init: the built-in layouts table, once per process
 com.wasimaster.wmkeyboard.app.SettingsRowIcons.<clinit>  27900  256  # class init: icon builders (lambdas), settings app only
 com.wasimaster.wmkeyboard.core.script.LanguageRegistry.<clinit>  19500  832  # class init: language table, once per process
 com.wasimaster.wmkeyboard.core.script.FancyStyles.<clinit>  16800  640  # class init: Fancy Text alphabets, once per process
-com.wasimaster.wmkeyboard.core.settings.SettingsRepository.<clinit>  12300  320  # class init: the DataStore keys, once per process
+com.wasimaster.wmkeyboard.core.settings.SettingsRepository.<clinit>  12400  320  # class init: the DataStore keys, once per process
 com.wasimaster.wmkeyboard.core.translate.BergamotCatalog.<clinit>  10600  384  # class init: the Bergamot model catalogue, once per process, and only when translation is opened
 com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog.<clinit>  14100  384  # class init: the downloadable dictionaries table, once per process
 com.wasimaster.wmkeyboard.core.theme.ThemeSpecKt.<clinit>  5700  4288  # class init: built-in themes, once per process
@@ -38,7 +38,6 @@ com.wasimaster.wmkeyboard.ime.ui.CameraToolPanelKt.CameraContent  9800  1664  # 
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen  15000  4160  # outer keyboard composable: collects the state without reading it, so it recomposes only when the service recomposes the root (see its opening comment)
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.restorePersistentSurface  1800  4864  # once per show
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.openDictionary  1400  4864  # opening the dictionary tool
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.clipboardListener$lambda$0  1400  3136  # once per system clipboard change, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshEmojiResults$1.invokeSuspend  1500  4864  # emoji panel search, debounced
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.captureWriteSearches  8800  4864  # typing into a keyboard-owned tool's search field (#161), not into apps
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.captureWriteLists  9100  4928  # the same, for the search, note, clock, gallery and toolbox fields
@@ -59,28 +58,15 @@ com.wasimaster.wmkeyboard.core.settings.ThemeOverridesKt.applyLayoutTheme  600  
 com.wasimaster.wmkeyboard.core.settings.ThemeOverridesKt.applyThemeOverrides  1400  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$armTypingClock$2.invokeSuspend  800  3200  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$handleScreenshotAdded$1.invokeSuspend  1300  3200  # a tool or a setting's action: a copy of the state or settings in it, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService$loadDictionariesAndEmoji$1.invokeSuspend  3600  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$onAiPickModel$1.invokeSuspend  1400  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$onCreate$37$2.emit  5900  3264  # the settings collector (stored settings, power, form, network): per settings or field change
-com.wasimaster.wmkeyboard.ime.WMKeyboardService$onReplyPickShots$3.invokeSuspend  700  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshCurrencyRates$2.invokeSuspend  800  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshFindMatches$1.invokeSuspend  2100  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshVocabViews$1.invokeSuspend  900  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$runAi$3.invokeSuspend  1300  3200  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$runAiReply$3.invokeSuspend  2000  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService$runWebSearch$4.invokeSuspend  700  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService$scheduleAiSuggest$1.invokeSuspend  1000  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.aiChatSend  800  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.aiChatSessionAction  5800  3200  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.finishTypingTest  1400  3264  # a tool or a setting's action: a copy of the state or settings in it, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.finishWhisper  1400  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.insertTextRepeat  800  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.onAiChatAction  6400  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.onClipCombineSave  1300  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.onEmojiQueryClear  1400  4864  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.onFindReplaceOne  800  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.onGrammarRephrase  700  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.onNoteEditFocus  800  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.onSnippetOfferBack  700  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.onSnippetOfferDrill  700  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.onVoiceLanguagePick  1400  3136  # a tool or a setting's action: a copy of the state or settings in it, not per key
@@ -111,18 +97,18 @@ com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardBody  9300  3648  # ~1
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardBody$lambda$24  400  3520  # same parameter list
 com.wasimaster.wmkeyboard.ime.KeyboardUiState.<init>  5100  4992  # generated: one register per field
 com.wasimaster.wmkeyboard.ime.KeyboardUiState.copy  1300  4672  # generated: one register per field
-com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.<init>  9500  4992  # generated: one register per field
+com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.<init>  9600  4992  # generated: one register per field
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.copy  1500  4800  # generated: one register per field
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyRows  9900  2240  # 858 insns past 9,000 (ART's hard limit is 10,000, so it still compiles); grew back after bed2b803a split it; fix: lift more of its setup into composables of their own, as that commit did
 com.wasimaster.wmkeyboard.ime.KeyboardUiState.copy$default  3100  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshStrip$3.invokeSuspend  2700  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$startGesturePreviewConsumer$1.invokeSuspend  1800  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.absorbGluedWord  900  3136  # a copy of the state or settings in it: a few registers past nterp's frame
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.commitComposing  3000  3264  # a copy of the state or settings in it: a few registers past nterp's frame
+com.wasimaster.wmkeyboard.ime.WMKeyboardService.commitComposing  3200  3264  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.joinDotSuffix  700  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.onOctopusPick  1000  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.onSuggestionTapped  6100  3136  # a copy of the state or settings in it: a few registers past nterp's frame
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.processTypedText  3600  3136  # a copy of the state or settings in it: a few registers past nterp's frame
+com.wasimaster.wmkeyboard.ime.WMKeyboardService.processTypedText  3700  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.updateSelection  2100  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$145  700  3136  # a copy of the state or settings in it: a few registers past nterp's frame
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$145$2  500  3392  # a copy of the state or settings in it: a few registers past nterp's frame

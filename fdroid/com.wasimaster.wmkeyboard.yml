@@ -344,6 +344,25 @@ Builds:
       - core/intelligence/src/zxing/jniLibs
       - core/intelligence/src/imagegen/jniLibs
       - core/intelligence/src/imagegennpu/jniLibs
+      - core/intelligence/src/divvungrammar/jniLibs
+      - core/intelligence/src/langid/jniLibs
+      - core/intelligence/src/llamanpu/jniLibs
+      - core/intelligence/src/llamavulkan/jniLibs
+      - core/plugins/src/plugins/jniLibs
+      - core/voice/src/executorchneuron/jniLibs
+      - core/voice/src/executorchqnn/jniLibs
+      - core/voice/src/executorchvulkan/jniLibs
+      - core/voice/src/sherpaqnn/jniLibs
+      - core/voice/src/vosk/jniLibs
+      - core/voice/src/whispervulkan/jniLibs
+      - feature/executorchneuron/src/main/jniLibs
+      - feature/executorchqnn/src/main/jniLibs
+      - feature/executorchvulkan/src/main/jniLibs
+      - feature/llamanpu/src/main/jniLibs
+      - feature/llamavulkan/src/main/jniLibs
+      - feature/sherpaqnn/src/main/jniLibs
+      - feature/whispervulkan/src/main/jniLibs
+      - docs/src/store/wasm/wm_python_bg.wasm
     build: WMKB_ABIS=armeabi-v7a ../native/build-lite-libs.sh
     ndk: 29.0.14206865
     gradleprops:
@@ -401,6 +420,25 @@ Builds:
       - core/intelligence/src/zxing/jniLibs
       - core/intelligence/src/imagegen/jniLibs
       - core/intelligence/src/imagegennpu/jniLibs
+      - core/intelligence/src/divvungrammar/jniLibs
+      - core/intelligence/src/langid/jniLibs
+      - core/intelligence/src/llamanpu/jniLibs
+      - core/intelligence/src/llamavulkan/jniLibs
+      - core/plugins/src/plugins/jniLibs
+      - core/voice/src/executorchneuron/jniLibs
+      - core/voice/src/executorchqnn/jniLibs
+      - core/voice/src/executorchvulkan/jniLibs
+      - core/voice/src/sherpaqnn/jniLibs
+      - core/voice/src/vosk/jniLibs
+      - core/voice/src/whispervulkan/jniLibs
+      - feature/executorchneuron/src/main/jniLibs
+      - feature/executorchqnn/src/main/jniLibs
+      - feature/executorchvulkan/src/main/jniLibs
+      - feature/llamanpu/src/main/jniLibs
+      - feature/llamavulkan/src/main/jniLibs
+      - feature/sherpaqnn/src/main/jniLibs
+      - feature/whispervulkan/src/main/jniLibs
+      - docs/src/store/wasm/wm_python_bg.wasm
     build: WMKB_ABIS=arm64-v8a ../native/build-lite-libs.sh
     ndk: 29.0.14206865
     gradleprops:
@@ -458,6 +496,25 @@ Builds:
       - core/intelligence/src/zxing/jniLibs
       - core/intelligence/src/imagegen/jniLibs
       - core/intelligence/src/imagegennpu/jniLibs
+      - core/intelligence/src/divvungrammar/jniLibs
+      - core/intelligence/src/langid/jniLibs
+      - core/intelligence/src/llamanpu/jniLibs
+      - core/intelligence/src/llamavulkan/jniLibs
+      - core/plugins/src/plugins/jniLibs
+      - core/voice/src/executorchneuron/jniLibs
+      - core/voice/src/executorchqnn/jniLibs
+      - core/voice/src/executorchvulkan/jniLibs
+      - core/voice/src/sherpaqnn/jniLibs
+      - core/voice/src/vosk/jniLibs
+      - core/voice/src/whispervulkan/jniLibs
+      - feature/executorchneuron/src/main/jniLibs
+      - feature/executorchqnn/src/main/jniLibs
+      - feature/executorchvulkan/src/main/jniLibs
+      - feature/llamanpu/src/main/jniLibs
+      - feature/llamavulkan/src/main/jniLibs
+      - feature/sherpaqnn/src/main/jniLibs
+      - feature/whispervulkan/src/main/jniLibs
+      - docs/src/store/wasm/wm_python_bg.wasm
     build: WMKB_ABIS=x86_64 ../native/build-lite-libs.sh
     ndk: 29.0.14206865
     gradleprops:

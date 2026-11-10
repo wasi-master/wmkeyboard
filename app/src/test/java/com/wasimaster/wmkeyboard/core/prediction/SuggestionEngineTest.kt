@@ -1427,13 +1427,32 @@ class SuggestionEngineTest {
         assertNull(digitEngine().shouldAutocorrect("h3lp4"))
     }
 
+    /** A list with the words the fast-typing cases aim at, and near rivals. */
+    private fun fastDigitEngine(): SuggestionEngine {
+        val dictionary = Trie().apply {
+            insert("you", 9000)
+            insert("yon", 300)
+            insert("typed", 2500)
+            insert("types", 2400)
+            insert("the", 9500)
+            insert("help", 3000)
+        }
+        return SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), UserLexicon(null)).apply {
+            digitSlipCorrections = true
+            proximity = KeyProximity.forLayout(
+                com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts.QWERTY,
+                numberRow = true,
+            )
+        }
+    }
+
     @Test fun `typed fast, two digits are both number-row slips`() {
-        assertEquals("you", digitEngine().decideCorrection("y97", fastTyping = true).apply)
-        assertNull(digitEngine().decideCorrection("y97").apply)
+        assertEquals("you", fastDigitEngine().decideCorrection("y97", fastTyping = true).apply)
+        assertNull(fastDigitEngine().decideCorrection("y97").apply)
     }
 
     @Test fun `typed fast, a leading digit is the letter under it`() {
-        assertEquals("typed", digitEngine().decideCorrection("5yped", fastTyping = true).apply)
+        assertEquals("typed", fastDigitEngine().decideCorrection("5yped", fastTyping = true).apply)
     }
 
     @Test fun `a number in front of what follows numbers stays`() {
