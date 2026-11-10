@@ -1420,8 +1420,24 @@ open class WMKeyboardService : InputMethodService() {
                 },
             )
             imeWindow.setBackgroundBlurRadius(radiusPx)
+            val blurring = radiusPx > 0
+            if (blurring != windowBlurring) {
+                windowBlurring = blurring
+                fitImeWindowHeight(imeWindow)
+            }
         }
     }
+
+    /**
+     * The window's blur is on. The system blurs the app under the whole
+     * window, not just under the board, so while it runs the window keeps the
+     * keyboard's own height instead of the whole screen's (see
+     * [fitImeWindowHeight]); otherwise everything above the keys was blurred.
+     */
+    private var windowBlurring = false
+
+    /** The last [onConfigureWindow] said fullscreen or candidates-only: the platform's size stands. */
+    private var imeWindowPlatformSized = false
 
     /** Told the current state at once, then every change. */
     private val crossWindowBlurListener =
@@ -7231,14 +7247,36 @@ open class WMKeyboardService : InputMethodService() {
     override fun onConfigureWindow(win: android.view.Window, isFullscreen: Boolean, isCandidatesOnly: Boolean) {
         try {
             super.onConfigureWindow(win, isFullscreen, isCandidatesOnly)
-            if (!isFullscreen && !isCandidatesOnly && boardAtWindowBottom(win)) {
-                win.setLayout(
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                )
-            }
+            imeWindowPlatformSized = isFullscreen || isCandidatesOnly
+            if (!imeWindowPlatformSized) fitImeWindowHeight(win)
         } catch (detached: IllegalArgumentException) {
             DebugLog.w("ime", "IME window not attached while configuring it: ${detached.message}")
+        }
+    }
+
+    /**
+     * Full height (see [onConfigureWindow]) unless a glass theme is blurring
+     * the app behind the window: `Window.setBackgroundBlurRadius` blurs under
+     * the window's whole rectangle, so a full-height window blurred the entire
+     * app above the keys. While the blur runs the window is as tall as the
+     * keyboard again, the platform's own choice, and a height change is a
+     * window resize as it was before #1123.
+     */
+    private fun fitImeWindowHeight(win: android.view.Window) {
+        if (imeWindowPlatformSized) return
+        try {
+            val height = if (windowBlurring) {
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            } else if (boardAtWindowBottom(win)) {
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT
+            } else {
+                return
+            }
+            if (win.attributes.height != height) {
+                win.setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, height)
+            }
+        } catch (detached: IllegalArgumentException) {
+            DebugLog.w("ime", "IME window not attached while sizing it: ${detached.message}")
         }
     }
 
