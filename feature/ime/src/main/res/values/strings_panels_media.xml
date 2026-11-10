@@ -23,6 +23,10 @@
     <string name="ime_voice_unavailable_notice">This phone has no speech recognition service, so the system engine can\'t run. An engine that runs on the keyboard, such as Whisper, works without one.</string>
     <string name="ime_voice_unavailable_action">Choose a voice engine</string>
     <string name="ime_voice_permission_action">Allow microphone</string>
+    <string name="ime_voice_prompt_too_long">This server takes a prompt of up to %2$d characters, and this one is %1$d: Prompt %3$d, More words to listen for %4$d, Listen for my words %5$d.</string>
+    <string name="ime_voice_prompt_fix_prompt">Shorten Prompt, on the server\'s screen in Voice typing settings, to under %1$d characters.</string>
+    <string name="ime_voice_prompt_fix_personal">Turn off Listen for my words in Voice typing settings, or shorten Prompt.</string>
+    <string name="ime_voice_prompt_fix_custom">Remove some of More words to listen for in Voice typing settings, or shorten Prompt.</string>
     <string name="ime_voice_undo_action">Undo</string>
     <!-- Screen reader labels for the big microphone button. -->
     <string name="ime_voice_start_desc">Start listening</string>

@@ -142,6 +142,8 @@ Whisper models, which is what most servers run, read only the last 224 tokens of
 
 So the keyboard builds the prompt for that limit. It sends at most 150 words, and puts them in order of importance with the most important at the end, where a Whisper model keeps them: your **Prompt** text last, then your own list, then the words you added by hand and the personal dictionary, and the learned words at the front. When a Whisper server has to cut, it cuts the learned words first. The whole prompt is capped at 4,000 characters.
 
+Some services cap the prompt themselves and refuse the whole clip when it's longer: Groq takes 896 characters. The keyboard then cuts the words to fit, learned words first, and sends the clip again, and remembers the limit so later clips go out short enough the first time. Your **Prompt** text is never cut. When it alone is over the limit, the error line shows how long the prompt is against the limit and how many characters come from **Prompt**, **More words to listen for** and **Listen for my words**, and says which one to shorten or turn off.
+
 ## Privacy
 
 With this engine, the recording of each phrase leaves your phone. It goes to the address you typed, or the one you set for the language you are typing in, and nowhere else, and only after you start dictating. Nothing is sent in the background. The API keys are stored with your other settings and are left out of backups unless you choose to include API keys. See [Network policy](/privacy/network/).

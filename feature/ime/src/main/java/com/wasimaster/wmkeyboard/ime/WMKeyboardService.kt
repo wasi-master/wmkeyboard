@@ -36350,22 +36350,46 @@ open class WMKeyboardService : InputMethodService() {
                     } else {
                         emptyList()
                     }
-                    val words = VoiceBias.select(
-                        VoiceBias.parseList(server.biasWords),
-                        personal,
-                        VoiceBias.PROMPT_WORD_LIMIT,
-                    )
+                    val custom = VoiceBias.parseList(server.biasWords)
+                    val words = VoiceBias.select(custom, personal, VoiceBias.PROMPT_WORD_LIMIT)
                     // The language's own model or server, if it has one (#389).
                     val target = server.serverFor(languageId)
-                    TranscriptionClient.transcribe(
+                    val endpoint = TranscriptionClient.endpoint(target.url, target.path)
+                    fun send(limit: Int?) = TranscriptionClient.transcribe(
                         target.url,
                         target.key,
                         target.model,
                         language,
                         pcm,
-                        prompt = VoiceBias.serverPrompt(words, server.serverPrompt),
+                        prompt = VoiceBias.serverPrompt(
+                            words, server.serverPrompt, limit ?: VoiceBias.PROMPT_MAX_CHARS,
+                        ),
                         path = target.path,
                     )
+                    // A server with a prompt limit of its own (Groq: 896
+                    // characters) refuses the whole clip over it. The words
+                    // are cut to fit, least important first, and the clip
+                    // sent again; only the user's own prompt text, which is
+                    // never cut, is left for them to shorten.
+                    val tooLong = { limit: Int ->
+                        VoicePromptTooLong(limit, VoiceBias.breakdown(words, custom, server.serverPrompt))
+                    }
+                    val known = TranscriptionClient.promptLimit(endpoint)
+                    if (known != null && server.serverPrompt.trim().length > known) throw tooLong(known)
+                    try {
+                        send(known)
+                    } catch (e: ToolHttpException) {
+                        val limit = TranscriptionClient.promptLimitOf(e) ?: throw e
+                        TranscriptionClient.rememberPromptLimit(endpoint, limit)
+                        if (known != null && limit >= known) throw tooLong(limit)
+                        if (server.serverPrompt.trim().length > limit) throw tooLong(limit)
+                        try {
+                            send(limit)
+                        } catch (again: ToolHttpException) {
+                            if (TranscriptionClient.promptLimitOf(again) != null) throw tooLong(limit)
+                            throw again
+                        }
+                    }
                 }
             }
             // The server could not be reached, and the user asked for the
@@ -36397,13 +36421,33 @@ open class WMKeyboardService : InputMethodService() {
                             it.copy(
                                 voice = it.voice.copy(
                                     status = VoiceStatus.ERROR, partial = "", level = 0f,
-                                    errorMessage = ToolHttp.friendlyMessage(this@WMKeyboardService, e),
+                                    errorMessage = (e as? VoicePromptTooLong)?.let(::voicePromptTooLongText)
+                                        ?: ToolHttp.friendlyMessage(this@WMKeyboardService, e),
                                 ),
                             )
                         }
                     }
             }
         }
+    }
+
+    /**
+     * The error line for a server prompt over the server's limit: how long it
+     * is against the limit, where the characters come from, and the setting
+     * that would make it fit, the user's own prompt text first since only it
+     * is never cut to fit.
+     */
+    private fun voicePromptTooLongText(e: VoicePromptTooLong): String {
+        val parts = e.parts
+        val fix = when {
+            parts.prompt > e.limit -> getString(R.string.ime_voice_prompt_fix_prompt, e.limit)
+            parts.personal >= parts.custom -> getString(R.string.ime_voice_prompt_fix_personal)
+            else -> getString(R.string.ime_voice_prompt_fix_custom)
+        }
+        return getString(
+            R.string.ime_voice_prompt_too_long,
+            parts.total, e.limit, parts.prompt, parts.custom, parts.personal,
+        ) + "\n" + fix
     }
 
     /** Commits a finished Whisper transcription and continues or ends the session. */
@@ -59648,3 +59692,11 @@ private const val READ_BACK_MAX_CHARS = 4_000
  * binding already chose never pins it.
  */
 internal fun modeKeyPick(id: String, activeModeId: String?): String? = if (activeModeId == id) null else id
+
+/**
+ * A transcription server's prompt limit that cutting the words could not
+ * meet: the user's own prompt text is longer than [limit] by itself, or the
+ * server refused the cut prompt too. [parts] says where the characters went.
+ */
+private class VoicePromptTooLong(val limit: Int, val parts: VoiceBias.PromptBreakdown) :
+    java.io.IOException("Voice prompt over the server's $limit-character limit")

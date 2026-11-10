@@ -98,4 +98,13 @@ class TranscriptionClientTest {
         assertArrayEquals(file, body.copyOfRange(start, start + file.size))
         assertTrue(text.endsWith("\r\n--B--\r\n"))
     }
+
+    @Test
+    fun readsAServersPromptLimit() {
+        val groq = ToolHttpException(0, 400, "prompt length must be 896 characters or fewer, but provided prompt contains 1302 characters")
+        assertEquals(896, TranscriptionClient.promptLimitOf(groq))
+        assertEquals(null, TranscriptionClient.promptLimitOf(ToolHttpException(0, 400, "invalid model")))
+        assertEquals(896, TranscriptionClient.promptLimit("https://api.groq.com/openai/v1/audio/transcriptions"))
+        assertEquals(null, TranscriptionClient.promptLimit("http://host:8000/v1/audio/transcriptions"))
+    }
 }

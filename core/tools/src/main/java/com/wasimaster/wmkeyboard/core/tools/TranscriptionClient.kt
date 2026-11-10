@@ -147,6 +147,41 @@ object TranscriptionClient {
     }
 
     /**
+     * The longest `prompt` each endpoint takes, in characters, once it has
+     * said so in a refusal, for the life of the process. Groq's is known
+     * before the first request: 896 characters, and it refuses the whole
+     * clip rather than cutting the prompt.
+     */
+    private val promptLimits = ConcurrentHashMap<String, Int>()
+
+    private const val GROQ_PROMPT_LIMIT = 896
+
+    /** The prompt limit known for [endpoint], or null when it has never refused one. */
+    fun promptLimit(endpoint: String): Int? = promptLimits[endpoint]
+        ?: GROQ_PROMPT_LIMIT.takeIf { endpoint.substringAfter("://").substringBefore('/').endsWith("groq.com") }
+
+    /** Remembers that [endpoint] takes a prompt of at most [limit] characters. */
+    fun rememberPromptLimit(endpoint: String, limit: Int) {
+        promptLimits[endpoint] = limit
+    }
+
+    private val PROMPT_LIMIT_TEXT = Regex(
+        """prompt\b[^0-9]{0,60}?(\d+)\s*(?:characters|chars)\s+or\s+(?:fewer|less)""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /**
+     * The character limit a server named when it refused a prompt as too
+     * long, such as Groq's "prompt length must be 896 characters or fewer,
+     * but provided prompt contains 1302 characters", or null when [t] is
+     * some other failure.
+     */
+    fun promptLimitOf(t: Throwable): Int? {
+        val message = (t as? ToolHttpException)?.apiMessage ?: return null
+        return PROMPT_LIMIT_TEXT.find(message)?.groupValues?.get(1)?.toIntOrNull()?.takeIf { it > 0 }
+    }
+
+    /**
      * The transcript out of a response body: `{"text": …}` from every
      * OpenAI-shaped server, or the body itself from a server that answered in
      * plain text anyway.

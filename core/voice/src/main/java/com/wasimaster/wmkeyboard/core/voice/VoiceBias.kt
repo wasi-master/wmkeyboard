@@ -63,7 +63,7 @@ object VoiceBias {
      * prompt text, and the prompt text goes last, where a Whisper server keeps
      * it. Past [PROMPT_MAX_CHARS] the front is dropped, a whole word at a time.
      */
-    fun serverPrompt(words: List<String>, prompt: String): String? {
+    fun serverPrompt(words: List<String>, prompt: String, maxChars: Int = PROMPT_MAX_CHARS): String? {
         val tail = prompt.trim()
         val list = words.take(PROMPT_WORD_LIMIT).asReversed().joinToString(", ")
         val text = when {
@@ -74,8 +74,34 @@ object VoiceBias {
             else -> "$list. $tail"
         }
         if (text.isEmpty()) return null
-        if (text.length <= PROMPT_MAX_CHARS) return text
-        val cut = text.substring(text.length - PROMPT_MAX_CHARS)
+        val limit = minOf(maxChars, PROMPT_MAX_CHARS)
+        if (text.length <= limit) return text
+        // The prompt text alone fills the limit: it goes without the words.
+        if (tail.length + 2 >= limit) return tail.takeLast(limit).takeIf { it.isNotBlank() }
+        val cut = text.substring(text.length - limit)
         return cut.substringAfter(", ", cut).trimStart()
+    }
+
+    /**
+     * Where the characters of a server prompt come from, for the error line
+     * a server's own prompt limit earns (Groq's is 896 characters): the
+     * user's own [prompt] text, the words from **More words to listen for**
+     * ([custom]), and the learned words from **Listen for my words**. Each
+     * list part counts its ", " separators; [total] is the whole prompt.
+     */
+    data class PromptBreakdown(val total: Int, val prompt: Int, val custom: Int, val personal: Int)
+
+    fun breakdown(words: List<String>, custom: List<String>, prompt: String): PromptBreakdown {
+        val sent = words.take(PROMPT_WORD_LIMIT)
+        val own = custom.mapTo(HashSet()) { it.trim().lowercase() }
+        var customChars = 0
+        var personalChars = 0
+        for (word in sent) {
+            val chars = word.length + 2
+            if (word.lowercase() in own) customChars += chars else personalChars += chars
+        }
+        val tail = prompt.trim().length
+        val total = serverPrompt(words, prompt)?.length ?: 0
+        return PromptBreakdown(total, tail, customChars, personalChars)
     }
 }

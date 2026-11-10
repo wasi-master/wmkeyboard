@@ -49,4 +49,16 @@ class VoiceBiasTest {
         assertTrue(!prompt.contains(words.last()))
         assertTrue(prompt.startsWith("word"))
     }
+
+    @Test
+    fun cutsToAServersLimitKeepingThePromptText() {
+        val words = (1..100).map { "word$it" }
+        val prompt = VoiceBias.serverPrompt(words, "Casual chat.", maxChars = 60)!!
+        assertTrue(prompt.length <= 60)
+        assertTrue(prompt.endsWith("word1. Casual chat."))
+        val parts = VoiceBias.breakdown(words, listOf("word1"), "Casual chat.")
+        assertEquals(12, parts.prompt)
+        assertEquals(7, parts.custom)
+        assertTrue(parts.total > 60)
+    }
 }
