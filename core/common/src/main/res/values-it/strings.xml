@@ -37,6 +37,7 @@
     <string name="common_error_download_held">In pausa: il risparmio dati blocca i download su questa connessione. Riprenderà da dove si è interrotto.</string>
     <string name="common_error_generic">Qualcosa non ha funzionato. Riprova.</string>
     <string name="common_error_network">Nessuna connessione. Controlla la rete e riprova.</string>
+    <string name="common_error_network_permission_off">L\'accesso alla rete di WM Keyboard è disattivato nelle impostazioni del tuo telefono, quindi questo non funziona. Attivalo in Impostazioni Android › App › WM Keyboard › Autorizzazioni (su GrapheneOS, l\'autorizzazione Rete), quindi riprova.</string>
     <string name="common_error_no_internet_permission">Questa versione della tastiera non può connettersi a Internet.</string>
     <string name="common_error_timeout">La richiesta ha richiesto troppo tempo. Riprova.</string>
     <string name="common_export">Esporta</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Altro</string>
     <string name="common_next">Avanti</string>
     <string name="common_none">Nessuno</string>
+    <string name="common_notify_channel_alarms_body">Una sveglia posticipata o che sta per suonare, e una che è suonata senza che nessuno rispondesse. Lo squillo in sé ha un canale proprio.</string>
+    <string name="common_notify_channel_alarms_title">Avvisi di sveglia</string>
     <string name="common_notify_channel_backup_body">Solo quando un backup automatico fallisce. I backup riusciti sono silenziosi.</string>
     <string name="common_notify_channel_backup_title">Problemi di backup</string>
     <string name="common_notify_channel_clock_body">Timer e cronometro mentre sono in esecuzione, con pulsanti per mettere in pausa, aggiungere un minuto o fermarli.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Controlli tastiera</string>
     <string name="common_notify_channel_send_body">Un caricamento o un download dello strumento Invia file è terminato mentre la tastiera era nascosta, con il link da copiare e un file inviato da un dispositivo nelle vicinanze.</string>
     <string name="common_notify_channel_send_title">Invio e ricezione di file</string>
+    <string name="common_notify_channel_stopwatch_body">Il cronometro mentre è in esecuzione o in pausa, con pulsanti per i giri, la pausa e il reset.</string>
+    <string name="common_notify_channel_stopwatch_title">Cronometro</string>
     <string name="common_notify_channel_updates_body">Una nuova versione da installare, un aggiornamento in attesa che tu prema installa e conferma una volta che ne è stato installato uno.</string>
     <string name="common_notify_channel_updates_title">Aggiornamenti app</string>
     <string name="common_notify_download_done">Pronto per l\'uso</string>
     <string name="common_notify_download_failed">Impossibile scaricare %1$s</string>
     <string name="common_notify_download_handwriting">Scrittura a mano %1$s</string>
     <string name="common_notify_download_progress">%1$s di %2$s</string>
+    <string name="common_notify_download_step_library">Passaggio 1 di 2, la libreria del motore: %1$s</string>
+    <string name="common_notify_download_step_model">Passaggio 2 di 2, il modello: %1$s</string>
     <string name="common_notify_download_translate">Traduzione offline %1$s</string>
     <string name="common_notify_download_voice">Voce offline %1$s</string>
     <string name="common_off">Spento</string>
+    <string name="common_offline_build_download">Questa è la versione offline, quindi non è possibile scaricare questo elemento. Ottieni il file su un altro dispositivo e importalo: Impostazioni › Informazioni › Archiviazione › Importa file scaricati lo prende, oppure usa la riga Importa di questa schermata. In alternativa, installa la versione standard dalla stessa pagina della release sopra questa, e si scaricherà da sola. Le tue impostazioni e le parole apprese rimarranno.</string>
+    <string name="common_offline_build_library">Questa è la versione offline, quindi non può scaricare la libreria necessaria. Scarica il file su un altro dispositivo e importalo in Impostazioni › Privacy › Librerie di funzioni, dove è elencato il file esatto. Oppure installa la versione standard dalla stessa pagina di rilascio sopra questa, e si scaricherà da sola. Le tue impostazioni e le parole apprese rimarranno invariate.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">Attivo</string>
     <string name="common_open_system_settings">Apri impostazioni di sistema</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Servizio di accessibilità per il pulsante AI</string>
     <string name="common_special_access_split_screen_body">Alcuni telefoni aprono un\'app a schermo intero quando la tastiera richiede lo schermo diviso. Con questo servizio attivo, l\'apertura di un\'app in schermo diviso dal launcher o l\'apertura di una coppia in schermo diviso preme prima l\'interruttore dello schermo diviso di Android, lo stesso del menu Recenti, e l\'app si apre quindi nella metà libera. Prima di premerlo, il servizio controlla dove si trovano le finestre delle app, per vedere se lo schermo diviso è già attivo. Non legge mai ciò che contengono. Non fa nient\'altro in nessun altro momento, non osserva ciò che digiti e non conserva nulla. La schermata di accessibilità di Android avvisa di tutto ciò che un servizio come questo potrebbe fare. Questo preme solo quell\'interruttore quando chiedi lo schermo diviso.</string>
     <string name="common_special_access_split_screen_title">Servizio di accessibilità per lo schermo diviso</string>
+    <string name="common_special_access_system_buttons_body">Android consente a un\'altra app di acquisire uno screenshot, tornare indietro o aprire le app recenti, il drawer delle app, la barra delle notifiche o le impostazioni rapide solo tramite un servizio di accessibilità. Con questo servizio attivo, lo strumento per gli screenshot e il pulsante mobile premono questi pulsanti di sistema al posto tuo, gli stessi della navigazione e della barra di Android. Uno screenshot viene salvato dove finiscono tutti gli screenshot. Il servizio non fa nient\'altro in nessun altro momento. Non legge lo schermo, non guarda cosa digiti e non memorizza nulla. La schermata di accessibilità di Android avvisa di tutto ciò che un servizio come questo potrebbe fare. Questo preme solo un pulsante di sistema quando glielo chiedi.</string>
+    <string name="common_special_access_system_buttons_title">Servizio di accessibilità per i pulsanti di sistema</string>
     <string name="common_special_access_usage_body">Con l\'accesso all\'utilizzo, la tastiera registra quale app era in primo piano quando hai copiato qualcosa. Mostra quell\'app quando tieni premuto sulla clip. La tastiera legge l\'app in primo piano solo al momento della copia. Non legge la tua cronologia o il tempo trascorso in un\'app. La tastiera conserva la risposta con la clip, solo sul tuo dispositivo. Nulla riguardo all\'utilizzo delle tue app lascia il dispositivo. L\'impostazione è facoltativa. Rimane disattivata finché non la attivi.</string>
     <string name="common_special_access_usage_title">Accesso all\'utilizzo per le app sorgente degli appunti</string>
     <string name="common_type_setting_value_desc">Digita un valore per %1$s</string>

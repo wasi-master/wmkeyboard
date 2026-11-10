@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Í bið: gagnasparnaður heldur niðurhali á þessari tengingu. Það heldur áfram þar sem frá var horfið.</string>
     <string name="common_error_generic">Eitthvað fór úrskeiðis. Reyndu aftur.</string>
     <string name="common_error_network">Engin tenging. Athugaðu netið þitt og reyndu aftur.</string>
+    <string name="common_error_network_permission_off">Netkerfisaðgangur WM Keyboard er óvirkur í stillingum símans þíns, þannig að þetta virkar ekki. Kveiktu á honum í Android-stillingum › Forrit › WM Keyboard › Heimildir (á GrapheneOS, Netkerfisheimildin) og reyndu aftur.</string>
     <string name="common_error_no_internet_permission">Þessi útgáfa af lyklaborðinu getur ekki tengst internetinu.</string>
     <string name="common_error_timeout">Beiðnin tók of langan tíma. Reyndu aftur.</string>
     <string name="common_export">Flytja út</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Meira</string>
     <string name="common_next">Næsta</string>
     <string name="common_none">Ekkert</string>
+    <string name="common_notify_channel_alarms_body">Vekjaraklukka sem hefur verið slegin frest og er að fara að hringja, ásamt einni sem hringdi án þess að neinn tæki eftir því. Hringingin sjálf er með sitt eigið rás.</string>
+    <string name="common_notify_channel_alarms_title">Tilkynningar um vekjaraklukkur</string>
     <string name="common_notify_channel_backup_body">Aðeins þegar sjálfvirkt afrit mistekst. Árangursrík afrit eru hljóðlaus.</string>
     <string name="common_notify_channel_backup_title">Vandamál við öryggisafritun</string>
     <string name="common_notify_channel_clock_body">Tímamælar og skeiðklukka á meðan þau eru í gangi, með hnöppum til að gera hlé, bæta við mínútu eða stöðva þau.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Lyklaborðsstýringar</string>
     <string name="common_notify_channel_send_body">Upphleðsla eða niðurhal í Send files tólinu lauk á meðan lyklaborðið var falið, með tengli til að afrita og skrá sem tæki í nágrenninu sendi.</string>
     <string name="common_notify_channel_send_title">Senda og taka á móti skrám</string>
+    <string name="common_notify_channel_stopwatch_body">Skeiðklukkan á meðan hún keyrir eða er gerð hlé á, með hnöppum fyrir hringi, hlé og endurstillingu.</string>
+    <string name="common_notify_channel_stopwatch_title">Skeiðklukka</string>
     <string name="common_notify_channel_updates_body">Ný útgáfa til uppsetningar, uppfærsla sem bíður eftir að þú ýtir á setja upp, og staðfesting þegar hún hefur verið sett upp.</string>
     <string name="common_notify_channel_updates_title">Forritauppfærslur</string>
     <string name="common_notify_download_done">Tilbúið til notkunar</string>
     <string name="common_notify_download_failed">Ekki tókst að hlaða niður %1$s</string>
     <string name="common_notify_download_handwriting">%1$s rithönd</string>
     <string name="common_notify_download_progress">%1$s af %2$s</string>
+    <string name="common_notify_download_step_library">Skref 1 af 2, vélasafnið: %1$s</string>
+    <string name="common_notify_download_step_model">Skref 2 af 2, líkanið: %1$s</string>
     <string name="common_notify_download_translate">%1$s ótengd þýðing</string>
     <string name="common_notify_download_voice">%1$s raddpakki án nettengingar</string>
     <string name="common_off">Slökkt</string>
+    <string name="common_offline_build_download">Þetta er ótengd útgáfa, svo hún getur ekki halað þessu niður. Sæktu skrána í öðru tæki og flyttu hana inn: Stillingar › Um › Geymsla › Flytja inn niðurhalaðar skrár tekur við henni, eða í innflutningsröð þessa skjás þar sem hún er til staðar. Eða settu upp staðlaða útgáfu af sömu útgáfusíðu yfir þessa og hún sækir sig sjálf. Stillingarnar þínar og lærðu orð haldast.</string>
+    <string name="common_offline_build_library">Þetta er ótengda útgáfan, svo hún getur ekki halað niður safninu sem þetta þarf. Náðu í skrána á öðru tæki og flytðu hana inn í Stillingar › Persónuvernd › Eiginleikasöfn, sem sýnir nákvæmu skrána. Eða settu upp staðlaða útgáfu af sömu útgáfusíðu yfir þessa, og hún hleður niður sjálfkrafa. Stillingarnar þínar og lærðu orðin haldast.</string>
     <string name="common_ok">Í lagi</string>
     <string name="common_on">Kveikt</string>
     <string name="common_open_system_settings">Opna kerfisstillingar</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Aðgengisþjónusta fyrir gervigreindarhnappinn</string>
     <string name="common_special_access_split_screen_body">Sumir símar opna forrit í fullum skjá þegar lyklaborðið biður um skiptan skjá. Þegar þessi þjónusta er virk opnar opnun forrits í skiptum skjá úr forritaræsaranum, eða opnun á skiptum skjá, sjálfum skiptiskjá rofa Android fyrst, þeim sama og Forritavalmyndin er með, og forritið opnast síðan í lausa helmingnum. Áður en ýtt er á hann athugar þjónustan hvar forritsgluggarnir eru til að sjá hvort skiptur skjár sé þegar kominn upp. Hún les aldrei hvað er í þeim. Hún gerir aldrei neitt annað, fylgist ekki með því sem þú skrifar og geymir ekkert. Aðgengisskjár Android varar við öllu sem þjónusta eins og þessi gæti gert. Þessi ýtir bara á þann rofa þegar þú biður um skiptan skjá.</string>
     <string name="common_special_access_split_screen_title">Aðgengisþjónusta fyrir skiptiskjá</string>
+    <string name="common_special_access_system_buttons_body">Android leyfir öðru forriti að taka skjáskot, fara til baka, eða opna nýleg forrit, forritaskúffuna, tilkynningaspjaldið eða fljótlegar stillingar eingöngu í gegnum aðgengisþjónustu. Með þessa þjónustu virka skjáskotsækið og fljótandi takkinn ýta á þessa kerfistakkar fyrir þig, sömu og leiðsögn Android og skuggi hafa. Skjáskot er vistað þar sem öll skjáskot fara. Þjónustan gerir ekki neitt á öðrum tímum. Hún les ekki skjáinn, fylgist ekki með því sem þú skrifar og geymir ekkert. Aðgengisskjár Android varar við öllu sem þjónusta sem þessi gæti gert. Þessi ýtir aðeins á kerfistakka þegar þú biður um það.</string>
+    <string name="common_special_access_system_buttons_title">Aðgengisþjónusta fyrir kerfishnappa</string>
     <string name="common_special_access_usage_body">Með notkunaraðgangi skráir lyklaborðið hvaða forrit var í forgrunni þegar þú afritaðir eitthvað. Það sýnir það forrit þegar þú ýtir á og heldur inni klippiborðinu. Lyklaborðið les forgrunnsforritið aðeins í því augnabliki sem afritað er. Það les ekki feril þinn eða hversu lengi þú notar forrit. Lyklaborðið geymir svarið með klippunni, eingöngu á tækinu þínu. Ekkert um forritanotkun þína fer úr tækinu. Stillingin er valfrjáls. Hún verður áfram slökkt þar til þú kveikir á henni.</string>
     <string name="common_special_access_usage_title">Aðgangur að notkun fyrir forrit sem nota úrklippuspjald</string>
     <string name="common_type_setting_value_desc">Sláðu inn gildi fyrir %1$s</string>

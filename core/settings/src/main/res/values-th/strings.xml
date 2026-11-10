@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">บริการอื่น</string>
     <string name="core_settings_ai_provider_on_device_label">บนอุปกรณ์ของคุณ</string>
+    <string name="core_settings_ai_provider_privatemode_label">โหมดส่วนตัว</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">ช่วงเวลาของวัน</string>
     <string name="core_settings_auto_theme_trigger_sun_label">พระอาทิตย์ขึ้นและพระอาทิตย์ตก</string>
     <string name="core_settings_auto_theme_trigger_system_label">สว่างหรือมืดตามระบบ</string>

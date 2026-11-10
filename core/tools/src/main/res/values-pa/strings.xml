@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">ਵਾਲਪੇਪਰ</string>
     <string name="core_tools_provider_acrcloud_desc">ਦੋ ਹਫ਼ਤਿਆਂ ਦੀ ਅਜ਼ਮਾਇਸ਼ ਵਾਲੀ ਇੱਕ ਸੰਗੀਤ ਪਛਾਣ ਸੇਵਾ, ਉਸ ਤੋਂ ਬਾਅਦ ਭੁਗਤਾਨ ਕੀਤੇ ਪਲਾਨ। console.acrcloud.com ਤੋਂ ਕਿਸੇ ਪ੍ਰੋਜੈਕਟ ਦਾ ਹੋਸਟ, ਐਕਸੈਸ ਕੁੰਜੀ ਅਤੇ ਐਕਸੈਸ ਸੀਕਰੇਟ ਦੀ ਲੋੜ ਹੈ। ਹਰੇਕ ਕਲਿੱਪ ACRCloud ਨੂੰ ਭੇਜੀ ਜਾਂਦੀ ਹੈ।</string>
     <string name="core_tools_provider_ai_horde_desc">ਵਲੰਟੀਅਰਾਂ ਦੇ ਕੰਪਿਊਟਰਾਂ \'ਤੇ ਮੁਫਤ ਸਟੇਬਲ ਡਿਫਿਊਜ਼ਨ। ਇਹ ਬਿਨਾਂ ਕੀ (key) ਦੇ ਕੰਮ ਕਰਦਾ ਹੈ ਪਰ ਕਤਾਰ ਵਿੱਚ ਉਡੀਕ ਕਰਨੀ ਪੈਂਦੀ ਹੈ; aihorde.net ਤੋਂ ਇੱਕ ਮੁਫਤ ਕੀ (key) ਤੁਹਾਨੂੰ ਕਤਾਰ ਵਿੱਚ ਅੱਗੇ ਕਰ ਦਿੰਦੀ ਹੈ।</string>
+    <string name="core_tools_provider_allratestoday_desc">ਲਗਭਗ 30 ਮੁਦਰਾਵਾਂ ਲਈ ਯੂਰਪੀਅਨ ਸੈਂਟਰਲ ਬੈਂਕ ਦੇ ਹਵਾਲਾ ਦਰਾਂ। ਕੋਈ ਕੁੰਜੀ ਨਹੀਂ।</string>
     <string name="core_tools_provider_anthropic_desc">Anthropic ਦੀ API ਰਾਹੀਂ Claude ਮਾਡਲ, ਤੁਹਾਡੀ ਆਪਣੀ ਕੁੰਜੀ ਦੇ ਨਾਲ।</string>
     <string name="core_tools_provider_asr4all_desc">ਫ਼ੋਨ \'ਤੇ ਅੰਗਰੇਜ਼ੀ ਡਿਕਟੇਸ਼ਨ, ਜਿਵੇਂ ਤੁਸੀਂ ਬੋਲਦੇ ਹੋ ਸ਼ਬਦ ਦਿਖਾਈ ਦਿੰਦੇ ਹਨ।</string>
     <string name="core_tools_provider_audd_desc">ਆਵਾਜ਼ ਦੇ ਕੁਝ ਸਕਿੰਟਾਂ ਤੋਂ ਜ਼ਿਆਦਾਤਰ ਰਿਲੀਜ਼ ਹੋਏ ਸੰਗੀਤ ਨੂੰ ਪਛਾਣਦਾ ਹੈ। dashboard.audd.io ਤੋਂ ਇੱਕ ਟੋਕਨ ਦੀ ਲੋੜ ਹੈ; ਕੁਝ ਸੌ ਪਛਾਣਾਂ ਮੁਫ਼ਤ ਹਨ, ਫਿਰ ਇਹ ਭੁਗਤਾਨਯੋਗ ਹੈ। ਹਰੇਕ ਕਲਿੱਪ AudD ਨੂੰ ਭੇਜੀ ਜਾਂਦੀ ਹੈ।</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">ਇੱਕ ਵੱਡਾ ਮਾਡਲ ਜੋ ਫ਼ੋਨ \'ਤੇ ਚੱਲਦਾ ਹੈ ਅਤੇ 25 ਯੂਰਪੀ ਭਾਸ਼ਾਵਾਂ ਨੂੰ ਸਮਝਦਾ ਹੈ।</string>
     <string name="core_tools_provider_pexels_desc">Pexels ਤੋਂ ਫੋਟੋਆਂ। ਇੱਕ API ਕੁੰਜੀ ਦੀ ਲੋੜ ਹੈ, ਜਦੋਂ ਤੱਕ ਇਸ ਬਿਲਡ ਵਿੱਚ ਇੱਕ ਨਾ ਹੋਵੇ।</string>
     <string name="core_tools_provider_pollinations_desc">ਮੁਫ਼ਤ, ਬਿਨਾਂ ਕਿਸੇ ਕੁੰਜੀ ਅਤੇ ਬਿਨਾਂ ਕਿਸੇ ਖਾਤੇ ਦੇ: ਪ੍ਰੋਂਪਟ Pollinations ਨੂੰ ਭੇਜਿਆ ਜਾਂਦਾ ਹੈ, ਜੋ ਮਾਡਲ ਚੁਣਦਾ ਹੈ। enter.pollinations.ai ਤੋਂ ਇੱਕ ਕੁੰਜੀ ਇਸਦੇ ਨਵੇਂ API ਨੂੰ ਖੋਲ੍ਹਦੀ ਹੈ ਅਤੇ ਤੁਹਾਨੂੰ ਇੱਕ ਮਾਡਲ ਦਾ ਨਾਮ ਦੇਣ ਦਿੰਦੀ ਹੈ।</string>
+    <string name="core_tools_provider_privatemode">ਪ੍ਰਾਈਵੇਟਮੋਡ ਏਆਈ (Privatemode AI)</string>
+    <string name="core_tools_provider_privatemode_desc">AI ਜੋ ਗੁਪਤ ਕੰਪਿਊਟਿੰਗ ਵਿੱਚ ਚੱਲਦਾ ਹੈ ਅਤੇ ਤੁਹਾਡਾ ਟੈਕਸਟ ਨਹੀਂ ਪੜ੍ਹ ਸਕਦਾ। ਆਪਣੀ Privatemode API ਕੁੰਜੀ ਦਿਓ। ਫਿਰ ਕੀਬੋਰਡ ਫ਼ੋਨ \'ਤੇ ਹਰੇਕ ਬੇਨਤੀ ਨੂੰ ਐਨਕ੍ਰਿਪਟ ਕਰਦਾ ਹੈ, ਪਰ ਇਹ ਸੇਵਾ ਦੇ ਹਾਰਡਵੇਅਰ ਪ੍ਰਮਾਣੀਕਰਨ ਦੀ ਜਾਂਚ ਨਹੀਂ ਕਰਦਾ ਹੈ। ਉਸਦੀ ਵੀ ਜਾਂਚ ਕਰਵਾਉਣ ਲਈ, privatemode-proxy ਚਲਾਓ ਅਤੇ ਇਸਦਾ ਪਤਾ ਦਿਓ, ਜਿਵੇਂ ਕਿ http://192.168.1.20:8080।</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (ਅਣਅਧਿਕਾਰਤ, RapidAPI ਰਾਹੀਂ)</string>
     <string name="core_tools_provider_rapid_shazam_desc">RapidAPI \'ਤੇ ਇੱਕ ਗੈਰ-ਅਧਿਕਾਰਤ ਲਿਸਟਿੰਗ ਰਾਹੀਂ, ਇੱਕ RapidAPI ਕੁੰਜੀ ਨਾਲ Shazam ਦੀ ਕੈਟਾਲਾਗ। ਇਹ ਐਪਲ ਦੀ ਸੇਵਾ ਨਹੀਂ ਹੈ: ਲਿਸਟਿੰਗ ਬਿਨਾਂ ਕਿਸੇ ਨੋਟਿਸ ਦੇ ਬਦਲ ਸਕਦੀ ਹੈ ਜਾਂ ਬੰਦ ਹੋ ਸਕਦੀ ਹੈ। ਹਰ ਕਲਿੱਪ RapidAPI ਨੂੰ ਭੇਜੀ ਜਾਂਦੀ ਹੈ।</string>
     <string name="core_tools_provider_recraft_desc">ਇਲਸਟ੍ਰੇਸ਼ਨ, ਆਈਕਨ ਅਤੇ ਵੈਕਟਰ-ਸ਼ੈਲੀ ਦੀ ਕਲਾ। recraft.ai ਤੋਂ ਇੱਕ ਕੁੰਜੀ ਦੀ ਲੋੜ ਹੈ।</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Unsplash ਤੋਂ ਫੋਟੋਆਂ। ਇੱਕ API ਕੁੰਜੀ ਦੀ ਲੋੜ ਹੈ, ਜਦੋਂ ਤੱਕ ਇਸ ਬਿਲਡ ਵਿੱਚ ਇੱਕ ਨਾ ਹੋਵੇ।</string>
     <string name="core_tools_provider_vision_ocr">ਤੁਹਾਡਾ ਵਿਜ਼ਨ ਮਾਡਲ</string>
     <string name="core_tools_provider_vision_ocr_desc">ਇੱਕ ਮਾਡਲ ਜੋ ਚਿੱਤਰਾਂ ਨੂੰ ਪੜ੍ਹਦਾ ਹੈ, ਇੱਕ ਸਰਵਰ ਰਾਹੀਂ ਜੋ OpenAI ਚੈਟ ਬੇਨਤੀਆਂ ਦਾ ਜਵਾਬ ਦਿੰਦਾ ਹੈ। ਪਤਾ ਅਤੇ ਮਾਡਲ ਦਾ ਨਾਮ ਚਾਹੀਦਾ ਹੈ।</string>
+    <string name="core_tools_provider_vosk_desc">29 ਭਾਸ਼ਾਵਾਂ ਲਈ ਅਲਫ਼ਾ ਸੇਫੇਈ (Alpha Cephei) ਵੱਲੋਂ ਛੋਟੇ ਕਲਡੀ ਮਾਡਲ, ਲਗਭਗ 40 MB ਹਰੇਕ, ਜੋ ਫ਼ੋਨ \'ਤੇ ਬੋਲਣ ਵੇਲੇ ਟਾਈਪ ਕਰਦੇ ਹਨ। ਪੁਰਾਣੇ ਫ਼ੋਨ ਲਈ ਕਾਫ਼ੀ ਹਲਕੇ।</string>
     <string name="core_tools_provider_whisper_desc">OpenAI ਦੇ Whisper ਮਾਡਲ, ਫ਼ੋਨ \'ਤੇ ਚੱਲਦੇ ਹਨ। ਬਹੁਤ ਸਾਰੀਆਂ ਭਾਸ਼ਾਵਾਂ; ਵੌਇਸ ਟਾਈਪਿੰਗ ਪੰਨੇ \'ਤੇ ਇੱਕ ਮਾਡਲ ਡਾਊਨਲੋਡ ਕਰੋ।</string>
     <string name="core_tools_provider_whistle_desc">ਇੱਕ ਛੋਟਾ, ਤੇਜ਼ ਮਾਡਲ ਜੋ ਫ਼ੋਨ \'ਤੇ ਚੱਲਦਾ ਹੈ। ਇਸਨੂੰ ਵੌਇਸ ਟਾਈਪਿੰਗ ਪੰਨੇ \'ਤੇ ਡਾਊਨਲੋਡ ਕਰੋ।</string>
     <string name="core_tools_provider_xai_desc">ਤੁਹਾਡੀ ਆਪਣੀ ਕੁੰਜੀ ਦੇ ਨਾਲ, xAI ਦੇ API ਰਾਹੀਂ Grok ਮਾਡਲ।</string>

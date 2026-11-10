@@ -37,6 +37,7 @@
     <string name="common_error_download_held">रोका गया: डेटा सेविंग इस कनेक्शन पर डाउनलोड को रोक कर रखती है। यह वहीं से जारी रहेगा जहाँ रुका था।</string>
     <string name="common_error_generic">कुछ काम नहीं किया। पुनः प्रयास करें।</string>
     <string name="common_error_network">कोई कनेक्शन नहीं है। अपना नेटवर्क जांचें और पुनः प्रयास करें।</string>
+    <string name="common_error_network_permission_off">WM Keyboard का नेटवर्क एक्सेस आपके फ़ोन की सेटिंग में बंद है, इसलिए यह काम नहीं करता है। Android सेटिंग › ऐप्स › WM Keyboard › अनुमतियाँ (GrapheneOS पर, नेटवर्क अनुमति) में इसे चालू करें, फिर पुनः प्रयास करें।</string>
     <string name="common_error_no_internet_permission">कीबोर्ड का यह बिल्ड इंटरनेट से कनेक्ट नहीं हो सकता।</string>
     <string name="common_error_timeout">अनुरोध में बहुत अधिक समय लगा। पुनः प्रयास करें।</string>
     <string name="common_export">एक्सपोर्ट करें</string>
@@ -48,6 +49,8 @@
     <string name="common_more">अधिक</string>
     <string name="common_next">अगला</string>
     <string name="common_none">कोई नहीं</string>
+    <string name="common_notify_channel_alarms_body">एक अलार्म जिसे स्नूज़ किया गया है या बजने वाला है, और एक जो बिना किसी के वहां होने पर बजा। बजने की अपनी एक अलग चैनल होती है।</string>
+    <string name="common_notify_channel_alarms_title">अलार्म सूचनाएं</string>
     <string name="common_notify_channel_backup_body">केवल तब जब स्वचालित बैकअप विफल हो जाता है। सफल बैकअप शांत रहते हैं।</string>
     <string name="common_notify_channel_backup_title">बैकअप समस्याएं</string>
     <string name="common_notify_channel_clock_body">टाइमर और स्टॉपवॉच जब वे चल रहे हों, उन्हें रोकने, एक मिनट जोड़ने या बंद करने के बटन के साथ।</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">कीबोर्ड नियंत्रण</string>
     <string name="common_notify_channel_send_body">कीबोर्ड छिपा होने के दौरान सेंड फाइल्स टूल द्वारा अपलोड या डाउनलोड पूरा हो गया, कॉपी करने के लिए लिंक और पास के किसी डिवाइस द्वारा भेजी गई फ़ाइल के साथ।</string>
     <string name="common_notify_channel_send_title">फ़ाइलें भेजना और प्राप्त करना</string>
+    <string name="common_notify_channel_stopwatch_body">स्टॉपवॉच जब यह चलती है या रुकी होती है, लैप, रोकने और रीसेट करने के बटनों के साथ।</string>
+    <string name="common_notify_channel_stopwatch_title">स्टॉपवॉच</string>
     <string name="common_notify_channel_updates_body">इंस्टॉल करने के लिए एक नया संस्करण, आपके इंस्टॉल दबाने की प्रतीक्षा में एक अपडेट, और एक बार इंस्टॉल हो जाने पर पुष्टि।</string>
     <string name="common_notify_channel_updates_title">ऐप अपडेट</string>
     <string name="common_notify_download_done">उपयोग के लिए तैयार</string>
     <string name="common_notify_download_failed">%1$s को डाउनलोड नहीं किया जा सका</string>
     <string name="common_notify_download_handwriting">%1$s लिखावट</string>
     <string name="common_notify_download_progress">%2$s में से %1$s</string>
+    <string name="common_notify_download_step_library">चरण 1 में से 2, इंजन लाइब्रेरी: %1$s</string>
+    <string name="common_notify_download_step_model">चरण 2 का 2, मॉडल: %1$s</string>
     <string name="common_notify_download_translate">%1$s ऑफ़लाइन अनुवाद</string>
     <string name="common_notify_download_voice">%1$s ऑफ़लाइन आवाज़</string>
     <string name="common_off">बंद</string>
+    <string name="common_offline_build_download">यह ऑफ़लाइन बिल्ड है, इसलिए यह इसे डाउनलोड नहीं कर सकता है। किसी अन्य डिवाइस पर फ़ाइल प्राप्त करें और इसे आयात करें: सेटिंग › के बारे में › स्टोरेज › डाउनलोड की गई फ़ाइलें आयात करें इसे लेता है, या इस स्क्रीन की अपनी आयात पंक्ति जहाँ यह एक है। या इसके ऊपर उसी रिलीज़ पेज से मानक बिल्ड इंस्टॉल करें, और यह अपने आप डाउनलोड हो जाता है। आपकी सेटिंग और सीखे गए शब्द बने रहते हैं।</string>
+    <string name="common_offline_build_library">यह ऑफ़लाइन बिल्ड है, इसलिए यह इसके लिए आवश्यक लाइब्रेरी डाउनलोड नहीं कर सकता है। किसी अन्य डिवाइस पर इसकी फ़ाइल प्राप्त करें और इसे सेटिंग्ज़ › गोपनीयता › फ़ीचर लाइब्रेरी में आयात करें, जो सटीक फ़ाइल सूचीबद्ध करता है। या इसके ऊपर उसी रिलीज़ पेज से मानक बिल्ड इंस्टॉल करें, और यह अपने आप डाउनलोड हो जाता है। आपकी सेटिंग्ज़ और सीखे गए शब्द बने रहते हैं।</string>
     <string name="common_ok">ठीक है</string>
     <string name="common_on">चालू</string>
     <string name="common_open_system_settings">सिस्टम सेटिंग्स खोलें</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">AI बटन के लिए एक्सेसिबिलिटी सेवा</string>
     <string name="common_special_access_split_screen_body">जब कीबोर्ड स्प्लिट स्क्रीन के लिए कहता है तो कुछ फोन एक ऐप को पूर्ण स्क्रीन पर खोलते हैं। इस सेवा के चालू होने पर, ऐप लॉन्चर से स्प्लिट स्क्रीन में कोई ऐप खोलने, या स्प्लिट स्क्रीन जोड़ी खोलने पर, एंड्रॉइड का अपना स्प्लिट स्क्रीन स्विच पहले दब जाता है, वही जो रीसेंट्स मेनू में होता है, और ऐप फिर खाली आधे हिस्से में खुल जाता है। इसे दबाने से पहले, सेवा जांचती है कि ऐप की खिड़कियां कहां हैं, यह देखने के लिए कि क्या स्प्लिट स्क्रीन पहले से ही ऊपर है। यह कभी नहीं पढ़ता कि उनमें क्या है। यह किसी अन्य समय कुछ नहीं करता है, आप क्या टाइप करते हैं यह नहीं देखता है और कुछ भी नहीं रखता है। एंड्रॉइड की एक्सेसिबिलिटी स्क्रीन इस तरह की सेवा द्वारा की जा सकने वाली हर चीज़ के बारे में चेतावनी देती है। जब आप स्प्लिट स्क्रीन मांगते हैं तो यह केवल उस स्विच को दबाती है।</string>
     <string name="common_special_access_split_screen_title">स्प्लिट स्क्रीन के लिए एक्सेसिबिलिटी सेवा</string>
+    <string name="common_special_access_system_buttons_body">एंड्रॉइड किसी दूसरे ऐप को केवल एक्सेसिबिलिटी सर्विस के ज़रिए स्क्रीनशॉट लेने, वापस जाने या हाल के ऐप्स, ऐप ड्रॉअर, नोटिफिकेशन शेड या त्वरित सेटिंग खोलने की अनुमति देता है। इस सर्विस के चालू होने पर, स्क्रीनशॉट टूल और फ़्लोटिंग बटन आपके लिए उन सिस्टम बटन को दबाते हैं, वही जो एंड्रॉइड के अपने नेविगेशन और शेड में हैं। स्क्रीनशॉट वहीं सेव होता है जहाँ हर स्क्रीनशॉट जाता है। यह सर्विस किसी अन्य समय कुछ नहीं करती है। यह स्क्रीन को नहीं पढ़ती है, आप क्या टाइप करते हैं यह नहीं देखती है और कुछ भी नहीं रखती है। एंड्रॉइड की एक्सेसिबिलिटी स्क्रीन ऐसी सर्विस द्वारा की जा सकने वाली हर चीज़ के बारे में चेतावनी देती है। यह केवल आपके पूछने पर सिस्टम बटन दबाती है।</string>
+    <string name="common_special_access_system_buttons_title">सिस्टम बटन के लिए एक्सेसिबिलिटी सेवा</string>
     <string name="common_special_access_usage_body">उपयोग एक्सेस के साथ, कीबोर्ड यह रिकॉर्ड करता है कि कुछ कॉपी करते समय कौन सा ऐप सामने था। क्लिप को दबाकर रखने पर यह उस ऐप को दिखाता है। कीबोर्ड केवल कॉपी करने के समय ही सामने वाले ऐप को पढ़ता है। यह आपके इतिहास या किसी ऐप में बिताए गए समय को नहीं पढ़ता है। कीबोर्ड क्लिप के साथ उत्तर को केवल आपके डिवाइस पर रखता है। आपके ऐप उपयोग के बारे में कुछ भी आपके डिवाइस से बाहर नहीं जाता है। यह सेटिंग वैकल्पिक है। जब तक आप इसे चालू नहीं करते, यह बंद रहती है।</string>
     <string name="common_special_access_usage_title">क्लिपबोर्ड स्रोत ऐप्स के लिए उपयोग एक्सेस</string>
     <string name="common_type_setting_value_desc">%1$s के लिए एक मान टाइप करें</string>

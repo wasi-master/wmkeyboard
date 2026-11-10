@@ -37,6 +37,7 @@
     <string name="common_error_download_held">متوقف مؤقتاً: توفير البيانات يوقف التنزيلات على هذا الاتصال. سيستمر من حيث توقف.</string>
     <string name="common_error_generic">حدث خطأ ما. حاول مجدداً.</string>
     <string name="common_error_network">لا يوجد اتصال. تحقق من شبكتك وحاول مجدداً.</string>
+    <string name="common_error_network_permission_off">تم إيقاف تشغيل وصول لوحة مفاتيح WM إلى الشبكة في إعدادات هاتفك، لذلك لا يعمل هذا. قم بتشغيله في إعدادات Android › التطبيقات › لوحة مفاتيح WM › الأذونات (على GrapheneOS، إذن الشبكة)، ثم حاول مرة أخرى.</string>
     <string name="common_error_no_internet_permission">هذا الإصدار من لوحة المفاتيح لا يمكنه الاتصال بالإنترنت.</string>
     <string name="common_error_timeout">استغرق الطلب وقتًا طويلاً. حاول مجددًا.</string>
     <string name="common_export">تصدير</string>
@@ -48,6 +49,8 @@
     <string name="common_more">المزيد</string>
     <string name="common_next">التالي</string>
     <string name="common_none">لا شيء</string>
+    <string name="common_notify_channel_alarms_body">منبه مؤجل أو على وشك الرنين، وآخر رن ولم يجد أحداً. الرنين نفسه له قناة خاصة به.</string>
+    <string name="common_notify_channel_alarms_title">إشعارات المنبه</string>
     <string name="common_notify_channel_backup_body">فقط عند فشل النسخ الاحتياطي التلقائي. النسخ الاحتياطية الناجحة تتم بصمت.</string>
     <string name="common_notify_channel_backup_title">مشاكل النسخ الاحتياطي</string>
     <string name="common_notify_channel_clock_body">المؤقتات وساعة الإيقاف أثناء تشغيلها، مع أزرار للإيقاف المؤقت أو إضافة دقيقة أو إيقافها.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">عناصر تحكم لوحة المفاتيح</string>
     <string name="common_notify_channel_send_body">اكتمل تحميل أو تنزيل أداة إرسال الملفات أثناء إخفاء لوحة المفاتيح، مع رابط للنسخ، وملف أرسله جهاز قريب.</string>
     <string name="common_notify_channel_send_title">إرسال واستقبال الملفات</string>
+    <string name="common_notify_channel_stopwatch_body">ساعة التوقيت أثناء تشغيلها أو إيقافها مؤقتاً، مع أزرار للدورات، الإيقاف المؤقت وإعادة الضبط.</string>
+    <string name="common_notify_channel_stopwatch_title">ساعة التوقف</string>
     <string name="common_notify_channel_updates_body">إصدار جديد للتثبيت، وتحديث ينتظر منك الضغط على تثبيت، وتأكيد بمجرد تثبيت أحدهما.</string>
     <string name="common_notify_channel_updates_title">تحديثات التطبيق</string>
     <string name="common_notify_download_done">جاهز للاستخدام</string>
     <string name="common_notify_download_failed">تعذر تنزيل %1$s</string>
     <string name="common_notify_download_handwriting">%1$s خط يد</string>
     <string name="common_notify_download_progress">%1$s من %2$s</string>
+    <string name="common_notify_download_step_library">الخطوة 1 من 2، مكتبة المحرك: %1$s</string>
+    <string name="common_notify_download_step_model">الخطوة 2 من 2، النموذج: %1$s</string>
     <string name="common_notify_download_translate">%1$s ترجمة دون اتصال</string>
     <string name="common_notify_download_voice">%1$s صوت دون اتصال</string>
     <string name="common_off">إيقاف</string>
+    <string name="common_offline_build_download">هذه هي النسخة غير المتصلة بالإنترنت، لذا لا يمكنها تنزيل هذا. احصل على الملف على جهاز آخر واستورده: الإعدادات › حول › وحدة التخزين › استيراد الملفات المُنزّلة، أو استخدم صف الاستيراد الخاص بهذه الشاشة إذا وجد. أو قم بتثبيت النسخة القياسية من نفس صفحة الإصدار فوق هذه النسخة، وسيتم التنزيل تلقائياً. ستظل إعداداتك والكلمات التي تعلمتها كما هي.</string>
+    <string name="common_offline_build_library">هذه هي النسخة غير المتصلة بالإنترنت، لذا لا يمكنها تنزيل المكتبة التي تحتاجها. احصل على ملفها على جهاز آخر واستورده في الإعدادات › الخصوصية › مكتبات الميزات، والذي يسرد الملف الدقيق. أو قم بتثبيت النسخة القياسية من نفس صفحة الإصدار فوق هذه النسخة، وسيتم تنزيلها تلقائياً. ستبقى إعداداتك والكلمات التي تعلمتها.</string>
     <string name="common_ok">موافق</string>
     <string name="common_on">تشغيل</string>
     <string name="common_open_system_settings">فتح إعدادات النظام</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">خدمة تسهيل الاستخدام لزر الذكاء الاصطناعي</string>
     <string name="common_special_access_split_screen_body">تفتح بعض الهواتف تطبيقاً بملء الشاشة عندما تطلب لوحة المفاتيح تقسيم الشاشة. مع تشغيل هذه الخدمة، فإن فتح تطبيق في وضع تقسيم الشاشة من مشغل التطبيقات، أو فتح زوج من الشاشات المقسمة، يؤدي إلى الضغط على مفتاح تقسيم الشاشة الخاص بنظام أندرويد أولاً، وهو نفس المفتاح الموجود في قائمة التطبيقات الحديثة، ثم يفتح التطبيق في النصف الفارغ. قبل الضغط عليه، تتحقق الخدمة من مكان نوافذ التطبيق لمعرفة ما إذا كانت الشاشة المقسمة نشطة بالفعل. وهي لا تقرأ أبداً ما بداخلها. وهي لا تفعل أي شيء في أي وقت آخر، ولا تراقِب ما تكتبه ولا تحتفظ بشيء. تحذر شاشة إمكانية الوصول في أندرويد من كل ما يمكن أن تفعلة خدمة كهذه. هذه الخدمة تضغط فقط على هذا المفتاح عندما تطلب تقسيم الشاشة.</string>
     <string name="common_special_access_split_screen_title">خدمة إمكانية الوصول للشاشة المقسمة</string>
+    <string name="common_special_access_system_buttons_body">يسمح نظام أندرويد لتطبيق آخر بالتقاط صورة للشاشة، أو الرجوع للخلف، أو فتح التطبيقات الحديثة، أو درج التطبيقات، أو لوحة الإشعارات، أو الإعدادات السريعة فقط من خلال خدمة إمكانية الوصول. مع تشغيل هذه الخدمة، تقوم أداة لقطة الشاشة والزر العائم بالضغط على أزرار النظام هذه نيابة عنك، وهي نفس الأزرار الموجودة في التنقل ولوحة الإشعارات الخاصة بنظام أندرويد. يتم حفظ لقطة الشاشة في المكان الذي تُحفظ فيه كل لقطة شاشة. لا تقومان الخدمة بأي شيء في أي وقت آخر. فهي لا تقرأ الشاشة، ولا تراقب ما تكتبه ولا تحتفظ بأي شيء. تحذر شاشة إمكانية الوصول في أندرويد من كل ما يمكن أن تفعله خدمة كهذه. وهذه الخدمة تضغط فقط على زر النظام عندما تطلب منها ذلك.</string>
+    <string name="common_special_access_system_buttons_title">اآلـــــة الوصول لأزرار النظام</string>
     <string name="common_special_access_usage_body">مع الوصول إلى الاستخدام، تسجل لوحة المفاتيح التطبيق الذي كان في المقدمة عند نسخ شيء ما. وتظهر ذلك التطبيق عند الضغط مع الاستمرار على القصاصة. تقرأ لوحة المفاتيح التطبيق الأمامي فقط في لحظة النسخ. وهي لا تقرأ سجلك أو وقتك في أي تطبيق. تحتفظ لوحة المفاتيح بالإجابة مع القصاصة على جهازك فقط. لا يغادر أي شيء يتعلق باستخدام التطبيق جهازك. الإعداد اختياري ويظل متوقفًا عن التشغيل حتى تقوم بتفعيله.</string>
     <string name="common_special_access_usage_title">إذن الوصول إلى الاستخدام لتطبيقات مصدر الحافظة</string>
     <string name="common_type_setting_value_desc">اكتب قيمة لـ %1$s</string>

@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">ਉਸ ਪਲੱਗਇਨ ਕੋਲ ਹੁਣ ਉਹ ਕਾਰਵਾਈ ਨਹੀਂ ਹੈ।</string>
     <string name="core_plugins_error_no_render">ਇਸ ਪਲੱਗਇਨ ਵਿੱਚ ਕੋਈ render() ਫੰਕਸ਼ਨ ਨਹੀਂ ਹੈ।</string>
+    <string name="core_plugins_error_no_transform">ਇس ਪਲੱਗਇਨ ਵਿੱਚ ਕੋਈ transform() ਫੰਕਸ਼ਨ ਨਹੀਂ ਹੈ।</string>
     <string name="core_plugins_error_not_installed">ਉਹ ਪਲੱਗਇਨ ਸਥਾਪਿਤ ਨਹੀਂ ਹੈ।</string>
+    <string name="core_plugins_error_not_ready">पलललल</string>
     <string name="core_plugins_error_script_failed">ਸਕ੍ਰਿਪਟ ਅਸਫਲ ਰਹੀ।</string>
     <string name="core_plugins_error_script_missing">ਉਸ ਪਲੱਗਇਨ ਲਈ ਸਕ੍ਰਿਪਟ ਗੁੰਮ ਹੈ।</string>
     <string name="core_plugins_error_turned_off">ਉਹ ਪਲੱਗਇਨ ਬੰਦ ਹੈ।</string>
     <string name="core_plugins_permission_reminders_label">ਤੁਹਾਡੇ ਦੁਆਰਾ ਸੈੱਟ ਕੀਤੇ ਸਮੇਂ \'ਤੇ ਰੀਮਾਈਂਡਰ ਦਿਖਾਓ</string>
+    <string name="core_plugins_permission_selection_label">ਆਪਣੀ ਚੁਣੀ ਹੋਈ ਲਿਖਤ ਨੂੰ ਬਦਲੋ, ਜਦੋਂ ਤੁਸੀਂ ਇਸ ਦੀਆਂ ਕਾਰਵਾਈਆਂ ਵਿੱਚੋਂ ਕਿਸੇ ਇੱਕ \'ਤੇ ਟੈਪ ਕਰਦੇ ਹੋ</string>
     <string name="core_plugins_permission_storage_label">ਆਪਣੀ ਡਿਵਾਈਸ \'ਤੇ ਡੇਟਾ ਸੁਰੱਖਿਅਤ ਕਰੋ</string>
+    <string name="core_plugins_reject_action_input">“%1$s” ਕੋਲ ਇੱਕ ਕਾਰਵਾਈ ਹੈ ਜੋ ਉਸ ਟੈਕਸਟ ਲਈ ਪੁੱਛਦੀ ਹੈ ਜੋ WM ਕੀਬোর্ਡ ਦਾ ਇਹ ਸੰਸਕਰਣ ਇਸਨੂੰ ਨਹੀਂ ਦੇ ਸਕਦਾ ਹੈ।</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s” ਕੋਲ ਬਿਨਾਂ ਨਾਮ ਤੋਂ ਇੱਕ ਕਾਰਵਾਈ ਹੈ।</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” ਚੁਣੇ ਹੋਏ ਟੈਕਸਟ ਲਈ ਕਾਰਵਾਈਆਂ ਜੋੜਦਾ ਹੈ ਪਰ ਇਸਨੂੰ ਬਦਲਣ ਦੀ ਇਜਾਜ਼ਤ ਨਹੀਂ ਮੰਗਦਾ ਹੈ।</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” ਕੋਲ ਇੱਕ ਕਿਰਿਆ ਹੈ ਜਿਸ ਦੀ ਆਈਡੀ ਗੁੰਮ ਹੈ, ਦੁਹਰਾਈ ਗਈ ਹੈ, ਜਾਂ ਵੈਧ ਨਹੀਂ ਹੈ। ਇੱਕ ਕਿਰਿਆ ਆਈਡੀ 32 ਛੋਟੇ ਅੱਖਰਾਂ, ਨੰਬਰਾਂ, ਡੈਸ਼ਾਂ ਅਤੇ ਅੰਡਰਸਕੋਰ ਤੱਕ ਦੀ ਹੁੰਦੀ ਹੈ।</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” ਵਿੱਚ ਇੱਕ ਸਕ੍ਰਿਪਟ ਹੈ ਜੋ ਵੈਧ UTF-8 ਟੈਕਸਟ ਨਹੀਂ ਹੈ।</string>
     <string name="core_plugins_reject_bad_id">ਇਸ ਪਲੱਗਇਨ ਦੀ ਆਈਡੀ ਵੈਧ ਨਹੀਂ ਹੈ। ਇੱਕ ਆਈਡੀ 3 ਤੋਂ 64 ਅੱਖਰ ਲੰਬੀ ਹੁੰਦੀ ਹੈ। ਇੱਕ ਆਈਡੀ ਵਿੱਚ ਛੋਟੇ ਅੱਖਰ, ਨੰਬਰ, ਬਿੰਦੀਆਂ, ਡੈਸ਼ ਅਤੇ ਅੰਡਰਸਕੋਰ ਹੋ ਸਕਦੇ ਹਨ।</string>
     <string name="core_plugins_reject_empty_script">“%1$s” ਵਿੱਚ ਇੱਕ ਖਾਲੀ ਸਕ੍ਰਿਪਟ ਹੈ।</string>
+    <string name="core_plugins_reject_lua">“%1$s” ਲੁਆ (Lua) ਵਿੱਚ ਲਿਖਿਆ ਗਿਆ ਹੈ, ਜਿਸਨੂੰ WM ਕੀਬੋਰਡ ਹੁਣ ਨਹੀਂ ਚਲਾਉਂਦਾ। ਇਸਦਾ ਪਾਈਥਨ (Python) ਸੰਸਕਰਣ ਦੇਖੋ।</string>
     <string name="core_plugins_reject_missing_script">“%1$s” ਕੋਲ ਇਸਦੀ ਸਕ੍ਰਿਪਟ ਫਾਈਲ (%2$s) ਨਹੀਂ ਹੈ।</string>
     <string name="core_plugins_reject_newer_version">ਇਸ ਪਲੱਗਇਨ ਨੂੰ WM ਕੀਬੋਰਡ ਦੇ ਨਵੇਂ ਸੰਸਕਰਣ ਦੀ ਲੋੜ ਹੈ।</string>
     <string name="core_plugins_reject_no_name">ਇਸ ਪਲੱਗਇਨ ਦਾ ਕੋਈ ਨਾਮ ਨਹੀਂ ਹੈ।</string>
     <string name="core_plugins_reject_no_version">“%1$s” ਇਹ ਨਹੀਂ ਦੱਸਦਾ ਕਿ ਇਹ ਕਿਹੜਾ ਵਰਜ਼ਨ ਹੈ।</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” ਦਾ ਕੋਈ ਪੈਨਲ ਅਤੇ ਕੋਈ ਕਾਰਵਾਈ ਨਹੀਂ ਹੈ, ਇਸ ਲਈ ਇਸ ਕਰਨ ਲਈ ਕੁਝ ਨਹੀਂ ਹੈ।</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” ਵਿੱਚ ਇੱਕ ਸਕ੍ਰਿਪਟ ਹੈ ਜੋ %2$d KB ਤੋਂ ਵੱਡੀ ਹੈ।</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” ਤੁਹਾਡੇ ਦੁਆرا ਚੁਣੇ ਗਏ ਪਾਠ ਨੂੰ ਬਦਲਣ ਲਈ ਕਹਿੰਦਾ ਹੈ ਪਰ ਕੋਈ ਕਾਰਵਾਈਆਂ ਨਹੀਂ ਜੋੜਦਾ।</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” 16 ਤੋਂ ਵੱਧ ਕਾਰਵਾਈਆਂ ਨੂੰ ਜੋੜਦਾ ਹੈ।</string>
+    <string name="core_plugins_reject_unknown_language">\"%1$s\" ਇੱਕ ਅਜਿਹੀ ਭਾਸ਼ਾ ਵਿੱਚ ਲਿਖਿਆ ਗਿਆ ਹੈ ਜਿਸ ਨੂੰ WM ਕੀਬੋਰਡ ਦਾ ਇਹ ਸੰਸਕਰਣ ਨਹੀਂ ਚਲਾ ਸਕਦਾ। ਪਲੱਗਇਨ ਪਾਈਥਨ ਵਿੱਚ ਲਿਖੇ ਗਏ ਹਨ।</string>
     <string name="core_plugins_reject_unknown_permission">WM ਕੀਬੋਰਡ ਦਾ ਇਹ ਸੰਸਕਰਣ “%1$s” ਅਨੁਮਤੀ ਨੂੰ ਨਹੀਂ ਜਾਣਦਾ ਹੈ। ਐਪ ਤੁਹਾਨੂੰ ਇਹ ਨਹੀਂ ਦੱਸ ਸਕਦੀ ਕਿ “%2$s” ਨੂੰ ਕੀ ਕਰਨ ਦੀ ਇਜਾਜ਼ਤ ਹੈ।</string>
     <string name="core_plugins_reminders_channel_body">ਉਹ ਰੀਮਾਈਂਡਰ ਜੋ ਕਿਸੇ ਪਲੱਗਇਨ ਨੇ ਐਪ ਨੂੰ ਦਿਖਾਉਣ ਲਈ ਕਿਹਾ ਹੈ, ਉਹਨਾਂ ਸਮਿਆਂ \'ਤੇ ਜੋ ਤੁਸੀਂ ਪਲੱਗਇਨ ਵਿੱਚ ਸੈੱਟ ਕੀਤੇ ਹਨ। ਹਰੇਕ ਦਾ ਸਿਰਲੇਖ ਪਲੱਗਇਨ ਦਾ ਨਾਮ ਹੈ।</string>
     <string name="core_plugins_reminders_channel_title">ਪਲੱਗਇਨ ਰੀਮਾਈਂਡਰ</string>
     <string name="core_plugins_stopped_cancelled">ਐਪ ਨੇ ਇਸ ਪਲੱਗਇਨ ਨੂੰ ਰੋਕ ਦਿੱਤਾ ਹੈ।</string>
     <string name="core_plugins_stopped_deadline">ਇਸ ਪਲੱਗਇਨ ਨੇ ਬਹੁਤ ਜ਼ਿਆਦਾ ਸਮਾਂ ਲਿਆ। ਐਪ ਨੇ ਇਸਨੂੰ ਰੋਕ ਦਿੱਤਾ ਹੈ।</string>
     <string name="core_plugins_stopped_instructions">ਇਸ ਪਲੱਗਇਨ ਨੇ ਇੱਕ ਸਮੇਂ ਵਿੱਚ ਬਹੁਤ ਜ਼ਿਆਦਾ ਕੰਮ ਕੀਤਾ। ਐਪ ਨੇ ਇਸਨੂੰ ਰੋਕ ਦਿੱਤਾ।</string>
+    <string name="core_plugins_stopped_memory">ਇਸ ਪਲੱਗਇన్ ਨੇ ਬਹੁਤ ਜ਼ਿਆਦਾ ਡਾਟਾ ਸਟੋਰ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕੀਤੀ। ਐਪ ਨੇ ਇਸਨੂੰ ਰੋਕ ਦਿੱਤਾ।</string>
     <string name="core_plugins_stopped_not_responding">ਇਹ ਪਲੱਗਇਨ ਜਵਾਬ ਦੇਣਾ ਬੰਦ ਕਰ ਗਿਆ ਹੈ। ਐਪ ਨੇ ਇਸਨੂੰ ਬੰਦ ਕਰ ਦਿੱਤਾ ਹੈ।</string>
     <string name="core_plugins_stopped_not_responding_disabled">ਇਹ ਪਲੱਗਇਨ ਦੁਬਾਰਾ ਜਵਾਬ ਦੇਣ ਵਿੱਚ ਅਸਫਲ ਰਿਹਾ। ਐਪ ਨੇ ਇਸਨੂੰ ਬੰਦ ਕਰ ਦਿੱਤਾ ਹੈ।</string>
     <string name="core_plugins_stopped_recursion">ਇਸ ਪਲੱਗਇਨ ਨੇ ਆਪਣੇ ਆਪ ਨੂੰ ਬਹੁਤ ਵਾਰ ਕਾਲ ਕੀਤਾ। ਐਪ ਨੇ ਇਸਨੂੰ ਰੋਕ ਦਿੱਤਾ।</string>

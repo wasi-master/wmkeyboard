@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">壁纸</string>
     <string name="core_tools_provider_acrcloud_desc">一种音乐识别服务，提供两周试用期，之后需付费。需要 console.acrcloud.com 项目的主机地址、访问密钥和访问密钥密码。每个片段都会发送至 ACRCloud。</string>
     <string name="core_tools_provider_ai_horde_desc">在志愿者计算机上运行的免费 Stable Diffusion。无需密钥即可使用，但需排队；使用 aihorde.net 提供的免费密钥可提升排队优先级。</string>
+    <string name="core_tools_provider_allratestoday_desc">欧洲中央银行约 30 种货币的参考汇率。无需密钥。</string>
     <string name="core_tools_provider_anthropic_desc">通过 Anthropic API 使用 Claude 模型，需使用您自己的密钥。</string>
     <string name="core_tools_provider_asr4all_desc">手机上的英语听写功能，文字会随着您的说话实时显示。</string>
     <string name="core_tools_provider_audd_desc">通过几秒钟的声音识别大多数已发行的音乐。需要 dashboard.audd.io 的令牌；提供数百次免费识别，之后需付费。每个片段都会发送至 AudD。</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">一款在手机上运行并能理解 25 种欧洲语言的大型模型。</string>
     <string name="core_tools_provider_pexels_desc">来自 Pexels 的照片。需要 API 密钥，除非此版本已内置。</string>
     <string name="core_tools_provider_pollinations_desc">免费，无需密钥和账户：提示词将发送至 Pollinations，由其选择模型。使用 enter.pollinations.ai 的密钥可开启其更新的 API，并允许您指定模型名称。</string>
+    <string name="core_tools_provider_privatemode">隐私模式 AI</string>
+    <string name="core_tools_provider_privatemode_desc">在机密计算中运行且无法读取您的文本的AI。提供您的Privatemode API密钥。键盘随后会在手机上加密每个请求，但它不会检查服务的硬件证明。若要同时检查该项，请运行privatemode-proxy并提供其地址，例如 http://192.168.1.20:8080。</string>
     <string name="core_tools_provider_rapid_shazam">Shazam（非官方，通过 RapidAPI）</string>
     <string name="core_tools_provider_rapid_shazam_desc">通过RapidAPI上非官方的列表提供的Shazam目录，需配合RapidAPI密钥使用。此服务并非来自Apple：该列表可能会随时更改或停止服务，恕不另行通知。每个音频剪辑都会发送至RapidAPI。</string>
     <string name="core_tools_provider_recraft_desc">插图、图标和矢量风格艺术。需要来自 recraft.ai 的密钥。</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">来自 Unsplash 的照片。需要 API 密钥，除非此版本已内置。</string>
     <string name="core_tools_provider_vision_ocr">您的视觉模型</string>
     <string name="core_tools_provider_vision_ocr_desc">一个通过回答 OpenAI 聊天请求的服务器读取图像的模型。需要地址和模型名称。</string>
+    <string name="core_tools_provider_vosk_desc">来自 Alpha Cephei 的小型 Kaldi 模型，支持 29 种语言，每个约 40 MB，可在您对着手机说话时进行键入。非常轻量，适合旧手机使用。</string>
     <string name="core_tools_provider_whisper_desc">OpenAI 的 Whisper 模型，在手机上运行。支持多种语言；请在语音输入页面下载模型。</string>
     <string name="core_tools_provider_whistle_desc">一种在手机上运行的小型快速模型。请在语音输入页面下载它。</string>
     <string name="core_tools_provider_xai_desc">通过 xAI API 使用 Grok 模型，需提供您自己的密钥。</string>

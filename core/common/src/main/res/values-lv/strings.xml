@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Pauzēts: datu saglabāšanas režīms aiztur lejupielādes, izmantojot šo savienojumu. Lejupielāde tiks turpināta no vietas, kur tā tika apturēta.</string>
     <string name="common_error_generic">Kaut kas nogāja greizi. Mēģiniet vēlreiz.</string>
     <string name="common_error_network">Nav savienojuma. Pārbaudiet tīklu un mēģiniet vēlreiz.</string>
+    <string name="common_error_network_permission_off">WM Keyboard tīkla piekļuve ir izslēgta jūsu tālruņa iestatījumos, tāpēc tas nedarbojas. Ieslēdziet to Android iestatījumos › Lietotnes › WM Keyboard › Atļaujas (GrapheneOS sistēmā tīkla atļauja) un mēģiniet vēlreiz.</string>
     <string name="common_error_no_internet_permission">Šī tastatūras versija nevar izveidot savienojumu ar internetu.</string>
     <string name="common_error_timeout">Pieprasījums aizņēma pārāk daudz laika. Mēģiniet vēlreiz.</string>
     <string name="common_export">Eksportēt</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Vairāk</string>
     <string name="common_next">Tālāk</string>
     <string name="common_none">Nav</string>
+    <string name="common_notify_channel_alarms_body">Modinātājs, kura signāls ir atlikts vai drīz zvanīs, un modinātājs, kas nozvanīja, nevienam neesot klāt. Pašam zvanam ir savs kanāls.</string>
+    <string name="common_notify_channel_alarms_title">Modinātāja paziņojumi</string>
     <string name="common_notify_channel_backup_body">Tikai tad, ja automātiskā dublēšana neizdodas. Veiksmīgas dublēšanas notiek klusi.</string>
     <string name="common_notify_channel_backup_title">Dublēšanas problēmas</string>
     <string name="common_notify_channel_clock_body">Taimeri un hronometrs to darbības laikā, ar pogām pauzēšanai, minūtes pievienošanai vai apturēšanai.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Tastatūras vadīklas</string>
     <string name="common_notify_channel_send_body">Failu sūtīšanas rīka augšupielāde vai lejupielāde tika pabeigta, kamēr tastatūra bija paslēpta, ar saiti kopēšanai un failu, ko nosūtīja tuvumā esoša ierīce.</string>
     <string name="common_notify_channel_send_title">Failu sūtīšana un saņemšana</string>
+    <string name="common_notify_channel_stopwatch_body">Hronometrs, kamēr tas darbojas vai ir pauzē, ar pogām apļiem, pauzēšanai un atiestatīšanai.</string>
+    <string name="common_notify_channel_stopwatch_title">Hronometrs</string>
     <string name="common_notify_channel_updates_body">Jauna versija instalēšanai, atjauninājums, kas gaida, kad nospiedīsiet instalēt, un apstiprinājums, kad tas ir instalēts.</string>
     <string name="common_notify_channel_updates_title">Lietotņu atjauninājumi</string>
     <string name="common_notify_download_done">Gatavs lietošanai</string>
     <string name="common_notify_download_failed">Neizdevās lejupielādēt %1$s</string>
     <string name="common_notify_download_handwriting">%1$s rokraksts</string>
     <string name="common_notify_download_progress">%1$s no %2$s</string>
+    <string name="common_notify_download_step_library">1. darbība no 2, dzinēja bibliotēka: %1$s</string>
+    <string name="common_notify_download_step_model">2. solis no 2, modelis: %1$s</string>
     <string name="common_notify_download_translate">%1$s bezsaistes tulkošana</string>
     <string name="common_notify_download_voice">%1$s bezsaistes balss</string>
     <string name="common_off">Izslēgts</string>
+    <string name="common_offline_build_download">Šī ir bezsaistes versija, tāpēc tā nevar to lejupielādēt. Iegūstiet failu citā ierīcē un importējiet to: Iestatījumi › Par › Krātuve › Importēt lejupielādētos failus vai izmantojiet šī ekrāna Importēšanas rindu. Vai arī instalējiet standarta versiju no tās paša relīzes lapas virs šīs, un tā pati lejupielādēsies. Jūsu iestatījumi un apgūtie vārdi paliks.</string>
+    <string name="common_offline_build_library">Šī ir bezsaistes versija, tāpēc tā nevar lejupielādēt šim nolūkam nepieciešamo bibliotēku. Iegūstiet tā failu citā ierīcē un importējiet to sadaļā Iestatījumi › Konfidencialitāte › Funkciju bibliotēkas, kurā ir norādīts precīzs fails. Vai arī instalējiet standarta versiju no tās paša relīzes lapas virs šīs, un tā lejupielādēsies pati. Jūsu iestatījumi un apgūtie vārdi paliek.</string>
     <string name="common_ok">Labi</string>
     <string name="common_on">Ieslēgts</string>
     <string name="common_open_system_settings">Atvērt sistēmas iestatījumus</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">AI pogas pieejamības pakalpojums</string>
     <string name="common_special_access_split_screen_body">Daži tālruņi atver lietotni pilnekrāna režīmā, kad tastatūra pieprasa dalīto ekrānu. Ja šis pakalpojums ir ieslēgts, atverot lietotni dalītajā ekrānā no lietotņu palaidēja vai atverot dalītā ekrāna pāri, vispirms tiek nospiests Android paša dalītā ekrāna slēdzis, tas pats, kas ir pēdējo lietotņu izvēlnē, un lietotne pēc tam atveras brīvajā pusē. Pirms nospiešanas pakalpojums pārbauda, kur atrodas lietotņu logi, lai redzētu, vai dalītais ekrāns jau ir atvērts. Tas nekad nenolasa tajos esošo informāciju. Tas neko nedara nevienā citā laikā, neskatās, ko jūs rakstāt, un neko nepatur. Android pieejamības ekrāns brīdina par visu, ko šāda veida pakalpojums varētu darīt. Šis nospiež šo slēdzi tikai tad, kad jūs pieprasāt dalīto ekrānu.</string>
     <string name="common_special_access_split_screen_title">Pieejamības pakalpojums dalītam ekrānam</string>
+    <string name="common_special_access_system_buttons_body">Android ļauj citai lietotnei uzņemt ekrānuzņēmumu, atgriezties vai atvērt nesen lietotās lietotnes, lietotņu atvilktni, paziņojumu joslu vai ātro iestatījumu paneļus tikai, izmantojot pieejamības pakalpojumu. Kad šis pakalpojums ir ieslēgts, Ekrānuzņēmumu rīks un peldošā poga nospiež šīs sistēmas pogas jūsu vietā — tās pašas, kas ir Android pašas navigācijai un joslai. Ekrānuzņēmums tiek saglabāts turpat, kur visi ekrānuzņēmumi. Pakalpojums citā laikā neko nedara. Tas nenolasa ekrānu, neskatās, ko jūs rakstāt, un neko nepatur. Android pieejamības ekrāns brīdina par visu, ko šāds pakalpojums varētu paveikt. Šis pakalpojums nospiež sistēmas pogu tikai tad, kad jūs to lūdzat.</string>
+    <string name="common_special_access_system_buttons_title">Pieejamības pakalpojums sistēmas pogām</string>
     <string name="common_special_access_usage_body">Izmantojot lietojuma piekļuvi, tastatūra reģistrē, kura lietotne bija priekšplānā, kad kaut ko kopējāt. Tā parāda šo lietotni, kad nospiežat un turat klipu. Tastatūra nolasa priekšplāna lietotni tikai kopēšanas brīdī. Tā nelasa jūsu vēsturi vai laiku, ko pavadāt lietotnē. Tastatūra saglabā atbildi kopā ar klipu tikai jūsu ierīcē. Nekas par jūsu lietotņu lietojumu neatstāj jūsu ierīci. Iestatījums ir neobligāts. Tas paliek izslēgts, līdz to ieslēdzat.</string>
     <string name="common_special_access_usage_title">Lietošanas piekļuve starpliktuves avota lietotnēm</string>
     <string name="common_type_setting_value_desc">Ievadiet vērtību %1$s</string>

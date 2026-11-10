@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Sfondi</string>
     <string name="core_tools_provider_acrcloud_desc">Un servizio di riconoscimento musicale con una prova di due settimane, seguita da piani a pagamento. Richiede l\'host, la chiave di accesso e il segreto di accesso di un progetto da console.acrcloud.com. Ogni clip viene inviata ad ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">Stable Diffusion gratuito sui computer dei volontari. Funziona senza chiave ma attende in coda; una chiave gratuita da aihorde.net ti fa avanzare.</string>
+    <string name="core_tools_provider_allratestoday_desc">Tassi di riferimento della Banca Centrale Europea per circa 30 valute. Nessuna chiave.</string>
     <string name="core_tools_provider_anthropic_desc">Modelli Claude tramite l\'API di Anthropic, con la tua chiave personale.</string>
     <string name="core_tools_provider_asr4all_desc">Dettatura in inglese sul telefono, con le parole che appaiono mentre parli.</string>
     <string name="core_tools_provider_audd_desc">Riconosce la maggior parte della musica pubblicata da pochi secondi di audio. Richiede un token da dashboard.audd.io; alcune centinaia di riconoscimenti sono gratuiti, poi è a pagamento. Ogni clip viene inviata ad AudD.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Un modello di grandi dimensioni che viene eseguito sul telefono e comprende 25 lingue europee.</string>
     <string name="core_tools_provider_pexels_desc">Foto da Pexels. Richiede una chiave API, a meno che questa build non ne abbia già una.</string>
     <string name="core_tools_provider_pollinations_desc">Gratuito, senza chiave e senza account: il prompt viene inviato a Pollinations, che sceglie il modello. Una chiave da enter.pollinations.ai apre la sua API più recente e ti permette di nominare un modello.</string>
+    <string name="core_tools_provider_privatemode">IA in modalità privata</string>
+    <string name="core_tools_provider_privatemode_desc">IA che viene eseguita in computing confidenziale e non puo leggere il tuo testo. Inserisci la tua chiave API di Privatemode. La tastiera cifrera ogni richiesta sul telefono, ma non verifichera l attestazione hardware del servizio. Per verificare anche quella, esegui privatemode-proxy e fornisci il suo indirizzo, ad esempio http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (non ufficiale, tramite RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Catalogo di Shazam tramite un elenco non ufficiale su RapidAPI, con una chiave RapidAPI. Non è un servizio Apple: l\'elenco potrebbe cambiare o interrompersi senza preavviso. Ogni clip viene inviata a RapidAPI.</string>
     <string name="core_tools_provider_recraft_desc">Illustrazioni, icone e arte in stile vettoriale. Richiede una chiave da recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Foto da Unsplash. Richiede una chiave API, a meno che questa build non ne abbia una.</string>
     <string name="core_tools_provider_vision_ocr">Il tuo modello di visione</string>
     <string name="core_tools_provider_vision_ocr_desc">Un modello che legge le immagini, tramite un server che risponde alle richieste di chat di OpenAI. Necessita dell\'indirizzo e del nome del modello.</string>
+    <string name="core_tools_provider_vosk_desc">Piccoli modelli Kaldi di Alpha Cephei per 29 lingue, circa 40 MB ciascuno, che scrivono mentre parli sul telefono. Abbastanza leggeri per un telefono meno recente.</string>
     <string name="core_tools_provider_whisper_desc">Modelli Whisper di OpenAI, eseguiti sul telefono. Molte lingue; scarica un modello nella pagina di digitazione vocale.</string>
     <string name="core_tools_provider_whistle_desc">Un modello piccolo e veloce che viene eseguito sul telefono. Scaricalo nella pagina di digitazione vocale.</string>
     <string name="core_tools_provider_xai_desc">Modelli Grok tramite l\'API di xAI, con la tua chiave personale.</string>

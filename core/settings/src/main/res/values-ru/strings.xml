@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Другой сервис</string>
     <string name="core_settings_ai_provider_on_device_label">На вашем устройстве</string>
+    <string name="core_settings_ai_provider_privatemode_label">Конфиденциальный режим</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Время суток</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Восход и закат</string>
     <string name="core_settings_auto_theme_trigger_system_label">Системная светлая или темная</string>

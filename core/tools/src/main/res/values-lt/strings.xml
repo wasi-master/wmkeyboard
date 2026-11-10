@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Ekrano užsklandos</string>
     <string name="core_tools_provider_acrcloud_desc">Muzikos atpažinimo paslauga su dviejų savaičių bandomuoju laikotarpiu, vėliau – mokami planai. Reikalingas projekto pagrindinis kompiuteris, prieigos raktas ir prieigos paslaptis iš console.acrcloud.com. Kiekvienas klipas siunčiamas į ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">Nemokamas „Stable Diffusion“ savanorių kompiuteriuose. Veikia be rakto, bet reikia laukti eilėje; nemokamas raktas iš aihorde.net pakelia jus eilėje aukštyn.</string>
+    <string name="core_tools_provider_allratestoday_desc">Europos Centrinio Banko orientaciniai kursai maždaug 30 valiutų. Be rakto.</string>
     <string name="core_tools_provider_anthropic_desc">„Claude“ modeliai per „Anthropic“ API, naudojant jūsų asmeninį raktą.</string>
     <string name="core_tools_provider_asr4all_desc">Anglų kalbos diktavimas telefone, žodžiai pasirodo jums kalbant.</string>
     <string name="core_tools_provider_audd_desc">Atpažįsta daugumą išleistos muzikos iš kelių garso sekundžių. Reikalingas prieigos raktas iš dashboard.audd.io; keli šimtai atpažinimų yra nemokami, vėliau – mokami. Kiekvienas įrašas siunčiamas į „AudD“.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Didelis modelis, kuris veikia telefone ir supranta 25 Europos kalbas.</string>
     <string name="core_tools_provider_pexels_desc">Nuotraukos iš „Pexels“. Reikalingas API raktas, nebent ši versija jį turi.</string>
     <string name="core_tools_provider_pollinations_desc">Nemokamai, be rakto ir be paskyros: užklausa siunčiama „Pollinations“, kuris pasirenka modelį. Raktas iš enter.pollinations.ai atveria naujesnį API ir leidžia pavadinti modelį.</string>
+    <string name="core_tools_provider_privatemode">Privataus režimo dirbtinis intelektas</string>
+    <string name="core_tools_provider_privatemode_desc">Dirbtinis intelektas, veikiantis konfidencialaus skaičiavimo aplinkoje ir negalintis perskaityti jūsų teksto. Pateikite savo „Privatemode“ API raktą. Tada klaviatūra užšifruoja kiekvieną užklausą telefone, tačiau netikrina paslaugos aparatinės įrangos liudijimo. Norėdami patikrinti ir tai, paleiskite „privatemode-proxy“ ir nurodykite jo adresą, pvz., http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">„Shazam“ (neoficialus, per „RapidAPI“)</string>
     <string name="core_tools_provider_rapid_shazam_desc">„Shazam“ katalogas per neoficialų sąrašą „RapidAPI“ su „RapidAPI“ raktu. Tai nėra „Apple“ paslauga: sąrašas gali pasikeisti arba nustoti veikti be įspėjimo. Kiekvienas įrašas siunčiamas į „RapidAPI“.</string>
     <string name="core_tools_provider_recraft_desc">Iliustracijos, piktogramos ir vektorinio stiliaus menas. Reikalingas raktas iš recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Nuotraukos iš „Unsplash“. Reikalingas API raktas, nebent ši versija jį jau turi.</string>
     <string name="core_tools_provider_vision_ocr">Jūsų regėjimo modelis</string>
     <string name="core_tools_provider_vision_ocr_desc">Modelis, kuris nuskaito vaizdus per serverį, atsakantį į „OpenAI“ pokalbių užklausas. Reikalingas adresas ir modelio pavadinimas.</string>
+    <string name="core_tools_provider_vosk_desc">Maži „Alpha Cephei“ „Kaldi“ modeliai 29 kalbomis, maždaug po 40 MB, rašantys tekstu tai, ką sakote telefone. Pakankamai lengvi senesniam telefonui.</string>
     <string name="core_tools_provider_whisper_desc">„OpenAI“ „Whisper“ modeliai, veikiantys telefone. Daug kalbų; atsisiųskite modelį balso įvedimo puslapyje.</string>
     <string name="core_tools_provider_whistle_desc">Mažas, greitas modelis, veikiantis telefone. Atsisiųskite jį balso įvedimo puslapyje.</string>
     <string name="core_tools_provider_xai_desc">„Grok“ modeliai per xAI API, naudojant jūsų raktą.</string>

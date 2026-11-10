@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Ταπετσαρίες</string>
     <string name="core_tools_provider_acrcloud_desc">Μια υπηρεσία αναγνώρισης μουσικής με δοκιμαστική περίοδο δύο εβδομάδων, και στη συνέχεια προγράμματα επί πληρωμή. Απαιτεί το host, το access key και το access secret ενός έργου από το console.acrcloud.com. Κάθε κλιπ αποστέλλεται στο ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">Δωρεάν Stable Diffusion σε υπολογιστές εθελοντών. Λειτουργεί χωρίς κλειδί, αλλά με αναμονή σε ουρά. Ένα δωρεάν κλειδί από το aihorde.net σάς δίνει προτεραιότητα.</string>
+    <string name="core_tools_provider_allratestoday_desc">Τιμές αναφοράς της Ευρωπαϊκής Κεντρικής Τράπεζας για περίπου 30 νομίσματα. Χωρίς κλειδί.</string>
     <string name="core_tools_provider_anthropic_desc">Μοντέλα Claude μέσω του API της Anthropic, με το δικό σας κλειδί.</string>
     <string name="core_tools_provider_asr4all_desc">Υπαγόρευση στα αγγλικά στο τηλέφωνο, με τις λέξεις να εμφανίζονται καθώς μιλάτε.</string>
     <string name="core_tools_provider_audd_desc">Αναγνωρίζει την περισσότερη κυκλοφορούσα μουσική από μερικά δευτερόλεπτα ήχου. Απαιτεί ένα διακριτικό (token) από το dashboard.audd.io· μερικές εκατοντάδες αναγνωρίσεις είναι δωρεάν, μετά υπάρχει χρέωση. Κάθε απόσπασμα αποστέλλεται στο AudD.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Ένα μεγάλο μοντέλο που εκτελείται στο τηλέφωνο και κατανοεί 25 ευρωπαϊκές γλώσσες.</string>
     <string name="core_tools_provider_pexels_desc">Φωτογραφίες από το Pexels. Απαιτεί κλειδί API, εκτός αν αυτή η έκδοση διαθέτει ένα.</string>
     <string name="core_tools_provider_pollinations_desc">Δωρεάν, χωρίς κλειδί και χωρίς λογαριασμό: το prompt αποστέλλεται στο Pollinations, το οποίο επιλέγει το μοντέλο. Ένα κλειδί από το enter.pollinations.ai ξεκλειδώνει το νεότερο API του και σας επιτρέπει να ονομάσετε ένα μοντέλο.</string>
+    <string name="core_tools_provider_privatemode">Privatemode AI</string>
+    <string name="core_tools_provider_privatemode_desc">Τεχνητή νοημοσύνη που εκτελείται σε εμπisτευτικό περιβάλλον υπολογιστών και δεν μπορεί να διαβάσει το κείμενό σας. Δώστε το κλειδί API Privatemode. Στη συνέχεια, το πληκτρολόγιο κρυπτογραφεί κάθε αίτημα στο τηλέφωνο, αλλά δεν ελέγχει την πιστοποίηση υλικού της υπηρεσίας. Για να ελεγχθεί και αυτό, εκτελέστε το privatemode-proxy και δώστε τη διεύθυνσή του, όπως http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (ανεπίσημο, μέσω RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Ο κατάλογος του Shazam μέσω ανεπίσημης λίστας στο RapidAPI, με χρήση κλειδιού RapidAPI. Δεν πρόκειται για υπηρεσία της Apple: η λίστα ενδέχεται να αλλάξει ή να διακοπεί χωρίς προειδοποίηση. Κάθε απόσπασμα αποστέλλεται στο RapidAPI.</string>
     <string name="core_tools_provider_recraft_desc">Εικονογραφήσεις, εικονίδια και τέχνη σε στυλ διανυσματικών γραφικών. Απαιτείται κλειδί από το recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Φωτογραφίες από το Unsplash. Απαιτείται κλειδί API, εκτός αν αυτή η έκδοση διαθέτει ήδη ένα.</string>
     <string name="core_tools_provider_vision_ocr">Το μοντέλο όρασής σας</string>
     <string name="core_tools_provider_vision_ocr_desc">Ένα μοντέλο που διαβάζει εικόνες, μέσω ενός διακομιστή που απαντά σε αιτήματα συνομιλίας OpenAI. Απαιτεί τη διεύθυνση και το όνομα του μοντέλου.</string>
+    <string name="core_tools_provider_vosk_desc">Μικρά μοντέλα Kaldi από την Alpha Cephei για 29 γλώσσες, περίπου 40 MB το καθένα, που πληκτρολογούν καθώς μιλάτε στο τηλέφωνο. Αρκετά ελαφρύ για παλαιότερο τηλέφωνο.</string>
     <string name="core_tools_provider_whisper_desc">Τα μοντέλα Whisper της OpenAI, που εκτελούνται στο τηλέφωνο. Πολλές γλώσσες· κατεβάστε ένα μοντέλο στη σελίδα Φωνητική πληκτρολόγηση.</string>
     <string name="core_tools_provider_whistle_desc">Ένα μικρό, γρήγορο μοντέλο που εκτελείται στο τηλέφωνο. Κατεβάστε το στη σελίδα Φωνητική πληκτρολόγηση.</string>
     <string name="core_tools_provider_xai_desc">Μοντέλα Grok μέσω του API της xAI, με το δικό σας κλειδί.</string>

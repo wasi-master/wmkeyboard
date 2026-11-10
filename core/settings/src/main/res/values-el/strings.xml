@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Άλλη υπηρεσία</string>
     <string name="core_settings_ai_provider_on_device_label">Στη συσκευή σας</string>
+    <string name="core_settings_ai_provider_privatemode_label">Λειτουργία ιδιωτικότητας</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Ώρα της ημέρας</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Ανατολή και δύση ηλίου</string>
     <string name="core_settings_auto_theme_trigger_system_label">Φωτεινό ή σκοτεινό θέμα συστήματος</string>

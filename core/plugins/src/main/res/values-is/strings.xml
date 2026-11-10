@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Sú viðbót hefur ekki lengur þessa aðgerð.</string>
     <string name="core_plugins_error_no_render">Þessi viðbót hefur enga render() virkni.</string>
+    <string name="core_plugins_error_no_transform">Þessi viðbót er ekki með transform() fall.</string>
     <string name="core_plugins_error_not_installed">Sú viðbót er ekki uppsett.</string>
+    <string name="core_plugins_error_not_ready">Viðbætur eru enn að hlaðast niður. Reyndu aftur eftir smá stund.</string>
     <string name="core_plugins_error_script_failed">Skriftan mistókst.</string>
     <string name="core_plugins_error_script_missing">Skriftan fyrir þá viðbót vantar.</string>
     <string name="core_plugins_error_turned_off">Þessi viðbót er slökkt.</string>
     <string name="core_plugins_permission_reminders_label">Sýna áminningar á þeim tímum sem þú stillir</string>
+    <string name="core_plugins_permission_selection_label">Breyttu texta sem þú velur, þegar þú ýtir á eina af aðgerðum hans</string>
     <string name="core_plugins_permission_storage_label">Vista gögn á tækinu þínu</string>
+    <string name="core_plugins_reject_action_input">„%1$s“ er með aðgerð sem fer fram á texta sem þessi útgáfa af WM lyklaborðinu getur ekki veitt.</string>
+    <string name="core_plugins_reject_action_no_name">„%1$s“ er með aðgerð án nafns.</string>
+    <string name="core_plugins_reject_actions_need_selection">„%1$s“ bætir við aðgerðum fyrir valinn texta en biður ekki um leyfi til að breyta honum.</string>
+    <string name="core_plugins_reject_bad_action_id">„%1$s“ er með aðgerð þar sem auðkenni vantar, er endurtekið eða er ekki gilt. Auðkenni aðgerðar er allt að 32 lágstafir, tölustafir, bandstrik og undirstrik.</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ er með forskrift sem er ekki gildur UTF-8 texti.</string>
     <string name="core_plugins_reject_bad_id">Þessi viðbót er með ógilt auðkenni. Auðkenni er 3 til 64 stafir að lengd. Auðkenni getur innihaldið lágstafi, tölustafi, punkta, bandstrik og undirstrik.</string>
     <string name="core_plugins_reject_empty_script">„%1$s“ er með tómt skrift.</string>
+    <string name="core_plugins_reject_lua">„%1$s“ er skrifað í Lua, sem WM Keyboard keyrir ekki lengur. Leitaðu að Python útgáfunni.</string>
     <string name="core_plugins_reject_missing_script">„%1$s“ vantar forskriftarskrána sína (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Þessi viðbót þarf nýrri útgáfu af WM lyklaborðinu.</string>
     <string name="core_plugins_reject_no_name">Þessi viðbót hefur ekkert nafn.</string>
     <string name="core_plugins_reject_no_version">„%1$s“ segir ekki til um hvaða útgáfa það er.</string>
+    <string name="core_plugins_reject_nothing_to_show">„%1$s“ er með engan stjórnborð og engar aðgerðir, þannig að það er ekkert fyrir það að gera.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s“ er með forskrift sem er stærri en %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">„%1$s“ biður um að breyta texta sem þú valdir en bætir við engum aðgerðum.</string>
+    <string name="core_plugins_reject_too_many_actions">„%1$s“ bætir við fleiri en 16 aðgerðum.</string>
+    <string name="core_plugins_reject_unknown_language">„%1$s“ er skrifað á tungumáli sem þessi útgáfa af WM Keyboard getur ekki keyrt. Viðbætur eru skrifaðar í Python.</string>
     <string name="core_plugins_reject_unknown_permission">Þessi útgáfa af WM lyklaborðinu þekkir ekki heimildina „%1$s“. Forritið getur ekki sagt þér hvað „%2$s“ hefur leyfi til að gera.</string>
     <string name="core_plugins_reminders_channel_body">Áminningar sem viðbót bað forritið um að sýna, á þeim tímum sem þú stillir í viðbótinni. Titill hverrar áminningar er nafn viðbótarinnar.</string>
     <string name="core_plugins_reminders_channel_title">Áminningar viðbóta</string>
     <string name="core_plugins_stopped_cancelled">Forritið stöðvaði þessa viðbót.</string>
     <string name="core_plugins_stopped_deadline">Þessi viðbót tók of langan tíma. Forritið stöðvaði hana.</string>
     <string name="core_plugins_stopped_instructions">Þessi viðbót vann of mikið í einu. Forritið stöðvaði hana.</string>
+    <string name="core_plugins_stopped_memory">Þessi viðbót reynði að geyma of mikið af gögnum. Appið stöðvaði hana.</string>
     <string name="core_plugins_stopped_not_responding">Þessi viðbót hætti að svara. Forritið lokaði henni.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Þessi viðbót hætti að svara aftur. Forritið slökkti á henni.</string>
     <string name="core_plugins_stopped_recursion">Þessi viðbót kallaði á sjálfa sig of oft. Forritið stöðvaði hana.</string>

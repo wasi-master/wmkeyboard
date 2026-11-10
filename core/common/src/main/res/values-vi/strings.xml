@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Đã tạm dừng: việc lưu dữ liệu đang giữ các bản tải xuống trên kết nối này. Quá trình sẽ tiếp tục từ nơi đã dừng.</string>
     <string name="common_error_generic">Đã xảy ra lỗi. Vui lòng thử lại.</string>
     <string name="common_error_network">Không có kết nối. Hãy kiểm tra mạng của bạn và thử lại.</string>
+    <string name="common_error_network_permission_off">Quyền truy cập mạng của Bàn phím WM bị tắt trong cài đặt của điện thoại, do đó tính năng này không hoạt động. Hãy bật nó trong Cài đặt Android › Ứng dụng › Bàn phím WM › Quyền (trên GrapheneOS, quyền Mạng), sau đó thử lại.</string>
     <string name="common_error_no_internet_permission">Bản dựng này của bàn phím không thể kết nối với internet.</string>
     <string name="common_error_timeout">Yêu cầu mất quá nhiều thời gian. Hãy thử lại.</string>
     <string name="common_export">Xuất</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Thêm</string>
     <string name="common_next">Tiếp theo</string>
     <string name="common_none">Không có</string>
+    <string name="common_notify_channel_alarms_body">Báo thức đang tạm hoãn hoặc sắp đổ chuông, và báo thức đã đổ chuông mà không có ai ở đó. Bản thân tiếng chuông có một kênh riêng.</string>
+    <string name="common_notify_channel_alarms_title">Thông báo báo thức</string>
     <string name="common_notify_channel_backup_body">Chỉ khi sao lưu tự động thất bại. Các bản sao lưu thành công sẽ không có thông báo.</string>
     <string name="common_notify_channel_backup_title">Sự cố sao lưu</string>
     <string name="common_notify_channel_clock_body">Bộ hẹn giờ và đồng hồ bấm giờ khi đang chạy, với các nút để tạm dừng, thêm một phút hoặc dừng chúng.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Điều khiển bàn phím</string>
     <string name="common_notify_channel_send_body">Một quá trình tải lên hoặc tải xuống của công cụ Gửi tệp đã hoàn tất trong khi bàn phím bị ẩn, kèm theo liên kết để sao chép và một tệp mà thiết bị gần đó đã gửi.</string>
     <string name="common_notify_channel_send_title">Đang gửi và nhận tệp</string>
+    <string name="common_notify_channel_stopwatch_body">Đồng hồ bấm giờ khi đang chạy hoặc tạm dừng, có các nút để bấm vòng, tạm dừng và đặt lại.</string>
+    <string name="common_notify_channel_stopwatch_title">Đồng hồ bấm giờ</string>
     <string name="common_notify_channel_updates_body">Một phiên bản mới để cài đặt, một bản cập nhật đang chờ bạn nhấn cài đặt và xác nhận sau khi một phiên bản được cài đặt.</string>
     <string name="common_notify_channel_updates_title">Cập nhật ứng dụng</string>
     <string name="common_notify_download_done">Sẵn sàng sử dụng</string>
     <string name="common_notify_download_failed">Không thể tải xuống %1$s</string>
     <string name="common_notify_download_handwriting">Chữ viết tay %1$s</string>
     <string name="common_notify_download_progress">%1$s trên %2$s</string>
+    <string name="common_notify_download_step_library">Bước 1 trên 2, thư viện công cụ: %1$s</string>
+    <string name="common_notify_download_step_model">Băng 2 trến 2, mô hình: %1$s</string>
     <string name="common_notify_download_translate">Dịch ngoại tuyến %1$s</string>
     <string name="common_notify_download_voice">Giọng nói ngoại tuyến %1$s</string>
     <string name="common_off">Tắt</string>
+    <string name="common_offline_build_download">Đây là bản dựng ngoại tuyến nên không thể tải xuống nội dung này. Hãy lấy tệp trên thiết bị khác và nhập: Cài đặt › Giới thiệu › Bộ nhớ › Nhập tệp đã tải xuống hoặc dòng Nhập của màn hình này nếu có. Hoặc cài đặt bản dựng tiêu chuẩn từ cùng trang phát hành đè lên bản này, bản dựng sẽ tự động tải xuống. Các cài đặt và từ đã học của bạn sẽ được giữ nguyên.</string>
+    <string name="common_offline_build_library">Đây là bản dựng ngoại tuyến nên không thể tải xuống thư viện cần thiết. Hãy lấy tệp của nó trên thiết bị khác và nhập vào Cài đặt › Quyền riêng tư › Thư viện tính năng (nơi liệt kê tệp chính xác). Hoặc cài đặt bản dựng tiêu chuẩn từ cùng trang phát hành đè lên bản này, bản dựng sẽ tự động tải xuống. Các cài đặt và từ đã học của bạn sẽ được giữ nguyên.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">Bật</string>
     <string name="common_open_system_settings">Mở cài đặt hệ thống</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Dịch vụ hỗ trợ tiếp cận cho nút AI</string>
     <string name="common_special_access_split_screen_body">Một số điện thoại mở ứng dụng ở chế độ toàn màn hình khi bàn phím yêu cầu chia đôi màn hình. Khi bật dịch vụ này, việc mở ứng dụng ở chế độ chia đôi màn hình từ trình khởi chạy ứng dụng hoặc mở một cặp màn hình chia đôi sẽ nhấn vào công tắc chia đôi màn hình của chính Android trước, giống với công tắc trong menu Gần đây, sau đó ứng dụng sẽ mở ra ở nửa màn hình còn lại. Trước khi nhấn, dịch vụ sẽ kiểm tra vị trí của các cửa sổ ứng dụng để xem màn hình chia đôi đã được bật chưa. Dịch vụ tuyệt đối không đọc nội dung bên trong các cửa sổ đó. Dịch vụ không thực hiện bất kỳ thao tác nào khác, không theo dõi những gì bạn gõ và không lưu giữ bất kỳ thông tin gì. Màn hình trợ năng của Android cảnh báo về mọi việc mà một dịch vụ như thế này có thể làm. Dịch vụ này chỉ nhấn công tắc đó khi bạn yêu cầu chia đôi màn hình.</string>
     <string name="common_special_access_split_screen_title">Dịch vụ trợ năng cho chế độ chia đôi màn hình</string>
+    <string name="common_special_access_system_buttons_body">Android cho phép một ứng dụng khác chụp ảnh màn hình, quay lại, hoặc mở ứng dụng gần đây, ngăn kéo ứng dụng, bảng thông báo hoặc cài đặt nhanh chỉ thông qua dịch vụ trợ năng. Khi bật dịch vụ này, công cụ Chụp màn hình và nút nổi sẽ nhấn các nút hệ thống đó thay cho bạn, giống như thanh điều hướng và bảng thông báo của riêng Android. Ảnh chụp màn hình được lưu vào nơi lưu trữ của mọi ảnh chụp màn hình. Dịch vụ không làm gì khác vào bất kỳ thời điểm nào khác. Dịch vụ không đọc màn hình, không theo dõi những gì bạn gõ và không giữ lại gì cả. Màn hình trợ năng của Android cảnh báo về mọi thứ mà một dịch vụ như thế này có thể làm. Dịch vụ này chỉ nhấn nút hệ thống khi bạn yêu cầu.</string>
+    <string name="common_special_access_system_buttons_title">Dịch vụ trợ năng cho các nút hệ thống</string>
     <string name="common_special_access_usage_body">Với quyền truy cập sử dụng, bàn phím sẽ ghi lại ứng dụng nào đang ở phía trước khi bạn sao chép nội dung. Nó hiển thị ứng dụng đó khi bạn nhấn và giữ clip. Bàn phím chỉ đọc ứng dụng phía trước tại thời điểm sao chép. Nó không đọc lịch sử hoặc thời gian bạn sử dụng ứng dụng. Bàn phím giữ câu trả lời cùng với clip, chỉ trên thiết bị của bạn. Không có thông tin nào về việc sử dụng ứng dụng của bạn rời khỏi thiết bị. Cài đặt này là tùy chọn. Nó vẫn tắt cho đến khi bạn bật lên.</string>
     <string name="common_special_access_usage_title">Quyền truy cập sử dụng cho các ứng dụng nguồn khay nhớ tạm</string>
     <string name="common_type_setting_value_desc">Nhập giá trị cho %1$s</string>

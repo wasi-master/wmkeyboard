@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Druga storitev</string>
     <string name="core_settings_ai_provider_on_device_label">V vaši napravi</string>
+    <string name="core_settings_ai_provider_privatemode_label">Zasebni način</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Čas dneva</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Sončni vzhod in zahod</string>
     <string name="core_settings_auto_theme_trigger_system_label">Sistemska svetla ali temna tema</string>

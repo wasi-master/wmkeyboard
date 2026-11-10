@@ -37,6 +37,7 @@
     <string name="common_error_download_held">已暂停：数据节省模式在此连接下会暂停下载。它将在停止处继续。</string>
     <string name="common_error_generic">出现故障。请重试。</string>
     <string name="common_error_network">无连接。请检查您的网络并重试。</string>
+    <string name="common_error_network_permission_off">WM Keyboard 的网络访问权限在手机设置中已关闭，因此此功能无法使用。请在“Android 设置 › 应用 › WM Keyboard › 权限”（在 GrapheneOS 上为“网络”权限）中将其开启，然后重试。</string>
     <string name="common_error_no_internet_permission">此版本的键盘无法连接到互联网。</string>
     <string name="common_error_timeout">请求耗时过长。请重试。</string>
     <string name="common_export">导出</string>
@@ -48,6 +49,8 @@
     <string name="common_more">更多</string>
     <string name="common_next">下一步</string>
     <string name="common_none">无</string>
+    <string name="common_notify_channel_alarms_body">此通道用于稍后提醒或即将响铃的闹钟，以及无人应答的已响闹钟。响铃本身拥有独立的通道。</string>
+    <string name="common_notify_channel_alarms_title">闹钟通知</string>
     <string name="common_notify_channel_backup_body">仅在自动备份失败时通知。成功的备份不会发出通知。</string>
     <string name="common_notify_channel_backup_title">备份问题</string>
     <string name="common_notify_channel_clock_body">计时器和秒表运行时的状态，包含暂停、增加一分钟或停止它们的按钮。</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">键盘控制</string>
     <string name="common_notify_channel_send_body">当键盘隐藏时，Send 文件工具已完成上传或下载，包含复制链接以及附近设备发送的文件。</string>
     <string name="common_notify_channel_send_title">发送和接收文件</string>
+    <string name="common_notify_channel_stopwatch_body">秒表运行或暂停时显示，带有计圈、暂停和重置按钮。</string>
+    <string name="common_notify_channel_stopwatch_title">秒表</string>
     <string name="common_notify_channel_updates_body">有新版本可供安装，有更新等待您点击安装，以及安装完成后的确认信息。</string>
     <string name="common_notify_channel_updates_title">应用更新</string>
     <string name="common_notify_download_done">可以使用了</string>
     <string name="common_notify_download_failed">无法下载 %1$s</string>
     <string name="common_notify_download_handwriting">%1$s 手写</string>
     <string name="common_notify_download_progress">%1$s / %2$s</string>
+    <string name="common_notify_download_step_library">第 1 步（共 2 步），引擎库：%1$s</string>
+    <string name="common_notify_download_step_model">第 2 步，共 2 步，模型：%1$s</string>
     <string name="common_notify_download_translate">%1$s 离线翻译</string>
     <string name="common_notify_download_voice">%1$s 离线语音</string>
     <string name="common_off">关闭</string>
+    <string name="common_offline_build_download">这是离线版本，因此无法下载此内容。请在其他设备上获取文件并导入：通过“设置 › 关于 › 存储 › 导入下载的文件”或此屏幕自身的“导入”行（如果该行存在）导入。或者在该版本的发布页面上将标准版本安装覆盖此版本，它就会自动下载。你的设置和学习过的词汇会保留。</string>
+    <string name="common_offline_build_library">这是离线版本，因此无法下载此功能所需的库。请在其他设备上获取其文件，并在“设置” › “隐私” › “功能库”中导入（其中列出了确切的文件）。或者，直接在同一发布页面上将标准版本安装在此版本之上，它将自行下载。你的设置和学习过的词汇将得以保留。</string>
     <string name="common_ok">确定</string>
     <string name="common_on">开启</string>
     <string name="common_open_system_settings">打开系统设置</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">AI 按钮的辅助功能服务</string>
     <string name="common_special_access_split_screen_body">当键盘请求分屏时，某些手机会全屏打开应用。开启此服务后，从应用启动器中以分屏方式打开应用，或打开分屏对时，会先按下 Android 自带的分屏开关（与“最近任务”菜单中的开关相同），然后应用会在空闲的一半屏幕中打开。在按下之前，该服务会检查应用窗口的位置，以确认分屏是否已经处于开启状态。它绝不会读取其中的内容。在其他任何时间它都不会执行任何操作，不会监视您的输入，也不会保留任何内容。Android 的无障碍屏幕会警告此类服务可能执行的所有操作。本服务仅在您请求分屏时按下该开关。</string>
     <string name="common_special_access_split_screen_title">分屏无障碍服务</string>
+    <string name="common_special_access_system_buttons_body">Android 允许另一个应用仅通过辅助功能服务截屏、返回或打开最近使用的应用、应用抽屉、通知栏或快速设置。开启此服务后，截屏工具和悬浮按钮会为您按下这些系统按钮，这与 Android 自身的导航栏和通知栏相同。截屏会保存在所有截屏的默认位置。该服务在其他任何时候都不会执行任何操作。它不会读取屏幕、不会监视您输入的内容且不会保留任何数据。Android 的辅助功能屏幕会警告此类服务可能执行的所有操作。本服务仅在您要求时按下系统按钮。</string>
+    <string name="common_special_access_system_buttons_title">系统按钮的无障碍服务</string>
     <string name="common_special_access_usage_body">开启使用情况访问权限后，键盘会记录您在复制内容时处于前台的应用程序。当您按住剪贴板内容时，它会显示该应用程序。键盘仅在复制瞬间读取前台应用程序。它不会读取您的历史记录或您在应用程序中的使用时长。键盘会将答案与剪贴板内容一起保留，且仅保存在您的设备上。关于您应用程序使用情况的任何信息都不会离开您的设备。此设置是可选的。在您开启之前，它将保持关闭状态。</string>
     <string name="common_special_access_usage_title">剪贴板来源应用的使用情况访问权限</string>
     <string name="common_type_setting_value_desc">为 %1$s 输入一个值</string>

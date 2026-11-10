@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Orodna vrstica</string>
     <string name="core_icons_group_tools_title">Orodja</string>
     <string name="core_icons_pack_imported_label">Uvožene ikone</string>
-    <string name="core_icons_pack_mine_label">Moje ikone</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Aplikacija je prezrla %1$d datoteko. Ta različica zanjo nima ikone: %2$s</item>
         <item quantity="other">Aplikacija je prezrla %1$d datotek. Ta različica zanje nima ikone: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tipka Tab</string>
     <string name="core_icons_slot_toolbox_label">Orodjarna</string>
     <string name="core_icons_slot_toolbox_search_label">Iskanje po orodjarni</string>
+    <string name="core_icons_pack_mine_label">Moje ikone</string>
 </resources>

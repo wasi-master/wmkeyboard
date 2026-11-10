@@ -37,6 +37,7 @@
     <string name="common_error_download_held">થોભાવેલું: ડેટા સેવિંગ આ કનેક્શન પર ડાઉનલોડને અટકાવે છે. તે જ્યાં અટક્યું હતું ત્યાંથી ચાલુ રહેશે.</string>
     <string name="common_error_generic">કંઈક કામ કરતું નથી. ફરી પ્રયાસ કરો.</string>
     <string name="common_error_network">કોઈ કનેક્શન નથી. તમારું નેટવર્ક તપાસો અને ફરી પ્રયાસ કરો.</string>
+    <string name="common_error_network_permission_off">તમારા ફોનની સેટિંગ્સમાં WM કીબોર્ડનું નેટવર્ક એક્સેસ બંધ છે, તેથી આ કામ કરતું નથી. Android સેટિંગ્સ › એપ્લિકેશન્સ › WM કીબોર્ડ › પરવાનગીઓ (GrapheneOS પર, નેટવર્ક પરવાનગી) માં તેને ચાલુ કરો, પછી ફરી પ્રયાસ કરો.</string>
     <string name="common_error_no_internet_permission">કીબોર્ડનું આ બિલ્ડ ઇન્ટરનેટ સાથે કનેક્ટ થઈ શકતું નથી.</string>
     <string name="common_error_timeout">વિનંતીમાં ઘણો સમય લાગ્યો. ફરી પ્રયાસ કરો.</string>
     <string name="common_export">નિકાસ કરો</string>
@@ -48,6 +49,8 @@
     <string name="common_more">વધુ</string>
     <string name="common_next">આગળ</string>
     <string name="common_none">કોઈ નહીં</string>
+    <string name="common_notify_channel_alarms_body">સ્નૂઝ કરેલ અથવા વાગવાની તૈયારીમાં હોય તેવું એલાર્મ, અને કોઈ હાજર ન હોય ત્યારે વાગેલું એલાર્મ. રિંગિંગ માટે પોતાની એક અલગ ચેનલ છે.</string>
+    <string name="common_notify_channel_alarms_title">અલાર્મ સૂચનાઓ</string>
     <string name="common_notify_channel_backup_body">માત્ર ત્યારે જ જ્યારે સ્વયંસંચાલિત બેકઅપ નિષ્ફળ જાય. સફળ બેકઅપ સાયલન્ટ હોય છે.</string>
     <string name="common_notify_channel_backup_title">બેકઅપ સમસ્યાઓ</string>
     <string name="common_notify_channel_clock_body">ટાઈમર અને સ્ટોપવોચ જ્યારે ચાલે છે, ત્યારે તેને થોભાવવા, એક મિનિટ ઉમેરવા અથવા બંધ કરવા માટેના બટનો સાથે.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">કીબોર્ડ નિયંત્રણો</string>
     <string name="common_notify_channel_send_body">જ્યારે કીબોર્ડ છુપાયેલું હતું ત્યારે સેન્ડ ફાઇલ્સ ટૂલ દ્વારા અપલોડ અથવા ડાઉનલોડ પૂર્ણ થયું, કોપી કરવા માટેની લિંક સાથે, અને નજીકના ઉપકરણ દ્વારા મોકલેલી ફાઇલ સાથે.</string>
     <string name="common_notify_channel_send_title">ફાઇલો મોકલવી અને પ્રાપ્ત કરવી</string>
+    <string name="common_notify_channel_stopwatch_body">સ્ટોપવૉચ જ્યારે તે ચાલે છે અથવા અટકાવાયેલ છે, લેપ, અટકાવવા અને રીસેટ કરવા માટેના બટનો સાથે.</string>
+    <string name="common_notify_channel_stopwatch_title">સ્ટોપવોચ</string>
     <string name="common_notify_channel_updates_body">ઇન્સ્ટોલ કરવા માટે એક નવું સંસ્કરણ, તમારા ઇન્સ્ટોલ દબાવવાની રાહ જોતું અપડેટ, અને એકવાર ઇન્સ્ટોલ થઈ ગયા પછી પુષ્ટિ.</string>
     <string name="common_notify_channel_updates_title">એપ અપડેટ્સ</string>
     <string name="common_notify_download_done">ઉપયોગ માટે તૈયાર</string>
     <string name="common_notify_download_failed">%1$s ડાઉનલોડ કરી શકાયું નથી</string>
     <string name="common_notify_download_handwriting">%1$s હસ્તલેખન</string>
     <string name="common_notify_download_progress">%2$s માંથી %1$s</string>
+    <string name="common_notify_download_step_library">પગલું 1 માંથી 2, એન્જિન લાઇબ્રેરી: %1$s</string>
+    <string name="common_notify_download_step_model">2 માંથી પગલું 2, મોડેલ: %1$s</string>
     <string name="common_notify_download_translate">%1$s ઑફલાઇન અનુવાદ</string>
     <string name="common_notify_download_voice">%1$s ઑફલાઇન વૉઇસ</string>
     <string name="common_off">બંધ</string>
+    <string name="common_offline_build_download">આ ઑફલાઇન બિલ્ડ છે, તેથી તે આ ડાઉનલોડ કરી શકતું નથી. બીજા ઉપકરણ પર ફાઇલ મેળવો અને તેને આયાત કરો: સેટિંગ્સ › વિશે › સંગ્રહ › ડાઉનલોડ કરેલી ફાઇલો આયાત કરો તેને લે છે, અથવા આ સ્ક્રીનની પોતાની આયાત પંક્તિ જ્યાં તે છે. અથવા આના ઉપર સમાન રિલીઝ પૃષ્ઠમાંથી પ્રમાણભૂત બિલ્ડ ઇન્સ્ટોલ કરો, અને તે જાતે જ ડાઉનલોડ થાય છે. તમારી સેટિંગ્સ અને શીખેલા શબ્દો રહે છે.</string>
+    <string name="common_offline_build_library">આ ઑફલાઇન બિલ્ડ છે, તેથી તે જરૂરી લાઇબ્રેરી ડાઉનલોડ કરી શકતું નથી. બીજી ડિવાઇસ પર તેની ફાઇલ મેળવો અને તેને સેટિંગ્સ › પ્રાઇવસી › ફીચર લાઇબ્રેરીઝમાં આયાત કરો, જે ચોક્કસ ફાઇલની યાદી આપે છે. અથવા આના ઉપર સમાન રિલીઝ પૃષ્ઠ પરથી સ્ટાન્ડર્ડ બિલ્ડ ઇન્સ્ટોલ કરો, અને તે જાતે જ ડાઉનલોડ થઈ જશે. તમારી સેટિંગ્સ અને શીખેલા શબ્દો યથાવત રહેશે.</string>
     <string name="common_ok">ઓકે</string>
     <string name="common_on">ચાલુ</string>
     <string name="common_open_system_settings">સિસ્ટમ સેટિંગ્સ ખોલો</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">AI બટન માટે ઍક્સેસિબિલિટી સર્વિસ</string>
     <string name="common_special_access_split_screen_body">જ્યારે કીબોર્ડ સ્પ્લિટ સ્ક્રીન માટે પૂછે ત્યારે કેટલાક ફોન એપ્લિકેશનને ફુલ સ્ક્રીન પર ખોલે છે. આ સેવા ચાલુ હોવાથી, એપ્લિકેશન લૉન્ચરમાંથી સ્પ્લિટ સ્ક્રીનમાં એપ્લિકેશન ખોલવાથી અથવા સ્પ્લિટ સ્ક્રીન જોડી ખોલવાથી, પહેલા Android નું પોતાનું સ્પ્લિટ સ્ક્રીન સ્વીચ દબાય છે, જે રીસેન્ટ્સ મેનૂમાં હોય છે, અને પછી એપ્લિકેશન મુક્ત અડધા ભાગમાં ખુલે છે. તેને દબાવતા પહેલા, સેવા તપાસે છે કે સ્પ્લિટ સ્ક્રીન પહેલેથી જ ચાલુ છે કે નહીં તે જોવા માટે એપ્લિકેશન વિન્ડો ક્યાં છે. તે ક્યારેય વાંચતી નથી કે તેમાં શું છે. તે બીજા કોઈપણ સમયે કંઈ કરતી નથી, તમે શું ટાઈપ કરો છો તેનું નિરીક્ષણ કરતી નથી અને કંઈપણ રાખતી નથી. Android ની એક્સેસિબિલિટી સ્ક્રીન આવી સેવા જે કરી શકે તે બધું વિશે ચેતવણી આપે છે. જ્યારે તમે સ્પ્લિટ સ્ક્રીન માટે કહો ત્યારે આ એક ફક્ત તે સ્વીચ દબાવે છે.</string>
     <string name="common_special_access_split_screen_title">સ્પ્લિટ સ્ક્રીન માટે એક્સેસિબિલિટી સેવા</string>
+    <string name="common_special_access_system_buttons_body">Android એક્સેસિબિલિટી સેવિસ દ્વારા જ કોઈ અન્ય ઍપને સ્ક્રીનશૉટ લેવા, પાછા જવા અથવા તાજેતરની ઍપ, ઍપ ડ્રાવર, નૉટિફિકેશન શેડ કે ઝડપી સેટિંગ્સ ખોલવાની મંજૂરી આપે છે. આ સેવા ચાલુ હોવાથી, સ્ક્રીનશૉટ ટૂલ અને ફ્લોટિંગ બટન તમારા માટે તે સિસ્ટમ બટન દબાવે છે, જે Android ના પોતાના નવિગેશન અને શેડ જેવા જ છે. સ્ક્રીનશૉટ ત્યાં સેવ થાય છે જ્યાં દરેક સ્ક્રીનશૉટ સેવ થાય છે. આ સેવા અન્ય કોઈ પણ સમયે કશું કરતી નથી. તે સ્ક્રીન વાંચતી નથી, તમે શું ટાઇપ કરો છો તે જોતી નથી અને કશું સાચવતી નથી. Android ની એક્સેસિબિલિટી સ્ક્રીન આવી સેવા જે કરી શકે તે બધી બાબતો વિશે ચેતવણી આપે છે. જ્યારે તમે કહો ત્યારે જ આ સિસ્ટમ બટન દબાવે છે.</string>
+    <string name="common_special_access_system_buttons_title">સિસ્ટમ બટનો માટે ઍક્સેસિબિલિટી સેવા</string>
     <string name="common_special_access_usage_body">યુસેજ એક્સેસ સાથે, જ્યારે તમે કંઈક કોપી કરો છો ત્યારે કીબોર્ડ રેકોર્ડ કરે છે કે કઈ એપ સામે હતી. જ્યારે તમે ક્લિપને દબાવી રાખો છો ત્યારે તે તે એપ બતાવે છે. કીબોર્ડ ફક્ત કોપી કરતી વખતે જ ફ્રન્ટ એપને વાંચે છે. તે તમારો ઇતિહાસ કે તમે એપમાં કેટલો સમય વિતાવ્યો તે વાંચતું નથી. કીબોર્ડ જવાબને ક્લિપ સાથે ફક્ત તમારા ઉપકરણ પર જ રાખે છે. તમારી એપ વપરાશ વિશે કંઈપણ તમારા ઉપકરણની બહાર જતું નથી. આ સેટિંગ વૈકલ્પિક છે. જ્યાં સુધી તમે તેને ચાલુ ન કરો ત્યાં સુધી તે બંધ રહે છે.</string>
     <string name="common_special_access_usage_title">ક્લિપબોર્ડ સ્ત્રોત એપ્લિકેશન્સ માટે વપરાશની ઍક્સેસ</string>
     <string name="common_type_setting_value_desc">%1$s માટે એક કિંમત ટાઇપ કરો</string>

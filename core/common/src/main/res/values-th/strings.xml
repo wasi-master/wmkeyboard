@@ -37,6 +37,7 @@
     <string name="common_error_download_held">หยุดชั่วคราว: การประหยัดข้อมูลทำให้การดาวน์โหลดหยุดลงในการเชื่อมต่อนี้ ระบบจะดำเนินการต่อจากจุดที่ค้างไว้</string>
     <string name="common_error_generic">มีบางอย่างผิดพลาด โปรดลองใหม่อีกครั้ง</string>
     <string name="common_error_network">ไม่มีการเชื่อมต่อ โปรดตรวจสอบเครือข่ายของคุณแล้วลองใหม่อีกครั้ง</string>
+    <string name="common_error_network_permission_off">การเข้าถึงเครือข่ายของแป้นพิมพ์ WM ถูกปิดอยู่ในการตั้งค่าโทรศัพท์ของคุณ ฟังก์ชันนี้จึงใช้งานไม่ได้ กรุณาเปิดใช้งานในการตั้งค่า Android › แอป › แป้นพิมพ์ WM › สิทธิ์ (สำหรับ GrapheneOS คือสิทธิ์เครือข่าย) แล้วลองใหม่อีกครั้ง</string>
     <string name="common_error_no_internet_permission">คีย์บอร์ดรุ่นนี้ไม่สามารถเชื่อมต่ออินเทอร์เน็ตได้</string>
     <string name="common_error_timeout">คำขอนี้ใช้เวลานานเกินไป โปรดลองอีกครั้ง</string>
     <string name="common_export">ส่งออก</string>
@@ -48,6 +49,8 @@
     <string name="common_more">เพิ่มเติม</string>
     <string name="common_next">ถัดไป</string>
     <string name="common_none">ไม่มี</string>
+    <string name="common_notify_channel_alarms_body">การปลุกที่เลื่อนเวลาไว้หรือกำลังจะดัง และการปลุกที่ดังขึ้นโดยไม่มีใครอยู่ การปลุกมีช่องเสียงแยกต่างหาก</string>
+    <string name="common_notify_channel_alarms_title">การแจ้งเตือนนาฬิกาปลุก</string>
     <string name="common_notify_channel_backup_body">เฉพาะเมื่อการสำรองข้อมูลอัตโนมัติล้มเหลว การสำรองข้อมูลที่สำเร็จจะไม่มีการแจ้งเตือน</string>
     <string name="common_notify_channel_backup_title">ปัญหาการสำรองข้อมูล</string>
     <string name="common_notify_channel_clock_body">ตัวจับเวลาและนาฬิกาจับเวลาขณะทำงาน พร้อมปุ่มสำหรับหยุดชั่วคราว เพิ่มเวลาหนึ่งนาที หรือหยุดการทำงาน</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">การควบคุมแป้นพิมพ์</string>
     <string name="common_notify_channel_send_body">การอัปโหลดหรือดาวน์โหลดโดยเครื่องมือส่งไฟล์เสร็จสิ้นในขณะที่แป้นพิมพ์ถูกซ่อนอยู่ พร้อมลิงก์สำหรับคัดลอกและไฟล์ที่อุปกรณ์ใกล้เคียงส่งมา</string>
     <string name="common_notify_channel_send_title">การส่งและรับไฟล์</string>
+    <string name="common_notify_channel_stopwatch_body">นาฬิกาจับเวลาขณะทำงานหรือหยุดชั่วคราว พร้อมปุ่มสำหรับจับรอบ หยุดชั่วคราว และรีเซ็ต</string>
+    <string name="common_notify_channel_stopwatch_title">นาฬิกาจับเวลา</string>
     <string name="common_notify_channel_updates_body">มีเวอร์ชันใหม่ให้ติดตั้ง มีการอัปเดตที่รอให้คุณกดติดตั้ง และการยืนยันเมื่อติดตั้งเสร็จเรียบร้อยแล้ว</string>
     <string name="common_notify_channel_updates_title">การอัปเดตแอป</string>
     <string name="common_notify_download_done">พร้อมใช้งาน</string>
     <string name="common_notify_download_failed">ไม่สามารถดาวน์โหลด %1$s ได้</string>
     <string name="common_notify_download_handwriting">ลายมือ %1$s</string>
     <string name="common_notify_download_progress">%1$s จาก %2$s</string>
+    <string name="common_notify_download_step_library">ขั้นตอนที่ 1 จาก 2, ไลบรารีเอ็นจิ้น: %1$s</string>
+    <string name="common_notify_download_step_model">ขั้นตอนที่ 2 จาก 2 รุ่น: %1$s</string>
     <string name="common_notify_download_translate">การแปลแบบออฟไลน์ %1$s</string>
     <string name="common_notify_download_voice">เสียงออฟไลน์ %1$s</string>
     <string name="common_off">ปิด</string>
+    <string name="common_offline_build_download">นี่คือบิวด์แบบออฟไลน์ จึงไม่สามารถดาวน์โหลดสิ่งนี้ได้ โปรดรับไฟล์บนอุปกรณ์เครื่องอื่นและนำเข้า: การตั้งค่า › เกี่ยวกับ › พื้นที่เก็บข้อมูล › นำเข้าไฟล์ที่ดาวน์โหลด หรือใช้แถวการนำเข้าของหน้าจอนี้ที่มีอยู่ หรือติดตั้งบิวด์มาตรฐานจากหน้าเผยแพร่เดียวกันทับอันนี้ แล้วบิวด์จะดาวน์โหลดเอง การตั้งค่าและคำที่คุณเรียนรู้จะยังคงอยู่</string>
+    <string name="common_offline_build_library">นี่คือบิวด์แบบออฟไลน์ จึงไม่สามารถดาวน์โหลดไลบรารีที่จำเป็นได้ โปรดรับไฟล์ดังกล่าวบนอุปกรณ์เครื่องอื่นและนำเข้าในการตั้งค่า › ความเป็นส่วนตัว › ไลบรารีฟีเจอร์ ซึ่งจะแสดงรายการไฟล์ที่แน่นอน หรือติดตั้งบิวด์มาตรฐานจากหน้าเผยแพร่เดียวกันทับบิวด์นี้ แล้วระบบจะดาวน์โหลดเอง การตั้งค่าและคำที่คุณเรียนรู้จะยังคงอยู่</string>
     <string name="common_ok">ตกลง</string>
     <string name="common_on">เปิด</string>
     <string name="common_open_system_settings">เปิดการตั้งค่าระบบ</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">บริการการช่วยเหลือพิเศษสำหรับปุ่ม AI</string>
     <string name="common_special_access_split_screen_body">โทรศัพท์บางรุ่นจะเปิดแอปแบบเต็มหน้าจอเมื่อคีย์บอร์ดขอเปิดหน้าจอแยก เมื่อเปิดใช้งานบริการนี้ การเปิดแอปในโหมดแบ่งหน้าจอจากตัวเปิดใช้แอป หรือการเปิดคู่หน้าจอแยก จะเป็นการกดสวิตช์แบ่งหน้าจอของ Android ก่อน ซึ่งเป็นสวิตช์เดียวกับที่มีในเมนูแอปล่าสุด จากนั้นแอปจะเปิดขึ้นในครึ่งหน้าจอที่เหลือ ก่อนที่จะกด บริการนี้จะตรวจสอบว่าหน้าต่างแอปอยู่ตรงไหน เพื่อดูว่ามีการเปิดหน้าจอแยกอยู่แล้วหรือไม่ โดยจะไม่ทำการอ่านเนื้อหาภายในหน้าต่างเหล่านั้นเลย และจะไม่ทำงานในเวลาอื่น ไม่ติดตามสิ่งที่คุณพิมพ์ และไม่เก็บบันทึกใดๆ หน้าจอการเข้าถึงของ Android จะเตือนเกี่ยวกับทุกสิ่งที่บริการลักษณะนี้ทำได้ บริการนี้จะกดสวิตช์ดังกล่าวก็ต่อเมื่อคุณร้องขอการแบ่งหน้าจอเท่านั้น</string>
     <string name="common_special_access_split_screen_title">บริการการเข้าถึงสำหรับหน้าจอแยก</string>
+    <string name="common_special_access_system_buttons_body">Android อนุญาตให้อีกแอปพลิเคชันถ่ายภาพหน้าจอ ย้อนกลับ หรือเปิดแอปพลิเคชันล่าสุด ลิ้นชักแอป แผงการแจ้งเตือน หรือการตั้งค่าด่วน ผ่านบริการการเข้าถึงเท่านั้น เมื่อเปิดบริการนี้ เครื่องมือภาพหน้าจอและปุ่มลอยจะกดปุ่มระบบเหล่านั้นแทนคุณ ซึ่งเป็นปุ่มเดียวกับที่การนำทางและแผงควบคุมของ Android มี ภาพหน้าจอจะถูกบันทึกไว้ในที่ที่ภาพหน้าจอทั่วไปไป บริการนี้จะไม่ทำงานอื่นใดในเวลาอื่น จะไม่่านหน้าจอ ไม่ดูสิ่งที่คุณพิมพ์ และไม่เก็บรักษาอะไร หน้าจอการเข้าถึงของ Android จะเตือนเกี่ยวกับทุกสิ่งที่บริการลักษณะนี้ทำได้ แต่นี้จะกดปุ่มระบบเมื่อคุณขอเท่านั้น</string>
+    <string name="common_special_access_system_buttons_title">บริการการเข้าถึงสำหรับปุ่มระบบ</string>
     <string name="common_special_access_usage_body">เมื่อได้รับสิทธิ์การเข้าถึงการใช้งาน คีย์บอร์ดจะบันทึกว่าแอปใดที่เปิดอยู่ด้านหน้าในขณะที่คุณคัดลอกบางสิ่ง และจะแสดงแอปนั้นเมื่อคุณกดค้างที่คลิปบอร์ด คีย์บอร์ดจะอ่านแอปที่อยู่ด้านหน้าเฉพาะในขณะที่ทำการคัดลอกเท่านั้น โดยจะไม่บันทึกประวัติหรือเวลาที่คุณใช้งานแอปนั้น คีย์บอร์ดจะเก็บข้อมูลคำตอบไว้พร้อมกับคลิปบอร์ดในอุปกรณ์ของคุณเท่านั้น ข้อมูลเกี่ยวกับการใช้งานแอปของคุณจะไม่ถูกส่งออกจากอุปกรณ์ การตั้งค่านี้เป็นทางเลือก โดยจะปิดไว้จนกว่าคุณจะเปิดใช้งาน</string>
     <string name="common_special_access_usage_title">การเข้าถึงการใช้งานสำหรับแอปแหล่งที่มาของคลิปบอร์ด</string>
     <string name="common_type_setting_value_desc">พิมพ์ค่าสำหรับ %1$s</string>

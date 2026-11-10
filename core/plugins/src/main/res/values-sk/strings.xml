@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Tento doplnok už túto akciu nemá.</string>
     <string name="core_plugins_error_no_render">Tento doplnok nemá funkciu render().</string>
+    <string name="core_plugins_error_no_transform">Tento doplnok nemá funkciu transform().</string>
     <string name="core_plugins_error_not_installed">Tento doplnok nie je nainštalovaný.</string>
+    <string name="core_plugins_error_not_ready">Zásuvné moduly sa stále sťahujú. Skúste to znova o chvíľu.</string>
     <string name="core_plugins_error_script_failed">Skript zlyhal.</string>
     <string name="core_plugins_error_script_missing">Skript pre tento doplnok chýba.</string>
     <string name="core_plugins_error_turned_off">Tento doplnok je vypnutý.</string>
     <string name="core_plugins_permission_reminders_label">Zobraziť pripomienky v čase, ktorý ste nastavili</string>
+    <string name="core_plugins_permission_selection_label">Zmeniť vybratý text po klepnutí na niektorú z jeho akcií</string>
     <string name="core_plugins_permission_storage_label">Uložiť dáta vo vašom zariadení</string>
+    <string name="core_plugins_reject_action_input">„%1$s“ obsahuje akciu, ktorá vyžaduje text, ktorý táto verzia klávesnice WM Keyboard nemôže poskytnúť.</string>
+    <string name="core_plugins_reject_action_no_name">„%1$s“ má akciu bez názvu.</string>
+    <string name="core_plugins_reject_actions_need_selection">„%1$s“ pridáva akcie pre vybratý text, ale nežiada o povolenie ho zmeniť.</string>
+    <string name="core_plugins_reject_bad_action_id">„%1$s“ obsahuje akciu, ktorej ID chýba, opakuje sa alebo nie je platné. ID akcie môže obsahovať najviac 32 malých písmen, číslic, pomlčiek a podčiarknikov.</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ obsahuje skript, ktorý nie je platným textom UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Tento doplnok má neplatné ID. ID musí mať dĺžku 3 až 64 znakov. ID môže obsahovať malé písmená, číslice, bodky, pomlčky a podčiarkovníky.</string>
     <string name="core_plugins_reject_empty_script">„%1$s“ má prázdny skript.</string>
+    <string name="core_plugins_reject_lua">„%1$s“ je napísané v jazyku Lua, ktorý WM Keyboard už nespúšťa. Hľadajte jeho pythonovskú verziu.</string>
     <string name="core_plugins_reject_missing_script">„%1$s“ nemá svoj súbor skriptu (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Tento doplnok vyžaduje novšiu verziu WM Keyboard.</string>
     <string name="core_plugins_reject_no_name">Tento doplnok nemá názov.</string>
     <string name="core_plugins_reject_no_version">„%1$s“ neuvádza, o akú verziu ide.</string>
+    <string name="core_plugins_reject_nothing_to_show">„%1$s“ nemá žiadny panel ani akcie, takže nemá čo robiť.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s“ má skript väčší ako %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">„%1$s“ žiada o zmenu vybraného textu, ale nepridáva žiadne akcie.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” pridáva viac ako 16 akcií.</string>
+    <string name="core_plugins_reject_unknown_language">„%1$s“ je napísané v jazyku, ktorý táto verzia klávesnice WM Keyboard nedokáže spustiť. Doplnky sú napísané v jazyku Python.</string>
     <string name="core_plugins_reject_unknown_permission">Táto verzia klávesnice WM Keyboard nepozná povolenie „%1$s“. Aplikácia vám nevie povedať, čo má „%2$s“ povolené robiť.</string>
     <string name="core_plugins_reminders_channel_body">Pripomienky, ktoré doplnok požiadal aplikáciu zobraziť v čase, ktorý ste nastavili v doplnku. Názov každej pripomienky je názov doplnku.</string>
     <string name="core_plugins_reminders_channel_title">Pripomienky doplnkov</string>
     <string name="core_plugins_stopped_cancelled">Aplikácia zastavila tento doplnok.</string>
     <string name="core_plugins_stopped_deadline">Tento doplnok trval príliš dlho. Aplikácia ho zastavila.</string>
     <string name="core_plugins_stopped_instructions">Tento doplnok vykonal naraz príliš veľa práce. Aplikácia ho zastavila.</string>
+    <string name="core_plugins_stopped_memory">Tento doplnok sa pokúsil uchovať príliš veľa údajov. Aplikácia ho zastavila.</string>
     <string name="core_plugins_stopped_not_responding">Tento doplnok prestal reagovať. Aplikácia ho ukončila.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Tento doplnok prestal znova reagovať. Aplikácia ho vypla.</string>
     <string name="core_plugins_stopped_recursion">Tento doplnok sa zavolal príliš veľakrát. Aplikácia ho zastavila.</string>

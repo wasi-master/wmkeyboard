@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">その他のサービス</string>
     <string name="core_settings_ai_provider_on_device_label">デバイス上</string>
+    <string name="core_settings_ai_provider_privatemode_label">プライベートモード</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">時刻</string>
     <string name="core_settings_auto_theme_trigger_sun_label">日の出と日の入り</string>
     <string name="core_settings_auto_theme_trigger_system_label">システムのライト/ダークモード</string>

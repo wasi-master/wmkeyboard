@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Enye isevisi</string>
     <string name="core_settings_ai_provider_on_device_label">Kudivayisi yakho</string>
+    <string name="core_settings_ai_provider_privatemode_label">Imodi yangasese</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Isikhathi sosuku</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Ukuphuma nokushona kwelanga</string>
     <string name="core_settings_auto_theme_trigger_system_label">Isistimu ekhanyayo noma emnyama</string>

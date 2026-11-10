@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Diğer hizmet</string>
     <string name="core_settings_ai_provider_on_device_label">Cihazınızda</string>
+    <string name="core_settings_ai_provider_privatemode_label">Özel mod</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Günün saati</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Gün doğumu ve gün batımı</string>
     <string name="core_settings_auto_theme_trigger_system_label">Sistem açık veya koyu</string>

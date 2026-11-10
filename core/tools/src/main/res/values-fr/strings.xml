@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Fonds d\'écran</string>
     <string name="core_tools_provider_acrcloud_desc">Un service de reconnaissance musicale avec essai de deux semaines, puis plans payants. Nécessite l\'hôte, la clé d\'accès et le secret d\'accès d\'un projet depuis console.acrcloud.com. Chaque extrait est envoyé à ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">Stable Diffusion gratuit sur les ordinateurs des bénévoles. Fonctionne sans clé mais nécessite d\'attendre dans une file d\'attente ; une clé gratuite fournie par aihorde.net vous permet de passer prioritairement.</string>
+    <string name="core_tools_provider_allratestoday_desc">Taux de référence de la Banque centrale européenne pour environ 30 devises. Aucune clé requise.</string>
     <string name="core_tools_provider_anthropic_desc">Modèles Claude via l\'API d\'Anthropic, avec votre propre clé.</string>
     <string name="core_tools_provider_asr4all_desc">Dictée en anglais sur le téléphone, avec les mots qui apparaissent au fur et à mesure que vous parlez.</string>
     <string name="core_tools_provider_audd_desc">Reconnaît la plupart des musiques publiées à partir de quelques secondes de son. Nécessite un jeton de dashboard.audd.io ; quelques centaines de reconnaissances sont gratuites, puis c\'est payant. Chaque extrait est envoyé à AudD.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Un grand modèle qui s\'exécute sur le téléphone et comprend 25 langues européennes.</string>
     <string name="core_tools_provider_pexels_desc">Photos de Pexels. Nécessite une clé API, sauf si cette version en possède une.</string>
     <string name="core_tools_provider_pollinations_desc">Gratuit, sans clé ni compte : l\'invite est envoyée à Pollinations, qui choisit le modèle. Une clé provenant de enter.pollinations.ai ouvre son API plus récente et vous permet de nommer un modèle.</string>
+    <string name="core_tools_provider_privatemode">IA en mode privé</string>
+    <string name="core_tools_provider_privatemode_desc">IA qui s\'exécute dans un environnement de calcul confidentiel et ne peut pas lire votre texte. Fournissez votre clé d\'API Privatemode. Le clavier chiffre ensuite chaque requête sur le téléphone, mais il ne vérifie pas l\'attestation matérielle du service. Pour vérifier cela également, exécutez privatemode-proxy et indiquez son adresse, telle que http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (non officiel, via RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Catalogue de Shazam via une liste non officielle sur RapidAPI, avec une clé RapidAPI. Ce n\'est pas un service Apple : la liste peut changer ou s\'arrêter sans préavis. Chaque extrait est envoyé à RapidAPI.</string>
     <string name="core_tools_provider_recraft_desc">Illustrations, icônes et art de style vectoriel. Nécessite une clé depuis recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Photos d\'Unsplash. Nécessite une clé API, sauf si cette version en possède une.</string>
     <string name="core_tools_provider_vision_ocr">Votre modèle de vision</string>
     <string name="core_tools_provider_vision_ocr_desc">Un modèle qui lit les images, via un serveur qui répond aux requêtes de chat OpenAI. Nécessite l\'adresse et le nom du modèle.</string>
+    <string name="core_tools_provider_vosk_desc">Petits modèles Kaldi d\'Alpha Cephei pour 29 langues, d\'environ 40 Mo chacun, qui tapent à mesure que vous parlez au téléphone. Assez léger pour un téléphone plus ancien.</string>
     <string name="core_tools_provider_whisper_desc">Modèles Whisper d\'OpenAI, exécutés sur le téléphone. De nombreuses langues ; téléchargez un modèle sur la page de saisie vocale.</string>
     <string name="core_tools_provider_whistle_desc">Un petit modèle rapide qui s\'exécute sur le téléphone. Téléchargez-le sur la page de saisie vocale.</string>
     <string name="core_tools_provider_xai_desc">Modèles Grok via l\'API de xAI, avec votre propre clé.</string>

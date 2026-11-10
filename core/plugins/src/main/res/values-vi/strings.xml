@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Plugin đó không còn hành động đó nữa.</string>
     <string name="core_plugins_error_no_render">Plugin này không có hàm render().</string>
+    <string name="core_plugins_error_no_transform">Phần bổ trợ này không có hàm transform().</string>
     <string name="core_plugins_error_not_installed">Plugin đó chưa được cài đặt.</string>
+    <string name="core_plugins_error_not_ready">Plugin vẫn đang tải xuống. Vui lòng thử lại sau giây lát.</string>
     <string name="core_plugins_error_script_failed">Tập lệnh đã thất bại.</string>
     <string name="core_plugins_error_script_missing">Tập lệnh cho plugin đó bị thiếu.</string>
     <string name="core_plugins_error_turned_off">Plugin đó đã bị tắt.</string>
     <string name="core_plugins_permission_reminders_label">Hiển thị lời nhắc vào thời điểm bạn đã đặt</string>
+    <string name="core_plugins_permission_selection_label">Thay đổi văn bản bạn chọn khi bạn nhấn vào một trong các hành động của văn bản đó</string>
     <string name="core_plugins_permission_storage_label">Lưu dữ liệu trên thiết bị của bạn</string>
+    <string name="core_plugins_reject_action_input">\"%1$s\" có một hành động yêu cầu văn bản mà phiên bản Bàn phím WM này không thể cung cấp.</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s” có một hành động không có tên.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” thêm các hành động cho văn bản được chọn nhưng không hỏi quyền thay đổi văn bản đó.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” có một hành động có id bị thiếu, bị lặp lại hoặc không hợp lệ. Id hành động bao gồm tối đa 32 chữ cái thường, số, dấu gạch ngang và dấu gạch dưới.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” có một tập lệnh không phải là văn bản UTF-8 hợp lệ.</string>
     <string name="core_plugins_reject_bad_id">Plugin này có id không hợp lệ. Id phải dài từ 3 đến 64 ký tự. Id có thể chứa các chữ cái thường, số, dấu chấm, dấu gạch ngang và dấu gạch dưới.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” có tập lệnh trống.</string>
+    <string name="core_plugins_reject_lua">“%1$s” được viết bằng Lua, ngôn ngữ mà Bàn phím WM không còn hỗ trợ chạy. Hãy tìm phiên bản Python của nó.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” không có tệp tập lệnh của nó (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Plugin này cần phiên bản WM Keyboard mới hơn.</string>
     <string name="core_plugins_reject_no_name">Plugin này không có tên.</string>
     <string name="core_plugins_reject_no_version">“%1$s” không cho biết phiên bản nào.</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” không có bảng điều khiển và không có hành động nào, vì vậy không có gì để nó thực hiện.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” có tập lệnh lớn hơn %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” yêu cầu thay đổi văn bản bạn đã chọn nhưng không thêm bất kỳ hành động nào.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” thêm hơn 16 hành động.</string>
+    <string name="core_plugins_reject_unknown_language">‘%1$s’ được viết bằng ngôn ngữ mà phiển bản Bàn phîm WM này không thể chạy. Các tịnh đồng được viết bằng Python.</string>
     <string name="core_plugins_reject_unknown_permission">Phiên bản WM Keyboard này không nhận diện được quyền “%1$s”. Ứng dụng không thể cho bạn biết “%2$s” được phép làm gì.</string>
     <string name="core_plugins_reminders_channel_body">Các lời nhắc mà một plugin yêu cầu ứng dụng hiển thị, vào những thời điểm bạn đặt trong plugin. Tiêu đề của mỗi lời nhắc là tên của plugin đó.</string>
     <string name="core_plugins_reminders_channel_title">Nhắc nhở plugin</string>
     <string name="core_plugins_stopped_cancelled">Ứng dụng đã dừng plugin này.</string>
     <string name="core_plugins_stopped_deadline">Plugin này mất quá nhiều thời gian. Ứng dụng đã dừng nó lại.</string>
     <string name="core_plugins_stopped_instructions">Plugin này đã thực hiện quá nhiều tác vụ cùng một lúc. Ứng dụng đã dừng nó lại.</string>
+    <string name="core_plugins_stopped_memory">Plugin này đã cố gắng lưu trữ quá nhiều dữ liệu. Ứng dụng đã dừng nó lại.</string>
     <string name="core_plugins_stopped_not_responding">Plugin này đã ngừng phản hồi. Ứng dụng đã đóng nó.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Plugin này lại ngừng phản hồi. Ứng dụng đã tắt nó.</string>
     <string name="core_plugins_stopped_recursion">Plugin này đã tự gọi chính nó quá nhiều lần. Ứng dụng đã dừng nó lại.</string>

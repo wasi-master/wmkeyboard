@@ -37,6 +37,7 @@
     <string name="common_error_download_held">متوقف شد: ذخیره داده‌ها دانلودها را در این اتصال نگه می‌دارد. از همان‌جایی که متوقف شده ادامه می‌یابد.</string>
     <string name="common_error_generic">مشکلی پیش آمد. دوباره تلاش کنید.</string>
     <string name="common_error_network">اتصال برقرار نیست. شبکه خود را بررسی کرده و دوباره تلاش کنید.</string>
+    <string name="common_error_network_permission_off">دسترسی شبکه صفحه کلید WM در تنظیمات تلفن شما خاموش است، بنابراین این کارکرد ندارد. آن را در تنظیمات اندروید › برنامه‌ها › صفحه کلید WM › مجوزها (در GrapheneOS، مجوز شبکه) روشن کنید، سپس دوباره امتحان کنید.</string>
     <string name="common_error_no_internet_permission">این نسخه از صفحه‌کلید نمی‌تواند به اینترنت متصل شود.</string>
     <string name="common_error_timeout">درخواست بیش از حد طول کشید. دوباره تلاش کنید.</string>
     <string name="common_export">خروجی گرفتن</string>
@@ -48,6 +49,8 @@
     <string name="common_more">بیشتر</string>
     <string name="common_next">بعدی</string>
     <string name="common_none">هیچ‌کدام</string>
+    <string name="common_notify_channel_alarms_body">هشداری که به تعویق افتاده یا در آستانه زنگ خوردن است و هشداری که بدون حضور کسی به صدا درآمده است. خود زنگ خوردن کانال مختص به خود را دارد.</string>
+    <string name="common_notify_channel_alarms_title">اعلان‌های هشدار</string>
     <string name="common_notify_channel_backup_body">فقط زمانی که پشتیبان‌گیری خودکار با شکست مواجه شود. پشتیبان‌گیری‌های موفق بی‌صدا هستند.</string>
     <string name="common_notify_channel_backup_title">مشکلات پشتیبان‌گیری</string>
     <string name="common_notify_channel_clock_body">تایمرها و کرونومتر در حین اجرا، با دکمه‌هایی برای توقف موقت، افزودن یک دقیقه یا متوقف کردن آن‌ها.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">کنترل‌های صفحه‌کلید</string>
     <string name="common_notify_channel_send_body">آپلود یا دانلودی از ابزار ارسال فایل زمانی که صفحه‌کلید مخفی بود به پایان رسید، همراه با پیوند جهت کپی کردن و فایلی که یک دستگاه در نزدیکی ارسال کرده است.</string>
     <string name="common_notify_channel_send_title">ارسال و دریافت فایل‌ها</string>
+    <string name="common_notify_channel_stopwatch_body">کرنومتر در حال اجرا یا متوقف شده، با دکمه‌هایی برای ثبت دور، توقف موقت و بازنشانی.</string>
+    <string name="common_notify_channel_stopwatch_title">کرنومتر</string>
     <string name="common_notify_channel_updates_body">یک نسخه جدید برای نصب، یک به‌روزرسانی که منتظر است تا دکمه نصب را بزنید، و تأییدیه پس از نصب.</string>
     <string name="common_notify_channel_updates_title">به‌روزرسانی‌های برنامه</string>
     <string name="common_notify_download_done">آماده استفاده</string>
     <string name="common_notify_download_failed">%1$s دانلود نشد</string>
     <string name="common_notify_download_handwriting">دست‌نویس %1$s</string>
     <string name="common_notify_download_progress">%1$s از %2$s</string>
+    <string name="common_notify_download_step_library">مرحله ۱ از ۲، کتابخانه موتور: %1$s</string>
+    <string name="common_notify_download_step_model">مرحله ۲ از ۲، مدل: %1$s</string>
     <string name="common_notify_download_translate">ترجمه آفلاین %1$s</string>
     <string name="common_notify_download_voice">صدای آفلاین %1$s</string>
     <string name="common_off">خاموش</string>
+    <string name="common_offline_build_download">این نسخه آفلاین است، بنابراین نمی‌تواند این مورد را بارگیری کند. پرونده را روی دستگاه دیگری دریافت کنید و آن را وارد کنید: تنظیمات › درباره › ذخیره‌سازی › وارد کردن پرونده‌های بارگیری‌شده آن را می‌پذیرد، یا ردیف «وارد کردن» در همین صفحه. یا نسخه استاندارد را از همان صفحه انتشار روی این نسخه نصب کنید، و به‌طور خودکار بارگیری می‌شود. تنظیمات و کلمات آموخته‌شده شما حفظ می‌شوند.</string>
+    <string name="common_offline_build_library">این نسخه آفلاین است، بنابراین نمی‌تواند کتابخانه مورد نیاز این قابلیت را دانلود کند. فایل آن را در دستگاه دیگری تهیه کرده و در مسیر تنظیمات › حریم خصوصی › کتابخانه‌های ویژگی وارد کنید، که فایل دقیق را فهرست می‌کند. یا نسخه استاندارد را از همان صفحه انتشار روی این نسخه نصب کنید تا خودبه‌خود دانلود شود. تنظیمات و کلمات یادگرفته‌شده شما حفظ می‌شوند.</string>
     <string name="common_ok">تأیید</string>
     <string name="common_on">روشن</string>
     <string name="common_open_system_settings">باز کردن تنظیمات سیستم</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">سرویس دسترسی برای دکمه هوش مصنوعی</string>
     <string name="common_special_access_split_screen_body">برخی از تلفن‌ها هنگامی که صفحه کلید درخواست تقسیم صفحه می‌کند، یک برنامه را به صورت تمام صفحه باز می‌کنند. با روشن بودن این سرویس، باز کردن یک برنامه در صفحه دوتایی از راه‌انداز برنامه، یا باز کردن یک جفت صفحه دوتایی، ابتدا کلید تقسیم صفحه خود اندروید را فشار می‌دهد، همان کلیدی که منوی برنامه‌های اخیر دارد، و سپس برنامه در نیمه آزاد باز می‌شود. قبل از فشار دادن آن، سرویس بررسی می‌کند که پنجره‌های برنامه کجا هستند تا ببیند آیا صفحه دوتایی از قبل باز است یا خیر. این سرویس هرگز محتویات آن‌ها را نمی‌خواند. این سرویس در هیچ زمان دیگری کاری انجام نمی‌دهد، آنچه را که تایپ می‌کنید تماشا نمی‌کند و چیزی را نگه نمی‌دارد. صفحه دسترسی‌پذیری اندروید در مورد هر کاری که یک سرویس مانند این می‌تواند انجام دهد هشدار می‌دهد. این سرویس تنها زمانی که شما درخواست تقسیم صفحه می‌کنید، آن کلید را فشار می‌دهد.</string>
     <string name="common_special_access_split_screen_title">سرویس دسترسی‌پذیری برای صفحه تقسیم‌شده</string>
+    <string name="common_special_access_system_buttons_body">اندروید به برنامه دیگری اجازه می‌دهد تا از طریق سرویس دسترسی، اسکرین‌شات بگیرد، به عقب بازگردد، یا برنامه‌های اخیر، کشوی برنامه‌ها، سایه اعلان‌ها یا تنظیمات سریع را باز کند. با روشن بودن این سرویس، ابزار اسکرین‌شات و دکمه شناور، دکمه‌های سیستمی را برای شما فشار می‌دهند؛ همان دکمه‌هایی که ناوبری و سایه خود اندروید دارند. اسکرین‌شات در جایی که تمام اسکرین‌شات‌ها ذخیره می‌شوند، ذخیره می‌گردد. این سرویس در هیچ زمان دیگری کاری انجام نمی‌دهد. صفحه را نمی‌خواند، آنچه را که تایپ می‌کنید تماشا نمی‌کند و چیزی را نگه نمی‌دارد. صفحه دسترسی اندروید در مورد هر کاری که چنین سرویسی می‌تواند انجام دهد هشدار می‌دهد. این یکی فقط زمانی که از آن بخواهید یک دکمه سیستم را فشار می‌دهد.</string>
+    <string name="common_special_access_system_buttons_title">سرویس دسترسی‌پذیری برای دکمه‌های سیستم</string>
     <string name="common_special_access_usage_body">با دسترسی به استفاده، صفحه‌کلید ثبت می‌کند که هنگام کپی کردن چیزی، کدام برنامه در پیش‌زمینه بوده است. وقتی کلیپ را فشار داده و نگه می‌دارید، آن برنامه را نشان می‌دهد. صفحه‌کلید فقط در لحظه کپی، برنامه پیش‌زمینه را می‌خواند. این برنامه تاریخچه یا زمان استفاده شما در یک برنامه را نمی‌خواند. صفحه‌کلید پاسخ را همراه با کلیپ، فقط روی دستگاه شما نگه می‌دارد. هیچ اطلاعاتی درباره استفاده شما از برنامه‌ها از دستگاهتان خارج نمی‌شود. این تنظیم اختیاری است و تا زمانی که آن را روشن نکنید، خاموش می‌ماند.</string>
     <string name="common_special_access_usage_title">دسترسی به استفاده برای برنامه‌های منبع کلیپ‌بورد</string>
     <string name="common_type_setting_value_desc">مقداری برای %1$s تایپ کنید</string>

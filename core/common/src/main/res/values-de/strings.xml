@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Pausiert: Datensparmodus hält Downloads bei dieser Verbindung an. Sie werden dort fortgesetzt, wo sie gestoppt wurden.</string>
     <string name="common_error_generic">Etwas hat nicht funktioniert. Versuchen Sie es erneut.</string>
     <string name="common_error_network">Keine Verbindung. Überprüfen Sie Ihr Netzwerk und versuchen Sie es erneut.</string>
+    <string name="common_error_network_permission_off">Der Netzwerkzugriff von WM Keyboard ist in den Einstellungen deines Telefons deaktiviert, weshalb dies nicht funktioniert. Aktiviere ihn unter Android-Einstellungen › Apps › WM Keyboard › Berechtigungen (unter GrapheneOS die Netzwerkberechtigung) und versuche es dann erneut.</string>
     <string name="common_error_no_internet_permission">Diese Version der Tastatur kann keine Verbindung zum Internet herstellen.</string>
     <string name="common_error_timeout">Die Anfrage hat zu lange gedauert. Versuche es erneut.</string>
     <string name="common_export">Exportieren</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Mehr</string>
     <string name="common_next">Weiter</string>
     <string name="common_none">Keine</string>
+    <string name="common_notify_channel_alarms_body">Ein Wecker, der schlummert oder gleich klingelt, sowie einer, der geklingelt hat und niemand da war. Das Klingeln selbst hat einen eigenen Kanal.</string>
+    <string name="common_notify_channel_alarms_title">Alarmbenachrichtigungen</string>
     <string name="common_notify_channel_backup_body">Nur wenn ein automatisches Backup fehlschlägt. Erfolgreiche Backups erfolgen lautlos.</string>
     <string name="common_notify_channel_backup_title">Backup-Probleme</string>
     <string name="common_notify_channel_clock_body">Timer und Stoppuhr während sie laufen, mit Schaltflächen zum Pausieren, Hinzufügen einer Minute oder Stoppen.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Tastatursteuerung</string>
     <string name="common_notify_channel_send_body">Ein Upload oder Download des Datei-Senden-Tools wurde abgeschlossen, während die Tastatur ausgeblendet war, zusammen mit dem Link zum Kopieren und einer Datei, die ein Gerät in der Nähe gesendet hat.</string>
     <string name="common_notify_channel_send_title">Dateien senden und empfangen</string>
+    <string name="common_notify_channel_stopwatch_body">Die Stoppuhr, während sie läuft oder pausiert ist, mit Schaltflächen für Runden, Pausieren und Zurücksetzen.</string>
+    <string name="common_notify_channel_stopwatch_title">Stoppuhr</string>
     <string name="common_notify_channel_updates_body">Eine neue Version zur Installation, ein Update, das darauf wartet, dass Sie auf Installieren drücken, und eine Bestätigung, sobald eines installiert wurde.</string>
     <string name="common_notify_channel_updates_title">App-Updates</string>
     <string name="common_notify_download_done">Bereit zur Verwendung</string>
     <string name="common_notify_download_failed">%1$s konnte nicht heruntergeladen werden</string>
     <string name="common_notify_download_handwriting">%1$s Handschrift</string>
     <string name="common_notify_download_progress">%1$s von %2$s</string>
+    <string name="common_notify_download_step_library">Schritt 1 von 2, die Engine-Bibliothek: %1$s</string>
+    <string name="common_notify_download_step_model">Schritt 2 von 2, das Modell: %1$s</string>
     <string name="common_notify_download_translate">%1$s Offline-Übersetzung</string>
     <string name="common_notify_download_voice">%1$s Offline-Stimme</string>
     <string name="common_off">Aus</string>
+    <string name="common_offline_build_download">Dies ist der Offline-Build, daher kann dies nicht heruntergeladen werden. Besorgen Sie sich die Datei auf einem anderen Gerät und importieren Sie sie: Einstellungen › Über › Speicher › Heruntergeladene Dateien importieren, oder über die Importzeile dieses Bildschirms, sofern vorhanden. Oder installieren Sie den Standard-Build von derselben Release-Seite über diesen. Ihre Einstellungen und gelernten Wörter bleiben erhalten.</string>
+    <string name="common_offline_build_library">Dies ist der Offline-Build, daher kann er die erforderliche Bibliothek nicht herunterladen. Lade die Datei auf ein anderes Gerät herunter und importiere sie unter Einstellungen › Datenschutz › Funktionsbibliotheken, wo die genaue Datei aufgelistet ist. Oder installiere den Standard-Build von derselben Release-Seite über diesen, dann wird sie automatisch heruntergeladen. Deine Einstellungen und gelernten Wörter bleiben erhalten.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">An</string>
     <string name="common_open_system_settings">Systemeinstellungen öffnen</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Bedienungshilfe für die KI-Taste</string>
     <string name="common_special_access_split_screen_body">Einige Telefone öffnen eine App im Vollbildmodus, wenn die Tastatur nach einem geteilten Bildschirm fragt. Wenn dieser Dienst eingeschaltet ist, drückt das Öffnen einer App im geteilten Bildschirm über den App-Launcher oder das Öffnen eines Split-Screen-Paares zuerst den Android-eigenen Split-Screen-Schalter, denselben, den das Menü „Zuletzt verwendet“ hat, und die App öffnet sich dann in der freien Hälfte. Vor dem Drücken prüft der Dienst, wo sich die App-Fenster befinden, um festzustellen, ob der geteilte Bildschirm bereits aktiv ist. Er liest niemals aus, was sich darin befindet. Er tut zu keinem anderen Zeitpunkt etwas, überwacht nicht, was Sie tippen, und speichert nichts. Der Android-Bedienungshilfenbildschirm warnt vor allem, was ein Dienst wie dieser tun könnte. Dieser drückt nur diesen Schalter, wenn Sie nach einem geteilten Bildschirm fragen.</string>
     <string name="common_special_access_split_screen_title">Bedienungshilfe für den geteilten Bildschirm</string>
+    <string name="common_special_access_system_buttons_body">Android erlaubt es einer anderen App nur über einen Bedienungshilfe-Dienst, einen Screenshot zu erstellen, zurückzugehen oder aktuelle Apps, die App-Übersicht, das Benachrichtigungsfeld oder die Schnelleinstellungen zu öffnen. Wenn dieser Dienst eingeschaltet ist, drücken das Screenshot-Tool und der Schwebe-Button diese Systemtasten für Sie, genau dieselben, die von Androids eigener Navigation und Benachrichtigungsleiste genutzt werden. Ein Screenshot wird dort gespeichert, wo jeder Screenshot landet. Zu allen anderen Zeiten tut der Dienst nichts. Er liest nicht den Bildschirm aus, beobachtet nicht, was Sie tippen, und speichert nichts. Der Bedienungshilfe-Bildschirm von Android warnt vor allem, was ein Dienst dieser Art tun könnte. Dieser Dienst drückt lediglich eine Systemtaste, wenn Sie ihn darum bitten.</string>
+    <string name="common_special_access_system_buttons_title">Bedienungshilfe-Dienst für Systemtasten</string>
     <string name="common_special_access_usage_body">Mit dem Nutzungszugriff zeichnet die Tastatur auf, welche App im Vordergrund war, als du etwas kopiert hast. Sie zeigt diese App an, wenn du den Clip gedrückt hältst. Die Tastatur liest die Vordergrund-App nur im Moment des Kopierens. Sie liest weder deinen Verlauf noch deine Zeit in einer App. Die Tastatur speichert die Antwort zusammen mit dem Clip nur auf deinem Gerät. Nichts über deine App-Nutzung verlässt dein Gerät. Die Einstellung ist optional. Sie bleibt deaktiviert, bis du sie einschaltest.</string>
     <string name="common_special_access_usage_title">Nutzungszugriff für Zwischenablage-Quell-Apps</string>
     <string name="common_type_setting_value_desc">Einen Wert für %1$s eingeben</string>

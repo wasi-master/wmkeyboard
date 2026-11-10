@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">壁紙</string>
     <string name="core_tools_provider_acrcloud_desc">2週間の試用期間がある音楽認識サービスです。その後は有料プランとなります。console.acrcloud.comでプロジェクトのホスト、アクセスキー、アクセスシークレットを取得する必要があります。各クリップはACRCloudに送信されます。</string>
     <string name="core_tools_provider_ai_horde_desc">ボランティアのコンピューターでStable Diffusionを無料で利用します。キーなしでも動作しますがキューで待機が発生します。aihorde.netで無料キーを取得すると優先順位が上がります。</string>
+    <string name="core_tools_provider_allratestoday_desc">約30通貨の欧州中央銀行の基準レート。キーは不要です。</string>
     <string name="core_tools_provider_anthropic_desc">AnthropicのAPI経由のClaudeモデル（独自のキーを使用）。</string>
     <string name="core_tools_provider_asr4all_desc">端末での英語音声入力。話した言葉がそのまま表示されます。</string>
     <string name="core_tools_provider_audd_desc">数秒の音声からリリースされた音楽のほとんどを認識します。dashboard.audd.ioからトークンが必要です。数百回の認識は無料ですが、それ以降は有料となります。各クリップはAudDに送信されます。</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">スマートフォン上で動作し、25のヨーロッパ言語を理解する大規模モデルです。</string>
     <string name="core_tools_provider_pexels_desc">Pexelsの写真。このビルドにAPIキーが含まれていない限り、APIキーが必要です。</string>
     <string name="core_tools_provider_pollinations_desc">キーやアカウント不要で無料：プロンプトがPollinationsに送信され、モデルが選定されます。enter.pollinations.aiから取得したキーを使用すると、より新しいAPIが有効になり、モデルを指定できるようになります。</string>
+    <string name="core_tools_provider_privatemode">プライベートモード AI</string>
+    <string name="core_tools_provider_privatemode_desc">機密コンピューティングで実行され、テキストを読み取ることができないAI。PrivatemodeのAPIキーを入力してください。キーボードは携帯電話上で各リクエストを暗号化しますが、サービスのハードウェア構成証明はチェックしません。それもチェックするには、privatemode-proxyを実行し、http://192.168.1.20:8080などのアドレスを指定してください。</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (非公式, RapidAPI経由)</string>
     <string name="core_tools_provider_rapid_shazam_desc">RapidAPIキーを使用した、RapidAPI上の非公式リスト経由のShazamカタログです。Appleのサービスではありません。リストは予告なく変更または停止される場合があります。各クリップはRapidAPIに送信されます。</string>
     <string name="core_tools_provider_recraft_desc">イラスト、アイコン、ベクタースタイルのアート。recraft.aiのキーが必要です。</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Unsplashの画像。このビルドにAPIキーが含まれていない限り、APIキーが必要です。</string>
     <string name="core_tools_provider_vision_ocr">あなたのビジョンモデル</string>
     <string name="core_tools_provider_vision_ocr_desc">OpenAIチャットリクエストに応答するサーバーを介して画像を読み取るモデル。アドレスとモデル名が必要です。</string>
+    <string name="core_tools_provider_vosk_desc">Alpha Cephei製の29言語対応の小型Kaldiモデル。1つあたり約40MBで、話した通りに音声入力できます。古いスマートフォンでも動作するほど軽量です。</string>
     <string name="core_tools_provider_whisper_desc">スマートフォン上で実行されるOpenAIのWhisperモデルです。多言語に対応しています。音声入力ページからモデルをダウンロードしてください。</string>
     <string name="core_tools_provider_whistle_desc">スマートフォン上で動作する、小型で高速なモデルです。音声入力の設定ページからダウンロードしてください。</string>
     <string name="core_tools_provider_xai_desc">独自のキーを使用して、xAIのAPI経由でGrokモデルを利用します。</string>

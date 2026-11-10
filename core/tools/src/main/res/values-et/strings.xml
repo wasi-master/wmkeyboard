@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Taustapildid</string>
     <string name="core_tools_provider_acrcloud_desc">Muusika tuvastamise teenus kahenädalase prooviperioodiga, seejärel tasulised plaanid. Vajab hosti, juurdepääsuvõtit ja projekti juurdepääsu saladust saidilt console.acrcloud.com. Iga klipp saadetakse ACRCloudi.</string>
     <string name="core_tools_provider_ai_horde_desc">Tasuta Stable Diffusion vabatahtlike arvutites. Töötab ilma võtmeta, kuid ootab järjekorras; tasuta võti saidilt aihorde.net tõstab sind järjekorras ettepoole.</string>
+    <string name="core_tools_provider_allratestoday_desc">Euroopa Keskpanga võrdluskursid umbes 30 valuuta kohta. Võtit pole.</string>
     <string name="core_tools_provider_anthropic_desc">Claude\'i mudelid Anthropicu API kaudu, kasutades sinu enda võtit.</string>
     <string name="core_tools_provider_asr4all_desc">Ingliskeelne dikteerimine telefonis, kus sõnad ilmuvad rääkimise ajal.</string>
     <string name="core_tools_provider_audd_desc">Tuvastab enamiku avaldatud muusikast mõne sekundilise helikatke põhjal. Vajab luba saidilt dashboard.audd.io; mõnisada tuvastust on tasuta, seejärel on teenus tasuline. Iga klipp saadetakse AudD-le.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Suur mudel, mis töötab telefonis ja mõistab 25 Euroopa keelt.</string>
     <string name="core_tools_provider_pexels_desc">Fotod Pexelsist. Vajab API-võtit, välja arvatud juhul, kui sellel versioonil on see olemas.</string>
     <string name="core_tools_provider_pollinations_desc">Tasuta, ilma võtme ja kontota: viip saadetakse Pollinationsile, mis valib mudeli. Võti saidilt enter.pollinations.ai avab nende uuema API ja võimaldab valida mudeli nime.</string>
+    <string name="core_tools_provider_privatemode">Privatemode AI</string>
+    <string name="core_tools_provider_privatemode_desc">Tehisintellekt, mis töötab konfidentsiaalses arvutuskeskkonnas ja ei saa teie teksti lugeda. Sisestage oma Privatemode API võti. Seejärel krüpteerib klaviatuur iga päringu telefonis, kuid ei kontrolli teenuse riistvaralist autentsust. Selle kontrollimiseks käivitage privatemode-proxy ja sisestage selle aadress, näiteks http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (mitteametlik, RapidAPI kaudu)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Shazami kataloog mitteametliku loendi kaudu saidil RapidAPI, kasutades RapidAPI võtit. See ei ole Apple\'i teenus: loend võib muutuda või lakata töötamast ilma ette teatamata. Iga klipp saadetakse RapidAPI-sse.</string>
     <string name="core_tools_provider_recraft_desc">Illustratsioonid, ikoonid ja vektorgraafika stiilis kunst. Vajab võtit teenuselt recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Fotod Unsplashist. Vajab API võtit, välja arvatud juhul, kui sellel versioonil on see olemas.</string>
     <string name="core_tools_provider_vision_ocr">Sinu nägemismudel</string>
     <string name="core_tools_provider_vision_ocr_desc">Mudel, mis loeb pilte serveri kaudu, mis vastab OpenAI vestluspäringutele. Vajab aadressi ja mudeli nime.</string>
+    <string name="core_tools_provider_vosk_desc">Väikesed Alpha Cephei Kaldi mudelid 29 keele jaoks, umbes 40 MB kumbki, mis kirjutavad telefonis rääkimise ajal. Piisavalt kerge vanema telefoni jaoks.</string>
     <string name="core_tools_provider_whisper_desc">OpenAI Whisper-mudelid, mis töötavad telefonis. Palju keeli; laadi mudel alla häälsisestuse lehel.</string>
     <string name="core_tools_provider_whistle_desc">Väike ja kiire mudel, mis töötab telefonis. Laadi see alla häältrükkimise lehel.</string>
     <string name="core_tools_provider_xai_desc">Grok mudelid xAI API kaudu, kasutades teie enda võtit.</string>

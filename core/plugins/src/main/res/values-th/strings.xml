@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">ปลั๊กอินนั้นไม่มีการดำเนินการดังกล่าวอีกต่อไป</string>
     <string name="core_plugins_error_no_render">ปลั๊กอินนี้ไม่มีฟังก์ชัน render()</string>
+    <string name="core_plugins_error_no_transform">ปลั๊กอินนี้ไม่มีฟังก์ชัน transform()</string>
     <string name="core_plugins_error_not_installed">ปลั๊กอินนั้นยังไม่ได้ติดตั้ง</string>
+    <string name="core_plugins_error_not_ready">ปลั๊กอินกำลังดาวน์โหลด โปรดลองอีกครั้งในสักครู่</string>
     <string name="core_plugins_error_script_failed">สคริปต์ล้มเหลว</string>
     <string name="core_plugins_error_script_missing">สคริปต์สำหรับปลั๊กอินนั้นหายไป</string>
     <string name="core_plugins_error_turned_off">ปลั๊กอินนั้นถูกปิดใช้งานอยู่</string>
     <string name="core_plugins_permission_reminders_label">แสดงการแจ้งเตือนตามเวลาที่คุณตั้งไว้</string>
+    <string name="core_plugins_permission_selection_label">เปลี่ยนข้อความที่คุณเลือกเมื่อคุณแตะการกระทำอย่างใดอย่างหนึ่ง</string>
     <string name="core_plugins_permission_storage_label">บันทึกข้อมูลบนอุปกรณ์ของคุณ</string>
+    <string name="core_plugins_reject_action_input">\"%1$s\" มีการดำเนินการที่ขอข้อความซึ่ง WM Keyboard เวอร์ชันนี้ไม่สามารถให้ได้</string>
+    <string name="core_plugins_reject_action_no_name">\"%1$s\" มีการกระทำที่ไม่มีชื่อ</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” เพิ่มการกระทำสำหรับข้อความที่เลือก แต่ไม่ได้ขออนุญาตเพื่อเปลี่ยนแปลง</string>
+    <string name="core_plugins_reject_bad_action_id">\"%1$s\" มีการกระทำที่มีรหัสสูญหาย ซ้ำกัน หรือไม่ถูกต้อง รหัสการกระทำประกอบด้วยตัวอักษรพิมพ์เล็ก ตัวเลข ขีดกลาง และขีดล่าง ไม่เกิน 32 ตัว</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” มีสคริปต์ที่ไม่ใช่ข้อความ UTF-8 ที่ถูกต้อง</string>
     <string name="core_plugins_reject_bad_id">ปลั๊กอินนี้มีรหัสที่ไม่ถูกต้อง รหัสต้องมีความยาว 3 ถึง 64 ตัวอักษร และประกอบด้วยตัวอักษรพิมพ์เล็ก ตัวเลข จุด ขีดกลาง และขีดล่างเท่านั้น</string>
     <string name="core_plugins_reject_empty_script">“%1$s” มีสคริปต์ที่ว่างเปล่า</string>
+    <string name="core_plugins_reject_lua">“%1$s” เขียนด้วยภาษา Lua ซึ่ง WM Keyboard ไม่รองรับแล้ว โปรดค้นหาเวอร์ชัน Python</string>
     <string name="core_plugins_reject_missing_script">“%1$s” ไม่มีไฟล์สคริปต์ (%2$s)</string>
     <string name="core_plugins_reject_newer_version">ปลั๊กอินนี้ต้องการ WM Keyboard เวอร์ชันใหม่กว่า</string>
     <string name="core_plugins_reject_no_name">ปลั๊กอินนี้ไม่มีชื่อ</string>
     <string name="core_plugins_reject_no_version">“%1$s” ไม่ได้ระบุว่าเป็นเวอร์ชันใด</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” ไม่มีแผงควบคุมและไม่มีการดำเนินการใดๆ จึงไม่มีสิ่งที่ต้องทำ</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” มีสคริปต์ขนาดใหญ่กว่า %2$d KB</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” ขอเปลี่ยนข้อความที่คุณเลือกแต่ไม่ได้เพิ่มการดำเนินการใดๆ</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” เพิ่มการกระทำมากกว่า 16 รายการ</string>
+    <string name="core_plugins_reject_unknown_language">\"%1$s\" ถูกเขียนด้วยภาษาที่ WM Keyboard เวรกชั่นนี้ไม่รอยรับ ปลั๊กรินถูกเขียนด้วย Python</string>
     <string name="core_plugins_reject_unknown_permission">WM Keyboard เวอร์ชันนี้ไม่รู้จักสิทธิ์ “%1$s” แอปไม่สามารถบอกคุณได้ว่า “%2$s” ได้รับอนุญาตให้ทำอะไร</string>
     <string name="core_plugins_reminders_channel_body">การแจ้งเตือนที่ปลั๊กอินขอให้แอปแสดงตามเวลาที่คุณตั้งไว้ในปลั๊กอิน โดยชื่อของแต่ละรายการคือชื่อของปลั๊กอินนั้น</string>
     <string name="core_plugins_reminders_channel_title">การแจ้งเตือนของปลั๊กอิน</string>
     <string name="core_plugins_stopped_cancelled">แอปได้หยุดปลั๊กอินนี้แล้ว</string>
     <string name="core_plugins_stopped_deadline">ปลั๊กอินนี้ใช้เวลานานเกินไป แอปจึงหยุดการทำงาน</string>
     <string name="core_plugins_stopped_instructions">ปลั๊กอินนี้ทำงานหนักเกินไปในคราวเดียว แอปจึงหยุดการทำงานของมัน</string>
+    <string name="core_plugins_stopped_memory">ปลั๊กอินนี้พยายามเก็บข้อมูลมากเกินไป แอปพลิเคชันจึงหยุดการทำงาน</string>
     <string name="core_plugins_stopped_not_responding">ปลั๊กอินนี้หยุดตอบสนอง แอปจึงปิดการทำงานของมัน</string>
     <string name="core_plugins_stopped_not_responding_disabled">ปลั๊กอินนี้หยุดตอบสนองอีกครั้ง แอปจึงปิดการทำงานของมัน</string>
     <string name="core_plugins_stopped_recursion">ปลั๊กอินนี้เรียกตัวเองบ่อยเกินไป แอปจึงหยุดการทำงานไว้</string>

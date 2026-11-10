@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">تصاویر پس‌زمینه</string>
     <string name="core_tools_provider_acrcloud_desc">یک سرویس تشخیص موسیقی با دوره آزمایشی دو هفته‌ای و سپس طرح‌های پولی. به میزبان، کلید دسترسی و رمز دسترسی پروژه از console.acrcloud.com نیاز دارد. هر کلیپ به ACRCloud ارسال می‌شود.</string>
     <string name="core_tools_provider_ai_horde_desc">استفاده رایگان از Stable Diffusion روی رایانه‌های داوطلبان. بدون کلید کار می‌کند اما در صف انتظار می‌ماند؛ یک کلید رایگان از aihorde.net جایگاه شما را در صف جلو می‌برد.</string>
+    <string name="core_tools_provider_allratestoday_desc">نرخ‌های مرجع بانک مکزی اریھ برای حکومت ۳۰ ارز. بدون کلید.</string>
     <string name="core_tools_provider_anthropic_desc">مدل‌های Claude از طریق رابط برنامه‌نویسی Anthropic، با استفاده از کلید شخصی شما.</string>
     <string name="core_tools_provider_asr4all_desc">دیکته انگلیسی روی گوشی، با کلماتی که همزمان با صحبت کردن شما ظاهر می‌شوند.</string>
     <string name="core_tools_provider_audd_desc">بیشتر موسیقی‌های منتشر شده را از چند ثانیه صدا تشخیص می‌دهد. نیاز به یک توکن از dashboard.audd.io دارد؛ چند صد تشخیص اول رایگان است و پس از آن پولی می‌شود. هر کلیپ به AudD ارسال می‌شود.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">یک مدل بزرگ که روی گوشی اجرا می‌شود و ۲۵ زبان اروپایی را می‌فهمد.</string>
     <string name="core_tools_provider_pexels_desc">عکس‌ها از Pexels. نیاز به کلید API دارد، مگر اینکه این نسخه از قبل آن را داشته باشد.</string>
     <string name="core_tools_provider_pollinations_desc">رایگان، بدون نیاز به کلید یا حساب کاربری: دستور (پرامپت) به Pollinations ارسال می‌شود و آن‌ها مدل را انتخاب می‌کنند. داشتن یک کلید از enter.pollinations.ai به شما اجازه دسترسی به API جدیدتر آن‌ها را داده و امکان انتخاب نام مدل را فراهم می‌کند.</string>
+    <string name="core_tools_provider_privatemode">هوش مصنوعی حالت خصوصی</string>
+    <string name="core_tools_provider_privatemode_desc">هوش مصنوعی که در پردازش محرمانه اجرا می‌شود و نمی‌تواند متن شما را بخواند. کلید API حالت خصوصی خود را بدهید. سپس صفحه کلید هر درخواست را روی گوشی رمزگذاری می‌کند، اما تأیید سخت‌افزاری سرویس را بررسی نمی‌کند. برای بررسی آن نیز، privatemode-proxy را اجرا کنید و آدرس آن را بدهید، مانند http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">شزم (غیررسمی، از طریق RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">کاتالوگ Shazam از طریق یک فهرست غیررسمی در RapidAPI، با یک کلید RapidAPI. این یک سرویس اپل نیست: فهرست ممکن است بدون اطلاع تغییر کند یا متوقف شود. هر کلیپ به RapidAPI ارسال می‌شود.</string>
     <string name="core_tools_provider_recraft_desc">تصویرسازی، آیکون و هنرهای وکتوری. نیاز به یک کلید از recraft.ai دارد.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">عکس‌ها از Unsplash. نیاز به کلید API دارد، مگر اینکه این نسخه از قبل آن را داشته باشد.</string>
     <string name="core_tools_provider_vision_ocr">مدل بینایی شما</string>
     <string name="core_tools_provider_vision_ocr_desc">مدلی که تصاویر را می‌خواند، از طریق سروری که به درخواست‌های چت OpenAI پاسخ می‌دهد. به آدرس و نام مدل نیاز دارد.</string>
+    <string name="core_tools_provider_vosk_desc">مدل‌های کوچک کالدی از Alpha Cephei برای ۲۹ زبان، هر کدام حدود ۴۰ مگابایت، که با صحبت کردن در تلفن تایپ می‌کنند. به اندازه کافی سبک برای یک تلفن قدیمی.</string>
     <string name="core_tools_provider_whisper_desc">مدل‌های Whisper شرکت OpenAI که روی گوشی اجرا می‌شوند. زبان‌های بسیار؛ یک مدل را در صفحه تایپ صوتی دانلود کنید.</string>
     <string name="core_tools_provider_whistle_desc">یک مدل کوچک و سریع که روی گوشی اجرا می‌شود. آن را در صفحه تایپ صوتی دانلود کنید.</string>
     <string name="core_tools_provider_xai_desc">مدل‌های Grok از طریق API شرکت xAI، با استفاده از کلید شخصی شما.</string>

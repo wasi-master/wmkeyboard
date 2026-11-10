@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Keskeytetty: tiedonsäästö estää lataukset tässä yhteydessä. Lataus jatkuu siitä, mihin se jäi.</string>
     <string name="common_error_generic">Jokin ei toiminut. Yritä uudelleen.</string>
     <string name="common_error_network">Ei yhteyttä. Tarkista verkkosi ja yritä uudelleen.</string>
+    <string name="common_error_network_permission_off">WM Keyboardin verkkoyhteys on poistettu käytöstä puhelimen asetuksissa, joten tämä ei toimi. Ota se käyttöön polussa Android-asetukset › Sovellukset › WM Keyboard › Luvat (GrapheneOSissa Verkkolupa) ja yritä uudelleen.</string>
     <string name="common_error_no_internet_permission">Tämä näppäimistöversio ei voi muodostaa yhteyttä internetiin.</string>
     <string name="common_error_timeout">Pyyntö kesti liian kauan. Yritä uudelleen.</string>
     <string name="common_export">Vie</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Lisää</string>
     <string name="common_next">Seuraava</string>
     <string name="common_none">Ei mitään</string>
+    <string name="common_notify_channel_alarms_body">Hälytys, joka on torkutettu tai soimassa pian, sekä hälytys, joka on soinut ilman paikallaolijoita. Itse soittoäänellä on oma kanavansa.</string>
+    <string name="common_notify_channel_alarms_title">Hälytysilmoitukset</string>
     <string name="common_notify_channel_backup_body">Vain kun automaattinen varmuuskopiointi epäonnistuu. Onnistuneet varmuuskopiot ovat hiljaisia.</string>
     <string name="common_notify_channel_backup_title">Varmuuskopiointiongelmat</string>
     <string name="common_notify_channel_clock_body">Ajastimet ja sekuntikello niiden ollessa käynnissä, painikkeilla tauottamiseen, minuutin lisäämiseen tai pysäyttämiseen.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Näppäimistön hallinta</string>
     <string name="common_notify_channel_send_body">Lähetä tiedostoja -työkalun lataus tai lähetys valmistui näppäimistön ollessa piilotettuna, sisältäen kopioitavan linkin ja tiedoston, jonka lähellä oleva laite lähetti.</string>
     <string name="common_notify_channel_send_title">Tiedostojen lähettäminen ja vastaanottaminen</string>
+    <string name="common_notify_channel_stopwatch_body">Sekuntikello käynnissä tai tauolla kierros-, tauko- ja nollauspainikkeilla.</string>
+    <string name="common_notify_channel_stopwatch_title">Sekuntikello</string>
     <string name="common_notify_channel_updates_body">Uusi versio asennettavaksi, päivitys odottaa asennusta ja vahvistus, kun päivitys on asennettu.</string>
     <string name="common_notify_channel_updates_title">Sovelluspäivitykset</string>
     <string name="common_notify_download_done">Valmis käytettäväksi</string>
     <string name="common_notify_download_failed">Kohteen %1$s lataaminen epäonnistui</string>
     <string name="common_notify_download_handwriting">%1$s käsinkirjoitus</string>
     <string name="common_notify_download_progress">%1$s / %2$s</string>
+    <string name="common_notify_download_step_library">Vaihe 1/2, moottorikirjasto: %1$s</string>
+    <string name="common_notify_download_step_model">Vaihe 2 / 2, malli: %1$s</string>
     <string name="common_notify_download_translate">%1$s offline-käännös</string>
     <string name="common_notify_download_voice">%1$s offline-ääni</string>
     <string name="common_off">Pois päältä</string>
+    <string name="common_offline_build_download">Tämä on offline-versio, joten se ei voi ladata tätä. Hanki tiedosto toisella laitteella ja tuo se: Asetukset › Tietoja › Tallennustila › Tuo ladatut tiedostot -toiminnon kautta tai tämän näytön omalta Tuo-riviltä, jos sellainen on. Tai asenna vakaa versio samalta julkaisusivulta tämän päälle, jolloin se latautuu itsestään. Asetuksesi ja opitut sanat säilyvät.</string>
+    <string name="common_offline_build_library">Tämä on offline-versio, joten se ei voi ladata tätä varten tarvittavaa kirjastoa. Hanki sen tiedosto toisella laitteella ja tuo se kohtaan Asetukset › Tietosuoja › Ominaisuuskirjastot, jossa on lueteltu tarkka tiedosto. Tai asenna vakiourako samalta julkaisusivulta tämän päälle, ja se latautuu itsestään. Asetuksesi ja opitut sanat säilyvät.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">Päällä</string>
     <string name="common_open_system_settings">Avaa järjestelmän asetukset</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Tekoälypainikkeen esteettömyyspalvelu</string>
     <string name="common_special_access_split_screen_body">Jotkut puhelimet avaavat sovelluksen koko näytölle, kun näppäimistö pyytää jaettua näyttöä. Kun tämä palvelu on päällä, sovelluksen avaaminen jaettuun näyttöön sovelluskäynnistimestä tai jaetun näytön parin avaaminen painaa ensin Androidin omaa jaetun näytön kytkintä – samaa, joka on Viimeisimmät-valikossa – ja sovellus avautuu sitten vapaalle puolikkaalle. Ennen sen painamista palvelu tarkistaa, missä sovellusten ikkunat ovat, nähdäkseen, onko jaettu näyttö jo päällä. Se ei koskaan lue niiden sisältöä. Se ei tee mitään muuna ajankohtana, ei tarkkaile mitä kirjoitat eikä tallenna mitään. Androidin helppokäyttöisyysnäyttö varoittaa kaikesta, mitä tämän kaltainen palvelu voi tehdä. Tämä palvelu painaa vain kyseistä kytkintä, kun pyydät jaettua näyttöä.</string>
     <string name="common_special_access_split_screen_title">Jaetun ruudun esteettömyyspalvelu</string>
+    <string name="common_special_access_system_buttons_body">Android sallii toisen sovelluksen ottaa kuvakaappauksen, palata takaisin tai avata viimeisimmät sovellukset, sovellusvalikon, ilmoitusvarjon tai pika-asetukset vain esteettömyyspalvelun kautta. Kun tämä palvelu on päällä, kuvakaappaustyökalu ja kelluva painike painavat näitä järjestelmäpainikkeita puolestasi – samoja, joita Androidin oma navigaatio ja varjo käyttävät. Kuvakaappaus tallennetaan sinne, minne kaikki kuvakaappaukset menevät. Palvelu ei tee mitään muulloin. Se ei lue näyttöä, ei tarkkaile kirjoittamistasi eikä tallenna mitään. Androidin esteettömyysnäyttö varoittaa kaikesta, mitä tällainen palvelu voisi tehdä. Tämä palvelu painaa vain järjestelmäpainiketta, kun pyydät sitä.</string>
+    <string name="common_special_access_system_buttons_title">Järjestelmäpainikkeiden esteettömyyspalvelu</string>
     <string name="common_special_access_usage_body">Käyttöoikeuden avulla näppäimistö tallentaa, mikä sovellus oli etualalla, kun kopioit jotain. Se näyttää kyseisen sovelluksen, kun painat leikettä pitkään. Näppäimistö lukee etualalla olevan sovelluksen vain kopiointihetkellä. Se ei lue historiaasi tai sovelluksessa viettämääsi aikaa. Näppäimistö säilyttää vastauksen leikkeen mukana vain laitteellasi. Mitään sovelluksen käyttöön liittyvää tietoa ei poistu laitteeltasi. Asetus on valinnainen. Se pysyy pois päältä, kunnes kytket sen päälle.</string>
     <string name="common_special_access_usage_title">Käyttöoikeus leikepöydän lähdesovelluksille</string>
     <string name="common_type_setting_value_desc">Kirjoita arvo kohteelle %1$s</string>

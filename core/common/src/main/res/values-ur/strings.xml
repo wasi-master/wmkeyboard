@@ -37,6 +37,7 @@
     <string name="common_error_download_held">روک دیا گیا: ڈیٹا سیونگ اس کنکشن پر ڈاؤن لوڈز کو روکے ہوئے ہے۔ یہ وہیں سے جاری رہے گا جہاں سے رکا تھا۔</string>
     <string name="common_error_generic">کچھ کام نہیں کیا۔ دوبارہ کوشش کریں۔</string>
     <string name="common_error_network">کوئی کنکشن نہیں۔ اپنے نیٹ ورک کو چیک کریں اور دوبارہ کوشش کریں۔</string>
+    <string name="common_error_network_permission_off">WM Keyboard کی نیٹ ورک تک رسائی آپ کے فون کی سیٹنگز میں بند ہے، اس لیے یہ کام نہیں کرتا۔ اسے Android Settings › Apps › WM Keyboard › Permissions (GrapheneOS پر، Network permission) میں آن کریں، پھر دوبارہ کوشش کریں۔</string>
     <string name="common_error_no_internet_permission">کی بورڈ کا یہ ورژن انٹرنیٹ سے منسلک نہیں ہو سکتا۔</string>
     <string name="common_error_timeout">درخواست میں بہت زیادہ وقت لگا۔ دوبارہ کوشش کریں۔</string>
     <string name="common_export">برآمد کریں</string>
@@ -48,6 +49,8 @@
     <string name="common_more">مزید</string>
     <string name="common_next">اگلا</string>
     <string name="common_none">کوئی نہیں</string>
+    <string name="common_notify_channel_alarms_body">ایک المارم جسے سنوز کر دیا گیا ہے یا جو بجنے والا ہے، اور وہ جو بغیر کسی کے موجود ہونے کے بجا۔ گھنٹی بجنے کا اپنا ایک چینل ہے۔</string>
+    <string name="common_notify_channel_alarms_title">الارم کی نوٹس</string>
     <string name="common_notify_channel_backup_body">صرف تب جب خودکار بیک اپ ناکام ہو جائے۔ کامیاب بیک اپ خاموش ہوتے ہیں۔</string>
     <string name="common_notify_channel_backup_title">بیک اپ کے مسائل</string>
     <string name="common_notify_channel_clock_body">ٹائمرز اور اسٹاپ واچ جب وہ چل رہے ہوں، توقف کرنے، ایک منٹ شامل کرنے یا انہیں روکنے کے بٹنوں کے ساتھ۔</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">کی بورڈ کنٹرولز</string>
     <string name="common_notify_channel_send_body">کی بورڈ کے چھپے ہونے کے دوران فائلیں بھیجنے والے ٹول کی اپ لوڈ یا ڈاؤن لوڈ مکمل ہو گئی، کاپی کرنے کے لیے لنک کے ساتھ، اور قریبی ڈیوائس کی بھیجی گئی فائل کے ساتھ۔</string>
     <string name="common_notify_channel_send_title">فائلیں بھیجنا اور وصول کرنا</string>
+    <string name="common_notify_channel_stopwatch_body">اسٹاپ واچ جب یہ چل رہی ہو یا روکی گئی ہو، لیپس، روکنے اور ری سیٹ کرنے کے بٹنوں کے ساتھ۔</string>
+    <string name="common_notify_channel_stopwatch_title">اسٹاپرواچ</string>
     <string name="common_notify_channel_updates_body">انسٹال کرنے کے لیے ایک نیا ورژن، ایک اپ ڈیٹ جو آپ کے انسٹال دبانے کا منتظر ہے، اور ایک بار انسٹال ہونے کے بعد تصدیق۔</string>
     <string name="common_notify_channel_updates_title">ایپ اپ ڈیٹس</string>
     <string name="common_notify_download_done">استعمال کے لیے تیار</string>
     <string name="common_notify_download_failed">%1$s ڈاؤن لوڈ نہیں کیا جا سکا</string>
     <string name="common_notify_download_handwriting">%1$s ہینڈ رائٹنگ</string>
     <string name="common_notify_download_progress">%2$s میں سے %1$s</string>
+    <string name="common_notify_download_step_library">مرحلہ 1 کا 2، انجن لائبریری: %1$s</string>
+    <string name="common_notify_download_step_model">مرحلہ 2 از 2، ماڈل: %1$s</string>
     <string name="common_notify_download_translate">%1$s آف لائن ترجمہ</string>
     <string name="common_notify_download_voice">%1$s آف لائن آواز</string>
     <string name="common_off">بند</string>
+    <string name="common_offline_build_download">یہ آف لائن بلڈ ہے، لہذا یہ اسے ڈاؤن لوڈ نہیں کر سکتا۔ کسی دوسرے ڈیوائس پر فائل حاصل کریں اور اسے امپورٹ کریں: سیٹنگز › کے بارے میں › سٹوریج › ڈاؤن لوڈ کی گئی فائلیں امپورٹ کریں اسے لے لیتا ہے، یا اسکرین کی اپنی امپورٹ رو جہاں اس کی ایک ہے۔ یا اس کے اوپر اسی ریلیز کے صفحہ سے سٹینڈرڈ بلڈ انسٹال کریں، اور یہ خود بخود ڈاؤن لوڈ ہوجاتا ہے۔ آپ کی ترتیبات اور سیکھے گئے الفاظ برقرار رہتے ہیں۔</string>
+    <string name="common_offline_build_library">یہ آف لائن بلڈ ہے، لہذا یہ اس کے لیے درکار لائبریری ڈاؤن لوڈ نہیں کر سکتا۔ اس کی فائل کسی دوسرے ڈیوائس پر حاصل کریں اور اسے ترتیبات › رازداری › فیچر لائبریریز میں امپورٹ کریں، جو کہ اصل فائل کی فہرست دکھاتی ہے۔ یا اسی ریلیز کے صفحہ سے اس کے اوپر معیاری بلڈ انسٹال کریں، اور یہ خود بخود ڈاؤن لوڈ ہو جائے گا۔ آپ کی ترتیبات اور سیکھے گئے الفاظ برقرار رہیں گے۔</string>
     <string name="common_ok">ٹھیک ہے</string>
     <string name="common_on">آن</string>
     <string name="common_open_system_settings">سسٹم کی ترتیبات کھولیں</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">AI بٹن کے لیے ایکسیسبیلٹی سروس</string>
     <string name="common_special_access_split_screen_body">جب کی بورڈ اسپلٹ سکرین کا کہتا ہے تو کچھ فونز کسی ایپ کو پوری سکرین پر کھولتے ہیں۔ اس سروس کے آن ہونے پر، ایپ لانچر سے اسپلٹ سکرین میں ایپ کھولنا، یا اسپلٹ سکرین پیئر کھولنا، سب سے پہلے اینڈرائیड کا اپنا اسپلٹ سکرین سوئچ دباتا ہے، وہی جو ریسینٹس مینو میں ہوتا ہے، اور پھر ایپ آدھے خالی حصے میں کھل جاتی ہے۔ اسے دبانے سے پہلے، سروس چیک کرتی ہے کہ ایپ ونڈوز کہاں ہیں، یہ دیکھنے کے لیے کہ آیا اسپلٹ سکرین پہلے ہی موجود ہے۔ یہ کبھی نہیں پڑھتی کہ ان میں کیا ہے۔ یہ کسی اور وقت کچھ نہیں کرتی، آپ کیا ٹائپ کرتے ہیں یہ نہیں دیکھتی اور کچھ نہیں رکھتی۔ اینڈرائیड کی ایکسیسبیلٹی سکرین ہر اس چیز کے بارے میں خبردار کرتی ہے جو اس طرح کی سروس کر سکتی ہے۔ یہ سروس صرف اس سوئچ کو دباتی ہے جب آپ اسپلٹ سکرین کا کہتے ہیں۔</string>
     <string name="common_special_access_split_screen_title">اسپلٹ اسکرین کے لیے رسائی کی خدمت</string>
+    <string name="common_special_access_system_buttons_body">Android صرف رسائی کی سروس کے ذریعے کسی دوسری ایپ کو اسکرین شاٹ لینے، واپس جانے، یا حالیہ ایپس، ایپ دراز، نوٹیفیکیشن شیڈ یا فوری ترتیبات کھولنے کی اجازت دیتا ہے۔ اس سروس کے آن ہونے کے ساتھ، اسکرین شاٹ ٹول اور فلوٹنگ بٹن آپ کے لیے وہ سسٹم بٹن دباتے ہیں، وہی جو Android کے اپنے نیویگیشن اور شیڈ میں ہوتے ہیں۔ اسکرین شاٹ وہاں محفوظ ہوجاتا ہے جہاں ہر اسکرین شاٹ جاتا ہے۔ سروس کسی دوسرے وقت کچھ نہیں کرتی۔ یہ اسکرین نہیں پڑھتی، آپ جو ٹائپ کرتے ہیں اسے نہیں دیکھتی اور کچھ نہیں رکھتی۔ Android کی ایکسیسبیلٹی اسکرین ہر اس چیز کے بارے میں خبردار کرتی ہے جو اس طرح کی سروس کر سکتی ہے۔ یہ سروس صرف اس وقت سسٹم کا بٹن دباتی ہے جب آپ اس سے کہتے ہیں۔</string>
+    <string name="common_special_access_system_buttons_title">سسٹم کے بٹنوں کے لیے رسائی کی سروس</string>
     <string name="common_special_access_usage_body">استعمال تک رسائی کے ساتھ، کی بورڈ ریکارڈ کرتا ہے کہ جب آپ نے کچھ کاپی کیا تو کون سی ایپ سامنے تھی۔ جب آپ کلپ کو دبا کر رکھتے ہیں تو یہ وہ ایپ دکھاتا ہے۔ کی بورڈ صرف کاپی کرنے کے لمحے میں سامنے والی ایپ کو پڑھتا ہے۔ یہ آپ کی ہسٹری یا کسی ایپ میں آپ کے وقت کو نہیں پڑھتا ہے۔ کی بورڈ جواب کو کلپ کے ساتھ، صرف آپ کے آلے پر رکھتا ہے۔ آپ کے ایپ کے استعمال کے بارے میں کچھ بھی آپ کے آلے سے باہر نہیں جاتا ہے۔ یہ ترتیب اختیاری ہے۔ جب تک آپ اسے آن نہیں کرتے یہ آف رہتی ہے۔</string>
     <string name="common_special_access_usage_title">کلپ بورڈ سورس ایپس کے لیے استعمال تک رسائی</string>
     <string name="common_type_setting_value_desc">%1$s کے لیے ایک قدر ٹائپ کریں</string>

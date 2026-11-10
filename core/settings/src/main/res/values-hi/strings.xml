@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">अन्य सेवा</string>
     <string name="core_settings_ai_provider_on_device_label">आपके डिवाइस पर</string>
+    <string name="core_settings_ai_provider_privatemode_label">प्राइवेट मोड</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">दिन का समय</string>
     <string name="core_settings_auto_theme_trigger_sun_label">सूर्योदय और सूर्यास्त</string>
     <string name="core_settings_auto_theme_trigger_system_label">सिस्टम लाइट या डार्क</string>

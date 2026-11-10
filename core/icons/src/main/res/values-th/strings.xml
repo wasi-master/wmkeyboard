@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">แถบเครื่องมือ</string>
     <string name="core_icons_group_tools_title">เครื่องมือ</string>
     <string name="core_icons_pack_imported_label">ไอคอนที่นำเข้า</string>
-    <string name="core_icons_pack_mine_label">ไอคอนของฉัน</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">แอปละเว้นไฟล์ %1$d ไฟล์ เวอร์ชันนี้ไม่มีไอคอนสำหรับไฟล์ดังกล่าว: %2$s</item>
         <item quantity="other">แอปละเว้นไฟล์ %1$d ไฟล์ เวอร์ชันนี้ไม่มีไอคอนสำหรับไฟล์ดังกล่าว: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">ปุ่ม Tab</string>
     <string name="core_icons_slot_toolbox_label">กล่องเครื่องมือ</string>
     <string name="core_icons_slot_toolbox_search_label">ค้นหากล่องเครื่องมือ</string>
+    <string name="core_icons_pack_mine_label">ไอคอนของฉัน</string>
 </resources>

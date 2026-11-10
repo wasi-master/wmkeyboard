@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Rīkjosla</string>
     <string name="core_icons_group_tools_title">Rīki</string>
     <string name="core_icons_pack_imported_label">Importētās ikonas</string>
-    <string name="core_icons_pack_mine_label">Manas ikonas</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Lietotne ignorēja %1$d failu. Šajā versijā tam nav ikonas: %2$s</item>
         <item quantity="other">Lietotne ignorēja %1$d failus. Šajā versijā tiem nav ikonas: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tab taustiņš</string>
     <string name="core_icons_slot_toolbox_label">Rīkjosla</string>
     <string name="core_icons_slot_toolbox_search_label">Rīkjoslas meklēšana</string>
+    <string name="core_icons_pack_mine_label">Manas ikonas</string>
 </resources>

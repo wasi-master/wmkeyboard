@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Symbolleiste</string>
     <string name="core_icons_group_tools_title">Werkzeuge</string>
     <string name="core_icons_pack_imported_label">Importierte Symbole</string>
-    <string name="core_icons_pack_mine_label">Meine Symbole</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Die App hat %1$d Datei ignoriert. Diese Version hat kein Symbol dafür: %2$s</item>
         <item quantity="other">Die App hat %1$d Dateien ignoriert. Diese Version hat keine Symbole dafür: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tab-Taste</string>
     <string name="core_icons_slot_toolbox_label">Werkzeugkasten</string>
     <string name="core_icons_slot_toolbox_search_label">Toolbox-Suche</string>
+    <string name="core_icons_pack_mine_label">Meine Symbole</string>
 </resources>

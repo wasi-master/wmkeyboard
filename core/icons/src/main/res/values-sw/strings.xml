@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Upau wa zana</string>
     <string name="core_icons_group_tools_title">Zana</string>
     <string name="core_icons_pack_imported_label">Ikoni zilizoingizwa</string>
-    <string name="core_icons_pack_mine_label">Ikoni zangu</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Programu imepuuza faili %1$d. Toleo hili halina ikoni yake: %2$s</item>
         <item quantity="other">Programu imepuuza faili %1$d. Toleo hili halina ikoni zake: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Ufunguo wa Tab</string>
     <string name="core_icons_slot_toolbox_label">Sanduku la zana</string>
     <string name="core_icons_slot_toolbox_search_label">Utafutaji wa kisanduku cha zana</string>
+    <string name="core_icons_pack_mine_label">Ikoni zangu</string>
 </resources>

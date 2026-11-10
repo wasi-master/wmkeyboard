@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Muu palvelu</string>
     <string name="core_settings_ai_provider_on_device_label">Laitteellasi</string>
+    <string name="core_settings_ai_provider_privatemode_label">Yksityistila</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Kellonaika</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Auringonnousu ja auringonlasku</string>
     <string name="core_settings_auto_theme_trigger_system_label">Järjestelmän vaalea tai tumma</string>

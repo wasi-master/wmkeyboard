@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Annak a bővítménynek már nincs ilyen művelete.</string>
     <string name="core_plugins_error_no_render">Ez a bővítmény nem rendelkezik render() függvénnyel.</string>
+    <string name="core_plugins_error_no_transform">Ez a bővítmény nem rendelkezik transform() függvénnyel.</string>
     <string name="core_plugins_error_not_installed">Ez a bővítmény nincs telepítve.</string>
+    <string name="core_plugins_error_not_ready">A bővítmények letöltése még folyamatban van. Próbálja újra egy pillanat múlva.</string>
     <string name="core_plugins_error_script_failed">A szkript futtatása sikertelen.</string>
     <string name="core_plugins_error_script_missing">A bővítmény parancsfájlja hiányzik.</string>
     <string name="core_plugins_error_turned_off">Ez a bővítmény ki van kapcsolva.</string>
     <string name="core_plugins_permission_reminders_label">Emlékeztetők megjelenítése az Ön által beállított időpontokban</string>
+    <string name="core_plugins_permission_selection_label">A kiválasztott szöveg módosítása, amikor koppint az egyik műveletére</string>
     <string name="core_plugins_permission_storage_label">Adatok mentése az eszközre</string>
+    <string name="core_plugins_reject_action_input">A(z) „%1$s” olyan művelettel rendelkezik, amely olyan szöveget kér, amelyet a WM Keyboard ezen verziója nem tud megadni.</string>
+    <string name="core_plugins_reject_action_no_name">A(z) „%1$s” tartalmaz egy név nélküli műveletet.</string>
+    <string name="core_plugins_reject_actions_need_selection">A(z) „%1$s” műveleteket ad hozzá a kijelölt szöveghez, de nem kér engedélyt annak módosítására.</string>
+    <string name="core_plugins_reject_bad_action_id">A(z) „%1$s” műveletazonosítója hiányzik, ismétlődik vagy érvénytelen. A műveletazonosító legfeljebb 32 kisbetűből, számból, kötőjelből és aláhúzásjelből állhat.</string>
     <string name="core_plugins_reject_bad_encoding">A(z) „%1$s” olyan szkriptet tartalmaz, amely nem érvényes UTF-8 szöveg.</string>
     <string name="core_plugins_reject_bad_id">Ennek a bővítménynek az azonosítója érvénytelen. Az azonosító 3–64 karakter hosszú lehet. Tartalmazhat kisbetűket, számokat, pontokat, kötőjeleket és aláhúzásokat.</string>
     <string name="core_plugins_reject_empty_script">A(z) „%1$s” szkriptje üres.</string>
+    <string name="core_plugins_reject_lua">A(z) „%1$s” Lua nyelven íródott, amelyet a WM Keyboard már nem futtat. Keresd a Python verzióját.</string>
     <string name="core_plugins_reject_missing_script">A(z) „%1$s” nem rendelkezik parancsfájllal (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Ehhez a bővítményhez a WM Keyboard újabb verziója szükséges.</string>
     <string name="core_plugins_reject_no_name">Ennek a bővítménynek nincs neve.</string>
     <string name="core_plugins_reject_no_version">A(z) „%1$s” nem adja meg, hogy melyik verzió.</string>
+    <string name="core_plugins_reject_nothing_to_show">A(z) „%1$s” elemnek nincs panelje és nincsenek műveletei, így nincs mit tennie.</string>
     <string name="core_plugins_reject_script_too_large">A(z) „%1$s” szkriptje nagyobb, mint %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">A(z) „%1$s” módosítani szeretné a kijelölt szöveget, de nem ad hozzá semmilyen műveletet.</string>
+    <string name="core_plugins_reject_too_many_actions">A(z) „%1$s” több mint 16 műveletet ad hozzá.</string>
+    <string name="core_plugins_reject_unknown_language">A(z) „%1$s” olyan nyelven íródott, amelyet a WM Keyboard ezen verziója nem tud futtatni. A bővítmények Pythonban íródnak.</string>
     <string name="core_plugins_reject_unknown_permission">A WM Keyboard ezen verziója nem ismeri a „%1$s” engedélyt. Az alkalmazás nem tudja megmondani, hogy a „%2$s” mit tehet.</string>
     <string name="core_plugins_reminders_channel_body">Emlékeztetők, amelyeket egy bővítmény kért az alkalmazástól, a bővítményben beállított időpontokban. Mindegyik címe a bővítmény neve.</string>
     <string name="core_plugins_reminders_channel_title">Bővítmény-emlékeztetők</string>
     <string name="core_plugins_stopped_cancelled">Az alkalmazás leállította ezt a bővítményt.</string>
     <string name="core_plugins_stopped_deadline">Ez a bővítmény túl sokáig futott. Az alkalmazás leállította.</string>
     <string name="core_plugins_stopped_instructions">Ez a bővítmény túl sok munkát végzett egyszerre. Az alkalmazás leállította.</string>
+    <string name="core_plugins_stopped_memory">Ez a beépülő modul túl sok adatot próbált megőrizni. Az alkalmazás leállította.</string>
     <string name="core_plugins_stopped_not_responding">Ez a bővítmény nem válaszolt. Az alkalmazás bezárta.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Ez a bővítmény ismét nem válaszolt. Az alkalmazás kikapcsolta.</string>
     <string name="core_plugins_stopped_recursion">Ez a bővítmény túl sokszor hívta meg önmagát. Az alkalmazás leállította.</string>

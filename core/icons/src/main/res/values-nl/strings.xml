@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Werkbalk</string>
     <string name="core_icons_group_tools_title">Gereedschap</string>
     <string name="core_icons_pack_imported_label">Geïmporteerde iconen</string>
-    <string name="core_icons_pack_mine_label">Mijn iconen</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">De app heeft %1$d bestand genegeerd. Deze versie heeft er geen icoon voor: %2$s</item>
         <item quantity="other">De app heeft %1$d bestanden genegeerd. Deze versie heeft er geen iconen voor: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tab-toets</string>
     <string name="core_icons_slot_toolbox_label">Gereedschapskist</string>
     <string name="core_icons_slot_toolbox_search_label">Toolbox zoeken</string>
+    <string name="core_icons_pack_mine_label">Mijn iconen</string>
 </resources>

@@ -37,6 +37,7 @@
     <string name="common_error_download_held">מושהה: שמירת נתונים מונעת הורדות בחיבור זה. הפעולה תימשך מהמקום שבו נעצרה.</string>
     <string name="common_error_generic">משהו לא עבד. נסה שוב.</string>
     <string name="common_error_network">אין חיבור. בדוק את הרשת ונסה שוב.</string>
+    <string name="common_error_network_permission_off">גישת הרשת של מקלדת WM כבויה בהגדרות הטלפון שלך, ולכן פעולה זו אינה פועלת. הפעל אותה בהגדרות אנדרואיד › אפליקציות › מקלדת WM › הרשאות (ב-GrapheneOS, הרשאת הרשת), ולאחר מכן נסה שוב.</string>
     <string name="common_error_no_internet_permission">גרסה זו של המקלדת אינה יכולה להתחבר לאינטרנט.</string>
     <string name="common_error_timeout">הבקשה ארכה זמן רב מדי. נסה שוב.</string>
     <string name="common_export">ייצוא</string>
@@ -48,6 +49,8 @@
     <string name="common_more">עוד</string>
     <string name="common_next">הבא</string>
     <string name="common_none">ללא</string>
+    <string name="common_notify_channel_alarms_body">התראה על שעון מעורר שמושהה או עומד לצלצל, ואחד שצלצל מבלי שאיש ענה. לצלצול עצמו יש ערוץ משלו.</string>
+    <string name="common_notify_channel_alarms_title">הודעות אזעקה</string>
     <string name="common_notify_channel_backup_body">רק כאשר גיבוי אוטומטי נכשל. גיבויים מוצלחים מתבצעים בשקט.</string>
     <string name="common_notify_channel_backup_title">בעיות בגיבוי</string>
     <string name="common_notify_channel_clock_body">טיימרים ושעון עצר בזמן שהם פועלים, עם כפתורים להשהיה, הוספת דקה או עצירה.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">בקרות מקלדת</string>
     <string name="common_notify_channel_send_body">העלאה או הורדה של כלי שליחת הקבצים הסתיימה בזמן שהמקלדת הייתה מוסתרת, עם הקישור להעתקה וקובץ שנשלח ממכשיר קרוב.</string>
     <string name="common_notify_channel_send_title">שליחה וקבלה של קבצים</string>
+    <string name="common_notify_channel_stopwatch_body">שעון העצר בזמן ריצה או השהיה, עם לחצנים להקפות, השהיה ואיפוס.</string>
+    <string name="common_notify_channel_stopwatch_title">סטופר</string>
     <string name="common_notify_channel_updates_body">גרסה חדשה להתקנה, עדכון שמחכה שתלחץ על התקן, ואישור ברגע שאחד מותקן.</string>
     <string name="common_notify_channel_updates_title">עדכוני אפליקציה</string>
     <string name="common_notify_download_done">מוכן לשימוש</string>
     <string name="common_notify_download_failed">לא ניתן היה להוריד את %1$s</string>
     <string name="common_notify_download_handwriting">כתב יד %1$s</string>
     <string name="common_notify_download_progress">%1$s מתוך %2$s</string>
+    <string name="common_notify_download_step_library">שלב 1 מתוך 2, ספריית המנוע: %1$s</string>
+    <string name="common_notify_download_step_model">שלב 2 מתוך 2, הדגם: %1$s</string>
     <string name="common_notify_download_translate">תרגום לא מקוון %1$s</string>
     <string name="common_notify_download_voice">%1$s קול לא מקוון</string>
     <string name="common_off">כבוי</string>
+    <string name="common_offline_build_download">זוהי גרסת האופליין, ולכן היא לא יכולה להוריד את זה. קבל את הקובץ במכשיר אחר וייבא אותו: הגדרות › אודות › אחסון › ייבוא קבצים שהורדו מקבל זאת, או שורת הייבוא של מסך זה שיש לה כזו. לחלופין, התקן את גרסת הסטנדרט מאותו עמוד שחרור מעל זו, והיא תוריד את עצמה לבד. ההגדרות והמילים שלמדת נשארות.</string>
+    <string name="common_offline_build_library">זו גרסת האופליין, ולכן היא לא יכולה להוריד את הספריה הנדרשת. קבל את הקובץ שלה במכשיר אחר וייבא אותו בהגדרות › פרטיות › ספריות תכונות, המציגות את הקובץ המדויק. לחלופין, התקן את גרסת הסטנדרט מאותו עמוד שחרור מעל זו, והיא תוריד את עצמה. ההגדרות והמילים שלמדת נשארות.</string>
     <string name="common_ok">אישור</string>
     <string name="common_on">מופעל</string>
     <string name="common_open_system_settings">פתח את הגדרות המערכת</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">שירות נגישות עבור לחצן ה-AI</string>
     <string name="common_special_access_split_screen_body">חלק מהטלפונים פותחים אפליקציה במסך מלא כאשר המקלדת מבקשת מסך מפוצל. כאשר שירות זה פועל, פתיחת אפליקציה במסך מפוצל ממשגר האפליקציות, או פתיחת זוג במסך מפוצל, לוחצת תחילה על מתג המסך המפוצל של אנדרואיד עצמו, אותו מתג שיש בתפריט \'אפליקציות אחרונות\', ואז האפליקציה נפתחת בחצי הפנוי. לפני הלחיצה עליו, השירות בודק היכן נמצאים חלונות האפליקציות, כדי לראות אם המסך המפוצל כבר פעיל. הוא לעולם אינו קורא את מה שכתוב בהם. הוא אינו עושה דבר בזמן אחר, אינו צופה במה שאתה מקליד ושומר דבר. מסך הנגישות של אנדרואיד מזהיר מפני כל מה ששירות כזה יכול לעשות. זה רק לוחץ על המתג הזה כשאתה מבקש מסך מפוצל.</string>
     <string name="common_special_access_split_screen_title">שירות נגישות למסך מפוצל</string>
+    <string name="common_special_access_system_buttons_body">אנדרואיד מאפשרת לאפליקציה אחרת לצלם מסך, לחזור אחורה, או לפתוח אפליקציות אחרונות, מגירת האפליקציות, צללית ההתראות או הגדרות מהירות רק באמצעות שירות נגישות. כשהשירות הזה פועל, כלי צילום המסך וכפתור הצף לוחצים על כפתורי המערכת האלה עבורך, בדיוק כמו הניווט והצללית המובנים של אנדרואיד. צילום מסך נשמר במקום שבו נשמר כל צילום מסך. השירות אינו עושה דבר באף זמן אחר. הוא אינו קורא את המסך, אינו צופה במה שאתה מקליד ואינו שומר דבר. מסך הנגישות של אנדרואיד מזהיר מפני כל מה ששירות כזה יכול לעשות. זה לוחץ על כפתור מערכת רק כאשר אתה מבקש זאת.</string>
+    <string name="common_special_access_system_buttons_title">שירות נגישות לכפתורי המערכת</string>
     <string name="common_special_access_usage_body">עם גישה לשימוש, המקלדת מתעדת איזו אפליקציה הייתה בחזית כשביצעת העתקה. היא מציגה את האפליקציה הזו כשאתה לוחץ לחיצה ארוכה על הקטע. המקלדת קוראת את האפליקציה הקדמית רק ברגע ההעתקה. היא לא קוראת את ההיסטוריה שלך או את הזמן שבילית באפליקציה. המקלדת שומרת את התשובה עם הקטע, במכשיר שלך בלבד. שום דבר לגבי השימוש באפליקציות שלך לא עוזב את המכשיר. ההגדרה היא אופציונלית. היא נשארת כבויה עד שתפעיל אותה.</string>
     <string name="common_special_access_usage_title">גישת שימוש עבור אפליקציות מקור של לוח הגזירים</string>
     <string name="common_type_setting_value_desc">הקלד ערך עבור %1$s</string>

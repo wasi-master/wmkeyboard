@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Altre servei</string>
     <string name="core_settings_ai_provider_on_device_label">Al vostre dispositiu</string>
+    <string name="core_settings_ai_provider_privatemode_label">Privatemode</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Hora del dia</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Sortida i posta de sol</string>
     <string name="core_settings_auto_theme_trigger_system_label">Clar o fosc del sistema</string>

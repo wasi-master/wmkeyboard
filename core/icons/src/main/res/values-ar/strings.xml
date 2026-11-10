@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">شريط الأدوات</string>
     <string name="core_icons_group_tools_title">الأدوات</string>
     <string name="core_icons_pack_imported_label">الأيقونات المستوردة</string>
-    <string name="core_icons_pack_mine_label">أيقوناتي</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">تجاهل التطبيق %1$d ملف. هذا الإصدار لا يحتوي على أيقونة له: %2$s</item>
         <item quantity="other">تجاهل التطبيق %1$d ملفات. هذا الإصدار لا يحتوي على أيقونات لها: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">مفتاح Tab</string>
     <string name="core_icons_slot_toolbox_label">صندوق الأدوات</string>
     <string name="core_icons_slot_toolbox_search_label">البحث في صندوق الأدوات</string>
+    <string name="core_icons_pack_mine_label">أيقوناتي</string>
 </resources>

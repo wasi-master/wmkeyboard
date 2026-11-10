@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Taj dodatak više nema tu radnju.</string>
     <string name="core_plugins_error_no_render">Ovaj dodatak nema funkciju render().</string>
+    <string name="core_plugins_error_no_transform">Ovaj dodatak nema funkciju transform().</string>
     <string name="core_plugins_error_not_installed">Taj dodatak nije instaliran.</string>
+    <string name="core_plugins_error_not_ready">Dodaci se još preuzimaju. Pokušajte ponovno za trenutak.</string>
     <string name="core_plugins_error_script_failed">Skripta nije uspjela.</string>
     <string name="core_plugins_error_script_missing">Skripta za taj dodatak nedostaje.</string>
     <string name="core_plugins_error_turned_off">Taj dodatak je isključen.</string>
     <string name="core_plugins_permission_reminders_label">Prikaži podsjetnike u vrijeme koje ste postavili</string>
+    <string name="core_plugins_permission_selection_label">Promijeni tekst koji odabereš kada dotakneš neku od njegovih radnji</string>
     <string name="core_plugins_permission_storage_label">Spremi podatke na svoj uređaj</string>
+    <string name="core_plugins_reject_action_input">“%1$s” ima radnju koja traži tekst koji ova verzija tipkovnice WM Keyboard ne može pružiti.</string>
+    <string name="core_plugins_reject_action_no_name">\"%1$s\" ima radnju bez naziva.</string>
+    <string name="core_plugins_reject_actions_need_selection">„%1$s” dodaje radnje za odabrani tekst, ali ne traži dopuštenje za njegovu izmjenu.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” ima radnju čiji ID nedostaje, ponavlja se ili nije valjan. ID radnje sastoji se od najviše 32 mala slova, broja, crtice i donje crte.</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s” ima skriptu koja nije važeći UTF-8 tekst.</string>
     <string name="core_plugins_reject_bad_id">Ovaj dodatak ima nevaljan ID. ID mora biti dugačak od 3 do 64 znaka. ID može sadržavati mala slova, brojeve, točke, crtice i podvlake.</string>
     <string name="core_plugins_reject_empty_script">„%1$s” ima praznu skriptu.</string>
+    <string name="core_plugins_reject_lua">\"%1$s\" je napisan u Lua jeziku, koji WM Keyboard više ne pokreće. Potražite njegovu Python verziju.</string>
     <string name="core_plugins_reject_missing_script">„%1$s” nema svoju skriptnu datoteku (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Ovaj dodatak treba noviju verziju WM tipkovnice.</string>
     <string name="core_plugins_reject_no_name">Ovaj dodatak nema naziv.</string>
     <string name="core_plugins_reject_no_version">“%1$s” ne navodi koja je to verzija.</string>
+    <string name="core_plugins_reject_nothing_to_show">„%1$s” nema ploču ni radnje, tako da nema što raditi.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s” ima skriptu veću od %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” traži promjenu odabranog teksta, ali ne dodaje nikakve radnje.</string>
+    <string name="core_plugins_reject_too_many_actions">\"%1$s\" dodaje više od 16 radnji.</string>
+    <string name="core_plugins_reject_unknown_language">„%1$s” je napisan na jeziku koji ova verzija WM tipkovnice ne može pokrenuti. Dodaci su napisani u Pythonu.</string>
     <string name="core_plugins_reject_unknown_permission">Ova verzija WM tipkovnice ne prepoznaje dopuštenje „%1$s”. Aplikacija vam ne može reći što je „%2$s” dopušteno raditi.</string>
     <string name="core_plugins_reminders_channel_body">Podsjetnici koje je dodatak zatražio da aplikacija prikaže, u vrijeme koje ste postavili u dodatku. Naslov svakog od njih je naziv dodatka.</string>
     <string name="core_plugins_reminders_channel_title">Podsjetnici dodataka</string>
     <string name="core_plugins_stopped_cancelled">Aplikacija je zaustavila ovaj dodatak.</string>
     <string name="core_plugins_stopped_deadline">Ovaj dodatak je predugo trajao. Aplikacija ga je zaustavila.</string>
     <string name="core_plugins_stopped_instructions">Ovaj dodatak je obavio previše posla odjednom. Aplikacija ga je zaustavila.</string>
+    <string name="core_plugins_stopped_memory">Ovaj dodatak je pokušao pohraniti previše podataka. Aplikacija ga je zaustavila.</string>
     <string name="core_plugins_stopped_not_responding">Ovaj dodatak je prestao odgovarati. Aplikacija ga je zatvorila.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Ovaj dodatak je prestao odgovarati. Aplikacija ga je isključila.</string>
     <string name="core_plugins_stopped_recursion">Ovaj dodatak je sam sebe pozvao previše puta. Aplikacija ga je zaustavila.</string>

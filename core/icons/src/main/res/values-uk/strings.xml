@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Панель інструментів</string>
     <string name="core_icons_group_tools_title">Інструменти</string>
     <string name="core_icons_pack_imported_label">Імпортовані значки</string>
-    <string name="core_icons_pack_mine_label">Мої іконки</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Додаток проігнорував %1$d файл. У цій версії немає значка для нього: %2$s</item>
         <item quantity="other">Додаток проігнорував %1$d файлів. У цій версії немає значків для них: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Клавіша Tab</string>
     <string name="core_icons_slot_toolbox_label">Панель інструментів</string>
     <string name="core_icons_slot_toolbox_search_label">Пошук у наборі інструментів</string>
+    <string name="core_icons_pack_mine_label">Мої іконки</string>
 </resources>

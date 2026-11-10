@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Annen tjeneste</string>
     <string name="core_settings_ai_provider_on_device_label">På enheten din</string>
+    <string name="core_settings_ai_provider_privatemode_label">Privat modus</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Tid på dagen</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Soloppgang og solnedgang</string>
     <string name="core_settings_auto_theme_trigger_system_label">System lys eller mørk</string>

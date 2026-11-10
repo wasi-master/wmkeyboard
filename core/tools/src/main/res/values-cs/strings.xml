@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Tapety</string>
     <string name="core_tools_provider_acrcloud_desc">Služba pro rozpoznávání hudby s dvoutýdenní zkušební verzí, poté placené tarify. Vyžaduje hostitele, přístupový klíč a přístupové tajemství projektu z console.acrcloud.com. Každý klip je odeslán do ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">Bezplatné Stable Diffusion na počítačích dobrovolníků. Funguje bez klíče, ale čeká se ve frontě; bezplatný klíč z aihorde.net vás posune vpřed.</string>
+    <string name="core_tools_provider_allratestoday_desc">Referenční kurzy Evropské centrální banky pro přibližně 30 měn. Bez klíče.</string>
     <string name="core_tools_provider_anthropic_desc">Modely Claude prostřednictvím API společnosti Anthropic s vaším vlastním klíčem.</string>
     <string name="core_tools_provider_asr4all_desc">Anglické diktování v telefonu, slova se objevují, jak mluvíte.</string>
     <string name="core_tools_provider_audd_desc">Rozpozná většinu vydané hudby z několika sekund zvuku. Vyžaduje token z dashboard.audd.io; několik stovek rozpoznání je zdarma, poté je služba placená. Každý klip je odeslán do AudD.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Velký model, který běží v telefonu a rozumí 25 evropským jazykům.</string>
     <string name="core_tools_provider_pexels_desc">Fotografie z Pexels. Vyžaduje klíč API, pokud jej tato verze již neobsahuje.</string>
     <string name="core_tools_provider_pollinations_desc">Zdarma, bez klíče a bez účtu: dotaz je odeslán do Pollinations, které vybere model. Klíč z enter.pollinations.ai otevře novější API a umožní vám pojmenovat model.</string>
+    <string name="core_tools_provider_privatemode">Soukromý režim AI</string>
+    <string name="core_tools_provider_privatemode_desc">Umělá inteligence, která běží v důvěrném výpočetním prostředí a nemůže číst váš text. Zadejte svůj klíč rozhraní API Privatemode. Klávesnice poté zašifruje každý požadavek v telefonu, ale nekontroluje hardwarové ověření služby. Chcete-li zkontrolovat i to, spusťte privatemode-proxy a zadejte její adresu, například http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (neoficiální, přes RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Katalog Shazam prostřednictvím neoficiálního výpisu na RapidAPI pomocí klíče RapidAPI. Nejedná se o službu od Applu: výpis se může bez upozornění změnit nebo přestat fungovat. Každý klip je odeslán do RapidAPI.</string>
     <string name="core_tools_provider_recraft_desc">Ilustrace, ikony a vektorové umění. Vyžaduje klíč z recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Fotografie z Unsplash. Vyžaduje klíč API, pokud jej tato verze již neobsahuje.</string>
     <string name="core_tools_provider_vision_ocr">Váš model vidění</string>
     <string name="core_tools_provider_vision_ocr_desc">Model, který čte obrázky prostřednictvím serveru, který odpovídá na požadavky chatu OpenAI. Vyžaduje adresu a název modelu.</string>
+    <string name="core_tools_provider_vosk_desc">Malé modely Kaldi od Alpha Cephei pro 29 jazyků, každý o velikosti cca 40 MB, které píší tak, jak mluvíte do telefonu. Dostatečně lehké i pro starší telefon.</string>
     <string name="core_tools_provider_whisper_desc">Modely Whisper od OpenAI běžící v telefonu. Mnoho jazyků; model si stáhněte na stránce Hlasové psaní.</string>
     <string name="core_tools_provider_whistle_desc">Malý, rychlý model, který běží v telefonu. Stáhněte si jej na stránce Hlasové psaní.</string>
     <string name="core_tools_provider_xai_desc">Modely Grok prostřednictvím API xAI s vaším vlastním klíčem.</string>

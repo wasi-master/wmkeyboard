@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Programu-jalizi hiyo haina hatua hiyo tena.</string>
     <string name="core_plugins_error_no_render">Programu-jalizi hii haina kitendaji cha render().</string>
+    <string name="core_plugins_error_no_transform">Programu-jalizi hii haina kitendakazi cha transform().</string>
     <string name="core_plugins_error_not_installed">Programu-jalizi hiyo haijasakinishwa.</string>
+    <string name="core_plugins_error_not_ready">Programu-jalizi bado zinapakuliwa. Jaribu tena baada ya muda mfupi.</string>
     <string name="core_plugins_error_script_failed">Hati imeshindwa.</string>
     <string name="core_plugins_error_script_missing">Hati ya programu-jalizi hiyo haipo.</string>
     <string name="core_plugins_error_turned_off">Programu-jalizi hiyo imezimwa.</string>
     <string name="core_plugins_permission_reminders_label">Onyesha vikumbusho kwa nyakati ulizoweka ndani yake</string>
+    <string name="core_plugins_permission_selection_label">Badilisha maandishi unayochagua, unapogonga mojawapo ya vitendo vyake</string>
     <string name="core_plugins_permission_storage_label">Hifadhi data kwenye kifaa chako</string>
+    <string name="core_plugins_reject_action_input">“%1$s” ina kitendo kinachoomba maandishi ambayo toleo hili la Kibodi ya WM haliwezi kutoa.</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s” ina kitendo kisicho na jina.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” inaongeza vitendo kwa maandishi yaliyochaguliwa lakini haiombi ruhusa ya kuyabadilisha.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” ina kitendo ambacho kitambulisho chake kinakosekana, kimerudiwa, au si sahihi. Kitambulisho cha kitendo kina hadi herufi ndogo 32, nambari, vistari, na mistari ya chini.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” ina hati ambayo si maandishi halali ya UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Programu-jalizi hii ina kitambulisho kisicho sahihi. Kitambulisho kina urefu wa herufi 3 hadi 64. Kitambulisho kinaweza kuwa na herufi ndogo, namba, nukta, vistari na mistari ya chini.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” ina hati tupu.</string>
+    <string name="core_plugins_reject_lua">“%1$s” imeandikwa kwa Lua, ambayo Kibodi ya WM haitumii tena. Tafuta toleo lake la Python.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” haina faili yake ya hati (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Programu-jalizi hii inahitaji toleo jipya zaidi la Kibodi ya WM.</string>
     <string name="core_plugins_reject_no_name">Programu-jalizi hii haina jina.</string>
     <string name="core_plugins_reject_no_version">“%1$s” haisemi ni toleo gani.</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” haina paneli wala vitendo, kwa hiyo hakuna cha kufanya.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” ina hati kubwa kuliko %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” inaomba kubadilisha maandishi uliyochagua lakini haiongezei vitendo vyovyote.</string>
+    <string name="core_plugins_reject_too_many_actions">\"%1$s\" inaongeza zaidi ya vitendo 16.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” imeandikwa kwa lugha ambayo toleo hili la Kibodi ya WM haliwezi kuendesha. Programu-jalizi zimeandikwa kwa Python.</string>
     <string name="core_plugins_reject_unknown_permission">Toleo hili la WM Keyboard halijui ruhusa “%1$s”. Programu haiwezi kukuambia “%2$s” inaruhusiwa kufanya nini.</string>
     <string name="core_plugins_reminders_channel_body">Vikumbusho ambavyo programu-jalizi iliomba programu ionyeshe, kwa nyakati unazoweka kwenye programu-jalizi. Kichwa cha kila kimoja ni jina la programu-jalizi.</string>
     <string name="core_plugins_reminders_channel_title">Vikumbusho vya programu jalizi</string>
     <string name="core_plugins_stopped_cancelled">Programu imesimamisha programu jalizi hii.</string>
     <string name="core_plugins_stopped_deadline">Programu-jalizi hii ilichukua muda mrefu sana. Programu imeisimamisha.</string>
     <string name="core_plugins_stopped_instructions">Programu-jalizi hii ilifanya kazi nyingi sana kwa wakati mmoja. Programu imeisimamisha.</string>
+    <string name="core_plugins_stopped_memory">Programu-jalizi hii ilijaribu kushikilia data nyingi sana. Programu iliisimamisha.</string>
     <string name="core_plugins_stopped_not_responding">Programu-jalizi hii imeacha kuitikia. Programu imeifunga.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Programu-jalizi hii imeacha kujibu tena. Programu imeizima.</string>
     <string name="core_plugins_stopped_recursion">Programu-jalizi hii ilijiita mara nyingi sana. Programu imeizuia.</string>

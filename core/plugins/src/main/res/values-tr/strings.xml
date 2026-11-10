@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Bu eklenti artık bu eyleme sahip değil.</string>
     <string name="core_plugins_error_no_render">Bu eklentinin render() işlevi yok.</string>
+    <string name="core_plugins_error_no_transform">Bu eklentinin transform() fonksiyonu yok.</string>
     <string name="core_plugins_error_not_installed">Bu eklenti yüklü değil.</string>
+    <string name="core_plugins_error_not_ready">Eklentiler hala indiriliyor. Birazdan tekrar deneyin.</string>
     <string name="core_plugins_error_script_failed">Komut dosyası başarısız oldu.</string>
     <string name="core_plugins_error_script_missing">Bu eklenti için komut dosyası eksik.</string>
     <string name="core_plugins_error_turned_off">Bu eklenti kapalı.</string>
     <string name="core_plugins_permission_reminders_label">Hatırlatıcıları belirlediğiniz zamanlarda göster</string>
+    <string name="core_plugins_permission_selection_label">Eylemlerinden birine dokunduğunuzda seçtiğiniz metni değiştirin</string>
     <string name="core_plugins_permission_storage_label">Verileri cihazınıza kaydedin</string>
+    <string name="core_plugins_reject_action_input">“%1$s”, WM Klavye\'nin bu sürümünün sağlayamayacağı metin isteyen bir eyleme sahip.</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s”, isimsiz bir eyleme sahip.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s”, seçilen metin için eylemler ekler ancak bunu değiştirmek için izin istemez.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s”, kimliği eksik, yinelenen veya geçerli olmayan bir eyleme sahip. Bir eylem kimliği en fazla 32 küçük harf, rakam, tire ve alt çizgi içerebilir.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s”, geçerli bir UTF-8 metni olmayan bir betiğe sahip.</string>
     <string name="core_plugins_reject_bad_id">Bu eklentinin kimliği geçerli değil. Kimlik 3 ila 64 karakter uzunluğundadır. Kimlik küçük harfler, sayılar, noktalar, tireler ve alt çizgiler içerebilir.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” boş bir betiğe sahip.</string>
+    <string name="core_plugins_reject_lua">“%1$s”, WM Keyboard\'un artık çalıştırmadığı Lua dilinde yazılmış. Python sürümünü arayın.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” betik dosyasına (%2$s) sahip değil.</string>
     <string name="core_plugins_reject_newer_version">Bu eklenti, WM Keyboard\'un daha yeni bir sürümüne ihtiyaç duyar.</string>
     <string name="core_plugins_reject_no_name">Bu eklentinin bir adı yok.</string>
     <string name="core_plugins_reject_no_version">“%1$s” hangi sürüm olduğunu belirtmiyor.</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” öğesinin paneli ve eylemi yok, dolayısıyla yapabileceği hiçbir şey yok.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s”, %2$d KB\'den daha büyük bir betiğe sahip.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s”, seçtiğiniz metni değiştirmeyi istiyor ancak herhangi bir eylem eklemiyor.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” 16\'dan fazla eylem ekliyor.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s”, WM Klavyenin bu sürümünün çalıştıramayacağı bir dilde yazılmış. Eklentiler Python ile yazılır.</string>
     <string name="core_plugins_reject_unknown_permission">WM Keyboard\'un bu sürümü “%1$s” iznini tanımıyor. Uygulama, “%2$s” öğesinin ne yapmasına izin verildiğini size söyleyemez.</string>
     <string name="core_plugins_reminders_channel_body">Bir eklentinin uygulamadan, eklentide ayarladığınız zamanlarda göstermesini istediği hatırlatıcılar. Her birinin başlığı eklentinin adıdır.</string>
     <string name="core_plugins_reminders_channel_title">Eklenti hatırlatıcıları</string>
     <string name="core_plugins_stopped_cancelled">Uygulama bu eklentiyi durdurdu.</string>
     <string name="core_plugins_stopped_deadline">Bu eklenti çok uzun sürdü. Uygulama onu durdurdu.</string>
     <string name="core_plugins_stopped_instructions">Bu eklenti bir kerede çok fazla işlem yaptı. Uygulama onu durdurdu.</string>
+    <string name="core_plugins_stopped_memory">Bu eklenti çok fazla veri tutmaya çalıştı. Uygulama bunu durdurdu.</string>
     <string name="core_plugins_stopped_not_responding">Bu eklenti yanıt vermeyi durdurdu. Uygulama onu kapattı.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Bu eklenti tekrar yanıt vermeyi durdurdu. Uygulama onu devre dışı bıraktı.</string>
     <string name="core_plugins_stopped_recursion">Bu eklenti kendini çok fazla kez çağırdı. Uygulama onu durdurdu.</string>

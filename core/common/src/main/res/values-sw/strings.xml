@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Imesitishwa: hifadhi ya data inazuia vipakuliwa kwenye muunganisho huu. Itaendelea pale ilipoishia.</string>
     <string name="common_error_generic">Kitu hakikufanya kazi. Jaribu tena.</string>
     <string name="common_error_network">Hakuna muunganisho. Angalia mtandao wako na ujaribu tena.</string>
+    <string name="common_error_network_permission_off">Ufikiaji wa mtandao wa Kibodi ya WM umezimwa katika mipangilio ya simu yako, kwa hivyo hii haifanyi kazi. Iwashe katika Mipangilio ya Android › Programu › Kibodi ya WM › Ruhusa (kwenye GrapheneOS, ruhusa ya Mtandao), kisha ujaribu tena.</string>
     <string name="common_error_no_internet_permission">Toleo hili la kibodi haliwezi kuunganishwa kwenye mtandao.</string>
     <string name="common_error_timeout">Ombi limechukua muda mrefu sana. Jaribu tena.</string>
     <string name="common_export">Hamisha</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Zaidi</string>
     <string name="common_next">Inayofuata</string>
     <string name="common_none">Hakuna</string>
+    <string name="common_notify_channel_alarms_body">Kengele iliyoahirishwa au inayokaribia kulia, na ile iliyolia bila mtu hapo. Kulia kwako kuna kituo chake.</string>
+    <string name="common_notify_channel_alarms_title">Arifa za kengele</string>
     <string name="common_notify_channel_backup_body">Wakati tu hifadhi nakala ya kiotomatiki inaposhindwa. Hifadhi nakala zilizofanikiwa huwa kimya.</string>
     <string name="common_notify_channel_backup_title">Matatizo ya kuhifadhi nakala</string>
     <string name="common_notify_channel_clock_body">Vipima muda na saa ya kusimamisha wakati vinapofanya kazi, na vitufe vya kusitisha, kuongeza dakika au kuvizima.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Vidhibiti vya kibodi</string>
     <string name="common_notify_channel_send_body">Upakiaji au upakuaji ambao zana ya kutuma faili ilimaliza wakati kibodi ilikuwa imefichwa, pamoja na kiungo cha kunakili, na faili iliyotumwa na kifaa kilicho karibu.</string>
     <string name="common_notify_channel_send_title">Kutuma na kupokea faili</string>
+    <string name="common_notify_channel_stopwatch_body">Kipima muda kinapoendesha au kusitishwa, kikiwa na vitufe vya mizunguko, kusitisha na kuweka upya.</string>
+    <string name="common_notify_channel_stopwatch_title">Kipima muda</string>
     <string name="common_notify_channel_updates_body">Toleo jipya la kusakinisha, sasisho linalokusubiri ubonyeze kusakinisha, na uthibitisho mara moja likishasakinishwa.</string>
     <string name="common_notify_channel_updates_title">Masasisho ya programu</string>
     <string name="common_notify_download_done">Tayari kutumika</string>
     <string name="common_notify_download_failed">%1$s haikuweza kupakuliwa</string>
     <string name="common_notify_download_handwriting">Uandishi wa mkono wa %1$s</string>
     <string name="common_notify_download_progress">%1$s kati ya %2$s</string>
+    <string name="common_notify_download_step_library">Hatua ya 1 ya 2, maktaba ya injini: %1$s</string>
+    <string name="common_notify_download_step_model">Hatua ya 2 kati ya 2, mtindo: %1$s</string>
     <string name="common_notify_download_translate">Tafsiri ya nje ya mtandao ya %1$s</string>
     <string name="common_notify_download_voice">Sauti ya nje ya mtandao ya %1$s</string>
     <string name="common_off">Imezimwa</string>
+    <string name="common_offline_build_download">Hili ni toleo la nje ya mtandao, kwa hivyo haliwezi kupakua hili. Pata faili kwenye kifaa kingine na uiingize: Mipangilio › Kuhusu › Uhifadhi › Ingiza faili zilizopakuliwa inaikubali, au safu wima ya Kuingiza ya skrini hii ikiwa nayo. Au sakinisha toleo la kawaida kutoka kwenye ukurasa ule ule wa toleo hili juu ya hili, na litajipakua lenyewe. Mipangilio yako na maneno uliyojifunza yatasalia.</string>
+    <string name="common_offline_build_library">Hili ni toleo la nje ya mtandao, kwa hiyo haliwezi kupakua maktaba inayohitajika. Pata faili yake kwenye kifaa kingine na uiingize katika Mipangilio › Faragha › Maktaba za vipengele, ambayo inaorodhesha faili kamili. Au sakinisha toleo la kawaida kutoka kwenye ukurasa ule ule wa kutolewa juu ya hili, nalo litajipakua lenyewe. Mipangilio yako na maneno uliyojifunza yanabaki.</string>
     <string name="common_ok">Sawa</string>
     <string name="common_on">Imewashwa</string>
     <string name="common_open_system_settings">Fungua mipangilio ya mfumo</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Huduma ya ufikivu kwa ajili ya kitufe cha AI</string>
     <string name="common_special_access_split_screen_body">Simu zingine hufungua programu kwa skrini nzima wakati kibodi inaomba skrini iliyogawanyika. Huduma hii ikiwa imewashwa, kufungua programu katika skrini iliyogawanyika kutoka kwa kizindua programu, au kufungua jozi ya skrini iliyogawanyika, hubonyeza swichi ya skrini iliyogawanyika ya Android kwanza, ile ile ambayo menyu ya Programu za Hivi Karibuni inayo, na kisha programu hufungua katika nusu huru. Kabla ya kuibonyeza, huduma huangalia madirisha ya programu yalipo, ili kuona kama skrini iliyogawanyika tayari iko juu. Haiwahi kusoma yaliyomo ndani yao. Haifanyi chochote wakati mwingine wowote, haitazami unachoandika na haihifadhi chochote. Skrini ya ufikivu ya Android inaonya kuhusu kila kitu ambacho huduma kama hii inaweza kufanya. Hii inabonyeza tu swichi hiyo unapoomba skrini iliyogawanyika.</string>
     <string name="common_special_access_split_screen_title">Huduma ya ufikivu ya skrini iliyogawanyika</string>
+    <string name="common_special_access_system_buttons_body">Android inaruhusu programu nyingine kuchukua picha ya skrini, kurudi nyuma, au kufungua programu za hivi karibuni, droo ya programu, kivuli cha arifa au mipangilio ya haraka kupitia huduma ya ufikivu pekee. Huduma hii ikiwa imewashwa, zana ya Picha ya Skrini na kitufe kinachoelea hubonyeza vitufe hivyo vya mfumo kwa ajili yako, vile vile ambavyo urambazaji na kivuli cha Android chenyewe vinao. Picha ya skrini inahifadhiwa mahali ambapo kila picha ya skrini huenda. Huduma haifanyi chochote wakati mwingine wowote. Haisomi skrini, haitazami unachoandika na haihifadhi chochote. Skrini ya ufikivu ya Android inaonya kuhusu kila kitu ambacho huduma kama hii inaweza kufanya. Hii inabonyesha tu kitufe cha mfumo unapoiomba.</string>
+    <string name="common_special_access_system_buttons_title">Huduma ya ufikivu kwa ajili ya vitufe vya mfumo</string>
     <string name="common_special_access_usage_body">Kwa ufikiaji wa matumizi, kibodi hurekodi ni programu ipi iliyokuwa mbele uliponakili kitu. Inaonyesha programu hiyo unapobonyeza na kushikilia klipu. Kibodi husoma programu ya mbele wakati wa kunakili pekee. Haisomi historia yako au muda wako katika programu. Kibodi huweka jibu na klipu, kwenye kifaa chako pekee. Hakuna chochote kuhusu matumizi ya programu yako kinachoondoka kwenye kifaa chako. Mpangilio huu ni wa hiari. Inabaki imezimwa hadi utakapoiwasha.</string>
     <string name="common_special_access_usage_title">Ufikiaji wa matumizi kwa programu za chanzo cha ubao wa kunakili</string>
     <string name="common_type_setting_value_desc">Andika thamani ya %1$s</string>

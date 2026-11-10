@@ -37,6 +37,7 @@
     <string name="common_error_download_held">ਰੋਕ ਦਿੱਤਾ ਗਿਆ: ਡਾਟਾ ਸੇਵਿੰਗ ਇਸ ਕਨੈਕਸ਼ਨ \'ਤੇ ਡਾਊਨਲੋਡਾਂ ਨੂੰ ਹੋਲਡ ਕਰਦੀ ਹੈ। ਇਹ ਉੱਥੋਂ ਹੀ ਜਾਰੀ ਰਹੇਗਾ ਜਿੱਥੇ ਇਹ ਰੁਕਿਆ ਸੀ।</string>
     <string name="common_error_generic">ਕੁਝ ਕੰਮ ਨਹੀਂ ਕੀਤਾ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
     <string name="common_error_network">ਕੋਈ ਕਨੈਕਸ਼ਨ ਨਹੀਂ ਹੈ। ਆਪਣਾ ਨੈੱਟਵਰਕ ਚੈੱਕ ਕਰੋ ਅਤੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+    <string name="common_error_network_permission_off">WM ਕੀਬੋਰਡ ਦੀ ਨੈੱਟਵਰਕ ਪਹੁੰਚ ਤੁਹਾਡੇ ਫ਼ੋਨ ਦੀਆਂ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਬੰਦ ਹੈ, ਇਸ ਲਈ ਇਹ ਕੰਮ ਨਹੀਂ ਕਰਦਾ। ਇਸਨੂੰ ਐਂਡਰਾਇਡ ਸੈਟਿੰਗਾਂ › ਐਪਾਂ › WM ਕੀਬੋਰਡ › ਇਜਾਜ਼ਤਾਂ (GrapheneOS \'ਤੇ, ਨੈੱਟਵਰਕ ਇਜਾਜ਼ਤ) ਵਿੱਚ ਚਾਲੂ ਕਰੋ, ਫਿਰ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
     <string name="common_error_no_internet_permission">ਕੀਬੋਰਡ ਦਾ ਇਹ ਬਿਲਡ ਇੰਟਰਨੈੱਟ ਨਾਲ ਕਨੈਕਟ ਨਹੀਂ ਹੋ ਸਕਦਾ।</string>
     <string name="common_error_timeout">ਬੇਨਤੀ ਨੂੰ ਬਹੁਤ ਸਮਾਂ ਲੱਗਿਆ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
     <string name="common_export">ਐਕਸਪੋਰਟ ਕਰੋ</string>
@@ -48,6 +49,8 @@
     <string name="common_more">ਹੋਰ</string>
     <string name="common_next">ਅੱਗੇ</string>
     <string name="common_none">ਕੋਈ ਨਹੀਂ</string>
+    <string name="common_notify_channel_alarms_body">ਇੱਕ ਅਲਾਰਮ ਜੋ ਸਨੂਜ਼ ਕੀਤਾ ਗਿਆ ਹੈ ਜਾਂ ਵੱਜਣ ਵਾਲਾ ਹੈ, ਅਤੇ ਇੱਕ ਜੋ ਬਿਨਾਂ ਕਿਸੇ ਦੇ ਵੱਜਿਆ। ਵੱਜਣ ਦਾ ਆਪਣੇ ਆਪ ਵਿੱਚ ਇੱਕ ਆਪਣਾ ਚੈਨਲ ਹੈ।</string>
+    <string name="common_notify_channel_alarms_title">ਅਲਾਰਮ ਸੂਚਨਾਵਾਂ</string>
     <string name="common_notify_channel_backup_body">ਸਿਰਫ਼ ਉਦੋਂ ਜਦੋਂ ਕੋਈ ਆਟੋਮੈਟਿਕ ਬੈਕਅੱਪ ਅਸਫਲ ਹੋ ਜਾਂਦਾ ਹੈ। ਸਫਲ ਬੈਕਅੱਪ ਚੁੱਪਚਾਪ ਹੁੰਦੇ ਹਨ।</string>
     <string name="common_notify_channel_backup_title">ਬੈਕਅੱਪ ਸਮੱਸਿਆਵਾਂ</string>
     <string name="common_notify_channel_clock_body">ਟਾਈਮਰ ਅਤੇ ਸਟੌਪਵਾਚ ਜਦੋਂ ਉਹ ਚੱਲਦੇ ਹਨ, ਉਹਨਾਂ ਨੂੰ ਰੋਕਣ, ਇੱਕ ਮਿੰਟ ਜੋੜਨ ਜਾਂ ਉਹਨਾਂ ਨੂੰ ਬੰਦ ਕਰਨ ਲਈ ਬਟਨਾਂ ਦੇ ਨਾਲ।</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">ਕੀਬੋਰਡ ਕੰਟਰੋਲ</string>
     <string name="common_notify_channel_send_body">ਕੀਬੋਰਡ ਦੇ ਲੁਕੇ ਹੋਣ ਦੌਰਾਨ ਸੈਂਡ ਫਾਈਲਾਂ ਟੂਲ ਦੁਆਰਾ ਇੱਕ ਅਪਲੋਡ ਜਾਂ ਡਾਊਨਲੋਡ ਪੂਰਾ ਹੋ ਗਿਆ ਹੈ, ਕਾਪੀ ਕਰਨ ਲਈ ਲਿੰਕ ਦੇ ਨਾਲ, ਅਤੇ ਇੱਕ ਫਾਈਲ ਜੋ ਨੇੜਲੇ ਡਿਵਾਈਸ ਨੇ ਭੇਜੀ ਹੈ।</string>
     <string name="common_notify_channel_send_title">ਫਾਈਲਾਂ ਭੇਜਣਾ ਅਤੇ ਪ੍ਰਾਪਤ ਕਰਨਾ</string>
+    <string name="common_notify_channel_stopwatch_body">ਲaps, ਠਹਿਰਾਉਣ ਅਤੇ ਰੀਸੈਟ ਕਰਨ ਲਈ ਬਟਨਾਂ ਨਾਲ ਸਟੌਪਵਾਚ ਜਦੋਂ ਇਹ ਚੱਲ ਰਹੀ ਹੋਵੇ ਜਾਂ ਵਿਰਾਮ ਕੀਤੀ ਗਈ ਹੋਵੇ।</string>
+    <string name="common_notify_channel_stopwatch_title">ਸਟੌਪਵਾਚ</string>
     <string name="common_notify_channel_updates_body">ਇੰਸਟਾਲ ਕਰਨ ਲਈ ਇੱਕ ਨਵਾਂ ਵਰਜਨ, ਇੱਕ ਅਪਡੇਟ ਜੋ ਤੁਹਾਡੇ ਇੰਸਟਾਲ ਕਰਨ ਦੀ ਉਡੀਕ ਕਰ ਰਿਹਾ ਹੈ, ਅਤੇ ਇੱਕ ਵਾਰ ਇੰਸਟਾਲ ਹੋ ਜਾਣ \'ਤੇ ਪੁਸ਼ਟੀ।</string>
     <string name="common_notify_channel_updates_title">ਐਪ ਅੱਪਡੇਟ</string>
     <string name="common_notify_download_done">ਵਰਤਣ ਲਈ ਤਿਆਰ</string>
     <string name="common_notify_download_failed">%1$s ਡਾਊਨਲੋਡ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ</string>
     <string name="common_notify_download_handwriting">%1$s ਹੈਂਡਰਾਈਟਿੰਗ</string>
     <string name="common_notify_download_progress">%2$s ਵਿੱਚੋਂ %1$s</string>
+    <string name="common_notify_download_step_library">ਕਦਮ 1 ਦਾ 2, ਇੰਜਣ ਲਾਇਬ੍ਰੇਰੀ: %1$s</string>
+    <string name="common_notify_download_step_model">2 ਵਿੱਚੋਂ 2 ਪੜਾਅ, ਮਾਡਲ: %1$s</string>
     <string name="common_notify_download_translate">%1$s ਔਫਲਾਈਨ ਅਨੁਵਾਦ</string>
     <string name="common_notify_download_voice">%1$s ਆਫਲਾਈਨ ਆਵਾਜ਼</string>
     <string name="common_off">ਬੰਦ</string>
+    <string name="common_offline_build_download">ਇਹ ਆਫ਼ਲਾਈਨ ਬਿਲਡ ਹੈ, ਇਸ ਲਈ ਇਹ ਇਸਨੂੰ ਡਾਊਨਲੋਡ ਨਹੀਂ ਕਰ ਸਕਦਾ। ਕਿਸੇ ਹੋਰ ਡਿਵਾਈਸ ਉੱਤੇ ਫ਼ਾਈਲ ਪ੍ਰਾਪਤ ਕਰੋ ਅਤੇ ਇਸਨੂੰ ਆਯਾਤ ਕਰੋ: ਸੈਟਿੰਗਾਂ › ਬਾਰੇ › ਸਟੋਰੇਜ › ਡਾਊਨਲੋਡ ਕੀਤੀਆਂ ਫ਼ਾਈਲਾਂ ਆਯਾਤ ਕਰੋ ਇਸਨੂੰ ਲੈਂਦਾ ਹੈ, ਜਾਂ ਇਸ ਸਕ੍ਰੀਨ ਦੀ ਆਪਣੀ ਆਯਾਤ ਕਤਾਰ ਜਿੱਥੇ ਇਸ ਕੋਲ ਇੱਕ ਹੈ। ਜਾਂ ਇਸ ਉੱਤੇ ਉਸੇ ਰਿਲੀਜ਼ ਪੇਜ ਤੋਂ ਮਿਆਰੀ ਬਿਲਡ ਨੂੰ ਇੰਸਟਾਲ ਕਰੋ, ਅਤੇ ਇਹ ਆਪਣੇ ਆਪ ਡਾਊਨਲੋਡ ਹੋ ਜਾਂਦਾ ਹੈ। ਤੁਹਾਡੀਆਂ ਸੈਟਿੰਗਾਂ ਅਤੇ ਸਿੱਖੇ ਗਏ ਸ਼ਬਦ ਰਹਿ ਜਾਂਦੇ ਹਨ।</string>
+    <string name="common_offline_build_library">अहललरहलनीणवव कलेकशन नूं तली रद करे के कर रहली है।</string>
     <string name="common_ok">ਠੀਕ ਹੈ</string>
     <string name="common_on">ਚਾਲੂ</string>
     <string name="common_open_system_settings">ਸਿਸਟਮ ਸੈਟਿੰਗਾਂ ਖੋਲ੍ਹੋ</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">AI ਬਟਨ ਲਈ ਪਹੁੰਚਯੋਗਤਾ ਸੇਵਾ</string>
     <string name="common_special_access_split_screen_body">ਕੁਝ ਫ਼ੋਨ ਐਪ ਨੂੰ ਪੂਰੀ ਸਕ੍ਰੀਨ ਖੋਲ੍ਹਦੇ ਹਨ ਜਦੋਂ ਕੀਬੋਰਡ ਸਪਲਿਟ ਸਕ੍ਰੀਨ ਲਈ ਕਹਿੰਦਾ ਹੈ। ਇਸ ਸੇਵਾ ਦੇ ਚਾਲੂ ਹੋਣ ਨਾਲ, ਐਪ ਲਾਂਚਰ ਤੋਂ ਸਪਲਿਟ ਸਕ੍ਰੀਨ ਵਿੱਚ ਐਪ ਖੋਲ੍ਹਣਾ, ਜਾਂ ਸਪਲਿਟ ਸਕ੍ਰੀਨ ਜੋੜਾ ਖੋਲ੍ਹਣਾ, ਪਹਿਲਾਂ Android ਦੇ ਆਪਣੇ ਸਪਲਿਟ ਸਕ੍ਰੀਨ ਸਵਿੱਚ ਨੂੰ ਦਬਾਉਂਦਾ ਹੈ, ਉਹੀ ਜੋ ਰੀਸੈਂਟਸ ਮੀਨੂ ਵਿੱਚ ਹੈ, ਅਤੇ ਫਿਰ ਐਪ ਖਾਲੀ ਅੱਧੇ ਵਿੱਚ ਖੁੱਲ੍ਹ ਜਾਂਦੀ ਹੈ। ਇਸਨੂੰ ਦਬਾਉਣ ਤੋਂ ਪਹਿਲਾਂ, ਸੇਵਾ ਜਾਂਚ ਕਰਦੀ ਹੈ ਕਿ ਐਪ ਵਿੰਡੋਜ਼ ਕਿੱਥੇ ਹਨ, ਇਹ ਦੇਖਣ ਲਈ ਕਿ ਕੀ ਸਪਲਿਟ ਸਕ੍ਰੀਨ ਪਹਿਲਾਂ ਹੀ ਚਾਲੂ ਹੈ। ਇਹ ਕਦੇ ਵੀ ਨਹੀਂ ਪੜ੍ਹਦਾ ਕਿ ਉਹਨਾਂ ਵਿੱਚ ਕੀ ਹੈ। ਇਹ ਕਿਸੇ ਹੋਰ ਸਮੇਂ ਕੁਝ ਨਹੀਂ ਕਰਦਾ, ਇਹ ਨਹੀਂ ਦੇਖਦਾ ਕਿ ਤੁਸੀਂ ਕੀ ਟਾਈਪ ਕਰਦੇ ਹੋ ਅਤੇ ਕੁਝ ਨਹੀਂ ਰੱਖਦਾ। Android ਦੀ ਪਹੁੰਚਯੋਗਤਾ ਸਕ੍ਰੀਨ ਹਰ ਉਸ ਚੀਜ਼ ਬਾਰੇ ਚੇਤਾਵਨੀ ਦਿੰਦੀ ਹੈ ਜੋ ਇਸ ਤਰ੍ਹਾਂ ਦੀ ਸੇਵਾ ਕਰ ਸਕਦੀ ਹੈ। ਇਹ ਸਿਰਫ਼ ਉਸ ਸਵਿੱਚ ਨੂੰ ਦਬਾਉਂਦੀ ਹੈ ਜਦੋਂ ਤੁਸੀਂ ਸਪਲਿਟ ਸਕ੍ਰੀਨ ਲਈ ਪੁੱਛਦੇ ਹੋ।</string>
     <string name="common_special_access_split_screen_title">ਸਪਲਿਟ ਸਕ੍ਰੀਨ ਲਈ ਪਹੁੰਚਯੋਗਤਾ ਸੇਵਾ</string>
+    <string name="common_special_access_system_buttons_body">ਐਂਡਰਾਇਡ ਕਿਸੇ ਹੋਰ ਐਪ ਨੂੰ ਸਕ੍ਰੀਨਸ਼ਾਟ ਲੈਣ, ਵਾپس ਜਾਣ, ਜਾਂ ਹਾਲ ਹੀ ਦੀਆਂ ਐਪਾਂ, ਐਪ ਡਰਾਵਰ, ਨੋਟੀਫਿਕੇਸ਼ਨ ਸ਼ੇਡ ਜਾਂ ਤੁਰੰਤ ਸੈਟਿੰਗਾਂ ਨੂੰ ਸਿਰਫ਼ ਪਹੁੰਚਯੋਗਤਾ ਸੇਵਾ ਰਾਹੀਂ ਖੋਲ੍ਹਣ ਦੀ ਇਜਾਜ਼ਤ ਦਿੰਦਾ ਹੈ। ਇਸ ਸੇਵਾ ਦੇ ਚਾਲੂ ਹੋਣ ਨਾਲ, ਸਕ੍ਰੀਨਸ਼ਾਟ ਟੂਲ ਅਤੇ ਫਲੋਟਿੰਗ ਬਟਨ ਤੁਹਾਡੇ ਲਈ ਉਹ ਸਿਸਟਮ ਬਟਨ ਦਬਾਉਂਦੇ ਹਨ, ਉਹੀ ਜੋ ਐਂਡਰਾਇਡ ਦੀ ਆਪਣੀ ਨੈਵੀਗੇਸ਼ਨ ਅਤੇ ਸ਼ੇਡ ਕੋਲ ਹਨ। ਸਕ੍ਰੀਨਸ਼ਾਟ ਉੱਥੇ ਸੁਰੱਖਿਅਤ ਕੀਤਾ ਜਾਂਦਾ ਹੈ ਜਿੱਥੇ ਹਰ ਸਕ੍ਰੀਨਸ਼ਾਟ ਜਾਂਦਾ ਹੈ। ਇਹ ਸੇਵਾ ਕਿਸੇ ਹੋਰ ਸਮੇਂ ਕੁਝ ਨਹੀਂ ਕਰਦੀ। ਇਹ ਸਕ੍ਰੀਨ ਨੂੰ ਨਹੀਂ ਪੜ੍ਹਦੀ, ਤੁਸੀਂ ਜੋ ਟਾਈਪ ਕਰਦੇ ਹੋ ਉਸਨੂੰ ਨਹੀਂ ਦੇਖਦੀ ਅਤੇ ਕੁਝ ਨਹੀਂ ਰੱਖਦੀ। ਐਂਡਰਾਇਡ ਦੀ ਪਹੁੰਚਯੋਗਤਾ ਸਕ੍ਰੀਨ ਹ ਉਸ ਹਰ ਚੀਜ਼ ਬਾਰੇ ਚੇਤਾਵਨੀ ਦਿੰਦੀ ਹੈ ਜੋ ਇਸ ਤਰ੍ਹਾਂ ਦੀ ਸੇਵਾ ਕਰ ਸਕਦੀ ਹੈ। ਇਹ ਸਿਰਫ਼ ਉਦੋਂ ਸਿਸਟਮ ਬਟਨ ਦਬਾਉਂਦੀ ਹੈ ਜਦੋਂ ਤੁਸੀਂ ਇਸਨੂੰ ਪੁੱਛਦੇ ਹੋ।</string>
+    <string name="common_special_access_system_buttons_title">ਸਿਸਟਮ ਬਟਨਾਂ ਲਈ ਅਸੈੱਸਬਿਲਟੀ ਸੇਵਾ</string>
     <string name="common_special_access_usage_body">ਵਰਤੋਂ ਪਹੁੰਚ ਦੇ ਨਾਲ, ਕੀਬੋਰਡ ਰਿਕਾਰਡ ਕਰਦਾ ਹੈ ਕਿ ਜਦੋਂ ਤੁਸੀਂ ਕੁਝ ਕਾਪੀ ਕੀਤਾ ਸੀ ਤਾਂ ਕਿਹੜੀ ਐਪ ਸਾਹਮਣੇ ਸੀ। ਜਦੋਂ ਤੁਸੀਂ ਕਲਿੱਪ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖਦੇ ਹੋ ਤਾਂ ਇਹ ਉਹ ਐਪ ਦਿਖਾਉਂਦਾ ਹੈ। ਕੀਬੋਰਡ ਸਿਰਫ਼ ਕਾਪੀ ਕਰਨ ਦੇ ਸਮੇਂ ਹੀ ਸਾਹਮਣੇ ਵਾਲੀ ਐਪ ਨੂੰ ਪੜ੍ਹਦਾ ਹੈ। ਇਹ ਤੁਹਾਡਾ ਇਤਿਹਾਸ ਜਾਂ ਕਿਸੇ ਐਪ ਵਿੱਚ ਤੁਹਾਡਾ ਸਮਾਂ ਨਹੀਂ ਪੜ੍ਹਦਾ। ਕੀਬੋਰਡ ਜਵਾਬ ਨੂੰ ਕਲਿੱਪ ਦੇ ਨਾਲ, ਸਿਰਫ਼ ਤੁਹਾਡੀ ਡਿਵਾਈਸ \'ਤੇ ਰੱਖਦਾ ਹੈ। ਤੁਹਾਡੀ ਐਪ ਵਰਤੋਂ ਬਾਰੇ ਕੁਝ ਵੀ ਤੁਹਾਡੀ ਡਿਵਾਈਸ ਤੋਂ ਬਾਹਰ ਨਹੀਂ ਜਾਂਦਾ। ਸੈਟਿੰਗ ਵਿਕਲਪਿਕ ਹੈ। ਇਹ ਉਦੋਂ ਤੱਕ ਬੰਦ ਰਹਿੰਦੀ ਹੈ ਜਦੋਂ ਤੱਕ ਤੁਸੀਂ ਇਸਨੂੰ ਚਾਲੂ ਨਹੀਂ ਕਰਦੇ।</string>
     <string name="common_special_access_usage_title">ਕਲਿੱਪਬੋਰਡ ਸਰੋਤ ਐਪਾਂ ਲਈ ਵਰਤੋਂ ਪਹੁੰਚ</string>
     <string name="common_type_setting_value_desc">%1$s ਲਈ ਇੱਕ ਮੁੱਲ ਟਾਈਪ ਕਰੋ</string>

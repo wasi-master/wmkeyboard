@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Önnur þjónusta</string>
     <string name="core_settings_ai_provider_on_device_label">Á tækinu þínu</string>
+    <string name="core_settings_ai_provider_privatemode_label">Einkahamur</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Tími dags</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Sólarupprás og sólarlag</string>
     <string name="core_settings_auto_theme_trigger_system_label">Ljóst eða dökkt kerfisþema</string>

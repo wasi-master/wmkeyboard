@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">टूलबार</string>
     <string name="core_icons_group_tools_title">टूल्स</string>
     <string name="core_icons_pack_imported_label">आयात केलेले आयकॉन्स</string>
-    <string name="core_icons_pack_mine_label">माझे आयकॉन्स</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">ॲपने %1$d फाईल दुर्लक्षित केली. या आवृत्तीमध्ये त्यासाठी कोणतेही आयकॉन नाही: %2$s</item>
         <item quantity="other">ॲपने %1$d फाईल्स दुर्लक्षित केल्या. या आवृत्तीमध्ये त्यांच्यासाठी कोणतेही आयकॉन नाही: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">टॅब की</string>
     <string name="core_icons_slot_toolbox_label">टूलबॉक्स</string>
     <string name="core_icons_slot_toolbox_search_label">टूलबॉक्स शोध</string>
+    <string name="core_icons_pack_mine_label">माझे आयकॉन्स</string>
 </resources>

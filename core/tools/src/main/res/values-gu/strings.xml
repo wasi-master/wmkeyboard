@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">વોલપેપર્સ</string>
     <string name="core_tools_provider_acrcloud_desc">બે-અઠવાડિયાના ટ્રાયલ સાથેની સંગીત ઓળખ સેવા, ત્યારબાદ પેઇડ પ્લાન. console.acrcloud.com પરથી પ્રોજેક્ટના હોસ્ટ, એક્સેસ કી અને એક્સેસ સિક્રેટની જરૂર છે. દરેક ક્લિપ ACRCloud ને મોકલવામાં આવે છે.</string>
     <string name="core_tools_provider_ai_horde_desc">સ્વયંસેવકોના કમ્પ્યુટર્સ પર મફત સ્ટેબલ ડિફ્યુઝન. કી વગર કામ કરે છે પરંતુ કતારમાં રાહ જોવી પડે છે; aihorde.net તરફથી મફત કી તમને તેમાં આગળ કરી દેશે.</string>
+    <string name="core_tools_provider_allratestoday_desc">લગભગ 30 ચલણો માટે યુરોપિયન સેન્ટ્રલ બેંક સંદર્ભ દર. કોઈ કી નથી.</string>
     <string name="core_tools_provider_anthropic_desc">એન્થ્રોપિકના API દ્વારા ક્લાઉડ મોડલ્સ, તમારી પોતાની કી સાથે.</string>
     <string name="core_tools_provider_asr4all_desc">ફોન પર અંગ્રેજી ડિક્ટેશન, તમે બોલો તેમ શબ્દો દેખાય છે.</string>
     <string name="core_tools_provider_audd_desc">સાઉન્ડની થોડી સેકન્ડોમાંથી મોટાભાગનું રિલીઝ થયેલું સંગીત ઓળખે છે. dashboard.audd.io પરથી ટોકનની જરૂર છે; થોડા સો રેકગ્નિશન મફત છે, પછી તે ચૂકવવાપાત્ર છે. દરેક ક્લિપ AudD ને મોકલવામાં આવે છે.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">એક મોટું મોડેલ જે ફોન પર ચાલે છે અને 25 યુરોપિયન ભાષાઓને સમજે છે.</string>
     <string name="core_tools_provider_pexels_desc">Pexels તરફથી ફોટા. API કીની જરૂર છે, સિવાય કે આ બિલ્ડમાં તે પહેલેથી હોય.</string>
     <string name="core_tools_provider_pollinations_desc">મફત, કોઈ કી અને કોઈ એકાઉન્ટ વગર: પ્રોમ્પ્ટ Pollinations ને મોકલવામાં આવે છે, જે મોડલ પસંદ કરે છે. enter.pollinations.ai ની એક કી તેના નવા API ને ખોલે છે અને તમને મોડલનું નામ આપવા દે છે.</string>
+    <string name="core_tools_provider_privatemode">ખાનગી મોડ AI</string>
+    <string name="core_tools_provider_privatemode_desc">AI જે ગોપનીય કમ્પ્યુટિંગમાં ચાલે છે અને તમારું લખાણ વાંચી શકતી નથી. તમારી Privatemode API કી આપો. પછી કીબોર્ડ ફોન પર દરેક વિનંતીને એન્ક્રિપ્ટ કરે છે, પરંતુ તે સેવાના હાર્ડવેર એટેસ્ટેશનની ચકાસણી કરતું નથી. તે પણ ચકાસવા માટે, privatemode-proxy ચલાવો અને તેનું સરનામું આપો, જેમ કે http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (અધિકૃત નથી, RapidAPI દ્વારા)</string>
     <string name="core_tools_provider_rapid_shazam_desc">RapidAPI કી સાથે RapidAPI પર બિનસત્તાવાર લિસ્ટિંગ દ્વારા Shazam નું કેટલોગ. આ Apple ની સેવા નથી: લિસ્ટિંગ સૂચના વિના બદલાઈ શકે છે અથવા બંધ થઈ શકે છે. દરેક ક્લિપ RapidAPI ને મોકલવામાં આવે છે.</string>
     <string name="core_tools_provider_recraft_desc">ચિત્રો, ચિહ્નો અને વેક્ટર-શૈલીની કળા. recraft.ai તરફથી કીની જરૂર છે.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Unsplash તરફથી ફોટા. API કીની જરૂર છે, સિવાય કે આ બિલ્ડમાં એક હોય.</string>
     <string name="core_tools_provider_vision_ocr">તમારું વિઝન મોડેલ</string>
     <string name="core_tools_provider_vision_ocr_desc">એક મોડેલ જે છબીઓ વાંચે છે, તે સર્વર દ્વારા જે OpenAI ચેટ વિનંતીઓનો જવાબ આપે છે. સરનામું અને મોડેલનું નામ જરૂરી છે.</string>
+    <string name="core_tools_provider_vosk_desc">29 ભાષાઓ માટે આલ્ફા સેફેઈના નાના કાલ્ડી મૉડેલ, દરેક આશરે 40 MB, જે ફોન પર બોલો તેમ ટાઇપ કરે છે. જૂના ફોન માટે પૂરતા હળવા.</string>
     <string name="core_tools_provider_whisper_desc">OpenAI ના વ્હિસ્પર મોડલ્સ, ફોન પર ચાલે છે. ઘણી ભાષાઓ; વૉઇસ ટાઇપિંગ પેજ પર મોડલ ડાઉનલોડ કરો.</string>
     <string name="core_tools_provider_whistle_desc">એક નાનું, ઝડપી મોડેલ જે ફોન પર ચાલે છે. તેને વોઇસ ટાઇપિંગ પેજ પર ડાઉનલોડ કરો.</string>
     <string name="core_tools_provider_xai_desc">તમારી પોતાની કી સાથે, xAI ના API દ્વારા Grok મોડલ્સ.</string>

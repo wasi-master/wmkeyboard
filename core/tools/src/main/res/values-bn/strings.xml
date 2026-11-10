@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">ওয়ালপেপার</string>
     <string name="core_tools_provider_acrcloud_desc">একটি মিউজিক রিকগনিশন পরিষেবা যার দুই সপ্তাহের ট্রায়াল আছে, তারপর পেইড প্ল্যান। console.acrcloud.com থেকে একটি প্রজেক্টের হোস্ট, অ্যাক্সেস কী এবং অ্যাক্সেস সিক্রেট প্রয়োজন। প্রতিটি ক্লিপ ACRCloud-এ পাঠানো হয়।</string>
     <string name="core_tools_provider_ai_horde_desc">স্বেচ্ছাসেবকদের কম্পিউটারে বিনামূল্যে স্টেবল ডিফিউশন। কোনো কি (key) ছাড়াই কাজ করে তবে কিউতে অপেক্ষা করতে হয়; aihorde.net থেকে একটি ফ্রি কি আপনাকে কিউতে এগিয়ে দেবে।</string>
+    <string name="core_tools_provider_allratestoday_desc">প্রায় ৩০টি মুদ্রার জন্য ইউরোপীয় কেন্দ্রীয় ব্যাংকের রেফারেন্স রেট। কোনো কী নেই।</string>
     <string name="core_tools_provider_anthropic_desc">আপনার নিজস্ব কী ব্যবহার করে অ্যানথ্রপিকের এপিআই-এর মাধ্যমে ক্লড মডেল।</string>
     <string name="core_tools_provider_asr4all_desc">ফোনে ইংরেজি ডিক্টেশন, আপনি কথা বলার সাথে সাথে শব্দগুলো প্রদর্শিত হবে।</string>
     <string name="core_tools_provider_audd_desc">কয়েক সেকেন্ডের শব্দ থেকে বেশিরভাগ প্রকাশিত গান শনাক্ত করে। dashboard.audd.io থেকে একটি টোকেন প্রয়োজন; কয়েকশ শনাক্তকরণ বিনামূল্যে, এরপর চার্জ প্রযোজ্য। প্রতিটি ক্লিপ AudD-তে পাঠানো হয়।</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">একটি বড় মডেল যা ফোনে চলে এবং ২৫টি ইউরোপীয় ভাষা বোঝে।</string>
     <string name="core_tools_provider_pexels_desc">Pexels থেকে ছবি। একটি API কী প্রয়োজন, যদি না এই বিল্ডে একটি থাকে।</string>
     <string name="core_tools_provider_pollinations_desc">বিনামূল্যে, কোনো কি (key) বা অ্যাকাউন্ট ছাড়াই: প্রম্পটটি Pollinations-এ পাঠানো হয়, যা মডেলটি নির্বাচন করে। enter.pollinations.ai থেকে একটি কি (key) এর নতুন API খোলে এবং আপনাকে একটি মডেলের নাম দেওয়ার সুযোগ দেয়।</string>
+    <string name="core_tools_provider_privatemode">প্রাইভেটমোড এআই</string>
+    <string name="core_tools_provider_privatemode_desc">এআই যা কনফিডেন্সিয়াল কম্পিউটিং-এ চলে এবং আপনার লেখা পড়তে পারে না। আপনার প্রাইভেটমোড এপিআই কী দিন। এরপর কিবোর্ড ফোনে প্রতিটি অনুরোধ এনক্রিপ্ট করে, তবে এটি পরিষেবার হার্ডওয়্যার অ্যাটেস্টেশন পরীক্ষা করে না। সেটিও পরীক্ষা করাতে চাইলে, privatemode-proxy চালান এবং এর ঠিকানা দিন, যেমন http://192.168.1.20:8080।</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (অফিসিয়াল নয়, RapidAPI-এর মাধ্যমে)</string>
     <string name="core_tools_provider_rapid_shazam_desc">র‍্যাপিড এপিআই-তে একটি অনানুষ্ঠানিক তালিকার মাধ্যমে শ্যাজামের ক্যাটালগ, যেখানে একটি র‍্যাপিড এপিআই কী ব্যবহার করা হয়। এটি কোনো অ্যাপল পরিষেবা নয়: তালিকাটি কোনো নোটিশ ছাড়াই পরিবর্তন হতে পারে বা বন্ধ হয়ে যেতে পারে। প্রতিটি ক্লিপ র‍্যাপিড এপিআই-তে পাঠানো হয়।</string>
     <string name="core_tools_provider_recraft_desc">ইলাস্ট্রেশন, আইকন এবং ভেক্টর-স্টাইল আর্ট। recraft.ai থেকে একটি কী প্রয়োজন।</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Unsplash থেকে ছবি। একটি API কি প্রয়োজন, যদি না এই বিল্ডে একটি থাকে।</string>
     <string name="core_tools_provider_vision_ocr">আপনার ভিশন মডেল</string>
     <string name="core_tools_provider_vision_ocr_desc">একটি মডেল যা ছবি পড়ে, এমন একটি সার্ভারের মাধ্যমে যা ওপেনএআই (OpenAI) চ্যাট অনুরোধের উত্তর দেয়। ঠিকানা এবং মডেলের নাম প্রয়োজন।</string>
+    <string name="core_tools_provider_vosk_desc">আলফা সেপেই থেকে ২৯টি ভাষার ছোট কালদি মডেল, প্রতিটির সাইজ প্রায় ৪০ এমবি, যা ফোনে কথা বলার সাথে সাথে টাইপ করে। পুরোনো ফোনের জন্যও যথেষ্ট হালকা।</string>
     <string name="core_tools_provider_whisper_desc">OpenAI-এর হুইস্পার মডেল, ফোনে চলে। অনেক ভাষা; ভয়েস টাইপিং পেজে একটি মডেল ডাউনলোড করুন।</string>
     <string name="core_tools_provider_whistle_desc">ফোনে চলে এমন একটি ছোট, দ্রুত মডেল। ভয়েস টাইপিং পেজ থেকে এটি ডাউনলোড করুন।</string>
     <string name="core_tools_provider_xai_desc">আপনার নিজস্ব কি ব্যবহার করে xAI-এর API-এর মাধ্যমে গ্রোক মডেল।</string>

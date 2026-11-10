@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Інший сервіс</string>
     <string name="core_settings_ai_provider_on_device_label">На вашому пристрої</string>
+    <string name="core_settings_ai_provider_privatemode_label">Приватний режим</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Час доби</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Схід і захід сонця</string>
     <string name="core_settings_auto_theme_trigger_system_label">Системна світла або темна тема</string>

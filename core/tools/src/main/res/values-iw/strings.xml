@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">טפטים</string>
     <string name="core_tools_provider_acrcloud_desc">שירות לזיהוי מוזיקה עם תקופת ניסיון של שבועיים, ולאחריה מנויים בתשלום. דורש מהמארח, מפתח גישה וסוד גישה עבור פרויקט מ-console.acrcloud.com. כל קטע נשלח ל-ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">Stable Diffusion חינמי על מחשבי מתנדבים. עובד ללא מפתח אך דורש המתנה בתור; מפתח חינמי מ-aihorde.net יקדם אותך בתור.</string>
+    <string name="core_tools_provider_allratestoday_desc">עריכי ייחוס של הבנק המרכזי האירופי לכ-30 מטבעות. ללא מפתח.</string>
     <string name="core_tools_provider_anthropic_desc">מודלי Claude דרך ה-API של Anthropic, עם מפתח משלך.</string>
     <string name="core_tools_provider_asr4all_desc">הכתבה באנגלית בטלפון, עם מילים שמופיעות בזמן שאתה מדבר.</string>
     <string name="core_tools_provider_audd_desc">מזהה את רוב המוזיקה שיצאה לאור תוך כמה שניות של צליל. דורש אסימון מ-dashboard.audd.io; כמה מאות זיהויים הם בחינם, לאחר מכן זה בתשלום. כל קטע נשלח ל-AudD.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">מודל גדול שרץ על הטלפון ומבין 25 שפות אירופאיות.</string>
     <string name="core_tools_provider_pexels_desc">תמונות מ-Pexels. דורש מפתח API, אלא אם כן לגרסה זו יש אחד.</string>
     <string name="core_tools_provider_pollinations_desc">חינם, ללא מפתח וללא חשבון: הבקשה נשלחת ל-Pollinations, שבוחרת את המודל. מפתח מ-enter.pollinations.ai פותח את ה-API החדש יותר שלה ומאפשר לך לתת שם למודל.</string>
+    <string name="core_tools_provider_privatemode">Privatemode AI</string>
+    <string name="core_tools_provider_privatemode_desc">בינה מלאכותית הפועלת במחשוב סודי ואינה יכולה לקרוא את הטקסט שלך. ספק את מפתח ה-API של Privatemode שלך. לאחר מכן המקלדת מצפינה כל בקשה בטלפון, אך היא אינה בודקת את אימות החומרה של השירות. כדי לבדוק גם זאת, הפעל את privatemode-proxy וספק את כתובתו, כגון http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (לא רשמי, דרך RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">הקטלוג של Shazam דרך רישום לא רשמי ב-RapidAPI, עם מפתח RapidAPI. זהו אינו שירות של Apple: הרישום עשוי להשתנות או להיפסק ללא הודעה מוקדמת. כל קטע נשלח ל-RapidAPI.</string>
     <string name="core_tools_provider_recraft_desc">איורים, סמלים ואמנות בסגנון וקטורי. דורש מפתח מ-recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">תמונות מ-Unsplash. דורש מפתח API, אלא אם כן לגרסה זו יש אחד.</string>
     <string name="core_tools_provider_vision_ocr">מודל הראייה שלך</string>
     <string name="core_tools_provider_vision_ocr_desc">מודל שקורא תמונות, דרך שרת שעונה לבקשות צ\'אט של OpenAI. דורש את הכתובת ושם המודל.</string>
+    <string name="core_tools_provider_vosk_desc">מודלים קטנים של Kaldi מבית Alpha Cephei עבור 29 שפות, כ-40 מגה-בייט כל אחד, המקלידים תוך כדי דיבור בטלפון. קלים מספיק לטלפון ישן יותר.</string>
     <string name="core_tools_provider_whisper_desc">מודלי ה-Whisper של OpenAI, מורצים על גבי הטלפון. שפות רבות; ניתן להוריד מודל בדף הקלדה קולית.</string>
     <string name="core_tools_provider_whistle_desc">מודל קטן ומהיר שרץ על הטלפון. הורד אותו בדף הקלדה קולית.</string>
     <string name="core_tools_provider_xai_desc">מודלי Grok דרך ה-API של xAI, עם מפתח משלך.</string>

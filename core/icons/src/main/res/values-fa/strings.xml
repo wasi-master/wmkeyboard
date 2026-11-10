@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">نوار ابزار</string>
     <string name="core_icons_group_tools_title">ابزارها</string>
     <string name="core_icons_pack_imported_label">آیکون‌های واردشده</string>
-    <string name="core_icons_pack_mine_label">آیکون‌های من</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">برنامه %1$d فایل را نادیده گرفت. این نسخه آیکونی برای آن ندارد: %2$s</item>
         <item quantity="other">برنامه %1$d فایل را نادیده گرفت. این نسخه آیکونی برای آن‌ها ندارد: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">کلید Tab</string>
     <string name="core_icons_slot_toolbox_label">جعبه‌ابزار</string>
     <string name="core_icons_slot_toolbox_search_label">جستجوی جعبه‌ابزار</string>
+    <string name="core_icons_pack_mine_label">آیکون‌های من</string>
 </resources>

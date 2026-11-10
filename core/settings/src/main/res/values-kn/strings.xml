@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">ಇತರ ಸೇವೆ</string>
     <string name="core_settings_ai_provider_on_device_label">ನಿಮ್ಮ ಸಾಧನದಲ್ಲಿ</string>
+    <string name="core_settings_ai_provider_privatemode_label">ಖಾಸಗಿ ಮೋಡ್</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">ದಿನದ ಸಮಯ</string>
     <string name="core_settings_auto_theme_trigger_sun_label">ಸೂರ್ಯೋದಯ ಮತ್ತು ಸೂರ್ಯಾಸ್ತ</string>
     <string name="core_settings_auto_theme_trigger_system_label">ಸಿಸ್ಟಮ್ ಲೈಟ್ ಅಥವಾ ಡಾರ್ಕ್</string>

@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">خلفيات</string>
     <string name="core_tools_provider_acrcloud_desc">خدمة التعرف على الموسيقى مع فترة تجريبية لمدة أسبوعين، ثم خطط مدفوعة. تتطلب المضيف ومفتاح الوصول وسر الوصول لمشروع من console.acrcloud.com. يتم إرسال كل مقطع إلى ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">Stable Diffusion مجاني على أجهزة المتطوعين. يعمل بدون مفتاح ولكنه ينتظر في طابور؛ مفتاح مجاني من aihorde.net يجعلك تتقدم في الطابور.</string>
+    <string name="core_tools_provider_allratestoday_desc">أسعار الفائدة المرجعية للبنك المركزي الأوروبي لحوالي 30 عملة. بدون مفتاح.</string>
     <string name="core_tools_provider_anthropic_desc">نماذج Claude عبر واجهة برمجة تطبيقات Anthropic، باستخدام مفتاحك الخاص.</string>
     <string name="core_tools_provider_asr4all_desc">إملاء باللغة الإنجليزية على الهاتف، مع ظهور الكلمات أثناء التحدث.</string>
     <string name="core_tools_provider_audd_desc">يتعرف على معظم الموسيقى الصادرة من خلال بضع ثوانٍ من الصوت. يحتاج إلى رمز مميز من dashboard.audd.io؛ بضع مئات من عمليات التعرف مجانية، ثم تصبح مدفوعة. يتم إرسال كل مقطع إلى AudD.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">نموذج كبير يعمل على الهاتف ويفهم 25 لغة أوروبية.</string>
     <string name="core_tools_provider_pexels_desc">صور من Pexels. يتطلب مفتاح API، ما لم يكن هذا الإصدار يحتوي على واحد.</string>
     <string name="core_tools_provider_pollinations_desc">مجاني، بدون مفتاح وبدون حساب: يتم إرسال المطالبة إلى Pollinations، الذي يختار النموذج. مفتاح من enter.pollinations.ai يفتح واجهة برمجة التطبيقات الأحدث الخاصة به ويسمح لك بتسمية نموذج.</string>
+    <string name="core_tools_provider_privatemode">ذكاء اصطناعي للوضع الخاص</string>
+    <string name="core_tools_provider_privatemode_desc">ذكاء اصطناعي يعمل في الحوسبة السرية ولا يمكنه قراءة نصك. أدخل مفتاح واجهة برمجة التطبيقات الخاص بـ Privatemode. ثم تشفر لوحة المفاتيح كل طلب على الهاتف، ولكنها لا تحقق من شهادة الأجهزة للخدمة. للتحقق من ذلك أيضاً، قم بتشغيل وكيل Privatemode وحدد عنوانه، مثل http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (غير رسمي، عبر RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">كتالوج Shazam من خلال قائمة غير رسمية على RapidAPI، باستخدام مفتاح RapidAPI. ليست خدمة من Apple: قد تتغير القائمة أو تتوقف دون إشعار. يتم إرسال كل مقطع إلى RapidAPI.</string>
     <string name="core_tools_provider_recraft_desc">رسوم توضيحية وأيقونات وفن بنمط المتجهات. يتطلب مفتاحاً من recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">صور من Unsplash. تحتاج إلى مفتاح API، ما لم يكن هذا الإصدار يحتوي على واحد.</string>
     <string name="core_tools_provider_vision_ocr">نموذج الرؤية الخاص بك</string>
     <string name="core_tools_provider_vision_ocr_desc">نموذج يقرأ الصور من خلال خادم يستجيب لطلبات دردشة OpenAI. يحتاج إلى العنوان واسم النموذج.</string>
+    <string name="core_tools_provider_vosk_desc">نماذج Kaldi الصغيرة من Alpha Cephei لـ 29 لغة، بحجم حوالي 40 ميجابايت لكل منها، والتي تكتب أثناء التحدث على الهاتف. خفيفة بما يكفي لهاتف أقدم.</string>
     <string name="core_tools_provider_whisper_desc">نماذج Whisper من OpenAI، تعمل على الهاتف. لغات عديدة؛ قم بتنزيل نموذج من صفحة الكتابة الصوتية.</string>
     <string name="core_tools_provider_whistle_desc">نموذج صغير وسريع يعمل على الهاتف. قم بتنزيله من صفحة الكتابة بالصوت.</string>
     <string name="core_tools_provider_xai_desc">نماذج Grok عبر واجهة برمجة تطبيقات xAI، باستخدام مفتاحك الخاص.</string>

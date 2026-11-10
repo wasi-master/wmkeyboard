@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">วอลเปเปอร์</string>
     <string name="core_tools_provider_acrcloud_desc">บริการระบุเพลงที่มีช่วงทดลองใช้งานสองสัปดาห์ หลังจากนั้นจะเป็นแผนแบบชำระเงิน จำเป็นต้องมีโฮสต์ คีย์การเข้าถึง และความลับในการเข้าถึงของโปรเจกต์จาก console.acrcloud.com คลิปแต่ละคลิปจะถูกส่งไปยัง ACRCloud</string>
     <string name="core_tools_provider_ai_horde_desc">ใช้งาน Stable Diffusion ฟรีบนคอมพิวเตอร์ของอาสาสมัคร สามารถใช้งานได้โดยไม่ต้องใช้คีย์แต่จะต้องรอคิว หากมีคีย์ฟรีจาก aihorde.net จะช่วยให้คุณได้รับคิวเร็วขึ้น</string>
+    <string name="core_tools_provider_allratestoday_desc">อัตราอ้างอิงของธนาคารกลางยุโรปสำหรับประมาณ 30สกุลเงิน ไม่ต้องใช้คีย์</string>
     <string name="core_tools_provider_anthropic_desc">โมเดล Claude ผ่าน API ของ Anthropic โดยใช้คีย์ของคุณเอง</string>
     <string name="core_tools_provider_asr4all_desc">การพิมพ์ตามคำบอกภาษาอังกฤษบนโทรศัพท์ โดยคำจะปรากฏขึ้นขณะที่คุณพูด</string>
     <string name="core_tools_provider_audd_desc">จดจำเพลงส่วนใหญ่ที่ปล่อยออกมาได้จากเสียงเพียงไม่กี่วินาที ต้องใช้โทเคนจาก dashboard.audd.io ฟรีสองสามร้อยครั้งหลังจากนั้นจะเป็นแบบชำระเงิน คลิปแต่ละคลิปจะถูกส่งไปยัง AudD</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">โมเดลขนาดใหญ่ที่ทำงานบนโทรศัพท์และเข้าใจภาษาในยุโรป 25 ภาษา</string>
     <string name="core_tools_provider_pexels_desc">รูปภาพจาก Pexels จำเป็นต้องมีคีย์ API เว้นแต่ว่าบิลด์นี้จะมีคีย์อยู่แล้ว</string>
     <string name="core_tools_provider_pollinations_desc">ฟรี ไม่ต้องใช้คีย์และไม่ต้องมีบัญชี: พรอมต์จะถูกส่งไปยัง Pollinations ซึ่งจะเลือกโมเดลให้ คีย์จาก enter.pollinations.ai จะเปิดใช้งาน API ใหม่และช่วยให้คุณตั้งชื่อโมเดลได้</string>
+    <string name="core_tools_provider_privatemode">AI โหมดส่วนตัว</string>
+    <string name="core_tools_provider_privatemode_desc">AI ที่ทำงานในคอมพิวติ้งแบบลับและไม่สามารถอ่านข้อความของคุณได้ ระบุคีย์ API ของ Privatemode จากนั้นแป้นพิมพ์จะเข้ารหัสคำขอแต่ละรายการในโทรศัพท์ แต่จะไม่ตรวจสอบการรับรองฮาร์ดแวร์ของบริการ หากต้องการตรวจสอบส่วนนั้นด้วย ให้รัน privatemode-proxy และระบุที่อยู่ เช่น http://192.168.1.20:8080</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (ไม่เป็นทางการ ผ่าน RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">แคตตาล็อกของ Shazam ผ่านรายการที่ไม่เป็นทางการบน RapidAPI โดยใช้คีย์ RapidAPI ไม่ใช่บริการของ Apple: รายการอาจเปลี่ยนแปลงหรือหยุดให้บริการโดยไม่ต้องแจ้งให้ทราบ คลิปแต่ละคลิปจะถูกส่งไปยัง RapidAPI</string>
     <string name="core_tools_provider_recraft_desc">ภาพประกอบ ไอคอน และศิลปะสไตล์เวกเตอร์ ต้องใช้คีย์จาก recraft.ai</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">รูปภาพจาก Unsplash จำเป็นต้องมีคีย์ API เว้นแต่ว่าบิลด์นี้จะมีคีย์อยู่แล้ว</string>
     <string name="core_tools_provider_vision_ocr">โมเดลการมองเห็นของคุณ</string>
     <string name="core_tools_provider_vision_ocr_desc">โมเดลที่อ่านรูปภาพผ่านเซิร์ฟเวอร์ที่ตอบคำถามแชท OpenAI จำเป็นต้องระบุที่อยู่และชื่อโมเดล</string>
+    <string name="core_tools_provider_vosk_desc">โมเดล Kaldi ขนาดเล็กจาก Alpha Cephei สำหรับ 29 ภาษา ขนาดประมาณ 40 MB ต่อชุด ที่พิมพ์ตามที่คุณพูดบนโทรศัพท์ มีขนาดเบาพอสำหรับโทรศัพท์รุ่นเก่า</string>
     <string name="core_tools_provider_whisper_desc">โมเดล Whisper ของ OpenAI ที่ทำงานบนโทรศัพท์ รองรับหลายภาษา ดาวน์โหลดโมเดลได้ที่หน้าการพิมพ์ด้วยเสียง</string>
     <string name="core_tools_provider_whistle_desc">โมเดลขนาดเล็กและรวดเร็วที่ทำงานบนโทรศัพท์ ดาวน์โหลดได้ที่หน้าการพิมพ์ด้วยเสียง</string>
     <string name="core_tools_provider_xai_desc">โมเดล Grok ผ่าน API ของ xAI โดยใช้คีย์ของคุณเอง</string>

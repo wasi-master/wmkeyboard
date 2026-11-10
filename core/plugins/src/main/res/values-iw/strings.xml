@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">לתוסף הזה אין יותר את הפעולה הזו.</string>
     <string name="core_plugins_error_no_render">לתוסף זה אין פונקציית render().</string>
+    <string name="core_plugins_error_no_transform">לתוסף זה אין פונקציית transform().</string>
     <string name="core_plugins_error_not_installed">התוסף הזה לא מותקן.</string>
+    <string name="core_plugins_error_not_ready">התוספים עדיין מורדים. נסה שוב בעוד רגע.</string>
     <string name="core_plugins_error_script_failed">הסקריפט נכשל.</string>
     <string name="core_plugins_error_script_missing">הסקריפט עבור תוסף זה חסר.</string>
     <string name="core_plugins_error_turned_off">התוסף הזה כבוי.</string>
     <string name="core_plugins_permission_reminders_label">הצג תזכורות בזמנים שתגדיר בו</string>
+    <string name="core_plugins_permission_selection_label">שנה טקסט שאתה בוחר, בעת הקשה על אחת מהפעולות שלו</string>
     <string name="core_plugins_permission_storage_label">שמירת נתונים במכשיר שלך</string>
+    <string name="core_plugins_reject_action_input">ל-“%1$s” יש פעולה המבקשת טקסט שגרסה זו של מקלדת WM אינה יכולה לספק.</string>
+    <string name="core_plugins_reject_action_no_name">ל-\"%1$s\" יש פעולה ללא שם.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” מוסיף פעולות לטקסט נבחר אך אינו מבקש רשות לשנות אותו.</string>
+    <string name="core_plugins_reject_bad_action_id">ל-\"%1$s\" יש פעולה שמזהה שלה חסר, מופיע פעמיים או אינו חוקי. מזהה פעולה מכיל עד 32 אותיות קטנות באנגלית, מספרים, מקפים וקוים תחתונים.</string>
     <string name="core_plugins_reject_bad_encoding">ל-\"%1$s\" יש סקריפט שאינו טקסט UTF-8 חוקי.</string>
     <string name="core_plugins_reject_bad_id">לתוסף זה יש מזהה שאינו תקין. מזהה חייב להיות באורך של 3 עד 64 תווים. מזהה יכול להכיל אותיות קטנות, מספרים, נקודות, מקפים וקווים תחתונים.</string>
     <string name="core_plugins_reject_empty_script">ל-\"%1$s\" יש סקריפט ריק.</string>
+    <string name="core_plugins_reject_lua">“%1$s” כתוב ב-Lua, ש-WM Keyboard אינו מריץ עוד. חפש את גרסת ה-Python שלו.</string>
     <string name="core_plugins_reject_missing_script">ל-\"%1$s\" אין קובץ סקריפט (%2$s).</string>
     <string name="core_plugins_reject_newer_version">תוסף זה זקוק לגרסה חדשה יותר של WM Keyboard.</string>
     <string name="core_plugins_reject_no_name">לתוסף זה אין שם.</string>
     <string name="core_plugins_reject_no_version">“%1$s” לא מציין איזו גרסה זו.</string>
+    <string name="core_plugins_reject_nothing_to_show">ל-“%1$s” אין לוח בקרה ואין פעולות, ולכן אין לו מה לעשות.</string>
     <string name="core_plugins_reject_script_too_large">ל-\"%1$s\" יש סקריפט גדול מ-%2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” מבקש לשנות את הטקסט שתבחר אך אינו מוסיף פעולות כלשהן.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” מוסיף יותר מ-16 פעולות.</string>
+    <string name="core_plugins_reject_unknown_language">\"%1$s\" כתוב בשפה שגרסה זו של מקלדת WM אינה יכולה להריץ. תוספים נכתבים בפייתון.</string>
     <string name="core_plugins_reject_unknown_permission">גרסה זו של WM Keyboard אינה מכירה את ההרשאה \"%1$s\". האפליקציה אינה יכולה לומר לך מה \"%2$s\" מורשה לעשות.</string>
     <string name="core_plugins_reminders_channel_body">תזכורות שתוסף ביקש מהאפליקציה להציג, בזמנים שהגדרת בתוסף. הכותרת של כל אחת היא שם התוסף.</string>
     <string name="core_plugins_reminders_channel_title">תזכורות תוספים</string>
     <string name="core_plugins_stopped_cancelled">האפליקציה עצרה את התוסף הזה.</string>
     <string name="core_plugins_stopped_deadline">התוסף הזה לקח יותר מדי זמן. האפליקציה עצרה אותו.</string>
     <string name="core_plugins_stopped_instructions">תוסף זה ביצע יותר מדי עבודה בבת אחת. האפליקציה עצרה אותו.</string>
+    <string name="core_plugins_stopped_memory">תוסף זה ניסה לשמור יותר מדי נתונים. האפליקציה עצרה אותו.</string>
     <string name="core_plugins_stopped_not_responding">תוסף זה הפסיק להגיב. האפליקציה סגרה אותו.</string>
     <string name="core_plugins_stopped_not_responding_disabled">תוסף זה הפסיק להגיב שוב. האפליקציה כיבתה אותו.</string>
     <string name="core_plugins_stopped_recursion">תוסף זה קרא לעצמו פעמים רבות מדי. האפליקציה עצרה אותו.</string>

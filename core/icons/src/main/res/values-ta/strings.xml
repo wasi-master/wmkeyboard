@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">கருவிப்பட்டி</string>
     <string name="core_icons_group_tools_title">கருவிகள்</string>
     <string name="core_icons_pack_imported_label">இறக்குமதி செய்யப்பட்ட ஐகான்கள்</string>
-    <string name="core_icons_pack_mine_label">எனது சின்னங்கள்</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">ஆப் %1$d கோப்பை புறக்கணித்தது. இந்த பதிப்பில் அதற்கான ஐகான் இல்லை: %2$s</item>
         <item quantity="other">ஆப் %1$d கோப்புகளை புறக்கணித்தது. இந்த பதிப்பில் அவற்றுக்கான ஐகான் இல்லை: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tab விசை</string>
     <string name="core_icons_slot_toolbox_label">கருவிப்பெட்டி</string>
     <string name="core_icons_slot_toolbox_search_label">கருவிப்பெட்டித் தேடல்</string>
+    <string name="core_icons_pack_mine_label">எனது சின்னங்கள்</string>
 </resources>

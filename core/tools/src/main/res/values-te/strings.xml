@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">వాల్‌పేపర్‌లు</string>
     <string name="core_tools_provider_acrcloud_desc">రెండు వారాల ట్రయల్ ఉన్న మ్యూజిక్ రికగ్నిషన్ సర్వీస్, ఆ తర్వాత పెయిడ్ ప్లాన్‌లు ఉంటాయి. console.acrcloud.com నుండి ప్రాజెక్ట్ యొక్క హోస్ట్, యాక్సెస్ కీ మరియు యాక్సెస్ సీక్రెట్ అవసరం. ప్రతి క్లిప్ ACRCloudకి పంపబడుతుంది.</string>
     <string name="core_tools_provider_ai_horde_desc">స్వచ్ఛంద సేవకుల కంప్యూటర్లలో ఉచిత స్టేబుల్ డిఫ్యూజన్. కీ లేకుండా పనిచేస్తుంది కానీ క్యూలో వేచి ఉండాలి; aihorde.net నుండి ఉచిత కీ మిమ్మల్ని క్యూలో ముందుకు పంపుతుంది.</string>
+    <string name="core_tools_provider_allratestoday_desc">సుమారు 30 కరెన్సీల కోసం యూరోపియన్ సెంట్రల్ బ్యాంక్ రిఫరెన్స్ రేట్లు. కీ లేదు.</string>
     <string name="core_tools_provider_anthropic_desc">Anthropic API ద్వారా క్లాడ్ మోడల్స్, మీ స్వంత కీతో.</string>
     <string name="core_tools_provider_asr4all_desc">ఫోన్‌లో ఇంగ్లీష్ డిక్టేషన్, మీరు మాట్లాడుతున్నప్పుడు పదాలు కనిపిస్తాయి.</string>
     <string name="core_tools_provider_audd_desc">కొన్ని సెకన్ల శబ్దం నుండి విడుదలైన చాలా సంగీతాన్ని గుర్తిస్తుంది. dashboard.audd.io నుండి టోకెన్ అవసరం; కొన్ని వందల గుర్తింపులు ఉచితం, ఆపై చెల్లించవలసి ఉంటుంది. ప్రతి క్లిప్ AudDకి పంపబడుతుంది.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">ఫోన్‌లోనే పనిచేసే మరియు 25 యూరోపియన్ భాషలను అర్థం చేసుకోగల ఒక పెద్ద మోడల్.</string>
     <string name="core_tools_provider_pexels_desc">Pexels నుండి ఫోటోలు. ఈ బిల్డ్‌లో లేకపోతే, API కీ అవసరం.</string>
     <string name="core_tools_provider_pollinations_desc">ఉచితం, కీ లేదా ఖాతా అవసరం లేదు: ప్రాంప్ట్ Pollinationsకు పంపబడుతుంది, అది మోడల్‌ను ఎంచుకుంటుంది. enter.pollinations.ai నుండి ఒక కీ దాని కొత్త APIని తెరుస్తుంది మరియు మోడల్‌కు పేరు పెట్టడానికి మిమ్మల్ని అనుమతిస్తుంది.</string>
+    <string name="core_tools_provider_privatemode">ప్రైవేట్‌మోడ్ AI</string>
+    <string name="core_tools_provider_privatemode_desc">రహస్య కంప్యూటింగ్‌లో రన్ అయ్యే మరియు మీ టెక్స్ట్‌ని చదవలేని AI. మీ Privatemode API కీని ఇవ్వండి. కీబోర్డ్ ఫోన్‌లో ప్రతి అభ్యర్థనను ఎన్‌క్రిప్ట్ చేస్తుంది, కానీ అది సర్వీస్ హార్డ్‌వేర్ అటెస్టేషన్‌ను తనిఖీ చేయదు. దాన్ని కూడా తనిఖీ చేయడానికి, privatemode-proxyని రన్ చేయండి మరియు http://192.168.1.20:8080 వంటి దాని చిరునామాను ఇవ్వండి.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (అనధికారిక, RapidAPI ద్వారా)</string>
     <string name="core_tools_provider_rapid_shazam_desc">RapidAPI కీతో, RapidAPIలో అనధికారిక లిస్టింగ్ ద్వారా షాజమ్ క్యాటలాగ్. ఇది యాపిల్ సర్వీస్ కాదు: ఈ లిస్టింగ్ నోటీసు లేకుండానే మారవచ్చు లేదా ఆగిపోవచ్చు. ప్రతి క్లిప్ RapidAPIకి పంపబడుతుంది.</string>
     <string name="core_tools_provider_recraft_desc">చిత్రణలు, చిహ్నాలు మరియు వెక్టార్-స్టైల్ ఆర్ట్. దీనికి recraft.ai నుండి కీ అవసరం.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">అన్‌స్ప్లాష్ నుండి ఫోటోలు. ఈ బిల్డ్‌లో లేకపోతే, ఏపీఐ కీ అవసరం.</string>
     <string name="core_tools_provider_vision_ocr">మీ విజన్ మోడల్</string>
     <string name="core_tools_provider_vision_ocr_desc">OpenAI చాట్ అభ్యర్థనలకు సమాధానమిచ్చే సర్వర్ ద్వారా చిత్రాలను చదివే మోడల్. దీనికి చిరునామా మరియు మోడల్ పేరు అవసరం.</string>
+    <string name="core_tools_provider_vosk_desc">29 భాషల కోసం ఆల్ఫా సెఫెయి నుండి వచ్చిన చిన్న కల్ది మోడల్స్, ఒక్కొక్కటి సుమారు 40 MB ఉంటాయి, ఇవి ఫోన్‌లో మీరు మాట్లాడేటప్పుడు టైప్ చేస్తాయి. పాత ఫోన్‌కి కూడా సరిపోయేంత తేలికైనవి.</string>
     <string name="core_tools_provider_whisper_desc">OpenAI యొక్క విస్పార్ మోడల్స్, ఫోన్‌లో రన్ అవుతాయి. అనేక భాషలు; వాయిస్ టైపింగ్ పేజీలో మోడల్‌ను డౌన్‌లోడ్ చేసుకోండి.</string>
     <string name="core_tools_provider_whistle_desc">ఫోన్‌లో రన్ అయ్యే చిన్న, వేగవంతమైన మోడల్. దీన్ని వాయిస్ టైపింగ్ పేజీలో డౌన్‌లోడ్ చేసుకోండి.</string>
     <string name="core_tools_provider_xai_desc">మీ స్వంత కీతో xAI యొక్క API ద్వారా గ్రోక్ (Grok) మోడల్స్.</string>

@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">도구 모음</string>
     <string name="core_icons_group_tools_title">도구</string>
     <string name="core_icons_pack_imported_label">가져온 아이콘</string>
-    <string name="core_icons_pack_mine_label">내 아이콘</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">앱이 파일 %1$d개를 무시했습니다. 이 버전에는 해당 아이콘이 없습니다: %2$s</item>
         <item quantity="other">앱이 파일 %1$d개를 무시했습니다. 이 버전에는 해당 아이콘이 없습니다: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">탭 키</string>
     <string name="core_icons_slot_toolbox_label">도구 상자</string>
     <string name="core_icons_slot_toolbox_search_label">도구 상자 검색</string>
+    <string name="core_icons_pack_mine_label">내 아이콘</string>
 </resources>

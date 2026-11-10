@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Työkalupalkki</string>
     <string name="core_icons_group_tools_title">Työkalut</string>
     <string name="core_icons_pack_imported_label">Tuodut kuvakkeet</string>
-    <string name="core_icons_pack_mine_label">Omat kuvakkeet</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Sovellus ohitti %1$d tiedoston. Tässä versiossa ei ole sille kuvaketta: %2$s</item>
         <item quantity="other">Sovellus ohitti %1$d tiedostoa. Tässä versiossa ei ole niille kuvaketta: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Sarkainnäppäin</string>
     <string name="core_icons_slot_toolbox_label">Työkalupakki</string>
     <string name="core_icons_slot_toolbox_search_label">Työkalupakkihaku</string>
+    <string name="core_icons_pack_mine_label">Omat kuvakkeet</string>
 </resources>

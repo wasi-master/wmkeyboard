@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">તે પ્લગઇનમાં હવે તે ક્રિયા નથી.</string>
     <string name="core_plugins_error_no_render">આ પ્લગિનમાં render() ફંક્શન નથી.</string>
+    <string name="core_plugins_error_no_transform">આ પ્લગઇનમાં કોઈ transform() ફંક્શન નથી.</string>
     <string name="core_plugins_error_not_installed">તે પ્લગઇન ઇન્સ્ટોલ કરેલ નથી.</string>
+    <string name="core_plugins_error_not_ready">પ્લગઇન્સ હજુ પણ ડાઉનલોડ થઈ રહ્યા છે. થોડીવાર પછી ફરી પ્રયાસ કરો.</string>
     <string name="core_plugins_error_script_failed">સ્ક્રિપ્ટ નિષ્ફળ ગઈ.</string>
     <string name="core_plugins_error_script_missing">તે પ્લગિન માટેની સ્ક્રિપ્ટ ખૂટે છે.</string>
     <string name="core_plugins_error_turned_off">તે પ્લગિન બંધ છે.</string>
     <string name="core_plugins_permission_reminders_label">તમે સેટ કરેલા સમયે રીમાઇન્ડર્સ બતાવો</string>
+    <string name="core_plugins_permission_selection_label">જ્યારે તમે તેની કોઈ ક્રિયા પર ટેપ કરો ત્યારે તમે પસંદ કરેલ લખાણ બદલો</string>
     <string name="core_plugins_permission_storage_label">તમારા ઉપકરણ પર ડેટા સાચવો</string>
+    <string name="core_plugins_reject_action_input">“%1$s” પાસે એક ક્રિયા છે જે WM કીબોર્ડનું આ સંસ્કરણ તેને આપી શકતું નથી તેવા લખાણ માટે પૂછે છે.</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s” પાસે નામ વગરની ક્રિયા છે.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” પસંદ કરેલ લખાણ માટે ક્રિયાઓ ઉમેરે છે પરંતુ તેને બદલવાની પરવાનગી માંગતું નથી.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” પાસે એક ક્રિયા છે જેની આઈડી ખૂટે છે, પુનરાવર્તિત છે અથવા માન્ય નથી. ક્રિયા આઈડીમાં 32 સુધીના નાના અક્ષરો, નંબર્સ, ડેશ અને અંડરસ્કોર હોઈ શકે છે.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” માં એવી સ્ક્રિપ્ટ છે જે માન્ય UTF-8 ટેક્સ્ટ નથી.</string>
     <string name="core_plugins_reject_bad_id">આ પ્લગિન પાસે એવું ID છે જે માન્ય નથી. ID 3 થી 64 અક્ષરો લાંબુ હોય છે. ID માં નાના અક્ષરો, નંબરો, ટપકાં, ડેશ અને અન્ડરસ્કોર હોઈ શકે છે.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” પાસે ખાલી સ્ક્રિપ્ટ છે.</string>
+    <string name="core_plugins_reject_lua">“%1$s” લુઆ (Lua) માં લખાયેલ છે, જે WM કીબોર્ડ હવે ચલાવતું નથી. તેનું પાયથોન (Python) સંસ્કરણ શોધો.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” પાસે તેની સ્ક્રિપ્ટ ફાઇલ (%2$s) નથી.</string>
     <string name="core_plugins_reject_newer_version">આ પ્લગિનને WM કીબોર્ડના નવા વર્ઝનની જરૂર છે.</string>
     <string name="core_plugins_reject_no_name">આ પ્લગિનનું કોઈ નામ નથી.</string>
     <string name="core_plugins_reject_no_version">“%1$s” જણાવતું નથી કે તે કયું વર્ઝન છે.</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” પાસે કોઈ પૅનલ નથી અને કોઈ ક્રિયાઓ નથી, તેથી તેના માટે કરવા જેવું કંઈ નથી.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” પાસે %2$d KB કરતા મોટી સ્ક્રિપ્ટ છે.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” તમે પસંદ કરેલ લખાણને બદલવા માટે કહે છે પરંતુ કોઈ ક્રિયાઓ ઉમેરતું નથી.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” 16 કરતાં વધુ ક્રિયાઓ ઉમેરે છે.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” એવી ભાષામાં લખાયેલ છે જે WM કીબોર્ડનું આ સંસ્કરણ ચલાવી શકતું નથી. પ્લગઇન્સ Python માં લખાયેલ છે.</string>
     <string name="core_plugins_reject_unknown_permission">WM કીબોર્ડનું આ સંસ્કરણ “%1$s” પરવાનગી વિશે જાણતું નથી. એપ તમને જણાવી શકતી નથી કે “%2$s” ને શું કરવાની મંજૂરી છે.</string>
     <string name="core_plugins_reminders_channel_body">પ્લગિને એપને બતાવવા માટે જે રિમાઇન્ડર્સ કહ્યા છે, તે તમે પ્લગિનમાં સેટ કરેલા સમયે દેખાશે. દરેકનું શીર્ષક પ્લગિનનું નામ છે.</string>
     <string name="core_plugins_reminders_channel_title">પ્લગિન રીમાઇન્ડર્સ</string>
     <string name="core_plugins_stopped_cancelled">એપે આ પ્લગઈનને અટકાવ્યું છે.</string>
     <string name="core_plugins_stopped_deadline">આ પ્લગઇનને ખૂબ સમય લાગ્યો. એપ તેને બંધ કરી દીધી છે.</string>
     <string name="core_plugins_stopped_instructions">આ પ્લગિને એક સમયે ઘણું વધારે કામ કર્યું. એપ તેને અટકાવી દીધી છે.</string>
+    <string name="core_plugins_stopped_memory">આ પ્લગઇને ખૂબ વધુ ડેટા રાખવાનો પ્રયાસ કર્યો. એપ્લિકેશને તેને અટકાવી દીધું.</string>
     <string name="core_plugins_stopped_not_responding">આ પ્લગઇન પ્રતિસાદ આપવાનું બંધ કરી દીધું છે. એપે તેને બંધ કરી દીધું છે.</string>
     <string name="core_plugins_stopped_not_responding_disabled">આ પ્લગઇન ફરીથી પ્રતિસાદ આપવાનું બંધ કરી દીધું છે. એપ તેને બંધ કરી દીધી છે.</string>
     <string name="core_plugins_stopped_recursion">આ પ્લગિને પોતાની જાતને ઘણી વાર બોલાવી. એપ તેને અટકાવી દીધી.</string>

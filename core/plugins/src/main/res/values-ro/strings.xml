@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Acel plugin nu mai are acea acțiune.</string>
     <string name="core_plugins_error_no_render">Acest plugin nu are o funcție render().</string>
+    <string name="core_plugins_error_no_transform">Acest plugin nu are nicio funcție transform().</string>
     <string name="core_plugins_error_not_installed">Acel plugin nu este instalat.</string>
+    <string name="core_plugins_error_not_ready">Modulele se descarcă încă. Încearcă din nou într-un moment.</string>
     <string name="core_plugins_error_script_failed">Scriptul a eșuat.</string>
     <string name="core_plugins_error_script_missing">Scriptul pentru acel plugin lipsește.</string>
     <string name="core_plugins_error_turned_off">Acel plugin este oprit.</string>
     <string name="core_plugins_permission_reminders_label">Afișează mementouri la orele setate de tine</string>
+    <string name="core_plugins_permission_selection_label">Modificați textul pe care îl selectați, atunci când atingeți una dintre acțiunile sale</string>
     <string name="core_plugins_permission_storage_label">Salvează datele pe dispozitivul tău</string>
+    <string name="core_plugins_reject_action_input">„%1$s” are o acțiune care solicită text pe care această versiune de tastatură WM nu i-l poate oferi.</string>
+    <string name="core_plugins_reject_action_no_name">„%1$s” are o acțiune fără un nume.</string>
+    <string name="core_plugins_reject_actions_need_selection">„%1$s” adaugă acțiuni pentru textul selectat, dar nu cere permisiunea de a-l modifica.</string>
+    <string name="core_plugins_reject_bad_action_id">„%1$s” are o acțiune al cărei ID lipsește, este repetat sau nu este valid. Un ID de acțiune are cel mult 32 de litere mici, cifre, cratime și caractere de subliniere.</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s” are un script care nu este text UTF-8 valid.</string>
     <string name="core_plugins_reject_bad_id">Acest plugin are un ID nevalid. Un ID trebuie să aibă între 3 și 64 de caractere. Un ID poate conține litere mici, cifre, puncte, cratime și caractere de subliniere.</string>
     <string name="core_plugins_reject_empty_script">„%1$s” are un script gol.</string>
+    <string name="core_plugins_reject_lua">„%1$s” este scris în Lua, pe care tastatura WM nu mai rulează. Caută versiunea sa în Python.</string>
     <string name="core_plugins_reject_missing_script">„%1$s” nu are fișierul său de script (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Acest plugin are nevoie de o versiune mai nouă de WM Keyboard.</string>
     <string name="core_plugins_reject_no_name">Acest plugin nu are un nume.</string>
     <string name="core_plugins_reject_no_version">„%1$s” nu specifică ce versiune este.</string>
+    <string name="core_plugins_reject_nothing_to_show">„%1$s” nu are niciun panou și nicio acțiune, așa că nu are nimic de făcut.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s” are un script mai mare de %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">„%1$s” solicită modificarea textului selectat, dar nu adaugă nicio acțiune.</string>
+    <string name="core_plugins_reject_too_many_actions">„%1$s” adaugă mai mult de 16 acțiuni.</string>
+    <string name="core_plugins_reject_unknown_language">„%1$s” este scris într-o limbă pe care această versiune de WM Keyboard nu o poate rula. Modulele sunt scrise în Python.</string>
     <string name="core_plugins_reject_unknown_permission">Această versiune de WM Keyboard nu cunoaște permisiunea „%1$s”. Aplicația nu îți poate spune ce are voie să facă „%2$s”.</string>
     <string name="core_plugins_reminders_channel_body">Memento-uri pe care un plugin a cerut aplicației să le afișeze, la momentele setate de dumneavoastră în plugin. Titlul fiecăruia este numele pluginului.</string>
     <string name="core_plugins_reminders_channel_title">Memento-uri plugin</string>
     <string name="core_plugins_stopped_cancelled">Aplicația a oprit acest plugin.</string>
     <string name="core_plugins_stopped_deadline">Acest plugin a durat prea mult. Aplicația l-a oprit.</string>
     <string name="core_plugins_stopped_instructions">Acest plugin a efectuat prea multe operațiuni simultan. Aplicația l-a oprit.</string>
+    <string name="core_plugins_stopped_memory">Acest plugin a încercat să rețină prea multe date. Aplicația l-a oprit.</string>
     <string name="core_plugins_stopped_not_responding">Acest plugin a încetat să răspundă. Aplicația l-a închis.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Acest plugin a încetat din nou să răspundă. Aplicația l-a dezactivat.</string>
     <string name="core_plugins_stopped_recursion">Acest plugin s-a apelat singur de prea multe ori. Aplicația l-a oprit.</string>

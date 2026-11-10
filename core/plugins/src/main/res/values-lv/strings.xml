@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Šim spraudnim vairs nav šīs darbības.</string>
     <string name="core_plugins_error_no_render">Šim spraudnim nav render() funkcijas.</string>
+    <string name="core_plugins_error_no_transform">Šim spraudnim nav transform() funkcijas.</string>
     <string name="core_plugins_error_not_installed">Šis spraudnis nav instalēts.</string>
+    <string name="core_plugins_error_not_ready">Spraudņi joprojām tiek lejupielādēti. Mēģiniet vēlreiz pēc brīža.</string>
     <string name="core_plugins_error_script_failed">Skripts neizdevās.</string>
     <string name="core_plugins_error_script_missing">Šī spraudņa skripts trūkst.</string>
     <string name="core_plugins_error_turned_off">Šis spraudnis ir izslēgts.</string>
     <string name="core_plugins_permission_reminders_label">Rādīt atgādinājumus jūsu iestatītajos laikos</string>
+    <string name="core_plugins_permission_selection_label">Mainīt atlasīto tekstu, kad pieskaraties kādai no tā darbībām</string>
     <string name="core_plugins_permission_storage_label">Saglabāt datus jūsu ierīcē</string>
+    <string name="core_plugins_reject_action_input">Iekārtā \"%1$s\" ir darbība, kas pieprasa tekstu, ko šī WM Keyboard versija nevar nodrošināt.</string>
+    <string name="core_plugins_reject_action_no_name">\"%1$s\" ir darbība bez nosaukuma.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” pievieno darbības atlasītajam tekstam, bet neprasa atļauju to mainīt.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” ir darbība, kuras ID trūkst, tas atkārtojas vai nav derīgs. Darbības ID sastāv no ne vairāk kā 32 mazajiem burtiem, cipariem, domuzīmēm un apakšsvītrām.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” satur skriptu, kas nav derīgs UTF-8 teksts.</string>
     <string name="core_plugins_reject_bad_id">Šim spraudnim ir nederīgs ID. ID garumam jābūt no 3 līdz 64 rakstzīmēm. ID var saturēt mazos burtus, ciparus, punktus, domuzīmes un pasvītrojumus.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” ir tukšs skripts.</string>
+    <string name="core_plugins_reject_lua">“%1$s” ir uzrakstīts Lua valodā, kuru WM tastatūra vairs nepalaiž. Meklējiet tā Python versiju.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” nav skripta faila (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Šim spraudnim ir nepieciešama jaunāka WM Keyboard versija.</string>
     <string name="core_plugins_reject_no_name">Šim spraudnim nav nosaukuma.</string>
     <string name="core_plugins_reject_no_version">“%1$s” nenorāda, kura versija tā ir.</string>
+    <string name="core_plugins_reject_nothing_to_show">Lokalizācijai “%1$s” nav paneļa un darbību, tāpēc tai nav ko darīt.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” skripts ir lielāks par %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” lūdz mainīt atlasīto tekstu, bet nepievieno nekādas darbības.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” pievieno vairāk nekā 16 darbības.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” ir uzrakstīts valodā, kuru šī WM Keyboard versija nevar darbināt. Spraudņi ir uzrakstīti valodā Python.</string>
     <string name="core_plugins_reject_unknown_permission">Šī WM Keyboard versija neatpazīst atļauju “%1$s”. Lietotne nevar pateikt, ko “%2$s” ir atļauts darīt.</string>
     <string name="core_plugins_reminders_channel_body">Atgādinājumi, kurus spraudnis lūdza lietotnei parādīt jūsu iestatītajā laikā. Katra atgādinājuma nosaukums ir spraudņa nosaukums.</string>
     <string name="core_plugins_reminders_channel_title">Spraudņu atgādinājumi</string>
     <string name="core_plugins_stopped_cancelled">Lietotne apturēja šo spraudni.</string>
     <string name="core_plugins_stopped_deadline">Šis spraudnis darbojās pārāk ilgi. Lietotne to apturēja.</string>
     <string name="core_plugins_stopped_instructions">Šis spraudnis vienlaikus veica pārāk daudz darba. Lietotne to apturēja.</string>
+    <string name="core_plugins_stopped_memory">Šis spraudnis mēģināja apstrādāt pārāk daudz datu. Lietotne to apturēja.</string>
     <string name="core_plugins_stopped_not_responding">Šis spraudnis pārstāja atbildēt. Lietotne to aizvēra.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Šis spraudnis atkal pārstāja reaģēt. Lietotne to izslēdza.</string>
     <string name="core_plugins_stopped_recursion">Šis spraudnis izsauca pats sevi pārāk daudz reižu. Lietotne to apturēja.</string>

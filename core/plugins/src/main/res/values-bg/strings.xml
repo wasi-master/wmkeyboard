@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Тази приставка вече няма това действие.</string>
     <string name="core_plugins_error_no_render">Този плъгин няма функция render().</string>
+    <string name="core_plugins_error_no_transform">Тази приставка няма функция transform().</string>
     <string name="core_plugins_error_not_installed">Тази добавка не е инсталирана.</string>
+    <string name="core_plugins_error_not_ready">Приставките все още се изтеглят. Опитайте отново след малко.</string>
     <string name="core_plugins_error_script_failed">Скриптът се провали.</string>
     <string name="core_plugins_error_script_missing">Скриптът за тази добавка липсва.</string>
     <string name="core_plugins_error_turned_off">Тази добавка е изключена.</string>
     <string name="core_plugins_permission_reminders_label">Показване на напомняния в зададени от вас часове</string>
+    <string name="core_plugins_permission_selection_label">Промяна на текста, който изберете, когато докоснете едно от действията му</string>
     <string name="core_plugins_permission_storage_label">Запазване на данни на вашето устройство</string>
+    <string name="core_plugins_reject_action_input">„%1$s“ има действие, което изисква текст, който тази версия на WM Keyboard не може да му предостави.</string>
+    <string name="core_plugins_reject_action_no_name">„%1$s“ има действие без име.</string>
+    <string name="core_plugins_reject_actions_need_selection">„%1$s“ добавя действия за избран текст, но не иска разрешение за промяната му.</string>
+    <string name="core_plugins_reject_bad_action_id">„%1$s“ има действие, чието ID липсва, повтаря се или не е валидно. Идентификаторът на действие е до 32 малки букви, числа, тирета и долни черти.</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ съдържа скрипт, който не е валиден UTF-8 текст.</string>
     <string name="core_plugins_reject_bad_id">Този плъгин има невалиден идентификатор. Идентификаторът трябва да бъде с дължина от 3 до 64 знака. Може да съдържа малки букви, цифри, точки, тирета и долни черти.</string>
     <string name="core_plugins_reject_empty_script">„%1$s“ има празен скрипт.</string>
+    <string name="core_plugins_reject_lua">„%1$s“ е написан на Lua, която WM Keyboard вече не изпълнява. Потърсете неговата версия на Python.</string>
     <string name="core_plugins_reject_missing_script">„%1$s“ няма свой скриптов файл (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Тази добавка изисква по-нова версия на WM Keyboard.</string>
     <string name="core_plugins_reject_no_name">Този плъгин няма име.</string>
     <string name="core_plugins_reject_no_version">„%1$s“ не посочва коя версия е.</string>
+    <string name="core_plugins_reject_nothing_to_show">„%1$s“ няма панел и действия, така че няма какво да прави.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s“ има скрипт, по-голям от %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">„%1$s“ иска да промени текста, който избирате, но не добавя никакви действия.</string>
+    <string name="core_plugins_reject_too_many_actions">„%1$s“ добавя повече от 16 действия.</string>
+    <string name="core_plugins_reject_unknown_language">„%1$s“ е написано на език, който тази версия на WM Keyboard не може да изпълни. Приставките са написани на Python.</string>
     <string name="core_plugins_reject_unknown_permission">Тази версия на WM Keyboard не разпознава разрешението „%1$s“. Приложението не може да ви каже какво е позволено на „%2$s“.</string>
     <string name="core_plugins_reminders_channel_body">Напомняния, които плъгин е поискал от приложението да покаже в моменти, които сте задали в плъгина. Заглавието на всяко от тях е името на плъгина.</string>
     <string name="core_plugins_reminders_channel_title">Напомняния за приставки</string>
     <string name="core_plugins_stopped_cancelled">Приложението спря тази добавка.</string>
     <string name="core_plugins_stopped_deadline">Тази добавка отне твърде много време. Приложението я спря.</string>
     <string name="core_plugins_stopped_instructions">Тази добавка извърши твърде много работа наведнъж. Приложението я спря.</string>
+    <string name="core_plugins_stopped_memory">Тази приставка опита да заеме твърде много памет. Приложението я спре.</string>
     <string name="core_plugins_stopped_not_responding">Тази добавка спря да отговаря. Приложението я затвори.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Тази приставка отново спря да отговаря. Приложението я изключи.</string>
     <string name="core_plugins_stopped_recursion">Тази добавка се извика твърде много пъти. Приложението я спря.</string>

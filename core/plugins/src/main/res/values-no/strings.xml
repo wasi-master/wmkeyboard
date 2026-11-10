@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Det utvidelsesmodulen har ikke lenger den handlingen.</string>
     <string name="core_plugins_error_no_render">Dette programtillegget har ingen render()-funksjon.</string>
+    <string name="core_plugins_error_no_transform">Dette utvidelsesmodulen har ingen transform()-funksjon.</string>
     <string name="core_plugins_error_not_installed">Det tillegget er ikke installert.</string>
+    <string name="core_plugins_error_not_ready">Utvidelser lastes fortsatt ned. Prøv igjen om et øyeblikk.</string>
     <string name="core_plugins_error_script_failed">Skriptet feilet.</string>
     <string name="core_plugins_error_script_missing">Skriptet for det programtillegget mangler.</string>
     <string name="core_plugins_error_turned_off">Det programtillegget er slått av.</string>
     <string name="core_plugins_permission_reminders_label">Vis påminnelser på tidspunkter du angir i den</string>
+    <string name="core_plugins_permission_selection_label">Endre tekst du velger, når du trykker på en av handlingene</string>
     <string name="core_plugins_permission_storage_label">Lagre data på enheten din</string>
+    <string name="core_plugins_reject_action_input">%%u201c%1$s%%u201d har en handling som ber om tekst som denne versjonen av WM Keyboard ikke kan gi den.</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s” har en handling uten navn.</string>
+    <string name="core_plugins_reject_actions_need_selection">«%1$s» legger til handlinger for merket tekst, men ber ikke om tillatelse til å endre den.</string>
+    <string name="core_plugins_reject_bad_action_id">«%1$s» har en handling hvis id mangler, er gjentatt eller ikke er gyldig. En handlings-id består av opptil 32 små bokstaver, tall, bindestreker og understreker.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” har et skript som ikke er gyldig UTF-8-tekst.</string>
     <string name="core_plugins_reject_bad_id">Dette tillegget har en ugyldig ID. En ID må være mellom 3 og 64 tegn lang. En ID kan inneholde små bokstaver, tall, punktum, bindestreker og understreker.</string>
     <string name="core_plugins_reject_empty_script">«%1$s» har et tomt skript.</string>
+    <string name="core_plugins_reject_lua">«%1$s» er skrevet i Lua, som WM Keyboard ikke lenger kjører. Se etter Python-versjonen.</string>
     <string name="core_plugins_reject_missing_script">«%1$s» har ikke skriptfilen sin (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Dette tillegget krever en nyere versjon av WM Keyboard.</string>
     <string name="core_plugins_reject_no_name">Dette tillegget har ikke et navn.</string>
     <string name="core_plugins_reject_no_version">«%1$s» oppgir ikke hvilken versjon det er.</string>
+    <string name="core_plugins_reject_nothing_to_show">«%1$s» har ingen a paneler og ingen handlinger, så det er ingenting for den å gjøre.</string>
     <string name="core_plugins_reject_script_too_large">«%1$s» har et skript som er større enn %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">«%1$s» ber om å endre tekst du velger, men legger ikke til noen handlinger.</string>
+    <string name="core_plugins_reject_too_many_actions">«%1$s» legger til mer enn 16 handlinger.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” er skrevet på et språk denne versjonen av WM Keyboard ikke kan kjøre. Utvidelser er skrevet i Python.</string>
     <string name="core_plugins_reject_unknown_permission">Denne versjonen av WM Keyboard kjenner ikke til tillatelsen «%1$s». Appen kan ikke fortelle deg hva «%2$s» har lov til å gjøre.</string>
     <string name="core_plugins_reminders_channel_body">Påminnelser som en utvidelse ba appen om å vise, på tidspunkter du angir i utvidelsen. Tittelen på hver av dem er navnet på utvidelsen.</string>
     <string name="core_plugins_reminders_channel_title">Påminnelser for programtillegg</string>
     <string name="core_plugins_stopped_cancelled">Appen stoppet denne modulen.</string>
     <string name="core_plugins_stopped_deadline">Dette programtillegget tok for lang tid. Appen stoppet det.</string>
     <string name="core_plugins_stopped_instructions">Dette tillegget gjorde for mye arbeid på én gang. Appen stoppet det.</string>
+    <string name="core_plugins_stopped_memory">Denne utvidelsen prøvde å holde på for mye data. Appen stoppet den.</string>
     <string name="core_plugins_stopped_not_responding">Dette programtillegget sluttet å svare. Appen lukket det.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Dette tillegget sluttet å svare igjen. Appen slo det av.</string>
     <string name="core_plugins_stopped_recursion">Dette tillegget kalte seg selv for mange ganger. Appen stoppet det.</string>

@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Eszköztár</string>
     <string name="core_icons_group_tools_title">Eszközök</string>
     <string name="core_icons_pack_imported_label">Importált ikonok</string>
-    <string name="core_icons_pack_mine_label">Saját ikonjaim</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Az alkalmazás figyelmen kívül hagyott %1$d fájlt. Ehhez a verzióhoz nincs ikon: %2$s</item>
         <item quantity="other">Az alkalmazás figyelmen kívül hagyott %1$d fájlt. Ezekhez a verziókhoz nincs ikon: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tab billentyű</string>
     <string name="core_icons_slot_toolbox_label">Eszköztár</string>
     <string name="core_icons_slot_toolbox_search_label">Eszköztár keresése</string>
+    <string name="core_icons_pack_mine_label">Saját ikonjaim</string>
 </resources>

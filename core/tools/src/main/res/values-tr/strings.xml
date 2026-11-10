@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Duvar kağıtları</string>
     <string name="core_tools_provider_acrcloud_desc">İki haftalık deneme süresi olan, ardından ücretli planlara geçen bir müzik tanıma hizmeti. console.acrcloud.com adresinden bir projenin ana bilgisayarına, erişim anahtarına ve erişim gizli anahtarına ihtiyaç duyar. Her klip ACRCloud\'a gönderilir.</string>
     <string name="core_tools_provider_ai_horde_desc">Gönüllülerin bilgisayarlarında ücretsiz Stable Diffusion. Anahtar olmadan çalışır ancak kuyrukta bekler; aihorde.net\'ten alınan ücretsiz bir anahtar sizi kuyrukta öne geçirir.</string>
+    <string name="core_tools_provider_allratestoday_desc">Yaklaşık 30 para birimi için Avrupa Merkez Bankası referans kurları. Anahtar gerekmez.</string>
     <string name="core_tools_provider_anthropic_desc">Kendi anahtarınızla, Anthropic\'in API\'si üzerinden Claude modelleri.</string>
     <string name="core_tools_provider_asr4all_desc">Telefonda İngilizce dikte, siz konuştukça kelimeler belirir.</string>
     <string name="core_tools_provider_audd_desc">Yayınlanmış çoğu müziği birkaç saniyelik ses kaydından tanır. dashboard.audd.io adresinden bir jeton gerektirir; birkaç yüz tanıma ücretsizdir, sonrasında ücretlidir. Her klip AudD\'ye gönderilir.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Telefonda çalışan ve 25 Avrupa dilini anlayan büyük bir model.</string>
     <string name="core_tools_provider_pexels_desc">Pexels\'ten fotoğraflar. Bu derlemede bir tane yoksa, bir API anahtarı gerekir.</string>
     <string name="core_tools_provider_pollinations_desc">Ücretsiz, anahtarsız ve hesapsız: istem, modeli seçen Pollinations\'a gönderilir. enter.pollinations.ai adresinden alınan bir anahtar, daha yeni API\'sini açar ve bir model ismi girmenize izin verir.</string>
+    <string name="core_tools_provider_privatemode">Özel Mod Yapay Zekası</string>
+    <string name="core_tools_provider_privatemode_desc">Gizli bilgi işlemde çalışan ve metninizi okuyamayan yapay zeka. Privatemode API anahtarınızı girin. Klavye daha sonra telefondaki her isteği şifreler, ancak hizmetin donanım tasdikini kontrol etmez. Bunu da kontrol etmek için privatemode-proxy çalıştırın ve http://192.168.1.20:8080 gibi adresini verin.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (resmi değil, RapidAPI aracılığıyla)</string>
     <string name="core_tools_provider_rapid_shazam_desc">RapidAPI anahtarı ile RapidAPI üzerindeki resmi olmayan bir liste aracılığıyla Shazam kataloğu. Apple hizmeti değildir: liste haber verilmeksizin değişebilir veya durabilir. Her klip RapidAPI\'ye gönderilir.</string>
     <string name="core_tools_provider_recraft_desc">İllüstrasyonlar, simgeler ve vektör tarzı sanat. recraft.ai\'den bir anahtar gerekir.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Unsplash\'tan fotoğraflar. Bu derlemede bir tane yoksa, bir API anahtarı gerekir.</string>
     <string name="core_tools_provider_vision_ocr">Görüntü modeliniz</string>
     <string name="core_tools_provider_vision_ocr_desc">OpenAI sohbet isteklerini yanıtlayan bir sunucu aracılığıyla görüntüleri okuyan bir model. Adres ve model adı gerektirir.</string>
+    <string name="core_tools_provider_vosk_desc">Telefonda konuşurken yazmanızı sağlayan, Alpha Cephei\'den 29 dil için her biri yaklaşık 40 MB olan küçük Kaldi modelleri. Daha eski bir telefon için yeterince hafif.</string>
     <string name="core_tools_provider_whisper_desc">OpenAI\'ın telefonda çalışan Whisper modelleri. Birçok dil; Sesle yazma sayfasından bir model indirin.</string>
     <string name="core_tools_provider_whistle_desc">Telefonda çalışan küçük, hızlı bir model. Sesle yazma sayfasından indirin.</string>
     <string name="core_tools_provider_xai_desc">Kendi anahtarınızla xAI API üzerinden Grok modelleri.</string>

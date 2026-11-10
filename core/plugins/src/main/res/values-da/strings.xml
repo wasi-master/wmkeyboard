@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Det plugin har ikke længere den handling.</string>
     <string name="core_plugins_error_no_render">Dette plugin har ingen render()-funktion.</string>
+    <string name="core_plugins_error_no_transform">Dette plugin har ingen transform()-funktion.</string>
     <string name="core_plugins_error_not_installed">Dette plugin er ikke installeret.</string>
+    <string name="core_plugins_error_not_ready">Plugins downloades stadig. Prøv igen om et øjeblik.</string>
     <string name="core_plugins_error_script_failed">Scriptet fejlede.</string>
     <string name="core_plugins_error_script_missing">Scriptet til det plugin mangler.</string>
     <string name="core_plugins_error_turned_off">Det plugin er slået fra.</string>
     <string name="core_plugins_permission_reminders_label">Vis påmindelser på tidspunkter, du selv indstiller</string>
+    <string name="core_plugins_permission_selection_label">Ændr tekst, du vælger, når du trykker på en af dens handlinger</string>
     <string name="core_plugins_permission_storage_label">Gem data på din enhed</string>
+    <string name="core_plugins_reject_action_input">“%1$s” har en handling, der anmoder om tekst, som denne version af WM Keyboard ikke kan levere.</string>
+    <string name="core_plugins_reject_action_no_name">\"%1$s\" har en handling uden navn.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” tilføjer handlinger for markeret tekst, men beder ikke om tilladelse til at ændre den.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” har en handling, hvis id mangler, er gentaget eller er ugyldigt. Et handlings-id består af op til 32 små bogstaver, tal, bindestreger og understregninger.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” har et script, der ikke er gyldig UTF-8-tekst.</string>
     <string name="core_plugins_reject_bad_id">Dette plugin har et id, der ikke er gyldigt. Et id er 3 til 64 tegn langt. Et id kan indeholde små bogstaver, tal, prikker, bindestreger og understregninger.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” har et tomt script.</string>
+    <string name="core_plugins_reject_lua">“%1$s” er skrevet i Lua, som WM Keyboard ikke længere kører. Se efter dens Python-version.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” har ikke sin scriptfil (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Dette plugin kræver en nyere version af WM Keyboard.</string>
     <string name="core_plugins_reject_no_name">Dette plugin har ikke et navn.</string>
     <string name="core_plugins_reject_no_version">“%1$s” angiver ikke, hvilken version det er.</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” har intet panel og ingen handlinger, så den har intet at gøre.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” har et script, der er større end %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” anmoder om at ændre den tekst, du vælger, men tilføjer ingen handlinger.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” tilføjer mere end 16 handlinger.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” er skrevet på et sprog, som denne version af WM Keyboard ikke kan køre. Plugins er skrevet i Python.</string>
     <string name="core_plugins_reject_unknown_permission">Denne version af WM Keyboard kender ikke tilladelsen “%1$s”. Appen kan ikke fortælle dig, hvad “%2$s” har tilladelse til at gøre.</string>
     <string name="core_plugins_reminders_channel_body">Påmindelser som et plugin bad appen om at vise, på tidspunkter du har indstillet i pluginnet. Titlen på hver enkelt er navnet på pluginnet.</string>
     <string name="core_plugins_reminders_channel_title">Plugin-påmindelser</string>
     <string name="core_plugins_stopped_cancelled">Appen stoppede dette plugin.</string>
     <string name="core_plugins_stopped_deadline">Dette plugin tog for lang tid. Appen stoppede det.</string>
     <string name="core_plugins_stopped_instructions">Dette plugin udførte for meget arbejde på én gang. Appen stoppede det.</string>
+    <string name="core_plugins_stopped_memory">Dette plugin forsøgte at gemme for meget data. Appen stoppede det.</string>
     <string name="core_plugins_stopped_not_responding">Dette plugin holdt op med at svare. Appen lukkede det.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Dette plugin holdt op med at svare igen. Appen deaktiverede det.</string>
     <string name="core_plugins_stopped_recursion">Dette plugin kaldte sig selv for mange gange. Appen stoppede det.</string>

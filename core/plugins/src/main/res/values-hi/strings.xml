@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">उस प्लगइन में अब वह कार्रवाई नहीं है।</string>
     <string name="core_plugins_error_no_render">इस प्लगइन में कोई render() फ़ंक्शन नहीं है।</string>
+    <string name="core_plugins_error_no_transform">इस प्लगइन में कोई transform() फ़ंक्शन नहीं है।</string>
     <string name="core_plugins_error_not_installed">वह प्लगइन इंस्टॉल नहीं है।</string>
+    <string name="core_plugins_error_not_ready">प्लगइन अभी भी डाउनलोड हो रहे हैं। कुछ देर बाद दोबारा कोशिश करें।</string>
     <string name="core_plugins_error_script_failed">स्क्रिप्ट विफल रही।</string>
     <string name="core_plugins_error_script_missing">उस प्लगइन के लिए स्क्रिप्ट गायब है।</string>
     <string name="core_plugins_error_turned_off">वह प्लगइन बंद है।</string>
     <string name="core_plugins_permission_reminders_label">आपके द्वारा सेट किए गए समय पर रिमाइंडर दिखाएं</string>
+    <string name="core_plugins_permission_selection_label">जब आप इसके किसी एक्शन पर टैप करते हैं, तो आपके द्वारा चुने गए टेक्स्ट को बदलें</string>
     <string name="core_plugins_permission_storage_label">अपने डिवाइस पर डेटा सहेजें</string>
+    <string name="core_plugins_reject_action_input">“%1$s” में एक ऐसा कार्य है जो पाठ का अनुरोध करता है जिसे WM कीबोर्ड का यह संस्करण नहीं दे सकता है।</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s” में बिना नाम की एक क्रिया है।</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” चयनित पाठ के लिए क्रियाएँ जोड़ता है लेकिन इसे बदलने की अनुमति नहीं मांगता है।</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” में एक ऐसा कार्य है जिसकी आईडी गायब है, दोहराई गई है, या मान्य नहीं है। एक कार्य आईडी में 32 तक छोटे अक्षर, संख्याएँ, डैश और अंडरस्कोर हो सकते हैं।</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” में एक ऐसी स्क्रिप्ट है जो मान्य UTF-8 टेक्स्ट नहीं है।</string>
     <string name="core_plugins_reject_bad_id">इस प्लगइन की आईडी मान्य नहीं है। आईडी 3 से 64 वर्ण लंबी होनी चाहिए। आईडी में छोटे अक्षर, अंक, बिंदु, डैश और अंडरस्कोर हो सकते हैं।</string>
     <string name="core_plugins_reject_empty_script">“%1$s” में एक खाली स्क्रिप्ट है।</string>
+    <string name="core_plugins_reject_lua">“%1$s” लूआ में लिखा गया है, जिसे WM कीबोर्ड अब नहीं चलाता है। इसका पायथन संस्करण खोजें।</string>
     <string name="core_plugins_reject_missing_script">“%1$s” में इसकी स्क्रिप्ट फ़ाइल (%2$s) नहीं है।</string>
     <string name="core_plugins_reject_newer_version">इस प्लगइन को WM कीबोर्ड के नए संस्करण की आवश्यकता है।</string>
     <string name="core_plugins_reject_no_name">इस प्लगइन का कोई नाम नहीं है।</string>
     <string name="core_plugins_reject_no_version">“%1$s” यह नहीं बताता कि यह कौन सा संस्करण है।</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” का कोई पैनल और कोई क्रिया नहीं है, इसलिए इसके करने के लिए कुछ भी नहीं है।</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” की स्क्रिप्ट %2$d KB से बड़ी है।</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” आपके द्वारा चुने गए पाठ को बदलने के लिए कहता है लेकिन कोई कार्रवाई नहीं जोड़ता है।</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” 16 से अधिक क्रियाएँ (actions) जोड़ता है।</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” एक ऐसी भाषा में लिखा गया है जिसे WM कीबोर्ड का यह संस्करण नहीं चला सकता है। प्लगइन्स पायथन में लिखे गए हैं।</string>
     <string name="core_plugins_reject_unknown_permission">WM कीबोर्ड का यह संस्करण \"%1$s\" अनुमति को नहीं पहचानता है। ऐप आपको यह नहीं बता सकता कि \"%2$s\" को क्या करने की अनुमति है।</string>
     <string name="core_plugins_reminders_channel_body">रिमाइंडर जो एक प्लगइन ने ऐप को दिखाने के लिए कहा है, उन समय पर जो आपने प्लगइन में सेट किए हैं। प्रत्येक का शीर्षक प्लगइन का नाम है।</string>
     <string name="core_plugins_reminders_channel_title">प्लगइन रिमाइंडर</string>
     <string name="core_plugins_stopped_cancelled">ऐप ने इस प्लगइन को रोक दिया है।</string>
     <string name="core_plugins_stopped_deadline">इस प्लगइन ने बहुत अधिक समय लिया। ऐप ने इसे रोक दिया।</string>
     <string name="core_plugins_stopped_instructions">इस प्लगइन ने एक बार में बहुत अधिक काम किया। ऐप ने इसे रोक दिया।</string>
+    <string name="core_plugins_stopped_memory">इस प्लगइन ने बहुत अधिक डेटा रखने की कोशिश की। ऐप ने इसे रोक दिया।</string>
     <string name="core_plugins_stopped_not_responding">यह प्लगइन प्रतिक्रिया देना बंद कर दिया है। ऐप ने इसे बंद कर दिया है।</string>
     <string name="core_plugins_stopped_not_responding_disabled">यह प्लगइन फिर से प्रतिक्रिया देना बंद कर गया है। ऐप ने इसे बंद कर दिया है।</string>
     <string name="core_plugins_stopped_recursion">इस प्लगइन ने खुद को बहुत बार कॉल किया। ऐप ने इसे रोक दिया।</string>

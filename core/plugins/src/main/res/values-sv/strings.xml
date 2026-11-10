@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Det tillägget har inte längre den åtgärden.</string>
     <string name="core_plugins_error_no_render">Detta plugin har ingen render()-funktion.</string>
+    <string name="core_plugins_error_no_transform">Detta tillägg har ingen transform()-funktion.</string>
     <string name="core_plugins_error_not_installed">Det insticksprogrammet är inte installerat.</string>
+    <string name="core_plugins_error_not_ready">Insticksmodulerna laddas fortfarande ner. Försök igen om en stund.</string>
     <string name="core_plugins_error_script_failed">Skriptet misslyckades.</string>
     <string name="core_plugins_error_script_missing">Skriptet för det insticksprogrammet saknas.</string>
     <string name="core_plugins_error_turned_off">Det tillägget är avstängt.</string>
     <string name="core_plugins_permission_reminders_label">Visa påminnelser vid tider som du ställer in i den</string>
+    <string name="core_plugins_permission_selection_label">Ändra text du markerar när du trycker på en av dess åtgärder</string>
     <string name="core_plugins_permission_storage_label">Spara data på din enhet</string>
+    <string name="core_plugins_reject_action_input">“%1$s” har en åtgärd som begär text som den här versionen av WM Keyboard inte kan ge den.</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s” har en åtgärd utan namn.</string>
+    <string name="core_plugins_reject_actions_need_selection">”%1$s” lägger till åtgärder för markerad text men ber inte om tillstånd att ändra den.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” har en åtgärd vars id saknas, upprepas eller inte är giltigt. Ett åtgärds-id är upp till 32 gemener, siffror, bindestreck och understrykningar.</string>
     <string name="core_plugins_reject_bad_encoding">”%1$s” har ett skript som inte är giltig UTF-8-text.</string>
     <string name="core_plugins_reject_bad_id">Detta plugin har ett id som inte är giltigt. Ett id är 3 till 64 tecken långt. Ett id kan innehålla gemener, siffror, punkter, bindestreck och understreck.</string>
     <string name="core_plugins_reject_empty_script">”%1$s” har ett tomt skript.</string>
+    <string name="core_plugins_reject_lua">“%1$s” är skrivet i Lua, vilket WM Keyboard inte längre kör. Leta efter Python-versionen.</string>
     <string name="core_plugins_reject_missing_script">”%1$s” saknar sin skriptfil (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Detta plugin kräver en nyare version av WM Keyboard.</string>
     <string name="core_plugins_reject_no_name">Det här insticksprogrammet har inget namn.</string>
     <string name="core_plugins_reject_no_version">”%1$s” anger inte vilken version det är.</string>
+    <string name="core_plugins_reject_nothing_to_show">\"%1$s\" har ingen panel och inga åtgärder, så den har inget att göra.</string>
     <string name="core_plugins_reject_script_too_large">”%1$s” har ett skript som är större än %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” ber om att få ändra text du markerar men lägger inte till några åtgärder.</string>
+    <string name="core_plugins_reject_too_many_actions">”%1$s” lägger till fler än 16 åtgärder.</string>
+    <string name="core_plugins_reject_unknown_language">\"%1$s\" är skrivet på ett språk som den här versionen av WM Keyboard inte kan köra. Pluginprogram är skrivna i Python.</string>
     <string name="core_plugins_reject_unknown_permission">Den här versionen av WM Keyboard känner inte till behörigheten ”%1$s”. Appen kan inte berätta för dig vad ”%2$s” får göra.</string>
     <string name="core_plugins_reminders_channel_body">Påminnelser som ett plugin bad appen att visa, vid tider som du ställer in i pluginet. Titeln på varje påminnelse är namnet på pluginet.</string>
     <string name="core_plugins_reminders_channel_title">Insticksprogrampåminnelser</string>
     <string name="core_plugins_stopped_cancelled">Appen stoppade detta insticksprogram.</string>
     <string name="core_plugins_stopped_deadline">Detta plugin tog för lång tid. Appen stoppade det.</string>
     <string name="core_plugins_stopped_instructions">Detta plugin utförde för mycket arbete samtidigt. Appen stoppade det.</string>
+    <string name="core_plugins_stopped_memory">Det här tillägget försökte lagra för mycket data. Appen stoppade det.</string>
     <string name="core_plugins_stopped_not_responding">Detta plugin slutade svara. Appen stängde det.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Detta tillägg slutade svara igen. Appen stängde av det.</string>
     <string name="core_plugins_stopped_recursion">Detta tillägg anropade sig självt för många gånger. Appen stoppade det.</string>

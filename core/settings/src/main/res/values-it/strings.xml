@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Altro servizio</string>
     <string name="core_settings_ai_provider_on_device_label">Sul tuo dispositivo</string>
+    <string name="core_settings_ai_provider_privatemode_label">Modalità privata</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Ora del giorno</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Alba e tramonto</string>
     <string name="core_settings_auto_theme_trigger_system_label">Sistema chiaro o scuro</string>

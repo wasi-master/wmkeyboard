@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">ಟೂಲ್‌ಬಾರ್</string>
     <string name="core_icons_group_tools_title">ಟೂಲ್‌ಗಳು</string>
     <string name="core_icons_pack_imported_label">ಆಮದು ಮಾಡಿದ ಐಕಾನ್‌ಗಳು</string>
-    <string name="core_icons_pack_mine_label">ನನ್ನ ಐಕಾನ್‌ಗಳು</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">ಅಪ್ಲಿಕೇಶನ್ %1$d ಫೈಲ್ ಅನ್ನು ನಿರ್ಲಕ್ಷಿಸಿದೆ. ಈ ಆವೃತ್ತಿಯಲ್ಲಿ ಅದಕ್ಕೆ ಯಾವುದೇ ಐಕಾನ್ ಇಲ್ಲ: %2$s</item>
         <item quantity="other">ಅಪ್ಲಿಕೇಶನ್ %1$d ಫೈಲ್‌ಗಳನ್ನು ನಿರ್ಲಕ್ಷಿಸಿದೆ. ಈ ಆವೃತ್ತಿಯಲ್ಲಿ ಅವುಗಳಿಗೆ ಯಾವುದೇ ಐಕಾನ್ ಇಲ್ಲ: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">ಟ್ಯಾಬ್ ಕೀ</string>
     <string name="core_icons_slot_toolbox_label">ಟೂಲ್‌ಬಾಕ್ಸ್</string>
     <string name="core_icons_slot_toolbox_search_label">ಟೂಲ್‌ಬಾಕ್ಸ್ ಹುಡುಕಾಟ</string>
+    <string name="core_icons_pack_mine_label">ನನ್ನ ಐಕಾನ್‌ಗಳು</string>
 </resources>

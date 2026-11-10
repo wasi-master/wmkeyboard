@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Barre d\'outils</string>
     <string name="core_icons_group_tools_title">Outils</string>
     <string name="core_icons_pack_imported_label">Icônes importées</string>
-    <string name="core_icons_pack_mine_label">Mes icônes</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">L\'application a ignoré %1$d fichier. Cette version n\'a pas d\'icône pour lui : %2$s</item>
         <item quantity="other">L\'application a ignoré %1$d fichiers. Cette version n\'a pas d\'icône pour eux : %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Touche Tab</string>
     <string name="core_icons_slot_toolbox_label">Boîte à outils</string>
     <string name="core_icons_slot_toolbox_search_label">Recherche dans la boîte à outils</string>
+    <string name="core_icons_pack_mine_label">Mes icônes</string>
 </resources>

@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Huduma nyingine</string>
     <string name="core_settings_ai_provider_on_device_label">Kwenye kifaa chako</string>
+    <string name="core_settings_ai_provider_privatemode_label">Hali ya faragha</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Wakati wa siku</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Machweo na mapambazuko</string>
     <string name="core_settings_auto_theme_trigger_system_label">Mfumo mwepesi au mweusi</string>

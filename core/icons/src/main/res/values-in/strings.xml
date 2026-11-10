@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Toolbar</string>
     <string name="core_icons_group_tools_title">Alat</string>
     <string name="core_icons_pack_imported_label">Ikon yang diimpor</string>
-    <string name="core_icons_pack_mine_label">Ikon saya</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Aplikasi mengabaikan %1$d file. Versi ini tidak memiliki ikon untuk file tersebut: %2$s</item>
         <item quantity="other">Aplikasi mengabaikan %1$d file. Versi ini tidak memiliki ikon untuk file-file tersebut: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tombol Tab</string>
     <string name="core_icons_slot_toolbox_label">Kotak alat</string>
     <string name="core_icons_slot_toolbox_search_label">Pencarian kotak alat</string>
+    <string name="core_icons_pack_mine_label">Ikon saya</string>
 </resources>

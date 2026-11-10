@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">ఆ ప్లగిన్ ఇకపై ఆ చర్యను కలిగి ఉండదు.</string>
     <string name="core_plugins_error_no_render">ఈ ప్లగిన్‌కు render() ఫంక్షన్ లేదు.</string>
+    <string name="core_plugins_error_no_transform">ఈ ప్లగిన్‌లో transform() ఫంక్షన్ లేదు.</string>
     <string name="core_plugins_error_not_installed">ఆ ప్లగిన్ ఇన్‌స్టాల్ చేయబడలేదు.</string>
+    <string name="core_plugins_error_not_ready">ప్లగిన్‌లు ఇంకా డౌన్‌లోడ్ అవుతున్నాయి. కొద్దిసేపు తరువాత ప్రయత్నించండి.</string>
     <string name="core_plugins_error_script_failed">స్క్రిప్ట్ విఫలమైంది.</string>
     <string name="core_plugins_error_script_missing">ఆ ప్లగిన్ కోసం స్క్రిప్ట్ లేదు.</string>
     <string name="core_plugins_error_turned_off">ఆ ప్లగిన్ ఆఫ్ చేయబడింది.</string>
     <string name="core_plugins_permission_reminders_label">మీరు సెట్ చేసిన సమయాల్లో రిమైండర్‌లను చూపండి</string>
+    <string name="core_plugins_permission_selection_label">మీరు ఎంచుకున్న చర్యలలో దేనినైనా నొక్కినప్పుడు, మీరు ఎంచుకున్న వచనాన్ని మార్చండి</string>
     <string name="core_plugins_permission_storage_label">మీ పరికరంలో డేటాను సేవ్ చేయండి</string>
+    <string name="core_plugins_reject_action_input">“%1$s” లో టెక్స్ట్‌ని కోరే ఒక చర్య ఉంది, ఈ WM కీబోర్డ్ వెర్షన్ దానిని అందించలేదు.</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s” పేరు లేని చర్యను కలిగి ఉంది.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” ఎంచుకున్న టెక్స్ట్ కోసం చర్యలను జోడిస్తుంది కానీ దాన్ని మార్చడానికి అనుమతి కోరదు.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” యొక్క ఐడీ లేరు, పునరావృతమైంది లేదా చెల్లదు. యాక్షన్ ఐడీ అనేది గరిష్టంగా 32 చిన్న అక్షరాలు, సంఖ్యలు, డాష్‌లు మరియు అండర్‌స్కోర్‌లను కలిగి ఉంటుంది.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s”లో చెల్లుబాటు కాని UTF-8 వచన స్క్రిప్ట్ ఉంది.</string>
     <string name="core_plugins_reject_bad_id">ఈ ప్లగిన్ ఐడి చెల్లుబాటు కాదు. ఐడి 3 నుండి 64 అక్షరాల పొడవు ఉండాలి. ఐడిలో చిన్న అక్షరాలు, సంఖ్యలు, చుక్కలు, డాష్‌లు మరియు అండర్‌స్కోర్‌లు ఉండవచ్చు.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” ఖాళీ స్క్రిప్ట్‌ను కలిగి ఉంది.</string>
+    <string name="core_plugins_reject_lua">“%1$s” లూవాలో వ్రాయబడింది, WM కీబోర్డ్ దీన్ని ఇకపై రన్ చేయదు. దీని పైథాన్ వెర్షన్ కోసం వెతకండి.</string>
     <string name="core_plugins_reject_missing_script">“%1$s”కి దాని స్క్రిప్ట్ ఫైల్ (%2$s) లేదు.</string>
     <string name="core_plugins_reject_newer_version">ఈ ప్లగిన్‌కు WM కీబోర్డ్ యొక్క కొత్త వెర్షన్ అవసరం.</string>
     <string name="core_plugins_reject_no_name">ఈ ప్లగిన్‌కు పేరు లేదు.</string>
     <string name="core_plugins_reject_no_version">“%1$s” ఏ వెర్షన్ అనేది చెప్పడం లేదు.</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s”కి ప్యానెల్ మరియు చర్యలు ఏవీ లేవు, కాబట్టి అది చేయడానికి ఏమీ లేదు.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” స్క్రిప్ట్ %2$d KB కంటే పెద్దదిగా ఉంది.</string>
+    <string name="core_plugins_reject_selection_without_actions">మీరు ఎంచుకున్న వచనాన్ని మార్చమని \"%1$s\" అడుగుతుంది కానీ ఎలాంటి చర్యలను జోడించదు.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” 16 కంటే ఎక్కువ చర్యలను జోడిస్తుంది.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” అనేది WM కీబోర్డ్ యొక్క ఈ వెర్షన్ రన్ చేయలేని భాషలో వ్రాయబడింది. ప్లగిన్‌లు పైథాన్‌లో వ్రాయబడ్డాయి.</string>
     <string name="core_plugins_reject_unknown_permission">WM కీబోర్డ్ యొక్క ఈ వెర్షన్‌కు “%1$s” అనుమతి తెలియదు. “%2$s” ఏమి చేయడానికి అనుమతించబడిందో యాప్ మీకు చెప్పలేదు.</string>
     <string name="core_plugins_reminders_channel_body">ప్లగిన్‌లో మీరు సెట్ చేసిన సమయాల్లో, యాప్‌ను చూపించమని ప్లగిన్ కోరిన రిమైండర్‌లు. ప్రతి దాని శీర్షిక ప్లగిన్ పేరు.</string>
     <string name="core_plugins_reminders_channel_title">ప్లగిన్ రిమైండర్‌లు</string>
     <string name="core_plugins_stopped_cancelled">యాప్ ఈ ప్లగిన్‌ను ఆపివేసింది.</string>
     <string name="core_plugins_stopped_deadline">ఈ ప్లగిన్ చాలా సమయం తీసుకుంది. యాప్ దీన్ని ఆపివేసింది.</string>
     <string name="core_plugins_stopped_instructions">ఈ ప్లగిన్ ఒకే సమయంలో ఎక్కువ పని చేసింది. యాప్ దీన్ని ఆపివేసింది.</string>
+    <string name="core_plugins_stopped_memory">ఈ ప్లగిన్ చాలా ఎక్కువ డేటాను నిల్వ చేయడానికి ప్రయత్నించింది. యాప్ దాన్ని ఆపింది.</string>
     <string name="core_plugins_stopped_not_responding">ఈ ప్లగిన్ స్పందించడం ఆపివేసింది. యాప్ దీన్ని మూసివేసింది.</string>
     <string name="core_plugins_stopped_not_responding_disabled">ఈ ప్లగిన్ మళ్లీ స్పందించడం ఆపివేసింది. యాప్ దీన్ని ఆపివేసింది.</string>
     <string name="core_plugins_stopped_recursion">ఈ ప్లగిన్ తనను తాను చాలాసార్లు పిలుచుకుంది. యాప్ దీన్ని ఆపివేసింది.</string>

@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Tapety</string>
     <string name="core_tools_provider_acrcloud_desc">Usługa rozpoznawania muzyki z dwutygodniowym okresem próbnym, a następnie płatnymi planami. Wymaga hosta, klucza dostępu i sekretu dostępu projektu z console.acrcloud.com. Każdy klip jest wysyłany do ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">Darmowe Stable Diffusion na komputerach wolontariuszy. Działa bez klucza, ale wymaga czekania w kolejce; darmowy klucz z aihorde.net przesuwa Cię w niej do przodu.</string>
+    <string name="core_tools_provider_allratestoday_desc">Kursy referencyjne Europejskiego Banku Centralnego dla około 30 walut. Bez klucza.</string>
     <string name="core_tools_provider_anthropic_desc">Modele Claude przez API Anthropic z użyciem własnego klucza.</string>
     <string name="core_tools_provider_asr4all_desc">Dyktowanie w języku angielskim na telefonie, ze słowami pojawiającymi się w trakcie mówienia.</string>
     <string name="core_tools_provider_audd_desc">Rozpoznaje większość wydanej muzyki na podstawie kilku sekund dźwięku. Wymaga tokena z dashboard.audd.io; kilkaset rozpoznań jest darmowych, potem usługa jest płatna. Każdy klip jest wysyłany do AudD.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Duży model działający na telefonie, który rozumie 25 języków europejskich.</string>
     <string name="core_tools_provider_pexels_desc">Zdjęcia z serwisu Pexels. Wymagany jest klucz API, chyba że ta wersja kompilacji go zawiera.</string>
     <string name="core_tools_provider_pollinations_desc">Bezpłatnie, bez klucza i bez konta: monit jest wysyłany do Pollinations, który wybiera model. Klucz z enter.pollinations.ai otwiera nowszy interfejs API i pozwala nazwać model.</string>
+    <string name="core_tools_provider_privatemode">Privatemode AI</string>
+    <string name="core_tools_provider_privatemode_desc">Sztuczna inteligencja, która działa w poufnym środowisku obliczeniowym i nie może odczytać Twojego tekstu. Podaj swój klucz API Privatemode. Klawiatura szyfruje wtedy każde żądanie w telefonie, ale nie sprawdza atestacji sprzętowej usługi. Aby to również sprawdzić, uruchom privatemode-proxy i podaj jego adres, np. http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (nieoficjalny, przez RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Katalog Shazam przez nieoficjalne zestawienie na RapidAPI, wymagający klucza RapidAPI. To nie jest usługa Apple: oferta może ulec zmianie lub zostać wycofana bez powiadomienia. Każdy klip jest wysyłany do RapidAPI.</string>
     <string name="core_tools_provider_recraft_desc">Ilustracje, ikony i grafika wektorowa. Wymaga klucza z recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Zdjęcia z Unsplash. Wymaga klucza API, chyba że ta kompilacja go posiada.</string>
     <string name="core_tools_provider_vision_ocr">Twój model wizyjny</string>
     <string name="core_tools_provider_vision_ocr_desc">Model odczytujący obrazy za pośrednictwem serwera odpowiadającego na zapytania czatu OpenAI. Wymaga adresu i nazwy modelu.</string>
+    <string name="core_tools_provider_vosk_desc">Małe modele Kaldi od Alpha Cephei dla 29 języków, o wielkości około 40 MB każdy, które piszą w miarę mówienia do telefonu. Wystarczająco lekkie dla starszego telefonu.</string>
     <string name="core_tools_provider_whisper_desc">Modele Whisper od OpenAI działające na telefonie. Wiele języków; pobierz model na stronie Pisanie głosowe.</string>
     <string name="core_tools_provider_whistle_desc">Mały, szybki model działający na telefonie. Pobierz go na stronie pisania głosowego.</string>
     <string name="core_tools_provider_xai_desc">Modele Grok przez API xAI, z własnym kluczem.</string>

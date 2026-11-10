@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Aquest connector ja no té aquesta acció.</string>
     <string name="core_plugins_error_no_render">Aquest connector no té cap funció render().</string>
+    <string name="core_plugins_error_no_transform">Aquest connector no té cap funció transform().</string>
     <string name="core_plugins_error_not_installed">Aquest connector no està instal·lat.</string>
+    <string name="core_plugins_error_not_ready">Els complements encara s\'estan baixant. Torneu-ho a provar d\'aquí a un moment.</string>
     <string name="core_plugins_error_script_failed">L\'script ha fallat.</string>
     <string name="core_plugins_error_script_missing">Falta l\'script per a aquest connector.</string>
     <string name="core_plugins_error_turned_off">Aquest connector està desactivat.</string>
     <string name="core_plugins_permission_reminders_label">Mostra recordatoris a les hores que hagis establert</string>
+    <string name="core_plugins_permission_selection_label">Canvia el text que seleccioneu quan toqueu una de les seves accions</string>
     <string name="core_plugins_permission_storage_label">Desa dades al vostre dispositiu</string>
+    <string name="core_plugins_reject_action_input">“%1$s” té una acció que demana text que aquesta versió de WM Keyboard no li pot proporcionar.</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s” té una acció sense nom.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” afegeix accions per al text seleccionat però no demana permís per modificar-lo.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” té una acció l\'identificador de la qual falta, està repetit o no és vàlid. Un identificador d\'acció consta de fins a 32 lletres minúscules, números, guions i guions baixos.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” té un script que no és un text UTF-8 vàlid.</string>
     <string name="core_plugins_reject_bad_id">Aquest connector té un identificador que no és vàlid. Un identificador té entre 3 i 64 caràcters. Un identificador pot contenir lletres minúscules, números, punts, guions i guions baixos.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” té un script buit.</string>
+    <string name="core_plugins_reject_lua">“%1$s” està escrit en Lua, un llenguatge que el teclat WM ja no executa. Busqueu-ne la versió en Python.</string>
     <string name="core_plugins_reject_missing_script">«%1$s» no té el seu fitxer d\'script (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Aquest connector necessita una versió més recent del teclat WM.</string>
     <string name="core_plugins_reject_no_name">Aquest connector no té nom.</string>
     <string name="core_plugins_reject_no_version">«%1$s» no indica quina versió és.</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” no té cap panell ni cap acció, de manera que no té res a fer.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” té un script més gran de %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">\"%1$s\" demana canviar el text que seleccioneu, però no afegeix cap acció.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” afegeix més de 16 accions.</string>
+    <string name="core_plugins_reject_unknown_language">«%1$s» està escrit en un idioma que aquesta versió de WM Keyboard no pot executar. Els connectors estan escrits en Python.</string>
     <string name="core_plugins_reject_unknown_permission">Aquesta versió del teclat WM no reconeix el permís «%1$s». L\'aplicació no pot dir-vos què té permès fer «%2$s».</string>
     <string name="core_plugins_reminders_channel_body">Recordatoris que un connector ha demanat a l\'aplicació que mostri, en els moments que hagis establert al connector. El títol de cadascun és el nom del connector.</string>
     <string name="core_plugins_reminders_channel_title">Recordatoris del connector</string>
     <string name="core_plugins_stopped_cancelled">L\'aplicació ha aturat aquest connector.</string>
     <string name="core_plugins_stopped_deadline">Aquest connector ha trigat massa. L\'aplicació l\'ha aturat.</string>
     <string name="core_plugins_stopped_instructions">Aquest connector ha fet massa feina alhora. L\'aplicació l\'ha aturat.</string>
+    <string name="core_plugins_stopped_memory">Aquest connector ha intentat retenir massa dades. L\'aplicació l\'ha aturat.</string>
     <string name="core_plugins_stopped_not_responding">Aquest connector ha deixat de respondre. L\'aplicació l\'ha tancat.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Aquest connector ha deixat de respondre de nou. L\'aplicació l\'ha desactivat.</string>
     <string name="core_plugins_stopped_recursion">Aquest connector s\'ha cridat a si mateix massa vegades. L\'aplicació l\'ha aturat.</string>

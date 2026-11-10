@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Duraklatıldı: veri tasarrufu bu bağlantıdaki indirmeleri bekletiyor. Kaldığı yerden devam eder.</string>
     <string name="common_error_generic">Bir şeyler çalışmadı. Tekrar deneyin.</string>
     <string name="common_error_network">Bağlantı yok. Ağınızı kontrol edin ve tekrar deneyin.</string>
+    <string name="common_error_network_permission_off">WM Keyboard\'s ağ erişimi telefonunuzun ayarlarında kapalı olduğundan bu özellik çalışmıyor. Android Ayarları › Uygulamalar › WM Keyboard › İzinler kısmından (GrapheneOS kullanıyorsanız Ağ iznini) açın ve tekrar deneyin.</string>
     <string name="common_error_no_internet_permission">Klavyenin bu yapısı internete bağlanamaz.</string>
     <string name="common_error_timeout">İstek çok uzun sürdü. Tekrar deneyin.</string>
     <string name="common_export">Dışa aktar</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Daha fazla</string>
     <string name="common_next">İleri</string>
     <string name="common_none">Hiçbiri</string>
+    <string name="common_notify_channel_alarms_body">Ertelemeye alınmış veya çalmak üzere olan bir alarm ve kimse tarafından kapatılmadan çalmış olan bir alarm. Çalma işleminin kendisinin ayrı bir kanalı vardır.</string>
+    <string name="common_notify_channel_alarms_title">Alarm bildirimleri</string>
     <string name="common_notify_channel_backup_body">Sadece otomatik yedekleme başarısız olduğunda. Başarılı yedeklemeler sessizdir.</string>
     <string name="common_notify_channel_backup_title">Yedekleme sorunları</string>
     <string name="common_notify_channel_clock_body">Zamanlayıcılar ve kronometre çalışırken; duraklatma, bir dakika ekleme veya durdurma düğmeleriyle birlikte.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Klavye kontrolleri</string>
     <string name="common_notify_channel_send_body">Dosya Gönderme aracı, klavye gizliyken bir yükleme veya indirme işlemini tamamladı; kopyalanacak bağlantı ve yakındaki bir cihazın gönderdiği bir dosya mevcut.</string>
     <string name="common_notify_channel_send_title">Dosya gönderip alma</string>
+    <string name="common_notify_channel_stopwatch_body">Tur sayımı, duraklatma ve sıfırlama düğmeleriyle, çalışırken veya duraklatılmış durumdayken kronometre.</string>
+    <string name="common_notify_channel_stopwatch_title">Kronometre</string>
     <string name="common_notify_channel_updates_body">Yüklenecek yeni bir sürüm, yükle düğmesine basmanızı bekleyen bir güncelleme ve biri yüklendiğinde onay bildirimi.</string>
     <string name="common_notify_channel_updates_title">Uygulama güncellemeleri</string>
     <string name="common_notify_download_done">Kullanıma hazır</string>
     <string name="common_notify_download_failed">%1$s indirilemedi</string>
     <string name="common_notify_download_handwriting">%1$s el yazısı</string>
     <string name="common_notify_download_progress">%2$s içinden %1$s</string>
+    <string name="common_notify_download_step_library">1 / 2. Adım, motor kütüphanesi: %1$s</string>
+    <string name="common_notify_download_step_model">Adım 2 / 2, model: %1$s</string>
     <string name="common_notify_download_translate">%1$s çevrimdışı çeviri</string>
     <string name="common_notify_download_voice">%1$s çevrimdışı ses</string>
     <string name="common_off">Kapalı</string>
+    <string name="common_offline_build_download">Bu çevrimdışı sürüm olduğundan bunu indiremez. Dosyayı başka bir cihazdan alın ve içe aktarın: Ayarlar › Hakkında › Depolama › İndirilen dosyaları içe aktar bunu alır veya bu ekranın kendi İçe Aktar satırı. Veya aynı sürüm sayfasından standart sürümü bunun üzerine yükleyin, kendi kendine indirilir. Ayarlarınız ve öğrendiğiniz kelimeler kalır.</string>
+    <string name="common_offline_build_library">Bu çevrimdışı sürüm olduğundan, ihtiyaç duyduğu kitaplığı indiremez. Dosyasını başka bir cihazda edinin ve tam dosyayı listeleyen Ayarlar › Gizlilik › Özellik kitaplıkları bölümünden içeri aktarın. Veya bunun üzerine aynı sürüm sayfasından standart sürümü yükleyin; o zaman kendi kendine indirilecektir. Ayarlarınız ve öğrendiğiniz kelimeler korunur.</string>
     <string name="common_ok">Tamam</string>
     <string name="common_on">Açık</string>
     <string name="common_open_system_settings">Sistem ayarlarını aç</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Yapay zeka düğmesi için erişilebilirlik hizmeti</string>
     <string name="common_special_access_split_screen_body">Bazı telefonlar, klavye bölünmüş ekran istediğinde bir uygulamayı tam ekran açar. Bu hizmet açıkken, uygulama başlatıcısından bölünmüş ekranda bir uygulama açmak veya bölünmüş ekran çifti açmak, önce Son Kullanılanlar menüsünün sahip olduğu Android\'in kendi bölünmüş ekran düğmesine basar ve uygulama daha sonra boş kalan yarıda açılır. Hizmete basmadan önce, bölünmüş ekranın zaten açık olup olmadığını görmek için uygulama pencerelerinin nerede olduğunu kontrol eder. İçindekileri asla okumaz. Başka hiçbir zaman hiçbir şey yapmaz, ne yazdığınızı izlemez ve hiçbir şey saklamaz. Android\'in erişilebilirlik ekranı, bunun gibi bir hizmetin yapabileceği her şey hakkında uyarıda bulunur. Bu hizmet, yalnızca bölünmüş ekran istediğinizde o düğmeye basar.</string>
     <string name="common_special_access_split_screen_title">Bölünmüş ekran için erişilebilirlik hizmeti</string>
+    <string name="common_special_access_system_buttons_body">Android, başka bir uygulamanın yalnızca bir erişilebilirlik hizmeti aracılığıyla ekran görüntüsü almasına, geri gitmesine, son kullanılan uygulamaları, uygulama çekmecesini, bildirim panelini veya hızlı ayarları açmasına izin verir. Bu hizmet açıkken, Ekran Görüntüsü aracı ve yüzen düğme, Android\'in kendi gezinme ve bildirim çubuğundakilerle aynı olan bu sistem düğmelerine sizin için basar. Bir ekran görüntüsü, her ekran görüntüsünün gittiği yere kaydedilir. Hizmet başka hiçbir zamanda hiçbir şey yapmaz. Ekranı okumaz, ne yazdığınızı izlemez ve hiçbir şey saklamaz. Android\'in erişilebilirlik ekranı, böyle bir hizmetin yapabileceği her şey hakkında uyarıda bulunur. Bu hizmet yalnızca siz istediğinizde bir sistem düğmesine basar.</string>
+    <string name="common_special_access_system_buttons_title">Sistem düğmeleri için erişilebilirlik hizmeti</string>
     <string name="common_special_access_usage_body">Kullanım erişimi ile klavye, bir şeyi kopyaladığınızda hangi uygulamanın ön planda olduğunu kaydeder. Klibe basılı tuttuğunuzda o uygulamayı gösterir. Klavye, ön plandaki uygulamayı yalnızca kopyalama anında okur. Geçmişinizi veya bir uygulamada geçirdiğiniz süreyi okumaz. Klavye, yanıtı yalnızca cihazınızdaki kliple birlikte tutar. Uygulama kullanımınızla ilgili hiçbir şey cihazınızdan çıkmaz. Ayar isteğe bağlıdır. Siz açana kadar kapalı kalır.</string>
     <string name="common_special_access_usage_title">Pano kaynak uygulamaları için kullanım erişimi</string>
     <string name="common_type_setting_value_desc">%1$s için bir değer girin</string>

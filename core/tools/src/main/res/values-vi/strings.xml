@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Hình nền</string>
     <string name="core_tools_provider_acrcloud_desc">Dịch vụ nhận dạng âm nhạc với bản dùng thử hai tuần, sau đó là các gói trả phí. Cần máy chủ, khóa truy cập và bí mật truy cập của một dự án từ console.acrcloud.com. Mỗi đoạn clip được gửi đến ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">Stable Diffusion miễn phí chạy trên máy tính của các tình nguyện viên. Hoạt động mà không cần khóa nhưng phải chờ trong hàng đợi; khóa miễn phí từ aihorde.net sẽ giúp bạn xếp hàng ưu tiên hơn.</string>
+    <string name="core_tools_provider_allratestoday_desc">Tỷ giá tham khảo của Ngân hàng Trung ương Châu Âu cho khoảng 30 loại tiền tệ. Không cần khóa.</string>
     <string name="core_tools_provider_anthropic_desc">Các mô hình Claude thông qua API của Anthropic, với khóa riêng của bạn.</string>
     <string name="core_tools_provider_asr4all_desc">Đọc chính tả tiếng Anh trên điện thoại, với các từ xuất hiện khi bạn nói.</string>
     <string name="core_tools_provider_audd_desc">Nhận dạng hầu hết các bản nhạc đã phát hành chỉ từ vài giây âm thanh. Cần có mã thông báo từ dashboard.audd.io; vài trăm lượt nhận dạng đầu tiên là miễn phí, sau đó sẽ tính phí. Mỗi đoạn clip được gửi đến AudD.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Một mô hình lớn chạy trên điện thoại và hiểu 25 ngôn ngữ châu Âu.</string>
     <string name="core_tools_provider_pexels_desc">Ảnh từ Pexels. Cần có khóa API, trừ khi bản dựng này đã có sẵn.</string>
     <string name="core_tools_provider_pollinations_desc">Miễn phí, không cần khóa và không cần tài khoản: lời nhắc được gửi đến Pollinations, đơn vị sẽ chọn mô hình. Một khóa từ enter.pollinations.ai sẽ mở API mới hơn và cho phép bạn đặt tên cho mô hình.</string>
+    <string name="core_tools_provider_privatemode">AI chế độ riêng tư</string>
+    <string name="core_tools_provider_privatemode_desc">AI chạy trong môi trường điện toán bảo mật và không thể đọc văn bản của bạn. Hãy cung cấp khóa API Chế độ riêng tư của bạn. Sau đó, bàn phím sẽ mã hóa từng yêu cầu trên điện thoại nhưng không kiểm tra chứng thực phần cứng của dịch vụ. Để kiểm tra cả điều đó, hãy chạy privatemode-proxy và cung cấp địa chỉ của nó, chẳng hạn như http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (không chính thức, qua RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Danh mục của Shazam thông qua một danh sách không chính thức trên RapidAPI, với khóa RapidAPI. Không phải là dịch vụ của Apple: danh sách có thể thay đổi hoặc ngừng cung cấp mà không cần thông báo. Mỗi đoạn âm thanh đều được gửi đến RapidAPI.</string>
     <string name="core_tools_provider_recraft_desc">Hình minh họa, biểu tượng và nghệ thuật phong cách vector. Cần có khóa từ recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Ảnh từ Unsplash. Cần có khóa API, trừ khi bản dựng này đã có sẵn.</string>
     <string name="core_tools_provider_vision_ocr">Mô hình thị giác của bạn</string>
     <string name="core_tools_provider_vision_ocr_desc">Một mô hình đọc hình ảnh thông qua máy chủ phản hồi các yêu cầu trò chuyện của OpenAI. Cần có địa chỉ và tên mô hình.</string>
+    <string name="core_tools_provider_vosk_desc">Các mô hình Kaldi nhỏ từ Alpha Cephei cho 29 ngôn ngữ, mỗi mô hình khoảng 40 MB, nhập văn bản khi bạn nói trên điện thoại. Đủ nhẹ cho một chiếc điện thoại đời cũ.</string>
     <string name="core_tools_provider_whisper_desc">Các mô hình Whisper của OpenAI, chạy trên điện thoại. Nhiều ngôn ngữ; tải xuống mô hình trên trang Nhập liệu bằng giọng nói.</string>
     <string name="core_tools_provider_whistle_desc">Một mô hình nhỏ, nhanh chạy trên điện thoại. Tải xuống trên trang Nhập liệu bằng giọng nói.</string>
     <string name="core_tools_provider_xai_desc">Các mô hình Grok thông qua API của xAI, với khóa riêng của bạn.</string>

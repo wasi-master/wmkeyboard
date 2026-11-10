@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Ese complemento ya no tiene esa acción.</string>
     <string name="core_plugins_error_no_render">Este plugin no tiene una función render().</string>
+    <string name="core_plugins_error_no_transform">Este complemento no tiene función transform().</string>
     <string name="core_plugins_error_not_installed">Ese complemento no está instalado.</string>
+    <string name="core_plugins_error_not_ready">Los complementos aún se están descargando. Vuelve a intentarlo en un momento.</string>
     <string name="core_plugins_error_script_failed">El script falló.</string>
     <string name="core_plugins_error_script_missing">Falta el script para ese complemento.</string>
     <string name="core_plugins_error_turned_off">Ese complemento está desactivado.</string>
     <string name="core_plugins_permission_reminders_label">Mostrar recordatorios en los momentos que establezcas</string>
+    <string name="core_plugins_permission_selection_label">Cambiar el texto seleccionado al tocar una de sus acciones</string>
     <string name="core_plugins_permission_storage_label">Guardar datos en tu dispositivo</string>
+    <string name="core_plugins_reject_action_input">“%1$s” tiene una acción que solicita texto que esta versión de WM Keyboard no le puede proporcionar.</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s” tiene una acción sin nombre.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” añade acciones para el texto seleccionado pero no pide permiso para cambiarlo.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” tiene una acción cuyo id falta, está repetido o no es válido. Un id de acción puede tener hasta 32 letras minúsculas, números, guiones y guiones bajos.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” contiene un script que no es un texto UTF-8 válido.</string>
     <string name="core_plugins_reject_bad_id">Este plugin tiene un ID no válido. Un ID debe tener entre 3 y 64 caracteres. Un ID puede contener letras minúsculas, números, puntos, guiones y guiones bajos.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” tiene un script vacío.</string>
+    <string name="core_plugins_reject_lua">“%1$s” está escrito en Lua, el cual WM Keyboard ya no ejecuta. Busca su versión en Python.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” no tiene su archivo de script (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Este complemento necesita una versión más reciente de WM Keyboard.</string>
     <string name="core_plugins_reject_no_name">Este plugin no tiene nombre.</string>
     <string name="core_plugins_reject_no_version">“%1$s” no indica qué versión es.</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” no tiene panel ni acciones, por lo que no hay nada que pueda hacer.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” tiene un script mayor a %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” solicita cambiar el texto seleccionado pero no añade ninguna acción.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” añade más de 16 acciones.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” está escrito en un idioma que esta versión de WM Keyboard no puede ejecutar. Los plugins están escritos en Python.</string>
     <string name="core_plugins_reject_unknown_permission">Esta versión de WM Keyboard no reconoce el permiso “%1$s”. La aplicación no puede determinar qué tiene permitido hacer “%2$s”.</string>
     <string name="core_plugins_reminders_channel_body">Recordatorios que un complemento solicitó a la aplicación mostrar, en los momentos que establezcas en el complemento. El título de cada uno es el nombre del complemento.</string>
     <string name="core_plugins_reminders_channel_title">Recordatorios de plugins</string>
     <string name="core_plugins_stopped_cancelled">La aplicación detuvo este complemento.</string>
     <string name="core_plugins_stopped_deadline">Este complemento tardó demasiado. La aplicación lo detuvo.</string>
     <string name="core_plugins_stopped_instructions">Este complemento realizó demasiadas tareas a la vez. La aplicación lo detuvo.</string>
+    <string name="core_plugins_stopped_memory">Este complemento intentó retener demasiados datos. La aplicación lo detuvo.</string>
     <string name="core_plugins_stopped_not_responding">Este complemento dejó de responder. La aplicación lo cerró.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Este complemento dejó de responder de nuevo. La aplicación lo desactivó.</string>
     <string name="core_plugins_stopped_recursion">Este plugin se llamó a sí mismo demasiadas veces. La aplicación lo ha detenido.</string>

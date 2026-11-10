@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Araç çubuğu</string>
     <string name="core_icons_group_tools_title">Araçlar</string>
     <string name="core_icons_pack_imported_label">İçe aktarılan simgeler</string>
-    <string name="core_icons_pack_mine_label">Simgelerim</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Uygulama %1$d dosyayı yoksaydı. Bu sürümde bunun için bir simge yok: %2$s</item>
         <item quantity="other">Uygulama %1$d dosyayı yoksaydı. Bu sürümde bunlar için bir simge yok: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Sekme tuşu</string>
     <string name="core_icons_slot_toolbox_label">Araç kutusu</string>
     <string name="core_icons_slot_toolbox_search_label">Araç kutusu araması</string>
+    <string name="core_icons_pack_mine_label">Simgelerim</string>
 </resources>

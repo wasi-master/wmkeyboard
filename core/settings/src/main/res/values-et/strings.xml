@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Muu teenus</string>
     <string name="core_settings_ai_provider_on_device_label">Teie seadmes</string>
+    <string name="core_settings_ai_provider_privatemode_label">Privaatrežiim</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Kellaaeg</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Päikesetõus ja -loojang</string>
     <string name="core_settings_auto_theme_trigger_system_label">Süsteemi hele või tume</string>

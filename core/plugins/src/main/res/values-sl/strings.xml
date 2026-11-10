@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Ta vtičnik nim več tistega dejanja.</string>
     <string name="core_plugins_error_no_render">Ta vtičnik nima funkcije render().</string>
+    <string name="core_plugins_error_no_transform">Ta vstavek nima funkcije transform().</string>
     <string name="core_plugins_error_not_installed">Ta vtičnik ni nameščen.</string>
+    <string name="core_plugins_error_not_ready">Vstavki se še prenašajo. Poskusite znova čez trenutek.</string>
     <string name="core_plugins_error_script_failed">Skript ni uspel.</string>
     <string name="core_plugins_error_script_missing">Skript za ta vtičnik manjka.</string>
     <string name="core_plugins_error_turned_off">Ta vtičnik je izklopljen.</string>
     <string name="core_plugins_permission_reminders_label">Prikaži opomnike ob časih, ki jih nastavite v njem</string>
+    <string name="core_plugins_permission_selection_label">Spremenite izbrano besedilo, ko se dotaknete enega od dejanj zanj</string>
     <string name="core_plugins_permission_storage_label">Shrani podatke v svojo napravo</string>
+    <string name="core_plugins_reject_action_input">»%1$s« vsebuje dejanje, ki zahteva besedilo, ki ga ta različica tipkovnice WM ne more zagotoviti.</string>
+    <string name="core_plugins_reject_action_no_name">»%1$s« vsebuje dejanje brez imena.</string>
+    <string name="core_plugins_reject_actions_need_selection">»%1$s« dodaja dejanja za izbrano besedilo, vendar ne zahteva dovoljenja za njegovo spreminjanje.</string>
+    <string name="core_plugins_reject_bad_action_id">»%1$s« vsebuje dejanje z manjkajočim, podvojenim ali neveljavnim ID-jem. ID dejanja obsega do 32 malih črk, številk, pomišljajev in podčrtajev.</string>
     <string name="core_plugins_reject_bad_encoding">»%1$s« vsebuje skript, ki ni veljavno besedilo UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Ta vtičnik ima neveljaven ID. ID mora biti dolg od 3 do 64 znakov. ID lahko vsebuje male črke, številke, pike, pomišljaje in podčrtaje.</string>
     <string name="core_plugins_reject_empty_script">»%1$s« ima prazen skript.</string>
+    <string name="core_plugins_reject_lua">“%1$s” je napisan v jeziku Lua, ki ga tipkovnica WM Keyboard več ne poganja. Poiščite njegovo različico v Pythonu.</string>
     <string name="core_plugins_reject_missing_script">»%1$s« nima svoje skriptne datoteke (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Ta vtičnik potrebuje novejšo različico tipkovnice WM Keyboard.</string>
     <string name="core_plugins_reject_no_name">Ta vtičnik nima imena.</string>
     <string name="core_plugins_reject_no_version">»%1$s« ne navaja, katera različica je to.</string>
+    <string name="core_plugins_reject_nothing_to_show">»%1$s« nima plošče in dejanj, zato zanj ni dela.</string>
     <string name="core_plugins_reject_script_too_large">»%1$s« ima skript, večji od %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” zahteva spremembo izbranega besedila, vendar ne doda nobenih dejanj.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” dodaja več kot 16 dejanj.</string>
+    <string name="core_plugins_reject_unknown_language">\"%1$s\" je napisan v jeziku, ki ga ta različica tipkovnice WM Keyboard ne podpira. Vtičniki so napisani v Pythonu.</string>
     <string name="core_plugins_reject_unknown_permission">Ta različica tipkovnice WM Keyboard ne pozna dovoljenja »%1$s«. Aplikacija vam ne more povedati, kaj sme »%2$s« početi.</string>
     <string name="core_plugins_reminders_channel_body">Opomniki, ki jih je vtičnik zahteval za prikaz ob času, ki ste ga nastavili v vtičniku. Naslov vsakega opomnika je ime vtičnika.</string>
     <string name="core_plugins_reminders_channel_title">Opomniki vtičnikov</string>
     <string name="core_plugins_stopped_cancelled">Aplikacija je ustavila ta vtičnik.</string>
     <string name="core_plugins_stopped_deadline">Ta vtičnik je deloval predolgo. Aplikacija ga je zaustavila.</string>
     <string name="core_plugins_stopped_instructions">Ta vtičnik je opravil preveč dela naenkrat. Aplikacija ga je ustavila.</string>
+    <string name="core_plugins_stopped_memory">Ta vtičnik je poskušal hraniti preveč podatkov. Aplikacija ga je ustavila.</string>
     <string name="core_plugins_stopped_not_responding">Ta vtičnik se je prenehal odzivati. Aplikacija ga je zaprla.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Ta vtičnik se je znova prenehal odzivati. Aplikacija ga je izklopila.</string>
     <string name="core_plugins_stopped_recursion">Ta vtičnik se je prevečkrat samodejno zagnal. Aplikacija ga je ustavila.</string>

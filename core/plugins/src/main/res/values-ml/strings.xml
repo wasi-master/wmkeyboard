@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">ആ പ്ലഗിനിൽ ഇപ്പോൾ ആ പ്രവർത്തനം ലഭ്യമല്ല.</string>
     <string name="core_plugins_error_no_render">ഈ പ്ലഗിന്നിന് render() ഫംഗ്‌ഷൻ ഇല്ല.</string>
+    <string name="core_plugins_error_no_transform">ഈ പ്ലഗിനിൽ transform() ഫംഗ്ഷൻ ഇല്ല.</string>
     <string name="core_plugins_error_not_installed">ആ പ്ലഗിൻ ഇൻസ്റ്റാൾ ചെയ്തിട്ടില്ല.</string>
+    <string name="core_plugins_error_not_ready">പ്ലഗിനുകൾ ഇപ്പോഴും ഡൗൺലോഡ് ചെയ്യപ്പെടുന്നു. കുറച്ചു കഴിഞ്ഞ് വീണ്ടും ശ്രമിക്കുക.</string>
     <string name="core_plugins_error_script_failed">സ്ക്രിപ്റ്റ് പരാജയപ്പെട്ടു.</string>
     <string name="core_plugins_error_script_missing">ആ പ്ലഗിനിനായുള്ള സ്ക്രിപ്റ്റ് കാണാനില്ല.</string>
     <string name="core_plugins_error_turned_off">ആ പ്ലഗിൻ ഓഫാക്കിയിരിക്കുന്നു.</string>
     <string name="core_plugins_permission_reminders_label">നിങ്ങൾ സജ്ജമാക്കിയ സമയങ്ങളിൽ ഓർമ്മപ്പെടുത്തലുകൾ കാണിക്കുക</string>
+    <string name="core_plugins_permission_selection_label">അതിന്റെ പ്രവർത്തനങ്ങളിൽ ഒന്നിൽ ടാപ്പുചെയ്യുമ്പോൾ, നിങ്ങൾ തിരഞ്ഞെടുക്കുന്ന വാചകം മാറ്റുക</string>
     <string name="core_plugins_permission_storage_label">നിങ്ങളുടെ ഉപകരണത്തിൽ ഡാറ്റ സംരക്ഷിക്കുക</string>
+    <string name="core_plugins_reject_action_input">WM കീബോർഡിന്റെ ഈ പതിപ്പിന് നൽകാൻ കഴിയാത്ത ടെക്‌സ്‌റ്റ് ആവശ്യപ്പെടുന്ന ഒരു പ്രവർത്തനം “%1$s”-ൽ ഉണ്ട്.</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s”-ൽ പേരില്ലാത്ത ഒരു പ്രവർത്തനമുണ്ട്.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” തിരഞ്ഞെടുത്ത വാചകത്തിനായി പ്രവർത്തനങ്ങൾ ചേർക്കുന്നു എന്നാൽ അത് മാറ്റാൻ അനുവാദം ചോദിക്കുന്നില്ല.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s”-ന് ഐഡി നഷ്ടപ്പെട്ടതോ ആവർത്തിച്ചതോ അല്ലാത്തതോ ആയ ഒരു പ്രവർത്തനമുണ്ട്. ഒരു പ്രവർത്തന ഐഡിയിൽ 32 ചെറിയ ഇംഗ്ലീഷ് അക്ഷരങ്ങൾ, നമ്പറുകൾ, ഹൈഫനുകൾ, അണ്ടർസ്കോറുകൾ എന്നിവ ഉണ്ടാകാം.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s”-ൽ സാധുവായ UTF-8 ടെക്സ്റ്റ് അല്ലാത്ത ഒരു സ്ക്രിപ്റ്റ് ഉണ്ട്.</string>
     <string name="core_plugins_reject_bad_id">ഈ പ്ലഗിന്നിന്റെ ഐഡി സാധുവല്ല. ഒരു ഐഡിക്ക് 3 മുതൽ 64 വരെ അക്ഷരങ്ങൾ ഉണ്ടായിരിക്കണം. ഐഡിയിൽ ചെറിയ അക്ഷരങ്ങൾ, അക്കങ്ങൾ, ഡോട്ടുകൾ, ഡാഷുകൾ, അണ്ടർസ്കോറുകൾ എന്നിവ ഉൾപ്പെടാം.</string>
     <string name="core_plugins_reject_empty_script">“%1$s”-ൽ സ്ക്രിപ്റ്റ് ഒന്നുമില്ല.</string>
+    <string name="core_plugins_reject_lua">“%1$s” ലുവാ (Lua) ഭാഷയിലാണ് എഴുതിയിരിക്കുന്നത്, ഇത് ഡബ്ല്യുഎം കീബോർഡ് (WM Keyboard) ഇനി പ്രവർത്തിപ്പിക്കില്ല. ഇതിന്റെ പൈത്തൺ പതിപ്പിനായി നോക്കുക.</string>
     <string name="core_plugins_reject_missing_script">“%1$s”-ന് അതിന്റേതായ സ്ക്രിപ്റ്റ് ഫയൽ (%2$s) ഇല്ല.</string>
     <string name="core_plugins_reject_newer_version">ഈ പ്ലഗിന്നിന് WM കീബോർഡിന്റെ പുതിയ പതിപ്പ് ആവശ്യമാണ്.</string>
     <string name="core_plugins_reject_no_name">ഈ പ്ലഗിന് പേരില്ല.</string>
     <string name="core_plugins_reject_no_version">“%1$s” ഏത് പതിപ്പാണെന്ന് പറയുന്നില്ല.</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s”-ന് പാനലോ പ്രവൃത്തികളോ ഇല്ല, അതിനാൽ ഇതിന് ചെയ്യാൻ ഒന്നുമില്ല.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s”-ന് %2$d KB-യിൽ കൂടുതൽ വലുപ്പമുള്ള സ്ക്രിപ്റ്റ് ഉണ്ട്.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” തിരഞ്ഞെടുക്കുന്ന വാചകം മാറ്റാൻ ആവശ്യപ്പെടുന്നു എന്നാൽ യാതൊരു പ്രവർത്തനങ്ങളും ചേർക്കുന്നില്ല.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” 16-ൽ കൂടുതൽ പ്രവർത്തനങ്ങൾ ചേർക്കുന്നു.</string>
+    <string name="core_plugins_reject_unknown_language">WM കീബോർഡിന്റെ ഈ പതിപ്പിന് പ്രവർത്തിപ്പിക്കാൻ കഴിയാത്ത ഒരു ഭാഷയിലാണ് “%1$s” എഴുതിയിരിക്കുന്നത്. പ്ലഗിനുകൾ പൈത്തണിലാണ് എഴുതിയിരിക്കുന്നത്.</string>
     <string name="core_plugins_reject_unknown_permission">WM കീബോർഡിന്റെ ഈ പതിപ്പിന് “%1$s” എന്ന അനുമതി അറിയില്ല. “%2$s”-ന് എന്ത് ചെയ്യാൻ അനുവാദമുണ്ടെന്ന് ആപ്പിന് നിങ്ങളോട് പറയാൻ കഴിയില്ല.</string>
     <string name="core_plugins_reminders_channel_body">പ്ലഗിന്നിൽ നിങ്ങൾ സജ്ജമാക്കിയ സമയങ്ങളിൽ, ആപ്പ് കാണിക്കാൻ ഒരു പ്ലഗിൻ ആവശ്യപ്പെട്ട ഓർമ്മപ്പെടുത്തലുകൾ. ഓരോന്നിന്റെയും തലക്കെട്ട് പ്ലഗിന്നിന്റെ പേരാണ്.</string>
     <string name="core_plugins_reminders_channel_title">പ്ലഗിൻ ഓർമ്മപ്പെടുത്തലുകൾ</string>
     <string name="core_plugins_stopped_cancelled">ആപ്പ് ഈ പ്ലഗിൻ നിർത്തി.</string>
     <string name="core_plugins_stopped_deadline">ഈ പ്ലഗിൻ പ്രവർത്തിക്കാൻ കൂടുതൽ സമയമെടുത്തു. ആപ്പ് അത് നിർത്തിവെച്ചു.</string>
     <string name="core_plugins_stopped_instructions">ഈ പ്ലഗിൻ ഒരേസമയം കൂടുതൽ ജോലി ചെയ്തതിനാൽ ആപ്പ് അത് നിർത്തിവെച്ചു.</string>
+    <string name="core_plugins_stopped_memory">ഈ പ്ലഗിൻ വളരെയധികം ഡാറ്റ സൂക്ഷിക്കാൻ ശ്രമിച്ചു. ആപ്പ് ഇത് നിർത്തി.</string>
     <string name="core_plugins_stopped_not_responding">ഈ പ്ലഗിൻ പ്രതികരിക്കുന്നത് നിർത്തി. ആപ്പ് അത് അടച്ചു.</string>
     <string name="core_plugins_stopped_not_responding_disabled">ഈ പ്ലഗിൻ വീണ്ടും പ്രതികരിക്കുന്നത് നിർത്തി. ആപ്പ് അത് ഓഫാക്കി.</string>
     <string name="core_plugins_stopped_recursion">ഈ പ്ലഗിൻ സ്വയം പലതവണ വിളിച്ചു. ആപ്പ് അത് തടഞ്ഞു.</string>

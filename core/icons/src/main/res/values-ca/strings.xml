@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Barra d\'eines</string>
     <string name="core_icons_group_tools_title">Eines</string>
     <string name="core_icons_pack_imported_label">Icones importades</string>
-    <string name="core_icons_pack_mine_label">Les meves icones</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">L\'aplicació ha ignorat %1$d fitxer. Aquesta versió no té cap icona per a ell: %2$s</item>
         <item quantity="other">L\'aplicació ha ignorat %1$d fitxers. Aquesta versió no té cap icona per a ells: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tecla de tabulació</string>
     <string name="core_icons_slot_toolbox_label">Caixa d\'eines</string>
     <string name="core_icons_slot_toolbox_search_label">Cerca a la caixa d\'eines</string>
+    <string name="core_icons_pack_mine_label">Les meves icones</string>
 </resources>

@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Ibha yamathuluzi</string>
     <string name="core_icons_group_tools_title">Amathuluzi</string>
     <string name="core_icons_pack_imported_label">Izithonjana ezithunyelwe ngaphandle</string>
-    <string name="core_icons_pack_mine_label">Izithonjana zami</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Uhlelo lokusebenza luyizibe ifayela elingu-%1$d. Le nguqulo ayinalo uphawu lalo: %2$s</item>
         <item quantity="other">Uhlelo lokusebenza luyizibe amafayela angu-%1$d. Le nguqulo ayinalo uphawu lwawo: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Inkinobho yethebhu</string>
     <string name="core_icons_slot_toolbox_label">Ibhokisi lamathuluzi</string>
     <string name="core_icons_slot_toolbox_search_label">Sesha ebhokisini lamathuluzi</string>
+    <string name="core_icons_pack_mine_label">Izithonjana zami</string>
 </resources>

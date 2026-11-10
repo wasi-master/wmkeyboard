@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Hintergrundbilder</string>
     <string name="core_tools_provider_acrcloud_desc">Ein Musikerkennungsdienst mit zweiwöchiger Testphase, danach kostenpflichtige Pläne. Benötigt Host, Zugriffsschlüssel und Zugriffsgeheimnis eines Projekts von console.acrcloud.com. Jeder Clip wird an ACRCloud gesendet.</string>
     <string name="core_tools_provider_ai_horde_desc">Kostenloses Stable Diffusion auf Computern von Freiwilligen. Funktioniert ohne Schlüssel, wartet aber in einer Warteschlange; ein kostenloser Schlüssel von aihorde.net bringt Sie weiter nach vorne.</string>
+    <string name="core_tools_provider_allratestoday_desc">Referenzkurse der Europäischen Zentralbank für ca. 30 Währungen. Kein Schlüssel.</string>
     <string name="core_tools_provider_anthropic_desc">Claude-Modelle über die API von Anthropic, mit Ihrem eigenen Schlüssel.</string>
     <string name="core_tools_provider_asr4all_desc">Englische Diktierfunktion auf dem Telefon, wobei Wörter erscheinen, während du sprichst.</string>
     <string name="core_tools_provider_audd_desc">Erkennt die meisten veröffentlichten Musiktitel anhand weniger Sekunden Ton. Erfordert ein Token von dashboard.audd.io; einige hundert Erkennungen sind kostenlos, danach ist es kostenpflichtig. Jeder Clip wird an AudD gesendet.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Ein großes Modell, das auf dem Telefon läuft und 25 europäische Sprachen versteht.</string>
     <string name="core_tools_provider_pexels_desc">Fotos von Pexels. Benötigt einen API-Schlüssel, es sei denn, dieser Build enthält einen.</string>
     <string name="core_tools_provider_pollinations_desc">Kostenlos, ohne Schlüssel und ohne Konto: Der Prompt wird an Pollinations gesendet, das das Modell auswählt. Ein Schlüssel von enter.pollinations.ai öffnet die neuere API und ermöglicht es Ihnen, ein Modell zu benennen.</string>
+    <string name="core_tools_provider_privatemode">Privatemode AI</string>
+    <string name="core_tools_provider_privatemode_desc">KI, die in vertraulichem Computing läuft und Ihren Text nicht lesen kann. Geben Sie Ihren Privatemode-API-Schlüssel ein. Die Tastatur verschlüsselt dann jede Anfrage auf dem Telefon, prüft jedoch nicht die Hardware-Attestierung des Dienstes. Um dies ebenfalls zu überprüfen, führen Sie privatemode-proxy aus und geben Sie dessen Adresse an, z. B. http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (inoffiziell, via RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Shazams Katalog über ein inoffizielles Verzeichnis auf RapidAPI, mit einem RapidAPI-Schlüssel. Kein Apple-Dienst: Das Verzeichnis kann sich ohne Vorankündigung ändern oder eingestellt werden. Jeder Clip wird an RapidAPI gesendet.</string>
     <string name="core_tools_provider_recraft_desc">Illustrationen, Icons und Vektorgrafiken. Benötigt einen Schlüssel von recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Fotos von Unsplash. Benötigt einen API-Schlüssel, es sei denn, dieser Build enthält einen.</string>
     <string name="core_tools_provider_vision_ocr">Ihr Vision-Modell</string>
     <string name="core_tools_provider_vision_ocr_desc">Ein Modell, das Bilder liest, über einen Server, der OpenAI-Chat-Anfragen beantwortet. Benötigt die Adresse und den Modellnamen.</string>
+    <string name="core_tools_provider_vosk_desc">Kleine Kaldi-Modelle von Alpha Cephei für 29 Sprachen, jeweils ca. 40 MB groß, die während des Sprechens auf dem Telefon tippen. Leicht genug für ältere Smartphones.</string>
     <string name="core_tools_provider_whisper_desc">OpenAIs Whisper-Modelle, die auf dem Telefon laufen. Viele Sprachen; lade ein Modell auf der Seite für Spracheingabe herunter.</string>
     <string name="core_tools_provider_whistle_desc">Ein kleines, schnelles Modell, das auf dem Telefon läuft. Lade es auf der Seite für Spracheingabe herunter.</string>
     <string name="core_tools_provider_xai_desc">Grok-Modelle über die API von xAI, mit deinem eigenen Schlüssel.</string>

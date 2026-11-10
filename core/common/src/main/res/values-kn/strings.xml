@@ -37,6 +37,7 @@
     <string name="common_error_download_held">ವಿರಾಮಗೊಳಿಸಲಾಗಿದೆ: ಡೇಟಾ ಉಳಿತಾಯವು ಈ ಸಂಪರ್ಕದಲ್ಲಿ ಡೌನ್‌ಲೋಡ್‌ಗಳನ್ನು ತಡೆಹಿಡಿದಿದೆ. ಇದು ನಿಂತಲ್ಲೇ ಮುಂದುವರಿಯುತ್ತದೆ.</string>
     <string name="common_error_generic">ಏನೋ ಕೆಲಸ ಮಾಡಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.</string>
     <string name="common_error_network">ಸಂಪರ್ಕವಿಲ್ಲ. ನಿಮ್ಮ ನೆಟ್‌ವರ್ಕ್ ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.</string>
+    <string name="common_error_network_permission_off">ನಿಮ್ಮ ಫೋನ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ WM ಕೀಬೋರ್ಡ್‌ನ ನೆಟ್‌ವರ್ಕ್ ಪ್ರವೇಶವನ್ನು ಆಫ್ ಮಾಡಲಾಗಿದೆ, ಆದ್ದರಿಂದ ಇದು ಕೆಲಸ ಮಾಡುವುದಿಲ್ಲ. Android Settings › Apps › WM Keyboard › Permissions (GrapheneOS ನಲ್ಲಿ, Network ಅನುಮತಿ) ನಲ್ಲಿ ಅದನ್ನು ಆನ್ ಮಾಡಿ, ನಂತರ আবার ಪ್ರಯತ್ನಿಸಿ.</string>
     <string name="common_error_no_internet_permission">ಕೀಬೋರ್ಡ್‌ನ ಈ ಆವೃತ್ತಿಯು ಇಂಟರ್ನೆಟ್‌ಗೆ ಸಂಪರ್ಕ ಸಾಧಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ.</string>
     <string name="common_error_timeout">ವಿನಂತಿಯು ತುಂಬಾ ಸಮಯ ತೆಗೆದುಕೊಂಡಿದೆ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.</string>
     <string name="common_export">ರಫ್ತು ಮಾಡಿ</string>
@@ -48,6 +49,8 @@
     <string name="common_more">ಇನ್ನಷ್ಟು</string>
     <string name="common_next">ಮುಂದೆ</string>
     <string name="common_none">ಯಾವುದೂ ಇಲ್ಲ</string>
+    <string name="common_notify_channel_alarms_body">ಸ್ನೂಜ್ ಮಾಡಲಾದ ಅಥವಾ ಶೀಘ್ರದಲ್ಲೇ ರಿಂಗ್ ಆಗಲಿರುವ ಅಲಾರ್ಮ್, ಮತ್ತು ಯಾರೂ ಇಲ್ಲದಿದ್ದಾಗ ರಿಂಗ್ ಆದ ಅಲಾರ್ಮ್. ರಿಂಗ್ ಆಗುವುದಕ್ಕೆ ತನ್ನದೇ ಆದ ಚಾನಲ್ ಇದೆ.</string>
+    <string name="common_notify_channel_alarms_title">ಅಲಾರ್ಮ್ ಸೂಚನೆಗಳು</string>
     <string name="common_notify_channel_backup_body">ಸ್ವಯಂಚಾಲಿತ ಬ್ಯಾಕಪ್ ವಿಫಲವಾದಾಗ ಮಾತ್ರ. ಯಶಸ್ವಿ ಬ್ಯಾಕಪ್‌ಗಳು ಮೌನವಾಗಿರುತ್ತವೆ.</string>
     <string name="common_notify_channel_backup_title">ಬ್ಯಾಕಪ್ ಸಮಸ್ಯೆಗಳು</string>
     <string name="common_notify_channel_clock_body">ಟೈಮರ್‌ಗಳು ಮತ್ತು ಸ್ಟಾಪ್‌ವಾಚ್ ಚಾಲನೆಯಲ್ಲಿರುವಾಗ, ವಿರಾಮಗೊಳಿಸಲು, ಒಂದು ನಿಮಿಷ ಸೇರಿಸಲು ಅಥವಾ ಅವುಗಳನ್ನು ನಿಲ್ಲಿಸಲು ಬಟನ್‌ಗಳೊಂದಿಗೆ.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">ಕೀಬೋರ್ಡ್ ನಿಯಂತ್ರಣಗಳು</string>
     <string name="common_notify_channel_send_body">ಕೀಬೋರ್ಡ್ ಮರೆಮಾಡಲ್ಪಟ್ಟಿದ್ದಾಗ ಕಳುಹಿಸುವ ಫೈಲ್‌ಗಳ ಉಪಕರಣವು ಅಪ್‌ಲೋಡ್ ಅಥವಾ ಡೌನ್‌ಲೋಡ್ ಅನ್ನು ಪೂರ್ಣಗೊಳಿಸಿದೆ, ನಕಲಿಸಲು ಲಿಂಕ್ ಮತ್ತು ಹತ್ತಿರದ ಸಾಧನವು ಕಳುಹಿಸಿದ ಫೈಲ್‌ನೊಂದಿಗೆ.</string>
     <string name="common_notify_channel_send_title">ಫೈಲ್‌ಗಳನ್ನು ಕಳುಹಿಸುವುದು ಮತ್ತು ಸ್ವೀಕರಿಸುವುದು</string>
+    <string name="common_notify_channel_stopwatch_body">ಸ್ಟಾಪ್‌ವಾಚ್ ಇದು ರನ್ ಆಗುತ್ತಿರುವಾಗ ಅಥವಾ ವಿರಾಮಗೊಳಿಸಿದಾಗ, ಲ್ಯಾಪ್‌ಗಳು, ವಿರಾಮಗೊಳಿಸುವುದು ಮತ್ತು ಮರುಹೊಂದಿಸಲು ಬಟನ್‌ಗಳೊಂದಿಗೆ.</string>
+    <string name="common_notify_channel_stopwatch_title">ಸ್ಟಾಪ್‌ವಾಚ್</string>
     <string name="common_notify_channel_updates_body">ಸ್ಥಾಪಿಸಲು ಹೊಸ ಆವೃತ್ತಿ, ನೀವು ಇನ್‌ಸ್ಟಾಲ್ ಒತ್ತಲು ಕಾಯುತ್ತಿರುವ ಅಪ್‌ಡೇಟ್, ಮತ್ತು ಇನ್‌ಸ್ಟಾಲ್ ಆದ ನಂತರದ ದೃಢೀಕರಣ.</string>
     <string name="common_notify_channel_updates_title">ಅಪ್ಲಿಕೇಶನ್ ನವೀಕರಣಗಳು</string>
     <string name="common_notify_download_done">ಬಳಸಲು ಸಿದ್ಧವಾಗಿದೆ</string>
     <string name="common_notify_download_failed">%1$s ಅನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ</string>
     <string name="common_notify_download_handwriting">%1$s ಕೈಬರಹ</string>
     <string name="common_notify_download_progress">%2$s ರಲ್ಲಿ %1$s</string>
+    <string name="common_notify_download_step_library">ಹಂತ 1 ರಲ್ಲಿ 2, ಎಂಜಿನ್ ಲೈಬ್ರರಿ: %1$s</string>
+    <string name="common_notify_download_step_model">ಹಂತ 2 ರ 2, ಮಾದರಿ: %1$s</string>
     <string name="common_notify_download_translate">%1$s ಆಫ್‌ಲೈನ್ ಅನುವಾದ</string>
     <string name="common_notify_download_voice">%1$s ಆಫ್‌ಲೈನ್ ಧ್ವನಿ</string>
     <string name="common_off">ಆಫ್</string>
+    <string name="common_offline_build_download">ఇದು ಆಫ್‌ಲೈನ್ ಬಿಲ್ಡ್ ಆಗಿರುವುದರಿಂದ ಇದನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ. ಫೈಲ್ ಅನ್ನು ಮತ್ತೊಂದು ಸಾಧನದಲ್ಲಿ ಪಡೆದುಕೊಂಡು ಆಮದು ಮಾಡಿಕೊಳ್ಳಿ: ಸೆಟ್ಟಿಂಗ್‌ಗಳು › ಕುರಿತು › ಸಂಗ್ರಹಣೆ › ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ಫೈಲ್‌ಗಳನ್ನು ಆಮದು ಮಾಡಿಕೊಳ್ಳಿ ಅಥವಾ ಈ ಪರದೆಯ ಸ್ವಂತ ಆಮದು ಸಾಲು ಅಲ್ಲಿ ಒಂದನ್ನು ಹೊಂದಿದೆ. ಅಥವಾ ಇದಕ್ಕಿಂತ ಮೇಲಿರುವ ಅದೇ ಬಿಡುಗಡೆ ಪುಟದಿಂದ ಪ್ರಮಾಣಿತ ಬಿಲ್ಡ್ ಅನ್ನು ಸ್ಥಾಪಿಸಿ, ಮತ್ತು ಅದು ತನ್ನದೇ ಆದ ಮೇಲೆ ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತದೆ. ನಿಮ್ಮ ಸೆಟ್ಟಿಂಗ್‌ಗಳು ಮತ್ತು ಕಲಿತ ಪದಗಳು ಹಾಗೆಯೇ ಇರುತ್ತವೆ.</string>
+    <string name="common_offline_build_library">ಇದು ಆಫ್‌ಲೈನ್ ಬಿಲ್ಡ್ ಆಗಿರುವುದರಿಂದ ಇದಕ್ಕೆ ಅಗತ್ಯವಿರುವ ಲೈಬ್ರರಿಯನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ. ಇದರ ಫೈಲ್ ಅನ್ನು ಮತ್ತೊಂದು ಸಾಧನದಲ್ಲಿ ಪಡೆದುಕೊಂಡು ಅದನ್ನು ಸೆಟ್ಟಿಂಗ್‌ಗಳು › ಗೌಪ್ಯತೆ › ಫೀಚರ್ ಲೈಬ್ರರಿಗಳಲ್ಲಿ ಆಮದು ಮಾಡಿಕೊಳ್ಳಿ, ಇದು ನಿಖರವಾದ ಫೈಲ್ ಅನ್ನು ಪಟ್ಟಿ ಮಾಡುತ್ತದೆ. ಅಥವಾ ಇದಕ್ಕಿಂತ ಮೇಲಿರುವ ಅದೇ ಬಿಡುಗಡೆ ಪುಟದಿಂದ ಪ್ರಮಾಣಿತ ಬಿಲ್ಡ್ ಅನ್ನು ಸ್ಥಾಪಿಸಿ, ಮತ್ತು ಅದು ತನ್ನದೇ ಆದ ಮೇಲೆ ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತದೆ. ನಿಮ್ಮ ಸೆಟ್ಟಿಂಗ್‌ಗಳು ಮತ್ತು ಕಲಿತ ಪದಗಳು ಹಾಗೆಯೇ ಇರುತ್ತವೆ.</string>
     <string name="common_ok">ಸರಿ</string>
     <string name="common_on">ಆನ್</string>
     <string name="common_open_system_settings">ಸಿಸ್ಟಮ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ತೆರೆಯಿರಿ</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">AI ಬಟನ್‌ಗಾಗಿ ಪ್ರವೇಶಿಸುವಿಕೆ ಸೇವೆ</string>
     <string name="common_special_access_split_screen_body">ಕೀಬೋರ್ಡ್ ವಿಭಜಿತ ಪರದೆಯನ್ನು ಕೇಳಿದಾಗ ಕೆಲವು ಫೋನ್‌ಗಳು ಅಪ್ಲಿಕೇಶನ್ ಅನ್ನು ಪೂರ್ಣ ಪರದೆಯಲ್ಲಿ ತೆರೆಯುತ್ತವೆ. ಈ ಸೇವೆಯು ಆನ್ ಆಗಿರುವಾಗ, ಅಪ್ಲಿಕೇಶನ್ ಲಾಂಚರ್‌ನಿಂದ ವಿಭಜಿತ ಪರದೆಯಲ್ಲಿ ಅಪ್ಲಿಕೇಶನ್ ತೆರೆಯುವುದು ಅಥವಾ ವಿಭಜಿತ ಪರದೆಯ ಜೋಡಿಯನ್ನು ತೆರೆಯುವುದು, ಇತ್ತೀಚಿನ ಮೆನು ಹೊಂದಿರುವ ಅದೇ ಆಂಡ್ರಾಯ್ಡ್‌ನ ಸ್ವಂತ ವಿಭಜಿತ ಪರರೆಯ ಸ್ವಿಚ್ ಅನ್ನು ಮೊದಲು ಒತ್ತುತ್ತದೆ, ಮತ್ತು ನಂತರ ಅಪ್ಲಿಕೇಶನ್ ಮುಕ್ತ ಅರ್ಧದಲ್ಲಿ ತೆರೆಯುತ್ತದೆ. ಅದನ್ನು ಒತ್ತುವ ಮೊದಲು, ವಿಭಜಿತ ಪರರೆಯು ಈಗಾಗಲೇ ಮೇಲಿದೆಯೇ ಎಂದು ನೋಡಲು ಸೇವೆS ಅಪ್ಲಿಕೇಶನ್ ವಿಂಡೋಗಳು ಎಲ್ಲಿವೆ ಎಂದು ಪರಿಶೀಲಿಸುತ್ತದೆ. ಇದು ಅವುಗಳಲ್ಲಿರುವುದನ್ನು ಎಂದಿಗೂ ಓದುವುದಿಲ್ಲ. ಇದು ಯಾವುದೇ ಸಮಯದಲ್ಲಿ ಬೇರೆ ಯಾವುದೇ ಕೆಲಸ ಮಾಡುವುದಿಲ್ಲ, ನೀವು ಟೈಪ್ ಮಾಡುವುದನ್ನು ನೋಡುವುದಿಲ್ಲ ಮತ್ತು ಯಾವುದನ್ನೂ ಇಟ್ಟುಕೊಳ್ಳುವುದಿಲ್ಲ. ಈ ರೀತಿಯ ಸೇವೆಯು ಮಾಡಬಹುದಾದ ಎಲ್ಲದರ ಬಗ್ಗೆ ಆಂಡ್ರಾಯ್ಡ್‌ನ ಪ್ರವೇಶಸಾಧ್ಯತೆಯ ಪರದೆಯು ಎಚ್ಚರಿಸುತ್ತದೆ. ನೀವು ವಿಭಜಿತ ಪರದೆಯನ್ನು ಕೇಳಿದಾಗ ಮಾತ್ರ ಇದು ಆ ಸ್ವಿಚ್ ಅನ್ನು ಒತ್ತುತ್ತದೆ.</string>
     <string name="common_special_access_split_screen_title">Vibhajanagonda theredigagi sulabha sabhe seve</string>
+    <string name="common_special_access_system_buttons_body">Android     ,  ,   ,  ,            .     ,            .      .        .      ,       . Android             .         .</string>
+    <string name="common_special_access_system_buttons_title">ಸಿಸ್ಟಮ್ ಬಟನ್‌ಗಳಿಗಾಗಿ ಪ್ರವೇಶಿಸುವಿಕೆ ಸೇವೆ</string>
     <string name="common_special_access_usage_body">ಬಳಕೆಯ ಪ್ರವೇಶದೊಂದಿಗೆ, ನೀವು ಏನನ್ನಾದರೂ ನಕಲಿಸಿದಾಗ ಯಾವ ಆ್ಯಪ್ ಮುಂದಿದೆ ಎಂಬುದನ್ನು ಕೀಬೋರ್ಡ್ ದಾಖಲಿಸುತ್ತದೆ. ನೀವು ಕ್ಲಿಪ್ ಅನ್ನು ಒತ್ತಿ ಹಿಡಿದಾಗ ಅದು ಆ ಆ್ಯಪ್ ಅನ್ನು ತೋರಿಸುತ್ತದೆ. ಕೀಬೋರ್ಡ್ ನಕಲು ಮಾಡುವ ಸಮಯದಲ್ಲಿ ಮಾತ್ರ ಮುಂಭಾಗದ ಆ್ಯಪ್ ಅನ್ನು ಓದುತ್ತದೆ. ಇದು ನಿಮ್ಮ ಇತಿಹಾಸವನ್ನು ಅಥವಾ ನೀವು ಆ್ಯಪ್‌ನಲ್ಲಿ ಕಳೆದ ಸಮಯವನ್ನು ಓದುವುದಿಲ್ಲ. ಕೀಬೋರ್ಡ್ ಉತ್ತರವನ್ನು ಕ್ಲಿಪ್‌ನೊಂದಿಗೆ ನಿಮ್ಮ ಸಾಧನದಲ್ಲಿ ಮಾತ್ರ ಇರಿಸುತ್ತದೆ. ನಿಮ್ಮ ಆ್ಯಪ್ ಬಳಕೆಯ ಬಗ್ಗೆ ಯಾವುದೂ ನಿಮ್ಮ ಸಾಧನವನ್ನು ಬಿಟ್ಟು ಹೋಗುವುದಿಲ್ಲ. ಈ ಸೆಟ್ಟಿಂಗ್ ಐಚ್ಛಿಕವಾಗಿದೆ. ನೀವು ಅದನ್ನು ಆನ್ ಮಾಡುವವರೆಗೆ ಅದು ಆಫ್ ಆಗಿರುತ್ತದೆ.</string>
     <string name="common_special_access_usage_title">ಕ್ಲಿಪ್‌ಬೋರ್ಡ್ ಮೂಲ ಅಪ್ಲಿಕೇಶನ್‌ಗಳಿಗಾಗಿ ಬಳಕೆಯ ಪ್ರವೇಶ</string>
     <string name="common_type_setting_value_desc">%1$s ಗಾಗಿ ಒಂದು ಮೌಲ್ಯವನ್ನು ಟೈಪ್ ಮಾಡಿ</string>

@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Die plug-in heeft die actie niet meer.</string>
     <string name="core_plugins_error_no_render">Deze plugin heeft geen render()-functie.</string>
+    <string name="core_plugins_error_no_transform">Deze plugin heeft geen transform()-functie.</string>
     <string name="core_plugins_error_not_installed">Die plug-in is niet geïnstalleerd.</string>
+    <string name="core_plugins_error_not_ready">Plugins worden nog gedownload. Probeer het zo meteen opnieuw.</string>
     <string name="core_plugins_error_script_failed">Het script is mislukt.</string>
     <string name="core_plugins_error_script_missing">Het script voor die plugin ontbreekt.</string>
     <string name="core_plugins_error_turned_off">Die plug-in is uitgeschakeld.</string>
     <string name="core_plugins_permission_reminders_label">Toon herinneringen op tijden die je erin hebt ingesteld</string>
+    <string name="core_plugins_permission_selection_label">Wijzig de geselecteerde tekst wanneer je op een van de acties tikt</string>
     <string name="core_plugins_permission_storage_label">Gegevens opslaan op uw apparaat</string>
+    <string name="core_plugins_reject_action_input">“%1$s” heeft een actie die om tekst vraagt die deze versie van WM Keyboard niet kan leveren.</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s” heeft een actie zonder naam.</string>
+    <string name="core_plugins_reject_actions_need_selection">\"%1$s\" voegt acties toe voor geselecteerde tekst, maar vraagt geen toestemming om deze te wijzigen.</string>
+    <string name="core_plugins_reject_bad_action_id">‘%1$s’ heeft een actie waarvan de id ontbreekt, herhaald is of niet geldig is. Een actie-id bestaat uit maximaal 32 kleine letters, cijfers, streepjes en underscores.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” bevat een script dat geen geldige UTF-8-tekst is.</string>
     <string name="core_plugins_reject_bad_id">Deze plugin heeft een id die niet geldig is. Een id is 3 tot 64 tekens lang. Een id kan kleine letters, cijfers, punten, koppeltekens en underscores bevatten.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” heeft een leeg script.</string>
+    <string name="core_plugins_reject_lua">“%1$s” is geschreven in Lua, wat WM Keyboard niet langer uitvoert. Zoek naar de Python-versie.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” heeft geen scriptbestand (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Deze plug-in heeft een nieuwere versie van WM Keyboard nodig.</string>
     <string name="core_plugins_reject_no_name">Deze plug-in heeft geen naam.</string>
     <string name="core_plugins_reject_no_version">“%1$s” geeft niet aan welke versie het is.</string>
+    <string name="core_plugins_reject_nothing_to_show">\"%1$s\" heeft geen paneel en geen acties, dus er is niets te doen.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” heeft een script dat groter is dan %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">\'%1$s\' vraagt om geselecteerde tekst te wijzigen, maar voegt geen acties toe.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” voegt meer dan 16 acties toe.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” is geschreven in een taal die deze versie van WM Keyboard niet kan uitvoeren. Plug-ins zijn geschreven in Python.</string>
     <string name="core_plugins_reject_unknown_permission">Deze versie van WM Keyboard kent de toestemming “%1$s” niet. De app kan je niet vertellen wat “%2$s” mag doen.</string>
     <string name="core_plugins_reminders_channel_body">Herinneringen die een plug-in aan de app heeft gevraagd om te tonen, op tijden die je in de plug-in hebt ingesteld. De titel van elk is de naam van de plug-in.</string>
     <string name="core_plugins_reminders_channel_title">Plugin-herinneringen</string>
     <string name="core_plugins_stopped_cancelled">De app heeft deze plug-in gestopt.</string>
     <string name="core_plugins_stopped_deadline">Deze plug-in duurde te lang. De app heeft hem gestopt.</string>
     <string name="core_plugins_stopped_instructions">Deze plug-in deed te veel werk tegelijk. De app heeft deze gestopt.</string>
+    <string name="core_plugins_stopped_memory">Deze plugin probeerde te veel data vast te houden. De app heeft dit gestopt.</string>
     <string name="core_plugins_stopped_not_responding">Deze plug-in reageerde niet meer. De app heeft deze gesloten.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Deze plug-in reageerde opnieuw niet. De app heeft deze uitgeschakeld.</string>
     <string name="core_plugins_stopped_recursion">Deze plug-in riep zichzelf te vaak aan. De app heeft deze gestopt.</string>

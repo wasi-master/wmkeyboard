@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Друга услуга</string>
     <string name="core_settings_ai_provider_on_device_label">На вашето устройство</string>
+    <string name="core_settings_ai_provider_privatemode_label">Частен режим</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Час от деня</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Изгрев и залез</string>
     <string name="core_settings_auto_theme_trigger_system_label">Системна светла или тъмна тема</string>

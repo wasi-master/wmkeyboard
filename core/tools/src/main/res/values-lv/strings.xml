@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Tapetes</string>
     <string name="core_tools_provider_acrcloud_desc">Mūzikas atpazīšanas pakalpojums ar divu nedēļu izmēģinājuma periodu, pēc tam maksas plāni. Nepieciešams resursdators, piekļuves atslēga un piekļuves slepenā atslēga no projekta vietnē console.acrcloud.com. Katrs klips tiek nosūtīts uz ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">Bezmaksas Stable Diffusion uz brīvprātīgo datoriem. Darbojas bez atslēgas, bet jāgaida rindā; bezmaksas atslēga no aihorde.net ļauj virzīties uz priekšu.</string>
+    <string name="core_tools_provider_allratestoday_desc">Eiropas Centrālās bankas references kursi aptuveni 30 valūtām. Bez atslēgas.</string>
     <string name="core_tools_provider_anthropic_desc">Claude modeļi, izmantojot Anthropic API, ar jūsu pašu atslēgu.</string>
     <string name="core_tools_provider_asr4all_desc">Diktēšana angļu valodā tālrunī, vārdiem parādoties runāšanas laikā.</string>
     <string name="core_tools_provider_audd_desc">Atpazīst lielāko daļu izlaistās mūzikas no dažām skaņas sekundēm. Nepieciešams marķieris no dashboard.audd.io; daži simti atpazīšanas reižu ir bezmaksas, pēc tam tas ir maksas pakalpojums. Katrs klips tiek nosūtīts uz AudD.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Liels modelis, kas darbojas tālrunī un saprot 25 Eiropas valodas.</string>
     <string name="core_tools_provider_pexels_desc">Fotoattēli no Pexels. Nepieciešama API atslēga, ja vien šajā versijā tāda nav iekļauta.</string>
     <string name="core_tools_provider_pollinations_desc">Bezmaksas, bez atslēgas un konta: uzvedne tiek nosūtīta uz Pollinations, kas izvēlas modeli. Atslēga no enter.pollinations.ai atver jaunāku API un ļauj nosaukt modeli.</string>
+    <string name="core_tools_provider_privatemode">Privātā režīmā AI</string>
+    <string name="core_tools_provider_privatemode_desc">Mākslīgais intelekts, kas darbojas konfidenciālā skaitļošanā un nevar nolasīt jūsu tekstu. Ievadiet savu Privatemode API atslēgu. Pēc tam tastatūra šifrē katru pieprasījumu tālrunī, taču tā nepārbauda pakalpojuma aparatūras apliecinājumu. Lai pārbaudītu arī to, palaidiet privatemode-proxy un norādiet tā adresi, piemēram, http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (neoficiāls, izmantojot RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Shazam katalogs, izmantojot neoficiālu sarakstu vietnē RapidAPI ar RapidAPI atslēgu. Tas nav Apple pakalpojums: saraksts var mainīties vai tikt pārtraukts bez brīdinājuma. Katrs klips tiek nosūtīts uz RapidAPI.</string>
     <string name="core_tools_provider_recraft_desc">Ilustrācijas, ikonas un vektorgrafikas stila māksla. Nepieciešama atslēga no recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Fotoattēli no Unsplash. Nepieciešama API atslēga, ja vien šajā versijā tāda nav iekļauta.</string>
     <string name="core_tools_provider_vision_ocr">Jūsu redzes modelis</string>
     <string name="core_tools_provider_vision_ocr_desc">Modelis, kas nolasa attēlus, izmantojot serveri, kas atbild uz OpenAI tērzēšanas pieprasījumiem. Nepieciešama adrese un modeļa nosaukums.</string>
+    <string name="core_tools_provider_vosk_desc">Mazi Kaldi modeļi no Alpha Cephei 29 valodām, aptuveni 40 MB katrs, kas raksta, kamēr jūs runājat pa tālruni. Pietiekami viegli vecākam tālrunim.</string>
     <string name="core_tools_provider_whisper_desc">OpenAI Whisper modeļi, kas darbojas tālrunī. Daudzas valodas; lejupielādējiet modeli balss ievades lapā.</string>
     <string name="core_tools_provider_whistle_desc">Mazs, ātrs modelis, kas darbojas tālrunī. Lejupielādējiet to balss ievades lapā.</string>
     <string name="core_tools_provider_xai_desc">Grok modeļi, izmantojot xAI API ar jūsu pašu atslēgu.</string>

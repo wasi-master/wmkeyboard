@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Dịch vụ khác</string>
     <string name="core_settings_ai_provider_on_device_label">Trên thiết bị của bạn</string>
+    <string name="core_settings_ai_provider_privatemode_label">Chế độ riêng tư</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Thời gian trong ngày</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Bình minh và hoàng hôn</string>
     <string name="core_settings_auto_theme_trigger_system_label">Hệ thống sáng hoặc tối</string>

@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">வால்பேப்பர்கள்</string>
     <string name="core_tools_provider_acrcloud_desc">இரண்டு வார சோதனைக் காலத்துடன் கூடிய இசை அங்கீகார சேவை, அதன் பிறகு கட்டணத் திட்டங்கள். console.acrcloud.com இலிருந்து ஒரு திட்டத்தின் ஹோஸ்ட், அணுகல் விசை மற்றும் அணுகல் ரகசியம் தேவை. ஒவ்வொரு கிளிப்பும் ACRCloud-க்கு அனுப்பப்படும்.</string>
     <string name="core_tools_provider_ai_horde_desc">தன்னார்வலர்களின் கணினிகளில் இலவச ஸ்டேபிள் டிஃப்யூஷன். கீ (key) இல்லாமலும் இயங்கும், ஆனால் வரிசையில் காத்திருக்க வேண்டும்; aihorde.net-லிருந்து இலவச கீயைப் பெற்றால் வரிசையில் முன்னால் செல்லலாம்.</string>
+    <string name="core_tools_provider_allratestoday_desc">சுமார் 30 நாணயங்களுக்கான ஐரோப்பிய மத்திய வங்கியின் குறிப்பு விகிதங்கள். திறவுகோல் இல்லை.</string>
     <string name="core_tools_provider_anthropic_desc">Anthropic-ன் API மூலம் Claude மாதிரிகள், உங்கள் சொந்த விசையுடன்.</string>
     <string name="core_tools_provider_asr4all_desc">போனில் ஆங்கில டிக்டேஷன், நீங்கள் பேசும்போது வார்த்தைகள் தோன்றும்.</string>
     <string name="core_tools_provider_audd_desc">சில வினாடி ஒலியிலிருந்து வெளியிடப்பட்ட பெரும்பாலான இசையை அடையாளம் காணும். dashboard.audd.io இலிருந்து டோக்கன் தேவை; சில நூறு அங்கீகாரங்கள் இலவசம், அதன் பிறகு கட்டணம் வசூலிக்கப்படும். ஒவ்வொரு கிளிப்பும் AudD-க்கு அனுப்பப்படும்.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">தொலைபேசியில் இயங்கும் மற்றும் 25 ஐரோப்பிய மொழிகளைப் புரிந்துகொள்ளும் ஒரு பெரிய மாதிரி.</string>
     <string name="core_tools_provider_pexels_desc">Pexels இலிருந்து புகைப்படங்கள். இந்த உருவாக்கத்தில் API விசை இல்லையெனில், அதற்கு ஒரு API விசை தேவை.</string>
     <string name="core_tools_provider_pollinations_desc">இலவசமானது, விசை மற்றும் கணக்கு தேவையில்லை: ப்ராம்ப்ட் Pollinations-க்கு அனுப்பப்படும், அது மாதிரியைத் தேர்ந்தெடுக்கும். enter.pollinations.ai-லிருந்து ஒரு விசை அதன் புதிய API-ஐத் திறந்து, ஒரு மாதிரியைப் பெயரிட உங்களை அனுமதிக்கிறது.</string>
+    <string name="core_tools_provider_privatemode">பிரைவேட்மோட் AI</string>
+    <string name="core_tools_provider_privatemode_desc">ரகசியக் கணினியில் இயங்கும் மற்றும் உங்கள் உரையைப் படிக்க முடியாத AI. உங்கள் Privatemode API விசையை வழங்குகின்றன. விசைப்பலகையானது தொலைபேசியில் ஒவ்வொரு கோரிக்கையையும் குறியாக்கம் செய்கிறது, ஆனால் அது சேவையின் வன்பொருள் சான்றளிப்பைச் சரிபார்க்காது. அதையும் சரிபார்க்க, privatemode-proxy ஐ இயக்கி, http://192.168.1.20:8080 போன்ற அதன் முகவரியைக் கொடுக்கவும்.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (அதிகாரப்பூர்வமற்றது, RapidAPI வழியாக)</string>
     <string name="core_tools_provider_rapid_shazam_desc">RapidAPI-இல் உள்ள அதிகாரப்பூர்வமற்ற பட்டியல் மூலம் Shazam-இன் பட்டியல், ஒரு RapidAPI விசை தேவை. இது ஆப்பிள் சேவை அல்ல: இந்த பட்டியல் முன்னறிவிப்பின்றி மாறலாம் அல்லது நிறுத்தப்படலாம். ஒவ்வொரு கிளிப்பும் RapidAPI-க்கு அனுப்பப்படும்.</string>
     <string name="core_tools_provider_recraft_desc">விளக்கப்படங்கள், ஐகான்கள் மற்றும் வெக்டர்-ஸ்டைல் கலை. recraft.ai இலிருந்து ஒரு கீ தேவை.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Unsplash-லிருந்து புகைப்படங்கள். இந்த உருவாக்கத்தில் இல்லையெனில், API விசை தேவை.</string>
     <string name="core_tools_provider_vision_ocr">உங்கள் விஷன் மாடல்</string>
     <string name="core_tools_provider_vision_ocr_desc">OpenAI அரட்டை கோரிக்கைகளுக்கு பதிலளிக்கும் சர்வர் மூலம் படங்களைப் படிக்கும் ஒரு மாதிரி. முகவரி மற்றும் மாதிரி பெயர் தேவை.</string>
+    <string name="core_tools_provider_vosk_desc">29 மொழிகளுக்கான ஆல்பா செபெய்யின் சிறிய கல்டி மாடல்கள், ஒவ்வொன்றும் சுமார் 40 எம்பி, நீங்கள் தொலைபேசியில் பேசும்போது தட்டச்சு செய்யும். பழைய தொலைபேசிக்கு கூட போதுமான இலகுவானது.</string>
     <string name="core_tools_provider_whisper_desc">OpenAI-ன் விஸ்பர் மாதிரிகள், தொலைபேசியில் இயங்கும். பல மொழிகள்; குரல் தட்டச்சு பக்கத்தில் ஒரு மாதிரியைப் பதிவிறக்கவும்.</string>
     <string name="core_tools_provider_whistle_desc">மொபைலில் இயங்கும் சிறிய, வேகமான மாடல். குரல் தட்டச்சு பக்கத்தில் இதைப் பதிவிறக்கவும்.</string>
     <string name="core_tools_provider_xai_desc">உங்கள் சொந்த விசையுடன் xAI-இன் API மூலம் Grok மாதிரிகள்.</string>

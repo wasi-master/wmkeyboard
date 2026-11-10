@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">دیگر سروس</string>
     <string name="core_settings_ai_provider_on_device_label">آپ کے آلے پر</string>
+    <string name="core_settings_ai_provider_privatemode_label">پرائیویٹ موڈ</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">دن کا وقت</string>
     <string name="core_settings_auto_theme_trigger_sun_label">طلوع اور غروب آفتاب</string>
     <string name="core_settings_auto_theme_trigger_system_label">سسٹم لائٹ یا ڈارک</string>

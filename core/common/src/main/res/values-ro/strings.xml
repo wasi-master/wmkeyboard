@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Întrerupt: economisirea datelor reține descărcările pe această conexiune. Va continua de unde s-a oprit.</string>
     <string name="common_error_generic">Ceva nu a funcționat. Încearcă din nou.</string>
     <string name="common_error_network">Fără conexiune. Verifică rețeaua și încearcă din nou.</string>
+    <string name="common_error_network_permission_off">Accesul la rețea pentru WM Keyboard este dezactivat în setările telefonului tău, așa că această funcție nu merge. Activează-l din Setări Android › Aplicații › WM Keyboard › Permisiuni (pe GrapheneOS, permisiunea Rețea), apoi încearcă din nou.</string>
     <string name="common_error_no_internet_permission">Această versiune a tastaturii nu se poate conecta la internet.</string>
     <string name="common_error_timeout">Solicitarea a durat prea mult. Încercați din nou.</string>
     <string name="common_export">Exportă</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Mai mult</string>
     <string name="common_next">Următorul</string>
     <string name="common_none">Niciunul</string>
+    <string name="common_notify_channel_alarms_body">O alarmă amânată sau pe cale să sune, și una care a sunat fără ca nimeni să fie acolo. Sunetul în sine are un canal separat.</string>
+    <string name="common_notify_channel_alarms_title">Notificări de alarmă</string>
     <string name="common_notify_channel_backup_body">Doar când o copie de rezervă automată eșuează. Copiile de rezervă reușite sunt silențioase.</string>
     <string name="common_notify_channel_backup_title">Probleme de backup</string>
     <string name="common_notify_channel_clock_body">Cronometrele și cronometrul în timp ce rulează, cu butoane pentru a întrerupe, a adăuga un minut sau a le opri.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Controale tastatură</string>
     <string name="common_notify_channel_send_body">O încărcare sau o descărcare a instrumentului de trimitere a fișierelor s-a finalizat în timp ce tastatura era ascunsă, cu linkul de copiat și un fișier trimis de un dispozitiv din apropiere.</string>
     <string name="common_notify_channel_send_title">Trimiterea și primirea fișierelor</string>
+    <string name="common_notify_channel_stopwatch_body">Cronometrul în timp ce rulează sau este pus pe pauză, cu butoane pentru tururi, pauză și resetare.</string>
+    <string name="common_notify_channel_stopwatch_title">Cronometru</string>
     <string name="common_notify_channel_updates_body">O versiune nouă de instalat, o actualizare care așteaptă să apeși pe instalare și confirmare odată ce una este instalată.</string>
     <string name="common_notify_channel_updates_title">Actualizări aplicație</string>
     <string name="common_notify_download_done">Gata de utilizare</string>
     <string name="common_notify_download_failed">%1$s nu a putut fi descărcat</string>
     <string name="common_notify_download_handwriting">Scriere de mână %1$s</string>
     <string name="common_notify_download_progress">%1$s din %2$s</string>
+    <string name="common_notify_download_step_library">Pasul 1 din 2, biblioteca motorului: %1$s</string>
+    <string name="common_notify_download_step_model">Pasul 2 din 2, modelul: %1$s</string>
     <string name="common_notify_download_translate">Traducere offline %1$s</string>
     <string name="common_notify_download_voice">Voce offline %1$s</string>
     <string name="common_off">Oprit</string>
+    <string name="common_offline_build_download">Aceasta este versiunea offline, deci nu poate descărca acest element. Obțineți fișierul pe un alt dispozitiv și importați-l: Setări › Despre › Stocare › Importul fișierelor descărcate îl preia, sau rândul Import propriu al acestui ecran dacă are unul. Sau instalați versiunea standard de pe aceeași pagină de lansare peste aceasta, și se va descărca singură. Setările și cuvintele învățate vor rămâne.</string>
+    <string name="common_offline_build_library">Aceasta este versiunea offline, așa că nu poate descărca biblioteca de care are nevoie. Obține fișierul pe un alt dispozitiv și importă-l în Setări › Confidențialitate › Biblioteci de funcții, care enumeră fișierul exact. Sau instalează versiunea standard din aceeași pagină de lansare peste aceasta, și se va descărca singură. Setările și cuvintele învățate rămân.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">Activat</string>
     <string name="common_open_system_settings">Deschideți setările sistemului</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Serviciu de accesibilitate pentru butonul AI</string>
     <string name="common_special_access_split_screen_body">Unele telefoane deschid o aplicație pe ecran complet când tastatura solicită ecran împărțit. Cu acest serviciu activat, deschiderea unei aplicații în ecran împărțit din lansatorul de aplicații sau deschiderea unei perechi de ecrane împărțite apasă mai întâi comutatorul de ecran împărțit al Android, același pe care îl are meniul Recente, iar aplicația se deschide apoi în jumătatea liberă. Înainte de a-l apăsa, serviciul verifică unde sunt ferestrele aplicației, pentru a vedea dacă ecranul împărțit este deja pornit. Nu citește niciodată ce este în ele. Nu face nimic în niciun alt moment, nu urmărește ce tastați și nu păstrează nimic. Ecranul de accesibilitate Android avertizează despre tot ce ar putea face un astfel de serviciu. Acesta apasă doar acel comutator când solicitați ecranul împărțit.</string>
     <string name="common_special_access_split_screen_title">Serviciu de accesibilitate pentru ecran divizat</string>
+    <string name="common_special_access_system_buttons_body">Android permite unei alte aplicații să facă o captură de ecran, să dea înapoi sau să deschidă aplicațiile recente, sertarul de aplicații, panoul de notificări sau setările rapide numai printr-un serviciu de accesibilitate. Cu acest serviciu activat, instrumentul Captură de ecran și butonul plutitor apasă acele butoane de sistem pentru dvs., aceleași pe care le au propria navigație și panou din Android. O captură de ecran este salvată unde ajunge orice captură de ecran. Serviciul nu face nimic în orice alt moment. Nu citește ecranul, nu urmărește ce tastați și nu păstrează nimic. Ecranul de accesibilitate Android avertizează despre tot ce ar putea face un astfel de serviciu. Acesta apasă doar un buton de sistem când îi cereți acest lucru.</string>
+    <string name="common_special_access_system_buttons_title">Serviciu de accesibilitate pentru butoanele de sistem</string>
     <string name="common_special_access_usage_body">Cu acces la utilizare, tastatura înregistrează ce aplicație era în prim-plan când ați copiat ceva. Aceasta arată acea aplicație când apăsați și mențineți apăsat pe clip. Tastatura citește aplicația din prim-plan doar în momentul copierii. Nu vă citește istoricul sau timpul petrecut într-o aplicație. Tastatura păstrează răspunsul cu clipul, doar pe dispozitivul dvs. Nimic despre utilizarea aplicației nu părăsește dispozitivul. Setarea este opțională. Rămâne oprită până când o activați.</string>
     <string name="common_special_access_usage_title">Acces la utilizare pentru aplicațiile sursă ale clipboard-ului</string>
     <string name="common_type_setting_value_desc">Introduceți o valoare pentru %1$s</string>

@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Háttérképek</string>
     <string name="core_tools_provider_acrcloud_desc">Zenefelismerő szolgáltatás kéthetes próbaidőszakkal, majd fizetős csomagokkal. Szükség van a console.acrcloud.com oldalon létrehozott projekt hosztjára, hozzáférési kulcsára és titkos kulcsára. Minden klipet elküldünk az ACRCloudnak.</string>
     <string name="core_tools_provider_ai_horde_desc">Ingyenes Stable Diffusion az önkéntesek számítógépein. Kulcs nélkül is működik, de sorban kell állni; az aihorde.net oldalon igényelhető ingyenes kulccsal előrébb kerülhet a sorban.</string>
+    <string name="core_tools_provider_allratestoday_desc">Az Európai Központi Bank referenciaárfolyamai körülbelül 30 valutához. Nincs kulcs.</string>
     <string name="core_tools_provider_anthropic_desc">Claude modellek az Anthropic API-ján keresztül, saját kulccsal.</string>
     <string name="core_tools_provider_asr4all_desc">Angol diktálás a telefonon, a szavak megjelennek beszéd közben.</string>
     <string name="core_tools_provider_audd_desc">Felismerteti a legtöbb megjelent zenét néhány másodpercnyi hang alapján. Szüksége van egy tokenre a dashboard.audd.io oldalról; néhány száz felismerés ingyenes, utána fizetős. Minden klip elküldésre kerül az AudD-nek.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Egy nagy modell, amely a telefonon fut, és 25 európai nyelvet ért.</string>
     <string name="core_tools_provider_pexels_desc">Fotók a Pexelsről. API-kulcs szükséges, hacsak ez a build nem tartalmaz egyet.</string>
     <string name="core_tools_provider_pollinations_desc">Ingyenes, kulcs és fiók nélkül: a prompt a Pollinations rendszerébe kerül, amely kiválasztja a modellt. Az enter.pollinations.ai oldalról származó kulcs megnyitja az újabb API-t, és lehetővé teszi a modell elnevezését.</string>
+    <string name="core_tools_provider_privatemode">Privát módú AI</string>
+    <string name="core_tools_provider_privatemode_desc">Magántitoktartási számítástechnikában futó AI, amely nem tudja olvasni az Ön szövegét. Adja meg a Privatemode API-kulcsát. A billentyűzet ezután titkosítja az egyes kéréseket a telefonon, de nem ellenőrzi a szolgáltatás hardveres igazolását. Ennek ellenőrzéséhez is futtassa a privatemode-proxy programot, és adja meg a címét, például http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (nem hivatalos, RapidAPI-n keresztül)</string>
     <string name="core_tools_provider_rapid_shazam_desc">A Shazam katalógusa egy nem hivatalos RapidAPI-listán keresztül, RapidAPI-kulccsal. Nem Apple-szolgáltatás: a lista előzetes értesítés nélkül változhat vagy megszűnhet. Minden klipet elküldünk a RapidAPI-nak.</string>
     <string name="core_tools_provider_recraft_desc">Illusztrációk, ikonok és vektorgrafikus stílusú művészet. Kulcs szükséges a recraft.ai oldalról.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Fotók az Unsplash-ről. API-kulcs szükséges hozzá, hacsak a build nem tartalmaz egyet.</string>
     <string name="core_tools_provider_vision_ocr">Saját látásmodell</string>
     <string name="core_tools_provider_vision_ocr_desc">Képeket olvasó modell, egy OpenAI csevegési kéréseket megválaszoló szerveren keresztül. Szükséges hozzá a cím és a modell neve.</string>
+    <string name="core_tools_provider_vosk_desc">Kis Kaldi modellek az Alpha Cephei-től 29 nyelvhez, egyenként kb. 40 MB-osak, amelyekkel a telefonon beszédszerűen gépelhet. Elég könnyű egy régebbi telefonhoz is.</string>
     <string name="core_tools_provider_whisper_desc">Az OpenAI Whisper modelljei, a telefonon futtatva. Számos nyelv; töltsön le egy modellt a Hangalapú gépelés oldalon.</string>
     <string name="core_tools_provider_whistle_desc">Egy kicsi, gyors modell, amely a telefonon fut. Töltse le a Hangalapú gépelés oldalon.</string>
     <string name="core_tools_provider_xai_desc">Grok modellek az xAI API-ján keresztül, saját kulccsal.</string>

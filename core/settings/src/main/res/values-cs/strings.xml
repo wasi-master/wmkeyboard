@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Jiná služba</string>
     <string name="core_settings_ai_provider_on_device_label">Ve vašem zařízení</string>
+    <string name="core_settings_ai_provider_privatemode_label">Soukromý režim</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Denní doba</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Východ a západ slunce</string>
     <string name="core_settings_auto_theme_trigger_system_label">Systémové světlé nebo tmavé</string>

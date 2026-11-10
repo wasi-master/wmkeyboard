@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Mandhari</string>
     <string name="core_tools_provider_acrcloud_desc">Huduma ya utambuzi wa muziki yenye jaribio la wiki mbili, kisha mipango ya kulipia. Inahitaji mwenyeji, ufunguo wa ufikiaji na siri ya ufikiaji ya mradi kutoka console.acrcloud.com. Kila klipu hutumwa kwa ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">Stable Diffusion ya bure kwenye kompyuta za watu waliojitolea. Inafanya kazi bila ufunguo lakini inasubiri kwenye foleni; ufunguo wa bure kutoka aihorde.net utakuwezesha kusonga mbele.</string>
+    <string name="core_tools_provider_allratestoday_desc">Viwango vya kumbukumbu vya Benki Kuu ya Ulaya kwa takriban sarafu 30. Hakuna ufunguo.</string>
     <string name="core_tools_provider_anthropic_desc">Miundo ya Claude kupitia API ya Anthropic, ukiwa na ufunguo wako mwenyewe.</string>
     <string name="core_tools_provider_asr4all_desc">Uandishi wa Kiingereza kwenye simu, huku maneno yakionekana unapozungumza.</string>
     <string name="core_tools_provider_audd_desc">Hutambua muziki mwingi uliotolewa kutoka sekunde chache za sauti. Inahitaji tokeni kutoka dashboard.audd.io; mamia machache ya utambuzi ni bure, kisha inalipiwa. Kila klipu hutumwa kwa AudD.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Mfano mkubwa unaoendeshwa kwenye simu na unaoelewa lugha 25 za Ulaya.</string>
     <string name="core_tools_provider_pexels_desc">Picha kutoka Pexels. Inahitaji ufunguo wa API, isipokuwa kama toleo hili linao.</string>
     <string name="core_tools_provider_pollinations_desc">Bure, bila ufunguo na bila akaunti: kidokezo hutumwa kwa Pollinations, ambayo huchagua modeli. Ufunguo kutoka enter.pollinations.ai hufungua API yake mpya zaidi na hukuruhusu kutaja modeli.</string>
+    <string name="core_tools_provider_privatemode">AI ya Hali ya Faragha</string>
+    <string name="core_tools_provider_privatemode_desc">AI inayofanya kazi katika kompyuta ya faragha na haiwezi kusoma maandishi yako. Toa ufunguo wako wa API ya Hali ya Faragha. Kisha kibodi husimba kila ombi kwenye simu, lakini haikagui uthibitisho wa maunzi wa huduma. Ili kukagua hiyo pia, endesha privatemode-proxy na utoe anwani yake, kama vile http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (isiyo rasmi, kupitia RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">" Katalogi ya Shazam kupitia orodha isiyo rasmi kwenye RapidAPI, ukiwa na ufunguo wa RapidAPI. Si huduma ya Apple: orodha inaweza kubadilika au kusimama bila taarifa. Kila klipu hutumwa kwa RapidAPI."</string>
     <string name="core_tools_provider_recraft_desc">Vielelezo, ikoni na sanaa ya mtindo wa vekta. Inahitaji ufunguo kutoka recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Picha kutoka Unsplash. Inahitaji ufunguo wa API, isipokuwa kama toleo hili linao.</string>
     <string name="core_tools_provider_vision_ocr">Mfano wako wa maono</string>
     <string name="core_tools_provider_vision_ocr_desc">Muundo unaosoma picha, kupitia seva inayojibu maombi ya gumzo ya OpenAI. Inahitaji anwani na jina la muundo.</string>
+    <string name="core_tools_provider_vosk_desc">Modeli ndogo za Kaldi kutoka Alpha Cephei kwa lugha 29, takriban MB 40 kila moja, ambazo huandika unapoongea kwenye simu. Nyepesi vya kutosha kwa simu ya zamani.</string>
     <string name="core_tools_provider_whisper_desc">Miundo ya Whisper ya OpenAI, inayotumika kwenye simu. Lugha nyingi; pakua muundo kwenye ukurasa wa kuandika kwa sauti.</string>
     <string name="core_tools_provider_whistle_desc">Muundo mdogo na wa haraka unaoendeshwa kwenye simu. Ipakue kwenye ukurasa wa Kuandika kwa sauti.</string>
     <string name="core_tools_provider_xai_desc">Miundo ya Grok kupitia API ya xAI, ukiwa na ufunguo wako mwenyewe.</string>

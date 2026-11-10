@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">టూల్ బార్</string>
     <string name="core_icons_group_tools_title">టూల్స్</string>
     <string name="core_icons_pack_imported_label">దిగుమతి చేసుకున్న చిహ్నాలు</string>
-    <string name="core_icons_pack_mine_label">నా చిహ్నాలు</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">యాప్ %1$d ఫైల్‌ను విస్మరించింది. ఈ వెర్షన్‌లో దీని కోసం ఐకాన్ లేదు: %2$s</item>
         <item quantity="other">యాప్ %1$d ఫైళ్లను విస్మరించింది. ఈ వెర్షన్‌లో వాటి కోసం ఐకాన్ లేదు: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">ట్యాబ్ కీ</string>
     <string name="core_icons_slot_toolbox_label">టూల్‌బాక్స్</string>
     <string name="core_icons_slot_toolbox_search_label">టూల్‌బాక్స్ శోధన</string>
+    <string name="core_icons_pack_mine_label">నా చిహ్నాలు</string>
 </resources>

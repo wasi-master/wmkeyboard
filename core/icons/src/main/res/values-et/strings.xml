@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Tööriistariba</string>
     <string name="core_icons_group_tools_title">Tööriistad</string>
     <string name="core_icons_pack_imported_label">Imporditud ikoonid</string>
-    <string name="core_icons_pack_mine_label">Minu ikoonid</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Rakendus eiras %1$d faili. Sellel versioonil pole selle jaoks ikooni: %2$s</item>
         <item quantity="other">Rakendus eiras %1$d faili. Sellel versioonil pole nende jaoks ikooni: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tab-klahv</string>
     <string name="core_icons_slot_toolbox_label">Tööriistakast</string>
     <string name="core_icons_slot_toolbox_search_label">Tööriistakasti otsing</string>
+    <string name="core_icons_pack_mine_label">Minu ikoonid</string>
 </resources>

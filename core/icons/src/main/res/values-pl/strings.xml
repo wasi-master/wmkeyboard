@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Pasek narzędzi</string>
     <string name="core_icons_group_tools_title">Narzędzia</string>
     <string name="core_icons_pack_imported_label">Zaimportowane ikony</string>
-    <string name="core_icons_pack_mine_label">Moje ikony</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Aplikacja zignorowała %1$d plik. Ta wersja nie ma dla niego ikony: %2$s</item>
         <item quantity="other">Aplikacja zignorowała %1$d plików. Ta wersja nie ma dla nich ikon: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Klawisz Tab</string>
     <string name="core_icons_slot_toolbox_label">Przybornik</string>
     <string name="core_icons_slot_toolbox_search_label">Wyszukiwanie narzędzi</string>
+    <string name="core_icons_pack_mine_label">Moje ikony</string>
 </resources>

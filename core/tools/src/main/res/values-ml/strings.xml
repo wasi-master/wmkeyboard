@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">വാൾപേപ്പറുകൾ</string>
     <string name="core_tools_provider_acrcloud_desc">രണ്ടാഴ്ചത്തെ ട്രയൽ ഉള്ള ഒരു സംഗീത തിരിച്ചറിയൽ സേവനം, അതിനുശേഷം പണമടയ്ക്കണം. console.acrcloud.com-ൽ നിന്നുള്ള ഒരു പ്രോജക്റ്റിന്റെ ഹോസ്റ്റ്, ആക്‌സസ് കീ, ആക്‌സസ് സീക്രട്ട് എന്നിവ ആവശ്യമാണ്. ഓരോ ക്ലിപ്പും ACRCloud-ലേക്ക് അയയ്ക്കുന്നു.</string>
     <string name="core_tools_provider_ai_horde_desc">സന്നദ്ധപ്രവർത്തകരുടെ കമ്പ്യൂട്ടറുകളിൽ സൗജന്യ സ്റ്റേബിൾ ഡിഫ്യൂഷൻ. കീ ഇല്ലാതെ പ്രവർത്തിക്കും, പക്ഷേ ക്യൂവിൽ കാത്തിരിക്കേണ്ടി വരും; aihorde.net-ൽ നിന്നുള്ള സൗജന്യ കീ ഉപയോഗിച്ചാൽ നിങ്ങൾക്ക് മുൻഗണന ലഭിക്കും.</string>
+    <string name="core_tools_provider_allratestoday_desc">சுமார் 30 கറൻസிகளுக்கான ஐரோப்பிய மத்திய வங்கியின் குறிப்பு விகிதங்கள். முக்கியமில்லை.</string>
     <string name="core_tools_provider_anthropic_desc">Anthropic-ന്റെ API വഴി ക്ലോഡ് മോഡലുകൾ, നിങ്ങളുടെ സ്വന്തം കീ ഉപയോഗിച്ച്.</string>
     <string name="core_tools_provider_asr4all_desc">ഫോണിൽ ഇംഗ്ലീഷ് ഡിക്റ്റേഷൻ, നിങ്ങൾ സംസാരിക്കുമ്പോൾ വാക്കുകൾ ദൃശ്യമാകും.</string>
     <string name="core_tools_provider_audd_desc">കുറച്ച് സെക്കൻഡ് ശബ്ദത്തിൽ നിന്ന് പുറത്തിറങ്ങിയ മിക്ക ഗാനങ്ങളും തിരിച്ചറിയുന്നു. dashboard.audd.io-ൽ നിന്ന് ഒരു ടോക്കൺ ആവശ്യമാണ്; കുറച്ച് നൂറ് തിരിച്ചറിയലുകൾ സൗജന്യമാണ്, അതിനുശേഷം പണം നൽകണം. ഓരോ ക്ലിപ്പും AudD-ലേക്ക് അയക്കുന്നു.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">ഫോണിൽ പ്രവർത്തിക്കുന്നതും 25 യൂറോപ്യൻ ഭാഷകൾ മനസ്സിലാക്കുന്നതുമായ ഒരു വലിയ മോഡൽ.</string>
     <string name="core_tools_provider_pexels_desc">Pexels-ൽ നിന്നുള്ള ഫോട്ടോകൾ. ഒരു API കീ ആവശ്യമാണ്, ഈ ബിൽഡിന് ഒരെണ്ണം ഇല്ലെങ്കിൽ.</string>
     <string name="core_tools_provider_pollinations_desc">സൗജന്യം, കീയോ അക്കൗണ്ടോ ആവശ്യമില്ല: പ്രോംപ്റ്റ് Pollinations-ലേക്ക് അയയ്ക്കുന്നു, അത് മോഡൽ തിരഞ്ഞെടുക്കുന്നു. enter.pollinations.ai-ൽ നിന്നുള്ള ഒരു കീ അതിന്റെ പുതിയ API തുറക്കുകയും ഒരു മോഡലിന് പേര് നൽകാൻ നിങ്ങളെ അനുവദിക്കുകയും ചെയ്യുന്നു.</string>
+    <string name="core_tools_provider_privatemode">പ്രൈവറ്റ് മോഡ് AI</string>
+    <string name="core_tools_provider_privatemode_desc">രഹസ്യസ്വഭാവമുള്ള കമ്പ്യൂട്ടിംഗിൽ പ്രവർത്തിക്കുന്നതും നിങ്ങളുടെ വാചകം വായിക്കാൻ കഴിയാത്തതുമായ AI. നിങ്ങളുടെ സ്വകാര്യ മോഡ് API കീ നൽകുക. കീബോർഡ് ഫോണിലെ ഓരോ അഭ്യർത്ഥനയും എൻക്രിപ്റ്റ് ചെയ്യുന്നു, എന്നാൽ ഇത് സേവനത്തിന്റെ ഹാർഡ്‌വെയർ അറ്റസ്റ്റേഷൻ പരിശോധിക്കുന്നില്ല. അത് പരിശോധിക്കുന്നതിനായി, privatemode-proxy പ്രവർത്തിപ്പിച്ച് http://192.168.1.20:8080 പോലുള്ള അതിന്റെ വിലാസം നൽകുക.</string>
     <string name="core_tools_provider_rapid_shazam">ഷാസം (അനൗദ്യോഗികം, RapidAPI വഴി)</string>
     <string name="core_tools_provider_rapid_shazam_desc">RapidAPI-യിലെ ഒരു അനൗദ്യോഗിക ലിസ്റ്റിംഗിലൂടെ Shazam-ന്റെ കാറ്റലോഗ്, ഒരു RapidAPI കീ ഉപയോഗിച്ച്. ഇതൊരു ആപ്പിൾ സേവനമല്ല: അറിയിപ്പില്ലാതെ ലിസ്റ്റിംഗ് മാറാനോ നിർത്താനോ സാധ്യതയുണ്ട്. ഓരോ ക്ലിപ്പും RapidAPI-ലേക്ക് അയയ്ക്കുന്നു.</string>
     <string name="core_tools_provider_recraft_desc">ചിത്രീകരണങ്ങൾ, ഐക്കണുകൾ, വെക്റ്റർ-സ്റ്റൈൽ കലകൾ. recraft.ai-ൽ നിന്നുള്ള ഒരു കീ ആവശ്യമാണ്.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Unsplash-ൽ നിന്നുള്ള ഫോട്ടോകൾ. ഇതിൽ ഒരു API കീ ഇല്ലെങ്കിൽ, ഒരു API കീ ആവശ്യമാണ്.</string>
     <string name="core_tools_provider_vision_ocr">നിങ്ങളുടെ വിഷൻ മോഡൽ</string>
     <string name="core_tools_provider_vision_ocr_desc">OpenAI ചാറ്റ് അഭ്യർത്ഥനകൾക്ക് മറുപടി നൽകുന്ന ഒരു സെർവർ വഴി ചിത്രങ്ങൾ വായിക്കുന്ന ഒരു മോഡൽ. ഇതിന് വിലാസവും മോഡലിന്റെ പേരും ആവശ്യമാണ്.</string>
+    <string name="core_tools_provider_vosk_desc">ആൽഫ സെഫെയുടെ ചെറിയ കാൽഡി മോഡലുകൾ 29 ഭാഷകളിൽ ലഭ്യമാണ്, ഓരോന്നിനും ഏകദേശം 40 MB വലിപ്പമുണ്ട്, ഫോണിൽ സംസാരിക്കുന്നതിനനുസരിച്ച് ടൈപ്പ് ചെയ്യുന്നു. പഴയ ഫോണുകൾക്ക് പോലും അനുയോജ്യമായ ഭാരം കുറഞ്ഞത്.</string>
     <string name="core_tools_provider_whisper_desc">OpenAI-യുടെ വിസ്പർ മോഡലുകൾ, ഫോണിൽ പ്രവർത്തിക്കുന്നു. പല ഭാഷകൾ; വോയ്‌സ് ടൈപ്പിംഗ് പേജിൽ ഒരു മോഡൽ ഡൗൺലോഡ് ചെയ്യുക.</string>
     <string name="core_tools_provider_whistle_desc">ഫോണിൽ പ്രവർത്തിക്കുന്ന ചെറുതും വേഗതയേറിയതുമായ ഒരു മോഡൽ. വോയ്‌സ് ടൈപ്പിംഗ് പേജിൽ നിന്ന് ഇത് ഡൗൺലോഡ് ചെയ്യുക.</string>
     <string name="core_tools_provider_xai_desc">നിങ്ങളുടെ സ്വന്തം കീ ഉപയോഗിച്ച് xAI-യുടെ API വഴി ഗ്രോക്ക് (Grok) മോഡലുകൾ.</string>

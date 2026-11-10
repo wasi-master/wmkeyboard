@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">অন্যান্য পরিষেবা</string>
     <string name="core_settings_ai_provider_on_device_label">আপনার ডিভাইসে</string>
+    <string name="core_settings_ai_provider_privatemode_label">প্রাইভেটমোড</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">দিনের সময়</string>
     <string name="core_settings_auto_theme_trigger_sun_label">সূর্যোদয় এবং সূর্যাস্ত</string>
     <string name="core_settings_auto_theme_trigger_system_label">সিস্টেম লাইট বা ডার্ক</string>

@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Veggfóður</string>
     <string name="core_tools_provider_acrcloud_desc">Tónlistarþjónusta með tveggja vikna prufutímabili og síðan greiddum áskriftarleiðum. Þarfnast hýsis, aðgangslykils og aðgangslykilorðs fyrir verkefni af console.acrcloud.com. Hvert brot er sent til ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">Ókeypis Stable Diffusion á tölvum sjálfboðaliða. Virkar án lykils en bíður í biðröð; ókeypis lykill frá aihorde.net færir þig framar í röðina.</string>
+    <string name="core_tools_provider_allratestoday_desc">Miðgengi Evrópska seðlabankans fyrir um 30 gjaldmiðla. Enginn lykill.</string>
     <string name="core_tools_provider_anthropic_desc">Claude-líkön í gegnum API Anthropic, með þínum eigin lykli.</string>
     <string name="core_tools_provider_asr4all_desc">Ensk talsetning í símanum, þar sem orð birtast eftir því sem þú talar.</string>
     <string name="core_tools_provider_audd_desc">Þekkir flest útgefin lög út frá nokkurra sekúndna hljóði. Þarf auðkenni frá dashboard.audd.io; nokkur hundruð þekkingar eru ókeypis, eftir það er greitt fyrir þær. Hver bútur er sendur til AudD.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Stórt líkan sem keyrir í símanum og skilur 25 evrópsk tungumál.</string>
     <string name="core_tools_provider_pexels_desc">Myndir frá Pexels. Þarfnast API-lykils, nema þessi útgáfa sé með einn.</string>
     <string name="core_tools_provider_pollinations_desc">Ókeypis, án lykils og án reiknings: leiðbeiningin er send til Pollinations, sem velur módelið. Lykill frá enter.pollinations.ai opnar fyrir nýrra viðmót (API) þess og gerir þér kleift að tilgreina módelið.</string>
+    <string name="core_tools_provider_privatemode">Einkahamur gervigreind</string>
+    <string name="core_tools_provider_privatemode_desc">Gervigreind sem keyrir í trúnaðarútreikningum og getur ekki lesið textann þinn. Gefðu upp API-lykilinn þinn fyrir Privatemode. Lyklaborðið dulkóðar síðan hverja beiðni í símanum, en það athugar ekki vélbúnaðarstaðfestingu þjónustunnar. Til að láta athuga það líka skaltu keyra privatemode-proxy og gefa upp vistfang hans, svo sem http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (óopinbert, í gegnum RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Vörulisti Shazam í gegnum óopinbera skráningu á RapidAPI, með RapidAPI-lykli. Ekki Apple-þjónusta: skráningin gæti breyst eða hætt án fyrirvara. Hvert brot er sent til RapidAPI.</string>
     <string name="core_tools_provider_recraft_desc">Myndskreytingar, táknmyndir og list í vigurstíl. Þarf lykil frá recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Myndir frá Unsplash. Þarfnast API-lykils, nema þessi útgáfa sé með einn.</string>
     <string name="core_tools_provider_vision_ocr">Sjónlíkanið þitt</string>
     <string name="core_tools_provider_vision_ocr_desc">Líkan sem les myndir, í gegnum þjón sem svarar OpenAI spjallbeiðnum. Þarf vistfang og nafn líkansins.</string>
+    <string name="core_tools_provider_vosk_desc">Litlar Kaldi-gerðir frá Alpha Cephei fyrir 29 tungumál, um 40 MB hver, sem skrifa þegar þあなたは tala í símann. Léttar nóg fyrir eldri síma.</string>
     <string name="core_tools_provider_whisper_desc">Whisper-líkön frá OpenAI, keyrð í símanum. Mörg tungumál; sæktu líkan á síðunni fyrir raddinnslátt.</string>
     <string name="core_tools_provider_whistle_desc">Lítið og hraðvirkt líkan sem keyrir í símanum. Sæktu það á síðunni fyrir raddinnslátt.</string>
     <string name="core_tools_provider_xai_desc">Grok-líkön í gegnum API xAI, með þínum eigin lykli.</string>

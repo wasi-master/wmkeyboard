@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Panel nástrojů</string>
     <string name="core_icons_group_tools_title">Nástroje</string>
     <string name="core_icons_pack_imported_label">Importované ikony</string>
-    <string name="core_icons_pack_mine_label">Moje ikony</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Aplikace ignorovala %1$d soubor. Tato verze pro něj nemá žádnou ikonu: %2$s</item>
         <item quantity="other">Aplikace ignorovala %1$d souborů. Tato verze pro ně nemá žádnou ikonu: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Klávesa Tab</string>
     <string name="core_icons_slot_toolbox_label">Panel nástrojů</string>
     <string name="core_icons_slot_toolbox_search_label">Hledání v nástrojích</string>
+    <string name="core_icons_pack_mine_label">Moje ikony</string>
 </resources>

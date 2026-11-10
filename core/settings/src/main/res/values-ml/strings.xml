@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">മറ്റ് സേവനം</string>
     <string name="core_settings_ai_provider_on_device_label">നിങ്ങളുടെ ഉപകരണത്തിൽ</string>
+    <string name="core_settings_ai_provider_privatemode_label">സ്വകാര്യ മോഡ്</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">ദിവസത്തിലെ സമയം</string>
     <string name="core_settings_auto_theme_trigger_sun_label">സൂര്യോദയവും സൂര്യാസ്തമയവും</string>
     <string name="core_settings_auto_theme_trigger_system_label">സിസ്റ്റം ലൈറ്റ് അല്ലെങ്കിൽ ഡാർക്ക്</string>

@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Dijeda: penghematan data menahan unduhan pada koneksi ini. Unduhan akan berlanjut di tempat terakhir berhenti.</string>
     <string name="common_error_generic">Terjadi kesalahan. Coba lagi.</string>
     <string name="common_error_network">Tidak ada koneksi. Periksa jaringan Anda dan coba lagi.</string>
+    <string name="common_error_network_permission_off">Akses jaringan WM Keyboard dimatikan di pengaturan ponsel Anda, sehingga ini tidak berfungsi. Nyalakan di Pengaturan Android › Aplikasi › WM Keyboard › Izin (pada GrapheneOS, izin Jaringan), lalu coba lagi.</string>
     <string name="common_error_no_internet_permission">Build papan ketik ini tidak dapat terhubung ke internet.</string>
     <string name="common_error_timeout">Permintaan terlalu lama. Coba lagi.</string>
     <string name="common_export">Ekspor</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Lainnya</string>
     <string name="common_next">Berikutnya</string>
     <string name="common_none">Tidak ada</string>
+    <string name="common_notify_channel_alarms_body">Alarm yang ditunda atau akan berdering, dan alarm yang berdering tanpa ada orang di sana. Dering itu sendiri memiliki saluran tersendiri.</string>
+    <string name="common_notify_channel_alarms_title">Pemberitahuan alarm</string>
     <string name="common_notify_channel_backup_body">Hanya saat pencadangan otomatis gagal. Pencadangan yang berhasil tidak akan memunculkan notifikasi.</string>
     <string name="common_notify_channel_backup_title">Masalah cadangan</string>
     <string name="common_notify_channel_clock_body">Pengatur waktu dan stopwatch saat berjalan, dengan tombol untuk menjeda, menambah satu menit, atau menghentikannya.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Kontrol papan ketik</string>
     <string name="common_notify_channel_send_body">Unggahan atau unduhan alat Kirim file selesai saat papan ketik disembunyikan, dengan tautan untuk disalin, dan file yang dikirim perangkat terdekat.</string>
     <string name="common_notify_channel_send_title">Mengirim dan menerima file</string>
+    <string name="common_notify_channel_stopwatch_body">Jam henti saat berjalan atau dijeda, dengan tombol untuk putaran, menjeda, dan menyetel ulang.</string>
+    <string name="common_notify_channel_stopwatch_title">Stopwatch</string>
     <string name="common_notify_channel_updates_body">Versi baru untuk diinstal, pembaruan yang menunggu Anda menekan instal, dan konfirmasi setelah satu terinstal.</string>
     <string name="common_notify_channel_updates_title">Pembaruan aplikasi</string>
     <string name="common_notify_download_done">Siap digunakan</string>
     <string name="common_notify_download_failed">%1$s tidak dapat diunduh</string>
     <string name="common_notify_download_handwriting">Tulisan tangan %1$s</string>
     <string name="common_notify_download_progress">%1$s dari %2$s</string>
+    <string name="common_notify_download_step_library">Langkah 1 dari 2, pustaka mesin: %1$s</string>
+    <string name="common_notify_download_step_model">Langkah 2 dari 2, model: %1$s</string>
     <string name="common_notify_download_translate">Terjemahan luring %1$s</string>
     <string name="common_notify_download_voice">Suara offline %1$s</string>
     <string name="common_off">Mati</string>
+    <string name="common_offline_build_download">Ini adalah build offline, sehingga tidak dapat mengunduh ini. Dapatkan file di perangkat lain dan impor: Pengaturan › Tentang › Penyimpanan › Impor file yang diunduh untuk mengambilnya, atau gunakan baris Impor di layar ini jika tersedia. Atau instal build standar dari halaman rilis yang sama untuk menimpa yang ini, dan file akan terunduh sendiri. Pengaturan dan kata yang dipelajari akan tetap ada.</string>
+    <string name="common_offline_build_library">Ini adalah build offline, sehingga tidak dapat mengunduh pustaka yang diperlukan ini. Dapatkan filenya di perangkat lain dan impor di Pengaturan › Privasi › Pustaka fitur, yang mencantumkan file yang tepat. Atau instal build standar dari halaman rilis yang sama di atas build ini, dan file akan terunduh sendiri. Pengaturan dan kata yang dipelajari tetap aman.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">Aktif</string>
     <string name="common_open_system_settings">Buka pengaturan sistem</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Layanan aksesibilitas untuk tombol AI</string>
     <string name="common_special_access_split_screen_body">Beberapa ponsel membuka aplikasi dalam layar penuh saat keyboard meminta layar terpisah. Dengan layanan ini aktif, membuka aplikasi dalam layar terpisah dari peluncur aplikasi, atau membuka pasangan layar terpisah, akan menekan tombol layar terpisah Android terlebih dahulu, sama seperti yang ada di menu Terkini, lalu aplikasi akan dibuka di setengah bagian yang kosong. Sebelum menekannya, layanan memeriksa letak jendela aplikasi untuk melihat apakah layar terpisah sudah aktif. Layanan ini tidak pernah membaca konten di dalamnya. Layanan ini tidak melakukan apa pun di waktu lain, tidak mengawasi apa yang Anda ketik, dan tidak menyimpan apa pun. Layanan aksesibilitas Android memperingatkan tentang segala hal yang dapat dilakukan oleh layanan seperti ini. Layanan ini hanya menekan tombol tersebut saat Anda meminta layar terpisah.</string>
     <string name="common_special_access_split_screen_title">Layanan aksesibilitas untuk layar terpisah</string>
+    <string name="common_special_access_system_buttons_body">Android mengizinkan aplikasi lain mengambil screenshot, kembali, atau membuka aplikasi terbaru, laci aplikasi, bayangan notifikasi, atau setelan cepat hanya melalui layanan aksesibilitas. Dengan layanan ini aktif, alat Screenshot dan tombol mengambang menekan tombol sistem tersebut untuk Anda, sama seperti navigasi dan bayangan bawaan Android. Screenshot akan disimpan di tempat penyimpanan screenshot biasa. Layanan ini tidak melakukan apa pun di waktu lain. Layanan ini tidak membaca layar, tidak memantau apa yang Anda ketik, dan tidak menyimpan apa pun. Layanan aksesibilitas Android memperingatkan tentang semua hal yang dapat dilakukan oleh layanan seperti ini. Layanan ini hanya menekan tombol sistem saat Anda memintanya.</string>
+    <string name="common_special_access_system_buttons_title">Layanan aksesibilitas untuk tombol sistem</string>
     <string name="common_special_access_usage_body">Dengan akses penggunaan, keyboard mencatat aplikasi mana yang sedang terbuka saat Anda menyalin sesuatu. Keyboard akan menampilkan aplikasi tersebut saat Anda menekan dan menahan klip. Keyboard hanya membaca aplikasi yang sedang terbuka pada saat penyalinan. Keyboard tidak membaca riwayat atau waktu Anda di suatu aplikasi. Keyboard menyimpan jawaban tersebut bersama klip, hanya di perangkat Anda. Tidak ada informasi tentang penggunaan aplikasi Anda yang keluar dari perangkat. Pengaturan ini bersifat opsional. Pengaturan ini tetap nonaktif sampai Anda mengaktifkannya.</string>
     <string name="common_special_access_usage_title">Akses penggunaan untuk aplikasi sumber papan klip</string>
     <string name="common_type_setting_value_desc">Ketik nilai untuk %1$s</string>

@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Pausado: a economia de dados retém os downloads nesta conexão. Ele continuará de onde parou.</string>
     <string name="common_error_generic">Algo não funcionou. Tente novamente.</string>
     <string name="common_error_network">Sem conexão. Verifique sua rede e tente novamente.</string>
+    <string name="common_error_network_permission_off">O acesso à rede do WM Keyboard está desativado nas configurações do seu telefone, portanto, isso não funciona. Ative-o em Configurações do Android › Aplicativos › WM Keyboard › Permissões (no GrapheneOS, a permissão de rede) e tente novamente.</string>
     <string name="common_error_no_internet_permission">Esta versão do teclado não pode se conectar à internet.</string>
     <string name="common_error_timeout">O pedido demorou demasiado tempo. Tente novamente.</string>
     <string name="common_export">Exportar</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Mais</string>
     <string name="common_next">Próximo</string>
     <string name="common_none">Nenhum</string>
+    <string name="common_notify_channel_alarms_body">Um alarme que foi adiado ou está prestes a tocar, e um que tocou sem ninguém atender. O toque em si tem um canal próprio.</string>
+    <string name="common_notify_channel_alarms_title">Avisos de alarme</string>
     <string name="common_notify_channel_backup_body">Apenas quando um backup automático falha. Backups bem-sucedidos são silenciosos.</string>
     <string name="common_notify_channel_backup_title">Problemas de backup</string>
     <string name="common_notify_channel_clock_body">Temporizadores e cronômetro em execução, com botões para pausar, adicionar um minuto ou pará-los.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Controles do teclado</string>
     <string name="common_notify_channel_send_body">Um upload ou download da ferramenta Enviar arquivos foi concluído enquanto o teclado estava oculto, com o link para copiar e um arquivo que um dispositivo próximo enviou.</string>
     <string name="common_notify_channel_send_title">Enviando e recebendo arquivos</string>
+    <string name="common_notify_channel_stopwatch_body">O cronómetro enquanto corre ou está em pausa, com botões para voltas, pausa e reinicialização.</string>
+    <string name="common_notify_channel_stopwatch_title">Cronómetro</string>
     <string name="common_notify_channel_updates_body">Uma nova versão para instalar, uma atualização aguardando você pressionar instalar e confirmação após a instalação.</string>
     <string name="common_notify_channel_updates_title">Atualizações do aplicativo</string>
     <string name="common_notify_download_done">Pronto para usar</string>
     <string name="common_notify_download_failed">%1$s não pôde ser baixado</string>
     <string name="common_notify_download_handwriting">Caligrafia %1$s</string>
     <string name="common_notify_download_progress">%1$s de %2$s</string>
+    <string name="common_notify_download_step_library">Passo 1 de 2, a biblioteca do motor: %1$s</string>
+    <string name="common_notify_download_step_model">Passo 2 de 2, o modelo: %1$s</string>
     <string name="common_notify_download_translate">Tradução offline de %1$s</string>
     <string name="common_notify_download_voice">Voz offline %1$s</string>
     <string name="common_off">Desativado</string>
+    <string name="common_offline_build_download">Esta é a versão offline, portanto não é possível baixar isto. Obtenha o arquivo em outro dispositivo e importe-o: Configurações › Sobre › Armazenamento › Importar arquivos baixados aceita o arquivo, ou use a linha Importar desta tela. Ou instale a versão padrão da mesma página de lançamento por cima desta, e ela será baixada sozinha. Suas configurações e palavras aprendidas serão mantidas.</string>
+    <string name="common_offline_build_library">Esta é a versão offline, pelo que não consegue descarregar a biblioteca necessária. Obtenha o ficheiro noutro dispositivo e importe-o em Definições › Privacidade › Bibliotecas de recursos, que lista o ficheiro exato. Em alternativa, instale a versão padrão a partir da mesma página de lançamento por cima desta e o descarregamento será feito automaticamente. As suas definições e as palavras aprendidas serão mantidas.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">Ligado</string>
     <string name="common_open_system_settings">Abrir configurações do sistema</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Serviço de acessibilidade para o botão de IA</string>
     <string name="common_special_access_split_screen_body">Alguns telefones abrem um aplicativo em tela cheia quando o teclado solicita tela dividida. Com este serviço ativado, abrir um aplicativo em tela dividida a partir do inicializador de aplicativos ou abrir um par em tela dividida pressiona primeiro o botão de tela dividida do próprio Android, o mesmo que o menu Recentes possui, e o aplicativo é aberto na metade livre. Antes de pressioná-lo, o serviço verifica onde estão as janelas do aplicativo para ver se a tela dividida já está ativa. Ele nunca lê o conteúdo delas. Ele não faz mais nada em nenhum outro momento, não observa o que você digita e não guarda nada. A tela de acessibilidade do Android avisa sobre tudo o que um serviço como este pode fazer. Este apenas pressiona esse botão quando você solicita a tela dividida.</string>
     <string name="common_special_access_split_screen_title">Serviço de acessibilidade para tela dividida</string>
+    <string name="common_special_access_system_buttons_body">O Android permite que outro aplicativo tire uma captura de tela, volte, abra aplicativos recentes, a gaveta de aplicativos, a aba de notificações ou as configurações rápidas apenas por meio de um serviço de acessibilidade. Com este serviço ativado, a ferramenta de captura de tela e o botão flutuante pressionam esses botões do sistema para você, os mesmos que a navegação e a aba do próprio Android possuem. Uma captura de tela é salva onde todas as capturas de tela vão. O serviço não faz nada a mais em nenhum outro momento. Ele não lê a tela, não observa o que você digita e não guarda nada. A tela de acessibilidade do Android avisa sobre tudo o que um serviço como este pode fazer. Este aqui apenas pressiona um botão do sistema quando você solicita.</string>
+    <string name="common_special_access_system_buttons_title">Serviço de acessibilidade para botões do sistema</string>
     <string name="common_special_access_usage_body">Com o acesso de utilização, o teclado regista qual a aplicação que estava em primeiro plano quando copiou algo. Mostra essa aplicação quando pressiona e mantém premido o clipe. O teclado lê a aplicação em primeiro plano apenas no momento da cópia. Não lê o seu histórico nem o seu tempo numa aplicação. O teclado mantém a resposta com o clipe, apenas no seu dispositivo. Nada sobre a sua utilização de aplicações sai do seu dispositivo. A definição é opcional. Permanece desativada até que a ative.</string>
     <string name="common_special_access_usage_title">Acesso de utilização para aplicações de origem da área de transferência</string>
     <string name="common_type_setting_value_desc">Digite um valor para %1$s</string>

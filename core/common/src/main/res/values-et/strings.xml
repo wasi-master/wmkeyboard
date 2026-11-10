@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Peatatud: andmesäästurežiim peatab allalaadimised selle ühenduse puhul. See jätkab poolelijäänud kohast.</string>
     <string name="common_error_generic">Midagi läks valesti. Proovi uuesti.</string>
     <string name="common_error_network">Ühendus puudub. Kontrollige võrku ja proovige uuesti.</string>
+    <string name="common_error_network_permission_off">WM Keyboardi võrgupääs on teie telefoni seadetes välja lülitatud, seega see ei tööta. Lülitage see sisse jaotises Androidi seaded › Rakendused › WM Keyboard › Õigused (GrapheneOS-is võrguõigus) ja proovige uuesti.</string>
     <string name="common_error_no_internet_permission">See klaviatuuri versioon ei saa internetiga ühendust luua.</string>
     <string name="common_error_timeout">Päring võttis liiga kaua aega. Proovige uuesti.</string>
     <string name="common_export">Ekspordi</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Veel</string>
     <string name="common_next">Järgmine</string>
     <string name="common_none">Puudub</string>
+    <string name="common_notify_channel_alarms_body">Edasilükatud või varsti helisev äratus ning äratus, mis helises, ilma et keegi oleks kohal olnud. Helisemisel endal on oma kanal.</string>
+    <string name="common_notify_channel_alarms_title">Äratusmärguanded</string>
     <string name="common_notify_channel_backup_body">Ainult siis, kui automaatne varundamine ebaõnnestub. Edukad varundamised on vaiksed.</string>
     <string name="common_notify_channel_backup_title">Varundamise probleemid</string>
     <string name="common_notify_channel_clock_body">Taimerid ja stopper nende töötamise ajal, koos nuppudega peatamiseks, minuti lisamiseks või peatamiseks.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Klaviatuuri juhtnupud</string>
     <string name="common_notify_channel_send_body">Send-failitööriista üles- või allalaadimine lõpetati ajal, mil klaviatuur oli peidetud, koos lingiga kopeerimiseks ja lähedalasuva seadme saadetud failiga.</string>
     <string name="common_notify_channel_send_title">Failide saatmine ja vastuvõtmine</string>
+    <string name="common_notify_channel_stopwatch_body">Stopper teotab vei on pausil, nuppudega ringiaegade, peatamise ja lähtetamise jaoks.</string>
+    <string name="common_notify_channel_stopwatch_title">Stopper</string>
     <string name="common_notify_channel_updates_body">Uus versioon installimiseks, värskendus, mis ootab teie installimiskäsku, ja kinnitus pärast installimist.</string>
     <string name="common_notify_channel_updates_title">Rakenduse värskendused</string>
     <string name="common_notify_download_done">Kasutamiseks valmis</string>
     <string name="common_notify_download_failed">%1$s allalaadimine ebaõnnestus</string>
     <string name="common_notify_download_handwriting">%1$s käekiri</string>
     <string name="common_notify_download_progress">%1$s / %2$s</string>
+    <string name="common_notify_download_step_library">1. samm 2-st, mootori teek: %1$s</string>
+    <string name="common_notify_download_step_model">Samm 2 / 2, mudel: %1$s</string>
     <string name="common_notify_download_translate">%1$s võrguühenduseta tõlge</string>
     <string name="common_notify_download_voice">%1$s võrguühenduseta hääl</string>
     <string name="common_off">Väljas</string>
+    <string name="common_offline_build_download">See on võrguühenduseta versioon, seega ei saa see seda alla laadida. Hankige fail mõnes teises seadmes ja impordige see: Seaded › Teave › Salvestusruum › Impordi allalaaditud failid võtab selle vastu või kasutage selle ekraani oma impordirida, kui see on olemas. Või installige selle peale sama väljalaskelehe standardversioon ja see laadib ise alla. Teie seaded ja õpitud sõnad säilivad.</string>
+    <string name="common_offline_build_library">See on võrguühenduseta versioon, seega ei saa see selleks vajalikku teeki alla laadida. Hangi selle fail teises seadmes ja impordi see jaotises Seaded › Privaatsus › Funktsioonide teegid, kus on loetletud täpne fail. Või installi sama väljalaske lehelt selle peale standardversioon ja see laadib ise alla. Sinu seaded ja õpitud sõnad säilivad.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">Sees</string>
     <string name="common_open_system_settings">Ava süsteemiseaded</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">AI-nupu hõlbustusteenus</string>
     <string name="common_special_access_split_screen_body">Mõned telefonid avavad rakenduse täisekraanil, kui klaviatuur küsib poolitatud ekraani. Kui see teenus on sisse lülitatud, vajutab rakenduse avamisel poolitatud ekraanile rakenduse käivitajast või poolitatud ekraani paari avamisel Androidi enda poolitatud ekraani lülitit – sama, mis on viimaste rakenduste menüül – ning rakenduse avaneb vabal poolel. Enne selle vajutamist kontrollib teenus, kus rakenduste aknad asuvad, et näha, kas poolitatud ekraan on juba üleval. See ei loe kunagi seda, mis nendes on. See ei tee midagi muul ajal, ei jälgi teie tippimist ega säilita midagi. Androidi hõlbustuskuva hoiatab kõigi toimingute eest, mida selline teenus teha saab. See teenus vajutab seda lülitit ainult siis, kui te poolitatud ekraani küsite.</string>
     <string name="common_special_access_split_screen_title">Ekraani poolitamise hõlbustusfunktsioon</string>
+    <string name="common_special_access_system_buttons_body">Android võimaldab teisel rakendusel teha ekraanipilti, minna tagasi või avada hiljutised rakendused, rakenduste sahtli, teavitusriba või kiirseaded ainult juurdepääsetavusteenuse kaudu. Selle teenuse sisselülitamisel vajutavad ekraanipildi tööriist ja ujuv nupp neid süsteeminuppe teie eest – samu, mida kasutavad Androidi oma navigeerimine ja riba. Ekraanipilt salvestatakse sinna, kuhu ikka. Teenus ei tee muul ajal midagi. See ei loe ekraani, ei vaata, mida te sisestate, ega salvesta midagi. Androidi juurdepääsetavuse kuva hoiatab kõigi toimingute eest, mida selline teenus teha saaks. See konkreetne teenus vajutab süsteeminuppu ainult siis, kui te seda palute.</string>
+    <string name="common_special_access_system_buttons_title">Süsteminuppude juurdepääsuteenus</string>
     <string name="common_special_access_usage_body">Kasutusõigusega salvestab klaviatuur, milline rakendus oli millegi kopeerimisel esiplaanil. See näitab seda rakendust, kui vajutate ja hoiate lõikepuhvrit. Klaviatuur loeb esiplaanil olevat rakendust ainult kopeerimise hetkel. See ei loe teie ajalugu ega rakenduses veedetud aega. Klaviatuur hoiab vastust koos lõikega ainult teie seadmes. Midagi teie rakenduse kasutamise kohta ei lahku teie seadmest. Seade on valikuline. See jääb väljalülitatuks, kuni te selle sisse lülitate.</string>
     <string name="common_special_access_usage_title">Kasutusõigus lõikelaua allikarakenduste jaoks</string>
     <string name="common_type_setting_value_desc">Sisesta väärtus %1$s jaoks</string>

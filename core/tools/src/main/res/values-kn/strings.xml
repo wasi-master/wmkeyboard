@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">ವಾಲ್‌ಪೇಪರ್‌ಗಳು</string>
     <string name="core_tools_provider_acrcloud_desc">ಎರಡು ವಾರಗಳ ಪ್ರಯೋಗದೊಂದಿಗೆ ಸಂಗೀತ ಗುರುತಿಸುವಿಕೆ ಸೇವೆ, ನಂತರ ಪಾವತಿಸಿದ ಯೋಜನೆಗಳು. console.acrcloud.com ನಿಂದ ಪ್ರಾಜೆಕ್ಟ್‌ನ ಹೋಸ್ಟ್, ಆಕ್ಸೆಸ್ ಕೀ ಮತ್ತು ಆಕ್ಸೆಸ್ ಸೀಕ್ರೆಟ್ ಅಗತ್ಯವಿದೆ. ಪ್ರತಿ ಕ್ಲಿಪ್ ಅನ್ನು ACRCloud ಗೆ ಕಳುಹಿಸಲಾಗುತ್ತದೆ.</string>
     <string name="core_tools_provider_ai_horde_desc">ಸ್ವಯಂಸೇವಕರ ಕಂಪ್ಯೂಟರ್‌ಗಳಲ್ಲಿ ಉಚಿತ ಸ್ಟೇಬಲ್ ಡಿಫ್ಯೂಷನ್. ಕೀ ಇಲ್ಲದೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ ಆದರೆ ಕ್ಯೂನಲ್ಲಿ ಕಾಯಬೇಕಾಗುತ್ತದೆ; aihorde.net ನಿಂದ ಉಚಿತ ಕೀ ಪಡೆದರೆ ನೀವು ಕ್ಯೂನಲ್ಲಿ ಮುಂದೆ ಹೋಗಬಹುದು.</string>
+    <string name="core_tools_provider_allratestoday_desc">ಸುಮಾರು 30 ಕರೆನ್ಸಿಗಳಿಗೆ ಯುರೋಪಿಯನ್ ಸೆಂಟ್ರಲ್ ಬ್ಯಾಂಕ್ ಉಲ್ಲೇಖ ದರಗಳು. ಯಾವುದೇ ಕೀ ಇಲ್ಲ.</string>
     <string name="core_tools_provider_anthropic_desc">ನಿಮ್ಮ ಸ್ವಂತ ಕೀಯೊಂದಿಗೆ Anthropic ನ API ಮೂಲಕ ಕ್ಲಾಡ್ (Claude) ಮಾದರಿಗಳು.</string>
     <string name="core_tools_provider_asr4all_desc">ಫೋನ್‌ನಲ್ಲಿ ಇಂಗ್ಲಿಷ್ ಡಿಕ್ಟೇಶನ್, ನೀವು ಮಾತನಾಡುವಾಗ ಪದಗಳು ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತವೆ.</string>
     <string name="core_tools_provider_audd_desc">ಕೆಲವು ಸೆಕೆಂಡುಗಳ ಶಬ್ದದಿಂದ ಬಿಡುಗಡೆಯಾದ ಹೆಚ್ಚಿನ ಸಂಗೀತವನ್ನು ಗುರುತಿಸುತ್ತದೆ. dashboard.audd.io ನಿಂದ ಟೋಕನ್ ಅಗತ್ಯವಿದೆ; ಕೆಲವು ನೂರು ಗುರುತಿಸುವಿಕೆಗಳು ಉಚಿತ, ನಂತರ ಶುಲ್ಕ ವಿಧಿಸಲಾಗುತ್ತದೆ. ಪ್ರತಿ ಕ್ಲಿಪ್ ಅನ್ನು AudD ಗೆ ಕಳುಹಿಸಲಾಗುತ್ತದೆ.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">ಫೋನ್‌ನಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುವ ಮತ್ತು 25 ಯುರೋಪಿಯನ್ ಭಾಷೆಗಳನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳುವ ದೊಡ್ಡ ಮಾಡೆಲ್.</string>
     <string name="core_tools_provider_pexels_desc">Pexels ನಿಂದ ಫೋಟೋಗಳು. ಈ ಬಿಲ್ಡ್‌ನಲ್ಲಿ API ಕೀ ಇಲ್ಲದಿದ್ದರೆ, ಅದಕ್ಕೆ API ಕೀ ಅಗತ್ಯವಿದೆ.</string>
     <string name="core_tools_provider_pollinations_desc">ಯಾವುದೇ ಕೀಲಿ ಮತ್ತು ಖಾತೆ ಇಲ್ಲದೆ ಉಚಿತ: ಪ್ರಾಂಪ್ಟ್ ಅನ್ನು Pollinations ಗೆ ಕಳುಹಿಸಲಾಗುತ್ತದೆ, ಇದು ಮಾಡೆಲ್ ಅನ್ನು ಆಯ್ಕೆ ಮಾಡುತ್ತದೆ. enter.pollinations.ai ನಿಂದ ಪಡೆದ ಕೀಲಿಯು ಅದರ ಹೊಸ API ಅನ್ನು ತೆರೆಯುತ್ತದೆ ಮತ್ತು ಮಾಡೆಲ್ ಹೆಸರಿಸಲು ನಿಮಗೆ ಅವಕಾಶ ನೀಡುತ್ತದೆ.</string>
+    <string name="core_tools_provider_privatemode">ಖಾಸಗಿ ಮೋಡ್ AI</string>
+    <string name="core_tools_provider_privatemode_desc">ಗೌಪ್ಯ ಕಂಪ್ಯೂಟಿಂಗ್‌ನಲ್ಲಿ ರನ್ ಆಗುವ ಮತ್ತು ನಿಮ್ಮ ಪಠ್ಯವನ್ನು ಓದಲಾಗದ AI. ನಿಮ್ಮ Privatemode API ಕೀಯನ್ನು ನೀಡಿ. ಕೀಬೋರ್ಡ್ ನಂತರ ಫೋನ್‌ನಲ್ಲಿ ಪ್ರತಿ ವಿನಂತಿಯನ್ನು ಎನ್‌ಕ್ರಿಪ್ಟ್ ಮಾಡುತ್ತದೆ, ಆದರೆ ಇದು ಸೇವೆಯ ಹಾರ್ಡ್‌ವೇರ್ ದೃಢೀಕರಣವನ್ನು ಪರಿಶೀಲಿಸುವುದಿಲ್ಲ. ಅದನ್ನೂ ಪರಿಶೀಲಿಸಲು, privatemode-proxy ಅನ್ನು ರನ್ ಮಾಡಿ ಮತ್ತು http://192.168.1.20:8080 ನಂತಹ ಅದರ ವಿಳಾಸವನ್ನು ನೀಡಿ.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (ಅನಧಿಕೃತ, RapidAPI ಮೂಲಕ)</string>
     <string name="core_tools_provider_rapid_shazam_desc">RapidAPI ಕೀಲಿಯೊಂದಿಗೆ RapidAPI ನಲ್ಲಿನ ಅನಧಿಕೃತ ಪಟ್ಟಿಯ ಮೂಲಕ Shazam ನ ಕ್ಯಾಟಲಾಗ್. ಇದು Apple ಸೇವೆಯಲ್ಲ: ಪಟ್ಟಿಯು ಸೂಚನೆಯಿಲ್ಲದೆ ಬದಲಾಗಬಹುದು ಅಥವಾ ನಿಲ್ಲಬಹುದು. ಪ್ರತಿ ಕ್ಲಿಪ್ ಅನ್ನು RapidAPI ಗೆ ಕಳುಹಿಸಲಾಗುತ್ತದೆ.</string>
     <string name="core_tools_provider_recraft_desc">ಚಿತ್ರಣಗಳು, ಐಕಾನ್‌ಗಳು ಮತ್ತು ವೆಕ್ಟರ್-ಶೈಲಿಯ ಕಲೆ. recraft.ai ನಿಂದ ಕೀ ಅಗತ್ಯವಿದೆ.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Unsplash ನಿಂದ ಫೋಟೋಗಳು. ಈ ಬಿಲ್ಡ್ ಒಂದನ್ನು ಹೊಂದಿಲ್ಲದಿದ್ದರೆ, API ಕೀ ಅಗತ್ಯವಿದೆ.</string>
     <string name="core_tools_provider_vision_ocr">ನಿಮ್ಮ ವಿಷನ್ ಮಾಡೆಲ್</string>
     <string name="core_tools_provider_vision_ocr_desc">OpenAI ಚಾಟ್ ವಿನಂತಿಗಳಿಗೆ ಉತ್ತರಿಸುವ ಸರ್ವರ್ ಮೂಲಕ ಚಿತ್ರಗಳನ್ನು ಓದುವ ಮಾದರಿ. ವಿಳಾಸ ಮತ್ತು ಮಾದರಿಯ ಹೆಸರು ಅಗತ್ಯವಿದೆ.</string>
+    <string name="core_tools_provider_vosk_desc">29 ಭಾಷೆಗಳಿಗೆ ಆಲ್ಫಾ ಸೆಫೆಯಿಂದ ಬಂದ ಸಣ್ಣ ಕಾಲ್ಡಿ ಮಾದರಿಗಳು, ಪ್ರತಿಯೊಂದೂ ಸುಮಾರು 40 MB, ನೀವು ಫೋನ್‌ನಲ್ಲಿ ಮಾತನಾಡುವಾಗ ಟೈಪ್ ಮಾಡುತ್ತವೆ. ಹಳೆಯ ಫೋನ್‌ಗೂ ಹಗುರವಾಗಿದೆ.</string>
     <string name="core_tools_provider_whisper_desc">OpenAI ನ ವಿಸ್ಪರ್ ಮಾದರಿಗಳು, ಫೋನ್‌ನಲ್ಲಿ ಚಲಿಸುತ್ತವೆ. ಅನೇಕ ಭಾಷೆಗಳು; ಧ್ವನಿ ಟೈಪಿಂಗ್ ಪುಟದಲ್ಲಿ ಮಾದರಿಯನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.</string>
     <string name="core_tools_provider_whistle_desc">ಫೋನ್‌ನಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುವ ಸಣ್ಣ, ವೇಗದ ಮಾದರಿ. ಇದನ್ನು ಧ್ವನಿ ಟೈಪಿಂಗ್ ಪುಟದಲ್ಲಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.</string>
     <string name="core_tools_provider_xai_desc">ನಿಮ್ಮ ಸ್ವಂತ ಕೀಯೊಂದಿಗೆ xAI ನ API ಮೂಲಕ Grok ಮಾದರಿಗಳು.</string>

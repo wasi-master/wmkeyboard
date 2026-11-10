@@ -37,6 +37,7 @@
     <string name="common_error_download_held">थांबवले: डेटा सेव्हिंगमुळे या कनेक्शनवर डाउनलोड थांबले आहे. ते जिथे थांबले होते तिथून पुढे सुरू होईल.</string>
     <string name="common_error_generic">काहीतरी काम करत नाहीये. पुन्हा प्रयत्न करा.</string>
     <string name="common_error_network">कनेक्शन नाही. तुमचे नेटवर्क तपासा आणि पुन्हा प्रयत्न करा.</string>
+    <string name="common_error_network_permission_off">WM कीबोर्डचा नेटवर्क प्रवेश तुमच्या फोनच्या सेटिंग्जमध्ये बंद केला आहे, त्यामुळे हे काम करत नाही. ते Android Settings › Apps › WM Keyboard › Permissions (GrapheneOS वर, Network permission) मध्ये चालू करा, त्यानंतर पुन्हा प्रयत्न करा.</string>
     <string name="common_error_no_internet_permission">कीबोर्डची ही बिल्ड इंटरनेटशी कनेक्ट होऊ शकत नाही.</string>
     <string name="common_error_timeout">विनंती पूर्ण होण्यास खूप वेळ लागला. पुन्हा प्रयत्न करा.</string>
     <string name="common_export">एक्सपोर्ट करा</string>
@@ -48,6 +49,8 @@
     <string name="common_more">अधिक</string>
     <string name="common_next">पुढे</string>
     <string name="common_none">काहीही नाही</string>
+    <string name="common_notify_channel_alarms_body">स्नूझ केलेला किंवा वाजत असलेला गजर आणि कोणीही नसताना वाजत असलेला गजर. वाजवण्याचे स्वतःचे एक चॅनेल आहे.</string>
+    <string name="common_notify_channel_alarms_title">गजर सूचना</string>
     <string name="common_notify_channel_backup_body">केवळ जेव्हा स्वयंचलित बॅकअप अयशस्वी होतो. यशस्वी बॅकअप शांत असतात.</string>
     <string name="common_notify_channel_backup_title">बॅकअप समस्या</string>
     <string name="common_notify_channel_clock_body">टायमर आणि स्टॉपवॉच चालू असताना, त्यांना विराम देण्यासाठी, एक मिनिट जोडण्यासाठी किंवा थांबवण्यासाठी बटणांसह.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">कीबोर्ड नियंत्रणे</string>
     <string name="common_notify_channel_send_body">जेव्हा कीबोर्ड लपलेला होता तेव्हा \'Send files\' टूलची अपलोड किंवा डाउनलोड प्रक्रिया पूर्ण झाली, कॉपी करण्यासाठी लिंकसह आणि जवळच्या डिव्हाइसने पाठवलेली फाईल.</string>
     <string name="common_notify_channel_send_title">फाईल्स पाठवणे आणि प्राप्त करणे</string>
+    <string name="common_notify_channel_stopwatch_body">स्टॉपवॉच चालू असताना किंवा थांबवलेले असताना, लॅप्स, थांबवणे आणि रीसेट करण्यासाठी बटणे.</string>
+    <string name="common_notify_channel_stopwatch_title">स्टॉपवॉच</string>
     <string name="common_notify_channel_updates_body">एक नवीन आवृत्ती इंस्टॉल करण्यासाठी, एक अपडेट तुमच्या इंस्टॉल बटण दाबण्याची वाट पाहत आहे आणि एक इंस्टॉल झाल्यावर पुष्टीकरण.</string>
     <string name="common_notify_channel_updates_title">ॲप अपडेट्स</string>
     <string name="common_notify_download_done">वापरण्यासाठी तयार</string>
     <string name="common_notify_download_failed">%1$s डाउनलोड होऊ शकले नाही</string>
     <string name="common_notify_download_handwriting">%1$s हस्तालेखन</string>
     <string name="common_notify_download_progress">%2$s पैकी %1$s</string>
+    <string name="common_notify_download_step_library">डाउनलोड बाब्त</string>
+    <string name="common_notify_download_step_model">२ पैकी पायरी २, मॉडेल: %1$s</string>
     <string name="common_notify_download_translate">%1$s ऑफलाइन भाषांतर</string>
     <string name="common_notify_download_voice">%1$s ऑफलाइन व्हॉइस</string>
     <string name="common_off">बंद</string>
+    <string name="common_offline_build_download">ही ऑफलाइन बिल्ड आहे, त्यामुळे ती हे डाउनलोड करू शकत नाही. फाईल दुसऱ्या डिव्हाइसवर मिळवा आणि ती आयात करा: सेटिंग्ज › विषयी › संचयन › डाउनलोड केलेल्या फाईल्स आयात करा ते घेते, किंवा या स्क्रीनची स्वतःची आयात ओळ जिथे ती आहे. किंवा यावर त्याच रिलीझ पृष्ठावरून मानक बिल्ड स्थापित करा आणि ती स्वतःहून डाउनलोड होते. तुमची सेटिंग्ज आणि शिकलेले शब्द तसेच राहतील.</string>
+    <string name="common_offline_build_library">हा ऑफलाइन बिल्ड आहे, त्यामुळे तो आवश्यक असलेली लायब्ररी डाउनलोड करू शकत नाही. दुसर्‍या डिव्हाइसवर त्याची फाइल मिळवा आणि ती सेटिंग्ज › गोपनीयता › वैशिष्ट्य लायब्ररीमध्ये आयात करा, जी अचूक फाइल सूचीबद्ध करते. किंवा यावर त्याच रिलीज पृष्ठावरून मानक बिल्ड स्थापित करा आणि ते स्वतःच डाउनलोड होते. तुमची सेटिंग्ज आणि शिकलेले शब्द तसेच राहतात.</string>
     <string name="common_ok">ठीक आहे</string>
     <string name="common_on">चालू</string>
     <string name="common_open_system_settings">सिस्टम सेटिंग्ज उघडा</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">AI बटणासाठी ॲक्सेसिबिलिटी सेवा</string>
     <string name="common_special_access_split_screen_body">कीबोर्डने स्प्लिट स्क्रीन मागितल्यावर काही फोन ॲप पूर्ण स्क्रीनवर उघडतात. ही सेवा सुरू असताना, ॲप लाँचरमधून ॲप स्प्लिट स्क्रीनमध्ये उघडल्यास किंवा स्प्लिट स्क्रीन जोडी उघडल्यास, रिसेंट्स मेनूमध्ये असलेले अँड्रॉइडचे स्वतःचे स्प्लिट स्क्रीन स्विच प्रथम दाबली जाते आणि नंतर ॲप मोकळ्या अर्ध्या भागात उघडते. ते दाबण्यापूर्वी, स्प्लिट स्क्रीन आधीपासून सुरू आहे की नाही हे पाहण्यासाठी सेवा ॲपच्या विंडो कुठे आहेत हे तपासते. ते त्यामधील मजकूर कधीही वाचत नाही. इतर कोणत्याही वेळी ते काहीही करत नाही, तुम्ही काय टाइप करता ते पाहत नाही आणि काहीही ठेवत नाही. यासारखी सेवा करू शकणाऱ्या प्रत्येक गोष्टीबद्दल अँड्रॉइडची ॲक्सेसिबिलिटी स्क्रीन चेतावणी देते. जेव्हा तुम्ही स्प्लिट स्क्रीनसाठी विचारता तेव्हा ही सेवा फक्त ते स्विच दाबते.</string>
     <string name="common_special_access_split_screen_title">분할 화면용 접근성 서비스</string>
+    <string name="common_special_access_system_buttons_body">प्रवेशयोग्यता सेवेद्वारेच Android दुसऱ्या अ‍ॅपला स्क्रीनशॉट घेण्याची, मागे जाण्याची किंवा अलीकडील अ‍ॅप्स, अ‍ॅप ड्रॉवर, सूचना शेड किंवा द्रुत सेटिंग्ज उघडण्याची परवानगी देते. ही सेवा चालू असताना, स्क्रीनशॉट टूल आणि फ्लोटिंग बटण तुमच्यासाठी ती सिस्टीम बटणे दाबतात, Android च्या स्वतःच्या नॅव्हिगेशन आणि शेडसारखीच. स्क्रीनशॉट जिथे जातो तिथे जतन केला जातो. सेवा इतर कोणत्याही वेळी काहीही करत नाही. ती स्क्रीन वाचत नाही, तुम्ही काय टाइप करता ते पाहत नाही आणि काहीही ठेवत नाही. Android ची प्रवेशयोग्यता स्क्रीन अशा प्रकारची सेवा करू शकणार्‍या प्रत्येक गोष्टीबद्दल चेतावणी देते. तुम्ही विचारता तेव्हा ही फक्त सिस्टम बटण दाबते.</string>
+    <string name="common_special_access_system_buttons_title">सिस्टम बटनांसाठी प्रवेश सुलभता सेवा</string>
     <string name="common_special_access_usage_body">वापर प्रवेशासह, तुम्ही काहीतरी कॉपी करता तेव्हा कीबोर्ड हे रेकॉर्ड करतो की कोणते ॲप समोर होते. तुम्ही क्लिप दाबून धरता तेव्हा तो ते ॲप दाखवतो. कीबोर्ड फक्त कॉपी करण्याच्या क्षणी समोरचे ॲप वाचतो. तो तुमचा इतिहास किंवा तुम्ही ॲपमध्ये घालवलेला वेळ वाचत नाही. कीबोर्ड उत्तर क्लिपसह फक्त तुमच्या डिव्हाइसवर ठेवतो. तुमच्या ॲप वापराबाबतची कोणतीही माहिती तुमच्या डिव्हाइसबाहेर जात नाही. हे सेटिंग ऐच्छिक आहे. तुम्ही ते चालू करेपर्यंत ते बंद राहते.</string>
     <string name="common_special_access_usage_title">क्लिपबोर्ड स्त्रोत ॲप्ससाठी वापर प्रवेश</string>
     <string name="common_type_setting_value_desc">%1$s साठी एक मूल्य टाइप करा</string>

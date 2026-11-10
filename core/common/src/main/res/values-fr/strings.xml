@@ -37,6 +37,7 @@
     <string name="common_error_download_held">En pause : l\'économie de données suspend les téléchargements sur cette connexion. Il reprendra là où il s\'est arrêté.</string>
     <string name="common_error_generic">Une erreur est survenue. Réessayez.</string>
     <string name="common_error_network">Aucune connexion. Vérifiez votre réseau et réessayez.</string>
+    <string name="common_error_network_permission_off">L\'accès au réseau du clavier WM est désactivé dans les paramètres de votre téléphone, ce qui empêche cette fonctionnalité de fonctionner. Activez-le dans Paramètres Android › Applications › Clavier WM › Autorisations (sur GrapheneOS, l\'autorisation Réseau), puis réessayez.</string>
     <string name="common_error_no_internet_permission">Cette version du clavier ne peut pas se connecter à Internet.</string>
     <string name="common_error_timeout">La requête a pris trop de temps. Réessayez.</string>
     <string name="common_export">Exporter</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Plus</string>
     <string name="common_next">Suivant</string>
     <string name="common_none">Aucun</string>
+    <string name="common_notify_channel_alarms_body">Une alarme reportée ou sur le point de sonner, et une autre qui a sonné sans personne. La sonnerie elle-même possède son propre canal.</string>
+    <string name="common_notify_channel_alarms_title">Avis d\'alarme</string>
     <string name="common_notify_channel_backup_body">Uniquement lorsqu\'une sauvegarde automatique échoue. Les sauvegardes réussies restent silencieuses.</string>
     <string name="common_notify_channel_backup_title">Problèmes de sauvegarde</string>
     <string name="common_notify_channel_clock_body">Minuteurs et chronomètre pendant leur exécution, avec des boutons pour mettre en pause, ajouter une minute ou les arrêter.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Contrôles du clavier</string>
     <string name="common_notify_channel_send_body">Un transfert de fichier envoyé s\'est terminé alors que le clavier était masqué, incluant le lien à copier et un fichier envoyé par un appareil à proximité.</string>
     <string name="common_notify_channel_send_title">Envoi et réception de fichiers</string>
+    <string name="common_notify_channel_stopwatch_body">Le chronomètre lorsqu\'il fonctionne ou est en pause, avec des boutons pour les tours, la pause et la réinitialisation.</string>
+    <string name="common_notify_channel_stopwatch_title">Chronomètre</string>
     <string name="common_notify_channel_updates_body">Une nouvelle version à installer, une mise à jour en attente d\'installation, et une confirmation une fois qu\'une mise à jour est installée.</string>
     <string name="common_notify_channel_updates_title">Mises à jour de l\'application</string>
     <string name="common_notify_download_done">Prêt à l\'emploi</string>
     <string name="common_notify_download_failed">%1$s n\'a pas pu être téléchargé</string>
     <string name="common_notify_download_handwriting">Écriture manuscrite %1$s</string>
     <string name="common_notify_download_progress">%1$s sur %2$s</string>
+    <string name="common_notify_download_step_library">Étape 1 sur 2, la bibliothèque du moteur : %1$s</string>
+    <string name="common_notify_download_step_model">Étape 2 sur 2, le modèle : %1$s</string>
     <string name="common_notify_download_translate">Traduction hors ligne %1$s</string>
     <string name="common_notify_download_voice">Voix hors ligne %1$s</string>
     <string name="common_off">Désactivé</string>
+    <string name="common_offline_build_download">Il s\'agit de la version hors ligne, elle ne peut donc pas télécharger ceci. Récupérez le fichier sur un autre appareil et importez-le : Paramètres › À propos › Stockage › L\'importation de fichiers téléchargés l\'accepte, ou utilisez la ligne Importer de cet écran si elle est présente. Ou installez la version standard depuis la même page de publication par-dessus celle-ci, et le téléchargement s\'effectuera tout seul. Vos paramètres et vos mots enregistrés restent conservés.</string>
+    <string name="common_offline_build_library">Il s\'agit d\'une version hors ligne, elle ne peut donc pas télécharger la bibliothèque requise. Récupérez son fichier sur un autre appareil et importez-le dans Paramètres › Confidentialité › Bibliothèques de fonctionnalités, qui répertorie le fichier exact. Ou installez la version standard à partir de la même page de publication par-dessus celle-ci, et elle se téléchargera toute seule. Vos paramètres et les mots appris sont conservés.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">Activé</string>
     <string name="common_open_system_settings">Ouvrir les paramètres système</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Service d\'accessibilité pour le bouton IA</string>
     <string name="common_special_access_split_screen_body">Certains téléphones ouvrent une application en plein écran lorsque le clavier demande le mode écran partagé. Avec ce service activé, l\'ouverture d\'une application en écran partagé depuis le lanceur d\'applications, ou l\'ouverture d\'une paire d\'écrans partagés, appuie d\'abord sur le propre commutateur d\'écran partagé d\'Android, le même que celui du menu Récents, et l\'application s\'ouvre ensuite dans la moitié libre. Avant d\'appuyer dessus, le service vérifie l\'emplacement des fenêtres d\'application pour voir si l\'écran partagé est déjà actif. Il ne lit jamais leur contenu. Il ne fait rien d\'autre, ne surveille pas ce que vous tapez et ne conserve rien. L\'écran d\'accessibilité d\'Android avertit de tout ce qu\'un service de ce type pourrait faire. Celui-ci appuie uniquement sur ce commutateur lorsque vous demandez l\'écran partagé.</string>
     <string name="common_special_access_split_screen_title">Service d\'accessibilité pour l\'écran partagé</string>
+    <string name="common_special_access_system_buttons_body">Android permet à une autre application de faire une capture d\'écran, de revenir en arrière ou d\'ouvrir les applications récentes, le tiroir d\'applications, le panneau de notifications ou les paramètres rapides uniquement via un service d\'accessibilité. Avec ce service activé, l\'outil de capture d\'écran et le bouton flottant appuient sur ces boutons système pour vous, les mêmes que possèdent la navigation et le panneau d\'Android. Une capture d\'écran est enregistrée là où toutes les captures d\'écran vont. Le service ne fait rien à aucun autre moment. Il ne lit pas l\'écran, ne surveille pas ce que vous tapez et ne conserve rien. L\'écran d\'accessibilité d\'Android prévient de tout ce qu\'un service de ce type pourrait faire. Celui-ci appuie uniquement sur un bouton système lorsque vous le lui demandez.</string>
+    <string name="common_special_access_system_buttons_title">Service d\'accessibilité pour les boutons système</string>
     <string name="common_special_access_usage_body">Avec l\'accès aux données d\'utilisation, le clavier enregistre quelle application était au premier plan lorsque vous avez copié quelque chose. Il affiche cette application lorsque vous appuyez longuement sur le clip. Le clavier ne lit l\'application au premier plan qu\'au moment de la copie. Il ne lit pas votre historique ni le temps passé dans une application. Le clavier conserve la réponse avec le clip, uniquement sur votre appareil. Rien concernant votre utilisation des applications ne quitte votre appareil. Ce paramètre est facultatif. Il reste désactivé jusqu\'à ce que vous l\'activiez.</string>
     <string name="common_special_access_usage_title">Accès aux données d\'utilisation pour les applications sources du presse-papiers</string>
     <string name="common_type_setting_value_desc">Saisissez une valeur pour %1$s</string>

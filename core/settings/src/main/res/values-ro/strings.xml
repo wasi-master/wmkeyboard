@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Alt serviciu</string>
     <string name="core_settings_ai_provider_on_device_label">Pe dispozitivul dvs.</string>
+    <string name="core_settings_ai_provider_privatemode_label">Mod privat</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Ora zilei</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Răsărit și apus</string>
     <string name="core_settings_auto_theme_trigger_system_label">Sistem luminos sau întunecat</string>

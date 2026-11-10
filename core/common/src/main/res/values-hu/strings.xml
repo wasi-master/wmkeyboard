@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Szüneteltetve: az adatforgalom-kímélő visszatartja a letöltéseket ezen a kapcsolaton. Ott folytatódik, ahol abbahagyta.</string>
     <string name="common_error_generic">Valami nem sikerült. Próbálja újra.</string>
     <string name="common_error_network">Nincs kapcsolat. Ellenőrizd a hálózatot, és próbáld újra.</string>
+    <string name="common_error_network_permission_off">A WM Billentyűzet hálózati hozzáférése ki van kapcsolva a telefon beállításaiban, így ez nem működik. Kapcsolja be az Android Beállítások › Alkalmazások › WM Billentyűzet › Engedélyek (GrapheneOS-en a Hálózat engedély) menüpontban, majd próbálja újra.</string>
     <string name="common_error_no_internet_permission">A billentyűzet ezen verziója nem tud csatlakozni az internethez.</string>
     <string name="common_error_timeout">A kérés túl sokáig tartott. Próbálja újra.</string>
     <string name="common_export">Exportálás</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Több</string>
     <string name="common_next">Következő</string>
     <string name="common_none">Nincs</string>
+    <string name="common_notify_channel_alarms_body">Egy elszunnyasztott vagy hamarosan csöngő ébresztés, valamint egy olyan, amelyik úgy csörgött, hogy senki sem volt ott. Magának a csöngésnek saját csatornája van.</string>
+    <string name="common_notify_channel_alarms_title">Értesítések ébresztésről</string>
     <string name="common_notify_channel_backup_body">Csak akkor, ha az automatikus biztonsági mentés sikertelen. A sikeres mentések csendesek.</string>
     <string name="common_notify_channel_backup_title">Biztonsági mentési problémák</string>
     <string name="common_notify_channel_clock_body">Időzítők és stopper futás közben, szüneteltetés, egy perc hozzáadása vagy leállítás gombokkal.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Billentyűzetvezérlők</string>
     <string name="common_notify_channel_send_body">A fájlküldő eszköz egy feltöltése vagy letöltése befejeződött, miközben a billentyűzet rejtve volt, a másolandó linkkel és egy közeli eszköz által küldött fájllal együtt.</string>
     <string name="common_notify_channel_send_title">Fájlok küldése és fogadása</string>
+    <string name="common_notify_channel_stopwatch_body">A stopperóra futás vagy szüneteltetés közben, körök, szüneteltetés és alaphelyzetbe állítás gombjaival.</string>
+    <string name="common_notify_channel_stopwatch_title">Stopper</string>
     <string name="common_notify_channel_updates_body">Egy új telepítendő verzió, egy frissítés, amely arra vár, hogy megnyomja a telepítést, és megerősítés, miután egy telepítve lett.</string>
     <string name="common_notify_channel_updates_title">Alkalmazásfrissítések</string>
     <string name="common_notify_download_done">Használatra kész</string>
     <string name="common_notify_download_failed">A(z) %1$s letöltése sikertelen</string>
     <string name="common_notify_download_handwriting">%1$s kézírás</string>
     <string name="common_notify_download_progress">%1$s / %2$s</string>
+    <string name="common_notify_download_step_library">1. lépés a 2-ből, a motor-könyvtár: %1$s</string>
+    <string name="common_notify_download_step_model">2. lépés a 2-ből, a modell: %1$s</string>
     <string name="common_notify_download_translate">%1$s offline fordítás</string>
     <string name="common_notify_download_voice">%1$s offline hang</string>
     <string name="common_off">Ki</string>
+    <string name="common_offline_build_download">Ez az offline verzió, így nem tudja letölteni ezt. Szerezze be a fájlt egy másik eszközön, és importálja: Beállítások › Névjegy › Tárhely › Letöltött fájlok importálása kezeli, vagy ennek a képernyőnek a saját Importálás sora, ha van neki. Vagy telepítse a szabványos verziót ugyancsak a kiadási oldalról ezen felül, és az magától letöltődik. A beállításai és a megtanult szavai megmaradnak.</string>
+    <string name="common_offline_build_library">Ez az offline verzió, így nem tudja letölteni az ehhez szükséges könyvtárat. Szerezze be a fájlját egy másik eszközön, és importálja a Beállítások › Adatvédelem › Funkciókönyvtárak menüpontban, amely felsorolja a pontos fájlt. Vagy telepítse a standard verziót ugyarról a kiadási oldalról ezen felül, és az magától letöltődik. A beállításai és a megtanult szavai megmaradnak.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">Be</string>
     <string name="common_open_system_settings">Rendszerbeállítások megnyitása</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Kisegítő szolgáltatás az AI-gombhoz</string>
     <string name="common_special_access_split_screen_body">Egyes telefonok teljes képernyőre nyitnak meg egy alkalmazást, amikor a billentyűzet osztott képernyőt kér. Ezzel a szolgáltatással bekapcsolva, ha osztott képernyőn nyit meg egy alkalmazást az alkalmazásindítóból, vagy osztott képernyős párt nyit meg, először az Android saját osztott képernyős kapcsolóját nyomja meg (ugyanazt, mint ami az Előzmények menüben van), és az alkalmazás ezután a szabad felében nyílik meg. Megnyomása előtt a szolgáltatás ellenőrzi, hogy hol vannak az alkalmazásablakok, hogy lássa, fent van-e már az osztott képernyő. Soha nem olvassa be, hogy mi van bennük. Más alkalommal semmit sem csinál, nem figyeli, hogy mit gépel, és semmit sem őriz meg. Az Android akadálymentesítési képernyője figyelmeztet minden olyan dologra, amit egy ilyen szolgáltatás tehet. Ez a szolgáltatás csak akkor nyomja meg azt a kapcsolót, amikor Ön osztott képernyőt kér.</string>
     <string name="common_special_access_split_screen_title">Kisegítő lehetőségek szolgáltatás a megosztott képernyőhöz</string>
+    <string name="common_special_access_system_buttons_body">Az Android csak akadálymentesítési szolgáltatáson keresztül engedi meg egy másik alkalmazásnak, hogy képernyőképet készítsen, visszalépjen, vagy megnyissa a legutóbbi alkalmazásokat, az alkalmazásfiókot, az értesítési sárnyékot vagy a gyorsbeállításokat. Bekapcsolt szolgáltatás esetén a Képernyőkép eszköz és a lebegő gomb megnyomja Ön helyett ezeket a rendszergombokat, ugyanazokat, amiket az Android saját navigációja és sárnyéka használ. A képernyőkép oda mentődik, ahová minden más képernyőkép. A szolgáltatás semmilyen más alkalommal nem csinál semmit. Nem olvassa a képernyőt, nem figyeli, hogy mit gépel, és nem őriz meg semmit. Az Android akadálymentesítési képernyője figyelmeztet mindenre, amire egy ilyen szolgáltatás képes lehet. Ez a szolgáltatás csak akkor nyom meg egy rendszergombot, amikor Ön arra kéri.</string>
+    <string name="common_special_access_system_buttons_title">Kisegítő lehetőségek szolgáltatás a rendszergombokhoz</string>
     <string name="common_special_access_usage_body">A használati hozzáféréssel a billentyűzet rögzíti, melyik alkalmazás volt előtérben, amikor valamit másolt. Megmutatja az alkalmazást, amikor lenyomva tartja a vágólap elemet. A billentyűzet csak a másolás pillanatában olvassa az előtérben lévő alkalmazást. Nem olvassa az előzményeket vagy az alkalmazásban töltött időt. A billentyűzet a választ a vágólappal együtt tárolja, kizárólag az eszközön. Az alkalmazáshasználattal kapcsolatos információk nem hagyják el az eszközt. A beállítás opcionális. Kikapcsolva marad, amíg Ön be nem kapcsolja.</string>
     <string name="common_special_access_usage_title">Használati hozzáférés a vágólap-forrásalkalmazásokhoz</string>
     <string name="common_type_setting_value_desc">Adja meg az értéket a következőhöz: %1$s</string>

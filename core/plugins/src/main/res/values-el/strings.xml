@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Αυτό το πρόσθετο δεν διαθέτει πλέον αυτήν την ενέργεια.</string>
     <string name="core_plugins_error_no_render">Αυτό το πρόσθετο δεν διαθέτει συνάρτηση render().</string>
+    <string name="core_plugins_error_no_transform">Αυτό το πρόσθετο δεν διαθέτει συνάρτηση transform().</string>
     <string name="core_plugins_error_not_installed">Αυτό το πρόσθετο δεν είναι εγκατεστημένο.</string>
+    <string name="core_plugins_error_not_ready">Τα πρόσθετα εξακολουθούν να μεταφορτώνονται. Δοκιμάστε ξανά σε λίγο.</string>
     <string name="core_plugins_error_script_failed">Το σενάριο απέτυχε.</string>
     <string name="core_plugins_error_script_missing">Το σενάριο για αυτό το πρόσθετο λείπει.</string>
     <string name="core_plugins_error_turned_off">Αυτό το πρόσθετο είναι απενεργοποιημένο.</string>
     <string name="core_plugins_permission_reminders_label">Εμφάνιση υπενθυμίσεων σε ώρες που ορίζετε σε αυτό</string>
+    <string name="core_plugins_permission_selection_label">Αλλαγή κειμένου που επιλέγετε, όταν πατάτε μία από τις ενέργειές του</string>
     <string name="core_plugins_permission_storage_label">Αποθήκευση δεδομένων στη συσκευή σας</string>
+    <string name="core_plugins_reject_action_input">Το «%1$s» έχει μια ενέργεια που ζητά κείμενο το οποίο αυτή η έκδοση του WM Keyboard δεν μπορεί να του δώσει.</string>
+    <string name="core_plugins_reject_action_no_name">Το «%1$s» έχει μια ενέργεια χωρίς όνομα.</string>
+    <string name="core_plugins_reject_actions_need_selection">Το “%1$s” προσθέτει ενέργειες για το επιλεγμένο κείμενο αλλά δεν ζητά άδεια για να το αλλάξει.</string>
+    <string name="core_plugins_reject_bad_action_id">Το «%1$s» έχει μια ενέργεια της οποίας το αναγνωριστικό λείπει, επαναλαμβάνεται ή δεν είναι έγκυρο. Ένα αναγνωριστικό ενέργειας αποτελείται από έως 32 πεζά γράμματα, αριθμούς, παύλες και κάτω παύλες.</string>
     <string name="core_plugins_reject_bad_encoding">Το «%1$s» περιέχει ένα σενάριο που δεν είναι έγκυρο κείμενο UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Αυτό το πρόσθετο έχει μη έγκυρο αναγνωριστικό. Ένα αναγνωριστικό πρέπει να έχει μήκος από 3 έως 64 χαρακτήρες. Μπορεί να περιέχει πεζά γράμματα, αριθμούς, τελείες, παύλες και κάτω παύλες.</string>
     <string name="core_plugins_reject_empty_script">Το «%1$s» έχει κενό σενάριο.</string>
+    <string name="core_plugins_reject_lua">Το “%1$s” είναι γραμμένο σε Lua, το οποίο το WM Keyboard δεν εκτελεί πλέον. Αναζητήστε την έκδοσή του σε Python.</string>
     <string name="core_plugins_reject_missing_script">Το “%1$s” δεν διαθέτει το αρχείο δέσμης ενεργειών του (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Αυτό το πρόσθετο χρειάζεται μια νεότερη έκδοση του WM Keyboard.</string>
     <string name="core_plugins_reject_no_name">Αυτό το πρόσθετο δεν έχει όνομα.</string>
     <string name="core_plugins_reject_no_version">Το «%1$s» δεν αναφέρει ποια έκδοση είναι.</string>
+    <string name="core_plugins_reject_nothing_to_show">Το «%1$s» δεν έχει πάνελ και καμία ενέργεια, οπότε δεν υπάρχει τίποτα να κάνει.</string>
     <string name="core_plugins_reject_script_too_large">Το “%1$s” έχει ένα σενάριο μεγαλύτερο από %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">Το «%1$s» ζητά να αλλάξει το κείμενο που επιλέξατε, αλλά δεν προσθέτει καμία ενέργεια.</string>
+    <string name="core_plugins_reject_too_many_actions">Το «%1$s» προσθέτει περισσότερες από 16 ενέργειες.</string>
+    <string name="core_plugins_reject_unknown_language">Το \"%1$s\" είναι γραμμένο σε μια γλώσσα που αυτή η έκδοση του πληκτρολογίου WM δεν μπορεί να εκτελέσει. Τα πρόσθετα είναι γραμμένα σε Python.</string>
     <string name="core_plugins_reject_unknown_permission">Αυτή η έκδοση του WM Keyboard δεν αναγνωρίζει την άδεια “%1$s”. Η εφαρμογή δεν μπορεί να σας πει τι επιτρέπεται να κάνει το “%2$s”.</string>
     <string name="core_plugins_reminders_channel_body">Υπενθυμίσεις που μια πρόσθετη λειτουργία ζήτησε από την εφαρμογή να εμφανίσει, τις ώρες που ορίσατε στην πρόσθετη λειτουργία. Ο τίτλος της καθεμιάς είναι το όνομα της πρόσθετης λειτουργίας.</string>
     <string name="core_plugins_reminders_channel_title">Υπενθυμίσεις πρόσθετων</string>
     <string name="core_plugins_stopped_cancelled">Η εφαρμογή σταμάτησε αυτό το πρόσθετο.</string>
     <string name="core_plugins_stopped_deadline">Αυτό το πρόσθετο χρειάστηκε πολύ χρόνο. Η εφαρμογή το σταμάτησε.</string>
     <string name="core_plugins_stopped_instructions">Αυτό το πρόσθετο έκανε πάρα πολλή εργασία ταυτόχρονα. Η εφαρμογή το σταμάτησε.</string>
+    <string name="core_plugins_stopped_memory">Αυτό το πρόσθετο προσπάθησε να διατηρήσει υπερβολικά πολλά δεδομένα. Η εφαρμογή το σταμάτησε.</string>
     <string name="core_plugins_stopped_not_responding">Αυτό το πρόσθετο σταμάτησε να αποκρίνεται. Η εφαρμογή το έκλεισε.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Αυτό το πρόσθετο σταμάτησε να αποκρίνεται ξανά. Η εφαρμογή το απενεργοποίησε.</string>
     <string name="core_plugins_stopped_recursion">Αυτό το πρόσθετο κάλεσε τον εαυτό του πάρα πολλές φορές. Η εφαρμογή το σταμάτησε.</string>

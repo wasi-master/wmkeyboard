@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Pozastaveno: úspora dat pozastavuje stahování při tomto připojení. Bude pokračovat tam, kde skončilo.</string>
     <string name="common_error_generic">Něco se nepodařilo. Zkuste to znovu.</string>
     <string name="common_error_network">Žádné připojení. Zkontrolujte svou síť a zkuste to znovu.</string>
+    <string name="common_error_network_permission_off">Přístup k síti klávesnice WM Keyboard je v nastavení vašeho telefonu vypnutý, takže to nefunguje. Zapněte jej v Nastavení Androidu › Aplikace › WM Keyboard › Oprávnění (v systému GrapheneOS oprávnění Síť) a zkuste to znovu.</string>
     <string name="common_error_no_internet_permission">Tato verze klávesnice se nemůže připojit k internetu.</string>
     <string name="common_error_timeout">Požadavek trval příliš dlouho. Zkuste to znovu.</string>
     <string name="common_export">Exportovat</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Více</string>
     <string name="common_next">Další</string>
     <string name="common_none">Žádné</string>
+    <string name="common_notify_channel_alarms_body">Budík, který je odložen nebo brzy zazvoní, a budík, který zazvonil a nikdo u něj nebyl. Samotné zvonění má vlastní kanál.</string>
+    <string name="common_notify_channel_alarms_title">Upozornění budíku</string>
     <string name="common_notify_channel_backup_body">Pouze pokud automatické zálohování selže. Úspěšné zálohy jsou tiché.</string>
     <string name="common_notify_channel_backup_title">Problémy se zálohováním</string>
     <string name="common_notify_channel_clock_body">Časovače a stopky během jejich běhu, s tlačítky pro pozastavení, přidání minuty nebo jejich zastavení.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Ovládací prvky klávesnice</string>
     <string name="common_notify_channel_send_body">Nástroj pro odesílání souborů dokončil nahrávání nebo stahování, zatímco byla klávesnice skrytá, včetně odkazu ke zkopírování a souboru odeslaného blízkým zařízením.</string>
     <string name="common_notify_channel_send_title">Odesílání a přijímání souborů</string>
+    <string name="common_notify_channel_stopwatch_body">Stopky, když běží nebo jsou pozastavené, s tlačítky pro kola, pozastavení a vynulování.</string>
+    <string name="common_notify_channel_stopwatch_title">Stopky</string>
     <string name="common_notify_channel_updates_body">Nová verze k instalaci, aktualizace čekající na vaše potvrzení instalace a potvrzení po dokončení instalace.</string>
     <string name="common_notify_channel_updates_title">Aktualizace aplikací</string>
     <string name="common_notify_download_done">Připraveno k použití</string>
     <string name="common_notify_download_failed">Soubor %1$s se nepodařilo stáhnout</string>
     <string name="common_notify_download_handwriting">Psaní rukou %1$s</string>
     <string name="common_notify_download_progress">%1$s z %2$s</string>
+    <string name="common_notify_download_step_library">Krok 1 z 2, knihovna enginu: %1$s</string>
+    <string name="common_notify_download_step_model">Krok 2 ze 2, model: %1$s</string>
     <string name="common_notify_download_translate">Offline překlad %1$s</string>
     <string name="common_notify_download_voice">%1$s offline hlas</string>
     <string name="common_off">Vypnuto</string>
+    <string name="common_offline_build_download">Toto je offline sestavení, takže to nemůže stáhnout. Získejte soubor na jiném zařízení a importujte ho: Nastavení › O aplikaci › Úložiště › Importovat stažené soubory, nebo použijte řádek Import na této obrazovce. Nebo přes toto sestavení nainstalujte standardní sestavení ze stejné stránky vydání a stáhne se samo. Vaše nastavení a naučená slova zůstanou.</string>
+    <string name="common_offline_build_library">Toto je offline sestavení, takže nemůže stáhnout požadovanou knihovnu. Získejte její soubor na jiném zařízení a importujte jej v Nastavení › Soukromí › Knihovny funkcí, kde je přesný soubor uveden. Nebo přes toto sestavení nainstalujte standardní sestavení ze stejné stránky vydání a stáhne se automaticky. Vaše nastavení a naučená slova zůstanou zachována.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">Zapnuto</string>
     <string name="common_open_system_settings">Otevřít systémové nastavení</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Služba usnadnění pro tlačítko AI</string>
     <string name="common_special_access_split_screen_body">Některé telefony otevřou aplikaci přes celou obrazovku, když klávesnice požádá o rozdělenou obrazovku. S touto zapnutou službou otevření aplikace v rozdělené obrazovce z launcheru aplikací nebo otevření páru rozdělené obrazovky nejprve stiskne vlastní přepínač rozdělené obrazovky Androidu, tedy stejný, jaký má nabídka Nedávné, a aplikace se pak otevře v polovině zdarma. Před stisknutím služba zkontroluje, kde se okna aplikací nacházejí, aby zjistila, zda již rozdělená obrazovka běží. Nikdy nečte, co je v nich obsaženo. V jinou dobu nic nedělá, nesleduje, co píšete, a nic neuchovává. Obrazovka usnadnění Androidu varuje před vším, co by taková služba mohla dělat. Tato služba stiskne tento přepínač pouze tehdy, když o rozdělenou obrazovku požádáte.</string>
     <string name="common_special_access_split_screen_title">Služba usnadnění pro rozdělenou obrazovku</string>
+    <string name="common_special_access_system_buttons_body">Android umožňuje jiné aplikaci pořídit snímek obrazovky, vrátit se zpět nebo otevřít nedávné aplikace, zásuvku aplikací, panel oznámení či rychlá nastavení pouze prostřednictvím služby usnadnění. Se zapnutou touto službou nástroj pro tvorbu snímků obrazovky a plovoucí tlačítko stisknou tato systémová tlačítka za vás, tedy stejná tlačítka, která má vlastní navigace a panel v systému Android. Snímek obrazovky se uloží tam, kam se ukládají všechny snímky obrazovky. Služba v žádnou jinou dobu nic nedělá. Nečte obrazovku, nesleduje, co píšete, a nic neuchovává. Obrazovka usnadnění v systému Android varuje před vším, co by služba tohoto druhu mohla provést. Tato služba stiskne systémové tlačítko pouze tehdy, když o to požádáte.</string>
+    <string name="common_special_access_system_buttons_title">Služba přístupnosti pro systémová tlačítka</string>
     <string name="common_special_access_usage_body">S přístupem k používání klávesnice zaznamenává, která aplikace byla v popředí, když jste něco zkopírovali. Tuto aplikaci zobrazí, když stisknete a podržíte schránku. Klávesnice čte aplikaci v popředí pouze v okamžiku kopírování. Nečte vaši historii ani čas strávený v aplikaci. Klávesnice uchovává odpověď spolu se schránkou pouze ve vašem zařízení. Nic o používání aplikací vaše zařízení neopustí. Toto nastavení je volitelné. Zůstává vypnuté, dokud ho nezapnete.</string>
     <string name="common_special_access_usage_title">Přístup k využití pro aplikace zdroje schránky</string>
     <string name="common_type_setting_value_desc">Zadejte hodnotu pro %1$s</string>

@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">ఇతర సేవ</string>
     <string name="core_settings_ai_provider_on_device_label">మీ పరికరంలో</string>
+    <string name="core_settings_ai_provider_privatemode_label">ప్రైవేట్‌మోడ్</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">రోజు సమయం</string>
     <string name="core_settings_auto_theme_trigger_sun_label">సూర్యోదయం మరియు సూర్యాస్తమయం</string>
     <string name="core_settings_auto_theme_trigger_system_label">సిస్టమ్ లైట్ లేదా డార్క్</string>

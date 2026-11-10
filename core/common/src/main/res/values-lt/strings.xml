@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Pristabdyta: duomenų taupymo režimas sulaiko atsisiuntimus naudojant šį ryšį. Jis bus tęsiamas ten, kur nutrūko.</string>
     <string name="common_error_generic">Kažkas nepavyko. Bandykite dar kartą.</string>
     <string name="common_error_network">Nėra ryšio. Patikrinkite tinklą ir bandykite dar kartą.</string>
+    <string name="common_error_network_permission_off">WM Keyboard tinklo prieiga yra išjungta jūsų telefono nustatymuose, todėl tai neveikia. Įjunkite ją „Android“ nustatymuose › Programėlės › WM Keyboard › Leidimai (sistemoje „GrapheneOS“ – tinklo leidimas) ir bandykite dar kartą.</string>
     <string name="common_error_no_internet_permission">Ši klaviatūros versija negali prisijungti prie interneto.</string>
     <string name="common_error_timeout">Užklausa užtruko per ilgai. Bandykite dar kartą.</string>
     <string name="common_export">Eksportuoti</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Daugiau</string>
     <string name="common_next">Kitas</string>
     <string name="common_none">Nėra</string>
+    <string name="common_notify_channel_alarms_body">Žadintuvas, kurio signalas atidėtas arba tuoj suskambės, taip pat nuskambėjęs žadintuvas, į kurį niekas nereagavo. Pats skambėjimo signalas turi savo kanalą.</string>
+    <string name="common_notify_channel_alarms_title">Žadintuvo pranešimai</string>
     <string name="common_notify_channel_backup_body">Tik tada, kai automatinė atsarginė kopija nepavyksta. Sėkmingos atsarginės kopijos yra tylios.</string>
     <string name="common_notify_channel_backup_title">Atsarginės kopijos problemos</string>
     <string name="common_notify_channel_clock_body">Laikmačiai ir chronometras jiems veikiant, su mygtukais pristabdyti, pridėti minutę arba sustabdyti.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Klaviatūros valdikliai</string>
     <string name="common_notify_channel_send_body">Failų siuntimo įrankis baigė įkėlimą arba atsisiuntimą, kol klaviatūra buvo paslėpta; pateikiama nuoroda kopijavimui ir netoliese esančio įrenginio atsiųstas failas.</string>
     <string name="common_notify_channel_send_title">Failų siuntimas ir gavimas</string>
+    <string name="common_notify_channel_stopwatch_body">Chronometras jam veikiant arba esant pristabdytam, su ratų, pristabdymo ir nustatymo iš naujo mygtukais.</string>
+    <string name="common_notify_channel_stopwatch_title">Chronometras</string>
     <string name="common_notify_channel_updates_body">Nauja versija, kurią reikia įdiegti, laukiantis naujinimas, kurį reikia įdiegti, ir patvirtinimas, kai vienas iš jų bus įdiegtas.</string>
     <string name="common_notify_channel_updates_title">Programėlės atnaujinimai</string>
     <string name="common_notify_download_done">Paruošta naudoti</string>
     <string name="common_notify_download_failed">Nepavyko atsisiųsti %1$s</string>
     <string name="common_notify_download_handwriting">%1$s rašysena</string>
     <string name="common_notify_download_progress">%1$s iš %2$s</string>
+    <string name="common_notify_download_step_library">1 veiksmas iš 2, variklio biblioteka: %1$s</string>
+    <string name="common_notify_download_step_model">2 veiksmas iš 2, modelis: %1$s</string>
     <string name="common_notify_download_translate">%1$s vertimas neprisijungus</string>
     <string name="common_notify_download_voice">%1$s balsas neprisijungus</string>
     <string name="common_off">Išjungta</string>
+    <string name="common_offline_build_download">Tai yra neprisijungus veikianti laida, todėl jos atsisiųsti negalima. Gaukite failą kitame įrenginyje ir importuokite jį: Nustatymai › Apie › Atmintis › Importuoti atsisiųstus failus arba naudokite šio ekrano importavimo eilutę. Arba įdiekite standartinę laidą iš to paties leidimo puslapio ant šios, ir ji atsisiųs pati. Jūsų nustatymai ir išmokti žodžiai išliks.</string>
+    <string name="common_offline_build_library">Tai neprisijungus veikianti laida, todėl ji negali atsisiųsti reikalingos bibliotekos. Gauti jos failą kitame įrenginyje ir importuoti jį nustatymuose › Privatumas › Funkcijų bibliotekos, kuriose nurodytas tikslus failas. Arba įdiekite standartinę versiją iš to paties leidimo puslapio ant šios, ir ji atsisiųs pati. Jūsų nustatymai ir išmokti žodžiai išliks.</string>
     <string name="common_ok">Gerai</string>
     <string name="common_on">Įjungta</string>
     <string name="common_open_system_settings">Atidaryti sistemos nustatymus</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">AI mygtuko pritaikymo neįgaliesiems paslauga</string>
     <string name="common_special_access_split_screen_body">Kai klaviatūra prašo padalinto ekrano, kai kurie telefonai atidaro programėlę per visą ekraną. Įjungus šią paslaugą, programėlės atidarymas padalintame ekrane iš paleidiklių arba atidarant padalinto ekrano porą, pirmiausia nuspaudžia „Android“ savo padalinto ekrano jungiklį – tą patį, kurį turi meniu „Paskutiniai“ – ir programėlė atsidaro laisvoje pusėje. Prieš jį nuspausdamas, servisas patikrina, kur yra programėlių langai, kad sužinotų, ar padalintas ekranas jau įjungtas. Jis niekada neskaito to, kas juose yra. Jis nieko nedaro kitu metu, nestebi, ką rašote, ir nieko neišsaugo. „Android“ pritaikymo neįgaliesiems ekranas įspėja apie viską, ką tokia paslauga galėtų padaryti. Ši paslauga tik paspaudžia tą jungiklį, kai paprašote padalinto ekrano.</string>
     <string name="common_special_access_split_screen_title">Pritaikymo neįgaliesiems paslauga padalytam ekranui</string>
+    <string name="common_special_access_system_buttons_body">„Android“ leidžia kitai programai daryti ekrano kopiją, grįžti atgal arba atidaryti naujausias programas, programų stalčių, pranešimų skydelį ar greituosius nustatymus tik per pritaikymo neįgaliesiems paslaugą. Įjungus šią paslaugą, ekrano kopijos įrankis ir plaukiojantis mygtukas paspaudžia šiuos sistemos mygtukus už jus – tuos pačius, kuriuos turi pati „Android“ naršymo ir užsklandos sistema. Ekrano kopija išsaugoma ten, kur patenka visos ekrano kopijos. Paslauga jokiu kitu metu nieko nedaro. Ji neskaito ekrano, stebi jūsų spausdinamą tekstą ir nieko neišsaugo. „Android“ pritaikymo neįgaliesiems ekranas įspėja apie viską, ką tokia paslauga galėtų padaryti. Ši paslauga sistemos mygtuką paspaudžia tik tada, kai to paprašote.</string>
+    <string name="common_special_access_system_buttons_title">Pritaikymo neįgaliesiems paslauga sisteminiams mygtukams</string>
     <string name="common_special_access_usage_body">Naudojant prieigą, klaviatūra įrašo, kuri programa buvo atidaryta, kai ką nors nukopijavote. Ji parodo tą programą, kai paspaudžiate ir palaikote iškarpą. Klaviatūra nuskaito priekinę programą tik kopijavimo momentu. Ji neskaito jūsų istorijos ar laiko, praleisto programoje. Klaviatūra išsaugo atsakymą kartu su iškarpa tik jūsų įrenginyje. Niekas apie jūsų programų naudojimą nepalieka jūsų įrenginio. Šis nustatymas yra neprivalomas. Jis išlieka išjungtas, kol jį įjungsite.</string>
     <string name="common_special_access_usage_title">Naudojimo prieiga iškarpinės šaltinio programoms</string>
     <string name="common_type_setting_value_desc">Įveskite %1$s reikšmę</string>

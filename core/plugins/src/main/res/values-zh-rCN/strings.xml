@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">该插件不再具有此操作。</string>
     <string name="core_plugins_error_no_render">此插件没有 render() 函数。</string>
+    <string name="core_plugins_error_no_transform">此插件没有 transform() 函数。</string>
     <string name="core_plugins_error_not_installed">该插件未安装。</string>
+    <string name="core_plugins_error_not_ready">插件仍在下载中。请稍后重试。</string>
     <string name="core_plugins_error_script_failed">脚本执行失败。</string>
     <string name="core_plugins_error_script_missing">该插件的脚本缺失。</string>
     <string name="core_plugins_error_turned_off">该插件已关闭。</string>
     <string name="core_plugins_permission_reminders_label">在您设置的时间显示提醒</string>
+    <string name="core_plugins_permission_selection_label">当您点击所选文本的操作时，更改您选中的文本</string>
     <string name="core_plugins_permission_storage_label">在您的设备上保存数据</string>
+    <string name="core_plugins_reject_action_input">“%1$s”包含一个请求获取当前版本的 WM Keyboard 无法提供的文本的操作。</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s”包含一个没有名称的操作。</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s”为所选文本添加操作，但不会请求更改它的权限。</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s”包含一个缺失、重复或无效ID的操作。操作ID最多可包含32个小写字母、数字、破折号和下划线。</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s”包含无效的 UTF-8 文本脚本。</string>
     <string name="core_plugins_reject_bad_id">此插件的 ID 无效。ID 长度应为 3 到 64 个字符。ID 可以包含小写字母、数字、点、连字符和下划线。</string>
     <string name="core_plugins_reject_empty_script">“%1$s”的脚本为空。</string>
+    <string name="core_plugins_reject_lua">“%1$s”是用 Lua 编写的，WM 键盘不再运行该语言。请查找其 Python 版本。</string>
     <string name="core_plugins_reject_missing_script">“%1$s”缺少其脚本文件 (%2$s)。</string>
     <string name="core_plugins_reject_newer_version">此插件需要更新版本的 WM Keyboard。</string>
     <string name="core_plugins_reject_no_name">此插件没有名称。</string>
     <string name="core_plugins_reject_no_version">“%1$s”未说明其版本。</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s”没有面板也没有操作，因此没有什么可执行的。</string>
     <string name="core_plugins_reject_script_too_large">“%1$s”包含的脚本大于 %2$d KB。</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s”请求更改您所选的文本，但未添加任何操作。</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s”添加的操作超过了 16 个。</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s”使用的语言是此版本 WM Keyboard 无法运行的。插件是用 Python 编写的。</string>
     <string name="core_plugins_reject_unknown_permission">此版本的 WM 键盘无法识别权限“%1$s”。应用无法告知您“%2$s”被允许执行的操作。</string>
     <string name="core_plugins_reminders_channel_body">插件请求应用在您设置的时间显示的提醒。每个提醒的标题均为插件名称。</string>
     <string name="core_plugins_reminders_channel_title">插件提醒</string>
     <string name="core_plugins_stopped_cancelled">应用已停止此插件。</string>
     <string name="core_plugins_stopped_deadline">此插件运行时间过长，应用已将其停止。</string>
     <string name="core_plugins_stopped_instructions">此插件同时执行了过多任务，应用已将其停止。</string>
+    <string name="core_plugins_stopped_memory">该插件尝试保留过多数据，应用已将其停止。</string>
     <string name="core_plugins_stopped_not_responding">此插件停止响应，应用已将其关闭。</string>
     <string name="core_plugins_stopped_not_responding_disabled">此插件再次停止响应。应用已将其关闭。</string>
     <string name="core_plugins_stopped_recursion">此插件调用自身次数过多。应用已将其停止。</string>

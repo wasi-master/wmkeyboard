@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Pauzirano: ušteda podataka zadržava preuzimanja na ovoj vezi. Nastavlja se tamo gdje je stalo.</string>
     <string name="common_error_generic">Nešto nije uspjelo. Pokušajte ponovno.</string>
     <string name="common_error_network">Nema veze. Provjerite mrežu i pokušajte ponovno.</string>
+    <string name="common_error_network_permission_off">Pristup mreži za tipkovnicu WM Keyboard isključen je u postavkama vašeg telefona, stoga ovo ne radi. Uključite ga u odjeljku Postavke sustava Android › Aplikacije › WM Keyboard › Dozvole (na GrapheneOS-u, mrežna dozvola), a zatim pokušajte ponovno.</string>
     <string name="common_error_no_internet_permission">Ova verzija tipkovnice se ne može povezati s internetom.</string>
     <string name="common_error_timeout">Zahtjev je trajao predugo. Pokušajte ponovno.</string>
     <string name="common_export">Izvezi</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Više</string>
     <string name="common_next">Dalje</string>
     <string name="common_none">Ništa</string>
+    <string name="common_notify_channel_alarms_body">Alarmi koji su odgođeni ili će uskoro zazvoniti te oni koji su zazvonili, a nitko ih nije isključio. Samo zvonjenje ima vlastiti kanal.</string>
+    <string name="common_notify_channel_alarms_title">Obavijesti o alarmu</string>
     <string name="common_notify_channel_backup_body">Samo kada automatska sigurnosna kopija ne uspije. Uspješne sigurnosne kopije su tihe.</string>
     <string name="common_notify_channel_backup_title">Problemi sa sigurnosnom kopijom</string>
     <string name="common_notify_channel_clock_body">Mjerači vremena i štoperica dok rade, s gumbima za pauziranje, dodavanje minute ili zaustavljanje.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Kontrole tipkovnice</string>
     <string name="common_notify_channel_send_body">Prijenos ili preuzimanje koje je alat za slanje datoteka završio dok je tipkovnica bila skrivena, s poveznicom za kopiranje i datotekom koju je poslao uređaj u blizini.</string>
     <string name="common_notify_channel_send_title">Slanje i primanje datoteka</string>
+    <string name="common_notify_channel_stopwatch_body">Štoperica dok radi ili je pauzirana, s gumbima za krugove, pauziranje i poništavanje.</string>
+    <string name="common_notify_channel_stopwatch_title">Štoperica</string>
     <string name="common_notify_channel_updates_body">Nova verzija za instalaciju, ažuriranje koje čeka da pritisnete instaliraj i potvrda nakon što je instalirano.</string>
     <string name="common_notify_channel_updates_title">Ažuriranja aplikacije</string>
     <string name="common_notify_download_done">Spremno za upotrebu</string>
     <string name="common_notify_download_failed">%1$s se nije moglo preuzeti</string>
     <string name="common_notify_download_handwriting">%1$s rukopis</string>
     <string name="common_notify_download_progress">%1$s od %2$s</string>
+    <string name="common_notify_download_step_library">1. korak od 2, biblioteka mehanizma: %1$s</string>
+    <string name="common_notify_download_step_model">2. korak od 2, model: %1$s</string>
     <string name="common_notify_download_translate">%1$s izvanmrežni prijevod</string>
     <string name="common_notify_download_voice">%1$s izvanmrežni glas</string>
     <string name="common_off">Isključeno</string>
+    <string name="common_offline_build_download">Ovo je izvanmrežna verzija pa ne može preuzeti ovo. Preuzmite datoteku na drugi uređaj i uvezite je: Postavke › O aplikaciji › Pohrana › Uvezi preuzete datoteke to prihvaća, ili putem retka za uvoz na ovom zaslonu ako ga ima. Ili instalirajte standardnu verziju s iste stranice izdanja preko ove, i ona će se sama preuzeti. Vaše postavke i naučene riječi ostaju.</string>
+    <string name="common_offline_build_library">Ovo je izvanmrežna verzija, stoga ne može preuzeti biblioteku koja je potrebna. Nabavite datoteku na drugom uređaju i uvezite je u Postavke › Privatnost › Biblioteke značajki, gdje je navedena točna datoteka. Ili instalirajte standardnu verziju s iste stranice izdanja preko ove, i ona će se sama preuzeti. Vaše postavke i naučene riječi ostaju.</string>
     <string name="common_ok">U redu</string>
     <string name="common_on">Uključeno</string>
     <string name="common_open_system_settings">Otvori postavke sustava</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Usluga pristupačnosti za AI gumb</string>
     <string name="common_special_access_split_screen_body">Neki telefoni otvaraju aplikaciju preko cijelog zaslona kada tipkovnica zatraži podijeljeni zaslon. S uključenom ovom uslugom, otvaranje aplikacije u podijeljenom zaslonu iz pokretača aplikacija ili otvaranje para podijeljenog zaslona prvo pritišće Androidov vlastiti prekidač za podijeljeni zaslon, isti onaj koji ima izbornik Nedavno, a aplikacija se zatim otvara u slobodnoj polovici. Prije pritiskanja, usluga provjerava gdje se nalaze prozori aplikacije kako bi vidjela je li podijeljeni zaslon već otvoren. Nikada ne čita što je u njima. Ne radi ništa u bilo koje drugo vrijeme, ne gleda što tipkate i ništa ne zadržava. Androidov zaslon pristupačnosti upozorava na sve što ovakva usluga može učiniti. Ova samo pritišće taj prekidač kada zatražite podijeljeni zaslon.</string>
     <string name="common_special_access_split_screen_title">Usluga pristupačnosti za podijeljeni zaslon</string>
+    <string name="common_special_access_system_buttons_body">Android omogućuje drugoj aplikaciji snimanje zaslona, povratak ili otvaranje nedavnih aplikacija, ladice s aplikacijama, sjene obavijesti ili brzih postavki samo putem usluge pristupačnosti. S uključenom uslugom, alat za snimanje zaslona i plutajući gumb pritišću te sistemske gumbe umjesto vas, iste one koje ima Androidova vlastita navigacija i sjena. Snimka zaslona sprema se tamo gdje se sprema svaka snimka zaslona. Usluga ne radi ništa u bilo koje drugo vrijeme. Ne čita zaslon, ne gleda što tipkate i ne zadržava ništa. Androidov zaslon pristupačnosti upozorava na sve što bi ovakva usluga mogla učiniti. Ova pritišće samo sistemski gumb kada to zatražite.</string>
+    <string name="common_special_access_system_buttons_title">Usluga pristupačnosti za sistemske gumbove</string>
     <string name="common_special_access_usage_body">Uz pristup upotrebi, tipkovnica bilježi koja je aplikacija bila u prvom planu kada ste nešto kopirali. Prikazuje tu aplikaciju kada pritisnete i držite isječak. Tipkovnica čita aplikaciju u prvom planu samo u trenutku kopiranja. Ne čita vašu povijest niti vrijeme provedeno u aplikaciji. Tipkovnica zadržava odgovor s isječkom, samo na vašem uređaju. Ništa o vašoj upotrebi aplikacija ne napušta vaš uređaj. Postavka je neobavezna. Ostaje isključena dok je ne uključite.</string>
     <string name="common_special_access_usage_title">Pristup upotrebi za aplikacije izvora međuspremnika</string>
     <string name="common_type_setting_value_desc">Upišite vrijednost za %1$s</string>

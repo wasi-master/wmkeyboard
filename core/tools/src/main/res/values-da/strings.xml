@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Baggrunde</string>
     <string name="core_tools_provider_acrcloud_desc">En musikgenkendelsestjeneste med en to-ugers prøveperiode, derefter betalte planer. Kræver vært, adgangsnøgle og adgangshemmelighed for et projekt fra console.acrcloud.com. Hvert klip sendes til ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">Gratis Stable Diffusion på frivilliges computere. Fungerer uden nøgle, men venter i en kø; en gratis nøgle fra aihorde.net rykker dig frem i køen.</string>
+    <string name="core_tools_provider_allratestoday_desc">Den Europæiske Centralbanks referencekurser for omkring 30 valutaer. Ingen nøgle.</string>
     <string name="core_tools_provider_anthropic_desc">Claude-modeller via Anthropics API, med din egen nøgle.</string>
     <string name="core_tools_provider_asr4all_desc">Engelsk diktering på telefonen, hvor ordene vises, mens du taler.</string>
     <string name="core_tools_provider_audd_desc">Genkender det meste udgivne musik fra få sekunders lyd. Kræver et token fra dashboard.audd.io; et par hundrede genkendelser er gratis, derefter er det betalt. Hvert klip sendes til AudD.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">En stor model, der kører på telefonen og forstår 25 europæiske sprog.</string>
     <string name="core_tools_provider_pexels_desc">Billeder fra Pexels. Kræver en API-nøgle, medmindre denne build har en.</string>
     <string name="core_tools_provider_pollinations_desc">Gratis, uden nøgle og uden konto: prompten sendes til Pollinations, som vælger modellen. En nøgle fra enter.pollinations.ai åbner dens nyere API og lader dig navngive en model.</string>
+    <string name="core_tools_provider_privatemode">Privat tilstand AI</string>
+    <string name="core_tools_provider_privatemode_desc">AI, der kører i fortrolig databehandling og ikke kan læse din tekst. Angiv din Privatemode-API-nøgle. Tastaturet krypterer derefter hver forespørgsel på telefonen, men det kontrollerer ikke tjenestens hardwareattestering. For også at få det kontrolleret, skal du køre privatemode-proxy og angive dens adresse, såsom http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (uofficiel, via RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Shazams katalog via en uofficiel liste på RapidAPI, med en RapidAPI-nøgle. Ikke en Apple-tjeneste: listen kan ændre sig eller stoppe uden varsel. Hvert klip sendes til RapidAPI.</string>
     <string name="core_tools_provider_recraft_desc">Illustrationer, ikoner og vektorgrafik. Kræver en nøgle fra recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Billeder fra Unsplash. Kræver en API-nøgle, medmindre denne build har en.</string>
     <string name="core_tools_provider_vision_ocr">Din visionsmodel</string>
     <string name="core_tools_provider_vision_ocr_desc">En model, der læser billeder via en server, som besvarer OpenAI-chatforespørgsler. Kræver adressen og modelnavnet.</string>
+    <string name="core_tools_provider_vosk_desc">Små Kaldi-modeller fra Alpha Cephei til 29 sprog, på ca. 40 MB hver, der skriver, mens du taler i telefonen. Let nok til en ældre telefon.</string>
     <string name="core_tools_provider_whisper_desc">OpenAI\'s Whisper-modeller, der kører på telefonen. Mange sprog; download en model på siden Stemmeskrivning.</string>
     <string name="core_tools_provider_whistle_desc">En lille, hurtig model, der kører på telefonen. Download den på siden Stemmeskrivning.</string>
     <string name="core_tools_provider_xai_desc">Grok-modeller via xAI\'s API med din egen nøgle.</string>

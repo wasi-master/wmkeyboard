@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">அந்த செருகுநிரல் இனி அந்த செயலைக் கொண்டிருக்கவில்லை.</string>
     <string name="core_plugins_error_no_render">இந்த செருகுநிரலில் render() செயல்பாடு இல்லை.</string>
+    <string name="core_plugins_error_no_transform">இந்த செருகுநிரலில் transform() செயல்பாடு இல்லை.</string>
     <string name="core_plugins_error_not_installed">அந்த செருகுநிரல் நிறுவப்படவில்லை.</string>
+    <string name="core_plugins_error_not_ready">செருகுநிரல்கள் இன்னும் பதிவிறக்கப்படுகின்றன. சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்.</string>
     <string name="core_plugins_error_script_failed">ஸ்கிரிப்ட் தோல்வியடைந்தது.</string>
     <string name="core_plugins_error_script_missing">அந்த செருகுநிரலுக்கான ஸ்கிரிப்ட் விடுபட்டுள்ளது.</string>
     <string name="core_plugins_error_turned_off">அந்த செருகுநிரல் அணைக்கப்பட்டுள்ளது.</string>
     <string name="core_plugins_permission_reminders_label">நீங்கள் அமைத்த நேரங்களில் நினைவூட்டல்களைக் காட்டு</string>
+    <string name="core_plugins_permission_selection_label">செயல்களில் ஒன்றை நீங்கள் தட்டும்போது, நீங்கள் தேர்ந்தெடுத்த உரையை மாற்றவும்</string>
     <string name="core_plugins_permission_storage_label">உங்கள் சாதனத்தில் தரவைச் சேமிக்கவும்</string>
+    <string name="core_plugins_reject_action_input">WM விசைப்பலகையின் இந்த பதிப்பால் வழங்க முடியாத உரையைக் கேட்கும் செயல் “%1$s” இல் உள்ளது.</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s”-ல் பெயரில்லாத செயல் ஒன்று உள்ளது.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” தேர்ந்தெடுக்கப்பட்ட உரைக்கான செயல்களைச் சேர்க்கிறது ஆனால் அதை மாற்ற அனுமதி கேட்கவில்லை.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” இல் ஐடி விடுபட்ட, மீண்டும் மீண்டும் வந்த அல்லது செல்லுபடியாகாத செயல் உள்ளது. செயல் ஐடி என்பது 32 சிறிய எழுத்துகள், எண்கள், கோடுகள் மற்றும் அடிக்கோடுகள் வரை இருக்கும்.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s”-இல் செல்லுபடியாகாத UTF-8 உரை ஸ்கிரிப்ட் உள்ளது.</string>
     <string name="core_plugins_reject_bad_id">இந்த செருகுநிரல் செல்லுபடியாகாத ஐடியைக் கொண்டுள்ளது. ஐடி 3 முதல் 64 எழுத்துக்கள் நீளம் கொண்டது. ஐடியில் சிறிய எழுத்துக்கள், எண்கள், புள்ளிகள், கோடுகள் மற்றும் அடிக்கோடுகள் இருக்கலாம்.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” இல் காலியான ஸ்கிரிப்ட் உள்ளது.</string>
+    <string name="core_plugins_reject_lua">“%1$s” என்பது Lua-வில் எழுதப்பட்டுள்ளது, அதை WM விசைப்பலகை இனி இயக்காது. அதன் பைதான் பதிப்பைத் தேடுங்கள்.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” இல் அதன் ஸ்கிரிப்ட் கோப்பு (%2$s) இல்லை.</string>
     <string name="core_plugins_reject_newer_version">இந்த பிளகினுக்கு WM கீபோர்டின் புதிய பதிப்பு தேவை.</string>
     <string name="core_plugins_reject_no_name">இந்த செருகுநிரலுக்குப் பெயர் இல்லை.</string>
     <string name="core_plugins_reject_no_version">“%1$s” எந்தப் பதிப்பு என்று குறிப்பிடவில்லை.</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” இல் பலகையோ செயல்களோ இல்லை, எனவே அது செய்வதற்கு எதுவும் இல்லை.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” இல் உள்ள ஸ்கிரிப்ட் %2$d KB-க்கும் அதிகமாக உள்ளது.</string>
+    <string name="core_plugins_reject_selection_without_actions">நீங்கள் தேர்ந்தெடுத்த உரையை மாற்ற \"%1$s\" கேட்கிறது ஆனால் எந்த செயல்களையும் சேர்க்கவில்லை.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” 16க்கும் மேற்பட்ட செயல்களைச் சேர்க்கிறது.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” இந்த WM விசைப்பலகையின் பதிப்பால் இயக்க முடியாத மொழியில் எழுதப்பட்டுள்ளது. செருகுநிரல்கள் பைத்தானில் எழுதப்பட்டுள்ளன.</string>
     <string name="core_plugins_reject_unknown_permission">WM விசைப்பலகையின் இந்த பதிப்பிற்கு “%1$s” அனுமதி தெரியவில்லை. “%2$s” எதைச் செய்ய அனுமதிக்கப்படுகிறது என்பதை இந்த செயலியால் உங்களுக்குச் சொல்ல முடியாது.</string>
     <string name="core_plugins_reminders_channel_body">நீங்கள் செருகுநிரலில் (plugin) அமைத்த நேரங்களில், செருகுநிரல் காட்டச் சொன்ன நினைவூட்டல்கள். ஒவ்வொன்றின் தலைப்பும் செருகுநிரலின் பெயராக இருக்கும்.</string>
     <string name="core_plugins_reminders_channel_title">சொருகி நினைவூட்டல்கள்</string>
     <string name="core_plugins_stopped_cancelled">இந்த ஆப்ஸ் இந்த செருகுநிரலை நிறுத்திவிட்டது.</string>
     <string name="core_plugins_stopped_deadline">இந்த செருகுநிரல் அதிக நேரம் எடுத்துக்கொண்டது. ஆப்ஸ் அதை நிறுத்திவிட்டது.</string>
     <string name="core_plugins_stopped_instructions">இந்தச் செருகுநிரல் ஒரே நேரத்தில் அதிக வேலைகளைச் செய்தது. செயலி அதை நிறுத்திவிட்டது.</string>
+    <string name="core_plugins_stopped_memory">இந்த செருகுநிரல் அதிகப்படியான தரவை வைத்திருக்க முயன்றது. பயன்பாடு அதை நிறுத்தியது.</string>
     <string name="core_plugins_stopped_not_responding">இந்த செருகுநிரல் பதிலளிக்கவில்லை. ஆப்ஸ் இதை மூடிவிட்டது.</string>
     <string name="core_plugins_stopped_not_responding_disabled">இந்த செருகுநிரல் (plugin) மீண்டும் பதிலளிக்கவில்லை. செயலி அதை அணைத்துவிட்டது.</string>
     <string name="core_plugins_stopped_recursion">இந்தச் செருகுநிரல் (plugin) தன்னைத்தானே பலமுறை அழைத்துக்கொண்டது. அதனால் செயலி அதை நிறுத்திவிட்டது.</string>

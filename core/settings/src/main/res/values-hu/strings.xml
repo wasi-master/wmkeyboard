@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Egyéb szolgáltatás</string>
     <string name="core_settings_ai_provider_on_device_label">Az eszközön</string>
+    <string name="core_settings_ai_provider_privatemode_label">Privát mód</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Napszak</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Napkelte és napnyugta</string>
     <string name="core_settings_auto_theme_trigger_system_label">Rendszer szerinti világos vagy sötét</string>

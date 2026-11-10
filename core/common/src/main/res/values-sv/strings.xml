@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Pausad: datasparläge håller nedladdningar på denna anslutning. Den fortsätter där den slutade.</string>
     <string name="common_error_generic">Något fungerade inte. Försök igen.</string>
     <string name="common_error_network">Ingen anslutning. Kontrollera ditt nätverk och försök igen.</string>
+    <string name="common_error_network_permission_off">WM Keyboards nätverksåtkomst är avstängd i telefonens inställningar, så detta fungerar inte. Slå på den i Android-inställningar › Appar › WM Keyboard › Behörigheter (på GrapheneOS, Nätverksbehörighet), och försök igen.</string>
     <string name="common_error_no_internet_permission">Denna version av tangentbordet kan inte ansluta till internet.</string>
     <string name="common_error_timeout">Begäran tog för lång tid. Försök igen.</string>
     <string name="common_export">Exportera</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Mer</string>
     <string name="common_next">Nästa</string>
     <string name="common_none">Ingen</string>
+    <string name="common_notify_channel_alarms_body">Ett larm som har skjutits upp eller som snart ringer, samt ett som ringde utan att någon svarade. Självringningen har en egen kanal.</string>
+    <string name="common_notify_channel_alarms_title">Larmmeddelanden</string>
     <string name="common_notify_channel_backup_body">Endast när en automatisk säkerhetskopiering misslyckas. Lyckade säkerhetskopieringar är tysta.</string>
     <string name="common_notify_channel_backup_title">Säkerhetskopieringsproblem</string>
     <string name="common_notify_channel_clock_body">Timers och stoppur medan de körs, med knappar för att pausa, lägga till en minut eller stoppa dem.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Tangentbordskontroller</string>
     <string name="common_notify_channel_send_body">En upp- eller nedladdning som verktyget Skicka filer slutförde medan tangentbordet var dolt, med länken att kopiera och en fil som en enhet i närheten skickade.</string>
     <string name="common_notify_channel_send_title">Skicka och ta emot filer</string>
+    <string name="common_notify_channel_stopwatch_body">Stoppur medan det körs eller är pausat, med knappar för varv, paus och återställning.</string>
+    <string name="common_notify_channel_stopwatch_title">Tidtagarur</string>
     <string name="common_notify_channel_updates_body">En ny version att installera, en uppdatering som väntar på att du ska trycka på installera, och bekräftelse när en har installerats.</string>
     <string name="common_notify_channel_updates_title">Appuppdateringar</string>
     <string name="common_notify_download_done">Klar att använda</string>
     <string name="common_notify_download_failed">%1$s kunde inte laddas ner</string>
     <string name="common_notify_download_handwriting">%1$s handskrift</string>
     <string name="common_notify_download_progress">%1$s av %2$s</string>
+    <string name="common_notify_download_step_library">Steg 1 av 2, motorns bibliotek: %1$s</string>
+    <string name="common_notify_download_step_model">Steg 2 av 2, modellen: %1$s</string>
     <string name="common_notify_download_translate">%1$s offlineöversättning</string>
     <string name="common_notify_download_voice">%1$s offline-röst</string>
     <string name="common_off">Av</string>
+    <string name="common_offline_build_download">Detta är offlineversionen, så den kan inte ladda ner detta. Hämta filen på en annan enhet och importera den: Inställningar › Om › Lagring › Importera hämtade filer tar emot den, eller den här skärmens egen importeringsrad om den har en. Eller installera standardversionen från samma utgivningssida över denna, så laddas den ner av sig själv. Dina inställningar och inlärda ord finns kvar.</string>
+    <string name="common_offline_build_library">Detta är offlineversionen, så den kan inte ladda ner det bibliotek som detta behöver. Hmta dess fil på en annan enhet och importera den i Inställningar › Integritet › Funktionsbibliotek, som listar den exakta filen. Eller installera standardversionen från samma släppsida över denna, så laddas den ner av sig själv. Dina inställningar och inlärda ord finns kvar.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">På</string>
     <string name="common_open_system_settings">Öppna systeminställningar</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Tillgänglighetstjänst för AI-knappen</string>
     <string name="common_special_access_split_screen_body">Vissa telefoner öppnar en app i helskärm när tangentbordet begär delad skärm. När den här tjänsten är aktiverad trycker öppnande av en app i delad skärm från startprogrammet, eller öppnande av ett delad skärm-par, först på Androids egen omkopplare för delad skärm (samma som finns i menyn Senaste), och appen öppnas sedan i den lediga halvan. Innan den trycker kontrollerar tjänsten var appfönstren finns för att se om delad skärm redan är aktiv. Den läser aldrig vad som finns i dem. Den gör ingenting vid någon annan tidpunkt, övervakar inte vad du skriver och sparar ingenting. Androids tillgänglighetsskärm varnar för allt som en tjänst som denna kan göra. Den här trycker bara på den omkopplaren när du begär delad skärm.</string>
     <string name="common_special_access_split_screen_title">Tillgänglighetstjänst för delad skärm</string>
+    <string name="common_special_access_system_buttons_body">Android låter en annan app ta en skärmdump, gå tillbaka eller öppna senaste appar, app-lådan, meddelandefältet eller snabbinställningarna endast via en tillgänglighetstjänst. När denna tjänst är på aktiverar Skärmdumpsverktyget och den flytande knappen dessa systemknappar åt dig, samma knappar som finns i Androids egen navigering och skärm. En skärmdump sparas där alla skärmdupar sparas. Tjänsten gör ingenting vid någon annan tidpunkt. Den läser inte skärmen, bevakar inte vad du skriver och sparar ingenting. Androids skärm för tillgänglighet varnar för allt som en tjänst som denna kan göra. Den här trycker bara på en systemknapp när du ber den om det.</string>
+    <string name="common_special_access_system_buttons_title">Tillgänglighetstjänst för systemknappar</string>
     <string name="common_special_access_usage_body">Med användningsåtkomst registrerar tangentbordet vilken app som var i förgrunden när du kopierade något. Den visar den appen när du trycker och håller kvar på urklippet. Tangentbordet läser förgrundsappar endast vid kopieringstillfället. Den läser inte din historik eller din tid i en app. Tangentbordet sparar svaret med urklippet, endast på din enhet. Ingenting om din appanvändning lämnar din enhet. Inställningen är valfri. Den förblir avstängd tills du slår på den.</string>
     <string name="common_special_access_usage_title">Användningsåtkomst för appar med urklippskälla</string>
     <string name="common_type_setting_value_desc">Ange ett värde för %1$s</string>

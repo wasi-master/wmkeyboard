@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">ಆ ಪ್ಲಗಿನ್‌ನಲ್ಲಿ ಆ ಕ್ರಿಯೆಯು ಇನ್ನು ಮುಂದೆ ಇಲ್ಲ.</string>
     <string name="core_plugins_error_no_render">ಈ ಪ್ಲಗಿನ್ ಯಾವುದೇ render() ಕಾರ್ಯವನ್ನು ಹೊಂದಿಲ್ಲ.</string>
+    <string name="core_plugins_error_no_transform">ಈ ಪ್ಲಗಿನ್ ಯಾವುದೇ transform() ಕಾರ್ಯವನ್ನು ಹೊಂದಿಲ್ಲ.</string>
     <string name="core_plugins_error_not_installed">ಆ ಪ್ಲಗಿನ್ ಇನ್‌ಸ್ಟಾಲ್ ಆಗಿಲ್ಲ.</string>
+    <string name="core_plugins_error_not_ready">ಪ್ಲಗ್‌ಇನ್‌ಗಳು ಇನ್ನೂ ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿವೆ. ಸ್ವಲ್ಪ ಸಮಯದ ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.</string>
     <string name="core_plugins_error_script_failed">ಸ್ಕ್ರಿಪ್ಟ್ ವಿಫಲವಾಗಿದೆ.</string>
     <string name="core_plugins_error_script_missing">ಆ ಪ್ಲಗಿನ್‌ಗಾಗಿ ಸ್ಕ್ರಿಪ್ಟ್ ಕಾಣೆಯಾಗಿದೆ.</string>
     <string name="core_plugins_error_turned_off">ಆ ಪ್ಲಗಿನ್ ಅನ್ನು ಆಫ್ ಮಾಡಲಾಗಿದೆ.</string>
     <string name="core_plugins_permission_reminders_label">ನೀವು ನಿಗದಿಪಡಿಸಿದ ಸಮಯದಲ್ಲಿ ಜ್ಞಾಪನೆಗಳನ್ನು ತೋರಿಸಿ</string>
+    <string name="core_plugins_permission_selection_label">ಅದರ ಕ್ರಿಯೆಗಳಲ್ಲಿ ಒಂದನ್ನು ನೀವು ಟ್ಯಾಪ್ ಮಾಡಿದಾಗ, ನೀವು ಆಯ್ಕೆ ಮಾಡುವ ಪಠ್ಯವನ್ನು ಬದಲಾಯಿಸಿ</string>
     <string name="core_plugins_permission_storage_label">ನಿಮ್ಮ ಸಾಧನದಲ್ಲಿ ಡೇಟಾವನ್ನು ಉಳಿಸಿ</string>
+    <string name="core_plugins_reject_action_input">“%1$s” WM ಕೀಬೋರ್ಡ್‌ನ ಈ ಆವೃತ್ತಿಯು ಒದಗಿಸಲು ಸಾಧ್ಯವಿಲ್ಲದ ಪಠ್ಯವನ್ನು ಕೇಳುವ ಕ್ರಿಯೆಯನ್ನು ಹೊಂದಿದೆ.</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s” ಹೆಸರಿಲ್ಲದ ಕ್ರಿಯೆಯನ್ನು ಹೊಂದಿದೆ.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” ಆಯ್ಕೆಮಾಡಿದ ಪಠ್ಯಕ್ಕಾಗಿ ಕ್ರಿಯೆಗಳನ್ನು ಸೇರಿಸುತ್ತದೆ ಆದರೆ ಅದನ್ನು ಬದಲಾಯಿಸಲು ಅನುಮತಿಯನ್ನು ಕೇಳುವುದಿಲ್ಲ.</string>
+    <string name="core_plugins_reject_bad_action_id">\"%1$s\" ಕ್ರಿಯೆಯ ಐಡಿ ಕಾಣೆಯಾಗಿದೆ, ಪುನರಾವರ್ತನೆಯಾಗಿದೆ ಅಥವಾ ಮಾನ್ಯವಾಗಿಲ್ಲ. ಕ್ರಿಯೆಯ ಐಡಿಯು 32 ವರೆಗಿನ ಲೋವರ್‌ಕೇಸ್ ಅಕ್ಷರಗಳು, ಸಂಖ್ಯೆಗಳು, ಡ್ಯಾಶ್‌ಗಳು ಮತ್ತು ಅಂಡರ್‌ಸ್ಕೋರ್‌ಗಳನ್ನು ಹೊಂದಿರುತ್ತದೆ.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” ಮಾನ್ಯವಾದ UTF-8 ಪಠ್ಯವಲ್ಲದ ಸ್ಕ್ರಿಪ್ಟ್ ಅನ್ನು ಹೊಂದಿದೆ.</string>
     <string name="core_plugins_reject_bad_id">ಈ ಪ್ಲಗಿನ್ ಮಾನ್ಯವಲ್ಲದ ಐಡಿಯನ್ನು ಹೊಂದಿದೆ. ಐಡಿಯು 3 ರಿಂದ 64 ಅಕ್ಷರಗಳ ಉದ್ದವಿರಬೇಕು. ಐಡಿಯು ಸಣ್ಣ ಅಕ್ಷರಗಳು, ಸಂಖ್ಯೆಗಳು, ಚುಕ್ಕೆಗಳು, ಡ್ಯಾಶ್‌ಗಳು ಮತ್ತು ಅಂಡರ್‌ಸ್ಕೋರ್‌ಗಳನ್ನು ಹೊಂದಿರಬಹುದು.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” ಖಾಲಿ ಸ್ಕ್ರಿಪ್ಟ್ ಅನ್ನು ಹೊಂದಿದೆ.</string>
+    <string name="core_plugins_reject_lua">“%1$s” Lua ನಿಂದ ಬರೆಯಲ್ಪಟ್ಟಿದೆ, ಅದನ್ನು WM ಕೀಬೋರ್ಡ್ ಇನ್ನು ಮುಂದೆ ಚಾಲನೆ ಮಾಡುವುದಿಲ್ಲ. ಇದರ ಪೈಥಾನ್ ಆವೃತ್ತಿಯನ್ನು ಹುಡುಕಿ.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” ತನ್ನ ಸ್ಕ್ರಿಪ್ಟ್ ಫೈಲ್ (%2$s) ಅನ್ನು ಹೊಂದಿಲ್ಲ.</string>
     <string name="core_plugins_reject_newer_version">ಈ ಪ್ಲಗಿನ್‌ಗೆ WM ಕೀಬೋರ್ಡ್‌ನ ಹೊಸ ಆವೃತ್ತಿಯ ಅಗತ್ಯವಿದೆ.</string>
     <string name="core_plugins_reject_no_name">ಈ ಪ್ಲಗಿನ್‌ಗೆ ಹೆಸರಿಲ್ಲ.</string>
     <string name="core_plugins_reject_no_version">“%1$s” ಇದು ಯಾವ ಆವೃತ್ತಿಯೆಂದು ಹೇಳುತ್ತಿಲ್ಲ.</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” ಯಾವುದೇ ಪ್ಯಾನೆಲ್ ಮತ್ತು ಯಾವುದೇ ಕ್ರಿಯೆಗಳನ್ನು ಹೊಂದಿಲ್ಲ, ಆದ್ದರಿಂದ ಇದು ಮಾಡಲು ಏನೂ ಇಲ್ಲ.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” ಸ್ಕ್ರಿಪ್ಟ್ %2$d KB ಗಿಂತ ದೊಡ್ಡದಾಗಿದೆ.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” ನೀವು ಆಯ್ಕೆ ಮಾಡಿದ ಪಠ್ಯವನ್ನು ಬದಲಾಯಿಸಲು ಕೇಳುತ್ತದೆ ಆದರೆ ಯಾವುದೇ ಕ್ರಿಯೆಗಳನ್ನು ಸೇರಿಸುವುದಿಲ್ಲ.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” 16 ಕ್ಕಿಂತ ಹೆಚ್ಚು ಕ್ರಿಯೆಗಳನ್ನು ಸೇರಿಸುತ್ತದೆ.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” WM ಕೀಬೋರ್ಡ್‌ನ ಈ ಆವೃತ್ತಿಯು ಚಲಾಯಿಸಲು ಸಾಧ್ಯವಾಗದ ಭಾಷೆಯಲ್ಲಿದೆ. ಪ್ಲಗಿನ್‌ಗಳನ್ನು ಪೈಥಾನ್‌ನಲ್ಲಿ ಬರೆಯಲಾಗಿದೆ.</string>
     <string name="core_plugins_reject_unknown_permission">WM ಕೀಬೋರ್ಡ್‌ನ ಈ ಆವೃತ್ತಿಗೆ \"%1$s\" ಅನುಮತಿಯ ಬಗ್ಗೆ ತಿಳಿದಿಲ್ಲ. \"%2$s\" ಏನು ಮಾಡಲು ಅನುಮತಿಸಲಾಗಿದೆ ಎಂದು ಅಪ್ಲಿಕೇಶನ್ ನಿಮಗೆ ಹೇಳಲು ಸಾಧ್ಯವಿಲ್ಲ.</string>
     <string name="core_plugins_reminders_channel_body">ಪ್ಲಗಿನ್‌ನಲ್ಲಿ ನೀವು ಹೊಂದಿಸಿದ ಸಮಯದಲ್ಲಿ, ಪ್ಲಗಿನ್ ಅಪ್ಲಿಕೇಶನ್‌ಗೆ ತೋರಿಸಲು ಕೇಳಿದ ಜ್ಞಾಪನೆಗಳು. ಪ್ರತಿಯೊಂದರ ಶೀರ್ಷಿಕೆಯು ಪ್ಲಗಿನ್‌ನ ಹೆಸರಾಗಿರುತ್ತದೆ.</string>
     <string name="core_plugins_reminders_channel_title">ಪ್ಲಗಿನ್ ಜ್ಞಾಪನೆಗಳು</string>
     <string name="core_plugins_stopped_cancelled">ಅಪ್ಲಿಕೇಶನ್ ಈ ಪ್ಲಗಿನ್ ಅನ್ನು ನಿಲ್ಲಿಸಿದೆ.</string>
     <string name="core_plugins_stopped_deadline">ಈ ಪ್ಲಗಿನ್ ತುಂಬಾ ಸಮಯ ತೆಗೆದುಕೊಂಡಿದೆ. ಆ್ಯಪ್ ಅದನ್ನು ನಿಲ್ಲಿಸಿದೆ.</string>
     <string name="core_plugins_stopped_instructions">ಈ ಪ್ಲಗಿನ್ ಒಂದೇ ಸಮಯದಲ್ಲಿ ಹೆಚ್ಚು ಕೆಲಸ ಮಾಡಿದೆ. ಆ್ಯಪ್ ಅದನ್ನು ನಿಲ್ಲಿಸಿದೆ.</string>
+    <string name="core_plugins_stopped_memory">ಈ ಪ್ಲಗಿನ್ ಬಹಳಷ್ಟು ಡೇಟಾವನ್ನು ಹಿಡಿದಿಟ್ಟುಕೊಳ್ಳಲು ಪ್ರಯತ್ನಿಸಿದೆ. ಅಪ್ಲಿಕೇಶನ್ ಅದನ್ನು ನಿಲ್ಲಿಸಿದೆ.</string>
     <string name="core_plugins_stopped_not_responding">ಈ ಪ್ಲಗಿನ್ ಪ್ರತಿಕ್ರಿಯಿಸುವುದನ್ನು ನಿಲ್ಲಿಸಿದೆ. ಆ್ಯಪ್ ಅದನ್ನು ಮುಚ್ಚಿದೆ.</string>
     <string name="core_plugins_stopped_not_responding_disabled">ಈ ಪ್ಲಗಿನ್ ಮತ್ತೆ ಪ್ರತಿಕ್ರಿಯಿಸುವುದನ್ನು ನಿಲ್ಲಿಸಿದೆ. ಆ್ಯಪ್ ಅದನ್ನು ಆಫ್ ಮಾಡಿದೆ.</string>
     <string name="core_plugins_stopped_recursion">ಈ ಪ್ಲಗಿನ್ ತನ್ನನ್ನು ತಾನೇ ತುಂಬಾ ಬಾರಿ ಕರೆದಿದೆ. ಆ್ಯಪ್ ಅದನ್ನು ನಿಲ್ಲಿಸಿದೆ.</string>

@@ -37,6 +37,7 @@
     <string name="common_error_download_held">স্থগিত: ডেটা সেভিং এই সংযোগে ডাউনলোড আটকে রেখেছে। এটি যেখানে থেমেছিল সেখান থেকেই শুরু হবে।</string>
     <string name="common_error_generic">কিছু একটা কাজ করছে না। আবার চেষ্টা করুন।</string>
     <string name="common_error_network">কোনো সংযোগ নেই। আপনার নেটওয়ার্ক পরীক্ষা করুন এবং আবার চেষ্টা করুন।</string>
+    <string name="common_error_network_permission_off">আপনার ফোনের সেটিংসে WM কীবোর্ডের নেটওয়ার্ক অ্যাক্সেস বন্ধ করা আছে, তাই এটি কাজ করছে না। Android সেটিংস › অ্যাপস › WM কীবোর্ড › অনুমতি (GrapheneOS-এ, নেটওয়ার্ক অনুমতি) এ গিয়ে এটি চালু করুন, তারপর আবার চেষ্টা করুন।</string>
     <string name="common_error_no_internet_permission">কীবোর্ডের এই বিল্ডটি ইন্টারনেটের সাথে সংযোগ করতে পারে না।</string>
     <string name="common_error_timeout">অনুরোধটি সম্পন্ন হতে অনেক সময় লেগেছে। আবার চেষ্টা করুন।</string>
     <string name="common_export">এক্সপোর্ট</string>
@@ -48,6 +49,8 @@
     <string name="common_more">আরও</string>
     <string name="common_next">পরবর্তী</string>
     <string name="common_none">কোনটিই নয়</string>
+    <string name="common_notify_channel_alarms_body">একটি অ্যালার্ম যা স্নুজ করা হয়েছে বা বাজতে চলেছে, এবং একটি যা বেজেছিল কিন্তু কেউ উপস্থিত ছিল না। বাজার জন্য আলাদা একটি চ্যানেল রয়েছে।</string>
+    <string name="common_notify_channel_alarms_title">অ্যালার্ম বিজ্ঞপ্তি</string>
     <string name="common_notify_channel_backup_body">শুধুমাত্র যখন একটি স্বয়ংক্রিয় ব্যাকআপ ব্যর্থ হয়। সফল ব্যাকআপগুলি নীরব থাকে।</string>
     <string name="common_notify_channel_backup_title">ব্যাকআপ সমস্যা</string>
     <string name="common_notify_channel_clock_body">টাইমার এবং স্টপওয়াচ চলার সময়, পজ করার, এক মিনিট যোগ করার বা থামানোর বোতামসহ।</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">কীবোর্ড কন্ট্রোল</string>
     <string name="common_notify_channel_send_body">কিবোর্ড লুকানো থাকা অবস্থায় সেন্ড ফাইল টুল-এর একটি আপলোড বা ডাউনলোড সম্পন্ন হয়েছে, কপি করার লিঙ্ক এবং কাছাকাছি কোনো ডিভাইসের পাঠানো ফাইল সহ।</string>
     <string name="common_notify_channel_send_title">ফাইল পাঠানো এবং গ্রহণ করা</string>
+    <string name="common_notify_channel_stopwatch_body">স্টপওয়াচ যখন চলে বা বিরতিতে থাকে, ল্যাপ, বিরতি এবং রিসেট করার বোতাম সহ।</string>
+    <string name="common_notify_channel_stopwatch_title">স্টপওয়াচ</string>
     <string name="common_notify_channel_updates_body">ইনস্টল করার জন্য একটি নতুন সংস্করণ, আপনার ইনস্টল বোতাম চাপার অপেক্ষায় থাকা একটি আপডেট এবং ইনস্টল হয়ে গেলে নিশ্চিতকরণ বার্তা।</string>
     <string name="common_notify_channel_updates_title">অ্যাপ আপডেট</string>
     <string name="common_notify_download_done">ব্যবহারের জন্য প্রস্তুত</string>
     <string name="common_notify_download_failed">%1$s ডাউনলোড করা যায়নি</string>
     <string name="common_notify_download_handwriting">%1$s হস্তলিপি</string>
     <string name="common_notify_download_progress">%2$s এর %1$s</string>
+    <string name="common_notify_download_step_library">২ এর মধ্যে ১ ধাপ, ইঞ্জিন লাইব্রেরি: %1$s</string>
+    <string name="common_notify_download_step_model">ধাপ ২ এর ২, মডেল: %1$s</string>
     <string name="common_notify_download_translate">%1$s অফলাইন অনুবাদ</string>
     <string name="common_notify_download_voice">%1$s অফলাইন ভয়েস</string>
     <string name="common_off">বন্ধ</string>
+    <string name="common_offline_build_download">এটি অফলাইন বিল্ড, তাই এটি ডাউনলোড করা যাবে না। অন্য কোনো ডিভাইসে ফাইলটি নিয়ে এসে আমদানি করুন: সেটিংস › সম্পর্কে › স্টোরেজ › ডাউনলোড করা ফাইল আমদানি করুন অথবা এই স্ক্রিনের নিজস্ব আমদানি সারি থেকে এটি করুন। অথবা এই সংস্করণের ওপর একই রিলিজ পেজ থেকে স্ট্যান্ডার্ড বিল্ড ইনস্টল করুন এবং এটি নিজে থেকেই ডাউনলোড হয়ে যাবে। আপনার সেটিংস এবং শেখা শব্দগুলো অপরিবর্তিত থাকবে।</string>
+    <string name="common_offline_build_library">এটি অফলাইন বিল্ড, তাই এটি এর প্রয়োজনীয় লাইব্রেরি ডাউনলোড করতে পারছে না। অন্য কোনো ডিভাইসে এর ফাইলটি সংগ্রহ করুন এবং সেটি সেটিংস › গোপনীয়তা › ফিচার লাইব্রেরিতে আমদানি করুন, যেখানে সঠিক ফাইলটি তালিকাভুক্ত থাকে। অথবা এর ওপর একই রিলিজ পেজ থেকে স্ট্যান্ডার্ড বিল্ড ইনস্টল করুন, তাহলে এটি নিজে থেকেই ডাউনলোড হয়ে যাবে। আপনার সেটিংস এবং শেখা শব্দগুলো সংরক্ষিত থাকবে।</string>
     <string name="common_ok">ঠিক আছে</string>
     <string name="common_on">চালু</string>
     <string name="common_open_system_settings">সিস্টেম সেটিংস খুলুন</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">AI বাটনের জন্য অ্যাক্সেসিবিলিটি পরিষেবা</string>
     <string name="common_special_access_split_screen_body">কীবোর্ড স্প্লিট স্ক্রিন চাইলে কিছু ফোন পূর্ণ স্ক্রিনে একটি অ্যাপ খোলে। এই পরিষেবা চালু থাকলে, অ্যাপ লঞ্চার থেকে স্প্লিট স্ক্রিনে কোনো অ্যাপ খুললে বা স্প্লিট স্ক্রিন জোড়া খুললে, এটি প্রথমে অ্যান্ড্রয়েডের নিজস্ব স্প্লিট স্ক্রিন সুইচ টিপে, যা রিসেন্ট মেনুতে থাকে এবং তারপর অ্যাপটি খালি অর্ধে খোলে। এটি টিপবার আগে, স্প্লিট স্ক্রিন ইতিমধ্যে চালু আছে কিনা তা দেখতে পরিষেবাটি অ্যাপের উইন্ডোগুলি কোথায় আছে তা পরীক্ষা করে। এটি কখনই তাদের ভিতরের বিষয়বস্তু পড়ে না। এটি অন্য কোনো সময়েচ্ছু কিছু করে না, আপনি কী টাইপ করেন তা দেখে না এবং কিছুই রাখে না। অ্যান্ড্রয়েডের অ্যাক্সেসিবিলিটি স্ক্রিন এই ধরণের পরিষেবা যা করতে পারে সে সম্পর্কে সতর্ক করে। আপনি স্প্লিট স্ক্রিন চাইলে এটি শুধুমাত্র সেই সুইচটি টিপে।</string>
     <string name="common_special_access_split_screen_title">বিভক্ত স্ক্রিনের জন্য অ্যাক্সেসিবিলিটি পরিষেবা</string>
+    <string name="common_special_access_system_buttons_body">অ্যান্ড্রয়েড অন্য কোনো অ্যাপকে শুধুমাত্র একটি অ্যাক্সেসিবিলিটি পরিষেবার মাধ্যমে স্ক্রিনশট নিতে, ব্যাকে যেতে, বা সাম্প্রতিক অ্যাপ, অ্যাপ ড্রয়ার, নোটিফিকেশন শেড বা কুইক সেটিংস খুলতে দেয়। এই পরিষেবাটি চালু থাকলে, স্ক্রিনশট টুল এবং ভাসমান বোতামটি আপনার জন্য সেই সিস্টেম বোতামগুলো টিপে দেয়, যেগুলো অ্যান্ড্রয়েডের নিজস্ব নেভিগেশন এবং শেডে থাকে। স্ক্রিনশট যেখানে সংরক্ষিত হয় সেখানেই একটি স্ক্রিনশট সংরক্ষিত হয়। পরিষেবাটি অন্য কোনো সময়ে কিছুই করে না। এটি স্ক্রিন পড়ে না, আপনি কী টাইপ করেন তা দেখে না এবং কিছুই রাখে না। অ্যান্ড্রয়েডের অ্যাক্সেসিবিলিটি স্ক্রিন এই ধরনের পরিষেবা যা করতে পারে সে সম্পর্কে সতর্ক করে। এটি শুধুমাত্র আপনি যখন অনুরোধ করেন তখনই একটি সিস্টেম বোতাম টিপে।</string>
+    <string name="common_special_access_system_buttons_title">সিস্টেম বোতামের জন্য অ্যাক্সেসিবিলিটি পরিষেবা</string>
     <string name="common_special_access_usage_body">ব্যবহারের অ্যাক্সেস সহ, কীবোর্ড রেকর্ড করে যে আপনি কিছু কপি করার সময় কোন অ্যাপটি সামনে ছিল। আপনি যখন ক্লিপটি চেপে ধরে রাখেন তখন এটি সেই অ্যাপটি দেখায়। কীবোর্ড শুধুমাত্র কপি করার মুহূর্তে সামনের অ্যাপটি পড়ে। এটি আপনার ইতিহাস বা কোনো অ্যাপে আপনার সময় পড়ে না। কীবোর্ড উত্তরটি ক্লিপের সাথে শুধুমাত্র আপনার ডিভাইসে রাখে। আপনার অ্যাপ ব্যবহার সম্পর্কে কিছুই আপনার ডিভাইস থেকে বাইরে যায় না। সেটিংটি ঐচ্ছিক। আপনি এটি চালু না করা পর্যন্ত এটি বন্ধ থাকে।</string>
     <string name="common_special_access_usage_title">ক্লিপবোর্ড সোর্স অ্যাপের জন্য ব্যবহারের অ্যাক্সেস</string>
     <string name="common_type_setting_value_desc">%1$s-এর জন্য একটি মান টাইপ করুন</string>

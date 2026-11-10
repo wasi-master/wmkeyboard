@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Izithombe zangemuva</string>
     <string name="core_tools_provider_acrcloud_desc">Isevisi yokubona umculo enesivivinyo samasonto amabili, bese kuba nezinhlelo ezikhokhelwayo. Idinga umsingathi, ukhiye wokufinyelela kanye nemfihlo yokufinyelela yephrojekthi evela ku-console.acrcloud.com. Isiqeshana ngasinye sithunyelwa ku-ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">I-Stable Diffusion yamahhala kumakhompyutha wamavolontiya. Isebenza ngaphandle kokhiye kodwa ilinda emugqeni; ukhiye wamahhala ovela ku-aihorde.net ukuhambisa phambili.</string>
+    <string name="core_tools_provider_allratestoday_desc">Amanani esikhomba sase-European Central Bank ezinhlakeni zemali ezingaba ngu-30. Alikho ikhi.</string>
     <string name="core_tools_provider_anthropic_desc">Amamodeli we-Claude nge-API ye-Anthropic, ngokhiye wakho.</string>
     <string name="core_tools_provider_asr4all_desc">Ukubizela ngesiNgisi ocingweni, ngamagama avelayo njengoba ukhuluma.</string>
     <string name="core_tools_provider_audd_desc">Ibona umculo omningi okhishiwe emizuzwaneni embalwa yomsindo. Idinga ithokheni evela ku-dashboard.audd.io; ukubona okumbalwa kumahhala, bese kuba ngenkokhelo. Isiqeshana ngasinye sithunyelwa ku-AudD.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Imodeli enkulu esebenza ocingweni futhi eqonda izilimi ezingama-25 zaseYurophu.</string>
     <string name="core_tools_provider_pexels_desc">Izithombe ezivela ku-Pexels. Idinga ukhiye we-API, ngaphandle uma lokhu kwakhiwa kunowodwa.</string>
     <string name="core_tools_provider_pollinations_desc">Kumahhala, ngaphandle kokhiye futhi ngaphandle kwe-akhawunti: umyalo uthunyelwa ku-Pollinations, ekhetha imodeli. Ukhiye ovela ku-enter.pollinations.ai uvula i-API yayo entsha futhi ikuvumela ukuthi uqambe imodeli.</string>
+    <string name="core_tools_provider_privatemode">I-AI Yemodi Eyimfihlo</string>
+    <string name="core_tools_provider_privatemode_desc">I-AI esebenza kukhompyutha eyimfihlo futhi engeke yakwazi ukufunda umbhalo wakho. Nikeza ukhiye wakho we-API ye-Privatemode. Ikhibhodi ibe isibethela isicelo ngasinye ocingweni, kodwa ayihloleli isiqinisekiso sehadiwe yesevisi. Ukuze lokho kuhlolwe nakho, sebenzisa i-privatemode-proxy bese unikeza ikheli layo, njenge-http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (akukho emthethweni, nge-RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Ikhathalogu ye-Shazam ngohlu olungekho emthethweni ku-RapidAPI, ngokhiye we-RapidAPI. Akuyona isevisi ye-Apple: uhlu lungashintsha noma lume ngaphandle kwesaziso. Ikliphu ngayinye ithunyelwa ku-RapidAPI.</string>
     <string name="core_tools_provider_recraft_desc">Imifanekiso, izithonjana nobuciko besitayela se-vector. Idinga ukhiye ovela ku-recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Izithombe ezivela ku-Unsplash. Idinga ukhiye we-API, ngaphandle uma lokhu kwakhiwa kuno-one.</string>
     <string name="core_tools_provider_vision_ocr">Imodeli yakho yokubona</string>
     <string name="core_tools_provider_vision_ocr_desc">Imodeli efunda izithombe, ngeseva ephendula izicelo zengxoxo ze-OpenAI. Idinga ikheli negama lemodeli.</string>
+    <string name="core_tools_provider_vosk_desc">Amamodeli amancane e-Kaldi avela ku-Alpha Cephei ngezilimi ezingu-29, cisheu-40 MB ngayinye, athayipha njengoba ukhuluma ocingweni. Alula ngokwanele ocingweni oludala.</string>
     <string name="core_tools_provider_whisper_desc">Amamodeli we-OpenAI Whisper, asebenza ocingweni. Izilimi eziningi; landa imodeli ekhasini lokuthayipha ngezwi.</string>
     <string name="core_tools_provider_whistle_desc">Imodeli encane, esheshayo esebenza ocingweni. Yilande ekhasini lokuthayipha ngezwi.</string>
     <string name="core_tools_provider_xai_desc">Amamodeli we-Grok nge-API ye-xAI, ngokhiye wakho.</string>

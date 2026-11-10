@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Quel plugin non dispone più di tale azione.</string>
     <string name="core_plugins_error_no_render">Questo plugin non ha una funzione render().</string>
+    <string name="core_plugins_error_no_transform">Questo plugin non ha alcuna funzione transform().</string>
     <string name="core_plugins_error_not_installed">Quel plugin non è installato.</string>
+    <string name="core_plugins_error_not_ready">I plugin sono ancora in fase di download. Riprova tra poco.</string>
     <string name="core_plugins_error_script_failed">Lo script non è riuscito.</string>
     <string name="core_plugins_error_script_missing">Lo script per quel plugin è mancante.</string>
     <string name="core_plugins_error_turned_off">Quel plugin è disattivato.</string>
     <string name="core_plugins_permission_reminders_label">Mostra promemoria negli orari impostati</string>
+    <string name="core_plugins_permission_selection_label">Modifica il testo selezionato quando tocchi una delle sue azioni</string>
     <string name="core_plugins_permission_storage_label">Salva i dati sul tuo dispositivo</string>
+    <string name="core_plugins_reject_action_input">“%1$s” ha un\'azione che richiede un testo che questa versione di WM Keyboard non può fornirgli.</string>
+    <string name="core_plugins_reject_action_no_name">\"%1$s\" ha un\'azione senza un nome.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” aggiunge azioni per il testo selezionato ma non chiede il permesso di modificarlo.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” ha un\'azione il cui ID è mancante, ripetuto o non valido. Un ID azione può contenere fino a 32 lettere minuscole, numeri, trattini e trattini bassi.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” contiene uno script che non è un testo UTF-8 valido.</string>
     <string name="core_plugins_reject_bad_id">Questo plugin ha un ID non valido. Un ID deve avere una lunghezza compresa tra 3 e 64 caratteri. Un ID può contenere lettere minuscole, numeri, punti, trattini e trattini bassi.</string>
     <string name="core_plugins_reject_empty_script">\"%1$s\" ha uno script vuoto.</string>
+    <string name="core_plugins_reject_lua">“%1$s” è scritto in Lua, che WM Keyboard non esegue più. Cerca la sua versione in Python.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” non ha il suo file script (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Questo plugin richiede una versione più recente di WM Keyboard.</string>
     <string name="core_plugins_reject_no_name">Questo plugin non ha un nome.</string>
     <string name="core_plugins_reject_no_version">“%1$s” non specifica la versione.</string>
+    <string name="core_plugins_reject_nothing_to_show">‐%1$s‐ non ha alcun pannello e nessuna azione, quindi non c\'e nulla da fare.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” ha uno script più grande di %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” richiede di modificare il testo selezionato ma non aggiunge alcuna azione.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” aggiunge più di 16 azioni.</string>
+    <string name="core_plugins_reject_unknown_language">\"%1$s\" è scritto in una lingua che questa versione di WM Keyboard non può eseguire. I plugin sono scritti in Python.</string>
     <string name="core_plugins_reject_unknown_permission">Questa versione di WM Keyboard non riconosce l\'autorizzazione \"%1$s\". L\'app non può dirti cosa è autorizzato a fare \"%2$s\".</string>
     <string name="core_plugins_reminders_channel_body">Promemoria che un plugin ha chiesto all\'app di mostrare, negli orari impostati nel plugin. Il titolo di ciascuno è il nome del plugin.</string>
     <string name="core_plugins_reminders_channel_title">Promemoria plugin</string>
     <string name="core_plugins_stopped_cancelled">L\'app ha interrotto questo plugin.</string>
     <string name="core_plugins_stopped_deadline">Questo plugin ha impiegato troppo tempo. L\'app lo ha interrotto.</string>
     <string name="core_plugins_stopped_instructions">Questo plugin ha eseguito troppe operazioni contemporaneamente. L\'app lo ha interrotto.</string>
+    <string name="core_plugins_stopped_memory">Questo plugin ha tentato di memorizzare troppi dati. L\'app lo ha fermato.</string>
     <string name="core_plugins_stopped_not_responding">Questo plugin ha smesso di rispondere. L\'app lo ha chiuso.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Questo plugin ha smesso di rispondere di nuovo. L\'app lo ha disattivato.</string>
     <string name="core_plugins_stopped_recursion">Questo plugin ha richiamato se stesso troppe volte. L\'app lo ha interrotto.</string>

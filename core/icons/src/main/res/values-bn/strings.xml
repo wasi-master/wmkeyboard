@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">টুলবার</string>
     <string name="core_icons_group_tools_title">টুলস</string>
     <string name="core_icons_pack_imported_label">ইম্পোর্ট করা আইকন</string>
-    <string name="core_icons_pack_mine_label">আমার আইকন</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">অ্যাপটি %1$d ফাইল উপেক্ষা করেছে। এই সংস্করণে এর জন্য কোনো আইকন নেই: %2$s</item>
         <item quantity="other">অ্যাপটি %1$d ফাইল উপেক্ষা করেছে। এই সংস্করণে সেগুলোর জন্য কোনো আইকন নেই: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">ট্যাব কী</string>
     <string name="core_icons_slot_toolbox_label">টুলবক্স</string>
     <string name="core_icons_slot_toolbox_search_label">টুলবক্স অনুসন্ধান</string>
+    <string name="core_icons_pack_mine_label">আমার আইকন</string>
 </resources>

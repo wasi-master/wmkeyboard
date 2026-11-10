@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">هذا الملحق لم يعد يحتوي على هذا الإجراء.</string>
     <string name="core_plugins_error_no_render">هذه الإضافة لا تحتوي على دالة render().</string>
+    <string name="core_plugins_error_no_transform">لا يحتوي هذا البرنامج المساعد على وظيفة transform().</string>
     <string name="core_plugins_error_not_installed">هذه الإضافة غير مثبتة.</string>
+    <string name="core_plugins_error_not_ready">جاري تنزيل المكونات الإضافية. حاول مرة أخرى بعد قليل.</string>
     <string name="core_plugins_error_script_failed">فشل البرنامج النصي.</string>
     <string name="core_plugins_error_script_missing">البرنامج النصي لهذه الإضافة مفقود.</string>
     <string name="core_plugins_error_turned_off">هذه الإضافة متوقفة.</string>
     <string name="core_plugins_permission_reminders_label">عرض التذكيرات في الأوقات التي تحددها فيها</string>
+    <string name="core_plugins_permission_selection_label">تغيير النص الذي تحدده، عند النقر على أحد إجراءاته</string>
     <string name="core_plugins_permission_storage_label">حفظ البيانات على جهازك</string>
+    <string name="core_plugins_reject_action_input">“%1$s” يحتوي على إجراء يطلب نصاً لا يمكن لوهج لوحة المفاتيح (WM Keyboard) هذا الإصدار من توفيره.</string>
+    <string name="core_plugins_reject_action_no_name">العنصر \"%1$s\" يحتوي على إجراء بدون اسم.</string>
+    <string name="core_plugins_reject_actions_need_selection">يضيف \"%1$s\" إجراءات للنص المحدد ولكنه لا يطلب إذناً لتغييره.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” يحتوي على إجراء معرّفه مفقود، أو مكرّر، أو غير صالح. يتكون معرّف الإجراء من ما يصل إلى 32 حرفاً إنجليزياً صغيراً، وأرقام، وشرطات، وشرطات سفليّة.</string>
     <string name="core_plugins_reject_bad_encoding">\"%1$s\" يحتوي على برنامج نصي ليس نص UTF-8 صالحًا.</string>
     <string name="core_plugins_reject_bad_id">هذه الإضافة لها معرف غير صالح. يجب أن يتراوح طول المعرف بين 3 و 64 حرفًا. يمكن أن يحتوي المعرف على أحرف صغيرة وأرقام ونقاط وشرطات وشرطات سفلية.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” يحتوي على نص برمجي فارغ.</string>
+    <string name="core_plugins_reject_lua">“%1$s” مكتوب بلغة Lua، التي لم تعد لوحة مفاتيح WM تشغلها. ابحث عن إصدار بايثون الخاص به.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” لا يحتوي على ملف البرنامج النصي الخاص به (%2$s).</string>
     <string name="core_plugins_reject_newer_version">تحتاج هذه الإضافة إلى إصدار أحدث من لوحة مفاتيح WM.</string>
     <string name="core_plugins_reject_no_name">هذه الإضافة ليس لها اسم.</string>
     <string name="core_plugins_reject_no_version">“%1$s” لا يحدد الإصدار الخاص به.</string>
+    <string name="core_plugins_reject_nothing_to_show">ليس لدى \"%1$s\" لوحة أو إجراءات، لذلك ليس هناك ما يمكنه فعله.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” يحتوي على نص برمجي أكبر من %2$d كيلوبايت.</string>
+    <string name="core_plugins_reject_selection_without_actions">يطلب \"%1$s\" تغيير النص الذي حددته ولكنه لا يضيف أي إجراءات.</string>
+    <string name="core_plugins_reject_too_many_actions">يضيف \"%1$s\" أكثر من 16 إجراءً.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” مكتوب بلغة لا يمكن لإصدار لوحة مفاتيح WM هذا تشغيلها. يتم كتابة الإضافات بلغة بايثون.</string>
     <string name="core_plugins_reject_unknown_permission">هذا الإصدار من لوحة مفاتيح WM لا يعرف الإذن \"%1$s\". لا يمكن للتطبيق إخبارك بما يُسمح لـ \"%2$s\" بفعله.</string>
     <string name="core_plugins_reminders_channel_body">تذكيرات طلب المكون الإضافي من التطبيق عرضها، في الأوقات التي تحددها في المكون الإضافي. عنوان كل منها هو اسم المكون الإضافي.</string>
     <string name="core_plugins_reminders_channel_title">تذكيرات الإضافات</string>
     <string name="core_plugins_stopped_cancelled">أوقف التطبيق هذه الإضافة.</string>
     <string name="core_plugins_stopped_deadline">استغرقت هذه الإضافة وقتاً طويلاً جداً. قام التطبيق بإيقافها.</string>
     <string name="core_plugins_stopped_instructions">قام هذا الملحق بعمل كثير في وقت واحد، لذا أوقفه التطبيق.</string>
+    <string name="core_plugins_stopped_memory">حاول هذا المكون الإضافي الاحتفاظ بقدر كبير جداً من البيانات. قام التطبيق بإيقافه.</string>
     <string name="core_plugins_stopped_not_responding">توقف هذا المكون الإضافي عن الاستجابة. قام التطبيق بإغلاقه.</string>
     <string name="core_plugins_stopped_not_responding_disabled">توقف هذا المكون الإضافي عن الاستجابة مرة أخرى. قام التطبيق بإيقاف تشغيله.</string>
     <string name="core_plugins_stopped_recursion">استدعى هذا المكون الإضافي نفسه مرات كثيرة جداً. قام التطبيق بإيقافه.</string>

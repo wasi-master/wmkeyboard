@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">ٹول بار</string>
     <string name="core_icons_group_tools_title">ٹولز</string>
     <string name="core_icons_pack_imported_label">درآمد شدہ آئیکنز</string>
-    <string name="core_icons_pack_mine_label">میرے آئیکنز</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">ایپ نے %1$d فائل کو نظر انداز کر دیا۔ اس ورژن میں اس کے لیے کوئی آئیکن نہیں ہے: %2$s</item>
         <item quantity="other">ایپ نے %1$d فائلوں کو نظر انداز کر دیا۔ اس ورژن میں ان کے لیے کوئی آئیکن نہیں ہے: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">ٹیب کلید</string>
     <string name="core_icons_slot_toolbox_label">ٹول باکس</string>
     <string name="core_icons_slot_toolbox_search_label">ٹول باکس تلاش</string>
+    <string name="core_icons_pack_mine_label">میرے آئیکنز</string>
 </resources>

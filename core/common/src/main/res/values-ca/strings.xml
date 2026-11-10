@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Pausat: l\'estalvi de dades reté les descàrregues en aquesta connexió. Continuarà on s\'ha aturat.</string>
     <string name="common_error_generic">Alguna cosa no ha funcionat. Torna-ho a provar.</string>
     <string name="common_error_network">Sense connexió. Comprova la xarxa i torna-ho a provar.</string>
+    <string name="common_error_network_permission_off">L\'accés a la xarxa de WM Keyboard està desactivat a la configuració del vostre telèfon, de manera que això no funciona. Activeu-lo a Configuració d\'Android › Aplicacions › WM Keyboard › Permisos (a GrapheneOS, el permís de xarxa) i torneu-ho a provar.</string>
     <string name="common_error_no_internet_permission">Aquesta compilació del teclat no es pot connectar a Internet.</string>
     <string name="common_error_timeout">La sol·licitud ha trigat massa. Torna-ho a provar.</string>
     <string name="common_export">Exporta</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Més</string>
     <string name="common_next">Següent</string>
     <string name="common_none">Cap</string>
+    <string name="common_notify_channel_alarms_body">Una alarma ajornada o a punt de sonar, i una altra que ha sonat sense ningú. El toc en si té un canal propi.</string>
+    <string name="common_notify_channel_alarms_title">Avís d\'alarmes</string>
     <string name="common_notify_channel_backup_body">Només quan una còpia de seguretat automàtica falla. Les còpies de seguretat reeixides són silencioses.</string>
     <string name="common_notify_channel_backup_title">Problemes de còpia de seguretat</string>
     <string name="common_notify_channel_clock_body">Temporitzadors i cronòmetre mentre s\'executen, amb botons per fer una pausa, afegir un minut o aturar-los.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Controls del teclat</string>
     <string name="common_notify_channel_send_body">Una càrrega o descàrrega de l\'eina Envia fitxers ha finalitzat mentre el teclat estava ocult, amb l\'enllaç per copiar i un fitxer que ha enviat un dispositiu proper.</string>
     <string name="common_notify_channel_send_title">Enviament i recepció de fitxers</string>
+    <string name="common_notify_channel_stopwatch_body">El cronòmetre mentre s\'executa o està en pausa, amb botons per a voltes, pausa i reinici.</string>
+    <string name="common_notify_channel_stopwatch_title">Cronòmetre</string>
     <string name="common_notify_channel_updates_body">Una versió nova per instal·lar, una actualització esperant que premis instal·lar i confirmació un cop instal·lada.</string>
     <string name="common_notify_channel_updates_title">Actualitzacions de l\'aplicació</string>
     <string name="common_notify_download_done">A punt per utilitzar</string>
     <string name="common_notify_download_failed">No s\'ha pogut descarregar %1$s</string>
     <string name="common_notify_download_handwriting">Escriptura a mà %1$s</string>
     <string name="common_notify_download_progress">%1$s de %2$s</string>
+    <string name="common_notify_download_step_library">Pas 1 de 2, la biblioteca del motor: %1$s</string>
+    <string name="common_notify_download_step_model">Pas 2 de 2, el model: %1$s</string>
     <string name="common_notify_download_translate">Traducció fora de línia de %1$s</string>
     <string name="common_notify_download_voice">Veu fora de línia %1$s</string>
     <string name="common_off">Desactivat</string>
+    <string name="common_offline_build_download">Aquesta és la compilació fora de línia, de manera que no es pot descarregar. Obteniu el fitxer en un altre dispositiu i importeu-lo: Configuració › Quant a › Emmagatzematge › Importa els fitxers descarregats ho accepta, o a la fila Importa d\'aquesta mateixa pantalla si en té una. O instal·leu la compilació estàndard des de la mateixa pàgina de llançament per damunt d\'aquesta, i es descarregarà sola. La vostra configuració i les paraules apreses es mantindran.</string>
+    <string name="common_offline_build_library">Aquesta és la versió fora de línia, per la qual cosa no pot baixar la biblioteca que necessita. Obteniu el seu fitxer en un altre dispositiu i importeu-lo a Configuració › Privadesa › Biblioteques de funcions, on s\'enumera el fitxer exacte. O instal·leu la versió estàndard de la mateixa pàgina de llançament sobre aquesta, i es baixarà sola. La vostra configuració i les paraules apreses es mantenen.</string>
     <string name="common_ok">D\'acord</string>
     <string name="common_on">Activat</string>
     <string name="common_open_system_settings">Obre la configuració del sistema</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Servei d\'accessibilitat per al botó d\'IA</string>
     <string name="common_special_access_split_screen_body">Alguns telèfons obren una aplicació a pantalla completa quan el teclat demana la pantalla dividida. Amb aquest servei activat, obrir una aplicació en pantalla dividida des del llançador d\'aplicacions o obrir un parell de pantalla dividida prem primer el commutador de pantalla dividida propi d\'Android, el mateix que té el menú Recents, i l\'aplicació s\'obre a la meitat lliure. Abans de prems-lo, el servei comprova on es troben les finestres de l\'aplicació per veure si la pantalla dividida ja està activada. Mai llegeix el que hi ha dins. No fa res en cap altre moment, no observa el que escriviu i no guarda res. La pantalla d\'accessibilitat d\'Android adverteix de tot el que un servei com aquest podria fer. Aquest només prem aquest commutador quan demaneu la pantalla dividida.</string>
     <string name="common_special_access_split_screen_title">Servei d\'accessibilitat per a pantalla dividida</string>
+    <string name="common_special_access_system_buttons_body">Android permet que una altra aplicació faci una captura de pantalla, torni enrere o obri aplicacions recents, el calaix d\'aplicacions, la cortina de notificacions o la configuració ràpida només a través d\'un servei d\'accessibilitat. Amb aquest servei activat, l\'eina de captura de pantalla i el botó flotant prenen aquests botons del sistema per a vosaltres, els mateixos que tenen la navegació i la cortina pròpies d\'Android. Una captura de pantalla es desa a on va cada captura de pantalla. El servei no fa res en cap altre moment. No llegeix la pantalla, no observa el que escriviu i no guarda res. La pantalla d\'accessibilitat d\'Android adverteix sobre tot el que podria fer un servei com aquest. Aquest només prem un botó del sistema quan li ho demaneu.</string>
+    <string name="common_special_access_system_buttons_title">Servei d\'accessibilitat per als botons del sistema</string>
     <string name="common_special_access_usage_body">Amb l\'accés d\'ús, el teclat registra quina aplicació estava en primer pla quan has copiat alguna cosa. Mostra aquesta aplicació quan mantens premut el clip. El teclat llegeix l\'aplicació en primer pla només en el moment de copiar. No llegeix el teu historial ni el temps que passes en una aplicació. El teclat manté la resposta amb el clip, només al teu dispositiu. Res sobre l\'ús de les teves aplicacions surt del dispositiu. L\'ajust és opcional. Roman desactivat fins que l\'activis.</string>
     <string name="common_special_access_usage_title">Accés d\'ús per a aplicacions d\'origen del porta-retalls</string>
     <string name="common_type_setting_value_desc">Escriviu un valor per a %1$s</string>

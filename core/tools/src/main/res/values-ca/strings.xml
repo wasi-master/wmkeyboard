@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Fons de pantalla</string>
     <string name="core_tools_provider_acrcloud_desc">Un servei de reconeixement de música amb una prova de dues setmanes, després plans de pagament. Necessita l\'amfitrió, la clau d\'accés i el secret d\'accés d\'un projecte de console.acrcloud.com. Cada clip s\'envia a ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">Stable Diffusion gratuït als ordinadors dels voluntaris. Funciona sense clau però espera en una cua; una clau gratuïta de aihorde.net et fa avançar.</string>
+    <string name="core_tools_provider_allratestoday_desc">Tipus de canvi de referència del Banc Central Europeu per a unes 30 monedes. Sense clau.</string>
     <string name="core_tools_provider_anthropic_desc">Models Claude a través de l\'API d\'Anthropic, amb la teva pròpia clau.</string>
     <string name="core_tools_provider_asr4all_desc">Dictat en anglès al telèfon, amb les paraules apareixent mentre parles.</string>
     <string name="core_tools_provider_audd_desc">Reconeix la majoria de música publicada a partir d\'uns segons de so. Necessita un testimoni de dashboard.audd.io; uns quants centenars de reconeixements són gratuïts, després és de pagament. Cada clip s\'envia a AudD.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Un model gran que s\'executa al telèfon i entén 25 idiomes europeus.</string>
     <string name="core_tools_provider_pexels_desc">Fotos de Pexels. Necessita una clau API, tret que aquesta compilació en tingui una.</string>
     <string name="core_tools_provider_pollinations_desc">Gratuït, sense clau ni compte: l\'indicació s\'envia a Pollinations, que tria el model. Una clau d\'enter.pollinations.ai obre el seu API més nou i et permet anomenar un model.</string>
+    <string name="core_tools_provider_privatemode">IA en mode privat</string>
+    <string name="core_tools_provider_privatemode_desc">IA que s\'executa en computació confidencial i no pot llegir el teu text. Proporcioneu la vostra clau d\'API de Privatemode. A continuació, el teclat xifra cada sol·licitud al telèfon, però no comprova l\'atestació del maquinari del servei. Perquè això també es comprovi, executeu privatemode-proxy i proporcioneu-ne l\'adreça, com ara http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (no oficial, via RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Catàleg de Shazam mitjançant un llistat no oficial a RapidAPI, amb una clau de RapidAPI. No és un servei d\'Apple: el llistat pot canviar o deixar de funcionar sense previ avís. Cada clip s\'envia a RapidAPI.</string>
     <string name="core_tools_provider_recraft_desc">Il·lustracions, icones i art d\'estil vectorial. Necessita una clau de recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Fotos d\'Unsplash. Requereix una clau d\'API, tret que aquesta compilació en tingui una.</string>
     <string name="core_tools_provider_vision_ocr">El teu model de visió</string>
     <string name="core_tools_provider_vision_ocr_desc">Un model que llegeix imatges, a través d\'un servidor que respon a les sol·licituds de xat d\'OpenAI. Necessita l\'adreça i el nom del model.</string>
+    <string name="core_tools_provider_vosk_desc">Petits models Kaldi d\'Alpha Cephei per a 29 idiomes, d\'uns 40 MB cadascun, que escriuen a mesura que parleu al telèfon. Prou lleuger per a un telèfon més antic.</string>
     <string name="core_tools_provider_whisper_desc">Models Whisper d\'OpenAI, executats al telèfon. Molts idiomes; descarrega un model a la pàgina d\'escriptura per veu.</string>
     <string name="core_tools_provider_whistle_desc">Un model petit i ràpid que s\'executa al telèfon. Descarrega\'l a la pàgina d\'escriptura per veu.</string>
     <string name="core_tools_provider_xai_desc">Models Grok mitjançant l\'API de xAI, amb la teva pròpia clau.</string>

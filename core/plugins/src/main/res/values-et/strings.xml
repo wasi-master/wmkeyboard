@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Sellel pluginal pole enam seda toimingut.</string>
     <string name="core_plugins_error_no_render">Sellel pistikprogrammil pole render() funktsiooni.</string>
+    <string name="core_plugins_error_no_transform">Sellel pistikprogrammil puudub funktsioon transform().</string>
     <string name="core_plugins_error_not_installed">See plugin pole installitud.</string>
+    <string name="core_plugins_error_not_ready">Pluginad alles laadivad alla. Proovi hetke pärast uuesti.</string>
     <string name="core_plugins_error_script_failed">Skript nurjus.</string>
     <string name="core_plugins_error_script_missing">Selle pistikprogrammi skript puudub.</string>
     <string name="core_plugins_error_turned_off">See pistikprogramm on välja lülitatud.</string>
     <string name="core_plugins_permission_reminders_label">Kuva meeldetuletusi sinu määratud aegadel</string>
+    <string name="core_plugins_permission_selection_label">Muuda valitud teksti, kui puudutad mõnda selle toimingutest</string>
     <string name="core_plugins_permission_storage_label">Salvesta andmed oma seadmesse</string>
+    <string name="core_plugins_reject_action_input">„%1$s“ sisaldab tegevust, mis küsib teksti, mida see WM Keyboardi versioon ei saa anda.</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s” sisaldab tegevust ilma nimeta.</string>
+    <string name="core_plugins_reject_actions_need_selection">„%1$s“ lisab valitud tekstile toiminguid, kuid ei küsi luba selle muutmiseks.</string>
+    <string name="core_plugins_reject_bad_action_id">„%1$s“ sisaldab toimingut, mille ID puudub, kordub või ei kehti. Toimingu ID võib koosneda kuni 32 väiketähest, numbrist, sidekriipsust ja alakriipsust.</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ sisaldab skripti, mis ei ole kehtiv UTF-8 tekst.</string>
     <string name="core_plugins_reject_bad_id">Sellel pistikprogrammil on kehtetu ID. ID peab olema 3 kuni 64 tähemärki pikk. ID võib sisaldada väiketähti, numbreid, punkte, sidekriipse ja allkriipse.</string>
     <string name="core_plugins_reject_empty_script">„%1$s“ skript on tühi.</string>
+    <string name="core_plugins_reject_lua">„%1$s“ on kirjutatud Lua keeles, mida WM Keyboard enam ei käivita. Otsi selle Pythoni versiooni.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” skriptifaili (%2$s) ei leitud.</string>
     <string name="core_plugins_reject_newer_version">See pistikprogramm vajab WM-klaviatuuri uuemat versiooni.</string>
     <string name="core_plugins_reject_no_name">Sellel pluginil pole nime.</string>
     <string name="core_plugins_reject_no_version">„%1$s“ ei ütle, mis versioon see on.</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” ei oma paneeli ega tegevusi, seega pole tal midagi teha.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s“ skript on suurem kui %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">„%1$s“ soovib muuta valitud teksti, kuid ei lisa ühtegi toimingut.</string>
+    <string name="core_plugins_reject_too_many_actions">„%1$s“ lisab rohkem kui 16 toimingut.</string>
+    <string name="core_plugins_reject_unknown_language">„%1$s“ on kirjutatud keeles, mida see WM Keyboardi versioon ei saa käivitada. Pistikprogrammid on kirjutatud Pythonis.</string>
     <string name="core_plugins_reject_unknown_permission">See WM-klaviatuuri versioon ei tunne luba „%1$s“. Rakendus ei saa sulle öelda, mida „%2$s“ tohib teha.</string>
     <string name="core_plugins_reminders_channel_body">Meeldetuletused, mida plugin palus rakendusel kuvada, teie määratud aegadel. Igaühe pealkiri on plugina nimi.</string>
     <string name="core_plugins_reminders_channel_title">Plugina meeldetuletused</string>
     <string name="core_plugins_stopped_cancelled">Rakendus peatas selle pistikprogrammi.</string>
     <string name="core_plugins_stopped_deadline">See plugin võttis liiga kaua aega. Rakendus peatas selle.</string>
     <string name="core_plugins_stopped_instructions">See pistikprogramm tegi korraga liiga palju tööd. Rakendus peatas selle.</string>
+    <string name="core_plugins_stopped_memory">See plugin üritas hoida liiga palju andmeid. Rakendus peatas selle.</string>
     <string name="core_plugins_stopped_not_responding">See plugin lõpetas vastamise. Rakendus sulges selle.</string>
     <string name="core_plugins_stopped_not_responding_disabled">See plugin lõpetas uuesti vastamise. Rakendus lülitas selle välja.</string>
     <string name="core_plugins_stopped_recursion">See plugin kutsus end liiga mitu korda. Rakendus peatas selle.</string>

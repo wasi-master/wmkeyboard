@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">ਟੂਲਬਾਰ</string>
     <string name="core_icons_group_tools_title">ਟੂਲ</string>
     <string name="core_icons_pack_imported_label">ਆਯਾਤ ਕੀਤੇ ਆਈਕਨ</string>
-    <string name="core_icons_pack_mine_label">ਮੇਰੇ ਆਈਕਨ</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">ਐਪ ਨੇ %1$d ਫਾਈਲ ਨੂੰ ਨਜ਼ਰਅੰਦਾਜ਼ ਕੀਤਾ। ਇਸ ਸੰਸਕਰਣ ਵਿੱਚ ਇਸਦੇ ਲਈ ਕੋਈ ਆਈਕਨ ਨਹੀਂ ਹੈ: %2$s</item>
         <item quantity="other">ਐਪ ਨੇ %1$d ਫਾਈਲਾਂ ਨੂੰ ਨਜ਼ਰਅੰਦਾਜ਼ ਕੀਤਾ। ਇਸ ਸੰਸਕਰਣ ਵਿੱਚ ਉਹਨਾਂ ਲਈ ਕੋਈ ਆਈਕਨ ਨਹੀਂ ਹੈ: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">ਟੈਬ ਕੁੰਜੀ</string>
     <string name="core_icons_slot_toolbox_label">ਟੂਲਬਾਕਸ</string>
     <string name="core_icons_slot_toolbox_search_label">ਟੂਲਬਾਕਸ ਖੋਜ</string>
+    <string name="core_icons_pack_mine_label">ਮੇਰੇ ਆਈਕਨ</string>
 </resources>

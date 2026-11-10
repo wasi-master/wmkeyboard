@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">ટૂલબાર</string>
     <string name="core_icons_group_tools_title">ટૂલ્સ</string>
     <string name="core_icons_pack_imported_label">આયાત કરેલા આઇકન</string>
-    <string name="core_icons_pack_mine_label">મારા આઇકન્સ</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">એપે %1$d ફાઇલને અવગણી છે. આ વર્ઝનમાં તેના માટે કોઈ આઇકન નથી: %2$s</item>
         <item quantity="other">એપે %1$d ફાઇલોને અવગણી છે. આ વર્ઝનમાં તેમના માટે કોઈ આઇકન નથી: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tab કી</string>
     <string name="core_icons_slot_toolbox_label">ટૂલબોક્સ</string>
     <string name="core_icons_slot_toolbox_search_label">ટૂલબોક્સ શોધ</string>
+    <string name="core_icons_pack_mine_label">મારા આઇકન્સ</string>
 </resources>

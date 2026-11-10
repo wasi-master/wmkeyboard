@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Bară de instrumente</string>
     <string name="core_icons_group_tools_title">Instrumente</string>
     <string name="core_icons_pack_imported_label">Pictograme importate</string>
-    <string name="core_icons_pack_mine_label">Pictogramele mele</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Aplicația a ignorat %1$d fișier. Această versiune nu are nicio pictogramă pentru el: %2$s</item>
         <item quantity="other">Aplicația a ignorat %1$d fișiere. Această versiune nu are nicio pictogramă pentru ele: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tasta Tab</string>
     <string name="core_icons_slot_toolbox_label">Cutie cu instrumente</string>
     <string name="core_icons_slot_toolbox_search_label">Căutare în setul de instrumente</string>
+    <string name="core_icons_pack_mine_label">Pictogramele mele</string>
 </resources>

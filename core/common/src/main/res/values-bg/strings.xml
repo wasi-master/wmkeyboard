@@ -37,6 +37,7 @@
     <string name="common_error_download_held">На пауза: режимът за пестене на данни задържа изтеглянията при тази връзка. Продължава от мястото, където е спряло.</string>
     <string name="common_error_generic">Нещо не проработи. Опитайте отново.</string>
     <string name="common_error_network">Няма връзка. Проверете мрежата си и опитайте отново.</string>
+    <string name="common_error_network_permission_off">Мрежовият достъп на WM Keyboard е изключен в настройките на телефона ви, затова това не работи. Включете го в Настройки на Android › Приложения › WM Keyboard › Разрешения (на GrapheneOS мрежовото разрешение), след което опитайте отново.</string>
     <string name="common_error_no_internet_permission">Тази компилация на клавиатурата не може да се свърже с интернет.</string>
     <string name="common_error_timeout">Заявката отне твърде много време. Опитайте отново.</string>
     <string name="common_export">Експортиране</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Още</string>
     <string name="common_next">Напред</string>
     <string name="common_none">Няма</string>
+    <string name="common_notify_channel_alarms_body">Аларма, която е отложена или предстои да звънне, както и такава, която е звъняла, но никой не я е спрел. Самото звънене има собствен канал.</string>
+    <string name="common_notify_channel_alarms_title">Известия за аларми</string>
     <string name="common_notify_channel_backup_body">Само когато автоматичното архивиране е неуспешно. Успешните архивирания са тихи.</string>
     <string name="common_notify_channel_backup_title">Проблеми с архивирането</string>
     <string name="common_notify_channel_clock_body">Таймери и хронометър, докато работят, с бутони за пауза, добавяне на минута или спиране.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Контроли на клавиатурата</string>
     <string name="common_notify_channel_send_body">Инструментът за изпращане на файлове завърши качване или изтегляне, докато клавиатурата беше скрита, заедно с връзката за копиране и файл, изпратен от устройство наблизо.</string>
     <string name="common_notify_channel_send_title">Изпращане и получаване на файлове</string>
+    <string name="common_notify_channel_stopwatch_body">The stopwatch while it runs or is paused, with buttons for laps, pausing and resetting.</string>
+    <string name="common_notify_channel_stopwatch_title">Stopwatch</string>
     <string name="common_notify_channel_updates_body">Нова версия за инсталиране, актуализация, чакаща да натиснете „инсталиране“, и потвърждение след инсталирането.</string>
     <string name="common_notify_channel_updates_title">Актуализации на приложения</string>
     <string name="common_notify_download_done">Готово за употреба</string>
     <string name="common_notify_download_failed">%1$s не можа да бъде изтеглен</string>
     <string name="common_notify_download_handwriting">%1$s ръкописен текст</string>
     <string name="common_notify_download_progress">%1$s от %2$s</string>
+    <string name="common_notify_download_step_library">Стъпка 1 от 2, библиотеката на енджина: %1$s</string>
+    <string name="common_notify_download_step_model">Стъпка 2 от 2, моделът: %1$s</string>
     <string name="common_notify_download_translate">%1$s офлайн превод</string>
     <string name="common_notify_download_voice">%1$s офлайн глас</string>
     <string name="common_off">Изключено</string>
+    <string name="common_offline_build_download">Това е офлайн версията, така че не може да изтегли това. Вземете файла на друго устройство и го импортирайте: Настройки › Относно › Памет › Импортиране на изтеглените файлове приема го или собственият ред за импортиране на този екран, където има такъв. Или инсталирайте стандартната версия от същата страница за изпускане върху тази и тя се изтегля сама. Вашите настройки и научени думи остават.</string>
+    <string name="common_offline_build_library">Това е офлайн версията, така че не може да изтегли необходимата библиотека. Вземете файла ѝ на друго устройство и го импортирайте в Настройки › Поверителност › Библиотеки с функции, където е посочен точният файл. Или инсталирайте стандартната версия от същата страница за изтегляне върху тази и тя ще се изтегли сама. Вашите настройки и научени думи ще се запазят.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">Включено</string>
     <string name="common_open_system_settings">Отваряне на системните настройки</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Услуга за достъпност за AI бутона</string>
     <string name="common_special_access_split_screen_body">Някои телефони отварят приложение на цял екран, когато клавиатурата поиска разделен екран. Когато тази услуга е включена, отварянето на приложение в разделен екран от програмата за стартиране на приложения или отварянето на двойка за разделен екран натиска първо собствения превключвател за разделен екран на Android – същия, който има менюто „Скорошни“, и приложението се отваря в свободната половина. Преди да го натисне, услугата проверява къде са прозорците на приложенията, за да види дали разделеният екран вече е отворен. Тя никога не чете какво има в тях. Тя не прави нищо по друго време, не наблюдава какво пишете и не запазва нищо. Екранът за достъпност на Android предупреждава за всичко, което услуга като тази може да направи. Тази услуга натиска само този превключвател, когато поискате разделен екран.</string>
     <string name="common_special_access_split_screen_title">Услуга за достъпност за разделен екран</string>
+    <string name="common_special_access_system_buttons_body">Android позволява на друго приложение да прави екранна снимка, да се връща назад или да отваря скорошни приложения, чекмеджето с приложения, сянката за известия или бързите настройки само чрез услуга за достъпност. Когато тази услуга е включена, инструментът за екранни снимки и плаващият бутон натискат тези системни бутони вместо вас - същите, които притежават собствената навигация и панел на Android. Екранната снимка се запазва там, където отиват всички екранни снимки. Услугата не прави нищо по друго време. Тя не чете екрана, не следи какво пишете и не запазва нищо. Екранът за достъпност на Android предупреждава за всичко, което услуга като тази може да направи. Тази услуга натиска системен бутон само когато я помолите.</string>
+    <string name="common_special_access_system_buttons_title">Услуга за достъпност за системни бутони</string>
     <string name="common_special_access_usage_body">С достъп до използването, клавиатурата записва кое приложение е било на преден план, когато сте копирали нещо. Тя показва това приложение, когато натиснете и задържите клипа. Клавиатурата чете приложението на преден план само в момента на копиране. Тя не чете историята ви или времето, прекарано в приложението. Клавиатурата запазва отговора с клипа само на вашето устройство. Нищо относно използването на приложенията ви не напуска устройството ви. Настройката е незадължителна. Тя остава изключена, докато не я включите.</string>
     <string name="common_special_access_usage_title">Достъп до използване за приложения, източници на клипборда</string>
     <string name="common_type_setting_value_desc">Въведете стойност за %1$s</string>

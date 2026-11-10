@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Sat på pause: datalagring holder downloads på denne forbindelse. Den fortsætter, hvor den stoppede.</string>
     <string name="common_error_generic">Noget gik galt. Prøv igen.</string>
     <string name="common_error_network">Ingen forbindelse. Tjek dit netværk og prøv igen.</string>
+    <string name="common_error_network_permission_off">WM Keyboards netværksadgang er slået fra i din telefons indstillinger, så dette virker ikke. Slå det til i Android-indstillinger › Apps › WM Keyboard › Tilladelser (på GrapheneOS netværkstilladelsen), og prøv igen.</string>
     <string name="common_error_no_internet_permission">Denne version af tastaturet kan ikke oprette forbindelse til internettet.</string>
     <string name="common_error_timeout">Anmodningen tog for lang tid. Prøv igen.</string>
     <string name="common_export">Eksportér</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Mere</string>
     <string name="common_next">Næste</string>
     <string name="common_none">Ingen</string>
+    <string name="common_notify_channel_alarms_body">En alarm, der er udsat eller ved at ringe, og en, der ringede uden nogen til at svare. Selve ringningen har sin egen kanal.</string>
+    <string name="common_notify_channel_alarms_title">Alarmmeddelelser</string>
     <string name="common_notify_channel_backup_body">Kun når en automatisk sikkerhedskopiering fejler. Vellykkede sikkerhedskopieringer er lydløse.</string>
     <string name="common_notify_channel_backup_title">Sikkerhedskopieringsproblemer</string>
     <string name="common_notify_channel_clock_body">Timere og stopuret mens de kører, med knapper til at pause, tilføje et minut eller stoppe dem.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Tastaturkontroller</string>
     <string name="common_notify_channel_send_body">En upload eller download, som Send filer-værktøjet afsluttede, mens tastaturet var skjult, med linket til at kopiere og en fil, som en enhed i nærheden sendte.</string>
     <string name="common_notify_channel_send_title">Sender og modtager filer</string>
+    <string name="common_notify_channel_stopwatch_body">Stopuret, mens det kører eller er sat på pause, med knapper til omgange, pause og nulstilling.</string>
+    <string name="common_notify_channel_stopwatch_title">Stopur</string>
     <string name="common_notify_channel_updates_body">En ny version der skal installeres, en opdatering der venter på at du trykker installer, og bekræftelse når en er installeret.</string>
     <string name="common_notify_channel_updates_title">App-opdateringer</string>
     <string name="common_notify_download_done">Klar til brug</string>
     <string name="common_notify_download_failed">%1$s kunne ikke downloades</string>
     <string name="common_notify_download_handwriting">%1$s håndskrift</string>
     <string name="common_notify_download_progress">%1$s af %2$s</string>
+    <string name="common_notify_download_step_library">Trin 1 af 2, motoren-bibliotek: %1$s</string>
+    <string name="common_notify_download_step_model">Trin 2 af 2, modellen: %1$s</string>
     <string name="common_notify_download_translate">%1$s offlineoversættelse</string>
     <string name="common_notify_download_voice">%1$s offline stemme</string>
     <string name="common_off">Fra</string>
+    <string name="common_offline_build_download">Dette er offline-versionen, så den kan ikke downloade dette. Hent filen på en anden enhed og importer den: Indstillinger › Om › Lager › Importer downloadede filer tager den, eller denne skærms egen importrække, hvor der er en. Eller installer standardversionen fra den samme udgivelsesside over denne, og den downloader af sig selv. Dine indstillinger og indlærte ord bliver.</string>
+    <string name="common_offline_build_library">Dette er offline-versionen, så den kan ikke downloade det bibliotek, som dette kræver. Hent filen på en anden enhed og importer den under Indstillinger › Privatliv › Funktionsbiblioteker, som viser den nøjagtige fil. Eller installer standardversionen fra den samme udgivelsesside over denne, og den downloader af sig selv. Dine indstillinger og indlærte ord bliver.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">Til</string>
     <string name="common_open_system_settings">Åbn systemindstillinger</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Tilgængelighedstjeneste til AI-knappen</string>
     <string name="common_special_access_split_screen_body">Nogle telefoner åbner en app i fuld skærm, når tastaturet beder om delt skærm. Når denne tjeneste er slået til, trykker åbning af en app i delt skærm fra app-starteren eller åbning af et delt skærm-par først på Androids egen knap til delt skærm, den samme som oversigtsmenuen har, og appen åbner derefter i den ledige halvdel. Før tjenesten trykker på den, tjekker den, hvor app-vinduerne er, for at se, om delt skærm allerede er åben. Den læser aldrig, hvad der er i dem. Den foretager sig intet på noget andet tidspunkt, overvåger ikke, hvad du skriver, og gemmer intet. Androids tilgængelighedsskærm advarer om alt, hvad en tjeneste som denne kan gøre. Denne trykker kun på knappen, når du beder om delt skærm.</string>
     <string name="common_special_access_split_screen_title">Tilgængelighedstjeneste til delt skærm</string>
+    <string name="common_special_access_system_buttons_body">Android giver en anden app mulighed for at tage et skærmbillede, gå tilbage eller åbne seneste apps, appskuffen, meddelelsespanelet eller hurtigindstillinger udelukkende via en tilgængelighedstjeneste. Når denne tjeneste er slået til, trykker skærmbilledværktøjet og den flydende knap på disse systemknapper for dig, præcis som Androids egen navigation og panel gør det. Et skærmbillede gemmes, hvor alle skærmbilleder gemmes. Tjenesten foretager sig intet på andre tidspunkter. Den læser ikke skærmen, overvåger ikke, hvad du skriver, og gemmer ingenting. Androids tilgængelighedsskærm advarer om alt, hvad en tjeneste som denne kan gøre. Denne trykker kun på en systemknap, når du beder den om det.</string>
+    <string name="common_special_access_system_buttons_title">Tilgængelighedstjeneste til systemknapper</string>
     <string name="common_special_access_usage_body">Med brugsadgang registrerer tastaturet, hvilken app der var i forgrunden, da du kopierede noget. Den viser den app, når du trykker og holder på klippet. Tastaturet læser kun forgrunds-appen i det øjeblik, der kopieres. Den læser ikke din historik eller din tid i en app. Tastaturet gemmer svaret sammen med klippet, kun på din enhed. Intet om din app-brug forlader din enhed. Indstillingen er valgfri. Den forbliver slået fra, indtil du slår den til.</string>
     <string name="common_special_access_usage_title">Brugsadgang for apps til udklipsholderkilder</string>
     <string name="common_type_setting_value_desc">Indtast en værdi for %1$s</string>

@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Achtergronden</string>
     <string name="core_tools_provider_acrcloud_desc">Een muziekherkenningsdienst met een proefperiode van twee weken, daarna betaalde abonnementen. Vereist de host, toegangssleutel en toegangsgeheim van een project van console.acrcloud.com. Elke clip wordt naar ACRCloud verzonden.</string>
     <string name="core_tools_provider_ai_horde_desc">Gratis Stable Diffusion op computers van vrijwilligers. Werkt zonder sleutel maar wacht in een wachtrij; een gratis sleutel van aihorde.net verplaatst je naar voren.</string>
+    <string name="core_tools_provider_allratestoday_desc">Referentiekoersen van de Europese Centrale Bank voor ongeveer 30 valuta\'s. Geen sleutel.</string>
     <string name="core_tools_provider_anthropic_desc">Claude-modellen via de API van Anthropic, met je eigen sleutel.</string>
     <string name="core_tools_provider_asr4all_desc">Engels dicteren op de telefoon, waarbij woorden verschijnen terwijl je spreekt.</string>
     <string name="core_tools_provider_audd_desc">Herkent de meeste uitgebrachte muziek op basis van een paar seconden geluid. Vereist een token van dashboard.audd.io; de eerste paar honderd herkenningen zijn gratis, daarna is het betaald. Elke clip wordt naar AudD verzonden.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Een groot model dat op de telefoon draait en 25 Europese talen begrijpt.</string>
     <string name="core_tools_provider_pexels_desc">Foto\'s van Pexels. Vereist een API-sleutel, tenzij deze build er een bevat.</string>
     <string name="core_tools_provider_pollinations_desc">Gratis, zonder sleutel en zonder account: de prompt wordt verzonden naar Pollinations, dat het model kiest. Een sleutel van enter.pollinations.ai opent de nieuwere API en laat je een model benoemen.</string>
+    <string name="core_tools_provider_privatemode">Privémodus AI</string>
+    <string name="core_tools_provider_privatemode_desc">AI die draait in vertrouwelijke computing en je tekst niet kan lezen. Geef je Privatemode API-sleutel op. Het toetsenbord versleutelt vervolgens elk verzoek op de telefoon, maar controleert de hardware-attestatie van de service niet. Om dit ook te controleren, voer je privatemode-proxy uit en geef je het adres op, zoals http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (onofficieel, via RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Shazam\'s catalogus via een onofficiële lijst op RapidAPI, met een RapidAPI-sleutel. Geen Apple-dienst: de lijst kan zonder kennisgeving veranderen of stoppen. Elke clip wordt naar RapidAPI gestuurd.</string>
     <string name="core_tools_provider_recraft_desc">Illustraties, iconen en vector-stijl kunst. Vereist een sleutel van recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Foto\'s van Unsplash. Vereist een API-sleutel, tenzij deze build er een heeft.</string>
     <string name="core_tools_provider_vision_ocr">Jouw visiemodel</string>
     <string name="core_tools_provider_vision_ocr_desc">Een model dat afbeeldingen leest via een server die OpenAI-chatverzoeken beantwoordt. Vereist het adres en de modelnaam.</string>
+    <string name="core_tools_provider_vosk_desc">Kleine Kaldi-modellen van Alpha Cephei voor 29 talen, ongeveer 40 MB per stuk, die typen terwijl je spreekt in de telefoon. Licht genoeg voor een oudere telefoon.</string>
     <string name="core_tools_provider_whisper_desc">OpenAI\'s Whisper-modellen, uitgevoerd op de telefoon. Veel talen; download een model op de pagina voor spraaktypen.</string>
     <string name="core_tools_provider_whistle_desc">Een klein, snel model dat op de telefoon draait. Download het op de pagina voor spraakgestuurd typen.</string>
     <string name="core_tools_provider_xai_desc">Grok-modellen via de API van xAI, met je eigen sleutel.</string>

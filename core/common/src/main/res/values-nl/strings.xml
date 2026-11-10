@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Gepauzeerd: gegevensbesparing houdt downloads tegen op deze verbinding. Het gaat verder waar het was gestopt.</string>
     <string name="common_error_generic">Er ging iets mis. Probeer het opnieuw.</string>
     <string name="common_error_network">Geen verbinding. Controleer uw netwerk en probeer het opnieuw.</string>
+    <string name="common_error_network_permission_off">De netwerktoegang van WM Keyboard is uitgeschakeld in de instellingen van je telefoon, dus dit werkt niet. Schakel dit in via Android-instellingen › Apps › WM Keyboard › Rechten (op GrapheneOS de netwerkmachtiging) en probeer het opnieuw.</string>
     <string name="common_error_no_internet_permission">Deze versie van het toetsenbord kan geen verbinding maken met internet.</string>
     <string name="common_error_timeout">Het verzoek duurde te lang. Probeer het opnieuw.</string>
     <string name="common_export">Exporteren</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Meer</string>
     <string name="common_next">Volgende</string>
     <string name="common_none">Geen</string>
+    <string name="common_notify_channel_alarms_body">Een alarm dat wordt gesnoozed of bijna afgaat, en een alarm dat is afgegaan zonder dat iemand heeft gereageerd. Het afgaan zelf heeft een eigen kanaal.</string>
+    <string name="common_notify_channel_alarms_title">Alarmmeldingen</string>
     <string name="common_notify_channel_backup_body">Alleen wanneer een automatische back-up mislukt. Succesvolle back-ups zijn stil.</string>
     <string name="common_notify_channel_backup_title">Back-upproblemen</string>
     <string name="common_notify_channel_clock_body">Timers en de stopwatch terwijl ze lopen, met knoppen om ze te pauzeren, een minuut toe te voegen of te stoppen.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Toetsenbordbediening</string>
     <string name="common_notify_channel_send_body">Een upload of download van de Bestanden verzenden-tool is voltooid terwijl het toetsenbord verborgen was, met de link om te kopiëren en een bestand dat een apparaat in de buurt heeft verzonden.</string>
     <string name="common_notify_channel_send_title">Bestanden verzenden en ontvangen</string>
+    <string name="common_notify_channel_stopwatch_body">De stopwatch terwijl deze loopt of is gepauzeerd, met knoppen voor rondes, pauzeren en resetten.</string>
+    <string name="common_notify_channel_stopwatch_title">Stopwatch</string>
     <string name="common_notify_channel_updates_body">Een nieuwe versie om te installeren, een update die wacht tot je op installeren drukt, en bevestiging zodra er een is geïnstalleerd.</string>
     <string name="common_notify_channel_updates_title">App-updates</string>
     <string name="common_notify_download_done">Klaar voor gebruik</string>
     <string name="common_notify_download_failed">%1$s kon niet worden gedownload</string>
     <string name="common_notify_download_handwriting">%1$s handschrift</string>
     <string name="common_notify_download_progress">%1$s van %2$s</string>
+    <string name="common_notify_download_step_library">Stap 1 van 2, de enginelibrary: %1$s</string>
+    <string name="common_notify_download_step_model">Stap 2 van 2, het model: %1$s</string>
     <string name="common_notify_download_translate">%1$s offline vertaling</string>
     <string name="common_notify_download_voice">%1$s offline stem</string>
     <string name="common_off">Uit</string>
+    <string name="common_offline_build_download">Dit is de offline build, dus deze kan dit niet downloaden. Haal het bestand op een ander apparaat op en importeer het: Instellingen › Over › Opslag › Gedownloade bestanden importeren pakt dit op, of gebruik de Importeer-rij van dit scherm als die er is. Of installeer de standaard build van dezelfde releasepagina over deze heen, waarna deze vanzelf downloadt. Je instellingen en geleerde woorden blijven behouden.</string>
+    <string name="common_offline_build_library">Dit is de offline build, dus het kan de benodigde bibliotheek niet downloaden. Haal het bestand op op een ander apparaat en importeer het via Instellingen › Privacy › Functiebibliotheken, waar het exacte bestand wordt vermeld. Of installeer de standaard build van dezelfde releasepagina over deze heen, waarna het vanzelf downloadt. Je instellingen en geleerde woorden blijven behouden.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">Aan</string>
     <string name="common_open_system_settings">Systeeminstellingen openen</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Toegankelijkheidsservice voor de AI-knop</string>
     <string name="common_special_access_split_screen_body">Sommige telefoons openen een app op volledig scherm wanneer het toetsenbord vraagt om gesplitst scherm. Met deze service ingeschakeld, opent het openen van een app in gesplitst scherm vanuit de app-launcher, of het openen van een gesplitst scherm-paar, eerst de eigen gesplitst scherm-schakelaar van Android, dezelfde als het menu Recente apps heeft, en de app opent vervolgens in de vrije helft. Voordat deze wordt ingedrukt, controleert de service waar de app-vensters zich bevinden om te zien of het gesplitst scherm al actief is. Deze leest nooit wat daarin staat. Deze doet op geen enkel ander moment iets, kijkt niet naar wat je typt en bewaart niets. Het toegankelijkheidsscherm van Android waarschuwt voor alles wat een service zoals deze zou kunnen doen. Deze drukt alleen op die schakelaar wanneer je om een gesplitst scherm vraagt.</string>
     <string name="common_special_access_split_screen_title">Toegankelijkheidsservice voor gesplitst scherm</string>
+    <string name="common_special_access_system_buttons_body">Android laat een andere app alleen via een toegankelijkheidsservice een schermafbeelding maken, teruggaan of recente apps, de app-la, het meldingsscherm of snelle instellingen openen. Met deze service ingeschakeld drukken het Schermopname-gereedschap en de zwevende knop op die systeemknoppen voor je, dezelfde knoppen die Android\'s eigen navigatie en scherm hebben. Een schermafbeelding wordt opgeslagen waar elke schermafbeelding naartoe gaat. De service doet op geen enkel ander moment iets. Deze leest het scherm niet, kijkt niet wat je typt en bewaart niets. Het toegankelijkheidsscherm van Android waarschuwt voor alles wat een service zoals deze kan doen. Deze drukt alleen op een systeemknop wanneer jij erom vraagt.</string>
+    <string name="common_special_access_system_buttons_title">Toegankelijkheidsservice voor systeemknoppen</string>
     <string name="common_special_access_usage_body">Met gebruikstoegang registreert het toetsenbord welke app op de voorgrond stond toen je iets kopieerde. Het toont die app wanneer je het klembord ingedrukt houdt. Het toetsenbord leest de app op de voorgrond alleen op het moment van kopiëren. Het leest je geschiedenis of je tijd in een app niet. Het toetsenbord bewaart het antwoord alleen op je apparaat bij het klembord. Niets over je app-gebruik verlaat je apparaat. De instelling is optioneel. Deze blijft uitgeschakeld totdat je hem inschakelt.</string>
     <string name="common_special_access_usage_title">Toegang tot gebruik voor klembordbron-apps</string>
     <string name="common_type_setting_value_desc">Typ een waarde voor %1$s</string>

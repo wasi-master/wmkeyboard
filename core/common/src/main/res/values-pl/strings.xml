@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Wstrzymano: oszczędzanie danych blokuje pobieranie przy tym połączeniu. Zostanie wznowione od miejsca zatrzymania.</string>
     <string name="common_error_generic">Coś nie zadziałało. Spróbuj ponownie.</string>
     <string name="common_error_network">Brak połączenia. Sprawdź sieć i spróbuj ponownie.</string>
+    <string name="common_error_network_permission_off">Dostęp do sieci klawiatury WM Keyboard jest wyłączony w ustawieniach telefonu, więc to nie działa. Włącz go w Ustawieniach Androida › Aplikacje › WM Keyboard › Uprawnienia (w systemie GrapheneOS – uprawnienie Sieć), a następnie spróbuj ponownie.</string>
     <string name="common_error_no_internet_permission">Ta wersja klawiatury nie może łączyć się z internetem.</string>
     <string name="common_error_timeout">Żądanie trwało zbyt długo. Spróbuj ponownie.</string>
     <string name="common_export">Eksportuj</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Więcej</string>
     <string name="common_next">Dalej</string>
     <string name="common_none">Brak</string>
+    <string name="common_notify_channel_alarms_body">Alarm, który jest odłożony lub wkrótce zadzwoni, oraz taki, który zadzwonił, a nikogo nie było. Samo dzwonienie ma swój własny kanał.</string>
+    <string name="common_notify_channel_alarms_title">Powiadomienia o alarmach</string>
     <string name="common_notify_channel_backup_body">Tylko gdy automatyczna kopia zapasowa nie powiedzie się. Udane kopie zapasowe są ciche.</string>
     <string name="common_notify_channel_backup_title">Problemy z kopią zapasową</string>
     <string name="common_notify_channel_clock_body">Timery i stoper podczas działania, z przyciskami do wstrzymywania, dodawania minuty lub zatrzymywania.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Sterowanie klawiaturą</string>
     <string name="common_notify_channel_send_body">Przesyłanie lub pobieranie narzędzia Send files zakończyło się, gdy klawiatura była ukryta, wraz z linkiem do skopiowania i plikiem wysłanym przez urządzenie w pobliżu.</string>
     <string name="common_notify_channel_send_title">Wysyłanie i odbieranie plików</string>
+    <string name="common_notify_channel_stopwatch_body">Stoper podczas działania lub wstrzymania, z przyciskami okrążeń, wstrzymywania i resetowania.</string>
+    <string name="common_notify_channel_stopwatch_title">Stoper</string>
     <string name="common_notify_channel_updates_body">Nowa wersja do zainstalowania, aktualizacja czekająca na naciśnięcie przycisku instalacji oraz potwierdzenie po zainstalowaniu.</string>
     <string name="common_notify_channel_updates_title">Aktualizacje aplikacji</string>
     <string name="common_notify_download_done">Gotowe do użycia</string>
     <string name="common_notify_download_failed">Nie udało się pobrać %1$s</string>
     <string name="common_notify_download_handwriting">Pismo odręczne %1$s</string>
     <string name="common_notify_download_progress">%1$s z %2$s</string>
+    <string name="common_notify_download_step_library">Krok 1 z 2, biblioteka silnika: %1$s</string>
+    <string name="common_notify_download_step_model">Krok 2 z 2, model: %1$s</string>
     <string name="common_notify_download_translate">Tłumaczenie offline %1$s</string>
     <string name="common_notify_download_voice">Głos offline %1$s</string>
     <string name="common_off">Wyłączone</string>
+    <string name="common_offline_build_download">To jest wersja offline, więc nie można tego pobrać. Pobierz plik na inne urządzenie i zaimportuj go: Ustawienia › Informacje › Pamięć › Importuj pobrane pliki lub skorzystaj z wiersza Importuj na tym ekranie, jeśli jest dostępny. Możesz też zainstalować standardową wersję z tej samej strony wydania na tę wersję, a pobierze się sama. Twoje ustawienia i nauczone słowa pozostaną.</string>
+    <string name="common_offline_build_library">To jest kompilacja offline, więc nie może pobrać wymaganej biblioteki. Pobierz jej plik na inne urządzenie i zaimportuj go w Ustawienia › Prywatność › Biblioteki funkcji, gdzie wymieniony jest dokładnie ten plik. Lub zainstaluj wersję standardową z tej samej strony wydania na tę wersję, a pobierze się sama. Twoje ustawienia i nauczone słowa pozostaną.</string>
     <string name="common_ok">OK</string>
     <string name="common_on">Włączone</string>
     <string name="common_open_system_settings">Otwórz ustawienia systemowe</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Usługa ułatwień dostępu dla przycisku AI</string>
     <string name="common_special_access_split_screen_body">Niektóre telefony otwierają aplikację na pełnym ekranie, gdy klawiatura żąda widoku podzielonego ekranu. Po włączeniu tej usługi otwarcie aplikacji w widoku podzielonego ekranu z poziomu programu uruchamiającego lub otwarcie pary podzielonego ekranu powoduje najpierw naciśnięcie własnego przełącznika podziału ekranu systemu Android (tego samego, który znajduje się w menu Ostatnie), a następnie aplikacja otwiera się w dostępnej połowie. Przed naciśnięciem usługa sprawdza pozycję okien aplikacji, aby ustalić, czy podzielony ekran jest już aktywny. Nigdy nie odczytuje ich zawartości. Nie wykonuje żadnych innych czynności, nie monitoruje wpisywanego tekstu i niczego nie przechowuje. Ekran dostępności systemu Android ostrzega przed wszystkimi potencjalnymi działaniami tego typu usługi. Ta usługa naciska wspomniany przełącznik wyłącznie na Twoją prośbę.</string>
     <string name="common_special_access_split_screen_title">Usługa ułatwień dostępu dla podzielonego ekranu</string>
+    <string name="common_special_access_system_buttons_body">System Android pozwala innej aplikacji na robienie zrzutów ekranu, powrót, otwieranie ostatnich aplikacji, szuflady aplikacji, panelu powiadomień lub szybkich ustawień wyłącznie za pośrednictwem usługi ułatwień dostępu. Gdy ta usługa jest włączona, narzędzie do zrzutów ekranu i przycisk pływający wciskają te przyciski systemowe w Twoim imieniu – dokładnie te same, z których korzysta nawigacja i panel systemu Android. Zrzut ekranu jest zapisywany tam, gdzie trafiają wszystkie zrzuty ekranu. Usługa nie wykonuje żadnych innych czynności. Nie odczytuje ekranu, nie monitoruje wpisywanego tekstu i niczego nie przechowuje. Ekran ułatwień dostępu systemu Android ostrzega o wszystkim, co taka usługa mogłaby zrobić. Ta usługa naciska przycisk systemowy wyłącznie na Twoją prośbę.</string>
+    <string name="common_special_access_system_buttons_title">Usługa ułatwień dostępu dla przycisków systemowych</string>
     <string name="common_special_access_usage_body">Dzięki dostępowi do użycia klawiatura rejestruje, która aplikacja była na pierwszym planie podczas kopiowania. Pokazuje tę aplikację po naciśnięciu i przytrzymaniu schowka. Klawiatura odczytuje aktywną aplikację tylko w momencie kopiowania. Nie odczytuje historii ani czasu spędzonego w aplikacji. Klawiatura przechowuje odpowiedź wraz ze schowkiem tylko na Twoim urządzeniu. Żadne informacje o użyciu aplikacji nie opuszczają urządzenia. To ustawienie jest opcjonalne. Pozostaje wyłączone, dopóki go nie włączysz.</string>
     <string name="common_special_access_usage_title">Dostęp do użycia dla aplikacji źródłowych schowka</string>
     <string name="common_type_setting_value_desc">Wpisz wartość dla %1$s</string>

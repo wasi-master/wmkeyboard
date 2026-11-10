@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Tækjastika</string>
     <string name="core_icons_group_tools_title">Tól</string>
     <string name="core_icons_pack_imported_label">Innflutt tákn</string>
-    <string name="core_icons_pack_mine_label">Táknin mín</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Forritið hunsaði %1$d skrá. Þessi útgáfa hefur ekkert tákn fyrir hana: %2$s</item>
         <item quantity="other">Forritið hunsaði %1$d skrár. Þessi útgáfa hefur ekkert tákn fyrir þær: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tab-lykill</string>
     <string name="core_icons_slot_toolbox_label">Verkfærakassi</string>
     <string name="core_icons_slot_toolbox_search_label">Leit í verkfærakistu</string>
+    <string name="core_icons_pack_mine_label">Táknin mín</string>
 </resources>

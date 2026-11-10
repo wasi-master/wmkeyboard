@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">工具栏</string>
     <string name="core_icons_group_tools_title">工具</string>
     <string name="core_icons_pack_imported_label">已导入的图标</string>
-    <string name="core_icons_pack_mine_label">我的图标</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">应用忽略了 %1$d 个文件。此版本没有对应的图标：%2$s</item>
         <item quantity="other">应用忽略了 %1$d 个文件。此版本没有对应的图标：%2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tab 键</string>
     <string name="core_icons_slot_toolbox_label">工具箱</string>
     <string name="core_icons_slot_toolbox_search_label">工具箱搜索</string>
+    <string name="core_icons_pack_mine_label">我的图标</string>
 </resources>

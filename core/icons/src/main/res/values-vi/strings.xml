@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Thanh công cụ</string>
     <string name="core_icons_group_tools_title">Công cụ</string>
     <string name="core_icons_pack_imported_label">Biểu tượng đã nhập</string>
-    <string name="core_icons_pack_mine_label">Biểu tượng của tôi</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Ứng dụng đã bỏ qua %1$d tệp. Phiên bản này không có biểu tượng cho nó: %2$s</item>
         <item quantity="other">Ứng dụng đã bỏ qua %1$d tệp. Phiên bản này không có biểu tượng cho chúng: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Phím Tab</string>
     <string name="core_icons_slot_toolbox_label">Hộp công cụ</string>
     <string name="core_icons_slot_toolbox_search_label">Tìm kiếm hộp công cụ</string>
+    <string name="core_icons_pack_mine_label">Biểu tượng của tôi</string>
 </resources>

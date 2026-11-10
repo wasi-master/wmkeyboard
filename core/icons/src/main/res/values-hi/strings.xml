@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">टूलबार</string>
     <string name="core_icons_group_tools_title">टूल्स</string>
     <string name="core_icons_pack_imported_label">आयातित आइकन</string>
-    <string name="core_icons_pack_mine_label">मेरे आइकन</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">ऐप ने %1$d फ़ाइल को अनदेखा कर दिया। इस संस्करण में इसके लिए कोई आइकन नहीं है: %2$s</item>
         <item quantity="other">ऐप ने %1$d फ़ाइलों को अनदेखा कर दिया। इस संस्करण में उनके लिए कोई आइकन नहीं है: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">टैब की (Tab key)</string>
     <string name="core_icons_slot_toolbox_label">टूलबॉक्स</string>
     <string name="core_icons_slot_toolbox_search_label">टूलबॉक्स खोज</string>
+    <string name="core_icons_pack_mine_label">मेरे आइकन</string>
 </resources>

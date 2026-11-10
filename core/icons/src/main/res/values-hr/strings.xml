@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Alatna traka</string>
     <string name="core_icons_group_tools_title">Alati</string>
     <string name="core_icons_pack_imported_label">Uvezene ikone</string>
-    <string name="core_icons_pack_mine_label">Moje ikone</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Aplikacija je zanemarila %1$d datoteku. Ova verzija nema ikonu za nju: %2$s</item>
         <item quantity="other">Aplikacija je zanemarila %1$d datoteka. Ova verzija nema ikonu za njih: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tipka Tab</string>
     <string name="core_icons_slot_toolbox_label">Alatna traka</string>
     <string name="core_icons_slot_toolbox_search_label">Pretraživanje alata</string>
+    <string name="core_icons_pack_mine_label">Moje ikone</string>
 </resources>

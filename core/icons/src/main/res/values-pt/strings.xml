@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Barra de ferramentas</string>
     <string name="core_icons_group_tools_title">Ferramentas</string>
     <string name="core_icons_pack_imported_label">Ícones importados</string>
-    <string name="core_icons_pack_mine_label">Meus ícones</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">O aplicativo ignorou %1$d arquivo. Esta versão não possui um ícone para ele: %2$s</item>
         <item quantity="other">O aplicativo ignorou %1$d arquivos. Esta versão não possui um ícone para eles: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tecla Tab</string>
     <string name="core_icons_slot_toolbox_label">Caixa de ferramentas</string>
     <string name="core_icons_slot_toolbox_search_label">Pesquisa na caixa de ferramentas</string>
+    <string name="core_icons_pack_mine_label">Meus ícones</string>
 </resources>

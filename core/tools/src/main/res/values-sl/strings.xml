@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Ozadja</string>
     <string name="core_tools_provider_acrcloud_desc">Storitev za prepoznavanje glasbe z dvotedenskim preizkusom, nato plačljivi paketi. Potrebuje gostitelja, dostopni ključ in dostopno skrivnost projekta s console.acrcloud.com. Vsak posnetek se pošlje v ACRCloud.</string>
     <string name="core_tools_provider_ai_horde_desc">Brezplačni Stable Diffusion na računalnikih prostovoljcev. Deluje brez ključa, vendar čaka v čakalni vrsti; brezplačen ključ s spletnega mesta aihorde.net vas premakne naprej.</string>
+    <string name="core_tools_provider_allratestoday_desc">Referenčne tečaje Evropske centralne banke za približno 30 valut. Brez ključa.</string>
     <string name="core_tools_provider_anthropic_desc">Modeli Claude prek API-ja Anthropic z vašim lastnim ključem.</string>
     <string name="core_tools_provider_asr4all_desc">Narekovanje v angleščini na telefonu, z besedami, ki se pojavijo med govorjenjem.</string>
     <string name="core_tools_provider_audd_desc">Prepozna večino izdane glasbe po nekaj sekundah zvoka. Zahteva žeton z dashboard.audd.io; nekaj sto prepoznav je brezplačnih, nato je plačljivo. Vsak posnetek se pošlje na AudD.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Velik model, ki deluje v telefonu in razume 25 evropskih jezikov.</string>
     <string name="core_tools_provider_pexels_desc">Fotografije s Pexels. Potrebuje ključ API, razen če ga ta različica že ima.</string>
     <string name="core_tools_provider_pollinations_desc">Brezplačno, brez ključa in brez računa: poziv je poslan v Pollinations, ki izbere model. Ključ z enter.pollinations.ai odklene novejši API in vam omogoči poimenovanje modela.</string>
+    <string name="core_tools_provider_privatemode">Zasebni način umetne inteligence</string>
+    <string name="core_tools_provider_privatemode_desc">Umetna inteligenca, ki se izvaja v zaupnem izračunavanju in ne more prebrati vašega besedila. Vnesite svoj API ključ za Privatemode. Tipkovnica nato šifrira vsako zahtevo v telefonu, vendar ne preveri strojnega potrdila storitve. Če želite preveriti tudi to, zaženite privatemode-proxy in navedite njegov naslov, na primer http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (neuradno, prek RapidAPI)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Shazamov katalog prek neuradnega seznama na RapidAPI s ključem RapidAPI. Ni Applova storitev: seznam se lahko spremeni ali preneha delovati brez predhodnega obvestila. Vsak posnetek se pošlje na RapidAPI.</string>
     <string name="core_tools_provider_recraft_desc">Ilustracije, ikone in vektorska umetnost. Potrebuje ključ od recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Fotografije iz Unsplash. Potrebuje ključ API, razen če ga ta različica že ima.</string>
     <string name="core_tools_provider_vision_ocr">Vaš vizualni model</string>
     <string name="core_tools_provider_vision_ocr_desc">Model, ki bere slike prek strežnika, ki odgovarja na zahteve OpenAI klepeta. Potrebuje naslov in ime modela.</string>
+    <string name="core_tools_provider_vosk_desc">Majhni modeli Kaldi podjetja Alpha Cephei za 29 jezikov, vsak velik približno 40 MB, ki tipkajo med govorom v telefon. Dovolj lahki za starejši telefon.</string>
     <string name="core_tools_provider_whisper_desc">OpenAI modeli Whisper, ki se izvajajo na telefonu. Veliko jezikov; prenesite model na strani Glasovno tipkanje.</string>
     <string name="core_tools_provider_whistle_desc">Majhen, hiter model, ki deluje v telefonu. Prenesite ga na strani za glasovno tipkanje.</string>
     <string name="core_tools_provider_xai_desc">Modeli Grok prek vmesnika xAI API z vašim lastnim ključem.</string>

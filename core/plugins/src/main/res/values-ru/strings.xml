@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">У этого плагина больше нет такого действия.</string>
     <string name="core_plugins_error_no_render">У этого плагина нет функции render().</string>
+    <string name="core_plugins_error_no_transform">Этот плагин не имеет функции transform().</string>
     <string name="core_plugins_error_not_installed">Этот плагин не установлен.</string>
+    <string name="core_plugins_error_not_ready">Плагины все еще загружаются. Попробуйте снова через минуту.</string>
     <string name="core_plugins_error_script_failed">Скрипт не выполнен.</string>
     <string name="core_plugins_error_script_missing">Скрипт для этого плагина отсутствует.</string>
     <string name="core_plugins_error_turned_off">Этот плагин выключен.</string>
     <string name="core_plugins_permission_reminders_label">Показывать напоминания в установленное вами время</string>
+    <string name="core_plugins_permission_selection_label">Изменять выбранный текст при нажатии на одно из действий</string>
     <string name="core_plugins_permission_storage_label">Сохранять данные на вашем устройстве</string>
+    <string name="core_plugins_reject_action_input">«%1$s» содержит действие, которое запрашивает текст, который эта версия WM Keyboard предоставить не может.</string>
+    <string name="core_plugins_reject_action_no_name">«%1$s» содержит действие без названия.</string>
+    <string name="core_plugins_reject_actions_need_selection">«%1$s» добавляет действия для выделенного текста, но не запрашивает разрешение на его изменение.</string>
+    <string name="core_plugins_reject_bad_action_id">«%1$s» содержит действие, чей идентификатор отсутствует, повторяется или недействителен. Идентификатор действия состоит не более чем из 32 строчных букв, цифр, дефисов и знаков подчеркивания.</string>
     <string name="core_plugins_reject_bad_encoding">«%1$s» содержит скрипт, который не является допустимым текстом UTF-8.</string>
     <string name="core_plugins_reject_bad_id">У этого плагина неверный идентификатор. Идентификатор должен содержать от 3 до 64 символов. Он может состоять из строчных букв, цифр, точек, дефисов и символов подчеркивания.</string>
     <string name="core_plugins_reject_empty_script">Скрипт «%1$s» пуст.</string>
+    <string name="core_plugins_reject_lua">«%1$s» написан на Lua, который WM Keyboard больше не запускает. Ищите его версию на Python.</string>
     <string name="core_plugins_reject_missing_script">«%1$s» не имеет файла скрипта (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Для этого плагина требуется более новая версия WM Keyboard.</string>
     <string name="core_plugins_reject_no_name">У этого плагина нет названия.</string>
     <string name="core_plugins_reject_no_version">«%1$s» не указывает, какая это версия.</string>
+    <string name="core_plugins_reject_nothing_to_show">У «%1$s» нет панели и действий, поэтому выполнять нечего.</string>
     <string name="core_plugins_reject_script_too_large">Скрипт «%1$s» превышает %2$d КБ.</string>
+    <string name="core_plugins_reject_selection_without_actions">«%1$s» запрашивает изменение выделенного текста, но не добавляет никаких действий.</string>
+    <string name="core_plugins_reject_too_many_actions">«%1$s» добавляет более 16 действий.</string>
+    <string name="core_plugins_reject_unknown_language">«%1$s» написан на языке, который эта версия WM Keyboard не поддерживает. Плагины пишутся на Python.</string>
     <string name="core_plugins_reject_unknown_permission">Эта версия WM Keyboard не знает разрешения «%1$s». Приложение не может сказать вам, что разрешено делать «%2$s».</string>
     <string name="core_plugins_reminders_channel_body">Напоминания, которые плагин запрашивает у приложения, в установленное вами время. Заголовок каждого напоминания — это название плагина.</string>
     <string name="core_plugins_reminders_channel_title">Напоминания плагинов</string>
     <string name="core_plugins_stopped_cancelled">Приложение остановило этот плагин.</string>
     <string name="core_plugins_stopped_deadline">Этот плагин выполнялся слишком долго. Приложение остановило его.</string>
     <string name="core_plugins_stopped_instructions">Этот плагин выполнял слишком много работы одновременно. Приложение остановило его.</string>
+    <string name="core_plugins_stopped_memory">Этот плагин пытался сохранить слишком много данных. Приложение остановило его работу.</string>
     <string name="core_plugins_stopped_not_responding">Этот плагин перестал отвечать. Приложение закрыло его.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Этот плагин снова перестал отвечать. Приложение отключило его.</string>
     <string name="core_plugins_stopped_recursion">Этот плагин вызывал сам себя слишком много раз. Приложение остановило его.</string>

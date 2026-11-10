@@ -37,6 +37,7 @@
     <string name="common_error_download_held">Imisiwe: ukulondolozwa kwedatha kubamba ukulandwa kulokhu kuxhumana. Kuyaqhubeka lapho kume khona.</string>
     <string name="common_error_generic">Kukhona okungahambanga kahle. Zama futhi.</string>
     <string name="common_error_network">Akukho ukuxhumana. Hlola inethiwekhi yakho bese uzama futhi.</string>
+    <string name="common_error_network_permission_off">Ukufinyelela kwenethiwekhi kwe-WM Keyboard kuvalwe kuzilungiselelo zefoni yakho, ngakho lokhu akusebenzi. Kuyivule ku-Android Settings › Apps › WM Keyboard › Permissions (ku-GrapheneOS, imvume Yenethiwekhi), bese uzama futhi.</string>
     <string name="common_error_no_internet_permission">Lokhu kwakhiwa kwekhibhodi akukwazi ukuxhuma ku-inthanethi.</string>
     <string name="common_error_timeout">Isicelo sithathe isikhathi eside kakhulu. Zama futhi.</string>
     <string name="common_export">Thumela ngaphandle</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Okuningi</string>
     <string name="common_next">Okulandelayo</string>
     <string name="common_none">Akukho</string>
+    <string name="common_notify_channel_alarms_body">I-alamu ehlehlisiwe noma esezokhala, nenye eyakhala kungekho muntu lapho. Ukukhala uqobo kunesiteshi sakho.</string>
+    <string name="common_notify_channel_alarms_title">Izaziso ze-alamu</string>
     <string name="common_notify_channel_backup_body">Kuphela uma isipele esizenzakalelayo sehluleka. Izipele eziphumelelayo zithule.</string>
     <string name="common_notify_channel_backup_title">Izinkinga zokwenza isipele</string>
     <string name="common_notify_channel_clock_body">Izikhathi nesitophuwashi ngenkathi zisebenza, nezinkinobho zokumisa isikhashana, ukwengeza umzuzu noma ukuzimisa.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Izilawuli zekhibhodi</string>
     <string name="common_notify_channel_send_body">Ukulayisha noma ukulanda kuthuluzi lokuthumela amafayela kuqede ngenkathi ikhibhodi ifihliwe, ngesixhumanisi sokukopisha, nefayela elithunyelwe yidivayisi eseduze.</string>
     <string name="common_notify_channel_send_title">Ukuthumela nokwamukela amafayela</string>
+    <string name="common_notify_channel_stopwatch_body">Isitophuwashi ngenkathi sisebenza noma simisiwe, enezinkinobho zamalophu, ukumisa isikhashana kanye nokusetha kabusha.</string>
+    <string name="common_notify_channel_stopwatch_title">Isitophuwashi</string>
     <string name="common_notify_channel_updates_body">Inguqulo entsha ongayifaka, isibuyekezo esilinde ukuthi ucindezele ukufaka, kanye nesiqinisekiso uma esisodwa sesifakiwe.</string>
     <string name="common_notify_channel_updates_title">Izibuyekezo zohlelo lokusebenza</string>
     <string name="common_notify_download_done">Ilungele ukusetshenziswa</string>
     <string name="common_notify_download_failed">%1$s ayikwazanga ukulandwa</string>
     <string name="common_notify_download_handwriting">Ukubhala ngesandla %1$s</string>
     <string name="common_notify_download_progress">%1$s kwe-%2$s</string>
+    <string name="common_notify_download_step_library">Isinyathelo sesi-1 kwezi-2, umtapo wolwazi wenjini: %1$s</string>
+    <string name="common_notify_download_step_model">Isinyathelo sesi-2 kwezi-2, imodeli: %1$s</string>
     <string name="common_notify_download_translate">Ukuhumusha okungaxhunyiwe ku-inthanethi okungu-%1$s</string>
     <string name="common_notify_download_voice">%1$s izwi elingaxhunyiwe ku-inthanethi</string>
     <string name="common_off">Valiwe</string>
+    <string name="common_offline_build_download">Lolu wukwakhiwa okungaxhunyiwe ku-inthanethi, ngakho alikwazi ukulanda lokhu. Thola ifayela kwenye idivayisi bese uliyisa ngaphakathi: Izilungiselelo › Mayelana › Isitoreji › Ngenisa amafayela alandiwe liyawamukela, noma umugqa wokungenisa walesi sikrini onakho. Noma faka ukwakhiwa okujwayelekile kusuka ekhasini lokukhishwa elifanayo phezu kwaleli, futhi lizilande liyedwa. Izilungiselelo zakho namagama afundiwe ahlala.</string>
+    <string name="common_offline_build_library">Lolu wukwakhiwa okungaxhunyiwe ku-inthanethi, ngakho ngeke lulande umtapo wolwazi lokudingayo. Thola ifayela layo kwenye idivayisi bese ulinyika ku-Izilungiselelo › Ubumfihlo › Imitapo yolwazi yezici, ebhalela ifayela eliqondile. Noma faka ukwakhiwa okujwayelekile kusuka ekhasini lokukhishwa elifanayo phezu kwaleli, futhi lizilande liyedwa. Izilungiselelo zakho namagama afundiwe ahlala.</string>
     <string name="common_ok">Kulungile</string>
     <string name="common_on">Ivuliwe</string>
     <string name="common_open_system_settings">Vula izilungiselelo zesistimu</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Insizakalo yokufinyeleleka yenkinobho ye-AI</string>
     <string name="common_special_access_split_screen_body">Amanye amafoni avula uhlelo lokusebenza ngokugcwele lapho ikhibhodi icela isikrini esihlukanisiwe. Ngaleli sevisi livuliwe, ukuvula uhlelo lokusebenza esikrinini esihlukanisiwe kusuka kusiqalisi sohlelo lokusebenza, noma ukuvula isikrini esihlukanisiwe, kucindezela ukhiye wesikrini esihlukanisiwe se-Android kuqala, ofanayo nowemenyu yezinto zakamuva, bese uhlelo lokusebenza luvuleka engxenyeni yamahhala. Ngaphambi kokuyicindezela, isevisi ihlola lapho amawindi ohlelo lokusebenza akhona, ukubona ukuthi isikrini esihlukanisiwe sesivele sikhona yini. Ayifundi lutho olukuzo. Ayenzi lutho nganoma yisiphi esinye isikhathi, ayibuki lokho okuthayiphayo futhi ayigcini lutho. Isikrini sokufinyeleleka se-Android siyaxwayisa ngakho konke okungenziwa yisevisi enjena. Le iyakucindezela kuphela lokhu lapho ucela isikrini esihlukanisiwe.</string>
     <string name="common_special_access_split_screen_title">Insizakalo yokufinyeleleka yesikrini esihlukanisiwe</string>
+    <string name="common_special_access_system_buttons_body">I-Android ivumela enye uhlelo lokusebenza ukuba luthathe isithombe sesikrini, luyele emuva, noma luvule izinhlelo zokusebenza zakamuva, umdwebo wezinhlelo zokusebenza, umthunzi wesaziso noma izilungiselelo ezisheshayo kuphela ngensiza yokufinyeleleka. Nalolu sevisi lusebenza, Ithuluzi lesithombe sesikrini kanye nenkinobho entantayo icindezela lezo zinkinobho zesistimu kuwe, ezifanayo ukuzulazula kwe-Android nomthunzi onakho. Isithombe sesikrini silondolozwa lapho yonke isithombe sesikrini siya khona. Isevisi ayenzi lutho ngesinye isikhathi. Ayifundi isikrini, ayibuki okuthayiphayo futhi ayigcini lutho. Isikrini sokufinyeleleka se-Android siyaxwayisa ngakho konke isevisi enje engakwenza. Lena icindezela kuphela inkinobho yesistimu uma uyicela ukuba yenze njalo.</string>
+    <string name="common_special_access_system_buttons_title">Isevisi yokufinyelela yezinkinobho zesistimu</string>
     <string name="common_special_access_usage_body">Ngokufinyelela kokusetshenziswa, ikhibhodi irekhoda ukuthi yiluphi uhlelo lokusebenza olwalungaphambili lapho ukopisha okuthile. Ibonisa lolo hlelo lokusebenza uma ucindezela ubambe isiqeshana. Ikhibhodi ifunda uhlelo lokusebenza olungaphambili kuphela ngesikhathi sokukopisha. Ayifundi umlando wakho noma isikhathi sakho kuhlelo lokusebenza. Ikhibhodi igcina impendulo nesiqeshana, kudivayisi yakho kuphela. Akukho okumayelana nokusetshenziswa kohlelo lwakho lokusebenza okuphuma kudivayisi yakho. Lesi silungiselelo singokuzikhethela. Sihlala sivaliwe uze usivule.</string>
     <string name="common_special_access_usage_title">Ukufinyelela kokusetshenziswa kwezinhlelo zokusebenza zomthombo webhodi lokunamathisela</string>
     <string name="common_type_setting_value_desc">Thayipha inani le-%1$s</string>

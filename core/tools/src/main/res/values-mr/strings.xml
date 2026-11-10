@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">वॉलपेपर</string>
     <string name="core_tools_provider_acrcloud_desc">दोन आठवड्यांच्या चाचणीसह संगीत ओळख सेवा, त्यानंतर सशुल्क योजना. console.acrcloud.com वरून प्रकल्पाचा होस्ट, ॲक्सेस की आणि ॲक्सेस सिक्रेट आवश्यक आहे. प्रत्येक क्लिप ACRCloud ला पाठवली जाते.</string>
     <string name="core_tools_provider_ai_horde_desc">स्वयंसेवकांच्या संगणकावर मोफत स्टेबल डिफ्यूजन. की शिवाय काम करते पण रांगेत थांबावे लागते; aihorde.net कडून मोफत की घेतल्यास तुम्ही रांगेत पुढे जाता.</string>
+    <string name="core_tools_provider_allratestoday_desc">अंदाजे ३० चलनांसाठी युरोपियन सेंट्रल बँक संदर्भ दर. कोणतीही की नाही.</string>
     <string name="core_tools_provider_anthropic_desc">तुमच्या स्वतःच्या की सह, ॲन्थ्रोपिकच्या API द्वारे क्लॉड मॉडेल्स.</string>
     <string name="core_tools_provider_asr4all_desc">फोनवर इंग्रजी डिक्टेशन, तुम्ही बोलता तसे शब्द दिसतात.</string>
     <string name="core_tools_provider_audd_desc">ध्वनीच्या काही सेकंदांवरून बहुतेक रिलीज केलेले संगीत ओळखते. dashboard.audd.io कडून टोकनची आवश्यकता आहे; काही शंभर ओळख विनामूल्य आहेत, त्यानंतर शुल्क लागते. प्रत्येक क्लिप AudD कडे पाठवली जाते.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">फोनवर चालणारे आणि २५ युरोपियन भाषा समजणारे एक मोठे मॉडेल.</string>
     <string name="core_tools_provider_pexels_desc">Pexels कडून फोटो. एपीआय की आवश्यक आहे, जोपर्यंत या बिल्डमध्ये ती नसेल.</string>
     <string name="core_tools_provider_pollinations_desc">मोफत, कोणत्याही की किंवा खात्याशिवाय: प्रॉम्प्ट Pollinations ला पाठवला जातो, जे मॉडेल निवडते. enter.pollinations.ai कडील की नवीन API उघडते आणि तुम्हाला मॉडेलचे नाव देण्याची परवानगी देते.</string>
+    <string name="core_tools_provider_privatemode">प्रायव्हेटमोड एआय</string>
+    <string name="core_tools_provider_privatemode_desc">गोपनीय संगणकीय प्रणालीमध्ये चालणारी AI आणि तुमचा मजकूर वाचू शकत नाही. तुमची Privatemode API की द्या. त्यानंतर कीबोर्ड फोनवर प्रत्येक विनंती कूटबद्ध करतो, परंतु तो सेवेच्या हार्डवेअर अटेस्टेशनची तपासणी करत नाही. ते तपासण्यासाठी देखील, privatemode-proxy चालवा आणि त्याचा पत्ता द्या, जसे की http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (अनधिकृत, RapidAPI द्वारे)</string>
     <string name="core_tools_provider_rapid_shazam_desc">RapidAPI वरील अनधिकृत लिस्टिंगद्वारे Shazam चे कॅटलॉग, RapidAPI की सह. ही ॲपलची सेवा नाही: लिस्टिंग सूचनेशिवाय बदलू शकते किंवा बंद होऊ शकते. प्रत्येक क्लिप RapidAPI ला पाठवली जाते.</string>
     <string name="core_tools_provider_recraft_desc">चित्रे, आयकॉन्स आणि वेक्टर-स्टाईल आर्ट. recraft.ai कडून की (key) आवश्यक आहे.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Unsplash कडून फोटो. API की आवश्यक आहे, जोपर्यंत या बिल्डमध्ये ती आधीच नसेल.</string>
     <string name="core_tools_provider_vision_ocr">तुमचे व्हिजन मॉडेल</string>
     <string name="core_tools_provider_vision_ocr_desc">एक मॉडेल जे प्रतिमा वाचते, अशा सर्व्हरद्वारे जे OpenAI चॅट विनंत्यांना उत्तर देते. पत्ता आणि मॉडेलचे नाव आवश्यक आहे.</string>
+    <string name="core_tools_provider_vosk_desc">अल्फा सेफेईचे २९ भाषांसाठी लहान काल्डी मॉडेल्स, प्रत्येकी सुमारे ४० MB, जे फोनवर बोलताना टाईप करतात. जुन्या फोनसाठी देखील हलके.</string>
     <string name="core_tools_provider_whisper_desc">OpenAI चे व्हिस्पर मॉडेल्स, फोनवर चालतात. अनेक भाषा; व्हॉइस टायपिंग पृष्ठावर एक मॉडेल डाउनलोड करा.</string>
     <string name="core_tools_provider_whistle_desc">फोनवर चालणारे एक लहान, वेगवान मॉडेल. ते व्हॉइस टायपिंग पृष्ठावर डाउनलोड करा.</string>
     <string name="core_tools_provider_xai_desc">तुमच्या स्वतःच्या की सह, xAI च्या API द्वारे Grok मॉडेल्स.</string>

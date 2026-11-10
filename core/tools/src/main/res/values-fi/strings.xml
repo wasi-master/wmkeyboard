@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">Taustakuvat</string>
     <string name="core_tools_provider_acrcloud_desc">Musiikintunnistuspalvelu, jossa on kahden viikon kokeilujakso, jonka jälkeen maksulliset tilaukset. Vaatii projektin isäntänimen, pääsyavaimen ja pääsysalaisuuden osoitteesta console.acrcloud.com. Jokainen leike lähetetään ACRCloudille.</string>
     <string name="core_tools_provider_ai_horde_desc">Ilmainen Stable Diffusion vapaaehtoisten tietokoneilla. Toimii ilman avainta, mutta jonottaa; ilmainen avain osoitteesta aihorde.net siirtää sinua jonossa eteenpäin.</string>
+    <string name="core_tools_provider_allratestoday_desc">Euroopan keskuspankin viitekorssit noin 30 valuutalle. Ei avainta.</string>
     <string name="core_tools_provider_anthropic_desc">Claude-mallit Anthropicin API:n kautta omalla avaimellasi.</string>
     <string name="core_tools_provider_asr4all_desc">Englanninkielinen sanelu puhelimella, sanat ilmestyvät puhuessasi.</string>
     <string name="core_tools_provider_audd_desc">Tunnistaa useimmat julkaistut kappaleet muutaman sekunnin ääninäytteestä. Vaatii tunnisteen osoitteesta dashboard.audd.io; muutama sata tunnistusta on ilmaisia, sen jälkeen se on maksullista. Jokainen leike lähetetään AudD:lle.</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">Suuri malli, joka toimii puhelimessa ja ymmärtää 25 eurooppalaista kieltä.</string>
     <string name="core_tools_provider_pexels_desc">Kuvia Pexelsistä. Vaatii API-avaimen, ellei tässä versiossa ole sellaista.</string>
     <string name="core_tools_provider_pollinations_desc">Ilmainen, ilman avainta ja tiliä: kehotteet lähetetään Pollinationsille, joka valitsee mallin. Avain osoitteesta enter.pollinations.ai avaa uudemman API:n ja mahdollistaa mallin nimeämisen.</string>
+    <string name="core_tools_provider_privatemode">Yksityistilan tekoäly</string>
+    <string name="core_tools_provider_privatemode_desc">Tekoäly, joka toimii luottamuksellisessa laskennassa eikä voi lukea tekstiäsi. Anna Privatemode-sovellusliittymän avain. Näppäimistö salaa sitten jokaisen pyynnön puhelimessa, mutta se ei tarkista palvelimen laitteistovarmennetta. Jos haluat myös sen tarkistettavan, suorita privatemode-proxy ja anna sen osoite, kuten http://192.168.1.20:8080.</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (epävirallinen, RapidAPI:n kautta)</string>
     <string name="core_tools_provider_rapid_shazam_desc">Shazamin luettelo epävirallisen listauksen kautta RapidAPI:ssa, RapidAPI-avaimella. Tämä ei ole Applen palvelu: listaus voi muuttua tai lakata toimimasta ilman ennakkoilmoitusta. Jokainen leike lähetetään RapidAPI:lle.</string>
     <string name="core_tools_provider_recraft_desc">Kuvitukset, kuvakkeet ja vektorityylinen taide. Vaatii avaimen osoitteesta recraft.ai.</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Kuvia Unsplashista. Vaatii API-avaimen, ellei tässä koontiversiossa ole sellaista.</string>
     <string name="core_tools_provider_vision_ocr">Visio-mallisi</string>
     <string name="core_tools_provider_vision_ocr_desc">Malli, joka lukee kuvia OpenAI-chat-pyyntöihin vastaavan palvelimen kautta. Vaatii osoitteen ja mallin nimen.</string>
+    <string name="core_tools_provider_vosk_desc">Pienet Alpha Cephein Kaldi-mallit 29 kielelle, kooltaan noin 40 Mt kukin, kirjoittavat sitä mukaa kun puhut puhelimeen. Riittävän kevyt vanhemmallekin puhelimelle.</string>
     <string name="core_tools_provider_whisper_desc">OpenAI:n Whisper-mallit, jotka toimivat puhelimessa. Useita kieliä; lataa malli Puhekirjoitus-sivulta.</string>
     <string name="core_tools_provider_whistle_desc">Pieni ja nopea malli, joka toimii puhelimessa. Lataa se Puhekirjoitus-sivulta.</string>
     <string name="core_tools_provider_xai_desc">Grok-mallit xAI:n API:n kautta omalla avaimellasi.</string>

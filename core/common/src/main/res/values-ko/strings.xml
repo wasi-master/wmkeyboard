@@ -37,6 +37,7 @@
     <string name="common_error_download_held">일시 중지됨: 데이터 절약 모드로 인해 이 연결에서의 다운로드가 보류되었습니다. 중단된 지점부터 계속됩니다.</string>
     <string name="common_error_generic">문제가 발생했습니다. 다시 시도하세요.</string>
     <string name="common_error_network">연결되지 않았습니다. 네트워크를 확인하고 다시 시도하세요.</string>
+    <string name="common_error_network_permission_off">휴대폰 설정에서 WM 키보드의 네트워크 액세스가 꺼져 있어 이 기능이 작동하지 않습니다. 안드로이드 설정 › 앱 › WM 키보드 › 권한(GrapheneOS의 경우 네트워크 권한)에서 켠 후 다시 시도하세요.</string>
     <string name="common_error_no_internet_permission">이 키보드 빌드는 인터넷에 연결할 수 없습니다.</string>
     <string name="common_error_timeout">요청 시간이 초과되었습니다. 다시 시도하세요.</string>
     <string name="common_export">내보내기</string>
@@ -48,6 +49,8 @@
     <string name="common_more">더 보기</string>
     <string name="common_next">다음</string>
     <string name="common_none">없음</string>
+    <string name="common_notify_channel_alarms_body">다시 알림 설정되었거나 울리기 직전인 알람, 그리고 아무도 받지 않아 울렸던 알람입니다. 벨소리 자체에는 별도의 채널이 있습니다.</string>
+    <string name="common_notify_channel_alarms_title">알람 알림</string>
     <string name="common_notify_channel_backup_body">자동 백업이 실패할 때만 알립니다. 성공적인 백업은 조용히 처리됩니다.</string>
     <string name="common_notify_channel_backup_title">백업 문제</string>
     <string name="common_notify_channel_clock_body">타이머와 스톱워치가 실행 중일 때 일시 중지, 1분 추가 또는 중지 버튼을 제공합니다.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">키보드 제어</string>
     <string name="common_notify_channel_send_body">키보드가 숨겨진 상태에서 파일 전송 도구의 업로드 또는 다운로드가 완료되었으며, 복사할 링크와 근처 기기에서 보낸 파일이 있습니다.</string>
     <string name="common_notify_channel_send_title">파일 보내기 및 받기</string>
+    <string name="common_notify_channel_stopwatch_body">랩, 일시 정지 및 초기화 버튼이 포함된, 실행 중이거나 일시 정지된 스톱워치입니다.</string>
+    <string name="common_notify_channel_stopwatch_title">스톱워치</string>
     <string name="common_notify_channel_updates_body">설치할 새 버전, 설치를 기다리는 업데이트, 설치 완료 시 확인 알림을 제공합니다.</string>
     <string name="common_notify_channel_updates_title">앱 업데이트</string>
     <string name="common_notify_download_done">사용 준비 완료</string>
     <string name="common_notify_download_failed">%1$s을(를) 다운로드할 수 없습니다</string>
     <string name="common_notify_download_handwriting">%1$s 필기 인식</string>
     <string name="common_notify_download_progress">%2$s 중 %1$s</string>
+    <string name="common_notify_download_step_library">2단계 중 1단계, 엔진 라이브러리: %1$s</string>
+    <string name="common_notify_download_step_model">2단계 중 2단계, 모델: %1$s</string>
     <string name="common_notify_download_translate">%1$s 오프라인 번역</string>
     <string name="common_notify_download_voice">%1$s 오프라인 음성</string>
     <string name="common_off">끄기</string>
+    <string name="common_offline_build_download">오프라인 빌드이므로 다운로드할 수 없습니다. 다른 기기에서 파일을 가져오거나 설정 › 정보 › 저장용량 › 다운로드한 파일 가져오기 기능 또는 이 화면의 가져오기 행을 사용하세요. 또는 동일한 릴리스 페이지의 표준 빌드를 이 빌드 위에 설치하면 자동으로 다운로드됩니다. 설정과 학습된 단어는 유지됩니다.</string>
+    <string name="common_offline_build_library">오프라인 빌드이므로 필요한 라이브러리를 다운로드할 수 없습니다. 다른 기기에서 파일 가져오기 설정 › 개인정보 보호 › 정확한 파일이 나열된 기능 라이브러리에서 파일을 가져오거나, 동일한 릴리스 페이지에서 표준 빌드를 이 빌드 위에 덮어쓰기하여 설치하면 자동으로 다운로드됩니다. 설정과 학습한 단어는 유지됩니다.</string>
     <string name="common_ok">확인</string>
     <string name="common_on">켜짐</string>
     <string name="common_open_system_settings">시스템 설정 열기</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">AI 버튼용 접근성 서비스</string>
     <string name="common_special_access_split_screen_body">일부 전화기는 키보드에서 분할 화면을 요청할 때 앱을 전체 화면으로 엽니다. 이 서비스가 켜져 있으면 앱 런처에서 분할 화면으로 앱을 열거나 분할 화면 쌍을 열 때, 최근 메뉴에 있는 것과 동일한 Android 자체 분할 화면 전환 스위치를 먼저 누른 다음 앱이 남은 절반 영역에서 열립니다. 이 스위치를 누르기 전에 서비스는 앱 창의 위치를 확인하여 분할 화면이 이미 활성화되어 있는지 확인합니다. 창 내부의 내용은 절대 읽지 않습니다. 다른 시간에는 아무 작업도 하지 않으며, 입력하는 내용을 주시하지도 않고 아무것도 보관하지 않습니다. Android의 접근성 화면에서는 이와 같은 서비스가 수행할 수 있는 모든 작업에 대해 경고합니다. 이 서비스는 분할 화면을 요청할 때 해당 스위치만 누릅니다.</string>
     <string name="common_special_access_split_screen_title">분할 화면 접근성 서비스</string>
+    <string name="common_special_access_system_buttons_body">Android는 접근성 서비스를 통해서만 다른 앱이 스크린샷 촬영, 뒤로 가기, 최근 앱, 앱 서랍, 알림창 또는 빠른 설정 열기를 수행하도록 허용합니다. 이 서비스가 켜져 있으면 스크린샷 도구와 플로팅 버튼이 Android 자체 탐색 및 알림창과 동일하게 이러한 시스템 버튼을 대신 눌러줍니다. 스크린샷은 일반적인 스크린샷 저장 위치에 저장됩니다. 서비스는 그 외의 다른 작업은 전혀 수행하지 않습니다. 화면을 읽지 않으며, 입력하는 내용을 확인하지 않고 아무것도 보관하지 않습니다. Android의 접근성 화면에서는 이와 같은 서비스가 수행할 수 있는 모든 작업에 대해 경고합니다. 이 서비스는 사용자가 요청할 때만 시스템 버튼을 누릅니다.</string>
+    <string name="common_special_access_system_buttons_title">시스템 버튼용 접근성 서비스</string>
     <string name="common_special_access_usage_body">사용 권한을 허용하면 키보드가 복사 시점에 어떤 앱이 활성화되어 있었는지 기록합니다. 클립을 길게 누르면 해당 앱이 표시됩니다. 키보드는 복사하는 순간에만 전면 앱을 읽습니다. 기록이나 앱 사용 시간은 읽지 않습니다. 키보드는 해당 답변을 클립과 함께 기기에만 보관합니다. 앱 사용에 관한 정보는 기기 밖으로 나가지 않습니다. 이 설정은 선택 사항이며 직접 켜기 전까지는 꺼져 있습니다.</string>
     <string name="common_special_access_usage_title">클립보드 소스 앱에 대한 사용 권한</string>
     <string name="common_type_setting_value_desc">%1$s에 대한 값을 입력하세요</string>

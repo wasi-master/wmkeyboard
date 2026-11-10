@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Verktygsfält</string>
     <string name="core_icons_group_tools_title">Verktyg</string>
     <string name="core_icons_pack_imported_label">Importerade ikoner</string>
-    <string name="core_icons_pack_mine_label">Mina ikoner</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Appen ignorerade %1$d fil. Denna version har ingen ikon för den: %2$s</item>
         <item quantity="other">Appen ignorerade %1$d filer. Denna version har ingen ikon för dem: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Tabb-tangent</string>
     <string name="core_icons_slot_toolbox_label">Verktygslåda</string>
     <string name="core_icons_slot_toolbox_search_label">Verktygslådesökning</string>
+    <string name="core_icons_pack_mine_label">Mina ikoner</string>
 </resources>

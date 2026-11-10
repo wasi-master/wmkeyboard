@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">해당 플러그인에 더 이상 그 작업이 존재하지 않습니다.</string>
     <string name="core_plugins_error_no_render">이 플러그인에는 render() 함수가 없습니다.</string>
+    <string name="core_plugins_error_no_transform">이 플러그인에는 transform() 함수가 없습니다.</string>
     <string name="core_plugins_error_not_installed">해당 플러그인이 설치되지 않았습니다.</string>
+    <string name="core_plugins_error_not_ready">플러그인을 다운로드하는 중입니다. 잠시 후 다시 시도하세요.</string>
     <string name="core_plugins_error_script_failed">스크립트가 실패했습니다.</string>
     <string name="core_plugins_error_script_missing">해당 플러그인의 스크립트가 없습니다.</string>
     <string name="core_plugins_error_turned_off">해당 플러그인이 꺼져 있습니다.</string>
     <string name="core_plugins_permission_reminders_label">설정한 시간에 알림 표시</string>
+    <string name="core_plugins_permission_selection_label">작업 중 하나를 탭할 때 선택한 텍스트 변경</string>
     <string name="core_plugins_permission_storage_label">기기에 데이터 저장</string>
+    <string name="core_plugins_reject_action_input">“%1$s”에는 현재 WM 키보드 버전에서 제공할 수 없는 텍스트를 요청하는 작업이 있습니다.</string>
+    <string name="core_plugins_reject_action_no_name">\"%1$s\"에 이름이 없는 작업이 있습니다.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s”(은)는 선택한 텍스트에 대한 작업을 추가하지만 변경 권한을 요청하지 않습니다.</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s”에 ID가 누락되었거나 중복되었거나 유효하지 않은 작업이 있습니다. 작업 ID는 최대 32자의 소문자, 숫자, 대시, 밑줄로 구성됩니다.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s”에 유효하지 않은 UTF-8 텍스트 스크립트가 포함되어 있습니다.</string>
     <string name="core_plugins_reject_bad_id">이 플러그인의 ID가 유효하지 않습니다. ID는 3~64자여야 합니다. ID에는 소문자, 숫자, 점, 대시 및 밑줄을 사용할 수 있습니다.</string>
     <string name="core_plugins_reject_empty_script">“%1$s”에 빈 스크립트가 있습니다.</string>
+    <string name="core_plugins_reject_lua">\"%1$s\"은(는) WM Keyboard에서 더 이상 실행되지 않는 Lua로 작성되었습니다. Python 버전을 찾으세요.</string>
     <string name="core_plugins_reject_missing_script">“%1$s”에 스크립트 파일(%2$s)이 없습니다.</string>
     <string name="core_plugins_reject_newer_version">이 플러그인을 사용하려면 더 최신 버전의 WM Keyboard가 필요합니다.</string>
     <string name="core_plugins_reject_no_name">이 플러그인에는 이름이 없습니다.</string>
     <string name="core_plugins_reject_no_version">“%1$s”은(는) 버전을 명시하지 않았습니다.</string>
+    <string name="core_plugins_reject_nothing_to_show">‘%1$s’느니 더바이브르하너다</string>
     <string name="core_plugins_reject_script_too_large">“%1$s”의 스크립트가 %2$d KB보다 큽니다.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s”은(는) 선택한 텍스트를 변경하도록 요청하지만 추가하는 작업이 없습니다.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s”은(는) 16개가 넘는 작업을 추가합니다.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s”은(는) 이 버전의 WM 키보드가 실행할 수 없는 언어로 작성되었습니다. 플러그인은 파이썬으로 작성됩니다.</string>
     <string name="core_plugins_reject_unknown_permission">이 버전의 WM Keyboard는 \"%1$s\" 권한을 알 수 없습니다. 앱에서 \"%2$s\"가 무엇을 할 수 있는지 알려줄 수 없습니다.</string>
     <string name="core_plugins_reminders_channel_body">플러그인에서 설정한 시간에 앱에 표시하도록 요청한 알림입니다. 각 알림의 제목은 플러그인 이름입니다.</string>
     <string name="core_plugins_reminders_channel_title">플러그인 알림</string>
     <string name="core_plugins_stopped_cancelled">앱이 이 플러그인을 중지했습니다.</string>
     <string name="core_plugins_stopped_deadline">이 플러그인이 너무 오래 걸려 앱이 중단했습니다.</string>
     <string name="core_plugins_stopped_instructions">이 플러그인이 한 번에 너무 많은 작업을 수행하여 앱이 중지시켰습니다.</string>
+    <string name="core_plugins_stopped_memory">이 플러그인이 너무 많은 데이터를 보유하려고 시도했습니다. 앱이 이를 중단했습니다.</string>
     <string name="core_plugins_stopped_not_responding">이 플러그인이 응답을 중지했습니다. 앱이 플러그인을 닫았습니다.</string>
     <string name="core_plugins_stopped_not_responding_disabled">이 플러그인이 다시 응답하지 않아 앱이 비활성화했습니다.</string>
     <string name="core_plugins_stopped_recursion">이 플러그인이 너무 많이 자기 자신을 호출하여 앱이 중단시켰습니다.</string>

@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">সেই প্লাগ-ইনে আর সেই অ্যাকশনটি নেই।</string>
     <string name="core_plugins_error_no_render">এই প্লাগইনটিতে কোনো render() ফাংশন নেই।</string>
+    <string name="core_plugins_error_no_transform">এই প্লাগইনের কোন transform() ফাংশন নেই।</string>
     <string name="core_plugins_error_not_installed">সেই প্লাগইনটি ইনস্টল করা নেই।</string>
+    <string name="core_plugins_error_not_ready">প্লাগ-ইনগুলো এখনও ডাউনলোড হচ্ছে। একটু পরে আবার চেষ্টা করুন।</string>
     <string name="core_plugins_error_script_failed">স্ক্রিপ্টটি ব্যর্থ হয়েছে।</string>
     <string name="core_plugins_error_script_missing">সেই প্লাগইনের স্ক্রিপ্টটি অনুপস্থিত।</string>
     <string name="core_plugins_error_turned_off">সেই প্লাগইনটি বন্ধ করা আছে।</string>
     <string name="core_plugins_permission_reminders_label">আপনার সেট করা সময়ে রিমাইন্ডার দেখান</string>
+    <string name="core_plugins_permission_selection_label">এর কোনো অ্যাকশনে ট্যাপ করলে, আপনার নির্বাচিত টেক্সট পরিবর্তন করুন</string>
     <string name="core_plugins_permission_storage_label">আপনার ডিভাইসে ডেটা সেভ করুন</string>
+    <string name="core_plugins_reject_action_input">“%1$s”-এর এমন একটি ক্রিয়া রয়েছে যা এমন পাঠ্যের জন্য জিজ্ঞাসা করে যা WM কীবোর্ডের এই সংস্করণটি এটিকে দিতে পারে না।</string>
+    <string name="core_plugins_reject_action_no_name">\"%1$s\"-এ নামবিহীন একটি অ্যাকশন রয়েছে।</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” নির্বাচিত পাঠ্যের জন্য অ্যাকশন যোগ করে কিন্তু এটি পরিবর্তন করার অনুমতি চায় না।</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s”-এর এমন একটি অ্যাকশন রয়েছে যার আইডি অনুপস্থিত, পুনরাবৃত্তি হয়েছে বা বৈধ নয়। একটি অ্যাকশনের আইডি সর্বোচ্চ ৩২টি ছোট হাতের অক্ষর, সংখ্যা, ড্যাশ এবং আন্ডারস্কোর হতে পারে।</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s”-এ এমন একটি স্ক্রিপ্ট আছে যা বৈধ UTF-8 টেক্সট নয়।</string>
     <string name="core_plugins_reject_bad_id">এই প্লাগইনটির আইডি বৈধ নয়। একটি আইডি ৩ থেকে ৬৪ অক্ষরের দীর্ঘ হতে হবে। একটি আইডিতে ছোট হাতের অক্ষর, সংখ্যা, ডট, ড্যাশ এবং আন্ডারস্কোর থাকতে পারে।</string>
     <string name="core_plugins_reject_empty_script">“%1$s”-এ কোনো স্ক্রিপ্ট নেই।</string>
+    <string name="core_plugins_reject_lua">“%1$s” লুয়াতে লেখা, যা ডব্লিউএম কিবোর্ড আর চালায় না। এর পাইথন সংস্করণটি খুঁজুন।</string>
     <string name="core_plugins_reject_missing_script">“%1$s”-এ এর স্ক্রিপ্ট ফাইল (%2$s) নেই।</string>
     <string name="core_plugins_reject_newer_version">এই প্লাগইনটির জন্য WM কিবোর্ডের একটি নতুন সংস্করণ প্রয়োজন।</string>
     <string name="core_plugins_reject_no_name">এই প্লাগইনটির কোনো নাম নেই।</string>
     <string name="core_plugins_reject_no_version">“%1$s” কোন সংস্করণের তা উল্লেখ নেই।</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s”-এর কোনো প্যানেল এবং কোনো কাজ নেই, তাই এর করার মতো কিছু নেই।</string>
     <string name="core_plugins_reject_script_too_large">“%1$s”-এর স্ক্রিপ্ট %2$d কেবি (KB)-এর চেয়ে বড়।</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” আপনার নির্বাচিত লেখা পরিবর্তন করতে বলে কিন্তু কোনো অ্যাকশন যোগ করে না।</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” ১৬টির বেশি অ্যাকশন যোগ করে।</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” এমন একটি ভাষায় লেখা যা ডব্লিউএম কিবোর্ডের এই সংস্করণটি চালাতে পারে না। প্লাগইনগুলি পাইথনে লেখা।</string>
     <string name="core_plugins_reject_unknown_permission">WM Keyboard-এর এই ভার্সনটি “%1$s” পারমিশনটি চেনে না। “%2$s”-কে কী করার অনুমতি দেওয়া হয়েছে তা অ্যাপটি আপনাকে জানাতে পারবে না।</string>
     <string name="core_plugins_reminders_channel_body">রিমাইন্ডার যা একটি প্লাগইন অ্যাপটিকে দেখানোর জন্য অনুরোধ করেছে, আপনার সেট করা সময়ে। প্রতিটির শিরোনাম হলো প্লাগইনের নাম।</string>
     <string name="core_plugins_reminders_channel_title">প্লাগইন রিমাইন্ডার</string>
     <string name="core_plugins_stopped_cancelled">অ্যাপটি এই প্লাগইনটি বন্ধ করেছে।</string>
     <string name="core_plugins_stopped_deadline">এই প্লাগইনটি অনেক বেশি সময় নিয়েছে। অ্যাপটি এটি বন্ধ করে দিয়েছে।</string>
     <string name="core_plugins_stopped_instructions">এই প্লাগইনটি একবারে খুব বেশি কাজ করেছে। অ্যাপটি এটিকে থামিয়ে দিয়েছে।</string>
+    <string name="core_plugins_stopped_memory">এই প্লাগইনটি খুব বেশি ডেটা ধরে রাখার চেষ্টা করেছিল। অ্যাপটি এটি বন্ধ করে দিয়েছে।</string>
     <string name="core_plugins_stopped_not_responding">এই প্লাগইনটি সাড়া দেওয়া বন্ধ করে দিয়েছে। অ্যাপটি এটি বন্ধ করে দিয়েছে।</string>
     <string name="core_plugins_stopped_not_responding_disabled">এই প্লাগইনটি আবার সাড়া দেওয়া বন্ধ করে দিয়েছে। অ্যাপটি এটি বন্ধ করে দিয়েছে।</string>
     <string name="core_plugins_stopped_recursion">এই প্লাগইনটি নিজেকে খুব বেশিবার কল করেছে। অ্যাপটি এটিকে থামিয়ে দিয়েছে।</string>

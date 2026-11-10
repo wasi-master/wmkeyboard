@@ -37,6 +37,7 @@
     <string name="common_error_download_held">一時停止中：データセーバーにより、この接続でのダウンロードが保留されています。再開すると中断した箇所から続行されます。</string>
     <string name="common_error_generic">問題が発生しました。もう一度やり直してください。</string>
     <string name="common_error_network">接続されていません。ネットワークを確認して再試行してください。</string>
+    <string name="common_error_network_permission_off">WM Keyboardのネットワークアクセスがお使いの携帯電話の設定でオフになっているため、機能しません。Androidの設定 ＞ アプリ ＞ WM Keyboard ＞ 権限（GrapheneOSの場合はネットワーク権限）でオンにしてから、もう一度お試しください。</string>
     <string name="common_error_no_internet_permission">このキーボードのビルドはインターネットに接続できません。</string>
     <string name="common_error_timeout">リクエストに時間がかかりすぎました。もう一度やり直してください。</string>
     <string name="common_export">エクスポート</string>
@@ -48,6 +49,8 @@
     <string name="common_more">その他</string>
     <string name="common_next">次へ</string>
     <string name="common_none">なし</string>
+    <string name="common_notify_channel_alarms_body">スヌーズ中またはもうすぐ鳴るアラーム、および誰も応答せずに鳴ったアラーム。アラーム音自体には独自のチャンネルがあります。</string>
+    <string name="common_notify_channel_alarms_title">アラーム通知</string>
     <string name="common_notify_channel_backup_body">自動バックアップが失敗した場合のみ通知します。成功したバックアップは通知されません。</string>
     <string name="common_notify_channel_backup_title">バックアップの問題</string>
     <string name="common_notify_channel_clock_body">動作中のタイマーとストップウォッチ。一時停止、1分追加、停止のボタンが表示されます。</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">キーボードコントロール</string>
     <string name="common_notify_channel_send_body">キーボードが非表示の間に「ファイルの送信」ツールによるアップロードまたはダウンロードが完了しました。コピー用リンクと、近くのデバイスから送信されたファイルが含まれています。</string>
     <string name="common_notify_channel_send_title">ファイルの送受信</string>
+    <string name="common_notify_channel_stopwatch_body">ストップウォッチの実行中または一時停止中、ラップ、一時停止、リセットのボタンが表示されます。</string>
+    <string name="common_notify_channel_stopwatch_title">ストップウオッチ</string>
     <string name="common_notify_channel_updates_body">インストール可能な新しいバージョン、インストール待ちの更新、およびインストール完了時の確認通知です。</string>
     <string name="common_notify_channel_updates_title">アプリの更新</string>
     <string name="common_notify_download_done">使用準備完了</string>
     <string name="common_notify_download_failed">%1$sをダウンロードできませんでした</string>
     <string name="common_notify_download_handwriting">%1$s 手書き</string>
     <string name="common_notify_download_progress">%2$s 中の %1$s</string>
+    <string name="common_notify_download_step_library">ステップ 1/2、エンジン ライブラリ: %1$s</string>
+    <string name="common_notify_download_step_model">ステップ 2/2、モデル: %1$s</string>
     <string name="common_notify_download_translate">%1$s オフライン翻訳</string>
     <string name="common_notify_download_voice">%1$s オフライン音声</string>
     <string name="common_off">オフ</string>
+    <string name="common_offline_build_download">これはオフラインビルドのため、ダウンロードできません。他のデバイスでファイルを取得してインポートしてください: [設定] › [情報] › [ストレージ] › [ダウンロードしたファイルのインポート] または、この画面にあるインポート項目から行えます。あるいは、同じリリース ページから標準ビルドをこのビルドの上にインストールすると、自動的にダウンロードされます。設定と学習した単語はそのまま保持されます。</string>
+    <string name="common_offline_build_library">これはオフラインビルドであるため、必要なライブラリをダウンロードできません。別のデバイスでファイルを取得し、正確なファイルが記載されている「設定 › プライバシー › 機能ライブラリ」からインポートしてください。または、同じリリースページから標準ビルドをこのビルドの上にインストールすると、自動的にダウンロードされます。設定と言語学習した単語は保持されます。</string>
     <string name="common_ok">OK</string>
     <string name="common_on">オン</string>
     <string name="common_open_system_settings">システム設定を開く</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">AIボタンのユーザー補助サービス</string>
     <string name="common_special_access_split_screen_body">キーボードから分割画面が要求されたときに、アプリを全画面で開くスマートフォンもあります。このサービスを有効にすると、アプリランチャーから分割画面でアプリを開くか、分割画面のペアを開いたときに、履歴メニューにあるものと同じ Android 自身の分割画面の切り替えスイッチが最初に押され、アプリが空いている半分に開きます。押す前に、分割画面がすでに表示されているかどうかを確認するためにアプリウィンドウの位置を確認します。ウィンドウ内のコンテンツが読み取られることはありません。それ以外の時間に動作したり、入力内容が監視されたり、何かが保持されたりすることもありません。Android のユーザー補助画面には、このようなサービスで可能なことのすべてについての警告が表示されます。このサービスは、分割画面を要求したときにそのスイッチを押すだけです。</string>
     <string name="common_special_access_split_screen_title">分割画面用ユーザー補助サービス</string>
+    <string name="common_special_access_system_buttons_body">Androidでは、ユーザー補助サービスを通じてのみ、他のアプリがスクリーンショットの撮影、戻る、最近使ったアプリ、アプリドロワー、通知シェード、クイック設定を開くことができます。このサービスをオンにすると、スクリーンショットツールとフローティングボタンが、Android独自のナビゲーションやシェードにあるのと同じシステムボタンを代わりに押します。スクリーンショットはすべてのスクリーンショットが保存される場所に保存されます。このサービスは、それ以外の時には何もしません。画面を読み取らず、入力内容を監視せず、何も保持しません。Androidのユーザー補助画面では、このようなサービスができるすべてのことについて警告が表示されます。これは、要求されたときにのみシステムボタンを押します。</string>
+    <string name="common_special_access_system_buttons_title">システムボタンのユーザー補助サービス</string>
     <string name="common_special_access_usage_body">使用状況へのアクセスを許可すると、キーボードはコピー時に前面にあったアプリを記録します。クリップを長押しすると、そのアプリが表示されます。キーボードはコピーした瞬間にのみ前面のアプリを読み取ります。履歴やアプリの使用時間は読み取りません。キーボードは、その情報をクリップと一緒にデバイス内のみに保持します。アプリの使用状況に関する情報がデバイスから外部へ送信されることはありません。この設定は任意であり、有効にするまでオフのままです。</string>
     <string name="common_special_access_usage_title">クリップボードソースアプリの使用状況へのアクセス</string>
     <string name="common_type_setting_value_desc">%1$sの値を入力してください</string>

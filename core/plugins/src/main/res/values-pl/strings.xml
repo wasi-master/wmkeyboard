@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Ta wtyczka nie ma już tego działania.</string>
     <string name="core_plugins_error_no_render">Ta wtyczka nie posiada funkcji render().</string>
+    <string name="core_plugins_error_no_transform">Ta wtyczka nie posiada funkcji transform().</string>
     <string name="core_plugins_error_not_installed">Ta wtyczka nie jest zainstalowana.</string>
+    <string name="core_plugins_error_not_ready">Wtyczki nadal się pobierają. Spróbuj ponownie za chwilę.</string>
     <string name="core_plugins_error_script_failed">Skrypt nie powiódł się.</string>
     <string name="core_plugins_error_script_missing">Brakuje skryptu dla tej wtyczki.</string>
     <string name="core_plugins_error_turned_off">Ta wtyczka jest wyłączona.</string>
     <string name="core_plugins_permission_reminders_label">Pokazuj przypomnienia w ustawionych czasach</string>
+    <string name="core_plugins_permission_selection_label">Zmień zaznaczony tekst po dotknięciu jednej z jego akcji</string>
     <string name="core_plugins_permission_storage_label">Zapisz dane na swoim urządzeniu</string>
+    <string name="core_plugins_reject_action_input">„%1$s” ma akcję, która wymaga wprowadzenia tekstu, którego ta wersja klawiatury WM nie może podać.</string>
+    <string name="core_plugins_reject_action_no_name">„%1$s” ma akcję bez nazwy.</string>
+    <string name="core_plugins_reject_actions_need_selection">„%1$s” dodaje działania dla zaznaczonego tekstu, ale nie prosi o pozwolenie na jego zmianę.</string>
+    <string name="core_plugins_reject_bad_action_id">„%1$s” ma akcję, której identyfikator jest nieobecny, powtórzony lub nieprawidłowy. Identyfikator akcji składa się z maksymalnie 32 małych liter, cyfr, myślników i podkreśleń.</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s” zawiera skrypt, który nie jest poprawnym tekstem UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Ta wtyczka ma nieprawidłowy identyfikator. Identyfikator musi mieć od 3 do 64 znaków. Może zawierać małe litery, cyfry, kropki, myślniki i podkreślniki.</string>
     <string name="core_plugins_reject_empty_script">„%1$s” ma pusty skrypt.</string>
+    <string name="core_plugins_reject_lua">“%1$s” jest napisanym w języku Lua, którego WM Keyboard już nie uruchamia. Poszukaj wersji w języku Python.</string>
     <string name="core_plugins_reject_missing_script">„%1$s” nie posiada pliku skryptu (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Ta wtyczka wymaga nowszej wersji klawiatury WM.</string>
     <string name="core_plugins_reject_no_name">Ta wtyczka nie ma nazwy.</string>
     <string name="core_plugins_reject_no_version">„%1$s” nie określa swojej wersji.</string>
+    <string name="core_plugins_reject_nothing_to_show">„%1$s” nie ma panelu ani żadnych akcji, więc nie ma nic do zrobienia.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s” posiada skrypt większy niż %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">„%1$s” prosi o zmianę zaznaczonego tekstu, ale nie dodaje żadnych akcji.</string>
+    <string name="core_plugins_reject_too_many_actions">„%1$s” dodaje więcej niż 16 akcji.</string>
+    <string name="core_plugins_reject_unknown_language">„%1$s” jest napisanego w języku, którego ta wersja klawiatury WM Keyboard nie obsługuje. Wtyczki są pisane w języku Python.</string>
     <string name="core_plugins_reject_unknown_permission">Ta wersja klawiatury WM nie rozpoznaje uprawnienia „%1$s”. Aplikacja nie może określić, co „%2$s” ma prawo robić.</string>
     <string name="core_plugins_reminders_channel_body">Przypomnienia, których wyświetlenie wtyczka zleciła aplikacji w ustawionym przez nią czasie. Tytułem każdego z nich jest nazwa wtyczki.</string>
     <string name="core_plugins_reminders_channel_title">Przypomnienia wtyczek</string>
     <string name="core_plugins_stopped_cancelled">Aplikacja zatrzymała tę wtyczkę.</string>
     <string name="core_plugins_stopped_deadline">Ta wtyczka działała zbyt długo. Aplikacja ją zatrzymała.</string>
     <string name="core_plugins_stopped_instructions">Ta wtyczka wykonała zbyt wiele pracy jednocześnie. Aplikacja ją zatrzymała.</string>
+    <string name="core_plugins_stopped_memory">Ta wtyczka próbowała przechować zbyt dużo danych. Aplikacja ją zatrzymała.</string>
     <string name="core_plugins_stopped_not_responding">Ta wtyczka przestała odpowiadać. Aplikacja ją zamknęła.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Ta wtyczka przestała odpowiadać. Aplikacja ją wyłączyła.</string>
     <string name="core_plugins_stopped_recursion">Ta wtyczka wywołała samą siebie zbyt wiele razy. Aplikacja ją zatrzymała.</string>

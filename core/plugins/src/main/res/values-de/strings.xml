@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Dieses Plugin hat diese Aktion nicht mehr.</string>
     <string name="core_plugins_error_no_render">Dieses Plugin hat keine render()-Funktion.</string>
+    <string name="core_plugins_error_no_transform">Dieses Plugin hat keine transform()-Funktion.</string>
     <string name="core_plugins_error_not_installed">Dieses Plugin ist nicht installiert.</string>
+    <string name="core_plugins_error_not_ready">Plugins werden noch heruntergeladen. Versuchen Sie es gleich noch einmal.</string>
     <string name="core_plugins_error_script_failed">Das Skript ist fehlgeschlagen.</string>
     <string name="core_plugins_error_script_missing">Das Skript für dieses Plugin fehlt.</string>
     <string name="core_plugins_error_turned_off">Dieses Plugin ist deaktiviert.</string>
     <string name="core_plugins_permission_reminders_label">Erinnerungen zu den von dir festgelegten Zeiten anzeigen</string>
+    <string name="core_plugins_permission_selection_label">Ausgewählten Text ändern, wenn Sie auf eine seiner Aktionen tippen</string>
     <string name="core_plugins_permission_storage_label">Daten auf Ihrem Gerät speichern</string>
+    <string name="core_plugins_reject_action_input">„%1$s“ enthält eine Aktion, die Text anfordert, den diese Version von WM Keyboard nicht bereitstellen kann.</string>
+    <string name="core_plugins_reject_action_no_name">„%1$s“ hat eine Aktion ohne Namen.</string>
+    <string name="core_plugins_reject_actions_need_selection">„%1$s“ fügt Aktionen für ausgewählten Text hinzu, bittet jedoch nicht um Erlaubnis, diesen zu ändern.</string>
+    <string name="core_plugins_reject_bad_action_id">„%1$s“ enthält eine Aktion, deren ID fehlt, wiederholt wird oder ungültig ist. Eine Aktions-ID besteht aus bis zu 32 Kleinbuchstaben, Ziffern, Bindestrichen und Unterstrichen.</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ enthält ein Skript, das kein gültiger UTF-8-Text ist.</string>
     <string name="core_plugins_reject_bad_id">Dieses Plugin hat eine ungültige ID. Eine ID ist 3 bis 64 Zeichen lang. Eine ID kann Kleinbuchstaben, Zahlen, Punkte, Bindestriche und Unterstriche enthalten.</string>
     <string name="core_plugins_reject_empty_script">„%1$s“ hat ein leeres Skript.</string>
+    <string name="core_plugins_reject_lua">„%1$s“ ist in Lua geschrieben, was die WM Keyboard nicht mehr ausführt. Suchen Sie nach der Python-Version.</string>
     <string name="core_plugins_reject_missing_script">„%1$s“ hat keine Skriptdatei (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Dieses Plugin benötigt eine neuere Version von WM Keyboard.</string>
     <string name="core_plugins_reject_no_name">Dieses Plugin hat keinen Namen.</string>
     <string name="core_plugins_reject_no_version">„%1$s“ gibt keine Version an.</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” hat kein Panel und keine Aktionen, daher gibt es nichts zu tun.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s“ hat ein Skript, das größer als %2$d KB ist.</string>
+    <string name="core_plugins_reject_selection_without_actions">„%1$s“ bittet darum, den von Ihnen ausgewählten Text zu ändern, fügt jedoch keine Aktionen hinzu.</string>
+    <string name="core_plugins_reject_too_many_actions">„%1$s“ fügt mehr als 16 Aktionen hinzu.</string>
+    <string name="core_plugins_reject_unknown_language">„%1$s“ ist in einer Sprache geschrieben, die diese Version der WM-Tastatur nicht ausführen kann. Plugins sind in Python geschrieben.</string>
     <string name="core_plugins_reject_unknown_permission">Diese Version von WM Keyboard kennt die Berechtigung „%1$s“ nicht. Die App kann Ihnen nicht sagen, was „%2$s“ tun darf.</string>
     <string name="core_plugins_reminders_channel_body">Erinnerungen, die ein Plugin angefordert hat, zu den von dir im Plugin festgelegten Zeiten anzuzeigen. Der Titel jeder Erinnerung ist der Name des Plugins.</string>
     <string name="core_plugins_reminders_channel_title">Plugin-Erinnerungen</string>
     <string name="core_plugins_stopped_cancelled">Die App hat dieses Plugin gestoppt.</string>
     <string name="core_plugins_stopped_deadline">Dieses Plugin hat zu lange gebraucht. Die App hat es gestoppt.</string>
     <string name="core_plugins_stopped_instructions">Dieses Plugin hat zu viel Arbeit auf einmal erledigt. Die App hat es gestoppt.</string>
+    <string name="core_plugins_stopped_memory">Dieses Plugin hat versucht, zu viele Daten zu speichern. Die App hat es gestoppt.</string>
     <string name="core_plugins_stopped_not_responding">Dieses Plugin reagiert nicht mehr. Die App hat es geschlossen.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Dieses Plugin reagiert nicht mehr. Die App hat es deaktiviert.</string>
     <string name="core_plugins_stopped_recursion">Dieses Plugin hat sich zu oft selbst aufgerufen. Die App hat es gestoppt.</string>

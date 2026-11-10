@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">기타 서비스</string>
     <string name="core_settings_ai_provider_on_device_label">기기 내</string>
+    <string name="core_settings_ai_provider_privatemode_label">비공개 모드</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">시간대</string>
     <string name="core_settings_auto_theme_trigger_sun_label">일출 및 일몰</string>
     <string name="core_settings_auto_theme_trigger_system_label">시스템 라이트/다크 모드</string>

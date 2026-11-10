@@ -37,6 +37,7 @@
     <string name="common_error_download_held">V premoru: varčevanje s podatki zadržuje prenose pri tej povezavi. Nadaljevalo se bo tam, kjer se je ustavilo.</string>
     <string name="common_error_generic">Nekaj ni delovalo. Poskusite znova.</string>
     <string name="common_error_network">Ni povezave. Preverite omrežje in poskusite znova.</string>
+    <string name="common_error_network_permission_off">Dostop tipkovnice WM do omrežja je izklopljen v nastavitvah vašega telefona, zato to ne deluje. Vklopite ga v nastavitvah Androida › Aplikacije › Tipkovnica WM › Dovoljenja (v sistemu GrapheneOS omrežje dovoljenja) in poskusite znova.</string>
     <string name="common_error_no_internet_permission">Ta različica tipkovnice se ne more povezati z internetom.</string>
     <string name="common_error_timeout">Zahteva je trajala predolgo. Poskusite znova.</string>
     <string name="common_export">Izvozi</string>
@@ -48,6 +49,8 @@
     <string name="common_more">Več</string>
     <string name="common_next">Naprej</string>
     <string name="common_none">Brez</string>
+    <string name="common_notify_channel_alarms_body">Budilka, ki je dřímljana ali bo kmalu zazvonila, in tista, ki je zazvonila, pa ni bilo nikogar. Zvonjenje samo ima svoj kanal.</string>
+    <string name="common_notify_channel_alarms_title">Obvestila o budilkah</string>
     <string name="common_notify_channel_backup_body">Samo ko samodejno varnostno kopiranje ne uspe. Uspešne varnostne kopije so tihe.</string>
     <string name="common_notify_channel_backup_title">Težave z varnostnim kopiranjem</string>
     <string name="common_notify_channel_clock_body">Časovniki in štoparica med delovanjem, z gumbi za premor, dodajanje minute ali zaustavitev.</string>
@@ -60,15 +63,21 @@
     <string name="common_notify_channel_keyboard_title">Kontrolniki tipkovnice</string>
     <string name="common_notify_channel_send_body">Nalaganje ali prenos, ki ga je orodje za pošiljanje datotek končalo, ko je bila tipkovnica skrita, s povezavo za kopiranje in datoteko, ki jo je poslala bližnja naprava.</string>
     <string name="common_notify_channel_send_title">Pošiljanje in prejemanje datotek</string>
+    <string name="common_notify_channel_stopwatch_body">Štoparica med delovanjem ali v pavzi, z gumbi za kroge, pavzo in ponastavitev.</string>
+    <string name="common_notify_channel_stopwatch_title">Štoparica</string>
     <string name="common_notify_channel_updates_body">Nova različica za namestitev, posodobitev, ki čaka, da pritisnete namestitev, in potrditev, ko je ena nameščena.</string>
     <string name="common_notify_channel_updates_title">Posodobitve aplikacije</string>
     <string name="common_notify_download_done">Pripravljeno za uporabo</string>
     <string name="common_notify_download_failed">Prenos %1$s ni uspel</string>
     <string name="common_notify_download_handwriting">Rokopis %1$s</string>
     <string name="common_notify_download_progress">%1$s od %2$s</string>
+    <string name="common_notify_download_step_library">1. korak od 2, knjižnica pogona: %1$s</string>
+    <string name="common_notify_download_step_model">2. korak od 2, model: %1$s</string>
     <string name="common_notify_download_translate">%1$s prevajanje brez povezave</string>
     <string name="common_notify_download_voice">%1$s glas brez povezave</string>
     <string name="common_off">Izklopljeno</string>
+    <string name="common_offline_build_download">To je gradnja brez povezave, zato tega ni mogoče prenesti. Prenesite datoteko v drugo napravo in jo uvozite: Nastavitve › O programu › Shramba › Uvoz prenesenih datotek jo sprejme ali lastna vrstica za uvoz tega zaslona, ​​kjer jo ima. Ali pa namestite standardno gradnjo s same strani izdaje čez to in se prenese sama. Vaše nastavitve in naučene besede ostanejo.</string>
+    <string name="common_offline_build_library">To je različica brez povezave, zato ne more prenesti knjižnice, ki jo to potrebuje. Pridobite njeno datoteko v drugi napravi in ​​jo uvozite v Nastavitve › Zasebnost › Knjižnice funkcij, ki navaja točno določeno datoteko. Ali pa namestite standardno različico s same strani izdaje prek te, in se bo prenesla sama. Vaše nastavitve in naučene besede ostanejo.</string>
     <string name="common_ok">V redu</string>
     <string name="common_on">Vklopljeno</string>
     <string name="common_open_system_settings">Odpri sistemske nastavitve</string>
@@ -142,6 +151,8 @@
     <string name="common_special_access_screen_content_title">Storitev dostopnosti za gumb AI</string>
     <string name="common_special_access_split_screen_body">Nekateri telefoni odprejo aplikacijo celozaslonsko, ko tipkovnica zahteva razdeljen zaslon. Ko je ta storitev vklopljena, odpiranje aplikacije v razdeljenem zaslonu iz zaganjalnika aplikacij ali odpiranje para razdeljenega zaslona najprej pritisne Androidovo lastno stikalo za razdeljen zaslon, isto, kot ga ima meni Nedavno, in aplikacija se nato odpre v prosti polovici. Preden ga pritisne, storitev preveri, kje so okna aplikacij, da preveri, ali je razdeljen zaslon že odprt. Nikoli ne bere njihove vsebine. Ob drugih časih ne počne ničesar, ne opazuje vašega tipkanja in ne shranjuje ničesar. Zaslon za dostopnost v sistemu Android opozarja na vse, kar bi taka storitev lahko storila. Ta pritisne to stikalo le takrat, ko zahtevate razdeljen zaslon.</string>
     <string name="common_special_access_split_screen_title">Dostopnostna storitev za razdeljen zaslon</string>
+    <string name="common_special_access_system_buttons_body">Android omogoča drugi aplikaciji zajem zaslona, vrnitev nazaj ali odpiranje nedavnih aplikacij, predala z aplikacijami, zaslona z obvestili ali hitrih nastavitev samo prek storitve dostopnosti. Z vklopljeno storitvijo orodje za zajem zaslona in plavajoči gumb pritisneta te sistemske gumbe namesto vas, enake tistim, ki jih imata Androidova lastna navigacija in zaslon z obvestili. Posnetek zaslona je shranjen tam, kamor gredo vsi posnetki zaslona. Storitev ob drugem času ne počne ničesar. Ne bere zaslona, ne opazuje, kaj tipkate, in ničesar ne hrani. Zaslon za dostopnost v sistemu Android opozarja na vse, kar bi taka storitev lahko storila. Ta pritisne sistemski gumb samo takrat, ko to zahtevate.</string>
+    <string name="common_special_access_system_buttons_title">Dostopnostna storitev za sistemske gumbe</string>
     <string name="common_special_access_usage_body">Z dovoljenjem za dostop do uporabe tipkovnica zabeleži, katera aplikacija je bila v ospredju, ko ste nekaj kopirali. Pokaže to aplikacijo, ko pritisnete in pridržite posnetek. Tipkovnica bere aplikacijo v ospredju samo v trenutku kopiranja. Ne bere vaše zgodovine ali časa, ki ga preživite v aplikaciji. Tipkovnica hrani odgovor skupaj s posnetkom, samo na vaši napravi. Ničesar glede vaše uporabe aplikacij ne zapusti vaše naprave. Nastavitev je neobvezna. Ostane izklopljena, dokler je ne vklopite.</string>
     <string name="common_special_access_usage_title">Dostop do uporabe za izvorne aplikacije odložišča</string>
     <string name="common_type_setting_value_desc">Vnesite vrednost za %1$s</string>

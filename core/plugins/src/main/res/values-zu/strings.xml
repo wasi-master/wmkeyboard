@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Lelo phulagini alisaneso senzo.</string>
     <string name="core_plugins_error_no_render">Le plugin ayi ayina umsebenzi we-render().</string>
+    <string name="core_plugins_error_no_transform">Le plugin ayinayo umsebenzi we-transform().</string>
     <string name="core_plugins_error_not_installed">Leyo plugin ayifakiwe.</string>
+    <string name="core_plugins_error_not_ready">Ama-plugin asalandiswa. Zama futhi emzuzwaneni.</string>
     <string name="core_plugins_error_script_failed">Umbhalo we-script wehlulekile.</string>
     <string name="core_plugins_error_script_missing">Umbhalo (script) waleyo plugin awukho.</string>
     <string name="core_plugins_error_turned_off">Leyo phulagini icishiwe.</string>
     <string name="core_plugins_permission_reminders_label">Bonisa izikhumbuzo ngezikhathi ozibekile kuso</string>
+    <string name="core_plugins_permission_selection_label">Shintsha umbhalo owukhethile, uma uthepha esinye sezenzo zawo</string>
     <string name="core_plugins_permission_storage_label">Londoloza idatha kudivayisi yakho</string>
+    <string name="core_plugins_reject_action_input">“%1$s” inesenzo esicela umbhalo le nguqulo ye-WM Keyboard engakwazi ukusinika wona.</string>
+    <string name="core_plugins_reject_action_no_name">I-“%1$s” inesenzo esingenalo igama.</string>
+    <string name="core_plugins_reject_actions_need_selection">“%1$s” yengeza izenzo zombhalo okhethiwe kodwa ayiceli imvume yokuyishintsha.</string>
+    <string name="core_plugins_reject_bad_action_id">\"%1$s\" inesenzo okungekho i-id yaso, ephindaphindiwe, noma engekho emthethweni. I-id yesenzo kufika ezinhlamwini ezingama-32 ezincane, izinombolo, imigqa ephakathi kanye nemigqa engezansi.</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” ineskripthi esingeyona umbhalo we-UTF-8 ovumelekile.</string>
     <string name="core_plugins_reject_bad_id">Le plugin in-id engeyona evumelekile. I-id inobude obungama-3 kuye kwangama-64. I-id ingaqukatha izinhlamvu ezincane, izinombolo, amachashazi, imigqa, kanye nokudwetshelwa.</string>
     <string name="core_plugins_reject_empty_script">“%1$s” inombhalo ongenalutho.</string>
+    <string name="core_plugins_reject_lua">“%1$s” ibhalwe nge-Lua, engabe isasebenza ku-WM Keyboard. Funayo inguqulo yayo ye-Python.</string>
     <string name="core_plugins_reject_missing_script">“%1$s” ayinayo ifayela layo lesikripthi (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Le plugin idinga inguqulo entsha ye-WM Keyboard.</string>
     <string name="core_plugins_reject_no_name">Le plugin ayinalo igama.</string>
     <string name="core_plugins_reject_no_version">“%1$s” ayisho ukuthi iyiphi inguqulo eyiyo.</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” ayinayo iphaneli futhi ayinayo imisebenzi, ngakho akukho lutho okufanele ikwenze.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” inombhalo omkhulu kune-%2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">I-\"%1$s\" icela ukushintsha umbhalo owukhethile kodwa ayengezi noma yiziphi izenzo.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” yengeza izenzo ezingaphezu kwangu-16.</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” ibhalwe ngolimi le nguqulo ye-WM Keyboard engeke ilusebenzise. Ama-plugin abhalwe nge-Python.</string>
     <string name="core_plugins_reject_unknown_permission">Le nguqulo ye-WM Keyboard ayikwazi imvume ethi \"%1$s\". Uhlelo lokusebenza alukwazi ukukutshela ukuthi yini evunyelwe ukwenziwa ethi \"%2$s\".</string>
     <string name="core_plugins_reminders_channel_body">Izikhumbuzo ezicelwe yiplagini ukuba uhlelo lokusebenza luzibonise, ngezikhathi ozibeke kuplagini. Isihloko salesi nesinye yigama leplagini.</string>
     <string name="core_plugins_reminders_channel_title">Izikhumbuzo ze-plugin</string>
     <string name="core_plugins_stopped_cancelled">Uhlelo lokusebenza lumise le-plugin.</string>
     <string name="core_plugins_stopped_deadline">Le plugin ithathe isikhathi eside kakhulu. Uhlelo lokusebenza luyimisiwe.</string>
     <string name="core_plugins_stopped_instructions">Le plugin yenze umsebenzi omningi kakhulu ngesikhathi esisodwa. Uhlelo lokusebenza luyimisiwe.</string>
+    <string name="core_plugins_stopped_memory">Le plugin izamile ukubamba idatha eningi kakhulu. Uhlelo lokusebenza luyimisiwe.</string>
     <string name="core_plugins_stopped_not_responding">Le plugin iyekile ukuphendula. Uhlelo lokusebenza luyivalile.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Le plugin iyekile ukuphendula futhi. Uhlelo lokusebenza luyicimile.</string>
     <string name="core_plugins_stopped_recursion">Le plugin izibize kaningi kakhulu. Uhlelo lokusebenza luyimise.</string>

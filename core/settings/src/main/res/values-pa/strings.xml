@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">ਹੋਰ ਸੇਵਾ</string>
     <string name="core_settings_ai_provider_on_device_label">ਤੁਹਾਡੀ ਡਿਵਾਈਸ \'ਤੇ</string>
+    <string name="core_settings_ai_provider_privatemode_label">ਪ੍ਰਾਈਵੇਟ ਮੋਡ</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">ਦਿਨ ਦਾ ਸਮਾਂ</string>
     <string name="core_settings_auto_theme_trigger_sun_label">ਸੂਰਜ ਚੜ੍ਹਨਾ ਅਤੇ ਸੂਰਜ ਡੁੱਬਣਾ</string>
     <string name="core_settings_auto_theme_trigger_system_label">ਸਿਸਟਮ ਲਾਈਟ ਜਾਂ ਡਾਰਕ</string>

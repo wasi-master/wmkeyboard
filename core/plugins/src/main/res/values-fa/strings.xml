@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">آن افزونه دیگر آن عمل را ندارد.</string>
     <string name="core_plugins_error_no_render">این افزونه تابع render() ندارد.</string>
+    <string name="core_plugins_error_no_transform">این افزونه تابع transform() ندارد.</string>
     <string name="core_plugins_error_not_installed">آن افزونه نصب نشده است.</string>
+    <string name="core_plugins_error_not_ready">افزونه‌ها هنوز در حال بارگیری هستند. لطفاً لحظه‌ای دیگر دوباره تلاش کنید.</string>
     <string name="core_plugins_error_script_failed">اسکریپت با شکست مواجه شد.</string>
     <string name="core_plugins_error_script_missing">اسکریپت مربوط به آن افزونه موجود نیست.</string>
     <string name="core_plugins_error_turned_off">این افزونه خاموش است.</string>
     <string name="core_plugins_permission_reminders_label">نمایش یادآورها در زمان‌هایی که تنظیم کرده‌اید</string>
+    <string name="core_plugins_permission_selection_label">هنگامی که روی یکی از عملکردهای متن انتخابی ضربه می‌زنید، آن را تغییر دهید</string>
     <string name="core_plugins_permission_storage_label">ذخیره داده‌ها روی دستگاه شما</string>
+    <string name="core_plugins_reject_action_input">«%1$s» کنشی دارد که متن می‌خواهد و این نسخه از کیبورد WM نمی‌تواند آن را فراهم کند.</string>
+    <string name="core_plugins_reject_action_no_name">«%1$s» دارای یک کنش بدون نام است.</string>
+    <string name="core_plugins_reject_actions_need_selection">«%1$s» اقداماتی را برای متن انتخابی اضافه می‌کند اما اجازه تغییر آن را درخواست نمی‌کند.</string>
+    <string name="core_plugins_reject_bad_action_id">«%1$s» دارای کنشی است که شناسه آن مفقود، تکراری یا نامعتبر است. شناسه کنش حداکثر شامل ۳۲ حرف کوچک، اعداد، خط فاصله و زیرخط است.</string>
     <string name="core_plugins_reject_bad_encoding">«%1$s» دارای اسکریپتی است که متن UTF-8 معتبر نیست.</string>
     <string name="core_plugins_reject_bad_id">این افزونه دارای شناسه‌ای است که معتبر نیست. شناسه باید بین ۳ تا ۶۴ کاراکتر باشد. شناسه می‌تواند شامل حروف کوچک، اعداد، نقطه، خط تیره و زیرخط باشد.</string>
     <string name="core_plugins_reject_empty_script">«%1$s» دارای اسکریپت خالی است.</string>
+    <string name="core_plugins_reject_lua">«%1$s» به زبان Lua نوشته شده است که کیبورد WM دیگر آن را اجرا نمی‌کند. به دنبال نسخه پایتون آن باشید.</string>
     <string name="core_plugins_reject_missing_script">«%1$s» فایل اسکریپت خود (%2$s) را ندارد.</string>
     <string name="core_plugins_reject_newer_version">این افزونه به نسخه جدیدتری از صفحه‌کلید WM نیاز دارد.</string>
     <string name="core_plugins_reject_no_name">این افزونه نامی ندارد.</string>
     <string name="core_plugins_reject_no_version">«%1$s» مشخص نمی‌کند که چه نسخه‌ای است.</string>
+    <string name="core_plugins_reject_nothing_to_show">«%1$s» هیچ پنل و اکشنی ندارد، بنابراین کاری برای انجام دادن ندارد.</string>
     <string name="core_plugins_reject_script_too_large">اسکریپت «%1$s» بزرگتر از %2$d کیلوبایت است.</string>
+    <string name="core_plugins_reject_selection_without_actions">«%1$s» درخواست تغییر متن انتخابی شما را دارد اما هیچ عملی را اضافه نمی‌کند.</string>
+    <string name="core_plugins_reject_too_many_actions">«%1$s» بیش از ۱۶ اقدام اضافه می‌کند.</string>
+    <string name="core_plugins_reject_unknown_language">«%1$s» به زبانی نوشته شده است که این نسخه از کیبورد WM نمی‌تواند آن را اجرا کند. افزونه‌ها به زبان پایتون نوشته می‌شوند.</string>
     <string name="core_plugins_reject_unknown_permission">این نسخه از صفحه‌کلید WM مجوز «%1$s» را نمی‌شناسد. برنامه نمی‌تواند به شما بگوید که «%2$s» اجازه انجام چه کاری را دارد.</string>
     <string name="core_plugins_reminders_channel_body">یادآورهایی که یک افزونه از برنامه خواسته است در زمان‌هایی که در افزونه تنظیم کرده‌اید، نمایش دهد. عنوان هر کدام نام افزونه است.</string>
     <string name="core_plugins_reminders_channel_title">یادآورهای افزونه</string>
     <string name="core_plugins_stopped_cancelled">برنامه این افزونه را متوقف کرد.</string>
     <string name="core_plugins_stopped_deadline">این افزونه بیش از حد طول کشید. برنامه آن را متوقف کرد.</string>
     <string name="core_plugins_stopped_instructions">این افزونه در یک زمان کار زیادی انجام داد. برنامه آن را متوقف کرد.</string>
+    <string name="core_plugins_stopped_memory">این افزونه سعی کرد داده‌های زیادی را نگه دارد. برنامه آن را متوقف کرد.</string>
     <string name="core_plugins_stopped_not_responding">این افزونه از پاسخگویی باز ایستاد. برنامه آن را بست.</string>
     <string name="core_plugins_stopped_not_responding_disabled">این افزونه دوباره پاسخ نداد. برنامه آن را غیرفعال کرد.</string>
     <string name="core_plugins_stopped_recursion">این افزونه بیش از حد خود را فراخوانی کرد. برنامه آن را متوقف کرد.</string>

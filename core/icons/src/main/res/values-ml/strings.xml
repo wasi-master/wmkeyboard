@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">ടൂൾബാർ</string>
     <string name="core_icons_group_tools_title">ടൂളുകൾ</string>
     <string name="core_icons_pack_imported_label">ഇറക്കുമതി ചെയ്ത ഐക്കണുകൾ</string>
-    <string name="core_icons_pack_mine_label">എന്റെ ഐക്കണുകൾ</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">ആപ്പ് %1$d ഫയൽ അവഗണിച്ചു. ഈ പതിപ്പിൽ അതിനായി ഐക്കൺ ഇല്ല: %2$s</item>
         <item quantity="other">ആപ്പ് %1$d ഫയലുകൾ അവഗണിച്ചു. ഈ പതിപ്പിൽ അവയ്ക്കായി ഐക്കൺ ഇല്ല: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">ടാബ് കീ</string>
     <string name="core_icons_slot_toolbox_label">ടൂൾബോക്സ്</string>
     <string name="core_icons_slot_toolbox_search_label">ടൂൾബോക്സ് തിരയൽ</string>
+    <string name="core_icons_pack_mine_label">എന്റെ ഐക്കണുകൾ</string>
 </resources>

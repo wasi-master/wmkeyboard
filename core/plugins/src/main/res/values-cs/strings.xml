@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Tento plugin již tuto akci nemá.</string>
     <string name="core_plugins_error_no_render">Tento plugin nemá funkci render().</string>
+    <string name="core_plugins_error_no_transform">Tento plugin nemá žádnou funkci transform().</string>
     <string name="core_plugins_error_not_installed">Tento plugin není nainstalován.</string>
+    <string name="core_plugins_error_not_ready">Plugins se stále stahují. Zkuste to za chvíli znovu.</string>
     <string name="core_plugins_error_script_failed">Skript selhal.</string>
     <string name="core_plugins_error_script_missing">Skript pro tento plugin chybí.</string>
     <string name="core_plugins_error_turned_off">Tento plugin je vypnutý.</string>
     <string name="core_plugins_permission_reminders_label">Zobrazovat připomenutí v časech, které v něm nastavíte</string>
+    <string name="core_plugins_permission_selection_label">Změnit vybraný text po klepnutí na některou z jeho akcí</string>
     <string name="core_plugins_permission_storage_label">Uložit data do zařízení</string>
+    <string name="core_plugins_reject_action_input">„%1$s“ obsahuje akci, která vyžaduje text, který tato verze klávesnice WM Keyboard nemůže poskytnout.</string>
+    <string name="core_plugins_reject_action_no_name">„%1$s“ obsahuje akci bez názvu.</string>
+    <string name="core_plugins_reject_actions_need_selection">„%1$s“ přidává akce pro vybraný text, ale nežádá o povolení k jeho změně.</string>
+    <string name="core_plugins_reject_bad_action_id">„%1$s“ obsahuje akci, jejíž ID chybí, opakuje se nebo není platné. ID akce může obsahovat až 32 malých písmen, čísel, pomlček a podtržítek.</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ obsahuje skript, který není platným textem v kódování UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Tento plugin má neplatné ID. ID musí mít délku 3 až 64 znaků. ID může obsahovat malá písmena, číslice, tečky, pomlčky a podtržítka.</string>
     <string name="core_plugins_reject_empty_script">„%1$s“ má prázdný skript.</string>
+    <string name="core_plugins_reject_lua">„%1$s“ je napsán v jazyce Lua, který klávesnice WM již nespouští. Hledejte jeho verzi v jazyce Python.</string>
     <string name="core_plugins_reject_missing_script">„%1$s“ nemá svůj soubor skriptu (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Tento plugin vyžaduje novější verzi WM Keyboard.</string>
     <string name="core_plugins_reject_no_name">Tento plugin nemá název.</string>
     <string name="core_plugins_reject_no_version">„%1$s“ neuvádí, o jakou verzi se jedná.</string>
+    <string name="core_plugins_reject_nothing_to_show">„%1$s“ nemá žádný panel ani akce, takže nemá co dělat.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s“ má skript větší než %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">Doplněk „%1$s“ požaduje změnu vybraného textu, ale nepřidává žádné akce.</string>
+    <string name="core_plugins_reject_too_many_actions">„%1$s“ přidává více než 16 akcí.</string>
+    <string name="core_plugins_reject_unknown_language">„%1$s“ je napsáno v jazyce, který tato verze klávesnice WM Keyboard nemůže spustit. Zásuvné moduly jsou napsány v jazyce Python.</string>
     <string name="core_plugins_reject_unknown_permission">Tato verze klávesnice WM nezná oprávnění „%1$s“. Aplikace vám nemůže říct, co má „%2$s“ povoleno dělat.</string>
     <string name="core_plugins_reminders_channel_body">Připomenutí, která plugin požádal aplikaci zobrazit, v časech, které jste v pluginu nastavili. Nadpisem každého z nich je název pluginu.</string>
     <string name="core_plugins_reminders_channel_title">Připomenutí pluginů</string>
     <string name="core_plugins_stopped_cancelled">Aplikace tento plugin zastavila.</string>
     <string name="core_plugins_stopped_deadline">Tento zásuvný modul trval příliš dlouho. Aplikace jej zastavila.</string>
     <string name="core_plugins_stopped_instructions">Tento plugin prováděl příliš mnoho práce najednou. Aplikace jej zastavila.</string>
+    <string name="core_plugins_stopped_memory">Tento doplněk se pokusil uchovat příliš mnoho dat. Aplikace ho zastavila.</string>
     <string name="core_plugins_stopped_not_responding">Tento plugin přestal odpovídat. Aplikace jej ukončila.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Tento plugin přestal znovu odpovídat. Aplikace ho vypnula.</string>
     <string name="core_plugins_stopped_recursion">Tento plugin se volal příliš mnohokrát. Aplikace jej zastavila.</string>

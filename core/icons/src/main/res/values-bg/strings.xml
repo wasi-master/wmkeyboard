@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">Лента с инструменти</string>
     <string name="core_icons_group_tools_title">Инструменти</string>
     <string name="core_icons_pack_imported_label">Импортирани икони</string>
-    <string name="core_icons_pack_mine_label">Моите икони</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">Приложението игнорира %1$d файл. Тази версия няма икона за него: %2$s</item>
         <item quantity="other">Приложението игнорира %1$d файла. Тази версия няма икона за тях: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">Клавиш Tab</string>
     <string name="core_icons_slot_toolbox_label">Кутия с инструменти</string>
     <string name="core_icons_slot_toolbox_search_label">Търсене в кутията с инструменти</string>
+    <string name="core_icons_pack_mine_label">Моите икони</string>
 </resources>

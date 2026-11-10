@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">اس پلگ ان میں اب وہ عمل موجود نہیں ہے۔</string>
     <string name="core_plugins_error_no_render">اس پلگ ان میں کوئی render() فنکشن نہیں ہے۔</string>
+    <string name="core_plugins_error_no_transform">اس پلگ ان میں transform() فنکشن نہیں ہے۔</string>
     <string name="core_plugins_error_not_installed">وہ پلگ ان انسٹال نہیں ہے۔</string>
+    <string name="core_plugins_error_not_ready">پلگ انز ابھی بھی ڈاؤن لوڈ ہو رہے ہیں۔ تھوڑی دیر میں دوبارہ کوشش کریں۔</string>
     <string name="core_plugins_error_script_failed">اسکرپٹ ناکام ہو گیا۔</string>
     <string name="core_plugins_error_script_missing">اس پلگ ان کے لیے اسکرپٹ غائب ہے۔</string>
     <string name="core_plugins_error_turned_off">وہ پلگ ان بند ہے۔</string>
     <string name="core_plugins_permission_reminders_label">آپ کے مقرر کردہ اوقات پر یاد دہانیاں دکھائیں</string>
+    <string name="core_plugins_permission_selection_label">جب آپ اس کے اقدامات میں سے کسی ایک کو تھپتھپاتے ہیں تو اپنے منتخب کردہ متن کو تبدیل کریں</string>
     <string name="core_plugins_permission_storage_label">اپنے آلے پر ڈیٹا محفوظ کریں</string>
+    <string name="core_plugins_reject_action_input">“%1$s” میں ایک ایسا عمل ہے جو ایسے متن کا مطالبہ کرتا ہے جو WM کی بورڈ کا یہ ورژن نہیں دے سکتا۔</string>
+    <string name="core_plugins_reject_action_no_name">“%1$s” میں ایک ایسا عمل ہے جس کا کوئی نام نہیں ہے۔</string>
+    <string name="core_plugins_reject_actions_need_selection">\"%1$s\" منتخب کردہ متن کے لیے اقدامات شامل کرتا ہے لیکن اسے تبدیل کرنے کی اجازت طلب نہیں کرتا ہے۔</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s” میں ایک ایسا عمل موجود ہے جس کی آئی ڈی غائب ہے، دہرائی گئی ہے، یا درست نہیں ہے۔ ایک عمل کی آئی ڈی زیادہ سے زیادہ 32 چھوٹے حروف، نمبرز، ڈیش اور انڈر اسکور پر مشتمل ہوتی ہے۔</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” میں ایک اسکرپٹ ہے جو درست UTF-8 متن نہیں ہے۔</string>
     <string name="core_plugins_reject_bad_id">اس پلگ ان کی ایک آئی ڈی ہے جو درست نہیں ہے۔ ایک آئی ڈی 3 سے 64 حروف لمبی ہوتی ہے۔ ایک آئی ڈی میں چھوٹے حروف، نمبر، نقطے، ڈیش اور انڈر سکور ہو سکتے ہیں۔</string>
     <string name="core_plugins_reject_empty_script">“%1$s” میں ایک خالی اسکرپٹ ہے۔</string>
+    <string name="core_plugins_reject_lua">“%1$s” Lua میں لکھا گیا ہے، جسے WM کی بورڈ مزید نہیں چلاتا۔ اس کا پائتھون ورژن تلاش کریں۔</string>
     <string name="core_plugins_reject_missing_script">“%1$s” کے پاس اس کی اسکرپٹ فائل (%2$s) نہیں ہے۔</string>
     <string name="core_plugins_reject_newer_version">اس پلگ ان کو WM کی بورڈ کے نئے ورژن کی ضرورت ہے۔</string>
     <string name="core_plugins_reject_no_name">اس پلگ ان کا کوئی نام نہیں ہے۔</string>
     <string name="core_plugins_reject_no_version">“%1$s” یہ نہیں بتاتا کہ اس کا ورژن کیا ہے۔</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” کا کوئی پینل اور کوئی عمل نہیں ہے، اس لیے اس کے کرنے کے لیے کچھ نہیں ہے۔</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” کی اسکرپٹ %2$d KB سے بڑی ہے۔</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” آپ کے منتخب کردہ متن کو تبدیل کرنے کا کہتا ہے لیکن کوئی عمل شامل نہیں کرتا۔</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” 16 سے زیادہ کارروائیاں شامل کرتا ہے۔</string>
+    <string name="core_plugins_reject_unknown_language">“%1$s” ایک ایسی زبان میں لکھا گیا ہے جسے WM کی بورڈ کا یہ ورژن نہیں چلا سکتا۔ پلگ انز پائتھون میں لکھے جاتے ہیں۔</string>
     <string name="core_plugins_reject_unknown_permission">WM کی بورڈ کا یہ ورژن اجازت \"%1$s\" کو نہیں جانتا۔ ایپ آپ کو یہ نہیں بتا سکتی کہ \"%2$s\" کو کیا کرنے کی اجازت ہے۔</string>
     <string name="core_plugins_reminders_channel_body">وہ یاد دہانیاں جو ایک پلگ ان نے ایپ کو دکھانے کے لیے کہا، ان اوقات پر جو آپ نے پلگ ان میں سیٹ کیے ہیں۔ ہر ایک کا عنوان پلگ ان کا نام ہے۔</string>
     <string name="core_plugins_reminders_channel_title">پلگ ان کی یاد دہانیاں</string>
     <string name="core_plugins_stopped_cancelled">ایپ نے اس پلگ ان کو روک دیا۔</string>
     <string name="core_plugins_stopped_deadline">اس پلگ ان نے بہت زیادہ وقت لیا۔ ایپ نے اسے روک دیا۔</string>
     <string name="core_plugins_stopped_instructions">اس پلگ ان نے ایک وقت میں بہت زیادہ کام کیا۔ ایپ نے اسے روک دیا۔</string>
+    <string name="core_plugins_stopped_memory">اس پلگ ان نے بہت زیادہ ڈیٹا رکھنے کی کوشش کی۔ ایپ نے اسے روک دیا۔</string>
     <string name="core_plugins_stopped_not_responding">یہ پلگ ان جواب دینا بند کر گیا ہے۔ ایپ نے اسے بند کر دیا ہے۔</string>
     <string name="core_plugins_stopped_not_responding_disabled">یہ پلگ ان دوبارہ جواب دینا بند کر گیا ہے۔ ایپ نے اسے بند کر دیا ہے۔</string>
     <string name="core_plugins_stopped_recursion">اس پلگ ان نے خود کو بہت زیادہ بار کال کیا۔ ایپ نے اسے روک دیا۔</string>

@@ -7,7 +7,6 @@
     <string name="core_icons_group_toolbar_title">סרגל כלים</string>
     <string name="core_icons_group_tools_title">כלים</string>
     <string name="core_icons_pack_imported_label">אייקונים מיובאים</string>
-    <string name="core_icons_pack_mine_label">האייקונים שלי</string>
     <plurals name="core_icons_repair_files_ignored">
         <item quantity="one">האפליקציה התעלמה מ-%1$d קובץ. לגרסה זו אין עבורו סמל: %2$s</item>
         <item quantity="other">האפליקציה התעלמה מ-%1$d קבצים. לגרסה זו אין עבורם סמל: %2$s</item>
@@ -57,4 +56,5 @@
     <string name="core_icons_slot_tab_label">מקש Tab</string>
     <string name="core_icons_slot_toolbox_label">ארגז כלים</string>
     <string name="core_icons_slot_toolbox_search_label">חיפוש בתיבת הכלים</string>
+    <string name="core_icons_pack_mine_label">האייקונים שלי</string>
 </resources>

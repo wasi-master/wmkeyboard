@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Cits pakalpojums</string>
     <string name="core_settings_ai_provider_on_device_label">Jūsu ierīcē</string>
+    <string name="core_settings_ai_provider_privatemode_label">Privātais režīms</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Diennakts laiks</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Saullēkts un saulriets</string>
     <string name="core_settings_auto_theme_trigger_system_label">Sistēmas gaišā vai tumšā tēma</string>

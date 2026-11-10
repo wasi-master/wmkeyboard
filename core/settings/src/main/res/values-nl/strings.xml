@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">Andere service</string>
     <string name="core_settings_ai_provider_on_device_label">Op je apparaat</string>
+    <string name="core_settings_ai_provider_privatemode_label">Privémodus</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">Tijdstip</string>
     <string name="core_settings_auto_theme_trigger_sun_label">Zonsopgang en zonsondergang</string>
     <string name="core_settings_auto_theme_trigger_system_label">Systeem licht of donker</string>

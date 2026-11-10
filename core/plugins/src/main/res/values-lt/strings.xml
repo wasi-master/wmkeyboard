@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Šis papildinys nebeturi šio veiksmo.</string>
     <string name="core_plugins_error_no_render">Šis papildinys neturi render() funkcijos.</string>
+    <string name="core_plugins_error_no_transform">Šis papildinys neturi transform() funkcijos.</string>
     <string name="core_plugins_error_not_installed">Šis papildinys neįdiegtas.</string>
+    <string name="core_plugins_error_not_ready">Papildiniai vis dar siunčiami. Bandykite dar kartą po akimirkos.</string>
     <string name="core_plugins_error_script_failed">Scenarijus nepavyko.</string>
     <string name="core_plugins_error_script_missing">Trūksta šio papildinio scenarijaus.</string>
     <string name="core_plugins_error_turned_off">Tas papildinys išjungtas.</string>
     <string name="core_plugins_permission_reminders_label">Rodyti priminimus jūsų nustatytu laiku</string>
+    <string name="core_plugins_permission_selection_label">Pakeisti pasirinktą tekstą, kai bakstelėjate vieną iš jo veiksmų</string>
     <string name="core_plugins_permission_storage_label">Išsaugoti duomenis jūsų įrenginyje</string>
+    <string name="core_plugins_reject_action_input">„%1$s“ turi veiksmą, kuris prašo teksto, kurio ši „WM Keyboard“ versija negali suteikti.</string>
+    <string name="core_plugins_reject_action_no_name">„%1$s“ turi veiksmu be pavadinimo.</string>
+    <string name="core_plugins_reject_actions_need_selection">„%1$s“ prideda veiksmų pasirinktam tekstui, bet neprašo leidimo jo keisti.</string>
+    <string name="core_plugins_reject_bad_action_id">„%1$s“ turi veiksmą, kurio ID trūksta, jis kartojasi arba yra netinkamas. Veiksmo ID sudaro iki 32 mažųjų raidžių, skaičių, brūkšnelių ir apatinių brūkšnelių.</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ turi scenarijų, kuris nėra tinkamas UTF-8 tekstas.</string>
     <string name="core_plugins_reject_bad_id">Šio įskiepio ID netinkamas. ID turi būti nuo 3 iki 64 simbolių ilgio. ID gali sudaryti mažosios raidės, skaičiai, taškai, brūkšneliai ir apatiniai brūkšniai.</string>
     <string name="core_plugins_reject_empty_script">„%1$s“ turi tuščią scenarijų.</string>
+    <string name="core_plugins_reject_lua">„%1$s“ parašyta Lua kalba, kurios WM klaviatūra nebevykdo. Ieškokite Python versijos.</string>
     <string name="core_plugins_reject_missing_script">„%1$s“ neturi savo scenarijaus failo (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Šiam papildiniui reikia naujesnės „WM Keyboard“ versijos.</string>
     <string name="core_plugins_reject_no_name">Šis papildinys neturi pavadinimo.</string>
     <string name="core_plugins_reject_no_version">„%1$s“ nenurodo, kokia tai versija.</string>
+    <string name="core_plugins_reject_nothing_to_show">„%1$s“ neturi skydelio ir jokių veiksmų, todėl nėra ką daryti.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s“ scenarijus yra didesnis nei %2$d KB.</string>
+    <string name="core_plugins_reject_selection_without_actions">„%1$s“ prašo pakeisti pasirinktą tekstą, tačiau neprideda jokių veiksmų.</string>
+    <string name="core_plugins_reject_too_many_actions">„%1$s“ prideda daugiau nei 16 veiksmų.</string>
+    <string name="core_plugins_reject_unknown_language">„%1$s“ parašyta kalba, kurios ši „WM Keyboard“ versija nepalaiko. Papildiniai parašyti „Python“ kalba.</string>
     <string name="core_plugins_reject_unknown_permission">Ši WM Keyboard versija neatpažįsta leidimo „%1$s“. Programa negali pasakyti, ką „%2$s“ leidžiama daryti.</string>
     <string name="core_plugins_reminders_channel_body">Priminimai, kuriuos papildinys paprašė programėlės rodyti jūsų nustatytu laiku. Kiekvieno priminimo pavadinimas yra papildinio pavadinimas.</string>
     <string name="core_plugins_reminders_channel_title">Papildinių priminimai</string>
     <string name="core_plugins_stopped_cancelled">Programa sustabdė šį papildinį.</string>
     <string name="core_plugins_stopped_deadline">Šis papildinys veikė per ilgai. Programa jį sustabdė.</string>
     <string name="core_plugins_stopped_instructions">Šis papildinys vienu metu atliko per daug darbo. Programa jį sustabdė.</string>
+    <string name="core_plugins_stopped_memory">Šis papildinys bandė išsaugoti per daug duomenų. Programėlė jį sustabdė.</string>
     <string name="core_plugins_stopped_not_responding">Šis papildinys nustojo reaguoti. Programa jį uždarė.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Šis papildinys vėl nustojo reaguoti. Programa jį išjungė.</string>
     <string name="core_plugins_stopped_recursion">Šis papildinys per daug kartų iškvietė pats save. Programa jį sustabdė.</string>

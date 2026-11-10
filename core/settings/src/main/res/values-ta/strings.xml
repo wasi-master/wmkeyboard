@@ -4,6 +4,7 @@
 <resources>
     <string name="core_settings_ai_provider_compatible_label">பிற சேவை</string>
     <string name="core_settings_ai_provider_on_device_label">உங்கள் சாதனத்தில்</string>
+    <string name="core_settings_ai_provider_privatemode_label">தனிப்பட்ட முறை</string>
     <string name="core_settings_auto_theme_trigger_schedule_label">நாளின் நேரம்</string>
     <string name="core_settings_auto_theme_trigger_sun_label">சூரிய உதயம் மற்றும் சூரிய அஸ்தமனம்</string>
     <string name="core_settings_auto_theme_trigger_system_label">சிஸ்டம் லைட் அல்லது டார்க்</string>

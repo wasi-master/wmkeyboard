@@ -174,6 +174,7 @@
     <string name="core_tools_photo_topic_wallpapers">वॉलपेपर</string>
     <string name="core_tools_provider_acrcloud_desc">दो सप्ताह के ट्रायल के साथ एक संगीत पहचान सेवा, उसके बाद सशुल्क प्लान। console.acrcloud.com से किसी प्रोजेक्ट के होस्ट, एक्सेस की और एक्सेस सीक्रेट की आवश्यकता होती है। प्रत्येक क्लिप ACRCloud को भेजी जाती है।</string>
     <string name="core_tools_provider_ai_horde_desc">स्वयंसेवकों के कंप्यूटर पर मुफ्त स्टेबल डिफ्यूज़न। बिना कुंजी के काम करता है लेकिन कतार में प्रतीक्षा करता है; aihorde.net से प्राप्त मुफ्त कुंजी आपको कतार में आगे बढ़ा देगी।</string>
+    <string name="core_tools_provider_allratestoday_desc">लगभग 30 मुद्राओं के लिए यूरोपीय केंद्रीय बैंक संदर्भ दरें। कोई कुंजी नहीं।</string>
     <string name="core_tools_provider_anthropic_desc">Anthropic के API के माध्यम से Claude मॉडल, आपकी अपनी कुंजी के साथ।</string>
     <string name="core_tools_provider_asr4all_desc">फ़ोन पर अंग्रेज़ी डिक्टेशन, आपके बोलते ही शब्द दिखाई देते हैं।</string>
     <string name="core_tools_provider_audd_desc">ध्वनि के कुछ सेकंड से अधिकांश जारी किए गए संगीत को पहचानता है। dashboard.audd.io से एक टोकन की आवश्यकता होती है; कुछ सौ पहचान मुफ़्त हैं, उसके बाद यह सशुल्क है। प्रत्येक क्लिप AudD को भेजी जाती है।</string>
@@ -257,6 +258,8 @@
     <string name="core_tools_provider_parakeet_desc">एक बड़ा मॉडल जो फोन पर चलता है और 25 यूरोपीय भाषाओं को समझता है।</string>
     <string name="core_tools_provider_pexels_desc">Pexels से तस्वीरें। एक API कुंजी की आवश्यकता है, जब तक कि इस बिल्ड में एक न हो।</string>
     <string name="core_tools_provider_pollinations_desc">मुफ़्त, बिना किसी कुंजी और बिना किसी खाते के: प्रॉम्प्ट Pollinations को भेजा जाता है, जो मॉडल चुनता है। enter.pollinations.ai से प्राप्त कुंजी इसके नए API को खोलती है और आपको एक मॉडल का नाम चुनने देती है।</string>
+    <string name="core_tools_provider_privatemode">प्राइवेटमोड एआई (Privatemode AI)</string>
+    <string name="core_tools_provider_privatemode_desc">AI जो गोपनीय कंप्यूटिंग में चलता है और आपका पाठ नहीं पढ़ सकता है। अपनी Privatemode API कुंजी दें। कीबोर्ड तब फोन पर प्रत्येक अनुरोध को एन्क्रिप्ट करता है, लेकिन यह सेवा के हार्डवेयर सत्यापन की जांच नहीं करता है। उसकी भी जाँच करवाने के लिए, privatemode-proxy चलाएँ और उसका पता दें, जैसे http://192.168.1.20:8080।</string>
     <string name="core_tools_provider_rapid_shazam">Shazam (अनौपचारिक, RapidAPI के माध्यम से)</string>
     <string name="core_tools_provider_rapid_shazam_desc">RapidAPI पर एक अनौपचारिक लिस्टिंग के माध्यम से Shazam का कैटलॉग, RapidAPI कुंजी के साथ। यह Apple सेवा नहीं है: लिस्टिंग बिना सूचना के बदल सकती है या बंद हो सकती है। प्रत्येक क्लिप RapidAPI को भेजी जाती है।</string>
     <string name="core_tools_provider_recraft_desc">इलस्ट्रेशन, आइकन और वेक्टर-शैली की कला। recraft.ai से एक कुंजी की आवश्यकता है।</string>
@@ -307,6 +310,7 @@
     <string name="core_tools_provider_unsplash_desc">Unsplash से तस्वीरें। एक API कुंजी की आवश्यकता है, जब तक कि इस बिल्ड में एक न हो।</string>
     <string name="core_tools_provider_vision_ocr">आपका विज़न मॉडल</string>
     <string name="core_tools_provider_vision_ocr_desc">एक मॉडल जो OpenAI चैट अनुरोधों का उत्तर देने वाले सर्वर के माध्यम से छवियों को पढ़ता है। इसके लिए पते और मॉडल के नाम की आवश्यकता होती है।</string>
+    <string name="core_tools_provider_vosk_desc">29 भाषाओं के लिए अल्फा सेफेई के छोटे काल्डी मॉडल, प्रत्येक लगभग 40 एमबी, जो फोन पर बोलते ही टाइप हो जाते हैं। पुराने फोन के लिए पर्याप्त हल्का।</string>
     <string name="core_tools_provider_whisper_desc">OpenAI के व्हिस्पर मॉडल, फ़ोन पर चलते हैं। कई भाषाएँ; वॉइस टाइपिंग पेज पर एक मॉडल डाउनलोड करें।</string>
     <string name="core_tools_provider_whistle_desc">एक छोटा, तेज़ मॉडल जो फ़ोन पर चलता है। इसे वॉइस टाइपिंग पेज पर डाउनलोड करें।</string>
     <string name="core_tools_provider_xai_desc">xAI के API के माध्यम से Grok मॉडल, आपकी अपनी कुंजी के साथ।</string>

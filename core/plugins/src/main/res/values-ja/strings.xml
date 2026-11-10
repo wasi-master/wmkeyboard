@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">そのプラグインにはそのアクションがもうありません。</string>
     <string name="core_plugins_error_no_render">このプラグインにはrender()関数がありません。</string>
+    <string name="core_plugins_error_no_transform">このプラグインにはtransform()関数がありません。</string>
     <string name="core_plugins_error_not_installed">そのプラグインはインストールされていません。</string>
+    <string name="core_plugins_error_not_ready">プラグインはまだダウンロード中です。しばらくしてからもう一度お試しください。</string>
     <string name="core_plugins_error_script_failed">スクリプトの実行に失敗しました。</string>
     <string name="core_plugins_error_script_missing">そのプラグインのスクリプトが見つかりません。</string>
     <string name="core_plugins_error_turned_off">そのプラグインはオフになっています。</string>
     <string name="core_plugins_permission_reminders_label">設定した時間にリマインダーを表示する</string>
+    <string name="core_plugins_permission_selection_label">アクションをタップしたときに、選択したテキストを変更します</string>
     <string name="core_plugins_permission_storage_label">デバイスにデータを保存</string>
+    <string name="core_plugins_reject_action_input">「%1$s」には、このバージョンの WM Keyboard が提供できないテキストを要求するアクションが含まれています。</string>
+    <string name="core_plugins_reject_action_no_name">「%1$s」には名前のないアクションが含まれています。</string>
+    <string name="core_plugins_reject_actions_need_selection">「%1$s」は選択されたテキストに対するアクションを追加しますが、変更の許可を求めません。</string>
+    <string name="core_plugins_reject_bad_action_id">“%1$s”には、IDが欠落しているか、重複しているか、無効なアクションが含まれています。アクションIDは、32文字までの小文字のアルファベット、数字、ダッシュ、アンダースコアを使用できます。</string>
     <string name="core_plugins_reject_bad_encoding">「%1$s」には有効なUTF-8テキストではないスクリプトが含まれています。</string>
     <string name="core_plugins_reject_bad_id">このプラグインのIDは無効です。IDは3〜64文字である必要があります。IDには小文字、数字、ドット、ハイフン、アンダースコアを使用できます。</string>
     <string name="core_plugins_reject_empty_script">「%1$s」には空のスクリプトが含まれています。</string>
+    <string name="core_plugins_reject_lua">「%1$s」はLuaで記述されていますが、WM Keyboardでは実行されなくなりました。Python版を探してください。</string>
     <string name="core_plugins_reject_missing_script">「%1$s」にはスクリプトファイル（%2$s）がありません。</string>
     <string name="core_plugins_reject_newer_version">このプラグインには、より新しいバージョンのWM Keyboardが必要です。</string>
     <string name="core_plugins_reject_no_name">このプラグインには名前がありません。</string>
     <string name="core_plugins_reject_no_version">「%1$s」にはバージョン情報がありません。</string>
+    <string name="core_plugins_reject_nothing_to_show">「%1$s」にはパネルもアクションもないため、実行できることは何もありません。</string>
     <string name="core_plugins_reject_script_too_large">「%1$s」のスクリプトが%2$d KBを超えています。</string>
+    <string name="core_plugins_reject_selection_without_actions">「%1$s」は選択したテキストの変更を要求していますが、アクションを追加しません。</string>
+    <string name="core_plugins_reject_too_many_actions">「%1$s」は16を超えるアクションを追加します。</string>
+    <string name="core_plugins_reject_unknown_language">「%1$s」はこのバージョンのWM Keyboardでは実行できない言語で記述されています。プラグインはPythonで記述されています。</string>
     <string name="core_plugins_reject_unknown_permission">このバージョンの WM Keyboard は権限「%1$s」を認識できません。「%2$s」が何を実行できるかを確認できません。</string>
     <string name="core_plugins_reminders_channel_body">プラグインで設定した時間に、プラグインがアプリに表示を要求したリマインダーです。それぞれのタイトルはプラグイン名になります。</string>
     <string name="core_plugins_reminders_channel_title">プラグインのリマインダー</string>
     <string name="core_plugins_stopped_cancelled">アプリがこのプラグインを停止しました。</string>
     <string name="core_plugins_stopped_deadline">このプラグインの処理に時間がかかりすぎたため、アプリによって停止されました。</string>
     <string name="core_plugins_stopped_instructions">このプラグインは一度に過剰な処理を行ったため、アプリによって停止されました。</string>
+    <string name="core_plugins_stopped_memory">このプラグインは過剰なデータを保持しようとしたため、アプリによって停止されました。</string>
     <string name="core_plugins_stopped_not_responding">このプラグインが応答を停止したため、アプリが終了させました。</string>
     <string name="core_plugins_stopped_not_responding_disabled">このプラグインが再び応答しなくなりました。アプリによって無効化されました。</string>
     <string name="core_plugins_stopped_recursion">このプラグインが自身を過剰に呼び出したため、アプリが停止させました。</string>

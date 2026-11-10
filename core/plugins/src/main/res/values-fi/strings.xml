@@ -2,27 +2,41 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_plugins_error_action_missing">Kyseisellä lisäosalla ei enää ole kyseistä toimintoa.</string>
     <string name="core_plugins_error_no_render">Tällä liitännäisellä ei ole render()-funktiota.</string>
+    <string name="core_plugins_error_no_transform">Tällä liitännäisellä ei ole transform()-funktiota.</string>
     <string name="core_plugins_error_not_installed">Kyseistä liitännäistä ei ole asennettu.</string>
+    <string name="core_plugins_error_not_ready">Lisäosia ladataan vielä. Yritä hetken kuluttua uudelleen.</string>
     <string name="core_plugins_error_script_failed">Skripti epäonnistui.</string>
     <string name="core_plugins_error_script_missing">Kyseisen liitännäisen komentosarja puuttuu.</string>
     <string name="core_plugins_error_turned_off">Kyseinen liitännäinen on pois päältä.</string>
     <string name="core_plugins_permission_reminders_label">Näytä muistutukset asettaminasi aikoina</string>
+    <string name="core_plugins_permission_selection_label">Muuta valitsemaasi tekstiä, kun napautat jotakin sen toiminnoista</string>
     <string name="core_plugins_permission_storage_label">Tallenna tietoja laitteellesi</string>
+    <string name="core_plugins_reject_action_input">“%1$s”-kohteella on toiminto, joka pyytää tekstiä, jota tämä WM Keyboardin versio ei voi sille antaa.</string>
+    <string name="core_plugins_reject_action_no_name">\"%1$s\" sisältää toiminnon ilman nimeä.</string>
+    <string name="core_plugins_reject_actions_need_selection">\"%1$s\" lisää toimintoja valitulle tekstille, mutta ei pyydä lupaa sen muuttamiseen.</string>
+    <string name="core_plugins_reject_bad_action_id">Kohteella ”%1$s” on toiminto, jonka tunnus puuttuu, toistuu tai ei kelpaa. Toiminnon tunnus koostuu enintään 32 pienestä kirjaimesta, numerosta, viivasta ja alaviivasta.</string>
     <string name="core_plugins_reject_bad_encoding">”%1$s” sisältää skriptin, joka ei ole kelvollista UTF-8-tekstiä.</string>
     <string name="core_plugins_reject_bad_id">Tämän liitännäisen tunnus ei ole kelvollinen. Tunnuksen on oltava 3–64 merkkiä pitkä. Tunnus voi sisältää pieniä kirjaimia, numeroita, pisteitä, viivoja ja alaviivoja.</string>
     <string name="core_plugins_reject_empty_script">”%1$s” sisältää tyhjän skriptin.</string>
+    <string name="core_plugins_reject_lua">“%1$s” on kirjoitettu Lualla, jota WM Keyboard ei enää suorita. Etsi sen Python-versio.</string>
     <string name="core_plugins_reject_missing_script">Kohteelta ”%1$s” puuttuu skriptitiedosto (%2$s).</string>
     <string name="core_plugins_reject_newer_version">Tämä laajennus vaatii WM Keyboardin uudemman version.</string>
     <string name="core_plugins_reject_no_name">Tällä liitännäisellä ei ole nimeä.</string>
     <string name="core_plugins_reject_no_version">”%1$s” ei kerro, mikä versio se on.</string>
+    <string name="core_plugins_reject_nothing_to_show">“%1$s” ei sisällä paneelia tai toimintoja, joten sillä ei ole mitään tehtävää.</string>
     <string name="core_plugins_reject_script_too_large">”%1$s” sisältää skriptin, joka on suurempi kuin %2$d kt.</string>
+    <string name="core_plugins_reject_selection_without_actions">“%1$s” pyytää muuttamaan valitsemaasi tekstiä, mutta ei lisää mitään toimintoja.</string>
+    <string name="core_plugins_reject_too_many_actions">“%1$s” lisää enemmän kuin 16 toimintoa.</string>
+    <string name="core_plugins_reject_unknown_language">\"%1$s\" on kirjoitettu kielellä, jota tämä WM Keyboard -versio ei voi suorittaa. Liitännäiset on kirjoitettu Pythonilla.</string>
     <string name="core_plugins_reject_unknown_permission">Tämä WM Keyboardin versio ei tunne lupaa ”%1$s”. Sovellus ei voi kertoa, mitä ”%2$s” saa tehdä.</string>
     <string name="core_plugins_reminders_channel_body">Muistutukset, joita liitännäinen on pyytänyt sovellusta näyttämään, liitännäisessä asettaminasi aikoina. Jokaisen otsikko on liitännäisen nimi.</string>
     <string name="core_plugins_reminders_channel_title">Lisäosien muistutukset</string>
     <string name="core_plugins_stopped_cancelled">Sovellus pysäytti tämän liitännäisen.</string>
     <string name="core_plugins_stopped_deadline">Tämä liitännäinen kesti liian kauan. Sovellus pysäytti sen.</string>
     <string name="core_plugins_stopped_instructions">Tämä laajennus teki liikaa työtä kerralla. Sovellus pysäytti sen.</string>
+    <string name="core_plugins_stopped_memory">Tämä liitännäinen yritti säilyttää liikaa tietoa. Sovellus pysäytti sen.</string>
     <string name="core_plugins_stopped_not_responding">Tämä liitännäinen lakkasi vastaamasta. Sovellus sulki sen.</string>
     <string name="core_plugins_stopped_not_responding_disabled">Tämä laajennus lakkasi vastaamasta uudelleen. Sovellus kytki sen pois päältä.</string>
     <string name="core_plugins_stopped_recursion">Tämä laajennus kutsui itseään liian monta kertaa. Sovellus pysäytti sen.</string>
