@@ -11,6 +11,8 @@
     <string name="community_publish_description_label">Description</string>
     <string name="community_publish_tags_label">Tags</string>
     <string name="community_publish_tags_hint">Separated by commas: dark, pastel, minimal</string>
+    <string name="community_publish_locked_warning">GitHub won’t let you change what the app fills in on its form: anything you type there over it snaps back. Check the name, description and tags here first, or leave the description and tags to type on GitHub.</string>
+    <string name="community_publish_type_on_github">Type the description and tags on GitHub</string>
     <string name="community_publish_license_label">Licence</string>
     <string name="community_publish_license_cc0">Anyone can use and change it, no credit needed.</string>
     <string name="community_publish_license_cc_by">Anyone can use and change it if they credit you.</string>

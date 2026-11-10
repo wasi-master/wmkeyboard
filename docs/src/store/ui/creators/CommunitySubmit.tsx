@@ -9,7 +9,7 @@ import { attachment, COMMUNITY_URL, KINDS, LICENSES, plan, type Kind, type Plan 
 import { slugify } from '../../lib/util';
 import { Notice } from '../common';
 import { IconExternal, IconGlobe } from '../icons';
-import { saveBytes, Select, Tags, Text } from './shared';
+import { saveBytes, Select, Tags, Text, Toggle } from './shared';
 
 const LICENSE_NOTES: Record<string, string> = {
 	'CC0-1.0': 'Anyone can use and change it, no credit needed.',
@@ -32,11 +32,22 @@ export function CommunitySubmit({ kind, name, json, file, basedOn, disabled }: {
 	const [tags, setTags] = useState<string[]>([]);
 	const [license, setLicense] = useState<string>(LICENSES[0]);
 	const [updates, setUpdates] = useState('');
+	// GitHub's issue form keeps every box the link fills in as it was: typing
+	// there snaps it back. On leaves description and tags out of the link so
+	// they can be typed and edited on GitHub.
+	const [typeOnGitHub, setTypeOnGitHub] = useState(false);
 	const [made, setMade] = useState<Plan | null>(null);
 
 	const submit = async () => {
 		const payload = file ? file() : (json ?? '');
-		const p = plan(kind, { name, description, tags, license, updates, basedOn: basedOn ?? '' }, payload);
+		const p = plan(kind, {
+			name,
+			description: typeOnGitHub ? '' : description,
+			tags: typeOnGitHub ? [] : tags,
+			license,
+			updates,
+			basedOn: basedOn ?? '',
+		}, payload);
 		setMade(p);
 		if (p.tier === 'link') window.open(p.url, '_blank', 'noopener');
 		else if (p.tier === 'paste') await navigator.clipboard?.writeText(p.encoded).catch(() => undefined);
@@ -50,8 +61,14 @@ export function CommunitySubmit({ kind, name, json, file, basedOn, disabled }: {
 				Opens an issue in the <a href={COMMUNITY_URL} target="_blank" rel="noopener">community repository</a> with your {noun} filled in. A bot checks it and shows a preview; once approved, anyone can install it. Needs a GitHub account.
 			</p>
 			<div style="display:flex;flex-direction:column;gap:0.6rem">
-				<Text label="Description" value={description} onInput={setDescription} />
-				<Tags label="Tags" value={tags} onInput={setTags} placeholder="dark, pastel, minimal" />
+				{!typeOnGitHub && <Text label="Description" value={description} onInput={setDescription} />}
+				{!typeOnGitHub && <Tags label="Tags" value={tags} onInput={setTags} placeholder="dark, pastel, minimal" />}
+				<Toggle
+					label="Type the description and tags on GitHub"
+					value={typeOnGitHub}
+					onInput={setTypeOnGitHub}
+					help="GitHub won't let you change what this fills in on its form: anything you type there over it snaps back. Check the name, description and tags here first, or tick this to type the description and tags on GitHub."
+				/>
 				<Select label="Licence" value={license} onInput={setLicense} options={LICENSES} help={LICENSE_NOTES[license]} />
 				<Text label="Replaces your earlier one (optional)" mono value={updates} onInput={setUpdates} help={`The id of a ${noun} you published before, to send a new version.`} />
 				{basedOn && <span class="st-small st-muted">Credited as a remix of <code>{basedOn}</code>.</span>}

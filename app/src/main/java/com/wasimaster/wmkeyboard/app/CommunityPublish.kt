@@ -12,10 +12,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -28,10 +31,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.wasimaster.wmkeyboard.BuildConfig
@@ -226,6 +231,11 @@ private fun CommunityPublishDialog(
     var tags by rememberSaveable { mutableStateOf("") }
     var license by rememberSaveable { mutableStateOf(CommunitySubmission.LICENSES.first()) }
     var updates by rememberSaveable { mutableStateOf("") }
+    // GitHub's issue form keeps every box the link fills in as it was: typing
+    // there snaps it back. Off sends description and tags in the link (one
+    // tap to submit); on leaves those boxes empty, so they can be typed and
+    // edited on GitHub.
+    var typeOnGitHub by rememberSaveable { mutableStateOf(false) }
     var step by remember { mutableStateOf(PublishStep.FORM) }
     var error by remember { mutableStateOf<String?>(null) }
     var plan by remember { mutableStateOf<CommunitySubmission.Plan?>(null) }
@@ -236,8 +246,8 @@ private fun CommunityPublishDialog(
 
     fun fields() = CommunitySubmission.Fields(
         name = name.trim(),
-        description = description,
-        tags = tags.split(','),
+        description = if (typeOnGitHub) "" else description,
+        tags = if (typeOnGitHub) emptyList() else tags.split(','),
         license = license,
         updates = updates,
         basedOn = credit?.key.orEmpty(),
@@ -325,22 +335,41 @@ private fun CommunityPublishDialog(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
-                    OutlinedTextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        label = { Text(stringResource(R.string.community_publish_description_label)) },
-                        minLines = 2,
-                        maxLines = 4,
-                        modifier = Modifier.fillMaxWidth(),
+                    if (!typeOnGitHub) {
+                        OutlinedTextField(
+                            value = description,
+                            onValueChange = { description = it },
+                            label = { Text(stringResource(R.string.community_publish_description_label)) },
+                            minLines = 2,
+                            maxLines = 4,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        OutlinedTextField(
+                            value = tags,
+                            onValueChange = { tags = it },
+                            label = { Text(stringResource(R.string.community_publish_tags_label)) },
+                            supportingText = { Text(stringResource(R.string.community_publish_tags_hint)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    Text(
+                        stringResource(R.string.community_publish_locked_warning),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    OutlinedTextField(
-                        value = tags,
-                        onValueChange = { tags = it },
-                        label = { Text(stringResource(R.string.community_publish_tags_label)) },
-                        supportingText = { Text(stringResource(R.string.community_publish_tags_hint)) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .toggleable(value = typeOnGitHub, role = Role.Checkbox, onValueChange = { typeOnGitHub = it }),
+                    ) {
+                        Checkbox(checked = typeOnGitHub, onCheckedChange = null)
+                        Text(
+                            stringResource(R.string.community_publish_type_on_github),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
                     Text(
                         stringResource(R.string.community_publish_license_label),
                         style = MaterialTheme.typography.labelLarge,

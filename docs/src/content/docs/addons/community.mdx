@@ -22,7 +22,7 @@ The dialog asks for:
 - **Licence**: CC0-1.0 (anyone can use and change it, no credit needed), CC-BY-4.0 (they must credit you) or CC-BY-SA-4.0 (they must credit you and share their changes the same way).
 - **Replaces your earlier one**, optional: the id of a theme you published before, to send a new version of it instead of a second theme.
 
-**Open GitHub** opens a new issue in the community repository with all of that filled in. You check the box saying you made it, or have the right to share every picture in it, and press Submit. Nothing is sent from the app itself. The issue is filed by you, under your account, which is how the repository knows a later update comes from the same person.
+**Open GitHub** opens a new issue in the community repository with all of that filled in. GitHub won't let you change what the app fills in: typing in one of those boxes on its form snaps it back to what the app sent. So check the name, description and tags in the dialog first. If you'd rather write the description and tags on GitHub, tick **Type the description and tags on GitHub**; the dialog then hides those two boxes and leaves them empty on the form. You check the box saying you made it, or have the right to share every picture in it, and press Submit. Nothing is sent from the app itself. The issue is filed by you, under your account, which is how the repository knows a later update comes from the same person.
 
 ## Sending a layout
 
@@ -79,6 +79,7 @@ Only themes and layouts carry a remix credit. A theme or layout installed from a
 
 ## Details
 
+- GitHub leaves the **License** box on its form empty even though the app sends your choice, so pick it there again before you press Submit.
 - Removing the community repository from Addons works like removing the others: permanent, and the **Community themes** row then offers to add it back instead of opening it.
 - The issue is always filed on GitHub, even when the F-Droid build's Servers screen points the repository at a mirror.
 - Your theme's own id and any background file paths are never sent; the export already replaces them, and the app installs a published theme under a fresh id.
