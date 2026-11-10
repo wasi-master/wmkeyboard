@@ -307,6 +307,7 @@ import com.wasimaster.wmkeyboard.core.prediction.PhoneticScheme
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticScript
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticScriptChoices
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticSchemes
+import com.wasimaster.wmkeyboard.core.prediction.PhoneticTail
 import com.wasimaster.wmkeyboard.core.prediction.RomanizedConverter
 import com.wasimaster.wmkeyboard.core.prediction.RomanizedDictation
 import com.wasimaster.wmkeyboard.core.prediction.Revision
@@ -20123,6 +20124,29 @@ open class WMKeyboardService : InputMethodService() {
             composing.setLength(length - 1)
             commitComposing(ic, autocorrect = false)
             ic.commitText(COMPOUND_HYPHEN.toString(), 1)
+            ic.endBatchEdit()
+            return true
+        }
+        // A mark a phonetic layout took into the word and its rules still write
+        // as itself (Borno's lone comma, Telegram 7029) goes in after the word,
+        // the same way: the word commits and is learned without it.
+        val composer = _uiState.value.composer
+        val markTail = if (composer.phoneticLanguage != null && composer.isRomanBuffer) {
+            PhoneticTail.of(composing.toString(), composer::composeBuffer)
+        } else {
+            ""
+        }
+        if (markTail.isNotEmpty()) {
+            ic.beginBatchEdit()
+            repeat(markTail.length) {
+                val length = composing.length
+                if (composingTouch.size == length) composingTouch.removeAt(length - 1)
+                if (composingKeys.size == length) composingKeys.removeAt(length - 1)
+                if (composingHints.size == length) composingHints.removeAt(length - 1)
+                composing.setLength(length - 1)
+            }
+            commitComposing(ic, autocorrect, fixApostrophes, expandPatterns)
+            ic.commitText(markTail, 1)
             ic.endBatchEdit()
             return true
         }

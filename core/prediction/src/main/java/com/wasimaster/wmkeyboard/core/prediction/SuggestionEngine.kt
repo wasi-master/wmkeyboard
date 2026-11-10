@@ -4377,6 +4377,13 @@ class SuggestionEngine(
         previousWord: String?,
         previousWord2: String?,
     ): PhoneticReadings {
+        // A mark the rules write as it is (Borno's lone comma) is no part of
+        // the word to look up: ranked without it and given back after.
+        val tail = PhoneticTail.of(composing, backend.scheme.transliterate)
+        if (tail.isNotEmpty()) {
+            val word = phoneticReadings(backend, composing.dropLast(tail.length), limit, previousWord, previousWord2)
+            return PhoneticReadings(word.words.map { it + tail }, word.uncorrected?.let { it + tail })
+        }
         val spellings = backend.spellings
         val index = backend.index
         val phonetic = backend.scheme.transliterate(composing)
