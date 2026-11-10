@@ -323,6 +323,8 @@
     <string name="ime_disabled_translate_same_language">The text is already in the language you translate to.</string>
     <string name="ime_disabled_media_app_blocks">The app that is playing does not allow this.</string>
     <string name="ime_disabled_voice_undo">Nothing to undo yet. Undo takes back the last phrase you spoke.</string>
+    <string name="ime_disabled_correction_invalid">Type a different word to correct to. The word being corrected needs at least 3 letters, and the fix can be one word, or two for a missed space.</string>
+    <string name="ime_word_correct_saved">\"<xliff:g id="typed" example="kagay">%1$s</xliff:g>\" will be corrected to \"<xliff:g id="fixed" example="lagay">%2$s</xliff:g>\"</string>
     <string name="ime_disabled_spell_unchanged">Change the spelling first. An empty or unchanged spelling has nothing to apply.</string>
     <string name="ime_disabled_clip_tidy">Select a text clip first. Tidy works on text, not on images.</string>
     <string name="ime_disabled_clip_combine">Select two or more text clips to combine them.</string>

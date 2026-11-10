@@ -1109,6 +1109,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_block_offensive_title) { Icons.Outlined.Block }
         put(R.string.typing_auto_apostrophe_title) { Icons.Outlined.Spellcheck }
         put(R.string.typing_auto_capitalize_title) { Icons.Outlined.KeyboardCapslock }
+        put(R.string.typing_auto_capitalize_words_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.typing_double_space_title) { Icons.Outlined.SpaceBar }
         put(R.string.typing_double_space_window_title) { Icons.Outlined.Timer }
         put(R.string.typing_auto_space_punctuation_title) { Icons.Outlined.SpaceBar }

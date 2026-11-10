@@ -122,6 +122,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FolderOpen
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Spellcheck
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.InsertDriveFile
@@ -6578,6 +6579,14 @@ internal fun RowScope.LatinSuggestionChips(
                         icon = Icons.Outlined.KeyboardArrowDown,
                     ) { act(WordMenuAction.RankStep(held, heldFacts.rankSteps - 1)) }
                 }
+                // About the held word: what autocorrect should turn it into,
+                // typed on the spelling bar and kept as a learned correction.
+                if (WordMenuItem.CORRECT in menuItems && held.trim().length >= CORRECTABLE_MIN_LENGTH) {
+                    WordMenuRow(
+                        label = stringResource(R.string.ime_word_menu_correct, held),
+                        icon = Icons.Outlined.Spellcheck,
+                    ) { act(WordMenuAction.CorrectTo(held)) }
+                }
                 // About the caret's word too, like the search above: take it
                 // back out and type it again (#844), with no binding needed.
                 val retypable = heldFacts.retypable
@@ -6600,6 +6609,9 @@ internal fun RowScope.LatinSuggestionChips(
         }
     }
 }
+
+/** Autocorrect never reads a shorter word, so it has nothing to correct. */
+private const val CORRECTABLE_MIN_LENGTH = 3
 
 /** One item of the held-word menu: an icon and a label. */
 @Composable

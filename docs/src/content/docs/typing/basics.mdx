@@ -75,6 +75,8 @@ You can also hold <KeyCap>Shift</KeyCap> and type with another finger, the way a
 
 Auto-capitalization arms Shift for you at the start of a sentence, but only when three things line up: **Automatic capital letters** is on (the default), the field is a plain text field rather than a structured keypad, and the active language's script has letter case at all. Bangla, for instance, doesn't, so auto-capitalize never fires while you type it. It re-checks after every sentence-ending mark (`.`, `!`, `?`, `।`) and whenever you move the cursor or switch fields. A mark inside a quotation or a bracket that opened in the middle of a sentence ends only the quoted words, not the sentence: `An "exclamation!" is` carries on in lower case. When the quotation is the whole sentence, as in `"Stop!" Then`, the next word gets its capital. Caps Lock is off limits to it, so an all-caps line you locked in stays locked in.
 
+**Capitalize every word**, under **Automatic capital letters**, arms Shift after every space as well, so "new york city" comes out as "New York City". It is off by default. Fields that ask for no capitals at all, such as email addresses, web addresses and passwords, keep their lower case even with it on.
+
 Switching language re-checks it too whenever either side has no letter case. On Arabic, Bangla and the like, Shift opens a second set of letters rather than capitals, so a Shift armed or locked on English is dropped when you switch to one of them, and the keyboard opens on its plain letters. Switching back to English at the start of a sentence arms Shift again. Between two languages that both have case, English and Russian say, Shift stays as it was.
 
 <SettingsPath path="Typing / Automatic corrections" />

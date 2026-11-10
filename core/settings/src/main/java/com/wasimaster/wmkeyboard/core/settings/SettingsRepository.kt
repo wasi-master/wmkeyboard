@@ -2906,6 +2906,12 @@ data class AutoTextSettings(
     val apostrophe: Boolean = true,
     /** Capitalize the first letter of a sentence. */
     val capitalize: Boolean = true,
+    /**
+     * Capitalize the first letter of every word, not only each sentence's.
+     * Rides on [capitalize], and only in fields that ask for capitals at all:
+     * an email address or a web address keeps its lower case.
+     */
+    val capitalizeWords: Boolean = false,
     /** Double-tapping space commits ". " in place of the two spaces. */
     val doubleSpacePeriod: Boolean = true,
     /** Double-tapping space inserts a tab character (wins over the period). */
@@ -10127,6 +10133,9 @@ enum class WordMenuItem {
 
     /** "Suggest higher" and "Suggest lower", a rank step each (#970). */
     RANK,
+
+    /** "Correct to…": teach autocorrect a fix for the held word. */
+    CORRECT,
 }
 
 /**
@@ -11513,6 +11522,7 @@ class SettingsRepository(private val context: Context) {
         private val AUTOCORRECT_OFF_LANGS = stringSetPreferencesKey("autocorrect_off_langs")
         private val DICTIONARY_CAPITALS = booleanPreferencesKey("dictionary_capitals")
         private val AUTO_CAPITALIZE = booleanPreferencesKey("auto_capitalize")
+        private val AUTO_CAPITALIZE_WORDS = booleanPreferencesKey("auto_capitalize_words")
         private val DOUBLE_SPACE_PERIOD = booleanPreferencesKey("double_space_period")
         private val DOUBLE_SPACE_TAB = booleanPreferencesKey("double_space_tab")
         private val AUTO_SPACE_AFTER_PUNCTUATION =
@@ -11637,6 +11647,9 @@ class SettingsRepository(private val context: Context) {
 
         /** The same for [WordMenuItem.RANK] (#970): a set stored without it predates it. */
         private const val WORD_MENU_RANK_MARK = "~rank"
+
+        /** The same for [WordMenuItem.CORRECT]. */
+        private const val WORD_MENU_CORRECT_MARK = "~correct"
         private val SYNONYM_SOURCES = stringPreferencesKey("synonym_sources")
         private val WORD_RANK_CONTROL = stringPreferencesKey("word_rank_control")
         private val DELETE_EDITS_IMPORTED_LISTS = booleanPreferencesKey("delete_edits_imported_lists")
@@ -13747,6 +13760,7 @@ class SettingsRepository(private val context: Context) {
         AutoTextSettings(
             apostrophe = p[AUTO_APOSTROPHE] ?: defaults.autoText.apostrophe,
             capitalize = p[AUTO_CAPITALIZE] ?: defaults.autoText.capitalize,
+            capitalizeWords = p[AUTO_CAPITALIZE_WORDS] ?: defaults.autoText.capitalizeWords,
             doubleSpacePeriod = p[DOUBLE_SPACE_PERIOD] ?: defaults.autoText.doubleSpacePeriod,
             doubleSpaceTab = p[DOUBLE_SPACE_TAB] ?: defaults.autoText.doubleSpaceTab,
             spaceAfterPunctuation = p[AUTO_SPACE_AFTER_PUNCTUATION]
@@ -14482,7 +14496,8 @@ class SettingsRepository(private val context: Context) {
                 ?.let { stored ->
                     val items = stored.mapNotNullTo(mutableSetOf()) { runCatching { WordMenuItem.valueOf(it) }.getOrNull() }
                     val withSynonyms = if (WORD_MENU_SYNONYMS_MARK in stored) items else items + WordMenuItem.SYNONYMS
-                    if (WORD_MENU_RANK_MARK in stored) withSynonyms else withSynonyms + WordMenuItem.RANK
+                    val withRank = if (WORD_MENU_RANK_MARK in stored) withSynonyms else withSynonyms + WordMenuItem.RANK
+                    if (WORD_MENU_CORRECT_MARK in stored) withRank else withRank + WordMenuItem.CORRECT
                 }
                 ?: defaults.suggestionStrip.wordMenuItems,
             synonymSources = p[SYNONYM_SOURCES]?.let(SynonymSources::decode)
@@ -20710,6 +20725,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setAutoCapitalize(value: Boolean) =
         editPrefs { it[AUTO_CAPITALIZE] = value }
 
+    suspend fun setAutoCapitalizeWords(value: Boolean) =
+        editPrefs { it[AUTO_CAPITALIZE_WORDS] = value }
+
     suspend fun setDoubleSpacePeriod(value: Boolean) =
         editPrefs { it[DOUBLE_SPACE_PERIOD] = value }
 
@@ -21404,7 +21422,7 @@ class SettingsRepository(private val context: Context) {
     /** Replaces the whole set of optional held-word menu items (#99). */
     suspend fun setWordMenuItems(value: Set<WordMenuItem>) =
         editPrefs {
-            it[WORD_MENU_ITEMS] = value.mapTo(mutableSetOf(WORD_MENU_SYNONYMS_MARK, WORD_MENU_RANK_MARK)) { item -> item.name }
+            it[WORD_MENU_ITEMS] = value.mapTo(mutableSetOf(WORD_MENU_SYNONYMS_MARK, WORD_MENU_RANK_MARK, WORD_MENU_CORRECT_MARK)) { item -> item.name }
         }
 
     /** Replaces the synonym sources, order and switches together (#321). */

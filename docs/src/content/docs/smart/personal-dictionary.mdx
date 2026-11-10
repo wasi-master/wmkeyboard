@@ -82,6 +82,7 @@ Press and hold any word on the suggestion strip and a small menu opens about it.
 - **Search all words for "word"** appears when the cursor sits inside a word a swipe wrote and that swipe's path is still kept. Like **Add**, it is about the word under the cursor rather than the one you held. It reads the stroke again against every word list you have, past whatever limit glide typing normally works under, and fills the strip with the answers, which is the only way back to a word the decoder was never allowed to offer. See [Going back to a misread swipe](/typing/glide-typing/#going-back-to-a-misread-swipe).
 - **Synonyms for "word"** lists words with the same meaning as the word you held, grouped by part of speech and, where the source gives one, by meaning. Tap one and it goes in place of the word, exactly as if you had picked it off the strip: it replaces the word you are typing, the word the cursor is in, or the word a swipe just wrote, and it takes that word's capitals, so "Happy" at the start of a sentence becomes "Glad". Held on a next-word prediction, it types the synonym as the next word. It appears for English words, on a keyboard with English among its languages. See [Synonyms](#synonyms) below for where the words come from.
 - **Suggest "word" higher** and **Suggest "word" lower** move the word one rank step up or down, the same steps the [slide](#sliding-a-held-word) and the word card set, without the gesture. Not offered for a word on the blacklist.
+- **Correct "word" to…** teaches autocorrect a fix for the word you held. The spelling bar opens on it in the strip's row; edit it into the word you meant and press ✓, and from then on that typo is corrected for you. The fix goes into [Learned corrections](/smart/autocorrect/#learning-from-your-own-fixes), where you can change or remove it. Offered for words of three letters or more.
 - **Edit** is always there. It opens the word card.
 
 ### Sliding a held word
@@ -137,7 +138,7 @@ Then the rank controls. Which of them the card shows is a setting, **Adjust rank
 - **Learned weight** edits the same count the dictionary screen shows, with the same minus and plus buttons stepping a decade at a time. Lowering it to "Not learned" forgets the word. Raising it on a word the keyboard has not learned adds the word at that weight. It cannot push a word below a word list's own order, since the count only ever adds.
 - **Rank adjustment** keeps a separate up-or-down setting for the word, from −10 to +10, that the keyboard applies on top of every list. Any word can move either way, a word from a downloaded list included, and what the keyboard learned is untouched. Adjustments show up in a **Rank adjustments** group at the bottom of the dictionary screen. Tap one to type or step its value, or use its button to reset it. They never affect autocorrect, only the order of the strip.
 
-Which items the menu shows is up to you. **Word menu** under <SettingsPath path="Typing / Suggestions" /> is a row of chips for **Never suggest**, **Add**, **Delete**, **Synonyms** and **Suggest higher or lower**; turn one off and it stays off the menu. **Edit** cannot be turned off, because the card carries the other three anyway, and neither can **Search all words**, which only appears where there is a stroke to search at all.
+Which items the menu shows is up to you. **Word menu** under <SettingsPath path="Typing / Suggestions" /> is a row of chips for **Never suggest**, **Add**, **Delete**, **Synonyms**, **Suggest higher or lower** and **Correct to**; turn one off and it stays off the menu. **Edit** cannot be turned off, because the card carries the other three anyway, and neither can **Search all words**, which only appears where there is a stroke to search at all.
 
 ## Capitals
 
@@ -263,7 +264,7 @@ See [Incognito & secure fields](/privacy/incognito/) for the rest of how incogni
 | Learn a word after | Once | Typing / Suggestions |
 | Remember a new word after | 3 | Typing / Suggestions |
 | Ask before saving new words | Off | Typing / Suggestions |
-| Word menu | Never suggest, Add, Delete, Synonyms, Suggest higher or lower | Typing / Suggestions |
+| Word menu | Never suggest, Add, Delete, Synonyms, Suggest higher or lower, Correct to | Typing / Suggestions |
 | Adjust rank changes | Both | Typing / Suggestions |
 | Back up with Android | Off | Privacy / Android backup |
 | Include "Dictionary" in export | Off | Backup & restore / What goes in an export |

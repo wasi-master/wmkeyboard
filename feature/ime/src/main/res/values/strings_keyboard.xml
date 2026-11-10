@@ -250,6 +250,9 @@
     <string name="ime_word_card_keep_capitals_hint">Stops the keyboard relearning the word\'s capitals from how you type it. Words the keyboard has not learned have no spelling to keep — change the spelling to teach it one.</string>
     <!-- The spelling bar, before anything has been typed into it. %1$s is the
          word being respelled. -->
+    <string name="ime_word_menu_correct">Correct \"<xliff:g id="word" example="kagay">%1$s</xliff:g>\" to…</string>
+    <string name="ime_word_correct_hint">Type what \"<xliff:g id="word" example="kagay">%1$s</xliff:g>\" should become</string>
+    <string name="ime_word_correct_label"><xliff:g id="word" example="kagay">%1$s</xliff:g> →</string>
     <string name="ime_word_spell_hint">Type a new spelling for \"<xliff:g id="word" example="teh">%1$s</xliff:g>\"</string>
     <!-- Screen reader names of the spelling bar's buttons. -->
     <string name="ime_word_spell_apply_desc">Use this spelling</string>

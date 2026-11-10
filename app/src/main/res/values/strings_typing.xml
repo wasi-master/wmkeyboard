@@ -186,6 +186,9 @@
 
     <string name="typing_auto_capitalize_title">Automatic capital letters</string>
     <string name="typing_auto_capitalize_subtitle">Put a capital letter at the start of each sentence</string>
+    <string name="typing_auto_capitalize_words_title">Capitalize every word</string>
+    <string name="typing_auto_capitalize_words_subtitle">Put a capital letter at the start of each word, not just each sentence</string>
+    <string name="typing_auto_capitalize_words_info">Shift turns on by itself after every space, so \"new york city\" comes out as \"New York City\". Press shift before a word to type it in lower case. This works only in the fields that ask for capitals, so email addresses, web addresses and passwords keep their lower case.</string>
     <string name="typing_auto_capitalize_info">Shift turns on by itself at the start of a text field, and after the punctuation that ends a sentence (. ! ? ।). This happens only in the fields that ask for sentence capitals, and only in the scripts that have capital letters, which are Latin, Cyrillic, Greek and Armenian. Nothing changes in Bengali or any other script without letter case. The keyboard never changes caps lock by itself.</string>
 
 
@@ -1286,6 +1289,7 @@
     <string name="typing_word_menu_item_delete">Delete</string>
     <string name="typing_word_menu_item_synonyms">Synonyms</string>
     <string name="typing_word_menu_item_rank">Suggest higher or lower</string>
+    <string name="typing_word_menu_item_correct">Correct to</string>
     <string name="typing_synonym_sources_title">Synonym sources</string>
     <string name="typing_synonym_sources_subtitle">Where the word menu looks for synonyms, in order</string>
     <string name="typing_synonym_sources_info">The keyboard asks the first source that is on. When it has no synonyms for the word, or cannot be reached, the keyboard asks the next one. Drag a source to change the order, and turn off a source to never ask it. Online sources receive only the word you held, and a look-up is not stopped by Data saver, because you ask for it.</string>

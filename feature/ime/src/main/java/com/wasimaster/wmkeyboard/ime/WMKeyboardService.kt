@@ -52824,6 +52824,7 @@ open class WMKeyboardService : InputMethodService() {
             is WordMenuAction.Retype -> if (retypeTarget() == action.word) retypeWord()
             is WordMenuAction.Synonyms -> openSynonyms(action.word)
             is WordMenuAction.RankStep -> onSuggestionRankSlide(action.word, action.steps, block = false)
+            is WordMenuAction.CorrectTo -> startWordSpell(action.word, correcting = true)
         }
     }
 
@@ -53154,6 +53155,18 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     fun onWordCardAction(action: WordCardAction) {
+        // The spelling bar's own actions first: opened from the held-word
+        // menu's "Correct to…", it stands without a card behind it.
+        when (action) {
+            WordCardAction.CommitSpelling -> return commitWordSpell()
+            WordCardAction.CancelSpelling -> return cancelWordSpell()
+            WordCardAction.PasteSpelling -> {
+                vibrate()
+                return pasteIntoWordSpell()
+            }
+            is WordCardAction.SelectSpelling -> return wordSpellEdit { it.selected(action.start, action.end) }
+            else -> Unit
+        }
         val card = _uiState.value.wordCard ?: return
         when (action) {
             is WordCardAction.SetLearnedWeight -> {
@@ -53171,13 +53184,8 @@ open class WMKeyboardService : InputMethodService() {
                 setCasePinned(card.word, action.pinned)
                 publishWordCard(card.word)
             }
-            WordCardAction.CommitSpelling -> commitWordSpell()
-            WordCardAction.CancelSpelling -> cancelWordSpell()
-            WordCardAction.PasteSpelling -> {
-                vibrate()
-                pasteIntoWordSpell()
-            }
-            is WordCardAction.SelectSpelling -> wordSpellEdit { it.selected(action.start, action.end) }
+            WordCardAction.CommitSpelling, WordCardAction.CancelSpelling, WordCardAction.PasteSpelling,
+            is WordCardAction.SelectSpelling -> Unit
             WordCardAction.Add -> {
                 card.typed?.let { addTypedWord(it, composing = !card.fromSelection) }
                 publishWordCard(card.word)
@@ -53226,11 +53234,11 @@ open class WMKeyboardService : InputMethodService() {
      * do the typing. The draft starts as the word itself, since most
      * respellings are a capital or a letter away from what is already there.
      */
-    private fun startWordSpell(word: String) {
+    private fun startWordSpell(word: String, correcting: Boolean = false) {
         val trimmed = word.trim()
         if (trimmed.isEmpty()) return
         vibrate()
-        _uiState.update { it.copy(wordSpell = WordSpell(word = trimmed, draft = trimmed)) }
+        _uiState.update { it.copy(wordSpell = WordSpell(word = trimmed, draft = trimmed, correcting = correcting)) }
     }
 
     /**
@@ -53302,8 +53310,34 @@ open class WMKeyboardService : InputMethodService() {
         vibrate()
         _uiState.update { it.copy(wordSpell = null) }
         if (spelling.isEmpty() || spelling == spell.word) return
+        if (spell.correcting) {
+            teachCorrectionByHand(spell.word, spelling)
+            return
+        }
         respellWord(spell.word, spelling)
         publishWordCard(spelling)
+    }
+
+    /**
+     * Saves [typed] → [fixed] as a learned correction, the held-word menu's
+     * "Correct to…": the same entry the Learned corrections screen's add
+     * makes, kept until the user removes it, and at [CorrectionMemory.APPLY_AT]
+     * so the next [typed] is corrected without asking.
+     *
+     * A correction of this pair the user undid before would hold it back
+     * whatever its count, so that is cleared too, as the screen does: setting
+     * the fix by hand takes the undo back.
+     */
+    private fun teachCorrectionByHand(typed: String, fixed: String) {
+        if (!CorrectionMemory.isPairValid(typed, fixed)) return
+        correctionMemory.setPair(typed, fixed, CorrectionMemory.APPLY_AT)
+        correctionStats.setPair(WordKey.of(typed), WordKey.of(fixed), 0)
+        serviceScope.launch(persistDispatcher) {
+            correctionMemory.save()
+            correctionStats.save()
+        }
+        toast(getString(R.string.ime_word_correct_saved, typed, fixed.trim()))
+        refreshSuggestions()
     }
 
     /**
@@ -57563,7 +57597,7 @@ open class WMKeyboardService : InputMethodService() {
             return ShiftState.CAPS_LOCK
         }
         val ic = currentInputConnection
-        val caps = knownCaps ?: ic?.getCursorCapsMode(info.inputType) ?: info.initialCapsMode
+        val caps = knownCaps ?: ic?.getCursorCapsMode(capsModeFlags(info.inputType)) ?: info.initialCapsMode
         if (caps == 0) return ShiftState.OFF
         // A sentence capital only, and the mark that earned it ended a quotation
         // or a bracket inside the sentence: `An "exclamation!" is` goes on in
@@ -57615,10 +57649,25 @@ open class WMKeyboardService : InputMethodService() {
      * adding it). Whole-field capitals are answered before caps is read.
      */
     private fun capsAfterWordAndSpace(): Int {
-        val type = currentInputEditorInfo?.inputType ?: return 0
+        val type = capsModeFlags(currentInputEditorInfo?.inputType ?: return 0)
         val words = type and InputType.TYPE_TEXT_FLAG_CAP_WORDS != 0
         val sentences = type and InputType.TYPE_TEXT_FLAG_CAP_SENTENCES != 0
         return if (words && !sentences) InputType.TYPE_TEXT_FLAG_CAP_WORDS else 0
+    }
+
+    /**
+     * The caps flags to ask the field about: its own, or, with "Capitalize
+     * every word" on, word capitals in place of sentence ones. Swapped rather
+     * than added, because [android.text.TextUtils.getCapsMode] never answers
+     * for words when sentences are asked for too; a sentence start follows a
+     * space as well, so it still gets its capital. A field asking for no
+     * capitals at all (an address, a password) is left as it is.
+     */
+    private fun capsModeFlags(inputType: Int): Int {
+        if (!_uiState.value.settings.autoText.capitalizeWords) return inputType
+        val asked = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES or InputType.TYPE_TEXT_FLAG_CAP_WORDS
+        if (inputType and asked == 0) return inputType
+        return (inputType and InputType.TYPE_TEXT_FLAG_CAP_SENTENCES.inv()) or InputType.TYPE_TEXT_FLAG_CAP_WORDS
     }
 
     private fun maybeAutoCapitalize(knownCaps: Int? = null) {

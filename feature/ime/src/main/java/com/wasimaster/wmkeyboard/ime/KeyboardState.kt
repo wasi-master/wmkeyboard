@@ -2748,6 +2748,13 @@ sealed interface WordMenuAction {
      * menu found it (#970): the word card's rank, without opening the card.
      */
     data class RankStep(val word: String, val steps: Int) : WordMenuAction
+
+    /**
+     * Teach autocorrect what [word] should become: the spelling bar opens on
+     * it, and what it holds when ticked is saved as a learned correction, the
+     * same as one added on the Learned corrections screen.
+     */
+    data class CorrectTo(val word: String) : WordMenuAction
 }
 
 /** What the word card can ask of the service, once open (#99). */
@@ -3077,6 +3084,11 @@ data class WordSpell(
      * keys type themselves.
      */
     val run: SpellRun? = null,
+    /**
+     * The draft is the fix [word] should be corrected to, not a new spelling
+     * of it: ticking saves a learned correction and changes no word list.
+     */
+    val correcting: Boolean = false,
 ) {
     val selectionStart: Int get() = minOf(cursor, anchor).coerceIn(0, draft.length)
     val selectionEnd: Int get() = maxOf(cursor, anchor).coerceIn(0, draft.length)

@@ -699,15 +699,25 @@ internal fun TypingWritingSettings(
     val hugOn = settings.watch { it.autoText.hugPunctuation }
     val smartPunctuationOn = settings.watch { it.autoText.smartPunctuation }
     val recaseOn = settings.watch { it.textEditing.recapitalizeSelectionWithShift }
+    val capitalizeOn = settings.watch { it.autoText.capitalize }
     SettingsGroup(stringResource(R.string.typing_group_capitals_title)) {
         item {
             ToggleSetting(
                 R.string.typing_auto_capitalize_title,
                 stringResource(R.string.typing_auto_capitalize_subtitle),
-                settings.watch { it.autoText.capitalize },
+                capitalizeOn,
                 info = stringResource(R.string.typing_auto_capitalize_info),
                 default = SettingsDefaults.autoText.capitalize,
             ) { scope.launch { repository.setAutoCapitalize(it) } }
+        }
+        item(visible = capitalizeOn, level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.typing_auto_capitalize_words_title,
+                stringResource(R.string.typing_auto_capitalize_words_subtitle),
+                settings.watch { it.autoText.capitalizeWords },
+                info = stringResource(R.string.typing_auto_capitalize_words_info),
+                default = SettingsDefaults.autoText.capitalizeWords,
+            ) { scope.launch { repository.setAutoCapitalizeWords(it) } }
         }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
@@ -1481,6 +1491,7 @@ internal fun TypingSuggestionsSettings(
             val delete = stringResource(R.string.typing_word_menu_item_delete)
             val synonyms = stringResource(R.string.typing_word_menu_item_synonyms)
             val rank = stringResource(R.string.typing_word_menu_item_rank)
+            val correct = stringResource(R.string.typing_word_menu_item_correct)
             MultiChoiceSetting(
                 R.string.typing_word_menu_title,
                 subtitle = stringResource(R.string.typing_word_menu_subtitle),
@@ -1492,6 +1503,7 @@ internal fun TypingSuggestionsSettings(
                         WordMenuItem.DELETE -> delete
                         WordMenuItem.SYNONYMS -> synonyms
                         WordMenuItem.RANK -> rank
+                        WordMenuItem.CORRECT -> correct
                     }
                 },
                 selected = settings.watch { it.suggestionStrip.wordMenuItems },
