@@ -10,6 +10,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import com.wasimaster.wmkeyboard.core.settings.KeySoundOutput
+import com.wasimaster.wmkeyboard.core.settings.KeySoundStream
 import com.wasimaster.wmkeyboard.core.settings.KeySoundStyle
 import java.io.File
 import kotlin.math.PI
@@ -74,6 +75,39 @@ object KeySoundPlayer {
     @Volatile
     private var headphonesConnected: Boolean? = null
 
+    /**
+     * The volume slider every sound from here follows; see [KeySoundStream].
+     *
+     * Process-wide rather than a parameter on [play], because the pool's
+     * stream is fixed when it is built: changing it means a new pool, and the
+     * callers (the service, the settings previews, the theme preview) all
+     * share this one. Set through [useStream].
+     */
+    @Volatile
+    private var stream: KeySoundStream = KeySoundStream.SYSTEM
+
+    /**
+     * Points key sounds at another volume slider. Cheap when nothing changed,
+     * so callers can hand it the setting on every settings emission.
+     *
+     * A change drops the pool and everything decoded into it: SoundPool takes
+     * its audio attributes once, at build time. The next press rebuilds it.
+     */
+    fun useStream(value: KeySoundStream) {
+        if (value == stream) return
+        synchronized(this) {
+            if (value == stream) return
+            stream = value
+            pool?.release()
+            pool = null
+            soundIds.clear()
+            loadedIds.clear()
+            customIds.clear()
+            systemIds.clear()
+            loadedPack = null
+        }
+    }
+
     /** Whether a key sound may play right now under [output] (#1021). */
     fun outputAllows(context: Context, output: KeySoundOutput): Boolean = when (output) {
         KeySoundOutput.ANYWHERE -> true
@@ -116,6 +150,13 @@ object KeySoundPlayer {
     )
 
     private val soundIds = mutableMapOf<KeySoundStyle, Int>()
+
+    /**
+     * The system's own click files, decoded into the pool, for when [stream]
+     * is not [KeySoundStream.SYSTEM]. Keyed by `AudioManager.FX_*`; -1 marks
+     * an effect whose file this device does not have where we look.
+     */
+    private val systemIds = mutableMapOf<Int, Int>()
     private val loadedIds = mutableSetOf<Int>()
 
     /**
@@ -514,10 +555,57 @@ object KeySoundPlayer {
     }
 
     private fun systemFx(context: Context, effect: Int, volume: Float) {
+        // playSoundEffect always plays on the system stream, so for any other
+        // slider the same click file is played through the pool instead. A
+        // device whose file is not where AOSP keeps it (or one still decoding)
+        // falls back to the system effect: a click on the wrong slider beats
+        // a keystroke that makes no sound.
+        if (stream != KeySoundStream.SYSTEM) {
+            val id = synchronized(this) { systemSampleId(context, effect) }
+            if (id != null) {
+                pool?.play(id, volume, volume, 1, 0, 1f)
+                return
+            }
+        }
         val am = audio ?: (
             context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
             ).also { audio = it }
         am.playSoundEffect(effect, volume)
+    }
+
+    /**
+     * The pool id of the system's file for [effect], loading it on first use.
+     * Null while it decodes and when the device keeps no such file where AOSP
+     * puts it. Caller holds the monitor.
+     */
+    private fun systemSampleId(context: Context, effect: Int): Int? {
+        systemIds[effect]?.let { return it.takeIf { id -> id in loadedIds } }
+        val name = SYSTEM_FX_FILES[effect]
+        val file = name?.let { n -> SYSTEM_UI_DIRS.map { File(it, n) }.firstOrNull { it.canRead() } }
+        if (file == null) {
+            systemIds[effect] = -1
+            return null
+        }
+        systemIds[effect] = ensurePool(context).load(file.path, 1)
+        return null
+    }
+
+    /**
+     * Where AOSP's sound-effect player finds its files: `/product` first on
+     * current releases (OEMs override there), then `/system`. Names are the
+     * defaults from `frameworks/base/core/res/res/xml/audio_assets.xml`.
+     */
+    private val SYSTEM_UI_DIRS = listOf("/product/media/audio/ui", "/system/media/audio/ui")
+
+    private val SYSTEM_FX_FILES = mapOf(
+        AudioManager.FX_KEY_CLICK to "Effect_Tick.ogg",
+        AudioManager.FX_KEYPRESS_STANDARD to "KeypressStandard.ogg",
+    )
+
+    private fun usageFor(stream: KeySoundStream): Int = when (stream) {
+        KeySoundStream.SYSTEM -> AudioAttributes.USAGE_ASSISTANCE_SONIFICATION
+        KeySoundStream.NOTIFICATION -> AudioAttributes.USAGE_NOTIFICATION
+        KeySoundStream.MEDIA -> AudioAttributes.USAGE_MEDIA
     }
 
     @Synchronized
@@ -532,7 +620,7 @@ object KeySoundPlayer {
             .setMaxStreams(8)
             .setAudioAttributes(
                 AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                    .setUsage(usageFor(stream))
                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                     .build()
             )

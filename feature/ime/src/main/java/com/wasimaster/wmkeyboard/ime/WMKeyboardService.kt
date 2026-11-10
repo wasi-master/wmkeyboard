@@ -58002,7 +58002,9 @@ open class WMKeyboardService : InputMethodService() {
                 settings.sound.customId
             }
         val playVolume = volume ?: settings.sound.volume
+        val stream = settings.sound.stream
         feedbackPlayer.post {
+            KeySoundPlayer.useStream(stream)
             KeySoundPlayer.play(this, resolved, playVolume, resolvedId, target, phase)
         }
     }

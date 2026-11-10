@@ -271,6 +271,7 @@ fun ThemeKeyboardPreview(
                 val style = themeSound?.first ?: soundSettings.style
                 val id = themeSound?.second
                     ?: if (style == KeySoundStyle.PACK) soundSettings.packId else soundSettings.customId
+                KeySoundPlayer.useStream(soundSettings.stream)
                 KeySoundPlayer.play(context, style, soundSettings.volume, id, target, phase)
             }
         }

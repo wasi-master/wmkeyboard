@@ -522,6 +522,7 @@ internal object SettingsRowIcons {
         put(R.string.theme_crop_image_title) { Icons.Outlined.Crop }
         put(R.string.theme_crop_landscape_title) { Icons.Outlined.Crop169 }
         put(R.string.theme_background_animated_title) { Icons.Outlined.Animation }
+        put(R.string.theme_picture_on_keys_title) { Icons.Outlined.GridOn }
         put(R.string.theme_popup_placement_title) { Icons.Outlined.Layers }
         put(R.string.theme_custom_radii_title) { Icons.Outlined.RoundedCorner }
         put(R.string.theme_custom_layout_title) { Icons.Outlined.Straighten }
@@ -643,6 +644,7 @@ internal object SettingsRowIcons {
         put(R.string.hardware_sound_volume_title) { Icons.AutoMirrored.Outlined.VolumeUp }
         put(R.string.hardware_sound_pack_release_title) { Icons.AutoMirrored.Outlined.VolumeUp }
         put(R.string.hardware_sound_output_title) { Icons.AutoMirrored.Outlined.VolumeUp }
+        put(R.string.hardware_sound_stream_title) { Icons.AutoMirrored.Outlined.VolumeUp }
         put(R.string.keypress_sound_repeat_title) { Icons.Outlined.Repeat }
         put(R.string.keypress_system_touch_title) { Icons.Outlined.PhoneAndroid }
         put(R.string.keypress_popup_title) { Icons.Outlined.Notifications }

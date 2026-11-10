@@ -1101,6 +1101,17 @@ enum class KeySoundStyle { CLICK, STANDARD, POP, THOCK, CHIME, CUSTOM, PACK }
 enum class KeySoundOutput { ANYWHERE, HEADPHONES, SPEAKER }
 
 /**
+ * Which of the phone's volume sliders key sounds follow.
+ *
+ * [SYSTEM] is the stock keyboard's choice and what Android calls touch sounds;
+ * many phones tie it to the ringer, some give it a slider of its own.
+ * [NOTIFICATION] and [MEDIA] play on those streams instead, so a user whose
+ * system volume is too loud for typing can hang the clicks off a slider they
+ * keep low (the notification one also goes quiet under Do Not Disturb).
+ */
+enum class KeySoundStream { SYSTEM, NOTIFICATION, MEDIA }
+
+/**
  * Key-press sound: whether it plays, which one, how loud, and which installed
  * file or pack the two selectable styles point at.
  *
@@ -1113,7 +1124,7 @@ data class KeySoundSettings(
     val enabled: Boolean = false,
     /** Which sound a keypress plays; see [KeySoundStyle]. */
     val style: KeySoundStyle = KeySoundStyle.CLICK,
-    /** Sound-effect volume, 0..1 of the system media volume. */
+    /** Sound-effect volume, 0..1 of whichever slider [stream] follows. */
     val volume: Float = 0.5f,
     /** [com.wasimaster.wmkeyboard.core.feedback.SoundStore] id, blank if none. */
     val customId: String = "",
@@ -1138,6 +1149,8 @@ data class KeySoundSettings(
     val playRelease: Boolean = true,
     /** Which outputs a key sound plays on; see [KeySoundOutput]. */
     val output: KeySoundOutput = KeySoundOutput.ANYWHERE,
+    /** Which volume slider key sounds follow; see [KeySoundStream]. */
+    val stream: KeySoundStream = KeySoundStream.SYSTEM,
     /**
      * Sound pack per layout, keyed by layout id — the pack [KeySoundStyle.PACK]
      * plays while that layout is up, overriding [packId] (issue #520).
@@ -12371,6 +12384,7 @@ class SettingsRepository(private val context: Context) {
         private val KEY_SOUND_PACK_ID = stringPreferencesKey("key_sound_pack_id")
         private val KEY_SOUND_RELEASE = booleanPreferencesKey("key_sound_release")
         private val KEY_SOUND_OUTPUT = stringPreferencesKey("key_sound_output")
+        private val KEY_SOUND_STREAM = stringPreferencesKey("key_sound_stream")
         private val KEY_SOUND_PACK_BY_LAYOUT = stringPreferencesKey("key_sound_pack_by_layout")
         private val LEVEL_SHOW_ANGLES = booleanPreferencesKey("level_show_angles")
         private val REDO_USES_CTRL_Y = booleanPreferencesKey("redo_uses_ctrl_y")
@@ -13723,6 +13737,8 @@ class SettingsRepository(private val context: Context) {
             playRelease = p[KEY_SOUND_RELEASE] ?: defaults.sound.playRelease,
             output = p[KEY_SOUND_OUTPUT]?.let { runCatching { KeySoundOutput.valueOf(it) }.getOrNull() }
                 ?: defaults.sound.output,
+            stream = p[KEY_SOUND_STREAM]?.let { runCatching { KeySoundStream.valueOf(it) }.getOrNull() }
+                ?: defaults.sound.stream,
             packByLayout = p[KEY_SOUND_PACK_BY_LAYOUT]
                 ?.let { decodeKeySoundPacksByLayout(it) }
                 ?: defaults.sound.packByLayout,
@@ -16327,6 +16343,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setKeySoundOutput(value: KeySoundOutput) =
         editPrefs { it[KEY_SOUND_OUTPUT] = value.name }
+
+    suspend fun setKeySoundStream(value: KeySoundStream) =
+        editPrefs { it[KEY_SOUND_STREAM] = value.name }
 
     /**
      * Points one layout at its own sound pack, or clears the override with a

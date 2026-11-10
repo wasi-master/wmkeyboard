@@ -37,6 +37,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -66,6 +67,7 @@ import com.wasimaster.wmkeyboard.core.settings.DefaultCurrencyKeys
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
 import com.wasimaster.wmkeyboard.core.settings.HapticStyle
 import com.wasimaster.wmkeyboard.core.settings.KeySoundOutput
+import com.wasimaster.wmkeyboard.core.settings.KeySoundStream
 import com.wasimaster.wmkeyboard.core.settings.KeySoundStyle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -110,6 +112,10 @@ internal fun KeySoundGroup(
     // rows read their own values below.
     val soundStyle = settings.watch { it.sound.style }
     val soundOn = settings.watch { it.sound.enabled }
+    // The previews on this screen play on the slider being picked here, not
+    // on whatever the keyboard last used.
+    val soundStream = settings.watch { it.sound.stream }
+    LaunchedEffect(soundStream) { KeySoundPlayer.useStream(soundStream) }
     SettingsGroup(stringResource(R.string.hardware_sound_group_title)) {
         item {
             ToggleSetting(
@@ -137,6 +143,24 @@ internal fun KeySoundGroup(
                 selected = settings.watch { it.sound.output },
                 default = SettingsDefaults.sound.output,
             ) { scope.launch { repository.setKeySoundOutput(it) } }
+        }
+        item(visible = soundOn) {
+            ChoiceSetting(
+                R.string.hardware_sound_stream_title,
+                subtitle = stringResource(R.string.hardware_sound_stream_subtitle),
+                options = listOf(
+                    KeySoundStream.SYSTEM to stringResource(R.string.hardware_sound_stream_system),
+                    KeySoundStream.NOTIFICATION to stringResource(R.string.hardware_sound_stream_notification),
+                    KeySoundStream.MEDIA to stringResource(R.string.hardware_sound_stream_media),
+                ),
+                selected = settings.watch { it.sound.stream },
+                default = SettingsDefaults.sound.stream,
+            ) {
+                scope.launch { repository.setKeySoundStream(it) }
+                KeySoundPlayer.useStream(it)
+                val sound = settings.value.sound
+                KeySoundPlayer.preview(context, sound.style, sound.volume, sound.previewId())
+            }
         }
         item {
             // A ControlSetting rather than a ChoiceSetting: each chip acts the

@@ -117,6 +117,11 @@
     <string name="hardware_sound_output_anywhere">Anywhere</string>
     <string name="hardware_sound_output_headphones">Only through headphones</string>
     <string name="hardware_sound_output_speaker">Only on the phone\'s speaker</string>
+    <string name="hardware_sound_stream_title">Volume follows</string>
+    <string name="hardware_sound_stream_subtitle">Which of the phone\'s volume sliders sets how loud key sounds are</string>
+    <string name="hardware_sound_stream_system">System (touch sounds)</string>
+    <string name="hardware_sound_stream_notification">Notification volume</string>
+    <string name="hardware_sound_stream_media">Media volume</string>
     <string name="hardware_sound_pack_release_subtitle">Play the second sound when you lift your finger, the way a mechanical keyboard clicks twice.</string>
     <string name="hardware_sound_pack_not_a_pack_error">This file is not a sound pack.</string>
     <string name="hardware_sound_pack_read_error">The app cannot read this sound pack.</string>
