@@ -1,7 +1,7 @@
 {
 	"floor": "0.5.3",
-	"latest": "0.6.5",
-	"next": "0.6.6",
+	"latest": "0.6.6",
+	"next": "0.6.7",
 	"sinceAware": "0.5.12",
 	"modeRows": "0.5.12",
 	"routes": {
@@ -1410,6 +1410,7 @@
 		"tooldetail_incognito_clipboard_title": "0.5.3",
 		"tooldetail_incognito_learning_title": "0.5.3",
 		"tooldetail_incognito_private_clipboard_title": "0.5.13",
+		"tooldetail_incognito_watermark_title": "0.6.6",
 		"tooldetail_keypress_nav_title": "0.5.3",
 		"tooldetail_launcher_check_title": "0.6.6",
 		"tooldetail_launcher_columns_title": "0.5.8",
@@ -1621,6 +1622,7 @@
 		"typing_ask_before_learning_title": "0.5.3",
 		"typing_auto_apostrophe_title": "0.5.3",
 		"typing_auto_capitalize_title": "0.5.3",
+		"typing_auto_capitalize_words_title": "0.6.6",
 		"typing_auto_close_brackets_title": "0.5.12",
 		"typing_auto_close_quotes_title": "0.6.5",
 		"typing_auto_space_punctuation_title": "0.5.3",
