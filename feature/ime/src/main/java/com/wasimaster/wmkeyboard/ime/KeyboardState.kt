@@ -3678,6 +3678,13 @@ data class KeyboardUiState(
      * asks, so nothing is looked up for a strip that would not show it.
      */
     val newWords: Set<String> = emptySet(),
+    /**
+     * The user's word ranks (#99), keyed by [com.wasimaster.wmkeyboard.core.prediction.WordKey]:
+     * steps up when positive, down when negative. The strip marks the words
+     * it shows with them while [com.wasimaster.wmkeyboard.core.settings.SuggestionStripSettings.rankMarks]
+     * asks (#1249). Published whole when a rank changes, never per keystroke.
+     */
+    val wordRanks: Map<String, Int> = emptyMap(),
     /** Missing-space join offer ("some" + "thing" -> "something"), shown as
      * a distinct leading chip; tapping rewrites the committed text. */
     val joinSuggestion: String? = null,

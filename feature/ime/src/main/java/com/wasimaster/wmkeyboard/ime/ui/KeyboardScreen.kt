@@ -5676,6 +5676,7 @@ private fun RowScope.StripWords(
             primaryColor = state.settings.suggestionStrip.primaryColor?.let { Color(it.toInt()) },
             newWordColor = state.settings.suggestionStrip.newWordColor?.let { Color(it.toInt()) },
             newWords = state.newWords,
+            rankMarks = if (state.settings.suggestionStrip.rankMarks) state.wordRanks else emptyMap(),
             leadWord = state.stripTyped.takeIf { state.settings.suggestionStrip.typedWordFirst && !glideStripOnly },
             fitMore = state.settings.suggestionStrip.fitMoreWords && !glideStripOnly,
             autocorrectWord = state.autocorrectWord,
@@ -6079,6 +6080,11 @@ internal fun RowScope.LatinSuggestionChips(
     newWordColor: Color? = null,
     /** Those words, lower-cased, as the service found them for [candidates]. */
     newWords: Set<String> = emptySet(),
+    /**
+     * The user's word ranks to mark the chips with (#1249), keyed by
+     * [com.wasimaster.wmkeyboard.core.prediction.WordKey]; empty marks nothing.
+     */
+    rankMarks: Map<String, Int> = emptyMap(),
     shiftState: ShiftState,
     /**
      * Words shown in a casing of their own, keyed by the raw word: a glide's
@@ -6380,6 +6386,10 @@ internal fun RowScope.LatinSuggestionChips(
                 if (hint != null) {
                     HintBadge(hint, modifier = Modifier.align(Alignment.BottomCenter))
                 }
+                // A word the user ranked (#1249): its rank at the corner, so
+                // it need not be held to find out whether it was moved.
+                val rank = if (rankMarks.isEmpty()) 0 else rankMarks[com.wasimaster.wmkeyboard.core.prediction.WordKey.of(suggestion)] ?: 0
+                if (rank != 0) RankMark(rank, Modifier.align(Alignment.TopEnd))
                 // A chip is sometimes an emoji rather than a word — a learned
                 // bigram can predict one ("you" → ❤️). Those have to be drawn
                 // in the chosen emoji font, and in the spelling that font

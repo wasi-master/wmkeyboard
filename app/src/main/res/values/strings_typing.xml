@@ -325,6 +325,8 @@
 
     <string name="typing_typed_word_first_title">Word as typed first</string>
     <string name="typing_typed_word_first_subtitle">Show what you typed in the first slot, wherever it ranks. A space still writes the bold word</string>
+    <string name="typing_rank_marks_title">Mark words you ranked</string>
+    <string name="typing_rank_marks_subtitle">A word you moved up or down shows its rank in a small circle at the corner of its slot</string>
     <string name="typing_skip_typed_word_title">Only offer new words</string>
     <string name="typing_skip_typed_word_subtitle">Leave out the word you have already typed</string>
     <string name="typing_number_prediction_title">Numbers from the letter keys</string>

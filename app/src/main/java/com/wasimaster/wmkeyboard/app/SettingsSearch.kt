@@ -524,6 +524,7 @@ private fun SearchStrings.typingSuggestionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_group_autopilot_title, R.string.typing_group_autopilot_subtitle),
         row(R.string.typing_skip_typed_word_title, R.string.typing_skip_typed_word_subtitle),
         row(R.string.typing_typed_word_first_title, R.string.typing_typed_word_first_subtitle),
+        row(R.string.typing_rank_marks_title, R.string.typing_rank_marks_subtitle),
         row(R.string.typing_recent_word_bar_title, R.string.typing_recent_word_bar_subtitle),
         row(R.string.typing_retype_button_title, R.string.typing_retype_button_subtitle),
         row(R.string.typing_number_prediction_title, R.string.typing_number_prediction_subtitle),

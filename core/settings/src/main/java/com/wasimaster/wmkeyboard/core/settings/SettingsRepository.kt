@@ -10635,6 +10635,13 @@ data class SuggestionStripSettings(
      */
     val typedWordFirst: Boolean = false,
     /**
+     * A word the user ranked up or down (#99) carries its rank in a small
+     * circle at its chip's corner (#1249), so it can be seen without holding
+     * the word. Off by default: the mark means nothing to anyone who never
+     * ranked a word.
+     */
+    val rankMarks: Boolean = false,
+    /**
      * Short words make room for more of them (#970): the strip shows up to
      * three words past [slotCount] while every one of them still fits its
      * equal share at full size, so "a is it on" gets four slots where
@@ -11926,6 +11933,7 @@ class SettingsRepository(private val context: Context) {
             stringSetPreferencesKey("space_after_suggestion_off_langs")
         private val SKIP_TYPED_WORD = booleanPreferencesKey("skip_typed_word")
         private val TYPED_WORD_FIRST = booleanPreferencesKey("typed_word_first")
+        private val SUGGESTION_RANK_MARKS = booleanPreferencesKey("suggestion_rank_marks")
         private val FIT_MORE_WORDS = booleanPreferencesKey("fit_more_words")
         private val RTL_WORDS_FROM_RIGHT = booleanPreferencesKey("rtl_words_from_right")
         private val REST_WORDS = stringPreferencesKey("rest_words")
@@ -14564,6 +14572,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.spaceAfterSuggestionOffLangs,
             skipTypedWord = p[SKIP_TYPED_WORD] ?: defaults.suggestionStrip.skipTypedWord,
             typedWordFirst = p[TYPED_WORD_FIRST] ?: defaults.suggestionStrip.typedWordFirst,
+            rankMarks = p[SUGGESTION_RANK_MARKS] ?: defaults.suggestionStrip.rankMarks,
             fitMoreWords = p[FIT_MORE_WORDS] ?: defaults.suggestionStrip.fitMoreWords,
             rtlWordsFromRight = p[RTL_WORDS_FROM_RIGHT] ?: defaults.suggestionStrip.rtlWordsFromRight,
             restWords = p[REST_WORDS]?.split('\n')?.filter { it.isNotBlank() }
@@ -22378,6 +22387,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTypedWordFirst(value: Boolean) =
         editPrefs { it[TYPED_WORD_FIRST] = value }
+
+    suspend fun setSuggestionRankMarks(value: Boolean) =
+        editPrefs { it[SUGGESTION_RANK_MARKS] = value }
 
     suspend fun setRtlWordsFromRight(value: Boolean) =
         editPrefs { it[RTL_WORDS_FROM_RIGHT] = value }

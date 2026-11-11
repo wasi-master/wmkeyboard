@@ -1384,6 +1384,14 @@ internal fun TypingSuggestionsSettings(
                 default = SettingsDefaults.suggestionStrip.typedWordFirst,
             ) { scope.launch { repository.setTypedWordFirst(it) } }
         }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_rank_marks_title,
+                stringResource(R.string.typing_rank_marks_subtitle),
+                settings.watch { it.suggestionStrip.rankMarks },
+                default = SettingsDefaults.suggestionStrip.rankMarks,
+            ) { scope.launch { repository.setSuggestionRankMarks(it) } }
+        }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.typing_recent_word_bar_title,

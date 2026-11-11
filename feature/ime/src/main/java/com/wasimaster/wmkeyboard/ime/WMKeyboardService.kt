@@ -1092,6 +1092,12 @@ open class WMKeyboardService : InputMethodService() {
     /** The user's per-word rank adjustments (#99); see [WordRanks]. */
     private var wordRanks = WordRanks(null)
 
+    /** Hands the strip the ranks to mark its words with (#1249), when they change. */
+    private fun publishWordRanks() {
+        val ranks = wordRanks.snapshot()
+        if (_uiState.value.wordRanks !== ranks) _uiState.update { it.copy(wordRanks = ranks) }
+    }
+
     /**
      * This field's committed-but-unsettled words. Nothing here has been
      * counted yet: the user may still go back and fix any of it.
@@ -5815,6 +5821,7 @@ open class WMKeyboardService : InputMethodService() {
         pendingLearn = PendingLearn(store("learning/pending_learn.json"))
         wordRanks = WordRanks(store("learning/word_ranks.json"))
         suggestionEngine?.rankOffsets = wordRanks.snapshot()
+        publishWordRanks()
         keyOffsets = KeyOffsets(store(HAND_MODEL_FILE))
         lastHandAdjustment = null
         glideOutcomes = GlideOutcomes(store(GLIDE_OUTCOMES_FILE)).also {
@@ -6568,6 +6575,7 @@ open class WMKeyboardService : InputMethodService() {
                 scriptChoices.reload()
             }
             suggestionEngine?.rankOffsets = wordRanks.snapshot()
+            publishWordRanks()
             pushLearnedHabits()
             refreshTouchModelIfMoved()
             revision = null
@@ -53431,6 +53439,7 @@ open class WMKeyboardService : InputMethodService() {
         vibrate()
         if (!wordRanks.set(trimmed, steps)) return
         suggestionEngine?.rankOffsets = wordRanks.snapshot()
+        publishWordRanks()
         refreshSuggestions()
     }
 
@@ -53517,6 +53526,7 @@ open class WMKeyboardService : InputMethodService() {
         glideShapes.forget(trimmed)
         glideReadings.dropReading(trimmed)
         suggestionEngine?.rankOffsets = wordRanks.snapshot()
+        publishWordRanks()
         refreshSuggestions()
     }
 
@@ -53628,6 +53638,7 @@ open class WMKeyboardService : InputMethodService() {
         // not from the engine, so the refresh below put it straight back (#277).
         glideReadings.dropReading(trimmed)
         suggestionEngine?.rankOffsets = wordRanks.snapshot()
+        publishWordRanks()
         serviceScope.launch {
             val removed = withContext(Dispatchers.IO) {
                 SystemUserDictionary.remove(applicationContext, trimmed)
@@ -53903,6 +53914,7 @@ open class WMKeyboardService : InputMethodService() {
             is WordCardAction.SetOffset -> {
                 wordRanks.set(card.word, action.steps)
                 suggestionEngine?.rankOffsets = wordRanks.snapshot()
+                publishWordRanks()
                 refreshSuggestions()
                 publishWordCard(card.word)
             }
@@ -54111,6 +54123,7 @@ open class WMKeyboardService : InputMethodService() {
             wordRanks.remove(word)
             if (offset != 0) wordRanks.set(spelling, offset)
             suggestionEngine?.rankOffsets = wordRanks.snapshot()
+            publishWordRanks()
             glideShapes.forget(word)
             pendingLearn.forget(word)
             // A copy still waiting to settle would write the old spelling back
