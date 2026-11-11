@@ -778,6 +778,7 @@
     <string name="ime_search_in_browser_desc">Search in the browser</string>
     <!-- Names the search service. Brave is a brand name: keep it as it is. -->
     <string name="ime_search_attribution_brave">via Brave</string>
+    <string name="ime_search_attribution_mwmbl">via Mwmbl</string>
     <!-- Names the search service. Tavily is a brand name: keep it as it is. -->
     <string name="ime_search_attribution_tavily">via Tavily</string>
     <!-- The search service, then what it says is left of this month's searches or credits (#1135): "via Tavily · 812 left". -->

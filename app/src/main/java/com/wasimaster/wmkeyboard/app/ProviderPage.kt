@@ -129,6 +129,7 @@ internal val ProviderEndpoints: Map<String, List<ServiceEndpoint>> = mapOf(
     ProviderTypes.GOOGLE_TRANSLATE.id to listOf(ServiceEndpoint.TRANSLATE_GOOGLE, ServiceEndpoint.TRANSLATE_CLOUD),
     ProviderTypes.BRAVE.id to listOf(ServiceEndpoint.BRAVE_SEARCH),
     ProviderTypes.TAVILY.id to listOf(ServiceEndpoint.TAVILY),
+    ProviderTypes.MWMBL.id to listOf(ServiceEndpoint.MWMBL),
     ProviderTypes.UNSPLASH.id to listOf(ServiceEndpoint.UNSPLASH),
     ProviderTypes.PEXELS.id to listOf(ServiceEndpoint.PEXELS),
     ProviderTypes.WIKTIONARY.id to listOf(ServiceEndpoint.KAIKKI),

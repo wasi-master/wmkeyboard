@@ -976,6 +976,7 @@ internal fun searchAttribution(settings: KeyboardSettings): String? {
             // The build's own key is shared by everyone: its quota is not the user's.
             "brave".takeIf { settings.providerCredential(UsageTypes.BRAVE.id)?.apiKey?.isNotBlank() == true }
         SearchBackend.TAVILY -> stringResource(R.string.ime_search_attribution_tavily) to "tavily"
+        SearchBackend.MWMBL -> return stringResource(R.string.ime_search_attribution_mwmbl)
         SearchBackend.SEARXNG, null -> return null
     }
     // What the service last said is left this month (#1135), when it said.

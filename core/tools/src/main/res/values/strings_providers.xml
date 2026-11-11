@@ -74,6 +74,8 @@
     <string name="core_tools_provider_tavily" translatable="false">Tavily</string>
     <string name="core_tools_provider_tavily_desc">Web search with a short answer. Needs your Tavily key.</string>
     <string name="core_tools_provider_brave">Brave Search</string>
+    <string name="core_tools_provider_mwmbl" translatable="false">Mwmbl</string>
+    <string name="core_tools_provider_mwmbl_desc">A free, non-profit search engine with its own index. No key. Web results only, no images.</string>
     <string name="core_tools_provider_brave_desc">Web and image search. Needs a Brave Search API key, unless this build has one.</string>
     <string name="core_tools_provider_unsplash_desc">Photos from Unsplash. Needs an API key, unless this build has one.</string>
     <string name="core_tools_provider_pexels_desc">Photos from Pexels. Needs an API key, unless this build has one.</string>

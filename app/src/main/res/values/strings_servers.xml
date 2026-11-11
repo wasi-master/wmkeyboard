@@ -44,6 +44,7 @@
     <string name="servers_translate_google">Google Translate, no key</string>
     <string name="servers_translate_cloud">Google Cloud Translation</string>
     <string name="servers_brave_search">Brave Search API</string>
+    <string name="servers_mwmbl" translatable="false">Mwmbl</string>
     <!-- Tavily is a brand name: keep it as it is. -->
     <string name="servers_tavily">Tavily Search API</string>
     <string name="servers_klipy">KLIPY</string>

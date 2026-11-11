@@ -20,6 +20,7 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderType
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.GifContentFilter
 import com.wasimaster.wmkeyboard.core.tools.BraveSearchClient
+import com.wasimaster.wmkeyboard.core.tools.MwmblSearchClient
 import com.wasimaster.wmkeyboard.core.tools.CommonsClient
 import com.wasimaster.wmkeyboard.core.tools.PhotoQuery
 import com.wasimaster.wmkeyboard.core.tools.PhotoSearchClient
@@ -177,6 +178,9 @@ internal object ProviderProbes {
             }
             ProviderTypes.BRAVE.id -> {
                 { BraveSearchClient.webSearch(PROBE_WORD, key, 1, true) }
+            }
+            ProviderTypes.MWMBL.id -> {
+                { MwmblSearchClient.webSearch(PROBE_WORD, 1) }
             }
             // One second of silence: it transcribes to nothing, so an answer at all is the pass.
             // Sent as dictation sends a clip, so a server that cannot read Opus is found out here.

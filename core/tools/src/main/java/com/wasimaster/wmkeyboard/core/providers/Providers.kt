@@ -519,6 +519,15 @@ object ProviderTypes {
         R.string.core_tools_provider_tavily, R.string.core_tools_provider_tavily_desc,
         CredentialSpec(key = Need.REQUIRED),
     )
+    /**
+     * Mwmbl (#1207): a free, non-profit search engine with its own index, no
+     * key and no account. Web results only; it has no image search.
+     */
+    val MWMBL = ProviderType(
+        "mwmbl", setOf(ProviderTool.SEARCH),
+        R.string.core_tools_provider_mwmbl, R.string.core_tools_provider_mwmbl_desc,
+        freeSoftware = true,
+    )
     val BRAVE = ProviderType(
         "brave", setOf(ProviderTool.SEARCH),
         R.string.core_tools_provider_brave, R.string.core_tools_provider_brave_desc,
@@ -946,7 +955,7 @@ object ProviderTypes {
         VOCAB_PACKS, WIKTIONARY, WIKTIONARY_REST, DICTIONARY_API, OFFLINE_WIKTIONARY, OFFLINE_WORDNET, OFFLINE_BENGALI, OFFLINE_LANGUAGES,
         IMPORTED_DICTIONARIES, URBAN_DICTIONARY,
         DATAMUSE, SIMILAR_WORDS,
-        SEARXNG, TAVILY, BRAVE,
+        SEARXNG, TAVILY, BRAVE, MWMBL,
         UNSPLASH, PEXELS,
         ER_API, FRANKFURTER, ALLRATESTODAY, COINBASE, CURRENCY_API, COINGECKO,
         HOME_ASSISTANT, GOOGLE_HOME, SMARTTHINGS, HUE, OPENHAB, TUYA, SWITCHBOT,

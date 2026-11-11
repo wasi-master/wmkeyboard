@@ -10,7 +10,7 @@ import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 
 /**
  * The web and image search tools' providers: SearXNG instances, Tavily,
- * Brave, in the user's order. The first that answers is the answer; one that
+ * Brave, Mwmbl, in the user's order. The first that answers is the answer; one that
  * fails hands the query to the next. Shared by the panels and the AI's
  * search tools, so they never disagree about where a query goes.
  *
@@ -34,6 +34,7 @@ object SearchProviders {
             SearchBackend.SEARXNG -> runCatching { SearxClient.searchBase(first.url) + "?q=" + q }
                 .getOrDefault("https://duckduckgo.com/?q=$q")
             SearchBackend.BRAVE -> "https://search.brave.com/search?q=$q"
+            SearchBackend.MWMBL -> "https://mwmbl.org/?q=$q"
             else -> "https://duckduckgo.com/?q=$q"
         }
     }
@@ -49,6 +50,7 @@ object SearchProviders {
         ProviderTypes.SEARXNG.id -> SearchBackend.SEARXNG
         ProviderTypes.TAVILY.id -> SearchBackend.TAVILY
         ProviderTypes.BRAVE.id -> SearchBackend.BRAVE
+        ProviderTypes.MWMBL.id -> SearchBackend.MWMBL
         else -> null
     }
 
@@ -93,6 +95,7 @@ object SearchProviders {
             )
             SearchBackend.BRAVE ->
                 WebSearchPage(BraveSearchClient.webSearch(query, row.apiKey, count, safe, source = source, page = page))
+            SearchBackend.MWMBL -> WebSearchPage(MwmblSearchClient.webSearch(query, count, source = source, page = page))
         }
     }
 
@@ -104,7 +107,8 @@ object SearchProviders {
         pick: String? = null,
         more: SearchMore? = null,
     ): List<ImageResult> =
-        ask(settings, pick) { row, backend ->
+        // Mwmbl has no image search: the Images tab asks the next provider.
+        ask(settings, pick, skip = SearchBackend.MWMBL) { row, backend ->
             val page = more?.page ?: 0
             when (backend) {
                 SearchBackend.SEARXNG -> SearxClient.imageSearch(query, row.url, count, safe, page = page)
@@ -117,6 +121,7 @@ object SearchProviders {
                     excludeDomains = more?.excludeDomains.orEmpty(),
                 )
                 SearchBackend.BRAVE -> BraveSearchClient.imageSearch(query, row.apiKey, count, safe, page = page)
+                SearchBackend.MWMBL -> emptyList()
             }
         }
 
@@ -124,9 +129,13 @@ object SearchProviders {
         settings: KeyboardSettings,
         pick: String?,
         searxOnly: Boolean = false,
+        skip: SearchBackend? = null,
         call: (ResolvedProvider, SearchBackend) -> T,
     ): T {
-        val rows = rows(settings, pick).filter { !searxOnly || backend(it) == SearchBackend.SEARXNG }
+        val rows = rows(settings, pick).filter {
+            val backend = backend(it)
+            (!searxOnly || backend == SearchBackend.SEARXNG) && backend != skip
+        }
         if (rows.isEmpty()) throw NoSearchProviderException()
         val outcome = ProviderRunner.fallback(rows, key = { it.key }) { row -> call(row, requireNotNull(backend(row))) }
         return when (outcome) {

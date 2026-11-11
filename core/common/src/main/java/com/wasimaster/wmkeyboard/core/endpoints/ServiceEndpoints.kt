@@ -39,6 +39,9 @@ enum class ServiceEndpoint(
     TRANSLATE_CLOUD("translate_cloud", "https://translation.googleapis.com", ServiceGroup.TRANSLATE),
     BRAVE_SEARCH("brave_search", "https://api.search.brave.com", ServiceGroup.SEARCH),
     TAVILY("tavily", "https://api.tavily.com", ServiceGroup.SEARCH),
+
+    /** Mwmbl's free search API (#1207): its own index, no key. */
+    MWMBL("mwmbl", "https://api.mwmbl.org", ServiceGroup.SEARCH),
     KLIPY("klipy", "https://api.klipy.com", ServiceGroup.MEDIA),
     GIPHY("giphy", "https://api.giphy.com", ServiceGroup.MEDIA),
 
