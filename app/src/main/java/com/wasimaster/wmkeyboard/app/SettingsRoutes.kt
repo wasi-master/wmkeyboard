@@ -108,6 +108,7 @@ internal object SettingsRoutes {
         "learnedcorrections",
         "musicapps",
         "launchercombos",
+        "custom_buttons",
         "kdeconnect/devices",
         "send/instances",
         "send/history",

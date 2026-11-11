@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SmartButton
+import androidx.compose.ui.res.pluralStringResource
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
@@ -372,6 +374,7 @@ internal fun ToolsSettings(
     repository: SettingsRepository,
     settings: LiveSettings,
     query: String,
+    onCustomButtons: () -> Unit = {},
     onOpenTool: (ToolbarTool) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -425,6 +428,20 @@ internal fun ToolsSettings(
         return
     }
 
+    // The user's own buttons (#1213, #1236): shortcuts, switches and pages,
+    // which sit on the toolbar and in the toolbox beside the tools below.
+    val customCount = settings.watch { it.toolbox.customButtons.size }
+    NavRow(
+        title = R.string.custombuttons_title,
+        subtitle = if (customCount == 0) {
+            stringResource(R.string.custombuttons_nav_subtitle)
+        } else {
+            pluralStringResource(R.plurals.custombuttons_count, customCount, customCount)
+        },
+        route = CustomButtons.ROUTE,
+        icon = Icons.Outlined.SmartButton,
+        onClick = onCustomButtons,
+    )
     val colored = settings.watch { it.coloredToolIcons }
     ToggleSetting(
         title = R.string.tools_colored_icons_title,

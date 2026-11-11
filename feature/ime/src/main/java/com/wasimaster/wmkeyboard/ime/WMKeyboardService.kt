@@ -350,6 +350,7 @@ import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
 import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.core.settings.extensionOn
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
+import com.wasimaster.wmkeyboard.core.settings.setCustomToggle
 import com.wasimaster.wmkeyboard.ime.floating.FloatingApplet
 import com.wasimaster.wmkeyboard.ime.floating.FloatingButton
 import com.wasimaster.wmkeyboard.core.theme.BackgroundBitmapCache
@@ -6496,6 +6497,8 @@ open class WMKeyboardService : InputMethodService() {
             summonButtonSeen = settings.summonButton
             syncSummonButton(settings.summonButton)
         }
+        // The floating button names and draws the user's own buttons from here (#1213).
+        com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.buttons = settings.toolbox.customButtons
         // Turning previews off throws away what was already fetched, so
         // the panel stops showing metadata the user opted out of.
         if (linkPreviewsEnabled == true && !settings.clipboard.linkPreviews) {
@@ -7889,6 +7892,7 @@ open class WMKeyboardService : InputMethodService() {
             is FloatingAction.AppPair -> openPairFromFloatingButton(action)
             is FloatingAction.Applet -> openFloatingApplet(action.tool)
             is FloatingAction.System -> pressSystemButton(action.button)
+            is FloatingAction.Custom -> onCustomButtonTap(action.id)
             // The button answers these itself.
             FloatingAction.Menu, FloatingAction.Hide, FloatingAction.None, is FloatingAction.Category -> Unit
         }
@@ -25797,6 +25801,51 @@ open class WMKeyboardService : InputMethodService() {
             },
             onOpen = ::onToolbarAppOpen,
         )
+    }
+
+    /** The user's own buttons on the toolbar and in the toolbox (#1213, #1236). */
+    private val customButtonCallbacks by lazy {
+        com.wasimaster.wmkeyboard.ime.ui.CustomButtonCallbacks(onTap = ::onCustomButtonTap)
+    }
+
+    /**
+     * A tap on one of the user's own buttons, from the toolbar, the toolbox or
+     * the floating button (#1213, #1236): an app's shortcut opens, a switch
+     * flips its setting (the button lights from the settings as they come
+     * back), a page opens in the settings app. A button deleted meanwhile
+     * does nothing.
+     */
+    private fun onCustomButtonTap(id: String) {
+        val settings = _uiState.value.settings
+        val button = settings.toolbox.customButtons.firstOrNull { it.id == id } ?: return
+        when (button.kind) {
+            com.wasimaster.wmkeyboard.core.settings.CustomButtonKind.SHORTCUT -> {
+                vibrate()
+                if (!com.wasimaster.wmkeyboard.ime.ui.CustomShortcuts.launch(this, button)) {
+                    Toast.makeText(this, R.string.ime_custom_button_shortcut_failed, Toast.LENGTH_SHORT).show()
+                }
+            }
+            com.wasimaster.wmkeyboard.core.settings.CustomButtonKind.SETTING -> {
+                val toggle = button.toggle ?: return
+                vibrate()
+                val on = !toggle.isOn(settings)
+                serviceScope.launch {
+                    settingsRepository.setCustomToggle(toggle, on)
+                }
+            }
+            com.wasimaster.wmkeyboard.core.settings.CustomButtonKind.PAGE -> {
+                val page = button.page ?: return
+                val route = page.route
+                if (route != null) {
+                    openRoute(route)
+                } else {
+                    vibrate()
+                    startActivity(
+                        MainActivityContract.intent(this).putExtra(MainActivityContract.EXTRA_OPEN_FAVOURITES, true),
+                    )
+                }
+            }
+        }
     }
 
     /**
@@ -47674,6 +47723,7 @@ open class WMKeyboardService : InputMethodService() {
             ),
             toolbox = toolboxCallbacks(),
             apps = toolbarAppCallbacks,
+            custom = customButtonCallbacks,
             stickerOffer = com.wasimaster.wmkeyboard.ime.ui.StickerOfferCallbacks(
                 onPick = ::onStickerOfferPick,
                 onExpand = ::onStickerOfferExpand,

@@ -39,6 +39,8 @@ object SyncKeys {
         "media_music_apps", "launcher_pinned", "launcher_hidden", "launcher_recents", "launcher_toolbar_apps",
         "share_sheet_pinned", "share_sheet_recents",
         "launcher_folders",
+        // The user's own buttons (#1213): a shortcut belongs to an app installed here.
+        "custom_buttons",
         // Current state rather than a choice.
         "active_layout_id", "input_mode", "incognito", "privacy_shade_on", "data_saver_manual", "power_saving_manual",
         "recent_layout_ids", "globe_recent_order", "symbol_recents", "unit_convert_last",

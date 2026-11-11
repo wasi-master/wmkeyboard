@@ -36,6 +36,13 @@ object MainActivityContract {
      */
     const val EXTRA_OPEN_SETTING = "open_setting"
 
+    /**
+     * True: open the favourites list (#898) over whichever screen is showing,
+     * for a custom button that jumps to it (#1236). Nothing opens where the
+     * favourites button is switched off.
+     */
+    const val EXTRA_OPEN_FAVOURITES = "open_favourites"
+
     fun intent(context: Context): Intent =
         Intent()
             .setClassName(context, CLASS_NAME)

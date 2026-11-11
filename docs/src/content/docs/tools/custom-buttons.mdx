@@ -1,0 +1,63 @@
+---
+title: "Custom buttons"
+description: "Your own one-tap buttons for the toolbar, the toolbox and the floating button: another app's shortcut, a switch over a keyboard setting, or a jump to a settings page."
+sidebar:
+  order: 19
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+<SettingsPath path="Tools / Custom buttons" />
+
+The fixed tools cover what the keyboard does by itself. Custom buttons cover the rest: a browser's **New incognito tab**, a switch that turns the number row on and off, or a jump straight to your favourite settings. Each one is a button you make, and it sits on the toolbar or in the toolbox like a tool. The [floating button](/reference/settings/floating-button/#gestures) can run any of them as well.
+
+The same page is linked from <SettingsPath path="Appearance / Toolbar" />. You can have up to 24 buttons.
+
+## Three kinds
+
+**App shortcut** opens a shortcut another app offers. These are the actions a launcher shows when you hold an app's icon: a new incognito tab, a new note, a contact to call. The picker lists them by app, with each shortcut's own icon, and the button wears that icon on the toolbar.
+
+**Setting switch** turns one of the keyboard's settings on and off with a tap. The button is lit while the setting is on, the same way the Incognito tool lights up. You can pick from:
+
+- Number row
+- Key hints (the small characters a long press types)
+- Symbol row
+- Suggestions
+- Glide typing
+- Auto capitals
+- Key sound
+- Vibration
+- Key popup
+- Toolbar names
+- Reduce motion
+
+A tap writes the same setting its row in Settings writes, so the two always agree. If a [mode](/typing/modes/) sets one of these itself, the mode's value is what the keyboard uses, and the button shows that.
+
+**Settings page** opens a page of these settings in one tap: **Favourites** (the screens and rows you starred, opened over whatever page is showing), the settings home, search, themes, languages, typing, dictionary, clipboard, tools, toolbar, sound and vibration, or this page itself.
+
+## Where shortcuts come from
+
+Android lets only the home screen read every app's shortcuts. Where the keyboard has that access, the picker lists all of them. Most phones don't give it, and then the picker offers what it can reach without it:
+
+- The shortcuts an app declares in its manifest, as long as the screen they open is one other apps may start. A shortcut only the home screen may open is left out, since the button would do nothing.
+- Under **Apps that make shortcuts**, the apps with a "create shortcut" screen, the kind a launcher's widget list shows under Shortcuts: a contact to dial, a bookmark, a route. Pick one, finish in that app, and its shortcut comes back as a button.
+
+Shortcuts an app adds while it runs, such as a browser's incognito tab on some versions, are only visible to the home screen. Those apps can't be reached this way, and an app that answers the "create shortcut" request with something only a home screen can accept gets a message saying so.
+
+A shortcut's icon is saved on the phone when you pick it. A backup carries the buttons but not their icons, so after a restore a shortcut button shows its app's icon instead.
+
+## Toolbar or toolbox
+
+A new button goes on the toolbar, after your pinned tools, [folders](/tools/overview/#folders) and [apps](/tools/app-launcher/#apps-on-the-toolbar). Tap a button on the Custom buttons page to rename it or move it to the toolbox, where your buttons sit in a row at the top of the grid, with their names. The arrows on the page change the order they appear in. Swipe a button away, or press its bin, to delete it.
+
+Custom buttons don't drag like tools. The page is where you arrange them.
+
+## On the floating button
+
+Every custom button is also an action the [floating button](/reference/settings/floating-button/#gestures) can run, from a tap, a double tap, a hold or a slot in its quick menu. Look for **Your buttons** in the action list. A switch or a page works without bringing the keyboard up, and a shortcut opens its app.
+
+## Details
+
+- Custom buttons are kept per device and don't sync, because a shortcut belongs to an app installed on this phone.
+- A shortcut whose app is gone, or that the app no longer lets others open, says so when tapped rather than doing nothing.
+- A button can never open one of the keyboard's own hidden screens or pass on access to its files, even from a restored backup.

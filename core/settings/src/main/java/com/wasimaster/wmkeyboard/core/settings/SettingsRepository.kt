@@ -2503,6 +2503,12 @@ data class ToolboxSettings(
      * end of the box's strip already does.
      */
     val backLowersKeys: Boolean = false,
+    /**
+     * The user's own buttons (#1213, #1236): app shortcuts, setting switches
+     * and settings pages, on the toolbar or in the toolbox. See [CustomButton].
+     * Per device, since a shortcut belongs to an app installed here.
+     */
+    val customButtons: List<CustomButton> = emptyList(),
 ) {
     /** The caption size to draw at, resolving 0 against the toolbar's setting. */
     fun labelSizeOr(toolbarLabelSize: Int): Int =
@@ -12807,6 +12813,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBOX_SORT = stringPreferencesKey("toolbox_sort")
         private val TOOLBOX_SEARCH_SORT = stringPreferencesKey("toolbox_search_sort")
         private val TOOLBOX_BACK_LOWERS_KEYS = booleanPreferencesKey("toolbox_back_lowers_keys")
+        private val CUSTOM_BUTTONS = stringPreferencesKey("custom_buttons")
         private val SUGGESTION_TEXT_SCALE = floatPreferencesKey("suggestion_text_scale")
         private val LEARNED_WORD_MIN_COUNT = intPreferencesKey("learned_word_min_count")
         private val NEW_WORD_SIGHTINGS = intPreferencesKey("new_word_sightings")
@@ -15130,6 +15137,7 @@ class SettingsRepository(private val context: Context) {
             searchSort = p[TOOLBOX_SEARCH_SORT]?.let { runCatching { ToolboxSort.valueOf(it) }.getOrNull() }
                 ?: defaults.toolbox.searchSort,
             backLowersKeys = p[TOOLBOX_BACK_LOWERS_KEYS] ?: defaults.toolbox.backLowersKeys,
+            customButtons = decodeCustomButtons(p[CUSTOM_BUTTONS]),
         )
 
     private fun readSensorTools(p: Preferences, defaults: KeyboardSettings) =
@@ -16044,6 +16052,17 @@ class SettingsRepository(private val context: Context) {
             val next = edit(decodeToolboxFolders(prefs[TOOLBOX_FOLDERS])).normalizedFolders()
             val encoded = encodeToolboxFolders(next)
             if (encoded == null) prefs.remove(TOOLBOX_FOLDERS) else prefs[TOOLBOX_FOLDERS] = encoded
+        }
+
+    /**
+     * Rewrites the custom buttons (#1213, #1236) through [edit], applied to
+     * what is stored at the time of the write, as [updateToolboxFolders] does.
+     */
+    suspend fun updateCustomButtons(edit: (List<CustomButton>) -> List<CustomButton>) =
+        editPrefs { prefs ->
+            val next = edit(decodeCustomButtons(prefs[CUSTOM_BUTTONS])).normalizedCustomButtons()
+            val encoded = encodeCustomButtons(next)
+            if (encoded == null) prefs.remove(CUSTOM_BUTTONS) else prefs[CUSTOM_BUTTONS] = encoded
         }
 
     /** Replaces the whole enabled set at once (the onboarding tools page). */

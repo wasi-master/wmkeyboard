@@ -406,6 +406,19 @@ internal fun AppearanceToolbarSettings(
         // Where the tools live: sharing the suggestion strip, or on a row of
         // their own so they are in reach whatever the strip is showing.
         if (toolbarOn) {
+            // The user's own buttons (#1213, #1236), which sit on this bar.
+            item(level = SettingLevel.STANDARD) {
+                val customCount = settings.watch { it.toolbox.customButtons.size }
+                NavRow(
+                    title = R.string.custombuttons_title,
+                    subtitle = if (customCount == 0) {
+                        stringResource(R.string.custombuttons_nav_subtitle)
+                    } else {
+                        pluralStringResource(R.plurals.custombuttons_count, customCount, customCount)
+                    },
+                    route = CustomButtons.ROUTE,
+                ) { onNavigate(CustomButtons.ROUTE) }
+            }
             item(level = SettingLevel.STANDARD) {
                 ChoiceSetting(
                     title = R.string.appearance_toolbar_placement_title,

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tools › Custom buttons (#1213, #1236). -->
+    <string name="custombuttons_title">Custom buttons</string>
+    <plurals name="custombuttons_count">
+        <item quantity="one">%1$d button</item>
+        <item quantity="other">%1$d buttons</item>
+    </plurals>
+    <string name="custombuttons_nav_subtitle">Other apps\' shortcuts, setting switches and settings pages, one tap from the keys</string>
+    <string name="custombuttons_caption">Your own buttons for the toolbar and the toolbox. A setting switch is lit while its setting is on. The floating button can run any of them too: pick one under Floating button › Your buttons.</string>
+    <string name="custombuttons_yours_title">Your buttons</string>
+    <string name="custombuttons_add_title">Add a button</string>
+    <string name="custombuttons_add_shortcut_title">App shortcut</string>
+    <string name="custombuttons_add_shortcut_subtitle">A shortcut another app offers, like a browser\'s new incognito tab</string>
+    <string name="custombuttons_add_setting_title">Setting switch</string>
+    <string name="custombuttons_add_setting_subtitle">Turns a setting on and off: the number row, key hints, sound and more</string>
+    <string name="custombuttons_add_page_title">Settings page</string>
+    <string name="custombuttons_add_page_subtitle">Opens a page of these settings, or your favourites</string>
+    <string name="custombuttons_full">All %1$d buttons are made. Delete one to add another.</string>
+    <string name="custombuttons_kind_shortcut">App shortcut</string>
+    <string name="custombuttons_kind_setting">Setting switch</string>
+    <string name="custombuttons_kind_page">Settings page</string>
+    <string name="custombuttons_on_toolbar">on the toolbar</string>
+    <string name="custombuttons_in_toolbox">in the toolbox</string>
+    <string name="custombuttons_row_subtitle">%1$s, %2$s</string>
+    <string name="custombuttons_unusable">This version of the keyboard can\'t run it.</string>
+    <string name="custombuttons_move_up">Move up</string>
+    <string name="custombuttons_move_down">Move down</string>
+    <string name="custombuttons_loading">Looking for shortcuts…</string>
+    <string name="custombuttons_shortcut_limited_title">Only some shortcuts are listed</string>
+    <string name="custombuttons_shortcut_limited_body">Android lets only the home screen read every app\'s shortcuts. Listed here are the ones apps declare for anyone to open, and below them the apps that make a shortcut when asked.</string>
+    <string name="custombuttons_makers_group">Apps that make shortcuts</string>
+    <string name="custombuttons_shortcut_empty">No app offers a shortcut the keyboard can open</string>
+    <string name="custombuttons_maker_unsupported">That app made a shortcut only the home screen can accept.</string>
+    <string name="custombuttons_setting_row_subtitle">The button is lit while it is on</string>
+    <string name="custombuttons_page_favourites_subtitle">The screens and settings you starred</string>
+    <string name="custombuttons_all_added">Each of these already has a button</string>
+    <string name="custombuttons_edit_title">Edit button</string>
+    <string name="custombuttons_edit_name">Name</string>
+    <string name="custombuttons_edit_toolbar">On the toolbar</string>
+    <string name="custombuttons_edit_toolbar_on">Shown after the toolbar\'s tools</string>
+    <string name="custombuttons_edit_toolbar_off">Shown in a row at the top of the toolbox</string>
+
+    <!-- Floating button picker. -->
+    <string name="floating_button_pick_group_custom">Your buttons</string>
+    <string name="floating_button_pick_custom_subtitle">One of your custom buttons</string>
+
+    <string name="search_kw_custombuttons">custom button, own button, app shortcut, launcher shortcut, toggle, setting switch, bookmarks, favourites button, one tap</string>
+</resources>

@@ -142,6 +142,12 @@ internal fun FloatingButtonSettingsScreen(
     val button = settings.watch { it.summonButton }
     // The app launcher's split pairs, which an action can open (#1140).
     val combos = settings.watch { it.launcher.combos }
+    // The user's own buttons, which an action can run (#1213, #1236): the
+    // pickers and the preview name and draw them from here.
+    val customButtons = settings.watch { it.toolbox.customButtons }
+    androidx.compose.runtime.SideEffect {
+        com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.buttons = customButtons
+    }
     val overlayGranted = rememberGrantState { Settings.canDrawOverlays(it) }
     val askOverlay = rememberDisclosedSpecialAccess(SpecialAccess.OVERLAY)
     val screenReading = rememberGrantState { ScreenContextService.isEnabled(it) }
@@ -841,7 +847,7 @@ private fun FloatingActionGlyph(
     modifier: Modifier = Modifier,
     categories: List<FloatingCategory> = emptyList(),
 ) {
-    val app = rememberFloatingAppIcon(action as? FloatingAction.App, 24)
+    val app = rememberFloatingAppIcon(action as? FloatingAction.App, 24) ?: rememberCustomButtonIcon(action, 24)
     if (app != null) {
         androidx.compose.foundation.Image(app, contentDescription = null, modifier = modifier)
     } else {
@@ -1242,6 +1248,21 @@ private fun FloatingActionPicker(
                 )
             }
     }
+    // The user's own buttons (#1213, #1236), made on Tools › Custom buttons.
+    val customRows = com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.buttons
+        .filter { it.usable }
+        .map { FloatingAction.Custom(it.id) }
+        .filter { offered(it) }
+        .map { action ->
+            PickerRow(
+                key = action.token,
+                title = floatingActionLabel(action),
+                subtitle = stringResource(R.string.floating_button_pick_custom_subtitle),
+                selected = current == action,
+                leading = { FloatingActionGlyph(action, Modifier.size(24.dp)) },
+                onPick = { onPick(action) },
+            )
+        }
     // A tool straight into a floating box over the app (#1155).
     val appletRows = AppletTools
         .filter { isSupportedTool(it) && offered(FloatingAction.Applet(it)) }
@@ -1262,6 +1283,9 @@ private fun FloatingActionPicker(
         }
         if (systemRows.isNotEmpty()) {
             add(PickerGroup("system", stringResource(R.string.floating_button_pick_group_system), systemRows))
+        }
+        if (customRows.isNotEmpty()) {
+            add(PickerGroup("custom", stringResource(R.string.floating_button_pick_group_custom), customRows))
         }
         if (appletRows.isNotEmpty()) {
             add(PickerGroup("applets", stringResource(R.string.floating_button_pick_group_applets), appletRows))
@@ -1284,4 +1308,19 @@ private fun FloatingActionPicker(
         groups = groups,
         onDismiss = onDismiss,
     )
+}
+
+/** A shortcut button's own picture for a list row (#1213), or null for anything else. */
+@Composable
+private fun rememberCustomButtonIcon(action: FloatingAction, sizeDp: Int): androidx.compose.ui.graphics.ImageBitmap? {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val id = (action as? FloatingAction.Custom)?.id ?: return null
+    val px = (sizeDp * context.resources.displayMetrics.density).toInt().coerceAtLeast(1)
+    val icon by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, id, px) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.byId(id)
+                ?.let { com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.icon(context, it, px) }
+        }
+    }
+    return icon
 }

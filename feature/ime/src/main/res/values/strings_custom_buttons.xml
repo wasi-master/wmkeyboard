@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The user's own buttons on the toolbar, the toolbox and the floating button (#1213, #1236). -->
+    <string name="ime_custom_button_label">Custom button</string>
+    <string name="ime_custom_button_desc">Open %1$s</string>
+    <string name="ime_custom_button_shortcut_failed">That shortcut can\'t be opened. The app may be gone, or only lets the home screen open it.</string>
+
+    <!-- The settings a custom button can switch on and off. -->
+    <string name="ime_custom_toggle_number_row">Number row</string>
+    <string name="ime_custom_toggle_key_hints">Key hints</string>
+    <string name="ime_custom_toggle_symbol_row">Symbol row</string>
+    <string name="ime_custom_toggle_suggestions">Suggestions</string>
+    <string name="ime_custom_toggle_glide">Glide typing</string>
+    <string name="ime_custom_toggle_auto_caps">Auto capitals</string>
+    <string name="ime_custom_toggle_sound">Key sound</string>
+    <string name="ime_custom_toggle_vibration">Vibration</string>
+    <string name="ime_custom_toggle_key_popup">Key popup</string>
+    <string name="ime_custom_toggle_toolbar_labels">Toolbar names</string>
+    <string name="ime_custom_toggle_reduce_motion">Reduce motion</string>
+
+    <!-- The settings pages a custom button can open. -->
+    <string name="ime_custom_page_favourites">Favourites</string>
+    <string name="ime_custom_page_home">Settings</string>
+    <string name="ime_custom_page_search">Search settings</string>
+    <string name="ime_custom_page_themes">Themes</string>
+    <string name="ime_custom_page_languages">Languages</string>
+    <string name="ime_custom_page_typing">Typing</string>
+    <string name="ime_custom_page_dictionary">Dictionary</string>
+    <string name="ime_custom_page_clipboard">Clipboard settings</string>
+    <string name="ime_custom_page_tools">Tools</string>
+    <string name="ime_custom_page_toolbar">Toolbar settings</string>
+    <string name="ime_custom_page_keypress">Sound and vibration</string>
+    <string name="ime_custom_page_custom_buttons">Custom buttons</string>
+</resources>

@@ -576,8 +576,13 @@ internal class FloatingButton(
         floatingActionName(context, action, keyboardUp, setting.categories)
 
     /** An app slot's own icon (#922), for a disc of [sizeDp]; null for the rest, or an app that is gone. */
-    private fun appIcon(action: FloatingAction, sizeDp: Int): ImageBitmap? =
-        (action as? FloatingAction.App)?.let { FloatingAppIcons.icon(context, it, dp(sizeDp.toFloat())) }
+    private fun appIcon(action: FloatingAction, sizeDp: Int): ImageBitmap? = when (action) {
+        is FloatingAction.App -> FloatingAppIcons.icon(context, action, dp(sizeDp.toFloat()))
+        // A shortcut button's own picture (#1213); a switch or a page has none.
+        is FloatingAction.Custom -> com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.byId(action.id)
+            ?.let { com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.icon(context, it, dp(sizeDp.toFloat())) }
+        else -> null
+    }
 
     private fun haptic(kind: Int) {
         if (!setting.haptics) return

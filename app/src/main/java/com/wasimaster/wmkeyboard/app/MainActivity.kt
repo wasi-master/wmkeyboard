@@ -313,6 +313,9 @@ class MainActivity : FragmentActivity() {
     /** Whether the installed version's release notes are open; see [EXTRA_SHOW_RELEASE_NOTES]. */
     private val showReleaseNotes = MutableStateFlow(false)
 
+    /** The favourites list asked for by a custom button on the keyboard (#1236). */
+    private val showFavourites = MutableStateFlow(false)
+
     /**
      * The app language (#322). On Android 12 and older nothing else applies
      * it, so the base context itself carries the chosen locale; on Android 13+
@@ -371,6 +374,9 @@ class MainActivity : FragmentActivity() {
         } else {
             intent.getBooleanExtra(EXTRA_SHOW_RELEASE_NOTES, false)
         }
+        if (savedInstanceState == null && intent.getBooleanExtra(MainActivityContract.EXTRA_OPEN_FAVOURITES, false)) {
+            showFavourites.value = true
+        }
         setContent {
             val stored = repository.settings
                 .collectAsStateWithLifecycle(null as KeyboardSettings?)
@@ -418,12 +424,15 @@ class MainActivity : FragmentActivity() {
                     // window that fits the system bars, so the pan stays.
                     val stopAtKeyboard = Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM
                     if (stopAtKeyboard) ResizeForKeyboard()
+                    val favouritesWanted by showFavourites.collectAsStateWithLifecycle()
                     Box(if (stopAtKeyboard) Modifier.imePadding() else Modifier) {
                         SettingsNavHost(
                             repository = repository,
                             settings = settings,
                             pending = pending,
                             onPendingHandled = { pendingNav.value = null },
+                            openFavourites = favouritesWanted,
+                            onFavouritesClosed = { showFavourites.value = false },
                         )
                     }
                     // Settings fields rely on the window panning; keep it in
@@ -478,6 +487,7 @@ class MainActivity : FragmentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         if (intent.getBooleanExtra(EXTRA_SHOW_RELEASE_NOTES, false)) showReleaseNotes.value = true
+        if (intent.getBooleanExtra(MainActivityContract.EXTRA_OPEN_FAVOURITES, false)) showFavourites.value = true
         navFor(intent)?.let { nav ->
             pendingNav.value = nav
             nav.missing?.let { missingLink.value = it }
@@ -756,6 +766,8 @@ private fun SettingsNavHost(
     settings: LiveSettings,
     pending: PendingNav? = null,
     onPendingHandled: () -> Unit = {},
+    openFavourites: Boolean = false,
+    onFavouritesClosed: () -> Unit = {},
 ) {
     val navController = rememberNavController()
     // The path strip's record of which screens the user walked through. Saved
@@ -925,11 +937,12 @@ private fun SettingsNavHost(
             // out a link to itself, read by every row and heading.
             LocalSettingLinks provides rememberSettingLinks(settings.watch { it.appUi.settingLinks }),
             // Favourite screens and rows (#898), behind the button in every
-            // top bar, and gone with it.
+            // top bar, and gone with it, except while a custom button on the
+            // keyboard has asked for the list itself (#1236).
             LocalSettingsFavourites provides rememberSettingsFavourites(
                 settings.watch { it.appUi.settingsFavourites },
                 repository,
-            ).takeIf { settings.watch { it.appUi.favouritesButton } },
+            ).takeIf { settings.watch { it.appUi.favouritesButton } || openFavourites },
             // "Icons in settings", animated once here for every row and
             // heading, so the screen the switch is on sees its tiles leave.
             LocalIconReveal provides rememberIconReveal(
@@ -985,6 +998,8 @@ private fun SettingsNavHost(
                 if (settings.watch { it.onboardingDone }) {
                     NewSettingsBar(openNewSetting, Modifier.align(Alignment.BottomCenter))
                 }
+                // The favourites list a custom button on the keyboard opened (#1236).
+                if (openFavourites) FavouritesSheet(here = null, onDismiss = onFavouritesClosed)
             }
         }
     }
@@ -1531,6 +1546,15 @@ private fun SettingsNavGraph(
                 route = MusicApps.ROUTE,
             ) {
                 MusicAppsScreen(repository, settings)
+            }
+        }
+        composable(CustomButtons.ROUTE) {
+            SettingsScreen(
+                stringResource(R.string.custombuttons_title),
+                { navController.popBackStack() },
+                route = CustomButtons.ROUTE,
+            ) {
+                CustomButtonsScreen(repository, settings)
             }
         }
         composable(LauncherCombos.ROUTE) {
@@ -2500,7 +2524,10 @@ private fun SettingsNavGraph(
                 route = "tools",
                 pinned = { ToolsSearchField(query) { query = it } },
             ) {
-                ToolsSettings(repository, settings, query) { tool -> navController.navigate("tool/${tool.name}") }
+                ToolsSettings(
+                    repository, settings, query,
+                    onCustomButtons = { navController.navigate(CustomButtons.ROUTE) },
+                ) { tool -> navController.navigate("tool/${tool.name}") }
             }
         }
         composable("tool/{toolName}") { backStackEntry ->

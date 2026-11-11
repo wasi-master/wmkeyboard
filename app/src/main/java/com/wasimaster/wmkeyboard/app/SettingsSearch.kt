@@ -2987,6 +2987,24 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         entry(R.string.tools_gradient_icons_title, R.string.tools_gradient_icons_subtitle, R.string.home_tools_title, "tools"),
         entry(R.string.tools_split_panels_title, R.string.tools_split_panels_subtitle, R.string.home_tools_title, "tools"),
         entry(R.string.tools_box_close_outside_title, R.string.tools_box_close_outside_subtitle, R.string.home_tools_title, "tools"),
+        // The user's own buttons (#1213, #1236): the row on Tools, and their page.
+        entry(
+            R.string.custombuttons_title, R.string.custombuttons_nav_subtitle, R.string.home_tools_title, "tools",
+            keywords = R.string.search_kw_custombuttons,
+        ),
+        entry(
+            R.string.custombuttons_add_shortcut_title, R.string.custombuttons_add_shortcut_subtitle,
+            R.string.custombuttons_title, "custom_buttons", screenParent = R.string.home_tools_title,
+            keywords = R.string.search_kw_custombuttons,
+        ),
+        entry(
+            R.string.custombuttons_add_setting_title, R.string.custombuttons_add_setting_subtitle,
+            R.string.custombuttons_title, "custom_buttons", screenParent = R.string.home_tools_title,
+        ),
+        entry(
+            R.string.custombuttons_add_page_title, R.string.custombuttons_add_page_subtitle,
+            R.string.custombuttons_title, "custom_buttons", screenParent = R.string.home_tools_title,
+        ),
         if (ChannelFeatures.FILE_MANAGER) {
             entry(R.string.tools_file_manager_title, R.string.tools_file_manager_subtitle, R.string.home_tools_title, "tools")
         } else {

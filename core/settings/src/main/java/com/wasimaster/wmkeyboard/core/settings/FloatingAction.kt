@@ -101,6 +101,15 @@ sealed interface FloatingAction {
         override val token get() = "$CATEGORY_PREFIX$id"
     }
 
+    /**
+     * Runs one of the user's own buttons (#1213, #1236): an app's shortcut, a
+     * setting switch or a settings page, by its [CustomButton.id] in
+     * [ToolboxSettings.customButtons]. A button since deleted does nothing.
+     */
+    data class Custom(val id: String) : FloatingAction {
+        override val token get() = "$CUSTOM_PREFIX$id"
+    }
+
     companion object {
         private const val TOOL_PREFIX = "tool:"
         private const val APP_PREFIX = "app:"
@@ -108,6 +117,7 @@ sealed interface FloatingAction {
         private const val PAIR_PREFIX = "pair:"
         private const val APPLET_PREFIX = "applet:"
         private const val SYSTEM_PREFIX = "system:"
+        private const val CUSTOM_PREFIX = "custom:"
 
         /** Between a pair's two packages; no package name has one. */
         private const val PAIR_JOIN = '+'
@@ -134,6 +144,9 @@ sealed interface FloatingAction {
                 token.startsWith(PAIR_PREFIX) -> token.removePrefix(PAIR_PREFIX).split(PAIR_JOIN)
                     .takeIf { it.size == 2 && it.all { name -> name.isPackageName() } }
                     ?.let { AppPair(it[0], it[1]) }
+                token.startsWith(CUSTOM_PREFIX) -> token.removePrefix(CUSTOM_PREFIX)
+                    .takeIf { it.isNotEmpty() && it.all { c -> c.isLetterOrDigit() } }
+                    ?.let(::Custom)
                 token.startsWith(CATEGORY_PREFIX) -> token.removePrefix(CATEGORY_PREFIX)
                     .takeIf { it.isNotEmpty() && it.none { c -> c == ',' || c.isWhitespace() } }
                     ?.let(::Category)

@@ -9697,6 +9697,8 @@ private class ToolDragController {
     var toolbox: ToolboxCallbacks = ToolboxCallbacks()
     /** The apps on the toolbar (#1159), handed down from the service. */
     var apps: ToolbarAppCallbacks = ToolbarAppCallbacks()
+    /** The user's own buttons (#1213, #1236), handed down from the service. */
+    var custom: CustomButtonCallbacks = CustomButtonCallbacks()
     /**
      * Tools the user hid from the grid. The grid is no drop target for them:
      * it would show a slot and then never draw the tool in it. Dragged off the
@@ -11652,6 +11654,17 @@ private fun ToolsColumn(
                 )
             }
         }
+        // The user's own buttons last, as on the bar (#1213, #1236).
+        for (button in toolbarCustomButtons(state)) {
+            key("custom:${button.id}") {
+                CustomButtonCell(
+                    button = button,
+                    state = state,
+                    callbacks = drag.custom,
+                    modifier = cell.animatePlacement(enabled = motion) { drag.bodyCoords },
+                )
+            }
+        }
         if (toolboxSearchShown && searchAtEnd) toolboxSearch()
         // The keys called up over the toolbar-only view go away from here too (#642).
         if (hardwareKeysToggleable(state)) {
@@ -11823,6 +11836,7 @@ private fun RowScope.ToolbarRow(
     val tools = visibleToolbarTools(state)
     val pinnedFolders = state.settings.toolbox.folders.filter { it.pinned }
     val pinnedApps = toolbarApps(state)
+    val pinnedCustom = toolbarCustomButtons(state)
     // The D-pad ring reaches the bar as well as the keys: without it a remote
     // could type but never open a tool, change a setting or start voice input.
     // Each button registers where it is while it is drawn (see [dpadTarget]).
@@ -12070,6 +12084,25 @@ private fun RowScope.ToolbarRow(
                 }
             }
         }
+        // The user's own buttons (#1213, #1236), after the apps: like an app,
+        // a custom button has no place in the bar's stored list of tools.
+        for (button in pinnedCustom) {
+            key("custom:${button.id}") {
+                Box(
+                    if (greedy) Modifier.weight(1f).fillMaxHeight() else Modifier.padding(horizontal = 3.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CustomButtonCell(
+                        button = button,
+                        state = state,
+                        callbacks = drag.custom,
+                        modifier = Modifier
+                            .animatePlacement(enabled = motion, inRow = true) { drag.bodyCoords }
+                            .graphicsLayer { alpha = contentAlpha() },
+                    )
+                }
+            }
+        }
     }
     if (greedy) {
         Row(
@@ -12093,7 +12126,7 @@ private fun RowScope.ToolbarRow(
             CompositionLocalProvider(LocalLayoutDirection provides toolsDirection) {
                 Row(
                     modifier = Modifier
-                        .weight((displayTools.size + pinnedFolders.size + pinnedApps.size).coerceAtLeast(1).toFloat())
+                        .weight((displayTools.size + pinnedFolders.size + pinnedApps.size + pinnedCustom.size).coerceAtLeast(1).toFloat())
                         .fillMaxHeight()
                         .onGloballyPositioned { drag.toolbarBounds = it.boundsInRoot() },
                     verticalAlignment = Alignment.CenterVertically,
@@ -12679,6 +12712,9 @@ private fun ToolboxPanel(
                 drag.active && drag.boxMerge != null -> without
                 else -> cells
             }
+            // The user's own buttons kept in the toolbox (#1213, #1236), above
+            // the grid at its top level; a search or a folder lists tools only.
+            if (openFolder == null && !searching) ToolboxCustomButtons(state, drag.custom)
             if (display.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
@@ -14662,6 +14698,7 @@ private fun KeyboardBody(
     drag.onIncognitoBadge = toolHold.onIncognitoBadge
     drag.toolbox = toolHold.toolbox
     drag.apps = toolHold.apps
+    drag.custom = toolHold.custom
     // A remapped hold runs the bound tool through the service's own dispatcher
     // rather than [onToolTap]: that one refuses any tool the toolbar does not
     // list, and the tool the user bound a hold to is very often one they never
@@ -32930,6 +32967,8 @@ data class ToolHoldCallbacks(
     val toolbox: ToolboxCallbacks = ToolboxCallbacks(),
     /** The apps on the toolbar (#1159): their faces, and opening one. */
     val apps: ToolbarAppCallbacks = ToolbarAppCallbacks(),
+    /** The user's own buttons (#1213, #1236): a tap runs one. */
+    val custom: CustomButtonCallbacks = CustomButtonCallbacks(),
     /**
      * The selection bar's callbacks (a chip, a ladder pick, an AI button).
      * Ride this bundle for the reason [dictionaryBar] does: it is the nearest

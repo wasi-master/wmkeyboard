@@ -346,6 +346,8 @@ object IconDefaults {
         put(IconSlots.CHROME_SHOW_KEYS, Icons.Outlined.Keyboard)
         put(IconSlots.CHROME_HIDE_KEYS, Icons.Outlined.KeyboardHide)
         put(IconSlots.CHROME_TOOLBOX_SEARCH, Icons.Outlined.Search)
+        // The user's own buttons (#1213, #1236): a slot per switch and page.
+        putAll(customButtonSlotIcons())
 
         put(IconSlots.EMOJI_TAB_SEARCH, Icons.Outlined.Search)
         put(IconSlots.EMOJI_TAB_RECENT, Icons.Outlined.Schedule)

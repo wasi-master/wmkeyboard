@@ -298,6 +298,11 @@
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
+        <!-- The apps' "create shortcut" screens, for a custom button that
+             opens another app's shortcut (#1213). -->
+        <intent>
+            <action android:name="android.intent.action.CREATE_SHORTCUT" />
+        </intent>
         <!-- Apps that look a word up, for the Dictionary and Wikipedia tools'
              "Open in" chip (#970): Aard 2's own lookup, the ColorDict intent
              most offline dictionaries answer, and the selection menu's

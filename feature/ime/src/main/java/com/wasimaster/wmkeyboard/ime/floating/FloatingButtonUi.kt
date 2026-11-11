@@ -151,6 +151,11 @@ fun floatingActionIcon(
     is FloatingAction.AppPair -> Icons.Outlined.VerticalSplit
     is FloatingAction.Applet -> IconDefaults.forTool(action.tool)
     is FloatingAction.System -> systemButtonIcon(action.button)
+    // Its own glyph; a shortcut draws its picture where it has one.
+    is FloatingAction.Custom -> com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.byId(action.id)
+        ?.let { com.wasimaster.wmkeyboard.ime.ui.IconDefaults.forSlot(com.wasimaster.wmkeyboard.ime.ui.customButtonSlot(it)) }
+        ?: com.wasimaster.wmkeyboard.ime.ui.IconDefaults.forSlot(com.wasimaster.wmkeyboard.ime.ui.CUSTOM_SHORTCUT_SLOT)
+        ?: Icons.Outlined.OpenInNew
     is FloatingAction.Category -> ModeIcons.iconOrNull(categories.categoryById(action.id)?.icon) ?: Icons.Outlined.Folder
 }
 
@@ -209,6 +214,8 @@ fun floatingActionName(
         FloatingAppIcons.label(context, action.second) ?: action.second,
     )
     is FloatingAction.Category -> categories.categoryById(action.id)?.name?.takeIf { it.isNotBlank() }
+    is FloatingAction.Custom -> com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.byId(action.id)
+        ?.let { com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.name(context, it) }
     else -> null
 } ?: context.getString(floatingActionLabelRes(action, keyboardUp))
 
@@ -225,6 +232,7 @@ internal fun floatingActionLabelRes(action: FloatingAction, keyboardUp: Boolean)
     is FloatingAction.Applet -> toolLabelRes(action.tool)
     is FloatingAction.System -> systemButtonLabelRes(action.button)
     is FloatingAction.Category -> R.string.ime_floating_category_label
+    is FloatingAction.Custom -> R.string.ime_custom_button_label
 }
 
 /**
