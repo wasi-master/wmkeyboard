@@ -439,7 +439,7 @@ object AddonDownloadManager {
 
                 currentCoroutineContext().ensureActive()
                 set(key, AddonStatus.Verifying)
-                verify(part, entry)
+                val current = verifyOrRefresh(appContext, store, manifestUrl, part, entry)
 
                 currentCoroutineContext().ensureActive()
                 set(key, AddonStatus.Installing)
@@ -461,27 +461,27 @@ object AddonDownloadManager {
 
                 val outcome = AddonInstaller.install(
                     appContext,
-                    entry,
+                    current,
                     part,
-                    RemixCredit(key, entry.name, entry.author),
+                    RemixCredit(key, current.name, current.author),
                 )
 
                 when (outcome) {
                     is AddonInstaller.Outcome.Installed -> {
                         val record = InstalledAddon(
-                            version = entry.version,
-                            type = entry.type,
+                            version = current.version,
+                            type = current.type,
                             localRef = outcome.localRef,
                             installedAt = System.currentTimeMillis(),
-                            name = entry.name,
+                            name = current.name,
                             repoName = repo.name,
                             manifestUrl = manifestUrl,
-                            description = entry.description,
-                            author = entry.author,
-                            locale = entry.id.substringAfter(AddonLocalization.SEPARATOR, ""),
+                            description = current.description,
+                            author = current.author,
+                            locale = current.id.substringAfter(AddonLocalization.SEPARATOR, ""),
                         )
                         store.markInstalled(key, record)
-                        val questionRes = AddonApply.questionRes(entry.type)
+                        val questionRes = AddonApply.questionRes(current.type)
                         when {
                             // An update of the thing the user was already using
                             // re-selects itself under its new id. Asking here
@@ -492,7 +492,7 @@ object AddonDownloadManager {
                             askToApply && questionRes != null && previous == null ->
                                 _pendingApply.value = PendingApply(key, record, questionRes)
                         }
-                        set(key, AddonStatus.Installed(entry.version))
+                        set(key, AddonStatus.Installed(current.version))
                     }
                     is AddonInstaller.Outcome.Rejected -> {
                         // The old version was already removed above, so the
@@ -618,6 +618,40 @@ object AddonDownloadManager {
         } finally {
             connection.disconnect()
             netCall.end()
+        }
+    }
+
+    /**
+     * [verify], retried once against a freshly fetched manifest.
+     *
+     * A repository republishes an addon at the same path, so a manifest cached
+     * before the update still lists the old `sha256` while the file is already
+     * the new one. Until that cache is refreshed (the screen opened from it, or
+     * the refresh failed offline) every install reads as a checksum failure.
+     * When the live manifest names a different digest for the same addon, the
+     * payload is checked against that instead, and the install proceeds as the
+     * version the digest belongs to. A file matching neither is still refused.
+     */
+    private fun verifyOrRefresh(
+        context: Context,
+        store: AddonStore,
+        manifestUrl: String,
+        part: File,
+        entry: AddonEntry,
+    ): AddonEntry {
+        try {
+            verify(part, entry)
+            return entry
+        } catch (e: FailedException) {
+            if (e.reason != FailReason.CHECKSUM) throw e
+            val fresh = fetchManifest(manifestUrl, context.cacheDir, store)
+                ?.addons
+                ?.flatMap { it.variants }
+                ?.firstOrNull { it.id == entry.id && it.type == entry.type }
+                ?.takeIf { !it.sha256.isNullOrBlank() && !it.sha256.equals(entry.sha256, ignoreCase = true) }
+                ?: throw e
+            verify(part, fresh)
+            return fresh
         }
     }
 

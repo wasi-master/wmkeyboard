@@ -38,6 +38,8 @@ Because each install gets a freshly generated local ID, an update is really dele
 
 Checksums (`sha256`) are optional for every addon type but one. A [plugin](/plugins/overview/) is executable code, so its manifest entry must carry a checksum or the install is refused outright. "Unverified" isn't a state code gets to be in the way a theme or a word list can.
 
+A repository can publish a new version of an addon while you are looking at the old one. If the downloaded file doesn't match the checksum the app had, it fetches the repository's list again before giving up, and installs the newer version when the file matches that one instead. A file that matches neither is refused with **The downloaded file does not match the checksum in the manifest.**
+
 ## When things change underneath you
 
 Three different things can put an installed addon out of sync with what you last saw, and each is handled differently.
