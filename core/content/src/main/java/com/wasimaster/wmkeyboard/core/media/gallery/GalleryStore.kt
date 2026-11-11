@@ -182,6 +182,8 @@ object GalleryStore {
                 parts += "$BUCKET_ID=?"
                 args += album.id
             }
+            // On the user's server, not in MediaStore: the keyboard pages those itself.
+            AlbumKind.IMMICH, AlbumKind.IMMICH_ALBUM -> parts += "0"
         }
         return parts.joinToString(" AND ") { "($it)" } to args.toTypedArray()
     }

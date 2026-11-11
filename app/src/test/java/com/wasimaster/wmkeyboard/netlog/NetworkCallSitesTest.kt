@@ -110,8 +110,9 @@ class NetworkCallSitesTest {
             // JvmHaHttp, for tests and plain-JVM hosts; the keyboard hands the
             // Home Assistant code its metered ToolHaHttp instead.
             "homeassistant/HaHttp.kt" to "JvmHaHttp is test-only",
-            // Coil over MediaStore content URIs; nothing here touches the network.
-            "gallery/GalleryThumbs.kt" to "content URIs only",
+            // Coil over MediaStore content URIs. Its Immich pictures (#1205)
+            // are fetched through ImmichClient, which logs them itself.
+            "gallery/GalleryThumbs.kt" to "content URIs; Immich through ImmichClient",
             // Opens the socket for NfsSink, which holds the log row and counts
             // the traffic through the callback it hands in.
             "sink/nfs/OncRpc.kt" to "logged by NfsSink",

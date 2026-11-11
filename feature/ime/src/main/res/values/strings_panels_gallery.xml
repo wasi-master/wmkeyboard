@@ -20,6 +20,7 @@
     <string name="ime_gallery_album_camera">Camera</string>
     <string name="ime_gallery_album_sent">Sent from the keyboard</string>
     <string name="ime_gallery_album_unnamed">Unnamed folder</string>
+    <string name="ime_gallery_album_immich">Immich</string>
     <string name="ime_gallery_filter_all">All</string>
     <string name="ime_gallery_filter_photos">Photos</string>
     <string name="ime_gallery_filter_videos">Videos</string>
@@ -68,6 +69,7 @@
     <string name="ime_gallery_copy">Copy to the clipboard</string>
     <string name="ime_gallery_send_as_link">Send as a link or to a phone nearby</string>
     <string name="ime_gallery_save">Save a copy to the gallery</string>
+    <string name="ime_gallery_upload_immich">Upload to Immich</string>
     <string name="ime_gallery_clear_selection">Clear the selection</string>
 
     <!-- When the app does not take pictures from the keyboard -->
@@ -109,6 +111,20 @@
     <string name="ime_gallery_notice_replaced">Replaced the original with the edited photo</string>
     <string name="ime_gallery_notice_not_replaced">The original was left as it was</string>
     <string name="ime_gallery_notice_save_failed">Could not save the photo</string>
+    <string name="ime_gallery_notice_immich_failed">Could not reach your Immich server</string>
+    <string name="ime_gallery_notice_immich_refused">Immich turned the API key down; check its permissions</string>
+    <plurals name="ime_gallery_notice_uploaded">
+        <item quantity="one">Uploaded %d picture to Immich</item>
+        <item quantity="other">Uploaded %d pictures to Immich</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_already_uploaded">
+        <item quantity="one">Immich already has it</item>
+        <item quantity="other">Immich already has all %d</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_upload_failed">
+        <item quantity="one">%d picture did not upload</item>
+        <item quantity="other">%d pictures did not upload</item>
+    </plurals>
     <string name="ime_gallery_notice_no_videos">This text box takes pictures only. Videos go through the share screen.</string>
 
     <!-- Viewer -->

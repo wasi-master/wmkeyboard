@@ -48,6 +48,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import com.wasimaster.wmkeyboard.ime.gallery.immich.ImmichClient
+import com.wasimaster.wmkeyboard.ime.gallery.immich.ImmichLibrary
 
 /**
  * The keyboard half of the gallery tool (#708).
@@ -167,8 +169,11 @@ internal class GalleryController(
                 sendMenuOpen = false,
                 searchAvailable = host.photoSearchReady(),
                 search = null,
+                immich = ImmichLibrary.configured(s),
             )
         }
+        // The server may have new pictures since the panel last opened.
+        ImmichLibrary.forget()
         refreshField()
         refreshAccess(reload = true)
         if (observer == null) {
@@ -256,7 +261,9 @@ internal class GalleryController(
         // Videos granted on their own leave the access as it was, and still reload.
         val changed = access != _state.value.access || withheld != _state.value.videosWithheld
         _state.update { it.copy(access = access, videosWithheld = withheld) }
-        if (access != GalleryStore.Access.NONE && (reload || changed)) {
+        // An Immich server browses without the phone's photo permission (#1205).
+        val remote = ImmichLibrary.configured(host.settings)
+        if ((access != GalleryStore.Access.NONE || remote) && (reload || changed)) {
             loadAlbums(restore = true)
             load(reset = true)
         }
@@ -367,7 +374,22 @@ internal class GalleryController(
             val videos = host.settings.showVideos
             val sent = withContext(Dispatchers.IO) { sentIds() }
             val hidden = host.settings.hiddenFolders
-            val albums = withContext(Dispatchers.IO) { GalleryStore.albums(app, videos, sent, hidden) }
+            val local = if (_state.value.access == GalleryStore.Access.NONE) {
+                emptyList()
+            } else {
+                withContext(Dispatchers.IO) { GalleryStore.albums(app, videos, sent, hidden) }
+            }
+            // The Immich server's timeline and albums after the phone's (#1205);
+            // a server that cannot be reached leaves the phone's alone, and says so.
+            val gallery = host.settings
+            val remote = if (!ImmichLibrary.configured(gallery)) {
+                emptyList()
+            } else {
+                withContext(Dispatchers.IO) { runCatching { ImmichLibrary.albums(gallery) } }
+                    .onFailure { e -> immichFailed(e) }
+                    .getOrDefault(emptyList())
+            }
+            val albums = local + remote
             val remembered = host.settings.lastAlbum
             _state.update { s ->
                 val current = if (restore && host.settings.rememberAlbum && remembered.isNotEmpty()) {
@@ -375,7 +397,13 @@ internal class GalleryController(
                 } else {
                     albums.firstOrNull { it.key == s.album.key } ?: s.album
                 }
-                s.copy(albums = albums, album = current, sentIds = sent.toHashSet())
+                // Without the phone's photos, the server's are the only ones to show.
+                val shown = if (s.access == GalleryStore.Access.NONE && !ImmichLibrary.isRemote(current)) {
+                    remote.firstOrNull() ?: current
+                } else {
+                    current
+                }
+                s.copy(albums = albums, album = shown, sentIds = sent.toHashSet())
             }
             if (restore && _state.value.items.isEmpty()) load(reset = true)
         }
@@ -383,7 +411,8 @@ internal class GalleryController(
 
     private fun load(reset: Boolean, keepCount: Boolean = false) {
         val s = _state.value
-        if (s.access == GalleryStore.Access.NONE) return
+        val remote = ImmichLibrary.isRemote(s.album)
+        if (s.access == GalleryStore.Access.NONE && !remote) return
         // Search results hold the grid; the album comes back when they go.
         if (s.search?.showing == true) return
         if (!reset && (s.loading || s.endReached)) return
@@ -396,8 +425,16 @@ internal class GalleryController(
         loadJob = scope.launch {
             val videos = host.settings.showVideos
             val sent = if (album.kind == AlbumKind.SENT) withContext(Dispatchers.IO) { sentIds() } else emptyList()
-            val page = withContext(Dispatchers.IO) {
-                GalleryStore.page(app, album, filter, offset, limit, videos, sent, host.settings.hiddenFolders)
+            val gallery = host.settings
+            val page = if (remote) {
+                withContext(Dispatchers.IO) { runCatching { ImmichLibrary.page(gallery, album, filter, offset, limit) } }
+                    .onFailure { e -> immichFailed(e) }
+                    // A page that failed ends the grid there rather than asking again on every scroll.
+                    .getOrDefault(emptyList())
+            } else {
+                withContext(Dispatchers.IO) {
+                    GalleryStore.page(app, album, filter, offset, limit, videos, sent, host.settings.hiddenFolders)
+                }
             }
             _state.update {
                 if (it.album.key != album.key || it.filter != filter || it.search?.showing == true) return@update it
@@ -692,6 +729,20 @@ internal class GalleryController(
         // Editing a photo is choosing it.
         if (_state.value.selection.none { it.id == id }) toggle(item)
         if (_state.value.selection.none { it.id == id }) return
+        // An Immich picture is edited from its original, fetched first (#1205).
+        val picked = _state.value.selection.first { it.id == id }
+        if (picked.isRemote) {
+            scope.launch {
+                val local = withContext(Dispatchers.IO) { ImmichLibrary.fetch(app, host.settings, picked) }
+                if (local == null) {
+                    notice(GalleryNotice.Kind.IMMICH_FAILED)
+                    return@launch
+                }
+                swapFetched(listOf(local))
+                if (_state.value.selection.any { it.id == id }) openEditor(id)
+            }
+            return
+        }
         // A PNG is most often a screenshot or a drawing, which the network
         // for drawings and text enlarges better; anything else is a photo.
         val art = item.mime == "image/png" || item.mime == "image/gif"
@@ -821,6 +872,48 @@ internal class GalleryController(
                 input?.delete()
                 val failed = !ok && isActive
                 editor { if (it.itemId == item.id) it.copy(upscaling = null, upscaleFailed = failed) else it }
+            }
+        }
+    }
+
+    /** Puts fetched Immich originals in place of their remote rows in the selection, same ids. */
+    private fun swapFetched(fetched: List<GalleryItem>) {
+        if (fetched.isEmpty()) return
+        val byId = fetched.associateBy { it.id }
+        _state.update { s -> s.copy(selection = s.selection.map { byId[it.id] ?: it }) }
+    }
+
+    /** The Immich server failed a request: once in a notice, and a wrong key said as such. */
+    private fun immichFailed(e: Throwable) {
+        val refused = (e as? ImmichClient.Failure)?.refused == true
+        notice(if (refused) GalleryNotice.Kind.IMMICH_REFUSED else GalleryNotice.Kind.IMMICH_FAILED)
+    }
+
+    // ---- Immich upload -------------------------------------------------------
+
+    /**
+     * The picked phone pictures to the Immich server, as they are (#1205).
+     * Pictures that came from the server are left out; the selection stays,
+     * to be sent as well if that was the plan.
+     */
+    private fun uploadToImmich() {
+        val items = _state.value.selection.filter { !it.isRemote && it.bucketId != ImmichLibrary.REMOTE_BUCKET }
+        if (items.isEmpty() || sendJob?.isActive == true) return
+        host.haptic()
+        _state.update { it.copy(sending = SendProgress(0, items.size), sendMenuOpen = false) }
+        sendJob = scope.launch {
+            try {
+                val r = withContext(Dispatchers.IO) { ImmichLibrary.upload(app, host.settings, items) }
+                when {
+                    r.refused -> notice(GalleryNotice.Kind.IMMICH_REFUSED)
+                    r.failed > 0 -> notice(GalleryNotice.Kind.UPLOAD_FAILED, r.failed)
+                    r.added == 0 && r.already > 0 -> notice(GalleryNotice.Kind.ALREADY_UPLOADED, r.already)
+                    else -> notice(GalleryNotice.Kind.UPLOADED, r.added)
+                }
+                // The timeline now holds them: listed afresh when an Immich album opens next.
+                if (r.added > 0) ImmichLibrary.forget()
+            } finally {
+                _state.update { it.copy(sending = null) }
             }
         }
     }
@@ -997,6 +1090,10 @@ internal class GalleryController(
     }
 
     private fun send(requested: SendMode) {
+        if (requested == SendMode.TO_IMMICH) {
+            uploadToImmich()
+            return
+        }
         val s = _state.value
         if (s.selection.isEmpty() || sendJob?.isActive == true) return
         val mode = if (requested == SendMode.NORMAL && s.forLink) SendMode.AS_LINK else requested
@@ -1017,7 +1114,13 @@ internal class GalleryController(
                 var failed = 0
                 for (item in items) {
                     _state.update { it.copy(sending = it.sending?.copy(preparingId = item.id)) }
-                    val p = withContext(Dispatchers.IO) { prepare(item, edits[item.id] ?: PhotoEdit.NONE, quality, stickers) }
+                    // An Immich picture's original comes down first (#1205).
+                    val local = if (item.isRemote) {
+                        withContext(Dispatchers.IO) { ImmichLibrary.fetch(app, host.settings, item) }
+                    } else {
+                        item
+                    }
+                    val p = local?.let { withContext(Dispatchers.IO) { prepare(it, edits[item.id] ?: PhotoEdit.NONE, quality, stickers) } }
                     if (p == null) failed++ else prepared += item to p
                 }
                 if (failed > 0) notice(GalleryNotice.Kind.FAILED, failed)
@@ -1134,7 +1237,8 @@ internal class GalleryController(
     }
 
     private fun finishSend(sent: List<GalleryItem>) {
-        val ids = sent.filter { !it.isPicked }.map { it.id }
+        // The Sent album is the phone's; a picture from the server is not in it.
+        val ids = sent.filter { !it.isPicked && !it.isRemote && it.bucketId != ImmichLibrary.REMOTE_BUCKET }.map { it.id }
         if (ids.isNotEmpty() && host.settings.keepHistory && !host.incognito()) {
             scope.launch(Dispatchers.IO) { history.record(ids) }
             _state.update { it.copy(sentIds = it.sentIds + ids) }
@@ -1224,5 +1328,10 @@ internal class GalleryController(
     }
 }
 
-/** An album's stable name for remembering it: the folder's id, or the collection's name. */
-val GalleryAlbum.key: String get() = if (kind == AlbumKind.BUCKET) "bucket:$id" else kind.name
+/** An album's stable name for remembering it: the folder's id, the Immich album's, or the collection's name. */
+val GalleryAlbum.key: String
+    get() = when (kind) {
+        AlbumKind.BUCKET -> "bucket:$id"
+        AlbumKind.IMMICH_ALBUM -> "immich:$id"
+        else -> kind.name
+    }

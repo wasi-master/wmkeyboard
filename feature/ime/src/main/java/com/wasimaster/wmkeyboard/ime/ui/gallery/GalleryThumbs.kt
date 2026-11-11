@@ -24,6 +24,12 @@ import coil3.request.Options
 import com.wasimaster.wmkeyboard.core.media.gallery.GalleryItem
 import com.wasimaster.wmkeyboard.core.media.gallery.GalleryKind
 import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
+import com.wasimaster.wmkeyboard.ime.gallery.immich.ImmichLibrary
+import coil3.decode.ImageSource
+import coil3.fetch.SourceFetchResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okio.Buffer
 
 /**
  * A grid cell's picture: the system's own thumbnail of a library row.
@@ -58,6 +64,12 @@ private class MediaThumbFetcher(
 
     private fun load(): Bitmap? {
         val side = thumb.px.coerceIn(MIN_PX, MAX_PX)
+        // An Immich picture (#1205): the server's own thumbnail, its larger one for a big cell.
+        if (ImmichLibrary.assetOf(thumb.uri) != null) {
+            val bytes = runCatching { ImmichLibrary.picture(thumb.uri, preview = side > IMMICH_SMALL_PX) }.getOrNull()
+                ?: return null
+            return decodeBytes(bytes, side)
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             runCatching { context.contentResolver.loadThumbnail(thumb.uri, Size(side, side), null) }
                 .getOrNull()?.let { return it }
@@ -86,6 +98,40 @@ private class MediaThumbFetcher(
     companion object {
         const val MIN_PX = 96
         const val MAX_PX = 512
+
+        /** Immich's `thumbnail` size is about 250 px; past that its `preview` is asked for. */
+        const val IMMICH_SMALL_PX = 320
+    }
+}
+
+/** [bytes] decoded no bigger than [side] on its long edge. */
+private fun decodeBytes(bytes: ByteArray, side: Int): Bitmap? = runCatching {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+    val opts = BitmapFactory.Options().apply { inSampleSize = MediaPrep.sampleSize(bounds.outWidth, bounds.outHeight, side) }
+    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+}.getOrNull()
+
+/**
+ * An Immich picture at full size, for the viewer and the peek (#1205): the
+ * server's preview, about 1440 px, which is what its own apps show before the
+ * original is asked for. Any other address goes on to Coil's own fetchers.
+ */
+private class ImmichPictureFetcher(private val uri: android.net.Uri, private val options: Options) : Fetcher {
+    override suspend fun fetch(): FetchResult? {
+        val bytes = withContext(Dispatchers.IO) { ImmichLibrary.picture(uri, preview = true) } ?: return null
+        return SourceFetchResult(
+            source = ImageSource(Buffer().write(bytes), options.fileSystem),
+            mimeType = null,
+            dataSource = DataSource.NETWORK,
+        )
+    }
+
+    class Factory : Fetcher.Factory<coil3.Uri> {
+        override fun create(data: coil3.Uri, options: Options, imageLoader: ImageLoader): Fetcher? {
+            if (data.scheme != GalleryItem.REMOTE_SCHEME) return null
+            return ImmichPictureFetcher(android.net.Uri.parse(data.toString()), options)
+        }
     }
 }
 
@@ -100,9 +146,10 @@ private var galleryLoader: ImageLoader? = null
 /**
  * The gallery's own image loader: the system thumbnails above, and full
  * pictures for the viewer (GIFs animated) through Coil's own content-URI
- * fetcher. Apart from the media loader because nothing here touches the
- * network, so it needs no internet gate, and MediaStore caches its own
- * thumbnails on disk already.
+ * fetcher. Apart from the media loader because MediaStore caches its own
+ * thumbnails on disk already. Its one way onto the network is an Immich
+ * picture (#1205), fetched through [ImmichLibrary], whose client is gated and
+ * logged; Coil's own network fetcher is not part of this loader.
  */
 fun galleryImageLoader(context: Context): ImageLoader =
     galleryLoader ?: synchronized(MediaThumbKeyer::class) {
@@ -110,6 +157,7 @@ fun galleryImageLoader(context: Context): ImageLoader =
             .components {
                 add(MediaThumbFetcher.Factory(context.applicationContext), MediaThumb::class)
                 add(MediaThumbKeyer(), MediaThumb::class)
+                add(ImmichPictureFetcher.Factory(), coil3.Uri::class)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     add(AnimatedImageDecoder.Factory())
                 } else {

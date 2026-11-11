@@ -197,6 +197,7 @@ object SettingsBackup {
         AUTO_BACKUP_LOCATIONS,
         PROVIDER_CREDENTIALS,
         "self_hosted_libretranslate_key",
+        GalleryPrefs.IMMICH_KEY_NAME,
     )
 
     /** The app lock's stored PIN, password or pattern hash. */

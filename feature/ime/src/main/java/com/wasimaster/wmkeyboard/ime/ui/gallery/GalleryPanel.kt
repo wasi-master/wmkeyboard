@@ -79,6 +79,7 @@ import com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks
 import com.wasimaster.wmkeyboard.ime.gallery.GalleryNotice
 import com.wasimaster.wmkeyboard.ime.gallery.GalleryTextField
 import com.wasimaster.wmkeyboard.ime.gallery.GalleryUi
+import com.wasimaster.wmkeyboard.ime.gallery.immich.ImmichLibrary
 import com.wasimaster.wmkeyboard.ime.ui.FullBleedTool
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
 import com.wasimaster.wmkeyboard.ime.ui.PanelFocusTarget
@@ -149,7 +150,8 @@ internal fun GalleryPanel(
         },
     ) {
         Box(Modifier.fillMaxSize()) {
-            if (ui.access == GalleryStore.Access.NONE) {
+            // An Immich server is browsable without the phone's photos (#1205).
+            if (ui.access == GalleryStore.Access.NONE && !ui.immich) {
                 NoAccess(act)
             } else {
                 Column(Modifier.fillMaxSize()) {
@@ -191,6 +193,7 @@ internal fun GalleryPanel(
                 SendMenu(
                     hasCaption = ui.caption.isNotBlank() && settings.caption != GalleryCaption.OFF,
                     canShareToApp = true,
+                    canUploadToImmich = ui.immich && ui.selection.any { !it.isRemote && it.bucketId != ImmichLibrary.REMOTE_BUCKET },
                     act = act,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
@@ -410,6 +413,8 @@ internal fun albumName(album: GalleryAlbum): String = when (album.kind) {
     AlbumKind.CAMERA -> stringResource(R.string.ime_gallery_album_camera)
     AlbumKind.SENT -> stringResource(R.string.ime_gallery_album_sent)
     AlbumKind.BUCKET -> album.name?.ifBlank { null } ?: stringResource(R.string.ime_gallery_album_unnamed)
+    AlbumKind.IMMICH -> stringResource(R.string.ime_gallery_album_immich)
+    AlbumKind.IMMICH_ALBUM -> album.name?.ifBlank { null } ?: stringResource(R.string.ime_gallery_album_unnamed)
 }
 
 private fun filterLabel(f: GalleryFilter): Int = when (f) {
@@ -572,6 +577,11 @@ private fun noticeText(n: GalleryNotice): String = when (n.kind) {
     GalleryNotice.Kind.REPLACED -> stringResource(R.string.ime_gallery_notice_replaced)
     GalleryNotice.Kind.NOT_REPLACED -> stringResource(R.string.ime_gallery_notice_not_replaced)
     GalleryNotice.Kind.SAVE_FAILED -> stringResource(R.string.ime_gallery_notice_save_failed)
+    GalleryNotice.Kind.IMMICH_FAILED -> stringResource(R.string.ime_gallery_notice_immich_failed)
+    GalleryNotice.Kind.IMMICH_REFUSED -> stringResource(R.string.ime_gallery_notice_immich_refused)
+    GalleryNotice.Kind.UPLOADED -> pluralStringResource(R.plurals.ime_gallery_notice_uploaded, n.count, n.count)
+    GalleryNotice.Kind.ALREADY_UPLOADED -> pluralStringResource(R.plurals.ime_gallery_notice_already_uploaded, n.count, n.count)
+    GalleryNotice.Kind.UPLOAD_FAILED -> pluralStringResource(R.plurals.ime_gallery_notice_upload_failed, n.count, n.count)
 }
 
 private const val COVER_PX = 96

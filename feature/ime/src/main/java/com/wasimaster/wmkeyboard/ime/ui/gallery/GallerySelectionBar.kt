@@ -61,6 +61,7 @@ import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudUpload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Description
@@ -400,7 +401,13 @@ private fun SendButton(count: Int, enabled: Boolean, act: (GalleryAction) -> Uni
 
 /** Send's hold menu: every other way out of the bar. */
 @Composable
-internal fun SendMenu(hasCaption: Boolean, canShareToApp: Boolean, act: (GalleryAction) -> Unit, modifier: Modifier = Modifier) {
+internal fun SendMenu(
+    hasCaption: Boolean,
+    canShareToApp: Boolean,
+    act: (GalleryAction) -> Unit,
+    modifier: Modifier = Modifier,
+    canUploadToImmich: Boolean = false,
+) {
     val kb = LocalKbTheme.current
     val shape = kb.cardShape()
     Column(
@@ -422,6 +429,7 @@ internal fun SendMenu(hasCaption: Boolean, canShareToApp: Boolean, act: (Gallery
         entry(Icons.Outlined.ContentCopy, R.string.ime_gallery_copy, SendMode.COPY)
         entry(Icons.Outlined.Link, R.string.ime_gallery_send_as_link, SendMode.AS_LINK)
         entry(Icons.Outlined.SaveAlt, R.string.ime_gallery_save, SendMode.SAVE)
+        if (canUploadToImmich) entry(Icons.Outlined.CloudUpload, R.string.ime_gallery_upload_immich, SendMode.TO_IMMICH)
         entry(Icons.Outlined.Deselect, R.string.ime_gallery_clear_selection, null)
     }
 }

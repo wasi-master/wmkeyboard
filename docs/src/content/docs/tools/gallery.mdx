@@ -29,6 +29,8 @@ The sheet opens at the keyboard's own height. Drag the bar on top of it, or pres
 
 The Play Store build cannot hold the photo library permission, so there the tool has no grid of its own. A tap on **Gallery** opens Android's photo picker straight away. Whatever you pick is prepared with the same size and privacy settings and sent the moment the keyboard is back in the text box. The rest of this page describes the grid in the GitHub and F-Droid builds.
 
+With an [Immich server](#your-immich-server) set up, the Play build opens the panel instead, on the server's photos; **Browse all photos** in its ⋮ menu still opens Android's picker for the phone's.
+
 ## Albums and filters
 
 The chip at the start of the header names the album you are in. Tap it for the list of albums, each with its newest photo and a count:
@@ -131,6 +133,27 @@ Either way the photo is saved at up to 4096 pixels on its long side, in its own 
 
 **Keep edited photos** in settings also saves each edited photo you send, under Pictures/WM Keyboard.
 
+## Your Immich server
+
+If your photos live on your own [Immich](https://immich.app) server, the gallery can browse them too, external libraries included. Under <SettingsPath path="Tools / Gallery / Immich" /> enter:
+
+- **Server address**: the address you open Immich at, such as `https://photos.example.com`. Adding `/api` is fine too.
+- **API key**: make one in Immich under **Account settings › API keys**. To browse and send it needs `asset.read`, `asset.view`, `asset.download`, `album.read`, `timeline.read` and `user.read`; add `asset.upload` to upload from the phone. A key with every permission works as well.
+
+**Check the connection** asks the server who the key belongs to and says so, or says what went wrong.
+
+The album list then has **Immich**, your whole timeline newest first, and after it every Immich album you own or that is shared with you. They behave like the phone's albums: the grid pages in a month at a time as you scroll, the viewer shows the server's preview, and picking, captions, the size chip and the editor all work. When you send or edit an Immich picture, the keyboard first downloads its original into its own storage, then sends a copy with the same privacy settings as a phone photo. Only pictures are listed; Immich videos are left out. The **Photos** filter shows them all, and **Videos** and **GIFs** show nothing in an Immich album.
+
+Without the phone's photo permission, the panel opens straight on the Immich timeline.
+
+### Uploading phone pictures
+
+Pick photos from the phone's own albums, hold **Send**, and choose **Upload to Immich**. Each one goes to the server as it is, at full size with its date and camera details, since it is going to your own library and not to someone else. The server checks each file's fingerprint first, so a photo it already has is not stored twice: the notice says how many were new and how many it had already. Pictures that came from the server are skipped. The selection stays, so you can still send it afterwards.
+
+### What is sent
+
+Everything goes only to the server you entered, never through anyone else. The API key travels in a header, never in an address. Each request is listed under **Immich** in [Network activity](/privacy/network-activity/), with the asset and album ids left out of the address shown. The key stays on the phone and is left out of every [backup](/privacy/backup/) and export. Data saver leaves Immich alone, as it does other servers you run yourself.
+
 ## Privacy
 
 What the app you type in receives is a copy in the keyboard's own storage, offered through Android's content system. It cannot see your library, other photos in the album, or the file the copy came from.
@@ -141,11 +164,11 @@ What the app you type in receives is a copy in the keyboard's own storage, offer
 - **Remember what you sent** (on) keeps a list of the library ids you sent, for the Sent album and the send mark. It holds no pictures and no names, it stays on the phone, an incognito text box adds nothing to it, and **Clear the sent list** empties it.
 - The copies are deleted from the keyboard's storage a day after they were made.
 
-The library is read only while the panel is open. Nothing is uploaded: the tool works the same with no internet at all. With [photo search](#searching-your-photos) on, the numbers the keyboard makes from your photos stay on the phone, out of backups, and are deleted when you turn search by meaning off or take the photos permission away.
+The library is read only while the panel is open. Nothing is uploaded unless you choose **Upload to Immich**: without an Immich server the tool works the same with no internet at all. With [photo search](#searching-your-photos) on, the numbers the keyboard makes from your photos stay on the phone, out of backups, and are deleted when you turn search by meaning off or take the photos permission away.
 
 ## Settings
 
-Everything above is under <SettingsPath path="Tools / Gallery" />: access, **Tap on a photo**, **Columns**, **Camera tile**, **Show videos**, **Fast scroll by month**, **Open at full height**, **Open the last album**, **Vibrate on each pick**, **Folders**, **Picture size**, **Pick up to**, **Caption**, **When the app does not take pictures**, **Close after sending**, **Keep edited photos**, and the privacy switches. The Play Store build shows only the ones that apply to the picker.
+Everything above is under <SettingsPath path="Tools / Gallery" />: access, **Tap on a photo**, **Columns**, **Camera tile**, **Show videos**, **Fast scroll by month**, **Open at full height**, **Open the last album**, **Vibrate on each pick**, **Folders**, **Picture size**, **Pick up to**, **Caption**, **When the app does not take pictures**, **Close after sending**, **Keep edited photos**, the privacy switches, and the [Immich](#your-immich-server) server and key. The Play Store build shows only the ones that apply to the picker.
 
 **Folders** lists the folders on the phone that hold photos or videos as a tree under DCIM, Pictures and the rest, with a search and a tick for each, so a whole branch can go at once. Untick one and its photos leave the gallery altogether: its own album goes from the list, and nothing from it shows in **Recents**, **Favorites** or any other collection, or in a search. A folder of saved receipts or a messaging app's downloads can stay out of the way. Tick it again to bring it back.
 

@@ -178,6 +178,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.OPENHAB -> R.string.netlog_source_openhab to R.string.netlog_sent_openhab
     NetSource.TUYA -> R.string.netlog_source_tuya to R.string.netlog_sent_tuya
     NetSource.SWITCHBOT -> R.string.netlog_source_switchbot to R.string.netlog_sent_switchbot
+    NetSource.IMMICH -> R.string.netlog_source_immich to R.string.netlog_sent_immich
     NetSource.OTHER -> R.string.netlog_source_other to R.string.netlog_sent_other
 }
 
@@ -231,6 +232,8 @@ private val DataSaverSources = NetSource.entries.toSet() - setOf(
     NetSource.TRANSLATE, NetSource.DEEPL_WRITE, NetSource.BACKUP, NetSource.UPDATES, NetSource.KDE_CONNECT,
     // The user's own server on their own network; a data saver has nothing to save there.
     NetSource.HOME_ASSISTANT, NetSource.HUE, NetSource.OPENHAB,
+    // The user's own photo server, asked only while its album is open (#1205).
+    NetSource.IMMICH,
     // A few small polls while the panel is open, on the user's say-so.
     NetSource.SMARTTHINGS, NetSource.TUYA, NetSource.SWITCHBOT,
     // One small list, fetched only when its button is pressed.

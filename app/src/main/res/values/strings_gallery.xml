@@ -75,4 +75,17 @@
     <string name="gallery_history_clear_title">Clear the sent list</string>
     <string name="gallery_history_clear_subtitle">Empties the Sent album. Your photos stay where they are.</string>
     <string name="gallery_history_clear_confirm">Clear the list of what you sent from the keyboard?</string>
+    <string name="gallery_immich_group">Immich</string>
+    <string name="gallery_immich_info">Browse your own Immich server in the gallery: its timeline and albums come after the phone's, and a picture from it is sent like one of yours. In Immich, make an API key under Account settings › API keys. Give it asset.read, asset.view, asset.download, album.read, timeline.read and user.read; add asset.upload to upload phone pictures from the send menu. The key stays on this phone and out of backups.</string>
+    <string name="gallery_immich_url_title">Server address</string>
+    <string name="gallery_immich_url_hint">The address you open Immich at, such as https://photos.example.com</string>
+    <string name="gallery_immich_key_title">API key</string>
+    <string name="gallery_immich_key_hint">Paste the key Immich showed when you made it</string>
+    <string name="gallery_immich_check_title">Check the connection</string>
+    <string name="gallery_immich_check_subtitle">Asks the server who the key belongs to</string>
+    <string name="gallery_immich_check_action">Check</string>
+    <string name="gallery_immich_check_ok">Connected as %1$s</string>
+    <string name="gallery_immich_check_refused">The server turned the key down (%1$d). Check the key and its permissions.</string>
+    <string name="gallery_immich_check_failed">Could not reach the server: %1$s</string>
+    <string name="gallery_immich_check_bad_url">That does not look like a web address</string>
 </resources>

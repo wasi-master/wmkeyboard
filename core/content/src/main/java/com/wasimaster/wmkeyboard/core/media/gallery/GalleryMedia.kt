@@ -49,6 +49,13 @@ data class GalleryItem(
     /** Picked through a system picker rather than read from the library. */
     val isPicked: Boolean get() = id < 0
 
+    /**
+     * On the user's Immich server (#1205) rather than the phone: [sourceUri]
+     * names the asset, and its original has to be fetched before it can be
+     * edited or sent.
+     */
+    val isRemote: Boolean get() = sourceUri?.scheme == REMOTE_SCHEME
+
     /** The size the picture is seen at, with [orientation] applied. */
     val shownWidth: Int get() = if (orientation % 180 == 0) width else height
     val shownHeight: Int get() = if (orientation % 180 == 0) height else width
@@ -68,6 +75,9 @@ data class GalleryItem(
 
         /** MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO, kept here so the rule is testable off-device. */
         const val MEDIA_TYPE_VIDEO = 3
+
+        /** The scheme of an Immich asset's [sourceUri]: `immich://asset/<id>`. */
+        const val REMOTE_SCHEME = "immich"
     }
 }
 
@@ -88,12 +98,18 @@ enum class AlbumKind {
 
     /** A folder on the phone, by MediaStore bucket. */
     BUCKET,
+
+    /** The whole timeline of the user's Immich server (#1205). */
+    IMMICH,
+
+    /** One album on the user's Immich server, by its id. */
+    IMMICH_ALBUM,
 }
 
 /** An album in the picker's list. */
 data class GalleryAlbum(
     val kind: AlbumKind,
-    /** The bucket id for [AlbumKind.BUCKET]; the kind's name otherwise. */
+    /** The bucket id for [AlbumKind.BUCKET], the album's for [AlbumKind.IMMICH_ALBUM]; the kind's name otherwise. */
     val id: String,
     /** The folder's own name; null for the tool's collections, which the keyboard names. */
     val name: String?,

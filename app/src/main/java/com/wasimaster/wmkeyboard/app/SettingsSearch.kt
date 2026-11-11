@@ -2206,6 +2206,10 @@ private fun SearchStrings.galleryRows(): List<SettingsSearchEntry> {
         row(R.string.gallery_random_names_title, R.string.gallery_random_names_subtitle),
         row(R.string.gallery_history_title, R.string.gallery_history_subtitle, gridOnly = true),
         row(R.string.gallery_history_clear_title, R.string.gallery_history_clear_subtitle, gridOnly = true),
+        // #1205: the user's Immich server, in every build.
+        row(R.string.gallery_immich_url_title, R.string.gallery_immich_group),
+        row(R.string.gallery_immich_key_title, R.string.gallery_immich_group),
+        row(R.string.gallery_immich_check_title, R.string.gallery_immich_check_subtitle),
     )
 }
 

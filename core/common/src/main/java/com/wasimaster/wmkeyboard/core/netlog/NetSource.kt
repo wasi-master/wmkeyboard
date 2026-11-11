@@ -186,6 +186,12 @@ enum class NetSource(
     OPENHAB("openhab", ToolbarTool.HOME_ASSISTANT),
     TUYA("tuya", ToolbarTool.HOME_ASSISTANT),
     SWITCHBOT("switchbot", ToolbarTool.HOME_ASSISTANT),
+
+    /**
+     * The user's own Immich server, from the gallery (#1205): its timeline and
+     * albums, their thumbnails, an original fetched to send, an upload.
+     */
+    IMMICH("immich", ToolbarTool.GALLERY),
     OTHER("other"),
     ;
 

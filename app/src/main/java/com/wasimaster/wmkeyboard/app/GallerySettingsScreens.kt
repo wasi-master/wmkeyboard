@@ -40,6 +40,7 @@ import com.wasimaster.wmkeyboard.core.settings.GallerySettings
 import com.wasimaster.wmkeyboard.core.settings.GalleryTapAction
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.ime.gallery.immich.ImmichClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -174,6 +175,8 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
         }
     }
 
+    ImmichSettingsGroup(settings) { change -> update(change) }
+
     SettingsGroup(stringResource(R.string.gallery_send_group)) {
         item {
             ChoiceSetting(
@@ -290,6 +293,74 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     confirm = stringResource(R.string.gallery_history_clear_confirm),
                 ) {
                     scope.launch { withContext(Dispatchers.IO) { GallerySentHistory.get(context).clear() } }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The user's Immich server (#1205): its address, an API key, and a check that
+ * asks the server who the key belongs to. In every build, Play's included: the
+ * server is browsed in the keyboard's own panel, which needs no photo
+ * permission.
+ */
+@Composable
+private fun ImmichSettingsGroup(settings: LiveSettings, update: ((GallerySettings) -> GallerySettings) -> Unit) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val url = settings.watch { it.gallery.immichUrl }
+    val key = settings.watch { it.gallery.immichKey }
+    var checking by remember { mutableStateOf(false) }
+    var result by remember(url, key) { mutableStateOf<String?>(null) }
+    SettingsGroup(stringResource(R.string.gallery_immich_group), info = stringResource(R.string.gallery_immich_info)) {
+        item {
+            TextFieldSetting(
+                label = stringResource(R.string.gallery_immich_url_title),
+                value = url,
+                hint = stringResource(R.string.gallery_immich_url_hint),
+                default = "",
+            ) { v -> update { it.copy(immichUrl = v) } }
+        }
+        item {
+            ApiKeyField(
+                label = stringResource(R.string.gallery_immich_key_title),
+                value = key,
+                builtInAvailable = false,
+                emptyHint = stringResource(R.string.gallery_immich_key_hint),
+                wmPassTitle = "Immich",
+            ) { v -> update { it.copy(immichKey = v) } }
+        }
+        if (url.isNotBlank() && key.isNotBlank()) {
+            item {
+                ActionRow(
+                    R.string.gallery_immich_check_title,
+                    subtitle = result ?: stringResource(R.string.gallery_immich_check_subtitle),
+                    action = stringResource(R.string.gallery_immich_check_action),
+                ) {
+                    if (checking) return@ActionRow
+                    checking = true
+                    scope.launch {
+                        val client = ImmichClient(url, key)
+                        result = if (client.base == null) {
+                            context.getString(R.string.gallery_immich_check_bad_url)
+                        } else {
+                            withContext(Dispatchers.IO) {
+                                runCatching { client.me() }.fold(
+                                    onSuccess = { me -> context.getString(R.string.gallery_immich_check_ok, me.name.ifBlank { me.email }) },
+                                    onFailure = { e ->
+                                        val failure = e as? ImmichClient.Failure
+                                        if (failure?.refused == true) {
+                                            context.getString(R.string.gallery_immich_check_refused, failure.code)
+                                        } else {
+                                            context.getString(R.string.gallery_immich_check_failed, e.message ?: e.javaClass.simpleName)
+                                        }
+                                    },
+                                )
+                            }
+                        }
+                        checking = false
+                    }
                 }
             }
         }

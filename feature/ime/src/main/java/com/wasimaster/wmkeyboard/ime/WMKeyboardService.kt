@@ -48436,7 +48436,10 @@ open class WMKeyboardService : InputMethodService() {
      * sent as soon as the keyboard is back.
      */
     private fun openGalleryTool() {
-        if (com.wasimaster.wmkeyboard.app.ChannelFeatures.GALLERY_BROWSER) {
+        // An Immich server (#1205) is browsed in the panel on a Play build too.
+        if (com.wasimaster.wmkeyboard.app.ChannelFeatures.GALLERY_BROWSER ||
+            com.wasimaster.wmkeyboard.ime.gallery.immich.ImmichLibrary.configured(_uiState.value.settings.gallery)
+        ) {
             onPanelChange(PanelMode.GALLERY)
             return
         }

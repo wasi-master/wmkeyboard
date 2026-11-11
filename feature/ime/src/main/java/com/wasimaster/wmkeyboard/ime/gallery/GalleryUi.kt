@@ -74,6 +74,12 @@ data class GalleryUi(
     val search: GallerySearch? = null,
     /** The upscaler's copies of edited photos, by [upscaleKey]: what the editor and the send read instead of the photo. */
     val upscaled: Map<String, java.io.File> = emptyMap(),
+    /**
+     * An Immich server is set up (#1205): its timeline and albums join the
+     * album list, the grid shows even without the phone's photo permission,
+     * and the send menu can upload phone pictures to it.
+     */
+    val immich: Boolean = false,
 ) {
     val selectedIds: Set<Long> get() = selection.mapTo(HashSet()) { it.id }
 
@@ -183,6 +189,19 @@ data class GalleryNotice(val kind: Kind, val count: Int = 0) {
         /** The user said no to Android's "modify this photo?". */
         NOT_REPLACED,
         SAVE_FAILED,
+
+        /** The Immich server could not be reached, or would not answer (#1205). */
+        IMMICH_FAILED,
+
+        /** The Immich server turned the API key down, or the key lacks the permission asked for. */
+        IMMICH_REFUSED,
+
+        /** Phone pictures uploaded to the Immich server. */
+        UPLOADED,
+
+        /** Every picture sent up was on the server already. */
+        ALREADY_UPLOADED,
+        UPLOAD_FAILED,
     }
 }
 
@@ -217,6 +236,9 @@ enum class SendMode {
 
     /** To the Send files tool (#729), to go out as an encrypted link or to a device nearby. */
     AS_LINK,
+
+    /** Up to the user's Immich server (#1205): phone pictures it does not have yet. */
+    TO_IMMICH,
 }
 
 /** Everything the panel can ask for, as one type, so the callback bundle stays one field. */
@@ -317,7 +339,8 @@ sealed interface GalleryAction {
  * (a picker's grant reads, it does not write) in a format Android encodes.
  */
 val GalleryItem.replaceable: Boolean
-    get() = !isPicked && kind == GalleryKind.IMAGE && MediaPrep.canRewriteExif(mime)
+    get() = !isPicked && !isRemote && bucketId != com.wasimaster.wmkeyboard.ime.gallery.immich.ImmichLibrary.REMOTE_BUCKET &&
+        kind == GalleryKind.IMAGE && MediaPrep.canRewriteExif(mime)
 
 /** A sticker the editor can place: one of the user's own. */
 data class StickerChoice(val id: String, val path: String)

@@ -88,6 +88,13 @@ data class GallerySettings(
      * screenshots of receipts, a messaging app's saved media.
      */
     val hiddenFolders: Set<String> = emptySet(),
+    /**
+     * The user's Immich server (#1205), as typed: its address, with or
+     * without `/api`. Blank, the gallery is the phone's alone.
+     */
+    val immichUrl: String = "",
+    /** An Immich API key for [immichUrl]; in [SettingsBackup.SECRET_KEYS], so it stays out of backups. */
+    val immichKey: String = "",
 ) {
     companion object {
         const val MIN_COLUMNS = 2
@@ -121,6 +128,11 @@ object GalleryPrefs {
     private val KEEP_HISTORY = booleanPreferencesKey("gallery_keep_history")
     private val LAST_ALBUM = stringPreferencesKey("gallery_last_album")
     private val HIDDEN_FOLDERS = stringSetPreferencesKey("gallery_hidden_folders")
+    private val IMMICH_URL = stringPreferencesKey("gallery_immich_url")
+    private val IMMICH_KEY = stringPreferencesKey(IMMICH_KEY_NAME)
+
+    /** The API key's DataStore name, for [SettingsBackup.SECRET_KEYS]. */
+    const val IMMICH_KEY_NAME = "gallery_immich_key"
 
     private inline fun <reified E : Enum<E>> enumOf(name: String?): E? =
         name?.let { n -> enumValues<E>().firstOrNull { it.name == n } }
@@ -147,6 +159,8 @@ object GalleryPrefs {
         keepHistory = p[KEEP_HISTORY] ?: d.keepHistory,
         lastAlbum = p[LAST_ALBUM] ?: d.lastAlbum,
         hiddenFolders = p[HIDDEN_FOLDERS] ?: d.hiddenFolders,
+        immichUrl = p[IMMICH_URL] ?: d.immichUrl,
+        immichKey = p[IMMICH_KEY] ?: d.immichKey,
     )
 
     /** Writes only what differs from [old], so a one-field change is a one-key edit. */
@@ -175,5 +189,7 @@ object GalleryPrefs {
         if (new.keepHistory != old.keepHistory) p[KEEP_HISTORY] = new.keepHistory
         if (new.lastAlbum != old.lastAlbum) p[LAST_ALBUM] = new.lastAlbum
         if (new.hiddenFolders != old.hiddenFolders) p[HIDDEN_FOLDERS] = new.hiddenFolders
+        if (new.immichUrl != old.immichUrl) p[IMMICH_URL] = new.immichUrl.trim()
+        if (new.immichKey != old.immichKey) p[IMMICH_KEY] = new.immichKey.trim()
     }
 }
