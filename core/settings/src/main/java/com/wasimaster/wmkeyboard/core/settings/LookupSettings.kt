@@ -71,9 +71,16 @@ data class LookupSettings(
 }
 
 /** A website the Dictionary's Open in menu can look a word up on: [url] has `%s` where the word goes. */
-data class LookupWebSite(val id: String, val name: String, val url: String) {
+data class LookupWebSite(
+    val id: String,
+    val name: String,
+    val url: String,
+    /** What a space between words becomes in the address: Almaany's paths join them with `-`. */
+    val spaceAs: String = "%20",
+) {
     /** The address for [word], encoded for a URL. */
-    fun urlFor(word: String): String = url.replace("%s", java.net.URLEncoder.encode(word.trim(), "UTF-8").replace("+", "%20"))
+    fun urlFor(word: String): String =
+        url.replace("%s", java.net.URLEncoder.encode(word.trim().replace(Regex("\\s+"), " "), "UTF-8").replace("+", spaceAs))
 }
 
 /**
@@ -87,6 +94,10 @@ object LookupWebSites {
         LookupWebSite("shinjikai", "Shinjikai", "https://shinjikai.app/search?term=%s"),
         LookupWebSite("jisho", "Jisho", "https://jisho.org/search/%s"),
         LookupWebSite("wiktionary", "Wiktionary", "https://en.wiktionary.org/wiki/Special:Search?search=%s"),
+        // Almaany (#1209): the largest Arabic dictionary site, with no API.
+        // Its Android app opens these links where it claims them.
+        LookupWebSite("almaany_ar", "Almaany (Arabic)", "https://www.almaany.com/ar/dict/ar-ar/%s/", spaceAs = "-"),
+        LookupWebSite("almaany_en", "Almaany (Arabic–English)", "https://www.almaany.com/en/dict/ar-en/%s/", spaceAs = "-"),
     )
 
     /** An address the menu can use: http(s), with the `%s` the word goes in. */
