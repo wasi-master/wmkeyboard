@@ -79,6 +79,8 @@
     <string name="ime_notes_tag_hint">Tag name</string>
     <!-- Word and character counts under the editor. -->
     <string name="ime_notes_word_count"><xliff:g id="words" example="12">%1$d</xliff:g> words · <xliff:g id="chars" example="80">%2$d</xliff:g> chars</string>
+    <!-- The editor's chip that types the clipboard's text into the note. -->
+    <string name="ime_notes_paste_desc">Paste</string>
     <string name="ime_notes_md_bold_desc">Bold</string>
     <string name="ime_notes_md_italic_desc">Italic</string>
     <string name="ime_notes_md_bullet_desc">Bulleted list</string>

@@ -155,6 +155,8 @@ data class NotesCallbacks(
     val onEditDone: () -> Unit = {},
     val onEditCancel: () -> Unit = {},
     val onMarkdown: (NoteMarkdownAction) -> Unit = {},
+    /** The editor's Paste chip: the clipboard's text into the body at the caret. */
+    val onPaste: () -> Unit = {},
     /** A tag on or off a note; the palette index is what a suggested tag is born with. */
     val onTagToggle: (Long, String, Int) -> Unit = { _, _, _ -> },
     val onTagPickerToggle: () -> Unit = {},

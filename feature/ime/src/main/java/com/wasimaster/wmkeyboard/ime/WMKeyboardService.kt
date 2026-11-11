@@ -48201,6 +48201,7 @@ open class WMKeyboardService : InputMethodService() {
         onEditDone = ::onNoteEditDone,
         onEditCancel = ::onNoteEditCancel,
         onMarkdown = ::onNoteMarkdown,
+        onPaste = ::onNotePaste,
         onTagToggle = ::onNoteTagToggle,
         onTagPickerToggle = ::onNoteTagPickerToggle,
         onTagTypeStart = ::onNoteTagTypeStart,
@@ -48560,6 +48561,19 @@ open class WMKeyboardService : InputMethodService() {
         val before = _uiState.value.captureCaretText() ?: return
         vibrate()
         captureWrite(CaptureTarget.NOTE_BODY, before, NotesLogic.applyMarkdown(before, action))
+    }
+
+    /**
+     * The editor's Paste chip: what a paste key would type (the keyboard's
+     * private copy, else the system clipboard, else the newest clip in
+     * history) goes into the body at the caret, over any selection.
+     */
+    fun onNotePaste() {
+        if (_uiState.value.captureTarget() != CaptureTarget.NOTE_BODY) {
+            onNoteEditFocus(NoteEditField.BODY, caret = null)
+        }
+        vibrate()
+        capturePaste()
     }
 
     /**

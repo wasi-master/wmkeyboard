@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Code
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatBold
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatItalic
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatListBulleted
@@ -243,7 +244,11 @@ private fun NoteTagRow(state: KeyboardUiState, edit: NoteEdit, callbacks: NotesC
     }
 }
 
-/** The Markdown chips, and the word and character count at the row's end. */
+/**
+ * Paste, then the Markdown chips, and the word and character count at the
+ * row's end. Paste leads because the body is no real text field: there is no
+ * long-press menu to paste from, and a paste key may not be on the layout.
+ */
 @Composable
 private fun MarkdownHelperRow(edit: NoteEdit, callbacks: NotesCallbacks) {
     val kb = LocalKbTheme.current
@@ -263,6 +268,7 @@ private fun MarkdownHelperRow(edit: NoteEdit, callbacks: NotesCallbacks) {
             modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
+            ToolPanelChip(stringResource(R.string.ime_notes_paste_desc), icon = Icons.Outlined.ContentPaste) { callbacks.onPaste() }
             for ((action, icon, descRes) in actions) {
                 ToolPanelChip(stringResource(descRes), icon = icon) { callbacks.onMarkdown(action) }
             }
