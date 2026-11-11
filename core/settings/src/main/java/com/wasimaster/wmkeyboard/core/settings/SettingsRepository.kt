@@ -4003,6 +4003,8 @@ data class KeyboardSettings(
      * with. An emergency escape hatch only; see [IntegrityChecks].
      */
     val verifyChecksums: Boolean = true,
+    /** Keep the settings change history that undo reads (#1242); see [SettingsHistory]. */
+    val settingsHistory: Boolean = true,
     /** Alternate calendars and the weekend, for the calendar tool (see [CalendarToolSettings]). */
     val calendarTool: CalendarToolSettings = CalendarToolSettings(),
     /** Handwriting canvas ignores finger touches; only a stylus draws. */
@@ -11265,6 +11267,9 @@ class SettingsRepository(private val context: Context) {
      */
     private val locked = LockedSettings(context)
 
+    /** Undo and restore points for every setting; see [SettingsHistory]. */
+    val history: SettingsHistory = SettingsHistory.get(context)
+
     /**
      * Whether credential-encrypted storage is readable. Starts as whatever the
      * platform says at construction and only ever goes true — via
@@ -12393,6 +12398,7 @@ class SettingsRepository(private val context: Context) {
         private val NETWORK_LOG_KEEP = booleanPreferencesKey("network_log_keep")
         private val NETWORK_LOG_ON_KEYBOARD = booleanPreferencesKey("network_log_on_keyboard")
         private val VERIFY_CHECKSUMS = booleanPreferencesKey("verify_checksums")
+        private val SETTINGS_HISTORY = booleanPreferencesKey(SettingsHistory.ENABLED_KEY)
         private val WEATHER_FAHRENHEIT = booleanPreferencesKey("weather_fahrenheit")
         private val WEATHER_LAT = floatPreferencesKey("weather_lat")
         private val WEATHER_LON = floatPreferencesKey("weather_lon")
@@ -13175,10 +13181,36 @@ class SettingsRepository(private val context: Context) {
      * transforms decode and re-encode belongs.
      */
     private suspend fun editPrefs(transform: suspend (MutablePreferences) -> Unit) {
-        withContext(Dispatchers.IO) {
-            if (unlocked.value) context.dataStore.edit { transform(it) }
-            else locked.edit { transform(it) }
+        editPrefsAs(SettingsHistory.Kind.EDIT, transform = transform)
+    }
+
+    /**
+     * [editPrefs], recording what the write changed in the [history] as a
+     * batch of [kind] (#1242). The diff is taken inside the store's own
+     * write lock, against the very map the transform started from, so two
+     * writes racing each other are never credited with each other's changes.
+     * A locked session writes the mirror, which the first unlocked emission
+     * overwrites, so there is nothing to keep from it.
+     */
+    private suspend fun editPrefsAs(
+        kind: SettingsHistory.Kind,
+        label: String? = null,
+        undid: List<Long> = emptyList(),
+        transform: suspend (MutablePreferences) -> Unit,
+    ): SettingsHistory.Batch? = withContext(Dispatchers.IO) {
+        if (!unlocked.value) {
+            locked.edit { transform(it) }
+            return@withContext null
         }
+        var changes: List<SettingsHistory.Change> = emptyList()
+        context.dataStore.edit { prefs ->
+            val before = if (prefs[SETTINGS_HISTORY] != false) prefs.asMap().toMap() else null
+            transform(prefs)
+            if (before != null && prefs[SETTINGS_HISTORY] != false) {
+                changes = SettingsHistory.diff(before, prefs.asMap())
+            }
+        }
+        if (changes.isEmpty()) null else history.record(kind, changes, label, undid)
     }
 
     /**
@@ -13438,6 +13470,7 @@ class SettingsRepository(private val context: Context) {
             redoUsesCtrlY = p[REDO_USES_CTRL_Y] ?: defaults.redoUsesCtrlY,
             networkLog = readNetworkLog(p, defaults),
             verifyChecksums = p[VERIFY_CHECKSUMS] ?: defaults.verifyChecksums,
+            settingsHistory = p[SETTINGS_HISTORY] ?: defaults.settingsHistory,
             weather = readWeather(p, defaults),
             location = readLocation(p, defaults),
             music = readMusic(p, defaults),
@@ -16401,6 +16434,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun setVerifyChecksums(value: Boolean) =
         editPrefs { it[VERIFY_CHECKSUMS] = value }
 
+    /** Turning the history off forgets what it held: off means nothing is kept. */
+    suspend fun setSettingsHistory(value: Boolean) {
+        editPrefs { it[SETTINGS_HISTORY] = value }
+        if (!value) history.clearHistory()
+    }
+
     suspend fun setLocationFormat(value: LocationFormat) = editPrefs { it[LOCATION_FORMAT] = value.id }
 
     suspend fun setLocationMapLink(value: MapLink) = editPrefs { it[LOCATION_MAP_LINK] = value.id }
@@ -19111,6 +19150,125 @@ class SettingsRepository(private val context: Context) {
             return ImportResult.RolledBack
         }
         return ImportResult.Applied(entries.size, skipped)
+    }
+
+    // ---- undo and restore points (#1242) ----
+
+    /** How an undo or a restore went. */
+    sealed interface HistoryResult {
+        /** [count] settings were written back. */
+        data class Applied(val count: Int) : HistoryResult
+
+        /** Nothing differed, so nothing was written. */
+        data object NothingToDo : HistoryResult
+
+        /** The restore point's file is gone or cannot be read. */
+        data object Missing : HistoryResult
+
+        /** The write left the app unable to read its settings, and was taken back. */
+        data object RolledBack : HistoryResult
+    }
+
+    /** Takes back the newest change that has not been undone. */
+    suspend fun undoLastSettingsChange(): HistoryResult {
+        history.load()
+        val batch = history.lastUndoable() ?: return HistoryResult.NothingToDo
+        return undoSettingsBatches(listOf(batch))
+    }
+
+    /** Takes back every change of the last [windowMs] that has not been undone. */
+    suspend fun undoSettingsWithin(windowMs: Long): HistoryResult {
+        history.load()
+        return undoSettingsBatches(history.undoableWithin(windowMs))
+    }
+
+    /**
+     * Takes back the one batch [id]. An undo's batch taken back puts the
+     * changes it undid in place again, and marks them as not undone.
+     */
+    suspend fun undoSettingsBatch(id: Long): HistoryResult {
+        history.load()
+        val batch = history.batches.value.firstOrNull { it.id == id } ?: return HistoryResult.NothingToDo
+        if (batch.undone) return HistoryResult.NothingToDo
+        val result = undoSettingsBatches(listOf(batch), allowUndo = true)
+        if (result is HistoryResult.Applied && batch.kind == SettingsHistory.Kind.UNDO) {
+            history.restoreUndone(batch.undid)
+        }
+        return result
+    }
+
+    private suspend fun undoSettingsBatches(
+        batches: List<SettingsHistory.Batch>,
+        allowUndo: Boolean = false,
+    ): HistoryResult {
+        val picked = batches.filter { !it.undone && (allowUndo || it.kind != SettingsHistory.Kind.UNDO) }
+        if (picked.isEmpty()) return HistoryResult.NothingToDo
+        val revert = SettingsHistory.revertOf(picked)
+        val set = revert.values.filterNotNull()
+        val remove = revert.filterValues { it == null }.keys
+        return writeVerified(SettingsHistory.Kind.UNDO, null, picked.map { it.id }, set, remove)
+    }
+
+    /** Saves every setting as a restore point named [name], or by its date when blank. */
+    suspend fun createRestorePoint(name: String?, appVersionName: String): SettingsHistory.RestorePoint =
+        history.createPoint(context.dataStore.data.first(), name, appVersionName)
+
+    /** What restoring point [id] would change now, or null when its file is gone. */
+    suspend fun restorePointPlan(id: String): SettingsHistory.Plan? {
+        val entries = history.pointEntries(id) ?: return null
+        return SettingsHistory.plan(entries, context.dataStore.data.first().asMap())
+    }
+
+    /**
+     * Puts every setting back the way point [id] has it. The settings as they
+     * are now are saved first as a point of their own, so a restore is never
+     * the one step with no way back, history on or off.
+     */
+    suspend fun restoreRestorePoint(id: String, appVersionName: String): HistoryResult {
+        history.load()
+        val point = history.points.value.firstOrNull { it.id == id } ?: return HistoryResult.Missing
+        val plan = restorePointPlan(id) ?: return HistoryResult.Missing
+        if (plan.isEmpty) return HistoryResult.NothingToDo
+        val name = point.name ?: java.text.DateFormat.getDateTimeInstance(
+            java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT,
+        ).format(java.util.Date(point.at))
+        history.createPoint(
+            context.dataStore.data.first(), null, appVersionName,
+            kind = SettingsHistory.PointKind.BEFORE_RESTORE, label = name,
+        )
+        return writeVerified(SettingsHistory.Kind.RESTORE, name, emptyList(), plan.set, plan.remove)
+    }
+
+    /**
+     * Writes [set] and removes [remove] in one step, then reads the settings
+     * back, as [importSettings] does: a restore point made by an older
+     * version can hold a value this one reads differently, and a store left
+     * unreadable takes the keyboard down with it.
+     */
+    private suspend fun writeVerified(
+        kind: SettingsHistory.Kind,
+        label: String?,
+        undid: List<Long>,
+        set: List<SettingsBackup.Entry>,
+        remove: Set<String>,
+    ): HistoryResult {
+        if (set.isEmpty() && remove.isEmpty()) return HistoryResult.NothingToDo
+        val snapshot = context.dataStore.data.first()
+        editPrefsAs(kind, label, undid) { prefs ->
+            if (remove.isNotEmpty()) {
+                prefs.asMap().keys.filter { it.name in remove }.forEach { prefs.remove(it) }
+            }
+            set.forEach { prefs.put(it) }
+        }
+        if (runCancellable { settings.first() }.isSuccess) return HistoryResult.Applied(set.size + remove.size)
+        editPrefs { prefs ->
+            prefs.clear()
+            for ((key, value) in snapshot.asMap()) {
+                @Suppress("UNCHECKED_CAST")
+                prefs[key as Preferences.Key<Any>] = value
+            }
+        }
+        return HistoryResult.RolledBack
     }
 
     // ---- full-config bundle ----

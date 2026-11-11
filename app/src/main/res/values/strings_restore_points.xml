@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Data / Backup & restore / Undo and restore points (#1242). -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="restore_screen_title">Undo and restore points</string>
+    <string name="restore_screen_subtitle">Go back to how your settings were</string>
+    <string name="restore_nav_subtitle">Undo recent changes, or save your settings to go back to later</string>
+
+    <string name="restore_undo_group">Undo</string>
+    <string name="restore_undo_last_title">Undo the last change</string>
+    <string name="restore_undo_ten_minutes_title">Undo the last 10 minutes</string>
+    <string name="restore_undo_hour_title">Undo the last hour</string>
+    <string name="restore_undo_action">Undo</string>
+    <string name="restore_redo_action">Redo</string>
+    <string name="restore_undo_none">No changes to undo</string>
+    <string name="restore_history_off_note">The change history is off, so there is nothing to undo</string>
+    <!-- %d is how many settings changes the row would undo. -->
+    <plurals name="restore_undo_changes_count">
+        <item quantity="one">%d change</item>
+        <item quantity="other">%d changes</item>
+    </plurals>
+    <!-- %d is how many settings the undo put back. -->
+    <plurals name="restore_undo_done">
+        <item quantity="one">Put %d setting back</item>
+        <item quantity="other">Put %d settings back</item>
+    </plurals>
+    <string name="restore_nothing_to_undo">There is nothing to undo.</string>
+    <string name="restore_rolled_back">That left the settings unreadable, so nothing was changed.</string>
+
+    <string name="restore_points_group">Restore points</string>
+    <string name="restore_points_info">A restore point is a copy of all your settings, kept on this phone. Save one before you try something new, and go back to it if you do not like the result. Restoring changes only settings, not your words, clipboard, snippets or themes in the theme list. API keys and the backup and app lock settings are not part of a restore point.</string>
+    <string name="restore_point_save_title">Save a restore point</string>
+    <string name="restore_point_save_subtitle">A copy of your settings as they are now</string>
+    <string name="restore_points_empty">No restore points yet.</string>
+    <string name="restore_point_name_label">Name</string>
+    <string name="restore_point_name_hint">Leave empty to use the date</string>
+    <string name="restore_point_rename_action">Rename</string>
+    <!-- %1$s is when the point was saved, %2$s how many settings it holds ("412 settings"). -->
+    <string name="restore_point_subtitle"><xliff:g id="date" example="11 Nov 2026, 14:02">%1$s</xliff:g> · <xliff:g id="count" example="412 settings">%2$s</xliff:g></string>
+    <!-- %d is how many settings a restore point holds. -->
+    <plurals name="restore_point_count">
+        <item quantity="one">%d setting</item>
+        <item quantity="other">%d settings</item>
+    </plurals>
+    <!-- %1$s is the name of the restore point that was restored afterwards. -->
+    <string name="restore_point_before_restore">Before restoring “<xliff:g id="name" example="Before glide test">%1$s</xliff:g>”</string>
+    <!-- %d is how many settings the new restore point holds. -->
+    <plurals name="restore_point_saved">
+        <item quantity="one">Saved a restore point with %d setting.</item>
+        <item quantity="other">Saved a restore point with %d settings.</item>
+    </plurals>
+    <!-- %1$s is the restore point's name. -->
+    <string name="restore_point_restore_title">Restore “<xliff:g id="name" example="Before glide test">%1$s</xliff:g>”?</string>
+    <string name="restore_point_counting">Comparing with your settings now…</string>
+    <!-- %d is how many settings the restore changes. -->
+    <plurals name="restore_point_restore_body">
+        <item quantity="one">%d setting changes back. Your settings as they are now are saved as a restore point first.</item>
+        <item quantity="other">%d settings change back. Your settings as they are now are saved as a restore point first.</item>
+    </plurals>
+    <string name="restore_point_restore_action">Restore</string>
+    <string name="restore_point_same">Your settings are the same as this restore point.</string>
+    <string name="restore_point_missing">This restore point cannot be read any more.</string>
+    <!-- %d is how many settings the restore changed. -->
+    <plurals name="restore_point_restored">
+        <item quantity="one">Restored. %d setting changed back.</item>
+        <item quantity="other">Restored. %d settings changed back.</item>
+    </plurals>
+    <string name="restore_point_delete_title">Delete the restore point?</string>
+    <!-- %1$s is the restore point's name. -->
+    <string name="restore_point_delete_body">“<xliff:g id="name" example="Before glide test">%1$s</xliff:g>” is deleted. Your settings do not change.</string>
+
+    <string name="restore_history_group">Change history</string>
+    <string name="restore_history_keep_title">Keep a change history</string>
+    <string name="restore_history_keep_subtitle">Records each settings change for 30 days, on this phone only, so you can undo it. Off deletes the history.</string>
+    <string name="restore_history_empty">No changes since the history started.</string>
+    <!-- %d is how many more history rows the button shows. -->
+    <plurals name="restore_history_more">
+        <item quantity="one">Show %d more</item>
+        <item quantity="other">Show %d more</item>
+    </plurals>
+    <string name="restore_history_clear_title">Clear the history</string>
+    <string name="restore_history_clear_action">Clear</string>
+    <string name="restore_history_clear_body">The list of changes is deleted, and they cannot be undone from here any more. Your settings and restore points do not change.</string>
+
+    <!-- A history row for one change. %1$s is the setting, %2$s its new value. -->
+    <string name="restore_batch_one"><xliff:g id="setting" example="Key height">%1$s</xliff:g>: <xliff:g id="value" example="56">%2$s</xliff:g></string>
+    <!-- A history row for one change of several settings. %1$d is how many, %2$s the first one's name. -->
+    <plurals name="restore_batch_many">
+        <item quantity="one">%1$d setting changed, %2$s</item>
+        <item quantity="other">%1$d settings changed, %2$s and more</item>
+    </plurals>
+    <!-- %d is how many settings the undo put back. -->
+    <plurals name="restore_batch_undo">
+        <item quantity="one">Undo: %d setting put back</item>
+        <item quantity="other">Undo: %d settings put back</item>
+    </plurals>
+    <!-- %1$s is the name of the restore point. -->
+    <string name="restore_batch_restored">Restored “<xliff:g id="name" example="Before glide test">%1$s</xliff:g>”</string>
+    <!-- %1$s is when the change was made, such as "5 minutes ago". -->
+    <string name="restore_batch_undone"><xliff:g id="time" example="5 minutes ago">%1$s</xliff:g>, undone</string>
+    <string name="restore_batch_undone_note">This change is undone already.</string>
+    <!-- One setting's change in the detail list. %1$s is the old value, %2$s the new one. -->
+    <string name="restore_change_line"><xliff:g id="before" example="52">%1$s</xliff:g> → <xliff:g id="after" example="56">%2$s</xliff:g></string>
+    <string name="restore_value_default">Default</string>
+    <string name="restore_value_on">On</string>
+    <string name="restore_value_off">Off</string>
+    <string name="restore_value_empty">Empty</string>
+    <!-- %d is how many items a list setting holds. -->
+    <plurals name="restore_value_items">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+    <!-- A long text value, shown by its length. %d is how many characters. -->
+    <plurals name="restore_value_text">
+        <item quantity="one">Text, %d character</item>
+        <item quantity="other">Text, %d characters</item>
+    </plurals>
+</resources>

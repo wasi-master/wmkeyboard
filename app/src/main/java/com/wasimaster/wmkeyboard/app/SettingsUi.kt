@@ -461,6 +461,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "backup" to Color(0xFF78909C),
     "backup/auto" to Color(0xFF78909C),
     "backup/sync" to Color(0xFF78909C),
+    "backup/history" to Color(0xFF78909C),
     "backup/contents" to Color(0xFF78909C),
     "about" to Color(0xFF90A4AE),
     "licenses" to Color(0xFF90A4AE),

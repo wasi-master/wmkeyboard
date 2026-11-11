@@ -1305,6 +1305,13 @@ internal fun BackupSettings(
                 route = "backup/sync",
             ) { onNavigate("backup/sync") }
         }
+        item {
+            NavRow(
+                R.string.restore_screen_title,
+                subtitle = stringResource(R.string.restore_nav_subtitle),
+                route = "backup/history",
+            ) { onNavigate("backup/history") }
+        }
     }
 
     SettingsGroup(

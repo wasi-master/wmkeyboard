@@ -858,6 +858,7 @@ internal object SettingsRouteIcons {
         "backup" to { Icons.Outlined.Save },
         "backup/auto" to { Icons.Outlined.Schedule },
         "backup/sync" to { Icons.Outlined.Sync },
+        "backup/history" to { Icons.Outlined.History },
         "backup/contents" to { Icons.Outlined.Checklist },
         "about" to { Icons.Outlined.Info },
         "supporters" to { Icons.Outlined.VolunteerActivism },

@@ -308,7 +308,7 @@ object SettingsBackup {
         }
     }
 
-    private fun encodeValue(value: Any): JsonObject? {
+    internal fun encodeValue(value: Any): JsonObject? {
         val (type, encoded) = when (value) {
             is Boolean -> "boolean" to JsonPrimitive(value)
             is Int -> "int" to JsonPrimitive(value)
@@ -363,7 +363,7 @@ object SettingsBackup {
         return entries to skipped
     }
 
-    private fun decodeEntry(name: String, obj: JsonObject): Entry? {
+    internal fun decodeEntry(name: String, obj: JsonObject): Entry? {
         val type = obj["type"]?.jsonPrimitive?.contentOrNull ?: return null
         val raw = obj["value"] ?: return null
         val value: Any = when (type) {

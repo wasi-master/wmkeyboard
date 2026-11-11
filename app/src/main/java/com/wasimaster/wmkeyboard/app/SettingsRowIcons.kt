@@ -593,6 +593,10 @@ internal object SettingsRowIcons {
         put(R.string.backup_blacklist_clear_title) { Icons.Outlined.DeleteSweep }
         put(R.string.backup_include_secrets_title) { Icons.Outlined.Key }
         put(R.string.backup_sync_title) { Icons.Outlined.Sync }
+        put(R.string.restore_screen_title) { Icons.Outlined.History }
+        put(R.string.restore_undo_last_title) { Icons.Outlined.History }
+        put(R.string.restore_point_save_title) { Icons.Outlined.Save }
+        put(R.string.restore_history_keep_title) { Icons.Outlined.History }
         put(R.string.backup_sync_enabled_title) { Icons.Outlined.Sync }
         put(R.string.backup_sync_mode_title) { Icons.Outlined.Schedule }
         put(R.string.backup_sync_interval_title) { Icons.Outlined.Schedule }

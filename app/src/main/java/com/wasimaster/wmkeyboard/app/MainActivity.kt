@@ -1403,6 +1403,16 @@ private fun SettingsNavGraph(
                 BackupSyncSettings(repository, settings)
             }
         }
+        composable("backup/history") {
+            SettingsScreen(
+                stringResource(R.string.restore_screen_title),
+                { navController.popBackStack() },
+                route = "backup/history",
+                subtitle = stringResource(R.string.restore_screen_subtitle),
+            ) {
+                RestorePointsSettings(repository, settings)
+            }
+        }
         composable("backup/contents") {
             SettingsScreen(
                 stringResource(R.string.backup_files_contents_title),

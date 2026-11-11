@@ -2512,6 +2512,9 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
     fun backupSync(@StringRes title: Int, @StringRes subtitle: Int) = entry(
         title, subtitle, R.string.backup_sync_title, "backup/sync", screenParent = R.string.home_backup_title,
     )
+    fun backupHistory(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.restore_screen_title, "backup/history", screenParent = R.string.home_backup_title,
+    )
     fun backupContents(@StringRes title: Int, @StringRes subtitle: Int) = entry(
         title, subtitle, R.string.backup_files_contents_title, "backup/contents",
         screenParent = R.string.home_backup_title, weight = EntryWeight.MIRROR,
@@ -2607,6 +2610,21 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         backupSync(R.string.backup_sync_keep_local_title, R.string.backup_sync_keep_local_info),
         backupSync(R.string.backup_sync_keep_toolbar_title, R.string.backup_sync_keep_toolbar_subtitle),
         backupSync(R.string.backup_sync_keep_layouts_title, R.string.backup_sync_keep_layouts_subtitle),
+        // Undo and restore points (#1242): the screen's own heading, then its rows.
+        entry(
+            R.string.restore_screen_title,
+            R.string.restore_nav_subtitle,
+            R.string.restore_screen_title,
+            "backup/history",
+            screenParent = R.string.home_backup_title,
+            weight = EntryWeight.SECTION,
+        ),
+        backupHistory(R.string.restore_undo_last_title),
+        backupHistory(R.string.restore_undo_ten_minutes_title),
+        backupHistory(R.string.restore_undo_hour_title),
+        backupHistory(R.string.restore_point_save_title, R.string.restore_point_save_subtitle),
+        backupHistory(R.string.restore_history_keep_title, R.string.restore_history_keep_subtitle),
+        backupHistory(R.string.restore_history_clear_title),
         backupContents(R.string.backup_section_settings_label, R.string.backup_include_settings_subtitle),
         backupContents(R.string.backup_include_secrets_title, R.string.backup_include_secrets_subtitle),
         backupContents(R.string.backup_section_themes_label, R.string.backup_include_themes_subtitle),
