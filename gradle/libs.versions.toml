@@ -279,6 +279,8 @@ lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie"
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 litertlm-android = { group = "com.google.ai.edge.litertlm", name = "litertlm-android", version.ref = "litertlm" }
 litert-npu-runtime-qualcomm = { group = "com.google.ai.edge.litert", name = "litert-npu-runtime-qualcomm", version.ref = "litertNpu" }
+litert-npu-runtime-mediatek = { group = "com.google.ai.edge.litert", name = "litert-npu-runtime-mediatek", version.ref = "litertNpu" }
+litert-npu-runtime-google-tensor = { group = "com.google.ai.edge.litert", name = "litert-npu-runtime-google-tensor", version.ref = "litertNpu" }
 qnn-runtime = { group = "com.qualcomm.qti", name = "qnn-runtime", version.ref = "qnnRuntime" }
 litert = { group = "com.google.ai.edge.litert", name = "litert", version.ref = "litert" }
 webrtc-android = { group = "io.github.webrtc-sdk", name = "android", version.ref = "webrtcAndroid" }

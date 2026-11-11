@@ -14,7 +14,7 @@ object QnnImageNative {
     const val LIBRARY = "wmimagegen_qnn"
 
     private val library = GatedLibrary({ FeatureModules.imagegen }) {
-        NpuSupport.soc != null && runCatching { FeatureModules.loadLibrary(LIBRARY) }.isSuccess
+        NpuSupport.qnnSoc != null && runCatching { FeatureModules.loadLibrary(LIBRARY) }.isSuccess
     }
 
     val available: Boolean get() = library.available

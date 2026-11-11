@@ -43,17 +43,27 @@ enum class ModelTier(@StringRes val badgeRes: Int?) {
 
 /**
  * An ahead-of-time build of a catalog model for one chip's NPU (#804),
- * published in the same Hugging Face repository as the standard file. Only
- * the NPU runs it: it holds the chip's compiled graph, not weights a CPU or
- * GPU can use.
+ * published in the same Hugging Face repository as the standard file unless
+ * [repo] says otherwise. Only the NPU runs it: it holds the chip's compiled
+ * graph, not weights a CPU or GPU can use.
  */
 data class NpuBuild(
     /** The chip it was compiled for, as [NpuSupport.normalizeSoc] spells it. */
     val soc: String,
-    /** Exact file under the repo's resolve/main/, next to the standard one. */
+    /** Exact file in the repository, next to the standard one. */
     val fileName: String,
-    /** Exact size from huggingface.co/api, checked 2026-10-20. */
+    /** Exact size from huggingface.co/api. */
     val sizeBytes: Long,
+    /**
+     * SHA-256 of the file at [revision] (the LFS oid Hugging Face reports),
+     * checked before the download counts. Null where the repository is gated
+     * and the API does not show it without a token.
+     */
+    val sha256: String? = null,
+    /** A repository of its own, for a build someone else published; null: the model's. */
+    val repo: String? = null,
+    /** The commit it is fetched from, set with [sha256]; null: the model's revision. */
+    val revision: String? = null,
 )
 
 /**
@@ -177,6 +187,24 @@ object LocalLlmCatalog {
             minRamMb = 6144,
             descriptionRes = R.string.core_intel_llm_model_gemma4_e2b_subtitle,
             vision = true,
+            // Google's Tensor builds, text only like every NPU build here: a
+            // picture still goes to the standard file.
+            npuBuilds = listOf(
+                NpuBuild(
+                    "TENSOR-G5",
+                    "gemma-4-E2B-it_Google_Tensor_G5.litertlm",
+                    3_206_299_658L,
+                    sha256 = "72d056066f34362adcecf6b76995de67ad899f6f33dfe9079593c1acd2984191",
+                    revision = GEMMA4_E2B_NPU_REVISION,
+                ),
+                NpuBuild(
+                    "TENSOR-G6",
+                    "gemma-4-E2B-it_Google_Tensor_G6.litertlm",
+                    3_453_960_202L,
+                    sha256 = "d6cbe8d625f4965a8c32565f65ae774d19598d0d967a4c2101a7e04988daaf58",
+                    revision = GEMMA4_E2B_NPU_REVISION,
+                ),
+            ),
         ),
         LocalLlmModel(
             id = "gemma4-e4b",
@@ -194,6 +222,36 @@ object LocalLlmCatalog {
             vision = true,
         ),
         LocalLlmModel(
+            // NVIDIA's post-training of Gemma 4 E4B for tool use, instruction
+            // following and grounding, converted by litert-community for
+            // LiteRT-LM 0.18 (image and audio encoders left out, so text
+            // only). Thinking stays off unless asked for, so not a reasoning
+            // row. OpenMDW 1.1, which allows commercial use. Pinned like the
+            // GGUF rows: commit and SHA-256s from huggingface.co/api, 2026-11-11.
+            id = "nemotron-bolt-e4b",
+            displayName = "Nemotron 3.5 Bolt E4B",
+            params = "4B",
+            repo = "litert-community/NVIDIA-Nemotron-3.5-Bolt-E4B",
+            revision = "a8486857161b7b0820c4885c2281b59a56b2b618",
+            sha256 = "9c72c03456c6115033737247d7a3495dbacd714cff8b5a4b40049c3e37b7648a",
+            fileName = "NVIDIA-Nemotron-3.5-Bolt-E4B_int4.litertlm",
+            sizeBytes = 4_404_805_632L,
+            gated = false,
+            license = "OpenMDW-1.1",
+            format = ModelFormat.LITERTLM,
+            tier = ModelTier.STANDARD,
+            minRamMb = 8192,
+            descriptionRes = R.string.core_intel_llm_model_nemotron_bolt_e4b_subtitle,
+            npuBuilds = listOf(
+                NpuBuild(
+                    "SM8850",
+                    "NVIDIA-Nemotron-3.5-Bolt-E4B_qualcomm_sm8850.litertlm",
+                    5_038_493_603L,
+                    sha256 = "86af693f6f2e59246f2a252008f3bbefc73ff10f75876b924238d4f7b0bac7a1",
+                ),
+            ),
+        ),
+        LocalLlmModel(
             id = "gemma3-1b",
             displayName = "Gemma 3 1B",
             params = "1B",
@@ -206,9 +264,38 @@ object LocalLlmCatalog {
             tier = ModelTier.UNTESTED,
             minRamMb = 4096,
             descriptionRes = R.string.core_intel_llm_model_gemma3_1b_subtitle,
+            // Sizes from huggingface.co/api on 2026-11-11. Every chip upstream
+            // compiles Gemma 3 1B for: Snapdragon 8 Gen 2 to 8 Elite Gen 5,
+            // Dimensity 9300 to 9500, Tensor G3 to G6. The G3 and G4 builds
+            // are a community repository's (litert-community hosts it; its
+            // card reports both verified on a Pixel 8 Pro and a Pixel 9), with
+            // a 4,096-token window; Google publishes none for those chips.
             npuBuilds = listOf(
+                NpuBuild("SM8550", "Gemma3-1B-IT_q4_ekv1280_sm8550.litertlm", 690_143_232L),
+                NpuBuild("SM8650", "Gemma3-1B-IT_q4_ekv1280_sm8650.litertlm", 690_094_080L),
                 NpuBuild("SM8750", "Gemma3-1B-IT_q4_ekv1280_sm8750.litertlm", 689_291_264L),
                 NpuBuild("SM8850", "Gemma3-1B-IT_q4_ekv1280_sm8850.litertlm", 693_747_712L),
+                NpuBuild("MT6989", "Gemma3-1B-IT_q4_ekv1280_mt6989.litertlm", 1_032_830_976L),
+                NpuBuild("MT6991", "Gemma3-1B-IT_q4_ekv1280_mt6991.litertlm", 1_033_814_016L),
+                NpuBuild("MT6993", "Gemma3-1B-IT_q4_ekv1280_mt6993.litertlm", 1_020_411_904L),
+                NpuBuild(
+                    "TENSOR-G3",
+                    "Gemma3-1B-IT_int4hadamard_aot_ekv4096_G3.litertlm",
+                    874_631_968L,
+                    sha256 = "43f1b935cc24fb2e636f3ef910ad02ee838cebe2393900da3d2a629ffd091c3e",
+                    repo = TENSOR_GEMMA3_REPO,
+                    revision = TENSOR_GEMMA3_REVISION,
+                ),
+                NpuBuild(
+                    "TENSOR-G4",
+                    "Gemma3-1B-IT_int4hadamard_aot_ekv4096_G4.litertlm",
+                    874_631_968L,
+                    sha256 = "1c2962c8b18ff600ab37a1b15dfcccd6d1e5d8c155ad1ea46fe5fd0ab50dd6ee",
+                    repo = TENSOR_GEMMA3_REPO,
+                    revision = TENSOR_GEMMA3_REVISION,
+                ),
+                NpuBuild("TENSOR-G5", "Gemma3-1B-IT_q8_ekv1280_Google_Tensor_G5.litertlm", 2_018_723_808L),
+                NpuBuild("TENSOR-G6", "Gemma3-1B-IT_q8_ekv1280_Google_Tensor_G6.litertlm", 2_026_063_840L),
             ),
         ),
         LocalLlmModel(
@@ -268,8 +355,12 @@ object LocalLlmCatalog {
             minRamMb = 2048,
             descriptionRes = R.string.core_intel_llm_model_gemma3_270m_subtitle,
             npuBuilds = listOf(
+                NpuBuild("SM8550", "gemma3-270m-it-q8.qualcomm.sm8550.litertlm", 461_750_272L),
+                NpuBuild("SM8650", "gemma3-270m-it-q8.qualcomm.sm8650.litertlm", 461_766_656L),
                 NpuBuild("SM8750", "gemma3-270m-it-q8.qualcomm.sm8750.litertlm", 461_340_672L),
                 NpuBuild("SM8850", "gemma3-270m-it-q8.qualcomm.sm8850.litertlm", 463_011_840L),
+                NpuBuild("MT6991", "gemma3-270m-it-q8.mediatek.mt6991.litertlm", 554_467_328L),
+                NpuBuild("MT6993", "gemma3-270m-it-q8.mediatek.mt6993.litertlm", 554_663_936L),
             ),
         ),
         LocalLlmModel(
@@ -456,6 +547,13 @@ object LocalLlmCatalog {
         check(models.map { it.id }.toSet().size == models.size) { "catalog ids must be unique" }
     }
 
+    /** The commit of gemma-4-E2B-it-litert-lm the Tensor builds are pinned at (2026-11-11). */
+    private const val GEMMA4_E2B_NPU_REVISION = "2d74ac41a33d7da82f39f7d5720a04c68514a103"
+
+    /** The community repository of Gemma 3 1B for Tensor G3 and G4, and its commit (2026-11-11). */
+    private const val TENSOR_GEMMA3_REPO = "litert-community/Gemma3-1B-IT-Tensor-NPU"
+    private const val TENSOR_GEMMA3_REVISION = "1e14d0b91070f0fab29071364412299b688e5b68"
+
     fun byId(id: String): LocalLlmModel? = models.firstOrNull { it.id == id }
 
     /** [model]'s build for the NPU of [soc], or null when it has none. */
@@ -497,8 +595,19 @@ object LocalLlmCatalog {
         return byId(id)?.runtime
     }
 
-    fun downloadUrl(model: LocalLlmModel, fileName: String = model.fileName): String =
-        "https://huggingface.co/${model.repo}/resolve/${model.revision}/$fileName"
+    /**
+     * Where [fileName] of [model] is fetched from: the model's repository at
+     * its revision, or an NPU build's own repository and commit when it has
+     * them. A build in its own repository with no commit of its own is
+     * fetched from that repository's main branch, never the model's commit,
+     * which names nothing there.
+     */
+    fun downloadUrl(model: LocalLlmModel, fileName: String = model.fileName): String {
+        val build = model.npuBuilds.firstOrNull { it.fileName == fileName }
+        val repo = build?.repo ?: model.repo
+        val revision = build?.revision ?: if (build?.repo != null) "main" else model.revision
+        return "https://huggingface.co/$repo/resolve/$revision/$fileName"
+    }
 
     /** The repo page: the licence text, and where a gated model's terms are accepted. */
     fun licenseUrl(model: LocalLlmModel): String = "https://huggingface.co/${model.repo}"

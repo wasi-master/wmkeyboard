@@ -32,6 +32,7 @@
 
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">The newest Gemma generation. It gives top quality on your device.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">The largest model. It writes the best, but it needs a powerful device.</string>
+    <string name="core_intel_llm_model_nemotron_bolt_e4b_subtitle">NVIDIA's retraining of Gemma 4 E4B for following instructions and using tools. Text only, and it needs a powerful device.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">A small Gemma from the previous generation. It has good quality and a context of 4K tokens.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Clearly smarter than the models below 1B. It needs a mid-range device.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">A recent small model. The quality is high for its size.</string>

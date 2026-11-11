@@ -8,9 +8,12 @@ import java.io.InputStream
 import java.util.zip.ZipFile
 
 /**
- * The Qualcomm NPU runtime on disk, ready for `Backend.NPU(dir)` (#804).
+ * The NPU runtime on disk, ready for `Backend.NPU(dir)` (#804): on a
+ * Snapdragon LiteRT's Qualcomm dispatch library and the QNN libraries, on a
+ * Dimensity or a Tensor only LiteRT's dispatch library for that vendor, which
+ * drives the phone's own NeuroPilot or Tensor TPU drivers.
  *
- * The build packages LiteRT's dispatch library and the QNN libraries as
+ * The build packages them all as
  * compressed assets under [ASSET_DIR], each named `<library>.bin` so AGP
  * compresses it (it stores a `.so` uncompressed even in assets), not as
  * native libraries: there they
@@ -27,7 +30,11 @@ import java.util.zip.ZipFile
  */
 object NpuRuntime {
 
-    /** Where the build puts the files: `wmkeyboard.npu-runtime` in build-logic. */
+    /**
+     * Where the build puts the files: `wmkeyboard.npu-runtime` in build-logic.
+     * Named for the vendor it first held; the other vendors' dispatch
+     * libraries sit beside Qualcomm's.
+     */
     private const val ASSET_DIR = "npu/qualcomm"
 
     private const val STAMP_FILE = ".installed"
@@ -120,26 +127,32 @@ object NpuRuntime {
      */
     private fun preload(dir: File, names: List<String>): Boolean = runCatching {
         for (name in names) {
-            // The skel is Hexagon code for the DSP, and the dispatch library
+            // The skel is Hexagon code for the DSP, and a dispatch library
             // is LiteRT's to open from the directory it is told about.
-            if (name.endsWith("Skel.so") || name == NpuSupport.DISPATCH_LIBRARY) continue
+            if (name.endsWith("Skel.so") || name in DISPATCH_LIBRARIES) continue
             System.load(File(dir, name).absolutePath)
         }
         true
     }.getOrDefault(false)
 
-    /** The gate of the libraries every chip shares, on a build with native delivery. */
-    private const val DELIVERED_GATE = "npu"
+    /**
+     * The gate whose presence says this build has native delivery at all:
+     * every build that pins NPU libraries pins this one.
+     */
+    private const val DELIVERED_GATE = NpuSupport.GATE
+
+    private val DISPATCH_LIBRARIES = NpuVendor.entries.map { it.dispatchLibrary }.toSet()
 
     /**
-     * [directory] on a build with native delivery: the shared libraries and
-     * this chip's stub and skel are separate gates, fetched from Qualcomm's
-     * and Google's Maven repositories once the user has accepted Qualcomm's
-     * licence, and already in app storage, so nothing is unpacked.
+     * [directory] on a build with native delivery: on a Snapdragon the shared
+     * libraries and this chip's stub and skel are separate gates, fetched
+     * from Qualcomm's and Google's Maven repositories once the user has
+     * accepted Qualcomm's licence; on a Dimensity or a Tensor the vendor's
+     * dispatch library is a gate of its own from Google's, with no licence to
+     * accept. Either way already in app storage, so nothing is unpacked.
      */
     private fun delivered(soc: String, names: List<String>): File? {
-        val arch = NpuSupport.HTP_ARCH[soc] ?: return null
-        val gateNames = listOf(DELIVERED_GATE, "$DELIVERED_GATE-$arch")
+        val gateNames = NpuSupport.deliveryGates(soc).takeIf { it.isNotEmpty() } ?: return null
         val gates = gateNames.map { NativeDelivery.gate(it) ?: return null }
         if (!gates.all { it.installed }) {
             gates.filterNot { it.installed }.forEach { it.requestInstall() }

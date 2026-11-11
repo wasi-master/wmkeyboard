@@ -35,7 +35,11 @@ class NpuRoutingTest {
         assertEquals("SM8750", NpuSupport.normalizeSoc("SM8750"))
         assertEquals("SM8750", NpuSupport.normalizeSoc("SM8750-AC"))
         assertEquals("SM8850", NpuSupport.normalizeSoc(" sm8850 "))
-        assertNull(NpuSupport.normalizeSoc("MT6991"))
+        assertEquals("MT6991", NpuSupport.normalizeSoc("MT6991"))
+        assertEquals("MT6993", NpuSupport.normalizeSoc("MT6993V/CZA"))
+        assertEquals("TENSOR-G5", NpuSupport.normalizeSoc("Tensor G5"))
+        assertEquals("TENSOR-G4", NpuSupport.normalizeSoc("Google Tensor G4"))
+        assertNull(NpuSupport.normalizeSoc("Exynos 2400"))
         assertNull(NpuSupport.normalizeSoc(""))
         assertNull(NpuSupport.normalizeSoc(null))
     }
@@ -44,9 +48,15 @@ class NpuRoutingTest {
     fun `only listed chips on API 31 and arm64 get an NPU`() {
         assertEquals("SM8750", NpuSupport.supportedSoc("SM8750", 36, "arm64-v8a"))
         assertEquals("SM8850", NpuSupport.supportedSoc("SM8850", 31, "arm64-v8a"))
-        // A chip whose QNN libraries this build does not carry.
-        assertNull(NpuSupport.supportedSoc("SM8550", 36, "arm64-v8a"))
+        assertEquals("SM8550", NpuSupport.supportedSoc("SM8550", 36, "arm64-v8a"))
         assertEquals("SM8650", NpuSupport.supportedSoc("SM8650", 36, "arm64-v8a"))
+        // A chip whose QNN libraries this build does not carry.
+        assertNull(NpuSupport.supportedSoc("SM8450", 36, "arm64-v8a"))
+        assertEquals("MT6991", NpuSupport.supportedSoc("MT6991", 36, "arm64-v8a"))
+        assertEquals("TENSOR-G5", NpuSupport.supportedSoc("Tensor G5", 36, "arm64-v8a"))
+        // A Dimensity with no language model compiled for its APU.
+        assertNull(NpuSupport.supportedSoc("MT6877", 36, "arm64-v8a"))
+        assertNull(NpuSupport.supportedSoc("Tensor G2", 36, "arm64-v8a"))
         assertNull(NpuSupport.supportedSoc("SM8750", 30, "arm64-v8a"))
         assertNull(NpuSupport.supportedSoc("SM8750", 36, "armeabi-v7a"))
         assertNull(NpuSupport.supportedSoc("SM8750", 36, null))
@@ -60,9 +70,33 @@ class NpuRoutingTest {
         assertFalse(sm8750.any { "V81" in it })
         assertTrue("libQnnHtpV81Skel.so" in NpuSupport.runtimeLibraries("SM8850"))
         assertTrue((sm8750 + NpuSupport.runtimeLibraries("SM8850")).none { "Prepare" in it })
-        assertEquals(NpuSupport.DISPATCH_LIBRARY, sm8750.last())
+        assertEquals(NpuVendor.QUALCOMM.dispatchLibrary, sm8750.last())
         assertTrue("libQnnHtpV75Skel.so" in NpuSupport.runtimeLibraries("SM8650"))
-        assertTrue(NpuSupport.runtimeLibraries("SM8550").isEmpty())
+        assertTrue("libQnnHtpV73Skel.so" in NpuSupport.runtimeLibraries("SM8550"))
+        assertTrue(NpuSupport.runtimeLibraries("SM8450").isEmpty())
+    }
+
+    @Test
+    fun `a Dimensity or a Tensor takes its vendor's dispatch library and nothing of Qualcomm's`() {
+        assertEquals(listOf("libLiteRtDispatch_MediaTek.so"), NpuSupport.runtimeLibraries("MT6991"))
+        assertEquals(listOf("libLiteRtDispatch_GoogleTensor.so"), NpuSupport.runtimeLibraries("TENSOR-G4"))
+        assertEquals(listOf("npu-mediatek"), NpuSupport.deliveryGates("MT6989"))
+        assertEquals(listOf("npu-tensor"), NpuSupport.deliveryGates("TENSOR-G6"))
+        assertEquals(listOf("npu", "npu-V73"), NpuSupport.deliveryGates("SM8550"))
+        assertEquals(NpuVendor.QUALCOMM, NpuSupport.vendor("SM8750"))
+        assertEquals(NpuVendor.MEDIATEK, NpuSupport.vendor("MT6993"))
+        assertEquals(NpuVendor.GOOGLE_TENSOR, NpuSupport.vendor("TENSOR-G5"))
+        assertNull(NpuSupport.vendor("SM8450"))
+    }
+
+    @Test
+    fun `a file names its chip as a word of its own`() {
+        assertTrue(NpuSupport.namesChip("Gemma3-1B-IT_q4_ekv1280_sm8750.litertlm", "SM8750"))
+        assertTrue(NpuSupport.namesChip("gemma3-270m-it-q8.mediatek.mt6991.litertlm", "MT6991"))
+        assertTrue(NpuSupport.namesChip("gemma-4-E2B-it_Google_Tensor_G5.litertlm", "TENSOR-G5"))
+        assertTrue(NpuSupport.namesChip("Gemma3-1B-IT_int4hadamard_aot_ekv4096_G3.litertlm", "TENSOR-G3"))
+        assertFalse(NpuSupport.namesChip("gemma-4-E2B-it_Google_Tensor_G6.litertlm", "TENSOR-G5"))
+        assertFalse(NpuSupport.namesChip("gemma3-1b-it-int4.litertlm", "SM8750"))
     }
 
     @Test
@@ -71,7 +105,9 @@ class NpuRoutingTest {
         assertTrue(builds.isNotEmpty())
         for (build in builds) {
             assertTrue(build.soc, NpuSupport.runtimeLibraries(build.soc).isNotEmpty())
-            assertTrue(build.fileName, build.fileName.lowercase().contains(build.soc.lowercase()))
+            assertTrue(build.fileName, NpuSupport.namesChip(build.fileName, build.soc))
+            // A build pinned by hash is pinned to a commit, so a new upload cannot move it.
+            assertEquals(build.fileName, build.sha256 != null, build.revision != null)
         }
     }
 
@@ -93,11 +129,23 @@ class NpuRoutingTest {
     fun `without an NPU, or for a model with no build, the standard file`() {
         assertEquals(gemma1b.fileName to gemma1b.sizeBytes, LocalLlmCatalog.downloadTarget(gemma1b, null))
         assertEquals(qwen.fileName to qwen.sizeBytes, LocalLlmCatalog.downloadTarget(qwen, "SM8750"))
-        assertNull(LocalLlmCatalog.npuBuild(gemma1b, "SM8650"))
+        assertNull(LocalLlmCatalog.npuBuild(gemma1b, "SM8450"))
         assertEquals(
             "https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/Gemma3-1B-IT_q4_ekv1280_sm8750.litertlm",
             LocalLlmCatalog.downloadUrl(gemma1b, "Gemma3-1B-IT_q4_ekv1280_sm8750.litertlm"),
         )
+    }
+
+    @Test
+    fun `a build in a repository of its own is fetched from there, pinned and checked`() {
+        val g4 = LocalLlmCatalog.npuBuild(gemma1b, "TENSOR-G4")!!
+        assertEquals(
+            "https://huggingface.co/litert-community/Gemma3-1B-IT-Tensor-NPU/resolve/${g4.revision}/${g4.fileName}",
+            LocalLlmCatalog.downloadUrl(gemma1b, g4.fileName),
+        )
+        assertEquals(g4.sha256, LocalLlmDownloadManager.expectedSha256(gemma1b, g4.fileName))
+        // An unpinned build in the model's own repository stays unchecked.
+        assertNull(LocalLlmDownloadManager.expectedSha256(gemma1b, "Gemma3-1B-IT_q4_ekv1280_sm8750.litertlm"))
     }
 
     // --- What is on disk ---

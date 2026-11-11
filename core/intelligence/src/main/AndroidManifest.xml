@@ -6,6 +6,13 @@
      the app and just has no NPU (NpuRuntime fails to load the stub), as does
      F-Droid's build, which carries no runtime for it.
 
+     On a Dimensity, LiteRT's MediaTek dispatch library opens the phone's
+     NeuroPilot adapter, and on a Tensor its Google Tensor one opens the TPU
+     driver: the same rule, so those are declared too, every name LiteRT's own
+     runtime AARs list. The dispatch library tries the adapters in turn and
+     takes the first the phone has; the APU and DSP libraries are what the
+     adapter itself may open from the app's namespace.
+
      Compute = GPU for GGUF models: libwmllama_opencl.so links to the vendor's
      libOpenCL.so the same way. A phone without one fails that load, and
      LlamaNative loads a CPU build instead.
@@ -18,6 +25,87 @@
             android:required="false" />
         <uses-native-library
             android:name="libOpenCL.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libneuron_sys_util.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libneuronusdk_adapter.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libneuronusdk_adapter.9.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libneuronusdk_adapter.10.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libneuron_adapter_mgvi.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libapuwareutils_v2.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libapuwareutils.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libapuwareapusys_v2.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpuop_mtk_nn.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpuop_mtk_cv.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpu_runtime_pub.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpu_engine_pub.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpu_pattern_pub.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpuop25_mtk_nn.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpuop25_mtk_cv.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpu_runtime_25_pub.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpu_engine_25_pub.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpu_pattern_25_pub.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpu_config.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpup30_mtk_nn.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpup30_mtk_cv.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpu_runtime_30.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpu_engine_30.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpu_pattern_30.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libmvpuop30_mtk_nn.mtk.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libedgetpu_util.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libedgetpu_litert.so"
             android:required="false" />
     </application>
 

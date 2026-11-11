@@ -134,7 +134,7 @@ object ImageGenImport {
         }
         val missing = (NPU + "merges.txt").filter { MnnBackend.find(staging, it) == null }
         if (missing.isNotEmpty()) return Result.Missing(missing)
-        val soc = NpuSupport.soc ?: return Result.Invalid("this phone has no supported NPU")
+        val soc = NpuSupport.qnnSoc ?: return Result.Invalid("this phone has no supported NPU")
         val metadata = MnnBackend.find(staging, ImageGenModels.NPU_METADATA)!!.readText()
         wrongSoc(metadata, soc)?.let { return Result.Invalid("that build is for $it, this phone's chip is $soc") }
         val name = ImageGenModels.Catalog.SD15_NPU.displayName

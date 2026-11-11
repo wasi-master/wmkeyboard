@@ -347,11 +347,12 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
             FilterChip(
                 selected = selectedBackend == backend,
                 onClick = {
-                    // A build with native delivery fetches the runtime from
-                    // Qualcomm's own repository, under Qualcomm's licence: the
-                    // user accepts it before NPU is picked.
+                    // A build with native delivery fetches a Snapdragon's
+                    // runtime from Qualcomm's own repository, under Qualcomm's
+                    // licence: the user accepts it before NPU is picked. A
+                    // Dimensity's or a Tensor's is Apache-2.0, with nothing to accept.
                     if (backend == LocalLlmBackend.NPU && NativeDelivery.gate("npu") != null &&
-                        !NativeConsent.has(NativeConsent.QUALCOMM)
+                        NpuSupport.qnnSoc != null && !NativeConsent.has(NativeConsent.QUALCOMM)
                     ) {
                         askQualcomm = true
                         return@FilterChip

@@ -55,7 +55,10 @@ internal fun FeatureLibrariesRows() {
         }
         if (confirmOn) NativeDownloadsConfirmDialog(onDone = { confirmOn = false })
     }
-    if (NativeDelivery.pins().any { it.licence == NativeConsent.QUALCOMM }) {
+    // Only on a Snapdragon: a Dimensity's or a Tensor's NPU runtime is not Qualcomm's.
+    if (com.wasimaster.wmkeyboard.core.localllm.NpuSupport.qnnSoc != null &&
+        NativeDelivery.pins().any { it.licence == NativeConsent.QUALCOMM }
+    ) {
         var asking by remember { mutableStateOf(false) }
         val accepted = NativeConsent.QUALCOMM in agreements
         ToggleSetting(

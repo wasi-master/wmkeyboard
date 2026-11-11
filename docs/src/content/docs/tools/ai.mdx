@@ -175,12 +175,13 @@ The **On your device** provider runs a model entirely on the phone, no network i
   <Shot id="tools/ai-settings-local-catalog" alt="The on-device model catalog, with tier badges and a size/RAM subtitle per model." />
 </PhoneFrame>
 
-The catalog has two lists. The first is eight models in LiteRT-LM's format, the engine the keyboard has always used and still the default. They're ordered best-first rather than smallest-first:
+The catalog has two lists. The first is nine models in LiteRT-LM's format, the engine the keyboard has always used and still the default. They're ordered best-first rather than smallest-first:
 
 | Model | Params | Size | Tier | Gated |
 |---|---|---|---|---|
 | Gemma 4 E2B | 2B | 2.59 GB | Recommended | |
 | Gemma 4 E4B | 4B | 3.66 GB | Recommended | |
+| Nemotron 3.5 Bolt E4B | 4B | 4.40 GB | Standard | |
 | Gemma 3 1B | 1B | 584 MB | Untested | Yes |
 | Qwen 2.5 1.5B | 1.5B | 1.6 GB | Standard | |
 | Qwen 3 0.6B | 0.6B | 347 MB | Experimental | |
@@ -188,9 +189,9 @@ The catalog has two lists. The first is eight models in LiteRT-LM's format, the 
 | Gemma 3 270M | 270M | 304 MB | Untested | Yes |
 | SmolLM2 135M | 135M | 143 MB | Experimental | |
 
-Each row names the licence its weights are published under, and **Licence and model page** under an undownloaded row opens the repository where the text is. Gemma 3 comes under Google's Gemma Terms of Use; Gemma 4, Qwen and SmolLM2 are Apache-2.0. About, Licences lists the same under downloadable data packs.
+Each row names the licence its weights are published under, and **Licence and model page** under an undownloaded row opens the repository where the text is. Gemma 3 comes under Google's Gemma Terms of Use; Gemma 4, Qwen and SmolLM2 are Apache-2.0. Nemotron 3.5 Bolt E4B is NVIDIA's further training of Gemma 4 E4B for following instructions and calling tools, under the OpenMDW 1.1 licence, which allows commercial use; this conversion reads text only. About, Licences lists the same under downloadable data packs.
 
-Two of the eight are gated and need a Hugging Face account. Paste a token into the **Access token** field under **Hugging Face account**, above the catalog. Then accept the model's license on its Hugging Face page, once per model.
+Two of the nine are gated and need a Hugging Face account. Paste a token into the **Access token** field under **Hugging Face account**, above the catalog. Then accept the model's license on its Hugging Face page, once per model.
 
 #### GGUF models on llama.cpp
 
@@ -237,7 +238,22 @@ A **Compute** row picks **CPU** or **GPU** for inference, and CPU is the default
 
 The GPU makes the biggest difference to reading a long prompt, such as a chat screenshot or a long text to rewrite. Writing the answer is limited by memory speed, so it gains less, and for the smallest models the CPU can be as fast. Qualcomm tuned models quantized as Q4_0 first. The catalog's Q4_K_M and Q8_0 files also run on the GPU, and with some Snapdragon 8 Gen 2 and Gen 3 drivers llama.cpp keeps the last layer of a K-quant model on the CPU, where those drivers compile it badly.
 
-On a phone with a Snapdragon 8 Elite (SM8750, the Galaxy S25 series) or 8 Elite Gen 5 (SM8850, the Galaxy S26 Ultra), running Android 12 or later, the row has a third choice, **NPU**, which runs a model on the phone's AI accelerator. The NPU needs a build of the model compiled for that chip, and only Gemma 3 1B and Gemma 3 270M have one. With **NPU** selected, **Download** on those two rows fetches the NPU build (689 MB and 461 MB on an SM8750) instead of the standard file. A model you already have gets a **Get the NPU build** button. Every other model runs as it does with **GPU**. So does a model whose NPU build fails to start, and the app keeps that model off the NPU until the next system or app update. A failure partway through an answer only moves the next try in that session to the GPU, because a prompt longer than the build's window fails the same way. The NPU build runs only on the NPU, so a model whose only file is its NPU build offers **Get the standard build** when Compute is CPU or GPU. The NPU runtime is Qualcomm's QNN. The Google Play edition downloads it from Play the first time you pick **NPU**. The GitHub edition first asks you to accept Qualcomm's licence, then fetches only your chip's files from Qualcomm's own package on Maven Central, about 30 MB. The F-Droid edition has no NPU at all.
+On a phone running Android 12 or later with one of these chips, the row has a third choice, **NPU**, which runs a model on the phone's AI accelerator. The NPU needs a build of the model compiled for that exact chip, so which models have one depends on the chip:
+
+| Chip | Phones, for example | Models with an NPU build |
+|---|---|---|
+| Snapdragon 8 Gen 2 (SM8550) | Galaxy S23 series | Gemma 3 1B, Gemma 3 270M |
+| Snapdragon 8 Gen 3 (SM8650) | Galaxy S24 series | Gemma 3 1B, Gemma 3 270M |
+| Snapdragon 8 Elite (SM8750) | Galaxy S25 series | Gemma 3 1B, Gemma 3 270M |
+| Snapdragon 8 Elite Gen 5 (SM8850) | Galaxy S26 Ultra | Gemma 3 1B, Gemma 3 270M, Nemotron 3.5 Bolt E4B |
+| Dimensity 9300 (MT6989) | vivo X100 Pro | Gemma 3 1B |
+| Dimensity 9400 and 9500 (MT6991, MT6993) | vivo X200 and X300 series | Gemma 3 1B, Gemma 3 270M |
+| Tensor G3 and G4 | Pixel 8 and Pixel 9 series | Gemma 3 1B |
+| Tensor G5 and G6 | Pixel 10 and Pixel 11 series | Gemma 3 1B, Gemma 4 E2B |
+
+The Tensor G3 and G4 builds of Gemma 3 1B come from a community repository on Hugging Face, the only place that compiles one for those chips; its page reports both working on a Pixel 8 Pro and a Pixel 9. Every other build is from the model's own repository. Gemma 4 E2B's Tensor build answers text only: with a picture, it runs its standard file as **GPU** would.
+
+With **NPU** selected, **Download** on a row with a build for your chip fetches that build (Gemma 3 1B is 689 MB on a Snapdragon 8 Elite, about 1 GB on a Dimensity and 2 GB on a Tensor G5) instead of the standard file. A model you already have gets a **Get the NPU build** button. Every other model runs as it does with **GPU**. So does a model whose NPU build fails to start, and the app keeps that model off the NPU until the next system or app update. A failure partway through an answer only moves the next try in that session to the GPU, because a prompt longer than the build's window fails the same way. The NPU build runs only on the NPU, so a model whose only file is its NPU build offers **Get the standard build** when Compute is CPU or GPU. On a Snapdragon the NPU runtime is Qualcomm's QNN. The Google Play edition downloads it from Play the first time you pick **NPU**. The GitHub edition first asks you to accept Qualcomm's licence, then fetches only your chip's files from Qualcomm's own package on Maven Central, about 30 MB. On a Dimensity or a Tensor the phone already has the NPU's drivers, and the keyboard adds only LiteRT's small bridge to them (under 1 MB, Apache-2.0, from Google's Maven repository), with no licence to accept. None of these NPU builds has been measured on a phone here yet: if one fails to start on yours, that model goes back to the GPU as described above. The F-Droid edition has no NPU at all.
 
 A **Context size** row sets how much text the model is loaded with, prompt and answer together, in tokens. It defaults to the model's own value, or 4,096 tokens for a GGUF model, whose own value is often far more than a phone can hold. This is the only length lever on-device. Unlike a cloud API there's no per-response ceiling to set, so the window is what bounds an answer. A larger window costs memory, and changing it reloads the model.
 

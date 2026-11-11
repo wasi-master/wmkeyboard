@@ -155,17 +155,17 @@ open class WMApplication : Application() {
         // :core:intelligence; :core:voice gets it through these. Nothing runs
         // until a program exported for the NPU is opened.
         com.wasimaster.wmkeyboard.core.voice.executorch.EtNative.qnnPossible = {
-            com.wasimaster.wmkeyboard.core.localllm.NpuSupport.soc != null
+            com.wasimaster.wmkeyboard.core.localllm.NpuSupport.qnnSoc != null
         }
         com.wasimaster.wmkeyboard.core.voice.executorch.EtNative.qnnRuntime = {
-            com.wasimaster.wmkeyboard.core.localllm.NpuSupport.soc?.let {
+            com.wasimaster.wmkeyboard.core.localllm.NpuSupport.qnnSoc?.let {
                 com.wasimaster.wmkeyboard.core.localllm.NpuRuntime.directory(this, it)
             }
         }
         // The same chip picks the NPU builds of Parakeet and Moonshine that
         // sherpa-onnx's QNN library runs.
         com.wasimaster.wmkeyboard.core.voice.executorch.EtNative.qnnSoc = {
-            com.wasimaster.wmkeyboard.core.localllm.NpuSupport.soc
+            com.wasimaster.wmkeyboard.core.localllm.NpuSupport.qnnSoc
         }
         // Sync between devices: keeps its jobs in step with the settings and
         // pushes shortly after a synced setting changes. Here because the

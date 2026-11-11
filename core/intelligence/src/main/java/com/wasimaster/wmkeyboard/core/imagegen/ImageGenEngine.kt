@@ -151,7 +151,7 @@ class ImageGenEngine internal constructor(private val context: Context) : Closea
         val catalog = ImageGenModels.Catalog.byId(modelId)
         val result = when {
             catalog == ImageGenModels.Catalog.SD15_NPU -> {
-                val soc = NpuSupport.soc ?: throw IOException("this phone has no supported NPU")
+                val soc = NpuSupport.qnnSoc ?: throw IOException("this phone has no supported NPU")
                 val build = catalog.npuBuild(soc) ?: throw IOException("no NPU build for $soc")
                 val runtime = NpuRuntime.directory(context, soc) ?: throw IOException("the NPU runtime is not here yet")
                 val dir = ImageGenModels.dir(noBackup, catalog)
@@ -170,7 +170,7 @@ class ImageGenEngine internal constructor(private val context: Context) : Closea
 
     /** An imported Qualcomm build: its context binaries on this phone's NPU, with the tokenizer beside them. */
     private fun npu(id: String, dir: File): Loaded {
-        val soc = NpuSupport.soc ?: throw IOException("this phone has no supported NPU")
+        val soc = NpuSupport.qnnSoc ?: throw IOException("this phone has no supported NPU")
         val runtime = NpuRuntime.directory(context, soc) ?: throw IOException("the NPU runtime is not here yet")
         val merges = MnnBackend.find(dir, "merges.txt") ?: throw IOException("no merges.txt in ${dir.name}")
         return Loaded(id, ImageGenModels.npuSpec(id), QnnBackend(dir, runtime), ClipTokenizer.fromFile(merges))

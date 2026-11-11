@@ -170,7 +170,7 @@ object ImageGenModels {
         ;
 
         /** The NPU build for this phone's chip, or null (no NPU, another chip, a CPU model). */
-        fun npuBuild(soc: String? = NpuSupport.soc): NpuBuild? =
+        fun npuBuild(soc: String? = NpuSupport.qnnSoc): NpuBuild? =
             soc?.let { s -> npuBuilds.firstOrNull { it.soc == s && it.zip.sha256.isNotEmpty() } }
 
         /** Whether this phone can run it at all. */

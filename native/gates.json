@@ -355,7 +355,7 @@
     {
       "id": "npu",
       "property": "npu",
-      "doc": "`:feature:npu`: the Qualcomm NPU runtime (LiteRT's dispatch library and the QNN libraries) behind Compute = NPU for on-device AI. Assets only, unpacked into app storage by `NpuRuntime` in :core:intelligence.",
+      "doc": "`:feature:npu`: the NPU runtime behind Compute = NPU for on-device AI: LiteRT's Qualcomm dispatch library and the QNN libraries for a Snapdragon, LiteRT's MediaTek or Google Tensor dispatch library alone for a Dimensity or a Tensor (those drive the phone's own drivers). Assets only, unpacked into app storage by `NpuRuntime` in :core:intelligence.",
       "play": "module",
       "google": true,
       "enabledBy": { "flag": "wmkb.enableNpu", "env": "WMKB_ENABLE_NPU", "default": true, "buildConfig": "ENABLE_NPU" },
@@ -364,12 +364,16 @@
         { "name": "libLiteRtDispatch_Qualcomm.so", "module": "com.google.ai.edge.litert:litert-npu-runtime-qualcomm", "catalog": "litert-npu-runtime-qualcomm", "licence": "qualcomm" },
         { "name": "libQnnSystem.so", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" },
         { "name": "libQnnHtp.so", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" },
+        { "name": "libQnnHtpV73Stub.so", "gate": "npu-V73", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" },
+        { "name": "libQnnHtpV73Skel.so", "gate": "npu-V73", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" },
         { "name": "libQnnHtpV75Stub.so", "gate": "npu-V75", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" },
         { "name": "libQnnHtpV75Skel.so", "gate": "npu-V75", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" },
         { "name": "libQnnHtpV79Stub.so", "gate": "npu-V79", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" },
         { "name": "libQnnHtpV79Skel.so", "gate": "npu-V79", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" },
         { "name": "libQnnHtpV81Stub.so", "gate": "npu-V81", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" },
-        { "name": "libQnnHtpV81Skel.so", "gate": "npu-V81", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" }
+        { "name": "libQnnHtpV81Skel.so", "gate": "npu-V81", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" },
+        { "name": "libLiteRtDispatch_MediaTek.so", "gate": "npu-mediatek", "module": "com.google.ai.edge.litert:litert-npu-runtime-mediatek", "catalog": "litert-npu-runtime-mediatek" },
+        { "name": "libLiteRtDispatch_GoogleTensor.so", "gate": "npu-tensor", "module": "com.google.ai.edge.litert:litert-npu-runtime-google-tensor", "catalog": "litert-npu-runtime-google-tensor" }
       ]
     },
     {

@@ -222,10 +222,11 @@ object LocalLlmDownloadManager {
         }
     }
 
-    /** The SHA-256 [fileName] of [model] must have, when the catalog pins one: the model's or its projector's. */
+    /** The SHA-256 [fileName] of [model] must have, when the catalog pins one: the model's, its projector's or an NPU build's. */
     fun expectedSha256(model: LocalLlmModel, fileName: String = model.fileName): String? =
         model.sha256?.takeIf { fileName == model.fileName }
             ?: model.projector?.takeIf { it.fileName == fileName }?.sha256
+            ?: model.npuBuilds.firstOrNull { it.fileName == fileName }?.sha256
 
     /** Hex SHA-256 of [file]'s contents. Reads the whole file: IO dispatcher only. */
     fun sha256Of(file: File): String = FileDownloader.sha256(file)

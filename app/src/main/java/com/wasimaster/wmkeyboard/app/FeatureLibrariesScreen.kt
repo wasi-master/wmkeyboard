@@ -106,7 +106,9 @@ internal object FeatureLibraryList {
             when {
                 offline && pin.gate in OFFLINE_USELESS_GATES -> false
                 pin.gate in GPU_GATES -> pin.gate in gpuGates
-                pin.gate == NPU -> chipLibraries.isNotEmpty()
+                // Qualcomm's shared QNN libraries, for a Snapdragon only:
+                // a Dimensity or a Tensor takes its own dispatch library.
+                pin.gate == NPU -> chipLibraries.any { it.startsWith("libQnn") }
                 pin.gate.startsWith("$NPU-") -> pin.name in chipLibraries
                 else -> true
             }

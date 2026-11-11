@@ -83,7 +83,9 @@ The libraries come from two places:
 | The built-in document scanner | `libwmdocscan.so` |
 | QR and barcode reading without Google | `libwmzxing.so` |
 | The sticker generator, picture upscaling and PaddleOCR text scanning | `libwmimagegen.so`, `libwmimagegen_qnn.so` |
-| On-device AI on a Qualcomm NPU | `libLiteRtDispatch_Qualcomm.so`, `libQnnSystem.so`, `libQnnHtp.so`, `libQnnHtpV75Stub.so`, `libQnnHtpV75Skel.so`, `libQnnHtpV79Stub.so`, `libQnnHtpV79Skel.so`, `libQnnHtpV81Stub.so`, `libQnnHtpV81Skel.so` |
+| On-device AI on a Qualcomm NPU | `libLiteRtDispatch_Qualcomm.so`, `libQnnSystem.so`, `libQnnHtp.so`, `libQnnHtpV73Stub.so`, `libQnnHtpV73Skel.so`, `libQnnHtpV75Stub.so`, `libQnnHtpV75Skel.so`, `libQnnHtpV79Stub.so`, `libQnnHtpV79Skel.so`, `libQnnHtpV81Stub.so`, `libQnnHtpV81Skel.so` |
+| On-device AI on a MediaTek Dimensity NPU | `libLiteRtDispatch_MediaTek.so` |
+| On-device AI on a Google Tensor NPU | `libLiteRtDispatch_GoogleTensor.so` |
 | Google's text and barcode reading in the scanner (ML Kit) | `libmlkit_google_ocr_pipeline.so`, `libbarhopper_v3.so` |
 
 Each file is installed only if its SHA-256 and size match the values built into the app, the same check a download gets. A file of another ABI, another version or another app is refused, and the import report says so. Renaming a library file does no harm: it is told by its checksum.
