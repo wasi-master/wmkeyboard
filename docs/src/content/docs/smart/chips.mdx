@@ -77,6 +77,28 @@ Type a tool's keyword on its own (`wiki`, `calc`, and so on) and a narrower chip
 
 Each tool's own settings list the words that open it, and let you change or clear them. Matching ignores capitals by default, and a per-tool **Match capitals** switch makes that tool compare literally instead, which is how `AI` can open the AI tool without every auto-capitalised "Ai" doing the same.
 
+## Search shortcuts
+
+<SettingsPath path="Typing / Smart chips / Search shortcuts" />
+
+Type a shortcut and then what you're looking for, and a narrow chip offers that search. `@gif happy birthday` offers a GIF search for "happy birthday". A tap on the chip takes the shortcut and your words out of the text and opens the tool already searching. It works like calling a Telegram inline bot by name, without leaving the keyboard.
+
+| Shortcut | Searches |
+| --- | --- |
+| `@gif` | GIFs |
+| `@sticker` | Stickers |
+| `@wiki` | Wikipedia, which runs the search as it opens |
+| `@define` | The Dictionary, which looks the word up as it opens |
+| `@web` | Web search, which runs the search as it opens |
+| `@contact` | Your contacts: the first saved name that starts with your words gets the [contact chip](#calling-or-texting-a-contact), to call or text them |
+
+The list is yours. Tap a shortcut to change it or what it searches, swipe it away to delete it, or add one with **Add a shortcut**. Two shortcuts can lead to the same place, so `!` can open GIFs as well as `@gif`, and `?` can search your contacts. **Back to the standard shortcuts** puts the list above back.
+
+- **Where a shortcut counts.** Only at the start of the text or after a space. `me@web.de` is an email address, not a web search, and `wow!cats` isn't a GIF search.
+- **The space after it.** A shortcut that ends in a letter or a digit needs a space before your words (`@gif cats`, not `@gifcats`), so a longer word that starts the same way isn't read as one. A shortcut that ends in a symbol needs none: `!cats`.
+- **How much it reads.** The words run up to the cursor, on one line, and up to 60 characters, though on a long line only the last few dozen characters before the cursor are looked at.
+- **When nothing shows.** The tool it searches has to be switched on under Tools. A contact shortcut needs **Call or text a contact** on, since that's what reads your contacts. A shortcut is asked for by name, so it comes ahead of every other chip and isn't one of the hints that stop after one offer per field.
+
 ## Chips that read the sentence
 
 Five more families watch for text that isn't a sum or a keyword but still sounds like a job a tool does. They ride the same master switch and each has its own toggle in [Options](#options).
@@ -184,6 +206,7 @@ Each detector has guards against the shapes of text that look like a trigger but
 - **Repeated text**: default **on**. See [Repeated text](#repeated-text).
 - **Chip after this many repeats**: 2 to 6, default **3**. Shown while Repeated text is on; the same row lives on the Text repeat tool's page.
 - **Keep the text when a chip opens its tool**: default **off**. Leaves the typed amount, sum or tool keyword in place when the gear opens the tool.
+- **Search shortcuts**: default **on**, with six shortcuts to start. See [Search shortcuts](#search-shortcuts).
 
 Each tool's own page (Calculator, Unit converter, Currency converter) links back here with a **Suggestion chip** row that shows whether its chip is on. The switches themselves live only under Smart chips.
 

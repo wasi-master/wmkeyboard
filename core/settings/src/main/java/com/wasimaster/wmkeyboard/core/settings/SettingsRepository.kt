@@ -50,6 +50,8 @@ import com.wasimaster.wmkeyboard.core.icons.RasterIcons
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog
 import com.wasimaster.wmkeyboard.core.tools.QrCodeGen
 import com.wasimaster.wmkeyboard.core.tools.TextRepeat
+import com.wasimaster.wmkeyboard.core.tools.SearchTrigger
+import com.wasimaster.wmkeyboard.core.tools.SearchTriggers
 import com.wasimaster.wmkeyboard.core.tools.rememberLayoutSwitch
 import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyinScheme
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
@@ -5960,6 +5962,10 @@ data class SmartChipSettings(
     val repeats: Boolean = true,
     /** How many copies in a row before that chip shows. */
     val repeatAfter: Int = TextRepeat.DEFAULT_REPEAT_AFTER,
+    /** "@gif cats" → a GIF search for "cats" (#1242); see [SearchTriggers]. */
+    val searchTriggers: Boolean = true,
+    /** The user's shortcuts, in the order they were added. */
+    val searchTriggerList: List<SearchTrigger> = SearchTriggers.DEFAULTS,
 )
 
 /**
@@ -12871,6 +12877,8 @@ class SettingsRepository(private val context: Context) {
         private val SMART_CHIP_CONTACTS = booleanPreferencesKey("smart_chip_contacts")
         private val SMART_CHIP_KEEP_TEXT = booleanPreferencesKey("smart_chip_keep_text")
         private val SMART_CHIP_REPEATS = booleanPreferencesKey("smart_chip_repeats")
+        private val SMART_CHIP_SEARCH_TRIGGERS = booleanPreferencesKey("smart_chip_search_triggers")
+        private val SMART_CHIP_SEARCH_TRIGGER_LIST = stringPreferencesKey("smart_chip_search_trigger_list")
         private val SMART_CHIP_REPEAT_AFTER = intPreferencesKey("smart_chip_repeat_after")
 
         private val SELECTION_MACROS_ENABLED = booleanPreferencesKey("selection_macros_enabled")
@@ -15498,6 +15506,9 @@ class SettingsRepository(private val context: Context) {
             keepTextOnOpen = p[SMART_CHIP_KEEP_TEXT] ?: defaults.smartChips.keepTextOnOpen,
             repeats = p[SMART_CHIP_REPEATS] ?: defaults.smartChips.repeats,
             repeatAfter = p[SMART_CHIP_REPEAT_AFTER] ?: defaults.smartChips.repeatAfter,
+            searchTriggers = p[SMART_CHIP_SEARCH_TRIGGERS] ?: defaults.smartChips.searchTriggers,
+            searchTriggerList = p[SMART_CHIP_SEARCH_TRIGGER_LIST]?.let(SearchTriggers::decode)
+                ?: defaults.smartChips.searchTriggerList,
         )
 
     private fun readSelectionMacros(p: Preferences, defaults: KeyboardSettings) =
@@ -24604,6 +24615,16 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSmartChipRepeats(value: Boolean) =
         editPrefs { it[SMART_CHIP_REPEATS] = value }
+
+    suspend fun setSearchTriggers(value: Boolean) =
+        editPrefs { it[SMART_CHIP_SEARCH_TRIGGERS] = value }
+
+    /** The search shortcuts, whole; an empty list is kept as empty, not as the defaults. */
+    suspend fun setSearchTriggerList(value: List<SearchTrigger>) =
+        editPrefs { it[SMART_CHIP_SEARCH_TRIGGER_LIST] = SearchTriggers.encode(value) }
+
+    /** Back to the shipped shortcuts. */
+    suspend fun resetSearchTriggerList() = editPrefs { it.remove(SMART_CHIP_SEARCH_TRIGGER_LIST) }
 
     suspend fun setSmartChipRepeatAfter(value: Int) =
         editPrefs { it[SMART_CHIP_REPEAT_AFTER] = value.coerceIn(TextRepeat.MIN_REPEAT_AFTER, TextRepeat.MAX_REPEAT_AFTER) }

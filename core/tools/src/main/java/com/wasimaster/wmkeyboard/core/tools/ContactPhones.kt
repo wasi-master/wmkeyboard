@@ -49,6 +49,18 @@ class ContactPhones private constructor(
         return byFirstName[key]
     }
 
+    /**
+     * The first saved contact, in name order, whose name or one of whose
+     * words starts with [prefix]: what a contact search shortcut offers
+     * (#1242). Null for an empty prefix.
+     */
+    fun startingWith(prefix: String): Contact? {
+        val key = normalize(prefix)
+        if (key.isEmpty()) return null
+        val matches = byName.filterKeys { name -> name.startsWith(key) || name.split(' ').any { it.startsWith(key) } }
+        return matches.entries.minByOrNull { (name, _) -> if (name.startsWith(key)) "0$name" else "1$name" }?.value
+    }
+
     companion object {
         val EMPTY = ContactPhones(emptyMap(), emptyMap())
 

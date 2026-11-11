@@ -100,10 +100,11 @@ object SmartSuggest {
      * with a call face and a message button, and so is [REPEAT] (the same
      * text typed several times over), which opens the Text repeat tool.
      */
-    enum class Kind { CALC, CURRENCY, UNIT, NUMBER, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB, CONTACT, REPEAT, SEND_LINK }
+    enum class Kind { CALC, CURRENCY, UNIT, NUMBER, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB, CONTACT, REPEAT, SEND_LINK, SEARCH }
 
     /** The kinds that only claim the space their label needs. */
-    val narrowKinds: Set<Kind> = setOf(Kind.TOOL, Kind.LOOKUP, Kind.INTENT, Kind.VOCAB, Kind.CONTACT, Kind.REPEAT, Kind.SEND_LINK)
+    val narrowKinds: Set<Kind> =
+        setOf(Kind.TOOL, Kind.LOOKUP, Kind.INTENT, Kind.VOCAB, Kind.CONTACT, Kind.REPEAT, Kind.SEND_LINK, Kind.SEARCH)
 
     /**
      * A switch under Smart chips, as far as the tools behind it go. The
@@ -311,6 +312,9 @@ object SmartSuggest {
         val repeatAfter: Int = TextRepeat.DEFAULT_REPEAT_AFTER,
         /** Units (lowercase) already offered in this field, so each gets one chip. */
         val repeatRetired: Set<String> = emptySet(),
+        // ---- search shortcuts ----
+        /** "@gif cats" → a GIF search for "cats" (#1242); empty while the switch is off. */
+        val searchTriggers: List<SearchTrigger> = emptyList(),
     )
 
     /** Characters of context the scanners look back over. */
@@ -338,6 +342,8 @@ object SmartSuggest {
         if (text.isEmpty()) return null
         // A share link is recognised anywhere in the window, not only at its tail.
         if (ctx.sendLinkChips) detectSendLink(text)?.let { return it }
+        // A search shortcut is asked for by name, so it outranks every guess below.
+        if (ctx.searchTriggers.isNotEmpty()) detectSearch(text, ctx)?.let { return it }
         val tail = text.takeLast(LOOKBEHIND)
         if (ctx.currencyEnabled) detectCurrency(tail, ctx)?.let { return it }
         if (ctx.unitsEnabled) detectUnit(tail, ctx)?.let { return it }
@@ -364,6 +370,43 @@ object SmartSuggest {
     }
 
     private fun toolOn(tool: ToolbarTool, ctx: Context): Boolean = tool in ctx.enabledTools
+
+    /**
+     * A search shortcut at the end of the text (#1242; see [SearchTriggers]).
+     * The chip takes the shortcut and its words out of the field as it opens
+     * the tool on them. A contact shortcut raises the contact chip instead,
+     * for the first saved name that starts with the words.
+     */
+    private fun detectSearch(text: String, ctx: Context): SmartHit? {
+        val found = SearchTriggers.match(text, ctx.searchTriggers) ?: return null
+        val target = found.trigger.target
+        if (target == SearchTarget.CONTACTS) {
+            val contact = ctx.contacts?.startingWith(found.query) ?: return null
+            return SmartHit(
+                kind = Kind.CONTACT,
+                query = contact.name,
+                result = contact.number,
+                insert = null,
+                replaceSpan = 0,
+                tool = ToolbarTool.SELECTION_ACTIONS,
+                prefill = ToolPrefill.Contact(contact.name, contact.number),
+            )
+        }
+        val tool = target.tool?.takeIf { toolOn(it, ctx) } ?: return null
+        val prefill = when (target) {
+            SearchTarget.GIF, SearchTarget.STICKER -> ToolPrefill.Gif(found.query)
+            else -> ToolPrefill.Lookup(found.query)
+        }
+        return SmartHit(
+            kind = Kind.SEARCH,
+            query = found.query,
+            result = null,
+            insert = null,
+            replaceSpan = found.span,
+            tool = tool,
+            prefill = prefill,
+        )
+    }
 
     /**
      * A Send share link (#729): opens the Send files tool on receiving it. The

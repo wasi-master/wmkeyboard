@@ -26351,6 +26351,7 @@ open class WMKeyboardService : InputMethodService() {
                 state.language,
             ),
             contacts = contactPhones.takeIf { state.settings.smartChips.contacts && !it.isEmpty },
+            searchTriggers = state.settings.smartChips.let { if (it.searchTriggers) it.searchTriggerList else emptyList() },
             repeatChips = state.settings.smartChips.repeats,
             repeatAfter = state.settings.smartChips.repeatAfter,
             // A copy, for the same reason as vocabRetired.
@@ -34116,7 +34117,8 @@ open class WMKeyboardService : InputMethodService() {
                         (it.toolPrefill as? ToolPrefill.Gif)?.query ?: restored.query
                     PanelMode.WIKIPEDIA ->
                         (it.toolPrefill as? ToolPrefill.Lookup)?.term ?: restored.query
-                    PanelMode.WEB_SEARCH -> keptSearchQuery(it) ?: restored.query
+                    PanelMode.WEB_SEARCH ->
+                        (it.toolPrefill as? ToolPrefill.Lookup)?.term ?: keptSearchQuery(it) ?: restored.query
                     else -> restored.query
                 },
                 // Web search and translate open straight into their search box
@@ -34125,7 +34127,7 @@ open class WMKeyboardService : InputMethodService() {
                 // their previous search, or trending. Wikipedia keeps a
                 // previous article/results if it has one.
                 mediaSearchActive = next == PanelMode.TRANSLATE || next == PanelMode.QR_GEN ||
-                    (next == PanelMode.WEB_SEARCH && keptSearchQuery(it) == null) ||
+                    (next == PanelMode.WEB_SEARCH && keptSearchQuery(it) == null && it.toolPrefill !is ToolPrefill.Lookup) ||
                     (next == PanelMode.WIKIPEDIA && it.wiki !is WikiUi.Article && it.wiki !is WikiUi.SearchResults),
                 mediaDownloadingId = null,
                 mediaDownloadProgress = null,
@@ -34279,19 +34281,28 @@ open class WMKeyboardService : InputMethodService() {
             // A finished search is still on screen when the panel comes back
             // (#347): reading one result in the browser and returning for the
             // next must not cost a second request, or return different links.
-            PanelMode.WEB_SEARCH -> _uiState.update {
-                it.copy(
-                    webSearch = when {
-                        !hasSearchKey() -> WebSearchUi.NeedKey
-                        it.webSearch is WebSearchUi.Ready -> it.webSearch
-                        else -> WebSearchUi.Idle
-                    },
-                    imageSearch = when {
-                        !hasSearchKey() -> ImageSearchUi.NeedKey
-                        it.imageSearch is ImageSearchUi.Ready -> it.imageSearch
-                        else -> ImageSearchUi.Idle
-                    },
-                )
+            PanelMode.WEB_SEARCH -> {
+                // A "@web …" search shortcut (#1242): the search runs as the panel opens.
+                val asked = (_uiState.value.toolPrefill as? ToolPrefill.Lookup)?.term
+                if (asked != null) {
+                    onToolPrefillConsumed()
+                    runWebSearch(asked)
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            webSearch = when {
+                                !hasSearchKey() -> WebSearchUi.NeedKey
+                                it.webSearch is WebSearchUi.Ready -> it.webSearch
+                                else -> WebSearchUi.Idle
+                            },
+                            imageSearch = when {
+                                !hasSearchKey() -> ImageSearchUi.NeedKey
+                                it.imageSearch is ImageSearchUi.Ready -> it.imageSearch
+                                else -> ImageSearchUi.Idle
+                            },
+                        )
+                    }
+                }
             }
             PanelMode.GRAMMAR -> {
                 currentInputConnection?.let { commitComposing(it, autocorrect = false) }

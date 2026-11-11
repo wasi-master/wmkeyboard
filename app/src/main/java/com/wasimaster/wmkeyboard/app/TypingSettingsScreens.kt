@@ -2022,6 +2022,8 @@ internal fun TypingSmartChipsSettings(
             }
         }
     }
+    // "@gif cats" and the rest (#1242): only while the chips are on at all.
+    if (smartOn) SearchShortcutsGroup(repository, settings)
 }
 
 /**

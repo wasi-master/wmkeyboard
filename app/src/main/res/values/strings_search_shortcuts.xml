@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Typing / Smart chips / Search shortcuts (#1242): "@gif cats" offers a GIF search for "cats". -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="search_shortcuts_group">Search shortcuts</string>
+    <string name="search_shortcuts_info">Type a shortcut and then what to search for, such as \@gif happy birthday. A chip on the suggestion strip offers the search, and a tap on it takes the shortcut out of the text and opens the tool on those words. A shortcut counts only at the start of the text or after a space, so an email address never reads as one. A shortcut that ends in a letter needs a space before the words. One that ends in a symbol, such as !, needs none.</string>
+    <string name="search_shortcuts_title">Search shortcuts</string>
+    <string name="search_shortcuts_subtitle">\@gif cats searches GIFs for cats, \@wiki searches Wikipedia, and so on</string>
+    <!-- %1$s is where the shortcut searches, such as "GIF" or "Contacts". -->
+    <string name="search_shortcuts_row_subtitle">Searches <xliff:g id="target" example="GIF">%1$s</xliff:g></string>
+    <string name="search_shortcuts_add_title">Add a shortcut</string>
+    <string name="search_shortcuts_edit_title">Change the shortcut</string>
+    <string name="search_shortcuts_reset_title">Back to the standard shortcuts</string>
+    <string name="search_shortcuts_reset_action">Reset</string>
+    <string name="search_shortcuts_prefix_label">Shortcut</string>
+    <string name="search_shortcuts_prefix_hint">\@gif or !</string>
+    <string name="search_shortcuts_prefix_help">No spaces. Two shortcuts can lead to the same place.</string>
+    <string name="search_shortcuts_prefix_taken">Another shortcut already uses this</string>
+    <string name="search_shortcuts_target_label">Searches</string>
+    <string name="search_shortcuts_target_contacts">Contacts</string>
+</resources>

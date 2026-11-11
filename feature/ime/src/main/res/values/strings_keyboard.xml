@@ -440,6 +440,8 @@
     <string name="ime_tool_flashlight">Flashlight</string>
     <string name="ime_tool_screenshot">Screenshot</string>
     <string name="ime_tool_privacy_shade">Privacy shade</string>
+    <!-- A search shortcut's chip (#1242). %1$s is the tool, %2$s the words typed after the shortcut. -->
+    <string name="ime_smart_search_offer"><xliff:g id="tool" example="GIF">%1$s</xliff:g>: \u201C<xliff:g id="query" example="cats">%2$s</xliff:g>\u201D</string>
     <string name="ime_tool_compass">Compass</string>
     <string name="ime_tool_level">Level</string>
     <string name="ime_tool_undo">Undo</string>

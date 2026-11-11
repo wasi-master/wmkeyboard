@@ -627,6 +627,10 @@ private fun SearchStrings.typingChipsRows(): List<SettingsSearchEntry> {
             R.string.typing_smart_number_grouping_title,
             R.string.typing_smart_number_grouping_subtitle,
         ),
+        // Search shortcuts (#1242), the screen's last group.
+        row(R.string.search_shortcuts_title, R.string.search_shortcuts_subtitle),
+        row(R.string.search_shortcuts_add_title),
+        row(R.string.search_shortcuts_reset_title),
     )
 }
 
