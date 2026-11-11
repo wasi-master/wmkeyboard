@@ -4420,6 +4420,12 @@ open class WMKeyboardService : InputMethodService() {
 
     private var lastScreenshotId = -1L
 
+    /** When [lastScreenshotId] was last saved, in seconds, so an edit over it is seen (#1200). */
+    private var lastScreenshotModified = 0L
+
+    /** The clip [lastScreenshotId] made, which an edit of that screenshot replaces (#1200). */
+    private var lastScreenshotClipId: Long? = null
+
     /** A look for a new screenshot is waiting out a burst of library changes (#1097). */
     @Volatile
     private var screenshotSettling = false
@@ -4515,29 +4521,40 @@ open class WMKeyboardService : InputMethodService() {
                 android.provider.MediaStore.Images.Media._ID,
                 android.provider.MediaStore.Images.Media.DATE_ADDED,
                 android.provider.MediaStore.Images.Media.DATA,
-                android.provider.MediaStore.Images.Media.MIME_TYPE
+                android.provider.MediaStore.Images.Media.MIME_TYPE,
+                android.provider.MediaStore.Images.Media.DATE_MODIFIED,
             )
+            val since = (System.currentTimeMillis() / 1000 - 15).toString()
+            // Modified as well as added: a screenshot edited and saved over
+            // itself keeps its row and its date added (#1200).
             val cursor = runCatching {
                 contentResolver.query(
                     android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     projection,
-                    "${android.provider.MediaStore.Images.Media.DATE_ADDED} >= ?",
-                    arrayOf((System.currentTimeMillis() / 1000 - 15).toString()),
-                    "${android.provider.MediaStore.Images.Media.DATE_ADDED} DESC"
+                    "${android.provider.MediaStore.Images.Media.DATE_ADDED} >= ? OR " +
+                        "${android.provider.MediaStore.Images.Media.DATE_MODIFIED} >= ?",
+                    arrayOf(since, since),
+                    "${android.provider.MediaStore.Images.Media.DATE_MODIFIED} DESC"
                 )
             }.getOrNull() ?: return@launch
 
             cursor.use { c ->
                 if (c.moveToFirst()) {
                     val dateAdded = c.getLong(c.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media.DATE_ADDED))
-                    if (System.currentTimeMillis() / 1000 - dateAdded > 15) return@launch
+                    val dateModified = c.getLong(c.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media.DATE_MODIFIED))
+                    if (System.currentTimeMillis() / 1000 - maxOf(dateAdded, dateModified) > 15) return@launch
 
                     val path = c.getString(c.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media.DATA)).orEmpty()
                     if (!path.contains("Screenshot", ignoreCase = true)) return@launch
 
                     val id = c.getLong(c.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media._ID))
-                    if (id == lastScreenshotId) return@launch
+                    // The same screenshot seen again is news only when it was
+                    // saved over since: the edit replaces the clip it made.
+                    val edited = id == lastScreenshotId && dateModified > lastScreenshotModified
+                    if (id == lastScreenshotId && !edited) return@launch
+                    val replaces = lastScreenshotClipId.takeIf { edited }
                     lastScreenshotId = id
+                    lastScreenshotModified = dateModified
 
                     val mimeType = c.getString(c.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media.MIME_TYPE)) ?: "image/png"
                     val uri = android.content.ContentUris.withAppendedId(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
@@ -4569,7 +4586,10 @@ open class WMKeyboardService : InputMethodService() {
                         } else {
                             mimeType
                         }
+                        replaces?.let { old -> clipboardStore.items().firstOrNull { it.id == old && !it.pinned } }
+                            ?.let { clipboardStore.remove(it.id) }
                         val added = clipboardStore.addImage(copied, keptMime, "System UI")
+                        lastScreenshotClipId = added?.id
                         saveClipboardSoon()
                         _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
                         if (added != null && state.settings.clipboard.suggestRecent) {
@@ -51387,7 +51407,7 @@ open class WMKeyboardService : InputMethodService() {
             TextEditAction.PASTE -> {
                 if (!isClipboardAccessible()) return
                 releaseUserShift()
-                if (privatePaste(ic) || pasteIntoNullField(ic)) return
+                if (pasteHeldImage() || privatePaste(ic) || pasteIntoNullField(ic)) return
                 ic.performContextMenuAction(android.R.id.paste)
                 purgeAfterPasswordPaste()
             }
@@ -51705,7 +51725,7 @@ open class WMKeyboardService : InputMethodService() {
             ClipboardKeyAction.PASTE -> {
                 if (!isClipboardAccessible()) return
                 releaseUserShift()
-                if (privatePaste(ic) || pasteIntoNullField(ic)) return
+                if (pasteHeldImage() || privatePaste(ic) || pasteIntoNullField(ic)) return
                 ic.performContextMenuAction(android.R.id.paste)
                 purgeAfterPasswordPaste()
             }
@@ -55397,6 +55417,7 @@ open class WMKeyboardService : InputMethodService() {
                             manager.setPrimaryClip(android.content.ClipData.newUri(contentResolver, "image", uri))
                         }.isSuccess
                     ) {
+                        heldImageClipId = item.id
                         toast(R.string.ime_clip_paste_next_toast)
                     }
                 }
@@ -55407,12 +55428,37 @@ open class WMKeyboardService : InputMethodService() {
             item.kind == ClipKind.IMAGE && !KeyboardClipboard.isPrivate -> {
                 val file = item.imagePath?.let(::File)?.takeIf { it.exists() }
                 val uri = file?.let { runCatching { FileProvider.getUriForFile(this, clipboardFileProviderAuthority, it) }.getOrNull() }
-                uri != null && runCatching {
-                    manager.setPrimaryClip(android.content.ClipData.newUri(contentResolver, "image", uri))
-                }.isSuccess
+                (
+                    uri != null && runCatching {
+                        manager.setPrimaryClip(android.content.ClipData.newUri(contentResolver, "image", uri))
+                    }.isSuccess
+                    ).also { if (it) heldImageClipId = item.id }
             }
             else -> false
         }
+    }
+
+    /** The picture Paste next put on the clipboard (#1178), for the keyboard's own paste keys. */
+    private var heldImageClipId: Long? = null
+
+    /**
+     * A paste key with a picture from Paste next still on the clipboard
+     * (#1178): it goes in as tapping the clip puts it in, through the app's
+     * image support, since a text field's Paste takes the picture's link at
+     * best. False when the clipboard holds something else by now.
+     */
+    private fun pasteHeldImage(): Boolean {
+        val id = heldImageClipId ?: return false
+        val uri = runCatching {
+            (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip?.getItemAt(0)?.uri
+        }.getOrNull()
+        if (uri?.authority != clipboardFileProviderAuthority) {
+            heldImageClipId = null
+            return false
+        }
+        val item = clipboardStore.items().firstOrNull { it.id == id && it.kind == ClipKind.IMAGE } ?: return false
+        commitImageClip(item)
+        return true
     }
 
     fun onClipboardQr(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
