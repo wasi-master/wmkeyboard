@@ -845,22 +845,30 @@ fun emojiFamilyFor(emoji: String): FontFamily? =
 private fun typographyWith(family: FontFamily?): Typography {
     val base = Typography()
     if (family == null) return base
+    // Lining figures (#1203): Merriweather and Playfair draw old-style digits
+    // by default, whose 3, 4, 5, 7 and 9 drop below the line, so the number
+    // row looked misaligned. A font without old-style figures ignores this.
+    return typographyOf(base, family)
+}
+
+private fun typographyOf(base: Typography, family: FontFamily): Typography {
+    fun androidx.compose.ui.text.TextStyle.inFamily() = copy(fontFamily = family, fontFeatureSettings = "lnum")
     return Typography(
-        displayLarge = base.displayLarge.copy(fontFamily = family),
-        displayMedium = base.displayMedium.copy(fontFamily = family),
-        displaySmall = base.displaySmall.copy(fontFamily = family),
-        headlineLarge = base.headlineLarge.copy(fontFamily = family),
-        headlineMedium = base.headlineMedium.copy(fontFamily = family),
-        headlineSmall = base.headlineSmall.copy(fontFamily = family),
-        titleLarge = base.titleLarge.copy(fontFamily = family),
-        titleMedium = base.titleMedium.copy(fontFamily = family),
-        titleSmall = base.titleSmall.copy(fontFamily = family),
-        bodyLarge = base.bodyLarge.copy(fontFamily = family),
-        bodyMedium = base.bodyMedium.copy(fontFamily = family),
-        bodySmall = base.bodySmall.copy(fontFamily = family),
-        labelLarge = base.labelLarge.copy(fontFamily = family),
-        labelMedium = base.labelMedium.copy(fontFamily = family),
-        labelSmall = base.labelSmall.copy(fontFamily = family),
+        displayLarge = base.displayLarge.inFamily(),
+        displayMedium = base.displayMedium.inFamily(),
+        displaySmall = base.displaySmall.inFamily(),
+        headlineLarge = base.headlineLarge.inFamily(),
+        headlineMedium = base.headlineMedium.inFamily(),
+        headlineSmall = base.headlineSmall.inFamily(),
+        titleLarge = base.titleLarge.inFamily(),
+        titleMedium = base.titleMedium.inFamily(),
+        titleSmall = base.titleSmall.inFamily(),
+        bodyLarge = base.bodyLarge.inFamily(),
+        bodyMedium = base.bodyMedium.inFamily(),
+        bodySmall = base.bodySmall.inFamily(),
+        labelLarge = base.labelLarge.inFamily(),
+        labelMedium = base.labelMedium.inFamily(),
+        labelSmall = base.labelSmall.inFamily(),
     )
 }
 
