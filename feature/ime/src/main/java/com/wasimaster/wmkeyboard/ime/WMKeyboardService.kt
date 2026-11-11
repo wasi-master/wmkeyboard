@@ -28343,7 +28343,10 @@ open class WMKeyboardService : InputMethodService() {
                 val pool = dropTyped(withShortcut(deep))
                 // What a swipe down on the strip pages through (#385): the strip's
                 // own words first, in its order, then the rest of the deep list.
-                suggestionPages = if (pagesOn) typed to (words + withShortcut(deepAll)).distinct() else null
+                // Between words, the user's own words before you type head the
+                // pages too, past what the strip had room for (#1154).
+                val pageHead = if (typed.isEmpty()) withRestWords(words, state) else words
+                suggestionPages = if (pagesOn) typed to (pageHead + withShortcut(deepAll)).distinct() else null
                 pagesWord = null
                 // Next-letter distribution for smart key-hit detection. Only for
                 // plain Latin composing — conversion/transliteration IMEs commit
