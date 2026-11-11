@@ -1987,6 +1987,24 @@ internal fun TypingSmartChipsSettings(
                     }
                 }
             }
+            item(visible = settings.watch { it.smartChips.contacts }, level = SettingLevel.STANDARD) {
+                ChoiceSetting(
+                    title = R.string.typing_smart_contact_message_title,
+                    subtitle = stringResource(R.string.typing_smart_contact_message_subtitle),
+                    options = listOf(
+                        com.wasimaster.wmkeyboard.core.settings.ContactMessageApp.SMS to
+                            stringResource(R.string.typing_smart_contact_message_sms),
+                        com.wasimaster.wmkeyboard.core.settings.ContactMessageApp.WHATSAPP to "WhatsApp",
+                        com.wasimaster.wmkeyboard.core.settings.ContactMessageApp.TELEGRAM to "Telegram",
+                        com.wasimaster.wmkeyboard.core.settings.ContactMessageApp.SIGNAL to "Signal",
+                        com.wasimaster.wmkeyboard.core.settings.ContactMessageApp.ASK to
+                            stringResource(R.string.typing_smart_contact_message_ask),
+                    ),
+                    selected = settings.watch { it.smartChips.contactMessageApp },
+                    onChange = { scope.launch { repository.setSmartChipContactMessageApp(it) } },
+                    default = SettingsDefaults.smartChips.contactMessageApp,
+                )
+            }
             // The same text typed a few times in a row → the Text repeat tool,
             // opened on it with the count already set.
             item(level = SettingLevel.ADVANCED) {

@@ -1442,6 +1442,12 @@ enum class TwoThumbWordEnd { SPACE, ALL_UP }
  * put at the end of the word as it shows, and keeps the rest as typed
  * letters (#1232).
  */
+/**
+ * Where the contact chip's message button goes (#1218): the phone's SMS app,
+ * a chat app opened on the number, or Android's chooser among them all.
+ */
+enum class ContactMessageApp { SMS, WHATSAPP, TELEGRAM, SIGNAL, ASK }
+
 enum class TwoThumbBackspace { CURRENT, UNDO_STEP, TRIM_END, RETYPE_WORD, DELETE_CHARACTER }
 
 /**
@@ -5963,6 +5969,8 @@ data class SmartChipSettings(
      * reads the address book, which needs the contacts permission.
      */
     val contacts: Boolean = false,
+    /** Which app the contact chip's message button opens (#1218); see [ContactMessageApp]. */
+    val contactMessageApp: ContactMessageApp = ContactMessageApp.SMS,
     /**
      * Whether the text a chip answered stays in the field when its gear opens
      * the tool: "150 usd", or a keyword such as "calculator" (#665). Off by
@@ -12916,6 +12924,7 @@ class SettingsRepository(private val context: Context) {
         private val SMART_CHIP_NUMBERS = booleanPreferencesKey("smart_chip_numbers")
         private val SMART_CHIP_NUMBER_GROUPING = stringPreferencesKey("smart_chip_number_grouping")
         private val SMART_CHIP_CONTACTS = booleanPreferencesKey("smart_chip_contacts")
+        private val SMART_CHIP_CONTACT_MESSAGE_APP = stringPreferencesKey("smart_chip_contact_message_app")
         private val SMART_CHIP_KEEP_TEXT = booleanPreferencesKey("smart_chip_keep_text")
         private val SMART_CHIP_REPEATS = booleanPreferencesKey("smart_chip_repeats")
         private val SMART_CHIP_SEARCH_TRIGGERS = booleanPreferencesKey("smart_chip_search_triggers")
@@ -15551,6 +15560,9 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { NumberGrouping.valueOf(it) }.getOrNull() }
                 ?: defaults.smartChips.numberGrouping,
             contacts = p[SMART_CHIP_CONTACTS] ?: defaults.smartChips.contacts,
+            contactMessageApp = p[SMART_CHIP_CONTACT_MESSAGE_APP]
+                ?.let { runCatching { ContactMessageApp.valueOf(it) }.getOrNull() }
+                ?: defaults.smartChips.contactMessageApp,
             keepTextOnOpen = p[SMART_CHIP_KEEP_TEXT] ?: defaults.smartChips.keepTextOnOpen,
             repeats = p[SMART_CHIP_REPEATS] ?: defaults.smartChips.repeats,
             repeatAfter = p[SMART_CHIP_REPEAT_AFTER] ?: defaults.smartChips.repeatAfter,
@@ -24680,6 +24692,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSmartChipContacts(value: Boolean) =
         editPrefs { it[SMART_CHIP_CONTACTS] = value }
+
+    suspend fun setSmartChipContactMessageApp(value: ContactMessageApp) =
+        editPrefs { it[SMART_CHIP_CONTACT_MESSAGE_APP] = value.name }
 
     suspend fun setSmartChipKeepText(value: Boolean) =
         editPrefs { it[SMART_CHIP_KEEP_TEXT] = value }

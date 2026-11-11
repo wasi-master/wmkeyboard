@@ -470,6 +470,10 @@
     <string name="typing_smart_keep_text_title">Keep the text when a chip opens its tool</string>
     <string name="typing_smart_keep_text_subtitle">The settings button on a chip leaves what you typed, such as 150 usd or calculator, in the text</string>
     <string name="typing_smart_keep_text_info">The button at the end of a chip opens the tool with your numbers filled in. When this is off, the button also removes the text that the chip answered, because the tool types its own result in its place. When this is on, your text stays. Either way, if the tool typed nothing, the first backspace after you close the tool puts the removed text back.</string>
+    <string name="typing_smart_contact_message_title">Message with</string>
+    <string name="typing_smart_contact_message_subtitle">Which app the contact chip\'s message button opens</string>
+    <string name="typing_smart_contact_message_sms">Messages (SMS)</string>
+    <string name="typing_smart_contact_message_ask">Ask every time</string>
     <string name="typing_smart_contacts_title">Call or text a contact</string>
     <string name="typing_smart_contacts_subtitle">Type the name of a contact and the strip offers to call or text that person</string>
     <string name="typing_smart_contacts_info">Type the full name of a contact, in any case, or only the first name with a capital letter when no other contact has that first name. The strip then shows a chip with the name. Tap the name to open your phone app with the number filled in. Tap the message button to open your messages app. The keyboard never makes the call itself, and the name that you typed stays in the text. Each name is offered one time in each text field. This setting needs access to your contacts and is off by default.</string>

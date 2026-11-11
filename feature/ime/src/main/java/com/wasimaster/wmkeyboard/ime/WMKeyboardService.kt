@@ -26674,11 +26674,35 @@ open class WMKeyboardService : InputMethodService() {
         contactChipsRetired += hit.query
         _uiState.update { it.copy(smart = null) }
         val intent = if (message) {
-            Intent(Intent.ACTION_SENDTO, Uri.fromParts("smsto", contact.number, null))
+            contactMessageIntent(contact.number, _uiState.value.settings.smartChips.contactMessageApp)
         } else {
             Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", contact.number, null))
         }
         startMacroActivity(intent)
+    }
+
+    /**
+     * The message button's intent for [number] (#1218). A chat app is opened
+     * on the number through its own link, and falls back to the SMS app when
+     * it is not installed. Ask puts every installed one in Android's chooser.
+     */
+    private fun contactMessageIntent(number: String, app: com.wasimaster.wmkeyboard.core.settings.ContactMessageApp): Intent {
+        val sms = Intent(Intent.ACTION_SENDTO, Uri.fromParts("smsto", number, null))
+        val digits = number.filter { it.isDigit() }
+        val chats = listOf(
+            com.wasimaster.wmkeyboard.core.settings.ContactMessageApp.WHATSAPP to
+                Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/$digits")).setPackage("com.whatsapp"),
+            com.wasimaster.wmkeyboard.core.settings.ContactMessageApp.TELEGRAM to
+                Intent(Intent.ACTION_VIEW, Uri.parse("tg://resolve?phone=$digits")).setPackage("org.telegram.messenger"),
+            com.wasimaster.wmkeyboard.core.settings.ContactMessageApp.SIGNAL to
+                Intent(Intent.ACTION_VIEW, Uri.parse("https://signal.me/#p/+$digits")).setPackage("org.thoughtcrime.securesms"),
+        ).filter { (_, intent) -> intent.resolveActivity(packageManager) != null }
+        return when (app) {
+            com.wasimaster.wmkeyboard.core.settings.ContactMessageApp.SMS -> sms
+            com.wasimaster.wmkeyboard.core.settings.ContactMessageApp.ASK ->
+                Intent.createChooser(sms, null).putExtra(Intent.EXTRA_INITIAL_INTENTS, chats.map { it.second }.toTypedArray())
+            else -> chats.firstOrNull { it.first == app }?.second ?: sms
+        }
     }
 
     /** A panel has loaded its prefill; drop it so reopening starts clean. */

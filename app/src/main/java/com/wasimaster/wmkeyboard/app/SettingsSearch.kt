@@ -620,6 +620,7 @@ private fun SearchStrings.typingChipsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_smart_gifs_title, R.string.typing_smart_gifs_subtitle),
         row(R.string.typing_smart_numbers_title, R.string.typing_smart_numbers_subtitle),
         row(R.string.typing_smart_contacts_title, R.string.typing_smart_contacts_subtitle),
+        row(R.string.typing_smart_contact_message_title, R.string.typing_smart_contact_message_subtitle),
         row(R.string.typing_smart_repeats_title, R.string.typing_smart_repeats_subtitle),
         row(R.string.typing_smart_repeat_after_title, R.string.typing_smart_repeat_after_subtitle),
         row(R.string.typing_smart_keep_text_title, R.string.typing_smart_keep_text_subtitle),
