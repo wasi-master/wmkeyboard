@@ -153,6 +153,7 @@ import com.wasimaster.wmkeyboard.core.ocr.PaddleOcrModel
 import com.wasimaster.wmkeyboard.core.ocr.TesseractOcr
 import androidx.compose.runtime.collectAsState
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
+import com.wasimaster.wmkeyboard.core.settings.TranslateTriggerMode
 import com.wasimaster.wmkeyboard.core.settings.DeepLWriteStyle
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Dispatchers
@@ -2327,6 +2328,21 @@ internal fun ToolDetailSettings(
             }
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
                 item { TranslateLanguageSetting(repository, settings) }
+                item {
+                    ChoiceSetting(
+                        R.string.tooldetail_translate_trigger_title,
+                        subtitle = stringResource(R.string.tooldetail_translate_trigger_subtitle),
+                        options = TranslateTriggerMode.entries.map { mode ->
+                            mode to stringResource(when (mode) {
+                                TranslateTriggerMode.LIVE -> R.string.tooldetail_translate_trigger_live
+                                TranslateTriggerMode.PAUSE -> R.string.tooldetail_translate_trigger_pause
+                                TranslateTriggerMode.MANUAL -> R.string.tooldetail_translate_trigger_manual
+                            })
+                        },
+                        selected = settings.watch { it.translate.triggerMode },
+                        default = SettingsDefaults.translate.triggerMode,
+                    ) { scope.launch { repository.setTranslateTriggerMode(it) } }
+                }
                 item {
                     ToggleSetting(
                         R.string.tooldetail_translate_clear_on_insert_title,

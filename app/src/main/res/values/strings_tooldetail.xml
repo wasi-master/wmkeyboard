@@ -504,6 +504,11 @@
     <string name="tooldetail_themes_nav_subtitle">Create, edit, import and export keyboard themes</string>
 
     <!-- Translate tool. -->
+    <string name="tooldetail_translate_trigger_title">When to translate</string>
+    <string name="tooldetail_translate_trigger_subtitle">Live after 400 ms, after a 2-second pause, or only when you tap Translate. Waiting reduces repeated API calls.</string>
+    <string name="tooldetail_translate_trigger_live">Live (400 ms)</string>
+    <string name="tooldetail_translate_trigger_pause">After 2 seconds without typing</string>
+    <string name="tooldetail_translate_trigger_manual">Manual: tap Translate</string>
     <string name="tooldetail_translate_engine_title">Translation engine</string>
     <string name="tooldetail_translate_engine_subtitle">Where the translation comes from. You can also change this on the panel.</string>
     <string name="tooldetail_translate_engine_info">Online sends the text to the translation service and knows the most languages. On device uses Google ML Kit models that you download, about 30 MB for each language: the text stays on the phone and it works with no connection. Automatic uses the device when the languages are downloaded and the online service for the rest. On-device translation is good for messages and short text, and less exact than the online service for long or technical text.</string>

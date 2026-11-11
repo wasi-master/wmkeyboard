@@ -685,6 +685,7 @@ import com.wasimaster.wmkeyboard.core.translate.TranslateModuleState
 import com.wasimaster.wmkeyboard.core.translate.downloadNotified
 import com.wasimaster.wmkeyboard.core.settings.DeepLSettings
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
+import com.wasimaster.wmkeyboard.core.settings.TranslateTriggerMode
 import com.wasimaster.wmkeyboard.core.tools.TypedWord
 import com.wasimaster.wmkeyboard.core.tools.TypingAchievements
 import com.wasimaster.wmkeyboard.core.tools.TypingBests
@@ -44777,9 +44778,9 @@ open class WMKeyboardService : InputMethodService() {
             }
             PanelMode.WEB_SEARCH -> runSearch(state.searchTab, query)
             PanelMode.WIKIPEDIA -> runWikiSearch(query)
-            PanelMode.TRANSLATE -> scheduleTranslate(immediate = true)
+            PanelMode.TRANSLATE -> scheduleTranslate(immediate = true, explicit = true, force = true)
             // Translate in the floating box (#1155), over the bare keys.
-            PanelMode.NONE -> if (state.toolUp(PanelMode.TRANSLATE)) scheduleTranslate(immediate = true)
+            PanelMode.NONE -> if (state.toolUp(PanelMode.TRANSLATE)) scheduleTranslate(immediate = true, explicit = true, force = true)
             else -> {}
         }
     }
@@ -44798,8 +44799,8 @@ open class WMKeyboardService : InputMethodService() {
                 if (query.isNotEmpty()) runWikiSearch(query)
                 else _uiState.update { it.copy(wiki = WikiUi.Idle, mediaSearchActive = true) }
             }
-            PanelMode.TRANSLATE -> scheduleTranslate(immediate = true)
-            PanelMode.NONE -> if (_uiState.value.toolUp(PanelMode.TRANSLATE)) scheduleTranslate(immediate = true)
+            PanelMode.TRANSLATE -> scheduleTranslate(immediate = true, explicit = true, force = true)
+            PanelMode.NONE -> if (_uiState.value.toolUp(PanelMode.TRANSLATE)) scheduleTranslate(immediate = true, explicit = true, force = true)
             else -> {}
         }
     }
@@ -45865,10 +45866,25 @@ open class WMKeyboardService : InputMethodService() {
         targetOverride: String? = null,
         engineOverride: TranslateEngine? = null,
         force: Boolean = false,
+        explicit: Boolean = false,
     ) {
         translateJob?.cancel()
+        // No automatic requests in manual mode, including panel open, source/
+        // target changes and provider changes. Editing invalidates the old
+        // translation so the user cannot accidentally insert a stale result.
+        if (!explicit && _uiState.value.settings.translate.triggerMode == TranslateTriggerMode.MANUAL) {
+            _uiState.update { state ->
+                if (state.mediaQuery.trim() == state.translate.sourceText) state
+                else state.copy(translate = state.translate.cleared())
+            }
+            return
+        }
         translateJob = serviceScope.launch {
-            if (!immediate) delay(400)
+            if (!immediate) {
+                delay(if (_uiState.value.settings.translate.triggerMode == TranslateTriggerMode.PAUSE) 2_000L else 400L)
+            }
+            // The setting can change while the debounce is suspended.
+            if (!explicit && _uiState.value.settings.translate.triggerMode == TranslateTriggerMode.MANUAL) return@launch
             val state = _uiState.value
             // The text is the media search box's, so only while Translate has
             // it: its panel, or the floating box over the bare keys (#1155).
@@ -46304,6 +46320,7 @@ open class WMKeyboardService : InputMethodService() {
             onEngine = ::onTranslateEngineChange,
             onSwap = ::onTranslateSwap,
             onDownload = ::onTranslateDownload,
+            onTranslate = { scheduleTranslate(immediate = true, explicit = true, force = true) },
             onReplace = ::onTranslateReplace,
             onInsert = ::onTranslateInsert,
             onPaste = ::onTranslatePaste,

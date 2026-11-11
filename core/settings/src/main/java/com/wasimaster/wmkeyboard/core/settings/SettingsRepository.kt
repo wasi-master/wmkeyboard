@@ -836,7 +836,19 @@ enum class TranslateEngine(@StringRes val labelRes: Int) {
  * The translate tool's own settings. A nested bag for the usual reason: one
  * slot on [KeyboardSettings] however many settings end up inside.
  */
+/** When translating while composing should issue a provider request. */
+enum class TranslateTriggerMode {
+    /** Original behavior: as soon as typing pauses briefly. */
+    LIVE,
+    /** Wait two seconds without input before sending a request. */
+    PAUSE,
+    /** Only translate on an explicit action (button / Enter). */
+    MANUAL,
+}
+
 data class TranslateSettings(
+    /** Live is the default to preserve existing installations. */
+    val triggerMode: TranslateTriggerMode = TranslateTriggerMode.LIVE,
     /**
      * [TranslateEngine.ON_DEVICE] on Play, [TranslateEngine.ONLINE] elsewhere.
      * The Play build ships no Cloud Translation key, so its online engine is
@@ -12694,6 +12706,7 @@ class SettingsRepository(private val context: Context) {
         private val EMOJI_ROW_ABOVE_TOOLBAR = booleanPreferencesKey("emoji_row_above_toolbar")
         private val TRANSLATE_TARGET_LANG = stringPreferencesKey("translate_target_lang")
         private val TRANSLATE_ENGINE = stringPreferencesKey("translate_engine")
+        private val TRANSLATE_TRIGGER_MODE = stringPreferencesKey("translate_trigger_mode")
         private val TRANSLATE_DOWNLOADED_FIRST = booleanPreferencesKey("translate_downloaded_first")
         private val TRANSLATE_ONLY_DOWNLOADED = booleanPreferencesKey("translate_only_downloaded")
         private val TRANSLATE_CLEAR_ON_INSERT = booleanPreferencesKey("translate_clear_on_insert")
@@ -15359,6 +15372,9 @@ class SettingsRepository(private val context: Context) {
 
     private fun readTranslate(p: Preferences, defaults: KeyboardSettings) =
         TranslateSettings(
+            triggerMode = p[TRANSLATE_TRIGGER_MODE]
+                ?.let { name -> TranslateTriggerMode.entries.firstOrNull { it.name == name } }
+                ?: defaults.translate.triggerMode,
             engine = p[TRANSLATE_ENGINE]
                 ?.let { name -> TranslateEngine.entries.firstOrNull { it.name == name } }
                 ?: defaults.translate.engine,
@@ -23893,6 +23909,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTranslateEngine(value: TranslateEngine) =
         editPrefs { it[TRANSLATE_ENGINE] = value.name }
+
+    suspend fun setTranslateTriggerMode(value: TranslateTriggerMode) =
+        editPrefs { it[TRANSLATE_TRIGGER_MODE] = value.name }
 
     suspend fun setTranslateDownloadedFirst(value: Boolean) =
         editPrefs { it[TRANSLATE_DOWNLOADED_FIRST] = value }

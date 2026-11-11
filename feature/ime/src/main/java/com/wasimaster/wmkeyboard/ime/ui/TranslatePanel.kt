@@ -75,6 +75,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
+import com.wasimaster.wmkeyboard.core.settings.TranslateTriggerMode
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
 import com.wasimaster.wmkeyboard.core.tools.TranslateProviders
@@ -106,6 +107,8 @@ data class TranslateCallbacks(
     val onSwap: () -> Unit = {},
     /** Fetches the models the query is waiting for; cancels while they are coming. */
     val onDownload: () -> Unit = {},
+    /** User explicitly asks to translate now, regardless of the trigger mode. */
+    val onTranslate: () -> Unit = {},
     val onReplace: () -> Unit = {},
     val onInsert: () -> Unit = {},
     /** The clipboard's newest text into the text box (#474). */
@@ -745,16 +748,18 @@ private fun TranslateActionRow(
     val translate = state.translate
     // The offline build's offer says where to import; it has nothing to press.
     val offerDownload = translate.offersDownload() && InternetPermission.granted
+    val manual = state.settings.translate.triggerMode == TranslateTriggerMode.MANUAL
     PanelFocusTarget(
         panel = PanelMode.TRANSLATE,
         region = FocusRegion.ACTIONS,
-        count = if (offerDownload) 1 else 2,
-        columns = if (offerDownload) 1 else 2,
+        count = if (offerDownload) 1 else if (manual) 3 else 2,
+        columns = if (offerDownload) 1 else if (manual) 3 else 2,
         onActivate = { index ->
             when {
                 offerDownload -> callbacks.onDownload()
+                manual && index == 0 -> if (state.mediaQuery.isNotBlank()) callbacks.onTranslate()
                 translate.translated.isEmpty() -> Unit
-                index == 0 -> callbacks.onReplace()
+                index == (if (manual) 1 else 0) -> callbacks.onReplace()
                 else -> callbacks.onInsert()
             }
         },
@@ -786,18 +791,27 @@ private fun TranslateActionRow(
             ) { callbacks.onDownload() }
         } else {
             val nothing = DisabledReason(stringResource(R.string.ime_disabled_translate_nothing))
+            if (manual) {
+                TranslateAction(
+                    label = stringResource(R.string.ime_tool_translate),
+                    icon = null,
+                    enabled = state.mediaQuery.isNotBlank() && !translate.translating,
+                    modifier = sized.focusRing(focusedAction == 0, kb.chipShape()),
+                    disabledReason = nothing,
+                ) { callbacks.onTranslate() }
+            }
             TranslateAction(
                 label = stringResource(R.string.ime_translate_replace_action),
                 icon = Icons.Outlined.SwapVert,
                 enabled = translate.translated.isNotEmpty(),
-                modifier = sized.focusRing(focusedAction == 0, kb.chipShape()),
+                modifier = sized.focusRing(focusedAction == (if (manual) 1 else 0), kb.chipShape()),
                 disabledReason = nothing,
             ) { callbacks.onReplace() }
             TranslateAction(
                 label = stringResource(R.string.ime_insert_action),
                 icon = null,
                 enabled = translate.translated.isNotEmpty(),
-                modifier = sized.focusRing(focusedAction == 1, kb.chipShape()),
+                modifier = sized.focusRing(focusedAction == (if (manual) 2 else 1), kb.chipShape()),
                 disabledReason = nothing,
             ) { callbacks.onInsert() }
         }
