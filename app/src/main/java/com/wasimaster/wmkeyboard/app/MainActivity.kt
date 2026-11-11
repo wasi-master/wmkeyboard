@@ -130,6 +130,9 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -792,8 +795,12 @@ private fun SettingsNavHost(
     // read by every group; changed from Home, a page's footer or Accessibility.
     val depthResolved = settings.watch { it.settingsDepthResolved() }
     val hiddenRows = settings.watch { it.appUi.hiddenSettingsRows }
-    val depthControl = remember(depthResolved, hiddenRows) {
-        DepthControl(depthResolved, hiddenRows) { depth -> foldScope.launch { repository.setSettingsDepth(depth) } }
+    val switchedOffRows = settings.watch { it.appUi.switchedOffRows }
+    val alsoUnder = settings.watch { it.appUi.alsoUnderLine }
+    val depthControl = remember(depthResolved, hiddenRows, switchedOffRows, alsoUnder) {
+        DepthControl(depthResolved, hiddenRows, switchedOffRows, alsoUnder) { depth ->
+            foldScope.launch { repository.setSettingsDepth(depth) }
+        }
     }
     // Which feature bundles are on (Extensions), read by Home, Advanced, the
     // Tools list and every picker; a route a switched-off bundle owns is
@@ -3798,6 +3805,20 @@ internal fun SettingsGroup(
     val scope = SettingsGroupScope().apply(builder)
     val route = LocalScreenRoute.current.orEmpty()
     val depthControl = LocalSettingsDepth.current
+    // Show switched-off settings (#1112): a row waiting on another setting is
+    // drawn anyway, greyed out and untouchable until that setting turns it on.
+    // A page reached from a link, a search or the New settings walk shows
+    // them too, so the setting it was sent to is there even before the one it
+    // depends on is turned on.
+    if (depthControl.switchedOffRows || (LocalDepthReveal.current?.arrived ?: SettingsHighlight.pending)) {
+        scope.items.replaceAll { e ->
+            if (!e.conditional || e.visible) {
+                e
+            } else {
+                SettingsGroupScope.Entry(true, true, e.key, e.level, e.weight) { SwitchedOffRow(e.content) }
+            }
+        }
+    }
     val depth = depthControl.depth
     val groupAbove = !depth.shows(level)
     val folds = LocalAdvancedFolds.current
@@ -5948,4 +5969,25 @@ internal fun <T> MultiChoiceSetting(
             }
         }
     }
+}
+
+/**
+ * A row drawn while the setting it depends on is off (#1112): faded, its
+ * touches swallowed, and read out as unavailable.
+ */
+@Composable
+private fun SwitchedOffRow(content: @Composable () -> Unit) {
+    androidx.compose.foundation.layout.Box(
+        Modifier
+            .alpha(0.38f)
+            .semantics(mergeDescendants = false) { disabled() }
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                            .changes.forEach { it.consume() }
+                    }
+                }
+            },
+    ) { content() }
 }

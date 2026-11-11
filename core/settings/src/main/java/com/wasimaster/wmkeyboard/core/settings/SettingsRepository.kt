@@ -7507,6 +7507,17 @@ data class AppUiSettings(
      */
     val hiddenSettingsRows: Boolean = false,
     /**
+     * Rows that only show while another setting turns them on are drawn all
+     * the time, greyed out and untouchable while that setting is off (#1112),
+     * so every setting can be seen whatever is switched on.
+     */
+    val switchedOffRows: Boolean = false,
+    /**
+     * The "Also under" line under a screen's path, naming the other paths
+     * that reached it (#979). Off gives the room back (#1111).
+     */
+    val alsoUnderLine: Boolean = true,
+    /**
      * The feature bundles switched on (SETTINGS_REDESIGN.md §3), or null for
      * an install that has never chosen, which keeps everything on. Read
      * through [KeyboardSettings.extensionsResolved]. Here with the other
@@ -12029,6 +12040,8 @@ class SettingsRepository(private val context: Context) {
         private val SETTINGS_SPLIT_TOOL_PANELS = booleanPreferencesKey("settings_split_tool_panels")
         private val SETTINGS_DEPTH = stringPreferencesKey("settings_depth")
         private val SETTINGS_HIDDEN_ROWS = booleanPreferencesKey("settings_hidden_rows")
+        private val SETTINGS_SWITCHED_OFF_ROWS = booleanPreferencesKey("settings_switched_off_rows")
+        private val SETTINGS_ALSO_UNDER = booleanPreferencesKey("settings_also_under")
         private val EXTENSIONS_ENABLED = stringSetPreferencesKey("extensions_enabled")
         private val SYMBOL_ROW_HEIGHT = intPreferencesKey("symbol_row_height")
         private val SYMBOL_ROW_LINES = intPreferencesKey("symbol_row_lines")
@@ -14150,6 +14163,8 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { SettingsDepth.valueOf(it) }.getOrNull() }
                 ?: defaults.appUi.settingsDepth,
             hiddenSettingsRows = p[SETTINGS_HIDDEN_ROWS] ?: defaults.appUi.hiddenSettingsRows,
+            switchedOffRows = p[SETTINGS_SWITCHED_OFF_ROWS] ?: defaults.appUi.switchedOffRows,
+            alsoUnderLine = p[SETTINGS_ALSO_UNDER] ?: defaults.appUi.alsoUnderLine,
             extensions = p[EXTENSIONS_ENABLED]?.let(Extension::decode),
         )
 
@@ -22827,6 +22842,14 @@ class SettingsRepository(private val context: Context) {
     /** See [AppUiSettings.hiddenSettingsRows]. */
     suspend fun setHiddenSettingsRows(value: Boolean) =
         editPrefs { it[SETTINGS_HIDDEN_ROWS] = value }
+
+    /** See [AppUiSettings.switchedOffRows]. */
+    suspend fun setSwitchedOffRows(value: Boolean) =
+        editPrefs { it[SETTINGS_SWITCHED_OFF_ROWS] = value }
+
+    /** See [AppUiSettings.alsoUnderLine]. */
+    suspend fun setAlsoUnderLine(value: Boolean) =
+        editPrefs { it[SETTINGS_ALSO_UNDER] = value }
 
     /**
      * Replaces the whole set of bundles that are on; see

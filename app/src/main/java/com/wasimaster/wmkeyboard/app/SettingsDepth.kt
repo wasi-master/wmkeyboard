@@ -90,6 +90,10 @@ internal fun SettingsDepth.shows(level: SettingLevel): Boolean = when (this) {
 internal class DepthControl(
     val depth: SettingsDepth,
     val hiddenRows: Boolean,
+    /** [com.wasimaster.wmkeyboard.core.settings.AppUiSettings.switchedOffRows] (#1112). */
+    val switchedOffRows: Boolean = false,
+    /** [com.wasimaster.wmkeyboard.core.settings.AppUiSettings.alsoUnderLine] (#1111). */
+    val alsoUnder: Boolean = true,
     val change: (SettingsDepth) -> Unit,
 )
 

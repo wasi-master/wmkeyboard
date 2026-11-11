@@ -1767,6 +1767,22 @@ internal fun AboutSettings(
                 default = SettingsDefaults.appUi.hiddenSettingsRows,
             ) { scope.launch { repository.setHiddenSettingsRows(it) } }
         }
+        item {
+            ToggleSetting(
+                R.string.settings_switched_off_rows_title,
+                stringResource(R.string.settings_switched_off_rows_subtitle),
+                settings.watch { it.appUi.switchedOffRows },
+                default = SettingsDefaults.appUi.switchedOffRows,
+            ) { scope.launch { repository.setSwitchedOffRows(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.settings_also_under_title,
+                stringResource(R.string.settings_also_under_subtitle),
+                settings.watch { it.appUi.alsoUnderLine },
+                default = SettingsDefaults.appUi.alsoUnderLine,
+            ) { scope.launch { repository.setAlsoUnderLine(it) } }
+        }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.about_launcher_name_title,

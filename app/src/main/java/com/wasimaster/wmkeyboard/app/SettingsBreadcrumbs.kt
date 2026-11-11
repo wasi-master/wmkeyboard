@@ -495,8 +495,16 @@ internal fun SettingsBreadcrumbBar(
     // page or a mode's editor, is one route for many screens.
     val doorKey = "${currentRoute.orEmpty()}#$currentTitle"
     val path = crumbs.map { it.title }
-    val otherDoors = SettingsDoors.othersThan(doorKey, path)
-    LaunchedEffect(doorKey, path) { SettingsDoors.record(doorKey, path) }
+    // Only paths really walked count as doors (#1111). The New settings walk
+    // and a link seed the path they land on, and each one recorded made the
+    // line name every screen the walk had passed through.
+    val walked = crumbs.none { it.seeded }
+    val otherDoors = if (LocalSettingsDepth.current.alsoUnder && walked) {
+        SettingsDoors.othersThan(doorKey, path)
+    } else {
+        emptyList()
+    }
+    LaunchedEffect(doorKey, path, walked) { if (walked) SettingsDoors.record(doorKey, path) }
     // The step that wore the accent a moment ago. Only a screen that was just
     // opened has one on its own strip — the step it was opened from, which is
     // the last of its ancestors. A screen being returned to left its own
