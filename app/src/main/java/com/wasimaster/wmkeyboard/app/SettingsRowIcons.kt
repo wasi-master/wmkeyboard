@@ -834,6 +834,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_variant_follows_portrait_label) { Icons.Outlined.ScreenRotation }
         put(R.string.layout_one_handed_title) { SymbolIcons.MobileHandLeft }
         put(R.string.layout_one_handed_portrait_only_title) { Icons.Outlined.ScreenRotation }
+        put(R.string.layout_one_handed_layout_title) { Icons.Outlined.Keyboard }
         put(R.string.layout_split_title) { Icons.Outlined.VerticalSplit }
         put(R.string.layout_split_gap_title) { Icons.Outlined.SpaceBar }
         put(R.string.layout_split_spacebar_title) { Icons.Outlined.SpaceBar }

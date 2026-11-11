@@ -15,7 +15,7 @@
     <string name="tooldetail_enabled_voice_off_subtitle">Voice typing is off. Turn it on under All voice typing settings below.</string>
     <string name="tooldetail_enabled_needs_mix_source_subtitle">Add a source under Emoji › Emoji mixes first.</string>
     <string name="tooldetail_enabled_needs_music_provider_subtitle">Set up a song recogniser with your key under Song recognisers below to turn this tool on</string>
-    <string name="tooldetail_enabled_needs_layout_subtitle">Make a secondary layout under Key layouts below to turn this tool on</string>
+    <string name="tooldetail_enabled_needs_layout_subtitle">Select one of your enabled layouts under Layout to show, or make a secondary layout under Key layouts, to turn this tool on</string>
     <!-- A switch under the one above. Off takes the tool out of the toolbox grid
          (the panel that lists every tool) while it stays on everywhere else. -->
     <string name="tooldetail_show_in_toolbox_title">Show in toolbox</string>
@@ -137,6 +137,12 @@
     <string name="tooldetail_calendar_save_mode_info">In the keyboard writes the event straight into your calendar, and asks for calendar access the first time. In the calendar app opens your calendar app\'s own editor with the event filled in, and you save it there. Changing and deleting events always happens in the keyboard.</string>
     <string name="tooldetail_calendar_save_keyboard_label">In the keyboard</string>
     <string name="tooldetail_calendar_save_app_label">In the calendar app</string>
+    <string name="tooldetail_calendar_weather_group">Weather</string>
+    <string name="tooldetail_calendar_weather_title">Weather on events</string>
+    <string name="tooldetail_calendar_weather_subtitle">The forecast for the time and place of each event, up to 16 days ahead</string>
+    <string name="tooldetail_calendar_weather_info">An event card shows a weather icon and the temperature for its start, at the place of the event. If the event has no place, or the keyboard cannot find it, the card uses the location of the weather tool. Tap the icon to see the forecast for each hour of that day, with the chance of rain.
+
+The keyboard sends the place of each event to the place search of Open-Meteo, and gets the forecast from Open-Meteo. It does not send the title or any other part of the event. It refreshes the forecast when it is older than the refresh time of the weather tool. While data saving is on or you are offline, the cards show only a forecast that the keyboard already has. This setting needs the weather tool to be turned on.</string>
     <string name="tooldetail_calendar_default_calendar_title">Default calendar</string>
     <string name="tooldetail_calendar_default_calendar_subtitle">The calendar a new event starts in</string>
     <string name="tooldetail_calendar_default_calendar_primary">Primary calendar</string>
@@ -444,12 +450,13 @@
 
     <!-- Secondary layout tool. -->
     <string name="tooldetail_custom_layout_layout_title">Layout to show</string>
-    <string name="tooldetail_custom_layout_layout_subtitle">The secondary layout the tool puts on screen, or a list to select from</string>
-    <string name="tooldetail_custom_layout_layout_info">With no layout selected here, the tool opens a list of all your secondary layouts, or the only one you have. Select a layout and the tool shows that one directly. A press while a secondary layout is on screen always takes it off again. A key on any layout can also open a secondary layout.</string>
+    <string name="tooldetail_custom_layout_layout_subtitle">The layout the tool puts on screen, or a list of your secondary layouts to select from</string>
+    <string name="tooldetail_custom_layout_layout_info">With no layout selected here, the tool opens a list of all your secondary layouts, or the only one you have. Select a secondary layout and the tool shows that one over the letters. A key on any layout can also open a secondary layout.\n\nYou can also select one of your enabled language layouts, such as One-row QWERTY. The tool then makes it the keyboard, with its own dictionary and autocorrect, and the next press goes back to the layout you were typing on. The globe key, the spacebar language swipe and the language list no longer stop on it, unless it is the only layout you have enabled.\n\nA press while the tool is lit always goes back.</string>
     <string name="tooldetail_custom_layout_first">Ask each time</string>
+    <string name="tooldetail_custom_layout_board_detail">Becomes the keyboard, with its own dictionary, until the next press</string>
     <string name="tooldetail_custom_layout_keymaps_nav_title">Key layouts</string>
     <string name="tooldetail_custom_layout_keymaps_nav_subtitle">Make and edit secondary layouts</string>
-    <string name="tooldetail_custom_layout_info">A secondary layout is a grid of your own, such as a symbols page or a macro pad. It is not a language. It keeps the dictionary of the layout you type with.</string>
+    <string name="tooldetail_custom_layout_info">A secondary layout is a grid of your own, such as a symbols page or a macro pad. It is not a language. It keeps the dictionary of the layout you type with. The tool can also switch to one of your enabled language layouts and back.</string>
 
     <!-- Sound and haptics tool. -->
     <string name="tooldetail_keypress_nav_title">All key press settings</string>

@@ -184,6 +184,7 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AltRoute
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Language
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Timer10
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Timer3
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TimerOff
@@ -1217,6 +1218,17 @@ internal fun ToolDetailSettings(
                 }
             }
             CalendarNewEventRows(repository, settings)
+            SettingsGroup(stringResource(R.string.tooldetail_calendar_weather_group), level = SettingLevel.STANDARD) {
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_calendar_weather_title,
+                        stringResource(R.string.tooldetail_calendar_weather_subtitle),
+                        settings.watch { it.calendarTool.weatherOnEvents },
+                        info = stringResource(R.string.tooldetail_calendar_weather_info),
+                        default = SettingsDefaults.calendarTool.weatherOnEvents,
+                    ) { scope.launch { repository.setCalendarWeatherOnEvents(it) } }
+                }
+            }
         }
         ToolbarTool.CAMERA -> {
             // What decides which rows the search group holds; each row reads
@@ -2130,23 +2142,36 @@ internal fun ToolDetailSettings(
                     val secondaries = settings.watch {
                         com.wasimaster.wmkeyboard.core.layout.secondaryLayouts(it.customLayouts)
                     }
-                    // "The first one" is the empty pick, so the tool works before
+                    // Any enabled language layout can be pinned too (#1230): the
+                    // tool then swaps it in as the board rather than drawing it
+                    // over the letters, and the language switcher leaves it out.
+                    val enabledIds = settings.watch { it.enabledLayoutIds }
+                    val customLayouts = settings.watch { it.customLayouts }
+                    val boardIds = enabledIds.toSet()
+                    // "Ask each time" is the empty pick, so the tool works before
                     // this page has ever been visited and keeps working when the
-                    // picked layout is deleted.
+                    // picked layout is deleted or turned off.
                     val first = stringResource(R.string.tooldetail_custom_layout_first)
+                    val boardDetail = stringResource(R.string.tooldetail_custom_layout_board_detail)
                     ChoiceSetting(
                         R.string.tooldetail_custom_layout_layout_title,
                         subtitle = stringResource(R.string.tooldetail_custom_layout_layout_subtitle),
                         info = stringResource(R.string.tooldetail_custom_layout_layout_info),
                         options = listOf<Pair<String?, String>>(null to first) +
-                            secondaries.map { it.id to it.name },
+                            secondaries.map { it.id to it.name } +
+                            enabledIds.map { id ->
+                                val name = com.wasimaster.wmkeyboard.core.layout.resolveLayoutName(customLayouts, id)
+                                val language = com.wasimaster.wmkeyboard.core.layout.resolveLayoutLanguage(customLayouts, id)
+                                id to "$name (${language.displayName})"
+                            },
                         selected = settings.watch { it.layoutBehavior.customLayoutToolId }
-                            ?.takeIf { id -> secondaries.any { it.id == id } },
+                            ?.takeIf { id -> secondaries.any { it.id == id } || id in boardIds },
                         detail = { id ->
-                            ChoiceDetail(
-                                icon = if (id == null) Icons.Outlined.AltRoute
-                                else Icons.Outlined.Keyboard,
-                            )
+                            when {
+                                id == null -> ChoiceDetail(icon = Icons.Outlined.AltRoute)
+                                id in boardIds -> ChoiceDetail(boardDetail, icon = Icons.Outlined.Language)
+                                else -> ChoiceDetail(icon = Icons.Outlined.Keyboard)
+                            }
                         },
                     ) { scope.launch { repository.setCustomLayoutToolLayout(it) } }
                 }

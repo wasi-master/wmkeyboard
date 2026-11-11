@@ -77,10 +77,15 @@ fun toolBlocker(tool: ToolbarTool, settings: KeyboardSettings): ToolBlocker? = w
             BuildConfig.ENABLE_FDROID -> ToolBlocker.NEEDS_SEARCH_INSTANCE
             else -> ToolBlocker.NEEDS_SEARCH_KEY
         }
-    // Nothing to show until the user has built a secondary layout; a button
-    // that does nothing is worse than no button.
+    // Nothing to show until the user has built a secondary layout or pinned
+    // an enabled layout on the tool (#1230); a button that does nothing is
+    // worse than no button.
     ToolbarTool.CUSTOM_LAYOUT ->
-        if (secondaryLayouts(settings.customLayouts).isNotEmpty()) null else ToolBlocker.NEEDS_SECONDARY_LAYOUT
+        if (secondaryLayouts(settings.customLayouts).isNotEmpty() || settings.pinnedBoardId() != null) {
+            null
+        } else {
+            ToolBlocker.NEEDS_SECONDARY_LAYOUT
+        }
     ToolbarTool.VOICE -> if (settings.voiceBar.enabled) null else ToolBlocker.VOICE_OFF
     ToolbarTool.EMOJI_MIX -> if (settings.emoji.mix.active) null else ToolBlocker.NEEDS_MIX_SOURCE
     ToolbarTool.MUSIC_ID -> if (settings.resolveProviders(ProviderTool.MUSIC).isNotEmpty()) null else ToolBlocker.NEEDS_MUSIC_PROVIDER

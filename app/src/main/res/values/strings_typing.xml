@@ -975,6 +975,7 @@
     <string name="typing_space_swipe_cursor_desc">Move the cursor through the text</string>
     <string name="typing_space_swipe_numpad_desc">Open the number pad</string>
     <string name="typing_space_swipe_keyboards_desc">Open the Android list of keyboards, to change to a different keyboard app. On the press and hold setting, the hold alone opens it.</string>
+    <string name="typing_space_swipe_secondary_desc">Switch to the layout selected for the Secondary layout tool, and back on the next swipe. On the press and hold setting, the hold alone switches. Does nothing until a layout is selected on the tool\'s page or a secondary layout exists.</string>
 
     <string name="typing_edge_swipe_back_title">Swipe in from the edge to go back</string>
     <string name="typing_edge_swipe_back_subtitle">A swipe in from the left or right edge of the keyboard closes a panel or the keyboard</string>

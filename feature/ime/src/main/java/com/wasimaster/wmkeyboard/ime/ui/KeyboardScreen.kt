@@ -473,6 +473,7 @@ import com.wasimaster.wmkeyboard.core.settings.OneHandedMode
 import com.wasimaster.wmkeyboard.core.settings.AlternateGroup
 import com.wasimaster.wmkeyboard.core.settings.DefaultAlternatesOrder
 import com.wasimaster.wmkeyboard.core.settings.oneHandedModeFor
+import com.wasimaster.wmkeyboard.core.settings.pinnedBoardId
 import com.wasimaster.wmkeyboard.core.settings.floatingFor
 import com.wasimaster.wmkeyboard.core.settings.FloatingHandlePosition
 import com.wasimaster.wmkeyboard.core.settings.BoardCorner
@@ -9468,9 +9469,11 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     // the tool and the 🌐 key reach the same place.
     ToolbarTool.FANCY -> state.language.id == FancyStyles.LANG_ID
     // Lit while any secondary layout is up, whether this tool or a key put it
-    // there: the tool takes it down either way.
+    // there: the tool takes it down either way. And while the board pinned on
+    // it is the one typing (#1230), since a press then goes back.
     ToolbarTool.CUSTOM_LAYOUT ->
-        state.layoutMode == LayoutMode.SECONDARY || state.panel == PanelMode.CUSTOM_LAYOUTS
+        state.layoutMode == LayoutMode.SECONDARY || state.panel == PanelMode.CUSTOM_LAYOUTS ||
+            state.settings.pinnedBoardId()?.let { it == state.layoutId } == true
     // Lit while a caret move would extend the selection, however that was
     // asked for: this tool, a hold on it, or the panel's own Select key. The
     // tool is the only indicator the mode has outside that panel, so it reads
@@ -29813,6 +29816,17 @@ private fun CoroutineScope.noSpaceArmHold(
 }
 
 /**
+ * The key a discrete spacebar action ([SpaceSwipeAction.KEYBOARDS],
+ * [SpaceSwipeAction.SECONDARY_LAYOUT]) presses, once per gesture.
+ */
+internal fun spaceDiscreteAction(action: SpaceSwipeAction): KeyAction =
+    if (action == SpaceSwipeAction.SECONDARY_LAYOUT) {
+        KeyAction.Tool(ToolbarTool.CUSTOM_LAYOUT)
+    } else {
+        KeyAction.InputMethodPicker
+    }
+
+/**
  * Whether a plain hold on the spacebar may open the language chooser.
  *
  * Three things can want that hold and only one of them can have it. Keys the
@@ -30142,9 +30156,12 @@ private fun Modifier.pointerInputKey(
                         else -> minOf(longPressDelayMs, SpaceHoldPickerMs)
                     }
                     // A hold slot set to the keyboard list opens it on the hold
-                    // alone (#477), unless authored keys have the hold.
+                    // alone (#477), unless authored keys have the hold. The
+                    // Secondary layout action toggles the same way (#1230):
+                    // once, on the hold, and the drag after it is spent.
                     val holdOpensKeyboards = !holdOpensAlternates &&
-                        spaceLongSwipe == SpaceSwipeAction.KEYBOARDS
+                        (spaceLongSwipe == SpaceSwipeAction.KEYBOARDS ||
+                            spaceLongSwipe == SpaceSwipeAction.SECONDARY_LAYOUT)
                     var keyboardsOpened = false
                     // Issue #533: with both slots set to nothing, this gesture is
                     // here only for the swipe down to hide, and the hold keeps the
@@ -30168,7 +30185,7 @@ private fun Modifier.pointerInputKey(
                                     keyboardsOpened = true
                                     hidden = true
                                     if (hapticOnLongPress) onKeyPress()
-                                    onKey(Key(label = " ", action = KeyAction.InputMethodPicker))
+                                    onKey(Key(label = " ", action = spaceDiscreteAction(spaceLongSwipe)))
                                     return@launch
                                 }
                                 // List for a long ring (> 4, unless the user keeps
@@ -30472,10 +30489,13 @@ private fun Modifier.pointerInputKey(
                                 lastY = change.position.y
                                 accumulated = 0f
                                 accumulatedY = 0f
-                                if (action == SpaceSwipeAction.KEYBOARDS) {
+                                if (action == SpaceSwipeAction.KEYBOARDS ||
+                                    action == SpaceSwipeAction.SECONDARY_LAYOUT
+                                ) {
                                     // Discrete, like the numpad below: the list
-                                    // opens once and the gesture goes inert.
-                                    onKey(Key(label = " ", action = KeyAction.InputMethodPicker))
+                                    // opens (or the secondary layout toggles)
+                                    // once and the gesture goes inert.
+                                    onKey(Key(label = " ", action = spaceDiscreteAction(action)))
                                     hidden = true
                                     change.consume()
                                     break

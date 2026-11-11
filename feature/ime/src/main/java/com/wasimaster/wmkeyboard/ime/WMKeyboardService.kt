@@ -104,6 +104,8 @@ import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.settings.ClipTypeOutMaxChars
 import com.wasimaster.wmkeyboard.core.settings.CursorWordSteps
 import com.wasimaster.wmkeyboard.core.settings.switchLayoutIds
+import com.wasimaster.wmkeyboard.core.settings.pinnedBoardId
+import com.wasimaster.wmkeyboard.core.settings.oneHandedLayoutFor
 import com.wasimaster.wmkeyboard.core.settings.MediaSendMode
 import com.wasimaster.wmkeyboard.core.settings.LauncherFloatFallback
 import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
@@ -9104,7 +9106,11 @@ open class WMKeyboardService : InputMethodService() {
                 current.enabledLayoutIds.firstOrNull {
                     resolveLayout(current.customLayouts, it).script().id == ScriptId.LATIN
                 }
-            modeSpec != null -> modeSpec.id.takeIf { it != baseSpec.id }
+            // Also when it names the normal layout itself while one-handed
+            // mode would draw another one (#1230): the mode's layout wins.
+            modeSpec != null -> modeSpec.id.takeIf {
+                it != baseSpec.id || oneHandedLayoutOver(current, baseSpec.id) != null
+            }
             // hintLocales names a language, not a layout, so it picks the first
             // enabled layout that types that language.
             else -> info.hintedLanguage(current.enabledLanguages)
@@ -19171,6 +19177,45 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The layout the pinned board interrupted (#1230), for the next press of
+     * the Secondary layout tool to go back to. In memory only: a keyboard that
+     * restarted on the board goes back to the most recently used layout still
+     * in the switcher instead, which is nearly always the same one.
+     */
+    private var secondaryBoardReturnId: String? = null
+
+    /**
+     * Swaps the board pinned on the Secondary layout tool in, or, when it is
+     * the one typing, back out to the layout it interrupted (#1230). Both
+     * steps are ordinary layout switches, so the composer, dictionary and
+     * autocorrect follow; neither is recorded as a recent language, since
+     * the board is not one.
+     */
+    private fun toggleSecondaryBoard(board: String) {
+        val state = _uiState.value
+        if (state.layoutId != board) {
+            secondaryBoardReturnId = state.layoutId
+            onLayoutSelected(board, recordRecent = false)
+            return
+        }
+        val cycle = state.settings.switchLayoutIds()
+        val back = secondaryBoardReturnId?.takeIf { it in cycle && it != board }
+            ?: state.settings.recentLayoutIds.firstOrNull { it in cycle && it != board }
+            ?: cycle.firstOrNull { it != board }
+        secondaryBoardReturnId = null
+        if (back != null) onLayoutSelected(back, recordRecent = false)
+    }
+
+    /**
+     * Where a step through the language cycle [ids] starts from: the layout on
+     * screen, or, while the pinned board is up (it is not in the cycle), the
+     * layout it interrupted, so 🌐 moves on from there rather than from the
+     * top of the list (#1230).
+     */
+    private fun cycleAnchor(ids: List<String>, current: String): String =
+        if (current in ids) current else secondaryBoardReturnId?.takeIf { it in ids } ?: current
+
+    /**
      * The Secondary layout tool. A secondary layout up, however it got there, is
      * taken down: the tool is lit whenever one is showing, and a lit toggle has
      * to be the way down. Otherwise it shows the layout pinned on the tool's
@@ -19180,13 +19225,20 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun onCustomLayoutToggle() {
         val state = _uiState.value
-        val grids = state.layouts.secondaries
-        if (grids.isEmpty()) return
         if (state.layoutMode == LayoutMode.SECONDARY) {
             vibrate()
             closeSecondaryLayout()
             return
         }
+        // A whole board pinned on the tool (#1230) is switched to, not drawn
+        // over the letters: its dictionary and composer come with it.
+        state.settings.pinnedBoardId()?.let { board ->
+            vibrate()
+            toggleSecondaryBoard(board)
+            return
+        }
+        val grids = state.layouts.secondaries
+        if (grids.isEmpty()) return
         val pinned = state.settings.layoutBehavior.customLayoutToolId?.takeIf { it in grids }
         val id = pinned ?: grids.keys.singleOrNull()
         if (id != null) {
@@ -19231,8 +19283,53 @@ open class WMKeyboardService : InputMethodService() {
      * otherwise the user's choice. Resolved rather than raw, so an id whose
      * layout was deleted heals to the default instead of selecting nothing.
      */
-    private fun activeLayoutSpec(settings: KeyboardSettings): LayoutSpec =
-        resolveLayout(settings.customLayouts, fieldLayoutOverride ?: baseLayoutId(settings))
+    private fun activeLayoutSpec(settings: KeyboardSettings): LayoutSpec {
+        val base = baseLayoutId(settings)
+        return resolveLayout(settings.customLayouts, fieldLayoutOverride ?: oneHandedLayoutOver(settings, base) ?: base)
+    }
+
+    /**
+     * "Layout in one-handed mode" (#1230): the layout to draw over [base]
+     * while one-handed mode is in force, or null for [base] itself. Below a
+     * field's own override, so a Keyboard Mode's layout still wins.
+     *
+     * A switch the user makes while one-handed ([onLayoutSelected]) declines
+     * it until one-handed mode next changes, or the 🌐 key could never leave
+     * it: every step would land on a layout of the same language and be drawn
+     * as the one-handed pick again. Switching *to* the pick takes it back up.
+     */
+    private fun oneHandedLayoutOver(settings: KeyboardSettings, base: String): String? {
+        val on = oneHandedInForce(settings)
+        if (on != oneHandedLayoutWasOn) {
+            oneHandedLayoutWasOn = on
+            oneHandedLayoutDeclined = false
+        }
+        if (!on || oneHandedLayoutDeclined) return null
+        return settings.oneHandedLayoutFor(base)
+    }
+
+    /**
+     * Whether the keyboard is drawn one-handed on this screen: the mode as
+     * stored or as the active Keyboard Mode sets it, and allowed on this
+     * screen shape (#503, #611) — the answer the frame draws from.
+     */
+    private fun oneHandedInForce(settings: KeyboardSettings): Boolean {
+        val modeOverride = settings.keyboardModes
+            .firstOrNull { it.id == _uiState.value.activeModeId }?.oneHandedOverride
+        if ((modeOverride ?: settings.oneHandedMode) == OneHandedMode.OFF) return false
+        val config = resources.configuration
+        val variant = ScreenVariant.of(
+            landscape = config.orientation == Configuration.ORIENTATION_LANDSCAPE,
+            unfolded = config.smallestScreenWidthDp >= ScreenVariant.UNFOLDED_MIN_DP,
+        )
+        return settings.oneHandedAllowedOn(variant)
+    }
+
+    /** Whether one-handed mode was in force at the last [oneHandedLayoutOver]; a change re-arms the pick. */
+    private var oneHandedLayoutWasOn = false
+
+    /** The user switched layouts while one-handed; see [oneHandedLayoutOver]. */
+    private var oneHandedLayoutDeclined = false
 
     /**
      * Resolves the bound layout's composer again after a [ConversionEngines]
@@ -19385,7 +19482,7 @@ open class WMKeyboardService : InputMethodService() {
         // English are three distinct stops, where cycling modes would collapse
         // them into one and make them unreachable from the keyboard.
         val ids = state.settings.switchLayoutIds()
-        onLayoutSelected(ids[(ids.indexOf(state.layoutId) + 1).mod(ids.size)])
+        onLayoutSelected(ids[(ids.indexOf(cycleAnchor(ids, state.layoutId)) + 1).mod(ids.size)])
     }
 
     /**
@@ -19822,6 +19919,15 @@ open class WMKeyboardService : InputMethodService() {
     fun onLayoutSelected(layoutId: String, recordRecent: Boolean = true) {
         val from = _uiState.value.layoutId
         val spec = resolveLayout(_uiState.value.settings.customLayouts, layoutId)
+        // One-handed mode's own layout (#1230). A switch to it, while it
+        // applies, puts it back up over the normal layout, which stays stored
+        // as it was, so one-handed off still returns there. A switch anywhere
+        // else declines it until one-handed mode next changes.
+        val settingsNow = _uiState.value.settings
+        val oneHandedNow = oneHandedInForce(settingsNow)
+        val toOneHandedPick = oneHandedNow &&
+            settingsNow.oneHandedLayoutFor(baseLayoutId(settingsNow)) == spec.id
+        if (oneHandedNow) oneHandedLayoutDeclined = !toOneHandedPick
         // A word half-typed in roman letters carries into a transliterating
         // layout rather than being committed as Latin, so switching to Avro
         // in the middle of "tumi" converts the "tu" already typed instead of
@@ -19839,7 +19945,9 @@ open class WMKeyboardService : InputMethodService() {
         fieldLayoutOverride = null
         // Claimed before the state update, so a settings emission arriving
         // between here and the store catching up does not roll the pick back.
-        pendingLayoutId = spec.id
+        // Not for the one-handed pick: it is drawn over the stored layout, not
+        // stored in its place.
+        if (!toOneHandedPick) pendingLayoutId = spec.id
         // Keeps the rule engine paired with the grid on screen: a
         // language switch must not leave the old keyboard's rules
         // running against the new grid.
@@ -19921,6 +20029,10 @@ open class WMKeyboardService : InputMethodService() {
             voiceLanguageIds() != voiceSessionLanguages
         ) {
             startVoice()
+        }
+        if (toOneHandedPick) {
+            mirrorSubtypeToOs(spec)
+            return
         }
         val recentFrom = from.takeIf { recordRecent && it != spec.id }
         serviceScope.launch { settingsRepository.setActiveLayoutId(spec.id, recentFrom) }
@@ -57236,7 +57348,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun startLanguageBrowse(delta: Int): Boolean {
         val state = _uiState.value
         val ids = state.settings.switchLayoutIds()
-        val candidate = languageCycleStart(ids, state.layoutId, delta) ?: return false
+        val candidate = languageCycleStart(ids, cycleAnchor(ids, state.layoutId), delta) ?: return false
         disarmToolPicker()
         vibrate()
         _uiState.update {
@@ -57288,7 +57400,7 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         if (state.settings.globeRecentOrder) return switchLanguageRecent(hardware = true)
         val ids = state.settings.switchLayoutIds()
-        val candidate = languageCycleStart(ids, state.layoutId, 1) ?: return false
+        val candidate = languageCycleStart(ids, cycleAnchor(ids, state.layoutId), 1) ?: return false
         vibrate()
         onLayoutSelected(ids[candidate])
         val shownAt = SystemClock.uptimeMillis()

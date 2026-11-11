@@ -173,6 +173,11 @@
     <string name="layout_one_handed_title">One-handed mode</string>
     <string name="layout_one_handed_subtitle">Make the keyboard smaller at one edge of the screen</string>
     <string name="layout_one_handed_caption">You can set one-handed mode for each orientation. In the keyboard, the arrow on the rail changes the side and saves it here for that orientation.</string>
+    <string name="layout_one_handed_layout_title">Layout in one-handed mode</string>
+    <string name="layout_one_handed_layout_subtitle">The layout to use while one-handed mode is on</string>
+    <string name="layout_one_handed_layout_info">Use a different layout of the same language while the keyboard is one-handed, such as QWERTY one-handed and One-row QWERTY otherwise. Turn one-handed mode off and the keyboard goes back to the layout you normally type on.\n\nThe list only shows enabled layouts that share a language with another enabled layout, since the choice applies only while you type in its language. In any other language, the keyboard keeps its normal layout. A layout set by a Keyboard Mode still comes first. The default is Same as normal.</string>
+    <string name="layout_one_handed_layout_same">Same as normal</string>
+    <string name="layout_one_handed_layout_none_subtitle">Enable two layouts of one language to pick one here</string>
     <string name="layout_one_handed_portrait_only_title">Portrait only</string>
     <string name="layout_one_handed_portrait_only_subtitle">Use the whole width when the phone is sideways</string>
     <string name="layout_one_handed_portrait_only_info">One-handed mode is one setting for both orientations, so a keyboard made small for a thumb in portrait stays small after you turn the phone, where you may want a split keyboard instead. Turn this on to keep one-handed mode in portrait and switch it off in landscape. Turn the phone back and it comes back. This setting is off by default.</string>

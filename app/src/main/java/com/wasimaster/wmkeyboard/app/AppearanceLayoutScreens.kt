@@ -3,6 +3,8 @@ package com.wasimaster.wmkeyboard.app
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
+import com.wasimaster.wmkeyboard.core.layout.resolveLayoutLanguage
+import com.wasimaster.wmkeyboard.core.layout.resolveLayoutName
 import com.wasimaster.wmkeyboard.core.settings.HintOffsetRange
 import com.wasimaster.wmkeyboard.core.settings.LabelOffsetRange
 import com.wasimaster.wmkeyboard.core.settings.ArrowKey
@@ -48,6 +50,7 @@ import com.wasimaster.wmkeyboard.core.settings.autoBottomPaddingDp
 import com.wasimaster.wmkeyboard.core.settings.KeyboardAlignment
 import com.wasimaster.wmkeyboard.core.settings.FloatingHandlePosition
 import com.wasimaster.wmkeyboard.core.settings.floatingFor
+import com.wasimaster.wmkeyboard.core.settings.oneHandedLayoutChoices
 import com.wasimaster.wmkeyboard.core.script.NumeralCommitScope
 import com.wasimaster.wmkeyboard.core.settings.DefaultToolbarTools
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
@@ -1947,6 +1950,32 @@ internal fun LayoutOneHandedSettings(
                 selected = settings.watch { it.oneHandedMode },
                 default = SettingsDefaults.oneHandedMode,
             ) { scope.launch { repository.setOneHandedMode(it) } }
+        }
+        // Shown with one-handed mode off too, so the board can be chosen
+        // before the mode is first used (#1230). Only layouts that can apply:
+        // an enabled one sharing its language with another enabled one.
+        item {
+            val choices = settings.watch { it.oneHandedLayoutChoices() }
+            val customLayouts = settings.watch { it.customLayouts }
+            val same = stringResource(R.string.layout_one_handed_layout_same)
+            ChoiceSetting(
+                R.string.layout_one_handed_layout_title,
+                subtitle = stringResource(
+                    if (choices.isEmpty()) {
+                        R.string.layout_one_handed_layout_none_subtitle
+                    } else {
+                        R.string.layout_one_handed_layout_subtitle
+                    },
+                ),
+                info = stringResource(R.string.layout_one_handed_layout_info),
+                options = listOf<Pair<String?, String>>(null to same) + choices.map { id ->
+                    id to "${resolveLayoutName(customLayouts, id)} (${resolveLayoutLanguage(customLayouts, id).displayName})"
+                },
+                // A pick since turned off, or left alone in its language, reads
+                // as what the keyboard does with it: the normal layout.
+                selected = settings.watch { it.oneHanded.layoutId }?.takeIf { it in choices },
+                default = SettingsDefaults.oneHanded.layoutId,
+            ) { scope.launch { repository.setOneHandedLayout(it) } }
         }
         if (oneHanded) item {
             ToggleSetting(

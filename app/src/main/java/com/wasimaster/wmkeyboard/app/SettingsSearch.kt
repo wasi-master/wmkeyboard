@@ -1214,6 +1214,7 @@ private fun SearchStrings.layoutOnehandedRows(): List<SettingsSearchEntry> {
     )
     return listOf(
         row(R.string.layout_one_handed_title, R.string.layout_one_handed_subtitle, weight = EntryWeight.PRIMARY),
+        row(R.string.layout_one_handed_layout_title, R.string.layout_one_handed_layout_subtitle),
         row(R.string.layout_one_handed_portrait_only_title, R.string.layout_one_handed_portrait_only_subtitle),
         row(R.string.layout_split_title, R.string.layout_split_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.layout_split_gap_title, R.string.layout_split_gap_subtitle),

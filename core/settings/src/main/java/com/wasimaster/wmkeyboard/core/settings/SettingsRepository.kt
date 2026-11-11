@@ -672,6 +672,13 @@ data class OneHandedSettings(
      * The mode itself stays as set, so rotating back brings it straight back.
      */
     val portraitOnly: Boolean = false,
+    /**
+     * "Layout in one-handed mode" (#1230): the layout drawn while one-handed
+     * mode is in force, or null for "Same as normal". Applies only over a
+     * normal layout of its own language, and only while it is enabled — see
+     * `oneHandedLayoutFor`. A Keyboard Mode's own layout still wins.
+     */
+    val layoutId: String? = null,
 ) {
     /** The profile that applies for the current orientation. */
     fun forLandscape(landscape: Boolean): OneHandedProfile =
@@ -1286,15 +1293,27 @@ data class HapticSettings(
  * [LayoutBehaviorSettings.pickerHiddenLanguages] (#473). What the globe key,
  * the spacebar swipe and the language picker walk.
  *
+ * The board pinned on the Secondary layout tool ([pinnedBoardId]) is left out
+ * too (#1230): it changes the keyboard's shape, not its language, and the tool
+ * and the spacebar action are its way in and out.
+ *
  * Never empty. If hiding would leave nothing to switch to, every layout
  * stands, since a switcher with no stops strands the keyboard on whatever it
- * was showing.
+ * was showing. The same for the pinned board: when it is the only layout
+ * left, it stays a stop.
  */
 fun KeyboardSettings.switchLayoutIds(): List<String> {
     val all = enabledLayoutIds.ifEmpty { listOf(BuiltInLayouts.DEFAULT_ID) }
     val hidden = layoutBehavior.pickerHiddenLanguages
-    if (hidden.isEmpty()) return all
-    return all.filter { resolveLayout(customLayouts, it).language().id !in hidden }.ifEmpty { all }
+    val pinned = pinnedBoardId()
+    if (hidden.isEmpty() && pinned == null) return all
+    val listed = if (hidden.isEmpty()) {
+        all
+    } else {
+        all.filter { resolveLayout(customLayouts, it).language().id !in hidden }.ifEmpty { all }
+    }
+    if (pinned == null) return listed
+    return listed.filter { it != pinned }.ifEmpty { listed }
 }
 
 /**
@@ -1315,6 +1334,14 @@ enum class SpaceSwipeAction {
      * opens when the hold delay runs out.
      */
     KEYBOARDS,
+
+    /**
+     * Toggles the layout pinned on the Secondary layout tool (#1230), the way
+     * a press on the tool does. Discrete like [KEYBOARDS]: once per gesture,
+     * and on the hold slot the still hold alone toggles, so a drag after it
+     * cannot toggle again. Does nothing until a layout can be shown.
+     */
+    SECONDARY_LAYOUT,
 }
 
 /**
@@ -10038,10 +10065,14 @@ data class LayoutBehaviorSettings(
      */
     val fancyHiddenStyles: Set<String> = emptySet(),
     /**
-     * The secondary layout the Secondary layout tool shows (a `LayoutSpec.id`),
-     * or null for the first one the user has. Null rather than a required pick
-     * so the tool works the moment a first secondary layout exists; the page
-     * only has to be visited once there are several.
+     * The layout the Secondary layout tool shows (a `LayoutSpec.id`), or null
+     * to ask each time (the only one, when there is one). Null rather than a
+     * required pick so the tool works the moment a first secondary layout
+     * exists; the page only has to be visited once there are several.
+     *
+     * A secondary grid is drawn over the board. Any other enabled layout,
+     * shipped or the user's own, is swapped in as the board itself and kept out
+     * of the language switcher (#1230); see `pinnedBoardId`.
      */
     val customLayoutToolId: String? = null,
     /**
@@ -12130,6 +12161,8 @@ class SettingsRepository(private val context: Context) {
         private val VI_RESTORE_MARKS = booleanPreferencesKey("vi_restore_marks")
         private val ONE_HANDED_MODE = stringPreferencesKey("one_handed_mode")
         private val ONE_HANDED_PORTRAIT_ONLY = booleanPreferencesKey("one_handed_portrait_only")
+        // Device-local with the rest of one-handed mode (the "one_handed_" sync prefix).
+        private val ONE_HANDED_LAYOUT = stringPreferencesKey("one_handed_layout")
         // One-handed width leaves room for the rail on the inner edge, so it is
         // capped below 100%. Height scale never grows the keys, only shrinks.
         const val ONE_HANDED_WIDTH_MIN = 40
@@ -14296,6 +14329,7 @@ class SettingsRepository(private val context: Context) {
             portrait = readOneHandedProfile(p, landscape = false, defaults.oneHanded.portrait),
             landscape = readOneHandedProfile(p, landscape = true, defaults.oneHanded.landscape),
             portraitOnly = p[ONE_HANDED_PORTRAIT_ONLY] ?: defaults.oneHanded.portraitOnly,
+            layoutId = p[ONE_HANDED_LAYOUT]?.takeIf { it.isNotEmpty() } ?: defaults.oneHanded.layoutId,
         )
 
     private fun readClipboard(p: Preferences, defaults: KeyboardSettings) =
@@ -23141,6 +23175,10 @@ class SettingsRepository(private val context: Context) {
     suspend fun setOneHandedPortraitOnly(value: Boolean) =
         editPrefs { it[ONE_HANDED_PORTRAIT_ONLY] = value }
 
+    /** "Layout in one-handed mode" (#1230); null is "Same as normal". */
+    suspend fun setOneHandedLayout(id: String?) =
+        editPrefs { if (id == null) it.remove(ONE_HANDED_LAYOUT) else it[ONE_HANDED_LAYOUT] = id }
+
     /**
      * Reads one orientation's one-handed profile. A missing dock side falls
      * back to the legacy global [ONE_HANDED_MODE] so users who had picked
@@ -24466,7 +24504,7 @@ class SettingsRepository(private val context: Context) {
             if (hidden.isEmpty()) prefs.remove(FANCY_HIDDEN_STYLES) else prefs[FANCY_HIDDEN_STYLES] = hidden
         }
 
-    /** The secondary layout the Secondary layout tool shows; null (stored empty) is the first one. */
+    /** The layout the Secondary layout tool shows (a grid or a whole board, #1230); null (stored empty) asks each time. */
     suspend fun setCustomLayoutToolLayout(id: String?) =
         editPrefs { it[CUSTOM_LAYOUT_TOOL] = id.orEmpty() }
 

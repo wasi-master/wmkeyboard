@@ -21,7 +21,7 @@ The spacebar has two independent swipe slots: **Quick swipe on the spacebar** (d
 
 <GestureDemo type="space-swipe" caption="A spacebar swipe resolves to whichever action its slot is set to." />
 
-Each slot's options are **Nothing**, **Language**, **Cursor**, **Numpad** or **Keyboards**. Keyboards opens Android's own "Choose input method" list, for changing to a different keyboard app. On **Press and hold, then swipe** it needs no swipe: holding the spacebar past the hold delay opens the list. On the quick swipe it opens as soon as the drag starts. A tap with no movement always types a space, whatever either slot is set to.
+Each slot's options are **Nothing**, **Language**, **Cursor**, **Numpad**, **Keyboards** or **Secondary layout**. Keyboards opens Android's own "Choose input method" list, for changing to a different keyboard app. On **Press and hold, then swipe** it needs no swipe: holding the spacebar past the hold delay opens the list. On the quick swipe it opens as soon as the drag starts. **Secondary layout** works the same way and does what a press on the [Secondary layout tool](/languages/custom-layouts/#secondary-layouts) does: it switches to the layout pinned there, and the next swipe or hold switches back. It toggles once per gesture, so a drag after the hold changes nothing more, and it does nothing until the tool has a layout to show. A tap with no movement always types a space, whatever either slot is set to.
 
 **Space swipe distance** sets how far your finger has to move sideways before a press on the spacebar counts as a swipe: 12&nbsp;dp by default, from 6 to 60&nbsp;dp. Raise it if your thumb slides a little on its way to a space and switches the language or moves the cursor.
 

@@ -366,6 +366,7 @@ internal object ChoiceOptionIcons {
         put(SpaceSwipeAction.CURSOR) { Icons.Outlined.SwapHoriz }
         put(SpaceSwipeAction.NUMPAD) { Icons.Outlined.Dialpad }
         put(SpaceSwipeAction.KEYBOARDS) { Icons.Outlined.Keyboard }
+        put(SpaceSwipeAction.SECONDARY_LAYOUT) { Icons.Outlined.GridView }
 
         put(SpacebarDisplay.LANGUAGE) { Icons.Outlined.Language }
         put(SpacebarDisplay.LAYOUT) { Icons.Outlined.Keyboard }
