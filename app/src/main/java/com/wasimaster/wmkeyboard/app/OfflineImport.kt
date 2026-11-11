@@ -305,8 +305,13 @@ object OfflineImport {
                 }
                 // A handwriting pack is a zip ML Kit unpacks itself, and a
                 // published RIME pack is checked against its pin whole, so
-                // both are installed as files rather than opened here.
-                if (!isZip(staged) || keptWhole(name) || InkPackImports.isPack(context, staged)) {
+                // both are installed as files rather than opened here. So is
+                // a dictation model that comes as one zip (Vosk's, #1246): it
+                // is pinned by its size and digest as a whole, and opened here
+                // its graph and config files were each nobody's.
+                if (!isZip(staged) || keptWhole(name) || InkPackImports.isPack(context, staged) ||
+                    EtImport.sizeMatches(staged.length())
+                ) {
                     files += staged
                     return@forEachIndexed
                 }
