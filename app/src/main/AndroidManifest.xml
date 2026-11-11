@@ -1997,6 +1997,15 @@
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
+        <!-- Uploads the scans waiting for the user's Paperless-ngx server
+             (#1198), once the network the queue asked for is there.
+             Scheduled by PaperlessQueue in :feature:ime; not persisted, so
+             WMApplication schedules it again after a reboot. -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.app.PaperlessUploadJob"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
         <!-- The spell checker, in every edition: the keyboard's word lists for
              spelling in each language (#511), Harper for English grammar where
              the build carries it. Keeps the Harper component's name, because

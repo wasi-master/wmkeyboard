@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tools › Document scanner › Paperless-ngx (#1198) -->
+    <string name="paperless_group" translatable="false">Paperless-ngx</string>
+    <string name="paperless_info">Send scans to your own Paperless-ngx server, with the tags, correspondent and document type you pick. Make a token in Paperless under My Profile, with the circular arrow next to API Auth Token. Scans wait on the phone until the server can be reached, then upload in the background. The token stays on this phone and out of backups.</string>
+    <string name="paperless_url_title">Server address</string>
+    <string name="paperless_url_hint">The address you open Paperless at, such as https://paperless.example.com</string>
+    <string name="paperless_token_title">API token</string>
+    <string name="paperless_token_hint">Paste the token from your profile in Paperless</string>
+    <string name="paperless_check_title">Check the connection</string>
+    <string name="paperless_check_subtitle">Fetches your tags, correspondents and document types</string>
+    <string name="paperless_check_action">Check</string>
+    <string name="paperless_check_ok">Connected: %1$d tags, %2$d correspondents, %3$d document types</string>
+    <string name="paperless_check_refused">The server turned the token down (%1$d). Check the token, and that its user may add documents.</string>
+    <string name="paperless_check_failed">Could not reach the server: %1$s</string>
+    <string name="paperless_check_bad_url">That does not look like a web address</string>
+    <string name="paperless_after_title">After a scan</string>
+    <string name="paperless_after_subtitle">Where the pages of a finished scan go</string>
+    <string name="paperless_after_ask">Ask each time</string>
+    <string name="paperless_after_paperless">Send to Paperless</string>
+    <string name="paperless_after_both">Paperless and the text box</string>
+    <string name="paperless_after_field">The text box only</string>
+    <string name="paperless_tags_title">Default tags</string>
+    <string name="paperless_tags_subtitle">Every scan starts with these; the scan card can change them</string>
+    <string name="paperless_tags_empty">This server has no tags yet.</string>
+    <plurals name="paperless_tags_count">
+        <item quantity="one">%d tag</item>
+        <item quantity="other">%d tags</item>
+    </plurals>
+    <string name="paperless_none">None</string>
+    <string name="paperless_correspondent_title">Default correspondent</string>
+    <string name="paperless_correspondent_subtitle">Who scans are from, unless Paperless works it out</string>
+    <string name="paperless_type_title">Default document type</string>
+    <string name="paperless_type_subtitle">What kind of document a scan is, unless Paperless works it out</string>
+    <string name="paperless_one_pdf_title">One PDF per scan</string>
+    <string name="paperless_one_pdf_subtitle">All the pages of a scan as one document. Off, each page is a document of its own.</string>
+    <string name="paperless_wifi_only_title">Upload on Wi-Fi only</string>
+    <string name="paperless_wifi_only_subtitle">Scans wait for a network that is not metered</string>
+    <string name="paperless_queue_title">Waiting to upload</string>
+    <plurals name="paperless_queue_waiting">
+        <item quantity="one">%d scan is on the phone</item>
+        <item quantity="other">%d scans are on the phone</item>
+    </plurals>
+    <string name="paperless_queue_error">Stopped: %1$s</string>
+    <string name="paperless_queue_retry">Retry now</string>
+    <string name="paperless_queue_clear_title">Delete the waiting scans</string>
+    <string name="paperless_queue_clear_subtitle">They are not sent, and the copies on the phone go</string>
+    <string name="paperless_queue_clear_confirm">Delete the scans waiting for Paperless? They have not been uploaded.</string>
+</resources>

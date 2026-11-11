@@ -192,6 +192,13 @@ enum class NetSource(
      * albums, their thumbnails, an original fetched to send, an upload.
      */
     IMMICH("immich", ToolbarTool.GALLERY),
+
+    /**
+     * The user's own Paperless-ngx server, from the document scanner (#1198):
+     * its tag, correspondent and document type lists, and each scan uploaded,
+     * often in the background once a network is back.
+     */
+    PAPERLESS("paperless", ToolbarTool.DOC_SCAN),
     OTHER("other"),
     ;
 

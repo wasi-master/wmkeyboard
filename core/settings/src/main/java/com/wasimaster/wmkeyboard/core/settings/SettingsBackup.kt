@@ -198,6 +198,7 @@ object SettingsBackup {
         PROVIDER_CREDENTIALS,
         "self_hosted_libretranslate_key",
         GalleryPrefs.IMMICH_KEY_NAME,
+        PaperlessPrefs.TOKEN_NAME,
     )
 
     /** The app lock's stored PIN, password or pattern hash. */

@@ -3347,6 +3347,8 @@ data class ScannerSettings(
     val qrSizePx: Int = 1024,
     /** Error correction of a generated QR code; see [QrEccLevel]. */
     val qrEcc: QrEccLevel = QrEccLevel.M,
+    /** Sending scans to the user's Paperless-ngx server (#1198). */
+    val paperless: PaperlessSettings = PaperlessSettings(),
 )
 
 /**
@@ -15261,6 +15263,7 @@ class SettingsRepository(private val context: Context) {
             qrSizePx = p[QR_SIZE_PX] ?: defaults.scanner.qrSizePx,
             qrEcc = p[QR_ECC]?.let { runCatching { QrEccLevel.valueOf(it) }.getOrNull() }
                 ?: defaults.scanner.qrEcc,
+            paperless = PaperlessPrefs.read(p, defaults.scanner.paperless),
         )
 
     private fun readGif(p: Preferences, defaults: KeyboardSettings) =
@@ -17210,6 +17213,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun updateGallery(change: (GallerySettings) -> GallerySettings) = editPrefs { p ->
         val old = GalleryPrefs.read(p, storedDefaults.gallery)
         GalleryPrefs.write(p, old, change(old))
+    }
+
+    /** One change to the scanner's Paperless settings (#1198); see [updateGallery]. */
+    suspend fun updatePaperless(change: (PaperlessSettings) -> PaperlessSettings) = editPrefs { p ->
+        val old = PaperlessPrefs.read(p, storedDefaults.scanner.paperless)
+        PaperlessPrefs.write(p, old, change(old))
     }
 
     suspend fun updateSend(change: (SendSettings) -> SendSettings) = editPrefs { p ->

@@ -33,7 +33,8 @@ object DocScanPages {
      * commit them; keeps the directory from growing unbounded.
      */
     fun prune(context: Context) {
-        dir(context).listFiles()
+        // Files only: the Paperless queue (#1198) keeps its own folder in here.
+        dir(context).listFiles { f -> f.isFile }
             ?.sortedByDescending { it.lastModified() }
             ?.drop(8)
             ?.forEach { it.delete() }

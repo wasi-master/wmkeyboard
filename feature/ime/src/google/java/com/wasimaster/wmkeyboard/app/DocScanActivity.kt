@@ -4,6 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.lifecycle.lifecycleScope
+import com.wasimaster.wmkeyboard.ime.paperless.PaperlessHandoff
+import com.wasimaster.wmkeyboard.ime.paperless.PaperlessScanCard
+import kotlinx.coroutines.launch
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
@@ -43,8 +48,33 @@ class DocScanActivity : ComponentActivity() {
                 file
             }.getOrNull()
         }
-        if (pages.isNotEmpty()) DocScanPages.offer(pages)
-        finish()
+        if (pages.isEmpty()) {
+            finish()
+            return@registerForActivityResult
+        }
+        // The text box, or Paperless as its settings say (#1198).
+        lifecycleScope.launch {
+            val paperless = PaperlessHandoff.settings(this@DocScanActivity)
+            when (PaperlessHandoff.route(paperless)) {
+                PaperlessHandoff.Route.FIELD -> {
+                    DocScanPages.offer(pages)
+                    finish()
+                }
+                PaperlessHandoff.Route.ASK -> setContent {
+                    PaperlessScanCard(pages.size, paperless) { choice, toField ->
+                        lifecycleScope.launch {
+                            PaperlessHandoff.deliver(this@DocScanActivity, pages, choice, toField)
+                            finish()
+                        }
+                    }
+                }
+                PaperlessHandoff.Route.AUTO -> {
+                    val (choice, toField) = PaperlessHandoff.auto(paperless)
+                    PaperlessHandoff.deliver(this@DocScanActivity, pages, choice, toField)
+                    finish()
+                }
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

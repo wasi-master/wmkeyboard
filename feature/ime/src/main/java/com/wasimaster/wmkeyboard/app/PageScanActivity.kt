@@ -8,6 +8,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.lifecycleScope
+import com.wasimaster.wmkeyboard.core.settings.PaperlessSettings
+import com.wasimaster.wmkeyboard.ime.paperless.PaperlessHandoff
+import com.wasimaster.wmkeyboard.ime.paperless.PaperlessScanCard
+import kotlinx.coroutines.launch
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.ime.docscan.PageScanScreen
 import java.io.File
@@ -25,6 +33,9 @@ import java.io.File
  * returns to that app rather than to a settings task from recents.
  */
 class PageScanActivity : ComponentActivity() {
+
+    /** A finished scan the Paperless card is asking about (#1198), with the settings it asks under. */
+    private var asking by mutableStateOf<Pair<List<File>, PaperlessSettings>?>(null)
 
     companion object {
         /** The data saver's answer for downloads, as a [MeteredDecision] name. */
@@ -60,12 +71,39 @@ class PageScanActivity : ComponentActivity() {
                         finish()
                     },
                 )
+                asking?.let { (pages, paperless) ->
+                    PaperlessScanCard(pages.size, paperless) { choice, toField ->
+                        asking = null
+                        lifecycleScope.launch {
+                            PaperlessHandoff.deliver(this@PageScanActivity, pages, choice, toField)
+                            finish()
+                        }
+                    }
+                }
             }
         }
     }
 
+    /** The text box, or Paperless as its settings say (#1198), then back to the app. */
     private fun finishWith(pages: List<File>) {
-        if (pages.isNotEmpty()) DocScanPages.offer(pages)
-        finish()
+        if (pages.isEmpty()) {
+            finish()
+            return
+        }
+        lifecycleScope.launch {
+            val paperless = PaperlessHandoff.settings(this@PageScanActivity)
+            when (PaperlessHandoff.route(paperless)) {
+                PaperlessHandoff.Route.FIELD -> {
+                    DocScanPages.offer(pages)
+                    finish()
+                }
+                PaperlessHandoff.Route.ASK -> asking = pages to paperless
+                PaperlessHandoff.Route.AUTO -> {
+                    val (choice, toField) = PaperlessHandoff.auto(paperless)
+                    PaperlessHandoff.deliver(this@PageScanActivity, pages, choice, toField)
+                    finish()
+                }
+            }
+        }
     }
 }

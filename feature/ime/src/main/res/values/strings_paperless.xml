@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Document scanner: sending a scan to Paperless-ngx (#1198) -->
+    <string name="ime_paperless_card_title">Send to Paperless</string>
+    <plurals name="ime_paperless_card_pages">
+        <item quantity="one">%d page</item>
+        <item quantity="other">%d pages</item>
+    </plurals>
+    <string name="ime_paperless_card_name">Title</string>
+    <string name="ime_paperless_card_name_hint">Optional. Left empty, Paperless names it.</string>
+    <string name="ime_paperless_card_loading">Getting your tags from the server…</string>
+    <string name="ime_paperless_card_offline">The server cannot be reached right now. The scan waits on the phone with your default tags and uploads once it can.</string>
+    <string name="ime_paperless_card_offline_cached">The server cannot be reached right now; these are its lists from earlier. The scan uploads once it can.</string>
+    <string name="ime_paperless_card_tags">Tags</string>
+    <string name="ime_paperless_card_correspondent">Correspondent</string>
+    <string name="ime_paperless_card_type">Document type</string>
+    <string name="ime_paperless_card_none">None</string>
+    <string name="ime_paperless_card_one_pdf">All pages in one PDF</string>
+    <string name="ime_paperless_card_also_field">Also put the pages in the text box</string>
+    <string name="ime_paperless_card_send">Send</string>
+    <string name="ime_paperless_card_field_only">Text box only</string>
+    <plurals name="ime_paperless_queued">
+        <item quantity="one">%d document on its way to Paperless. It uploads as soon as there is a connection.</item>
+        <item quantity="other">%d documents on their way to Paperless. They upload as soon as there is a connection.</item>
+    </plurals>
+    <string name="ime_paperless_queue_failed">Could not keep the scan for Paperless</string>
+</resources>

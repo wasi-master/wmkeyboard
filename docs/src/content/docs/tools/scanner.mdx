@@ -157,6 +157,29 @@ Once you're back in your app, each captured page is inserted exactly like a Came
 - **Use the built-in scanner**: off by default, and shown only where Google's scanner can run. Scans with the keyboard's own scanner instead.
 - **Save to the gallery**: off by default. Also keeps scanned pages in the **WM Keyboard** album under Pictures.
 
+### Sending scans to Paperless-ngx
+
+If you run [Paperless-ngx](https://docs.paperless-ngx.com), the scanner can file a scan straight into it, tagged and sorted, instead of (or as well as) putting it in the text box. Set it up under <SettingsPath path="Tools / Document scanner / Paperless-ngx" />:
+
+- **Server address**: the address you open Paperless at, such as `https://paperless.example.com`.
+- **API token**: in Paperless, open **My Profile** from the user menu and press the circular arrow next to **API Auth Token**. The token's user needs permission to add documents and to see tags, correspondents and document types.
+- **Check the connection** fetches your tags, correspondents and document types and says how many it found, or what went wrong.
+
+Then **After a scan** decides where a finished scan goes:
+
+- **Ask each time** (the default): a card comes up over the scanner with a title box, your tags as chips (the defaults ticked), a row each for the correspondent and the document type, **All pages in one PDF**, and **Also put the pages in the text box**. **Send** files it; **Text box only** does what a scan did before, and so does Back.
+- **Send to Paperless**: straight there with the defaults, nothing in the text box.
+- **Paperless and the text box**: both, with the defaults.
+- **The text box only**: Paperless is left out.
+
+**Default tags**, **Default correspondent** and **Default document type** are what every scan starts with, picked from the server's own lists. Left empty, Paperless's own matching rules decide, as they do for anything you upload. A title left empty is Paperless's to choose too.
+
+**One PDF per scan** (on) puts all the pages of a scan into one PDF, each page the scan's own JPEG with no new compression; off, each page is a document of its own. Paperless reads the text off the pages itself.
+
+The scan does not need the network at the moment you finish it. It waits on the phone, under the keyboard's own storage and out of backups, and Android uploads it once there is a connection, even after you have left the app or closed the keyboard. **Upload on Wi-Fi only** makes it wait for a network that is not metered. A server that cannot be reached is tried again later, waiting longer each time. A refusal that trying again won't fix, such as a wrong token or a file the server will not take, stops that scan; **Waiting to upload** on the same page then shows how many are on the phone and why one stopped, with **Retry now**, and **Delete the waiting scans** throws them away unsent.
+
+Each upload goes to `/api/documents/post_document/` on your server with the token in a header. It is listed under **Paperless-ngx** in [Network activity](/privacy/network-activity/), and the token is left out of every [backup](/privacy/backup/). Data saver leaves your own server alone; **Upload on Wi-Fi only** is the switch for that. Paperless takes a document in the background, so it shows up in its inbox a moment after the upload.
+
 ## Details & edge cases
 
 - **Camera permission** works differently across the three tools. OCR and QR/barcode check for it themselves, and when it isn't granted they offer an **Allow the camera** button. That opens the same disclosure-then-system-prompt trampoline the [Camera tool](/tools/camera/#granting-camera-access) uses, and returns you to the panel. The document scanner skips that prompt: Google's scanner manages its own camera permission, and the built-in one asks on its own screen.

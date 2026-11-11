@@ -87,6 +87,9 @@ open class WMApplication : Application() {
         // Lets the keyboard tell whether a screen of this app is up before it
         // recycles the process the two share. One callback registration.
         com.wasimaster.wmkeyboard.core.util.StartedActivities.install(this)
+        // Scans still waiting for the user's Paperless server (#1198): the
+        // upload job does not outlive a reboot. One directory listing.
+        com.wasimaster.wmkeyboard.ime.paperless.PaperlessQueue.resume(this)
         // Interface language packs (the standard GitHub build, Android 11+):
         // loaded once here and added to every screen's resources as it is
         // created, before it inflates a string. A no-op on every other build,

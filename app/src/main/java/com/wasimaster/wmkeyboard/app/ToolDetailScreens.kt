@@ -3064,6 +3064,8 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setDocScanSaveToGallery(it) } }
                 }
             }
+            // #1198: scans to the user's Paperless-ngx server.
+            PaperlessSettingsGroup(repository, settings)
         }
         ToolbarTool.VOICE -> SettingsGroup(stringResource(R.string.tooldetail_voice_group)) {
             item {

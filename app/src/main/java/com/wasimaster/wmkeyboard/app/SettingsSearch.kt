@@ -2266,6 +2266,13 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.DOC_SCAN, R.string.tooldetail_doc_scan_builtin_title, R.string.tooldetail_doc_scan_builtin_subtitle)
         .takeIf { googleDocScanner },
     toolEntry(ToolbarTool.DOC_SCAN, R.string.tooldetail_doc_scan_gallery_title, R.string.tooldetail_doc_scan_gallery_subtitle),
+    // #1198: Paperless-ngx.
+    toolEntry(ToolbarTool.DOC_SCAN, R.string.paperless_url_title, R.string.paperless_info),
+    toolEntry(ToolbarTool.DOC_SCAN, R.string.paperless_token_title, R.string.paperless_token_hint),
+    toolEntry(ToolbarTool.DOC_SCAN, R.string.paperless_after_title, R.string.paperless_after_subtitle),
+    toolEntry(ToolbarTool.DOC_SCAN, R.string.paperless_tags_title, R.string.paperless_tags_subtitle),
+    toolEntry(ToolbarTool.DOC_SCAN, R.string.paperless_one_pdf_title, R.string.paperless_one_pdf_subtitle),
+    toolEntry(ToolbarTool.DOC_SCAN, R.string.paperless_wifi_only_title, R.string.paperless_wifi_only_subtitle),
     toolEntry(
         ToolbarTool.VOICE,
         R.string.tooldetail_voice_all_title,

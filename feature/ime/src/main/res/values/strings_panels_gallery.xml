@@ -118,8 +118,8 @@
         <item quantity="other">Uploaded %d pictures to Immich</item>
     </plurals>
     <plurals name="ime_gallery_notice_already_uploaded">
-        <item quantity="one">Immich already has it</item>
-        <item quantity="other">Immich already has all %d</item>
+        <item quantity="one">Immich already had %d picture</item>
+        <item quantity="other">Immich already had all %d pictures</item>
     </plurals>
     <plurals name="ime_gallery_notice_upload_failed">
         <item quantity="one">%d picture did not upload</item>
