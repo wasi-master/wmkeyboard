@@ -1,8 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.send
 
 import android.content.BroadcastReceiver
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -13,6 +11,7 @@ import com.wasimaster.wmkeyboard.core.notify.NotificationIds
 import com.wasimaster.wmkeyboard.core.notify.WmNotifications
 import com.wasimaster.wmkeyboard.core.send.SendSink
 import com.wasimaster.wmkeyboard.core.send.SendSinkFile
+import com.wasimaster.wmkeyboard.ime.ClipboardWriteGate
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeReceivedFiles
 import java.io.OutputStream
 
@@ -53,8 +52,7 @@ class SendActionReceiver : BroadcastReceiver() {
         when (intent?.action) {
             ACTION_COPY_LINK -> {
                 val url = intent.getStringExtra(EXTRA_URL) ?: return
-                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
-                runCatching { clipboard.setPrimaryClip(ClipData.newPlainText("Send link", url)) }
+                ClipboardWriteGate.writeText(context, url, "Send link")
                 WmNotifications.cancel(context, NotificationIds.SEND_UPLOAD)
             }
             ACTION_OPEN_FILE -> {

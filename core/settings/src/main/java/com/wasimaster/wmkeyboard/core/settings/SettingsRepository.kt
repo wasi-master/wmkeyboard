@@ -36,6 +36,7 @@ import com.wasimaster.wmkeyboard.core.addons.AddonStore
 import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRule
 import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRules
 import com.wasimaster.wmkeyboard.core.clipboard.ClipboardStore
+import com.wasimaster.wmkeyboard.core.clipboard.ClipboardSyncSanitizer
 import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacro
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacroCodec
@@ -19423,9 +19424,6 @@ class SettingsRepository(private val context: Context) {
 
     private val bundleJson = Json { ignoreUnknownKeys = true }
 
-    /** Clip kinds worth exporting: the ones whose bytes/URIs survive the move. */
-    private val TEXTUAL_CLIP_KINDS = setOf("TEXT", "HTML", "LINK")
-
     /** Key the rank adjustments file is nested under in the dictionary section. */
     private val WORD_RANKS_KEY = "wordRanks"
 
@@ -19485,18 +19483,14 @@ class SettingsRepository(private val context: Context) {
      * file is the one place a password that expires in five minutes on the
      * device would live forever — and backups get mailed to yourself, dropped
      * in cloud folders, and shared to ask for help with a setting.
+     *
+     * Checked item by item ([ClipboardSyncSanitizer], #1215): a malformed
+     * section exports, and restores, as an empty list rather than as it came,
+     * and an item the history could not load, or one that names a file, is
+     * dropped alone.
      */
-    private fun portableClipboard(element: JsonElement): JsonElement {
-        val obj = element as? JsonObject ?: return element
-        val items = obj["items"] as? JsonArray ?: return element
-        val kept = items.filter { item ->
-            val entry = item as? JsonObject
-            val kind = entry?.get("kind") as? JsonPrimitive
-            val sensitive = (entry?.get("sensitive") as? JsonPrimitive)?.booleanOrNull == true
-            !sensitive && (kind?.contentOrNull ?: "TEXT") in TEXTUAL_CLIP_KINDS
-        }
-        return buildJsonObject { put("items", JsonArray(kept)) }
-    }
+    private fun portableClipboard(element: JsonElement): JsonElement =
+        ClipboardSyncSanitizer.sanitize(element)
 
     /**
      * Takes synced clipboard [portable] (text clips only, the same view
@@ -19509,14 +19503,13 @@ class SettingsRepository(private val context: Context) {
         val path = "clipboard/history.json"
         val local = readStore(path) as? JsonObject ?: JsonObject(emptyMap())
         val localItems = local["items"] as? JsonArray ?: JsonArray(emptyList())
-        val stays = localItems.filter { item ->
-            val entry = item as? JsonObject
-            val kind = (entry?.get("kind") as? JsonPrimitive)?.contentOrNull ?: "TEXT"
-            val sensitive = (entry?.get("sensitive") as? JsonPrimitive)?.booleanOrNull == true
-            sensitive || kind !in TEXTUAL_CLIP_KINDS
-        }
-        val incoming = portable["items"] as? JsonArray ?: JsonArray(emptyList())
-        writeStore(path, JsonObject(local + ("items" to JsonArray(incoming + stays))))
+        val stays = localItems.filter(ClipboardSyncSanitizer::staysLocal)
+        // What another device sent is checked item by item (#1215), and an
+        // incoming id that is already taken here is renumbered, so a pin or
+        // a delete can never land on the wrong clip.
+        val incoming = ClipboardSyncSanitizer.sanitize(portable)["items"] as? JsonArray ?: JsonArray(emptyList())
+        val items = ClipboardSyncSanitizer.deconflictIds(incoming, stays)
+        writeStore(path, JsonObject(local + ("items" to JsonArray(items))))
     }
 
     private fun ownStatistics(): JsonObject? = readStore(TypingStats.FILE_PATH) as? JsonObject
@@ -20444,7 +20437,10 @@ class SettingsRepository(private val context: Context) {
             }
         }
         (parsed.sections[ConfigBackup.Section.CLIPBOARD] as? JsonObject)?.let { obj ->
-            if (writeStore("clipboard/history.json", obj)) restored.add(ConfigBackup.Section.CLIPBOARD)
+            // Checked item by item first (#1215): a backup file is not trusted.
+            if (writeStore("clipboard/history.json", portableClipboard(obj))) {
+                restored.add(ConfigBackup.Section.CLIPBOARD)
+            }
         }
         (parsed.sections[ConfigBackup.Section.SNIPPETS] as? JsonObject)?.let { obj ->
             if (writeStore("snippets/snippets.json", obj)) restored.add(ConfigBackup.Section.SNIPPETS)

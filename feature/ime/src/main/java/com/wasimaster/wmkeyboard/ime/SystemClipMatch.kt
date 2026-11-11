@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.ime
 import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
 import com.wasimaster.wmkeyboard.core.clipboard.ClipKind
 import com.wasimaster.wmkeyboard.core.clipboard.capClipText
+import com.wasimaster.wmkeyboard.core.clipboard.effectiveMaxTextChars
 
 /**
  * What the system clipboard holds right now, reduced to what [holdsClip]
@@ -19,7 +20,8 @@ internal data class SystemClip(val text: String?, val uri: String?) {
  * user copied since.
  *
  * Text is compared the way the history stored it, trimmed and cut to
- * [maxTextChars], so a clip too long to keep whole still matches. A picture's
+ * [maxTextChars] (or the store's hard cap, #1215), so a clip too long to
+ * keep whole still matches. A picture's
  * bytes live in the history's own file, and the address it came from is not
  * kept, so the newest clip being a picture ([isNewest]) is what stands for the
  * picture on the clipboard.
@@ -30,7 +32,7 @@ internal fun holdsClip(
     isNewest: Boolean,
     maxTextChars: Int,
 ): Boolean = when {
-    item.kind.isTextual -> primary.text?.let { capClipText(it.trim(), maxTextChars).trimEnd() == item.text } == true
+    item.kind.isTextual -> primary.text?.let { capClipText(it.trim(), effectiveMaxTextChars(maxTextChars)).trimEnd() == item.text } == true
     item.uriString != null -> primary.uri == item.uriString
     item.kind == ClipKind.IMAGE -> isNewest && primary.uri != null
     else -> false

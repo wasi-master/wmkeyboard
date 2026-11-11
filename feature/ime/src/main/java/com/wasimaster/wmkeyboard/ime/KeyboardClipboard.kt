@@ -1,7 +1,5 @@
 package com.wasimaster.wmkeyboard.ime
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 
 /**
@@ -34,11 +32,12 @@ object KeyboardClipboard {
 
     /**
      * Told of every private copy, so the service can keep it in the history
-     * the system clipboard's listener never hears about. Null outside a
-     * running service.
+     * the system clipboard's listener never hears about, and of whether the
+     * copier called it a secret (#1215), the flag a system copy would carry.
+     * Null outside a running service.
      */
     @Volatile
-    var onPrivateCopy: ((String) -> Unit)? = null
+    var onPrivateCopy: ((String, Boolean) -> Unit)? = null
 
     /**
      * A copy made anywhere else (#612): the system clipboard now holds
@@ -67,17 +66,17 @@ object KeyboardClipboard {
         if (gone(kept)) held = null
     }
 
-    /** Copies [text]: into [held] while private, else onto the system clipboard. */
-    fun copy(context: Context, text: CharSequence, label: String = "") {
+    /**
+     * Copies [text]: into [held] while private, else onto the system clipboard
+     * through [ClipboardWriteGate], marked as a secret when [sensitive] (#1215).
+     */
+    fun copy(context: Context, text: CharSequence, label: String = "", sensitive: Boolean = false) {
         if (isPrivate) {
             val kept = text.toString()
             held = kept
-            onPrivateCopy?.invoke(kept)
+            onPrivateCopy?.invoke(kept, sensitive)
             return
         }
-        runCatching {
-            (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-                .setPrimaryClip(ClipData.newPlainText(label, text))
-        }
+        ClipboardWriteGate.writeText(context, text, label, sensitive = sensitive)
     }
 }

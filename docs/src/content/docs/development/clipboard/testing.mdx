@@ -1,0 +1,36 @@
+---
+title: "Clipboard tests"
+description: "The JVM tests that hold the clipboard history's invariants, and how to run them."
+sidebar:
+  label: "Testing"
+  order: 13
+---
+
+**Scope.** The tests behind the [invariants](/development/clipboard/#invariants).
+Device checks with real password managers are not part of this suite.
+
+| Test | Module | Covers |
+|---|---|---|
+| `ClipboardStoreTest` | `app` | "Keep" still saves a sensitive clip; "hide" keeps an unpinned secret out of the file and a pinned one in; a secret an older version saved comes off the disk without leaving memory; the hard text and markup caps; a long clip already in the history is not cut on load |
+| `ClipboardBackupRulesTest` | `app` | Both backup rule files exclude the clipboard history, for cloud backup and device transfer |
+| `ClipboardSyncSanitizerTest` | `core/content` | Text, rich-text and link clips travel unchanged; a password-shaped clip kept under "keep" travels; sensitive, media and file clips stay behind; a text clip naming a file is refused; bad items are dropped alone; duplicate ids; over-long text is cut; local clips that stay through a sync; id renumbering |
+| `ClipboardWriteGateTest` | `feature/ime` | The sensitive flag, the keyboard's own mark, the one-shot self-write, extras kept on Undo, the generator's flagged copy, a private copy's flag reaching the service |
+| `SelfWriteLedgerTest` | `feature/ime` | One use per token, expiry, the token cap |
+| `ClipboardDiagnosticsTest` | `feature/ime` | Every counter in the summary, counts only |
+| `KeyboardClipboardTest`, `SystemClipMatchTest` | `feature/ime` | The private copy and the clear-after-delete match, unchanged |
+| `ArchitectureTest` | `tools/architecture` | No new direct `setPrimaryClip` or `clearPrimaryClip` in `feature/ime` outside the gate |
+
+Run them with the rest of the suite:
+
+```sh
+./gradlew unitTests
+```
+
+or one module at a time:
+
+```sh
+./gradlew :app:testIntlDebugUnitTest --tests 'com.wasimaster.wmkeyboard.core.clipboard.*'
+./gradlew :core:content:testDebugUnitTest --tests 'com.wasimaster.wmkeyboard.core.clipboard.*'
+./gradlew :feature:ime:testDebugUnitTest --tests 'com.wasimaster.wmkeyboard.ime.Clipboard*'
+./gradlew :tools:architecture:test
+```

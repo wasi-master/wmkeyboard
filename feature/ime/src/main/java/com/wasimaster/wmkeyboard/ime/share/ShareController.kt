@@ -1,7 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.share
 
 import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -15,6 +14,7 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.ShareSheetSettings
 import com.wasimaster.wmkeyboard.core.share.ShareTarget
 import com.wasimaster.wmkeyboard.core.share.ShareTargets
+import com.wasimaster.wmkeyboard.ime.ClipboardWriteGate
 import com.wasimaster.wmkeyboard.ime.KeyboardClipboard
 import com.wasimaster.wmkeyboard.ime.R
 import kotlinx.coroutines.CoroutineScope
@@ -167,10 +167,7 @@ internal class ShareController(
         host.haptic()
         when {
             text != null -> KeyboardClipboard.copy(context, text)
-            uri != null -> runCatching {
-                (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-                    .setPrimaryClip(ClipData.newUri(context.contentResolver, "share", uri))
-            }
+            uri != null -> ClipboardWriteGate.writeUri(context, uri, "share")
             else -> return
         }
         host.toast(R.string.ime_share_copied_toast)

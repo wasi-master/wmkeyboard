@@ -2,7 +2,6 @@ package com.wasimaster.wmkeyboard.ime.gallery
 
 import android.content.ClipData
 import android.content.ClipDescription
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.database.ContentObserver
@@ -34,6 +33,7 @@ import com.wasimaster.wmkeyboard.core.settings.GalleryFallback
 import com.wasimaster.wmkeyboard.core.settings.GallerySettings
 import com.wasimaster.wmkeyboard.core.upscale.UpscaleKind
 import com.wasimaster.wmkeyboard.core.upscale.Upscaler
+import com.wasimaster.wmkeyboard.ime.ClipboardWriteGate
 import com.wasimaster.wmkeyboard.ime.files.FilePickRequest
 import com.wasimaster.wmkeyboard.ime.files.FilePicks
 import com.wasimaster.wmkeyboard.ime.ui.gallery.trimGalleryImageMemory
@@ -1253,9 +1253,7 @@ internal class GalleryController(
         val mimes = files.map { it.mime }.distinct().toTypedArray()
         val clip = ClipData(ClipDescription("media", mimes), ClipData.Item(uris.first()))
         uris.drop(1).forEach { clip.addItem(ClipData.Item(it)) }
-        val ok = runCatching {
-            (app.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(clip)
-        }.isSuccess
+        val ok = ClipboardWriteGate.writeClip(app, clip)
         if (ok) notice(GalleryNotice.Kind.COPIED, uris.size)
         return ok
     }

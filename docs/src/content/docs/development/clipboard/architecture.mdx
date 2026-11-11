@@ -1,0 +1,110 @@
+---
+title: "Clipboard architecture"
+description: "The clipboard write gate, the self-write ledger, the copy listener's path into the history, and the store's memory-only rule."
+sidebar:
+  label: "Architecture"
+  order: 10
+---
+
+**Scope.** How a copy gets into the history and how the keyboard writes the
+system clipboard. **Not covered:** retention and what leaves the phone, which
+are on the [data page](/development/clipboard/data-and-state/).
+
+## The write gate
+
+`ClipboardWriteGate` is the one place the keyboard calls `setPrimaryClip` or
+`clearPrimaryClip`. Tools and panels (music, Send files, share, gallery,
+kaomoji, the camera's Copy, the box's Insert), the listener's write-back of a
+tidied copy, Undo, the KDE Connect clipboard and the clears after a delete all
+go through it. `ArchitectureTest` fails a new direct call in `feature/ime`; the
+paste-next path in `holdClipForPaste` is the one place still writing directly,
+allowed by count until it moves.
+
+| Call | What it does |
+|---|---|
+| `writeText(context, text, label, sensitive, selfWrite)` | A plain-text clip |
+| `writeUri(context, uri, label, mimeType, sensitive)` | A URI clip; a blank type is asked of the resolver |
+| `writeClip(context, clip, sensitive, selfWrite)` | A prepared clip, its own extras kept |
+| `clear(context)` | `clearPrimaryClip`, or an empty clip before Android 9 |
+
+Every write gets up to three marks in `ClipDescription.extras`, merged with
+whatever extras the clip already carries:
+
+- **`android.content.extra.IS_SENSITIVE`** when the caller says the text is a
+  secret. The key string is written as a literal so it works on every release,
+  as password managers do. The password generator always sets it; the KDE
+  Connect clipboard sets it on text `ClipSensitivity` reads as a secret; the
+  listener's write-back sets it on a tidied copy that reads as one while the
+  user's handling isn't "keep"; Undo puts a clip back with the extras it came
+  with.
+- **The keyboard's own mark**, on every write. The listener uses it to tell a
+  secret the keyboard copied for the user from one a password manager copied.
+  Only the second is the manager's to wipe, so only the second leaves the
+  history when the clipboard is emptied (`forgetClearedSecret`).
+- **A self-write token** when `selfWrite` is set: a random UUID recorded in
+  `SelfWriteLedger`.
+
+A write never throws. The clipboard service can refuse one, and a copy button
+is not worth a crash; the gate returns false instead.
+
+`KeyboardClipboard.copy` is the entry point for panels that only have a
+`Context`. While the clipboard is private it keeps the copy in memory and tells
+the service through `onPrivateCopy(text, sensitive)`; otherwise it calls the
+gate.
+
+## The self-write ledger
+
+Two writes must not be filed again by the listener: a tidied copy written back
+to the system clipboard (copy rules, link cleaning) and Undo putting a deleted
+clip back. Both carry a token. The listener reads the primary clip first and
+calls `consumeSelfWrite`; a token recorded within the last five seconds is
+accepted once and removed.
+
+This replaced comparing the clipboard's text with what the keyboard had just
+written (`restoringSystemClipText`). The text comparison let a real copy of the
+same text go by when the keyboard's own write never produced a callback, and
+had nothing to compare for a picture. `holdClipForPaste` still uses the old
+field until it moves to the gate; both checks run, the token first.
+
+The ledger holds at most 64 tokens, prunes expired ones on every call, and
+never holds content.
+
+## The copy listener
+
+The listener's order is unchanged apart from the token check at its head:
+
+1. A private in-memory copy yields to the newer system clip.
+2. A self-write token is consumed and the callback ends.
+3. KDE Connect, Send files and the reply panel hear about the copy.
+4. An emptied clipboard runs `forgetClearedSecret` and ends.
+5. The gates: clipboard readable (unlocked, keyguard not showing), history on,
+   capture not paused by incognito or a password field (unless the
+   password-field copy is kept).
+6. Sensitivity: the copying app's flag, ignored under "keep"; a password-field
+   copy under "hide"; the `ClipSensitivity` heuristic when "Let the keyboard
+   find them" is on and the handling isn't "keep". Under "never save" a secret
+   ends the callback.
+7. Pictures are copied out of the provider, counted as they stream and dropped
+   past `HARD_MAX_IMAGE_BYTES`; files, folders and videos are recorded by URI;
+   text is tidied, written back if asked, and added.
+
+`ClipboardDiagnostics` counts each exit (attempts, gate drops, sensitive drops,
+self-write skips, clips stored by kind, pictures not kept) and the service
+writes the summary to the debug log when it is destroyed. Counts only: no
+text, no length, no hash.
+
+## The store
+
+`ClipboardStore` is one in-memory list, synchronized, persisted whole through
+`SnapshotFile` (atomic write through a `.part` file, ordered tickets so an
+older snapshot never lands last).
+
+The memory-only rule is a filter at save time, not a second store.
+`memoryOnlySensitive` is on while the handling is "Hide it and delete it
+quickly". `save()` then writes every clip except the unpinned sensitive ones,
+which stay in the list, in the panel and pasteable, until their short timer
+sweeps them. A pinned secret is saved: pinning is the user's explicit "keep
+this". When the flag turns on and the file still holds a secret an earlier
+version wrote, `holdsSecretsOnDisk()` tells the service to save at once. Pin,
+edit, Undo, the paste-time sweep and the clipboard-emptied rule all keep
+working on the one list.

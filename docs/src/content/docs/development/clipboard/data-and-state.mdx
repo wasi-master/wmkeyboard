@@ -1,0 +1,97 @@
+---
+title: "Clipboard data and state"
+description: "What the clipboard history keeps, where, for how long under each sensitive-clip setting, its size caps, and which of it can leave the phone."
+sidebar:
+  label: "Data and state"
+  order: 11
+---
+
+**Scope.** Where clips live, how long, and every path out of the phone.
+**Not covered:** the capture order, which is on the
+[architecture page](/development/clipboard/architecture/).
+
+## On disk
+
+| Path | What | Written by |
+|---|---|---|
+| `files/clipboard/history.json` | Every clip's record as one `{"items":[...]}` snapshot | `ClipboardStore.save()` through `SnapshotFile` |
+| `files/clipboard/history.json.part` | The next snapshot, mid-write; renamed over the file | `SnapshotFile` |
+| `files/clipboard/images/` | Copied pictures, owned by the store and deleted with their clip | The listener; the store deletes |
+
+Files, folders and videos are only a content URI in the snapshot. All of it is
+in credential-encrypted storage, so none of it is readable before the first
+unlock, and the panel reads as empty while the keyguard is showing.
+
+## Retention under each setting
+
+| Sensitive clips | A clip marked sensitive | Saved to `history.json` | Expires |
+|---|---|---|---|
+| Keep it like any other clip (default) | Never marked: the flag and the heuristic are ignored | Yes, like any clip | On the history's own expiry; never with **Expire after: never** |
+| Hide it and delete it quickly | Masked in the panel, never a strip chip | Only if pinned | After **Forget sensitive clips after** (1 to 120 minutes), or when the keyboard restarts, whichever is first |
+| Never save it | Not kept at all | No | Not applicable |
+
+Switching from "hide" back to "keep" clears every mark (`clearSensitive`), so
+clips that were hidden become ordinary ones and are saved again from the next
+save. Nothing about "keep" or "never" changed in #1215; neither default did.
+
+A clip the copying app flagged leaves the history when that app empties the
+clipboard, under every setting, unless it is pinned or something else was
+copied over it first. A clip the keyboard itself flagged (a generated
+password) does not: the keyboard's own mark tells the listener it was the
+user's copy.
+
+## Caps
+
+The user's **Longest clip kept** (off by default, 1,000 to 100,000 characters)
+and the entry cap still apply as before. Under them sit hard caps on new
+copies only:
+
+| Cap | Value | Past it |
+|---|---|---|
+| `HARD_MAX_TEXT_CHARS` | 500,000 characters | The clip is stored cut, as **Longest clip kept** cuts it |
+| `HARD_MAX_HTML_BYTES` | 1 MiB of markup | The clip is stored as plain text |
+| `HARD_MAX_IMAGE_BYTES` | 32 MiB | The picture is not kept; the partial file is deleted |
+
+A clip already in the history is never cut or removed by these: `restore()`
+loads what is there, and only `addTextual`, `editText` and the picture copy
+apply them. The system clipboard always keeps the whole copy.
+
+## What can leave the phone
+
+| Path | Carries | Never carries |
+|---|---|---|
+| Android Auto Backup, device transfer | Nothing from `files/clipboard/` | The whole folder is excluded in both rule files |
+| Settings backup, Clipboard section (off by default) | Text, rich-text and link clips | Sensitive clips, pictures, files, folders, videos |
+| Sync devices, Clipboard (off by default) | The same | The same |
+| KDE Connect clipboard sharing | Text copied on the phone | Text that reads as a secret, or anything copied in a password field or while incognito pauses the clipboard |
+
+Until #1215, Android's backup carried `history.json` and only the images were
+excluded. A backup made by such a version still holds the history. Android
+applies the exclude list when it restores too, so that history is not put
+back, and the next backup Android makes replaces the old one. The user docs
+say so on [Android's own backup](/privacy/backup/#androids-own-backup) and
+point at the settings backup and Sync as the way to move clips.
+
+### The bundle boundary
+
+A settings backup's Clipboard section, and the clipboard part of a sync, are
+raw JSON from outside. `ClipboardSyncSanitizer.sanitize` runs on export, on
+restore and on every incoming sync, before anything is written:
+
+- Only `TEXT`, `HTML` and `LINK` items that aren't marked sensitive.
+- No `imagePath`, `uriString`, `fileName`, `linkPreview`, `fileSize` or
+  `durationMs` on a text item. A crafted `imagePath` would otherwise be a path
+  the store deletes when the clip expires.
+- An `id` and a `timestamp`, numbers, and an item that decodes as a `ClipItem`
+  with the store's own settings. One bad item is dropped alone instead of
+  making the whole file unreadable.
+- One item per id; text past the hard cap cut, and its markup dropped.
+
+It does not re-read the text for a secret's shape. Under "keep", a clip that
+looks like a password is still a clip the user asked to keep, and it travels
+like one.
+
+`applySyncedClipboard` keeps the phone's own pictures, files and sensitive
+clips (`staysLocal`), takes the sanitized incoming text clips in place of the
+local ones, and renumbers any incoming id that is already taken
+(`deconflictIds`).

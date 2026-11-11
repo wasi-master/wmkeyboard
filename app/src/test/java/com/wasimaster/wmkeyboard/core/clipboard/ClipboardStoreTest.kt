@@ -605,4 +605,90 @@ class ClipboardStoreTest {
         assertNull(store.forgetCleared())
         assertEquals(listOf("Xq7!pL2#vR"), store.items(now = 2000).map { it.text })
     }
+
+    // ---- #1215: memory-only secrets under "Hide it", and the hard caps ----
+
+    private fun reloaded(file: File) = ClipboardStore(file, expiryMillis = 0, sensitiveExpiryMillis = 0)
+
+    @Test fun keepingSecretsLikeAnyOtherClipStillSavesThem() {
+        // "Keep it like any other clip" (the default) never turns
+        // memoryOnlySensitive on, so a clip marked sensitive is saved as before.
+        val file = Files.createTempFile("history", ".json").toFile()
+        val store = ClipboardStore(file, expiryMillis = 0, sensitiveExpiryMillis = 0)
+        store.add("Xq7!pL2#vR", now = 1000, sensitive = true)
+        store.add("hello", now = 2000)
+        store.save()
+        assertEquals(listOf("hello", "Xq7!pL2#vR"), reloaded(file).items(now = 3000).map { it.text })
+    }
+
+    @Test fun hiddenSecretsStayInMemoryOnly() {
+        val file = Files.createTempFile("history", ".json").toFile()
+        val store = ClipboardStore(file, expiryMillis = 0, memoryOnlySensitive = true)
+        store.add("Xq7!pL2#vR", now = 1000, sensitive = true)
+        store.add("hello", now = 2000)
+        store.save()
+        // Still in the panel and pasteable while the keyboard runs...
+        assertEquals(listOf("hello", "Xq7!pL2#vR"), store.items(now = 3000).map { it.text })
+        // ...but never in the file.
+        assertFalse(file.readText().contains("Xq7!pL2#vR"))
+        assertEquals(listOf("hello"), reloaded(file).items(now = 3000).map { it.text })
+    }
+
+    @Test fun aPinnedSecretIsStillSaved() {
+        val file = Files.createTempFile("history", ".json").toFile()
+        val store = ClipboardStore(file, expiryMillis = 0, memoryOnlySensitive = true)
+        val secret = store.add("Xq7!pL2#vR", now = 1000, sensitive = true)!!
+        store.setPinned(secret.id, true)
+        store.save()
+        assertEquals(listOf("Xq7!pL2#vR"), reloaded(file).items(now = 3000).map { it.text })
+    }
+
+    @Test fun aSecretAnOlderVersionSavedComesOffTheDisk() {
+        val file = Files.createTempFile("history", ".json").toFile()
+        file.writeText(
+            """{"items":[{"id":1,"text":"Xq7!pL2#vR","timestamp":1000,"sensitive":true},""" +
+                """{"id":2,"text":"hello","timestamp":1000}]}""",
+        )
+        val store = ClipboardStore(file, expiryMillis = 0, sensitiveExpiryMillis = 0)
+        // Nothing is lost on load: the secret is still in memory.
+        assertEquals(2, store.items(now = 2000).size)
+        assertFalse(store.holdsSecretsOnDisk())
+        store.memoryOnlySensitive = true
+        assertTrue(store.holdsSecretsOnDisk())
+        store.save()
+        assertFalse(file.readText().contains("Xq7!pL2#vR"))
+        assertEquals(2, store.items(now = 2000).size)
+    }
+
+    @Test fun aNewClipIsCutAtTheHardCapEvenWithNoLimitSet() {
+        val store = ClipboardStore(null, maxTextChars = 0)
+        val long = "a".repeat(ClipboardStore.HARD_MAX_TEXT_CHARS + 50)
+        val added = store.add(long, now = 1000)!!
+        assertEquals(ClipboardStore.HARD_MAX_TEXT_CHARS, added.text.length)
+    }
+
+    @Test fun theUsersOwnShorterLimitStillWins() {
+        val store = ClipboardStore(null, maxTextChars = 1000)
+        assertEquals(1000, store.add("b".repeat(5000), now = 1000)!!.text.length)
+        assertEquals(1000, effectiveMaxTextChars(1000))
+        assertEquals(ClipboardStore.HARD_MAX_TEXT_CHARS, effectiveMaxTextChars(0))
+        assertEquals(ClipboardStore.HARD_MAX_TEXT_CHARS, effectiveMaxTextChars(Int.MAX_VALUE))
+    }
+
+    @Test fun markupPastItsCapIsKeptAsPlainText() {
+        val store = ClipboardStore(null)
+        val html = "<b>" + "x".repeat(ClipboardStore.HARD_MAX_HTML_BYTES) + "</b>"
+        val added = store.addHtml("x", html, now = 1000)!!
+        assertEquals(ClipKind.TEXT, added.kind)
+        assertNull(added.htmlText)
+        assertEquals(ClipKind.HTML, store.addHtml("y", "<b>y</b>", now = 2000)!!.kind)
+    }
+
+    @Test fun aLongClipAlreadyInTheHistoryIsNotCutOnLoad() {
+        val file = Files.createTempFile("history", ".json").toFile()
+        val long = "c".repeat(ClipboardStore.HARD_MAX_TEXT_CHARS + 5)
+        file.writeText("""{"items":[{"id":1,"text":"$long","timestamp":1000}]}""")
+        val store = ClipboardStore(file, expiryMillis = 0)
+        assertEquals(long.length, store.items(now = 2000).single().text.length)
+    }
 }

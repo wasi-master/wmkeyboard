@@ -163,7 +163,9 @@ internal fun PasswordPanel(
 
     fun copyGenerated() {
         if (generated.isEmpty()) return
-        KeyboardClipboard.copy(context, generated, "Password")
+        // Marked a secret (#1215), so Android's copy preview hides it and a
+        // clipboard manager that reads the flag treats it as one.
+        KeyboardClipboard.copy(context, generated, "Password", sensitive = true)
         Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
     }
 

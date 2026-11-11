@@ -290,6 +290,17 @@ class ClipboardStore(
      * so the clip wears no "Rich text" tag and pastes as plain text.
      */
     var keepRichText: Boolean = true,
+    /**
+     * Whether a clip marked [ClipItem.sensitive] stays out of the file (#1215).
+     * On, an unpinned secret lives in memory only: [save] leaves it out, so
+     * it never reaches the disk or a backup, and a restart forgets it the way
+     * its short timer would have a few minutes later. The service turns it on
+     * under "Hide it and delete it quickly", the one handling that marks clips
+     * sensitive and promises to let go of them; "Keep it like any other clip"
+     * marks nothing, so nothing changes there. A pinned secret is still saved:
+     * pinning is an explicit "keep this".
+     */
+    var memoryOnlySensitive: Boolean = false,
 ) {
 
     @Serializable
@@ -320,6 +331,32 @@ class ClipboardStore(
         const val DEFAULT_EXPIRY_MILLIS = 24L * 60 * 60 * 1000 // 1 day
         const val DEFAULT_MAX_ITEMS = 100
         const val DEFAULT_SENSITIVE_EXPIRY_MILLIS = 5L * 60 * 1000 // 5 minutes
+
+        /**
+         * The most characters of text one new clip keeps, whatever
+         * [maxTextChars] says (#1215). 0 there still means "no limit of my
+         * own", but not "no limit at all": every clip is held in memory, and
+         * the whole history is encoded on every save, so one copied book
+         * would cost that on every copy after it. FUTO Keyboard ignores
+         * copies past the same length. A clip already in the history is never
+         * cut by it, and the system clipboard keeps the whole copy.
+         */
+        const val HARD_MAX_TEXT_CHARS = 500_000
+
+        /**
+         * The most bytes of rich-text markup one new clip keeps (#1215). Past
+         * it the clip is kept as plain text, as a clip cut by [maxTextChars]
+         * is, since markup is usually several times its text.
+         */
+        const val HARD_MAX_HTML_BYTES = 1_048_576
+
+        /**
+         * The largest picture the service copies into the history (#1215).
+         * The copy is counted as it streams and dropped, partial file and
+         * all, once it passes this, so a huge image cannot fill the storage
+         * one clip at a time.
+         */
+        const val HARD_MAX_IMAGE_BYTES = 32L * 1024 * 1024
 
         /**
          * How far past the clock [move] puts a clip dragged to the top of its
@@ -493,10 +530,11 @@ class ClipboardStore(
         val whole = text.trim()
         if (whole.isEmpty()) return null
         // A cut can land after a space; the clip should not end in one.
-        val trimmed = capClipText(whole, maxTextChars).trimEnd()
+        val trimmed = capClipText(whole, effectiveMaxTextChars(maxTextChars)).trimEnd()
         // Markup for the whole text would paste back what the cut dropped;
-        // and none at all when the user has asked for plain text (#414).
-        val html = html.takeIf { keepRichText && trimmed.length == whole.length }
+        // and none at all when the user has asked for plain text (#414), or
+        // when it is past the hard cap (#1215).
+        val html = html.takeIf { keepRichText && trimmed.length == whole.length && it.fitsHtmlCap() }
         val isLink = html == null && ClipLinks.asUrl(trimmed) != null
         // Re-copying an existing item moves it to the top instead of duplicating.
         val existing = items.firstOrNull { it.kind.isTextual && it.text == trimmed }
@@ -714,7 +752,7 @@ class ClipboardStore(
         if (index < 0) return null
         val item = items[index]
         if (!item.kind.isTextual) return null
-        val trimmed = capClipText(text.trim(), maxTextChars).trimEnd()
+        val trimmed = capClipText(text.trim(), effectiveMaxTextChars(maxTextChars)).trimEnd()
         if (trimmed.isEmpty()) return null
         // Saved without a change: nothing to lose, so rich text keeps its markup.
         if (trimmed == item.text) return item
@@ -852,9 +890,24 @@ class ClipboardStore(
      */
     fun save() {
         val file = snapshotFile ?: return
-        val (ticket, snapshot) = synchronized(this) { file.ticket() to Snapshot(items.toList()) }
+        val (ticket, snapshot) = synchronized(this) { file.ticket() to Snapshot(persistedItems()) }
         file.write(ticket) { json.encodeToString(snapshot) }
     }
+
+    /**
+     * The clips [save] writes: all of them, less the unpinned secrets while
+     * [memoryOnlySensitive] keeps those in memory (#1215).
+     */
+    private fun persistedItems(): List<ClipItem> =
+        if (memoryOnlySensitive) items.filter { !it.sensitive || it.pinned } else items.toList()
+
+    /**
+     * Whether the file still holds a clip [save] would now leave out, so
+     * turning [memoryOnlySensitive] on can save at once and take any secret an
+     * older version wrote off the disk, rather than at the next copy.
+     */
+    @Synchronized
+    fun holdsSecretsOnDisk(): Boolean = memoryOnlySensitive && items.any { it.sensitive && !it.pinned }
 
     private fun prune(now: Long) {
         // Sensitive clips are swept on their own shorter timer, which is not
@@ -891,6 +944,19 @@ fun ClipItem.expiresAt(expiryMillis: Long, sensitiveExpiryMillis: Long): Long? {
     val leash = if (sensitive && sensitiveExpiryMillis > 0) timestamp + sensitiveExpiryMillis else null
     return listOfNotNull(history, leash).minOrNull()
 }
+
+/**
+ * The length [ClipboardStore] cuts a new clip to: the user's own [max] when
+ * that is set and shorter, else [ClipboardStore.HARD_MAX_TEXT_CHARS] (#1215).
+ */
+fun effectiveMaxTextChars(max: Int): Int =
+    if (max > 0) minOf(max, ClipboardStore.HARD_MAX_TEXT_CHARS) else ClipboardStore.HARD_MAX_TEXT_CHARS
+
+/** Whether this markup is within [ClipboardStore.HARD_MAX_HTML_BYTES] (#1215). */
+internal fun String.fitsHtmlCap(): Boolean =
+    // A UTF-8 byte is at most four per char; most markup never needs the count.
+    length * 4L <= ClipboardStore.HARD_MAX_HTML_BYTES ||
+        toByteArray(Charsets.UTF_8).size <= ClipboardStore.HARD_MAX_HTML_BYTES
 
 /**
  * [text] cut to [max] characters, one fewer rather than splitting a surrogate

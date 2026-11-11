@@ -7,11 +7,15 @@
    has already asked for.
 
    Everything is included by default, so the entries below are the exceptions.
-   They are all size, not secrecy: Auto Backup's per-app quota is a few tens of
+   Most are size, not secrecy: Auto Backup's per-app quota is a few tens of
    megabytes, and a backup that goes over it is dropped whole. So anything the
    app can fetch again on its own — speech and language models, downloaded
    dictionaries, emoji keyword packs — stays out, along with the scratch
-   directories the camera and document scanner write into. What is left is the
+   directories the camera and document scanner write into. The clipboard
+   history is the secrecy exception (#1215): it is what was copied, passwords
+   and codes included, and it stays on the phone. The settings backup's own
+   Clipboard section is the way to carry text clips over, without the secrets.
+   What is left is the
    part that cannot be recovered from anywhere: settings, themes, layouts,
    snippets, learned words, sticker and icon packs, plugins, fonts, and the
    word lists the user imported themselves (files/dictionaries, which is not
@@ -36,8 +40,9 @@
         <!-- Scratch space for the camera and document scanner. -->
         <exclude domain="file" path="camera" />
         <exclude domain="file" path="docscan" />
-        <!-- Copied images backing clipboard entries; the text history stays. -->
-        <exclude domain="file" path="clipboard/images" />
+        <!-- Clipboard history, its images and its write sidecars: what was
+             copied stays on the phone (#1215). -->
+        <exclude domain="file" path="clipboard" />
         <!--
            The photos stickers were cut out of. The stickers themselves are
            backed up; these are the uncropped originals behind them, they are
@@ -81,7 +86,7 @@
         <exclude domain="file" path="emoji_keywords" />
         <exclude domain="file" path="camera" />
         <exclude domain="file" path="docscan" />
-        <exclude domain="file" path="clipboard/images" />
+        <exclude domain="file" path="clipboard" />
         <exclude domain="file" path="stickers/.originals" />
         <!-- The Send files tool's uploads: each link carries the file's secret and
              the owner token that can delete it. One device's business. -->

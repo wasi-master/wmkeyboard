@@ -1,0 +1,82 @@
+---
+title: "Clipboard system"
+description: "How WM Keyboard captures, stores and writes clips on top of Android's clipboard, and the security boundary around the history."
+sidebar:
+  label: "Overview"
+  order: 9
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+**Scope.** The clipboard history the keyboard keeps beside Android's own
+clipboard: capture, storage, the keyboard's writes to the system clipboard,
+backup and sync. **Not covered:** the user guide, which is
+[Clipboard manager](/tools/clipboard/).
+
+The hardening described here came from a proposal and prototype by
+[saen1a](https://github.com/saen1a) in
+[wasi-master/wmkeyboard#1215](https://github.com/wasi-master/wmkeyboard/issues/1215).
+Parts of the prototype were taken in, adapted to the current code; the
+[decisions page](/development/clipboard/decisions/) lists what was and what
+wasn't, and why.
+
+:::caution[Android owns the clipboard]
+WM Keyboard is not a clipboard provider and cannot become one. Android keeps
+the one primary clip in `system_server`. As the default input method the
+keyboard may read it when it changes and write it like any app, and it keeps a
+history of its own beside it. On Samsung phones, One UI's separate clipboard
+history is out of its reach entirely.
+:::
+
+## What it is
+
+- **A history.** `ClipboardStore` (`core/content`) keeps text, rich text,
+  links, pictures, files, folders and videos, persisted as one JSON snapshot
+  at `files/clipboard/history.json`. Pictures are copied into
+  `files/clipboard/images/`; files, folders and videos are kept by content URI
+  and stay the copying app's.
+- **A listener.** `WMKeyboardService` registers an
+  `OnPrimaryClipChangedListener` and files each copy, through the user's gates
+  (history on, not incognito-paused, not a password field unless the setting
+  says so) and the user's sensitive-clip handling.
+- **One write path.** Everything the keyboard puts on the system clipboard
+  goes through `ClipboardWriteGate` (`feature/ime`).
+- **One import boundary.** Every clipboard bundle that arrives from outside,
+  in a settings backup or a sync, goes through `ClipboardSyncSanitizer`
+  (`core/content`) before it is written.
+
+## Invariants
+
+These hold in the code today. Each one names what enforces it.
+
+| Invariant | Enforced by |
+|---|---|
+| The user's sensitive-clip handling decides what happens to a secret. "Keep it like any other clip" (the default) keeps it exactly like any other clip. | `SensitiveClipHandling`, read in the listener and in `recordPrivateCopy` |
+| Under "Hide it and delete it quickly", an unpinned secret is never written to `history.json`. | `ClipboardStore.memoryOnlySensitive`, applied in `save()` |
+| No existing clip is cut or dropped by an update: caps apply to new copies only. | `ClipboardStore.addTextual`, `editText`; restore never caps |
+| Every keyboard write that needs Android's sensitive flag gets it. | `ClipboardWriteGate.writeText`/`writeClip` with `sensitive = true` |
+| A write the listener must not file again is recognised by a token, not by its text. | `SelfWriteLedger`, `ClipboardWriteGate.consumeSelfWrite` |
+| A crafted or damaged bundle cannot delete a file, inject a non-text clip, duplicate an id, or make the whole history unreadable. | `ClipboardSyncSanitizer.sanitize`, `deconflictIds` |
+| Android Auto Backup and device transfer never see the clipboard folder. | `data_extraction_rules.xml`, `backup_rules.xml`, `ClipboardBackupRulesTest` |
+| Diagnostics never carry clip content. | `ClipboardDiagnostics`, counters only |
+
+## Where the code is
+
+| File | Module | Role |
+|---|---|---|
+| `ClipboardStore.kt` | `core/content` | The history, its caps and the memory-only rule |
+| `ClipboardSyncSanitizer.kt` | `core/content` | The raw-JSON boundary for backup and sync bundles |
+| `ClipSensitivity.kt` | `core/content` | The "looks like a password or a code" heuristic |
+| `ClipboardWriteGate.kt` | `feature/ime` | Every keyboard write to the system clipboard |
+| `SelfWriteLedger.kt` | `feature/ime` | One-shot tokens for writes the listener skips |
+| `ClipboardDiagnostics.kt` | `feature/ime` | Content-free capture counters |
+| `KeyboardClipboard.kt` | `feature/ime` | The private in-memory copy (incognito, private copies) |
+| `WMKeyboardService.kt` | `feature/ime` | The listener, `recordPrivateCopy`, `configureClipboardStore` |
+| `SettingsRepository.kt` | `core/settings` | `portableClipboard`, `applySyncedClipboard`, the backup restore |
+
+<CardGrid>
+	<LinkCard title="Architecture" href="/development/clipboard/architecture/" description="The write gate, the self-write ledger, the listener and the store." />
+	<LinkCard title="Data and state" href="/development/clipboard/data-and-state/" description="What is kept where, for how long, and what leaves the phone." />
+	<LinkCard title="Decisions" href="/development/clipboard/decisions/" description="What was taken from the #1215 prototype, what was not, and why." />
+	<LinkCard title="Testing" href="/development/clipboard/testing/" description="The tests that hold the invariants above." />
+</CardGrid>

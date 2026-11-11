@@ -2,8 +2,6 @@ package com.wasimaster.wmkeyboard.ime.music
 
 import android.Manifest
 import android.content.ActivityNotFoundException
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -34,6 +32,7 @@ import com.wasimaster.wmkeyboard.core.settings.MeteredFeature
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.core.voice.MicBlockWatcher
 import com.wasimaster.wmkeyboard.core.voice.WhisperRecorder
+import com.wasimaster.wmkeyboard.ime.ClipboardWriteGate
 import com.wasimaster.wmkeyboard.ime.R
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
@@ -431,10 +430,7 @@ internal class MusicController(
         val s = settings().music
         val text = MusicTextFormats.render(match, s.textFormat, s.openLink)
         haptic()
-        runCatching {
-            (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-                .setPrimaryClip(ClipData.newPlainText("song", text))
-        }
+        ClipboardWriteGate.writeText(context, text, "song")
         _state.update { it.copy(notice = context.getString(R.string.ime_music_copied)) }
     }
 

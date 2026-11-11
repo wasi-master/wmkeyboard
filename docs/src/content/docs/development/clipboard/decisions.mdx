@@ -1,0 +1,89 @@
+---
+title: "Clipboard decisions"
+description: "Why the clipboard hardening from #1215 looks the way it does: what was taken from the prototype, what was adapted, and what was left out."
+sidebar:
+  label: "Decisions"
+  order: 12
+---
+
+**Scope.** The choices behind the
+[#1215](https://github.com/wasi-master/wmkeyboard/issues/1215) hardening that
+a later change could undo without seeing why. The proposal and the prototype
+branch (`saen1a/wmkeyboard`, branch `clipboard`) are saen1a's; this page
+records how they were brought onto the current code.
+
+## 1. The user's existing choices win
+
+**Context.** The prototype made "Never save it" the default and turned "Keep
+it like any other clip" into memory-only retention. Users have histories set
+to never expire with secrets kept on purpose, and one has already lost a
+history to an update once.
+
+**Decision.** No default changed and no handling changed meaning. "Keep"
+keeps sensitive clips in the saved history exactly as before. Memory-only
+applies only under "Hide it and delete it quickly", the setting that already
+promised to let go of secrets within minutes. Caps apply to new copies only.
+
+**Consequence.** A secret is only as protected as the user's setting asks. The
+protections that cost a user nothing (the write gate's flag, the backup
+exclusion, the sanitizer) apply to everyone.
+
+## 2. Memory-only is a save filter, not a second store
+
+**Context.** The prototype added `SecretMemoryStore`, a separate list for
+secrets merged into the panel's.
+
+**Decision.** One list, and `save()` leaves out unpinned sensitive clips while
+`memoryOnlySensitive` is on. Pin, edit, drag, Undo, the paste-time sweep and
+the clipboard-emptied rule all work on that one list; a second store would
+have needed each of them taught twice.
+
+**Consequence.** A pinned secret is still saved, which is what pinning means
+everywhere else. A restart forgets an unpinned hidden secret a few minutes
+early.
+
+## 3. The whole clipboard folder is out of Android's backup
+
+**Context.** Android Auto Backup carried `history.json` and left out only the
+images. Backups are made only with **Back up with Android** on (off by
+default) and only where the backup can be encrypted under the screen lock, but
+the history is the one file whose content is whatever was copied.
+
+**Decision.** Exclude `clipboard` in both `data_extraction_rules.xml` and
+`backup_rules.xml`, which covers the snapshot, its `.part` file and the
+images. Normal clips move between phones through the settings backup and Sync,
+which carry text clips without secrets.
+
+**Consequence.** A user relying on Android's backup for clipboard history
+loses that path, and an old backup's history is not restored. The user docs
+say so and name the two paths that still work.
+
+## 4. Tokens, not text, for the keyboard's own writes
+
+**Decision.** Writes the listener must skip carry a one-shot token from
+`SelfWriteLedger` (from the prototype). Every gate write is also marked as the
+keyboard's own, an addition here: it keeps a generated password, flagged for
+Android's copy preview, from being taken out of a "keep" history when some app
+empties the clipboard later.
+
+## 5. The sanitizer does not read for secrets
+
+**Context.** The prototype also dropped any bundle item `ClipSensitivity`
+reads as a secret.
+
+**Decision.** Not taken. Under "keep" those clips are ordinary clips by the
+user's choice, and dropping them from a backup would lose them on restore. The
+sanitizer drops what the export already dropped (sensitive, non-text) and what
+is malformed or dangerous; over-long text is cut rather than dropped.
+
+## Left out, for now
+
+| From the prototype | Why not here |
+|---|---|
+| "Never save it" as the default | User choice and defaults stay as they are (1) |
+| Memory-only under "keep" | Same |
+| `FLAG_SECURE` on password fields, incognito and secret panels | A screen-capture change beyond the clipboard, with device evidence still open in #1215 |
+| `ClipboardClassifier`, `ClipboardPolicy`, an off-main capture pipeline | A larger refactor of the listener than this change needed |
+| Path-level writer lock between the IME and settings | Separate concurrency work |
+| A total snapshot byte cap with eviction | It would delete existing clips |
+| Inline-autofill counters, emulator autofill harness, fake provider | Not clipboard storage; the API 36 inline test is still blocked upstream |

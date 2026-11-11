@@ -406,13 +406,25 @@ sticker and icon packs, and plugins on a new device or after a reinstall.
 A few things are always left out of an Android backup, regardless of the
 toggle. They're large, and the keyboard can fetch them again: on-device
 speech and AI models, downloaded dictionaries, emoji keyword packs, and the
-scratch files the camera and document scanner write while you're using them. Clipboard images are excluded too, though the clip text itself
-travels. So are the photos your own stickers were cut out of, which the
+scratch files the camera and document scanner write while you're using them.
+So are the photos your own stickers were cut out of, which the
 [sticker editor](/emoji/stickers/#the-sticker-editor) keeps on the phone so
 you can edit a sticker again later. The stickers themselves still travel.
 None of this is a secrecy decision. It's Android's own backup quota, which is
 only a few tens of megabytes per app and drops the whole backup if you exceed
 it.
+
+The clipboard history is the one thing left out for privacy. It's whatever
+you copied, passwords and codes included, so neither its text nor its
+pictures go into an Android backup or a phone-to-phone transfer. Earlier
+versions sent the text clips along. Android applies the same list when it
+restores, so the history inside a backup made by one of those versions
+isn't put back either, and the next backup Android makes replaces it with
+one that has no clipboard at all. Your history on the phone itself is
+untouched. To take your clips to another phone, tick **Clipboard** when you
+[export a config file](#exporting-a-config-file), or turn it on under **What
+syncs** in [Sync between devices](#sync-between-devices). Both carry your
+pinned and recent text clips, and leave sensitive ones behind.
 
 Two more conditions apply only to this path, not to a manual `.wmconfig.json`
 export:
