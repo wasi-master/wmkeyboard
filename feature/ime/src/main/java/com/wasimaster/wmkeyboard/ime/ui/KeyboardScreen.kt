@@ -16060,7 +16060,9 @@ private fun KeyboardBody(
         // Names the scope a tool drag lands in — a mode's own arrangement or
         // the one shared by every app. It never clashes with the picker overlay
         // below: a picker cannot be armed mid-drag.
-        if (drag.dragging != null) {
+        // Not inside an open folder (#1216): the folder's header is where a
+        // tool is dropped to take it out, and the pill sat over its words.
+        if (drag.dragging != null && !(state.panel == PanelMode.TOOLBOX && state.toolboxView.folderOpen != null)) {
             DragScopeLabel(
                 state = state,
                 drag = drag,
