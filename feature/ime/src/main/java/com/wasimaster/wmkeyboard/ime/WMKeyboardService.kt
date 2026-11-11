@@ -30496,6 +30496,12 @@ open class WMKeyboardService : InputMethodService() {
         lastHandAdjustment = learnHand(stroke.points, stroke.keys, stroke.keyWidthPx, word)
         stroke.shape?.let { learningBuffer.attachGlide(word, it) }
         noteGlidePreference(rejected = undone.rejected, chosen = word)
+        // Taught by now (#1051): the stroke's shape goes to the shape store at
+        // once rather than when the word settles, which was not before the
+        // keyboard closed, so the very next glide reads the word.
+        if (swipeStyleLearning && glideOutcomes.isTaught(undone.rejected, word)) {
+            stroke.shape?.let { glideShapes.learn(it, word) }
+        }
     }
 
     private var cachedShapeKeyKeys: List<KeyCenter>? = null

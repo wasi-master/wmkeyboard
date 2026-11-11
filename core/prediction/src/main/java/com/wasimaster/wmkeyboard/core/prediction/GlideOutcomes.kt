@@ -180,6 +180,14 @@ class GlideOutcomes(private val storageFile: File?) {
     @Synchronized
     fun isEmpty(): Boolean = pairs.isEmpty() && undone.isEmpty()
 
+    /** Whether [rejected] → [chosen] has been corrected often enough to be taught ([TAUGHT_STRENGTH]). */
+    @Synchronized
+    fun isTaught(rejected: String, chosen: String): Boolean {
+        val r = keyOf(rejected) ?: return false
+        val c = keyOf(chosen) ?: return false
+        return effective(pairs[PairKey(r, c)]) >= TAUGHT_STRENGTH
+    }
+
     fun save() {
         val file = snapshotFile ?: return
         val (ticket, snapshot) = synchronized(this) {
