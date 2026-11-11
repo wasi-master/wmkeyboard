@@ -330,4 +330,6 @@
     <string name="ime_disabled_spell_unchanged">Change the spelling first. An empty or unchanged spelling has nothing to apply.</string>
     <string name="ime_disabled_clip_tidy">Select a text clip first. Tidy works on text, not on images.</string>
     <string name="ime_disabled_clip_combine">Select two or more text clips to combine them.</string>
+    <string name="ime_service_privacy_shade_floating_toast">The privacy shade works with the docked keyboard. Dock the keyboard first.</string>
+    <string name="ime_privacy_shade_hint">Drag the handle up to see the last lines</string>
 </resources>

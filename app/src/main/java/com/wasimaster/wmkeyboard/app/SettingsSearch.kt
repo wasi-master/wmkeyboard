@@ -1683,6 +1683,14 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.FLASHLIGHT, R.string.tooldetail_flashlight_auto_off_title, R.string.tooldetail_flashlight_auto_off_subtitle),
     // Subtitle left off: the drawn one says whether the service is on.
     toolEntry(ToolbarTool.SCREENSHOT, R.string.tooldetail_screenshot_service_title),
+    toolEntry(ToolbarTool.PRIVACY_SHADE, R.string.tooldetail_privacy_shade_on_title, R.string.tooldetail_privacy_shade_on_subtitle),
+    toolEntry(ToolbarTool.PRIVACY_SHADE, R.string.tooldetail_privacy_shade_style_title),
+    toolEntry(
+        ToolbarTool.PRIVACY_SHADE,
+        R.string.tooldetail_privacy_shade_opacity_title,
+        R.string.tooldetail_privacy_shade_opacity_subtitle,
+    ),
+    toolEntry(ToolbarTool.PRIVACY_SHADE, R.string.tooldetail_privacy_shade_touch_title),
     toolEntry(ToolbarTool.COMPASS, R.string.tooldetail_compass_degrees_title, R.string.tooldetail_compass_degrees_subtitle),
     toolEntry(ToolbarTool.COMPASS, R.string.tooldetail_compass_qibla_title, R.string.tooldetail_compass_qibla_subtitle),
     toolEntry(ToolbarTool.LEVEL, R.string.tooldetail_level_angles_title, R.string.tooldetail_level_angles_subtitle),

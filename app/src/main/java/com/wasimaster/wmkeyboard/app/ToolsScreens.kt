@@ -99,6 +99,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.RECENT_COPIES -> ImeR.string.ime_tool_recent_copies
     ToolbarTool.LEAVE_FIELD -> ImeR.string.ime_tool_leave_field
     ToolbarTool.SCREENSHOT -> ImeR.string.ime_tool_screenshot
+    ToolbarTool.PRIVACY_SHADE -> ImeR.string.ime_tool_privacy_shade
     ToolbarTool.QUICK_NOTE -> ImeR.string.ime_tool_quick_note
     ToolbarTool.EMOJI_MIX -> ImeR.string.ime_tool_emoji_mix
     ToolbarTool.READ_BACK -> ImeR.string.ime_tool_read_back
@@ -201,6 +202,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.RECENT_COPIES -> R.string.fonts_tool_recent_copies_desc
     ToolbarTool.LEAVE_FIELD -> R.string.fonts_tool_leave_field_desc
     ToolbarTool.SCREENSHOT -> R.string.fonts_tool_screenshot_desc
+    ToolbarTool.PRIVACY_SHADE -> R.string.fonts_tool_privacy_shade_desc
     ToolbarTool.QUICK_NOTE -> R.string.fonts_tool_quick_note_desc
     ToolbarTool.EMOJI_MIX -> R.string.fonts_tool_emoji_mix_desc
     ToolbarTool.READ_BACK -> R.string.fonts_tool_read_back_desc
@@ -705,7 +707,8 @@ private fun buildToolGroups(splitPanels: Boolean): List<Pair<Int, List<ToolbarTo
             ToolbarTool.UNDO, ToolbarTool.REDO,
             ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
             ToolbarTool.AUTOCORRECT, ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH,
-            ToolbarTool.LANGUAGE, ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.INCOGNITO, ToolbarTool.SOUND_HAPTICS,
+            ToolbarTool.LANGUAGE, ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.INCOGNITO, ToolbarTool.PRIVACY_SHADE,
+            ToolbarTool.SOUND_HAPTICS,
             ToolbarTool.THEMES, ToolbarTool.POWER_SAVING, ToolbarTool.SETTINGS, ToolbarTool.STATISTICS,
         ),
     )

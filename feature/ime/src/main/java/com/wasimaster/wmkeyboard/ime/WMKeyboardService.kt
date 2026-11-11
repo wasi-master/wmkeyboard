@@ -5291,6 +5291,7 @@ open class WMKeyboardService : InputMethodService() {
                 if (userUnlocked && stored !== lockedStoredSettings) clipboardLimitsKnown = true
                 lastStoredSettings = stored
                 applySettingSwitches(settings)
+                updatePrivacyShade(settings)
                 // The platform personal dictionary as a known-word source
                 // (#45): the reload reads the setting, so one call serves
                 // both directions. Compared against what the last read ran
@@ -6940,6 +6941,42 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var windowHeadroomPx = 0
 
+    /**
+     * The cover over the app above the board (#1242). Its touchable strip
+     * moves as it is dragged, so a move asks for the insets again.
+     */
+    private val privacyShade = PrivacyShade(this) { window?.window?.decorView?.requestLayout() }.also { shade ->
+        shade.onClose = { serviceScope.launch { settingsRepository.setPrivacyShadeOn(false) } }
+    }
+
+    /**
+     * Shows or hides the privacy shade for [settings]. Only docked, and only
+     * in a window the platform has not sized itself (fullscreen extract
+     * mode, candidates only), where the band above the board is ours.
+     */
+    private fun updatePrivacyShade(settings: KeyboardSettings) {
+        val win = window?.window
+        val attached = win != null && privacyShade.attach(win)
+        val drawable = attached && !imeWindowPlatformSized && !isFullscreenMode &&
+            !settings.floatingFor(landscapeNow())
+        privacyShade.update(settings.privacyShade, drawable)
+        // A glass theme's blur keeps the window as tall as the keyboard; the
+        // shade needs the whole height, so it wins while it is up.
+        win?.let(::fitImeWindowHeight)
+    }
+
+    /** The Privacy shade tool: up or down. Floating, there is no band above the board to cover. */
+    private fun onPrivacyShadeToggle() {
+        vibrate()
+        val settings = _uiState.value.settings
+        val next = !settings.privacyShade.on
+        if (next && settings.floatingFor(landscapeNow())) {
+            Toast.makeText(this, getString(R.string.ime_service_privacy_shade_floating_toast), Toast.LENGTH_SHORT).show()
+            return
+        }
+        serviceScope.launch { settingsRepository.setPrivacyShadeOn(next) }
+    }
+
     fun onWindowHeadroom(px: Int) {
         if (px == windowHeadroomPx) return
         windowHeadroomPx = px
@@ -7144,6 +7181,22 @@ open class WMKeyboardService : InputMethodService() {
                 outInsets.visibleTopInsets += headroom
             }
             boardTopInWindow = outInsets.visibleTopInsets
+            privacyShade.setBoardTop(outInsets.visibleTopInsets)
+            // The shade's handle and close button are the keyboard's, over
+            // the app; the rest of the shade passes touches through to it,
+            // unless the shade is set to take them (#1242).
+            if (privacyShade.showing && !_uiState.value.resize) {
+                if (privacyShade.takesTouches) {
+                    outInsets.touchableInsets = Insets.TOUCHABLE_INSETS_FRAME
+                } else {
+                    val decor = window?.window?.decorView
+                    if (decor != null) {
+                        outInsets.touchableInsets = Insets.TOUCHABLE_INSETS_REGION
+                        outInsets.touchableRegion.set(0, outInsets.visibleTopInsets, decor.width, decor.height)
+                        privacyShade.touchRegion(outInsets.touchableRegion)
+                    }
+                }
+            }
             boardTopOnScreen()?.let {
                 noteBoardTop(it)
                 noteBoardGrowth(it)
@@ -7249,6 +7302,7 @@ open class WMKeyboardService : InputMethodService() {
             super.onConfigureWindow(win, isFullscreen, isCandidatesOnly)
             imeWindowPlatformSized = isFullscreen || isCandidatesOnly
             if (!imeWindowPlatformSized) fitImeWindowHeight(win)
+            if (::settingsRepository.isInitialized) updatePrivacyShade(_uiState.value.settings)
         } catch (detached: IllegalArgumentException) {
             DebugLog.w("ime", "IME window not attached while configuring it: ${detached.message}")
         }
@@ -7265,7 +7319,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun fitImeWindowHeight(win: android.view.Window) {
         if (imeWindowPlatformSized) return
         try {
-            val height = if (windowBlurring) {
+            val height = if (windowBlurring && !privacyShade.showing) {
                 android.view.ViewGroup.LayoutParams.WRAP_CONTENT
             } else if (boardAtWindowBottom(win)) {
                 android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -10147,6 +10201,8 @@ open class WMKeyboardService : InputMethodService() {
      */
     override fun onWindowShown() {
         super.onWindowShown()
+        // Every show starts fully covered: the last peek was for the last field.
+        privacyShade.coverAll()
         onScreenAgain()
         onKeyguardGone()
         lifecycleOwner.onResume()
@@ -33695,6 +33751,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.RECENT_COPIES -> onRecentClipsToggle()
             ToolbarTool.LEAVE_FIELD -> onLeaveField()
             ToolbarTool.SCREENSHOT -> takeScreenshot()
+            ToolbarTool.PRIVACY_SHADE -> onPrivacyShadeToggle()
             ToolbarTool.QUICK_NOTE -> onQuickNote()
             ToolbarTool.READ_BACK -> toggleReadBack()
 

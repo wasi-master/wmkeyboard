@@ -52,7 +52,7 @@ Tools are grouped by what they do, in this order. Each group starts folded shut,
 | Create and convert | Special symbols, Calculator, Unit converter, QR code generator, Password generator, Text repeat, Read back, Typing speed test |
 | Keyboard modes | Keyboard modes, One-handed mode, Split keyboard, Floating keyboard, Keep on screen, Resize |
 | Cursor | The twelve one-tap cursor moves, Selection mode, plus Hide keyboard |
-| Quick actions | Undo, Redo, Copy, Cut, Paste, Autocorrect, Selection actions, English words, Switch language, Fancy text, Secondary layout, Incognito, Sound & haptics, Themes, Power saving, Settings shortcut, Statistics |
+| Quick actions | Undo, Redo, Copy, Cut, Paste, Autocorrect, Selection actions, English words, Switch language, Fancy text, Secondary layout, Incognito, Privacy shade, Sound & haptics, Themes, Power saving, Settings shortcut, Statistics |
 | Utilities | Flashlight, Screenshot, Compass, Bubble level, Calendar, Clock, Weather, Location, Moon phase, Plugins |
 
 Panels is the longest group by far. If twenty rows are too many to scan, turn on **Split the Panels group**, the switch just above the groups. It's off by default. On, Panels gives way to two groups in the same place: **Writing** holds Emoji, Clipboard, Snippets, Notes, Text editing, Trackpad, Numpad, Handwriting, Voice typing, Dictionary, Vocabulary, Learn from text, Find & replace and Grammar check, and **Connect and media** holds Camera, Gallery, App launcher, Media controls, Music ID, KDE Connect and Send files. Each of the two remembers whether you left it open, separately from Panels. The switch only changes this screen: the tool pickers elsewhere in settings, such as the floating button's, keep the one Panels group.
@@ -170,12 +170,13 @@ Every tool is documented somewhere outside this reference page, so use this tabl
 | [Grammar](/smart/grammar/) | Grammar check |
 | [Themes overview](/themes/overview/) | Themes |
 | [Incognito & secure fields](/privacy/incognito/) | Incognito |
+| [Privacy shade](/privacy/privacy-shade/) | Privacy shade |
 
 **Settings** (the shortcut tool) has no guide page of its own. It opens this settings app and does nothing else.
 
 ## Details & edge cases
 
-- **Setup decides what starts enabled, not the shipped default.** The shipped default is all 86 tools on, but you only ever see it after a settings reset. The [setup wizard](/start/setup/) overwrites it the moment you answer its "how much keyboard do you want" question: 8 tools for "keep it simple", 22 for the middle answer, 43 for "show me everything", or all 86 if you tap **Everything** on its Tools page. Answering "extra strict" on privacy adds Incognito. A set that loses tools this build or device can't run (grammar, handwriting, the scanners) gets Wikipedia and Power saving in their place, so the exact count moves a little. The wizard only writes over an untouched default, so a reinstall with your settings intact keeps your selection.
+- **Setup decides what starts enabled, not the shipped default.** The shipped default is all 87 tools on, but you only ever see it after a settings reset. The [setup wizard](/start/setup/) overwrites it the moment you answer its "how much keyboard do you want" question: 8 tools for "keep it simple", 22 for the middle answer, 43 for "show me everything", or all 87 if you tap **Everything** on its Tools page. Answering "extra strict" on privacy adds Incognito. A set that loses tools this build or device can't run (grammar, handwriting, the scanners) gets Wikipedia and Power saving in their place, so the exact count moves a little. The wizard only writes over an untouched default, so a reinstall with your settings intact keeps your selection.
 - **Disabling a tool is one switch, not three.** The tool disappears from the toolbar, the toolbox, and its hardware leader-key letter at the same moment. The one piece you can drop on its own is the toolbox: **Show in toolbox** on the tool's own screen takes it out of the grid and leaves it working everywhere else.
 - **Folders and the toolbox search live on the keyboard.** Neither has a switch here. You make a folder by dropping one tool on the middle of another in the toolbox, and the magnifier at the top of the toolbox searches it by name. See [Folders](/tools/overview/#folders) and [Searching the toolbox](/tools/overview/#searching-the-toolbox). Folders are part of a settings backup.
 - **A tool hidden from the toolbox can still be pinned.** If it is already on the toolbar it stays there. Drag it off the bar and it unpins without landing in the grid, since the grid no longer takes it; turn **Show in toolbox** back on to see it there again.

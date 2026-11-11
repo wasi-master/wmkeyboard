@@ -27,6 +27,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.app.media.MusicApps
 import com.wasimaster.wmkeyboard.app.launcher.LauncherCombos
 import com.wasimaster.wmkeyboard.core.settings.SearchResultTap
+import com.wasimaster.wmkeyboard.core.settings.PrivacyShadeSettings
+import com.wasimaster.wmkeyboard.core.settings.PrivacyShadeStyle
 import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
 import com.wasimaster.wmkeyboard.core.settings.MAX_SEARCH_RESULTS
 import com.wasimaster.wmkeyboard.ime.AppLaunchModes
@@ -1747,6 +1749,56 @@ internal fun ToolDetailSettings(
                         route = "privacy",
                         onClick = { onNavigate("privacy") },
                     )
+                }
+            }
+        }
+        // The cover over the app above the keys (#1242). Up and down is the
+        // tool's own tap; this page is how it looks and what it does with touches.
+        ToolbarTool.PRIVACY_SHADE -> {
+            SettingsGroup(stringResource(R.string.tooldetail_privacy_shade_group)) {
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_privacy_shade_on_title,
+                        stringResource(R.string.tooldetail_privacy_shade_on_subtitle),
+                        settings.watch { it.privacyShade.on },
+                    ) { scope.launch { repository.setPrivacyShadeOn(it) } }
+                }
+                item {
+                    ChoiceSetting(
+                        R.string.tooldetail_privacy_shade_style_title,
+                        options = listOf(
+                            PrivacyShadeStyle.DARK to stringResource(R.string.tooldetail_privacy_shade_style_dark),
+                            PrivacyShadeStyle.GREY to stringResource(R.string.tooldetail_privacy_shade_style_grey),
+                            PrivacyShadeStyle.LIGHT to stringResource(R.string.tooldetail_privacy_shade_style_light),
+                            PrivacyShadeStyle.WARM to stringResource(R.string.tooldetail_privacy_shade_style_warm),
+                        ),
+                        selected = settings.watch { it.privacyShade.style },
+                        default = SettingsDefaults.privacyShade.style,
+                    ) { scope.launch { repository.setPrivacyShadeStyle(it) } }
+                }
+                item {
+                    SliderSetting(
+                        R.string.tooldetail_privacy_shade_opacity_title,
+                        subtitle = stringResource(R.string.tooldetail_privacy_shade_opacity_subtitle),
+                        value = settings.watch { it.privacyShade.opacity } * 100f,
+                        range = PrivacyShadeSettings.MIN_OPACITY * 100f..100f,
+                        display = { percentFormat.format(it.toInt()) },
+                        default = SettingsDefaults.privacyShade.opacity * 100f,
+                    ) { scope.launch { repository.setPrivacyShadeOpacity(it / 100f) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_privacy_shade_touch_title,
+                        stringResource(
+                            if (settings.watch { it.privacyShade.touchThrough }) {
+                                R.string.tooldetail_privacy_shade_touch_on_subtitle
+                            } else {
+                                R.string.tooldetail_privacy_shade_touch_off_subtitle
+                            },
+                        ),
+                        settings.watch { it.privacyShade.touchThrough },
+                        default = SettingsDefaults.privacyShade.touchThrough,
+                    ) { scope.launch { repository.setPrivacyShadeTouchThrough(it) } }
                 }
             }
         }

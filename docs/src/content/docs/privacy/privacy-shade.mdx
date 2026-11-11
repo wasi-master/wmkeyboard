@@ -1,0 +1,50 @@
+---
+title: "Privacy shade"
+description: "Cover the chat above the keyboard so the person beside you cannot read it, and drag the cover's edge up to see the last lines."
+sidebar:
+  order: 2
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+The privacy shade covers the app above the keyboard while you type, so the conversation can't be read over your shoulder on a bus or in a queue. The keys stay as they are. Drag the cover's edge up when you want to see the last few messages, and back down to hide them again.
+
+## Turning the shade on
+
+Tap the **Privacy shade** tool in the toolbox, or pin it to the toolbar. The tool lights up while the shade is up, and a second tap takes it down. The **Show the shade** switch on <SettingsPath path="Tools / Privacy shade" /> does the same.
+
+The shade stays up from one field to the next, and after the keyboard restarts, until you take it down. It goes away with the keyboard and comes back with it.
+
+## Peeking under it
+
+A handle sits on the cover's lower edge, just above the keys, with a close button beside it.
+
+- **Drag the handle up** to uncover the lines just above the keyboard, which is where a chat app puts its newest messages. Drag it back down to cover them. The cover always keeps at least a thin band at the top.
+- **Tap the handle** to cover everything again.
+- **Tap the close button** to take the shade down.
+
+Each time the keyboard comes up, the shade starts fully covered, whatever you uncovered last time.
+
+## Options
+
+<SettingsPath path="Tools / Privacy shade" />
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| Show the shade | Off | Up or down, the same as the tool's button |
+| Colour | Dark | Dark, Grey, Light or Warm |
+| Opacity | 94% | From 50% to 100%. Just under solid by default, so you can make out your own messages up close while someone a seat away can't. 100% hides everything |
+| Touch the app through the shade | On | On, taps and scrolls on the shade reach the app under it, so you can still scroll the chat. Off, the shade takes them, and holding a finger on it lifts it until you let go |
+
+## Details & edge cases
+
+- **No permission to draw over other apps.** The shade is drawn inside the keyboard's own window, which already reaches the top of the screen, so it needs nothing beyond what a keyboard has.
+- **Docked keyboard only.** The floating keyboard has no edge for the shade to hang from, so the tool says "The privacy shade works with the docked keyboard" and does nothing until you dock it. In landscape, when an app gives the keyboard the whole screen for its own text box, there is no app showing to cover and no shade is drawn.
+- **The keys' pop-ups still show.** The bubble above a key you press is drawn over the shade.
+- **A glass theme.** A theme that blurs the app behind the keyboard normally keeps the keyboard's window as short as the keys. While the shade is up the window takes the whole height again, so the app is blurred under the shade too.
+- **Not a screen lock.** The shade covers the screen only while the keyboard is up. It doesn't stop a screenshot, and it doesn't hide notifications.
+- **Not in restore points.** Whether the shade is up isn't part of a restore point or an undo, and it doesn't sync to your other devices. Its colour, opacity and touch setting are ordinary settings and are.
+
+## Related pages
+
+- [Incognito & secure fields](/privacy/incognito/): stopping the keyboard from learning what you type.

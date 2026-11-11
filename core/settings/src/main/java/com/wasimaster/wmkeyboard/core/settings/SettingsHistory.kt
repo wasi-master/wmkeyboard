@@ -327,6 +327,14 @@ class SettingsHistory internal constructor(
         const val ENABLED_KEY = "settings_history_enabled"
 
         /**
+         * Whether the privacy shade is up. A setting so it survives a
+         * restart, but a switch pressed from the keys many times a day, and
+         * a restore point that dropped the shade would show the very screen
+         * it was put up to hide.
+         */
+        const val PRIVACY_SHADE_ON_KEY = "privacy_shade_on"
+
+        /**
          * Keys that describe the store's own state rather than a choice:
          * signals the keyboard bumps to reload something, recents, the tab a
          * panel was left on, one-time progress, and where a tool last was.
@@ -334,7 +342,7 @@ class SettingsHistory internal constructor(
          * the keyboard back through its first run.
          */
         private val STATE_KEYS = setOf(
-            ENABLED_KEY,
+            ENABLED_KEY, PRIVACY_SHADE_ON_KEY,
             "active_layout_id", "input_mode", "incognito", "data_saver_manual", "power_saving_manual",
             "recent_layout_ids", "globe_recent_order", "symbol_recents", "unit_convert_last",
             "photo_rotation_state", "auto_theme_shuffled_at", "auto_theme_shuffled_at_elapsed",

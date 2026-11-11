@@ -35,6 +35,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronLeft
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Blinds
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCut
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
@@ -143,6 +144,7 @@ object IconDefaults {
         ToolbarTool.RECENT_COPIES -> Icons.Outlined.History
         ToolbarTool.LEAVE_FIELD -> Icons.Outlined.Close
         ToolbarTool.SCREENSHOT -> Icons.Outlined.Screenshot
+        ToolbarTool.PRIVACY_SHADE -> Icons.Outlined.Blinds
         ToolbarTool.QUICK_NOTE -> Icons.Outlined.EditNote
         ToolbarTool.SNIPPETS -> Icons.AutoMirrored.Outlined.TextSnippet
         ToolbarTool.TEXT_EDIT -> Icons.Outlined.EditNote

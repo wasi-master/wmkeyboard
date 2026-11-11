@@ -40,7 +40,7 @@ object SyncKeys {
         "share_sheet_pinned", "share_sheet_recents",
         "launcher_folders",
         // Current state rather than a choice.
-        "active_layout_id", "input_mode", "incognito", "data_saver_manual", "power_saving_manual",
+        "active_layout_id", "input_mode", "incognito", "privacy_shade_on", "data_saver_manual", "power_saving_manual",
         "recent_layout_ids", "globe_recent_order", "symbol_recents", "unit_convert_last",
         "photo_rotation_state", "auto_theme_shuffled_at", "auto_theme_shuffled_at_elapsed",
         "auto_theme_shuffle_light_id", "auto_theme_shuffle_dark_id", "advanced_open",

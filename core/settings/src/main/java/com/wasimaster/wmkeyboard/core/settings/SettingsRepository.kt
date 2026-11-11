@@ -3998,6 +3998,8 @@ data class KeyboardSettings(
     val music: MusicSettings = MusicSettings(),
     /** The network activity log's two switches (see [NetworkLogSettings]). */
     val networkLog: NetworkLogSettings = NetworkLogSettings(),
+    /** The cover over the app above the keyboard (#1242; see [PrivacyShadeSettings]). */
+    val privacyShade: PrivacyShadeSettings = PrivacyShadeSettings(),
     /**
      * Hold downloaded and imported files to the SHA-256 they were published
      * with. An emergency escape hatch only; see [IntegrityChecks].
@@ -12399,6 +12401,10 @@ class SettingsRepository(private val context: Context) {
         private val NETWORK_LOG_ON_KEYBOARD = booleanPreferencesKey("network_log_on_keyboard")
         private val VERIFY_CHECKSUMS = booleanPreferencesKey("verify_checksums")
         private val SETTINGS_HISTORY = booleanPreferencesKey(SettingsHistory.ENABLED_KEY)
+        private val PRIVACY_SHADE_ON = booleanPreferencesKey(SettingsHistory.PRIVACY_SHADE_ON_KEY)
+        private val PRIVACY_SHADE_STYLE = stringPreferencesKey("privacy_shade_style")
+        private val PRIVACY_SHADE_OPACITY = floatPreferencesKey("privacy_shade_opacity")
+        private val PRIVACY_SHADE_TOUCH_THROUGH = booleanPreferencesKey("privacy_shade_touch_through")
         private val WEATHER_FAHRENHEIT = booleanPreferencesKey("weather_fahrenheit")
         private val WEATHER_LAT = floatPreferencesKey("weather_lat")
         private val WEATHER_LON = floatPreferencesKey("weather_lon")
@@ -13469,6 +13475,13 @@ class SettingsRepository(private val context: Context) {
             sensorTools = readSensorTools(p, defaults),
             redoUsesCtrlY = p[REDO_USES_CTRL_Y] ?: defaults.redoUsesCtrlY,
             networkLog = readNetworkLog(p, defaults),
+            privacyShade = PrivacyShadeSettings(
+                on = p[PRIVACY_SHADE_ON] ?: defaults.privacyShade.on,
+                style = PrivacyShadeStyle.of(p[PRIVACY_SHADE_STYLE]) ?: defaults.privacyShade.style,
+                opacity = (p[PRIVACY_SHADE_OPACITY] ?: defaults.privacyShade.opacity)
+                    .coerceIn(PrivacyShadeSettings.MIN_OPACITY, 1f),
+                touchThrough = p[PRIVACY_SHADE_TOUCH_THROUGH] ?: defaults.privacyShade.touchThrough,
+            ),
             verifyChecksums = p[VERIFY_CHECKSUMS] ?: defaults.verifyChecksums,
             settingsHistory = p[SETTINGS_HISTORY] ?: defaults.settingsHistory,
             weather = readWeather(p, defaults),
@@ -16433,6 +16446,16 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVerifyChecksums(value: Boolean) =
         editPrefs { it[VERIFY_CHECKSUMS] = value }
+
+    suspend fun setPrivacyShadeOn(value: Boolean) = editPrefs { it[PRIVACY_SHADE_ON] = value }
+
+    suspend fun setPrivacyShadeStyle(value: PrivacyShadeStyle) = editPrefs { it[PRIVACY_SHADE_STYLE] = value.id }
+
+    suspend fun setPrivacyShadeOpacity(value: Float) = editPrefs {
+        it[PRIVACY_SHADE_OPACITY] = value.coerceIn(PrivacyShadeSettings.MIN_OPACITY, 1f)
+    }
+
+    suspend fun setPrivacyShadeTouchThrough(value: Boolean) = editPrefs { it[PRIVACY_SHADE_TOUCH_THROUGH] = value }
 
     /** Turning the history off forgets what it held: off means nothing is kept. */
     suspend fun setSettingsHistory(value: Boolean) {

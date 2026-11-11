@@ -188,6 +188,11 @@ enum class ToolbarTool {
     // not in the picture. Pressed through SystemButtonsService, an accessibility
     // service of its own; not in the Play build, and needs Android 9.
     SCREENSHOT,
+    // A cover over the app above the keyboard, so the conversation cannot be
+    // read over your shoulder while you type (#1242). Drag its edge up to see
+    // the last lines. A switch over a setting; drawn in the keyboard's own
+    // window, so it needs no permission to draw over other apps.
+    PRIVACY_SHADE,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -274,6 +279,8 @@ fun isDirectBootSafeTool(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.COPY, ToolbarTool.CUT,
     // Languages are settings, mirrored into the pre-unlock store.
     ToolbarTool.LANGUAGE,
+    // A switch over a setting, drawn in the keyboard's window.
+    ToolbarTool.PRIVACY_SHADE,
     -> true
     // The cursor moves only touch the input connection.
     else -> tool in CursorTools
@@ -299,7 +306,7 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.INCOGNITO, ToolbarTool.POWER_SAVING, ToolbarTool.AUTOCORRECT,
     ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.LANGUAGE,
-    ToolbarTool.RECENT_COPIES, ToolbarTool.READ_BACK, ToolbarTool.SCREENSHOT,
+    ToolbarTool.RECENT_COPIES, ToolbarTool.READ_BACK, ToolbarTool.SCREENSHOT, ToolbarTool.PRIVACY_SHADE,
     -> false
     // The cursor moves nudge the caret and nothing else, and the clipboard trio
     // acts on the selection in place.
@@ -416,7 +423,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH, ToolbarTool.AI_REPLY,
     ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.TYPING_TEST, ToolbarTool.SPEED_TEST, ToolbarTool.STATISTICS, ToolbarTool.PLUGINS,
     ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.LANGUAGE,
-    ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO,
+    ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO, ToolbarTool.PRIVACY_SHADE,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,
     ToolbarTool.EMOJI_MIX, ToolbarTool.MUSIC_ID,
     ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.READ_BACK, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,

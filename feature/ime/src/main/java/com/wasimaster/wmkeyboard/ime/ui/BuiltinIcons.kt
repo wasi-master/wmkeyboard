@@ -39,6 +39,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoStories
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BarChart
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BatterySaver
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Blinds
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bolt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Calculate
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CalendarMonth
@@ -258,6 +259,7 @@ object BuiltinIcons {
         "Backspace" to { Icons.AutoMirrored.Outlined.Backspace },
         "BarChart" to { Icons.Outlined.BarChart },
         "BatterySaver" to { Icons.Outlined.BatterySaver },
+        "Blinds" to { Icons.Outlined.Blinds },
         "Bolt" to { Icons.Outlined.Bolt },
         "Calculate" to { Icons.Outlined.Calculate },
         "CalendarMonth" to { Icons.Outlined.CalendarMonth },

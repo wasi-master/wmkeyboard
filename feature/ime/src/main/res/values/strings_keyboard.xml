@@ -439,6 +439,7 @@
     <string name="ime_tool_settings">Settings</string>
     <string name="ime_tool_flashlight">Flashlight</string>
     <string name="ime_tool_screenshot">Screenshot</string>
+    <string name="ime_tool_privacy_shade">Privacy shade</string>
     <string name="ime_tool_compass">Compass</string>
     <string name="ime_tool_level">Level</string>
     <string name="ime_tool_undo">Undo</string>

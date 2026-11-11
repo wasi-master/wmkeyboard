@@ -145,6 +145,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD -> Color(0xFF607D8B)
     // A viewfinder's teal, apart from the camera's and the scanners'.
     ToolbarTool.SCREENSHOT -> Color(0xFF00897B)
+    // A blind's slate, beside incognito's grey.
+    ToolbarTool.PRIVACY_SHADE -> Color(0xFF546E7A)
     ToolbarTool.LANGUAGE -> Color(0xFF26A69A)
 }
 
