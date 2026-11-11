@@ -317,6 +317,7 @@
     <string name="ime_translate_idle">The translation shows here as you type.</string>
     <string name="ime_translate_idle_manual">Type the whole text, then tap Translate. Nothing is sent before that.</string>
     <string name="ime_translate_now_action">Translate</string>
+    <string name="ime_translate_speak_desc">Read the translation aloud</string>
     <string name="ime_translate_progress">Translating…</string>
     <string name="ime_translate_select_language_desc">Select the language</string>
     <string name="ime_translate_replace_action">Replace text</string>

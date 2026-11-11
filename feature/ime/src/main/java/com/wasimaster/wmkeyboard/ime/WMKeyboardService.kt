@@ -46325,6 +46325,22 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * The speaker at the translation's corner (#1085): the translation read
+     * aloud in the language it was translated into, by a downloaded offline
+     * voice for that language or else the phone's own. A phone with no voice
+     * for it says so rather than reading it in another language's voice.
+     */
+    fun onTranslateSpeak() {
+        val state = _uiState.value
+        val text = state.translate.translated.takeIf { it.isNotBlank() } ?: return
+        val speaker = vocabSpeaker ?: VocabSpeaker(this).also { vocabSpeaker = it }
+        // The speaker is shared: this ends Read back's reading.
+        if (state.readingBack) _uiState.update { it.copy(readingBack = false) }
+        val vocab = state.settings.vocabulary
+        speaker.speak(text, null, vocab.ttsRate, vocab.ttsPitch, Locale.forLanguageTag(state.settings.translateTargetLang))
+    }
+
     /** The panel's Translate button, while it translates only when asked (#1226). */
     fun onTranslateNow() {
         if (_uiState.value.mediaQuery.isBlank()) return
@@ -46722,6 +46738,7 @@ open class WMKeyboardService : InputMethodService() {
             onPaste = ::onTranslatePaste,
             onClear = ::onTranslateClear,
             onTranslate = ::onTranslateNow,
+            onSpeak = ::onTranslateSpeak,
         )
     }
 
