@@ -3597,6 +3597,15 @@ internal fun TypingHardwareSettings(
                 default = SettingsDefaults.hardwareKeyboard.languageSwitchCtrlShift,
             ) { scope.launch { repository.setHwLanguageSwitchCtrlShift(it) } }
         }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.typing_hw_follow_layout_title,
+                stringResource(R.string.typing_hw_follow_layout_subtitle),
+                settings.watch { it.hardwareKeyboard.followOnScreenLayout },
+                info = stringResource(R.string.typing_hw_follow_layout_info),
+                default = SettingsDefaults.hardwareKeyboard.followOnScreenLayout,
+            ) { scope.launch { repository.setHwFollowOnScreenLayout(it) } }
+        }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.typing_hw_auto_show_title,

@@ -2602,6 +2602,14 @@ data class HardwareKeyboardSettings(
      */
     val languageSwitchCtrlShift: Boolean = false,
     /**
+     * A physical keyboard's letter keys type the on-screen layout's letter in
+     * the same place (#1128), rather than the character the phone's own
+     * physical-keyboard layout gives the key. For a tablet whose keyboard is
+     * stuck on the system language, so switching language on the keyboard
+     * changes what the keys type. Off by default.
+     */
+    val followOnScreenLayout: Boolean = false,
+    /**
      * Badges spell their modifier out — `Ctrl+1`, `Shift+Q` — instead of using
      * the `⌃` and `⇧` glyphs. On by default: those glyphs are a Mac keycap
      * convention, and a keyboard that does not print them makes the badge a
@@ -11998,6 +12006,7 @@ class SettingsRepository(private val context: Context) {
         private val HW_MAC_SHORTCUTS = booleanPreferencesKey("hw_mac_shortcuts")
         private val HW_LANGUAGE_SWITCH_CHORD = booleanPreferencesKey("hw_language_switch_chord")
         private val HW_LANGUAGE_SWITCH_CTRL_SHIFT = booleanPreferencesKey("hw_language_switch_ctrl_shift")
+        private val HW_FOLLOW_ON_SCREEN_LAYOUT = booleanPreferencesKey("hw_follow_on_screen_layout")
         private val HW_HINT_MODIFIER_WORDS = booleanPreferencesKey("hw_hint_modifier_words")
         private val HW_AUTO_SHOW_UI = booleanPreferencesKey("hw_auto_show_ui")
         private val HW_LEADER = stringPreferencesKey("hw_leader")
@@ -14091,6 +14100,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.hardwareKeyboard.languageSwitchChord,
             languageSwitchCtrlShift = p[HW_LANGUAGE_SWITCH_CTRL_SHIFT]
                 ?: defaults.hardwareKeyboard.languageSwitchCtrlShift,
+            followOnScreenLayout = p[HW_FOLLOW_ON_SCREEN_LAYOUT]
+                ?: defaults.hardwareKeyboard.followOnScreenLayout,
             hintModifierWords = p[HW_HINT_MODIFIER_WORDS]
                 ?: defaults.hardwareKeyboard.hintModifierWords,
             autoShowUi = p[HW_AUTO_SHOW_UI] ?: defaults.hardwareKeyboard.autoShowUi,
@@ -22644,6 +22655,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setHwLanguageSwitchCtrlShift(value: Boolean) =
         editPrefs { it[HW_LANGUAGE_SWITCH_CTRL_SHIFT] = value }
+
+    suspend fun setHwFollowOnScreenLayout(value: Boolean) =
+        editPrefs { it[HW_FOLLOW_ON_SCREEN_LAYOUT] = value }
 
     suspend fun setHwHintModifierWords(value: Boolean) =
         editPrefs { it[HW_HINT_MODIFIER_WORDS] = value }

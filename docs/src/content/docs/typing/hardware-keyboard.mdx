@@ -136,6 +136,8 @@ One thing to know: some apps want <KeyCap>Ctrl</KeyCap>+<KeyCap>Space</KeyCap> f
 
 Some phones never hand <KeyCap>Ctrl</KeyCap>+<KeyCap>Space</KeyCap> to the keyboard at all. Huawei's tablets keep it for their own keyboard, so on a MatePad it does nothing here. For those there's **Ctrl+Shift changes the language**, off by default. Press <KeyCap>Ctrl</KeyCap> and <KeyCap>Shift</KeyCap> together, with no other key, and let go: the keyboard moves to the next language, as on Windows, and flashes the list. A shortcut such as <KeyCap>Ctrl</KeyCap>+<KeyCap>Shift</KeyCap>+<KeyCap>Z</KeyCap> is left alone, because another key came between.
 
+Switching the keyboard's language doesn't by itself change what a physical key types: Android types the character the phone's own physical-keyboard layout gives the key, and on some tablets that layout is stuck on the system language. **Letter keys follow the on-screen layout**, off by default, fixes that. Each letter key then types the letter in the same place on the layout on screen, so <KeyCap>Q</KeyCap> types the first key of the top row, <KeyCap>A</KeyCap> the first of the middle row, and switching language switches the keys with it. Shift and Caps Lock give the capital or the key's shifted character. Digits, punctuation and anything pressed with <KeyCap>Ctrl</KeyCap> or <KeyCap>Alt</KeyCap> keep the phone's layout.
+
 ## Driving a tool with the keyboard
 
 <SettingsPath path="Typing / Physical keyboard / Arrow keys move a highlight" />
@@ -213,6 +215,7 @@ Typing Chinese or Japanese, the candidate strip comes up on its own while a read
 | macOS shortcuts | Off |
 | Ctrl+Space changes the language | On |
 | Ctrl+Shift changes the language | Off |
+| Letter keys follow the on-screen layout | Off |
 | Show the keyboard for shortcuts | On |
 
 **Show the keyboard for shortcuts** covers the case where a physical keyboard is attached and there's no reason for the on-screen keyboard to be up. Press a shortcut that opens a tool and the keyboard comes up anyway, because the tool needs somewhere to draw. It hides again once you close the tool.

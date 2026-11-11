@@ -57300,7 +57300,9 @@ open class WMKeyboardService : InputMethodService() {
         val meta = event.metaState and KeyEvent.META_META_ON != 0
         val shortcut = meta || (ctrl && !alt)
 
-        if (!state.settings.hardwareKeyboardInput || shortcut || !hardwareIntercepts(state)) {
+        // The on-screen layout's letter for this key (#1128), when asked for.
+        val layoutLetter = if (shortcut || alt) null else onScreenLetterFor(event, state)
+        if (!state.settings.hardwareKeyboardInput || shortcut || (!hardwareIntercepts(state) && layoutLetter == null)) {
             // Handing the key back: finish composing first so a moving cursor or
             // a shortcut never strands the buffer. Skipped for the bare modifier
             // case above, which returned before reaching here.
@@ -57343,7 +57345,16 @@ open class WMKeyboardService : InputMethodService() {
             }
             else -> {
                 val unicode = event.unicodeChar
-                if (unicode == 0 || unicode and KeyCharacterMap.COMBINING_ACCENT != 0) {
+                if (layoutLetter != null) {
+                    clearForHardwareTyping()
+                    hardwareKeyTyping = true
+                    try {
+                        processTypedText(layoutLetter, applyDeadKeys = false)
+                    } finally {
+                        hardwareKeyTyping = false
+                    }
+                    consumeHardwareKey(keyCode)
+                } else if (unicode == 0 || unicode and KeyCharacterMap.COMBINING_ACCENT != 0) {
                     // A non-printing key (arrows, F-keys, Home/End) or a physical
                     // dead key the framework will compose: hand it back, buffer
                     // committed first.
@@ -57522,6 +57533,31 @@ open class WMKeyboardService : InputMethodService() {
      * own composing gate ([onTextKey]'s `composingMode`) so the two stay in step
      * — a field that composes taps composes hardware keys the same way.
      */
+    /**
+     * What a physical letter key types under "Letter keys follow the on-screen
+     * layout" (#1128): the key in the same place on the layout on screen, read
+     * by the key's position on a QWERTY board (the key code, which the phone's
+     * own physical layout does not change), not by the character that layout
+     * gives it. Null when the setting is off, the key is not a letter, or the
+     * layout has no key there.
+     */
+    private fun onScreenLetterFor(event: KeyEvent, state: KeyboardUiState): String? {
+        if (!state.settings.hardwareKeyboard.followOnScreenLayout) return null
+        val code = event.keyCode
+        if (code < KeyEvent.KEYCODE_A || code > KeyEvent.KEYCODE_Z) return null
+        val letter = ('a' + (code - KeyEvent.KEYCODE_A))
+        val row = QwertyRows.indexOfFirst { letter in it }
+        if (row < 0) return null
+        val column = QwertyRows[row].indexOf(letter)
+        val rows = com.wasimaster.wmkeyboard.ime.ui.currentLayout(state).rows
+            .map { keys -> keys.filter { it.action == KeyAction.Text && (it.output ?: it.label).length in 1..2 } }
+            .filter { it.size >= QWERTY_MIN_ROW }
+        val key = rows.getOrNull(row)?.getOrNull(column) ?: return null
+        val shifted = event.isShiftPressed != event.isCapsLockOn
+        val text = key.output ?: key.label
+        return if (shifted) key.shiftLabel ?: text.uppercase() else text
+    }
+
     private fun hardwareIntercepts(state: KeyboardUiState): Boolean {
         val composingMode = (!state.composer.isClusterShaping || composing.isNotEmpty()) &&
             (state.composer.isTransliterating || state.composesWords)
@@ -58918,6 +58954,12 @@ open class WMKeyboardService : InputMethodService() {
          * for another reason does not open a stale tool.
          */
         private const val FLOATING_TOOL_WAIT_MS = 3_000L
+
+        /** The letter rows of a QWERTY board, which a key code's place is read against (#1128). */
+        private val QwertyRows = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm")
+
+        /** Fewest letter keys a layout row needs to count as one of the three letter rows (#1128). */
+        private const val QWERTY_MIN_ROW = 6
 
         /** The most [clearWholeField] reads either side of the caret in one tap. */
         private const val CLEAR_FIELD_MAX_CHARS = 200_000
