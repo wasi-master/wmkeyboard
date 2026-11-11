@@ -18,6 +18,17 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: gradle/actions/setup-gradle@v4
+      - name: Make a side-by-side app that does not replace the Play keyboard
+        run: |
+          python3 - <<'PATCH'
+          from pathlib import Path
+          p = Path("app/build.gradle.kts")
+          s = p.read_text()
+          old = '    buildTypes {\n        debug {\n'
+          assert s.count(old) == 1
+          s = s.replace(old, '    buildTypes {\n        debug {\n            applicationIdSuffix = ".custom"\n', 1)
+          p.write_text(s)
+          PATCH
       - name: Assemble sideload APK
         run: ./gradlew :app:assembleIntlDebug -Pwmkb.skipBenchmarks=true --stacktrace
       - name: Upload custom debug APK
