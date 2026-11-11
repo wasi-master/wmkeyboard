@@ -773,13 +773,16 @@
     <string name="typing_two_thumb_backspace_step_space">remove the auto-space</string>
     <string name="typing_two_thumb_backspace_step_correction">undo a correction</string>
     <string name="typing_two_thumb_backspace_step_undo">undo the last tap or swipe</string>
+    <string name="typing_two_thumb_backspace_step_trim">trim the word\'s end</string>
     <string name="typing_two_thumb_backspace_step_retype">retype the word</string>
     <string name="typing_two_thumb_backspace_step_character">delete a character</string>
     <string name="typing_two_thumb_backspace_info">This applies only to words you type with Two-thumb typing on. One press does one step, in the order shown under the title. A selection is always deleted first. Away from a word you just typed, Backspace deletes one character. Holding Backspace uses your normal repeat after the first press. Current behavior keeps the rules from before this setting existed, where the switch Backspace removes a glided word decides for two-thumb words too.</string>
     <string name="typing_two_thumb_backspace_current_label">Current behavior</string>
     <string name="typing_two_thumb_backspace_current_desc">Keep the existing rules. Backspace removes a glided word decides, and the two switches below are not used.</string>
     <string name="typing_two_thumb_backspace_undo_label">Undo input step</string>
-    <string name="typing_two_thumb_backspace_undo_desc">Remove the last tap or swipe and show the earlier reading again. This works on the open word, and on a word the all thumbs up pause just typed.</string>
+    <string name="typing_two_thumb_backspace_undo_desc">Remove the tap or swipe you began last and read the rest of the word again, or show the reading you saw before it. This works on the open word, and on a word the all thumbs up pause just typed. This is the default.</string>
+    <string name="typing_two_thumb_backspace_trim_label">Trim the word\'s end</string>
+    <string name="typing_two_thumb_backspace_trim_desc">Remove the letters your last tap or swipe added to the end of the word as it shows, and keep the rest exactly as you see it, as typed letters. Nothing is read again, so the word never turns into a different one.</string>
     <string name="typing_two_thumb_backspace_retype_label">Retype word</string>
     <string name="typing_two_thumb_backspace_retype_desc">Clear the word so you can enter it again, and offer its old spelling on the strip. One press clears one word. The next press deletes a character.</string>
     <string name="typing_two_thumb_backspace_character_label">Delete character</string>

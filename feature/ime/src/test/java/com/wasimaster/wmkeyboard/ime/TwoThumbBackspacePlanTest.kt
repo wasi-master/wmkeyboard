@@ -164,6 +164,27 @@ class TwoThumbBackspacePlanTest {
     }
 
     @Test
+    fun `an ordinary glide keeps its own Backspace with two-thumb typing on`() {
+        // #1191: the one-finger glide's word and its auto-space are not a two-thumb word.
+        val glide = TwoThumbBackspaceFacts(autoSpaceBehind = true, ordinaryGlideBehind = true)
+        for (action in listOf(TwoThumbBackspace.UNDO_STEP, TwoThumbBackspace.RETYPE_WORD, TwoThumbBackspace.DELETE_CHARACTER)) {
+            assertEquals("$action", LEGACY, twoThumbBackspaceStep(gesture(action, spaceFirst = true), glide))
+        }
+        // A two-thumb word behind the caret still gets the choice.
+        assertEquals(
+            RETYPE_WORD,
+            twoThumbBackspaceStep(gesture(TwoThumbBackspace.RETYPE_WORD), TwoThumbBackspaceFacts(wordBehind = true)),
+        )
+    }
+
+    @Test
+    fun `trim end is its own step and takes gestures back`() {
+        val settings = gesture(TwoThumbBackspace.TRIM_END)
+        assertEquals(TwoThumbBackspaceStep.TRIM_END, twoThumbBackspaceStep(settings, TwoThumbBackspaceFacts(wordOpen = true)))
+        assertTrue(TwoThumbBackspaceStep.TRIM_END.undoesGestures(settings))
+    }
+
+    @Test
     fun `away from a two-thumb word Backspace is ordinary, so Retype never walks back`() {
         for (action in listOf(TwoThumbBackspace.UNDO_STEP, TwoThumbBackspace.RETYPE_WORD, TwoThumbBackspace.DELETE_CHARACTER)) {
             assertEquals("$action", ORDINARY, twoThumbBackspaceStep(gesture(action, spaceFirst = true), TwoThumbBackspaceFacts()))

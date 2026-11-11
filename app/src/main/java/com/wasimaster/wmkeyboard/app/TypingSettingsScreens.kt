@@ -4195,6 +4195,7 @@ private fun SettingsGroupScope.twoThumbBackspaceRows(
                         when (action) {
                             TwoThumbBackspace.RETYPE_WORD -> R.string.typing_two_thumb_backspace_step_retype
                             TwoThumbBackspace.DELETE_CHARACTER -> R.string.typing_two_thumb_backspace_step_character
+                            TwoThumbBackspace.TRIM_END -> R.string.typing_two_thumb_backspace_step_trim
                             else -> R.string.typing_two_thumb_backspace_step_undo
                         },
                     ),
@@ -4209,6 +4210,7 @@ private fun SettingsGroupScope.twoThumbBackspaceRows(
             options = listOf(
                 TwoThumbBackspace.CURRENT to stringResource(R.string.typing_two_thumb_backspace_current_label),
                 TwoThumbBackspace.UNDO_STEP to stringResource(R.string.typing_two_thumb_backspace_undo_label),
+                TwoThumbBackspace.TRIM_END to stringResource(R.string.typing_two_thumb_backspace_trim_label),
                 TwoThumbBackspace.RETYPE_WORD to stringResource(R.string.typing_two_thumb_backspace_retype_label),
                 TwoThumbBackspace.DELETE_CHARACTER to
                     stringResource(R.string.typing_two_thumb_backspace_character_label),
@@ -4222,6 +4224,7 @@ private fun SettingsGroupScope.twoThumbBackspaceRows(
                         when (option) {
                             TwoThumbBackspace.CURRENT -> R.string.typing_two_thumb_backspace_current_desc
                             TwoThumbBackspace.UNDO_STEP -> R.string.typing_two_thumb_backspace_undo_desc
+                            TwoThumbBackspace.TRIM_END -> R.string.typing_two_thumb_backspace_trim_desc
                             TwoThumbBackspace.RETYPE_WORD -> R.string.typing_two_thumb_backspace_retype_desc
                             TwoThumbBackspace.DELETE_CHARACTER -> R.string.typing_two_thumb_backspace_character_desc
                         },

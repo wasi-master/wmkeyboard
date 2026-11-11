@@ -26,6 +26,9 @@ internal enum class TwoThumbBackspaceStep {
     /** Take back the word's latest tap or swipe. */
     UNDO_STEP,
 
+    /** Cut the letters the newest gesture put at the word's end, keep the rest as typed (#1232). */
+    TRIM_END,
+
     /** Clear the whole word for fresh entry (Retype, #791). */
     RETYPE_WORD,
 
@@ -54,6 +57,11 @@ internal data class TwoThumbBackspaceFacts(
     val wordOpen: Boolean = false,
     /** A two-thumb word was just typed and the caret has not moved off it. */
     val wordBehind: Boolean = false,
+    /**
+     * An ordinary one-finger glide was just typed (#1191): not a two-thumb
+     * word, so it keeps the Backspace it always had.
+     */
+    val ordinaryGlideBehind: Boolean = false,
 )
 
 /**
@@ -67,6 +75,8 @@ internal fun twoThumbBackspaceStep(gesture: GestureSettings, facts: TwoThumbBack
     if (!gesture.twoThumbGlide || gesture.twoThumbBackspace == TwoThumbBackspace.CURRENT) {
         return TwoThumbBackspaceStep.LEGACY
     }
+    // Only words begun with two-thumb input get the policy (#1191).
+    if (!facts.wordOpen && !facts.wordBehind && facts.ordinaryGlideBehind) return TwoThumbBackspaceStep.LEGACY
     if (gesture.twoThumbBackspaceJoinFirst && facts.joinUndoable && facts.wordOpen) {
         return TwoThumbBackspaceStep.UNDO_JOIN
     }
@@ -78,6 +88,7 @@ internal fun twoThumbBackspaceStep(gesture: GestureSettings, facts: TwoThumbBack
     if (!facts.wordOpen && !facts.wordBehind) return TwoThumbBackspaceStep.ORDINARY
     return when (gesture.twoThumbBackspace) {
         TwoThumbBackspace.UNDO_STEP -> TwoThumbBackspaceStep.UNDO_STEP
+        TwoThumbBackspace.TRIM_END -> TwoThumbBackspaceStep.TRIM_END
         TwoThumbBackspace.RETYPE_WORD -> TwoThumbBackspaceStep.RETYPE_WORD
         TwoThumbBackspace.DELETE_CHARACTER -> TwoThumbBackspaceStep.DELETE_CHARACTER
         TwoThumbBackspace.CURRENT -> TwoThumbBackspaceStep.LEGACY
@@ -91,6 +102,6 @@ internal fun twoThumbBackspaceStep(gesture: GestureSettings, facts: TwoThumbBack
  */
 internal fun TwoThumbBackspaceStep.undoesGestures(gesture: GestureSettings): Boolean = when (this) {
     TwoThumbBackspaceStep.LEGACY -> gesture.backspaceUndoesGlide
-    TwoThumbBackspaceStep.UNDO_STEP -> true
+    TwoThumbBackspaceStep.UNDO_STEP, TwoThumbBackspaceStep.TRIM_END -> true
     else -> false
 }

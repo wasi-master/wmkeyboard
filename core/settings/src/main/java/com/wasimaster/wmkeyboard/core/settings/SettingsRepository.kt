@@ -1438,9 +1438,11 @@ enum class TwoThumbWordEnd { SPACE, ALL_UP }
  * takes back the word's latest tap or swipe, open or just typed.
  * [RETYPE_WORD] clears the whole word for fresh entry, the way Retype (#791)
  * does, once per word. [DELETE_CHARACTER] deletes one character, the word
- * being ordinary text.
+ * being ordinary text. [TRIM_END] cuts the letters the newest tap or swipe
+ * put at the end of the word as it shows, and keeps the rest as typed
+ * letters (#1232).
  */
-enum class TwoThumbBackspace { CURRENT, UNDO_STEP, RETYPE_WORD, DELETE_CHARACTER }
+enum class TwoThumbBackspace { CURRENT, UNDO_STEP, TRIM_END, RETYPE_WORD, DELETE_CHARACTER }
 
 /**
  * The range [GestureSettings.twoThumbPauseMs], [GestureSettings.twoThumbTapPauseMs]
@@ -9274,10 +9276,10 @@ data class GestureSettings(
     val backspaceUndoesGlide: Boolean = true,
     /**
      * What Backspace does to a word typed with both thumbs (#1188); see
-     * [TwoThumbBackspace]. [TwoThumbBackspace.CURRENT] for everyone until
-     * they choose, so nothing changes under an existing install.
+     * [TwoThumbBackspace]. [TwoThumbBackspace.UNDO_STEP] by default (#1232):
+     * the newest gesture goes and the rest is read again.
      */
-    val twoThumbBackspace: TwoThumbBackspace = TwoThumbBackspace.CURRENT,
+    val twoThumbBackspace: TwoThumbBackspace = TwoThumbBackspace.UNDO_STEP,
     /**
      * Under a [twoThumbBackspace] other than CURRENT, the first Backspace
      * after a two-thumb word takes only the space the keyboard typed after

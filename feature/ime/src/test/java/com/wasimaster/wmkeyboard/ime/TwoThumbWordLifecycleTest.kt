@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime
 
+import com.wasimaster.wmkeyboard.core.settings.TwoThumbBackspace
 import android.os.Looper
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.GlideCase
@@ -45,6 +46,7 @@ class TwoThumbWordLifecycleTest {
                 twoThumbTapPauseMs = PAUSE_MS.toInt(),
                 twoThumbOneLetterPauseMs = PAUSE_MS.toInt(),
                 twoThumbRetractWindowMs = 0,
+                twoThumbBackspace = TwoThumbBackspace.CURRENT,
             ),
         )
         val (service, editor, _) = glideKeyboard(glideReadyState(settings = settings))

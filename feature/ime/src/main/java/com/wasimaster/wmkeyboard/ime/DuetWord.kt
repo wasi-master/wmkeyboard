@@ -183,6 +183,24 @@ internal class DuetWord {
         keyWidthPx = keyWidth
     }
 
+    /**
+     * The gesture whose finger went down last (#1232): with both thumbs on the
+     * keys a tap can begin after a swipe and land first, and the one begun
+     * last is the one the user is taking back.
+     */
+    fun latestStarted(): GlideToken? = latestStartedIndex()?.let { tokens[it] }
+
+    private fun latestStartedIndex(): Int? =
+        tokens.indices.maxWithOrNull(compareBy<Int> { tokens[it].tStart }.thenBy { it })
+
+    /** Takes back the gesture begun last. False when there was none. */
+    fun removeLatestStarted(): Boolean {
+        val at = latestStartedIndex() ?: return false
+        tokens.removeAt(at)
+        letters.removeAt(at)
+        return true
+    }
+
     /** Takes back the latest gesture. False when there was none. */
     fun removeLast(): Boolean {
         if (tokens.isEmpty()) return false

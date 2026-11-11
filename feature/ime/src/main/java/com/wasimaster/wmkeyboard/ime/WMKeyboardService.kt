@@ -15939,7 +15939,8 @@ open class WMKeyboardService : InputMethodService() {
             spaceOwed = !open && deferredWordSpace,
             correctionUndoable = !open && lastRevertible?.let { revertAllowedOnBackspace(it.kind, state) } == true,
             wordOpen = open,
-            wordBehind = !open && (lastGestureWord != null || twoThumbWordBehind),
+            wordBehind = !open && twoThumbWordBehind,
+            ordinaryGlideBehind = !open && !twoThumbWordBehind && lastGestureWord != null && committedDuet == null,
         )
     }
 
@@ -16035,7 +16036,7 @@ open class WMKeyboardService : InputMethodService() {
                 dropTwoThumbWordUndo()
             }
             TwoThumbBackspaceStep.DELETE_CHARACTER, TwoThumbBackspaceStep.ORDINARY -> dropTwoThumbWordUndo()
-            TwoThumbBackspaceStep.LEGACY, TwoThumbBackspaceStep.UNDO_STEP -> Unit
+            TwoThumbBackspaceStep.LEGACY, TwoThumbBackspaceStep.UNDO_STEP, TwoThumbBackspaceStep.TRIM_END -> Unit
         }
         val undoGlide = twoThumbStep.undoesGestures(state.settings.gesture)
         // Backspace straight after a glide removes the whole swiped word —
@@ -32151,8 +32152,19 @@ open class WMKeyboardService : InputMethodService() {
             // Nothing could be shown at all: the gestures were the whole word.
             return composing.isEmpty()
         }
-        val removed = duetWord.snapshot().lastOrNull() as? GlideToken.Swipe
-        duetWord.removeLast()
+        val gesture = _uiState.value.settings.gesture
+        val policy = if (gesture.twoThumbGlide) gesture.twoThumbBackspace else TwoThumbBackspace.CURRENT
+        if (policy == TwoThumbBackspace.TRIM_END) return trimDuetEnd(ic)
+        // An explicit undo takes the gesture begun last, which is where the
+        // user's attention is (#1232); the old rules take the one that landed last.
+        val removed: GlideToken.Swipe?
+        if (policy == TwoThumbBackspace.UNDO_STEP) {
+            removed = duetWord.latestStarted() as? GlideToken.Swipe
+            duetWord.removeLatestStarted()
+        } else {
+            removed = duetWord.snapshot().lastOrNull() as? GlideToken.Swipe
+            duetWord.removeLast()
+        }
         if (duetWord.active) {
             // The swipe just taken out can come back as the next word (#832).
             redecodeDuet(commit = false, backspaced = removed, undo = true)
@@ -32172,6 +32184,41 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             refreshSuggestions()
         }
+        return true
+    }
+
+    /**
+     * Trim the word's end (#1232): the letters the gesture begun last put at
+     * the end of the word as it shows come off, and what is left stays as the
+     * letters on screen, typed, with no new reading. A tap is one letter; a
+     * swipe is what it added to the reading shown before it, or, with no such
+     * reading kept, all but one letter for each gesture still in the word.
+     */
+    private fun trimDuetEnd(ic: InputConnection): Boolean {
+        if (duetShownGeneration != duetGeneration) settleDuet(ic)
+        val shown = composing.toString()
+        val tokens = duetWord.snapshot()
+        val latest = duetWord.latestStarted() ?: return false
+        val count = shown.codePointCount(0, shown.length)
+        val drop = when {
+            tokens.size <= 1 -> count
+            latest is GlideToken.Tap -> 1
+            else -> {
+                val rest = tokens.filter { it !== latest }
+                val before = duetReadings.lastOrNull { it.first == rest }?.second?.word
+                val kept = before?.takeIf { shown.startsWith(it, ignoreCase = true) }
+                    ?.let { it.codePointCount(0, it.length) }
+                    ?: (tokens.size - 1)
+                (count - kept).coerceIn(1, count)
+            }
+        }
+        val keep = shown.offsetByCodePoints(0, count - drop)
+        duetJob?.cancel()
+        duetGeneration++
+        // The setter ends the gestures: what is left is typed letters.
+        composing = StringBuilder(shown.substring(0, keep))
+        updateComposingText(ic)
+        refreshSuggestions()
         return true
     }
 
