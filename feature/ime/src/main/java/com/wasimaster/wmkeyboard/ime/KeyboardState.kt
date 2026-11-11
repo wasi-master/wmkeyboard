@@ -89,6 +89,31 @@ fun shiftCased(text: String, shifted: Boolean): String = if (shifted) text.upper
  * the word as the engine produced it (its casing already mirrors the typed
  * text). Emails ('@') are left untouched — capitalizing an address is wrong.
  */
+/**
+ * The strip's word under a shift the user pressed in the middle of a word
+ * (#1195): a cycle through lower, Title and UPPER rather than a capital laid
+ * over the word. A word already in the case the shift would give it shows the
+ * lower-case form instead, so a word typed or offered as Title or UPPER can
+ * be taken back down from the strip, the way SwiftKey's shift does.
+ */
+fun cycleCaseForShift(word: String, shift: ShiftState): String {
+    if (word.isEmpty() || '@' in word) return word
+    return when (shift) {
+        ShiftState.OFF -> word
+        ShiftState.ON -> {
+            val title = word.lowercase().replaceFirstChar { it.uppercase() }
+            if (word == title) word.lowercase() else title
+        }
+        ShiftState.CAPS_LOCK -> {
+            val upper = word.uppercase()
+            if (word == upper) word.lowercase() else upper
+        }
+    }
+}
+
+/** Whether the strip reads [cycleCaseForShift] rather than [displayCaseForShift] (#1195). */
+fun KeyboardUiState.shiftCyclesCase(): Boolean = wordComposing && shiftPressedByUser && shiftState != ShiftState.OFF
+
 fun displayCaseForShift(word: String, shift: ShiftState): String {
     if (word.isEmpty() || '@' in word) return word
     return when (shift) {

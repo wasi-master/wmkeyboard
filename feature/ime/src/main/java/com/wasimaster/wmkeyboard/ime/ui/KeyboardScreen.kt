@@ -597,7 +597,9 @@ import com.wasimaster.wmkeyboard.ime.SizingAction
 import com.wasimaster.wmkeyboard.ime.SoundHapticAction
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.ime.ShiftState
+import com.wasimaster.wmkeyboard.ime.cycleCaseForShift
 import com.wasimaster.wmkeyboard.ime.displayCaseForShift
+import com.wasimaster.wmkeyboard.ime.shiftCyclesCase
 import com.wasimaster.wmkeyboard.ime.shiftForGlide
 import com.wasimaster.wmkeyboard.core.layout.BottomRowRules
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
@@ -5687,7 +5689,15 @@ private fun RowScope.StripWords(
             shiftState = shiftForGlide(state.shiftState, state.glideCase),
             // Per-letter capitals a stroke drew (#163), which no one
             // shift state can say; empty under the whole-word reading.
-            casedWords = state.glideCased,
+            // A shift pressed mid-word cycles the words' case, lower case
+            // included (#1195).
+            casedWords = if (state.shiftCyclesCase()) {
+                remember(state.suggestions, state.shiftState, state.glideCased) {
+                    state.suggestions.associateWith { cycleCaseForShift(it, state.shiftState) } + state.glideCased
+                }
+            } else {
+                state.glideCased
+            },
             // A glided trigger shows what the lift types for it (#205).
             expansions = state.glideExpansions,
             // Only while the live candidates are the ones on screen: the

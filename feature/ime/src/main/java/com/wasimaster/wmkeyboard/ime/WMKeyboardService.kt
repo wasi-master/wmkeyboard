@@ -29804,7 +29804,11 @@ open class WMKeyboardService : InputMethodService() {
         val spaced = autoSpace && spaceToStepOver(after)
         val deferSpace = autoSpace && !spaced && markHugsCaretWord(after)
         val tail = if (autoSpace && !spaced && !deferSpace) " " else ""
-        val committed = displayCaseForShift(word, state.shiftState)
+        val committed = if (state.shiftCyclesCase()) {
+            cycleCaseForShift(word, state.shiftState)
+        } else {
+            displayCaseForShift(word, state.shiftState)
+        }
         ic.commitText(committed + tail, pickCaretOffset(spaced))
         if (tail.isNotEmpty()) {
             // The keyboard's own space, so a mark typed next takes it back and

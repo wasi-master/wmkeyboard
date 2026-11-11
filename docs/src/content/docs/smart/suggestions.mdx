@@ -159,6 +159,8 @@ The row only appears while word candidates are already showing, and only when no
 
 Arm <KeyCap>Shift</KeyCap> and every chip in the strip re-cases in real time to match what would be typed if you tapped it right then. Shift is a latch rather than a hold, so one tap gives you Title Case, a double tap (caps lock) gives you UPPERCASE, and another tap goes back to lowercase. The chips follow the shift state, so they revert the moment it clears, which includes the letter or suggestion that spends it. The whole row follows, not only the top candidate. One thing is left alone: a contact-email suggestion, meaning anything containing `@`, since an address isn't meant to change case.
 
+In the middle of a word you're typing, or one the cursor took you back into, Shift cycles the chips through all three cases, lower case included. A chip already in the case Shift would give it shows its lower-case form instead, so `Hello` under one tap of Shift reads `hello`, and `NASA` under a double tap reads `nasa`. Picking it types it that way.
+
 <PhoneFrame caption="Suggestion chips re-cased to Title Case while Shift is armed.">
   <Shot id="smart/suggestion-strip-shift-recase" alt="Suggestion chips re-cased to Title Case while Shift is held." />
 </PhoneFrame>
