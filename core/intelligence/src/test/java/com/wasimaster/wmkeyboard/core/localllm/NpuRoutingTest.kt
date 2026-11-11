@@ -101,13 +101,17 @@ class NpuRoutingTest {
 
     @Test
     fun `every catalog NPU build is for a chip this build has a runtime for`() {
-        val builds = LocalLlmCatalog.models.flatMap { it.npuBuilds }
+        val builds = LocalLlmCatalog.models.flatMap { model -> model.npuBuilds.map { model to it } }
         assertTrue(builds.isNotEmpty())
-        for (build in builds) {
+        for ((model, build) in builds) {
             assertTrue(build.soc, NpuSupport.runtimeLibraries(build.soc).isNotEmpty())
             assertTrue(build.fileName, NpuSupport.namesChip(build.fileName, build.soc))
-            // A build pinned by hash is pinned to a commit, so a new upload cannot move it.
-            assertEquals(build.fileName, build.sha256 != null, build.revision != null)
+            // A build pinned by hash is fetched from a commit, its own or its
+            // model's, so a new upload cannot move it.
+            if (build.sha256 != null) {
+                val revision = build.revision ?: model.revision.takeIf { build.repo == null }
+                assertTrue(build.fileName, revision.orEmpty().matches(Regex("[0-9a-f]{40}")))
+            }
         }
     }
 
