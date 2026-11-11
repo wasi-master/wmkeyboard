@@ -1,7 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
 import android.content.Context
-import android.text.format.DateUtils
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -422,9 +421,6 @@ private fun NameDialog(
 
 private fun dateTime(at: Long): String =
     DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(at))
-
-private fun relativeTime(at: Long): String =
-    DateUtils.getRelativeTimeSpanString(at, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS).toString()
 
 private fun pointName(context: Context, point: SettingsHistory.RestorePoint): String = point.name ?: when (point.kind) {
     SettingsHistory.PointKind.BEFORE_RESTORE ->

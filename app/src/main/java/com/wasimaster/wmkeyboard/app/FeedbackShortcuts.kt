@@ -325,15 +325,6 @@ private fun FeedbackDialog(
     )
 }
 
-private fun Context.findActivity(): Activity? {
-    var c: Context? = this
-    while (c is android.content.ContextWrapper) {
-        if (c is Activity) return c
-        c = c.baseContext
-    }
-    return null
-}
-
 private fun enc(s: String): String = URLEncoder.encode(s, "UTF-8")
 
 /** The report's first line, cut to a title's length. */
