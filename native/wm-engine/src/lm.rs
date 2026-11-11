@@ -11,8 +11,12 @@
 //! hash lookup per candidate.
 //!
 //! A word the vocabulary does not hold — a name, a word the user taught the
-//! keyboard — gets no score at all (`None`), never a penalty: the lists and
-//! the user's own lexicon decide those, as they always did.
+//! keyboard — gets no exposed distribution; the glide's [`Session::logprob`]
+//! may still spell it through pieces, and that score is remembered for as
+//! long as the context stands, because a preview asks a largely repeated
+//! pool on every frame of one stroke. Where the model can read neither, the
+//! word keeps no score (`None`), never a penalty: the lists and the user's
+//! own lexicon decide those, as they always did.
 //!
 //! The arithmetic mirrors `tools/wmlm/model.py`: learned positions over
 //! `ctx` tokens, pre-norm blocks of causal self-attention and a GELU (tanh
@@ -58,6 +62,13 @@ pub const PIECE_CONT: &str = "##";
 pub const MAX_PIECE: usize = 5;
 /// The most pieces a word may be scored in; longer ones have no opinion.
 pub const MAX_WORD_PIECES: usize = 6;
+
+/// The most unlisted word keys one context remembers. A glide scores many
+/// distinct candidates while its context stands still, so a word's piece
+/// product is worth keeping; a typing session clears the map whenever its
+/// context moves. At the cap the map is cleared whole, not evicted one by
+/// one: a stroke that reaches 64 keys is already past the useful pool.
+const SPELLED_CACHE_MAX: usize = 64;
 
 /// The conditioning tokens in front of a sentence: who is being written to,
 /// where, and in which of the model's languages.
@@ -408,6 +419,15 @@ pub(crate) fn gelu(x: f32) -> f32 {
     0.5 * x * (1.0 + (C * (x + 0.044715 * x * x * x)).tanh())
 }
 
+/// Whether a move of the token context keeps the piece-spelled scores. Only
+/// the restore inside [`Session::logprob_pieces`] keeps them: it puts back the
+/// exact context the scores were made under.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum SpelledCache {
+    Keep,
+    Clear,
+}
+
 /// A context read so far and the model's distribution over the word after
 /// it. One per thread of use; it holds the attention cache.
 pub struct Session<B: AsRef<[u8]> = Vec<u8>> {
@@ -420,6 +440,10 @@ pub struct Session<B: AsRef<[u8]> = Vec<u8>> {
     last: Vec<f32>,
     /// Log-probabilities over the vocabulary for the next token, once asked.
     dist: Option<Vec<f32>>,
+    /// Piece-spelled scores for the context in `tokens`, by [`token_key`].
+    /// Cleared whenever the context changes; a restore inside
+    /// [`Session::logprob`] does not clear it.
+    spelled: HashMap<String, Option<f32>>,
     // Scratch.
     x: Vec<f32>,
     h: Vec<f32>,
@@ -428,6 +452,10 @@ pub struct Session<B: AsRef<[u8]> = Vec<u8>> {
     ff: Vec<f32>,
     tmp: Vec<f32>,
     xq: Vec<i8>,
+    /// Tokens pushed through the network, for tests that prove a cache hit
+    /// takes no step.
+    #[cfg(test)]
+    steps: usize,
 }
 
 impl<B: AsRef<[u8]>> Session<B> {
@@ -449,6 +477,9 @@ impl<B: AsRef<[u8]>> Session<B> {
             ff: vec![0.0; ff],
             tmp: vec![0.0; d],
             xq: Vec::new(),
+            spelled: HashMap::new(),
+            #[cfg(test)]
+            steps: 0,
         }
     }
 
@@ -486,13 +517,25 @@ impl<B: AsRef<[u8]>> Session<B> {
     }
 
     pub fn set_tokens(&mut self, tokens: &[u32]) {
+        self.set_tokens_inner(tokens, SpelledCache::Clear);
+    }
+
+    /// [`Session::set_tokens`], optionally keeping the piece-spelled cache.
+    /// The restore at the end of [`Session::logprob_pieces`] uses that: the
+    /// context it puts back is the one the cache was filled under.
+    fn set_tokens_inner(&mut self, tokens: &[u32], spelled: SpelledCache) {
         let tokens = &tokens[..tokens.len().min(self.lm.ctx)];
         let common = self.tokens.iter().zip(tokens).take_while(|(a, b)| a == b).count();
         // The last position's hidden state is only kept for the last token,
         // so a context equal to the old one is reused whole; otherwise the
         // common prefix's keys and values are kept and the rest recomputed.
-        if common == tokens.len() && common == self.tokens.len() && self.dist.is_some() {
+        // A missing distribution is no reason to re-read the same tokens:
+        // `distribution` rebuilds it from the hidden state already kept.
+        if common == tokens.len() && common == self.tokens.len() {
             return;
+        }
+        if spelled == SpelledCache::Clear {
+            self.spelled.clear();
         }
         let d = self.lm.d;
         let keep = common.min(tokens.len().saturating_sub(1));
@@ -509,6 +552,10 @@ impl<B: AsRef<[u8]>> Session<B> {
 
     /// One token through the network; its keys and values join the cache.
     fn step(&mut self, token: u32) {
+        #[cfg(test)]
+        {
+            self.steps += 1;
+        }
         let lm = self.lm.clone();
         let d = lm.d;
         let pos = self.tokens.len();
@@ -618,7 +665,24 @@ impl<B: AsRef<[u8]>> Session<B> {
         if let Some(id) = self.lm.id_of(&key) {
             return Some(self.logprob_id(id));
         }
-        self.logprob_pieces(&key)
+        // A glide preview asks the same pool on every frame of one stroke,
+        // and the context does not move until the word commits. The first
+        // frame pays the pieces; the rest are lookups.
+        if let Some(score) = self.spelled.get(&key) {
+            return *score;
+        }
+        let score = self.logprob_pieces(&key);
+        if self.spelled.len() >= SPELLED_CACHE_MAX {
+            self.spelled.clear();
+        }
+        self.spelled.insert(key, score);
+        score
+    }
+
+    /// How many piece-spelled scores the current context remembers.
+    #[cfg(test)]
+    fn spelled_len(&self) -> usize {
+        self.spelled.len()
     }
 
     /// [`Session::logprob`] for a word the vocabulary holds as one token,
@@ -651,7 +715,7 @@ impl<B: AsRef<[u8]>> Session<B> {
                 self.dist = None;
                 total += self.logprob_id(w[1]);
             }
-            self.set_tokens(&before);
+            self.set_tokens_inner(&before, SpelledCache::Keep);
             self.dist = dist_before;
         }
         Some(total)
@@ -716,6 +780,9 @@ impl<B: AsRef<[u8]>> Session<B> {
     /// words and the joint log-probability. The context is left extended by
     /// them; call [`Session::set_context`] to go back.
     pub fn generate(&mut self, n: usize, min_prob: f32) -> (Vec<String>, f32) {
+        // The context is left extended by the generated words, so a
+        // piece-spelled score from before this call is no longer valid.
+        self.spelled.clear();
         let mut out = Vec::new();
         let mut total = 0.0;
         let min_lp = min_prob.ln();
@@ -932,7 +999,7 @@ mod tests {
     }
 
     #[test]
-    fn a_model_with_pieces_spells_the_words_it_does_not_list() {
+    fn a_model_with_pieces_spells_and_remembers_the_words_it_does_not_list() {
         let lm = Arc::new(
             Lm::open(tiny_model_with(&["\u{2581}qu", "##ick", "\u{2581}a", "##a"])).expect("the tiny model opens"),
         );
@@ -957,10 +1024,65 @@ mod tests {
         assert_eq!(tokens, s.tokens());
         assert_eq!(dist, s.distribution().to_vec());
         assert_eq!(None, s.logprob_listed("quick"));
+        // The score is remembered for this context: the second ask is a
+        // lookup, not another forward pass.
+        assert_eq!(1, s.spelled_len());
+        let steps = s.steps;
+        assert_eq!(Some(spelled), s.logprob("quick"));
+        assert_eq!(steps, s.steps, "a remembered spelling takes no step");
+        // Asking for the same context again is not a change: a preview that
+        // re-reads it before every frame keeps the cache, even before the
+        // distribution has been rebuilt.
+        s.set_context(Prefix::default(), &["hello"]);
+        assert_eq!(1, s.spelled_len());
+        s.dist = None;
+        s.set_context(Prefix::default(), &["hello"]);
+        assert_eq!(1, s.spelled_len());
+        assert_eq!(dist, s.distribution().to_vec(), "the same tokens rebuild the same distribution");
+        // A second unlisted word keeps the first: the restore after spelling
+        // must not look like a context change.
+        assert!(s.logprob("aa").is_some());
+        assert_eq!(2, s.spelled_len());
+        // Generation extends the context, so scores from before it must go.
+        s.generate(1, 0.0);
+        assert_eq!(0, s.spelled_len());
+        // Moving the context forgets every spelling made under the old one.
+        s.set_context(Prefix::default(), &["world"]);
+        assert_eq!(0, s.spelled_len());
+        // Growing it does too: the next-word distribution has changed.
+        s.set_context(Prefix::default(), &["hello"]);
+        assert!(s.logprob("quick").is_some());
+        assert_eq!(1, s.spelled_len());
+        s.set_context(Prefix::default(), &["hello", "world"]);
+        assert_eq!(0, s.spelled_len());
         // Past MAX_WORD_PIECES the model has no opinion.
         assert_eq!(None, s.logprob("aaaaaaa"));
         // Pieces are never offered as next words.
         assert_eq!(2, s.top(8, f32::NEG_INFINITY).len());
+    }
+
+    #[test]
+    fn the_spelled_cache_clears_at_its_bound() {
+        let mut pieces = Vec::new();
+        for c in 'a'..='z' {
+            pieces.push(format!("\u{2581}{c}"));
+        }
+        for c in 'a'..='z' {
+            pieces.push(format!("##{c}"));
+        }
+        let refs: Vec<&str> = pieces.iter().map(String::as_str).collect();
+        let lm = Arc::new(Lm::open(tiny_model_with(&refs)).expect("the tiny model opens"));
+        let mut s = Session::new(lm);
+        s.set_context(Prefix::default(), &["hello"]);
+        for i in 0..65u8 {
+            let word = format!("{}{}", (b'a' + i / 26) as char, (b'a' + i % 26) as char);
+            assert!(s.logprob(&word).is_some(), "{word}");
+            if i == 63 {
+                assert_eq!(SPELLED_CACHE_MAX, s.spelled_len());
+            }
+        }
+        // The 65th key cleared the 64 before it and was then inserted.
+        assert_eq!(1, s.spelled_len());
     }
 
     #[test]

@@ -33,7 +33,13 @@ pub fn samples_for(arc: f32) -> usize {
         (LONG_SAMPLES + SAMPLES_PER_LETTER * letters).min(SAMPLE_POINTS)
     }
 }
-pub const MAX_STATES: usize = 8192;
+/// Frontier cap; the pool grows only when a long stroke needs it.
+///
+/// It was 8,192. At the 4,000-pop budget that cap bound again on real German
+/// swipes: 12,288 states lifted top-1 from 75.81 to 76.31 and top-64 coverage
+/// from 87.13 % to 87.75 %, for ~4.5 MB of columns at the longest stroke.
+/// 16,384 gained nothing more on the same set.
+pub const MAX_STATES: usize = 12288;
 /// Longest key sequence a candidate's ideal path can have: a word of
 /// `MAX_WORD_LENGTH` letters visits at most that many keys, plus the two
 /// anchor leads the shape channel adds.
@@ -131,6 +137,9 @@ pub struct Workspace {
     pub ideal_x: [f32; MAX_IDEAL_POINTS + 1],
     pub ideal_y: [f32; MAX_IDEAL_POINTS + 1],
     pub saturated: bool,
+    /// The frontier cap for the current decode: [`MAX_STATES`] unless the
+    /// caller asks for a smaller per-decode backstop. `push` refuses past it.
+    pub max_states: usize,
 }
 
 impl Workspace {
@@ -201,6 +210,7 @@ impl Workspace {
             ideal_x: [0.0; MAX_IDEAL_POINTS + 1],
             ideal_y: [0.0; MAX_IDEAL_POINTS + 1],
             saturated: false,
+            max_states: MAX_STATES,
         }
     }
 
@@ -265,7 +275,7 @@ impl Workspace {
         bound: f64,
         letter_cp: i32,
     ) -> Option<usize> {
-        if self.node.len() >= MAX_STATES {
+        if self.node.len() >= self.max_states.max(1) {
             self.saturated = true;
             return None;
         }

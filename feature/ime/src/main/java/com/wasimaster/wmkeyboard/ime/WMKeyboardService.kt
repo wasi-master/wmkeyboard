@@ -30895,7 +30895,11 @@ open class WMKeyboardService : InputMethodService() {
         openHead: Int = 0,
         openTail: Int = 0,
         phrase: Boolean = false,
-    ): GlideReading = trace(ImeTrace.GLIDE_DECODE) { decodeStroke(points, keys, keyWidthPx, guessAhead, openHead, openTail, phrase) }
+        /** A frame of a stroke still being drawn, which may decode under a smaller budget. */
+        preview: Boolean = false,
+    ): GlideReading = trace(ImeTrace.GLIDE_DECODE) {
+        decodeStroke(points, keys, keyWidthPx, guessAhead, openHead, openTail, phrase, preview)
+    }
 
     /**
      * One segment of a stroke that crossed the spacebar, read the way all of
@@ -30918,17 +30922,19 @@ open class WMKeyboardService : InputMethodService() {
         lastIndex: Int,
         keys: List<KeyCenter>,
         keyWidthPx: Float,
+        /** A frame of the segment still being drawn, rather than the lift's final read. */
+        preview: Boolean = false,
     ): GlideReading {
         val openTail = if (index < lastIndex) GlideStroke.openRun(segment, keyWidthPx, atEnd = true) else 0
         val openHead = if (index > 0) GlideStroke.openRun(segment, keyWidthPx, atEnd = false) else 0
         val guessAhead = index == lastIndex
-        var reading = glideDecode(segment, keys, keyWidthPx, guessAhead, openHead, openTail, phrase = true)
+        var reading = glideDecode(segment, keys, keyWidthPx, guessAhead, openHead, openTail, phrase = true, preview = preview)
         // The walks of a sharp V overlap, and there is no stroke left to cut.
         if (reading.words.isEmpty() && (openHead > 0 || openTail > 0) &&
             segment.size - openHead - openTail >= GLIDE_FALLBACK_MIN_POINTS
         ) {
             val cut = segment.subList(openHead, segment.size - openTail)
-            reading = glideDecode(cut, keys, keyWidthPx, guessAhead, phrase = true)
+            reading = glideDecode(cut, keys, keyWidthPx, guessAhead, phrase = true, preview = preview)
         }
         // A segment that is only its walks may be a one-letter word.
         val walkedBothWays = (index == 0 || openHead > 0) && (index == lastIndex || openTail > 0)
@@ -31001,6 +31007,8 @@ open class WMKeyboardService : InputMethodService() {
         openTail: Int = 0,
         /** A chained stroke's segment, its context read by [glidePhrase]; see [SuggestionEngine.glide]. */
         phrase: Boolean = false,
+        /** A frame of a stroke still being drawn; only the lift pays the full budget. */
+        preview: Boolean = false,
     ): GlideReading {
         val engine = suggestionEngine ?: return GlideReading.NONE
         engine.externalGlide = glideEngineNow()
@@ -31041,6 +31049,7 @@ open class WMKeyboardService : InputMethodService() {
             openHead = openHead,
             openTail = openTail,
             phrase = phrase,
+            preview = preview,
         )
 
         // Under LEARNED_ONLY the learned words are the whole search; under
@@ -31820,9 +31829,11 @@ open class WMKeyboardService : InputMethodService() {
                 val reading = withContext(Dispatchers.Default) {
                     // Same sources as the final decode, so the previewed word
                     // never differs from the one that commits on finger-up.
-                    request.tokens?.let { duetReading(it, request.points, request.keys, request.keyWidthPx) }
+                    request.tokens?.let {
+                        duetReading(it, request.points, request.keys, request.keyWidthPx, preview = true)
+                    }
                         ?: if (request.chain.isEmpty()) {
-                            glideDecode(request.points, request.keys, request.keyWidthPx)
+                            glideDecode(request.points, request.keys, request.keyWidthPx, preview = true)
                         } else {
                             val (read, before) = chainPreview(request, finished)
                             phraseSoFar = before
@@ -31928,9 +31939,11 @@ open class WMKeyboardService : InputMethodService() {
     ): Pair<GlideReading, List<String>> {
         val at = request.chain.size
         for (index in finished.size until at) {
-            finished.add(chainedDecode(request.chain[index], index, Int.MAX_VALUE, request.keys, request.keyWidthPx))
+            finished.add(
+                chainedDecode(request.chain[index], index, Int.MAX_VALUE, request.keys, request.keyWidthPx, preview = true),
+            )
         }
-        val current = chainedDecode(request.points, at, at, request.keys, request.keyWidthPx)
+        val current = chainedDecode(request.points, at, at, request.keys, request.keyWidthPx, preview = true)
         val engine = suggestionEngine ?: return current to emptyList()
         val slots = (finished + current).map { GlidePhraseLattice.Slot(it.words, it.scores) }
         val orders = engine.readGlidePhrase(slots, previousWord, previousWord2, useModel = false)
@@ -32744,11 +32757,13 @@ open class WMKeyboardService : InputMethodService() {
         keys: List<KeyCenter>,
         keyWidthPx: Float,
         literal: String,
+        /** A read while the word is still being built, rather than the settled read at its end. */
+        preview: Boolean = false,
     ): DuetShown? {
         val reading = if (lone != null) {
-            glideDecode(lone, keys, keyWidthPx, guessAhead = false)
+            glideDecode(lone, keys, keyWidthPx, guessAhead = false, preview = preview)
         } else {
-            duetReading(tokens, null, keys, keyWidthPx)
+            duetReading(tokens, null, keys, keyWidthPx, preview = preview)
         }
         reading.words.firstOrNull()?.let { return DuetShown(it, reading.words, complete = true) }
         val shown = duetPrefix(tokens, keys, keyWidthPx) ?: literal.takeIf { it.isNotEmpty() } ?: return null
@@ -32805,7 +32820,9 @@ open class WMKeyboardService : InputMethodService() {
         if (!strokeLive) clearGlidePreview()
         duetJob = serviceScope.launch {
             val remembered = if (undo) duetReadings.lastOrNull { it.first == tokens }?.second else null
-            val shown = remembered ?: withContext(Dispatchers.Default) { readDuet(tokens, lone, keys, keyWidthPx, literal) }
+            val shown = remembered ?: withContext(Dispatchers.Default) {
+                readDuet(tokens, lone, keys, keyWidthPx, literal, preview = !commit)
+            }
             val split = withContext(Dispatchers.Default) {
                 when {
                     offerBack != null -> loneSwipeWord(offerBack.points, keys, keyWidthPx)?.let { tail ->
@@ -32815,6 +32832,7 @@ open class WMKeyboardService : InputMethodService() {
                         val head = if (headWord.active) {
                             readDuet(
                                 headWord.snapshot(), headWord.loneSwipe(), keys, keyWidthPx, headWord.literal(),
+                                preview = !commit,
                             )?.word
                         } else {
                             headWord.typedText()
@@ -33032,11 +33050,13 @@ open class WMKeyboardService : InputMethodService() {
         points: List<GesturePoint>?,
         keys: List<KeyCenter>,
         keyWidthPx: Float,
+        /** A read while the word is still being built, rather than the settled read at its end. */
+        preview: Boolean = false,
     ): GlideReading {
         if (!DuetBeam.needsDuet(tokens)) {
             val stroke = points ?: (tokens.singleOrNull() as? GlideToken.Swipe)?.points
                 ?: return GlideReading.NONE
-            return glideDecode(stroke, keys, keyWidthPx)
+            return glideDecode(stroke, keys, keyWidthPx, preview = preview)
         }
         val engine = suggestionEngine ?: return GlideReading.NONE
         val decoded = engine.glideTokens(
@@ -33048,6 +33068,7 @@ open class WMKeyboardService : InputMethodService() {
             previousWord2 = previousWord2,
             previousWord3 = previousWord3,
             recentWords = recentWords.toList(),
+            preview = preview,
         )
         if (decoded.isEmpty()) return GlideReading.NONE
         val (words, scores) = offerApostrophes(

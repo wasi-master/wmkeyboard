@@ -188,10 +188,14 @@ internal object PredictionNative {
     /** The words before the caret, oldest first; register 0 neutral, 1 casual, 2 formal; field 0 other, 1 chat, 2 email, 3 search. */
     external fun lmSetContext(session: Long, register: Int, field: Int, lang: Int, words: Array<String>)
 
-    /** ln P(word next) per word, NaN where the model has no opinion. */
+    /** ln P(word next) per listed word, NaN where the model has no opinion. */
     external fun lmScores(session: Long, words: Array<String>): FloatArray
 
-    /** [lmScores], spelling a word the vocabulary lacks through its pieces. For a few words at a time. */
+    /**
+     * ln P(word next) per word, spelling a word the vocabulary does not list in
+     * pieces; NaN only where the model can read neither. Costs up to one forward
+     * step per piece, so only a glide's handful of candidates ask for it.
+     */
     external fun lmScoresSpelled(session: Long, words: Array<String>): FloatArray
 
     /**
@@ -285,6 +289,9 @@ internal object PredictionNative {
 
     external fun glideKeyMapOpen(keyX: FloatArray, keyY: FloatArray, codePoints: IntArray, keyOf: IntArray): Long
     external fun glideKeyMapClose(handle: Long)
+
+    /** The tuning array layout `glideDecode` reads; 2 is the `[2, count, fields...]` envelope. */
+    external fun glideTuningVersion(): Int
 
     /**
      * One decode, or its walk when [phase] is 1: `[words, doubles, ints]`

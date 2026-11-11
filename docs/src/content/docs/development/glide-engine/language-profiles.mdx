@@ -1,0 +1,182 @@
+---
+title: "Glide language profiles"
+description: "Per-language glide weights, the context blend by language and list size, the preview and lift budgets, and the versioned JNI tuning array."
+sidebar:
+  label: "Language profiles"
+  order: 2
+---
+
+`GlideBeam.Tuning` was fitted on English swipes. Two of its weights belong to the
+language and its word list rather than to the hand: `freqWeight`, how much a
+word's frequency counts against the stroke's shape, and `gapWeight`, how dearly a
+detour between two keys is charged. German's useful words are rare in every list
+(a median rank of 20,714 in a 150,000-word list, against 369 for the English words
+people swipe), so an English frequency weight outvotes the shape for German, and no
+single value wins both languages.
+
+`GlideLanguageProfiles` (`core/prediction/.../core/gesture/`) holds one row per
+measured language. `SuggestionEngine.retuneGlide` applies the row for
+`primaryLanguageId` on top of the user's tuning and the language's own radii
+(#1136). A profile moves only `freqWeight`, `gapWeight` and the join fields; it
+never touches the radii, the vocabulary rank or the doubled-letter marks, so a
+language switch never undoes a user's tuning. The rows and their measurements were
+contributed by saen1a in #966 and #1208.
+
+## The rows
+
+| Profile | `freqWeight` | with a context model | `gapWeight` | joins | glide blend |
+|---|---|---|---|---|---|
+| Default (every other id) | 1.0 | 1.0 | 1.33 | off | off |
+| English (`en`) | 1.0 | 1.0 | 1.33 | off | 0.7 / 3.0 small list, 0.5 / 5.0 large list (listed words only) |
+| German (`de`) | 0.75 | 0.5 | 2.0 | 8.0 / 4 letters / 0.1 | 0.5 / 5.0 on both list sizes |
+| Finnish (`fi`) | 0.75 | 0.75 | 2.0 | off | off |
+| Estonian (`et`) | 0.75 | 0.75 | 2.0 | off | off |
+| Hungarian (`hu`) | 0.75 | 0.75 | 2.0 | off | off |
+
+Ids resolve by their language subtag, so `de-DE`, `de_AT` and `fi-FI` take their
+language's row. A field with another language's list mixed in (**Also suggest
+from**, or English as a secondary) decodes with `DEFAULT` and no glide blend: the
+rows were measured on one list alone, and halving frequency lets rare English
+words take German strokes (#1051).
+
+### German: context-aware
+
+On 2,588 FUTO German strokes over the AOSP German list, with the shipped join
+guard and the published G6P 90k `de_context.wmlm`, blend 0.5 / 5.0 with unlisted
+candidates spelled:
+
+| `freqWeight` | Decoder top-1 / top-4 | After the blend top-1 / top-4 |
+|---:|---:|---:|
+| 0.75 | 81.34 / 87.60 | 81.68 / 87.56 |
+| 0.5 | 80.76 / 87.21 | 82.88 / 87.71 |
+
+A sentence-disjoint 5-fold split put 0.5 over 0.75 by +1.20 pp top-1 with the
+model (42/11 paired, p = 2.25e-5, cluster CI [+0.65, +1.78]); top-4 was flat.
+Without the model 0.5 loses, so `Profile.freqWeightWithContext` is used only while
+a model is open. `SuggestionEngine.contextModel` is a property whose setter calls
+`retuneGlide()`, which passes `hasContext` down to `GlideLanguageProfiles.tune`;
+`retuneGlideForContext(hasContext)` is the same entry point for tests.
+
+### Finnish, Estonian, Hungarian
+
+Same protocol for each: `freq_weight=1.0 gap_weight=1.33` against `0.75 / 2.0`,
+joins off, seed 20261109, HeliBoard gesture data (CC BY-SA 4.0), `RESULTS=4`,
+exact McNemar and a cluster bootstrap over keyboard geometries.
+
+| Language | Strokes | Geometries | Default top-1 / top-4 | 0.75 / 2.0 top-1 / top-4 | CI top-1 |
+|---|---:|---:|---:|---:|---|
+| Finnish (a-z slice, `fi_aosp`) | 1,000 | 12 | 72.80 / 91.30 | 76.90 / 95.10 | [+2.70, +5.60] |
+| Estonian (`et_full`, top 300k) | 281 | 2 | 57.30 / 72.95 | 66.55 / 81.14 | [+2.00, +10.82] |
+| Hungarian (`hu_full`, top 300k) | 436 | 7 | 62.39 / 81.42 | 66.97 / 85.09 | [+3.19, +8.11] |
+
+Estonian is the smallest sample and ships with that caveat.
+
+Finnish joins stay off. A German-style join guard (8 nats / 4 letters / 0.1)
+moved 0 of 1,000 outcomes on two separate slices, and turning joins on would also
+start the 10.58 MB `fi_full` compound-lexicon download for every Finnish glide
+user, because `CompoundLexiconDownloads.supports` follows the profile's
+`joinCost`. `CompoundLexiconTest` asserts `supports` stays false for `fi`, `et`
+and `hu` so a row edit cannot start that download by accident.
+
+### Measured and rejected
+
+| Language | Strokes | Delta top-1 / top-4 | CI top-1 |
+|---|---:|---:|---|
+| Danish | 1,000 | -5.10 / -1.60 | [-7.62, 0.00] |
+| Norwegian | 402 | -0.25 / +0.75 | [-3.21, +3.10] |
+| Dutch | 1,000 | -0.50 / +0.20 | [-1.27, +0.14] |
+| Swedish | 1,000 | -1.10 / +0.60 | [-2.15, +0.17] |
+| Turkish | 1,000 | +0.20 / +0.20 | [-1.20, +1.59] |
+
+None has a row. A row ships only on a paired CI lower bound above zero.
+
+## The glide context blend
+
+`blendGlideContextModel` moves each of the first `GLIDE_LM_SPELLED` candidates by
+the profile's blend per nat the context model prefers it over the first candidate
+it can read, capped either way, before `rerankGlide`. The typing blend
+(`Profile.lmBlend`) is separate and unchanged.
+
+The glide blend is opt-in per language and per list size. `WordSource.wordCount`
+gives the size class: `PackedTrie` counts its words once at construction,
+`MappedTrie` reads the file header, `CompositeWordSource` sums its members, and a
+source that cannot say reports 0, which counts as small. A list above
+`GLIDE_LM_BLEND_LIST_LIMIT` (50,000 words) is large.
+
+- English, small bundled list (17,306 words): 0.7 / 3.0 with unlisted candidates
+  spelled in pieces. 77.10 / 82.29 against 73.86 / 81.85 without the blend on
+  26,523 public strokes (+3.25 pp top-1, p = 2.8e-95).
+- English, large AOSP list (160,668 words): 0.5 / 5.0 on listed candidates only.
+  80.74 / 88.50 against 80.55 / 88.50 (+0.20 pp, CI [-0.05, +0.44], p = 0.121):
+  non-negative, not a proven gain. Pieces on the large list read 79.69 / 87.72,
+  a regression.
+- German: 0.5 / 5.0 with pieces on both sizes.
+- Everything else, including romanized Bangla, which has a model but no stroke
+  corpus: off, so the decoder order stands.
+
+Only listed words cost a lookup. Pieces are spelled for an unlisted leader, and
+for an unlisted runner-up only when it sits within the cap of the leader, since
+no shift could lift it further.
+
+The blend keeps empty-context (first-word) strokes. On the 10 % of English
+strokes that are first words, the large list loses 0.72 pp there and the small
+list is neutral, but German gains 2.11 pp, so a global empty-context guard would
+cost more than it saves.
+
+## Budgets and the versioned tuning array
+
+`Tuning.maxPops` and `Tuning.maxStates` are per-decode backstops, not language
+weights. The lift decodes with `GlideBeam.MAX_POPS` = 4,000 and
+`GlideWorkspace.MAX_STATES` = 12,288 (Rust `MAX_POPS` and `workspace::MAX_STATES`);
+a mid-swipe preview frame decodes with 2,000 / 8,192 (`GLIDE_PREVIEW_POPS`,
+`GLIDE_PREVIEW_STATES`) through separate `previewGlideBeam` and `previewDuetBeam`
+instances. The service passes `preview = true` from the gesture preview loop, the
+chained-stroke preview and a duet read that is not a commit. On German, the lift
+budget against the old 2,000 / 8,192 reads 81.07 to 81.22 top-1 over the AOSP list
+and 75.46 to 76.31 over the counted list.
+
+`NativeGlide.tuningArray` lays the tuning out as 32 doubles: the 30 shipped
+fields, then `maxPops` and `maxStates`. `glideDecode` sends it inside a versioned
+envelope, `[2, 32, fields...]` (34 values), when the loaded library exports
+`glideTuningVersion()` returning 2. The JNI `tuning()` reader accepts all three
+layouts:
+
+| Array | Read as |
+|---|---|
+| `[2, 32, fields...]` | the envelope, fields from index 2 |
+| 32 values | the 30 fields plus both budgets |
+| 30 values | the 30 fields, budgets at their defaults |
+
+`maxPops` is clamped to at least 1 and `maxStates` to 1..`MAX_STATES`. A library
+built before the envelope has no `glideTuningVersion`; `NativeGlide` catches the
+missing symbol, sends the plain array, and the old reader ignores the two extra
+slots, so an old `.so` decodes exactly as it did. The budgets take effect once
+`libwm_engine_jni.so` is rebuilt from this source.
+
+## Caches
+
+- `walkSources()` is cached on the engine's `generation` plus
+  `userLexicon.mutationCount()`. Every change to a list, the field mix or the
+  language confidences bumps the generation, so a multi-frame preview reuses one
+  list until something it reads changes.
+- The Rust `lm::Session` remembers piece-spelled scores for the context it holds,
+  up to 64 words, and clears them whenever the context moves or `generate`
+  extends it. A preview asks a largely repeated pool on every frame of one
+  stroke: 83.48 ms cold against 9.12 µs on the second ask, and a 10-frame pool
+  read 52.33 ms against 809.44 ms with a fresh context per frame.
+
+## Adding a row
+
+1. Run `native/wm-engine/examples/glide_beam_eval.rs` with `ALL=1`, `RESULTS=4`
+   and `COLS` set to the layout's columns, at the default and at the candidate
+   weights (`freq_weight=`, `gap_weight=`), on the language's own strokes. The
+   HeliBoard slicing and paired-statistics scripts behind the rows above are on
+   the `glide-engine` branch of saen1a's fork, under `wmk-glide/experiments/`.
+2. Add a row only on a paired CI lower bound above zero. Do not copy another
+   language's numbers; Danish loses five points on German's.
+3. Leave joins off unless a run against the app's compound lexicon shows a gain:
+   a finite `joinCost` also turns on that language's lexicon download.
+4. Leave the glide blend at zero until `glide_lm_blend_eval.rs` has measured the
+   language's model on each list size it ships.
+5. Add the row to the core and app `GlideLanguageProfilesTest`, and to
+   `CompoundLexiconTest` when joins stay off.

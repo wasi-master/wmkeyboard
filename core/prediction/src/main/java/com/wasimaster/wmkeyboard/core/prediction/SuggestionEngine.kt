@@ -393,7 +393,15 @@ class SuggestionEngine(
      * far by [setSentenceContext] at every commit.
      */
     @Volatile
-    var contextModel: ContextModel? = null
+    private var contextModelField: ContextModel? = null
+    var contextModel: ContextModel?
+        get() = contextModelField
+        set(value) {
+            if (value === contextModelField) return
+            contextModelField = value
+            // A model changes which frequency weight the glide decodes with.
+            retuneGlide()
+        }
 
     /** The conditioning the model is read under; see [setSentenceContext]. */
     @Volatile
@@ -1388,6 +1396,16 @@ class SuggestionEngine(
     private var deepGlideBeam = GlideBeam(languageTuning.copy(vocabularyRank = 0))
 
     /**
+     * The same weights with a smaller per-decode budget, for a stroke still
+     * being drawn: a preview frame is redrawn every few frames, so it may stop
+     * its walk earlier than the lift. Only [glide]'s `preview` path uses it.
+     */
+    @Volatile
+    private var previewGlideBeam = GlideBeam(
+        languageTuning.copy(maxPops = GLIDE_PREVIEW_POPS, maxStates = GLIDE_PREVIEW_STATES),
+    )
+
+    /**
      * The glide engine the user picked in place of [glideBeam] (FUTO Swipe
      * for English on QWERTY, or Google's gesture library they imported), or
      * null for the built-in decoder. The keyboard service sets it before each
@@ -1405,6 +1423,14 @@ class SuggestionEngine(
      */
     @Volatile
     private var duetBeam = DuetBeam(languageTuning)
+    /**
+     * [duetBeam] with the preview budget, for the mid-swipe prefix path of
+     * [glideTokens] (`partial`). The lift keeps the full [duetBeam].
+     */
+    @Volatile
+    private var previewDuetBeam = DuetBeam(
+        languageTuning.copy(maxPops = GLIDE_PREVIEW_POPS, maxStates = GLIDE_PREVIEW_STATES),
+    )
     private val duetWorkspace = ThreadLocal.withInitial { DuetWorkspace() }
 
     /**
@@ -1426,12 +1452,15 @@ class SuggestionEngine(
     /**
      * Rebuilds the decoders from [glideTuning] with [primaryLanguageId]'s
      * own radii (#1136) and profile on it (#966), when that changed anything: a switch between
-     * two languages with the same weights costs nothing.
+     * two languages with the same weights costs nothing. [retuneGlideForContext]
+     * reads whether a context model is open unless the caller says otherwise.
      */
-    private fun retuneGlide() {
+    private fun retuneGlide() = retuneGlideForContext(contextModelField != null)
+
+    internal fun retuneGlideForContext(hasContext: Boolean) {
         val mixed = secondaryDictionariesField.isNotEmpty() || englishAsSecondaryField
         val ownRadii = GlideTolerances.resolve(glideTuning, glideTolerancesByLanguage, primaryLanguageId)
-        val forLanguage = GlideLanguageProfiles.tune(ownRadii, primaryLanguageId, mixed)
+        val forLanguage = GlideLanguageProfiles.tune(ownRadii, primaryLanguageId, mixed, hasContext)
         // Joining needs something to check the joined spelling against, so with
         // no lexicon it is off, and the decoder never offers one (#1014).
         val joins = forLanguage.joinCost.isFinite()
@@ -1447,7 +1476,13 @@ class SuggestionEngine(
         languageTuning = tuned
         glideBeam = GlideBeam(tuned)
         deepGlideBeam = GlideBeam(tuned.copy(vocabularyRank = 0))
+        previewGlideBeam = GlideBeam(
+            tuned.copy(maxPops = GLIDE_PREVIEW_POPS, maxStates = GLIDE_PREVIEW_STATES),
+        )
         duetBeam = DuetBeam(tuned)
+        previewDuetBeam = DuetBeam(
+            tuned.copy(maxPops = GLIDE_PREVIEW_POPS, maxStates = GLIDE_PREVIEW_STATES),
+        )
     }
 
     /**
@@ -1597,6 +1632,14 @@ class SuggestionEngine(
         previousWord2: String? = null,
         recentWords: List<String> = emptyList(),
         deep: Boolean = false,
+        /**
+         * The stroke is still being drawn, so this decode may stop at the
+         * preview budget ([GLIDE_PREVIEW_POPS] / [GLIDE_PREVIEW_STATES])
+         * instead of the lift's [GlideBeam.MAX_POPS] /
+         * [GlideWorkspace.MAX_STATES]. Ignored by a [tuning] replay and by the
+         * external engine, which have no preview budget.
+         */
+        preview: Boolean = false,
         previousWord3: String? = null,
         shapes: GlideShapeSource? = null,
         tiers: Set<FuzzyBeamSearch.Tier>? = null,
@@ -1665,6 +1708,7 @@ class SuggestionEngine(
         val beam = when {
             tuning != null -> GlideBeam(tuning)
             deep -> deepGlideBeam
+            preview -> previewGlideBeam
             else -> glideBeam
         }
         fun decodeTo(pool: Int) = beam.decode(
@@ -1799,6 +1843,10 @@ class SuggestionEngine(
      * [partial] asks instead for the spellings the gestures *begin*, for a word
      * still being built that finishes no word yet (#640). Those are not words,
      * so they skip the blacklist, the rerank and the casing; best first.
+     *
+     * [preview] marks a frame of a stroke still being drawn, which is not the
+     * same as [partial]: a mid-swipe frame reads whole spellings too, but must
+     * not spend the full duet budget. A settled read keeps [duetBeam].
      */
     @Suppress("LongParameterList")
     fun glideTokens(
@@ -1811,6 +1859,7 @@ class SuggestionEngine(
         previousWord3: String? = null,
         recentWords: List<String> = emptyList(),
         partial: Boolean = false,
+        preview: Boolean = false,
     ): List<GlideBeam.Candidate> {
         val romanization = glideRomanization
         val sources = if (romanization.isEmpty) {
@@ -1819,7 +1868,7 @@ class SuggestionEngine(
             romanization.walkSources()
         }
         if (sources.isEmpty()) return emptyList()
-        val decoded = duetBeam.decode(
+        val decoded = (if (preview || partial) previewDuetBeam else duetBeam).decode(
             tokens = tokens,
             keys = keys,
             keyWidth = keyWidth,
@@ -2048,29 +2097,92 @@ class SuggestionEngine(
     /**
      * The context model's say on a stroke's candidates, in the decoder's
      * own nats (#966): each moves by the language's
-     * [GlideLanguageProfiles.Profile.lmBlend] per nat the model prefers it over
-     * the reference, at most [GlideLanguageProfiles.Profile.lmBlendCap] either
-     * way, as [blendContextModel] does for typing. The reference is the first
-     * candidate the model can read, spelling an unlisted one through its pieces
-     * (#1016), and never moves; a word it cannot read keeps its decoder score.
-     * Before [rerankGlide], which still reorders on its own evidence.
+     * [GlideLanguageProfiles.Profile.glideLmBlend] per nat the model prefers it
+     * over the reference, at most
+     * [GlideLanguageProfiles.Profile.glideLmBlendCap] either way. The blend is
+     * opt-in per measured language and list size: English reads +4.9 top-1 on
+     * the 17k bundled list at 0.7/3.0; on the 160k AOSP list over 26,523 public
+     * strokes, spelling unlisted candidates reads 79.57 % against 80.55 %
+     * without the blend, but scoring listed candidates only reads 80.74 % with
+     * top-4 unchanged at 88.50 %, at no piece pass. German's compounds keep
+     * the spelling. The reference is the first candidate the model can read,
+     * and never moves; a word it cannot read keeps its decoder score. Before
+     * [rerankGlide], which still reorders on its own evidence.
      *
-     * Heavier than typing's because a stroke says less than taps do: on
-     * 2,294 German swipes with a word before them it took the decoder's
-     * top-1 from 70.84 % to 80.82 %, with a corpus bigram standing in for
-     * the downloaded model, whose nats may sit on another scale.
+     * Pieces cost a forward step each, so only the pool the strip can show is
+     * spelled (8 ordinarily, 16 after a deep search), never the whole walk.
+     * Within that pool, an unlisted candidate further than the blend cap
+     * behind the leader is not spelled at all: even a full cap cannot lift it
+     * over the leader. On 2,588 German swipes over the shipped AOSP list, with
+     * the German profile and the downloaded context model, that cut the
+     * spelled candidates from 10,260 to 2,571 (75 %) with top-1 unchanged at
+     * 81.68 % and top-4 87.64 % to 87.56 %. Heavier than typing's because a
+     * stroke says less than taps do.
      */
     private fun blendGlideContextModel(decoded: List<GlideBeam.Candidate>): List<GlideBeam.Candidate> {
         val model = contextModel ?: return decoded
         if (decoded.size < 2) return decoded
-        val scores = model.scoresSpelled(decoded.take(GLIDE_LM_SPELLED).map { it.word.lowercase() })
-        val reference = scores.firstOrNull { !it.isNaN() } ?: return decoded
-        val profile = GlideLanguageProfiles.forLanguage(primaryLanguageId)
+        // A mixed field judged the decoder with the default weights, so the
+        // blend must use the same profile: the primary language's blend was
+        // fitted on one language's candidates, not on a mixed sentence.
+        val mixed = secondaryDictionariesField.isNotEmpty() || englishAsSecondaryField
+        val profile = if (mixed) GlideLanguageProfiles.DEFAULT else GlideLanguageProfiles.forLanguage(primaryLanguageId)
+        val large = activeDictionary.wordCount > GlideLanguageProfiles.GLIDE_LM_BLEND_LIST_LIMIT
+        val blend = if (large) profile.glideLmBlendLargeList else profile.glideLmBlend
+        val cap = if (large) profile.glideLmBlendCapLargeList else profile.glideLmBlendCap
+        if (blend == 0.0 || cap <= 0.0) return decoded
+        val spellOov = if (large) profile.glideLmSpellOovLargeList else profile.glideLmSpellOov
+        val scored = decoded.take(GLIDE_LM_SPELLED)
+        val words = scored.map { it.word.lowercase() }
+        // A listed word is a lookup; only an unlisted one costs a piece pass.
+        val listed = model.scores(words)
+        val scores = FloatArray(words.size) { Float.NaN }
+        for (i in words.indices) {
+            val lp = listed[i]
+            if (lp.isFinite()) scores[i] = lp
+        }
+        if (spellOov && !listed[0].isFinite()) {
+            // The leader is unlisted. Spelling it sets the reference when it
+            // can be read; if it cannot, the first finite listed candidate is
+            // the reference and the leader keeps its decoder score.
+            val leaderScore = model.scoresSpelled(listOf(words[0]))[0]
+            if (leaderScore.isFinite()) {
+                scores[0] = leaderScore
+            } else if (scores.none { it.isFinite() }) {
+                val all = model.scoresSpelled(words)
+                val fallback = all.firstOrNull { it.isFinite() } ?: return decoded
+                return shiftGlideContextScores(decoded, all, fallback, blend, cap)
+            }
+        }
+        val reference = scores.firstOrNull { it.isFinite() } ?: return decoded
+        if (spellOov) {
+            val leader = scored[0].score
+            val spell = ArrayList<Int>(words.size)
+            for (i in 1 until words.size) {
+                if (scores[i].isFinite()) continue
+                if (leader - scored[i].score <= cap) spell.add(i)
+            }
+            if (spell.isNotEmpty()) {
+                val spelled = model.scoresSpelled(spell.map { words[it] })
+                spell.forEachIndexed { k, i -> scores[i] = spelled[k] }
+            }
+        }
+        return shiftGlideContextScores(decoded, scores, reference, blend, cap)
+    }
+
+    /** [blendGlideContextModel]'s score shift and stable sort, over [scores]. */
+    private fun shiftGlideContextScores(
+        decoded: List<GlideBeam.Candidate>,
+        scores: FloatArray,
+        reference: Float,
+        blend: Double,
+        cap: Double,
+    ): List<GlideBeam.Candidate> {
         var moved = false
         val shifted = decoded.mapIndexed { i, c ->
             val lp = scores.getOrNull(i)
-            if (lp == null || lp.isNaN()) return@mapIndexed c
-            val shift = (profile.lmBlend * (lp - reference)).coerceIn(-profile.lmBlendCap, profile.lmBlendCap)
+            if (lp == null || !lp.isFinite()) return@mapIndexed c
+            val shift = (blend * (lp - reference)).coerceIn(-cap, cap)
             if (shift == 0.0) {
                 c
             } else {
@@ -2213,12 +2325,17 @@ class SuggestionEngine(
     }
 
     /**
-     * The weighted trie sources one fuzzy walk covers. Built per call —
-     * cheap — with each language's mix confidence read once, not once per
-     * candidate (LanguageMixConfidence is synchronized; per-candidate reads
-     * were the one real lock-contention point on the hot path).
+     * The weighted trie sources one fuzzy walk covers. Rebuilt on
+     * invalidation, not every call: keyed on [generation] and the user
+     * lexicon's mutation count, the same keys [glideContractionSources] and
+     * [glideApostropheSources] use. Each language's mix confidence is read
+     * once per build, not once per candidate (LanguageMixConfidence is
+     * synchronized; per-candidate reads were the one real lock-contention
+     * point on the hot path).
      */
     private fun walkSources(): List<FuzzyBeamSearch.WalkSource> {
+        val stamp = generation.get() to userLexicon.mutationCount()
+        walkSourcesCache?.takeIf { it.stamp == stamp }?.let { return it.sources }
         val sources = ArrayList<FuzzyBeamSearch.WalkSource>()
         fun add(wordSource: WordSource, logWeight: Double, tier: FuzzyBeamSearch.Tier) {
             for (walker in wordSource.walkers()) {
@@ -2239,8 +2356,19 @@ class SuggestionEngine(
                 FuzzyBeamSearch.WalkSource(walker, LOG_USER_WORD_WEIGHT, FuzzyBeamSearch.Tier.USER)
             )
         }
-        return sources
+        // A read-only copy: the local ArrayList is never handed to callers,
+        // so the cached list cannot be mutated behind the cache's back.
+        return sources.toList().also { walkSourcesCache = CachedWalkSources(stamp, it) }
     }
+
+    /** [walkSources]' list with the keys it was built from. */
+    private class CachedWalkSources(
+        val stamp: Pair<Long, Long>,
+        val sources: List<FuzzyBeamSearch.WalkSource>,
+    )
+
+    @Volatile
+    private var walkSourcesCache: CachedWalkSources? = null
 
     /**
      * The dictionary tier of [walkSources], at the weights the mix gives it,
@@ -3176,6 +3304,20 @@ class SuggestionEngine(
          * guess, which is exactly the case a context model is there to fix.
          */
         private const val GLIDE_RERANK_POOL = 8
+
+        /**
+         * Pops a mid-swipe preview frame may spend. A preview is redrawn every
+         * few frames, so it does not need the final lift's [GlideBeam.MAX_POPS];
+         * the smaller backstop keeps a preview from competing with the
+         * keystroke it precedes. The lift always uses the full budget.
+         */
+        private const val GLIDE_PREVIEW_POPS = 2000
+
+        /**
+         * Frontier states a mid-swipe preview frame may hold, against the
+         * lift's [GlideWorkspace.MAX_STATES]. See [GLIDE_PREVIEW_POPS].
+         */
+        private const val GLIDE_PREVIEW_STATES = 8192
 
         /**
          * Completions read per source when a lift finishes a word early

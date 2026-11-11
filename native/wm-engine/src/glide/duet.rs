@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use super::keymap::KeyMap;
 use super::loops::{is_joiner, is_non_word, LoopScan};
 use super::workspace::{NO_LABEL, UNREACHABLE};
-use super::{by_score, Candidate, Point, Source, Tuning, MAX_POPS, RESULT_K};
+use super::{by_score, Candidate, Point, Source, Tuning, RESULT_K};
 use crate::fuzzy::Tier;
 use crate::kernels::band;
 use crate::sort;
@@ -700,7 +700,8 @@ impl DuetDecoder {
 
         let mut children = std::mem::take(&mut self.ws.children);
         let mut pops = 0;
-        while !self.ws.heap.is_empty() && pops < MAX_POPS {
+        let max_pops = self.tuning.max_pops.max(1);
+        while !self.ws.heap.is_empty() && pops < max_pops {
             let s = self.ws.pop_best();
             if self.ws.bound[s] < floor - EPS {
                 break;

@@ -1,0 +1,33 @@
+---
+title: "Glide engine"
+description: "Where the built-in glide decoder lives, how its Kotlin and Rust halves talk, and which pages cover its tuning."
+sidebar:
+  label: "Overview"
+  order: 1
+---
+
+The built-in glide decoder reads a swipe against the active word lists and hands
+a ranked shortlist to the suggestion engine. [Glide typing](/typing/glide-typing/)
+describes what a user sees; these pages are for people changing the decoder.
+
+## Where the code is
+
+| Piece | Path |
+|---|---|
+| Kotlin front end, tuning and per-language profiles | `core/prediction/src/main/java/com/wasimaster/wmkeyboard/core/gesture/` (`GlideBeam`, `GlideLanguageProfiles`, `NativeGlide`) |
+| Sources, context blend and reranking | `core/prediction/src/main/java/com/wasimaster/wmkeyboard/core/prediction/SuggestionEngine.kt` |
+| Rust decoder | `native/wm-engine/src/glide/` (`mod.rs`, `duet.rs`, `workspace.rs`) |
+| JNI bridge | `native/wm-engine-jni/src/glide.rs` |
+| Kotlin reference oracle for parity tests | `app/src/test/java/com/wasimaster/wmkeyboard/core/gesture/reference/` |
+| Stroke harnesses | `native/wm-engine/examples/glide_beam_eval.rs`, `glide_lm_blend_eval.rs` |
+
+Every decode runs in Rust. Kotlin builds the `GlideBeam.Tuning`, picks the word
+sources, flattens both into arrays for `PredictionNative.glideDecode`, and
+post-processes what comes back: the context blend, the n-gram rerank, apostrophes
+and casing.
+
+## Pages
+
+- [Language profiles](/development/glide-engine/language-profiles/): the
+  per-language decoder weights, the glide context blend by list size, the
+  per-decode budgets and the versioned tuning array the JNI bridge reads.

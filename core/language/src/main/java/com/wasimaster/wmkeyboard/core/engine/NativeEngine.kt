@@ -115,7 +115,14 @@ object NativeEngine {
 
     /** The host build under the repo's `native/wm-engine-jni/target`, release first. */
     private fun hostLibrary(): File? {
-        val names = listOf("libwm_engine_jni.dylib", "libwm_engine_jni.so", "wm_engine_jni.dll")
+        // Prefer this platform's own extension. A worktree can hold a WSL
+        // libwm_engine_jni.so and a Windows wm_engine_jni.dll side by side;
+        // loading the ELF on Windows fails with machine code 0x2b0 even
+        // though the DLL is right there.
+        val preferred = System.mapLibraryName(LIBRARY)
+        val names = listOf(preferred) +
+            listOf("libwm_engine_jni.dylib", "libwm_engine_jni.so", "wm_engine_jni.dll")
+                .filter { it != preferred }
         var dir: File? = File("").absoluteFile
         while (dir != null) {
             if (File(dir, "settings.gradle.kts").isFile) {

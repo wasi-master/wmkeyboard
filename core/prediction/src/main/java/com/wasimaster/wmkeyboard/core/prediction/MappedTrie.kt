@@ -29,7 +29,7 @@ import java.nio.channels.FileChannel
  */
 class MappedTrie private constructor(
     private val buf: ByteBuffer,
-    val wordCount: Int,
+    override val wordCount: Int,
     /** Nodes in the file, so a whole-trie pass knows where to stop. */
     private val nodeCount: Int,
     /**

@@ -20,6 +20,11 @@ internal object NativeGlide {
 
     private val NO_SHAPES = emptyArray<ByteArray>()
 
+    /** 0 when the loaded library predates `glideTuningVersion`, keeping the unversioned array. */
+    private val tuningVersion: Int by lazy {
+        runCatching { PredictionNative.glideTuningVersion() }.getOrDefault(0)
+    }
+
     /** [tuning] in the order `glide.rs` reads it. */
     fun tuningArray(tuning: GlideBeam.Tuning): DoubleArray = with(tuning) {
         doubleArrayOf(
@@ -31,7 +36,14 @@ internal object NativeGlide {
             endRadius.toDouble(), nearRadius.toDouble(), vocabularyRank.toDouble(), lookAheadCost,
             lookAheadBudget.toDouble(), joinerCost.toDouble(), freqWeight, joinCost,
             joinMinPart.toDouble(), joinPartPenalty,
+            maxPops.toDouble(), maxStates.toDouble(),
         )
+    }
+
+    /** [tuning] with the `[version, count, fields...]` envelope when the library reads it. */
+    private fun tuningValues(tuning: GlideBeam.Tuning): DoubleArray {
+        val fields = tuningArray(tuning)
+        return if (tuningVersion >= 2) doubleArrayOf(2.0, fields.size.toDouble()) + fields else fields
     }
 
     private class Path(path: List<GesturePoint>) {
@@ -47,7 +59,6 @@ internal object NativeGlide {
     @Suppress("LongParameterList", "ReturnCount")
     fun decode(
         tuning: GlideBeam.Tuning,
-        tuningArray: DoubleArray,
         path: List<GesturePoint>,
         keys: GlideKeyMap,
         keyWidth: Float,
@@ -68,7 +79,7 @@ internal object NativeGlide {
         val seeding = !open && shapes != null && tuning.shapeSeeding && tuning.learnedShapeGain > 0.0
         val stroke = Path(path)
         val walked = PredictionNative.glideDecode(
-            tuningArray, stroke.xs, stroke.ys, stroke.ts, keys.nativeHandle, keyWidth,
+            tuningValues(tuning), stroke.xs, stroke.ys, stroke.ts, keys.nativeHandle, keyWidth,
             s.handles.copyOf(s.count), s.kinds.copyOf(s.count), s.weights.copyOf(s.count), s.tiers.copyOf(s.count),
             s.floors.copyOf(s.count), limit, lookAhead, if (learned || seeding) 1 else 0, openHead, openTail,
         ) ?: return emptyList()

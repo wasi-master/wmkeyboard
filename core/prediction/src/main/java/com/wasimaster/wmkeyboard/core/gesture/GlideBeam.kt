@@ -568,6 +568,18 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * at `8 / 4 / 0.1` the joining gains half a point over none.
          */
         val joinPartPenalty: Double = 0.0,
+        /**
+         * Runaway pop backstop for one decode, not a language weight: see
+         * [GlideBeam.MAX_POPS]. A mid-swipe preview frame decodes under a
+         * smaller budget (2,000 pops / 8,192 states) than the final lift
+         * (4,000 / 12,288), so the same weights can be reused for both.
+         */
+        val maxPops: Int = MAX_POPS,
+        /**
+         * Frontier-state cap for one decode, not a language weight: see
+         * [GlideWorkspace.MAX_STATES]. Previews use 8,192; the lift 12,288.
+         */
+        val maxStates: Int = GlideWorkspace.MAX_STATES,
     ) {
         val invTwoSigmaSq: Float get() = 1f / (2f * sigma * sigma)
         val startRadiusSq: Float get() = startRadius * startRadius
@@ -696,7 +708,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         if (path.size < MIN_SAMPLES || keyWidth <= 0f) return emptyList()
         if (keys.keyCount == 0 || sources.isEmpty() || limit <= 0) return emptyList()
         return NativeGlide.decode(
-            tuning, nativeTuning, path, keys, keyWidth, sources, limit, shapes, lookAhead, openHead, openTail,
+            tuning, path, keys, keyWidth, sources, limit, shapes, lookAhead, openHead, openTail,
         ) ?: error(NO_TWIN)
     }
 
@@ -737,8 +749,20 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
 
         private const val MIN_SAMPLES = 3
 
-        /** Runaway backstop; floor pruning ends healthy walks far earlier. */
-        const val MAX_POPS = 2000
+        /**
+         * Runaway backstop; floor pruning ends healthy walks far earlier.
+         *
+         * It was 2000. On 2,588 German swipes with the full list and the
+         * 8,192-state frontier, 4,000 pops read 75.81 top-1 against 75.46;
+         * with the 12,288-state frontier it read 76.31. The extra pops only
+         * run where the walk would otherwise have stopped.
+         *
+         * This is the final lift's budget; a mid-swipe preview frame runs
+         * 2,000 pops with the 8,192-state frontier (see
+         * `SuggestionEngine.GLIDE_PREVIEW_POPS`), since a preview is redrawn
+         * every few frames and the lift alone has to be exact.
+         */
+        const val MAX_POPS = 4000
 
         /** Rank depth kept internally, so reranking has something to reorder. */
         const val RESULT_K = 8

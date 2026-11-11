@@ -30,17 +30,66 @@ class GlideLanguageProfilesTest {
     }
 
     @Test
-    fun `the compound reading is off everywhere but german`() {
+    fun `the compound reading is on for german and off elsewhere`() {
         assertEquals(Double.POSITIVE_INFINITY, GlideBeam.Tuning.DEFAULT.joinCost, 0.0)
-        for (id in listOf("en", "fr", "nl", "fi", null)) {
+        for (id in listOf("en", "fr", "nl", "fi", "et", "hu", null)) {
             assertEquals(id, Double.POSITIVE_INFINITY, GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, id).joinCost, 0.0)
         }
+        assertEquals(8.0, GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "de").joinCost, 0.0)
     }
 
     @Test
-    fun `english and unknown languages decode with the shipped weights, the same instance`() {
+    fun `estonian takes the measured weights and leaves joins off`() {
+        val tuned = GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "et")
+        assertEquals(0.75, tuned.freqWeight, 0.0)
+        assertEquals(2.0f, tuned.gapWeight, 0f)
+        assertEquals(Double.POSITIVE_INFINITY, tuned.joinCost, 0.0)
+        assertEquals(GlideBeam.Tuning.DEFAULT.joinMinPart, tuned.joinMinPart)
+        assertEquals(GlideBeam.Tuning.DEFAULT.joinPartPenalty, tuned.joinPartPenalty, 0.0)
+        assertEquals(tuned, GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "et", hasContext = true))
+        assertSame(GlideLanguageProfiles.ESTONIAN, GlideLanguageProfiles.forLanguage("et-EE"))
+        assertSame(GlideBeam.Tuning.DEFAULT, GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "et", mixed = true))
+    }
+
+    @Test
+    fun `hungarian takes the measured weights and leaves joins off`() {
+        val tuned = GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "hu")
+        assertEquals(0.75, tuned.freqWeight, 0.0)
+        assertEquals(2.0f, tuned.gapWeight, 0f)
+        assertEquals(Double.POSITIVE_INFINITY, tuned.joinCost, 0.0)
+        assertEquals(GlideBeam.Tuning.DEFAULT.joinMinPart, tuned.joinMinPart)
+        assertEquals(GlideBeam.Tuning.DEFAULT.joinPartPenalty, tuned.joinPartPenalty, 0.0)
+        assertEquals(tuned, GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "hu", hasContext = true))
+        assertSame(GlideLanguageProfiles.HUNGARIAN, GlideLanguageProfiles.forLanguage("hu-HU"))
+        assertSame(GlideBeam.Tuning.DEFAULT, GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "hu", mixed = true))
+    }
+
+    @Test
+    fun `finnish takes the measured weights and leaves joins off`() {
+        val tuned = GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "fi")
+        assertEquals(0.75, tuned.freqWeight, 0.0)
+        assertEquals(2.0f, tuned.gapWeight, 0f)
+        // The join slice moved nothing and the app's join path is a different
+        // downloaded lexicon, so the row does not enable it.
+        assertEquals(Double.POSITIVE_INFINITY, tuned.joinCost, 0.0)
+        assertEquals(GlideBeam.Tuning.DEFAULT.joinMinPart, tuned.joinMinPart)
+        assertEquals(GlideBeam.Tuning.DEFAULT.joinPartPenalty, tuned.joinPartPenalty, 0.0)
+        // No Finnish context model: the weight does not move.
+        assertEquals(tuned, GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "fi", hasContext = true))
+        // Regional ids resolve to the row; mixing in another list does not.
+        assertSame(GlideLanguageProfiles.FINNISH, GlideLanguageProfiles.forLanguage("fi-FI"))
+        assertSame(GlideBeam.Tuning.DEFAULT, GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "fi", mixed = true))
+    }
+
+    @Test
+    fun `english and unknown languages decode with the shipped weights`() {
         for (id in listOf("en", "en-US", "fr", "bn", "", null)) {
             assertSame(id, GlideBeam.Tuning.DEFAULT, GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, id))
+        }
+        for (id in listOf("en", "en-US")) {
+            assertSame(id, GlideLanguageProfiles.ENGLISH, GlideLanguageProfiles.forLanguage(id))
+        }
+        for (id in listOf("fr", "bn", "", null)) {
             assertSame(id, GlideLanguageProfiles.DEFAULT, GlideLanguageProfiles.forLanguage(id))
         }
     }

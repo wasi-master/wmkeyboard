@@ -463,21 +463,23 @@ class KotlinGlideWorkspace {
         const val SHAPE_POINTS = 48
 
         /**
-         * Frontier cap, worth ~2 MB of columns once the pool has grown into
-         * it on a long stroke (MAX_STATES × 64 samples × 4 bytes; 3 MB at
-         * [SAMPLE_POINTS], which only the longest strokes reach). Best-first order means the
-         * states that matter are expanded first, so hitting this is a backstop
-         * rather than a bound anyone should reach; [saturated] records when it
-         * happened so the harness can see it rather than reading a quietly
-         * worse number.
+         * Frontier cap, worth up to ~4.5 MB of columns once the pool has
+         * grown into it on the longest stroke (MAX_STATES × 96 samples ×
+         * 4 bytes); the vectors grow with the pool, so only a stroke that
+         * needs them pays. Best-first order means the states that matter are
+         * expanded first, so hitting this is a backstop rather than a bound
+         * anyone should reach; [saturated] records when it happened so the
+         * harness can see it rather than reading a quietly worse number.
          *
          * It was 3072, and on a long word it was reached every time: a German
          * stroke of fifteen letters or more saturated the pool on every one of
          * 300 synthetic strokes, and the word drawn was never pushed (issue
-         * #714). At 8192 none of them do, and the walk ends on its pop budget
-         * or its floor instead, in the same time per decode.
+         * #714). At 8192 none of them do. At the later 4,000-pop budget the
+         * real German swipes reached 8192 again: 12,288 lifted top-1 from
+         * 75.81 to 76.31 and top-64 coverage from 87.13 % to 87.75 %; 16,384
+         * gained nothing more on the same set.
          */
-        const val MAX_STATES = 8192
+        const val MAX_STATES = 12288
 
         /**
          * Longest key sequence a candidate's ideal path can have: a word of

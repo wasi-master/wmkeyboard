@@ -21,7 +21,8 @@ use wm_engine::fuzzy::Tier;
 use wm_engine::glide::ctc::{CtcDecoder, CtcRanked, Scoring, Stroke as CtcStroke, CLASSES};
 use wm_engine::glide::duet::{Duet, DuetDecoder, Token};
 use wm_engine::glide::keymap::KeyMap;
-use wm_engine::glide::{Candidate, Decoder, LearnedShapes, Point, Ranked, Source, Tuning};
+use wm_engine::glide::workspace::MAX_STATES;
+use wm_engine::glide::{Candidate, Decoder, LearnedShapes, Point, Ranked, Source, Tuning, MAX_POPS};
 
 use crate::guard::{give_all_units, give_ints, guarded, object, read_units, throw_state};
 use crate::handles::Registry;
@@ -67,43 +68,67 @@ fn longs(env: &mut JNIEnv, a: &JLongArray) -> Option<Vec<i64>> {
     Some(out)
 }
 
+/// The tuning layout `glideTuningVersion` reports and `tuning` reads.
+const GLIDE_TUNING_VERSION: jint = 2;
+
 /// `Tuning` from the Kotlin order: every field, booleans as 0/1, the
 /// floats exactly representable as doubles.
+///
+/// Three layouts are accepted:
+///
+/// - a versioned envelope `[version, fieldCount, fields..]`, version
+///   [`GLIDE_TUNING_VERSION`] with a field count of 32 (thirty-four values),
+///   whose fields are read from `&v[2..]`;
+/// - the unversioned 32-value array, the thirty shipped fields plus
+///   `max_pops` and `max_states`; or
+/// - the old thirty-value array, which reads as the shipped decode.
+///
+/// The field slice must hold at least the thirty shipped values; the
+/// optional slots after them carry the per-decode backstops (`max_pops`,
+/// `max_states`) and default when absent. `max_states` is capped at the
+/// workspace's documented ceiling.
 fn tuning(v: &[f64]) -> Option<Tuning> {
-    if v.len() < 30 {
+    let fields: &[f64] = if v.len() >= 2 && v[0] as i32 == GLIDE_TUNING_VERSION && v[1] as i32 == 32 {
+        &v[2..]
+    } else {
+        v
+    };
+    if fields.len() < 30 {
         return None;
     }
     Some(Tuning {
-        sigma: v[0] as f32,
-        max_point_cost: v[1] as f32,
-        gap_weight: v[2] as f32,
-        gap_window: v[3] as f32,
-        shape_weight: v[4],
-        repeat_cost: v[5] as f32,
-        unlooped_repeat: v[6] as f32,
-        dwell_full: v[7] as f32,
-        unclaimed_dwell: v[8] as f32,
-        loop_extent: v[9] as f32,
-        loop_min_arc: v[10] as f32,
-        loop_radius: v[11] as f32,
-        wiggle_extent: v[12] as f32,
-        wiggle_weight: v[13] as f32,
-        loop_exclusion: v[14] as f32,
-        unclaimed_loop: v[15] as f32,
-        learned_shape_gain: v[16],
-        shape_seeding: v[17] != 0.0,
-        shape_channel: v[18],
-        start_radius: v[19] as f32,
-        end_radius: v[20] as f32,
-        near_radius: v[21] as f32,
-        vocabulary_rank: v[22] as i32,
-        look_ahead_cost: v[23],
-        look_ahead_budget: v[24] as i32,
-        joiner_cost: v[25] as f32,
-        freq_weight: v[26],
-        join_cost: v[27],
-        join_min_part: v[28] as i32,
-        join_part_penalty: v[29],
+        sigma: fields[0] as f32,
+        max_point_cost: fields[1] as f32,
+        gap_weight: fields[2] as f32,
+        gap_window: fields[3] as f32,
+        shape_weight: fields[4],
+        repeat_cost: fields[5] as f32,
+        unlooped_repeat: fields[6] as f32,
+        dwell_full: fields[7] as f32,
+        unclaimed_dwell: fields[8] as f32,
+        loop_extent: fields[9] as f32,
+        loop_min_arc: fields[10] as f32,
+        loop_radius: fields[11] as f32,
+        wiggle_extent: fields[12] as f32,
+        wiggle_weight: fields[13] as f32,
+        loop_exclusion: fields[14] as f32,
+        unclaimed_loop: fields[15] as f32,
+        learned_shape_gain: fields[16],
+        shape_seeding: fields[17] != 0.0,
+        shape_channel: fields[18],
+        start_radius: fields[19] as f32,
+        end_radius: fields[20] as f32,
+        near_radius: fields[21] as f32,
+        vocabulary_rank: fields[22] as i32,
+        look_ahead_cost: fields[23],
+        look_ahead_budget: fields[24] as i32,
+        joiner_cost: fields[25] as f32,
+        freq_weight: fields[26],
+        join_cost: fields[27],
+        join_min_part: fields[28] as i32,
+        join_part_penalty: fields[29],
+        max_pops: fields.get(30).map_or(MAX_POPS, |&x| (x as usize).max(1)),
+        max_states: fields.get(31).map_or(MAX_STATES, |&x| (x as usize).max(1).min(MAX_STATES)),
     })
 }
 
@@ -209,6 +234,16 @@ fn give_candidates(env: &mut JNIEnv, found: &[Candidate], extra: &[i32], drawn: 
         env.set_object_array_element(&out, 3, &array).ok()?;
     }
     Some(out.into_raw())
+}
+
+/// `glideTuningVersion()`: the tuning array layout `tuning` reads, so Kotlin
+/// can build the versioned envelope instead of guessing the slots.
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_glideTuningVersion(
+    _env: JNIEnv,
+    _class: JClass,
+) -> jint {
+    GLIDE_TUNING_VERSION
 }
 
 /// `glideDecode(tuning, xs, ys, ts, keyMap, keyWidth, dicts, kinds, weights,
@@ -604,4 +639,49 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         })?;
         give_candidates(env, &found, &[], None)
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `NativeGlide.tuningArray`'s first thirty slots: the shipped tuning.
+    fn shipped_tuning() -> Vec<f64> {
+        vec![
+            0.42, 18.0, 1.33, 32.0, 0.5, // sigma, maxPointCost, gapWeight, gapWindow, shapeWeight
+            0.8, 0.1, 2.0, 0.9, 0.8, // repeatCost, unloopedRepeat, dwellFull, unclaimedDwell, loopExtent
+            1.0, 0.6, 0.0, 0.0, 1.5, // loopMinArc, loopRadius, wiggleExtent, wiggleWeight, loopExclusion
+            1.1, 0.15, 0.0, 6.0, 1.6, // unclaimedLoop, learnedShapeGain, shapeSeeding, shapeChannel, startRadius
+            2.0, 1.9, 0.0, 1.4, 48.0, // endRadius, nearRadius, vocabularyRank, lookAheadCost, lookAheadBudget
+            0.2, 1.0, f64::INFINITY, 3.0, 0.0, // joinerCost, freqWeight, joinCost, joinMinPart, joinPartPenalty
+        ]
+    }
+
+    #[test]
+    fn thirty_value_tuning_defaults_the_backstops() {
+        let t = tuning(&shipped_tuning()).expect("a valid tuning");
+        assert_eq!(0.42, t.sigma);
+        assert_eq!(MAX_POPS, t.max_pops);
+        assert_eq!(MAX_STATES, t.max_states);
+    }
+
+    #[test]
+    fn thirty_two_value_tuning_reads_the_backstops() {
+        let mut v = shipped_tuning();
+        v.extend_from_slice(&[2000.0, 8192.0]);
+        let t = tuning(&v).expect("a valid tuning");
+        assert_eq!(2000, t.max_pops);
+        assert_eq!(8192, t.max_states);
+    }
+
+    #[test]
+    fn versioned_tuning_reads_the_field_slice() {
+        let mut v = vec![GLIDE_TUNING_VERSION as f64, 32.0];
+        v.extend_from_slice(&shipped_tuning());
+        v.extend_from_slice(&[2000.0, 8192.0]);
+        let t = tuning(&v).expect("a valid tuning");
+        assert_eq!(0.42, t.sigma);
+        assert_eq!(2000, t.max_pops);
+        assert_eq!(8192, t.max_states);
+    }
 }

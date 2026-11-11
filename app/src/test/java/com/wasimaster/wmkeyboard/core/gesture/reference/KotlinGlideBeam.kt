@@ -1738,8 +1738,15 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
          */
         private const val END_LOOP_REACH = 0.5f
 
-        /** Runaway backstop; floor pruning ends healthy walks far earlier. */
-        const val MAX_POPS = 2000
+        /**
+         * Runaway backstop; floor pruning ends healthy walks far earlier.
+         *
+         * It was 2000. On 2,588 German swipes with the full list and the
+         * 8,192-state frontier, 4,000 pops read 75.81 top-1 against 75.46;
+         * with the 12,288-state frontier it read 76.31. The extra pops only
+         * run where the walk would otherwise have stopped.
+         */
+        const val MAX_POPS = 4000
 
         /** Rank depth kept internally, so reranking has something to reorder. */
         const val RESULT_K = 8

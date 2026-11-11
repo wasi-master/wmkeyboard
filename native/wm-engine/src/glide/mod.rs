@@ -49,6 +49,10 @@ pub struct Point {
 /// short words (`hast` + `alt`) from outbidding the listed `haushalt`
 /// (#966, measured on 2,588 German swipes at 8 / 4 / 0.1). At their
 /// defaults, 3 and 0, a joined decode is the one before them to the bit.
+/// `max_pops` and `max_states` are per-decode backstops, not language
+/// weights (#1208): a mid-swipe preview runs 2,000 / 8,192 so it cannot
+/// compete with the keystroke it precedes, and the lift the full
+/// [`MAX_POPS`] / [`workspace::MAX_STATES`].
 #[derive(Clone, Debug, PartialEq)]
 pub struct Tuning {
     pub sigma: f32,
@@ -81,6 +85,13 @@ pub struct Tuning {
     pub join_cost: f64,
     pub join_min_part: i32,
     pub join_part_penalty: f64,
+    /// Runaway backstop on the pops one decode reads; floor pruning ends a
+    /// healthy walk far earlier. Clamped to at least 1 at use.
+    pub max_pops: usize,
+    /// Frontier cap on the states one decode may schedule. Clamped to at
+    /// least 1 at use and capped at [`workspace::MAX_STATES`] by the JNI
+    /// bridge.
+    pub max_states: usize,
 }
 
 impl Default for Tuning {
@@ -116,6 +127,8 @@ impl Default for Tuning {
             join_cost: f64::INFINITY,
             join_min_part: MIN_JOIN_PART,
             join_part_penalty: 0.0,
+            max_pops: MAX_POPS,
+            max_states: workspace::MAX_STATES,
         }
     }
 }
@@ -253,7 +266,13 @@ const SHAPE_BYTE_LIMIT: i32 = 127;
 const DWELL_RADIUS: f32 = 0.8;
 const DWELL_TIE: f32 = 0.25;
 const END_LOOP_REACH: f32 = 0.5;
-pub const MAX_POPS: usize = 2000;
+/// Runaway backstop; floor pruning ends healthy walks far earlier.
+///
+/// It was 2,000. On 2,588 German swipes with the full list and the 8,192
+/// frontier, 4,000 pops read 75.81 top-1 against 75.46; with the 12,288
+/// frontier it reads 76.31 (#1208). The extra pops only run where the walk
+/// would otherwise have stopped.
+pub const MAX_POPS: usize = 4000;
 pub const RESULT_K: usize = 8;
 const EPS: f64 = 1e-9;
 /// `GlideShapeStore.QUANT`.
@@ -383,6 +402,7 @@ impl Decoder {
         }
         self.build_loops(path, key_width, keys);
         self.build_remain(keys);
+        self.ws.max_states = self.tuning.max_states.clamp(1, workspace::MAX_STATES);
 
         let k = (limit * 2).max(RESULT_K);
         let mut results: HashMap<Vec<u16>, Candidate> = HashMap::new();
@@ -658,8 +678,9 @@ impl Decoder {
         self.ws.push(root, -1, NO_LABEL, -1, 0, 0.0, 0.0, src.log_weight + tuning.freq_weight * ln1p(walker.max_subtree(root)), 0);
 
         let mut pops = 0;
+        let max_pops = tuning.max_pops.max(1);
         let mut children = std::mem::take(&mut self.ws.children);
-        while self.ws.heap_size() > 0 && pops < MAX_POPS {
+        while self.ws.heap_size() > 0 && pops < max_pops {
             let s = self.ws.pop_best();
             if self.ws.bound[s] < floor - EPS {
                 break;
@@ -2148,5 +2169,31 @@ mod chained {
         let mut decoder = Decoder::new(Tuning::default());
         let path = swipe("keyboard");
         assert_eq!(top(&mut decoder, &trie, &path).as_deref(), Some("keyboard"));
+    }
+
+    #[test]
+    fn the_default_budgets_are_the_shipped_constants() {
+        let tuning = Tuning::default();
+        assert_eq!(tuning.max_pops, MAX_POPS);
+        assert_eq!(tuning.max_states, workspace::MAX_STATES);
+    }
+
+    #[test]
+    fn the_workspace_honours_its_state_cap_and_reports_saturation() {
+        let mut ws = Workspace::new();
+        ws.max_states = 1;
+        assert!(ws.push(0, -1, NO_LABEL, -1, 0, 0.0, 0.0, 0.0, 0).is_some());
+        assert!(ws.push(1, -1, NO_LABEL, -1, 0, 0.0, 0.0, 0.0, 0).is_none());
+        assert!(ws.saturated);
+    }
+
+    #[test]
+    fn a_tiny_pop_budget_stops_the_walk_before_it_finds_a_word() {
+        let trie = trie();
+        let path = swipe("the");
+        let mut shipped = Decoder::new(Tuning::default());
+        assert_eq!(top(&mut shipped, &trie, &path).as_deref(), Some("the"));
+        let mut capped = Decoder::new(Tuning { max_pops: 1, ..Tuning::default() });
+        assert_eq!(top(&mut capped, &trie, &path), None);
     }
 }

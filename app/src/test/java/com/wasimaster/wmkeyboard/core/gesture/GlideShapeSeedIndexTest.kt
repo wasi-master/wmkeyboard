@@ -37,7 +37,7 @@ class GlideShapeSeedIndexTest {
             val at = found.indexOfFirst { it.first == f.word }
             if (at < 0) found.add(f.word to d) else if (d < found[at].second) found[at] = f.word to d
         }
-        found.sortBy { it.second }
+        found.sortWith(compareBy({ it.second }, { it.first }))
         return found.take(limit).map { it.first }
     }
 

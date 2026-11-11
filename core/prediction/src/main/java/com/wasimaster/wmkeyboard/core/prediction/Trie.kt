@@ -19,6 +19,14 @@ interface WordSource {
     fun walkers(): List<TrieWalker> = emptyList()
 
     /**
+     * How many words the source holds. The glide's context blend reads it to
+     * tell the small bundled lists its weight was fitted on from the large
+     * downloaded ones, where the same shift can go the other way (#1240).
+     * Zero when the source cannot say; a zero is treated as small.
+     */
+    val wordCount: Int get() = 0
+
+    /**
      * The [walkers] that are the language's own list, bundled or downloaded,
      * and not something the user imported on top of it. Every source is its
      * own unless it knows better ([CompositeWordSource.ofLanguage]). Asked
