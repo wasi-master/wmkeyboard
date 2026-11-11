@@ -91,7 +91,12 @@ val buildHostPython by tasks.registering(Exec::class) {
     workingDir(native.dir("wm-python-jni"))
     commandLine("bash", "build-host.sh")
     doFirst {
-        val found = environment["PATH"].toString().split(File.pathSeparator).any { File(it, "cargo").canExecute() }
+        // Windows names the binary cargo.exe and has no execute bit to read (#1193).
+        val windows = System.getProperty("os.name").orEmpty().startsWith("Windows", ignoreCase = true)
+        val names = if (windows) listOf("cargo.exe", "cargo.cmd", "cargo") else listOf("cargo")
+        val found = environment["PATH"].toString().split(File.pathSeparator).any { dir ->
+            names.any { name -> File(dir, name).let { it.isFile && (windows || it.canExecute()) } }
+        }
         check(found) {
             "cargo is not on the PATH, and the unit tests need libwm_python_jni built for this machine. " +
                 "Install Rust from https://rustup.rs, or build it elsewhere and run the tests with " +
