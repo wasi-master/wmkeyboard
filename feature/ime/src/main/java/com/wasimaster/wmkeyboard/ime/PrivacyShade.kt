@@ -251,7 +251,7 @@ internal class PrivacyShade(
         @SuppressLint("ClickableViewAccessibility")
         override fun onTouchEvent(event: MotionEvent): Boolean {
             if (!drawn) return false
-            val controls = Rect().also(::controlsRect)
+            val controls = Rect().also { controlsRect(it) }
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     val y = event.y
