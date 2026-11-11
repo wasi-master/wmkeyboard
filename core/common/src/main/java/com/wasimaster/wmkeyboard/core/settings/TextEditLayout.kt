@@ -58,6 +58,10 @@ enum class TextEditAction {
     // to the end of the line, then the line below. What a swipe up and down
     // on the delete key does when asked, and an action for a key or a flick.
     DELETE_LINE, DELETE_LINE_FORWARD,
+
+    // Issue #1194. Everything in the field, in one press: for the fields with
+    // no clear button of their own. A key, a flick or the toolbar's tool.
+    CLEAR_FIELD,
 }
 
 /**

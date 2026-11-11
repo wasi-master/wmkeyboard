@@ -186,6 +186,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.SELECT_WORD -> ImeR.string.ime_tool_select_word
     ToolbarTool.SELECT_LINE -> ImeR.string.ime_tool_select_line
     ToolbarTool.SELECT_ALL -> CommonR.string.common_select_all
+    ToolbarTool.CLEAR_FIELD -> ImeR.string.ime_tool_clear_field
     ToolbarTool.SELECT_MODE -> ImeR.string.ime_tool_select_mode
     ToolbarTool.COPY -> ImeR.string.ime_tool_copy
     ToolbarTool.CUT -> ImeR.string.ime_tool_cut
@@ -289,6 +290,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.SELECT_WORD -> R.string.fonts_tool_select_word_desc
     ToolbarTool.SELECT_LINE -> R.string.fonts_tool_select_line_desc
     ToolbarTool.SELECT_ALL -> R.string.fonts_tool_select_all_desc
+    ToolbarTool.CLEAR_FIELD -> R.string.fonts_tool_clear_field_desc
     ToolbarTool.SELECT_MODE -> R.string.fonts_tool_select_mode_desc
     ToolbarTool.COPY -> R.string.fonts_tool_copy_desc
     ToolbarTool.CUT -> R.string.fonts_tool_cut_desc

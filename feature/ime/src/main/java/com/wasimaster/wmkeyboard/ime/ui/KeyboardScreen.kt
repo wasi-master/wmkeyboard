@@ -9352,6 +9352,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.SELECT_WORD -> R.string.ime_tool_select_word
     ToolbarTool.SELECT_LINE -> R.string.ime_tool_select_line
     ToolbarTool.SELECT_ALL -> CommonR.string.common_select_all
+    ToolbarTool.CLEAR_FIELD -> R.string.ime_tool_clear_field
     ToolbarTool.SELECT_MODE -> R.string.ime_tool_select_mode
     ToolbarTool.COPY -> R.string.ime_tool_copy
     ToolbarTool.CUT -> R.string.ime_tool_cut
@@ -9471,7 +9472,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.CURSOR_UP, ToolbarTool.CURSOR_DOWN,
     ToolbarTool.CURSOR_HOME, ToolbarTool.CURSOR_END,
     ToolbarTool.PAGE_UP, ToolbarTool.PAGE_DOWN,
-    ToolbarTool.SELECT_WORD, ToolbarTool.SELECT_LINE, ToolbarTool.SELECT_ALL,
+    ToolbarTool.SELECT_WORD, ToolbarTool.SELECT_LINE, ToolbarTool.SELECT_ALL, ToolbarTool.CLEAR_FIELD,
     // The clipboard trio the same: they act and are done.
     ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
     // A one-shot action too — it hides the keyboard, nothing to keep lit.

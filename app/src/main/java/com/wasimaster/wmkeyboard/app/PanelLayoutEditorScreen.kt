@@ -172,6 +172,7 @@ internal fun textEditActionTitle(op: TextEditAction): Int = when (op) {
     TextEditAction.DELETE_WORD_FORWARD -> R.string.textedit_action_delete_word_forward
     TextEditAction.DELETE_LINE -> R.string.textedit_action_delete_line
     TextEditAction.DELETE_LINE_FORWARD -> R.string.textedit_action_delete_line_forward
+    TextEditAction.CLEAR_FIELD -> R.string.textedit_action_clear_field
 }
 
 /** The components a layout of [kind] may place; empty for the keys-only pad. */

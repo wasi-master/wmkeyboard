@@ -193,6 +193,9 @@ enum class ToolbarTool {
     // the last lines. A switch over a setting; drawn in the keyboard's own
     // window, so it needs no permission to draw over other apps.
     PRIVACY_SHADE,
+    // Everything in the field gone in one tap (#1194), for the fields that
+    // have no clear button of their own. Undo brings it back.
+    CLEAR_FIELD,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -281,6 +284,8 @@ fun isDirectBootSafeTool(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.LANGUAGE,
     // A switch over a setting, drawn in the keyboard's window.
     ToolbarTool.PRIVACY_SHADE,
+    // Only touches the field the user is already typing in.
+    ToolbarTool.CLEAR_FIELD,
     -> true
     // The cursor moves only touch the input connection.
     else -> tool in CursorTools
@@ -307,6 +312,7 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.LANGUAGE,
     ToolbarTool.RECENT_COPIES, ToolbarTool.READ_BACK, ToolbarTool.SCREENSHOT, ToolbarTool.PRIVACY_SHADE,
+    ToolbarTool.CLEAR_FIELD,
     -> false
     // The cursor moves nudge the caret and nothing else, and the clipboard trio
     // acts on the selection in place.
@@ -436,7 +442,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.CURSOR_HOME, ToolbarTool.CURSOR_END, ToolbarTool.PAGE_UP, ToolbarTool.PAGE_DOWN,
     ToolbarTool.SELECT_WORD, ToolbarTool.SELECT_LINE, ToolbarTool.SELECT_ALL,
     ToolbarTool.SELECT_MODE,
-    ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
+    ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE, ToolbarTool.CLEAR_FIELD,
     ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES, ToolbarTool.LEAVE_FIELD,
     ToolbarTool.QUICK_NOTE,
 )

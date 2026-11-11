@@ -58,7 +58,10 @@ The panel above costs one tap to open and another to act. If you reach for the s
 | Select word | Select the word at the cursor; press again to take the words beside it too |
 | Select line | Select the entire line at the cursor |
 | Select all | Select the whole field |
+| Delete everything | Clear the whole field in one tap |
 | Selection mode | Every cursor move selects text until you turn it back off |
+
+**Delete everything** clears the field in one tap, for the many fields that have no clear button of their own, and **Undo** brings the text back. A field longer than 200,000 characters on either side of the cursor keeps the rest, which a second tap takes. The same action is in the layout editor's key and flick actions as **Delete everything**, so a key, a swipe on a key or the text-editing panel can carry it too.
 
 **Select all** is the panel's <KeyCap>Select all</KeyCap> key on the toolbar: it selects the whole field and leaves selection mode where it found it. **Select word** and **Select line** don't send Ctrl+Shift+Arrow. The keyboard works out the word or line boundaries around the cursor itself and sets the selection directly. Both turn selection mode on afterward. Both do nothing if the cursor sits between spaces or on an empty line. A cursor against marks with no word in reach, as in `example@|`, gets **Select word**'s next best thing: the whole run between the spaces around it, `example@`.
 

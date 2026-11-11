@@ -45,6 +45,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dialpad
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DirectionsCar
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DocumentScanner
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Draw
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteSweep
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EditNote
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiEmotions
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiFlags
@@ -243,6 +244,7 @@ object IconDefaults {
         // sit side by side in the same toolbox group, so they cannot share a
         // glyph. This is the text box with handles.
         ToolbarTool.SELECT_ALL -> Icons.Outlined.FormatShapes
+        ToolbarTool.CLEAR_FIELD -> Icons.Outlined.DeleteSweep
         ToolbarTool.SELECT_MODE -> Icons.Outlined.SelectAll
         ToolbarTool.COPY -> Icons.Outlined.ContentCopy
         ToolbarTool.CUT -> Icons.Outlined.ContentCut

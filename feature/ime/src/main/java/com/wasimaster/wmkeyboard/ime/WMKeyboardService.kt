@@ -34029,6 +34029,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.SELECT_WORD -> onTextEdit(TextEditAction.SELECT_WORD)
             ToolbarTool.SELECT_LINE -> onTextEdit(TextEditAction.SELECT_LINE)
             ToolbarTool.SELECT_ALL -> onTextEdit(TextEditAction.SELECT_ALL)
+            ToolbarTool.CLEAR_FIELD -> onTextEdit(TextEditAction.CLEAR_FIELD)
             ToolbarTool.SELECT_MODE -> onSelectModeTap()
             // The same three operations the text-edit panel's keys run, so the
             // selection bookkeeping (copy and cut end select mode, paste checks
@@ -51344,6 +51345,13 @@ open class WMKeyboardService : InputMethodService() {
         }
         // Before the composing text is committed below: a word still being
         // typed is the word to retype.
+        // Clear the field (#1194): everything before and after the caret, as
+        // one edit the editor's undo and the keyboard's Undo can take back.
+        if (action == TextEditAction.CLEAR_FIELD) {
+            if (haptic) vibrate()
+            clearWholeField()
+            return
+        }
         if (action == TextEditAction.RETYPE_WORD) {
             if (haptic) vibrate()
             // One press clears one word (#1189): a second, before anything
@@ -51420,6 +51428,7 @@ open class WMKeyboardService : InputMethodService() {
             TextEditAction.NO_SPACE, TextEditAction.NO_SPACE_NEXT,
             TextEditAction.DELETE_WORD, TextEditAction.DELETE_WORD_FORWARD,
             TextEditAction.DELETE_LINE, TextEditAction.DELETE_LINE_FORWARD,
+            TextEditAction.CLEAR_FIELD,
             -> Unit
             // Ctrl+Home / Ctrl+End are the editor's whole-text moves, the same
             // way Ctrl+Arrow is its word move; with select mode on they carry
@@ -55442,6 +55451,28 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * Deletes everything in the app's field (#1194). Read in chunks up to a
+     * generous cap rather than through the extracted text, which a web field
+     * often leaves empty; a field longer than the cap loses that much, and a
+     * second tap takes the rest.
+     */
+    private fun clearWholeField() {
+        val ic = currentInputConnection ?: return
+        if (refuseNullFieldCopy()) return
+        dropComposingForSelectionEdit(ic)
+        ic.beginBatchEdit()
+        if (hasSelection(ic)) ic.commitText("", 1)
+        val before = ic.getTextBeforeCursor(CLEAR_FIELD_MAX_CHARS, 0)?.length ?: 0
+        val after = ic.getTextAfterCursor(CLEAR_FIELD_MAX_CHARS, 0)?.length ?: 0
+        if (before > 0 || after > 0) ic.deleteSurroundingText(before, after)
+        ic.endBatchEdit()
+        invalidateExpectedSelection()
+        lastGestureWord = null
+        syncPreviousWordFromField(ic)
+        refreshSuggestions()
+    }
+
     /** The picture Paste next put on the clipboard (#1178), for the keyboard's own paste keys. */
     private var heldImageClipId: Long? = null
 
@@ -58878,6 +58909,9 @@ open class WMKeyboardService : InputMethodService() {
          * for another reason does not open a stale tool.
          */
         private const val FLOATING_TOOL_WAIT_MS = 3_000L
+
+        /** The most [clearWholeField] reads either side of the caret in one tap. */
+        private const val CLEAR_FIELD_MAX_CHARS = 200_000
 
         /** How long a summoned keyboard keeps the floating button's panel through field reports (#1196). */
         private const val FLOATING_TOOL_KEEP_MS = 1_500L

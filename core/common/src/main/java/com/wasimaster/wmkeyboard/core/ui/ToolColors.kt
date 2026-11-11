@@ -147,6 +147,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.SCREENSHOT -> Color(0xFF00897B)
     // A blind's slate, beside incognito's grey.
     ToolbarTool.PRIVACY_SHADE -> Color(0xFF546E7A)
+    // The delete keys' red.
+    ToolbarTool.CLEAR_FIELD -> Color(0xFFE57373)
     ToolbarTool.LANGUAGE -> Color(0xFF26A69A)
 }
 
