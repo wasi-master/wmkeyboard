@@ -4308,6 +4308,9 @@ data class KeyboardSettings(
      * a register and this class sits at ART's frame limit.
      */
     val incognitoWatermark: Boolean get() = layoutBehavior.incognitoWatermark
+
+    /** See [LayoutBehaviorSettings.incognitoBadge]. */
+    val incognitoBadge: Boolean get() = layoutBehavior.incognitoBadge
 }
 
 /**
@@ -9403,6 +9406,12 @@ data class LayoutBehaviorSettings(
      */
     val incognitoWatermark: Boolean = true,
     /**
+     * While incognito is on, a small incognito badge sits at the toolbar's
+     * end (#1177). Off keeps the bar's tools where they are, with the mark on
+     * the board as the sign instead. Read through [KeyboardSettings.incognitoBadge].
+     */
+    val incognitoBadge: Boolean = true,
+    /**
      * Long-pressing the ?123 / symbols key opens the numeric keypad panel on
      * any field, instead of the long-press behaving like a plain tap. On by
      * default — the keypad is otherwise buried in the toolbox, and a held ?123
@@ -12639,6 +12648,7 @@ class SettingsRepository(private val context: Context) {
         private val INCOGNITO_PAUSES_CLIPBOARD = booleanPreferencesKey("incognito_pauses_clipboard")
         private val INCOGNITO_PRIVATE_CLIPBOARD = booleanPreferencesKey("incognito_private_clipboard")
         private val INCOGNITO_WATERMARK = booleanPreferencesKey("incognito_watermark")
+        private val INCOGNITO_BADGE = booleanPreferencesKey("incognito_badge")
         private val INCOGNITO_PAUSES_LEARNING = booleanPreferencesKey("incognito_pauses_learning")
         private val AUTO_INCOGNITO = booleanPreferencesKey("auto_incognito")
         private val INCOGNITO_APPS = stringSetPreferencesKey("incognito_apps")
@@ -14652,6 +14662,7 @@ class SettingsRepository(private val context: Context) {
     private fun readLayoutBehavior(p: Preferences, defaults: KeyboardSettings) =
         LayoutBehaviorSettings(
             incognitoWatermark = p[INCOGNITO_WATERMARK] ?: defaults.layoutBehavior.incognitoWatermark,
+            incognitoBadge = p[INCOGNITO_BADGE] ?: defaults.layoutBehavior.incognitoBadge,
             symbolsLongPressNumpad =
                 p[SYMBOLS_LONGPRESS_NUMPAD] ?: defaults.layoutBehavior.symbolsLongPressNumpad,
             symbolsNumpadKey = p[SYMBOLS_NUMPAD_KEY] ?: defaults.layoutBehavior.symbolsNumpadKey,
@@ -17186,6 +17197,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setIncognitoWatermark(value: Boolean) =
         editPrefs { it[INCOGNITO_WATERMARK] = value }
+
+    suspend fun setIncognitoBadge(value: Boolean) =
+        editPrefs { it[INCOGNITO_BADGE] = value }
 
     suspend fun setIncognitoPausesLearning(value: Boolean) =
         editPrefs { it[INCOGNITO_PAUSES_LEARNING] = value }

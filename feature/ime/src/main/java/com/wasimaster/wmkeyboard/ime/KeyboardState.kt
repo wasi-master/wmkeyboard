@@ -4829,10 +4829,19 @@ data class KeyboardUiState(
      * The tool [mode] is on screen where the keys can type into it: as the
      * keyboard's own panel, or in the floating box (#1155) while the keyboard
      * shows only its keys. Over another panel the keys stay that panel's,
-     * and with the box tucked into the edge they go back to the app.
+     * and with the box tucked into the edge they go back to the app. The
+     * clipboard and snippets are the exception (#1241): with nothing of their
+     * own being typed into, the box keeps its field, so a clip or snippet
+     * tapped there goes into the note or task in the box.
      */
     fun toolUp(mode: PanelMode): Boolean =
-        panel == mode || (panel == PanelMode.NONE && appletPanel == mode && !appletTucked)
+        panel == mode || (appletPanel == mode && !appletTucked && (panel == PanelMode.NONE || feedsBox(panel)))
+
+    private fun feedsBox(shown: PanelMode): Boolean = when (shown) {
+        PanelMode.CLIPBOARD -> !clipboardSearchActive && clipEdit == null && clipCombine == null
+        PanelMode.SNIPPETS -> !snippetSearchActive
+        else -> false
+    }
 
     /**
      * Translate is on screen, as the keyboard's panel or in the floating box

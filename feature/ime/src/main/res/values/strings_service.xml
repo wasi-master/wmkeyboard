@@ -303,6 +303,7 @@
     <string name="ime_floating_system_failed">Android did not press that button</string>
     <string name="ime_applet_close">Close the box</string>
     <string name="ime_applet_open_in_keyboard">Open in the keyboard</string>
+    <string name="ime_applet_pop_out">Open in a floating box</string>
     <string name="ime_applet_resize">Drag to resize</string>
     <string name="ime_applet_tuck">Tuck into the edge</string>
     <!-- The tab a floating box leaves on the screen's edge. %1$s is the tool's name, for example Calculator. -->

@@ -1742,6 +1742,14 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setIncognitoWatermark(it) } }
                 }
                 item {
+                    ToggleSetting(
+                        R.string.tooldetail_incognito_badge_title,
+                        stringResource(R.string.tooldetail_incognito_badge_subtitle),
+                        settings.watch { it.incognitoBadge },
+                        default = SettingsDefaults.incognitoBadge,
+                    ) { scope.launch { repository.setIncognitoBadge(it) } }
+                }
+                item {
                     NavRow(
                         R.string.tooldetail_incognito_auto_nav_title,
                         stringResource(R.string.tooldetail_incognito_auto_nav_subtitle),

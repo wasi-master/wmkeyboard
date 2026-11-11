@@ -222,7 +222,10 @@ internal class FloatingButton(
         if (panel != onPanel) {
             hide()
             onPanel = panel
-            panelOrigin = null
+            // The last corner measured for this screen shape, so the button
+            // lands where it belongs from the first frame instead of jumping
+            // there once it is measured (#1238).
+            panelOrigin = if (panel) knownPanelOrigin() else null
         }
         val resized = setting.sizeDp != this.setting.sizeDp ||
             setting.edgePill != this.setting.edgePill ||
@@ -372,11 +375,28 @@ internal class FloatingButton(
         val drawnX = at[0] - (view.pivotX * (1f - view.scaleX) + view.translationX).roundToInt()
         val drawnY = at[1] - (view.pivotY * (1f - view.scaleY) + view.translationY).roundToInt()
         val measured = intArrayOf(drawnX - layout.x, drawnY - layout.y)
-        if (measured.contentEquals(origin())) return
+        if (measured.contentEquals(origin())) {
+            rememberPanelOrigin(measured)
+            return
+        }
         originChecks++
         panelOrigin = measured
+        rememberPanelOrigin(measured)
         place()
     }
+
+    /** The panel corner measured last, and the screen size it was measured on (#1238). */
+    private var measuredPanelOrigin: Pair<Pair<Int, Int>, IntArray>? = null
+
+    private fun screenShape(): Pair<Int, Int> =
+        context.resources.displayMetrics.let { it.widthPixels to it.heightPixels }
+
+    private fun rememberPanelOrigin(origin: IntArray) {
+        measuredPanelOrigin = screenShape() to origin.copyOf()
+    }
+
+    private fun knownPanelOrigin(): IntArray? =
+        measuredPanelOrigin?.takeIf { it.first == screenShape() }?.second?.copyOf()
 
     private fun positionFromFractions(layout: WindowManager.LayoutParams) {
         val (roomX, roomY) = room()

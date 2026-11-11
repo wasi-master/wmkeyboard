@@ -109,6 +109,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Article
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PictureInPictureAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowLeft
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
@@ -1811,6 +1812,7 @@ fun KeyboardScreen(
     // content and resolves them from wherever it lands, all of which are
     // inside this.
     CompositionLocalProvider(
+        LocalToolFloat provides toolHold.onFloat,
         LocalKeyPreviewState provides keyPreview,
         LocalKeyPressFeedback provides remember(onKeyPressed) {
             { onKeyPressed(KeySoundTarget.DEFAULT) }
@@ -2482,7 +2484,7 @@ private fun DockedKeyboardFrame(
                 val card = state.television && state.settings.oneHandedModeFor(landscape) == OneHandedMode.OFF
                 if (!card) {
                     BoardBackground(LocalKbTheme.current)
-                    IncognitoWatermark(state.incognitoOn && state.settings.incognitoWatermark)
+                    IncognitoWatermark(state)
                     // Under the keys and over the board, so a theme that gives the
                     // gesture bar a colour of its own paints only that band (#109).
                     NavigationBarBackground(LocalKbTheme.current)
@@ -2901,12 +2903,18 @@ internal fun dockedWidthArrangement(
  * it shows wherever the board does. Tools / Incognito can switch it off.
  */
 @Composable
-private fun BoxScope.IncognitoWatermark(on: Boolean) {
-    if (!on) return
+private fun BoxScope.IncognitoWatermark(state: KeyboardUiState) {
+    if (!state.incognitoOn || !state.settings.incognitoWatermark) return
+    // Centred on the key rows, measured up from the bottom, rather than on the
+    // whole board (#1239): the toolbar and the strip above the keys pulled it
+    // off centre, and a tool changing the board's height moved it.
+    val density = LocalDensity.current
+    val navBottom = with(density) { navigationBarInsets().getBottom(density).toDp() }
+    val lift = navBottom + ((keyRowsHeight(state) - IncognitoWatermarkSize) / 2).coerceAtLeast(0.dp)
     SlotIcon(
         IconSlots.CHROME_INCOGNITO,
         contentDescription = null,
-        modifier = Modifier.align(Alignment.Center).size(IncognitoWatermarkSize),
+        modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = lift).size(IncognitoWatermarkSize),
         tint = LocalKbTheme.current.secondaryText.copy(alpha = IncognitoWatermarkAlpha),
     )
 }
@@ -3220,7 +3228,7 @@ private fun FloatingKeyboardFrame(
         ) {
             Box {
                 BoardBackground(LocalKbTheme.current)
-                IncognitoWatermark(state.incognitoOn && state.settings.incognitoWatermark)
+                IncognitoWatermark(state)
                 val handleAtBottom = state.settings.floatingHandle == FloatingHandlePosition.BOTTOM
                 // One bar, placed above or below the keys; see the frame's KDoc.
                 val handleBar: @Composable () -> Unit = {
@@ -11639,7 +11647,7 @@ private fun ToolsColumn(
                 wide = true,
             ) { drag.onHardwareKeysToggle() }
         }
-        if (incognitoBadgeShown(state.incognitoOn, tools)) {
+        if (incognitoBadgeShown(state.incognitoOn && state.settings.incognitoBadge, tools)) {
             SlotIcon(
                 IconSlots.CHROME_INCOGNITO,
                 contentDescription = stringResource(R.string.ime_incognito_on_desc),
@@ -12135,7 +12143,7 @@ private fun RowScope.ToolbarRow(
             ) { drag.onHardwareKeysToggle() }
         }
     }
-    if (incognitoBadgeShown(state.incognitoOn, tools)) {
+    if (incognitoBadgeShown(state.incognitoOn && state.settings.incognitoBadge, tools)) {
         // Tappable: a field can switch incognito on by itself, and a badge
         // that shows up with no reason given reads as a bug (#665).
         SlotIcon(
@@ -14168,6 +14176,19 @@ internal fun FullBleedTool(
                     if (title.isNotEmpty()) Spacer(Modifier.weight(1f))
                     headerActions()
                 }
+                // Pops a tool that can float out into its box (#1240).
+                floatingToolFor(state.panel)?.let { tool ->
+                    val float = LocalToolFloat.current
+                    if (headerActions == null) Spacer(Modifier.weight(1f))
+                    IconButton(onClick = { float(tool) }, modifier = Modifier.size(40.dp)) {
+                        Icon(
+                            Icons.Outlined.PictureInPictureAlt,
+                            contentDescription = stringResource(R.string.ime_applet_pop_out),
+                            tint = kb.secondaryText,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                }
             }
         }
         Box(
@@ -14176,6 +14197,21 @@ internal fun FullBleedTool(
                 .fillMaxWidth(),
         ) { content() }
     }
+}
+
+/** Opens a tool in its floating box (#1155); the panel header's pop-out button (#1240) uses it. */
+internal val LocalToolFloat = androidx.compose.runtime.staticCompositionLocalOf<(ToolbarTool) -> Unit> { {} }
+
+/** The tool a panel can pop out into a floating box as, or null (#1240). */
+internal fun floatingToolFor(panel: PanelMode): ToolbarTool? = when (panel) {
+    PanelMode.CALCULATOR -> ToolbarTool.CALCULATOR
+    PanelMode.UNIT_CONVERT -> ToolbarTool.UNIT_CONVERT
+    PanelMode.CURRENCY -> ToolbarTool.CURRENCY
+    PanelMode.CLOCK -> ToolbarTool.CLOCK
+    PanelMode.TODO -> ToolbarTool.TODO
+    PanelMode.NOTES -> ToolbarTool.NOTES
+    PanelMode.TRANSLATE -> ToolbarTool.TRANSLATE
+    else -> null
 }
 
 /**

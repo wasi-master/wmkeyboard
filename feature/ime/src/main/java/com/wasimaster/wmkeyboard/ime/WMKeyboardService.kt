@@ -8202,6 +8202,18 @@ open class WMKeyboardService : InputMethodService() {
     private var floatingPendingTool: ToolbarTool? = null
     private var floatingPendingAt = 0L
 
+    /** When a summoned keyboard opened the floating button's tool, or 0. */
+    private var floatingToolOpenedAt = 0L
+
+    /**
+     * The panel the floating button's tool just opened belongs to this summon
+     * (#1196). The summon's own field reports arrive a beat after the window,
+     * and taken for a new field they closed the panel again, so the tool
+     * needed a second press.
+     */
+    private fun floatingToolJustOpened(): Boolean =
+        floatingToolOpenedAt > 0L && SystemClock.uptimeMillis() - floatingToolOpenedAt < FLOATING_TOOL_KEEP_MS
+
     /**
      * The floating AI button's tap (#697): reads the app on screen, when the
      * screen reading service is on, and opens the Ask AI sheet with it. Read
@@ -9085,7 +9097,7 @@ open class WMKeyboardService : InputMethodService() {
                 // address" buttons. Closing the panel there took the clipboard
                 // down under the user's finger. The panel stays, and so does
                 // whatever was half done in it.
-                panel = if (restarting || panelLayoutPersists(it)) it.panel else PanelMode.NONE,
+                panel = if (restarting || panelLayoutPersists(it) || floatingToolJustOpened()) it.panel else PanelMode.NONE,
                 // A fresh field starts on the letter layer; a restart of the
                 // same field keeps whatever layer the user was on. So does a
                 // layer its author marked persistent (issue #60): that one
@@ -10205,7 +10217,10 @@ open class WMKeyboardService : InputMethodService() {
         floatingPendingTool?.let { tool ->
             floatingPendingTool = null
             if (arriving && SystemClock.uptimeMillis() - floatingPendingAt < FLOATING_TOOL_WAIT_MS) {
-                serviceScope.launch(Dispatchers.Main) { runToolFromKey(tool) }
+                serviceScope.launch(Dispatchers.Main) {
+                    floatingToolOpenedAt = SystemClock.uptimeMillis()
+                    runToolFromKey(tool)
+                }
             }
         }
         // Held up over the settings app with no field there (pinned or
@@ -52133,7 +52148,10 @@ open class WMKeyboardService : InputMethodService() {
      * leaves it open on the grid when the user asked for that (#970).
      */
     private fun insertSnippetText(text: String, caret: Int) {
-        val ic = currentInputConnection
+        // A note or task open in the floating box takes it (#1241).
+        val boxed = _uiState.value.panel == PanelMode.SNIPPETS &&
+            _uiState.value.captureTarget()?.movableCaret == true && captureTyped(text)
+        val ic = currentInputConnection.takeUnless { boxed }
         if (ic != null) {
             ic.beginBatchEdit()
             // Over a selection the snippet replaces it, the way a typed key
@@ -54116,6 +54134,9 @@ open class WMKeyboardService : InputMethodService() {
                 ClipSensitivity.isBareCode(item.text.trim()) -> {
                     commitCodeToField(item.text.trim())
                 }
+                // A note or task open in the floating box takes the clip
+                // (#1241): its field has the keys over the clipboard.
+                _uiState.value.captureTarget()?.movableCaret == true && captureTyped(item.text) -> Unit
                 _uiState.value.settings.clipboard.typeOutPastes &&
                     item.text.length in 2..ClipTypeOutMaxChars -> commitCharacterByCharacter(item.text)
                 else -> commitToField(item.text)
@@ -58807,6 +58828,9 @@ open class WMKeyboardService : InputMethodService() {
          * for another reason does not open a stale tool.
          */
         private const val FLOATING_TOOL_WAIT_MS = 3_000L
+
+        /** How long a summoned keyboard keeps the floating button's panel through field reports (#1196). */
+        private const val FLOATING_TOOL_KEEP_MS = 1_500L
 
         /**
          * How long Leave field (#626) gives the app to act on its first Esc
