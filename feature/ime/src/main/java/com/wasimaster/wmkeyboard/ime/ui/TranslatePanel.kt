@@ -37,6 +37,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DownloadDone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhoneAndroid
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapVert
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -112,6 +113,8 @@ data class TranslateCallbacks(
     val onPaste: () -> Unit = {},
     /** Empties the text box for the next message (#1092). */
     val onClear: () -> Unit = {},
+    /** Translate only when asked (#1226): sends the box's text, once. */
+    val onTranslate: () -> Unit = {},
 )
 
 /**
@@ -657,11 +660,13 @@ private fun TranslateText(state: KeyboardUiState, animate: Boolean, modifier: Mo
             translate.error != null -> translate.error
             translate.translated.isNotEmpty() -> translate.translated
             translate.translating -> stringResource(R.string.ime_translate_progress)
+            state.settings.translate.manual -> stringResource(R.string.ime_translate_idle_manual)
             else -> stringResource(R.string.ime_translate_idle)
         },
         color = when {
             translate.error != null -> kb.accent
-            translate.translated.isEmpty() -> kb.secondaryText
+            // Out of date (#1226): still there to insert, but not what the box says now.
+            translate.translated.isEmpty() || translate.stale -> kb.secondaryText
             else -> kb.suggestionText
         },
         fontSize = if (state.mediaSearchActive) 14.sp else 16.sp,
@@ -745,16 +750,20 @@ private fun TranslateActionRow(
     val translate = state.translate
     // The offline build's offer says where to import; it has nothing to press.
     val offerDownload = translate.offersDownload() && InternetPermission.granted
+    // Translate only when asked (#1226): the button that sends, first in the row.
+    val asks = state.settings.translate.manual && !offerDownload
+    val lead = if (asks) 1 else 0
     PanelFocusTarget(
         panel = PanelMode.TRANSLATE,
         region = FocusRegion.ACTIONS,
-        count = if (offerDownload) 1 else 2,
-        columns = if (offerDownload) 1 else 2,
+        count = if (offerDownload) 1 else 2 + lead,
+        columns = if (offerDownload) 1 else 2 + lead,
         onActivate = { index ->
             when {
                 offerDownload -> callbacks.onDownload()
+                asks && index == 0 -> if (state.mediaQuery.isNotBlank()) callbacks.onTranslate()
                 translate.translated.isEmpty() -> Unit
-                index == 0 -> callbacks.onReplace()
+                index == lead -> callbacks.onReplace()
                 else -> callbacks.onInsert()
             }
         },
@@ -786,18 +795,27 @@ private fun TranslateActionRow(
             ) { callbacks.onDownload() }
         } else {
             val nothing = DisabledReason(stringResource(R.string.ime_disabled_translate_nothing))
+            if (asks) {
+                TranslateAction(
+                    label = stringResource(R.string.ime_translate_now_action),
+                    icon = Icons.Outlined.Translate,
+                    enabled = state.mediaQuery.isNotBlank() && !translate.translating,
+                    modifier = sized.focusRing(focusedAction == 0, kb.chipShape()),
+                    disabledReason = DisabledReason(stringResource(R.string.ime_disabled_translate_empty_box)),
+                ) { callbacks.onTranslate() }
+            }
             TranslateAction(
                 label = stringResource(R.string.ime_translate_replace_action),
                 icon = Icons.Outlined.SwapVert,
                 enabled = translate.translated.isNotEmpty(),
-                modifier = sized.focusRing(focusedAction == 0, kb.chipShape()),
+                modifier = sized.focusRing(focusedAction == lead, kb.chipShape()),
                 disabledReason = nothing,
             ) { callbacks.onReplace() }
             TranslateAction(
                 label = stringResource(R.string.ime_insert_action),
                 icon = null,
                 enabled = translate.translated.isNotEmpty(),
-                modifier = sized.focusRing(focusedAction == 1, kb.chipShape()),
+                modifier = sized.focusRing(focusedAction == lead + 1, kb.chipShape()),
                 disabledReason = nothing,
             ) { callbacks.onInsert() }
         }

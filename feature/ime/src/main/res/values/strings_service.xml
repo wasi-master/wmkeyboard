@@ -323,6 +323,7 @@
     <!-- What holding a greyed-out button on the keyboard says: why it cannot
          be pressed yet. Short sentences, read in a small bubble. -->
     <string name="ime_disabled_translate_nothing">Nothing is translated yet. Type or paste the text to translate first.</string>
+    <string name="ime_disabled_translate_empty_box">The box is empty, or its translation is still on its way.</string>
     <string name="ime_disabled_translate_same_language">The text is already in the language you translate to.</string>
     <string name="ime_disabled_media_app_blocks">The app that is playing does not allow this.</string>
     <string name="ime_disabled_voice_undo">Nothing to undo yet. Undo takes back the last phrase you spoke.</string>

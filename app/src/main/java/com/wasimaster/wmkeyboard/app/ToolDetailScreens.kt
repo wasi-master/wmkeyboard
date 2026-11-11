@@ -155,6 +155,7 @@ import com.wasimaster.wmkeyboard.core.ocr.PaddleOcrModel
 import com.wasimaster.wmkeyboard.core.ocr.TesseractOcr
 import androidx.compose.runtime.collectAsState
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
+import com.wasimaster.wmkeyboard.core.settings.TRANSLATE_LIVE_DELAY_RANGE
 import com.wasimaster.wmkeyboard.core.settings.DeepLWriteStyle
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Dispatchers
@@ -2386,6 +2387,7 @@ internal fun ToolDetailSettings(
                     tone = if (onDevice) BannerTone.INFO else BannerTone.WARNING,
                 )
             }
+            val manualTranslate = settings.watch { it.translate.manual }
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
                 item { TranslateLanguageSetting(repository, settings) }
                 item {
@@ -2395,6 +2397,28 @@ internal fun ToolDetailSettings(
                         settings.watch { it.translate.clearOnInsert },
                         default = SettingsDefaults.translate.clearOnInsert,
                     ) { scope.launch { repository.setTranslateClearOnInsert(it) } }
+                }
+                // Issue #1226: a provider with a request limit, sent every pause in the typing.
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_translate_manual_title,
+                        stringResource(R.string.tooldetail_translate_manual_subtitle),
+                        settings.watch { it.translate.manual },
+                        info = stringResource(R.string.tooldetail_translate_manual_info),
+                        default = SettingsDefaults.translate.manual,
+                    ) { scope.launch { repository.setTranslateManual(it) } }
+                }
+                item(level = SettingLevel.STANDARD, visible = !manualTranslate) {
+                    val msFormat = stringResource(R.string.keypress_value_ms)
+                    SliderSetting(
+                        R.string.tooldetail_translate_live_delay_title,
+                        subtitle = stringResource(R.string.tooldetail_translate_live_delay_subtitle),
+                        value = settings.watch { it.translate.liveDelayMs }.toFloat(),
+                        range = TRANSLATE_LIVE_DELAY_RANGE.first.toFloat()..TRANSLATE_LIVE_DELAY_RANGE.last.toFloat(),
+                        steps = (TRANSLATE_LIVE_DELAY_RANGE.last - TRANSLATE_LIVE_DELAY_RANGE.first) / 100 - 1,
+                        display = { msFormat.format(it.roundToInt()) },
+                        default = SettingsDefaults.translate.liveDelayMs.toFloat(),
+                    ) { scope.launch { repository.setTranslateLiveDelay(it.roundToInt()) } }
                 }
                 item {
                     ToggleSetting(

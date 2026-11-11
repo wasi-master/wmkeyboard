@@ -45050,9 +45050,12 @@ open class WMKeyboardService : InputMethodService() {
             }
             PanelMode.WEB_SEARCH -> runSearch(state.searchTab, query)
             PanelMode.WIKIPEDIA -> runWikiSearch(query)
-            PanelMode.TRANSLATE -> scheduleTranslate(immediate = true)
+            // Text that arrives whole (a selection, a macro) is a request even
+            // when it translates only when asked (#1226). Enter in the box is a
+            // line break, never this.
+            PanelMode.TRANSLATE -> scheduleTranslate(immediate = true, explicit = true)
             // Translate in the floating box (#1155), over the bare keys.
-            PanelMode.NONE -> if (state.toolUp(PanelMode.TRANSLATE)) scheduleTranslate(immediate = true)
+            PanelMode.NONE -> if (state.toolUp(PanelMode.TRANSLATE)) scheduleTranslate(immediate = true, explicit = true)
             else -> {}
         }
     }
@@ -45071,8 +45074,8 @@ open class WMKeyboardService : InputMethodService() {
                 if (query.isNotEmpty()) runWikiSearch(query)
                 else _uiState.update { it.copy(wiki = WikiUi.Idle, mediaSearchActive = true) }
             }
-            PanelMode.TRANSLATE -> scheduleTranslate(immediate = true)
-            PanelMode.NONE -> if (_uiState.value.toolUp(PanelMode.TRANSLATE)) scheduleTranslate(immediate = true)
+            PanelMode.TRANSLATE -> scheduleTranslate(immediate = true, explicit = true)
+            PanelMode.NONE -> if (_uiState.value.toolUp(PanelMode.TRANSLATE)) scheduleTranslate(immediate = true, explicit = true)
             else -> {}
         }
     }
@@ -46132,16 +46135,34 @@ open class WMKeyboardService : InputMethodService() {
      * retranslate that read the old value would undo the tap on screen.
      * [force] retranslates text that already has a result, for the changes
      * that make the same text come out differently.
+     *
+     * Translate only when asked (#1226): nothing is sent unless [explicit]:
+     * the Translate button, or text that arrived whole (a selection). Anything else only marks the
+     * result out of date, and leaves a translation already on its way alone;
+     * it lands marked out of date if the text moved on meanwhile.
      */
     private fun scheduleTranslate(
         immediate: Boolean = false,
         targetOverride: String? = null,
         engineOverride: TranslateEngine? = null,
         force: Boolean = false,
+        explicit: Boolean = false,
     ) {
+        val asked = _uiState.value
+        val manual = asked.settings.translate.manual
+        if (manual && !explicit) {
+            markTranslateStale(force || targetOverride != null || engineOverride != null)
+            return
+        }
+        // A second tap while the first is still out for the same text is the same request.
+        if (manual && asked.translate.translating && translateJob?.isActive == true &&
+            asked.mediaQuery.trim() == asked.translate.sourceText
+        ) {
+            return
+        }
         translateJob?.cancel()
         translateJob = serviceScope.launch {
-            if (!immediate) delay(400)
+            if (!immediate) delay(asked.settings.translate.liveDelayMs.toLong())
             val state = _uiState.value
             // The text is the media search box's, so only while Translate has
             // it: its panel, or the floating box over the bare keys (#1155).
@@ -46159,7 +46180,7 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 return@launch
             }
-            if (!force && source == state.translate.sourceText &&
+            if (!force && !state.translate.stale && source == state.translate.sourceText &&
                 state.translate.translated.isNotEmpty() && state.translate.error == null
             ) {
                 return@launch
@@ -46169,6 +46190,7 @@ open class WMKeyboardService : InputMethodService() {
                     translate = it.translate.copy(
                         sourceText = source,
                         translating = true,
+                        stale = false,
                         error = null,
                         meteredAsk = false,
                         licenceAsk = false,
@@ -46192,8 +46214,38 @@ open class WMKeyboardService : InputMethodService() {
             // The floating box's translation still lands while the keyboard
             // has opened another panel over its keys.
             if (!_uiState.value.translateShown) return@launch
-            _uiState.update { it.copy(translate = outcome(it.translate)) }
+            _uiState.update {
+                // Typed on while it was out: the answer is for the text as it was.
+                val moved = manual && it.mediaQuery.trim() != source
+                it.copy(translate = outcome(it.translate).copy(stale = moved))
+            }
         }
+    }
+
+    /**
+     * Translate only when asked (#1226): the text box changed, or what it is
+     * translated with did ([settingsChanged]), and nothing is sent. A result
+     * that no longer matches stays on screen, dimmed, until the next Translate;
+     * an emptied box clears it.
+     */
+    private fun markTranslateStale(settingsChanged: Boolean) {
+        _uiState.update {
+            val source = it.mediaQuery.trim()
+            val ui = it.translate
+            when {
+                source.isEmpty() && !ui.translating -> it.copy(translate = ui.cleared())
+                ui.translated.isEmpty() && ui.error == null -> it
+                settingsChanged || source != ui.sourceText -> it.copy(translate = ui.copy(stale = true))
+                else -> it.copy(translate = ui.copy(stale = false))
+            }
+        }
+    }
+
+    /** The panel's Translate button, while it translates only when asked (#1226). */
+    fun onTranslateNow() {
+        if (_uiState.value.mediaQuery.isBlank()) return
+        vibrate()
+        scheduleTranslate(immediate = true, force = true, explicit = true)
     }
 
     /**
@@ -46427,7 +46479,7 @@ open class WMKeyboardService : InputMethodService() {
                     _uiState.update { it.copy(translate = it.translate.copy(module = module)) }
                     if (waiting && module == TranslateModuleState.Installed) {
                         OnDeviceTranslator.refresh(applicationContext)
-                        scheduleTranslate(immediate = true, force = true)
+                        scheduleTranslate(immediate = true, force = true, explicit = true)
                     }
                 }
             }
@@ -46435,7 +46487,7 @@ open class WMKeyboardService : InputMethodService() {
                 val waitingOn = _uiState.value.translate.missingModels
                 _uiState.update { it.copy(translate = it.translate.copy(models = models)) }
                 if (waitingOn.isNotEmpty() && waitingOn.all { models[it] is OfflineModelState.Downloaded }) {
-                    scheduleTranslate(immediate = true, force = true)
+                    scheduleTranslate(immediate = true, force = true, explicit = true)
                 }
             }
         }
@@ -46457,7 +46509,8 @@ open class WMKeyboardService : InputMethodService() {
     fun onTranslateTargetChange(code: String) {
         vibrate()
         serviceScope.launch { settingsRepository.setTranslateTargetLang(code) }
-        _uiState.update { it.copy(translate = it.translate.cleared()) }
+        // Asked-only keeps the result to insert, marked out of date (#1226).
+        if (!_uiState.value.settings.translate.manual) _uiState.update { it.copy(translate = it.translate.cleared()) }
         // The settings flow updates asynchronously; pass the new target
         // directly so this retranslate can't race it.
         scheduleTranslate(immediate = true, targetOverride = code)
@@ -46466,14 +46519,17 @@ open class WMKeyboardService : InputMethodService() {
     /** The source chip: a picker code, or "" to go back to detecting it. */
     fun onTranslateSourceChange(code: String) {
         vibrate()
-        _uiState.update { it.copy(translate = it.translate.cleared().copy(sourceOverride = code)) }
+        _uiState.update {
+            val kept = if (it.settings.translate.manual) it.translate else it.translate.cleared()
+            it.copy(translate = kept.copy(sourceOverride = code))
+        }
         scheduleTranslate(immediate = true, force = true)
     }
 
     fun onTranslateEngineChange(engine: TranslateEngine) {
         vibrate()
         serviceScope.launch { settingsRepository.setTranslateEngine(engine) }
-        _uiState.update { it.copy(translate = it.translate.cleared()) }
+        if (!_uiState.value.settings.translate.manual) _uiState.update { it.copy(translate = it.translate.cleared()) }
         if (engine != TranslateEngine.ONLINE) {
             // Picking an engine that needs the module is asking for the
             // module. Held only by data saver, in which case the panel's own
@@ -46581,6 +46637,7 @@ open class WMKeyboardService : InputMethodService() {
             onInsert = ::onTranslateInsert,
             onPaste = ::onTranslatePaste,
             onClear = ::onTranslateClear,
+            onTranslate = ::onTranslateNow,
         )
     }
 
@@ -46627,7 +46684,8 @@ open class WMKeyboardService : InputMethodService() {
         val typing = _uiState.value.mediaSearchActive
         if (!typing) _uiState.update { it.copy(mediaSearchActive = true, mediaAction = null) }
         capturePaste()
-        if (!typing && _uiState.value.mediaQuery.isNotBlank()) runMediaSearch()
+        // Translate only when asked (#1226): pasted text waits in the box for the button.
+        if (!typing && _uiState.value.mediaQuery.isNotBlank() && !_uiState.value.settings.translate.manual) runMediaSearch()
     }
 
     /**
@@ -46669,8 +46727,9 @@ open class WMKeyboardService : InputMethodService() {
         }
         // The settings flow updates asynchronously; the named target goes
         // straight to this first translation so it cannot race it.
+        // Opening Translate on a selection asks for its translation, live or not (#1226).
         if (prefill.target != null) {
-            scheduleTranslate(immediate = true, targetOverride = prefill.target)
+            scheduleTranslate(immediate = true, targetOverride = prefill.target, explicit = true)
         } else {
             runMediaSearch()
         }

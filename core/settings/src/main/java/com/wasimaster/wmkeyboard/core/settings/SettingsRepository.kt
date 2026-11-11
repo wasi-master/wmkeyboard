@@ -834,6 +834,9 @@ enum class TranslateEngine(@StringRes val labelRes: Int) {
     AUTO(R.string.core_settings_translate_engine_auto_label),
 }
 
+/** The live translation's wait after the last key (#1226), in milliseconds. */
+val TRANSLATE_LIVE_DELAY_RANGE = 400..5000
+
 /**
  * The translate tool's own settings. A nested bag for the usual reason: one
  * slot on [KeyboardSettings] however many settings end up inside.
@@ -872,6 +875,15 @@ data class TranslateSettings(
      * the box clears it by hand.
      */
     val clearOnInsert: Boolean = false,
+    /**
+     * Translate only when asked (#1226): the panel's Translate button sends
+     * the text, once. Typing, a language change or a new provider
+     * only marks the result out of date. Off: the result follows the typing,
+     * [liveDelayMs] after the last key.
+     */
+    val manual: Boolean = false,
+    /** How long the live translation waits after the last key, in [TRANSLATE_LIVE_DELAY_RANGE]. */
+    val liveDelayMs: Int = 400,
     /**
      * A translate hint naming its language ("good morning in spanish") is
      * translated where it stands when its chip is tapped, and the chip's tool
@@ -12769,6 +12781,8 @@ class SettingsRepository(private val context: Context) {
         private val TRANSLATE_DOWNLOADED_FIRST = booleanPreferencesKey("translate_downloaded_first")
         private val TRANSLATE_ONLY_DOWNLOADED = booleanPreferencesKey("translate_only_downloaded")
         private val TRANSLATE_CLEAR_ON_INSERT = booleanPreferencesKey("translate_clear_on_insert")
+        private val TRANSLATE_MANUAL = booleanPreferencesKey("translate_manual")
+        private val TRANSLATE_LIVE_DELAY_MS = intPreferencesKey("translate_live_delay_ms")
         private val TRANSLATE_HINT_REPLACES = booleanPreferencesKey("translate_hint_replaces")
         private val DEEPL_API_KEY = stringPreferencesKey("deepl_api_key")
         private val DEEPL_ENDPOINT = stringPreferencesKey("deepl_endpoint")
@@ -15487,6 +15501,9 @@ class SettingsRepository(private val context: Context) {
             downloadedFirst = p[TRANSLATE_DOWNLOADED_FIRST] ?: defaults.translate.downloadedFirst,
             onlyDownloaded = p[TRANSLATE_ONLY_DOWNLOADED] ?: defaults.translate.onlyDownloaded,
             clearOnInsert = p[TRANSLATE_CLEAR_ON_INSERT] ?: defaults.translate.clearOnInsert,
+            manual = p[TRANSLATE_MANUAL] ?: defaults.translate.manual,
+            liveDelayMs = (p[TRANSLATE_LIVE_DELAY_MS] ?: defaults.translate.liveDelayMs)
+                .coerceIn(TRANSLATE_LIVE_DELAY_RANGE),
             hintReplaces = p[TRANSLATE_HINT_REPLACES] ?: defaults.translate.hintReplaces,
             deepl = DeepLSettings(
                 apiKey = p[DEEPL_API_KEY] ?: defaults.translate.deepl.apiKey,
@@ -24195,6 +24212,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTranslateClearOnInsert(value: Boolean) =
         editPrefs { it[TRANSLATE_CLEAR_ON_INSERT] = value }
+
+    suspend fun setTranslateManual(value: Boolean) =
+        editPrefs { it[TRANSLATE_MANUAL] = value }
+
+    suspend fun setTranslateLiveDelay(value: Int) =
+        editPrefs { it[TRANSLATE_LIVE_DELAY_MS] = value.coerceIn(TRANSLATE_LIVE_DELAY_RANGE) }
 
     suspend fun setTranslateHintReplaces(value: Boolean) =
         editPrefs { it[TRANSLATE_HINT_REPLACES] = value }

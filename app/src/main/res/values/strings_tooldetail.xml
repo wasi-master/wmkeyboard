@@ -513,6 +513,11 @@
     <string name="tooldetail_translate_downloaded_first_subtitle">The language lists on the panel start with the languages on the device. With On device and Automatic.</string>
     <string name="tooldetail_translate_clear_on_insert_title">Clear after inserting</string>
     <string name="tooldetail_translate_clear_on_insert_subtitle">Insert empties the box and its translation, so you can type the next message straight away</string>
+    <string name="tooldetail_translate_manual_title">Translate only when asked</string>
+    <string name="tooldetail_translate_manual_subtitle">Nothing is sent while you type. Tap Translate to translate the text once</string>
+    <string name="tooldetail_translate_manual_info">For a provider with a request limit or a cost per request, such as an AI service on a free plan. Editing the text, or changing its language or provider, dims the translation instead of sending it again; it can still be inserted.</string>
+    <string name="tooldetail_translate_live_delay_title">Wait before translating</string>
+    <string name="tooldetail_translate_live_delay_subtitle">How long after the last key the translation follows the typing</string>
     <string name="tooldetail_translate_hint_replaces_title">Translate "in …" where it stands</string>
     <string name="tooldetail_translate_hint_replaces_subtitle">A tap on the chip for "good morning in spanish" puts the Spanish in place of the words, without opening Translate. The chip\'s Translate button still opens it</string>
     <string name="tooldetail_translate_only_downloaded_title">Only downloaded languages</string>

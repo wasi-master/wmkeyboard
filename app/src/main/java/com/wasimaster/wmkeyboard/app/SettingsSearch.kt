@@ -2471,6 +2471,16 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     ),
     toolEntry(
         ToolbarTool.TRANSLATE,
+        R.string.tooldetail_translate_manual_title,
+        R.string.tooldetail_translate_manual_subtitle,
+    ),
+    toolEntry(
+        ToolbarTool.TRANSLATE,
+        R.string.tooldetail_translate_live_delay_title,
+        R.string.tooldetail_translate_live_delay_subtitle,
+    ),
+    toolEntry(
+        ToolbarTool.TRANSLATE,
         R.string.tooldetail_translate_hint_replaces_title,
         R.string.tooldetail_translate_hint_replaces_subtitle,
     ),

@@ -1714,6 +1714,12 @@ data class TranslateUi(
     val translating: Boolean = false,
     val error: String? = null,
     /**
+     * Translate only when asked (#1226), and [translated] no longer matches:
+     * the text, its languages or its provider changed after it came back.
+     * Drawn dimmed, still there to insert, until the next Translate.
+     */
+    val stale: Boolean = false,
+    /**
      * The source language the user picked for this visit to the panel, as a
      * picker code, or "" to detect it. Session state on purpose: a wrong
      * detection is a fact about one piece of text, not a preference.
