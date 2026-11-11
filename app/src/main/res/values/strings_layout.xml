@@ -10,6 +10,8 @@
     <string name="layout_number_row_height_title">Number row height</string>
     <string name="layout_number_row_height_subtitle">The height of the digit row, separate from the letter keys</string>
     <string name="layout_number_row_height_info">A short digit row keeps fast access to the numbers. It adds less height to the keyboard than a full row.</string>
+    <string name="layout_number_row_hints_title">Hints on the number row</string>
+    <string name="layout_number_row_hints_subtitle">The small symbols in the corners of the digit keys. Off hides them on that row only</string>
     <string name="layout_number_row_shift_symbols_title">Symbols on shift</string>
     <string name="layout_number_row_shift_symbols_subtitle">Press and hold shift to change the digit row to symbols</string>
     <!-- The characters in brackets are the symbols themselves. Do not translate them. -->

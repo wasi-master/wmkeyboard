@@ -21843,7 +21843,10 @@ private fun rememberExtraRow(state: KeyboardUiState, fillRow: List<Key>, shiftHe
     val fancy = fancyStyleFor(state) != null
     // The user's holds for the digits, from Your hold symbols.
     val digitHolds = state.settings.layoutBehavior.holdSymbols.filterKeys { it.singleOrNull()?.isDigit() == true }
+    // Hints on the number row off (#1229): this row's corners only.
+    val rowHints = state.settings.layoutBehavior.numberRowHints
     return remember(
+        rowHints,
         kind,
         authored,
         custom,
@@ -21888,7 +21891,8 @@ private fun rememberExtraRow(state: KeyboardUiState, fillRow: List<Key>, shiftHe
             // The digits, with the symbol layer's long-presses.
             else -> BuiltInLayouts.defaultNumberRow(LayoutLayer.LETTERS)
         }.map { it.withDigitHold(digitHolds) }.withOtherNumerals(otherDigits).withFancyDigitForms(fancy)
-        if (tabletRow) base.expandNumberRowForTablet() else base
+        val row = if (tabletRow) base.expandNumberRowForTablet() else base
+        if (rowHints) row else row.map { it.copy(hideHint = true) }
     }
 }
 

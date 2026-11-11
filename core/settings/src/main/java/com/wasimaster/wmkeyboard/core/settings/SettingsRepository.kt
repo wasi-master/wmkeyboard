@@ -9666,6 +9666,11 @@ data class LayoutBehaviorSettings(
      */
     val numberRowShiftSymbols: Boolean = false,
     /**
+     * The extra number row's corner hints (#1229). Off clears that row's
+     * corners and leaves every other key's hint as [KeyboardSettings.longPressHints] says.
+     */
+    val numberRowHints: Boolean = true,
+    /**
      * Smart key-hit detection: while a word is being typed, the touch target of
      * each letter is nudged toward the letters most likely to come next (from
      * the dictionary), so a tap that lands just inside a neighbour's cell still
@@ -11842,6 +11847,7 @@ class SettingsRepository(private val context: Context) {
         private val FANCY_HIDDEN_STYLES = stringSetPreferencesKey("fancy_hidden_styles")
         private val CUSTOM_LAYOUT_TOOL = stringPreferencesKey("custom_layout_tool")
         private val NUMBER_ROW_SHIFT_SYMBOLS = booleanPreferencesKey("number_row_shift_symbols")
+        private val NUMBER_ROW_HINTS = booleanPreferencesKey("number_row_hints")
         private val NUMBER_ROW_IN_SYMBOLS = booleanPreferencesKey("number_row_in_symbols")
         private val NUMBER_ROW_ON_KEYPAD = booleanPreferencesKey("number_row_on_keypad")
         private val ARROW_ROW = booleanPreferencesKey("arrow_row")
@@ -14742,6 +14748,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.layoutBehavior.customLayoutToolId,
             numberRowShiftSymbols =
                 p[NUMBER_ROW_SHIFT_SYMBOLS] ?: defaults.layoutBehavior.numberRowShiftSymbols,
+            numberRowHints = p[NUMBER_ROW_HINTS] ?: defaults.layoutBehavior.numberRowHints,
             smartHitDetection =
                 p[SMART_HIT_DETECTION] ?: defaults.layoutBehavior.smartHitDetection,
             autopilotStrength = p[AUTOPILOT_STRENGTH]
@@ -22299,6 +22306,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setNumberRowShiftSymbols(value: Boolean) =
         editPrefs { it[NUMBER_ROW_SHIFT_SYMBOLS] = value }
+
+    suspend fun setNumberRowHints(value: Boolean) =
+        editPrefs { it[NUMBER_ROW_HINTS] = value }
 
     suspend fun setSmartHitDetection(value: Boolean) =
         editPrefs { it[SMART_HIT_DETECTION] = value }

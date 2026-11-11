@@ -1087,6 +1087,14 @@ internal fun LayoutSettings(
                 default = SettingsDefaults.layoutBehavior.numberRowShiftSymbols,
             ) { scope.launch { repository.setNumberRowShiftSymbols(it) } }
         }
+        item(visible = numberRow, level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.layout_number_row_hints_title,
+                stringResource(R.string.layout_number_row_hints_subtitle),
+                settings.watch { it.layoutBehavior.numberRowHints },
+                default = SettingsDefaults.layoutBehavior.numberRowHints,
+            ) { scope.launch { repository.setNumberRowHints(it) } }
+        }
         item(visible = numberRow, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_number_row_in_symbols_title,
