@@ -376,4 +376,36 @@
     <string name="tips_thanks_anonymous">Your support means a lot. You stay off the list, as you asked.</string>
     <string name="tips_again">Tip again</string>
 
+
+    <!-- The feedback form (#1242): About › Feedback, or a shake or screenshot in the app. -->
+    <string name="feedback_open_title">Send feedback</string>
+    <string name="feedback_open_subtitle">Report a bug, suggest an idea or ask a question, as a GitHub issue or in the Telegram group</string>
+    <string name="feedback_title">Send feedback</string>
+    <string name="feedback_kind_bug">Bug</string>
+    <string name="feedback_kind_idea">Idea</string>
+    <string name="feedback_kind_question">Question</string>
+    <string name="feedback_text_label">What do you want to tell us?</string>
+    <string name="feedback_text_hint_bug">What happened, and what did you expect?</string>
+    <string name="feedback_text_hint_idea">What would you like the keyboard to do?</string>
+    <string name="feedback_text_hint_question">What do you want to know?</string>
+    <string name="feedback_attach_screenshot">Attach this screen</string>
+    <string name="feedback_screenshot_desc">The screen the report is about</string>
+    <string name="feedback_send_note">Nothing is sent from here. GitHub or Telegram opens with your report filled in, and you send it there. Your build, Android version and phone model go with it.</string>
+    <string name="feedback_send_github">GitHub issue</string>
+    <string name="feedback_send_telegram">Telegram</string>
+    <string name="feedback_screenshot_saved">The screen is saved in your gallery, in Pictures › WM Keyboard. Attach it to the issue from there.</string>
+    <string name="feedback_screenshot_not_saved">The screen could not be saved on this Android version. Take a screenshot to attach it yourself.</string>
+    <string name="feedback_topic_copied">Your report is copied. Paste it in the topic that opens.</string>
+    <string name="feedback_topic_copied_with_picture">Your report is copied, and the screen is in Pictures › WM Keyboard. Paste the text in the topic that opens, and attach the picture.</string>
+    <string name="feedback_no_browser">No app here can open the link.</string>
+    <string name="feedback_no_telegram">No Telegram app is installed.</string>
+    <string name="feedback_shortcuts_group">Feedback shortcuts</string>
+    <string name="feedback_shake_title">Shake to send feedback</string>
+    <string name="feedback_shake_subtitle">Shake the phone while this app is open to report what is on the screen</string>
+    <string name="feedback_screenshot_title">Screenshot to send feedback</string>
+    <string name="feedback_screenshot_subtitle">Taking a screenshot of this app opens the feedback form with that screen</string>
+    <string name="feedback_screenshot_needs_14">Needs Android 14 or later, which tells an app when it is in a screenshot</string>
+    <string name="feedback_telegram_route_title">Send to Telegram by</string>
+    <string name="feedback_telegram_route_share">Telegram\'s share list</string>
+    <string name="feedback_telegram_route_topic">The topic\'s link</string>
 </resources>

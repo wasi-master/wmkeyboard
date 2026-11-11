@@ -81,6 +81,7 @@ import com.wasimaster.wmkeyboard.core.settings.PersonaDepth
 import com.wasimaster.wmkeyboard.core.settings.PersonaLanguages
 import com.wasimaster.wmkeyboard.core.settings.SettingLinkMode
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import com.wasimaster.wmkeyboard.core.settings.TelegramFeedbackRoute
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.isTelevision
 import com.wasimaster.wmkeyboard.common.R as CommonR
@@ -1592,6 +1593,12 @@ internal fun AboutSettings(
             }
         }
         item {
+            NavRow(
+                R.string.feedback_open_title,
+                stringResource(R.string.feedback_open_subtitle),
+            ) { FeedbackForm.open() }
+        }
+        item {
             NavRow(R.string.about_email_developer_title, Support.EMAIL) {
                 if (!Support.email(context, bugReportSubject, Support.bugReport())) {
                     Toast.makeText(
@@ -1601,6 +1608,41 @@ internal fun AboutSettings(
                     ).show()
                 }
             }
+        }
+    }
+
+    // Two more ways into the form, for whoever reports often (#1242).
+    SettingsGroup(stringResource(R.string.feedback_shortcuts_group), level = SettingLevel.STANDARD) {
+        item {
+            ToggleSetting(
+                R.string.feedback_shake_title,
+                stringResource(R.string.feedback_shake_subtitle),
+                settings.watch { it.feedbackShortcuts.shake },
+                default = SettingsDefaults.feedbackShortcuts.shake,
+            ) { scope.launch { repository.setFeedbackShake(it) } }
+        }
+        item {
+            val supported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+            ToggleSetting(
+                R.string.feedback_screenshot_title,
+                stringResource(
+                    if (supported) R.string.feedback_screenshot_subtitle else R.string.feedback_screenshot_needs_14,
+                ),
+                supported && settings.watch { it.feedbackShortcuts.screenshot },
+                enabled = supported,
+                default = SettingsDefaults.feedbackShortcuts.screenshot,
+            ) { scope.launch { repository.setFeedbackScreenshot(it) } }
+        }
+        item {
+            ChoiceSetting(
+                R.string.feedback_telegram_route_title,
+                options = listOf(
+                    TelegramFeedbackRoute.SHARE to stringResource(R.string.feedback_telegram_route_share),
+                    TelegramFeedbackRoute.TOPIC to stringResource(R.string.feedback_telegram_route_topic),
+                ),
+                selected = settings.watch { it.feedbackShortcuts.telegramRoute },
+                default = SettingsDefaults.feedbackShortcuts.telegramRoute,
+            ) { scope.launch { repository.setFeedbackTelegramRoute(it) } }
         }
     }
 

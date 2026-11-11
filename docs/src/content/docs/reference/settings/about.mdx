@@ -28,12 +28,32 @@ The same accounts are the icons at the top right of every page on this site.
 
 ## Reporting a bug
 
-The **Feedback** group, under Community, is where a problem goes. It has two rows:
+The **Feedback** group, under Community, is where a problem goes. It has three rows:
 
+- **Send feedback** opens a short form inside the app, described below.
 - **Report a bug** opens the project's GitHub issue tracker in your browser (`github.com/wasi-master/WMKeyboard/issues`). Start here if you can. An issue is public and searchable, so someone else may have already hit the same thing, and it can be tracked to a fix rather than sitting in an inbox.
 - **Email the developer** opens a draft to `arianmollik323@gmail.com` in your mail app, pre-filled with headings for what happened, what you expected, and how to reproduce it, plus the build, Android version, and device model at the bottom. Use this when the report has anything in it you'd rather not post publicly. Only mail apps show up in the chooser, since the row uses a `mailto:` intent rather than a generic share.
 
 Either way, take **Diagnostics** along. It names the exact build and device, and it never contains anything you typed. A phone with no mail app installed shows a toast with the address instead of opening anything.
+
+### The feedback form
+
+**Send feedback** asks three things: whether it's a bug, an idea or a question, what you want to say, and, when the form was opened by a shake or a screenshot, whether to attach that screen. A picture of the screen comes with it, ticked, and you can untick it. Then pick where it goes:
+
+- **GitHub issue** opens a new issue in your browser with the right template already filled in: a bug report for a bug, a feature request for an idea, a plain issue for a question. Your build, Android version and phone model go in the details. A picture can't travel in a link, so the screen is saved to your gallery, in Pictures › WM Keyboard, for you to attach in the issue (Android 10 and later).
+- **Telegram** sends it to the [@wmkeyboard group](https://t.me/wmkeyboard), in one of two ways, set by **Send to Telegram by**. **Telegram's share list** hands the text and the picture to Telegram, whose list shows the group's topics to pick from. **The topic's link** copies the text and opens the group's Bugs, Suggestions or Help topic, matching the kind of report, for you to paste into; the picture goes to Pictures › WM Keyboard.
+
+The form stays open after you send, so you can post the same report to the other place too. Nothing is sent from the form itself: GitHub or Telegram opens with the report filled in, and you send it there.
+
+**Feedback shortcuts**, the group just under Feedback, opens the form without coming to About:
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| Shake to send feedback | Off | Shaking the phone while the settings app is open opens the form, with a picture of the screen you were on |
+| Screenshot to send feedback | Off | Taking a screenshot of the settings app opens the form with that screen. Needs Android 14, which tells an app it was in a screenshot without handing it the picture, so the form takes its own picture of the same screen |
+| Send to Telegram by | Telegram's share list | Which of the two Telegram routes above the **Telegram** button takes |
+
+Both shortcuts work only in the settings app, not over other apps or the keyboard.
 
 Something a model wrote isn't a bug in the app, and it has its own button. See [Reporting a result](/tools/ai/#reporting-a-result) in the AI tool.
 

@@ -23,4 +23,6 @@
     <cache-path name="ai_exports" path="ai_exports/" />
     <!-- The diagnostics report, shared out of the debug log screen. -->
     <cache-path name="diagnostics" path="diagnostics/" />
+    <!-- The screen a feedback report is about, shared to Telegram (#1242). -->
+    <cache-path name="feedback" path="feedback/" />
 </paths>

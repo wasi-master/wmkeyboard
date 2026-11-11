@@ -170,6 +170,10 @@
          asked for at the moment one of those would first have been useful
          rather than on launch. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Android 14+: told that a screenshot was taken of the settings app, nothing
+         more, so "Screenshot to send feedback" can open the feedback form (#1242).
+         A normal permission, granted at install. -->
+    <uses-permission android:name="android.permission.DETECT_SCREEN_CAPTURE" />
 
     <!-- "Display over other apps", for one optional feature: the floating
          keyboard button (issue #374), a small button drawn over other apps

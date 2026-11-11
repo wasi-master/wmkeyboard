@@ -431,6 +431,9 @@ class MainActivity : FragmentActivity() {
                     // The app lock's own PIN, password or pattern sheet. Once,
                     // up here, like the system prompt it stands in for.
                     AppLockSecretPrompt(appLock)
+                    // The feedback form, and the shake and screenshot that
+                    // open it when About › Feedback turns them on (#1242).
+                    FeedbackFormHost(settings)
                     // Here rather than beside the card on the home screen,
                     // which is the one screen the user may not be on when
                     // the offer arrives.

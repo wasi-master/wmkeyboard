@@ -4000,6 +4000,8 @@ data class KeyboardSettings(
     val networkLog: NetworkLogSettings = NetworkLogSettings(),
     /** The cover over the app above the keyboard (#1242; see [PrivacyShadeSettings]). */
     val privacyShade: PrivacyShadeSettings = PrivacyShadeSettings(),
+    /** Shake or screenshot in the settings app to send feedback (#1242; see [FeedbackShortcutSettings]). */
+    val feedbackShortcuts: FeedbackShortcutSettings = FeedbackShortcutSettings(),
     /**
      * Hold downloaded and imported files to the SHA-256 they were published
      * with. An emergency escape hatch only; see [IntegrityChecks].
@@ -12405,6 +12407,9 @@ class SettingsRepository(private val context: Context) {
         private val PRIVACY_SHADE_STYLE = stringPreferencesKey("privacy_shade_style")
         private val PRIVACY_SHADE_OPACITY = floatPreferencesKey("privacy_shade_opacity")
         private val PRIVACY_SHADE_TOUCH_THROUGH = booleanPreferencesKey("privacy_shade_touch_through")
+        private val FEEDBACK_SHAKE = booleanPreferencesKey("feedback_shake")
+        private val FEEDBACK_SCREENSHOT = booleanPreferencesKey("feedback_screenshot")
+        private val FEEDBACK_TELEGRAM_ROUTE = stringPreferencesKey("feedback_telegram_route")
         private val WEATHER_FAHRENHEIT = booleanPreferencesKey("weather_fahrenheit")
         private val WEATHER_LAT = floatPreferencesKey("weather_lat")
         private val WEATHER_LON = floatPreferencesKey("weather_lon")
@@ -13481,6 +13486,12 @@ class SettingsRepository(private val context: Context) {
                 opacity = (p[PRIVACY_SHADE_OPACITY] ?: defaults.privacyShade.opacity)
                     .coerceIn(PrivacyShadeSettings.MIN_OPACITY, 1f),
                 touchThrough = p[PRIVACY_SHADE_TOUCH_THROUGH] ?: defaults.privacyShade.touchThrough,
+            ),
+            feedbackShortcuts = FeedbackShortcutSettings(
+                shake = p[FEEDBACK_SHAKE] ?: defaults.feedbackShortcuts.shake,
+                screenshot = p[FEEDBACK_SCREENSHOT] ?: defaults.feedbackShortcuts.screenshot,
+                telegramRoute = TelegramFeedbackRoute.of(p[FEEDBACK_TELEGRAM_ROUTE])
+                    ?: defaults.feedbackShortcuts.telegramRoute,
             ),
             verifyChecksums = p[VERIFY_CHECKSUMS] ?: defaults.verifyChecksums,
             settingsHistory = p[SETTINGS_HISTORY] ?: defaults.settingsHistory,
@@ -16448,6 +16459,13 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[VERIFY_CHECKSUMS] = value }
 
     suspend fun setPrivacyShadeOn(value: Boolean) = editPrefs { it[PRIVACY_SHADE_ON] = value }
+
+    suspend fun setFeedbackShake(value: Boolean) = editPrefs { it[FEEDBACK_SHAKE] = value }
+
+    suspend fun setFeedbackScreenshot(value: Boolean) = editPrefs { it[FEEDBACK_SCREENSHOT] = value }
+
+    suspend fun setFeedbackTelegramRoute(value: TelegramFeedbackRoute) =
+        editPrefs { it[FEEDBACK_TELEGRAM_ROUTE] = value.id }
 
     suspend fun setPrivacyShadeStyle(value: PrivacyShadeStyle) = editPrefs { it[PRIVACY_SHADE_STYLE] = value.id }
 
