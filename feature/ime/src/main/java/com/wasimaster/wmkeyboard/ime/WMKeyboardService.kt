@@ -6946,7 +6946,30 @@ open class WMKeyboardService : InputMethodService() {
      * moves as it is dragged, so a move asks for the insets again.
      */
     private val privacyShade = PrivacyShade(this) { window?.window?.decorView?.requestLayout() }.also { shade ->
-        shade.onClose = { serviceScope.launch { settingsRepository.setPrivacyShadeOn(false) } }
+        shade.onClose = ::closePrivacyShade
+    }
+
+    /**
+     * The app whose own shade (one on its list of apps that bring it up by
+     * themselves) was closed: it stays down there until the keyboard opens
+     * in another app.
+     */
+    private var shadeDismissedIn: String? = null
+
+    /** Whether the field's app is one the shade comes up in by itself, and it was not closed there. */
+    private fun shadeAutoHere(settings: KeyboardSettings): Boolean {
+        val pkg = currentInputEditorInfo?.packageName ?: return false
+        return pkg in settings.privacyShade.apps && pkg != shadeDismissedIn
+    }
+
+    /** The shade's own close button, or the tool pressed while the shade is up. */
+    private fun closePrivacyShade() {
+        val settings = _uiState.value.settings
+        if (shadeAutoHere(settings)) {
+            shadeDismissedIn = currentInputEditorInfo?.packageName
+            updatePrivacyShade(settings)
+        }
+        if (settings.privacyShade.on) serviceScope.launch { settingsRepository.setPrivacyShadeOn(false) }
     }
 
     /**
@@ -6959,7 +6982,8 @@ open class WMKeyboardService : InputMethodService() {
         val attached = win != null && privacyShade.attach(win)
         val drawable = attached && !imeWindowPlatformSized && !isFullscreenMode &&
             !settings.floatingFor(landscapeNow())
-        privacyShade.update(settings.privacyShade, drawable)
+        val shade = settings.privacyShade
+        privacyShade.update(if (shadeAutoHere(settings)) shade.copy(on = true) else shade, drawable)
         // A glass theme's blur keeps the window as tall as the keyboard; the
         // shade needs the whole height, so it wins while it is up.
         win?.let(::fitImeWindowHeight)
@@ -6969,6 +6993,11 @@ open class WMKeyboardService : InputMethodService() {
     private fun onPrivacyShadeToggle() {
         vibrate()
         val settings = _uiState.value.settings
+        // Up, whether switched on or brought up by the app: the press takes it down.
+        if (privacyShade.showing) {
+            closePrivacyShade()
+            return
+        }
         val next = !settings.privacyShade.on
         if (next && settings.floatingFor(landscapeNow())) {
             Toast.makeText(this, getString(R.string.ime_service_privacy_shade_floating_toast), Toast.LENGTH_SHORT).show()
@@ -8642,6 +8671,9 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun startInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
+        // A shade closed in one app comes back by itself in the next app on its list.
+        if (info?.packageName != shadeDismissedIn) shadeDismissedIn = null
+        if (::settingsRepository.isInitialized) updatePrivacyShade(_uiState.value.settings)
         refreshTodoDueChip()
         // A tap in another field, or before the keyboard went away, is not the
         // tap before this one.

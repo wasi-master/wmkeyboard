@@ -12413,6 +12413,7 @@ class SettingsRepository(private val context: Context) {
         private val PRIVACY_SHADE_STYLE = stringPreferencesKey("privacy_shade_style")
         private val PRIVACY_SHADE_OPACITY = floatPreferencesKey("privacy_shade_opacity")
         private val PRIVACY_SHADE_TOUCH_THROUGH = booleanPreferencesKey("privacy_shade_touch_through")
+        private val PRIVACY_SHADE_APPS = stringSetPreferencesKey("privacy_shade_apps")
         private val FEEDBACK_SHAKE = booleanPreferencesKey("feedback_shake")
         private val FEEDBACK_SCREENSHOT = booleanPreferencesKey("feedback_screenshot")
         private val FEEDBACK_TELEGRAM_ROUTE = stringPreferencesKey("feedback_telegram_route")
@@ -13494,6 +13495,7 @@ class SettingsRepository(private val context: Context) {
                 opacity = (p[PRIVACY_SHADE_OPACITY] ?: defaults.privacyShade.opacity)
                     .coerceIn(PrivacyShadeSettings.MIN_OPACITY, 1f),
                 touchThrough = p[PRIVACY_SHADE_TOUCH_THROUGH] ?: defaults.privacyShade.touchThrough,
+                apps = p[PRIVACY_SHADE_APPS] ?: defaults.privacyShade.apps,
             ),
             feedbackShortcuts = FeedbackShortcutSettings(
                 shake = p[FEEDBACK_SHAKE] ?: defaults.feedbackShortcuts.shake,
@@ -16485,6 +16487,12 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun setPrivacyShadeTouchThrough(value: Boolean) = editPrefs { it[PRIVACY_SHADE_TOUCH_THROUGH] = value }
+
+    /** Adds [pkg] to the apps the shade comes up in by itself, or takes it off. */
+    suspend fun setPrivacyShadeApp(pkg: String, on: Boolean) = editPrefs {
+        val now = it[PRIVACY_SHADE_APPS].orEmpty()
+        it[PRIVACY_SHADE_APPS] = if (on) now + pkg else now - pkg
+    }
 
     /** Turning the history off forgets what it held: off means nothing is kept. */
     suspend fun setSettingsHistory(value: Boolean) {

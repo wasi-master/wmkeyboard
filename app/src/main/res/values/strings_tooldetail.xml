@@ -1364,5 +1364,9 @@
     <string name="tooldetail_privacy_shade_opacity_subtitle">Lower lets you make out your own messages up close, while someone a seat away cannot</string>
     <string name="tooldetail_privacy_shade_touch_title">Touch the app through the shade</string>
     <string name="tooldetail_privacy_shade_touch_on_subtitle">Taps and scrolls on the shade reach the app under it</string>
+    <string name="tooldetail_privacy_shade_apps_title">Turn on in these apps</string>
+    <string name="tooldetail_privacy_shade_apps_info">In these apps the shade is already up when the keyboard opens, with nothing to press. Its close button, or the tool, takes it down until the keyboard opens in another app.</string>
+    <string name="tooldetail_privacy_shade_apps_add">Add an app</string>
+    <string name="tooldetail_privacy_shade_apps_remove_desc">Take the app off the list</string>
     <string name="tooldetail_privacy_shade_touch_off_subtitle">The shade takes taps. Hold a finger on it to see under it until you let go</string>
 </resources>

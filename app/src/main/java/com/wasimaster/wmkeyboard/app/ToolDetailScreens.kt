@@ -1801,6 +1801,7 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setPrivacyShadeTouchThrough(it) } }
                 }
             }
+            PrivacyShadeAppsGroup(repository, settings)
         }
         ToolbarTool.POWER_SAVING -> {
             // Decides which rows the group holds; the rows read everything else.

@@ -15,6 +15,10 @@ Tap the **Privacy shade** tool in the toolbox, or pin it to the toolbar. The too
 
 The shade stays up from one field to the next, and after the keyboard restarts, until you take it down. It goes away with the keyboard and comes back with it.
 
+### In chosen apps, by itself
+
+**Turn on in these apps**, on the same page, lists apps where the shade is already up the moment the keyboard opens, such as your chat apps or your bank's. **Add an app** picks one from your installed apps, and the bin beside it takes it off. In those apps the close button or the tool takes the shade down until the keyboard opens in another app; the next time you come back, it's up again.
+
 ## Peeking under it
 
 A handle sits on the cover's lower edge, just above the keys, with a close button beside it.
@@ -34,10 +38,12 @@ Each time the keyboard comes up, the shade starts fully covered, whatever you un
 | Show the shade | Off | Up or down, the same as the tool's button |
 | Colour | Dark | Dark, Grey, Light or Warm |
 | Opacity | 94% | From 50% to 100%. Just under solid by default, so you can make out your own messages up close while someone a seat away can't. 100% hides everything |
+| Turn on in these apps | None | Apps where the shade comes up by itself. See [In chosen apps, by itself](#in-chosen-apps-by-itself) |
 | Touch the app through the shade | On | On, taps and scrolls on the shade reach the app under it, so you can still scroll the chat. Off, the shade takes them, and holding a finger on it lifts it until you let go |
 
 ## Details & edge cases
 
+- **What other apps do.** Overlay apps such as ShadeType draw their cover over every app with the permission to draw over other apps, and most need an accessibility service to notice the keyboard opening. Samsung's Privacy Display on the Galaxy S26 Ultra dims the panel itself for anyone looking from the side. The shade here needs neither, because the keyboard knows when it opens.
 - **No permission to draw over other apps.** The shade is drawn inside the keyboard's own window, which already reaches the top of the screen, so it needs nothing beyond what a keyboard has.
 - **Docked keyboard only.** The floating keyboard has no edge for the shade to hang from, so the tool says "The privacy shade works with the docked keyboard" and does nothing until you dock it. In landscape, when an app gives the keyboard the whole screen for its own text box, there is no app showing to cover and no shade is drawn.
 - **The keys' pop-ups still show.** The bubble above a key you press is drawn over the shade.

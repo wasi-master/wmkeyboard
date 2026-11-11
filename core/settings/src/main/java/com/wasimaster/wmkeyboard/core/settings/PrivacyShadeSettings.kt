@@ -28,6 +28,12 @@ data class PrivacyShadeSettings(
      * takes them instead, and holding a finger on it lifts it until you let go.
      */
     val touchThrough: Boolean = true,
+    /**
+     * Apps the shade comes up in by itself, as soon as one of their fields
+     * opens the keyboard, whether or not it is switched on; package names.
+     * Its close button takes it down until the keyboard opens in another app.
+     */
+    val apps: Set<String> = emptySet(),
 ) {
     companion object {
         const val DEFAULT_OPACITY = 0.94f
