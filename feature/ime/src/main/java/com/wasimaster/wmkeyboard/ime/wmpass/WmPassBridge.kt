@@ -354,11 +354,24 @@ object WmPassBridge {
      * when there is one and the web page when there is not (Telegram 5333).
      */
     fun openStore(context: Context) {
+        // Not on any store yet (#1227): the listing the button opened was not
+        // there, so the button says so instead. Flip [RELEASED] with the release.
+        if (!RELEASED) {
+            android.widget.Toast.makeText(
+                context,
+                com.wasimaster.wmkeyboard.ime.R.string.ime_wmpass_not_released,
+                android.widget.Toast.LENGTH_LONG,
+            ).show()
+            return
+        }
         val market = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$PACKAGE"))
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val web = Intent(Intent.ACTION_VIEW, Uri.parse(STORE_URL)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         runCatching { context.startActivity(market) }.recoverCatching { context.startActivity(web) }
     }
+
+    /** Whether WM Pass is out on a store, so [openStore] has a listing to open (#1227). */
+    const val RELEASED = false
 
     /** WM Pass's Play listing, for a page that can only link. */
     const val STORE_URL = "https://play.google.com/store/apps/details?id=$PACKAGE"

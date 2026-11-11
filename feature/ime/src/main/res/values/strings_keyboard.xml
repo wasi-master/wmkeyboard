@@ -534,6 +534,7 @@
     <string name="ime_wmpass_no_vault">WM Pass has no vault yet. Make one there first.</string>
     <string name="ime_wmpass_off">To use this, turn on Let WM Keyboard fill in WM Pass, under Settings, Security.</string>
     <string name="ime_wmpass_get">Get WM Pass</string>
+    <string name="ime_wmpass_not_released">WM Pass isn\'t out yet. This tool starts working once it is released and installed.</string>
     <string name="ime_wmpass_missing">This tool is a password book on WM Pass, a separate password manager. It is not installed.</string>
     <string name="ime_wmpass_untrusted">An app using WM Pass\'s name is installed, but it is not signed by WM Pass, so it was not asked for anything.</string>
     <!-- The WM Pass tool's locked face, and unlocking without leaving the app being typed in. -->
