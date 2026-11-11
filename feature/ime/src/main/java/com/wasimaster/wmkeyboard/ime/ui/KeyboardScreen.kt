@@ -28907,7 +28907,12 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                 // label is held in from whichever edges carry one and the
                 // overflow rule below shrinks it clear of them. The corners
                 // need no room: a letter never reaches them.
-                val armsShown = settings.layoutBehavior.flickHints && key.hasFlicks()
+                // A single glyph sits in the middle, clear of the arms at the
+                // edges, so it keeps its size (#979): held in as well, it was
+                // shrunk to a speck on a short key and sat low beside the arm
+                // under it.
+                val armsShown = settings.layoutBehavior.flickHints && key.hasFlicks() &&
+                    text.codePointCount(0, text.length) > 1
                 val sideArms = armsShown &&
                     (key.flickArm(FlickDirection.LEFT) != null || key.flickArm(FlickDirection.RIGHT) != null)
                 val endArms = armsShown &&
