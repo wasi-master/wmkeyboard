@@ -30934,6 +30934,9 @@ private fun Modifier.pointerInputKey(
                 var flicked = false
                 var armRepeat: Job? = null
                 var armRepeated = false
+                // Lines a delete-line arm has selected to show what the lift
+                // will take (#1248), 0 while none are; held out, one more a tick.
+                var linesShown = 0
                 val repeat = scope.launch {
                     delay(keyRepeat.startDelayMs.toLong())
                     longPressFired = true
@@ -30970,10 +30973,23 @@ private fun Modifier.pointerInputKey(
                                 setFlickDirection(live)
                                 armRepeat?.cancel()
                                 armRepeat = null
+                                // Off a delete-line arm: the lines it showed go back.
+                                if (linesShown > 0) {
+                                    deleteSwipe.onCancel()
+                                    linesShown = 0
+                                }
                                 if (live != null) {
                                     flicked = true
                                     repeat.cancel()
                                     onKeyHaptic()
+                                    // A delete-line arm shows what it will take
+                                    // before the lift takes it, as the sideways
+                                    // swipe does (#1248).
+                                    val lineForward = key.flickKey(live)?.deletesLinesForward()
+                                    if (lineForward != null && previewing) {
+                                        val covered = deleteSwipe.onSelectLines(1, lineForward)
+                                        if (covered > 0) linesShown = covered else if (covered == 0) deleteSwipe.onCancel()
+                                    }
                                     // A forward delete or an arrow on the arm keeps
                                     // going while the finger stays out on it.
                                     armRepeat = key.flickKey(live)?.takeIf { it.flickArmRepeats() }?.let { armKey ->
@@ -30982,7 +30998,13 @@ private fun Modifier.pointerInputKey(
                                             armRepeated = true
                                             while (true) {
                                                 repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
-                                                onKeyRepeat(armKey)
+                                                if (linesShown > 0 && lineForward != null) {
+                                                    // Held out, the preview takes one more line a tick.
+                                                    val more = deleteSwipe.onSelectLines(linesShown + 1, lineForward)
+                                                    if (more > linesShown) linesShown = more
+                                                } else {
+                                                    onKeyRepeat(armKey)
+                                                }
                                                 // A caret move steps at the caret's pace, a delete at the delete's.
                                                 val stepMs = if (armKey.action.repeatsAsCaretMove()) textEditing.repeatMs else keyRepeat.deleteMs
                                                 delay(stepMs.toLong())
@@ -31088,7 +31110,7 @@ private fun Modifier.pointerInputKey(
                     if (!lifted) {
                         repeat.cancel()
                         armRepeat?.cancel()
-                        if (clearArmed) deleteSwipe.onCancel()
+                        if (clearArmed || linesShown > 0) deleteSwipe.onCancel()
                         if (flicked) setFlickDirection(null)
                         setPressed(false)
                     }
@@ -31100,6 +31122,8 @@ private fun Modifier.pointerInputKey(
                 onKeyRelease()
                 val armKey = arm?.let { key.flickKey(it) }
                 when {
+                    // A delete-line arm's preview: the lift deletes what it shows (#1248).
+                    armKey != null && linesShown > 0 -> deleteSwipe.onCommit()
                     // The arm already ran while held, or it runs now.
                     armRepeated -> Unit
                     armKey != null -> onKey(armKey)

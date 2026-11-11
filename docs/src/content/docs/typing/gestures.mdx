@@ -204,6 +204,8 @@ Each step costs a certain amount of leftward travel. In Words mode the cost shri
 
 While the highlight is up the swipe is still undoable: dragging back to the right shrinks it a step at a time, and dragging all the way back to where the swipe started leaves the text alone entirely. The gesture retraces its own steps, so a word that cost a short pull on the shrinking curve gives itself back for the same short pull.
 
+The same goes for <KeyCap>⌦</KeyCap>'s swipe, which before 0.6.7 deleted as it went in an app's text field whatever this setting said.
+
 Turn the setting off to get the older behaviour, where each word or character goes the moment the swipe passes it. Deleted text cannot be given back, so dragging right only re-anchors the gesture, and the next word costs the full first-word distance again instead of picking up where the shrinking curve left off. A few editors cannot hold a selection while the keyboard drives it, and a search box drawn by the keyboard itself (emoji search, for one) has no cursor to select with. The swipe falls back to deleting as it goes in both cases, with no setting to change. It does the same over a word that is still being converted, such as pinyin or Vietnamese Telex, so what is left of the word is still read as one.
 
 ### Swiping up to clear everything
@@ -214,7 +216,7 @@ The swipe has to be steeper than it is wide, so a leftward word swipe that drift
 
 ### Swiping up or down to delete lines
 
-**Swipe up or down to delete lines** (off by default) turns the two vertical swipes on <KeyCap>⌫</KeyCap> into line deletes. A swipe up deletes back to the start of the line the cursor is on. With the cursor already at the start of a line, it deletes the whole line above, so each swipe up takes one more line. A swipe down deletes to the end of the line, then the line below. Keep your finger out after the swipe and it goes on a line at a time, the way holding delete repeats. With **Swipe up to clear all** on as well, the swipe up still clears everything and only the swipe down deletes lines. A delete key your layout already gave an up or down swipe keeps its own. The same two steps are **Delete line** and **Delete line forward** in the layout editor's actions, for any key or swipe.
+**Swipe up or down to delete lines** (off by default) turns the two vertical swipes on <KeyCap>⌫</KeyCap> into line deletes. A swipe up deletes back to the start of the line the cursor is on. With the cursor already at the start of a line, it deletes the whole line above, so each swipe up takes one more line. A swipe down deletes to the end of the line, then the line below. Keep your finger out after the swipe and it goes on a line at a time, the way holding delete repeats. Since 0.6.7, with **Show what you will delete** on, the lines are selected rather than deleted while your finger is out: the highlight grows a line at a time as you hold, the lift deletes it, and bringing your finger back to the key before you lift leaves the text alone. In a text box of the keyboard's own, or with text already selected, the swipe deletes straight away as before. With **Swipe up to clear all** on as well, the swipe up still clears everything and only the swipe down deletes lines. A delete key your layout already gave an up or down swipe keeps its own. The same two steps are **Delete line** and **Delete line forward** in the layout editor's actions, for any key or swipe.
 
 ### Holding delete to clear words
 

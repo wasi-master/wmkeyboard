@@ -17147,7 +17147,7 @@ open class WMKeyboardService : InputMethodService() {
         // Every box that eats keystrokes has no "after the cursor" of its own,
         // which is the whole reason [onForwardDelete] stands down in one; a
         // word step has no more business reaching past it than a character one.
-        if (!forwardDeleteOwnsBuffer()) {
+        if (!forwardDeletesInField()) {
             if (!captureDeleteWord(forward = true)) onForwardDelete()
             return
         }
@@ -17190,7 +17190,7 @@ open class WMKeyboardService : InputMethodService() {
      * nothing after a cursor. They all have a cursor since #161, so they all
      * take their own forward delete.
      */
-    private fun forwardDeleteOwnsBuffer(): Boolean = _uiState.value.captureTarget() == null
+    private fun forwardDeletesInField(): Boolean = _uiState.value.captureTarget() == null
 
     /**
      * Whether a forward delete would still remove anything, so the held-repeat
@@ -17885,26 +17885,48 @@ open class WMKeyboardService : InputMethodService() {
         invalidateExpectedSelection()
         if (!forward) {
             val before = ic.getTextBeforeCursor(DELETE_LINE_LOOKBACK, 0)?.toString().orEmpty()
-            if (before.isEmpty()) return
-            val count = if (before.endsWith('\n')) {
-                val above = before.dropLast(1)
-                before.length - (above.lastIndexOf('\n') + 1)
-            } else {
-                before.length - (before.lastIndexOf('\n') + 1)
-            }
+            val count = DeleteLines.step(before, forward = false)
             if (count > 0) ic.deleteSurroundingText(count, 0)
         } else {
             val after = ic.getTextAfterCursor(DELETE_LINE_LOOKBACK, 0)?.toString().orEmpty()
-            if (after.isEmpty()) return
-            val count = if (after.startsWith('\n')) {
-                val below = after.indexOf('\n', 1)
-                if (below < 0) after.length else below
-            } else {
-                after.indexOf('\n').let { if (it < 0) after.length else it }
-            }
+            val count = DeleteLines.step(after, forward = true)
             if (count > 0) ic.deleteSurroundingText(0, count)
         }
         refreshSuggestions()
+    }
+
+    /**
+     * The delete-line arms' preview (#1248): selects the [lines] lines the arm
+     * would take, counted as [deleteLine] counts them, so the lift's
+     * [onDeleteSwipeCommit] deletes them and leaving the arm's
+     * [onDeleteSwipeCancel] puts the cursor back. A finger held on the arm
+     * asks for one line more each tick. Returns the lines covered, or -1 where
+     * there is no preview to be had (a box of the keyboard's own, a selection
+     * already up, an editor that will not say where its cursor is), and the
+     * arm then deletes as it always did.
+     */
+    fun onDeleteSwipeSelectLines(lines: Int, forward: Boolean): Int {
+        if (_uiState.value.captureTarget() != null || backspaceEditsBuffer()) return -1
+        val ic = currentInputConnection ?: return -1
+        if (deleteSwipeActive && deleteSwipeForward != forward) return -1
+        if (!deleteSwipeActive) {
+            if (hasSelection(ic) || !beginDeleteSwipe(ic, forward)) return -1
+            // A line runs past the character swipe's lookback; read as far as a press would.
+            deleteSwipeText = (
+                if (forward) ic.getTextAfterCursor(DELETE_LINE_LOOKBACK, 0) else ic.getTextBeforeCursor(DELETE_LINE_LOOKBACK, 0)
+                ) ?: ""
+        }
+        val reach = DeleteLines.reach(deleteSwipeText, lines, forward)
+        val covered = reach.size
+        if (covered == deleteSwipeUnits) return covered
+        val length = reach.lastOrNull() ?: 0
+        val start = if (forward) deleteSwipeBase else (deleteSwipeBase - length).coerceAtLeast(0)
+        val end = if (forward) deleteSwipeEnd + length else deleteSwipeEnd
+        ic.setSelection(start, end)
+        expectedSelStart = start
+        expectedSelEnd = end
+        deleteSwipeUnits = covered
+        return covered
     }
 
     private fun onDeleteWord() {
@@ -18189,7 +18211,7 @@ open class WMKeyboardService : InputMethodService() {
         // ⌦ asks its own question, since it stands down in a few places
         // backspace still works in, and works in one (the spelling draft)
         // backspace calls a buffer.
-        if (if (forward) forwardDeleteOwnsBuffer() else backspaceEditsBuffer()) return -1
+        if (if (forward) !forwardDeletesInField() else backspaceEditsBuffer()) return -1
         // A word a composer is still converting (pinyin, Telex, kana) is its
         // keys, not the text on screen, and a selection has to turn it into
         // plain text before it can cover it: what was left of `weishenme`
@@ -40212,6 +40234,7 @@ open class WMKeyboardService : InputMethodService() {
             onDeleteUnit = ::onDeleteSwipeUnit,
             onSelect = ::onDeleteSwipeSelect,
             onSelectAll = ::onDeleteSwipeSelectAll,
+            onSelectLines = ::onDeleteSwipeSelectLines,
             onCommit = ::onDeleteSwipeCommit,
             onCancel = ::onDeleteSwipeCancel,
         )
