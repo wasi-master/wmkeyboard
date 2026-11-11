@@ -3609,6 +3609,14 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var unspacedKey = false
 
+    /**
+     * The glided word in hand spent the armed No space for the next key
+     * (#1233): it gets no space on either side, so the trailing step stands
+     * down as the leading one did. Set by [commitGestureLeadingSpace], spent by
+     * [commitGestureSpace].
+     */
+    private var glideSpentNoSpace = false
+
     /** Arms or calls off No space for the next key (#863). */
     private fun setNoSpaceArmed(armed: Boolean) {
         if (_uiState.value.noSpaceArmed != armed) _uiState.update { it.copy(noSpaceArmed = armed) }
@@ -14260,7 +14268,11 @@ open class WMKeyboardService : InputMethodService() {
         // A word picked in front of a mark held its space back (#679): a
         // letter now starts the next word, so the space goes in first, between
         // the two words and still in front of the mark.
-        if (spaceOwed && composing.isEmpty() && text.firstOrNull()?.isLetterOrDigit() == true) {
+        // Only while a space is still the keyboard's to add: a mode switched
+        // to automatic spaces off since the word was picked owes none (#1234).
+        if (spaceOwed && composing.isEmpty() && text.firstOrNull()?.isLetterOrDigit() == true &&
+            (state.settings.gesture.autoSpaceAfterGlide || state.settings.suggestionStrip.autoSpaceAfterSuggestion)
+        ) {
             ic.commitText(" ", 1)
             invalidateExpectedSelection()
         }
@@ -32550,7 +32562,10 @@ open class WMKeyboardService : InputMethodService() {
         val gestures = duetWord.copy().takeIf { it.active && it.snapshot().size > 1 }
         val readings = duetReadings.toList()
         val shift = duetShift
-        val unspaced = takeNoSpaceEnd()
+        // No space armed while this word was open is for the word's end (#1233).
+        val armedOnWord = _uiState.value.noSpaceArmed && duetWord.active
+        if (armedOnWord) setNoSpaceArmed(false)
+        val unspaced = takeNoSpaceEnd() || armedOnWord
         // One batch, so the editor answers the word and its space with one
         // selection update. Two, arriving after the guard armed below has
         // settled, read as the caret moving off the word (#1082).
@@ -33455,7 +33470,15 @@ open class WMKeyboardService : InputMethodService() {
      * is stepped over there too rather than doubled (#955).
      */
     private fun commitGestureSpace(ic: InputConnection, state: KeyboardUiState, replacedSelection: Boolean = false) {
-        if (!state.settings.gesture.autoSpaceAfterGlide) return
+        // The word was the key No space was armed for (#1233): no space after
+        // it either, the docs' "before or after it".
+        if (glideSpentNoSpace) {
+            glideSpentNoSpace = false
+            return
+        }
+        // Read now, not from the [state] the decode began under: a mode that
+        // turned automatic spaces off while the word decoded wins (#1234).
+        if (!_uiState.value.settings.gesture.autoSpaceAfterGlide || !state.settings.gesture.autoSpaceAfterGlide) return
         // A word glided back into the middle of a sentence lands in front of
         // the space that was already there; the caret goes past it, ready for
         // the next word, the same as after a typed one (#662).
@@ -33493,9 +33516,13 @@ open class WMKeyboardService : InputMethodService() {
         // A space owed to the next letter after a closing mark (#974) is owed
         // no longer: this word brings its own, or joins on as asked.
         deferredWordSpace = false
+        glideSpentNoSpace = false
         // No space asked for this word to join the one before it (#851), or
         // was armed for whatever comes next, which this word is (#863).
         if (glueNextWord || _uiState.value.noSpaceArmed) {
+            // Armed for the next key: this word is it, and takes no space
+            // after itself either (#1233). A tapped No space only joins.
+            glideSpentNoSpace = _uiState.value.noSpaceArmed
             // Armed rather than tapped: a hold only arms, so the keyboard's own
             // space after the word before is still there. This word is the
             // armed key and joins on, glide `foot`, hold, glide `ball` giving
@@ -33509,7 +33536,7 @@ open class WMKeyboardService : InputMethodService() {
             setNoSpaceArmed(false)
             return
         }
-        if (!state.settings.gesture.autoSpaceBeforeGlide) return
+        if (!state.settings.gesture.autoSpaceBeforeGlide || !_uiState.value.settings.gesture.autoSpaceBeforeGlide) return
         val before = ic.getTextBeforeCursor(QUOTE_CONTEXT_CHARS, 0)?.toString().orEmpty()
         if (spacesBeforeGlidedWord(before, state.fieldKind)) ic.commitText(" ", 1)
     }
@@ -39560,6 +39587,11 @@ open class WMKeyboardService : InputMethodService() {
                 // The mode brings its own default set; drop the session pick.
                 activeSymbolSetId = null,
             )
+        }
+        // A space held back for the next letter (#679) is not owed under a
+        // mode whose every space is the user's (#1234).
+        if (!settings.gesture.autoSpaceAfterGlide && !settings.suggestionStrip.autoSpaceAfterSuggestion) {
+            deferredWordSpace = false
         }
     }
 
