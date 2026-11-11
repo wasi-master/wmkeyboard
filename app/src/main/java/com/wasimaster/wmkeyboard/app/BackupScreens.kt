@@ -1096,6 +1096,8 @@ internal fun BackupSettings(
     var message by remember { mutableStateOf<String?>(null) }
     // Whether [message] reports a restore that left feature libraries missing.
     var offerLibraries by remember { mutableStateOf(false) }
+    // A restore brings back switches but not the phone's grants (#1225).
+    var offerPermissions by remember { mutableStateOf(false) }
     var confirmImport by remember { mutableStateOf<PendingImport?>(null) }
 
     // Everything downloaded, as a zip of its own (#1045): see [DownloadsBundle].
@@ -1444,6 +1446,9 @@ internal fun BackupSettings(
                                                 },
                                             ),
                                         )
+                                        append("\n\n")
+                                        append(context.getString(R.string.backup_restore_permissions_note))
+                                        offerPermissions = true
                                         val missing = FeatureLibraryList.missingCount()
                                         if (missing > 0) {
                                             append("\n\n")
@@ -1546,6 +1551,7 @@ internal fun BackupSettings(
         val close = {
             message = null
             offerLibraries = false
+            offerPermissions = false
         }
         AlertDialog(
             onDismissRequest = close,
@@ -1555,12 +1561,22 @@ internal fun BackupSettings(
                     Text(stringResource(CommonR.string.common_ok))
                 }
             },
-            dismissButton = if (offerLibraries) {
+            dismissButton = if (offerLibraries || offerPermissions) {
                 {
-                    TextButton(onClick = {
-                        close()
-                        navigate(FeatureLibraryList.ROUTE)
-                    }) { Text(stringResource(R.string.feature_libraries_title)) }
+                    Row {
+                        if (offerPermissions) {
+                            TextButton(onClick = {
+                                close()
+                                navigate("permissions")
+                            }) { Text(stringResource(R.string.privacy_permissions_title)) }
+                        }
+                        if (offerLibraries) {
+                            TextButton(onClick = {
+                                close()
+                                navigate(FeatureLibraryList.ROUTE)
+                            }) { Text(stringResource(R.string.feature_libraries_title)) }
+                        }
+                    }
                 }
             } else {
                 null

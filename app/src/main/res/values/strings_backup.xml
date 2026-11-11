@@ -361,6 +361,7 @@
     <!-- %1$s is a list of the parts that the app restored, for example
          "themes, snippets". -->
     <string name="backup_restore_done">The app restored %1$s.</string>
+    <string name="backup_restore_permissions_note">Permissions are not part of a backup. A feature that needs one, such as the microphone or contacts, asks again on this phone the first time you use it, or you can grant them all now on the Permissions page.</string>
     <string name="backup_restore_nothing">The file has nothing to restore.</string>
     <string name="backup_restore_settings_failed">The app could not apply the settings. Your settings did not change.</string>
 
