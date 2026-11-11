@@ -15,6 +15,7 @@ import com.wasimaster.wmkeyboard.core.tools.DeviceCalendar
 import com.wasimaster.wmkeyboard.core.tools.DeviceCalendarEvent
 import com.wasimaster.wmkeyboard.core.tools.DeviceCalendarInfo
 import com.wasimaster.wmkeyboard.core.tools.DeviceCalendarWrite
+import com.wasimaster.wmkeyboard.core.tools.EventWeatherRules
 import com.wasimaster.wmkeyboard.core.tools.StoredEvent
 import com.wasimaster.wmkeyboard.core.tools.ToolPrefill
 import com.wasimaster.wmkeyboard.core.tools.calendar.CalendarOp
@@ -66,13 +67,27 @@ internal class CalendarController(
     private val endText: () -> Unit,
     /** What is in the composer's box right now; it lives in the keyboard's state. */
     private val currentText: () -> CalendarTextEntry?,
+    /** What the weather on event cards may do right now (#1212). */
+    private val weatherConfig: () -> EventWeatherConfig = { EventWeatherConfig() },
+    /** Switches the keyboard to the Weather panel, which draws [forecast]. */
+    private val openWeather: () -> Unit = {},
+    /** Switches back to this panel, on the given day. */
+    private val openCalendarDay: (EventDate) -> Unit = {},
 ) {
 
     private val app = context.applicationContext
     private val _state = MutableStateFlow(CalendarUi(today = today()))
     val state: StateFlow<CalendarUi> = _state
 
-    val callbacks = CalendarCallbacks(state = state, onAction = ::dispatch)
+    /** The hourly forecast the Weather panel shows for one event; null when it shows its own. */
+    private val _forecast = MutableStateFlow<EventForecastUi?>(null)
+    val forecast: StateFlow<EventForecastUi?> = _forecast
+
+    val callbacks = CalendarCallbacks(state = state, forecast = forecast, onAction = ::dispatch)
+
+    private val weatherSource = EventWeatherSource()
+    private var weatherJob: Job? = null
+    private var forecastJob: Job? = null
 
     private var open = false
     private var monthJob: Job? = null
@@ -287,6 +302,13 @@ internal class CalendarController(
             CalendarAction.ResumeDraft -> _state.update { it.copy(view = CalendarView.COMPOSE, resumable = false) }
             CalendarAction.DiscardDraft -> _state.update { it.copy(draft = null, draftBase = null, resumable = false, series = null) }
             is CalendarAction.OpenEvent -> openEvent(action.event)
+            is CalendarAction.OpenWeather -> openForecast(action.event)
+            CalendarAction.ForecastRefresh -> fetchForecast(force = true)
+            CalendarAction.ForecastBack -> {
+                val day = _forecast.value?.day
+                closeForecast()
+                day?.let(openCalendarDay)
+            }
             CalendarAction.AskRead -> launch(trampoline(com.wasimaster.wmkeyboard.app.CalendarPermissionActivity::class.java))
             CalendarAction.OpenSettings -> openToolSettings()
 
@@ -414,8 +436,127 @@ internal class CalendarController(
         dayJob?.cancel()
         dayJob = scope.launch {
             val events = withContext(Dispatchers.IO) { DeviceCalendar.eventsForDay(app, day.year, day.month, day.day) }
-            if (_state.value.selected == day) _state.update { it.copy(dayEvents = events) }
+            if (_state.value.selected == day) {
+                _state.update { it.copy(dayEvents = events) }
+                loadWeather(events)
+            }
         }
+    }
+
+    // ---- Weather on events (#1212) ------------------------------------
+
+    /**
+     * The weather beside each of [events] that is still to come and inside
+     * the forecast. Kept forecasts are used while fresh; a stale or missing one
+     * is fetched only while the network is up and data saving is not holding
+     * it back, so the cards never reach the network on a metered connection by
+     * themselves.
+     */
+    private fun loadWeather(events: List<DeviceCalendarEvent>) {
+        weatherJob?.cancel()
+        val cfg = weatherConfig()
+        if (!cfg.enabled) {
+            if (_state.value.weather.isNotEmpty()) _state.update { it.copy(weather = emptyMap()) }
+            return
+        }
+        val now = System.currentTimeMillis()
+        val wanted = events.mapNotNull { e -> EventWeatherRules.targetMillis(e.begin, e.end, e.allDay, now)?.let { e to it } }
+        if (wanted.isEmpty()) return
+        weatherJob = scope.launch {
+            for ((event, at) in wanted) {
+                val chip = chipFor(event, at, cfg) ?: continue
+                _state.update { s ->
+                    val next = s.weather + (weatherKey(event) to chip)
+                    s.copy(weather = if (next.size > MAX_WEATHER_CHIPS) next.entries.drop(next.size - MAX_WEATHER_CHIPS).associate { it.key to it.value } else next)
+                }
+            }
+        }
+    }
+
+    /**
+     * Where to forecast [event]: the place its location searches to, the
+     * user's weather location when it has none (or one no search finds), and
+     * nothing when its place has not been searched yet.
+     */
+    private suspend fun placeFor(event: DeviceCalendarEvent, cfg: EventWeatherConfig): ForecastPlace? {
+        val text = event.location?.trim().orEmpty()
+        if (text.isEmpty()) return cfg.home
+        return when (val hit = weatherSource.place(text, cfg.mayFetchUnasked)) {
+            is EventWeatherSource.PlaceHit.Found -> ForecastPlace(hit.place.name, hit.place.latitude, hit.place.longitude, fromEvent = true)
+            EventWeatherSource.PlaceHit.NotFound -> cfg.home
+            EventWeatherSource.PlaceHit.Unknown -> null
+        }
+    }
+
+    private suspend fun chipFor(event: DeviceCalendarEvent, at: Long, cfg: EventWeatherConfig): EventWeatherChip? {
+        val place = placeFor(event, cfg) ?: return null
+        val forecast = weatherSource.forecast(place.latitude, place.longitude, cfg.staleAfterMs, cfg.mayFetchUnasked) ?: return null
+        val hour = forecast.hourAt(at) ?: return null
+        return EventWeatherChip(
+            weatherCode = hour.weatherCode,
+            isDay = hour.isDay,
+            temperatureC = hour.temperatureC,
+            precipProbabilityPercent = hour.precipProbabilityPercent,
+            place = place,
+            focusMillis = at,
+            fahrenheit = cfg.fahrenheit,
+        )
+    }
+
+    /** The weather on [event]'s card was tapped: the Weather panel opens on that day, at that hour. */
+    private fun openForecast(event: DeviceCalendarEvent) {
+        val chip = _state.value.weather[weatherKey(event)] ?: return
+        val cfg = weatherConfig()
+        val zone = TimeZone.getDefault()
+        val at = chip.focusMillis
+        val day = EventDate.of(at, zone)
+        haptic()
+        forecastJob?.cancel()
+        _forecast.value = EventForecastUi(
+            title = event.title,
+            place = chip.place,
+            day = day,
+            dayStart = EventTimes.millis(day, 0, zone),
+            dayEnd = EventTimes.millis(day.plusDays(1), 0, zone),
+            focusMillis = at,
+            fahrenheit = cfg.fahrenheit,
+            hour24 = _state.value.hour24,
+        )
+        openWeather()
+        fetchForecast(force = false)
+    }
+
+    /**
+     * The forecast for the open hourly view. The user asked for it, so data
+     * saving does not hold it back (the Weather panel's own fetch does not
+     * wait on it either); only being offline does.
+     */
+    private fun fetchForecast(force: Boolean) {
+        val shown = _forecast.value ?: return
+        val cfg = weatherConfig()
+        forecastJob?.cancel()
+        _forecast.update { it?.copy(loading = true, failed = false) }
+        forecastJob = scope.launch {
+            val got = weatherSource.forecast(
+                shown.place.latitude,
+                shown.place.longitude,
+                staleAfterMs = if (force) 0L else cfg.staleAfterMs,
+                mayFetch = cfg.online,
+            )
+            _forecast.update { cur ->
+                if (cur == null || cur.place != shown.place || cur.focusMillis != shown.focusMillis) {
+                    cur
+                } else {
+                    cur.copy(forecast = got ?: cur.forecast, loading = false, failed = got == null)
+                }
+            }
+        }
+    }
+
+    /** The Weather panel goes back to its own place: opened from the toolbar, or left by its back arrow. */
+    fun closeForecast() {
+        forecastJob?.cancel()
+        _forecast.value = null
     }
 
     private fun loadCalendars() {
@@ -765,6 +906,7 @@ internal class CalendarController(
         private const val HOUR_MS = 3_600_000L
         private const val CONFLICT_DEBOUNCE_MS = 250L
         private const val GUEST_DEBOUNCE_MS = 150L
+        private const val MAX_WEATHER_CHIPS = 200
 
         fun today(): EventDate = EventDate.of(System.currentTimeMillis(), TimeZone.getDefault())
 
@@ -780,5 +922,7 @@ internal class CalendarController(
 /** What the Calendar panel hands back; one bundle, see `ToolHoldCallbacks.calendar`. */
 data class CalendarCallbacks(
     val state: StateFlow<CalendarUi> = MutableStateFlow(CalendarUi(today = CalendarController.today())),
+    /** The hourly forecast for one event, which the Weather panel draws in place of its own (#1212). */
+    val forecast: StateFlow<EventForecastUi?> = MutableStateFlow(null),
     val onAction: (CalendarAction) -> Unit = {},
 )

@@ -49,9 +49,18 @@ data class CalendarUi(
     val hour24: Boolean = false,
     /** A draft left when the panel closed, which the month view offers to pick up again. */
     val resumable: Boolean = false,
+    /**
+     * The weather beside each event card, by [weatherKey] (#1212). Kept as
+     * days change, so the agenda's opened days keep theirs; empty while
+     * "Weather on events" is off.
+     */
+    val weather: Map<String, EventWeatherChip> = emptyMap(),
 ) {
     val editing: Boolean get() = draft?.eventId != null
 }
+
+/** One occurrence of an event: the id repeats across a series, the start does not. */
+fun weatherKey(event: DeviceCalendarEvent): String = "${event.id}:${event.begin}"
 
 enum class CalendarView { MONTH, DETAIL, COMPOSE }
 
@@ -99,6 +108,13 @@ sealed interface CalendarAction {
     data object ResumeDraft : CalendarAction
     data object DiscardDraft : CalendarAction
     data class OpenEvent(val event: DeviceCalendarEvent) : CalendarAction
+
+    /** The weather on an event's card: the Weather panel opens on that hour (#1212). */
+    data class OpenWeather(val event: DeviceCalendarEvent) : CalendarAction
+
+    // The Weather panel's hourly view for an event
+    data object ForecastRefresh : CalendarAction
+    data object ForecastBack : CalendarAction
     data object AskRead : CalendarAction
     data object OpenSettings : CalendarAction
 

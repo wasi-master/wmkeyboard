@@ -3287,6 +3287,12 @@ data class CalendarToolSettings(
     val defaultReminderMinutes: Int = 10,
     /** Where Save puts an event: straight into the calendar, or the calendar app's editor. */
     val saveMode: CalendarSaveMode = CalendarSaveMode.KEYBOARD,
+    /**
+     * A small forecast beside each event still to come (#1212), for the
+     * event's place or else the weather tool's. Off by default: it sends the
+     * events' places to Open-Meteo's place search.
+     */
+    val weatherOnEvents: Boolean = false,
 )
 
 /** How long a new calendar event may default to, in minutes: five minutes to eight hours. */
@@ -12551,6 +12557,7 @@ class SettingsRepository(private val context: Context) {
         private val CALENDAR_DEFAULT_DURATION = intPreferencesKey("calendar_default_duration")
         private val CALENDAR_DEFAULT_REMINDER = intPreferencesKey("calendar_default_reminder")
         private val CALENDAR_SAVE_MODE = stringPreferencesKey("calendar_save_mode")
+        private val CALENDAR_EVENT_WEATHER = booleanPreferencesKey("calendar_event_weather")
         private val HANDWRITING_STYLUS_ONLY = booleanPreferencesKey("handwriting_stylus_only")
         private val HANDWRITING_COMMIT_DELAY = intPreferencesKey("handwriting_commit_delay")
         private val HANDWRITING_AUTO_SPACE = booleanPreferencesKey("handwriting_auto_space")
@@ -15186,6 +15193,7 @@ class SettingsRepository(private val context: Context) {
             defaultReminderMinutes = p[CALENDAR_DEFAULT_REMINDER] ?: defaults.calendarTool.defaultReminderMinutes,
             saveMode = p[CALENDAR_SAVE_MODE]?.let { v -> CalendarSaveMode.entries.firstOrNull { it.name == v } }
                 ?: defaults.calendarTool.saveMode,
+            weatherOnEvents = p[CALENDAR_EVENT_WEATHER] ?: defaults.calendarTool.weatherOnEvents,
         )
 
     private fun readVoiceBar(p: Preferences, defaults: KeyboardSettings) =
@@ -16704,6 +16712,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setCalendarSaveMode(value: CalendarSaveMode) =
         editPrefs { it[CALENDAR_SAVE_MODE] = value.name }
+
+    suspend fun setCalendarWeatherOnEvents(value: Boolean) =
+        editPrefs { it[CALENDAR_EVENT_WEATHER] = value }
 
     /**
      * The device's region, for the settings whose sensible default depends on

@@ -297,6 +297,16 @@
     <string name="ime_weather_open_settings_action">Open settings</string>
     <string name="ime_weather_no_location_empty">No location is set. Search for your city in the settings of the weather tool.</string>
     <string name="ime_weather_error">The app cannot download the weather. Check your network.</string>
+    <!-- The hourly forecast opened from the weather on a calendar event. -->
+    <string name="ime_weather_event_back_desc">Back to the calendar</string>
+    <!-- %1$s is the name of the place set in the weather tool, used because the event has no place the keyboard can find. -->
+    <string name="ime_weather_event_home_place">%1$s (your weather location)</string>
+    <string name="ime_weather_event_home_unnamed">Your weather location</string>
+    <!-- %1$d is the chance of rain in percent. -->
+    <string name="ime_weather_event_rain_info">%1$d%% chance of rain</string>
+    <string name="ime_weather_event_no_hours">The forecast does not reach this day yet.</string>
+    <!-- Read aloud for one hour of the forecast. %1$s is the time, %2$s the temperature, %3$s the sky (for example "Partly cloudy"), %4$s the chance of rain in percent. -->
+    <string name="ime_weather_event_hour_desc">%1$s: %2$s, %3$s, rain chance %4$s</string>
 
     <!-- Calendar tool panel. -->
     <string name="ime_calendar_today_label">Today</string>
@@ -336,6 +346,8 @@
     <string name="ime_calendar_resume_action">Resume</string>
     <string name="ime_calendar_discard_action">Discard</string>
     <string name="ime_calendar_untitled">(No title)</string>
+    <!-- Read aloud for the weather on an event card. %1$s is the sky (for example "Partly cloudy"), %2$s the temperature, %3$s the place. -->
+    <string name="ime_calendar_weather_desc">%1$s, %2$s in %3$s. Opens the forecast for each hour</string>
     <string name="ime_calendar_title_hint">Title</string>
     <string name="ime_calendar_location_hint">Add a place</string>
     <string name="ime_calendar_notes_hint">Add notes</string>

@@ -37,6 +37,18 @@ Tap a card to open the event. The event's own face shows it as a larger card in 
   <Shot id="tools/calendar-day-events" alt="A day with events: tinted cards, each with its time, title and place." />
 </PhoneFrame>
 
+## Weather on events
+
+Turn on **Weather on events** (see [Options](#options)) and each card for an event that hasn't ended yet carries a small weather icon and a temperature on its time line, like "⛅ 21°". It's the forecast for the hour the event starts, or for now if it's already under way, and for midday of an all-day event. The temperature follows the [weather tool](/tools/instruments/#weather)'s Celsius or Fahrenheit switch.
+
+The forecast is for the event's place. The keyboard looks the place up with Open-Meteo's place search, which finds towns and cities rather than street addresses, so it searches the parts of the place one at a time: in "Café Nero, 12 Oxford Street, London W1, UK" it finds London. House numbers, postcodes and state codes are dropped first. A video call ("Zoom", "Google Meet", a link) or a room ("Room 4") has no place to search, so an event like that, or one with no place at all, or one whose place the search can't find, uses the weather tool's own location. A place that searched to nothing isn't searched again while the keyboard runs.
+
+Open-Meteo forecasts 16 days ahead, today included, so an event further away than that shows no weather until it comes into range. Neither does an event that's already over.
+
+Tap the icon to open the Weather panel on that day's hours at that place. The top line names the event, the place (marked "your weather location" when the weather tool's place stood in), the date and the day's high and low. Under it, the event's hour is drawn large with its temperature, its sky and its chance of rain, and a strip below runs through every hour of the day, each with its time, an icon, the temperature and the chance of rain. The strip opens scrolled to the event's hour, and tapping another hour moves the summary to it. The refresh button fetches that forecast again, and the back arrow returns to the calendar on the event's day. Opening Weather from the toolbar afterwards shows its usual current conditions.
+
+One forecast covers every event at the same place for all 16 days, so a week of meetings in one town is a single request. The keyboard keeps it until it's older than the weather tool's **How often to check** (15 minutes by default) and fetches it again the next time a card needs it. While [data saving](/privacy/data-saver/) is on, or there's no network, the cards fetch nothing by themselves: they show a forecast the keyboard already has (up to a day old) or no weather at all. Tapping the icon still fetches the hours when there's a network.
+
 ## Agenda
 
 The **Agenda** side of the header's switch shows the same month as a list. A rail down the left names each day that has something on (**Today**, **Tomorrow**, **Yesterday**, or the date), with a dot on the rail per day and the accent dot on today, and the day's events sit beside it as the same tinted cards. The day you've selected is the one whose cards are loaded, with a ring around its dot; a day you haven't opened yet shows a quiet card with its date that loads it when tapped, and once a day has been opened its cards stay while you move around the month. Swiping sideways moves a month here too. A month with nothing on offers **New event** in the middle, and until calendar access is granted the agenda shows the **Allow** prompt in its place.
@@ -129,6 +141,10 @@ Under **New events**:
 - **Event length**: 15 minutes up to 4 hours, default 1 hour.
 - **Reminder**: none, at the start, or 5 minutes up to 1 day before, default 10 minutes.
 
+Under **Weather**:
+
+- **Weather on events**: off by default. On, event cards show the forecast for their time and place, as described in [Weather on events](#weather-on-events). It needs the Weather tool turned on (and the **Weather and location** bundle on [Extensions](/reference/settings/extensions/)); with Weather off, no card shows it.
+
 Accuracy varies by calendar: Chinese dates are computed astronomically (real new-moon and solar-longitude calculations), so they're exact for the modern era. Hebrew, Persian, Hindu (Saka), Buddhist, and Japanese are all exact arithmetic conversions. Hijri is the only one that's an approximation, which is why it's the only one with an adjustment slider.
 
 The same First calendar / Second calendar / Weekend pickers also appear on the first-run setup page during onboarding, if you've kept Calendar enabled: anything you set there is the same setting, just asked up front. All three already open on the region's guess, so that page is where you see it and correct it.
@@ -144,4 +160,4 @@ The calendar and the clock are the **Calendar and clock** bundle on [Extensions]
 - Calendar isn't pinned to the toolbar out of the box, and it's only in the "show me everything" starter set that setup lands, not the minimal or the recommended one. Pick either of those two simpler answers and Calendar starts switched off, so you'll want to turn it on yourself under Settings → Tools.
 - Reopening Calendar from the toolbar while the panel is already open closes it, same as most other panel tools.
 - **The region defaults are a guess, and only ever a starting one.** They come from the same permission-free signals as [suggested languages](/languages/overview/#suggested-languages): the SIM's country, then the network's, then your locale's region. Those are consulted only until you pick something. Once you have, your pick is what sticks, wherever the phone travels.
-- Nothing about the Calendar tool touches the network. Your calendar account syncs the events you add or change the way it always does. See [network policy](/privacy/network/) for what the keyboard itself sends.
+- With **Weather on events** off, nothing about the Calendar tool touches the network. On, it sends Open-Meteo the places of the events you look at and the coordinates it found for them, never their titles, times, notes or guests. Your calendar account syncs the events you add or change the way it always does. See [network policy](/privacy/network/) for what the keyboard itself sends.

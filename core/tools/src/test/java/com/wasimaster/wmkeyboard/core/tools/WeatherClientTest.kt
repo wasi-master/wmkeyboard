@@ -150,4 +150,33 @@ class WeatherClientTest {
         assertEquals(89, WeatherClient.toDisplay(31.4, fahrenheit = true))
         assertEquals(32, WeatherClient.toDisplay(0.0, fahrenheit = true))
     }
+
+    @Test
+    fun `parses an hourly forecast and finds the hour a moment falls in`() {
+        val body = """
+            {
+              "hourly": {
+                "time": [1763000000, 1763003600, 1763007200],
+                "temperature_2m": [21.5, null, 19.0],
+                "precipitation_probability": [10, 20, null],
+                "weather_code": [2, 3, 61],
+                "is_day": [1, 1, 0]
+              }
+            }
+        """.trimIndent()
+        val forecast = WeatherClient.parseHourly(body, 23.7f, 90.4f, now = 7L)
+        // The hour with no temperature is left out.
+        assertEquals(2, forecast.hours.size)
+        assertEquals(1_763_000_000_000L, forecast.hours[0].timeMillis)
+        assertEquals(21.5, forecast.hours[0].temperatureC, 1e-9)
+        assertEquals(10, forecast.hours[0].precipProbabilityPercent)
+        assertEquals(-1, forecast.hours[1].precipProbabilityPercent)
+        assertEquals(false, forecast.hours[1].isDay)
+        assertEquals(7L, forecast.fetchedAtMillis)
+        assertEquals(forecast.hours[0], forecast.hourAt(1_763_000_000_000L + 1_800_000L))
+        assertEquals(forecast.hours[1], forecast.hourAt(1_763_007_200_000L))
+        assertEquals(null, forecast.hourAt(1_763_003_600_000L))
+        assertEquals(null, forecast.hourAt(1_762_999_999_999L))
+        assertEquals(null, forecast.hourAt(1_763_010_800_000L))
+    }
 }

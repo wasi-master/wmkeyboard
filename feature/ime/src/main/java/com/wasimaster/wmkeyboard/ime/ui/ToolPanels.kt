@@ -144,6 +144,7 @@ import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.SoundHapticAction
 import com.wasimaster.wmkeyboard.ime.WeatherUi
+import com.wasimaster.wmkeyboard.ime.calendar.CalendarCallbacks
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
@@ -874,10 +875,17 @@ internal fun WeatherPanel(
     onOpenSettings: () -> Unit,
     /** Reads the phone's position once and saves it as the weather location (#350); null hides the offer. */
     onUseMyLocation: (() -> Unit)? = null,
+    /** The Calendar tool's: an event's hourly forecast, drawn in place of the current conditions (#1212). */
+    calendar: CalendarCallbacks = CalendarCallbacks(),
 ) {
     // Keyboard height, no more: the stat grid scrolls, and growing the
     // window upward for it shoved the app's own content off screen.
     val height = keyRowsHeight(state)
+    val eventForecast = calendar.forecast.collectAsState().value
+    if (eventForecast != null) {
+        EventForecastView(eventForecast, height, calendar.onAction)
+        return
+    }
     val kb = LocalKbTheme.current
     // One ring slot; what it does follows the state, like the button it rings.
     PanelFocusTarget(

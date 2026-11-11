@@ -68,6 +68,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -114,6 +118,8 @@ import com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField
 import com.wasimaster.wmkeyboard.ime.calendar.CalendarUi
 import com.wasimaster.wmkeyboard.ime.calendar.CalendarUndo
 import com.wasimaster.wmkeyboard.ime.calendar.CalendarView
+import com.wasimaster.wmkeyboard.ime.calendar.EventWeatherChip
+import com.wasimaster.wmkeyboard.ime.calendar.weatherKey
 import com.wasimaster.wmkeyboard.ime.calendar.ScopePrompt
 import com.wasimaster.wmkeyboard.ime.ui.FullBleedTool
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
@@ -911,6 +917,8 @@ private fun DayCards(ui: CalendarUi, animate: Boolean, act: (CalendarAction) -> 
                         modifier = Modifier
                             .width(CARD_WIDTH)
                             .popIn(i.coerceAtMost(MAX_STAGGER), animate, key = ui.selected),
+                        weather = ui.weather[weatherKey(event)],
+                        onWeather = { act(CalendarAction.OpenWeather(event)) },
                     ) { act(CalendarAction.OpenEvent(event)) }
                 }
             }
@@ -920,8 +928,8 @@ private fun DayCards(ui: CalendarUi, animate: Boolean, act: (CalendarAction) -> 
 
 /**
  * One event as a card tinted with its calendar's colour: the time (or an
- * all-day badge) with the repeat mark, the title, and the place. Squashes
- * while pressed.
+ * all-day badge) with the weather and the repeat mark, the title, and the
+ * place. Squashes while pressed.
  */
 @Composable
 internal fun EventCard(
@@ -929,6 +937,9 @@ internal fun EventCard(
     hour24: Boolean,
     animate: Boolean,
     modifier: Modifier = Modifier,
+    /** The forecast for the event's hour and place (#1212); null draws none. */
+    weather: EventWeatherChip? = null,
+    onWeather: () -> Unit = {},
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
@@ -968,6 +979,7 @@ internal fun EventCard(
                 )
             }
             Spacer(Modifier.weight(1f))
+            if (weather != null) EventWeatherBadge(weather, onWeather)
             if (event.recurring) {
                 Icon(Icons.Outlined.EventRepeat, contentDescription = null, tint = kb.secondaryText, modifier = Modifier.size(12.dp))
             }
@@ -984,6 +996,49 @@ internal fun EventCard(
         if (place != null) {
             Text(place, color = kb.secondaryText, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
+    }
+}
+
+/**
+ * "⛅ 21°" on an event card: the forecast for the event's hour where it is
+ * (#1212). A tap opens the Weather panel on that day's hours.
+ */
+@Composable
+private fun EventWeatherBadge(weather: EventWeatherChip, onClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val feedback = LocalKeyPressFeedback.current
+    val conditions = stringResource(com.wasimaster.wmkeyboard.core.tools.WeatherClient.describeRes(weather.weatherCode))
+    val unit = if (weather.fahrenheit) "°F" else "°C"
+    val description = stringResource(
+        R.string.ime_calendar_weather_desc,
+        conditions,
+        "${weather.temperature}$unit",
+        com.wasimaster.wmkeyboard.ime.ui.forecastPlaceLabel(weather.place),
+    )
+    Row(
+        Modifier
+            .padding(end = 4.dp)
+            .clip(CircleShape)
+            .semantics(mergeDescendants = true) {
+                contentDescription = description
+                role = Role.Button
+            }
+            .clickable {
+                feedback()
+                onClick()
+            }
+            .padding(horizontal = 4.dp, vertical = 1.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(weather.emoji, fontSize = 11.sp, maxLines = 1)
+        Spacer(Modifier.width(2.dp))
+        Text(
+            "${weather.temperature}°",
+            color = kb.secondaryText,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+        )
     }
 }
 
@@ -1242,6 +1297,8 @@ private fun AgendaFace(state: KeyboardUiState, ui: CalendarUi, animate: Boolean,
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .popIn(i.coerceAtMost(MAX_STAGGER), animate, key = day),
+                                        weather = ui.weather[weatherKey(e)],
+                                        onWeather = { act(CalendarAction.OpenWeather(e)) },
                                     ) { act(CalendarAction.OpenEvent(e)) }
                                 }
                             }

@@ -59,6 +59,45 @@ data class GeoPlace(
     val longitude: Float,
 )
 
+/** One hour of an hourly forecast (#1212). [timeMillis] is the hour's start. */
+data class WeatherHour(
+    val timeMillis: Long,
+    val temperatureC: Double,
+    /** Chance of precipitation in that hour; negative when the API omits it. */
+    val precipProbabilityPercent: Int,
+    val weatherCode: Int,
+    val isDay: Boolean,
+)
+
+/** The hour-by-hour forecast for one place, as far ahead as [WeatherClient.FORECAST_DAYS]. */
+data class HourlyForecast(
+    val latitude: Float,
+    val longitude: Float,
+    val hours: List<WeatherHour>,
+    val fetchedAtMillis: Long,
+) {
+    /** The hour [millis] falls in, or null outside the forecast. */
+    fun hourAt(millis: Long): WeatherHour? {
+        if (hours.isEmpty()) return null
+        var lo = 0
+        var hi = hours.size - 1
+        while (lo < hi) {
+            val mid = (lo + hi + 1) / 2
+            if (hours[mid].timeMillis <= millis) lo = mid else hi = mid - 1
+        }
+        val hit = hours[lo]
+        return hit.takeIf { millis >= it.timeMillis && millis < it.timeMillis + HOUR_MS }
+    }
+
+    /** The hours that start inside [from] until [until]. */
+    fun between(from: Long, until: Long): List<WeatherHour> =
+        hours.filter { it.timeMillis >= from && it.timeMillis < until }
+
+    private companion object {
+        const val HOUR_MS = 3_600_000L
+    }
+}
+
 /**
  * Minimal Open-Meteo client (no API key, no account). Only called from the
  * weather tool: forecasts when the panel opens, geocoding when the user
@@ -87,11 +126,33 @@ object WeatherClient {
         return parse(get(url), System.currentTimeMillis())
     }
 
+    /**
+     * Blocking hour-by-hour forecast for the next [FORECAST_DAYS] days, for the
+     * weather on calendar events (#1212); call on an IO dispatcher. Throws on
+     * any failure. Times come back as epoch seconds, so no time zone has to be
+     * worked out on this side.
+     */
+    fun fetchHourly(latitude: Float, longitude: Float): HourlyForecast {
+        val url = ServiceEndpoints.base(ServiceEndpoint.OPEN_METEO) + String.format(
+            Locale.US,
+            "/v1/forecast?latitude=%.4f&longitude=%.4f" +
+                "&hourly=temperature_2m,precipitation_probability,weather_code,is_day" +
+                "&timeformat=unixtime&timezone=auto&forecast_days=%d",
+            latitude,
+            longitude,
+            FORECAST_DAYS,
+        )
+        return parseHourly(get(url), latitude, longitude, System.currentTimeMillis())
+    }
+
+    /** How many days ahead [fetchHourly] reaches: Open-Meteo's most, today included. */
+    const val FORECAST_DAYS = 16
+
     /** Blocking place-name search; call on an IO dispatcher. Throws on failure. */
-    fun geocode(query: String): List<GeoPlace> {
+    fun geocode(query: String, count: Int = 5): List<GeoPlace> {
         if (query.isBlank()) return emptyList()
         val url = ServiceEndpoints.base(ServiceEndpoint.OPEN_METEO_GEOCODING) + "/v1/search?name=" +
-            URLEncoder.encode(query.trim(), "UTF-8") + "&count=5&language=en&format=json"
+            URLEncoder.encode(query.trim(), "UTF-8") + "&count=" + count.coerceIn(1, 10) + "&language=en&format=json"
         val root = Json.parseToJsonElement(get(url)).jsonObject
         val results = root["results"]?.takeIf { it !is JsonNull }?.jsonArray ?: return emptyList()
         return results.map { it.jsonObject }.map { place ->
@@ -154,6 +215,28 @@ object WeatherClient {
             tomorrowCode = daily.optAt("weather_code", 1)?.toInt(),
             tomorrowPrecipProbabilityPercent = daily.optAt("precipitation_probability_max", 1)?.toInt(),
         )
+    }
+
+    internal fun parseHourly(body: String, latitude: Float, longitude: Float, now: Long): HourlyForecast {
+        val hourly = Json.parseToJsonElement(body).jsonObject.getValue("hourly").jsonObject
+        val times = hourly.getValue("time").jsonArray
+        val hours = ArrayList<WeatherHour>(times.size)
+        for (i in times.indices) {
+            val seconds = times[i].takeIf { it !is JsonNull }?.jsonPrimitive?.doubleOrNull ?: continue
+            // An hour with no temperature says nothing worth drawing.
+            val temperature = hourly.optAt("temperature_2m", i) ?: continue
+            hours.add(
+                WeatherHour(
+                    timeMillis = seconds.toLong() * 1000L,
+                    temperatureC = temperature,
+                    precipProbabilityPercent = hourly.optAt("precipitation_probability", i)?.toInt() ?: -1,
+                    weatherCode = hourly.optAt("weather_code", i)?.toInt() ?: -1,
+                    isDay = (hourly.optAt("is_day", i) ?: 1.0) >= 1.0,
+                ),
+            )
+        }
+        hours.sortBy { it.timeMillis }
+        return HourlyForecast(latitude, longitude, hours, now)
     }
 
     /** The [index]th element of a daily array, absent or null tolerated. */

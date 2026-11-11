@@ -34629,7 +34629,14 @@ open class WMKeyboardService : InputMethodService() {
         mediaLiveSearchJob?.cancel()
         mediaCategoryJob?.cancel()
         when (_uiState.value.panel) {
-            PanelMode.WEATHER -> refreshWeather()
+            // Opened from the weather on a calendar event, it shows that
+            // event's hours (#1212); opened any other way, its own place.
+            PanelMode.WEATHER -> if (eventForecastOpening) {
+                eventForecastOpening = false
+            } else {
+                if (calendarToolDelegate.isInitialized()) calendarTool.closeForecast()
+                refreshWeather()
+            }
             PanelMode.LOCATION -> locationTool.onPanelOpen()
             PanelMode.CLOCK -> clockTool.onPanelOpen()
             PanelMode.MUSIC_ID -> musicTool.onPanelOpen()
@@ -48041,9 +48048,48 @@ open class WMKeyboardService : InputMethodService() {
             },
             endText = { _uiState.update { it.copy(toolText = it.toolText.copy(calendar = null)) } },
             currentText = { _uiState.value.calendarText },
+            weatherConfig = ::eventWeatherConfig,
+            openWeather = {
+                if (_uiState.value.panel != PanelMode.WEATHER) {
+                    eventForecastOpening = true
+                    onPanelChange(PanelMode.WEATHER)
+                }
+            },
+            openCalendarDay = { day ->
+                _uiState.update { it.copy(toolPrefill = ToolPrefill.Calendar(day.year, day.month, day.day)) }
+                onPanelChange(PanelMode.CALENDAR)
+            },
         )
     }
     private val calendarTool by calendarToolDelegate
+
+    /** The Weather panel is opening on a calendar event's hours, not its own place (#1212). */
+    private var eventForecastOpening = false
+
+    /**
+     * What the weather on calendar events may do now (#1212). Off with the
+     * Weather tool (or its extension) off too: a tap on it opens that tool.
+     * The cards fetch by themselves only while online and outside data saving.
+     */
+    private fun eventWeatherConfig(): com.wasimaster.wmkeyboard.ime.calendar.EventWeatherConfig {
+        val settings = _uiState.value.settings
+        val latitude = settings.weather.latitude
+        val longitude = settings.weather.longitude
+        return com.wasimaster.wmkeyboard.ime.calendar.EventWeatherConfig(
+            enabled = settings.calendarTool.weatherOnEvents &&
+                ToolbarTool.WEATHER in settings.enabledTools &&
+                settings.extensionOn(Extension.WEATHER_AND_LOCATION),
+            home = if (latitude != null && longitude != null) {
+                com.wasimaster.wmkeyboard.ime.calendar.ForecastPlace(settings.weather.placeName, latitude, longitude)
+            } else {
+                null
+            },
+            fahrenheit = settings.weather.fahrenheit,
+            staleAfterMs = weatherCacheMs(),
+            online = networkWatcher.state.value.online,
+            dataSaving = dataSaverStatus.active,
+        )
+    }
 
     // ---- kaomoji tab ----
 

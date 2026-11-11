@@ -15242,6 +15242,7 @@ private fun KeyboardBody(
                     // weather tool's own page rather than the settings root.
                     onOpenSettings = { onOpenToolSettings(ToolbarTool.WEATHER) },
                     onUseMyLocation = toolHold.location.onUseMyLocationForTools,
+                    calendar = toolHold.calendar,
                 )
                 PanelMode.LOCATION -> LocationPanel(
                     state = state,

@@ -140,9 +140,7 @@
     <string name="tooldetail_calendar_weather_group">Weather</string>
     <string name="tooldetail_calendar_weather_title">Weather on events</string>
     <string name="tooldetail_calendar_weather_subtitle">The forecast for the time and place of each event, up to 16 days ahead</string>
-    <string name="tooldetail_calendar_weather_info">An event card shows a weather icon and the temperature for its start, at the place of the event. If the event has no place, or the keyboard cannot find it, the card uses the location of the weather tool. Tap the icon to see the forecast for each hour of that day, with the chance of rain.
-
-The keyboard sends the place of each event to the place search of Open-Meteo, and gets the forecast from Open-Meteo. It does not send the title or any other part of the event. It refreshes the forecast when it is older than the refresh time of the weather tool. While data saving is on or you are offline, the cards show only a forecast that the keyboard already has. This setting needs the weather tool to be turned on.</string>
+    <string name="tooldetail_calendar_weather_info">An event card shows a weather icon and the temperature for its start, at the place of the event. If the event has no place, or the keyboard cannot find it, the card uses the location of the weather tool. Tap the icon to see the forecast for each hour of that day, with the chance of rain.\n\nThe keyboard sends the place of each event to the place search of Open-Meteo, and gets the forecast from Open-Meteo. It does not send the title or any other part of the event. It refreshes the forecast when it is older than the refresh time of the weather tool. While data saving is on or you are offline, the cards show only a forecast that the keyboard already has. This setting needs the weather tool to be turned on.</string>
     <string name="tooldetail_calendar_default_calendar_title">Default calendar</string>
     <string name="tooldetail_calendar_default_calendar_subtitle">The calendar a new event starts in</string>
     <string name="tooldetail_calendar_default_calendar_primary">Primary calendar</string>

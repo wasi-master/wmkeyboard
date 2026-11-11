@@ -2286,6 +2286,7 @@ internal object SettingsRowIcons {
 
         // ---- Calendar ----
         put(R.string.tooldetail_calendar_save_mode_title) { Icons.Outlined.EditCalendar }
+        put(R.string.tooldetail_calendar_weather_title) { Icons.Outlined.WbSunny }
         put(R.string.tooldetail_calendar_default_calendar_title) { Icons.Outlined.CalendarMonth }
         put(R.string.tooldetail_calendar_default_length_title) { Icons.Outlined.HourglassEmpty }
         put(R.string.tooldetail_calendar_default_reminder_title) { Icons.Outlined.NotificationsActive }
