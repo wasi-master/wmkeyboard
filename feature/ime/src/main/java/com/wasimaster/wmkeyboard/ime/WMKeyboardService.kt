@@ -5263,14 +5263,17 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
         // A freshly landed n-gram pack goes live without waiting for a
-        // language switch — but only when it is the active language's.
+        // language switch — but only when it is the active language's, or
+        // one of the languages it also suggests from.
         serviceScope.launch {
             NgramPackDownloadManager.completions.collect { langId ->
-                if (userUnlocked && _uiState.value.language.id == langId) {
-                    suggestionEngine?.ngramPack = loadNgramPack(langId)
+                val active = _uiState.value.language.id
+                val secondary = langId in _uiState.value.settings.secondaryLanguages[active].orEmpty()
+                if (userUnlocked && (active == langId || secondary && langId != "en")) {
+                    suggestionEngine?.ngramPack = loadNgramPack(active)
                 }
                 if (userUnlocked && langId == "en" && suggestionEngine?.englishAsSecondary == true) {
-                    suggestionEngine?.secondaryEnglishNgramPack = loadNgramPack(langId)
+                    suggestionEngine?.secondaryEnglishNgramPack = loadNgramPack(langId, withSecondaries = false)
                 }
             }
         }
@@ -5669,7 +5672,7 @@ open class WMKeyboardService : InputMethodService() {
                         // A list's word pairs come and go with it.
                         suggestionEngine?.let { engine ->
                             engine.ngramPack = loadNgramPack(_uiState.value.language.id)
-                            if (engine.englishAsSecondary) engine.secondaryEnglishNgramPack = loadNgramPack("en")
+                            if (engine.englishAsSecondary) engine.secondaryEnglishNgramPack = loadNgramPack("en", withSecondaries = false)
                         }
                     }
                 }
@@ -6161,7 +6164,7 @@ open class WMKeyboardService : InputMethodService() {
                     .mapNotNull { id -> customTries[id]?.let { SecondaryDictionary(id, it) } }
                 englishAsSecondary = "en" in secondaryIds && !lang.isEnglish
                 phoneticSecondaries = phoneticSecondaryIds(_uiState.value.settings, lang.id)
-                secondaryEnglishNgramPack = if (englishAsSecondary) loadNgramPack("en") else NgramPack.EMPTY
+                secondaryEnglishNgramPack = if (englishAsSecondary) loadNgramPack("en", withSecondaries = false) else NgramPack.EMPTY
                 phoneticAutoEnglish = _uiState.value.let { typesEnglishAsEnglish(it.settings, it.composer) }
                 phoneticSiblingsOff = _uiState.value.settings.suggestionStrip.phoneticSiblingsOffLangs
                 phoneticContextOff = _uiState.value.settings.suggestionStrip.phoneticContextOffLangs
@@ -6313,7 +6316,12 @@ open class WMKeyboardService : InputMethodService() {
         if (settings.emoji.autoDownloadKeywords) {
             EmojiDictDownloadManager.ensure(filesDir, languages)
         }
-        NgramPackDownloadManager.ensure(filesDir, languages)
+        // The languages under "Also suggest from" too: their word pairs ride
+        // along with the language they are a secondary of.
+        NgramPackDownloadManager.ensure(
+            filesDir,
+            languages + languages.flatMap { settings.secondaryLanguages[it].orEmpty() },
+        )
         if (settings.suggestionStrip.neuralContext) ContextModelDownloadManager.ensure(filesDir, languages)
         if (settings.autoText.smartPunctuation) PunctuationModelDownloadManager.ensure(filesDir)
         val metered = runCatching {
@@ -19878,7 +19886,7 @@ open class WMKeyboardService : InputMethodService() {
         // English's own word pairs, for the word after an English one typed on
         // a layout that is not English's (`hello` on Avro).
         engine.secondaryEnglishNgramPack =
-            if (engine.englishAsSecondary) loadNgramPack("en") else NgramPack.EMPTY
+            if (engine.englishAsSecondary) loadNgramPack("en", withSecondaries = false) else NgramPack.EMPTY
     }
 
     /** What [bindEngineToLayout] last bound the engine from. */
@@ -28898,7 +28906,10 @@ open class WMKeyboardService : InputMethodService() {
                 // A browser's address bar too: it gets word candidates like any
                 // search box, and without its slot a finished "cooperate" was
                 // the one word missing from them.
+                // A lone letter that is no word ("d") is what a space writes
+                // anyway, so it does not cost a slot; "a" and "I" keep theirs.
                 val keepTyped = !skipTyped && typedWord.isNotEmpty() && typedWord[0].isLetterOrDigit() &&
+                    (typedWord.length > 1 || engine.isKnownWord(typedWord)) &&
                     state.composer.phoneticLanguage == null && completing == null &&
                     (state.allowsTypingIntelligence || (state.fieldKind == FieldKind.URI && !state.secureField))
                 fun withTyped(list: List<String>): List<String> =
@@ -58793,8 +58804,25 @@ open class WMKeyboardService : InputMethodService() {
         return CompoundLexiconDownloads.file(filesDir, langId).takeIf { it.isFile }?.let { MappedTrie.open(it) }
     }
 
-    private fun loadNgramPack(langId: String): NgramPack {
+    private fun loadNgramPack(langId: String, withSecondaries: Boolean = true): NgramPack {
         if (!userUnlocked) return NgramPack.EMPTY
+        // The language's own pairs, then those of each language under "Also
+        // suggest from": a Banglish word typed on English has Banglish words
+        // after it, and English's corpus has never seen them. English as a
+        // secondary keeps its own pack ([SuggestionEngine.secondaryEnglishNgramPack]).
+        val secondaries = if (withSecondaries) {
+            _uiState.value.settings.secondaryLanguages[langId].orEmpty().filter { it != langId && it != "en" }
+        } else {
+            emptyList()
+        }
+        return NgramPack.of((listOf(langId) + secondaries).flatMap(::ngramPackFiles))
+    }
+
+    /**
+     * [langId]'s downloaded pack, under its word-pair checkbox, and the word
+     * pairs of its switched-on imported lists.
+     */
+    private fun ngramPackFiles(langId: String): List<MappedNgramPack?> {
         // The checkbox is the download's. The word pairs an imported
         // dictionary brought follow that list's own switch instead.
         val downloaded = if (_uiState.value.settings.suggestionStrip.wordPairsEnabledFor(langId)) {
@@ -58802,8 +58830,7 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             null
         }
-        val imported = CustomDictionaries.pairPacks(filesDir, langId).map { MappedNgramPack.open(it) }
-        return NgramPack.of(listOf(downloaded) + imported)
+        return listOf(downloaded) + CustomDictionaries.pairPacks(filesDir, langId).map { MappedNgramPack.open(it) }
     }
 
     /**

@@ -3368,6 +3368,18 @@ class SuggestionEngine(
         /** How many ranked candidates a reranker may reorder. */
         private const val RERANK_POOL = 8
 
+        /** How deep [carryFollowers] reads the follower list. */
+        private const val FOLLOWER_POOL = 24
+
+        /** How many followers [carryFollowers] keeps on the strip. */
+        private const val FOLLOWER_CARRY = 3
+
+        /** How far a carried follower sits above the best other candidate, in log-score. */
+        private const val FOLLOWER_LEAD = 0.5
+
+        /** The gap between one carried follower and the next. */
+        private const val FOLLOWER_STEP = 0.05
+
         /** How many committed words [contextRevision] keeps, with their readings. */
         private const val REVISION_DEPTH = 6
 
@@ -3794,6 +3806,10 @@ class SuggestionEngine(
                 }
             }
         }
+
+        // The words predicted before any letter was typed, while the letters
+        // still lead to them; after every boost, so their place is fixed.
+        if (!ambiguous) carryFollowers(lower, known, merged, previousWord, previousWord2, previousWord3)
 
         // The user's own say (#99), after every evidence-based boost so it
         // is worth the same wherever the word came from.
@@ -5434,7 +5450,50 @@ class SuggestionEngine(
         limit: Int,
         previousWord3: String? = null,
     ): List<String> {
-        val prev = previousWord?.lowercase() ?: return emptyList()
+        val ordered = followerOrder(previousWord, previousWord2, previousWord3, limit)
+        if (ordered.isEmpty()) return emptyList()
+        var result = ordered.asSequence()
+            .filterNot(::suppressed)
+            // Belt and braces: the sentence-start sentinel is context, never
+            // an offer — nothing should ever have learned it as a follower.
+            .filterNot { WordContext.isSentinel(it) }
+            .take(limit)
+            .toList()
+        // Formal fields: chat-speak yields its slot when anything else is
+        // on offer (order-based here — this path carries no scores).
+        if (register == Register.FORMAL) {
+            result = result.sortedBy { it.lowercase() in RegisterVocabulary.informal }
+        }
+        // The user's rank adjustments (#99), order-based like the register
+        // above: a lifted follower leads, a sunk one trails, ties keep their
+        // source order.
+        if (rankOffsets.isNotEmpty()) {
+            result = result.sortedByDescending { rankOffsets[it.lowercase()] ?: 0 }
+        }
+        // Last, so nothing above has to reason about case: the ordering, the
+        // sentinel filter and the blacklist all work on keys. The set above
+        // holds keys from the lexicon beside surface spellings from the
+        // contacts ("boston" and "Boston"), and restoring the capital makes
+        // them one word — so the fold comes after the restore (#172).
+        return result.map(::displayForm).distinctBy(WordKey::of)
+    }
+
+    /**
+     * Every word expected after [previousWord], best evidence first and
+     * unfiltered: what [nextWords] offers on an empty buffer, and what
+     * [carryFollowers] keeps on the strip once letters are typed. Empty with
+     * no word before. [personal] keeps the user's own pairs and triples,
+     * contacts and the context model, leaving out skip-grams, the corpus pack
+     * and the seed pairs.
+     */
+    private fun followerOrder(
+        previousWord: String?,
+        previousWord2: String?,
+        previousWord3: String?,
+        limit: Int,
+        personal: Boolean = false,
+    ): LinkedHashSet<String> {
+        val prev = previousWord?.lowercase() ?: return LinkedHashSet()
         val ordered = LinkedHashSet<String>()
         // Most specific first: the two-word context, when known, beats the
         // bigram tail ("I was" -> "going" over everything "was" alone knows).
@@ -5449,12 +5508,15 @@ class SuggestionEngine(
         // The user's own gappy habits (#195): what has followed the word two
         // back one word later, then the word three back two words later —
         // "how can someone" still offers "help". Personal, so above the
-        // corpus and the seeds; gappy, so below every direct follower.
-        previousWord2?.lowercase()?.let { prev2 ->
-            ordered.addAll(userLexicon.skip1Followers(prev2, limit))
-        }
-        previousWord3?.lowercase()?.let { prev3 ->
-            ordered.addAll(userLexicon.skip2Followers(prev3, limit))
+        // corpus and the seeds; gappy, so below every direct follower, and
+        // never carried into a typed word's strip.
+        if (!personal) {
+            previousWord2?.lowercase()?.let { prev2 ->
+                ordered.addAll(userLexicon.skip1Followers(prev2, limit))
+            }
+            previousWord3?.lowercase()?.let { prev3 ->
+                ordered.addAll(userLexicon.skip2Followers(prev3, limit))
+            }
         }
         // The context model's likeliest next words: after the user's own
         // habits, which know this user, and before the corpus pack, which it
@@ -5462,6 +5524,7 @@ class SuggestionEngine(
         contextModel?.let { model ->
             for ((word, _) in model.topWords(limit)) ordered.add(word)
         }
+        if (personal) return ordered
         // Corpus n-grams (downloaded pack): below everything personal, above
         // the bundled seeds they supersede. The trigram context first.
         if (!ngramPack.isEmpty) {
@@ -5496,30 +5559,55 @@ class SuggestionEngine(
             ordered.addAll(userLexicon.nextWords(prev2, limit))
             if (!ngramPack.isEmpty) ordered.addAll(ngramPack.nextWords(prev2, limit))
         }
-        var result = ordered.asSequence()
-            .filterNot(::suppressed)
-            // Belt and braces: the sentence-start sentinel is context, never
-            // an offer — nothing should ever have learned it as a follower.
-            .filterNot { WordContext.isSentinel(it) }
-            .take(limit)
+        return ordered
+    }
+
+    /**
+     * Keeps the words the empty strip predicted on the strip while the keys
+     * still spell their start: `dujon` offered after `cholo` stays once `d`
+     * is typed. The walk ranks a one- or two-letter prefix by frequency
+     * alone, so a follower outside its top [WALK_K] never reached [merged],
+     * and no context boost could bring back a word that was not there.
+     *
+     * Up to [FOLLOWER_CARRY] of the first [FOLLOWER_POOL] followers that
+     * continue [lower] go in, in the followers' own order, [FOLLOWER_LEAD]
+     * above the best of the rest. Only the user's own pairs and triples,
+     * contacts and the context model are carried. On the typing harness the corpus pack's
+     * followers, right about one time in eight, cost a new user up to 2 of
+     * every 100 keystrokes the strip saved; the user's own saved up to 2 more
+     * and cost nothing anywhere. A word typed in full that a list knows
+     * keeps its place ahead of them. Strip only: autocorrect never reads
+     * [merged].
+     */
+    private fun carryFollowers(
+        lower: String,
+        known: Boolean,
+        merged: HashMap<String, Double>,
+        previousWord: String?,
+        previousWord2: String?,
+        previousWord3: String?,
+    ) {
+        if (previousWord == null) return
+        val key = WordKey.of(lower)
+        if (key.isEmpty()) return
+        val carried = followerOrder(previousWord, previousWord2, previousWord3, FOLLOWER_POOL, personal = true)
+            .asSequence()
+            .filter { val k = WordKey.of(it); k.length > key.length && k.startsWith(key) }
+            .filterNot { WordContext.isSentinel(it) || suppressed(it) }
+            .take(FOLLOWER_CARRY)
             .toList()
-        // Formal fields: chat-speak yields its slot when anything else is
-        // on offer (order-based here — this path carries no scores).
-        if (register == Register.FORMAL) {
-            result = result.sortedBy { it.lowercase() in RegisterVocabulary.informal }
+        if (carried.isEmpty()) return
+        var typedScore = Double.NEGATIVE_INFINITY
+        var anchor = Double.NEGATIVE_INFINITY
+        for ((word, score) in merged) {
+            if (WordKey.of(word) == key) typedScore = maxOf(typedScore, score) else anchor = maxOf(anchor, score)
         }
-        // The user's rank adjustments (#99), order-based like the register
-        // above: a lifted follower leads, a sunk one trails, ties keep their
-        // source order.
-        if (rankOffsets.isNotEmpty()) {
-            result = result.sortedByDescending { rankOffsets[it.lowercase()] ?: 0 }
+        if (anchor == Double.NEGATIVE_INFINITY) anchor = if (typedScore.isFinite()) typedScore else 0.0
+        carried.forEachIndexed { i, word ->
+            var score = anchor + FOLLOWER_LEAD - i * FOLLOWER_STEP
+            if (known && typedScore.isFinite()) score = minOf(score, typedScore - (i + 1) * FOLLOWER_STEP)
+            merged.merge(word, score, ::maxOf)
         }
-        // Last, so nothing above has to reason about case: the ordering, the
-        // sentinel filter and the blacklist all work on keys. The set above
-        // holds keys from the lexicon beside surface spellings from the
-        // contacts ("boston" and "Boston"), and restoring the capital makes
-        // them one word — so the fold comes after the restore (#172).
-        return result.map(::displayForm).distinctBy(WordKey::of)
     }
 
     /**

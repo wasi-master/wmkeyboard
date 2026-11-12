@@ -24,10 +24,10 @@
 //! override the keys, `CASES` words per profile (3000), `SCATTER` (careful, fast,
 //! sloppy or all), `MODES` as a comma list of `base`, `lm`, `conf`, `lm+conf`
 //! (base and lm by default), `LMW`/`LMCAP` the model's rerank weight and
-//! cap, `LMBLEND`/`LMBCAP`/`LMBSLOPE` its score-space blend, cap and tap-spread slope, `PREFIX=neutral` to hide the register and field from the model,
+//! cap, `LMBLEND`/`LMBCAP`/`LMBSLOPE` its score-space blend, cap and tap-spread slope, `FLEAD` how far a predicted follower leads its prefix (a large negative value turns the carry off), `FCORPUS=1` to carry the corpus pack's and seed pairs' followers too, `PREFIX=neutral` to hide the register and field from the model,
 //! `DUMP=rows.csv` to write the gate's feature rows for
 //! `tools/wmlm/train_confidence.py`, `SAVINGS=0` to skip the savings pass,
-//! `SKIP=n` to start at the n-th sentence (so a run measures sentences a fit
+//! `WARM=1` to learn each sentence's words and pairs once it is typed, as a user teaches the keyboard (each profile starts empty), `SKIP=n` to start at the n-th sentence (so a run measures sentences a fit
 //! never read), `CASES_OUT=cases.tsv` to write every mistyped case (intended,
 //! typed, the taps, the scatter, the strip's first word) for the tap encoder
 //! harness in `tools/swipe-ctc/taps_eval.py`, and `ITEMS=items.tsv` to write
@@ -177,6 +177,7 @@ struct Tally {
     savings_words: usize,
     savings_chars: usize,
     savings_saved: usize,
+    savings_strip: usize,
     suggest_us: u128,
     decide_us: u128,
     context_us: u128,
@@ -186,7 +187,7 @@ impl Tally {
     fn line(&self, label: &str) -> String {
         let n = self.n.max(1) as f64;
         format!(
-            "{label:>8}: strip top1 {:.4} top3 {:.4} | autocorrect precision {:.4} recall {:.4} fires {:.4} | new words rewritten {:.4} ({}) | next word top1 {:.4} top3 {:.4} | keystrokes saved {:.4} | {:.0}/{:.0}/{:.0} us suggest/decide/context",
+            "{label:>8}: strip top1 {:.4} top3 {:.4} | autocorrect precision {:.4} recall {:.4} fires {:.4} | new words rewritten {:.4} ({}) | next word top1 {:.4} top3 {:.4} | keystrokes saved {:.4} (any chip {:.4}) | {:.0}/{:.0}/{:.0} us suggest/decide/context",
             self.top1 as f64 / n,
             self.top3 as f64 / n,
             if self.fired == 0 { 1.0 } else { self.right as f64 / self.fired as f64 },
@@ -197,6 +198,7 @@ impl Tally {
             self.next_top1 as f64 / self.next_n.max(1) as f64,
             self.next_top3 as f64 / self.next_n.max(1) as f64,
             self.savings_saved as f64 / self.savings_chars.max(1) as f64,
+            self.savings_strip as f64 / self.savings_chars.max(1) as f64,
             self.suggest_us as f64 / n,
             self.decide_us as f64 / n,
             self.context_us as f64 / self.next_n.max(1) as f64,
@@ -351,9 +353,12 @@ fn main() {
     let lm_blend: f64 = env("LMBLEND", wm_engine::predict::LM_BLEND);
     let lm_blend_cap: f64 = env("LMBCAP", wm_engine::predict::LM_BLEND_CAP);
     let lm_blend_slope: f64 = env("LMBSLOPE", wm_engine::predict::LM_BLEND_SLOPE);
+    let follower_lead: f64 = env("FLEAD", wm_engine::predict::FOLLOWER_LEAD);
+    let follower_corpus = env("FCORPUS", 0) > 0;
     let neutral = std::env::var("PREFIX").is_ok_and(|v| v == "neutral");
     let savings_pass: i32 = env("SAVINGS", 1);
     let skip: usize = env("SKIP", 0);
+    let warm = env("WARM", 0) > 0;
     let dump = std::env::var("DUMP").ok();
     let mut cases_out = std::env::var("CASES_OUT")
         .ok()
@@ -416,6 +421,8 @@ fn main() {
             p.lm_blend = lm_blend;
             p.lm_blend_cap = lm_blend_cap;
             p.lm_blend_slope = lm_blend_slope;
+            p.follower_lead = follower_lead;
+            p.follower_corpus = follower_corpus;
             if use_lm {
                 p.lm = lm
                     .as_ref()
@@ -429,6 +436,12 @@ fn main() {
         let mut full = build(&entries);
         let mut holed = build(&kept);
         for (profile_idx, (name, sx, sy)) in profiles.iter().enumerate() {
+            // A warm run learns as it types, so each profile starts from an
+            // empty lexicon rather than one that has read its sentences.
+            if warm && profile_idx > 0 {
+                full = build(&entries);
+                holed = build(&kept);
+            }
             let mut rng = Rng(0x9e37_79b9_7f4a_7c15 ^ ((*sx * 1000.0) as u64));
             let mut t = Tally::default();
             let mut sentence_index = skip;
@@ -526,11 +539,22 @@ fn main() {
                         {
                             t.savings_words += 1;
                             t.savings_chars += n_chars;
+                            // Saved by taking the first chip as soon as it is
+                            // the word, and by taking any of the three chips.
+                            let mut first = false;
+                            let mut any = false;
                             for (p, (byte, _)) in word.char_indices().enumerate().skip(1) {
                                 let strip =
                                     full.suggest_touch(&word[..byte], &previous, 3, &taps[..p]);
-                                if strip.first().is_some_and(|w| w == word) {
+                                if !first && strip.first().is_some_and(|w| w == word) {
                                     t.savings_saved += n_chars - p;
+                                    first = true;
+                                }
+                                if !any && strip.iter().any(|w| w == word) {
+                                    t.savings_strip += n_chars - p;
+                                    any = true;
+                                }
+                                if first && any {
                                     break;
                                 }
                             }
@@ -596,6 +620,24 @@ fn main() {
                     }
                     if t.n >= cases && t.new_words >= want_new {
                         break 'outer;
+                    }
+                }
+                // What a user who typed the sentence would have taught the
+                // keyboard: its words, pairs and triples, the first word
+                // after the sentence start.
+                if warm {
+                    let mut prev: Vec<&str> = vec![wm_engine::predict::SENTENCE_START];
+                    for w in &s.words {
+                        for p in [&mut full, &mut holed] {
+                            p.lexicon.learn_word(w, 1, "");
+                            if let Some(a) = prev.last() {
+                                p.lexicon.learn_bigram(a, w);
+                            }
+                            if prev.len() >= 2 {
+                                p.lexicon.learn_trigram(prev[prev.len() - 2], prev[prev.len() - 1], w);
+                            }
+                        }
+                        prev.push(w);
                     }
                 }
             }

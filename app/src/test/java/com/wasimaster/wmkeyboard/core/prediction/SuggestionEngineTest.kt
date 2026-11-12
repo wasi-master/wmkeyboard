@@ -208,8 +208,8 @@ class SuggestionEngineTest {
         assertEquals("world", e.suggest("wor", previousWord = "hello").first())
         // Without context the raw order stands.
         assertEquals("words", e.suggest("wor", previousWord = null).first())
-        // The boost is capped: an enormous count cannot bury a much more
-        // frequent candidate (a >4x frequency gap beats the ln(4) cap).
+        // A word the user writes after "hello" is carried to the front once
+        // its letters are typed, past a 5x commoner word, which sits behind it.
         val lopsided = Trie().apply {
             insert("world", 100)
             insert("words", 500)
@@ -217,7 +217,60 @@ class SuggestionEngineTest {
         val heavy = UserLexicon(null)
         repeat(10_000) { heavy.learnBigram("hello", "world") }
         val e2 = SuggestionEngine(lopsided, BengaliPhoneticIndex(emptyList()), heavy)
-        assertEquals("words", e2.suggest("wor", previousWord = "hello").first())
+        assertEquals(listOf("world", "words"), e2.suggest("wor", previousWord = "hello"))
+        // The capped boost alone still cannot: a corpus pair is not carried.
+        val seeded = SuggestionEngine(
+            lopsided, BengaliPhoneticIndex(emptyList()), UserLexicon(null),
+            seedBigrams = SeedBigrams.load("hello world 10000\n".byteInputStream()),
+        )
+        assertEquals("words", seeded.suggest("wor", previousWord = "hello").first())
+    }
+
+    /**
+     * Forty commoner words starting with "d", so "dujon" is outside the walk's
+     * top ranks for "d" and "du", as a Banglish word is on English.
+     */
+    private fun followersEngine(): SuggestionEngine {
+        val dictionary = Trie().apply {
+            for (i in 0 until 40) insert("d" + ('a' + i / 26) + ('a' + i % 26), 1000 - i)
+            insert("dujon", 1)
+            insert("do", 5000)
+            insert("doing", 2)
+        }
+        val lexicon = UserLexicon(null)
+        lexicon.learnBigram("cholo", "dujon")
+        lexicon.learnBigram("to", "doing")
+        return SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), lexicon)
+    }
+
+    @Test fun aPredictedWordStaysWhileItsPrefixIsTyped() {
+        val e = followersEngine()
+        assertTrue("dujon" in e.suggest("", previousWord = "cholo", limit = 3))
+        assertEquals("dujon", e.suggest("d", previousWord = "cholo", limit = 3).first())
+        assertEquals("dujon", e.suggest("du", previousWord = "cholo", limit = 3).first())
+        // No word before, nothing carried: the frequency order stands.
+        assertFalse("dujon" in e.suggest("d", previousWord = null, limit = 3))
+        // A letter past the follower's spelling lets it go.
+        assertFalse("dujon" in e.suggest("dx", previousWord = "cholo", limit = 3))
+    }
+
+    @Test fun aKnownWordTypedInFullStaysAheadOfACarriedFollower() {
+        val strip = followersEngine().suggest("do", previousWord = "to", limit = 3)
+        assertEquals(listOf("do", "doing"), strip.take(2))
+    }
+
+    @Test fun aHiddenFollowerIsNotCarried() {
+        val e = followersEngine()
+        e.blacklist = setOf("dujon")
+        assertFalse("dujon" in e.suggest("d", previousWord = "cholo", limit = 3))
+    }
+
+    @Test fun nextWordsAreUnchangedByTheCarry() {
+        val lexicon = UserLexicon(null)
+        repeat(2) { lexicon.learnBigram("good", "morning") }
+        lexicon.learnBigram("good", "night")
+        val e = SuggestionEngine(Trie(), BengaliPhoneticIndex(emptyList()), lexicon)
+        assertEquals(listOf("morning", "night"), e.suggest("", previousWord = "good"))
     }
 
     @Test fun trigramContextOutranksBigramTail() {

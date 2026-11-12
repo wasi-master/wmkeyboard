@@ -71,6 +71,14 @@ const JOIN_MAX_LENGTH: usize = 24;
 const JOIN_MIN_FREQ: i32 = 50;
 const JOIN_CONFIDENCE: f64 = 1.25;
 const WALK_K: usize = 32;
+/// How deep `carry_followers` reads the follower list.
+const FOLLOWER_POOL: usize = 24;
+/// How many followers `carry_followers` keeps on the strip.
+const FOLLOWER_CARRY: usize = 3;
+/// How far a carried follower sits above the best other candidate.
+pub const FOLLOWER_LEAD: f64 = 0.5;
+/// The gap between one carried follower and the next.
+const FOLLOWER_STEP: f64 = 0.05;
 const MAX_WORD_LENGTH: usize = 32;
 const MAX_COUNT: i32 = 1_000_000;
 const MAX_FOLLOWERS: usize = 32;
@@ -704,6 +712,11 @@ pub struct Predictor {
     pub lm_blend_cap: f64,
     /// How the blend grows with the taps' spread; see [`lm_blend_for`].
     pub lm_blend_slope: f64,
+    /// How far a carried follower leads the strip ([`FOLLOWER_LEAD`]).
+    pub follower_lead: f64,
+    /// Whether the corpus pack and seed pairs' followers are carried too,
+    /// not only the user's own and the context model's.
+    pub follower_corpus: bool,
     /// The learned autocorrect gate; none keeps the margin gate.
     pub confidence: Option<Confidence>,
     /// What the gate saw on the last decision with a candidate, and that
@@ -761,6 +774,8 @@ impl Default for Predictor {
             lm_blend: LM_BLEND,
             lm_blend_cap: LM_BLEND_CAP,
             lm_blend_slope: LM_BLEND_SLOPE,
+            follower_lead: FOLLOWER_LEAD,
+            follower_corpus: false,
             confidence: None,
             last_case: RefCell::new(None),
             taps: RefCell::new(Vec::new()),
@@ -1361,6 +1376,7 @@ impl Predictor {
                 }
             }
         }
+        self.carry_followers(&lower, known, &mut merged, previous);
         if !self.rank_offsets.is_empty() {
             for (word, score) in merged.iter_mut() {
                 *score += self.rank_offset(word);
@@ -1551,6 +1567,32 @@ impl Predictor {
     /// What follows `previous` (nearest first): the user's phrases, then the
     /// corpus pack, then the seed pairs.
     pub fn next_words(&self, previous: &[&str], limit: usize) -> Vec<String> {
+        let ordered = self.follower_order(previous, limit, false);
+        let mut result: Vec<String> = ordered
+            .into_iter()
+            .filter(|w| !self.suppressed(w) && !is_sentinel(w))
+            .take(limit)
+            .collect();
+        if self.register == Register::Formal {
+            result.sort_by_key(|w| informal(w));
+        }
+        if !self.rank_offsets.is_empty() {
+            result.sort_by_key(|w| -self.rank_offsets.get(&key_of(w)).copied().unwrap_or(0));
+        }
+        let mut keys = HashSet::new();
+        result
+            .into_iter()
+            .map(|w| self.display_of(&w))
+            .filter(|w| keys.insert(key_of(w)))
+            .collect()
+    }
+
+    /// Every word expected after `previous`, best evidence first and
+    /// unfiltered: what [`Self::next_words`] offers on an empty buffer, and
+    /// what [`Self::carry_followers`] keeps once letters are typed. With
+    /// `personal` set, only the user's own pairs and triples and the context
+    /// model: skip-grams, the corpus pack and the seed pairs stay out.
+    fn follower_order(&self, previous: &[&str], limit: usize, personal: bool) -> Vec<String> {
         let Some(prev) = previous.first().map(|p| p.to_lowercase()) else {
             return Vec::new();
         };
@@ -1569,11 +1611,15 @@ impl Predictor {
             add(self.lexicon.next_words_after(p2, &prev, limit));
         }
         add(self.lexicon.next_words(&prev, limit));
-        if let Some(p2) = &prev2 {
-            add(self.lexicon.skip1_followers(p2, limit));
-        }
-        if let Some(p3) = &prev3 {
-            add(self.lexicon.skip2_followers(p3, limit));
+        // Gappy pairs are weaker evidence: offered on an empty strip, read by
+        // the rerank, never carried.
+        if !personal {
+            if let Some(p2) = &prev2 {
+                add(self.lexicon.skip1_followers(p2, limit));
+            }
+            if let Some(p3) = &prev3 {
+                add(self.lexicon.skip2_followers(p3, limit));
+            }
         }
         // The context model's likeliest next words: after the user's own
         // habits, which know this user, before the corpus pack, which it
@@ -1582,6 +1628,9 @@ impl Predictor {
             if let Some(lm) = &self.lm {
                 add(lm.borrow_mut().top(limit, LM_NEXT_WORD_FLOOR).into_iter().map(|(w, _)| w).collect());
             }
+        }
+        if personal {
+            return ordered;
         }
         if let Some(pack) = &self.ngrams {
             if let Some(p2) = &prev2 {
@@ -1602,23 +1651,61 @@ impl Predictor {
                 }
             }
         }
-        let mut result: Vec<String> = ordered
+        ordered
+    }
+
+    /// Keeps the words the empty strip predicted on the strip while the keys
+    /// still spell their start: a follower outside the walk's top
+    /// [`WALK_K`] for a short prefix never reached `merged`, so no context
+    /// boost could bring it back. Up to [`FOLLOWER_CARRY`] of the first
+    /// [`FOLLOWER_POOL`] followers continuing `lower` go in, in their own
+    /// order, `follower_lead` above the best other candidate; a listed word
+    /// typed in full keeps its place ahead of them. Only the user's own
+    /// followers and the context model's unless `follower_corpus` is set:
+    /// on `typing_eval` the corpus pack's cost a new user keystrokes. The
+    /// phone's `SuggestionEngine.carryFollowers`.
+    fn carry_followers(&self, lower: &str, known: bool, merged: &mut HashMap<String, f64>, previous: &[&str]) {
+        if previous.is_empty() {
+            return;
+        }
+        let key = key_of(lower);
+        if key.is_empty() {
+            return;
+        }
+        let key_len = key.chars().count();
+        let carried: Vec<String> = self
+            .follower_order(previous, FOLLOWER_POOL, !self.follower_corpus)
             .into_iter()
-            .filter(|w| !self.suppressed(w) && !is_sentinel(w))
-            .take(limit)
+            .filter(|w| {
+                let k = key_of(w);
+                k.chars().count() > key_len && k.starts_with(&key)
+            })
+            .filter(|w| !is_sentinel(w) && !self.suppressed(w))
+            .take(FOLLOWER_CARRY)
             .collect();
-        if self.register == Register::Formal {
-            result.sort_by_key(|w| informal(w));
+        if carried.is_empty() {
+            return;
         }
-        if !self.rank_offsets.is_empty() {
-            result.sort_by_key(|w| -self.rank_offsets.get(&key_of(w)).copied().unwrap_or(0));
+        let mut typed_score = f64::NEG_INFINITY;
+        let mut anchor = f64::NEG_INFINITY;
+        for (word, score) in merged.iter() {
+            if key_of(word) == key {
+                typed_score = typed_score.max(*score);
+            } else {
+                anchor = anchor.max(*score);
+            }
         }
-        let mut keys = HashSet::new();
-        result
-            .into_iter()
-            .map(|w| self.display_of(&w))
-            .filter(|w| keys.insert(key_of(w)))
-            .collect()
+        if anchor == f64::NEG_INFINITY {
+            anchor = if typed_score.is_finite() { typed_score } else { 0.0 };
+        }
+        for (i, word) in carried.into_iter().enumerate() {
+            let mut score = anchor + self.follower_lead - i as f64 * FOLLOWER_STEP;
+            if known && typed_score.is_finite() {
+                score = score.min(typed_score - (i + 1) as f64 * FOLLOWER_STEP);
+            }
+            let e = merged.entry(word).or_insert(f64::NEG_INFINITY);
+            *e = e.max(score);
+        }
     }
 
     /// `previous` + `composing` as one word, when that word is far commoner
@@ -2918,6 +3005,61 @@ mod tests {
         assert_eq!("wasi", e.suggest("was", &[], 5)[0]);
     }
 
+    /// A word the empty strip predicted stays while its first letters are
+    /// typed, however many commoner words share them.
+    fn followers_fixture() -> Predictor {
+        let mut words: Vec<(String, i32)> = (0..40)
+            .map(|i| (format!("d{}{}", (b'a' + (i / 26) as u8) as char, (b'a' + (i % 26) as u8) as char), 1000 - i))
+            .collect();
+        words.push(("dujon".into(), 1));
+        words.push(("do".into(), 5000));
+        words.push(("doing".into(), 2));
+        let refs: Vec<(&str, i32)> = words.iter().map(|(w, f)| (w.as_str(), *f)).collect();
+        let mut e = Predictor {
+            dictionary: list(&refs),
+            ..Predictor::default()
+        };
+        e.lexicon.learn_bigram("cholo", "dujon");
+        e.lexicon.learn_bigram("to", "doing");
+        e
+    }
+
+    #[test]
+    fn a_predicted_word_stays_while_its_prefix_is_typed() {
+        let mut e = followers_fixture();
+        assert!(e.suggest("", &["cholo"], 3).contains(&"dujon".to_string()));
+        assert_eq!("dujon", e.suggest("d", &["cholo"], 3)[0]);
+        assert_eq!("dujon", e.suggest("du", &["cholo"], 3)[0]);
+        // No word before, nothing carried: the frequency order stands.
+        assert!(!e.suggest("d", &[], 3).contains(&"dujon".to_string()));
+        // A letter past the follower's spelling lets it go.
+        assert!(!e.suggest("dx", &["cholo"], 3).contains(&"dujon".to_string()));
+    }
+
+    #[test]
+    fn a_known_word_typed_in_full_stays_ahead_of_a_carried_follower() {
+        let mut e = followers_fixture();
+        let strip = e.suggest("do", &["to"], 3);
+        assert_eq!("do", strip[0]);
+        assert_eq!("doing", strip[1]);
+    }
+
+    #[test]
+    fn corpus_followers_are_not_carried_unless_asked() {
+        let mut e = followers_fixture();
+        e.seeds = SeedBigrams::parse("lets dujon 50\n");
+        assert!(!e.suggest("d", &["lets"], 3).contains(&"dujon".to_string()));
+        e.follower_corpus = true;
+        assert_eq!("dujon", e.suggest("d", &["lets"], 3)[0]);
+    }
+
+    #[test]
+    fn a_hidden_follower_is_not_carried() {
+        let mut e = followers_fixture();
+        e.blacklist.insert("dujon".into());
+        assert!(!e.suggest("d", &["cholo"], 3).contains(&"dujon".to_string()));
+    }
+
     #[test]
     fn next_words() {
         let mut e = Predictor::new();
@@ -2991,6 +3133,13 @@ mod tests {
         for _ in 0..10_000 {
             e.lexicon.learn_bigram("hello", "world");
         }
+        // A word the user writes after "hello" is carried to the front once
+        // its letters are typed; the commoner word is right behind it.
+        assert_eq!(vec!["world", "words"], e.suggest("wor", &["hello"], 5));
+        // The capped boost alone still cannot bury it: corpus evidence is
+        // not carried.
+        let mut e = with(&[("world", 100), ("words", 500)]);
+        e.seeds = SeedBigrams::parse("hello world 10000\n");
         assert_eq!("words", e.suggest("wor", &["hello"], 5)[0]);
     }
 
