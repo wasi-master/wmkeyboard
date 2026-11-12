@@ -21308,6 +21308,7 @@ private fun KeyRows(
             KeyLightingLayer(
                 it, keyRects::cellRects, { keyRects.revision }, kbTheme.keyRadiusDp.toFloat(),
                 behind = true, modifier = Modifier.matchParentSize(),
+                gapHDp = keyGapH(state.settings).value, gapVDp = keyGapV(state.settings).value,
             )
         }
         // The touch bloom's light, the full half: across the board under the keys.
@@ -21507,6 +21508,7 @@ private fun KeyRows(
             KeyLightingLayer(
                 it, keyRects::cellRects, { keyRects.revision }, kbTheme.keyRadiusDp.toFloat(),
                 behind = false, modifier = Modifier.matchParentSize(),
+                gapHDp = keyGapH(state.settings).value, gapVDp = keyGapV(state.settings).value,
             )
         }
         // And its faint wash over the keys, for a theme whose keys hide the board.

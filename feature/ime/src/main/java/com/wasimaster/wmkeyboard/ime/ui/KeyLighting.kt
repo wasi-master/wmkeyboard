@@ -57,6 +57,8 @@ internal fun KeyLightingLayer(
     radiusDp: Float,
     behind: Boolean,
     modifier: Modifier = Modifier,
+    gapHDp: Float = 0f,
+    gapVDp: Float = 0f,
 ) {
     val glow = lighting.target == KeyLightingTarget.GLOW
     if (glow != behind) return
@@ -76,7 +78,7 @@ internal fun KeyLightingLayer(
     }
     Canvas(modifier = modifier.onGloballyPositioned { origin = it.positionInRoot() }) {
         cellsRevision()
-        paintLighting(lighting, kit, cells(), now, origin, radiusDp)
+        paintLighting(lighting, kit, cells(), now, origin, radiusDp, gapHDp * density, gapVDp * density)
     }
 }
 
@@ -138,7 +140,22 @@ internal class LightingKit(lighting: KbLighting) {
     }
 }
 
-private fun DrawScope.paintLighting(lighting: KbLighting, kit: LightingKit, cells: List<Rect>, now: Long, origin: Offset, radiusDp: Float) {
+/**
+ * [gapH] and [gapV] are the padding each key keeps inside its cell, in pixels:
+ * the cells are touch cells, gaps included, so the light is drawn on the face
+ * they leave, the way the press splashes are. On the whole cell an outline sat
+ * out in the gap, larger than the key and off its edge (Telegram group).
+ */
+private fun DrawScope.paintLighting(
+    lighting: KbLighting,
+    kit: LightingKit,
+    cells: List<Rect>,
+    now: Long,
+    origin: Offset,
+    radiusDp: Float,
+    gapH: Float,
+    gapV: Float,
+) {
     if (cells.isEmpty()) return
     val t = now / 1000f * lighting.speed
     val width = size.width.coerceAtLeast(1f)
@@ -175,7 +192,11 @@ private fun DrawScope.paintLighting(lighting: KbLighting, kit: LightingKit, cell
         val pick = kit.indexFor(if (lighting.pattern.reactive) kit.winnerAt else index.toLong() * 7919L)
         val color = hueShift(kit.colors[pick], hue)
         val a = (lighting.intensity * level).coerceIn(0f, 1f)
-        lightKey(lighting, kit, cell, index, pick, color, a, radius, reach, now)
+        // Presses are matched against the whole cell above (a tap in the gap
+        // still lights its key); the light itself goes on the face.
+        val face = Rect(cell.left + gapH, cell.top + gapV, cell.right - gapH, cell.bottom - gapV)
+        if (face.width <= 0f || face.height <= 0f) continue
+        lightKey(lighting, kit, face, index, pick, color, a, radius, reach, now)
     }
 }
 
@@ -200,10 +221,19 @@ internal fun DrawScope.lightKey(
         KeyLightingTarget.FACE -> drawRoundRect(
             color.copy(alpha = a * 0.55f), cell.topLeft, cell.size, radius, blendMode = BlendMode.Screen,
         )
-        KeyLightingTarget.EDGE -> drawRoundRect(
-            color.copy(alpha = a), cell.topLeft, cell.size, radius,
-            style = kit.edgeFor(lighting, density),
-        )
+        KeyLightingTarget.EDGE -> {
+            // A stroke straddles its path: inset by half its width so the
+            // line lies on the key's edge, inside it, not half out in the gap.
+            val stroke = kit.edgeFor(lighting, density)
+            val half = stroke.width / 2f
+            drawRoundRect(
+                color.copy(alpha = a),
+                Offset(cell.left + half, cell.top + half),
+                Size((cell.width - stroke.width).coerceAtLeast(0f), (cell.height - stroke.width).coerceAtLeast(0f)),
+                CornerRadius((radius.x - half).coerceAtLeast(0f), (radius.y - half).coerceAtLeast(0f)),
+                style = stroke,
+            )
+        }
         KeyLightingTarget.GLOW -> {
             // A soft halo as rings stepping outwards, cheaper than a blur and
             // close enough at the size a key gap is.
