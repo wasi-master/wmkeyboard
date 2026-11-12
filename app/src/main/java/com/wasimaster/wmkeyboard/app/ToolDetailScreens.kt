@@ -3344,6 +3344,16 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.compoundUnits,
                     ) { scope.launch { repository.setCompoundUnits(it) } }
                 }
+                // One setting shown on both converters' pages (#1268).
+                item(level = SettingLevel.STANDARD) {
+                    ToggleSetting(
+                        R.string.tooldetail_converter_tabs_title,
+                        stringResource(R.string.tooldetail_converter_tabs_subtitle),
+                        settings.watch { it.toolbox.converterTabs },
+                        info = stringResource(R.string.tooldetail_converter_tabs_info),
+                        default = SettingsDefaults.toolbox.converterTabs,
+                    ) { scope.launch { repository.setToolboxConverterTabs(it) } }
+                }
             }
         }
         ToolbarTool.CURRENCY -> {
@@ -3371,6 +3381,16 @@ internal fun ToolDetailSettings(
                         info = stringResource(R.string.tooldetail_currency_auto_fetch_info),
                         default = SettingsDefaults.rateSources.autoFetch,
                     ) { scope.launch { repository.setCurrencyAutoFetch(it) } }
+                }
+                // One setting shown on both converters' pages (#1268).
+                item(level = SettingLevel.STANDARD) {
+                    ToggleSetting(
+                        R.string.tooldetail_converter_tabs_title,
+                        stringResource(R.string.tooldetail_converter_tabs_subtitle),
+                        settings.watch { it.toolbox.converterTabs },
+                        info = stringResource(R.string.tooldetail_converter_tabs_info),
+                        default = SettingsDefaults.toolbox.converterTabs,
+                    ) { scope.launch { repository.setToolboxConverterTabs(it) } }
                 }
                 item(level = SettingLevel.ADVANCED) {
                     SliderSetting(

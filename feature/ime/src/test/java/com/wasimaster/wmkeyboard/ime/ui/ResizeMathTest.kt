@@ -33,6 +33,32 @@ class ResizeMathTest {
      */
     private fun gridDp(v: ResizeValues): Float = v.keyHeightDp * 4f + v.numberRowHeightDp
 
+    // ---- toolbar handle (#1261) ----
+
+    @Test
+    fun `dragging the toolbar chip up makes the bar taller`() {
+        assertEquals(54, resizeToolbarBy(entry.copy(toolbarHeightDp = 44), dyDp = -10f, rows = 1).toolbarHeightDp)
+        assertEquals("two rows share the travel", 49, resizeToolbarBy(entry.copy(toolbarHeightDp = 44), dyDp = -10f, rows = 2).toolbarHeightDp)
+    }
+
+    @Test
+    fun `the toolbar height stops at its range and reports the limit`() {
+        val low = resizeToolbarBy(entry.copy(toolbarHeightDp = 30), dyDp = 500f, rows = 1)
+        assertEquals(24, low.toolbarHeightDp)
+        assertTrue(resizeToolbarAtLimit(low))
+        assertFalse(resizeToolbarAtLimit(entry.copy(toolbarHeightDp = 44)))
+    }
+
+    @Test
+    fun `an untouched toolbar height commits as null`() {
+        val action = resizeCommitAction(ScreenVariant.PORTRAIT, entry, entry.copy(keyHeightDp = 50))
+            as SizingAction.ResizeCommit
+        assertNull(action.toolbarHeightDp)
+        val moved = resizeCommitAction(ScreenVariant.PORTRAIT, entry, entry.copy(toolbarHeightDp = 52))
+            as SizingAction.ResizeCommit
+        assertEquals(52, moved.toolbarHeightDp)
+    }
+
     // ---- height drag ----
 
     @Test

@@ -47,6 +47,12 @@ data class NotesSettings(
     /** Days a trashed note waits before it is forgotten; 0 keeps it until deleted by hand. */
     val trashDays: Int = 30,
     /**
+     * The panel opens under the toolbar instead of over it (#1282), so the
+     * pinned tools stay in reach while a note is open. Off by default: the
+     * panel takes the whole keyboard, the toolbar's row included.
+     */
+    val keepToolbar: Boolean = false,
+    /**
      * Bumped by a restore or a sync that rewrote `notes.json`, so the running
      * keyboard reloads instead of saving its memory over the file. Not a
      * preference anyone sets; the twin of `statsVersion`.

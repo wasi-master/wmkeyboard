@@ -435,6 +435,9 @@
     <string name="ime_resize_bottom_handle_desc">Drag to move the bottom edge of the keyboard</string>
     <string name="ime_resize_left_handle_desc">Drag to change the space left of the keyboard</string>
     <string name="ime_resize_right_handle_desc">Drag to change the space right of the keyboard</string>
+    <!-- The resize tool's handle on the toolbar (#1261). Keep it short: it sits on the toolbar beside the top handle. -->
+    <string name="ime_resize_toolbar_handle">Toolbar</string>
+    <string name="ime_resize_toolbar_handle_desc">Drag up or down to change the toolbar height</string>
     <string name="ime_resize_move_desc">Drag to move the keyboard up or down</string>
     <string name="ime_tool_settings">Settings</string>
     <string name="ime_tool_flashlight">Flashlight</string>
@@ -784,6 +787,8 @@
     <!-- The search service, then what it says is left of this month's searches or credits (#1135): "via Tavily · 812 left". -->
     <string name="ime_search_attribution_left">%1$s · %2$s left</string>
     <string name="ime_unit_convert_title">Unit converter</string>
+    <!-- The unit converter's tab when it and the currency converter share one panel (#1268). Keep it short. -->
+    <string name="ime_converter_tab_units">Units</string>
     <string name="ime_password_tab_passphrase">Passphrase</string>
     <!-- Tab in the password generator: a code made of digits only. -->
     <string name="ime_password_tab_pin">PIN</string>

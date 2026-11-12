@@ -1572,6 +1572,8 @@ sealed interface SizingAction {
         val sidePadRightScale: Float? = null,
         /** The toolbar-width chip: bars at full width over narrowed keys. */
         val fullWidthBars: Boolean? = null,
+        /** The toolbar handle (#1261): the bar's height apart from the keys'. */
+        val toolbarHeightDp: Int? = null,
     ) : SizingAction
 
     /** Leave the inline resize tool without persisting anything. */

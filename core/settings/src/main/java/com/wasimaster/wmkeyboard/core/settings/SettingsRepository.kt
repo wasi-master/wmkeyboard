@@ -2052,6 +2052,19 @@ data class ToolbarBehavior(
      */
     val toolWidthDp: Int = 38,
     /**
+     * Height of each tool button on the bar, in dp (#1264). 38 is the classic
+     * circle. A button is never drawn taller than the bar holds, so past the
+     * toolbar's own height this needs [KeyboardSettings.toolbarHeightDp]
+     * raised with it.
+     */
+    val toolHeightDp: Int = 38,
+    /**
+     * [toolWidthDp] and [toolHeightDp] win over the active theme's own tool
+     * width (#1264). Off by default, which leaves a theme that sets a width
+     * in charge of it, as it always was.
+     */
+    val sizeOverTheme: Boolean = false,
+    /**
      * Side of the glyph inside each tool button on the bar and in the toolbox
      * grid, in dp. The button stays 38 dp either way, so this only changes how
      * much of the circle the icon fills, never how many tools fit.
@@ -2093,6 +2106,14 @@ data class ToolbarBehavior(
      * [stripHidden].
      */
     val showStrip: Boolean = true,
+    /**
+     * Under [ToolbarPlacement.ALWAYS_ROW], the suggestion strip folds away
+     * while it has nothing to show and comes back with the first word to
+     * suggest (#1272), so the tools row is what rests over the keys. The
+     * reverse of [ToolbarPlacement.STRIP], where the tools give way to the
+     * words. Off by default; read only while [showStrip] is on.
+     */
+    val stripOnlyWithWords: Boolean = false,
     /**
      * With the phone on its side, the pinned tools in a column down one side
      * of the keys instead of along the top (#970). Off by default. Read only
@@ -2509,6 +2530,13 @@ data class ToolboxSettings(
      * Per device, since a shortcut belongs to an app installed here.
      */
     val customButtons: List<CustomButton> = emptyList(),
+    /**
+     * The unit converter and the currency converter drawn as two tabs of one
+     * panel (#1268), the way the GIF and sticker panels switch between each
+     * other. Off by default: they stay two tools with a panel each. Either
+     * tool still opens its own tab; the tabs switch between them.
+     */
+    val converterTabs: Boolean = false,
 ) {
     /** The caption size to draw at, resolving 0 against the toolbar's setting. */
     fun labelSizeOr(toolbarLabelSize: Int): Int =
@@ -5790,6 +5818,13 @@ data class LauncherToolSettings(
      * Open apps setting says. At most [MAX_TOOLBAR_APPS].
      */
     val toolbarApps: List<String> = emptyList(),
+    /**
+     * Where an app dragged along the toolbar sits among the pinned tools
+     * (#1258): app key → how many of the bar's drawn tools come before it. An
+     * app with no entry keeps its place after the tools and folders. Read
+     * against the tools the bar draws, so a slot past the end is the end.
+     */
+    val toolbarAppSlots: Map<String, Int> = emptyMap(),
     /** Most-recent-first launched packages, capped at [maxRecents]. */
     val recents: List<String> = emptyList(),
     /**
@@ -5861,6 +5896,21 @@ data class LauncherToolSettings(
             key in current -> current - key
             current.size >= MAX_TOOLBAR_APPS -> current
             else -> current + key
+        }
+
+        /** [toolbarAppSlots] as stored: `key=slot` pairs, tab-separated. */
+        fun encodeToolbarAppSlots(slots: Map<String, Int>): String =
+            slots.entries.joinToString("\t") { (key, slot) -> "$key=$slot" }
+
+        /** The stored form back; a malformed pair is dropped rather than failing the rest. */
+        fun decodeToolbarAppSlots(raw: String?): Map<String, Int> {
+            if (raw.isNullOrEmpty()) return emptyMap()
+            return raw.split('\t').mapNotNull { pair ->
+                val at = pair.lastIndexOf('=')
+                if (at <= 0) return@mapNotNull null
+                val slot = pair.substring(at + 1).toIntOrNull()?.takeIf { it >= 0 } ?: return@mapNotNull null
+                pair.substring(0, at) to slot
+            }.toMap()
         }
     }
 }
@@ -10217,6 +10267,12 @@ val BottomRowHeightRange = 32..96
  */
 val ToolbarHeightRange = 24..80
 
+/** Bounds for [ToolbarBehavior.toolWidthDp]: the classic circle up to a wide pill (#1264). */
+val ToolWidthRange = 38..96
+
+/** Bounds for [ToolbarBehavior.toolHeightDp] (#1264). */
+val ToolHeightRange = 28..64
+
 /**
  * Bounds for [ToolbarBehavior.paddingTopDp] and [ToolbarBehavior.paddingBottomDp].
  * Below zero takes height off the strip (#970), for a bar that is too tall even
@@ -12429,10 +12485,13 @@ class SettingsRepository(private val context: Context) {
         private val TOOL_SHAPE = stringPreferencesKey("tool_circle_shape")
         private val TOOLBAR_TOOL_WIDTH = intPreferencesKey("toolbar_tool_width")
         private val TOOLBAR_ICON_SIZE = intPreferencesKey("toolbar_icon_size")
+        private val TOOLBAR_TOOL_HEIGHT = intPreferencesKey("toolbar_tool_height")
+        private val TOOLBAR_SIZE_OVER_THEME = booleanPreferencesKey("toolbar_size_over_theme")
         private val TOOLBAR_PADDING_TOP = intPreferencesKey("toolbar_padding_top")
         private val TOOLBAR_PADDING_BOTTOM = intPreferencesKey("toolbar_padding_bottom")
         private val TOOLBAR_PLACEMENT = stringPreferencesKey("toolbar_placement")
         private val TOOLBAR_SHOW_STRIP = booleanPreferencesKey("toolbar_show_strip")
+        private val TOOLBAR_STRIP_ONLY_WITH_WORDS = booleanPreferencesKey("toolbar_strip_only_with_words")
         private val TOOLBAR_LANDSCAPE_COLUMN = stringPreferencesKey("toolbar_landscape_column")
         private val TOOLBAR_HOLD_ACTIONS = stringPreferencesKey("toolbar_hold_actions")
         /** The single tool #462 stored, before the strip took a list. Read as a one-tool list. */
@@ -12716,6 +12775,7 @@ class SettingsRepository(private val context: Context) {
         private val NOTES_PANEL_LAYOUT = stringPreferencesKey("notes_panel_layout")
         private val NOTES_SAVE_SELECTION_APPENDS = booleanPreferencesKey("notes_save_selection_appends")
         private val NOTES_TRASH_DAYS = intPreferencesKey("notes_trash_days")
+        private val NOTES_KEEP_TOOLBAR = booleanPreferencesKey("notes_keep_toolbar")
         private val NOTES_VERSION = intPreferencesKey("notes_version")
         private val DOUBLE_SPACE_WINDOW_MS = intPreferencesKey("double_space_window_ms")
         private val HIDE_COMPOSING_UNDERLINE = booleanPreferencesKey("hide_composing_underline")
@@ -12829,6 +12889,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBOX_FOLDERS = stringPreferencesKey("toolbox_folders")
         private val TOOLBOX_SEARCH_BUTTON = booleanPreferencesKey("toolbox_search_button")
         private val TOOLBOX_SEARCH_AT_END = booleanPreferencesKey("toolbox_search_at_end")
+        private val TOOLBOX_CONVERTER_TABS = booleanPreferencesKey("toolbox_converter_tabs")
         private val TOOLBOX_SORT = stringPreferencesKey("toolbox_sort")
         private val TOOLBOX_SEARCH_SORT = stringPreferencesKey("toolbox_search_sort")
         private val TOOLBOX_BACK_LOWERS_KEYS = booleanPreferencesKey("toolbox_back_lowers_keys")
@@ -12932,6 +12993,7 @@ class SettingsRepository(private val context: Context) {
         // Tab-separated package names (package names never contain tabs).
         private val LAUNCHER_PINNED = stringPreferencesKey("launcher_pinned")
         private val LAUNCHER_TOOLBAR_APPS = stringPreferencesKey("launcher_toolbar_apps")
+        private val LAUNCHER_TOOLBAR_APP_SLOTS = stringPreferencesKey("launcher_toolbar_app_slots")
         private val LAUNCHER_RECENTS = stringPreferencesKey("launcher_recents")
         private val LAUNCHER_GRID_COLUMNS = intPreferencesKey("launcher_grid_columns")
         private val LAUNCHER_ICON_SIZE = intPreferencesKey("launcher_icon_size")
@@ -15009,6 +15071,8 @@ class SettingsRepository(private val context: Context) {
             hideWhenLocked = p[TOOLBAR_HIDE_WHEN_LOCKED] ?: defaults.toolbarBehavior.hideWhenLocked,
             toolWidthDp = p[TOOLBAR_TOOL_WIDTH] ?: defaults.toolbarBehavior.toolWidthDp,
             iconSizeDp = p[TOOLBAR_ICON_SIZE] ?: defaults.toolbarBehavior.iconSizeDp,
+            toolHeightDp = p[TOOLBAR_TOOL_HEIGHT] ?: defaults.toolbarBehavior.toolHeightDp,
+            sizeOverTheme = p[TOOLBAR_SIZE_OVER_THEME] ?: defaults.toolbarBehavior.sizeOverTheme,
             paddingTopDp = p[TOOLBAR_PADDING_TOP] ?: defaults.toolbarBehavior.paddingTopDp,
             paddingBottomDp = p[TOOLBAR_PADDING_BOTTOM] ?: defaults.toolbarBehavior.paddingBottomDp,
             themesPanelBuiltIns = p[THEMES_PANEL_BUILTINS],
@@ -15016,10 +15080,15 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { ToolbarPlacement.valueOf(it) }.getOrNull() }
                 ?: defaults.toolbarBehavior.placement,
             showStrip = p[TOOLBAR_SHOW_STRIP] ?: defaults.toolbarBehavior.showStrip,
+            stripOnlyWithWords = p[TOOLBAR_STRIP_ONLY_WITH_WORDS] ?: defaults.toolbarBehavior.stripOnlyWithWords,
             landscapeColumn = p[TOOLBAR_LANDSCAPE_COLUMN]
                 ?.let { runCatching { ToolbarColumn.valueOf(it) }.getOrNull() }
                 ?: defaults.toolbarBehavior.landscapeColumn,
             holdActions = ToolHoldActions.decode(p[TOOLBAR_HOLD_ACTIONS]),
+                ?.split(',')
+                ?.mapNotNull { name -> runCatching { ToolbarTool.valueOf(name) }.getOrNull()?.takeIf { it.floats } }
+                ?.toSet()
+                .orEmpty(),
             stripShortcuts = p[TOOLBAR_STRIP_SHORTCUTS]
                 ?.let { csv ->
                     if (csv.isEmpty()) {
@@ -15158,6 +15227,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.toolbox.searchSort,
             backLowersKeys = p[TOOLBOX_BACK_LOWERS_KEYS] ?: defaults.toolbox.backLowersKeys,
             customButtons = decodeCustomButtons(p[CUSTOM_BUTTONS]),
+            converterTabs = p[TOOLBOX_CONVERTER_TABS] ?: defaults.toolbox.converterTabs,
         )
 
     private fun readSensorTools(p: Preferences, defaults: KeyboardSettings) =
@@ -15492,6 +15562,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.notes.panelLayout,
             saveSelectionAppends = p[NOTES_SAVE_SELECTION_APPENDS] ?: defaults.notes.saveSelectionAppends,
             trashDays = p[NOTES_TRASH_DAYS]?.coerceIn(0, NotesSettings.MAX_TRASH_DAYS) ?: defaults.notes.trashDays,
+            keepToolbar = p[NOTES_KEEP_TOOLBAR] ?: defaults.notes.keepToolbar,
             version = p[NOTES_VERSION] ?: defaults.notes.version,
         )
 
@@ -15918,6 +15989,7 @@ class SettingsRepository(private val context: Context) {
             pinned = p[LAUNCHER_PINNED]?.split('\t')?.filter { it.isNotEmpty() }.orEmpty(),
             toolbarApps = p[LAUNCHER_TOOLBAR_APPS]?.split('\t')?.filter { it.isNotEmpty() }.orEmpty()
                 .take(LauncherToolSettings.MAX_TOOLBAR_APPS),
+            toolbarAppSlots = LauncherToolSettings.decodeToolbarAppSlots(p[LAUNCHER_TOOLBAR_APP_SLOTS]),
             // Trimmed on read as well as on write: a cap lowered while the
             // stored list was longer takes effect immediately rather than
             // on the next launch that happens to rewrite the list.
@@ -16277,10 +16349,30 @@ class SettingsRepository(private val context: Context) {
         editPrefs { prefs ->
             val current = prefs[LAUNCHER_TOOLBAR_APPS]?.split('\t')?.filter { it.isNotEmpty() }.orEmpty()
             prefs[LAUNCHER_TOOLBAR_APPS] = LauncherToolSettings.toggledToolbarApp(current, key).joinToString("\t")
+            // An app taken off forgets where it sat among the tools (#1258).
+            if (key in current) {
+                val slots = LauncherToolSettings.decodeToolbarAppSlots(prefs[LAUNCHER_TOOLBAR_APP_SLOTS]) - key
+                if (slots.isEmpty()) prefs.remove(LAUNCHER_TOOLBAR_APP_SLOTS)
+                else prefs[LAUNCHER_TOOLBAR_APP_SLOTS] = LauncherToolSettings.encodeToolbarAppSlots(slots)
+            }
         }
 
     /** Every app off the toolbar (#1159). */
-    suspend fun clearLauncherToolbarApps() = editPrefs { it.remove(LAUNCHER_TOOLBAR_APPS) }
+    suspend fun clearLauncherToolbarApps() = editPrefs {
+        it.remove(LAUNCHER_TOOLBAR_APPS)
+        it.remove(LAUNCHER_TOOLBAR_APP_SLOTS)
+    }
+
+    /**
+     * Moves an app along the toolbar (#1258): [slot] is how many of the drawn
+     * tools come before it, or null to send it back after the tools and folders.
+     */
+    suspend fun setLauncherToolbarAppSlot(key: String, slot: Int?) = editPrefs { prefs ->
+        val current = LauncherToolSettings.decodeToolbarAppSlots(prefs[LAUNCHER_TOOLBAR_APP_SLOTS])
+        val next = if (slot == null) current - key else current + (key to slot.coerceAtLeast(0))
+        if (next.isEmpty()) prefs.remove(LAUNCHER_TOOLBAR_APP_SLOTS)
+        else prefs[LAUNCHER_TOOLBAR_APP_SLOTS] = LauncherToolSettings.encodeToolbarAppSlots(next)
+    }
 
     suspend fun toggleLauncherPin(packageName: String) =
         editPrefs { prefs ->
@@ -17308,6 +17400,8 @@ class SettingsRepository(private val context: Context) {
     suspend fun setNotesTrashDays(value: Int) =
         editPrefs { it[NOTES_TRASH_DAYS] = value.coerceIn(0, NotesSettings.MAX_TRASH_DAYS) }
 
+    suspend fun setNotesKeepToolbar(value: Boolean) = editPrefs { it[NOTES_KEEP_TOOLBAR] = value }
+
     /**
      * One change to the gallery tool's settings (#708), applied to what is
      * stored rather than to the caller's copy, so two quick changes cannot
@@ -17519,6 +17613,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setToolboxSearchAtEnd(value: Boolean) =
         editPrefs { it[TOOLBOX_SEARCH_AT_END] = value }
 
+    suspend fun setToolboxConverterTabs(value: Boolean) =
+        editPrefs { it[TOOLBOX_CONVERTER_TABS] = value }
+
     suspend fun setToolboxBackLowersKeys(value: Boolean) =
         editPrefs { it[TOOLBOX_BACK_LOWERS_KEYS] = value }
 
@@ -17683,7 +17780,13 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[TOOL_SHAPE] = value.name }
 
     suspend fun setToolbarToolWidthDp(value: Int) =
-        editPrefs { it[TOOLBAR_TOOL_WIDTH] = value.coerceIn(38, 64) }
+        editPrefs { it[TOOLBAR_TOOL_WIDTH] = value.coerceIn(ToolWidthRange.first, ToolWidthRange.last) }
+
+    suspend fun setToolbarToolHeightDp(value: Int) =
+        editPrefs { it[TOOLBAR_TOOL_HEIGHT] = value.coerceIn(ToolHeightRange.first, ToolHeightRange.last) }
+
+    suspend fun setToolbarSizeOverTheme(value: Boolean) =
+        editPrefs { it[TOOLBAR_SIZE_OVER_THEME] = value }
 
     suspend fun setToolbarIconSizeDp(value: Int) =
         editPrefs { it[TOOLBAR_ICON_SIZE] = value.coerceIn(14, 30) }
@@ -17699,6 +17802,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setToolbarShowStrip(value: Boolean) =
         editPrefs { it[TOOLBAR_SHOW_STRIP] = value }
+
+    suspend fun setToolbarStripOnlyWithWords(value: Boolean) =
+        editPrefs { it[TOOLBAR_STRIP_ONLY_WITH_WORDS] = value }
 
     suspend fun setToolbarLandscapeColumn(value: ToolbarColumn) =
         editPrefs { it[TOOLBAR_LANDSCAPE_COLUMN] = value.name }
@@ -19039,7 +19145,12 @@ class SettingsRepository(private val context: Context) {
         sidePadLeftScale: Float? = null,
         sidePadRightScale: Float? = null,
         fullWidthBars: Boolean? = null,
+        /** The resize tool's toolbar handle (#1261). */
+        toolbarHeightDp: Int? = null,
     ) = editPrefs { prefs ->
+        toolbarHeightDp?.let {
+            prefs[if (variant.isOverride) variantToolbarHeightKey(variant) else TOOLBAR_HEIGHT] = it.coerceIn(ToolbarHeightRange)
+        }
         fullWidthBars?.let {
             prefs[if (variant.isOverride) fullWidthBarsKey(variant) else FULL_WIDTH_BARS] = it
         }
@@ -21522,6 +21633,8 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOL_SHAPE)
         it.remove(TOOLBAR_TOOL_WIDTH)
         it.remove(TOOLBAR_ICON_SIZE)
+        it.remove(TOOLBAR_TOOL_HEIGHT)
+        it.remove(TOOLBAR_SIZE_OVER_THEME)
         it.remove(TOOLBAR_PADDING_TOP)
         it.remove(TOOLBAR_PADDING_BOTTOM)
         it.remove(TOOLBAR_BAR_TOOLBOX)

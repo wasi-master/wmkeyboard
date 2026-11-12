@@ -7240,6 +7240,7 @@ open class WMKeyboardService : InputMethodService() {
                         sidePadLeftScale = action.sidePadLeftScale,
                         sidePadRightScale = action.sidePadRightScale,
                         fullWidthBars = action.fullWidthBars,
+                        toolbarHeightDp = action.toolbarHeightDp,
                     )
                 }
                 _uiState.update { it.copy(resize = false) }
@@ -25815,6 +25816,8 @@ open class WMKeyboardService : InputMethodService() {
                 }
             },
             onOpen = ::onToolbarAppOpen,
+            // Carried along the bar in among the tools (#1258).
+            onMove = { key, slot -> serviceScope.launch { settingsRepository.setLauncherToolbarAppSlot(key, slot) } },
         )
     }
 

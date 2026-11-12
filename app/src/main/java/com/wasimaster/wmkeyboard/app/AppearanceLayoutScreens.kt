@@ -37,6 +37,8 @@ import com.wasimaster.wmkeyboard.core.settings.GlobeTypingGuardMsRange
 import com.wasimaster.wmkeyboard.core.settings.BoardCorner
 import com.wasimaster.wmkeyboard.core.settings.BoardCornerRadiusRange
 import com.wasimaster.wmkeyboard.core.settings.SidePadScaleRange
+import com.wasimaster.wmkeyboard.core.settings.ToolHeightRange
+import com.wasimaster.wmkeyboard.core.settings.ToolWidthRange
 import com.wasimaster.wmkeyboard.core.settings.ToolbarHeightRange
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPaddingRange
 import com.wasimaster.wmkeyboard.core.settings.stripToolboxSwipes
@@ -346,6 +348,9 @@ internal fun AppearanceToolbarSettings(
     val stripSwipes = settings.watch { it.stripToolboxSwipes() }
     val labelsOn = settings.watch { it.toolbarLabels }
     val toolCircleOn = settings.watch { it.toolCircleRadiusDp > 0 }
+    val stripShown = settings.watch { it.toolbarBehavior.showStrip }
+    val overTheme = settings.watch { it.toolbarBehavior.sizeOverTheme }
+    val widthPinned = themePin(settings) { it.toolWidthDp }
     val toolbarMoved = settings.watch { s ->
         val d = SettingsDefaults
         s.toolbarBehavior != d.toolbarBehavior ||
@@ -450,6 +455,17 @@ internal fun AppearanceToolbarSettings(
                     info = stringResource(R.string.appearance_toolbar_show_strip_info),
                     default = SettingsDefaults.toolbarBehavior.showStrip,
                 ) { scope.launch { repository.setToolbarShowStrip(it) } }
+            }
+            // The other way round from the strip placement (#1272): the tools
+            // stay, and the words come and go.
+            if (placement == ToolbarPlacement.ALWAYS_ROW && stripShown) item {
+                ToggleSetting(
+                    R.string.appearance_toolbar_strip_only_words_title,
+                    stringResource(R.string.appearance_toolbar_strip_only_words_subtitle),
+                    settings.watch { it.toolbarBehavior.stripOnlyWithWords },
+                    info = stringResource(R.string.appearance_toolbar_strip_only_words_info),
+                    default = SettingsDefaults.toolbarBehavior.stripOnlyWithWords,
+                ) { scope.launch { repository.setToolbarStripOnlyWithWords(it) } }
             }
             // The toolbox button before the pinned tools, and the strip's arrow
             // to them (#970): both can go once the strip has a toolbox button
@@ -737,19 +753,50 @@ internal fun AppearanceToolbarSettings(
         }
         // Only the wide tools honour it — panel headers and grids keep the
         // fixed circle — and every wide one is drawn by the toolbar.
+        // The theme's own tool width shadows the width row until this switch
+        // says the user's sizes win (#1264): the theme's Layout group is far
+        // from here, and a greyed-out slider was all anyone found.
+        if (toolbarOn && (widthPinned != null || overTheme)) item {
+            ToggleSetting(
+                R.string.appearance_tool_size_over_theme_title,
+                stringResource(R.string.appearance_tool_size_over_theme_subtitle),
+                overTheme,
+                info = stringResource(R.string.appearance_tool_size_over_theme_info),
+                default = SettingsDefaults.toolbarBehavior.sizeOverTheme,
+            ) { scope.launch { repository.setToolbarSizeOverTheme(it) } }
+        }
         if (toolbarOn) item {
-            val pin = themePin(settings) { it.toolWidthDp }
+            val pin = widthPinned.takeUnless { overTheme }
             SliderSetting(
                 R.string.appearance_tool_width_title,
                 subtitle = pin?.text ?: stringResource(R.string.appearance_tool_width_subtitle),
                 value = settings.watch { it.toolbarBehavior.toolWidthDp }.toFloat(),
-                range = 38f..64f,
+                range = ToolWidthRange.first.toFloat()..ToolWidthRange.last.toFloat(),
                 display = { dpFormat.format(it.roundToInt()) },
                 info = stringResource(R.string.appearance_tool_width_info),
                 enabled = pin == null,
                 disabledReason = pin,
                 default = SettingsDefaults.toolbarBehavior.toolWidthDp.toFloat(),
             ) { scope.launch { repository.setToolbarToolWidthDp(it.roundToInt()) } }
+        }
+        // Taller buttons (#1264). The bar's height caps them, so the row says
+        // so while the setting asks for more than the bar holds.
+        if (toolbarOn) item {
+            val barHeight = settings.watch { it.toolbarHeightDp }
+            val height = settings.watch { it.toolbarBehavior.toolHeightDp }
+            SliderSetting(
+                R.string.appearance_tool_height_title,
+                subtitle = if (height > barHeight) {
+                    stringResource(R.string.appearance_tool_height_capped, barHeight)
+                } else {
+                    stringResource(R.string.appearance_tool_height_subtitle)
+                },
+                value = height.toFloat(),
+                range = ToolHeightRange.first.toFloat()..ToolHeightRange.last.toFloat(),
+                display = { dpFormat.format(it.roundToInt()) },
+                info = stringResource(R.string.appearance_tool_height_info),
+                default = SettingsDefaults.toolbarBehavior.toolHeightDp.toFloat(),
+            ) { scope.launch { repository.setToolbarToolHeightDp(it.roundToInt()) } }
         }
         // Not gated on the toolbar: the toolbox grid draws the same buttons,
         // and it is still one tap away from the keyboard with the bar off.

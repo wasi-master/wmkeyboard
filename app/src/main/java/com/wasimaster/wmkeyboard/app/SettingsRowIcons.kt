@@ -573,6 +573,8 @@ internal object SettingsRowIcons {
         put(R.string.appearance_suggestion_primary_color_title) { Icons.Outlined.Colorize }
         put(R.string.appearance_suggestion_new_word_color_title) { Icons.Outlined.Spellcheck }
         put(R.string.appearance_tool_width_title) { Icons.Outlined.Straighten }
+        put(R.string.appearance_tool_height_title) { Icons.Outlined.Height }
+        put(R.string.appearance_tool_size_over_theme_title) { Icons.Outlined.Palette }
         put(R.string.appearance_tool_icon_size_title) { Icons.Outlined.PhotoSizeSelectSmall }
         put(R.string.appearance_reset_toolbox_order_title) { Icons.Outlined.Restore }
         put(R.string.appearance_reset_title) { Icons.Outlined.Restore }
@@ -1250,6 +1252,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_glide_backspace_undo_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.appearance_toolbar_placement_title) { Icons.Outlined.ViewAgenda }
         put(R.string.appearance_toolbar_show_strip_title) { Icons.AutoMirrored.Outlined.ShortText }
+        put(R.string.appearance_toolbar_strip_only_words_title) { Icons.Outlined.UnfoldMore }
         put(R.string.appearance_toolbar_bar_toolbox_title) { Icons.Outlined.GridView }
         put(R.string.appearance_toolbar_tools_arrow_title) { Icons.Outlined.UnfoldMore }
         put(R.string.appearance_toolbar_landscape_column_title) { Icons.Outlined.ViewColumn }
@@ -1754,6 +1757,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_calc_phone_layout_title) { Icons.Outlined.Dialpad }
         put(R.string.tooldetail_calc_precision_title) { Icons.Outlined.Numbers }
         put(R.string.tooldetail_units_compound_title) { Icons.Outlined.Height }
+        put(R.string.tooldetail_converter_tabs_title) { Icons.Outlined.Tab }
         put(R.string.tooldetail_currency_auto_fetch_title) { Icons.Outlined.CloudDownload }
         put(R.string.servers_title) { Icons.Outlined.Dns }
         put(R.string.tooldetail_currency_decimals_title) { Icons.Outlined.Numbers }
@@ -2180,6 +2184,7 @@ internal object SettingsRowIcons {
         put(R.string.notes_empty_trash_action) { Icons.Outlined.DeleteForever }
         put(R.string.tooldetail_notes_sort_title) { Icons.AutoMirrored.Outlined.Sort }
         put(R.string.tooldetail_notes_markdown_title) { Icons.Outlined.FormatBold }
+        put(R.string.tooldetail_notes_keep_toolbar_title) { Icons.Outlined.VerticalAlignTop }
         put(R.string.tooldetail_notes_panel_start_title) { Icons.Outlined.FirstPage }
         put(R.string.tooldetail_notes_panel_layout_title) { Icons.Outlined.ViewAgenda }
         put(R.string.tooldetail_notes_trash_days_title) { Icons.Outlined.HourglassBottom }

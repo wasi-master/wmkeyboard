@@ -321,6 +321,8 @@ data class KbTheme(
     /** Shape of the panel cards and search bars; a safe derivative of the chip shape. */
     val cardShapeKind: KeyShapeKind,
     val toolWidthDp: Int,
+    /** Height of a bar button (#1264); a user setting, which no theme sets. */
+    val toolHeightDp: Int = 38,
     /** Glyph size inside a tool button; a user setting a theme doesn't override. */
     val toolIconSizeDp: Int,
     val animation: ThemeAnimation,
@@ -1031,6 +1033,7 @@ internal fun defaultKbTheme(
         chipShapeKind = KeyShapeKind.ROUNDED,
         cardShapeKind = KeyShapeKind.ROUNDED,
         toolWidthDp = settings.toolbarBehavior.toolWidthDp,
+        toolHeightDp = settings.toolbarBehavior.toolHeightDp,
         toolIconSizeDp = settings.toolbarBehavior.iconSizeDp,
         animation = ThemeAnimation.NONE,
         animationSpeed = 1f,
@@ -1206,7 +1209,9 @@ private fun specKbTheme(spec: ThemeSpec, settings: KeyboardSettings): KbTheme {
         chipShapeKind = keyShapeKindOrNull(spec.chipShape) ?: KeyShapeKind.ROUNDED,
         cardShapeKind = keyShapeKindOrNull(spec.cardShape)
             ?: safeContainerKind(keyShapeKindOrNull(spec.chipShape) ?: KeyShapeKind.ROUNDED),
-        toolWidthDp = spec.toolWidthDp ?: settings.toolbarBehavior.toolWidthDp,
+        toolWidthDp = spec.toolWidthDp?.takeUnless { settings.toolbarBehavior.sizeOverTheme }
+            ?: settings.toolbarBehavior.toolWidthDp,
+        toolHeightDp = settings.toolbarBehavior.toolHeightDp,
         toolIconSizeDp = settings.toolbarBehavior.iconSizeDp,
         animation = spec.animation,
         animationSpeed = spec.animationSpeed,
@@ -2106,6 +2111,7 @@ private fun lerpKbTheme(a: KbTheme, b: KbTheme, t: Float): KbTheme {
         // toolbar every crossfade frame, which the top bar forbids (a width
         // animation restarts every icon's placement spring). Snap at midpoint.
         toolWidthDp = if (past) b.toolWidthDp else a.toolWidthDp,
+        toolHeightDp = if (past) b.toolHeightDp else a.toolHeightDp,
         toolIconSizeDp = if (past) b.toolIconSizeDp else a.toolIconSizeDp,
         animation = if (past) b.animation else a.animation,
         animationSpeed = lerpF(a.animationSpeed, b.animationSpeed, t),

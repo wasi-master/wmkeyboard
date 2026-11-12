@@ -845,6 +845,9 @@
     <!-- Unit converter tool. -->
     <string name="tooldetail_units_compound_title">Feet and inches</string>
     <string name="tooldetail_units_compound_subtitle">Show a length in feet as feet and inches, not as a decimal</string>
+    <string name="tooldetail_converter_tabs_title">Units and currency as tabs</string>
+    <string name="tooldetail_converter_tabs_subtitle">Show the two converters as two tabs of one panel</string>
+    <string name="tooldetail_converter_tabs_info">The unit converter and the currency converter stay two tools, each with its own button. With this on, either panel has a Units and a Currency tab at the top, so you can switch to the other converter without going back to the toolbox, the way the GIF and sticker panels switch. Each tool still opens on its own tab. Off by default.</string>
     <string name="tooldetail_units_compound_info">1 metre reads as \"3 ft 3.37 in\" instead of \"3.2808399 ft\". The chip writes the units the way that you did: \"1m\" answers with \"3 ft 3.37 in\" and \"1 meter\" answers with \"3 feet 3.37 inches\". Where there is no room for either, it falls back to \"3\'3\"\". Turn this off for the plain decimal.</string>
     <string name="tooldetail_units_info">There are 14 categories: length, mass, temperature, area, volume, speed, time, data, energy, power, pressure, angle, frequency and fuel economy. All conversions run on your device. The result precision follows the calculator setting. The panel opens again on the category and the units that you used last.</string>
 
@@ -1173,6 +1176,9 @@
     <string name="tooldetail_notes_sort_created_label">Date created</string>
     <string name="tooldetail_notes_sort_title_label">Title</string>
     <string name="tooldetail_notes_markdown_title">Format Markdown</string>
+    <string name="tooldetail_notes_keep_toolbar_title">Keep the toolbar</string>
+    <string name="tooldetail_notes_keep_toolbar_subtitle">Open Notes under the toolbar, so your tools stay in reach</string>
+    <string name="tooldetail_notes_keep_toolbar_info">Off, the Notes panel takes the whole keyboard and the toolbar steps aside, which gives the notes the most room. On, the toolbar stays above the panel while you read and write notes, and the panel is one row shorter. The back button in the panel\'s header still goes back one step: out of the note you are editing, then to the list.</string>
     <string name="tooldetail_notes_markdown_subtitle">Show headings, lists and checklists formatted in the keyboard and in previews. Off, every note is plain text.</string>
     <string name="tooldetail_notes_panel_start_title">The keyboard panel opens on</string>
     <string name="tooldetail_notes_panel_start_subtitle">What you see when you tap the tool</string>

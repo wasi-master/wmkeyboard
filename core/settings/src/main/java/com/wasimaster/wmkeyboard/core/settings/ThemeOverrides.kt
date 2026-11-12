@@ -153,7 +153,8 @@ fun KeyboardSettings.applyThemeOverrides(spec: ThemeSpec?): KeyboardSettings {
         fontScale = spec.fontScale ?: fontScale,
         accessibility = spec.boldKeyLabels
             ?.let { accessibility.copy(boldLabels = it) } ?: accessibility,
-        toolbarBehavior = spec.toolWidthDp
+        // Unless the user's own button size is set to win over the theme's (#1264).
+        toolbarBehavior = spec.toolWidthDp?.takeUnless { toolbarBehavior.sizeOverTheme }
             ?.let { toolbarBehavior.copy(toolWidthDp = it) } ?: toolbarBehavior,
         layoutBehavior = if (
             spec.sidePadScale != null || spec.sidePadLeftScale != null ||

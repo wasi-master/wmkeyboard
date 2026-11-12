@@ -1130,6 +1130,16 @@ internal fun NotesToolSettings(
                 default = d.renderMarkdown,
             ) { scope.launch { repository.setNotesRenderMarkdown(it) } }
         }
+        // The toolbar over the open panel (#1282), instead of the panel over it.
+        item {
+            ToggleSetting(
+                R.string.tooldetail_notes_keep_toolbar_title,
+                stringResource(R.string.tooldetail_notes_keep_toolbar_subtitle),
+                settings.watch { it.notes.keepToolbar },
+                info = stringResource(R.string.tooldetail_notes_keep_toolbar_info),
+                default = d.keepToolbar,
+            ) { scope.launch { repository.setNotesKeepToolbar(it) } }
+        }
         item {
             ChoiceSetting(
                 R.string.tooldetail_notes_panel_start_title,

@@ -57,12 +57,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.SidePadScaleRange
+import com.wasimaster.wmkeyboard.core.settings.ToolbarHeightRange
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.SizingAction
@@ -87,6 +89,12 @@ internal data class ResizeValues(
     val sidePadRight: Float = 0f,
     /** The toolbar and strip at full width over the narrowed keys (`fullWidthBars`). */
     val fullWidthBars: Boolean = false,
+    /**
+     * The toolbar and strip's height (#1261), apart from the keys': the bar
+     * handle drives it, the key handles never touch it. 44 is the setting's
+     * own default, for the tests that build values without one.
+     */
+    val toolbarHeightDp: Int = 44,
 )
 
 /**
@@ -115,6 +123,14 @@ internal class ResizeSession(
     val headroomDp: Int,
     val preview: MutableState<ResizeValues?>,
     val onCommit: (ResizeValues?) -> Unit,
+    /**
+     * Whether the bar handle is offered (#1261): not while the theme pins the
+     * toolbar height for a screen shape with no override of its own, where a
+     * dragged height would be stored and then shadowed by the theme's.
+     */
+    val toolbarResizable: Boolean = true,
+    /** Bar rows the toolbar height applies to: two with the tools on a row of their own. */
+    val barRows: Int = 1,
 ) {
     val reservedPx: MutableIntState = mutableIntStateOf(0)
     val entryPx: MutableIntState = mutableIntStateOf(0)
@@ -186,6 +202,23 @@ internal fun resizeLeftPaddedBy(start: ResizeValues, dxFrac: Float): ResizeValue
 internal fun resizeRightPaddedBy(start: ResizeValues, dxFrac: Float): ResizeValues =
     start.copy(sidePadRight = (start.sidePadRight - dxFrac).coerceIn(SidePadScaleRange))
 
+/**
+ * The toolbar height after a bar-handle drag of [dyDp] (positive = down), for
+ * a bar of [rows] rows that all take the height (#1261). The keyboard stands
+ * on the bottom of the screen, so a taller bar lifts its top edge: the finger
+ * moving up by [rows] times a dp grows each row by one, and the handle stays
+ * under it.
+ */
+internal fun resizeToolbarBy(start: ResizeValues, dyDp: Float, rows: Int): ResizeValues =
+    start.copy(
+        toolbarHeightDp = (start.toolbarHeightDp - dyDp / rows.coerceAtLeast(1)).roundToInt()
+            .coerceIn(ToolbarHeightRange.first, ToolbarHeightRange.last),
+    )
+
+/** The bar handle is pinned at one end of the toolbar height's range. */
+internal fun resizeToolbarAtLimit(values: ResizeValues): Boolean =
+    values.toolbarHeightDp <= ToolbarHeightRange.first || values.toolbarHeightDp >= ToolbarHeightRange.last
+
 /** The top handle is pinned: the key height can go no further either way. */
 internal fun resizeHeightAtLimit(values: ResizeValues): Boolean =
     values.keyHeightDp <= SettingsRepository.KEY_HEIGHT_MIN_DP ||
@@ -227,6 +260,7 @@ internal fun resizeCommitAction(
         sidePadLeftScale = result.sidePadLeft.takeIf { it != entry.sidePadLeft },
         sidePadRightScale = result.sidePadRight.takeIf { it != entry.sidePadRight },
         fullWidthBars = result.fullWidthBars.takeIf { it != entry.fullWidthBars },
+        toolbarHeightDp = result.toolbarHeightDp.takeIf { it != entry.toolbarHeightDp },
     )
 }
 
@@ -460,6 +494,7 @@ internal fun BoxScope.ResizeOverlay(
     val bottomAtLimit = resizeBottomEdgeAtLimit(current, maxPad)
     val leftAtLimit = resizeSidePadAtLimit(current.sidePadLeft)
     val rightAtLimit = resizeSidePadAtLimit(current.sidePadRight)
+    val toolbarAtLimit = resizeToolbarAtLimit(current)
     val limitColor = errorLimitColor(kb)
     fun handleColor(atLimit: Boolean) = if (atLimit) limitColor else kb.accent
 
@@ -562,6 +597,24 @@ internal fun BoxScope.ResizeOverlay(
                         next to { v -> resizeSidePadAtLimit(v.sidePadRight) }
                     },
             )
+            // The toolbar's own height (#1261), on the bar itself, away from
+            // the top handle's middle: up for a taller bar, down for a shorter
+            // one, the keys untouched.
+            if (session.toolbarResizable && state.settings.toolbarBehavior.enabled) {
+                val rowDp = topBarHeight(state.settings)
+                ResizeBarChip(
+                    color = handleColor(toolbarAtLimit),
+                    label = stringResource(R.string.ime_resize_toolbar_handle),
+                    description = stringResource(R.string.ime_resize_toolbar_handle_desc),
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(start = 12.dp, top = ((rowDp - ResizeBarChipHeight) / 2).coerceAtLeast(0.dp))
+                        .resizeDrag(session = session, latestValues = latestValues) { g, start ->
+                            val dyDp = with(density) { g.acc.y.toDp() }.value
+                            resizeToolbarBy(start, dyDp, session.barRows) to { v -> resizeToolbarAtLimit(v) }
+                        },
+                )
+            }
             Column(
                 modifier = Modifier.align(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -716,6 +769,49 @@ private fun ResizeHandleBar(
         )
     }
 }
+
+/**
+ * The toolbar's handle (#1261): a short grip and the word for what it sizes,
+ * in the popup styling, since a bare bar on the toolbar would read as a
+ * second top handle.
+ */
+@Composable
+private fun ResizeBarChip(
+    color: Color,
+    label: String,
+    description: String,
+    modifier: Modifier = Modifier,
+) {
+    val kb = LocalKbTheme.current
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = modifier
+            .height(ResizeBarChipHeight)
+            .clip(RoundedCornerShape(14.dp))
+            .background(kb.popup)
+            .border(1.dp, color, RoundedCornerShape(14.dp))
+            .semantics { contentDescription = description }
+            .padding(horizontal = 10.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .width(4.dp)
+                .height(16.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(color),
+        )
+        Text(
+            label,
+            color = kb.popupText,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+        )
+    }
+}
+
+private val ResizeBarChipHeight = 28.dp
 
 /** Reset / Done: the tool's two buttons, in the keyboard's popup styling. */
 @Composable

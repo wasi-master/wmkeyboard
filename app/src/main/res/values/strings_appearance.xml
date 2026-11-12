@@ -70,6 +70,9 @@
     <string name="appearance_toolbar_placement_button_desc">The tools get a row of their own, opened and closed from the arrow</string>
     <string name="appearance_toolbar_show_strip_title">Suggestion strip</string>
     <string name="appearance_toolbar_show_strip_subtitle">Keep the suggestion row above the tools row</string>
+    <string name="appearance_toolbar_strip_only_words_title">Hide the strip until there are words</string>
+    <string name="appearance_toolbar_strip_only_words_subtitle">The tools row stays, and the suggestion row shows only while it has something to suggest</string>
+    <string name="appearance_toolbar_strip_only_words_info">The opposite of the shared strip, where the tools give way to the words. Here the tools row is always there, and the suggestion row above or below it folds away while it is empty: before you start typing, in a field with no suggestions, or with a tool open. The first word to suggest, or a chip such as a one-time code or the paste chip, brings it back. The keyboard gets one row taller when it shows and one row shorter when it goes.</string>
     <string name="appearance_toolbar_show_strip_info">Turn this off to remove the suggestion row and keep only the row of tools. The keyboard gets one row shorter. Useful if you have turned suggestions off and the row sits empty. Everything else that appears in that row goes too: the paste chip for your last copy, one-time codes, snippet offers and other chips. Voice typing\'s compact bar still shows there while you dictate.</string>
     <string name="appearance_toolbar_placement_always_desc">The tools keep a row of their own, always open</string>
     <string name="appearance_toolbar_landscape_column_title">Tools in landscape</string>
@@ -126,10 +129,17 @@
     <string name="appearance_tool_circle_info">20 draws a full circle behind every tool icon, like Gboard. Smaller values give rounded squares. 0 removes the background and leaves only the icons.</string>
     <string name="appearance_tool_shape_title">Tool background shape</string>
     <string name="appearance_tool_shape_subtitle">Outline of the shape behind each toolbar tool</string>
-    <string name="appearance_tool_width_title">Tool background width</string>
-    <string name="appearance_tool_width_subtitle">Width of the shape behind each toolbar tool</string>
+    <string name="appearance_tool_width_title">Tool button width</string>
+    <string name="appearance_tool_width_subtitle">Width of each button on the toolbar</string>
     <!-- Gboard is the name of another keyboard app. Keep it as it is. -->
-    <string name="appearance_tool_width_info">38 keeps the classic circle. Wider values stretch it into a pill, like Gboard. The background only shows when the tool circle radius is above 0. Pairs well with the scrollable toolbar.</string>
+    <string name="appearance_tool_width_info">38 keeps the classic circle. Wider values stretch it into a pill, like Gboard, up to 96. The background only shows when the tool circle radius is above 0. Pairs well with the scrollable toolbar.</string>
+    <string name="appearance_tool_height_title">Tool button height</string>
+    <string name="appearance_tool_height_subtitle">Height of each button on the toolbar</string>
+    <string name="appearance_tool_height_capped">Capped at the toolbar height, %1$d dp. Raise Toolbar height under Layout &amp; size for taller buttons.</string>
+    <string name="appearance_tool_height_info">38 is the default. Taller buttons are easier to hit. A button is never taller than the toolbar itself, so for buttons past about 40 dp raise Toolbar height as well, under Layout &amp; size or with the resize tool.</string>
+    <string name="appearance_tool_size_over_theme_title">Use my button size, not the theme\'s</string>
+    <string name="appearance_tool_size_over_theme_subtitle">The width and height here win over the width your theme sets</string>
+    <string name="appearance_tool_size_over_theme_info">Your theme sets its own tool button width under Layout for this theme, and that width normally wins. Turn this on to use the sizes on this page instead, whichever theme is on. Turn it off to give the theme its width back.</string>
     <string name="appearance_tool_icon_size_title">Tool icon size</string>
     <string name="appearance_tool_icon_size_subtitle">Size of the icon inside each tool button</string>
     <string name="appearance_tool_icon_size_info">Applies to the toolbar and the toolbox grid. The buttons keep their size, so the same number of tools still fit. 22 is the default.</string>

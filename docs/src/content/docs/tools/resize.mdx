@@ -27,12 +27,13 @@ Once it's on, it waits in the toolbox like any other tool, and you can drag it u
 
 ## Dragging
 
-Five things move:
+Six things move:
 
 - **The top handle** scales the keys. Both the key height and the number row height change together, keeping their ratio, so a taller keyboard doesn't leave the number row looking stranded. The bottom edge stays put.
 - **The bottom handle** moves the bottom edge and leaves the top edge where it is. Drag it down and the keys grow into the gap below the keyboard; drag it up and the gap grows while the keys shrink. It stops when the gap runs out either way, so it can never lift the top edge.
 - **The left and right handles** set the margin on that side of the keyboard, the same **Left padding** and **Right padding** values the Layout screen has as sliders. Each side is independent, so a right-handed thumb can shave the left edge alone.
 - **The round move button** in the middle slides the whole keyboard up and down without changing its height, so you can lift it off the navigation bar with a thumb in the middle of the board rather than reaching for its edge.
+- **The Toolbar chip** at the left of the toolbar sets the toolbar's height on its own, the same **Toolbar height** the Layout screen has as a slider. Drag it up for a taller toolbar and down for a shorter one; the keys keep their size. With the tools on a row of their own, both rows take the new height.
 
 While the tool is open the keyboard area on screen is held at the tallest the keyboard could reach, or the tallest window your phone will actually give the keyboard, so nothing moves under your finger mid-drag. Where that window is short, the held space shrinks to fit it rather than pushing the keys off the bottom of the screen. The app above doesn't move at all: it stays laid out where the keyboard's top edge was when you entered, dimmed behind that held space, and a keyboard you drag taller grows over it. The app catches up once, when you press Done.
 
@@ -45,11 +46,11 @@ Below those, once the keys are narrower than the screen, sits a **Full-width too
 
 Everything behind the outline is covered by a scrim that swallows every touch, so you cannot type by accident while you're dragging. Push a handle as far as it goes and it turns red and buzzes once, which is how you know you've hit the limit rather than lost the drag.
 
-The limits are the same ones the sliders in Settings use: key height and number row height run from **32dp to 100dp**, the gap under the keyboard runs from **0dp to 160dp**, and each side margin runs from **0% to 30%** of the screen width.
+The limits are the same ones the sliders in Settings use: key height and number row height run from **32dp to 100dp**, the toolbar from **24dp to 80dp**, the gap under the keyboard runs from **0dp to 160dp**, and each side margin runs from **0% to 30%** of the screen width.
 
 ## What gets saved, and where
 
-Done writes to whichever screen shape you're currently in. In portrait, that's the plain **Key height**, **Bottom padding**, **Left padding** and **Right padding** values under <SettingsPath path="Layout & size / Size and position" />, plus the **Number row height** slider that sits one group higher under <SettingsPath path="Layout & size / Number row" />. In landscape, or unfolded, it writes that shape's own override instead, exactly as if you'd opened the per-screen group in Settings and moved the sliders there yourself. Resizing in landscape therefore never disturbs your portrait sizing. See [Size, position & one-handed use](/typing/size-position/) for how the per-screen overrides work.
+Done writes to whichever screen shape you're currently in. In portrait, that's the plain **Key height**, **Toolbar height**, **Bottom padding**, **Left padding** and **Right padding** values under <SettingsPath path="Layout & size / Size and position" />, plus the **Number row height** slider that sits one group higher under <SettingsPath path="Layout & size / Number row" />. In landscape, or unfolded, it writes that shape's own override instead, exactly as if you'd opened the per-screen group in Settings and moved the sliders there yourself. Resizing in landscape therefore never disturbs your portrait sizing. See [Size, position & one-handed use](/typing/size-position/) for how the per-screen overrides work.
 
 Only the values you actually moved get written, and the **Full-width toolbar** chip counts as one of them only if you left it changed. Nudge the keyboard up without touching the top handle and no key height is saved at all, so a tablet still keeps its larger shipped default rather than being frozen at whatever number the drag happened to start from.
 
@@ -61,6 +62,7 @@ Only the values you actually moved get written, and the **Full-width toolbar** c
 - **One-handed mode switches off when you enter.** So does any open panel, which closes through the normal path rather than just vanishing, so nothing is left behind it.
 - **It does nothing while the voice bar is up.** Finish or dismiss the dictation strip first.
 - **It works before you unlock.** Resize is one of the 45 tools available during [direct boot](/tools/overview/#which-tools-work-before-you-unlock-your-phone), since it only touches the keyboard's own geometry.
+- **No Toolbar chip while a theme sets the toolbar height in portrait.** A theme's own toolbar height would win over the one you dragged, so the chip stays away rather than save a height you would never see. Landscape and unfolded have their own override, so the chip is there.
 - **A theme that pins its own key height wins afterwards.** Some themes ship a key height as part of their look. The drag previews fine and the value is saved, but the theme's number is what gets drawn once you're out of resize mode. A per-screen override beats the theme, so the same drag does stick in landscape or unfolded.
 - **No hardware shortcut letter by default.** About two dozen tools have a default leader-key letter and Resize isn't one of them, but you can bind one under <SettingsPath path="Typing / Physical keyboard" />. See [Hardware keyboards](/typing/hardware-keyboard/).
 - **The pill toolbox draws no arrow on it.** Resize doesn't open a panel or an activity, so it reads as an action rather than a destination, alongside Undo and Flashlight.

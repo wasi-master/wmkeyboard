@@ -26,4 +26,20 @@ class LauncherToolbarAppsTest {
     fun `none are on the toolbar by default`() {
         assertEquals(emptyList<String>(), LauncherToolSettings().toolbarApps)
     }
+
+    @Test
+    fun `an app's place among the tools survives the round trip`() {
+        val slots = mapOf("com.maps" to 0, "com.mail@10" to 3)
+        val raw = LauncherToolSettings.encodeToolbarAppSlots(slots)
+        assertEquals(slots, LauncherToolSettings.decodeToolbarAppSlots(raw))
+    }
+
+    @Test
+    fun `a malformed place is dropped and the rest kept`() {
+        assertEquals(
+            mapOf("com.maps" to 2),
+            LauncherToolSettings.decodeToolbarAppSlots("com.maps=2\tbroken\tcom.mail=-1\tcom.x=y"),
+        )
+        assertEquals(emptyMap<String, Int>(), LauncherToolSettings.decodeToolbarAppSlots(null))
+    }
 }
