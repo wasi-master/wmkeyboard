@@ -68,6 +68,7 @@ import com.wasimaster.wmkeyboard.core.settings.splitAllowedOn
 import com.wasimaster.wmkeyboard.core.settings.ToolbarColumn
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
 import com.wasimaster.wmkeyboard.core.settings.SecondToolbarPlace
+import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
 import com.wasimaster.wmkeyboard.core.settings.secondToolbarPlace
 import com.wasimaster.wmkeyboard.core.settings.ToolboxLayout
 import com.wasimaster.wmkeyboard.core.settings.ToolboxSort
@@ -872,7 +873,11 @@ internal fun AppearanceToolbarSettings(
                 ToolPickerDialog(
                     title = stringResource(R.string.appearance_second_toolbar_tools_title),
                     current = null,
-                    options = ToolbarTool.entries.filter { isSupportedTool(it) && it !in tools },
+                    // Not the action-only tools: they are never drawn as a
+                    // button, so one picked here would leave a gap in the row.
+                    options = ToolbarTool.entries.filter {
+                        isSupportedTool(it) && it !in ActionOnlyTools && it !in tools
+                    },
                     onDismiss = { picking = false },
                     onPick = { picked ->
                         picking = false

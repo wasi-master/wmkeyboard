@@ -17966,11 +17966,52 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOLBAR_STRIP_SHORTCUT)
     }
 
+    /**
+     * Turns the second toolbar (#1217) on or off. On also switches its tools
+     * on under Tools: a tool switched off there is drawn nowhere and does
+     * nothing when pressed, and the onboarding's smaller sets leave the row's
+     * own defaults (the clipboard trio, Select all, the line moves) off.
+     */
     suspend fun setSecondToolbar(value: Boolean) =
-        editPrefs { it[TOOLBAR_SECOND_ROW] = value }
+        editPrefs { prefs ->
+            prefs[TOOLBAR_SECOND_ROW] = value
+            if (value) {
+                val tools = prefs[TOOLBAR_SECOND_ROW_TOOLS]?.let { decodeToolNames(it) }
+                    ?: SettingsDefaults.toolbarBehavior.secondRowTools
+                enableToolsIn(prefs, tools)
+            }
+        }
 
+    /**
+     * The second toolbar's tools, in order. A tool new to the row is switched
+     * on under Tools as well, for the reason [setSecondToolbar] gives.
+     */
     suspend fun setSecondToolbarTools(value: List<ToolbarTool>) =
-        editPrefs { it[TOOLBAR_SECOND_ROW_TOOLS] = value.distinct().joinToString(",") { tool -> tool.name } }
+        editPrefs { prefs ->
+            val tools = value.distinct()
+            val before = prefs[TOOLBAR_SECOND_ROW_TOOLS]?.let { decodeToolNames(it) }
+                ?: SettingsDefaults.toolbarBehavior.secondRowTools
+            prefs[TOOLBAR_SECOND_ROW_TOOLS] = tools.joinToString(",") { tool -> tool.name }
+            enableToolsIn(prefs, tools - before.toSet())
+        }
+
+    /** [setToolEnabled]'s switch-on, for several tools in one write. */
+    private fun enableToolsIn(prefs: MutablePreferences, tools: Collection<ToolbarTool>) {
+        val disabled = decodeDisabledTools(prefs[DISABLED_TOOLS])
+        if (tools.none { it in disabled }) return
+        var next = disabled
+        for (tool in tools) {
+            if (tool !in next) continue
+            next = next - tool
+            val bundles = prefs[EXTENSIONS_ENABLED]?.let(Extension::decode) ?: Extension.All
+            val after = bundles.afterToolSwitch(tool, true, next)
+            if (after != bundles) {
+                prefs[EXTENSIONS_ENABLED] = after.mapTo(LinkedHashSet()) { ext -> ext.name }
+                Extension.owning(tool)?.let(::extensionMasterSwitch)?.let { prefs[it] = true }
+            }
+        }
+        prefs[DISABLED_TOOLS] = next.joinToString(",") { it.name }
+    }
 
     /** Moves the second toolbar's entry in the row order (#1217); see [withSecondToolbarAt]. */
     suspend fun setSecondToolbarPlace(place: SecondToolbarPlace) =

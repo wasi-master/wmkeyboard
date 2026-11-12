@@ -2167,7 +2167,9 @@ private fun KeyboardScreenFrame(
                 } else {
                     1
                 }
-                ) + (if (settings.toolbarBehavior.secondRow) 1 else 0)
+                ) + (
+                if (settings.toolbarBehavior.secondRow && settings.toolbarBehavior.secondRowTools.isNotEmpty()) 1 else 0
+                )
             val headroomDp = (
                 (gridDp(tallest) - gridDp(entry)) +
                     (SettingsRepository.MAX_BOTTOM_PADDING_DP - entry.bottomPaddingDp) +
@@ -11607,6 +11609,7 @@ private fun SecondToolbarRow(
     val labelSize = state.settings.toolbarLabelSize
     val labelMaxWidth = LocalKbTheme.current.toolWidthDp.takeIf { behavior.labelsFixedWidth }
     val tools = secondToolbarTools(state)
+    val dpadRing = LocalDpadRing.current
     val direction = if (toolbarReadsRtl(state)) LayoutDirection.Rtl else LayoutDirection.Ltr
     CompositionLocalProvider(LocalLayoutDirection provides direction) {
         Row(
@@ -11658,7 +11661,18 @@ private fun SecondToolbarRow(
                                 labelSizeSp = labelSize,
                                 labelMaxWidthDp = labelMaxWidth,
                                 wide = true,
-                                modifier = holdModifier.panelOrigin(),
+                                // The D-pad ring reaches it as it reaches the
+                                // bar (TV remotes), under an id of its own: a
+                                // tool on both rows is two targets.
+                                modifier = holdModifier
+                                    .panelOrigin()
+                                    .then(
+                                        if (dpadRing) {
+                                            Modifier.dpadTarget(SecondToolbarRingId(tool)) { onToolTap(tool) }
+                                        } else {
+                                            Modifier
+                                        },
+                                    ),
                                 interactive = false,
                             ) {}
                         }
@@ -11668,6 +11682,9 @@ private fun SecondToolbarRow(
         }
     }
 }
+
+/** A second-toolbar button's place in the D-pad ring (#1217), apart from the same tool on the bar. */
+private data class SecondToolbarRingId(val tool: ToolbarTool)
 
 /**
  * The pinned tools in a column down one side of the keys, for a phone on its
@@ -14518,7 +14535,11 @@ internal val FullBleedHeaderHeight = 46.dp
 internal fun toolPanelHeight(state: KeyboardUiState, wanted: Dp, floor: Dp): Dp {
     val rowsStandIn = barFullBleed(state) || barClipboardSearching(state) ||
         emojiPanelTyping(state)
+    // The second toolbar (#1217) stays through the two searches, so it is
+    // still around the panel there, as long as nothing full-bleed took it.
+    val secondStays = rowsStandIn && !barFullBleed(state) && secondToolbarShown(state)
     val around = (if (rowsStandIn) 0.dp else fullBleedHiddenRows(state, macroRowAtPanelOpen(state))) +
+        (if (secondStays) secondToolbarHeight(state.settings) else 0.dp) +
         (if (keyRowsUnderPanel(state)) keyRowsHeight(state) + captureStripHeight(state) else 0.dp) +
         bottomPaddingDp(state.settings).dp
     // Keys put down (#961): the panel takes their rows, so the keyboard keeps
@@ -15330,12 +15351,14 @@ private fun KeyboardBody(
                             }
                         }
                         // The second toolbar (#1217). Not gated on the
-                        // toolbar or the strip, which it is there to outlast;
-                        // a full-bleed panel and the searches that take the
-                        // bars take it like every other row.
-                        BarRow.SECOND_TOOLBAR -> if (
-                            secondToolbarShown(state) && !fullBleed && !emojiSearching && !clipboardSearching
-                        ) {
+                        // toolbar or the strip, which it is there to outlast.
+                        // A full-bleed panel takes it like every other row,
+                        // and [fullBleedHiddenRows] gives the panel its height.
+                        // The emoji and clipboard searches leave it, as they
+                        // leave the symbol and emoji rows: their panels make
+                        // up for the strip and the tools row they hide, and
+                        // nothing more, so hiding it there shrank the board.
+                        BarRow.SECOND_TOOLBAR -> if (secondToolbarShown(state) && !fullBleed) {
                             SecondToolbarRow(state, onToolTap, drag)
                         }
                         // Stands for the keys themselves: the split below draws
