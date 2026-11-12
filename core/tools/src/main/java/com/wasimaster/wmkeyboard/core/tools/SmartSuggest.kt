@@ -70,6 +70,13 @@ sealed interface ToolPrefill {
     data class Contact(val name: String, val number: String) : ToolPrefill
 
     /**
+     * "@weather dhaka": the plugin whose manifest claimed the keyword opens,
+     * and hears [query] through its `@plugin.keyword` callback. [name] is the
+     * plugin's, for the chip's face.
+     */
+    data class Plugin(val id: String, val name: String, val keyword: String, val query: String) : ToolPrefill
+
+    /**
      * Text the repeat chip found written [count] times already, with
      * [separator] between the copies. [runLength] is how many characters
      * before the cursor that run takes, so the tool can write it out properly
@@ -315,6 +322,8 @@ object SmartSuggest {
         // ---- search shortcuts ----
         /** "@gif cats" → a GIF search for "cats" (#1242); empty while the switch is off. */
         val searchTriggers: List<SearchTrigger> = emptyList(),
+        /** Plugin keywords, without the @, to the plugin's id and name; empty while the switch is off. */
+        val pluginKeywords: Map<String, Pair<String, String>> = emptyMap(),
     )
 
     /** Characters of context the scanners look back over. */
@@ -344,6 +353,7 @@ object SmartSuggest {
         if (ctx.sendLinkChips) detectSendLink(text)?.let { return it }
         // A search shortcut is asked for by name, so it outranks every guess below.
         if (ctx.searchTriggers.isNotEmpty()) detectSearch(text, ctx)?.let { return it }
+        if (ctx.pluginKeywords.isNotEmpty()) detectPluginKeyword(text, ctx)?.let { return it }
         val tail = text.takeLast(LOOKBEHIND)
         if (ctx.currencyEnabled) detectCurrency(tail, ctx)?.let { return it }
         if (ctx.unitsEnabled) detectUnit(tail, ctx)?.let { return it }
@@ -377,6 +387,25 @@ object SmartSuggest {
      * the tool on them. A contact shortcut raises the contact chip instead,
      * for the first saved name that starts with the words.
      */
+    private fun detectPluginKeyword(text: String, ctx: Context): SmartHit? {
+        // The same rules as a search shortcut: "@weather" starts a word and a
+        // space comes before the words. The target is a stand-in; only the
+        // prefix is read back.
+        val triggers = ctx.pluginKeywords.keys.map { SearchTrigger("@$it", SearchTarget.WEB) }
+        val found = SearchTriggers.match(text, triggers) ?: return null
+        val keyword = found.trigger.prefix.removePrefix("@")
+        val (id, name) = ctx.pluginKeywords[keyword] ?: return null
+        return SmartHit(
+            kind = Kind.SEARCH,
+            query = found.query,
+            result = null,
+            insert = null,
+            replaceSpan = found.span,
+            tool = ToolbarTool.PLUGINS,
+            prefill = ToolPrefill.Plugin(id, name, keyword, found.query),
+        )
+    }
+
     private fun detectSearch(text: String, ctx: Context): SmartHit? {
         val found = SearchTriggers.match(text, ctx.searchTriggers) ?: return null
         val target = found.trigger.target

@@ -58,7 +58,7 @@ API 5 adds three fields to [the manifest](/plugins/api-reference/#the-manifest):
 | Field | What it does |
 |---|---|
 | `hosts` | The websites `http` may reach. Required with `network`. See [Permissions](/plugins/permissions/#hosts). |
-| `tool` | Where the plugin shows up. With `tile`, the plugin comes first when the user adds a plugin button in [Custom buttons](/tools/custom-buttons/), which can sit on the toolbar, in the toolbox or on the floating button. A `keyword` is a word the user types as `@weather`; `chip` offers it on the suggestion strip. `icon` is a Material Symbols name. |
+| `tool` | Where the plugin shows up. With `tile`, the plugin comes first when the user adds a plugin button in [Custom buttons](/tools/custom-buttons/), which can sit on the toolbar, in the toolbox or on the floating button. A `keyword` is a word the user types as `@weather`; with `chip`, typing `@weather dhaka` offers the plugin on the suggestion strip while [Search shortcuts](/smart/chips/#search-shortcuts) are on, and a tap opens it and calls your `@plugin.keyword("weather")` function with `"dhaka"`. `icon` is a Material Symbols name. |
 | `settings` | Rows the app draws on your plugin's page: `switch`, `text`, `number`, `choice` and `host`. Read them as `plugin.settings.units`. A `host` setting adds the website the user types to the ones `http` may reach. |
 
 ### Several files

@@ -27207,6 +27207,7 @@ open class WMKeyboardService : InputMethodService() {
             ),
             contacts = contactPhones.takeIf { state.settings.smartChips.contacts && !it.isEmpty },
             searchTriggers = state.settings.smartChips.let { if (it.searchTriggers) it.searchTriggerList else emptyList() },
+            pluginKeywords = if (state.settings.smartChips.searchTriggers) pluginKeywordChips() else emptyMap(),
             repeatChips = state.settings.smartChips.repeats,
             repeatAfter = state.settings.smartChips.repeatAfter,
             // A copy, for the same reason as vocabRetired.
@@ -35408,7 +35409,16 @@ open class WMKeyboardService : InputMethodService() {
                 prefillTranslateFromHint()
                 prefillTranslateFromSelection()
             }
-            PanelMode.PLUGINS -> openPluginList()
+            PanelMode.PLUGINS -> {
+                openPluginList()
+                // "@weather dhaka" from the strip: straight into that plugin,
+                // which hears the words through its keyword callback.
+                (_uiState.value.toolPrefill as? ToolPrefill.Plugin)?.let { prefill ->
+                    onToolPrefillConsumed()
+                    onPluginOpen(prefill.id)
+                    pluginRuntime?.keyword(prefill.keyword, prefill.query)
+                }
+            }
             PanelMode.APP_LAUNCHER -> loadLauncherApps()
             PanelMode.TYPING_TEST -> {
                 // Flush the half-typed word first: the test swallows every
@@ -41168,6 +41178,16 @@ open class WMKeyboardService : InputMethodService() {
         ).also { pluginRuntime = it }
 
     private var pluginServicesOrNull: PluginKeyboardServices? = null
+
+    /**
+     * Keywords of plugins that asked for a strip chip, to the plugin's id and
+     * name. Read from the store's memory, which is cheap; the store says none
+     * while plugins are off.
+     */
+    private fun pluginKeywordChips(): Map<String, Pair<String, String>> =
+        PluginStore.get(this).keywordPlugins()
+            .filterValues { it.tool.chip }
+            .mapValues { (_, plugin) -> plugin.id to plugin.name }
 
     /**
      * What API 5 plugins reach through [com.wasimaster.wmkeyboard.core.plugins.PluginHost]:

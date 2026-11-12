@@ -47,4 +47,14 @@ class SearchTriggersTest {
         assertEquals(triggers, SearchTriggers.decode(SearchTriggers.encode(triggers)))
         assertEquals(emptyList<SearchTrigger>(), SearchTriggers.decode(SearchTriggers.encode(emptyList())))
     }
+
+    @Test
+    fun `a plugin keyword offers that plugin with the words`() {
+        val ctx = SmartSuggest.Context(pluginKeywords = mapOf("weather" to ("com.example.weather" to "Weather")))
+        val hit = SmartSuggest.detect("see @weather dhaka", ctx)!!
+        assertEquals(SmartSuggest.Kind.SEARCH, hit.kind)
+        assertEquals(ToolPrefill.Plugin("com.example.weather", "Weather", "weather", "dhaka"), hit.prefill)
+        assertEquals("@weather dhaka".length, hit.replaceSpan)
+        assertNull(SmartSuggest.detect("@weatherdhaka", ctx))
+    }
 }
