@@ -224,6 +224,11 @@
     <string name="voice_resume_info">When the keyboard goes away with the voice panel, the compact bar or the collapsed bar on screen, the next text field you tap opens on the same view and starts listening.\n\nTo stop that, leave voice typing before you close the keyboard: press Back or the close button on the panel or the compact bar, the keyboard button on the collapsed bar, or the Voice tool. The keyboard then opens on the keys as usual until you start voice typing again. Password fields always open on the keys.</string>
     <string name="voice_pause_media_title">Pause media during voice typing</string>
     <string name="voice_pause_media_subtitle">Pause music and video while the microphone listens</string>
+    <!-- A sound of the user's own when the microphone opens (#1260). -->
+    <string name="voice_start_sound_title">Sound when the mic opens</string>
+    <string name="voice_start_sound_subtitle">Play a sound you pick each time voice typing starts listening</string>
+    <string name="voice_start_sound_none">None</string>
+    <string name="voice_start_sound_custom">Your sound</string>
     <string name="voice_mic_title">Microphone</string>
     <string name="voice_mic_subtitle">Prefer a Bluetooth, wired or USB microphone when one is connected</string>
     <string name="voice_mic_info">Which microphone voice typing listens through. Automatic uses the one Android picks, which is a plugged-in headset before the phone. Pick a kind to prefer it whenever one is connected. When it is not connected, voice typing uses the automatic choice.\n\nOffline Whisper and the transcription server can use every kind. The system recognizer records the audio itself, so for it only Bluetooth has an effect.\n\nThe microphone button on the voice panel and both voice bars shows the microphone in use. Tap it to switch to the next one that is connected.</string>

@@ -1490,6 +1490,7 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         row(R.string.voice_hold_picks_title, R.string.voice_hold_picks_subtitle),
         row(R.string.voice_resume_title, R.string.voice_resume_subtitle),
         row(R.string.voice_pause_media_title, R.string.voice_pause_media_subtitle),
+        row(R.string.voice_start_sound_title, R.string.voice_start_sound_subtitle),
         row(R.string.voice_mic_switch_title, R.string.voice_mic_switch_subtitle),
         row(R.string.voice_mic_title, R.string.voice_mic_subtitle),
         row(R.string.voice_engine_picker_title, R.string.voice_engine_picker_subtitle),

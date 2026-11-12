@@ -549,6 +549,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 R.string.voice_hold_picks_title,
                 R.string.voice_resume_title,
                 R.string.voice_pause_media_title,
+                R.string.voice_start_sound_title,
                 R.string.voice_mic_switch_title,
                 R.string.voice_engine_picker_title,
             ).map { stringResource(it) }.joinToString(", ")
@@ -580,6 +581,11 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 info = stringResource(R.string.voice_pause_media_info),
                 default = SettingsDefaults.voiceBar.pauseMedia,
             ) { scope.launch { repository.setVoicePauseMedia(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            VoiceStartSoundRow(settings.watch { it.voiceBar.startSound }) { picked ->
+                scope.launch { repository.setVoiceStartSound(picked) }
+            }
         }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
@@ -1622,4 +1628,45 @@ private fun clipHoldActionLabels(): Map<ClipHoldAction, String> = ClipHoldAction
             ClipHoldAction.DELETE -> CommonR.string.common_delete
         },
     )
+}
+
+/**
+ * The sound the microphone opens with (#1260), picked in Android's own sound
+ * picker, which lists the phone's notification sounds and lets the user add
+ * one of their own. "None" in the picker is no sound, the default.
+ */
+@Composable
+private fun VoiceStartSoundRow(uri: String, onPick: (String) -> Unit) {
+    val context = LocalContext.current
+    val launcher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode != android.app.Activity.RESULT_OK) return@rememberLauncherForActivityResult
+        @Suppress("DEPRECATION")
+        val picked: Uri? = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            result.data?.getParcelableExtra(android.media.RingtoneManager.EXTRA_RINGTONE_PICKED_URI, Uri::class.java)
+        } else {
+            result.data?.getParcelableExtra(android.media.RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+        }
+        onPick(picked?.toString().orEmpty())
+    }
+    val name = if (uri.isEmpty()) {
+        stringResource(R.string.voice_start_sound_none)
+    } else {
+        remember(uri) {
+            runCatching { android.media.RingtoneManager.getRingtone(context, Uri.parse(uri))?.getTitle(context) }.getOrNull()
+        } ?: stringResource(R.string.voice_start_sound_custom)
+    }
+    NavRow(
+        R.string.voice_start_sound_title,
+        stringResource(R.string.voice_start_sound_subtitle),
+        value = name,
+    ) {
+        val intent = Intent(android.media.RingtoneManager.ACTION_RINGTONE_PICKER)
+            .putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_TYPE, android.media.RingtoneManager.TYPE_NOTIFICATION)
+            .putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
+            .putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, false)
+            .putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, uri.takeIf { it.isNotEmpty() }?.let(Uri::parse))
+        runCatching { launcher.launch(intent) }
+    }
 }

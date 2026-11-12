@@ -6701,6 +6701,14 @@ data class VoiceBarSettings(
      */
     val pauseMedia: Boolean = false,
     /**
+     * A sound of the user's own when the microphone opens (#1260): the
+     * content address of a sound picked in Android's sound picker, or empty
+     * for none, the default. Played once a session, not between the phrases
+     * of a continuous one. It cannot stand in for the earcon Google's
+     * recognizer plays itself, which no other app can switch off.
+     */
+    val startSound: String = "",
+    /**
      * The language chip on the compact bar over the keys (#603), the panel's
      * #416 choice in the strip's one line. Off by default: the line is short,
      * and the status text is what it is mostly for.
@@ -12743,6 +12751,7 @@ class SettingsRepository(private val context: Context) {
         private val VOICE_SYSTEM_INPUT = booleanPreferencesKey("voice_system_input")
         private val VOICE_RESUME_ON_SHOW = booleanPreferencesKey("voice_resume_on_show")
         private val VOICE_PAUSE_MEDIA = booleanPreferencesKey("voice_pause_media")
+        private val VOICE_START_SOUND = stringPreferencesKey("voice_start_sound")
         private val VOICE_STRIP_LANGUAGE_CHIP = booleanPreferencesKey("voice_strip_language_chip")
         private val VOICE_MIC = stringPreferencesKey("voice_mic")
         private val VOICE_MIC_SWITCH = booleanPreferencesKey("voice_mic_switch")
@@ -15402,6 +15411,7 @@ class SettingsRepository(private val context: Context) {
             systemInput = p[VOICE_SYSTEM_INPUT] ?: defaults.voiceBar.systemInput,
             resumeOnShow = p[VOICE_RESUME_ON_SHOW] ?: defaults.voiceBar.resumeOnShow,
             pauseMedia = p[VOICE_PAUSE_MEDIA] ?: defaults.voiceBar.pauseMedia,
+            startSound = p[VOICE_START_SOUND] ?: defaults.voiceBar.startSound,
             stripLanguageChip = p[VOICE_STRIP_LANGUAGE_CHIP] ?: defaults.voiceBar.stripLanguageChip,
             mic = p[VOICE_MIC]?.takeIf { it in VoiceBarSettings.MICS } ?: defaults.voiceBar.mic,
             micSwitch = p[VOICE_MIC_SWITCH] ?: defaults.voiceBar.micSwitch,
@@ -17051,6 +17061,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVoicePauseMedia(value: Boolean) =
         editPrefs { it[VOICE_PAUSE_MEDIA] = value }
+
+    /** [VoiceBarSettings.startSound]; empty for none. */
+    suspend fun setVoiceStartSound(value: String) =
+        editPrefs { if (value.isEmpty()) it.remove(VOICE_START_SOUND) else it[VOICE_START_SOUND] = value }
 
     suspend fun setVoiceStripLanguageChip(value: Boolean) =
         editPrefs { it[VOICE_STRIP_LANGUAGE_CHIP] = value }

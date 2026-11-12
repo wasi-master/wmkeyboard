@@ -4992,6 +4992,23 @@ open class WMKeyboardService : InputMethodService() {
                     holdMediaFocus(listening)
                 }
         }
+        // The user's own sound when the microphone opens (#1260). Once a
+        // session: a continuous one reopens the microphone between phrases,
+        // and a gap shorter than the one the audio focus waits out is the
+        // same session going on, not a new one.
+        serviceScope.launch {
+            var closedAt = 0L
+            _uiState.map { it.voice.status == VoiceStatus.LISTENING }
+                .distinctUntilChanged()
+                .collect { listening ->
+                    val now = SystemClock.uptimeMillis()
+                    if (!listening) {
+                        closedAt = now
+                    } else if (closedAt == 0L || now - closedAt > VOICE_MEDIA_RESUME_MS) {
+                        playVoiceStartSound(_uiState.value.settings.voiceBar.startSound)
+                    }
+                }
+        }
         // A headset's voice link is what a call uses, and music on the headset
         // drops to call quality while it is up (#581). [startVoice] takes it;
         // it goes back once the microphone has been shut for the same moment
@@ -36081,6 +36098,24 @@ open class WMKeyboardService : InputMethodService() {
     private fun voiceSessionAlive(): Boolean =
         _uiState.value.panel == PanelMode.VOICE || _uiState.value.voice.strip ||
             voiceBarShowing()
+
+    /** The ringtone [playVoiceStartSound] last started, stopped before the next. */
+    private var voiceStartRingtone: android.media.Ringtone? = null
+
+    /** Plays [uri], the picked start sound (#1260); nothing for an empty one or a sound that will not load. */
+    private fun playVoiceStartSound(uri: String) {
+        if (uri.isEmpty()) return
+        runCatching {
+            voiceStartRingtone?.stop()
+            voiceStartRingtone = android.media.RingtoneManager.getRingtone(this, android.net.Uri.parse(uri))?.apply {
+                audioAttributes = android.media.AudioAttributes.Builder()
+                    .setUsage(android.media.AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build()
+                play()
+            }
+        }
+    }
 
     private fun startVoice() {
         // A microphone held open across the last clip's transcription (#957)
