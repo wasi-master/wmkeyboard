@@ -133,10 +133,19 @@ pub const MISSING_BUILTINS: &[&str] = &[
 ];
 
 /// `wm` members that do not exist and never will: plugins have no way to read
-/// typed text, the clipboard, files or the network.
+/// typed text or reach the file system. (The network, the clipboard and the
+/// field are API 5 modules: see [WM_PACKAGE].)
 pub const NEVER: &[&str] = &[
-    "text", "clipboard", "http", "net", "network", "field", "insert", "type", "input", "contacts", "files", "fs",
-    "exec", "keys", "send", "fetch", "request", "location", "notify",
+    "text", "net", "network", "insert", "type", "input", "contacts", "fs", "exec", "keys", "send", "fetch",
+    "request",
+];
+
+/// The modules of the API 5 `wm` package (`from wm import plugin, ui, http`).
+/// Their members are not modelled here, so code using them is not checked
+/// name by name; the interpreter and the host check them when they run.
+pub const WM_PACKAGE: &[&str] = &[
+    "plugin", "ui", "http", "ai", "field", "clipboard", "location", "files", "sensors", "scan", "device", "share",
+    "notify", "secrets", "reminders", "storage", "log", "timestamp",
 ];
 
 /// Names that do not exist here but have a counterpart that does.
@@ -267,7 +276,7 @@ fn build() -> Model {
     use ApiKind::*;
 
     // ---- wm ---------------------------------------------------------------
-    add("wm", Module, None, None, "The host API, there in every plugin without an import: log, plugin_id, ui.set_input, timestamp and, with their permissions, storage and reminders. There is no way to read typed text, the clipboard, files or the network.");
+    add("wm", Module, None, None, "The host API, there in every plugin without an import: log, plugin_id, ui.set_input, timestamp and, with their permissions, storage and reminders. API 5 plugins import from it instead: from wm import plugin, ui, http.");
     add("wm.api_version", Constant, None, None, "The plugin API level this keyboard runs: 4.");
     add("wm.plugin_id", Constant, None, None, "The id from your plugin.json.");
     add("wm.plugin_version", Constant, None, None, "The pluginVersion from your plugin.json.");

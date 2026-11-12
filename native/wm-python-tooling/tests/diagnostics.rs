@@ -55,7 +55,7 @@ fn cases() -> Vec<(&'static str, String, String, Host)> {
         ("unknown_member", s("wm.zzzzzzzz()\n"), s("wm.log()\n"), host()),
         ("member_typo", s("wm.lgo('x')\n"), s("wm.log('x')\n"), host()),
         ("use_instead", s("wm.json.decode('1')\n"), s("import json\njson.loads('1')\n"), host()),
-        ("never_in_api", s("x = wm.clipboard\n"), s("x = wm.plugin_id\n"), host()),
+        ("never_in_api", s("x = wm.keys\n"), s("x = wm.plugin_id\n"), host()),
         ("storage_not_declared", s("wm.storage.get('a')\n"), s("wm.plugin_id\n"), with(|h| h.storage = Some(false))),
         ("reminders_not_declared", s("wm.reminders.list()\n"), s("wm.log()\n"), with(|h| h.reminders = Some(false))),
         ("selection_not_declared", s("def transform(text, action):\n    return text\n"), s("def change(text, action):\n    return text + action\n"), with(|h| h.selection = Some(false))),
@@ -246,4 +246,11 @@ fn an_assignment_inside_a_function_to_a_module_variable_it_also_reads_is_flagged
     // A local that shadows on purpose, and is read, is left alone.
     let source = "result = 0\n\n\ndef f():\n    result = 2\n    return result\n";
     assert!(!codes(source, &host()).contains(&"accidental_global"));
+}
+
+#[test]
+fn an_api_5_plugin_importing_the_wm_package_earns_nothing() {
+    let source = "from wm import plugin, ui, http, storage\n\nstate = plugin.state(city=\"Dhaka\")\n\n@plugin.every(minutes=30)\ndef refresh():\n    r = http.get(\"https://api.example.com/\", params={\"q\": state.city})\n    storage[\"last\"] = r.text\n\ndef render():\n    with ui.card(title=\"Today\"):\n        ui.label(state.city)\n";
+    let found = serious(source, &panel());
+    assert!(found.is_empty(), "{found:#?}");
 }

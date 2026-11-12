@@ -96,7 +96,7 @@ codes! {
     UnknownMember = "unknown_member", Warning, "“{0}” does not exist.";
     MemberTypo = "member_typo", Warning, "“{0}” does not exist. Did you mean “{1}”?";
     UseInstead = "use_instead", Warning, "“{0}” does not exist here. Use “{1}”.";
-    NeverInApi = "never_in_api", Error, "“{0}” does not exist: plugins cannot read typed text, the clipboard, files or the network.";
+    NeverInApi = "never_in_api", Error, "“{0}” does not exist: plugins cannot see keystrokes or the file system.";
     StorageNotDeclared = "storage_not_declared", Warning, "wm.storage needs the storage permission in plugin.json.";
     RemindersNotDeclared = "reminders_not_declared", Warning, "wm.reminders needs the reminders permission in plugin.json.";
     SelectionNotDeclared = "selection_not_declared", Warning, "transform() runs selection actions, which need the selection permission in plugin.json.";

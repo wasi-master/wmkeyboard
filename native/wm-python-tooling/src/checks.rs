@@ -132,7 +132,9 @@ impl<'a> Checks<'a> {
     fn rebinding(&mut self) {
         let a = self.a;
         for s in &a.symbols {
-            if api::API_GLOBALS.contains(&s.name.as_str()) && s.kind != SymbolKind::Parameter {
+            // `from wm import ui` names the API 5 module; that is the point, not a clash.
+            let from_wm = s.kind == SymbolKind::Import && s.import.as_ref().is_some_and(|(m, _)| m == "wm");
+            if api::API_GLOBALS.contains(&s.name.as_str()) && s.kind != SymbolKind::Parameter && !from_wm {
                 if s.scope == 0 {
                     self.add(Code::ReplacesApi, s.declaration, &[&s.name]);
                 }
@@ -162,6 +164,9 @@ impl<'a> Checks<'a> {
                     return;
                 }
                 for n in names {
+                    if module == "wm" && api::WM_PACKAGE.contains(&n.name.as_str()) {
+                        continue;
+                    }
                     let full = format!("{module}.{}", n.name);
                     self.member(module, &n.name, &full, n.span);
                 }
@@ -186,6 +191,8 @@ impl<'a> Checks<'a> {
                     let s = &self.a.symbols[id];
                     match &s.import {
                         Some((module, None)) if api::MODULES.contains(&module.as_str()) => Some(module.clone()),
+                        // An API 5 package module: not modelled, so not checked.
+                        Some((module, Some(member))) if module == "wm" && api::WM_PACKAGE.contains(&member.as_str()) => None,
                         Some((module, Some(member))) if api::MODULES.contains(&module.as_str()) || module == "wm" => {
                             Some(format!("{module}.{member}"))
                         }
@@ -263,7 +270,9 @@ impl<'a> Checks<'a> {
             if f.required() > 0 {
                 self.add(Code::RenderParameters, f.name_span, &[]);
             }
-            if !f.returns_value {
+            // API 5 draws with `with ui.column():` blocks and returns nothing.
+            let wm_package = a.symbols.iter().any(|s| s.import.as_ref().is_some_and(|(m, _)| m == "wm"));
+            if !f.returns_value && !wm_package {
                 self.add(Code::RenderReturnsNothing, f.name_span, &[]);
             }
         }

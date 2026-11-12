@@ -35,7 +35,7 @@
     <string name="py_diag_unknown_member">“%1$s” does not exist.</string>
     <string name="py_diag_member_typo">“%1$s” does not exist. Did you mean “%2$s”?</string>
     <string name="py_diag_use_instead">“%1$s” does not exist here. Use “%2$s”.</string>
-    <string name="py_diag_never_in_api">“%1$s” does not exist: plugins cannot read typed text, the clipboard, files or the network.</string>
+    <string name="py_diag_never_in_api">“%1$s” does not exist: plugins cannot see keystrokes or the file system.</string>
     <string name="py_diag_storage_not_declared">wm.storage needs the storage permission in plugin.json.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders needs the reminders permission in plugin.json.</string>
     <string name="py_diag_selection_not_declared">transform() runs selection actions, which need the selection permission in plugin.json.</string>
