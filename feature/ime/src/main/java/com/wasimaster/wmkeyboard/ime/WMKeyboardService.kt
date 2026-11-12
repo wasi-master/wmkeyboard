@@ -30383,6 +30383,11 @@ open class WMKeyboardService : InputMethodService() {
         val after = next?.toString()
         return when {
             spaceToStepOver(after) -> PickSpacing("", pickCaretOffset(spaced = true), false)
+            // A web editor's space is not stepped over (#760), but it is still
+            // there: typing another in front of it doubled every word picked
+            // over one in the middle of a sentence (#1286). The caret stays on
+            // the word, in front of the space it already has.
+            spacedAfterCaret(after) -> PickSpacing("", 1, false)
             markHugsCaretWord(after) -> PickSpacing("", 1, true)
             else -> PickSpacing(" ", 1, false)
         }
