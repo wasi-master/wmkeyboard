@@ -2403,6 +2403,18 @@ open class WMKeyboardService : InputMethodService() {
     private var wordEndedByEnter = false
 
     /**
+     * A strip pick that left the caret on the end of its word (#1285): no
+     * space after it (Space after a suggestion off, No space, a mark that
+     * hugs the word, a web editor's own space). The caret update answering
+     * the commit has the shape of a tap at a word's end, and resuming there
+     * re-armed the word just picked, so Enter or Space then autocorrected the
+     * spelling the user had chosen over the correction: `multiplr` kept,
+     * `multiple` sent. Spent like [wordEndedByEnter], by the first caret
+     * update after the pick, and cleared by any key.
+     */
+    private var wordEndedByPick = false
+
+    /**
      * The editor action the app asked for in an [APP_COMMAND_IME_ACTION]
      * private command, which outranks what its EditorInfo declared (#908).
      * Null until one arrives for this field; every start clears it.
@@ -11467,6 +11479,7 @@ open class WMKeyboardService : InputMethodService() {
         // that answers it. Cleared here so a field that reports no update at
         // all cannot leave it armed over the next word the user types.
         wordEndedByEnter = false
+        wordEndedByPick = false
         // Typing deliberately does NOT dismiss the recent-copy strip chip. It
         // used to (Gboard style), but the common case is typing a few words and
         // *then* wanting the copy — a username before a pasted password, a
@@ -17785,6 +17798,13 @@ open class WMKeyboardService : InputMethodService() {
         // [wordEndedByEnter], which this spends.
         if (wordEndedByEnter) {
             wordEndedByEnter = false
+            refreshSmartSuggestion()
+            return
+        }
+        // And for the caret settling at the end of a word just picked off the
+        // strip with no space after it. See [wordEndedByPick].
+        if (wordEndedByPick) {
+            wordEndedByPick = false
             refreshSmartSuggestion()
             return
         }
@@ -30234,6 +30254,7 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
         ic.commitText(committed + tail, pickCaretOffset(spaced))
+        wordEndedByPick = tail.isEmpty() && !spaced
         // That space is the keyboard's, so a mark typed next takes it back and
         // hugs the word — "word:" and not "word :" (issue #34). Same one-shot a
         // glide's space gets, and it needs the same guard: without it the
@@ -30395,6 +30416,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Arms the one-shot that goes with the space [spacing] typed or held back. */
     private fun armSplicedPickSpace(spacing: PickSpacing) {
+        wordEndedByPick = spacing.tail.isEmpty() && spacing.caretOffset == 1
         when {
             spacing.tail.isNotEmpty() -> {
                 pendingWordSpace = true
@@ -58498,6 +58520,7 @@ open class WMKeyboardService : InputMethodService() {
         lastGestureWord = null
         pendingAutoSpace = false
         wordEndedByEnter = false
+        wordEndedByPick = false
     }
 
     /**
