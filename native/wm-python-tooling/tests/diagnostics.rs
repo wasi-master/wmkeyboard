@@ -40,12 +40,12 @@ fn cases() -> Vec<(&'static str, String, String, Host)> {
         ("mixed_indentation", s("if True:\n \tx = 1\n"), s("if True:\n\tx = 1\n"), host()),
         ("syntax_expected", s("x = = 1\n"), s("x = 1\n"), host()),
         ("syntax_at_end", s("x = 1 +\n"), s("x = 1 + 2\n"), host()),
-        ("unsupported", s("class A:\n    pass\n"), s("def a():\n    pass\n"), host()),
+        ("unsupported", s("async def a():\n    pass\n"), s("def a():\n    pass\n"), host()),
         ("undefined_name", s("print(zzz)\n"), s("zzz = 1\nprint(zzz)\n"), host()),
         ("name_typo", s("count = 1\nprint(cuont)\n"), s("count = 1\nprint(count)\n"), host()),
         ("module_not_imported", s("x = math.pi\n"), s("import math\nx = math.pi\n"), host()),
         ("removed_builtin", s("open('f')\n"), s("len('f')\n"), host()),
-        ("missing_builtin", s("x = getattr\n"), s("x = len\n"), host()),
+        ("missing_builtin", s("x = frozenset\n"), s("x = len\n"), host()),
         ("import_not_available", s("import os\n"), s("import json\n"), host()),
         ("unused_local", s("def f():\n    x = 1\n    return 2\n"), s("def f():\n    x = 1\n    return x\n"), host()),
         ("unused_parameter", s("def f(a):\n    return 1\n"), s("def f(a):\n    return a\n"), host()),
@@ -157,36 +157,47 @@ fn name_checks_wait_while_the_file_has_a_syntax_error() {
 }
 
 #[test]
+fn what_the_interpreter_runs_is_not_flagged() {
+    let sources = [
+        "class A:\n    pass\n",
+        "class B(Exception):\n    def __init__(self, x):\n        super().__init__(x)\n",
+        "class M:\n    def __enter__(self):\n        return self\n    def __exit__(self, *a):\n        return False\nwith M() as m:\n    pass\n",
+        "def dec(f):\n    return f\n@dec\ndef f():\n    pass\n",
+        "def outer():\n    n = 0\n    def inner():\n        nonlocal n\n        n += 1\n    inner()\n",
+        "assert 1 == 1, 'ok'\n",
+        "def f(a, *, b=1, **kw):\n    return a\n",
+        "def f(x: int) -> int:\n    return x\n",
+        "count: int = 1\n",
+        "d = {'a': 1}\nprint(dict(**d))\n",
+        "x = [*range(3)]\n",
+        "try:\n    pass\nexcept ValueError as e:\n    raise TypeError('x') from e\n",
+        "import json, time\n",
+        "x = b'ab'\n",
+        "from dataclasses import dataclass\nimport urllib.parse\n",
+    ];
+    for source in sources {
+        let d = diagnostics(source, &host());
+        let bad: Vec<_> = d.iter().filter(|d| d.code == Code::Unsupported || d.code == Code::ImportNotAvailable).map(|d| (d.code.name(), d.args.clone())).collect();
+        assert!(bad.is_empty(), "{source:?}: {bad:?}");
+    }
+}
+
+#[test]
 fn every_unsupported_construct_is_named() {
     let cases = [
-        ("class A:\n    pass\n", "class"),
-        ("with open('f') as f:\n    pass\n", "with"),
         ("def f():\n    yield 1\n", "yield"),
         ("async def f():\n    pass\n", "async"),
         ("async def f():\n    await g()\n", "await"),
         ("match x:\n    case 1:\n        pass\n", "match"),
-        ("@dec\ndef f():\n    pass\n", "decorators"),
-        ("def f():\n    nonlocal x\n", "nonlocal"),
-        ("assert x\n", "assert"),
-        ("def f(**kw):\n    pass\n", "**kwargs"),
         ("from math import *\n", "import *"),
         ("if (n := 3):\n    pass\n", ":="),
         ("x = 1 << 2\n", "bit shifts"),
         ("x = a @ b\n", "@"),
-        ("def f(x: int):\n    pass\n", "annotations"),
-        ("def f() -> int:\n    pass\n", "annotations"),
-        ("x: int = 1\n", "annotations"),
         ("x = ~1\n", "~"),
-        ("f(**d)\n", "** unpacking"),
         ("a, *b = [1, 2]\n", "starred assignment"),
-        ("x = [*a]\n", "* unpacking outside a call"),
         ("x = ...\n", "..."),
-        ("raise ValueError() from e\n", "raise ... from"),
-        ("import json, time\n", "importing several modules in one statement"),
         ("x = 2j\n", "complex numbers"),
-        ("x = b'ab'\n", "b\"\" bytes literals"),
         ("x |= 1\n", "|="),
-        ("def f(a, *, b):\n    pass\n", "keyword-only parameters"),
     ];
     for (source, what) in cases {
         let d = diagnostics(source, &host());

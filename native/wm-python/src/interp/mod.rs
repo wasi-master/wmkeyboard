@@ -26,6 +26,7 @@
 mod ast;
 mod builtins;
 mod bytes;
+mod classes;
 mod datefmt;
 mod error;
 mod eval;
@@ -37,6 +38,7 @@ mod methods;
 mod modules;
 mod parser;
 mod regex;
+mod stdlib;
 mod text;
 mod value;
 
@@ -49,7 +51,7 @@ pub use eval::{Limits, MAX_CALL_DEPTH};
 pub use host::{Call, FromPy, HostFunction, HostModule};
 pub use modules::{exports as module_exports, Clock, SystemClock, NAMES as STANDARD_MODULES, VERSION, VERSION_LINE};
 pub use regex::Match;
-pub use value::{ExceptionValue, Function, HKey, Value};
+pub use value::{Class, ExceptionValue, Function, HKey, Instance, Object, Value};
 
 pub(crate) use datefmt::local_to_unix;
 pub(crate) use text::{display_text, take_utf16, utf16_len};
@@ -172,6 +174,37 @@ impl Runtime {
     /// Every module name a script could import right now, sorted.
     pub fn importable_modules(&self) -> Vec<String> {
         self.interp.importable_modules()
+    }
+
+    /// A module written in Python that scripts can import as [name] (dotted
+    /// for a module inside a package). Its top level runs on first import, in
+    /// this runtime and on the importing call's budget. A [package] is the
+    /// source of `pkg/__init__.py`, which relative imports resolve against.
+    pub fn add_source_module(&mut self, name: &str, source: &str, package: bool) {
+        self.interp.source_modules.insert(name.to_string(), Rc::from(source));
+        if package {
+            self.interp.packages.insert(name.to_string());
+        }
+    }
+
+    /// Turn on the standard library modules written for this crate:
+    /// collections, dataclasses, datetime, enum, functools, itertools,
+    /// typing, string, textwrap, html, base64, hashlib, hmac, uuid,
+    /// urllib.parse, statistics, abc and copy. Each loads on first import.
+    pub fn enable_python_stdlib(&mut self) {
+        if !self.interp.enabled_modules.contains(&"_native") {
+            self.interp.enabled_modules.push("_native");
+        }
+        for (name, source, package) in stdlib::PYTHON_MODULES {
+            if !self.interp.source_modules.contains_key(*name) {
+                self.add_source_module(name, source, *package);
+            }
+        }
+    }
+
+    /// The names of the standard library modules [enable_python_stdlib] adds.
+    pub fn python_stdlib_names() -> Vec<&'static str> {
+        stdlib::PYTHON_MODULES.iter().map(|(n, _, _)| *n).collect()
     }
 
     // MARK: - Running scripts

@@ -40,7 +40,7 @@ fn ceilings_on_a_1500_line_plugin() {
     let source = plugin();
     let lines = source.lines().count();
     assert!((1500..1600).contains(&lines));
-    let host = Host { panel: Some(true), storage: Some(false), reminders: Some(false), selection: Some(false), actions: Some(vec![]), verdict: None };
+    let host = Host { panel: Some(true), storage: Some(false), reminders: Some(false), selection: Some(false), actions: Some(vec![]), modules: None, verdict: None };
     let lex = best(5, || lex_str(&source));
     let analyse = best(5, || {
         let doc = Document::new(&source);

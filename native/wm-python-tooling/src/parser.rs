@@ -4,9 +4,10 @@
 //! spreads past its own line: the line becomes an [`StmtKind::Error`] that
 //! keeps its names, and the next line parses as if nothing had happened. A
 //! block header that does not parse still owns the lines indented under it.
-//! Python that PyMini does not run (`class`, `with`, decorators, `**kwargs`
-//! and the rest) is parsed as well as it can be and listed in
-//! [`Module::unsupported`].
+//! Python the interpreter does not run (`yield`, `async`, `match`, `:=` and
+//! the rest) is parsed as well as it can be and listed in
+//! [`Module::unsupported`]. Classes, `with`, decorators, `nonlocal`,
+//! `assert`, annotations, `**kwargs` and spreads run, so they parse quietly.
 //!
 //! Recursion is bounded: brackets nested past [`MAX_NESTING`] and blocks past
 //! [`MAX_BLOCKS`] stop parsing deeper, and long operator chains are built as
@@ -501,7 +502,14 @@ impl<'a> Parser<'a> {
     }
 
     fn check_exception_type(&mut self, e: &Expr) {
-        if !matches!(e.kind, ExprKind::Name(_)) {
+        fn dotted(e: &Expr) -> bool {
+            match &e.kind {
+                ExprKind::Name(_) => true,
+                ExprKind::Attribute { value, .. } => dotted(value),
+                _ => false,
+            }
+        }
+        if !dotted(e) {
             self.unsupported(e.span, "exception types other than plain names");
         }
     }
@@ -525,9 +533,9 @@ impl<'a> Parser<'a> {
             }
         }
         if !self.failed && self.is_op("->") {
-            let s = self.t.span(self.advance());
+            self.advance();
             let _ = self.test();
-            self.unsupported(self.span_from(s.start), "annotations");
+            
         }
         let header_end = if !self.failed && self.is_op(":") { self.t.end(self.cur().unwrap()) } else { self.last_end };
         let header = Span::new(start, header_end);
@@ -544,11 +552,10 @@ impl<'a> Parser<'a> {
     fn params(&mut self, close: &str, annotations: bool) -> Params {
         let mut params = Params::default();
         while !self.at_end() && !self.is_op(close) {
-            let star_start = self.start_here();
             if self.eat_op("**") {
                 match self.name() {
                     Ok((n, s)) => {
-                        self.unsupported(self.span_from(star_start), "**kwargs");
+                        
                         params.kwarg = Some(Param { name: n, span: s, default: None });
                     }
                     Err(()) => break,
@@ -557,23 +564,21 @@ impl<'a> Parser<'a> {
                 if self.is_name() {
                     let (n, s) = self.name().unwrap();
                     params.vararg = Some(Param { name: n, span: s, default: None });
-                } else {
-                    self.unsupported(self.span_from(star_start), "keyword-only parameters");
                 }
             } else if self.eat_op("/") {
-                self.unsupported(self.span_from(star_start), "positional-only parameters");
+                
             } else {
                 let (n, s) = match self.name() {
                     Ok(x) => x,
                     Err(()) => break,
                 };
                 if annotations && self.is_op(":") {
-                    let a = self.t.start(self.advance());
+                    self.advance();
                     if self.test().is_err() {
                         params.params.push(Param { name: n, span: s, default: None });
                         break;
                     }
-                    self.unsupported(self.span_from(a), "annotations");
+                    
                 }
                 let mut default = None;
                 if self.eat_op("=") {
@@ -596,8 +601,8 @@ impl<'a> Parser<'a> {
 
     fn class_stmt(&mut self, depth: u32) -> Stmt {
         let start = self.start_here();
-        let kw = self.t.span(self.advance());
-        self.unsupported(kw, "class");
+        self.advance();
+        
         let mut binds = Vec::new();
         let mut exprs = Vec::new();
         if let Ok((n, s)) = self.name() {
@@ -624,8 +629,8 @@ impl<'a> Parser<'a> {
 
     fn with_stmt(&mut self, depth: u32) -> Stmt {
         let start = self.start_here();
-        let kw = self.t.span(self.advance());
-        self.unsupported(kw, "with");
+        self.advance();
+        
         let mut exprs = Vec::new();
         let mut binds = Vec::new();
         loop {
@@ -695,7 +700,7 @@ impl<'a> Parser<'a> {
         if let Ok(e) = self.test() {
             exprs.push(e);
         }
-        self.unsupported(self.span_from(start), "decorators");
+        
         let span = self.span_from(start);
         self.flush_line();
         self.li += 1;
@@ -736,9 +741,9 @@ impl<'a> Parser<'a> {
                 } else {
                     let e = self.test()?;
                     if self.is_kw("from") {
-                        let s = self.t.start(self.advance());
+                        self.advance();
                         self.test()?;
-                        self.unsupported(self.span_from(s), "raise ... from");
+                        
                     }
                     StmtKind::Raise(Some(e))
                 }
@@ -753,7 +758,7 @@ impl<'a> Parser<'a> {
                     }
                 }
                 if word == "nonlocal" {
-                    self.unsupported(self.span_from(start), "nonlocal");
+                    
                     let exprs = names.into_iter().map(|(n, s)| Expr { kind: ExprKind::Name(n), span: s }).collect();
                     StmtKind::Unsupported { what: "nonlocal", exprs, binds: Vec::new(), body: Vec::new() }
                 } else {
@@ -783,7 +788,7 @@ impl<'a> Parser<'a> {
                     }
                 }
                 if names.len() > 1 {
-                    self.unsupported(self.span_from(start), "importing several modules in one statement");
+                    
                 }
                 StmtKind::Import(names)
             }
@@ -828,8 +833,8 @@ impl<'a> Parser<'a> {
                 StmtKind::ImportFrom { module, module_span, names, star }
             }
             "assert" => {
-                let kw = self.t.span(self.advance());
-                self.unsupported(kw, "assert");
+                self.advance();
+                
                 let mut exprs = vec![self.test()?];
                 if self.eat_op(",") {
                     exprs.push(self.test()?);
@@ -871,9 +876,9 @@ impl<'a> Parser<'a> {
                     return Ok(Stmt { kind: StmtKind::AugAssign { target: first, op, value }, span: self.span_from(start) });
                 }
                 if op == ":" {
-                    let a = self.t.start(self.advance());
+                    self.advance();
                     let annotation = self.test()?;
-                    self.unsupported(self.span_from(a), "annotations");
+                    
                     let value = if self.eat_op("=") { Some(self.expr_list(true)?) } else { None };
                     return Ok(Stmt { kind: StmtKind::AnnAssign { target: first, annotation, value }, span: self.span_from(start) });
                 }
@@ -1262,7 +1267,7 @@ impl<'a> Parser<'a> {
         if self.eat_op("**") {
             let inner = self.test()?;
             let span = self.span_from(start);
-            self.unsupported(span, "** unpacking");
+            
             return Ok(Arg::Positional(Expr { kind: ExprKind::DoubleStarred(Box::new(inner)), span }));
         }
         if self.eat_op("*") {
@@ -1499,9 +1504,7 @@ impl<'a> Parser<'a> {
                 items.push(self.list_item(true)?);
             }
             self.expect_op(")")?;
-            let e = Expr { kind: ExprKind::Tuple(items), span: self.span_from(start) };
-            self.check_no_star(&e);
-            return Ok(e);
+            return Ok(Expr { kind: ExprKind::Tuple(items), span: self.span_from(start) });
         }
         self.expect_op(")")?;
         if let ExprKind::Starred(_) = first.kind {
@@ -1541,13 +1544,6 @@ impl<'a> Parser<'a> {
         }
         self.expect_op("]")?;
         let e = Expr { kind: ExprKind::List(items), span: self.span_from(start) };
-        if let ExprKind::List(items) = &e.kind {
-            for item in items {
-                if let ExprKind::Starred(_) = item.kind {
-                    self.unsupported(item.span, "* unpacking outside a call");
-                }
-            }
-        }
         Ok(e)
     }
 
@@ -1600,11 +1596,6 @@ impl<'a> Parser<'a> {
             items.push(self.list_item(true)?);
         }
         self.expect_op("}")?;
-        for item in &items {
-            if let ExprKind::Starred(_) = item.kind {
-                self.unsupported(item.span, "* unpacking outside a call");
-            }
-        }
         Ok(Expr { kind: ExprKind::Set(items), span: self.span_from(start) })
     }
 
@@ -1614,7 +1605,7 @@ impl<'a> Parser<'a> {
                 let s = self.t.start(self.advance());
                 let inner = self.bitor()?;
                 let span = self.span_from(s);
-                self.unsupported(span, "** unpacking");
+                
                 pairs.push((Expr { kind: ExprKind::DoubleStarred(Box::new(inner)), span }, Expr { kind: ExprKind::Error, span }));
             } else {
                 let key = self.test()?;

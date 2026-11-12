@@ -88,21 +88,40 @@ pub(crate) struct Comprehension {
     pub clauses: Vec<CompClause>,
 }
 
+/// A parameter list: `(a, b=1, *rest, c, d=2, **options)`.
+#[derive(Debug, Default)]
+pub(crate) struct Params {
+    pub positional: Vec<Param>,
+    pub variadic: Option<Rc<str>>,
+    /// Parameters after `*` or `*rest`, which only a keyword can fill.
+    pub keyword_only: Vec<Param>,
+    pub kwargs: Option<Rc<str>>,
+}
+
 /// A `def`: shared between the statement and every function value it makes.
 #[derive(Debug)]
 pub(crate) struct FuncDef {
     pub name: Rc<str>,
-    pub params: Vec<Param>,
-    pub variadic: Option<Rc<str>>,
+    pub params: Params,
     pub body: Vec<Stmt>,
+    /// `@decorator` lines, top first. Applied bottom up.
+    pub decorators: Vec<Expr>,
 }
 
 /// A `lambda`.
 #[derive(Debug)]
 pub(crate) struct LambdaDef {
-    pub params: Vec<Param>,
-    pub variadic: Option<Rc<str>>,
+    pub params: Params,
     pub body: Expr,
+}
+
+/// A `class`.
+#[derive(Debug)]
+pub(crate) struct ClassDef {
+    pub name: Rc<str>,
+    pub bases: Vec<Expr>,
+    pub body: Vec<Stmt>,
+    pub decorators: Vec<Expr>,
 }
 
 /// Expression nodes.
@@ -113,6 +132,7 @@ pub(crate) enum Expr {
     Int(i64),
     Float(f64),
     Str(Rc<str>),
+    Bytes(Rc<[u8]>),
     FString(Vec<FPart>),
     Name(Rc<str>),
     List(Vec<Expr>),
@@ -124,6 +144,7 @@ pub(crate) enum Expr {
     /// Chained comparison: `left op a op b …`.
     Compare(Box<Expr>, Vec<(CmpOp, Expr)>),
     Ternary(Box<(Expr, Expr, Expr)>),
+    /// A keyword named `**` is a `**mapping` spread.
     Call(Box<Expr>, Vec<Expr>, Vec<(Rc<str>, Expr)>),
     Index(Box<Expr>, Box<Expr>),
     Slice(Box<(Expr, Option<Expr>, Option<Expr>, Option<Expr>)>),
@@ -131,7 +152,8 @@ pub(crate) enum Expr {
     Tuple(Vec<Expr>),
     Lambda(Rc<LambdaDef>),
     Comprehension(Box<Comprehension>),
-    /// `*seq` spread inside a call's argument list.
+    /// `*seq` spread inside a call's argument list or a list, tuple or set
+    /// display; inside a dict display, `**mapping` (with an `Expr::None` value).
     Starred(Box<Expr>),
 }
 
@@ -162,6 +184,13 @@ pub(crate) enum StmtKind {
     While(Expr, Vec<Stmt>, Option<Vec<Stmt>>),
     For(Expr, Expr, Vec<Stmt>, Option<Vec<Stmt>>),
     FuncDef(Rc<FuncDef>),
+    ClassDef(Rc<ClassDef>),
+    /// `with a as x, b:` → [(a, Some(x)), (b, None)].
+    With(Vec<(Expr, Option<Expr>)>, Vec<Stmt>),
+    /// `x: int = 1`: the target, the annotation's plain name when it is one, and the value.
+    AnnAssign(Expr, Option<Rc<str>>, Option<Expr>),
+    Assert(Expr, Option<Expr>),
+    Nonlocal(Vec<Rc<str>>),
     Return(Option<Expr>),
     Break,
     Continue,

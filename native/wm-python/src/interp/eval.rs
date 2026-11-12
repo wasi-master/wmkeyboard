@@ -8,6 +8,8 @@
 
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
+
+use super::builtins::EXCEPTION_KINDS;
 use std::rc::{Rc, Weak};
 use std::sync::atomic::{AtomicBool, Ordering as AtomicOrdering};
 use std::sync::Arc;
@@ -30,15 +32,35 @@ const PRINTF_TYPES: &[&str] = &["s", "d", "i", "f", "g", "e", "E", "x", "X", "o"
 
 /// A lexical scope. Functions capture the one they were defined in.
 pub(crate) struct Env {
-    pub vars: RefCell<HashMap<Rc<str>, Value>>,
+    pub vars: RefCell<IndexMap<Rc<str>, Value>>,
     /// Names this scope declared `global`, so assigning them writes to the module.
     pub global_names: RefCell<HashSet<Rc<str>>>,
+    /// Names this scope declared `nonlocal`, so assigning them writes to the enclosing function's.
+    pub nonlocal_names: RefCell<HashSet<Rc<str>>>,
     pub parent: Option<Rc<Env>>,
+    /// A class body: its names are not visible to the functions defined in it.
+    pub class_scope: bool,
 }
 
 impl Env {
     pub fn new(parent: Option<Rc<Env>>) -> Rc<Env> {
-        Rc::new(Env { vars: RefCell::new(HashMap::new()), global_names: RefCell::new(HashSet::new()), parent })
+        Rc::new(Env {
+            vars: RefCell::new(IndexMap::new()),
+            global_names: RefCell::new(HashSet::new()),
+            nonlocal_names: RefCell::new(HashSet::new()),
+            parent,
+            class_scope: false,
+        })
+    }
+
+    pub fn class_body(parent: Rc<Env>) -> Rc<Env> {
+        Rc::new(Env {
+            vars: RefCell::new(IndexMap::new()),
+            global_names: RefCell::new(HashSet::new()),
+            nonlocal_names: RefCell::new(HashSet::new()),
+            parent: Some(parent),
+            class_scope: true,
+        })
     }
 
     pub fn root(self: &Rc<Env>) -> Rc<Env> {
@@ -56,13 +78,18 @@ impl Env {
 
     pub fn get(self: &Rc<Env>, name: &str) -> Option<Value> {
         let mut e: &Rc<Env> = self;
+        let mut own = true;
         loop {
             if e.is_global(name) {
                 return e.root().vars.borrow().get(name).cloned();
             }
-            if let Some(v) = e.vars.borrow().get(name) {
-                return Some(v.clone());
+            // A class body's names are seen from the body itself, never from a method.
+            if own || !e.class_scope {
+                if let Some(v) = e.vars.borrow().get(name) {
+                    return Some(v.clone());
+                }
             }
+            own = false;
             match &e.parent {
                 Some(p) => e = p,
                 None => return None,
@@ -75,15 +102,46 @@ impl Env {
             self.root().vars.borrow_mut().insert(name.clone(), value);
             return;
         }
+        if self.is_nonlocal(name) {
+            self.enclosing_with(name).vars.borrow_mut().insert(name.clone(), value);
+            return;
+        }
         self.vars.borrow_mut().insert(name.clone(), value);
+    }
+
+    fn is_nonlocal(&self, name: &str) -> bool {
+        let n = self.nonlocal_names.borrow();
+        !n.is_empty() && n.contains(name)
+    }
+
+    /// The nearest enclosing function scope that binds [name], or the nearest
+    /// enclosing function scope when none does yet.
+    fn enclosing_with(self: &Rc<Env>, name: &str) -> Rc<Env> {
+        let mut fallback = None;
+        let mut e = self.parent.clone();
+        while let Some(scope) = e {
+            if scope.parent.is_none() {
+                break;
+            }
+            if !scope.class_scope {
+                if scope.vars.borrow().contains_key(name) {
+                    return scope;
+                }
+                if fallback.is_none() {
+                    fallback = Some(scope.clone());
+                }
+            }
+            e = scope.parent.clone();
+        }
+        fallback.unwrap_or_else(|| self.clone())
     }
 
     /// `del x`. Returns whether anything was bound.
     pub fn remove(self: &Rc<Env>, name: &str) -> bool {
         if self.is_global(name) {
-            return self.root().vars.borrow_mut().remove(name).is_some();
+            return self.root().vars.borrow_mut().shift_remove(name).is_some();
         }
-        if self.vars.borrow_mut().remove(name).is_some() {
+        if self.vars.borrow_mut().shift_remove(name).is_some() {
             return true;
         }
         match &self.parent {
@@ -140,7 +198,27 @@ pub(crate) struct Interp {
     pub clock: Rc<dyn Clock>,
     /// Every scope a function closed over, so dropping the runtime can break
     /// the function ↔ scope reference cycles.
-    closures: Vec<Weak<Env>>,
+    pub(crate) closures: Vec<Weak<Env>>,
+    /// Every class and instance made, for the same reason.
+    pub(crate) classes: Vec<Weak<Class>>,
+    pub(crate) instances: Vec<Weak<Instance>>,
+    /// Exception classes by name, so `except` can follow their bases.
+    pub(crate) exception_classes: HashMap<Rc<str>, Rc<Class>>,
+    /// The instance the latest `raise` threw, with its kind and message.
+    pub(crate) raised: Option<(Rc<str>, String, Value)>,
+    active_instance: Option<Value>,
+    /// The functions running now, innermost last, with their scopes: what `super()` reads.
+    pub(crate) frames: Vec<(Rc<Function>, Rc<Env>)>,
+    /// Modules written in Python that a script may import, by dotted name.
+    pub(crate) source_modules: HashMap<String, Rc<str>>,
+    /// Which of those are packages (`pkg/__init__.py`), for relative imports.
+    pub(crate) packages: HashSet<String>,
+    /// The ones loaded so far, by dotted name.
+    pub(crate) module_envs: HashMap<String, Rc<Env>>,
+    /// The module whose top level is running: `__main__`, or one being imported.
+    pub(crate) current_module: Rc<str>,
+    pub(crate) repr_depth: u32,
+    pub(crate) plain_object: Option<Rc<Class>>,
 }
 
 impl Drop for Interp {
@@ -150,6 +228,24 @@ impl Drop for Interp {
                 env.vars.borrow_mut().clear();
             }
         }
+        for w in self.instances.drain(..) {
+            if let Some(i) = w.upgrade() {
+                i.attrs.borrow_mut().clear();
+            }
+        }
+        for w in self.classes.drain(..) {
+            if let Some(c) = w.upgrade() {
+                c.attrs.borrow_mut().clear();
+            }
+        }
+        for env in self.module_envs.values() {
+            env.vars.borrow_mut().clear();
+        }
+        self.module_envs.clear();
+        self.exception_classes.clear();
+        self.frames.clear();
+        self.raised = None;
+        self.active_instance = None;
         self.globals.vars.borrow_mut().clear();
         self.host_functions.clear();
         self.host_modules.clear();
@@ -162,7 +258,7 @@ pub(crate) fn err(message: impl Into<String>, kind: &str, line: u32) -> Exc {
 
 impl Interp {
     pub fn new(limits: Limits, modules: &[&str], clock: Rc<dyn Clock>) -> Interp {
-        let enabled = modules::NAMES.iter().copied().filter(|m| modules.contains(m)).collect();
+        let enabled = modules::ALL_NAMES.iter().copied().filter(|m| modules.contains(m)).collect();
         Interp {
             globals: Env::new(None),
             max_steps: limits.steps,
@@ -184,6 +280,18 @@ impl Interp {
             deadline: None,
             clock,
             closures: Vec::new(),
+            classes: Vec::new(),
+            instances: Vec::new(),
+            exception_classes: HashMap::new(),
+            raised: None,
+            active_instance: None,
+            frames: Vec::new(),
+            source_modules: HashMap::new(),
+            packages: HashSet::new(),
+            module_envs: HashMap::new(),
+            current_module: Rc::from("__main__"),
+            repr_depth: 0,
+            plain_object: None,
         }
     }
 
@@ -300,8 +408,16 @@ impl Interp {
             StmtKind::For(target, iterable, body, else_body) => {
                 self.exec_for(target, iterable, body, else_body.as_deref(), env)
             }
-            StmtKind::FuncDef(def) => {
-                self.exec_def(def, env);
+            StmtKind::FuncDef(def) => self.exec_def(def, env),
+            StmtKind::ClassDef(def) => self.exec_class(def, env),
+            StmtKind::With(items, body) => self.exec_with(items, body, env),
+            StmtKind::AnnAssign(target, ann, value) => self.exec_ann_assign(target, ann.as_ref(), value.as_ref(), env),
+            StmtKind::Assert(test, message) => self.exec_assert(test, message.as_ref(), env),
+            StmtKind::Nonlocal(names) => {
+                let mut n = env.nonlocal_names.borrow_mut();
+                for name in names {
+                    n.insert(name.clone());
+                }
                 Ok(())
             }
             StmtKind::Return(value) => Err(self.exec_return(value.as_ref(), env)),
@@ -357,7 +473,8 @@ impl Interp {
     #[inline(never)]
     fn exec_if(&mut self, branches: &[(Expr, Vec<Stmt>)], else_body: Option<&[Stmt]>, env: &Rc<Env>) -> R<()> {
         for (cond, body) in branches {
-            if self.eval(cond, env)?.truthy() {
+            let c = self.eval(cond, env)?;
+            if self.truth(&c)? {
                 return self.exec_block(body, env);
             }
         }
@@ -369,7 +486,11 @@ impl Interp {
 
     #[inline(never)]
     fn exec_while(&mut self, cond: &Expr, body: &[Stmt], else_body: Option<&[Stmt]>, env: &Rc<Env>) -> R<()> {
-        while self.eval(cond, env)?.truthy() {
+        loop {
+            let c = self.eval(cond, env)?;
+            if !self.truth(&c)? {
+                break;
+            }
             self.tick()?;
             match self.exec_block(body, env) {
                 Ok(()) | Err(Exc::Continue) => {}
@@ -403,10 +524,19 @@ impl Interp {
     }
 
     #[inline(never)]
-    fn exec_def(&mut self, def: &Rc<FuncDef>, env: &Rc<Env>) {
+    fn exec_def(&mut self, def: &Rc<FuncDef>, env: &Rc<Env>) -> R<()> {
+        let mut decorators = Vec::with_capacity(def.decorators.len());
+        for d in &def.decorators {
+            decorators.push(self.eval(d, env)?);
+        }
         self.track_closure(env);
-        let f = Function { name: def.name.clone(), body: FnBody::Def(def.clone()), closure: env.clone() };
-        env.define(&def.name, Value::Function(Rc::new(f)));
+        let f = Function::new(def.name.clone(), FnBody::Def(def.clone()), env.clone());
+        let mut value = Value::Function(Rc::new(f));
+        for d in decorators.iter().rev() {
+            value = self.call_value(d, vec![value], Vec::new())?;
+        }
+        env.define(&def.name, value);
+        Ok(())
     }
 
     #[inline(never)]
@@ -449,18 +579,22 @@ impl Interp {
                     let handler = stmt
                         .handlers
                         .iter()
-                        .find(|h| h.types.is_empty() || h.types.iter().any(|t| exception_matches(t, &error.kind)));
+                        .find(|h| h.types.is_empty() || h.types.iter().any(|t| self.exception_is(t, &error.kind)));
                     match handler {
                         Some(h) => {
                             let value = Rc::new(ExceptionValue { kind: error.kind.clone(), message: error.message.clone() });
+                            let caught = self.caught_value(&error);
+                            self.raised = None;
                             if let Some(b) = &h.binding {
-                                env.define(b, Value::Exception(value.clone()));
+                                env.define(b, caught.clone());
                             }
                             let saved = self.active_exception.replace(value);
+                            let saved_instance = self.active_instance.replace(caught);
                             if let Err(e) = self.exec_block(&h.body, env) {
                                 pending = Some(e);
                             }
                             self.active_exception = saved;
+                            self.active_instance = saved_instance;
                         }
                         None => pending = Some(Exc::Error(error)),
                     }
@@ -480,6 +614,9 @@ impl Interp {
 
     fn exec_raise(&mut self, e: Option<&Expr>, env: &Rc<Env>) -> Exc {
         let Some(e) = e else {
+            if let Some(Value::Instance(inst)) = self.active_instance.clone() {
+                return self.raise_instance(&inst);
+            }
             return match &self.active_exception {
                 Some(active) => err(active.message.clone(), &active.kind, self.current_line),
                 None => self.error("no active exception to re-raise", "RuntimeError"),
@@ -489,14 +626,22 @@ impl Interp {
             Err(x) => x,
             Ok(Value::Exception(ex)) => err(ex.message.clone(), &ex.kind, self.current_line),
             Ok(Value::Str(s)) => err(s.to_string(), "Exception", self.current_line),
+            Ok(Value::Instance(inst)) => self.raise_instance(&inst),
+            Ok(Value::Class(c)) if c.exception_root.is_some() => match self.construct(&c, Vec::new(), Vec::new()) {
+                Ok(Value::Instance(inst)) => self.raise_instance(&inst),
+                Ok(_) => self.error("exceptions must derive from Exception", "TypeError"),
+                Err(x) => x,
+            },
+            Ok(Value::Builtin(kind)) if EXCEPTION_KINDS.contains(&kind.as_ref()) => err("", &kind, self.current_line),
             Ok(v) => self.error(format!("exceptions must be an exception type, not '{}'", v.type_name()), "TypeError"),
         }
     }
 
     /// Every module name a script could import right now.
     pub fn importable_modules(&self) -> Vec<String> {
-        let mut out: Vec<String> = self.enabled_modules.iter().map(|s| s.to_string()).collect();
-        out.extend(self.host_modules.keys().filter(|k| !k.contains('.')).cloned());
+        let mut out: Vec<String> = self.enabled_modules.iter().filter(|s| !s.starts_with('_')).map(|s| s.to_string()).collect();
+        out.extend(self.host_modules.keys().filter(|k| !k.contains('.') && !k.starts_with('_')).cloned());
+        out.extend(self.source_modules.keys().filter(|k| !k.contains('.') && !k.starts_with('_')).cloned());
         out.sort();
         out.dedup();
         out
@@ -509,29 +654,51 @@ impl Interp {
         names: Option<&[(Rc<str>, Option<Rc<str>>)]>,
         env: &Rc<Env>,
     ) -> R<()> {
-        if !self.enabled_modules.contains(&module.as_ref()) && !self.host_modules.contains_key(module.as_ref()) {
-            return Err(self.error(
-                format!("no module named '{module}' (available: {})", self.importable_modules().join(", ")),
-                "ImportError",
-            ));
-        }
+        let module = self.resolve_module(module)?;
+        self.ensure_module(&module)?;
         let Some(names) = names else {
-            env.define(alias.unwrap_or(module), Value::Module(module.clone()));
+            match alias {
+                Some(a) => env.define(a, Value::Module(module.clone())),
+                None => {
+                    // `import a.b` binds `a`, through which `a.b` is reached.
+                    let top: Rc<str> = Rc::from(module.split('.').next().unwrap_or(&module));
+                    env.define(&top, Value::Module(top.clone()));
+                }
+            }
             return Ok(());
         };
         for (name, rename) in names {
-            let value = self
-                .member(module, name)
-                .ok_or_else(|| self.error(format!("cannot import name '{name}' from '{module}'"), "ImportError"))?;
+            let value = match self.member(&module, name) {
+                Some(v) => v,
+                None => {
+                    let sub = format!("{module}.{name}");
+                    if !self.module_exists(&sub) {
+                        return Err(self.error(format!("cannot import name '{name}' from '{module}'"), "ImportError"));
+                    }
+                    self.ensure_module(&sub)?;
+                    Value::Module(Rc::from(sub))
+                }
+            };
             env.define(rename.as_ref().unwrap_or(name), value);
         }
         Ok(())
     }
 
-    /// `module.name`, looking at the host's modules before the standard ones.
+    /// `module.name`, looking at the host's modules, then modules written in
+    /// Python, then the standard ones.
     pub fn member(&self, module: &str, name: &str) -> Option<Value> {
         if let Some(m) = self.host_modules.get(module) {
-            return m.member(name);
+            if let Some(v) = m.member(name) {
+                return Some(v);
+            }
+            let sub = format!("{module}.{name}");
+            if self.host_modules.contains_key(&sub) || self.module_envs.contains_key(&sub) {
+                return Some(Value::Module(Rc::from(sub)));
+            }
+            return None;
+        }
+        if self.module_envs.contains_key(module) {
+            return self.source_member(module, name);
         }
         modules::member(module, name)
     }
@@ -543,10 +710,19 @@ impl Interp {
                     return Err(self.error(format!("name '{n}' is not defined"), "NameError"));
                 }
             }
+            Expr::Attribute(obj, name) => {
+                let o = self.eval(obj, env)?;
+                self.del_attr(&o, name)?;
+            }
             Expr::Index(base, idx) => {
                 let base = self.eval(base, env)?;
                 let idx = self.eval(idx, env)?;
                 match &base {
+                    Value::Instance(_) => {
+                        if self.dunder(&base, "__delitem__", vec![idx.clone()])?.is_none() {
+                            return Err(self.error(format!("'{}' object does not support item deletion", base.type_name()), "TypeError"));
+                        }
+                    }
                     Value::List(l) => {
                         let n = l.borrow().len();
                         let i = self.list_index(&idx, n)?;
@@ -572,9 +748,13 @@ impl Interp {
 
     // MARK: - Assignment
 
-    fn assign(&mut self, target: &Expr, value: Value, env: &Rc<Env>) -> R<()> {
+    pub(crate) fn assign(&mut self, target: &Expr, value: Value, env: &Rc<Env>) -> R<()> {
         match target {
             Expr::Name(n) => env.define(n, value),
+            Expr::Attribute(obj, name) => {
+                let o = self.eval(obj, env)?;
+                self.set_attr(&o, name, value)?;
+            }
             Expr::Tuple(items) => {
                 let parts = self.iterate(&value)?;
                 if parts.len() != items.len() {
@@ -600,6 +780,7 @@ impl Interp {
                         let key = self.hashable(&idx)?;
                         d.borrow_mut().insert(key, value);
                     }
+                    Value::Instance(_) if self.dunder(&base, "__setitem__", vec![idx.clone(), value.clone()])?.is_some() => {}
                     _ => {
                         return Err(self.error(
                             format!("'{}' object does not support item assignment", base.type_name()),
@@ -623,6 +804,7 @@ impl Interp {
             Expr::Int(i) => Ok(Value::Int(*i)),
             Expr::Float(f) => Ok(Value::Float(*f)),
             Expr::Str(s) => Ok(Value::Str(s.clone())),
+            Expr::Bytes(b) => Ok(Value::Bytes(b.clone())),
             Expr::FString(parts) => self.eval_fstring(parts, env),
             Expr::Name(n) => self.eval_name(n, env),
             Expr::List(items) => self.eval_items(items, env).map(Value::list),
@@ -634,7 +816,8 @@ impl Interp {
             Expr::BoolOp(kind, l, r) => self.eval_bool_op(*kind, l, r, env),
             Expr::Compare(left, pairs) => self.eval_compare(left, pairs, env),
             Expr::Ternary(t) => {
-                if self.eval(&t.0, env)?.truthy() {
+                let c = self.eval(&t.0, env)?;
+                if self.truth(&c)? {
                     self.eval(&t.1, env)
                 } else {
                     self.eval(&t.2, env)
@@ -673,6 +856,14 @@ impl Interp {
     fn eval_items(&mut self, items: &[Expr], env: &Rc<Env>) -> R<Vec<Value>> {
         let mut out = Vec::with_capacity(items.len());
         for i in items {
+            if let Expr::Starred(inner) = i {
+                let v = self.eval(inner, env)?;
+                out.extend(self.iterate(&v)?);
+                if out.len() > self.max_container {
+                    return Err(self.container_abort("list"));
+                }
+                continue;
+            }
             out.push(self.eval(i, env)?);
         }
         Ok(out)
@@ -682,6 +873,16 @@ impl Interp {
     fn eval_dict(&mut self, pairs: &[(Expr, Expr)], env: &Rc<Env>) -> R<Value> {
         let mut d = IndexMap::new();
         for (k, v) in pairs {
+            if let Expr::Starred(inner) = k {
+                let m = self.eval(inner, env)?;
+                for (hk, item) in self.mapping_pairs(&m)? {
+                    d.insert(hk, item);
+                }
+                if d.len() > self.max_container {
+                    return Err(self.container_abort("dict"));
+                }
+                continue;
+            }
             let key = self.eval(k, env)?;
             let hk = self.hashable(&key)?;
             let v = self.eval(v, env)?;
@@ -693,8 +894,7 @@ impl Interp {
     #[inline(never)]
     fn eval_set(&mut self, items: &[Expr], env: &Rc<Env>) -> R<Value> {
         let mut s = IndexSet::new();
-        for i in items {
-            let v = self.eval(i, env)?;
+        for v in self.eval_items(items, env)? {
             s.insert(self.hashable(&v)?);
         }
         Ok(Value::new_set(s))
@@ -716,9 +916,10 @@ impl Interp {
     #[inline(never)]
     fn eval_bool_op(&mut self, kind: BoolKind, l: &Expr, r: &Expr, env: &Rc<Env>) -> R<Value> {
         let lv = self.eval(l, env)?;
+        let t = self.truth(&lv)?;
         match kind {
-            BoolKind::And if lv.truthy() => self.eval(r, env),
-            BoolKind::Or if !lv.truthy() => self.eval(r, env),
+            BoolKind::And if t => self.eval(r, env),
+            BoolKind::Or if !t => self.eval(r, env),
             _ => Ok(lv),
         }
     }
@@ -765,11 +966,7 @@ impl Interp {
     #[inline(never)]
     fn eval_lambda(&mut self, def: &Rc<LambdaDef>, env: &Rc<Env>) -> Value {
         self.track_closure(env);
-        Value::Function(Rc::new(Function {
-            name: Rc::from("<lambda>"),
-            body: FnBody::Lambda(def.clone(), self.current_line),
-            closure: env.clone(),
-        }))
+        Value::Function(Rc::new(Function::new(Rc::from("<lambda>"), FnBody::Lambda(def.clone(), self.current_line), env.clone())))
     }
 
     #[inline(never)]
@@ -783,9 +980,22 @@ impl Interp {
                 a.push(self.eval(arg, env)?);
             }
         }
-        let mut kw = Vec::with_capacity(kwargs.len());
+        let mut kw: Vec<(Rc<str>, Value)> = Vec::with_capacity(kwargs.len());
         for (k, v) in kwargs {
-            kw.push((k.clone(), self.eval(v, env)?));
+            let value = self.eval(v, env)?;
+            if k.as_ref() == "**" {
+                for (hk, item) in self.mapping_pairs(&value)? {
+                    let HKey::Str(name) = hk else {
+                        return Err(self.error("keywords must be strings", "TypeError"));
+                    };
+                    if kw.iter().any(|(n, _)| *n == name) {
+                        return Err(self.error(format!("got multiple values for keyword argument '{name}'"), "TypeError"));
+                    }
+                    kw.push((name, item));
+                }
+                continue;
+            }
+            kw.push((k.clone(), value));
         }
         // `obj.method(...)` dispatches directly, with no bound-method value in between.
         if let Expr::Attribute(obj, name) = callee {
@@ -806,14 +1016,27 @@ impl Interp {
                 FPart::Literal(t) => out.push_str(t),
                 FPart::Expression { expr, conversion, spec } => {
                     let value = self.eval(expr, env)?;
-                    let converted =
-                        if *conversion == Some(FConversion::Repr) { Value::str(py_repr(&value)) } else { value };
+                    let converted = match (conversion, &value) {
+                        (Some(FConversion::Repr), _) => Value::str(self.to_repr(&value)?),
+                        (_, Value::Instance(_)) if spec.is_some() => match self.dunder(&value, "__format__", vec![Value::str("")])? {
+                            Some(_) => value,
+                            None => Value::str(self.to_str(&value)?),
+                        },
+                        _ => value,
+                    };
                     match spec {
                         Some(s) => {
                             let spec = self.interpolate(s, env)?;
-                            out.push_str(&py_format(&converted, &spec)?);
+                            if let Value::Instance(_) = converted {
+                                match self.dunder(&converted, "__format__", vec![Value::str(&spec)])? {
+                                    Some(Value::Str(f)) => out.push_str(&f),
+                                    _ => return Err(self.error("__format__ must return a str", "TypeError")),
+                                }
+                            } else {
+                                out.push_str(&py_format(&converted, &spec)?);
+                            }
                         }
-                        None => out.push_str(&py_str(&converted)),
+                        None => out.push_str(&self.to_str(&converted)?),
                     }
                 }
             }
@@ -878,7 +1101,8 @@ impl Interp {
                 if !keep {
                     break;
                 }
-                keep = self.eval(cond, scope)?.truthy();
+                let c = self.eval(cond, scope)?;
+                keep = self.truth(&c)?;
             }
             if keep {
                 self.comp_step(c, i + 1, scope, acc)?;
@@ -893,6 +1117,57 @@ impl Interp {
     /// exceptions and matches have, and (an addition) a dict's string keys.
     pub fn attribute(&mut self, obj: &Value, name: &str) -> R<Value> {
         match obj {
+            Value::Instance(inst) => match self.instance_attr(inst, name)? {
+                Some(v) => Ok(v),
+                None => Err(self.error(format!("'{}' object has no attribute '{name}'", inst.class.name), "AttributeError")),
+            },
+            Value::Class(c) => {
+                self.class_attr(c, name).ok_or_else(|| self.error(format!("type object '{}' has no attribute '{name}'", c.name), "AttributeError"))
+            }
+            Value::Object(o) => match o.as_ref() {
+                Object::Super { class, receiver } => {
+                    let (class, receiver) = (class.clone(), receiver.clone());
+                    match self.super_attr(&class, &receiver, name)? {
+                        Some(v) => Ok(v),
+                        None => Err(self.error(format!("'super' object has no attribute '{name}'"), "AttributeError")),
+                    }
+                }
+                Object::Property { get, set } => match name {
+                    "setter" => Ok(Value::Object(Rc::new(Object::Bound(obj.clone(), Value::Builtin(Rc::from(super::classes::HIDDEN_PROPERTY_SETTER)))))),
+                    "getter" => Ok(Value::Object(Rc::new(Object::Bound(obj.clone(), Value::Builtin(Rc::from(super::classes::HIDDEN_PROPERTY_GETTER)))))),
+                    "fget" => Ok(get.clone()),
+                    "fset" => Ok(set.clone()),
+                    _ => Err(self.error(format!("'property' object has no attribute '{name}'"), "AttributeError")),
+                },
+                Object::Bound(receiver, f) => match name {
+                    "__self__" => Ok(receiver.clone()),
+                    "__func__" => Ok(f.clone()),
+                    "__name__" => match f {
+                        Value::Function(f) => Ok(Value::Str(f.name.clone())),
+                        other => Ok(Value::str(other.to_str())),
+                    },
+                    _ => Err(self.error(format!("'method' object has no attribute '{name}'"), "AttributeError")),
+                },
+                _ => Err(self.error(format!("'{}' object has no attribute '{name}'", obj.type_name()), "AttributeError")),
+            },
+            Value::Function(f) => match name {
+                "__name__" | "__qualname__" => Ok(Value::Str(f.name.clone())),
+                "__doc__" => Ok(Value::None),
+                _ => Err(self.error(format!("'function' object has no attribute '{name}'"), "AttributeError")),
+            },
+            Value::Builtin(b) if b.as_ref() == "object" => {
+                let hidden = match name {
+                    "__setattr__" => super::classes::HIDDEN_OBJECT_SETATTR,
+                    "__getattribute__" | "__getattr__" => super::classes::HIDDEN_OBJECT_GETATTR,
+                    "__init__" => super::classes::HIDDEN_BASE_INIT,
+                    "__new__" => super::classes::HIDDEN_OBJECT_NEW,
+                    "__str__" => super::classes::HIDDEN_DEFAULT_STR,
+                    "__repr__" => super::classes::HIDDEN_DEFAULT_REPR,
+                    _ => return Err(self.error(format!("type object 'object' has no attribute '{name}'"), "AttributeError")),
+                };
+                Ok(Value::Builtin(Rc::from(hidden)))
+            }
+            Value::Builtin(b) if name == "__name__" => Ok(Value::Str(b.clone())),
             Value::Module(m) => self
                 .member(m, name)
                 .ok_or_else(|| self.error(format!("module '{m}' has no attribute '{name}'"), "AttributeError")),
@@ -933,6 +1208,31 @@ impl Interp {
                 self.call_module(&m, &n, args, kwargs)
             }
             Value::HostFunction(f) => self.call_host(f, args, kwargs),
+            Value::Class(c) => {
+                let c = c.clone();
+                self.construct(&c, args, kwargs)
+            }
+            Value::Object(o) => match o.as_ref() {
+                Object::Bound(receiver, f) => {
+                    let mut all = Vec::with_capacity(args.len() + 1);
+                    all.push(receiver.clone());
+                    all.extend(args);
+                    let f = f.clone();
+                    self.call_value(&f, all, kwargs)
+                }
+                Object::StaticMethod(f) | Object::ClassMethod(f) => {
+                    let f = f.clone();
+                    self.call_value(&f, args, kwargs)
+                }
+                _ => Err(self.error(format!("'{}' object is not callable", callee.type_name()), "TypeError")),
+            },
+            Value::Instance(inst) => match inst.class.lookup("__call__") {
+                Some(m) => {
+                    let bound = self.bind(m, callee.clone(), &inst.class);
+                    self.call_value(&bound, args, kwargs)
+                }
+                None => Err(self.error(format!("'{}' object is not callable", inst.class.name), "TypeError")),
+            },
             _ => Err(self.error(format!("'{}' object is not callable", callee.type_name()), "TypeError")),
         }
     }
@@ -967,9 +1267,9 @@ impl Interp {
     #[inline(never)]
     pub fn call_function(&mut self, f: &Rc<Function>, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
         let env = Env::new(Some(f.closure.clone()));
-        let params = f.params();
-        let variadic = f.variadic();
-        if variadic.is_none() && args.len() > params.len() {
+        let sig = f.signature();
+        let params = &sig.positional;
+        if sig.variadic.is_none() && args.len() > params.len() {
             return Err(self.error(
                 format!("{}() takes {} arguments but {} were given", f.name, params.len(), args.len()),
                 "TypeError",
@@ -982,17 +1282,24 @@ impl Interp {
             env.define(&p.name, args.next().unwrap());
             bound.insert(p.name.clone());
         }
-        if let Some(v) = variadic {
+        if let Some(v) = &sig.variadic {
             env.define(v, Value::tuple(args.collect()));
         }
+        let mut extra: IndexMap<HKey, Value> = IndexMap::new();
         for (k, v) in kwargs {
-            if !params.iter().any(|p| p.name == k) {
+            if params.iter().any(|p| p.name == k) || sig.keyword_only.iter().any(|p| p.name == k) {
+                if bound.contains(&k) {
+                    return Err(self.error(format!("{}() got multiple values for argument '{k}'", f.name), "TypeError"));
+                }
+                env.define(&k, v);
+                bound.insert(k);
+            } else if sig.kwargs.is_some() {
+                extra.insert(HKey::Str(k), v);
+            } else {
                 return Err(self.error(format!("{}() got an unexpected keyword argument '{k}'", f.name), "TypeError"));
             }
-            env.define(&k, v);
-            bound.insert(k);
         }
-        for p in params {
+        for p in params.iter().chain(sig.keyword_only.iter()) {
             if bound.contains(&p.name) {
                 continue;
             }
@@ -1002,10 +1309,15 @@ impl Interp {
             let v = self.eval(def, &f.closure)?;
             env.define(&p.name, v);
         }
+        if let Some(k) = &sig.kwargs {
+            env.define(k, Value::new_dict(extra));
+        }
         if self.call_depth >= MAX_CALL_DEPTH {
             return Err(self.abort(AbortKind::Recursion, "maximum recursion depth exceeded").into());
         }
         self.call_depth += 1;
+        self.frames.push((f.clone(), env.clone()));
+        let caller_line = self.current_line;
         let result = match &f.body {
             FnBody::Def(d) => self.exec_block(&d.body, &env),
             FnBody::Lambda(l, line) => match self.tick() {
@@ -1020,6 +1332,11 @@ impl Interp {
             },
         };
         self.call_depth -= 1;
+        self.frames.pop();
+        if result.is_ok() || matches!(result, Err(Exc::Return(_))) {
+            // Back in the caller: an error later in the same line is reported there.
+            self.current_line = caller_line;
+        }
         match result {
             Ok(()) => Ok(Value::None),
             Err(Exc::Return(v)) => Ok(v),
@@ -1030,6 +1347,17 @@ impl Interp {
     // MARK: - Operators
 
     fn unary_op(&mut self, op: UnOp, v: &Value) -> R<Value> {
+        if let Value::Instance(_) = v {
+            let name = match op {
+                UnOp::Not => return Ok(Value::Bool(!self.truth(v)?)),
+                UnOp::Neg => "__neg__",
+                UnOp::Pos => "__pos__",
+            };
+            return match self.dunder(v, name, Vec::new())? {
+                Some(r) => Ok(r),
+                None => Err(self.error(format!("bad operand type for unary operator: '{}'", v.type_name()), "TypeError")),
+            };
+        }
         Ok(match op {
             UnOp::Not => Value::Bool(!v.truthy()),
             UnOp::Pos => {
@@ -1049,6 +1377,9 @@ impl Interp {
     }
 
     pub fn binary_op(&mut self, op: BinOp, a: &Value, b: &Value) -> R<Value> {
+        if matches!(a, Value::Instance(_)) || matches!(b, Value::Instance(_)) {
+            return self.instance_binary(op, a, b);
+        }
         // Sequences and sets first, then numbers.
         if op == BinOp::Add {
             match (a, b) {
@@ -1255,8 +1586,21 @@ impl Interp {
     }
 
     fn compare_op(&mut self, op: CmpOp, a: &Value, b: &Value) -> R<bool> {
+        let instances = matches!(a, Value::Instance(_)) || matches!(b, Value::Instance(_));
+        if instances {
+            match op {
+                CmpOp::Lt | CmpOp::Le | CmpOp::Gt | CmpOp::Ge => return self.instance_compare(op, a, b),
+                CmpOp::Ne => {
+                    if let Some(r) = self.dunder(a, "__ne__", vec![b.clone()])? {
+                        return self.truth(&r);
+                    }
+                    return Ok(!self.eq(a, b)?);
+                }
+                _ => {}
+            }
+        }
         Ok(match op {
-            CmpOp::Eq => py_equals(a, b),
+            CmpOp::Eq => self.eq(a, b)?,
             CmpOp::Ne => !py_equals(a, b),
             CmpOp::Is => py_identical(a, b),
             CmpOp::IsNot => !py_identical(a, b),
@@ -1271,6 +1615,12 @@ impl Interp {
 
     /// Three-way ordering for numbers, strings and sequences (lexicographic).
     pub fn order(&mut self, a: &Value, b: &Value) -> R<i32> {
+        if matches!(a, Value::Instance(_)) || matches!(b, Value::Instance(_)) {
+            if self.instance_compare(CmpOp::Lt, a, b)? {
+                return Ok(-1);
+            }
+            return Ok(if self.instance_compare(CmpOp::Lt, b, a)? { 1 } else { 0 });
+        }
         if let (Some(x), Some(y)) = (a.as_float(), b.as_float()) {
             return Ok(if x < y {
                 -1
@@ -1299,6 +1649,36 @@ impl Interp {
     }
 
     fn contains(&mut self, container: &Value, item: &Value) -> R<bool> {
+        if let Value::Class(c) = container {
+            let c = c.clone();
+            for v in self.iterate_class(&c)? {
+                if self.eq(&v, item)? {
+                    return Ok(true);
+                }
+            }
+            return Ok(false);
+        }
+        if let Value::Instance(_) = container {
+            if let Some(r) = self.dunder(container, "__contains__", vec![item.clone()])? {
+                return self.truth(&r);
+            }
+            for v in self.iterate_instance(container)? {
+                if self.eq(&v, item)? {
+                    return Ok(true);
+                }
+            }
+            return Ok(false);
+        }
+        if let Value::Instance(_) = item {
+            if let Some(items) = sequence_items(container) {
+                for v in items {
+                    if self.eq(&v, item)? {
+                        return Ok(true);
+                    }
+                }
+                return Ok(false);
+            }
+        }
         Ok(match container {
             Value::Str(s) => {
                 let Value::Str(i) = item else {
@@ -1345,6 +1725,15 @@ impl Interp {
             Value::Set(s) => s.borrow().iter().map(HKey::to_value).collect(),
             Value::Dict(d) => d.borrow().keys().map(HKey::to_value).collect(),
             Value::Bytes(b) => b.iter().map(|x| Value::Int(*x as i64)).collect(),
+            Value::Instance(_) => return self.iterate_instance(value),
+            Value::Class(c) => {
+                let c = c.clone();
+                return self.iterate_class(&c);
+            }
+            Value::Object(o) => match o.as_ref() {
+                Object::Iterator(items) => items.borrow_mut().drain(..).collect(),
+                _ => return Err(self.error(format!("'{}' object is not iterable", value.type_name()), "TypeError")),
+            },
             _ => return Err(self.error(format!("'{}' object is not iterable", value.type_name()), "TypeError")),
         })
     }
@@ -1387,6 +1776,14 @@ impl Interp {
                 let text = idx.as_int().and_then(|i| if i < 0 { None } else { m.text(i as usize) });
                 text.map(Value::str).ok_or_else(|| self.error("no such group", "IndexError"))
             }
+            Value::Class(c) => {
+                let c = c.clone();
+                self.class_getitem(&c, idx)
+            }
+            Value::Instance(_) => match self.dunder(base, "__getitem__", vec![idx.clone()])? {
+                Some(v) => Ok(v),
+                None => Err(self.error(format!("'{}' object is not subscriptable", base.type_name()), "TypeError")),
+            },
             _ => Err(self.error(format!("'{}' object is not subscriptable", base.type_name()), "TypeError")),
         }
     }
@@ -1421,7 +1818,7 @@ impl Interp {
 
     /// Run [source] as a module of its own, with [names] defined first, and
     /// hand back its globals. Shares this call's budget.
-    pub fn exec_module(&mut self, program: &[Stmt], names: Vec<(Rc<str>, Value)>) -> R<Rc<Env>> {
+    pub(crate) fn exec_module(&mut self, program: &[Stmt], names: Vec<(Rc<str>, Value)>) -> R<Rc<Env>> {
         let env = Env::new(None);
         for (k, v) in names {
             env.define(&k, v);
@@ -1447,8 +1844,10 @@ pub(crate) fn exception_matches(clause: &str, kind: &str) -> bool {
     }
     match clause {
         "LookupError" => kind == "KeyError" || kind == "IndexError",
-        "ArithmeticError" => kind == "ZeroDivisionError",
+        "ArithmeticError" => kind == "ZeroDivisionError" || kind == "OverflowError",
         "ValueError" | "UnicodeError" => kind == "UnicodeDecodeError",
+        "OSError" => matches!(kind, "PermissionError" | "TimeoutError" | "ConnectionError" | "FileNotFoundError"),
+        "RuntimeError" => kind == "NotImplementedError",
         _ => false,
     }
 }

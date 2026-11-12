@@ -180,6 +180,6 @@ fn small_programs() {
 
 #[test]
 fn rejected_syntax_says_why() {
-    assert!(failure("class Thing:\n    pass").contains("'class' is not supported"));
-    assert!(failure("def f(**options):\n    pass").contains("**kwargs is not supported"));
+    assert!(failure("def f():\n    yield 1").contains("'yield' is not supported"));
+    assert!(failure("async def f():\n    pass").contains("'async' is not supported"));
 }

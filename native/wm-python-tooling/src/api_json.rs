@@ -11,7 +11,8 @@
 //! `"{}"` skips the checks that depend on the manifest:
 //! ```json
 //! {"storage": true, "reminders": false, "selection": false, "panel": true,
-//!  "actions": ["rot13"], "verdict": {"message": "...", "kind": "SyntaxError", "line": 3} | null}
+//!  "actions": ["rot13"], "modules": ["helpers"],
+//!  "verdict": {"message": "...", "kind": "SyntaxError", "line": 3} | null}
 //! ```
 //!
 //! [`analyse`]:
@@ -88,7 +89,10 @@ pub fn document(source: &str) -> Rc<Document> {
 pub fn parse_host(host_json: &str) -> Host {
     let value: Value = serde_json::from_str(host_json).unwrap_or(Value::Null);
     let flag = |name: &str| value.get(name).and_then(Value::as_bool);
-    let actions = value.get("actions").and_then(Value::as_array).map(|a| a.iter().filter_map(|v| v.as_str().map(str::to_string)).collect());
+    let strings = |name: &str| -> Option<Vec<String>> {
+        value.get(name).and_then(Value::as_array).map(|a| a.iter().filter_map(|v| v.as_str().map(str::to_string)).collect())
+    };
+    let actions = strings("actions");
     let verdict = value.get("verdict").filter(|v| v.is_object()).map(|v| Verdict {
         message: v.get("message").and_then(Value::as_str).unwrap_or("").to_string(),
         kind: v.get("kind").and_then(Value::as_str).unwrap_or("").to_string(),
@@ -100,6 +104,7 @@ pub fn parse_host(host_json: &str) -> Host {
         selection: flag("selection"),
         panel: flag("panel"),
         actions,
+        modules: strings("modules"),
         verdict,
     }
 }

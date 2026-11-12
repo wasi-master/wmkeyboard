@@ -17,7 +17,7 @@ use std::rc::Rc;
 
 use indexmap::{IndexMap, IndexSet};
 
-use super::ast::{FuncDef, LambdaDef, Param};
+use super::ast::{FuncDef, LambdaDef, Params};
 use super::eval::Env;
 use super::host::HostFunction;
 use super::regex::Match;
@@ -56,6 +56,82 @@ pub enum Value {
     Match(Rc<Match>),
     /// An immutable byte string (an addition to PyMini).
     Bytes(Rc<[u8]>),
+    /// A class made by a `class` statement (an addition to PyMini).
+    Class(Rc<Class>),
+    /// An object made by calling a [Class].
+    Instance(Rc<Instance>),
+    /// A bound method, a `staticmethod`, `classmethod` or `property` wrapper,
+    /// `super()`, or an iterator `iter()` made.
+    Object(Rc<Object>),
+}
+
+/// A class: its name, its one base, and the attributes its body defined.
+pub struct Class {
+    pub name: Rc<str>,
+    pub base: Option<Rc<Class>>,
+    /// The built-in exception this class descends from, like `ValueError`,
+    /// which makes its instances raisable. None for plain classes.
+    pub exception_root: Option<Rc<str>>,
+    pub attrs: RefCell<IndexMap<Rc<str>, Value>>,
+}
+
+impl Class {
+    /// [name] on this class or the nearest base that has it.
+    pub fn lookup(&self, name: &str) -> Option<Value> {
+        if let Some(v) = self.attrs.borrow().get(name) {
+            return Some(v.clone());
+        }
+        let mut c = self.base.clone();
+        while let Some(k) = c {
+            if let Some(v) = k.attrs.borrow().get(name) {
+                return Some(v.clone());
+            }
+            c = k.base.clone();
+        }
+        None
+    }
+
+    /// Whether this class is [other] or descends from it.
+    pub fn is_subclass_of(self: &Rc<Class>, other: &Rc<Class>) -> bool {
+        let mut c = Some(self.clone());
+        while let Some(k) = c {
+            if Rc::ptr_eq(&k, other) {
+                return true;
+            }
+            c = k.base.clone();
+        }
+        false
+    }
+
+    /// This class's name and every base's, nearest first.
+    pub fn lineage(&self) -> Vec<Rc<str>> {
+        let mut out = vec![self.name.clone()];
+        let mut c = self.base.clone();
+        while let Some(k) = c {
+            out.push(k.name.clone());
+            c = k.base.clone();
+        }
+        out
+    }
+}
+
+/// An instance of a [Class], with its own attributes.
+pub struct Instance {
+    pub class: Rc<Class>,
+    pub attrs: RefCell<IndexMap<Rc<str>, Value>>,
+}
+
+/// The callable and descriptor shapes classes need.
+pub enum Object {
+    /// A function with its first argument, `self` or the class, already bound.
+    Bound(Value, Value),
+    StaticMethod(Value),
+    ClassMethod(Value),
+    Property { get: Value, set: Value },
+    /// `super()`: attribute lookups start above [class] and bind to [receiver].
+    Super { class: Rc<Class>, receiver: Value },
+    /// What `iter()` returns for a built-in sequence: the items left to hand out.
+    Iterator(RefCell<std::collections::VecDeque<Value>>),
 }
 
 /// A raised exception: there are no classes, so it is a type name and a message.
@@ -77,20 +153,19 @@ pub struct Function {
     pub(crate) name: Rc<str>,
     pub(crate) body: FnBody,
     pub(crate) closure: Rc<Env>,
+    /// The class whose body defined it, which is where `super()` starts.
+    pub(crate) owner: RefCell<Option<std::rc::Weak<Class>>>,
 }
 
 impl Function {
-    pub(crate) fn params(&self) -> &[Param] {
+    pub(crate) fn new(name: Rc<str>, body: FnBody, closure: Rc<Env>) -> Function {
+        Function { name, body, closure, owner: RefCell::new(None) }
+    }
+
+    pub(crate) fn signature(&self) -> &Params {
         match &self.body {
             FnBody::Def(d) => &d.params,
             FnBody::Lambda(l, _) => &l.params,
-        }
-    }
-
-    pub(crate) fn variadic(&self) -> Option<&Rc<str>> {
-        match &self.body {
-            FnBody::Def(d) => d.variadic.as_ref(),
-            FnBody::Lambda(l, _) => l.variadic.as_ref(),
         }
     }
 
@@ -98,14 +173,15 @@ impl Function {
         &self.name
     }
 
-    /// Parameter names in declaration order, not counting `*rest`.
+    /// Positional parameter names in declaration order, not counting `*rest`,
+    /// keyword-only parameters or `**options`.
     pub fn parameter_names(&self) -> Vec<String> {
-        self.params().iter().map(|p| p.name.to_string()).collect()
+        self.signature().positional.iter().map(|p| p.name.to_string()).collect()
     }
 
     /// Whether it takes `*rest`.
     pub fn is_variadic(&self) -> bool {
-        self.variadic().is_some()
+        self.signature().variadic.is_some()
     }
 }
 
@@ -120,6 +196,20 @@ pub enum HKey {
     Str(Rc<str>),
     Tuple(Rc<Vec<HKey>>),
     Bytes(Rc<[u8]>),
+    /// A class, instance or function, which hash and compare by identity.
+    Ref(Value),
+}
+
+impl HKey {
+    fn ref_address(v: &Value) -> usize {
+        match v {
+            Value::Class(c) => Rc::as_ptr(c) as *const u8 as usize,
+            Value::Instance(i) => Rc::as_ptr(i) as *const u8 as usize,
+            Value::Function(f) => Rc::as_ptr(f) as *const u8 as usize,
+            Value::Object(o) => Rc::as_ptr(o) as *const u8 as usize,
+            _ => 0,
+        }
+    }
 }
 
 impl PartialEq for HKey {
@@ -132,6 +222,7 @@ impl PartialEq for HKey {
             (HKey::Str(a), HKey::Str(b)) => str_eq(a, b),
             (HKey::Tuple(a), HKey::Tuple(b)) => a == b,
             (HKey::Bytes(a), HKey::Bytes(b)) => a == b,
+            (HKey::Ref(a), HKey::Ref(b)) => HKey::ref_address(a) == HKey::ref_address(b),
             _ => false,
         }
     }
@@ -170,6 +261,10 @@ impl Hash for HKey {
                 6u8.hash(h);
                 b.hash(h)
             }
+            HKey::Ref(v) => {
+                7u8.hash(h);
+                HKey::ref_address(v).hash(h)
+            }
         }
     }
 }
@@ -191,6 +286,7 @@ impl HKey {
                 }
                 HKey::Tuple(Rc::new(parts))
             }
+            Value::Class(_) | Value::Instance(_) | Value::Function(_) | Value::Object(_) => HKey::Ref(v.clone()),
             _ => return None,
         })
     }
@@ -204,6 +300,7 @@ impl HKey {
             HKey::Str(s) => Value::Str(s.clone()),
             HKey::Bytes(b) => Value::Bytes(b.clone()),
             HKey::Tuple(t) => Value::Tuple(Rc::new(t.iter().map(HKey::to_value).collect())),
+            HKey::Ref(v) => v.clone(),
         }
     }
 
@@ -307,6 +404,7 @@ impl Value {
     pub fn type_name(&self) -> String {
         match self {
             Value::Exception(e) => e.kind.clone(),
+            Value::Instance(i) => i.class.name.to_string(),
             other => other.static_type_name().to_string(),
         }
     }
@@ -327,6 +425,16 @@ impl Value {
             Value::Exception(_) => "Exception",
             Value::Match(_) => "Match",
             Value::Bytes(_) => "bytes",
+            Value::Class(_) => "type",
+            Value::Instance(_) => "object",
+            Value::Object(o) => match o.as_ref() {
+                Object::Bound(..) => "method",
+                Object::StaticMethod(_) => "staticmethod",
+                Object::ClassMethod(_) => "classmethod",
+                Object::Property { .. } => "property",
+                Object::Super { .. } => "super",
+                Object::Iterator(_) => "iterator",
+            },
         }
     }
 
@@ -480,6 +588,19 @@ pub(crate) fn py_str(v: &Value) -> String {
         Value::ModuleFunction(mf) => format!("<builtin {}.{}>", mf.0, mf.1),
         Value::Exception(e) => e.message.clone(),
         Value::Match(m) => format!("<Match {}>", str_repr(&m.value())),
+        Value::Class(c) => format!("<class '{}'>", c.name),
+        Value::Instance(i) => match i.attrs.borrow().get("args") {
+            Some(Value::Tuple(args)) if i.class.exception_root.is_some() => match args.len() {
+                0 => String::new(),
+                1 => py_str(&args[0]),
+                _ => py_repr(&Value::Tuple(args.clone())),
+            },
+            _ => format!("<{} object>", i.class.name),
+        },
+        Value::Object(o) => match o.as_ref() {
+            Object::Bound(_, f) => format!("<bound method {}>", py_str(f).trim_start_matches("<function ").trim_end_matches('>')),
+            _ => format!("<{} object>", v.static_type_name()),
+        },
     }
 }
 
@@ -555,6 +676,13 @@ pub(crate) fn py_repr(v: &Value) -> String {
             )
         }),
         Value::Exception(e) => format!("{}({})", e.kind, str_repr(&e.message)),
+        Value::Instance(i) if i.class.exception_root.is_some() => {
+            let args = match i.attrs.borrow().get("args") {
+                Some(Value::Tuple(a)) => a.iter().map(py_repr).collect::<Vec<_>>().join(", "),
+                _ => String::new(),
+            };
+            format!("{}({args})", i.class.name)
+        }
         other => py_str(other),
     }
 }
@@ -612,6 +740,10 @@ pub(crate) fn py_equals(a: &Value, b: &Value) -> bool {
         }
         (Value::Exception(x), Value::Exception(y)) => x == y,
         (Value::HostFunction(x), Value::HostFunction(y)) => Rc::ptr_eq(x, y),
+        (Value::Function(x), Value::Function(y)) => Rc::ptr_eq(x, y),
+        (Value::Class(x), Value::Class(y)) => Rc::ptr_eq(x, y),
+        (Value::Instance(x), Value::Instance(y)) => Rc::ptr_eq(x, y),
+        (Value::Object(x), Value::Object(y)) => Rc::ptr_eq(x, y),
         _ => match (a.as_float(), b.as_float()) {
             (Some(x), Some(y)) => x == y,
             _ => false,
@@ -626,6 +758,9 @@ pub(crate) fn py_identical(a: &Value, b: &Value) -> bool {
         (Value::Dict(x), Value::Dict(y)) => Rc::ptr_eq(x, y),
         (Value::Set(x), Value::Set(y)) => Rc::ptr_eq(x, y),
         (Value::Function(x), Value::Function(y)) => Rc::ptr_eq(x, y),
+        (Value::Class(x), Value::Class(y)) => Rc::ptr_eq(x, y),
+        (Value::Instance(x), Value::Instance(y)) => Rc::ptr_eq(x, y),
+        (Value::Object(x), Value::Object(y)) => Rc::ptr_eq(x, y),
         (Value::List(_) | Value::Dict(_) | Value::Set(_), _) | (_, Value::List(_) | Value::Dict(_) | Value::Set(_)) => {
             false
         }

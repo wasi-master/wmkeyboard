@@ -140,7 +140,7 @@ fn bad_date_patterns_are_value_errors() {
 #[test]
 fn check_reports_what_load_would() {
     assert!(check("def f(x):\n    return x\n").is_ok());
-    for source in ["x = (1,\ny = 2", "class A:\n    pass", "if True:\nx = 1", "x = 1 $ 2", "f\"{}\""] {
+    for source in ["x = (1,\ny = 2", "def g():\n    yield 1", "if True:\nx = 1", "x = 1 $ 2", "f\"{}\""] {
         let c = check(source).unwrap_err();
         let l = Runtime::default().load(source).unwrap_err();
         assert_eq!((c.message.clone(), c.kind.clone(), c.line), (l.message, l.kind, l.line), "{source}");

@@ -15,6 +15,11 @@ unicode-normalization = "0.1.26"
 unicode-properties = { version = "0.1.5", default-features = false, features = ["general-category"] }
 indexmap = "2"
 serde_json = { version = "1.0", features = ["preserve_order"] }
+# hashlib and base64 for plugins. Pure Rust, no OS calls.
+sha2 = { version = "0.11", default-features = false }
+sha1 = { version = "0.11", default-features = false }
+md5 = { package = "md-5", version = "0.11", default-features = false }
+base64 = { version = "0.22", default-features = false, features = ["alloc"] }
 
 [profile.release]
 opt-level = "s"

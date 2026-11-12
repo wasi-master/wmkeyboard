@@ -17,6 +17,11 @@ use super::value::*;
 
 pub const NAMES: &[&str] = &["math", "random", "time", "json", "re", "sys"];
 
+/// [NAMES] and the Rust half of the Python standard library modules
+/// ([`super::stdlib`]), which a host turns on with
+/// `Runtime::enable_python_stdlib`.
+pub const ALL_NAMES: &[&str] = &["math", "random", "time", "json", "re", "sys", "_native"];
+
 /// PyMini's version, and the line `sys.version` holds.
 pub const VERSION: &str = "2.0.1";
 pub const VERSION_LINE: &str = "pymini 2.0.1";
@@ -32,6 +37,7 @@ pub(crate) fn functions(module: &str) -> &'static [&'static str] {
         "time" => &["time", "monotonic", "parts", "format"],
         "json" => &["dumps", "loads"],
         "re" => &["search", "match", "fullmatch", "findall", "finditer", "sub", "subn", "split", "escape"],
+        "_native" => super::stdlib::NATIVE_FUNCTIONS,
         _ => &[],
     }
 }
@@ -174,12 +180,19 @@ impl Interp {
     pub(crate) fn call_module(&mut self, module: &str, name: &str, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
         self.tick()?;
         if let Some(host) = self.host_modules.get(module).cloned() {
-            let f = host
-                .functions
-                .get(name)
-                .cloned()
-                .ok_or_else(|| self.error(format!("module '{module}' has no function '{name}'"), "AttributeError"))?;
-            return self.call_host(&f, args, kwargs);
+            if let Some(f) = host.functions.get(name).cloned() {
+                return self.call_host(&f, args, kwargs);
+            }
+            if let Some(c) = host.constants.get(name).cloned() {
+                return self.call_value(&c, args, kwargs);
+            }
+            return Err(self.error(format!("module '{module}' has no function '{name}'"), "AttributeError"));
+        }
+        if self.module_envs.contains_key(module) {
+            let f = self
+                .source_member(module, name)
+                .ok_or_else(|| self.error(format!("module '{module}' has no attribute '{name}'"), "AttributeError"))?;
+            return self.call_value(&f, args, kwargs);
         }
         if !self.enabled_modules.contains(&module) {
             return Err(self.error(format!("no module named '{module}'"), "ImportError"));
@@ -190,6 +203,7 @@ impl Interp {
             "time" => self.time_call(name, &args),
             "json" => self.json_call(name, &args, &kwargs),
             "re" => self.regex_call(name, &args, &kwargs),
+            "_native" => self.native_call(name, &args),
             _ => Err(self.error(format!("no module named '{module}'"), "ImportError")),
         }
     }

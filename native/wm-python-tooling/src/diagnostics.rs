@@ -207,10 +207,10 @@ fn lexical(doc: &Document, out: &mut Vec<Diagnostic>) {
                     let code = if t.has(i, TRIPLE) { Code::UnclosedTripleString } else { Code::UnclosedString };
                     out.push(Diagnostic::new(code, span, &[]));
                 }
-                if t.has(i, FOREIGN_PREFIX) {
-                    let first = t.units()[start as usize] as u8;
-                    let what = if first == b'u' || first == b'U' { "u\"\" strings" } else { "b\"\" bytes literals" };
-                    out.push(Diagnostic::new(Code::Unsupported, Span::new(start, start + 1), &[what]));
+                // Bytes literals run; only u"" strings are refused.
+                let first = t.units()[start as usize] as u8;
+                if t.has(i, FOREIGN_PREFIX) && (first == b'u' || first == b'U') {
+                    out.push(Diagnostic::new(Code::Unsupported, Span::new(start, start + 1), &["u\"\" strings"]));
                 }
             }
             TokenKind::Number => {

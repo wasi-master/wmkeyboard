@@ -27,6 +27,19 @@ pub(crate) const EXCEPTION_KINDS: &[&str] = &[
     "RuntimeError",
     "StopIteration",
     "UnicodeDecodeError",
+    // Additions to PyMini.
+    "AssertionError",
+    "NotImplementedError",
+    "LookupError",
+    "ArithmeticError",
+    "OverflowError",
+    "ImportError",
+    "UnicodeError",
+    "OSError",
+    "PermissionError",
+    "TimeoutError",
+    "ConnectionError",
+    "FileNotFoundError",
 ];
 
 /// Names that resolve to a builtin when nothing else is bound to them.
@@ -36,10 +49,15 @@ pub(crate) const BUILTIN_NAMES: &[&str] = &[
     "filter", "divmod", "pow", "hex", "bin", "oct", "format", "isinstance", "callable", "bytes", "Exception",
     "ValueError", "TypeError", "KeyError", "IndexError", "NameError", "ZeroDivisionError", "AttributeError",
     "RuntimeError", "StopIteration", "UnicodeDecodeError",
+    // Additions to PyMini.
+    "getattr", "setattr", "hasattr", "delattr", "vars", "iter", "next", "property", "staticmethod", "classmethod",
+    "super", "object", "issubclass", "id", "hash", "NotImplemented", "AssertionError", "NotImplementedError",
+    "LookupError", "ArithmeticError", "OverflowError", "ImportError", "UnicodeError", "OSError", "PermissionError",
+    "TimeoutError", "ConnectionError", "FileNotFoundError",
 ];
 
 /// The only builtins that take keyword arguments.
-pub(crate) const KWARG_BUILTINS: &[&str] = &["sorted", "min", "max", "round"];
+pub(crate) const KWARG_BUILTINS: &[&str] = &["sorted", "min", "max", "round", "property"];
 
 /// Swift's `Unicode.Scalar(i)` succeeds for these: any code point but a surrogate.
 pub(crate) fn is_scalar(i: i64) -> bool {
@@ -57,19 +75,28 @@ impl Interp {
             let message = args.iter().map(py_str).collect::<Vec<_>>().join(" ");
             return Ok(Value::Exception(Rc::new(ExceptionValue { kind: name.to_string(), message })));
         }
+        if let Some(v) = self.class_builtin(name, &args, &kwargs)? {
+            return Ok(v);
+        }
         match name {
             "len" => {
                 self.arity(name, &args, 1)?;
                 Ok(Value::Int(self.length(&args[0])? as i64))
             }
-            "str" => Ok(Value::str(args.first().map(py_str).unwrap_or_default())),
+            "str" => match args.first() {
+                Some(v) => Ok(Value::str(self.to_str(v)?)),
+                None => Ok(Value::str("")),
+            },
             "repr" => {
                 self.arity(name, &args, 1)?;
-                Ok(Value::str(py_repr(&args[0])))
+                Ok(Value::str(self.to_repr(&args[0])?))
             }
             "print" => {
-                let line = args.iter().map(py_str).collect::<Vec<_>>().join(" ");
-                self.emit(line);
+                let mut parts = Vec::with_capacity(args.len());
+                for a in &args {
+                    parts.push(self.to_str(a)?);
+                }
+                self.emit(parts.join(" "));
                 Ok(Value::None)
             }
             "int" => self.to_int(&args),
@@ -191,18 +218,27 @@ impl Interp {
             "format" => {
                 let v = args.first().ok_or_else(|| self.error("format() needs a value", "TypeError"))?;
                 let spec = args.get(1).map(py_str).unwrap_or_default();
+                if let Value::Instance(_) = v {
+                    if let Some(Value::Str(s)) = self.dunder(v, "__format__", vec![Value::str(&spec)])? {
+                        return Ok(Value::Str(s));
+                    }
+                    let text = Value::str(self.to_str(v)?);
+                    return Ok(Value::str(py_format(&text, &spec)?));
+                }
                 Ok(Value::str(py_format(v, &spec)?))
             }
             "isinstance" => {
                 self.arity(name, &args, 2)?;
-                Ok(Value::Bool(is_instance(&args[0], &args[1])))
+                Ok(Value::Bool(self.is_instance(&args[0], &args[1])))
             }
             "callable" => {
                 self.arity(name, &args, 1)?;
-                Ok(Value::Bool(matches!(
-                    args[0],
-                    Value::Function(_) | Value::Builtin(_) | Value::ModuleFunction(_) | Value::HostFunction(_)
-                )))
+                Ok(Value::Bool(match &args[0] {
+                    Value::Function(_) | Value::Builtin(_) | Value::ModuleFunction(_) | Value::HostFunction(_) | Value::Class(_) => true,
+                    Value::Object(o) => matches!(o.as_ref(), Object::Bound(..) | Object::StaticMethod(_) | Object::ClassMethod(_)),
+                    Value::Instance(i) => i.class.lookup("__call__").is_some(),
+                    _ => false,
+                }))
             }
             "ord" => {
                 self.arity(name, &args, 1)?;
@@ -228,7 +264,12 @@ impl Interp {
             }
             "type" => {
                 self.arity(name, &args, 1)?;
-                Ok(Value::str(args[0].type_name()))
+                // PyMini answers with a name. An instance answers with its class,
+                // which is what `type(self).__name__` and `type(x) is Point` need.
+                match &args[0] {
+                    Value::Instance(i) => Ok(Value::Class(i.class.clone())),
+                    other => Ok(Value::str(other.type_name())),
+                }
             }
             "bytes" => self.bytes_builtin(&args),
             _ => Err(self.error(format!("name '{name}' is not defined"), "NameError")),
@@ -250,6 +291,17 @@ impl Interp {
             Value::Set(s) => s.borrow().len(),
             Value::Dict(d) => d.borrow().len(),
             Value::Bytes(b) => b.len(),
+            Value::Class(c) => {
+                let c = c.clone();
+                self.iterate_class(&c)?.len()
+            }
+            Value::Instance(_) => match self.dunder(v, "__len__", Vec::new())? {
+                Some(n) => match n.as_int() {
+                    Some(n) if n >= 0 => n as usize,
+                    _ => return Err(self.error("__len__ should return an integer >= 0", "ValueError")),
+                },
+                None => return Err(self.error(format!("object of type '{}' has no len()", v.type_name()), "TypeError")),
+            },
             _ => return Err(self.error(format!("object of type '{}' has no len()", v.type_name()), "TypeError")),
         })
     }
@@ -385,6 +437,14 @@ impl Interp {
             }
             return Ok(Value::new_dict(d));
         }
+        if let Value::Instance(i) = first {
+            if i.class.lookup("keys").is_some() {
+                for (k, v) in self.mapping_pairs(first)? {
+                    d.insert(k, v);
+                }
+                return Ok(Value::new_dict(d));
+            }
+        }
         // dict([(k, v), ...]), the shape zip() and items() hand back.
         for pair in self.iterate(first)? {
             let items = sequence_items(&pair);
@@ -487,26 +547,6 @@ impl Interp {
             ByteError::Hex(message) => self.error(message, "ValueError"),
             ByteError::Errors(name) => self.error(format!("unknown error handler name '{name}'"), "LookupError"),
         }
-    }
-}
-
-/// `isinstance(x, str)`. No class objects, so this matches by builtin name.
-fn is_instance(value: &Value, ty: &Value) -> bool {
-    if let Value::Tuple(t) = ty {
-        return t.iter().any(|x| is_instance(value, x));
-    }
-    let Value::Builtin(name) = ty else { return false };
-    match name.as_ref() {
-        "str" => matches!(value, Value::Str(_)),
-        "int" => matches!(value, Value::Int(_) | Value::Bool(_)),
-        "float" => matches!(value, Value::Float(_)),
-        "bool" => matches!(value, Value::Bool(_)),
-        "list" => matches!(value, Value::List(_)),
-        "tuple" => matches!(value, Value::Tuple(_)),
-        "dict" => matches!(value, Value::Dict(_)),
-        "set" => matches!(value, Value::Set(_)),
-        "bytes" => matches!(value, Value::Bytes(_)),
-        _ => false,
     }
 }
 

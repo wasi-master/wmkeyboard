@@ -20,6 +20,8 @@ pub(crate) enum Tok {
     Int(i64),
     Float(f64),
     Str(String),
+    /// `b"…"` (an addition to PyMini).
+    Bytes(Vec<u8>),
     FString(Vec<FRawPart>),
     Name(Rc<str>),
     Keyword(&'static str),
@@ -40,12 +42,14 @@ pub(crate) struct Token {
 const KEYWORDS: &[&str] = &[
     "if", "elif", "else", "while", "for", "in", "def", "return", "break", "continue", "pass", "True", "False", "None",
     "and", "or", "not", "lambda", "try", "except", "finally", "raise", "import", "from", "as", "is", "del", "global",
+    // Additions to PyMini.
+    "class", "with", "nonlocal", "assert",
 ];
 
 // Longest first, so `**=` and `//=` beat `**` and `//`.
-const MULTI_OPS: &[&str] = &["**=", "//=", "**", "//", "==", "!=", "<=", ">=", "+=", "-=", "*=", "/=", "%="];
+const MULTI_OPS: &[&str] = &["**=", "//=", "**", "//", "==", "!=", "<=", ">=", "+=", "-=", "*=", "/=", "%=", "->"];
 const SINGLE_OPS: &[&str] =
-    &["+", "-", "*", "/", "%", "<", ">", "=", "(", ")", ",", ":", ".", "[", "]", "{", "}", "&", "|", "^", "~", ";"];
+    &["+", "-", "*", "/", "%", "<", ">", "=", "(", ")", ",", ":", ".", "[", "]", "{", "}", "&", "|", "^", "~", ";", "@"];
 
 fn keyword(word: &str) -> Option<&'static str> {
     KEYWORDS.iter().find(|k| **k == word).copied()
@@ -224,6 +228,10 @@ impl<'a> Lexer<'a> {
                 self.line += 1;
                 continue;
             }
+            if let Some(raw) = self.bytes_prefix() {
+                self.lex_bytes(raw)?;
+                continue;
+            }
             if let Some((is_f, raw)) = self.string_prefix() {
                 if is_f {
                     self.lex_fstring(raw)?;
@@ -286,6 +294,66 @@ impl<'a> Lexer<'a> {
         }
         self.pos += n;
         Some((is_f, is_r))
+    }
+
+    /// Recognise a `b"…"` / `rb'…'` / `br"…"` prefix and consume it: raw or not.
+    fn bytes_prefix(&mut self) -> Option<bool> {
+        let (a, b, c) = (self.peek(0), self.peek(1), self.peek(2));
+        let quote = |q: Option<&str>| q == Some("\"") || q == Some("'");
+        let is_b = |x: Option<&str>| x == Some("b") || x == Some("B");
+        let is_r = |x: Option<&str>| x == Some("r") || x == Some("R");
+        if is_b(a) && quote(b) {
+            self.pos += 1;
+            return Some(false);
+        }
+        if ((is_b(a) && is_r(b)) || (is_r(a) && is_b(b))) && quote(c) {
+            self.pos += 2;
+            return Some(true);
+        }
+        None
+    }
+
+    /// A bytes literal: ASCII characters, and outside a raw one the escapes
+    /// `\n \t \r \0 \\ \' \" \xHH`.
+    fn lex_bytes(&mut self, raw: bool) -> Result<(), PyError> {
+        let start_line = self.line;
+        let (quote, length) = self.open_string();
+        let mut out = Vec::new();
+        while self.pos < self.chars.len() {
+            let c = self.chars[self.pos];
+            if c == "\\" && !raw && self.peek(1) == Some("x") {
+                let hex: String = [self.peek(2), self.peek(3)].iter().flatten().copied().collect();
+                match u8::from_str_radix(&hex, 16) {
+                    Ok(v) if hex.len() == 2 => {
+                        out.push(v);
+                        self.pos += 4;
+                        continue;
+                    }
+                    _ => return Err(perr("invalid \\x escape in a bytes literal", self.line)),
+                }
+            }
+            if c == "\\" {
+                out.extend_from_slice(self.scan_escape(raw).as_bytes());
+                continue;
+            }
+            if self.closes_string(quote, length) {
+                self.pos += length;
+                self.push(Tok::Bytes(out), start_line);
+                return Ok(());
+            }
+            if c == "\n" {
+                if length != 3 {
+                    return Err(perr("unterminated bytes literal", start_line));
+                }
+                self.line += 1;
+            }
+            if !c.is_ascii() {
+                return Err(perr("bytes can only contain ASCII characters", self.line));
+            }
+            out.extend_from_slice(c.as_bytes());
+            self.pos += 1;
+        }
+        Err(perr("unterminated bytes literal", start_line))
     }
 
     fn handle_line_start(&mut self) -> Result<(), PyError> {

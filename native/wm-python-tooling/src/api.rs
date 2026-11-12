@@ -101,6 +101,13 @@ pub const BUTTON_STYLES: &[&str] = &["primary"];
 pub const MAX_TABS: usize = 8;
 pub const API_GLOBALS: &[&str] = &["wm", "ui"];
 pub const MODULES: &[&str] = &["math", "random", "time", "json", "re", "sys"];
+
+/// Standard library modules written in Python that API 5 plugins can import.
+/// Their members are not modelled, so code using them is not checked name by name.
+pub const LIBRARY: &[&str] = &[
+    "abc", "base64", "collections", "copy", "dataclasses", "datetime", "enum", "functools", "hashlib", "hmac",
+    "html", "itertools", "statistics", "string", "textwrap", "typing", "urllib", "urllib.parse", "uuid",
+];
 pub const CONTRACT: &[&str] = &["render", "on_event", "transform"];
 
 /// The value types whose methods are listed, in the order a guess prefers them.
@@ -110,20 +117,19 @@ pub const VALUE_TYPES: &[&str] = &["str", "list", "dict", "bytes", "set", "tuple
 pub const EXCEPTIONS: &[&str] = &[
     "Exception", "ValueError", "TypeError", "KeyError", "IndexError", "NameError", "ZeroDivisionError",
     "AttributeError", "RuntimeError", "StopIteration", "LookupError", "ArithmeticError", "OverflowError",
-    "ImportError",
+    "ImportError", "AssertionError", "NotImplementedError", "UnicodeError", "UnicodeDecodeError", "OSError",
+    "PermissionError", "TimeoutError", "ConnectionError", "FileNotFoundError",
 ];
 
 /// Builtins taken out because they reach outside the script.
 pub const REMOVED_BUILTINS: &[&str] = &[
-    "open", "input", "eval", "exec", "compile", "__import__", "globals", "locals", "vars", "breakpoint", "exit",
-    "quit", "help",
+    "open", "input", "eval", "exec", "compile", "__import__", "globals", "locals", "breakpoint", "exit", "quit",
+    "help",
 ];
 
 /// Builtins Python has and PyMini does not.
 pub const MISSING_BUILTINS: &[&str] = &[
-    "getattr", "setattr", "hasattr", "delattr", "iter", "next", "id", "hash", "object", "super", "property",
-    "staticmethod", "classmethod", "frozenset", "bytearray", "memoryview", "complex", "slice", "ascii", "dir",
-    "issubclass", "aiter", "anext",
+    "frozenset", "bytearray", "memoryview", "complex", "slice", "ascii", "dir", "aiter", "anext",
 ];
 
 /// `wm` members that do not exist and never will: plugins have no way to read
@@ -333,6 +339,22 @@ fn build() -> Model {
     add("format", Builtin, Some("format(value, spec=\"\")"), None, "value formatted with a format spec, as in f\"{value:spec}\".");
     add("isinstance", Builtin, Some("isinstance(value, types)"), None, "Whether value is of a type: str, int, float, bool, list, tuple, dict or set, or one of a tuple of them.");
     add("callable", Builtin, Some("callable(value)"), None, "Whether value can be called.");
+    add("getattr", Builtin, Some("getattr(obj, name, default)"), None, "The attribute called name, or default when there is none.");
+    add("setattr", Builtin, Some("setattr(obj, name, value)"), None, "Sets the attribute called name, as obj.name = value does.");
+    add("hasattr", Builtin, Some("hasattr(obj, name)"), None, "Whether obj has an attribute called name.");
+    add("delattr", Builtin, Some("delattr(obj, name)"), None, "Removes the attribute called name.");
+    add("vars", Builtin, Some("vars(obj)"), None, "An object's attributes as a dict.");
+    add("iter", Builtin, Some("iter(values)"), None, "An iterator over values, which next() takes items from.");
+    add("next", Builtin, Some("next(iterator, default)"), None, "The next item, or default when there is none left; without a default, StopIteration.");
+    add("property", Builtin, Some("property(fget, fset=None)"), None, "A computed attribute. Usually written as @property above a method, and @name.setter for the setter.");
+    add("staticmethod", Builtin, Some("staticmethod(function)"), None, "A method that takes neither self nor the class. Usually written as @staticmethod.");
+    add("classmethod", Builtin, Some("classmethod(function)"), None, "A method that takes the class as its first argument. Usually written as @classmethod.");
+    add("super", Builtin, Some("super()"), None, "Inside a method, the class above this one: super().__init__(...).");
+    add("object", Builtin, Some("object()"), None, "The plainest object, often a unique sentinel value.");
+    add("issubclass", Builtin, Some("issubclass(cls, classinfo)"), None, "Whether a class is classinfo or descends from it.");
+    add("id", Builtin, Some("id(value)"), None, "A number that is the same for the same object and different for another one alive at the same time.");
+    add("hash", Builtin, Some("hash(value)"), None, "The hash of a value that can be a dict key.");
+    add("NotImplemented", Constant, None, None, "Returned by an operator method such as __eq__ to say it does not handle the other operand.");
     add("Exception", Exception, Some("Exception(message)"), None, "The base of every error. except Exception catches them all.");
     add("ValueError", Exception, Some("ValueError(message)"), None, "A value of the right type but the wrong content. wm.storage.set and wm.reminders.set raise it.");
     add("TypeError", Exception, Some("TypeError(message)"), None, "A value of the wrong type.");
@@ -347,6 +369,15 @@ fn build() -> Model {
     add("ArithmeticError", Exception, None, None, "Catches ZeroDivisionError in an except clause.");
     add("OverflowError", Exception, None, None, "A number too large to convert. Catch it in an except clause.");
     add("ImportError", Exception, None, None, "A module that is not there. Catch it in an except clause.");
+    add("AssertionError", Exception, Some("AssertionError(message)"), None, "An assert statement whose test was false.");
+    add("NotImplementedError", Exception, Some("NotImplementedError(message)"), None, "A method a subclass should have written.");
+    add("UnicodeError", Exception, Some("UnicodeError(message)"), None, "Text that could not be encoded or decoded.");
+    add("UnicodeDecodeError", Exception, Some("UnicodeDecodeError(message)"), None, "Bytes that are not valid in the encoding asked for.");
+    add("OSError", Exception, Some("OSError(message)"), None, "Catches PermissionError, TimeoutError and ConnectionError.");
+    add("PermissionError", Exception, Some("PermissionError(message)"), None, "Something the plugin has not been allowed to do, or not here: a field the user is typing a password in.");
+    add("TimeoutError", Exception, Some("TimeoutError(message)"), None, "A request that took too long.");
+    add("ConnectionError", Exception, Some("ConnectionError(message)"), None, "A request that could not reach its server.");
+    add("FileNotFoundError", Exception, Some("FileNotFoundError(message)"), None, "A file that is not there.");
 
     // ---- modules ----------------------------------------------------------
     add("math", Module, None, None, "Mathematical functions and constants. import math.");

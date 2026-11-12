@@ -58,6 +58,8 @@ pub struct Host {
     pub selection: Option<bool>,
     pub panel: Option<bool>,
     pub actions: Option<Vec<String>>,
+    /// The plugin's own other modules, by dotted name: `helpers`, `pkg.util`.
+    pub modules: Option<Vec<String>>,
     /// The interpreter's own verdict on whether the script will run.
     pub verdict: Option<Verdict>,
 }

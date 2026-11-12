@@ -55,7 +55,32 @@ impl Interp {
                     Err(e) => Err(self.byte_error(e)),
                 }
             }
-            Value::Exception(e) => Err(self.error(format!("'{}' object has no method '{name}'", e.kind), "AttributeError")),
+            Value::Instance(inst) => {
+                // The common case, `self.method(...)`, without making a bound method.
+                let own = inst.attrs.borrow().get(name).cloned();
+                if own.is_none() {
+                    if let Some(Value::Function(f)) = inst.class.lookup(name) {
+                        let mut all = Vec::with_capacity(args.len() + 1);
+                        all.push(obj.clone());
+                        all.extend(args);
+                        return self.call_function(&f, all, kwargs);
+                    }
+                }
+                let m = self.attribute(obj, name)?;
+                self.call_value(&m, args, kwargs)
+            }
+            Value::Class(_) | Value::Object(_) | Value::Function(_) => {
+                let m = self.attribute(obj, name)?;
+                self.call_value(&m, args, kwargs)
+            }
+            Value::Builtin(b) if b.as_ref() == "object" => {
+                let m = self.attribute(obj, name)?;
+                self.call_value(&m, args, kwargs)
+            }
+            Value::Exception(e) => match name {
+                "with_traceback" => Ok(obj.clone()),
+                _ => Err(self.error(format!("'{}' object has no method '{name}'", e.kind), "AttributeError")),
+            },
             _ => Err(self.error(format!("'{}' object has no method '{name}'", obj.type_name()), "AttributeError")),
         }
     }

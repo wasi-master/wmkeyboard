@@ -148,12 +148,15 @@ impl<'a> Checks<'a> {
             StmtKind::Import(names) => {
                 for n in names {
                     let root = n.name.split('.').next().unwrap_or("");
-                    if !api::MODULES.contains(&root) && !api::API_GLOBALS.contains(&root) {
+                    if !api::MODULES.contains(&root) && !api::API_GLOBALS.contains(&root) && !self.importable(&n.name) {
                         self.out.push(Diagnostic::new(Code::ImportNotAvailable, n.span, &[&n.name]));
                     }
                 }
             }
             StmtKind::ImportFrom { module, module_span, names, .. } => {
+                if module.starts_with('.') || self.importable(module) {
+                    return;
+                }
                 if !api::MODULES.contains(&module.as_str()) && !api::API_GLOBALS.contains(&module.as_str()) {
                     self.out.push(Diagnostic::new(Code::ImportNotAvailable, *module_span, &[module]));
                     return;
@@ -165,6 +168,11 @@ impl<'a> Checks<'a> {
             }
             _ => {}
         });
+    }
+
+    /// A standard library module written in Python, or one of the plugin's own.
+    fn importable(&self, module: &str) -> bool {
+        api::LIBRARY.contains(&module) || self.host.modules.as_ref().is_some_and(|m| m.iter().any(|x| x == module))
     }
 
     // ---- members of the API ------------------------------------------------

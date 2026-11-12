@@ -11,7 +11,7 @@ pub fn fixture(name: &str) -> String {
 
 /// The host each fixture's plugin.json describes.
 pub fn fixture_host(name: &str) -> Host {
-    let mut host = Host { storage: Some(false), reminders: Some(false), selection: Some(false), panel: Some(true), actions: Some(vec![]), verdict: None };
+    let mut host = Host { storage: Some(false), reminders: Some(false), selection: Some(false), panel: Some(true), actions: Some(vec![]), modules: None, verdict: None };
     match name {
         "todo" => {
             host.storage = Some(true);
