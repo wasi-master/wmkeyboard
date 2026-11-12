@@ -1,4 +1,8 @@
-WM Keyboard is an Android keyboard that keeps its intelligence on your phone. Prediction, autocorrect, glide typing, transliteration, emoji search and learning are all local computation over files in the app's own storage. There is no analytics SDK, no advertising, no account and no server of ours for the app to phone home to.
+WM Keyboard is a free, open-source Android keyboard that keeps its intelligence on your phone. Prediction, autocorrect, glide typing, transliteration, emoji search and learning are all local computation over files in the app's own storage. There is no analytics SDK, no advertising, no account and no server of ours for the app to phone home to.
+
+FREE AND OPEN SOURCE
+
+WM Keyboard is free, with no ads and nothing locked behind a payment. Its full source code is public under the MIT license at https://github.com/wasi-master/wmkeyboard. The in-app purchases are optional tips: a way to say thanks and support development. A tip unlocks nothing, and every feature works the same whether you tip or not.
 
 1,555 LANGUAGES, 3,388 LAYOUTS
 
