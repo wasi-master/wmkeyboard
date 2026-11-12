@@ -245,8 +245,30 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * and on the same strokes with the finger resting on a third of the
          * single letters, .9333 at zero to .9433 at 2.0 — still climbing at
          * 4.0, but that is where the plain corpus starts paying it back.
+         *
+         * 2.0 again since #1250. The real-swipe fit had taken it to 0.9
+         * while cutting [shapeWeight] to a fifth, and the charge is in
+         * alignment units, so a full pause went from 5 nats to 0.45: under
+         * the half nat that separates `for` from `four`, the same stroke but
+         * for the u. The fit could not have known. Nobody in swipe.futo.org's
+         * strokes pauses to mark a letter, so every pause it saw was a
+         * hesitation, and a weight for a deliberate mark cannot be fitted on
+         * strokes that carry none. On 2,000 strokes of the test split
+         * (`glide_beam_eval`) and on strokes drawn with a 150 ms hold on
+         * the letter that tells two words apart (`glide_cases`: `four`,
+         * `its`, `three`, `odd`):
+         *
+         *     0      .8740    hold reads right  -          4.0    .8590   4 of 4
+         *     0.9    .8740    1 of 4                       10.0   .8125   4 of 4
+         *     2.0    .8725    4 of 4
+         *
+         * The cost above 2.0 is all on the least accurate strokes, whose
+         * hesitations are a finger looking for the next key: the most
+         * accurate quarter reads .932 at 0.9 and .928 at 10. So how much a
+         * pause counts is the hand's to choose, and a setting reaches it
+         * (`GestureSettings.pauseStrength`).
          */
-        val unclaimedDwell: Float = 0.9f,
+        val unclaimedDwell: Float = 2.0f,
         /**
          * Widest a loop may be, in key widths, for the decoder to read it as a
          * mark on a key; 0 switches loop reading off altogether.
@@ -370,8 +392,18 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * with no doubled competitor, since every word then pays alike: the
          * plain corpus reads the same at 0 and 0.5, and the looped one goes
          * .835 to .852 on doubled words.
+         *
+         * 4.0 since #1250, for the reason [unclaimedDwell] moved: at 1.1
+         * against the fitted [shapeWeight] a circle was worth half a nat, and
+         * `too` led `to` by 0.21 on a stroke looped on the o, `off` led `of`
+         * by 0.24, `three` led `the` by 0.29, leads the context model's say
+         * (up to 3 nats) overturned at will. At 4.0 the same strokes lead by
+         * 1.7, 1.7 and 1.0 (`glide_cases`), and real strokes, which carry
+         * stray curls and no deliberate loops, read the same: .8740 at 1.1,
+         * .8745 at 4.0 and at 8.0 on 2,000 of the test split. A setting
+         * reaches it (`GestureSettings.loopStrength`).
          */
-        val unclaimedLoop: Float = 1.1f,
+        val unclaimedLoop: Float = 4.0f,
         /**
          * The most a shape learned from the user's own kept glides may shorten
          * a word's shape distance, in the shape channel's units. A word scores
@@ -495,8 +527,29 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * Per character rather than a flat charge because the guess really does
          * get weaker with length: two letters ahead is a near certainty on a
          * word the user writes daily, eight is a bet on their sentence.
+         *
+         * 0.28 since #1250; 1.4 until then. The charge is in nats, outside
+         * [shapeWeight], and it competes with how much worse the stroke's
+         * whole readings fit than the prefix does, which is inside it. The
+         * real-swipe fit cut [shapeWeight] to a fifth and left this alone,
+         * so a guess paid five times what it used to against the readings
+         * it has to beat, and "Finish long words early" all but stopped
+         * offering. Real strokes of six letters or more cut at a share of
+         * their length, the tier's margin applied as the keyboard applies
+         * it (`glide_ahead_eval`, 611 strokes; the word shown, another
+         * guess shown, and a guess typed over a stroke drawn to its end):
+         *
+         *                        60 % drawn    80 % drawn    drawn whole
+         *     before the fit     .133  .432    .267  .291    .031
+         *     1.4,  margin 1     .034  .147    .213  .116    .002
+         *     0.28, margin 1     .103  .309    .273  .208    .011
+         *     0.28, margin 2     .072  .213    .236  .157    .005
+         *
+         * A fifth of the old charge, the ratio the shape weight moved by,
+         * brings the right word back as often as before the fit with fewer
+         * wrong ones beside it. The margins are `GlideLookAhead`'s.
          */
-        val lookAheadCost: Double = 1.4,
+        val lookAheadCost: Double = 0.28,
         /**
          * How many prefix states may be expanded into a completion in one
          * decode.

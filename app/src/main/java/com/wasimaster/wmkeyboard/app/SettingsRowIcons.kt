@@ -1272,10 +1272,12 @@ internal object SettingsRowIcons {
         put(R.string.typing_glide_near_radius_title) { Icons.Outlined.AltRoute }
         put(R.string.typing_glide_language_radii_title) { Icons.Outlined.Translate }
         put(R.string.typing_glide_dwell_title) { Icons.Outlined.Timer }
+        put(R.string.typing_glide_pause_strength_title) { Icons.Outlined.LineWeight }
         put(R.string.typing_glide_loop_title) { Icons.Outlined.Loop }
         put(R.string.typing_glide_loop_arc_title) { Icons.Outlined.Tune }
         put(R.string.typing_glide_loop_extent_title) { Icons.Outlined.ZoomOutMap }
         put(R.string.typing_glide_loop_radius_title) { Icons.Outlined.CenterFocusStrong }
+        put(R.string.typing_glide_loop_strength_title) { Icons.Outlined.LineWeight }
         put(R.string.typing_glide_wiggle_title) { Icons.Outlined.Waves }
         put(R.string.typing_glide_wiggle_strength_title) { Icons.Outlined.LineWeight }
         put(R.string.typing_glide_wiggle_extent_title) { Icons.Outlined.Straighten }

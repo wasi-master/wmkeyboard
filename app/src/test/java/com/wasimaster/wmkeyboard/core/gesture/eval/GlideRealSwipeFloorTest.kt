@@ -110,10 +110,16 @@ class GlideRealSwipeFloorTest {
          * Measured on this fixture over the bundled en.txt. History:
          *
          * 2026-10-22, first floor, the tuning fitted on the train split:
-         * see `GlideBeam.Tuning` for what moved.
+         * see `GlideBeam.Tuning` for what moved. .8735 / .9630.
+         *
+         * 2026-11-13, a pause and a loop count again (#1250): the charges on
+         * the words that ignore them went from 0.9 and 1.1 to 2.0 and 4.0.
+         * One stroke fewer first, six more in the top four; the fixture
+         * carries no deliberate marks, so it can only measure what stronger
+         * marks cost, and they cost it nothing.
          */
-        const val TOP1_FLOOR = 0.8735
-        const val TOP4_FLOOR = 0.9630
+        const val TOP1_FLOOR = 0.8730
+        const val TOP4_FLOOR = 0.9660
 
         /** The decoder is deterministic; this only absorbs a word-list edit's nudge. */
         const val TOLERANCE = 0.005

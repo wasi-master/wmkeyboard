@@ -1721,6 +1721,24 @@ enum class GlidePreviewSteadiness(
  * word *shown*, not a word typed, and the user rejects it by carrying on
  * drawing. [GlidePreviewSteadiness] governs how much it may churn while they
  * do. But it is not nothing, which is what [margin] is for.
+ *
+ * **The margins follow the decoder's scale (#1250).** A margin is in the
+ * decoder's nats, and the real-swipe fit of 2026-10-22 made the stroke's
+ * shape count a fifth as much, so every gap between two words shrank with it
+ * and a guess almost never stood 4 nats clear of anything: "When sure" showed
+ * the right word 80 % of the way through a real stroke 7.5 % of the time,
+ * where it had shown it 25 %. With the guess's own charge rescaled
+ * ([GlideBeam.Tuning.lookAheadCost]) and "When sure" at 2, on 611 real
+ * strokes of six letters or more (`glide_ahead_eval` in `native/wm-engine`;
+ * the word shown, another guess shown, at 80 % drawn, and a guess typed over
+ * a stroke drawn to its end):
+ *
+ * | tier      | margin | right | wrong | over a finished word |
+ * |-----------|--------|-------|-------|----------------------|
+ * | When sure | 2      | .236  | .157  | .005                 |
+ * | Eager     | 1      | .273  | .208  | .011                 |
+ *
+ * against .254 / .268 / .023 and .267 / .291 / .031 before the fit.
  */
 enum class GlideLookAhead(
     @StringRes val labelRes: Int,
@@ -1731,7 +1749,7 @@ enum class GlideLookAhead(
     OFF(R.string.core_settings_glide_lookahead_off_label, 0.0),
 
     /** Only when the guess is far ahead of anything the stroke actually spells. */
-    CONFIDENT(R.string.core_settings_glide_lookahead_confident_label, 4.0),
+    CONFIDENT(R.string.core_settings_glide_lookahead_confident_label, 2.0),
 
     /** Whenever the guess is ahead at all. */
     EAGER(R.string.core_settings_glide_lookahead_eager_label, 1.0),
@@ -8909,6 +8927,20 @@ val GlideRadiusRange = 0.5f..4f
 val GlideDwellFullRange = 1f..8f
 
 /**
+ * Bounds for [GestureSettings.pauseStrength]: what a pause on a key costs the
+ * words with no letter there. The floor leaves a pause as a faint hint; the
+ * ceiling is the five nats a pause was worth before the real-swipe fit, more
+ * than the context model can ever push back with (#1250).
+ */
+val GlidePauseStrengthRange = 0.5f..10f
+
+/**
+ * Bounds for [GestureSettings.loopStrength]: what a circle on a key costs the
+ * words that do not double a letter there. See [GlidePauseStrengthRange].
+ */
+val GlideLoopStrengthRange = 1f..10f
+
+/**
  * Bounds for [GestureSettings.loopMinArc], in key widths: the least path a
  * curl has to hold before it is a loop rather than tremor. Covers the band
  * `GlideTuningSweepTest` swept, 0.7 to 1.6, with room either side.
@@ -9379,6 +9411,16 @@ data class GestureSettings(
      */
     val dwellFull: Float = GlideBeam.Tuning.DEFAULT.dwellFull,
     /**
+     * How much a pause counts once it is read: the charge on every word with
+     * no letter where the finger stopped ([GlideBeam.Tuning.unclaimedDwell],
+     * whose default this is). [dwellFull] says how long a stop has to be;
+     * this says what it is worth, and until #1250 nothing on the screen did.
+     * A hand that pauses on purpose can raise it until a pause outvotes
+     * whatever the sentence suggests; one that hesitates while it looks for
+     * the next key should lower it. Range [GlidePauseStrengthRange].
+     */
+    val pauseStrength: Float = GlideBeam.Tuning.DEFAULT.unclaimedDwell,
+    /**
      * Read a small circle drawn on a key as that letter twice, the way Swype
      * taught. On, which is what the decoder always did: off is
      * [GlideBeam.Tuning.loopExtent] at zero, which stops the search looking
@@ -9405,6 +9447,13 @@ data class GestureSettings(
      * to be about that letter, in key widths. Range [GlideLoopRadiusRange].
      */
     val loopRadius: Float = GlideBeam.Tuning.DEFAULT.loopRadius,
+    /**
+     * How much a loop counts once it is read: the charge on every word that
+     * does not double a letter on the looped key
+     * ([GlideBeam.Tuning.unclaimedLoop], whose default this is). Does nothing
+     * while [loopDouble] is off. Range [GlideLoopStrengthRange].
+     */
+    val loopStrength: Float = GlideBeam.Tuning.DEFAULT.unclaimedLoop,
     /**
      * Read a back-and-forth on a key — a scribble with no turn to it, which
      * is how some people mark a doubled letter — as that letter twice.
@@ -9551,9 +9600,11 @@ fun GestureSettings.glideTuning(): GlideBeam.Tuning = GlideBeam.Tuning.DEFAULT.c
     nearRadius = nearRadius,
     vocabularyRank = vocabulary.rank,
     dwellFull = dwellFull,
+    unclaimedDwell = pauseStrength,
     loopExtent = if (loopDouble) loopExtent else 0f,
     loopMinArc = loopMinArc,
     loopRadius = loopRadius,
+    unclaimedLoop = loopStrength,
     wiggleExtent = if (wiggleDouble) wiggleExtent else 0f,
     wiggleWeight = if (wiggleDouble) wiggleWeight else 0f,
     shapeSeeding = shapeSeeding,
@@ -12020,6 +12071,8 @@ class SettingsRepository(private val context: Context) {
         /** [GestureSettings.tolerancesByLanguage], as [GlideTolerances.encode] writes it. */
         private val GESTURE_TOLERANCES_BY_LANG = stringPreferencesKey("gesture_tolerances_by_lang")
         private val GESTURE_DWELL_FULL = floatPreferencesKey("gesture_dwell_full")
+        private val GESTURE_PAUSE_STRENGTH = floatPreferencesKey("gesture_pause_strength")
+        private val GESTURE_LOOP_STRENGTH = floatPreferencesKey("gesture_loop_strength")
         private val GESTURE_LOOP_DOUBLE = booleanPreferencesKey("gesture_loop_double")
         private val GESTURE_LOOP_MIN_ARC = floatPreferencesKey("gesture_loop_min_arc")
         private val GESTURE_LOOP_EXTENT = floatPreferencesKey("gesture_loop_extent")
@@ -14326,6 +14379,10 @@ class SettingsRepository(private val context: Context) {
                 ?.let { GlideTolerances.decode(it, GlideRadiusRange) }
                 ?: defaults.gesture.tolerancesByLanguage,
             dwellFull = p[GESTURE_DWELL_FULL] ?: defaults.gesture.dwellFull,
+            pauseStrength = (p[GESTURE_PAUSE_STRENGTH] ?: defaults.gesture.pauseStrength)
+                .coerceIn(GlidePauseStrengthRange),
+            loopStrength = (p[GESTURE_LOOP_STRENGTH] ?: defaults.gesture.loopStrength)
+                .coerceIn(GlideLoopStrengthRange),
             loopDouble = p[GESTURE_LOOP_DOUBLE] ?: defaults.gesture.loopDouble,
             loopMinArc = p[GESTURE_LOOP_MIN_ARC] ?: defaults.gesture.loopMinArc,
             loopExtent = p[GESTURE_LOOP_EXTENT] ?: defaults.gesture.loopExtent,
@@ -22580,6 +22637,14 @@ class SettingsRepository(private val context: Context) {
     /** @see GestureSettings.dwellFull; the bounds match the slider's. */
     suspend fun setGestureDwellFull(value: Float) =
         editPrefs { it[GESTURE_DWELL_FULL] = value.coerceIn(GlideDwellFullRange) }
+
+    /** @see GestureSettings.pauseStrength */
+    suspend fun setGesturePauseStrength(value: Float) =
+        editPrefs { it[GESTURE_PAUSE_STRENGTH] = value.coerceIn(GlidePauseStrengthRange) }
+
+    /** @see GestureSettings.loopStrength */
+    suspend fun setGestureLoopStrength(value: Float) =
+        editPrefs { it[GESTURE_LOOP_STRENGTH] = value.coerceIn(GlideLoopStrengthRange) }
 
     /** @see GestureSettings.loopDouble */
     suspend fun setGestureLoopDouble(value: Boolean) =

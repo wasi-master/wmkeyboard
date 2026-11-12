@@ -861,6 +861,9 @@
     <string name="typing_glide_dwell_title">Pause to mark a letter</string>
     <string name="typing_glide_dwell_subtitle">How long to stay on a key to say the letter is in the word</string>
     <string name="typing_glide_dwell_info">A glide along one row of keys draws the same straight line for \"write\", \"wire\" and \"wrote\". Stop on a key for a moment to say that its letter is in the word, and the words without that letter lose. The stop counts for the key you stop on, not for the keys next to it. A stop does not write a letter twice: draw a loop for that. The value is a multiple of your own speed in that same glide, not a number of seconds, so it works in a quick glide and a slow one alike. A low value accepts a short stop, but a careful glide that slows down everywhere then marks keys that it only goes past. A high value asks for a clear stop.</string>
+    <string name="typing_glide_pause_strength_title">Pause strength</string>
+    <string name="typing_glide_pause_strength_subtitle">How much a stop on a key counts against the words without that letter</string>
+    <string name="typing_glide_pause_strength_info">The row above sets how long a stop has to be. This one sets what a stop is worth. \"For\" and \"four\" are the same glide, and so are \"the\" and \"three\", so the keyboard types the more common one unless you stop on the letter that only the other has. At the value it ships with, one stop settles a pair like that. Raise it if you stop on purpose and still get the common word: near the top of the range a stop wins against anything the sentence suggests. Lower it if you slow down while you look for the next key and words come out wrong.</string>
 
     <string name="typing_glide_loop_title">Loop to double a letter</string>
     <string name="typing_glide_loop_subtitle">Draw a small circle on a key to write the letter twice</string>
@@ -877,6 +880,9 @@
     <string name="typing_glide_loop_radius_title">Loop centring</string>
     <string name="typing_glide_loop_radius_subtitle">How near the letter the middle of a circle must be</string>
     <string name="typing_glide_loop_radius_info">Measured in key widths. The keyboard gives a circle to the one key nearest its middle, and only if that key is this near. A circle drawn through a key sits about a third of a key to one side, so a very low value finds no letter for it and the mark does nothing. A high value also accepts a circle drawn between two keys, and gives it to the nearer one.</string>
+    <string name="typing_glide_loop_strength_title">Loop strength</string>
+    <string name="typing_glide_loop_strength_subtitle">How much a circle on a key counts against the single spelling</string>
+    <string name="typing_glide_loop_strength_info">A circle says the letter is written twice, and every word that does not double it there is marked down by this much. Raise it if you draw the circle and still get \"to\" for \"too\" or \"of\" for \"off\". Lower it if your glides curl a little by themselves and you get doubled letters you did not ask for. Used only while the switch above is on.</string>
 
     <string name="typing_glide_wiggle_title">Wiggle to mark a letter</string>
     <string name="typing_glide_wiggle_subtitle">Rub back and forth on a key to say the letter is in the word</string>

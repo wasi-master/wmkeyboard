@@ -115,6 +115,97 @@ channel, the stroke's ends open past the gap band):
 | doubled key redrawn with a loop (482) | .7552 | .8154 |
 | stray loop on a word with no double (4,385) | .8041 | .7977 |
 
+## Marks, early finishes and named words (#1250)
+
+The fit above made the stroke's shape count a fifth as much against word
+frequency. Three weights that live on that scale were left where they were,
+and a report that "its" came out "is", that pauses and loops did nothing and
+that long words were no longer finished early traced back to them. Two
+harnesses in `native/wm-engine/examples` measure what the fit's own data
+cannot: `glide_cases` draws a named word, with a stop or a circle on a chosen
+letter, and `glide_ahead_eval` cuts real strokes short and applies the
+look-ahead gate the keyboard applies. Both read the committed 2,000-stroke
+fixture, so nothing has to be downloaded:
+
+```bash
+python3 -I - <<'PY'   # app/src/test/resources/glide/futo-swipes.txt.gz -> fixture.jsonl, qwerty.json
+import gzip, json
+lines = gzip.open("../../app/src/test/resources/glide/futo-swipes.txt.gz", "rt").read().splitlines()
+keys = [{"letter": e.split(":")[0], "cx": int(e.split(":")[1].split(",")[0]) / 1000, "cy": int(e.split(",")[1]) / 1000}
+        for e in lines[0].removeprefix("#keys ").split()]
+json.dump({"keys": keys}, open("qwerty.json", "w"))
+with open("fixture.jsonl", "w") as out:
+    for line in lines[1:]:
+        word, width, height, *points = line.split(" ")
+        t, data = 0, []
+        for point in points:
+            x, y, dt = point.split(",")
+            t += int(dt)
+            data.append({"x": int(x) / 1000, "y": int(y) / 1000, "t": t})
+        out.write(json.dumps({"word": word, "canvas_width": float(width), "canvas_height": float(height), "data": data}) + "\n")
+PY
+echo 'four for pause=2:150' | cargo run --release --example glide_cases -- qwerty.json ../../app/dictionaries-src/en.txt
+echo 'keep=0.8 margin=2'    | cargo run --release --example glide_ahead_eval -- fixture.jsonl qwerty.json ../../app/dictionaries-src/en.txt
+```
+
+Measured 2026-11-13 on the bundled en.txt.
+
+Who the fit helped and what its misses look like, the 2,000 strokes in
+quarters by how far the path passes from the word's keys (mean miss in key
+widths):
+
+| quarter | before the fit | fitted | misses that are a commoner word, before | fitted |
+|---|---|---|---|---|
+| 0.01 to 0.15 | .896 | .932 | 6 of 52 | 19 of 34 |
+| 0.15 to 0.22 | .868 | .924 | 9 of 66 | 19 of 38 |
+| 0.22 to 0.33 | .814 | .888 | 12 of 93 | 25 of 56 |
+| 0.33 and up | .600 | .752 | 16 of 200 | 28 of 124 |
+
+Of the 39 strokes read right before the fit and wrong after, 33 came out as
+a commoner word and 28 as a shorter one (`its` as `is` twice, `three` as
+`the`, `new` as `me`). `freq_weight` is the lever for a hand that draws
+accurately: the first quarter reads .932, .932, .928 and .930 at 1.0, 0.6,
+0.5 and 0.4, the last .752, .712, .694 and .670.
+
+A stop on the letter that tells two words apart (`four`/`for`,
+`its`/`is`, `three`/`the`, `odd`/`of`; 150 ms, eight tremors each), against
+what the charge costs real strokes, which carry hesitations and no marks:
+
+| `unclaimed_dwell` | pairs settled | real strokes | first quarter | last quarter |
+|---|---|---|---|---|
+| 0.9 (0.6.4 to 0.6.6) | 1 of 4 | .8740 | .932 | .752 |
+| 2.0 (shipped) | 4 of 4 | .8725 | .932 | .738 |
+| 4.0 | 4 of 4 | .8590 | .932 | .698 |
+| 10.0 | 4 of 4 | .8125 | .928 | .588 |
+
+At 0.9 the pause row's own range (`dwell_full` 1 to 8) moves `four`'s
+deficit from 0.07 to 0.08 nats. A circle on the doubled letter (`too`,
+`off`, `three`, `good`, `odd`, `been`) led its single spelling by 0.2 to 1.1
+nats at `unclaimed_loop` 1.1 and leads by 1.0 to 2.6 at 4.0; real strokes
+read .8740, .8745 and .8745 at 1.1, 4.0 and 8.0. The radii reach the decoder
+and sit at their peak: .757, .868, .874, .821 for a start radius of 0.5, 1,
+1.6, 3; .579, .827, .868, .874, .836 for an end radius of 0.5, 1, 1.6, 2, 3;
+.651, .840, .871, .874 for a path radius of 0.5, 1, 1.5, 1.9 and up.
+
+Strokes of six letters or more (611) cut at a share of their length, the
+word shown and another guess shown, and at full length a guess typed over a
+finished word:
+
+| `look_ahead_cost`, margin | 60 % right | wrong | 80 % right | wrong | whole |
+|---|---|---|---|---|---|
+| before the fit, 1 | .133 | .432 | .267 | .291 | .031 |
+| before the fit, 4 | .120 | .378 | .254 | .268 | .023 |
+| 1.4, 1 (0.6.4 to 0.6.6 "Eager") | .034 | .147 | .213 | .116 | .002 |
+| 1.4, 4 (0.6.4 to 0.6.6 "When sure") | .007 | .033 | .075 | .041 | .000 |
+| 0.28, 1 (shipped "Eager") | .103 | .309 | .273 | .208 | .011 |
+| 0.28, 2 (shipped "When sure") | .072 | .213 | .236 | .157 | .005 |
+| 0.28, 0.2 | .134 | .422 | .306 | .272 | .034 |
+
+Not measured here: the context stages after the decoder (the context
+model's blend and the n-gram rerank, which reorders by rank and never sees
+how far apart two readings scored), which need the split's sentences, and
+learned-shape seeding, which needs a user's stored shapes.
+
 ## GlideBeam on whole phrases
 
 A stroke across the spacebar, on real strokes joined into the sentences they

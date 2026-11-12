@@ -110,6 +110,7 @@ fn set(t: &mut Tuning, name: &str, value: f64) {
         "start_radius" => t.start_radius = value as f32,
         "end_radius" => t.end_radius = value as f32,
         "near_radius" => t.near_radius = value as f32,
+        "look_ahead_cost" => t.look_ahead_cost = value,
         "joiner_cost" => t.joiner_cost = value as f32,
         "join_cost" => t.join_cost = value,
         "join_min_part" => t.join_min_part = value as i32,

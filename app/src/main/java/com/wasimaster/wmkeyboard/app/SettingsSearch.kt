@@ -714,10 +714,12 @@ private fun SearchStrings.typingGlideRows(): List<SettingsSearchEntry> {
         row(R.string.typing_glide_near_radius_title, R.string.typing_glide_near_radius_subtitle),
         row(R.string.typing_glide_language_radii_title, R.string.typing_glide_language_radii_subtitle),
         row(R.string.typing_glide_dwell_title, R.string.typing_glide_dwell_subtitle),
+        row(R.string.typing_glide_pause_strength_title, R.string.typing_glide_pause_strength_subtitle),
         row(R.string.typing_glide_loop_title, R.string.typing_glide_loop_subtitle),
         row(R.string.typing_glide_loop_arc_title, R.string.typing_glide_loop_arc_subtitle),
         row(R.string.typing_glide_loop_extent_title, R.string.typing_glide_loop_extent_subtitle),
         row(R.string.typing_glide_loop_radius_title, R.string.typing_glide_loop_radius_subtitle),
+        row(R.string.typing_glide_loop_strength_title, R.string.typing_glide_loop_strength_subtitle),
         row(R.string.typing_glide_wiggle_title, R.string.typing_glide_wiggle_subtitle),
         row(
             R.string.typing_glide_wiggle_strength_title,

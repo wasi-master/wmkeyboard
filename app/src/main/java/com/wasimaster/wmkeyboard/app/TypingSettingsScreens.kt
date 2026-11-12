@@ -99,6 +99,8 @@ import com.wasimaster.wmkeyboard.core.settings.GlideDwellFullRange
 import com.wasimaster.wmkeyboard.core.settings.GlideLoopMinArcRange
 import com.wasimaster.wmkeyboard.core.settings.GlideLoopExtentRange
 import com.wasimaster.wmkeyboard.core.settings.GlideLoopRadiusRange
+import com.wasimaster.wmkeyboard.core.settings.GlideLoopStrengthRange
+import com.wasimaster.wmkeyboard.core.settings.GlidePauseStrengthRange
 import com.wasimaster.wmkeyboard.core.settings.GlideWiggleExtentRange
 import com.wasimaster.wmkeyboard.core.settings.GlideKeptStrokesRange
 import com.wasimaster.wmkeyboard.core.settings.GlideShapesPerWordRange
@@ -4571,6 +4573,20 @@ private fun SettingsGroupScope.glideIntentRows(
             default = SettingsDefaults.gesture.dwellFull,
         ) { scope.launch { repository.setGestureDwellFull(it) } }
     }
+    // And what a pause is worth once it is read (#1250): the row above only
+    // says how long a stop has to be.
+    item {
+        val valueFormat = stringResource(R.string.typing_value_multiplier_suffix)
+        SliderSetting(
+            R.string.typing_glide_pause_strength_title,
+            subtitle = stringResource(R.string.typing_glide_pause_strength_subtitle),
+            value = settings.watch { it.gesture.pauseStrength },
+            range = GlidePauseStrengthRange,
+            display = { valueFormat.format("%.1f".format(it)) },
+            info = stringResource(R.string.typing_glide_pause_strength_info),
+            default = SettingsDefaults.gesture.pauseStrength,
+        ) { scope.launch { repository.setGesturePauseStrength(it) } }
+    }
     // The circle, and the three things that decide whether a curl is one.
     item {
         ToggleSetting(
@@ -4616,6 +4632,18 @@ private fun SettingsGroupScope.glideIntentRows(
             info = stringResource(R.string.typing_glide_loop_radius_info),
             default = SettingsDefaults.gesture.loopRadius,
         ) { scope.launch { repository.setGestureLoopRadius(it) } }
+    }
+    item(visible = loopDouble) {
+        val valueFormat = stringResource(R.string.typing_value_multiplier_suffix)
+        SliderSetting(
+            R.string.typing_glide_loop_strength_title,
+            subtitle = stringResource(R.string.typing_glide_loop_strength_subtitle),
+            value = settings.watch { it.gesture.loopStrength },
+            range = GlideLoopStrengthRange,
+            display = { valueFormat.format("%.1f".format(it)) },
+            info = stringResource(R.string.typing_glide_loop_strength_info),
+            default = SettingsDefaults.gesture.loopStrength,
+        ) { scope.launch { repository.setGestureLoopStrength(it) } }
     }
     // The rub, which ships off: at the sloppy end of a stroke a slow pivot
     // with tremor on it looks the same.
