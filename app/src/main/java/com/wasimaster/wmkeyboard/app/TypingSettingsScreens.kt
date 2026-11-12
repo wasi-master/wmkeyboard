@@ -2106,7 +2106,7 @@ private fun RedactedCodesRow(settings: LiveSettings, onUnblocked: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val useRoot = settings.watch { it.launcher.useRoot }
-    LaunchedEffect(Unit) { com.wasimaster.wmkeyboard.core.shell.ShellAccess.init() }
+    LaunchedEffect(Unit) { com.wasimaster.wmkeyboard.core.shell.ShellAccess.init(context) }
     androidx.compose.runtime.SideEffect { com.wasimaster.wmkeyboard.core.shell.ShellAccess.rootAllowed = useRoot }
     val granted = com.wasimaster.wmkeyboard.core.shell.ShellAccess.shizukuGranted
     val shizuku by produceState(granted.value) { granted.collect { value = it } }

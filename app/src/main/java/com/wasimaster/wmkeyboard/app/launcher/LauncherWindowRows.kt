@@ -58,7 +58,7 @@ internal fun LauncherRouteCheckRow() {
         if (running) return@NavRow
         running = true
         scope.launch {
-            ShellAccess.init()
+            ShellAccess.init(context)
             executor.recalibrate(LaunchRoute.Kind.FLOATING, null)
             executor.recalibrate(LaunchRoute.Kind.SPLIT, context.packageName)
             running = false
@@ -112,7 +112,7 @@ internal fun routeLabel(route: LaunchRoute): Int = when (route) {
 internal fun LauncherShizukuRow() {
     val context = LocalContext.current
     LaunchedEffect(Unit) {
-        ShellAccess.init()
+        ShellAccess.init(context)
         ShellAccess.refresh()
     }
     val granted by ShellAccess.shizukuGranted.collectAsState()
@@ -131,7 +131,13 @@ internal fun LauncherShizukuRow() {
     ) {
         when {
             granted -> Unit
-            running -> ShellAccess.requestShizuku()
+            running -> if (ShellAccess.requestShizuku() == ShellAccess.Request.DENIED_FOR_GOOD) {
+                // Denied with "don't ask again": Shizuku shows no prompt, so
+                // send the user to its app list, where the keyboard is allowed.
+                Toast.makeText(context, R.string.tooldetail_launcher_shizuku_denied, Toast.LENGTH_LONG).show()
+                context.packageManager.getLaunchIntentForPackage(SHIZUKU_PACKAGE)
+                    ?.let { runCatching { context.startActivity(it) } }
+            }
             installed -> context.packageManager.getLaunchIntentForPackage(SHIZUKU_PACKAGE)
                 ?.let { runCatching { context.startActivity(it) } }
             else -> runCatching {

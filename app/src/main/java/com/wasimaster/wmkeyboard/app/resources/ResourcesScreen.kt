@@ -382,7 +382,7 @@ private fun BatteryCard(context: Context, useRoot: Boolean, onNavigate: (String)
     // itself. Read once when the screen opens and again on a tap: it is a
     // dumpsys, not something to repeat every two seconds.
     LaunchedEffect(Unit) {
-        ShellAccess.init()
+        ShellAccess.init(context)
         ShellAccess.refresh()
     }
     // Mirrors the launcher's switch, as the keyboard and that settings row do.

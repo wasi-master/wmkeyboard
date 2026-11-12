@@ -25960,7 +25960,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Shell access follows the launcher's settings; cheap, so it runs before every launch. */
     private fun syncShellAccess() {
-        com.wasimaster.wmkeyboard.core.shell.ShellAccess.init()
+        com.wasimaster.wmkeyboard.core.shell.ShellAccess.init(this)
         com.wasimaster.wmkeyboard.core.shell.ShellAccess.rootAllowed = _uiState.value.settings.launcher.useRoot
     }
 

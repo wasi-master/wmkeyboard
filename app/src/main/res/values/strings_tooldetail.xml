@@ -1094,6 +1094,7 @@
     <string name="tooldetail_launcher_shizuku_title">Shizuku</string>
     <string name="tooldetail_launcher_shizuku_on">Allowed. Floating windows and split screen can use it where nothing else works</string>
     <string name="tooldetail_launcher_shizuku_allow">Running. Tap to allow WM Keyboard</string>
+    <string name="tooldetail_launcher_shizuku_denied">Shizuku was told not to ask again. Allow WM Keyboard in Shizuku\'s list of apps.</string>
     <string name="tooldetail_launcher_shizuku_start">Installed, not running. Tap to open it and start it</string>
     <string name="tooldetail_launcher_shizuku_get">Lets apps open floating or split on phones that refuse it. Tap to get Shizuku</string>
     <string name="tooldetail_launcher_root_title">Use root</string>

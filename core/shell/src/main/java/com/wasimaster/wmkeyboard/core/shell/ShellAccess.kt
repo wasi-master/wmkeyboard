@@ -18,6 +18,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import rikka.shizuku.Shizuku
+import rikka.sui.Sui
 import java.io.File
 
 /** One shell command's result: [code] is the exit status, -1 on timeout. */
@@ -62,9 +63,36 @@ object ShellAccess {
     private val service = MutableStateFlow<IShellService?>(null)
     private val bindLock = Mutex()
     private var listening = false
+    private var suChecked = false
 
-    /** Starts listening for Shizuku's binder. Cheap and idempotent; call from any onCreate. */
-    fun init() {
+    /** What [requestShizuku] could do. */
+    enum class Request {
+        /** Shizuku's prompt is up, or the grant was already there. */
+        ASKED,
+
+        /** Shizuku is not running or too old to ask. */
+        UNAVAILABLE,
+
+        /**
+         * The keyboard was denied with "don't ask again": Shizuku shows no
+         * prompt any more, so the tap looked dead. Only Shizuku's own app
+         * list can allow it now.
+         */
+        DENIED_FOR_GOOD,
+    }
+
+    /**
+     * Starts listening for Shizuku's binder. Cheap and idempotent; call from
+     * any onCreate. With [context], Sui is asked for its binder too: Sui (the
+     * Magisk/KernelSU module) hands it only to an app that calls
+     * `Sui.init` with its own package, so without it a rooted phone running
+     * Sui read as "Shizuku not running" for ever.
+     */
+    fun init(context: Context? = null) {
+        if (context != null && !suChecked) {
+            suChecked = true
+            runCatching { Sui.init(context.packageName) }
+        }
         if (listening) return
         listening = true
         runCatching {
@@ -89,15 +117,15 @@ object ShellAccess {
         runCatching { context.packageManager.getPackageInfo(SHIZUKU_PACKAGE, 0) }.isSuccess
 
     /** Opens Shizuku's grant prompt; [shizukuGranted] flips when the user answers. */
-    fun requestShizuku(): Boolean = runCatching {
-        if (!shizukuRunning() || Shizuku.isPreV11()) return false
-        if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
-            refresh()
-        } else {
-            Shizuku.requestPermission(REQUEST_CODE)
+    fun requestShizuku(): Request = runCatching {
+        if (!shizukuRunning() || Shizuku.isPreV11()) return Request.UNAVAILABLE
+        when {
+            Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED -> refresh()
+            Shizuku.shouldShowRequestPermissionRationale() -> return Request.DENIED_FOR_GOOD
+            else -> Shizuku.requestPermission(REQUEST_CODE)
         }
-        true
-    }.getOrDefault(false)
+        Request.ASKED
+    }.getOrDefault(Request.UNAVAILABLE)
 
     /** Whether an `su` binary is on the usual paths. Says nothing about whether it will grant. */
     val suPresent: Boolean by lazy {
