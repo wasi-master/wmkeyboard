@@ -329,4 +329,85 @@ class AiToolLoopTest {
         // The panel must never appear to restart part-way through a run.
         assertEquals(listOf("Looking.", "Looking.\n\nIt rained."), partials)
     }
+
+    // ---- #1281: calls a weak model wrote wrong ---------------------------
+
+    @Test
+    fun `a call that would not read is reported, and the model gets another go`() {
+        val turnsSeen = ArrayList<List<AiClient.ChatTurn>>()
+        val replies = listOf(
+            AiClient.Completion("""Done! <tool_call>{"name":"web_search","arguments":{"query": }</tool_call>"""),
+            AiClient.Completion("""<tool_call>{"name":"web_search","arguments":{"query":"rain"}}</tool_call>"""),
+            AiClient.Completion("It rained."),
+        )
+        val round = AiToolLoop.Round { _, turns, _, _ ->
+            turnsSeen.add(turns.toList())
+            replies[turnsSeen.size - 1]
+        }
+        val ran = ArrayList<AiToolCall>()
+        val results = ArrayList<AiToolResult>()
+        val out = AiToolLoop.run(
+            system = "S", turns = listOf(AiClient.ChatTurn(AiClient.ChatRole.USER, "q")),
+            tools = tools, native = false,
+            executor = { call -> ran.add(call); AiToolResult(call, "ok") },
+            onToolResult = results::add, round = round,
+        )
+        // Nothing ran for the bad call; the good one on the next round did.
+        assertEquals(listOf("rain"), ran.map { it.argument("query") })
+        assertEquals(AiToolLoop.NOT_RUN_UNREADABLE, results.first().error)
+        assertEquals(AiTools.WEB_SEARCH, results.first().call.name)
+        // The model was told, in the turn after its bad call.
+        assertTrue(AiToolProtocol.UNREADABLE_REPLY in turnsSeen[1].last().text)
+        assertEquals("Done!\n\nIt rained.", out.text)
+    }
+
+    @Test
+    fun `a call written on the last round is recorded as not run`() {
+        val script = Script(
+            AiClient.Completion("""<tool_call>{"name":"web_search","arguments":{"query":"a"}}</tool_call>"""),
+            AiClient.Completion("""Set! call:web_search{query:"b"}"""),
+        )
+        val ran = ArrayList<String>()
+        val results = ArrayList<AiToolResult>()
+        val out = AiToolLoop.run(
+            system = "S", turns = listOf(AiClient.ChatTurn(AiClient.ChatRole.USER, "q")),
+            tools = tools, native = false, maxRounds = 1,
+            executor = { call -> ran.add(call.argument("query")!!); AiToolResult(call, "ok") },
+            onToolResult = results::add, round = script,
+        )
+        assertEquals(listOf("a"), ran)
+        assertEquals(AiToolLoop.NOT_RUN_OUT_OF_ROUNDS, results.last().error)
+        assertEquals("Set!", out.text)
+    }
+
+    @Test
+    fun `a native model that writes its call as text still runs it`() {
+        val script = Script(
+            AiClient.Completion("""{"name": "web_search", "arguments": {"query": "rain"}}"""),
+            AiClient.Completion("It rained."),
+        )
+        val ran = ArrayList<AiToolCall>()
+        val out = AiToolLoop.run(
+            system = "S", turns = listOf(AiClient.ChatTurn(AiClient.ChatRole.USER, "q")),
+            tools = tools, native = true,
+            executor = { call -> ran.add(call); AiToolResult(call, "ok") }, round = script,
+        )
+        val call = ran.single()
+        assertEquals("rain", call.argument("query"))
+        // An id of its own, so the tool turn has something to answer.
+        assertTrue(call.id.isNotEmpty())
+        assertEquals("It rained.", out.text)
+    }
+
+    @Test
+    fun `a native answer that only shows json keeps it`() {
+        val text = """Here: {"name": "Alice"}"""
+        val script = Script(AiClient.Completion(text))
+        val out = AiToolLoop.run(
+            system = "S", turns = listOf(AiClient.ChatTurn(AiClient.ChatRole.USER, "q")),
+            tools = tools, native = true, executor = echo, round = script,
+        )
+        assertEquals(text, out.text)
+        assertEquals(1, script.calls)
+    }
 }

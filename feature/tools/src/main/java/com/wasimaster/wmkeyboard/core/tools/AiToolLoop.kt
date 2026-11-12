@@ -90,14 +90,25 @@ object AiToolLoop {
                 if (offered.isEmpty() && !native) system else prompt,
                 conversation,
                 offered,
-            ) { partial -> onPartial(streamed + visible(partial, native)) }
+            ) { partial -> onPartial(streamed + visible(partial, native, tools)) }
 
-            val text = if (native) completion.text else AiToolProtocol.stripped(completion.text)
-            val calls = if (native) completion.toolCalls else AiToolProtocol.parseAll(completion.text)
-            if (offered.isEmpty() || calls.isEmpty() || !isActive()) {
-                return completion.copy(text = join(prefix, text), toolCalls = emptyList())
+            val turn = readTurn(completion, native, tools, used)
+            val finished = completion.copy(text = join(prefix, turn.text), toolCalls = emptyList())
+            if (!isActive()) return finished
+            if (offered.isEmpty()) {
+                // The last round offered nothing, yet a model can still write
+                // a call into it: an on-device chat's session keeps telling it
+                // about tools. It cannot run, so it is recorded as not run
+                // rather than vanishing from an answer that may read as if it
+                // had (#1281).
+                for (call in turn.calls + turn.unreadable.map(::unreadableCall)) {
+                    onToolCall(call)
+                    onToolResult(AiToolResult(call, "", error = NOT_RUN_OUT_OF_ROUNDS))
+                }
+                return finished
             }
-            append(answered, text)
+            if (turn.calls.isEmpty() && turn.unreadable.isEmpty()) return finished
+            append(answered, turn.text)
 
             onPhase(AiPhase.USING_TOOL)
             // Only a tool this round offered runs (#825). A model can name any
@@ -105,7 +116,7 @@ object AiToolLoop {
             // that also knows a tool left out on purpose (the one that needs
             // the network, for an on-device run) would otherwise run it.
             val names = offered.mapTo(HashSet()) { it.name }
-            val results = calls.map { call ->
+            val results = turn.calls.map { call ->
                 onToolCall(call)
                 val result = if (call.name in names) {
                     executor.run(call)
@@ -113,25 +124,83 @@ object AiToolLoop {
                     AiToolResult(call, "", error = "No tool named ${call.name}.")
                 }
                 result.also(onToolResult)
+            } + turn.unreadable.map { bad ->
+                // A call that was plainly meant but would not read (#1281).
+                // The model is told it did not run and how to write it, and
+                // gets another round to try; the user sees a step that says
+                // nothing ran, instead of an answer claiming it did.
+                val call = unreadableCall(bad)
+                onToolCall(call)
+                AiToolResult(call, AiToolProtocol.UNREADABLE_REPLY, error = NOT_RUN_UNREADABLE).also(onToolResult)
             }
-            record(conversation, completion, calls, results, native)
+            record(conversation, completion, turn, results, native)
             used++
         }
     }
+
+    /** What one round asked for, and what of its text the user may see. */
+    private class Turn(
+        val text: String,
+        val calls: List<AiToolCall>,
+        val unreadable: List<AiToolProtocol.Unreadable>,
+        /** The calls were read out of the text rather than from the provider's own fields. */
+        val fromText: Boolean,
+    )
+
+    /**
+     * The round's calls. On the sentinel path they are read out of the text,
+     * leniently: see [AiToolProtocol]. On the native path they are the
+     * provider's own, unless it returned none and the model wrote a call to
+     * an offered tool into the text instead, which small models behind
+     * Ollama, LM Studio and other OpenAI-compatible servers do often enough
+     * (#1281). Those are given ids of their own so the replay can answer them.
+     */
+    private fun readTurn(completion: AiClient.Completion, native: Boolean, tools: List<AiToolSpec>, round: Int): Turn {
+        if (!native) {
+            val reading = AiToolProtocol.read(completion.text, tools)
+            return Turn(reading.text, reading.calls, reading.unreadable, fromText = true)
+        }
+        if (completion.toolCalls.isNotEmpty() || tools.isEmpty()) {
+            return Turn(completion.text, completion.toolCalls, emptyList(), fromText = false)
+        }
+        val names = tools.mapTo(HashSet()) { it.name }
+        val reading = AiToolProtocol.read(completion.text, tools)
+        val calls = reading.calls.filter { it.name in names }
+        if (calls.isEmpty()) return Turn(completion.text, emptyList(), emptyList(), fromText = false)
+        return Turn(
+            reading.text,
+            calls.mapIndexed { i, call -> call.copy(id = "text_call_${round}_$i") },
+            emptyList(),
+            fromText = true,
+        )
+    }
+
+    /** A call that would not read, as the record and the model's reply carry it. */
+    private fun unreadableCall(bad: AiToolProtocol.Unreadable): AiToolCall =
+        AiToolCall(id = "", name = bad.name.ifEmpty { UNREADABLE_NAME }, arguments = bad.text)
+
+    /** The name a call that would not read is shown under when even its tool is unclear. */
+    private const val UNREADABLE_NAME = "tool_call"
+
+    /** Why a call written in a form the reader could not make out did not run. */
+    const val NOT_RUN_UNREADABLE = "Not run: the model wrote this call in a form the keyboard could not read."
+
+    /** Why a call written on the last round, which offers no tools, did not run. */
+    const val NOT_RUN_OUT_OF_ROUNDS = "Not run: the model had already used all its lookups for this answer."
 
     /**
      * What may be shown of a partial. On the sentinel path a half-written
      * `<tool_c` must be held back rather than flashed into the panel, which is
      * exactly what a filter fed but not flushed does.
      */
-    private fun visible(partial: String, native: Boolean): String =
-        if (native) partial else AiToolProtocol.Filter().feed(partial)
+    private fun visible(partial: String, native: Boolean, tools: List<AiToolSpec>): String =
+        if (native) partial else AiToolProtocol.Filter(tools).feed(partial)
 
     /** Adds this round's request and its answers to the conversation. */
     private fun record(
         conversation: MutableList<AiClient.ChatTurn>,
         completion: AiClient.Completion,
-        calls: List<AiToolCall>,
+        turn: Turn,
         results: List<AiToolResult>,
         native: Boolean,
     ) {
@@ -139,10 +208,14 @@ object AiToolLoop {
             // The replay carries what some providers refuse to do without —
             // Gemini's thought signatures, DeepSeek's reasoning — so the turn
             // goes back as the provider wrote it, not as rebuilt from text.
+            // Calls read out of the text have no provider shape to replay,
+            // so that turn is rebuilt, with the call text taken out.
             conversation.add(
                 AiClient.ChatTurn(
-                    AiClient.ChatRole.ASSISTANT, completion.text,
-                    toolCalls = calls, replay = completion.replay,
+                    AiClient.ChatRole.ASSISTANT,
+                    if (turn.fromText) turn.text else completion.text,
+                    toolCalls = turn.calls,
+                    replay = if (turn.fromText) null else completion.replay,
                 ),
             )
             for (result in results) {

@@ -315,7 +315,20 @@ Most providers do tool calling properly, as part of their API: Claude, OpenAI, G
 - **Brave** takes a single message with no system prompt and has no tool field at all.
 - **On-device models** have no tool API in the local runtime.
 
-For those two the keyboard falls back to explaining the tools to the model in words and watching its answer for a reply in the agreed format. The reader is deliberately forgiving about that format, because local models mangle it: `tool_call` is a special token in several chat templates, so the template rewrites the very thing the keyboard asked for, and a marker can come back with its brackets moved, doubled, or missing altogether. All of those are read, and anything that looks like one is hidden from the answer whether or not it turns out to be a call, because machinery the model wrote for the keyboard is never yours to read.
+For those two the keyboard falls back to explaining the tools to the model in words and watching its answer for a reply in the agreed format. The reader is deliberately forgiving about that format, because local models mangle it: `tool_call` is a special token in several chat templates, so the template rewrites the very thing the keyboard asked for, and a marker can come back with its brackets moved, doubled, or missing altogether. Small models also write the call itself loosely. The keyboard reads all of these:
+
+- the marker in any bracket arrangement, or none, along with the spellings other model families use, such as `[TOOL_CALLS]` and `<function=web_search>`;
+- Gemma's own shape, `call:set_alarm{time:"05:00"}`, written with no marker at all;
+- a call inside a code block;
+- a bare `{"name": …, "arguments": …}` object, and the other wrappers models learnt, such as `"tool"` and `"args"`, or a list of calls;
+- a call written like a function, `web_search(query="rain")`, with the arguments named or in order;
+- JSON with single quotes, trailing commas or unquoted keys, and arguments written as a string instead of an object.
+
+A call with no marker counts only when it names a tool the model was offered, so JSON you asked the model to write stays in the answer. Anything that reads as a call is hidden from the answer whether or not it parses, because machinery the model wrote for the keyboard is never yours to read.
+
+A call that plainly was one but still can't be read doesn't run, and it doesn't disappear either. It shows as a step that says it wasn't run, and the model is told its call failed and how to write it, so it can try again if it has lookups left. A call written after the last allowed lookup is recorded the same way. Either way the answer can't claim a tool did something that never happened, and the model is told never to say it did unless the tool's result says so.
+
+The same safety net covers providers that do have real tool support. A small model on Ollama, LM Studio or another OpenAI-compatible server sometimes writes its call into the answer as text instead of using the API; when that text names a tool it was offered, the call runs as if it had come through the API.
 
 It works, and a capable local model will use it, but a small one still ignores the format sometimes, or asks you to narrow a request it could have searched as written. The settings group says so when you're on one of those providers. If lookups matter to you, a provider with real tool support is far more reliable.
 
