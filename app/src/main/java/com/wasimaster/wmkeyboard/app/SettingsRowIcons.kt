@@ -2303,6 +2303,10 @@ internal object SettingsRowIcons {
         // ---- Calendar ----
         put(R.string.tooldetail_calendar_save_mode_title) { Icons.Outlined.EditCalendar }
         put(R.string.tooldetail_calendar_weather_title) { Icons.Outlined.WbSunny }
+        // #1274: Invite online.
+        put(R.string.invite_mobilizon_signed_in_title) { Icons.Outlined.Person }
+        put(R.string.invite_mobilizon_sign_in_title) { Icons.Outlined.Key }
+        put(R.string.invite_pretix_check_title) { Icons.Outlined.Public }
         put(R.string.tooldetail_calendar_default_calendar_title) { Icons.Outlined.CalendarMonth }
         put(R.string.tooldetail_calendar_default_length_title) { Icons.Outlined.HourglassEmpty }
         put(R.string.tooldetail_calendar_default_reminder_title) { Icons.Outlined.NotificationsActive }

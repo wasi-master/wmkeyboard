@@ -55,6 +55,8 @@ data class CalendarUi(
      * "Weather on events" is off.
      */
     val weather: Map<String, EventWeatherChip> = emptyMap(),
+    /** The open event on its way to Mobilizon or Pretix (#1274); set while [view] is INVITE. */
+    val invite: InviteUi? = null,
 ) {
     val editing: Boolean get() = draft?.eventId != null
 }
@@ -62,7 +64,7 @@ data class CalendarUi(
 /** One occurrence of an event: the id repeats across a series, the start does not. */
 fun weatherKey(event: DeviceCalendarEvent): String = "${event.id}:${event.begin}"
 
-enum class CalendarView { MONTH, DETAIL, COMPOSE }
+enum class CalendarView { MONTH, DETAIL, COMPOSE, INVITE }
 
 /** The composer's pickers, one open at a time. */
 enum class ComposeSheet { START_DATE, END_DATE, START_TIME, END_TIME, REPEAT, CALENDAR, REMINDERS, MORE }
@@ -90,8 +92,12 @@ enum class CalendarError {
 /** What the composer's text boxes are for. */
 enum class CalendarTextField { TITLE, LOCATION, NOTES, GUEST }
 
-/** The composer box the keys type into; lives in `KeyboardUiState` for the shared capture path. */
-data class CalendarTextEntry(val field: CalendarTextField, val text: String = "")
+/**
+ * The composer box the keys type into; lives in `KeyboardUiState` for the
+ * shared capture path. [invite] when it is one of the invitation card's
+ * boxes (#1274) rather than the composer's: title, place, or description.
+ */
+data class CalendarTextEntry(val field: CalendarTextField, val text: String = "", val invite: Boolean = false)
 
 /** Something just done, and the writes that take it back. */
 data class CalendarUndo(val kind: Kind, val ops: List<CalendarOp>) {
@@ -128,6 +134,25 @@ sealed interface CalendarAction {
     data object DeleteEvent : CalendarAction
     data object InsertEvent : CalendarAction
     data object OpenInApp : CalendarAction
+
+    // Invite online (#1274)
+    data object InviteOpen : CalendarAction
+    data object InviteBack : CalendarAction
+    data class InvitePick(val service: com.wasimaster.wmkeyboard.core.settings.InviteService) : CalendarAction
+    data class InviteType(val field: CalendarTextField) : CalendarAction
+    data class InvitePlaces(val places: Int?) : CalendarAction
+    data class InviteListed(val listed: Boolean) : CalendarAction
+    data object InviteLoadOrganizers : CalendarAction
+    data class InviteOrganizer(val organizer: com.wasimaster.wmkeyboard.ime.calendar.invite.MobilizonClient.Organizer?) : CalendarAction
+    data object InvitePublish : CalendarAction
+
+    /** Data saving is on and the user said go ahead anyway, for this invitation. */
+    data object InviteAllowData : CalendarAction
+    data object InviteInsertLink : CalendarAction
+    data object InviteInsertMessage : CalendarAction
+    data object InviteOpenLink : CalendarAction
+    data object InviteOpenAdmin : CalendarAction
+    data object InviteErrorDismiss : CalendarAction
 
     // Composer
     data class Draft(val draft: EventDraft) : CalendarAction

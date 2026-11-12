@@ -199,6 +199,9 @@ object SettingsBackup {
         "self_hosted_libretranslate_key",
         GalleryPrefs.IMMICH_KEY_NAME,
         PaperlessPrefs.TOKEN_NAME,
+        InvitePrefs.MOBILIZON_ACCESS_NAME,
+        InvitePrefs.MOBILIZON_REFRESH_NAME,
+        InvitePrefs.PRETIX_TOKEN_NAME,
     )
 
     /** The app lock's stored PIN, password or pattern hash. */

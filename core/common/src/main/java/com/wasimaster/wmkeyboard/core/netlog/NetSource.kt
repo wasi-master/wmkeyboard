@@ -199,6 +199,14 @@ enum class NetSource(
      * often in the background once a network is back.
      */
     PAPERLESS("paperless", ToolbarTool.DOC_SCAN),
+
+    /**
+     * A calendar event published as an online invitation (#1274): the user's
+     * own Mobilizon instance (sign-in, token renewal, their profiles and
+     * groups, the event) or Pretix server (the event, its free ticket and
+     * quota, going live). Only ever on a press.
+     */
+    INVITES("invites", ToolbarTool.CALENDAR),
     OTHER("other"),
     ;
 

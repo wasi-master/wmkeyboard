@@ -11,6 +11,7 @@ import android.text.format.DateUtils
 import androidx.core.content.ContextCompat
 import com.wasimaster.wmkeyboard.core.settings.CalendarSaveMode
 import com.wasimaster.wmkeyboard.core.settings.CalendarToolSettings
+import com.wasimaster.wmkeyboard.core.settings.InviteSettings
 import com.wasimaster.wmkeyboard.core.tools.DeviceCalendar
 import com.wasimaster.wmkeyboard.core.tools.DeviceCalendarEvent
 import com.wasimaster.wmkeyboard.core.tools.DeviceCalendarInfo
@@ -28,6 +29,8 @@ import com.wasimaster.wmkeyboard.core.tools.calendar.Guest
 import com.wasimaster.wmkeyboard.core.tools.calendar.RRule
 import com.wasimaster.wmkeyboard.core.tools.calendar.SeriesInfo
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.ime.calendar.invite.InviteFlow
+import com.wasimaster.wmkeyboard.ime.calendar.invite.InviteNet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -73,6 +76,10 @@ internal class CalendarController(
     private val openWeather: () -> Unit = {},
     /** Switches back to this panel, on the given day. */
     private val openCalendarDay: (EventDate) -> Unit = {},
+    /** Writes one change to the invitation accounts (#1274): renewed Mobilizon tokens, the last service used. */
+    private val saveInvites: ((InviteSettings) -> InviteSettings) -> Unit = {},
+    /** Whether an invitation may reach the network now: online, and data saving's state. */
+    private val inviteNet: () -> InviteNet = { InviteNet() },
 ) {
 
     private val app = context.applicationContext
@@ -84,6 +91,17 @@ internal class CalendarController(
     val forecast: StateFlow<EventForecastUi?> = _forecast
 
     val callbacks = CalendarCallbacks(state = state, forecast = forecast, onAction = ::dispatch)
+
+    /** The "Invite online" card (#1274). */
+    private val invites = InviteFlow(
+        state = _state,
+        scope = scope,
+        settings = { settings().invites },
+        saveSettings = { change -> saveInvites(change) },
+        net = { inviteNet() },
+        describe = { d -> line(d.title, d.begin, d.end, d.allDay, d.place, TimeZone.getTimeZone(d.zoneId)) },
+        ticketName = { app.getString(R.string.ime_invite_ticket_name) },
+    )
 
     private val weatherSource = EventWeatherSource()
     private var weatherJob: Job? = null
@@ -122,6 +140,7 @@ internal class CalendarController(
                 detail = null,
                 scopePrompt = null,
                 undo = null,
+                invite = null,
             )
         }
         refreshGrants()
@@ -232,8 +251,18 @@ internal class CalendarController(
         }
     }
 
+    /** Hands the keys to one of the invitation card's boxes (#1274). */
+    private fun startInviteText(field: CalendarTextField) {
+        textField = field
+        beginText(CalendarTextEntry(field, invites.textOf(field), invite = true))
+    }
+
     /** Called by the service as the box is typed into. */
     fun onText(entry: CalendarTextEntry) {
+        if (entry.invite) {
+            invites.onText(entry)
+            return
+        }
         when (entry.field) {
             CalendarTextField.TITLE -> updateDraft { it.copy(title = entry.text.take(TITLE_MAX)) }
             CalendarTextField.LOCATION -> updateDraft { it.copy(location = entry.text.take(TITLE_MAX)) }
@@ -247,6 +276,13 @@ internal class CalendarController(
      * added and the box stays open for the next; the rest are kept.
      */
     fun onTextEnter(entry: CalendarTextEntry) {
+        if (entry.invite) {
+            // A title moves on to the place, as in the composer; the rest are kept.
+            invites.onText(entry)
+            endTextIfAny()
+            if (entry.field == CalendarTextField.TITLE) startInviteText(CalendarTextField.LOCATION)
+            return
+        }
         when (entry.field) {
             CalendarTextField.TITLE -> {
                 onText(entry)
@@ -338,6 +374,31 @@ internal class CalendarController(
             CalendarAction.InsertEvent -> _state.value.detail?.let { insertText(describe(it)) }
             CalendarAction.OpenInApp -> _state.value.detail?.let { openInApp(it) }
 
+            CalendarAction.InviteOpen -> _state.value.detail?.let { invites.open(it) }
+            CalendarAction.InviteBack -> {
+                endTextIfAny()
+                invites.close()
+            }
+            is CalendarAction.InvitePick -> invites.pick(action.service)
+            is CalendarAction.InviteType -> {
+                endTextIfAny()
+                startInviteText(action.field)
+            }
+            is CalendarAction.InvitePlaces -> invites.places(action.places)
+            is CalendarAction.InviteListed -> invites.listed(action.listed)
+            CalendarAction.InviteLoadOrganizers -> invites.loadOrganizers()
+            is CalendarAction.InviteOrganizer -> invites.organizer(action.organizer)
+            CalendarAction.InvitePublish -> {
+                endTextIfAny()
+                invites.publish()
+            }
+            CalendarAction.InviteAllowData -> invites.allowData()
+            CalendarAction.InviteInsertLink -> _state.value.invite?.published?.url?.let(insertText)
+            CalendarAction.InviteInsertMessage -> invites.message()?.let(insertText)
+            CalendarAction.InviteOpenLink -> _state.value.invite?.published?.url?.let(::openLink)
+            CalendarAction.InviteOpenAdmin -> _state.value.invite?.published?.adminUrl?.let(::openLink)
+            CalendarAction.InviteErrorDismiss -> invites.dismissError()
+
             is CalendarAction.Draft -> updateDraft { action.draft }
             is CalendarAction.Sheet -> {
                 endTextIfAny()
@@ -397,7 +458,9 @@ internal class CalendarController(
 
             CalendarAction.TextDone -> {
                 currentText()?.let { entry ->
-                    if (entry.field == CalendarTextField.GUEST) {
+                    if (entry.invite) {
+                        invites.onText(entry)
+                    } else if (entry.field == CalendarTextField.GUEST) {
                         entry.text.trim().takeIf { looksLikeEmail(it) }?.let { addGuest(Guest(it)) }
                     } else {
                         onText(entry)
@@ -913,6 +976,11 @@ internal class CalendarController(
         val ok = runCatching { app.startActivity(intent) }.isSuccess
         if (!ok) _state.update { it.copy(error = CalendarError.NO_APP) }
         return ok
+    }
+
+    /** A published invitation's page, or Pretix's page for what it still needs, in the browser. */
+    private fun openLink(url: String) {
+        launch(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 
     private fun trampoline(activity: Class<*>): Intent = Intent(app, activity).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

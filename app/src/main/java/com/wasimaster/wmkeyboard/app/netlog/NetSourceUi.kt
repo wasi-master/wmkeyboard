@@ -180,6 +180,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.SWITCHBOT -> R.string.netlog_source_switchbot to R.string.netlog_sent_switchbot
     NetSource.IMMICH -> R.string.netlog_source_immich to R.string.netlog_sent_immich
     NetSource.PAPERLESS -> R.string.netlog_source_paperless to R.string.netlog_sent_paperless
+    NetSource.INVITES -> R.string.netlog_source_invites to R.string.netlog_sent_invites
     NetSource.OTHER -> R.string.netlog_source_other to R.string.netlog_sent_other
 }
 
@@ -237,6 +238,8 @@ private val DataSaverSources = NetSource.entries.toSet() - setOf(
     NetSource.IMMICH,
     // The user's own document server; its own Wi-Fi only switch is on the scanner's page (#1198).
     NetSource.PAPERLESS,
+    // The user's own event server, on a press; while data saving is on the card asks before every publish (#1274).
+    NetSource.INVITES,
     // A few small polls while the panel is open, on the user's say-so.
     NetSource.SMARTTHINGS, NetSource.TUYA, NetSource.SWITCHBOT,
     // One small list, fetched only when its button is pressed.

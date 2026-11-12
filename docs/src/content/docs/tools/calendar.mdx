@@ -31,7 +31,7 @@ The bottom of the panel reads events straight from your device calendar for whic
 
 Each card is tinted with its calendar's color and carries a stripe of it down the left edge (the accent color where the calendar doesn't provide one). The time runs along the top as a start and end, "9:00 – 10:00 AM", with an **All day** badge in its place for all-day events and a small repeat mark on the right for recurring ones; then the title, then the place if the event has one. Recurring events are expanded per occurrence, so a weekly meeting shows up on every day it actually lands on rather than only its first occurrence. Events in calendars you've hidden in your calendar app stay hidden here too.
 
-Tap a card to open the event. The event's own face shows it as a larger card in the same color with when and the title, then how it repeats, the place, notes, guests (with who said yes, no or maybe) and reminders as lines under it; the calendar it's in is named in the header. Along the bottom runs a bar: **Edit** as the main button when you can change the event, with **Insert as text**, **Open in calendar app** and **Delete** as round buttons beside it. For an event you can't change, **Insert as text** takes the main spot.
+Tap a card to open the event. The event's own face shows it as a larger card in the same color with when and the title, then how it repeats, the place, notes, guests (with who said yes, no or maybe) and reminders as lines under it; the calendar it's in is named in the header. Along the bottom runs a bar: **Edit** as the main button when you can change the event, with **Insert as text**, **Open in calendar app**, **Invite online** and **Delete** as round buttons beside it. For an event you can't change, **Insert as text** takes the main spot.
 
 <PhoneFrame caption="A day with events: tinted cards, each with its time, title and place.">
   <Shot id="tools/calendar-day-events" alt="A day with events: tinted cards, each with its time, title and place." />
@@ -48,6 +48,26 @@ Open-Meteo forecasts 16 days ahead, today included, so an event further away tha
 Tap the icon to open the Weather panel on that day's hours at that place. The top line names the event, the place (marked "your weather location" when the weather tool's place stood in), the date and the day's high and low. Under it, the event's hour is drawn large with its temperature, its sky and its chance of rain, and a strip below runs through every hour of the day, each with its time, an icon, the temperature and the chance of rain. The strip opens scrolled to the event's hour, and tapping another hour moves the summary to it. The refresh button fetches that forecast again, and the back arrow returns to the calendar on the event's day. Opening Weather from the toolbar afterwards shows its usual current conditions.
 
 One forecast covers every event at the same place for all 16 days, so a week of meetings in one town is a single request. The keyboard keeps it until it's older than the weather tool's **How often to check** (15 minutes by default) and fetches it again the next time a card needs it. While [data saving](/privacy/data-saver/) is on, or there's no network, the cards fetch nothing by themselves: they show a forecast the keyboard already has (up to a day old) or no weather at all. Tapping the icon still fetches the hours when there's a network.
+
+## Invite online
+
+Since 0.6.7 an event can become a page people sign up on, on a free and open-source event service you have an account with: [Mobilizon](https://mobilizon.org/) or [Pretix](https://pretix.eu/). Set the account up first under [Options](#options), then open the event and press **Invite online**.
+
+The card that opens is filled in from the event. Its title and its times are on a card at the top, and under it sit chips for the place, the description (the event's notes), and who can find it. A tap on the title card or on a text chip sends the keys there, so you can change what the invitation says without changing the event in your calendar. With both services set up, a switch at the top picks one; the card opens on the one you used last.
+
+- **Place**: a street address becomes the event's address. A link (a video call, a stream) becomes its online address instead. On Mobilizon, an event with a street address and a call link in its notes gets both.
+- **Only people with the link** or **Listed publicly**: an unlisted invitation is reachable only through its link. Listed, it shows in the service's own lists and search.
+- **Post as** (Mobilizon): your first profile, unless you pick another. Tapping the chip fetches your profiles and the groups you can post for, and a group's event appears on the group's page.
+- **Places** (Pretix): how many people can sign up, from no limit up to 200.
+
+**Publish** sends it. When it's out, the card shows the link with **Insert link** as the main button, **Insert invitation** (the title, when and where on one line, then the link) and **Open page** beside it.
+
+What each service makes of it:
+
+- **Mobilizon** creates a confirmed event with free registration, under your profile or the group. Your notes become its description. An all-day event shows its days without a start or end time. Mobilizon sends you its own emails as people sign up.
+- **Pretix** creates the event with one free ticket called "Sign-up" and a quota for the places you picked, puts your notes on its front page and opens its shop, so people sign up with their email address. If the organizer still needs something before a shop can open (a required setting, say), the event stays offline and the card says why, with **Open Pretix** to finish there. Its link still works once it's live.
+
+Problems show on the card, each with the button that fixes it: **Try again** when there was no connection or no answer, **Settings** when the account was signed out or turned down, and **Go ahead** while [data saving](/privacy/data-saver/) is on. Data saving doesn't block an invitation, which is only a few kilobytes, but the card asks once per invitation before it uses the network.
 
 ## Agenda
 
@@ -151,6 +171,13 @@ Under **New events**:
 - **Event length**: 15 minutes up to 4 hours, default 1 hour.
 - **Reminder**: none, at the start, or 5 minutes up to 1 day before, default 10 minutes.
 
+Under **Invite online** (see [Invite online](#invite-online)):
+
+- **Mobilizon instance**: the address of the instance your account is on, like `mobilizon.fr`. Once it's typed, **Email** and **Password** appear with **Sign in**. The password is sent once to your instance's own login and isn't kept: the keyboard stores only the sign-in tokens that come back, renews them when the instance asks, and shows **Signed in** with a **Sign out** button. If the instance stops taking them, the invitation card asks you to sign in here again. Changing the address signs you out.
+- **Pretix server**: the address of the server, like `pretix.eu`. Then **Organizer**, the short name in the organizer's address (`pretix.eu/<organizer>/`); **API token**, a team token from the organizer's **Teams** page, from a team allowed to create events; and **Currency**, three letters, blank for your region's (Pretix wants one even though the ticket is free). **Check Pretix** asks the server for the organizer with that token and shows its name.
+
+The Mobilizon tokens and the Pretix token are kept with your other service keys and left out of exported backups unless you choose to include secrets.
+
 Under **Weather**:
 
 - **Weather on events**: off by default. On, event cards show the forecast for their time and place, as described in [Weather on events](#weather-on-events). It needs the Weather tool turned on (and the **Weather and location** bundle on [Extensions](/reference/settings/extensions/)); with Weather off, no card shows it.
@@ -170,4 +197,5 @@ The calendar and the clock are the **Calendar and clock** bundle on [Extensions]
 - Calendar isn't pinned to the toolbar out of the box, and it's only in the "show me everything" starter set that setup lands, not the minimal or the recommended one. Pick either of those two simpler answers and Calendar starts switched off, so you'll want to turn it on yourself under Settings → Tools.
 - Reopening Calendar from the toolbar while the panel is already open closes it, same as most other panel tools.
 - **The region defaults are a guess, and only ever a starting one.** They come from the same permission-free signals as [suggested languages](/languages/overview/#suggested-languages): the SIM's country, then the network's, then your locale's region. Those are consulted only until you pick something. Once you have, your pick is what sticks, wherever the phone travels.
-- With **Weather on events** off, nothing about the Calendar tool touches the network. On, it sends Open-Meteo the places of the events you look at and the coordinates it found for them, never their titles, times, notes or guests. Your calendar account syncs the events you add or change the way it always does. See [network policy](/privacy/network/) for what the keyboard itself sends.
+- With **Weather on events** off and no invitation published, nothing about the Calendar tool touches the network. With the weather on, it sends Open-Meteo the places of the events you look at and the coordinates it found for them, never their titles, times, notes or guests. **Invite online** sends only to the Mobilizon instance or Pretix server you set up, and only when you press **Sign in**, **Check**, **Post as** or **Publish**: the invitation's title, description, times, place and visibility (and on Pretix its number of places), never the event's guests or reminders. Each request is listed under [Network activity](/privacy/network-activity/) as Calendar invitations. Your calendar account syncs the events you add or change the way it always does. See [network policy](/privacy/network/) for what the keyboard itself sends.
+- An invitation is a copy. Changing or deleting the event in your calendar afterwards doesn't change the page; do that on Mobilizon or Pretix.

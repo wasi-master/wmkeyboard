@@ -218,6 +218,7 @@
     <string name="netlog_source_switchbot" translatable="false">SwitchBot</string>
     <string name="netlog_source_immich" translatable="false">Immich</string>
     <string name="netlog_source_paperless" translatable="false">Paperless-ngx</string>
+    <string name="netlog_source_invites">Calendar invitations</string>
     <string name="netlog_source_other">Other</string>
 
     <!-- What one feature sends with a request. Shown in the request sheet. -->
@@ -266,6 +267,7 @@
     <string name="netlog_sent_openhab">The commands you give and the states it shows, to your own openHAB server and nowhere else.</string>
     <string name="netlog_sent_tuya">The commands you give and the states it shows, to the Tuya data centre your project lives in, signed with your project\'s Access ID and Secret; the device list is asked for every 30 seconds while the panel is open.</string>
     <string name="netlog_sent_paperless">Your API token, to your own Paperless-ngx server, with each scan you send to it and the title, tags, correspondent and document type picked for it; the server\'s lists of those when the scan card or the settings page asks. Uploads can run in the background when a network is back.</string>
+    <string name="netlog_sent_invites">To your own Mobilizon instance: your email and password once when you sign in from settings, then the account\'s token, your profiles and groups when you pick who posts, and the event you publish with its title, description, times and place. To your own Pretix server: your API token, and the event with its title, description, times, place, one free ticket and the number of places. Only when you press Sign in, Check or Publish.</string>
     <string name="netlog_sent_immich">Your API key, to your own Immich server, with the albums and pictures you open in the gallery; a picture\'s original when you send or edit it, and the phone pictures you upload, as they are.</string>
     <string name="netlog_sent_switchbot">The commands you give and the states it shows, to SwitchBot\'s cloud, signed with your token and secret key; each device\'s status is asked for once a minute while the panel is open.</string>
     <string name="netlog_sent_send">A file you chose, encrypted on the phone before it leaves, to the Send instance you picked; and a link you opened, to fetch and decrypt its file. The server never sees the key, which stays in the link.</string>

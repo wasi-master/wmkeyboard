@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Calendar tool's "Invite online" card (#1274). -->
+<resources>
+    <string name="ime_invite_action">Invite online</string>
+    <string name="ime_invite_title">Invite online</string>
+    <string name="ime_invite_mobilizon" translatable="false">Mobilizon</string>
+    <string name="ime_invite_pretix" translatable="false">Pretix</string>
+    <string name="ime_invite_publishing_to">Publishing to %1$s</string>
+    <string name="ime_invite_not_set_up_title">No event service yet</string>
+    <string name="ime_invite_not_set_up_body">Sign in to Mobilizon or add a Pretix server in the Calendar tool\'s settings first.</string>
+    <string name="ime_invite_open_settings">Settings</string>
+    <string name="ime_invite_place_hint">Add a place or a link</string>
+    <string name="ime_invite_about_hint">Add a description</string>
+    <string name="ime_invite_link_only">Only people with the link</string>
+    <string name="ime_invite_listed">Listed publicly</string>
+    <string name="ime_invite_post_as">Post as %1$s</string>
+    <string name="ime_invite_post_as_default">Post as your profile</string>
+    <string name="ime_invite_post_as_loading">Loading your profiles…</string>
+    <string name="ime_invite_places_label">Places</string>
+    <string name="ime_invite_places_any">No limit</string>
+    <string name="ime_invite_note_mobilizon">People sign up on the event\'s page. Mobilizon emails you when they do.</string>
+    <string name="ime_invite_note_pretix">The event gets one free ticket, so people sign up on its page with their email address.</string>
+    <string name="ime_invite_publish">Publish</string>
+    <string name="ime_invite_publishing">Publishing…</string>
+    <string name="ime_invite_ticket_name">Sign-up</string>
+    <string name="ime_invite_published">Published on %1$s</string>
+    <string name="ime_invite_made">Made on %1$s, sign-ups not open yet</string>
+    <string name="ime_invite_not_live">Pretix made the event but would not open sign-ups. %1$s</string>
+    <string name="ime_invite_fix_in_pretix">Open Pretix</string>
+    <string name="ime_invite_insert_link">Insert link</string>
+    <string name="ime_invite_insert_message">Insert invitation</string>
+    <string name="ime_invite_open_page">Open page</string>
+    <string name="ime_invite_go_ahead">Go ahead</string>
+    <string name="ime_invite_try_again">Try again</string>
+    <string name="ime_invite_add_title">Add title</string>
+    <string name="ime_invite_error_offline">No connection. Connect and try again.</string>
+    <string name="ime_invite_error_data_saver">Data saver is on. Publishing sends a few kilobytes.</string>
+    <string name="ime_invite_error_signed_out">%1$s signed you out. Sign in again in settings.</string>
+    <string name="ime_invite_error_bad_token">%1$s didn\'t accept the API token.</string>
+    <string name="ime_invite_error_refused">%1$s says this account can\'t create events there.</string>
+    <string name="ime_invite_error_rejected">%1$s turned the event down.</string>
+    <string name="ime_invite_error_network">%1$s didn\'t answer.</string>
+    <string name="ime_invite_error_address">The %1$s address in settings isn\'t a web address.</string>
+    <string name="ime_invite_error_no_title">The invitation needs a title.</string>
+</resources>

@@ -48676,6 +48676,13 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.update { it.copy(toolPrefill = ToolPrefill.Calendar(day.year, day.month, day.day)) }
                 onPanelChange(PanelMode.CALENDAR)
             },
+            saveInvites = { change -> serviceScope.launch { settingsRepository.updateInvites(change) } },
+            inviteNet = {
+                com.wasimaster.wmkeyboard.ime.calendar.invite.InviteNet(
+                    online = networkWatcher.state.value.online,
+                    dataSaving = dataSaverStatus.active,
+                )
+            },
         )
     }
     private val calendarTool by calendarToolDelegate

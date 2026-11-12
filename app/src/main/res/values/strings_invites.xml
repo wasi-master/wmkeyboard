@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tools › Calendar › Invite online (#1274). -->
+<resources>
+    <string name="invite_group">Invite online</string>
+    <string name="invite_info">Turn a calendar event into a page people sign up on, on your own Mobilizon instance or Pretix server. Open an event in the Calendar tool and press Invite online. Nothing is sent until you press Sign in, Check or Publish.</string>
+    <string name="invite_mobilizon_url_title">Mobilizon instance</string>
+    <string name="invite_mobilizon_url_hint">mobilizon.fr, or your own instance\'s address</string>
+    <string name="invite_mobilizon_email_title">Email</string>
+    <string name="invite_mobilizon_password_title">Password</string>
+    <string name="invite_mobilizon_password_hint">Used once to sign in, then forgotten. Only the sign-in tokens are kept.</string>
+    <string name="invite_mobilizon_sign_in_title">Sign in to Mobilizon</string>
+    <string name="invite_mobilizon_sign_in_subtitle">With the email and password of your account on this instance</string>
+    <string name="invite_mobilizon_signed_in_title">Signed in to Mobilizon</string>
+    <string name="invite_mobilizon_signed_in_subtitle">As %1$s</string>
+    <string name="invite_sign_in">Sign in</string>
+    <string name="invite_sign_out">Sign out</string>
+    <string name="invite_pretix_url_title">Pretix server</string>
+    <string name="invite_pretix_url_hint">pretix.eu, or your own server\'s address</string>
+    <string name="invite_pretix_organizer_title">Organizer</string>
+    <string name="invite_pretix_organizer_hint">The organizer\'s short name, as in pretix.eu/&lt;organizer&gt;/</string>
+    <string name="invite_pretix_token_title">API token</string>
+    <string name="invite_pretix_token_hint">A team API token from the organizer\'s Teams page, from a team that can create events</string>
+    <string name="invite_pretix_currency_title">Currency</string>
+    <string name="invite_pretix_currency_hint">Three letters, like EUR. Blank uses your region\'s. The ticket is free either way.</string>
+    <string name="invite_pretix_check_title">Check Pretix</string>
+    <string name="invite_pretix_check_subtitle">Asks the server for the organizer with this token</string>
+    <string name="invite_pretix_check_ok">Works: %1$s</string>
+    <string name="invite_check">Check</string>
+    <string name="invite_checking">Asking the server…</string>
+    <string name="invite_fail_address">That isn\'t a web address %1$s can be reached at.</string>
+    <string name="invite_fail_login">%1$s didn\'t accept these details.</string>
+    <string name="invite_fail_refused">%1$s says this token can\'t reach that organizer.</string>
+    <string name="invite_fail_other">%1$s didn\'t answer: %2$s</string>
+</resources>

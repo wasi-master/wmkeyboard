@@ -1245,6 +1245,7 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setCalendarWeatherOnEvents(it) } }
                 }
             }
+            InviteSettingsGroup(repository, settings)
         }
         ToolbarTool.CAMERA -> {
             // What decides which rows the search group holds; each row reads

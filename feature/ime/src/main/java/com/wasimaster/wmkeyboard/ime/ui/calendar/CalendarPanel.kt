@@ -95,6 +95,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LocationOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notes
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notifications
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.tools.AltCalendar
@@ -183,11 +184,12 @@ internal fun CalendarPanel(
     val face = when {
         ui.view == CalendarView.COMPOSE -> Face.COMPOSE
         ui.view == CalendarView.DETAIL -> Face.DETAIL
+        ui.view == CalendarView.INVITE -> Face.INVITE
         else -> local.face
     }
     // The month and agenda faces publish the ring's targets; anywhere else
     // they are published empty, so a count left from the grid never steers it.
-    if (typing != null || face == Face.COMPOSE || face == Face.DETAIL) {
+    if (typing != null || face == Face.COMPOSE || face == Face.DETAIL || face == Face.INVITE) {
         PanelFocusTarget(panel = PanelMode.CALENDAR, region = FocusRegion.ACTIONS, count = 0, columns = 3) {}
         PanelFocusTarget(panel = PanelMode.CALENDAR, region = FocusRegion.RESULTS, count = 0, columns = 7) {}
     }
@@ -205,6 +207,7 @@ internal fun CalendarPanel(
                 typing != null -> TypingHeader(typing, act)
                 face == Face.COMPOSE -> ComposeHeader(ui, act)
                 face == Face.DETAIL -> DetailHeader(ui, act)
+                face == Face.INVITE -> InviteHeader(act)
                 else -> MonthHeader(state, ui, local, act)
             }
         },
@@ -226,6 +229,7 @@ internal fun CalendarPanel(
                             Face.DAY -> DayFace(state, ui, act)
                             Face.DETAIL -> ui.detail?.let { EventSheet(it, ui, animate, act) }
                             Face.COMPOSE -> ui.draft?.let { CalendarComposer(it, ui, act) }
+                            Face.INVITE -> ui.invite?.let { InviteFace(it, ui, animate, act) }
                         }
                     }
                 }
@@ -251,7 +255,7 @@ internal fun CalendarPanel(
 }
 
 /** What the panel shows: the controller's view, split where the panel adds a face of its own. */
-private enum class Face { MONTH, DAY, AGENDA, DETAIL, COMPOSE }
+private enum class Face { MONTH, DAY, AGENDA, DETAIL, COMPOSE, INVITE }
 
 /** The faces the header's pill picks between, in its order. */
 private val PICKED_FACES = listOf(Face.MONTH, Face.DAY, Face.AGENDA)
@@ -412,7 +416,7 @@ private fun RowScope.TypingHeader(entry: CalendarTextEntry, act: (CalendarAction
         when (entry.field) {
             CalendarTextField.TITLE -> R.string.ime_calendar_title_hint
             CalendarTextField.LOCATION -> R.string.ime_calendar_location_hint
-            CalendarTextField.NOTES -> R.string.ime_calendar_notes_hint
+            CalendarTextField.NOTES -> if (entry.invite) R.string.ime_invite_about_hint else R.string.ime_calendar_notes_hint
             CalendarTextField.GUEST -> R.string.ime_calendar_guest_hint
         },
     )
@@ -458,6 +462,10 @@ private fun fieldIcon(field: CalendarTextField): ImageVector = when (field) {
 @Composable
 private fun TypingBody(ui: CalendarUi, entry: CalendarTextEntry, act: (CalendarAction) -> Unit) {
     val kb = LocalKbTheme.current
+    if (entry.invite) {
+        ui.invite?.let { InviteTypingPreview(it, ui.hour24) }
+        return
+    }
     val draft = ui.draft ?: return
     if (entry.field == CalendarTextField.GUEST) {
         LazyColumn(
@@ -1504,6 +1512,8 @@ private fun EventSheet(event: StoredEvent, ui: CalendarUi, animate: Boolean, act
                     add(KitAction(stringResource(R.string.ime_calendar_insert), Icons.Outlined.EditNote, primary = true) { act(CalendarAction.InsertEvent) })
                 }
                 add(KitAction(stringResource(R.string.ime_calendar_open_app), Icons.Outlined.OpenInNew) { act(CalendarAction.OpenInApp) })
+                // #1274: the event as a Mobilizon or Pretix page people sign up on.
+                add(KitAction(stringResource(R.string.ime_invite_action), Icons.Outlined.Public) { act(CalendarAction.InviteOpen) })
                 if (event.canModify) {
                     add(KitAction(stringResource(R.string.ime_calendar_delete), Icons.Outlined.Delete, enabled = !ui.busy) { act(CalendarAction.DeleteEvent) })
                 }

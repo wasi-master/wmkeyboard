@@ -3366,6 +3366,8 @@ data class CalendarToolSettings(
      * events' places to Open-Meteo's place search.
      */
     val weatherOnEvents: Boolean = false,
+    /** The accounts an event can be published to as an online invitation (#1274). */
+    val invites: InviteSettings = InviteSettings(),
 )
 
 /** How long a new calendar event may default to, in minutes: five minutes to eight hours. */
@@ -15421,6 +15423,7 @@ class SettingsRepository(private val context: Context) {
             saveMode = p[CALENDAR_SAVE_MODE]?.let { v -> CalendarSaveMode.entries.firstOrNull { it.name == v } }
                 ?: defaults.calendarTool.saveMode,
             weatherOnEvents = p[CALENDAR_EVENT_WEATHER] ?: defaults.calendarTool.weatherOnEvents,
+            invites = InvitePrefs.read(p, defaults.calendarTool.invites),
         )
 
     private fun readVoiceBar(p: Preferences, defaults: KeyboardSettings) =
@@ -17568,6 +17571,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun updatePaperless(change: (PaperlessSettings) -> PaperlessSettings) = editPrefs { p ->
         val old = PaperlessPrefs.read(p, storedDefaults.scanner.paperless)
         PaperlessPrefs.write(p, old, change(old))
+    }
+
+    /** One change to the Calendar tool's invitation accounts (#1274); see [updateGallery]. */
+    suspend fun updateInvites(change: (InviteSettings) -> InviteSettings) = editPrefs { p ->
+        val old = InvitePrefs.read(p, storedDefaults.calendarTool.invites)
+        InvitePrefs.write(p, old, change(old))
     }
 
     suspend fun updateSend(change: (SendSettings) -> SendSettings) = editPrefs { p ->
