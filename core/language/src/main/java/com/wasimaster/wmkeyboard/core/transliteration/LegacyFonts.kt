@@ -1,30 +1,53 @@
 package com.wasimaster.wmkeyboard.core.transliteration
 
 /**
- * Unicode to the pre-Unicode font encodings Indian print and design work still
- * runs on (#1252), where a glyph of the script sits on a Latin code point and
- * only looks right in its own font: Hindi in Kruti Dev is `fgUnh`. Bengali's
- * Bijoy encoding is [BijoyAnsi]; Burmese's Zawgyi is [Zawgyi].
+ * Unicode to the pre-Unicode font encodings South Asian print and design work
+ * still runs on (#1252), where a glyph of the script sits on a Latin code
+ * point and only looks right in its own font: Hindi in Kruti Dev is `fgUnh`.
+ * Bengali's Bijoy encoding is [BijoyAnsi]; Burmese's Zawgyi is [Zawgyi].
  *
- * The tables in [LegacyFontTables] are generated from MIT-licensed converters:
+ * Every one comes from a permissively licensed converter (MIT or ISC), and
+ * each was checked over thousands of real words of its language, against the
+ * converter it was ported from and through an independent one back to
+ * Unicode. GPL-only converters were left out, since the app is MIT: Kannada's
+ * Nudi and Baraha, Odia's Akruti and Hindi's Walkman Chanakya have none other.
+ * Left out on the evidence: Gujarati's Terafont (the only permissive table
+ * gives one glyph to two letters, with nothing to check it against), and
+ * Tamil's TSCII, TAB and TAM (Android-TamilUtil's TAM leaves Tamil letters
+ * unconverted and its TSCII and TAB misread Grantha letters and கூ; open-tamil's
+ * are GPL).
+ *
+ * The tables in [LegacyFontTables] are generated:
  *
  * - **Kruti Dev 010** (also DevLys 010, which shares its layout): reversed from
  *   the Kruti Dev → Unicode table of `npm-hindi-converter` (Vineet Verma). The
  *   reverse was checked by converting every Hindi word in the app's own
  *   translation and back through that package: all 5,293 came back unchanged.
- * - **Bamini** (Tamil): the ordered replacements of Android-TamilUtil (Jay
- *   Mayu), which converts this direction already.
  * - **AnmolLipi / Gurbani Akhar** (Punjabi, Gurmukhi): the Unicode → ASCII
  *   routine of anvaad-js (Khalis Foundation); the 4,967 Punjabi words of the
  *   app's translation round-trip through it unchanged.
+ *
+ * Four more are ported as code, since they reorder whole syllables:
+ *
+ * - **Bamini** (Tamil): [BaminiEncoding].
+ * - **Preeti** (Nepali): [PreetiEncoding].
+ * - **FM Abhaya** and the rest of the FM family (Sinhala): [FmAbhayaEncoding].
+ * - **ML-TT** and **FML** (Malayalam): [MalayalamAsciiEncoding].
  */
 object LegacyFonts {
 
-    /** A legacy encoding, by the id the settings store. */
-    enum class Font(val id: String) {
-        KRUTI_DEV("krutidev"),
-        BAMINI("bamini"),
-        ANMOL_LIPI("anmollipi"),
+    /**
+     * A legacy encoding, by the id the settings store, with the [badge] its
+     * strip button shows and the [title] its toast names.
+     */
+    enum class Font(val id: String, val badge: String, val title: String) {
+        KRUTI_DEV("krutidev", "KD", "Kruti Dev"),
+        PREETI("preeti", "PR", "Preeti"),
+        BAMINI("bamini", "BM", "Bamini"),
+        ANMOL_LIPI("anmollipi", "AL", "AnmolLipi"),
+        ML_TT("mltt", "ML", "ML-TT"),
+        FML("fml", "FM", "FML"),
+        FM_ABHAYA("fmabhaya", "FA", "FM Abhaya"),
         ;
 
         companion object {
@@ -37,9 +60,13 @@ object LegacyFonts {
 
     /** The fonts offered for [languageId], in the order the settings list them. */
     fun fontsFor(languageId: String): List<Font> = when (languageId) {
+        // Preeti is what Nepali is typed in; Kruti Dev reads Nepali too.
+        "ne" -> listOf(Font.PREETI, Font.KRUTI_DEV)
         in DEVANAGARI_LANGUAGES -> listOf(Font.KRUTI_DEV)
         "ta" -> listOf(Font.BAMINI)
         "pa" -> listOf(Font.ANMOL_LIPI)
+        "ml" -> listOf(Font.ML_TT, Font.FML)
+        "si" -> listOf(Font.FM_ABHAYA)
         else -> emptyList()
     }
 
@@ -49,15 +76,20 @@ object LegacyFonts {
     /** Whether [c] is a character [font] changes. */
     fun converts(font: Font, c: Char): Boolean = when (font) {
         Font.KRUTI_DEV -> c in '\u0900'..'\u097F' || c in KRUTI_DEV_MARKS
-        Font.BAMINI -> c in '\u0B80'..'\u0BFF' || c in BAMINI_MARKS
+        Font.PREETI -> c in '\u0900'..'\u097F' || c in PreetiEncoding.MARKS
+        Font.BAMINI -> c in '\u0B80'..'\u0BFF' || c in BaminiEncoding.MARKS
         Font.ANMOL_LIPI -> c in '\u0A00'..'\u0A7F' || c == '\u0964' || c == '\u0965'
+        Font.ML_TT, Font.FML -> c in '\u0D00'..'\u0D7F' || c in MalayalamAsciiEncoding.MARKS
+        Font.FM_ABHAYA -> c in '\u0D80'..'\u0DFF' || c in FmAbhayaEncoding.MARKS
     }
 
     /** A letter or sign of [font]'s script, or a joiner: what a word is made of. */
     fun isScriptChar(font: Font, c: Char): Boolean = c == '\u200C' || c == '\u200D' || when (font) {
-        Font.KRUTI_DEV -> c in '\u0900'..'\u0963' || c in '\u0966'..'\u097F'
+        Font.KRUTI_DEV, Font.PREETI -> c in '\u0900'..'\u0963' || c in '\u0966'..'\u097F'
         Font.BAMINI -> c in '\u0B80'..'\u0BFF'
         Font.ANMOL_LIPI -> c in '\u0A00'..'\u0A7F'
+        Font.ML_TT, Font.FML -> c in '\u0D00'..'\u0D7F'
+        Font.FM_ABHAYA -> c in '\u0D80'..'\u0DFF'
     }
 
     /** Unicode [text] in [font]. Text with nothing for the font to change comes back as it was. */
@@ -65,8 +97,12 @@ object LegacyFonts {
         if (!needsConversion(font, text)) return text
         return when (font) {
             Font.KRUTI_DEV -> toKrutiDev(text)
-            Font.BAMINI -> toBamini(text)
+            Font.PREETI -> PreetiEncoding.convert(text)
+            Font.BAMINI -> BaminiEncoding.convert(text)
             Font.ANMOL_LIPI -> toAnmolLipi(text)
+            Font.ML_TT -> MalayalamAsciiEncoding.convert(text, fml = false)
+            Font.FML -> MalayalamAsciiEncoding.convert(text, fml = true)
+            Font.FM_ABHAYA -> FmAbhayaEncoding.convert(text)
         }
     }
 
@@ -135,18 +171,6 @@ object LegacyFonts {
         }
         return out.toString()
     }
-
-    // ---- Bamini ----
-
-    private val BAMINI_MARKS: Set<Char> = LegacyFontTables.BAMINI
-        .map { it.first }
-        .filter { it.length == 1 && it[0] !in '\u0B80'..'\u0BFF' }
-        .map { it[0] }
-        .toSet()
-
-    /** Each replacement in order, every occurrence: whole syllables first, so கொ is `nfh`. */
-    private fun toBamini(text: String): String =
-        LegacyFontTables.BAMINI.fold(text) { s, (from, to) -> s.replace(from, to) }
 
     // ---- AnmolLipi / Gurbani Akhar ----
 

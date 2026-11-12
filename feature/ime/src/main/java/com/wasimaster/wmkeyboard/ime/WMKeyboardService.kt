@@ -39788,7 +39788,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * The strip's legacy font button (#1252): write for the font the language
-     * was given (Kruti Dev, Bamini, AnmolLipi) or Unicode, the way
+     * was given (Kruti Dev, Preeti, Bamini and the rest of [LegacyFonts.Font]) or Unicode, the way
      * [onAnsiOutputToggle] does for Bengali. The word being typed commits
      * first, in the output it was started in.
      */
@@ -39808,11 +39808,7 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch { settingsRepository.setLegacyFontOn(next) }
     }
 
-    private fun legacyFontName(font: com.wasimaster.wmkeyboard.core.transliteration.LegacyFonts.Font): String = when (font) {
-        com.wasimaster.wmkeyboard.core.transliteration.LegacyFonts.Font.KRUTI_DEV -> "Kruti Dev"
-        com.wasimaster.wmkeyboard.core.transliteration.LegacyFonts.Font.BAMINI -> "Bamini"
-        com.wasimaster.wmkeyboard.core.transliteration.LegacyFonts.Font.ANMOL_LIPI -> "AnmolLipi"
-    }
+    private fun legacyFontName(font: com.wasimaster.wmkeyboard.core.transliteration.LegacyFonts.Font): String = font.title
 
     /**
      * The strip's Zawgyi button on a Burmese layout: write Zawgyi or Unicode,
