@@ -847,6 +847,8 @@ data class KeyboardLayout(
     val flickHints: Boolean? = null,
     /** [LayerSpec.keymanFrames], carried onto the grid on screen. */
     val keymanFrames: Map<String, KeymanTarget> = emptyMap(),
+    /** [LayerSpec.direct], carried onto the grid on screen: its keys skip the composer. */
+    val direct: Boolean = false,
     /**
      * Whether this is a symbols page the layout borrowed rather than wrote, so
      * its `$` key may show the currency where the phone is. A page the layout

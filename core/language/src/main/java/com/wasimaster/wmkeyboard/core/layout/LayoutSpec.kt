@@ -189,6 +189,17 @@ data class LayerSpec(
      * have is ignored. Additive and defaulted, so no format-version bump.
      */
     val afterConsonant: String? = null,
+    /**
+     * Keys on this layer type what they say, straight into the field, past the
+     * layout's composer: the ABC page of the Japanese flick pad types `a`, not
+     * the あ the romaji composer would make of it (issue #1228). A reading still
+     * composing is committed first, as a mode switch on a phone kana pad does.
+     *
+     * Meant for a page of a transliterating layout that writes another script;
+     * on a layout whose composer passes its keys through anyway it changes
+     * nothing a user would see. Additive and defaulted, so no format-version bump.
+     */
+    val direct: Boolean = false,
 )
 
 /**

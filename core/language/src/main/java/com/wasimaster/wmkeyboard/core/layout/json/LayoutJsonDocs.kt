@@ -98,6 +98,9 @@ object LayoutJsonDocs {
         "LayerSpec.afterConsonant" to
             "On the letters layer of an Indic layout, the page of vowel signs to show after a consonant. Its keys show the " +
             "consonant with each sign, and a tap replaces the vowel sign already there.",
+        "LayerSpec.direct" to
+            "Keys on this layer type exactly what they say, past the layout's composer: an ABC page on a Japanese kana pad " +
+            "types a, not あ. A reading still being typed is committed first.",
 
         "LayoutAppearance.fontId" to
             "The label font: \"default\", \"google:<Name>\", \"installed:<name>\" or \"custom\". A font this device does not have falls " +

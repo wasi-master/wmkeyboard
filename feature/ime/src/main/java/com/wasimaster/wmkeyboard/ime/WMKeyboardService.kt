@@ -14398,6 +14398,21 @@ open class WMKeyboardService : InputMethodService() {
         val fancyStyle = fancyStyleFor(state)
         val fancyByKey = fancyStyle != null && !fancyComposes(state)
         if (fancyByKey) text = applyFancyStyle(text, fancyStyle)
+        // A page that types its key caps (LayerSpec.direct), such as the ABC
+        // page of the Japanese flick pad (#1228). The reading in progress goes
+        // in as it stands, the way a mode switch on a kana pad commits it, and
+        // the key's text follows untouched by the composer that would have
+        // read `a` as あ.
+        if (typesKeyCaps(state)) {
+            if (composing.isNotEmpty()) commitComposing(ic, autocorrect = false)
+            invalidateExpectedSelection()
+            commitTypedCharacter(ic, text)
+            consumeShift()
+            _uiState.update {
+                it.copy(composingPreview = "", suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap())
+            }
+            return
+        }
         if (!fancyByKey && typeMyanmarVisualOrder(ic, text)) {
             consumeShift()
             return
@@ -23205,6 +23220,13 @@ open class WMKeyboardService : InputMethodService() {
     private fun cycleKanaVariant() {
         if (cycleCaptureKanaVariant()) return
         val ic = currentInputConnection ?: return
+        // The a/A key of the flick pad's ABC page (#1228), which sits where
+        // the kana page has 小゛゜, as on iOS: the letter in front of the caret
+        // changes case.
+        if (composing.isEmpty() && typesKeyCaps(_uiState.value)) {
+            swapCaseBeforeCaret(ic)
+            return
+        }
         if (composing.isEmpty()) return
         // The kana in front of the caret, which is the last one unless the
         // reading is being edited in the middle (#960).
@@ -23222,6 +23244,38 @@ open class WMKeyboardService : InputMethodService() {
         }
         updateComposingText(ic)
         refreshSuggestions()
+    }
+
+    /**
+     * Whether the grid on screen types its key caps past the composer
+     * ([com.wasimaster.wmkeyboard.core.layout.LayerSpec.direct], #1228).
+     */
+    private fun typesKeyCaps(state: KeyboardUiState): Boolean =
+        state.layoutMode == LayoutMode.NAMED &&
+            state.namedLayer?.let { state.layouts.named[it] }?.direct == true
+
+    /**
+     * Upper case for lower and lower for upper, on the one letter in front of
+     * the caret. Anything that is not a cased letter, or a selection, is left
+     * alone.
+     */
+    private fun swapCaseBeforeCaret(ic: InputConnection) {
+        if (hasSelection(ic)) return
+        val before = ic.getTextBeforeCursor(2, 0)?.toString()?.takeIf { it.isNotEmpty() } ?: return
+        val cp = before.codePointBefore(before.length)
+        val swapped = when {
+            Character.isUpperCase(cp) -> Character.toLowerCase(cp)
+            Character.isLowerCase(cp) -> Character.toUpperCase(cp)
+            else -> return
+        }
+        if (swapped == cp) return
+        val length = Character.charCount(cp)
+        revision?.expectDelete(length, 0)
+        invalidateExpectedSelection()
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(length, 0)
+        commitTypedCharacter(ic, String(Character.toChars(swapped)))
+        ic.endBatchEdit()
     }
 
     /**

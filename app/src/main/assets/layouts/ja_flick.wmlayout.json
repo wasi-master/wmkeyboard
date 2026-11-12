@@ -12,9 +12,10 @@
         "rows": [
           [
             {
-              "label": "🌐",
+              "label": "☆123",
               "action": {
-                "type": "language_switch"
+                "type": "layer",
+                "layer": "num"
               }
             },
             {
@@ -53,9 +54,10 @@
           ],
           [
             {
-              "label": "?123",
+              "label": "ABC",
               "action": {
-                "type": "symbols"
+                "type": "layer",
+                "layer": "abc"
               }
             },
             {
@@ -86,7 +88,7 @@
               }
             },
             {
-              "label": "␣",
+              "label": "空白",
               "action": {
                 "type": "space"
               }
@@ -94,9 +96,9 @@
           ],
           [
             {
-              "label": "😊",
+              "label": "あいう",
               "action": {
-                "type": "emoji"
+                "type": "letters"
               }
             },
             {
@@ -111,9 +113,9 @@
             {
               "label": "や",
               "flick": {
-                "left": "「",
+                "left": "（",
                 "up": "ゆ",
-                "right": "」",
+                "right": "）",
                 "down": "よ"
               }
             },
@@ -130,15 +132,39 @@
               "label": "⏎",
               "action": {
                 "type": "enter"
-              }
+              },
+              "rowSpan": 2
             }
           ],
           [
             {
-              "label": "小゛゜",
+              "label": "🌐",
               "action": {
-                "type": "kana_variant"
-              }
+                "type": "language_switch"
+              },
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "emoji"
+                  }
+                }
+              ]
+            },
+            {
+              "label": "^_^",
+              "output": "(^_^)",
+              "longPress": [
+                "(*^▽^*)",
+                "(;_;)",
+                "(>_<)",
+                "(^_^;)",
+                "(´・ω・`)",
+                "m(_ _)m",
+                "(・∀・)",
+                "Σ(ﾟДﾟ)",
+                "(￣▽￣)"
+              ],
+              "kanaVariantWhileComposing": true
             },
             {
               "label": "わ",
@@ -149,7 +175,8 @@
               }
             },
             {
-              "label": "、",
+              "label": "、。?!",
+              "output": "、",
               "flick": {
                 "left": "。",
                 "up": "？",
@@ -166,15 +193,340 @@
                 "（",
                 "）"
               ]
-            },
-            {
-              "label": "ー"
-            },
-            {
-              "label": "。"
             }
           ]
-        ]
+        ],
+        "bottomRowAsLaidOut": true
+      },
+      "abc": {
+        "rows": [
+          [
+            {
+              "label": "☆123",
+              "action": {
+                "type": "layer",
+                "layer": "num"
+              }
+            },
+            {
+              "label": "@#/&_",
+              "output": "@",
+              "flick": {
+                "left": "#",
+                "up": "/",
+                "right": "&",
+                "down": "_"
+              }
+            },
+            {
+              "label": "ABC",
+              "output": "a",
+              "flick": {
+                "left": "b",
+                "up": "c"
+              }
+            },
+            {
+              "label": "DEF",
+              "output": "d",
+              "flick": {
+                "left": "e",
+                "up": "f"
+              }
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "ABC",
+              "action": {
+                "type": "layer",
+                "layer": "abc"
+              }
+            },
+            {
+              "label": "GHI",
+              "output": "g",
+              "flick": {
+                "left": "h",
+                "up": "i"
+              }
+            },
+            {
+              "label": "JKL",
+              "output": "j",
+              "flick": {
+                "left": "k",
+                "up": "l"
+              }
+            },
+            {
+              "label": "MNO",
+              "output": "m",
+              "flick": {
+                "left": "n",
+                "up": "o"
+              }
+            },
+            {
+              "label": "空白",
+              "action": {
+                "type": "space"
+              }
+            }
+          ],
+          [
+            {
+              "label": "あいう",
+              "action": {
+                "type": "letters"
+              }
+            },
+            {
+              "label": "PQRS",
+              "output": "p",
+              "flick": {
+                "left": "q",
+                "up": "r",
+                "right": "s"
+              }
+            },
+            {
+              "label": "TUV",
+              "output": "t",
+              "flick": {
+                "left": "u",
+                "up": "v"
+              }
+            },
+            {
+              "label": "WXYZ",
+              "output": "w",
+              "flick": {
+                "left": "x",
+                "up": "y",
+                "right": "z"
+              }
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "rowSpan": 2
+            }
+          ],
+          [
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              },
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "emoji"
+                  }
+                }
+              ]
+            },
+            {
+              "label": "a/A",
+              "action": {
+                "type": "kana_variant"
+              }
+            },
+            {
+              "label": "'\"()",
+              "output": "'",
+              "flick": {
+                "left": "\"",
+                "up": "(",
+                "right": ")"
+              }
+            },
+            {
+              "label": ".,?!",
+              "output": ".",
+              "flick": {
+                "left": ",",
+                "up": "?",
+                "right": "!"
+              }
+            }
+          ]
+        ],
+        "bottomRowAsLaidOut": true,
+        "flickHints": false,
+        "direct": true
+      },
+      "num": {
+        "rows": [
+          [
+            {
+              "label": "☆123",
+              "action": {
+                "type": "layer",
+                "layer": "num"
+              }
+            },
+            {
+              "label": "1",
+              "flick": {
+                "left": "☆",
+                "up": "♪",
+                "right": "→"
+              }
+            },
+            {
+              "label": "2",
+              "flick": {
+                "left": "¥",
+                "up": "$",
+                "right": "€"
+              }
+            },
+            {
+              "label": "3",
+              "flick": {
+                "left": "%",
+                "up": "°",
+                "right": "#"
+              }
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              }
+            }
+          ],
+          [
+            {
+              "label": "ABC",
+              "action": {
+                "type": "layer",
+                "layer": "abc"
+              }
+            },
+            {
+              "label": "4",
+              "flick": {
+                "left": "○",
+                "up": "*",
+                "right": "・"
+              }
+            },
+            {
+              "label": "5",
+              "flick": {
+                "left": "+",
+                "up": "×",
+                "right": "÷"
+              }
+            },
+            {
+              "label": "6",
+              "flick": {
+                "left": "<",
+                "up": "=",
+                "right": ">"
+              }
+            },
+            {
+              "label": "空白",
+              "action": {
+                "type": "space"
+              }
+            }
+          ],
+          [
+            {
+              "label": "あいう",
+              "action": {
+                "type": "letters"
+              }
+            },
+            {
+              "label": "7",
+              "flick": {
+                "left": "「",
+                "up": "」",
+                "right": ":"
+              }
+            },
+            {
+              "label": "8",
+              "flick": {
+                "left": "〒",
+                "up": "々",
+                "right": "〆"
+              }
+            },
+            {
+              "label": "9",
+              "flick": {
+                "left": "^",
+                "up": "|",
+                "right": "\\"
+              }
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "rowSpan": 2
+            }
+          ],
+          [
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              },
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "emoji"
+                  }
+                }
+              ]
+            },
+            {
+              "label": "()[]",
+              "output": "(",
+              "flick": {
+                "left": ")",
+                "up": "[",
+                "right": "]"
+              }
+            },
+            {
+              "label": "0",
+              "flick": {
+                "left": "〜",
+                "up": "…"
+              }
+            },
+            {
+              "label": ".,-/",
+              "output": ".",
+              "flick": {
+                "left": ",",
+                "up": "-",
+                "right": "/"
+              }
+            }
+          ]
+        ],
+        "bottomRowAsLaidOut": true,
+        "direct": true
       }
     }
   }
