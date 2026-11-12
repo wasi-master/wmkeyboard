@@ -355,7 +355,8 @@ fn stats(env: &mut JNIEnv, out: &JDoubleArray, lead: f64, best: Option<&decoder:
 
 /// `decoderDecide(dicts, kinds, typed, touchKeys, touchCenters, touchPoints,
 /// space, sigmaScale, spread, before, packs, seedFirst, seedSecond, seedCounts,
-/// lmSession, lmWeight, register, field, lang, margin, knownMargin, out)`.
+/// lmSession, lmWeight, register, field, lang, margin, knownMargin,
+/// confidence, out)`.
 ///
 /// `dicts`/`kinds` are the walk's sources (0 a dictionary, 1 a user
 /// lexicon, 2 a plain trie). The touch frame is absent when `touchKeys` is
@@ -365,7 +366,9 @@ fn stats(env: &mut JNIEnv, out: &JDoubleArray, lead: f64, best: Option<&decoder:
 /// spread (the mistype tolerance), and `spread`, when not null, scales it
 /// again across and down by how widely this hand's taps scatter. `before` is the field's last words,
 /// oldest first. `packs` are pair-pack handles; the seed pairs cross as
-/// three parallel arrays. `lmSession` is 0 for none.
+/// three parallel arrays. `lmSession` is 0 for none. `confidence` above 0
+/// hands the verdict to the fitted gate ([`decoder::Gate`]) at that
+/// confidence (the slider's ratio); 0 keeps the fixed margins.
 ///
 /// Returns `[apply, offer]`, each empty for none; `out` receives the best
 /// reading's lead over the literal, the number of words it has, and its
@@ -396,6 +399,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     lang: jint,
     margin: jdouble,
     known_margin: jdouble,
+    confidence: jdouble,
     out: JDoubleArray,
 ) -> jobjectArray {
     guarded(&mut env, null_mut(), |env| {
@@ -422,9 +426,13 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
                 }
             });
         }
-        // The accent bar moves with the slider as the other two do.
-        let accent_margin = margin * decoder::ACCENT_MARGIN / decoder::APPLY_MARGIN;
-        let v = decoder::verdict_with(&decoded, &inp.typed, margin, known_margin, accent_margin);
+        let v = if confidence > 0.0 {
+            decoder::Gate::verdict(&decoded, &inp.typed, confidence)
+        } else {
+            // The accent bar moves with the slider as the other two do.
+            let accent_margin = margin * decoder::ACCENT_MARGIN / decoder::APPLY_MARGIN;
+            decoder::verdict_with(&decoded, &inp.typed, margin, known_margin, accent_margin)
+        };
         let best = v.apply.as_ref().or(v.offer.as_ref()).and_then(|t| decoded.readings.iter().find(|r| &r.text == t));
         stats(env, &out, v.lead, best)?;
         give_all(env, vec![v.apply.unwrap_or_default(), v.offer.unwrap_or_default()])

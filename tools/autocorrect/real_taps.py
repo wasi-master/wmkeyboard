@@ -14,7 +14,8 @@ Two corpora with tap coordinates, both CC BY 4.0:
   aligned to the prompt; for each prompt character the first tap made for it
   is kept, so a letter the person typed wrong and then fixed counts as typed
   wrong, the way the keyboard first saw it. A character with no tap at all
-  (skipped) is left out. Phrase prompts only.
+  (skipped) is left out. Phrase prompts only. People 1-8 are the dev set,
+  9-16 the test set.
 
 Out:
   keyboards.tsv  name, key ('<sp>' for the bar), centre x, centre y, width,
@@ -97,7 +98,11 @@ def tsi(root, out_kb, out_rows):
     for key, slot in first.items():
         ref = prompts[key].strip().lower()
         taps = [(x, y) for _, (_, x, y) in sorted(slot.items())]
-        out_rows.append(("tsi", "all", key[0], "tsi", "tsi", ref, taps))
+        # The first eight people are the dev set, the other eight the test
+        # set, so nothing is fitted on the people it is scored on.
+        digits = "".join(c for c in key[0] if c.isdigit())
+        split = "dev" if digits and int(digits) <= 8 else "test"
+        out_rows.append(("tsi", split, key[0], "tsi", "tsi", ref, taps))
 
 
 def main():

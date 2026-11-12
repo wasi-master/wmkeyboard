@@ -2490,6 +2490,13 @@ open class WMKeyboardService : InputMethodService() {
      */
     @Volatile private var systemDictLoadedWith: Boolean? = null
     private var lastSpaceTime = 0L
+    /**
+     * Where the space press that last committed a word landed, and that
+     * press's [lastSpaceTime]: a second press right after may say the first
+     * was a letter that hit the bar ([edgeLetterFix]).
+     */
+    private var lastSpaceTouch: TouchPoint? = null
+    private var lastSpaceTouchAt = 0L
     /** uptime of the last spacebar/volume caret-scrub step or caret key; see [CARET_SCRUB_WINDOW_MS]. */
     private var lastCaretScrubMs = 0L
     private var lastShiftTapTime = 0L
@@ -18838,6 +18845,11 @@ open class WMKeyboardService : InputMethodService() {
         val ic = currentInputConnection ?: return
         val state = _uiState.value
         val now = System.currentTimeMillis()
+        // Where this press landed: KeyboardScreen reports every key's down
+        // just before the key acts. Spent here, so it never rides along with
+        // the next letter.
+        val spaceTouch = pendingTouch
+        pendingTouch = null
         // One-shot, spent by this press whatever it ends up doing.
         val followsPunctuationSpace = pendingPunctuationSpace
         pendingPunctuationSpace = false
@@ -18993,6 +19005,20 @@ open class WMKeyboardService : InputMethodService() {
         // rules below, so the tab and the full stop never disagree about what
         // counts as a double space.
         val doubleSpaceWindow = state.settings.textEditing.doubleSpaceWindowMs
+        // Two spaces in a row after a typed word: the first may have been the
+        // word's last letter landing on the bar ("i" for "in"). Asked before
+        // the tab and the full stop, which would otherwise turn the slip into
+        // "I. ".
+        val firstSpace = lastSpaceTouch?.takeIf { lastSpaceTouchAt == lastSpaceTime }
+        lastSpaceTouch = null
+        if (!committed && firstSpace != null && spaceTouch != null && now - lastSpaceTime < doubleSpaceWindow &&
+            state.fieldKind == FieldKind.TEXT && state.allowsTypingIntelligence &&
+            state.settings.correction.enabledFor(state.language.id) &&
+            state.settings.correction.readWholePhrases && edgeLetterFix(ic, firstSpace, spaceTouch)
+        ) {
+            lastSpaceTime = 0
+            return
+        }
         // Double-tap space inserts a tab. Checked before the period rule so
         // enabling it wins, and unlike the period it works anywhere a space
         // was just typed (indenting at a line start has no word before it).
@@ -19045,6 +19071,10 @@ open class WMKeyboardService : InputMethodService() {
         recordStat { onSeparator(now, SystemClock.uptimeMillis()) }
         if (batched) ic.endBatchEdit()
         lastSpaceTime = now
+        if (typedWord && committed && spaceTouch != null) {
+            lastSpaceTouch = spaceTouch
+            lastSpaceTouchAt = now
+        }
         // Only for a real space: the ideographic one is a character
         // [isComposingWordChar] may not treat as a break.
         ownSpaceEchoPending = space == " "
@@ -23773,6 +23803,45 @@ open class WMKeyboardService : InputMethodService() {
      * it back, the way a correction at the space does; one that only came
      * close is the revision chip's, when that row is on and the chip is free.
      */
+    /**
+     * The second of two quick space presses after a typed word, read with the
+     * first as a letter that landed on the bar ([SuggestionEngine.edgeLetter]):
+     * "i" and two spaces become "in " rather than "I. ". Verified against the
+     * field (the word, then one space, at the caret); backspace straight after
+     * puts the word and its space back. Whether it acted.
+     */
+    private fun edgeLetterFix(ic: InputConnection, first: TouchPoint, second: TouchPoint): Boolean {
+        if (composing.isNotEmpty()) return false
+        val engine = suggestionEngine ?: return false
+        val (was, fixed) = engine.edgeLetter(first, second) ?: return false
+        val window = ic.getTextBeforeCursor(was.length + 2, 0)?.toString() ?: return false
+        if (!window.endsWith("$was ") || (window.length > was.length + 1 && window[0].isLetter())) return false
+        // A sentence's first word keeps its capital; the pronoun's does not
+        // carry over to "in" mid-sentence.
+        val head = ic.getTextBeforeCursor(was.length + 1 + EDGE_CAPS_LOOKBACK, 0)?.toString()
+            ?.dropLast(was.length + 1)?.trimEnd().orEmpty()
+        val opensSentence = head.isEmpty() || head.last() in SENTENCE_ENDERS
+        val display = if (opensSentence) fixed.replaceFirstChar { it.uppercaseChar() } else fixed
+        val original = "$was "
+        val committed = "$display "
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(original.length, 0)
+        ic.commitText(committed, 1)
+        ic.endBatchEdit()
+        engine.noteEdgeLetter(was, display)
+        lastRevertible = RevertibleCommit(RevertibleCommit.Kind.REVISION, original = original, committed = committed)
+        armRevertGuard()
+        if (_uiState.value.settings.suggestionStrip.undoCorrectionChip) {
+            pushUndo(UndoableCorrection(was, display))
+            _uiState.update { it.copy(undoChips = it.undoChips.copy(correctionUndo = was)) }
+        }
+        recordStat { onAutocorrect(offer = false, System.currentTimeMillis()) }
+        commitResolution = null
+        syncPreviousWordFromField(ic)
+        maybeAutoCapitalize()
+        return true
+    }
+
     private fun applyRecheck(found: SuggestionEngine.Revision) {
         val state = _uiState.value
         val follower = found.followers.joinToString(" ")
@@ -59951,6 +60020,8 @@ open class WMKeyboardService : InputMethodService() {
 
         /** How far back a double-space full stop reads for the word it follows ([periodSlipWord]). */
         private const val PERIOD_SLIP_LOOKBACK = 32
+        /** How far back [edgeLetterFix] reads for the end of the sentence before its word. */
+        private const val EDGE_CAPS_LOOKBACK = 4
 
         /**
          * How far behind a composing buffer [commitComposing] reads to see

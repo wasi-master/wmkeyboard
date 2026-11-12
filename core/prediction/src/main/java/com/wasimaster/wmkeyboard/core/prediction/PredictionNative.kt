@@ -99,9 +99,11 @@ internal object PredictionNative {
      * or null to place it under the bottom row), [sigmaScale] on the tap
      * spread and [spread] on it across and down (this hand's, or null), the
      * field's last words, the pair packs, the seed pairs as three
-     * columns, and the context model's session (0 for none). Returns
-     * `[apply, offer]`, each empty for none; [out] receives the lead over the
-     * literal, the reading's word count, edits, slips and inserted spaces.
+     * columns, and the context model's session (0 for none). [confidence]
+     * above 0 lets the fitted gate decide at that confidence; 0 keeps the
+     * fixed [margin] and [knownMargin]. Returns `[apply, offer]`, each empty
+     * for none; [out] receives the lead over the literal, the reading's word
+     * count, edits, slips and inserted spaces.
      */
     @Suppress("LongParameterList")
     external fun decoderDecide(
@@ -126,6 +128,7 @@ internal object PredictionNative {
         lang: Int,
         margin: Double,
         knownMargin: Double,
+        confidence: Double,
         out: DoubleArray,
     ): Array<String>
 

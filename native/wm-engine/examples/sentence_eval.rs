@@ -159,6 +159,10 @@ fn hit(keys: &[(u16, f32, f32)], p: (f32, f32)) -> char {
     best.1
 }
 
+/// What [`Board::hit`] returns for the backspace key and for shift.
+const BACKSPACE: char = '\u{8}';
+const SHIFT: char = '\u{e}';
+
 /// A recorded keyboard (`REPLAY`): its letter keys as the decoder takes
 /// them, every key with its rectangle for [`Board::hit`], and the space bar.
 struct Board {
@@ -170,18 +174,22 @@ struct Board {
 impl Board {
     /// What a tap at `p` typed on this keyboard: the key whose rectangle
     /// holds it, else the nearest centre; `' '` for the bar and for keys
-    /// that end a word (full stop, comma).
+    /// that end a word (full stop, comma), [`BACKSPACE`] and [`SHIFT`] for
+    /// those. A tap in the gap between a key and the bar goes to whichever
+    /// edge is nearer, as a phone splits the gap.
     fn hit(&self, p: (f32, f32)) -> char {
         let (cx, cy, hw, hh) = self.space;
         if (p.0 - cx).abs() <= hw && (p.1 - cy).abs() <= hh {
             return ' ';
         }
-        let mut best = (f32::MAX, ' ');
+        // (ranking distance, key, squared distance to the key's edge)
+        let mut best = (f32::MAX, ' ', 0.0f32);
         for &(c, x, y, w, h) in &self.rects {
             let (dx, dy) = ((p.0 - x).abs(), (p.1 - y).abs());
             let d = if dx <= w / 2.0 && dy <= h / 2.0 { -1.0 + dx * dx + dy * dy } else { dx * dx + dy * dy };
             if d < best.0 {
-                best = (d, c);
+                let (ex, ey) = ((dx - w / 2.0).max(0.0), (dy - h / 2.0).max(0.0));
+                best = (d, c, ex * ex + ey * ey);
             }
         }
         let space_d = {
@@ -189,10 +197,13 @@ impl Board {
             let dy = ((p.1 - cy).abs() - hh).max(0.0);
             dx * dx + dy * dy
         };
-        if best.0 > space_d || !(best.1.is_alphabetic() || best.1 == '\'') {
-            ' '
-        } else {
-            best.1
+        if best.2 > space_d {
+            return ' ';
+        }
+        match best.1 {
+            BACKSPACE | SHIFT => best.1,
+            c if c.is_alphabetic() || c == '\'' => c,
+            _ => ' ',
         }
     }
 }
@@ -211,6 +222,10 @@ fn boards_of(path: &str) -> HashMap<String, Board> {
             b.space = (v[0], v[1], v[2] / 2.0, v[3] / 2.0);
             continue;
         }
+        if f[1] == "<b>" {
+            b.rects.push((BACKSPACE, v[0], v[1], v[2], v[3]));
+            continue;
+        }
         let mut chars = f[1].chars();
         if let (Some(c), None) = (chars.next(), chars.next()) {
             let c = c.to_lowercase().next().unwrap_or(c);
@@ -219,6 +234,23 @@ fn boards_of(path: &str) -> HashMap<String, Board> {
                 b.keys.push((c as u16, v[0], v[1]));
             }
         }
+    }
+    // Most recorded keyboards list only the letters and the bar, but the
+    // phones had a backspace right of `m` and a shift left of `z`, and the
+    // taps show it: on the Nexus 4 a second crowd of taps sits 1.5 to 2 keys
+    // right of `m`. Without the keys those taps type `m` and `z`. Where a
+    // keyboard lists no backspace, both go where `nexus4_normal` (which lists
+    // one) has its backspace, in key pitches from the end letter.
+    for b in out.values_mut() {
+        if b.rects.iter().any(|r| r.0 == BACKSPACE) {
+            continue;
+        }
+        let at = |c: char| b.rects.iter().find(|r| r.0 == c).copied();
+        let (Some(z), Some(m), Some(x)) = (at('z'), at('m'), at('x')) else { continue };
+        let pitch = x.1 - z.1;
+        let (offset, width) = (1.285 * pitch, 1.234 * pitch);
+        b.rects.push((BACKSPACE, m.1 + offset, m.2, width, m.4));
+        b.rects.push((SHIFT, z.1 - offset, z.2, width, z.4));
     }
     out
 }
@@ -336,6 +368,10 @@ struct Tally {
     buffers: HashMap<&'static str, (usize, usize)>,
     damaged: usize,
     intact: usize,
+    // Correctly typed words `HOLDOUT` took out of the lists, and how many
+    // of them the field changed.
+    new_words: usize,
+    new_changed: usize,
     decide_us: u128,
     decides: usize,
     rechecks: usize,
@@ -365,6 +401,8 @@ impl Tally {
         }
         self.damaged += o.damaged;
         self.intact += o.intact;
+        self.new_words += o.new_words;
+        self.new_changed += o.new_changed;
         self.decide_us += o.decide_us;
         self.decides += o.decides;
         self.rechecks += o.rechecks;
@@ -387,13 +425,15 @@ impl Tally {
             .map(|(k, (n, fixed))| format!("{k} {}/{} ({:.0}%)", fixed, n, 100.0 * *fixed as f64 / (*n).max(1) as f64))
             .collect();
         format!(
-            "{label}: WER typed {:.2}% -> field {:.2}% | sentences clean {:.1}% | correct words changed {:.2}% ({}/{}) | fixed: {} | recheck {} changed, {} fixed, {} broke | {:.0} us/decide",
+            "{label}: WER typed {:.2}% -> field {:.2}% | sentences clean {:.1}% | correct words changed {:.2}% ({}/{}) | new words changed {}/{} | fixed: {} | recheck {} changed, {} fixed, {} broke | {:.0} us/decide",
             100.0 * self.literal_errors as f64 / w,
             100.0 * self.errors as f64 / w,
             100.0 * self.clean_sentences as f64 / self.sentences.max(1) as f64,
             100.0 * self.damaged as f64 / self.intact.max(1) as f64,
             self.damaged,
             self.intact,
+            self.new_changed,
+            self.new_words,
             kinds.join(", "),
             self.rechecks,
             self.recheck_fixed,
@@ -413,6 +453,31 @@ fn main() {
     let layout: String = env("LAYOUT", "qwerty".to_string());
     let entries = wordlist::parse(&std::fs::read_to_string(&args[1]).expect("the word list"));
     let listed: HashSet<String> = entries.iter().map(|(w, _)| w.clone()).collect();
+    // `HOLDOUT=p`: that share of the list's words below rank `HOLDOUT_RANK`
+    // (3000), picked by a hash of the word, taken out of every list the
+    // decoder and the rules read, so typing one right looks like typing a
+    // name or a new word. The field changing one is counted apart.
+    let holdout: f64 = env("HOLDOUT", 0.0);
+    let holdout_rank: usize = env("HOLDOUT_RANK", 3000);
+    let held: HashSet<String> = if holdout > 0.0 {
+        let mut by_freq: Vec<&(String, i32)> = entries.iter().collect();
+        by_freq.sort_by(|a, b| b.1.cmp(&a.1));
+        by_freq
+            .iter()
+            .skip(holdout_rank)
+            .filter(|(w, _)| {
+                let h = w.bytes().fold(0xcbf2_9ce4_8422_2325u64, |h, b| (h ^ b as u64).wrapping_mul(0x100_0000_01b3));
+                (h % 10_000) < (holdout * 10_000.0) as u64
+            })
+            .map(|(w, _)| w.clone())
+            .collect()
+    } else {
+        HashSet::new()
+    };
+    if !held.is_empty() {
+        eprintln!("held out: {} words", held.len());
+    }
+    let entries: Vec<(String, i32)> = entries.into_iter().filter(|(w, _)| !held.contains(w)).collect();
     let count: usize = env("SENTENCES", 2000);
     let skip: usize = env("SKIP", 0);
     let raw = std::fs::read_to_string(&args[2]).expect("the sentences");
@@ -471,6 +536,13 @@ fn main() {
     // meant, typed, `x,y;x,y...` in key widths, the decoder's best reading
     // (or the typed text when it reads best as typed), and what the field got.
     let mut cases_out = std::env::var("CASES_OUT").ok().map(|p| std::fs::File::create(p).expect("the cases file"));
+    // `DUMP=file`: every buffer the field can be scored on, one word or
+    // several: label, kind, meant, typed, taps, what the field got, then the
+    // literal as `score,lexical,model,listed,unread` and the decoder's
+    // readings as `text:score:lexical:model:edits:slips:spaces:unread:edge`
+    // joined by `|`, best first. `unread`: a word the context model has no
+    // token for (it scores it by its pieces, or not at all).
+    let mut dump_out = std::env::var("DUMP").ok().map(|p| std::fs::File::create(p).expect("the dump file"));
     let hands: Vec<f32> = std::env::var("HAND")
         .unwrap_or_else(|_| "1.0,1.3,1.6".into())
         .split(',')
@@ -507,7 +579,10 @@ fn main() {
     // its own list's Zipf prior (a word in both takes the better).
     let list2: Option<WordList> = std::env::var("LIST2")
         .ok()
-        .map(|path| WordList::of(&wordlist::parse(&std::fs::read_to_string(path).expect("LIST2"))));
+        .map(|path| {
+            let words = wordlist::parse(&std::fs::read_to_string(path).expect("LIST2"));
+            WordList::of(&words.into_iter().filter(|(w, _)| !held.contains(w)).collect::<Vec<_>>())
+        });
     let ranks2 = list2.as_ref().map(|l| Ranks::of(l.dict())).unwrap_or_default();
     let prior2 = |f: i32| ranks2.prior(f);
     // `LEX=n`: a user lexicon learned from the n sentences after the test
@@ -579,6 +654,8 @@ fn main() {
     let mut dec_params = Params::default();
     dec_params.sigma_x = env("SIGMA_X", dec_params.sigma_x);
     dec_params.sigma_y = env("SIGMA_Y", dec_params.sigma_y);
+    dec_params.tail_weight = env("TAIL_W", dec_params.tail_weight);
+    dec_params.tail_scale = env("TAIL_K", dec_params.tail_scale);
     dec_params.ln_unknown_word = env::<f64>("UNKNOWN", dec_params.ln_unknown_word.exp()).ln();
     dec_params.ln_space_omit = env::<f64>("SPACE_OMIT", dec_params.ln_space_omit.exp()).ln();
     dec_params.ln_extra_word = env::<f64>("EXTRA_WORD", dec_params.ln_extra_word.exp()).ln();
@@ -592,9 +669,28 @@ fn main() {
     let recheck_on = env::<i32>("RECHECK", 0) == 1;
     let recheck_margin: f64 = env("RECHECK_MARGIN", decoder::RECHECK_MARGIN);
     let recheck_known: f64 = env("RECHECK_KNOWN", decoder::RECHECK_KNOWN_MARGIN);
+    let recheck_depth: usize = env("RECHECK_DEPTH", 1);
+    let recheck2_margin: f64 = env("RECHECK2_MARGIN", recheck_margin);
+    let recheck2_known: f64 = env("RECHECK2_KNOWN", recheck_known);
     let apply_margin: f64 = env("MARGIN", decoder::APPLY_MARGIN);
     let known_margin: f64 = env("KNOWN_MARGIN", decoder::KNOWN_MARGIN);
     let accent_margin: f64 = env("ACCENT_MARGIN", decoder::ACCENT_MARGIN);
+    let edge_margin: f64 = env("EDGE_MARGIN", apply_margin);
+    // `LM_LISTED=1`: the context model weighs in only on words it holds as
+    // one token; a reading with a word it would spell in pieces keeps its
+    // list priors and pairs.
+    let lm_listed = env::<i32>("LM_LISTED", 0) == 1;
+    // `TRAIL=1`: the space tap that ends a buffer (and the next, when two
+    // came in a row) go to the decoder with it, which may read the first as
+    // the word's last letter. `LEAD=1`: the second of two space taps before
+    // a buffer, as its first letter.
+    let trail_on = env::<i32>("TRAIL", 0) == 1;
+    let lead_on = env::<i32>("LEAD", 0) == 1;
+    // `GATE=1`: the fitted gate ([`decoder::Gate`]) decides instead of the
+    // fixed bars, at the slider's `GATE_CONFIDENCE` (4).
+    let gate_on = env::<i32>("GATE", 0) == 1;
+    let gate_confidence: f64 = env("GATE_CONFIDENCE", 4.0);
+    dec_params.ln_double_space = env::<f64>("DOUBLE_SPACE", dec_params.ln_double_space.exp()).ln();
     let geometry = Geometry { keys: keys.clone(), space: Some((SPACE_X, 3.0 * ROW, SPACE_HALF_WIDTH, ROW / 2.0)) };
     let proximity = if layout == "qwerty" { KeyProximity::qwerty(false) } else { KeyProximity::of_rows(&layout_rows(&layout)) };
     let adjacent = |a: u16, b: u16| proximity.are_adjacent(a, b);
@@ -657,11 +753,18 @@ fn main() {
         let mut taps: Vec<Option<(f32, f32)>> = Vec::new();
         let mut owners: Vec<Option<usize>> = Vec::new();
         let mut typed_view = String::new();
-        let mut prior_buffer: Option<Last> = None;
+        let mut history: Vec<Last> = Vec::new();
         let n = strokes.len();
+        // Where the buffer's first letter is, and whether the buffer before
+        // read the first of two space taps as its last letter.
+        let mut buf_start = 0usize;
+        let mut used_pair = false;
         for (k, s) in strokes.iter().enumerate() {
             let last = k + 1 == n;
             if s.ch != ' ' {
+                if buf.is_empty() {
+                    buf_start = k;
+                }
                 buf.push(s.ch);
                 taps.push(Some(s.at));
                 owners.push(owner.map(|o| o[k]));
@@ -675,13 +778,37 @@ fn main() {
                 let previous = field.last().map(String::as_str).unwrap_or(wm_engine::predict::SENTENCE_START);
                 let corrects = !at_end || punct_corrects;
                 let started = Instant::now();
-                let dtaps: Vec<Tap> = buf
-                    .encode_utf16()
-                    .zip(taps.iter())
-                    .map(|(c, at)| Tap { typed: c, at: *at })
+                let space_tap = |i: usize| Tap { typed: ' ' as u16, at: Some(strokes[i].at) };
+                let is_space = |i: usize| strokes.get(i).is_some_and(|x| x.ch == ' ');
+                let lead: Vec<Tap> = if lead_on && !used_pair && buf_start >= 2 && is_space(buf_start - 1) && is_space(buf_start - 2) {
+                    vec![space_tap(buf_start - 2), space_tap(buf_start - 1)]
+                } else {
+                    Vec::new()
+                };
+                let trail: Vec<Tap> = if trail_on && s.ch == ' ' {
+                    let mut t = vec![space_tap(k)];
+                    if is_space(k + 1) {
+                        t.push(space_tap(k + 1));
+                    }
+                    t
+                } else {
+                    Vec::new()
+                };
+                let trail_pair = trail.len() == 2;
+                used_pair = false;
+                let dtaps: Vec<Tap> = lead
+                    .iter()
+                    .copied()
+                    .chain(buf.encode_utf16().zip(taps.iter()).map(|(c, at)| Tap { typed: c, at: *at }))
+                    .chain(trail.iter().copied())
                     .collect();
                 let mut dec_top = String::new();
-                let out = if let Some(fixed) = p.elide(&buf) {
+                let mut dec_dump = (String::new(), String::new());
+                // A word the apostrophe and capital rules take ("i" as "I")
+                // still goes to the decoder when two space taps follow it:
+                // the first may have been its last letter ("in").
+                let elided = p.elide(&buf);
+                let out = if let (Some(fixed), false) = (elided.clone(), corrects && use_decoder && trail_pair) {
                     fixed
                 } else if corrects && use_decoder {
                     let mut src = vec![Source { walker: dec_list.dict(), prior: &dec_prior }];
@@ -699,18 +826,56 @@ fn main() {
                             let mut total = 0.0;
                             for w in text.split(' ') {
                                 lm.set_context(p.lm_prefix, &ctx);
-                                total += lm.logprob(w)? as f64;
+                                total += if lm_listed { lm.logprob_listed(w)? } else { lm.logprob(w)? } as f64;
                                 ctx.push(w);
                             }
                             Some(total)
                         });
                     }
+                    if dump_out.is_some() {
+                        let unread = |text: &str| -> u8 {
+                            match &lm {
+                                Some(m) => u8::from(text.split(' ').any(|w| {
+                                    wm_engine::lm::token_key(w).and_then(|k| m.id_of(&k)).is_none()
+                                })),
+                                None => 0,
+                            }
+                        };
+                        dec_dump.0 = format!(
+                            "{:.3},{:.3},{:.3},{},{}",
+                            d.literal,
+                            d.literal_lexical,
+                            d.literal_model,
+                            u8::from(d.literal_listed),
+                            unread(&buf)
+                        );
+                        dec_dump.1 = d
+                            .readings
+                            .iter()
+                            .map(|r| {
+                                format!(
+                                    "{}:{:.3}:{:.3}:{:.3}:{}:{}:{}:{}:{}",
+                                    r.text, r.score, r.lexical, r.model, r.edits, r.slips, r.spaces, unread(&r.text), r.edge
+                                )
+                            })
+                            .collect::<Vec<_>>()
+                            .join("|");
+                    }
                     dec_top = match d.best() {
                         Some(r) if r.score > d.literal => r.text.clone(),
                         _ => buf.clone(),
                     };
-                    match decoder::verdict_with(&d, &buf, apply_margin, known_margin, accent_margin).apply {
+                    let v = if gate_on {
+                        decoder::Gate::verdict(&d, &buf, gate_confidence)
+                    } else {
+                        decoder::verdict_full(&d, &buf, apply_margin, known_margin, accent_margin, edge_margin)
+                    };
+                    used_pair = v.apply.as_ref().is_some_and(|a| {
+                        trail_pair && d.readings.iter().any(|r| &r.text == a && r.edge & 2 != 0)
+                    });
+                    match v.apply {
                         Some(text) => p.elide(&text).unwrap_or(text),
+                        None if elided.is_some() => elided.clone().unwrap(),
                         // `UNION=1`: the old rules get their turn when the
                         // decoder leaves the word alone, as on the phone.
                         None if union => p.decide_touch(&buf, 1.0, Some(previous), &taps).apply.unwrap_or_else(|| buf.clone()),
@@ -763,6 +928,12 @@ fn main() {
                     if !got_it {
                         t.damaged += 1;
                     }
+                    if held.contains(&want) {
+                        t.new_words += 1;
+                        if !got_it {
+                            t.new_changed += 1;
+                        }
+                    }
                 } else {
                     let e = t.buffers.entry(kind).or_default();
                     e.0 += 1;
@@ -775,6 +946,12 @@ fn main() {
                         taps.iter().flatten().map(|(x, y)| format!("{x:.3},{y:.3}")).collect();
                     writeln!(f, "{label}\t{kind}\t{want}\t{buf}\t{}\t{dec_top}\t{out}", pts.join(";")).unwrap();
                 }
+                if let (Some(f), true) = (dump_out.as_mut(), aligned) {
+                    let pts: Vec<String> =
+                        taps.iter().flatten().map(|(x, y)| format!("{x:.3},{y:.3}")).collect();
+                    let kind = if kind == "clean" && held.contains(&want) { "new" } else { kind };
+                    writeln!(f, "{label}\t{kind}\t{want}\t{buf}\t{}\t{out}\t{}\t{}", pts.join(";"), dec_dump.0, dec_dump.1).unwrap();
+                }
                 if !got_it && aligned {
                     if let Some(f) = errors_out.as_mut() {
                         writeln!(f, "{label}\t{kind}\t{want}\t{buf}\t{out}").unwrap();
@@ -784,64 +961,76 @@ fn main() {
                 field.extend(out.split(' ').map(str::to_lowercase));
                 commits.push((out.to_lowercase(), taps.iter().flatten().copied().collect()));
                 // `RECHECK=1`: the buffer before this one, read again
-                // with this one's words after it.
-                if let (true, Some(prev)) = (recheck_on, prior_buffer.take()) {
-                    let started = Instant::now();
-                    let before: Vec<&str> = field[..prev.start].iter().map(String::as_str).collect();
-                    let after: Vec<&str> = field[start..].iter().map(String::as_str).collect();
-                    let committed = field[prev.start..start].join(" ");
-                    let mut src = vec![Source { walker: dec_list.dict(), prior: &dec_prior }];
-                    if let Some(l2) = &list2 {
-                        src.push(Source { walker: l2.dict(), prior: &prior2 });
-                    }
-                    if let Some(lx) = &lexicon {
-                        src.push(Source { walker: lx.dict(), prior: &lex_prior });
-                    }
-                    let found = {
-                        let mut lm_guard = p.lm.as_ref().map(|l| l.borrow_mut());
-                        let prefix = p.lm_prefix;
-                        let mut seq = |text: &str| -> Option<f64> {
-                            let lm = lm_guard.as_mut()?;
-                            let mut ctx: Vec<&str> = before.clone();
-                            let mut total = 0.0;
-                            for w in text.split(' ') {
-                                lm.set_context(prefix, &ctx);
-                                total += lm.logprob(w)? as f64;
-                                ctx.push(w);
-                            }
-                            Some(total)
+                // with this one's words after it; `RECHECK_DEPTH=2` the one
+                // before that too, with both buffers' words after it.
+                let mut start = start;
+                if recheck_on {
+                    for back in 0..recheck_depth.min(history.len()) {
+                        let idx = history.len() - 1 - back;
+                        let end = if back == 0 { start } else { history[idx + 1].start };
+                        let (prev_taps, prev_start, prev_want) =
+                            (history[idx].taps.clone(), history[idx].start, history[idx].want.clone());
+                        let (margin_here, known_here) =
+                            if back == 0 { (recheck_margin, recheck_known) } else { (recheck2_margin, recheck2_known) };
+                        let started = Instant::now();
+                        let before: Vec<&str> = field[..prev_start].iter().map(String::as_str).collect();
+                        let after: Vec<&str> = field[end..].iter().map(String::as_str).collect();
+                        let committed = field[prev_start..end].join(" ");
+                        let mut src = vec![Source { walker: dec_list.dict(), prior: &dec_prior }];
+                        if let Some(l2) = &list2 {
+                            src.push(Source { walker: l2.dict(), prior: &prior2 });
+                        }
+                        if let Some(lx) = &lexicon {
+                            src.push(Source { walker: lx.dict(), prior: &lex_prior });
+                        }
+                        let found = {
+                            let mut lm_guard = p.lm.as_ref().map(|l| l.borrow_mut());
+                            let prefix = p.lm_prefix;
+                            let mut seq = |text: &str| -> Option<f64> {
+                                let lm = lm_guard.as_mut()?;
+                                let mut ctx: Vec<&str> = before.clone();
+                                let mut total = 0.0;
+                                for w in text.split(' ') {
+                                    lm.set_context(prefix, &ctx);
+                                    total += if lm_listed { lm.logprob_listed(w)? } else { lm.logprob(w)? } as f64;
+                                    ctx.push(w);
+                                }
+                                Some(total)
+                            };
+                            let has_lm = p.lm.is_some();
+                            decoder::recheck(
+                                &prev_taps, &geometry, &src, &dec_context, &before, &committed, &after, &params_here,
+                                &adjacent,
+                                if has_lm { Some((lm_w, &mut seq)) } else { None },
+                                margin_here, known_here,
+                            )
                         };
-                        let has_lm = p.lm.is_some();
-                        decoder::recheck(
-                            &prev.taps, &geometry, &src, &dec_context, &before, &committed, &after, &params_here, &adjacent,
-                            if has_lm { Some((lm_w, &mut seq)) } else { None },
-                            recheck_margin, recheck_known,
-                        )
-                    };
-                    t.decide_us += started.elapsed().as_micros();
-                    if let Some(text) = found.apply {
+                        t.decide_us += started.elapsed().as_micros();
+                        let Some(text) = found.apply else { continue };
                         let text = p.elide(&text).unwrap_or(text).to_lowercase();
-                        let was_right = committed == prev.want;
-                        let now_right = text == prev.want;
+                        let was_right = committed == prev_want;
+                        let now_right = text == prev_want;
                         t.rechecks += 1;
                         if now_right && !was_right {
                             t.recheck_fixed += 1;
                         } else if was_right && !now_right {
                             t.recheck_broke += 1;
                             if let Some(f) = errors_out.as_mut() {
-                                writeln!(f, "{label}\trecheck-broke\t{}\t{committed}\t{text}", prev.want).unwrap();
+                                writeln!(f, "{label}\trecheck-broke\t{prev_want}\t{committed}\t{text}").unwrap();
                             }
                         }
                         let new_words: Vec<String> = text.split(' ').map(str::to_string).collect();
-                        let shift = new_words.len() as isize - (start - prev.start) as isize;
-                        field.splice(prev.start..start, new_words);
-                        let start = (start as isize + shift) as usize;
-                        prior_buffer = Some(Last { taps: dtaps.clone(), start, want: want.clone() });
-                    } else {
-                        prior_buffer = Some(Last { taps: dtaps.clone(), start, want: want.clone() });
+                        let shift = new_words.len() as isize - (end - prev_start) as isize;
+                        field.splice(prev_start..end, new_words);
+                        for later in history.iter_mut().skip(idx + 1) {
+                            later.start = (later.start as isize + shift) as usize;
+                        }
+                        start = (start as isize + shift) as usize;
                     }
-                } else {
-                    prior_buffer = Some(Last { taps: dtaps.clone(), start, want: want.clone() });
+                }
+                history.push(Last { taps: dtaps.clone(), start, want: want.clone() });
+                if history.len() > 3 {
+                    history.remove(0);
                 }
                 buf.clear();
                 taps.clear();
@@ -927,6 +1116,19 @@ fn main() {
                     Some(Stroke { ch: board.hit(at), at })
                 })
                 .collect();
+            // Shift types nothing here (the harness reads lower case) and a
+            // backspace takes back the stroke before it, space included, as
+            // in a plain text field.
+            let strokes: Vec<Stroke> = strokes.into_iter().fold(Vec::new(), |mut kept, s| {
+                match s.ch {
+                    SHIFT => {}
+                    BACKSPACE => {
+                        kept.pop();
+                    }
+                    _ => kept.push(s),
+                }
+                kept
+            });
             // Aligned when the bar splits the taps into one buffer a word.
             let mut owner = Vec::with_capacity(strokes.len());
             let mut buffers = 0usize;

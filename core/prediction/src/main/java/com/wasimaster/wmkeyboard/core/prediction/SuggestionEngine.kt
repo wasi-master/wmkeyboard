@@ -478,6 +478,10 @@ class SuggestionEngine(
     @Volatile
     private var recheckedCommit: Commit? = null
 
+    /** The same for the look two commits back. */
+    @Volatile
+    private var recheckedCommit2: Commit? = null
+
     /**
      * Hands the context model the sentence so far, oldest first, under the
      * field it is being written in ([register] and [field]). Called by the
@@ -532,7 +536,12 @@ class SuggestionEngine(
      * with the context model, fixing 62 to 126 words per hand for none to
      * four it broke.
      *
-     * Each commit is judged once. Null when [readWholePhrases] is off, the
+     * When that finds nothing, the commit before it is read the same way
+     * with both buffers after it, and what it finds is only offered (on the
+     * sentence harness's recorded taps the second look took the words left
+     * wrong from 5.58% to 5.38% applied, breaking none more).
+     *
+     * Each commit is judged once at each depth. Null when [readWholePhrases] is off, the
      * primary language is not English, the buffer was not read whole (a
      * glide, a pick from the strip), the field no longer ends in those words,
      * or nothing reads clearly better. A reading the user undid, or with a
@@ -543,16 +552,30 @@ class SuggestionEngine(
         val commits = commits
         val sentence = sentence
         if (commits.size < 2) return null
-        val judged = commits[commits.size - 2]
-        if (judged === recheckedCommit) return null
+        recheckAt(commits, sentence, 1)?.let { return it }
+        // Two back, with both buffers after it in sight: offered on the chip,
+        // never put in place, since the word has stood for two words already.
+        if (commits.size < 3) return null
+        return recheckAt(commits, sentence, 2)?.let { Revision(it.wrong, it.replacement, it.followers, sure = false) }
+    }
+
+    /**
+     * [recheckPrevious] for the commit [back] places before the newest: its
+     * taps read again with every commit after it as the words that follow.
+     * Each commit is judged once at each depth.
+     */
+    private fun recheckAt(commits: List<Commit>, sentence: List<String>, back: Int): Revision? {
+        val judged = commits[commits.size - 1 - back]
+        val marker = if (back == 1) recheckedCommit else recheckedCommit2
+        if (judged === marker) return null
         val taps = judged.taps ?: return null
-        val newest = commits.last()
         val wrong = judged.word.trim()
         if (wrong.isEmpty() || wrong.any { !it.isLetter() && it != '\'' && it != ' ' }) return null
-        val followerText = newest.word.trim().trimEnd { !it.isLetterOrDigit() }
-        if (followerText.isEmpty()) return null
+        val followers = commits.takeLast(back).flatMap { c ->
+            c.word.trim().trimEnd { !it.isLetterOrDigit() }.split(' ').filter { it.isNotEmpty() }
+        }
+        if (followers.isEmpty()) return null
         val judgedWords = wrong.split(' ').map { WordKey.of(it) }
-        val followers = followerText.split(' ').filter { it.isNotEmpty() }
         val afterWords = followers.map { WordKey.of(it) }
         val tailSize = judgedWords.size + afterWords.size
         if (sentence.size < tailSize) return null
@@ -560,7 +583,7 @@ class SuggestionEngine(
         if (tail != judgedWords + afterWords) return null
         // Marked only now: a refresh that ran before the sentence caught up
         // with the commit must not use up the one reading.
-        recheckedCommit = judged
+        if (back == 1) recheckedCommit = judged else recheckedCommit2 = judged
         val before = sentence.dropLast(tailSize).takeLast(WHOLE_READING_CONTEXT).map { WordKey.of(it) }
         val call = decoderCall(taps.timingMultiplier) ?: return null
         val model = touchModelField ?: return null
@@ -585,6 +608,71 @@ class SuggestionEngine(
         val apply = found.getOrNull(0)?.takeIf(::usable)
         val text = apply ?: found.getOrNull(1)?.takeIf(::usable) ?: return null
         return Revision(wrong, matchCase(wrong, displayForm(text)), followers, sure = apply != null)
+    }
+
+    /**
+     * What a letter that landed on the space bar meant: the word committed
+     * last, its taps read again with the two space taps that followed it
+     * ([first], [second], key widths like the letters'). Two space taps in a
+     * row mid-sentence say one of them was not a space, and a tap at the top
+     * of the bar under `n` was usually the `n` of `in` or `on`. Measured on
+     * recorded phone taps (Vertanen & Kristensson's test set and TSI's test
+     * people), reading them this way was right 30 times in 34 and changed no
+     * correctly typed word.
+     *
+     * Returns the word committed and what it should read, the latter always
+     * the former plus one letter (in small letters when the word was the
+     * pronoun `I`), or null. Null when [readWholePhrases] is off,
+     * the word was not read whole, or the reading does not clear the bar.
+     */
+    fun edgeLetter(first: TouchPoint, second: TouchPoint): Pair<String, String>? {
+        if (!readWholePhrases || !readsWhole()) return null
+        val last = commits.lastOrNull() ?: return null
+        val taps = last.taps ?: return null
+        val points = taps.points ?: return null
+        val word = last.word.trim()
+        if (word.isEmpty() || ' ' in word || word.any { !it.isLetter() }) return null
+        val sentence = sentence
+        if (sentence.isEmpty() || WordKey.of(sentence.last()) != WordKey.of(word)) return null
+        val model = touchModelField ?: return null
+        val call = decoderCall(taps.timingMultiplier) ?: return null
+        val before = sentence.dropLast(1).takeLast(WHOLE_READING_CONTEXT).map { WordKey.of(it) }
+        val all = points + floatArrayOf(first.x, first.y, second.x, second.y)
+        val verdict = try {
+            PredictionNative.decoderDecide(
+                call.handles, call.kinds, taps.typed + "  ",
+                model.keyOrder, model.centerPairs, all, null,
+                model.sigmaValue / KeyTouchModel.SIGMA, model.decoderSpread,
+                before.toTypedArray(), ngramPack.nativeHandles(),
+                call.seeds?.first, call.seeds?.second, call.seeds?.third,
+                call.lm?.sessionHandle ?: 0L, if (call.lm != null) WHOLE_READING_MODEL_WEIGHT else 0.0,
+                register.ordinal, contextField.ordinal, call.lm?.slotOf(primaryLanguageId) ?: 0,
+                WHOLE_READING_MARGIN * call.scale, WHOLE_READING_KNOWN_MARGIN * call.scale,
+                gateConfidence(call), DoubleArray(5),
+            )
+        } catch (_: UnsatisfiedLinkError) {
+            return null
+        }
+        val fixed = verdict.getOrNull(0)?.takeIf {
+            it.length == taps.typed.length + 1 && it.startsWith(taps.typed, ignoreCase = true) &&
+                !suppressed(it) && correctionStats.penalty(taps.typed, it) == CorrectionStats.Penalty.NONE
+        } ?: return null
+        // A lone `i` stands as `I` for the pronoun's sake, not the user's: its
+        // capital says nothing about `in`. The service capitalises a sentence's
+        // first word itself.
+        val shown = if (word == "I") displayForm(fixed) else matchCase(word, displayForm(fixed))
+        if (shown == word) return null
+        return word to shown
+    }
+
+    /**
+     * The service put [now] where [was] stood ([edgeLetter]): the last commit
+     * reads that way from here on, and its taps are spent.
+     */
+    fun noteEdgeLetter(was: String, now: String) {
+        val last = commits.lastOrNull() ?: return
+        if (last.word.trim() != was) return
+        commits = commits.dropLast(1) + Commit(now, emptyList(), null)
     }
 
     /**
@@ -6853,7 +6941,8 @@ class SuggestionEngine(
             seeds?.first, seeds?.second, seeds?.third,
             lm?.sessionHandle ?: 0L, if (lm != null) WHOLE_READING_MODEL_WEIGHT else 0.0,
             register.ordinal, contextField.ordinal, lm?.slotOf(primaryLanguageId) ?: 0,
-            WHOLE_READING_MARGIN * scale, WHOLE_READING_KNOWN_MARGIN * scale, out,
+            WHOLE_READING_MARGIN * scale, WHOLE_READING_KNOWN_MARGIN * scale,
+            gateConfidence(call), out,
         ) } catch (_: UnsatisfiedLinkError) {
             return null
         }
@@ -6903,6 +6992,8 @@ class SuggestionEngine(
         val handles: LongArray,
         val kinds: IntArray,
         val scale: Double,
+        /** The slider's ratio after the adaptive and typing-speed factors, for the fitted gate. */
+        val confidence: Double,
         val seeds: Triple<Array<String>, Array<String>, IntArray>?,
         val lm: ContextModel?,
     )
@@ -6946,10 +7037,20 @@ class SuggestionEngine(
             handles.copyOf(count),
             kinds.copyOf(count),
             ln(effective) / ln(DEFAULT_AUTOCORRECT_CONFIDENCE),
+            effective,
             seedBigrams.columns,
             contextModelField,
         )
     }
+
+    /**
+     * The confidence the decoder's fitted gate decides at (`decoder::Gate`),
+     * or 0 for its fixed margins: the gate under the learned-gate setting,
+     * and only with the context model open, since it was fitted on readings
+     * the model had weighed.
+     */
+    private fun gateConfidence(call: DecoderCall): Double =
+        if (learnedGate && call.lm != null) call.confidence else 0.0
 
     /** A reading that spends slips and a real edit together. */
     private fun mixesSlips(c: FuzzyBeamSearch.ScoredCandidate): Boolean = c.slips > 0 && c.edits > c.slips

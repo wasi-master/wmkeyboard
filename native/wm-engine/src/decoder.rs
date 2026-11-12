@@ -20,6 +20,14 @@
 //! an optional lexicon arc), AOSP LatinIME (`SPACE_OMISSION`,
 //! `SPACE_SUBSTITUTION`), VelociTap (Vertanen et al. 2015).
 //!
+//! The other way round happens too: a tap meant for the `n` at the end of
+//! `in` lands on the bar, and `in the` comes out `i  the`. So the taps of a
+//! buffer may begin or end with the space taps around it (typed `' '`, with
+//! where they landed), and the one next to the letters may be read as the
+//! word's first or last letter ([`Reading::edge`]). Two space taps in a row
+//! say one of them was not a space; a lone one read as a letter means the
+//! space itself was left out, and pays [`Params::ln_space_omit`].
+//!
 //! The search is token passing over tap positions: a state is a place in a
 //! word list's trie with the words finished before it. Each position keeps
 //! [`Params::beam`] states ranked by score plus the best the rest of their
@@ -36,6 +44,12 @@ pub struct Params {
     /// Spread of a tap around the key meant, across and down.
     pub sigma_x: f64,
     pub sigma_y: f64,
+    /// A second, wider spread mixed in at this weight: most taps land near
+    /// the key, a few land far, and one Gaussian has to choose between being
+    /// sharp for the first and forgiving for the second. 0 is one Gaussian.
+    pub tail_weight: f64,
+    /// How many times wider the tail is than the core.
+    pub tail_scale: f64,
     /// Floor on one tap's price: a key no finger slip reaches is a letter
     /// the user meant to type ("definately"), rare but not impossible. Kept
     /// well under a swap's price, or `wnat` reads as `what` with an `n`
@@ -51,6 +65,10 @@ pub struct Params {
     pub ln_swap: f64,
     /// A space between two words that has no tap at all.
     pub ln_space_omit: f64,
+    /// Two space taps in a row both meant as spaces, mid-sentence: what the
+    /// alternative, one of them a letter that landed on the bar, is weighed
+    /// against.
+    pub ln_double_space: f64,
     /// Every word after the first: what a second word costs on top of its
     /// own prior, which keeps a run of short words from beating one long one
     /// on spelling alone.
@@ -72,12 +90,15 @@ impl Default for Params {
         Params {
             sigma_x: 0.32,
             sigma_y: 0.34,
+            tail_weight: 0.0,
+            tail_scale: 2.5,
             ln_far: (0.0005f64).ln(),
             ln_omit: (0.01f64).ln(),
             ln_insert: (0.004f64).ln(),
             ln_double: (0.01f64).ln(),
             ln_swap: (0.01f64).ln(),
             ln_space_omit: (0.004f64).ln(),
+            ln_double_space: (0.01f64).ln(),
             ln_extra_word: (0.5f64).ln(),
             ln_unknown_word: (1e-6f64).ln(),
             ln_unknown_letter: (0.5f64).ln(),
@@ -147,6 +168,12 @@ pub struct Reading {
     /// Of [`Reading::score`], the part the words' priors and context gave;
     /// the rest is the channel (where the taps landed, edits, spaces).
     pub lexical: f64,
+    /// Of [`Reading::lexical`], the part the context model gave ([`blend`]);
+    /// 0 without one.
+    pub model: f64,
+    /// Which of the space taps around the buffer it read as a letter: 1 the
+    /// one before its first letter, 2 the one after its last.
+    pub edge: u8,
 }
 
 /// What [`decode`] found.
@@ -161,6 +188,8 @@ pub struct Decoded {
     pub literal_listed: bool,
     /// Of [`Decoded::literal`], the part its prior and context gave.
     pub literal_lexical: f64,
+    /// Of [`Decoded::literal_lexical`], the part the context model gave.
+    pub literal_model: f64,
 }
 
 impl Decoded {
@@ -183,6 +212,7 @@ struct State {
     slips: u32,
     spaces: u32,
     lexical: f64,
+    edge: u8,
 }
 
 /// Per-tap channel prices: `price[pos][key]` for every letter key, and the
@@ -199,6 +229,16 @@ impl Channel {
     fn push(&mut self, tap: &Tap, geometry: &Geometry, params: &Params, adjacent: &dyn Fn(u16, u16) -> bool) {
         let sx2 = 2.0 * params.sigma_x * params.sigma_x;
         let sy2 = 2.0 * params.sigma_y * params.sigma_y;
+        // ln of the core-and-tail mixture at a squared-and-scaled distance
+        // `q` (the core's exponent), up to a constant.
+        let (w, k2) = (params.tail_weight, params.tail_scale * params.tail_scale);
+        let mix = |q: f64| -> f64 {
+            if w <= 0.0 {
+                -q
+            } else {
+                ((1.0 - w) * (-q).exp() + w / k2 * (-q / k2).exp()).ln()
+            }
+        };
         let mut m = HashMap::with_capacity(geometry.keys.len());
         match tap.at {
             Some(p) if !geometry.keys.is_empty() => {
@@ -207,7 +247,7 @@ impl Channel {
                 for &(k, cx, cy) in &geometry.keys {
                     let dx = (p.0 - cx) as f64;
                     let dy = (p.1 - cy) as f64;
-                    let ll = -(dx * dx) / sx2 - (dy * dy) / sy2;
+                    let ll = mix((dx * dx) / sx2 + (dy * dy) / sy2);
                     if ll > best {
                         best = ll;
                         best_key = k;
@@ -217,7 +257,7 @@ impl Channel {
                 let sp = geometry.space.map_or(f64::NEG_INFINITY, |(cx, cy, hw, hh)| {
                     let dx = ((p.0 - cx).abs() - hw).max(0.0) as f64;
                     let dy = ((p.1 - cy).abs() - hh).max(0.0) as f64;
-                    -(dx * dx) / sx2 - (dy * dy) / sy2
+                    mix((dx * dx) / sx2 + (dy * dy) / sy2)
                 });
                 let top = best.max(sp);
                 for v in m.values_mut() {
@@ -386,6 +426,7 @@ impl Session {
                     slips: 0,
                     spaces: 0,
                     lexical: 0.0,
+                    edge: 0,
                 })
                 .collect()];
         }
@@ -396,8 +437,12 @@ impl Session {
         if self.pending.len() < n + 1 {
             self.pending.resize_with(n + 1, Vec::new);
         }
-        let env = Env { sources, context, before, params };
         let typed: Vec<u16> = taps.iter().map(|t| t.typed).collect();
+        let edges = Edges::of(&typed);
+        if edges.letters(n).is_empty() {
+            return Decoded::default();
+        }
+        let env = Env { sources, context, before, params, edges };
         let mut kids: Vec<(u16, u32)> = Vec::new();
         let mut grandkids: Vec<(u16, u32)> = Vec::new();
         // For good: every position whose next tap exists and will stay.
@@ -440,6 +485,33 @@ struct Env<'a, 'b> {
     context: &'a dyn Context,
     before: &'a [&'a str],
     params: &'a Params,
+    edges: Edges,
+}
+
+/// How many space taps open and close the buffer (each 0 to 2).
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+struct Edges {
+    lead: usize,
+    trail: usize,
+}
+
+impl Edges {
+    fn of(typed: &[u16]) -> Edges {
+        let space = ' ' as u16;
+        let lead = typed.iter().take_while(|&&c| c == space).count().min(2);
+        let trail = typed[lead..].iter().rev().take_while(|&&c| c == space).count().min(2);
+        Edges { lead, trail }
+    }
+
+    /// The letters' positions.
+    fn letters(&self, n: usize) -> std::ops::Range<usize> {
+        self.lead..n.saturating_sub(self.trail).max(self.lead)
+    }
+}
+
+/// The letters of a buffer, without the space taps around it.
+pub fn letters_of(typed: &str) -> &str {
+    typed.trim_matches(' ')
 }
 
 impl Env<'_, '_> {
@@ -540,6 +612,12 @@ impl Env<'_, '_> {
     ) {
         let params = self.params;
         let walker = self.sources[s.src].walker;
+        if !self.edges.letters(typed.len()).contains(&pos) {
+            self.expand_edge(ch, typed.len(), pos, s, next, kids);
+            return;
+        }
+        // Swaps and a tap meant for the bar need a letter after this one.
+        let has_next = has_next && self.edges.letters(typed.len()).contains(&(pos + 1));
         walker.children_into(s.node, kids);
         let kids_now = kids.clone();
         // Match or slip: the tap at `pos` meant child `c`.
@@ -657,9 +735,53 @@ impl Env<'_, '_> {
         }
     }
 
+    /// A space tap before or after the letters: a space, priced where it
+    /// landed, or, for the one next to the letters, the word's first or last
+    /// letter. A lone space tap read as a letter leaves the words without a
+    /// space between them.
+    fn expand_edge(&self, ch: &Channel, n: usize, pos: usize, s: &State, next: &mut Vec<State>, kids: &mut Vec<(u16, u32)>) {
+        let params = self.params;
+        let walker = self.sources[s.src].walker;
+        let mut t = s.clone();
+        t.score += ch.space[pos];
+        // The second of two space taps, both read as spaces.
+        let lead_pair = self.edges.lead == 2 && pos == 1;
+        let trail_pair = self.edges.trail == 2 && pos + 1 == n && s.edge & 2 == 0;
+        if lead_pair || trail_pair {
+            t.score += params.ln_double_space;
+        }
+        next.push(t);
+        let (letter_here, block, bit) = if pos < self.edges.lead {
+            (pos + 1 == self.edges.lead && s.cur.is_empty() && s.words.is_empty(), self.edges.lead, 1u8)
+        } else {
+            (pos == n - self.edges.trail && !s.cur.is_empty() && s.edge & 2 == 0, self.edges.trail, 2u8)
+        };
+        if !letter_here {
+            return;
+        }
+        let extra = if block == 1 { params.ln_space_omit } else { 0.0 };
+        walker.children_into(s.node, kids);
+        for &(c, child) in kids.iter() {
+            let price = ch.letter(pos, c, params);
+            if price <= params.ln_far {
+                continue;
+            }
+            let mut t = s.clone();
+            t.node = child;
+            t.cur.push(c);
+            t.score += price + extra;
+            t.slips += 1;
+            t.edge |= bit;
+            next.push(t);
+        }
+    }
+
     /// The readings found, best first, with the literal's score beside them.
     fn conclude(&self, ch: &Channel, typed: &[u16], mut finals: Vec<Reading>, limit: usize) -> Decoded {
         let params = self.params;
+        let all = typed;
+        let letters = self.edges.letters(all.len());
+        let typed = &all[letters.clone()];
         let n = typed.len();
         let typed_word = String::from_utf16_lossy(typed);
         let mut out = Decoded::default();
@@ -680,8 +802,13 @@ impl Env<'_, '_> {
         let literal_lexical = literal;
         // Spatial price of the literal: every tap on the key it typed, which
         // is the nearest key unless coordinates say otherwise.
-        for (pos, &t) in typed.iter().enumerate() {
-            literal += ch.letter(pos, t, params);
+        for (pos, &t) in all.iter().enumerate() {
+            literal += if letters.contains(&pos) { ch.letter(pos, t, params) } else { ch.space[pos] };
+        }
+        for block in [self.edges.lead, self.edges.trail] {
+            if block == 2 {
+                literal += params.ln_double_space;
+            }
         }
         finals.sort_by(|a, b| b.score.total_cmp(&a.score).then_with(|| a.text.cmp(&b.text)));
         let mut seen = std::collections::HashSet::new();
@@ -839,7 +966,16 @@ fn reading(s: &State, last: &str, score: f64, last_lexical: f64) -> Reading {
         text.push(' ');
     }
     text.push_str(last);
-    Reading { text, score, edits: s.edits, slips: s.slips, spaces: s.spaces, lexical: s.lexical + last_lexical }
+    Reading {
+        text,
+        score,
+        edits: s.edits,
+        slips: s.slips,
+        spaces: s.spaces,
+        lexical: s.lexical + last_lexical,
+        model: 0.0,
+        edge: s.edge,
+    }
 }
 
 fn node_of(walker: &dyn Walker, word: &[u16]) -> Option<u32> {
@@ -951,12 +1087,14 @@ pub fn blend(decoded: &mut Decoded, typed: &str, weight: f64, mut seq: impl FnMu
             let lexical = (1.0 - weight) * r.lexical + weight * l;
             r.score += lexical - r.lexical;
             r.lexical = lexical;
+            r.model = weight * l;
         }
     }
     if let Some(l) = seq(typed) {
         let lexical = (1.0 - weight) * decoded.literal_lexical + weight * l;
         decoded.literal += lexical - decoded.literal_lexical;
         decoded.literal_lexical = lexical;
+        decoded.literal_model = weight * l;
     }
     decoded.readings.sort_by(|a, b| b.score.total_cmp(&a.score).then_with(|| a.text.cmp(&b.text)));
 }
@@ -1003,6 +1141,21 @@ pub fn verdict(decoded: &Decoded, typed: &str, margin: f64, known_margin: f64) -
 /// puts accents back on a listed word as typed (`esta` → `está`): the taps
 /// say nothing either way there, so the words around it decide.
 pub fn verdict_with(decoded: &Decoded, typed: &str, margin: f64, known_margin: f64, accent_margin: f64) -> Verdict {
+    verdict_full(decoded, typed, margin, known_margin, accent_margin, margin)
+}
+
+/// [`verdict_with`] with its own bar, `edge_margin`, for a reading that
+/// reads a space tap around the buffer as a letter (`i` and two spaces as
+/// `in`): the second space already says the first was not one.
+pub fn verdict_full(
+    decoded: &Decoded,
+    typed: &str,
+    margin: f64,
+    known_margin: f64,
+    accent_margin: f64,
+    edge_margin: f64,
+) -> Verdict {
+    let typed = letters_of(typed);
     let Some(best) = decoded.readings.iter().find(|r| r.text != typed) else {
         return Verdict::default();
     };
@@ -1013,6 +1166,8 @@ pub fn verdict_with(decoded: &Decoded, typed: &str, margin: f64, known_margin: f
     }
     let bar = if !decoded.literal_listed {
         margin
+    } else if best.edge != 0 {
+        edge_margin
     } else if folds_to(&best.text, typed) {
         accent_margin
     } else {
@@ -1027,6 +1182,129 @@ pub fn verdict_with(decoded: &Decoded, typed: &str, margin: f64, known_margin: f
         Verdict { lead, ..Verdict::default() }
     }
 }
+
+/// The verdict as one probability, fitted on recorded taps
+/// (`tools/autocorrect/fit_gate.py`): that the best reading other than the
+/// letters as typed is the text meant, given how far it leads them and where
+/// that lead comes from (the taps, the lists and pairs, the context model),
+/// whether a list holds what was typed, how much the reading changed, and how
+/// far it stands from the reading behind it. The fixed bars
+/// ([`verdict_full`]) treat `mr` like `the`: a listed word is a listed word.
+/// The gate sees that a rare listed spelling with a common word one slip
+/// away is a different case from a common word typed right.
+pub struct Gate;
+
+/// Features [`Gate::features`] computes.
+pub const GATE_FEATURES: usize = 17;
+const GATE_HIDDEN: usize = 8;
+/// The slider's ratio is multiplied by this before it becomes the gate's
+/// bar, so the default ×4 asks for 0.9. Fitted on Vertanen & Kristensson's
+/// dev set and simulated sentences with 40% of the list's words below rank
+/// 1000 held out, checked on the test set and other sentences: at 0.9 the
+/// gate applied 316 more right fixes than the fixed bars, changed 4 fewer
+/// correctly typed words and one fewer held-out word; at 0.8 it applied 502
+/// more and changed 14 more correctly typed words.
+pub const GATE_CONFIDENCE_SCALE: f64 = 2.25;
+/// The gap to the next reading is capped at this, and taken as this when
+/// there is none.
+const GATE_GAP_CAP: f64 = 8.0;
+
+impl Gate {
+    /// The candidate's index in `decoded.readings` and what the gate reads,
+    /// or `None` when the best reading is the letters as typed.
+    pub fn features(decoded: &Decoded, typed: &str) -> Option<(usize, [f64; GATE_FEATURES])> {
+        let typed = letters_of(typed);
+        let c = decoded.readings.first()?;
+        if c.text == typed {
+            return None;
+        }
+        let gap = decoded
+            .readings
+            .iter()
+            .skip(1)
+            .find(|r| r.text != typed)
+            .map_or(GATE_GAP_CAP, |r| (c.score - r.score).min(GATE_GAP_CAP))
+            .max(0.0);
+        let (ls, llex, lmod) = (decoded.literal, decoded.literal_lexical, decoded.literal_model);
+        let f = [
+            c.score - ls,
+            c.score - c.lexical,
+            c.lexical - c.model,
+            c.model,
+            ls - llex,
+            llex - lmod,
+            lmod,
+            f64::from(u8::from(c.model != 0.0 || lmod != 0.0)),
+            f64::from(u8::from(decoded.literal_listed)),
+            c.text.split(' ').count() as f64,
+            f64::from(c.edits),
+            f64::from(c.slips),
+            f64::from(c.spaces),
+            f64::from(u8::from(c.edge != 0)),
+            typed.chars().count() as f64,
+            gap,
+            f64::from(u8::from(folds_to(&c.text, typed))),
+        ];
+        Some((0, f))
+    }
+
+    /// P(the candidate is the text meant).
+    pub fn probability(f: &[f64; GATE_FEATURES]) -> f64 {
+        let mut z = [0.0; GATE_FEATURES];
+        for i in 0..GATE_FEATURES {
+            let s = if GATE_SCALE[i] > 0.0 { GATE_SCALE[i] } else { 1.0 };
+            z[i] = (f[i] - GATE_MEAN[i]) / s;
+        }
+        let mut out = GATE_B2;
+        for j in 0..GATE_HIDDEN {
+            let mut h = GATE_B1[j];
+            for i in 0..GATE_FEATURES {
+                h += GATE_W1[j][i] * z[i];
+            }
+            out += GATE_W2[j] * h.tanh();
+        }
+        1.0 / (1.0 + (-out).exp())
+    }
+
+    /// Applies the candidate at `crate::confidence::apply_threshold` of the
+    /// slider's `confidence` times [`GATE_CONFIDENCE_SCALE`], offers it at the
+    /// offer threshold of the same.
+    pub fn verdict(decoded: &Decoded, typed: &str, confidence: f64) -> Verdict {
+        let confidence = confidence * GATE_CONFIDENCE_SCALE;
+        let Some((i, f)) = Gate::features(decoded, typed) else {
+            let lead = decoded.readings.iter().find(|r| r.text != letters_of(typed)).map_or(0.0, |r| r.score - decoded.literal);
+            return Verdict { lead, ..Verdict::default() };
+        };
+        let p = Gate::probability(&f);
+        let text = decoded.readings[i].text.clone();
+        let lead = f[0];
+        if p >= crate::confidence::apply_threshold(confidence) {
+            Verdict { apply: Some(text), offer: None, lead }
+        } else if p >= crate::confidence::offer_threshold(confidence) {
+            Verdict { apply: None, offer: Some(text), lead }
+        } else {
+            Verdict { lead, ..Verdict::default() }
+        }
+    }
+}
+
+// GATE FIT BEGIN
+const GATE_MEAN: [f64; GATE_FEATURES] = [13.0477, -3.32291, -1.93191, -4.98418, -0.562198, -5.65504, -17.0694, 1.0, 0.0812767, 1.21134, 0.238236, 1.14898, 0.211336, 0.00370188, 5.70936, 5.47821, 0.0107766];
+const GATE_SCALE: [f64; GATE_FEATURES] = [8.26648, 3.3565, 1.32343, 3.37178, 1.16668, 3.25686, 8.15407, 1.0, 0.27326, 0.481654, 0.473905, 0.949411, 0.481654, 0.0607303, 3.12712, 2.67155, 0.103249];
+const GATE_W1: [[f64; GATE_FEATURES]; GATE_HIDDEN] = [
+    [0.527472, 0.0651673, 0.0906895, 0.0404258, -0.0843969, -0.390606, -0.308375, 4.0886e-93, 0.050597, 0.0400649, -0.0479314, 0.112874, 0.0400649, 0.0210348, -0.11255, 0.0128921, 0.0983211],
+    [0.57078, 0.185773, 0.149588, 0.138735, -0.0576366, -0.00761492, -0.40924, 9.91387e-93, -0.0281786, -0.063009, -0.0760009, -0.065663, -0.063009, 0.0190811, -0.213317, -0.0460129, 0.107847],
+    [-0.526665, 0.0349676, -0.046067, 0.0165406, 0.0517243, 0.368124, 0.393367, 1.13565e-92, 0.232383, -0.012544, -0.0642603, -0.0987854, -0.012544, -0.0176603, 0.053818, -0.0489796, -0.116406],
+    [0.570936, 0.185763, 0.149602, 0.138727, -0.0576921, -0.00771792, -0.409354, 9.82399e-93, -0.028214, -0.0629797, -0.0759857, -0.065594, -0.0629797, 0.0190843, -0.213274, -0.0459495, 0.107846],
+    [0.615025, -0.0428025, -0.0242191, -0.0292198, -0.0706812, -0.322874, -0.518057, -5.38232e-93, 0.341736, 0.0229973, 0.0266821, 0.0668562, 0.0229972, 0.0155091, -0.0243632, 0.0575666, 0.0933242],
+    [0.526928, 0.0651168, 0.0906637, 0.0404005, -0.0842918, -0.390456, -0.307948, 2.18421e-92, 0.0506005, 0.0400672, -0.0479898, 0.112883, 0.0400672, 0.0210209, -0.112581, 0.0128006, 0.0982994],
+    [0.52685, 0.0651103, 0.090659, 0.0403979, -0.0842768, -0.390434, -0.307887, -2.85919e-92, 0.0506035, 0.0400688, -0.0479994, 0.112886, 0.0400688, 0.0210189, -0.112583, 0.0127896, 0.0982956],
+    [0.526889, 0.0651139, 0.0906586, 0.0404009, -0.084285, -0.390436, -0.307921, 6.19746e-93, 0.0506028, 0.0400709, -0.0479967, 0.112886, 0.0400708, 0.0210198, -0.112573, 0.0128012, 0.0982948],
+];
+const GATE_B1: [f64; GATE_HIDDEN] = [1.17195, 1.05663, -0.929857, 1.05731, 1.49486, 1.1702, 1.16996, 1.17011];
+const GATE_W2: [f64; GATE_HIDDEN] = [0.915101, 0.938312, -0.915154, 0.938363, 1.06852, 0.914621, 0.914546, 0.914553];
+const GATE_B2: f64 = 1.12389;
+// GATE FIT END
 
 /// What re-reading a committed buffer with the words after it found.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -1074,6 +1352,7 @@ pub fn recheck(
         return Recheck::default();
     }
     let typed: String = String::from_utf16_lossy(&taps.iter().map(|t| t.typed).collect::<Vec<_>>());
+    let typed = letters_of(&typed).to_string();
     // An apostrophe the keyboard put in ("im" committed as "i'm") is its own
     // rule's call; read again, the taps would price it as a letter left out
     // and hand "in" the win.
@@ -1256,7 +1535,7 @@ mod tests {
             seed ^= seed << 17;
             ((seed >> 11) as f64 / (1u64 << 53) as f64 - 0.5) as f32 * 0.9
         };
-        for text in ["yhebsamebperson", "wnat", "tonthe", "hellp", "abuot", "jsut", "thesame"] {
+        for text in ["yhebsamebperson", "wnat", "tonthe", "hellp", "abuot", "jsut", "thesame", "  jsut", " hellp", "wnat ", "tonthe  ", " abot  "] {
             let taps: Vec<Tap> = text.chars().map(|c| tap(&g, c, jitter(), jitter())).collect();
             let mut session = Session::default();
             for n in 1..=taps.len() {
@@ -1304,6 +1583,61 @@ mod tests {
         let d = run(&l, &taps);
         assert_eq!(d.best().unwrap().text, "the same person");
         assert!(d.best().unwrap().score > d.literal + 5.0);
+    }
+
+    #[test]
+    fn the_gate_matches_its_fit() {
+        // The fitter's own case (`fit_gate.py --rust` prints it), at the
+        // three decimals it prints.
+        let f = [
+            11.702, -2.055, -2.541, -7.290, 0.000, -5.185, -18.403, 1.000, 0.000, 1.000, 0.000, 1.000, 0.000, 0.000,
+            5.000, 1.000, 0.000,
+        ];
+        let p = Gate::probability(&f);
+        assert!((p - 0.998881).abs() < 1e-3, "{p}");
+        // A decode's features come out in the fitter's order.
+        let d = Decoded {
+            readings: vec![
+                Reading { text: "hello".into(), score: -5.0, edits: 0, slips: 1, spaces: 0, lexical: -3.0, model: -2.0, edge: 0 },
+                Reading { text: "help".into(), score: -6.0, edits: 1, slips: 0, spaces: 0, lexical: -2.5, model: -1.5, edge: 0 },
+            ],
+            literal: -16.0,
+            literal_listed: false,
+            literal_lexical: -15.0,
+            literal_model: -9.0,
+        };
+        let (i, f) = Gate::features(&d, "hellp").unwrap();
+        assert_eq!(i, 0);
+        assert_eq!(f, [11.0, -2.0, -1.0, -2.0, -1.0, -6.0, -9.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 5.0, 1.0, 0.0]);
+        // The letters as typed reading best: nothing to judge.
+        assert!(Gate::features(&d, "hello").is_none());
+    }
+
+    #[test]
+    fn a_letter_that_landed_on_the_bar() {
+        let g = qwerty();
+        let l = WordList::of(&[("i", 900), ("in", 950), ("the", 1000), ("all", 700), ("call", 500), ("a", 990)]);
+        let rank = |f: i32| zipf(((1000 - f.min(1000)) / 50 + 1) as usize, 6);
+        let src = [Source { walker: l.dict(), prior: &rank }];
+        let read = |taps: &[Tap]| decode(taps, &g, &src, &NoContext, &[], &Params::default(), &|_, _| false, 4);
+        // `in`, the n tapped just onto the bar, then the space: `i` and two spaces.
+        let n_low = Tap { typed: ' ' as u16, at: Some((6.5, 3.95)) };
+        let space = tap(&g, ' ', 0.0, 0.0);
+        let d = read(&[tap(&g, 'i', 0.0, 0.0), n_low, space]);
+        let best = d.best().unwrap();
+        assert_eq!((best.text.as_str(), best.edge), ("in", 2));
+        assert!(best.score > d.literal, "{} vs {}", best.score, d.literal);
+        // A tap in the middle of the bar is a space.
+        let d = read(&[tap(&g, 'i', 0.0, 0.0), space, space]);
+        assert!(d.literal_listed && d.best().is_none_or(|b| b.text == "i" || b.score < d.literal));
+        // `call`, the c tapped onto the bar after a space.
+        let c_low = Tap { typed: ' ' as u16, at: Some((3.5, 3.95)) };
+        let mut taps = vec![space, c_low];
+        taps.extend("all".chars().map(|c| tap(&g, c, 0.0, 0.0)));
+        let best = read(&taps).best().unwrap().clone();
+        assert_eq!((best.text.as_str(), best.edge), ("call", 1));
+        // The literal is the letters alone.
+        assert_eq!(letters_of("  all "), "all");
     }
 
     #[test]
