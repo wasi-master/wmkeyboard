@@ -10,8 +10,9 @@
 //! Formats, as kotlinx.serialization writes them (compact, insertion order):
 //!
 //! * `storage.json`: `{"key":"value",...}`. A file that does not decode as an
-//!   object of strings reads as empty. Reading keeps at most 128 entries and
-//!   skips keys over 64 units and values over 8,192.
+//!   object of strings reads as empty. Reading keeps at most the quota's
+//!   entries (128; 512 for API 5) and skips keys over 64 units and values
+//!   over the quota's value size (8,192; 65,536 for API 5).
 //! * `reminders.json`: `[{"id":"a","at":1767225600000,"text":"..."},...]`,
 //!   `at` in milliseconds since the epoch. Missing fields default to `""`/`0`
 //!   and unknown fields are ignored. Reading drops entries with an empty or
@@ -29,6 +30,20 @@ pub const MAX_KEY_LENGTH: usize = 64;
 pub const MAX_VALUE_LENGTH: usize = 8 * 1024;
 pub const MAX_KEYS: usize = 128;
 pub const MAX_TOTAL_BYTES: usize = 64 * 1024;
+
+/// How much one plugin may keep. API 4 plugins get [Quota::V4]; API 5 ones
+/// [Quota::V5], which the keyboard's `PluginStorage` uses for them too.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Quota {
+    pub max_keys: usize,
+    pub max_value: usize,
+    pub max_total: usize,
+}
+
+impl Quota {
+    pub const V4: Quota = Quota { max_keys: MAX_KEYS, max_value: MAX_VALUE_LENGTH, max_total: MAX_TOTAL_BYTES };
+    pub const V5: Quota = Quota { max_keys: 512, max_value: 64 * 1024, max_total: 1024 * 1024 };
+}
 
 pub const MAX_REMINDERS: usize = 64;
 pub const MAX_ID_LENGTH: usize = 64;
@@ -79,11 +94,20 @@ fn write_atomically(target: &Path, text: &str) {
 pub struct Storage {
     path: Option<PathBuf>,
     memory: IndexMap<String, String>,
+    quota: Quota,
 }
 
 impl Storage {
     pub fn new(path: Option<PathBuf>) -> Storage {
-        Storage { path, memory: IndexMap::new() }
+        Storage::with_quota(path, Quota::V4)
+    }
+
+    pub fn with_quota(path: Option<PathBuf>, quota: Quota) -> Storage {
+        Storage { path, memory: IndexMap::new(), quota }
+    }
+
+    pub fn quota(&self) -> Quota {
+        self.quota
     }
 
     fn load(&self) -> IndexMap<String, String> {
@@ -95,11 +119,11 @@ impl Storage {
             return out;
         }
         for (k, v) in map {
-            if out.len() >= MAX_KEYS {
+            if out.len() >= self.quota.max_keys {
                 break;
             }
             let v = v.as_str().unwrap().to_string();
-            if utf16_len(&k) <= MAX_KEY_LENGTH && utf16_len(&v) <= MAX_VALUE_LENGTH {
+            if utf16_len(&k) <= MAX_KEY_LENGTH && utf16_len(&v) <= self.quota.max_value {
                 out.insert(k, v);
             }
         }
@@ -130,11 +154,12 @@ impl Storage {
         if utf16_len(key) > MAX_KEY_LENGTH {
             return Err(format!("storage keys can't be longer than {MAX_KEY_LENGTH} characters"));
         }
-        if utf16_len(value) > MAX_VALUE_LENGTH {
-            return Err(format!("that value is larger than the {} KB limit for one key", MAX_VALUE_LENGTH / 1024));
+        let q = self.quota;
+        if utf16_len(value) > q.max_value {
+            return Err(format!("that value is larger than the {} KB limit for one key", q.max_value / 1024));
         }
-        if !entries.contains_key(key) && entries.len() >= MAX_KEYS {
-            return Err(format!("this plugin already has the maximum of {MAX_KEYS} stored keys"));
+        if !entries.contains_key(key) && entries.len() >= q.max_keys {
+            return Err(format!("this plugin already has the maximum of {} stored keys", q.max_keys));
         }
         // A new key costs its name as well as its value; overwriting one only
         // costs the difference between the old value and the new.
@@ -142,8 +167,8 @@ impl Storage {
             None => (utf16_len(key) + utf16_len(value)) as i64,
             Some(old) => utf16_len(value) as i64 - utf16_len(old) as i64,
         };
-        if Self::used(&entries) as i64 + delta > MAX_TOTAL_BYTES as i64 {
-            return Err(format!("this plugin has used all {} KB of its storage", MAX_TOTAL_BYTES / 1024));
+        if Self::used(&entries) as i64 + delta > q.max_total as i64 {
+            return Err(format!("this plugin has used all {} KB of its storage", q.max_total / 1024));
         }
         entries.insert(key.to_string(), value.to_string());
         self.save(entries);

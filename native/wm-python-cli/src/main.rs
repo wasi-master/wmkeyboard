@@ -1,9 +1,14 @@
 //! `wm-python-cli`: WM Keyboard's Python plugins, headless.
 //!
 //! ```text
-//! wm-python-cli test <plugin-dir>   run <plugin-dir>/test.py; exit 1 on an uncaught exception
-//! wm-python-cli run <plugin-dir>    load the plugin as a panel and print the first render's JSON
+//! wm-python-cli test <plugin-dir>                  run <plugin-dir>/test.py; exit 1 on an uncaught exception
+//! wm-python-cli run <plugin-dir> [--mock <file>]   load the plugin as a panel and print the first render's JSON
 //! ```
+//!
+//! An API 5 plugin (`"apiVersion": 5` in plugin.json) loads with every other
+//! `.py` file in its folder as a module. Its host calls are answered from the
+//! mock file, `{"http.request": {"status": 200, "text": "..."}, ...}`: each
+//! op's value is the reply; an op not in the file raises NotImplementedError.
 //!
 //! `test.py` runs with the plugin host's `wm` and `ui` globals (a panel, every
 //! permission, storage and reminders in memory) and one extra module,
@@ -14,6 +19,12 @@
 //!   given `wm` and `ui` as its globals, and return its globals as a dict,
 //!   whose functions stay callable (`m = plugin_test.load("main.py", wm, ui)`,
 //!   then `m["transform"]("x")` or `m.transform("x")`)
+//!
+//! * `plugin_test.session(mock=None, settings=None)`: the plugin itself as the
+//!   keyboard runs it (API 5 or not), with [mock] answering host calls as the
+//!   mock file does. It returns a dict of functions, each giving back the
+//!   result as a dict: `load()`, `render()`, `event(e)`, `transform(text, id)`,
+//!   plus `storage()`.
 //!
 //! A test fails by raising. Its budget is generous (500M steps, 10 minutes)
 //! because one run drives a whole corpus of cases.
@@ -27,19 +38,23 @@ use wm_python::host::files::{Reminders, Storage};
 use wm_python::host::Session;
 use wm_python::interp::{Limits, PyError, Runtime, SystemClock, Value, STANDARD_MODULES};
 
-const USAGE: &str = "usage: wm-python-cli test <plugin-dir>\n       wm-python-cli run <plugin-dir>";
+const USAGE: &str = "usage: wm-python-cli test <plugin-dir>\n       wm-python-cli run <plugin-dir> [--mock <file>]";
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().collect();
-    if args.len() != 3 {
-        eprintln!("{USAGE}");
-        return ExitCode::from(2);
-    }
+    let mock = match (args.len(), args.get(3).map(String::as_str)) {
+        (3, _) => None,
+        (5, Some("--mock")) => Some(PathBuf::from(&args[4])),
+        _ => {
+            eprintln!("{USAGE}");
+            return ExitCode::from(2);
+        }
+    };
     let (command, dir) = (args[1].clone(), PathBuf::from(&args[2]));
     // Scripts recurse on the native stack; give them room.
     let worker = std::thread::Builder::new().stack_size(256 << 20).spawn(move || match command.as_str() {
         "test" => test(&dir),
-        "run" => run(&dir),
+        "run" => run(&dir, mock.as_deref()),
         _ => {
             eprintln!("{USAGE}");
             2
@@ -53,6 +68,7 @@ struct Manifest {
     version: String,
     entry: String,
     permissions: Vec<String>,
+    api: i64,
 }
 
 fn manifest(dir: &Path) -> Result<Manifest, String> {
@@ -70,6 +86,50 @@ fn manifest(dir: &Path) -> Result<Manifest, String> {
             .and_then(|p| p.as_array())
             .map(|a| a.iter().filter_map(|x| x.as_str()).map(String::from).collect())
             .unwrap_or_default(),
+        api: v.get("apiVersion").and_then(|x| x.as_i64()).unwrap_or(4),
+    })
+}
+
+/// Every `.py` file under [dir] but the entry and the test, as
+/// `{"name.py": source, "pkg/mod.py": source}`.
+fn modules(dir: &Path, entry: &str) -> serde_json::Map<String, serde_json::Value> {
+    let mut out = serde_json::Map::new();
+    let mut stack = vec![dir.to_path_buf()];
+    while let Some(d) = stack.pop() {
+        let Ok(read) = std::fs::read_dir(&d) else { continue };
+        for item in read.flatten() {
+            let path = item.path();
+            let Ok(rel) = path.strip_prefix(dir) else { continue };
+            let name = rel.to_string_lossy().replace('\\', "/");
+            if name.starts_with('.') || name.starts_with("tests") {
+                continue;
+            }
+            if path.is_dir() {
+                stack.push(path);
+            } else if name.ends_with(".py") && name != entry && name != "test.py" {
+                if let Ok(text) = std::fs::read_to_string(&path) {
+                    out.insert(name, serde_json::Value::String(text));
+                }
+            }
+        }
+    }
+    out
+}
+
+/// The session config the keyboard would build for the plugin in [dir].
+fn session_config(dir: &Path, m: &Manifest, settings: serde_json::Value) -> serde_json::Value {
+    serde_json::json!({
+        "id": m.id, "version": m.version, "permissions": m.permissions, "mode": "panel",
+        "apiVersion": m.api, "files": modules(dir, &m.entry), "settings": settings,
+        "context": {"locale": "en", "theme": "light", "surface": "panel"},
+    })
+}
+
+/// Answers host calls from [mock]: `{op: reply value}`.
+fn mock_bridge(mock: serde_json::Value) -> wm_python::host::Bridge {
+    Box::new(move |op: &str, _args: &str| match mock.get(op) {
+        Some(v) => serde_json::json!({"value": v}).to_string(),
+        None => serde_json::json!({"error": {"kind": "NotImplementedError", "message": format!("no mock reply for {op}")}}).to_string(),
     })
 }
 
@@ -113,7 +173,9 @@ fn test(dir: &Path) -> u8 {
         version: String::new(),
         entry: "main.py".into(),
         permissions: Vec::new(),
+        api: 4,
     });
+    let manifest_for_sessions = manifest(dir).ok();
     let mut rt = Runtime::new(Limits { steps: 500_000_000, container_items: 200_000, string_length: 1_000_000 }, STANDARD_MODULES);
     let info = PluginInfo {
         id: m.id,
@@ -125,8 +187,22 @@ fn test(dir: &Path) -> u8 {
     // The test's output goes straight to stdout, wm.log and print alike.
     rt.set_on_print(Some(Box::new(|line| println!("{line}"))));
     rt.set_deadline(Some(std::time::Instant::now() + std::time::Duration::from_secs(600)));
-    let (d1, d2) = (dir.to_path_buf(), dir.to_path_buf());
+    let (d1, d2, d3) = (dir.to_path_buf(), dir.to_path_buf(), dir.to_path_buf());
     rt.define_module("plugin_test", move |module| {
+        module.define("session", move |call| {
+            let Some(m) = manifest_for_sessions.as_ref() else {
+                return Err(PyError::new("session() needs a plugin.json", "ValueError"));
+            };
+            let mock = call.value(0, Some("mock")).map(|v| wm_python::host::v5::to_json(v, 0)).unwrap_or(serde_json::Value::Null);
+            let settings = call.value(1, Some("settings")).map(|v| wm_python::host::v5::to_json(v, 0)).unwrap_or(serde_json::Value::Null);
+            let source = read_inside(&d3, &m.entry)?;
+            let config = session_config(&d3, m, settings);
+            let mut session = Session::new(&config.to_string()).map_err(|e| PyError::new(e, "ValueError"))?;
+            if !mock.is_null() {
+                session.set_bridge(Some(mock_bridge(mock)));
+            }
+            Ok(session_value(session, source))
+        });
         module.define("read", move |call| {
             let name: String = call.arg(0, Some("name"))?;
             read_inside(&d1, &name).map(Value::from)
@@ -149,7 +225,39 @@ fn test(dir: &Path) -> u8 {
     }
 }
 
-fn run(dir: &Path) -> u8 {
+/// A session as the dict `plugin_test.session()` returns.
+fn session_value(session: Session, source: String) -> Value {
+    use std::cell::RefCell;
+    use wm_python::interp::HostFunction;
+    let s = Rc::new(RefCell::new(session));
+    let decode = |text: String| -> Result<Value, PyError> {
+        let json: serde_json::Value = serde_json::from_str(&text).map_err(|e| PyError::new(e.to_string(), "ValueError"))?;
+        Ok(wm_python::host::json_to_value(&json))
+    };
+    let (s1, s2, s3, s4, s5) = (s.clone(), s.clone(), s.clone(), s.clone(), s.clone());
+    let load = HostFunction::new("load", move |_| decode(s1.borrow_mut().load(&source)));
+    let render = HostFunction::new("render", move |_| decode(s2.borrow_mut().render()));
+    let event = HostFunction::new("event", move |call| {
+        let e = call.value(0, Some("event")).cloned().unwrap_or(Value::None);
+        let text = wm_python::host::v5::to_json(&e, 0).to_string();
+        decode(s3.borrow_mut().event(&text))
+    });
+    let transform = HostFunction::new("transform", move |call| {
+        let text: String = call.arg(0, Some("text"))?;
+        let id: String = call.arg_or(1, Some("action_id"), String::new())?;
+        decode(s4.borrow_mut().transform(&text, &id))
+    });
+    let storage = HostFunction::new("storage", move |_| decode(s5.borrow().storage_json()));
+    Value::dict(vec![
+        ("load", Value::HostFunction(load)),
+        ("render", Value::HostFunction(render)),
+        ("event", Value::HostFunction(event)),
+        ("transform", Value::HostFunction(transform)),
+        ("storage", Value::HostFunction(storage)),
+    ])
+}
+
+fn run(dir: &Path, mock: Option<&Path>) -> u8 {
     let m = match manifest(dir) {
         Ok(m) => m,
         Err(e) => {
@@ -164,7 +272,7 @@ fn run(dir: &Path) -> u8 {
             return 2;
         }
     };
-    let config = serde_json::json!({"id": m.id, "version": m.version, "permissions": m.permissions, "mode": "panel"});
+    let config = session_config(dir, &m, serde_json::Value::Null);
     let mut session = match Session::new(&config.to_string()) {
         Ok(s) => s,
         Err(e) => {
@@ -172,6 +280,16 @@ fn run(dir: &Path) -> u8 {
             return 2;
         }
     };
+    if let Some(path) = mock {
+        let parsed = std::fs::read_to_string(path).map_err(|e| e.to_string()).and_then(|t| serde_json::from_str(&t).map_err(|e| e.to_string()));
+        match parsed {
+            Ok(v) => session.set_bridge(Some(mock_bridge(v))),
+            Err(e) => {
+                eprintln!("{}: {e}", path.display());
+                return 2;
+            }
+        }
+    }
     let result = session.load(&source);
     println!("{result}");
     let ok = serde_json::from_str::<serde_json::Value>(&result).ok().and_then(|v| v["ok"].as_bool()).unwrap_or(false);

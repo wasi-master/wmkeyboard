@@ -19,6 +19,49 @@ fn kwarg<'a>(kwargs: &'a [(Rc<str>, Value)], name: &str) -> Option<&'a Value> {
     kwargs.iter().find(|(k, _)| k.as_ref() == name).map(|(_, v)| v)
 }
 
+/// Method names per built-in type, for taking a method as a value
+/// (`on_submit=items.append`).
+pub(crate) const STR_METHODS: &[&str] = &[
+    "capitalize", "casefold", "center", "count", "encode", "endswith", "expandtabs", "find", "format", "index", "isalnum",
+    "isalpha", "isascii", "isdecimal", "isdigit", "isidentifier", "islower", "isnumeric", "isprintable", "isspace",
+    "istitle", "isupper", "join", "ljust", "lower", "lstrip", "partition", "removeprefix", "removesuffix", "replace",
+    "rfind", "rindex", "rjust", "rpartition", "rsplit", "rstrip", "split", "splitlines", "startswith", "strip",
+    "swapcase", "title", "translate", "upper", "zfill",
+];
+pub(crate) const LIST_METHODS: &[&str] = &["append", "extend", "insert", "remove", "pop", "clear", "index", "count", "sort", "reverse", "copy"];
+pub(crate) const TUPLE_METHODS: &[&str] = &["index", "count"];
+pub(crate) const SET_METHODS: &[&str] = &[
+    "add", "remove", "discard", "pop", "clear", "union", "intersection", "difference", "symmetric_difference", "update",
+    "issubset", "issuperset", "isdisjoint", "copy", "intersection_update", "difference_update",
+];
+pub(crate) const DICT_METHODS: &[&str] = &["keys", "values", "items", "get", "pop", "popitem", "setdefault", "update", "clear", "copy"];
+pub(crate) const BYTES_METHODS: &[&str] = &[
+    "decode", "hex", "find", "count", "startswith", "endswith", "split", "strip", "replace", "upper", "lower", "join", "index",
+];
+/// The builtin name a method taken as a value calls through.
+pub(crate) const METHOD_PREFIX: &str = "__method__:";
+
+/// Whether [obj] has a built-in method [name].
+pub(crate) fn has_builtin_method(obj: &Value, name: &str) -> bool {
+    let table = match obj {
+        Value::Str(_) => STR_METHODS,
+        Value::List(_) => LIST_METHODS,
+        Value::Tuple(_) => TUPLE_METHODS,
+        Value::Set(_) => SET_METHODS,
+        Value::Dict(_) => DICT_METHODS,
+        Value::Bytes(_) => BYTES_METHODS,
+        _ => return false,
+    };
+    table.contains(&name)
+}
+
+fn is_callable(v: &Value) -> bool {
+    matches!(
+        v,
+        Value::Function(_) | Value::Builtin(_) | Value::HostFunction(_) | Value::ModuleFunction(_) | Value::Class(_) | Value::Object(_) | Value::Instance(_)
+    )
+}
+
 fn normalise(i: i64, count: usize) -> usize {
     let v = if i < 0 { i + count as i64 } else { i };
     v.clamp(0, count as i64) as usize
@@ -36,10 +79,12 @@ impl Interp {
             Value::Dict(d) => {
                 // A dict answers its string keys first, so `wm.storage.get(...)`
                 // works on a hand-built stand-in and `e.type` on an event.
+                // A key holding data does not hide the method of the same name:
+                // `fields.items()` on a dict with an "items" key.
                 let entry = d.borrow().get(&HKey::str(name)).cloned();
                 match entry {
-                    Some(v) => self.call_value(&v, args, kwargs),
-                    None => self.dict_method(d, name, &args),
+                    Some(v) if !(DICT_METHODS.contains(&name) && !is_callable(&v)) => self.call_value(&v, args, kwargs),
+                    _ => self.dict_method(d, name, &args),
                 }
             }
             Value::Match(m) => self.match_method(m, name, &args),

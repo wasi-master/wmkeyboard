@@ -190,7 +190,7 @@ pub(crate) struct Interp {
     pub host_modules: HashMap<String, Rc<HostModule>>,
     pub max_container: usize,
     pub max_string: usize,
-    call_depth: u32,
+    pub(crate) call_depth: u32,
     cluster_cache: Option<(Rc<str>, Rc<[u32]>)>,
     pub cancel: Arc<AtomicBool>,
     #[cfg(not(target_arch = "wasm32"))]
@@ -1185,10 +1185,22 @@ impl Interp {
                 if let Some(v) = d.borrow().get(&HKey::str(name)) {
                     return Ok(v.clone());
                 }
+                if super::methods::has_builtin_method(obj, name) {
+                    return Ok(self.method_value(obj, name));
+                }
                 Err(self.error(format!("'dict' object has no attribute '{name}'"), "AttributeError"))
             }
+            // PyMini's type() answers with a name, so `type(x).__name__` reads it back.
+            Value::Str(s) if name == "__name__" => Ok(Value::Str(s.clone())),
+            _ if super::methods::has_builtin_method(obj, name) => Ok(self.method_value(obj, name)),
             _ => Err(self.error(format!("'{}' object has no attribute '{name}'", obj.type_name()), "AttributeError")),
         }
+    }
+
+    /// `items.append` without calling it: a bound method of a built-in type.
+    fn method_value(&self, obj: &Value, name: &str) -> Value {
+        let method = Value::Builtin(Rc::from(format!("{}{name}", super::methods::METHOD_PREFIX)));
+        Value::Object(Rc::new(Object::Bound(obj.clone(), method)))
     }
 
     // MARK: - Calls
@@ -1213,6 +1225,11 @@ impl Interp {
                 self.construct(&c, args, kwargs)
             }
             Value::Object(o) => match o.as_ref() {
+                Object::Bound(receiver, Value::Builtin(m)) if m.starts_with(super::methods::METHOD_PREFIX) => {
+                    let name = m[super::methods::METHOD_PREFIX.len()..].to_string();
+                    let receiver = receiver.clone();
+                    self.call_method(&receiver, &name, args, kwargs)
+                }
                 Object::Bound(receiver, f) => {
                     let mut all = Vec::with_capacity(args.len() + 1);
                     all.push(receiver.clone());

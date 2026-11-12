@@ -17,6 +17,11 @@
 //! step budget of each phase is what stops a runaway plugin. The time a phase
 //! took is still measured and reported.
 //!
+//! API 5 host calls go to the function given to [`PySession::set_bridge`],
+//! called synchronously as `bridge(op, argsJson) -> replyJson`; the editor
+//! runs sessions in a Worker so that function may block on a fetch. With
+//! none set, calls are listed in the result's `calls`.
+//!
 //! A panic traps (`panic = "abort"`): the JS call throws, and the caller must
 //! drop the session, since its interpreter may be half way through a change.
 
@@ -88,7 +93,7 @@ impl PySession {
         self.inner.render()
     }
 
-    /// Hand `{"type", "id", "value"?, "index"?}` to `on_event`, then render.
+    /// Hand an event to the plugin, then render (see `wm_python::host`).
     pub fn event(&mut self, event_json: &str) -> String {
         self.inner.event(event_json)
     }
@@ -96,6 +101,20 @@ impl PySession {
     /// Run the plugin's `transform` on a selection.
     pub fn transform(&mut self, text: &str, action_id: &str) -> String {
         self.inner.transform(text, action_id)
+    }
+
+    /// Where API 5 host calls go: `(op, argsJson) => replyJson`, or null for none.
+    #[wasm_bindgen(js_name = setBridge)]
+    pub fn set_bridge(&mut self, bridge: Option<js_sys::Function>) {
+        self.inner.set_bridge(bridge.map(|f| {
+            Box::new(move |op: &str, args: &str| {
+                let reply = f.call2(&JsValue::NULL, &JsValue::from_str(op), &JsValue::from_str(args));
+                match reply.ok().and_then(|v| v.as_string()) {
+                    Some(text) => text,
+                    None => json!({"error": {"kind": "RuntimeError", "message": "the editor could not answer"}}).to_string(),
+                }
+            }) as wm_python::host::Bridge
+        }));
     }
 
     /// The latest phase's usage.

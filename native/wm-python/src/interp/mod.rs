@@ -80,6 +80,8 @@ pub fn check(source: &str) -> Result<(), CheckError> {
 /// reach, and the budget each call runs under.
 pub struct Runtime {
     interp: Interp,
+    /// When set, calls after the first share one step budget.
+    shared_budget: bool,
 }
 
 impl Default for Runtime {
@@ -96,7 +98,7 @@ impl Runtime {
     }
 
     pub fn with_clock(limits: Limits, modules: &[&str], clock: Rc<dyn Clock>) -> Runtime {
-        Runtime { interp: Interp::new(limits, modules, clock) }
+        Runtime { interp: Interp::new(limits, modules, clock), shared_budget: false }
     }
 
     // MARK: - Giving scripts things
@@ -156,9 +158,22 @@ impl Runtime {
         self.interp.max_steps
     }
 
-    /// Steps the latest call spent.
+    /// Steps the latest call spent (since [reset_budget] while the budget is shared).
     pub fn steps_used(&self) -> u64 {
         self.interp.steps
+    }
+
+    /// With [on], `load`, `run` and the `call`s stop starting from a full
+    /// budget: they spend one allowance together until [reset_budget]. How a
+    /// host runs several steps as one phase.
+    pub fn set_shared_budget(&mut self, on: bool) {
+        self.shared_budget = on;
+    }
+
+    /// A full step budget and empty output, now.
+    pub fn reset_budget(&mut self) {
+        self.interp.reset_budget();
+        self.interp.printed.clear();
     }
 
     /// What `print` wrote during the latest `load`, `run` or `call`, one line per call.
@@ -169,6 +184,25 @@ impl Runtime {
     /// Hear each printed line as it is written.
     pub fn set_on_print(&mut self, f: Option<Box<dyn FnMut(&str)>>) {
         self.interp.on_print = f;
+    }
+
+    /// Import [name] (and the packages above it) as a script's `import` would,
+    /// running Python sources once.
+    pub fn import_module(&mut self, name: &str) -> Result<(), PyError> {
+        self.perform(|i| i.ensure_module(name))
+    }
+
+    /// `module.name` for a module already imported, or a host module.
+    pub fn module_member(&self, module: &str, name: &str) -> Option<Value> {
+        self.interp.member(module, name)
+    }
+
+    /// Call [module].[name] with [args].
+    pub fn call_member(&mut self, module: &str, name: &str, args: Vec<Value>) -> Result<Value, PyError> {
+        let Some(f) = self.module_member(module, name) else {
+            return Err(PyError::new(format!("module '{module}' has no attribute '{name}'"), "AttributeError"));
+        };
+        self.perform(|i| i.invoke(&f, args))
     }
 
     /// Every module name a script could import right now, sorted.
@@ -276,8 +310,12 @@ impl Runtime {
     /// Fresh budget and output, then [body]. A `return`, `break` or `continue`
     /// that escaped everything becomes a SyntaxError here.
     fn perform<T>(&mut self, body: impl FnOnce(&mut Interp) -> Result<T, Exc>) -> Result<T, PyError> {
-        self.interp.reset_budget();
-        self.interp.printed.clear();
+        if self.shared_budget {
+            self.interp.call_depth = 0;
+        } else {
+            self.interp.reset_budget();
+            self.interp.printed.clear();
+        }
         let r = body(&mut self.interp);
         host::flow_to_error(r, self.interp.current_line)
     }

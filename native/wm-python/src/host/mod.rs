@@ -61,6 +61,7 @@
 pub mod api;
 pub mod codec;
 pub mod files;
+pub mod v5;
 
 use std::cell::RefCell;
 use std::path::PathBuf;
@@ -72,7 +73,8 @@ use serde_json::{json, Value as Json};
 
 use crate::interp::{check, Clock, Limits, PyError, Runtime, SystemClock, Value, STANDARD_MODULES};
 use api::{HostState, PluginInfo};
-use files::{Reminders, Storage};
+use files::{Quota, Reminders, Storage};
+pub use v5::Bridge;
 
 /// One phase's allowance.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -107,6 +109,16 @@ pub struct SessionConfig {
     pub storage_path: Option<PathBuf>,
     pub reminders_path: Option<PathBuf>,
     pub limits: PhaseLimits,
+    /// The manifest's `apiVersion`: 5 runs the plugin against the `wm`
+    /// package ([`v5`]); anything lower keeps the API 4 globals.
+    pub api: i64,
+    pub extras: v5::Extras,
+}
+
+impl SessionConfig {
+    pub fn is_v5(&self) -> bool {
+        self.api >= v5::API_VERSION
+    }
 }
 
 impl SessionConfig {
@@ -141,11 +153,27 @@ impl SessionConfig {
                 }
             }
         }
+        let api = v.get("apiVersion").and_then(Json::as_i64).unwrap_or(api::API_VERSION);
+        let mut files = Vec::new();
+        if let Some(Json::Object(f)) = v.get("files") {
+            for (name, source) in f {
+                if let Some(source) = source.as_str() {
+                    files.push((name.clone(), source.to_string()));
+                }
+            }
+        }
+        let extras = v5::Extras {
+            files,
+            settings: v.get("settings").cloned().unwrap_or(Json::Null),
+            context: v.get("context").cloned().unwrap_or(Json::Null),
+        };
         Ok(SessionConfig {
             info: PluginInfo { id: s("id"), version: s("version"), permissions, panel: mode == "panel" },
             storage_path: path("storagePath"),
             reminders_path: path("remindersPath"),
             limits,
+            api,
+            extras,
         })
     }
 }
@@ -221,6 +249,9 @@ impl Failure {
 /// A running plugin. See the module docs for the JSON contract.
 pub struct Session {
     config: SessionConfig,
+    bridge: v5::SharedBridge,
+    /// What the latest API 5 render reported: timers, header commands, back.
+    meta: Option<Json>,
     clock: Rc<dyn Clock>,
     cancel: Arc<AtomicBool>,
     rt: Option<Runtime>,
@@ -248,7 +279,8 @@ impl Session {
     /// A session whose `time` module and reminders read [clock] (the user's zone, or a fixed clock in tests).
     pub fn with_clock(config_json: &str, clock: Box<dyn Clock + Send>) -> Result<Session, String> {
         let config = SessionConfig::from_json(config_json)?;
-        let mut storage = Storage::new(config.storage_path.clone());
+        let quota = if config.is_v5() { Quota::V5 } else { Quota::V4 };
+        let mut storage = Storage::with_quota(config.storage_path.clone(), quota);
         // An in-memory store may start from `"storage": {"key": "value"}` in
         // the config: the web editor keeps a draft's data in localStorage.
         // A value over a quota is dropped, as reading storage.json drops it.
@@ -266,6 +298,8 @@ impl Session {
         let reminders = Reminders::new(config.reminders_path.clone());
         Ok(Session {
             config,
+            bridge: Rc::new(RefCell::new(None)),
+            meta: None,
             clock: Rc::from(clock as Box<dyn Clock>),
             cancel: Arc::new(AtomicBool::new(false)),
             rt: None,
@@ -315,6 +349,12 @@ impl Session {
         &self.config
     }
 
+    /// Where API 5 host calls go until the next `set_bridge`. Front ends set
+    /// one before each call that may run script code and clear it after.
+    pub fn set_bridge(&mut self, bridge: Option<Bridge>) {
+        *self.bridge.borrow_mut() = bridge;
+    }
+
     /// Set from any thread to stop the call in flight.
     pub fn cancel_handle(&self) -> Arc<AtomicBool> {
         self.cancel.clone()
@@ -341,7 +381,12 @@ impl Session {
             let mut f = self.files.borrow_mut();
             (f.0.take(), f.1.take())
         };
-        let state = api::install(&mut rt, &self.config.info, storage, reminders, self.clock.clone());
+        let state = if self.config.is_v5() {
+            v5::install(&mut rt, &self.config.info, &self.config.extras, storage, reminders, self.clock.clone(), self.bridge.clone())
+        } else {
+            api::install(&mut rt, &self.config.info, storage, reminders, self.clock.clone())
+        };
+        self.meta = None;
         self.rt = Some(rt);
         self.state = Some(state);
     }
@@ -373,9 +418,13 @@ impl Session {
         let started = self.clock.monotonic();
         let rt = self.rt.as_mut().expect("runtime");
         rt.set_step_limit(limit.steps);
+        // Everything a phase runs spends one allowance.
+        rt.reset_budget();
+        rt.set_shared_budget(true);
         #[cfg(not(target_arch = "wasm32"))]
         rt.set_deadline(Some(std::time::Instant::now() + std::time::Duration::from_millis(limit.millis)));
         let r = f(rt);
+        rt.set_shared_budget(false);
         #[cfg(not(target_arch = "wasm32"))]
         rt.set_deadline(None);
         let steps = rt.steps_used().min(limit.steps);
@@ -399,13 +448,24 @@ impl Session {
         if let Some(v) = value {
             out.insert("value".into(), v.map(Json::String).unwrap_or(Json::Null));
         }
-        let (log, inputs, changed) = match &self.state {
+        let (log, inputs, changed, calls, needs) = match &self.state {
             Some(s) => {
                 let s = s.borrow();
-                (s.log.clone(), s.inputs.clone(), s.reminders_changed)
+                (s.log.clone(), s.inputs.clone(), s.reminders_changed, s.calls.clone(), s.needs.clone())
             }
-            None => (Vec::new(), Vec::new(), false),
+            None => (Vec::new(), Vec::new(), false, Vec::new(), Vec::new()),
         };
+        if self.config.is_v5() {
+            if let Some(meta) = &self.meta {
+                out.insert("host".into(), meta.clone());
+            }
+            if !calls.is_empty() {
+                out.insert("calls".into(), Json::Array(calls));
+            }
+            if !needs.is_empty() {
+                out.insert("needs".into(), json!(needs));
+            }
+        }
         out.insert("log".into(), json!(log));
         out.insert("inputs".into(), Json::Array(inputs.into_iter().map(|(i, t)| json!([i, t])).collect()));
         out.insert("remindersChanged".into(), Json::Bool(changed));
@@ -427,7 +487,18 @@ impl Session {
         }
         self.fresh_runtime();
         let limit = self.config.limits.load;
-        if let Err(e) = self.phase(Phase::Load, limit, |rt| rt.load(source)) {
+        let v5 = self.config.is_v5();
+        let r = self.phase(Phase::Load, limit, |rt| {
+            if v5 {
+                load_v5(rt, source)?;
+                // The panel is opening: @plugin.on_open hooks run before the first draw.
+                rt.call_member("wm._host", "dispatch", vec![Value::dict(vec![("type", Value::str("open"))])])?;
+                Ok(())
+            } else {
+                rt.load(source)
+            }
+        });
+        if let Err(e) = r {
             return self.result(Err(Failure::Script(e)), None);
         }
         let outcome = self.render_phase();
@@ -435,6 +506,20 @@ impl Session {
     }
 
     fn render_phase(&mut self) -> Result<Option<Json>, Failure> {
+        if self.config.is_v5() {
+            let limit = self.config.limits.render;
+            let v = self.phase(Phase::Render, limit, |rt| rt.call_member("wm._host", "render", Vec::new())).map_err(Failure::Script)?;
+            let items = v.as_items().unwrap_or_default();
+            let tree = items.first().cloned().unwrap_or(Value::None);
+            self.meta = items.get(1).map(|m| v5::to_json(m, 0));
+            if tree.is_none() && self.meta.as_ref().is_some_and(|m| m.get("canBack") != Some(&Json::Bool(true))) {
+                let has_render = self.rt.as_ref().is_some_and(|rt| rt.has_function("render"));
+                if !has_render {
+                    return Err(Failure::NoRender);
+                }
+            }
+            return Ok(Some(codec::encode_v5(&tree)));
+        }
         let has_render = self.rt.as_ref().is_some_and(|rt| rt.has_function("render"));
         if !has_render {
             return Err(Failure::NoRender);
@@ -460,11 +545,30 @@ impl Session {
         if self.rt.is_none() || !self.config.info.panel {
             return self.result(Err(Failure::Internal("event() needs a loaded panel session".into())), None);
         }
-        let event = match event_dict(event_json) {
+        let v5 = self.config.is_v5();
+        let event = match event_dict(event_json, v5) {
             Ok(e) => e,
             Err(m) => return self.result(Err(Failure::Internal(m)), None),
         };
         let limit = self.config.limits.event;
+        if v5 {
+            let kind = field_str(&event, "type");
+            if let Some(s) = &self.state {
+                s.borrow_mut().user_event = v5::USER_EVENTS.contains(&kind.as_str());
+            }
+            let r = self.phase(Phase::Event, limit, |rt| rt.call_member("wm._host", "dispatch", vec![event]).map(|_| ()));
+            if let Some(s) = &self.state {
+                s.borrow_mut().user_event = false;
+            }
+            if let Err(e) = r {
+                return self.result(Err(Failure::Script(e)), None);
+            }
+            if kind == "close" {
+                return self.result(Ok(None), None);
+            }
+            let outcome = self.render_phase();
+            return self.result(outcome, None);
+        }
         let has_handler = self.rt.as_ref().is_some_and(|rt| rt.has_function("on_event"));
         let r = self.phase(Phase::Event, limit, |rt| if has_handler { rt.call("on_event", vec![event]).map(|_| ()) } else { Ok(()) });
         if let Err(e) = r {
@@ -488,15 +592,28 @@ impl Session {
             return self.result(Err(Failure::Internal("transform() needs a loaded session".into())), Some(None));
         }
         let (text, action_id) = (text.to_string(), action_id.to_string());
+        if self.config.is_v5() {
+            let r = self.phase(Phase::Action, limit, |rt| {
+                if fresh {
+                    load_v5(rt, &source)?;
+                }
+                rt.call_member("wm._host", "transform", vec![Value::str(&text), Value::str(&action_id)])
+            });
+            return match r {
+                Err(e) if e.kind == "NotImplementedError" && e.message == "no action" => self.result(Err(Failure::NoTransform), Some(None)),
+                Err(e) => self.result(Err(Failure::Script(e)), Some(None)),
+                Ok(Value::None) => self.result(Ok(None), Some(None)),
+                Ok(v) => {
+                    let s = v.as_str().map(String::from).unwrap_or_else(|| v.to_str());
+                    self.result(Ok(None), Some(Some(s)))
+                }
+            };
+        }
         let mut missing = false;
-        let mut load_steps = 0;
+        // Loading and the call share the phase's one allowance.
         let r = self.phase(Phase::Action, limit, |rt| {
             if fresh {
                 rt.load(&source)?;
-                load_steps = rt.steps_used();
-                // Loading and the call share one allowance.
-                let left = limit.steps.saturating_sub(rt.steps_used());
-                rt.set_step_limit(left);
             }
             let Some(params) = rt.parameters("transform") else {
                 missing = true;
@@ -505,10 +622,6 @@ impl Session {
             let args = if params.len() >= 2 { vec![Value::str(&text), Value::str(&action_id)] } else { vec![Value::str(&text)] };
             rt.call("transform", args)
         });
-        // The load's steps count too: the phase saw only the call's.
-        if let Some(u) = self.phases.last_mut() {
-            u.steps = (u.steps + load_steps).min(limit.steps);
-        }
         match r {
             Err(e) => self.result(Err(Failure::Script(e)), Some(None)),
             Ok(_) if missing => self.result(Err(Failure::NoTransform), Some(None)),
@@ -521,23 +634,49 @@ impl Session {
     }
 }
 
-/// `{"type", "id", "value"?, "index"?}` as the dict `on_event` receives.
-fn event_dict(text: &str) -> Result<Value, String> {
+/// Run an API 5 plugin's top level after the `wm` package, then tell
+/// `wm._host` which of its functions are `render`, `on_event` and `transform`.
+fn load_v5(rt: &mut Runtime, source: &str) -> Result<(), PyError> {
+    rt.import_module("wm._host")?;
+    rt.load(source)?;
+    let function = |rt: &Runtime, name: &str| match rt.get(name) {
+        Some(v @ Value::Function(_)) => v,
+        _ => Value::None,
+    };
+    let args = vec![function(rt, "render"), function(rt, "on_event"), function(rt, "transform")];
+    rt.call_member("wm._host", "bind", args)?;
+    Ok(())
+}
+
+fn field_str(d: &Value, key: &str) -> String {
+    match d {
+        Value::Dict(m) => m.borrow().get(&crate::interp::HKey::str(key)).and_then(|v| v.as_str().map(String::from)).unwrap_or_default(),
+        _ => String::new(),
+    }
+}
+
+/// The event as the dict `on_event` receives. API 4: `{"type", "id",
+/// "value"?, "index"?}`; API 5 keeps every key.
+fn event_dict(text: &str, all_keys: bool) -> Result<Value, String> {
     let v: Json = serde_json::from_str(text).map_err(|e| format!("event is not JSON: {e}"))?;
     let Json::Object(o) = v else { return Err("event is not a JSON object".into()) };
+    if !o.get("type").is_some_and(Json::is_string) {
+        return Err("event has no type".into());
+    }
+    if all_keys {
+        return Ok(json_to_value(&Json::Object(o)));
+    }
     let mut pairs = Vec::new();
     for key in ["type", "id", "value", "index"] {
         if let Some(x) = o.get(key) {
             pairs.push((key, json_to_value(x)));
         }
     }
-    if !o.get("type").is_some_and(Json::is_string) {
-        return Err("event has no type".into());
-    }
     Ok(Value::dict(pairs))
 }
 
-fn json_to_value(v: &Json) -> Value {
+/// JSON as a script value: objects as dicts in their own key order.
+pub fn json_to_value(v: &Json) -> Value {
     match v {
         Json::Null => Value::None,
         Json::Bool(b) => Value::Bool(*b),

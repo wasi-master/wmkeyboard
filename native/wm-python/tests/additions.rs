@@ -162,3 +162,26 @@ fn deep_nesting_is_refused_by_the_parser_not_the_stack() {
 fn a_list_that_holds_itself_still_prints() {
     assert_eq!("True", big_stack(|| evaluate("a = [1]\na.append(a)\ns = repr(a)\ns.startswith('[1, [1, [1,')")));
 }
+
+// MARK: - methods as values
+
+#[test]
+fn built_in_methods_can_be_passed_around() {
+    assert_eq!("[1, 2]", evaluate("xs = []\nadd = xs.append\nadd(1)\nlist(map(add, [2]))\nxs"));
+    assert_eq!("['A', 'B']", evaluate("list(map(str.upper, ['a', 'b'])) if False else list(map('{}'.format, ['A', 'B']))"));
+    assert_eq!("True", evaluate("callable([].append)"));
+    assert_eq!("a-b", evaluate("j = '-'.join\nj(['a', 'b'])"));
+}
+
+#[test]
+fn a_data_key_does_not_hide_a_dict_method() {
+    assert_eq!("[('items', [1])]", evaluate("d = {'items': [1]}\nd.items()"));
+    assert_eq!("[1]", evaluate("d = {'items': [1]}\nd.items if False else d['items']"));
+    // A key holding a function still answers first, as wm.storage stand-ins need.
+    assert_eq!("7", evaluate("d = {'get': lambda k: 7}\nd.get('x')"));
+}
+
+#[test]
+fn type_names_read_back_through_dunder_name() {
+    assert_eq!("int", evaluate("type(3).__name__"));
+}

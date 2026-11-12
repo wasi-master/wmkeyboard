@@ -2,8 +2,12 @@
 //! its host) and `wm-python-tooling` (the plugin editor's language service).
 //!
 //! Kotlin side: `com.wasimaster.wmkeyboard.core.plugins.PythonNative`. Every
-//! call takes and returns plain strings (JSON where structured), so there are
-//! no callbacks into the JVM and no Java objects held across calls.
+//! call takes and returns plain strings (JSON where structured), and no Java
+//! object is held across calls. The one callback into the JVM is an API 5
+//! plugin's host call: while `nativeLoad`, `nativeRender`, `nativeEvent` or
+//! `nativeTransform` runs, `wm` asks the keyboard to act through the static
+//! `PythonNative.hostCall(handle, op, argsJson): String`, on the same thread
+//! (see `wm_python::host::v5` for the JSON).
 //!
 //! A session is a `Box<Entry>` behind a `jlong`. The interpreter itself sits
 //! in a `Mutex`, used by one plugin thread at a time; the cancel flag sits
@@ -19,7 +23,7 @@ use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
-use jni::objects::{JClass, JString};
+use jni::objects::{JClass, JString, JValue};
 use jni::sys::{jboolean, jint, jintArray, jlong, jstring, JNI_TRUE};
 use jni::JNIEnv;
 use serde_json::{json, Value};
@@ -113,6 +117,57 @@ fn with_session(handle: jlong, body: impl FnOnce(&mut Session) -> String) -> Str
     result.unwrap_or_else(|_| internal("the interpreter failed"))
 }
 
+const NATIVE_CLASS: &str = "com/wasimaster/wmkeyboard/core/plugins/PythonNative";
+
+/// Runs [body] like [with_session], with host calls going to Kotlin's
+/// `PythonNative.hostCall` on this thread for as long as it runs.
+fn bridged(env: &mut JNIEnv, handle: jlong, body: impl FnOnce(&mut Session) -> String) -> String {
+    let raw = env.get_raw();
+    with_session(handle, |s| {
+        s.set_bridge(Some(Box::new(move |op: &str, args: &str| host_call(raw, handle, op, args))));
+        let result = body(s);
+        s.set_bridge(None);
+        result
+    })
+}
+
+fn host_call(raw: *mut jni::sys::JNIEnv, handle: jlong, op: &str, args: &str) -> String {
+    let failed = || json!({"error": {"kind": "RuntimeError", "message": "the keyboard could not answer"}}).to_string();
+    // SAFETY: [raw] is the env of the JNI call this bridge was set for, used
+    // on that call's thread before it returns (`bridged` clears the bridge).
+    let Ok(mut env) = (unsafe { JNIEnv::from_raw(raw) }) else { return failed() };
+    // A frame of its own, so a plugin making thousands of calls in one event
+    // never fills the local reference table.
+    let result = env.with_local_frame(8, |env| -> jni::errors::Result<String> {
+        let op = env.new_string(op)?;
+        let args = env.new_string(args)?;
+        let reply = env
+            .call_static_method(
+                NATIVE_CLASS,
+                "hostCall",
+                "(JLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;",
+                &[JValue::Long(handle), JValue::Object(&op), JValue::Object(&args)],
+            )?
+            .l()?;
+        if reply.is_null() {
+            return Ok(String::new());
+        }
+        let reply = JString::from(reply);
+        let text: String = env.get_string(&reply)?.into();
+        Ok(text)
+    });
+    match result {
+        Ok(text) if !text.is_empty() => text,
+        _ => {
+            if env.exception_check().unwrap_or(false) {
+                let _ = env.exception_clear();
+            }
+            failed()
+        }
+    }
+}
+
+
 macro_rules! guarded {
     ($env:ident, $body:expr) => {{
         let value: String = catch_unwind(AssertUnwindSafe(|| $body)).unwrap_or_else(|_| String::new());
@@ -150,7 +205,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_plugins_PythonNative_
     source: JString,
 ) -> jstring {
     let source = text(&mut env, &source);
-    let result = with_session(handle, |s| s.load(&source));
+    let result = bridged(&mut env, handle, |s| s.load(&source));
     out(&mut env, &result)
 }
 
@@ -160,7 +215,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_plugins_PythonNative_
     _class: JClass,
     handle: jlong,
 ) -> jstring {
-    let result = with_session(handle, |s| s.render());
+    let result = bridged(&mut env, handle, |s| s.render());
     out(&mut env, &result)
 }
 
@@ -172,7 +227,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_plugins_PythonNative_
     event: JString,
 ) -> jstring {
     let event = text(&mut env, &event);
-    let result = with_session(handle, |s| s.event(&event));
+    let result = bridged(&mut env, handle, |s| s.event(&event));
     out(&mut env, &result)
 }
 
@@ -186,7 +241,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_plugins_PythonNative_
 ) -> jstring {
     let input = text(&mut env, &input);
     let action_id = text(&mut env, &action_id);
-    let result = with_session(handle, |s| s.transform(&input, &action_id));
+    let result = bridged(&mut env, handle, |s| s.transform(&input, &action_id));
     out(&mut env, &result)
 }
 

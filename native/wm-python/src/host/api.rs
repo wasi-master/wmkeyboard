@@ -51,6 +51,12 @@ pub struct HostState {
     pub reminders_changed: bool,
     pub storage: Option<Storage>,
     pub reminders: Option<Reminders>,
+    /// API 5: host calls made with no bridge attached, `{"op", "args"}`.
+    pub calls: Vec<serde_json::Value>,
+    /// API 5: permissions the keyboard said a call lacked a grant for.
+    pub needs: Vec<String>,
+    /// API 5: the call in flight answers something the user did in the panel.
+    pub user_event: bool,
 }
 
 impl HostState {
@@ -63,19 +69,32 @@ impl HostState {
         self.log.clear();
         self.inputs.clear();
         self.reminders_changed = false;
+        self.calls.clear();
+        self.needs.clear();
+        self.user_event = false;
+    }
+
+    pub fn new(storage: Option<Storage>, reminders: Option<Reminders>) -> HostState {
+        HostState {
+            log: Vec::new(),
+            inputs: Vec::new(),
+            reminders_changed: false,
+            storage,
+            reminders,
+            calls: Vec::new(),
+            needs: Vec::new(),
+            user_event: false,
+        }
     }
 }
 
 /// Install `wm` and `ui` as globals of [rt], `print` included, and return the
 /// state the host functions write to.
 pub fn install(rt: &mut Runtime, info: &PluginInfo, storage: Option<Storage>, reminders: Option<Reminders>, clock: Rc<dyn Clock>) -> Rc<RefCell<HostState>> {
-    let state = Rc::new(RefCell::new(HostState {
-        log: Vec::new(),
-        inputs: Vec::new(),
-        reminders_changed: false,
-        storage: if info.has("storage") { storage } else { None },
-        reminders: if info.has("reminders") { reminders } else { None },
-    }));
+    let state = Rc::new(RefCell::new(HostState::new(
+        if info.has("storage") { storage } else { None },
+        if info.has("reminders") { reminders } else { None },
+    )));
 
     let s = state.clone();
     rt.set_on_print(Some(Box::new(move |line| s.borrow_mut().add_log(line))));
@@ -160,57 +179,11 @@ pub fn install(rt: &mut Runtime, info: &PluginInfo, storage: Option<Storage>, re
         rt.define_module("wm.reminders", move |m| {
             let s1 = s.clone();
             let c1 = c.clone();
-            m.define("set", move |call| {
-                let id: String = call.arg(0, Some("id"))?;
-                let time = call.value(1, Some("seconds")).cloned().unwrap_or(Value::None);
-                let text: String = call.arg(2, Some("text"))?;
-                let seconds = match time {
-                    Value::Int(i) => i as f64,
-                    Value::Float(f) if f.is_finite() => f,
-                    _ => {
-                        return Err(PyError::new(
-                            "the time must be a number of seconds, as time.time() or wm.timestamp() gives",
-                            "ValueError",
-                        ))
-                    }
-                };
-                let now = (c1.now() * MILLIS as f64) as i64;
-                let mut st = s1.borrow_mut();
-                let result = st.reminders.as_mut().map(|r| r.set(&id, seconds_to_millis(seconds), &text, now));
-                match result {
-                    Some(Err(reason)) => Err(PyError::new(reason, "ValueError")),
-                    _ => {
-                        st.reminders_changed = true;
-                        Ok(Value::None)
-                    }
-                }
-            });
+            m.define("set", move |call| reminder_set(&s1, c1.as_ref(), call));
             let s2 = s.clone();
-            m.define("cancel", move |call| {
-                let id: String = call.arg(0, Some("id"))?;
-                let mut st = s2.borrow_mut();
-                let removed = st.reminders.as_mut().is_some_and(|r| r.cancel(&id));
-                if removed {
-                    st.reminders_changed = true;
-                }
-                Ok(Value::Bool(removed))
-            });
+            m.define("cancel", move |call| reminder_cancel(&s2, call));
             let s3 = s.clone();
-            m.define("list", move |_| {
-                let st = s3.borrow();
-                let list = st.reminders.as_ref().map(|r| r.list()).unwrap_or_default();
-                Ok(Value::list(
-                    list.into_iter()
-                        .map(|r| {
-                            Value::dict(vec![
-                                ("id", Value::from(r.id)),
-                                ("time", Value::Int(r.at.div_euclid(MILLIS))),
-                                ("text", Value::from(r.text)),
-                            ])
-                        })
-                        .collect(),
-                ))
-            });
+            m.define("list", move |_| Ok(reminder_list(&s3)));
         });
     }
 
@@ -218,6 +191,61 @@ pub fn install(rt: &mut Runtime, info: &PluginInfo, storage: Option<Storage>, re
     rt.set("wm", Some(Value::Module(Rc::from("wm"))));
     rt.set("ui", Some(Value::Module(Rc::from("ui"))));
     state
+}
+
+/// `reminders.set(id, seconds, text)`.
+pub(crate) fn reminder_set(state: &Rc<RefCell<HostState>>, clock: &dyn Clock, call: &mut Call) -> Result<Value, PyError> {
+    let id: String = call.arg(0, Some("id"))?;
+    let time = call.value(1, Some("seconds")).cloned().unwrap_or(Value::None);
+    let text: String = call.arg(2, Some("text"))?;
+    let seconds = match time {
+        Value::Int(i) => i as f64,
+        Value::Float(f) if f.is_finite() => f,
+        _ => {
+            return Err(PyError::new(
+                "the time must be a number of seconds, as time.time() or wm.timestamp() gives",
+                "ValueError",
+            ))
+        }
+    };
+    let now = (clock.now() * MILLIS as f64) as i64;
+    let mut st = state.borrow_mut();
+    let result = st.reminders.as_mut().map(|r| r.set(&id, seconds_to_millis(seconds), &text, now));
+    match result {
+        Some(Err(reason)) => Err(PyError::new(reason, "ValueError")),
+        _ => {
+            st.reminders_changed = true;
+            Ok(Value::None)
+        }
+    }
+}
+
+/// `reminders.cancel(id)`: True when there was one.
+pub(crate) fn reminder_cancel(state: &Rc<RefCell<HostState>>, call: &mut Call) -> Result<Value, PyError> {
+    let id: String = call.arg(0, Some("id"))?;
+    let mut st = state.borrow_mut();
+    let removed = st.reminders.as_mut().is_some_and(|r| r.cancel(&id));
+    if removed {
+        st.reminders_changed = true;
+    }
+    Ok(Value::Bool(removed))
+}
+
+/// `reminders.list()`: `[{"id", "time", "text"}]`, soonest first.
+pub(crate) fn reminder_list(state: &Rc<RefCell<HostState>>) -> Value {
+    let st = state.borrow();
+    let list = st.reminders.as_ref().map(|r| r.list()).unwrap_or_default();
+    Value::list(
+        list.into_iter()
+            .map(|r| {
+                Value::dict(vec![
+                    ("id", Value::from(r.id)),
+                    ("time", Value::Int(r.at.div_euclid(MILLIS))),
+                    ("text", Value::from(r.text)),
+                ])
+            })
+            .collect(),
+    )
 }
 
 /// Whole seconds to milliseconds, saturating rather than wrapping: a far-off time is refused, not moved.
@@ -236,7 +264,7 @@ fn seconds_to_millis(seconds: f64) -> i64 {
 /// `wm.timestamp(year, month, day, hour=12, minute=0, second=0)`: that moment in
 /// the phone's time zone. A field past its range rolls into the next one, so
 /// `day + 1` on the last day of a month is the first of the next.
-fn timestamp(call: &mut Call, clock: &dyn Clock) -> Result<Value, PyError> {
+pub(crate) fn timestamp(call: &mut Call, clock: &dyn Clock) -> Result<Value, PyError> {
     let names = ["year", "month", "day", "hour", "minute", "second"];
     let defaults = [None, None, None, Some(12), Some(0), Some(0)];
     let mut fields = [0i64; 6];
@@ -274,7 +302,7 @@ fn timestamp(call: &mut Call, clock: &dyn Clock) -> Result<Value, PyError> {
 
 /// Bind a builder's arguments like a Python signature: positional, then by
 /// name; a missing optional is its default.
-fn bind(call: &Call, params: &[(&str, Option<Value>)]) -> Result<Vec<Value>, PyError> {
+pub(crate) fn bind(call: &Call, params: &[(&str, Option<Value>)]) -> Result<Vec<Value>, PyError> {
     if call.args.len() > params.len() {
         return Err(PyError::new(
             format!("{}() takes {} arguments but {} were given", call.name, params.len(), call.args.len()),
