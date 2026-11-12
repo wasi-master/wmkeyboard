@@ -30,6 +30,8 @@ class PluginPreviewSession(
     private val clock: () -> Long = System::currentTimeMillis,
     private val post: (() -> Unit) -> Unit = { it() },
     limits: PluginRuntime.Limits = PluginRuntime.Limits(),
+    /** What the draft's API 5 host calls reach: the app's network and AI, and a pretend field. */
+    services: PluginServices = PluginServices.NONE,
 ) {
 
     enum class Status { IDLE, RUNNING, READY, FAILED, STOPPED }
@@ -88,7 +90,7 @@ class PluginPreviewSession(
     private var remindersOwner: String? = null
     private var sharedReminders: PluginReminders? = null
 
-    private val runtime = PluginRuntime(store, RuntimeListener(), limits, post, RuntimeObserver())
+    private val runtime = PluginRuntime(store, RuntimeListener(), limits, post, RuntimeObserver(), services = services)
 
     companion object {
         const val MAX_CONSOLE = 500
@@ -104,7 +106,7 @@ class PluginPreviewSession(
     // ---- control ---------------------------------------------------------
 
     /** Runs [source] as the draft [draftId] with [manifest], replacing any run in flight. */
-    fun run(draftId: String, source: String, manifest: PluginManifest) {
+    fun run(draftId: String, source: String, manifest: PluginManifest, modules: Map<String, String> = emptyMap()) {
         val permissions = manifest.permissions.mapNotNull { PluginPermission.parse(it) }.distinct()
         val plugin = InstalledPlugin(
             id = PluginManifestCodec.sanitise(manifest.id, PluginManifestCodec.Field.ID).ifBlank { draftId },
@@ -114,6 +116,12 @@ class PluginPreviewSession(
             description = manifest.description,
             apiVersion = manifest.apiVersion,
             permissions = permissions.map { it.wire },
+            // The author's own draft: every risky permission it declares is on.
+            granted = permissions.filter { it.isRisky }.map { it.wire },
+            hosts = manifest.hosts.map(PluginManifestCodec::normaliseHost),
+            tool = manifest.tool,
+            settings = manifest.settings,
+            language = PluginManifestCodec.LANGUAGE_PYTHON,
         )
         // The files live in the draft's preview folder whether or not the
         // manifest asks for them; the permissions decide what the script reaches.
@@ -133,7 +141,7 @@ class PluginPreviewSession(
         }
         append(ConsoleEntry(0, ConsoleEntry.Kind.STARTED))
         runtime.open(
-            PluginRuntime.Draft(plugin, source, PluginLog(workspace.previewLogFile(draftId)), storage, reminders = reminders),
+            PluginRuntime.Draft(plugin, source, PluginLog(workspace.previewLogFile(draftId)), storage, reminders = reminders, modules = modules),
         )
         // The inspectors read the same files the run writes.
         storageOf(draftId)

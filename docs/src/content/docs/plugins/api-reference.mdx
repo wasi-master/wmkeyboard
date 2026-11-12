@@ -347,11 +347,11 @@ characters removed.
 If the manifest did not declare `reminders`, `wm.reminders` is `None`. A plugin
 can check for that and work without it.
 
-### Not present, and never will be
+### Not in API 4
 
-`wm.text`, `wm.clipboard`, `wm.http`, `wm.net`, `wm.files`. None of these exists.
-There is no API for reading what the user types, reading the field, reading the
-clipboard, or reaching the network. See [Security](/plugins/security/).
+An API 4 plugin has no network, field, clipboard or file access. Those come
+with [API 5](/plugins/wm-package/), behind [permissions](/plugins/permissions/)
+the user grants, and never include reading what the user types.
 
 ## The Python you get
 

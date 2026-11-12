@@ -59,6 +59,12 @@ class PluginActionRunner(
     private val watchdogGraceMillis: Long = 500,
     /** Runs after an action changed its plugin's reminders, so the host can move its wake-up. */
     private val onRemindersChanged: () -> Unit = {},
+    /**
+     * API 5 host calls an action makes: a selection action may ask the
+     * network or the AI model within its one allowance, while its chip shows
+     * the busy state. Time spent in a host call does not count against it.
+     */
+    private val services: PluginServices = PluginServices.NONE,
 ) {
 
     private val watchdog: ScheduledExecutorService =
@@ -156,11 +162,19 @@ class PluginActionRunner(
                 storagePath = store.storageFile(plugin.id)?.path,
                 remindersPath = store.remindersFile(plugin.id)?.path,
                 action = limit,
+                modules = store.modules(plugin.id),
             ),
         ) ?: return PluginActionResult.Failed(PluginText.of(R.string.core_plugins_error_not_ready))
         call.python = python
         // A cancel that came between the check in run() and the session existing.
         if (call.cancelled) python.cancel()
+        if (plugin.isPackage) {
+            // An action answers in one call, so there is nowhere for a later
+            // answer to go: async calls simply never resolve here.
+            val binding = PluginHost.Binding(plugin, store, services, PythonSession.Config.ACTION) {}.also { it.userEvent = true }
+            call.binding = binding
+            PluginHost.bind(python.id, binding)
+        }
         try {
             val loaded = python.load(script)
             log(loaded, log)
@@ -173,6 +187,7 @@ class PluginActionRunner(
                 ?: PluginActionResult.Unchanged
         } finally {
             call.python = null
+            PluginHost.unbind(python.id)
             python.close()
         }
     }
@@ -211,7 +226,7 @@ class PluginActionRunner(
         if (call.cancelled || call.abandoned || call.delivered.get()) return
         val deadline = call.deadlineNanos
         if (deadline == Long.MAX_VALUE) return
-        val over = System.nanoTime() - deadline
+        val over = System.nanoTime() - deadline - (call.binding?.excusedNanos() ?: 0L)
         val grace = watchdogGraceMillis * NANOS_PER_MILLI
         if (over > grace && over <= 2 * grace) {
             call.python?.cancel()
@@ -266,6 +281,9 @@ class PluginActionRunner(
 
         @Volatile
         var watch: ScheduledFuture<*>? = null
+
+        @Volatile
+        var binding: PluginHost.Binding? = null
     }
 
     companion object {

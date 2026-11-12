@@ -57,30 +57,37 @@ You can also write one on the phone. <SettingsPath path="Tools / Plugins / Write
 ## What a plugin can do
 
 Compute things, draw its own panel, and add buttons to the bar over selected
-text. That is the whole list. A plugin can also be nothing but those
-buttons: a [selection action](/plugins/api-reference/#selection-actions) that
-turns the text you selected into something else, which is also how a
+text. A plugin can also be nothing but those buttons: a
+[selection action](/plugins/api-reference/#selection-actions) that turns the
+text you selected into something else, which is also how a
 [Clink action](/reference/importing-other-keyboards/#clink-actions) installs.
+
+Plugins written for API 5 (the [`wm` package](/plugins/wm-package/)) can be
+whole tools: a tile on the toolbar, a floating box, a key or a keyword that
+opens them, timers while they are open, and, when you allow it, the internet,
+your AI model, the text you are writing, the clipboard, your location or files
+you pick. Each of those is a [permission](/plugins/permissions/) you see before
+install, and the ones that can read your things or send them away stay off
+until you turn them on.
 
 ## What a plugin cannot do
 
 - **See what you type.** There is no key event API. A plugin cannot observe,
   change or delay a single keystroke going to your app.
-- **Read the text you are writing in.** No API returns the contents of the field.
-  A selection action is handed the text you selected, when you tap it, and
-  nothing else.
-- **Read your clipboard.** No API.
-- **Use the internet.** No HTTP, no sockets, no URLs.
-- **Reach Android.** No files, no reflection, no other apps, no device
-  information, no permissions of its own.
-- **Run in the background.** A plugin only runs while its panel is open. A
-  plugin with the `reminders` permission can ask the app to show a line of text
-  at a set time, and the app shows it; the plugin does not run for that.
+- **Read the text you are writing in by itself.** Even with `field.read`
+  allowed, a plugin reads the field only while it answers something you did in
+  its panel, and never a password field or incognito text.
+- **Reach the internet without you.** `network` is off until you allow it, and
+  then reaches only the websites the plugin listed. Data saver stops it.
+- **Reach Android.** No file paths, no reflection, no other apps. Only the named
+  calls in the `wm` package.
+- **Run in the background.** A plugin only runs while its panel or floating box
+  is open. A reminder is a line of text the app shows; the plugin does not run
+  for it.
 
-:::note[These are absences, not settings]
-No version of a plugin gets around them. The interpreter has no function for
-any of it. See [Security](/plugins/security/) for how that is enforced, and what the
-residual risks honestly are.
+:::note[These hold for every plugin]
+No permission gets around them. See [Security](/plugins/security/) for how they
+are enforced, and what the residual risks honestly are.
 :::
 
 Text still gets into a plugin: you type into its box, tap **Paste** on it, or

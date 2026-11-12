@@ -22,7 +22,19 @@ import java.io.File
  * call. Only a null [file] keeps its map in memory. Every public method is
  * synchronized, for the plugin editor's storage inspector.
  */
-class PluginStorage(private val file: File?) {
+class PluginStorage(private val file: File?, private val quota: Quota = Quota.V4) {
+
+    /** How much one plugin may keep; the same numbers as `native/wm-python/src/host/files.rs`. */
+    data class Quota(val maxKeys: Int, val maxValue: Int, val maxTotal: Int) {
+        companion object {
+            val V4 = Quota(MAX_KEYS, MAX_VALUE_LENGTH, MAX_TOTAL_BYTES)
+
+            /** API 5 plugins: 512 keys, 64 KB a value, 1 MB in all. */
+            val V5 = Quota(512, 64 * 1024, 1024 * 1024)
+
+            fun forApi(apiVersion: Int): Quota = if (apiVersion >= PluginManifestCodec.PACKAGE_API) V5 else V4
+        }
+    }
 
     private val entries = LinkedHashMap<String, String>()
 
@@ -41,18 +53,18 @@ class PluginStorage(private val file: File?) {
         load()
         if (key.isEmpty()) return "storage keys can't be empty"
         if (key.length > MAX_KEY_LENGTH) return "storage keys can't be longer than $MAX_KEY_LENGTH characters"
-        if (value.length > MAX_VALUE_LENGTH) {
-            return "that value is larger than the ${MAX_VALUE_LENGTH / 1024} KB limit for one key"
+        if (value.length > quota.maxValue) {
+            return "that value is larger than the ${quota.maxValue / 1024} KB limit for one key"
         }
-        if (!entries.containsKey(key) && entries.size >= MAX_KEYS) {
-            return "this plugin already has the maximum of $MAX_KEYS stored keys"
+        if (!entries.containsKey(key) && entries.size >= quota.maxKeys) {
+            return "this plugin already has the maximum of ${quota.maxKeys} stored keys"
         }
         val existing = entries[key]
         // A new key costs its name as well as its value; overwriting one only
         // costs the difference between the old value and the new.
         val delta = if (existing == null) key.length + value.length else value.length - existing.length
-        if (usedBytes() + delta > MAX_TOTAL_BYTES) {
-            return "this plugin has used all ${MAX_TOTAL_BYTES / 1024} KB of its storage"
+        if (usedBytes() + delta > quota.maxTotal) {
+            return "this plugin has used all ${quota.maxTotal / 1024} KB of its storage"
         }
         entries[key] = value
         save()
@@ -98,8 +110,8 @@ class PluginStorage(private val file: File?) {
         runCatching {
             val decoded = json.decodeFromString<Map<String, String>>(source.readText())
             for ((key, value) in decoded) {
-                if (entries.size >= MAX_KEYS) break
-                if (key.length <= MAX_KEY_LENGTH && value.length <= MAX_VALUE_LENGTH) {
+                if (entries.size >= quota.maxKeys) break
+                if (key.length <= MAX_KEY_LENGTH && value.length <= quota.maxValue) {
                     entries[key] = value
                 }
             }

@@ -101,7 +101,66 @@ data class PluginManifest(
     val panel: Boolean = true,
     /** Selection actions: chips on the bar over selected text. Needs the `selection` permission. */
     val actions: List<PluginActionSpec> = emptyList(),
+    /**
+     * API 5: the hosts `wm.http` may reach, `api.example.com` or
+     * `*.example.com`. Required with the `network` permission, and shown to
+     * the user before install and beside the grant.
+     */
+    val hosts: List<String> = emptyList(),
+    /** API 5: where the plugin shows up besides the Plugins panel. */
+    val tool: PluginToolSpec = PluginToolSpec(),
+    /** API 5: the plugin's settings page, drawn by the app. */
+    val settings: List<PluginSettingSpec> = emptyList(),
 )
+
+/**
+ * Where an API 5 plugin appears in the keyboard. Every placement is the
+ * host's own button, drawn in the keyboard's theme, so a plugin cannot put
+ * anything on screen outside a panel the user opened.
+ */
+@Serializable
+data class PluginToolSpec(
+    /** A Material Symbols name for the tile and the panel header. */
+    val icon: String = "",
+    /** Offer a tile for the toolbar, the toolbox and the floating button. */
+    val tile: Boolean = false,
+    /** The panel may open in a floating box. */
+    val float: Boolean = false,
+    /** `@keyword` while typing offers this plugin's chip; empty for none. */
+    val keyword: String = "",
+    /** Offer a chip in the suggestion strip when the keyword is typed. */
+    val chip: Boolean = false,
+    /** The panel's preferred height in dp, 0 for the keyboard's own. */
+    val height: Int = 0,
+)
+
+/**
+ * One row of a plugin's settings page. The app draws it and stores the value;
+ * the script reads `plugin.settings.<key>`.
+ */
+@Serializable
+data class PluginSettingSpec(
+    val key: String = "",
+    /** [TYPES]: a switch, a text box, a number, one of [options], or a website the user types. */
+    val type: String = TYPE_TEXT,
+    val label: String = "",
+    val summary: String = "",
+    /** As text: "true", "12", "metric". */
+    val default: String = "",
+    /** For [TYPE_CHOICE]: the values, shown as written. */
+    val options: List<String> = emptyList(),
+) {
+    companion object {
+        const val TYPE_SWITCH = "switch"
+        const val TYPE_TEXT = "text"
+        const val TYPE_NUMBER = "number"
+        const val TYPE_CHOICE = "choice"
+
+        /** A website the user adds to the plugin's hosts: their own server, say. */
+        const val TYPE_HOST = "host"
+        val TYPES = setOf(TYPE_SWITCH, TYPE_TEXT, TYPE_NUMBER, TYPE_CHOICE, TYPE_HOST)
+    }
+}
 
 /**
  * One selection action a plugin adds.
@@ -177,8 +236,16 @@ object PluginManifestCodec {
      * 4 made Python the only plugin language, on the Rust port of PyMini
      * (`native/wm-python`), with `wm` and `ui` as globals. A manifest below 4
      * that does not say `"language": "python"` is a Lua plugin, and refused.
+     *
+     * 5 is the `wm` package (`from wm import plugin, ui, http`): callbacks,
+     * decorators, classes, several modules per plugin, the new widgets, and
+     * the host calls behind the API 5 permissions, with `hosts`, `tool` and
+     * `settings` in the manifest. A plugin at 4 or below keeps the old globals.
      */
-    const val API_VERSION = 4
+    const val API_VERSION = 5
+
+    /** The level of the `wm` package and the permissions that came with it. */
+    const val PACKAGE_API = 5
 
     /** The first level whose plugins are Python unless they say otherwise. */
     const val PYTHON_ONLY_API = 4
@@ -211,7 +278,21 @@ object PluginManifestCodec {
     private const val MAX_AUTHOR = 64
     private const val MAX_DESCRIPTION = 280
     private const val MAX_ENTRY = 64
-    private const val MAX_PERMISSIONS = 16
+    private const val MAX_PERMISSIONS = 24
+    const val MAX_HOSTS = 16
+    const val MAX_SETTINGS = 24
+    private const val MAX_SETTING_OPTIONS = 24
+    private const val MAX_SETTING_TEXT = 64
+    private val SETTING_KEY = Regex("^[a-z_][a-z0-9_]{0,31}$")
+    private val KEYWORD = Regex("^[a-z0-9]{1,16}$")
+    private val ICON = Regex("^[a-z0-9_]{0,48}$")
+
+    /**
+     * A host name, or `*.` and one: letters, digits and dashes in dot-separated
+     * labels, at least two of them, the last one not all digits. No IP
+     * addresses, no ports, no `localhost`.
+     */
+    private val HOST = Regex("^(\\*\\.)?([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]([a-z0-9-]{0,61}[a-z0-9])?$")
 
     /** Enough to echo an unknown permission back without pasting an essay into the UI. */
     private const val MAX_ECHO = 32
@@ -221,7 +302,7 @@ object PluginManifestCodec {
     fun encode(manifest: PluginManifest): String = json.encodeToString(manifest)
 
     /** The manifest fields a form edits, in the order [read] checks them. */
-    enum class Field { API_VERSION, ID, NAME, VERSION, AUTHOR, DESCRIPTION, ENTRY, PERMISSIONS, ACTIONS }
+    enum class Field { API_VERSION, ID, NAME, VERSION, AUTHOR, DESCRIPTION, ENTRY, PERMISSIONS, ACTIONS, HOSTS, TOOL, SETTINGS }
 
     /** One thing wrong with one field, in the same words [read] refuses with. */
     data class Problem(val field: Field, val text: PluginText)
@@ -258,6 +339,9 @@ object PluginManifestCodec {
             language = raw.language.trim(),
             panel = raw.panel,
             actions = raw.actions.map { sanitiseAction(it) },
+            hosts = raw.hosts.map { normaliseHost(it) }.distinct(),
+            tool = raw.tool.copy(icon = raw.tool.icon.trim(), keyword = raw.tool.keyword.trim(), height = raw.tool.height.coerceIn(0, MAX_TOOL_HEIGHT)),
+            settings = raw.settings.map { sanitiseSetting(it) },
         )
         return PluginManifestResult.Ok(manifest, permissions)
     }
@@ -301,8 +385,79 @@ object PluginManifestCodec {
                 )
             }
         out += actionProblems(manifest, name)
+        out += packageProblems(manifest, name)
         return out
     }
+
+    /** The API 5 rules: permissions new in 5, hosts, the tool block and settings. */
+    private fun packageProblems(manifest: PluginManifest, name: String): List<Problem> {
+        val out = ArrayList<Problem>()
+        val level = apiLevel(manifest)
+        val permissions = manifest.permissions.mapNotNull { PluginPermission.parse(it) }
+        permissions.firstOrNull { it.sinceApi > level }?.let {
+            out += Problem(Field.PERMISSIONS, PluginText.of(R.string.core_plugins_reject_permission_needs_api_5, it.wire, name))
+        }
+        val hosts = manifest.hosts.map { normaliseHost(it) }
+        if (PluginPermission.Network in permissions && hosts.isEmpty() && manifest.settings.none { it.type.trim() == PluginSettingSpec.TYPE_HOST }) {
+            out += Problem(Field.HOSTS, PluginText.of(R.string.core_plugins_reject_network_without_hosts, name))
+        }
+        (hosts.firstOrNull { !isValidHost(it) } ?: hosts.drop(MAX_HOSTS).firstOrNull())?.let {
+            out += Problem(Field.HOSTS, PluginText.of(R.string.core_plugins_reject_bad_host, displayText(it, MAX_ECHO), name))
+        }
+        val tool = manifest.tool
+        if (!KEYWORD.matches(tool.keyword.trim()) && tool.keyword.isNotBlank() || !ICON.matches(tool.icon.trim())) {
+            out += Problem(Field.TOOL, PluginText.of(R.string.core_plugins_reject_bad_tool, name))
+        }
+        val settings = manifest.settings
+        val keys = settings.map { it.key.trim() }
+        val badSetting = settings.size > MAX_SETTINGS ||
+            keys.toSet().size != keys.size ||
+            settings.any { s ->
+                !SETTING_KEY.matches(s.key.trim()) ||
+                    displayText(s.label, MAX_SETTING_TEXT).isEmpty() ||
+                    s.type.trim() !in PluginSettingSpec.TYPES ||
+                    (s.type.trim() == PluginSettingSpec.TYPE_CHOICE && (s.options.isEmpty() || s.options.size > MAX_SETTING_OPTIONS))
+            }
+        if (badSetting) out += Problem(Field.SETTINGS, PluginText.of(R.string.core_plugins_reject_bad_setting, name))
+        val usesPackageFields = hosts.isNotEmpty() || settings.isNotEmpty() || tool != PluginToolSpec()
+        if (usesPackageFields && level < PACKAGE_API) {
+            out += Problem(Field.API_VERSION, PluginText.of(R.string.core_plugins_reject_permission_needs_api_5, "hosts/tool/settings", name))
+        }
+        return out
+    }
+
+    /** Lowercase, trimmed, without a scheme or a trailing dot or slash. */
+    fun normaliseHost(raw: String): String =
+        raw.trim().lowercase().removePrefix("https://").trimEnd('/', '.')
+
+    /** Whether [host] (already normalised) is a name `wm.http` may be allowed to reach. */
+    fun isValidHost(host: String): Boolean = host.length <= MAX_HOST_LENGTH && HOST.matches(host)
+
+    /** Whether [host] is covered by [allowed]: equal, or under a `*.` entry. */
+    fun hostAllowed(host: String, allowed: Collection<String>): Boolean {
+        val h = host.lowercase().trimEnd('.')
+        return allowed.any { entry ->
+            if (entry.startsWith("*.")) {
+                val base = entry.removePrefix("*.")
+                h == base || h.endsWith(".$base")
+            } else {
+                h == entry
+            }
+        }
+    }
+
+    fun sanitiseSetting(setting: PluginSettingSpec): PluginSettingSpec = setting.copy(
+        key = setting.key.trim(),
+        type = setting.type.trim(),
+        label = displayText(setting.label, MAX_SETTING_TEXT),
+        summary = displayText(setting.summary, MAX_DESCRIPTION),
+        default = displayText(setting.default, MAX_SETTING_DEFAULT),
+        options = setting.options.take(MAX_SETTING_OPTIONS).map { displayText(it, MAX_SETTING_TEXT) },
+    )
+
+    private const val MAX_HOST_LENGTH = 253
+    private const val MAX_SETTING_DEFAULT = 256
+    private const val MAX_TOOL_HEIGHT = 600
 
     /**
      * The rules for [PluginManifest.actions], [PluginManifest.language] and
@@ -371,7 +526,7 @@ object PluginManifestCodec {
         Field.AUTHOR -> displayText(raw, MAX_AUTHOR)
         Field.DESCRIPTION -> displayText(raw, MAX_DESCRIPTION)
         Field.ENTRY -> displayText(raw, MAX_ENTRY).ifEmpty { DEFAULT_ENTRY }
-        Field.API_VERSION, Field.PERMISSIONS, Field.ACTIONS -> raw.trim()
+        Field.API_VERSION, Field.PERMISSIONS, Field.ACTIONS, Field.HOSTS, Field.TOOL, Field.SETTINGS -> raw.trim()
     }
 
     /**

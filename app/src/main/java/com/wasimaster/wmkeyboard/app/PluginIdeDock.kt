@@ -257,6 +257,9 @@ private fun eventLabel(item: InjectableEvent): String = when (val event = item.e
             .format(java.util.Date(seconds * 1000L))
         stringResource(R.string.plugin_ide_event_date, event.id, shown)
     } ?: stringResource(R.string.plugin_ide_event_date_clear, event.id)
+    // API 5 events and the host's own: the id, then what was sent, as the script reads it.
+    is PluginEvent.Host -> event.type + (if (event.id.isNotEmpty()) " " + event.id else "")
+    else -> event.id + " · " + com.wasimaster.wmkeyboard.core.plugins.PythonSession.eventJson(event, packageApi = true)
 }
 
 /**

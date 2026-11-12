@@ -1,0 +1,220 @@
+---
+title: "The wm package (API 5)"
+description: "Plugins as whole tools: callbacks, decorators, state, the new widgets, and the host modules for the network, AI, the field and more."
+sidebar:
+  label: "wm package (API 5)"
+  order: 3
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+API 5 plugins import what they use from the `wm` package and write ordinary
+Python: classes, decorators, `with` blocks, several modules. Set
+`"apiVersion": 5` in `plugin.json`. Plugins written for API 4 keep working
+unchanged with the [globals they had](/plugins/api-reference/).
+
+```python title="main.py"
+from wm import plugin, ui, http
+
+state = plugin.state(city="Dhaka", days=[], persist=True)
+
+def look_up():
+    r = http.get("https://api.open-meteo.com/v1/forecast", params={"q": state.city})
+    r.raise_for_status()
+    state.days = r.json()["daily"]
+
+@plugin.every(minutes=30)
+def refresh():
+    look_up()
+
+def render():
+    with ui.column():
+        ui.input(label="City", value=state.city, on_change=lambda v: setattr(state, "city", v))
+        ui.button("Look up", on_click=look_up, primary=True)
+        ui.list([ui.item(d["date"], subtitle=d["summary"], icon="cloud") for d in state.days])
+```
+
+## The manifest
+
+API 5 adds three fields to [the manifest](/plugins/api-reference/#the-manifest):
+
+```json title="plugin.json"
+{
+  "format": "wmkeyboard-plugin",
+  "id": "com.example.weather",
+  "name": "Weather",
+  "pluginVersion": "1.0",
+  "apiVersion": 5,
+  "permissions": ["network", "storage"],
+  "hosts": ["api.open-meteo.com"],
+  "tool": {"icon": "cloud", "tile": true, "float": true, "keyword": "weather", "chip": true},
+  "settings": [
+    {"key": "units", "type": "choice", "label": "Units", "default": "metric", "options": ["metric", "imperial"]},
+    {"key": "server", "type": "host", "label": "Your own server"}
+  ]
+}
+```
+
+| Field | What it does |
+|---|---|
+| `hosts` | The websites `http` may reach. Required with `network`. See [Permissions](/plugins/permissions/#hosts). |
+| `tool` | Where the plugin shows up: a `tile` for the toolbar, toolbox and floating button, a floating box (`float`), and a `keyword` the user types as `@weather`, with a strip `chip`. `icon` is a Material Symbols name. |
+| `settings` | Rows the app draws on your plugin's page: `switch`, `text`, `number`, `choice` and `host`. Read them as `plugin.settings.units`. A `host` setting adds the website the user types to the ones `http` may reach. |
+
+### Several files
+
+A `.wmplugin` archive can hold up to 64 entries and 4 MB. Any other `.py` file
+is a module you can import, and `assets/` holds pictures and data (png, webp,
+jpg, svg, json, txt; 512 KB each):
+
+```
+weather.wmplugin
+├── plugin.json
+├── main.py
+├── forecast.py        import forecast
+├── lib/__init__.py    from lib import parse
+└── assets/logo.png    ui.image("assets/logo.png")
+```
+
+Module names are Python identifiers. A name that is not refuses the install.
+`wm` and the [standard library](/plugins/api-reference/#the-python-you-get) names
+are taken.
+
+## Drawing
+
+`render()` draws the panel. Build it with `with` blocks, or return nested
+widgets, or mix the two:
+
+```python
+def render():
+    with ui.card(title="Today"):
+        ui.stat("Now", f"{state.temp}°", caption=state.city)
+        with ui.row():
+            ui.button("Refresh", on_click=look_up)
+            ui.icon_button("settings", on_click=open_settings, label="Settings")
+```
+
+Interactive widgets take callbacks instead of ids. A callback runs when the
+user acts, then the panel is drawn again. An id is made for you; pass `key=`
+when you want a stable one (an input you write to, say).
+
+### Widgets
+
+| Widget | Callback hears |
+|---|---|
+| `ui.column(*children, gap=)`, `ui.row(*children, weights=, gap=)`, `ui.grid(*children, columns=3)` | |
+| `ui.card(*children, title=, on_click=)`, `ui.section(title, *children, collapsible=, open=)`, `ui.scroll(*children, height=)` | `on_click()` |
+| `ui.tabs(ui.page("One", ...), ui.page("Two", ...), on_change=)` | the page index |
+| `ui.label(text, style=, color=)`, `ui.title(text)`, `ui.caption(text)`, `ui.markdown(text)` | |
+| `ui.output(text, mono=, insertable=, copyable=)` | |
+| `ui.button(text, on_click=, primary=, icon=, color=, enabled=)`, `ui.icon_button(icon, on_click=, label=)` | `on_click()` |
+| `ui.input(label=, value=, on_change=, on_submit=, placeholder=, multiline=, kind=)` | the text |
+| `ui.search(placeholder=, on_change=, on_submit=)` | the text |
+| `ui.toggle(label, value, on_change=)`, `ui.checkbox(label, value, on_change=)` | `True` or `False` |
+| `ui.slider(value, min=, max=, step=, on_change=)`, `ui.stepper(...)` | the number |
+| `ui.select(options, value=, on_change=, style="dropdown"/"segmented")` | the chosen value |
+| `ui.chips(options, value=, multi=, on_change=)` | a value, or a list with `multi` |
+| `ui.date(label=, value=, time=, on_change=)` | seconds since 1970, or `None` |
+| `ui.list(items, on_select=, empty=)` with `ui.item(title, subtitle=, icon=, trailing=, on_click=, actions={"Delete": fn})` | the row index; `actions` show when the row's ⋯ is tapped |
+| `ui.keys(rows, on_press=)` | the key's label |
+| `ui.image(src, alt=, height=, insertable=, on_click=)` | `on_click()` |
+| `ui.icon(name, color=)`, `ui.qr(text)`, `ui.stat(label, value, caption=)`, `ui.ring(value, label=)`, `ui.progress(value=None)`, `ui.empty(text, action=, on_click=)` | |
+| `ui.chart(data, kind="line"/"bar"/"spark", labels=)` | |
+| `ui.canvas(width, height, shapes, on_tap=, on_drag=)` with `ui.rect`, `ui.circle`, `ui.line`, `ui.text_at` | `on_tap(x, y)`; `on_drag({"x", "y", "dx", "dy", "phase"})` |
+| `ui.spacer(height)`, `ui.divider()` | |
+
+Colours are roles: `primary`, `secondary`, `muted`, `danger`, `success`,
+`warning`, `accent`. Anything else raises `ValueError`. The keyboard maps each
+to its theme. Icons are Material Symbols names such as `cloud` or `delete`.
+
+`ui.toast(text)` shows a short message. `ui.dialog(title, text, buttons=("OK",),
+on_result=fn)` asks a question; `fn` hears the label tapped, or `None`.
+
+Up to 1,024 widgets and 128K characters of text per draw.
+
+## The plugin
+
+```python
+from wm import plugin
+
+state = plugin.state(count=0, persist=True)   # attributes; persist saves after every event
+plugin.settings.units                         # the user's value from your settings page
+plugin.locale, plugin.dark, plugin.surface    # "bn-BD", True, "panel" or "float"
+
+@plugin.on_open                     # each time the panel opens, before it draws
+@plugin.on_close                    # when it closes; keep it short
+@plugin.every(seconds=, minutes=)   # again and again while the panel is open, at least a second apart
+plugin.after(seconds, fn)           # once
+@plugin.action("shout")             # a selection action, by its manifest id
+@plugin.keyword("weather")          # hears what followed @weather when the chip is tapped
+@plugin.command("Refresh", icon="refresh")   # a button in the panel's header (three at most)
+@plugin.setting_changed("units")    # hears the new value
+
+plugin.push(render_fn, title=)      # another page; the keyboard's back button returns
+plugin.back(), plugin.set_title(text), plugin.close()
+```
+
+`on_event(e)` still works and hears any event no callback took.
+
+## Host modules
+
+Each needs a [permission](/plugins/permissions/). Those marked risky are off
+until the user turns them on, and a call before that raises `PermissionError`.
+
+### `storage`
+
+A dict of JSON values: `storage["items"] = items`, `storage.get("items", [])`,
+`del storage["items"]`, `"items" in storage`, `storage.keys()`. Needs `storage`.
+
+`secrets.get(name)`, `secrets.set(name, value)` keep API keys encrypted.
+
+### `http`
+
+Risky (`network`). Shaped like `requests`:
+
+```python
+r = http.get(url, params={"q": "x"}, headers={...})
+r = http.post(url, json={"a": 1})          # or data= for a form or bytes
+r.status_code, r.ok, r.headers, r.text, r.content, r.json()
+r.raise_for_status()                        # http.HTTPError for 400 and up
+http.get(url, then=show, on_error=failed)   # without waiting; show hears the Response
+```
+
+https only, to your `hosts`. 15 seconds, 1 MB, 60 requests a minute. Failures
+raise `ConnectionError` or `TimeoutError`.
+
+### `ai`
+
+Risky (`ai`). `ai.ask(prompt, system=)` returns the reply;
+`ai.ask(prompt, then=fn)` doesn't wait; `ai.stream(prompt, on_chunk=fn, then=done)`
+hears it as it is written.
+
+### `field`
+
+`field.insert(text)`, `field.replace_selection(text)`, `field.delete(before, after)`,
+`field.move_cursor(by)`, `field.send()` need `field.write`.
+`field.selection()`, `field.text_before(n)`, `field.text_after(n)`, `field.info()`
+need the risky `field.read`, and work only inside a callback for something the
+user did in your panel. Password fields and incognito refuse both.
+
+### And the rest
+
+| Module | Calls | Permission |
+|---|---|---|
+| `clipboard` | `get()` (risky, user's action only), `set(text)` | `clipboard.read`, `clipboard.write` |
+| `location` | `get(accuracy="coarse")`, or `then=` | risky `location` |
+| `files` | `pick(kind=, then=)` hears `{"name", "mime", "data"}`; `save(name, data)` | risky `files` |
+| `sensors` | `subscribe(kind, on_reading=, hz=)`, `unsubscribe(token)` | `sensors` |
+| `scan` | `qr(then=)`, `text(then=)` | `scan` |
+| `device` | `vibrate(ms)`, `flashlight(on)`, `speak(text)`, `battery()` | `device` |
+| `share` | `text(text)`, `open(url)` | `share` |
+| `notify` | `show(text, title=)`, `cancel(id)` | `notifications` |
+| `reminders` | `set(id, seconds, text)`, `cancel(id)`, `list()` | `reminders` |
+
+## Testing outside the phone
+
+`wm-python-cli run <folder> --mock mock.json` loads your plugin with every
+`.py` file beside it and answers host calls from the mock file
+(`{"http.request": {"status": 200, "text": "..."}}`). In `test.py`,
+`plugin_test.session(mock={...})` gives you `load()`, `event(e)`, `render()`
+and `transform(text, id)`, each returning the result as a dict.

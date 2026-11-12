@@ -26,11 +26,15 @@ sealed interface PluginImportResult {
 
 /** The outcome of reading a `.wmplugin` file without installing it. */
 sealed interface PluginReadResult {
-    /** A plugin [PluginFile.import] would accept, with its script. */
+    /** A plugin [PluginFile.import] would accept, with its script, other modules and assets. */
     data class Ok(
         val manifest: PluginManifest,
         val permissions: List<PluginPermission>,
         val script: String,
+        /** API 5: every other `.py` file, by its name in the archive. */
+        val modules: Map<String, String> = emptyMap(),
+        /** API 5: `assets/<name>` entries, by name. */
+        val assets: Map<String, ByteArray> = emptyMap(),
     ) : PluginReadResult
 
     /** No manifest, or a manifest for something else entirely. */
@@ -50,7 +54,10 @@ sealed interface PluginReadResult {
  * ```
  * cipher.wmplugin
  * ├── plugin.json
- * └── main.py
+ * ├── main.py
+ * ├── helpers.py           API 5: any other module, `import helpers`
+ * ├── lib/__init__.py      API 5: a package
+ * └── assets/logo.png      API 5: pictures and data, `ui.image("assets/logo.png")`
  * ```
  *
  * A Clink action (`.clinkext`, see [ClinkAction]) is read through the same
@@ -100,8 +107,26 @@ object PluginFile {
     const val MAX_SCRIPT_BYTES = 256 * 1024
 
     /** Zip-bomb guards: nothing legitimate comes close to either. */
-    private const val MAX_ENTRIES = 16
-    private const val MAX_TOTAL_BYTES = 1L * 1024 * 1024
+    const val MAX_ENTRIES = 64
+    const val MAX_TOTAL_BYTES = 4L * 1024 * 1024
+
+    /** One asset. */
+    const val MAX_ASSET_BYTES = 512 * 1024
+
+    const val ASSETS_PREFIX = "assets/"
+
+    private val ASSET_NAME = Regex("^[a-z0-9][a-z0-9_.-]{0,63}\\.(png|webp|jpg|jpeg|svg|json|txt)$")
+    private val MODULE_PART = Regex("^[A-Za-z_][A-Za-z0-9_]{0,63}$")
+
+    /** Whether [name] (after `assets/`) is a name an asset may have: one flat, lowercase file name. */
+    fun isAssetName(name: String): Boolean = ASSET_NAME.matches(name) && ".." !in name
+
+    /** Whether [entry] names a module `import` can reach: identifiers between slashes, ending `.py`. */
+    fun isModuleName(entry: String): Boolean {
+        if (!entry.endsWith(".py")) return false
+        val parts = entry.removeSuffix(".py").split('/')
+        return parts.size <= 4 && parts.all { MODULE_PART.matches(it) }
+    }
 
     /** Manifests are small; this is already an order of magnitude of headroom. */
     private const val MAX_MANIFEST_BYTES = 64 * 1024
@@ -121,14 +146,33 @@ object PluginFile {
     }
 
     /** Writes a plugin archive: the plugin editor's export, the tests, and the repository tooling. */
-    fun write(out: OutputStream, manifest: PluginManifest, script: String) {
+    fun write(
+        out: OutputStream,
+        manifest: PluginManifest,
+        script: String,
+        modules: Map<String, String> = emptyMap(),
+        assets: Map<String, ByteArray> = emptyMap(),
+    ) {
         ZipOutputStream(out.buffered()).use { zip ->
             zip.putNextEntry(ZipEntry(MANIFEST))
             zip.write(PluginManifestCodec.encode(manifest).toByteArray())
             zip.closeEntry()
-            zip.putNextEntry(ZipEntry(manifest.entry.ifBlank { PluginManifestCodec.DEFAULT_ENTRY }))
+            val entry = manifest.entry.ifBlank { PluginManifestCodec.DEFAULT_ENTRY }
+            zip.putNextEntry(ZipEntry(entry))
             zip.write(script.toByteArray())
             zip.closeEntry()
+            for ((name, source) in modules) {
+                if (name == entry || !isModuleName(name)) continue
+                zip.putNextEntry(ZipEntry(name))
+                zip.write(source.toByteArray())
+                zip.closeEntry()
+            }
+            for ((name, bytes) in assets) {
+                if (!isAssetName(name)) continue
+                zip.putNextEntry(ZipEntry(ASSETS_PREFIX + name))
+                zip.write(bytes)
+                zip.closeEntry()
+            }
         }
     }
 
@@ -202,7 +246,38 @@ object PluginFile {
             ?: return PluginReadResult.Rejected(
                 PluginText.of(R.string.core_plugins_reject_bad_encoding, manifest.name),
             )
-        return PluginReadResult.Ok(manifest, accepted.permissions, script)
+        if (manifest.apiVersion < PluginManifestCodec.PACKAGE_API) {
+            return PluginReadResult.Ok(manifest, accepted.permissions, script)
+        }
+        if (unpacked.overflowed) {
+            return PluginReadResult.Rejected(
+                PluginText.of(R.string.core_plugins_reject_archive_too_large, manifest.name, (MAX_TOTAL_BYTES / 1024).toInt()),
+            )
+        }
+        val modules = LinkedHashMap<String, String>()
+        val assets = LinkedHashMap<String, ByteArray>()
+        val entryName = unpacked.nameOf(manifest.entry)
+        for ((name, bytes) in unpacked.files) {
+            when {
+                name == entryName -> Unit
+                name.startsWith(ASSETS_PREFIX) -> {
+                    val asset = name.removePrefix(ASSETS_PREFIX)
+                    if (!isAssetName(asset) || bytes.size > MAX_ASSET_BYTES) {
+                        return PluginReadResult.Rejected(PluginText.of(R.string.core_plugins_reject_bad_module, manifest.name))
+                    }
+                    assets[asset] = bytes
+                }
+                name.endsWith(".py") -> {
+                    val text = bytes.takeIf { isModuleName(name) && it.size <= MAX_SCRIPT_BYTES }
+                        ?.let { runCatching { it.decodeToString(throwOnInvalidSequence = true) }.getOrNull() }
+                        ?: return PluginReadResult.Rejected(PluginText.of(R.string.core_plugins_reject_bad_module, manifest.name))
+                    modules[name] = text
+                }
+                // Anything else (a README, a licence, test.py's fixtures) is left out.
+                else -> Unit
+            }
+        }
+        return PluginReadResult.Ok(manifest, accepted.permissions, script, modules, assets)
     }
 
     /**
@@ -214,7 +289,9 @@ object PluginFile {
         store: PluginStore,
         now: Long = System.currentTimeMillis(),
     ): PluginImportResult = when (val outcome = read(input)) {
-        is PluginReadResult.Ok -> when (val adopted = store.adopt(outcome.manifest, outcome.script, now)) {
+        is PluginReadResult.Ok -> when (
+            val adopted = store.adopt(outcome.manifest, outcome.script, now, modules = outcome.modules, assets = outcome.assets)
+        ) {
             is PluginAdoptResult.Adopted -> PluginImportResult.Imported(adopted.plugin, adopted.replaced)
             PluginAdoptResult.TooManyPlugins -> PluginImportResult.TooManyPlugins
             PluginAdoptResult.Failed -> PluginImportResult.Failed
@@ -233,7 +310,16 @@ object PluginFile {
      * the whole archive is capped at [MAX_TOTAL_BYTES], which is small enough
      * that a staging directory would be more moving parts than it is worth.
      */
-    private class Unpacked(val files: Map<String, ByteArray>, val manifest: String?) {
+    private class Unpacked(val files: Map<String, ByteArray>, val manifest: String?, val overflowed: Boolean) {
+
+        /** The archive name [lookUp] resolves [entry] to. */
+        fun nameOf(entry: String): String? {
+            if (entry in files) return entry
+            val tail = entry.substringAfterLast('/').substringAfterLast('\\')
+            if (tail.isEmpty()) return null
+            if (tail in files) return tail
+            return files.keys.firstOrNull { it.substringAfterLast('/') == tail }
+        }
 
         /**
          * Finds the entry the manifest names, trying the exact name and then its
@@ -253,8 +339,9 @@ object PluginFile {
     }
 
     private fun unpack(input: InputStream): Unpacked {
-        val files = HashMap<String, ByteArray>()
+        val files = LinkedHashMap<String, ByteArray>()
         var manifest: String? = null
+        var overflowed = false
         ZipInputStream(input.buffered()).use { zip ->
             var count = 0
             var total = 0L
@@ -266,14 +353,20 @@ object PluginFile {
                     entry == null -> reading = false
                     // Directories cost nothing and don't count against the cap.
                     entry.isDirectory -> Unit
-                    ++count > MAX_ENTRIES -> reading = false
+                    ++count > MAX_ENTRIES -> {
+                        overflowed = true
+                        reading = false
+                    }
                     entry.name == MANIFEST -> manifest = readCapped(zip, MAX_MANIFEST_BYTES)
-                    remaining <= 0L -> reading = false
+                    remaining <= 0L -> {
+                        overflowed = true
+                        reading = false
+                    }
                     else -> {
                         // One byte past the cap, so an oversized script can be
                         // *reported* as oversized rather than silently truncated
                         // into a confusing syntax error.
-                        val perEntry = minOf(remaining, MAX_SCRIPT_BYTES + 1L).toInt()
+                        val perEntry = minOf(remaining, maxOf(MAX_SCRIPT_BYTES, MAX_ASSET_BYTES) + 1L).toInt()
                         val bytes = readCappedBytes(zip, perEntry)
                         total += bytes.size
                         files[entry.name] = bytes
@@ -281,7 +374,7 @@ object PluginFile {
                 }
             }
         }
-        return Unpacked(files, manifest)
+        return Unpacked(files, manifest, overflowed)
     }
 
     private fun readCapped(zip: ZipInputStream, max: Int): String =

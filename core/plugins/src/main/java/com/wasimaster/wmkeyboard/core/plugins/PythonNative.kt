@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.plugins
 
+import androidx.annotation.Keep
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.GatedLibrary
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
@@ -115,6 +116,15 @@ object PythonNative {
     @JvmStatic external fun nativeCancel(handle: Long)
 
     @JvmStatic external fun nativeClose(handle: Long)
+
+    /**
+     * Called by the library, on the plugin thread, for each host call an API 5
+     * plugin makes while one of the calls above runs. Kept by name: nothing
+     * in Kotlin calls it, so R8 would otherwise drop it.
+     */
+    @Keep
+    @JvmStatic
+    fun hostCall(handle: Long, op: String, args: String): String = PluginHost.call(handle, op, args)
 
     // ---- the editor's tooling --------------------------------------------
 

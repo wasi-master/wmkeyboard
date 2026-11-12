@@ -102,7 +102,7 @@ class PluginManifestFormTest {
         assertEquals(listOf(Field.ID), fields(manifest(id = "no spaces allowed")))
         assertEquals(listOf(Field.NAME), fields(manifest(name = " ")))
         assertEquals(listOf(Field.VERSION), fields(manifest(version = "")))
-        assertEquals(listOf(Field.PERMISSIONS), fields(manifest(permissions = listOf("storage", "network"))))
+        assertEquals(listOf(Field.PERMISSIONS), fields(manifest(permissions = listOf("storage", "telepathy"))))
         assertEquals(listOf(Field.API_VERSION), fields(manifest(language = PluginManifestCodec.LANGUAGE_LUA)))
         assertEquals(listOf(Field.ENTRY), fields(manifest(language = "ruby")))
         assertEquals(listOf(Field.ACTIONS), fields(manifest(panel = false)))
@@ -126,9 +126,9 @@ class PluginManifestFormTest {
 
     @Test
     fun `an unknown permission is echoed with the plugin name`() {
-        val problem = PluginManifestCodec.problems(manifest(permissions = listOf("network"))).single()
+        val problem = PluginManifestCodec.problems(manifest(permissions = listOf("telepathy"))).single()
         assertEquals(
-            PluginText.of(R.string.core_plugins_reject_unknown_permission, "network", "Demo"),
+            PluginText.of(R.string.core_plugins_reject_unknown_permission, "telepathy", "Demo"),
             problem.text,
         )
     }

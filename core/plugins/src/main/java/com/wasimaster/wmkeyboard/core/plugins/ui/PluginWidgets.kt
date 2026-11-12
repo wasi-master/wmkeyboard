@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -39,8 +41,12 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.common.R as CommonR
@@ -84,6 +90,20 @@ class PluginPanelStyle(
     val ring: @Composable (Modifier, Boolean) -> Modifier,
     /** A pill button: its label, whether it is selected, whether it is enabled, its modifier, and its click. */
     val chip: @Composable (String, Boolean, Boolean, Modifier, () -> Unit) -> Unit,
+    // ---- API 5 ----
+    val danger: Color = Color(0xFFD93025),
+    val success: Color = Color(0xFF1E8E3E),
+    val warning: Color = Color(0xFFE37400),
+    /** A Material Symbols glyph by name, in a colour and at a size. Draws nothing where the host has no icon set. */
+    val icon: @Composable (String, Color, Dp) -> Unit = { _, _, _ -> },
+    /**
+     * A picture from `assets/<name>` or an `https://` address. The host loads
+     * it: assets from the plugin's folder, addresses under the plugin's host
+     * rules. The default shows the alt text.
+     */
+    val image: @Composable (String, String, Modifier) -> Unit = { _, alt, modifier -> Text(alt, color = secondaryText, fontSize = 12.sp, modifier = modifier) },
+    /** A QR code for the text. The default shows the text. */
+    val qr: @Composable (String, Dp) -> Unit = { value, _ -> Text(value, color = text, fontFamily = FontFamily.Monospace, fontSize = 12.sp) },
 )
 
 /** The style [PluginWidgetList] draws with. A host must provide one. */
@@ -144,19 +164,19 @@ private fun PluginWidgetView(
     val style = LocalPluginPanelStyle.current
     when (widget) {
         is PluginWidget.Column -> Column(
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy((widget.gap ?: 6).dp),
             modifier = Modifier.fillMaxWidth(),
         ) {
             PluginWidgetList(widget.children, host, onEvent, onInsert, onCopy, ringed)
         }
 
         is PluginWidget.Row -> Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy((widget.gap ?: 6).dp),
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            for (child in widget.children) {
-                Box(modifier = Modifier.weight(1f)) {
+            widget.children.forEachIndexed { i, child ->
+                Box(modifier = Modifier.weight(widget.weights?.getOrNull(i) ?: 1f)) {
                     PluginWidgetView(child, host, onEvent, onInsert, onCopy, ringed)
                 }
             }
@@ -164,23 +184,40 @@ private fun PluginWidgetView(
 
         is PluginWidget.Label -> Text(
             widget.text,
-            color = if (widget.style == PluginLabelStyle.CAPTION) style.secondaryText else style.text,
+            color = when {
+                widget.color != null -> style.colorOf(widget.color)
+                widget.style == PluginLabelStyle.CAPTION -> style.secondaryText
+                else -> style.text
+            },
             fontSize = when (widget.style) {
+                PluginLabelStyle.HEADLINE -> 20.sp
                 PluginLabelStyle.TITLE -> 15.sp
                 PluginLabelStyle.BODY -> 13.sp
                 PluginLabelStyle.CAPTION -> 11.sp
             },
-            fontWeight = if (widget.style == PluginLabelStyle.TITLE) FontWeight.Medium else FontWeight.Normal,
+            fontWeight = if (widget.style == PluginLabelStyle.TITLE || widget.style == PluginLabelStyle.HEADLINE) FontWeight.Medium else FontWeight.Normal,
         )
 
         is PluginWidget.Output -> OutputWidget(widget, onInsert, onCopy)
 
-        is PluginWidget.Button -> style.chip(
-            widget.text,
-            widget.primary,
-            widget.enabled,
-            style.ring(Modifier, widget === ringed),
-        ) { onEvent(PluginEvent.Click(widget.id)) }
+        is PluginWidget.Button -> if (widget.icon != null && (widget.compact || widget.text.isEmpty())) {
+            // An icon button: the label, when there is one, is what TalkBack reads.
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = style.ring(Modifier, widget === ringed)
+                    .clip(style.cardShape)
+                    .clickable(enabled = widget.enabled) { onEvent(PluginEvent.Click(widget.id)) }
+                    .semantics { contentDescription = widget.text }
+                    .padding(6.dp),
+            ) { style.icon(widget.icon, if (widget.color != null) style.colorOf(widget.color) else style.text, 22.dp) }
+        } else {
+            style.chip(
+                widget.text,
+                widget.primary,
+                widget.enabled,
+                style.ring(Modifier, widget === ringed),
+            ) { onEvent(PluginEvent.Click(widget.id)) }
+        }
 
         is PluginWidget.Toggle -> Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -200,7 +237,7 @@ private fun PluginWidgetView(
         }
 
         is PluginWidget.Input -> Box(style.ring(Modifier, widget === ringed)) {
-            InputWidget(widget, host)
+            InputWidget(widget, host, onEvent)
         }
 
         is PluginWidget.DatePicker -> DateWidget(widget, onEvent)
@@ -221,6 +258,8 @@ private fun PluginWidgetView(
         )
 
         is PluginWidget.Tabs -> TabsWidget(widget, host, onEvent, onInsert, onCopy)
+
+        else -> PackageWidgetView(widget, host, onEvent, onInsert, onCopy, ringed)
     }
 }
 
@@ -281,7 +320,7 @@ private fun OutputWidget(
  * text-reading APIs the sandbox deliberately does not have.
  */
 @Composable
-private fun InputWidget(widget: PluginWidget.Input, host: PluginInputHost) {
+internal fun InputWidget(widget: PluginWidget.Input, host: PluginInputHost, onEvent: (PluginEvent) -> Unit) {
     val style = LocalPluginPanelStyle.current
     val value = host.value(widget.id)
     val focused = host.isFocused(widget.id)
@@ -317,7 +356,14 @@ private fun InputWidget(widget: PluginWidget.Input, host: PluginInputHost) {
                     value = value,
                     onValueChange = { edit(widget.id, it) },
                     placeholder = { Text(widget.placeholder, fontSize = 13.sp) },
-                    maxLines = 3,
+                    maxLines = if (widget.multiline) 6 else 3,
+                    singleLine = widget.submit && !widget.multiline,
+                    visualTransformation = if (widget.kind == "password") PasswordVisualTransformation() else VisualTransformation.None,
+                    keyboardActions = KeyboardActions(
+                        onDone = { if (widget.submit) onEvent(PluginEvent.Submitted(widget.id, value)) },
+                        onSearch = { if (widget.submit) onEvent(PluginEvent.Submitted(widget.id, value)) },
+                    ),
+                    keyboardOptions = KeyboardOptions(imeAction = if (widget.kind == "search") ImeAction.Search else ImeAction.Done),
                     modifier = Modifier.weight(1f),
                 )
             } else {
@@ -340,7 +386,8 @@ private fun InputWidget(widget: PluginWidget.Input, host: PluginInputHost) {
                         .padding(horizontal = 10.dp, vertical = 8.dp),
                 ) {
                     Text(
-                        value.ifEmpty { widget.placeholder },
+                        // A password box in the keyboard shows dots, like any other.
+                        if (widget.kind == "password" && value.isNotEmpty()) "•".repeat(value.length) else value.ifEmpty { widget.placeholder },
                         color = if (value.isEmpty()) style.secondaryText else style.onSurface,
                         fontSize = 13.sp,
                         maxLines = 2,

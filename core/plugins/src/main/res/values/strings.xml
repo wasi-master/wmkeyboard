@@ -30,6 +30,35 @@
     <!-- The plugin adds buttons to the bar that appears over selected text.
          It sees the selected text only when the user taps one of them. -->
     <string name="core_plugins_permission_selection_label">Change text you select, when you tap one of its actions</string>
+    <!-- API 5 permissions. The ones with a _warning string are off until the
+         user turns them on in the plugin's settings, after reading the warning. -->
+    <string name="core_plugins_permission_network_label">Connect to the internet, to the websites it lists</string>
+    <string name="core_plugins_permission_network_warning">This plugin can send data to the websites it lists, and those websites can see your IP address. Anything you give the plugin, it can send there.</string>
+    <!-- AI: the AI model the user set up in the keyboard's settings. -->
+    <string name="core_plugins_permission_ai_label">Ask the AI model you set up in the keyboard</string>
+    <string name="core_plugins_permission_ai_warning">This plugin can send text to the AI model you set up. If that model runs online, the text leaves your phone and the provider\'s terms apply.</string>
+    <!-- The text field is the box in another app that the user is typing into. -->
+    <string name="core_plugins_permission_field_read_label">Read the text around the cursor and the text you selected, when you tap something in its panel</string>
+    <string name="core_plugins_permission_field_read_warning">This plugin can read what you are writing in the app you are typing in, each time you tap something in its panel. It never can in password fields or in incognito.</string>
+    <string name="core_plugins_permission_field_write_label">Type, replace and delete text in the field you are typing in</string>
+    <string name="core_plugins_permission_clipboard_read_label">Read the clipboard, when you tap something in its panel</string>
+    <string name="core_plugins_permission_clipboard_read_warning">This plugin can read what you copied, each time you tap something in its panel. It never sees clips marked private.</string>
+    <string name="core_plugins_permission_clipboard_write_label">Copy text to the clipboard</string>
+    <string name="core_plugins_permission_location_label">Find out where your phone is</string>
+    <string name="core_plugins_permission_location_warning">This plugin can find out where your phone is while its panel is open.</string>
+    <string name="core_plugins_permission_files_label">Open files you pick and save files where you choose</string>
+    <string name="core_plugins_permission_files_warning">This plugin can read every file you pick for it, and can ask to save files.</string>
+    <string name="core_plugins_permission_sensors_label">Read motion and light sensors while its panel is open</string>
+    <string name="core_plugins_permission_scan_label">Open the keyboard\'s QR code and text scanners</string>
+    <string name="core_plugins_permission_device_label">Vibrate, turn on the flashlight and read text aloud</string>
+    <string name="core_plugins_permission_share_label">Share text and open links, after you confirm</string>
+    <string name="core_plugins_permission_notifications_label">Show notifications</string>
+    <!-- Shown under the permission list when a plugin can both read something
+         of the user's and send data away. %1$s is a list of websites. -->
+    <string name="core_plugins_permission_combination_warning">This plugin can read text or files you give it and send them to %1$s.</string>
+    <!-- Shown under the permission list when a plugin can both read something
+         of the user's and ask the AI model. -->
+    <string name="core_plugins_permission_combination_ai_warning">This plugin can read text you give it and send it to your AI model.</string>
 
     <!-- ================================================================== -->
     <!-- Install refused: the manifest. Each of these replaces the install,  -->
@@ -59,6 +88,20 @@
     <string name="core_plugins_reject_action_no_name">“%1$s” has an action without a name.</string>
     <!-- %1$s is the name of the plugin. -->
     <string name="core_plugins_reject_action_input">“%1$s” has an action that asks for text this version of WM Keyboard cannot give it.</string>
+    <!-- %1$s is the permission. %2$s is the name of the plugin. -->
+    <string name="core_plugins_reject_permission_needs_api_5">“%2$s” asks for “%1$s”, which only plugins written for API 5 can use.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_network_without_hosts">“%1$s” asks to connect to the internet but does not list any websites.</string>
+    <!-- %1$s is the website as the plugin wrote it. %2$s is the name of the plugin. -->
+    <string name="core_plugins_reject_bad_host">“%2$s” lists a website this version of WM Keyboard cannot allow: “%1$s”. Websites are names like api.example.com or *.example.com.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_bad_setting">“%1$s” has a setting that is missing its key or label, repeats a key, or has a type this version cannot draw.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_bad_tool">“%1$s” has a tool keyword that is not valid. A keyword is up to 16 lowercase letters and numbers.</string>
+    <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_bad_module">“%1$s” has a file this version of WM Keyboard cannot load.</string>
+    <!-- %1$s is the name of the plugin. %2$d is the size limit in kilobytes. -->
+    <string name="core_plugins_reject_archive_too_large" tools:ignore="PluralsCandidate">“%1$s” is larger than %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">This version of WM Keyboard does not know the permission “%1$s”. The app cannot tell you what “%2$s” is allowed to do.</string>
 
     <!-- ================================================================== -->
@@ -90,6 +133,15 @@
     <!-- transform() is the name of the function a plugin writes for its selection actions. It stays in English. -->
     <string name="core_plugins_error_no_transform">This plugin has no transform() function.</string>
     <string name="core_plugins_error_action_missing">That plugin no longer has that action.</string>
+    <!-- A plugin asked for something its permission covers, but the user has
+         not turned that permission on. %1$s is the permission's line. -->
+    <string name="core_plugins_error_needs_grant">This plugin needs a permission you have not turned on: %1$s</string>
+    <!-- Errors a plugin's script receives, also shown in the panel. -->
+    <string name="core_plugins_error_risky_off">Risky permissions are turned off for all plugins.</string>
+    <string name="core_plugins_error_protected_field">Plugins cannot read or change password fields, or text in incognito.</string>
+    <string name="core_plugins_error_data_saver">Data saver is on, so plugins cannot use the internet.</string>
+    <!-- %1$s is a website. -->
+    <string name="core_plugins_error_host_not_listed">This plugin is not allowed to connect to %1$s.</string>
 
     <!-- ================================================================== -->
     <!-- The plugin panel: the session is over. The panel goes back to the  -->
@@ -126,6 +178,16 @@
     <string name="core_plugins_ui_repair_too_many_tabs" tools:ignore="PluralsCandidate">Only the first %1$d tabs are shown.</string>
     <string name="core_plugins_ui_repair_text_budget">This plugin asked to draw too much text. The app left some out.</string>
     <string name="core_plugins_ui_repair_text_shortened">Some text was too long to draw. The app shortened it.</string>
+    <string name="core_plugins_ui_repair_bad_image">An image could not be drawn. Images come from the plugin\'s own files, https addresses, or bytes.</string>
+    <!-- %1$d is the largest number of options. -->
+    <string name="core_plugins_ui_repair_too_many_options" tools:ignore="PluralsCandidate">Only the first %1$d options are shown.</string>
+    <!-- %1$d is the largest number. -->
+    <string name="core_plugins_ui_repair_too_many_series" tools:ignore="PluralsCandidate">A chart had too many lines. Only the first %1$d are drawn.</string>
+    <!-- %1$d is the largest number. -->
+    <string name="core_plugins_ui_repair_too_many_points" tools:ignore="PluralsCandidate">A chart had too many points. Only the first %1$d are drawn.</string>
+    <!-- %1$d is the largest number. -->
+    <string name="core_plugins_ui_repair_too_many_shapes" tools:ignore="PluralsCandidate">A drawing had too many shapes. Only the first %1$d are drawn.</string>
+    <string name="core_plugins_ui_repair_bad_shape">A drawing had a shape the app cannot draw.</string>
 
     <!-- The name of a tab the plugin gave no title. %1$d is its position,
          counted from 1. -->
@@ -153,6 +215,14 @@
     <!-- Short buttons that move the time one hour. "h" is the unit symbol for hours. -->
     <string name="core_plugins_ui_date_hour_earlier">−1 h</string>
     <string name="core_plugins_ui_date_hour_later">+1 h</string>
+    <!-- The button on a plugin panel that goes back to the page before. -->
+    <string name="core_plugins_ui_back">Back</string>
+    <!-- Shown in an empty list when the plugin gave no text of its own. -->
+    <string name="core_plugins_ui_list_empty">Nothing here yet</string>
+    <!-- The button that turns on a permission a plugin needs, shown in its panel. -->
+    <string name="core_plugins_ui_allow">Allow</string>
+    <!-- Shown in a plugin's panel header while it can use the internet or read the field. -->
+    <string name="core_plugins_ui_access_mark">This plugin can use the internet or read text</string>
 
     <!-- ================================================================== -->
     <!-- Reminders a plugin set, shown by the app in the notification shade. -->

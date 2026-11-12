@@ -6,6 +6,8 @@ sidebar:
   order: 5
 ---
 
+import SettingsPath from '@components/SettingsPath.astro';
+
 What plugins can do, how that is enforced, and where the limits honestly are.
 
 Written for three audiences: users deciding whether to trust the feature,
@@ -14,50 +16,51 @@ what third-party code on a keyboard is allowed to reach.
 
 ## The invariants
 
-Each of these is a property of what was built. None of them is a policy that
-could be configured differently. Each has a test.
+Each of these is a property of what was built, and each has a test. Plugins
+written for API 5 can ask for more than older ones (see
+[Permissions](/plugins/permissions/)); these hold for every plugin, whatever the
+user granted.
 
 1. **Plugins cannot read what you type.** There is no key-event API. The IME's
-   typing, prediction and autocorrect paths have no plugin hook at all. A
-   plugin cannot observe, alter or delay a single keystroke on its way to your
-   app.
-2. **Plugins cannot read the text field.** No `InputConnection` read path is
-   exposed. No function returns the contents of what you are writing in. A
-   plugin with the `selection` permission is handed one thing: the text you
-   selected, when you tap one of its buttons on the selection bar. Never
-   without the tap, never more than the selection, never on a password field.
-   Each tap runs in a fresh interpreter that is discarded afterwards, so the text
-   outlives the call only if the plugin writes it to its own storage, which
-   has nowhere to send it.
-3. **Plugins cannot read the clipboard.** No API.
-4. **Plugins cannot reach the network.** No HTTP client, no sockets, no URL
-   handling. The interpreter has zero egress.
-5. **Plugins cannot execute downloaded code.** There is no `eval`, `exec`,
-   `compile` or `__import__`, and `import` reaches six built-in modules and
-   nothing else, so a plugin cannot turn a string into code that runs. There is
-   no bytecode format to smuggle one in either: a plugin is source, read by
-   the interpreter's own parser.
-6. **Plugins cannot reach Android.** No `open`, no `os`, no `subprocess`, no
-   reflection, no class loading, no file paths, no Intents, no `Context`. The
-   interpreter is native code that never calls back into the app: the app
-   hands it JSON and reads JSON back, and that is the whole connection.
-7. **Plugins cannot see other apps or the device.** No package enumeration, no
-   identifiers, no location, contacts, camera, microphone, SMS or
-   accessibility.
-8. **Plugins cannot run in the background.** Execution exists only while the
-   plugin's panel is open. No timers, no callbacks that outlive it. A plugin
-   with the `reminders` permission can leave a time and a line of text with the
-   app; at that time the app, not the plugin, shows the text in a notification
-   titled with the plugin's name. No plugin code runs for it.
-9. **Plugins cannot change the app.** They render inside their own panel below a
-   host-drawn title bar, and cannot alter keyboard behaviour, request
-   permissions, or affect any other feature.
-
-Anything a plugin holds, you gave it on purpose: typed or pasted into its
-panel, or selected and handed to it with a tap. It also has nowhere to send it.
+   typing, prediction and autocorrect paths have no plugin hook at all.
+2. **Plugins read the text field only when you act in their panel.** A plugin
+   with the `field.read` permission, which is off until you turn it on, can read
+   the selection and the text around the cursor while it handles a tap, a
+   change or a key in its own panel. Never from a timer, a network answer or
+   in the background, so it cannot watch what you write. A `selection` action
+   is handed the text you selected when you tap it, and nothing else.
+3. **Never in password fields or incognito.** Field and clipboard calls are
+   refused there, and clips marked private are never handed to a plugin.
+4. **The network is off until you allow it, and then only to listed sites.**
+   A plugin with `network` reaches https addresses on the hosts its manifest
+   lists, nothing else: no IP addresses, no `localhost`, no other ports. You
+   see the hosts before install and again when you grant it. Data saver stops
+   it, and every request shows in Network activity under the plugin's name.
+5. **Every risky permission is off until you turn it on.** `network`, `ai`,
+   `field.read`, `clipboard.read`, `location` and `files` each need a switch on
+   the plugin's page, behind a warning, and the global
+   <SettingsPath path="Tools / Plugins / Allow risky permissions" /> switch, which
+   is off by default. An update that adds one, or adds a host, leaves it off.
+6. **Plugins cannot execute downloaded code.** There is no `eval`, `exec`,
+   `compile` or `__import__`, and `import` reaches the plugin's own files and the
+   bundled library only. A plugin is source, read by the interpreter's own
+   parser.
+7. **Plugins reach Android only through named calls.** No `open`, no `os`, no
+   reflection, no class loading, no file paths, no Intents. Each host call
+   (`http.request`, `field.insert`, ...) is checked twice: the interpreter
+   refuses one the manifest does not declare, and the keyboard checks the
+   declaration, your grant and the field again before acting.
+8. **Plugins cannot run in the background.** Code runs only while one of the
+   plugin's panels (the keyboard panel or its floating box) is open. Timers,
+   sensors and streams stop when it closes. A reminder is a line of text the
+   app shows; no plugin code runs for it.
+9. **Plugins cannot draw outside their panel or look like the system.** Every
+   widget is drawn by the keyboard in its own theme. A plugin picks colour
+   roles such as `danger`, never colours, fonts or positions.
 
 :::note[Data safety]
-The app collects and shares nothing new because of this feature.
+Nothing leaves the phone because of this feature unless you grant a plugin the
+`network` or `ai` permission, and then only to the hosts or model it names.
 :::
 
 ## How it is enforced

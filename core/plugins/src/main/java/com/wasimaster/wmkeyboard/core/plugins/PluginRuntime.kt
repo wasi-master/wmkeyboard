@@ -57,6 +57,12 @@ class PluginRuntime(
      * reminders, so the host can move its wake-up. Must not block.
      */
     private val onRemindersChanged: () -> Unit = {},
+    /** What API 5 host calls reach: the IME's field and clipboard, the app's network and AI. */
+    private val services: PluginServices = PluginServices.NONE,
+    /** Where this runtime's panel is drawn: "panel" or "float". */
+    private val surface: String = PythonSession.Config.PANEL,
+    /** Whether the keyboard is dark right now, for `plugin.theme`. */
+    private val dark: () -> Boolean = { false },
 ) {
 
     /**
@@ -80,6 +86,12 @@ class PluginRuntime(
 
         /** The session is over and will not recover. [disabled] means it used its last strike. */
         fun onStopped(pluginId: String, message: PluginText, disabled: Boolean)
+
+        /** API 5: the plugin's header commands, page title and back button changed. */
+        fun onHost(pluginId: String, state: PythonSession.HostState) {}
+
+        /** API 5: a call needed risky permissions the user has not turned on. The panel offers them. */
+        fun onNeeds(pluginId: String, permissions: List<PluginPermission>) {}
     }
 
     /** Which call into the script a report is about. */
@@ -135,6 +147,8 @@ class PluginRuntime(
         val reminders: java.io.File? = null,
         /** Whether a change to [reminders] should move the app's wake-up: only an installed plugin's. */
         val liveReminders: Boolean = false,
+        /** API 5: the plugin's other modules, `{"helpers.py": source}`. */
+        val modules: Map<String, String> = emptyMap(),
     )
 
     data class Limits(
@@ -187,6 +201,7 @@ class PluginRuntime(
                 recordStrikes = true,
                 reminders = store.remindersFile(pluginId),
                 liveReminders = true,
+                modules = store.modules(pluginId),
             ),
         )
     }
@@ -202,7 +217,48 @@ class PluginRuntime(
     @Synchronized
     fun dispatch(event: PluginEvent) {
         val current = session ?: return
-        submit(current, limits.event, Phase.EVENT) { handle(current, event) }
+        enqueue(current, event)
+    }
+
+    /**
+     * The keyboard's back button for an API 5 panel: True when the plugin had
+     * a page to go back from, which it now leaves.
+     */
+    @Synchronized
+    fun back(): Boolean {
+        val current = session ?: return false
+        if (current.host?.canBack != true) return false
+        enqueue(current, PythonSession.hostEvent("back"))
+        return true
+    }
+
+    /** A header command of an API 5 plugin was tapped. */
+    fun command(id: String) = dispatch(PythonSession.hostEvent("command", mapOf("id" to kotlinx.serialization.json.JsonPrimitive(id))))
+
+    /** The user typed `@keyword query` and tapped the plugin's chip. */
+    fun keyword(word: String, query: String) = dispatch(
+        PythonSession.hostEvent(
+            "keyword",
+            mapOf("id" to kotlinx.serialization.json.JsonPrimitive(word), "value" to kotlinx.serialization.json.JsonPrimitive(query)),
+        ),
+    )
+
+    /** A value on the plugin's settings page changed. */
+    fun settingChanged(key: String, value: kotlinx.serialization.json.JsonElement) = dispatch(
+        PythonSession.hostEvent("setting", mapOf("key" to kotlinx.serialization.json.JsonPrimitive(key), "value" to value)),
+    )
+
+    /** Queues [event] for [current], unless the queue is full of host events already. */
+    private fun enqueue(current: Session, event: PluginEvent) {
+        // A timer that fires faster than the script handles it, or a stream
+        // sending pieces faster than they are drawn, drops pieces rather than
+        // building a backlog that keeps the plugin busy after the user left.
+        if (event is PluginEvent.Host && current.queued.get() >= MAX_QUEUED && event.type != "result") return
+        current.queued.incrementAndGet()
+        submit(current, limits.event, Phase.EVENT) {
+            current.queued.decrementAndGet()
+            handle(current, event)
+        }
     }
 
     /** Ends the session. Safe to call when nothing is open, and never waits for the script. */
@@ -213,9 +269,22 @@ class PluginRuntime(
         current.revoked = true
         current.python?.cancel()
         current.watch?.cancel(false)
+        current.timers.values.forEach { it.cancel(false) }
+        current.timers.clear()
         current.log.flush()
+        val python = current.python
+        if (python != null && current.plugin.isPackage && current.loaded) {
+            // @plugin.on_close: one last short event. The cancel above stops
+            // whatever call was running; this one starts with the flag cleared.
+            runCatching { current.executor.execute { runCatching { python.event(PythonSession.hostEvent("close")) } } }
+        }
         // Freed on the plugin thread, after the call it may be in has stopped.
-        runCatching { current.executor.execute { current.python?.close() } }
+        runCatching {
+            current.executor.execute {
+                python?.let { PluginHost.unbind(it.id) }
+                python?.close()
+            }
+        }
         current.executor.shutdown()
     }
 
@@ -250,6 +319,9 @@ class PluginRuntime(
                 load = limits.load,
                 event = limits.event,
                 render = limits.render,
+                modules = draft.modules,
+                dark = dark(),
+                surface = surface,
             ),
         )
         if (python == null) {
@@ -259,13 +331,70 @@ class PluginRuntime(
         }
         current.python = python
         current.liveReminders = draft.liveReminders
+        if (current.plugin.isPackage) {
+            // A draft is the author's own code in the editor: its grants come
+            // with the draft, and the global risky switch is not asked.
+            val gate = if (current.recordStrikes) store else null
+            val binding = PluginHost.Binding(current.plugin, gate, services, surface) { event ->
+                synchronized(this) { if (session === current) enqueue(current, event) }
+            }
+            current.binding = binding
+            PluginHost.bind(python.id, binding)
+        }
         handleResult(current, python.load(draft.script), Phase.LOAD)
+        current.loaded = true
     }
 
     private fun handle(current: Session, event: PluginEvent) {
         val python = current.python ?: return
         observer?.onEvent(current.plugin.id, event)
-        handleResult(current, python.event(event), Phase.EVENT)
+        val binding = current.binding
+        binding?.userEvent = isUserEvent(event)
+        try {
+            handleResult(current, python.event(event), Phase.EVENT)
+        } finally {
+            binding?.userEvent = false
+        }
+    }
+
+    /** Whether [event] is the user acting in the panel, which is when the field may be read. */
+    private fun isUserEvent(event: PluginEvent): Boolean = when (event) {
+        is PluginEvent.Host -> event.type == "keyword" || event.type == "command"
+        else -> true
+    }
+
+    /** Schedules the timers the script asked for, and cancels the ones it dropped. */
+    private fun syncTimers(current: Session, timers: List<PythonSession.HostState.Timer>) {
+        if (current.revoked) return
+        val wanted = timers.associateBy { it.id }
+        for (id in current.timers.keys.toList()) {
+            val spec = wanted[id]
+            if (spec == null || current.timerSpecs[id] != spec) {
+                current.timers.remove(id)?.cancel(false)
+                current.timerSpecs.remove(id)
+            }
+        }
+        for ((id, spec) in wanted) {
+            if (id in current.timers) continue
+            val millis = (spec.seconds * MILLIS_PER_SECOND).toLong().coerceAtLeast(if (spec.repeat) MIN_REPEAT_MILLIS else MIN_ONCE_MILLIS)
+            val fire = Runnable {
+                synchronized(this) {
+                    if (session === current) {
+                        if (!spec.repeat) {
+                            current.timers.remove(id)
+                            current.timerSpecs.remove(id)
+                        }
+                        enqueue(current, PythonSession.hostEvent("timer", mapOf("id" to kotlinx.serialization.json.JsonPrimitive(id))))
+                    }
+                }
+            }
+            current.timers[id] = if (spec.repeat) {
+                watchdog.scheduleWithFixedDelay(fire, millis, millis, TimeUnit.MILLISECONDS)
+            } else {
+                watchdog.schedule(fire, millis, TimeUnit.MILLISECONDS)
+            }
+            current.timerSpecs[id] = spec
+        }
     }
 
     /**
@@ -291,6 +420,13 @@ class PluginRuntime(
         for ((id, text) in result.inputs) {
             deliver(current) { listener.onInputWrite(current.plugin.id, id, text) }
         }
+        result.host?.let { state ->
+            current.host = state
+            synchronized(this) { syncTimers(current, state.timers) }
+            deliver(current) { listener.onHost(current.plugin.id, state) }
+        }
+        val needs = result.needs.mapNotNull { PluginPermission.parse(it) }
+        if (needs.isNotEmpty()) deliver(current) { listener.onNeeds(current.plugin.id, needs) }
         val error = result.error
         when {
             result.ok && result.ui != null -> {
@@ -327,6 +463,7 @@ class PluginRuntime(
                 current.phase = phase
                 // Render follows load and event in the same call, on its own allowance.
                 current.deadlineNanos = System.nanoTime() + (limit.wallMillis + limits.render.wallMillis) * NANOS_PER_MILLI
+                current.excusedAtStart = current.binding?.excusedNanos() ?: 0L
                 try {
                     body()
                 } catch (failure: Throwable) {
@@ -426,7 +563,8 @@ class PluginRuntime(
         if (current.revoked) return
         val deadline = current.deadlineNanos
         if (deadline == Long.MAX_VALUE) return
-        val over = System.nanoTime() - deadline
+        // Time in host calls (a request, the AI) is the keyboard's, not the script's.
+        val over = System.nanoTime() - deadline - (current.binding?.excusedNanos() ?: 0L) + current.excusedAtStart
         val grace = limits.watchdogGraceMillis * NANOS_PER_MILLI
         when {
             over > 2 * grace -> abandon(current)
@@ -437,6 +575,11 @@ class PluginRuntime(
     private fun abandon(current: Session) {
         current.revoked = true
         current.watch?.cancel(false)
+        current.binding?.active = false
+        synchronized(this) {
+            current.timers.values.forEach { it.cancel(false) }
+            current.timers.clear()
+        }
         current.log.add("abandoned: exceeded its time limit")
         current.log.flush()
         observe(current, Failure.Kind.ABANDONED, "abandoned: exceeded its time limit", null, current.phase)
@@ -496,6 +639,28 @@ class PluginRuntime(
         @Volatile
         var liveReminders = false
 
+        /** API 5: the link [PluginHost] routes this session's host calls through. */
+        @Volatile
+        var binding: PluginHost.Binding? = null
+
+        /** API 5: what the last render reported. */
+        @Volatile
+        var host: PythonSession.HostState? = null
+
+        @Volatile
+        var loaded = false
+
+        /** [PluginHost.Binding.excusedNanos] when the call in flight started. */
+        @Volatile
+        var excusedAtStart = 0L
+
+        /** Events waiting on the plugin thread. */
+        val queued = java.util.concurrent.atomic.AtomicInteger(0)
+
+        /** API 5 timers by id, guarded by the runtime's lock. */
+        val timers = HashMap<String, ScheduledFuture<*>>()
+        val timerSpecs = HashMap<String, PythonSession.HostState.Timer>()
+
         @Volatile
         var revoked = false
 
@@ -523,6 +688,14 @@ class PluginRuntime(
     companion object {
         private const val MAX_ERROR = 300
         private const val NANOS_PER_MILLI = 1_000_000L
+        private const val MILLIS_PER_SECOND = 1000.0
+
+        /** The shortest repeat `plugin.every` gets: once a second. */
+        private const val MIN_REPEAT_MILLIS = 1000L
+        private const val MIN_ONCE_MILLIS = 50L
+
+        /** Host events waiting before more are dropped. */
+        private const val MAX_QUEUED = 32
 
         /**
          * The interpreter recurses on the native stack, 300 calls deep at most,

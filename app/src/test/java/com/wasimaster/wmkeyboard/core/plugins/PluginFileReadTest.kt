@@ -99,7 +99,7 @@ class PluginFileReadTest {
             ),
             "not UTF-8" to rawArchive(manifestEntry(), "main.py" to byteArrayOf(0xC3.toByte(), 0x28)),
             "unknown permission" to rawArchive(
-                manifestEntry(manifest(permissions = listOf("network"))),
+                manifestEntry(manifest(permissions = listOf("telepathy"))),
                 "main.py" to "x".toByteArray(),
             ),
         )

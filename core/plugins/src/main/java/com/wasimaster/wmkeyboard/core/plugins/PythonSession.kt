@@ -10,6 +10,7 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
@@ -24,7 +25,10 @@ import kotlinx.serialization.json.put
  * The library writes `storage.json` and `reminders.json` itself, at the paths
  * in the [Config], in the formats [PluginStorage] and [PluginReminders] read.
  */
-class PythonSession private constructor(@Volatile private var handle: Long) {
+class PythonSession private constructor(@Volatile private var handle: Long, private val packageApi: Boolean) {
+
+    /** The native handle, for [PluginHost] to tell sessions apart in host calls. */
+    val id: Long get() = handle
 
     /**
      * Held across [cancel]'s native call and [close]'s free, never across a
@@ -45,12 +49,34 @@ class PythonSession private constructor(@Volatile private var handle: Long) {
         val event: PluginLimit = PluginLimit.EVENT,
         val render: PluginLimit = PluginLimit.RENDER,
         val action: PluginLimit = PluginLimit.ACTION,
+        /** API 5: the plugin's other modules, `{"helpers.py": source}`. */
+        val modules: Map<String, String> = emptyMap(),
+        /** API 5: what `plugin.locale`, `plugin.theme` and `plugin.surface` say. */
+        val locale: String = java.util.Locale.getDefault().toLanguageTag(),
+        val dark: Boolean = false,
+        /** "panel", "float" or "action". */
+        val surface: String = mode,
     ) {
         fun toJson(): String = buildJsonObject {
             put("id", plugin.id)
             put("version", plugin.version)
+            // The declared list: the library refuses anything outside it. Grants
+            // are the keyboard's to check, on every call (PluginHost).
             put("permissions", buildJsonArray { plugin.permissions.forEach { add(JsonPrimitive(it)) } })
             put("mode", mode)
+            put("apiVersion", plugin.apiVersion)
+            if (plugin.isPackage) {
+                put("files", buildJsonObject { for ((name, source) in modules) put(name, source) })
+                put("settings", plugin.settingsJson())
+                put(
+                    "context",
+                    buildJsonObject {
+                        put("locale", locale)
+                        put("theme", if (dark) "dark" else "light")
+                        put("surface", surface)
+                    },
+                )
+            }
             put("storagePath", storagePath?.let(::JsonPrimitive) ?: JsonNull)
             put("remindersPath", remindersPath?.let(::JsonPrimitive) ?: JsonNull)
             put("zone", ZoneTable.current())
@@ -101,7 +127,27 @@ class PythonSession private constructor(@Volatile private var handle: Long) {
         val inputs: List<Pair<String, String>> = emptyList(),
         val remindersChanged: Boolean = false,
         val phases: List<Phase> = emptyList(),
+        /** API 5: what the plugin's last render reported about itself. */
+        val host: HostState? = null,
+        /** API 5: permissions a call lacked a grant for, to offer in the panel. */
+        val needs: List<String> = emptyList(),
+        /** The Python exception kind of a failure, `"PermissionError"`. */
+        val exception: String? = null,
     )
+
+    /** An API 5 plugin's own state, as `wm._host` reports it after each render. */
+    data class HostState(
+        val timers: List<Timer> = emptyList(),
+        val commands: List<Command> = emptyList(),
+        val canBack: Boolean = false,
+        val title: String? = null,
+        /** Host calls still waiting for an answer. */
+        val pending: Int = 0,
+    ) {
+        data class Timer(val id: String, val seconds: Double, val repeat: Boolean)
+
+        data class Command(val id: String, val label: String, val icon: String?)
+    }
 
     @Synchronized
     fun load(source: String): Result = call { PythonNative.nativeLoad(it, source) }
@@ -110,7 +156,7 @@ class PythonSession private constructor(@Volatile private var handle: Long) {
     fun render(): Result = call { PythonNative.nativeRender(it) }
 
     @Synchronized
-    fun event(event: PluginEvent): Result = call { PythonNative.nativeEvent(it, eventJson(event)) }
+    fun event(event: PluginEvent): Result = call { PythonNative.nativeEvent(it, eventJson(event, packageApi)) }
 
     @Synchronized
     fun transform(text: String, actionId: String): Result = call { PythonNative.nativeTransform(it, text, actionId) }
@@ -155,11 +201,104 @@ class PythonSession private constructor(@Volatile private var handle: Long) {
                 return null
             }
             val handle = PythonNative.nativeCreate(config.toJson())
-            return if (handle == 0L) null else PythonSession(handle)
+            return if (handle == 0L) null else PythonSession(handle, config.plugin.isPackage)
         }
 
-        /** `{type, id, value?, index?}`, the dict `on_event` receives. */
-        fun eventJson(event: PluginEvent): String = buildJsonObject {
+        /**
+         * The event as the library reads it. API 4: `{type, id, value?, index?}`,
+         * the dict `on_event` receives. API 5: what `wm._host` routes to the
+         * widget's callback (`click`, `change`, `submit`, `select`, ...).
+         */
+        fun eventJson(event: PluginEvent, packageApi: Boolean = false): String {
+            if (event is PluginEvent.Host) return event.json
+            if (packageApi) return packageEventJson(event)
+            return legacyEventJson(event)
+        }
+
+        private fun packageEventJson(event: PluginEvent): String = buildJsonObject {
+            put("id", event.id)
+            when (event) {
+                is PluginEvent.Click -> put("type", "click")
+                is PluginEvent.ToggleChanged -> {
+                    put("type", "change")
+                    put("value", event.value)
+                }
+                is PluginEvent.InputChanged -> {
+                    put("type", "change")
+                    put("value", event.value)
+                }
+                is PluginEvent.TabSelected -> {
+                    put("type", "change")
+                    put("value", event.index)
+                }
+                is PluginEvent.DateChanged -> {
+                    put("type", "change")
+                    put("value", event.value?.let(::JsonPrimitive) ?: JsonNull)
+                }
+                is PluginEvent.Submitted -> {
+                    put("type", "submit")
+                    put("value", event.value)
+                }
+                is PluginEvent.ValueChanged -> {
+                    put("type", "change")
+                    when (event.value) {
+                        "true" -> put("value", true)
+                        "false" -> put("value", false)
+                        else -> put("value", event.value)
+                    }
+                }
+                is PluginEvent.NumberChanged -> {
+                    put("type", "change")
+                    val v = event.value
+                    if (v == Math.floor(v) && kotlin.math.abs(v) < 1e15) put("value", v.toLong()) else put("value", v)
+                }
+                is PluginEvent.ChipsChanged -> {
+                    put("type", "change")
+                    if (event.multi) {
+                        put("value", buildJsonArray { event.values.forEach { add(JsonPrimitive(it)) } })
+                    } else {
+                        put("value", event.values.firstOrNull()?.let(::JsonPrimitive) ?: JsonNull)
+                    }
+                }
+                is PluginEvent.Selected -> {
+                    put("type", "select")
+                    put("index", event.index)
+                }
+                is PluginEvent.ItemAction -> {
+                    put("type", "item_action")
+                    put("value", event.label)
+                }
+                is PluginEvent.Tapped -> {
+                    put("type", "tap")
+                    put("x", event.x)
+                    put("y", event.y)
+                }
+                is PluginEvent.Dragged -> {
+                    put("type", "drag")
+                    put("x", event.x)
+                    put("y", event.y)
+                    put("dx", event.dx)
+                    put("dy", event.dy)
+                    put("phase", event.phase)
+                }
+                is PluginEvent.KeyPressed -> {
+                    put("type", "press")
+                    put("value", event.key)
+                }
+                is PluginEvent.Host -> Unit
+            }
+        }.toString()
+
+        /** A host-made event: `{"type": type, ...fields}`. */
+        fun hostEvent(type: String, fields: Map<String, JsonElement> = emptyMap()): PluginEvent.Host {
+            val json = buildJsonObject {
+                put("type", type)
+                for ((k, v) in fields) put(k, v)
+            }
+            return PluginEvent.Host(type, json.toString(), (fields["id"] as? JsonPrimitive)?.contentOrNull.orEmpty())
+        }
+
+        private fun legacyEventJson(event: PluginEvent): String = buildJsonObject {
             put("id", event.id)
             when (event) {
                 is PluginEvent.Click -> put("type", "click")
@@ -183,6 +322,9 @@ class PythonSession private constructor(@Volatile private var handle: Long) {
                     // None for a cleared date, which is how a script tells "no date".
                     put("value", event.value?.let(::JsonPrimitive) ?: JsonNull)
                 }
+
+                // API 5 widgets never appear in an API 4 panel; anything else is a click.
+                else -> put("type", "click")
             }
         }.toString()
 
@@ -211,8 +353,33 @@ class PythonSession private constructor(@Volatile private var handle: Long) {
                 }.orEmpty(),
                 remindersChanged = root.bool("remindersChanged") ?: false,
                 phases = (root["phases"] as? JsonArray)?.mapNotNull { phase(it) }.orEmpty(),
+                host = (root["host"] as? JsonObject)?.let(::hostState),
+                needs = (root["needs"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.orEmpty(),
+                exception = (root["error"] as? JsonObject)?.string("exception"),
             )
         }
+
+        private fun hostState(o: JsonObject): HostState = HostState(
+            timers = (o["timers"] as? JsonArray).orEmpty().mapNotNull { t ->
+                val obj = t as? JsonObject ?: return@mapNotNull null
+                HostState.Timer(
+                    id = obj.string("id") ?: return@mapNotNull null,
+                    seconds = (obj["seconds"] as? JsonPrimitive)?.doubleOrNull ?: return@mapNotNull null,
+                    repeat = obj.bool("repeat") ?: false,
+                )
+            }.take(MAX_TIMERS),
+            commands = (o["commands"] as? JsonArray).orEmpty().mapNotNull { c ->
+                val obj = c as? JsonObject ?: return@mapNotNull null
+                HostState.Command(
+                    id = obj.string("id") ?: return@mapNotNull null,
+                    label = PluginManifestCodec.displayText(obj.string("label").orEmpty(), MAX_COMMAND_LABEL),
+                    icon = obj.string("icon"),
+                )
+            }.take(MAX_COMMANDS),
+            canBack = o.bool("canBack") ?: false,
+            title = o.string("title")?.let { PluginManifestCodec.displayText(it, PluginManifestCodec.MAX_NAME) },
+            pending = (o["pending"] as? JsonPrimitive)?.intOrNull ?: 0,
+        )
 
         private fun phase(element: JsonElement): Phase? {
             val phase = element as? JsonObject ?: return null
@@ -233,6 +400,9 @@ class PythonSession private constructor(@Volatile private var handle: Long) {
         private fun JsonObject.long(key: String): Long? = (this[key] as? JsonPrimitive)?.longOrNull
 
         private const val NANOS_PER_MICRO = 1_000L
+        private const val MAX_TIMERS = 16
+        private const val MAX_COMMANDS = 3
+        private const val MAX_COMMAND_LABEL = 24
     }
 }
 
