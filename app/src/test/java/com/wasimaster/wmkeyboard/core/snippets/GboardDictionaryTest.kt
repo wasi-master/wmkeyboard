@@ -98,4 +98,37 @@ class GboardDictionaryTest {
         assertEquals(SnippetPayload.Source.GBOARD, zip.source)
         assertFalse(zip.isEspanso)
     }
+
+    // #1254: Gboard's Japanese keyboard files a word under its kana reading.
+    private val japanese = "# Gboard Dictionary version:1\n" +
+        "よろ\tよろしくお願いします\tja-JP\n" +
+        "おつ\tお疲れ様です\t\n" +
+        "メール\tメールアドレス\tja-JP\n" +
+        "めあど\tme@example.com\tja-JP\n" +
+        "よろ\tよろしく\ten-US\n" +
+        "omw\ton my way\ten-US\n"
+
+    @Test
+    fun `a kana shortcut is a japanese reading and not a snippet`() {
+        val contents = GboardDictionary.read(japanese)!!
+        assertEquals(listOf("よろ", "おつ", "メール"), contents.readings.map { it.shortcut })
+        // Not a word a Japanese list can hold, or filed under English: those
+        // stay snippets, so nothing in the file is lost.
+        assertEquals(listOf("めあど", "よろ", "omw"), contents.shortcuts.map { it.shortcut })
+        val snippets = GboardDictionary.toSnippets(contents).snippets
+        assertFalse(snippets.any { it.text == "よろしくお願いします" })
+        assertEquals(3, snippets.size)
+    }
+
+    @Test
+    fun `readings are written as a japanese word list, without repeats`() {
+        val contents = GboardDictionary.read(japanese)!!
+        val lines = GboardDictionary.readingList(contents)
+        assertEquals(
+            listOf("よろ\tよろしくお願いします", "おつ\tお疲れ様です", "メール\tメールアドレス"),
+            lines,
+        )
+        // Importing the same file again adds nothing.
+        assertTrue(GboardDictionary.readingList(contents, lines).isEmpty())
+    }
 }

@@ -840,6 +840,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.ZhuyinSyllables
 import com.wasimaster.wmkeyboard.core.input.composer.CodeTableDictionary
 import com.wasimaster.wmkeyboard.core.input.composer.ConversionDictionary
 import com.wasimaster.wmkeyboard.core.input.composer.ConversionWordLists
+import com.wasimaster.wmkeyboard.core.input.composer.JapaneseUserWords
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseConfig
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseTelexComposer
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseVniComposer
@@ -23384,6 +23385,24 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The lists imported for Japanese, read into the words Mozc offers beside
+     * its own (#1254). Mozc ranks from its own dictionary and never reads
+     * [conversionTable], so without this a Gboard personal dictionary's
+     * `よろ → よろしくお願いします` reached the built-in engine and not Mozc.
+     * Same rows the table takes, so the two engines agree on what a list holds.
+     */
+    private fun japaneseUserWords(): JapaneseUserWords {
+        // Direct boot: the imported lists are behind the user's credential.
+        if (!userUnlocked) return JapaneseUserWords.EMPTY
+        val rows = CustomDictionaries.lists(filesDir, "ja").flatMap { list ->
+            runCatching {
+                list.bufferedReader().useLines { ConversionWordLists.rows(it, ConversionWordLists.Reading.KANA) }
+            }.getOrDefault(emptyList())
+        }
+        return JapaneseUserWords.of(rows.map { it.reading to it.word })
+    }
+
+    /**
      * (Re)loads the Chinese/Japanese conversion tables from their downloaded
      * [CjkDictCatalog] packs and the lists imported for their languages. The
      * packs are large and useful to a minority, so they are not bundled — with
@@ -23431,6 +23450,7 @@ open class WMKeyboardService : InputMethodService() {
             }
             if (stale("ja_kana", "ja")) {
                 CjkDictionaries.japanese = conversionTable("ja_kana", "ja")
+                CjkDictionaries.japaneseUser = japaneseUserWords()
                 retryIfEmpty("ja_kana", CjkDictionaries.japanese.isEmpty)
                 // New kana swipe spellings too (#958).
                 glideSourcesEpoch.update { it + 1 }

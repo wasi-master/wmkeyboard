@@ -2370,11 +2370,13 @@ private fun foreignSnippetsProposal(
 /**
  * The confirmation for Gboard's personal dictionary export.
  *
- * Both halves go in on one press, because both are what the file is: the words
- * with no shortcut join the personal dictionary as words added by hand, and the
- * shortcuts become snippets in a folder of their own, which gives the set one
- * off switch. Each half is counted in the body, so a file that holds only one
- * of them says so.
+ * Every part goes in on one press, because all of it is what the file is: the
+ * words with no shortcut join the personal dictionary as words added by hand,
+ * the shortcuts become snippets in a folder of their own, which gives the set
+ * one off switch, and the Japanese words filed under a kana reading become a
+ * Japanese word list, which the built-in engine and Mozc both offer as
+ * conversion candidates, as Gboard does (#1254). Each part is counted in the
+ * body, so a file that holds only one of them says so.
  */
 private fun gboardDictionaryProposal(
     contents: GboardDictionary.Contents,
@@ -2384,7 +2386,8 @@ private fun gboardDictionaryProposal(
     val words = contents.words
     val converted = GboardDictionary.toSnippets(contents)
     val snippets = converted.snippets
-    if (words.isEmpty() && snippets.isEmpty()) {
+    val readings = contents.readings
+    if (words.isEmpty() && snippets.isEmpty() && readings.isEmpty()) {
         return ImportProposal(
             titleRes = R.string.import_gboard_dictionary_title,
             body = context.getString(R.string.import_gboard_dictionary_empty),
@@ -2407,6 +2410,10 @@ private fun gboardDictionaryProposal(
                         GboardDictionary.FOLDER_NAME,
                     ),
                 )
+            }
+            if (readings.isNotEmpty()) {
+                if (isNotEmpty()) append("\n\n")
+                append(res.getQuantityString(R.plurals.import_gboard_dictionary_readings, readings.size, readings.size))
             }
         },
         repairs = converted.notes.map { it.resolve(context) },
@@ -2434,6 +2441,25 @@ private fun gboardDictionaryProposal(
                     store.save()
                 }
             }
+            // The readings join the Japanese word list this file made last
+            // time, if there is one, so a second import adds only what is new.
+            val readingsAdded = if (readings.isEmpty()) {
+                0
+            } else {
+                withContext(Dispatchers.IO) {
+                    val dir = CustomDictionaries.languageDir(context.filesDir, GboardDictionary.READINGS_LANGUAGE)
+                    dir.mkdirs()
+                    val list = File(dir, GboardDictionary.READINGS_LIST)
+                    val existing = if (list.isFile) list.readLines() else emptyList()
+                    val lines = GboardDictionary.readingList(contents, existing)
+                    if (lines.isNotEmpty()) {
+                        val head = if (existing.isEmpty()) "# Gboard personal dictionary: reading<TAB>word\n" else ""
+                        val gap = if (existing.isNotEmpty() && list.length() > 0 && !list.readText().endsWith("\n")) "\n" else ""
+                        list.appendText(head + gap + lines.joinToString("\n", postfix = "\n"))
+                    }
+                    lines.size
+                }
+            }
             buildString {
                 if (words.isNotEmpty()) {
                     append(res.getQuantityString(R.plurals.import_gboard_dictionary_words_done, words.size, words.size))
@@ -2441,6 +2467,10 @@ private fun gboardDictionaryProposal(
                 if (snippets.isNotEmpty()) {
                     if (isNotEmpty()) append("\n\n")
                     append(res.getQuantityString(R.plurals.import_snippets_done, snippets.size, snippets.size))
+                }
+                if (readings.isNotEmpty()) {
+                    if (isNotEmpty()) append("\n\n")
+                    append(res.getQuantityString(R.plurals.import_gboard_dictionary_readings_done, readingsAdded, readingsAdded))
                 }
             }
         },

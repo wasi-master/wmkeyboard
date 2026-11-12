@@ -170,6 +170,18 @@
         <item quantity="one">The app added %1$d word to your personal dictionary.</item>
         <item quantity="other">The app added %1$d words to your personal dictionary.</item>
     </plurals>
+    <!-- %1$d is how many Japanese words, each filed under a reading in kana,
+         go into a Japanese word list. Typing a reading offers its word as a
+         Japanese conversion candidate, with either Japanese engine. -->
+    <plurals name="import_gboard_dictionary_readings">
+        <item quantity="one">The app adds %1$d Japanese word to a Japanese word list. When you type its reading, the word appears among the conversion candidates, as Gboard does.</item>
+        <item quantity="other">The app adds %1$d Japanese words to a Japanese word list. When you type a reading, its word appears among the conversion candidates, as Gboard does.</item>
+    </plurals>
+    <!-- %1$d is how many Japanese words the app added to the Japanese word list. -->
+    <plurals name="import_gboard_dictionary_readings_done">
+        <item quantity="one">The app added %1$d Japanese word to your Japanese conversion candidates.</item>
+        <item quantity="other">The app added %1$d Japanese words to your Japanese conversion candidates.</item>
+    </plurals>
 
     <!-- ==== Sticker pack files. ==== -->
 

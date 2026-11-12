@@ -23,10 +23,15 @@ import java.util.zip.ZipInputStream
  * languages"). The same file, unzipped or zipped, is what Gboard's Import takes,
  * which is why community packs (LaTeX symbols, emoji codes) ship in it.
  *
- * It holds two different things for this app. An entry with a shortcut is a
+ * It holds three different things for this app. An entry with a shortcut is a
  * text expansion, so it becomes a [Snippet]. An entry without one is a word
  * the user taught their keyboard, so it belongs in the personal dictionary.
- * This reader only separates them; the settings app decides where each goes.
+ * And an entry whose shortcut is written in kana is neither (#1254): Gboard's
+ * Japanese keyboard files a word under its reading there, `よろ` for
+ * `よろしくお願いします`, and offers it as a conversion candidate, so it
+ * becomes a line of a Japanese word list ([readingList]) that both Japanese
+ * engines convert with, and not a snippet as well. This reader only separates
+ * them; the settings app decides where each goes.
  */
 object GboardDictionary {
 
@@ -38,6 +43,12 @@ object GboardDictionary {
 
     /** What Gboard names the ZIP; used for the default snippet folder too. */
     const val FOLDER_NAME = "Gboard"
+
+    /** The Japanese word list the readings are written to, among the lists imported for Japanese. */
+    const val READINGS_LIST = "Gboard.txt"
+
+    /** The language id the readings convert in. */
+    const val READINGS_LANGUAGE = "ja"
 
     /** Far past any personal dictionary; a file past this is not one. */
     private const val MAX_BYTES = 8 * 1024 * 1024
@@ -53,14 +64,28 @@ object GboardDictionary {
 
     private val WHITESPACE_RUN = Regex("\\s+")
 
+    private val HIRAGANA = 'ぁ'..'ゖ'
+    private val KATAKANA = 'ァ'..'ヶ'
+    private const val ASCII_END = 0x7F
+
+    /** The longest word a Japanese conversion list keeps. */
+    private const val MAX_READING_WORD = 32
+
     /** One line of the file. [shortcut] is empty for a plain word. */
     data class Entry(val shortcut: String, val word: String, val locale: String)
 
     /** What one file held. */
     data class Contents(val entries: List<Entry>) {
 
-        /** The entries that carry a shortcut, and so become snippets. */
-        val shortcuts: List<Entry> get() = entries.filter { it.shortcut.isNotEmpty() }
+        /** The entries that carry a shortcut, and so become snippets: every one but a Japanese [readings]. */
+        val shortcuts: List<Entry> get() = entries.filter { it.shortcut.isNotEmpty() && !isJapaneseReading(it) }
+
+        /**
+         * The Japanese entries: a word filed under its kana reading, for
+         * conversion rather than expansion (#1254). Kept out of [shortcuts],
+         * so the same word does not come back a second time as a snippet.
+         */
+        val readings: List<Entry> get() = entries.filter { isJapaneseReading(it) }
 
         /**
          * The plain words, for the personal dictionary.
@@ -91,6 +116,39 @@ object GboardDictionary {
                 }
                 return out
             }
+    }
+
+    /**
+     * Whether [entry] is a Japanese word under its reading: the shortcut all
+     * kana, the locale Japanese or none, and the word one a Japanese
+     * conversion list can hold — something past ASCII in it, no spaces, and
+     * no longer than [MAX_READING_WORD], the rule the list reader keeps too
+     * (`ConversionWordLists`). Anything else stays a snippet, so nothing in
+     * the file is dropped on the way.
+     */
+    fun isJapaneseReading(entry: Entry): Boolean {
+        val shortcut = entry.shortcut
+        if (shortcut.isEmpty() || shortcut.any { it !in HIRAGANA && it !in KATAKANA && it != 'ー' }) return false
+        val locale = entry.locale.lowercase(Locale.ROOT)
+        if (locale.isNotEmpty() && !locale.startsWith("ja")) return false
+        val word = entry.word
+        return word.length <= MAX_READING_WORD && word.any { it.code > ASCII_END } && word.none { it.isWhitespace() }
+    }
+
+    /**
+     * The [Contents.readings] as the lines of a Japanese word list, one
+     * `よみ<TAB>単語` each, the shape Mozc's own user dictionary export
+     * writes; lines already in [existing] are left out, so importing the
+     * same file again adds nothing. Empty when there is nothing new.
+     */
+    fun readingList(contents: Contents, existing: Collection<String> = emptyList()): List<String> {
+        val seen = existing.mapTo(HashSet()) { it.trim() }
+        val out = ArrayList<String>()
+        for (entry in contents.readings) {
+            val line = entry.shortcut + "\t" + entry.word
+            if (seen.add(line)) out += line
+        }
+        return out
     }
 
     /** True when [text] starts the way every Gboard export does. */

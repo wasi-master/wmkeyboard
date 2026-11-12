@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.input.mozc
 
 import com.wasimaster.wmkeyboard.core.input.composer.CjkContext
+import com.wasimaster.wmkeyboard.core.input.composer.CjkDictionaries
 import com.wasimaster.wmkeyboard.core.input.composer.Composer
 import com.wasimaster.wmkeyboard.core.input.composer.Kana
 
@@ -27,6 +28,13 @@ import com.wasimaster.wmkeyboard.core.input.composer.Kana
  *   [moveSegment]), Mozc's segmented conversion: the composing region shows
  *   every segment converted, and the candidates are the focused segment's.
  *   A pick commits every segment up to the focused one.
+ *
+ * The typing list also carries the words the user imported for Japanese
+ * with readings ([CjkDictionaries.japaneseUser], #1254), which Mozc's own
+ * dictionary has never heard of: a Gboard personal dictionary's `よろ →
+ * よろしくお願いします` comes first when `よろ` is typed, and a word filed
+ * under a longer reading shows a few places down as a completion once the
+ * first two kana of it are typed.
  */
 class MozcComposer internal constructor(val base: Composer) : Composer {
 
@@ -201,7 +209,8 @@ class MozcComposer internal constructor(val base: Composer) : Composer {
         // A different reading ends the split: typing on, or backspace.
         if (split != null && ops == null) segmenting = null
         val preceding = CjkContext.text
-        val key = "$buffer|${ops?.joinToString(",")}|$preceding"
+        val user = CjkDictionaries.japaneseUser
+        val key = "$buffer|${ops?.joinToString(",")}|$preceding|${System.identityHashCode(user)}"
         val generation = MozcRuntime.generation
         last?.takeIf { it.key == key && it.generation == generation }?.let { return it }
         if (buffer.isEmpty()) return Ranked(key, generation, emptyList(), IntArray(0), IntArray(0), "", preceding, null, emptyList(), 0)
@@ -246,9 +255,21 @@ class MozcComposer internal constructor(val base: Composer) : Composer {
             consumed += chars
             ids += id
         }
+        // The user's own words for this reading (#1254), never segmented: a
+        // registered phrase is one unit. They take the reading Mozc was given,
+        // and carry no Mozc id, so picking one teaches Mozc nothing.
+        val userChars = if (converted.isEmpty()) 0 else bufferChars(converted.length)
+        val completions = if (ops == null && converted.isNotEmpty()) user.completions(converted, USER_COMPLETIONS) else emptyList()
+        if (ops == null && converted.isNotEmpty()) {
+            for (word in user.exact(converted)) add(word, userChars, -1, DEPTH - KANA_FORMS)
+        }
         // Mozc's own list stops short of the depth, so the kana forms after it
         // always fit.
-        for (i in menu.texts.indices) add(menu.texts[i], bufferChars(menu.consumed[i]), menu.ids[i], DEPTH - KANA_FORMS)
+        for (i in menu.texts.indices) {
+            if (i == COMPLETIONS_AT) for (word in completions) add(word, userChars, -1, DEPTH - KANA_FORMS)
+            add(menu.texts[i], bufferChars(menu.consumed[i]), menu.ids[i], DEPTH - KANA_FORMS)
+        }
+        if (menu.texts.size <= COMPLETIONS_AT) for (word in completions) add(word, userChars, -1, DEPTH - KANA_FORMS)
         // The kana themselves stay reachable, as with the built-in composer:
         // the whole reading's while typing, the focused segment's once split.
         val (kanaReading, kanaChars) = if (ops != null && menu.segments.isNotEmpty()) {
@@ -286,6 +307,12 @@ class MozcComposer internal constructor(val base: Composer) : Composer {
 
         /** Hiragana, katakana and half-width katakana, kept room for at the end. */
         const val KANA_FORMS = 3
+
+        /** Where the user's completions join Mozc's list: after its best few. */
+        const val COMPLETIONS_AT = 3
+
+        /** How many of the user's completions one reading offers. */
+        const val USER_COMPLETIONS = 3
 
         /** Nothing for Mozc to convert: only the kana forms are offered. */
         val EMPTY = MozcRuntime.Menu(emptyList(), IntArray(0), IntArray(0), emptyList(), 0)

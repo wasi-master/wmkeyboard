@@ -38,6 +38,14 @@ object CjkDictionaries {
     var japanese: ConversionDictionary = ConversionDictionary.EMPTY
         set(value) { field = value; invalidate() }
 
+    /**
+     * The words the user imported for Japanese with their readings, kept
+     * apart from [japanese] for Mozc, which does not read that table (#1254).
+     */
+    @Volatile
+    var japaneseUser: JapaneseUserWords = JapaneseUserWords.EMPTY
+        set(value) { field = value; invalidate() }
+
     /** Stroke-order → Hanzi table for the 笔画 input method (downloadable pack). */
     @Volatile
     var stroke: CodeTableDictionary = CodeTableDictionary.EMPTY

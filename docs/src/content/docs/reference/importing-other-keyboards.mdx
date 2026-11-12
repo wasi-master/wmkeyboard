@@ -358,12 +358,13 @@ See [Dictionaries & words](/reference/settings/dictionaries/) for the screen its
 
 In Gboard, open **Settings**, then **Dictionary**, then **Personal dictionary**, and choose **Export** from the menu. You get a `PersonalDictionary.zip`. Open it from the row above, from a file manager, or share it to WM Keyboard. The file can also be the `dictionary.txt` inside the zip, which is the shape community packs of LaTeX symbols and emoji codes ship in.
 
-Each entry in the file is a word, a shortcut for it, or both, and the two go to different places:
+Each entry in the file is a word, a shortcut for it, or both, and they go to different places:
 
 - **A word with no shortcut** goes into your [personal dictionary](/smart/personal-dictionary/) as a word you added by hand, capitals kept. A phrase such as "New York City" comes in as its separate words, the way an entry from Android's dictionary does.
 - **A shortcut** becomes a [snippet](/tools/snippets/) in a folder called **Gboard**, so you can switch the whole set off at once. Gboard never types a shortcut out by itself: it shows the word as a suggestion. The snippet does the same, because each one is set to ask first. A shortcut Gboard maps to several words becomes one snippet that offers all of them.
+- **A Japanese word under a kana reading**, such as `よろ` for よろしくお願いします, is what Gboard's Japanese keyboard offers as a conversion candidate, so it becomes one here too, and not a snippet. These entries go into a Japanese word list called `Gboard.txt` under [your own word lists](/languages/cjk/#your-own-word-lists), where you can switch them off or delete them with the rest. Type the reading and the word is among the candidates, with the built-in engine or [Mozc](/languages/cjk/#the-mozc-engine). It counts as one when the shortcut is all kana, Gboard filed it under Japanese or under all languages, and the word has no spaces and isn't plain ASCII; anything else stays a snippet. Importing the same file again adds only the readings the list doesn't have yet.
 
-The dialog counts both halves before anything is written. The locale Gboard saved with each entry is not used, since the personal dictionary here is shared by every language. Picking the same file from the Text expansion import adds the shortcuts only, and says how many words it left for this screen.
+The dialog counts each part before anything is written. The locale Gboard saved with each entry is not used, since the personal dictionary here is shared by every language. Picking the same file from the Text expansion import adds the shortcuts only, and says how many words it left for this screen.
 
 ## Chinese code tables
 

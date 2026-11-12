@@ -450,6 +450,7 @@ A list you import for Chinese, Cantonese or Japanese goes into the candidates, n
 - **CC-CEDICT** and **CC-Canto** (`關係 关系 [guan1 xi4] /relation/`). Chinese takes the Simplified form, the one the Pinyin pack lists, and **Traditional characters** turns it into the other; Cantonese takes the Traditional form and the Jyutping in braces.
 - **Rime** dictionaries (`.dict.yaml`), such as Luna Pinyin: `word`, the spaced reading, then a count or a percentage. The YAML header is skipped.
 - **Mozc and Google Japanese Input** user dictionaries: `reading`, `word`, part of speech. A katakana reading is read as hiragana.
+- **Gboard's personal dictionary**, when you import it from the [personal dictionary](/reference/importing-other-keyboards/#gboards-personal-dictionary): its Japanese words filed under a kana reading land in a list called `Gboard.txt`.
 - The packs' own format, `reading`, `word`, `frequency`, one tab between each.
 - **Sogou's `.scel` cell dictionaries** (细胞词库), as Sogou publishes them: each word with its pinyin and Sogou's count.
 
@@ -458,6 +459,8 @@ Tone numbers and tone marks are dropped and ü is spelt `v`, the same as in the 
 A word your list adds appears under its reading. A word the pack already has keeps its place in the pack's ranking, unless your list gives counts of its own (Rime's do), in which case it can move up but never down. Your [picks](#learning-from-your-picks) reorder both the same way. A list works on its own too: with no pack downloaded, the candidates come from your lists, and the missing-pack chip stops asking. **Use only my word lists** leaves the pack out once you have imported a list with something in it; with nothing imported it has no effect here, so it can't leave the language unable to type a character.
 
 A list goes live the next time you open a text field, and only the table for its own language is reloaded.
+
+Japanese lists reach [Mozc](#the-mozc-engine) as well, though Mozc keeps its own dictionary and never reads the pack. A word filed under exactly the reading you typed comes first in Mozc's candidates, the way Gboard puts its user dictionary first, and a word under a longer reading shows a few places down once you've typed its first two kana. Picking one of them teaches Mozc nothing, since it isn't Mozc's word.
 
 #### Dictionaries made for fcitx5, Rime or Sogou
 
