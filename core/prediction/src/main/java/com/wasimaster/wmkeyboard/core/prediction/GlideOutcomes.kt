@@ -158,9 +158,23 @@ class GlideOutcomes(private val storageFile: File?) {
         val key = PairKey(r, c)
         pairs[key] = Evidence(minOf(effective(pairs[key]) + ALTERNATIVE_STEP, STRENGTH_CAP), epoch)
         weaken(pairs, PairKey(c, r), ALTERNATIVE_STEP)
+        untaught(PairKey(c, r))
         weaken(undone, c, 1)
         settle()
         return true
+    }
+
+    /**
+     * One pick the other way takes a taught pair back to a nudge, however
+     * many times it was taught (#1250). Strength runs to [STRENGTH_CAP], so a
+     * pair taught four times or more stood at the line after one step back
+     * and kept forcing its word over the one the user had just put back.
+     */
+    private fun untaught(key: PairKey) {
+        val evidence = pairs[key] ?: return
+        if (effective(evidence) >= TAUGHT_STRENGTH) {
+            pairs[key] = Evidence(TAUGHT_STRENGTH - ALTERNATIVE_STEP, epoch)
+        }
     }
 
     /**

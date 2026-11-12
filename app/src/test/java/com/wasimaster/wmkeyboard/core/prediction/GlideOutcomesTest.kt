@@ -98,6 +98,19 @@ class GlideOutcomesTest {
     }
 
     @Test
+    fun onePickBackUnteachesAPairTaughtManyTimes() {
+        // #1250: taught four times or more, the pair sat at the cap, and one
+        // step back left it still taught, so `its` kept gliding as `is`.
+        val store = GlideOutcomes(null)
+        repeat(4) { store.observeAlternative("its", "is") }
+        assertTrue(store.isTaught("its", "is"))
+        assertEquals(GlideOutcomes.MAX_TAUGHT_LIFT_NATS, deltas(store, "its", "is")!![1], 1e-9)
+        store.observeAlternative("is", "its")
+        assertFalse(store.isTaught("its", "is"))
+        assertTrue(deltas(store, "its", "is")!![1] <= GlideOutcomes.MAX_LIFT_NATS)
+    }
+
+    @Test
     fun capacityEvictsTheWeakestFirst() {
         val store = GlideOutcomes(null)
         repeat(4) { store.observeAlternative("there", "three") }
