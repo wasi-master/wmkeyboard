@@ -298,6 +298,40 @@
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
+        <!-- Launcher icon packs (Arcticons and the rest), for app icons drawn
+             from a pack installed on the phone (#1275). Each declares itself
+             with one of these launchers' actions; SystemIconPacks.ACTIONS
+             is the same list. -->
+        <intent>
+            <action android:name="org.adw.launcher.THEMES" />
+        </intent>
+        <intent>
+            <action android:name="org.adw.ActivityStarter.THEMES" />
+        </intent>
+        <intent>
+            <action android:name="com.novalauncher.THEME" />
+        </intent>
+        <intent>
+            <action android:name="com.teslacoilsw.launcher.THEME" />
+        </intent>
+        <intent>
+            <action android:name="com.gau.go.launcherex.theme" />
+        </intent>
+        <intent>
+            <action android:name="com.anddoes.launcher.THEME" />
+        </intent>
+        <intent>
+            <action android:name="com.fede.launcher.THEME_ICONPACK" />
+        </intent>
+        <intent>
+            <action android:name="com.dlto.atom.launcher.THEME" />
+        </intent>
+        <intent>
+            <action android:name="ginlemon.smartlauncher.THEMES" />
+        </intent>
+        <intent>
+            <action android:name="com.lge.launcher2.THEME" />
+        </intent>
         <!-- The apps' "create shortcut" screens, for a custom button that
              opens another app's shortcut (#1213). -->
         <intent>

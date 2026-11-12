@@ -182,7 +182,10 @@ internal fun extensionScreens(extension: Extension): List<Pair<String, Int>> = w
     Extension.VOCABULARY -> listOf("vocab/packs" to R.string.vocab_packs_title, "vocab/lists" to R.string.vocab_lists_title)
     Extension.MODES -> listOf("modes" to R.string.home_modes_title)
     Extension.MEDIA_CONTROLS -> listOf("musicapps" to R.string.musicapps_title)
-    Extension.APP_LAUNCHER -> listOf("launchercombos" to R.string.launchercombos_title)
+    Extension.APP_LAUNCHER -> listOf(
+        "launchercombos" to R.string.launchercombos_title,
+        "launcherappicons" to R.string.launcherappicons_title,
+    )
     Extension.KDE_CONNECT -> listOf("kdeconnect/devices" to R.string.kdeconnect_devices_title)
     Extension.SEND_FILES -> listOf("send/instances" to R.string.send_instances_screen_title)
     Extension.SMART_HOME -> listOf("homeassistant/entities" to R.string.ha_entities_title)

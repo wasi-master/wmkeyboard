@@ -878,6 +878,7 @@ internal object SettingsRouteIcons {
         "hwshortcuts" to { SymbolIcons.KeyboardExternalInput },
         "musicapps" to { Icons.Outlined.MusicNote },
         "launchercombos" to { Icons.Outlined.VerticalSplit },
+        "launcherappicons" to { Icons.Outlined.Interests },
         "kdeconnect/devices" to { Icons.Outlined.Devices },
         "send/instances" to { Icons.Outlined.Dns },
         "send/history" to { Icons.Outlined.History },

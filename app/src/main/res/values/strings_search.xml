@@ -387,6 +387,7 @@
     <string name="search_kw_phoneformats">phone number, dial code, country code, mobile number, clipboard chips</string>
     <string name="search_kw_codes">otp, one time password, 2fa, two factor, verification code, sms code, login code</string>
     <string name="search_kw_musicapps">music apps, spotify, player apps, now playing, podcast apps</string>
+    <string name="search_kw_launcherappicons">icon pack, icon packs, arcticons, nova, adw, themed icons, app icons</string>
     <string name="search_kw_launchercombos">split screen, multi window, two apps, side by side, app pairs</string>
     <string name="search_kw_kdeconnect_devices">pair computer, paired devices, pc, laptop, desktop, gsconnect, valent, unpair, add by ip address</string>
     <string name="search_kw_send_instances">server, host, self hosted, mirror, upload limit</string>

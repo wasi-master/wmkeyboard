@@ -5852,6 +5852,20 @@ data class LauncherToolSettings(
     val iconSizeDp: Int = ICON_SIZE_DP,
     val iconShape: LauncherIconShape = LauncherIconShape.CIRCLE,
     /**
+     * The launcher icon pack installed on the phone (#1275) that app icons are
+     * drawn from, by package name, as a home-screen launcher would: the app
+     * launcher's grid, apps on the toolbar and the floating button's apps.
+     * Blank is the apps' own icons. An app the pack has no icon for keeps its
+     * own.
+     */
+    val iconPack: String = "",
+    /**
+     * Icons picked for single apps (#1275): package name → an `s:` source, a
+     * drawable out of any installed icon pack (see `SystemIconPacks`). Wins
+     * over [iconPack]. Per device, like the pack itself.
+     */
+    val appIcons: Map<String, String> = emptyMap(),
+    /**
      * Packages left out of the grid and the pinned/recent row. Search still
      * finds them, which is also the way back: its page, opened from the
      * results, shows it again.
@@ -5903,6 +5917,20 @@ data class LauncherToolSettings(
             key in current -> current - key
             current.size >= MAX_TOOLBAR_APPS -> current
             else -> current + key
+        }
+
+        /** [appIcons] as stored: `package=source` pairs, tab-separated. */
+        fun encodeAppIcons(icons: Map<String, String>): String =
+            icons.entries.joinToString("\t") { (pkg, source) -> "$pkg=$source" }
+
+        /** The stored form back; a malformed pair is dropped rather than failing the rest. */
+        fun decodeAppIcons(raw: String?): Map<String, String> {
+            if (raw.isNullOrEmpty()) return emptyMap()
+            return raw.split('\t').mapNotNull { pair ->
+                val at = pair.indexOf('=')
+                if (at <= 0 || at == pair.lastIndex) return@mapNotNull null
+                pair.substring(0, at) to pair.substring(at + 1)
+            }.toMap()
         }
 
         /** [toolbarAppSlots] as stored: `key=slot` pairs, tab-separated. */
@@ -13015,6 +13043,8 @@ class SettingsRepository(private val context: Context) {
         private val LAUNCHER_GRID_COLUMNS = intPreferencesKey("launcher_grid_columns")
         private val LAUNCHER_ICON_SIZE = intPreferencesKey("launcher_icon_size")
         private val LAUNCHER_ICON_SHAPE = stringPreferencesKey("launcher_icon_shape")
+        private val LAUNCHER_ICON_PACK = stringPreferencesKey("launcher_icon_pack")
+        private val LAUNCHER_APP_ICONS = stringPreferencesKey("launcher_app_icons")
         private val LAUNCHER_HIDDEN = stringPreferencesKey("launcher_hidden")
         private val LAUNCHER_OPEN_MODE = stringPreferencesKey("launcher_open_mode")
         private val LAUNCHER_COMBOS = stringPreferencesKey("launcher_combos")
@@ -16019,6 +16049,8 @@ class SettingsRepository(private val context: Context) {
             iconShape = p[LAUNCHER_ICON_SHAPE]
                 ?.let { runCatching { LauncherIconShape.valueOf(it) }.getOrNull() }
                 ?: defaults.launcher.iconShape,
+            iconPack = p[LAUNCHER_ICON_PACK] ?: defaults.launcher.iconPack,
+            appIcons = LauncherToolSettings.decodeAppIcons(p[LAUNCHER_APP_ICONS]),
             hidden = p[LAUNCHER_HIDDEN]?.split('\t')?.filter { it.isNotEmpty() }.orEmpty(),
             openMode = p[LAUNCHER_OPEN_MODE]
                 ?.let { runCatching { LauncherOpenMode.valueOf(it) }.getOrNull() }
@@ -16423,6 +16455,22 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setLauncherIconShape(value: LauncherIconShape) =
         editPrefs { it[LAUNCHER_ICON_SHAPE] = value.name }
+
+    /** The installed icon pack app icons come from (#1275), by package; blank for the apps' own. */
+    suspend fun setLauncherIconPack(packageName: String) = editPrefs {
+        if (packageName.isBlank()) it.remove(LAUNCHER_ICON_PACK) else it[LAUNCHER_ICON_PACK] = packageName
+    }
+
+    /** One app's picked icon (#1275), an `s:` source; null puts it back on the pack's or its own. */
+    suspend fun setLauncherAppIcon(packageName: String, source: String?) = editPrefs { prefs ->
+        val current = LauncherToolSettings.decodeAppIcons(prefs[LAUNCHER_APP_ICONS])
+        val next = if (source.isNullOrBlank()) current - packageName else current + (packageName to source)
+        if (next.isEmpty()) prefs.remove(LAUNCHER_APP_ICONS)
+        else prefs[LAUNCHER_APP_ICONS] = LauncherToolSettings.encodeAppIcons(next)
+    }
+
+    /** Every app's picked icon dropped (#1275); the pack, if any, stays. */
+    suspend fun clearLauncherAppIcons() = editPrefs { it.remove(LAUNCHER_APP_ICONS) }
 
     suspend fun toggleLauncherHidden(packageName: String) =
         editPrefs { prefs ->

@@ -261,6 +261,7 @@
     <string name="plugins_icons_tab_builtin">Built-in</string>
     <string name="plugins_icons_tab_yours">Your icons</string>
     <string name="plugins_icons_tab_packs">Packs</string>
+    <string name="plugins_icons_tab_installed">Installed</string>
     <string name="plugins_icons_packs_empty">No installed pack has an icon for this.</string>
     <string name="plugins_icons_yours_empty">Pictures you add stay here. You can put them back on any icon with one tap.</string>
     <!-- The first cell of the grid. It opens the file picker. -->

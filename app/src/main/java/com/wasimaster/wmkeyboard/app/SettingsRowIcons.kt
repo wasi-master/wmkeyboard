@@ -1509,6 +1509,9 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_launcher_columns_title) { Icons.Outlined.GridView }
         put(R.string.tooldetail_launcher_icon_size_title) { Icons.Outlined.PhotoSizeSelectLarge }
         put(R.string.tooldetail_launcher_icon_shape_title) { Icons.Outlined.RoundedCorner }
+        put(R.string.tooldetail_launcher_app_icons_title) { Icons.Outlined.Interests }
+        put(R.string.launcherappicons_pack_title) { Icons.Outlined.Interests }
+        put(R.string.launcherappicons_clear_title) { Icons.Outlined.RestartAlt }
         put(R.string.tooldetail_launcher_hidden_title) { Icons.Outlined.VisibilityOff }
         put(R.string.tooldetail_launcher_toolbar_title) { Icons.Outlined.AppShortcut }
         put(R.string.tooldetail_launcher_work_title) { Icons.Outlined.WorkOutline }

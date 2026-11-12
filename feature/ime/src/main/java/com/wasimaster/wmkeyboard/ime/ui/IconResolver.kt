@@ -35,6 +35,7 @@ import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.icons.RasterIcons
 import com.wasimaster.wmkeyboard.core.icons.SvgParser
 import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
+import com.wasimaster.wmkeyboard.core.icons.SystemIconPacks
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.IconSettings
 import kotlinx.coroutines.Dispatchers
@@ -201,7 +202,7 @@ fun rememberIconSet(settings: IconSettings): State<IconSet> {
     val revision by store.revision.collectAsState()
     val libraryRevision by library.revision.collectAsState()
     return produceState(IconSet.Builtin, settings, revision, libraryRevision) {
-        value = withContext(Dispatchers.Default) { buildIconSet(settings, store, library) }
+        value = withContext(Dispatchers.Default) { buildIconSet(settings, store, library, context) }
     }
 }
 
@@ -209,7 +210,13 @@ fun rememberIconSet(settings: IconSettings): State<IconSet> {
  * The blocking half of [rememberIconSet]: reads and parses whatever the
  * settings point at. Safe to call from any thread but the main one.
  */
-fun buildIconSet(settings: IconSettings, store: IconPackStore, library: IconLibrary? = null): IconSet {
+fun buildIconSet(
+    settings: IconSettings,
+    store: IconPackStore,
+    library: IconLibrary? = null,
+    /** Reads an `s:` source out of a pack installed on the phone; without it those slots stay default. */
+    context: android.content.Context? = null,
+): IconSet {
     // Before the early return, not after: a user with no icons customised is
     // exactly the one whose first frame would otherwise pay for building them.
     IconDefaults.warm()
@@ -262,6 +269,8 @@ fun buildIconSet(settings: IconSettings, store: IconPackStore, library: IconLibr
                 ?.toResolvedIcon(slot)
             source.startsWith(IconOverrides.LIBRARY_PREFIX) ->
                 library?.let { resolveLibraryIcon(it, source.removePrefix(IconOverrides.LIBRARY_PREFIX), slot) }
+            source.startsWith(IconOverrides.SYSTEM_PACK_PREFIX) ->
+                context?.let { resolveSystemPackIcon(it, source) }
             else -> null
         }
         // A source naming a pack that was uninstalled, or an icon renamed out
@@ -297,6 +306,20 @@ fun resolveLibraryIcon(library: IconLibrary, id: String, slot: String = id): Res
     val art = library.art(id) ?: return null
     val built = art.toResolvedIcon(slot) ?: return null
     return built.copy(monochrome = IconLibrary.monochromeOf(entry, built.monochromeAs(art)))
+}
+
+/**
+ * A drawable out of a launcher icon pack installed on the phone (#1275), from
+ * its `s:` [source], ready to draw. A one-colour line icon (Arcticons is all
+ * of them) takes the theme's tint like any glyph; a painted one keeps its
+ * colours. Null when the pack or the drawable is gone, which leaves the slot to
+ * its default. Blocking: call it off the main thread.
+ */
+fun resolveSystemPackIcon(context: android.content.Context, source: String): ResolvedIcon? {
+    val (pkg, name) = SystemIconPacks.parseSource(source) ?: return null
+    val bitmap = SystemIconPacks.drawable(context, pkg, name, SYSTEM_PACK_ICON_PX) ?: return null
+    return runCatching { ResolvedIcon(bitmap = bitmap.asImageBitmap(), monochrome = bitmap.looksLikeMask()) }
+        .getOrNull()
 }
 
 /**
@@ -489,6 +512,9 @@ private const val MATERIAL_GLYPH_SHARE = 0.75f
 
 /** At or below this alpha a pixel is margin, not glyph: the faintest anti-aliasing. */
 private const val TRIM_MAX_ALPHA = 0x08
+
+/** The square an installed pack's drawable is drawn into for a slot: big enough for any key. */
+private const val SYSTEM_PACK_ICON_PX = 144
 
 /** Longest edge an icon is decoded at; see [decodeIcon]. */
 private const val MAX_ICON_PX = 192

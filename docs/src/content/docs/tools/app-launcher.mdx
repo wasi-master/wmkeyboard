@@ -155,6 +155,16 @@ The [floating button](/reference/settings/floating-button/#gestures) can open a 
 
 Pairs need split screen, so they only show where split screen does. From Android 13's first update the keyboard's invisible screen opens both apps itself, a third of a second apart. Where the keyboard opens them directly, the second app waits about two thirds of a second, and just over a second on Android 16, which refuses a second split request for a second after split screen opens. With the [split screen helper](#split-screen-helper), the keyboard waits for the first app to appear (at most about 2.2 seconds on Android 15 and on Xiaomi, Redmi and POCO phones), then presses the switch, then opens the second app.
 
+## Icon packs
+
+<SettingsPath path="Tools / App launcher / App icons" />
+
+An icon pack made for a home screen launcher, such as [Arcticons](https://github.com/Arcticons-team/Arcticons), can dress the keyboard's app icons as well. Install the pack on the phone as usual, open **App icons** and pick it under **Icon pack**. The grid, the pinned and recent row, apps on the toolbar and the [floating button](/reference/settings/floating-button/)'s apps then draw each app with the pack's icon. An app the pack has no icon for keeps its own. Packs for Nova, Lawnchair, ADW, Apex, Go and Smart Launcher all work, since they share one format.
+
+Below that, every app on the phone is listed with the icon it gets now. Tap one to give it a different icon from any installed pack: the icons the pack itself made for that app come first, and the search box finds the rest. **Use the default** puts the app back on the pack's icon, or its own. **Reset picked icons** drops every single-app choice at once and leaves the pack in place. Both settings stay on this phone and are not synced, since the packs are installed here.
+
+The keyboard draws a pack's icons as the pack made them. A line-icon pack such as Arcticons comes in a light and a dark version, so pick the one that suits your keyboard theme. The same packs also turn up in **Appearance › Icons**, as the **Installed** tab of each icon's picker, for the toolbar's tools and the keyboard's other icons.
+
 ## Options
 
 <SettingsPath path="Tools / App launcher" />
@@ -180,6 +190,7 @@ Then the launcher's own group:
 - **Apps per row**: **Auto** by default, which fits as many apps as the keyboard width holds. Pick a number from 3 to 8 to fix it. Icons that don't fit their cell shrink to fit.
 - **Icon size**: 42 dp by default, anywhere from 30 to 60. On Auto, bigger icons also mean fewer apps per row. The pinned and recent row keeps its own size.
 - **Icon shape**: **Circle** by default, **Rounded square**, or **As on the phone** to keep the shape your home screen gives each icon.
+- **App icons**: draw app icons from an icon pack installed on the phone, and pick a different one for any app. See [Icon packs](#icon-packs).
 - **Recent apps**: on by default. Turning it off stops the tracking and deletes the stored list.
 - **How many recent apps**: 10 by default, anywhere from 4 to 20. Lowering it drops the extra entries straight away rather than hiding them. Pick a multiple of your grid width and the row fills cleanly with no gap at the end.
 - **Open screens inside apps**: on by default. Off leaves the app's page as its pin, hide and **App info** actions, without the screen list. The hold menu still reaches the page either way, since hiding an app has no other door.

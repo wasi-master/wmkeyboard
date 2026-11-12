@@ -497,6 +497,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "musicapps" to Color(0xFFAB47BC),
     // A child of the app launcher tool, so it keeps that tool's violet.
     "launchercombos" to Color(0xFF7E57C2),
+    "launcherappicons" to Color(0xFF7E57C2),
     "kdeconnect/devices" to Color(0xFF1D99F3),
     // Children of the Send files tool, so they keep that tool's teal.
     "send/instances" to Color(0xFF26A69A),

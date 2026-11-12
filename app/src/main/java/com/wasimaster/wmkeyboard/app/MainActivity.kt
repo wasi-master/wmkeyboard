@@ -59,6 +59,8 @@ import com.wasimaster.wmkeyboard.app.storage.StorageScreen
 import com.wasimaster.wmkeyboard.app.resources.ResourcesScreen
 import com.wasimaster.wmkeyboard.app.storage.storageRoute
 import com.wasimaster.wmkeyboard.app.language.appLanguageSplitCompat
+import com.wasimaster.wmkeyboard.app.launcher.LauncherAppIcons
+import com.wasimaster.wmkeyboard.app.launcher.LauncherAppIconsScreen
 import com.wasimaster.wmkeyboard.app.launcher.LauncherCombos
 import com.wasimaster.wmkeyboard.app.launcher.LauncherCombosScreen
 import com.wasimaster.wmkeyboard.app.lock.AppLockSecretPrompt
@@ -1555,6 +1557,15 @@ private fun SettingsNavGraph(
                 route = CustomButtons.ROUTE,
             ) {
                 CustomButtonsScreen(repository, settings)
+            }
+        }
+        composable(LauncherAppIcons.ROUTE) {
+            SettingsScreen(
+                stringResource(R.string.launcherappicons_title),
+                { navController.popBackStack() },
+                route = LauncherAppIcons.ROUTE,
+            ) {
+                LauncherAppIconsScreen(repository, settings)
             }
         }
         composable(LauncherCombos.ROUTE) {

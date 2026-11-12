@@ -39,7 +39,7 @@ object SyncKeys {
         "emoji_font_installed_id", "whisper_model_id", "whisper_model_by_lang", "ai_local_model_id",
         "media_music_apps", "launcher_pinned", "launcher_hidden", "launcher_recents", "launcher_toolbar_apps",
         "share_sheet_pinned", "share_sheet_recents",
-        "launcher_folders",
+        "launcher_folders", "launcher_icon_pack", "launcher_app_icons",
         // The user's own buttons (#1213): a shortcut belongs to an app installed here.
         "custom_buttons",
         // Current state rather than a choice.

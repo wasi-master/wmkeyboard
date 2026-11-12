@@ -7,8 +7,10 @@ package com.wasimaster.wmkeyboard.core.icons
  * Safe as a flat CSV because neither half can contain a separator. Slot ids are
  * lowercase `a-z0-9._` (see [IconSlots.isWellFormed]) and a source is `b:<name>`
  * for a bundled icon, `p:<packId>` for one out of an installed pack,
- * `v:<variant>` for one of the slot's alternative looks, or `u:<id>` for a
- * picture in the user's [IconLibrary] — no `,` and no `=` in any of them.
+ * `v:<variant>` for one of the slot's alternative looks, `u:<id>` for a
+ * picture in the user's [IconLibrary], or `s:<package>/<drawable>` for one out
+ * of a launcher icon pack installed on the phone — no `,` and no `=` in any of
+ * them.
  *
  * Lives here rather than inside `SettingsRepository` so it is a plain pair of
  * functions a unit test can call, with no DataStore or Android context in the
@@ -41,6 +43,14 @@ object IconOverrides {
      * any number of slots and stays listed when a slot moves off it.
      */
     const val LIBRARY_PREFIX = "u:"
+
+    /**
+     * `s:<package>/<drawable>` — one drawable out of a launcher icon pack
+     * installed on the phone (#1275), such as Arcticons; see [SystemIconPacks].
+     * Pinned like `p:`. A package name and a resource name hold neither `,`
+     * nor `=`, and [SystemIconPacks.parseSource] refuses anything else.
+     */
+    const val SYSTEM_PACK_PREFIX = "s:"
 
     fun builtinSource(name: String): String = BUILTIN_PREFIX + name
 

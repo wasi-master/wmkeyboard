@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.graphics.drawable.toBitmap
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
 import com.wasimaster.wmkeyboard.ime.AppCatalog
+import com.wasimaster.wmkeyboard.ime.AppIconPacks
 
 /**
  * The icons and names of the apps the floating button opens (#922), kept so
@@ -29,12 +30,17 @@ object FloatingAppIcons {
     private val icons = LruCache<String, ImageBitmap>(ICON_CACHE)
     private val labels = LruCache<String, String>(ICON_CACHE)
 
-    /** The app's icon at [sizePx], or null when it is not installed (or not visible). */
+    /**
+     * The app's icon at [sizePx], or null when it is not installed (or not
+     * visible). An installed icon pack the keyboard is set to use, or an icon
+     * picked for the app, comes first (#1275); see [AppIconPacks].
+     */
     fun icon(context: Context, packageName: String, sizePx: Int): ImageBitmap? {
         val key = "$packageName@$sizePx"
         icons.get(key)?.let { return it }
         val bitmap = runCatching {
-            context.packageManager.getApplicationIcon(packageName).toBitmap(sizePx, sizePx).asImageBitmap()
+            AppIconPacks.icon(context, AppIconPacks.current, packageName, null, sizePx)?.asImageBitmap()
+                ?: context.packageManager.getApplicationIcon(packageName).toBitmap(sizePx, sizePx).asImageBitmap()
         }.getOrNull() ?: return null
         icons.put(key, bitmap)
         return bitmap

@@ -6517,6 +6517,12 @@ open class WMKeyboardService : InputMethodService() {
             refreshScreenshotObserver(settings)
         }
         if (!settings.floatingFor(landscapeNow())) floatingPanelBounds = null
+        // App icons out of an installed icon pack (#1275): the floating
+        // button reads the choice from here, and drops what it drew before.
+        if (AppIconPacks.update(AppIconPacks.Choice.of(settings.launcher))) {
+            com.wasimaster.wmkeyboard.ime.floating.FloatingAppIcons.clear()
+            launcherIconCache.evictAll()
+        }
         if (settings.suggestionSources.contacts != contactsEnabled) {
             contactsEnabled = settings.suggestionSources.contacts
             if (settings.suggestionSources.contacts) {
@@ -25700,6 +25706,8 @@ open class WMKeyboardService : InputMethodService() {
     private val packageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             com.wasimaster.wmkeyboard.ime.floating.FloatingAppIcons.clear()
+            // An icon pack installed, updated or removed reads afresh (#1275).
+            com.wasimaster.wmkeyboard.core.icons.SystemIconPacks.clear()
             invalidateLauncherApps()
         }
     }
@@ -25794,14 +25802,19 @@ open class WMKeyboardService : InputMethodService() {
 
     /** One app's icon for the panel grid, through the LRU, decoded on IO. */
     internal suspend fun launcherIconFor(app: LauncherApp): ImageBitmap? {
-        val key = "${app.key}/${app.activityName}"
+        // An icon pack or a picked icon (#1275) is part of the key, so turning
+        // one on never shows an icon kept from before it.
+        val choice = AppIconPacks.Choice.of(_uiState.value.settings.launcher)
+        val key = "${app.key}/${app.activityName}" + if (choice.none) "" else "#${choice.hashCode()}"
         launcherIconCache.get(key)?.let { return it }
         val bitmap = withContext(Dispatchers.IO) {
             runCatching {
                 val dp = com.wasimaster.wmkeyboard.core.settings.LauncherToolSettings
                     .ICON_SIZE_RANGE.last
                 val px = (dp * resources.displayMetrics.density).toInt().coerceAtLeast(1)
-                profileIcon(app)
+                AppIconPacks.icon(this@WMKeyboardService, choice, app.packageName, app.activityName, px)
+                    ?.asImageBitmap()
+                    ?: profileIcon(app)
                     ?: packageManager.getActivityIcon(app.component)
                         .toBitmap(px, px)
                         .asImageBitmap()

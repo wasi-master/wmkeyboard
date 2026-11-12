@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.barcode.BarcodeEngine
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.app.media.MusicApps
+import com.wasimaster.wmkeyboard.app.launcher.LauncherAppIcons
 import com.wasimaster.wmkeyboard.app.launcher.LauncherCombos
 import com.wasimaster.wmkeyboard.core.settings.SearchResultTap
 import com.wasimaster.wmkeyboard.core.settings.PrivacyShadeSettings
@@ -817,6 +818,21 @@ internal fun ToolDetailSettings(
                         selected = settings.watch { it.launcher.iconShape },
                         default = SettingsDefaults.launcher.iconShape,
                     ) { scope.launch { repository.setLauncherIconShape(it) } }
+                }
+                item(level = SettingLevel.STANDARD) {
+                    // Icon packs installed on the phone (#1275): the pack and
+                    // the single-app picks have a screen of their own.
+                    val iconPack = settings.watch { it.launcher.iconPack }
+                    NavRow(
+                        title = R.string.tooldetail_launcher_app_icons_title,
+                        subtitle = stringResource(
+                            if (iconPack.isEmpty()) {
+                                R.string.tooldetail_launcher_app_icons_none_subtitle
+                            } else {
+                                R.string.tooldetail_launcher_app_icons_pack_subtitle
+                            },
+                        ),
+                    ) { onNavigate(LauncherAppIcons.ROUTE) }
                 }
                 item(level = SettingLevel.STANDARD) {
                     ToggleSetting(

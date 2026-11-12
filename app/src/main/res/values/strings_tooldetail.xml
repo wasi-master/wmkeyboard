@@ -1028,6 +1028,9 @@
     <string name="tooldetail_launcher_icon_shape_rounded_label">Rounded square</string>
     <string name="tooldetail_launcher_icon_shape_system_label">As on the phone</string>
     <string name="tooldetail_launcher_icon_shape_info">As on the phone shows each icon with the shape your home screen gives it. Old apps without an adaptive icon keep their own outline.</string>
+    <string name="tooldetail_launcher_app_icons_title">App icons</string>
+    <string name="tooldetail_launcher_app_icons_none_subtitle">Use an icon pack installed on this phone, such as Arcticons</string>
+    <string name="tooldetail_launcher_app_icons_pack_subtitle">Drawn from an icon pack installed on this phone</string>
     <string name="tooldetail_launcher_hidden_title">Hidden apps</string>
     <string name="tooldetail_launcher_hidden_none_subtitle">No apps are hidden. Press and hold an app in the panel, open its page from the menu, then tap the eye.</string>
     <plurals name="tooldetail_launcher_hidden_count">

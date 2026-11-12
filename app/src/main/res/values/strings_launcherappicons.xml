@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App icons out of launcher icon packs installed on the phone (#1275). -->
+    <string name="launcherappicons_title">App icons</string>
+    <string name="launcherappicons_no_packs">No icon pack is installed on this phone. Install a launcher icon pack, such as Arcticons, and it shows up here.</string>
+    <string name="launcherappicons_pack_title">Icon pack</string>
+    <string name="launcherappicons_pack_subtitle">Draw every app\'s icon from a pack installed on this phone</string>
+    <string name="launcherappicons_pack_info">The keyboard uses the pack the way a home screen launcher does: in the app launcher tool, for apps on the toolbar, and for the floating button\'s apps. An app that the pack has no icon for keeps its own icon. Icon packs made for launchers such as Nova, Lawnchair or ADW work, including Arcticons.</string>
+    <string name="launcherappicons_pack_none">None</string>
+    <string name="launcherappicons_clear_title">Reset picked icons</string>
+    <string name="launcherappicons_clear_none_subtitle">No app has an icon picked for it</string>
+    <plurals name="launcherappicons_clear_count">
+        <item quantity="one">%1$d app has an icon picked for it</item>
+        <item quantity="other">%1$d apps have an icon picked for them</item>
+    </plurals>
+    <string name="launcherappicons_caption">Tap an app to pick another icon for it from any installed pack. The icons the pack itself gives the app come first.</string>
+    <string name="launcherappicons_search_hint">Search apps</string>
+    <string name="launcherappicons_source_own">Its own icon</string>
+    <string name="launcherappicons_source_picked">Picked from %1$s</string>
+    <!-- The picker's grid of a pack installed on the phone. -->
+    <string name="systempacks_none">No icon pack is installed on this phone.</string>
+    <string name="systempacks_loading">Reading the pack…</string>
+    <string name="systempacks_pack_empty">This pack does not list any icons.</string>
+</resources>

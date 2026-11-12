@@ -121,7 +121,13 @@ internal fun PinnedAppButton(
     /** The slot under a root position, or null where the app cannot be moved. */
     slotAt: ((Offset) -> Int)? = null,
 ) {
-    val face by produceState<ToolbarAppFace?>(null, key, callbacks) { value = callbacks.face(key) }
+    // The icon pack and this app's picked icon (#1275) are keys too: changing
+    // either reads the face again.
+    val iconPack = state.settings.launcher.iconPack
+    val iconPick = state.settings.launcher.appIcons[key.substringBefore('@')]
+    val face by produceState<ToolbarAppFace?>(null, key, callbacks, iconPack, iconPick) {
+        value = callbacks.face(key)
+    }
     val app = face ?: return
     val kb = LocalKbTheme.current
     val description = stringResource(R.string.ime_toolbar_app_desc, app.label)

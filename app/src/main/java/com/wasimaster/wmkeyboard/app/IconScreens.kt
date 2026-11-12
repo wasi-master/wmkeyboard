@@ -78,6 +78,7 @@ import com.wasimaster.wmkeyboard.ime.ui.IconDefaults
 import com.wasimaster.wmkeyboard.ime.ui.ResolvedIcon
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import com.wasimaster.wmkeyboard.ime.ui.resolvePackIcon
+import com.wasimaster.wmkeyboard.core.icons.SystemIconPack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -242,6 +243,9 @@ internal fun IconsScreen(
     LaunchedEffect(Unit) { runCatching { repository.moveMyIconsIntoLibrary() } }
     val library = remember { IconLibrary.get(context) }
     val libraryRevision by library.revision.collectAsState()
+    // Launcher icon packs installed on the phone (#1275), for the picker's
+    // Installed tab and the rows that name where an icon comes from.
+    val systemPacks = rememberSystemIconPacks()
 
     // Long-pressing a pack starts picking, as in the theme gallery: taps then
     // tick packs, and the dock exports or deletes every ticked one at once.
@@ -432,7 +436,7 @@ internal fun IconsScreen(
                         },
                         supporting = {
                             CaptionText(
-                                settings.watch { describeSource(context, it, slot, store, library) },
+                                settings.watch { describeSource(context, it, slot, store, library, systemPacks) },
                             )
                         },
                         onClick = { picking = slot },
@@ -464,6 +468,7 @@ internal fun IconsScreen(
             settings = settings,
             variants = variants,
             packs = packChoices,
+            installed = systemPacks,
             onPickVariant = { name ->
                 scope.launch { repository.setIconOverride(slot.id, IconOverrides.variantSource(name)) }
                 picking = null
@@ -479,6 +484,10 @@ internal fun IconsScreen(
             onPickLibrary = { id ->
                 library.touch(id)
                 scope.launch { repository.setIconOverride(slot.id, IconOverrides.librarySource(id)) }
+                picking = null
+            },
+            onPickInstalled = { source ->
+                scope.launch { repository.setIconOverride(slot.id, source) }
                 picking = null
             },
             // Use default only drops the choice. A picture from Your icons
@@ -568,6 +577,7 @@ private fun describeSource(
     slot: IconSlot,
     store: IconPackStore,
     library: IconLibrary,
+    systemPacks: List<SystemIconPack>,
 ): String {
     val default = context.getString(CommonR.string.common_default)
     val override = settings.icons.overrides[slot.id]
@@ -589,6 +599,12 @@ private fun describeSource(
         }
         IconOverrides.libraryIdOf(override)?.let { id ->
             return library.icon(id)?.name ?: default
+        }
+        if (override.startsWith(IconOverrides.SYSTEM_PACK_PREFIX)) {
+            // A pack that has since been uninstalled leaves the slot on its default.
+            return systemPackLabel(systemPacks, override)
+                ?.let { context.getString(R.string.plugins_icons_source_from_pack, it) }
+                ?: default
         }
         if (override.startsWith(IconOverrides.PACK_PREFIX)) {
             val packId = override.removePrefix(IconOverrides.PACK_PREFIX)
@@ -676,11 +692,15 @@ private fun PackRow(
     )
 }
 
-/** The picker's three tabs; [PACKS] only shows when a pack draws the slot. */
+/**
+ * The picker's tabs; [PACKS] only shows when a pack draws the slot, and
+ * [INSTALLED] only when the phone has a launcher icon pack (#1275).
+ */
 private enum class PickerTab(val labelRes: Int) {
     BUILTIN(R.string.plugins_icons_tab_builtin),
     YOURS(R.string.plugins_icons_tab_yours),
     PACKS(R.string.plugins_icons_tab_packs),
+    INSTALLED(R.string.plugins_icons_tab_installed),
 }
 
 /** An installed pack that draws the slot, with its glyph for the Packs tab. */
@@ -705,10 +725,12 @@ private fun IconPickerDialog(
     settings: LiveSettings,
     variants: List<VariantChoice>,
     packs: List<PackChoice>,
+    installed: List<SystemIconPack>,
     onPickVariant: (String) -> Unit,
     onPickBuiltin: (String) -> Unit,
     onPickPack: (String) -> Unit,
     onPickLibrary: (String) -> Unit,
+    onPickInstalled: (String) -> Unit,
     onReset: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -719,11 +741,18 @@ private fun IconPickerDialog(
             when {
                 IconOverrides.libraryIdOf(override) != null -> PickerTab.YOURS
                 override?.startsWith(IconOverrides.PACK_PREFIX) == true -> PickerTab.PACKS
+                override?.startsWith(IconOverrides.SYSTEM_PACK_PREFIX) == true -> PickerTab.INSTALLED
                 else -> PickerTab.BUILTIN
             },
         )
     }
-    val tabs = PickerTab.entries.filter { it != PickerTab.PACKS || packs.isNotEmpty() }
+    val tabs = PickerTab.entries.filter {
+        when (it) {
+            PickerTab.PACKS -> packs.isNotEmpty()
+            PickerTab.INSTALLED -> installed.isNotEmpty()
+            else -> true
+        }
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(slotLabel(context, slot)) },
@@ -780,6 +809,7 @@ private fun IconPickerDialog(
                         onAdded = { added -> added.firstOrNull()?.let { onPickLibrary(it.id) } },
                     )
                     PickerTab.PACKS -> PacksTab(packs, override, onPickPack)
+                    PickerTab.INSTALLED -> SystemPackIconGrid(installed, override, onPickInstalled)
                 }
             }
         },

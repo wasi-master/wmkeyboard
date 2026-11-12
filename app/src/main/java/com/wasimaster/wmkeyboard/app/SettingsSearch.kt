@@ -2064,6 +2064,8 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         R.string.tooldetail_launcher_icon_shape_title,
         R.string.tooldetail_launcher_icon_shape_subtitle,
     ),
+    // #1275: app icons out of a pack installed on the phone. Subtitle left off: it says whether one is in use.
+    toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_app_icons_title),
     // Subtitle left off: it counts the hidden apps.
     toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_hidden_title),
     // #1159: apps with a button of their own on the toolbar.
@@ -3333,6 +3335,15 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             route = "musicapps",
             screenParent = R.string.home_tools_title,
             keywords = R.string.search_kw_musicapps,
+        ),
+        // The same shape for the app launcher's icons out of installed packs (#1275).
+        entry(
+            title = R.string.launcherappicons_title,
+            subtitle = R.string.launcherappicons_pack_subtitle,
+            screen = toolTitle(ToolbarTool.APP_LAUNCHER),
+            route = "launcherappicons",
+            screenParent = R.string.home_tools_title,
+            keywords = R.string.search_kw_launcherappicons,
         ),
         // The same shape for the app launcher's split-screen pairs.
         entry(
