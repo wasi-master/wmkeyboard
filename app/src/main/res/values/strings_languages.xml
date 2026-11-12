@@ -370,6 +370,14 @@ On test words the space bar wrote the right word more often in every language th
     <string name="languages_bengali_vowel_twice_subtitle">On Probhat, Jatiya and BSTI, after a vowel: one tap gives য়া or য়ে, a second tap gives আ or এ</string>
     <string name="languages_bengali_vowel_twice_info">After a vowel, the আ-কার and এ-কার keys write য়া and য়ে, as in কায়া and দিয়ে, because a bare া or ে cannot follow a vowel. With this on, pressing the key again straight away turns য়া into আ and য়ে into এ. Holding either key offers আ or এ whether this is on or not. Off by default, because a quick double press then types the glide twice.</string>
     <string name="languages_ansi_group">ANSI output</string>
+    <string name="languages_legacy_font_group">Legacy font output</string>
+    <string name="languages_legacy_font_title">Write for a legacy font</string>
+    <string name="languages_legacy_font_subtitle">A button on the strip writes text for a pre-Unicode font, so हिन्दी comes out as fgUnh in Kruti Dev</string>
+    <string name="languages_legacy_font_info">Before Unicode, Indian scripts were typed in fonts that store each glyph as a Latin character: Kruti Dev and DevLys for Hindi, Bamini for Tamil, AnmolLipi for Punjabi. Print shops, design software and some government forms still use them.\n\nPick a font and the layouts of this language get a button beside the suggestions. With it lit, everything the keyboard writes is converted for that font, while the keyboard itself goes on typing, predicting and correcting in Unicode. The text only reads right in the font it was written for; anywhere else it looks like Latin letters. Off by default.</string>
+    <string name="languages_legacy_font_off">Off</string>
+    <string name="languages_legacy_font_krutidev" translatable="false">Kruti Dev 010 / DevLys 010</string>
+    <string name="languages_legacy_font_bamini" translatable="false">Bamini</string>
+    <string name="languages_legacy_font_anmollipi" translatable="false">AnmolLipi / Gurbani Akhar</string>
     <string name="languages_ansi_allowed_title">Allow ANSI output</string>
     <string name="languages_ansi_allowed_subtitle">An ANSI button on the Bengali layouts writes Bijoy-style text, so আ comes out as Av</string>
     <string name="languages_ansi_allowed_info">ANSI is how Bengali was written before Unicode, in Bijoy and in fonts like SutonnyMJ: each Bengali letter is stored as a Latin character, and the font draws it as Bengali. Some design software and older documents still need it.\n\nWith this on, every Bengali layout gets an ANSI button beside the suggestions. Tap it and what you type goes into the text box as ANSI, so আমার সোনার বাংলা becomes Avgvi †mvbvi evsjv. Tap it again for Unicode.\n\nThe word you are typing shows as Unicode until you finish it. ANSI text only reads as Bengali in an ANSI font, so keep the button off everywhere else.</string>

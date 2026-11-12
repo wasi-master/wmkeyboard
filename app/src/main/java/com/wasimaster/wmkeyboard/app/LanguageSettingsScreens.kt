@@ -51,6 +51,7 @@ import com.wasimaster.wmkeyboard.core.layout.resolveLayoutKeyman
 import com.wasimaster.wmkeyboard.core.layout.resolveLayoutName
 import com.wasimaster.wmkeyboard.core.transliteration.BijoyAnsi
 import com.wasimaster.wmkeyboard.core.transliteration.KhiproSpecs
+import com.wasimaster.wmkeyboard.core.transliteration.LegacyFonts
 import com.wasimaster.wmkeyboard.core.dictionaries.AvroDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryEntry
@@ -1601,6 +1602,26 @@ internal fun LanguageDetailScreen(
         }
     }
 
+    // Hindi in Kruti Dev, Tamil in Bamini, Punjabi in AnmolLipi (#1252): the
+    // pre-Unicode fonts print and design work still runs on, offered the way
+    // Bengali's ANSI is. Picking one puts its button on the language's strip.
+    val legacyFonts = LegacyFonts.fontsFor(langId)
+    if (legacyFonts.isNotEmpty()) {
+        SettingsGroup(stringResource(R.string.languages_legacy_font_group), level = SettingLevel.ADVANCED) {
+            item {
+                ChoiceSetting(
+                    R.string.languages_legacy_font_title,
+                    subtitle = stringResource(R.string.languages_legacy_font_subtitle),
+                    info = stringResource(R.string.languages_legacy_font_info),
+                    options = listOf("" to stringResource(R.string.languages_legacy_font_off)) +
+                        legacyFonts.map { it.id to stringResource(legacyFontLabel(it)) },
+                    selected = settings.watch { it.suggestionStrip.legacyFonts[langId].orEmpty() },
+                    default = "",
+                ) { scope.launch { repository.setLegacyFont(langId, it) } }
+            }
+        }
+    }
+
     // Burmese written in Zawgyi, the font encoding much Burmese text is still
     // in, the same way: allowing it puts the Zawgyi button on the strip of
     // every Burmese layout, and the button turns it on. The key font is for
@@ -2610,4 +2631,11 @@ private fun readingOnSwitchDescRes(choice: ReadingOnSwitch): Int = when (choice)
     ReadingOnSwitch.CONVERT -> R.string.languages_cjk_reading_on_switch_convert_desc
     ReadingOnSwitch.TYPED -> R.string.languages_cjk_reading_on_switch_typed_desc
     ReadingOnSwitch.DISCARD -> R.string.languages_cjk_reading_on_switch_discard_desc
+}
+
+/** The name a legacy font goes by in the settings (#1252). */
+private fun legacyFontLabel(font: LegacyFonts.Font): Int = when (font) {
+    LegacyFonts.Font.KRUTI_DEV -> R.string.languages_legacy_font_krutidev
+    LegacyFonts.Font.BAMINI -> R.string.languages_legacy_font_bamini
+    LegacyFonts.Font.ANMOL_LIPI -> R.string.languages_legacy_font_anmollipi
 }

@@ -4794,6 +4794,22 @@ private fun RowScope.StripOfferChips(
             onStripOfferAction(StripOfferAction.ToggleZawgyi)
         }
     }
+    // A legacy font button (#1252): Kruti Dev on the Hindi layouts, Bamini on
+    // the Tamil ones, AnmolLipi on the Punjabi ones, once the language's
+    // screen picked the font. The same switch for the same reason.
+    state.settings.suggestionStrip.legacyFonts[state.language.id]?.let { fontId ->
+        EncodingToggle(
+            active = state.settings.suggestionStrip.legacyFontOn,
+            label = when (fontId) {
+                "krutidev" -> "KD"
+                "bamini" -> "BM"
+                else -> "AL"
+            },
+            description = stringResource(R.string.ime_legacy_font_output),
+        ) {
+            onStripOfferAction(StripOfferAction.ToggleLegacyFont)
+        }
+    }
     // Chinese and Cantonese's 繁 button, the same switch over Traditional
     // characters (#962). Lit while candidates come out Traditional.
     if ((state.language.id == "zh" || state.language.id == "yue") && state.settings.cjk.traditionalButton) {

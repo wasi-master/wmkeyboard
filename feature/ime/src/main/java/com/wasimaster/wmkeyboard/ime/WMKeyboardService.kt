@@ -16955,7 +16955,9 @@ open class WMKeyboardService : InputMethodService() {
             when {
                 strip.bengaliAnsiFor(langId) -> OutputEncoding.Ansi(BijoyAnsi.Version.of(strip.bengaliAnsiVersion))
                 langId == "my" && (strip.burmeseZawgyiFor(langId) || zawgyiField) -> OutputEncoding.ZawgyiOutput
-                else -> null
+                else -> strip.legacyFontFor(langId)
+                    ?.let(com.wasimaster.wmkeyboard.core.transliteration.LegacyFonts.Font::of)
+                    ?.let(OutputEncoding::LegacyFont)
             },
         )
     }
@@ -22345,6 +22347,10 @@ open class WMKeyboardService : InputMethodService() {
             onZawgyiOutputToggle()
             return
         }
+        if (action == StripOfferAction.ToggleLegacyFont) {
+            onLegacyFontToggle()
+            return
+        }
         if (action == StripOfferAction.ToggleTraditional) {
             onTraditionalOutputToggle()
             return
@@ -22435,6 +22441,7 @@ open class WMKeyboardService : InputMethodService() {
             StripOfferAction.Decline -> clearSnippetOffer()
             StripOfferAction.Explain -> Unit
             StripOfferAction.ToggleAnsi, StripOfferAction.ToggleZawgyi, StripOfferAction.ToggleTraditional,
+            StripOfferAction.ToggleLegacyFont,
             StripOfferAction.OpenPasswordManager, StripOfferAction.DismissPasswordManager,
             StripOfferAction.UndoDelete, StripOfferAction.DismissDeleteUndo,
             -> Unit
@@ -39647,6 +39654,34 @@ open class WMKeyboardService : InputMethodService() {
             Toast.LENGTH_SHORT,
         ).show()
         serviceScope.launch { settingsRepository.setBengaliAnsiOn(next) }
+    }
+
+    /**
+     * The strip's legacy font button (#1252): write for the font the language
+     * was given (Kruti Dev, Bamini, AnmolLipi) or Unicode, the way
+     * [onAnsiOutputToggle] does for Bengali. The word being typed commits
+     * first, in the output it was started in.
+     */
+    fun onLegacyFontToggle() {
+        vibrate()
+        val state = _uiState.value
+        val strip = state.settings.suggestionStrip
+        val font = com.wasimaster.wmkeyboard.core.transliteration.LegacyFonts.Font.of(strip.legacyFonts[state.language.id])
+            ?: return
+        currentInputConnection?.let { commitComposing(it, autocorrect = false) }
+        val next = !strip.legacyFontOn
+        Toast.makeText(
+            this,
+            if (next) getString(R.string.ime_service_legacy_font_on_toast, legacyFontName(font)) else getString(R.string.ime_service_legacy_font_off_toast),
+            Toast.LENGTH_SHORT,
+        ).show()
+        serviceScope.launch { settingsRepository.setLegacyFontOn(next) }
+    }
+
+    private fun legacyFontName(font: com.wasimaster.wmkeyboard.core.transliteration.LegacyFonts.Font): String = when (font) {
+        com.wasimaster.wmkeyboard.core.transliteration.LegacyFonts.Font.KRUTI_DEV -> "Kruti Dev"
+        com.wasimaster.wmkeyboard.core.transliteration.LegacyFonts.Font.BAMINI -> "Bamini"
+        com.wasimaster.wmkeyboard.core.transliteration.LegacyFonts.Font.ANMOL_LIPI -> "AnmolLipi"
     }
 
     /**

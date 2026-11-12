@@ -464,6 +464,7 @@
     <!-- The strip button on Bengali layouts. ANSI is the name of the encoding, not a word to translate. -->
     <string name="ime_ansi_button" translatable="false">ANSI</string>
     <string name="ime_ansi_output">ANSI output</string>
+    <string name="ime_legacy_font_output">Legacy font output</string>
     <!-- The strip button on Burmese layouts. Zawgyi is the name of the encoding, not a word to translate. -->
     <string name="ime_zawgyi_button" translatable="false">Zawgyi</string>
     <string name="ime_zawgyi_output">Zawgyi output</string>

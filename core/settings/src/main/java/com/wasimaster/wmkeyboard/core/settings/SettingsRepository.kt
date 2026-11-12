@@ -11151,6 +11151,17 @@ data class SuggestionStripSettings(
      */
     val bengaliAnsiVersion: Int = 2,
     /**
+     * The pre-Unicode font each language may be written for (#1252), by
+     * language id: Kruti Dev for Hindi and the other Devanagari languages,
+     * Bamini for Tamil, AnmolLipi for Punjabi. A language listed here gets a
+     * button on its layouts' strip, which turns the output on
+     * ([legacyFontOn]). Empty by default, for the reason [bengaliAnsiAllowed]
+     * is off: the text reads as Latin garbage in any other font.
+     */
+    val legacyFonts: Map<String, String> = emptyMap(),
+    /** Whether the layouts of a language in [legacyFonts] write for its font right now: the strip button's state. */
+    val legacyFontOn: Boolean = false,
+    /**
      * Whether Burmese may be written in Zawgyi, the font encoding much Burmese
      * text is still in, for friends and apps that never moved to Unicode.
      * Allowing it puts a Zawgyi button on the strip of every Burmese layout;
@@ -11235,6 +11246,9 @@ data class SuggestionStripSettings(
 
     /** Whether a Khipro layout of [langId] commits English words as English; see [khiproEnglish]. */
     fun khiproEnglishFor(langId: String?): Boolean = langId == "bn" && khiproEnglish
+
+    /** The legacy font id a layout of [langId] writes for now, or null: picked for the language and switched on. */
+    fun legacyFontFor(langId: String?): String? = langId?.let { legacyFonts[it] }?.takeIf { legacyFontOn }
 
     /** Whether a layout of [langId] writes ANSI now: allowed, switched on, and Bengali. */
     fun bengaliAnsiFor(langId: String?): Boolean = langId == "bn" && bengaliAnsiAllowed && bengaliAnsiOn
@@ -11851,6 +11865,8 @@ class SettingsRepository(private val context: Context) {
         private val BENGALI_VOWEL_TWICE = booleanPreferencesKey("bengali_vowel_twice")
         private val BENGALI_ANSI_ON = booleanPreferencesKey("bengali_ansi_on")
         private val BENGALI_ANSI_VERSION = intPreferencesKey("bengali_ansi_version")
+        private val LEGACY_FONTS = stringSetPreferencesKey("legacy_fonts")
+        private val LEGACY_FONT_ON = booleanPreferencesKey("legacy_font_on")
         private val BURMESE_ZAWGYI_ALLOWED = booleanPreferencesKey("burmese_zawgyi_allowed")
         private val BURMESE_ZAWGYI_ON = booleanPreferencesKey("burmese_zawgyi_on")
         private val BURMESE_UNICODE_KEY_FONT = booleanPreferencesKey("burmese_unicode_key_font")
@@ -14836,6 +14852,11 @@ class SettingsRepository(private val context: Context) {
             bengaliVowelTwice = p[BENGALI_VOWEL_TWICE] ?: defaults.suggestionStrip.bengaliVowelTwice,
             bengaliAnsiOn = p[BENGALI_ANSI_ON] ?: defaults.suggestionStrip.bengaliAnsiOn,
             bengaliAnsiVersion = p[BENGALI_ANSI_VERSION] ?: defaults.suggestionStrip.bengaliAnsiVersion,
+            legacyFonts = p[LEGACY_FONTS]
+                ?.mapNotNull { entry -> entry.split('=', limit = 2).takeIf { it.size == 2 }?.let { it[0] to it[1] } }
+                ?.toMap()
+                ?: defaults.suggestionStrip.legacyFonts,
+            legacyFontOn = p[LEGACY_FONT_ON] ?: defaults.suggestionStrip.legacyFontOn,
             burmeseZawgyiAllowed = p[BURMESE_ZAWGYI_ALLOWED] ?: defaults.suggestionStrip.burmeseZawgyiAllowed,
             burmeseZawgyiOn = p[BURMESE_ZAWGYI_ON] ?: defaults.suggestionStrip.burmeseZawgyiOn,
             burmeseUnicodeKeyFont = p[BURMESE_UNICODE_KEY_FONT] ?: defaults.suggestionStrip.burmeseUnicodeKeyFont,
@@ -21521,6 +21542,15 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setBengaliAnsiVersion(value: Int) =
         editPrefs { it[BENGALI_ANSI_VERSION] = value }
+
+    /** The legacy font [langId] may be written for, or none for an empty [fontId] (#1252). */
+    suspend fun setLegacyFont(langId: String, fontId: String) = editPrefs { prefs ->
+        val kept = prefs[LEGACY_FONTS].orEmpty().filterNot { it.substringBefore('=') == langId }
+        prefs[LEGACY_FONTS] = if (fontId.isEmpty()) kept.toSet() else (kept + "$langId=$fontId").toSet()
+    }
+
+    suspend fun setLegacyFontOn(value: Boolean) =
+        editPrefs { it[LEGACY_FONT_ON] = value }
 
     suspend fun setBurmeseZawgyiAllowed(value: Boolean) =
         editPrefs { it[BURMESE_ZAWGYI_ALLOWED] = value }

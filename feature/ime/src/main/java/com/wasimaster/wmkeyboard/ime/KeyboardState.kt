@@ -2697,6 +2697,13 @@ sealed interface StripOfferAction {
     /** The Zawgyi button beside the words on a Burmese layout, the same kind of button as [ToggleAnsi]. */
     data object ToggleZawgyi : StripOfferAction
 
+    /**
+     * The legacy font button beside the words (#1252): Kruti Dev on a Hindi
+     * layout, Bamini on a Tamil one, AnmolLipi on a Punjabi one. The same kind
+     * of button as [ToggleAnsi].
+     */
+    data object ToggleLegacyFont : StripOfferAction
+
     /** The 繁 button beside the candidates on a Chinese or Cantonese layout (#962), the same kind of button as [ToggleAnsi]. */
     data object ToggleTraditional : StripOfferAction
 

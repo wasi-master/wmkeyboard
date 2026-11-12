@@ -211,6 +211,26 @@ In Klingon a capital is a different letter: `q` and `Q` are two consonants, and 
 
 The registry also carries a handful of entries that aren't spoken languages at all but behave like one in every setting on this page: IPA, musical notation, chorded Braille, and Morse code, plus a Unicode "fancy text" keyboard with 31 switchable styles. These get their own pages, [Music, braille & Morse](/languages/notation/) and [Fancy text](/languages/fancy-text/), because typing on them works differently enough to need separate walkthroughs.
 
+## Writing for legacy fonts
+
+Before Unicode, Indian scripts were typed into fonts that store each glyph as a Latin character and leave the font to draw it. Print shops, design programs and some official forms still expect that text. Since 0.6.7 three of those encodings can be written straight from the keyboard:
+
+| Language | Font | Example |
+|---|---|---|
+| Hindi, Marathi, Nepali, Sanskrit and the other Devanagari languages | Kruti Dev 010 (the same layout as DevLys 010) | हिन्दी → `fgUnh` |
+| Tamil | Bamini | கொ → `nfh` |
+| Punjabi (Gurmukhi) | AnmolLipi, the same layout as Gurbani Akhar | ਪੰਜਾਬੀ → `pMjwbI` |
+
+Pick the font under **Legacy font output** on the language's own screen. Its layouts then get a button beside the suggestions (**KD**, **BM** or **AL**). With the button lit, everything the keyboard writes in that language goes into the text box in the font's encoding: typed words, strip picks, glides, dictation and pastes from the clipboard panel. Tap it again to go back to Unicode. One button state is shared by every language that has a font picked. Bengali's Bijoy encoding works the same way, on [Bangla](/languages/bengali/#writing-ansi-bijoy-text), and so does Burmese's [Zawgyi](/languages/burmese/).
+
+- These fonts put some vowel signs in front of their letter (ि is typed before its consonant cluster in Kruti Dev), and Kruti Dev draws the reph after its syllable. A word therefore converts when you finish it. A layout that types letter by letter rewrites the word as you go.
+- Kruti Dev also keeps Devanagari glyphs on some ASCII marks (`?` is घ् there), so those marks are converted too: a question mark comes out as `\`, a comma as `]`.
+- The keyboard still types, predicts and corrects in Unicode. Text already in the field is Latin letters to it, so next-word predictions don't read across it.
+- The text only reads right in the font it was written for. Everywhere else it looks like a jumble of Latin letters, so switch the button off when you leave that app.
+- Chanakya and the other Tamil encodings (TSCII, TAB, TAM) aren't available yet. The converters this was checked against for them were either broken or incomplete.
+
+The tables come from MIT-licensed converters: npm-hindi-converter (Kruti Dev), Android-TamilUtil (Bamini) and anvaad-js (AnmolLipi). Every Hindi, Tamil and Punjabi word in the app's own translations converts the same as in those tools.
+
 ## Options
 
 <SettingsPath path="Languages & layouts" />

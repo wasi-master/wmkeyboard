@@ -188,6 +188,8 @@
     <string name="ime_service_phonetic_english_needs_layout_toast">Only for Avro and Hindi phonetic</string>
     <string name="ime_service_ansi_on_toast">Bengali is written as ANSI, version %1$d</string>
     <string name="ime_service_ansi_off_toast">Bengali is written as Unicode</string>
+    <string name="ime_service_legacy_font_on_toast">Writing for the %1$s font</string>
+    <string name="ime_service_legacy_font_off_toast">Writing Unicode</string>
     <string name="ime_service_zawgyi_on_toast">Burmese is written as Zawgyi</string>
     <string name="ime_service_zawgyi_off_toast">Burmese is written as Unicode</string>
     <string name="ime_service_traditional_on_toast">Chinese is written in Traditional characters (繁體)</string>
