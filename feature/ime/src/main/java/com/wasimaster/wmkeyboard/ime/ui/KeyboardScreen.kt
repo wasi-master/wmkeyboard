@@ -425,6 +425,7 @@ import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.handwriting.HwPoint
 import com.wasimaster.wmkeyboard.core.handwriting.HwStroke
 import com.wasimaster.wmkeyboard.core.script.ComposerType
+import com.wasimaster.wmkeyboard.core.script.FancyAssembly
 import com.wasimaster.wmkeyboard.core.script.FancyStyle
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.FancyStyles
@@ -29724,8 +29725,11 @@ private fun displayLabel(key: Key, state: KeyboardUiState): String {
     // drawn here (and committed by the service's twin of this substitution),
     // so the keys are WYSIWYG and the compiled layout never varies. The
     // uppercase branch above already cased the plain letter, so shift shows
-    // the style's capital via the upper map.
-    fancyStyleFor(state)?.let { style -> return FancyStyles.transform(raw, style) }
+    // the style's capital via the upper map. Zalgo is the exception: its
+    // marks pile up over the neighbouring keys until no letter can be read,
+    // so its keys show the plain letter and only the text gets the marks.
+    fancyStyleFor(state)?.takeIf { it.assembly != FancyAssembly.ZALGO }
+        ?.let { style -> return FancyStyles.transform(raw, style) }
     // A Chinese board writing Traditional labels its Han keys that way too:
     // the word separator reads '詞, not '词 (#580), and 分词 reads 分詞.
     if (state.settings.cjk.traditionalOutput && state.language.id == "zh" && raw.any { it in '\u4e00'..'\u9fff' }) {
