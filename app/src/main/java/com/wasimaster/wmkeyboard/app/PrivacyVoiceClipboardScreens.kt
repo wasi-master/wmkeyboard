@@ -7,6 +7,8 @@ import android.content.pm.PackageManager
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -535,7 +537,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
             NavRow(
                 R.string.voice_system_input_pick_title,
                 stringResource(R.string.voice_system_input_pick_subtitle),
-            ) { openVoiceInputSettings(context) }
+            ) { openVoiceInputSettings(context, R.string.voice_system_input_pick_hint) }
         }
     }
     // What most people never change: kept in reach, out of the way.
@@ -678,9 +680,9 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
  * is picked once **Voice input for other apps** is on. Phones file it in
  * different places, so the nearest one that opens is used: voice input,
  * then default apps, where the digital assistant row holds it, then
- * Settings itself.
+ * Settings itself. [hint] says which row on that page to pick.
  */
-internal fun openVoiceInputSettings(context: Context) {
+internal fun openVoiceInputSettings(context: Context, @StringRes hint: Int? = null) {
     val tries = listOf(
         Settings.ACTION_VOICE_INPUT_SETTINGS,
         Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS,
@@ -690,7 +692,13 @@ internal fun openVoiceInputSettings(context: Context) {
         val opened = runCatching {
             context.startActivity(Intent(action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         }.isSuccess
-        if (opened) return
+        if (opened) {
+            // Recent Android has no page of voice input's own: the action
+            // opens the digital assistant page, with Voice input as a row near
+            // its foot (#1276). Without a word it reads as the wrong page.
+            if (hint != null) Toast.makeText(context, hint, Toast.LENGTH_LONG).show()
+            return
+        }
     }
 }
 
