@@ -102,7 +102,11 @@ internal class CalendarController(
     private sealed interface Pending {
         data object Save : Pending
         data class Delete(val scope: EditScope?) : Pending
+        data class Move(val event: DeviceCalendarEvent, val minutes: Int) : Pending
     }
+
+    /** The draft in hand is a day-view drag, not the composer's: a cancelled scope drops it. */
+    private var moving = false
 
     // ---- Lifecycle -------------------------------------------------------
 
@@ -176,6 +180,7 @@ internal class CalendarController(
         when (waiting) {
             Pending.Save -> save()
             is Pending.Delete -> delete(waiting.scope)
+            is Pending.Move -> moveEvent(waiting.event, waiting.minutes)
         }
     }
 
@@ -297,8 +302,10 @@ internal class CalendarController(
             is CalendarAction.NewEvent -> {
                 val day = action.date ?: _state.value.selected
                 if (action.date != null) showDay(day)
-                startDraft(newDraft(day))
+                val draft = newDraft(day)
+                startDraft(action.minute?.let { draft.withStart(day, it) } ?: draft)
             }
+            is CalendarAction.MoveEvent -> moveEvent(action.event, action.minutes)
             CalendarAction.ResumeDraft -> _state.update { it.copy(view = CalendarView.COMPOSE, resumable = false) }
             CalendarAction.DiscardDraft -> _state.update { it.copy(draft = null, draftBase = null, resumable = false, series = null) }
             is CalendarAction.OpenEvent -> openEvent(action.event)
@@ -378,7 +385,15 @@ internal class CalendarController(
                 _state.update { it.copy(scopePrompt = null) }
                 if (prompt.delete) delete(action.scope) else write(action.scope)
             }
-            CalendarAction.CancelScope -> _state.update { it.copy(scopePrompt = null) }
+            CalendarAction.CancelScope -> {
+                _state.update { it.copy(scopePrompt = null) }
+                if (moving) {
+                    // The drag is put back: the block returns to where the event still is.
+                    moving = false
+                    _state.update { it.copy(draft = null, draftBase = null, detail = null, series = null) }
+                    reloadDay()
+                }
+            }
 
             CalendarAction.TextDone -> {
                 currentText()?.let { entry ->
@@ -704,6 +719,36 @@ internal class CalendarController(
         write(null)
     }
 
+    /**
+     * A day-view drag (#1210): [event] moved by [minutes], saved as an edit of
+     * its times alone through the composer's own write, so a repeating event
+     * asks which occurrences first and the move can be undone.
+     */
+    private fun moveEvent(event: DeviceCalendarEvent, minutes: Int) {
+        if (minutes == 0 || event.allDay || !event.canModify) return
+        if (!DeviceCalendar.canWrite(app)) {
+            pending = Pending.Move(event, minutes)
+            launch(trampoline(com.wasimaster.wmkeyboard.app.CalendarWritePermissionActivity::class.java))
+            return
+        }
+        scope.launch {
+            val stored = withContext(Dispatchers.IO) { DeviceCalendarWrite.load(app, event.id, event.begin, event.end) } ?: return@launch
+            if (!stored.canModify) return@launch
+            val series = withContext(Dispatchers.IO) { DeviceCalendarWrite.series(app, stored) }
+            val base = DeviceCalendarWrite.draftOf(stored, series)
+            val total = base.startDate.jdn * EventDraft.MINUTES_PER_DAY + base.startMinute + minutes
+            val day = EventDate.ofJdn(Math.floorDiv(total, EventDraft.MINUTES_PER_DAY.toLong()))
+            val moved = base.withStart(day, Math.floorMod(total, EventDraft.MINUTES_PER_DAY.toLong()).toInt())
+            moving = true
+            _state.update { it.copy(detail = stored, series = series, draft = moved, draftBase = base, sheet = null, error = null) }
+            if (series != null) {
+                _state.update { it.copy(scopePrompt = ScopePrompt(delete = false, scopes = EditScope.entries)) }
+            } else {
+                write(null)
+            }
+        }
+    }
+
     private fun write(editScope: EditScope?) {
         val d = _state.value.draft ?: return
         val series = _state.value.series
@@ -726,6 +771,8 @@ internal class CalendarController(
                 result to undoFor(d, base, series, editScope, ops, result.insertedId)
             }
             haptic()
+            val wasMove = moving
+            moving = false
             if (result.ok) {
                 _state.update {
                     it.copy(
@@ -743,7 +790,15 @@ internal class CalendarController(
                 showDay(d.startDate)
                 reloadMonth()
             } else {
-                _state.update { it.copy(busy = false, error = CalendarError.WRITE_FAILED) }
+                _state.update {
+                    // A failed drag leaves nothing half done behind: the block goes back.
+                    if (wasMove) {
+                        it.copy(busy = false, error = CalendarError.WRITE_FAILED, draft = null, draftBase = null, detail = null, series = null)
+                    } else {
+                        it.copy(busy = false, error = CalendarError.WRITE_FAILED)
+                    }
+                }
+                if (wasMove) reloadDay()
             }
         }
     }

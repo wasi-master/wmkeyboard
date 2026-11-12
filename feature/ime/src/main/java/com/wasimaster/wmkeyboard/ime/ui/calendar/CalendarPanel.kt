@@ -183,8 +183,7 @@ internal fun CalendarPanel(
     val face = when {
         ui.view == CalendarView.COMPOSE -> Face.COMPOSE
         ui.view == CalendarView.DETAIL -> Face.DETAIL
-        local.agenda -> Face.AGENDA
-        else -> Face.MONTH
+        else -> local.face
     }
     // The month and agenda faces publish the ring's targets; anywhere else
     // they are published empty, so a count left from the grid never steers it.
@@ -224,12 +223,13 @@ internal fun CalendarPanel(
                         when (shown) {
                             Face.MONTH -> MonthFace(state, ui, animate, act)
                             Face.AGENDA -> AgendaFace(state, ui, animate, act)
+                            Face.DAY -> DayFace(state, ui, act)
                             Face.DETAIL -> ui.detail?.let { EventSheet(it, ui, animate, act) }
                             Face.COMPOSE -> ui.draft?.let { CalendarComposer(it, ui, act) }
                         }
                     }
                 }
-                if (local.monthPicker && (face == Face.MONTH || face == Face.AGENDA)) {
+                if (local.monthPicker && (face == Face.MONTH || face == Face.AGENDA || face == Face.DAY)) {
                     MonthPicker(ui, animate, onPick = { act(CalendarAction.Month(it)) }) { local.monthPicker = false }
                 }
             }
@@ -251,12 +251,15 @@ internal fun CalendarPanel(
 }
 
 /** What the panel shows: the controller's view, split where the panel adds a face of its own. */
-private enum class Face { MONTH, AGENDA, DETAIL, COMPOSE }
+private enum class Face { MONTH, DAY, AGENDA, DETAIL, COMPOSE }
+
+/** The faces the header's pill picks between, in its order. */
+private val PICKED_FACES = listOf(Face.MONTH, Face.DAY, Face.AGENDA)
 
 /** The panel's own state, which the controller has no reason to carry. */
 private class CalendarPanelLocal {
-    /** The month shown as a list down a day rail rather than a grid. */
-    var agenda by mutableStateOf(false)
+    /** The month as a grid, the selected day as a timeline (#1210), or the month as a list down a day rail. */
+    var face by mutableStateOf(Face.MONTH)
 
     /** The month picker dropped from the header's title. */
     var monthPicker by mutableStateOf(false)
@@ -337,9 +340,13 @@ private fun RowScope.MonthHeader(state: KeyboardUiState, ui: CalendarUi, local: 
     }
     Spacer(Modifier.width(6.dp))
     SegmentedPill(
-        labels = listOf(stringResource(R.string.ime_calendar_view_month), stringResource(R.string.ime_calendar_view_agenda)),
-        selected = if (local.agenda) 1 else 0,
-        onSelect = { local.agenda = it == 1 },
+        labels = listOf(
+            stringResource(R.string.ime_calendar_view_month),
+            stringResource(R.string.ime_calendar_view_day),
+            stringResource(R.string.ime_calendar_view_agenda),
+        ),
+        selected = PICKED_FACES.indexOf(local.face).coerceAtLeast(0),
+        onSelect = { local.face = PICKED_FACES[it] },
         segmentWidth = VIEW_SEGMENT,
         height = 28.dp,
     )
@@ -829,7 +836,7 @@ private fun RowScope.DayCell(
 
 /** The selected day in words: its date and how far off on one line, the alternate calendars under. */
 @Composable
-private fun DaySummary(ui: CalendarUi, altCalendars: List<AltCalendar>, hijriAdjust: Int) {
+internal fun DaySummary(ui: CalendarUi, altCalendars: List<AltCalendar>, hijriAdjust: Int) {
     val kb = LocalKbTheme.current
     val selected = ui.selected
     val dateText = remember(selected) { CalendarText.longDate(selected) }

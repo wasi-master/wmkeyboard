@@ -104,7 +104,11 @@ sealed interface CalendarAction {
     data class Month(val by: Int) : CalendarAction
     data object Today : CalendarAction
     data class SelectDay(val date: EventDate) : CalendarAction
-    data class NewEvent(val date: EventDate? = null) : CalendarAction
+    /** A new event on [date], at [minute] of the day when the day view's hour was held (#1210). */
+    data class NewEvent(val date: EventDate? = null, val minute: Int? = null) : CalendarAction
+
+    /** The day view's drag (#1210): [event] moved by [minutes], its length kept. */
+    data class MoveEvent(val event: DeviceCalendarEvent, val minutes: Int) : CalendarAction
     data object ResumeDraft : CalendarAction
     data object DiscardDraft : CalendarAction
     data class OpenEvent(val event: DeviceCalendarEvent) : CalendarAction

@@ -17,7 +17,7 @@ The Calendar tool opens a full month grid inside the keyboard, or the same month
 
 ## Browsing the month
 
-Open **Calendar** from the toolbar, or from the toolbox if you haven't pinned it. The header carries the month and year as its title, a **Today** chip, a **Month | Agenda** switch, a round **+** for a new event and the tool's settings. Swipe sideways across the grid to step a month: the grid slides out and the next one slides in. Tap the title to drop a month picker instead, with the year between two arrows and the twelve months as chips, so a date far away is two taps rather than a dozen swipes. **Today** jumps straight back and reselects today. The weekday row along the top tints your weekend in the accent color, and which days those are is a setting that starts off from your phone's region (see [Options](#options)).
+Open **Calendar** from the toolbar, or from the toolbox if you haven't pinned it. The header carries the month and year as its title, a **Today** chip, a **Month | Day | Agenda** switch, a round **+** for a new event and the tool's settings. Swipe sideways across the grid to step a month: the grid slides out and the next one slides in. Tap the title to drop a month picker instead, with the year between two arrows and the twelve months as chips, so a date far away is two taps rather than a dozen swipes. **Today** jumps straight back and reselects today. The weekday row along the top tints your weekend in the accent color, and which days those are is a setting that starts off from your phone's region (see [Options](#options)).
 
 Tapping a day cell doesn't leave the panel. It updates the summary and the cards below the grid. The selected day sits on an accent disc that springs across the grid to whichever day you tap next, today's cell has a thin accent ring, and a small dot sits under every day that has something on. On the selected day the dots take the colors of its events' calendars. Press and hold a day to start a new event on it.
 
@@ -52,6 +52,16 @@ One forecast covers every event at the same place for all 16 days, so a week of 
 ## Agenda
 
 The **Agenda** side of the header's switch shows the same month as a list. A rail down the left names each day that has something on (**Today**, **Tomorrow**, **Yesterday**, or the date), with a dot on the rail per day and the accent dot on today, and the day's events sit beside it as the same tinted cards. The day you've selected is the one whose cards are loaded, with a ring around its dot; a day you haven't opened yet shows a quiet card with its date that loads it when tapped, and once a day has been opened its cards stay while you move around the month. Swiping sideways moves a month here too. A month with nothing on offers **New event** in the middle, and until calendar access is granted the agenda shows the **Allow** prompt in its place.
+
+## Day
+
+Since 0.6.7 the **Day** side of the switch shows the selected day as a timeline: the hours down the left, each timed event as a block from its start to its end in its calendar's color, and events that overlap side by side. The day's all-day events sit as chips above the hours, and today has a line at the current time. The timeline opens scrolled to the first event, or to the hour before now on today. Swipe sideways to step a day.
+
+- **Tap** an event to open it, as from a card.
+- **Hold** an event and drag it up or down to move it. It moves in 15-minute steps, with a tick at each, and shows its new start and end while you drag. Lifting saves the move and keeps the event's length. A repeating event asks first whether the move is for that occurrence, the following ones or all of them, as editing one does. **Undo** puts it back. Events you can't change (a shared calendar you can only read, say) don't lift.
+- **Hold** an empty hour to start a new event at that quarter hour.
+
+Moving an event across days isn't possible on the timeline. Open the event and change its date instead.
 
 ## Adding an event
 
