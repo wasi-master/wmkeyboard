@@ -27605,8 +27605,20 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         stickerOfferJob?.cancel()
+        // A word still being typed waits for a pause before a match is shown
+        // (#1283). Shown at once, a keyword that starts a longer word ("awe"
+        // on the way to "awesome") raised the tray, which resizes the window
+        // and loads the pictures, for one letter, and the next letter took it
+        // down again: two resizes inside a word typed at speed. A tray already
+        // up still follows the text at once, so it goes the moment it stops
+        // matching.
+        val wait = if (composing.isNotEmpty() && state.stickerOffer == null) {
+            STICKER_OFFER_TYPING_PAUSE_MS
+        } else {
+            SMART_SUGGEST_DEBOUNCE_MS
+        }
         stickerOfferJob = serviceScope.launch {
-            delay(SMART_SUGGEST_DEBOUNCE_MS)
+            delay(wait)
             val still = _uiState.value
             val stickersNow = stickerOffersAllowed(still) && !stickerPackStore.isEmpty()
             val mixesNow = mixOffersAllowed(still)
@@ -60058,6 +60070,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** See the delay in [refreshSmartSuggestion]; one frame, near enough. */
         private const val SMART_SUGGEST_DEBOUNCE_MS = 24L
+
+        /** How long a word being typed must rest before a sticker for it is offered (#1283). */
+        private const val STICKER_OFFER_TYPING_PAUSE_MS = 450L
 
         /** English's downloaded lists that respell American words (#999); see [englishRegionalAvoid]. */
         private val REGIONAL_ENGLISH_LISTS = setOf("en_ca_aosp", "en_gb_aosp", "en_au_aosp")
