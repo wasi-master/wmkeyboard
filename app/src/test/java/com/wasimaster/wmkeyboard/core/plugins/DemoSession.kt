@@ -59,8 +59,8 @@ internal class DemoSession(
                 .bufferedReader()
                 .use { it.readText() }
 
-        fun plugin(name: String, permissions: List<String>, id: String = "com.example.demo") =
-            InstalledPlugin(id = id, name = name, version = "test", permissions = permissions)
+        fun plugin(name: String, permissions: List<String>, id: String = "com.example.demo", apiVersion: Int = 1) =
+            InstalledPlugin(id = id, name = name, version = "test", permissions = permissions, apiVersion = apiVersion)
 
         /** The demo `plugins/<name>.py`, loaded and drawn. */
         fun demo(
@@ -68,7 +68,8 @@ internal class DemoSession(
             permissions: List<String> = emptyList(),
             storage: File? = null,
             reminders: File? = null,
-        ) = DemoSession(resource("plugins/$name.py"), plugin(name, permissions), storage, reminders)
+            apiVersion: Int = 1,
+        ) = DemoSession(resource("plugins/$name.py"), plugin(name, permissions, apiVersion = apiVersion), storage, reminders)
 
         /**
          * [actionId] of [source] on [text], in a fresh `action` session, the

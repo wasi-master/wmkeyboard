@@ -203,6 +203,8 @@ internal fun newBlankDraft(workspace: PluginWorkspace, store: PluginStore, name:
         id = uniquePluginId(name, taken),
         name = PluginManifestCodec.sanitise(name, PluginManifestCodec.Field.NAME),
         pluginVersion = "0.1.0",
+        // The blank script uses the API 4 globals.
+        apiVersion = PluginManifestCodec.PYTHON_ONLY_API,
     )
     return workspace.create(manifest, BLANK_PLUGIN_SCRIPT, "blank")
 }

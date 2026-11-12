@@ -9,6 +9,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * The published demo plugins, run in the real interpreter.
@@ -61,6 +62,15 @@ class DemoPluginsTest {
             assertTrue("$name rendered nothing", ui.root.isNotEmpty())
             assertEquals("$name needed repairs: ${ui.repairs}", emptyList<PluginText>(), ui.repairs)
         }
+    }
+
+    @Test
+    fun `the API 5 text generator writes as many words as asked`() {
+        val demo = DemoSession.demo("text-generator", apiVersion = PluginManifestCodec.PACKAGE_API).also { open += it }
+        demo.event(PythonSession.hostEvent("change", mapOf("id" to JsonPrimitive("select"), "value" to JsonPrimitive("Words"))))
+        val ui = demo.event(PythonSession.hostEvent("change", mapOf("id" to JsonPrimitive("stepper:How many"), "value" to JsonPrimitive(5))))
+        val output = ui.root.flatMap { listOf(it) + it.childWidgets() }.filterIsInstance<PluginWidget.Output>().single()
+        assertEquals(5, output.text.split(" ").size)
     }
 
     // ---- selection actions --------------------------------------------------

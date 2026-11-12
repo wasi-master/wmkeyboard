@@ -3,7 +3,7 @@
 use wm_python_tooling::diagnostics::{diagnose, Diagnostic, Severity};
 use wm_python_tooling::document::{Document, Host};
 
-pub const FIXTURES: &[&str] = &["cipher", "todo", "text_actions", "text_tools", "kitchen_sink"];
+pub const FIXTURES: &[&str] = &["cipher", "todo", "text_actions", "text_tools", "kitchen_sink", "text_generator", "weather"];
 
 pub fn fixture(name: &str) -> String {
     std::fs::read_to_string(format!("{}/tests/fixtures/{name}.py", env!("CARGO_MANIFEST_DIR"))).unwrap()
@@ -13,6 +13,7 @@ pub fn fixture(name: &str) -> String {
 pub fn fixture_host(name: &str) -> Host {
     let mut host = Host { storage: Some(false), reminders: Some(false), selection: Some(false), panel: Some(true), actions: Some(vec![]), modules: None, verdict: None };
     match name {
+        "weather" => host.storage = Some(true),
         "todo" => {
             host.storage = Some(true);
             host.reminders = Some(true);

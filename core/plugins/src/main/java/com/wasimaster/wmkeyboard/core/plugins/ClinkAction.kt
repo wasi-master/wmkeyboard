@@ -71,7 +71,8 @@ object ClinkAction {
             pluginVersion = "#" + sha256(bytes).take(SHORT_HASH),
             author = "Clink",
             description = summary,
-            apiVersion = PluginManifestCodec.API_VERSION,
+            // The ported action is a plain transform; it needs nothing API 5 adds.
+            apiVersion = PluginManifestCodec.PYTHON_ONLY_API,
             entry = PluginManifestCodec.DEFAULT_ENTRY,
             permissions = listOf(PluginPermission.SelectedText.wire),
             language = PluginManifestCodec.LANGUAGE_PYTHON,

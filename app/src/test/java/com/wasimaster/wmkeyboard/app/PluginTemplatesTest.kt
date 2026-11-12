@@ -33,8 +33,11 @@ class PluginTemplatesTest {
         id = "my.${template.name.lowercase().replace('_', '-')}",
         name = "Template",
         pluginVersion = "0.1.0",
+        apiVersion = template.apiVersion,
         permissions = template.permissions.map { it.wire },
         actions = template.actions,
+        hosts = template.hosts,
+        settings = template.settings,
     )
 
     @Test
@@ -55,7 +58,10 @@ class PluginTemplatesTest {
     fun `a template declares each permission exactly when it uses it`() {
         for (template in PluginTemplate.entries) {
             val script = script(template)
-            assertEquals(template.name, "wm.storage" in script, PluginPermission.Storage in template.permissions)
+            // API 5 keeps state with plugin.state(persist=True), which saves through storage.
+            val storage = "wm.storage" in script || "persist=True" in script
+            assertEquals(template.name, storage, PluginPermission.Storage in template.permissions)
+            assertEquals(template.name, "http." in script, PluginPermission.Network in template.permissions)
             assertEquals(template.name, "wm.reminders" in script, PluginPermission.Reminders in template.permissions)
             assertEquals(template.name, "def transform(" in script, PluginPermission.SelectedText in template.permissions)
             assertEquals(template.name, "def transform(" in script, template.actions.isNotEmpty())

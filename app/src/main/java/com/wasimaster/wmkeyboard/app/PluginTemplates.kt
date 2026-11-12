@@ -10,6 +10,7 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginManifest
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifestCodec
 import com.wasimaster.wmkeyboard.core.plugins.PluginPermission
 import com.wasimaster.wmkeyboard.core.plugins.PluginReadResult
+import com.wasimaster.wmkeyboard.core.plugins.PluginSettingSpec
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.plugins.PluginText
 import com.wasimaster.wmkeyboard.core.plugins.PluginWorkspace
@@ -31,6 +32,12 @@ internal enum class PluginTemplate(
     val permissions: List<PluginPermission>,
     /** The selection actions the script's `transform` answers, so the new manifest lists them. */
     val actions: List<PluginActionSpec> = emptyList(),
+    /** The API level the script is written for: 4 for the `wm` and `ui` globals, 5 for `from wm import …`. */
+    val apiVersion: Int = PluginManifestCodec.PYTHON_ONLY_API,
+    /** The websites a network template reaches. */
+    val hosts: List<String> = emptyList(),
+    /** The settings page the manifest declares. */
+    val settings: List<PluginSettingSpec> = emptyList(),
 ) {
     BLANK(R.string.plugin_ide_template_blank_name, R.string.plugin_ide_template_blank_description, null, emptyList()),
     TEXT_TOOLS(
@@ -62,6 +69,30 @@ internal enum class PluginTemplate(
             PluginActionSpec(id = "quote", name = "Wrap in quotes", summary = "Put quotes around the selection"),
         ),
     ),
+    TEXT_GENERATOR(
+        R.string.plugin_ide_template_text_generator_name,
+        R.string.plugin_ide_template_text_generator_description,
+        "text-generator.py",
+        emptyList(),
+        apiVersion = PluginManifestCodec.PACKAGE_API,
+    ),
+    WEATHER(
+        R.string.plugin_ide_template_weather_name,
+        R.string.plugin_ide_template_weather_description,
+        "weather.py",
+        listOf(PluginPermission.Network, PluginPermission.Storage),
+        apiVersion = PluginManifestCodec.PACKAGE_API,
+        hosts = listOf("api.open-meteo.com", "geocoding-api.open-meteo.com"),
+        settings = listOf(
+            PluginSettingSpec(
+                key = "units",
+                type = PluginSettingSpec.TYPE_CHOICE,
+                label = "Units",
+                default = "metric",
+                options = listOf("metric", "imperial"),
+            ),
+        ),
+    ),
     ;
 
     /** The script a new draft starts with. Reads an asset, so it runs off the main thread. */
@@ -88,8 +119,11 @@ internal fun newDraftFromTemplate(
         id = uniquePluginId(name, taken),
         name = PluginManifestCodec.sanitise(name, PluginManifestCodec.Field.NAME),
         pluginVersion = "0.1.0",
+        apiVersion = template.apiVersion,
         permissions = template.permissions.map { it.wire },
         actions = template.actions,
+        hosts = template.hosts,
+        settings = template.settings,
     )
     return workspace.create(manifest, template.script(context), "template:${template.name.lowercase()}")
 }

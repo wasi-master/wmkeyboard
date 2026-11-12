@@ -109,6 +109,12 @@ are meant to be read. Each one is a single `main.py`:
 | **Text Tools** | The paste-in, transform, insert-out flow. |
 | **Math Mode** | A real text engine: a tokenizer, symbol tables, a live result on every keystroke, and options kept in `wm.storage`. |
 
+A new plugin in the editor can start from most of these, and from two written
+for [API 5](/plugins/wm-package/): **Text generator** (placeholder words,
+sentences and paragraphs, drawn with callbacks and `plugin.state`) and
+**Weather** (a forecast from Open-Meteo, with internet access to two listed
+websites, a setting, a timer and a header button).
+
 :::tip[Enabling plugins]
 Plugins are **off until you ask for them**. Turn them on here, with **Allow
 plugins**. The first time, the app fetches the library that runs them, from
