@@ -109,13 +109,24 @@ fn env<T: std::str::FromStr>(name: &str, default: T) -> T {
     std::env::var(name).ok().and_then(|v| v.parse().ok()).unwrap_or(default)
 }
 
-/// QWERTY letter centres in key widths, rows `ROW` apart.
-fn keys() -> Vec<(u16, f32, f32)> {
+fn layout_rows(layout: &str) -> Vec<&'static str> {
+    rows_of(layout).iter().map(|r| r.0).collect()
+}
+
+fn rows_of(layout: &str) -> [(&'static str, f32); 3] {
+    match layout {
+        "qwertz" => [("qwertzuiop", 0.0), ("asdfghjkl", 0.5), ("yxcvbnm", 1.5)],
+        "azerty" => [("azertyuiop", 0.0), ("qsdfghjklm", 0.0), ("wxcvbn", 1.5)],
+        _ => [("qwertyuiop", 0.0), ("asdfghjkl", 0.5), ("zxcvbnm", 1.5)],
+    }
+}
+
+/// Letter centres in key widths, rows `ROW` apart, for `LAYOUT` (qwerty,
+/// qwertz, azerty).
+fn keys(layout: &str) -> Vec<(u16, f32, f32)> {
+    let rows = rows_of(layout);
     let mut keys = Vec::new();
-    for (row, (letters, offset)) in [("qwertyuiop", 0.0f32), ("asdfghjkl", 0.5), ("zxcvbnm", 1.5)]
-        .iter()
-        .enumerate()
-    {
+    for (row, (letters, offset)) in rows.iter().enumerate() {
         for (col, ch) in letters.chars().enumerate() {
             keys.push((ch as u16, offset + col as f32, row as f32 * ROW));
         }
@@ -204,6 +215,14 @@ fn misspellings(paths: &str, listed: &HashSet<String>) -> HashMap<String, Vec<St
     out
 }
 
+/// The key a letter is typed on: itself, or its bare letter when the
+/// layout has no key for it (`é` on `e`); the hand leaves accents to the
+/// keyboard, as most typists do.
+fn key_of(c: char) -> char {
+    let bare = wm_engine::accents::bare(c as u16);
+    char::from_u32(bare as u32).unwrap_or(c)
+}
+
 /// A sentence as the harness types it: lower-case words of letters and
 /// apostrophes, or nothing when the sentence holds anything else.
 fn words_of(text: &str) -> Option<(Vec<String>, char)> {
@@ -220,7 +239,7 @@ fn words_of(text: &str) -> Option<(Vec<String>, char)> {
         if w.is_empty() {
             continue;
         }
-        if !w.chars().all(|c| c.is_ascii_alphabetic() || c == '\'') || w.starts_with('\'') || w.ends_with('\'') {
+        if !w.chars().all(|c| c.is_alphabetic() || c == '\'') || w.starts_with('\'') || w.ends_with('\'') {
             return None;
         }
         words.push(w.to_lowercase());
@@ -300,11 +319,14 @@ fn main() {
         eprintln!("usage: sentence_eval <words.txt> <sentences> [model.wmlm]");
         std::process::exit(2);
     }
+    let lang: String = env("LANG_ID", "en".to_string());
+    let layout: String = env("LAYOUT", "qwerty".to_string());
     let entries = wordlist::parse(&std::fs::read_to_string(&args[1]).expect("the word list"));
     let listed: HashSet<String> = entries.iter().map(|(w, _)| w.clone()).collect();
     let count: usize = env("SENTENCES", 2000);
     let skip: usize = env("SKIP", 0);
     let raw = std::fs::read_to_string(&args[2]).expect("the sentences");
+    let layout_keys = keys(&layout);
     let mut sentences: Vec<(Vec<String>, char)> = raw
         .lines()
         .filter_map(|line| {
@@ -314,6 +336,10 @@ fn main() {
                 _ => line,
             };
             words_of(text)
+        })
+        // Only sentences every letter of which some key types.
+        .filter(|(ws, _)| {
+            ws.iter().all(|w| w.chars().all(|c| c == '\'' || layout_keys.iter().any(|k| k.0 == key_of(c) as u16)))
         })
         .skip(skip)
         .take(count)
@@ -334,12 +360,13 @@ fn main() {
                 }
             }
         };
-        read("en_bigrams.txt", 2, 150_000, &mut |w, c| b.add_bigram(w[0], w[1], c));
-        read("en_trigrams.txt", 3, 75_000, &mut |w, c| b.add_trigram(w[0], w[1], w[2], c));
+        read(&format!("{lang}_bigrams.txt"), 2, 150_000, &mut |w, c| b.add_bigram(w[0], w[1], c));
+        read(&format!("{lang}_trigrams.txt"), 3, 75_000, &mut |w, c| b.add_trigram(w[0], w[1], w[2], c));
         wmng::write(&b.build())
     });
-    let seeds_path = std::env::var("SEEDS")
-        .unwrap_or_else(|_| "../../app/src/main/assets/dictionaries/en_bigrams.txt".into());
+    let seeds_path = std::env::var("SEEDS").unwrap_or_else(|_| {
+        if lang == "en" { "../../app/src/main/assets/dictionaries/en_bigrams.txt".into() } else { String::new() }
+    });
     let seeds_text = std::fs::read_to_string(&seeds_path).unwrap_or_default();
     let lm: Option<Arc<Lm>> = args
         .get(3)
@@ -354,14 +381,14 @@ fn main() {
         .split(',')
         .filter_map(|v| v.parse().ok())
         .collect();
-    let keys = keys();
+    let keys = layout_keys.clone();
 
     let mut p = Predictor::new();
     p.dictionary = Some(WordList::of(&entries));
-    p.english_sources = true;
-    p.primary_language = "en".into();
+    p.english_sources = lang == "en";
+    p.primary_language = lang.clone();
     p.context_rerank = true;
-    p.proximity = KeyProximity::qwerty(false);
+    p.proximity = if layout == "qwerty" { KeyProximity::qwerty(false) } else { KeyProximity::of_rows(&layout_rows(&layout)) };
     p.seeds = SeedBigrams::parse(&seeds_text);
     p.ngrams = pack_bytes.as_ref().and_then(|b| Pack::open(b.clone()));
     p.touch = Some(TouchModel::new(keys.clone(), TouchModel::SIGMA));
@@ -470,8 +497,9 @@ fn main() {
     let recheck_known: f64 = env("RECHECK_KNOWN", decoder::RECHECK_KNOWN_MARGIN);
     let apply_margin: f64 = env("MARGIN", decoder::APPLY_MARGIN);
     let known_margin: f64 = env("KNOWN_MARGIN", decoder::KNOWN_MARGIN);
+    let accent_margin: f64 = env("ACCENT_MARGIN", decoder::ACCENT_MARGIN);
     let geometry = Geometry { keys: keys.clone(), space: Some((SPACE_X, 3.0 * ROW, SPACE_HALF_WIDTH, ROW / 2.0)) };
-    let proximity = KeyProximity::qwerty(false);
+    let proximity = if layout == "qwerty" { KeyProximity::qwerty(false) } else { KeyProximity::of_rows(&layout_rows(&layout)) };
     let adjacent = |a: u16, b: u16| proximity.are_adjacent(a, b);
 
     // `PROBE=word,word` prints the decoder's readings of each word tapped
@@ -514,7 +542,7 @@ fn main() {
                     strokes.push(s);
                     owner.push(wi);
                 }
-                let mut meant: Vec<char> = word.chars().filter(|c| *c != '\'').collect();
+                let mut meant: Vec<char> = word.chars().filter(|c| *c != '\'').map(key_of).collect();
                 if let Some(options) = misspelled.get(word.as_str()) {
                     if rng.uniform() < p_misspell * 4.0 {
                         meant = options[rng.pick(options.len())].chars().collect();
@@ -600,7 +628,7 @@ fn main() {
                                 Some(total)
                             });
                         }
-                        match decoder::verdict(&d, &buf, apply_margin, known_margin).apply {
+                        match decoder::verdict_with(&d, &buf, apply_margin, known_margin, accent_margin).apply {
                             Some(text) => p.elide(&text).unwrap_or(text),
                             // `UNION=1`: the old rules get their turn when the
                             // decoder leaves the word alone, as on the phone.
@@ -634,6 +662,8 @@ fn main() {
                         "apostrophe"
                     } else if buf == words[first] {
                         "clean"
+                    } else if buf == words[first].chars().map(key_of).collect::<String>() {
+                        "accent"
                     } else if kinds[first] != "clean" {
                         kinds[first]
                     } else {

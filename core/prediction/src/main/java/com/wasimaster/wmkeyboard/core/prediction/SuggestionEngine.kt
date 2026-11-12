@@ -539,7 +539,7 @@ class SuggestionEngine(
      * word they never want suggested, is not returned.
      */
     fun recheckPrevious(): Revision? {
-        if (!readWholePhrases || !englishSources) return null
+        if (!readWholePhrases || !readsWhole()) return null
         val commits = commits
         val sentence = sentence
         if (commits.size < 2) return null
@@ -3053,6 +3053,15 @@ class SuggestionEngine(
 
         /** How much the context model counts when one is open; `decoder::MODEL_WEIGHT`. */
         const val WHOLE_READING_MODEL_WEIGHT = 0.7
+
+        /**
+         * The languages the whole reading runs for, each measured on the
+         * sentence harness with its own layout, lists and pairs (Tatoeba
+         * sentences, accents left to the keyboard): words left wrong on the
+         * careful hand came to 6.9% in German, 9.1% Spanish, 14.8% French,
+         * 9.9% Italian and 11.0% Portuguese.
+         */
+        private val WHOLE_READING_LANGUAGES = setOf("en", "de", "es", "fr", "it", "pt")
 
         /** Words of the sentence the whole reading's context sees. */
         private const val WHOLE_READING_CONTEXT = 6
@@ -6822,9 +6831,10 @@ class SuggestionEngine(
      * suggested, is neither applied nor offered.
      */
     private fun wholeReading(lower: String, touch: List<TouchPoint?>?, timingMultiplier: Double): WholeReading? {
-        // Measured on English only, and it weighs every list alike where the
-        // rules damp a secondary language: other languages keep the rules.
-        if (!englishSources) return null
+        // Measured on the languages in [WHOLE_READING_LANGUAGES] only, and it
+        // weighs every list alike where the rules damp a secondary language:
+        // the others keep the rules.
+        if (!readsWhole()) return null
         val model = touchModelField ?: return null
         if (lower.length !in 2..WHOLE_READING_MAX_LENGTH || lower.any { !model.knows(it) }) return null
         val call = decoderCall(timingMultiplier) ?: return null
@@ -6856,6 +6866,13 @@ class SuggestionEngine(
         return WholeReading(apply, offer, if (apply != null) certaintyOf(out[0], margin.coerceAtLeast(1e-6)) else 0.0)
     }
 
+    /**
+     * Whether the language in front is one [wholeReading] was measured on
+     * ([WHOLE_READING_LANGUAGES]); English whenever its lists are in the mix.
+     */
+    private fun readsWhole(): Boolean = englishSources ||
+        primaryLanguageId.substringBefore('-').substringBefore('_').lowercase() in WHOLE_READING_LANGUAGES
+
     /** An x, y per letter of [lower] (NaN where a tap has none), or null without taps for each. */
     private fun pointsOf(lower: String, touch: List<TouchPoint?>?): FloatArray? =
         touch?.takeIf { it.size == lower.length }?.let { taps ->
@@ -6872,7 +6889,7 @@ class SuggestionEngine(
     /** Keeps the taps of [lower] for [noteCommit] to hand to [recheckPrevious]. */
     private fun noteTaps(lower: String, touch: List<TouchPoint?>?, timingMultiplier: Double) {
         val model = touchModelField
-        pendingTaps = if (englishSources && model != null && lower.length in 1..WHOLE_READING_MAX_LENGTH &&
+        pendingTaps = if (readsWhole() && model != null && lower.length in 1..WHOLE_READING_MAX_LENGTH &&
             lower.all { model.knows(it) }
         ) {
             ReadTaps(lower, pointsOf(lower, touch), timingMultiplier)
@@ -6896,7 +6913,13 @@ class SuggestionEngine(
      * Rust twin or there is none.
      */
     private fun decoderCall(timingMultiplier: Double): DecoderCall? {
-        val extra = phraseList.walkers().map { FuzzyBeamSearch.WalkSource(it, 0.0, FuzzyBeamSearch.Tier.DICTIONARY) }
+        // The AOSP English list is English's: typed German must not read as
+        // English words because the list happened to be loaded.
+        val extra = if (englishSources) {
+            phraseList.walkers().map { FuzzyBeamSearch.WalkSource(it, 0.0, FuzzyBeamSearch.Tier.DICTIONARY) }
+        } else {
+            emptyList()
+        }
         val sources = walkSources() + extra
         val handles = LongArray(sources.size)
         val kinds = IntArray(sources.size)
@@ -6910,7 +6933,10 @@ class SuggestionEngine(
             kinds[count] = NativeFuzzySearch.kindOf(src.walker)
             count++
         }
-        if (count == 0) return null
+        // A word list to read against, not only what the user has typed: with
+        // the lexicon alone every word it lacks would look like a typo of one
+        // it holds.
+        if (count == 0 || (0 until count).all { kinds[it] == NativeFuzzySearch.KIND_LEXICON }) return null
         val effective = (
             autocorrectConfidence *
                 (if (adaptiveConfidence) correctionStats.confidenceMultiplier() else 1.0) *

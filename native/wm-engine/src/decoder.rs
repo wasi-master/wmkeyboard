@@ -249,9 +249,53 @@ fn channel(taps: &[Tap], geometry: &Geometry, params: &Params, adjacent: &dyn Fn
 }
 
 impl Channel {
+    /// The price of reading the tap at `pos` as `key`. A letter no key
+    /// carries is read on the key it is written on: `é` and `ü` one
+    /// long-press from `e` and `u` ([`LN_ACCENT`]), and a capital (a German
+    /// noun as a list spells it) on its own lower-case key, free.
     fn letter(&self, pos: usize, key: u16, params: &Params) -> f64 {
-        self.letters[pos].get(&key).copied().unwrap_or(params.ln_far)
+        let m = &self.letters[pos];
+        if let Some(&v) = m.get(&key) {
+            return v;
+        }
+        let lower = lower_unit(key);
+        if lower != key {
+            if let Some(&v) = m.get(&lower) {
+                return v;
+            }
+        }
+        let bare = crate::accents::bare(lower);
+        if bare != lower {
+            if let Some(&v) = m.get(&lower_unit(bare)) {
+                return v + LN_ACCENT;
+            }
+        }
+        params.ln_far
     }
+}
+
+/// Whether `text` is `typed` with accents (or capitals) put back.
+pub fn folds_to(text: &str, typed: &str) -> bool {
+    let fold = |s: &str| -> Vec<u16> { s.encode_utf16().map(|c| crate::accents::bare(lower_unit(c))).collect() };
+    text != typed && fold(text) == fold(typed)
+}
+
+/// A letter left without its accent: nearly free, the way the walk prices
+/// it (`fuzzy::cost_accent`), since most typists leave accents to the
+/// keyboard.
+pub const LN_ACCENT: f64 = -0.105_360_515_657_826_3; // ln 0.9
+
+/// `c` in lower case, when it is one code unit that has one.
+fn lower_unit(c: u16) -> u16 {
+    char::from_u32(c as u32)
+        .and_then(|ch| {
+            let mut l = ch.to_lowercase();
+            match (l.next(), l.next()) {
+                (Some(x), None) if (x as u32) < 0x1_0000 => Some(x as u16),
+                _ => None,
+            }
+        })
+        .unwrap_or(c)
 }
 
 /// Reads `taps` against `sources`, with `before` the words already in the
@@ -675,6 +719,13 @@ pub const APPLY_MARGIN: f64 = 2.0;
 /// How far it must lead a literal some list holds: a real word is only
 /// rewritten when the taps and the context say so loudly.
 pub const KNOWN_MARGIN: f64 = 6.0;
+/// How far a reading that only puts accents back on a listed word must
+/// lead it ([`verdict_with`]). Swept on the sentence harness over 0.5..6 in
+/// Spanish, French and Portuguese: 1.5 restored 67-71% of the accents left
+/// off (6% to 32% at the known-word bar) and took the words left wrong from
+/// 12.1/17.2/13.1% to 9.1/14.8/11.0%; 0.5 began changing correctly typed
+/// French words (1.7%).
+pub const ACCENT_MARGIN: f64 = 1.5;
 /// The share of the bar a reading must reach to be offered instead.
 pub const OFFER_SHARE: f64 = 0.35;
 
@@ -682,6 +733,13 @@ pub const OFFER_SHARE: f64 = 0.35;
 /// `known_margin` for a listed literal), offers it past `OFFER_SHARE` of
 /// that, and otherwise leaves the buffer as typed.
 pub fn verdict(decoded: &Decoded, typed: &str, margin: f64, known_margin: f64) -> Verdict {
+    verdict_with(decoded, typed, margin, known_margin, known_margin)
+}
+
+/// [`verdict`] with its own bar, `accent_margin`, for a reading that only
+/// puts accents back on a listed word as typed (`esta` → `está`): the taps
+/// say nothing either way there, so the words around it decide.
+pub fn verdict_with(decoded: &Decoded, typed: &str, margin: f64, known_margin: f64, accent_margin: f64) -> Verdict {
     let Some(best) = decoded.readings.iter().find(|r| r.text != typed) else {
         return Verdict::default();
     };
@@ -690,7 +748,13 @@ pub fn verdict(decoded: &Decoded, typed: &str, margin: f64, known_margin: f64) -
     if decoded.readings.first().is_some_and(|r| r.text == typed) {
         return Verdict { lead: best.score - decoded.literal, ..Verdict::default() };
     }
-    let bar = if decoded.literal_listed { known_margin } else { margin };
+    let bar = if !decoded.literal_listed {
+        margin
+    } else if folds_to(&best.text, typed) {
+        accent_margin
+    } else {
+        known_margin
+    };
     let lead = best.score - decoded.literal;
     if lead >= bar {
         Verdict { apply: Some(best.text.clone()), offer: None, lead }
@@ -949,6 +1013,22 @@ mod tests {
         // Nothing after it yet, or nothing the taps could have been: left be.
         assert_eq!(run(&[], "on"), Recheck::default());
         assert_eq!(run(&["london"], "of").apply, None);
+    }
+
+    #[test]
+    fn accents_and_capitals_read_on_their_keys() {
+        let g = qwerty();
+        let l = WordList::of(&[("für", 900), ("Haus", 500), ("hat", 400)]);
+        let rank = |f: i32| zipf(((1000 - f.min(1000)) / 50 + 1) as usize, 3);
+        let src = [Source { walker: l.dict(), prior: &rank }];
+        let read = |w: &str| {
+            let taps: Vec<Tap> = w.chars().map(|c| tap(&g, c, 0.0, 0.0)).collect();
+            decode(&taps, &g, &src, &NoContext, &[], &Params::default(), &|_, _| false, 3).best().unwrap().text.clone()
+        };
+        assert_eq!(read("fur"), "für");
+        assert_eq!(read("haus"), "Haus");
+        assert!(folds_to("está", "esta"));
+        assert!(!folds_to("esta", "esta"));
     }
 
     #[test]

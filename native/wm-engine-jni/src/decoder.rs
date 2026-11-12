@@ -200,7 +200,22 @@ fn with_decoder<R>(
             .enumerate()
             .map(|(i, w)| match &inp.ranks[i] {
                 Some(r) => r.clone(),
-                None => Arc::new(if inp.kinds[i] == KIND_LEXICON { Ranks::default() } else { Ranks::of(*w) }),
+                None if inp.kinds[i] == KIND_LEXICON => Arc::new(Ranks::default()),
+                // A plain trie (an imported list) is ranked once per handle,
+                // like a dictionary: a big one would cost a walk per call.
+                None => {
+                    let h = inp.handles[i];
+                    let cached = RANKS.lock().unwrap_or_else(|e| e.into_inner()).get(&h).cloned();
+                    cached.unwrap_or_else(|| {
+                        let r = Arc::new(Ranks::of(*w));
+                        let mut map = RANKS.lock().unwrap_or_else(|e| e.into_inner());
+                        if map.len() >= RANK_CACHE {
+                            map.clear();
+                        }
+                        map.insert(h, r.clone());
+                        r
+                    })
+                }
             })
             .collect();
         let list_size = inp.list_size;
@@ -347,7 +362,9 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
                 }
             });
         }
-        let v = decoder::verdict(&decoded, &inp.typed, margin, known_margin);
+        // The accent bar moves with the slider as the other two do.
+        let accent_margin = margin * decoder::ACCENT_MARGIN / decoder::APPLY_MARGIN;
+        let v = decoder::verdict_with(&decoded, &inp.typed, margin, known_margin, accent_margin);
         let best = v.apply.as_ref().or(v.offer.as_ref()).and_then(|t| decoded.readings.iter().find(|r| &r.text == t));
         stats(env, &out, v.lead, best)?;
         give_all(env, vec![v.apply.unwrap_or_default(), v.offer.unwrap_or_default()])
