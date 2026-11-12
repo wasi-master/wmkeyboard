@@ -98,4 +98,21 @@
     <string name="ime_files_access_allow">Allow</string>
     <string name="ime_files_access_pick">Android\'s picker</string>
     <string name="ime_files_access_always">Always use Android\'s picker</string>
+
+    <!-- The Files tool of its own (#1267). -->
+    <string name="ime_tool_files">Files</string>
+    <string name="ime_files_locked_title">Unlock to see your files</string>
+    <string name="ime_files_locked_body">The file manager does not open over the lock screen.</string>
+    <string name="ime_files_two_panes_desc">Two lists side by side</string>
+    <string name="ime_files_one_pane_desc">One list</string>
+    <string name="ime_files_add_tree">Add a folder</string>
+    <string name="ime_files_add_tree_detail">A USB drive, an SD card, or a folder another app shares, such as a network drive</string>
+    <string name="ime_files_allow_all">All of the phone\'s storage</string>
+    <string name="ime_files_allow_all_detail">Needs Android\'s All files access</string>
+    <string name="ime_files_copy_to">Copy to %1$s</string>
+    <string name="ime_files_move_to">Move to %1$s</string>
+    <string name="ime_files_remove_tree_title">Take “%1$s” off the list?</string>
+    <string name="ime_files_remove_tree_body">The folder and its files stay where they are. You can add it again at any time.</string>
+    <string name="ime_files_remove_tree_yes">Take off</string>
+    <string name="ime_files_notice_tree_removed">Folder taken off the list</string>
 </resources>

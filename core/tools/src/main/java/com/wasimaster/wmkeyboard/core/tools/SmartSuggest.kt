@@ -2093,6 +2093,7 @@ object SmartSuggest {
         // Not "send" alone: it is the commonest verb in a chat. The compound forms are meant.
         ToolbarTool.SEND_FILES to listOf("sendfile", "sendfiles", "fileshare", "wetransfer", "发送文件", "傳送檔案", "ファイル送信", "파일전송"),
         ToolbarTool.KDE_CONNECT to listOf("kdeconnect", "kde"),
+        ToolbarTool.FILES to listOf("files", "filemanager", "文件管理", "檔案管理", "ファイル管理", "파일관리"),
         ToolbarTool.APP_LAUNCHER to listOf("apps", "launch", "应用列表", "應用程式", "アプリ", "앱목록"),
         ToolbarTool.TEXT_REPEAT to listOf("repeat", "重复文本", "重複文字", "繰り返し", "반복"),
     )

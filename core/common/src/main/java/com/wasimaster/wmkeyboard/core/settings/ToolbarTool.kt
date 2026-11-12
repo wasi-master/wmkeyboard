@@ -196,6 +196,12 @@ enum class ToolbarTool {
     // Everything in the field gone in one tap (#1194), for the fields that
     // have no clear button of their own. Undo brings it back.
     CLEAR_FIELD,
+    // The keyboard's file manager as a tool of its own (#1267), not only the
+    // picker other tools open: rename, copy, move and delete, one list or two
+    // side by side, over the phone's storage (with All files access) and the
+    // folders added through Android's folder picker, which a Play build can
+    // use too. Not over the lock screen.
+    FILES,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -431,7 +437,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.LANGUAGE,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO, ToolbarTool.PRIVACY_SHADE,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,
-    ToolbarTool.EMOJI_MIX, ToolbarTool.MUSIC_ID,
+    ToolbarTool.EMOJI_MIX, ToolbarTool.MUSIC_ID, ToolbarTool.FILES,
     ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.READ_BACK, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
     ToolbarTool.FLASHLIGHT, ToolbarTool.SCREENSHOT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     // The one-tap cursor moves last: useful, but they would otherwise push

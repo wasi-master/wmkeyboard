@@ -94,6 +94,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashlightOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Flight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FolderOpen
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatShapes
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Forum
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Fullscreen
@@ -317,6 +318,7 @@ object BuiltinIcons {
         "FlashOn" to { Icons.Outlined.FlashOn },
         "Flight" to { Icons.Outlined.Flight },
         "Folder" to { Icons.Outlined.Folder },
+        "FolderOpen" to { Icons.Outlined.FolderOpen },
         "FormatShapes" to { Icons.Outlined.FormatShapes },
         "Forum" to { Icons.Outlined.Forum },
         "Fullscreen" to { Icons.Outlined.Fullscreen },

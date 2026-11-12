@@ -4018,6 +4018,12 @@ data class KeyboardSettings(
      */
     val builtInFileManager: Boolean = true,
     /**
+     * The file manager shows two lists side by side (#1267), so Copy and
+     * Move go straight from one to the other. Set from the panel's header
+     * or the Files tool's page; the panel remembers it either way.
+     */
+    val filesTwoPanes: Boolean = false,
+    /**
      * Per-tool accent-colour overrides (ARGB longs), applied when
      * [coloredToolIcons] is on. A tool absent from the map keeps its built-in
      * default (see [com.wasimaster.wmkeyboard.core.ui.toolAccentColor]).
@@ -12501,6 +12507,7 @@ class SettingsRepository(private val context: Context) {
         private val EMOJI_TOOLBAR = booleanPreferencesKey("emoji_toolbar")
         private val COLORED_TOOL_ICONS = booleanPreferencesKey("colored_tool_icons")
         private val BUILT_IN_FILE_MANAGER = booleanPreferencesKey("built_in_file_manager")
+        private val FILES_TWO_PANES = booleanPreferencesKey("files_two_panes")
         private val TOOL_COLOR_OVERRIDES = stringPreferencesKey("tool_color_overrides")
         private val TOOL_ICON_GRADIENTS = booleanPreferencesKey("tool_icon_gradients")
         private val TOOL_COLOR_END_OVERRIDES = stringPreferencesKey("tool_color_end_overrides")
@@ -13689,6 +13696,7 @@ class SettingsRepository(private val context: Context) {
             emojiToolbar = p[EMOJI_TOOLBAR] ?: defaults.emojiToolbar,
             coloredToolIcons = p[COLORED_TOOL_ICONS] ?: defaults.coloredToolIcons,
             builtInFileManager = p[BUILT_IN_FILE_MANAGER] ?: defaults.builtInFileManager,
+            filesTwoPanes = p[FILES_TWO_PANES] ?: defaults.filesTwoPanes,
             toolColorOverrides = decodeToolColors(p[TOOL_COLOR_OVERRIDES]),
             toolIconGradients = p[TOOL_ICON_GRADIENTS] ?: defaults.toolIconGradients,
             toolColorEndOverrides = decodeToolColors(p[TOOL_COLOR_END_OVERRIDES]),
@@ -24206,6 +24214,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setBuiltInFileManager(value: Boolean) =
         editPrefs { it[BUILT_IN_FILE_MANAGER] = value }
+
+    suspend fun setFilesTwoPanes(value: Boolean) =
+        editPrefs { it[FILES_TWO_PANES] = value }
 
     suspend fun setToolIconGradients(value: Boolean) =
         editPrefs { it[TOOL_ICON_GRADIENTS] = value }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The Files tool (#1267). -->
+    <string name="files_tool_desc">The keyboard\'s file manager as a tool: rename, copy, move and delete files and folders, one list or two side by side, on the phone and in folders you add, such as a USB drive or a network share</string>
+    <string name="files_tool_two_panes_title">Two lists side by side</string>
+    <string name="files_tool_two_panes_subtitle">Copy and Move go straight from one list to the other</string>
+</resources>

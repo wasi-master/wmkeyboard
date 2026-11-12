@@ -1492,6 +1492,18 @@
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
+        <!-- The file manager's "Add a folder" (#1267): Android's folder picker,
+             the same shape. In every build, Play's included: a picked folder
+             needs no All files access. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.FileTreePickActivity"
+            android:enableOnBackInvokedCallback="true"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
         <!-- The gallery editor's "Replace the original" (#708): Android's consent
              dialog for changing a photo another app made, which only an
              activity can ask for. -->

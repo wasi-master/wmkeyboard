@@ -3470,6 +3470,7 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
  */
 /** The Send files tool's page (#729). */
 private fun SearchStrings.sendRows(): List<SettingsSearchEntry> = listOf(
+    toolEntry(ToolbarTool.FILES, R.string.files_tool_two_panes_title, R.string.files_tool_two_panes_subtitle),
     toolEntry(ToolbarTool.SEND_FILES, R.string.send_instance_title, R.string.send_instance_subtitle),
     toolEntry(ToolbarTool.SEND_FILES, R.string.send_expire_title, R.string.send_expire_subtitle),
     toolEntry(ToolbarTool.SEND_FILES, R.string.send_downloads_title, R.string.send_downloads_subtitle),

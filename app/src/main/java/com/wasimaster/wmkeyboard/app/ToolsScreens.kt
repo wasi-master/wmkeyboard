@@ -126,6 +126,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.MUSIC_ID -> ImeR.string.ime_tool_music_id
     ToolbarTool.HOME_ASSISTANT -> ImeR.string.ime_tool_home_assistant
     ToolbarTool.SEND_FILES -> ImeR.string.ime_tool_send_files
+    ToolbarTool.FILES -> ImeR.string.ime_tool_files
     ToolbarTool.GALLERY -> ImeR.string.ime_tool_gallery
     ToolbarTool.CALENDAR -> ImeR.string.ime_tool_calendar
     ToolbarTool.INCOGNITO -> ImeR.string.ime_tool_incognito
@@ -293,6 +294,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.SELECT_LINE -> R.string.fonts_tool_select_line_desc
     ToolbarTool.SELECT_ALL -> R.string.fonts_tool_select_all_desc
     ToolbarTool.CLEAR_FIELD -> R.string.fonts_tool_clear_field_desc
+    ToolbarTool.FILES -> R.string.files_tool_desc
     ToolbarTool.SELECT_MODE -> R.string.fonts_tool_select_mode_desc
     ToolbarTool.COPY -> R.string.fonts_tool_copy_desc
     ToolbarTool.CUT -> R.string.fonts_tool_cut_desc
@@ -658,7 +660,7 @@ private val PanelTools = listOf(
     ToolbarTool.TEXT_EDIT, ToolbarTool.TRACKPAD, ToolbarTool.NUMPAD, ToolbarTool.HANDWRITING,
     ToolbarTool.VOICE, ToolbarTool.CAMERA, ToolbarTool.GALLERY, ToolbarTool.DICTIONARY, ToolbarTool.VOCABULARY,
     ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.GRAMMAR, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL,
-    ToolbarTool.MUSIC_ID, ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES,
+    ToolbarTool.MUSIC_ID, ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES, ToolbarTool.FILES,
 )
 
 /**
@@ -667,7 +669,7 @@ private val PanelTools = listOf(
  */
 private val ConnectPanels = setOf(
     ToolbarTool.CAMERA, ToolbarTool.GALLERY, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL, ToolbarTool.MUSIC_ID,
-    ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES,
+    ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES, ToolbarTool.FILES,
 )
 
 /**

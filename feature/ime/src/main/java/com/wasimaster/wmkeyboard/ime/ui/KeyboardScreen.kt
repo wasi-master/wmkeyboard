@@ -9377,6 +9377,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.MUSIC_ID -> R.string.ime_tool_music_id
     ToolbarTool.HOME_ASSISTANT -> R.string.ime_tool_home_assistant
     ToolbarTool.SEND_FILES -> R.string.ime_tool_send_files
+    ToolbarTool.FILES -> R.string.ime_tool_files
     ToolbarTool.GALLERY -> R.string.ime_tool_gallery
     ToolbarTool.PLUGINS -> R.string.ime_tool_plugins
     ToolbarTool.APP_LAUNCHER -> R.string.ime_tool_app_launcher
@@ -9484,6 +9485,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.MUSIC_ID -> state.panel == PanelMode.MUSIC_ID
     ToolbarTool.HOME_ASSISTANT -> state.panel == PanelMode.HOME_ASSISTANT
     ToolbarTool.SEND_FILES -> state.panel == PanelMode.SEND_FILES
+    ToolbarTool.FILES -> state.panel == PanelMode.FILES
     ToolbarTool.GALLERY -> state.panel == PanelMode.GALLERY
     ToolbarTool.VOICE -> state.panel == PanelMode.VOICE || state.voice.strip || state.voice.bar
     ToolbarTool.GRAMMAR -> state.panel == PanelMode.GRAMMAR

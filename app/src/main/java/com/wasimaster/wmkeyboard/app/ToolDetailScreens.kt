@@ -3755,6 +3755,17 @@ internal fun ToolDetailSettings(
         ToolbarTool.MUSIC_ID -> MusicToolSettings(repository, settings, onNavigate)
         ToolbarTool.HOME_ASSISTANT -> com.wasimaster.wmkeyboard.app.homeassistant.SmartHomeToolSettings(repository, settings, onNavigate)
         ToolbarTool.GALLERY -> GalleryToolSettings(repository, settings)
+        // The panel's own header switches it too; this is the same setting (#1267).
+        ToolbarTool.FILES -> SettingsGroup {
+            item {
+                ToggleSetting(
+                    R.string.files_tool_two_panes_title,
+                    stringResource(R.string.files_tool_two_panes_subtitle),
+                    settings.watch { it.filesTwoPanes },
+                    default = SettingsDefaults.filesTwoPanes,
+                ) { scope.launch { repository.setFilesTwoPanes(it) } }
+            }
+        }
         ToolbarTool.SEND_FILES -> com.wasimaster.wmkeyboard.app.send.SendToolSettings(repository, settings, onNavigate)
         ToolbarTool.MODES -> SettingsGroup(stringResource(R.string.tooldetail_modes_group)) {
             item {

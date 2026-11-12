@@ -34670,6 +34670,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.HOME_ASSISTANT -> onPanelChange(PanelMode.HOME_ASSISTANT)
             ToolbarTool.GALLERY -> openGalleryTool()
             ToolbarTool.SEND_FILES -> openSendTool()
+            ToolbarTool.FILES -> openFilesTool()
             ToolbarTool.MEDIA_CONTROL -> onPanelChange(PanelMode.MEDIA_CONTROL)
             ToolbarTool.KDE_CONNECT -> onPanelChange(PanelMode.KDE_CONNECT)
             ToolbarTool.PLUGINS -> onPanelChange(PanelMode.PLUGINS)
@@ -48838,6 +48839,10 @@ open class WMKeyboardService : InputMethodService() {
                     serviceScope.launch { settingsRepository.setBuiltInFileManager(false) }
                 }
                 override fun kdeSendFailed() = kdeNotice(getString(R.string.ime_files_kde_unreadable))
+                override fun twoPanes() = _uiState.value.settings.filesTwoPanes
+                override fun setTwoPanes(on: Boolean) {
+                    serviceScope.launch { settingsRepository.setFilesTwoPanes(on) }
+                }
             },
         )
     }
@@ -48849,6 +48854,27 @@ open class WMKeyboardService : InputMethodService() {
         userUnlocked = userUnlocked,
         deviceLocked = isDeviceLocked(),
     )
+
+    /**
+     * The Files tool (#1267): the same manager as a tool's pick, open on its
+     * own. A second press closes it; a pick already open gives way to it. Over
+     * the keyguard it opens to say so and lists nothing.
+     */
+    private fun openFilesTool() {
+        val state = _uiState.value
+        if (state.panel == PanelMode.FILES && filesTool.state.value.browsing) {
+            onPanelChange(PanelMode.FILES)
+            return
+        }
+        if (state.panel == PanelMode.FILES) filesTool.onPanelClose()
+        filesTool.startBrowse(locked = !userUnlocked || isDeviceLocked())
+        if (state.panel == PanelMode.FILES) {
+            vibrate()
+            filesTool.onPanelOpen()
+        } else {
+            onPanelChange(PanelMode.FILES)
+        }
+    }
 
     /** The file manager over the panel asking; false leaves the pick to Android's picker. */
     private fun openFilePick(request: com.wasimaster.wmkeyboard.ime.files.FilePickRequest): Boolean {

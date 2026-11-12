@@ -149,6 +149,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.PRIVACY_SHADE -> Color(0xFF546E7A)
     // The delete keys' red.
     ToolbarTool.CLEAR_FIELD -> Color(0xFFE57373)
+    // A manila folder's amber.
+    ToolbarTool.FILES -> Color(0xFFFFA000)
     ToolbarTool.LANGUAGE -> Color(0xFF26A69A)
 }
 
