@@ -569,7 +569,7 @@ class SuggestionEngine(
             PredictionNative.decoderRecheck(
                 call.handles, call.kinds, taps.typed,
                 model.keyOrder, model.centerPairs, taps.points, null,
-                model.sigmaValue / KeyTouchModel.SIGMA,
+                model.sigmaValue / KeyTouchModel.SIGMA, model.decoderSpread,
                 before.toTypedArray(), committed, afterWords.toTypedArray(), ngramPack.nativeHandles(),
                 call.seeds?.first, call.seeds?.second, call.seeds?.third,
                 call.lm?.sessionHandle ?: 0L, if (call.lm != null) WHOLE_READING_MODEL_WEIGHT else 0.0,
@@ -6848,7 +6848,7 @@ class SuggestionEngine(
         val verdict = try { PredictionNative.decoderDecide(
             call.handles, call.kinds, lower,
             model.keyOrder, model.centerPairs, points, null,
-            model.sigmaValue / KeyTouchModel.SIGMA,
+            model.sigmaValue / KeyTouchModel.SIGMA, model.decoderSpread,
             before.toTypedArray(), ngramPack.nativeHandles(),
             seeds?.first, seeds?.second, seeds?.third,
             lm?.sessionHandle ?: 0L, if (lm != null) WHOLE_READING_MODEL_WEIGHT else 0.0,

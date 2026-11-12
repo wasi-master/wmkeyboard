@@ -67,6 +67,18 @@ import kotlin.math.sqrt
  * keyboard survives. The trend has its own dead zone and prior, and the
  * cell residuals are taken against it.
  *
+ * **How widely the taps scatter.** Each cell also keeps the running mean of
+ * its squared misses, so the spread of the taps around the cell's own mean
+ * can be pooled over the board ([spreadFactors]). The tap decoder's spread
+ * was fitted for a typical hand; a person whose taps scatter twice as wide
+ * gets a spread twice as wide, and a careful one a narrower one. Measured on
+ * recorded phone taps (Vertanen & Kristensson's noisy typing set and TSI,
+ * scored on the second half of each person's sentences after learning from
+ * what the keyboard committed in the first), it took the words left wrong
+ * from 20.1% to 18.3% on top of the offsets alone, correct words changed
+ * unmoved. Only the tap model's spread is read; the glide model keeps one
+ * too, unused.
+ *
  * **Undoable.** A glide the user backspaces was a wrong reading of the
  * stroke, and a wrong word aligned to a stroke teaches wrong offsets. So
  * [observe] hands back exactly what it changed and [retract] puts it back —
@@ -89,13 +101,31 @@ class KeyOffsets(private val storageFile: File?) {
         internal val global: Cell,
     )
 
-    /** A running mean, remembered [n] observations deep. */
-    internal class Cell(var dx: Float, var dy: Float, var n: Int) {
-        fun copy() = Cell(dx, dy, n)
+    /**
+     * A running mean, remembered [n] observations deep, and the running mean
+     * of its squares ([sx], [sy]); NaN for a cell read from a file written
+     * before those were kept, which then says nothing about the spread.
+     */
+    internal class Cell(
+        var dx: Float,
+        var dy: Float,
+        var n: Int,
+        var sx: Float = 0f,
+        var sy: Float = 0f,
+    ) {
+        fun copy() = Cell(dx, dy, n, sx, sy)
     }
 
     @Serializable
-    private data class StoredCell(val x: Int, val y: Int, val dx: Float, val dy: Float, val n: Int)
+    private data class StoredCell(
+        val x: Int,
+        val y: Int,
+        val dx: Float,
+        val dy: Float,
+        val n: Int,
+        val sx: Float? = null,
+        val sy: Float? = null,
+    )
 
     @Serializable
     private data class Snapshot(
@@ -110,6 +140,10 @@ class KeyOffsets(private val storageFile: File?) {
     private val json = Json { ignoreUnknownKeys = true }
     private var dirty = false
     private val snapshotFile = storageFile?.let(::SnapshotFile)
+
+    /** [spreadFactors] as of [spreadVersion]. */
+    private var spreadVersion = -1
+    private var spread: FloatArray? = null
 
     /** The trend as of [trendVersion]: slope per key width from the cells' weighted centre, and that centre. */
     private var trendVersion = -1
@@ -211,6 +245,40 @@ class KeyOffsets(private val storageFile: File?) {
     }
 
     /**
+     * The factors on the tap decoder's spread, across and down: the taps'
+     * spread around each cell's own mean, pooled over the cells, with
+     * [SPREAD_PRIOR] taps of a typical hand ([SPREAD_REF]) mixed in, over
+     * that typical spread. Null until anything with a spread is learned.
+     * The same rule as `wm-engine`'s `TouchOffsets::spread_factors`, which
+     * the sentence harness measures.
+     */
+    @Synchronized
+    fun spreadFactors(): FloatArray? {
+        if (spreadVersion == version) return spread?.copyOf()
+        spreadVersion = version
+        var sumX = 0.0
+        var sumY = 0.0
+        var count = 0.0
+        for (cell in cells.values) {
+            if (cell.n < 2 || cell.sx.isNaN() || cell.sy.isNaN()) continue
+            sumX += cell.n * maxOf(0.0, cell.sx.toDouble() - cell.dx.toDouble() * cell.dx)
+            sumY += cell.n * maxOf(0.0, cell.sy.toDouble() - cell.dy.toDouble() * cell.dy)
+            count += cell.n - 1
+        }
+        spread = if (count <= 0.0) {
+            null
+        } else {
+            val r = SPREAD_REF.toDouble()
+            val k = SPREAD_PRIOR.toDouble()
+            floatArrayOf(
+                (sqrt((sumX + k * r * r) / (count + k)) / r).toFloat(),
+                (sqrt((sumY + k * r * r) / (count + k)) / r).toFloat(),
+            )
+        }
+        return spread?.copyOf()
+    }
+
+    /**
      * Learns from one kept glide. An observation further than [MAX_OBSERVED]
      * from its key is a misalignment, not a hand, and is skipped. Returns
      * what changed, or null when nothing usable was offered.
@@ -258,7 +326,12 @@ class KeyOffsets(private val storageFile: File?) {
             if (!dirty) return
             dirty = false
             file.ticket() to Snapshot(
-                cells.map { (id, cell) -> StoredCell(xOf(id), yOf(id), cell.dx, cell.dy, cell.n) },
+                cells.map { (id, cell) ->
+                    StoredCell(
+                        xOf(id), yOf(id), cell.dx, cell.dy, cell.n,
+                        cell.sx.takeIf { it.isFinite() }, cell.sy.takeIf { it.isFinite() },
+                    )
+                },
                 global.dx,
                 global.dy,
                 global.n,
@@ -303,7 +376,9 @@ class KeyOffsets(private val storageFile: File?) {
             val snapshot = json.decodeFromString<Snapshot>(file.readText())
             for (c in snapshot.cells) {
                 if (c.n <= 0 || !c.dx.isFinite() || !c.dy.isFinite()) continue
-                cells[pack(c.x, c.y)] = Cell(c.dx, c.dy, c.n.coerceAtMost(CELL_MEMORY))
+                val sx = c.sx?.takeIf { it.isFinite() } ?: Float.NaN
+                val sy = c.sy?.takeIf { it.isFinite() } ?: Float.NaN
+                cells[pack(c.x, c.y)] = Cell(c.dx, c.dy, c.n.coerceAtMost(CELL_MEMORY), sx, sy)
             }
             if (snapshot.gn > 0 && snapshot.gx.isFinite() && snapshot.gy.isFinite()) {
                 global = Cell(snapshot.gx, snapshot.gy, snapshot.gn.coerceAtMost(GLOBAL_MEMORY))
@@ -368,11 +443,21 @@ class KeyOffsets(private val storageFile: File?) {
         return kept.coerceIn(-MAX_TREND, MAX_TREND)
     }
 
-    /** A capped running mean: the newest observation is worth `1/n`, never less than `1/memory`. */
+    /**
+     * A capped running mean: the newest observation is worth `1/n`, never
+     * less than `1/memory`; the squares alike. A cell whose squares were
+     * never kept (an old file) starts keeping them afresh.
+     */
     private fun update(cell: Cell, dx: Float, dy: Float, memory: Int) {
         val n = minOf(cell.n + 1, memory)
+        if (cell.sx.isNaN() || cell.sy.isNaN()) {
+            cell.sx = cell.dx * cell.dx
+            cell.sy = cell.dy * cell.dy
+        }
         cell.dx += (dx - cell.dx) / n
         cell.dy += (dy - cell.dy) / n
+        cell.sx += (dx * dx - cell.sx) / n
+        cell.sy += (dy * dy - cell.sy) / n
         cell.n = n
     }
 
@@ -443,5 +528,15 @@ class KeyOffsets(private val storageFile: File?) {
         const val MIN_TREND_SPREAD = 0.3f
 
         private const val MAX_CELLS = 512
+
+        /**
+         * The spread of a typical hand's taps around its own key centres, in
+         * key widths: what the tap decoder's spread was fitted for. Fitted on
+         * recorded taps; a smaller one rewrote correctly typed words.
+         */
+        const val SPREAD_REF = 0.25f
+
+        /** Taps of a typical hand mixed into the learned spread. */
+        const val SPREAD_PRIOR = 200f
     }
 }

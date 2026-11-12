@@ -55,6 +55,12 @@ class KeyTouchModel(
      * key a little wide is still one word. 0 turns slips off.
      */
     val slipRadius: Double = SLIP_SIGMAS * sigma,
+    /**
+     * Factors on the tap decoder's spread across and down, learned from how
+     * widely this hand's taps scatter (`KeyOffsets.spreadFactors`); null
+     * reads as 1, 1.
+     */
+    val decoderSpread: FloatArray? = null,
 ) {
 
     private val keysArray: CharArray = centers.keys.toCharArray()

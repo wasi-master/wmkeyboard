@@ -187,19 +187,18 @@ struct State {
 
 /// Per-tap channel prices: `price[pos][key]` for every letter key, and the
 /// space bar's, each relative to the best key for that tap (0 at best).
+#[derive(Clone, Default)]
 struct Channel {
     letters: Vec<HashMap<u16, f64>>,
     space: Vec<f64>,
     nearest: Vec<u16>,
 }
 
-fn channel(taps: &[Tap], geometry: &Geometry, params: &Params, adjacent: &dyn Fn(u16, u16) -> bool) -> Channel {
-    let sx2 = 2.0 * params.sigma_x * params.sigma_x;
-    let sy2 = 2.0 * params.sigma_y * params.sigma_y;
-    let mut letters = Vec::with_capacity(taps.len());
-    let mut space = Vec::with_capacity(taps.len());
-    let mut nearest = Vec::with_capacity(taps.len());
-    for tap in taps {
+impl Channel {
+    /// Prices one more tap.
+    fn push(&mut self, tap: &Tap, geometry: &Geometry, params: &Params, adjacent: &dyn Fn(u16, u16) -> bool) {
+        let sx2 = 2.0 * params.sigma_x * params.sigma_x;
+        let sy2 = 2.0 * params.sigma_y * params.sigma_y;
         let mut m = HashMap::with_capacity(geometry.keys.len());
         match tap.at {
             Some(p) if !geometry.keys.is_empty() => {
@@ -224,8 +223,8 @@ fn channel(taps: &[Tap], geometry: &Geometry, params: &Params, adjacent: &dyn Fn
                 for v in m.values_mut() {
                     *v = (*v - top).max(params.ln_far);
                 }
-                space.push((sp - top).max(params.ln_far));
-                nearest.push(best_key);
+                self.space.push((sp - top).max(params.ln_far));
+                self.nearest.push(best_key);
             }
             _ => {
                 // No coordinates: the typed key, its neighbours a slip away.
@@ -239,16 +238,13 @@ fn channel(taps: &[Tap], geometry: &Geometry, params: &Params, adjacent: &dyn Fn
                     };
                     m.insert(k, v);
                 }
-                space.push(params.ln_far);
-                nearest.push(tap.typed);
+                self.space.push(params.ln_far);
+                self.nearest.push(tap.typed);
             }
         }
-        letters.push(m);
+        self.letters.push(m);
     }
-    Channel { letters, space, nearest }
-}
 
-impl Channel {
     /// The price of reading the tap at `pos` as `key`. A letter no key
     /// carries is read on the key it is written on: `é` and `ü` one
     /// long-press from `e` and `u` ([`LN_ACCENT`]), and a capital (a German
@@ -301,6 +297,7 @@ fn lower_unit(c: u16) -> u16 {
 /// Reads `taps` against `sources`, with `before` the words already in the
 /// field (oldest first) for the context. `adjacent` answers for taps without
 /// coordinates.
+#[allow(clippy::too_many_arguments)]
 pub fn decode(
     taps: &[Tap],
     geometry: &Geometry,
@@ -311,170 +308,296 @@ pub fn decode(
     adjacent: &dyn Fn(u16, u16) -> bool,
     limit: usize,
 ) -> Decoded {
-    let n = taps.len();
-    let mut out = Decoded::default();
-    if n == 0 || sources.is_empty() {
-        return out;
+    Session::default().decode(0, taps, geometry, sources, context, before, params, adjacent, limit)
+}
+
+/// A decode that carries on from the keystroke before.
+///
+/// The search never looks at taps still to come: a state's bound is its
+/// score plus the best its word could still add, and only two expansions
+/// (two taps swapped, a tap meant for the space bar) need the tap after
+/// theirs to exist. So every position but the last two comes out the same
+/// whatever is typed next, and a buffer one tap longer than the last one
+/// costs those two positions, not the whole buffer again, the way AOSP
+/// LatinIME resumes its search from cached nodes. The keyboard asks for the
+/// buffer's reading after every key ([`Session::decode`]), so this is most
+/// of what autocorrect costs while typing. The result is the same as a
+/// fresh [`decode`] (tested); anything that is not a longer buffer of the
+/// same taps under the same `key` starts over.
+#[derive(Default)]
+pub struct Session {
+    key: u64,
+    taps: Vec<Tap>,
+    ch: Channel,
+    /// States arriving at each position, not yet ranked.
+    pending: Vec<Vec<State>>,
+    /// Positions expanded for good.
+    done: usize,
+    /// Positions expanded over the session's life, for measuring.
+    pub expansions: usize,
+}
+
+fn same_tap(a: &Tap, b: &Tap) -> bool {
+    a.typed == b.typed
+        && match (a.at, b.at) {
+            (Some(p), Some(q)) => p.0.to_bits() == q.0.to_bits() && p.1.to_bits() == q.1.to_bits(),
+            (None, None) => true,
+            _ => false,
+        }
+}
+
+impl Session {
+    /// The buffer's reading. `key` names everything but the taps (lists,
+    /// context, words before, knobs, geometry); a different key starts over.
+    #[allow(clippy::too_many_arguments)]
+    pub fn decode(
+        &mut self,
+        key: u64,
+        taps: &[Tap],
+        geometry: &Geometry,
+        sources: &[Source],
+        context: &dyn Context,
+        before: &[&str],
+        params: &Params,
+        adjacent: &dyn Fn(u16, u16) -> bool,
+        limit: usize,
+    ) -> Decoded {
+        let n = taps.len();
+        if n == 0 || sources.is_empty() {
+            return Decoded::default();
+        }
+        let kept = self.taps.iter().zip(taps).take_while(|(a, b)| same_tap(a, b)).count();
+        if key != self.key || kept < self.taps.len() || self.pending.is_empty() {
+            self.key = key;
+            self.taps.clear();
+            self.ch = Channel::default();
+            self.done = 0;
+            self.pending = vec![sources
+                .iter()
+                .enumerate()
+                .map(|(i, src)| State {
+                    src: i,
+                    node: src.walker.root(),
+                    cur: Vec::new(),
+                    words: Vec::new(),
+                    score: 0.0,
+                    edits_here: 0,
+                    edits: 0,
+                    slips: 0,
+                    spaces: 0,
+                    lexical: 0.0,
+                })
+                .collect()];
+        }
+        for tap in &taps[self.taps.len()..] {
+            self.ch.push(tap, geometry, params, adjacent);
+            self.taps.push(*tap);
+        }
+        if self.pending.len() < n + 1 {
+            self.pending.resize_with(n + 1, Vec::new);
+        }
+        let env = Env { sources, context, before, params };
+        let typed: Vec<u16> = taps.iter().map(|t| t.typed).collect();
+        let mut kids: Vec<(u16, u32)> = Vec::new();
+        let mut grandkids: Vec<(u16, u32)> = Vec::new();
+        // For good: every position whose next tap exists and will stay.
+        while self.done + 2 <= n {
+            let pos = self.done;
+            let ranked = env.rank(std::mem::take(&mut self.pending[pos]));
+            let (_, rest) = self.pending.split_at_mut(pos + 1);
+            let (one, two) = rest.split_at_mut(1);
+            for s in &ranked {
+                env.expand(&self.ch, &typed, pos, s, true, &mut one[0], two.first_mut(), &mut kids, &mut grandkids);
+            }
+            self.done += 1;
+            self.expansions += 1;
+        }
+        // For now: the last tap and the end, on copies.
+        let mut tail: Vec<Vec<State>> = self.pending[self.done..=n].to_vec();
+        let mut finals: Vec<Reading> = Vec::new();
+        for pos in self.done..=n {
+            let ranked = env.rank(std::mem::take(&mut tail[pos - self.done]));
+            self.expansions += 1;
+            if pos == n {
+                for s in &ranked {
+                    env.end(s, &mut finals, &mut kids);
+                }
+                continue;
+            }
+            let (_, rest) = tail.split_at_mut(pos - self.done + 1);
+            let (one, two) = rest.split_at_mut(1);
+            for s in &ranked {
+                env.expand(&self.ch, &typed, pos, s, pos + 1 < n, &mut one[0], two.first_mut(), &mut kids, &mut grandkids);
+            }
+        }
+        env.conclude(&self.ch, &typed, finals, limit)
     }
-    let ch = channel(taps, geometry, params, adjacent);
-    let typed: Vec<u16> = taps.iter().map(|t| t.typed).collect();
-    let typed_word = String::from_utf16_lossy(&typed);
-    let prev_of = |words: &[String], back: usize| -> Option<String> {
+}
+
+/// What the search reads besides the taps.
+struct Env<'a, 'b> {
+    sources: &'a [Source<'b>],
+    context: &'a dyn Context,
+    before: &'a [&'a str],
+    params: &'a Params,
+}
+
+impl Env<'_, '_> {
+    fn prev_of(&self, words: &[String], back: usize) -> Option<String> {
         if words.len() >= back {
             Some(words[words.len() - back].clone())
         } else {
             let rest = back - words.len();
-            before.len().checked_sub(rest).map(|i| before[i].to_string())
+            self.before.len().checked_sub(rest).map(|i| self.before[i].to_string())
         }
-    };
-    // ln P(word) + context for a word finishing at `node` of `src`.
-    let finish = |s: &State, node: u32, word: &str| -> Option<f64> {
-        let src = &sources[s.src];
+    }
+
+    /// ln P(word) + context for a word finishing at `node` of `s`'s list.
+    fn finish(&self, s: &State, node: u32, word: &str) -> Option<f64> {
+        let src = &self.sources[s.src];
         if !src.walker.is_word(node) {
             return None;
         }
         let prior = (src.prior)(src.walker.frequency(node));
-        let p1 = prev_of(&s.words, 1);
-        let p2 = prev_of(&s.words, 2);
-        let bonus = context.bonus(p2.as_deref(), p1.as_deref(), word);
-        let extra = if s.words.is_empty() { 0.0 } else { params.ln_extra_word };
+        let p1 = self.prev_of(&s.words, 1);
+        let p2 = self.prev_of(&s.words, 2);
+        let bonus = self.context.bonus(p2.as_deref(), p1.as_deref(), word);
+        let extra = if s.words.is_empty() { 0.0 } else { self.params.ln_extra_word };
         Some(prior + bonus + extra)
-    };
-    let bound = |s: &State| -> f64 {
-        let src = &sources[s.src];
-        s.score + (src.prior)(src.walker.max_subtree(s.node)) + context.cap()
-    };
-
-    let mut beams: Vec<Vec<State>> = vec![Vec::new(); n + 1];
-    for (i, src) in sources.iter().enumerate() {
-        beams[0].push(State {
-            src: i,
-            node: src.walker.root(),
-            cur: Vec::new(),
-            words: Vec::new(),
-            score: 0.0,
-            edits_here: 0,
-            edits: 0,
-            slips: 0,
-            spaces: 0,
-            lexical: 0.0,
-        });
     }
-    let mut kids: Vec<(u16, u32)> = Vec::new();
-    let mut grandkids: Vec<(u16, u32)> = Vec::new();
-    let mut finals: Vec<Reading> = Vec::new();
 
-    for pos in 0..=n {
-        // Prune: merge equal states, keep the best `beam` by bound.
-        let mut beam = std::mem::take(&mut beams[pos]);
-        {
-            let mut seen: HashMap<(usize, u32, String), usize> = HashMap::new();
-            let mut merged: Vec<State> = Vec::with_capacity(beam.len());
-            for s in beam.drain(..) {
-                let key = (s.src, s.node, s.words.join(" "));
-                match seen.get(&key) {
-                    Some(&i) => {
-                        if s.score > merged[i].score {
-                            merged[i] = s;
-                        }
+    fn bound(&self, s: &State) -> f64 {
+        let src = &self.sources[s.src];
+        s.score + (src.prior)(src.walker.max_subtree(s.node)) + self.context.cap()
+    }
+
+    /// Prune: merge equal states, keep the best `beam` by bound.
+    fn rank(&self, beam: Vec<State>) -> Vec<State> {
+        let mut seen: HashMap<(usize, u32, String), usize> = HashMap::new();
+        let mut merged: Vec<State> = Vec::with_capacity(beam.len());
+        for s in beam {
+            let key = (s.src, s.node, s.words.join(" "));
+            match seen.get(&key) {
+                Some(&i) => {
+                    if s.score > merged[i].score {
+                        merged[i] = s;
                     }
-                    None => {
-                        seen.insert(key, merged.len());
-                        merged.push(s);
-                    }
+                }
+                None => {
+                    seen.insert(key, merged.len());
+                    merged.push(s);
                 }
             }
-            beam = merged;
         }
-        let mut ranked: Vec<(f64, State)> = beam.into_iter().map(|s| (bound(&s), s)).collect();
+        let mut ranked: Vec<(f64, State)> = merged.into_iter().map(|s| (self.bound(&s), s)).collect();
         ranked.sort_by(|a, b| b.0.total_cmp(&a.0));
-        ranked.truncate(params.beam);
+        ranked.truncate(self.params.beam);
+        ranked.into_iter().map(|(_, s)| s).collect()
+    }
 
-        for (_, s) in ranked {
-            let src = &sources[s.src];
-            let walker = src.walker;
-            if pos == n {
-                // The end of the buffer: the word must be finished here, or
-                // one letter short of it.
-                if s.cur.is_empty() {
-                    continue;
+    /// The end of the buffer: the word must be finished here, or one letter
+    /// short of it.
+    fn end(&self, s: &State, finals: &mut Vec<Reading>, kids: &mut Vec<(u16, u32)>) {
+        let params = self.params;
+        let walker = self.sources[s.src].walker;
+        if s.cur.is_empty() {
+            return;
+        }
+        let word = String::from_utf16_lossy(&s.cur);
+        if let Some(add) = self.finish(s, s.node, &word) {
+            finals.push(reading(s, &word, s.score + add, add));
+        }
+        if s.edits_here < params.max_edits {
+            walker.children_into(s.node, kids);
+            for &(c, child) in kids.iter() {
+                let mut cur = s.cur.clone();
+                cur.push(c);
+                let w = String::from_utf16_lossy(&cur);
+                if let Some(add) = self.finish(s, child, &w) {
+                    let mut t = s.clone();
+                    t.edits += 1;
+                    finals.push(reading(&t, &w, s.score + params.ln_omit + add, add));
                 }
-                let word = String::from_utf16_lossy(&s.cur);
-                if let Some(add) = finish(&s, s.node, &word) {
-                    finals.push(reading(&s, &word, s.score + add, add));
-                }
-                if s.edits_here < params.max_edits {
-                    walker.children_into(s.node, &mut kids);
-                    for &(c, child) in &kids {
-                        let mut cur = s.cur.clone();
-                        cur.push(c);
-                        let w = String::from_utf16_lossy(&cur);
-                        if let Some(add) = finish(&s, child, &w) {
-                            let mut t = s.clone();
-                            t.edits += 1;
-                            finals.push(reading(&t, &w, s.score + params.ln_omit + add, add));
-                        }
-                    }
-                }
+            }
+        }
+    }
+
+    /// Everything the tap at `pos` may have been for `s`, pushed to the
+    /// position it leads to: `next` (pos + 1) or `after` (pos + 2, swaps).
+    /// `has_next`: whether a tap follows this one.
+    #[allow(clippy::too_many_arguments)]
+    fn expand(
+        &self,
+        ch: &Channel,
+        typed: &[u16],
+        pos: usize,
+        s: &State,
+        has_next: bool,
+        next: &mut Vec<State>,
+        after: Option<&mut Vec<State>>,
+        kids: &mut Vec<(u16, u32)>,
+        grandkids: &mut Vec<(u16, u32)>,
+    ) {
+        let params = self.params;
+        let walker = self.sources[s.src].walker;
+        walker.children_into(s.node, kids);
+        let kids_now = kids.clone();
+        // Match or slip: the tap at `pos` meant child `c`.
+        for &(c, child) in &kids_now {
+            let price = ch.letter(pos, c, params);
+            if price <= params.ln_far && c != typed[pos] && s.edits_here >= params.max_edits {
                 continue;
             }
-            walker.children_into(s.node, &mut kids);
-            let kids_now = kids.clone();
-            // Match or slip: the tap at `pos` meant child `c`.
-            for &(c, child) in &kids_now {
-                let price = ch.letter(pos, c, params);
-                if price <= params.ln_far && c != typed[pos] && s.edits_here >= params.max_edits {
-                    continue;
-                }
-                let mut t = s.clone();
-                t.node = child;
-                t.cur.push(c);
-                t.score += price;
-                if c != ch.nearest[pos] {
-                    t.slips += 1;
-                }
-                if price <= params.ln_far {
-                    t.edits_here += 1;
-                    t.edits += 1;
-                }
-                beams[pos + 1].push(t);
+            let mut t = s.clone();
+            t.node = child;
+            t.cur.push(c);
+            t.score += price;
+            if c != ch.nearest[pos] {
+                t.slips += 1;
             }
-            if s.edits_here < params.max_edits {
-                // Omission: child `a` was never tapped; the tap meant its
-                // child `b`.
-                for &(a, child) in &kids_now {
-                    walker.children_into(child, &mut grandkids);
-                    for &(b, grandchild) in &grandkids {
-                        let price = ch.letter(pos, b, params);
-                        if price <= params.ln_far {
-                            continue;
-                        }
-                        let mut t = s.clone();
-                        t.node = grandchild;
-                        t.cur.push(a);
-                        t.cur.push(b);
-                        t.score += params.ln_omit + price;
-                        t.edits_here += 1;
-                        t.edits += 1;
-                        beams[pos + 1].push(t);
+            if price <= params.ln_far {
+                t.edits_here += 1;
+                t.edits += 1;
+            }
+            next.push(t);
+        }
+        if s.edits_here < params.max_edits {
+            // Omission: child `a` was never tapped; the tap meant its
+            // child `b`.
+            for &(a, child) in &kids_now {
+                walker.children_into(child, grandkids);
+                for &(b, grandchild) in grandkids.iter() {
+                    let price = ch.letter(pos, b, params);
+                    if price <= params.ln_far {
+                        continue;
                     }
-                }
-                // Insertion: the tap belongs to no letter. A tap on the
-                // letter just typed is a doubled key, the cheaper slip.
-                if !s.cur.is_empty() {
-                    let doubled = s.cur.last() == Some(&ch.nearest[pos]);
                     let mut t = s.clone();
-                    t.score += if doubled { params.ln_double } else { params.ln_insert };
+                    t.node = grandchild;
+                    t.cur.push(a);
+                    t.cur.push(b);
+                    t.score += params.ln_omit + price;
                     t.edits_here += 1;
                     t.edits += 1;
-                    beams[pos + 1].push(t);
+                    next.push(t);
                 }
-                // Swap: taps `pos` and `pos + 1` meant the next two letters
-                // the other way round.
-                if pos + 1 < n {
+            }
+            // Insertion: the tap belongs to no letter. A tap on the
+            // letter just typed is a doubled key, the cheaper slip.
+            if !s.cur.is_empty() {
+                let doubled = s.cur.last() == Some(&ch.nearest[pos]);
+                let mut t = s.clone();
+                t.score += if doubled { params.ln_double } else { params.ln_insert };
+                t.edits_here += 1;
+                t.edits += 1;
+                next.push(t);
+            }
+            // Swap: taps `pos` and `pos + 1` meant the next two letters
+            // the other way round.
+            if has_next {
+                if let Some(after) = after {
                     for &(a, child) in &kids_now {
-                        walker.children_into(child, &mut grandkids);
-                        for &(b, grandchild) in &grandkids {
+                        walker.children_into(child, grandkids);
+                        for &(b, grandchild) in grandkids.iter() {
                             if a == b {
                                 continue;
                             }
@@ -489,85 +612,225 @@ pub fn decode(
                             t.score += params.ln_swap + price;
                             t.edits_here += 1;
                             t.edits += 1;
-                            beams[pos + 2].push(t);
+                            after.push(t);
                         }
                     }
                 }
             }
-            // A word boundary: finish the word here and start the next.
-            if !s.cur.is_empty() && s.words.len() + 1 < params.max_words {
-                let word = String::from_utf16_lossy(&s.cur);
-                if let Some(add) = finish(&s, s.node, &word) {
-                    for (si, next) in sources.iter().enumerate() {
-                        let mut base = s.clone();
-                        base.words.push(word.clone());
-                        base.cur.clear();
-                        base.src = si;
-                        base.node = next.walker.root();
-                        base.edits_here = 0;
-                        base.score += add;
-                        base.lexical += add;
-                        base.spaces += 1;
-                        // The tap at `pos` was meant for the space bar.
-                        if pos + 1 < n {
-                            let mut t = base.clone();
-                            t.score += ch.space[pos];
-                            beams[pos + 1].push(t);
+        }
+        // A word boundary: finish the word here and start the next.
+        if !s.cur.is_empty() && s.words.len() + 1 < params.max_words {
+            let word = String::from_utf16_lossy(&s.cur);
+            if let Some(add) = self.finish(s, s.node, &word) {
+                for (si, src) in self.sources.iter().enumerate() {
+                    let mut base = s.clone();
+                    base.words.push(word.clone());
+                    base.cur.clear();
+                    base.src = si;
+                    base.node = src.walker.root();
+                    base.edits_here = 0;
+                    base.score += add;
+                    base.lexical += add;
+                    base.spaces += 1;
+                    // The tap at `pos` was meant for the space bar.
+                    if has_next {
+                        let mut t = base.clone();
+                        t.score += ch.space[pos];
+                        next.push(t);
+                    }
+                    // No space was tapped: the tap at `pos` starts the
+                    // next word.
+                    src.walker.children_into(base.node, grandkids);
+                    for &(c, child) in grandkids.iter() {
+                        let price = ch.letter(pos, c, params);
+                        if price <= params.ln_far {
+                            continue;
                         }
-                        // No space was tapped: the tap at `pos` starts the
-                        // next word.
-                        next.walker.children_into(base.node, &mut grandkids);
-                        for &(c, child) in &grandkids {
-                            let price = ch.letter(pos, c, params);
-                            if price <= params.ln_far {
-                                continue;
-                            }
-                            let mut t = base.clone();
-                            t.node = child;
-                            t.cur.push(c);
-                            t.score += params.ln_space_omit + price;
-                            beams[pos + 1].push(t);
-                        }
+                        let mut t = base.clone();
+                        t.node = child;
+                        t.cur.push(c);
+                        t.score += params.ln_space_omit + price;
+                        next.push(t);
                     }
                 }
             }
         }
     }
 
-    // The literal reading: listed, or unknown.
-    let literal_listed = sources.iter().any(|src| node_of(src.walker, &typed).is_some_and(|nd| src.walker.is_word(nd)));
-    let p1 = before.last().copied();
-    let p2 = before.len().checked_sub(2).map(|i| before[i]);
-    let mut literal = params.ln_unknown_word + params.ln_unknown_letter * n as f64;
-    for src in sources {
-        if let Some(nd) = node_of(src.walker, &typed) {
-            if src.walker.is_word(nd) {
-                let listed = (src.prior)(src.walker.frequency(nd)) + context.bonus(p2, p1, &typed_word);
-                literal = literal.max(listed);
+    /// The readings found, best first, with the literal's score beside them.
+    fn conclude(&self, ch: &Channel, typed: &[u16], mut finals: Vec<Reading>, limit: usize) -> Decoded {
+        let params = self.params;
+        let n = typed.len();
+        let typed_word = String::from_utf16_lossy(typed);
+        let mut out = Decoded::default();
+        // The literal reading: listed, or unknown.
+        let literal_listed =
+            self.sources.iter().any(|src| node_of(src.walker, typed).is_some_and(|nd| src.walker.is_word(nd)));
+        let p1 = self.before.last().copied();
+        let p2 = self.before.len().checked_sub(2).map(|i| self.before[i]);
+        let mut literal = params.ln_unknown_word + params.ln_unknown_letter * n as f64;
+        for src in self.sources {
+            if let Some(nd) = node_of(src.walker, typed) {
+                if src.walker.is_word(nd) {
+                    let listed = (src.prior)(src.walker.frequency(nd)) + self.context.bonus(p2, p1, &typed_word);
+                    literal = literal.max(listed);
+                }
             }
         }
+        let literal_lexical = literal;
+        // Spatial price of the literal: every tap on the key it typed, which
+        // is the nearest key unless coordinates say otherwise.
+        for (pos, &t) in typed.iter().enumerate() {
+            literal += ch.letter(pos, t, params);
+        }
+        finals.sort_by(|a, b| b.score.total_cmp(&a.score).then_with(|| a.text.cmp(&b.text)));
+        let mut seen = std::collections::HashSet::new();
+        for r in finals {
+            if seen.insert(r.text.clone()) {
+                out.readings.push(r);
+                if out.readings.len() >= limit {
+                    break;
+                }
+            }
+        }
+        out.literal = literal;
+        out.literal_listed = literal_listed;
+        out.literal_lexical = literal_lexical;
+        out
     }
-    let literal_lexical = literal;
-    // Spatial price of the literal: every tap on the key it typed, which is
-    // the nearest key unless coordinates say otherwise.
-    for (pos, &t) in typed.iter().enumerate() {
-        literal += ch.letter(pos, t, params);
+}
+
+/// Where one person's finger lands on each key, learned from the words they
+/// keep: per key, how far their taps sit from its centre, and how widely
+/// they spread. A key seen a few times leans on the person's overall offset,
+/// which in turn leans on none at all, so a handful of taps moves nothing
+/// much and a habit (landing low on a phone held in one hand) shows up over
+/// a few dozen words. Sivek & Riley (2022) report the same layering for
+/// Gboard's personal key centres; Yin et al. (CHI 2013) the backoff.
+#[derive(Clone, Debug, Default)]
+pub struct TouchOffsets {
+    /// Per key: taps, summed x and y offsets, summed squares.
+    pub keys: HashMap<u16, [f64; 5]>,
+    pub all: [f64; 5],
+}
+
+impl TouchOffsets {
+    /// A tap more than this far from the key it typed (key widths) says
+    /// nothing about where that key is aimed at (the keyboard's
+    /// `KeyOffsets.MAX_OBSERVED`).
+    pub const REACH: f32 = 0.9;
+    /// Taps remembered, overall and per key: past these the sums are scaled
+    /// down as new taps come in, which makes each a running mean whose
+    /// newest tap weighs `1/memory`, as `KeyOffsets` keeps them (its
+    /// `GLOBAL_MEMORY` and `CELL_MEMORY`), so a hand that changes (a new
+    /// phone, a case) is followed rather than averaged against for good.
+    pub const MEMORY: f64 = 200.0;
+    pub const KEY_MEMORY: f64 = 40.0;
+    /// Shrinkage, in taps' worth: the overall offset toward none, a key's
+    /// toward the overall one, the spread toward the decoder's own.
+    pub const K_GLOBAL: f32 = 20.0;
+    pub const K_KEY: f32 = 15.0;
+    pub const K_SPREAD: f64 = 200.0;
+    /// No learned shift moves a key further than this (key widths).
+    pub const MAX_SHIFT: f32 = 0.5;
+    /// The spread of a typical hand's taps around its own key centres (key
+    /// widths), which the decoder's spread was fitted for: a person whose taps
+    /// spread twice as wide gets a decoder spread twice as wide. Fitted on
+    /// Vertanen & Kristensson's dev set; a smaller one rewrote correct words.
+    pub const SPREAD_REF: f64 = 0.25;
+
+    /// Learns from a word kept as typed: each tap belongs to the letter at
+    /// its place, so only words with one tap a letter teach anything.
+    pub fn learn(&mut self, word: &str, taps: &[(f32, f32)], keys: &[(u16, f32, f32)]) {
+        let units: Vec<u16> = word.encode_utf16().collect();
+        if units.len() != taps.len() || units.len() < 2 {
+            return;
+        }
+        for (&u, &(x, y)) in units.iter().zip(taps) {
+            let Some(&(_, cx, cy)) = keys.iter().find(|k| k.0 == u) else { continue };
+            let (dx, dy) = (x - cx, y - cy);
+            if dx.abs() > Self::REACH || dy.abs() > Self::REACH {
+                continue;
+            }
+            let (dx, dy) = (dx as f64, dy as f64);
+            for (acc, cap) in [(self.keys.entry(u).or_default(), Self::KEY_MEMORY), (&mut self.all, Self::MEMORY)] {
+                if acc[0] >= cap {
+                    let keep = (cap - 1.0) / acc[0];
+                    for v in acc.iter_mut() {
+                        *v *= keep;
+                    }
+                }
+                acc[0] += 1.0;
+                acc[1] += dx;
+                acc[2] += dy;
+                acc[3] += dx * dx;
+                acc[4] += dy * dy;
+            }
+        }
     }
 
-    finals.sort_by(|a, b| b.score.total_cmp(&a.score).then_with(|| a.text.cmp(&b.text)));
-    let mut seen = std::collections::HashSet::new();
-    for r in finals {
-        if seen.insert(r.text.clone()) {
-            out.readings.push(r);
-            if out.readings.len() >= limit {
-                break;
+    /// How many taps it has learned from.
+    pub fn taps(&self) -> f64 {
+        self.all[0]
+    }
+
+    /// The person's offset on `key`: the overall offset shrunk by
+    /// `k_global` taps of none, and the key's own shrunk by `k_key` taps of
+    /// the overall one.
+    pub fn offset(&self, key: u16, k_global: f32, k_key: f32) -> (f32, f32) {
+        let n = self.all[0] as f32;
+        let g = (self.all[1] as f32 / (n + k_global), self.all[2] as f32 / (n + k_global));
+        match self.keys.get(&key) {
+            Some(e) => {
+                let m = e[0] as f32;
+                (g.0 + (e[1] as f32 - m * g.0) / (m + k_key), g.1 + (e[2] as f32 - m * g.1) / (m + k_key))
             }
+            None => g,
         }
     }
-    out.literal = literal;
-    out.literal_listed = literal_listed;
-    out.literal_lexical = literal_lexical;
-    out
+
+    /// `keys` moved to where this person aims at them.
+    pub fn shifted(&self, keys: &[(u16, f32, f32)], k_global: f32, k_key: f32) -> Vec<(u16, f32, f32)> {
+        keys.iter()
+            .map(|&(k, x, y)| {
+                let (mut dx, mut dy) = self.offset(k, k_global, k_key);
+                let length = (dx * dx + dy * dy).sqrt();
+                if length > Self::MAX_SHIFT {
+                    dx *= Self::MAX_SHIFT / length;
+                    dy *= Self::MAX_SHIFT / length;
+                }
+                (k, x + dx, y + dy)
+            })
+            .collect()
+    }
+
+    /// The decoder's spread for this person: their taps' spread around
+    /// their own key centres, pooled over keys, shrunk to `prior` by `k`
+    /// taps' worth.
+    pub fn spread(&self, prior: (f64, f64), k: f64) -> (f64, f64) {
+        let (mut sx, mut sy, mut n) = (0.0, 0.0, 0.0);
+        for e in self.keys.values() {
+            if e[0] < 2.0 {
+                continue;
+            }
+            sx += e[3] - e[1] * e[1] / e[0];
+            sy += e[4] - e[2] * e[2] / e[0];
+            n += e[0] - 1.0;
+        }
+        (((sx + k * prior.0 * prior.0) / (n + k)).sqrt(), ((sy + k * prior.1 * prior.1) / (n + k)).sqrt())
+    }
+
+    /// The factors on the decoder's spread, across and down: this person's
+    /// spread over [`TouchOffsets::SPREAD_REF`], with `k` taps of a typical
+    /// hand mixed in. Measured on recorded taps (second half of each
+    /// person's sentences, learned from what the keyboard committed in the
+    /// first): words left wrong 20.0% to 17.9% over learned offsets alone,
+    /// correct words changed unmoved.
+    pub fn spread_factors(&self, k: f64) -> (f64, f64) {
+        let r = Self::SPREAD_REF;
+        let (sx, sy) = self.spread((r, r), k);
+        (sx / r, sy / r)
+    }
 }
 
 fn reading(s: &State, last: &str, score: f64, last_lexical: f64) -> Reading {
@@ -942,6 +1205,80 @@ mod tests {
             ("must", 300), ("to", 990), ("you", 970), ("thee", 5), ("sam", 30), ("per", 40), ("son", 60),
         ];
         WordList::of(&words)
+    }
+
+    #[test]
+    fn a_hand_that_lands_low_and_wide_is_learned() {
+        let g = qwerty();
+        let mut hand = TouchOffsets::default();
+        assert_eq!(hand.spread_factors(TouchOffsets::K_SPREAD), (1.0, 1.0));
+        // Every tap a third of a key low, scattered half a key either way.
+        let mut flip = 1.0f32;
+        for _ in 0..60 {
+            for word in ["the", "same", "person"] {
+                let taps: Vec<(f32, f32)> = word
+                    .chars()
+                    .map(|c| {
+                        let k = g.keys.iter().find(|k| k.0 == c as u16).unwrap();
+                        flip = -flip;
+                        (k.1 + 0.5 * flip, k.2 + 0.33)
+                    })
+                    .collect();
+                hand.learn(word, &taps, &g.keys);
+            }
+        }
+        let (dx, dy) = hand.offset('e' as u16, TouchOffsets::K_GLOBAL, TouchOffsets::K_KEY);
+        assert!(dx.abs() < 0.1 && (dy - 0.33).abs() < 0.05, "{dx} {dy}");
+        let (fx, fy) = hand.spread_factors(TouchOffsets::K_SPREAD);
+        assert!(fx > 1.5 && fy < 1.0, "{fx} {fy}");
+        // Taps beyond reach teach nothing.
+        let before = hand.taps();
+        hand.learn("to", &[(9.0, 9.0), (9.0, 9.0)], &g.keys);
+        assert_eq!(hand.taps(), before);
+    }
+
+    #[test]
+    fn a_session_reads_what_a_fresh_decode_reads() {
+        let g = qwerty();
+        let list = list();
+        let rank = |f: i32| -> f64 { zipf((1000 - f.min(1000)) as usize / 50 + 1, 19) };
+        let src = [Source { walker: list.dict(), prior: &rank }];
+        let params = Params::default();
+        let same = |a: &Decoded, b: &Decoded| {
+            assert_eq!(a.readings, b.readings);
+            assert_eq!(a.literal.to_bits(), b.literal.to_bits());
+            assert_eq!(a.literal_listed, b.literal_listed);
+        };
+        let mut seed = 0x2545_f491_4f6c_dd1du64;
+        let mut jitter = || {
+            seed ^= seed << 13;
+            seed ^= seed >> 7;
+            seed ^= seed << 17;
+            ((seed >> 11) as f64 / (1u64 << 53) as f64 - 0.5) as f32 * 0.9
+        };
+        for text in ["yhebsamebperson", "wnat", "tonthe", "hellp", "abuot", "jsut", "thesame"] {
+            let taps: Vec<Tap> = text.chars().map(|c| tap(&g, c, jitter(), jitter())).collect();
+            let mut session = Session::default();
+            for n in 1..=taps.len() {
+                let fresh = decode(&taps[..n], &g, &src, &NoContext, &[], &params, &|_, _| false, 5);
+                let kept = session.decode(7, &taps[..n], &g, &src, &NoContext, &[], &params, &|_, _| false, 5);
+                same(&fresh, &kept);
+            }
+            // Backspace, then a different tap: starts over, same answer.
+            let mut other = taps.clone();
+            other.pop();
+            other.push(tap(&g, 'e', 0.1, 0.0));
+            let fresh = decode(&other, &g, &src, &NoContext, &[], &params, &|_, _| false, 5);
+            same(&fresh, &session.decode(7, &other, &g, &src, &NoContext, &[], &params, &|_, _| false, 5));
+        }
+        // Typing a word costs about two positions a key, not the buffer.
+        let taps: Vec<Tap> = "yhebsamebperson".chars().map(|c| tap(&g, c, 0.0, 0.0)).collect();
+        let mut session = Session::default();
+        for n in 1..=taps.len() {
+            session.decode(1, &taps[..n], &g, &src, &NoContext, &[], &params, &|_, _| false, 5);
+        }
+        let fresh: usize = (1..=taps.len()).map(|n| n + 1).sum();
+        assert!(session.expansions * 3 < fresh, "{} vs {fresh}", session.expansions);
     }
 
     fn run(list: &WordList, taps: &[Tap]) -> Decoded {

@@ -97,7 +97,8 @@ internal object PredictionNative {
      * walk's sources by handle and kind, the touch frame as in [fuzzySearch]
      * plus the space bar ([space] centre x, centre y, half width, half height,
      * or null to place it under the bottom row), [sigmaScale] on the tap
-     * spread, the field's last words, the pair packs, the seed pairs as three
+     * spread and [spread] on it across and down (this hand's, or null), the
+     * field's last words, the pair packs, the seed pairs as three
      * columns, and the context model's session (0 for none). Returns
      * `[apply, offer]`, each empty for none; [out] receives the lead over the
      * literal, the reading's word count, edits, slips and inserted spaces.
@@ -112,6 +113,7 @@ internal object PredictionNative {
         touchPoints: FloatArray?,
         space: FloatArray?,
         sigmaScale: Double,
+        spread: FloatArray?,
         before: Array<String>,
         packs: LongArray,
         seedFirst: Array<String>?,
@@ -143,6 +145,7 @@ internal object PredictionNative {
         touchPoints: FloatArray?,
         space: FloatArray?,
         sigmaScale: Double,
+        spread: FloatArray?,
         before: Array<String>,
         committed: String,
         after: Array<String>,

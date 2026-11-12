@@ -9,6 +9,7 @@
 //! the fuzzy walk for reading.
 
 use std::ptr::null_mut;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{LazyLock, RwLock};
 
 use jni::objects::{JClass, JIntArray, JObject, JObjectArray, JString};
@@ -22,6 +23,20 @@ use crate::handles::Registry;
 
 pub struct Store {
     pub lexicon: RwLock<UserLexicon>,
+    /// Bumped by every change, while the change still holds the lock, so a
+    /// reader holding the read lock sees the count that matches what it
+    /// reads; the tap decoder's session (`decoder.rs`) keys on it.
+    pub generation: AtomicU64,
+}
+
+impl Store {
+    pub fn generation(&self) -> u64 {
+        self.generation.load(Ordering::Acquire)
+    }
+
+    fn changed(&self) {
+        self.generation.fetch_add(1, Ordering::AcqRel);
+    }
 }
 
 pub static LEXICONS: LazyLock<Registry<Store>> = LazyLock::new(Registry::new);
@@ -87,6 +102,7 @@ macro_rules! lexicon_fn {
             guarded(&mut env, $fallback, |$env| {
                 let store = object!($env, LEXICONS, handle);
                 let mut $lex = store.lexicon.write().unwrap_or_else(|e| e.into_inner());
+                store.changed();
                 $body
             })
         }
@@ -99,7 +115,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     _class: JClass,
 ) -> jlong {
     guarded(&mut env, 0, |_| {
-        Some(LEXICONS.insert(Store { lexicon: RwLock::new(UserLexicon::new()) }))
+        Some(LEXICONS.insert(Store { lexicon: RwLock::new(UserLexicon::new()), generation: AtomicU64::new(0) }))
     })
 }
 
@@ -127,7 +143,11 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     guarded(&mut env, JNI_FALSE, |env| {
         let store = object!(env, LEXICONS, handle);
         let json = read(env, &json)?;
-        let loaded = store.lexicon.write().unwrap_or_else(|e| e.into_inner()).load(&json);
+        let loaded = {
+            let mut lex = store.lexicon.write().unwrap_or_else(|e| e.into_inner());
+            store.changed();
+            lex.load(&json)
+        };
         Some(if loaded { JNI_TRUE } else { JNI_FALSE })
     })
 }

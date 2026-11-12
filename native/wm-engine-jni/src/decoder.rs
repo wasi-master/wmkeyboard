@@ -9,8 +9,14 @@
 //! packs, the bundled seed pairs as two arrays, the user's own pairs from
 //! the lexicon among the sources, and the context model's session when one
 //! is open.
+//!
+//! The keyboard asks `decoderDecide` after every key, so the buffer's search
+//! is kept between calls ([`decoder::Session`]): a buffer one tap longer than
+//! the last costs the new positions, not the whole buffer. One session, for
+//! the one buffer being typed; a call that finds it busy decodes afresh.
 
 use std::collections::HashMap;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ptr::null_mut;
 use std::sync::{Arc, LazyLock, Mutex};
 
@@ -23,6 +29,7 @@ use wm_engine::lm::Prefix;
 
 use crate::dict::{DICTS, PACKS};
 use crate::guard::{give_all, guarded, object, read, read_units, throw_state};
+use crate::lexicon::LEXICONS;
 use crate::lm::SESSIONS;
 use crate::sources::{with_walkers_and_lexicons, KIND_DICTIONARY, KIND_LEXICON};
 
@@ -71,6 +78,7 @@ struct Inputs {
     params: Params,
     before: Vec<String>,
     packs: Vec<Arc<wm_engine::wmng::Pack<memmap2::Mmap>>>,
+    pack_handles: Vec<i64>,
     seeds: HashMap<(String, String), i32>,
     ranks: Vec<Option<Arc<Ranks>>>,
     list_size: usize,
@@ -87,6 +95,7 @@ fn inputs(
     touch_points: &JFloatArray,
     space: &JFloatArray,
     sigma_scale: f64,
+    spread: &JFloatArray,
     before: &JObjectArray,
     packs: &JLongArray,
     seed_first: &JObjectArray,
@@ -147,6 +156,14 @@ fn inputs(
     let scale = if sigma_scale.is_finite() && sigma_scale > 0.0 { sigma_scale } else { 1.0 };
     params.sigma_x *= scale;
     params.sigma_y *= scale;
+    // This hand's own spread, across and down (`KeyOffsets.spreadFactors`).
+    if !spread.is_null() {
+        let f = floats(env, spread)?;
+        if f.len() >= 2 && f[0].is_finite() && f[1].is_finite() && f[0] > 0.0 && f[1] > 0.0 {
+            params.sigma_x *= f64::from(f[0]);
+            params.sigma_y *= f64::from(f[1]);
+        }
+    }
 
     // Ranks for each dictionary handle, before the walk takes its locks.
     let mut ranks: Vec<Option<Arc<Ranks>>> = vec![None; handles.len()];
@@ -179,10 +196,44 @@ fn inputs(
         params,
         before,
         packs,
+        pack_handles,
         seeds,
         ranks,
         list_size,
     })
+}
+
+/// The buffer's search, kept between keystrokes.
+static SESSION: LazyLock<Mutex<decoder::Session>> = LazyLock::new(|| Mutex::new(decoder::Session::default()));
+
+/// Everything a kept search depends on besides the taps: the lists (and
+/// how often a user lexicon has changed), the pairs, the words before, the
+/// spread and the keys. Read while the lists' read locks are held, so no
+/// change can land between this and the search.
+fn session_key(inp: &Inputs, before: &[&str]) -> u64 {
+    let mut h = DefaultHasher::new();
+    inp.handles.hash(&mut h);
+    inp.kinds.hash(&mut h);
+    for (&handle, &kind) in inp.handles.iter().zip(&inp.kinds) {
+        if kind == KIND_LEXICON {
+            LEXICONS.get(handle).map(|s| s.generation()).hash(&mut h);
+        }
+    }
+    inp.pack_handles.hash(&mut h);
+    let seeds = inp.seeds.iter().fold(0u64, |acc, (pair, count)| {
+        let mut e = DefaultHasher::new();
+        (pair, count).hash(&mut e);
+        acc ^ e.finish()
+    });
+    (seeds, inp.seeds.len()).hash(&mut h);
+    before.hash(&mut h);
+    inp.params.sigma_x.to_bits().hash(&mut h);
+    inp.params.sigma_y.to_bits().hash(&mut h);
+    for &(k, x, y) in &inp.geometry.keys {
+        (k, x.to_bits(), y.to_bits()).hash(&mut h);
+    }
+    inp.geometry.space.map(|(a, b, c, d)| (a.to_bits(), b.to_bits(), c.to_bits(), d.to_bits())).hash(&mut h);
+    h.finish()
 }
 
 /// Runs `f` over the sources and the pair context the inputs name.
@@ -303,7 +354,7 @@ fn stats(env: &mut JNIEnv, out: &JDoubleArray, lead: f64, best: Option<&decoder:
 }
 
 /// `decoderDecide(dicts, kinds, typed, touchKeys, touchCenters, touchPoints,
-/// space, sigmaScale, before, packs, seedFirst, seedSecond, seedCounts,
+/// space, sigmaScale, spread, before, packs, seedFirst, seedSecond, seedCounts,
 /// lmSession, lmWeight, register, field, lang, margin, knownMargin, out)`.
 ///
 /// `dicts`/`kinds` are the walk's sources (0 a dictionary, 1 a user
@@ -311,7 +362,8 @@ fn stats(env: &mut JNIEnv, out: &JDoubleArray, lead: f64, best: Option<&decoder:
 /// null; `touchPoints` holds an x, y per typed character (NaN unknown) and
 /// `space` the bar as centre x, centre y, half width, half height, or null
 /// to place it under the bottom row. `sigmaScale` scales the decoder's tap
-/// spread (the mistype tolerance). `before` is the field's last words,
+/// spread (the mistype tolerance), and `spread`, when not null, scales it
+/// again across and down by how widely this hand's taps scatter. `before` is the field's last words,
 /// oldest first. `packs` are pair-pack handles; the seed pairs cross as
 /// three parallel arrays. `lmSession` is 0 for none.
 ///
@@ -331,6 +383,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     touch_points: JFloatArray,
     space: JFloatArray,
     sigma_scale: jdouble,
+    spread: JFloatArray,
     before: JObjectArray,
     packs: JLongArray,
     seed_first: JObjectArray,
@@ -347,11 +400,18 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
 ) -> jobjectArray {
     guarded(&mut env, null_mut(), |env| {
         let inp = inputs(
-            env, &dicts, &kinds, &typed, &touch_keys, &touch_centers, &touch_points, &space, sigma_scale, &before, &packs,
+            env, &dicts, &kinds, &typed, &touch_keys, &touch_centers, &touch_points, &space, sigma_scale, &spread, &before,
+            &packs,
             &seed_first, &seed_second, &seed_counts,
         )?;
         let decoded = with_decoder(env, &inp, |sources, context, before| {
-            decoder::decode(&inp.taps, &inp.geometry, sources, context, before, &inp.params, &|_, _| false, 6)
+            let key = session_key(&inp, before);
+            match SESSION.try_lock() {
+                Ok(mut session) => {
+                    session.decode(key, &inp.taps, &inp.geometry, sources, context, before, &inp.params, &|_, _| false, 6)
+                }
+                Err(_) => decoder::decode(&inp.taps, &inp.geometry, sources, context, before, &inp.params, &|_, _| false, 6),
+            }
         });
         let mut decoded: Decoded = decoded?;
         let before_refs: Vec<&str> = inp.before.iter().map(String::as_str).collect();
@@ -372,7 +432,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
 }
 
 /// `decoderRecheck(dicts, kinds, typed, touchKeys, touchCenters,
-/// touchPoints, space, sigmaScale, before, committed, after, packs,
+/// touchPoints, space, sigmaScale, spread, before, committed, after, packs,
 /// seedFirst, seedSecond, seedCounts, lmSession, lmWeight, register, field,
 /// lang, margin, knownMargin)`: the buffer `typed` (with its taps, as for
 /// [decoderDecide]) was committed as `committed` after the words `before`,
@@ -391,6 +451,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     touch_points: JFloatArray,
     space: JFloatArray,
     sigma_scale: jdouble,
+    spread: JFloatArray,
     before: JObjectArray,
     committed: JString,
     after: JObjectArray,
@@ -408,7 +469,8 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
 ) -> jobjectArray {
     guarded(&mut env, null_mut(), |env| {
         let inp = inputs(
-            env, &dicts, &kinds, &typed, &touch_keys, &touch_centers, &touch_points, &space, sigma_scale, &before, &packs,
+            env, &dicts, &kinds, &typed, &touch_keys, &touch_centers, &touch_points, &space, sigma_scale, &spread, &before,
+            &packs,
             &seed_first, &seed_second, &seed_counts,
         )?;
         let committed = read(env, &committed)?;

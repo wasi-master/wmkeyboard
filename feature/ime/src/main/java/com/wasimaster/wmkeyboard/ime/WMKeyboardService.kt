@@ -2322,6 +2322,8 @@ open class WMKeyboardService : InputMethodService() {
             sigma = sigma,
             // Off, every off-key tap is an edit again, as it always was.
             slipRadius = if (slips == SlipFixes.OFF) 0.0 else KeyTouchModel.SLIP_SIGMAS * sigma,
+            // How widely this hand's taps scatter, for the tap decoder.
+            decoderSpread = if (adapt) tapOffsets.spreadFactors() else null,
         )
     }
 
