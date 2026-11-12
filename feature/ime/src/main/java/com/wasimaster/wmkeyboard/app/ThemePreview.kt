@@ -224,6 +224,11 @@ private fun ThemePreviewContent(
         // as the keyboard draws it on a phone that cannot blur.
         val boardFloor = frost?.takeIf { it.windowBlur && kind == null }?.fallbackOpacity
         val remote = imageOverride as? String
+        // The board's colour, solid, under the picture, as the keyboard lays
+        // it (#1222): the picture's opacity fades it into the board.
+        if ((remote ?: themeImage) != null && frost?.windowBlur != true && frost?.cutout != true) {
+            Box(modifier = Modifier.matchParentSize().background(colorOf(theme.boardBackground).copy(alpha = 1f)))
+        }
         if (remote != null && remote.startsWith("http")) {
             // A photo being considered has not been downloaded yet, so it is
             // shown straight from the service. Without this the preview drew

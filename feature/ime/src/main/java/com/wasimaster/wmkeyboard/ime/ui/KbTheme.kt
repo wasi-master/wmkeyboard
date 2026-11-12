@@ -2236,6 +2236,16 @@ fun BoxScope.BoardBackground(kb: KbTheme) {
     // sharpness, so the board is assumed to be a generous share of the screen.
     val targetW = with(density) { configuration.screenWidthDp.dp.roundToPx() }
     val targetH = with(density) { (configuration.screenHeightDp * BOARD_HEIGHT_SHARE).dp.roundToPx() }
+    // Under a picture, the board's own colour at full strength (#1222). The
+    // colour layer drawn over the picture is a scrim, and picking a photo
+    // clears it so the photo shows; with nothing under the picture, its
+    // opacity faded it into the app behind instead of into the board, which
+    // read as a keyboard that ignored every opacity it was given. A theme that
+    // asked for the app behind, blurred, keeps it.
+    if (imagePath != null && kb.frost?.windowBlur != true && !boardHidesImage(kb, imagePath)) {
+        val solid = kb.board.copy(alpha = 1f)
+        Box(modifier = Modifier.matchParentSize().drawBehind { drawRect(solid) })
+    }
     // Animated backgrounds play through Coil (its loader already carries the
     // GIF/animated-WebP decoders for the media tools) and stop by themselves
     // when the keyboard leaves the screen. Reduce motion — which power saving
