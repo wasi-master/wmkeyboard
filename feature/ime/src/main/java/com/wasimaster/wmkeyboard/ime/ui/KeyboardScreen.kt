@@ -19140,6 +19140,10 @@ private fun KeyRows(
     val slideSelect = state.settings.gestureTyping &&
         state.settings.letterSwipeAction == LetterSwipeAction.SELECT_KEY &&
         !state.layouts.handwriting && !glideInTest
+    // The line a drag off shift or a modifier draws is the glide trail's, so it
+    // goes with gesture typing (#1253); the lit key still says what the lift
+    // types. Read live so a change doesn't restart the gesture handler.
+    val chordBandLive = rememberUpdatedState(state.settings.gestureTyping)
     // Every other keyboard-owned field glides too (#161): the stroke spells a
     // word into that field's own buffer at its own caret, never into the app
     // behind the panel. `state.panel == PanelMode.NONE` used to be the whole
@@ -19814,6 +19818,8 @@ private fun KeyRows(
                     val globe = source.startsGlobeDrag(globeDragLive.value)
                     val slideSource = slideSelect && source.startsSlideSelect(possessiveChar)
                     if (!source.startsChordDrag() && !globe && !slideSource) return@awaitEachGesture
+                    // No band for a slide, nor with gesture typing off.
+                    val band = !slideSource && chordBandLive.value
                     // Issue #367: a held shift types capitals under the other
                     // fingers until it lifts. Not under caps lock, where every
                     // letter is a capital already and the tap that ends caps
@@ -19885,13 +19891,13 @@ private fun KeyRows(
                                 }
                                 dragging = true
                                 // No band for a slide: the lit key is the answer.
-                                if (!slideSource) trail.beginLine(anchor.x, anchor.y)
+                                if (band) trail.beginLine(anchor.x, anchor.y)
                                 chordDrag.active = true
                                 chordDrag.shifted = source?.action == KeyAction.Shift
                             }
                             if (dragging) {
                                 change.consume()
-                                if (!slideSource) {
+                                if (band) {
                                     trail.add(
                                         change.position.x,
                                         change.position.y,
@@ -19923,7 +19929,7 @@ private fun KeyRows(
                         }
                         // A multi-finger swipe took the touch (#647): nothing fires.
                         if (fingerGate.claimed) {
-                            if (dragging && !slideSource) trail.release()
+                            if (dragging && band) trail.release()
                             return@awaitEachGesture
                         }
                         // Never travelled: an ordinary press the modifier key owns,
@@ -19943,7 +19949,7 @@ private fun KeyRows(
                             }
                             return@awaitEachGesture
                         }
-                        if (!slideSource) trail.release()
+                        if (band) trail.release()
                         val target = over
                         when {
                             // Lifted off the grid: the slide-away cancel every other
