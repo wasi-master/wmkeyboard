@@ -370,6 +370,26 @@ The tool page carries only what belongs to the button:
 - **Icon colour**: only shown if [colorful tool icons](/tools/overview/) is turned on globally. Overrides just this tool's icon color.
 - **Keyword shortcut**: the words that make the [Smart chips](/smart/chips/) suggestion offer to open this panel.
 
+## Shared board
+
+The shared board is a second clipboard that lives in a folder on your own WebDAV server, such as Nextcloud, rather than on the phone. Send a clip to it, and your other devices running WM Keyboard find it there the next time they look, even if they were offline when you sent it. Any of them can paste it, copy it to their own clipboard, change it or take it off the board.
+
+It stays off until you pick a folder. Add the server under **Data › Backup & restore** as a WebDAV place if it isn't there yet, then pick it under <SettingsPath path="Clipboard / Board folder" /> on each device that should share the board. Every device that picks the same folder sees the same board.
+
+With a folder picked, a **Shared board** row sits at the top of the clipboard panel's history. It opens the board in the history's place:
+
+- A tap on an entry types it into the field, like a tap on a clip.
+- The copy button puts it on this phone's clipboard, where the history takes it in like any copy.
+- The pencil opens it in the clipboard's own editor. Saving there changes the entry on the board too.
+- The bin takes it off the board for every device, after asking. Copies already on a phone's own clipboard stay.
+- The **+** in the header lists this phone's text clips. Tap one to send it.
+
+Only text goes on the board, the same clips [Sync devices](/privacy/backup/) would carry: pictures, files and clips the history hides as passwords stay on the phone. An entry over 50,000 characters is cut there, and the board keeps the newest 200.
+
+A change you make without a connection shows on your board at once and waits on the phone. The header says so, and it goes out the next time the keyboard reaches the folder: when you open the board, press its sync button, or bring up the keyboard later. If two devices change the same entry before either has seen the other's change, the later change wins on both. The keyboard checks the board when you open it, and in the background when the keyboard comes up and the board hasn't been read for 15 minutes.
+
+Each device keeps its own file in the folder, named `wmkeyboard-board_` and an install id, so two phones never write over each other. With a backup passphrase set under Backup & restore, the file is encrypted with it, and a device needs the same passphrase to read it.
+
 ## Backups and exports
 
 The whole-app [config backup](/privacy/backup/) has its own Clipboard section, off by default when you export. It only ever includes pinned and recent *text* clips. Images and files are deliberately left out, since they live on the device they were copied on and wouldn't open anywhere else. Sensitive clips are excluded from an export regardless of that toggle. Restoring the section checks it clip by clip first, the same way [Sync devices](/privacy/backup/) checks what another phone sends: a clip the history couldn't load, or one that isn't text, is skipped on its own instead of spoiling the rest.

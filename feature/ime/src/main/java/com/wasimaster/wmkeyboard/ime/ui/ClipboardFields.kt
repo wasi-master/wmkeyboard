@@ -93,6 +93,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -268,6 +269,8 @@ data class ClipboardPanelActions(
     val onNotePassage: (NotePassageHit) -> Unit = {},
     /** A note's passage held: the Notes panel, editing the note it is from at the match (#1099). */
     val onNotePassageOpen: (NotePassageHit) -> Unit = {},
+    /** The shared board (#1201): its view's state and actions; empty where there is no board, as in the floating box. */
+    val board: com.wasimaster.wmkeyboard.ime.board.ClipBoardCallbacks = com.wasimaster.wmkeyboard.ime.board.ClipBoardCallbacks(),
 )
 
 /**
@@ -1191,6 +1194,12 @@ private fun ClipboardListField(
                         onSelect = { session.tab.value = it },
                     )
                 }
+            }
+            // The way into the shared board (#1201), only once a place is picked for it.
+            if (!reordering && selection == null && !searchPage) {
+                val board = callbacks.actions.board
+                val boardUi by board.state.collectAsState()
+                ClipBoardEntryRow(boardUi, board.onAction)
             }
             if (!reordering && selection == null) {
                 if (session.inFolder) {

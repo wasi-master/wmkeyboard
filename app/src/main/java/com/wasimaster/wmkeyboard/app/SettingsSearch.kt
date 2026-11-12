@@ -1541,6 +1541,7 @@ private fun SearchStrings.clipboardRows(): List<SettingsSearchEntry> {
         entry(title, subtitle, R.string.home_clipboard_title, "clipboard", weight = weight)
     return listOf(
         row(R.string.clipboard_history_title, R.string.clipboard_history_subtitle, weight = EntryWeight.PRIMARY),
+        row(R.string.clipboard_board_title, R.string.clipboard_board_subtitle),
         row(R.string.panel_layout_row_title, R.string.panel_layout_row_subtitle),
         row(R.string.clipboard_full_bleed_title, R.string.clipboard_full_bleed_subtitle),
         row(R.string.clipboard_panel_height_title, R.string.clipboard_panel_height_subtitle),

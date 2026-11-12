@@ -788,6 +788,32 @@ internal fun ClipboardSettings(
             ) { onNavigate("clipboard/rules") }
         }
     }
+    // The shared board (#1201): a folder on one of the WebDAV places under
+    // Backup & restore, where every device that picks it leaves clips for
+    // the others. Off until a place is picked.
+    val boardPlaces = settings.watch { s ->
+        s.autoBackup.locations.filter {
+            it.type == com.wasimaster.wmkeyboard.core.settings.BackupDestination.WEBDAV && it.configured
+        }
+    }
+    val boardPicked = settings.watch { it.clipboard.boardLocation }
+    SettingsGroup(stringResource(R.string.clipboard_board_group)) {
+        item {
+            ChoiceSetting(
+                R.string.clipboard_board_title,
+                subtitle = stringResource(
+                    if (boardPlaces.isEmpty()) R.string.clipboard_board_none_subtitle else R.string.clipboard_board_subtitle,
+                ),
+                info = stringResource(R.string.clipboard_board_info),
+                options = listOf("" to stringResource(R.string.clipboard_board_off)) +
+                    boardPlaces.map { place ->
+                        place.id to place.name.ifEmpty { Uri.parse(place.webDavUrl).host ?: place.webDavUrl }
+                    },
+                selected = boardPicked.takeIf { id -> id.isEmpty() || boardPlaces.any { it.id == id } } ?: "",
+                default = SettingsDefaults.clipboard.boardLocation,
+            ) { scope.launch { repository.setClipboardBoardLocation(it) } }
+        }
+    }
     SettingsGroup(stringResource(R.string.clipboard_panel_group), level = SettingLevel.ADVANCED) {
         // The panel's grid — and the abc / space / backspace row the old toggle
         // here switched on — is a panel layout now (issue #63).

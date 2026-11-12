@@ -42,6 +42,8 @@ object SyncKeys {
         "launcher_folders", "launcher_icon_pack", "launcher_app_icons",
         // The user's own buttons (#1213): a shortcut belongs to an app installed here.
         "custom_buttons",
+        // The shared clipboard board's place (#1201): a backup place of this device's.
+        "clipboard_board_location",
         // Current state rather than a choice.
         "active_layout_id", "input_mode", "incognito", "privacy_shade_on", "data_saver_manual", "power_saving_manual",
         "recent_layout_ids", "globe_recent_order", "symbol_recents", "unit_convert_last",

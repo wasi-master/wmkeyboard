@@ -369,6 +369,13 @@ internal fun ClipboardPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCa
         )
         return
     }
+    // The shared board (#1201) stands in for the history while it is open.
+    val board = callbacks.clipboard.actions.board
+    val boardUi by board.state.collectAsState()
+    if (boardUi.open) {
+        ClipBoardPage(state, boardUi, board.onAction)
+        return
+    }
     // The search and the history trade places at once (#612). They used to
     // cross-fade like the emoji panel's, but the two pages are very different
     // heights, so the keyboard grew and shrank under the fade, and both grids

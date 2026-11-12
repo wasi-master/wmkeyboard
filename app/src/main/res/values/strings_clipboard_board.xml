@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The shared clipboard board (#1201). -->
+    <string name="clipboard_board_group">Shared board</string>
+    <string name="clipboard_board_title">Board folder</string>
+    <string name="clipboard_board_subtitle">A WebDAV place your other devices pick too. The board is a view in the clipboard panel</string>
+    <string name="clipboard_board_none_subtitle">Add a WebDAV place under Data › Backup &amp; restore first</string>
+    <string name="clipboard_board_info">Clips you send to the board wait in that folder until your other devices read it, even if they are offline now. Any of them can copy, change or take off an entry; the latest change wins. Only text goes: pictures, files and hidden clips stay on the phone. With a backup passphrase set, the board is encrypted with it, so every device needs the same one.</string>
+    <string name="clipboard_board_off">Off</string>
+</resources>

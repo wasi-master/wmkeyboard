@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The shared clipboard board (#1201), a view in the clipboard panel. -->
+    <string name="ime_board_title">Shared board</string>
+    <string name="ime_board_send_title">Send to the board</string>
+    <string name="ime_board_send_desc">Send a clip</string>
+    <string name="ime_board_send_one_desc">Send</string>
+    <string name="ime_board_sent_desc">Sent</string>
+    <string name="ime_board_send_done">Done</string>
+    <string name="ime_board_send_empty">No text clips to send. Pictures, files and hidden clips stay on this phone.</string>
+    <string name="ime_board_sync_desc">Check the board now</string>
+    <string name="ime_board_status_syncing">Checking the board…</string>
+    <string name="ime_board_status_waiting">Waiting to reach the board</string>
+    <string name="ime_board_status_waiting_offline">Can\'t reach the board. Your changes go out when it can</string>
+    <string name="ime_board_status_failed">Can\'t reach the board</string>
+    <string name="ime_board_status_synced">Checked %1$s</string>
+    <string name="ime_board_status_never">Not checked yet</string>
+    <string name="ime_board_empty_title">Nothing on the board</string>
+    <string name="ime_board_empty_body">Clips sent here show up on your other devices that use the same folder, even ones that are offline now.</string>
+    <string name="ime_board_copy_desc">Copy to this phone</string>
+    <string name="ime_board_edit_desc">Edit</string>
+    <string name="ime_board_delete_desc">Take off the board</string>
+    <string name="ime_board_delete_title">Take this clip off the board?</string>
+    <string name="ime_board_delete_body">It goes from every device that uses the board. Copies already on a phone\'s own clipboard stay.</string>
+    <string name="ime_board_delete_yes">Take off</string>
+    <string name="ime_board_delete_no">Cancel</string>
+    <string name="ime_board_notice_sent">Sent to the board</string>
+    <string name="ime_board_notice_copied">Copied</string>
+    <string name="ime_board_notice_refused">Only text clips that aren\'t hidden can go on the board</string>
+    <string name="ime_board_notice_deleted">Taken off the board</string>
+</resources>

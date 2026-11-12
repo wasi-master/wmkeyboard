@@ -9623,6 +9623,8 @@ open class WMKeyboardService : InputMethodService() {
         if (clockToolDelegate.isInitialized()) clockTool.onKeyboardShown()
         // And All files access, given on another.
         if (filesToolDelegate.isInitialized()) filesTool.onKeyboardShown()
+        // The shared board: a change made offline goes out, and a board not read for a while is read (#1201).
+        if (_uiState.value.settings.clipboard.boardLocation.isNotEmpty()) clipBoardTool.onKeyboardShown()
         // And the microphone or music grant the Music ID panel asked for.
         if (musicToolDelegate.isInitialized()) musicTool.onKeyboardShown()
         // And WM Pass, back from its fingerprint prompt, or a fill on its way to the password box.
@@ -34850,6 +34852,10 @@ open class WMKeyboardService : InputMethodService() {
             galleryTool.onPanelClose()
             _uiState.update { it.copy(toolText = it.toolText.copy(gallery = null)) }
         }
+        // Leaving the clipboard: the shared board's view goes with it (#1201).
+        if (_uiState.value.panel == PanelMode.CLIPBOARD && clipBoardToolDelegate.isInitialized()) {
+            clipBoardTool.onClipboardClose()
+        }
         // Leaving the file manager: its box gives the keys back, and the pick it was open for ends.
         if (_uiState.value.panel == PanelMode.FILES) {
             filesTool.onPanelClose()
@@ -35092,6 +35098,8 @@ open class WMKeyboardService : InputMethodService() {
             }
             PanelMode.GALLERY -> galleryTool.onPanelOpen()
             PanelMode.FILES -> filesTool.onPanelOpen()
+            // Whether the shared board is set up, and what this phone last saw of it (#1201).
+            PanelMode.CLIPBOARD -> clipBoardTool.onClipboardOpen()
             PanelMode.SEND_FILES -> {
                 // A link chip staged the link; the panel opens on receiving it (#729).
                 (_uiState.value.toolPrefill as? ToolPrefill.SendLink)?.let {
@@ -56078,6 +56086,7 @@ open class WMKeyboardService : InputMethodService() {
         onQr = ::onClipboardQr,
         onSearch = ::onClipboardSearch,
         onPasteNext = ::onClipboardPasteNext,
+        board = clipBoardTool.callbacks,
     )
 
     /**
@@ -56460,6 +56469,11 @@ open class WMKeyboardService : InputMethodService() {
         val saved = clipboardStore.editText(edit.id, edit.draft)
             ?: clipboardStore.add(edit.draft)
         saveClipboardSoon()
+        // A board entry opened here (#1201): the board takes the new text too.
+        boardEdit?.takeIf { it.first == edit.id }?.let { (_, entryId) ->
+            if (saved != null) clipBoardTool.entryEdited(entryId, saved.text)
+        }
+        boardEdit = null
         // The clip being corrected is the one on the clipboard (#612): the
         // Paste tool, hold V and the app's own paste read the clipboard, not
         // the history, and went on pasting the text from before the edit.
@@ -56498,8 +56512,46 @@ open class WMKeyboardService : InputMethodService() {
     fun onClipEditCancel() {
         if (_uiState.value.clipEdit == null) return
         vibrate()
+        boardEdit = null
         _uiState.update { it.copy(clipEdit = null) }
     }
+
+    // ---- Shared clipboard board (#1201) ----
+
+    /** The clip the editor has open for a board entry, and that entry's id; see [onClipEditSave]. */
+    private var boardEdit: Pair<Long, String>? = null
+
+    private val clipBoardToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.board.ClipBoardController(
+            context = this,
+            scope = serviceScope,
+            host = object : com.wasimaster.wmkeyboard.ime.board.ClipBoardController.Host {
+                override fun settings() = _uiState.value.settings
+                override fun haptic() = vibrate()
+                override fun available() = isClipboardAccessible()
+                override fun paste(text: String) {
+                    if (!isClipboardAccessible()) return
+                    commitToField(text)
+                    closePanelAfterInsertIfEnabled()
+                }
+                override fun copy(text: String) {
+                    if (!isClipboardAccessible()) return
+                    ClipboardWriteGate.writeText(this@WMKeyboardService, text, null)
+                }
+                override fun edit(text: String, entryId: String) {
+                    if (!isClipboardAccessible()) return
+                    // The entry as a clip of this phone's, then the clipboard's own editor on it.
+                    val clip = clipboardStore.items().firstOrNull { it.kind.isTextual && !it.sensitive && it.text == text }
+                        ?: clipboardStore.add(text)?.also { saveClipboardSoon() }
+                        ?: return
+                    boardEdit = clip.id to entryId
+                    _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+                    onClipEditStart(clip)
+                }
+            },
+        )
+    }
+    private val clipBoardTool by clipBoardToolDelegate
 
     /**
      * Opens Combine on the clips picked in the panel, in the order they were

@@ -8124,6 +8124,12 @@ data class ClipboardSettings(
     /** Save copied text/images/files for quick paste from the clipboard tool. */
     val history: Boolean = true,
     /**
+     * The shared board (#1201): the id of the WebDAV backup place whose folder
+     * holds it, or empty while it is off. A place on this device, so it never
+     * syncs; see `ClipBoardSync`.
+     */
+    val boardLocation: String = "",
+    /**
      * How long the recently-copied paste chip stays on the suggestion strip,
      * in seconds. 0 means until it is pasted or dismissed.
      *
@@ -12321,6 +12327,7 @@ class SettingsRepository(private val context: Context) {
         private val ADD_WORDS_TO_SYSTEM_DICTIONARY =
             booleanPreferencesKey("add_words_to_system_dictionary")
         private val CLIPBOARD_HISTORY = booleanPreferencesKey("clipboard_history")
+        private val CLIPBOARD_BOARD_LOCATION = stringPreferencesKey("clipboard_board_location")
         private val CLIPBOARD_EXPIRY_HOURS = intPreferencesKey("clipboard_expiry_hours")
         private val CLIPBOARD_MAX_ITEMS = intPreferencesKey("clipboard_max_items")
         private val CLIPBOARD_SENSITIVE_HANDLING =
@@ -14486,6 +14493,7 @@ class SettingsRepository(private val context: Context) {
     private fun readClipboard(p: Preferences, defaults: KeyboardSettings) =
         ClipboardSettings(
             history = p[CLIPBOARD_HISTORY] ?: defaults.clipboard.history,
+            boardLocation = p[CLIPBOARD_BOARD_LOCATION] ?: defaults.clipboard.boardLocation,
             pasteChipSeconds = p[CLIPBOARD_PASTE_CHIP_SECONDS]
                 ?: defaults.clipboard.pasteChipSeconds,
             expiryHours = p[CLIPBOARD_EXPIRY_HOURS] ?: defaults.clipboard.expiryHours,
@@ -23485,6 +23493,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardHistory(value: Boolean) =
         editPrefs { it[CLIPBOARD_HISTORY] = value }
+
+    /** The shared board's place (#1201), or empty to turn it off. */
+    suspend fun setClipboardBoardLocation(value: String) =
+        editPrefs { it[CLIPBOARD_BOARD_LOCATION] = value }
 
     suspend fun setClipboardExpiryHours(value: Int) =
         editPrefs { it[CLIPBOARD_EXPIRY_HOURS] = value.coerceIn(0, 24 * 7) }

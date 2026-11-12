@@ -181,13 +181,15 @@ object AutoBackupNaming {
 
     /**
      * Whether a sink's listing should return [displayName]: an automatic
-     * backup or a sync file. Every caller then takes the kind it wants;
-     * rotation and restore use [isOurs], sync uses
-     * [com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming.isOurs].
+     * backup, a sync file, or a shared clipboard board's file (#1201). Every
+     * caller then takes the kind it wants; rotation and restore use [isOurs],
+     * sync uses [com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming.isOurs],
+     * the board [com.wasimaster.wmkeyboard.core.settings.sync.ClipBoardNaming.isOurs].
      */
     fun isListed(displayName: String): Boolean =
         isOurs(displayName) || isOurs(displayName, frequent = true) ||
-            com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming.isOurs(displayName)
+            com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming.isOurs(displayName) ||
+            com.wasimaster.wmkeyboard.core.settings.sync.ClipBoardNaming.isOurs(displayName)
 
     /** Whether [displayName] is one of our half-written files, backup or sync, ours to sweep. */
     fun isPart(displayName: String): Boolean =
