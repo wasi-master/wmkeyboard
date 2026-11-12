@@ -1070,7 +1070,12 @@
     <string name="typing_backspace_up_clears_title">Swipe up to clear all</string>
     <string name="typing_backspace_lines_title">Swipe up or down to delete lines</string>
     <string name="typing_backspace_lines_subtitle">Up deletes lines before the cursor, down the lines after it</string>
-    <string name="typing_backspace_lines_info">A swipe up on the delete key deletes back to the start of the line. With the cursor already at the start of a line, it deletes the whole line above. A swipe down deletes to the end of the line, then the line below. Keep your finger out after the swipe and it goes on, a line at a time. With Swipe up to clear all on too, the swipe up clears everything and only the swipe down deletes lines. A delete key your layout already gave a swipe up or down keeps it. Off by default.</string>
+    <string name="typing_backspace_lines_up_title">Swipe up deletes lines</string>
+    <string name="typing_backspace_lines_up_subtitle">Back to the start of the line, then the line above</string>
+    <string name="typing_backspace_lines_up_cleared_subtitle">Swipe up to clear all has the swipe up while it is on</string>
+    <string name="typing_backspace_lines_down_title">Swipe down deletes lines</string>
+    <string name="typing_backspace_lines_down_subtitle">To the end of the line, then the line below</string>
+    <string name="typing_backspace_lines_info">A swipe up on the delete key deletes back to the start of the line. With the cursor already at the start of a line, it deletes the whole line above. A swipe down deletes to the end of the line, then the line below. Keep your finger out after the swipe and it goes on, a line at a time. Either swipe can be turned off on its own in the two rows under this one. With Swipe up to clear all on too, the swipe up clears everything and only the swipe down deletes lines. A delete key your layout already gave a swipe up or down keeps it. Off by default.</string>
     <string name="typing_backspace_up_clears_subtitle">Swipe up on backspace to delete everything in the text box</string>
     <string name="typing_backspace_up_clears_info">Press backspace and swipe straight up. Once your finger is far enough up, the keyboard selects all the text in the box and deletes it when you lift. Bring your finger back down before you lift and nothing is deleted.\n\nThe swipe goes as far up as the first word of a backspace swipe goes sideways, the Word delete distance. In a box that shows only part of its text to the keyboard, the swipe does nothing, so it never leaves half a message behind.\n\nA backspace key with its own flick up, set in the layout editor, keeps that flick instead.</string>
 

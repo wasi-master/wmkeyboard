@@ -30912,7 +30912,10 @@ private fun Modifier.pointerInputKey(
             // so everything below treats them as it treats a layout's arms.
             @Suppress("NAME_SHADOWING")
             val key = if (key.action.deletesBackward() && textEditing.deleteLineSwipes) {
-                key.withDeleteLineArms(up = !textEditing.backspaceSwipeUpClears)
+                key.withDeleteLineArms(
+                    up = textEditing.deleteLineSwipeUp && !textEditing.backspaceSwipeUpClears,
+                    down = textEditing.deleteLineSwipeDown,
+                )
             } else {
                 key
             }

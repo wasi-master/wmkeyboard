@@ -868,6 +868,8 @@ private fun SearchStrings.keyPressRows(): List<SettingsSearchEntry> {
         row(R.string.typing_backspace_char_step_title, R.string.typing_backspace_char_step_subtitle),
         row(R.string.typing_backspace_up_clears_title, R.string.typing_backspace_up_clears_subtitle),
         row(R.string.typing_backspace_lines_title, R.string.typing_backspace_lines_subtitle),
+        row(R.string.typing_backspace_lines_up_title, R.string.typing_backspace_lines_up_subtitle),
+        row(R.string.typing_backspace_lines_down_title, R.string.typing_backspace_lines_down_subtitle),
         row(R.string.typing_forward_delete_swipe_title, R.string.typing_forward_delete_swipe_subtitle),
         row(R.string.typing_web_backspace_key_title, R.string.typing_web_backspace_key_subtitle),
         row(R.string.keypress_alternates_size_title, R.string.keypress_alternates_size_subtitle),

@@ -1640,6 +1640,8 @@
 		"typing_autopilot_strength_title": "0.5.3",
 		"typing_backspace_char_step_title": "0.5.3",
 		"typing_backspace_lines_title": "0.6.6",
+		"typing_backspace_lines_up_title": "0.6.7",
+		"typing_backspace_lines_down_title": "0.6.7",
 		"typing_backspace_preview_title": "0.5.3",
 		"typing_backspace_step_title": "0.5.3",
 		"typing_backspace_swipe_title": "0.5.3",

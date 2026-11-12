@@ -7288,6 +7288,12 @@ data class TextEditingSettings(
      */
     val deleteLineSwipes: Boolean = false,
     /**
+     * Which of the two line swipes [deleteLineSwipes] turns on (#1269): either
+     * can be left to the layout or to nothing, without editing the layout.
+     */
+    val deleteLineSwipeUp: Boolean = true,
+    val deleteLineSwipeDown: Boolean = true,
+    /**
      * In a web page's text field, backspace goes out as a key press instead of
      * a direct delete (issue #494).
      *
@@ -12733,6 +12739,8 @@ class SettingsRepository(private val context: Context) {
         private val FORWARD_DELETE_SWIPE = booleanPreferencesKey("forward_delete_swipe")
         private val BACKSPACE_SWIPE_UP_CLEARS = booleanPreferencesKey("backspace_swipe_up_clears")
         private val BACKSPACE_SWIPE_LINES = booleanPreferencesKey("backspace_swipe_lines")
+        private val BACKSPACE_SWIPE_LINES_UP = booleanPreferencesKey("backspace_swipe_lines_up")
+        private val BACKSPACE_SWIPE_LINES_DOWN = booleanPreferencesKey("backspace_swipe_lines_down")
         private val WEB_BACKSPACE_KEY_EVENTS = booleanPreferencesKey("web_backspace_key_events")
         private val DELETE_WORD_STOPS_AT_PUNCTUATION = booleanPreferencesKey("delete_word_stops_at_punctuation")
         private val DELETE_WORD_STOPS_AT_CAPITALS = booleanPreferencesKey("delete_word_stops_at_capitals")
@@ -15453,6 +15461,10 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.textEditing.backspaceSwipeUpClears,
             deleteLineSwipes = p[BACKSPACE_SWIPE_LINES]
                 ?: defaults.textEditing.deleteLineSwipes,
+            deleteLineSwipeUp = p[BACKSPACE_SWIPE_LINES_UP]
+                ?: defaults.textEditing.deleteLineSwipeUp,
+            deleteLineSwipeDown = p[BACKSPACE_SWIPE_LINES_DOWN]
+                ?: defaults.textEditing.deleteLineSwipeDown,
             webBackspaceKeyEvents = p[WEB_BACKSPACE_KEY_EVENTS]
                 ?: defaults.textEditing.webBackspaceKeyEvents,
         )
@@ -17176,6 +17188,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDeleteLineSwipes(value: Boolean) =
         editPrefs { it[BACKSPACE_SWIPE_LINES] = value }
+
+    suspend fun setDeleteLineSwipeUp(value: Boolean) =
+        editPrefs { it[BACKSPACE_SWIPE_LINES_UP] = value }
+
+    suspend fun setDeleteLineSwipeDown(value: Boolean) =
+        editPrefs { it[BACKSPACE_SWIPE_LINES_DOWN] = value }
 
     suspend fun setWebBackspaceKeyEvents(value: Boolean) =
         editPrefs { it[WEB_BACKSPACE_KEY_EVENTS] = value }
