@@ -92,6 +92,41 @@ internal object PredictionNative {
         intsOut: IntArray,
     ): Array<String>
 
+    /**
+     * What a buffer of taps meant, read whole (`wm-engine`'s `decoder`): the
+     * walk's sources by handle and kind, the touch frame as in [fuzzySearch]
+     * plus the space bar ([space] centre x, centre y, half width, half height,
+     * or null to place it under the bottom row), [sigmaScale] on the tap
+     * spread, the field's last words, the pair packs, the seed pairs as three
+     * columns, and the context model's session (0 for none). Returns
+     * `[apply, offer]`, each empty for none; [out] receives the lead over the
+     * literal, the reading's word count, edits, slips and inserted spaces.
+     */
+    @Suppress("LongParameterList")
+    external fun decoderDecide(
+        dicts: LongArray,
+        kinds: IntArray,
+        typed: String,
+        touchKeys: CharArray?,
+        touchCenters: FloatArray?,
+        touchPoints: FloatArray?,
+        space: FloatArray?,
+        sigmaScale: Double,
+        before: Array<String>,
+        packs: LongArray,
+        seedFirst: Array<String>?,
+        seedSecond: Array<String>?,
+        seedCounts: IntArray?,
+        lmSession: Long,
+        lmWeight: Double,
+        register: Int,
+        field: Int,
+        lang: Int,
+        margin: Double,
+        knownMargin: Double,
+        out: DoubleArray,
+    ): Array<String>
+
     // The user lexicon (UserLexicon). Words arrive folded (WordKey); the
     // n-gram kinds are 0 bigram, 1 trigram, 2 one-skip, 3 two-skip.
     external fun lexNew(): Long

@@ -263,8 +263,18 @@ impl WordList {
         self.dict.max_subtree(0)
     }
 
+    /// How many words the list holds.
+    pub fn size(&self) -> usize {
+        self.codes_len()
+    }
+
+    fn codes_len(&self) -> usize {
+        let _ = self.rank_of_frequency(1);
+        self.codes.get().map_or(0, Vec::len)
+    }
+
     /// 1 + how many words rank above `frequency`, by stored code.
-    fn rank_of_frequency(&self, frequency: i32) -> usize {
+    pub fn rank_of_frequency(&self, frequency: i32) -> usize {
         if frequency <= 0 {
             return 0;
         }

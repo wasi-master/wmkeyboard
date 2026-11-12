@@ -42,6 +42,19 @@ class SeedBigrams private constructor(
     fun count(previous: String, next: String): Int =
         map[previous]?.firstOrNull { it.first == next }?.second ?: 0
 
+    /**
+     * Every pair as three parallel arrays (previous, next, count), the shape
+     * the tap decoder takes them across JNI in. Built once.
+     */
+    internal val columns: Triple<Array<String>, Array<String>, IntArray> by lazy {
+        val rows = map.flatMap { (previous, next) -> next.map { Triple(previous, it.first, it.second) } }
+        Triple(
+            Array(rows.size) { rows[it].first },
+            Array(rows.size) { rows[it].second },
+            IntArray(rows.size) { rows[it].third },
+        )
+    }
+
     companion object {
         val EMPTY = SeedBigrams(emptyMap(), emptyList())
 

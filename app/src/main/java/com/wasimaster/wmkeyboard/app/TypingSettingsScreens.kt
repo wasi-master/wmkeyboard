@@ -418,6 +418,15 @@ internal fun TypingCorrectionsSettings(
             }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
+                    R.string.typing_whole_phrases_title,
+                    stringResource(R.string.typing_whole_phrases_subtitle),
+                    settings.watch { it.correction.readWholePhrases },
+                    info = stringResource(R.string.typing_whole_phrases_info),
+                    default = SettingsDefaults.correction.readWholePhrases,
+                ) { scope.launch { repository.setAutocorrectWholePhrases(it) } }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
                     R.string.typing_learned_gate_title,
                     stringResource(R.string.typing_learned_gate_subtitle),
                     settings.watch { it.correction.learnedGate },

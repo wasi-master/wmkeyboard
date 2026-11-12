@@ -423,6 +423,26 @@ class SuggestionEngine(
     var learnedGate: Boolean = false
 
     /**
+     * Whether [decideCorrection] first reads the buffer's taps whole
+     * ([wholeReading]): any sequence of listed words, a space bar tap that
+     * landed on a letter, letters left out, doubled or swapped. From the
+     * user's setting. Off keeps the one-word rules alone.
+     */
+    @Volatile
+    var readWholePhrases: Boolean = false
+
+    /**
+     * English words [wholeReading] may read a buffer as besides the walk's
+     * own lists: the bundled AOSP list (160k words), which knows the plurals,
+     * verb forms and everyday words the 17k list leaves out. Read only there,
+     * and only while English is in the mix, so the strip and glide keep the
+     * list they had. Measured on the sentence harness it took the share of
+     * correctly typed words the reading changed from 0.6% to 0.1%.
+     */
+    @Volatile
+    var phraseList: WordSource = PackedTrie.EMPTY
+
+    /**
      * The words of the sentence before the caret, oldest first, as last set
      * by [setSentenceContext]; what the phrase chip and the context revision
      * read.
@@ -2920,6 +2940,28 @@ class SuggestionEngine(
          * suggested, never forced.
          */
         const val DEFAULT_AUTOCORRECT_CONFIDENCE = 4.0
+
+        /**
+         * How far, in nats, the best whole reading must lead the buffer as
+         * typed to replace it at the default confidence; `decoder::APPLY_MARGIN`.
+         */
+        const val WHOLE_READING_MARGIN = 2.0
+
+        /** The same for a buffer some list holds as a word; `decoder::KNOWN_MARGIN`. */
+        const val WHOLE_READING_KNOWN_MARGIN = 6.0
+
+        /** How much the context model counts when one is open; `decoder::MODEL_WEIGHT`. */
+        const val WHOLE_READING_MODEL_WEIGHT = 0.7
+
+        /** Words of the sentence the whole reading's context sees. */
+        private const val WHOLE_READING_CONTEXT = 6
+
+        /**
+         * The longest buffer read whole. Its cost grows with the taps, and a
+         * run past this is a pasted string or a URL, not a sentence typed
+         * without spaces.
+         */
+        private const val WHOLE_READING_MAX_LENGTH = 40
 
         /** Slider bounds: 1 takes the best candidate whatever the runner-up, 10 only near-certainty. */
         const val MIN_AUTOCORRECT_CONFIDENCE = 1.0
@@ -6250,6 +6292,22 @@ class SuggestionEngine(
             fastDigitReading(lower)?.let { return CorrectionDecision(apply = matchCase(word, it), certainty = 1.0) }
         }
 
+        // The taps read whole first: a reading that clearly beats what was
+        // typed is applied; one that only comes close waits for the rules
+        // below to find nothing better, and is offered then.
+        val whole = if (readWholePhrases && digits == 0) {
+            wholeReading(lower, touch, timingMultiplier)
+        } else {
+            null
+        }
+        whole?.apply?.let { fixed ->
+            return CorrectionDecision(
+                apply = matchCase(word, fixed),
+                certainty = whole.certainty,
+                complexity = if (' ' in fixed) 1.0 else complexityOfEdit(lower, fixed),
+            )
+        }
+
         // The walk ranks WALK_K deep for the strip's context boosts, but the
         // silent-replacement decision stays on the same top-8 it has always
         // judged: a rank-20 word must never fire as a correction, nor may it
@@ -6530,7 +6588,91 @@ class SuggestionEngine(
             ?.takeIf { mayBeOffered }
             ?.takeIf { clearsOffer }
             ?.word
+            ?: whole?.offer
         return CorrectionDecision(offer = offer?.let { matchCase(word, it) })
+    }
+
+    /** What [wholeReading] made of a buffer: a reading to apply or to offer, and how sure. */
+    private class WholeReading(val apply: String?, val offer: String?, val certainty: Double)
+
+    /**
+     * The buffer's taps read whole by `wm-engine`'s decoder: every way of
+     * spelling them as listed words, priced by where each tap landed, by the
+     * letters left out, doubled or swapped and by a space typed on a letter
+     * or not at all, with each word weighed by how likely it is after the ones
+     * before it (the pair packs, the bundled pairs, the user's own pairs and
+     * the context model when one is open). Measured on whole sentences typed
+     * by a hand fitted to real phone taps, it is what cut the words left wrong
+     * from about a third to under a tenth.
+     *
+     * Null when it cannot run: a primary language other than English, no
+     * touch model, a letter the layout's keys do not carry, or a source with
+     * no Rust twin. The apply margin follows the
+     * confidence slider, so the slider still decides how bold autocorrect is.
+     * A reading the user has undone, or one with a word they never want
+     * suggested, is neither applied nor offered.
+     */
+    private fun wholeReading(lower: String, touch: List<TouchPoint?>?, timingMultiplier: Double): WholeReading? {
+        // Measured on English only, and it weighs every list alike where the
+        // rules damp a secondary language: other languages keep the rules.
+        if (!englishSources) return null
+        val model = touchModelField ?: return null
+        if (lower.length !in 2..WHOLE_READING_MAX_LENGTH || lower.any { !model.knows(it) }) return null
+        val extra = phraseList.walkers().map { FuzzyBeamSearch.WalkSource(it, 0.0, FuzzyBeamSearch.Tier.DICTIONARY) }
+        val sources = walkSources() + extra
+        val handles = LongArray(sources.size)
+        val kinds = IntArray(sources.size)
+        var count = 0
+        val scratch = ChildBuffer()
+        for (src in sources) {
+            val handle = NativeFuzzySearch.handleOf(src.walker, scratch)
+            if (handle == NativeFuzzySearch.SKIP) continue
+            if (handle == 0L) return null
+            handles[count] = handle
+            kinds[count] = NativeFuzzySearch.kindOf(src.walker)
+            count++
+        }
+        if (count == 0) return null
+        val points = touch?.takeIf { it.size == lower.length }?.let { taps ->
+            FloatArray(taps.size * 2) { i ->
+                val tap = taps[i / 2]
+                when {
+                    tap == null -> Float.NaN
+                    i % 2 == 0 -> tap.x
+                    else -> tap.y
+                }
+            }
+        }
+        val effective = (
+            autocorrectConfidence *
+                (if (adaptiveConfidence) correctionStats.confidenceMultiplier() else 1.0) *
+                timingMultiplier
+            ).coerceIn(MIN_AUTOCORRECT_CONFIDENCE, MAX_AUTOCORRECT_CONFIDENCE)
+        val scale = ln(effective) / ln(DEFAULT_AUTOCORRECT_CONFIDENCE)
+        val before = sentence.takeLast(WHOLE_READING_CONTEXT).map { WordKey.of(it) }
+        val seeds = seedBigrams.columns
+        val lm = contextModelField
+        val out = DoubleArray(5)
+        // A library older than this engine has no decoder: the rules carry on.
+        val verdict = try { PredictionNative.decoderDecide(
+            handles.copyOf(count), kinds.copyOf(count), lower,
+            model.keyOrder, model.centerPairs, points, null,
+            model.sigmaValue / KeyTouchModel.SIGMA,
+            before.toTypedArray(), ngramPack.nativeHandles(),
+            seeds?.first, seeds?.second, seeds?.third,
+            lm?.sessionHandle ?: 0L, if (lm != null) WHOLE_READING_MODEL_WEIGHT else 0.0,
+            register.ordinal, contextField.ordinal, lm?.slotOf(primaryLanguageId) ?: 0,
+            WHOLE_READING_MARGIN * scale, WHOLE_READING_KNOWN_MARGIN * scale, out,
+        ) } catch (_: UnsatisfiedLinkError) {
+            return null
+        }
+        fun usable(text: String): Boolean = text.isNotEmpty() && text != lower &&
+            text.split(' ').none { suppressed(it) } &&
+            correctionStats.penalty(lower, text) == CorrectionStats.Penalty.NONE
+        val apply = verdict.getOrNull(0)?.takeIf(::usable)
+        val offer = verdict.getOrNull(1)?.takeIf(::usable)
+        val margin = WHOLE_READING_MARGIN * scale
+        return WholeReading(apply, offer, if (apply != null) certaintyOf(out[0], margin.coerceAtLeast(1e-6)) else 0.0)
     }
 
     /** A reading that spends slips and a real edit together. */

@@ -89,6 +89,7 @@ pub mod bijoy_tables;
 pub mod cjk;
 pub mod completer;
 pub mod confidence;
+pub mod decoder;
 pub mod correction_memory;
 pub mod correction_stats;
 pub mod devanagari_romanizer;

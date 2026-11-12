@@ -41,6 +41,7 @@
 
 mod cjk;
 mod corrections;
+mod decoder;
 mod dict;
 mod fuzzy;
 mod gif;

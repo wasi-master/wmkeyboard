@@ -39,6 +39,9 @@ class ContextModel private constructor(
     @Volatile
     private var closed = false
 
+    /** The session's handle for a native caller that scores with it (the tap decoder), 0 once closed. */
+    internal val sessionHandle: Long get() = if (closed) 0L else session
+
     /** Which of [languages] the keyboard is on, 0 when the model has one language. */
     fun slotOf(languageId: String): Int = languages.indexOf(languageId).coerceAtLeast(0)
 

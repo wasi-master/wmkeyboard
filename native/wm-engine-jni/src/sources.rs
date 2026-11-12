@@ -29,6 +29,18 @@ pub static TRIES: LazyLock<Registry<UserTrie>> = LazyLock::new(Registry::new);
 /// `f` over the walkers `handles` and `kinds` name, each trie held (and each
 /// lexicon read-locked) for the length of the call.
 pub fn with_walkers<R>(env: &mut JNIEnv, handles: &[i64], kinds: &[i32], f: impl FnOnce(&[&dyn Walker]) -> R) -> Option<R> {
+    with_walkers_and_lexicons(env, handles, kinds, |walkers, _| f(walkers))
+}
+
+/// [`with_walkers`], also handing over the read-locked user lexicons among
+/// the sources, in order, so a caller that needs their pair counts reads
+/// them under the same lock rather than taking a second one.
+pub fn with_walkers_and_lexicons<R>(
+    env: &mut JNIEnv,
+    handles: &[i64],
+    kinds: &[i32],
+    f: impl FnOnce(&[&dyn Walker], &[&UserLexicon]) -> R,
+) -> Option<R> {
     let mut dicts: Vec<Arc<Dict<DictBytes>>> = Vec::new();
     let mut stores: Vec<Arc<Store>> = Vec::new();
     let mut tries: Vec<Arc<UserTrie>> = Vec::new();
@@ -59,7 +71,8 @@ pub fn with_walkers<R>(env: &mut JNIEnv, handles: &[i64], kinds: &[i32], f: impl
             }
         });
     }
-    Some(f(&walkers))
+    let lexicons: Vec<&UserLexicon> = guards.iter().map(|g| &**g).collect();
+    Some(f(&walkers, &lexicons))
 }
 
 /// `trieFromEntries(words, frequencies)`: a plain `Trie`'s copy, its words

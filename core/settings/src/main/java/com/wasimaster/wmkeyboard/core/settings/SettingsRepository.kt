@@ -2928,6 +2928,15 @@ data class AutocorrectSettings(
      * off falls back to the margin rule exactly as before.
      */
     val learnedGate: Boolean = true,
+    /**
+     * Whether the taps of a word are read whole, as any sequence of words
+     * the lists hold (`decoder` in wm-engine): where each tap landed, a
+     * letter left out, doubled or swapped, a space bar tap that landed on
+     * `b` or `n`, how likely each word is after the ones before it. So
+     * "yhebsamebperson" can come back as "the same person". Off leaves the
+     * one-word rules alone, as before 0.6.7.
+     */
+    val readWholePhrases: Boolean = true,
     /** Never autocorrect a word typed all in capitals (acronyms, shouting). */
     val skipAllCaps: Boolean = true,
     /**
@@ -2939,12 +2948,13 @@ data class AutocorrectSettings(
     val onEnter: Boolean = true,
     /**
      * Whether a mark that ends a word (. , ! ? ; : and the danda) corrects it
-     * the way space does, so "teh!" lands as "the!" (#562). Off by default: a
-     * mark is also typed for its own sake, mid-abbreviation or inside a name
-     * the word list has never heard of, and nothing used to touch the word
-     * in front of it.
+     * the way space does, so "teh!" lands as "the!" (#562). On since 0.6.7:
+     * the last word of every sentence is followed by a mark, and leaving it
+     * as typed left about one word in eight uncorrected on the sentence
+     * harness. A mark typed mid-abbreviation or after a name the list has
+     * never heard of is still left alone when nothing clearly wins.
      */
-    val onPunctuation: Boolean = false,
+    val onPunctuation: Boolean = true,
     /**
      * Whether a word the word list spells with a capital and never without
      * one ("Haus", "Berlin") is written that way when it is typed or swiped
@@ -11662,6 +11672,7 @@ class SettingsRepository(private val context: Context) {
         private val AUTOCORRECT_STOP_AFTER_DECLINES =
             intPreferencesKey("autocorrect_stop_after_declines")
         private val AUTOCORRECT_LEARNED_GATE = booleanPreferencesKey("autocorrect_learned_gate")
+        private val AUTOCORRECT_WHOLE_PHRASES = booleanPreferencesKey("autocorrect_whole_phrases")
         private val REVERT_AUTOCORRECT_ON_BACKSPACE =
             booleanPreferencesKey("revert_autocorrect_on_backspace")
         private val AUTOCORRECT_SKIP_ALL_CAPS =
@@ -13967,6 +13978,7 @@ class SettingsRepository(private val context: Context) {
                 ?.coerceIn(0, MAX_STOP_AFTER_DECLINES)
                 ?: defaults.correction.stopAfterDeclines,
             learnedGate = p[AUTOCORRECT_LEARNED_GATE] ?: defaults.correction.learnedGate,
+            readWholePhrases = p[AUTOCORRECT_WHOLE_PHRASES] ?: defaults.correction.readWholePhrases,
             skipAllCaps = p[AUTOCORRECT_SKIP_ALL_CAPS] ?: defaults.correction.skipAllCaps,
             onEnter = p[AUTOCORRECT_ON_ENTER] ?: defaults.correction.onEnter,
             onPunctuation = p[AUTOCORRECT_ON_PUNCTUATION] ?: defaults.correction.onPunctuation,
@@ -21117,6 +21129,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutocorrectLearnedGate(value: Boolean) =
         editPrefs { it[AUTOCORRECT_LEARNED_GATE] = value }
+
+    suspend fun setAutocorrectWholePhrases(value: Boolean) =
+        editPrefs { it[AUTOCORRECT_WHOLE_PHRASES] = value }
 
     suspend fun setRevertAutocorrectOnBackspace(value: Boolean) =
         editPrefs { it[REVERT_AUTOCORRECT_ON_BACKSPACE] = value }

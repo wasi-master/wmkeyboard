@@ -5528,6 +5528,7 @@ open class WMKeyboardService : InputMethodService() {
                     settings.correction.confidence.toDouble()
                 suggestionEngine?.adaptiveConfidence = settings.correction.adaptive
                 suggestionEngine?.learnedGate = settings.correction.learnedGate
+                suggestionEngine?.readWholePhrases = settings.correction.readWholePhrases
                 refreshContextModel()
                 refreshPunctuationModel()
                 correctionStats.memory = settings.correction.undoMemory
@@ -6100,6 +6101,8 @@ open class WMKeyboardService : InputMethodService() {
             // phone, and this coroutine runs on the main thread: built here it
             // was an "input dispatching timed out" ANR at keyboard start.
             val bengaliIndex = withContext(Dispatchers.Default) { buildBengaliIndex() }
+            // Copied out of the APK once per version, so off the main thread.
+            val phrases = withContext(Dispatchers.IO) { openPhraseList() }
             suggestionEngine = SuggestionEngine(
                 english ?: PackedTrie.EMPTY,
                 bengaliIndex,
@@ -6108,6 +6111,7 @@ open class WMKeyboardService : InputMethodService() {
                 seedBigrams,
                 languageMixConfidence,
             ).apply {
+                phraseList = phrases
                 contacts = contactNames
                 contactEmails = this@WMKeyboardService.contactEmails
                 apps = appNames
@@ -6189,6 +6193,7 @@ open class WMKeyboardService : InputMethodService() {
                     ngramPack = { suggestionEngine?.ngramPack ?: NgramPack.EMPTY },
                 )
                 learnedGate = _uiState.value.settings.correction.learnedGate
+                readWholePhrases = _uiState.value.settings.correction.readWholePhrases
                 contextAdapter = this@WMKeyboardService.contextAdapter
                 reranker = resolveReranker(_uiState.value.settings)
             }
@@ -58166,6 +58171,16 @@ open class WMKeyboardService : InputMethodService() {
      * downloaded `.wmdict` (bigger, user-chosen size) when present, else the
      * bundled binary inflated out of the APK. Memory-mapped either way.
      */
+    /**
+     * The bundled AOSP English list the whole-phrase reading checks words
+     * against (`SuggestionEngine.phraseList`); empty under "Only my word
+     * lists", as the shipped English list is.
+     */
+    private fun openPhraseList(): WordSource {
+        if (!shippedDictionaryEnabled("en")) return PackedTrie.EMPTY
+        return DictionaryStore.ensureBundled(dictionaryContext, "en_aosp")?.let { MappedTrie.open(it) } ?: PackedTrie.EMPTY
+    }
+
     private fun openLanguageDictionary(langId: String): MappedTrie? {
         // "Only my word lists" (#28): both the shipped vocabulary and the
         // downloaded one are dropped, leaving the language to whatever the user
@@ -58261,6 +58276,7 @@ open class WMKeyboardService : InputMethodService() {
         customDictionaries = loadCustomDictionaries()
         suggestionEngine?.let { engine ->
             engine.dictionary = english ?: PackedTrie.EMPTY
+            engine.phraseList = openPhraseList()
             engine.regionalAvoid = englishRegionalAvoid()
             engine.dictionaryCapitals = loadDictionaryCapitals()
             engine.dictionarySpellings = loadDictionarySpellings()

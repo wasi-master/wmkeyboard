@@ -32,10 +32,11 @@ The Typing screen is a hub. Seven of its groups are pages of their own (Automati
 | How often to offer the undo | Slider, 0%–100% | 50% | Autocorrect on and Undo a correction from the strip on |
 | Remember my undos | Choice: Off / Light / Normal / Strict | Normal | Autocorrect on |
 | Stop after I refuse a fix | Slider, Never / 1–5 | 2 | Autocorrect on |
+| Read whole phrases | Toggle | On | Autocorrect on |
 | Learned correction gate | Toggle | On | Autocorrect on |
 | Skip words in capital letters | Toggle | On | Autocorrect on |
 | Correct the word before Enter | Toggle | On | Autocorrect on |
-| Correct the word before punctuation | Toggle | Off | Autocorrect on |
+| Correct the word before punctuation | Toggle | On | Autocorrect on |
 | Add missing spaces | Toggle | On | Autocorrect on |
 | Undo backspace from the strip | Toggle | Off | always |
 | Learn from my fixes | Toggle | On | always |
@@ -58,7 +59,7 @@ The Typing screen is a hub. Seven of its groups are pages of their own (Automati
 | Adapt to app tone | Toggle | On | always |
 | Fix missing apostrophes | Toggle | On | always |
 
-**Autocorrect** is this group's master switch, and thirteen rows hang off it: the ones that tune when and how hard it corrects, from Autocorrect confidence down to Add missing spaces. How often to offer the undo also needs Undo a correction from the strip on. From **Undo backspace from the strip** downwards the rows stay whether autocorrect is on or off, because none of them needs it: the keyboard still learns from the typos you fix by hand, spells, filters and ranks the strip, and detects the language you type. Detection strength and Remember each app's language need Detect the language you type on. Fix number row slips shows up only while the [number row](/reference/settings/layout/) is on screen, since it corrects a digit to the letter below it.
+**Autocorrect** is this group's master switch, and fourteen rows hang off it: the ones that tune when and how hard it corrects, from Autocorrect confidence down to Add missing spaces. How often to offer the undo also needs Undo a correction from the strip on. From **Undo backspace from the strip** downwards the rows stay whether autocorrect is on or off, because none of them needs it: the keyboard still learns from the typos you fix by hand, spells, filters and ranks the strip, and detects the language you type. Detection strength and Remember each app's language need Detect the language you type on. Fix number row slips shows up only while the [number row](/reference/settings/layout/) is on screen, since it corrects a digit to the letter below it.
 
 **Undo a correction from the strip** puts the word you typed on a chip so you can take a correction back after backspace can no longer reach it, and **How often to offer the undo** is the bar a correction has to fall under to earn that chip. See [Autocorrect](/smart/autocorrect/#taking-a-correction-back-later).
 
@@ -70,7 +71,7 @@ The Typing screen is a hub. Seven of its groups are pages of their own (Automati
 
 **Learn from my fixes** remembers the typos you repair by hand, and the slips behind them, and **Learn where my taps land** learns where your finger lands on each key from the words you keep. **Learned corrections** opens the list of both, along with the corrections you undid, and lets you add, change or remove each entry on its own. See [Learning from your own fixes](/smart/autocorrect/#learning-from-your-own-fixes).
 
-**Learned correction gate** replaces the fixed-ratio rule with one fitted judgement over everything the keyboard knows about a candidate, and holds back from rewriting correctly typed new words. See [The learned gate](/smart/autocorrect/#the-learned-gate). **Context model** reads the whole sentence with a small downloaded language model, **Re-check the previous word** offers a fix for a word behind the caret once the words after it show what you meant, and re-reads the last few after a pause, and **Phrase suggestions** offers the next few words as one chip. See [The context model](/smart/suggestions/#the-context-model).
+**Read whole phrases** reads what you typed as any sequence of words, so a space typed on `b` or `n`, or a word with several keys a little wide, is still found. See [Reading whole phrases](/smart/autocorrect/#reading-whole-phrases). **Learned correction gate** replaces the fixed-ratio rule with one fitted judgement over everything the keyboard knows about a candidate, and holds back from rewriting correctly typed new words. See [The learned gate](/smart/autocorrect/#the-learned-gate). **Context model** reads the whole sentence with a small downloaded language model, **Re-check the previous word** offers a fix for a word behind the caret once the words after it show what you meant, and re-reads the last few after a pause, and **Phrase suggestions** offers the next few words as one chip. See [The context model](/smart/suggestions/#the-context-model).
 
 Several of these rows rank candidates rather than correct them, and they sit here because that's where the app puts them. **Context-aware suggestions** reorders the strip using the words before what you're typing, and **Context model**, **Re-check the previous word** and **Phrase suggestions** are the neural model's three rows. **Adapt to app tone** nudges chat-speak up in messaging apps and down in email. **Typing rhythm** lets a fast, sloppy burst make autocorrect fire more eagerly than slow deliberate typing does. Rhythm ships at 0%, so it does nothing until you move the slider.
 
