@@ -15,7 +15,7 @@ export class PySession {
      */
     cancel(): void;
     /**
-     * Hand `{"type", "id", "value"?, "index"?}` to `on_event`, then render.
+     * Hand an event to the plugin, then render (see `wm_python::host`).
      */
     event(event_json: string): string;
     /**
@@ -27,6 +27,10 @@ export class PySession {
      * Render the panel again.
      */
     render(): string;
+    /**
+     * Where API 5 host calls go: `(op, argsJson) => replyJson`, or null for none.
+     */
+    setBridge(bridge?: Function | null): void;
     storageRemove(key: string): void;
     /**
      * Write one key between calls, under the plugin's quotas. Returns why it
@@ -100,6 +104,7 @@ export interface InitOutput {
     readonly pysession_load: (a: number, b: number, c: number) => [number, number];
     readonly pysession_new: (a: number, b: number) => [number, number, number];
     readonly pysession_render: (a: number) => [number, number];
+    readonly pysession_setBridge: (a: number, b: number) => void;
     readonly pysession_storage: (a: number) => [number, number];
     readonly pysession_storageRemove: (a: number, b: number, c: number) => void;
     readonly pysession_storageSet: (a: number, b: number, c: number, d: number, e: number) => [number, number];
@@ -108,10 +113,12 @@ export interface InitOutput {
     readonly references: (a: number, b: number, c: number) => [number, number];
     readonly rename: (a: number, b: number, c: number, d: number, e: number) => [number, number];
     readonly tokens: (a: number, b: number) => [number, number];
-    readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_free: (a: number, b: number, c: number) => void;
+    readonly __wbindgen_exn_store: (a: number) => void;
+    readonly __externref_table_alloc: () => number;
+    readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __externref_table_dealloc: (a: number) => void;
     readonly __wbindgen_start: () => void;
 }
