@@ -591,9 +591,13 @@ pub fn learned_prior(count: i32, list_size: usize) -> f64 {
     zipf(rank as usize, list_size.max(2))
 }
 
-/// The rank a word typed once is given (about where everyday vocabulary
-/// thins out in a frequency list).
-pub const LEARNED_RANK_ONCE: f64 = 3000.0;
+/// The rank a word typed once is given. Swept on the sentence harness with
+/// a lexicon learned from 3,000 other sentences (and again with a tenth of
+/// its words also learned once misspelled): 1000 beat 3000 on every hand
+/// (words left wrong 9.1/14.3/25.9% against 9.2/14.8/28.0%, none at all
+/// 9.7/15.7/28.8%); 300 did better on the sloppiest hand but began to
+/// change correctly typed words.
+pub const LEARNED_RANK_ONCE: f64 = 1000.0;
 
 /// Pair and triple counts as context: `alpha * ln(1 + pairs) + tri * ln(1 +
 /// triples)`, capped. Counts come from whatever the caller has (the corpus

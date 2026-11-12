@@ -388,6 +388,60 @@ fn main() {
         .map(|path| WordList::of(&wordlist::parse(&std::fs::read_to_string(path).expect("LIST2"))));
     let ranks2 = list2.as_ref().map(|l| Ranks::of(l.dict())).unwrap_or_default();
     let prior2 = |f: i32| ranks2.prior(f);
+    // `LEX=n`: a user lexicon learned from the n sentences after the test
+    // set, each word at the count the user typed it, searched beside the
+    // lists on the learned prior with a word typed once at `LEX_RANK`.
+    let lex_n: usize = env("LEX", 0);
+    let lex_rank: f64 = env("LEX_RANK", decoder::LEARNED_RANK_ONCE);
+    let lexicon: Option<WordList> = (lex_n > 0).then(|| {
+        let mut counts: HashMap<String, i32> = HashMap::new();
+        raw.lines()
+            .filter_map(|line| {
+                let mut parts = line.split('\t');
+                let text = match (parts.next(), parts.next(), parts.next()) {
+                    (Some(_), Some(_), Some(t)) => t,
+                    _ => line,
+                };
+                words_of(text)
+            })
+            .skip(skip + count)
+            .take(lex_n)
+            .for_each(|(ws, _)| {
+                for w in ws {
+                    *counts.entry(w.replace('\'', "")).or_default() += 1;
+                }
+            });
+        // `LEX_NOISE=p`: that share of the lexicon's words also learned once
+        // misspelled, one letter swapped for its neighbour on the row, the
+        // way a typo the keyboard let through ends up learned.
+        let noise: f64 = env("LEX_NOISE", 0.0);
+        if noise > 0.0 {
+            let rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+            let mut rng = Rng(0x9e37_79b9_7f4a_7c15);
+            let words: Vec<String> = counts.keys().cloned().collect();
+            for w in words {
+                if w.len() < 3 || rng.uniform() >= noise {
+                    continue;
+                }
+                let mut chars: Vec<char> = w.chars().collect();
+                let i = rng.pick(chars.len());
+                if let Some(row) = rows.iter().find(|r| r.contains(chars[i])) {
+                    let r: Vec<char> = row.chars().collect();
+                    let at = r.iter().position(|&c| c == chars[i]).unwrap();
+                    chars[i] = if at + 1 < r.len() { r[at + 1] } else { r[at - 1] };
+                    let typo: String = chars.into_iter().collect();
+                    if !listed.contains(&typo) {
+                        counts.entry(typo).or_insert(1);
+                    }
+                }
+            }
+        }
+        let entries: Vec<(String, i32)> = counts.into_iter().collect();
+        eprintln!("lexicon: {} words", entries.len());
+        WordList::of(&entries)
+    });
+    let list_size = ranks.size().max(ranks2.size());
+    let lex_prior = |f: i32| decoder::zipf((lex_rank / f.max(1) as f64).max(1.0) as usize, list_size);
     let lm_w: f64 = env("LM_W", decoder::MODEL_WEIGHT);
     let dec_pack = pack_bytes.as_ref().and_then(|b| Pack::open(b.clone()));
     let dec_seeds = SeedBigrams::parse(&seeds_text);
@@ -529,6 +583,9 @@ fn main() {
                         if let Some(l2) = &list2 {
                             src.push(Source { walker: l2.dict(), prior: &prior2 });
                         }
+                        if let Some(lx) = &lexicon {
+                            src.push(Source { walker: lx.dict(), prior: &lex_prior });
+                        }
                         let mut d = decoder::decode(&dtaps, &geometry, &src, &dec_context, &context, &dec_params, &adjacent, 6);
                         if let Some(lm) = &p.lm {
                             let mut lm = lm.borrow_mut();
@@ -612,6 +669,9 @@ fn main() {
                         let mut src = vec![Source { walker: dec_list.dict(), prior: &dec_prior }];
                         if let Some(l2) = &list2 {
                             src.push(Source { walker: l2.dict(), prior: &prior2 });
+                        }
+                        if let Some(lx) = &lexicon {
+                            src.push(Source { walker: lx.dict(), prior: &lex_prior });
                         }
                         let found = {
                             let mut lm_guard = p.lm.as_ref().map(|l| l.borrow_mut());
