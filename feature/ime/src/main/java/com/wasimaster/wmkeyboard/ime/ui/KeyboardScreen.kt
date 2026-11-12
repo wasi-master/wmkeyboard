@@ -166,6 +166,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StarBorder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowDropDown
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Visibility
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
@@ -33904,6 +33905,8 @@ internal fun ClipActionCircle(
 internal fun ClipInfoPopup(
     item: ClipItem,
     onSendSticker: (() -> Unit)? = null,
+    /** A picture clip's Share: Android's share sheet, which a tap used to open (#1178). */
+    onShare: (() -> Unit)? = null,
     /** Opens the clip in the panel's editor; null for a clip that has no text to edit. */
     onEdit: (() -> Unit)? = null,
     /** Deletes the clip; null while a swipe does that instead (#344). */
@@ -34050,6 +34053,9 @@ internal fun ClipInfoPopup(
                                 }
                                 onView?.let {
                                     ClipTextActionIcon(Icons.Outlined.Visibility, stringResource(R.string.ime_clip_view_image), tint, it)
+                                }
+                                onShare?.let {
+                                    ClipTextActionIcon(Icons.Outlined.Share, stringResource(R.string.ime_clip_share_image), tint, it)
                                 }
                                 // Before Extract text, as #807 asks.
                                 onTranslateImage?.let {

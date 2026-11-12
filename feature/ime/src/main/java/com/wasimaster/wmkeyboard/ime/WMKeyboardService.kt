@@ -454,7 +454,6 @@ import com.wasimaster.wmkeyboard.core.stickers.StickerImage
 import com.wasimaster.wmkeyboard.core.stickers.StickerTriggerIndex
 import com.wasimaster.wmkeyboard.core.upscale.UpscaleKind
 import com.wasimaster.wmkeyboard.core.upscale.Upscaler
-import com.wasimaster.wmkeyboard.core.settings.GalleryFallback
 import com.wasimaster.wmkeyboard.core.settings.GlideApostropheKey
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_OUTCOMES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SHAPES_FILE
@@ -55069,9 +55068,10 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * Inserts an image clip with the commitContent API. Editors advertise the
      * MIME types they accept in EditorInfo; when the current one doesn't take
-     * images, the image goes where the gallery's fallback sends a picture the
-     * field refused (#943): that app's share screen, or the system clipboard
-     * so a long-press paste still works.
+     * images, the picture is pasted the way Ctrl+V would paste it (#1178):
+     * onto the system clipboard and the field's own Paste, which apps that
+     * take a pasted picture but advertise none accept. Share is on the clip's
+     * hold icons; it used to be what this tap did, and read as a wrong turn.
      */
     private fun commitImageClip(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
         val file = item.imagePath?.let(::File)?.takeIf { it.exists() } ?: run {
@@ -55083,10 +55083,20 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.settings.clipboard.stripMediaMetadata) {
             // A cleaned copy, not the kept file: a clip kept before the
             // setting was on still has its metadata (#1179).
-            withCleanedClip(item, file) { clean -> commitImageFile(clean.file, clean.mime, refused = { shareOrCopyRefusedImage(it, clean.mime) }) }
+            withCleanedClip(item, file) { clean -> commitImageFile(clean.file, clean.mime, refused = ::pasteRefusedImageClip) }
             return
         }
-        commitImageFile(file, item.mimeType, refused = { shareOrCopyRefusedImage(it, item.mimeType) })
+        commitImageFile(file, item.mimeType, refused = ::pasteRefusedImageClip)
+    }
+
+    /** A clip picture the field did not take as content, pasted through the clipboard instead (#1178). */
+    private fun pasteRefusedImageClip(file: File) {
+        val contentUri = runCatching {
+            FileProvider.getUriForFile(this, clipboardFileProviderAuthority, file)
+        }.getOrNull() ?: return
+        ClipboardWriteGate.writeUri(this, contentUri, "image")
+        currentInputConnection?.performContextMenuAction(android.R.id.paste)
+        toast(R.string.ime_clip_image_pasted_toast)
     }
 
     /**
@@ -55261,40 +55271,6 @@ open class WMKeyboardService : InputMethodService() {
     /** The camera's Save on a translated photo (#807): Pictures/WM Keyboard, whatever the tool's setting says. */
     private fun onPhotoSave(file: File) {
         saveToGalleryIfEnabled(file, MediaMime.JPEG, enabled = true, namePrefix = "IMG", confirm = true)
-    }
-
-    /**
-     * A clipboard picture the field refused, sent on the way the gallery's
-     * fallback setting sends one (#943): to the field's app through
-     * its share screen, or to the clipboard. Ask has no panel to ask in here,
-     * so it opens the share sheet, which offers both.
-     */
-    private fun shareOrCopyRefusedImage(file: File, mimeType: String) {
-        val fallback = _uiState.value.settings.gallery.fallback
-        if (fallback == GalleryFallback.CLIPBOARD) {
-            copyRefusedImage(file)
-            return
-        }
-        val uri = runCatching {
-            FileProvider.getUriForFile(this, clipboardFileProviderAuthority, file)
-        }.getOrNull() ?: return copyRefusedImage(file)
-        val intent = Intent(Intent.ACTION_SEND)
-            .putExtra(Intent.EXTRA_STREAM, uri)
-            .setType(mimeType)
-            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
-        // The grant travels on the clip data; the extra alone carries none.
-        intent.clipData = ClipData(ClipDescription("image", arrayOf(mimeType)), ClipData.Item(uri))
-        val app = currentInputEditorInfo?.packageName?.takeIf { fallback == GalleryFallback.SHARE_TO_APP }
-        // The launch itself is the test: package visibility hides another
-        // app's share screen from a query, never from a launch.
-        val shared = (app != null && runCatching { startActivity(Intent(intent).setPackage(app)) }.isSuccess) ||
-            shareVia(intent)
-        if (shared) {
-            Toast.makeText(this, resources.getQuantityString(R.plurals.ime_gallery_notice_shared, 1, 1), Toast.LENGTH_SHORT)
-                .show()
-        } else {
-            copyRefusedImage(file)
-        }
     }
 
     /** The last resort for a picture no MIME got through: the clipboard, and a toast that says so. */
@@ -55706,6 +55682,7 @@ open class WMKeyboardService : InputMethodService() {
         onClearUnpinned = ::onClipboardClearUnpinned,
         onOpenLink = ::onClipboardOpenLink,
         onViewImage = ::onClipboardViewImage,
+        onShareImage = ::onClipboardShareImage,
         onExtractText = ::onClipboardExtractText,
         onTranslateImage = ::onClipboardTranslateImage,
         onPanelHeight = ::onClipboardPanelHeight,
@@ -55798,6 +55775,23 @@ open class WMKeyboardService : InputMethodService() {
      * The viewer is the app's own, in the settings app's module, so it is
      * started by name; it reads the file straight out of the history's folder.
      */
+    /** A picture clip's Share (#1178): Android's share sheet, which used to be what a tap did in a field that takes no pictures. */
+    fun onClipboardShareImage(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+        if (!isClipboardAccessible() || item.kind != ClipKind.IMAGE) return
+        val file = item.imagePath?.let(::File)?.takeIf { it.exists() } ?: return
+        val uri = runCatching {
+            FileProvider.getUriForFile(this, clipboardFileProviderAuthority, file)
+        }.getOrNull() ?: return
+        val mime = item.mimeType
+        val intent = Intent(Intent.ACTION_SEND)
+            .putExtra(Intent.EXTRA_STREAM, uri)
+            .setType(mime)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        // The grant travels on the clip data; the extra alone carries none.
+        intent.clipData = ClipData(ClipDescription("image", arrayOf(mime)), ClipData.Item(uri))
+        shareVia(intent)
+    }
+
     fun onClipboardViewImage(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
         if (!isClipboardAccessible() || item.kind != ClipKind.IMAGE) return
         val path = item.imagePath?.takeIf { File(it).exists() } ?: return

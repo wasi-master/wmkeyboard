@@ -218,6 +218,8 @@ data class ClipboardPanelActions(
     val onOpenLink: (ClipItem) -> Unit = {},
     /** An image clip's View: the picture full screen (#371). */
     val onViewImage: (ClipItem) -> Unit = {},
+    /** An image clip's Share: Android's share sheet (#1178). */
+    val onShareImage: (ClipItem) -> Unit = {},
     /** An image clip's Extract text: the OCR panel, reading the picture (#371). */
     val onExtractText: (ClipItem) -> Unit = {},
     /** An image clip's Translate: the camera's confirm step, translating the picture (#807). */
@@ -2422,6 +2424,9 @@ private fun ClipHoldPopup(
         } else null,
         onView = if (image) {
             { onDismiss(); callbacks.actions.onViewImage(item) }
+        } else null,
+        onShare = if (image) {
+            { onDismiss(); callbacks.actions.onShareImage(item) }
         } else null,
         onTranslateImage = if (image && hold.photoTranslate) {
             { onDismiss(); callbacks.actions.onTranslateImage(item) }
