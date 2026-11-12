@@ -90,9 +90,12 @@ export function sanitise(raw: string, field: ManifestField): string {
 	}
 }
 
-/** The manifest as the importer would keep it, written for the current API. */
+/** The API level that brought the wm package; a draft written for it keeps it. */
+export const PACKAGE_API = 5;
+
+/** The manifest as the importer would keep it: API 4, or API 5 for a draft already written for it. */
 export function sanitised(m: PluginManifest): PluginManifest {
-	return { ...m, format: MANIFEST_FORMAT, apiVersion: API_VERSION, language: LANGUAGE, id: sanitise(m.id, 'ID'), name: sanitise(m.name, 'NAME'), pluginVersion: sanitise(m.pluginVersion, 'VERSION'), author: sanitise(m.author, 'AUTHOR'), description: sanitise(m.description, 'DESCRIPTION'), entry: sanitise(m.entry, 'ENTRY'), permissions: m.permissions.slice(0, 16) };
+	return { ...m, format: MANIFEST_FORMAT, apiVersion: m.apiVersion >= PACKAGE_API ? PACKAGE_API : API_VERSION, language: LANGUAGE, id: sanitise(m.id, 'ID'), name: sanitise(m.name, 'NAME'), pluginVersion: sanitise(m.pluginVersion, 'VERSION'), author: sanitise(m.author, 'AUTHOR'), description: sanitise(m.description, 'DESCRIPTION'), entry: sanitise(m.entry, 'ENTRY'), permissions: m.permissions.slice(0, 16) };
 }
 
 function read(): Stored {

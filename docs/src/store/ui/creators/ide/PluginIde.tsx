@@ -340,7 +340,7 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 		}, PERIODIC_VERSION_MS);
 		return () => clearInterval(t);
 	}, [draftId, save, controller]);
-	const identity = useCallback(() => ({ id: sanitise(manifest.id, 'ID') || draftId, name: manifest.name, version: manifest.pluginVersion, storage, reminders }), [manifest, draftId, storage, reminders]);
+	const identity = useCallback(() => ({ id: sanitise(manifest.id, 'ID') || draftId, name: manifest.name, version: manifest.pluginVersion, storage, reminders, apiVersion: manifest.apiVersion }), [manifest, draftId, storage, reminders]);
 	const runPlugin = useCallback(() => {
 		const current = controller.value?.text ?? savedText.current;
 		lastRun.current = current;

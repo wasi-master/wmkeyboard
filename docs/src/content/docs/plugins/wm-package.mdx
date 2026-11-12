@@ -220,3 +220,7 @@ user did in your panel. Password fields and incognito refuse both.
 (`{"http.request": {"status": 200, "text": "..."}}`). In `test.py`,
 `plugin_test.session(mock={...})` gives you `load()`, `event(e)`, `render()`
 and `transform(text, id)`, each returning the result as a dict.
+
+The web editor's preview runs API 5 plugins too, but nothing answers host
+calls there: `http`, `ai`, `field` and the other host modules raise an error,
+so test those against a mock or on the phone.

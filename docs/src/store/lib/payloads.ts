@@ -672,20 +672,30 @@ export interface PluginRead {
 		permissions: string[];
 		language: string;
 		actions: { id: string; name: string }[];
+		hosts: string[];
 	};
 	files: { name: string; bytes: number; text: string | null }[];
 	problems: string[];
 }
 
-export const PLUGIN_API_VERSION = 4;
+export const PLUGIN_API_VERSION = 5;
 /** Why the app refuses a Lua plugin (PluginManifestCodec, API 4). */
 export const PLUGIN_LUA_REFUSAL = 'This plugin is written in Lua, which WM Keyboard no longer runs; look for its Python version.';
-export const PLUGIN_PERMISSIONS = ['storage', 'reminders', 'selection'] as const;
+export const PLUGIN_PERMISSIONS = [
+	'storage', 'reminders', 'selection',
+	'network', 'ai', 'field.read', 'field.write', 'clipboard.read', 'clipboard.write',
+	'location', 'files', 'sensors', 'scan', 'device', 'share', 'notifications',
+] as const;
+/** The permissions API 5 added (PluginPermission.sinceApi); a lower manifest may not declare them. */
+const PLUGIN_API_5_PERMISSIONS = new Set(PLUGIN_PERMISSIONS.slice(3));
+/** Off after install until the user turns each on (PluginPermission.Tier.RISKY). */
+export const PLUGIN_RISKY_PERMISSIONS = ['network', 'ai', 'field.read', 'clipboard.read', 'location', 'files'] as const;
+const PLUGIN_HOST = /^(\*\.)?([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 const PLUGIN_ACTION_ID = /^[a-z0-9_-]{1,32}$/;
 export const PLUGIN_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{2,63}$/;
 
 export function readPlugin(bytes: Uint8Array): PluginRead {
-	const entries = readZip(bytes, 32);
+	const entries = readZip(bytes, 128);
 	const manifestEntry = zipFind(entries, 'plugin.json');
 	if (!manifestEntry) throw new Error('No plugin.json in the archive.');
 	const raw = JSON.parse(textOf(manifestEntry));
@@ -698,7 +708,16 @@ export function readPlugin(bytes: Uint8Array): PluginRead {
 	const apiVersion = typeof raw.apiVersion === 'number' && raw.apiVersion > 0 ? raw.apiVersion : 1;
 	if (apiVersion > PLUGIN_API_VERSION) problems.push(`"apiVersion": ${apiVersion} is newer than the app's ${PLUGIN_API_VERSION}; the app refuses it.`);
 	const permissions: string[] = Array.isArray(raw.permissions) ? raw.permissions.map(String) : [];
-	for (const p of permissions) if (!(PLUGIN_PERMISSIONS as readonly string[]).includes(p)) problems.push(`Permission "${p}" is unknown; the app refuses the plugin.`);
+	for (const p of permissions) {
+		if (!(PLUGIN_PERMISSIONS as readonly string[]).includes(p)) problems.push(`Permission "${p}" is unknown; the app refuses the plugin.`);
+		else if (apiVersion < 5 && PLUGIN_API_5_PERMISSIONS.has(p as never)) problems.push(`Permission "${p}" needs "apiVersion": 5.`);
+	}
+	// PluginManifestCodec (API 5): the websites "network" may reach.
+	const hosts: string[] = Array.isArray(raw.hosts) ? raw.hosts.map((h: unknown) => String(h).trim().toLowerCase()) : [];
+	if (hosts.length > 16) problems.push(`${hosts.length} hosts; the app caps at 16.`);
+	for (const h of hosts) if (!PLUGIN_HOST.test(h) || h === 'localhost') problems.push(`Host ${JSON.stringify(h)} is not a host name (no scheme, port, path or IP address).`);
+	const hostSetting = Array.isArray(raw.settings) && raw.settings.some((s: { type?: unknown }) => s?.type === 'host');
+	if (permissions.includes('network') && !hosts.length && !hostSetting) problems.push('"network" without any "hosts" (or a "host" setting); the app refuses it.');
 	// PluginManifestCodec (API 4): "language" may be left out, and the only one
 	// the app runs is Python. A manifest that says Lua, or leaves the language
 	// out at API 3 or lower, is a Lua plugin.
@@ -719,9 +738,15 @@ export function readPlugin(bytes: Uint8Array): PluginRead {
 	if (actions.some((a) => a?.input !== undefined && a.input !== 'selection' && a.input !== 'none')) problems.push('An action\'s "input" is not "selection" or "none".');
 	const entry = String(raw.entry || 'main.py');
 	if (!entries.some((e) => e.name === entry)) problems.push(`Entry "${entry}" is not in the archive.`);
-	if (entries.length > 16) problems.push(`${entries.length} entries; the app caps at 16.`);
+	// PluginFile: API 5 archives hold modules and assets/.
+	if (entries.length > 64) problems.push(`${entries.length} entries; the app caps at 64.`);
+	const totalBytes = entries.reduce((n, e) => n + e.data.byteLength, 0);
+	if (totalBytes > 4 * 1024 * 1024) problems.push(`The archive unpacks to ${Math.round(totalBytes / 1024)} KB; the app caps at 4 MB.`);
 	const scriptBytes = entries.filter((e) => e.name.endsWith('.py')).reduce((n, e) => n + e.data.byteLength, 0);
 	if (scriptBytes > 256 * 1024) problems.push(`Python totals ${Math.round(scriptBytes / 1024)} KB; the app caps at 256 KB.`);
+	for (const e of entries) {
+		if (e.name.startsWith('assets/') && e.data.byteLength > 512 * 1024) problems.push(`${e.name} is over 512 KB.`);
+	}
 	const files = entries.map((e) => ({
 		name: e.name,
 		bytes: e.data.byteLength,
@@ -731,6 +756,7 @@ export function readPlugin(bytes: Uint8Array): PluginRead {
 		manifest: {
 			id, name: String(raw.name ?? ''), pluginVersion: String(raw.pluginVersion ?? ''), author: String(raw.author ?? ''), description: String(raw.description ?? ''), apiVersion, entry, permissions,
 			language, actions: actions.map((a) => ({ id: String(a?.id ?? ''), name: String(a?.name ?? '') })),
+			hosts,
 		},
 		files,
 		problems,

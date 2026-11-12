@@ -287,6 +287,8 @@ export interface PluginIdentity {
 	version: string;
 	storage: boolean;
 	reminders?: boolean;
+	/** The manifest's apiVersion: 5 loads the wm package, anything lower the API 4 globals. */
+	apiVersion?: number;
 }
 
 type AbortWire = 'steps' | 'deadline' | 'cancelled' | 'recursion' | 'container' | 'string';
@@ -303,7 +305,10 @@ interface WireResult {
 
 function configOf(plugin: PluginIdentity, storage: Record<string, string> | null): string {
 	const permissions = [...(plugin.storage ? ['storage'] : []), ...(plugin.reminders ? ['reminders'] : [])];
-	return JSON.stringify({ id: plugin.id, version: plugin.version, permissions, mode: 'panel', storage: storage ?? {} });
+	return JSON.stringify({
+		id: plugin.id, version: plugin.version, permissions, mode: 'panel', storage: storage ?? {},
+		...(plugin.apiVersion ? { apiVersion: plugin.apiVersion } : {}),
+	});
 }
 
 // ---------------------------------------------------------------------------
