@@ -206,7 +206,14 @@ object ResidentModels {
         ),
         Part(
             "mlkit_translate", ModelKind.TRANSLATION,
-            { if (OnDeviceTranslator.isLoaded) LoadedModel("mlkit_translate", ModelKind.TRANSLATION, null, null) else null },
+            {
+                if (OnDeviceTranslator.isLoaded) {
+                    val pair = OnDeviceTranslator.loadedPair?.let { (from, to) -> "$from → $to" }
+                    LoadedModel("mlkit_translate", ModelKind.TRANSLATION, pair, null)
+                } else {
+                    null
+                }
+            },
             { OfflineTranslation.release() },
         ),
         Part(

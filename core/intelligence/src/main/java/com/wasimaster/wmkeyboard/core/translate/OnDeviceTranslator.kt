@@ -392,8 +392,15 @@ object OnDeviceTranslator {
      * keyboard process that keeps sixty megabytes of translator for a tool
      * nobody has open is first in line when Android wants memory back.
      */
-    /** Whether a translation model is loaded; for the Resources screen (#1163). Any thread. */
-    val isLoaded: Boolean get() = loaded != null
+    /**
+     * Whether a translation model is loaded; for the Resources screen (#1163).
+     * Any thread. Asks the runtime what it holds: the runtime outlives
+     * [release], so "the runtime is there" kept the row after Unload.
+     */
+    val isLoaded: Boolean get() = loaded?.holdsModels == true
+
+    /** The language pair the open translator works in, or null. */
+    val loadedPair: Pair<String, String>? get() = loaded?.loadedPair()
 
     fun release() {
         val engine = loaded ?: return

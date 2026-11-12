@@ -103,6 +103,8 @@ class MlKitTranslateRuntime : TranslateRuntime {
 
     override fun loadedPair(): Pair<String, String>? = translatorPair
 
+    override val holdsModels: Boolean get() = translator != null || identifier != null
+
     override fun closeTranslator() {
         runCatching { translator?.close() }
         translator = null

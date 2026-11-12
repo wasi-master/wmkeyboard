@@ -53,6 +53,13 @@ interface TranslateRuntime {
     /** The model codes of the loaded translator pair, or null with none loaded. */
     fun loadedPair(): Pair<String, String>?
 
+    /**
+     * Whether a model is open: the translator pair or the language identifier.
+     * The runtime itself stays once ML Kit is set up, since even asking which
+     * models are on the phone needs it, so its being there says nothing.
+     */
+    val holdsModels: Boolean get() = loadedPair() != null
+
     /** Closes the loaded translator pair. A model file cannot be deleted while it is open. */
     fun closeTranslator()
 
