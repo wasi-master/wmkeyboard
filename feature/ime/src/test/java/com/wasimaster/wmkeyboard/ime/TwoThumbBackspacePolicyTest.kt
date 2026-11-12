@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.ime
 
 import android.view.inputmethod.ExtractedText
 import android.view.inputmethod.ExtractedTextRequest
+import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.settings.TwoThumbBackspace
 import com.wasimaster.wmkeyboard.ime.TwoThumbKit.allUpPause
 import com.wasimaster.wmkeyboard.ime.TwoThumbKit.delete
@@ -14,6 +15,8 @@ import com.wasimaster.wmkeyboard.ime.TwoThumbKit.swipe
 import com.wasimaster.wmkeyboard.ime.TwoThumbKit.tap
 import com.wasimaster.wmkeyboard.ime.ui.GlideVerdict
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -222,6 +225,72 @@ class TwoThumbBackspacePolicyTest {
         assertEquals("fixture", "hello ", editor.text.toString())
         press(service)
         assertEquals("", editor.text.toString())
+    }
+
+    // ---- The choice holds after the all-thumbs-up pause typed the word (#1277) ----
+
+    /** [stroke] with its clock moved on by [offsetMs]. */
+    private fun at(stroke: List<GesturePoint>, offsetMs: Long, stretch: Long = 1) =
+        stroke.map { it.copy(t = offsetMs + it.t * stretch) }
+
+    /**
+     * Two swipes whose start and lift orders differ: the top row (`qy`) begins
+     * at 1000 ms and lifts first, so it is stored first, while the middle row
+     * (`ah`) began earlier, at 500 ms, and lifts after it. The swipe begun last
+     * is the top row's.
+     */
+    private fun crossedSwipes(service: WMKeyboardService) {
+        service.onGesture(at(straightStroke(0), 1000), TwoThumbKit.grid, GLIDE_KEY_WIDTH, GlideVerdict.Leader())
+        drain(service)
+        service.onGesture(at(straightStroke(1), 500, stretch = 7), TwoThumbKit.grid, GLIDE_KEY_WIDTH, GlideVerdict.Leader())
+        drain(service)
+    }
+
+    private fun duetOpen(service: WMKeyboardService): Boolean =
+        WMKeyboardService::class.java.getDeclaredField("duetWord").let {
+            it.isAccessible = true
+            (it.get(service) as DuetWord).active
+        }
+
+    /** What one Backspace leaves of the crossed word under [choice], open or after the pause typed it. */
+    private fun backspaced(choice: TwoThumbBackspace, closed: Boolean, spaceFirst: Boolean = false): Pair<String, Boolean> {
+        val (service, editor) = keyboard(settings(allUp = closed, backspace = choice, spaceFirst = spaceFirst))
+        crossedSwipes(service)
+        if (closed) {
+            allUpPause(service)
+            assertTrue("fixture: the pause typed the word and its space", editor.text.endsWith(" "))
+            if (spaceFirst) {
+                press(service)
+                assertFalse("fixture: the first press took only the space", editor.text.endsWith(" "))
+            }
+        }
+        press(service)
+        return editor.text.toString() to duetOpen(service)
+    }
+
+    @Test
+    fun `undo input step takes the swipe begun last after the pause as it does open`() {
+        val open = backspaced(TwoThumbBackspace.UNDO_STEP, closed = false)
+        assertEquals("fixture: the swipe begun last goes, the middle row's stays", "ah", open.first)
+        assertEquals(open, backspaced(TwoThumbBackspace.UNDO_STEP, closed = true))
+        assertEquals(open, backspaced(TwoThumbBackspace.UNDO_STEP, closed = true, spaceFirst = true))
+    }
+
+    @Test
+    fun `trim the word's end leaves typed letters after the pause as it does open`() {
+        val open = backspaced(TwoThumbBackspace.TRIM_END, closed = false)
+        assertFalse("fixture: what is left open is typed letters, not gestures", open.second)
+        assertEquals(open, backspaced(TwoThumbBackspace.TRIM_END, closed = true))
+        assertEquals(open, backspaced(TwoThumbBackspace.TRIM_END, closed = true, spaceFirst = true))
+    }
+
+    @Test
+    fun `control - current behavior after the pause still takes the swipe that landed last`() {
+        val (service, editor) = keyboard(settings(allUp = true, backspace = TwoThumbBackspace.CURRENT))
+        crossedSwipes(service)
+        allUpPause(service)
+        press(service)
+        assertEquals("qy", editor.text.toString())
     }
 
     private companion object {

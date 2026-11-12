@@ -16192,6 +16192,17 @@ open class WMKeyboardService : InputMethodService() {
                 val len = glideCommitLength(ic, word)
                 if (len > 0 && duet != null) {
                     unlearnHand()
+                    // An explicit choice takes the word as it would have open
+                    // (#1277): reopened whole, then the same press an open word
+                    // gets, so Undo input step takes the gesture begun last and
+                    // Trim the word's end leaves typed letters, not gestures.
+                    if (twoThumbStep == TwoThumbBackspaceStep.UNDO_STEP ||
+                        twoThumbStep == TwoThumbBackspaceStep.TRIM_END
+                    ) {
+                        reopenCommittedDuet(ic, duet, len, dropLast = false)
+                        if (duetWord.active) duetBackspace(ic, undo = true)
+                        return
+                    }
                     reopenCommittedDuet(ic, duet, len, dropLast = true)
                     return
                 }
@@ -32775,6 +32786,9 @@ open class WMKeyboardService : InputMethodService() {
             }
             duetReadings.clear()
             duetReadings.addAll(duet.readings)
+            // Whole, the word on screen is these gestures' reading already:
+            // nothing reads them again before the next one lands (#1277).
+            if (!dropLast) duetShownGeneration = duetGeneration
             updateComposingText(ic)
             ic.endBatchEdit()
             if (dropLast) redecodeDuet(commit = false, backspaced = removed, undo = true)
@@ -32897,7 +32911,10 @@ open class WMKeyboardService : InputMethodService() {
             // An expansion left the caret at its {cursor} marker, inside the
             // text it inserted: a space there would split the snippet.
             swallowTerminatorAfterCommit = false
+            // Nor does a No space this word spent wait for the next one (#1278).
+            glideSpentNoSpace = false
         } else if (committed && unspaced) {
+            glideSpentNoSpace = false
             joinAfterMarkedWord()
         } else if (committed) {
             commitGestureSpace(ic, state)
@@ -32984,7 +33001,13 @@ open class WMKeyboardService : InputMethodService() {
             // there replace it; otherwise it offers the next word (#175).
             stripReplacesGestureWord = alternates.isNotEmpty() || split != null
         }
-        if (unspaced) joinAfterMarkedWord() else commitGestureSpace(ic, state)
+        if (unspaced) {
+            // Spent with the word either way (#1278).
+            glideSpentNoSpace = false
+            joinAfterMarkedWord()
+        } else {
+            commitGestureSpace(ic, state)
+        }
         ic.endBatchEdit()
         twoThumbWordBehind = undoable
         if (undoable) armRevertGuard()
@@ -33491,7 +33514,13 @@ open class WMKeyboardService : InputMethodService() {
             // A stroke that read a text-expansion trigger types what the
             // trigger stands for, as a space after the typed trigger would.
             glidedExpansion(ic, state, word)?.let { expanded ->
-                if (expanded.cursorOffset >= expanded.text.length) commitGestureSpace(ic, state)
+                if (expanded.cursorOffset >= expanded.text.length) {
+                    commitGestureSpace(ic, state)
+                } else {
+                    // No trailing step to spend it on: spent here, or the next
+                    // word to end would lose its space to it (#1278).
+                    glideSpentNoSpace = false
+                }
                 armRevertGuard()
                 consumeShift()
                 return@launch
@@ -34018,6 +34047,11 @@ open class WMKeyboardService : InputMethodService() {
             // Whether the last thing typed was a snippet that left the caret
             // inside itself, where a trailing space does not belong.
             var caretParked = false
+            // The whole stroke is the key No space was armed for (#1279): the
+            // first word spends the arm, and the stroke's own trailing space
+            // stands down for it. The spaces between its words are the
+            // spacebar crossings the user drew, and stay.
+            var spentNoSpace = false
             val readings = withContext(Dispatchers.Default) { glidePhrase(segments, keys, keyWidthPx, chosen) }
             chainBehind.clear()
             var wordBefore: Pair<String, GlideStroke>? = null
@@ -34039,6 +34073,7 @@ open class WMKeyboardService : InputMethodService() {
                 val word = glideCased(leader, wordShift, case, segment, keys, keyWidthPx)
                 gestureWordShifted = wordShift != ShiftState.OFF || case != GlideCase.None
                 commitGestureLeadingSpace(ic, state)
+                spentNoSpace = spentNoSpace || glideSpentNoSpace
                 val expanded = glidedExpansion(ic, state, word)
                 if (expanded != null) {
                     caretParked = expanded.cursorOffset < expanded.text.length
@@ -34119,7 +34154,14 @@ open class WMKeyboardService : InputMethodService() {
             if (committedAny) {
                 // Only the last word earns one: the words before it were spaced
                 // by the leading rule above as each new segment landed.
-                if (!caretParked) commitGestureSpace(ic, state)
+                // A later segment's leading step reset the flag: put back.
+                glideSpentNoSpace = spentNoSpace
+                if (caretParked) {
+                    // No trailing step to spend it on (#1278).
+                    glideSpentNoSpace = false
+                } else {
+                    commitGestureSpace(ic, state)
+                }
                 armRevertGuard()
                 consumeShift()
                 val floating = nextWordOctopus()

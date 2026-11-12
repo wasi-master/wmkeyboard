@@ -6,6 +6,8 @@ import com.wasimaster.wmkeyboard.core.settings.AutoTextSettings
 import com.wasimaster.wmkeyboard.core.settings.GestureSettings
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
+import com.wasimaster.wmkeyboard.core.snippets.Snippet
+import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.ime.ui.GlideVerdict
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -170,7 +172,8 @@ class NoSpaceTest {
         service.glide("foot")
         service.noSpaceNextKey()
         service.glide("ball")
-        assertEquals("football ", editor.text.toString())
+        // The armed key gets no space after it either (#1233).
+        assertEquals("football", editor.text.toString())
     }
 
     @Test
@@ -316,7 +319,71 @@ class NoSpaceTest {
         service.glide("foot")
         service.noSpaceNext()
         service.glide("ball")
-        assertEquals("football ", editor.text.toString())
+        assertEquals("football", editor.text.toString())
         assertFalse(service.uiState.value.noSpaceArmed)
+    }
+
+    // ---- The armed key spent by a multi-word glide or a snippet (#1278, #1279) ----
+
+    /** One stroke that crossed the spacebar, both halves along the top row, which reads `qwerty`. */
+    private fun GlideKeyboard.phrase() {
+        onGestureWords(listOf(straightStroke(0), straightStroke(0)), glideKeyGrid(), GLIDE_KEY_WIDTH)
+        TwoThumbKit.drain(this)
+    }
+
+    @Test
+    fun `an armed multi-word glide is one key - its spacebar crossing stays, its trailing space does not`() {
+        val (service, editor) = keyboard()
+        TwoThumbKit.plantDictionary(service, "qwerty" to 100)
+        service.noSpaceNext()
+        service.phrase()
+        assertEquals("qwerty qwerty", editor.text.toString())
+        assertFalse(service.uiState.value.noSpaceArmed)
+    }
+
+    @Test
+    fun `control - an unarmed multi-word glide keeps its trailing space`() {
+        val (service, editor) = keyboard()
+        TwoThumbKit.plantDictionary(service, "qwerty" to 100)
+        service.phrase()
+        assertEquals("qwerty qwerty ", editor.text.toString())
+    }
+
+    private fun WMKeyboardService.addSnippet(snippet: Snippet) {
+        val field = WMKeyboardService::class.java.getDeclaredField("snippetStore")
+        field.isAccessible = true
+        (field.get(this) as SnippetStore).add(snippet)
+    }
+
+    /**
+     * A glided trigger whose snippet parks the caret at its `{cursor}`, then
+     * a word tapped there and ended by the all-thumbs-up pause. The recording
+     * editor keeps its caret at the end, so the tail sits in front of the
+     * tapped word here; what is asserted is the space after it.
+     */
+    private fun parkedSnippetThenTappedWord(armed: Boolean): String {
+        val (service, editor) = TwoThumbKit.keyboard(TwoThumbKit.settings(allUp = true))
+        service.addSnippet(
+            Snippet(id = 0, label = "BTW", text = "prefix{cursor}suffix", trigger = "btw", immediate = true),
+        )
+        if (armed) service.onTextEdit(TextEditAction.NO_SPACE_NEXT, haptic = false)
+        service.onGestureWords(listOf(straightStroke(0)), glideKeyGrid(), GLIDE_KEY_WIDTH, GlideVerdict.Word("btw"))
+        TwoThumbKit.drain(service)
+        assertTrue("fixture: the snippet expanded", editor.text.startsWith("prefix"))
+        assertFalse(service.uiState.value.noSpaceArmed)
+        TwoThumbKit.tap(service, "t")
+        TwoThumbKit.tap(service, "o")
+        TwoThumbKit.allUpPause(service)
+        return editor.text.toString()
+    }
+
+    @Test
+    fun `an armed glide that parks a snippet's caret does not take the next word's space`() {
+        assertTrue(parkedSnippetThenTappedWord(armed = true).endsWith("to "))
+    }
+
+    @Test
+    fun `control - the same snippet unarmed leaves the next word's space`() {
+        assertTrue(parkedSnippetThenTappedWord(armed = false).endsWith("to "))
     }
 }
