@@ -2411,10 +2411,19 @@ private fun DockedKeyboardFrame(
     // a swipe up from the screen's edge starts there, and the key it landed on
     // typed a space on the way to the home screen.
     val boardBottomRoom = bottomPaddingDp(state.settings).dp
+    // A split board's centre gap as a hole the app shows through and is
+    // tapped through (#1256). This docked frame only, and not while resizing,
+    // on a television or in a settings preview, where there is no app behind.
+    val gapSeeThrough = state.settings.layoutBehavior.splitGapSeeThrough && resize == null &&
+        !state.television && !LocalKeyboardPreviewHost.current
+    val gapCutout = remember(gapSeeThrough) { if (gapSeeThrough) SplitGapCutout() else null }
+    val gapHoles = remember(gapCutout) { Modifier.splitGapHoles(gapCutout) }
+    SplitGapReporter(gapCutout)
     val revealingBody: @Composable ColumnScope.(KeyboardUiState) -> Unit = { bodyState ->
         CompositionLocalProvider(
             LocalRowRevealHeadroom provides revealHeadroom,
             LocalBoardBottomRoom provides boardBottomRoom,
+            LocalSplitGapCutout provides gapCutout,
         ) { body(bodyState) }
     }
     // The empty bands, reported to the service, which keeps them out of the
@@ -2491,6 +2500,7 @@ private fun DockedKeyboardFrame(
                     .align(Alignment.BottomCenter)
                     .then(if (boardShape == null) Modifier else Modifier.clip(boardShape))
                     .then(popupBlur)
+                    .then(gapHoles)
                     // The box the background image is cropped to; the theme
                     // editor's cropper frames the picture in this shape.
                     .onSizeChanged { KeyboardBoardShape.record(boardContext, it, landscape) }
@@ -22821,7 +22831,7 @@ private fun KeyRow(
         // A row whose spacebar bridges the gap (#399) is drawn whole, gap and all
         // inside the spacebar, so it has no spacer — and a zero weight throws.
         if (rightDrawn) {
-            Spacer(modifier = Modifier.weight(row.splitGapWeight))
+            SplitGapSpacer(row.splitGapWeight)
             for ((index, visual) in row.right.withIndex()) {
                 val start = if (extend && index == 0 && row.left.isEmpty()) row.sidePad else 0f
                 val end = if (extend && index == row.right.lastIndex) row.sidePad else 0f

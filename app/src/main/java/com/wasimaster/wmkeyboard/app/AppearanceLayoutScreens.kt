@@ -2146,6 +2146,15 @@ internal fun LayoutOneHandedSettings(
                 default = SettingsDefaults.layoutBehavior.splitSpacebar,
             ) { scope.launch { repository.setSplitSpacebar(it) } }
         }
+        item(visible = split, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.layout_split_see_through_title,
+                stringResource(R.string.layout_split_see_through_subtitle),
+                settings.watch { it.layoutBehavior.splitGapSeeThrough },
+                info = stringResource(R.string.layout_split_see_through_info),
+                default = SettingsDefaults.layoutBehavior.splitGapSeeThrough,
+            ) { scope.launch { repository.setSplitGapSeeThrough(it) } }
+        }
         // One switch per orientation (#584): each remembers its own, as the
         // toolbar tool and the dock button do for the one the phone is in.
         item(level = SettingLevel.STANDARD) {

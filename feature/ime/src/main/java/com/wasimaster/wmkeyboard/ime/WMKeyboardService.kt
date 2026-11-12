@@ -6718,6 +6718,7 @@ open class WMKeyboardService : InputMethodService() {
                 LocalImeNavigationBars provides navigationBars,
                 LocalHandwritingFullScreen provides hwFullScreenControls,
                 LocalWindowFrost provides windowFrost,
+                com.wasimaster.wmkeyboard.ime.ui.LocalSplitGapReport provides ::onSplitGaps,
                 com.wasimaster.wmkeyboard.ime.ui.LocalClipChipDelete provides ::onClipChipDelete,
                 com.wasimaster.wmkeyboard.ime.ui.LocalScreenCapture provides ::onCaptureScreen,
                 com.wasimaster.wmkeyboard.ime.ui.LocalSearchActions provides searchActions,
@@ -7171,6 +7172,24 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    // ---- split gap see-through (#1256) ----
+
+    /**
+     * The split board's centre gaps in IME-window pixels, one per split row,
+     * that the docked board leaves out of its touchable region. Empty when the
+     * setting is off or the board is not split.
+     */
+    private var splitGapRects: List<android.graphics.Rect> = emptyList()
+
+    private fun onSplitGaps(gaps: List<IntRect>) {
+        val rects = gaps.map { android.graphics.Rect(it.left, it.top, it.right, it.bottom) }
+        if (rects != splitGapRects) {
+            splitGapRects = rects
+            // Insets are only re-queried on a window layout pass; force one.
+            window?.window?.decorView?.requestLayout()
+        }
+    }
+
     // ---- floating mode ----
 
     /** Panel bounds in IME-window coordinates, for the touchable region. */
@@ -7331,6 +7350,21 @@ open class WMKeyboardService : InputMethodService() {
                         outInsets.touchableInsets = Insets.TOUCHABLE_INSETS_REGION
                         outInsets.touchableRegion.set(0, outInsets.visibleTopInsets, decor.width, decor.height)
                         privacyShade.touchRegion(outInsets.touchableRegion)
+                    }
+                }
+            }
+            // A split board's centre gap shows the app and passes its taps
+            // through to it (#1256). The board is otherwise touchable from its
+            // top down, as the default visible inset makes it. Not under the
+            // privacy shade, whose region is its own, nor in the landscape
+            // extract editor, which covers the app the gap would reach.
+            if (splitGapRects.isNotEmpty() && !privacyShade.showing && !isFullscreenMode) {
+                val decor = window?.window?.decorView
+                if (decor != null) {
+                    outInsets.touchableInsets = Insets.TOUCHABLE_INSETS_REGION
+                    outInsets.touchableRegion.set(0, outInsets.visibleTopInsets, decor.width, decor.height)
+                    for (gap in splitGapRects) {
+                        outInsets.touchableRegion.op(gap, android.graphics.Region.Op.DIFFERENCE)
                     }
                 }
             }

@@ -10018,6 +10018,13 @@ data class LayoutBehaviorSettings(
      */
     val splitSpacebar: Boolean = true,
     /**
+     * Whether a split keyboard's centre gap is a hole in the board (#1256): the
+     * app behind shows through it and gets the taps that land there, as it
+     * does above the keyboard. The toolbar, the suggestion strip and an open
+     * panel keep the whole width. Docked only. Off by default.
+     */
+    val splitGapSeeThrough: Boolean = false,
+    /**
      * How long, in ms, a second shift tap still counts as the double-tap that
      * turns on caps lock. Lower makes caps lock quicker but easier to trigger by
      * accident; higher makes a deliberate double-tap more forgiving. Default 350.
@@ -12037,6 +12044,7 @@ class SettingsRepository(private val context: Context) {
         private val FULL_WIDTH_BARS = booleanPreferencesKey("full_width_bars")
         private val SPLIT_ONLY_LARGE = booleanPreferencesKey("split_only_large_screens")
         private val SPLIT_SPACEBAR = booleanPreferencesKey("split_spacebar")
+        private val SPLIT_GAP_SEE_THROUGH = booleanPreferencesKey("split_gap_see_through")
         private val SHIFT_CAPS_LOCK_MS = intPreferencesKey("shift_caps_lock_ms")
         private val SHOW_ALL_POPUP_KEYS = booleanPreferencesKey("show_all_popup_keys")
         private val NO_LETTER_ACCENTS = booleanPreferencesKey("no_letter_accents")
@@ -15004,6 +15012,7 @@ class SettingsRepository(private val context: Context) {
             splitOnlyOnLargeScreens = p[SPLIT_ONLY_LARGE]
                 ?: defaults.layoutBehavior.splitOnlyOnLargeScreens,
             splitSpacebar = p[SPLIT_SPACEBAR] ?: defaults.layoutBehavior.splitSpacebar,
+            splitGapSeeThrough = p[SPLIT_GAP_SEE_THROUGH] ?: defaults.layoutBehavior.splitGapSeeThrough,
             shiftCapsLockMs = p[SHIFT_CAPS_LOCK_MS] ?: defaults.layoutBehavior.shiftCapsLockMs,
             showAllPopupKeys = p[SHOW_ALL_POPUP_KEYS] ?: defaults.layoutBehavior.showAllPopupKeys,
             noLetterAccents = p[NO_LETTER_ACCENTS] ?: defaults.layoutBehavior.noLetterAccents,
@@ -21579,6 +21588,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSplitSpacebar(value: Boolean) =
         editPrefs { it[SPLIT_SPACEBAR] = value }
+
+    suspend fun setSplitGapSeeThrough(value: Boolean) =
+        editPrefs { it[SPLIT_GAP_SEE_THROUGH] = value }
 
     /**
      * Puts the floating panel back where it starts: centred, 320 dp wide, at

@@ -272,6 +272,9 @@
     <string name="layout_split_large_only_subtitle">Stay whole on a portrait phone, split when there is room</string>
     <string name="layout_split_spacebar_title">Split the spacebar</string>
     <string name="layout_split_spacebar_subtitle">Divide the spacebar too, or keep it as one key across the gap</string>
+    <string name="layout_split_see_through_title">See-through gap</string>
+    <string name="layout_split_see_through_subtitle">Show the app between the halves, and let taps there reach it</string>
+    <string name="layout_split_see_through_info">When this is on, the gap between the two halves of a split keyboard is see-through: you see the app behind it, and a tap in the gap goes to the app, as it does above the keyboard. The toolbar, the suggestion strip and any open panel still take the whole width. A spacebar that is kept as one key across the gap stays solid. It works for the docked keyboard only, not the floating one. This setting is off by default.</string>
     <string name="layout_split_spacebar_info">When this is on, the spacebar is divided between the two halves like every other row, and the centre of the bottom row is empty. When this is off, the spacebar stays as one key and fills the gap, so both thumbs can press it where they meet. The other keys on the bottom row stay in their halves. This setting is on by default.</string>
     <string name="layout_split_large_only_info">Split is one setting for every screen shape, so turning it on in landscape leaves the keyboard split after you rotate back, where a split layout is hard to use. Turn this on to split only in landscape or on an unfolded screen. This setting is off by default.</string>
 
