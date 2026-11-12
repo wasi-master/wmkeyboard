@@ -210,6 +210,8 @@ import com.wasimaster.wmkeyboard.core.theme.AppColorSource
 import com.wasimaster.wmkeyboard.core.theme.PaletteStyle
 import com.wasimaster.wmkeyboard.core.theme.paletteStyleSwatch
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.effectiveThemeId
+import com.wasimaster.wmkeyboard.core.settings.themeSelectionTarget
 import com.wasimaster.wmkeyboard.core.settings.CROP_FRAME_SUFFIX
 import com.wasimaster.wmkeyboard.core.settings.CROP_ORIGINAL_SUFFIX
 import com.wasimaster.wmkeyboard.core.settings.RotationInterval
@@ -2153,7 +2155,11 @@ fun ThemesScreen(
 
     // The cards are drawn in the screen's own body rather than in rows, so the
     // theme that is on is read once, here, for all of them.
-    val selectedThemeId = settings.watch { it.keyboardThemeId }
+    // With Auto light and dark on, the half that is due now: the keyboard
+    // reads that, not the manual selection, so the ring goes on it too.
+    val selectedThemeId = settings.watch {
+        if (it.autoTheme.enabled) it.effectiveThemeId(it.autoDarkSlotNow()) else it.keyboardThemeId
+    }
     // Which rows of cards are composed: the ones near the screen, see
     // [ThemeGalleryRow]. Saved, so coming back from the editor composes the
     // rows that were on screen at once, at the heights they had.
@@ -2174,7 +2180,7 @@ fun ThemesScreen(
     // Default (system) card first, then customs, then built-ins — two per row.
     DefaultThemeCard(
         selected = selectedThemeId == DEFAULT_THEME_ID,
-        onSelect = { scope.launch { repository.setKeyboardThemeId(DEFAULT_THEME_ID) } },
+        onSelect = { scope.launch { repository.useTheme(settings.value, DEFAULT_THEME_ID) } },
     )
     // A pencil tap on a family card asks what to copy: (family, shown look).
     var copyScopeFor by remember { mutableStateOf<Pair<ThemeSpec, ThemeSpec>?>(null) }
@@ -2208,7 +2214,7 @@ fun ThemesScreen(
                                 ThemeCard(
                                     theme = shown,
                                     selected = members.any { it.id == selectedThemeId },
-                                    onSelect = { scope.launch { repository.setKeyboardThemeId(shown.id) } },
+                                    onSelect = { scope.launch { repository.useTheme(settings.value, shown.id) } },
                                     onEdit = { onEditTheme(shown.id) },
                                     editRoute = themeEditRoute(shown.id),
                                     onExport = {
@@ -2242,7 +2248,7 @@ fun ThemesScreen(
                                         {
                                             VariantSwatchRow(entry, shownId) { variant ->
                                                 shownVariant[entry.id] = variant.id
-                                                scope.launch { repository.setKeyboardThemeId(variant.id) }
+                                                scope.launch { repository.useTheme(settings.value, variant.id) }
                                             }
                                         }
                                     } else {
@@ -2286,7 +2292,7 @@ fun ThemesScreen(
                             ThemeCard(
                                 theme = shown,
                                 selected = members.any { it.id == selectedThemeId },
-                                onSelect = { scope.launch { repository.setKeyboardThemeId(shown.id) } },
+                                onSelect = { scope.launch { repository.useTheme(settings.value, shown.id) } },
                                 // A family card asks whether the copy is of the shown
                                 // look or of the whole set; a lone card just copies.
                                 onEdit = {
@@ -2311,7 +2317,7 @@ fun ThemesScreen(
                                     {
                                         VariantSwatchRow(entry, shownId) { variant ->
                                             shownVariant[entry.id] = variant.id
-                                            scope.launch { repository.setKeyboardThemeId(variant.id) }
+                                            scope.launch { repository.useTheme(settings.value, variant.id) }
                                         }
                                     }
                                 } else {
@@ -8426,13 +8432,57 @@ private fun BackgroundSourceDialog(
     )
 }
 
+/**
+ * Which half of the Auto light and dark pair is due now, worked out the way
+ * the keyboard works it out: the phone's own dark mode (not this app's, which
+ * can be forced either way), the schedule, or the sun at the saved place.
+ */
+internal fun KeyboardSettings.autoDarkSlotNow(): Boolean {
+    val systemDark = (android.content.res.Resources.getSystem().configuration.uiMode and
+        android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+    val minutes = java.util.Calendar.getInstance().let {
+        it.get(java.util.Calendar.HOUR_OF_DAY) * 60 + it.get(java.util.Calendar.MINUTE)
+    }
+    val latitude = weather.latitude
+    val longitude = weather.longitude
+    val sun = if (autoTheme.trigger == AutoThemeTrigger.SUN && latitude != null && longitude != null) {
+        com.wasimaster.wmkeyboard.core.tools.SolarCalculator.forDate(
+            latitude.toDouble(), longitude.toDouble(), System.currentTimeMillis(),
+        )
+    } else {
+        null
+    }
+    return autoTheme.usesDarkSlot(systemDark, minutes, sun)
+}
+
+/**
+ * Makes [id] the theme, stored where the keyboard reads it: with Auto light
+ * and dark on, the half that is due now, the way the keyboard's own Themes
+ * panel does. Writing the manual selection under the pair changed nothing on
+ * screen (Telegram group: "select a theme with Auto on and it does nothing").
+ * A half that shuffles at random has no one theme to set, so the manual
+ * selection it is, as before.
+ */
+internal suspend fun SettingsRepository.useTheme(settings: KeyboardSettings, id: String) {
+    val darkSlot = settings.autoTheme.enabled && settings.autoDarkSlotNow()
+    when (settings.themeSelectionTarget(darkSlot, modeOwnsTheme = false)) {
+        com.wasimaster.wmkeyboard.core.settings.ThemeSelectionTarget.AUTO_DARK -> setAutoThemeDarkId(id)
+        com.wasimaster.wmkeyboard.core.settings.ThemeSelectionTarget.AUTO_LIGHT -> setAutoThemeLightId(id)
+        com.wasimaster.wmkeyboard.core.settings.ThemeSelectionTarget.MANUAL,
+        com.wasimaster.wmkeyboard.core.settings.ThemeSelectionTarget.NONE,
+        -> setKeyboardThemeId(id)
+    }
+}
+
 /** The photo providers a key of the user's own makes a theme's Photo services worth showing. */
 private val PHOTO_KEY_TYPES = setOf(ProviderTypes.UNSPLASH.id, ProviderTypes.PEXELS.id)
 
 /**
  * Whether this phone blurs another window behind ours right now: Android 12 or
- * later, with the system's cross-window blur on (battery saver and some
- * manufacturers' builds turn it off).
+ * later, with the system's cross-window blur on (battery saver, Samsung's
+ * Reduce transparency and blur, and some manufacturers' builds turn it off).
+ * Followed live, so the warning goes as soon as the user finds the switch and
+ * comes back, instead of staying until the screen is reopened.
  */
 @Composable
 private fun phoneBlursWindows(): Boolean {
