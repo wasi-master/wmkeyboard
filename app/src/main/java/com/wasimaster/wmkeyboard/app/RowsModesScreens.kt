@@ -167,6 +167,7 @@ private fun barRowTitle(row: BarRow, settings: KeyboardSettings): Int = when (ro
     BarRow.MACROS -> R.string.rows_bar_macros_title
     BarRow.STICKERS -> R.string.rows_bar_stickers_title
     BarRow.RECENT -> R.string.typing_recent_word_bar_title
+    BarRow.SECOND_TOOLBAR -> R.string.rows_bar_second_toolbar_title
     BarRow.KEYBOARD -> R.string.rows_bar_keyboard_title
 }
 
@@ -214,6 +215,8 @@ private fun barRowStatus(row: BarRow, settings: KeyboardSettings): Int? = when (
     }
     // Only listed while it has a row of its own ([barRowsListed]).
     BarRow.RECENT -> CommonR.string.common_off.takeUnless { settings.suggestionStrip.recentWordBar }
+    // Only listed while it is on ([barRowsListed]).
+    BarRow.SECOND_TOOLBAR -> null
     BarRow.KEYBOARD -> null
 }
 
@@ -233,6 +236,7 @@ private fun barRowShown(row: BarRow, settings: KeyboardSettings): Boolean = when
         settings.selectionMacros.placement == SelectionMacroPlacement.OWN_ROW
     BarRow.STICKERS -> settings.gif.stickerSuggest
     BarRow.RECENT -> settings.suggestionStrip.recentWordBar
+    BarRow.SECOND_TOOLBAR -> settings.toolbarBehavior.secondRow
     BarRow.KEYBOARD -> true
 }
 
@@ -252,6 +256,8 @@ internal fun barRowsListed(order: List<BarRow>, settings: KeyboardSettings): Lis
             BarRow.STICKERS -> settings.gif.stickerSuggest
             // Inline they are part of the strip's entry, as the tools are.
             BarRow.RECENT -> settings.rows.recentWordPlacement == RecentWordPlacement.OWN_ROW
+            // A row that is switched off on the Toolbar page (#1217).
+            BarRow.SECOND_TOOLBAR -> settings.toolbarBehavior.secondRow
             else -> true
         }
     }
@@ -365,6 +371,12 @@ private fun BarRowPreview(row: BarRow, shown: Boolean) {
             BarRow.RECENT -> repeat(2) {
                 PreviewGlyph("abc")
                 PreviewPill(22.dp, scheme.secondaryContainer)
+            }
+            // The clipboard trio and a caret move, the row's own defaults.
+            BarRow.SECOND_TOOLBAR -> for (icon in listOf(
+                Icons.Outlined.ContentCut, Icons.Outlined.ContentCopy, Icons.Outlined.ContentPaste,
+            )) {
+                Icon(icon, contentDescription = null, modifier = Modifier.size(12.dp), tint = scheme.onSurfaceVariant)
             }
             BarRow.KEYBOARD -> PreviewKeys(scheme.outline)
         }

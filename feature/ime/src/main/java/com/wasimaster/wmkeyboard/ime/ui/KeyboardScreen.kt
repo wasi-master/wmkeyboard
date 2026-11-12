@@ -2155,15 +2155,19 @@ private fun KeyboardScreenFrame(
                 keyHeightDp = SettingsRepository.KEY_HEIGHT_MAX_DP,
                 numberRowHeightDp = SettingsRepository.KEY_HEIGHT_MAX_DP,
             )
-            // Two bar rows when the tools have one of their own (#1261).
-            val barRows = if (
-                settings.toolbarBehavior.placement == ToolbarPlacement.ALWAYS_ROW &&
-                !settings.toolbarBehavior.stripHidden
-            ) {
-                2
-            } else {
-                1
-            }
+            // Two bar rows when the tools have one of their own (#1261), and
+            // one more for the second toolbar (#1217), which is a toolbar's
+            // height too.
+            val barRows = (
+                if (
+                    settings.toolbarBehavior.placement == ToolbarPlacement.ALWAYS_ROW &&
+                    !settings.toolbarBehavior.stripHidden
+                ) {
+                    2
+                } else {
+                    1
+                }
+                ) + (if (settings.toolbarBehavior.secondRow) 1 else 0)
             val headroomDp = (
                 (gridDp(tallest) - gridDp(entry)) +
                     (SettingsRepository.MAX_BOTTOM_PADDING_DP - entry.bottomPaddingDp) +
@@ -11578,6 +11582,94 @@ private fun ToolsRow(
 }
 
 /**
+ * The second toolbar (#1217): a row of the tools the user picked for it,
+ * apart from the pinned ones, that stays whatever the strip and the toolbar
+ * are doing.
+ *
+ * Its buttons are the bar's: the same [ToolCircle]s, labels, colours, sizes
+ * and hold behaviour, so a caret move repeats on a hold and a bound hold runs
+ * its tool, exactly as when the tool is pinned. They do not drag: the row's
+ * tools are picked and ordered in Settings, and a pick-up here would have
+ * nowhere to land on the bar's drop targets. Spread over the width when the
+ * toolbar's tool layout spreads, otherwise packed and scrolling once they
+ * outgrow it. No toolbox button and no way back out of a panel: those stay
+ * the toolbar's.
+ */
+@Composable
+private fun SecondToolbarRow(
+    state: KeyboardUiState,
+    onToolTap: (ToolbarTool) -> Unit,
+    drag: ToolDragController,
+) {
+    val behavior = state.settings.toolbarBehavior
+    val spread = behavior.greedy && !behavior.scrollable
+    val labels = state.settings.toolbarLabels
+    val labelSize = state.settings.toolbarLabelSize
+    val labelMaxWidth = LocalKbTheme.current.toolWidthDp.takeIf { behavior.labelsFixedWidth }
+    val tools = secondToolbarTools(state)
+    val direction = if (toolbarReadsRtl(state)) LayoutDirection.Rtl else LayoutDirection.Ltr
+    CompositionLocalProvider(LocalLayoutDirection provides direction) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(secondToolbarHeight(state.settings))
+                // The toolbar's padding, whether or not the toolbar is on: a
+                // negative one only shortened the row's height above.
+                .padding(
+                    top = behavior.paddingTopDp.coerceAtLeast(0).dp,
+                    bottom = behavior.paddingBottomDp.coerceAtLeast(0).dp,
+                )
+                .then(if (spread) Modifier else Modifier.horizontalScroll(rememberScrollState())),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            for (tool in tools) {
+                key(tool) {
+                    val cell = if (spread) {
+                        Modifier.weight(1f).fillMaxHeight()
+                    } else {
+                        Modifier.padding(horizontal = 3.dp)
+                    }
+                    Box(cell, contentAlignment = Alignment.Center) {
+                        DraggableTool(
+                            tool,
+                            fromToolbar = true,
+                            enabled = true,
+                            drag = drag,
+                            onTap = { onToolTap(tool) },
+                            holdRepeatMs = holdRepeatMs(tool, state),
+                            // The bar's binding, read straight: the Voice
+                            // tool's mode menu is the bar's alone, so here
+                            // its hold runs what the hold is bound to.
+                            holdAction = behavior.holdActionOf(tool),
+                            dragEnabled = false,
+                            holdArms = holdArmsSelection(tool, fromToolbar = true, state = state),
+                            holdPanel = state.panel != PanelMode.TOOLBOX &&
+                                holdOpensTrackpad(tool, fromToolbar = true, state = state),
+                            holdDelayMs = behavior.holdDelayMs,
+                        ) { holdModifier ->
+                            val paint = if (behavior.pinnedToolColors) toolAccentPaint(tool, state.settings) else null
+                            ToolCircle(
+                                slot = IconSlots.forTool(tool),
+                                description = toolLabel(tool),
+                                active = toolActive(tool, state),
+                                tint = paint?.color,
+                                tintBrush = paint?.brush,
+                                label = if (labels) toolLabel(tool) else null,
+                                labelSizeSp = labelSize,
+                                labelMaxWidthDp = labelMaxWidth,
+                                wide = true,
+                                modifier = holdModifier.panelOrigin(),
+                                interactive = false,
+                            ) {}
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
  * The pinned tools in a column down one side of the keys, for a phone on its
  * side ([ToolbarBehavior.landscapeColumn], #970): the bar's buttons in the
  * bar's order, top to bottom. The way back out of an open panel, the toolbox
@@ -14209,6 +14301,7 @@ internal fun fullBleedHiddenRows(
         // Avro's candidate row rides above the strip, so it hides with it.
         (if (phoneticCandidateBarShown(state)) PhoneticCandidateRowHeight else 0.dp) +
         (if (recentRowShown(state)) RecentRowHeight else 0.dp) +
+        (if (secondToolbarShown(state)) secondToolbarHeight(state.settings) else 0.dp) +
         // The macro row is state-driven, so unlike the on-demand tools row it
         // can be counted: whether it is on screen is in the ui state this
         // function already has.
@@ -14988,7 +15081,9 @@ private fun KeyboardBody(
             @Composable
             fun BarRowSlot(row: BarRow) {
                 Column(
-                    modifier = Modifier.barRowFill(if (row == BarRow.TOOLS) toolsFill else barFill)
+                    modifier = Modifier.barRowFill(
+                        if (row == BarRow.TOOLS || row == BarRow.SECOND_TOOLBAR) toolsFill else barFill,
+                    )
                         .duetBarTouch(state, onGesturePreview)
                         // The all-thumbs-up pause, shrinking along the strip (#747).
                         .then(
@@ -15233,6 +15328,15 @@ private fun KeyboardBody(
                             } else {
                                 RecentWordRow(state.recentBar, suggestionHold)
                             }
+                        }
+                        // The second toolbar (#1217). Not gated on the
+                        // toolbar or the strip, which it is there to outlast;
+                        // a full-bleed panel and the searches that take the
+                        // bars take it like every other row.
+                        BarRow.SECOND_TOOLBAR -> if (
+                            secondToolbarShown(state) && !fullBleed && !emojiSearching && !clipboardSearching
+                        ) {
+                            SecondToolbarRow(state, onToolTap, drag)
                         }
                         // Stands for the keys themselves: the split below draws
                         // them, so the entry itself is never a row.
@@ -25202,14 +25306,42 @@ private fun toolbarReadsRtl(state: KeyboardUiState): Boolean =
  * caller (full-bleed absorption, emoji-search sizing) drops the strip with it.
  */
 internal fun topBarHeight(settings: KeyboardSettings): Dp =
-    if (settings.toolbarBehavior.enabled) {
-        // A padding below zero (#970) takes height off the strip, never past
-        // the slider floor, and never past a bar a theme made shorter still.
-        val padded = settings.toolbarHeightDp + settings.toolbarBehavior.paddingTopDp + settings.toolbarBehavior.paddingBottomDp
-        padded.coerceAtLeast(minOf(settings.toolbarHeightDp, ToolbarHeightRange.first)).dp
-    } else {
-        0.dp
+    if (settings.toolbarBehavior.enabled) paddedToolbarHeight(settings) else 0.dp
+
+/**
+ * The toolbar's height with its padding, whether or not the toolbar is on:
+ * [topBarHeight] while it is, and the second toolbar's height always (#1217).
+ */
+private fun paddedToolbarHeight(settings: KeyboardSettings): Dp {
+    // A padding below zero (#970) takes height off the strip, never past
+    // the slider floor, and never past a bar a theme made shorter still.
+    val padded = settings.toolbarHeightDp + settings.toolbarBehavior.paddingTopDp + settings.toolbarBehavior.paddingBottomDp
+    return padded.coerceAtLeast(minOf(settings.toolbarHeightDp, ToolbarHeightRange.first)).dp
+}
+
+/**
+ * The second toolbar's height (#1217): a toolbar's, padding included, so it
+ * follows the toolbar height setting, a theme's toolbar height and the resize
+ * tool's toolbar handle. Not gated on the toolbar being on, since the row
+ * stays without it.
+ */
+internal fun secondToolbarHeight(settings: KeyboardSettings): Dp = paddedToolbarHeight(settings)
+
+/** The second toolbar's tools that can draw here, in its order (#1217). */
+internal fun secondToolbarTools(state: KeyboardUiState): List<ToolbarTool> =
+    state.settings.toolbarBehavior.secondRowTools.filter {
+        it in state.settings.enabledTools && isSupportedTool(it) && isUsableTool(it, state.settings)
     }
+
+/**
+ * Whether the second toolbar (#1217) has a row on screen, panels aside: on,
+ * with a tool to draw, and not on a lock screen the strip is kept off. The
+ * renderer and [fullBleedHiddenRows] both read it, so a full-bleed panel takes
+ * exactly the height the row gave up.
+ */
+internal fun secondToolbarShown(state: KeyboardUiState): Boolean =
+    state.settings.toolbarBehavior.secondRow && !barLockHidden(state) &&
+        secondToolbarTools(state).isNotEmpty()
 
 /**
  * The user's toolbar top and bottom padding (#208), for a row sized with

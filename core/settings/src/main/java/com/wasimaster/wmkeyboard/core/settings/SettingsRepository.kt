@@ -2217,6 +2217,28 @@ data class ToolbarBehavior(
      * always used, so nothing changes for anyone who never touches it.
      */
     val holdDelayMs: Int = 0,
+    /**
+     * A second row of tools, apart from the pinned ones (#1217): the tools
+     * someone wants in reach all the time, cut, copy, paste and the caret
+     * moves by default, on a row that does not depend on the toolbar. It
+     * stays whatever the strip shows, with the toolbar switched off, and
+     * under every [placement]. Off by default; on, it costs one toolbar's
+     * height. Where it sits is its [BarRow.SECOND_TOOLBAR] entry in
+     * [KeyboardSettings.barOrder].
+     */
+    val secondRow: Boolean = false,
+    /** The second row's tools, in the order it draws them. */
+    val secondRowTools: List<ToolbarTool> = DefaultSecondRowTools,
+)
+
+/**
+ * What the second toolbar (#1217) holds until the user picks its tools: the
+ * text editing the issue asked for, which is also what a toolbar that changes
+ * with the strip cannot keep in reach.
+ */
+val DefaultSecondRowTools: List<ToolbarTool> = listOf(
+    ToolbarTool.SELECT_ALL, ToolbarTool.CUT, ToolbarTool.COPY, ToolbarTool.PASTE,
+    ToolbarTool.CURSOR_HOME, ToolbarTool.CURSOR_END, ToolbarTool.UNDO, ToolbarTool.REDO,
 )
 
 /**
@@ -12588,6 +12610,8 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_BAR_TOOLBOX = booleanPreferencesKey("toolbar_bar_toolbox")
         private val TOOLBAR_TOOLS_ARROW = booleanPreferencesKey("toolbar_tools_arrow")
         private val TOOLBAR_DRAG_REARRANGE = booleanPreferencesKey("toolbar_drag_rearrange")
+        private val TOOLBAR_SECOND_ROW = booleanPreferencesKey("toolbar_second_row")
+        private val TOOLBAR_SECOND_ROW_TOOLS = stringPreferencesKey("toolbar_second_row_tools")
         private val THEMES_PANEL_BUILTINS = stringSetPreferencesKey("themes_panel_builtins")
         private val COMMA_AS_EMOJI = booleanPreferencesKey("comma_as_emoji")
         private val SWAP_COMMA_GLOBE = booleanPreferencesKey("swap_comma_globe")
@@ -15204,6 +15228,16 @@ class SettingsRepository(private val context: Context) {
             barToolbox = p[TOOLBAR_BAR_TOOLBOX] ?: defaults.toolbarBehavior.barToolbox,
             toolsArrow = p[TOOLBAR_TOOLS_ARROW] ?: defaults.toolbarBehavior.toolsArrow,
             holdDelayMs = p[TOOLBAR_HOLD_DELAY] ?: defaults.toolbarBehavior.holdDelayMs,
+            secondRow = p[TOOLBAR_SECOND_ROW] ?: defaults.toolbarBehavior.secondRow,
+            secondRowTools = p[TOOLBAR_SECOND_ROW_TOOLS]
+                ?.let { csv ->
+                    if (csv.isEmpty()) {
+                        emptyList()
+                    } else {
+                        csv.split(',').mapNotNull { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }.distinct()
+                    }
+                }
+                ?: defaults.toolbarBehavior.secondRowTools,
         )
 
     private fun readEmoji(p: Preferences, defaults: KeyboardSettings) =
@@ -17931,6 +17965,19 @@ class SettingsRepository(private val context: Context) {
         it[TOOLBAR_STRIP_SHORTCUTS] = value.distinct().joinToString(",") { tool -> tool.name }
         it.remove(TOOLBAR_STRIP_SHORTCUT)
     }
+
+    suspend fun setSecondToolbar(value: Boolean) =
+        editPrefs { it[TOOLBAR_SECOND_ROW] = value }
+
+    suspend fun setSecondToolbarTools(value: List<ToolbarTool>) =
+        editPrefs { it[TOOLBAR_SECOND_ROW_TOOLS] = value.distinct().joinToString(",") { tool -> tool.name } }
+
+    /** Moves the second toolbar's entry in the row order (#1217); see [withSecondToolbarAt]. */
+    suspend fun setSecondToolbarPlace(place: SecondToolbarPlace) =
+        editPrefs { prefs ->
+            val stored = readBarOrder(prefs, SettingsDefaults)
+            prefs[BAR_ORDER] = withSecondToolbarAt(stored, place).joinToString(",") { row -> row.name }
+        }
 
     suspend fun setStripOwnSize(value: Boolean) =
         editPrefs { it[TOOLBAR_STRIP_OWN_SIZE] = value }

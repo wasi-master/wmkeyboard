@@ -1257,6 +1257,9 @@ internal object SettingsRowIcons {
         put(R.string.appearance_toolbar_bar_toolbox_title) { Icons.Outlined.GridView }
         put(R.string.appearance_toolbar_tools_arrow_title) { Icons.Outlined.UnfoldMore }
         put(R.string.appearance_toolbar_landscape_column_title) { Icons.Outlined.ViewColumn }
+        put(R.string.appearance_second_toolbar_title) { Icons.Outlined.ViewAgenda }
+        put(R.string.appearance_second_toolbar_place_title) { Icons.Outlined.SwapVert }
+        put(R.string.appearance_second_toolbar_tools_title) { Icons.Outlined.ContentPaste }
         put(R.string.tooldetail_hold_title) { Icons.Outlined.TouchApp }
         put(R.string.tooldetail_show_in_toolbox_title) { Icons.Outlined.Apps }
         put(R.string.tooldetail_icon_colour_title) { Icons.Outlined.Colorize }
