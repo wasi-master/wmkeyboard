@@ -957,8 +957,8 @@ fn main() {
             let mut t = Tally::default();
             let mut commits = Vec::new();
             type_sentence(
-                &words, &strokes, aligned.then_some(&owner[..]), &kinds, &geometry, touch, &mut t, shown < show, study,
-                &mut commits, sigma,
+                &words, &strokes, aligned.then_some(&owner[..]), &kinds, &geometry, touch, &mut t, shown < show,
+                &format!("{study}|{}", f[3]), &mut commits, sigma,
             );
             shown += 1;
             if personal {

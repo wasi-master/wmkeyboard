@@ -146,6 +146,44 @@ cd ../../tools/swipe-ctc && python taps_eval.py taps_run/best.pt tap_cases.tsv .
 The result is an upper bound: the encoder was trained on the very noise
 model it is tested on. It is not wired into the app.
 
+### On recorded taps (2026-11-13)
+
+`taps_real.py` trains TapCtc (d96, 4 layers, 6,000 steps of 256, 12
+minutes on an M2) on TSI's people simulated on the real studies' keyboards
+(spread up to 2.6 times TSI's, letters left out, doubled and swapped) mixed
+30% with the real words of Vertanen & Kristensson's noisy typing dev set,
+and reads the test set and TSI (`sentence_eval REPLAY=... CASES_OUT=...`,
+19,492 one-word buffers from 117 people) beside wm-engine's whole-phrase
+decoder on the same taps. Top reading right, on the 7,264 buffers the
+person mistyped:
+
+| | decoder | encoder | either |
+|---|---|---|---|
+| all | .774 | .785 | .845 |
+| TSI | .894 | .862 | .922 |
+| Vertanen | .752 | .770 | .831 |
+
+Alone, the encoder is one point ahead and three behind on TSI, the set it
+saw no real taps from: what the published comparisons found (Ma et al.,
+CHI 2025, 95.4% against 96.3% for a spatial model and language model).
+The two are wrong on different words, though. Letting the encoder change
+only a word the decoder left as typed, when its best word leads its second
+by a margin, on what ends up in the field:
+
+| rule | mistyped fixed | TSI | correct words changed |
+|---|---|---|---|
+| decoder as shipped | .707 | .840 | 0.14% |
+| + encoder, lead 6 | .726 | .842 | 0.14% |
+| + encoder, lead 4 | .746 | .850 | 0.20% |
+| + encoder, lead 2 | .769 | .863 | 0.39% |
+
+Two to four points of mistyped words at the bar this pilot set for itself
+(three points, no more damage) is short of it, and the Vertanen numbers
+carry some home advantage from the dev set's studies. A rented-GPU run of
+the full size and a merge fitted properly might clear it; shipping would
+also need the ExecuTorch export and a reading of Google's US9678664
+(neural keyboard decoding, in force to about 2035). Not wired into the app.
+
 ## Transplanting a stroke
 
 swipe.futo.org was drawn on QWERTY only. To train on and test other layouts
