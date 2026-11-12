@@ -21305,7 +21305,7 @@ open class WMKeyboardService : InputMethodService() {
             // which already keeps it out of the lexicon.
             // The strip's other readings of the word, for the context
             // revision to weigh once the next word shows what was meant.
-            suggestionEngine?.noteCommit(output, state.suggestions)
+            suggestionEngine?.noteCommit(output, state.suggestions, typed)
             learn(
                 output,
                 reinforcement = if (corrected != null) 0 else 1,
@@ -23594,6 +23594,36 @@ open class WMKeyboardService : InputMethodService() {
     /** The pause rescoring's job (see refreshStrip), one at a time. */
     private var pauseRevisionJob: Job? = null
 
+    /** The decoder's re-read of the word before ([applyRecheck]), one at a time. */
+    private var recheckJob: Job? = null
+
+    /**
+     * What [SuggestionEngine.recheckPrevious] found, acted on: a sure re-read
+     * goes in when autocorrect is on, with backspace and the undo chip to take
+     * it back, the way a correction at the space does; one that only came
+     * close is the revision chip's, when that row is on and the chip is free.
+     */
+    private fun applyRecheck(found: SuggestionEngine.Revision) {
+        val state = _uiState.value
+        val follower = found.followers.joinToString(" ")
+        if (found.sure && state.settings.correction.enabled) {
+            val (was, now) = rewriteBehind(found.wrong, follower, found.replacement) ?: return
+            if (state.settings.suggestionStrip.undoCorrectionChip) {
+                pushUndo(UndoableCorrection(was, now))
+                _uiState.update { it.copy(undoChips = it.undoChips.copy(correctionUndo = was)) }
+            }
+            recordStat { onAutocorrect(offer = false, System.currentTimeMillis()) }
+            // A stale precompute would read the next word after the old one.
+            commitResolution = null
+            currentInputConnection?.let { syncPreviousWordFromField(it) }
+            return
+        }
+        if (!state.settings.suggestionStrip.contextRevision) return
+        if (state.revisionSuggestion != null || !revisionFirstOffer(found)) return
+        revisionContext = found.wrong to follower
+        _uiState.update { it.copy(revisionSuggestion = found.replacement) }
+    }
+
     /** How long the typing must pause before the last few words are re-read. */
     private val REVISION_PAUSE_MS = 1_000L
 
@@ -23621,28 +23651,42 @@ open class WMKeyboardService : InputMethodService() {
         }
         val replacement = state.revisionSuggestion ?: return
         val (wrong, follower) = revisionContext ?: return
-        if (composing.isNotEmpty()) return
-        val ic = currentInputConnection ?: return
+        rewriteBehind(wrong, follower, replacement)
+        revisionContext = null
+        _uiState.update { it.copy(revisionSuggestion = null) }
+    }
+
+    /**
+     * Puts [replacement] in place of [wrong] where the field ends in [wrong],
+     * a separator and [follower] (plus whatever separators followed), keeping
+     * the case of [wrong]'s first letter; backspace right after takes it
+     * back. Returns the word as the field held it and what replaced it, or
+     * null with nothing rewritten when the field says otherwise or a word is
+     * being composed.
+     */
+    private fun rewriteBehind(wrong: String, follower: String, replacement: String): Pair<String, String>? {
+        if (composing.isNotEmpty()) return null
+        val ic = currentInputConnection ?: return null
         ic.beginBatchEdit()
         try {
             ic.finishComposingText()
             val window = ic
                 .getTextBeforeCursor(wrong.length + follower.length + REVISION_LOOKBEHIND, 0)
-                ?.toString() ?: return
+                ?.toString() ?: return null
             // Peel the field tail apart: trailing separators, the follower,
             // the separator run, then the word to replace — each verified
             // against what the chip was computed for.
             val trailing = window.takeLastWhile { !it.isLetter() }
             val tail = window.dropLast(trailing.length)
-            if (!tail.endsWith(follower, ignoreCase = true)) return
+            if (!tail.endsWith(follower, ignoreCase = true)) return null
             val beforeFollower = tail.dropLast(follower.length)
             val sep = beforeFollower.takeLastWhile { !it.isLetter() }
-            if (sep.isEmpty()) return
+            if (sep.isEmpty()) return null
             val core = beforeFollower.dropLast(sep.length)
-            if (!core.endsWith(wrong, ignoreCase = true)) return
+            if (!core.endsWith(wrong, ignoreCase = true)) return null
             // Word boundary: "s o their" must match, "sother" must not.
             if (core.length > wrong.length && core[core.length - wrong.length - 1].isLetter()) {
-                return
+                return null
             }
             val wrongActual = core.takeLast(wrong.length)
             val followerActual = tail.takeLast(follower.length)
@@ -23664,11 +23708,10 @@ open class WMKeyboardService : InputMethodService() {
             armRevertGuard()
             invalidateRecentWords()
             invalidateExpectedSelection()
+            return wrongActual to display
         } finally {
             ic.endBatchEdit()
         }
-        revisionContext = null
-        _uiState.update { it.copy(revisionSuggestion = null) }
     }
 
     /**
@@ -29036,6 +29079,19 @@ open class WMKeyboardService : InputMethodService() {
                 engine.contextRevision()?.takeIf(::revisionFirstOffer)?.let { found ->
                     revision = found.replacement
                     revisionContext = found.wrong to found.followers.joinToString(" ")
+                }
+            }
+            // The taps of the word before read again by the decoder, with
+            // the word just committed in sight ("live on London" → "in"). Off
+            // the main thread; each commit is judged once, so a refresh that
+            // finds a job in flight leaves it be rather than losing its answer.
+            if (typed.isEmpty() && revision == null && state.allowsTypingIntelligence &&
+                state.settings.correction.readWholePhrases && recheckJob?.isActive != true
+            ) {
+                recheckJob = serviceScope.launch {
+                    val found = withContext(suggestionDispatcher) { engine.recheckPrevious() } ?: return@launch
+                    if (composing.isNotEmpty()) return@launch
+                    applyRecheck(found)
                 }
             }
             // And the last few words once the typing pauses: the same chip,

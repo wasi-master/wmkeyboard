@@ -255,6 +255,17 @@ struct Tally {
     intact: usize,
     decide_us: u128,
     decides: usize,
+    rechecks: usize,
+    recheck_fixed: usize,
+    recheck_broke: usize,
+}
+
+/// The buffer committed last, for `RECHECK`: its taps, where its words
+/// start in the field, and what was meant.
+struct Last {
+    taps: Vec<Tap>,
+    start: usize,
+    want: String,
 }
 
 impl Tally {
@@ -267,7 +278,7 @@ impl Tally {
             .map(|(k, (n, fixed))| format!("{k} {}/{} ({:.0}%)", fixed, n, 100.0 * *fixed as f64 / (*n).max(1) as f64))
             .collect();
         format!(
-            "{label}: WER typed {:.2}% -> field {:.2}% | sentences clean {:.1}% | correct words changed {:.2}% ({}/{}) | fixed: {} | {:.0} us/decide",
+            "{label}: WER typed {:.2}% -> field {:.2}% | sentences clean {:.1}% | correct words changed {:.2}% ({}/{}) | fixed: {} | recheck {} changed, {} fixed, {} broke | {:.0} us/decide",
             100.0 * self.literal_errors as f64 / w,
             100.0 * self.errors as f64 / w,
             100.0 * self.clean_sentences as f64 / self.sentences.max(1) as f64,
@@ -275,6 +286,9 @@ impl Tally {
             self.damaged,
             self.intact,
             kinds.join(", "),
+            self.rechecks,
+            self.recheck_fixed,
+            self.recheck_broke,
             self.decide_us as f64 / self.decides.max(1) as f64,
         )
     }
@@ -397,6 +411,9 @@ fn main() {
     dec_params.ln_swap = env::<f64>("SWAP", dec_params.ln_swap.exp()).ln();
     dec_params.ln_omit = env::<f64>("OMIT", dec_params.ln_omit.exp()).ln();
     dec_params.ln_insert = env::<f64>("INSERT", dec_params.ln_insert.exp()).ln();
+    let recheck_on = env::<i32>("RECHECK", 0) == 1;
+    let recheck_margin: f64 = env("RECHECK_MARGIN", decoder::RECHECK_MARGIN);
+    let recheck_known: f64 = env("RECHECK_KNOWN", decoder::RECHECK_KNOWN_MARGIN);
     let apply_margin: f64 = env("MARGIN", decoder::APPLY_MARGIN);
     let known_margin: f64 = env("KNOWN_MARGIN", decoder::KNOWN_MARGIN);
     let geometry = Geometry { keys: keys.clone(), space: Some((SPACE_X, 3.0 * ROW, SPACE_HALF_WIDTH, ROW / 2.0)) };
@@ -482,6 +499,7 @@ fn main() {
             let mut taps: Vec<Option<(f32, f32)>> = Vec::new();
             let mut owners: Vec<usize> = Vec::new();
             let mut typed_view = String::new();
+            let mut prior_buffer: Option<Last> = None;
             let n = strokes.len();
             for (k, s) in strokes.iter().enumerate() {
                 let last = k + 1 == n;
@@ -499,14 +517,14 @@ fn main() {
                     let previous = field.last().map(String::as_str).unwrap_or(wm_engine::predict::SENTENCE_START);
                     let corrects = !at_end || punct_corrects;
                     let started = Instant::now();
+                    let dtaps: Vec<Tap> = buf
+                        .encode_utf16()
+                        .zip(taps.iter())
+                        .map(|(c, at)| Tap { typed: c, at: *at })
+                        .collect();
                     let out = if let Some(fixed) = p.elide(&buf) {
                         fixed
                     } else if corrects && use_decoder {
-                        let dtaps: Vec<Tap> = buf
-                            .encode_utf16()
-                            .zip(taps.iter())
-                            .map(|(c, at)| Tap { typed: c, at: *at })
-                            .collect();
                         let mut src = vec![Source { walker: dec_list.dict(), prior: &dec_prior }];
                         if let Some(l2) = &list2 {
                             src.push(Source { walker: l2.dict(), prior: &prior2 });
@@ -582,7 +600,65 @@ fn main() {
                             writeln!(f, "{scale}\t{kind}\t{want}\t{buf}\t{out}").unwrap();
                         }
                     }
+                    let start = field.len();
                     field.extend(out.split(' ').map(str::to_lowercase));
+                    // `RECHECK=1`: the buffer before this one, read again
+                    // with this one's words after it.
+                    if let (true, Some(prev)) = (recheck_on, prior_buffer.take()) {
+                        let started = Instant::now();
+                        let before: Vec<&str> = field[..prev.start].iter().map(String::as_str).collect();
+                        let after: Vec<&str> = field[start..].iter().map(String::as_str).collect();
+                        let committed = field[prev.start..start].join(" ");
+                        let mut src = vec![Source { walker: dec_list.dict(), prior: &dec_prior }];
+                        if let Some(l2) = &list2 {
+                            src.push(Source { walker: l2.dict(), prior: &prior2 });
+                        }
+                        let found = {
+                            let mut lm_guard = p.lm.as_ref().map(|l| l.borrow_mut());
+                            let prefix = p.lm_prefix;
+                            let mut seq = |text: &str| -> Option<f64> {
+                                let lm = lm_guard.as_mut()?;
+                                let mut ctx: Vec<&str> = before.clone();
+                                let mut total = 0.0;
+                                for w in text.split(' ') {
+                                    lm.set_context(prefix, &ctx);
+                                    total += lm.logprob(w)? as f64;
+                                    ctx.push(w);
+                                }
+                                Some(total)
+                            };
+                            let has_lm = p.lm.is_some();
+                            decoder::recheck(
+                                &prev.taps, &geometry, &src, &dec_context, &before, &committed, &after, &dec_params, &adjacent,
+                                if has_lm { Some((lm_w, &mut seq)) } else { None },
+                                recheck_margin, recheck_known,
+                            )
+                        };
+                        t.decide_us += started.elapsed().as_micros();
+                        if let Some(text) = found.apply {
+                            let text = p.elide(&text).unwrap_or(text).to_lowercase();
+                            let was_right = committed == prev.want;
+                            let now_right = text == prev.want;
+                            t.rechecks += 1;
+                            if now_right && !was_right {
+                                t.recheck_fixed += 1;
+                            } else if was_right && !now_right {
+                                t.recheck_broke += 1;
+                                if let Some(f) = errors_out.as_mut() {
+                                    writeln!(f, "{scale}\trecheck-broke\t{}\t{committed}\t{text}", prev.want).unwrap();
+                                }
+                            }
+                            let new_words: Vec<String> = text.split(' ').map(str::to_string).collect();
+                            let shift = new_words.len() as isize - (start - prev.start) as isize;
+                            field.splice(prev.start..start, new_words);
+                            let start = (start as isize + shift) as usize;
+                            prior_buffer = Some(Last { taps: dtaps.clone(), start, want: want.clone() });
+                        } else {
+                            prior_buffer = Some(Last { taps: dtaps.clone(), start, want: want.clone() });
+                        }
+                    } else {
+                        prior_buffer = Some(Last { taps: dtaps.clone(), start, want: want.clone() });
+                    }
                     buf.clear();
                     taps.clear();
                     owners.clear();

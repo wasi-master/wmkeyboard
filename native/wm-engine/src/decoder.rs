@@ -697,6 +697,117 @@ pub fn verdict(decoded: &Decoded, typed: &str, margin: f64, known_margin: f64) -
     }
 }
 
+/// What re-reading a committed buffer with the words after it found.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Recheck {
+    /// The reading to put in place of what was committed.
+    pub apply: Option<String>,
+    /// A reading close enough to offer as a chip.
+    pub offer: Option<String>,
+    /// How far the best reading leads what was committed, in nats.
+    pub lead: f64,
+}
+
+/// How far a re-read must lead what was committed before it rewrites text
+/// the user has already seen land. Measured on the sentence harness over
+/// 2..5 and 4..10: 3 and 5 fixed 26 to 41 words per 400 sentences and broke
+/// none on a careful hand, where 2 and 4 broke three.
+pub const RECHECK_MARGIN: f64 = 3.0;
+/// The same, when what stands is the word as typed and a list holds it.
+pub const RECHECK_KNOWN_MARGIN: f64 = 5.0;
+
+/// Re-reads the taps of the buffer committed as `committed`, now that the
+/// words `after` it have landed: "I want to by a car" has `by` wrong once
+/// `a car` is in. `before` are the words before the buffer. The taps are
+/// decoded as at commit time, then every reading (and the literal) gains
+/// what the pairs say about the words after it, and, with `lm`, the context
+/// model's say over the reading followed by `after`. What was committed has
+/// to be among the readings or be the literal, or there is nothing to
+/// compare with.
+#[allow(clippy::too_many_arguments)]
+pub fn recheck(
+    taps: &[Tap],
+    geometry: &Geometry,
+    sources: &[Source],
+    context: &dyn Context,
+    before: &[&str],
+    committed: &str,
+    after: &[&str],
+    params: &Params,
+    adjacent: &dyn Fn(u16, u16) -> bool,
+    lm: Option<(f64, ModelSeq)>,
+    margin: f64,
+    known_margin: f64,
+) -> Recheck {
+    if after.is_empty() || taps.is_empty() {
+        return Recheck::default();
+    }
+    let typed: String = String::from_utf16_lossy(&taps.iter().map(|t| t.typed).collect::<Vec<_>>());
+    // An apostrophe the keyboard put in ("im" committed as "i'm") is its own
+    // rule's call; read again, the taps would price it as a letter left out
+    // and hand "in" the win.
+    if committed.contains('\'') && !typed.contains('\'') {
+        return Recheck::default();
+    }
+    let mut d = decode(taps, geometry, sources, context, before, params, adjacent, RECHECK_READINGS);
+    // The pairs the words after a reading make with it.
+    let right = |text: &str| -> f64 {
+        let mut seq: Vec<&str> = before.iter().rev().take(2).rev().copied().collect();
+        seq.extend(text.split(' '));
+        let start = seq.len();
+        seq.extend_from_slice(after);
+        let mut b = 0.0;
+        for j in start..seq.len() {
+            let p1 = seq.get(j.wrapping_sub(1)).copied();
+            let p2 = if j >= 2 { seq.get(j - 2).copied() } else { None };
+            b += context.bonus(p2, p1, seq[j]);
+        }
+        b
+    };
+    for r in d.readings.iter_mut() {
+        let b = right(&r.text);
+        r.score += b;
+        r.lexical += b;
+    }
+    let b = right(&typed);
+    d.literal += b;
+    d.literal_lexical += b;
+    d.readings.sort_by(|a, b| b.score.total_cmp(&a.score).then_with(|| a.text.cmp(&b.text)));
+    if let Some((weight, seq)) = lm {
+        let tail = after.join(" ");
+        blend(&mut d, &typed, weight, |text| seq(&format!("{text} {tail}")));
+    }
+    let own = d
+        .readings
+        .iter()
+        .find(|r| r.text == committed)
+        .map(|r| r.score)
+        .into_iter()
+        .chain((committed == typed).then_some(d.literal))
+        .reduce(f64::max);
+    let Some(own) = own else { return Recheck::default() };
+    let Some(best) = d.readings.first() else { return Recheck::default() };
+    if best.text == committed {
+        return Recheck::default();
+    }
+    let lead = best.score - own;
+    let bar = if committed == typed && d.literal_listed { known_margin } else { margin };
+    if lead >= bar {
+        Recheck { apply: Some(best.text.clone()), offer: None, lead }
+    } else if lead >= bar * OFFER_SHARE {
+        Recheck { apply: None, offer: Some(best.text.clone()), lead }
+    } else {
+        Recheck { lead, ..Recheck::default() }
+    }
+}
+
+/// The context model's log-probability of a text's words in turn, `None`
+/// where it cannot read them; what [`recheck`] blends in.
+pub type ModelSeq<'a> = &'a mut dyn FnMut(&str) -> Option<f64>;
+
+/// Readings a re-check weighs.
+const RECHECK_READINGS: usize = 8;
+
 impl Geometry {
     /// The space bar where a phone keyboard puts it, when the caller has no
     /// rectangle for it: one row below the bottom letter row, from the left
@@ -808,6 +919,32 @@ mod tests {
         let taps = vec![tap(&g, 'w', 0.0, 0.0), tap(&g, 'j', -0.45, 0.0), tap(&g, 'a', 0.0, 0.0), tap(&g, 'r', 0.45, 0.0)];
         let d = run(&l, &taps);
         assert_eq!(d.best().unwrap().text, "what");
+    }
+
+    #[test]
+    fn the_next_word_proves_the_last_one_wrong() {
+        let g = qwerty();
+        let l = WordList::of(&[("i", 900), ("live", 300), ("in", 950), ("on", 940), ("london", 100)]);
+        let rank = |f: i32| zipf(((1000 - f.min(1000)) / 50 + 1) as usize, 5);
+        let src = [Source { walker: l.dict(), prior: &rank }];
+        let bigram = |a: &str, b: &str| match (a, b) {
+            ("in", "london") => 5000,
+            ("live", "in") | ("live", "on") => 100,
+            _ => 0,
+        };
+        let trigram = |_: &str, _: &str, _: &str| 0;
+        let ctx = Pairs { bigram: &bigram, trigram: &trigram, alpha: 1.0, tri: 0.0, cap: 9.0 };
+        // `on`, the o tapped toward the i.
+        let taps = [tap(&g, 'o', -0.3, 0.0), tap(&g, 'n', 0.0, 0.0)];
+        let p = Params::default();
+        let none = |_: u16, _: u16| false;
+        let run = |after: &[&str], committed: &str| {
+            recheck(&taps, &g, &src, &ctx, &["i", "live"], committed, after, &p, &none, None, RECHECK_MARGIN, RECHECK_KNOWN_MARGIN)
+        };
+        assert_eq!(run(&["london"], "on").apply.as_deref(), Some("in"));
+        // Nothing after it yet, or nothing the taps could have been: left be.
+        assert_eq!(run(&[], "on"), Recheck::default());
+        assert_eq!(run(&["london"], "of").apply, None);
     }
 
     #[test]

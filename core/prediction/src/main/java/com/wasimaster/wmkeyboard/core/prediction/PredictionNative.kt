@@ -127,6 +127,38 @@ internal object PredictionNative {
         out: DoubleArray,
     ): Array<String>
 
+    /**
+     * The buffer [typed] (taps and sources as in [decoderDecide]) read again
+     * now that the words [after] have landed behind it: it was committed as
+     * [committed] after the words [before]. Returns `[apply, offer, lead]`,
+     * apply and offer empty for none.
+     */
+    @Suppress("LongParameterList")
+    external fun decoderRecheck(
+        dicts: LongArray,
+        kinds: IntArray,
+        typed: String,
+        touchKeys: CharArray?,
+        touchCenters: FloatArray?,
+        touchPoints: FloatArray?,
+        space: FloatArray?,
+        sigmaScale: Double,
+        before: Array<String>,
+        committed: String,
+        after: Array<String>,
+        packs: LongArray,
+        seedFirst: Array<String>?,
+        seedSecond: Array<String>?,
+        seedCounts: IntArray?,
+        lmSession: Long,
+        lmWeight: Double,
+        register: Int,
+        field: Int,
+        lang: Int,
+        margin: Double,
+        knownMargin: Double,
+    ): Array<String>
+
     // The user lexicon (UserLexicon). Words arrive folded (WordKey); the
     // n-gram kinds are 0 bigram, 1 trigram, 2 one-skip, 3 two-skip.
     external fun lexNew(): Long
