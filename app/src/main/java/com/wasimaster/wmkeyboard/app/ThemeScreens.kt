@@ -8438,9 +8438,14 @@ private val PHOTO_KEY_TYPES = setOf(ProviderTypes.UNSPLASH.id, ProviderTypes.PEX
 private fun phoneBlursWindows(): Boolean {
     if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) return false
     val context = androidx.compose.ui.platform.LocalContext.current
-    return remember(context) {
-        context.getSystemService(android.view.WindowManager::class.java)?.isCrossWindowBlurEnabled == true
+    val windows = remember(context) { context.getSystemService(android.view.WindowManager::class.java) }
+    var on by remember(windows) { mutableStateOf(windows?.isCrossWindowBlurEnabled == true) }
+    androidx.compose.runtime.DisposableEffect(windows) {
+        val listener = java.util.function.Consumer<Boolean> { on = it }
+        runCatching { windows?.addCrossWindowBlurEnabledListener(context.mainExecutor, listener) }
+        onDispose { runCatching { windows?.removeCrossWindowBlurEnabledListener(listener) } }
     }
+    return on
 }
 
 // ---- labels for the material, board effect and lighting pickers ----

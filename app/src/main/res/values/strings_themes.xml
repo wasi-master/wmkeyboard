@@ -458,7 +458,7 @@
     <string name="theme_glass_dispersion_body">How far red and blue part where the pane bends the backdrop, like light through the edge of a prism.</string>
     <string name="theme_glass_window_blur_title">Blur behind the keyboard</string>
     <string name="theme_glass_window_blur_subtitle">The app behind the keyboard shows through the board, blurred. Android 12 and later. Off while the phone\'s blur or the keyboard\'s power saving is off, and in the floating keyboard. Turn this off, and set Behind the glass to Nothing, for a solid keyboard</string>
-    <string name="theme_glass_window_blur_unavailable">This phone isn\'t blurring windows right now: its blur is off, or it has none. The glass shows your wallpaper instead of the app, so the background won\'t change from app to app. Look for a window blur switch in the phone\'s settings, or turn off battery saver.</string>
+    <string name="theme_glass_window_blur_unavailable">This phone isn\'t blurring windows right now: its blur is off, or it has none. The glass shows your wallpaper instead of the app, so the background won\'t change from app to app. Look for a window blur switch in the phone\'s settings (on Samsung, turn off Reduce transparency and blur under Accessibility › Visibility enhancements), or turn off battery saver.</string>
     <string name="theme_glass_blur_strength_title">Blur strength</string>
     <string name="theme_glass_blur_strength_body">How far the system blurs the app behind the board, and the keys behind a popup or menu.</string>
     <string name="theme_glass_fallback_title">Board opacity without blur</string>
