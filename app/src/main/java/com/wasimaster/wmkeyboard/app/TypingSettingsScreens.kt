@@ -4403,9 +4403,19 @@ private fun SettingsGroupScope.glideVocabularyRows(
     // Whether a glide may offer a word the stroke has not finished
     // spelling — the tap typist's head start, for a swipe.
     item {
+        // Two-thumb typing ends a word at Space or a pause, never at the lift,
+        // so there is no lift for a guess to be typed on and its strokes are
+        // read without one. The row says so rather than sit there inert (#1250).
+        val twoThumb = settings.watch { it.gesture.twoThumbGlide }
         ChoiceSetting(
             title = R.string.typing_glide_lookahead_title,
-            subtitle = stringResource(R.string.typing_glide_lookahead_subtitle),
+            subtitle = stringResource(
+                if (twoThumb) {
+                    R.string.typing_glide_lookahead_two_thumb_subtitle
+                } else {
+                    R.string.typing_glide_lookahead_subtitle
+                },
+            ),
             info = stringResource(R.string.typing_glide_lookahead_info),
             options = GlideLookAhead.entries.map { it to stringResource(it.labelRes) },
             selected = settings.watch { it.gesture.lookAhead },
