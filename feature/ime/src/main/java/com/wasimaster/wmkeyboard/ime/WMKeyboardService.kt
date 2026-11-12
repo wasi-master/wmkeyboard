@@ -8012,11 +8012,12 @@ open class WMKeyboardService : InputMethodService() {
                 override fun appletClosed(panel: PanelMode) = appletLeft(panel)
                 override fun appletToKeyboard(panel: PanelMode) {
                     val tool = appletTool
-                    // Translate's text and translation move in with it.
-                    if (panel == PanelMode.TRANSLATE) {
+                    // Translate's text and translation move in with it, and
+                    // web search's and Wikipedia's text with them (#1265).
+                    if (panel in BoxSearchPanels) {
                         val now = _uiState.value
-                        val query = if (now.panel == PanelMode.NONE) now.mediaQuery else appletTranslateHeld.orEmpty()
-                        translateCarry = TranslateCarry(query, now.translate)
+                        val query = if (now.panel == PanelMode.NONE) now.mediaQuery else appletSearchHeld.orEmpty()
+                        translateCarry = TranslateCarry(query, now.translate, panel)
                     }
                     appletLeft(panel)
                     if (tool != null) runToolFromFloatingButton(tool)
@@ -8035,14 +8036,19 @@ open class WMKeyboardService : InputMethodService() {
     private var appletTool: ToolbarTool? = null
 
     /**
-     * The box's Translate text while one of the keyboard's own search panels
-     * has the search box the two share; back in [onPanelChange] when the
-     * keyboard is down to its keys again. Null while Translate has it.
+     * The box's Translate, web search or Wikipedia text (#1265) while one of
+     * the keyboard's own search panels has the search box they share; back in
+     * [onPanelChange] when the keyboard is down to its keys again. Null while
+     * the box's tool has it.
      */
-    private var appletTranslateHeld: String? = null
+    private var appletSearchHeld: String? = null
 
-    /** Translate's text and translation on their way from the box into the keyboard's panel. */
-    private class TranslateCarry(val query: String, val ui: TranslateUi)
+    /**
+     * A box search tool's text on its way between the box and the keyboard's
+     * panel, and Translate's translation with it. [panel] is the tool it
+     * belongs to, so web search's text never lands in Translate.
+     */
+    private class TranslateCarry(val query: String, val ui: TranslateUi, val panel: PanelMode = PanelMode.TRANSLATE)
     private var translateCarry: TranslateCarry? = null
 
     /**
@@ -8051,11 +8057,11 @@ open class WMKeyboardService : InputMethodService() {
      * the box shows something else, or when the keyboard's panel stays open
      * over the new field ([panelStays]) and keeps the search box.
      */
-    private fun KeyboardUiState.boxTranslateQuery(panelStays: Boolean): String? = when {
-        appletPanel != PanelMode.TRANSLATE -> null
+    private fun KeyboardUiState.boxSearchQuery(panelStays: Boolean): String? = when {
+        boxSearchPanel == null -> null
         panel == PanelMode.NONE -> mediaQuery
         panelStays -> null
-        else -> appletTranslateHeld.orEmpty()
+        else -> appletSearchHeld.orEmpty()
     }
 
     /** Watches for the box's text box taking the keys while the keyboard is down; see [openFloatingApplet]. */
@@ -8081,8 +8087,142 @@ open class WMKeyboardService : InputMethodService() {
             onCaretTap = ::onCaptureCaretTap,
             onSelect = ::onCaptureSelect,
             onSelectionAction = ::onCaptureSelectionAction,
+            box = com.wasimaster.wmkeyboard.ime.floating.AppletToolCallbacks(
+                clipboard = com.wasimaster.wmkeyboard.ime.ui.ClipboardFieldCallbacks(
+                    onItem = ::onAppletClip,
+                    // With no field to send a sticker to, the picture goes on the clipboard.
+                    onSticker = { item ->
+                        if (windowOnScreen && currentInputConnection != null) onClipboardSticker(item) else onAppletClip(item)
+                    },
+                    onPin = ::onClipboardPin,
+                    onDelete = ::onClipboardDelete,
+                    // The box shows the history; its search is the keyboard's panel's.
+                    onSearchToggle = {},
+                    onEntity = { entity -> boxField(copy = entity.value) { onClipboardEntityTapped(entity) } },
+                    actions = appletClipActions(),
+                ),
+                // Only built once the box shows the calendar.
+                calendar = lazy { calendarTool.callbacks },
+                onMediaPlayPause = ::onMediaPlayPause,
+                onMediaNext = ::onMediaNext,
+                onMediaPrevious = ::onMediaPrevious,
+                onMediaSeek = ::onMediaSeek,
+                onMediaAccessRequest = ::onMediaAccessRequest,
+                onMediaResume = ::onMediaResume,
+                onDictionaryLookup = ::onDictionaryLookup,
+                onDictionarySearchToggle = ::onDictionarySearchToggle,
+                onDictionaryInsert = { word -> boxField(copy = word) { onDictionaryInsert(word) } },
+                onAddToVocab = vocabCallbacks().onDictionaryAddToVocab,
+                onMediaQueryClear = ::onMediaQueryClear,
+                onMediaRetry = ::onMediaRetry,
+                onWebResult = { result -> boxField(copy = result.url.ifEmpty { result.snippet }) { onWebResultSelect(result) } },
+                onWebResultOpen = ::onWebResultOpen,
+                // A picture goes into the app's field; with the keyboard down
+                // there is none, so its page opens instead.
+                onImageResult = { result -> boxField(open = result.contextUrl.ifEmpty { result.imageUrl }) { onImageResultSelect(result) } },
+                onOpenToolSettings = ::openToolSettings,
+                onWikiOpen = ::onWikiOpen,
+                onWikiBack = ::onWikiBack,
+                onWikiLoadLinks = ::onWikiLoadLinks,
+                onWikiLoadFull = ::onWikiLoadFull,
+                search = com.wasimaster.wmkeyboard.ime.ui.SearchActions(
+                    onTab = ::onSearchTab,
+                    onCategory = ::onSearchCategory,
+                    onMore = ::onSearchMore,
+                    onCopy = ::onSearchCopy,
+                    onOpen = ::openSearchLink,
+                    onSaveImage = ::onSearchImageSave,
+                    onInsertText = ::onAppletInsert,
+                ),
+            ),
         )
     }
+
+    /**
+     * Something the box's tool puts into the app's field (#1265): done there
+     * while the keyboard is up over one, else [copy] goes onto the clipboard,
+     * or [open] opens in the browser, since a box over an app with the
+     * keyboard down has no field to type into.
+     */
+    private inline fun boxField(copy: String? = null, open: String? = null, insert: () -> Unit) {
+        if (windowOnScreen && currentInputConnection != null) {
+            insert()
+            return
+        }
+        when {
+            !copy.isNullOrEmpty() -> onAppletInsert(copy)
+            !open.isNullOrEmpty() -> openSearchLink(open)
+        }
+    }
+
+    /**
+     * A clip tapped in the box (#1265): pasted into the app's field while the
+     * keyboard is up, as in the keyboard's own panel, and put on the
+     * clipboard while it is down, for the app's own Paste. A picture or a
+     * file goes on as itself, a text clip as its text.
+     */
+    private fun onAppletClip(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+        if (!isClipboardAccessible()) return
+        if (windowOnScreen && currentInputConnection != null) {
+            onClipboardItemTapped(item)
+            return
+        }
+        vibrate()
+        val picture = item.imagePath?.takeIf { item.kind == ClipKind.IMAGE }?.let(::File)?.takeIf { it.exists() }
+        val uri = item.uriString?.takeIf { !item.kind.isTextual }
+        when {
+            picture != null -> {
+                val shared = runCatching {
+                    FileProvider.getUriForFile(this, clipboardFileProviderAuthority, picture)
+                }.getOrNull() ?: return
+                ClipboardWriteGate.writeUri(this, shared, "image")
+            }
+            uri != null -> copyUriToSystemClipboard(Uri.parse(uri), item.fileName.orEmpty())
+            else -> ClipboardWriteGate.writeText(this, item.text, null)
+        }
+        // Android 13 and later say so themselves.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            Toast.makeText(this, R.string.ime_applet_copied, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * The clipboard panel's actions for the box (#1265). Editing a clip and
+     * Combine need the keys under them, so those move the clipboard into the
+     * keyboard first, the way the box's "open in the keyboard" button does,
+     * and then run there.
+     */
+    private fun appletClipActions(): com.wasimaster.wmkeyboard.ime.ui.ClipboardPanelActions {
+        val own = clipboardPanelActions()
+        return own.copy(
+            onEdit = { item -> clipboardIntoKeyboard { own.onEdit(item) } },
+            onCombine = { ids -> clipboardIntoKeyboard { own.onCombine(ids) } },
+            onExtractText = { item -> clipboardIntoKeyboard { own.onExtractText(item) } },
+            onTranslateImage = { item -> clipboardIntoKeyboard { own.onTranslateImage(item) } },
+            // The box has no height bar and no keys to stack over.
+            onPanelHeight = {},
+            onKeysToggle = {},
+        )
+    }
+
+    /**
+     * Moves the box's clipboard into the keyboard as its panel and runs
+     * [then] there: at once with the keyboard up, else once a summoned
+     * keyboard has opened the panel ([onScreenAgain]).
+     */
+    private fun clipboardIntoKeyboard(then: () -> Unit) {
+        if (floatingAppletDelegate.isInitialized()) floatingApplet.close()
+        if (windowOnScreen) {
+            if (_uiState.value.panel != PanelMode.CLIPBOARD) onPanelChange(PanelMode.CLIPBOARD, haptic = false)
+            then()
+            return
+        }
+        floatingPendingThen = ToolbarTool.CLIPBOARD to then
+        runToolFromFloatingButton(ToolbarTool.CLIPBOARD)
+    }
+
+    /** What runs after the floating button's pending tool opens, and that tool; see [clipboardIntoKeyboard]. */
+    private var floatingPendingThen: Pair<ToolbarTool, () -> Unit>? = null
 
     /** The panel a floating tool runs. */
     private fun appletPanelFor(tool: ToolbarTool): PanelMode? = when (tool) {
@@ -8093,6 +8233,12 @@ open class WMKeyboardService : InputMethodService() {
         ToolbarTool.TODO -> PanelMode.TODO
         ToolbarTool.NOTES -> PanelMode.NOTES
         ToolbarTool.TRANSLATE -> PanelMode.TRANSLATE
+        ToolbarTool.CLIPBOARD -> PanelMode.CLIPBOARD
+        ToolbarTool.CALENDAR -> PanelMode.CALENDAR
+        ToolbarTool.MEDIA_CONTROL -> PanelMode.MEDIA_CONTROL
+        ToolbarTool.DICTIONARY -> PanelMode.DICTIONARY
+        ToolbarTool.WIKIPEDIA -> PanelMode.WIKIPEDIA
+        ToolbarTool.WEB_SEARCH -> PanelMode.WEB_SEARCH
         else -> null
     }
 
@@ -8105,15 +8251,18 @@ open class WMKeyboardService : InputMethodService() {
     fun openFloatingApplet(tool: ToolbarTool) {
         if (!tool.floats || !isSupportedTool(tool) || !isUsableTool(tool, _uiState.value.settings)) return
         val panel = appletPanelFor(tool) ?: return
+        // A locked clipboard stays locked in the box too.
+        if (panel == PanelMode.CLIPBOARD && !isClipboardAccessible()) return
         if (!Settings.canDrawOverlays(this)) {
             runCatching {
                 startActivity(SpecialAccessActivity.intent(this, SpecialAccess.OVERLAY).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             }
             return
         }
-        // Translate open in the keyboard moves into the box with its text.
-        val fromKeyboard = _uiState.value.takeIf { panel == PanelMode.TRANSLATE && it.panel == PanelMode.TRANSLATE }
-            ?.let { TranslateCarry(it.mediaQuery, it.translate) }
+        // Translate open in the keyboard moves into the box with its text, and
+        // so do web search and Wikipedia (#1265).
+        val fromKeyboard = _uiState.value.takeIf { panel in BoxSearchPanels && it.panel == panel }
+            ?.let { TranslateCarry(it.mediaQuery, it.translate, panel) }
         if (_uiState.value.panel == panel) onPanelChange(panel, haptic = false)
         val previous = _uiState.value.appletPanel
         if (previous != null && previous != panel) appletLeft(previous, closeBox = false)
@@ -8125,7 +8274,7 @@ open class WMKeyboardService : InputMethodService() {
         if (!opened) return
         toolUsage.record(tool)
         appletTool = tool
-        if (panel == PanelMode.TRANSLATE && previous != PanelMode.TRANSLATE) openAppletTranslate(fromKeyboard)
+        if (panel in BoxSearchPanels && previous != panel) openAppletSearch(panel, fromKeyboard)
         _uiState.update {
             it.copy(
                 applet = AppletUi(appletPanel = panel),
@@ -8136,6 +8285,9 @@ open class WMKeyboardService : InputMethodService() {
                 },
             )
         }
+        // The media controls watch the player while they are in the box, and
+        // stop when the box swaps them for another tool (#1265).
+        syncMediaTracking()
         when (panel) {
             PanelMode.CLOCK -> clockTool.onPanelOpen()
             PanelMode.TODO -> todoTool.onPanelOpen()
@@ -8143,6 +8295,15 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.CURRENCY -> refreshCurrencyRates(wantCrypto = pairHasCoin())
             // Text carried in from the keyboard gets its translation, if it had none yet.
             PanelMode.TRANSLATE -> scheduleTranslate(immediate = true)
+            PanelMode.CLIPBOARD -> {
+                clipboardStore.reload()
+                _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+                fetchLinkPreviews()
+            }
+            PanelMode.CALENDAR -> calendarTool.onPanelOpen(null)
+            // With the keyboard down the search waits for a tap on its box,
+            // which brings the keyboard up, rather than summoning it now.
+            PanelMode.DICTIONARY -> if (windowOnScreen) openDictionary()
             else -> Unit
         }
         // A tap on the box's text box (a note, a task) gives it the keys; with
@@ -8176,7 +8337,7 @@ open class WMKeyboardService : InputMethodService() {
             }
             PanelMode.NOTES -> notesLeavePanel()
             PanelMode.TRANSLATE -> {
-                appletTranslateHeld = null
+                appletSearchHeld = null
                 translateJob?.cancel()
                 // The search box is the keyboard's again, with nothing in it.
                 _uiState.update {
@@ -8189,6 +8350,19 @@ open class WMKeyboardService : InputMethodService() {
                 // The keyboard never has Translate open while the box does.
                 releaseTranslateEngine()
             }
+            // The search box is the keyboard's again (#1265); the results stay
+            // for the panel, as they do when it closes.
+            PanelMode.WEB_SEARCH, PanelMode.WIKIPEDIA -> {
+                appletSearchHeld = null
+                _uiState.update {
+                    if (it.panel == PanelMode.NONE) it.copy(mediaQuery = "", mediaSearchActive = false) else it
+                }
+            }
+            PanelMode.CALENDAR -> {
+                calendarTool.onPanelClose()
+                _uiState.update { it.copy(toolText = it.toolText.copy(calendar = null)) }
+            }
+            PanelMode.DICTIONARY -> _uiState.update { it.copy(dictionarySearchActive = false) }
             else -> Unit
         }
         if (!closeBox) return
@@ -8196,28 +8370,39 @@ open class WMKeyboardService : InputMethodService() {
         appletTypingJob?.cancel()
         appletTypingJob = null
         _uiState.update { it.copy(applet = AppletUi()) }
+        // Nothing left watching the player once the box's controls go.
+        if (panel == PanelMode.MEDIA_CONTROL) syncMediaTracking()
     }
 
     /**
-     * Translate coming up in the box (#1155), with [carried] text from the
-     * keyboard's panel or empty. Over the bare keys it takes them straight
+     * Translate, web search or Wikipedia coming up in the box (#1155,
+     * #1265), with [carried] text from the keyboard's panel or empty. Over the bare keys it takes them straight
      * away, as the panel does; with the keyboard down it waits for a tap on
      * its text box, which brings the keyboard up; under another of the
      * keyboard's panels its text waits for that panel to close.
      */
-    private fun openAppletTranslate(carried: TranslateCarry?) {
+    private fun openAppletSearch(panel: PanelMode, carried: TranslateCarry?) {
         translateCarry = null
-        val query = carried?.query.orEmpty()
-        val bare = _uiState.value.panel == PanelMode.NONE
-        if (!bare) appletTranslateHeld = query
+        val now = _uiState.value
+        // Web search reopens on the results it still has (#347), as its panel does.
+        val query = carried?.query ?: if (panel == PanelMode.WEB_SEARCH) keptSearchQuery(now).orEmpty() else ""
+        val bare = now.panel == PanelMode.NONE
+        if (!bare) appletSearchHeld = query
+        // Straight into the box with nothing to show yet, as the panels open;
+        // with results or an article to read, those first.
+        val wantsBox = when (panel) {
+            PanelMode.WEB_SEARCH -> keptSearchQuery(now) == null
+            PanelMode.WIKIPEDIA -> now.wiki !is WikiUi.Article && now.wiki !is WikiUi.SearchResults
+            else -> true
+        }
         _uiState.update {
             it.copy(
                 mediaQuery = if (bare) query else it.mediaQuery,
-                mediaSearchActive = if (bare) windowOnScreen else it.mediaSearchActive,
-                translate = carried?.ui ?: TranslateUi(),
+                mediaSearchActive = if (bare) windowOnScreen && wantsBox else it.mediaSearchActive,
+                translate = if (panel == PanelMode.TRANSLATE) carried?.ui ?: TranslateUi() else it.translate,
             )
         }
-        watchTranslateModels()
+        if (panel == PanelMode.TRANSLATE) watchTranslateModels()
     }
 
     /**
@@ -9231,7 +9416,9 @@ open class WMKeyboardService : InputMethodService() {
                 emojiSearchActive = restarting && it.emojiSearchActive,
                 emojiQuery = if (restarting) it.emojiQuery else "",
                 toolText = it.toolText.copy(kaomoji = if (restarting) it.kaomojiText else null),
-                dictionarySearchActive = restarting && it.dictionarySearchActive,
+                // As does the dictionary in the floating box (#1265).
+                dictionarySearchActive = it.dictionarySearchActive &&
+                    (restarting || (it.appletPanel == PanelMode.DICTIONARY && it.panel == PanelMode.NONE)),
                 unicodeQuery = if (restarting) it.unicodeQuery else null,
                 clipboardSearchActive = restarting && it.clipboardSearchActive,
                 clipboardQuery = if (restarting) it.clipboardQuery else "",
@@ -9250,10 +9437,11 @@ open class WMKeyboardService : InputMethodService() {
                 clipEdit = if (restarting) it.clipEdit else null,
                 clipCombine = if (restarting) it.clipCombine else null,
                 // The floating box's Translate keeps the keys it was given
-                // (#1155), which is often what brought the keyboard up.
+                // (#1155), which is often what brought the keyboard up; so do
+                // its web search and Wikipedia (#1265).
                 mediaSearchActive = it.mediaSearchActive &&
-                    (restarting || (it.appletPanel == PanelMode.TRANSLATE && it.panel == PanelMode.NONE)),
-                mediaQuery = if (restarting) it.mediaQuery else it.boxTranslateQuery(panelLayoutPersists(it)) ?: "",
+                    (restarting || (it.boxSearchPanel != null && it.panel == PanelMode.NONE)),
+                mediaQuery = if (restarting) it.mediaQuery else it.boxSearchQuery(panelLayoutPersists(it)) ?: "",
                 mediaDownloadingId = null,
                 mediaDownloadProgress = null,
                 mediaQueue = if (restarting) it.mediaQueue else emptyList(),
@@ -10327,10 +10515,15 @@ open class WMKeyboardService : InputMethodService() {
         // bare keyboard.
         floatingPendingTool?.let { tool ->
             floatingPendingTool = null
+            // Only the tool it was asked with, never one pressed since.
+            val then = floatingPendingThen?.takeIf { it.first == tool }?.second
+            floatingPendingThen = null
             if (arriving && SystemClock.uptimeMillis() - floatingPendingAt < FLOATING_TOOL_WAIT_MS) {
                 serviceScope.launch(Dispatchers.Main) {
                     floatingToolOpenedAt = SystemClock.uptimeMillis()
                     runToolFromKey(tool)
+                    // An edit asked for from the box's clipboard (#1265), once its panel is up.
+                    then?.invoke()
                 }
             }
         }
@@ -34192,6 +34385,11 @@ open class WMKeyboardService : InputMethodService() {
         // leaving the strip. The device-level tests are in [runTool], which the
         // key-bound path ([runToolFromKey]) reaches without this one.
         if (tool !in _uiState.value.settings.enabledTools) return
+        // Set to open in the floating box (#1259): the tap floats it.
+        if (tool.floats && tool in _uiState.value.settings.toolbarBehavior.floatOnTap) {
+            openFloatingApplet(tool)
+            return
+        }
         runTool(tool)
     }
 
@@ -34544,11 +34742,12 @@ open class WMKeyboardService : InputMethodService() {
         stashMediaSearch(_uiState.value)
         // Translate in the floating box (#1155) shares the search box with
         // the keyboard's own panels: its text waits while one of them has it.
+        // So do web search's and Wikipedia's (#1265).
         _uiState.value.let { now ->
-            if (now.panel == PanelMode.NONE && now.appletPanel == PanelMode.TRANSLATE) appletTranslateHeld = now.mediaQuery
+            if (now.panel == PanelMode.NONE && now.boxSearchPanel != null) appletSearchHeld = now.mediaQuery
         }
-        val carried = if (panel == PanelMode.TRANSLATE && _uiState.value.panel != PanelMode.TRANSLATE) {
-            translateCarry.also { translateCarry = null }
+        val carried = if (panel in BoxSearchPanels && _uiState.value.panel != panel) {
+            translateCarry.also { translateCarry = null }?.takeIf { it.panel == panel }
         } else {
             null
         }
@@ -34621,14 +34820,15 @@ open class WMKeyboardService : InputMethodService() {
                 mediaQuery = when (next) {
                     // The floating box's Translate gets its text back (#1155),
                     // and Translate moved in from the box brings it along.
-                    PanelMode.NONE -> if (it.appletPanel == PanelMode.TRANSLATE) appletTranslateHeld.orEmpty() else restored.query
+                    PanelMode.NONE -> if (it.boxSearchPanel != null) appletSearchHeld.orEmpty() else restored.query
                     PanelMode.TRANSLATE -> carried?.query ?: restored.query
                     PanelMode.GIF, PanelMode.STICKER ->
                         (it.toolPrefill as? ToolPrefill.Gif)?.query ?: restored.query
+                    // Moved in from the floating box, the box's text comes along (#1265).
                     PanelMode.WIKIPEDIA ->
-                        (it.toolPrefill as? ToolPrefill.Lookup)?.term ?: restored.query
+                        (it.toolPrefill as? ToolPrefill.Lookup)?.term ?: carried?.query ?: restored.query
                     PanelMode.WEB_SEARCH ->
-                        (it.toolPrefill as? ToolPrefill.Lookup)?.term ?: keptSearchQuery(it) ?: restored.query
+                        (it.toolPrefill as? ToolPrefill.Lookup)?.term ?: carried?.query ?: keptSearchQuery(it) ?: restored.query
                     else -> restored.query
                 },
                 // Web search and translate open straight into their search box
@@ -34715,9 +34915,9 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.translateShown) watchTranslateModels() else releaseTranslateEngine()
         // Back to the bare keys: the box's text is its own again, and what was
         // typed while another panel had it, or never got its translation, gets one.
-        if (boxTranslates && _uiState.value.panel == PanelMode.NONE) {
-            appletTranslateHeld = null
-            scheduleTranslate(immediate = true)
+        if (_uiState.value.boxSearchPanel != null && _uiState.value.panel == PanelMode.NONE) {
+            appletSearchHeld = null
+            if (boxTranslates) scheduleTranslate(immediate = true)
         }
         if (carried != null && _uiState.value.panel == PanelMode.TRANSLATE) scheduleTranslate(immediate = true)
         grammarJob?.cancel()
@@ -35322,10 +35522,13 @@ open class WMKeyboardService : InputMethodService() {
         val forPanel = state.panel == PanelMode.MEDIA_CONTROL
         val forPin = state.settings.mediaControl.pinWhilePlaying &&
             ToolbarTool.MEDIA_CONTROL in state.settings.enabledTools
+        // The controls in the floating box (#1265) are on screen with the
+        // keyboard down too, which is most of what they are there for.
+        val forBox = state.appletPanel == PanelMode.MEDIA_CONTROL
         // Nothing on screen is worth a session listener, panel included: the
         // panel is not being looked at either, and onStartInputView re-syncs
         // (and so rebinds) before the keyboard is shown again.
-        if (!keyboardVisible || (!forPanel && !forPin)) {
+        if (!forBox && (!keyboardVisible || (!forPanel && !forPin))) {
             stopMedia()
             return
         }
@@ -44430,7 +44633,8 @@ open class WMKeyboardService : InputMethodService() {
         dictionaryLiveJob = serviceScope.launch {
             delay(400)
             val state = _uiState.value
-            if (state.panel != PanelMode.DICTIONARY || !state.dictionarySearchActive) return@launch
+            // In the floating box too (#1265).
+            if (!state.toolUp(PanelMode.DICTIONARY) || !state.dictionarySearchActive) return@launch
             lookUpWord(word, live = true)
         }
     }
@@ -45294,7 +45498,8 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onMediaQueryClear() {
         vibrate()
-        val panel = _uiState.value.panel
+        // The floating box's web search clears its own (#1265).
+        val panel = _uiState.value.searchPanel
         if (panel == PanelMode.WEB_SEARCH) {
             webSearchJob?.cancel()
             imageSearchJob?.cancel()
@@ -45344,7 +45549,9 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         val query = state.mediaQuery.trim()
         _uiState.update { it.copy(mediaSearchActive = false) }
-        when (state.panel) {
+        // The keyboard's panel, or over the bare keys the floating box's
+        // Translate (#1155), web search or Wikipedia (#1265).
+        when (state.searchPanel) {
             PanelMode.GIF, PanelMode.STICKER -> {
                 mediaLiveSearchJob?.cancel()
                 refreshMedia(query)
@@ -45355,8 +45562,6 @@ open class WMKeyboardService : InputMethodService() {
             // when it translates only when asked (#1226). Enter in the box is a
             // line break, never this.
             PanelMode.TRANSLATE -> scheduleTranslate(immediate = true, explicit = true)
-            // Translate in the floating box (#1155), over the bare keys.
-            PanelMode.NONE -> if (state.toolUp(PanelMode.TRANSLATE)) scheduleTranslate(immediate = true, explicit = true)
             else -> {}
         }
     }
@@ -45367,7 +45572,12 @@ open class WMKeyboardService : InputMethodService() {
         // A retry on a data-saver notice is the user saying yes to the fetch,
         // so it grants first and then falls through to make it.
         grantMeteredForPanel(_uiState.value)
-        when (_uiState.value.panel) {
+        // The floating box's tool too (#1265), whose Retry is drawn in the box:
+        // tucked or under a panel, its Retry is the one it shows.
+        val retried = _uiState.value.let { now ->
+            if (now.panel == PanelMode.NONE) now.appletPanel ?: PanelMode.NONE else now.searchPanel
+        }
+        when (retried) {
             PanelMode.GIF, PanelMode.STICKER -> refreshMedia(_uiState.value.mediaQuery.trim())
             PanelMode.WEB_SEARCH -> runSearch(_uiState.value.searchTab, _uiState.value.mediaQuery.trim())
             PanelMode.WIKIPEDIA -> {
@@ -45376,7 +45586,7 @@ open class WMKeyboardService : InputMethodService() {
                 else _uiState.update { it.copy(wiki = WikiUi.Idle, mediaSearchActive = true) }
             }
             PanelMode.TRANSLATE -> scheduleTranslate(immediate = true, explicit = true)
-            PanelMode.NONE -> if (_uiState.value.toolUp(PanelMode.TRANSLATE)) scheduleTranslate(immediate = true, explicit = true)
+            PanelMode.DICTIONARY -> _uiState.value.dictionaryQuery.takeIf { it.isNotBlank() }?.let(::onDictionaryLookup)
             else -> {}
         }
     }
@@ -45732,9 +45942,9 @@ open class WMKeyboardService : InputMethodService() {
         when {
             tool == ProviderTool.TRANSLATE && state.toolUp(PanelMode.TRANSLATE) ->
                 scheduleTranslate(immediate = true, force = true)
-            tool == ProviderTool.SEARCH && state.panel == PanelMode.WEB_SEARCH ->
+            tool == ProviderTool.SEARCH && state.searchPanel == PanelMode.WEB_SEARCH ->
                 runSearch(state.searchTab, state.mediaQuery.trim())
-            tool == ProviderTool.DICTIONARY && state.panel == PanelMode.DICTIONARY &&
+            tool == ProviderTool.DICTIONARY && state.toolUp(PanelMode.DICTIONARY) &&
                 state.dictionaryQuery.isNotBlank() -> onDictionaryLookup(state.dictionaryQuery)
         }
     }

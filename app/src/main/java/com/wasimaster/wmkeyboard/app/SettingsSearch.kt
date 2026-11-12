@@ -2996,6 +2996,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         entry(R.string.tools_gradient_icons_title, R.string.tools_gradient_icons_subtitle, R.string.home_tools_title, "tools"),
         entry(R.string.tools_split_panels_title, R.string.tools_split_panels_subtitle, R.string.home_tools_title, "tools"),
         entry(R.string.tools_box_close_outside_title, R.string.tools_box_close_outside_subtitle, R.string.home_tools_title, "tools"),
+        entry(R.string.tools_box_gestures_title, R.string.tools_box_gestures_subtitle, R.string.home_tools_title, "tools"),
         // The user's own buttons (#1213, #1236): the row on Tools, and their page.
         entry(
             R.string.custombuttons_title, R.string.custombuttons_nav_subtitle, R.string.home_tools_title, "tools",

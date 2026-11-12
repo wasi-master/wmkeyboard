@@ -584,6 +584,18 @@ internal class ClipboardPanelSession(
     val filtered: Boolean get() = !active.isEmpty || oldest.value
 }
 
+/**
+ * The clipboard's history alone, for the floating box (#1265): the list the
+ * panel's layout puts in its history cell, with its tabs, picking and undo,
+ * and none of the layout's keys. The keyboard's own search does not filter
+ * it; the box shows the whole history.
+ */
+@Composable
+internal fun ClipboardBoxHistory(state: KeyboardUiState, callbacks: ClipboardFieldCallbacks) {
+    val session = rememberClipboardPanelSession(state)
+    ClipboardListField(state, session, callbacks)
+}
+
 @Composable
 internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPanelSession {
     val showSearch = state.settings.clipboard.search && state.clipboardItems.isNotEmpty()

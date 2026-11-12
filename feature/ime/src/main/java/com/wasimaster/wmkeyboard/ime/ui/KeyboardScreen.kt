@@ -14320,8 +14320,10 @@ internal fun FullBleedTool(
                     if (title.isNotEmpty()) Spacer(Modifier.weight(1f))
                     headerActions()
                 }
-                // Pops a tool that can float out into its box (#1240).
-                floatingToolFor(state.panel)?.let { tool ->
+                // Pops a tool that can float out into its box (#1240). Not in
+                // the box itself, whose tool's header this may be while the
+                // keyboard has a panel of its own.
+                floatingToolFor(state.panel)?.takeIf { !LocalInFloatingBox.current }?.let { tool ->
                     val float = LocalToolFloat.current
                     if (headerActions == null) Spacer(Modifier.weight(1f))
                     IconButton(onClick = { float(tool) }, modifier = Modifier.size(40.dp)) {
@@ -14343,6 +14345,9 @@ internal fun FullBleedTool(
     }
 }
 
+/** Drawn inside the floating box (#1155) rather than the keyboard: no pop-out button there. */
+internal val LocalInFloatingBox = androidx.compose.runtime.staticCompositionLocalOf { false }
+
 /** Opens a tool in its floating box (#1155); the panel header's pop-out button (#1240) uses it. */
 internal val LocalToolFloat = androidx.compose.runtime.staticCompositionLocalOf<(ToolbarTool) -> Unit> { {} }
 
@@ -14355,6 +14360,13 @@ internal fun floatingToolFor(panel: PanelMode): ToolbarTool? = when (panel) {
     PanelMode.TODO -> ToolbarTool.TODO
     PanelMode.NOTES -> ToolbarTool.NOTES
     PanelMode.TRANSLATE -> ToolbarTool.TRANSLATE
+    // #1265
+    PanelMode.CLIPBOARD -> ToolbarTool.CLIPBOARD
+    PanelMode.CALENDAR -> ToolbarTool.CALENDAR
+    PanelMode.MEDIA_CONTROL -> ToolbarTool.MEDIA_CONTROL
+    PanelMode.DICTIONARY -> ToolbarTool.DICTIONARY
+    PanelMode.WIKIPEDIA -> ToolbarTool.WIKIPEDIA
+    PanelMode.WEB_SEARCH -> ToolbarTool.WEB_SEARCH
     else -> null
 }
 

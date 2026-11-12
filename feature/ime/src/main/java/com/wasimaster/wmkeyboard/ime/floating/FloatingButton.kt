@@ -46,7 +46,9 @@ import com.wasimaster.wmkeyboard.core.settings.tucks
 import com.wasimaster.wmkeyboard.ime.KeyboardViewLifecycleOwner
 import com.wasimaster.wmkeyboard.ime.R
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.roundToInt
+import kotlin.math.sin
 
 /**
  * The floating button (#755): one small round button over every app, which
@@ -143,6 +145,10 @@ internal class FloatingButton(
     private val face = FloatingFaceState()
     private val menu = FloatingMenuState()
     private val target = FloatingDismissState()
+    private val flickGuide = FloatingFlickGuideState()
+
+    /** The swipe guide's window (#1270), while a swipe from the fixed button is under way. */
+    private var flickGuideView: ComposeView? = null
 
     private var button: TouchHost? = null
     private var buttonParams: WindowManager.LayoutParams? = null
@@ -313,6 +319,7 @@ internal class FloatingButton(
     fun hide() {
         cancelPick()
         cancelDwell()
+        hideFlickGuide()
         removeMenuWindow()
         removeTargetWindow()
         val current = button ?: return
@@ -682,22 +689,29 @@ internal class FloatingButton(
         }
     }
 
-    /** Puts [slots] round the button where the ring they make fits on screen. */
-    private fun layOutRing(slots: List<FloatingAction>) {
-        val view = button ?: return
+    /**
+     * Where rings come out from, on screen: the disc's middle. A pill (#1137)
+     * has no disc: the ring, and the close disc in the middle of it, come out
+     * from where a disc against that edge would sit, so neither is cut off.
+     */
+    private fun ringAnchor(view: TouchHost): Offset {
         val location = IntArray(2)
         view.getLocationOnScreen(location)
         val (width, height) = screenSize()
-        // The ring fans out from the disc's place. A pill (#1137) has no disc:
-        // the ring, and the close disc in the middle of it, come out from
-        // where a disc against that edge would sit, so neither is cut off.
-        val anchor = if (setting.edgePill) {
+        return if (setting.edgePill) {
             val inset = windowPx / 2f
             val y = (location[1] + windowH / 2f).coerceIn(inset, (height - inset).coerceAtLeast(inset))
             Offset(if (onLeft) inset else width - inset, y)
         } else {
             Offset(location[0] + windowPx / 2f, location[1] + windowPx / 2f)
         }
+    }
+
+    /** Puts [slots] round the button where the ring they make fits on screen. */
+    private fun layOutRing(slots: List<FloatingAction>) {
+        val view = button ?: return
+        val (width, height) = screenSize()
+        val anchor = ringAnchor(view)
         val labels = setting.menuLabels
         val itemHalf = FLOATING_MENU_ITEM_DP * density / 2f
         menu.anchor = anchor
@@ -827,6 +841,75 @@ internal class FloatingButton(
     private fun cancelDwell() {
         dwellSlot = null
         button?.removeCallbacks(dwell)
+    }
+
+    // ---- the swipe guide (#1270) ----
+
+    /**
+     * Puts up the guide to the fixed button's swipes: each bound direction's
+     * action where its swipe points, round the button, for the finger to see
+     * what letting go will run before it does. A window that takes no
+     * touches, over the keys or over the apps as the button is.
+     */
+    private fun showFlickGuide() {
+        if (flickGuideView != null) return
+        val view = button ?: return
+        val flicks = setting.activeFlicks
+        if (flicks.isEmpty()) return
+        val anchor = ringAnchor(view)
+        val (width, height) = screenSize()
+        val radius = (setting.sizeDp / 2f + setting.menuGapDp + FLOATING_MENU_ITEM_DP / 2f) * density
+        val margin = (FLOATING_MENU_ITEM_DP / 2f + MENU_MARGIN_DP) * density
+        flickGuide.slots = flicks.entries.sortedBy { it.key.ordinal }.map { (direction, action) ->
+            val angle = Math.toRadians(direction.degrees.toDouble())
+            FloatingFlickSlot(
+                direction = direction,
+                center = Offset(
+                    (anchor.x + radius * cos(angle).toFloat()).coerceIn(margin, (width - margin).coerceAtLeast(margin)),
+                    (anchor.y + radius * sin(angle).toFloat()).coerceIn(margin, (height - margin).coerceAtLeast(margin)),
+                ),
+                icon = floatingActionIcon(action, keyboardUp, setting.categories),
+                label = name(action),
+                image = appIcon(action, FLOATING_MENU_ITEM_DP),
+            )
+        }
+        flickGuide.anchor = anchor
+        flickGuide.radius = radius
+        flickGuide.style = setting.style
+        flickGuide.shape = setting.shape
+        flickGuide.hovered = null
+        flickGuide.shown = false
+        val content = ComposeView(viewContext).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent { FloatingFlickGuide(flickGuide) }
+        }
+        lifecycle.attachTo(content)
+        val layout = overlayParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            touchable = false,
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            title = "WM Keyboard floating swipe guide"
+        }
+        if (runCatching { windowManager.addView(content, layout) }.isFailure) return
+        flickGuideView = content
+        // Where the window really starts, as for the quick menu; it fades in once known.
+        content.post {
+            if (flickGuideView !== content) return@post
+            val at = IntArray(2)
+            content.getLocationOnScreen(at)
+            flickGuide.windowOrigin = Offset(at[0].toFloat(), at[1].toFloat())
+            flickGuide.shown = true
+        }
+    }
+
+    private fun hideFlickGuide() {
+        val view = flickGuideView ?: return
+        flickGuideView = null
+        flickGuide.shown = false
+        flickGuide.hovered = null
+        runCatching { windowManager.removeViewImmediate(view) }
     }
 
     // ---- drop target ----
@@ -1209,11 +1292,14 @@ internal class FloatingButton(
                 flicking = true
                 face.pressed = false
                 removeCallbacks(longPress)
+                // What each direction runs, round the button (#1270).
+                showFlickGuide()
             }
             val far = dx * dx + dy * dy >= (FLICK_MIN_DP * density).let { it * it }
             val direction = if (far) flickDirectionOf(dx, dy, setting.activeFlicks.keys) else null
             if (direction == flickDirection) return
             flickDirection = direction
+            flickGuide.hovered = direction
             face.flickIcon = direction?.let { setting.activeFlicks[it] }?.let {
                 floatingActionIcon(it, keyboardUp, setting.categories)
             }
@@ -1233,6 +1319,7 @@ internal class FloatingButton(
             flicking = false
             flickDirection = null
             face.flickIcon = null
+            hideFlickGuide()
         }
 
         /** The hold's finger is on its way to a slot. */

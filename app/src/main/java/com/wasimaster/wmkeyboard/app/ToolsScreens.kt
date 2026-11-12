@@ -495,6 +495,15 @@ internal fun ToolsSettings(
         onChange = { scope.launch { repository.setFloatingBoxClosesOutside(it) } },
         default = SettingsDefaults.summonButton.boxClosesOutside,
     )
+    // The box's buttons traded for throws (#1262): up closes, down moves it
+    // into the keyboard, a side tucks it.
+    ToggleSetting(
+        title = R.string.tools_box_gestures_title,
+        subtitle = stringResource(R.string.tools_box_gestures_subtitle),
+        checked = settings.watch { it.summonButton.boxGestures },
+        onChange = { scope.launch { repository.setFloatingBoxGestures(it) } },
+        default = SettingsDefaults.summonButton.boxGestures,
+    )
     // Panels as one group or two (#759). Above the groups it reshapes, so
     // the switch and what it changes are on screen together.
     val splitPanels = settings.watch { it.appUi.splitToolPanels }

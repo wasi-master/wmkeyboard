@@ -65,6 +65,11 @@ class FloatingButtonModelTest {
         assertNull(FloatingAction.parse("applet:VOICE"))
         assertTrue(ToolbarTool.NOTES.floats)
         assertFalse(ToolbarTool.VOICE.floats)
+        // #1265: the clipboard and the search tools float; the AI chat and find and replace do not.
+        assertTrue(ToolbarTool.CLIPBOARD.floats)
+        assertTrue(ToolbarTool.WIKIPEDIA.floats)
+        assertFalse(ToolbarTool.AI.floats)
+        assertFalse(ToolbarTool.FIND_REPLACE.floats)
     }
 
     @Test

@@ -114,6 +114,54 @@ internal fun WikipediaPanelHost(
 }
 
 /**
+ * Wikipedia in the floating box (#1265): the panel's search bar over the
+ * same results and articles. No collapse while the query is typed, since the
+ * keys are the keyboard's and not under it, and no growing up the screen,
+ * since the box is as big as it was dragged.
+ */
+@Composable
+internal fun WikipediaBoxPanel(
+    state: KeyboardUiState,
+    onQueryTap: () -> Unit,
+    onRetry: () -> Unit,
+    onOpen: (String) -> Unit,
+    onBack: () -> Unit,
+    onLoadLinks: () -> Unit,
+    onLoadFull: () -> Unit,
+    onInsert: (String) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(FullBleedHeaderHeight)
+                .padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            MediaHeaderSearchBar(
+                state = state,
+                placeholder = stringResource(R.string.ime_wiki_search_hint),
+                activePlaceholder = stringResource(R.string.ime_wiki_search_active_hint),
+                onQueryTap = onQueryTap,
+            )
+        }
+        androidx.compose.foundation.layout.Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            WikipediaPanel(
+                state = state,
+                expanded = false,
+                onExpand = null,
+                onRetry = onRetry,
+                onOpen = onOpen,
+                onBack = onBack,
+                onLoadLinks = onLoadLinks,
+                onLoadFull = onLoadFull,
+                onInsert = onInsert,
+            )
+        }
+    }
+}
+
+/**
  * Wikipedia in the tool viewbox: search results, then an article with
  * summary, its outgoing links and the full text — each insertable at the
  * cursor.
@@ -123,7 +171,8 @@ private fun WikipediaPanel(
     state: KeyboardUiState,
     /** The panel grown up the screen for reading (#348). */
     expanded: Boolean,
-    onExpand: () -> Unit,
+    /** Grows or shrinks it; null where there is no growing (the floating box, #1265). */
+    onExpand: (() -> Unit)?,
     onRetry: () -> Unit,
     onOpen: (String) -> Unit,
     onBack: () -> Unit,
@@ -235,7 +284,8 @@ private fun WikiArticle(
     focusedLink: Int?,
     /** The panel grown up the screen for reading (#348). */
     expanded: Boolean,
-    onExpand: () -> Unit,
+    /** Grows or shrinks it; null where there is no growing (the floating box, #1265). */
+    onExpand: (() -> Unit)?,
     markdownLinks: Boolean,
     lang: String,
     onBack: () -> Unit,
@@ -309,20 +359,22 @@ private fun WikiArticle(
                 modifier = Modifier.weight(1f),
             )
             // Read it bigger, here or in the browser (#348).
-            IconHint(
-                stringResource(
-                    if (expanded) R.string.ime_wiki_shrink_desc else R.string.ime_wiki_expand_desc,
-                ),
-            ) {
-                IconButton(onClick = onExpand, modifier = Modifier.size(30.dp)) {
-                    Icon(
-                        if (expanded) Icons.Outlined.CloseFullscreen else Icons.Outlined.OpenInFull,
-                        contentDescription = stringResource(
-                            if (expanded) R.string.ime_wiki_shrink_desc else R.string.ime_wiki_expand_desc,
-                        ),
-                        tint = kb.toolbarIcon,
-                        modifier = Modifier.size(18.dp),
-                    )
+            if (onExpand != null) {
+                IconHint(
+                    stringResource(
+                        if (expanded) R.string.ime_wiki_shrink_desc else R.string.ime_wiki_expand_desc,
+                    ),
+                ) {
+                    IconButton(onClick = onExpand, modifier = Modifier.size(30.dp)) {
+                        Icon(
+                            if (expanded) Icons.Outlined.CloseFullscreen else Icons.Outlined.OpenInFull,
+                            contentDescription = stringResource(
+                                if (expanded) R.string.ime_wiki_shrink_desc else R.string.ime_wiki_expand_desc,
+                            ),
+                            tint = kb.toolbarIcon,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
                 }
             }
             if (wiki.summary.url.isNotBlank()) {

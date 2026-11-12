@@ -23,6 +23,8 @@
     <!-- Switch on the Tools screen, for a tool opened in a box that floats over other apps. -->
     <string name="tools_box_close_outside_title">Close floating boxes on a tap outside</string>
     <string name="tools_box_close_outside_subtitle">A tap anywhere else on the screen closes a tool\'s floating box</string>
+    <string name="tools_box_gestures_title">Floating box gestures instead of buttons</string>
+    <string name="tools_box_gestures_subtitle">Hides a floating box\'s buttons: throw it up to close it, down to move it into the keyboard, or into a side to tuck it</string>
     <string name="tools_split_panels_title">Split the Panels group</string>
     <string name="tools_split_panels_subtitle">Show Writing and Connect and media as two groups</string>
 

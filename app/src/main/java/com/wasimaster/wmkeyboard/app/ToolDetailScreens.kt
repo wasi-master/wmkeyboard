@@ -3806,6 +3806,16 @@ internal fun ToolDetailSettings(
             }
         }
         item { ToolHoldRow(repository, settings, tool) }
+        // A tap that opens the tool in its floating box (#1259), for a tool that has one.
+        item(visible = tool.floats) {
+            ToggleSetting(
+                title = R.string.tooldetail_float_on_tap_title,
+                subtitle = stringResource(R.string.tooldetail_float_on_tap_subtitle),
+                checked = settings.watch { tool in it.toolbarBehavior.floatOnTap },
+                onChange = { scope.launch { repository.setToolFloatsOnTap(tool, it) } },
+                default = false,
+            )
+        }
     }
     ToolKeywordSetting(repository, settings, tool)
 }

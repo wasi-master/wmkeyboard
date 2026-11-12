@@ -936,6 +936,9 @@ val PanelMode.layoutKind: PanelKind?
         else -> null
     }
 
+/** The floating box's tools whose text box is the shared search box ([KeyboardUiState.boxSearchPanel]). */
+val BoxSearchPanels: Set<PanelMode> = setOf(PanelMode.TRANSLATE, PanelMode.WEB_SEARCH, PanelMode.WIKIPEDIA)
+
 /**
  * Panels whose search box types into [KeyboardUiState.mediaQuery] (the same
  * key-rerouting trick as emoji search) instead of the editor.
@@ -4877,6 +4880,33 @@ data class KeyboardUiState(
     fun toolUp(mode: PanelMode): Boolean =
         panel == mode || (appletPanel == mode && !appletTucked && (panel == PanelMode.NONE || feedsBox(panel)))
 
+    /**
+     * The floating box's tool whose text box is the keyboard's shared search
+     * box (#1155, #1265): Translate, web search or Wikipedia, or null.
+     */
+    val boxSearchPanel: PanelMode?
+        get() = appletPanel?.takeIf { it in BoxSearchPanels }
+
+    /**
+     * The panel the search box is typing for: the keyboard's own while one is
+     * open, else the floating box's search tool while it has the keys (#1265),
+     * else none. What Enter, Retry and the clear button act on.
+     */
+    val searchPanel: PanelMode
+        get() = when {
+            panel != PanelMode.NONE -> panel
+            boxSearchPanel?.let { toolUp(it) } == true -> boxSearchPanel ?: PanelMode.NONE
+            else -> PanelMode.NONE
+        }
+
+    /**
+     * [mode] is in the floating box but does not have the keys there: tucked
+     * away, or under another of the keyboard's panels (#1265). Its own search
+     * flags stay set for when it gets them back, and type nowhere meanwhile.
+     */
+    fun boxHolds(mode: PanelMode): Boolean =
+        appletPanel == mode && panel != mode && !toolUp(mode)
+
     private fun feedsBox(shown: PanelMode): Boolean = when (shown) {
         PanelMode.CLIPBOARD -> !clipboardSearchActive && clipEdit == null && clipCombine == null
         PanelMode.SNIPPETS -> !snippetSearchActive
@@ -4913,7 +4943,7 @@ data class KeyboardUiState(
 
     /** Whether the Calendar composer's text box has the keys; panel *and* box, as [clockTypingActive]. */
     val calendarTypingActive: Boolean
-        get() = panel == PanelMode.CALENDAR && calendarText != null
+        get() = toolUp(PanelMode.CALENDAR) && calendarText != null
 
     /** Whether the gallery panel's text box has the keys; panel *and* box, as [clockTypingActive]. */
     val galleryTypingActive: Boolean
@@ -5069,9 +5099,9 @@ data class KeyboardUiState(
         emojiSearchActive -> CaptureTarget.EMOJI_SEARCH
         panel == PanelMode.APP_LAUNCHER && launcherView.nameDraft != null -> CaptureTarget.LAUNCHER_FOLDER_NAME
         // Translate's text box is the media search box, in the keyboard or
-        // in the floating box (#1155).
-        mediaSearchActive && (panel.hasMediaSearch || toolUp(PanelMode.TRANSLATE)) -> CaptureTarget.MEDIA_SEARCH
-        dictionarySearchActive -> CaptureTarget.DICTIONARY_SEARCH
+        // in the floating box (#1155), as are web search's and Wikipedia's (#1265).
+        mediaSearchActive && (panel.hasMediaSearch || boxSearchPanel?.let { toolUp(it) } == true) -> CaptureTarget.MEDIA_SEARCH
+        dictionarySearchActive && !boxHolds(PanelMode.DICTIONARY) -> CaptureTarget.DICTIONARY_SEARCH
         unicodeQuery != null && panel == PanelMode.SYMBOLS -> CaptureTarget.UNICODE_SEARCH
         clipboardSearchActive -> CaptureTarget.CLIPBOARD_SEARCH
         snippetSearchActive -> CaptureTarget.SNIPPET_SEARCH

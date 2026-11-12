@@ -138,6 +138,13 @@ data class SummonButtonSettings(
      * slot of its own. Off, the box stays until its close button.
      */
     val boxClosesOutside: Boolean = false,
+    /**
+     * A floating box with no buttons in its title bar (#1262): thrown up it
+     * closes, thrown down it moves into the keyboard, pushed into a side it
+     * tucks, and the bar along its bottom gives way to a grip in the corner.
+     * Off by default, where the tuck, keyboard and close buttons are shown.
+     */
+    val boxGestures: Boolean = false,
 )
 
 /** What a tap does with the keyboard up or down. */

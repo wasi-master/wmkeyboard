@@ -74,15 +74,20 @@ The third gesture is optional too. **Rearrange by dragging**, under <SettingsPat
 
 ## Tools in a floating box
 
-A few tools can open in a box of their own that floats over whatever app you're in and stays there when the keyboard closes: **Calculator**, **Unit converter**, **Currency converter**, **Clock**, **To-do list**, **Notes** and **Translate**. The box shows the same panel the tool has in the keyboard, with the same sums, timers, tasks and notes, since it's the same tool.
+Some tools can open in a box of their own that floats over whatever app you're in and stays there when the keyboard closes: **Calculator**, **Unit converter**, **Currency converter**, **Clock**, **To-do list**, **Notes**, **Translate**, **Clipboard**, **Calendar**, **Media controls**, **Dictionary**, **Wikipedia** and **Web search**. The box shows the same panel the tool has in the keyboard, with the same sums, timers, tasks, notes and clips, since it's the same tool.
 
-There are three ways to open one:
+Tools whose panel is a set of keys, such as emoji, the number pad, handwriting and the trackpad, can't float. Neither can the AI chat, whose conversation and model are tied to its panel, or Find and replace, which works on the app's text field through the keyboard.
+
+There are four ways to open one:
 
 - With the tool open in the keyboard, tap the pop-out button at the right end of its header. The tool moves into the box with what you had in it.
 - Bind a tool's hold to it: on the tool's page, set **Press and hold on the toolbar** to **In a floating box**. Holding the tool on the toolbar then opens it in the box.
+- Make it the tool's tap: on the tool's page, turn on **Open in a floating box**. Tapping the tool on the toolbar or in the toolbox then opens it in the box rather than in the keyboard. Its hold still does whatever **Press and hold on the toolbar** says.
 - From the [floating button](/reference/settings/floating-button/#gestures): its action list has a **Floating boxes** group, so a tap, a hold or a quick menu action can open, say, **Calculator in a box** straight over the app, without the keyboard coming up first.
 
-Drag the box by its title bar to move it, and drag the grip in its bottom right corner to resize it. It opens where you last left it, at the size you last gave it. If the open keyboard would cover it, the box moves up to sit above the keys, and goes back to its place when the keyboard closes. The cross in its title bar closes it. The arrows next to the cross move the tool into the keyboard as its panel, for when you want the keys under it.
+Drag the box by its title bar or the bar along its bottom to move it. You can also drag it by any part of the tool that doesn't do something with a drag of its own: a list still scrolls and a slider still slides, but a drag across a button or an empty patch moves the box. Two fingers anywhere on it move it too, and pinching them together or apart makes it smaller or bigger, the way a picture-in-picture video resizes. The grip in its bottom right corner resizes it as well. Let go while it's moving and the box carries on a little way before it settles.
+
+It opens where you last left it, at the size you last gave it. It never goes up under the status bar, where the notification shade would take every touch meant for it, so a box can't get stuck there. If the open keyboard would cover it, the box moves up to sit above the keys, and goes back to its place when the keyboard closes. The cross in its title bar closes it. The arrows next to the cross move the tool into the keyboard as its panel, for when you want the keys under it.
 
 To get the box out of the way without closing it, tuck it into the side of the screen, the way the floating button tucks: push it past the left or right edge by its title bar, or tap the line in its title bar to send it to the nearer side. A small tab with the tool's icon stays on that edge. Drag the tab up or down to move it along the edge, and tap it to bring the box back where it was. The tool's button on the toolbar brings it back too. While the box is tucked, the keys type into the app's field.
 
@@ -90,7 +95,17 @@ Only one box is open at a time; opening another tool in it swaps what it shows. 
 
 The box never takes the focus away from the app, so the keyboard keeps typing into the app's field. A tool's own text box is the exception: tap a note, a task's name or the text to translate, and the keys type there, as they do with the tool open in the keyboard. That holds with the clipboard or snippets open in the keyboard as well: while a note or task is open for editing in the box, tapping a clip or a snippet puts it there, so you can move clips into a note one after another. Tuck the box to paste into the app instead. If the keyboard is closed, tapping the text box brings it up. **Insert** in the calculator and the converters types the result into the app's field while the keyboard is open, and copies it to the clipboard while it's closed. Translate's **Insert** and **Replace** do the same with the translation.
 
-Translate shares its text box with the keyboard's own search panels, such as GIFs and web search. If you open one of those while Translate is in the box, the box keeps showing its last translation and waits. Its text comes back, ready to type into, once the keyboard is down to its keys again. Text you selected and sent to Translate from the selection bar goes into the box, too.
+Translate shares its text box with the keyboard's own search panels, such as GIFs and web search. If you open one of those while Translate is in the box, the box keeps showing its last translation and waits. Its text comes back, ready to type into, once the keyboard is down to its keys again. Text you selected and sent to Translate from the selection bar goes into the box, too. Web search and Wikipedia in the box share that same text box and wait the same way, with their results still on screen.
+
+The other tools that float work like this in the box:
+
+- **Clipboard** shows your history, with its tabs, pins and the long-press menu. Tapping a clip with the keyboard open pastes it into the app's field, so you can fill a form one clip after another. With the keyboard closed, it puts the clip on the clipboard for the app's own Paste. Searching the history stays in the keyboard's panel; editing a clip or combining clips moves the clipboard into the keyboard first, since those need the keys.
+- **Media controls** keep showing what's playing, with the keyboard closed too.
+- **Calendar**, **Dictionary**, **Wikipedia** and **Web search** type into their own boxes the way notes do: tap the box and the keys type there. **Insert**, a result's link, a dictionary word and a Wikipedia passage go into the app's field while the keyboard is open and onto the clipboard while it's closed. A picture result opens its page in the browser while the keyboard is closed.
+
+<SettingsPath path="Tools / Floating box gestures instead of buttons" />
+
+To give the tool more room, turn on **Floating box gestures instead of buttons**. The tuck, keyboard and close buttons leave the title bar, the bar along the bottom gives way to a small grip in the corner, and throws do their jobs instead: throw the box up and it flies off the top of the screen and closes, throw it down and the tool moves into the keyboard, and throw it to either side to tuck it there. A slow drag still just moves it, so only a quick flick counts as a throw. Wherever you threw it from, it opens next time where it was before the throw. With TalkBack, the three buttons' jobs are in the title bar's actions menu. The setting is off by default.
 
 <SettingsPath path="Tools / Close floating boxes on a tap outside" />
 

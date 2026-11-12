@@ -186,6 +186,12 @@ sealed interface FloatingAction {
  * that work with no text field behind them, by their own buttons, or by a
  * text box of their own the keyboard types into. In the order the pickers
  * list them.
+ *
+ * The clipboard, calendar, media controls, dictionary, Wikipedia and web
+ * search joined them in #1265. Left out on purpose: the panels that are keys
+ * themselves (emoji, the number pad, handwriting, the trackpad), the AI chat,
+ * whose composer, model and replies live and die with its panel, and find and
+ * replace, which edits the app's field through the keyboard's own connection.
  */
 val AppletTools: List<ToolbarTool> = listOf(
     ToolbarTool.CALCULATOR,
@@ -195,6 +201,12 @@ val AppletTools: List<ToolbarTool> = listOf(
     ToolbarTool.TODO,
     ToolbarTool.NOTES,
     ToolbarTool.TRANSLATE,
+    ToolbarTool.CLIPBOARD,
+    ToolbarTool.CALENDAR,
+    ToolbarTool.MEDIA_CONTROL,
+    ToolbarTool.DICTIONARY,
+    ToolbarTool.WIKIPEDIA,
+    ToolbarTool.WEB_SEARCH,
 )
 
 /** Whether [this] opens in a floating box (#1155). */
