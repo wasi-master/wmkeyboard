@@ -534,7 +534,7 @@ class ClipboardStore(
         // Markup for the whole text would paste back what the cut dropped;
         // and none at all when the user has asked for plain text (#414), or
         // when it is past the hard cap (#1215).
-        val html = html.takeIf { keepRichText && trimmed.length == whole.length && it.fitsHtmlCap() }
+        val html = html?.takeIf { keepRichText && trimmed.length == whole.length && it.fitsHtmlCap() }
         val isLink = html == null && ClipLinks.asUrl(trimmed) != null
         // Re-copying an existing item moves it to the top instead of duplicating.
         val existing = items.firstOrNull { it.kind.isTextual && it.text == trimmed }
