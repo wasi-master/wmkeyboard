@@ -6366,8 +6366,28 @@ class SuggestionEngine(
         // A shadowed spelling is protected by neither the lists nor the
         // lexicon. The lexicon learned it only because a list vouched for it.
         val known = inDictionaries(lower) || userLexicon.isEstablished(lower, learnedWordMinCount)
+        // Kept for [recheckPrevious] whatever happens below: a real word typed
+        // for another ("on" for "in") is exactly what the next word gives away.
+        if (readWholePhrases) noteTaps(lower, touch, timingMultiplier)
         if (known && !accentShadowed(lower, touch) && !typoShadowed(lower, touch, keys)) {
-            return CorrectionDecision(offer = rareSpellingFix(word, lower, touch, keys))
+            val rare = rareSpellingFix(word, lower, touch, keys)
+            // A listed word is read whole too, held to the decoder's far higher
+            // bar for a word a list holds: the last word of a message has no
+            // next word to give it away. Never a word only the user's own
+            // dictionary, contacts or apps know, and never one with digits.
+            if (rare == null && readWholePhrases && inDictionaries(lower) && lower.none { it.isDigit() } &&
+                !contacts.contains(lower) && !apps.contains(lower)
+            ) {
+                val listed = wholeReading(lower, touch, timingMultiplier)
+                listed?.apply?.let { fixed ->
+                    return CorrectionDecision(
+                        apply = matchCase(word, fixed),
+                        certainty = listed.certainty,
+                        complexity = if (' ' in fixed) 1.0 else complexityOfEdit(lower, fixed),
+                    )
+                }
+            }
+            return CorrectionDecision(offer = rare)
         }
         // A word the spelling checker accepts stands, shadowed or not: its
         // rules vouch for it where a frequency list only counted it.
@@ -6720,17 +6740,7 @@ class SuggestionEngine(
         val model = touchModelField ?: return null
         if (lower.length !in 2..WHOLE_READING_MAX_LENGTH || lower.any { !model.knows(it) }) return null
         val call = decoderCall(timingMultiplier) ?: return null
-        val points = touch?.takeIf { it.size == lower.length }?.let { taps ->
-            FloatArray(taps.size * 2) { i ->
-                val tap = taps[i / 2]
-                when {
-                    tap == null -> Float.NaN
-                    i % 2 == 0 -> tap.x
-                    else -> tap.y
-                }
-            }
-        }
-        pendingTaps = ReadTaps(lower, points, timingMultiplier)
+        val points = pointsOf(lower, touch)
         val scale = call.scale
         val before = sentence.takeLast(WHOLE_READING_CONTEXT).map { WordKey.of(it) }
         val seeds = call.seeds
@@ -6756,6 +6766,31 @@ class SuggestionEngine(
         val offer = verdict.getOrNull(1)?.takeIf(::usable)
         val margin = WHOLE_READING_MARGIN * scale
         return WholeReading(apply, offer, if (apply != null) certaintyOf(out[0], margin.coerceAtLeast(1e-6)) else 0.0)
+    }
+
+    /** An x, y per letter of [lower] (NaN where a tap has none), or null without taps for each. */
+    private fun pointsOf(lower: String, touch: List<TouchPoint?>?): FloatArray? =
+        touch?.takeIf { it.size == lower.length }?.let { taps ->
+            FloatArray(taps.size * 2) { i ->
+                val tap = taps[i / 2]
+                when {
+                    tap == null -> Float.NaN
+                    i % 2 == 0 -> tap.x
+                    else -> tap.y
+                }
+            }
+        }
+
+    /** Keeps the taps of [lower] for [noteCommit] to hand to [recheckPrevious]. */
+    private fun noteTaps(lower: String, touch: List<TouchPoint?>?, timingMultiplier: Double) {
+        val model = touchModelField
+        pendingTaps = if (englishSources && model != null && lower.length in 1..WHOLE_READING_MAX_LENGTH &&
+            lower.all { model.knows(it) }
+        ) {
+            ReadTaps(lower, pointsOf(lower, touch), timingMultiplier)
+        } else {
+            null
+        }
     }
 
     /** What a decoder call needs besides the taps: its sources, the slider's scale on the margins, the pairs and the model. */
