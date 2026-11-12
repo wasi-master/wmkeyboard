@@ -354,7 +354,6 @@
     <string name="addon_open_screen_action">打开 %1$s</string>
     <string name="addon_plugin_no_permissions_title">仅限其自身面板内</string>
     <string name="addon_plugin_permissions_title">此插件的功能</string>
-    <string name="addon_plugin_sandbox_body">插件在沙盒中运行。此插件无法查看您的输入内容、读取剪贴板或使用互联网。插件无法请求这些权限。</string>
     <string name="addon_preview_action">预览</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d 个表情符号有名称</item>
@@ -7260,14 +7259,10 @@
     <string name="plugins_detail_no_description">无描述。</string>
     <string name="plugins_detail_stopped_subtitle">由于该插件两次停止响应，应用已将其关闭</string>
     <string name="plugins_detail_subsystem_off_subtitle">当“允许插件”处于关闭状态时（在“工具”下的“插件”中），不会运行任何插件</string>
-    <string name="plugins_fact_no_clipboard">它无法读取您的剪贴板</string>
-    <string name="plugins_fact_no_field">它无法读取您正在输入的文本字段</string>
-    <string name="plugins_fact_no_internet">它无法使用互联网</string>
     <string name="plugins_fact_no_typing">它无法看到您的输入内容</string>
     <string name="plugins_fact_own_panel">它可以绘制自己的面板并进行自己的数学运算</string>
     <string name="plugins_fact_own_storage">如果它在安装前告知您，它可以保存自己的数据</string>
     <string name="plugins_fact_reminders">如果它在您安装前告知，它可以在您设置的时间显示提醒</string>
-    <string name="plugins_facts_info">这些不是设置。插件无法请求这些内容。当您在插件自己的框中键入或粘贴文本时，您就将文本提供给了插件。当您按下“插入”时，结果会返回给您。</string>
     <string name="plugins_facts_title">插件能做什么和不能做什么</string>
     <string name="plugins_icons_export_done_message">应用已保存 %1$s。</string>
     <string name="plugins_icons_export_failed_message">应用无法写入该文件。</string>
@@ -7379,7 +7374,6 @@
         <item quantity="one">保留 %1$d KB，将在 %2$d 天后删除</item>
         <item quantity="other">保留 %1$d KB，将在 %2$d 天后删除</item>
     </plurals>
-    <string name="plugins_permissions_info">插件在安装时会声明此权限。插件在运行时无法请求更多权限，因为已无可请求的权限。</string>
     <string name="plugins_permissions_none">仅限其自身面板内</string>
     <string name="plugins_permissions_title">它可以做什么</string>
     <string name="plugins_reminders_blocked_subtitle">应用无法显示这些提醒。点击以允许其发布通知。</string>

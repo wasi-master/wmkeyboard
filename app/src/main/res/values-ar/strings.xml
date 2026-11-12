@@ -360,7 +360,6 @@
     <string name="addon_open_screen_action">فتح %1$s</string>
     <string name="addon_plugin_no_permissions_title">لا شيء خارج لوحتها الخاصة</string>
     <string name="addon_plugin_permissions_title">ما يمكن لهذه الإضافة القيام به</string>
-    <string name="addon_plugin_sandbox_body">تعمل الإضافات في بيئة معزولة. لا يمكن لهذه الإضافة رؤية ما تكتبه، أو قراءة الحافظة الخاصة بك، أو استخدام الإنترنت. لا يمكن للإضافة طلب هذه الصلاحيات.</string>
     <string name="addon_preview_action">معاينة</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">يوجد اسم لـ %1$d رمز تعبيري</item>
@@ -7276,14 +7275,10 @@
     <string name="plugins_detail_no_description">لا يوجد وصف.</string>
     <string name="plugins_detail_stopped_subtitle">أوقف التطبيق هذه الإضافة لأنها توقفت عن الاستجابة مرتين</string>
     <string name="plugins_detail_subsystem_off_subtitle">لا يتم تشغيل أي إضافة أثناء إيقاف \"السماح بالإضافات\"، ضمن الأدوات ثم الإضافات</string>
-    <string name="plugins_fact_no_clipboard">لا يمكنه قراءة حافظتك</string>
-    <string name="plugins_fact_no_field">لا يمكنه قراءة حقل النص الذي تكتب فيه</string>
-    <string name="plugins_fact_no_internet">لا يمكنه استخدام الإنترنت</string>
     <string name="plugins_fact_no_typing">لا يمكنه رؤية ما تكتبه</string>
     <string name="plugins_fact_own_panel">يمكنه رسم لوحته الخاصة وإجراء حساباته الخاصة</string>
     <string name="plugins_fact_own_storage">يمكنه حفظ بياناته الخاصة، إذا أخبرك بذلك قبل تثبيته</string>
     <string name="plugins_fact_reminders">يمكنه عرض تذكير في الوقت الذي تحدده، إذا أخبرك بذلك قبل تثبيته</string>
-    <string name="plugins_facts_info">هذه ليست إعدادات. لا توجد طريقة للإضافة لطلبها. أنت تعطي نصًا للإضافة عندما تكتبه أو تلصقه في مربعها الخاص. تعود النتائج إليك عند الضغط على إدراج.</string>
     <string name="plugins_facts_title">ما يمكن للإضافة القيام به وما لا يمكنها القيام به</string>
     <string name="plugins_icons_export_done_message">حفظ التطبيق %1$s.</string>
     <string name="plugins_icons_export_failed_message">تعذر على التطبيق كتابة هذا الملف.</string>
@@ -7395,7 +7390,6 @@
         <item quantity="one">تم الاحتفاظ بـ %1$d كيلوبايت، وسيتم الحذف خلال %2$d يوم</item>
         <item quantity="other">تم الاحتفاظ بـ %1$d كيلوبايت، وسيتم الحذف خلال %2$d أيام</item>
     </plurals>
-    <string name="plugins_permissions_info">يعلن الملحق عن هذا عند تثبيته. لا يمكن للملحق طلب المزيد أثناء تشغيله، لأنه لا يوجد شيء آخر ليطلبه.</string>
     <string name="plugins_permissions_none">لا شيء خارج لوحتها الخاصة</string>
     <string name="plugins_permissions_title">ما يمكنه فعله</string>
     <string name="plugins_reminders_blocked_subtitle">لا يمكن للتطبيق عرض هذه التذكيرات. اضغط للسماح له بنشر الإشعارات.</string>

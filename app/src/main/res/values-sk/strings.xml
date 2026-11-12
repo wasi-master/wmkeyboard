@@ -357,7 +357,6 @@
     <string name="addon_open_screen_action">Otvoriť %1$s</string>
     <string name="addon_plugin_no_permissions_title">Nič mimo vlastného panela</string>
     <string name="addon_plugin_permissions_title">Čo tento doplnok dokáže</string>
-    <string name="addon_plugin_sandbox_body">Doplnky bežia v izolovanom prostredí (sandbox). Tento doplnok nevidí, čo píšete, nečíta vašu schránku ani nepoužíva internet. Doplnok si nemôže vyžiadať tieto oprávnenia.</string>
     <string name="addon_preview_action">Náhľad</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji má názov</item>
@@ -7274,14 +7273,10 @@
     <string name="plugins_detail_no_description">Bez popisu.</string>
     <string name="plugins_detail_stopped_subtitle">Aplikácia tento doplnok vypla, pretože dvakrát prestal reagovať</string>
     <string name="plugins_detail_subsystem_off_subtitle">Žiadny doplnok nie je spustený, kým je vypnutá možnosť „Povoliť doplnky“ v časti Nástroje -&gt; Doplnky</string>
-    <string name="plugins_fact_no_clipboard">Nemôže čítať vašu schránku</string>
-    <string name="plugins_fact_no_field">Nedokáže čítať textové pole, do ktorého píšete</string>
-    <string name="plugins_fact_no_internet">Nemôže používať internet</string>
     <string name="plugins_fact_no_typing">Nevidí, čo píšete</string>
     <string name="plugins_fact_own_panel">Môže vykresliť vlastný panel a vykonávať vlastné výpočty</string>
     <string name="plugins_fact_own_storage">Môže ukladať vlastné údaje, ak vás na to upozorní pred inštaláciou</string>
     <string name="plugins_fact_reminders">Môže zobraziť pripomienku v čase, ktorý si nastavíte, ak vás na to upozorní pred inštaláciou</string>
-    <string name="plugins_facts_info">Toto nie sú nastavenia. Doplnok nemá spôsob, ako si ich vyžiadať. Text doplnku poskytnete, keď ho napíšete alebo prilepíte do jeho vlastného poľa. Výsledky sa vám vrátia po stlačení klávesu Vložiť.</string>
     <string name="plugins_facts_title">Čo doplnok dokáže a čo nie</string>
     <string name="plugins_icons_export_done_message">Aplikácia uložila %1$s.</string>
     <string name="plugins_icons_export_failed_message">Aplikácia nedokázala zapísať tento súbor.</string>
@@ -7393,7 +7388,6 @@
         <item quantity="one">Ponechané %1$d KB, vymaže sa o %2$d deň</item>
         <item quantity="other">Ponechané %1$d KB, vymaže sa o %2$d dní</item>
     </plurals>
-    <string name="plugins_permissions_info">Plugin toto deklaruje pri inštalácii. Plugin nemôže počas behu žiadať o viac, pretože už niet o čo žiadať.</string>
     <string name="plugins_permissions_none">Nič mimo vlastného panela</string>
     <string name="plugins_permissions_title">Čo dokáže</string>
     <string name="plugins_reminders_blocked_subtitle">Aplikácia nemôže zobraziť tieto pripomienky. Klepnutím jej povolíte odosielať upozornenia.</string>

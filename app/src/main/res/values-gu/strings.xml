@@ -358,7 +358,6 @@
     <string name="addon_open_screen_action">%1$s ખોલો</string>
     <string name="addon_plugin_no_permissions_title">તેના પોતાના પેનલની બહાર કંઈ નથી</string>
     <string name="addon_plugin_permissions_title">આ પ્લગિન શું કરી શકે છે</string>
-    <string name="addon_plugin_sandbox_body">પ્લગઈન્સ સેન્ડબોક્સમાં ચાલે છે. આ પ્લગઈન તમે શું ટાઈપ કરો છો તે જોઈ શકતું નથી, તમારું ક્લિપબોર્ડ વાંચી શકતું નથી અથવા ઇન્ટરનેટનો ઉપયોગ કરી શકતું નથી. પ્લગઈન આ ક્ષમતાઓ માટે પૂછી શકતું નથી.</string>
     <string name="addon_preview_action">પ્રીવ્યૂ</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d ઇમોજીનું નામ છે</item>
@@ -7270,14 +7269,10 @@
     <string name="plugins_detail_no_description">કોઈ વર્ણન નથી.</string>
     <string name="plugins_detail_stopped_subtitle">એપ્લિકેશે આ પ્લગિન બંધ કરી દીધું છે કારણ કે તે બે વાર પ્રતિસાદ આપવામાં નિષ્ફળ ગયું હતું</string>
     <string name="plugins_detail_subsystem_off_subtitle">જ્યારે \'પ્લગિન્સને મંજૂરી આપો\' બંધ હોય, ત્યારે કોઈ પ્લગિન ચાલતું નથી, ટૂલ્સ હેઠળ પછી પ્લગિન્સ</string>
-    <string name="plugins_fact_no_clipboard">તે તમારા ક્લિપબોર્ડને વાંચી શકતું નથી</string>
-    <string name="plugins_fact_no_field">તે તમે જેમાં લખો છો તે ટેક્સ્ટ ફીલ્ડ વાંચી શકતું નથી</string>
-    <string name="plugins_fact_no_internet">તે ઇન્ટરનેટનો ઉપયોગ કરી શકતું નથી</string>
     <string name="plugins_fact_no_typing">તે તમે શું ટાઇપ કરો છો તે જોઈ શકતું નથી</string>
     <string name="plugins_fact_own_panel">તે પોતાની પેનલ દોરી શકે છે અને પોતાની ગણતરી કરી શકે છે</string>
     <string name="plugins_fact_own_storage">તે તેનો પોતાનો ડેટા સાચવી શકે છે, જો તે તમને ઇન્સ્ટોલ કરતા પહેલા જણાવે તો</string>
     <string name="plugins_fact_reminders">જો તે તમને ઇન્સ્ટોલ કરતા પહેલા જણાવે, તો તે તમે સેટ કરેલા સમયે રિમાઇન્ડર બતાવી શકે છે</string>
-    <string name="plugins_facts_info">આ સેટિંગ્સ નથી. પ્લગિન પાસે તેને પૂછવાનો કોઈ રસ્તો નથી. જ્યારે તમે કોઈ પ્લગિનના પોતાના બોક્સમાં ટેક્સ્ટ ટાઈપ કરો અથવા પેસ્ટ કરો ત્યારે તમે તેને ટેક્સ્ટ આપો છો. જ્યારે તમે ઇન્સર્ટ દબાવો છો ત્યારે પરિણામો તમારી પાસે પાછા આવે છે.</string>
     <string name="plugins_facts_title">પ્લગિન શું કરી શકે અને શું ન કરી શકે</string>
     <string name="plugins_icons_export_done_message">એપે %1$s સેવ કર્યું.</string>
     <string name="plugins_icons_export_failed_message">એપ તે ફાઇલ લખી શકી નથી.</string>
@@ -7389,7 +7384,6 @@
         <item quantity="one">%1$d KB રાખેલ છે, %2$d દિવસમાં કાઢી નાખવામાં આવશે</item>
         <item quantity="other">%1$d KB રાખેલ છે, %2$d દિવસોમાં કાઢી નાખવામાં આવશે</item>
     </plurals>
-    <string name="plugins_permissions_info">જ્યારે તમે પ્લગઇન ઇન્સ્ટોલ કરો છો ત્યારે તે આ જાહેર કરે છે. પ્લગઇન ચાલતી વખતે વધુ કંઈ માંગી શકતું નથી, કારણ કે માંગવા માટે બીજું કંઈ બાકી હોતું નથી.</string>
     <string name="plugins_permissions_none">તેના પોતાના પેનલની બહાર કંઈ નહીં</string>
     <string name="plugins_permissions_title">તે શું કરી શકે છે</string>
     <string name="plugins_reminders_blocked_subtitle">એપ આ રિમાઇન્ડર્સ બતાવી શકતી નથી. નોટિફિકેશન મોકલવાની મંજૂરી આપવા માટે ટેપ કરો.</string>

@@ -237,7 +237,9 @@
     <string name="addon_plugin_permissions_title">What this plugin can do</string>
     <!-- Shown for a plugin that asks for no permission at all. -->
     <string name="addon_plugin_no_permissions_title">Nothing outside its own panel</string>
-    <string name="addon_plugin_sandbox_body">Plugins run in a sandbox. This plugin cannot see what you type, read your clipboard, or use the internet. A plugin cannot ask for those abilities.</string>
+    <string name="addon_plugin_sandbox_body_v5">Plugins run in a sandbox. A plugin never sees what you type. The abilities marked with a warning stay off until you turn them on for this plugin, after you install it.</string>
+    <!-- Header over the permissions that stay off until the user turns them on. -->
+    <string name="addon_plugin_risky_title">Off until you turn them on</string>
 
     <!-- ================================================================== -->
     <!-- The Use button, which names the screen it opens. These are screen   -->

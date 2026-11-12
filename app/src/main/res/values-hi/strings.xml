@@ -360,7 +360,6 @@
     <string name="addon_open_screen_action">%1$s खोलें</string>
     <string name="addon_plugin_no_permissions_title">अपने पैनल के बाहर कुछ भी नहीं</string>
     <string name="addon_plugin_permissions_title">यह प्लगइन क्या कर सकता है</string>
-    <string name="addon_plugin_sandbox_body">प्लगइन्स सैंडबॉक्स में चलते हैं। यह प्लगइन यह नहीं देख सकता कि आप क्या टाइप करते हैं, आपके क्लिपबोर्ड को पढ़ नहीं सकता, या इंटरनेट का उपयोग नहीं कर सकता। एक प्लगइन उन क्षमताओं के लिए नहीं पूछ सकता।</string>
     <string name="addon_preview_action">पूर्वावलोकन</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d इमोजी का नाम है</item>
@@ -7278,14 +7277,10 @@
     <string name="plugins_detail_no_description">कोई विवरण नहीं।</string>
     <string name="plugins_detail_stopped_subtitle">ऐप ने इस प्लगइन को बंद कर दिया क्योंकि यह दो बार प्रतिक्रिया देने में विफल रहा</string>
     <string name="plugins_detail_subsystem_off_subtitle">जब \'प्लगइन्स की अनुमति दें\' बंद हो, तो कोई प्लगइन नहीं चलता, यह \'टूल्स\' के अंतर्गत \'प्लगइन्स\' में होता है</string>
-    <string name="plugins_fact_no_clipboard">यह आपके क्लिपबोर्ड को पढ़ नहीं सकता</string>
-    <string name="plugins_fact_no_field">यह उस टेक्स्ट फ़ील्ड को नहीं पढ़ सकता जिसमें आप लिख रहे हैं</string>
-    <string name="plugins_fact_no_internet">यह इंटरनेट का उपयोग नहीं कर सकता</string>
     <string name="plugins_fact_no_typing">यह नहीं देख सकता कि आप क्या टाइप करते हैं</string>
     <string name="plugins_fact_own_panel">यह अपना खुद का पैनल बना सकता है और अपनी खुद की गणना कर सकता है</string>
     <string name="plugins_fact_own_storage">यह अपना डेटा सहेज सकता है, यदि यह आपको इंस्टॉल करने से पहले बता दे</string>
     <string name="plugins_fact_reminders">यह आपके द्वारा सेट किए गए समय पर रिमाइंडर दिखा सकता है, यदि यह आपको इंस्टॉल करने से पहले बताता है</string>
-    <string name="plugins_facts_info">ये सेटिंग्स नहीं हैं। किसी प्लगइन के पास इनके लिए पूछने का कोई तरीका नहीं है। जब आप किसी प्लगइन के अपने बॉक्स में टेक्स्ट टाइप या पेस्ट करते हैं, तो आप उसे टेक्स्ट देते हैं। जब आप \'इन्सर्ट\' दबाते हैं तो परिणाम आपके पास वापस आ जाते हैं।</string>
     <string name="plugins_facts_title">एक प्लगइन क्या कर सकता है और क्या नहीं कर सकता</string>
     <string name="plugins_icons_export_done_message">ऐप ने %1$s को सहेज लिया है।</string>
     <string name="plugins_icons_export_failed_message">ऐप उस फ़ाइल को लिख नहीं सका।</string>
@@ -7397,7 +7392,6 @@
         <item quantity="one">%1$d KB रखा गया, %2$d दिन में हटाया गया</item>
         <item quantity="other">%1$d KB रखा गया, %2$d दिनों में हटाया गया</item>
     </plurals>
-    <string name="plugins_permissions_info">जब आप इसे इंस्टॉल करते हैं तो प्लगइन इसकी घोषणा करता है। प्लगइन चलते समय और अधिक नहीं मांग सकता, क्योंकि मांगने के लिए कुछ और नहीं है।</string>
     <string name="plugins_permissions_none">अपने पैनल के बाहर कुछ भी नहीं</string>
     <string name="plugins_permissions_title">यह क्या कर सकता है</string>
     <string name="plugins_reminders_blocked_subtitle">ऐप इन रिमाइंडर को नहीं दिखा सकता। नोटिफिकेशन भेजने की अनुमति देने के लिए टैप करें।</string>

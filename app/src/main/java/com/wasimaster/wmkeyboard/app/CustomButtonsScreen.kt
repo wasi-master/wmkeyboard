@@ -45,6 +45,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowDownward
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowUpward
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bookmarks
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
+import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ToggleOn
 import com.wasimaster.wmkeyboard.core.settings.CUSTOM_BUTTON_LABEL_MAX
 import com.wasimaster.wmkeyboard.core.settings.CustomButton
@@ -69,11 +71,12 @@ object CustomButtons {
     const val ROUTE = "custom_buttons"
 }
 
-private enum class CustomPick { SHORTCUT, SETTING, PAGE }
+private enum class CustomPick { SHORTCUT, SETTING, PAGE, PLUGIN }
 
 /**
  * The user's own buttons (#1213, #1236): another app's shortcut, a switch
- * over one of the keyboard's settings, or a jump to a settings page. Each
+ * over one of the keyboard's settings, a jump to a settings page, or a
+ * plugin's panel. Each
  * sits on the toolbar or in the toolbox, and the floating button can run any
  * of them. A press on a button renames it and moves it between the two.
  */
@@ -171,6 +174,16 @@ internal fun CustomButtonsScreen(repository: SettingsRepository, settings: LiveS
                 icon = Icons.Outlined.Bookmarks,
             ) { if (!full) picking = CustomPick.PAGE }
         }
+        item {
+            NavRow(
+                title = R.string.custombuttons_add_plugin_title,
+                subtitle = stringResource(
+                    if (full) R.string.custombuttons_full else R.string.custombuttons_add_plugin_subtitle,
+                    MAX_CUSTOM_BUTTONS,
+                ),
+                icon = Icons.Outlined.Extension,
+            ) { if (!full) picking = CustomPick.PLUGIN }
+        }
     }
 
     when (picking) {
@@ -206,6 +219,13 @@ internal fun CustomButtonsScreen(repository: SettingsRepository, settings: LiveS
         ) { page ->
             picking = null
             add(CustomButtonKind.PAGE, page.name)
+        }
+        CustomPick.PLUGIN -> PluginTilePicker(
+            taken = buttons.filter { it.kind == CustomButtonKind.PLUGIN }.mapTo(HashSet()) { it.target },
+            onDismiss = { picking = null },
+        ) { plugin ->
+            picking = null
+            add(CustomButtonKind.PLUGIN, plugin)
         }
         null -> Unit
     }
@@ -243,6 +263,7 @@ private fun CustomButtonRow(
             CustomButtonKind.SHORTCUT -> R.string.custombuttons_kind_shortcut
             CustomButtonKind.SETTING -> R.string.custombuttons_kind_setting
             CustomButtonKind.PAGE -> R.string.custombuttons_kind_page
+            CustomButtonKind.PLUGIN -> R.string.custombuttons_kind_plugin
         },
     )
     val place = stringResource(
@@ -288,6 +309,7 @@ private fun CustomButtonGlyph(button: CustomButton) {
         when (button.kind) {
             CustomButtonKind.SETTING -> button.toggle?.let(::customToggleIcon) ?: Icons.Outlined.ToggleOn
             CustomButtonKind.PAGE -> button.page?.let(::customPageIcon) ?: Icons.Outlined.Bookmarks
+            CustomButtonKind.PLUGIN -> Icons.Outlined.Extension
             CustomButtonKind.SHORTCUT -> Icons.Outlined.AppShortcut
         },
         contentDescription = null,
@@ -446,6 +468,42 @@ private fun PagePicker(taken: Set<CustomPage>, onDismiss: () -> Unit, onPick: (C
                 "pages",
                 null,
                 rows.ifEmpty { listOf(PickerRow("none", stringResource(R.string.custombuttons_all_added), onPick = onDismiss)) },
+            ),
+        ),
+        onDismiss = onDismiss,
+    )
+}
+
+/**
+ * Plugins that can open a panel. Those whose manifest asks for a tile come
+ * first; any other panel plugin can have one too, since the tile only opens
+ * what the Plugins panel already lists.
+ */
+@Composable
+private fun PluginTilePicker(taken: Set<String>, onDismiss: () -> Unit, onPick: (String) -> Unit) {
+    val context = LocalContext.current
+    val store = remember { PluginStore.get(context) }
+    val plugins = remember(taken) {
+        (if (store.subsystemEnabled()) store.panelPlugins() else emptyList())
+            .filter { it.id !in taken }.sortedByDescending { it.tool.tile }
+    }
+    val rows = plugins.map { plugin ->
+        PickerRow(
+            key = plugin.id,
+            title = plugin.name,
+            subtitle = plugin.description.takeIf { it.isNotBlank() },
+            leading = { Icon(Icons.Outlined.Extension, contentDescription = null) },
+            onPick = { onPick(plugin.id) },
+        )
+    }
+    ActionPickerPage(
+        memoryKey = "custom-plugin",
+        title = stringResource(R.string.custombuttons_add_plugin_title),
+        groups = listOf(
+            PickerGroup(
+                "plugins",
+                null,
+                rows.ifEmpty { listOf(PickerRow("none", stringResource(R.string.custombuttons_no_plugins), onPick = onDismiss)) },
             ),
         ),
         onDismiss = onDismiss,

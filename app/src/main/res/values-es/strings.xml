@@ -360,7 +360,6 @@
     <string name="addon_open_screen_action">Abrir %1$s</string>
     <string name="addon_plugin_no_permissions_title">Nada fuera de su propio panel</string>
     <string name="addon_plugin_permissions_title">Qué puede hacer este complemento</string>
-    <string name="addon_plugin_sandbox_body">Los complementos se ejecutan en un entorno aislado (sandbox). Este complemento no puede ver lo que escribes, leer tu portapapeles ni usar Internet. Un complemento no puede solicitar esas capacidades.</string>
     <string name="addon_preview_action">Vista previa</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji tiene nombre</item>
@@ -7275,14 +7274,10 @@
     <string name="plugins_detail_no_description">Sin descripción.</string>
     <string name="plugins_detail_stopped_subtitle">La aplicación desactivó este complemento porque dejó de responder dos veces</string>
     <string name="plugins_detail_subsystem_off_subtitle">Ningún complemento se ejecuta mientras \"Permitir complementos\" esté desactivado, en Herramientas y luego Complementos</string>
-    <string name="plugins_fact_no_clipboard">No puede leer tu portapapeles</string>
-    <string name="plugins_fact_no_field">No puede leer el campo de texto en el que escribe</string>
-    <string name="plugins_fact_no_internet">No puede usar internet</string>
     <string name="plugins_fact_no_typing">No puede ver lo que escribes</string>
     <string name="plugins_fact_own_panel">Puede dibujar su propio panel y realizar sus propios cálculos</string>
     <string name="plugins_fact_own_storage">Puede guardar sus propios datos, si te lo indica antes de instalarlo</string>
     <string name="plugins_fact_reminders">Puede mostrar un recordatorio a la hora que establezcas, si te lo indica antes de instalarlo</string>
-    <string name="plugins_facts_info">Estos no son ajustes. Un plugin no tiene forma de solicitarlos. Tú le das texto a un plugin cuando lo escribes o pegas en su propio cuadro. Los resultados vuelven a ti cuando presionas Insertar.</string>
     <string name="plugins_facts_title">Lo que un complemento puede y no puede hacer</string>
     <string name="plugins_icons_export_done_message">La aplicación guardó %1$s.</string>
     <string name="plugins_icons_export_failed_message">La aplicación no pudo escribir ese archivo.</string>
@@ -7394,7 +7389,6 @@
         <item quantity="one">%1$d KB guardado, se eliminará en %2$d día</item>
         <item quantity="other">%1$d KB guardados, se eliminarán en %2$d días</item>
     </plurals>
-    <string name="plugins_permissions_info">El complemento declara esto cuando lo instalas. Un complemento no puede pedir más mientras se ejecuta, porque no hay nada más que pedir.</string>
     <string name="plugins_permissions_none">Nada fuera de su propio panel</string>
     <string name="plugins_permissions_title">Lo que puede hacer</string>
     <string name="plugins_reminders_blocked_subtitle">La aplicación no puede mostrar estos recordatorios. Toca para permitir que envíe notificaciones.</string>

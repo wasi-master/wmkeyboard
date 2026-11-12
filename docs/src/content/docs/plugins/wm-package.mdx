@@ -58,7 +58,7 @@ API 5 adds three fields to [the manifest](/plugins/api-reference/#the-manifest):
 | Field | What it does |
 |---|---|
 | `hosts` | The websites `http` may reach. Required with `network`. See [Permissions](/plugins/permissions/#hosts). |
-| `tool` | Where the plugin shows up: a `tile` for the toolbar, toolbox and floating button, a floating box (`float`), and a `keyword` the user types as `@weather`, with a strip `chip`. `icon` is a Material Symbols name. |
+| `tool` | Where the plugin shows up. With `tile`, the plugin comes first when the user adds a plugin button in [Custom buttons](/tools/custom-buttons/), which can sit on the toolbar, in the toolbox or on the floating button. A `keyword` is a word the user types as `@weather`; `chip` offers it on the suggestion strip. `icon` is a Material Symbols name. |
 | `settings` | Rows the app draws on your plugin's page: `switch`, `text`, `number`, `choice` and `host`. Read them as `plugin.settings.units`. A `host` setting adds the website the user types to the ones `http` may reach. |
 
 ### Several files
@@ -94,6 +94,8 @@ def render():
             ui.icon_button("settings", on_click=open_settings, label="Settings")
 ```
 
+An `ui.input` or `ui.search` without `on_change` hears nothing while the user types; Enter calls its `on_submit`. With `on_change`, each keystroke is an event and the panel is drawn again.
+
 Interactive widgets take callbacks instead of ids. A callback runs when the
 user acts, then the panel is drawn again. An id is made for you; pass `key=`
 when you want a stable one (an input you write to, say).
@@ -117,7 +119,7 @@ when you want a stable one (an input you write to, say).
 | `ui.date(label=, value=, time=, on_change=)` | seconds since 1970, or `None` |
 | `ui.list(items, on_select=, empty=)` with `ui.item(title, subtitle=, icon=, trailing=, on_click=, actions={"Delete": fn})` | the row index; `actions` show when the row's ⋯ is tapped |
 | `ui.keys(rows, on_press=)` | the key's label |
-| `ui.image(src, alt=, height=, insertable=, on_click=)` | `on_click()` |
+| `ui.image(src, alt=, height=, insertable=, on_click=)`: `src` is `assets/name.png` or `data:` and base64. A web address shows the `alt` text | `on_click()` |
 | `ui.icon(name, color=)`, `ui.qr(text)`, `ui.stat(label, value, caption=)`, `ui.ring(value, label=)`, `ui.progress(value=None)`, `ui.empty(text, action=, on_click=)` | |
 | `ui.chart(data, kind="line"/"bar"/"spark", labels=)` | |
 | `ui.canvas(width, height, shapes, on_tap=, on_drag=)` with `ui.rect`, `ui.circle`, `ui.line`, `ui.text_at` | `on_tap(x, y)`; `on_drag({"x", "y", "dx", "dy", "phase"})` |

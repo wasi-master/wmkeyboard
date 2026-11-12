@@ -358,7 +358,6 @@
     <string name="addon_open_screen_action">%1$s öffnen</string>
     <string name="addon_plugin_no_permissions_title">Nichts außerhalb des eigenen Bereichs</string>
     <string name="addon_plugin_permissions_title">Was dieses Plugin tun kann</string>
-    <string name="addon_plugin_sandbox_body">Plugins werden in einer Sandbox ausgeführt. Dieses Plugin kann nicht sehen, was Sie tippen, Ihre Zwischenablage lesen oder das Internet nutzen. Ein Plugin kann diese Berechtigungen nicht anfordern.</string>
     <string name="addon_preview_action">Vorschau</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d Emoji hat einen Namen</item>
@@ -7272,14 +7271,10 @@
     <string name="plugins_detail_no_description">Keine Beschreibung.</string>
     <string name="plugins_detail_stopped_subtitle">Die App hat dieses Plugin deaktiviert, da es zweimal nicht mehr reagierte</string>
     <string name="plugins_detail_subsystem_off_subtitle">Kein Plugin wird ausgeführt, während „Plugins erlauben“ unter Tools &gt; Plugins deaktiviert ist</string>
-    <string name="plugins_fact_no_clipboard">Es kann Ihre Zwischenablage nicht lesen</string>
-    <string name="plugins_fact_no_field">Es kann das Textfeld, in das du schreibst, nicht lesen</string>
-    <string name="plugins_fact_no_internet">Es kann das Internet nicht nutzen</string>
     <string name="plugins_fact_no_typing">Es kann nicht sehen, was Sie tippen</string>
     <string name="plugins_fact_own_panel">Es kann seinen eigenen Bereich zeichnen und eigene Berechnungen durchführen</string>
     <string name="plugins_fact_own_storage">Es kann eigene Daten speichern, wenn es dich vor der Installation darüber informiert</string>
     <string name="plugins_fact_reminders">Es kann zu einer von Ihnen festgelegten Zeit eine Erinnerung anzeigen, sofern es Sie vor der Installation darüber informiert.</string>
-    <string name="plugins_facts_info">Dies sind keine Einstellungen. Ein Plugin hat keine Möglichkeit, diese abzufragen. Du gibst Text an ein Plugin weiter, wenn du ihn in dessen eigenes Feld tippst oder einfügst. Die Ergebnisse erhältst du, wenn du auf „Einfügen“ drückst.</string>
     <string name="plugins_facts_title">Was ein Plugin kann und was nicht</string>
     <string name="plugins_icons_export_done_message">Die App hat %1$s gespeichert.</string>
     <string name="plugins_icons_export_failed_message">Die App konnte die Datei nicht schreiben.</string>
@@ -7391,7 +7386,6 @@
         <item quantity="one">%1$d KB behalten, in %2$d Tag gelöscht</item>
         <item quantity="other">%1$d KB behalten, in %2$d Tagen gelöscht</item>
     </plurals>
-    <string name="plugins_permissions_info">Das Plugin deklariert dies bei der Installation. Ein Plugin kann während der Ausführung nicht mehr anfordern, da es nichts weiter anzufordern gibt.</string>
     <string name="plugins_permissions_none">Nichts außerhalb des eigenen Bereichs</string>
     <string name="plugins_permissions_title">Was es tun kann</string>
     <string name="plugins_reminders_blocked_subtitle">Die App kann diese Erinnerungen nicht anzeigen. Tippen Sie hier, um ihr das Senden von Benachrichtigungen zu erlauben.</string>

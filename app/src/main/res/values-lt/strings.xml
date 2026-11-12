@@ -359,7 +359,6 @@
     <string name="addon_open_screen_action">Atidaryti %1$s</string>
     <string name="addon_plugin_no_permissions_title">Nieko už savo skydelio ribų</string>
     <string name="addon_plugin_permissions_title">Ką šis papildinys gali daryti</string>
-    <string name="addon_plugin_sandbox_body">Papildiniai veikia smėlio dėžėje. Šis papildinys negali matyti, ką rašote, skaityti jūsų iškarpinės ar naudotis internetu. Papildinys negali prašyti šių galimybių.</string>
     <string name="addon_preview_action">Peržiūra</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d jaustukas turi pavadinimą</item>
@@ -7272,14 +7271,10 @@
     <string name="plugins_detail_no_description">Nėra aprašymo.</string>
     <string name="plugins_detail_stopped_subtitle">Programa išjungė šį papildinį, nes jis du kartus nustojo reaguoti</string>
     <string name="plugins_detail_subsystem_off_subtitle">Joks papildinys neveikia, kai „Leisti papildinius“ yra išjungta, skiltyje Įrankiai, tada Papildiniai</string>
-    <string name="plugins_fact_no_clipboard">Nepavyksta nuskaityti jūsų iškarpinės</string>
-    <string name="plugins_fact_no_field">Jis negali nuskaityti teksto lauko, kuriame rašote</string>
-    <string name="plugins_fact_no_internet">Negali naudotis internetu</string>
     <string name="plugins_fact_no_typing">Ji nemato, ką rašote</string>
     <string name="plugins_fact_own_panel">Jis gali nupiešti savo skydelį ir atlikti savo skaičiavimus</string>
     <string name="plugins_fact_own_storage">Ji gali išsaugoti savo duomenis, jei apie tai praneša prieš įdiegiant</string>
     <string name="plugins_fact_reminders">Ji gali rodyti priminimą jūsų nustatytu laiku, jei apie tai praneša prieš įdiegiant</string>
-    <string name="plugins_facts_info">Tai nėra nustatymai. Papildinys negali jų paprašyti. Tekstą papildiniui pateikiate, kai jį įvedate arba įklijuojate į jo laukelį. Rezultatai grąžinami, kai paspaudžiate „Įterpti“.</string>
     <string name="plugins_facts_title">Ką papildinys gali ir ko negali daryti</string>
     <string name="plugins_icons_export_done_message">Programa išsaugojo %1$s.</string>
     <string name="plugins_icons_export_failed_message">Programai nepavyko įrašyti to failo.</string>
@@ -7391,7 +7386,6 @@
         <item quantity="one">Pasiliko %1$d KB, ištrinama po %2$d dienos</item>
         <item quantity="other">Pasiliko %1$d KB, ištrinama po %2$d dienų</item>
     </plurals>
-    <string name="plugins_permissions_info">Papildinys tai deklaruoja diegimo metu. Papildinys negali prašyti daugiau veikdamas, nes daugiau prašyti nėra ko.</string>
     <string name="plugins_permissions_none">Nieko už savo skydelio ribų</string>
     <string name="plugins_permissions_title">Ką tai gali daryti</string>
     <string name="plugins_reminders_blocked_subtitle">Programa negali rodyti šių priminimų. Bakstelėkite, kad leistumėte jai siųsti pranešimus.</string>

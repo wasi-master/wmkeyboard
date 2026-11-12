@@ -982,6 +982,7 @@ internal object SettingsRowIcons {
 
         // ---- Plugins ----
         put(R.string.plugins_auto_disable_title) { Icons.Outlined.Block }
+        put(R.string.plugins_risky_title) { Icons.Outlined.Shield }
         put(R.string.plugins_detail_enabled_title) { Icons.Outlined.Extension }
 
         // ---- Privacy ----

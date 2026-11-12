@@ -355,7 +355,6 @@
     <string name="addon_open_screen_action">%1$s 열기</string>
     <string name="addon_plugin_no_permissions_title">자체 패널 외부 접근 불가</string>
     <string name="addon_plugin_permissions_title">이 플러그인이 수행할 수 있는 작업</string>
-    <string name="addon_plugin_sandbox_body">플러그인은 샌드박스에서 실행됩니다. 이 플러그인은 사용자가 입력하는 내용을 보거나, 클립보드를 읽거나, 인터넷을 사용할 수 없습니다. 플러그인은 이러한 권한을 요청할 수 없습니다.</string>
     <string name="addon_preview_action">미리보기</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">이모지 %1$d개에 이름이 있습니다</item>
@@ -7264,14 +7263,10 @@
     <string name="plugins_detail_no_description">설명 없음.</string>
     <string name="plugins_detail_stopped_subtitle">이 플러그인이 두 번 응답하지 않아 앱이 플러그인을 껐습니다.</string>
     <string name="plugins_detail_subsystem_off_subtitle">도구 &gt; 플러그인에서 \"플러그인 허용\"이 꺼져 있으면 플러그인이 실행되지 않습니다</string>
-    <string name="plugins_fact_no_clipboard">클립보드를 읽을 수 없습니다.</string>
-    <string name="plugins_fact_no_field">입력 중인 텍스트 필드를 읽을 수 없습니다.</string>
-    <string name="plugins_fact_no_internet">인터넷을 사용할 수 없습니다.</string>
     <string name="plugins_fact_no_typing">사용자가 입력하는 내용을 볼 수 없습니다.</string>
     <string name="plugins_fact_own_panel">자체 패널을 그리고 자체 계산을 수행할 수 있습니다</string>
     <string name="plugins_fact_own_storage">설치 전에 사용자에게 알리는 경우 자체 데이터를 저장할 수 있습니다.</string>
     <string name="plugins_fact_reminders">설치 전 안내에 따라 설정한 시간에 알림을 표시할 수 있습니다.</string>
-    <string name="plugins_facts_info">이것은 설정이 아닙니다. 플러그인은 이를 요청할 방법이 없습니다. 플러그인 전용 상자에 텍스트를 입력하거나 붙여넣으면 플러그인에 텍스트가 전달됩니다. 삽입을 누르면 결과가 반환됩니다.</string>
     <string name="plugins_facts_title">플러그인이 할 수 있는 것과 할 수 없는 것</string>
     <string name="plugins_icons_export_done_message">앱이 %1$s을(를) 저장했습니다.</string>
     <string name="plugins_icons_export_failed_message">앱에서 해당 파일을 쓸 수 없습니다.</string>
@@ -7383,7 +7378,6 @@
         <item quantity="one">%1$d KB 보관됨, %2$d일 후 삭제됨</item>
         <item quantity="other">%1$d KB 보관됨, %2$d일 후 삭제됨</item>
     </plurals>
-    <string name="plugins_permissions_info">플러그인을 설치할 때 플러그인이 이를 선언합니다. 플러그인이 실행되는 동안에는 더 이상 요청할 것이 없으므로 추가 권한을 요청할 수 없습니다.</string>
     <string name="plugins_permissions_none">자체 패널 외부에서는 아무것도 수행하지 않음</string>
     <string name="plugins_permissions_title">수행 가능한 작업</string>
     <string name="plugins_reminders_blocked_subtitle">앱에서 이 알림을 표시할 수 없습니다. 탭하여 알림 게시 권한을 허용하세요.</string>

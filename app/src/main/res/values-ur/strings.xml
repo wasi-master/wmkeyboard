@@ -357,7 +357,6 @@
     <string name="addon_open_screen_action">%1$s کھولیں</string>
     <string name="addon_plugin_no_permissions_title">اپنے پینل کے باہر کچھ نہیں</string>
     <string name="addon_plugin_permissions_title">یہ پلگ ان کیا کر سکتا ہے</string>
-    <string name="addon_plugin_sandbox_body">پلگ انز سینڈ باکس میں چلتے ہیں۔ یہ پلگ ان یہ نہیں دیکھ سکتا کہ آپ کیا ٹائپ کر رہے ہیں، آپ کا کلپ بورڈ پڑھ سکتا ہے، یا انٹرنیٹ استعمال کر سکتا ہے۔ کوئی پلگ ان ان صلاحیتوں کا مطالبہ نہیں کر سکتا۔</string>
     <string name="addon_preview_action">پیش نظارہ</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d ایموجی کا نام ہے</item>
@@ -7269,14 +7268,10 @@
     <string name="plugins_detail_no_description">کوئی تفصیل نہیں۔</string>
     <string name="plugins_detail_stopped_subtitle">ایپ نے اس پلگ ان کو بند کر دیا کیونکہ اس نے دو بار جواب دینا بند کر دیا تھا</string>
     <string name="plugins_detail_subsystem_off_subtitle">جب تک ٹولز کے تحت پلگ انز میں \"پلگ انز کی اجازت دیں\" بند ہے، کوئی پلگ ان نہیں چلے گا</string>
-    <string name="plugins_fact_no_clipboard">یہ آپ کے کلپ بورڈ کو نہیں پڑھ سکتا</string>
-    <string name="plugins_fact_no_field">یہ اس ٹیکسٹ فیلڈ کو نہیں پڑھ سکتا جس میں آپ لکھتے ہیں</string>
-    <string name="plugins_fact_no_internet">یہ انٹرنیٹ استعمال نہیں کر سکتا</string>
     <string name="plugins_fact_no_typing">یہ نہیں دیکھ سکتا کہ آپ کیا ٹائپ کر رہے ہیں</string>
     <string name="plugins_fact_own_panel">یہ اپنا پینل ڈرا کر سکتا ہے اور اپنا حساب کتاب کر سکتا ہے</string>
     <string name="plugins_fact_own_storage">یہ اپنا ڈیٹا محفوظ کر سکتا ہے، اگر یہ آپ کو انسٹال کرنے سے پہلے بتا دے</string>
     <string name="plugins_fact_reminders">اگر یہ آپ کو انسٹال کرنے سے پہلے بتائے تو یہ آپ کے سیٹ کردہ وقت پر یاد دہانی دکھا سکتا ہے</string>
-    <string name="plugins_facts_info">یہ ترتیبات نہیں ہیں۔ پلگ ان کے پاس ان کے لیے پوچھنے کا کوئی طریقہ نہیں ہے۔ جب آپ کسی پلگ ان کے اپنے باکس میں متن ٹائپ یا پیسٹ کرتے ہیں تو آپ اسے متن دیتے ہیں۔ جب آپ انسرٹ دبائیں گے تو نتائج آپ کو واپس مل جائیں گے۔</string>
     <string name="plugins_facts_title">ایک پلگ ان کیا کر سکتا ہے اور کیا نہیں کر سکتا</string>
     <string name="plugins_icons_export_done_message">ایپ نے %1$s کو محفوظ کر لیا ہے۔</string>
     <string name="plugins_icons_export_failed_message">ایپ وہ فائل نہیں لکھ سکی۔</string>
@@ -7388,7 +7383,6 @@
         <item quantity="one">%1$d کلو بائٹ محفوظ، %2$d دن میں حذف ہو جائے گا</item>
         <item quantity="other">%1$d کلو بائٹ محفوظ، %2$d دنوں میں حذف ہو جائے گا</item>
     </plurals>
-    <string name="plugins_permissions_info">جب آپ پلگ ان انسٹال کرتے ہیں تو یہ اس کا اعلان کرتا ہے۔ پلگ ان چلتے وقت مزید کچھ نہیں مانگ سکتا، کیونکہ مانگنے کے لیے کچھ اور نہیں ہوتا۔</string>
     <string name="plugins_permissions_none">اپنے پینل کے باہر کچھ نہیں</string>
     <string name="plugins_permissions_title">یہ کیا کر سکتا ہے</string>
     <string name="plugins_reminders_blocked_subtitle">ایپ یہ یاد دہانیاں نہیں دکھا سکتی۔ اسے اطلاعات پوسٹ کرنے کی اجازت دینے کے لیے تھپتھپائیں۔</string>

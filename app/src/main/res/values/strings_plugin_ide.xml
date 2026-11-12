@@ -69,6 +69,12 @@
     <string name="plugin_ide_details_version_label">Version</string>
     <string name="plugin_ide_details_author_label">Author</string>
     <string name="plugin_ide_details_description_label">Description</string>
+    <!-- API 5 is the plugin API with the wm package. Leave "API 5" as it is. -->
+    <string name="plugin_ide_details_api5_label">Use API 5 (the wm package)</string>
+    <string name="plugin_ide_details_hosts_label">Websites it may connect to, separated by commas</string>
+    <!-- The word the user types after @ to open this plugin. -->
+    <string name="plugin_ide_details_keyword_label">Keyword</string>
+    <string name="plugin_ide_details_tile_label">Offer a tile for the toolbar</string>
 
     <!-- ================================================================== -->
     <!-- The panel under the code: the preview and the console.             -->

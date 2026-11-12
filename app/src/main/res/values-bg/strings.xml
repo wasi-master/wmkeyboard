@@ -359,7 +359,6 @@
     <string name="addon_open_screen_action">Отваряне на %1$s</string>
     <string name="addon_plugin_no_permissions_title">Нищо извън собствения му панел</string>
     <string name="addon_plugin_permissions_title">Какво може да прави този плъгин</string>
-    <string name="addon_plugin_sandbox_body">Плъгините работят в пясъчник. Този плъгин не може да вижда какво пишете, да чете клипборда ви или да използва интернет. Плъгинът не може да изисква тези възможности.</string>
     <string name="addon_preview_action">Преглед</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d емоджи има име</item>
@@ -7273,14 +7272,10 @@
     <string name="plugins_detail_no_description">Няма описание.</string>
     <string name="plugins_detail_stopped_subtitle">Приложението изключи тази добавка, защото спря да отговаря два пъти</string>
     <string name="plugins_detail_subsystem_off_subtitle">Нито един плъгин не работи, докато „Разрешаване на плъгини“ е изключено, под Инструменти, след това Плъгини</string>
-    <string name="plugins_fact_no_clipboard">Не може да чете клипборда ви</string>
-    <string name="plugins_fact_no_field">Не може да чете текстовото поле, в което пишете</string>
-    <string name="plugins_fact_no_internet">Не може да използва интернет</string>
     <string name="plugins_fact_no_typing">Не може да вижда какво пишете</string>
     <string name="plugins_fact_own_panel">Може да начертае собствен панел и да извършва собствени изчисления</string>
     <string name="plugins_fact_own_storage">Може да записва собствени данни, ако ви уведоми, преди да го инсталирате</string>
     <string name="plugins_fact_reminders">Може да показва напомняне в зададено от вас време, ако ви информира за това преди инсталирането му</string>
-    <string name="plugins_facts_info">Това не са настройки. Плъгинът няма начин да ги поиска. Вие предоставяте текст на плъгин, когато го въведете или поставите в неговата собствена кутия. Резултатите се връщат при вас, когато натиснете Вмъкване.</string>
     <string name="plugins_facts_title">Какво може и какво не може да прави един плъгин</string>
     <string name="plugins_icons_export_done_message">Приложението запази %1$s.</string>
     <string name="plugins_icons_export_failed_message">Приложението не успя да запише този файл.</string>
@@ -7392,7 +7387,6 @@
         <item quantity="one">Запазени %1$d КБ, изтриване след %2$d ден</item>
         <item quantity="other">Запазени %1$d КБ, изтриване след %2$d дни</item>
     </plurals>
-    <string name="plugins_permissions_info">Приставката декларира това при инсталирането си. Приставката не може да иска повече, докато работи, защото няма какво повече да поиска.</string>
     <string name="plugins_permissions_none">Нищо извън собствения му панел</string>
     <string name="plugins_permissions_title">Какво може да прави</string>
     <string name="plugins_reminders_blocked_subtitle">Приложението не може да показва тези напомняния. Докоснете, за да му позволите да изпраща известия.</string>

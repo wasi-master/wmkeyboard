@@ -207,6 +207,13 @@ enum class NetSource(
      * quota, going live). Only ever on a press.
      */
     INVITES("invites", ToolbarTool.CALENDAR),
+
+    /**
+     * A plugin's `wm.http` request (API 5): only to a host its manifest
+     * lists, only after the user granted it the network. The route keeps the
+     * plugin's id, so the log says which plugin asked.
+     */
+    PLUGINS("plugins", ToolbarTool.PLUGINS),
     OTHER("other"),
     ;
 

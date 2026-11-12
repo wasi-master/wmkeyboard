@@ -34,7 +34,9 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginImportResult
 import com.wasimaster.wmkeyboard.core.plugins.PluginLog
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifestResult
 import com.wasimaster.wmkeyboard.core.plugins.ParkedPlugin
+import com.wasimaster.wmkeyboard.core.plugins.InstalledPlugin
 import com.wasimaster.wmkeyboard.core.plugins.PluginPermission
+import com.wasimaster.wmkeyboard.core.plugins.PluginSettingSpec
 import com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms
 import com.wasimaster.wmkeyboard.core.plugins.PluginReminders
 import com.wasimaster.wmkeyboard.core.plugins.PluginStorage
@@ -77,6 +79,8 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
     val revision by store.revision.collectAsStateWithLifecycle()
     val enabled = remember(revision) { store.subsystemEnabled() }
     val autoDisable = remember(revision) { store.autoDisableOnAbandon() }
+    val allowRisky = remember(revision) { store.allowRisky() }
+    var confirmRisky by remember { mutableStateOf(false) }
     val plugins = remember(revision) { store.plugins() }
     val retired = remember(revision) { store.retiredNames() }
     val parked = remember(revision) { store.parked() }
@@ -134,17 +138,43 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
                 default = true,
             ) { store.setAutoDisableOnAbandon(it) }
         }
+        item(visible = enabled) {
+            HighlightableRow("Allow risky permissions") {
+                ToggleSetting(
+                    R.string.plugins_risky_title,
+                    stringResource(R.string.plugins_risky_subtitle),
+                    allowRisky,
+                    info = stringResource(R.string.plugins_risky_info),
+                    default = false,
+                ) { on -> if (on) confirmRisky = true else store.setAllowRisky(false) }
+            }
+        }
+    }
+
+    if (confirmRisky) {
+        AlertDialog(
+            onDismissRequest = { confirmRisky = false },
+            title = { Text(stringResource(R.string.plugins_risky_confirm_title)) },
+            text = { Text(stringResource(R.string.plugins_risky_confirm_body)) },
+            confirmButton = {
+                TextButton({
+                    store.setAllowRisky(true)
+                    confirmRisky = false
+                }) { Text(stringResource(R.string.plugins_risky_title)) }
+            },
+            dismissButton = { TextButton({ confirmRisky = false }) { Text(stringResource(CommonR.string.common_cancel)) } },
+        )
     }
 
     SettingsGroup(
         stringResource(R.string.plugins_facts_title),
-        info = stringResource(R.string.plugins_facts_info),
+        info = stringResource(R.string.plugins_facts_info_v5),
         level = SettingLevel.STANDARD,
     ) {
         item { PluginFact(stringResource(R.string.plugins_fact_no_typing), allowed = false) }
-        item { PluginFact(stringResource(R.string.plugins_fact_no_field), allowed = false) }
-        item { PluginFact(stringResource(R.string.plugins_fact_no_clipboard), allowed = false) }
-        item { PluginFact(stringResource(R.string.plugins_fact_no_internet), allowed = false) }
+        item { PluginFact(stringResource(R.string.plugins_fact_risky_off), allowed = false) }
+        item { PluginFact(stringResource(R.string.plugins_fact_field_tap), allowed = false) }
+        item { PluginFact(stringResource(R.string.plugins_fact_background), allowed = false) }
         item { PluginFact(stringResource(R.string.plugins_fact_own_panel), allowed = true) }
         item { PluginFact(stringResource(R.string.plugins_fact_own_storage), allowed = true) }
         item { PluginFact(stringResource(R.string.plugins_fact_reminders), allowed = true) }
@@ -316,6 +346,23 @@ private fun RetiredPluginsGroup(store: PluginStore, retired: List<String>, parke
 
 private const val DAY_MILLIS = 24L * 60 * 60 * 1000
 
+/**
+ * The plain-words warning for a plugin that can read something of the user's
+ * and send data away, or null when it cannot do both.
+ */
+internal fun pluginCombinationWarning(
+    context: android.content.Context,
+    permissions: List<PluginPermission>,
+    hosts: List<String>,
+): String? {
+    if (!PluginPermission.combinationRisk(permissions)) return null
+    return if (PluginPermission.Network in permissions && hosts.isNotEmpty()) {
+        context.getString(com.wasimaster.wmkeyboard.plugins.R.string.core_plugins_permission_combination_warning, hosts.joinToString(", "))
+    } else {
+        context.getString(com.wasimaster.wmkeyboard.plugins.R.string.core_plugins_permission_combination_ai_warning)
+    }
+}
+
 @Composable
 private fun PluginFact(text: String, allowed: Boolean) {
     WmRow(
@@ -350,7 +397,8 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
         return
     }
 
-    val storage = remember(pluginId, refresh) { PluginStorage(store.storageFile(pluginId)) }
+    val quota = PluginStorage.Quota.forApi(plugin.apiVersion)
+    val storage = remember(pluginId, refresh) { PluginStorage(store.storageFile(pluginId), quota) }
     val usedBytes = remember(pluginId, refresh) { storage.usedBytes() }
     val log = remember(pluginId, refresh) {
         PluginLog(store.logFile(pluginId)).also { it.restore() }.lines()
@@ -419,22 +467,8 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
         }
     }
 
-    SettingsGroup(
-        stringResource(R.string.plugins_permissions_title),
-        info = stringResource(R.string.plugins_permissions_info),
-    ) {
-        if (plugin.grantedPermissions.isEmpty()) {
-            item {
-                WmRow(title = stringResource(R.string.plugins_permissions_none))
-            }
-        } else {
-            for (permission in plugin.grantedPermissions) {
-                item {
-                    WmRow(title = stringResource(permission.labelRes))
-                }
-            }
-        }
-    }
+    PluginPermissionsGroup(store, plugin, revision)
+    if (plugin.settings.isNotEmpty()) PluginSettingsGroup(store, plugin)
 
     if (plugin.actions.isNotEmpty()) {
         SettingsGroup(
@@ -465,7 +499,7 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
                 title = stringResource(
                     R.string.plugins_storage_used_label,
                     usedBytes / 1024,
-                    PluginStorage.MAX_TOTAL_BYTES / 1024,
+                    quota.maxTotal / 1024,
                 ),
                 subtitle = stringResource(R.string.plugins_storage_subtitle),
             )
@@ -532,6 +566,159 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
         )
     }
 }
+
+/**
+ * What a plugin may do: the listed permissions as plain rows, and each risky
+ * one as a switch that asks before it turns on, with the websites beside the
+ * network. Greyed while the global switch is off, saying where it is.
+ */
+@Composable
+private fun PluginPermissionsGroup(store: PluginStore, plugin: InstalledPlugin, revision: Int) {
+    val riskyOn = remember(revision) { store.allowRisky() }
+    var asking by remember { mutableStateOf<PluginPermission?>(null) }
+    val declared = plugin.declaredPermissions
+    SettingsGroup(
+        stringResource(R.string.plugins_permissions_title),
+        info = stringResource(R.string.plugins_permissions_info_v5),
+    ) {
+        if (plugin.newSinceUpdate.isNotEmpty()) {
+            item {
+                val context = LocalContext.current
+                val names = plugin.newSinceUpdate.joinToString(", ") { wire ->
+                    PluginPermission.parse(wire)?.let { context.getString(it.labelRes) } ?: wire
+                }
+                CaptionText(stringResource(R.string.plugins_new_since_update, names))
+            }
+        }
+        if (declared.isEmpty()) {
+            item { WmRow(title = stringResource(R.string.plugins_permissions_none)) }
+        }
+        for (permission in declared.filter { !it.isRisky }) {
+            item(key = "perm:${permission.wire}") { WmRow(title = stringResource(permission.labelRes)) }
+        }
+        for (permission in declared.filter { it.isRisky }) {
+            item(key = "risky:${permission.wire}") {
+                val granted = permission.wire in plugin.granted
+                ToggleSetting(
+                    permission.labelRes,
+                    subtitle = if (!riskyOn) {
+                        stringResource(R.string.plugins_permission_risky_off_subtitle)
+                    } else {
+                        permission.warningRes?.let { stringResource(it) }
+                    },
+                    checked = granted && riskyOn,
+                    enabled = riskyOn,
+                    disabledReason = rememberDisabledReason(
+                        stringResource(R.string.plugins_permission_risky_off_subtitle),
+                        R.string.plugins_risky_title,
+                    ),
+                ) { on -> if (on) asking = permission else store.setGranted(plugin.id, permission, false) }
+            }
+        }
+        if (plugin.declares(PluginPermission.Network) && plugin.allowedHosts.isNotEmpty()) {
+            item {
+                WmRow(
+                    title = stringResource(R.string.plugins_hosts_title),
+                    subtitle = plugin.allowedHosts.joinToString("\n"),
+                )
+            }
+        }
+    }
+    asking?.let { permission ->
+        AlertDialog(
+            onDismissRequest = { asking = null },
+            title = { Text(stringResource(R.string.plugins_permission_grant_title, stringResource(permission.labelRes))) },
+            text = {
+                val warning = permission.warningRes?.let { stringResource(it) }.orEmpty()
+                val hosts = if (permission == PluginPermission.Network) "\n\n" + plugin.allowedHosts.joinToString("\n") else ""
+                Text(warning + hosts)
+            },
+            confirmButton = {
+                TextButton({
+                    store.setGranted(plugin.id, permission, true)
+                    asking = null
+                }) { Text(stringResource(com.wasimaster.wmkeyboard.plugins.R.string.core_plugins_ui_allow)) }
+            },
+            dismissButton = { TextButton({ asking = null }) { Text(stringResource(CommonR.string.common_cancel)) } },
+        )
+    }
+}
+
+/** The plugin's own settings page, drawn from its manifest: switches, boxes, numbers, choices and websites. */
+@Composable
+private fun PluginSettingsGroup(store: PluginStore, plugin: InstalledPlugin) {
+    var editing by remember { mutableStateOf<PluginSettingSpec?>(null) }
+    SettingsGroup(stringResource(R.string.plugins_settings_title)) {
+        for (setting in plugin.settings) {
+            item(key = "setting:${setting.key}") {
+                val value = plugin.settingValues[setting.key] ?: setting.default
+                when (setting.type) {
+                    PluginSettingSpec.TYPE_SWITCH -> WmRow(
+                        title = setting.label,
+                        subtitle = setting.summary.takeIf { it.isNotBlank() },
+                        trailing = {
+                            Switch(
+                                checked = value == "true",
+                                onCheckedChange = { store.setSettingValue(plugin.id, setting.key, it.toString()) },
+                            )
+                        },
+                    )
+
+                    PluginSettingSpec.TYPE_CHOICE -> WmRow(
+                        title = setting.label,
+                        subtitle = value.ifBlank { setting.summary },
+                        onClick = {
+                            val i = setting.options.indexOf(value)
+                            val next = setting.options.getOrNull((i + 1) % setting.options.size.coerceAtLeast(1)) ?: return@WmRow
+                            store.setSettingValue(plugin.id, setting.key, next)
+                        },
+                    )
+
+                    else -> WmRow(
+                        title = setting.label,
+                        subtitle = value.ifBlank { setting.summary },
+                        onClick = { editing = setting },
+                    )
+                }
+            }
+        }
+    }
+    editing?.let { setting ->
+        var text by remember(setting.key) { mutableStateOf(plugin.settingValues[setting.key] ?: setting.default) }
+        AlertDialog(
+            onDismissRequest = { editing = null },
+            title = { Text(setting.label) },
+            text = {
+                androidx.compose.material3.OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it.take(PLUGIN_SETTING_MAX) },
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = when (setting.type) {
+                            PluginSettingSpec.TYPE_NUMBER -> androidx.compose.ui.text.input.KeyboardType.Number
+                            PluginSettingSpec.TYPE_HOST -> androidx.compose.ui.text.input.KeyboardType.Uri
+                            else -> androidx.compose.ui.text.input.KeyboardType.Text
+                        },
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton({
+                    store.setSettingValue(plugin.id, setting.key, text)
+                    editing = null
+                }) { Text(stringResource(CommonR.string.common_ok)) }
+            },
+            dismissButton = {
+                TextButton({
+                    store.setSettingValue(plugin.id, setting.key, null)
+                    editing = null
+                }) { Text(stringResource(R.string.plugins_setting_default_reset)) }
+            },
+        )
+    }
+}
+
+private const val PLUGIN_SETTING_MAX = 512
 
 /** Log lines shown before the list is more scrolling than reading. */
 private const val LOG_LINES = 40
@@ -636,17 +823,30 @@ private fun PluginInstallDialog(
                 // Resolved through the context rather than stringResource: the
                 // labels are read in a loop over a list, and this keeps the
                 // composable call out of a lambda.
-                val permissionLabels = ok.permissions.map { context.getString(it.labelRes) }
+                val permissionLabels = ok.permissions.filter { !it.isRisky }.map { context.getString(it.labelRes) }
+                val risky = ok.permissions.filter { it.isRisky }
                 buildString {
                     append(ok.manifest.description.ifBlank { defaultDescription })
                     append("\n\n")
                     append(versionLine)
                     append("\n\n")
-                    if (permissionLabels.isEmpty()) {
+                    if (permissionLabels.isEmpty() && risky.isEmpty()) {
                         append(noPermissions)
-                    } else {
+                    } else if (permissionLabels.isNotEmpty()) {
                         append(permissionsIntro)
                         for (label in permissionLabels) append("\n• $label")
+                    }
+                    if (risky.isNotEmpty()) {
+                        append("\n\n")
+                        append(context.getString(R.string.plugins_install_risky_intro))
+                        for (permission in risky) {
+                            append("\n⚠ ").append(context.getString(permission.labelRes))
+                            permission.warningRes?.let { append("\n   ").append(context.getString(it)) }
+                        }
+                        if (PluginPermission.Network in risky && ok.manifest.hosts.isNotEmpty()) {
+                            append("\n   ").append(ok.manifest.hosts.joinToString(", "))
+                        }
+                        pluginCombinationWarning(context, ok.permissions, ok.manifest.hosts)?.let { append("\n\n").append(it) }
                     }
                     append(pluginActionsLine(context, ok.manifest.actions.map { it.name }))
                 }

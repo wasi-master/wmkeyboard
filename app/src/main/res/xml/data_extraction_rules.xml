@@ -43,6 +43,8 @@
         <!-- Clipboard history, its images and its write sidecars: what was
              copied stays on the phone (#1215). -->
         <exclude domain="file" path="clipboard" />
+        <!-- Keys and tokens plugins keep with wm.secrets: never in a backup. -->
+        <exclude domain="file" path="plugin_secrets" />
         <!--
            The photos stickers were cut out of. The stickers themselves are
            backed up; these are the uncropped originals behind them, they are
@@ -87,6 +89,8 @@
         <exclude domain="file" path="camera" />
         <exclude domain="file" path="docscan" />
         <exclude domain="file" path="clipboard" />
+        <!-- Keys and tokens plugins keep with wm.secrets: never in a backup. -->
+        <exclude domain="file" path="plugin_secrets" />
         <exclude domain="file" path="stickers/.originals" />
         <!-- The Send files tool's uploads: each link carries the file's secret and
              the owner token that can delete it. One device's business. -->

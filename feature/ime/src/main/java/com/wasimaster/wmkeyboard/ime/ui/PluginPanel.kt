@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,13 +13,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,18 +37,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.plugins.InstalledPlugin
 import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
+import com.wasimaster.wmkeyboard.core.plugins.PluginPermission
+import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.plugins.PluginWidget
+import com.wasimaster.wmkeyboard.core.plugins.PythonSession
 import com.wasimaster.wmkeyboard.core.plugins.resolve
 import com.wasimaster.wmkeyboard.core.plugins.ui.LocalPluginPanelStyle
 import com.wasimaster.wmkeyboard.core.plugins.ui.PluginInputHost
 import com.wasimaster.wmkeyboard.core.plugins.ui.PluginPanelStyle
 import com.wasimaster.wmkeyboard.core.plugins.ui.PluginWidgetList
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.PluginPanelUi
 import com.wasimaster.wmkeyboard.ime.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * The Plugins panel: the installed list, and whichever plugin is running.
@@ -234,7 +251,8 @@ private fun RunningPlugin(
         }
     }
     val ringed = state.focusedIndex(FocusRegion.RESULTS)?.let { leaves.getOrNull(it) }
-    val style = rememberKeyboardPluginStyle(kb)
+    val context = LocalContext.current
+    val style = remember(kb, panel.plugin.id) { keyboardPluginStyle(kb, panel.plugin.id, PluginStore.get(context)) }
     // A box whose keys the focus switch sent to the app's field (#665) draws
     // as unfocused, and pressing it takes them back.
     val caretHandle = LocalCaptureCaret.current
@@ -263,7 +281,9 @@ private fun RunningPlugin(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
             )
         }
-        val context = LocalContext.current
+        if (panel.needs.isNotEmpty()) {
+            PermissionBanner(panel.needs, onAllow = { onEvent(PythonSession.hostEvent(ALLOW_EVENT)) })
+        }
         for (line in panel.ui.repairs) {
             Text(
                 line.resolve(context),
@@ -294,16 +314,77 @@ private fun RunningPlugin(
 }
 
 /**
- * The shared plugin renderer, dressed as the keyboard. Every piece reads the
- * keyboard theme field the panel read before the renderer moved to
- * core.plugins, and the chip, outline and focus ring are the keyboard's own
- * functions rather than copies of them.
+ * The event the banner's Allow sends. The service takes it before the plugin
+ * could: it opens the plugin's page in settings, where each risky permission
+ * is a switch behind its warning. Nothing is granted from the keyboard.
+ */
+internal const val ALLOW_EVENT = "wm.allow"
+
+/**
+ * A call needed a risky permission the user has not turned on. Names each
+ * one, so the user knows what the plugin wanted before deciding.
  */
 @Composable
-private fun rememberKeyboardPluginStyle(kb: KbTheme): PluginPanelStyle = remember(kb) { keyboardPluginStyle(kb) }
+private fun PermissionBanner(needs: List<PluginPermission>, onAllow: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val context = LocalContext.current
+    val names = needs.joinToString { context.getString(it.labelRes) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            stringResource(R.string.ime_plugin_needs_permission, names),
+            color = kb.keyText,
+            fontSize = 12.sp,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        ToolPanelChip(label = stringResource(R.string.ime_plugin_allow_action), onClick = onAllow)
+    }
+}
 
-/** The style [rememberKeyboardPluginStyle] remembers, built without a composition so a test can check each colour's source. */
-internal fun keyboardPluginStyle(kb: KbTheme): PluginPanelStyle =
+/**
+ * Whether the header should carry the access mark: the plugin may reach the
+ * network or read what the user is writing, and the user turned that on.
+ */
+internal fun PluginPanelUi.Running.showsAccessMark(): Boolean =
+    plugin.grants(PluginPermission.Network) && PluginPermission.Network in plugin.declaredPermissions ||
+        plugin.grants(PluginPermission.FieldRead) && PluginPermission.FieldRead in plugin.declaredPermissions ||
+        plugin.grants(PluginPermission.Ai) && PluginPermission.Ai in plugin.declaredPermissions
+
+/**
+ * The header's right end while a plugin runs: the access mark, then the
+ * buttons the plugin asked for with `@plugin.command`. The keyboard draws
+ * them, three at most, as it draws its own header buttons.
+ */
+@Composable
+internal fun PluginHeaderActions(panel: PluginPanelUi.Running, onEvent: (PluginEvent) -> Unit) {
+    val kb = LocalKbTheme.current
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+        if (panel.showsAccessMark()) {
+            Icon(
+                Icons.Outlined.Public,
+                contentDescription = stringResource(R.string.ime_plugin_access_mark),
+                tint = kb.secondaryText,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+        for (command in panel.host?.commands.orEmpty().take(MAX_COMMANDS)) {
+            ToolPanelChip(label = command.label) {
+                onEvent(PythonSession.hostEvent("command", mapOf("id" to kotlinx.serialization.json.JsonPrimitive(command.id))))
+            }
+        }
+    }
+}
+
+private const val MAX_COMMANDS = 3
+
+/** The style the running panel remembers, built without a composition so a test can check each colour's source. */
+internal fun keyboardPluginStyle(kb: KbTheme, pluginId: String? = null, store: PluginStore? = null): PluginPanelStyle =
     PluginPanelStyle(
         text = kb.keyText,
         secondaryText = kb.secondaryText,
@@ -316,7 +397,33 @@ internal fun keyboardPluginStyle(kb: KbTheme): PluginPanelStyle =
         chip = { label, selected, enabled, modifier, onClick ->
             ToolPanelChip(label = label, selected = selected, modifier = modifier, enabled = enabled, onClick = onClick)
         },
+        icon = { name, tint, size -> Icon(pluginActionIcon(name), contentDescription = null, tint = tint, modifier = Modifier.size(size)) },
+        image = { src, alt, modifier -> PluginAssetImage(src, alt, modifier, pluginId, store, kb.secondaryText) },
+        qr = { value, size -> QrImage(value, Modifier.size(size)) },
     )
+
+/**
+ * A picture from the plugin's own `assets/`, read off the main thread. A web
+ * address is not fetched: the panel would reach a server the user never
+ * allowed, so its alt text stands in.
+ */
+@Composable
+private fun PluginAssetImage(src: String, alt: String, modifier: Modifier, pluginId: String?, store: PluginStore?, muted: Color) {
+    val name = src.removePrefix("assets/").takeIf { src.startsWith("assets/") }
+    val bitmap: ImageBitmap? by produceState<ImageBitmap?>(null, pluginId, name) {
+        value = if (pluginId == null || store == null || name == null) null else withContext(Dispatchers.IO) {
+            store.asset(pluginId, name)?.let { bytes ->
+                runCatching { BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap() }.getOrNull()
+            }
+        }
+    }
+    val picture = bitmap
+    if (picture != null) {
+        Image(picture, alt, modifier = modifier, contentScale = ContentScale.Fit)
+    } else {
+        Text(alt, color = muted, fontSize = 12.sp, modifier = modifier)
+    }
+}
 
 /**
  * A plugin's text boxes as the keyboard hosts them: the text is what the service

@@ -357,7 +357,6 @@
     <string name="addon_open_screen_action">Άνοιγμα %1$s</string>
     <string name="addon_plugin_no_permissions_title">Τίποτα εκτός του δικού του πίνακα</string>
     <string name="addon_plugin_permissions_title">Τι μπορεί να κάνει αυτό το πρόσθετο</string>
-    <string name="addon_plugin_sandbox_body">Τα πρόσθετα εκτελούνται σε περιβάλλον απομόνωσης (sandbox). Αυτό το πρόσθετο δεν μπορεί να δει τι πληκτρολογείτε, να διαβάσει το πρόχειρό σας ή να χρησιμοποιήσει το διαδίκτυο. Ένα πρόσθετο δεν μπορεί να ζητήσει αυτές τις δυνατότητες.</string>
     <string name="addon_preview_action">Προεπισκόπηση</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji έχει όνομα</item>
@@ -7269,14 +7268,10 @@
     <string name="plugins_detail_no_description">Καμία περιγραφή.</string>
     <string name="plugins_detail_stopped_subtitle">Η εφαρμογή απενεργοποίησε αυτό το πρόσθετο επειδή σταμάτησε να αποκρίνεται δύο φορές</string>
     <string name="plugins_detail_subsystem_off_subtitle">Κανένα πρόσθετο δεν εκτελείται όσο η επιλογή «Να επιτρέπονται τα πρόσθετα» είναι απενεργοποιημένη, στα Εργαλεία και μετά στα Πρόσθετα</string>
-    <string name="plugins_fact_no_clipboard">Δεν μπορεί να διαβάσει το πρόχειρό σας</string>
-    <string name="plugins_fact_no_field">Δεν μπορεί να διαβάσει το πεδίο κειμένου στο οποίο γράφετε</string>
-    <string name="plugins_fact_no_internet">Δεν μπορεί να χρησιμοποιήσει το διαδίκτυο</string>
     <string name="plugins_fact_no_typing">Δεν μπορεί να δει τι πληκτρολογείτε</string>
     <string name="plugins_fact_own_panel">Μπορεί να σχεδιάσει το δικό του πάνελ και να κάνει τους δικούς του υπολογισμούς</string>
     <string name="plugins_fact_own_storage">Μπορεί να αποθηκεύσει τα δικά του δεδομένα, αν σας ενημερώσει πριν την εγκατάσταση</string>
     <string name="plugins_fact_reminders">Μπορεί να εμφανίσει μια υπενθύμιση την ώρα που ορίζετε, αν σας ενημερώσει πριν την εγκατάσταση</string>
-    <string name="plugins_facts_info">Αυτές δεν είναι ρυθμίσεις. Ένα πρόσθετο δεν έχει τρόπο να τις ζητήσει. Δίνετε κείμενο σε ένα πρόσθετο όταν το πληκτρολογείτε ή το επικολλάτε στο δικό του πλαίσιο. Τα αποτελέσματα επιστρέφουν σε εσάς όταν πατάτε Εισαγωγή.</string>
     <string name="plugins_facts_title">Τι μπορεί και τι δεν μπορεί να κάνει ένα πρόσθετο</string>
     <string name="plugins_icons_export_done_message">Η εφαρμογή αποθήκευσε το %1$s.</string>
     <string name="plugins_icons_export_failed_message">Η εφαρμογή δεν μπόρεσε να γράψει αυτό το αρχείο.</string>
@@ -7388,7 +7383,6 @@
         <item quantity="one">Διατηρήθηκαν %1$d KB, διαγραφή σε %2$d ημέρα</item>
         <item quantity="other">Διατηρήθηκαν %1$d KB, διαγραφή σε %2$d ημέρες</item>
     </plurals>
-    <string name="plugins_permissions_info">Το πρόσθετο το δηλώνει αυτό κατά την εγκατάσταση. Ένα πρόσθετο δεν μπορεί να ζητήσει περισσότερα κατά την εκτέλεση, επειδή δεν υπάρχει τίποτα άλλο να ζητήσει.</string>
     <string name="plugins_permissions_none">Τίποτα έξω από το δικό του πάνελ</string>
     <string name="plugins_permissions_title">Τι μπορεί να κάνει</string>
     <string name="plugins_reminders_blocked_subtitle">Η εφαρμογή δεν μπορεί να εμφανίσει αυτές τις υπενθυμίσεις. Πατήστε για να της επιτρέψετε να στέλνει ειδοποιήσεις.</string>

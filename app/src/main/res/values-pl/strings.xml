@@ -357,7 +357,6 @@
     <string name="addon_open_screen_action">Otwórz %1$s</string>
     <string name="addon_plugin_no_permissions_title">Nic poza własnym panelem</string>
     <string name="addon_plugin_permissions_title">Co może zrobić ta wtyczka</string>
-    <string name="addon_plugin_sandbox_body">Wtyczki działają w piaskownicy. Ta wtyczka nie widzi tego, co wpisujesz, nie czyta schowka ani nie korzysta z internetu. Wtyczka nie może poprosić o takie uprawnienia.</string>
     <string name="addon_preview_action">Podgląd</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji ma nazwę</item>
@@ -7273,14 +7272,10 @@
     <string name="plugins_detail_no_description">Brak opisu.</string>
     <string name="plugins_detail_stopped_subtitle">Aplikacja wyłączyła tę wtyczkę, ponieważ przestała odpowiadać dwa razy</string>
     <string name="plugins_detail_subsystem_off_subtitle">Żadna wtyczka nie działa, gdy opcja „Zezwalaj na wtyczki” jest wyłączona w menu Narzędzia -&gt; Wtyczki</string>
-    <string name="plugins_fact_no_clipboard">Nie może odczytać Twojego schowka</string>
-    <string name="plugins_fact_no_field">Nie może odczytać pola tekstowego, w którym piszesz</string>
-    <string name="plugins_fact_no_internet">Nie może korzystać z internetu</string>
     <string name="plugins_fact_no_typing">Nie widzi tego, co wpisujesz</string>
     <string name="plugins_fact_own_panel">Może rysować własny panel i wykonywać własne obliczenia</string>
     <string name="plugins_fact_own_storage">Może zapisywać własne dane, jeśli poinformuje cię o tym przed instalacją</string>
     <string name="plugins_fact_reminders">Może wyświetlić przypomnienie o ustawionej godzinie, jeśli poinformuje o tym przed instalacją</string>
-    <string name="plugins_facts_info">To nie są ustawienia. Wtyczka nie ma możliwości ich zażądania. Przekazujesz tekst wtyczce, gdy wpisujesz go lub wklejasz do jej własnego pola. Wyniki wracają do Ciebie po naciśnięciu Wstaw.</string>
     <string name="plugins_facts_title">Co wtyczka może, a czego nie może robić</string>
     <string name="plugins_icons_export_done_message">Aplikacja zapisała %1$s.</string>
     <string name="plugins_icons_export_failed_message">Aplikacja nie mogła zapisać tego pliku.</string>
@@ -7392,7 +7387,6 @@
         <item quantity="one">Zachowano %1$d KB, usunięcie za %2$d dzień</item>
         <item quantity="other">Zachowano %1$d KB, usunięcie za %2$d dni</item>
     </plurals>
-    <string name="plugins_permissions_info">Wtyczka deklaruje to podczas instalacji. Wtyczka nie może prosić o więcej podczas działania, ponieważ nie ma o co więcej prosić.</string>
     <string name="plugins_permissions_none">Nic poza własnym panelem</string>
     <string name="plugins_permissions_title">Co może zrobić</string>
     <string name="plugins_reminders_blocked_subtitle">Aplikacja nie może wyświetlać tych przypomnień. Stuknij, aby zezwolić na wysyłanie powiadomień.</string>

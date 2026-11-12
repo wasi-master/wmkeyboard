@@ -358,7 +358,6 @@
     <string name="addon_open_screen_action">%1$s उघडा</string>
     <string name="addon_plugin_no_permissions_title">स्वतःच्या पॅनेलबाहेर काहीही नाही</string>
     <string name="addon_plugin_permissions_title">हे प्लगइन काय करू शकते</string>
-    <string name="addon_plugin_sandbox_body">प्लगइन्स सँडबॉक्समध्ये चालतात. हे प्लगइन तुम्ही काय टाइप करता ते पाहू शकत नाही, तुमचा क्लिपबोर्ड वाचू शकत नाही किंवा इंटरनेट वापरू शकत नाही. प्लगइन या क्षमतांसाठी विचारू शकत नाही.</string>
     <string name="addon_preview_action">पूर्वावलोकन</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d इमोजीला नाव आहे</item>
@@ -7272,14 +7271,10 @@
     <string name="plugins_detail_no_description">कोणतेही वर्णन नाही.</string>
     <string name="plugins_detail_stopped_subtitle">ॲपने हे प्लगइन बंद केले कारण ते दोनदा प्रतिसाद देण्यात अयशस्वी ठरले</string>
     <string name="plugins_detail_subsystem_off_subtitle">जेव्हा \'प्लगइन्सना अनुमती द्या\' बंद असते, तेव्हा कोणतेही प्लगइन चालत नाही, टूल्स आणि नंतर प्लगइन्स अंतर्गत</string>
-    <string name="plugins_fact_no_clipboard">हे तुमची क्लिपबोर्ड वाचू शकत नाही</string>
-    <string name="plugins_fact_no_field">हे तुम्ही लिहित असलेले मजकूर क्षेत्र वाचू शकत नाही</string>
-    <string name="plugins_fact_no_internet">हे इंटरनेट वापरू शकत नाही</string>
     <string name="plugins_fact_no_typing">तुम्ही काय टाईप करता हे ते पाहू शकत नाही</string>
     <string name="plugins_fact_own_panel">हे स्वतःचे पॅनेल काढू शकते आणि स्वतःचे गणित करू शकते</string>
     <string name="plugins_fact_own_storage">हे स्वतःचा डेटा सेव्ह करू शकते, जर ते तुम्हाला इन्स्टॉल करण्यापूर्वी सांगत असेल तर</string>
     <string name="plugins_fact_reminders">जर ते तुम्हाला इन्स्टॉल करण्यापूर्वी सांगत असेल, तर ते तुम्ही सेट केलेल्या वेळी रिमाइंडर दाखवू शकते</string>
-    <string name="plugins_facts_info">या सेटिंग्ज नाहीत. प्लगइन त्यांना विचारू शकत नाही. जेव्हा तुम्ही मजकूर टाइप करता किंवा त्याच्या स्वतःच्या बॉक्समध्ये पेस्ट करता तेव्हा तुम्ही प्लगइनला मजकूर देता. तुम्ही \'इन्सर्ट\' दाबल्यावर निकाल तुम्हाला परत मिळतात.</string>
     <string name="plugins_facts_title">प्लगइन काय करू शकते आणि काय करू शकत नाही</string>
     <string name="plugins_icons_export_done_message">ॲपने %1$s सेव्ह केले आहे.</string>
     <string name="plugins_icons_export_failed_message">ॲप ती फाइल लिहू शकले नाही.</string>
@@ -7391,7 +7386,6 @@
         <item quantity="one">%1$d KB ठेवली, %2$d दिवसात हटवली</item>
         <item quantity="other">%1$d KB ठेवली, %2$d दिवसांमध्ये हटवली</item>
     </plurals>
-    <string name="plugins_permissions_info">तुम्ही प्लगइन इंस्टॉल करता तेव्हा ते हे घोषित करते. प्लगइन चालताना अधिक विचारू शकत नाही, कारण विचारण्यासारखे काहीही उरलेले नसते.</string>
     <string name="plugins_permissions_none">स्वतःच्या पॅनेलच्या बाहेर काहीही नाही</string>
     <string name="plugins_permissions_title">हे काय करू शकते</string>
     <string name="plugins_reminders_blocked_subtitle">ॲप हे रिमाइंडर्स दाखवू शकत नाही. सूचना पाठवण्याची परवानगी देण्यासाठी टॅप करा.</string>

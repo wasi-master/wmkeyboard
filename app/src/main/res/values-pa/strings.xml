@@ -360,7 +360,6 @@
     <string name="addon_open_screen_action">%1$s ਖੋਲ੍ਹੋ</string>
     <string name="addon_plugin_no_permissions_title">ਇਸਦੇ ਆਪਣੇ ਪੈਨਲ ਤੋਂ ਬਾਹਰ ਕੁਝ ਵੀ ਨਹੀਂ</string>
     <string name="addon_plugin_permissions_title">ਇਹ ਪਲੱਗਇਨ ਕੀ ਕਰ ਸਕਦਾ ਹੈ</string>
-    <string name="addon_plugin_sandbox_body">ਪਲੱਗਇਨ ਇੱਕ ਸੈਂਡਬੌਕਸ ਵਿੱਚ ਚੱਲਦੇ ਹਨ। ਇਹ ਪਲੱਗਇਨ ਇਹ ਨਹੀਂ ਦੇਖ ਸਕਦਾ ਕਿ ਤੁਸੀਂ ਕੀ ਟਾਈਪ ਕਰਦੇ ਹੋ, ਤੁਹਾਡਾ ਕਲਿੱਪਬੋਰਡ ਪੜ੍ਹ ਸਕਦਾ ਹੈ, ਜਾਂ ਇੰਟਰਨੈੱਟ ਦੀ ਵਰਤੋਂ ਕਰ ਸਕਦਾ ਹੈ। ਇੱਕ ਪਲੱਗਇਨ ਉਹਨਾਂ ਸਮਰੱਥਾਵਾਂ ਲਈ ਨਹੀਂ ਪੁੱਛ ਸਕਦਾ।</string>
     <string name="addon_preview_action">ਪੂਰਵਦਰਸ਼ਨ</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d ਇਮੋਜੀ ਦਾ ਇੱਕ ਨਾਮ ਹੈ</item>
@@ -7283,14 +7282,10 @@
     <string name="plugins_detail_no_description">ਕੋਈ ਵੇਰਵਾ ਨਹੀਂ।</string>
     <string name="plugins_detail_stopped_subtitle">ਐਪ ਨੇ ਇਸ ਪਲੱਗਇਨ ਨੂੰ ਬੰਦ ਕਰ ਦਿੱਤਾ ਹੈ ਕਿਉਂਕਿ ਇਹ ਦੋ ਵਾਰ ਜਵਾਬ ਦੇਣਾ ਬੰਦ ਕਰ ਗਿਆ ਸੀ</string>
     <string name="plugins_detail_subsystem_off_subtitle">ਜਦੋਂ \"Allow plugins\" ਬੰਦ ਹੁੰਦਾ ਹੈ, ਤਾਂ ਕੋਈ ਪਲੱਗਇਨ ਨਹੀਂ ਚੱਲਦਾ, ਟੂਲਸ ਦੇ ਅਧੀਨ ਫਿਰ ਪਲੱਗਇਨ</string>
-    <string name="plugins_fact_no_clipboard">ਇਹ ਤੁਹਾਡੇ ਕਲਿੱਪਬੋਰਡ ਨੂੰ ਨਹੀਂ ਪੜ੍ਹ ਸਕਦਾ</string>
-    <string name="plugins_fact_no_field">ਇਹ ਉਸ ਟੈਕਸਟ ਖੇਤਰ ਨੂੰ ਨਹੀਂ ਪੜ੍ਹ ਸਕਦਾ ਜਿਸ ਵਿੱਚ ਤੁਸੀਂ ਲਿਖਦੇ ਹੋ</string>
-    <string name="plugins_fact_no_internet">ਇਹ ਇੰਟਰਨੈੱਟ ਦੀ ਵਰਤੋਂ ਨਹੀਂ ਕਰ ਸਕਦਾ</string>
     <string name="plugins_fact_no_typing">ਇਹ ਨਹੀਂ ਦੇਖ ਸਕਦਾ ਕਿ ਤੁਸੀਂ ਕੀ ਟਾਈਪ ਕਰਦੇ ਹੋ</string>
     <string name="plugins_fact_own_panel">ਇਹ ਆਪਣਾ ਪੈਨਲ ਖਿੱਚ ਸਕਦਾ ਹੈ ਅਤੇ ਆਪਣਾ ਗਣਿਤ ਕਰ ਸਕਦਾ ਹੈ</string>
     <string name="plugins_fact_own_storage">ਇਹ ਆਪਣਾ ਡੇਟਾ ਸੁਰੱਖਿਅਤ ਕਰ ਸਕਦਾ ਹੈ, ਜੇਕਰ ਇਹ ਤੁਹਾਨੂੰ ਇੰਸਟਾਲ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਦੱਸਦਾ ਹੈ</string>
     <string name="plugins_fact_reminders">ਇਹ ਤੁਹਾਡੇ ਦੁਆਰਾ ਨਿਰਧਾਰਤ ਕੀਤੇ ਸਮੇਂ \'ਤੇ ਇੱਕ ਰੀਮਾਈਂਡਰ ਦਿਖਾ ਸਕਦਾ ਹੈ, ਜੇਕਰ ਇਹ ਤੁਹਾਨੂੰ ਇਸਨੂੰ ਸਥਾਪਿਤ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਦੱਸਦਾ ਹੈ</string>
-    <string name="plugins_facts_info">ਇਹ ਸੈਟਿੰਗਾਂ ਨਹੀਂ ਹਨ। ਇੱਕ ਪਲੱਗਇਨ ਕੋਲ ਇਹਨਾਂ ਨੂੰ ਮੰਗਣ ਦਾ ਕੋਈ ਤਰੀਕਾ ਨਹੀਂ ਹੈ। ਜਦੋਂ ਤੁਸੀਂ ਟਾਈਪ ਕਰਦੇ ਹੋ ਜਾਂ ਪੇਸਟ ਕਰਦੇ ਹੋ ਤਾਂ ਤੁਸੀਂ ਪਲੱਗਇਨ ਨੂੰ ਟੈਕਸਟ ਦਿੰਦੇ ਹੋ। ਜਦੋਂ ਤੁਸੀਂ ਇਨਸਰਟ ਦਬਾਉਂਦੇ ਹੋ ਤਾਂ ਨਤੀਜੇ ਤੁਹਾਡੇ ਕੋਲ ਵਾਪਸ ਆ ਜਾਂਦੇ ਹਨ।</string>
     <string name="plugins_facts_title">ਇੱਕ ਪਲੱਗਇਨ ਕੀ ਕਰ ਸਕਦਾ ਹੈ ਅਤੇ ਕੀ ਨਹੀਂ ਕਰ ਸਕਦਾ</string>
     <string name="plugins_icons_export_done_message">ਐਪ ਨੇ %1$s ਨੂੰ ਸੁਰੱਖਿਅਤ ਕੀਤਾ।</string>
     <string name="plugins_icons_export_failed_message">ਐਪ ਉਸ ਫਾਈਲ ਨੂੰ ਲਿਖ ਨਹੀਂ ਸਕੀ।</string>
@@ -7400,7 +7395,6 @@
         <item quantity="one">%1$d KB ਰੱਖਿਆ ਗਿਆ, %2$d ਦਿਨ ਵਿੱਚ ਮਿਟਾਇਆ ਗਿਆ</item>
         <item quantity="other">%1$d KB ਰੱਖਿਆ ਗਿਆ, %2$d ਦਿਨਾਂ ਵਿੱਚ ਮਿਟਾਇਆ ਗਿਆ</item>
     </plurals>
-    <string name="plugins_permissions_info">ਜਦੋਂ ਤੁਸੀਂ ਇਸਨੂੰ ਸਥਾਪਿਤ ਕਰਦੇ ਹੋ ਤਾਂ ਪਲੱਗਇਨ ਇਸਦੀ ਘੋਸ਼ਣਾ ਕਰਦਾ ਹੈ। ਇੱਕ ਪਲੱਗਇਨ ਚੱਲਦੇ ਸਮੇਂ ਹੋਰ ਕੁਝ ਨਹੀਂ ਮੰਗ ਸਕਦਾ, ਕਿਉਂਕਿ ਮੰਗਣ ਲਈ ਹੋਰ ਕੁਝ ਨਹੀਂ ਬਚਦਾ।</string>
     <string name="plugins_permissions_none">ਇਸਦੇ ਆਪਣੇ ਪੈਨਲ ਤੋਂ ਬਾਹਰ ਕੁਝ ਵੀ ਨਹੀਂ</string>
     <string name="plugins_permissions_title">ਇਹ ਕੀ ਕਰ ਸਕਦਾ ਹੈ</string>
     <string name="plugins_reminders_blocked_subtitle">ਐਪ ਇਹ ਰੀਮਾਈਂਡਰ ਨਹੀਂ ਦਿਖਾ ਸਕਦੀ। ਨੋਟੀਫਿਕੇਸ਼ਨ ਪੋਸਟ ਕਰਨ ਦੀ ਇਜਾਜ਼ਤ ਦੇਣ ਲਈ ਟੈਪ ਕਰੋ।</string>

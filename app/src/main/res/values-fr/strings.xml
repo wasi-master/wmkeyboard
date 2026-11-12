@@ -355,7 +355,6 @@
     <string name="addon_open_screen_action">Ouvrir %1$s</string>
     <string name="addon_plugin_no_permissions_title">Rien en dehors de son propre panneau</string>
     <string name="addon_plugin_permissions_title">Ce que ce plugin peut faire</string>
-    <string name="addon_plugin_sandbox_body">Les plugins s\'exécutent dans un bac à sable. Ce plugin ne peut pas voir ce que vous tapez, lire votre presse-papiers ou utiliser Internet. Un plugin ne peut pas demander ces capacités.</string>
     <string name="addon_preview_action">Prévisualiser</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji a un nom</item>
@@ -7264,14 +7263,10 @@
     <string name="plugins_detail_no_description">Aucune description.</string>
     <string name="plugins_detail_stopped_subtitle">L\'application a désactivé ce plugin car il a cessé de répondre à deux reprises</string>
     <string name="plugins_detail_subsystem_off_subtitle">Aucun plugin ne s\'exécute lorsque \"Autoriser les plugins\" est désactivé, sous Outils puis Plugins</string>
-    <string name="plugins_fact_no_clipboard">Il ne peut pas lire votre presse-papiers</string>
-    <string name="plugins_fact_no_field">Il ne peut pas lire le champ de texte dans lequel vous écrivez</string>
-    <string name="plugins_fact_no_internet">Il ne peut pas utiliser Internet</string>
     <string name="plugins_fact_no_typing">Il ne peut pas voir ce que vous tapez</string>
     <string name="plugins_fact_own_panel">Il peut dessiner son propre panneau et faire ses propres calculs</string>
     <string name="plugins_fact_own_storage">Il peut enregistrer ses propres données, s\'il vous en informe avant l\'installation</string>
     <string name="plugins_fact_reminders">Il peut afficher un rappel à une heure que vous avez définie, s\'il vous en informe avant que vous ne l\'installiez</string>
-    <string name="plugins_facts_info">Ce ne sont pas des paramètres. Un plugin n\'a aucun moyen de les demander. Vous fournissez du texte à un plugin lorsque vous le tapez ou le collez dans sa propre zone. Les résultats vous sont renvoyés lorsque vous appuyez sur Insérer.</string>
     <string name="plugins_facts_title">Ce qu\'un plugin peut et ne peut pas faire</string>
     <string name="plugins_icons_export_done_message">L\'application a enregistré %1$s.</string>
     <string name="plugins_icons_export_failed_message">L\'application n\'a pas pu écrire ce fichier.</string>
@@ -7383,7 +7378,6 @@
         <item quantity="one">%1$d Ko conservé, supprimé dans %2$d jour</item>
         <item quantity="other">%1$d Ko conservés, supprimés dans %2$d jours</item>
     </plurals>
-    <string name="plugins_permissions_info">Le plugin déclare ceci lors de son installation. Un plugin ne peut pas en demander plus pendant son exécution, car il n\'y a rien d\'autre à demander.</string>
     <string name="plugins_permissions_none">Rien en dehors de son propre panneau</string>
     <string name="plugins_permissions_title">Ce qu\'il peut faire</string>
     <string name="plugins_reminders_blocked_subtitle">L\'application ne peut pas afficher ces rappels. Appuyez pour l\'autoriser à envoyer des notifications.</string>

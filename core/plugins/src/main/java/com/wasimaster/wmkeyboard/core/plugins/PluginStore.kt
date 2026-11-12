@@ -663,11 +663,12 @@ class PluginStore(
         parkedList.removeAll { it.id == id }
     }
 
-    /** Removes the plugin and everything it owns, including its storage and log. */
+    /** Removes the plugin and everything it owns, including its storage, log and secrets. */
     @Synchronized
     fun delete(id: String) {
         val removed = pluginList.removeAll { it.id == id }
         dirFor(id)?.let { dir -> runCatching { dir.deleteRecursively() } }
+        baseDir?.parentFile?.let { files -> PluginSecrets(File(files, PluginSecrets.DIR_NAME), id).forget() }
         if (removed) save()
     }
 

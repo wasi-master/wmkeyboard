@@ -354,7 +354,6 @@
     <string name="addon_open_screen_action">Opna %1$s</string>
     <string name="addon_plugin_no_permissions_title">Ekkert utan eigin spjalds</string>
     <string name="addon_plugin_permissions_title">Hvað þessi viðbót getur gert</string>
-    <string name="addon_plugin_sandbox_body">Viðbætur keyra í sandkassa. Þessi viðbót getur ekki séð hvað þú skrifar, lesið klemmuspjaldið þitt eða notað internetið. Viðbót getur ekki beðið um þá hæfileika.</string>
     <string name="addon_preview_action">Forskoða</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji hefur nafn</item>
@@ -7266,14 +7265,10 @@
     <string name="plugins_detail_no_description">Engin lýsing.</string>
     <string name="plugins_detail_stopped_subtitle">Forritið slökkti á þessari viðbót vegna þess að hún hætti að svara tvisvar sinnum</string>
     <string name="plugins_detail_subsystem_off_subtitle">Engin viðbót keyrir á meðan „Leyfa viðbótum“ er slökkt, undir Verkfæri og síðan Viðbætur</string>
-    <string name="plugins_fact_no_clipboard">Það getur ekki lesið úrklippuspjaldið þitt</string>
-    <string name="plugins_fact_no_field">Það getur ekki lesið textareitinn sem þú skrifar í</string>
-    <string name="plugins_fact_no_internet">Það getur ekki notað internetið</string>
     <string name="plugins_fact_no_typing">Það getur ekki séð hvað þú skrifar</string>
     <string name="plugins_fact_own_panel">Það getur teiknað sitt eigið spjald og gert sína eigin útreikninga</string>
     <string name="plugins_fact_own_storage">Það getur vistað sín eigin gögn, ef það lætur þig vita áður en þú setur það upp</string>
     <string name="plugins_fact_reminders">Það getur sýnt áminningu á þeim tíma sem þú stillir í því, ef það segir þér frá því áður en þú setur það upp</string>
-    <string name="plugins_facts_info">Þetta eru ekki stillingar. Viðbót hefur enga leið til að biðja um þær. Þú gefur viðbót texta þegar þú skrifar eða límir hann í sinn eigin reit. Niðurstöðurnar koma til þín þegar þú ýtir á Setja inn.</string>
     <string name="plugins_facts_title">Hvað viðbót getur og getur ekki gert</string>
     <string name="plugins_icons_export_done_message">Forritið vistaði %1$s.</string>
     <string name="plugins_icons_export_failed_message">Forritið gat ekki skrifað þá skrá.</string>
@@ -7385,7 +7380,6 @@
         <item quantity="one">%1$d KB geymt, eytt eftir %2$d dag</item>
         <item quantity="other">%1$d KB geymt, eytt eftir %2$d daga</item>
     </plurals>
-    <string name="plugins_permissions_info">Viðbótin lýsir þessu yfir þegar þú setur hana upp. Viðbót getur ekki beðið um meira á meðan hún keyrir, því það er ekkert meira að biðja um.</string>
     <string name="plugins_permissions_none">Ekkert utan eigin spjalds</string>
     <string name="plugins_permissions_title">Hvað það getur gert</string>
     <string name="plugins_reminders_blocked_subtitle">Forritið getur ekki sýnt þessar áminningar. Pikkaðu til að leyfa því að birta tilkynningar.</string>

@@ -358,7 +358,6 @@
     <string name="addon_open_screen_action">Deschide %1$s</string>
     <string name="addon_plugin_no_permissions_title">Nimic în afara propriului panou</string>
     <string name="addon_plugin_permissions_title">Ce poate face acest plugin</string>
-    <string name="addon_plugin_sandbox_body">Plugin-urile rulează într-un sandbox. Acest plugin nu poate vedea ce scrii, nu poate citi clipboard-ul și nu poate folosi internetul. Un plugin nu poate solicita aceste permisiuni.</string>
     <string name="addon_preview_action">Previzualizare</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji are un nume</item>
@@ -7275,14 +7274,10 @@
     <string name="plugins_detail_no_description">Fără descriere.</string>
     <string name="plugins_detail_stopped_subtitle">Aplicația a oprit acest plugin deoarece a încetat să răspundă de două ori</string>
     <string name="plugins_detail_subsystem_off_subtitle">Niciun plugin nu rulează cât timp „Permite pluginuri” este dezactivat, sub Instrumente apoi Pluginuri</string>
-    <string name="plugins_fact_no_clipboard">Nu poate citi clipboard-ul</string>
-    <string name="plugins_fact_no_field">Nu poate citi câmpul text în care scrieți</string>
-    <string name="plugins_fact_no_internet">Nu poate folosi internetul</string>
     <string name="plugins_fact_no_typing">Nu poate vedea ce scrieți</string>
     <string name="plugins_fact_own_panel">Poate să-și deseneze propriul panou și să-și facă propriile calcule</string>
     <string name="plugins_fact_own_storage">Poate să își salveze propriile date, dacă vă informează înainte de instalare</string>
     <string name="plugins_fact_reminders">Poate afișa un memento la o oră setată de tine, dacă te informează înainte de instalare</string>
-    <string name="plugins_facts_info">Acestea nu sunt setări. Un plugin nu are nicio modalitate de a le solicita. Oferi text unui plugin atunci când îl scrii sau îl lipești în propria sa casetă. Rezultatele revin la tine când apeși pe Inserare.</string>
     <string name="plugins_facts_title">Ce poate și ce nu poate face un plugin</string>
     <string name="plugins_icons_export_done_message">Aplicația a salvat %1$s.</string>
     <string name="plugins_icons_export_failed_message">Aplicația nu a putut scrie acel fișier.</string>
@@ -7394,7 +7389,6 @@
         <item quantity="one">%1$d KB păstrați, vor fi șterși în %2$d zi</item>
         <item quantity="other">%1$d KB păstrați, vor fi șterși în %2$d zile</item>
     </plurals>
-    <string name="plugins_permissions_info">Modulul declară acest lucru când îl instalezi. Un modul nu poate cere mai mult în timp ce rulează, deoarece nu mai are ce să ceară.</string>
     <string name="plugins_permissions_none">Nimic în afara propriului panou</string>
     <string name="plugins_permissions_title">Ce poate face</string>
     <string name="plugins_reminders_blocked_subtitle">Aplicația nu poate afișa aceste mementouri. Atinge pentru a-i permite să trimită notificări.</string>

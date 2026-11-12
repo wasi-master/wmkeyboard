@@ -358,7 +358,6 @@
     <string name="addon_open_screen_action">%1$s openen</string>
     <string name="addon_plugin_no_permissions_title">Niets buiten het eigen paneel</string>
     <string name="addon_plugin_permissions_title">Wat deze plug-in kan doen</string>
-    <string name="addon_plugin_sandbox_body">Plugins draaien in een sandbox. Deze plugin kan niet zien wat je typt, je klembord lezen of het internet gebruiken. Een plugin kan niet om deze mogelijkheden vragen.</string>
     <string name="addon_preview_action">Voorbeeld</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji heeft een naam</item>
@@ -7272,14 +7271,10 @@
     <string name="plugins_detail_no_description">Geen beschrijving.</string>
     <string name="plugins_detail_stopped_subtitle">De app heeft deze plug-in uitgeschakeld omdat deze twee keer niet meer reageerde</string>
     <string name="plugins_detail_subsystem_off_subtitle">Er worden geen plug-ins uitgevoerd terwijl “Plug-ins toestaan” is uitgeschakeld, onder Extra en vervolgens Plug-ins</string>
-    <string name="plugins_fact_no_clipboard">Het kan je klembord niet lezen</string>
-    <string name="plugins_fact_no_field">Het kan het tekstveld waarin je schrijft niet lezen</string>
-    <string name="plugins_fact_no_internet">Het kan het internet niet gebruiken</string>
     <string name="plugins_fact_no_typing">Het kan niet zien wat je typt</string>
     <string name="plugins_fact_own_panel">Het kan zijn eigen paneel tekenen en zijn eigen berekeningen uitvoeren</string>
     <string name="plugins_fact_own_storage">Het kan zijn eigen gegevens opslaan, als het je daarover informeert voordat je het installeert</string>
     <string name="plugins_fact_reminders">Het kan een herinnering tonen op een door jou ingesteld tijdstip, mits het dit aangeeft voordat je het installeert</string>
-    <string name="plugins_facts_info">Dit zijn geen instellingen. Een plug-in heeft geen manier om erom te vragen. Je geeft tekst aan een plug-in wanneer je deze typt of plakt in het eigen vak. De resultaten krijg je terug wanneer je op Invoegen drukt.</string>
     <string name="plugins_facts_title">Wat een plugin wel en niet kan</string>
     <string name="plugins_icons_export_done_message">De app heeft %1$s opgeslagen.</string>
     <string name="plugins_icons_export_failed_message">De app kon dat bestand niet schrijven.</string>
@@ -7391,7 +7386,6 @@
         <item quantity="one">%1$d KB bewaard, verwijderd over %2$d dag</item>
         <item quantity="other">%1$d KB bewaard, verwijderd over %2$d dagen</item>
     </plurals>
-    <string name="plugins_permissions_info">De plug-in verklaart dit wanneer u deze installeert. Een plug-in kan niet om meer vragen terwijl deze draait, omdat er niets meer is om om te vragen.</string>
     <string name="plugins_permissions_none">Niets buiten het eigen paneel</string>
     <string name="plugins_permissions_title">Wat het kan doen</string>
     <string name="plugins_reminders_blocked_subtitle">De app kan deze herinneringen niet tonen. Tik om meldingen toe te staan.</string>

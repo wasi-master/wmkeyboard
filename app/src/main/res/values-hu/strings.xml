@@ -355,7 +355,6 @@
     <string name="addon_open_screen_action">%1$s megnyitása</string>
     <string name="addon_plugin_no_permissions_title">Semmi a saját paneljén kívül</string>
     <string name="addon_plugin_permissions_title">Mit tehet ez a bővítmény</string>
-    <string name="addon_plugin_sandbox_body">A bővítmények homokozóban futnak. Ez a bővítmény nem látja, mit gépel, nem olvassa a vágólapot, és nem használja az internetet. A bővítmény nem kérhet ilyen jogosultságokat.</string>
     <string name="addon_preview_action">Előnézet</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emojinak van neve</item>
@@ -7265,14 +7264,10 @@
     <string name="plugins_detail_no_description">Nincs leírás.</string>
     <string name="plugins_detail_stopped_subtitle">Az alkalmazás kikapcsolta ezt a bővítményt, mert kétszer is leállt a válaszadás</string>
     <string name="plugins_detail_subsystem_off_subtitle">Nem futnak bővítmények, amíg a „Bővítmények engedélyezése” ki van kapcsolva az Eszközök &gt; Bővítmények menüpont alatt</string>
-    <string name="plugins_fact_no_clipboard">Nem tudja olvasni a vágólapot</string>
-    <string name="plugins_fact_no_field">Nem tudja olvasni azt a szövegmezőt, amelybe ír</string>
-    <string name="plugins_fact_no_internet">Nem használhatja az internetet</string>
     <string name="plugins_fact_no_typing">Nem látja, mit gépelsz</string>
     <string name="plugins_fact_own_panel">Saját panelt tud rajzolni és saját számításokat végezni</string>
     <string name="plugins_fact_own_storage">Saját adatokat menthet, ha erről a telepítés előtt tájékoztatja Önt</string>
     <string name="plugins_fact_reminders">Emlékeztetőt jeleníthet meg az általad beállított időpontban, ha ezt a telepítés előtt jelzi</string>
-    <string name="plugins_facts_info">Ezek nem beállítások. Egy bővítmény nem tudja elkérni őket. A szöveget akkor adja át a bővítménynek, amikor beírja vagy beilleszti a saját mezőjébe. Az eredmények akkor jelennek meg, ha megnyomja a Beszúrás gombot.</string>
     <string name="plugins_facts_title">Mit tehet és mit nem egy bővítmény</string>
     <string name="plugins_icons_export_done_message">Az alkalmazás elmentette a következőt: %1$s.</string>
     <string name="plugins_icons_export_failed_message">Az alkalmazás nem tudta kiírni a fájlt.</string>
@@ -7384,7 +7379,6 @@
         <item quantity="one">%1$d KB megtartva, törölve %2$d nap múlva</item>
         <item quantity="other">%1$d KB megtartva, törölve %2$d nap múlva</item>
     </plurals>
-    <string name="plugins_permissions_info">A bővítmény ezt a telepítéskor jelzi. A bővítmény futás közben nem kérhet többet, mert nincs több kérhető dolog.</string>
     <string name="plugins_permissions_none">Semmi a saját paneljén kívül</string>
     <string name="plugins_permissions_title">Mit képes tenni</string>
     <string name="plugins_reminders_blocked_subtitle">Az alkalmazás nem tudja megjeleníteni ezeket az emlékeztetőket. Koppintson az értesítések engedélyezéséhez.</string>

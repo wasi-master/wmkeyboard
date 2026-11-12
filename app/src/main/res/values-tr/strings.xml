@@ -356,7 +356,6 @@
     <string name="addon_open_screen_action">%1$s öğesini aç</string>
     <string name="addon_plugin_no_permissions_title">Kendi paneli dışında hiçbir şey</string>
     <string name="addon_plugin_permissions_title">Bu eklentinin yapabilecekleri</string>
-    <string name="addon_plugin_sandbox_body">Eklentiler bir korumalı alanda çalışır. Bu eklenti ne yazdığınızı göremez, panonuzu okuyamaz veya interneti kullanamaz. Bir eklenti bu yetenekleri isteyemez.</string>
     <string name="addon_preview_action">Önizleme</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emojinin bir adı var</item>
@@ -7266,14 +7265,10 @@
     <string name="plugins_detail_no_description">Açıklama yok.</string>
     <string name="plugins_detail_stopped_subtitle">Uygulama, iki kez yanıt vermeyi durdurduğu için bu eklentiyi kapattı</string>
     <string name="plugins_detail_subsystem_off_subtitle">Araçlar ve ardından Eklentiler altındaki “Eklentilere izin ver” kapalıyken hiçbir eklenti çalışmaz</string>
-    <string name="plugins_fact_no_clipboard">Panonuzu okuyamıyor</string>
-    <string name="plugins_fact_no_field">İçine yazdığınız metin alanını okuyamaz</string>
-    <string name="plugins_fact_no_internet">İnterneti kullanamaz</string>
     <string name="plugins_fact_no_typing">Yazdıklarınızı göremez</string>
     <string name="plugins_fact_own_panel">Kendi panelini çizebilir ve kendi hesaplamalarını yapabilir</string>
     <string name="plugins_fact_own_storage">Yüklemeden önce size bildirirse kendi verilerini kaydedebilir</string>
     <string name="plugins_fact_reminders">Yüklemeden önce size bildirirse, içinde ayarladığınız bir zamanda hatırlatıcı gösterebilir</string>
-    <string name="plugins_facts_info">Bunlar ayar değildir. Bir eklentinin bunları isteme yolu yoktur. Bir eklentiye metni, kendi kutusuna yazdığınızda veya yapıştırdığınızda verirsiniz. Sonuçlar, Ekle tuşuna bastığınızda size geri döner.</string>
     <string name="plugins_facts_title">Bir eklentinin yapabilecekleri ve yapamayacakları</string>
     <string name="plugins_icons_export_done_message">Uygulama %1$s kaydedildi.</string>
     <string name="plugins_icons_export_failed_message">Uygulama bu dosyayı yazamadı.</string>
@@ -7385,7 +7380,6 @@
         <item quantity="one">%1$d KB saklandı, %2$d günde silinecek</item>
         <item quantity="other">%1$d KB saklandı, %2$d günde silinecek</item>
     </plurals>
-    <string name="plugins_permissions_info">Eklenti, bunu yüklediğinizde beyan eder. Bir eklenti çalışırken daha fazlasını isteyemez, çünkü isteyebileceği başka bir şey yoktur.</string>
     <string name="plugins_permissions_none">Kendi paneli dışında hiçbir şey</string>
     <string name="plugins_permissions_title">Neler yapabilir</string>
     <string name="plugins_reminders_blocked_subtitle">Uygulama bu hatırlatıcıları gösteremiyor. Bildirim göndermesine izin vermek için dokunun.</string>

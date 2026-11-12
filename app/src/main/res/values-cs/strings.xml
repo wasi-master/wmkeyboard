@@ -355,7 +355,6 @@
     <string name="addon_open_screen_action">Otevřít %1$s</string>
     <string name="addon_plugin_no_permissions_title">Nic mimo vlastní panel</string>
     <string name="addon_plugin_permissions_title">Co tento plugin může dělat</string>
-    <string name="addon_plugin_sandbox_body">Pluginy běží v izolovaném prostředí (sandboxu). Tento plugin nevidí, co píšete, nečte vaši schránku ani nepoužívá internet. Plugin si o tyto schopnosti nemůže požádat.</string>
     <string name="addon_preview_action">Náhled</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji má název</item>
@@ -7267,14 +7266,10 @@
     <string name="plugins_detail_no_description">Žádný popis.</string>
     <string name="plugins_detail_stopped_subtitle">Aplikace tento plugin vypnula, protože dvakrát přestal odpovídat</string>
     <string name="plugins_detail_subsystem_off_subtitle">Pokud je vypnuta možnost „Povolit pluginy“ v nabídce Nástroje -&gt; Pluginy, žádný plugin neběží</string>
-    <string name="plugins_fact_no_clipboard">Nemůže číst vaši schránku</string>
-    <string name="plugins_fact_no_field">Nemůže číst textové pole, do kterého píšete</string>
-    <string name="plugins_fact_no_internet">Nemůže používat internet</string>
     <string name="plugins_fact_no_typing">Nemůže vidět, co píšete</string>
     <string name="plugins_fact_own_panel">Může vykreslit vlastní panel a provádět vlastní výpočty</string>
     <string name="plugins_fact_own_storage">Může ukládat vlastní data, pokud vás na to před instalací upozorní</string>
     <string name="plugins_fact_reminders">Může zobrazit připomenutí v čase, který v něm nastavíte, pokud vás na to upozorní před instalací</string>
-    <string name="plugins_facts_info">Toto nejsou nastavení. Plugin nemá způsob, jak si o ně požádat. Text pluginu předáte, když jej napíšete nebo vložíte do jeho vlastního pole. Výsledky se vám vrátí po stisknutí Vložit.</string>
     <string name="plugins_facts_title">Co plugin může a nemůže dělat</string>
     <string name="plugins_icons_export_done_message">Aplikace uložila %1$s.</string>
     <string name="plugins_icons_export_failed_message">Aplikace nemohla zapsat tento soubor.</string>
@@ -7386,7 +7381,6 @@
         <item quantity="one">Ponecháno %1$d KB, smazáno za %2$d den</item>
         <item quantity="other">Ponecháno %1$d KB, smazáno za %2$d dnů</item>
     </plurals>
-    <string name="plugins_permissions_info">Plugin toto deklaruje při instalaci. Plugin nemůže žádat o více, zatímco běží, protože už není o co žádat.</string>
     <string name="plugins_permissions_none">Nic mimo svůj vlastní panel</string>
     <string name="plugins_permissions_title">Co může dělat</string>
     <string name="plugins_reminders_blocked_subtitle">Aplikace nemůže zobrazit tato připomenutí. Klepnutím jí povolíte odesílat oznámení.</string>

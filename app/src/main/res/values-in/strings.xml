@@ -356,7 +356,6 @@
     <string name="addon_open_screen_action">Buka %1$s</string>
     <string name="addon_plugin_no_permissions_title">Tidak ada apa pun di luar panelnya sendiri</string>
     <string name="addon_plugin_permissions_title">Apa yang dapat dilakukan plugin ini</string>
-    <string name="addon_plugin_sandbox_body">Plugin berjalan di dalam sandbox. Plugin ini tidak dapat melihat apa yang Anda ketik, membaca papan klip Anda, atau menggunakan internet. Plugin tidak dapat meminta kemampuan tersebut.</string>
     <string name="addon_preview_action">Pratinjau</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji memiliki nama</item>
@@ -7269,14 +7268,10 @@
     <string name="plugins_detail_no_description">Tidak ada deskripsi.</string>
     <string name="plugins_detail_stopped_subtitle">Aplikasi mematikan plugin ini karena berhenti merespons dua kali</string>
     <string name="plugins_detail_subsystem_off_subtitle">Tidak ada plugin yang berjalan saat “Izinkan plugin” mati, di bawah Alat lalu Plugin</string>
-    <string name="plugins_fact_no_clipboard">Aplikasi tidak dapat membaca papan klip Anda</string>
-    <string name="plugins_fact_no_field">Ini tidak dapat membaca kolom teks tempat Anda menulis</string>
-    <string name="plugins_fact_no_internet">Tidak dapat menggunakan internet</string>
     <string name="plugins_fact_no_typing">Ini tidak dapat melihat apa yang Anda ketik</string>
     <string name="plugins_fact_own_panel">Dapat menggambar panelnya sendiri dan melakukan perhitungannya sendiri</string>
     <string name="plugins_fact_own_storage">Aplikasi ini dapat menyimpan datanya sendiri, jika memberi tahu Anda sebelum Anda menginstalnya</string>
     <string name="plugins_fact_reminders">Ini dapat menampilkan pengingat pada waktu yang Anda atur di dalamnya, jika diberitahukan sebelum Anda menginstalnya</string>
-    <string name="plugins_facts_info">Ini bukan pengaturan. Plugin tidak memiliki cara untuk memintanya. Anda memberikan teks ke plugin saat Anda mengetik atau menempelkannya ke dalam kotaknya sendiri. Hasilnya kembali kepada Anda saat Anda menekan Sisipkan.</string>
     <string name="plugins_facts_title">Apa yang bisa dan tidak bisa dilakukan plugin</string>
     <string name="plugins_icons_export_done_message">Aplikasi telah menyimpan %1$s.</string>
     <string name="plugins_icons_export_failed_message">Aplikasi tidak dapat menulis file tersebut.</string>
@@ -7388,7 +7383,6 @@
         <item quantity="one">%1$d KB disimpan, dihapus dalam %2$d hari</item>
         <item quantity="other">%1$d KB disimpan, dihapus dalam %2$d hari</item>
     </plurals>
-    <string name="plugins_permissions_info">Plugin menyatakan ini saat Anda menginstalnya. Plugin tidak dapat meminta lebih banyak saat berjalan, karena tidak ada lagi yang perlu diminta.</string>
     <string name="plugins_permissions_none">Tidak ada di luar panelnya sendiri</string>
     <string name="plugins_permissions_title">Apa yang bisa dilakukan</string>
     <string name="plugins_reminders_blocked_subtitle">Aplikasi tidak dapat menampilkan pengingat ini. Ketuk untuk mengizinkannya mengirim notifikasi.</string>

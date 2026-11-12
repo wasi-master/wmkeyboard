@@ -76,6 +76,8 @@ free.
 | Speed test | a run of the [Internet speed test](/tools/speed-test/), which moves tens to hundreds of megabytes on purpose. Asks by default: the panel says how many megabytes a run is likely to cost, and **Run anyway** is the yes |
 | Transcription server | voice typing that sends each phrase to your [transcription server](/tools/transcription-server/), about 75 KB for every 30 seconds of speech, compressed as Opus (just under a megabyte to a server that reads only WAV, or before the compression library has been fetched). Allowed by default. At **Ask each time** the voice panel explains, and pressing the microphone again is the yes |
 
+[Plugins](/plugins/permissions/#risky-permissions) aren't in either table. While data saver is on, nothing a plugin asks for goes out at all, whatever the rows above say, and the plugin hears a `ConnectionError`. A plugin is someone else's code, so there is no single moment where a yes from you would make sense.
+
 ## With no connection
 
 <SettingsPath path="Advanced / Data saver / Use on-device models offline" /> is a separate question from data saving: not what the keyboard may spend, but what it does when nothing can be sent at all. It is off by default. Turn it on, and three tools that use a server change to the on-device model you downloaded when the phone has no connection, or when the server does not answer:

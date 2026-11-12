@@ -357,7 +357,6 @@
     <string name="addon_open_screen_action">Åbn %1$s</string>
     <string name="addon_plugin_no_permissions_title">Intet uden for sit eget panel</string>
     <string name="addon_plugin_permissions_title">Hvad dette plugin kan gøre</string>
-    <string name="addon_plugin_sandbox_body">Plugins kører i en sandkasse. Dette plugin kan ikke se, hvad du skriver, læse din udklipsholder eller bruge internettet. Et plugin kan ikke anmode om disse evner.</string>
     <string name="addon_preview_action">Forhåndsvisning</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji har et navn</item>
@@ -7271,14 +7270,10 @@
     <string name="plugins_detail_no_description">Ingen beskrivelse.</string>
     <string name="plugins_detail_stopped_subtitle">Appen slog dette plugin fra, fordi det holdt op med at svare to gange</string>
     <string name="plugins_detail_subsystem_off_subtitle">Ingen plugins kører, mens \"Tillad plugins\" er slået fra under Værktøjer og derefter Plugins</string>
-    <string name="plugins_fact_no_clipboard">Den kan ikke læse din udklipsholder</string>
-    <string name="plugins_fact_no_field">Den kan ikke læse det tekstfelt, du skriver i</string>
-    <string name="plugins_fact_no_internet">Den kan ikke bruge internettet</string>
     <string name="plugins_fact_no_typing">Den kan ikke se, hvad du skriver</string>
     <string name="plugins_fact_own_panel">Det kan tegne sit eget panel og udføre sine egne beregninger</string>
     <string name="plugins_fact_own_storage">Den kan gemme sine egne data, hvis den fortæller dig det, før du installerer den</string>
     <string name="plugins_fact_reminders">Den kan vise en påmindelse på et tidspunkt, du indstiller i den, hvis den fortæller dig det, før du installerer den</string>
-    <string name="plugins_facts_info">Dette er ikke indstillinger. Et plugin har ingen måde at spørge efter dem på. Du giver tekst til et plugin, når du skriver eller indsætter den i dets egen boks. Resultaterne kommer tilbage til dig, når du trykker på Indsæt.</string>
     <string name="plugins_facts_title">Hvad et plugin kan og ikke kan</string>
     <string name="plugins_icons_export_done_message">Appen gemte %1$s.</string>
     <string name="plugins_icons_export_failed_message">Appen kunne ikke skrive den fil.</string>
@@ -7390,7 +7385,6 @@
         <item quantity="one">%1$d KB behøvet, slettes om %2$d dag</item>
         <item quantity="other">%1$d KB behøvet, slettes om %2$d dage</item>
     </plurals>
-    <string name="plugins_permissions_info">Pluginnet erklærer dette når du installerer det. Et plugin kan ikke bede om mere mens det kører, fordi der ikke er mere at bede om.</string>
     <string name="plugins_permissions_none">Intet uden for sit eget panel</string>
     <string name="plugins_permissions_title">Hvad den kan gøre</string>
     <string name="plugins_reminders_blocked_subtitle">Appen kan ikke vise disse påmindelser. Tryk for at give den tilladelse til at sende notifikationer.</string>

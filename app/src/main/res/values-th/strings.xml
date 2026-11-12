@@ -355,7 +355,6 @@
     <string name="addon_open_screen_action">เปิด %1$s</string>
     <string name="addon_plugin_no_permissions_title">ไม่มีอะไรนอกเหนือจากแผงควบคุมของตัวเอง</string>
     <string name="addon_plugin_permissions_title">สิ่งที่ปลั๊กอินนี้ทำได้</string>
-    <string name="addon_plugin_sandbox_body">ปลั๊กอินทำงานในแซนด์บ็อกซ์ ปลั๊กอินนี้ไม่สามารถดูสิ่งที่คุณพิมพ์ อ่านคลิปบอร์ด หรือใช้อินเทอร์เน็ตได้ และปลั๊กอินไม่สามารถขอสิทธิ์เหล่านี้ได้</string>
     <string name="addon_preview_action">ดูตัวอย่าง</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">อิโมจิ %1$d ตัวมีชื่อ</item>
@@ -7263,14 +7262,10 @@
     <string name="plugins_detail_no_description">ไม่มีคำอธิบาย</string>
     <string name="plugins_detail_stopped_subtitle">แอปปิดปลั๊กอินนี้เนื่องจากหยุดตอบสนองสองครั้ง</string>
     <string name="plugins_detail_subsystem_off_subtitle">ไม่มีปลั๊กอินทำงานในขณะที่ปิด \"อนุญาตปลั๊กอิน\" อยู่ โดยสามารถตั้งค่าได้ที่ เครื่องมือ แล้วเลือก ปลั๊กอิน</string>
-    <string name="plugins_fact_no_clipboard">ไม่สามารถอ่านคลิปบอร์ดของคุณได้</string>
-    <string name="plugins_fact_no_field">มันไม่สามารถอ่านช่องข้อความที่คุณเขียนได้</string>
-    <string name="plugins_fact_no_internet">ไม่สามารถใช้อินเทอร์เน็ตได้</string>
     <string name="plugins_fact_no_typing">มันไม่สามารถมองเห็นสิ่งที่คุณพิมพ์ได้</string>
     <string name="plugins_fact_own_panel">สามารถวาดแผงควบคุมของตัวเองและคำนวณค่าต่างๆ ได้เอง</string>
     <string name="plugins_fact_own_storage">สามารถบันทึกข้อมูลของตัวเองได้ หากแจ้งให้คุณทราบก่อนที่คุณจะติดตั้ง</string>
     <string name="plugins_fact_reminders">สามารถแสดงการแจ้งเตือนตามเวลาที่คุณตั้งไว้ หากมีการแจ้งให้คุณทราบก่อนการติดตั้ง</string>
-    <string name="plugins_facts_info">นี่ไม่ใช่การตั้งค่า ปลั๊กอินไม่มีวิธีขอข้อมูลเหล่านี้ คุณต้องป้อนข้อความให้ปลั๊กอินเมื่อคุณพิมพ์หรือวางลงในช่องของปลั๊กอิน ผลลัพธ์จะแสดงให้คุณเห็นเมื่อคุณกดแทรก</string>
     <string name="plugins_facts_title">สิ่งที่ปลั๊กอินทำได้และทำไม่ได้</string>
     <string name="plugins_icons_export_done_message">แอปบันทึก %1$s แล้ว</string>
     <string name="plugins_icons_export_failed_message">แอปไม่สามารถเขียนไฟล์นั้นได้</string>
@@ -7382,7 +7377,6 @@
         <item quantity="one">เก็บไว้ %1$d KB จะถูกลบใน %2$d วัน</item>
         <item quantity="other">เก็บไว้ %1$d KB จะถูกลบใน %2$d วัน</item>
     </plurals>
-    <string name="plugins_permissions_info">ปลั๊กอินจะประกาศสิ่งนี้เมื่อคุณติดตั้ง ปลั๊กอินไม่สามารถขอสิทธิ์เพิ่มในขณะที่ทำงานอยู่ได้ เนื่องจากไม่มีอะไรให้ขอเพิ่มอีกแล้ว</string>
     <string name="plugins_permissions_none">ไม่มีอะไรนอกเหนือจากแผงควบคุมของตนเอง</string>
     <string name="plugins_permissions_title">สิ่งที่ทำได้</string>
     <string name="plugins_reminders_blocked_subtitle">แอปไม่สามารถแสดงการแจ้งเตือนเหล่านี้ได้ แตะเพื่ออนุญาตให้แสดงการแจ้งเตือน</string>

@@ -16,11 +16,13 @@ class CustomButtonsTest {
     )
     private val numberRow = CustomButton("c2", CustomButtonKind.SETTING, CustomToggle.NUMBER_ROW.name, onToolbar = false)
     private val favourites = CustomButton("c3", CustomButtonKind.PAGE, CustomPage.FAVOURITES.name)
+    private val weather = CustomButton("c5", CustomButtonKind.PLUGIN, "com.example.weather")
 
     @Test
     fun `round trips through the stored form`() {
-        val list = listOf(shortcut, numberRow, favourites)
+        val list = listOf(shortcut, numberRow, favourites, weather)
         assertEquals(list, decodeCustomButtons(encodeCustomButtons(list)))
+        assertTrue(weather.usable)
     }
 
     @Test

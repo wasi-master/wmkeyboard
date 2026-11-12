@@ -2802,13 +2802,17 @@ private fun AddonPreviewSection(manifestUrl: String, entry: AddonEntry) {
  * stranger's code run on their keyboard at all. It is deliberately shown above
  * the Install button and phrased as plainly as the facts allow.
  *
- * The reassurance underneath is not marketing. There is no API in the sandbox
- * for reading typed text, the field, the clipboard or the network, so "it cannot
- * see what you type" is a statement about what was built, not a promise about
- * how it behaves.
+ * The reassurance underneath is not marketing: there is no key-event API, so
+ * "it never sees what you type" is a statement about what was built. The API 5
+ * permissions that can read the user's things or reach the network are listed
+ * apart, with their warnings, because each stays off after install until the
+ * user turns it on.
  */
 @Composable
 private fun PluginPreview(plugin: AddonPreviewContent.Plugin) {
+    val listed = plugin.permissions.filter { !it.isRisky }
+    val risky = plugin.permissions.filter { it.isRisky }
+    val context = androidx.compose.ui.platform.LocalContext.current
     SettingsGroup(stringResource(R.string.addon_plugin_permissions_title)) {
         if (plugin.permissions.isEmpty()) {
             item {
@@ -2820,7 +2824,7 @@ private fun PluginPreview(plugin: AddonPreviewContent.Plugin) {
                 )
             }
         } else {
-            for (permission in plugin.permissions) {
+            for (permission in listed) {
                 item {
                     WmRow(
                         title = stringResource(permission.labelRes),
@@ -2832,7 +2836,29 @@ private fun PluginPreview(plugin: AddonPreviewContent.Plugin) {
             }
         }
         item {
-            CaptionText(stringResource(R.string.addon_plugin_sandbox_body))
+            CaptionText(stringResource(R.string.addon_plugin_sandbox_body_v5))
+        }
+    }
+    if (risky.isNotEmpty()) {
+        // Each of these is a switch on the plugin's page after install, off
+        // until the user reads its warning and turns it on.
+        SettingsGroup(stringResource(R.string.addon_plugin_risky_title)) {
+            for (permission in risky) {
+                item {
+                    WmRow(
+                        title = "⚠ " + stringResource(permission.labelRes),
+                        subtitle = buildString {
+                            permission.warningRes?.let { append(stringResource(it)) }
+                            if (permission == com.wasimaster.wmkeyboard.core.plugins.PluginPermission.Network && plugin.hosts.isNotEmpty()) {
+                                append("\n").append(plugin.hosts.joinToString(", "))
+                            }
+                        },
+                    )
+                }
+            }
+            pluginCombinationWarning(context, plugin.permissions, plugin.hosts)?.let { warning ->
+                item { CaptionText(warning) }
+            }
         }
     }
     if (plugin.actions.isNotEmpty()) {

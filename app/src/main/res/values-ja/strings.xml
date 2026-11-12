@@ -356,7 +356,6 @@
     <string name="addon_open_screen_action">%1$sを開く</string>
     <string name="addon_plugin_no_permissions_title">独自のパネル以外には何もありません</string>
     <string name="addon_plugin_permissions_title">このプラグインでできること</string>
-    <string name="addon_plugin_sandbox_body">プラグインはサンドボックス内で実行されます。このプラグインは、入力内容の確認、クリップボードの読み取り、インターネットへのアクセスを行うことはできません。プラグインがこれらの権限を要求することもできません。</string>
     <string name="addon_preview_action">プレビュー</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d個の絵文字に名前があります</item>
@@ -7267,14 +7266,10 @@
     <string name="plugins_detail_no_description">説明はありません。</string>
     <string name="plugins_detail_stopped_subtitle">このプラグインが2回応答を停止したため、アプリによって無効化されました</string>
     <string name="plugins_detail_subsystem_off_subtitle">「ツール」＞「プラグイン」で「プラグインを許可」がオフになっている間は、プラグインは実行されません</string>
-    <string name="plugins_fact_no_clipboard">クリップボードを読み取れません</string>
-    <string name="plugins_fact_no_field">入力中のテキストフィールドを読み取ることはできません</string>
-    <string name="plugins_fact_no_internet">インターネットを使用できません</string>
     <string name="plugins_fact_no_typing">入力内容は読み取られません</string>
     <string name="plugins_fact_own_panel">独自のパネルを描画し、独自の計算を実行できます</string>
     <string name="plugins_fact_own_storage">インストール前に通知があれば、独自のデータを保存できます</string>
     <string name="plugins_fact_reminders">インストール前に許可を求めれば、設定した時間にリマインダーを表示できます。</string>
-    <string name="plugins_facts_info">これらは設定ではありません。プラグイン側からこれらを要求することはできません。プラグイン専用のボックスにテキストを入力または貼り付けることで、プラグインにテキストを渡します。挿入を押すと結果が返されます。</string>
     <string name="plugins_facts_title">プラグインでできること、できないこと</string>
     <string name="plugins_icons_export_done_message">アプリは%1$sを保存しました。</string>
     <string name="plugins_icons_export_failed_message">ファイルを書き込めませんでした。</string>
@@ -7385,7 +7380,6 @@
         <item quantity="one">%1$d KB を保持、%2$d日後に削除されます</item>
         <item quantity="other">%1$d KB を保持、%2$d日後に削除されます</item>
     </plurals>
-    <string name="plugins_permissions_info">プラグインのインストール時にこの権限が宣言されます。プラグインは実行中にこれ以上の権限を要求することはできません。要求すべき項目が他にないためです。</string>
     <string name="plugins_permissions_none">自身のパネル以外にはアクセスしません</string>
     <string name="plugins_permissions_title">実行可能な操作</string>
     <string name="plugins_reminders_blocked_subtitle">アプリがこれらのリマインダーを表示できません。タップして通知を許可してください。</string>

@@ -360,7 +360,6 @@
     <string name="addon_open_screen_action">Fungua %1$s</string>
     <string name="addon_plugin_no_permissions_title">Hakuna kitu nje ya paneli yake yenyewe</string>
     <string name="addon_plugin_permissions_title">Kile programu-jalizi hii inaweza kufanya</string>
-    <string name="addon_plugin_sandbox_body">Programu-jalizi huendeshwa kwenye mazingira salama (sandbox). Programu-jalizi hii haiwezi kuona unachoandika, kusoma ubao wako wa kunakili, au kutumia intaneti. Programu-jalizi haiwezi kuomba uwezo huo.</string>
     <string name="addon_preview_action">Hakiki</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">Emoji %1$d ina jina</item>
@@ -7281,14 +7280,10 @@
     <string name="plugins_detail_no_description">Hakuna maelezo.</string>
     <string name="plugins_detail_stopped_subtitle">Programu imezima plagi-in hii kwa sababu imeacha kujibu mara mbili</string>
     <string name="plugins_detail_subsystem_off_subtitle">Hakuna programu-jalizi inayofanya kazi wakati “Ruhusu programu-jalizi” imezimwa, chini ya Zana kisha Programu-jalizi</string>
-    <string name="plugins_fact_no_clipboard">Haiwezi kusoma ubao wako wa kunakili</string>
-    <string name="plugins_fact_no_field">Haiwezi kusoma uwanja wa maandishi unamoandikia</string>
-    <string name="plugins_fact_no_internet">Haiwezi kutumia intaneti</string>
     <string name="plugins_fact_no_typing">Haiwezi kuona unachochapa</string>
     <string name="plugins_fact_own_panel">Inaweza kuchora paneli yake yenyewe na kufanya hesabu zake yenyewe</string>
     <string name="plugins_fact_own_storage">Inaweza kuhifadhi data yake yenyewe, ikiwa itakuambia kabla ya kuiweka</string>
     <string name="plugins_fact_reminders">Inaweza kuonyesha kikumbusho kwa wakati ulioweka ndani yake, ikiwa itakuambia kabla ya kuisakinisha</string>
-    <string name="plugins_facts_info">Hizi si mipangilio. Programu-jalizi haina njia ya kukuuliza kuhusu hizi. Unatoa maandishi kwa programu-jalizi unapoandika au kubandika kwenye kisanduku chake. Matokeo yatakurudia unapobonyeza Ingiza.</string>
     <string name="plugins_facts_title">Kile ambacho programu-jalizi inaweza na haiwezi kufanya</string>
     <string name="plugins_icons_export_done_message">Programu imehifadhi %1$s.</string>
     <string name="plugins_icons_export_failed_message">Programu haikuweza kuandika faili hilo.</string>
@@ -7400,7 +7395,6 @@
         <item quantity="one">KB %1$d imehifadhiwa, itafutwa baada ya siku %2$d</item>
         <item quantity="other">KB %1$d imehifadhiwa, itafutwa baada ya siku %2$d</item>
     </plurals>
-    <string name="plugins_permissions_info">Programu jalizi inatangaza hii unapoiosakinisha. Programu jalizi haiwezi kuomba zaidi wakati inafanya kazi, kwa sababu hakuna kingine cha kuomba.</string>
     <string name="plugins_permissions_none">Hakuna kitu nje ya paneli yake yenyewe</string>
     <string name="plugins_permissions_title">Inachoweza kufanya</string>
     <string name="plugins_reminders_blocked_subtitle">Programu haiwezi kuonyesha vikumbusho hivi. Gusa ili kuiruhusu kutuma arifa.</string>

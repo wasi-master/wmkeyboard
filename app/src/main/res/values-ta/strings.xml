@@ -357,7 +357,6 @@
     <string name="addon_open_screen_action">%1$s-ஐத் திறக்கவும்</string>
     <string name="addon_plugin_no_permissions_title">அதன் சொந்த பேனலுக்கு வெளியே எதுவும் இல்லை</string>
     <string name="addon_plugin_permissions_title">இந்த பிளகின் என்ன செய்ய முடியும்</string>
-    <string name="addon_plugin_sandbox_body">செருகுநிரல்கள் சாண்ட்பாக்ஸில் இயங்குகின்றன. இந்தச் செருகுநிரலால் நீங்கள் தட்டச்சு செய்வதைப் பார்க்கவோ, உங்கள் கிளிப்போர்டைப் படிக்கவோ அல்லது இணையத்தைப் பயன்படுத்தவோ முடியாது. ஒரு செருகுநிரல் அந்தத் திறன்களைக் கேட்க முடியாது.</string>
     <string name="addon_preview_action">முன்னோட்டம்</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d ஈமோஜிக்கு பெயர் உள்ளது</item>
@@ -7269,14 +7268,10 @@
     <string name="plugins_detail_no_description">விளக்கம் இல்லை.</string>
     <string name="plugins_detail_stopped_subtitle">இந்தச் செருகுநிரல் இரண்டு முறை பதிலளிக்கத் தவறியதால், ஆப்ஸ் அதை முடக்கியது</string>
     <string name="plugins_detail_subsystem_off_subtitle">கருவிகள் மற்றும் செருகுநிரல்களின் கீழ் “செருகுநிரல்களை அனுமதி” முடக்கப்பட்டிருக்கும் போது எந்த செருகுநிரலும் இயங்காது</string>
-    <string name="plugins_fact_no_clipboard">இதன் மூலம் உங்கள் கிளிப்போர்டை வாசிக்க முடியாது</string>
-    <string name="plugins_fact_no_field">நீங்கள் எழுதும் உரை புலத்தை அதனால் படிக்க முடியாது</string>
-    <string name="plugins_fact_no_internet">இது இணையத்தைப் பயன்படுத்த முடியாது</string>
     <string name="plugins_fact_no_typing">நீங்கள் தட்டச்சு செய்வதை இதால் பார்க்க முடியாது</string>
     <string name="plugins_fact_own_panel">இது சொந்தமாக பேனலை வரையவும் கணக்கீடுகளைச் செய்யவும் முடியும்</string>
     <string name="plugins_fact_own_storage">நீங்கள் நிறுவும் முன் அது உங்களுக்குத் தெரிவித்தால், அது அதன் சொந்தத் தரவைச் சேமிக்க முடியும்</string>
     <string name="plugins_fact_reminders">நீங்கள் நிறுவுவதற்கு முன்பே அது உங்களுக்குத் தெரிவித்தால், நீங்கள் அமைக்கும் நேரத்தில் அது நினைவூட்டலைக் காட்ட முடியும்</string>
-    <string name="plugins_facts_info">இவை அமைப்புகள் அல்ல. பிளகின் மூலம் இவற்றை கேட்க முடியாது. நீங்கள் டெக்ஸ்ட்டை டைப் செய்யும்போதோ அல்லது அதன் பெட்டியில் பேஸ்ட் செய்யும்போதோ பிளகினுக்கு வழங்குகிறீர்கள். நீங்கள் \'Insert\' என்பதை அழுத்தும்போது முடிவுகள் உங்களுக்குக் கிடைக்கும்.</string>
     <string name="plugins_facts_title">ஒரு செருகுநிரல் என்ன செய்ய முடியும் மற்றும் என்ன செய்ய முடியாது</string>
     <string name="plugins_icons_export_done_message">ஆப் %1$s-ஐச் சேமித்தது.</string>
     <string name="plugins_icons_export_failed_message">பயன்பாட்டால் அந்தக் கோப்பை எழுத முடியவில்லை.</string>
@@ -7388,7 +7383,6 @@
         <item quantity="one">%1$d KB வைக்கப்பட்டுள்ளது, %2$d நாளில் நீக்கப்படும்</item>
         <item quantity="other">%1$d KB வைக்கப்பட்டுள்ளது, %2$d நாட்களில் நீக்கப்படும்</item>
     </plurals>
-    <string name="plugins_permissions_info">நீங்கள் பிளகினை நிறுவும் போது அது இதை அறிவிக்கும். பிளகின் இயங்கும் போது அதற்கு மேல் எதையும் கேட்க முடியாது, ஏனெனில் கேட்பதற்கு வேறு எதுவும் இல்லை.</string>
     <string name="plugins_permissions_none">அதன் சொந்த பேனலுக்கு வெளியே எதுவும் இல்லை</string>
     <string name="plugins_permissions_title">அதனால் என்ன செய்ய முடியும்</string>
     <string name="plugins_reminders_blocked_subtitle">இந்த ஆப் நினைவூட்டல்களைக் காட்ட முடியாது. அறிவிப்புகளை அனுப்ப அனுமதிக்க தட்டவும்.</string>

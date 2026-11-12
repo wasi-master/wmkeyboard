@@ -356,7 +356,6 @@
     <string name="addon_open_screen_action">פתח את %1$s</string>
     <string name="addon_plugin_no_permissions_title">שום דבר מחוץ לפאנל שלו</string>
     <string name="addon_plugin_permissions_title">מה התוסף הזה יכול לעשות</string>
-    <string name="addon_plugin_sandbox_body">תוספים פועלים בארגז חול. תוסף זה אינו יכול לראות מה אתה מקליד, לקרוא את הלוח שלך או להשתמש באינטרנט. תוסף אינו יכול לבקש יכולות אלו.</string>
     <string name="addon_preview_action">תצוגה מקדימה</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">ל-%1$d אימוג\'י יש שם</item>
@@ -7271,14 +7270,10 @@
     <string name="plugins_detail_no_description">אין תיאור.</string>
     <string name="plugins_detail_stopped_subtitle">האפליקציה כיבתה את התוסף הזה מכיוון שהוא הפסיק להגיב פעמיים</string>
     <string name="plugins_detail_subsystem_off_subtitle">שום תוסף לא פועל בזמן ש\"אפשר תוספים\" כבוי, תחת כלים ואז תוספים</string>
-    <string name="plugins_fact_no_clipboard">הוא לא יכול לקרוא את הלוח שלך</string>
-    <string name="plugins_fact_no_field">היא לא יכולה לקרוא את שדה הטקסט שבו אתה כותב</string>
-    <string name="plugins_fact_no_internet">לא ניתן להשתמש באינטרנט</string>
     <string name="plugins_fact_no_typing">הוא לא יכול לראות מה אתה מקליד</string>
     <string name="plugins_fact_own_panel">הוא יכול לצייר לוח משלו ולבצע חישובים משלו</string>
     <string name="plugins_fact_own_storage">הוא יכול לשמור נתונים משלו, אם הוא מודיע לך לפני שאתה מתקין אותו</string>
     <string name="plugins_fact_reminders">הוא יכול להציג תזכורת בזמן שתגדיר בו, אם הוא מודיע לך על כך לפני ההתקנה</string>
-    <string name="plugins_facts_info">אלו אינן הגדרות. לתוסף אין דרך לבקש אותן. אתה נותן טקסט לתוסף כשאתה מקליד או מדביק אותו בתיבה שלו. התוצאות חוזרות אליך כשאתה לוחץ על \'הכנס\'.</string>
     <string name="plugins_facts_title">מה תוסף יכול ומה אינו יכול לעשות</string>
     <string name="plugins_icons_export_done_message">האפליקציה שמרה את %1$s.</string>
     <string name="plugins_icons_export_failed_message">האפליקציה לא הצליחה לכתוב את הקובץ הזה.</string>
@@ -7390,7 +7385,6 @@
         <item quantity="one">%1$d ק\"ב נשמרו, יימחקו עוד %2$d יום</item>
         <item quantity="other">%1$d ק\"ב נשמרו, יימחקו עוד %2$d ימים</item>
     </plurals>
-    <string name="plugins_permissions_info">התוסף מצהיר על כך בעת ההתקנה. תוסף אינו יכול לבקש יותר בזמן שהוא פועל, מכיוון שאין עוד מה לבקש.</string>
     <string name="plugins_permissions_none">שום דבר מחוץ לפאנל שלה</string>
     <string name="plugins_permissions_title">מה הוא יכול לעשות</string>
     <string name="plugins_reminders_blocked_subtitle">האפליקציה אינה יכולה להציג תזכורות אלו. הקש כדי לאפשר לה להציג התראות.</string>

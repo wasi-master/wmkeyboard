@@ -133,6 +133,8 @@ sealed interface AddonPreviewContent {
         val permissions: List<PluginPermission>,
         /** The names of the selection actions it adds, in manifest order. */
         val actions: List<String> = emptyList(),
+        /** API 5: the websites it may connect to with the network permission. */
+        val hosts: List<String> = emptyList(),
     ) : AddonPreviewContent
 
     /** The payload downloaded but couldn't be read as its declared type. */
@@ -220,6 +222,7 @@ object AddonPreviewReader {
                 description = read.manifest.description,
                 permissions = read.permissions,
                 actions = read.manifest.actions.map { it.name },
+                hosts = read.manifest.hosts,
             )
 
             is PluginManifestResult.Rejected ->

@@ -28,14 +28,22 @@
     <string name="plugins_facts_title">What a plugin can and cannot do</string>
     <!-- Six list rows. Each one has a tick or a cross beside it. -->
     <string name="plugins_fact_no_typing">It cannot see what you type</string>
-    <string name="plugins_fact_no_field">It cannot read the text field you write in</string>
-    <string name="plugins_fact_no_clipboard">It cannot read your clipboard</string>
-    <string name="plugins_fact_no_internet">It cannot use the internet</string>
+    <string name="plugins_fact_risky_off">It cannot use the internet, your AI model, the text you write, your clipboard, your location or your files unless you turn that on for it</string>
+    <string name="plugins_fact_field_tap">Even then, it reads the text you write or your clipboard only when you tap something in its panel, and never in password fields or incognito</string>
+    <string name="plugins_fact_background">It runs only while its panel is open</string>
     <string name="plugins_fact_own_panel">It can draw its own panel and do its own maths</string>
     <string name="plugins_fact_own_storage">It can save its own data, if it tells you before you install it</string>
     <string name="plugins_fact_reminders">It can show a reminder at a time that you set in it, if it tells you before you install it</string>
     <!-- Insert is the button inside a plugin panel that sends a result to the text field. -->
-    <string name="plugins_facts_info">These are not settings. A plugin has no way to ask for them. You give text to a plugin when you type or paste it into its own box. The results come back to you when you press Insert.</string>
+    <string name="plugins_facts_info_v5">A plugin lists what it can do before you install it. Some things, like the internet or reading the text you write, stay off until you turn them on for that plugin, on its page. Nothing turns on by itself.</string>
+
+    <!-- The global switch every risky plugin permission also needs. -->
+    <string name="plugins_risky_title">Allow risky permissions</string>
+    <string name="plugins_risky_subtitle">Let plugins use the internet, your AI model, the text you write, your clipboard, your location or files, when you turn that on for a plugin</string>
+    <string name="plugins_risky_info">This switch is off by default. While it is off, no plugin can use any of these, even one you allowed. Turning it on allows nothing by itself: you still turn each permission on for each plugin, on that plugin\'s page.</string>
+    <string name="plugins_risky_confirm_title">Allow risky permissions?</string>
+    <string name="plugins_risky_confirm_body">Plugins are written by other people. A plugin you allow to use the internet can send what you give it to the websites it lists. One you allow to read the text you write can read it each time you tap something in its panel. Only allow plugins you trust.</string>
+    <!-- Insert is the button inside a plugin panel that sends a result to the text field. -->
 
     <!-- ================================================================== -->
     <!-- Plugins: the installed list and how to add one.                    -->
@@ -91,7 +99,19 @@
 
     <string name="plugins_permissions_title">What it can do</string>
     <string name="plugins_permissions_none">Nothing outside its own panel</string>
-    <string name="plugins_permissions_info">The plugin declares this when you install it. A plugin cannot ask for more while it runs, because there is nothing more to ask for.</string>
+    <string name="plugins_permissions_info_v5">The plugin listed these when you installed it. The ones with a switch stay off until you turn them on, and a plugin cannot ask for anything else while it runs.</string>
+    <!-- Shown under a risky permission's switch while the global switch is off. -->
+    <string name="plugins_permission_risky_off_subtitle">Turn on “Allow risky permissions” under Tools then Plugins first</string>
+    <!-- %1$s is the permission's line, for example "Connect to the internet". The title of the confirmation before turning it on. -->
+    <string name="plugins_permission_grant_title">Allow “%1$s”?</string>
+    <!-- The websites a plugin may connect to. -->
+    <string name="plugins_hosts_title">Websites it can connect to</string>
+    <!-- Shown once after an update that added permissions or websites. %1$s lists them. -->
+    <string name="plugins_new_since_update">The last update added: %1$s. They are off until you turn them on.</string>
+    <string name="plugins_settings_title">Settings</string>
+    <string name="plugins_setting_default_reset">Use the default</string>
+    <!-- A header over permissions the plugin cannot use until the user turns them on. -->
+    <string name="plugins_install_risky_intro">If you turn them on later, it can also:</string>
     <!-- Heading over the buttons a plugin adds to the bar over selected text. -->
     <string name="plugins_actions_title">Selection actions</string>
     <string name="plugins_actions_info">Buttons this plugin adds to the bar over text you select. Tapping one hands the plugin that text, and it puts back what it made of it. Undo on the bar takes the change back.</string>

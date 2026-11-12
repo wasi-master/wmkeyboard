@@ -16,6 +16,8 @@
     <exclude domain="file" path="camera" />
     <exclude domain="file" path="docscan" />
     <exclude domain="file" path="clipboard" />
+    <!-- Keys and tokens plugins keep with wm.secrets: never in a backup. -->
+    <exclude domain="file" path="plugin_secrets" />
     <exclude domain="file" path="stickers/.originals" />
     <exclude domain="file" path="send" />
     <exclude domain="file" path="kdeconnect" />

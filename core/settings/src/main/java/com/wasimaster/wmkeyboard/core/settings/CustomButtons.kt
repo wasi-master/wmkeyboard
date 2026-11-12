@@ -31,7 +31,8 @@ data class CustomButton(
      * (Android's own `Intent.toUri` form) or a launcher shortcut
      * `ls:<profile serial>:<package>/<shortcut id>`; for
      * [CustomButtonKind.SETTING], a [CustomToggle] name; for
-     * [CustomButtonKind.PAGE], a [CustomPage] name.
+     * [CustomButtonKind.PAGE], a [CustomPage] name; for
+     * [CustomButtonKind.PLUGIN], an installed plugin's id.
      */
     val target: String,
     /** The name it shows. Blank: the catalogue's own name for a switch or a page. */
@@ -55,10 +56,12 @@ data class CustomButton(
             CustomButtonKind.SHORTCUT -> target.isNotBlank()
             CustomButtonKind.SETTING -> toggle != null
             CustomButtonKind.PAGE -> page != null
+            CustomButtonKind.PLUGIN -> target.isNotBlank()
         }
 }
 
-enum class CustomButtonKind { SHORTCUT, SETTING, PAGE }
+/** [PLUGIN] opens an installed plugin's panel: its tile on the toolbar, in the toolbox and on the floating button. */
+enum class CustomButtonKind { SHORTCUT, SETTING, PAGE, PLUGIN }
 
 /**
  * The settings a custom button can flip (#1236): on/off ones the keyboard

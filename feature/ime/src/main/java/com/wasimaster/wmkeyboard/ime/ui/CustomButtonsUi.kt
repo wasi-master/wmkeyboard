@@ -46,6 +46,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AppShortcut
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bookmarks
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiSymbols
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Gesture
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Handyman
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Home
@@ -99,7 +100,11 @@ fun customButtonSlot(button: CustomButton): String = when (button.kind) {
     CustomButtonKind.SHORTCUT -> CUSTOM_SHORTCUT_SLOT
     CustomButtonKind.SETTING -> button.toggle?.let(::customToggleSlot) ?: CUSTOM_SHORTCUT_SLOT
     CustomButtonKind.PAGE -> button.page?.let(::customPageSlot) ?: CUSTOM_SHORTCUT_SLOT
+    CustomButtonKind.PLUGIN -> CUSTOM_PLUGIN_SLOT
 }
+
+/** A plugin's tile. */
+const val CUSTOM_PLUGIN_SLOT = "custom.plugin"
 
 fun customToggleSlot(toggle: CustomToggle): String = "custom.toggle.${toggle.name.lowercase()}"
 
@@ -111,6 +116,7 @@ const val CUSTOM_SHORTCUT_SLOT = "custom.shortcut"
 /** The built-in glyphs of the custom-button slots, for [IconDefaults]' table. */
 internal fun customButtonSlotIcons(): Map<String, ImageVector> = buildMap {
     put(CUSTOM_SHORTCUT_SLOT, Icons.Outlined.AppShortcut)
+    put(CUSTOM_PLUGIN_SLOT, Icons.Outlined.Extension)
     for (toggle in CustomToggle.entries) put(customToggleSlot(toggle), customToggleIcon(toggle))
     for (page in CustomPage.entries) put(customPageSlot(page), customPageIcon(page))
 }
@@ -197,6 +203,7 @@ object CustomButtonFaces {
         button.label.takeIf { it.isNotBlank() } ?: when (button.kind) {
             CustomButtonKind.SETTING -> button.toggle?.let { context.getString(customToggleLabelRes(it)) }
             CustomButtonKind.PAGE -> button.page?.let { context.getString(customPageLabelRes(it)) }
+            CustomButtonKind.PLUGIN -> com.wasimaster.wmkeyboard.core.plugins.PluginStore.get(context).plugin(button.target)?.name
             CustomButtonKind.SHORTCUT -> FloatingAppIcons.label(context, button.packageName)
         } ?: context.getString(R.string.ime_custom_button_label)
 

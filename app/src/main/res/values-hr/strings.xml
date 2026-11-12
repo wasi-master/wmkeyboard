@@ -359,7 +359,6 @@
     <string name="addon_open_screen_action">Otvori %1$s</string>
     <string name="addon_plugin_no_permissions_title">Ništa izvan vlastite ploče</string>
     <string name="addon_plugin_permissions_title">Što ovaj dodatak može učiniti</string>
-    <string name="addon_plugin_sandbox_body">Dodaci se pokreću u izoliranom okruženju. Ovaj dodatak ne može vidjeti što tipkate, čitati vaš međuspremnik niti koristiti internet. Dodatak ne može tražiti te ovlasti.</string>
     <string name="addon_preview_action">Pregled</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji ima ime</item>
@@ -7279,14 +7278,10 @@
     <string name="plugins_detail_no_description">Nema opisa.</string>
     <string name="plugins_detail_stopped_subtitle">Aplikacija je isključila ovaj dodatak jer je dvaput prestao odgovarati</string>
     <string name="plugins_detail_subsystem_off_subtitle">Nijedan dodatak ne radi dok je opcija „Dopusti dodatke” isključena, pod Alati pa Dodaci</string>
-    <string name="plugins_fact_no_clipboard">Ne može čitati vaš međuspremnik</string>
-    <string name="plugins_fact_no_field">Ne može pročitati tekstualno polje u koje pišete</string>
-    <string name="plugins_fact_no_internet">Ne može koristiti internet</string>
     <string name="plugins_fact_no_typing">Ne može vidjeti što tipkate</string>
     <string name="plugins_fact_own_panel">Može nacrtati vlastitu ploču i obavljati vlastite izračune</string>
     <string name="plugins_fact_own_storage">Može spremiti vlastite podatke, ako vas o tome obavijesti prije instalacije</string>
     <string name="plugins_fact_reminders">Može prikazati podsjetnik u vrijeme koje postavite, ako vas o tome obavijesti prije instalacije</string>
-    <string name="plugins_facts_info">Ovo nisu postavke. Dodatak ih nema kako zatražiti. Tekst dajete dodatku kada ga upišete ili zalijepite u njegov okvir. Rezultati vam se vraćaju kada pritisnete Umetni.</string>
     <string name="plugins_facts_title">Što dodatak može, a što ne može učiniti</string>
     <string name="plugins_icons_export_done_message">Aplikacija je spremila %1$s.</string>
     <string name="plugins_icons_export_failed_message">Aplikacija nije mogla zapisati tu datoteku.</string>
@@ -7398,7 +7393,6 @@
         <item quantity="one">Zadržano %1$d KB, briše se za %2$d dan</item>
         <item quantity="other">Zadržano %1$d KB, briše se za %2$d dana</item>
     </plurals>
-    <string name="plugins_permissions_info">Dodatak to deklarira prilikom instalacije. Dodatak ne može tražiti više dok se izvodi jer nema ništa više za tražiti.</string>
     <string name="plugins_permissions_none">Ništa izvan vlastite ploče</string>
     <string name="plugins_permissions_title">Što može učiniti</string>
     <string name="plugins_reminders_blocked_subtitle">Aplikacija ne može prikazati ove podsjetnike. Dodirnite za dopuštenje slanja obavijesti.</string>

@@ -358,7 +358,6 @@
     <string name="addon_open_screen_action">Åpne %1$s</string>
     <string name="addon_plugin_no_permissions_title">Ingenting utenfor sitt eget panel</string>
     <string name="addon_plugin_permissions_title">Hva dette tillegget kan gjøre</string>
-    <string name="addon_plugin_sandbox_body">Tillegg kjører i en sandkasse. Dette tillegget kan ikke se hva du skriver, lese utklippstavlen din eller bruke internett. Et tillegg kan ikke be om disse tilgangene.</string>
     <string name="addon_preview_action">Forhåndsvisning</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji har et navn</item>
@@ -7275,14 +7274,10 @@
     <string name="plugins_detail_no_description">Ingen beskrivelse.</string>
     <string name="plugins_detail_stopped_subtitle">Appen slo av denne modulen fordi den sluttet å svare to ganger</string>
     <string name="plugins_detail_subsystem_off_subtitle">Ingen utvidelser kjører mens «Tillat utvidelser» er av, under Verktøy og deretter Utvidelser</string>
-    <string name="plugins_fact_no_clipboard">Den kan ikke lese utklippstavlen din</string>
-    <string name="plugins_fact_no_field">Den kan ikke lese tekstfeltet du skriver i</string>
-    <string name="plugins_fact_no_internet">Den kan ikke bruke internett</string>
     <string name="plugins_fact_no_typing">Den kan ikke se hva du skriver</string>
     <string name="plugins_fact_own_panel">Den kan tegne sitt eget panel og utføre egne beregninger</string>
     <string name="plugins_fact_own_storage">Den kan lagre sine egne data, hvis den informerer deg om det før du installerer den</string>
     <string name="plugins_fact_reminders">Den kan vise en påminnelse på et tidspunkt du angir, hvis den gir deg beskjed før du installerer den</string>
-    <string name="plugins_facts_info">Dette er ikke innstillinger. En utvidelse har ingen måte å be om dem på. Du gir tekst til en utvidelse når du skriver eller limer den inn i dens egen boks. Resultatene kommer tilbake til deg når du trykker på Sett inn.</string>
     <string name="plugins_facts_title">Hva et tillegg kan og ikke kan gjøre</string>
     <string name="plugins_icons_export_done_message">Appen lagret %1$s.</string>
     <string name="plugins_icons_export_failed_message">Appen kunne ikke skrive den filen.</string>
@@ -7390,7 +7385,6 @@
     <string name="plugins_parked_delete">Slett dataene som %1$s beholder</string>
     <string name="plugins_parked_delete_confirm_body">Dette kan ikke angres. Å installere utvidelsen på nytt vil starte den tom.</string>
     <string name="plugins_parked_delete_confirm_title">Slette dataene som %1$s lagret?</string>
-    <string name="plugins_permissions_info">Programtillegget erklærer dette når du installerer det. Et programtillegg kan ikke be om mer mens det kjører, fordi det ikke er noe mer å be om.</string>
     <string name="plugins_permissions_none">Ingenting utenfor sitt eget panel</string>
     <string name="plugins_permissions_title">Hva den kan gjøre</string>
     <string name="plugins_reminders_blocked_subtitle">Appen kan ikke vise disse påminnelsene. Trykk for å tillate varsler.</string>

@@ -357,7 +357,6 @@
     <string name="addon_open_screen_action">Apri %1$s</string>
     <string name="addon_plugin_no_permissions_title">Niente al di fuori del proprio pannello</string>
     <string name="addon_plugin_permissions_title">Cosa può fare questo plugin</string>
-    <string name="addon_plugin_sandbox_body">I plugin vengono eseguiti in una sandbox. Questo plugin non può vedere cosa digiti, leggere i tuoi appunti o utilizzare internet. Un plugin non può richiedere tali autorizzazioni.</string>
     <string name="addon_preview_action">Anteprima</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji ha un nome</item>
@@ -7265,14 +7264,10 @@
     <string name="plugins_detail_no_description">Nessuna descrizione.</string>
     <string name="plugins_detail_stopped_subtitle">L\'app ha disattivato questo plugin perché ha smesso di rispondere due volte</string>
     <string name="plugins_detail_subsystem_off_subtitle">Nessun plugin è in esecuzione mentre \"Consenti plugin\" è disattivato, sotto Strumenti e poi Plugin</string>
-    <string name="plugins_fact_no_clipboard">Non può leggere i tuoi appunti</string>
-    <string name="plugins_fact_no_field">Non può leggere il campo di testo in cui scrivi</string>
-    <string name="plugins_fact_no_internet">Non può utilizzare internet</string>
     <string name="plugins_fact_no_typing">Non può vedere ciò che scrivi</string>
     <string name="plugins_fact_own_panel">Può disegnare il proprio pannello ed eseguire i propri calcoli</string>
     <string name="plugins_fact_own_storage">Può salvare i propri dati, se ti avvisa prima dell\'installazione</string>
     <string name="plugins_fact_reminders">Può mostrare un promemoria in un momento impostato, se te lo comunica prima dell\'installazione</string>
-    <string name="plugins_facts_info">Queste non sono impostazioni. Un plugin non ha modo di richiederle. Fornisci testo a un plugin quando lo digiti o lo incolli nella sua casella. I risultati ti vengono restituiti quando premi Inserisci.</string>
     <string name="plugins_facts_title">Cosa può e non può fare un plugin</string>
     <string name="plugins_icons_export_done_message">L\'app ha salvato %1$s.</string>
     <string name="plugins_icons_export_failed_message">L\'app non è riuscita a scrivere il file.</string>
@@ -7384,7 +7379,6 @@
         <item quantity="one">%1$d KB conservati, eliminati tra %2$d giorno</item>
         <item quantity="other">%1$d KB conservati, eliminati tra %2$d giorni</item>
     </plurals>
-    <string name="plugins_permissions_info">Il plugin lo dichiara quando lo installi. Un plugin non può chiedere di più mentre è in esecuzione, perché non c\'è altro da chiedere.</string>
     <string name="plugins_permissions_none">Niente al di fuori del proprio pannello</string>
     <string name="plugins_permissions_title">Cosa può fare</string>
     <string name="plugins_reminders_blocked_subtitle">L\'app non può mostrare questi promemoria. Tocca per consentirle di inviare notifiche.</string>

@@ -358,7 +358,6 @@
     <string name="addon_open_screen_action">%1$s തുറക്കുക</string>
     <string name="addon_plugin_no_permissions_title">അതിന്റെ സ്വന്തം പാനലിന് പുറത്ത് ഒന്നുമില്ല</string>
     <string name="addon_plugin_permissions_title">ഈ പ്ലഗിന് എന്ത് ചെയ്യാൻ കഴിയും</string>
-    <string name="addon_plugin_sandbox_body">പ്ലഗിനുകൾ ഒരു സാൻഡ്‌ബോക്സിലാണ് പ്രവർത്തിക്കുന്നത്. നിങ്ങൾ ടൈപ്പ് ചെയ്യുന്നത് കാണാനോ, ക്ലിപ്പ്ബോർഡ് വായിക്കാനോ, ഇന്റർനെറ്റ് ഉപയോഗിക്കാനോ ഈ പ്ലഗിന് കഴിയില്ല. അത്തരം കഴിവുകൾക്കായി ഒരു പ്ലഗിന് ആവശ്യപ്പെടാൻ കഴിയില്ല.</string>
     <string name="addon_preview_action">പ്രിവ്യൂ</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d ഇമോജിക്ക് പേരുണ്ട്</item>
@@ -7280,14 +7279,10 @@
     <string name="plugins_detail_no_description">വിവരണം ലഭ്യമല്ല.</string>
     <string name="plugins_detail_stopped_subtitle">രണ്ടുതവണ പ്രതികരിക്കാത്തതിനെത്തുടർന്ന് ആപ്പ് ഈ പ്ലഗിൻ ഓഫാക്കി</string>
     <string name="plugins_detail_subsystem_off_subtitle">ടൂൾസ് എന്നതിലെ പ്ലഗിനുകൾക്ക് കീഴിൽ “പ്ലഗിനുകൾ അനുവദിക്കുക” ഓഫായിരിക്കുമ്പോൾ പ്ലഗിനുകളൊന്നും പ്രവർത്തിക്കില്ല</string>
-    <string name="plugins_fact_no_clipboard">ഇതിന് നിങ്ങളുടെ ക്ലിപ്പ്ബോർഡ് വായിക്കാൻ കഴിയില്ല</string>
-    <string name="plugins_fact_no_field">നിങ്ങൾ എഴുതുന്ന ടെക്സ്റ്റ് ഫീൽഡ് ഇതിന് വായിക്കാൻ കഴിയില്ല</string>
-    <string name="plugins_fact_no_internet">ഇതിന് ഇന്റർനെറ്റ് ഉപയോഗിക്കാൻ കഴിയില്ല</string>
     <string name="plugins_fact_no_typing">നിങ്ങൾ ടൈപ്പ് ചെയ്യുന്നത് ഇതിന് കാണാൻ കഴിയില്ല</string>
     <string name="plugins_fact_own_panel">ഇതിന് സ്വന്തമായി പാനൽ വരയ്ക്കാനും സ്വന്തമായി കണക്കുകൂട്ടലുകൾ നടത്താനും കഴിയും</string>
     <string name="plugins_fact_own_storage">ഇൻസ്റ്റാൾ ചെയ്യുന്നതിന് മുൻപ് നിങ്ങളെ അറിയിക്കുകയാണെങ്കിൽ, ഇതിന് സ്വന്തമായി ഡാറ്റ സേവ് ചെയ്യാൻ സാധിക്കും</string>
     <string name="plugins_fact_reminders">നിങ്ങൾ ഇൻസ്റ്റാൾ ചെയ്യുന്നതിന് മുൻപ് അത് നിങ്ങളോട് പറയുകയാണെങ്കിൽ, നിങ്ങൾ സജ്ജമാക്കിയ സമയത്ത് അത് ഒരു ഓർമ്മപ്പെടുത്തൽ കാണിക്കും</string>
-    <string name="plugins_facts_info">ഇവ ക്രമീകരണങ്ങളല്ല. ഒരു പ്ലഗിന്നിന് അവ ആവശ്യപ്പെടാൻ കഴിയില്ല. നിങ്ങൾ ടെക്സ്റ്റ് ടൈപ്പ് ചെയ്യുമ്പോഴോ അതിന്റെ ബോക്സിലേക്ക് പേസ്റ്റ് ചെയ്യുമ്പോഴോ ആണ് പ്ലഗിന്നിന് ടെക്സ്റ്റ് നൽകുന്നത്. നിങ്ങൾ ഇൻസെർട്ട് അമർത്തുമ്പോൾ ഫലങ്ങൾ നിങ്ങൾക്ക് ലഭിക്കും.</string>
     <string name="plugins_facts_title">ഒരു പ്ലഗിന് ചെയ്യാൻ കഴിയുന്നതും കഴിയാത്തതുമായ കാര്യങ്ങൾ</string>
     <string name="plugins_icons_export_done_message">ആപ്പ് %1$s സേവ് ചെയ്തു.</string>
     <string name="plugins_icons_export_failed_message">ആപ്പിന് ആ ഫയൽ എഴുതാൻ കഴിഞ്ഞില്ല.</string>
@@ -7399,7 +7394,6 @@
         <item quantity="one">%1$d KB സൂക്ഷിച്ചു, %2$d ദിവസത്തിനുള്ളിൽ ഇല്ലാതാക്കും</item>
         <item quantity="other">%1$d KB സൂക്ഷിച്ചു, %2$d ദിവസത്തിനുള്ളിൽ ഇല്ലാതാക്കും</item>
     </plurals>
-    <string name="plugins_permissions_info">നിങ്ങൾ പ്ലഗിൻ ഇൻസ്റ്റാൾ ചെയ്യുമ്പോൾ അത് ഇത് വ്യക്തമാക്കുന്നു. പ്രവർത്തിക്കുമ്പോൾ പ്ലഗിന് കൂടുതൽ ചോദിക്കാൻ കഴിയില്ല, കാരണം ചോദിക്കാൻ മറ്റൊന്നുമില്ല.</string>
     <string name="plugins_permissions_none">അതിന്റെ പാനലിന് പുറത്ത് ഒന്നുമില്ല</string>
     <string name="plugins_permissions_title">ഇതിന് എന്ത് ചെയ്യാൻ കഴിയും</string>
     <string name="plugins_reminders_blocked_subtitle">ഈ ആപ്പിന് ഈ ഓർമ്മപ്പെടുത്തലുകൾ കാണിക്കാൻ കഴിയില്ല. അറിയിപ്പുകൾ പോസ്റ്റ് ചെയ്യാൻ അനുവദിക്കുന്നതിന് ടാപ്പ് ചെയ്യുക.</string>

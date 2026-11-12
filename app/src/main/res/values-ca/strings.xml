@@ -358,7 +358,6 @@
     <string name="addon_open_screen_action">Obre %1$s</string>
     <string name="addon_plugin_no_permissions_title">Res fora del seu propi tauler</string>
     <string name="addon_plugin_permissions_title">Què pot fer aquest connector</string>
-    <string name="addon_plugin_sandbox_body">Els connectors s\'executen en un entorn aïllat. Aquest connector no pot veure el que escrius, llegir el porta-retalls ni utilitzar Internet. Un connector no pot sol·licitar aquestes capacitats.</string>
     <string name="addon_preview_action">Previsualitza</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji té un nom</item>
@@ -7269,14 +7268,10 @@
     <string name="plugins_detail_no_description">Sense descripció.</string>
     <string name="plugins_detail_stopped_subtitle">L\'aplicació ha desactivat aquest connector perquè ha deixat de respondre dues vegades</string>
     <string name="plugins_detail_subsystem_off_subtitle">No s\'executa cap connector mentre “Permet connectors” estigui desactivat, a Eines i després Connectors</string>
-    <string name="plugins_fact_no_clipboard">No pot llegir el teu porta-retalls</string>
-    <string name="plugins_fact_no_field">No pot llegir el camp de text on escrius</string>
-    <string name="plugins_fact_no_internet">No pot utilitzar internet</string>
     <string name="plugins_fact_no_typing">No pot veure el que escriviu</string>
     <string name="plugins_fact_own_panel">Pot dibuixar el seu propi panell i fer els seus propis càlculs</string>
     <string name="plugins_fact_own_storage">Pot desar les seves pròpies dades, si t\'ho comunica abans que l\'instal·lis</string>
     <string name="plugins_fact_reminders">Pot mostrar un recordatori en el moment que hi configureu, si us ho indica abans d\'instal·lar-lo</string>
-    <string name="plugins_facts_info">Aquests no són paràmetres. Un connector no té cap manera de demanar-los. Tu dones text a un connector quan l\'escrius o l\'enganxes a la seva pròpia caixa. Els resultats et tornen quan prems Insereix.</string>
     <string name="plugins_facts_title">Què pot i què no pot fer un connector</string>
     <string name="plugins_icons_export_done_message">L\'aplicació ha desat %1$s.</string>
     <string name="plugins_icons_export_failed_message">L\'aplicació no ha pogut escriure el fitxer.</string>
@@ -7388,7 +7383,6 @@
         <item quantity="one">S\'ha conservat %1$d KB, s\'eliminarà d\'aquí a %2$d dia</item>
         <item quantity="other">S\'han conservat %1$d KB, s\'eliminaran d\'aquí a %2$d dies</item>
     </plurals>
-    <string name="plugins_permissions_info">El connector ho declara quan l\'instal·leu. Un connector no pot demanar més permisos mentre s\'executa, perquè no hi ha res més a demanar.</string>
     <string name="plugins_permissions_none">Res fora del seu propi tauler</string>
     <string name="plugins_permissions_title">Què pot fer</string>
     <string name="plugins_reminders_blocked_subtitle">L\'aplicació no pot mostrar aquests recordatoris. Toca per permetre que enviï notificacions.</string>

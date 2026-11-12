@@ -358,7 +358,6 @@
     <string name="addon_open_screen_action">Öppna %1$s</string>
     <string name="addon_plugin_no_permissions_title">Inget utanför sin egen panel</string>
     <string name="addon_plugin_permissions_title">Vad detta tillägg kan göra</string>
-    <string name="addon_plugin_sandbox_body">Insticksprogram körs i en sandlåda. Detta insticksprogram kan inte se vad du skriver, läsa ditt urklipp eller använda internet. Ett insticksprogram kan inte be om dessa behörigheter.</string>
     <string name="addon_preview_action">Förhandsgranska</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emoji har ett namn</item>
@@ -7275,14 +7274,10 @@
     <string name="plugins_detail_no_description">Ingen beskrivning.</string>
     <string name="plugins_detail_stopped_subtitle">Appen stängde av detta insticksprogram eftersom det slutade svara två gånger</string>
     <string name="plugins_detail_subsystem_off_subtitle">Inga plugins körs medan “Tillåt plugins” är avstängt, under Verktyg och sedan Plugins</string>
-    <string name="plugins_fact_no_clipboard">Den kan inte läsa ditt urklipp</string>
-    <string name="plugins_fact_no_field">Den kan inte läsa textfältet du skriver i</string>
-    <string name="plugins_fact_no_internet">Den kan inte använda internet</string>
     <string name="plugins_fact_no_typing">Det kan inte se vad du skriver</string>
     <string name="plugins_fact_own_panel">Den kan rita sin egen panel och göra sina egna beräkningar</string>
     <string name="plugins_fact_own_storage">Den kan spara sin egen data, om den informerar dig innan du installerar den</string>
     <string name="plugins_fact_reminders">Den kan visa en påminnelse vid en tidpunkt som du ställer in i den, om den informerar dig innan du installerar den</string>
-    <string name="plugins_facts_info">Detta är inte inställningar. Ett insticksprogram har inget sätt att fråga efter dem. Du ger text till ett insticksprogram när du skriver eller klistrar in den i dess egen ruta. Resultaten kommer tillbaka till dig när du trycker på Infoga.</string>
     <string name="plugins_facts_title">Vad ett plugin kan och inte kan göra</string>
     <string name="plugins_icons_export_done_message">Appen sparade %1$s.</string>
     <string name="plugins_icons_export_failed_message">Appen kunde inte skriva den filen.</string>
@@ -7394,7 +7389,6 @@
         <item quantity="one">%1$d KB behSllsko, raderas om %2$d dag</item>
         <item quantity="other">%1$d KB behSllsko, raderas om %2$d dagar</item>
     </plurals>
-    <string name="plugins_permissions_info">Insticksprogrammet deklarerar detta när du installerar det. Ett insticksprogram kan inte be om mer medan det körs, eftersom det inte finns något mer att be om.</string>
     <string name="plugins_permissions_none">Ingenting utanför sin egen panel</string>
     <string name="plugins_permissions_title">Vad den kan göra</string>
     <string name="plugins_reminders_blocked_subtitle">Appen kan inte visa dessa påminnelser. Tryck för att tillåta aviseringar.</string>

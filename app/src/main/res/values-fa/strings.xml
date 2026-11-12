@@ -360,7 +360,6 @@
     <string name="addon_open_screen_action">باز کردن %1$s</string>
     <string name="addon_plugin_no_permissions_title">هیچ‌چیز خارج از پنل خودش</string>
     <string name="addon_plugin_permissions_title">کارهایی که این افزونه می‌تواند انجام دهد</string>
-    <string name="addon_plugin_sandbox_body">افزونه‌ها در یک محیط ایزوله (سندباکس) اجرا می‌شوند. این افزونه نمی‌تواند آنچه تایپ می‌کنید را ببیند، کلیپ‌بورد شما را بخواند یا از اینترنت استفاده کند. یک افزونه نمی‌تواند چنین دسترسی‌هایی را درخواست کند.</string>
     <string name="addon_preview_action">پیش‌نمایش</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d ایموجی نام دارد</item>
@@ -7277,14 +7276,10 @@
     <string name="plugins_detail_no_description">بدون توضیحات.</string>
     <string name="plugins_detail_stopped_subtitle">برنامه این افزونه را غیرفعال کرد زیرا دو بار از پاسخگویی بازماند</string>
     <string name="plugins_detail_subsystem_off_subtitle">وقتی «اجازه به افزونه‌ها» در بخش ابزارها و سپس افزونه‌ها خاموش است، هیچ افزونه‌ای اجرا نمی‌شود</string>
-    <string name="plugins_fact_no_clipboard">این برنامه نمی‌تواند کلیپ‌بورد شما را بخواند</string>
-    <string name="plugins_fact_no_field">نمی‌تواند فیلد متنی که در آن می‌نویسید را بخواند</string>
-    <string name="plugins_fact_no_internet">نمی‌تواند از اینترنت استفاده کند</string>
     <string name="plugins_fact_no_typing">این برنامه نمی‌تواند آنچه تایپ می‌کنید را ببیند</string>
     <string name="plugins_fact_own_panel">این قابلیت می‌تواند پنل اختصاصی خود را ترسیم کرده و محاسبات خود را انجام دهد</string>
     <string name="plugins_fact_own_storage">اگر قبل از نصب به شما اطلاع دهد، می‌تواند داده‌های خود را ذخیره کند</string>
     <string name="plugins_fact_reminders">اگر قبل از نصب به شما بگوید، می‌تواند در زمانی که تنظیم می‌کنید یادآوری نشان دهد</string>
-    <string name="plugins_facts_info">این‌ها تنظیمات نیستند. یک افزونه راهی برای درخواست آن‌ها ندارد. شما هنگام تایپ یا چسباندن متن در کادر مخصوص افزونه، متن را به آن می‌دهید. نتایج پس از فشردن دکمه درج (Insert) به شما بازگردانده می‌شوند.</string>
     <string name="plugins_facts_title">آنچه یک افزونه می‌تواند و نمی‌تواند انجام دهد</string>
     <string name="plugins_icons_export_done_message">برنامه %1$s را ذخیره کرد.</string>
     <string name="plugins_icons_export_failed_message">برنامه نتوانست آن فایل را بنویسد.</string>
@@ -7396,7 +7391,6 @@
         <item quantity="one">%1$d کیلوبایت نگهداری شد، حذف در %2$d روز</item>
         <item quantity="other">%1$d کیلوبایت نگهداری شد، حذف در %2$d روز</item>
     </plurals>
-    <string name="plugins_permissions_info">افزونه هنگام نصب این مورد را اعلام می‌کند. یک افزونه نمی‌تواند در حین اجرا درخواست بیشتری داشته باشد، زیرا چیز دیگری برای درخواست وجود ندارد.</string>
     <string name="plugins_permissions_none">هیچ‌چیز خارج از پنل خودش</string>
     <string name="plugins_permissions_title">کارهایی که می‌تواند انجام دهد</string>
     <string name="plugins_reminders_blocked_subtitle">برنامه نمی‌تواند این یادآورها را نمایش دهد. برای اجازه ارسال اعلان‌ها ضربه بزنید.</string>

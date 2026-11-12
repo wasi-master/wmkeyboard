@@ -20,6 +20,10 @@
     <string name="custombuttons_kind_shortcut">App shortcut</string>
     <string name="custombuttons_kind_setting">Setting switch</string>
     <string name="custombuttons_kind_page">Settings page</string>
+    <string name="custombuttons_kind_plugin">Plugin</string>
+    <string name="custombuttons_add_plugin_title">Plugin</string>
+    <string name="custombuttons_add_plugin_subtitle">Opens one of your plugins in the keyboard</string>
+    <string name="custombuttons_no_plugins">No plugins to add. Turn plugins on and install one first.</string>
     <string name="custombuttons_on_toolbar">on the toolbar</string>
     <string name="custombuttons_in_toolbox">in the toolbox</string>
     <string name="custombuttons_row_subtitle">%1$s, %2$s</string>

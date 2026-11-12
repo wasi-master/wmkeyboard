@@ -361,10 +361,15 @@ import com.wasimaster.wmkeyboard.core.settings.OneHandedSide
 import com.wasimaster.wmkeyboard.core.plugins.PluginActionResult
 import com.wasimaster.wmkeyboard.core.plugins.PluginActionRunner
 import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
+import com.wasimaster.wmkeyboard.ime.ui.ALLOW_EVENT
+import com.wasimaster.wmkeyboard.core.plugins.PluginPermission
 import com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms
 import com.wasimaster.wmkeyboard.core.plugins.PluginRuntime
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.plugins.PluginText
+import com.wasimaster.wmkeyboard.core.plugins.PluginWidget
+import com.wasimaster.wmkeyboard.core.plugins.PythonSession
+import com.wasimaster.wmkeyboard.core.plugins.childWidgets
 import com.wasimaster.wmkeyboard.core.plugins.RenderedUi
 import com.wasimaster.wmkeyboard.core.plugins.inputIds
 import com.wasimaster.wmkeyboard.core.plugins.resolve
@@ -10911,6 +10916,8 @@ open class WMKeyboardService : InputMethodService() {
         pluginRuntime = null
         pluginActionRunner?.shutdown()
         pluginActionRunner = null
+        pluginServicesOrNull?.shutdown()
+        pluginServicesOrNull = null
         vocabSpeaker?.shutdown()
         vocabSpeaker = null
         vocabProgress.save()
@@ -13217,9 +13224,9 @@ open class WMKeyboardService : InputMethodService() {
             // Enter is the computer's Enter, and the line starts over.
             CaptureTarget.KDE_REMOTE -> kdeSendSpecial(KdeSpecialKey.ENTER)
             CaptureTarget.KDE_COMPOSE -> kdeSendComposed(withEnter = true)
-            // Enter finishes typing into a plugin's box: it gives the keys
-            // back to the field.
-            CaptureTarget.PLUGIN -> onPluginInputFocus(null)
+            // Enter finishes typing into a plugin's box: an API 5 box hears it
+            // as a submit, and the keys go back to the field.
+            CaptureTarget.PLUGIN -> onPluginInputSubmit()
             // Enter in the find field walks to the next match; in the replace
             // field it replaces the current one.
             CaptureTarget.FIND_QUERY, CaptureTarget.FIND_REPLACEMENT -> onFindReplaceEnter()
@@ -26344,6 +26351,13 @@ open class WMKeyboardService : InputMethodService() {
                         MainActivityContract.intent(this).putExtra(MainActivityContract.EXTRA_OPEN_FAVOURITES, true),
                     )
                 }
+            }
+            // A plugin's tile: the Plugins panel, straight into that plugin.
+            // One the user since removed or switched off lands on the list,
+            // which says why.
+            com.wasimaster.wmkeyboard.core.settings.CustomButtonKind.PLUGIN -> {
+                if (_uiState.value.panel != PanelMode.PLUGINS) onPanelChange(PanelMode.PLUGINS, haptic = false)
+                onPluginOpen(button.target)
             }
         }
     }
@@ -41146,7 +41160,38 @@ open class WMKeyboardService : InputMethodService() {
             listener = pluginListener,
             post = { body -> serviceScope.launch { body() } },
             onRemindersChanged = { PluginReminderAlarms.requestRearm(this) },
+            services = pluginServices(),
+            dark = {
+                (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                    Configuration.UI_MODE_NIGHT_YES
+            },
         ).also { pluginRuntime = it }
+
+    private var pluginServicesOrNull: PluginKeyboardServices? = null
+
+    /**
+     * What API 5 plugins reach through [com.wasimaster.wmkeyboard.core.plugins.PluginHost]:
+     * the field in front, the clipboard, the network and the AI model. Every
+     * call has passed the host's checks before it gets here; the field and
+     * clipboard reads are refused again on a password field, in incognito,
+     * and for a clip marked private.
+     */
+    private fun pluginServices(): PluginKeyboardServices =
+        pluginServicesOrNull ?: PluginKeyboardServices(
+            context = this,
+            connection = { currentInputConnection },
+            protected = { currentInputEditorInfo.isSecureField() || _uiState.value.incognitoOn },
+            dataSaver = { dataSaverStatus.active },
+            aiSettings = { _uiState.value.settings.ai },
+            clipboardText = {
+                if (!isClipboardAccessible() || KeyboardClipboard.isPrivate) null
+                else KeyboardClipboard.held ?: clipboardStore.latestText()
+            },
+            copy = { KeyboardClipboard.copy(this, it) },
+            toast = { toast(it) },
+            vibrate = { vibrate() },
+            closePanel = { openPluginList() },
+        ).also { pluginServicesOrNull = it }
 
     private val pluginListener = object : PluginRuntime.Listener {
         override fun onUi(pluginId: String, ui: RenderedUi) {
@@ -41183,6 +41228,20 @@ open class WMKeyboardService : InputMethodService() {
 
         override fun onInputWrite(pluginId: String, inputId: String, text: String) {
             _uiState.update { it.copy(pluginInputs = it.pluginInputs + (inputId to text)) }
+        }
+
+        override fun onHost(pluginId: String, state: PythonSession.HostState) {
+            _uiState.update { ui ->
+                val running = ui.plugins as? PluginPanelUi.Running ?: return@update ui
+                if (running.plugin.id != pluginId) ui else ui.copy(plugins = running.copy(host = state))
+            }
+        }
+
+        override fun onNeeds(pluginId: String, permissions: List<PluginPermission>) {
+            _uiState.update { ui ->
+                val running = ui.plugins as? PluginPanelUi.Running ?: return@update ui
+                if (running.plugin.id != pluginId) ui else ui.copy(plugins = running.copy(needs = (running.needs + permissions).distinct()))
+            }
         }
 
         override fun onStopped(pluginId: String, message: PluginText, disabled: Boolean) {
@@ -41244,7 +41303,31 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onPluginBack() {
         vibrate()
+        // An API 5 plugin with a page open goes back a page first.
+        if (pluginRuntime?.back() == true) return
         openPluginList()
+    }
+
+    /**
+     * The banner's Allow: the plugin asked for a permission the user has not
+     * turned on. Opens the plugin's page in settings, where each one is a
+     * switch behind its warning; nothing is granted from the keyboard.
+     */
+    private fun onPluginAllow() {
+        val running = _uiState.value.plugins as? PluginPanelUi.Running ?: return
+        _uiState.update { it.copy(plugins = running.copy(needs = emptyList())) }
+        openRoute("plugin/${running.plugin.id}")
+    }
+
+    /** Enter in a plugin's box: an API 5 plugin hears the text as a submit, then the keys go back to the field. */
+    private fun onPluginInputSubmit() {
+        val state = _uiState.value
+        val id = state.pluginFocusedInput
+        val running = state.plugins as? PluginPanelUi.Running
+        if (id != null && running?.plugin?.isPackage == true) {
+            pluginRuntime?.dispatch(PluginEvent.Submitted(id, state.pluginInputs[id].orEmpty()))
+        }
+        onPluginInputFocus(null)
     }
 
     /** Loads and runs a plugin, replacing whatever was open. */
@@ -41265,6 +41348,12 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Hands a tap, toggle or tab change to the running script. */
     fun onPluginEvent(event: PluginEvent) {
+        // The permission banner's Allow is the keyboard's, not the plugin's:
+        // it never reaches the script.
+        if (event is PluginEvent.Host && event.type == ALLOW_EVENT) {
+            onPluginAllow()
+            return
+        }
         vibrate()
         pluginRuntime?.dispatch(event)
     }
@@ -41329,7 +41418,26 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun pluginInputSet(id: String, text: String) {
         _uiState.update { it.copy(pluginInputs = it.pluginInputs + (id to text)) }
+        // An API 5 box without on_change hears nothing until Enter: no event,
+        // and no redraw, per keystroke.
+        if (pluginBoxIsQuiet(id)) return
         pluginRuntime?.dispatch(PluginEvent.InputChanged(id, text))
+    }
+
+    private fun pluginBoxIsQuiet(id: String): Boolean {
+        val running = _uiState.value.plugins as? PluginPanelUi.Running ?: return false
+        if (!running.plugin.isPackage) return false
+        fun find(widgets: List<PluginWidget>): Boolean? {
+            for (w in widgets) {
+                when (w) {
+                    is PluginWidget.Input -> if (w.id == id) return !w.live
+                    is PluginWidget.Search -> if (w.id == id) return !w.live
+                    else -> find(w.childWidgets())?.let { return it }
+                }
+            }
+            return null
+        }
+        return find(running.ui.root) ?: false
     }
 
     // ---- typing speed test ----
@@ -51086,6 +51194,7 @@ open class WMKeyboardService : InputMethodService() {
             store = PluginStore.get(this),
             post = { body -> serviceScope.launch { body() } },
             onRemindersChanged = { PluginReminderAlarms.requestRearm(this) },
+            services = pluginServices(),
         ).also { pluginActionRunner = it }
 
     /**

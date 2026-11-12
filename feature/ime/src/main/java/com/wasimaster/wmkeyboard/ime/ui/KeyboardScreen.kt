@@ -15672,8 +15672,15 @@ private fun KeyboardBody(
                 )
                 PanelMode.PLUGINS -> FullBleedTool(
                     state,
-                    title = (state.plugins as? PluginPanelUi.Running)?.plugin?.name
+                    // An API 5 plugin may title the page it pushed; the
+                    // plugin's own name stays the default.
+                    title = (state.plugins as? PluginPanelUi.Running)?.let { it.host?.title ?: it.plugin.name }
                         ?: stringResource(R.string.ime_tool_plugins),
+                    headerActions = if (state.plugins is PluginPanelUi.Running) {
+                        { PluginHeaderActions(state.plugins as PluginPanelUi.Running, onPluginEvent) }
+                    } else {
+                        null
+                    },
                     // Back out one level at a time: from a running plugin to the
                     // installed list, and only from the list itself out of the
                     // panel. Closing outright left no way back to the list short

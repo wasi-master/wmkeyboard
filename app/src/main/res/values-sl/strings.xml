@@ -358,7 +358,6 @@
     <string name="addon_open_screen_action">Odpri %1$s</string>
     <string name="addon_plugin_no_permissions_title">Nič zunaj lastne plošče</string>
     <string name="addon_plugin_permissions_title">Kaj lahko ta vtičnik počne</string>
-    <string name="addon_plugin_sandbox_body">Vtičniki se izvajajo v peskovniku. Ta vtičnik ne more videti, kaj tipkate, ne more brati vašega odložišča ali uporabljati interneta. Vtičnik ne more zahtevati teh zmožnosti.</string>
     <string name="addon_preview_action">Predogled</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emodži ima ime</item>
@@ -7277,14 +7276,10 @@
     <string name="plugins_detail_no_description">Ni opisa.</string>
     <string name="plugins_detail_stopped_subtitle">Aplikacija je izklopila ta vtičnik, ker se je dvakrat prenehal odzivati</string>
     <string name="plugins_detail_subsystem_off_subtitle">Noben vtičnik ne deluje, ko je možnost »Dovoli vtičnike« izklopljena v razdelku Orodja in nato Vtičniki</string>
-    <string name="plugins_fact_no_clipboard">Ne more brati vašega odložišča</string>
-    <string name="plugins_fact_no_field">Ne more prebrati besedilnega polja, v katerega pišete</string>
-    <string name="plugins_fact_no_internet">Ne more uporabljati interneta</string>
     <string name="plugins_fact_no_typing">Ne more videti, kaj tipkate</string>
     <string name="plugins_fact_own_panel">Lahko nariše svojo ploščo in opravi svoje izračune</string>
     <string name="plugins_fact_own_storage">Lahko shrani lastne podatke, če vas o tem obvesti pred namestitvijo</string>
     <string name="plugins_fact_reminders">Opomnik lahko prikaže ob času, ki ga nastavite v njem, če vas o tem obvesti pred namestitvijo</string>
-    <string name="plugins_facts_info">To niso nastavitve. Vtičnik jih ne more zahtevati. Besedilo vtičniku posredujete, ko ga vtipkate ali prilepite v njegovo polje. Rezultati se vrnejo, ko pritisnete Vstavi.</string>
     <string name="plugins_facts_title">Kaj vtičnik lahko in česa ne more</string>
     <string name="plugins_icons_export_done_message">Aplikacija je shranila %1$s.</string>
     <string name="plugins_icons_export_failed_message">Aplikacija ni mogla zapisati te datoteke.</string>
@@ -7396,7 +7391,6 @@
         <item quantity="one">Ohranjen je %1$d KB, izbris v %2$d dneh</item>
         <item quantity="other">Ohranjenih je %1$d KB, izbris v %2$d dneh</item>
     </plurals>
-    <string name="plugins_permissions_info">Vtičnik to deklarira, ko ga namestite. Vtičnik ne more zahtevati več, medtem ko deluje, ker ni ničesar več, kar bi lahko zahteval.</string>
     <string name="plugins_permissions_none">Nič zunaj lastne plošče</string>
     <string name="plugins_permissions_title">Kaj lahko stori</string>
     <string name="plugins_reminders_blocked_subtitle">Aplikacija ne more prikazati teh opomnikov. Tapnite, da ji dovolite pošiljanje obvestil.</string>

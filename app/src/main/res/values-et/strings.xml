@@ -358,7 +358,6 @@
     <string name="addon_open_screen_action">Ava %1$s</string>
     <string name="addon_plugin_no_permissions_title">Mitte midagi väljaspool oma paneeli</string>
     <string name="addon_plugin_permissions_title">Mida see pistikprogramm teha saab</string>
-    <string name="addon_plugin_sandbox_body">Pluginad töötavad liivakastis. See plugin ei näe, mida te kirjutate, ei loe teie lõikelauda ega kasuta internetti. Plugin ei saa selliseid õigusi küsida.</string>
     <string name="addon_preview_action">Eelvaade</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emotikonil on nimi</item>
@@ -7274,14 +7273,10 @@
     <string name="plugins_detail_no_description">Kirjeldus puudub.</string>
     <string name="plugins_detail_stopped_subtitle">Rakendus lülitas selle pistikprogrammi välja, kuna see lakkas kaks korda vastamast</string>
     <string name="plugins_detail_subsystem_off_subtitle">Ükski plugin ei tööta, kui „Luba pluginad“ on välja lülitatud (jaotises Tööriistad -&gt; Pluginad)</string>
-    <string name="plugins_fact_no_clipboard">See ei saa lugeda teie lõikelauda</string>
-    <string name="plugins_fact_no_field">See ei suuda lugeda tekstivälja, kuhu kirjutad</string>
-    <string name="plugins_fact_no_internet">See ei saa kasutada internetti</string>
     <string name="plugins_fact_no_typing">See ei näe, mida sa kirjutad</string>
     <string name="plugins_fact_own_panel">See saab joonistada oma paneeli ja teha oma arvutusi</string>
     <string name="plugins_fact_own_storage">See saab salvestada oma andmeid, kui see teavitab sind enne installimist</string>
     <string name="plugins_fact_reminders">See võib näidata meeldetuletust teie määratud ajal, kui see teavitab teid enne installimist</string>
-    <string name="plugins_facts_info">Need pole seaded. Pistikprogrammil pole võimalust neid küsida. Annate pistikprogrammile teksti, kui sisestate või kleebite selle selle oma kasti. Tulemused kuvatakse teile, kui vajutate nuppu Lisa.</string>
     <string name="plugins_facts_title">Mida pistikprogramm saab ja ei saa teha</string>
     <string name="plugins_icons_export_done_message">Rakendus salvestas %1$s.</string>
     <string name="plugins_icons_export_failed_message">Rakendus ei saanud seda faili kirjutada.</string>
@@ -7393,7 +7388,6 @@
         <item quantity="one">Säilitatud %1$d KB, kustutatakse %2$d päeva pärast</item>
         <item quantity="other">Säilitatud %1$d KB, kustutatakse %2$d päeva pärast</item>
     </plurals>
-    <string name="plugins_permissions_info">Pistikprogramm deklareerib selle installimisel. Pistikprogramm ei saa töötamise ajal rohkem küsida, sest rohkem polegi midagi küsida.</string>
     <string name="plugins_permissions_none">Mitte midagi väljaspool oma paneeli</string>
     <string name="plugins_permissions_title">Mida see teha saab</string>
     <string name="plugins_reminders_blocked_subtitle">Rakendus ei saa neid meeldetuletusi kuvada. Puudutage, et lubada märguannete saatmine.</string>

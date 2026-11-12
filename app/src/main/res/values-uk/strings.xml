@@ -357,7 +357,6 @@
     <string name="addon_open_screen_action">Відкрити %1$s</string>
     <string name="addon_plugin_no_permissions_title">Нічого за межами власної панелі</string>
     <string name="addon_plugin_permissions_title">Що може робити цей плагін</string>
-    <string name="addon_plugin_sandbox_body">Плагіни працюють у пісочниці. Цей плагін не може бачити, що ви друкуєте, читати ваш буфер обміну або використовувати інтернет. Плагін не може запитувати ці можливості.</string>
     <string name="addon_preview_action">Попередній перегляд</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d емодзі має назву</item>
@@ -7269,14 +7268,10 @@
     <string name="plugins_detail_no_description">Немає опису.</string>
     <string name="plugins_detail_stopped_subtitle">Додаток вимкнув цей плагін, оскільки він двічі перестав відповідати</string>
     <string name="plugins_detail_subsystem_off_subtitle">Жоден плагін не працює, поки вимкнено «Дозволити плагіни» в розділі Інструменти, а потім Плагіни</string>
-    <string name="plugins_fact_no_clipboard">Він не може читати ваш буфер обміну</string>
-    <string name="plugins_fact_no_field">Він не може зчитувати текстове поле, у якому ви пишете</string>
-    <string name="plugins_fact_no_internet">Він не може використовувати інтернет</string>
     <string name="plugins_fact_no_typing">Він не бачить, що ви друкуєте</string>
     <string name="plugins_fact_own_panel">Він може малювати власну панель і виконувати власні обчислення</string>
     <string name="plugins_fact_own_storage">Він може зберігати власні дані, якщо повідомить вас про це перед встановленням</string>
     <string name="plugins_fact_reminders">Він може показати нагадування в установлений вами час, якщо повідомить про це до встановлення</string>
-    <string name="plugins_facts_info">Це не налаштування. Плагін не має можливості запитати про них. Ви надаєте текст плагіну, коли вводите або вставляєте його у відповідне поле. Результати повертаються вам, коли ви натискаєте «Вставити».</string>
     <string name="plugins_facts_title">Що плагін може і чого не може робити</string>
     <string name="plugins_icons_export_done_message">Додаток зберіг %1$s.</string>
     <string name="plugins_icons_export_failed_message">Додаток не зміг записати цей файл.</string>
@@ -7388,7 +7383,6 @@
         <item quantity="one">Збережено %1$d КБ, видалення через %2$d день</item>
         <item quantity="other">Збережено %1$d КБ, видалення через %2$d днів</item>
     </plurals>
-    <string name="plugins_permissions_info">Плагін заявляє про це під час встановлення. Плагін не може запитувати більше під час роботи, оскільки більше нічого запитувати.</string>
     <string name="plugins_permissions_none">Нічого за межами власної панелі</string>
     <string name="plugins_permissions_title">Що він може робити</string>
     <string name="plugins_reminders_blocked_subtitle">Додаток не може показувати ці нагадування. Торкніться, щоб дозволити надсилання сповіщень.</string>

@@ -357,7 +357,6 @@
     <string name="addon_open_screen_action">Avaa %1$s</string>
     <string name="addon_plugin_no_permissions_title">Ei mitään oman paneelinsa ulkopuolella</string>
     <string name="addon_plugin_permissions_title">Mitä tämä laajennus voi tehdä</string>
-    <string name="addon_plugin_sandbox_body">Liitännäiset toimivat hiekkalaatikossa. Tämä liitännäinen ei näe mitä kirjoitat, lue leikepöytääsi tai käytä internetiä. Liitännäinen ei voi pyytää näitä oikeuksia.</string>
     <string name="addon_preview_action">Esikatselu</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emojilla on nimi</item>
@@ -7266,14 +7265,10 @@
     <string name="plugins_detail_no_description">Ei kuvausta.</string>
     <string name="plugins_detail_stopped_subtitle">Sovellus kytki tämän laajennuksen pois päältä, koska se lakkasi vastaamasta kahdesti</string>
     <string name="plugins_detail_subsystem_off_subtitle">Mikään laajennus ei toimi, kun \"Salli laajennukset\" on pois päältä kohdassa Työkalut -&gt; Laajennukset</string>
-    <string name="plugins_fact_no_clipboard">Se ei voi lukea leikepöytääsi</string>
-    <string name="plugins_fact_no_field">Se ei voi lukea tekstikenttää, johon kirjoitat</string>
-    <string name="plugins_fact_no_internet">Se ei voi käyttää internetiä</string>
     <string name="plugins_fact_no_typing">Se ei näe, mitä kirjoitat</string>
     <string name="plugins_fact_own_panel">Se voi piirtää oman paneelin ja suorittaa omia laskutoimituksia</string>
     <string name="plugins_fact_own_storage">Se voi tallentaa omia tietojaan, jos se ilmoittaa siitä ennen asennusta</string>
     <string name="plugins_fact_reminders">Se voi näyttää muistutuksen asettamanasi aikana, jos se ilmoittaa siitä ennen asennusta</string>
-    <string name="plugins_facts_info">Nämä eivät ole asetuksia. Laajennuksella ei ole keinoa pyytää niitä. Annat tekstiä laajennukselle, kun kirjoitat tai liität sitä sen omaan ruutuun. Tulokset palautuvat sinulle, kun painat Lisää.</string>
     <string name="plugins_facts_title">Mitä liitännäinen voi ja ei voi tehdä</string>
     <string name="plugins_icons_export_done_message">Sovellus tallensi kohteen %1$s.</string>
     <string name="plugins_icons_export_failed_message">Sovellus ei voinut kirjoittaa kyseistä tiedostoa.</string>
@@ -7385,7 +7380,6 @@
         <item quantity="one">%1$d kt säilytetty, poistetaan %2$d päivän kuluttua</item>
         <item quantity="other">%1$d kt säilytetty, poistetaan %2$d päivän kuluttua</item>
     </plurals>
-    <string name="plugins_permissions_info">Liitännäinen ilmoittaa tästä asennusvaiheessa. Liitännäinen ei voi pyytää lisää oikeuksia käytön aikana, koska muuta pyydettävää ei ole.</string>
     <string name="plugins_permissions_none">Ei mitään oman paneelinsa ulkopuolella</string>
     <string name="plugins_permissions_title">Mitä se voi tehdä</string>
     <string name="plugins_reminders_blocked_subtitle">Sovellus ei voi näyttää näitä muistutuksia. Napauta salliaksesi ilmoitusten lähettämisen.</string>

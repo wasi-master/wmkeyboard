@@ -356,6 +356,9 @@
     <string name="ime_plugin_empty_title">No plugins yet</string>
     <string name="ime_plugin_empty_body">A plugin is a small tool in a sandbox. You can add plugins from an add-on repository or from a .wmplugin file. A plugin cannot see what you type.</string>
     <string name="ime_plugin_manage_action">Manage plugins</string>
+    <string name="ime_plugin_needs_permission">This plugin asked for something you have not allowed: <xliff:g id="permissions" example="Internet access">%1$s</xliff:g>.</string>
+    <string name="ime_plugin_allow_action">Allow…</string>
+    <string name="ime_plugin_access_mark">This plugin can use the internet or read what you write</string>
     <!-- Second line of a plugin row when the plugin gives no description. %1$s is its version. -->
     <string name="ime_plugin_version_label">Version <xliff:g id="version" example="1.2.0">%1$s</xliff:g></string>
 

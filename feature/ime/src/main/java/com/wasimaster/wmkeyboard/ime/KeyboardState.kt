@@ -5307,6 +5307,10 @@ sealed interface PluginPanelUi {
         val busy: Boolean = false,
         /** The script failed; the plugin is still loaded and can be retried. */
         val error: String? = null,
+        /** What an API 5 plugin asked of the panel: header buttons, a page title, whether Back goes back a page. */
+        val host: com.wasimaster.wmkeyboard.core.plugins.PythonSession.HostState? = null,
+        /** Risky permissions a call needed and the user has not granted; drawn as a banner with Allow. */
+        val needs: List<com.wasimaster.wmkeyboard.core.plugins.PluginPermission> = emptyList(),
     ) : PluginPanelUi
 }
 

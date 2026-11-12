@@ -361,7 +361,6 @@
     <string name="addon_open_screen_action">Vula %1$s</string>
     <string name="addon_plugin_no_permissions_title">Akukho ngaphandle kwephaneli yayo</string>
     <string name="addon_plugin_permissions_title">Lokho le plugin engakwenza</string>
-    <string name="addon_plugin_sandbox_body">Ama-plugin asebenza endaweni evaliwe. Leli plugin alikwazi ukubona lokho okuthayiphayo, ukufunda ibhodi lakho lokunamathisela, noma ukusebenzisa i-inthanethi. I-plugin ayikwazi ukucela lezo zinkonzo.</string>
     <string name="addon_preview_action">Buka kuqala</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">I-emoji engu-%1$d inegama</item>
@@ -7275,14 +7274,10 @@
     <string name="plugins_detail_no_description">Ayikho incazelo.</string>
     <string name="plugins_detail_stopped_subtitle">Uhlelo lokusebenza luyicimile le plugin ngoba iyekile ukuphendula kabili</string>
     <string name="plugins_detail_subsystem_off_subtitle">Ayikho i-plugin esebenzayo ngenkathi “Vumela ama-plugin” icishiwe, ngaphansi kwe-Tools bese kuba ama-Plugins</string>
-    <string name="plugins_fact_no_clipboard">Ayikwazi ukufunda ibhodi lakho lokunamathisela</string>
-    <string name="plugins_fact_no_field">Ayikwazi ukufunda inkambu yombhalo obhala kuyo</string>
-    <string name="plugins_fact_no_internet">Ayikwazi ukusebenzisa i-inthanethi</string>
     <string name="plugins_fact_no_typing">Ayikwazi ukubona lokho okuthayiphayo</string>
     <string name="plugins_fact_own_panel">Ingadweba iphaneli yayo futhi yenze izibalo zayo</string>
     <string name="plugins_fact_own_storage">Ingagcina idatha yayo, uma ikutshela ngaphambi kokuba uyifake</string>
     <string name="plugins_fact_reminders">Ingabonisa isikhumbuzi ngesikhathi osibekile kuso, uma ikutshela ngaphambi kokuba usifake</string>
-    <string name="plugins_facts_info">Lokhu akuzona izilungiselelo. I-plugin ayinayo indlela yokuzicela. Unikeza umbhalo ku-plugin uma uwuthayipha noma uwunamathisela ebhokisini layo. Imiphumela ibuyela kuwe uma ucindezela u-Faka.</string>
     <string name="plugins_facts_title">Lokho i-plugin engakwenza nalokho engakwazi ukukwenza</string>
     <string name="plugins_icons_export_done_message">Uhlelo lokusebenza lulondoloze %1$s.</string>
     <string name="plugins_icons_export_failed_message">Uhlelo lokusebenza alukwazanga ukubhala lelo fayela.</string>
@@ -7394,7 +7389,6 @@
         <item quantity="one">Kugcinwe u-%1$d KB, kuzosuswa ngesikhathi esingu-%2$d usuku</item>
         <item quantity="other">Kugcinwe u-%1$d KB, kuzosuswa ezinsukwini ezingu-%2$d</item>
     </plurals>
-    <string name="plugins_permissions_info">I-plugin imemezela lokhu uma uyifaka. I-plugin ayikwazi ukucela okwengeziwe ngenkathi isebenza, ngoba akukho okunye ongakucela.</string>
     <string name="plugins_permissions_none">Akukho okungaphandle kwepaneli yayo</string>
     <string name="plugins_permissions_title">Okungakwenza</string>
     <string name="plugins_reminders_blocked_subtitle">Uhlelo lokusebenza alukwazi ukukhombisa lezi zikhumbuzo. Thepha ukuze uvumele ukuthi ithumele izaziso.</string>

@@ -2709,6 +2709,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         // image to edit, so there is nothing to deep-link to.
         stickerPack(R.string.import_sticker_editor_title, R.string.import_sticker_editor_subtitle),
         plugin(R.string.plugins_allow_title, R.string.plugins_allow_subtitle),
+        plugin(R.string.plugins_risky_title, R.string.plugins_risky_subtitle),
         plugin(R.string.tooldetail_plugins_manage_title, R.string.tooldetail_plugins_manage_subtitle),
         plugin(R.string.plugins_install_file_title, R.string.plugins_install_file_subtitle),
         plugin(R.string.plugin_ide_entry_title, R.string.plugin_ide_entry_subtitle_python),

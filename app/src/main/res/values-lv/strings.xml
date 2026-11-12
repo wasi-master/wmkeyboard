@@ -359,7 +359,6 @@
     <string name="addon_open_screen_action">Atvērt %1$s</string>
     <string name="addon_plugin_no_permissions_title">Nekas ārpus sava paneļa</string>
     <string name="addon_plugin_permissions_title">Ko šis spraudnis var darīt</string>
-    <string name="addon_plugin_sandbox_body">Spraudņi darbojas smilškastē. Šis spraudnis nevar redzēt, ko rakstāt, lasīt starpliktuvi vai izmantot internetu. Spraudnis nevar pieprasīt šīs spējas.</string>
     <string name="addon_preview_action">Priekšskatījums</string>
     <plurals name="addon_preview_emoji_count">
         <item quantity="one">%1$d emocijzīmei ir nosaukums</item>
@@ -7275,14 +7274,10 @@
     <string name="plugins_detail_no_description">Nav apraksta.</string>
     <string name="plugins_detail_stopped_subtitle">Lietotne izslēdza šo spraudni, jo tas divas reizes pārstāja reaģēt</string>
     <string name="plugins_detail_subsystem_off_subtitle">Neviens spraudnis nedarbojas, kamēr ir izslēgta opcija \"Atļaut spraudņus\" sadaļā Rīki -&gt; Spraudņi</string>
-    <string name="plugins_fact_no_clipboard">Tā nevar nolasīt jūsu starpliktuvi</string>
-    <string name="plugins_fact_no_field">Tā nevar nolasīt teksta lauku, kurā rakstāt</string>
-    <string name="plugins_fact_no_internet">Tas nevar izmantot internetu</string>
     <string name="plugins_fact_no_typing">Tas nevar redzēt, ko jūs rakstāt</string>
     <string name="plugins_fact_own_panel">Tas var uzzīmēt savu paneli un veikt savus aprēķinus</string>
     <string name="plugins_fact_own_storage">Tas var saglabāt savus datus, ja tas jūs par to informē pirms instalēšanas</string>
     <string name="plugins_fact_reminders">Tas var parādīt atgādinājumu jūsu iestatītajā laikā, ja tas jūs brīdina pirms instalēšanas</string>
-    <string name="plugins_facts_info">Šie nav iestatījumi. Spraudnim nav iespējas tos pieprasīt. Jūs sniedzat tekstu spraudnim, kad ierakstāt vai ielīmējat to tā lodziņā. Rezultāti tiek atgriezti, kad nospiežat Ievietot.</string>
     <string name="plugins_facts_title">Ko spraudnis var un ko nevar darīt</string>
     <string name="plugins_icons_export_done_message">Lietotne saglabāja %1$s.</string>
     <string name="plugins_icons_export_failed_message">Lietotne nevarēja ierakstīt šo failu.</string>
@@ -7394,7 +7389,6 @@
         <item quantity="one">Saglabāts %1$d KB, dzēšana pēc %2$d dienas</item>
         <item quantity="other">Saglabāts %1$d KB, dzēšana pēc %2$d dienām</item>
     </plurals>
-    <string name="plugins_permissions_info">Spraudnis to deklarē instalēšanas laikā. Spraudnis nevar pieprasīt vairāk, kamēr tas darbojas, jo nav nekā cita, ko pieprasīt.</string>
     <string name="plugins_permissions_none">Nekas ārpus sava paneļa</string>
     <string name="plugins_permissions_title">Ko tas var darīt</string>
     <string name="plugins_reminders_blocked_subtitle">Lietotne nevar parādīt šos atgādinājumus. Pieskarieties, lai atļautu tai rādīt paziņojumus.</string>
