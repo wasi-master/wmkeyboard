@@ -5385,11 +5385,14 @@ private fun RowScope.StripAnswerChips(
     // The last few copies as a row of chips (#414), newest first
     // whatever is pinned (#612). Asked for by hand, so it holds the
     // strip over any words until something is typed or its ✕.
-    // Text clips only, never a secret, the same gates as the
-    // single chip's.
+    // Text and pictures, never a secret: the kinds the single chip
+    // shows. Pictures were left out, so a row of two or more lost the
+    // screenshot the one chip had just been showing (#1284).
     val clipBarChips = if (recentClipsBar && shownSmart == null) {
         state.clipboardItems
-            .filter { it.kind.isTextual && !it.sensitive && it.text.isNotBlank() }
+            .filter {
+                !it.sensitive && (it.kind == ClipKind.IMAGE || it.kind.isTextual && it.text.isNotBlank())
+            }
             .sortedByDescending { it.timestamp }
             .take(recentClipsRowCount(state.settings.clipboard.recentChips))
     } else {
