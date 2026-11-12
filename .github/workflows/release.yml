@@ -325,6 +325,15 @@ jobs:
   # three reference APKs to match, named by that full versionCode because
   # `Binaries:` only knows %v and %c. One fat APK carried every ABI's native
   # code to every phone: 98 MB in 0.6.0 against 82 MB for arm64 alone (#801).
+  #
+  # The arm64 run also builds the English-only variant of the same build
+  # (#1290): no Google libraries and English only, for people who want
+  # both. F-Droid neither builds nor serves it; it is attached to the GitHub
+  # release as `-vc<code>-fdroid-en.apk`, a name F-Droid's `Binaries:`
+  # pattern does not match. Built in the same container
+  # from the same tree, so it carries the native libraries F-Droid's build
+  # compiled from source and pins the same bytes. If it fails, the release
+  # goes out without it.
   fdroid:
     name: F-Droid reference APK (${{ matrix.abi }})
     needs: verify
@@ -353,7 +362,8 @@ jobs:
           code=$(grep '^wmkb.versionCode=' gradle.properties | cut -d= -f2)
           docker run --rm -v "$PWD:/src" \
             registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie \
-            bash /src/.github/scripts/fdroid-build.sh "$GITHUB_SHA" "$version" "$code" '${{ matrix.abi }}'
+            bash /src/.github/scripts/fdroid-build.sh "$GITHUB_SHA" "$version" "$code" '${{ matrix.abi }}' \
+            ${{ matrix.abi == 'arm64-v8a' && 'en' || '' }}
 
       # A build that dies without a word was usually killed from outside:
       # the kernel's log says so, and the numbers say what was left.
@@ -371,6 +381,7 @@ jobs:
           path: |
             dist/fdroid-build-${{ matrix.abi }}.log
             dist/fdroid-unsigned-${{ matrix.abi }}.apk
+            dist/fdroid-en-build-${{ matrix.abi }}.log
           retention-days: 30
 
       - name: Restore keystore
@@ -404,7 +415,17 @@ jobs:
             --ks-pass env:RELEASE_STORE_PASSWORD --key-pass env:RELEASE_KEY_PASSWORD \
             --alignment-preserved \
             --out "out/wmkeyboard-${version}-vc${code}-fdroid.apk" 'dist/fdroid-unsigned-${{ matrix.abi }}.apk'
-          rm -f out/*.idsig
+          # The English-only variant, when this run built one. Gradle's
+          # output, already aligned; nobody compares it with anything, so
+          # apksigner may align it its own way.
+          en='dist/fdroid-en-unsigned-${{ matrix.abi }}.apk'
+          if [ -f "$en" ]; then
+            mkdir -p out-en
+            "$apksigner" sign --ks release.keystore --ks-key-alias "$RELEASE_KEY_ALIAS" \
+              --ks-pass env:RELEASE_STORE_PASSWORD --key-pass env:RELEASE_KEY_PASSWORD \
+              --out "out-en/wmkeyboard-${version}-vc${code}-fdroid-en.apk" "$en"
+          fi
+          rm -f out/*.idsig out-en/*.idsig
 
       - name: Wipe keystore
         if: always()
@@ -456,6 +477,43 @@ jobs:
             pipx run apksigcopier==1.1.1 compare "$out" --unsigned "dist/fdroid-unsigned-$abi.apk"
           mkdir -p dist-ref && mv "$out" dist-ref/
 
+      # The English-only variant: signed with the pinned key, this ABI's code
+      # and no other, the same versionCode as the F-Droid build beside it
+      # (so F-Droid's client sees one version, and either installs over the
+      # other), English only, and the same native pins as the F-Droid build,
+      # since only that build's libraries go to the natives release.
+      # Failing it leaves the APK out of the release rather than holding the
+      # release up: only a checked one is moved where the upload picks it up.
+      - name: Check the English-only build
+        if: hashFiles('out-en/*.apk') != ''
+        continue-on-error: true
+        run: |
+          en=$(ls out-en/*-fdroid-en.apk)
+          ref=$(ls dist-ref/*-fdroid.apk)
+          abi='${{ matrix.abi }}'
+          apksigner=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          aapt2=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
+          certs=$("$apksigner" verify --print-certs "$en")
+          echo "$certs" | grep -q 'certificate SHA-256 digest: d6c1f30a6116d33e4e778b372f335faa91dad35f657a84e4e7077b29641e7cad' \
+            || { echo "::error::$en is not signed with the release key"; exit 1; }
+          unzip -l "$en" | grep -q "lib/$abi/libwm_engine_jni.so" \
+            || { echo "::error::$en has no $abi libwm_engine_jni.so"; exit 1; }
+          others=$(unzip -Z1 "$en" 'lib/*' | grep -v "^lib/$abi/" || true)
+          [ -z "$others" ] || { echo "::error::$en carries another ABI's code:"; echo "$others"; exit 1; }
+          cmp -s <(unzip -p "$en" assets/native/pins.tsv) <(unzip -p "$ref" assets/native/pins.tsv) \
+            || { echo "::error::$en pins other native libraries than the F-Droid build, whose libraries are the only ones published"; \
+                 diff <(unzip -p "$en" assets/native/pins.tsv) <(unzip -p "$ref" assets/native/pins.tsv) | head -20; exit 1; }
+          badging=$("$aapt2" dump badging "$en")
+          want=$(basename "$ref" | sed -E 's/.*-vc([0-9]+)-fdroid\.apk/\1/')
+          echo "$badging" | grep -q "versionCode='$want'" \
+            || { echo "::error::$en does not declare versionCode $want"; exit 1; }
+          locales=$(echo "$badging" | sed -n 's/^locales: //p')
+          echo "locales: $locales"
+          echo "$locales" | grep -q "'de'" \
+            && { echo "::error::$en carries the translated interface"; exit 1; }
+          ls -l "$en" "$ref"
+          mv "$en" dist-ref/
+
       # R8's mapping of this build. F-Droid serves this same build, byte for
       # byte, so the retrace workflow reads a crash from an F-Droid install
       # with it (#963). Named like the APK, by the full versionCode: the
@@ -465,6 +523,10 @@ jobs:
         run: |
           apk=$(basename dist-ref/*-fdroid.apk .apk)
           gzip -9c 'dist/fdroid-mapping-${{ matrix.abi }}.txt' > "dist-ref/${apk}-mapping.txt.gz"
+          # The English-only variant is its own R8 run, so its own mapping.
+          if [ -f "dist-ref/${apk}-en.apk" ] && [ -f 'dist/fdroid-en-mapping-${{ matrix.abi }}.txt' ]; then
+            gzip -9c 'dist/fdroid-en-mapping-${{ matrix.abi }}.txt' > "dist-ref/${apk}-en-mapping.txt.gz"
+          fi
 
       - uses: actions/upload-artifact@v7
         with:

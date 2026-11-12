@@ -238,7 +238,11 @@ def candidate_suffixes(build: Build) -> list[str]:
         return ["play"]
     if build.channel == "F-Droid":
         # F-Droid serves the release workflow's own F-Droid build, so its
-        # mapping is one of that build's, one per ABI.
+        # mapping is one of that build's, one per ABI. A record that says
+        # `en` is the English-only variant the release publishes beside it
+        # (#1290), a separate R8 run with its own mapping.
+        if build.flavor == "en":
+            return ["fdroid-en", "fdroid"]
         return ["fdroid"]
     mapped = FLAVOR_TO_SUFFIX.get(build.flavor or "")
     if mapped:

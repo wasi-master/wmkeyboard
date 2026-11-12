@@ -43,6 +43,8 @@ Each release on the [GitHub releases page](https://github.com/wasi-master/wmkeyb
 
    **Offline** has the internet permission removed, and is otherwise the standard build: English, with no feature libraries inside. It can't download anything, including its own update check, so you fetch the interface languages and feature libraries you want on another device and [import them](/privacy/offline/#the-offline-build), along with any language packs, models and GIF packs. Interface languages need Android 11 or later; on Android 7 to 10, take **offline, all languages** instead, which has all 48 built in. See [A build with no internet permission](/development/building/#a-build-with-no-internet-permission).
 
+   **No Google libraries** is the [F-Droid build](/start/editions/), which leaves out Google's ML Kit and LiteRT. The release attaches it for each processor with all 48 interface languages, and from 0.6.7 also in English only for `arm64-v8a` (`-fdroid-en.apk`), which is much smaller. All of them carry the same signature as the other builds, so each installs over the others. Their update check sends you to F-Droid, and an update from the F-Droid app brings back the all-languages build, so get the next English-only one from the releases page.
+
 3. Pick your CPU architecture. Almost every phone made since 2017 is `arm64-v8a`. Older or budget devices are `armeabi-v7a`. Emulators and a few tablets are `x86_64`. The `universal` APK holds all three and works anywhere, at several times the download size. The offline build comes in `arm64-v8a` and `universal`, the offline all-languages build in `universal` only.
 
 4. Download the APK to your device.

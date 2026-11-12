@@ -10,19 +10,30 @@
 # Run as root inside registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie
 # with this repo mounted at /src:
 #
-#   fdroid-build.sh <commit> <versionName> <versionCode> <abi>
+#   fdroid-build.sh <commit> <versionName> <versionCode> <abi> [en]
 #
 # <versionCode> is the plain number in gradle.properties; the entry gets
 # `versionCode * 10 + ABI digit`, as app/build.gradle.kts gives the APK.
 # Leaves the unsigned APK at /src/dist/fdroid-unsigned-<abi>.apk, its R8
 # mapping at /src/dist/fdroid-mapping-<abi>.txt and the build log at
 # /src/dist/fdroid-build-<abi>.log.
+#
+# With `en`, it then builds the English-only variant of the same F-Droid
+# build in the same tree (#1290): no Google libraries and no 48 interface
+# languages. Not something F-Droid builds or serves; GitHub publishes it.
+# It reuses the native libraries F-Droid's build just compiled from source,
+# so it pins the same bytes the intl build uploads to the natives release.
+# Leaves /src/dist/fdroid-en-unsigned-<abi>.apk, its mapping at
+# /src/dist/fdroid-en-mapping-<abi>.txt and its log at
+# /src/dist/fdroid-en-build-<abi>.log. A failure here is reported and left
+# behind: the reference APK F-Droid waits on must not be held up by it.
 set -euo pipefail
 
 commit=${1:?commit}
 version=${2:?versionName}
 release=${3:?versionCode}
 abi=${4:?abi}
+extra=${5:-}
 case "$abi" in
     armeabi-v7a) code=$((release * 10 + 1)) ;;
     arm64-v8a)   code=$((release * 10 + 2)) ;;
@@ -116,4 +127,70 @@ cp "${maps[0]}" "/src/dist/fdroid-mapping-$abi.txt"
 # (native delivery), for the data repository's natives release: an F-Droid
 # install that opts in to library downloads fetches these exact bytes.
 (cd "$home_vagrant/build/$appid" && bash /src/.github/scripts/collect-natives.sh "$apk" "/src/dist/fdroid-natives-$abi")
+chmod -R a+r /src/dist
+
+[ "$extra" = en ] || exit 0
+
+# The English-only variant. The tree is as `fdroid build` left it: the
+# recipe's prebuild seds applied (no Google dependency lines), the scanner's
+# deletions made, and the native libraries its `build:` step compiled from
+# source in place. So this is the recipe's own Gradle call with `en` for
+# `intl`: the same gradleprops, the same Gradle (fdroidserver's `gradle`,
+# gradlew-fdroid on the buildserver), the same NDK.
+props=$(python3 - "$home_vagrant/metadata/$appid.yml" <<'EOF'
+import sys, yaml
+with open(sys.argv[1]) as f:
+    build = yaml.safe_load(f)["Builds"][0]
+print(" ".join("-P" + p for p in build.get("gradleprops", [])))
+print(build.get("ndk", ""))
+print(build.get("subdir", ""))
+EOF
+)
+gradleprops=$(sed -n 1p <<<"$props")
+ndk=$(sed -n 2p <<<"$props")
+subdir=$(sed -n 3p <<<"$props")
+# fdroidserver's default `gradle` is the gradlew-fdroid in its own checkout;
+# older buildservers keep it in its own repo beside the home directory.
+gradle=""
+for g in "$fdroidserver/gradlew-fdroid" "$home_vagrant/gradlew-fdroid/gradlew-fdroid"; do
+    [ -x "$g" ] && { gradle=$g; break; }
+done
+[ -n "$gradle" ] || gradle=$(command -v gradle || true)
+if [ -z "$gradle" ]; then
+    echo "::warning::No Gradle for the English-only F-Droid build; this release goes out without it"
+    exit 0
+fi
+ndk_home=""
+[ -n "$ndk" ] && [ -d "$ANDROID_HOME/ndk/$ndk" ] && ndk_home="$ANDROID_HOME/ndk/$ndk"
+echo "English-only F-Droid build: $gradle $gradleprops assembleEnRelease (NDK ${ndk_home:-default})"
+
+set +e
+(
+    cd "$home_vagrant/build/$appid/$subdir"
+    # shellcheck disable=SC2086 # gradleprops is a list of -P flags
+    sudo --preserve-env --user vagrant \
+        env HOME="$home_vagrant" \
+        env ANDROID_HOME="$ANDROID_HOME" ANDROID_SDK_ROOT="$ANDROID_HOME" \
+        ${ndk_home:+env ANDROID_NDK_HOME="$ndk_home" ANDROID_NDK="$ndk_home"} \
+        env -u CI \
+        "$gradle" --no-daemon $gradleprops assembleEnRelease
+) 2>&1 | tee "/src/dist/fdroid-en-build-$abi.log"
+status=${PIPESTATUS[0]}
+set -e
+if [ "$status" -ne 0 ]; then
+    echo "::warning::The English-only F-Droid build failed ($status); this release goes out without it"
+    chmod -R a+r /src/dist
+    exit 0
+fi
+
+out="$home_vagrant/build/$appid/${subdir:-.}/build/outputs"
+en_apks=("$out"/apk/en/release/*.apk)
+if [ "${#en_apks[@]}" -ne 1 ] || [ ! -f "${en_apks[0]}" ]; then
+    echo "::warning::Expected one English-only APK, found: ${en_apks[*]}"
+    chmod -R a+r /src/dist
+    exit 0
+fi
+cp "${en_apks[0]}" "/src/dist/fdroid-en-unsigned-$abi.apk"
+cp "$out/mapping/enRelease/mapping.txt" "/src/dist/fdroid-en-mapping-$abi.txt" \
+    || echo "::warning::No R8 mapping for the English-only build"
 chmod -R a+r /src/dist

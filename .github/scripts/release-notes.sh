@@ -207,6 +207,35 @@ on another device can be imported instead
 EOF
 fi
 
+# The English-only F-Droid build (#1290), from the `fdroid` job's arm64 run.
+# Only when this release has it: its build is allowed to fail on its own.
+fdroid_en="wmkeyboard-${version}-vc$((code * 10 + 2))-fdroid-en.apk"
+fdroid_all="wmkeyboard-${version}-vc$((code * 10 + 2))-fdroid.apk"
+if [ -f "$dist/$fdroid_en" ]; then
+cat <<EOF
+<details>
+<summary><b>No Google libraries</b> (the F-Droid build, in English only)</summary>
+
+Every download above links Google's ML Kit and LiteRT for handwriting,
+on-device translation, language detection and photo cut-outs. The F-Droid build
+leaves them out and uses open replacements where there are any. It is built
+from source with every interface language, so it is large; the English-only one
+is the same build without them. Both are signed with the same key as every
+other download here, so any of them installs over another without losing a
+setting. Their update check asks F-Droid, so the English-only one gets its
+next version from this page, not from the F-Droid app (which would replace it
+with the all-languages build).
+
+| | arm64-v8a |
+|:---|:---|
+| **English only** | $(cell "$fdroid_en") |
+| **All languages** | $(cell "$fdroid_all") |
+
+</details>
+
+EOF
+fi
+
 # The interface language packs the standard build downloads, for importing on
 # a phone that cannot fetch them itself. Listed, not described one by one.
 packs=$(cd "$dist" && ls ${prefix}-lang-*.apk 2>/dev/null | wc -l | tr -d ' ')
@@ -285,6 +314,8 @@ fdroid_row() { # <abi> <digit> <who>
 fdroid_row arm64-v8a 2 'to most phones'
 fdroid_row armeabi-v7a 1 'to 32-bit phones'
 fdroid_row x86_64 3 'to x86 Chromebooks and tablets'
+# The English-only variant of the arm64 F-Droid build (#1290), from 0.6.7.
+row "wmkeyboard-${version}-vc$((code * 10 + 2))-fdroid-en.apk" 'The F-Droid build for **arm64-v8a** in **English only, no Google libraries**: the F-Droid build without the 48 interface languages. Built beside it from the same source, signed with the same key and carrying the same versionCode, so either installs over the other. F-Droid does not serve this one: its update check looks at F-Droid, and an update through the F-Droid client brings back the all-languages build. Come back here for the next English-only one'
 row "${prefix}-full-en-mapping.txt.gz" 'R8 mapping, **standard build**. Retraces a stack trace'
 row "${prefix}-full-intl-mapping.txt.gz" 'R8 mapping, **all-languages build**, which the language packs are cut from. Also fits the offline all-languages build, which it is apart from its manifest'
 row "${prefix}-full-en-nointernet-mapping.txt.gz" 'R8 mapping, **offline build**. Only attached when it differs from the standard build'"'"'s, which otherwise serves both'
@@ -296,6 +327,7 @@ fdroid_map_row() { # <abi> <digit>
 fdroid_map_row arm64-v8a 2
 fdroid_map_row armeabi-v7a 1
 fdroid_map_row x86_64 3
+row "wmkeyboard-${version}-vc$((code * 10 + 2))-fdroid-en-mapping.txt.gz" 'R8 mapping, **English-only F-Droid build** (arm64-v8a). Its own R8 run, so the all-languages F-Droid mapping does not fit it'
 row "${prefix}-full-intl-native-symbols.zip" 'Native debug symbols, **all-languages build**'
 row "${prefix}-full-en-native-symbols.zip" 'Native debug symbols, **standard build**'
 
