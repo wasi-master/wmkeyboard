@@ -77,12 +77,10 @@ internal object SettingLinks {
      * A row whose screen no link can name, or whose screen is not known, gets
      * the setting host instead, which finds the screen through the search
      * index. [version] becomes `since=`, so a copy of the app too old to have
-     * the row can say which version does rather than open nothing. It is the
-     * sender's version, an upper bound: the app keeps no table of when each
-     * row arrived. The site's /open/ page and link builder know, and show
-     * their own date for any row they list instead of this one. It is left
-     * out when it is not a plain version number, as a debug build's may not
-     * be, because [SettingsDeepLink] would refuse it anyway.
+     * the row can say which version does rather than open nothing. A copy
+     * passes the release the row arrived in, from [SettingsSince]. It is left
+     * out when empty or not a plain version number, as a debug build's may
+     * not be, because [SettingsDeepLink] would refuse it anyway.
      */
     fun appLink(route: String?, name: String, version: String): String {
         val since = version.takeIf { it.matches(VERSION) }
@@ -333,7 +331,11 @@ internal fun rememberSettingPath(): () -> List<String> {
  * leads to it, and says so where the system does not.
  */
 internal fun copySettingLink(context: Context, target: SettingLinkTarget, path: List<String> = emptyList()) {
-    val link = SettingLinks.webLink(SettingLinks.appLink(target.route, target.name, BuildConfig.VERSION_NAME))
+    // The release the row arrived in, not this build's version: a 0.5 row
+    // copied on 0.6.6 would otherwise tell a 0.6.0 reader to update for
+    // nothing.
+    val since = SettingsSince.versionFor(context, target.route, target.name, BuildConfig.VERSION_NAME)
+    val link = SettingLinks.webLink(SettingLinks.appLink(target.route, target.name, since))
     val text = SettingLinks.clipText(path, link)
     val copied = runCatching {
         context.getSystemService(ClipboardManager::class.java)

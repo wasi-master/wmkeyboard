@@ -24,10 +24,11 @@
  * says which release it waits for.
  *
  * Every route and row the app has today is written, `floor` ones included,
- * so a reader can tell a key it knows from one it does not. A link copied
- * from the app carries the sender's own version as `since=` (the app has no
- * table of when each row arrived); for a key listed here that is only an upper
- * bound and the date here wins. A key missing here is newer than this file,
+ * so a reader can tell a key it knows from one it does not. The app bundles
+ * this file as an asset (bundleSettingsSince in app/build.gradle.kts) and
+ * dates the links it copies from it; an older copy, or a row newer than its
+ * bundled table, carries the sender's own version as `since=`, which for a
+ * key listed here is only an upper bound, so the date here wins. A key missing here is newer than this file,
  * and only then does a link's `since=` count. `sinceAware` is the first
  * release that reads `since=` itself.
  *

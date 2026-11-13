@@ -960,15 +960,23 @@ abstract class BundleReleaseNotesTask : DefaultTask() {
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val notes: ConfigurableFileCollection
 
+    /** The name the copy gets in assets/. */
+    @get:Input
+    abstract val fileName: Property<String>
+
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
+
+    init {
+        fileName.convention("release-notes.md")
+    }
 
     @TaskAction
     fun run() {
         val out = outputDir.get().asFile
         out.deleteRecursively()
         out.mkdirs()
-        notes.files.firstOrNull { it.isFile }?.copyTo(out.resolve("release-notes.md"), overwrite = true)
+        notes.files.firstOrNull { it.isFile }?.copyTo(out.resolve(fileName.get()), overwrite = true)
     }
 }
 
@@ -979,6 +987,17 @@ val bundleReleaseNotes =
                 "release-notes/${providers.gradleProperty("wmkb.versionName").get()}.md",
             ),
         )
+    }
+
+// Copies the docs site's settings-since.json (which release first had each
+// settings screen and row, written from git tags) to assets/, so a link copied
+// from a settings row says when that row arrived instead of the version it was
+// copied on (SettingsSince). A checkout without the docs ships without it, and
+// copied links fall back to the build's own version.
+val bundleSettingsSince =
+    tasks.register<BundleReleaseNotesTask>("bundleSettingsSince") {
+        notes.from(rootProject.layout.projectDirectory.file("docs/src/data/settings-since.json"))
+        fileName.set("settings-since.json")
     }
 
 // Rewrites the merged assets with every bundled layout's JSON compacted. The
@@ -1097,6 +1116,10 @@ androidComponents {
         }
         variant.sources.assets?.addGeneratedSourceDirectory(
             bundleReleaseNotes,
+            BundleReleaseNotesTask::outputDir,
+        )
+        variant.sources.assets?.addGeneratedSourceDirectory(
+            bundleSettingsSince,
             BundleReleaseNotesTask::outputDir,
         )
         // The update-channel driver picked at the top of this file, added to

@@ -65,9 +65,10 @@ const knows = (map: Record<string, string>, key: string | undefined) => !key || 
  * settings link.
  *
  * The link's own `since=` counts only for a screen, row or mode the data does
- * not list yet. A link copied in the app carries the sender's version there,
- * not the version the row arrived in (the app keeps no table of that), so for
- * a row listed here it would date a 0.5 row to whatever the sender runs.
+ * not list yet. The app bundles this same table and dates a copied row from
+ * it (SettingsSince.kt), but a link copied before it did, or from a build
+ * whose table is older than this one, carries the sender's version, which
+ * would date a 0.5 row to whatever the sender runs.
  */
 export function sinceOf(x: Explanation): Since | null {
 	let version: string;
