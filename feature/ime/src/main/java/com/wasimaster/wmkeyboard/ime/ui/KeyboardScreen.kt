@@ -1663,7 +1663,7 @@ fun KeyboardScreen(
                 },
             ),
             LocalSelectionTools provides selectionTools(bodyState, capture.onAiChat),
-            LocalOctopusWords provides rememberUpdatedState(bodyState.octopus),
+            LocalOctopusWords provides rememberLiveOctopus(bodyState),
             LocalLanguageAnchor provides rememberUpdatedState(bodyState.languageAnchorId),
             LocalLiveWpmPrivate provides rememberLiveWpmPrivate(bodyState),
             // Only while something is composing, so a list the service has not
@@ -1943,14 +1943,20 @@ internal val LocalLiveUiState = staticCompositionLocalOf<State<KeyboardUiState>?
 /**
  * This state with the fields that change on almost every keystroke cleared:
  * the strip's words and emoji, the composing preview, the next-letter bias and
- * the word a space would commit. Measured on device, these were the only
- * fields that differ between frames while typing a word, and every one of
- * those frames recomposed the whole keyboard. Readers of them go through
- * [withLiveTyping]. The same instance when there is nothing to clear.
+ * the word a space would commit, the typed word the strip leads with, the
+ * strip's between-words lists (openers, punctuation, Avro's candidate bar)
+ * and the octopus words over the keys. Each of these differs between frames
+ * while typing, and every one of those frames recomposed the whole keyboard:
+ * the typed word, missing from the first set, alone recomposed it on every
+ * letter. Readers of them go through [withLiveTyping] (or, for the octopus
+ * words, [rememberLiveOctopus]). The same instance when there is nothing to
+ * clear.
  */
 internal fun KeyboardUiState.withoutTypingFields(): KeyboardUiState =
     if (suggestions.isEmpty() && emojiSuggestions.isEmpty() && composingPreview.isEmpty() &&
-        nextLetterBias.isEmpty() && autocorrectWord == null && newWords.isEmpty()
+        nextLetterBias.isEmpty() && autocorrectWord == null && newWords.isEmpty() &&
+        stripTyped == null && sentenceOpeners.isEmpty() && punctuationSuggestions.isEmpty() &&
+        phoneticCandidates.isEmpty() && octopus.isEmpty() && octopusGlide.isEmpty()
     ) {
         this
     } else {
@@ -1961,6 +1967,12 @@ internal fun KeyboardUiState.withoutTypingFields(): KeyboardUiState =
             nextLetterBias = emptyMap(),
             autocorrectWord = null,
             newWords = emptySet(),
+            stripTyped = null,
+            sentenceOpeners = emptyList(),
+            punctuationSuggestions = emptyList(),
+            phoneticCandidates = emptyList(),
+            octopus = emptyMap(),
+            octopusGlide = emptyMap(),
         )
     }
 
@@ -1973,6 +1985,12 @@ private fun KeyboardUiState.withTypingFrom(live: KeyboardUiState): KeyboardUiSta
         nextLetterBias = live.nextLetterBias,
         autocorrectWord = live.autocorrectWord,
         newWords = live.newWords,
+        stripTyped = live.stripTyped,
+        sentenceOpeners = live.sentenceOpeners,
+        punctuationSuggestions = live.punctuationSuggestions,
+        phoneticCandidates = live.phoneticCandidates,
+        octopus = live.octopus,
+        octopusGlide = live.octopusGlide,
     )
 
 /**
@@ -1990,15 +2008,36 @@ internal fun withLiveTyping(state: KeyboardUiState): KeyboardUiState {
     return remember(
         state, now.suggestions, now.emojiSuggestions, now.composingPreview,
         now.nextLetterBias, now.autocorrectWord, now.newWords,
+        now.stripTyped, now.sentenceOpeners, now.punctuationSuggestions, now.phoneticCandidates,
+        now.octopus, now.octopusGlide,
     ) {
         val same = state.suggestions === now.suggestions &&
             state.emojiSuggestions === now.emojiSuggestions &&
             state.composingPreview == now.composingPreview &&
             state.nextLetterBias === now.nextLetterBias &&
             state.autocorrectWord == now.autocorrectWord &&
-            state.newWords === now.newWords
+            state.newWords === now.newWords &&
+            state.stripTyped == now.stripTyped &&
+            state.sentenceOpeners === now.sentenceOpeners &&
+            state.punctuationSuggestions === now.punctuationSuggestions &&
+            state.phoneticCandidates === now.phoneticCandidates &&
+            state.octopus === now.octopus &&
+            state.octopusGlide === now.octopusGlide
         if (same) state else state.withTypingFrom(now)
     }
+}
+
+/**
+ * The octopus words, read from the live state: they are cleared from the
+ * state the frame reads ([withoutTypingFields]), and they change on every
+ * letter. Read through the [State], so only what draws or hit-tests them
+ * sees the change.
+ */
+@Composable
+private fun rememberLiveOctopus(state: KeyboardUiState): State<OctopusBoard> {
+    val live = LocalLiveUiState.current
+    if (live == null || LocalKeyboardPreviewHost.current) return rememberUpdatedState(state.octopus)
+    return remember(live) { derivedStateOf { live.value.octopus } }
 }
 
 /** [LocalConversionReadings]'s value, read from the live state; see [withLiveTyping]. */
@@ -20134,7 +20173,7 @@ private fun KeyRows(
     val onGlobeShortcut = LocalClipboardKeyAction.current
     // Read live rather than captured: the words change on every keystroke, and
     // a pointer loop restarted that often would be a loop that misses touches.
-    val octopusLive = rememberUpdatedState(state.octopus)
+    val octopusLive = rememberLiveOctopus(state)
     // The keyboard's own haptic, which already routes through the service and
     // respects the user's feedback settings — not Compose's, whose name this
     // composition local deliberately shadows.
@@ -22055,6 +22094,7 @@ private fun KeyRows(
         // padding inside KeyButton.
         Column(
             modifier = Modifier
+                .keyGridRasterCache()
                 .fillMaxWidth()
                 .padding(horizontal = KeyRowsPadHorizontal, vertical = KeyRowsPadVertical),
         ) {
@@ -25972,6 +26012,48 @@ private const val GlideHintId = "glide-hint"
 
 /** Vertical padding of the [KeyRows] column, mirrored into [keyRowsHeight]. */
 internal val KeyRowsPadVertical = 2.dp
+
+/**
+ * How far past the grid its cached layer reaches: a key's glow (up to 16 dp
+ * past its face), a grown or risen key on the top row and the shadows of the
+ * bottom row all draw outside the grid, and the layer must not cut them off.
+ */
+private val KeyGridRasterMargin = 20.dp
+
+/**
+ * Keeps the key grid as one picture between frames.
+ *
+ * Every frame the keyboard draws repaints the whole window: any change to a
+ * Compose layer invalidates the hosting view, the view records again, and
+ * the renderer counts that view's whole rectangle as damaged. Measured on a
+ * CPH2481 (88 taps in the system Settings search box, default theme): 275
+ * frames, every one damaging the board from the toolbar down, 5 ms of render
+ * thread each. On a glass theme every key's backdrop slice and lens shader
+ * ran again on each of them. Per-key layers keep a press from *recording*
+ * the other keys, but not from *rasterising* them.
+ *
+ * Drawn into an offscreen layer, the grid is rasterised once and composited
+ * as a single texture after that. Inside the layer the renderer repaints
+ * only what changed — the pressed key's rectangle, since every key has a
+ * layer of its own — and the rest of the board's frames (the strip filling,
+ * the press fading) cost one textured quad for the whole grid. Compositing
+ * the layer with source-over gives the same pixels as drawing the keys
+ * straight onto the board.
+ *
+ * The layer is grown by [KeyGridRasterMargin] on every side without the
+ * grid's own size or place moving: the grid reports the size it had and the
+ * layer, [KeyGridRasterMargin] larger, is placed back by the margin.
+ */
+private fun Modifier.keyGridRasterCache(): Modifier =
+    layout { measurable, constraints ->
+        val margin = KeyGridRasterMargin.roundToPx()
+        val inner = measurable.measure(constraints.offset(horizontal = 2 * margin, vertical = 2 * margin))
+        val width = (inner.width - 2 * margin).coerceIn(constraints.minWidth, constraints.maxWidth)
+        val height = (inner.height - 2 * margin).coerceIn(constraints.minHeight, constraints.maxHeight)
+        layout(width, height) { inner.place(-margin, -margin) }
+    }
+        .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+        .padding(KeyGridRasterMargin)
 
 /**
  * Horizontal padding of the [KeyRows] column. Named because the gesture
