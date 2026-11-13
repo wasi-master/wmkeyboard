@@ -16,7 +16,8 @@ import java.io.File
  * The order is the safety property, and it is the same one `WMFileTypes` uses
  * for the app's other formats: an archive is recognised by its first four bytes,
  * then the app's own **tagged** format is tried, then Gboard's dictionary (whose
- * first line is as good as a tag), then the untagged Espanso one, and a table
+ * first line is as good as a tag), then the app's own text form (whose first
+ * line is a `=== trigger ===` header), then the untagged Espanso one, and a table
  * last of all. An untagged format must never be tried ahead of a tagged one,
  * because it has no way to say the file was not meant for it, and a table is
  * the loosest of them: almost any text has a comma in it.
@@ -39,6 +40,9 @@ object SnippetPayload {
 
         /** Gboard's personal dictionary export: its shortcuts, as snippets. */
         GBOARD,
+
+        /** The app's own plain-text form, `=== trigger ===` blocks ([SnippetText]). */
+        TEXT,
     }
 
     /**
@@ -138,6 +142,18 @@ object SnippetPayload {
             )
         }
         GboardDictionary.read(text)?.let { return gboard(it) }
+        // Its first line is a `=== trigger ===` header, as good as a tag, and
+        // no Espanso file or table starts with one.
+        if (SnippetText.looksLikeText(text)) {
+            val read = SnippetText.toImport(SnippetText.parse(text))
+            return Parsed(
+                snippets = read.snippets,
+                folders = read.folders,
+                notes = read.notes,
+                source = Source.TEXT,
+                suggestedName = fallbackName.substringBeforeLast('.').trim(),
+            )
+        }
         if (EspansoFile.looksLikeEspanso(text)) {
             val espanso = EspansoFile.read(text, fallbackName) ?: return null
             return Parsed(

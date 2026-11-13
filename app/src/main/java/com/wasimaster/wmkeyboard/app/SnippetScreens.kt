@@ -105,6 +105,7 @@ import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.core.content.ContentText
 import com.wasimaster.wmkeyboard.core.util.requireOutputStream
 import com.wasimaster.wmkeyboard.core.snippets.SnippetPayload
+import com.wasimaster.wmkeyboard.core.snippets.SnippetText
 import com.wasimaster.wmkeyboard.core.snippets.SnippetVariable
 import com.wasimaster.wmkeyboard.core.snippets.UppercaseStyle
 import com.wasimaster.wmkeyboard.ime.ui.ModeIcons
@@ -352,6 +353,31 @@ internal fun SnippetSettings(
         }
     }
 
+    val textExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument(SnippetText.MIME_TYPE),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val current = snippets
+        val currentFolders = folders
+        val header = listOf(
+            context.getString(R.string.expander_text_header_1),
+            context.getString(R.string.expander_text_header_2),
+        )
+        scope.launch {
+            val ok = withContext(Dispatchers.IO) {
+                runCancellable {
+                    val body = SnippetText.encode(current, currentFolders, header)
+                    context.contentResolver.requireOutputStream(uri).use { it.write(body.toByteArray()) }
+                }.isSuccess
+            }
+            message = if (ok) {
+                context.resources.getQuantityString(R.plurals.expander_saved_count, current.size, current.size)
+            } else {
+                context.getString(R.string.expander_export_error)
+            }
+        }
+    }
+
     val packageExportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument(EspansoWriter.PACKAGE_MIME_TYPE),
     ) { uri ->
@@ -544,6 +570,9 @@ internal fun SnippetSettings(
             onClick = { exportTarget = true },
             enabled = snippets.isNotEmpty(),
         ) { Text(stringResource(CommonR.string.common_export)) }
+        OutlinedButton(
+            onClick = { onNavigate(SNIPPETS_TEXT_ROUTE) },
+        ) { Text(stringResource(R.string.expander_text_action)) }
     }
     Spacer(Modifier.height(12.dp))
     // The pencil is the one way into every destructive or fiddly thing a list
@@ -693,6 +722,7 @@ internal fun SnippetSettings(
                 R.string.expander_source_espanso to R.string.expander_source_espanso_body,
                 R.string.expander_source_csv to R.string.expander_source_csv_body,
                 R.string.expander_source_gboard to R.string.expander_source_gboard_body,
+                R.string.expander_source_text to R.string.expander_source_text_body,
                 R.string.expander_source_url to R.string.expander_source_url_body,
             ),
             onDismiss = { importSource = false },
@@ -701,7 +731,7 @@ internal fun SnippetSettings(
                 expectTable = index == 2
                 when (index) {
                     0 -> importLauncher.launch(SnippetFile.IMPORT_MIME_TYPES)
-                    1, 2, 3 -> importLauncher.launch(SnippetPayload.IMPORT_MIME_TYPES)
+                    1, 2, 3, 4 -> importLauncher.launch(SnippetPayload.IMPORT_MIME_TYPES)
                     else -> urlPrompt = true
                 }
             },
@@ -715,6 +745,7 @@ internal fun SnippetSettings(
                 R.string.expander_target_native to R.string.expander_target_native_body,
                 R.string.expander_target_espanso to R.string.expander_target_espanso_body,
                 R.string.expander_target_package to R.string.expander_target_package_body,
+                R.string.expander_target_text to R.string.expander_target_text_body,
                 R.string.expander_target_community to R.string.expander_target_community_body,
             ),
             onDismiss = { exportTarget = false },
@@ -724,6 +755,7 @@ internal fun SnippetSettings(
                     0 -> exportLauncher.launch(SnippetFile.fileName())
                     1 -> espansoExportLauncher.launch(EspansoWriter.FILE_NAME)
                     2 -> packagePrompt = true
+                    3 -> textExportLauncher.launch(SnippetText.FILE_NAME)
                     else -> publishing = true
                 }
             },
@@ -1080,6 +1112,7 @@ private fun SnippetEspansoImportDialog(
                     when (parsed.source) {
                         SnippetPayload.Source.CSV -> R.plurals.expander_csv_import_title
                         SnippetPayload.Source.GBOARD -> R.plurals.expander_gboard_import_title
+                        SnippetPayload.Source.TEXT -> R.plurals.expander_text_import_title
                         else -> R.plurals.expander_espanso_import_title
                     },
                     parsed.snippets.size,

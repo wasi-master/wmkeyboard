@@ -590,6 +590,37 @@ class SnippetStore(private val storageFile: File?) {
         lookup = null
     }
 
+    /**
+     * Stores the whole list a [SnippetText.Plan] worked out, in its order:
+     * the folders it names that do not exist yet are made, new snippets get
+     * fresh ids and the links to them follow, and everything is normalised as
+     * [update] would. Returns the folders made, so an undo can take them away.
+     */
+    @Synchronized
+    fun replaceFromText(plan: SnippetText.Plan, now: Long = System.currentTimeMillis()): List<SnippetFolder> {
+        val made = plan.newFolders.map { addFolder(it, now = now) }
+        val ids = HashMap<Long, Long>()
+        for (snippet in plan.snippets) {
+            if (snippet.id > 0) continue
+            val id = freshId(nextId, now)
+            nextId = id + 1
+            ids[snippet.id] = id
+        }
+        val out = plan.snippets.map { snippet ->
+            val id = ids[snippet.id] ?: snippet.id
+            val folderId = if (snippet.folderId < 0) made.getOrNull((-snippet.folderId - 1).toInt())?.id ?: 0L else snippet.folderId
+            normalize(
+                snippet.copy(folderId = folderId, children = snippet.children.map { ids[it] ?: it }),
+                id = id,
+                createdAt = if (snippet.id > 0) snippet.createdAt else now,
+            )
+        }
+        snippets.clear()
+        snippets.addAll(out)
+        lookup = null
+        return made
+    }
+
     @Synchronized
     fun remove(id: Long) {
         if (!snippets.removeAll { it.id == id }) return

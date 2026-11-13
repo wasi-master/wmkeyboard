@@ -2410,11 +2410,18 @@ private fun foreignSnippetsProposal(
     context: android.content.Context,
 ): ImportProposal {
     val table = parsed.source == SnippetPayload.Source.CSV
+    val plain = parsed.source == SnippetPayload.Source.TEXT
     val folderName = parsed.suggestedName.trim()
     if (parsed.snippets.isEmpty()) {
         return ImportProposal(
             titleRes = R.string.import_espanso_title,
-            body = context.getString(if (table) R.string.import_csv_none else R.string.import_espanso_none),
+            body = context.getString(
+                when {
+                    plain -> R.string.import_text_none
+                    table -> R.string.import_csv_none
+                    else -> R.string.import_espanso_none
+                },
+            ),
             repairs = parsed.notes.map { it.resolve(context) },
             apply = null,
         )
@@ -2423,9 +2430,13 @@ private fun foreignSnippetsProposal(
         titlePluralRes = R.plurals.import_snippets_title,
         titleQuantity = parsed.snippets.size,
         body = context.getString(
-            if (table) R.string.import_csv_body else R.string.import_espanso_body,
+            when {
+                plain -> R.string.import_text_body
+                table -> R.string.import_csv_body
+                else -> R.string.import_espanso_body
+            },
             folderName.ifEmpty {
-                context.getString(if (table) R.string.import_csv_folder_fallback else R.string.import_espanso_folder_fallback)
+                context.getString(if (table || plain) R.string.import_csv_folder_fallback else R.string.import_espanso_folder_fallback)
             },
         ),
         repairs = parsed.notes.map { it.resolve(context) },
