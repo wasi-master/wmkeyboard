@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
@@ -588,6 +589,13 @@ internal class FloatingButton(
         // A shortcut button's own picture (#1213); a switch or a page has none.
         is FloatingAction.Custom -> com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.byId(action.id)
             ?.let { com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.icon(context, it, dp(sizeDp.toFloat())) }
+        // A category wearing an icon out of an installed icon pack (#1275).
+        is FloatingAction.Category -> setting.categoryOf(action)?.icon
+            ?.let(com.wasimaster.wmkeyboard.core.icons.SystemIconPacks::parseSource)
+            ?.let { (pkg, name) ->
+                com.wasimaster.wmkeyboard.core.icons.SystemIconPacks.drawable(context, pkg, name, dp(sizeDp.toFloat()))
+                    ?.asImageBitmap()
+            }
         else -> null
     }
 

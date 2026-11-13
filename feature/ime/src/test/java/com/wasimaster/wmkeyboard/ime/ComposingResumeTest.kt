@@ -317,4 +317,20 @@ class ComposingResumeTest {
         // A consonant and the kar hanging off it are one visual unit too.
         assertEquals(2, probhat.deleteLength("বাংলা"))
     }
+
+    @Test
+    fun `a mode's in-word characters join the word, first character included`() {
+        assertTrue(joinsAsModeWordChar('%', "%_"))
+        assertTrue(joinsAsModeWordChar('_', "%_"))
+        assertFalse(joinsAsModeWordChar('.', "%_"))
+        assertFalse("no mode, no extra characters", joinsAsModeWordChar('%', ""))
+    }
+
+    @Test
+    fun `a word holding one is a name, typed as it is`() {
+        assertTrue(holdsModeWordChar("%output_var", "%_"))
+        assertTrue(holdsModeWordChar("output_", "%_"))
+        assertFalse(holdsModeWordChar("output", "%_"))
+        assertFalse(holdsModeWordChar("%output", ""))
+    }
 }

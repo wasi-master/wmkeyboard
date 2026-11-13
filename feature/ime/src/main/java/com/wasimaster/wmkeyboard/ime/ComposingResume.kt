@@ -167,6 +167,23 @@ internal fun joinsComposingWord(c: Char, buffer: CharSequence): Boolean =
     c == COMPOUND_HYPHEN && buffer.isNotEmpty() && isComposingWordChar(buffer[buffer.length - 1])
 
 /**
+ * Whether a typed [c] is one of [extra], the in-word characters the active
+ * Keyboard Mode adds (`AutoTextSettings.wordChars`, competitor gap list item
+ * 34): `%` and `_` keep Tasker's `%output_var` one composing word rather than
+ * three pieces the app's input filter rejects. Anywhere in the word, first
+ * character included, since a Tasker variable starts with its `%`.
+ */
+internal fun joinsAsModeWordChar(c: Char, extra: String): Boolean = extra.isNotEmpty() && c in extra
+
+/**
+ * Whether [word] holds one of the mode's [extra] in-word characters. Such a
+ * word is a name the app defines, not a word of the language: nothing to
+ * complete, correct or learn, so it goes in exactly as typed.
+ */
+internal fun holdsModeWordChar(word: CharSequence, extra: String): Boolean =
+    extra.isNotEmpty() && word.any { it in extra }
+
+/**
  * The word a caret sitting between [before] and [after] is *inside*, split at
  * the caret into `(head, tail)`, or null when there is no such word.
  *

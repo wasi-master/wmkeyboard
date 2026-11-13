@@ -48,10 +48,10 @@ The keyboard watches a handful of coarse system broadcasts (battery low, battery
 ## What gets dropped
 
 <PhoneFrame side caption="The three drop cards: effects, typing helpers and background work.">
-  <Shot id="typing/power-saving-what-to-drop" alt="The What to drop group: fifteen independent switches." />
+  <Shot id="typing/power-saving-what-to-drop" alt="The What to drop group: seventeen independent switches." />
 </PhoneFrame>
 
-Power saving is fifteen independent switches plus one drop with no switch of its own, and a **What to drop** row above them that sets the fifteen as a bundle: **Light** (vibration, sounds, animations, moving themes, the glide trail, glass blur and the background watchers), **Balanced** (Light plus background fetches and the on-device models; the shipped default) or **Aggressive** (Balanced plus glide typing, emoji suggestions, smart chips, the floating button and loaded models). Change any switch by hand and the row reads **Custom**. Each switch defaults to whatever gives up the least for the most battery back.
+Power saving is seventeen independent switches plus one drop with no switch of its own, and a **What to drop** row above them that sets fifteen of them as a bundle: **Light** (vibration, sounds, animations, moving themes, the glide trail, glass blur and the background watchers), **Balanced** (Light plus background fetches and the on-device models; the shipped default) or **Aggressive** (Balanced plus glide typing, emoji suggestions, smart chips, the floating button and loaded models). Change any of those fifteen by hand and the row reads **Custom**. **Dark theme** and **Word suggestions** are in no bundle: picking one leaves them as you set them, and they don't make the row read Custom. Each switch defaults to whatever gives up the least for the most battery back.
 
 | Switch | Default | What it drops |
 |---|---|---|
@@ -60,9 +60,11 @@ Power saving is fifteen independent switches plus one drop with no switch of its
 | Animations | On | Every transition and motion effect (the same flag [Reduce motion](/accessibility/overview/#reducing-motion) uses), so it can end up on even if you never touched that toggle. |
 | Glide trail | On | Only the comet trail drawn behind a swipe. The swipe itself keeps decoding: see [Glide typing](/typing/glide-typing/). |
 | Glass blur | On | A [glass theme](/themes/glass/)'s blur of the app behind the keyboard and under its popups, which the system redraws every frame. The glass keeps its rim, grain and wallpaper or image backdrop, and the board stands on that backdrop instead. |
+| Dark theme | Off | Nothing is dropped: the keyboard wears Pitch black, a plain built-in theme of near-black keys on true black, which costs the least on an OLED screen and has no image, blur or motion to draw. Your own theme and your light and dark pair stay set and come back when saving ends. A [Keyboard Mode](/typing/modes/) with a theme of its own still wears that theme. Off by default because it changes how the keyboard looks. |
 | Moving themes | On | The parts of a theme that move: an animated background image shows as a still picture, a [moving background](/themes/editor/#moving-background) holds a single frame, and key lighting, the glow under your finger and press particles go. Colours, pictures and key finishes stay. Separate from Animations, so panels can keep their transitions while the theme stands still. |
 | Glide typing | Off | Swipe-to-type entirely. Left off by default: decoding a swipe is the most expensive thing the keyboard does, but it's also why many people installed it, so only the trail is dropped unless you opt into this too. |
 | Emoji suggestions | Off | Scanning what you type for emoji to suggest. Off by default: it's a dictionary look-up on a word you've already typed, and a strip that stops offering emoji reads as broken rather than as saving power. |
+| Word suggestions | Off | The words the strip offers to complete or predict, as if the Suggestions switch in Typing were off. Off by default for the same reason as emoji suggestions: a strip that goes blank reads as broken. |
 | Smart chips | Off | The calc, currency, unit and keyword chip family: see [Smart chips](/smart/chips/). Off by default for the same reason as emoji suggestions: a few pattern matches on the current word aren't where a battery goes. Clipboard's own entity detection (pulling codes, numbers and links out of what you copy) isn't affected either way. |
 | Background network | On | Unrequested fetches only: link previews for copied URLs and scanned QR codes, and the dictionary's look-up-on-selection. Tools you open by hand (translate, search, GIFs) still work. |
 | Screenshot watching | On | Watching the screenshot folder for new images to offer in the clipboard. |
@@ -95,7 +97,7 @@ The **Power saving** group holds the controls above:
 | Low battery is | 20% (5%–50% range) |
 | Off while charging | On |
 
-Below it the fifteen switches sit in three cards, shown at the Everything settings depth: **Effects to drop** (Key vibration, Key sounds, Animations, Glide trail, Glass blur, Moving themes), **Typing helpers to drop** (Glide typing, Emoji suggestions, Smart chips) and **Background work to drop** (Background network, Screenshot watching, On-device models, Media tool pin, Floating button, Loaded models). The key popup and the typing statistics are no longer droppable: the popup is cheap to draw and the counters are a few integer bumps per keystroke, so neither saved anything you could measure.
+Below it the seventeen switches sit in three cards, shown at the Everything settings depth: **Effects to drop** (Key vibration, Key sounds, Animations, Glide trail, Glass blur, Moving themes, Dark theme), **Typing helpers to drop** (Glide typing, Emoji suggestions, Smart chips, Word suggestions) and **Background work to drop** (Background network, Screenshot watching, On-device models, Media tool pin, Floating button, Loaded models). The key popup and the typing statistics are no longer droppable: the popup is cheap to draw and the counters are a few integer bumps per keystroke, so neither saved anything you could measure.
 
 ## Details & edge cases
 

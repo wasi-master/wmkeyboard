@@ -253,6 +253,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Schedule
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.School
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Science
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ScreenRotation
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StayCurrentPortrait
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DragHandle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
@@ -853,6 +854,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_floating_title) { Icons.Outlined.PictureInPicture }
         put(R.string.layout_floating_landscape_title) { Icons.Outlined.ScreenRotation }
         put(R.string.layout_landscape_fullscreen_title) { Icons.Outlined.ScreenRotation }
+        put(R.string.layout_portrait_fullscreen_title) { Icons.Outlined.StayCurrentPortrait }
         put(R.string.layout_floating_handle_title) { Icons.Outlined.DragHandle }
         put(R.string.layout_floating_width_title) { Icons.Outlined.Straighten }
         put(R.string.layout_floating_height_title) { Icons.Outlined.Height }
@@ -932,6 +934,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_editor_role_title) { Icons.Outlined.Tune }
         put(R.string.layout_editor_show_shift_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.layout_editor_tablet_expand_title) { Icons.Outlined.TabletAndroid }
+        put(R.string.layout_editor_hex_grid_title) { Icons.Outlined.Category }
         put(R.string.layout_editor_persist_title) { Icons.Outlined.PushPin }
         put(R.string.layout_editor_flick_hints_title) { Icons.Outlined.OpenWith }
         put(R.string.layout_editor_theme_title) { Icons.Outlined.Palette }
@@ -960,6 +963,7 @@ internal object SettingsRowIcons {
         put(R.string.modes_glide_title) { Icons.Outlined.Gesture }
         put(R.string.modes_two_thumb_title) { Icons.Outlined.TouchApp }
         put(R.string.modes_commit_as_typed_title) { Icons.Outlined.Terminal }
+        put(R.string.modes_word_chars_title) { Icons.Outlined.DataObject }
         put(R.string.modes_incognito_title) { Icons.Outlined.VisibilityOff }
         put(R.string.modes_key_sound_title) { Icons.AutoMirrored.Outlined.VolumeUp }
         put(R.string.modes_key_haptics_title) { Icons.Outlined.Vibration }
@@ -1614,6 +1618,8 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_power_drop_stats_title) { Icons.Outlined.QueryStats }
         put(R.string.tooldetail_power_drop_media_pin_title) { Icons.Outlined.PushPin }
         put(R.string.tooldetail_power_drop_moving_themes_title) { Icons.Outlined.Wallpaper }
+        put(R.string.tooldetail_power_dark_theme_title) { Icons.Outlined.DarkMode }
+        put(R.string.tooldetail_power_drop_suggestions_title) { Icons.Outlined.Lightbulb }
         put(R.string.tooldetail_power_drop_floating_button_title) { Icons.Outlined.Adjust }
         put(R.string.tooldetail_power_drop_warm_models_title) { Icons.Outlined.Memory }
 
@@ -2537,6 +2543,7 @@ internal object SettingsRowIcons {
         put(R.string.modes_hardware_keyboard_title) { Icons.Outlined.Keyboard }
         put(R.string.modes_screen_size_title) { Icons.Outlined.Devices }
         put(R.string.modes_one_handed_title) { SymbolIcons.MobileHandLeft }
+        put(R.string.modes_dark_mode_title) { Icons.Outlined.DarkMode }
         put(R.string.modes_bluetooth_title) { Icons.Outlined.Bluetooth }
         put(R.string.modes_field_empty_title) { Icons.Outlined.TextFields }
         put(R.string.modes_time_title) { Icons.Outlined.Schedule }

@@ -904,6 +904,10 @@ object AssetLayouts {
     const val EN_KASROZ_ID = "asset_en_kasroz"
     /** QWERTY's columns laid end to end on one row, read like Minuum's strip. */
     const val EN_ONE_ROW_ID = "asset_en_one_row"
+    /** QWERTY on a honeycomb ([LayoutSpec.grid] `"hex"`), p moved down to the home row. */
+    const val EN_HEX_QWERTY_ID = "asset_en_hex_qwerty"
+    /** The alphabet in order on an eight-cell honeycomb, for big keys. */
+    const val EN_HEX_ABC_ID = "asset_en_hex_abc"
     const val EN_SHAVIAN_ID = "asset_en_shavian"
     const val EN_SHAVIAN_TWO_LAYER_ID = "asset_en_shavian_two_layer"
     const val ENF_CYRILLIC_ID = "asset_enf_cyrillic"

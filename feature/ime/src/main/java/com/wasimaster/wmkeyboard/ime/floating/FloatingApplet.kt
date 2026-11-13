@@ -26,6 +26,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.edit
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.boxClosesOutside
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.KeyboardViewLifecycleOwner
 import com.wasimaster.wmkeyboard.ime.PanelMode
@@ -128,9 +130,10 @@ internal class FloatingApplet(
      * or swapping what an open one shows. False without the overlay grant, or
      * when Android refuses the window.
      */
-    fun open(panel: PanelMode, title: String, icon: ImageVector): Boolean {
+    fun open(panel: PanelMode, title: String, icon: ImageVector, tool: ToolbarTool? = null): Boolean {
         box.title = title
         box.icon = icon
+        box.tool = tool
         val current = view
         if (current != null) {
             box.panel = panel
@@ -440,7 +443,7 @@ internal class FloatingApplet(
      */
     private fun onOutsideTouch(event: MotionEvent) {
         if (box.tuckedLeft != null) return
-        if (!host.state.value.settings.summonButton.boxClosesOutside) return
+        if (!host.state.value.settings.boxClosesOutside(box.tool)) return
         val keys = ceilingPx
         if (keys != null && event.rawY >= keys) return
         close()

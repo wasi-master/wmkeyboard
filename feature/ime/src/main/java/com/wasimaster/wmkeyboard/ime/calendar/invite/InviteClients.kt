@@ -313,7 +313,7 @@ class PretixClient(server: String, private val token: String, private val organi
         }
         val made = created ?: throw InviteFailure(InviteFailure.Kind.NETWORK, "Pretix sent no event back")
         slug = made.optString("slug").ifBlank { slug }
-        val eventUrl = base().addPathSegment("events").addPathSegment(slug)
+        val eventUrl = base().addPathSegment("events").addPathSegment(slug).build()
         val item = JSONObject(
             call(
                 "POST",

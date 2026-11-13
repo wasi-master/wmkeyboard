@@ -213,6 +213,14 @@ val AppletTools: List<ToolbarTool> = listOf(
 /** Whether [this] opens in a floating box (#1155). */
 val ToolbarTool.floats: Boolean get() = this in AppletTools
 
+/**
+ * Whether a tap outside [tool]'s floating box closes it: the setting for every
+ * box, unless that tool is set apart from it (#1262). Null is a box whose tool
+ * is not known, which follows the setting.
+ */
+fun KeyboardSettings.boxClosesOutside(tool: ToolbarTool?): Boolean =
+    summonButton.boxClosesOutside != (tool != null && tool in toolbarBehavior.boxOutsideFlipped)
+
 /** A quick menu slot cannot open the menu it sits in, nor do nothing. */
 fun FloatingAction.fitsMenu(): Boolean = this != FloatingAction.None && this != FloatingAction.Menu
 

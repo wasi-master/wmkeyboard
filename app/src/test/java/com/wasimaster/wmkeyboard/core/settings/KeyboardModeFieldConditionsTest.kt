@@ -1,7 +1,9 @@
 package com.wasimaster.wmkeyboard.core.settings
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class KeyboardModeFieldConditionsTest {
@@ -52,6 +54,42 @@ class KeyboardModeFieldConditionsTest {
         val hand = KeyboardMode("m", "M", oneHanded = true)
         assertEquals("m", resolve(hand, ModeContext(oneHanded = true)))
         assertNull(resolve(hand))
+    }
+
+    @Test
+    fun `a dark-mode condition stands alone and reads both ways`() {
+        val night = KeyboardMode("m", "M", darkMode = true, keySound = false, keyHaptics = false)
+        assertTrue(night.hasDeviceCondition)
+        assertEquals("m", resolve(night, ModeContext(darkMode = true)))
+        assertNull(resolve(night, ModeContext(darkMode = false)))
+        val day = KeyboardMode("m", "M", darkMode = false)
+        assertEquals("m", resolve(day, ModeContext(darkMode = false)))
+        assertNull(resolve(day, ModeContext(darkMode = true)))
+        // On top of an app binding it is one more AND.
+        val app = KeyboardMode("m", "M", apps = listOf("a.b"), darkMode = true)
+        assertNull(resolve(app))
+        assertEquals("m", resolve(app, ModeContext(darkMode = true)))
+        // No condition at all leaves the mode manual-only, as before.
+        assertFalse(KeyboardMode("m", "M").hasDeviceCondition)
+    }
+
+    @Test
+    fun `quiet at night mutes the keys and nothing else`() {
+        val base = KeyboardSettings()
+        val night = KeyboardMode("m", "M", darkMode = true, keySound = false, keyHaptics = false)
+        val applied = base.applyMode(night)
+        assertFalse(applied.sound.enabled)
+        assertFalse(applied.haptics.enabled)
+        assertEquals(base.copy(sound = applied.sound, haptics = applied.haptics), applied)
+    }
+
+    @Test
+    fun `the dark-mode condition survives the codec and an old mode decodes it null`() {
+        val night = KeyboardMode("m", "M", darkMode = true)
+        assertEquals(night, KeyboardModeCodec.decodeList(KeyboardModeCodec.encodeList(listOf(night))).single())
+        val legacy = KeyboardModeCodec.encodeList(listOf(KeyboardMode("m", "M"))).replace(",\"darkMode\":null", "")
+        assertFalse(legacy.contains("darkMode"))
+        assertNull(KeyboardModeCodec.decodeList(legacy).single().darkMode)
     }
 
     @Test

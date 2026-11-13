@@ -76,6 +76,8 @@ fun LayoutSpec.compile(
         keymanFrames = resolved.keymanFrames.orEmpty(),
         direct = resolved.direct,
         digitPad = layer == LayoutLayer.SYMBOLS && carriesDigitPad(rows),
+        // Only a grid this layout wrote: a borrowed page keeps its rows.
+        hex = own != null && drawsHex(own),
     )
     compileCache[cacheKey] = this to built
     built
@@ -104,12 +106,16 @@ fun LayoutSpec.compileNamed(name: String): KeyboardLayout? = synchronized(namedC
         flickHints = resolved.flickHints,
         keymanFrames = resolved.keymanFrames.orEmpty(),
         direct = resolved.direct,
+        hex = drawsHex(resolved),
     )
     namedCompileCache[cacheKey] = this to built
     built
 }
 
 private val namedCompileCache = HashMap<Pair<String, String>, Pair<LayoutSpec, KeyboardLayout>>()
+
+/** Whether [layer] of this layout is a honeycomb: its own [LayerSpec.grid], else the layout's. */
+private fun LayoutSpec.drawsHex(layer: LayerSpec): Boolean = isHexGrid(layer.grid ?: grid)
 
 /**
  * This layout's appearance as it applies to one compiled layer: the layout's

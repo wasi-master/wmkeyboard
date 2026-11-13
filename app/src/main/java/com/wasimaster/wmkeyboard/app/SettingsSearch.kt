@@ -1211,6 +1211,12 @@ private fun SearchStrings.layoutRows(): List<SettingsSearchEntry> {
             R.string.home_keymaps_title,
             "keymaps",
         ),
+        entry(
+            R.string.layout_editor_hex_grid_title,
+            R.string.layout_editor_hex_grid_subtitle,
+            R.string.home_keymaps_title,
+            "keymaps",
+        ),
     )
 }
 
@@ -1264,6 +1270,7 @@ private fun SearchStrings.layoutOnehandedRows(): List<SettingsSearchEntry> {
         row(R.string.layout_floating_title, R.string.layout_floating_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.layout_floating_landscape_title, R.string.layout_floating_landscape_subtitle),
         row(R.string.layout_landscape_fullscreen_title, R.string.layout_landscape_fullscreen_subtitle),
+        row(R.string.layout_portrait_fullscreen_title, R.string.layout_portrait_fullscreen_subtitle),
         row(R.string.layout_floating_handle_title, R.string.layout_floating_handle_subtitle),
         row(R.string.layout_floating_width_title, R.string.layout_floating_width_subtitle),
         row(R.string.layout_persistent_title, R.string.layout_persistent_subtitle, weight = EntryWeight.PRIMARY),
@@ -2040,6 +2047,16 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         ToolbarTool.POWER_SAVING,
         R.string.tooldetail_power_drop_warm_models_title,
         R.string.tooldetail_power_drop_warm_models_subtitle,
+    ),
+    toolEntry(
+        ToolbarTool.POWER_SAVING,
+        R.string.tooldetail_power_dark_theme_title,
+        R.string.tooldetail_power_dark_theme_subtitle,
+    ),
+    toolEntry(
+        ToolbarTool.POWER_SAVING,
+        R.string.tooldetail_power_drop_suggestions_title,
+        R.string.tooldetail_power_drop_suggestions_subtitle,
     ),
     toolEntry(
         ToolbarTool.MEDIA_CONTROL,

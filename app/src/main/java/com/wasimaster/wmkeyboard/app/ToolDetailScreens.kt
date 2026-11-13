@@ -170,6 +170,7 @@ import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.settings.LauncherToolSettings
+import com.wasimaster.wmkeyboard.core.settings.boxClosesOutside
 import com.wasimaster.wmkeyboard.core.settings.floats
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.ToolBlocker
@@ -1958,6 +1959,15 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.powerSaving.dropMovingThemes,
                     ) { scope.launch { repository.setPowerSavingDropMovingThemes(it) } }
                 }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_power_dark_theme_title,
+                        stringResource(R.string.tooldetail_power_dark_theme_subtitle),
+                        settings.watch { it.powerSaving.darkTheme },
+                        info = stringResource(R.string.tooldetail_power_dark_theme_info),
+                        default = SettingsDefaults.powerSaving.darkTheme,
+                    ) { scope.launch { repository.setPowerSavingDarkTheme(it) } }
+                }
             }
             SettingsGroup(stringResource(R.string.tooldetail_power_drop_helpers_group), level = SettingLevel.ADVANCED) {
                 item {
@@ -1984,6 +1994,15 @@ internal fun ToolDetailSettings(
                         settings.watch { it.powerSaving.dropSmartChips },
                         default = SettingsDefaults.powerSaving.dropSmartChips,
                     ) { scope.launch { repository.setPowerSavingDropSmartChips(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_power_drop_suggestions_title,
+                        stringResource(R.string.tooldetail_power_drop_suggestions_subtitle),
+                        settings.watch { it.powerSaving.dropSuggestions },
+                        info = stringResource(R.string.tooldetail_power_drop_suggestions_info),
+                        default = SettingsDefaults.powerSaving.dropSuggestions,
+                    ) { scope.launch { repository.setPowerSavingDropSuggestions(it) } }
                 }
             }
             SettingsGroup(stringResource(R.string.tooldetail_power_drop_background_group), level = SettingLevel.ADVANCED) {
@@ -3842,6 +3861,16 @@ internal fun ToolDetailSettings(
                 checked = settings.watch { tool in it.toolbarBehavior.floatOnTap },
                 onChange = { scope.launch { repository.setToolFloatsOnTap(tool, it) } },
                 default = false,
+            )
+        }
+        // This tool's box on a tap outside it (#1262), set apart from every other box's.
+        item(visible = tool.floats) {
+            ToggleSetting(
+                title = R.string.tooldetail_box_close_outside_title,
+                subtitle = stringResource(R.string.tooldetail_box_close_outside_subtitle),
+                checked = settings.watch { it.boxClosesOutside(tool) },
+                onChange = { scope.launch { repository.setToolBoxClosesOutside(tool, it) } },
+                default = settings.watch { it.summonButton.boxClosesOutside },
             )
         }
     }
