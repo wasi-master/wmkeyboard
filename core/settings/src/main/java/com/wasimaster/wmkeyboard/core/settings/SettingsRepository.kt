@@ -12546,6 +12546,10 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("power_saving_drop_moving_themes")
         private val PS_DROP_WARM_MODELS =
             booleanPreferencesKey("power_saving_drop_warm_models")
+        private val PS_DARK_THEME =
+            booleanPreferencesKey("power_saving_dark_theme")
+        private val PS_DROP_SUGGESTIONS =
+            booleanPreferencesKey("power_saving_drop_suggestions")
         private val DS_MANUAL = booleanPreferencesKey("data_saver_manual")
         private val DS_TRIGGER = stringPreferencesKey("data_saver_trigger")
         private val DS_LINK_PREVIEWS = stringPreferencesKey("data_saver_link_previews")
@@ -16138,6 +16142,10 @@ class SettingsRepository(private val context: Context) {
                 p[PS_DROP_MOVING_THEMES] ?: defaults.powerSaving.dropMovingThemes,
             dropWarmModels =
                 p[PS_DROP_WARM_MODELS] ?: defaults.powerSaving.dropWarmModels,
+            darkTheme =
+                p[PS_DARK_THEME] ?: defaults.powerSaving.darkTheme,
+            dropSuggestions =
+                p[PS_DROP_SUGGESTIONS] ?: defaults.powerSaving.dropSuggestions,
         )
 
     private fun readRateSources(p: Preferences, defaults: KeyboardSettings) =
@@ -23604,6 +23612,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPowerSavingDropWarmModels(value: Boolean) =
         editPrefs { it[PS_DROP_WARM_MODELS] = value }
+
+    suspend fun setPowerSavingDarkTheme(value: Boolean) =
+        editPrefs { it[PS_DARK_THEME] = value }
+
+    suspend fun setPowerSavingDropSuggestions(value: Boolean) =
+        editPrefs { it[PS_DROP_SUGGESTIONS] = value }
 
     // ---- data saving ----
 

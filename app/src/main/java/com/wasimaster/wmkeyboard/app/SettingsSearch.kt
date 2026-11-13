@@ -2040,6 +2040,16 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         R.string.tooldetail_power_drop_warm_models_subtitle,
     ),
     toolEntry(
+        ToolbarTool.POWER_SAVING,
+        R.string.tooldetail_power_dark_theme_title,
+        R.string.tooldetail_power_dark_theme_subtitle,
+    ),
+    toolEntry(
+        ToolbarTool.POWER_SAVING,
+        R.string.tooldetail_power_drop_suggestions_title,
+        R.string.tooldetail_power_drop_suggestions_subtitle,
+    ),
+    toolEntry(
         ToolbarTool.MEDIA_CONTROL,
         R.string.tooldetail_mediactl_pin_title,
         R.string.tooldetail_mediactl_pin_subtitle,

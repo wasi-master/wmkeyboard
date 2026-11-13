@@ -1958,6 +1958,15 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.powerSaving.dropMovingThemes,
                     ) { scope.launch { repository.setPowerSavingDropMovingThemes(it) } }
                 }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_power_dark_theme_title,
+                        stringResource(R.string.tooldetail_power_dark_theme_subtitle),
+                        settings.watch { it.powerSaving.darkTheme },
+                        info = stringResource(R.string.tooldetail_power_dark_theme_info),
+                        default = SettingsDefaults.powerSaving.darkTheme,
+                    ) { scope.launch { repository.setPowerSavingDarkTheme(it) } }
+                }
             }
             SettingsGroup(stringResource(R.string.tooldetail_power_drop_helpers_group), level = SettingLevel.ADVANCED) {
                 item {
@@ -1984,6 +1993,15 @@ internal fun ToolDetailSettings(
                         settings.watch { it.powerSaving.dropSmartChips },
                         default = SettingsDefaults.powerSaving.dropSmartChips,
                     ) { scope.launch { repository.setPowerSavingDropSmartChips(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_power_drop_suggestions_title,
+                        stringResource(R.string.tooldetail_power_drop_suggestions_subtitle),
+                        settings.watch { it.powerSaving.dropSuggestions },
+                        info = stringResource(R.string.tooldetail_power_drop_suggestions_info),
+                        default = SettingsDefaults.powerSaving.dropSuggestions,
+                    ) { scope.launch { repository.setPowerSavingDropSuggestions(it) } }
                 }
             }
             SettingsGroup(stringResource(R.string.tooldetail_power_drop_background_group), level = SettingLevel.ADVANCED) {

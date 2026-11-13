@@ -410,6 +410,12 @@
     <string name="tooldetail_power_drop_warm_models_title">Loaded models</string>
     <string name="tooldetail_power_drop_warm_models_subtitle">Unload them 15 seconds after the keyboard hides, not 2 minutes</string>
     <string name="tooldetail_power_drop_warm_models_info">After the keyboard has been hidden for a while, it unloads the models that it loaded: the language model, voice typing, the translator, text scanning and the rest. This shortens that wait. A loaded model costs memory more than battery, and loading it again for the next field is the part that uses battery, so this is off unless memory is what you are short of. The Resources screen in About shows what is loaded now.</string>
+    <string name="tooldetail_power_dark_theme_title">Dark theme</string>
+    <string name="tooldetail_power_dark_theme_subtitle">Show Pitch black, a plain dark theme, while power saving is on</string>
+    <string name="tooldetail_power_dark_theme_info">Black keys on a black background use the least power on an OLED screen, and this theme has no image, blur or motion to draw. Your own theme and your light and dark pair are not changed. They come back when power saving stops. A Keyboard Mode that has its own theme keeps that theme. This setting is off by default and no bundle turns it on.</string>
+    <string name="tooldetail_power_drop_suggestions_title">Word suggestions</string>
+    <string name="tooldetail_power_drop_suggestions_subtitle">Hide the word suggestions in the strip</string>
+    <string name="tooldetail_power_drop_suggestions_info">The strip stops offering words to complete or predict, the same as the Suggestions switch in Typing set to off. This setting is off by default and no bundle turns it on.</string>
     <string name="tooldetail_power_drop_floating_button_title">Floating button</string>
     <string name="tooldetail_power_drop_floating_button_subtitle">Hide the button drawn over other apps</string>
     <string name="tooldetail_power_drop_floating_button_info">The floating button is a small window that Android draws over every app. It comes back where you left it when power saving ends. With this off, the button stays, and Animations still stops its quick menu from animating.</string>

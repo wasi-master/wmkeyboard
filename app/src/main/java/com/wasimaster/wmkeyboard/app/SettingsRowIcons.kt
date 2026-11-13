@@ -1611,6 +1611,8 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_power_drop_stats_title) { Icons.Outlined.QueryStats }
         put(R.string.tooldetail_power_drop_media_pin_title) { Icons.Outlined.PushPin }
         put(R.string.tooldetail_power_drop_moving_themes_title) { Icons.Outlined.Wallpaper }
+        put(R.string.tooldetail_power_dark_theme_title) { Icons.Outlined.DarkMode }
+        put(R.string.tooldetail_power_drop_suggestions_title) { Icons.Outlined.Lightbulb }
         put(R.string.tooldetail_power_drop_floating_button_title) { Icons.Outlined.Adjust }
         put(R.string.tooldetail_power_drop_warm_models_title) { Icons.Outlined.Memory }
 
