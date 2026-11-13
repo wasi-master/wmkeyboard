@@ -12,8 +12,8 @@ import Shot from '@components/Shot.astro';
 
 About has its own group on the Settings home screen: one tap gets you the build you're running, every licence bundled into the app, and a diagnostics screen for pulling a shareable report when something needs debugging.
 
-<PhoneFrame caption="The About screen: App, Updates, Data and diagnostics, Community, Feedback, Settings app, Documentation, Share, Third party, and Word lists groups.">
-  <Shot id="reference/settings/about-screen" alt="The About screen: App, Updates, Data and diagnostics, Community, Feedback, Settings app, Documentation, Share, Third party, and Word lists groups." />
+<PhoneFrame caption="The About screen: Community, App, Updates, Data and diagnostics, Feedback, Settings app, Documentation, Share, Third party, and Word lists groups.">
+  <Shot id="reference/settings/about-screen" alt="The About screen: Community, App, Updates, Data and diagnostics, Feedback, Settings app, Documentation, Share, Third party, and Word lists groups." />
 </PhoneFrame>
 
 ## Joining the community
@@ -62,7 +62,7 @@ Something a model wrote isn't a bug in the app, and it has its own button. See [
 
 ## Checking version, licence, and source
 
-The **App** group, at the top of the screen, holds five rows:
+The **App** group, under Community, holds five rows:
 
 - **Version** shows the build, build type and store channel as its subtitle ("Standard build (release · Play Store)", "Standard build (release · F-Droid)", or "Offline build (release)" for the GitHub build with no internet permission), with the build number after "code," and the version name as the row's trailing value. A second line names the commit the build was made from and that commit's date ("Commit ca9cd11053 · 2026-11-14"), so a screenshot of the row says exactly which source a bug report is about. Builds made without git, such as from a source tarball, leave that line out. It navigates nowhere, but it isn't quite inert. Tap it seven times and you get [the hidden mini game](/reference/easter-eggs/#find-the-hidden-mini-game), with a toast counting you down from the fourth tap.
 - **What's new** opens the release notes of the version you have installed, on every build. See [Reading what changed](#reading-what-changed).
@@ -86,7 +86,7 @@ The **Data and diagnostics** group, right under the updates, gathers the screens
 
 ## Shaping the settings app
 
-The **Settings app** group sits further down, under Community and Feedback, because its rows are set once and rarely touched again. The two launcher switches come last.
+The **Settings app** group sits further down, under Feedback, because its rows are set once and rarely touched again. The two launcher switches come last.
 
 - **App language** picks the language the app's menus and settings are shown in, separate from your phone's. See [Changing the app's language](#changing-the-apps-language).
 - **How you set the keyboard up** shows the two answers you gave the setup wizard, as *depth · languages*. "A good middle · Several languages", for instance, or "Not answered" if you skipped it. Depth is one of Keep it simple, A good middle, or Show me everything, and languages is One language or Several languages. These aren't decoration. They still decide how many tools get pinned, how the theme gallery is laid out, how much of the settings app shows until you pick a depth yourself, and which pages the wizard would show you. Tapping the row opens the wizard at that first question.

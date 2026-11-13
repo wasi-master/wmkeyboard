@@ -1565,6 +1565,22 @@ internal fun AboutSettings(
     // Read outside the click handlers: they are plain lambdas, not composables.
     val bugReportSubject = stringResource(R.string.about_bug_report_email_subject)
 
+    SettingsGroup(
+        stringResource(R.string.about_community_title),
+        info = stringResource(R.string.about_community_body),
+    ) {
+        item { TelegramRow { uriHandler.openUri(Support.TELEGRAM_URL) } }
+        item { SocialStrip() }
+        item {
+            NavRow(
+                R.string.about_supporters_title,
+                stringResource(R.string.about_supporters_subtitle),
+                route = "supporters",
+                onClick = onOpenSupporters,
+            )
+        }
+    }
+
     // The version row's Android-style secret: seven taps open the keycap
     // catcher. The counter never leaves this screen, and the row keeps
     // looking like the inert fact it is the other 6 taps.
@@ -1732,22 +1748,6 @@ internal fun AboutSettings(
                 stringResource(R.string.about_debug_info_subtitle),
                 route = "debug_info",
                 onClick = onOpenDebugInfo,
-            )
-        }
-    }
-
-    SettingsGroup(
-        stringResource(R.string.about_community_title),
-        info = stringResource(R.string.about_community_body),
-    ) {
-        item { TelegramRow { uriHandler.openUri(Support.TELEGRAM_URL) } }
-        item { SocialStrip() }
-        item {
-            NavRow(
-                R.string.about_supporters_title,
-                stringResource(R.string.about_supporters_subtitle),
-                route = "supporters",
-                onClick = onOpenSupporters,
             )
         }
     }
