@@ -60,7 +60,12 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.Constraints
+import kotlin.math.roundToInt
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.wasimaster.wmkeyboard.core.settings.activeThemeSpec
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
@@ -121,9 +126,9 @@ import kotlinx.coroutines.isActive
  * title bar is exactly what full screen is meant to lose.
  */
 @Composable
-internal fun KeycapCatcherScreen(onBack: () -> Unit) {
+internal fun KeycapCatcherScreen(settings: LiveSettings, onBack: () -> Unit) {
     ImmersiveWhileShown()
-    KeycapCatcherGame(onClose = onBack, modifier = Modifier.fillMaxSize())
+    KeycapCatcherGame(settings, onClose = onBack, modifier = Modifier.fillMaxSize())
 }
 
 /** Hides the system bars and keeps the screen on for as long as the game is composed. */
@@ -234,7 +239,7 @@ private fun wordFor(level: Int, previous: String?): String {
 }
 
 @Composable
-private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier) {
+private fun KeycapCatcherGame(settings: LiveSettings, onClose: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalView.current.context
     val eggPrefs = remember { EggPrefs(context) }
     val haptics = LocalHapticFeedback.current
@@ -253,6 +258,14 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
     var frame by remember { mutableLongStateOf(0L) }
     var areaSize by remember { mutableStateOf(IntSize.Zero) }
     val world = remember { GameWorld() }
+
+    // The paddle is the keyboard's own space bar: the theme showing now, the
+    // auto pair's due half included, or Default's look from the app's colours.
+    val systemDark = isSystemInDarkTheme()
+    val keyboardTheme = settings.watch {
+        it.activeThemeSpec(if (it.autoTheme.enabled) it.autoDarkSlotNow() else systemDark)
+    } ?: remember(scheme) { defaultThemeLookalike(scheme) }
+    val keyCornerDp = settings.watch { it.keyCornerRadiusDp }
 
     val multiplier = (1 + combo / COMBO_STEP).coerceAtMost(MAX_MULTIPLIER)
 
@@ -549,6 +562,28 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
                 .systemGestureExclusion(),
         )
 
+        // The paddle: the current theme's space bar, placed where the loop
+        // says each frame. Under the canvas, so keys and sparks fly over it.
+        ThemeSpaceBar(
+            keyboardTheme,
+            fallbackCornerDp = keyCornerDp,
+            modifier = Modifier
+                .fillMaxSize()
+                .layout { measurable, constraints ->
+                    // Read on purpose: re-runs this placement every frame, without recomposing.
+                    frame
+                    val barW = (catcherW * world.catcherWidthNow).roundToInt().coerceAtLeast(1)
+                    val barH = catcherH.roundToInt()
+                    val placeable = measurable.measure(Constraints.fixed(barW, barH))
+                    layout(constraints.maxWidth, constraints.maxHeight) {
+                        placeable.place(
+                            (catcherX * constraints.maxWidth - barW / 2f).roundToInt(),
+                            (constraints.maxHeight - bottomMargin - catcherH).roundToInt(),
+                        )
+                    }
+                },
+        )
+
         Canvas(Modifier.fillMaxSize()) {
             // Read on purpose: this is what ties the draw pass to the loop.
             frame
@@ -596,23 +631,12 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
                     }
                 }
 
-                // The spacebar.
                 val barW = catcherW * world.catcherWidthNow
                 val barLeft = catcherX * size.width - barW / 2
                 val barTop = size.height - bottomMargin - catcherH
-                val barCorner = CornerRadius(catcherH / 2)
-                drawRoundRect(
-                    Color.Black.copy(alpha = 0.25f),
-                    topLeft = Offset(barLeft, barTop + depthPx),
-                    size = Size(barW, catcherH),
-                    cornerRadius = barCorner,
-                )
-                drawRoundRect(
-                    if (world.wideLeft > 0f) scheme.tertiary else scheme.primary,
-                    topLeft = Offset(barLeft, barTop),
-                    size = Size(barW, catcherH),
-                    cornerRadius = barCorner,
-                )
+                // The bar itself is the ThemeSpaceBar under this canvas; only its
+                // catch flash and the wide-bar timer are drawn here, over it.
+                val barCorner = CornerRadius(catcherH / 3)
                 if (world.glow > 0f) {
                     drawRoundRect(
                         Color.White.copy(alpha = 0.45f * world.glow),
@@ -1001,7 +1025,7 @@ private val GoldKey = Color(0xFFFFC94D)
 private val GoldInk = Color(0xFF3A2A00)
 private val CapSize = 46.dp
 private val CatcherWidth = 120.dp
-private val CatcherHeight = 22.dp
+private val CatcherHeight = 32.dp
 
 private const val START_LIVES = 3
 private const val MAX_LIVES = 5

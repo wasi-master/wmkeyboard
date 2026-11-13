@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
 import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.LocalContentColor
 import com.wasimaster.wmkeyboard.ime.ui.rememberIconFile
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
@@ -2775,17 +2776,7 @@ private fun VariantSwatchRow(
 private fun DefaultThemeCard(selected: Boolean, onSelect: () -> Unit) {
     // Preview approximated from the app's own Material scheme.
     val scheme = MaterialTheme.colorScheme
-    val preview = remember(scheme) {
-        themeFromSeed("preview_default", "Default", scheme.primary.argb(), dark = false).copy(
-            boardBackground = scheme.surfaceContainerLow.argb(),
-            keyBackground = scheme.surfaceContainerHighest.argb(),
-            keyText = scheme.onSurface.argb(),
-            modifierKeyBackground = scheme.surfaceContainerHigh.argb(),
-            enterKeyBackground = scheme.primary.argb(),
-            enterKeyText = scheme.onPrimary.argb(),
-            accent = scheme.primary.argb(),
-        )
-    }
+    val preview = remember(scheme) { defaultThemeLookalike(scheme) }
     Row(modifier = Modifier.padding(horizontal = 12.dp)) {
         Box(modifier = Modifier.weight(1f)) {
             ThemeCard(
@@ -2801,6 +2792,23 @@ private fun DefaultThemeCard(selected: Boolean, onSelect: () -> Unit) {
         Spacer(Modifier.weight(1f))
     }
 }
+
+/**
+ * The Default theme approximated as a spec from the app's own Material
+ * scheme. Default has no spec of its own (the keyboard derives it from the
+ * scheme), so anything that draws "the current theme" outside the keyboard,
+ * its gallery card and the keycap catcher's paddle, starts from this.
+ */
+internal fun defaultThemeLookalike(scheme: ColorScheme): ThemeSpec =
+    themeFromSeed("preview_default", "Default", scheme.primary.argb(), dark = false).copy(
+        boardBackground = scheme.surfaceContainerLow.argb(),
+        keyBackground = scheme.surfaceContainerHighest.argb(),
+        keyText = scheme.onSurface.argb(),
+        modifierKeyBackground = scheme.surfaceContainerHigh.argb(),
+        enterKeyBackground = scheme.primary.argb(),
+        enterKeyText = scheme.onPrimary.argb(),
+        accent = scheme.primary.argb(),
+    )
 
 /** A theme card's outline, which its selection ring follows. */
 private val ThemeCardShape = RoundedCornerShape(14.dp)

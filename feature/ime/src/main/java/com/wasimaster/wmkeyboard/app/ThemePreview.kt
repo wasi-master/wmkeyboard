@@ -839,6 +839,55 @@ private fun AnimatedThemeBadge(theme: ThemeSpec, modifier: Modifier = Modifier) 
     }
 }
 
+/**
+ * The theme's space bar on its own, at whatever size it is given: the same
+ * face, skin, material, border and texture the mock-up draws, with a
+ * `SPACE` single-key style laid over it the way the keyboard lays one.
+ *
+ * For drawing the space bar somewhere that is not a keyboard: the keycap
+ * catcher's paddle is this, so the hidden game wears the board's own key.
+ * Glass is left out: there is no backdrop behind it to frost.
+ *
+ * [fallbackCornerDp] is the global key-corner setting, which the theme's
+ * own radius overrides when it has one, as on the keyboard.
+ */
+@Composable
+fun ThemeSpaceBar(theme: ThemeSpec, modifier: Modifier = Modifier, fallbackCornerDp: Int = 8) {
+    val shown = rememberWallpaperFollowed(theme)
+    val override = shown.keyOverrides[SPACE_OVERRIDE_ID]
+    val styled = override?.border?.let { shown.copy(keyBorderColor = it) } ?: shown
+    val radius = shown.actionKeyCornerRadiusDp ?: shown.keyCornerRadiusDp ?: fallbackCornerDp
+    val shape = remember(shown.keyShape, radius) { keyShapeFor(shown.keyShape, radius) }
+    val texturePath = (override?.texture ?: shown.keyTextureSpace ?: shown.keyTexture)
+        ?.takeIf { shown.keyShape != KeyShapeKind.NONE }
+    val texture by produceState<ImageBitmap?>(null, texturePath) {
+        value = texturePath?.let {
+            BackgroundBitmapCache.load(it, 0f, SPACE_TEXTURE_PX, SPACE_TEXTURE_PX / 4)?.asImageBitmap()
+        }
+    }
+    Box(
+        modifier.previewKeyFace(styled, override?.background ?: shown.keyBackground, shape, slot = SkinSlotName.SPACE),
+    ) {
+        texture?.let {
+            Image(
+                bitmap = it,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .matchParentSize()
+                    .clip(shape)
+                    .alpha(shown.keyTextureOpacity),
+            )
+        }
+    }
+}
+
+/** The single-key style id the keyboard looks the space bar up by. */
+private const val SPACE_OVERRIDE_ID = "SPACE"
+
+/** Decode width for [ThemeSpaceBar]'s texture: a space bar is wide and short. */
+private const val SPACE_TEXTURE_PX = 512
+
 /** One row of the mock-up keyboard. Every row is the same height. */
 @Composable
 private fun ColumnScope.PreviewKeyRow(content: @Composable RowScope.() -> Unit) {
