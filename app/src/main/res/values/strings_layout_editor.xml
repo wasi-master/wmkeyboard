@@ -837,8 +837,8 @@
     <string name="layout_editor_preview_field_text">Ordinary text</string>
     <string name="layout_editor_preview_field_email">Email address</string>
     <string name="layout_editor_preview_field_web">Web address</string>
-    <string name="layout_editor_preview_field_email_caption">In an email address field the keyboard changes two keys on this layer. The comma key types @, and the press and hold of the full stop starts with .com and the other endings. To keep a key as you made it, open the key and set Field adaptation, under More, to Exactly as laid out.</string>
-    <string name="layout_editor_preview_field_web_caption">In a web address field, such as the address bar of a browser, the keyboard changes keys on this layer. The comma key keeps its comma but its press and hold, and its corner hint, start with /. The full stop gets .com and the other endings, and enter shows Go. To keep a key as you made it, open the key and set Field adaptation, under More, to Exactly as laid out.</string>
+    <string name="layout_editor_preview_field_email_caption">In an email address field the keyboard changes two keys on this layer. The comma key types @, keeping the actions on its press and hold, and the press and hold of the full stop starts with .com and the other endings. To keep a key as you made it, open the key and set Field adaptation, under More, to Exactly as laid out.</string>
+    <string name="layout_editor_preview_field_web_caption">In a web address field, such as the address bar of a browser, the keyboard changes keys on this layer. The comma key keeps its comma but its press and hold, and its corner hint, start with /, ahead of the ones you gave it. The full stop gets .com and the other endings, and enter shows Go. To keep a key as you made it, open the key and set Field adaptation, under More, to Exactly as laid out.</string>
     <!-- Heading of the group of settings for the layer on screen. %1$s is the layer's name. -->
     <string name="layout_editor_layer_section_title">This layer: <xliff:g id="layer" example="Letters">%1$s</xliff:g></string>
     <string name="layout_editor_layout_section_title">The whole layout</string>

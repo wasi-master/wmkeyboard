@@ -24666,13 +24666,20 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                 // email box needs its @ more than a shortcut to emoji.
                 // Everything the slot decides about itself — width, span, label
                 // scale — survives; everything about the character it used to
-                // type is replaced, icons and flicks included.
+                // type is replaced, icons and flicks included. The actions the
+                // user put on its hold (Clipboard, Emoji, Switch layout) are not
+                // about the character and stay; a web address field, whose key
+                // still types a comma, keeps the user's own hold characters
+                // after the address ones too.
                 fieldKey != null && role == KeyRole.Comma -> key.copy(
                     label = fieldKey.first,
                     output = null,
                     shiftLabel = null,
-                    longPress = fieldKey.second,
-                    actionAlternates = emptyList(),
+                    longPress = if (fieldKey.first == ",") {
+                        (fieldKey.second + key.longPress.filterNot { it == "," }).distinct()
+                    } else {
+                        fieldKey.second
+                    },
                     icon = null,
                     iconHint = null,
                     hint = null,

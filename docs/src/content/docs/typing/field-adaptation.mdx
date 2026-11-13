@@ -35,6 +35,8 @@ Email and URL fields keep the ordinary letter layout, since you're typing words 
 - **Email fields** (`FieldKind.EMAIL`): the comma key becomes <KeyCap>@</KeyCap>, and the period key's long-press gains domain endings ahead of its usual alternates: `.com`, `.net`, `.org`, `.edu`, `.co`.
 - **URL fields** (`FieldKind.URI`): the comma key stays a comma, since a browser's address bar doubles as its search box, but its long-press becomes `/`, `?`, `#`, `&`, `=`, and the period key's long-press gains `.com`, `.org`, `.net`, `www.`, `https://`, `/`.
 
+Actions you added to the comma key's press and hold in the layout editor (Clipboard, Emoji, Switch layout and the rest) stay on it in both kinds of field. In a URL field, where the key still types a comma, the characters you gave its press and hold also stay, after the address ones.
+
 The swap only touches the bottom row on purpose. A Dvorak layout has real `.` and `,` letter keys elsewhere on the board, and those stay untouched. It's scoped to the letters layer as well, so switching to the symbols page shows the normal punctuation. Like field detection itself, this has no toggle in settings. It's on whenever the field kind matches.
 
 ## Typing in number, phone, date, and time fields
