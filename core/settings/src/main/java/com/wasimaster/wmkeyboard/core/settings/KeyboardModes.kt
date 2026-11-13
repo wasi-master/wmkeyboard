@@ -386,6 +386,17 @@ data class KeyboardMode(
      */
     val commitAsTyped: Boolean? = null,
     /**
+     * Extra characters that stay inside the composing word while active, as
+     * typed in the editor; empty adds none. `%_` keeps Tasker's `%output_var`
+     * one word instead of three pieces that commit apart and that the app's
+     * input filter rejects (competitor gap list item 34, LeanType's "allow
+     * symbol composing"). A word holding one goes in exactly as typed: it is a
+     * name the app defines, not a word to complete, correct or learn.
+     * Read through [modeWordChars], which drops what is already a word
+     * character or never could be one.
+     */
+    val wordChars: String = "",
+    /**
      * Incognito while active (#1025): no learning and whatever else incognito
      * pauses, for a mode bound to a work app or a shared device's browser. It can
      * only add: a mode that could switch off the incognito the user turned on by
@@ -1027,6 +1038,16 @@ fun KeyboardSettings.modesOverridingRow(row: BarRow): List<KeyboardMode> {
 }
 
 /**
+ * [raw], a mode's [KeyboardMode.wordChars] as typed, reduced to the characters
+ * it can add: each once, in the order typed, with letters, digits and
+ * whitespace dropped. Letters and digits already belong to a word, and a space
+ * that joined words would leave nothing to end one.
+ */
+fun modeWordChars(raw: String): String =
+    raw.filterNot { it.isLetterOrDigit() || it.isWhitespace() || it.isISOControl() }
+        .toList().distinct().joinToString("")
+
+/**
  * Manual pick meaning "no mode at all": the Modes tool's None row. Unlike a
  * null pick (automatic), it also silences the modes whose app and field
  * bindings match, until the pick is cleared like any other.
@@ -1108,7 +1129,8 @@ fun KeyboardSettings.applyMode(mode: KeyboardMode?): KeyboardSettings {
         autoText = autoText
             .let { t -> mode.autoCapitalize?.let { t.copy(capitalize = it) } ?: t }
             .let { t -> mode.autoSpace?.let { t.copy(spaceAfterPunctuation = it) } ?: t }
-            .let { t -> mode.commitAsTyped?.let { t.copy(commitAsTyped = it) } ?: t },
+            .let { t -> mode.commitAsTyped?.let { t.copy(commitAsTyped = it) } ?: t }
+            .let { t -> modeWordChars(mode.wordChars).takeIf { it.isNotEmpty() }?.let { t.copy(wordChars = it) } ?: t },
         suggestions = mode.suggestions ?: suggestions,
         incognito = incognito || mode.incognito,
         sound = mode.keySound?.let { sound.copy(enabled = it) } ?: sound,

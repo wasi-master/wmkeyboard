@@ -3145,6 +3145,14 @@ data class AutoTextSettings(
      * [KeyboardMode.commitAsTyped]; never stored, so it has no key of its own.
      */
     val commitAsTyped: Boolean = false,
+    /**
+     * Characters that count as part of a word, on top of letters and the
+     * apostrophe, so the composing word does not end at them: `%` and `_` for
+     * a Tasker variable (competitor gap list item 34). Only ever set by a
+     * keyboard mode's [KeyboardMode.wordChars], already cleaned by
+     * [modeWordChars]; never stored, so it has no key of its own.
+     */
+    val wordChars: String = "",
     /** Fix missing apostrophes on commit: arent → aren't, im → I'm. */
     val apostrophe: Boolean = true,
     /** Capitalize the first letter of a sentence. */

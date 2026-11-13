@@ -14697,6 +14697,14 @@ open class WMKeyboardService : InputMethodService() {
                     joinsComposingWord(text[0], composing) &&
                         !state.composer.isTransliterating &&
                         !state.layouts.ambiguousKeys
+                    ) ||
+                (
+                    // The in-word characters the active mode names (gap list
+                    // item 34): `%` and `_` keep a Tasker variable one word.
+                    // Same boards as the hyphen, for the same reason.
+                    joinsAsModeWordChar(text[0], state.settings.autoText.wordChars) &&
+                        !state.composer.isTransliterating &&
+                        !state.layouts.ambiguousKeys
                     )
             )
         val isWordChar = singleWordChar || clusterContinuation
@@ -14739,7 +14747,12 @@ open class WMKeyboardService : InputMethodService() {
         // Nor is the space already in front of it taken back: armed, `best .`
         // keeps the space after `best` (#863).
         val spacedRun = if (unspacedKey) null else spacedMarkRun(ic, text, state)
-        val ateAutoSpace = spacedRun == null && !unspacedKey &&
+        // A mode's in-word character opening a word is that word's first letter
+        // (the `%` of `%output_var`), not a mark hugging the word before it: `%`
+        // and `_` are both marks that swallow the space otherwise (item 34).
+        val opensModeWord = composing.isEmpty() && text.length == 1 &&
+            joinsAsModeWordChar(text[0], state.settings.autoText.wordChars)
+        val ateAutoSpace = spacedRun == null && !unspacedKey && !opensModeWord &&
             takeBackAutoSpace(ic, text, state, followsWordSpace)
 
         // ":" on a word boundary opens inline emoji search: the colon and the
@@ -14809,7 +14822,7 @@ open class WMKeyboardService : InputMethodService() {
         // the two words and still in front of the mark.
         // Only while a space is still the keyboard's to add: a mode switched
         // to automatic spaces off since the word was picked owes none (#1234).
-        if (spaceOwed && composing.isEmpty() && text.firstOrNull()?.isLetterOrDigit() == true &&
+        if (spaceOwed && composing.isEmpty() && (text.firstOrNull()?.isLetterOrDigit() == true || opensModeWord) &&
             (state.settings.gesture.autoSpaceAfterGlide || state.settings.suggestionStrip.autoSpaceAfterSuggestion)
         ) {
             ic.commitText(" ", 1)
@@ -21483,7 +21496,10 @@ open class WMKeyboardService : InputMethodService() {
         // in as typed, the same as a fragment glued onto a word. Not on an
         // ambiguous board, whose buffer is anchor letters rather than the text.
         val inAddress = behind != null && !state.layouts.ambiguousKeys && AddressToken.endsInAddress(behind)
-        val gluedToWord = inAddress || (fixApostrophes || autocorrect) && (
+        // A word holding one of the mode's own in-word characters ("%output_var",
+        // gap list item 34) is a name the app defines: as typed, like an address.
+        val modeName = holdsModeWordChar(typed, state.settings.autoText.wordChars)
+        val gluedToWord = inAddress || modeName || (fixApostrophes || autocorrect) && (
             behind
                 ?.let { it.subSequence((it.length - fieldText.length - ELISION_LOOKBACK).coerceAtLeast(0), it.length) }
                 ?.takeIf { it.length > fieldText.length }
@@ -29436,7 +29452,10 @@ open class WMKeyboardService : InputMethodService() {
         // correction or next word for them, and nothing is resolved ahead for
         // the commit, which leaves the piece as typed anyway. Email-field
         // completion and the domain keys are drawn elsewhere and stay.
-        if (caretInAddress(state)) {
+        // A word holding one of the active mode's in-word characters (a Tasker
+        // variable, gap list item 34) is the same: a name, not a word, so the
+        // strip offers nothing a tap could swap it for.
+        if (caretInAddress(state) || holdsModeWordChar(composing, state.settings.autoText.wordChars)) {
             suggestionJob?.cancel()
             resolutionJob?.cancel()
             pendingResolution = null
