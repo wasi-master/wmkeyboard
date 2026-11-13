@@ -21,26 +21,41 @@ def token(prefix):
 
 def defer(op, args, then, on_error=None, convert=None):
     """Start [op] without waiting. [then] is called with its result when the
-    keyboard sends it back, and the panel is drawn again."""
+    keyboard sends it back, and the panel is drawn again. Every failure goes
+    to [on_error] when there is one, including a refusal before anything
+    was sent (a permission the user has not turned on, Data saver)."""
     t = token(op.split(".")[0] + ":")
     _pending[t] = (then, on_error, convert)
     payload = dict(args or {})
     payload["async"] = t
-    _wm.call(op, payload)
+    _start(t, op, payload, on_error)
     return t
 
 
 def stream(op, args, on_item, then=None, on_error=None, convert=None):
     """Start [op], which answers many times: each piece goes to [on_item],
-    and the end (if the op has one) to [then]."""
+    and the end (if the op has one) to [then]. Failures go to [on_error] as
+    defer's do."""
     t = token(op.split(".")[0] + ":")
     _streams[t] = on_item
     _pending[t] = (then, on_error, convert)
     payload = dict(args or {})
     payload["async"] = t
     payload["stream"] = True
-    _wm.call(op, payload)
+    _start(t, op, payload, on_error)
     return t
+
+
+def _start(t, op, payload, on_error):
+    try:
+        _wm.call(op, payload)
+    except Exception as refused:
+        # Refused before it was sent: the answer will never come.
+        _streams.pop(t, None)
+        _pending.pop(t, None)
+        if on_error is None:
+            raise
+        on_error(refused)
 
 
 def end_stream(t):

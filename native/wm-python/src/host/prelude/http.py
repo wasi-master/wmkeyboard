@@ -22,7 +22,7 @@ class HTTPError(OSError):
     """A reply whose status is 400 or more, from raise_for_status()."""
 
     def __init__(self, message, response=None):
-        OSError.__init__(self, message)
+        super().__init__(message)
         self.response = response
 
 

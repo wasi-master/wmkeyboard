@@ -8,7 +8,9 @@
 //! An API 5 plugin (`"apiVersion": 5` in plugin.json) loads with every other
 //! `.py` file in its folder as a module. Its host calls are answered from the
 //! mock file, `{"http.request": {"status": 200, "text": "..."}, ...}`: each
-//! op's value is the reply; an op not in the file raises NotImplementedError.
+//! op's value is the reply, and a value that is only `{"error": {"kind",
+//! "message"}}` raises that error; an op not in the file raises
+//! NotImplementedError.
 //!
 //! `test.py` runs with the plugin host's `wm` and `ui` globals (a panel, every
 //! permission, storage and reminders in memory) and one extra module,
@@ -69,6 +71,8 @@ struct Manifest {
     entry: String,
     permissions: Vec<String>,
     api: i64,
+    /// False for a plugin made of selection actions alone (`"panel": false`).
+    panel: bool,
 }
 
 fn manifest(dir: &Path) -> Result<Manifest, String> {
@@ -87,6 +91,7 @@ fn manifest(dir: &Path) -> Result<Manifest, String> {
             .map(|a| a.iter().filter_map(|x| x.as_str()).map(String::from).collect())
             .unwrap_or_default(),
         api: v.get("apiVersion").and_then(|x| x.as_i64()).unwrap_or(4),
+        panel: v.get("panel").and_then(|x| x.as_bool()).unwrap_or(true),
     })
 }
 
@@ -119,15 +124,18 @@ fn modules(dir: &Path, entry: &str) -> serde_json::Map<String, serde_json::Value
 /// The session config the keyboard would build for the plugin in [dir].
 fn session_config(dir: &Path, m: &Manifest, settings: serde_json::Value) -> serde_json::Value {
     serde_json::json!({
-        "id": m.id, "version": m.version, "permissions": m.permissions, "mode": "panel",
+        "id": m.id, "version": m.version, "permissions": m.permissions, "mode": if m.panel { "panel" } else { "action" },
         "apiVersion": m.api, "files": modules(dir, &m.entry), "settings": settings,
         "context": {"locale": "en", "theme": "light", "surface": "panel"},
     })
 }
 
-/// Answers host calls from [mock]: `{op: reply value}`.
+/// Answers host calls from [mock]: `{op: reply value}`. A reply that is
+/// only `{"error": {"kind": "TimeoutError", "message": "..."}}` raises that
+/// error in the plugin instead, so a test can walk the failure paths.
 fn mock_bridge(mock: serde_json::Value) -> wm_python::host::Bridge {
     Box::new(move |op: &str, _args: &str| match mock.get(op) {
+        Some(v) if v.as_object().is_some_and(|o| o.len() == 1 && o.get("error").is_some_and(|e| e.is_object())) => v.to_string(),
         Some(v) => serde_json::json!({"value": v}).to_string(),
         None => serde_json::json!({"error": {"kind": "NotImplementedError", "message": format!("no mock reply for {op}")}}).to_string(),
     })
@@ -174,6 +182,7 @@ fn test(dir: &Path) -> u8 {
         entry: "main.py".into(),
         permissions: Vec::new(),
         api: 4,
+        panel: true,
     });
     let manifest_for_sessions = manifest(dir).ok();
     let mut rt = Runtime::new(Limits { steps: 500_000_000, container_items: 200_000, string_length: 1_000_000 }, STANDARD_MODULES);

@@ -307,6 +307,55 @@ def render():
 }
 
 #[test]
+fn raise_for_status_raises_http_error() {
+    big(|| {
+        let mut s = session(&["network"], json!({}));
+        s.set_bridge(Some(Box::new(|_: &str, _: &str| {
+            json!({"value": {"status": 404, "reason": "Not Found", "text": "", "headers": {}, "url": "https://api.example.com/w"}}).to_string()
+        })));
+        let src = r#"
+from wm import http, ui
+try:
+    http.get("https://api.example.com/w").raise_for_status()
+    m = "no error"
+except http.HTTPError as e:
+    m = f"{e} {e.response.status_code} {isinstance(e, OSError)}"
+def render():
+    ui.label(m)
+"#;
+        let r = parse(s.load(src));
+        ok(&r);
+        assert_eq!(find(&r["ui"], "label").unwrap()["text"], "404 Not Found for https://api.example.com/w 404 True");
+    });
+}
+
+#[test]
+fn a_refused_deferred_call_goes_to_on_error() {
+    big(|| {
+        let mut s = session(&["network"], json!({}));
+        s.set_bridge(Some(Box::new(|_: &str, _: &str| {
+            json!({"error": {"kind": "PermissionError", "message": "the user has not turned on 'network' for this plugin", "needs": "network"}}).to_string()
+        })));
+        let src = r#"
+from wm import http, ui
+seen = []
+http.get("https://api.example.com/w", then=seen.append, on_error=lambda e: seen.append(type(e).__name__))
+try:
+    http.get("https://api.example.com/w", then=seen.append)
+except PermissionError:
+    seen.append("raised")
+def render():
+    ui.label(" ".join(seen))
+"#;
+        let r = parse(s.load(src));
+        ok(&r);
+        assert_eq!(find(&r["ui"], "label").unwrap()["text"], "PermissionError raised");
+        assert_eq!(r["host"]["pending"], 0);
+        assert_eq!(r["needs"], json!(["network"]));
+    });
+}
+
+#[test]
 fn an_undeclared_permission_is_refused_before_the_bridge() {
     big(|| {
         let mut s = session(&[], json!({}));
