@@ -153,6 +153,7 @@ has more detail on the built-in modules, strings and dicts.
 | `plugin.back()` | Close the top page. `False` if there was none. |
 | `plugin.set_title(text)` | The header text, instead of the plugin's name. |
 | `plugin.close()` | Close the panel. |
+| `plugin.open_settings()` | Open the plugin's page in Settings, where its settings are. Only in answer to something the user did in the panel. |
 | `plugin.refresh()` | Draw again after this call. Events and timers already do. |
 
 A function named `on_event(e)` gets every event no callback took, as a dict.

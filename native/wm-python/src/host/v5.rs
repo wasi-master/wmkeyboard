@@ -41,10 +41,10 @@
 //! | `share.text` `share.open` | share |
 //! | `notify.show` `notify.cancel` | notifications |
 //! | `secrets.get` `secrets.set` `secrets.remove` | storage |
-//! | `ui.toast` `ui.dialog` `plugin.close` `plugin.refresh` | none |
+//! | `ui.toast` `ui.dialog` `plugin.close` `plugin.refresh` `plugin.open_settings` | none |
 //!
-//! `field.selection`, `field.before`, `field.after` and `clipboard.get` are
-//! refused outside an event the user caused in the panel (a click, a change,
+//! `field.selection`, `field.before`, `field.after`, `clipboard.get` and
+//! `plugin.open_settings` are refused outside an event the user caused in the panel (a click, a change,
 //! a submit, a choice, a tap, a hold, a key, a keyword or a header command), and
 //! every `field.*` op outside a panel.
 
@@ -95,8 +95,9 @@ pub const PRELUDE: &[(&str, &str, bool)] = &[
 /// Event types that count as the user acting in the panel.
 pub const USER_EVENTS: &[&str] = &["click", "change", "submit", "select", "tap", "drag", "hold", "press", "item_action", "keyword", "command"];
 
-/// Ops that read what the user typed elsewhere: only while answering them.
-const USER_ONLY: &[&str] = &["field.selection", "field.before", "field.after", "clipboard.get"];
+/// Ops that read what the user typed elsewhere, or take the user out of the
+/// keyboard: only while answering something they did.
+const USER_ONLY: &[&str] = &["field.selection", "field.before", "field.after", "clipboard.get", "plugin.open_settings"];
 
 /// Exception kinds a bridge may raise by name; anything else is a RuntimeError.
 const RAISABLE: &[&str] = &[
@@ -135,7 +136,7 @@ pub fn permission_for(op: &str) -> Option<Option<&'static str>> {
         ("share", "text" | "open") => Some("share"),
         ("notify", "show" | "cancel") => Some("notifications"),
         ("secrets", "get" | "set" | "remove") => Some("storage"),
-        ("ui", "toast" | "dialog") | ("plugin", "close" | "refresh") => None,
+        ("ui", "toast" | "dialog") | ("plugin", "close" | "refresh" | "open_settings") => None,
         // plugin.settings.set: the plugin's own rows; the keyboard refuses host rows.
         ("settings", "set") => None,
         _ => return None,

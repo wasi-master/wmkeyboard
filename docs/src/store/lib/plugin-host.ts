@@ -435,6 +435,10 @@ export function makeBridge(ctx: HostContext): Bridge {
 			case 'plugin.close':
 				ctx.log('[closed the panel]');
 				return reply(null);
+			case 'plugin.open_settings':
+				// No settings page here: the preview runs on each setting's default.
+				ctx.log('[opened the plugin\'s settings page; the preview uses the defaults in plugin.json]');
+				return reply(null);
 			case 'sensors.list':
 				return reply(PRETEND_SENSORS);
 			case 'sensors.subscribe': {

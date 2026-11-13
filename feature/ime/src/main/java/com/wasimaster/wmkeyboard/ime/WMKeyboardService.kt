@@ -42574,6 +42574,7 @@ open class WMKeyboardService : InputMethodService() {
             closePanel = { openPluginList() },
             startHandoff = ::startPluginHandoff,
             handoffDone = ::pluginHandoffDone,
+            openSettings = { pluginId -> openRoute("plugin/$pluginId") },
         ).also { pluginServicesOrNull = it }
 
     /**

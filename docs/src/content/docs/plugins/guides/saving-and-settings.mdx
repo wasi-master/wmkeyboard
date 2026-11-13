@@ -165,6 +165,21 @@ def units_changed(value):
     look_up()
 ```
 
+When the panel cannot work until a setting is filled in, such as the address
+of the user's server, send them to the page with a button.
+`plugin.open_settings()` opens your plugin's page in Settings. It works only
+in answer to something the user did in the panel, such as a tap, so a plugin
+cannot pull the user out of what they were typing:
+
+```python
+def render():
+    if not plugin.settings.server:
+        ui.empty("Type your server's address first.", icon="dns",
+                 action="Open settings", on_click=plugin.open_settings)
+        return
+    ...
+```
+
 The web editor uses each setting's `default` while you test. Settings can be
 [translated](/plugins/guides/translations/) like the rest of your plugin.
 

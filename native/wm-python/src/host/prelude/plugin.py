@@ -292,6 +292,13 @@ def close():
     _core.call("plugin.close", {})
 
 
+def open_settings():
+    """Open the plugin's own page in the keyboard's settings, where the user
+    types its settings (a server address, a choice) and allows its risky
+    permissions."""
+    _core.call("plugin.open_settings", {})
+
+
 def refresh():
     """Draw the panel again once this call finishes. Events and timers
     already do; use it after an answer arrives some other way."""

@@ -464,6 +464,38 @@ def render():
 }
 
 #[test]
+fn opening_the_settings_page_needs_a_user_event() {
+    big(|| {
+        let mut s = session(&[], json!({}));
+        let ops = Rc::new(RefCell::new(Vec::<String>::new()));
+        let seen = ops.clone();
+        s.set_bridge(Some(Box::new(move |op: &str, _: &str| {
+            seen.borrow_mut().push(op.to_string());
+            json!({"value": null}).to_string()
+        })));
+        let src = r#"
+from wm import plugin, ui
+got = plugin.state(early="")
+try:
+    plugin.open_settings()
+    got.early = "opened at load"
+except PermissionError:
+    got.early = "refused at load"
+
+def render():
+    ui.label(got.early)
+    ui.button("Settings", on_click=plugin.open_settings, key="s")
+"#;
+        let r = parse(s.load(src));
+        ok(&r);
+        assert_eq!(find(&r["ui"], "label").unwrap()["text"], "refused at load");
+        assert!(ops.borrow().is_empty());
+        ok(&parse(s.event(&json!({"type": "click", "id": "s"}).to_string())));
+        assert_eq!(*ops.borrow(), vec!["plugin.open_settings".to_string()]);
+    });
+}
+
+#[test]
 fn async_calls_answer_later_as_result_events() {
     big(|| {
         let mut s = session(&["ai"], json!({}));

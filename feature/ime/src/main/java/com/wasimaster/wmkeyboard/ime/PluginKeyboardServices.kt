@@ -101,6 +101,8 @@ internal class PluginKeyboardServices(
     private val startHandoff: (PluginHandoff) -> Boolean,
     /** The plugin's call stopped waiting on [PluginHandoff], answered or not. Main thread. */
     private val handoffDone: (PluginHandoff) -> Unit,
+    /** Opens the plugin's own page in Settings, as `plugin.open_settings()` asks. Main thread. */
+    private val openSettings: (pluginId: String) -> Unit,
 ) : PluginServices {
 
     private val main = Handler(Looper.getMainLooper())
@@ -139,6 +141,10 @@ internal class PluginKeyboardServices(
         }
         "plugin.close" -> {
             onMain { closePanel() }
+            JsonNull
+        }
+        "plugin.open_settings" -> {
+            onMain { openSettings(call.plugin.id) }
             JsonNull
         }
         "plugin.refresh" -> JsonNull
