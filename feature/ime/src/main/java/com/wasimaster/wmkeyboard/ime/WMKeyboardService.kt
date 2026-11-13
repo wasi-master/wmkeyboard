@@ -4443,18 +4443,25 @@ open class WMKeyboardService : InputMethodService() {
         // other clip" however the clipboard is emptied later.
         val wipeable = clipMarkedSensitive(clip) && !ClipboardWriteGate.isOwnWrite(clip)
 
-        val imageMime = uri?.let { u ->
+        // A web link copied as a link rather than as text (#1215): Chromium's
+        // "Copy link address" and its address bar's "Copy link" can hand over
+        // a bare http(s) URI with no text. It is a link, not a file, so it
+        // takes the text path below, where the copy rules and the tracker
+        // cleaning run; down the file path it went nowhere at all.
+        val webLink = uri != null && item.text == null &&
+            (uri.scheme.equals("https", ignoreCase = true) || uri.scheme.equals("http", ignoreCase = true))
+        val imageMime = uri?.takeIf { !webLink }?.let { u ->
             runCatching { contentResolver.getType(u) }.getOrNull()?.takeIf { it.startsWith("image/") }
         }
         // Text only (gap list item 25): a picture, video or file stays on the
         // system clipboard and out of history. One that also carries text
         // falls through to the text path below and is stored as its text.
         val textOnly = state.settings.clipboard.textOnly
-        if (textOnly && uri != null && item.text == null) return@OnPrimaryClipChangedListener
+        if (textOnly && uri != null && item.text == null && !webLink) return@OnPrimaryClipChangedListener
         // Non-image URIs are files, folders or videos copied from a file
         // manager or gallery; record them by reference (see [addFileClips])
         // rather than copying — a copied movie is routinely gigabytes.
-        if (uri != null && imageMime == null && item.text == null) {
+        if (uri != null && !webLink && imageMime == null && item.text == null) {
             val uris = (0 until clip.itemCount).mapNotNull { clip.getItemAt(it)?.uri }
             if (uris.isNotEmpty()) {
                 serviceScope.launch(Dispatchers.IO) { addFileClips(uris, source, flaggedSensitive, sourcePackage) }
@@ -4641,7 +4648,20 @@ open class WMKeyboardService : InputMethodService() {
             ClipboardDiagnostics.onSensitiveDrop()
             return
         }
-        val tidied = if (secureKept || flagged) text else tidyCopy(text, state.settings.clipboard)
+        val ruled = if (secureKept || flagged) text else tidyCopy(text, state.settings.clipboard)
+        // The links lose their trackers here too (#1215), as a system copy's
+        // do in the listener: the keyboard's own Copy and Cut never reach it.
+        val cleaned = if (state.settings.clipboard.cleanCopiedLinks && !secureKept && !flagged) {
+            SelectionMacros.stripTrackersInText(ruled, state.settings.clipboard.extraTrackers)
+        } else {
+            null
+        }
+        val tidied = cleaned ?: ruled
+        // And the paste keys paste it as changed, the way a system copy is
+        // written back: always for a cleaned link, for the rules when asked.
+        if (tidied != text && tidied.isNotBlank() && (cleaned != null || state.settings.clipboard.copyRulesToSystem)) {
+            KeyboardClipboard.holdForPaste(tidied)
+        }
         val added = clipboardStore.add(tidied, sensitive = secureCopyMasked(state) || flagged) ?: return
         ClipboardDiagnostics.onStoredPrivate()
         saveClipboardSoon()
