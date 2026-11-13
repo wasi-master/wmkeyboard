@@ -66,8 +66,10 @@ class WhisperRecorder(
     private val denoise: VoiceDenoise.Stream? = null,
     /**
      * The microphone stays open when a clip ends by itself (#957); see the
-     * class comment. Off for an engine that reads [samples] as they arrive,
-     * whose clip must never be written over.
+     * class comment. Safe for an engine that reads [samples] as they arrive:
+     * the next clip is written from the front of the buffer while that
+     * engine is still reading the old one's tail, and the whole old clip goes
+     * to [hold] as a copy.
      */
     val carryOver: Boolean = false,
     /**
@@ -127,8 +129,10 @@ class WhisperRecorder(
     /**
      * A copy of the samples captured from [from] up to [to] (clamped to what is
      * there), for an engine that decodes while the clip is still recording.
-     * Safe from any thread on a recorder without [carryOver]: samples below
-     * [sampleCount] are never written again.
+     * Safe from any thread: samples below [sampleCount] are not written again
+     * until a clip that carries over ends, and then the next clip starts from
+     * the front of the buffer, far below where a reader of the old one is,
+     * with [sampleCount] back at 0 so a read past it returns nothing.
      */
     fun samples(from: Int, to: Int): FloatArray = buffer.copyOfRange(from, minOf(to, count).coerceAtLeast(from))
 

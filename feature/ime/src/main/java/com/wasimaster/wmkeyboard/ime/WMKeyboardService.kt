@@ -37542,11 +37542,12 @@ open class WMKeyboardService : InputMethodService() {
             else -> WhisperMel.CHUNK_SECONDS
         }
         // A clip that ends by itself leaves the microphone open for the next
-        // one (#957), unless the engine decodes the clip as it records. When
-        // the next clip is sure to follow, the window's last seconds end it
-        // at a pause, and nothing said after the window is lost, so there is
-        // nothing to count down to either.
-        val rolls = !live && voiceChains()
+        // one (#957), the live engines' too: words said while a clip is being
+        // transcribed are heard by the next. A clip that fills its window is
+        // never the end of the session, whatever "Keep listening" says, since
+        // the user is still talking ([onClipFull]); so the window's last
+        // seconds end it at a pause, between two words, and nothing is lost
+        // past it, which leaves nothing to count down to either.
         // An engine that decodes as it hears ends the clip by its own phrase
         // end detector (#976); the recorder's loudness stop would cut in
         // ahead of a model the user picked over it.
@@ -37556,13 +37557,13 @@ open class WMKeyboardService : InputMethodService() {
             mic = mic,
             maxSeconds = maxSeconds,
             silenceStopMs = silenceStopMs,
-            pauseCutSeconds = if (rolls) VOICE_PAUSE_CUT_SECONDS else 0,
+            pauseCutSeconds = VOICE_PAUSE_CUT_SECONDS,
             denoise = if (model != null) denoiseLevel else VoiceDenoise.OFF,
         )
         // The microphone the last clip left open, holding what was said while
         // that clip was transcribed. One that stopped meanwhile with nothing
         // worth transcribing is left for [startVoice] to shut.
-        val carried = carriedMic?.takeIf { !live && it.setup == setup }?.recorder
+        val carried = carriedMic?.takeIf { it.setup == setup }?.recorder
             ?.takeIf { it.isRecording || it.sampleCount >= VoiceClipGate.MIN_SAMPLES }
         if (carried != null) carriedMic = null
         // Reduce background noise in front of an on-device engine, never the
@@ -37588,13 +37589,10 @@ open class WMKeyboardService : InputMethodService() {
         val onLevel: (Float) -> Unit = level@{ level ->
             if (generation != voiceGeneration) return@level
             val quantized = (level * 8).toInt() / 8f
-            // The clip ends by itself when the window fills, and words said
-            // after that are lost, so its last seconds count down (#315).
-            val left = recorder.secondsLeft.takeIf { !rolls && it <= VOICE_COUNTDOWN_SECONDS } ?: 0
             val heard = recorder.heardSpeech
             _uiState.update {
-                if (it.voice.level == quantized && it.voice.secondsLeft == left && it.voice.clipHeard == heard) it
-                else it.copy(voice = it.voice.copy(level = quantized, secondsLeft = left, clipHeard = heard))
+                if (it.voice.level == quantized && it.voice.clipHeard == heard) it
+                else it.copy(voice = it.voice.copy(level = quantized, clipHeard = heard))
             }
         }
         // Buffer full (30 s, or longer for whisper.cpp), or a pause (#500),
@@ -37609,17 +37607,30 @@ open class WMKeyboardService : InputMethodService() {
                 if (generation == voiceGeneration && whisperRecorder === recorder) finishWhisper(userStopped = false)
             }
         }
+        // The window filled (50 s for Parakeet, 30 for a LiteRT Whisper
+        // graph, 120 for whisper.cpp) while the user was still talking: the
+        // session carries on into the next clip as a key on the rail would
+        // have it, and the microphone, carried over, misses nothing between
+        // the two. Only a pause, with "Keep listening" off, or a stop ends it.
+        val onClipFull: () -> Unit = {
+            serviceScope.launch(Dispatchers.Main) {
+                if (generation == voiceGeneration && whisperRecorder === recorder) {
+                    voiceResumeAfterClip = true
+                    finishWhisper(userStopped = false)
+                }
+            }
+        }
         val onLost: () -> Unit = { onWhisperCaptureLost(generation) }
-        recorder = carried?.also { it.resume(onLevel, onClipEnd, onLost, onClipEnd) } ?: WhisperRecorder(
+        recorder = carried?.also { it.resume(onLevel, onClipFull, onLost, onClipEnd) } ?: WhisperRecorder(
             onLevel = onLevel,
-            onMaxReached = onClipEnd,
+            onMaxReached = onClipFull,
             onLost = onLost,
             silenceStopMs = silenceStopMs,
             onSilence = onClipEnd,
             preferredDevice = VoiceMics.deviceFor(this, mic),
             maxSeconds = maxSeconds,
             denoise = denoise,
-            carryOver = !live,
+            carryOver = true,
             pauseCutSeconds = setup.pauseCutSeconds,
         )
         if (carried == null && !recorder.start()) {
@@ -60602,9 +60613,6 @@ open class WMKeyboardService : InputMethodService() {
          * `R.string`: the title lives in `:app`, which this module cannot see.
          */
         private const val SANDBOX_SETTING = "typing_glide_sandbox_title"
-
-        /** How long before a clip's end the voice surfaces start counting down. */
-        private const val VOICE_COUNTDOWN_SECONDS = 5
 
         /**
          * The end of a clip in which a pause cuts it (#957) when the next one

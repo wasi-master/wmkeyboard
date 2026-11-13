@@ -56,7 +56,7 @@ Unlike Whisper, Whistle can be told words to favour. The **Words to listen for**
 
 ## How a phrase is heard
 
-Whistle works the way Whisper does in the keyboard: it records the phrase and transcribes it once you stop, when **Stop after a pause** ends it, or at 30 seconds. A clip with no speech in it is never shown to the model, a microphone that drops out keeps what it had, and the panel's own keys type without ending the recording. All of that is described under [offline Whisper's details](/tools/whisper/#details--edge-cases) and applies here unchanged.
+Whistle works the way Whisper does in the keyboard: it records the phrase and transcribes it once you stop, when **Stop after a pause** ends it, or at 30 seconds, when the next phrase picks up where it left off. A clip with no speech in it is never shown to the model, a microphone that drops out keeps what it had, and the panel's own keys type without ending the recording. All of that is described under [offline Whisper's details](/tools/whisper/#details--edge-cases) and applies here unchanged.
 
 The model loads while you are speaking your first phrase, so that phrase does not wait for it. It then stays loaded until the keyboard's process ends: the engine has no way to unload a model, and at 17 MB it is not worth reloading.
 
