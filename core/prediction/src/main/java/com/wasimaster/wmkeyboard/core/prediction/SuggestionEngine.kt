@@ -1967,8 +1967,31 @@ class SuggestionEngine(
             hasLanguageWords() -> dictionarySources(primaryLanguageId).map { it.walker }
             else -> dictionarySources(null).map { it.walker }
         }
-        return GlideCoverage.measure(voters, alphabet)
+        // The keyboard asks again whenever its settings pass runs, and that
+        // runs on every field it opens on: 1,500 words a list read
+        // and sorted for the same answer, a quarter of the background work of
+        // opening the keyboard on a G99. Kept only over lists that cannot
+        // change under the same object; a personal list walks through a new
+        // walker every time it is asked, so it is always measured afresh.
+        coverageMemo?.let { memo ->
+            if (memo.alphabet == alphabet && memo.voters.size == voters.size &&
+                memo.voters.indices.all { memo.voters[it] === voters[it] }
+            ) {
+                return memo.coverage
+            }
+        }
+        val coverage = GlideCoverage.measure(voters, alphabet)
+        if (voters.all { it is PackedTrie || it is MappedTrie }) {
+            coverageMemo = CoverageMemo(voters, alphabet, coverage)
+        }
+        return coverage
     }
+
+    /** The last [glideCoverage] answer over immutable lists, and what it was asked of. */
+    private class CoverageMemo(val voters: List<TrieWalker>, val alphabet: Set<Int>, val coverage: Float)
+
+    @Volatile
+    private var coverageMemo: CoverageMemo? = null
 
     /**
      * Decodes a glide stroke against exactly the word sources typing already

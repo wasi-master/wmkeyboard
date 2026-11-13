@@ -24536,6 +24536,17 @@ open class WMKeyboardService : InputMethodService() {
     /** The fewest samples a chained segment keeps after its spacebar walks are cut for the fallback decode (#968). */
     private val GLIDE_FALLBACK_MIN_POINTS = 3
 
+    /**
+     * How long a glide preview's read must have taken before the next one
+     * waits as long again. Under it a phone reads faster than the
+     * board's 40 ms asks, and nothing changes; over it, previews may keep the
+     * decoder busy half the time at most.
+     */
+    private val GLIDE_PREVIEW_PACE_FROM_MS = 12L
+
+    /** The longest a preview waits for the next, so the floating word never goes stale for long. */
+    private val GLIDE_PREVIEW_PACE_MAX_MS = 80L
+
     /** The pause rescoring's job (see refreshStrip), one at a time. */
     private var pauseRevisionJob: Job? = null
 
@@ -30170,7 +30181,12 @@ open class WMKeyboardService : InputMethodService() {
             if (revision == null && typed.isEmpty() && state.allowsTypingIntelligence &&
                 state.settings.suggestionStrip.contextRevision
             ) {
-                engine.contextRevision()?.takeIf(::revisionFirstOffer)?.let { found ->
+                // Off the main thread like the pause's read below: it steps the
+                // context model over the words after the one it re-reads, and on
+                // a G99 that was a tenth of the main thread's time while typing.
+                // The next keystroke cancels this job, wait and all.
+                val read = withContext(suggestionDispatcher) { engine.contextRevision() }
+                read?.takeIf(::revisionFirstOffer)?.let { found ->
                     revision = found.replacement
                     revisionContext = found.wrong to found.followers.joinToString(" ")
                 }
@@ -33529,6 +33545,8 @@ open class WMKeyboardService : InputMethodService() {
                     finished.clear()
                     finishedGeneration = request.generation
                 }
+                // Paced at the end of the loop: see GLIDE_PREVIEW_PACE_FROM_MS.
+                val readFrom = SystemClock.uptimeMillis()
                 var phraseSoFar = emptyList<String>()
                 val reading = withContext(Dispatchers.Default) {
                     // Same sources as the final decode, so the previewed word
@@ -33626,6 +33644,19 @@ open class WMKeyboardService : InputMethodService() {
                         },
                         glideCloseCall = steadied.closeCall,
                     )
+                }
+                // A preview that took long gets as long again before the next
+                // one starts. The board asks for one every 40 ms, and where a
+                // read takes longer than that (a G99 on a big word list:
+                // 50 ms a read) the previews ran back to back for the
+                // whole stroke. One big core stayed busy reading words nobody
+                // would type, the frames that draw the trail were starved of
+                // it, and the lift's own read began beside a preview still
+                // running. A phone that reads in a few milliseconds never
+                // waits here.
+                val spent = SystemClock.uptimeMillis() - readFrom
+                if (spent >= GLIDE_PREVIEW_PACE_FROM_MS) {
+                    delay(spent.coerceAtMost(GLIDE_PREVIEW_PACE_MAX_MS))
                 }
             }
         }
