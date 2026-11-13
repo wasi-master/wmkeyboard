@@ -97,6 +97,17 @@ object NgramPackCatalog {
             trigramStem = "bn_rom_trigrams",
             approxGzBytes = 315_000,
         ),
+        // Hinglish: counted over MADLAD-400's romanized Hindi web text
+        // (scripts/build_hi_rom_ngrams.py), English words kept, since they are
+        // half of how Hinglish is typed. Lives under the repo's hi/ dir beside
+        // hi_rom_v2, and its stems keep it apart from Devanagari Hindi's pack.
+        NgramPackEntry(
+            languageId = "hi_rom",
+            repoCode = "hi",
+            bigramStem = "hi_rom_bigrams",
+            trigramStem = "hi_rom_trigrams",
+            approxGzBytes = 1_108_066,
+        ),
         // Everything below is built the same way from the Leipzig Corpora
         // Collection (data/README.md, "N-gram Lists") and already stops at
         // the read caps, so the published size is the transferred size.

@@ -47,6 +47,14 @@ class NgramPackCatalogTest {
     }
 
     @Test
+    fun hinglishAndHindiReadDifferentPairs() {
+        // Same repo directory, different scripts: Hindi's Devanagari pairs
+        // could never match a word typed in Hinglish, nor the other way round.
+        assertEquals("hi_rom_bigrams", NgramPackCatalog.forLanguage("hi_rom")!!.bigramStem)
+        assertEquals("hi_bigrams", NgramPackCatalog.forLanguage("hi")!!.bigramStem)
+    }
+
+    @Test
     fun aRebuiltPackStillAnswersToItsOldFileNames() {
         // An older language pack carries the lists under the names they had
         // before the rebuild, and an import has to recognise them.
