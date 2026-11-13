@@ -4325,9 +4325,6 @@
     <string name="langemoji_emoji_tone_override_info">Wenn dies aktiviert ist (Standardeinstellung), behält ein Emoji, für das Sie bereits einen Hautton ausgewählt haben, diesen überall bei: im Panel, in den Vorschlägen und bei der Suche. Sie wählen diesen Ton über das Popup-Menü aus, das erscheint, wenn Sie das Emoji im Panel gedrückt halten. Das Emoji verwendet dann nicht den oben genannten Standard. Wenn dies deaktiviert ist, wird immer der Standard-Hautton verwendet.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Verwenden Sie den Ton, den Sie zuletzt für ein Emoji ausgewählt haben, nicht den Standard</string>
     <string name="langemoji_emoji_tone_override_title">Mit zuletzt verwendetem überschreiben</string>
-    <string name="langemoji_emoji_toolbar_info">Die Emoji-Schaltfläche bleibt in der oberen Leiste sichtbar, auch während die Vorschläge angezeigt werden. Das Emoji-Panel hat einen Reiter für jede Kategorie. Du kannst auf Englisch und Bengalisch suchen sowie in jeder Sprache, für die du ein Schlüsselwort-Paket hinzugefügt hast. Halte ein Emoji gedrückt, um Hautton-Varianten zu sehen.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Emojis mit einem Tastendruck aus der oberen Leiste öffnen</string>
-    <string name="langemoji_emoji_toolbar_title">Emoji-Schaltfläche in der Symbolleiste</string>
     <string name="langemoji_emoji_unicode_search_info">Geben Sie die Wörter des Unicode-Namens eines Zeichens in die Emoji-Suche ein, und es erscheint nach dem Emoji: Geviertstrich, Copyright-Zeichen, griechischer Kleinbuchstabe Lambda, lateinischer Kleinbuchstabe a mit Ogonek. Jedes Zeichen der Basic Multilingual Plane ist abgedeckt, was Zehntausende von Buchstaben, Zeichen und Symbolen umfasst. Durch Tippen auf eines wird es eingefügt. Diese Einstellung ist standardmäßig deaktiviert.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Die Emoji-Suche findet auch Symbole, Buchstaben und Zeichen anhand der Wörter ihres Namens</string>
     <string name="langemoji_emoji_unicode_search_title">Jedes Zeichen über seinen Unicode-Namen finden</string>
@@ -4502,17 +4499,12 @@
     <string name="langemoji_panel_height_subtitle">Wie viel höher als die Tastatur sich die Emoji-, GIF- und Sticker-Panels öffnen</string>
     <string name="langemoji_panel_height_title">Panel-Höhe</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Diese Schaltflächen nach den Vorschlägen am Ende der Leiste platzieren</string>
-    <string name="langemoji_strip_at_end_title">Tasten auf der rechten Seite</string>
     <string name="langemoji_strip_icon_size_subtitle">Wie groß das Symbol in jeder Schaltfläche neben den Vorschlägen ist</string>
     <string name="langemoji_strip_icon_size_title">Größe des Schaltflächensymbols</string>
     <string name="langemoji_strip_own_size_subtitle">Größe der Schaltflächen neben den Vorschlägen unabhängig von den Werkzeugen der Symbolleiste festlegen</string>
     <string name="langemoji_strip_own_size_title">Eigene Größe für diese Schaltflächen</string>
-    <string name="langemoji_strip_shortcut_subtitle">Das Werkzeug, das in der oberen Leiste bleibt, während die Vorschläge angezeigt werden</string>
-    <string name="langemoji_strip_shortcut_title">Schaltfläche neben den Vorschlägen</string>
     <string name="langemoji_strip_tool_width_subtitle">Wie breit jede Schaltfläche neben den Vorschlägen ist</string>
     <string name="langemoji_strip_tool_width_title">Tastenbreite</string>
-    <string name="langemoji_strip_toolbox_subtitle">Platziere die Toolbox als erste dieser Schaltflächen, damit sie nur einen Fingertipp entfernt ist, während die Vorschläge angezeigt werden</string>
     <string name="langemoji_strip_toolbox_title">Toolbox-Schaltfläche</string>
     <string name="langemoji_strip_tools_add_value">Hinzufügen</string>
     <string name="langid_module_title">Spracherkennung</string>

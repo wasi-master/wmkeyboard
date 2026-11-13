@@ -4323,9 +4323,6 @@
     <string name="langemoji_emoji_tone_override_info">جب یہ آن ہوتا ہے، اور یہ پہلے سے ہی آن ہوتا ہے، تو ایک ایموجی جس کے لیے آپ نے پہلے ہی ٹون منتخب کر لیا ہے وہ ہر جگہ وہی ٹون برقرار رکھتا ہے: پینل میں، تجاویز میں اور تلاش میں۔ آپ پینل میں ایموجی کے پریس اور ہولڈ پاپ اپ سے اس ٹون کو منتخب کرتے ہیں۔ ایموجی اوپر دی گئی ڈیفالٹ کا استعمال نہیں کرتا ہے۔ جب یہ آف ہوتا ہے، تو ڈیفالٹ جلد کا رنگ ہمیشہ غالب رہتا ہے۔</string>
     <string name="langemoji_emoji_tone_override_subtitle">ایموجی کے لیے ڈیفالٹ کے بجائے وہ ٹون استعمال کریں جو آپ نے آخری بار منتخب کی تھی</string>
     <string name="langemoji_emoji_tone_override_title">آخری بار استعمال شدہ کے ساتھ اوور رائڈ کریں</string>
-    <string name="langemoji_emoji_toolbar_info">ایموجی بٹن اوپر والی بار میں نظر آتا رہتا ہے، تب بھی جب تجاویز دکھائی جا رہی ہوں۔ ایموجی پینل میں ہر زمرے کے لیے ایک ٹیب موجود ہے۔ آپ انگریزی اور بنگالی میں، اور کسی بھی ایسی زبان میں تلاش کر سکتے ہیں جس کے لیے آپ نے کی ورڈ پیک شامل کیا ہو۔ جلد کے رنگ کے تغیرات کے لیے ایموجی کو دبائے رکھیں۔</string>
-    <string name="langemoji_emoji_toolbar_subtitle">اوپر والی بار سے ایک پریس کے ساتھ ایموجی کھولیں</string>
-    <string name="langemoji_emoji_toolbar_title">ٹول بار میں ایموجی بٹن</string>
     <string name="langemoji_emoji_unicode_search_info">ایموجی تلاش میں کسی کریکٹر کے یونیکوڈ نام کے الفاظ ٹائپ کریں اور یہ ایموجی کے بعد ظاہر ہوتا ہے: ایم ڈیش، کاپی رائٹ سائن، یونانی چھوٹا حرف لیمبڈا، لاطینی چھوٹا حرف a جس کے ساتھ اوگونیک ہے۔ بنیادی کثیر لسانی طیارے کا ہر کریکٹر کور کیا گیا ہے، جو دسیوں ہزار حروف، نشانات اور علامتیں ہیں۔ ایک کو تھپتھپانے سے یہ داخل ہو جاتا ہے۔ یہ ترتیب پہلے سے بند ہے۔</string>
     <string name="langemoji_emoji_unicode_search_subtitle">ایموجی تلاش علامتوں، حروف اور نشانات کو بھی ان کے نام کے الفاظ سے تلاش کرتی ہے</string>
     <string name="langemoji_emoji_unicode_search_title">کسی بھی کریکٹر کو اس کے یونیکوڈ نام سے تلاش کریں</string>
@@ -4500,17 +4497,12 @@
     <string name="langemoji_panel_height_subtitle">ایموجی، GIF اور اسٹیکر پینلز کی بورڈ سے کتنے اونچے کھلتے ہیں</string>
     <string name="langemoji_panel_height_title">پینل کی اونچائی</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">ان بٹنوں کو تجاویز کے بعد، پٹی کے آخری سرے پر رکھیں</string>
-    <string name="langemoji_strip_at_end_title">دائیں جانب بٹن</string>
     <string name="langemoji_strip_icon_size_subtitle">تجاویز کے ساتھ ہر بٹن میں آئیکن کا سائز کتنا بڑا ہے</string>
     <string name="langemoji_strip_icon_size_title">بٹن آئیکن کا سائز</string>
     <string name="langemoji_strip_own_size_subtitle">ٹول بار کے ٹولز کے علاوہ تجاویز کے ساتھ والے بٹنوں کا سائز متعین کریں</string>
     <string name="langemoji_strip_own_size_title">ان بٹنوں کے لیے اپنا سائز</string>
-    <string name="langemoji_strip_shortcut_subtitle">وہ ٹول جو تجاویز ظاہر ہونے کے دوران اوپر والی بار میں رہتا ہے</string>
-    <string name="langemoji_strip_shortcut_title">تجاویز کے ساتھ والا بٹن</string>
     <string name="langemoji_strip_tool_width_subtitle">تجاویز کے ساتھ موجود ہر بٹن کتنا چوڑا ہے</string>
     <string name="langemoji_strip_tool_width_title">بٹن کی چوڑائی</string>
-    <string name="langemoji_strip_toolbox_subtitle">ٹول باکس کو ان بٹنوں میں سب سے پہلے رکھیں، تاکہ تجاویز ظاہر ہونے کے دوران یہ ایک تھپتھپانے کی دوری پر ہو</string>
     <string name="langemoji_strip_toolbox_title">ٹول باکس بٹن</string>
     <string name="langemoji_strip_tools_add_value">شامل کریں</string>
     <string name="langid_module_title">زبان کی شناخت</string>

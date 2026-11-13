@@ -4328,9 +4328,6 @@
     <string name="langemoji_emoji_tone_override_info">Kad šis ir ieslēgts (un tas ir ieslēgts pēc noklusējuma), emocijzīme, kurai jau esat izvēlējies toni, saglabā šo toni visur: panelī, ieteikumos un meklēšanā. Jūs izvēlaties šo toni, nospiežot un turot emocijzīmi panelī. Emocijzīme neizmanto iepriekš minēto noklusējuma toni. Kad šis ir izslēgts, vienmēr tiek izmantots noklusējuma ādas tonis.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Izmantojiet toni, kuru pēdējo reizi atlasījāt emocijzīmei, nevis noklusējuma</string>
     <string name="langemoji_emoji_tone_override_title">Aizstāt ar pēdējo izmantoto</string>
-    <string name="langemoji_emoji_toolbar_info">Emocijzīmju poga paliek redzama augšējā joslā arī tad, kad tiek rādīti ieteikumi. Emocijzīmju panelī ir cilne katrai kategorijai. Varat meklēt angļu un bengāļu valodā, kā arī jebkurā valodā, kurai esat pievienojis atslēgvārdu pakotni. Nospiediet un turiet emocijzīmi, lai redzētu ādas toņa variantus.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Atveriet emocijzīmes ar vienu nospiešanu no augšējās joslas</string>
-    <string name="langemoji_emoji_toolbar_title">Emocijzīmju poga rīkjoslā</string>
     <string name="langemoji_emoji_unicode_search_info">Ievadiet rakstzīmes Unicode nosaukuma vārdus emocijzīmju meklēšanā, un tas parādīsies pēc emocijzīmes: garā svītra, autortiesību zīme, grieķu mazais burts lambda, latīņu mazais burts a ar ogonek. Ir aptverta katra pamata daudzvalodu plaknes rakstzīme, kas ir desmitiem tūkstošu burtu, zīmju un simbolu. Pieskaroties vienam, tas tiek ievietots. Šis iestatījums pēc noklusējuma ir izslēgts.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Emocijzīmju meklēšana atrod arī simbolus, burtus un zīmes pēc to nosaukuma vārdiem</string>
     <string name="langemoji_emoji_unicode_search_title">Atrodiet jebkuru rakstzīmi pēc tās Unicode nosaukuma</string>
@@ -4506,17 +4503,12 @@
     <string name="langemoji_panel_height_subtitle">Cik daudz augstāk par tastatūru atveras emocijzīmju, GIF un uzlīmju paneļi</string>
     <string name="langemoji_panel_height_title">Paneļa augstums</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Novietojiet šīs pogas pēc ieteikumiem, joslas tālākajā galā</string>
-    <string name="langemoji_strip_at_end_title">Pogas labajā pusē</string>
     <string name="langemoji_strip_icon_size_subtitle">Cik liela ir ikona katrā pogā blakus ieteikumiem</string>
     <string name="langemoji_strip_icon_size_title">Pogas ikonas izmērs</string>
     <string name="langemoji_strip_own_size_subtitle">Mainīt pogu izmēru blakus ieteikumiem, atsevišķi no rīkjoslas rīkiem</string>
     <string name="langemoji_strip_own_size_title">Šo pogu individuālais izmērs</string>
-    <string name="langemoji_strip_shortcut_subtitle">Rīks, kas paliek augšējā joslā, kamēr tiek rādīti ieteikumi</string>
-    <string name="langemoji_strip_shortcut_title">Poga blakus ieteikumiem</string>
     <string name="langemoji_strip_tool_width_subtitle">Cik plata ir katra poga blakus ieteikumiem</string>
     <string name="langemoji_strip_tool_width_title">Pogas platums</string>
-    <string name="langemoji_strip_toolbox_subtitle">Novietojiet rīkjoslu pirmo starp šīm pogām, lai tā būtu pieejama ar vienu pieskārienu, kamēr tiek rādīti ieteikumi</string>
     <string name="langemoji_strip_toolbox_title">Rīkjoslas poga</string>
     <string name="langemoji_strip_tools_add_value">Pievienot</string>
     <string name="langid_module_title">Valodas noteikšana</string>

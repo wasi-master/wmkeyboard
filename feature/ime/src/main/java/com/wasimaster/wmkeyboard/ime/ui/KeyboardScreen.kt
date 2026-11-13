@@ -4578,10 +4578,11 @@ private fun TopBar(
             // which ART never compiles a method, for a function that runs on
             // every keystroke. Here it compiles separately.
             StripSlot {
-                // The tools kept beside the suggestions (#462), then the phonetic
-                // layouts' English-words switch. See [StripTools].
-                if (!stripToolsAtEnd(state)) {
-                    StripTools(state, toolsRowVisible, drag, onToolTap, onPinnedTools) { onPanelChange(PanelMode.TOOLBOX) }
+                // The tools kept beside the suggestions (#462) whose side is the
+                // strip's start, then the phonetic layouts' English-words switch.
+                // See [StripTools].
+                StripTools(state, toolsRowVisible, drag, onToolTap, onPinnedTools, atEnd = false) {
+                    onPanelChange(PanelMode.TOOLBOX)
                 }
                 StripChipsAndWords(state.settings.suggestionStrip.chipsAtEnd) {
                     if (StripOfferChips(
@@ -4668,10 +4669,9 @@ private fun TopBar(
                     if (aiAfterWords) aiChip()
                 }
             }
-            // The same buttons at the strip's far end instead, after the words,
-            // when the user put them there.
-            if (stripToolsAtEnd(state)) {
-                StripTools(state, toolsRowVisible, drag, onToolTap, onPinnedTools) { onPanelChange(PanelMode.TOOLBOX) }
+            // The buttons the user put at the strip's far end, after the words.
+            StripTools(state, toolsRowVisible, drag, onToolTap, onPinnedTools, atEnd = true) {
+                onPanelChange(PanelMode.TOOLBOX)
             }
         }
     }
@@ -11427,6 +11427,12 @@ private fun stripToolSet(state: KeyboardUiState): Set<ToolbarTool> {
  * [phoneticEnglishLanguage]), a step down in size from the user's own buttons
  * unless those have a size of their own, and lit while the switch is on.
  *
+ * Called twice, once for each end of the strip: [atEnd] picks the slot after
+ * the words, and the buttons drawn there are the ones whose side
+ * ([ToolbarBehavior.stripEndTools], [ToolbarBehavior.stripToolboxAtEnd]) lands
+ * on it. The switch added by itself goes by its own entry in that set, which
+ * is the start unless the old all-at-the-end switch put it there.
+ *
  * Its own composable: the strip's lambda sits near ART's 10,000-instruction
  * compile ceiling, and this loop would push it over.
  */
@@ -11437,17 +11443,25 @@ private fun StripTools(
     drag: ToolDragController,
     onToolTap: (ToolbarTool) -> Unit,
     onPinnedTools: (Boolean) -> Unit,
+    atEnd: Boolean,
     onToolbox: () -> Unit,
 ) {
+    val behavior = state.settings.toolbarBehavior
+    // The side the user picked that lands in this slot. A strip held LTR for
+    // its buttons ([stripToolsHeldLtr]) runs the other way, so the start the
+    // user picked is that row's end.
+    val side = atEnd != stripToolsHeldLtr(state)
     val onRow = if (toolsRowVisible) visibleToolbarTools(state) else emptyList()
-    val tools = stripShortcutTools(state).filter { it !in onRow }
+    val allTools = stripShortcutTools(state).filter { it !in onRow }
+    val tools = allTools.filter { (it in behavior.stripEndTools) == side }
     val phonetic = ToolbarTool.PHONETIC_ENGLISH
-    val autoPhonetic = phonetic !in tools && phonetic !in onRow && phoneticEnglishLanguage(state) != null
+    val autoPhonetic = phonetic !in allTools && phonetic !in onRow && phoneticEnglishLanguage(state) != null &&
+        (phonetic in behavior.stripEndTools) == side
     // Null is the toolbox button. Drawn in the order they read left to right,
     // whichever way the strip runs, unless the toolbar mirrors for this script
-    // too (see [stripToolsAtEnd]).
+    // too (see [stripToolsHeldLtr]).
     val order = buildList {
-        if (state.settings.emojiToolbar && state.settings.toolbarBehavior.stripToolbox) add(null)
+        if (state.settings.emojiToolbar && behavior.stripToolbox && behavior.stripToolboxAtEnd == side) add(null)
         addAll(tools)
         if (autoPhonetic) add(phonetic)
     }
@@ -11472,14 +11486,6 @@ private fun StripTools(
 private fun stripToolsHeldLtr(state: KeyboardUiState): Boolean =
     state.script.direction == TextDirection.RTL && !toolbarReadsRtl(state) &&
         state.settings.suggestionStrip.rtlWordsFromRight
-
-/**
- * Whether [StripTools] goes after the words in the strip's own direction. A
- * strip held LTR for its buttons ([stripToolsHeldLtr]) runs the other way, so
- * the start the user picked is that row's end.
- */
-private fun stripToolsAtEnd(state: KeyboardUiState): Boolean =
-    state.settings.toolbarBehavior.stripShortcutsAtEnd != stripToolsHeldLtr(state)
 
 private const val ToolboxSwipeUpDp = 16
 

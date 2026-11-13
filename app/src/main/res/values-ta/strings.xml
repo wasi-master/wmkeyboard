@@ -4323,9 +4323,6 @@
     <string name="langemoji_emoji_tone_override_info">இது ஆன் செய்யப்பட்டிருக்கும்போது (இயல்பாகவே ஆன் செய்யப்பட்டிருக்கும்), நீங்கள் ஏற்கனவே ஒரு டோனைத் தேர்ந்தெடுத்த எமோஜி எல்லா இடங்களிலும் அதே டோனைத் தக்கவைக்கும்: பேனலில், பரிந்துரைகளில் மற்றும் தேடலில். பேனலில் உள்ள எமோஜியை அழுத்திப் பிடிப்பதன் மூலம் அந்த டோனைத் தேர்ந்தெடுக்கலாம். எமோஜி மேலே உள்ள இயல்புநிலையைப் பயன்படுத்தாது. இது ஆஃப் செய்யப்பட்டிருக்கும்போது, இயல்புநிலை ஸ்கின் டோன் எப்போதும் முன்னுரிமை பெறும்.</string>
     <string name="langemoji_emoji_tone_override_subtitle">இயல்புநிலையைப் பயன்படுத்தாமல், கடைசியாகத் தேர்ந்தெடுத்த எமோஜி தொனியைப் பயன்படுத்தவும்</string>
     <string name="langemoji_emoji_tone_override_title">கடைசியாகப் பயன்படுத்தியதை வைத்து மேலெழுதவும்</string>
-    <string name="langemoji_emoji_toolbar_info">பரிந்துரைகள் காட்டப்படும்போதும், எமோஜி பொத்தான் மேல் பட்டியில் தெரியும். எமோஜி பேனலில் ஒவ்வொரு வகைக்கும் ஒரு தாவல் உள்ளது. நீங்கள் ஆங்கிலம் மற்றும் வங்காள மொழியிலும், நீங்கள் கீவேர்ட் பேக் சேர்த்த எந்த மொழியிலும் தேடலாம். தோல் நிற மாறுபாடுகளுக்கு எமோஜியை அழுத்திப் பிடிக்கவும்.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">மேல் பட்டியில் இருந்து ஒரே அழுத்தத்தில் ஈமோஜியைத் திறக்கவும்</string>
-    <string name="langemoji_emoji_toolbar_title">டூல்பாரில் உள்ள எமோஜி பட்டன்</string>
     <string name="langemoji_emoji_unicode_search_info">எமோஜி தேடலில் ஒரு எழுத்தின் யூனிகோட் பெயரின் சொற்களைத் தட்டச்சு செய்யவும், அது எமோஜிக்கு பின் தோன்றும்: எம் டேஷ், பதிப்புரிமை குறியீடு, கிரேக்க சிறிய எழுத்து லாம்ப்டா, ஓகோனெக் கொண்ட லத்தீன் சிறிய எழுத்து ஏ. அடிப்படை பன்மொழித் தளத்தின் ஒவ்வொரு எழுத்தும் இதில் அடங்கும், இது பல்லாயிரக்கணக்கான எழுத்துக்கள், குறிகள் மற்றும் குறியீடுகளைக் கொண்டது. ஒன்றைத் தட்டினால் அது உள்ளிடப்படும். இந்த அமைப்பு முன்னிருப்பாக ஆஃப் செய்யப்பட்டுள்ளது.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">ஈமோஜி தேடல் குறியீடுகள், எழுத்துக்கள் மற்றும் அடையாளங்களையும் அவற்றின் பெயர்களைக் கொண்டு கண்டறியும்</string>
     <string name="langemoji_emoji_unicode_search_title">எந்தவொரு எழுத்தையும் அதன் யூனிகோட் பெயரால் கண்டறியவும்</string>
@@ -4500,17 +4497,12 @@
     <string name="langemoji_panel_height_subtitle">ஈமோஜி, ஜிஐஎஃப் மற்றும் ஸ்டிக்கர் பேனல்கள் விசைப்பலகையை விட எவ்வளவு உயரமாகத் திறக்க வேண்டும்</string>
     <string name="langemoji_panel_height_title">பேனல் உயரம்</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">இந்த பொத்தான்களை பரிந்துரைகளுக்குப் பிறகு, ஸ்ட்ரிப்பின் கடைசிப் பகுதியில் வைக்கவும்</string>
-    <string name="langemoji_strip_at_end_title">வலதுபுறத்தில் உள்ள பொத்தான்கள்</string>
     <string name="langemoji_strip_icon_size_subtitle">பரிந்துரைகளுக்கு அருகில் உள்ள ஒவ்வொரு பொத்தானிலும் உள்ள ஐகான் எவ்வளவு பெரியது</string>
     <string name="langemoji_strip_icon_size_title">பொத்தான் ஐகான் அளவு</string>
     <string name="langemoji_strip_own_size_subtitle">கருவிப்பட்டையின் கருவிகளைத் தவிர்த்து, பரிந்துரைகளுக்கு அருகிலுள்ள பொத்தான்களின் அளவை மாற்றவும்</string>
     <string name="langemoji_strip_own_size_title">இந்த பொத்தான்களுக்கான தனி அளவு</string>
-    <string name="langemoji_strip_shortcut_subtitle">பரிந்துரைகள் காட்டப்படும்போது மேல் பட்டியில் இருக்கும் கருவி</string>
-    <string name="langemoji_strip_shortcut_title">பரிந்துரைகளுக்கு அருகிலுள்ள பொத்தான்</string>
     <string name="langemoji_strip_tool_width_subtitle">பரிந்துரைகளுக்கு அருகில் உள்ள ஒவ்வொரு பொத்தானும் எவ்வளவு அகலமாக இருக்க வேண்டும்</string>
     <string name="langemoji_strip_tool_width_title">பொத்தான் அகலம்</string>
-    <string name="langemoji_strip_toolbox_subtitle">இந்த பட்டன்களில் டூல்பாக்ஸை முதலில் வைக்கவும், இதனால் பரிந்துரைகள் காட்டப்படும்போது அது ஒரு தட்டலில் கிடைக்கும்</string>
     <string name="langemoji_strip_toolbox_title">கருவிப்பெட்டி பொத்தான்</string>
     <string name="langemoji_strip_tools_add_value">சேர்</string>
     <string name="langid_module_title">மொழி கண்டறிதல்</string>

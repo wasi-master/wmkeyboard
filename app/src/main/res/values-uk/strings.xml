@@ -4323,9 +4323,6 @@
     <string name="langemoji_emoji_tone_override_info">Коли це увімкнено (за замовчуванням), емодзі, для якого ви вже вибрали відтінок, зберігає цей відтінок всюди: на панелі, у пропозиціях та під час пошуку. Ви вибираєте цей відтінок у спливаючому вікні при тривалому натисканні на емодзі на панелі. Емодзі не використовує відтінок за замовчуванням, вказаний вище. Коли це вимкнено, завжди використовується відтінок шкіри за замовчуванням.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Використовувати тон, який ви вибрали останнім для емодзі, а не стандартний</string>
     <string name="langemoji_emoji_tone_override_title">Замінити на останній використаний</string>
-    <string name="langemoji_emoji_toolbar_info">Кнопка емодзі залишається видимою на верхній панелі, навіть коли відображаються пропозиції. Панель емодзі має вкладку для кожної категорії. Ви можете шукати англійською та бенгальською мовами, а також будь-якою мовою, для якої ви додали пакет ключових слів. Натисніть і утримуйте емодзі для вибору варіантів відтінку шкіри.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Відкривати емодзі одним натисканням з верхньої панелі</string>
-    <string name="langemoji_emoji_toolbar_title">Кнопка емодзі на панелі інструментів</string>
     <string name="langemoji_emoji_unicode_search_info">Введіть слова назви символу в Юнікоді в пошуку емодзі, і він з\'явиться після емодзі: довге тире, знак авторського права, грецька мала літера лямбда, латинська мала літера a з огонеком. Охоплено кожен символ Базової багатомовної площини, що становить десятки тисяч літер, знаків та символів. Натискання на один вставляє його. Це налаштування вимкнено за замовчуванням.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Пошук емодзі також знаходить символи, літери та знаки за словами їхньої назви</string>
     <string name="langemoji_emoji_unicode_search_title">Знайти будь-який символ за його назвою Unicode</string>
@@ -4500,17 +4497,12 @@
     <string name="langemoji_panel_height_subtitle">Наскільки вище клавіатури відкриваються панелі емодзі, GIF та стікерів</string>
     <string name="langemoji_panel_height_title">Висота панелі</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Розмістити ці кнопки після підказок, у самому кінці панелі</string>
-    <string name="langemoji_strip_at_end_title">Кнопки праворуч</string>
     <string name="langemoji_strip_icon_size_subtitle">Розмір значка в кожній кнопці поруч із підказками</string>
     <string name="langemoji_strip_icon_size_title">Розмір значка кнопки</string>
     <string name="langemoji_strip_own_size_subtitle">Налаштування розміру кнопок поруч із підказками, окрім інструментів панелі інструментів</string>
     <string name="langemoji_strip_own_size_title">Власний розмір для цих кнопок</string>
-    <string name="langemoji_strip_shortcut_subtitle">Інструмент, який залишається на верхній панелі під час відображення пропозицій</string>
-    <string name="langemoji_strip_shortcut_title">Кнопка поруч із підказками</string>
     <string name="langemoji_strip_tool_width_subtitle">Якої ширини кожна кнопка поруч із підказками</string>
     <string name="langemoji_strip_tool_width_title">Ширина кнопки</string>
-    <string name="langemoji_strip_toolbox_subtitle">Помістіть панель інструментів на перше місце серед цих кнопок, щоб вона була доступна в один дотик під час показу пропозицій</string>
     <string name="langemoji_strip_toolbox_title">Кнопка панелі інструментів</string>
     <string name="langemoji_strip_tools_add_value">Додати</string>
     <string name="langid_module_title">Визначення мови</string>

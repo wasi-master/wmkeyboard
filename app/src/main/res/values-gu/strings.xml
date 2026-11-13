@@ -4324,9 +4324,6 @@
     <string name="langemoji_emoji_tone_override_info">જ્યારે આ ચાલુ હોય, અને તે ડિફોલ્ટ રૂપે ચાલુ હોય છે, ત્યારે જે ઇમોજી માટે તમે પહેલેથી જ ટોન પસંદ કર્યો હોય તે દરેક જગ્યાએ તે ટોન જાળવી રાખે છે: પેનલમાં, સૂચનોમાં અને શોધમાં. તમે પેનલમાં ઇમોજીના પ્રેસ અને હોલ્ડ પોપઅપમાંથી તે ટોન પસંદ કરો છો. ઇમોજી ઉપરના ડિફોલ્ટનો ઉપયોગ કરતું નથી. જ્યારે આ બંધ હોય, ત્યારે ડિફોલ્ટ સ્કિન ટોન હંમેશા લાગુ થાય છે.</string>
     <string name="langemoji_emoji_tone_override_subtitle">ડિફોલ્ટને બદલે, તમે છેલ્લે પસંદ કરેલ ઇમોજી ટોનનો ઉપયોગ કરો</string>
     <string name="langemoji_emoji_tone_override_title">છેલ્લે વપરાયેલ સાથે ઓવરરાઇડ કરો</string>
-    <string name="langemoji_emoji_toolbar_info">સૂચનો દેખાય ત્યારે પણ ઇમોજી બટન ટોચની પટ્ટીમાં દૃશ્યમાન રહે છે. ઇમોજી પેનલમાં દરેક શ્રેણી માટે એક ટેબ છે. તમે અંગ્રેજી અને બંગાળીમાં, અને કોઈપણ ભાષામાં શોધી શકો છો જેના માટે તમે કીવર્ડ પેક ઉમેર્યું હોય. ત્વચાના ટોન વેરિઅન્ટ્સ માટે ઇમોજીને દબાવી રાખો.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">ટોચની પટ્ટીમાંથી એક પ્રેસ સાથે ઇમોજી ખોલો</string>
-    <string name="langemoji_emoji_toolbar_title">ટૂલબારમાં ઇમોજી બટન</string>
     <string name="langemoji_emoji_unicode_search_info">ઇમોજી શોધમાં અક્ષરના યુનિકોડ નામનો શબ્દ ટાઇપ કરો અને તે ઇમોજી પછી દેખાશે: એમ ડેશ, કોપીરાઇટ સાઇન, ગ્રીક સ્મોલ લેટર લેમ્બડા, લેટિન સ્મોલ લેટર a વિથ ઓગોનેક. બેઝિક મલ્ટિલીંગ્યુઅલ પ્લેનનો દરેક અક્ષર આવરી લેવામાં આવ્યો છે, જે હજારો અક્ષરો, ચિહ્નો અને પ્રતીકો છે. એકને ટેપ કરવાથી તે ઇન્સર્ટ થાય છે. આ સેટિંગ ડિફોલ્ટ રૂપે બંધ છે.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">ઇમોજી સર્ચ તેમના નામ દ્વારા પ્રતીકો, અક્ષરો અને ચિહ્નો પણ શોધે છે</string>
     <string name="langemoji_emoji_unicode_search_title">કોઈપણ અક્ષરને તેના યુનિકોડ નામ દ્વારા શોધો</string>
@@ -4501,17 +4498,12 @@
     <string name="langemoji_panel_height_subtitle">ઇમોજી, GIF અને સ્ટીકર પેનલ્સ કીબોર્ડ કરતાં કેટલી ઊંચી ખુલે છે</string>
     <string name="langemoji_panel_height_title">પેનલની ઊંચાઈ</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">આ બટનોને સૂચનો પછી, સ્ટ્રીપના અંતે મૂકો</string>
-    <string name="langemoji_strip_at_end_title">જમણી બાજુએ બટનો</string>
     <string name="langemoji_strip_icon_size_subtitle">સૂચનોની બાજુમાં દરેક બટનમાં આઇકન કેટલું મોટું છે</string>
     <string name="langemoji_strip_icon_size_title">બટન આઇકનનું કદ</string>
     <string name="langemoji_strip_own_size_subtitle">ટૂલબારના સાધનો સિવાય સૂચનોની બાજુના બટનોનું કદ નક્કી કરો</string>
     <string name="langemoji_strip_own_size_title">આ બટનો માટે પોતાનું કદ</string>
-    <string name="langemoji_strip_shortcut_subtitle">તે ટૂલ જે સૂચનો દેખાય ત્યારે ટોચની બારમાં રહે છે</string>
-    <string name="langemoji_strip_shortcut_title">સૂચનોની બાજુમાં બટન</string>
     <string name="langemoji_strip_tool_width_subtitle">સૂચનોની બાજુમાં દરેક બટન કેટલું પહોળું છે</string>
     <string name="langemoji_strip_tool_width_title">બટનની પહોળાઈ</string>
-    <string name="langemoji_strip_toolbox_subtitle">ટૂલબોક્સને આ બટનોમાં સૌથી પહેલા મૂકો, જેથી સૂચનો દેખાય ત્યારે તે એક ટેપ દૂર રહે</string>
     <string name="langemoji_strip_toolbox_title">ટૂલબોક્સ બટન</string>
     <string name="langemoji_strip_tools_add_value">ઉમેરો</string>
     <string name="langid_module_title">ભાષાની ઓળખ</string>

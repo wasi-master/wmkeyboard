@@ -4330,9 +4330,6 @@
     <string name="langemoji_emoji_tone_override_info">وقتی این گزینه روشن است (که به صورت پیش‌فرض روشن است)، ایموجی‌ای که برای آن رنگ پوست انتخاب کرده‌اید، آن رنگ را در همه جا حفظ می‌کند: در پنل، پیشنهادات و جستجو. شما آن رنگ را از طریق پنجره بازشونده فشار طولانی روی ایموجی در پنل انتخاب می‌کنید. ایموجی از رنگ پیش‌فرض بالا استفاده نمی‌کند. وقتی این گزینه خاموش است، رنگ پوست پیش‌فرض همیشه اعمال می‌شود.</string>
     <string name="langemoji_emoji_tone_override_subtitle">به جای حالت پیش‌فرض، از آخرین حالتی که برای یک ایموجی انتخاب کردید استفاده شود</string>
     <string name="langemoji_emoji_tone_override_title">جایگزینی با آخرین مورد استفاده شده</string>
-    <string name="langemoji_emoji_toolbar_info">دکمه ایموجی در نوار بالا قابل مشاهده باقی می‌ماند، حتی زمانی که پیشنهادات نمایش داده می‌شوند. پنل ایموجی برای هر دسته‌بندی یک زبانه دارد. شما می‌توانید به زبان‌های انگلیسی و بنگالی و هر زبانی که برای آن بسته کلمات کلیدی اضافه کرده‌اید، جستجو کنید. برای مشاهده انواع رنگ پوست، روی یک ایموجی فشار دهید و نگه دارید.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">ایموجی را با یک بار فشردن از نوار بالا باز کنید</string>
-    <string name="langemoji_emoji_toolbar_title">دکمه ایموجی در نوار ابزار</string>
     <string name="langemoji_emoji_unicode_search_info">کلمات نام یونیکد یک کاراکتر را در جستجوی ایموجی تایپ کنید تا بعد از ایموجی ظاهر شود: خط تیره، علامت کپی‌رایت، حرف کوچک یونانی لامبدا، حرف کوچک لاتین a با اوگونِک. هر کاراکتر از صفحه چندزبانه پایه پوشش داده شده است که شامل ده‌ها هزار حرف، علامت و نماد است. با ضربه زدن روی یکی، درج می‌شود. این تنظیم به‌طور پیش‌فرض خاموش است.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">جستجوی ایموجی همچنین نمادها، حروف و علائم را بر اساس کلمات نامشان پیدا می‌کند</string>
     <string name="langemoji_emoji_unicode_search_title">یافتن هر کاراکتر با نام یونیکد آن</string>
@@ -4507,17 +4504,12 @@
     <string name="langemoji_panel_height_subtitle">میزان بلندتر باز شدن پنل‌های ایموجی، گیف و استیکر نسبت به صفحه‌کلید</string>
     <string name="langemoji_panel_height_title">ارتفاع پنل</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">این دکمه‌ها را بعد از پیشنهادها، در انتهای نوار قرار دهید</string>
-    <string name="langemoji_strip_at_end_title">دکمه‌ها در سمت راست</string>
     <string name="langemoji_strip_icon_size_subtitle">اندازه آیکون در هر دکمه کنار پیشنهادات چقدر باشد</string>
     <string name="langemoji_strip_icon_size_title">اندازه آیکون دکمه</string>
     <string name="langemoji_strip_own_size_subtitle">اندازه دکمه‌های کنار پیشنهادها را جدا از ابزارهای نوار ابزار تنظیم کنید</string>
     <string name="langemoji_strip_own_size_title">اندازه اختصاصی برای این دکمه‌ها</string>
-    <string name="langemoji_strip_shortcut_subtitle">ابزاری که هنگام نمایش پیشنهادات در نوار بالایی باقی می‌ماند</string>
-    <string name="langemoji_strip_shortcut_title">دکمه کنار پیشنهادها</string>
     <string name="langemoji_strip_tool_width_subtitle">عرض هر دکمه در کنار پیشنهادها چقدر باشد</string>
     <string name="langemoji_strip_tool_width_title">عرض دکمه</string>
-    <string name="langemoji_strip_toolbox_subtitle">جعبه‌ابزار را در میان این دکمه‌ها در اولویت قرار دهید تا هنگام نمایش پیشنهادات، با یک ضربه در دسترس باشد</string>
     <string name="langemoji_strip_toolbox_title">دکمه جعبه‌ابزار</string>
     <string name="langemoji_strip_tools_add_value">افزودن</string>
     <string name="langid_module_title">تشخیص زبان</string>

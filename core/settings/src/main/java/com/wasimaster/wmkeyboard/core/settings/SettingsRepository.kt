@@ -2249,10 +2249,16 @@ data class ToolbarBehavior(
     /** Side of the glyph in each button beside the suggestions, in dp, under [stripOwnSize]. */
     val stripIconSizeDp: Int = 22,
     /**
-     * Whether the buttons beside the suggestions sit after the words, at the
-     * strip's far end, rather than before them at its start (the default).
+     * The buttons beside the suggestions that sit after the words, at the
+     * strip's far end; every other one sits before them, at its start (the
+     * default). Each tool picks its own side, so the emoji button can be on
+     * the left with the clipboard on the right. Before the side was per tool
+     * one switch moved them all: that switch, still stored, reads as every
+     * button at the end until a side is picked here.
      */
-    val stripShortcutsAtEnd: Boolean = false,
+    val stripEndTools: Set<ToolbarTool> = emptySet(),
+    /** The strip's toolbox button ([stripToolbox]) at the far end, after the words. */
+    val stripToolboxAtEnd: Boolean = false,
     /**
      * A toolbox button with the buttons beside the suggestions (#970), so the
      * toolbox is one tap away while the words show, without a row of pinned
@@ -12918,7 +12924,10 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_STRIP_OWN_SIZE = booleanPreferencesKey("toolbar_strip_own_size")
         private val TOOLBAR_STRIP_TOOL_WIDTH = intPreferencesKey("toolbar_strip_tool_width")
         private val TOOLBAR_STRIP_ICON_SIZE = intPreferencesKey("toolbar_strip_icon_size")
+        /** The one switch that put every strip button at the end, before each had a side. */
         private val TOOLBAR_STRIP_AT_END = booleanPreferencesKey("toolbar_strip_at_end")
+        private val TOOLBAR_STRIP_END_TOOLS = stringPreferencesKey("toolbar_strip_end_tools")
+        private val TOOLBAR_STRIP_TOOLBOX_AT_END = booleanPreferencesKey("toolbar_strip_toolbox_at_end")
         private val TOOLBAR_STRIP_TOOLBOX = booleanPreferencesKey("toolbar_strip_toolbox")
         private val TOOLBAR_BAR_TOOLBOX = booleanPreferencesKey("toolbar_bar_toolbox")
         private val TOOLBAR_TOOLS_ARROW = booleanPreferencesKey("toolbar_tools_arrow")
@@ -15569,22 +15578,13 @@ class SettingsRepository(private val context: Context) {
                 ?.mapNotNull { name -> runCatching { ToolbarTool.valueOf(name) }.getOrNull()?.takeIf { it.floats } }
                 ?.toSet()
                 .orEmpty(),
-            stripShortcuts = p[TOOLBAR_STRIP_SHORTCUTS]
-                ?.let { csv ->
-                    if (csv.isEmpty()) {
-                        emptyList()
-                    } else {
-                        csv.split(',').mapNotNull { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }.distinct()
-                    }
-                }
-                ?: p[TOOLBAR_STRIP_SHORTCUT]
-                    ?.let { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }
-                    ?.let { listOf(it) }
-                ?: defaults.toolbarBehavior.stripShortcuts,
+            stripShortcuts = readStripShortcuts(p) ?: defaults.toolbarBehavior.stripShortcuts,
             stripOwnSize = p[TOOLBAR_STRIP_OWN_SIZE] ?: defaults.toolbarBehavior.stripOwnSize,
             stripToolWidthDp = p[TOOLBAR_STRIP_TOOL_WIDTH] ?: defaults.toolbarBehavior.stripToolWidthDp,
             stripIconSizeDp = p[TOOLBAR_STRIP_ICON_SIZE] ?: defaults.toolbarBehavior.stripIconSizeDp,
-            stripShortcutsAtEnd = p[TOOLBAR_STRIP_AT_END] ?: defaults.toolbarBehavior.stripShortcutsAtEnd,
+            stripEndTools = readStripEndTools(p) ?: defaults.toolbarBehavior.stripEndTools,
+            stripToolboxAtEnd = p[TOOLBAR_STRIP_TOOLBOX_AT_END] ?: p[TOOLBAR_STRIP_AT_END]
+                ?: defaults.toolbarBehavior.stripToolboxAtEnd,
             stripToolbox = p[TOOLBAR_STRIP_TOOLBOX] ?: defaults.toolbarBehavior.stripToolbox,
             barToolbox = p[TOOLBAR_BAR_TOOLBOX] ?: defaults.toolbarBehavior.barToolbox,
             toolsArrow = p[TOOLBAR_TOOLS_ARROW] ?: defaults.toolbarBehavior.toolsArrow,
@@ -18420,8 +18420,47 @@ class SettingsRepository(private val context: Context) {
     suspend fun setStripIconSizeDp(value: Int) =
         editPrefs { it[TOOLBAR_STRIP_ICON_SIZE] = value.coerceIn(14, 30) }
 
-    suspend fun setStripShortcutsAtEnd(value: Boolean) =
-        editPrefs { it[TOOLBAR_STRIP_AT_END] = value }
+    /**
+     * Puts one of the strip's buttons after the words ([atEnd]) or before
+     * them. The first pick writes out every button's side, so a phone still
+     * on the old all-at-the-end switch keeps the others where they were.
+     */
+    suspend fun setStripToolAtEnd(tool: ToolbarTool, atEnd: Boolean) = editPrefs { prefs ->
+        val current = readStripEndTools(prefs).orEmpty()
+        val next = if (atEnd) current + tool else current - tool
+        prefs[TOOLBAR_STRIP_END_TOOLS] = next.joinToString(",") { it.name }
+    }
+
+    suspend fun setStripToolboxAtEnd(value: Boolean) =
+        editPrefs { it[TOOLBAR_STRIP_TOOLBOX_AT_END] = value }
+
+    /**
+     * The tools stored at the strip's end, or null with nothing stored. Under
+     * the old one switch ([TOOLBAR_STRIP_AT_END]) that is every button on the
+     * strip, read off the stored list so a button added later goes there too.
+     */
+    private fun readStripEndTools(p: Preferences): Set<ToolbarTool>? {
+        p[TOOLBAR_STRIP_END_TOOLS]?.let { csv ->
+            return csv.split(',').mapNotNull { name -> runCatching { ToolbarTool.valueOf(name) }.getOrNull() }.toSet()
+        }
+        if (p[TOOLBAR_STRIP_AT_END] != true) return null
+        val shortcuts = readStripShortcuts(p) ?: SettingsDefaults.toolbarBehavior.stripShortcuts
+        return shortcuts.toSet() + ToolbarTool.PHONETIC_ENGLISH
+    }
+
+    /** The strip's stored buttons, in order, or null with nothing stored. */
+    private fun readStripShortcuts(p: Preferences): List<ToolbarTool>? =
+        p[TOOLBAR_STRIP_SHORTCUTS]
+            ?.let { csv ->
+                if (csv.isEmpty()) {
+                    emptyList()
+                } else {
+                    csv.split(',').mapNotNull { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }.distinct()
+                }
+            }
+            ?: p[TOOLBAR_STRIP_SHORTCUT]
+                ?.let { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }
+                ?.let { listOf(it) }
 
     suspend fun setStripToolbox(value: Boolean) =
         editPrefs { it[TOOLBAR_STRIP_TOOLBOX] = value }

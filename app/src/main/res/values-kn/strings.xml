@@ -4335,9 +4335,6 @@
     <string name="langemoji_emoji_tone_override_info">ಇದು ಆನ್ ಆಗಿದ್ದಾಗ, ಮತ್ತು ಇದು ಡೀಫಾಲ್ಟ್ ಆಗಿ ಆನ್ ಆಗಿರುತ್ತದೆ, ನೀವು ಈಗಾಗಲೇ ಟೋನ್ ಆಯ್ಕೆ ಮಾಡಿದ ಎಮೋಜಿ ಎಲ್ಲೆಡೆ ಆ ಟೋನ್ ಅನ್ನು ಉಳಿಸಿಕೊಳ್ಳುತ್ತದೆ: ಪ್ಯಾನೆಲ್‌ನಲ್ಲಿ, ಸಲಹೆಗಳಲ್ಲಿ ಮತ್ತು ಹುಡುಕಾಟದಲ್ಲಿ. ನೀವು ಪ್ಯಾನೆಲ್‌ನಲ್ಲಿರುವ ಎಮೋಜಿಯನ್ನು ಒತ್ತಿ ಹಿಡಿದು ಬರುವ ಪಾಪ್‌ಅಪ್‌ನಿಂದ ಆ ಟೋನ್ ಅನ್ನು ಆಯ್ಕೆ ಮಾಡುತ್ತೀರಿ. ಎಮೋಜಿ ಮೇಲಿನ ಡೀಫಾಲ್ಟ್ ಅನ್ನು ಬಳಸುವುದಿಲ್ಲ. ಇದು ಆಫ್ ಆಗಿದ್ದಾಗ, ಡೀಫಾಲ್ಟ್ ಸ್ಕಿನ್ ಟೋನ್ ಯಾವಾಗಲೂ ಅನ್ವಯಿಸುತ್ತದೆ.</string>
     <string name="langemoji_emoji_tone_override_subtitle">ಡೀಫಾಲ್ಟ್ ಬದಲಿಗೆ, ನೀವು ಎಮೋಜಿಗಾಗಿ ಕೊನೆಯದಾಗಿ ಆಯ್ಕೆ ಮಾಡಿದ ಟೋನ್ ಅನ್ನು ಬಳಸಿ</string>
     <string name="langemoji_emoji_tone_override_title">ಕೊನೆಯದಾಗಿ ಬಳಸಿದದರೊಂದಿಗೆ ಅತಿಕ್ರಮಿಸಿ</string>
-    <string name="langemoji_emoji_toolbar_info">ಸೂಚನೆಗಳು ಕಾಣಿಸಿಕೊಳ್ಳುವಾಗಲೂ ಎಮೋಜಿ ಬಟನ್ ಮೇಲಿನ ಬಾರ್‌ನಲ್ಲಿ ಗೋಚರಿಸುತ್ತದೆ. ಎಮೋಜಿ ಪ್ಯಾನೆಲ್ ಪ್ರತಿ ವರ್ಗಕ್ಕೂ ಒಂದು ಟ್ಯಾಬ್ ಅನ್ನು ಹೊಂದಿದೆ. ನೀವು ಇಂಗ್ಲಿಷ್ ಮತ್ತು ಬಂಗಾಳಿ ಭಾಷೆಗಳಲ್ಲಿ, ಮತ್ತು ನೀವು ಕೀವರ್ಡ್ ಪ್ಯಾಕ್ ಸೇರಿಸಿದ ಯಾವುದೇ ಭಾಷೆಯಲ್ಲಿ ಹುಡುಕಬಹುದು. ಸ್ಕಿನ್ ಟೋನ್ ರೂಪಾಂತರಗಳಿಗಾಗಿ ಎಮೋಜಿಯನ್ನು ಒತ್ತಿ ಹಿಡಿಯಿರಿ.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">ಮೇಲಿನ ಬಾರ್‌ನಿಂದ ಒಂದೇ ಒತ್ತಡದಲ್ಲಿ ಎಮೋಜಿಯನ್ನು ತೆರೆಯಿರಿ</string>
-    <string name="langemoji_emoji_toolbar_title">ಟೂಲ್‌ಬಾರ್‌ನಲ್ಲಿ ಎಮೋಜಿ ಬಟನ್</string>
     <string name="langemoji_emoji_unicode_search_info">ಎಮೋಜಿ ಹುಡುಕಾಟದಲ್ಲಿ ಅಕ್ಷರದ ಯುನಿಕೋಡ್ ಹೆಸರಿನ ಪದಗಳನ್ನು ಟೈಪ್ ಮಾಡಿ ಮತ್ತು ಅದು ಎಮೋಜಿಯ ನಂತರ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತದೆ: ಎಮ್ ಡ್ಯಾಶ್, ಕಾಪಿರೈಟ್ ಚಿಹ್ನೆ, ಗ್ರೀಕ್ ಸ್ಮಾಲ್ ಲೆಟರ್ ಲ್ಯಾಂಬ್ಡಾ, ಲ್ಯಾಟಿನ್ ಸ್ಮಾಲ್ ಲೆಟರ್ ಎ ವಿತ್ ಓಗೊನೆಕ್. ಬೇಸಿಕ್ ಮಲ್ಟಿಲಿಂಗುವಲ್ ಪ್ಲೇನ್‌ನ ಪ್ರತಿಯೊಂದು ಅಕ್ಷರವನ್ನು ಒಳಗೊಂಡಿದೆ, ಇದು ಹತ್ತಾರು ಸಾವಿರ ಅಕ್ಷರಗಳು, ಗುರುತುಗಳು ಮತ್ತು ಚಿಹ್ನೆಗಳನ್ನು ಹೊಂದಿದೆ. ಒಂದನ್ನು ಟ್ಯಾಪ್ ಮಾಡುವುದರಿಂದ ಅದನ್ನು ಸೇರಿಸಲಾಗುತ್ತದೆ. ಈ ಸೆಟ್ಟಿಂಗ್ ಪೂರ್ವನಿಯೋಜಿತವಾಗಿ ಆಫ್ ಆಗಿದೆ.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">ಎಮೋಜಿ ಹುಡುಕಾಟವು ಚಿಹ್ನೆಗಳು, ಅಕ್ಷರಗಳು ಮತ್ತು ಗುರುತುಗಳನ್ನು ಅವುಗಳ ಹೆಸರಿನ ಪದಗಳ ಮೂಲಕವೂ ಕಂಡುಕೊಳ್ಳುತ್ತದೆ</string>
     <string name="langemoji_emoji_unicode_search_title">ಯಾವುದೇ ಅಕ್ಷರವನ್ನು ಅದರ ಯುನಿಕೋಡ್ ಹೆಸರಿನ ಮೂಲಕ ಹುಡುಕಿ</string>
@@ -4513,17 +4510,12 @@
     <string name="langemoji_panel_height_subtitle">ಎಮೋಜಿ, GIF ಮತ್ತು ಸ್ಟಿಕ್ಕರ್ ಪ್ಯಾನಲ್‌ಗಳು ಕೀಬೋರ್ಡ್‌ಗಿಂತ ಎಷ್ಟು ಎತ್ತರಕ್ಕೆ ತೆರೆಯುತ್ತವೆ</string>
     <string name="langemoji_panel_height_title">ಪ್ಯಾನಲ್ ಎತ್ತರ</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">ಈ ಬಟನ್‌ಗಳನ್ನು ಸಲಹೆಗಳ ನಂತರ, ಸ್ಟ್ರಿಪ್‌ನ ದೂರದ ತುದಿಯಲ್ಲಿ ಇರಿಸಿ</string>
-    <string name="langemoji_strip_at_end_title">ಬಲಗಡೆಯಲ್ಲಿರುವ ಬಟನ್‌ಗಳು</string>
     <string name="langemoji_strip_icon_size_subtitle">ಸೂಚನೆಗಳ ಪಕ್ಕದಲ್ಲಿರುವ ಪ್ರತಿಯೊಂದು ಬಟನ್‌ನಲ್ಲಿರುವ ಐಕಾನ್ ಎಷ್ಟು ದೊಡ್ಡದಾಗಿರಬೇಕು</string>
     <string name="langemoji_strip_icon_size_title">ಬಟನ್ ಐಕಾನ್ ಗಾತ್ರ</string>
     <string name="langemoji_strip_own_size_subtitle">ಟೂಲ್‌ಬಾರ್‌ನ ಪರಿಕರಗಳನ್ನು ಹೊರತುಪಡಿಸಿ ಸಲಹೆಗಳ ಪಕ್ಕದಲ್ಲಿರುವ ಬಟನ್‌ಗಳ ಗಾತ್ರವನ್ನು ಹೊಂದಿಸಿ</string>
     <string name="langemoji_strip_own_size_title">ಈ ಬಟನ್‌ಗಳಿಗೆ ಸ್ವಂತ ಗಾತ್ರ</string>
-    <string name="langemoji_strip_shortcut_subtitle">ಸೂಚನೆಗಳು ತೋರಿಸುತ್ತಿರುವಾಗ ಮೇಲಿನ ಪಟ್ಟಿಯಲ್ಲಿ ಉಳಿಯುವ ಸಾಧನ</string>
-    <string name="langemoji_strip_shortcut_title">ಸಲಹೆಗಳ ಪಕ್ಕದಲ್ಲಿರುವ ಬಟನ್</string>
     <string name="langemoji_strip_tool_width_subtitle">ಸಲಹೆಗಳ ಪಕ್ಕದಲ್ಲಿರುವ ಪ್ರತಿಯೊಂದು ಬಟನ್ ಎಷ್ಟು ಅಗಲವಾಗಿರಬೇಕು</string>
     <string name="langemoji_strip_tool_width_title">ಬಟನ್ ಅಗಲ</string>
-    <string name="langemoji_strip_toolbox_subtitle">ಈ ಬಟನ್‌ಗಳಲ್ಲಿ ಟೂಲ್‌ಬಾಕ್ಸ್‌ ಅನ್ನು ಮೊದಲ ಸ್ಥಾನದಲ್ಲಿ ಇರಿಸಿ, ಇದರಿಂದ ಸಲಹೆಗಳು ತೋರಿಸುತ್ತಿರುವಾಗ ಅದು ಒಂದು ಟ್ಯಾಪ್ ದೂರದಲ್ಲಿರುತ್ತದೆ</string>
     <string name="langemoji_strip_toolbox_title">ಟೂಲ್‌ಬಾಕ್ಸ್ ಬಟನ್</string>
     <string name="langemoji_strip_tools_add_value">ಸೇರಿಸಿ</string>
     <string name="langid_module_title">ಭಾಷೆ ಪತ್ತೆಹಚ್ಚುವಿಕೆ</string>

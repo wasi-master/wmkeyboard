@@ -4331,9 +4331,6 @@
     <string name="langemoji_emoji_tone_override_info">जब यह चालू होता है, और यह डिफ़ॉल्ट रूप से चालू रहता है, तो जिस इमोजी के लिए आपने पहले ही टोन चुन लिया है, वह हर जगह उसी टोन को बनाए रखता है: पैनल में, सुझावों में और खोज में। आप पैनल में इमोजी को दबाकर रखने वाले पॉपअप से उस टोन को चुनते हैं। इमोजी ऊपर दिए गए डिफ़ॉल्ट का उपयोग नहीं करता है। जब यह बंद होता है, तो डिफ़ॉल्ट स्किन टोन हमेशा प्रभावी रहता है।</string>
     <string name="langemoji_emoji_tone_override_subtitle">इमोजी के लिए उस टोन का उपयोग करें जिसे आपने अंतिम बार चुना था, न कि डिफ़ॉल्ट का</string>
     <string name="langemoji_emoji_tone_override_title">अंतिम उपयोग किए गए के साथ ओवरराइड करें</string>
-    <string name="langemoji_emoji_toolbar_info">इमोजी बटन शीर्ष बार में दिखाई देता रहता है, सुझाव दिखाई देने के दौरान भी। इमोजी पैनल में प्रत्येक श्रेणी के लिए एक टैब होता है। आप अंग्रेजी और बंगाली में, और किसी भी ऐसी भाषा में खोज सकते हैं जिसके लिए आप कीवर्ड पैक जोड़ते हैं। स्किन टोन वेरिएंट के लिए इमोजी को दबाकर रखें।</string>
-    <string name="langemoji_emoji_toolbar_subtitle">टॉप बार से एक प्रेस के साथ इमोजी खोलें</string>
-    <string name="langemoji_emoji_toolbar_title">टूलबार में इमोजी बटन</string>
     <string name="langemoji_emoji_unicode_search_info">इमोजी खोज में किसी वर्ण के यूनिकोड नाम के शब्द टाइप करें और यह इमोजी के बाद दिखाई देता है: एम डैश, कॉपीराइट चिह्न, ग्रीक छोटा अक्षर लैम्ब्डा, लैटिन छोटा अक्षर ए ओगोनक के साथ। बेसिक मल्टीलिंगुअल प्लेन का हर वर्ण कवर किया गया है, जो हजारों अक्षर, चिह्न और प्रतीक हैं। एक को टैप करने से वह सम्मिलित हो जाता है। यह सेटिंग डिफ़ॉल्ट रूप से बंद है।</string>
     <string name="langemoji_emoji_unicode_search_subtitle">इमोजी खोज प्रतीकों, अक्षरों और निशानों को भी उनके नाम के शब्दों द्वारा ढूंढती है</string>
     <string name="langemoji_emoji_unicode_search_title">किसी भी कैरेक्टर को उसके यूनिकोड नाम से खोजें</string>
@@ -4508,17 +4505,12 @@
     <string name="langemoji_panel_height_subtitle">इमोजी, GIF और स्टिकर पैनल कीबोर्ड से कितने ऊंचे खुलते हैं</string>
     <string name="langemoji_panel_height_title">पैनल की ऊंचाई</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">इन बटनों को सुझावों के बाद, स्ट्रिप के अंतिम छोर पर रखें</string>
-    <string name="langemoji_strip_at_end_title">दाईं ओर बटन</string>
     <string name="langemoji_strip_icon_size_subtitle">सुझावों के बगल में प्रत्येक बटन में आइकन कितना बड़ा है</string>
     <string name="langemoji_strip_icon_size_title">बटन आइकन का आकार</string>
     <string name="langemoji_strip_own_size_subtitle">टूलबार के टूल के अलावा सुझावों के बगल वाले बटनों का आकार निर्धारित करें</string>
     <string name="langemoji_strip_own_size_title">इन बटनों के लिए अपना आकार</string>
-    <string name="langemoji_strip_shortcut_subtitle">वह टूल जो सुझाव दिखाई देने के दौरान शीर्ष पट्टी में रहता है</string>
-    <string name="langemoji_strip_shortcut_title">सुझावों के बगल में बटन</string>
     <string name="langemoji_strip_tool_width_subtitle">सुझावों के बगल वाला हर बटन कितना चौड़ा है</string>
     <string name="langemoji_strip_tool_width_title">बटन की चौड़ाई</string>
-    <string name="langemoji_strip_toolbox_subtitle">टूलबॉक्स को इन बटनों में सबसे पहले रखें, ताकि सुझाव दिखने के दौरान यह बस एक टैप की दूरी पर रहे</string>
     <string name="langemoji_strip_toolbox_title">टूलबॉक्स बटन</string>
     <string name="langemoji_strip_tools_add_value">जोड़ें</string>
     <string name="langid_module_title">भाषा पहचान</string>

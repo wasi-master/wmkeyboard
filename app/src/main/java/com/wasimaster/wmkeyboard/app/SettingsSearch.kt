@@ -1131,6 +1131,12 @@ private fun SearchStrings.appearanceToolbarRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_tool_height_title, R.string.appearance_tool_height_subtitle),
         row(R.string.appearance_tool_icon_size_title, R.string.appearance_tool_icon_size_subtitle),
         row(R.string.appearance_toolbar_reset_title, R.string.appearance_toolbar_reset_subtitle),
+        row(R.string.appearance_strip_buttons_show_title, R.string.appearance_strip_buttons_show_subtitle),
+        row(R.string.appearance_strip_buttons_add_title, R.string.appearance_strip_buttons_add_subtitle),
+        row(R.string.langemoji_strip_toolbox_title, R.string.appearance_strip_buttons_toolbox_subtitle),
+        row(R.string.langemoji_strip_own_size_title, R.string.langemoji_strip_own_size_subtitle),
+        row(R.string.langemoji_strip_tool_width_title, R.string.langemoji_strip_tool_width_subtitle),
+        row(R.string.langemoji_strip_icon_size_title, R.string.langemoji_strip_icon_size_subtitle),
     )
 }
 
@@ -1412,13 +1418,6 @@ private fun SearchStrings.emojiRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) =
         entry(title, subtitle, R.string.home_emoji_title, "emoji", weight = weight)
     return listOf(
-        row(R.string.langemoji_emoji_toolbar_title, R.string.langemoji_emoji_toolbar_subtitle),
-        row(R.string.langemoji_strip_shortcut_title, R.string.langemoji_strip_shortcut_subtitle),
-        row(R.string.langemoji_strip_toolbox_title, R.string.langemoji_strip_toolbox_subtitle),
-        row(R.string.langemoji_strip_at_end_title, R.string.langemoji_strip_at_end_subtitle),
-        row(R.string.langemoji_strip_own_size_title, R.string.langemoji_strip_own_size_subtitle),
-        row(R.string.langemoji_strip_tool_width_title, R.string.langemoji_strip_tool_width_subtitle),
-        row(R.string.langemoji_strip_icon_size_title, R.string.langemoji_strip_icon_size_subtitle),
         row(R.string.langemoji_emoji_full_bleed_title, R.string.langemoji_emoji_full_bleed_subtitle),
         row(R.string.panel_layout_row_title, R.string.panel_layout_row_subtitle),
         row(R.string.langemoji_emoji_prediction_title, R.string.langemoji_emoji_prediction_subtitle),

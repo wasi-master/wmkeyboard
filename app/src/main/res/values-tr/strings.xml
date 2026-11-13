@@ -4319,9 +4319,6 @@
     <string name="langemoji_emoji_tone_override_info">Bu özellik açık olduğunda (varsayılan olarak açıktır), tonunu seçtiğiniz bir emoji, panelde, önerilerde ve aramada her yerde bu tonu korur. Tonu, paneldeki emojinin üzerine basılı tutarak açılan pencereden seçersiniz. Emoji yukarıdaki varsayılanı kullanmaz. Bu özellik kapalı olduğunda, varsayılan cilt tonu her zaman geçerli olur.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Varsayılanı değil, bir emoji için en son seçtiğiniz tonu kullanın</string>
     <string name="langemoji_emoji_tone_override_title">Son kullanılanla geçersiz kıl</string>
-    <string name="langemoji_emoji_toolbar_info">Emoji düğmesi, öneriler gösterilirken bile üst çubukta görünür kalır. Emoji panelinde her kategori için bir sekme bulunur. İngilizce ve Bengalce dillerinde ve anahtar kelime paketi eklediğiniz herhangi bir dilde arama yapabilirsiniz. Ten rengi varyantları için bir emojiye basılı tutun.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Üst çubuktan tek bir basışla emojiyi aç</string>
-    <string name="langemoji_emoji_toolbar_title">Araç çubuğundaki emoji düğmesi</string>
     <string name="langemoji_emoji_unicode_search_info">Emoji aramasında bir karakterin Unicode adının kelimelerini yazın; em tire, telif hakkı işareti, küçük yunan lambda harfi, ogonek\'li küçük latin a harfi gibi emojiden sonra görünür. Temel Çok Dilli Düzlemin her karakteri kapsanmıştır; bu da on binlerce harf, işaret ve sembol demektir. Birine dokunmak onu ekler. Bu ayar varsayılan olarak kapalıdır.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Emoji arama özelliği, sembolleri, harfleri ve işaretleri de adlarındaki kelimelerle bulur</string>
     <string name="langemoji_emoji_unicode_search_title">Herhangi bir karakteri Unicode adına göre bul</string>
@@ -4496,17 +4493,12 @@
     <string name="langemoji_panel_height_subtitle">Emoji, GIF ve çıkartma panellerinin klavyeden ne kadar daha yüksek açıldığı</string>
     <string name="langemoji_panel_height_title">Panel yüksekliği</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Bu düğmeleri önerilerden sonra, şeridin en sonuna yerleştirin</string>
-    <string name="langemoji_strip_at_end_title">Sağdaki düğmeler</string>
     <string name="langemoji_strip_icon_size_subtitle">Önerilerin yanındaki her düğmede bulunan simgenin boyutu</string>
     <string name="langemoji_strip_icon_size_title">Düğme simgesi boyutu</string>
     <string name="langemoji_strip_own_size_subtitle">Araç çubuğunun araçları dışındaki önerilerin yanındaki düğmeleri boyutlandırın</string>
     <string name="langemoji_strip_own_size_title">Bu düğmeler için özel boyut</string>
-    <string name="langemoji_strip_shortcut_subtitle">Öneriler gösterilirken üst çubukta kalan araç</string>
-    <string name="langemoji_strip_shortcut_title">Önerilerin yanındaki düğme</string>
     <string name="langemoji_strip_tool_width_subtitle">Önerilerin yanındaki her düğmenin genişliği</string>
     <string name="langemoji_strip_tool_width_title">Düğme genişliği</string>
-    <string name="langemoji_strip_toolbox_subtitle">Araç kutusunu bu düğmelerin en başına koyun, böylece öneriler görünürken tek dokunuşla erişilebilir olur</string>
     <string name="langemoji_strip_toolbox_title">Araç kutusu düğmesi</string>
     <string name="langemoji_strip_tools_add_value">Ekle</string>
     <string name="langid_module_title">Dil algılama</string>

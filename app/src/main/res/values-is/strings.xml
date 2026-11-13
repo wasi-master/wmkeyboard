@@ -4318,9 +4318,6 @@
     <string name="langemoji_emoji_tone_override_info">Þegar þetta er kveikt, og það er sjálfgefið kveikt, heldur emoji sem þú hefur þegar valið tón fyrir þeim tón alls staðar: á spjaldinu, í tillögum og í leitinni. Þú velur þann tón með því að ýta á og halda inni emoji á spjaldinu. Emoji-ið notar ekki sjálfgefna tóninn hér að ofan. Þegar þetta er slökkt, vinnur sjálfgefinn húðlitur alltaf.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Notaðu tóninn sem þú valdir síðast fyrir emoji, ekki sjálfgefna tóninn</string>
     <string name="langemoji_emoji_tone_override_title">Hnekkja með síðast notaða</string>
-    <string name="langemoji_emoji_toolbar_info">Emoji-hnappurinn er sýnilegur á efstu slánni, jafnvel þegar tillögur eru sýndar. Emoji-borðið hefur flipa fyrir hvern flokk. Þú getur leitað á ensku og bengalsku, og á hvaða tungumáli sem þú bætir við leitarorðapakka fyrir. Ýttu á og haltu inni emoji fyrir húðlitarafbrigði.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Opnaðu emoji með einni snertingu frá efstu stikunni</string>
-    <string name="langemoji_emoji_toolbar_title">Emoji-hnappur á tækjastiku</string>
     <string name="langemoji_emoji_unicode_search_info">Sláðu inn orðin úr Unicode-heiti stafs í emoji-leitina og hann birtist á eftir emoji-tákninu: em-bandstrik, höfundarréttartákn, grískur lágstafur lambda, latneskur lágstafur a með ogonek. Hver stafur í Basic Multilingual Plane er tekinn með, sem eru tugir þúsunda stafa, merkja og tákna. Að banka á einn setur hann inn. Þessi stilling er óvirk sjálfgefið.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Emoji-leitin finnur einnig tákn, stafi og merki eftir orðunum í heiti þeirra</string>
     <string name="langemoji_emoji_unicode_search_title">Finndu hvaða tákn sem er eftir Unicode-nafni þess</string>
@@ -4495,17 +4492,12 @@
     <string name="langemoji_panel_height_subtitle">Hversu mikið hærri en lyklaborðið emoji-, GIF- og límmiðaspjöldin opnast</string>
     <string name="langemoji_panel_height_title">Hæð spjalds</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Settu þessa hnappa á eftir tillögunum, lengst til hægri á röndinni</string>
-    <string name="langemoji_strip_at_end_title">Hnappar hægra megin</string>
     <string name="langemoji_strip_icon_size_subtitle">Hversu stórt táknið í hverjum hnappi við hliðina á tillögunum er</string>
     <string name="langemoji_strip_icon_size_title">Stærð hnappatáknmynda</string>
     <string name="langemoji_strip_own_size_subtitle">Stilla stærð hnappa við hlið tillagna fyrir utan verkfæri tækjastikunnar</string>
     <string name="langemoji_strip_own_size_title">Eigin stærð fyrir þessa hnappa</string>
-    <string name="langemoji_strip_shortcut_subtitle">Verkfærið sem helst í efstu stikunni á meðan tillögurnar birtast</string>
-    <string name="langemoji_strip_shortcut_title">Hnappur við hliðina á tillögum</string>
     <string name="langemoji_strip_tool_width_subtitle">Hversu breiður hver takki við hliðina á tillögunum er</string>
     <string name="langemoji_strip_tool_width_title">Breidd hnapps</string>
-    <string name="langemoji_strip_toolbox_subtitle">Settu verkfærakistuna fyrst á meðal þessara hnappa, svo hún sé aðeins einn smellur í burtu á meðan tillögurnar birtast</string>
     <string name="langemoji_strip_toolbox_title">Verkfærakassahnappur</string>
     <string name="langemoji_strip_tools_add_value">Bæta við</string>
     <string name="langid_module_title">Tungumálagreining</string>

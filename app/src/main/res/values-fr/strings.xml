@@ -4317,9 +4317,6 @@
     <string name="langemoji_emoji_tone_override_info">Lorsque cette option est activée, ce qui est le cas par défaut, un émoji pour lequel vous avez déjà sélectionné une tonalité conserve cette tonalité partout : dans le panneau, les suggestions et la recherche. Vous sélectionnez cette tonalité en appuyant longuement sur l\'émoji dans le panneau. L\'émoji n\'utilise pas la valeur par défaut ci-dessus. Lorsque cette option est désactivée, la couleur de peau par défaut est toujours utilisée.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Utiliser la tonalité que vous avez sélectionnée en dernier pour un emoji, et non celle par défaut</string>
     <string name="langemoji_emoji_tone_override_title">Remplacer par le dernier utilisé</string>
-    <string name="langemoji_emoji_toolbar_info">Le bouton émoji reste visible dans la barre supérieure, même lorsque les suggestions s\'affichent. Le panneau des émojis comporte un onglet pour chaque catégorie. Vous pouvez effectuer des recherches en anglais, en bengali et dans toute langue pour laquelle vous avez ajouté un pack de mots-clés. Appuyez longuement sur un émoji pour voir les variantes de couleur de peau.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Ouvrir les émojis en une pression depuis la barre supérieure</string>
-    <string name="langemoji_emoji_toolbar_title">Bouton Emoji dans la barre d\'outils</string>
     <string name="langemoji_emoji_unicode_search_info">Tapez les mots du nom Unicode d\'un caractère dans la recherche d\'émojis et il apparaîtra après l\'émoji : tiret cadratin, signe copyright, lettre minuscule grecque lambda, lettre minuscule latine a avec ogonek. Chaque caractère du plan multilingue de base est couvert, ce qui représente des dizaines de milliers de lettres, de marques et de symboles. Appuyez sur l\'un d\'eux pour l\'insérer. Ce paramètre est désactivé par défaut.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">La recherche d\'émojis trouve également des symboles, des lettres et des marques par les mots de leur nom</string>
     <string name="langemoji_emoji_unicode_search_title">Trouver n\'importe quel caractère par son nom Unicode</string>
@@ -4494,17 +4491,12 @@
     <string name="langemoji_panel_height_subtitle">À quelle hauteur les panneaux d\'émojis, de GIF et d\'autocollants s\'ouvrent par rapport au clavier</string>
     <string name="langemoji_panel_height_title">Hauteur du panneau</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Placer ces boutons après les suggestions, à l\'extrémité de la barre</string>
-    <string name="langemoji_strip_at_end_title">Boutons sur la droite</string>
     <string name="langemoji_strip_icon_size_subtitle">La taille de l\'icône dans chaque bouton à côté des suggestions</string>
     <string name="langemoji_strip_icon_size_title">Taille de l\'icône du bouton</string>
     <string name="langemoji_strip_own_size_subtitle">Dimensionner les boutons à côté des suggestions en dehors des outils de la barre d\'outils</string>
     <string name="langemoji_strip_own_size_title">Taille propre pour ces boutons</string>
-    <string name="langemoji_strip_shortcut_subtitle">L\'outil qui reste dans la barre supérieure pendant que les suggestions s\'affichent</string>
-    <string name="langemoji_strip_shortcut_title">Bouton à côté des suggestions</string>
     <string name="langemoji_strip_tool_width_subtitle">La largeur de chaque bouton à côté des suggestions</string>
     <string name="langemoji_strip_tool_width_title">Largeur du bouton</string>
-    <string name="langemoji_strip_toolbox_subtitle">Placez la barre d&amp;rsquo;outils en premier parmi ces boutons, afin qu\'elle soit accessible en un seul appui pendant l&amp;rsquo;affichage des suggestions</string>
     <string name="langemoji_strip_toolbox_title">Bouton de la boîte à outils</string>
     <string name="langemoji_strip_tools_add_value">Ajouter</string>
     <string name="langid_module_title">Détection de la langue</string>

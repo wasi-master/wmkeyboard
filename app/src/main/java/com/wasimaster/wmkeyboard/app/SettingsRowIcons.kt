@@ -704,10 +704,9 @@ internal object SettingsRowIcons {
         put(R.string.keypress_globe_drag_title) { Icons.Outlined.Gesture }
 
         // ---- Emoji ----
-        put(R.string.langemoji_emoji_toolbar_title) { Icons.Outlined.EmojiEmotions }
-        put(R.string.langemoji_strip_shortcut_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.appearance_strip_buttons_show_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.appearance_strip_buttons_add_title) { Icons.Outlined.SwapHoriz }
         put(R.string.langemoji_strip_toolbox_title) { Icons.Outlined.Apps }
-        put(R.string.langemoji_strip_at_end_title) { Icons.Outlined.SwapHoriz }
         put(R.string.langemoji_strip_own_size_title) { Icons.Outlined.PhotoSizeSelectSmall }
         put(R.string.langemoji_strip_tool_width_title) { Icons.Outlined.Straighten }
         put(R.string.langemoji_strip_icon_size_title) { Icons.Outlined.PhotoSizeSelectSmall }

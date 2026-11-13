@@ -4327,9 +4327,6 @@
     <string name="langemoji_emoji_tone_override_info">عند تفعيل هذا الخيار، وهو مفعل افتراضياً، فإن الرموز التعبيرية التي اخترت لها لون بشرة ستحتفظ بذلك اللون في كل مكان: في اللوحة، والاقتراحات، والبحث. يمكنك اختيار لون البشرة من النافذة المنبثقة التي تظهر عند الضغط المطول على الرمز التعبيري في اللوحة. لا يستخدم الرمز التعبيري لون البشرة الافتراضي المذكور أعلاه. عند إيقاف هذا الخيار، يتم دائماً استخدام لون البشرة الافتراضي.</string>
     <string name="langemoji_emoji_tone_override_subtitle">استخدم النغمة التي اخترتها آخر مرة للرموز التعبيرية، وليس النغمة الافتراضية</string>
     <string name="langemoji_emoji_tone_override_title">استبدال بآخر استخدام</string>
-    <string name="langemoji_emoji_toolbar_info">يظل زر الرموز التعبيرية مرئياً في الشريط العلوي، حتى أثناء ظهور الاقتراحات. تحتوي لوحة الرموز التعبيرية على علامة تبويب لكل فئة. يمكنك البحث باللغتين الإنجليزية والبنغالية، وبأي لغة تضيف لها حزمة كلمات رئيسية. اضغط مع الاستمرار على رمز تعبيري لاختيار درجات لون البشرة.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">فتح الرموز التعبيرية بضغطة واحدة من الشريط العلوي</string>
-    <string name="langemoji_emoji_toolbar_title">زر الرموز التعبيرية في شريط الأدوات</string>
     <string name="langemoji_emoji_unicode_search_info">اكتب كلمات اسم Unicode الخاص بحرف في بحث الرموز التعبيرية وسيظهر بعد الرمز التعبيري: شرطة em، علامة حقوق النشر، حرف lambda اليوناني الصغير، حرف a اللاتيني الصغير مع ogonek. يتم تغطية كل حرف من مستوى Unicode الأساسي، وهو عشرات الآلاف من الحروف والعلامات والرموز. النقر على أحدها يدرجه. هذا الإعداد متوقف افتراضياً.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">يجد بحث الرموز التعبيرية أيضًا الرموز والحروف والعلامات من خلال كلمات أسمائها</string>
     <string name="langemoji_emoji_unicode_search_title">ابحث عن أي رمز باسم Unicode الخاص به</string>
@@ -4505,17 +4502,12 @@
     <string name="langemoji_panel_height_subtitle">مقدار ارتفاع لوحات الرموز التعبيرية وصور GIF والملصقات عند فتحها فوق لوحة المفاتيح</string>
     <string name="langemoji_panel_height_title">ارتفاع اللوحة</string>
     <string name="langemoji_panel_height_value">+%1$d نقطة</string>
-    <string name="langemoji_strip_at_end_subtitle">ضع هذه الأزرار بعد الاقتراحات، في الطرف البعيد من الشريط</string>
-    <string name="langemoji_strip_at_end_title">أزرار على اليمين</string>
     <string name="langemoji_strip_icon_size_subtitle">حجم الأيقونة في كل زر بجانب الاقتراحات</string>
     <string name="langemoji_strip_icon_size_title">حجم أيقونة الزر</string>
     <string name="langemoji_strip_own_size_subtitle">حدد حجم الأزرار بجانب الاقتراحات بعيداً عن أدوات شريط الأدوات</string>
     <string name="langemoji_strip_own_size_title">حجم مخصص لهذه الأزرار</string>
-    <string name="langemoji_strip_shortcut_subtitle">الأداة التي تبقى في الشريط العلوي أثناء ظهور الاقتراحات</string>
-    <string name="langemoji_strip_shortcut_title">زر بجانب الاقتراحات</string>
     <string name="langemoji_strip_tool_width_subtitle">عرض كل زر بجانب الاقتراحات</string>
     <string name="langemoji_strip_tool_width_title">عرض الزر</string>
-    <string name="langemoji_strip_toolbox_subtitle">ضع صندوق الأدوات أولاً بين هذه الأزرار، ليكون على بعد نقرة واحدة أثناء ظهور الاقتراحات</string>
     <string name="langemoji_strip_toolbox_title">زر صندوق الأدوات</string>
     <string name="langemoji_strip_tools_add_value">إضافة</string>
     <string name="langid_module_title">الكشف عن اللغة</string>

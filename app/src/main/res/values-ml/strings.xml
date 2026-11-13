@@ -4332,9 +4332,6 @@
     <string name="langemoji_emoji_tone_override_info">ഇത് ഓണായിരിക്കുമ്പോൾ, ഡിഫോൾട്ടായി ഓണാണ്, നിങ്ങൾ ഇതിനകം ഒരു ടോൺ തിരഞ്ഞെടുത്ത ഇമോജി എല്ലായിടത്തും ആ ടോൺ നിലനിർത്തുന്നു: പാനലിൽ, നിർദ്ദേശങ്ങളിൽ, തിരയലിൽ. പാനലിലെ ഇമോജിയിൽ അമർത്തിപ്പിടിച്ച് വരുന്ന പോപ്പ്അപ്പിൽ നിന്ന് നിങ്ങൾ ആ ടോൺ തിരഞ്ഞെടുക്കുന്നു. ഇമോജി മുകളിലുള്ള ഡിഫോൾട്ട് ഉപയോഗിക്കുന്നില്ല. ഇത് ഓഫായിരിക്കുമ്പോൾ, ഡിഫോൾട്ട് സ്കിൻ ടോൺ എല്ലായ്പ്പോഴും നിലനിൽക്കും.</string>
     <string name="langemoji_emoji_tone_override_subtitle">ഡിഫോൾട്ടിന് പകരം, ഒരു ഇമോജിക്കായി നിങ്ങൾ അവസാനമായി തിരഞ്ഞെടുത്ത ടോൺ ഉപയോഗിക്കുക</string>
     <string name="langemoji_emoji_tone_override_title">അവസാനം ഉപയോഗിച്ചത് ഉപയോഗിച്ച് ഓവർറൈഡ് ചെയ്യുക</string>
-    <string name="langemoji_emoji_toolbar_info">നിർദ്ദേശങ്ങൾ കാണിക്കുമ്പോഴും ഇമോജി ബട്ടൺ മുകളിലെ ബാറിൽ ദൃശ്യമായിരിക്കും. ഇമോജി പാനലിൽ ഓരോ വിഭാഗത്തിനും ഒരു ടാബ് ഉണ്ട്. നിങ്ങൾക്ക് ഇംഗ്ലീഷിലും ബംഗാളിയിലും, കൂടാതെ കീവേഡ് പാക്ക് ചേർത്തിട്ടുള്ള ഏത് ഭാഷയിലും തിരയാം. സ്കിൻ ടോൺ വകഭേദങ്ങൾക്കായി ഒരു ഇമോജിയിൽ അമർത്തിപ്പിടിക്കുക.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">മുകളിലെ ബാറിൽ നിന്ന് ഒറ്റ അമർത്തലിലൂടെ ഇമോജി തുറക്കുക</string>
-    <string name="langemoji_emoji_toolbar_title">ടൂൾബാറിലെ ഇമോജി ബട്ടൺ</string>
     <string name="langemoji_emoji_unicode_search_info">ഇമോജി തിരയലിൽ ഒരു അക്ഷരത്തിന്റെ യൂണികോഡ് പേര് ടൈപ്പ് ചെയ്യുക, അത് ഇമോജിക്ക് ശേഷം ദൃശ്യമാകും: എം ഡാഷ്, കോപ്പിറൈറ്റ് ചിഹ്നം, ഗ്രീക്ക് സ്മോൾ ലെറ്റർ ലാംഡ, ലാറ്റിൻ സ്മോൾ ലെറ്റർ എ വിത്ത് ഒഗോനെക്. ബേസിക് മൾട്ടി ലിംഗ്വൽ പ്ലെയിനിലെ എല്ലാ അക്ഷരങ്ങളും ഇതിൽ ഉൾപ്പെടുന്നു, അതായത് പതിനായിരക്കണക്കിന് അക്ഷരങ്ങൾ, ചിഹ്നങ്ങൾ എന്നിവ. ഒന്നിൽ ടാപ്പ് ചെയ്യുന്നത് അത് ചേർക്കുന്നു. ഈ ക്രമീകരണം ഡിഫോൾട്ടായി ഓഫ് ആണ്.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">ഇമോജി തിരയൽ ചിഹ്നങ്ങൾ, അക്ഷരങ്ങൾ, അടയാളങ്ങൾ എന്നിവ അവയുടെ പേര് ഉപയോഗിച്ചും കണ്ടെത്തുന്നു</string>
     <string name="langemoji_emoji_unicode_search_title">ഏതൊരു ചിഹ്നത്തെയും അതിന്റെ യൂണികോഡ് നാമം ഉപയോഗിച്ച് കണ്ടെത്തുക</string>
@@ -4510,17 +4507,12 @@
     <string name="langemoji_panel_height_subtitle">ഇമോജി, GIF, സ്റ്റിക്കർ പാനലുകൾ കീബോർഡിനേക്കാൾ എത്ര ഉയരത്തിൽ തുറക്കുന്നു</string>
     <string name="langemoji_panel_height_title">പാനൽ ഉയരം</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">ഈ ബട്ടണുകൾ നിർദ്ദേശങ്ങൾക്ക് ശേഷം, സ്ട്രിപ്പിന്റെ അവസാന ഭാഗത്ത് വയ്ക്കുക</string>
-    <string name="langemoji_strip_at_end_title">വലതുവശത്തുള്ള ബട്ടണുകൾ</string>
     <string name="langemoji_strip_icon_size_subtitle">നിർദ്ദേശങ്ങൾക്ക് അടുത്തുള്ള ഓരോ ബട്ടണിലെയും ഐക്കൺ എത്ര വലുതായിരിക്കണം</string>
     <string name="langemoji_strip_icon_size_title">ബട്ടൺ ഐക്കൺ വലുപ്പം</string>
     <string name="langemoji_strip_own_size_subtitle">ടൂൾബാറിലെ ടൂളുകൾക്ക് പുറമെ നിർദ്ദേശങ്ങൾക്ക് അടുത്തുള്ള ബട്ടണുകളുടെ വലിപ്പം ക്രമീകരിക്കുക</string>
     <string name="langemoji_strip_own_size_title">ഈ ബട്ടണുകൾക്കായി സ്വന്തം വലിപ്പം</string>
-    <string name="langemoji_strip_shortcut_subtitle">നിർദ്ദേശങ്ങൾ കാണിക്കുമ്പോൾ മുകളിലെ ബാറിൽ നിൽക്കുന്ന ടൂൾ</string>
-    <string name="langemoji_strip_shortcut_title">നിർദ്ദേശങ്ങൾക്ക് അടുത്തുള്ള ബട്ടൺ</string>
     <string name="langemoji_strip_tool_width_subtitle">നിർദ്ദേശങ്ങൾക്ക് അടുത്തുള്ള ഓരോ ബട്ടണിന്റെയും വീതി</string>
     <string name="langemoji_strip_tool_width_title">ബട്ടൺ വീതി</string>
-    <string name="langemoji_strip_toolbox_subtitle">ഈ ബട്ടണുകൾക്കിടയിൽ ടൂൾബോക്സ് ആദ്യം വെക്കുക, അങ്ങനെ നിർദ്ദേശങ്ങൾ കാണിക്കുമ്പോൾ അത് ഒരു ടാപ്പിൽ ലഭ്യമാകും</string>
     <string name="langemoji_strip_toolbox_title">ടൂൾബോക്സ് ബട്ടൺ</string>
     <string name="langemoji_strip_tools_add_value">ചേർക്കുക</string>
     <string name="langid_module_title">ഭാഷ കണ്ടെത്തൽ</string>

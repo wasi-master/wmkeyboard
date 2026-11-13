@@ -4327,9 +4327,6 @@
     <string name="langemoji_emoji_tone_override_info">Gdy ta opcja jest włączona (domyślnie), emoji, dla którego wybrano odcień skóry, zachowuje go wszędzie: w panelu, sugestiach i wyszukiwaniu. Odcień wybiera się z wyskakującego okienka po naciśnięciu i przytrzymaniu emoji w panelu. Emoji nie używa domyślnego odcienia. Gdy ta opcja jest wyłączona, zawsze używany jest domyślny odcień skóry.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Używaj odcienia wybranego ostatnio dla emoji, a nie domyślnego</string>
     <string name="langemoji_emoji_tone_override_title">Zastąp ostatnio używanym</string>
-    <string name="langemoji_emoji_toolbar_info">Przycisk emoji pozostaje widoczny na górnym pasku, również podczas wyświetlania sugestii. Panel emoji ma kartę dla każdej kategorii. Możesz wyszukiwać w języku angielskim i bengalskim oraz w każdym języku, dla którego dodasz pakiet słów kluczowych. Naciśnij i przytrzymaj emoji, aby zobaczyć warianty odcienia skóry.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Otwórz emoji jednym naciśnięciem z górnego paska</string>
-    <string name="langemoji_emoji_toolbar_title">Przycisk emoji na pasku narzędzi</string>
     <string name="langemoji_emoji_unicode_search_info">Wpisz słowa nazwy Unicode znaku w wyszukiwarce emoji, a pojawi się on po emoji: myślnik, znak praw autorskich, mała grecka litera lambda, mała łacińska litera a z ogonkiem. Uwzględniony jest każdy znak z podstawowej płaszczyzny wielojęzycznej, co obejmuje dziesiątki tysięcy liter, znaków i symboli. Stuknięcie w jeden z nich powoduje jego wstawienie. To ustawienie jest domyślnie wyłączone.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Wyszukiwanie emoji znajduje również symbole, litery i znaki według słów w ich nazwie</string>
     <string name="langemoji_emoji_unicode_search_title">Znajdź dowolny znak po jego nazwie Unicode</string>
@@ -4504,17 +4501,12 @@
     <string name="langemoji_panel_height_subtitle">O ile wyżej od klawiatury otwierają się panele emoji, GIF-ów i naklejek</string>
     <string name="langemoji_panel_height_title">Wysokość panelu</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Umieść te przyciski za sugestiami, na samym końcu paska</string>
-    <string name="langemoji_strip_at_end_title">Przyciski po prawej</string>
     <string name="langemoji_strip_icon_size_subtitle">Rozmiar ikony w każdym przycisku obok sugestii</string>
     <string name="langemoji_strip_icon_size_title">Rozmiar ikony przycisku</string>
     <string name="langemoji_strip_own_size_subtitle">Dostosuj rozmiar przycisków obok sugestii, niezależnie od narzędzi paska zadań</string>
     <string name="langemoji_strip_own_size_title">Własny rozmiar dla tych przycisków</string>
-    <string name="langemoji_strip_shortcut_subtitle">Narzędzie, które pozostaje na górnym pasku, gdy wyświetlane są sugestie</string>
-    <string name="langemoji_strip_shortcut_title">Przycisk obok sugestii</string>
     <string name="langemoji_strip_tool_width_subtitle">Szerokość każdego przycisku obok sugestii</string>
     <string name="langemoji_strip_tool_width_title">Szerokość przycisku</string>
-    <string name="langemoji_strip_toolbox_subtitle">Umieść pasek narzędzi jako pierwszy wśród tych przycisków, aby był dostępny za jednym dotknięciem, gdy wyświetlane są sugestie</string>
     <string name="langemoji_strip_toolbox_title">Przycisk przybornika</string>
     <string name="langemoji_strip_tools_add_value">Dodaj</string>
     <string name="langid_module_title">Wykrywanie języka</string>

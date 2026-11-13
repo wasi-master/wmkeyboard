@@ -4323,9 +4323,6 @@
     <string name="langemoji_emoji_tone_override_info">Quan això està activat, i ho està per defecte, un emoji del qual ja heu seleccionat un to manté aquest to a tot arreu: al tauler, als suggeriments i a la cerca. Seleccioneu aquest to des de la finestra emergent de prémer i mantenir premut l\'emoji al tauler. L\'emoji no utilitza el valor predeterminat anterior. Quan això està desactivat, el to de pell predeterminat sempre guanya.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Utilitza el to que vas seleccionar per última vegada per a un emoji, no el predeterminat</string>
     <string name="langemoji_emoji_tone_override_title">Sobreescriu amb l\'últim utilitzat</string>
-    <string name="langemoji_emoji_toolbar_info">El botó d\'emojis es manté visible a la barra superior, fins i tot mentre es mostren els suggeriments. El panell d\'emojis té una pestanya per a cada categoria. Pots cercar en anglès i bengalí, i en qualsevol idioma per al qual afegeixis un paquet de paraules clau. Mantén premut un emoji per veure les variants de to de pell.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Obre els emojis amb una sola pulsació des de la barra superior</string>
-    <string name="langemoji_emoji_toolbar_title">Botó d\'emojis a la barra d\'eines</string>
     <string name="langemoji_emoji_unicode_search_info">Escriviu les paraules del nom Unicode d\'un caràcter a la cerca d\'emojis i apareixerà després de l\'emoji: guió llarg, signe de copyright, lletra grega minúscula lambda, lletra llatina minúscula a amb ogonek. Es cobreix cada caràcter del Pla Multilingüe Bàsic, que són desenes de milers de lletres, marques i símbols. Tocar-ne un l\'insereix. Aquest paràmetre està desactivat per defecte.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">La cerca d\'emojis també troba símbols, lletres i marques mitjançant les paraules del seu nom</string>
     <string name="langemoji_emoji_unicode_search_title">Troba qualsevol caràcter pel seu nom Unicode</string>
@@ -4500,17 +4497,12 @@
     <string name="langemoji_panel_height_subtitle">Quant més alts que el teclat s\'obren els taulers d\'emojis, GIF i adhesius</string>
     <string name="langemoji_panel_height_title">Alçada del panell</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Posa aquests botons després dels suggeriments, a l\'extrem de la barra</string>
-    <string name="langemoji_strip_at_end_title">Botons a la dreta</string>
     <string name="langemoji_strip_icon_size_subtitle">Mida de la icona de cada botó al costat dels suggeriments</string>
     <string name="langemoji_strip_icon_size_title">Mida de la icona del botó</string>
     <string name="langemoji_strip_own_size_subtitle">Dimensiona els botons al costat dels suggeriments a part de les eines de la barra d\'eines</string>
     <string name="langemoji_strip_own_size_title">Mida pròpia per a aquests botons</string>
-    <string name="langemoji_strip_shortcut_subtitle">L\'eina que es queda a la barra superior mentre es mostren els suggeriments</string>
-    <string name="langemoji_strip_shortcut_title">Botó al costat dels suggeriments</string>
     <string name="langemoji_strip_tool_width_subtitle">L\'amplada de cada botó al costat dels suggeriments</string>
     <string name="langemoji_strip_tool_width_title">Amplada del botó</string>
-    <string name="langemoji_strip_toolbox_subtitle">Poseu la caixa d\'eines primer entre aquests botons, de manera que estigui a un toc de distància mentre es mostren els suggeriments</string>
     <string name="langemoji_strip_toolbox_title">Botó de la caixa d\'eines</string>
     <string name="langemoji_strip_tools_add_value">Afegeix</string>
     <string name="langid_module_title">Detecció d\'idioma</string>

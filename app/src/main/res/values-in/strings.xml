@@ -4322,9 +4322,6 @@
     <string name="langemoji_emoji_tone_override_info">Saat ini aktif, dan aktif secara default, emoji yang sudah Anda pilih nadanya akan tetap menggunakan nada tersebut di mana saja: di panel, saran, dan pencarian. Anda memilih nada tersebut dari popup tekan dan tahan pada emoji di panel. Emoji tidak menggunakan default di atas. Saat ini nonaktif, warna kulit default selalu digunakan.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Gunakan nada yang terakhir Anda pilih untuk emoji, bukan nada default</string>
     <string name="langemoji_emoji_tone_override_title">Timpa dengan yang terakhir digunakan</string>
-    <string name="langemoji_emoji_toolbar_info">Tombol emoji tetap terlihat di bilah atas, bahkan saat saran ditampilkan. Panel emoji memiliki tab untuk setiap kategori. Anda dapat mencari dalam bahasa Inggris dan Bengali, serta bahasa apa pun yang Anda tambahkan paket kata kuncinya. Tekan dan tahan emoji untuk varian warna kulit.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Buka emoji dengan satu tekan dari bilah atas</string>
-    <string name="langemoji_emoji_toolbar_title">Tombol emoji di toolbar</string>
     <string name="langemoji_emoji_unicode_search_info">Ketik kata-kata dari nama Unicode karakter dalam pencarian emoji dan karakter tersebut akan muncul setelah emoji: em dash, copyright sign, greek small letter lambda, latin small letter a with ogonek. Setiap karakter dari Basic Multilingual Plane tercakup, yang berjumlah puluhan ribu huruf, tanda, dan simbol. Mengetuk salah satunya akan menyisipkannya. Pengaturan ini nonaktif secara default.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Pencarian emoji juga menemukan simbol, huruf, dan tanda berdasarkan kata-kata namanya</string>
     <string name="langemoji_emoji_unicode_search_title">Temukan karakter apa pun berdasarkan nama Unicode-nya</string>
@@ -4499,17 +4496,12 @@
     <string name="langemoji_panel_height_subtitle">Seberapa tinggi panel emoji, GIF, dan stiker terbuka dibandingkan dengan papan ketik</string>
     <string name="langemoji_panel_height_title">Tinggi panel</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Letakkan tombol ini setelah saran, di ujung strip</string>
-    <string name="langemoji_strip_at_end_title">Tombol di sebelah kanan</string>
     <string name="langemoji_strip_icon_size_subtitle">Seberapa besar ikon di setiap tombol di samping saran</string>
     <string name="langemoji_strip_icon_size_title">Ukuran ikon tombol</string>
     <string name="langemoji_strip_own_size_subtitle">Atur ukuran tombol di samping saran selain alat bilah alat</string>
     <string name="langemoji_strip_own_size_title">Ukuran sendiri untuk tombol-tombol ini</string>
-    <string name="langemoji_strip_shortcut_subtitle">Alat yang tetap berada di bilah atas saat saran ditampilkan</string>
-    <string name="langemoji_strip_shortcut_title">Tombol di samping saran</string>
     <string name="langemoji_strip_tool_width_subtitle">Seberapa lebar setiap tombol di samping saran</string>
     <string name="langemoji_strip_tool_width_title">Lebar tombol</string>
-    <string name="langemoji_strip_toolbox_subtitle">Letakkan kotak alat di urutan pertama di antara tombol-tombol ini, agar dapat diakses dengan satu ketukan saat saran ditampilkan</string>
     <string name="langemoji_strip_toolbox_title">Tombol kotak alat</string>
     <string name="langemoji_strip_tools_add_value">Tambahkan</string>
     <string name="langid_module_title">Deteksi bahasa</string>

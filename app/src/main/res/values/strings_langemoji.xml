@@ -71,22 +71,14 @@
     <!-- ===== Emoji settings screen ===== -->
 
     <string name="langemoji_emoji_access_title">Access</string>
-    <string name="langemoji_emoji_toolbar_title">Emoji button in toolbar</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Open emoji with one press from the top bar</string>
-    <string name="langemoji_strip_shortcut_title">Buttons beside the suggestions</string>
-    <string name="langemoji_strip_shortcut_subtitle">Tools that stay in the top bar while the suggestions show. Drag to change their order</string>
     <string name="langemoji_strip_tools_add_value">Add</string>
     <string name="langemoji_strip_toolbox_title">Toolbox button</string>
-    <string name="langemoji_strip_toolbox_subtitle">Put the toolbox first among these buttons, so it is one tap away while the suggestions show</string>
-    <string name="langemoji_strip_at_end_title">Buttons on the right</string>
-    <string name="langemoji_strip_at_end_subtitle">Put these buttons after the suggestions, at the far end of the strip</string>
     <string name="langemoji_strip_own_size_title">Own size for these buttons</string>
     <string name="langemoji_strip_own_size_subtitle">Size the buttons beside the suggestions apart from the toolbar\'s tools</string>
     <string name="langemoji_strip_tool_width_title">Button width</string>
     <string name="langemoji_strip_tool_width_subtitle">How wide each button beside the suggestions is</string>
     <string name="langemoji_strip_icon_size_title">Button icon size</string>
     <string name="langemoji_strip_icon_size_subtitle">How big the icon in each button beside the suggestions is</string>
-    <string name="langemoji_emoji_toolbar_info">The emoji button stays visible in the top bar, also while the suggestions show. The emoji panel has a tab for each category. You can search in English and Bengali, and in any language that you add a keyword pack for. Press and hold an emoji for the skin tone variants.</string>
     <string name="langemoji_emoji_full_bleed_title">Full-screen emoji panel</string>
     <string name="langemoji_emoji_full_bleed_subtitle">Hide the toolbar and move the category tabs up, next to a back button</string>
     <string name="langemoji_emoji_full_bleed_info">The emoji panel fills the whole keyboard. The toolbar, the emoji row and the symbol row go away. The category tabs move into the row that they leave, next to a back button. Turn this off to keep the toolbar in reach while you select emoji.</string>

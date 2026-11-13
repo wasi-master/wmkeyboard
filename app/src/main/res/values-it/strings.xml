@@ -4318,9 +4318,6 @@
     <string name="langemoji_emoji_tone_override_info">Quando questa opzione è attiva, ed è attiva per impostazione predefinita, un\'emoji per la quale hai già selezionato una tonalità mantiene tale tonalità ovunque: nel pannello, nei suggerimenti e nella ricerca. Selezioni quella tonalità dal popup di pressione prolungata dell\'emoji nel pannello. L\'emoji non utilizza la tonalità predefinita sopra indicata. Quando questa opzione è disattivata, la tonalità della pelle predefinita ha sempre la precedenza.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Usa l\'ultima tonalità selezionata per un\'emoji, non quella predefinita</string>
     <string name="langemoji_emoji_tone_override_title">Sovrascrivi con l\'ultimo utilizzato</string>
-    <string name="langemoji_emoji_toolbar_info">Il pulsante emoji rimane visibile nella barra superiore, anche mentre vengono mostrati i suggerimenti. Il pannello emoji ha una scheda per ogni categoria. Puoi cercare in inglese e bengalese, e in qualsiasi lingua per la quale aggiungi un pacchetto di parole chiave. Premi e tieni premuta un\'emoji per le varianti del tono della pelle.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Apri le emoji con una pressione dalla barra superiore</string>
-    <string name="langemoji_emoji_toolbar_title">Pulsante emoji nella barra degli strumenti</string>
     <string name="langemoji_emoji_unicode_search_info">Digita le parole del nome Unicode di un carattere nella ricerca emoji e apparirà dopo l\'emoji: trattino lungo, simbolo di copyright, lettera greca minuscola lambda, lettera latina minuscola a con ogonek. Ogni carattere del Basic Multilingual Plane è coperto, il che significa decine di migliaia di lettere, segni e simboli. Toccandone uno lo inserisci. Questa impostazione è disattivata per impostazione predefinita.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">La ricerca di emoji trova anche simboli, lettere e segni tramite le parole del loro nome</string>
     <string name="langemoji_emoji_unicode_search_title">Trova qualsiasi carattere tramite il suo nome Unicode</string>
@@ -4495,17 +4492,12 @@
     <string name="langemoji_panel_height_subtitle">Quanto si aprono i pannelli di emoji, GIF e adesivi rispetto all\'altezza della tastiera</string>
     <string name="langemoji_panel_height_title">Altezza pannello</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Metti questi pulsanti dopo i suggerimenti, all\'estremità della barra</string>
-    <string name="langemoji_strip_at_end_title">Pulsanti a destra</string>
     <string name="langemoji_strip_icon_size_subtitle">Quanto è grande l\'icona in ogni pulsante accanto ai suggerimenti</string>
     <string name="langemoji_strip_icon_size_title">Dimensione icona pulsante</string>
     <string name="langemoji_strip_own_size_subtitle">Ridimensiona i pulsanti accanto ai suggerimenti separatamente dagli strumenti della barra</string>
     <string name="langemoji_strip_own_size_title">Dimensioni personalizzate per questi pulsanti</string>
-    <string name="langemoji_strip_shortcut_subtitle">Lo strumento che rimane nella barra superiore mentre vengono mostrati i suggerimenti</string>
-    <string name="langemoji_strip_shortcut_title">Pulsante accanto ai suggerimenti</string>
     <string name="langemoji_strip_tool_width_subtitle">Quanto è largo ciascun pulsante accanto ai suggerimenti</string>
     <string name="langemoji_strip_tool_width_title">Larghezza pulsante</string>
-    <string name="langemoji_strip_toolbox_subtitle">Metti la casella degli strumenti per prima tra questi pulsanti, così è a portata di tocco mentre vengono mostrati i suggerimenti</string>
     <string name="langemoji_strip_toolbox_title">Pulsante cassetta degli attrezzi</string>
     <string name="langemoji_strip_tools_add_value">Aggiungi</string>
     <string name="langid_module_title">Rilevamento lingua</string>

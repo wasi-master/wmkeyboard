@@ -4321,9 +4321,6 @@
     <string name="langemoji_emoji_tone_override_info">これがオン（デフォルト）の場合、一度肌のトーンを選択した絵文字は、パネル、候補、検索など、どこでもそのトーンが保持されます。トーンは、パネル内の絵文字を長押しして表示されるポップアップから選択します。その絵文字には上記のデフォルト設定は適用されません。これがオフの場合、常にデフォルトの肌のトーンが優先されます。</string>
     <string name="langemoji_emoji_tone_override_subtitle">デフォルトではなく、最後に選択した絵文字のトーンを使用します</string>
     <string name="langemoji_emoji_tone_override_title">最後に使用したもので上書き</string>
-    <string name="langemoji_emoji_toolbar_info">絵文字ボタンは、候補が表示されている間もトップバーに表示されたままになります。絵文字パネルにはカテゴリごとのタブがあります。英語やベンガル語、キーワードパックを追加した言語で検索できます。絵文字を長押しすると、スキントーンのバリエーションが表示されます。</string>
-    <string name="langemoji_emoji_toolbar_subtitle">トップバーからワンタップで絵文字を開く</string>
-    <string name="langemoji_emoji_toolbar_title">ツールバーの絵文字ボタン</string>
     <string name="langemoji_emoji_unicode_search_info">絵文字検索で文字のUnicode名を入力すると、絵文字の後に表示されます（例：em dash、copyright sign、greek small letter lambda、latin small letter a with ogonek）。基本多言語面のすべての文字がカバーされており、数万の文字、記号、シンボルが含まれています。タップすると挿入されます。この設定はデフォルトでオフになっています。</string>
     <string name="langemoji_emoji_unicode_search_subtitle">絵文字検索では、記号、文字、マークもその名前の単語で検索できます</string>
     <string name="langemoji_emoji_unicode_search_title">Unicode名から文字を検索</string>
@@ -4498,17 +4495,12 @@
     <string name="langemoji_panel_height_subtitle">絵文字、GIF、ステッカーパネルを開く際、キーボードよりどれだけ高く表示するかを設定します</string>
     <string name="langemoji_panel_height_title">パネルの高さ</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">これらのボタンを候補の後、ストリップの端に配置します</string>
-    <string name="langemoji_strip_at_end_title">右側のボタン</string>
     <string name="langemoji_strip_icon_size_subtitle">サジェストの横にある各ボタンのアイコンの大きさ</string>
     <string name="langemoji_strip_icon_size_title">ボタンアイコンのサイズ</string>
     <string name="langemoji_strip_own_size_subtitle">ツールバーのツールとは別に、候補の横にあるボタンのサイズを設定します</string>
     <string name="langemoji_strip_own_size_title">これらのボタンのサイズを個別に設定</string>
-    <string name="langemoji_strip_shortcut_subtitle">候補が表示されている間、トップバーに留まるツール</string>
-    <string name="langemoji_strip_shortcut_title">候補横のボタン</string>
     <string name="langemoji_strip_tool_width_subtitle">候補の横にある各ボタンの幅</string>
     <string name="langemoji_strip_tool_width_title">ボタンの幅</string>
-    <string name="langemoji_strip_toolbox_subtitle">ツールボックスをこれらのボタンの先頭に配置し、候補が表示されている間もワンタップでアクセスできるようにします</string>
     <string name="langemoji_strip_toolbox_title">ツールボックスボタン</string>
     <string name="langemoji_strip_tools_add_value">追加</string>
     <string name="langid_module_title">言語検出</string>

@@ -4321,9 +4321,6 @@
     <string name="langemoji_emoji_tone_override_info">Pokud je toto zapnuto (což je výchozí stav), emoji, pro které jste již vybrali tón pleti, si tento tón zachová všude: v panelu, v návrzích i při hledání. Tento tón vyberete podržením emoji v panelu. Emoji nepoužije výchozí tón uvedený výše. Pokud je tato možnost vypnutá, vždy zvítězí výchozí tón pleti.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Použít naposledy vybraný odstín pro emoji, nikoliv výchozí</string>
     <string name="langemoji_emoji_tone_override_title">Přepsat naposledy použitým</string>
-    <string name="langemoji_emoji_toolbar_info">Tlačítko emoji zůstává viditelné v horní liště, i když se zobrazují návrhy. Panel emoji má kartu pro každou kategorii. Můžete vyhledávat v angličtině a bengálštině a v jakémkoli jazyce, pro který přidáte balíček klíčových slov. Stiskněte a podržte emoji pro varianty odstínu pleti.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Otevřete emoji jedním stisknutím z horní lišty</string>
-    <string name="langemoji_emoji_toolbar_title">Tlačítko emoji na panelu nástrojů</string>
     <string name="langemoji_emoji_unicode_search_info">Napište slova Unicode názvu znaku do vyhledávání emoji a objeví se za emoji: pomlčka, symbol autorských práv, řecké malé písmeno lambda, latinské malé písmeno a s ogonkem. Pokryt je každý znak základní vícejazyčné roviny, což jsou desítky tisíc písmen, značek a symbolů. Klepnutím na jeden jej vložíte. Toto nastavení je ve výchozím stavu vypnuto.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Vyhledávání emoji také najde symboly, písmena a značky podle slov v jejich názvu</string>
     <string name="langemoji_emoji_unicode_search_title">Najít jakýkoli znak podle jeho názvu v Unicode</string>
@@ -4498,17 +4495,12 @@
     <string name="langemoji_panel_height_subtitle">O kolik vyšší než klávesnice se otevírají panely emoji, GIFů a nálepek</string>
     <string name="langemoji_panel_height_title">Výška panelu</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Umístit tato tlačítka za návrhy, na úplný konec pruhu</string>
-    <string name="langemoji_strip_at_end_title">Tlačítka vpravo</string>
     <string name="langemoji_strip_icon_size_subtitle">Jak velká je ikona v každém tlačítku vedle návrhů</string>
     <string name="langemoji_strip_icon_size_title">Velikost ikony tlačítka</string>
     <string name="langemoji_strip_own_size_subtitle">Nastavte velikost tlačítek vedle návrhů odděleně od nástrojů panelu nástrojů</string>
     <string name="langemoji_strip_own_size_title">Vlastní velikost pro tato tlačítka</string>
-    <string name="langemoji_strip_shortcut_subtitle">Nástroj, který zůstává v horním panelu, zatímco se zobrazují návrhy</string>
-    <string name="langemoji_strip_shortcut_title">Tlačítko vedle návrhů</string>
     <string name="langemoji_strip_tool_width_subtitle">Jak široké je každé tlačítko vedle návrhů</string>
     <string name="langemoji_strip_tool_width_title">Šířka tlačítka</string>
-    <string name="langemoji_strip_toolbox_subtitle">Umístěte sadu nástrojů jako první mezi tato tlačítka, aby byla dostupná jedním klepnutím, zatímco se zobrazují návrhy</string>
     <string name="langemoji_strip_toolbox_title">Tlačítko panelu nástrojů</string>
     <string name="langemoji_strip_tools_add_value">Přidat</string>
     <string name="langid_module_title">Detekce jazyka</string>
