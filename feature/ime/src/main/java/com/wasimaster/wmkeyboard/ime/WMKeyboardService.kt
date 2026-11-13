@@ -12876,7 +12876,10 @@ open class WMKeyboardService : InputMethodService() {
         // (#454), rather than landing as the bare key.
         val run = if (composesInCapture(state.composer)) liveCaptureComposition(state, before) else null
         if (text == " " && state.typesIntoTranslate() && translateCodesTyped(target, before, run)) return true
-        if (capturesComposingKey(state.composer, target, text, run)) {
+        // A page that types its key caps (the flick pad's ABC page, #1228)
+        // skips the composer here as in the app's field: the reading in
+        // progress settles below and the letter follows it as typed.
+        if (!typesKeyCaps(state) && capturesComposingKey(state.composer, target, text, run)) {
             rewriteCaptureComposition(state, target, before, run, run?.keys.orEmpty() + text)
             return true
         }
@@ -23784,6 +23787,19 @@ open class WMKeyboardService : InputMethodService() {
         state.layoutMode == LayoutMode.NAMED &&
             state.namedLayer?.let { state.layouts.named[it] }?.direct == true
 
+    /** [swapCaseBeforeCaret] for a keyboard-owned field. */
+    private fun swapCaseBeforeCaptureCaret(target: CaptureTarget, before: CaretText) {
+        if (before.hasSelection || before.at <= 0) return
+        val cp = before.text.codePointBefore(before.at)
+        val swapped = when {
+            Character.isUpperCase(cp) -> Character.toLowerCase(cp)
+            Character.isLowerCase(cp) -> Character.toUpperCase(cp)
+            else -> return
+        }
+        if (swapped == cp) return
+        captureWrite(target, before, before.deletedBackward(Character.charCount(cp)).typed(String(Character.toChars(swapped))))
+    }
+
     /**
      * Upper case for lower and lower for upper, on the one letter in front of
      * the caret. Anything that is not a cased letter, or a selection, is left
@@ -23816,6 +23832,11 @@ open class WMKeyboardService : InputMethodService() {
     private fun cycleCaptureKanaVariant(): Boolean {
         val state = _uiState.value
         val target = state.captureTarget() ?: return false
+        // The ABC page's a/A key (#1228), the same in a tool's field as in the app's.
+        if (typesKeyCaps(state)) {
+            swapCaseBeforeCaptureCaret(target, state.captureCaretText() ?: return true)
+            return true
+        }
         if (!composesInCapture(state.composer)) return true
         val before = state.captureCaretText() ?: return true
         val run = liveCaptureComposition(state, before) ?: return true
