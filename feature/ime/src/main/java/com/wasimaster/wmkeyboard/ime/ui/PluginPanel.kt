@@ -5,6 +5,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,12 +20,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -31,9 +36,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.plugins.InstalledPlugin
 import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
@@ -48,7 +56,11 @@ import com.wasimaster.wmkeyboard.core.plugins.ui.LocalPluginPanelStyle
 import com.wasimaster.wmkeyboard.core.plugins.ui.PluginInputHost
 import com.wasimaster.wmkeyboard.core.plugins.ui.PluginPanelStyle
 import com.wasimaster.wmkeyboard.core.plugins.ui.PluginWidgetList
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronRight
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Info
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -107,7 +119,7 @@ private fun PluginList(
     onManage: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
-    // The ring walks the cards and ends on Manage.
+    // The ring walks the rows and ends on Manage.
     PanelFocusTarget(
         panel = PanelMode.PLUGINS,
         region = FocusRegion.RESULTS,
@@ -118,89 +130,152 @@ private fun PluginList(
         if (plugin != null) onOpenPlugin(plugin.id) else onManage()
     }
     val focused = state.focusedIndex(FocusRegion.RESULTS)
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        panel.notice?.let { notice ->
-            Text(
-                notice,
-                color = kb.secondaryText,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(bottom = 2.dp),
-            )
-        }
-        if (panel.plugins.isEmpty()) {
-            // Only when nothing else has already explained the empty list. With
-            // the subsystem off, or every plugin switched off, the notice above
-            // says why — and "No plugins yet" beside it is simply untrue.
-            if (panel.notice == null) {
-                Text(
-                    stringResource(R.string.ime_plugin_empty_title),
-                    color = kb.keyText,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                )
-                Text(
-                    stringResource(R.string.ime_plugin_empty_body),
-                    color = kb.secondaryText,
-                    fontSize = 12.sp,
-                )
+    // Material's line height for small text is 24 sp, which double-spaces a
+    // two-line description; a line in proportion to the font instead.
+    CompositionLocalProvider(LocalTextStyle provides LocalTextStyle.current.merge(TextStyle(lineHeight = 1.35.em))) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            panel.notice?.let { notice ->
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, bottom = 8.dp),
+                ) {
+                    Icon(Icons.Outlined.Info, contentDescription = null, tint = kb.secondaryText, modifier = Modifier.size(20.dp))
+                    Text(notice, color = kb.secondaryText, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                }
             }
-            ToolPanelChip(
-                label = stringResource(R.string.ime_plugin_manage_action),
-                modifier = Modifier.focusRing(focused == panel.plugins.size),
-                onClick = onManage,
-            )
-        } else {
+            if (panel.plugins.isEmpty() && panel.notice == null) {
+                // Only when nothing else has already explained the empty list. With
+                // the subsystem off, or every plugin switched off, the notice above
+                // says why — and "No plugins yet" beside it is simply untrue.
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp, horizontal = 16.dp),
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.size(64.dp).clip(CircleShape).background(kb.chip),
+                    ) { Icon(Icons.Outlined.Extension, contentDescription = null, tint = kb.accent, modifier = Modifier.size(32.dp)) }
+                    Text(
+                        stringResource(R.string.ime_plugin_empty_title),
+                        color = kb.keyText,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
+                    Text(
+                        stringResource(R.string.ime_plugin_empty_body),
+                        color = kb.secondaryText,
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
             for ((index, plugin) in panel.plugins.withIndex()) {
                 PluginRow(plugin, focused = index == focused) { onOpenPlugin(plugin.id) }
             }
-            ToolPanelChip(
-                label = stringResource(R.string.ime_plugin_manage_action),
-                modifier = Modifier.focusRing(focused == panel.plugins.size),
+            ListRow(
+                title = stringResource(R.string.ime_plugin_manage_action),
+                subtitle = null,
+                leading = { Icon(Icons.Outlined.Tune, contentDescription = null, tint = kb.chipText, modifier = Modifier.size(22.dp)) },
+                focused = focused == panel.plugins.size,
                 onClick = onManage,
             )
         }
     }
 }
 
+/**
+ * One installed plugin, drawn as a row of a settings list: its initial in a
+ * round badge, its name, what it does in a line or two, and a chevron that says
+ * the row opens something.
+ */
 @Composable
 private fun PluginRow(plugin: InstalledPlugin, focused: Boolean = false, onClick: () -> Unit) {
     val kb = LocalKbTheme.current
+    // Read outside ifBlank: that lambda is not a composable one.
+    val versionLabel = stringResource(R.string.ime_plugin_version_label, plugin.version)
+    ListRow(
+        title = plugin.displayName,
+        subtitle = plugin.displayDescription.ifBlank { versionLabel },
+        leading = {
+            Text(
+                pluginInitial(plugin.displayName),
+                color = kb.chipActiveText,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Medium,
+            )
+        },
+        leadingFill = kb.chipActive,
+        focused = focused,
+        onClick = onClick,
+    )
+}
+
+/** The first letter of [name], a whole grapheme so an accent or an emoji is not cut in half. */
+private fun pluginInitial(name: String): String {
+    val trimmed = name.trim()
+    if (trimmed.isEmpty()) return "?"
+    val breaks = java.text.BreakIterator.getCharacterInstance()
+    breaks.setText(trimmed)
+    val end = breaks.next().takeIf { it > 0 } ?: 1
+    return trimmed.substring(0, end).uppercase()
+}
+
+@Composable
+private fun ListRow(
+    title: String,
+    subtitle: String?,
+    leading: @Composable () -> Unit,
+    focused: Boolean,
+    leadingFill: Color? = null,
+    onClick: () -> Unit,
+) {
+    val kb = LocalKbTheme.current
     val shape = kb.cardShape()
-    Column(
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 64.dp)
             .clip(shape)
             .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .chipBorder(kb, shape)
             .focusRing(focused, shape)
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(start = 12.dp, end = 8.dp, top = 10.dp, bottom = 10.dp),
     ) {
-        Text(
-            plugin.displayName,
-            color = kb.chipText,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        // Read outside ifBlank: that lambda is not a composable one.
-        val versionLabel = stringResource(R.string.ime_plugin_version_label, plugin.version)
-        val subtitle = plugin.displayDescription.ifBlank { versionLabel }
-        Text(
-            subtitle,
-            color = kb.secondaryText,
-            fontSize = 11.sp,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(40.dp).clip(CircleShape).background(leadingFill ?: kb.keyText.copy(alpha = 0.08f)),
+        ) { leading() }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                title,
+                color = kb.chipText,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (!subtitle.isNullOrBlank()) {
+                Text(
+                    subtitle,
+                    color = kb.secondaryText,
+                    fontSize = 13.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = kb.secondaryText, modifier = Modifier.size(20.dp))
     }
 }
 
@@ -261,15 +336,12 @@ private fun RunningPlugin(
     val caretHandle = LocalCaptureCaret.current
     val reclaim = caretHandle.onFocusSwitch?.takeIf { caretHandle.toApp }
     val host = remember(state, onInputFocus, onPaste, reclaim) { KeyboardInputHost(state, onInputFocus, onPaste, reclaim) }
+    // The focus switch for the box taking the keys sits in the header
+    // ([PluginHeaderActions]), not on a row of its own above the plugin.
     Column(modifier = Modifier.fillMaxSize()) {
-        if (state.pluginTypingActive) {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.End) {
-                FieldFocusSwitch(caretHandle)
-            }
-        }
         if (panel.busy) {
             LinearProgressIndicator(
-                modifier = Modifier.fillMaxWidth().height(2.dp),
+                modifier = Modifier.fillMaxWidth().height(3.dp),
                 color = kb.accent,
                 trackColor = kb.chip,
             )
@@ -278,10 +350,11 @@ private fun RunningPlugin(
             Text(
                 message,
                 color = kb.secondaryText,
-                fontSize = 11.sp,
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
             )
         }
         if (panel.needs.isNotEmpty()) {
@@ -291,16 +364,17 @@ private fun RunningPlugin(
             Text(
                 line.resolve(context),
                 color = kb.secondaryText,
-                fontSize = 10.sp,
-                modifier = Modifier.padding(horizontal = 12.dp),
+                fontSize = 12.sp,
+                lineHeight = 16.sp,
+                modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             CompositionLocalProvider(LocalPluginPanelStyle provides style) {
                 PluginWidgetList(
@@ -332,21 +406,30 @@ private fun PermissionBanner(needs: List<PluginPermission>, onAllow: () -> Unit)
     val kb = LocalKbTheme.current
     val context = LocalContext.current
     val names = needs.joinToString { context.getString(it.labelRes) }
+    val shape = kb.cardShape()
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
+            .background(kb.chip)
+            .chipBorder(kb, shape)
+            .padding(start = 14.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+        Icon(Icons.Outlined.Info, contentDescription = null, tint = kb.accent, modifier = Modifier.size(20.dp))
         Text(
             stringResource(R.string.ime_plugin_needs_permission, names),
-            color = kb.keyText,
-            fontSize = 12.sp,
+            color = kb.chipText,
+            fontSize = 13.sp,
+            lineHeight = 18.sp,
             maxLines = 3,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
-        ToolPanelChip(label = stringResource(R.string.ime_plugin_allow_action), onClick = onAllow)
+        ToolPanelChip(label = stringResource(R.string.ime_plugin_allow_action), selected = true, onClick = onAllow)
     }
 }
 
@@ -367,7 +450,9 @@ internal fun PluginPanelUi.Running.showsAccessMark(): Boolean =
 @Composable
 internal fun PluginHeaderActions(panel: PluginPanelUi.Running, onEvent: (PluginEvent) -> Unit) {
     val kb = LocalKbTheme.current
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+        // Draws itself only while one of the plugin's boxes has the keys.
+        FieldFocusSwitch(LocalCaptureCaret.current)
         if (panel.showsAccessMark()) {
             Icon(
                 Icons.Outlined.Public,
@@ -397,6 +482,10 @@ internal fun keyboardPluginStyle(kb: KbTheme, pluginId: String? = null, store: P
         cardShape = kb.cardShape(),
         cardBorder = { modifier, shape -> modifier.chipBorder(kb, shape) },
         ring = { modifier, active -> modifier.focusRing(active) },
+        accentContainer = kb.chipActive,
+        onAccentContainer = kb.chipActiveText,
+        buttonShape = kb.chipShape(),
+        glass = { modifier, shape -> modifier.frostGlass(kb, shape, FrostSurface.CHIPS) },
         chip = { label, selected, enabled, modifier, onClick ->
             ToolPanelChip(label = label, selected = selected, modifier = modifier, enabled = enabled, onClick = onClick)
         },

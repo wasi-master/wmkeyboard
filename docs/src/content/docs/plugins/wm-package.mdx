@@ -167,12 +167,12 @@ Most widgets take `key=`, a stable id for when two widgets would look alike.
 | Widget | |
 |---|---|
 | `ui.column(*children, gap=None, align=None)` | top to bottom |
-| `ui.row(*children, weights=None, gap=None, align=None)` | side by side; `weights=[2, 1]` shares the width |
+| `ui.row(*children, weights=None, gap=None, align=None)` | side by side. Buttons alone split the width evenly; beside a box or text they keep their own width and the rest share what is left. `weights=[2, 1]` sets the shares |
 | `ui.grid(*children, columns=3)` | equal cells |
 | `ui.card(*children, title=None, on_click=None)` | a group; `on_click()` |
 | `ui.section(title, *children, collapsible=False, open=True)` | a titled part |
 | `ui.scroll(*children, height=None)` | scrolls on its own |
-| `ui.tabs(*pages, on_change=None)` with `ui.page(title, *children)` | `on_change(index)` |
+| `ui.tabs(*pages, on_change=None)` with `ui.page(title, *children)` | `on_change(index)`; up to four tabs share the width, more scroll sideways |
 | `ui.spacer(height=8)`, `ui.divider()` | |
 
 ### Text

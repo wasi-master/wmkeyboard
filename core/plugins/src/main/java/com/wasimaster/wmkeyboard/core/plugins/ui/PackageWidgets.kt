@@ -5,6 +5,7 @@ import android.util.Base64
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -19,7 +20,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -28,9 +32,11 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -42,10 +48,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
@@ -60,9 +69,9 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.plugins.PluginColorRole
 import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
 import com.wasimaster.wmkeyboard.core.plugins.PluginWidget
@@ -96,16 +105,25 @@ internal fun PackageWidgetView(
     when (widget) {
         is PluginWidget.ProgressValue -> LinearProgressIndicator(
             progress = { widget.value },
-            modifier = Modifier.fillMaxWidth().height(4.dp),
+            modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
             color = style.accent,
             trackColor = style.surface,
+            drawStopIndicator = {},
         )
 
-        is PluginWidget.Grid -> Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+        is PluginWidget.Grid -> Column(verticalArrangement = Arrangement.spacedBy(DEFAULT_GAP.dp), modifier = Modifier.fillMaxWidth()) {
             for (row in widget.children.chunked(widget.columns)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(DEFAULT_GAP.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
                     for (child in row) {
-                        Box(Modifier.weight(1f)) { PluginWidgetList(listOf(child), host, onEvent, onInsert, onCopy, ringed) }
+                        Box(Modifier.weight(1f)) {
+                            CompositionLocalProvider(LocalFillCell provides true) {
+                                PluginWidgetList(listOf(child), host, onEvent, onInsert, onCopy, ringed)
+                            }
+                        }
                     }
                     repeat(widget.columns - row.size) { Box(Modifier.weight(1f)) }
                 }
@@ -113,57 +131,71 @@ internal fun PackageWidgetView(
         }
 
         is PluginWidget.Card -> CardBox(clickable = widget.clickable, onClick = { onEvent(PluginEvent.Click(widget.id)) }) {
-            if (widget.title.isNotEmpty()) Text(widget.title, color = style.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-            PluginWidgetList(widget.children, host, onEvent, onInsert, onCopy, ringed)
+            if (widget.title.isNotEmpty()) Text(widget.title, color = style.onSurface, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+            PluginWidgetColumnContent(widget.children, host, onEvent, onInsert, onCopy, ringed)
         }
 
         is PluginWidget.Section -> {
-            var open by rememberSaveable(widget.id, widget.title) { androidx.compose.runtime.mutableStateOf(widget.open) }
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+            var open by rememberSaveable(widget.id, widget.title) { mutableStateOf(widget.open) }
+            Column(verticalArrangement = Arrangement.spacedBy(DEFAULT_GAP.dp), modifier = Modifier.fillMaxWidth()) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .then(if (widget.collapsible) Modifier.clickable { open = !open } else Modifier),
+                        .heightIn(min = if (widget.collapsible) ROW_HEIGHT else 32.dp)
+                        .then(if (widget.collapsible) Modifier.clip(style.cardShape).clickable(role = Role.Button) { open = !open } else Modifier)
+                        .padding(top = 8.dp),
                 ) {
-                    Text(widget.title, color = style.secondaryText, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
-                    if (widget.collapsible) Text(if (open) "▾" else "▸", color = style.secondaryText, fontSize = 12.sp)
+                    // The way a settings screen titles a group: small, in the accent.
+                    Text(widget.title, color = style.accent, fontSize = 14.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                    if (widget.collapsible) style.icon(if (open) ICON_COLLAPSE else ICON_EXPAND, style.secondaryText, 22.dp)
                 }
-                if (open || !widget.collapsible) PluginWidgetList(widget.children, host, onEvent, onInsert, onCopy, ringed)
+                if (open || !widget.collapsible) PluginWidgetColumnContent(widget.children, host, onEvent, onInsert, onCopy, ringed)
             }
         }
 
         is PluginWidget.Scroll -> Column(
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(DEFAULT_GAP.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = (widget.height ?: DEFAULT_SCROLL).dp)
                 .verticalScroll(rememberScrollState()),
-        ) { PluginWidgetList(widget.children, host, onEvent, onInsert, onCopy, ringed) }
+        ) { PluginWidgetColumnContent(widget.children, host, onEvent, onInsert, onCopy, ringed) }
 
         is PluginWidget.Markdown -> MarkdownText(widget.text)
 
         is PluginWidget.Empty -> Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp, horizontal = 16.dp),
         ) {
-            widget.icon?.let { style.icon(it, style.secondaryText, 32.dp) }
-            Text(widget.text, color = style.secondaryText, fontSize = 13.sp, textAlign = TextAlign.Center)
-            if (widget.action.isNotEmpty()) style.chip(widget.action, true, true, Modifier) { onEvent(PluginEvent.Click(widget.id)) }
+            widget.icon?.let {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(64.dp).clip(CircleShape).background(style.surface),
+                ) { style.icon(it, style.secondaryText, 32.dp) }
+            }
+            Text(widget.text, color = style.secondaryText, fontSize = 14.sp, textAlign = TextAlign.Center)
+            if (widget.action.isNotEmpty()) PluginButton(widget.action, ButtonKind.FILLED) { onEvent(PluginEvent.Click(widget.id)) }
         }
 
         is PluginWidget.Checkbox -> Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = style.ring(Modifier.fillMaxWidth(), widget === ringed)
-                .clickable { onEvent(PluginEvent.ValueChanged(widget.id, (!widget.checked).toString())) },
+                .heightIn(min = ROW_HEIGHT)
+                .clip(style.cardShape)
+                .clickable(role = Role.Checkbox) { onEvent(PluginEvent.ValueChanged(widget.id, (!widget.checked).toString())) },
         ) {
             Checkbox(
                 checked = widget.checked,
                 onCheckedChange = { onEvent(PluginEvent.ValueChanged(widget.id, it.toString())) },
-                colors = CheckboxDefaults.colors(checkedColor = style.accent),
+                colors = CheckboxDefaults.colors(
+                    checkedColor = style.accentContainer,
+                    checkmarkColor = style.onAccentContainer,
+                    uncheckedColor = style.secondaryText,
+                ),
             )
-            Text(widget.label, color = style.text, fontSize = 13.sp)
+            Text(widget.label, color = style.text, fontSize = 15.sp, modifier = Modifier.weight(1f))
         }
 
         is PluginWidget.Search -> InputWidget(PluginWidget.Input(widget.id, "", widget.placeholder, kind = "search", live = widget.live, submit = true), host, onEvent)
@@ -173,7 +205,7 @@ internal fun PackageWidgetView(
         is PluginWidget.Select -> SelectWidget(widget, onEvent)
 
         is PluginWidget.Chips -> Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(DEFAULT_GAP.dp),
             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
         ) {
             for (option in widget.options) {
@@ -189,51 +221,51 @@ internal fun PackageWidgetView(
             }
         }
 
-        is PluginWidget.Keys -> Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
+        // Keys a plugin draws are keys: the same height and spacing as a keypad.
+        is PluginWidget.Keys -> Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
             for (row in widget.rows) {
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
                     for (key in row) {
-                        Box(Modifier.weight(1f)) {
-                            style.chip(key, false, true, Modifier.fillMaxWidth()) { onEvent(PluginEvent.KeyPressed(widget.id, key)) }
+                        PluginButton(key, ButtonKind.TONAL, modifier = Modifier.weight(1f).heightIn(min = KEY_HEIGHT)) {
+                            onEvent(PluginEvent.KeyPressed(widget.id, key))
                         }
                     }
                 }
             }
         }
 
-        is PluginWidget.ListView -> Column(verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.fillMaxWidth()) {
+        is PluginWidget.ListView -> Column(modifier = Modifier.fillMaxWidth()) {
             if (widget.items.isEmpty()) {
                 Text(
                     widget.empty.ifEmpty { stringResource(R.string.core_plugins_ui_list_empty) },
                     color = style.secondaryText,
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                 )
             }
             widget.items.forEachIndexed { index, item ->
-                ItemRow(item) {
+                ItemRow(item, onEvent) {
                     if (item.clickable) onEvent(PluginEvent.Click(item.id)) else if (widget.selectable) onEvent(PluginEvent.Selected(widget.id, index))
                 }
-                // An item's swipe actions go to the item's own id.
-                ItemActions(item, onEvent)
             }
         }
 
-        is PluginWidget.Item -> {
-            ItemRow(widget) { if (widget.clickable) onEvent(PluginEvent.Click(widget.id)) }
-            ItemActions(widget, onEvent)
-        }
+        is PluginWidget.Item -> ItemRow(widget, onEvent) { if (widget.clickable) onEvent(PluginEvent.Click(widget.id)) }
 
         is PluginWidget.Image -> ImageWidget(widget, onEvent, onInsert)
 
         is PluginWidget.Icon -> style.icon(widget.name, style.colorOf(widget.color), (widget.size ?: DEFAULT_ICON).dp)
 
-        is PluginWidget.Qr -> style.qr(widget.text, (widget.size ?: DEFAULT_QR).dp)
+        is PluginWidget.Qr -> Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.clip(style.cardShape).background(Color.White).padding(10.dp),
+        ) { style.qr(widget.text, (widget.size ?: DEFAULT_QR).dp) }
 
         is PluginWidget.Stat -> CardBox(clickable = false, onClick = {}) {
-            Text(widget.label, color = style.secondaryText, fontSize = 11.sp)
-            Text(widget.value, color = style.onSurface, fontSize = 22.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            if (widget.caption.isNotEmpty()) Text(widget.caption, color = style.secondaryText, fontSize = 11.sp)
+            Text(widget.label, color = style.secondaryText, fontSize = 13.sp)
+            Text(widget.value, color = style.onSurface, fontSize = 26.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (widget.caption.isNotEmpty()) Text(widget.caption, color = style.secondaryText, fontSize = 12.sp)
         }
 
         is PluginWidget.Ring -> RingWidget(widget)
@@ -250,57 +282,78 @@ internal fun PackageWidgetView(
 private fun CardBox(clickable: Boolean, onClick: () -> Unit, content: @Composable () -> Unit) {
     val style = LocalPluginPanelStyle.current
     Column(
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(DEFAULT_GAP.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clip(style.cardShape)
+            .then(style.glass(Modifier, style.cardShape))
             .background(style.surface)
             .then(style.cardBorder(Modifier, style.cardShape))
             .then(if (clickable) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(horizontal = 10.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 14.dp),
     ) { content() }
 }
 
-@Composable
-private fun ItemRow(item: PluginWidget.Item, onClick: () -> Unit) {
-    val style = LocalPluginPanelStyle.current
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(style.cardShape)
-            .background(if (item.selected) style.surface else Color.Transparent)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 6.dp),
-    ) {
-        item.icon?.let { style.icon(it, style.secondaryText, 20.dp) }
-        Column(Modifier.weight(1f)) {
-            Text(item.title, color = style.text, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            if (item.subtitle.isNotEmpty()) {
-                Text(item.subtitle, color = style.secondaryText, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            }
-        }
-        if (item.trailing.isNotEmpty()) Text(item.trailing, color = style.secondaryText, fontSize = 12.sp)
-    }
-}
-
 /**
- * A row's actions, drawn inline under it rather than in a popup: a keyboard's
- * popup window is the one thing apps may refuse touches through.
+ * A list row the way Android draws one: a round icon, a title with a line
+ * under it, something short at the end. A row with actions gets a ⋯ button at
+ * its end, and the actions open inline under it rather than in a popup: a
+ * keyboard's popup window is the one thing apps may refuse touches through.
  */
 @Composable
-private fun ItemActions(item: PluginWidget.Item, onEvent: (PluginEvent) -> Unit) {
-    if (item.actions.isEmpty()) return
+private fun ItemRow(item: PluginWidget.Item, onEvent: (PluginEvent) -> Unit, onClick: () -> Unit) {
     val style = LocalPluginPanelStyle.current
-    var shown by rememberSaveable(item.id) { androidx.compose.runtime.mutableStateOf(false) }
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(start = 8.dp)) {
-        style.chip(if (shown) "×" else "⋯", false, true, Modifier) { shown = !shown }
+    var shown by rememberSaveable(item.id) { mutableStateOf(false) }
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .clip(style.cardShape)
+                .background(if (item.selected) style.accentContainer.copy(alpha = SELECTED_ALPHA) else Color.Transparent)
+                .clickable(onClick = onClick)
+                .padding(start = 8.dp, end = if (item.actions.isEmpty()) 12.dp else 0.dp, top = 8.dp, bottom = 8.dp),
+        ) {
+            item.icon?.let {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(40.dp).clip(CircleShape).background(style.surface),
+                ) { style.icon(it, style.accent, 20.dp) }
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    item.title,
+                    color = if (item.selected) style.accent else style.text,
+                    fontSize = 15.sp,
+                    fontWeight = if (item.selected) FontWeight.Medium else FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (item.subtitle.isNotEmpty()) {
+                    Text(item.subtitle, color = style.secondaryText, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+            }
+            if (item.trailing.isNotEmpty()) Text(item.trailing, color = style.secondaryText, fontSize = 13.sp)
+            if (item.actions.isNotEmpty()) {
+                PluginIconButton(
+                    icon = if (shown) ICON_COLLAPSE else ICON_MORE,
+                    label = stringResource(if (shown) CommonR.string.common_close else CommonR.string.common_more),
+                ) { shown = !shown }
+            }
+        }
         if (shown) {
-            for (label in item.actions) {
-                style.chip(label, false, true, Modifier) {
-                    shown = false
-                    onEvent(PluginEvent.ItemAction(item.id, label))
+            // An item's actions go to the item's own id.
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = 48.dp, bottom = 4.dp),
+            ) {
+                for (label in item.actions) {
+                    PluginButton(label, ButtonKind.TONAL) {
+                        shown = false
+                        onEvent(PluginEvent.ItemAction(item.id, label))
+                    }
                 }
             }
         }
@@ -314,9 +367,9 @@ private fun SliderWidget(widget: PluginWidget.Slider, onEvent: (PluginEvent) -> 
     val steps = ((widget.max - widget.min) / widget.step).toInt().let { if (it in 2..MAX_SLIDER_STEPS) it - 1 else 0 }
     Column(Modifier.fillMaxWidth()) {
         if (widget.label.isNotEmpty()) {
-            Row {
-                Text(widget.label, color = style.secondaryText, fontSize = 11.sp, modifier = Modifier.weight(1f))
-                Text(formatNumber(value.toDouble(), widget.step), color = style.secondaryText, fontSize = 11.sp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(widget.label, color = style.text, fontSize = 15.sp, modifier = Modifier.weight(1f))
+                Text(formatNumber(value.toDouble(), widget.step), color = style.accent, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             }
         }
         Slider(
@@ -326,7 +379,13 @@ private fun SliderWidget(widget: PluginWidget.Slider, onEvent: (PluginEvent) -> 
             onValueChangeFinished = { onEvent(PluginEvent.NumberChanged(widget.id, snap(value.toDouble(), widget))) },
             valueRange = widget.min.toFloat()..widget.max.toFloat(),
             steps = steps,
-            colors = SliderDefaults.colors(thumbColor = style.accent, activeTrackColor = style.accent),
+            colors = SliderDefaults.colors(
+                thumbColor = style.accent,
+                activeTrackColor = style.accent,
+                inactiveTrackColor = style.surface,
+                activeTickColor = style.onAccentContainer.copy(alpha = TICK_ALPHA),
+                inactiveTickColor = style.secondaryText.copy(alpha = TICK_ALPHA),
+            ),
         )
     }
 }
@@ -334,13 +393,24 @@ private fun SliderWidget(widget: PluginWidget.Slider, onEvent: (PluginEvent) -> 
 @Composable
 private fun StepperWidget(widget: PluginWidget.Slider, onEvent: (PluginEvent) -> Unit) {
     val style = LocalPluginPanelStyle.current
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-        Text(widget.label, color = style.text, fontSize = 13.sp, modifier = Modifier.weight(1f))
-        style.chip("−", false, widget.value > widget.min, Modifier) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(DEFAULT_GAP.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = ROW_HEIGHT),
+    ) {
+        Text(widget.label, color = style.text, fontSize = 15.sp, modifier = Modifier.weight(1f))
+        PluginIconButton(ICON_REMOVE, stringResource(R.string.core_plugins_ui_decrease), enabled = widget.value > widget.min, tonal = true) {
             onEvent(PluginEvent.NumberChanged(widget.id, snap(widget.value - widget.step, widget)))
         }
-        Text(formatNumber(widget.value, widget.step), color = style.text, fontSize = 14.sp)
-        style.chip("+", false, widget.value < widget.max, Modifier) {
+        Text(
+            formatNumber(widget.value, widget.step),
+            color = style.text,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(min = 36.dp),
+        )
+        PluginIconButton(ICON_ADD, stringResource(R.string.core_plugins_ui_increase), enabled = widget.value < widget.max, tonal = true) {
             onEvent(PluginEvent.NumberChanged(widget.id, snap(widget.value + widget.step, widget)))
         }
     }
@@ -354,31 +424,112 @@ private fun snap(value: Double, widget: PluginWidget.Slider): Double {
 private fun formatNumber(value: Double, step: Double): String =
     if (step >= 1 && value == Math.floor(value)) value.toLong().toString() else "%.2f".format(value).trimEnd('0').trimEnd('.')
 
-/** One of several options. A dropdown opens inline, not in a popup, for the same reason as [ItemActions]. */
+/**
+ * One of several options: connected segments, or a field that opens its list
+ * inline, not in a popup, for the same reason as a row's actions.
+ */
 @Composable
 private fun SelectWidget(widget: PluginWidget.Select, onEvent: (PluginEvent) -> Unit) {
     val style = LocalPluginPanelStyle.current
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
-        if (widget.label.isNotEmpty()) Text(widget.label, color = style.secondaryText, fontSize = 11.sp)
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+        if (widget.label.isNotEmpty()) Text(widget.label, color = style.secondaryText, fontSize = 13.sp, fontWeight = FontWeight.Medium)
         if (widget.segmented) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
-                for (option in widget.options) {
-                    style.chip(option.label, option.value == widget.value, true, Modifier) { onEvent(PluginEvent.ValueChanged(widget.id, option.value)) }
-                }
-            }
+            Segmented(widget.options, widget.value) { onEvent(PluginEvent.ValueChanged(widget.id, it)) }
         } else {
-            var open by remember(widget.id) { androidx.compose.runtime.mutableStateOf(false) }
+            var open by remember(widget.id) { mutableStateOf(false) }
             val current = widget.options.firstOrNull { it.value == widget.value }?.label ?: "—"
-            style.chip("$current ▾", false, true, Modifier) { open = !open }
-            if (open) {
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            val shape = style.cardShape
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(shape)
+                    .then(style.glass(Modifier, shape))
+                    .background(style.surface)
+                    .then(if (open) Modifier.border(2.dp, style.accent, shape) else style.cardBorder(Modifier, shape)),
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 52.dp)
+                        .clickable(role = Role.DropdownList) { open = !open }
+                        .padding(start = 16.dp, end = 12.dp),
+                ) {
+                    Text(current, color = style.onSurface, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                    style.icon(if (open) ICON_COLLAPSE else ICON_EXPAND, style.secondaryText, 22.dp)
+                }
+                if (open) {
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(style.divider))
                     for (option in widget.options) {
-                        style.chip(option.label, option.value == widget.value, true, Modifier.fillMaxWidth()) {
-                            open = false
-                            onEvent(PluginEvent.ValueChanged(widget.id, option.value))
+                        val chosen = option.value == widget.value
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = ROW_HEIGHT)
+                                .clickable {
+                                    open = false
+                                    onEvent(PluginEvent.ValueChanged(widget.id, option.value))
+                                }
+                                .padding(start = 16.dp, end = 12.dp),
+                        ) {
+                            Text(
+                                option.label,
+                                color = if (chosen) style.accent else style.onSurface,
+                                fontSize = 15.sp,
+                                fontWeight = if (chosen) FontWeight.Medium else FontWeight.Normal,
+                                modifier = Modifier.weight(1f),
+                            )
+                            if (chosen) style.icon(ICON_CHECK, style.accent, 20.dp)
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Material's connected segmented buttons: one track, the chosen segment
+ * filled with a check. Up to four share the width; more scroll.
+ */
+@Composable
+private fun Segmented(options: List<PluginWidget.Option>, value: String?, onPick: (String) -> Unit) {
+    val style = LocalPluginPanelStyle.current
+    val shape = style.buttonShape
+    val fixed = options.size <= MAX_FIXED_SEGMENTS
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (fixed) Modifier else Modifier.horizontalScroll(rememberScrollState()))
+            .clip(shape)
+            .then(style.glass(Modifier, shape))
+            .background(style.surface)
+            .then(style.cardBorder(Modifier, shape))
+            .padding(3.dp),
+    ) {
+        for (option in options) {
+            val chosen = option.value == value
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = (if (fixed) Modifier.weight(1f) else Modifier)
+                    .heightIn(min = 36.dp)
+                    .clip(shape)
+                    .background(if (chosen) style.accentContainer else Color.Transparent)
+                    .clickable(role = Role.RadioButton) { onPick(option.value) }
+                    .padding(horizontal = 12.dp),
+            ) {
+                if (chosen) style.icon(ICON_CHECK, style.onAccentContainer, 16.dp)
+                Text(
+                    option.label,
+                    color = if (chosen) style.onAccentContainer else style.onSurface,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
     }
@@ -393,19 +544,19 @@ private fun ImageWidget(widget: PluginWidget.Image, onEvent: (PluginEvent) -> Un
         .clip(style.cardShape)
         .then(if (widget.clickable) Modifier.clickable { onEvent(PluginEvent.Click(widget.id)) } else Modifier)
         .semantics { contentDescription = widget.alt }
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         if (widget.src.startsWith("data:")) {
             val bitmap = remember(widget.src) { decodeData(widget.src) }
             if (bitmap != null) {
                 Image(bitmap, widget.alt, modifier = modifier, contentScale = ContentScale.Fit)
             } else {
-                Text(widget.alt, color = style.secondaryText, fontSize = 12.sp)
+                Text(widget.alt, color = style.secondaryText, fontSize = 13.sp)
             }
         } else {
             style.image(widget.src, widget.alt, modifier)
         }
         if (widget.insertable) {
-            style.chip(stringResource(R.string.core_plugins_ui_insert_action), false, true, Modifier) { onInsert(widget.src) }
+            PluginButton(stringResource(R.string.core_plugins_ui_insert_action), ButtonKind.TONAL) { onInsert(widget.src) }
         }
     }
 }
@@ -418,18 +569,22 @@ private fun decodeData(src: String): ImageBitmap? = runCatching {
 @Composable
 private fun RingWidget(widget: PluginWidget.Ring) {
     val style = LocalPluginPanelStyle.current
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(64.dp)) {
-            Canvas(Modifier.size(64.dp)) {
-                val stroke = Stroke(width = 6.dp.toPx())
-                drawArc(style.surface, 0f, 360f, false, style = stroke)
-                drawArc(style.accent, -90f, 360f * widget.value, false, style = stroke)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(72.dp)) {
+            Canvas(Modifier.size(72.dp)) {
+                val width = 8.dp.toPx()
+                val inset = width / 2
+                val arc = Size(size.width - width, size.height - width)
+                drawArc(style.surface, 0f, 360f, false, Offset(inset, inset), arc, style = Stroke(width))
+                if (widget.value > 0f) {
+                    drawArc(style.accent, -90f, 360f * widget.value, false, Offset(inset, inset), arc, style = Stroke(width, cap = StrokeCap.Round))
+                }
             }
-            Text("${Math.round(widget.value * 100)}%", color = style.text, fontSize = 12.sp)
+            Text("${Math.round(widget.value * 100)}%", color = style.text, fontSize = 14.sp, fontWeight = FontWeight.Medium)
         }
-        Column {
-            if (widget.label.isNotEmpty()) Text(widget.label, color = style.text, fontSize = 14.sp)
-            if (widget.caption.isNotEmpty()) Text(widget.caption, color = style.secondaryText, fontSize = 12.sp)
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            if (widget.label.isNotEmpty()) Text(widget.label, color = style.text, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+            if (widget.caption.isNotEmpty()) Text(widget.caption, color = style.secondaryText, fontSize = 13.sp)
         }
     }
 }
@@ -454,12 +609,12 @@ private fun ChartWidget(widget: PluginWidget.Chart) {
                     val bar = slot / (widget.series.size + 1)
                     series.values.forEachIndexed { i, v ->
                         val top = y(v)
-                        drawRect(color, Offset(i * slot + s * bar + bar / 2, minOf(top, y(0f))), Size(bar, kotlin.math.abs(y(0f) - top)))
+                        drawRoundRect(color, Offset(i * slot + s * bar + bar / 2, minOf(top, y(0f))), Size(bar, kotlin.math.abs(y(0f) - top)), CornerRadius(minOf(bar / 4, 3.dp.toPx())))
                     }
                 } else {
                     val step = if (count > 1) size.width / (count - 1) else 0f
                     for (i in 1 until series.values.size) {
-                        drawLine(color, Offset((i - 1) * step, y(series.values[i - 1])), Offset(i * step, y(series.values[i])), strokeWidth = 2.dp.toPx())
+                        drawLine(color, Offset((i - 1) * step, y(series.values[i - 1])), Offset(i * step, y(series.values[i])), strokeWidth = 2.5.dp.toPx(), cap = StrokeCap.Round)
                     }
                 }
             }
@@ -467,7 +622,7 @@ private fun ChartWidget(widget: PluginWidget.Chart) {
         if (widget.labels.isNotEmpty() && widget.kind != "spark") {
             Row(Modifier.fillMaxWidth()) {
                 for (label in widget.labels.take(MAX_AXIS_LABELS)) {
-                    Text(label, color = style.secondaryText, fontSize = 10.sp, maxLines = 1, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+                    Text(label, color = style.secondaryText, fontSize = 11.sp, maxLines = 1, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -551,18 +706,18 @@ private fun CanvasWidget(widget: PluginWidget.Canvas, onEvent: (PluginEvent) -> 
 @Composable
 private fun MarkdownText(source: String) {
     val style = LocalPluginPanelStyle.current
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
         for (raw in source.lines()) {
             val line = raw.trimEnd()
             when {
                 line.isBlank() -> Box(Modifier.height(4.dp))
                 line.startsWith("#") -> {
                     val level = line.takeWhile { it == '#' }.length
-                    Text(inline(line.drop(level).trim()), color = style.text, fontSize = (18 - level * 2).coerceAtLeast(13).sp, fontWeight = FontWeight.Medium)
+                    Text(inline(line.drop(level).trim()), color = style.text, fontSize = (20 - level * 2).coerceAtLeast(15).sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(top = 4.dp))
                 }
                 line.startsWith("- ") || line.startsWith("* ") ->
-                    Text(AnnotatedString("•  ") + inline(line.drop(2)), color = style.text, fontSize = 13.sp)
-                else -> Text(inline(line), color = style.text, fontSize = 13.sp)
+                    Text(AnnotatedString("•  ") + inline(line.drop(2)), color = style.text, fontSize = 14.sp, modifier = Modifier.padding(start = 4.dp))
+                else -> Text(inline(line), color = style.text, fontSize = 14.sp)
             }
         }
     }
@@ -606,3 +761,7 @@ private const val SPARK_HEIGHT = 32
 private const val MAX_AXIS_LABELS = 12
 private const val MAX_SLIDER_STEPS = 100
 private const val DRAG_EVENT_MILLIS = 50L
+private const val MAX_FIXED_SEGMENTS = 4
+private const val SELECTED_ALPHA = 0.35f
+private const val TICK_ALPHA = 0.6f
+private val KEY_HEIGHT = 44.dp

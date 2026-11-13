@@ -4,26 +4,37 @@ import android.text.format.DateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -32,13 +43,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -48,6 +62,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.plugins.PluginDates
@@ -73,6 +88,9 @@ import java.util.TimeZone
  * The chip is a slot rather than a pair of colours on purpose. The keyboard's
  * chip carries its own shape, outline and disabled dimming rule, and rebuilding
  * that from colours here is exactly how the two would start to look different.
+ * Only the [PluginWidget.Chips] filter row wears it now; buttons, tabs, fields
+ * and lists are built here from the colours below, so they look the same in
+ * both hosts and like the rest of the keyboard's own panels.
  */
 @Stable
 class PluginPanelStyle(
@@ -104,12 +122,34 @@ class PluginPanelStyle(
     val image: @Composable (String, String, Modifier) -> Unit = { _, alt, modifier -> Text(alt, color = secondaryText, fontSize = 12.sp, modifier = modifier) },
     /** A QR code for the text. The default shows the text. */
     val qr: @Composable (String, Dp) -> Unit = { value, _ -> Text(value, color = text, fontFamily = FontFamily.Monospace, fontSize = 12.sp) },
+    /**
+     * The fill of a filled button, a selected segment and a switch that is on,
+     * and what is drawn on it. The keyboard passes its selected-chip pair, so a
+     * plugin's main button is the colour the keyboard's own selected pills are.
+     */
+    val accentContainer: Color = accent,
+    val onAccentContainer: Color = Color.White,
+    /** The outline of buttons and segments. The keyboard passes its chip shape. */
+    val buttonShape: Shape = cardShape,
+    /**
+     * What a raised surface (a button, a card, a field) wears under its fill.
+     * The keyboard's glass themes blur the board through it; elsewhere nothing.
+     */
+    val glass: (Modifier, Shape) -> Modifier = { modifier, _ -> modifier },
 )
 
 /** The style [PluginWidgetList] draws with. A host must provide one. */
 val LocalPluginPanelStyle = staticCompositionLocalOf<PluginPanelStyle> {
     error("No PluginPanelStyle: wrap PluginWidgetList in CompositionLocalProvider(LocalPluginPanelStyle provides ...)")
 }
+
+/**
+ * Whether the widget being drawn sits in a share of a row or a grid cell. A
+ * button there fills its share, so "a row splits the width evenly" is what the
+ * user sees, rather than pills stranded at the left of invisible boxes.
+ * Containers that run the full width set it back to false for their children.
+ */
+internal val LocalFillCell = compositionLocalOf { false }
 
 /**
  * Where a plugin's input widgets get their text, and where their taps go.
@@ -147,9 +187,110 @@ fun PluginWidgetList(
     onCopy: (String) -> Unit,
     ringed: PluginWidget? = null,
 ) {
-    for (widget in widgets) {
-        PluginWidgetView(widget, host, onEvent, onInsert, onCopy, ringed)
+    // The keyboard's Material typography gives every Text a 24 sp line, which
+    // double-spaces anything smaller. A line in proportion to the font instead.
+    CompositionLocalProvider(LocalTextStyle provides LocalTextStyle.current.merge(PanelTextStyle)) {
+        for (widget in widgets) {
+            PluginWidgetView(widget, host, onEvent, onInsert, onCopy, ringed)
+        }
     }
+}
+
+private val PanelTextStyle = TextStyle(lineHeight = 1.35.em)
+
+/** Draws [widgets] as the full-width children of a container: nothing in them fills a cell. */
+@Composable
+internal fun PluginWidgetColumnContent(
+    widgets: List<PluginWidget>,
+    host: PluginInputHost,
+    onEvent: (PluginEvent) -> Unit,
+    onInsert: (String) -> Unit,
+    onCopy: (String) -> Unit,
+    ringed: PluginWidget?,
+) {
+    CompositionLocalProvider(LocalFillCell provides false) {
+        PluginWidgetList(widgets, host, onEvent, onInsert, onCopy, ringed)
+    }
+}
+
+/** What a button looks like: the one that matters, the ordinary one, or words alone. */
+internal enum class ButtonKind { FILLED, TONAL, TEXT }
+
+/**
+ * A button drawn from the panel style. Forty dp tall so a thumb finds it,
+ * label centred so it still reads when the button fills a share of a row.
+ */
+@Composable
+internal fun PluginButton(
+    label: String,
+    kind: ButtonKind,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    icon: String? = null,
+    tint: Color? = null,
+    onClick: () -> Unit,
+) {
+    val style = LocalPluginPanelStyle.current
+    val shape = style.buttonShape
+    val fill = when (kind) {
+        ButtonKind.FILLED -> tint ?: style.accentContainer
+        ButtonKind.TONAL -> style.surface
+        ButtonKind.TEXT -> Color.Transparent
+    }
+    val content = when (kind) {
+        ButtonKind.FILLED -> if (tint != null) Color.White else style.onAccentContainer
+        ButtonKind.TONAL -> tint ?: style.onSurface
+        ButtonKind.TEXT -> tint ?: style.accent
+    }
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .heightIn(min = BUTTON_HEIGHT)
+            .alpha(if (enabled) 1f else DISABLED_ALPHA)
+            .clip(shape)
+            .then(if (kind == ButtonKind.TEXT) Modifier else style.glass(Modifier, shape))
+            .background(fill)
+            .then(if (kind == ButtonKind.TONAL) style.cardBorder(Modifier, shape) else Modifier)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .padding(horizontal = if (kind == ButtonKind.TEXT) 12.dp else 18.dp, vertical = 8.dp),
+    ) {
+        if (icon != null) style.icon(icon, content, 18.dp)
+        if (label.isNotEmpty()) {
+            Text(
+                label,
+                color = content,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+/** A round icon-only button. [label] is what TalkBack reads. */
+@Composable
+internal fun PluginIconButton(
+    icon: String,
+    label: String,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    tint: Color? = null,
+    tonal: Boolean = false,
+    onClick: () -> Unit,
+) {
+    val style = LocalPluginPanelStyle.current
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .size(BUTTON_HEIGHT)
+            .alpha(if (enabled) 1f else DISABLED_ALPHA)
+            .clip(CircleShape)
+            .then(if (tonal) style.glass(Modifier, CircleShape).background(style.surface) else Modifier)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = label },
+    ) { style.icon(icon, tint ?: if (tonal) style.onSurface else style.secondaryText, 22.dp) }
 }
 
 @Composable
@@ -164,23 +305,13 @@ private fun PluginWidgetView(
     val style = LocalPluginPanelStyle.current
     when (widget) {
         is PluginWidget.Column -> Column(
-            verticalArrangement = Arrangement.spacedBy((widget.gap ?: 6).dp),
+            verticalArrangement = Arrangement.spacedBy((widget.gap ?: DEFAULT_GAP).dp),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            PluginWidgetList(widget.children, host, onEvent, onInsert, onCopy, ringed)
+            PluginWidgetColumnContent(widget.children, host, onEvent, onInsert, onCopy, ringed)
         }
 
-        is PluginWidget.Row -> Row(
-            horizontalArrangement = Arrangement.spacedBy((widget.gap ?: 6).dp),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            widget.children.forEachIndexed { i, child ->
-                Box(modifier = Modifier.weight(widget.weights?.getOrNull(i) ?: 1f)) {
-                    PluginWidgetView(child, host, onEvent, onInsert, onCopy, ringed)
-                }
-            }
-        }
+        is PluginWidget.Row -> RowWidget(widget, host, onEvent, onInsert, onCopy, ringed)
 
         is PluginWidget.Label -> Text(
             widget.text,
@@ -190,10 +321,10 @@ private fun PluginWidgetView(
                 else -> style.text
             },
             fontSize = when (widget.style) {
-                PluginLabelStyle.HEADLINE -> 20.sp
-                PluginLabelStyle.TITLE -> 15.sp
-                PluginLabelStyle.BODY -> 13.sp
-                PluginLabelStyle.CAPTION -> 11.sp
+                PluginLabelStyle.HEADLINE -> 22.sp
+                PluginLabelStyle.TITLE -> 16.sp
+                PluginLabelStyle.BODY -> 14.sp
+                PluginLabelStyle.CAPTION -> 12.sp
             },
             fontWeight = if (widget.style == PluginLabelStyle.TITLE || widget.style == PluginLabelStyle.HEADLINE) FontWeight.Medium else FontWeight.Normal,
         )
@@ -202,37 +333,42 @@ private fun PluginWidgetView(
 
         is PluginWidget.Button -> if (widget.icon != null && (widget.compact || widget.text.isEmpty())) {
             // An icon button: the label, when there is one, is what TalkBack reads.
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = style.ring(Modifier, widget === ringed)
-                    .clip(style.cardShape)
-                    .clickable(enabled = widget.enabled) { onEvent(PluginEvent.Click(widget.id)) }
-                    .semantics { contentDescription = widget.text }
-                    .padding(6.dp),
-            ) { style.icon(widget.icon, if (widget.color != null) style.colorOf(widget.color) else style.text, 22.dp) }
+            PluginIconButton(
+                icon = widget.icon,
+                label = widget.text,
+                enabled = widget.enabled,
+                tint = widget.color?.let { style.colorOf(it) } ?: style.text,
+                modifier = style.ring(Modifier, widget === ringed),
+            ) { onEvent(PluginEvent.Click(widget.id)) }
         } else {
-            style.chip(
-                widget.text,
-                widget.primary,
-                widget.enabled,
-                style.ring(Modifier, widget === ringed),
+            val fill = LocalFillCell.current
+            PluginButton(
+                label = widget.text,
+                kind = if (widget.primary) ButtonKind.FILLED else ButtonKind.TONAL,
+                enabled = widget.enabled,
+                icon = widget.icon,
+                tint = widget.color?.let { style.colorOf(it) },
+                modifier = style.ring(if (fill) Modifier.fillMaxWidth() else Modifier, widget === ringed),
             ) { onEvent(PluginEvent.Click(widget.id)) }
         }
 
         is PluginWidget.Toggle -> Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = style.ring(Modifier.fillMaxWidth(), widget === ringed),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = style.ring(Modifier.fillMaxWidth(), widget === ringed)
+                .heightIn(min = ROW_HEIGHT)
+                .clickable(role = Role.Switch) { onEvent(PluginEvent.ToggleChanged(widget.id, !widget.checked)) },
         ) {
             Text(
                 widget.label,
                 color = style.text,
-                fontSize = 13.sp,
+                fontSize = 15.sp,
                 modifier = Modifier.weight(1f),
             )
             Switch(
                 checked = widget.checked,
                 onCheckedChange = { onEvent(PluginEvent.ToggleChanged(widget.id, it)) },
-                colors = SwitchDefaults.colors(checkedTrackColor = style.accent),
+                colors = style.switchColors(),
             )
         }
 
@@ -247,12 +383,13 @@ private fun PluginWidgetView(
         PluginWidget.Divider -> Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(vertical = 4.dp)
                 .height(1.dp)
-                .background(style.surface),
+                .background(style.divider),
         )
 
         PluginWidget.Progress -> LinearProgressIndicator(
-            modifier = Modifier.fillMaxWidth().height(2.dp),
+            modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
             color = style.accent,
             trackColor = style.surface,
         )
@@ -262,6 +399,76 @@ private fun PluginWidgetView(
         else -> PackageWidgetView(widget, host, onEvent, onInsert, onCopy, ringed)
     }
 }
+
+/** A hairline between parts, faint enough not to compete with the content. */
+internal val PluginPanelStyle.divider: Color get() = secondaryText.copy(alpha = DIVIDER_ALPHA)
+
+/** A switch in the panel's colours, Material's shape. */
+@Composable
+internal fun PluginPanelStyle.switchColors() = SwitchDefaults.colors(
+    checkedThumbColor = onAccentContainer,
+    checkedTrackColor = accentContainer,
+    checkedBorderColor = Color.Transparent,
+    uncheckedThumbColor = secondaryText,
+    uncheckedTrackColor = surface,
+    uncheckedBorderColor = secondaryText,
+)
+
+/**
+ * A row. Given weights, each child gets its share. Otherwise a row of buttons
+ * splits the width evenly, like a button bar, and in a mixed row the buttons
+ * keep their own width while the text, fields and everything else share the
+ * rest — so a box with an Add button beside it is a wide box and a small
+ * button, not two halves.
+ */
+@Composable
+private fun RowWidget(
+    widget: PluginWidget.Row,
+    host: PluginInputHost,
+    onEvent: (PluginEvent) -> Unit,
+    onInsert: (String) -> Unit,
+    onCopy: (String) -> Unit,
+    ringed: PluginWidget?,
+) {
+    val weights = widget.weights
+    val allButtons = widget.children.all { it is PluginWidget.Button }
+    Row(
+        horizontalArrangement = Arrangement.spacedBy((widget.gap ?: DEFAULT_GAP).dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        widget.children.forEachIndexed { i, child ->
+            val share = when {
+                weights != null -> weights.getOrNull(i) ?: 1f
+                allButtons || child.flexible -> 1f
+                else -> null
+            }
+            if (share != null && share > 0f) {
+                Box(Modifier.weight(share), contentAlignment = Alignment.CenterStart) {
+                    CompositionLocalProvider(LocalFillCell provides true) {
+                        PluginWidgetList(listOf(child), host, onEvent, onInsert, onCopy, ringed)
+                    }
+                }
+            } else {
+                CompositionLocalProvider(LocalFillCell provides false) {
+                    PluginWidgetList(listOf(child), host, onEvent, onInsert, onCopy, ringed)
+                }
+            }
+        }
+    }
+}
+
+/** Whether a widget takes the room a row has left over, rather than its own width. */
+private val PluginWidget.flexible: Boolean
+    get() = when (this) {
+        is PluginWidget.Button,
+        is PluginWidget.Icon,
+        is PluginWidget.Qr,
+        is PluginWidget.Spacer,
+        is PluginWidget.Ring,
+        -> false
+        else -> true
+    }
 
 /**
  * A block of result text, with the host's own Insert and Copy buttons.
@@ -282,27 +489,33 @@ private fun OutputWidget(
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
+            .then(style.glass(Modifier, shape))
             .background(style.surface)
             .then(style.cardBorder(Modifier, shape))
-            .padding(horizontal = 10.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+            .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(
             widget.text,
             color = style.onSurface,
-            fontSize = 13.sp,
+            fontSize = 15.sp,
             fontFamily = if (widget.mono) FontFamily.Monospace else FontFamily.Default,
+            modifier = Modifier.padding(end = 8.dp, bottom = if (widget.insertable || widget.copyable) 0.dp else 6.dp),
         )
         if (widget.text.isNotEmpty() && (widget.insertable || widget.copyable)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (widget.insertable) {
-                    style.chip(stringResource(R.string.core_plugins_ui_insert_action), false, true, Modifier) {
-                        onInsert(widget.text)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                if (widget.copyable) {
+                    PluginButton(stringResource(CommonR.string.common_copy), ButtonKind.TEXT, icon = ICON_COPY) {
+                        onCopy(widget.text)
                     }
                 }
-                if (widget.copyable) {
-                    style.chip(stringResource(CommonR.string.common_copy), false, true, Modifier) {
-                        onCopy(widget.text)
+                if (widget.insertable) {
+                    PluginButton(stringResource(R.string.core_plugins_ui_insert_action), ButtonKind.FILLED) {
+                        onInsert(widget.text)
                     }
                 }
             }
@@ -315,9 +528,10 @@ private fun OutputWidget(
  *
  * In the keyboard, not a text field: tapping it tells the service to route the
  * keys here, and the text drawn is whatever the service has collected. In the
- * editor's preview, a real field. The Paste button is in both, and is how the
- * user hands a plugin something they already had, in place of the clipboard and
- * text-reading APIs the sandbox deliberately does not have.
+ * editor's preview, a real field. The paste button sits inside the box in
+ * both, and is how the user hands a plugin something they already had, in
+ * place of the clipboard and text-reading APIs the sandbox deliberately does
+ * not have.
  */
 @Composable
 internal fun InputWidget(widget: PluginWidget.Input, host: PluginInputHost, onEvent: (PluginEvent) -> Unit) {
@@ -337,65 +551,87 @@ internal fun InputWidget(widget: PluginWidget.Input, host: PluginInputHost, onEv
         // that would leave the coroutine running. See runCancellable's KDoc.
         runCancellable { requester.bringIntoView() }
     }
+    val pasteLabel = stringResource(CommonR.string.common_paste)
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .bringIntoViewRequester(requester),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         if (widget.label.isNotEmpty()) {
-            Text(widget.label, color = style.secondaryText, fontSize = 11.sp)
+            Text(widget.label, color = style.secondaryText, fontSize = 13.sp, fontWeight = FontWeight.Medium)
         }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            if (edit != null) {
-                OutlinedTextField(
-                    value = value,
-                    onValueChange = { edit(widget.id, it) },
-                    placeholder = { Text(widget.placeholder, fontSize = 13.sp) },
-                    maxLines = if (widget.multiline) 6 else 3,
-                    singleLine = widget.submit && !widget.multiline,
-                    visualTransformation = if (widget.kind == "password") PasswordVisualTransformation() else VisualTransformation.None,
-                    keyboardActions = KeyboardActions(
-                        onDone = { if (widget.submit) onEvent(PluginEvent.Submitted(widget.id, value)) },
-                        onSearch = { if (widget.submit) onEvent(PluginEvent.Submitted(widget.id, value)) },
-                    ),
-                    keyboardOptions = KeyboardOptions(imeAction = if (widget.kind == "search") ImeAction.Search else ImeAction.Done),
-                    modifier = Modifier.weight(1f),
-                )
-            } else {
-                val fieldShape = style.cardShape
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(fieldShape)
-                        .background(style.surface)
-                        .then(
-                            if (focused) {
-                                // Focus wins over the theme's outline: the accent
-                                // ring is what says "keys go here now".
-                                Modifier.border(1.dp, style.accent, fieldShape)
-                            } else {
-                                style.cardBorder(Modifier, fieldShape)
-                            },
-                        )
-                        .clickable { host.onFocus(widget.id) }
-                        .padding(horizontal = 10.dp, vertical = 8.dp),
+        if (edit != null) {
+            OutlinedTextField(
+                value = value,
+                onValueChange = { edit(widget.id, it) },
+                placeholder = { Text(widget.placeholder, fontSize = 15.sp) },
+                maxLines = if (widget.multiline) 6 else 3,
+                singleLine = widget.submit && !widget.multiline,
+                visualTransformation = if (widget.kind == "password") PasswordVisualTransformation() else VisualTransformation.None,
+                keyboardActions = KeyboardActions(
+                    onDone = { if (widget.submit) onEvent(PluginEvent.Submitted(widget.id, value)) },
+                    onSearch = { if (widget.submit) onEvent(PluginEvent.Submitted(widget.id, value)) },
+                ),
+                keyboardOptions = KeyboardOptions(imeAction = if (widget.kind == "search") ImeAction.Search else ImeAction.Done),
+                leadingIcon = if (widget.kind == "search") ({ style.icon(ICON_SEARCH, style.secondaryText, 20.dp) }) else null,
+                trailingIcon = { PluginIconButton(ICON_PASTE, pasteLabel) { host.onPaste(widget.id) } },
+                shape = style.cardShape,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        } else {
+            val fieldShape = style.cardShape
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = FIELD_HEIGHT)
+                    .clip(fieldShape)
+                    .then(style.glass(Modifier, fieldShape))
+                    .background(style.surface)
+                    .then(
+                        if (focused) {
+                            // Focus wins over the theme's outline: the accent
+                            // ring is what says "keys go here now".
+                            Modifier.border(2.dp, style.accent, fieldShape)
+                        } else {
+                            style.cardBorder(Modifier, fieldShape)
+                        },
+                    )
+                    .clickable { host.onFocus(widget.id) }
+                    .padding(start = if (widget.kind == "search") 12.dp else 16.dp, end = 4.dp),
+            ) {
+                if (widget.kind == "search") {
+                    style.icon(ICON_SEARCH, style.secondaryText, 20.dp)
+                    Spacer(Modifier.width(10.dp))
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f).padding(vertical = 12.dp),
                 ) {
                     Text(
                         // A password box in the keyboard shows dots, like any other.
                         if (widget.kind == "password" && value.isNotEmpty()) "•".repeat(value.length) else value.ifEmpty { widget.placeholder },
                         color = if (value.isEmpty()) style.secondaryText else style.onSurface,
-                        fontSize = 13.sp,
-                        maxLines = 2,
+                        fontSize = 15.sp,
+                        maxLines = if (widget.multiline) MULTILINE_LINES else 1,
                         overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
                     )
+                    // The caret, so the box that is taking the keys says so
+                    // even before the first one lands.
+                    if (focused) {
+                        Box(
+                            Modifier
+                                .padding(start = if (value.isEmpty()) 0.dp else 1.dp)
+                                .width(2.dp)
+                                .height(20.dp)
+                                .background(style.accent),
+                        )
+                    }
                 }
+                PluginIconButton(ICON_PASTE, pasteLabel) { host.onPaste(widget.id) }
             }
-            style.chip(stringResource(CommonR.string.common_paste), false, true, Modifier) { host.onPaste(widget.id) }
         }
     }
 }
@@ -428,25 +664,21 @@ private fun DateWidget(widget: PluginWidget.DatePicker, onEvent: (PluginEvent) -
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         if (widget.label.isNotEmpty()) {
-            Text(widget.label, color = style.secondaryText, fontSize = 11.sp)
+            Text(widget.label, color = style.secondaryText, fontSize = 13.sp, fontWeight = FontWeight.Medium)
         }
         val value = widget.value
         if (value == null) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
+            FieldBox {
                 Text(
                     stringResource(R.string.core_plugins_ui_date_none),
                     color = style.secondaryText,
-                    fontSize = 13.sp,
-                    modifier = Modifier.weight(1f),
+                    fontSize = 15.sp,
+                    modifier = Modifier.weight(1f).padding(start = 12.dp),
                 )
-                style.chip(stringResource(R.string.core_plugins_ui_date_set), false, true, Modifier) {
+                PluginButton(stringResource(R.string.core_plugins_ui_date_set), ButtonKind.TEXT, icon = ICON_ADD) {
                     send(PluginDates.initial(System.currentTimeMillis(), widget.time, zone))
                 }
             }
@@ -454,6 +686,25 @@ private fun DateWidget(widget: PluginWidget.DatePicker, onEvent: (PluginEvent) -
             DateSteps(widget, value, dateFormat, timeFormat, zone, ::send)
         }
     }
+}
+
+/** The field-shaped strip a date or a dropdown sits in. */
+@Composable
+private fun FieldBox(content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit) {
+    val style = LocalPluginPanelStyle.current
+    val shape = style.cardShape
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = FIELD_HEIGHT)
+            .clip(shape)
+            .then(style.glass(Modifier, shape))
+            .background(style.surface)
+            .then(style.cardBorder(Modifier, shape))
+            .padding(horizontal = 4.dp),
+        content = content,
+    )
 }
 
 @Composable
@@ -465,7 +716,6 @@ private fun DateSteps(
     zone: TimeZone,
     send: (Long?) -> Unit,
 ) {
-    val style = LocalPluginPanelStyle.current
     val date = Date(value * MILLIS)
     StepRow(
         text = dateFormat.format(date),
@@ -493,18 +743,19 @@ private fun DateSteps(
             },
         )
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        style.chip(stringResource(R.string.core_plugins_ui_date_today), false, true, Modifier) {
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End), modifier = Modifier.fillMaxWidth()) {
+        PluginButton(stringResource(R.string.core_plugins_ui_date_clear), ButtonKind.TEXT) { send(null) }
+        PluginButton(stringResource(R.string.core_plugins_ui_date_today), ButtonKind.TONAL) {
             send(PluginDates.today(value, System.currentTimeMillis(), zone))
         }
-        style.chip(stringResource(R.string.core_plugins_ui_date_clear), false, true, Modifier) { send(null) }
     }
 }
 
 /**
- * A value between buttons that move it. [back] and [forward] are drawn as
- * arrows and named for TalkBack by their first part; [farBack] and
- * [farForward], when given, are drawn outside them with their words showing.
+ * A value between buttons that move it, in a field-shaped strip. [back] and
+ * [forward] are drawn as arrows and named for TalkBack by their first part;
+ * [farBack] and [farForward], when given, are drawn outside them with their
+ * words showing.
  */
 @Composable
 private fun StepRow(
@@ -515,29 +766,21 @@ private fun StepRow(
     farForward: Pair<String, () -> Unit>? = null,
 ) {
     val style = LocalPluginPanelStyle.current
-    @Composable
-    fun arrow(glyph: String, action: Pair<String, () -> Unit>) {
-        val name = action.first
-        style.chip(glyph, false, true, Modifier.semantics(mergeDescendants = true) { contentDescription = name }, action.second)
-    }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        farBack?.let { style.chip(it.first, false, true, Modifier, it.second) }
-        arrow("‹", back)
+    FieldBox {
+        farBack?.let { PluginButton(it.first, ButtonKind.TEXT, onClick = it.second) }
+        PluginIconButton(ICON_PREVIOUS, back.first, tint = style.onSurface, onClick = back.second)
         Text(
             text,
-            color = style.text,
-            fontSize = 13.sp,
+            color = style.onSurface,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
-        arrow("›", forward)
-        farForward?.let { style.chip(it.first, false, true, Modifier, it.second) }
+        PluginIconButton(ICON_NEXT, forward.first, tint = style.onSurface, onClick = forward.second)
+        farForward?.let { PluginButton(it.first, ButtonKind.TEXT, onClick = it.second) }
     }
 }
 
@@ -546,6 +789,11 @@ private const val DATE_SKELETON = "EEEdMMMyyyy"
 private const val MILLIS = 1000L
 private const val MINUTES_PER_HOUR = 60
 
+/**
+ * Tabs the Material way: words, with a bar under the one showing. Not pills,
+ * so a tab never looks like the plugin's main button. Up to four share the
+ * width; more scroll sideways rather than being cut off.
+ */
 @Composable
 private fun TabsWidget(
     widget: PluginWidget.Tabs,
@@ -560,19 +808,76 @@ private fun TabsWidget(
     // track it or the service having to store it.
     var selected by rememberSaveable(widget.id) { mutableIntStateOf(0) }
     val index = selected.coerceIn(0, widget.pages.lastIndex)
+    val fixed = widget.pages.size <= FIXED_TABS
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            widget.pages.forEachIndexed { i, page ->
-                val title = page.title.ifEmpty { stringResource(R.string.core_plugins_ui_tab_default_title, i + 1) }
-                style.chip(title, i == index, true, Modifier) {
-                    selected = i
-                    onEvent(PluginEvent.TabSelected(widget.id, i))
+        Column(Modifier.fillMaxWidth()) {
+            Row(
+                modifier = if (fixed) Modifier.fillMaxWidth() else Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            ) {
+                widget.pages.forEachIndexed { i, page ->
+                    val title = page.title.ifEmpty { stringResource(R.string.core_plugins_ui_tab_default_title, i + 1) }
+                    val on = i == index
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = (if (fixed) Modifier.weight(1f) else Modifier)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable(role = Role.Tab) {
+                                selected = i
+                                onEvent(PluginEvent.TabSelected(widget.id, i))
+                            }
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 10.dp),
+                    ) {
+                        Column(Modifier.width(IntrinsicSize.Max), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                title,
+                                color = if (on) style.accent else style.secondaryText,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Spacer(Modifier.height(10.dp))
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(3.dp)
+                                    .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
+                                    .background(if (on) style.accent else Color.Transparent),
+                            )
+                        }
+                    }
                 }
             }
+            Box(Modifier.fillMaxWidth().height(1.dp).background(style.divider))
         }
-        PluginWidgetList(widget.pages[index].children, host, onEvent, onInsert, onCopy)
+        Column(verticalArrangement = Arrangement.spacedBy(DEFAULT_GAP.dp), modifier = Modifier.fillMaxWidth()) {
+            PluginWidgetColumnContent(widget.pages[index].children, host, onEvent, onInsert, onCopy, null)
+        }
     }
 }
+
+private val BUTTON_HEIGHT = 40.dp
+private val FIELD_HEIGHT = 52.dp
+internal val ROW_HEIGHT = 48.dp
+private const val DISABLED_ALPHA = 0.38f
+private const val DIVIDER_ALPHA = 0.2f
+private const val MULTILINE_LINES = 4
+private const val FIXED_TABS = 4
+internal const val DEFAULT_GAP = 8
+
+// Icon names the renderer asks its host for. Every host's icon set has these.
+internal const val ICON_PASTE = "paste"
+internal const val ICON_COPY = "copy"
+internal const val ICON_SEARCH = "search"
+internal const val ICON_ADD = "add"
+internal const val ICON_REMOVE = "remove"
+internal const val ICON_PREVIOUS = "chevron_left"
+internal const val ICON_NEXT = "chevron_right"
+internal const val ICON_EXPAND = "chevron_down"
+internal const val ICON_COLLAPSE = "chevron_up"
+internal const val ICON_CHECK = "check"
+internal const val ICON_MORE = "more"

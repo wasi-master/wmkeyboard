@@ -220,6 +220,9 @@
     <string name="core_plugins_ui_back">Back</string>
     <!-- Shown in an empty list when the plugin gave no text of its own. -->
     <string name="core_plugins_ui_list_empty">Nothing here yet</string>
+    <!-- What TalkBack reads for the minus and plus buttons beside a plugin's number. -->
+    <string name="core_plugins_ui_decrease">Decrease</string>
+    <string name="core_plugins_ui_increase">Increase</string>
     <!-- The button that turns on a permission a plugin needs, shown in its panel. -->
     <string name="core_plugins_ui_allow">Allow</string>
     <!-- Shown in a plugin's panel header while it can use the internet or read the field. -->
