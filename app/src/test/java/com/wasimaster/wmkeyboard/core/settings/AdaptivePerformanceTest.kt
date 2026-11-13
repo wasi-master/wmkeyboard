@@ -11,7 +11,7 @@ class AdaptivePerformanceTest {
 
     @Test
     fun `a short burst of strain does not raise the level`() {
-        val tracker = LoadLevelTracker(escalateAfterMs = 2_000L)
+        val tracker = LoadLevelTracker(escalateAfterMs = 2_000L, heavyAfterMs = 0L)
         assertFalse(tracker.update(LoadLevel.HEAVY, now = 0L))
         assertFalse(tracker.update(LoadLevel.NORMAL, now = 500L))
         // The strain starts over, so the wait does too.
@@ -19,6 +19,30 @@ class AdaptivePerformanceTest {
         assertFalse(tracker.update(LoadLevel.HEAVY, now = 2_500L))
         assertEquals(LoadLevel.NORMAL, tracker.level)
         assertTrue(tracker.update(LoadLevel.HEAVY, now = 3_000L))
+        assertEquals(LoadLevel.HEAVY, tracker.level)
+    }
+
+    @Test
+    fun `heavy frames still the motion only after holding for a while`() {
+        val tracker = LoadLevelTracker(escalateAfterMs = 2_000L, heavyAfterMs = 10_000L)
+        assertFalse(tracker.update(LoadLevel.HEAVY, now = 0L))
+        // Two seconds of it: the hidden budgets, not the motion.
+        assertTrue(tracker.update(LoadLevel.HEAVY, now = 2_000L))
+        assertEquals(LoadLevel.ELEVATED, tracker.level)
+        assertFalse(tracker.update(LoadLevel.HEAVY, now = 6_000L))
+        // A lighter reading in between starts the heavy wait over.
+        tracker.update(LoadLevel.ELEVATED, now = 7_000L)
+        assertFalse(tracker.update(LoadLevel.HEAVY, now = 12_000L))
+        assertEquals(LoadLevel.ELEVATED, tracker.level)
+        assertFalse(tracker.update(LoadLevel.HEAVY, now = 17_000L))
+        assertTrue(tracker.update(LoadLevel.HEAVY, now = 22_000L))
+        assertEquals(LoadLevel.HEAVY, tracker.level)
+    }
+
+    @Test
+    fun `an urgent heavy reading stills the motion at once`() {
+        val tracker = LoadLevelTracker()
+        assertTrue(tracker.update(LoadLevel.HEAVY, now = 0L, urgent = true))
         assertEquals(LoadLevel.HEAVY, tracker.level)
     }
 
@@ -56,7 +80,7 @@ class AdaptivePerformanceTest {
 
     @Test
     fun `rising again soon after a fall doubles the calm needed`() {
-        val tracker = LoadLevelTracker(escalateAfterMs = 0L, calmMs = 30_000L, maxCalmMs = 100_000L)
+        val tracker = LoadLevelTracker(escalateAfterMs = 0L, calmMs = 30_000L, maxCalmMs = 100_000L, heavyAfterMs = 0L)
         tracker.update(LoadLevel.HEAVY, now = 0L)
         tracker.update(LoadLevel.NORMAL, now = 1_000L)
         tracker.update(LoadLevel.NORMAL, now = 31_000L)
@@ -138,9 +162,10 @@ class AdaptivePerformanceTest {
     @Test
     fun `frames and pass costs map to levels`() {
         assertEquals(LoadLevel.NORMAL, frameLoad(frames = 10, janky = 10))
-        assertEquals(LoadLevel.NORMAL, frameLoad(frames = 60, janky = 5))
-        assertEquals(LoadLevel.ELEVATED, frameLoad(frames = 60, janky = 8))
-        assertEquals(LoadLevel.HEAVY, frameLoad(frames = 60, janky = 20))
+        assertEquals(LoadLevel.NORMAL, frameLoad(frames = 60, janky = 8))
+        assertEquals(LoadLevel.ELEVATED, frameLoad(frames = 60, janky = 9))
+        assertEquals(LoadLevel.ELEVATED, frameLoad(frames = 60, janky = 20))
+        assertEquals(LoadLevel.HEAVY, frameLoad(frames = 60, janky = 24))
         assertEquals(LoadLevel.NORMAL, workLoad(40L))
         assertEquals(LoadLevel.ELEVATED, workLoad(120L))
         assertEquals(LoadLevel.HEAVY, workLoad(300L))

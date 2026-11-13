@@ -202,9 +202,14 @@ class LoadGovernor(private val context: Context) {
             return
         }
         val total = metrics.getMetric(FrameMetrics.TOTAL_DURATION)
-        batchFrames += 1 + dropped
-        if (total > frameIntervalNanos * 2) batchJanky++
-        batchJanky += dropped
+        // [dropped] counts reports this listener missed, not late frames: it
+        // says nothing about how the frames went, so it is left out.
+        batchFrames++
+        // Late enough to see: twice the frame time, and never under a fixed
+        // floor. Twice the frame time alone is 22 ms at 90 Hz and 17 ms at
+        // 120, which a mid-range phone's keyboard frames pass routinely (a
+        // G99 typing: p50 19 ms, p90 57 ms) without any visible stutter.
+        if (total > maxOf(frameIntervalNanos * 2, JANK_FLOOR_NANOS)) batchJanky++
         if (batchFrames < FRAME_BATCH) return
         val reading = frameLoad(batchFrames, batchJanky)
         batchFrames = 0
@@ -345,6 +350,9 @@ class LoadGovernor(private val context: Context) {
 
         const val NANOS_PER_SECOND = 1_000_000_000f
         const val DEFAULT_FRAME_NANOS = 16_666_667L
+
+        /** The shortest frame counted as late: three frames at 60 Hz. */
+        const val JANK_FLOOR_NANOS = 50_000_000L
         const val FRAME_BATCH = 60
         const val SKIP_FIRST_FRAMES = 10
         const val FRAMES_VALID_MS = 20_000L

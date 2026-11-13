@@ -216,7 +216,14 @@ private const val HIGH_PERFORMANCE_CLASS = 33
  * Up quickly, down slowly. A reading above the current level has to hold for
  * [escalateAfterMs] before the level follows it (one janky burst while an app
  * opens behind the keyboard is not load); an urgent reading, a hot phone or
- * a memory warning, raises it at once. Coming down needs [calmMs] of
+ * a memory warning, raises it at once.
+ *
+ * [LoadLevel.HEAVY] takes the theme's motion and the panel animations away,
+ * which the user sees, so a reading that is not urgent has to say HEAVY for
+ * [heavyAfterMs] without a break before the level goes there; until then it
+ * stops at [LoadLevel.ELEVATED], whose budgets nobody sees. Slow frames
+ * right after an install (no compiled code yet) or while a panel opens
+ * stilled the whole keyboard within two seconds. Coming down needs [calmMs] of
  * readings below the level, and goes one step at a time.
  *
  * The keyboard's own moving theme is often what made the frames late, so
@@ -231,11 +238,13 @@ class LoadLevelTracker(
     private val escalateAfterMs: Long = 2_000L,
     private val calmMs: Long = 30_000L,
     private val maxCalmMs: Long = 600_000L,
+    private val heavyAfterMs: Long = 10_000L,
 ) {
     var level: LoadLevel = LoadLevel.NORMAL
         private set
 
     private var pressureSince = NONE
+    private var heavySince = NONE
     private var calmSince = NONE
     private var lastFall = NONE
     private var lastChange = NONE
@@ -250,15 +259,28 @@ class LoadLevelTracker(
      */
     fun update(reading: LoadLevel, now: Long, urgent: Boolean = false): Boolean {
         if (lastChange != NONE && now - lastChange >= RESET_CALM_AFTER_MS) calmNeeded = calmMs
+        if (reading == LoadLevel.HEAVY) {
+            if (heavySince == NONE) heavySince = now
+        } else {
+            heavySince = NONE
+        }
         return when {
             reading > level -> {
                 calmSince = NONE
                 if (pressureSince == NONE) pressureSince = now
                 if (!urgent && now - pressureSince < escalateAfterMs) return false
+                // Not urgent and not heavy for long enough: the hidden
+                // budgets only, or nothing when they are already on.
+                val target = if (reading == LoadLevel.HEAVY && !urgent && now - heavySince < heavyAfterMs) {
+                    LoadLevel.ELEVATED
+                } else {
+                    reading
+                }
+                if (target <= level) return false
                 if (lastFall != NONE && now - lastFall < REBOUND_MS) {
                     calmNeeded = (calmNeeded * 2).coerceAtMost(maxCalmMs)
                 }
-                change(reading, now)
+                change(target, now)
                 true
             }
             reading < level -> {
@@ -297,8 +319,9 @@ class LoadLevelTracker(
 }
 
 /**
- * The level a run of frames points at: [janky] of [frames] took over twice
- * the display's frame time.
+ * The level a run of frames points at: [janky] of [frames] were late enough
+ * to see (see `LoadGovernor`'s jank bar: twice the frame time, never under
+ * 50 ms).
  */
 fun frameLoad(frames: Int, janky: Int): LoadLevel {
     if (frames < MIN_FRAMES) return LoadLevel.NORMAL
@@ -311,8 +334,8 @@ fun frameLoad(frames: Int, janky: Int): LoadLevel {
 }
 
 private const val MIN_FRAMES = 20
-private const val ELEVATED_JANK_SHARE = 0.12f
-private const val HEAVY_JANK_SHARE = 0.30f
+private const val ELEVATED_JANK_SHARE = 0.15f
+private const val HEAVY_JANK_SHARE = 0.40f
 
 /**
  * The level a suggestion pass's average cost points at, in ms. A pass is
