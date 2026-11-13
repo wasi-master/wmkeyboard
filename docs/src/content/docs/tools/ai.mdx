@@ -171,6 +171,8 @@ Traffic to a self-hosted server is plain HTTP, and the app allows cleartext traf
 
 The **On your device** provider runs a model entirely on the phone, no network involved. It's the only provider that needs a download first, and the one that **Add a provider** doesn't offer at all in the F-Droid build.
 
+A small model tends to treat whatever it was handed last as a message to answer, so an action run on the phone repeats its task right above your text and marks the text off as material to work on. Without that, a model you imported could reply to your text instead of fixing or rewriting it. A cloud model gets the task once, in its instructions.
+
 <PhoneFrame side caption="The on-device model catalog, with tier badges and a params/size subtitle per model.">
   <Shot id="tools/ai-settings-local-catalog" alt="The on-device model catalog, with tier badges and a size/RAM subtitle per model." />
 </PhoneFrame>

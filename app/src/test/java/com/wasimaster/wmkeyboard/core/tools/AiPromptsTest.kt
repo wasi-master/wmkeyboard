@@ -58,4 +58,23 @@ class AiPromptsTest {
             assertEquals(action.id, expected, action.worksWithoutText)
         }
     }
+
+    @Test
+    fun `an on-device run says the task again beside the text`() {
+        val fix = BuiltInAiActions.byId(BuiltInAiActions.FIX_GRAMMAR_ID)!!
+        val input = AiPrompts.onDeviceInput(fix, "French", "", "can you help me with this")
+        assertTrue(input.startsWith("Task: fix all spelling"))
+        assertTrue(input.contains("do not answer it"))
+        assertTrue(input.endsWith("<input>\ncan you help me with this\n</input>"))
+        val custom = BuiltInAiActions.byId(BuiltInAiActions.CUSTOM_ID)!!
+        assertTrue(AiPrompts.onDeviceInput(custom, "French", "make it rhyme", "x").startsWith("Task: make it rhyme"))
+        val raw = fix.copy(rawPrompt = true)
+        assertEquals("x", AiPrompts.onDeviceInput(raw, "French", "", "x"))
+    }
+
+    @Test
+    fun `copied input tags come off an on-device answer`() {
+        assertEquals("Hello there.", AiPrompts.stripInputTags("<input>\nHello there.\n</input>"))
+        assertEquals("Hello there.", AiPrompts.stripInputTags("Hello there."))
+    }
 }

@@ -929,9 +929,11 @@ private fun runAiAction(
     val system = AiPrompts.systemPrompt(spec, settings.ai.translateTo)
     val raw = if (settings.ai.provider == AiProvider.ON_DEVICE) {
         val model = localModel(settings, context.filesDir) ?: throw IOException(context.getString(ImeR.string.ime_ai_error_model_missing))
-        LocalLlmEngine.generate(
-            context.applicationContext, model, settings.ai.localBackend, settings.ai.localContextTokens,
-            system, text, onPartial,
+        AiPrompts.stripInputTags(
+            LocalLlmEngine.generate(
+                context.applicationContext, model, settings.ai.localBackend, settings.ai.localContextTokens,
+                system, AiPrompts.onDeviceInput(spec, settings.ai.translateTo, "", text), onPartial,
+            ),
         )
     } else {
         val network = NetworkWatcher(context.applicationContext).apply { refresh() }.state.value

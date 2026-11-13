@@ -44542,7 +44542,7 @@ open class WMKeyboardService : InputMethodService() {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     if (config.provider == AiProvider.ON_DEVICE || offlineFirst) {
-                        runAiOnDevice(seq, action, source, system, settings, generated, fromSelection, tools, runner)
+                        runAiOnDevice(seq, action, source, system, settings, generated, fromSelection, tools, runner, instruction)
                     } else {
                         runAiRemote(
                             seq, action, source, system, settings, config,
@@ -44554,7 +44554,7 @@ open class WMKeyboardService : InputMethodService() {
                     // run on the device was not already the one that failed.
                     if (!localStandIn || fellBack || seq != aiRunSeq || !ToolHttp.isUnreachable(e)) throw e
                     fellBack = true
-                    runAiOnDevice(seq, action, source, system, settings, generated, fromSelection, tools, runner)
+                    runAiOnDevice(seq, action, source, system, settings, generated, fromSelection, tools, runner, instruction)
                 }
             }
             // A superseded or cancelled run never gets past here, so it is
@@ -44720,6 +44720,7 @@ open class WMKeyboardService : InputMethodService() {
         fromSelection: Boolean = false,
         tools: List<AiToolSpec> = emptyList(),
         runner: AiToolRunner = AiToolRunner(applicationContext, settings),
+        instruction: String = "",
     ): AiClient.Completion {
         val modelId = effectiveLocalModelId(settings)
         val modelFile = effectiveLocalModelFile(settings)
@@ -44729,7 +44730,15 @@ open class WMKeyboardService : InputMethodService() {
         var lastPartialAt = 0L
         val text = AiToolLoop.run(
             system = system,
-            turns = listOf(AiClient.ChatTurn(AiClient.ChatRole.USER, source)),
+            // Writing from nothing sends the request as it was typed; an action
+            // on text says its task again beside the text, which a small phone
+            // model needs to rewrite rather than answer it.
+            turns = listOf(
+                AiClient.ChatTurn(
+                    AiClient.ChatRole.USER,
+                    if (generated) source else AiPrompts.onDeviceInput(action, settings.ai.translateTo, instruction, source),
+                ),
+            ),
             tools = tools,
             // No on-device runtime offers function calling, so a local model
             // can only be told about tools in prose; see AiToolProtocol.
@@ -44768,7 +44777,7 @@ open class WMKeyboardService : InputMethodService() {
         // The on-device engine reports no stop reason, so an answer that ran out
         // of context window looks the same as one that finished. Never claim it
         // was cut off, rather than claiming it wrongly either way.
-        return AiClient.Completion(text)
+        return AiClient.Completion(if (generated) text else AiPrompts.stripInputTags(text))
     }
 
     /**
