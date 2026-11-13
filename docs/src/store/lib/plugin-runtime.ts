@@ -11,7 +11,7 @@
 import { signal, type Signal } from '@preact/signals';
 import { PySession } from './python';
 import { S } from '../ui/creators/ide/strings';
-import { makeBridge } from './plugin-host';
+import { type Bridge, makeBridge } from './plugin-host';
 
 export const MAIN_CHUNK = 'main.py';
 
@@ -404,6 +404,8 @@ interface Session {
 	v5: boolean;
 	/** Running `@plugin.every` and `plugin.after` timers, by name. */
 	timers: Map<string, ReturnType<typeof setTimeout>>;
+	/** The host bridge, for API 5; disposed with the session so pretend sensors stop. */
+	bridge?: Bridge;
 }
 
 const PHASES: Record<string, Phase> = { load: 'LOAD', event: 'EVENT', render: 'RENDER' };
@@ -445,12 +447,13 @@ export class PluginPreviewSession {
 		const session: Session = { draftId, py, storage, loaded: false, v5: isV5(plugin), timers: new Map() };
 		this.current = session;
 		if (session.v5) {
-			py.setBridge(makeBridge({
+			session.bridge = makeBridge({
 				hosts: plugin.hosts ?? [],
 				// An answer that comes later goes in as an event, after the call that asked has returned.
 				deliver: (event) => setTimeout(() => this.send(event as PluginEvent), 0),
 				log: (text) => this.append({ at: this.elapsed(), kind: 'PRINT', text }),
-			}));
+			});
+			py.setBridge(session.bridge);
 		}
 		if (storage) storage.live = { set: (k, v) => py.storageSet(k, v), remove: (k) => py.storageRemove(k) };
 		this.call(session, 'LOAD', () => py.load(source));
@@ -487,6 +490,7 @@ export class PluginPreviewSession {
 	private release(session: Session) {
 		for (const t of session.timers.values()) clearTimeout(t);
 		session.timers.clear();
+		session.bridge?.dispose();
 		if (session.storage) session.storage.live = null;
 		try {
 			session.py.free();

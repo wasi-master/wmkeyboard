@@ -1,0 +1,135 @@
+---
+title: "Help and questions"
+description: "Answers to common questions, what each error message means, and where to ask when you are stuck."
+sidebar:
+  label: "Help and questions"
+  order: 9
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+## Common questions
+
+### Do I need to know Python?
+
+A little. If you can write a function, an `if` and a `for` loop, you can
+write a plugin. The [Quickstart](/plugins/quickstart/) explains every line of
+a small one, and the [tutorial](/plugins/tutorial/) builds a real tool step by
+step.
+
+### Do I need a computer?
+
+No. The plugin editor runs on the phone, and in any browser at
+[/addons/new](/addons/new?type=plugin).
+
+### Which Python is it?
+
+A small interpreter built into the keyboard, close to Python 3. Most everyday
+Python works: functions, classes, decorators, `with`, comprehensions,
+f-strings, and modules such as `json`, `re`, `datetime` and `collections`.
+Generators (`yield`), `async`, `match`, `eval` and `open` are not there. The
+[full list](/plugins/wm-package/#the-python-you-get) is in the reference.
+
+### Can I use a package from PyPI?
+
+No. A plugin can import the bundled modules, the `wm` package, and its own
+`.py` files. To use a small pure-Python library, copy its source into your
+plugin as a module, if its licence allows.
+
+### API 4 or API 5?
+
+Write new plugins for API 5: set `"apiVersion": 5`, or turn on **Use API 5**
+in the editor. API 5 imports from the `wm` package and has callbacks, state,
+the internet, AI and the rest. API 4 plugins keep working; their reference is
+under [Classic API](/plugins/api-reference/).
+
+### Why is my panel empty?
+
+Three common reasons:
+
+- `render()` raised an error. The console, or the panel itself, shows it.
+- `render()` built widgets but returned something else, such as a string.
+  Return a widget, a list of widgets, or nothing at all when you use `with`.
+- The file has no function called `render`.
+
+### Why does my text box empty itself?
+
+A box with `on_change` draws again on every key. Keep the text in state and
+pass it back with `value=state.text`. See
+[Text boxes and their values](/plugins/guides/state-and-events/#text-boxes-and-their-values).
+
+### Why does every button in my list do the same thing?
+
+A lambda made in a loop sees the loop's last value. Write
+`lambda n=note: open_note(n)`. See [Lists](/plugins/guides/drawing/#lists).
+
+### Why is my value gone when I open the panel again?
+
+The plugin starts fresh each time the panel opens. Values in a
+`plugin.state` without `persist=True` start over. Add `persist=True` and the
+`storage` permission. See [Saving state](/plugins/guides/state-and-events/#saving-state).
+
+### Can my plugin run in the background?
+
+No. Code runs only while your panel or floating box is open. For a message at
+a later time, set a [reminder](/plugins/guides/saving-and-settings/#reminders):
+the app shows it without running your code.
+
+### Can my plugin see what I type?
+
+No. There is no way for a plugin to watch keystrokes. With the risky
+`field.read` permission, it can read the text in the field only at the moment
+the user presses something in its panel, and never in a password field.
+[Security](/plugins/security/) explains how this is enforced.
+
+### My request works in the browser but not on the phone, or the other way round
+
+- **Only on the phone:** the website does not allow other web pages to read
+  its answers (CORS). The browser stops the preview; the phone has no such
+  limit.
+- **Only in the browser:** on the phone, the user has not turned on
+  `network` for your plugin, risky permissions are off for all plugins, or
+  Data saver is on. The editors treat permissions as allowed; a real install
+  does not.
+
+## Error messages
+
+| Message | What to do |
+|---|---|
+| `PermissionError: http.request needs the 'network' permission, which this plugin's manifest does not list` | Add the permission to `plugin.json`, or turn it on in **Name and permissions**. The same message names any other permission. |
+| `PermissionError: the user has not turned on 'network' for this plugin` | The user turns it on, on your plugin's page. Catch the error and say so; the panel shows an **Allow** button. |
+| `PermissionError: risky permissions are turned off for all plugins` | The user allows them first: <SettingsPath path="Tools / Plugins / Allow risky permissions" /> |
+| `PermissionError: this plugin is not allowed to connect to example.com` | Add the host to `hosts` in `plugin.json`. |
+| `PermissionError: field.selection works only while the plugin answers something the user did in its panel` | Read the field from a button's callback, not from a timer, an answer from the internet or `on_open`. |
+| `PermissionError: plugins cannot read or change password fields, or text in incognito` | Nothing to fix: this is on purpose. Tell the user. |
+| `PermissionError: plugin.state(persist=True) needs the 'storage' permission` | Add `storage` to the permissions. |
+| `ConnectionError: Data saver is on, so plugins cannot use the internet` | The user turns Data saver off. Catch it and say so. |
+| `ConnectionError: too many requests: at most 60 a minute` | Send fewer requests. Keep answers in state instead of asking again. |
+| `ValueError` when writing to `storage` | You are over the [storage limits](/plugins/guides/saving-and-settings/#storage). |
+| `ValueError` naming a colour | Use a [colour role](/plugins/guides/drawing/#colours-are-roles), such as `primary` or `danger`. |
+| `NotImplementedError: “…” is not available in the web preview` | The web editor has no answer for that call. Install the plugin to try it. |
+| `NotImplementedError: location.get is not available in this version of the keyboard yet` | Some [phone features](/plugins/guides/phone-features/) are not wired up yet. Catch it. |
+| This plugin did too much work at one time. The app stopped it. | A loop ran too long. See [Reading an error](/plugins/guides/testing/#reading-an-error). |
+| This plugin took too long. The app stopped it. | The same, measured in time. |
+| This plugin called itself too many times. The app stopped it. | A function calls itself without end. The limit is 300 calls deep. |
+
+The install screen refuses a plugin for these:
+
+| Message | What to do |
+|---|---|
+| “…” asks for “network”, which only plugins written for API 5 can use. | Set `"apiVersion": 5`. |
+| “…” asks to connect to the internet but does not list any websites. | Add `hosts`. |
+| This version of WM Keyboard does not know the permission “…”. | Check the spelling against the [permission list](/plugins/permissions/). |
+| This plugin needs a newer version of WM Keyboard. | The phone has an older app. Update it. |
+
+## Where to ask
+
+- **The Telegram group**, [t.me/wmkeyboard](https://t.me/wmkeyboard), for
+  questions and to show what you made.
+- **GitHub issues**, at
+  [wasi-master/wmkeyboard](https://github.com/wasi-master/wmkeyboard/issues),
+  for a bug in the plugin system or something the API is missing. Include your
+  `main.py`, your `plugin.json` and the error.
+- **Security problems** go privately to the maintainer, as
+  [Security](/plugins/security/#reporting) explains. Please don't post them in
+  public.

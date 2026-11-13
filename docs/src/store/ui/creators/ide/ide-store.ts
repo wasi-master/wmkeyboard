@@ -19,7 +19,13 @@ export interface PluginManifest {
 	/** API 5: the websites `http` may reach. */
 	hosts?: string[];
 	/** API 5: the plugin's settings page. */
-	settings?: { key: string; type: string; default?: string }[];
+	settings?: { key: string; type: string; label?: string; summary?: string; default?: string; options?: string[] }[];
+	/** API 5: where the plugin shows up (PluginToolSpec). */
+	tool?: { icon?: string; tile?: boolean; float?: boolean; keyword?: string; chip?: boolean; height?: number };
+	/** Buttons on the bar over selected text. */
+	actions?: { id: string; name: string; summary?: string; icon?: string; replaces?: boolean; input?: string }[];
+	/** False for a plugin made of selection actions alone. */
+	panel?: boolean;
 }
 
 export type SnapshotReason = 'manual' | 'periodic' | 'before_restore' | 'publish' | 'import';
@@ -52,7 +58,15 @@ export const DEFAULT_ENTRY = 'main.py';
 export const STORAGE_PERMISSION = 'storage';
 export const REMINDERS_PERMISSION = 'reminders';
 /** Every permission the app knows, in the order the manifest form lists them (PluginPermission.all). */
-export const PERMISSIONS = [STORAGE_PERMISSION, REMINDERS_PERMISSION];
+export const PERMISSIONS = [
+	STORAGE_PERMISSION, REMINDERS_PERMISSION, 'selection', 'field.write', 'clipboard.write', 'sensors', 'scan', 'device', 'share',
+	'notifications', 'network', 'ai', 'field.read', 'clipboard.read', 'location', 'files',
+];
+/** The ones API 4 knows; the rest need `"apiVersion": 5`. */
+export const API4_PERMISSIONS = [STORAGE_PERMISSION, REMINDERS_PERMISSION, 'selection'];
+/** Off after install until the user turns them on (PluginPermission.Tier.RISKY). */
+export const RISKY_PERMISSIONS = ['network', 'ai', 'field.read', 'clipboard.read', 'location', 'files'];
+export const MAX_HOSTS = 16;
 export const ID_PATTERN = /^[a-z0-9][a-z0-9._-]{2,63}$/;
 export const MAX_NAME = 40;
 const MAX_VERSION = 32;

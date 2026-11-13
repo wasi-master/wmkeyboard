@@ -1,0 +1,77 @@
+---
+title: "Translating your plugin"
+description: "Write your plugin in English, wrap the text with _(), and add a file per language."
+sidebar:
+  label: "Translating your plugin"
+  order: 5.08
+---
+
+The keyboard is in 49 languages. Your plugin can be too, without any change to
+how you write it: write in English, mark the text the user reads, and add one
+file per language.
+
+## Mark the text
+
+Write the plugin in English and wrap each piece of text the user reads:
+
+```python
+from wm import ui, _, ngettext
+
+ui.button(_("Look up"), on_click=look_up)
+ui.label(_("Hello, {name}", name=state.user))
+ui.label(ngettext("{n} day", "{n} days", len(state.days)))
+```
+
+Then add a file per language under `locales/`, named by its language tag
+(`bn.json`, `pt-BR.json`, `es-419.json`). Each maps your English to the
+translation. A plural is an object of [CLDR plural forms](https://cldr.unicode.org/index/cldr-spec/plural-rules)
+(`one`, `few`, `many`, `other` and so on):
+
+```json title="locales/ru.json"
+{
+  "@name": "Погода",
+  "@description": "Прогноз на сегодня от Open-Meteo",
+  "@setting.units": "Единицы",
+  "@option.units.metric": "Метрические",
+  "Look up": "Найти",
+  "Hello, {name}": "Привет, {name}",
+  "{n} day": {"one": "{n} день", "few": "{n} дня", "many": "{n} дней"}
+}
+```
+
+- **Which file.** The keyboard picks the one for the language the app is in:
+  the whole tag first (`pt-BR`), then the language (`pt`). Anything a file
+  leaves out stays in English, and so does a plugin with no file for the
+  user's language.
+- **Keys that start with `@`** translate what the app shows from your
+  manifest, before any of your code runs: `@name`, `@description`,
+  `@action.<id>` and `@action.<id>.summary`, `@setting.<key>` and
+  `@setting.<key>.summary`, and `@option.<key>.<value>` for a choice.
+- **Values in braces** are filled after translating, so a translation can put
+  them in its own order. A translation that names a value your code doesn't
+  pass falls back to the English.
+- `from wm import i18n` gives `i18n.language`, the tag of the file in use
+  (`None` for English), and `i18n.locale`, the user's first language whether
+  or not you translated into it.
+- Each file is at most 64 KB. One that isn't a JSON object of text and plural
+  objects refuses the install.
+
+The editor's preview on the phone and on the web runs your English; install
+the plugin to see a translation.
+
+## Add the files to your plugin
+
+Translation files go in a `locales` folder beside `main.py`:
+
+```
+dictionary.wmplugin
+├── plugin.json
+├── main.py
+└── locales
+    ├── bn.json
+    └── ru.json
+```
+
+The editors hold one file per plugin for now, so build the archive by hand to
+add them. [Sharing your plugin](/plugins/guides/sharing/#several-files) shows
+how.

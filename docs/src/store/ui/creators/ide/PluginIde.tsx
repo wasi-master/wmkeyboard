@@ -18,7 +18,7 @@ import type { PyCompletionItem, PyCompletions, PyDiagnostic, PyHost, PyOutlineIt
 import { E, CodeSurface, SHORTCUT, type CodeDecorations, type CodeEditorController, type ScreenCommand, type Severity, NO_DECORATIONS } from './CodeSurface';
 import { CodeFindBar, initialFind, type CodeFindState } from './CodeFindBar';
 import { CodeAccessoryRow, PYTHON_ACCESSORY_KEYS, arrangeKeys } from './CodeAccessoryRow';
-import { ID_PATTERN, MAX_NAME, MAX_SCRIPT_BYTES, PERMISSIONS, REMINDERS_PERMISSION, STORAGE_PERMISSION, blankManifest, editorPrefs, fileNameOf, keyPrefs, sanitise, sanitised, takenIds, uniquePluginId, workspace, type PluginDraft, type PluginManifest, type PluginSnapshot, type SnapshotReason } from './ide-store';
+import { API4_PERMISSIONS, ID_PATTERN, MAX_HOSTS, MAX_NAME, MAX_SCRIPT_BYTES, PACKAGE_API, PERMISSIONS, REMINDERS_PERMISSION, RISKY_PERMISSIONS, STORAGE_PERMISSION, blankManifest, editorPrefs, fileNameOf, keyPrefs, sanitise, sanitised, takenIds, uniquePluginId, workspace, type PluginDraft, type PluginManifest, type PluginSnapshot, type SnapshotReason } from './ide-store';
 import { TEMPLATES, type PluginTemplate } from './templates';
 import { S, relativeTime } from './strings';
 import { V5Widget } from './V5Widgets';
@@ -68,7 +68,105 @@ export function manifestProblems(m: PluginManifest): string[] {
 	const name = sanitise(m.name, 'NAME');
 	if (!name) out.push(S.rejectNoName);
 	if (!sanitise(m.pluginVersion, 'VERSION')) out.push(S.rejectNoVersion(name));
+	// PluginManifestCodec.packageProblems: the API 5 rules.
+	const api5 = m.apiVersion >= PACKAGE_API;
+	const needs5 = m.permissions.find((p) => !api5 && !API4_PERMISSIONS.includes(p) && PERMISSIONS.includes(p));
+	if (needs5) out.push(S.rejectNeedsApi5(needs5, name));
+	const hosts = (m.hosts ?? []).map(normaliseHost);
+	if (m.permissions.includes('network') && hosts.length === 0 && !(m.settings ?? []).some((s) => s.type?.trim() === 'host')) out.push(S.rejectNetworkWithoutHosts(name));
+	const badHost = hosts.find((h) => h.length > 253 || !HOST.test(h));
+	if (badHost !== undefined) out.push(S.rejectBadHost(badHost, name));
+	else if (hosts.length > MAX_HOSTS) out.push(S.rejectTooManyHosts(name));
+	const tool = m.tool ?? {};
+	if ((tool.keyword?.trim() && !/^[a-z0-9]{1,16}$/.test(tool.keyword.trim())) || !/^[a-z0-9_]{0,48}$/.test((tool.icon ?? '').trim())) out.push(S.rejectBadTool(name));
 	return out;
+}
+
+/** PluginManifestCodec.HOST and normaliseHost. */
+const HOST = /^(\*\.)?([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]([a-z0-9-]{0,61}[a-z0-9])?$/;
+const normaliseHost = (raw: string) => raw.trim().toLowerCase().replace(/^https:\/\//, '').replace(/[/.]+$/, '');
+const hostsOf = (text: string) => text.split(/[\s,]+/).map((h) => h.trim()).filter(Boolean);
+
+/**
+ * The API 5 switch, every permission and the hosts, as the phone's details
+ * dialog draws them (PluginIdeScreen's details sheet). Risky permissions are
+ * marked; API 4 shows only the three it knows. Unknown permissions a file
+ * brought in are kept, never dropped by an edit here.
+ */
+function PermissionFields({ manifest, onChange }: { manifest: PluginManifest; onChange: (m: PluginManifest) => void }) {
+	const api5 = manifest.apiVersion >= PACKAGE_API;
+	const [hostText, setHostText] = useState((manifest.hosts ?? []).join(', '));
+	useEffect(() => setHostText((manifest.hosts ?? []).join(', ')), [manifest.hosts?.join(',')]);
+	const shown = PERMISSIONS.filter((p) => api5 || API4_PERMISSIONS.includes(p) || manifest.permissions.includes(p));
+	const toggle = (p: string, on: boolean) => {
+		const rest = manifest.permissions.filter((x) => x !== p);
+		const next = on ? [...rest, p] : rest;
+		// Known ones in the app's order, then anything unknown as it came.
+		onChange({ ...manifest, permissions: [...PERMISSIONS.filter((x) => next.includes(x)), ...next.filter((x) => !PERMISSIONS.includes(x))] });
+	};
+	return (
+		<>
+			<label class="wm-w-toggle" title={S.detailsApi5Note}>
+				<input type="checkbox" checked={api5} onChange={(e) => onChange({ ...manifest, apiVersion: (e.target as HTMLInputElement).checked ? PACKAGE_API : 4 })} />
+				<span>{S.detailsApi5}</span>
+			</label>
+			<div class="wm-caption">{S.detailsPermissions}</div>
+			{shown.map((p) => (
+				<label key={p} class="wm-w-toggle" title={RISKY_PERMISSIONS.includes(p) ? S.permissionRiskyNote : undefined}>
+					<input type="checkbox" checked={manifest.permissions.includes(p)} onChange={(e) => toggle(p, (e.target as HTMLInputElement).checked)} />
+					<span>{RISKY_PERMISSIONS.includes(p) ? '⚠ ' : ''}{S.permissionLabels[p] ?? p} <code>{p}</code></span>
+				</label>
+			))}
+			{api5 && (
+				<label class="st-field">
+					<span>{S.detailsHosts}</span>
+					<input
+						class="st-input"
+						style="font-family:var(--wmc-mono)"
+						placeholder="api.example.com"
+						value={hostText}
+						onInput={(e) => setHostText((e.target as HTMLInputElement).value)}
+						onBlur={() => onChange({ ...manifest, hosts: hostsOf(hostText) })}
+					/>
+				</label>
+			)}
+		</>
+	);
+}
+
+/** The whole manifest as JSON, for the fields no form covers (tool, settings, actions). */
+function ManifestJson({ manifest, onChange }: { manifest: PluginManifest; onChange: (m: PluginManifest) => void }) {
+	const shown = JSON.stringify(sanitised(manifest), null, 2);
+	const [text, setText] = useState(shown);
+	const [error, setError] = useState<string | null>(null);
+	useEffect(() => {
+		setText(shown);
+		setError(null);
+	}, [shown]);
+	const apply = () => {
+		let parsed: unknown;
+		try {
+			parsed = JSON.parse(text);
+		} catch (e) {
+			return setError(S.detailsJsonBad((e as Error).message));
+		}
+		if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return setError(S.detailsJsonBad('not an object'));
+		const m = parsed as Partial<PluginManifest>;
+		if (!Array.isArray(m.permissions ?? [])) return setError(S.detailsJsonBad('permissions is not a list'));
+		setError(null);
+		onChange({ ...blankManifest(), ...m, permissions: (m.permissions ?? []).map(String) } as PluginManifest);
+	};
+	return (
+		<details class="wm-json">
+			<summary class="wm-caption">{S.detailsJson}</summary>
+			<div class="wm-caption">{S.detailsJsonNote}</div>
+			<textarea class="st-input" rows={14} spellcheck={false} style="font-family:var(--wmc-mono);width:100%" value={text} onInput={(e) => setText((e.target as HTMLTextAreaElement).value)} />
+			{error && <div class="wm-error-text">{error}</div>}
+			<div class="wm-w-row">
+				<button type="button" class="st-btn st-btn-sm" disabled={text === shown} onClick={apply}>{S.detailsJsonApply}</button>
+			</div>
+		</details>
+	);
 }
 
 const utf8 = new TextEncoder();
@@ -1011,29 +1109,16 @@ function DetailsPane({ manifest, script, onManifest, onExport }: { manifest: Plu
 				{field(S.detailsAuthor, 'author')}
 			</div>
 			<label class="st-field"><span>{S.detailsDescription}</span><textarea class="st-input" rows={2} value={draft.description} onInput={(e) => commit({ ...draft, description: (e.target as HTMLTextAreaElement).value })} /></label>
-			{PERMISSIONS.map((p) => (
-				<label key={p} class="wm-w-toggle">
-					<input
-						type="checkbox"
-						checked={draft.permissions.includes(p)}
-						onChange={(e) => {
-							const on = (e.target as HTMLInputElement).checked;
-							const next = new Set(draft.permissions.filter((x) => x !== p));
-							if (on) next.add(p);
-							commit({ ...draft, permissions: PERMISSIONS.filter((x) => next.has(x)) });
-						}}
-					/>
-					<span>{p === STORAGE_PERMISSION ? S.permissionStorage : S.permissionReminders}</span>
-				</label>
-			))}
+			<PermissionFields manifest={draft} onChange={commit} />
 			{problems.map((p, i) => <div key={i} class="wm-error-text">{p}</div>)}
+			<ManifestJson manifest={draft} onChange={commit} />
 			<hr class="wm-w-divider" />
 			<div class="wm-caption">{fmtBytes(zip.byteLength)} · 2 entries · Python {fmtBytes(scriptBytes)}{scriptBytes > MAX_SCRIPT_BYTES ? ` · ${S.rejectScriptTooLarge(draft.name, MAX_SCRIPT_BYTES / 1024)}` : ''}</div>
 			<div class="wm-w-row">
 				<button type="button" class="st-btn st-btn-sm st-btn-primary" disabled={problems.length > 0} onClick={onExport}>{S.exportAction}</button>
 				{sha && <CopyButton text={JSON.stringify({ id: slug, type: 'plugin', name: sanitise(draft.name, 'NAME'), version: sanitise(draft.pluginVersion, 'VERSION'), author: sanitise(draft.author, 'AUTHOR'), description: sanitise(draft.description, 'DESCRIPTION'), path: `plugins/${slug}.wmplugin`, sha256: sha, sizeBytes: zip.byteLength }, null, 2)} label="Copy repository entry (with sha256)" class="st-btn st-btn-sm" />}
 			</div>
-			<div class="wm-caption">A repository lists a plugin with its sha256, and the app refuses one without it. Full API reference: <a href="/plugins/api-reference/">/plugins/api-reference</a>.</div>
+			<div class="wm-caption">A repository lists a plugin with its sha256, and the app refuses one without it. Guides, examples and the API reference: <a href="/plugins/overview/">/plugins</a>.</div>
 		</div>
 	);
 }
@@ -1311,8 +1396,8 @@ function PluginDetailsDialog({ manifest, onDismiss, onSave }: { manifest: Plugin
 	const [version, setVersion] = useState(manifest.pluginVersion);
 	const [author, setAuthor] = useState(manifest.author);
 	const [description, setDescription] = useState(manifest.description);
-	const [storage, setStorage] = useState(manifest.permissions.includes(STORAGE_PERMISSION));
-	const edited: PluginManifest = { ...manifest, name, id, pluginVersion: version, author, description, permissions: storage ? [STORAGE_PERMISSION] : [] };
+	const [access, setAccess] = useState<PluginManifest>(manifest);
+	const edited: PluginManifest = { ...access, name, id, pluginVersion: version, author, description };
 	const problems = manifestProblems(edited);
 	const field = (label: string, value: string, set: (v: string) => void, mono = false) => (
 		<label class="st-field"><span>{label}</span><input class="st-input" style={mono ? 'font-family:var(--wmc-mono)' : undefined} value={value} onInput={(e) => set((e.target as HTMLInputElement).value)} /></label>
@@ -1324,7 +1409,7 @@ function PluginDetailsDialog({ manifest, onDismiss, onSave }: { manifest: Plugin
 			{field(S.detailsVersion, version, setVersion, true)}
 			{field(S.detailsAuthor, author, setAuthor)}
 			<label class="st-field"><span>{S.detailsDescription}</span><textarea class="st-input" rows={3} value={description} onInput={(e) => setDescription((e.target as HTMLTextAreaElement).value)} /></label>
-			<label class="wm-w-toggle"><input type="checkbox" checked={storage} onChange={(e) => setStorage((e.target as HTMLInputElement).checked)} /><span>{S.permissionStorage}</span></label>
+			<PermissionFields manifest={access} onChange={setAccess} />
 			{problems.map((p, i) => <div key={i} class="wm-error-text">{p}</div>)}
 		</Dialog>
 	);

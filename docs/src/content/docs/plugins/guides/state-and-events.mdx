@@ -1,0 +1,187 @@
+---
+title: "State and events"
+description: "Keep values between presses with plugin.state, and react to the user with callbacks."
+sidebar:
+  label: "State and events"
+  order: 5.02
+---
+
+A plugin is a loop. The keyboard draws the panel, the user does something, your
+code changes some values, and the keyboard draws the panel again. This page
+covers the two halves of that loop: where the values live, and how your code
+hears the user.
+
+## Callbacks
+
+Every widget the user can act on takes a function. The keyboard calls it when
+the user acts, then draws the panel again:
+
+```python
+from wm import plugin, ui
+
+state = plugin.state(name="", dark=False)
+
+
+def set_name(text):
+    state.name = text
+
+
+def set_dark(on):
+    state.dark = on
+
+
+def render():
+    with ui.column():
+        ui.input(label="Name", value=state.name, on_change=set_name)
+        ui.toggle("Dark mode", value=state.dark, on_change=set_dark)
+        ui.label(f"Hello, {state.name or 'stranger'}")
+```
+
+What a callback gets depends on the widget:
+
+| Callback | On | Gets |
+|---|---|---|
+| `on_click` | button, card, item, image, empty | nothing |
+| `on_change` | input, search, toggle, checkbox, slider, stepper, select, chips, date, tabs | the new value |
+| `on_submit` | input, search | the text, when the user presses Enter |
+| `on_select` | list | the index of the row pressed |
+| `on_press` | keys | the key's label |
+| `on_tap` | canvas | `x` and `y`, as two arguments |
+| `on_drag` | canvas | a dict: `x`, `y`, `dx`, `dy` and `phase` |
+
+A function that takes no arguments works for any widget: the keyboard leaves
+the value out. So `on_change=refresh` works with a `def refresh():` that takes
+nothing.
+
+### Lambdas
+
+For a one-line change, a `lambda` saves a function:
+
+```python
+ui.button("Reset", on_click=lambda: state.update(count=0))
+ui.slider(state.size, min=8, max=32, on_change=lambda v: setattr(state, "size", v))
+```
+
+A lambda cannot hold `=`, which is why the second line uses `setattr`. Once it
+reads awkwardly, write a named function instead. In a loop, bind the loop
+variable as a default, or every lambda sees the last value:
+
+```python
+for i, name in enumerate(state.names):
+    ui.button(name, on_click=lambda i=i: pick(i))
+```
+
+## plugin.state
+
+`plugin.state(...)` makes an object that holds named values. Give each one a
+starting value:
+
+```python
+state = plugin.state(count=0, items=[], query="")
+```
+
+Then read and change them as attributes. You never need `global`:
+
+```python
+def add(text):
+    state.items.append(text)
+    state.count += 1
+```
+
+It also works like a dict where that is handier:
+
+| | |
+|---|---|
+| `state["count"]` | read a value by name |
+| `"count" in state` | whether a value exists |
+| `state.update(count=0, query="")` | change several at once |
+| `state.as_dict()` | every value, as a plain dict |
+
+### Saving state
+
+Pass `persist=True` and the values are saved on the phone after every event.
+The next time the panel opens, they come back. This needs the `storage`
+permission:
+
+```python
+saved = plugin.state(notes=[], theme="auto", persist=True)
+```
+
+- Values must be things JSON can hold: strings, numbers, `True`, `False`,
+  `None`, lists and dicts.
+- Saving happens after each event. Call `saved.save()` to save at once, for
+  example before a slow call.
+- Keep values that only make sense while the panel is open, such as "loading",
+  in a second state without `persist`. If the panel closes halfway through, a
+  saved "loading" would come back stuck.
+- Two saved states need different names: `plugin.state(persist=True, key="prefs", ...)`.
+- Saved state counts against your
+  [storage quota](/plugins/permissions/#storage).
+
+### Plain variables
+
+A variable at the top of your file also keeps its value while the panel is
+open. To change it inside a function, Python needs `global`:
+
+```python
+count = 0
+
+
+def add():
+    global count
+    count += 1
+```
+
+Leave out `global` and Python makes a new local `count` instead, with no error.
+That is the main reason to prefer `plugin.state`.
+
+## Text boxes and their values
+
+A text box shows what the user typed. Two rules keep it right:
+
+- Pass `value=state.text` and keep the text in state from `on_change`. The box
+  then keeps its text when the panel draws again.
+- To clear or replace the box from code, change `state.text`. The box shows the
+  new value on the next draw.
+
+A box without `on_change` sends nothing while the user types. Its text arrives
+in `on_submit` when they press Enter. This costs less, and is right for a
+search box.
+
+## Widget ids and key=
+
+The keyboard needs to tell widgets apart from one draw to the next. It makes
+an id from each widget's type and text, so you rarely think about it. Pass
+`key=` when two widgets would look the same, or when a box's label changes but
+it is still the same box:
+
+```python
+ui.input(label=f"Item {n}", key="new-item", on_submit=add)
+```
+
+## on_event: the catch-all
+
+Any event that no callback took goes to a function called `on_event`, if you
+write one. It gets the event as a dict:
+
+```python
+def on_event(e):
+    print(e.type, e.get("id"), e.get("value"))
+```
+
+You rarely need it with API 5. It is how plugins written for API 4 work, and
+it can be handy while you learn what the keyboard sends. The
+[Events tab](/plugins/guides/testing/#the-web-editor) in the web editor shows
+every event too.
+
+## When the panel draws
+
+After each of these, the keyboard calls `render()` again:
+
+- a callback or `on_event`
+- a timer from `@plugin.every` or `plugin.after`
+- an answer that arrives through `then=`
+- the panel opening, after `@plugin.on_open`
+
+If something else changes what you show, call `plugin.refresh()`. You will
+rarely need to.

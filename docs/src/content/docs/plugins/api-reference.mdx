@@ -1,14 +1,21 @@
 ---
-title: "Plugin API reference"
-description: "Everything a Python plugin can use: manifest, hooks, widgets, events, wm.*, modules, limits."
+title: "Classic API reference (API 1 to 4)"
+description: "The globals API 4 plugins use: manifest, render and on_event, widgets, events, wm.*, modules and limits."
 sidebar:
-  label: "API reference"
-  order: 3
+  label: "Classic API (1 to 4)"
+  order: 21
 ---
 
 import SettingsPath from '@components/SettingsPath.astro';
 
-Everything a plugin can use. If it is not here, it does not exist.
+:::note[For plugins written for API 4]
+This page covers the `ui` and `wm` globals that API 4 plugins use. New
+plugins should use API 5 and the `wm` package: see the
+[API reference](/plugins/wm-package/). The manifest, selection action fields
+and the Python subset described here apply to both.
+:::
+
+Everything an API 4 plugin can use. If it is not here, it does not exist.
 
 Plugins are written in Python, a subset of it that matches
 [PyMini](https://github.com/anti-ltd/PyMini), the small interpreter Clink uses.

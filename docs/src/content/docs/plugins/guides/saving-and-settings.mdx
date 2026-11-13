@@ -1,0 +1,161 @@
+---
+title: "Saving data and settings"
+description: "Keep data between sessions with storage, give your plugin a settings page, and set reminders."
+sidebar:
+  label: "Saving data and settings"
+  order: 5.06
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+A plugin starts fresh each time its panel opens. To keep anything longer, save
+it. This page covers the three ways to keep things on the phone, plus a
+settings page the app draws for you.
+
+## Three ways to keep things
+
+| | Use it for | Needs |
+|---|---|---|
+| `plugin.state(..., persist=True)` | the values your panel works with | `storage` |
+| `storage` | anything else, by key | `storage` |
+| `secrets` | API keys and tokens | `storage` |
+
+All three stay on the phone, belong to your plugin only, and are deleted when
+the user uninstalls it. An update leaves them alone.
+
+## Saved state
+
+The easiest way. Values in a saved state come back the next time the panel
+opens:
+
+```python
+from wm import plugin
+
+saved = plugin.state(notes=[], sort="newest", persist=True)
+```
+
+Change `saved.notes` like any value, and it is saved after the event.
+[State and events](/plugins/guides/state-and-events/#saving-state) has the
+details.
+
+## storage
+
+`storage` works like a dict whose values are kept on the phone:
+
+```python
+from wm import storage
+
+storage["notes"] = ["milk", "eggs"]
+notes = storage.get("notes", [])
+if "draft" in storage:
+    del storage["draft"]
+for key in storage:
+    print(key, storage[key])
+```
+
+It has the dict methods you expect: `get`, `setdefault`, `pop`, `update`,
+`keys`, `values`, `items`, `clear` and `len(storage)`. Values are anything
+JSON holds.
+
+| Limit | |
+|---|---|
+| Keys | 512 |
+| One value | 64 KB |
+| Everything | 1 MB |
+
+`storage.used()` gives the bytes in use and `storage.quota` the most you may
+use. A write that goes over raises `ValueError`. Catch it and tell the user,
+so they do not lose what they typed:
+
+```python
+try:
+    storage["notes"] = notes
+except ValueError:
+    ui.toast("Storage is full. Delete some notes first.")
+```
+
+The user can see and clear your plugin's storage on its page:
+
+<SettingsPath path="Tools / Plugins / Manage plugins" />
+
+In the web editor, the **Storage** tab shows the same, and you can edit
+values there while you test.
+
+## secrets
+
+For keys and tokens: `secrets.get(name, default)`, `secrets.set(name, value)`
+and `secrets.remove(name)`. Values are text, encrypted like the keyboard's own
+API keys, and never appear in a backup or the storage inspector. See
+[API keys](/plugins/guides/internet-and-ai/#api-keys).
+
+## A settings page
+
+List settings in the manifest and the app draws them on your plugin's page.
+You never draw a settings screen yourself:
+
+```json title="plugin.json (excerpt)"
+"settings": [
+  {"key": "units", "type": "choice", "label": "Units", "default": "metric",
+   "options": ["metric", "imperial"]},
+  {"key": "examples", "type": "switch", "label": "Show examples", "default": "true"},
+  {"key": "count", "type": "number", "label": "How many results", "default": "5"},
+  {"key": "greeting", "type": "text", "label": "Greeting", "summary": "Said when the panel opens"},
+  {"key": "server", "type": "host", "label": "Your server"}
+]
+```
+
+| Field | |
+|---|---|
+| `key` | The name you read it by: lowercase letters, digits and `_`, starting with a letter or `_`, up to 32 characters. |
+| `type` | `switch`, `text`, `number`, `choice` or `host`. |
+| `label` | The row's title. |
+| `summary` | One line under the title. Optional. |
+| `default` | The starting value, always written as text: `"true"`, `"5"`, `"metric"`. |
+| `options` | For `choice`: the values to pick from. |
+
+Up to 24 settings. A `host` setting adds the website the user types to your
+`hosts`; see [the user's own server](/plugins/guides/internet-and-ai/#the-users-own-server).
+
+Read the values in code as attributes. A switch reads as `True` or `False`
+and a number as a number:
+
+```python
+from wm import plugin
+
+if plugin.settings.examples:
+    ...
+limit = plugin.settings.get("count", 5)
+```
+
+`plugin.settings` is read-only. Reading a key the manifest does not declare
+raises `AttributeError`; `plugin.settings.get(key, default)` does not.
+
+To react when the user changes a setting while the panel is open:
+
+```python
+@plugin.setting_changed("units")
+def units_changed(value):
+    look_up()
+```
+
+The web editor uses each setting's `default` while you test. Settings can be
+[translated](/plugins/guides/translations/) like the rest of your plugin.
+
+## Reminders
+
+A reminder is a notification at a time you choose. The app shows it, even
+after the keyboard closes. Your code does not run when it fires. It needs the
+`reminders` permission:
+
+```python
+import time
+from wm import reminders
+
+reminders.set("tea", time.time() + 4 * 60, "Tea is ready")
+reminders.cancel("tea")
+reminders.list()
+```
+
+The notification is titled with your plugin's name. Up to 64 at a time, 200
+characters of text each, up to ten years ahead. Setting the same id again
+moves that reminder.

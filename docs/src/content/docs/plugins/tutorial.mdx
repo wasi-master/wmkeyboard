@@ -1,0 +1,658 @@
+---
+title: "Tutorial: a dictionary tool"
+description: "Build a real plugin step by step: a panel, the internet, errors, a saved history, a keyword and a setting."
+sidebar:
+  label: "Tutorial"
+  order: 3
+---
+
+import { Steps, Tabs, TabItem, LinkCard, CardGrid, FileTree } from '@astrojs/starlight/components';
+import SettingsPath from '@components/SettingsPath.astro';
+
+In this tutorial you build **Dictionary**, a plugin that looks up what an
+English word means. It is a real tool, and each step adds one idea:
+
+1. [Draw a panel](#step-1-draw-a-panel)
+2. [Remember what the user typed](#step-2-remember-what-the-user-typed)
+3. [Ask the internet](#step-3-ask-the-internet)
+4. [Say what went wrong](#step-4-say-what-went-wrong)
+5. [Keep the panel moving](#step-5-keep-the-panel-moving)
+6. [Save a history](#step-6-save-a-history)
+7. [Open it from anywhere](#step-7-open-it-from-anywhere)
+8. [Share it](#step-8-share-it)
+
+Each step shows the whole `main.py` as it is at the end of that step, so you
+can copy it and run it. Every version on this page was run before it was
+published. If you only want the finished plugin, skip to
+[step 7](#step-7-open-it-from-anywhere).
+
+You should know a little Python: functions, `if`, `for`, lists and dicts. You
+do not need anything installed. If you have not made a plugin before, read the
+[Quickstart](/plugins/quickstart/) first. It takes five minutes.
+
+## Before you start
+
+<Steps>
+
+1. Open the plugin editor: in the browser at [/addons/new](/addons/new?type=plugin), or on the phone at <SettingsPath path="Tools / Plugins / Write a plugin" />.
+
+2. Choose **A blank plugin**. Name it `Dictionary` and press **Create**.
+
+3. Open the menu (⋮) and choose **Name and permissions**. Turn on **Use API 5 (the wm package)**. Press **Save**.
+
+4. Delete the starter code.
+
+</Steps>
+
+## Step 1: Draw a panel
+
+Start with what the user sees: a box to type a word in, and a button.
+
+```python title="main.py"
+from wm import ui
+
+
+def render():
+    with ui.column():
+        ui.input(label="Word")
+        ui.button("Look up", primary=True)
+```
+
+**Check it.** The preview shows a box labelled **Word** and a **Look up**
+button. The button does nothing yet.
+
+`with ui.column():` opens a column. Everything you create inside the `with`
+block goes into it, from top to bottom. You can also nest blocks: a
+`with ui.row():` inside the column puts things side by side.
+
+## Step 2: Remember what the user typed
+
+A panel needs to remember things between presses: here, the word in the box.
+That is what `plugin.state` is for.
+
+```python title="main.py"
+from wm import plugin, ui
+
+state = plugin.state(word="", asked="")
+
+
+def set_word(text):
+    state.word = text
+
+
+def look_up(word=None):
+    state.asked = (word or state.word).strip()
+
+
+def render():
+    with ui.column():
+        with ui.row(weights=[3, 1]):
+            ui.input(label="Word", value=state.word, on_change=set_word, on_submit=look_up)
+            ui.button("Look up", on_click=look_up, primary=True)
+        if state.asked:
+            ui.label("You asked for: " + state.asked)
+```
+
+**Check it.** Type `rain` in the box and press **Look up**. The panel says
+**You asked for: rain**. Pressing Enter on the keyboard does the same.
+
+What is new:
+
+- `plugin.state(word="", asked="")` makes an object with two values. Read and
+  change them as `state.word` and `state.asked`.
+- `on_change=set_word` calls `set_word` with the text each time the user types.
+  `value=state.word` keeps the box showing it when the panel draws again.
+- `on_submit=look_up` calls `look_up` with the text when the user presses Enter.
+  `on_click=look_up` calls it with nothing when the user presses the button.
+  That is why `look_up` takes `word=None`.
+- `with ui.row(weights=[3, 1])` puts the box and the button on one line. The box
+  takes three parts of the width and the button one.
+- After every callback the keyboard calls `render()` again, so the new label
+  appears on its own.
+
+:::tip[Why not a global variable?]
+A plain variable at the top of the file also keeps its value. But to change
+it inside a function, Python makes you write `global word` first, and if you
+forget, Python quietly makes a new local variable instead. `state.word = text`
+always does what it says.
+:::
+
+## Step 3: Ask the internet
+
+Now look the word up. The free [Free Dictionary API](https://dictionaryapi.dev/)
+answers `https://api.dictionaryapi.dev/api/v2/entries/en/rain` with a list of
+meanings in JSON.
+
+A plugin can reach the internet only after two things:
+
+<Steps>
+
+1. Open **Name and permissions**. Turn on **Connect to the internet, to the websites it lists**.
+
+2. In **Websites it may connect to**, type `api.dictionaryapi.dev`. Press **Save**.
+
+</Steps>
+
+Then change the code:
+
+```python title="main.py"
+from wm import plugin, ui, http
+
+API = "https://api.dictionaryapi.dev/api/v2/entries/en/"
+
+state = plugin.state(word="", meanings=[], error="")
+
+
+def set_word(text):
+    state.word = text
+
+
+def look_up(word=None):
+    word = (word or state.word).strip().lower()
+    if not word:
+        return
+    state.word = word
+    state.error = ""
+    state.meanings = []
+    r = http.get(API + word)
+    if r.status_code == 404:
+        state.error = "No meanings found for " + word + "."
+        return
+    r.raise_for_status()
+    entry = r.json()[0]
+    for m in entry["meanings"]:
+        state.meanings.append({
+            "part": m["partOfSpeech"],
+            "text": m["definitions"][0]["definition"],
+        })
+
+
+def render():
+    with ui.column():
+        with ui.row(weights=[3, 1]):
+            ui.input(label="Word", value=state.word, on_change=set_word, on_submit=look_up)
+            ui.button("Look up", on_click=look_up, primary=True)
+        if state.error:
+            ui.label(state.error, color="danger")
+        for m in state.meanings:
+            with ui.card(title=m["part"]):
+                ui.output(m["text"])
+```
+
+**Check it.** Type `keyboard` and press **Look up**. Two cards appear: a
+noun and a verb, each with what it means.
+
+What is new:
+
+- `from wm import ... http`. The `http` module works like the
+  [`requests`](https://requests.readthedocs.io/) library. `http.get(url)` sends
+  the request, waits, and gives back a `Response`.
+- `r.status_code` is the HTTP status. This API answers 404 for a word it does
+  not know, so the plugin says so.
+- `r.raise_for_status()` raises `http.HTTPError` for any other 400 or 500
+  status. `r.json()` reads the body as JSON.
+- `ui.card(title=...)` draws a card. `ui.output(text)` draws text with
+  **Insert** and **Copy** buttons under it, so the user can put a meaning into
+  what they are writing. That needs no permission, because the user presses
+  the button.
+
+:::note[The internet is off until the user allows it]
+`network` is a [risky permission](/plugins/permissions/#risky-permissions).
+The editors treat it as allowed while you test. After a real install, the
+plugin cannot connect until the user turns it on for your plugin. Until then,
+`http.get` raises `PermissionError`, and the panel shows an **Allow** button.
+:::
+
+## Step 4: Say what went wrong
+
+The internet fails. The phone is offline, the server is slow, or the user has
+not allowed the internet yet. A plugin that crashes on these leaves an empty
+panel. Catch the errors and say what happened.
+
+```python title="main.py"
+from wm import plugin, ui, http
+
+API = "https://api.dictionaryapi.dev/api/v2/entries/en/"
+
+state = plugin.state(word="", meanings=[], error="")
+
+
+def set_word(text):
+    state.word = text
+
+
+def look_up(word=None):
+    word = (word or state.word).strip().lower()
+    if not word:
+        return
+    state.word = word
+    state.error = ""
+    state.meanings = []
+    try:
+        r = http.get(API + word)
+        if r.status_code == 404:
+            state.error = "No meanings found for " + word + "."
+            return
+        r.raise_for_status()
+    except PermissionError:
+        state.error = "Allow internet access to look words up."
+        return
+    except (ConnectionError, TimeoutError, http.HTTPError) as e:
+        state.error = "Could not reach the dictionary: " + str(e)
+        return
+    entry = r.json()[0]
+    for m in entry["meanings"]:
+        state.meanings.append({
+            "part": m["partOfSpeech"],
+            "text": m["definitions"][0]["definition"],
+        })
+
+
+def render():
+    with ui.column():
+        with ui.row(weights=[3, 1]):
+            ui.input(label="Word", value=state.word, on_change=set_word, on_submit=look_up)
+            ui.button("Look up", on_click=look_up, primary=True)
+        if state.error:
+            ui.label(state.error, color="danger")
+        for m in state.meanings:
+            with ui.card(title=m["part"]):
+                ui.output(m["text"])
+```
+
+**Check it.** In the browser, turn off your Wi-Fi and press **Look up**. The
+panel says it could not reach the dictionary, in the theme's danger colour.
+
+The errors you can expect from `http`:
+
+| Error | When |
+|---|---|
+| `PermissionError` | The manifest does not list `network`, the host is not in `hosts`, or the user has not allowed the internet. |
+| `ConnectionError` | No connection, or the server could not be reached. Data saver also raises this. |
+| `TimeoutError` | No answer within 15 seconds. |
+| `http.HTTPError` | You called `raise_for_status()` and the status was 400 or more. |
+
+## Step 5: Keep the panel moving
+
+`http.get(url)` waits for the answer. While it waits, the panel cannot react.
+For a slow server that feels broken. Pass `then=` and the call returns at once.
+Your function gets the answer later, and the panel draws again then.
+
+```python title="main.py"
+from wm import plugin, ui, http
+
+API = "https://api.dictionaryapi.dev/api/v2/entries/en/"
+
+state = plugin.state(word="", meanings=[], error="", busy=False)
+
+
+def set_word(text):
+    state.word = text
+
+
+def look_up(word=None):
+    word = (word or state.word).strip().lower()
+    if not word:
+        return
+    state.word = word
+    state.error = ""
+    state.meanings = []
+    state.busy = True
+    http.get(API + word, then=show, on_error=failed)
+
+
+def show(r):
+    state.busy = False
+    if r.status_code == 404:
+        state.error = "No meanings found for " + state.word + "."
+        return
+    if not r.ok:
+        state.error = "The dictionary answered " + str(r.status_code) + "."
+        return
+    entry = r.json()[0]
+    for m in entry["meanings"]:
+        state.meanings.append({
+            "part": m["partOfSpeech"],
+            "text": m["definitions"][0]["definition"],
+        })
+
+
+def failed(error):
+    state.busy = False
+    if isinstance(error, PermissionError):
+        state.error = "Allow internet access to look words up."
+    else:
+        state.error = "Could not reach the dictionary: " + str(error)
+
+
+def render():
+    with ui.column():
+        with ui.row(weights=[3, 1]):
+            ui.input(label="Word", value=state.word, on_change=set_word, on_submit=look_up)
+            ui.button("Look up", on_click=look_up, primary=True)
+        if state.busy:
+            ui.progress()
+        if state.error:
+            ui.label(state.error, color="danger")
+        for m in state.meanings:
+            with ui.card(title=m["part"]):
+                ui.output(m["text"])
+```
+
+**Check it.** Press **Look up**. A bar shows for a moment, then the meanings
+appear.
+
+What is new:
+
+- `http.get(API + word, then=show, on_error=failed)` returns at once. When the
+  answer comes, the keyboard calls `show(r)` with the `Response`. If anything
+  goes wrong, it calls `failed(error)` with the exception instead. That
+  includes the keyboard refusing to send the request at all, because the user
+  has not allowed the internet yet or Data saver is on.
+- `state.busy` is `True` while the plugin waits, and `ui.progress()` draws a
+  bar that says "working" while it is.
+- `show` checks `r.ok` instead of calling `raise_for_status()`, because there is
+  no `try` around it to catch the error.
+
+Use `then=` for anything that can take more than a moment: `http`, `ai`, and
+the [phone features](/plugins/guides/phone-features/).
+
+## Step 6: Save a history
+
+The user looks up the same words again. Keep the last eight, and show them as
+chips the user can press. A saved value needs the `storage` permission.
+
+<Steps>
+
+1. Open **Name and permissions**. Turn on **Save data on your device**. Press **Save**.
+
+</Steps>
+
+```python title="main.py"
+from wm import plugin, ui, http
+
+API = "https://api.dictionaryapi.dev/api/v2/entries/en/"
+
+state = plugin.state(word="", meanings=[], error="", busy=False)
+saved = plugin.state(recent=[], persist=True)
+
+
+def set_word(text):
+    state.word = text
+
+
+def look_up(word=None):
+    word = (word or state.word).strip().lower()
+    if not word:
+        return
+    state.word = word
+    state.error = ""
+    state.meanings = []
+    state.busy = True
+    http.get(API + word, then=show, on_error=failed)
+
+
+def show(r):
+    state.busy = False
+    if r.status_code == 404:
+        state.error = "No meanings found for " + state.word + "."
+        return
+    if not r.ok:
+        state.error = "The dictionary answered " + str(r.status_code) + "."
+        return
+    entry = r.json()[0]
+    for m in entry["meanings"]:
+        state.meanings.append({
+            "part": m["partOfSpeech"],
+            "text": m["definitions"][0]["definition"],
+        })
+    remember(state.word)
+
+
+def remember(word):
+    others = [w for w in saved.recent if w != word]
+    saved.recent = [word] + others[:7]
+
+
+def failed(error):
+    state.busy = False
+    if isinstance(error, PermissionError):
+        state.error = "Allow internet access to look words up."
+    else:
+        state.error = "Could not reach the dictionary: " + str(error)
+
+
+def render():
+    with ui.column():
+        with ui.row(weights=[3, 1]):
+            ui.input(label="Word", value=state.word, on_change=set_word, on_submit=look_up)
+            ui.button("Look up", on_click=look_up, primary=True)
+        if saved.recent:
+            ui.chips(saved.recent, on_change=look_up)
+        if state.busy:
+            ui.progress()
+        if state.error:
+            ui.label(state.error, color="danger")
+        for m in state.meanings:
+            with ui.card(title=m["part"]):
+                ui.output(m["text"])
+```
+
+**Check it.** Look up `keyboard` and then `rain`. Two chips appear over the
+results. Press one to look that word up again. Run the plugin again: the
+chips are still there.
+
+What is new:
+
+- `saved = plugin.state(recent=[], persist=True)` is a second state. With
+  `persist=True`, it is saved on the phone after every event and comes back
+  the next time the panel opens.
+- The first state is not saved, on purpose. If the panel closed in the middle
+  of a look-up, a saved `busy=True` would show a bar forever.
+- `ui.chips(saved.recent, on_change=look_up)` calls `look_up` with the chip's
+  text.
+
+In the browser, the **Storage** tab under the code shows what the plugin saved.
+
+## Step 7: Open it from anywhere
+
+A dictionary is most useful while you type. Three things make it quicker to
+reach:
+
+- A **keyword**: typing `@define rain` offers a chip on the suggestion strip.
+  Pressing it opens the plugin and looks `rain` up.
+- A **tile**: the plugin can go on the toolbar.
+- A **header button** that clears the history.
+
+And one **setting**, so the user can hide the example sentences.
+
+The keyword, the tile and the setting are in the manifest. In the browser,
+open the **Details** tab under the code, open **plugin.json**, make it look
+like this, and press **Apply**:
+
+```json title="plugin.json"
+{
+  "format": "wmkeyboard-plugin",
+  "id": "com.example.dictionary",
+  "name": "Dictionary",
+  "pluginVersion": "1.0.0",
+  "description": "Look up what an English word means.",
+  "apiVersion": 5,
+  "permissions": [
+    "network",
+    "storage"
+  ],
+  "hosts": [
+    "api.dictionaryapi.dev"
+  ],
+  "tool": {
+    "icon": "dictionary",
+    "tile": true,
+    "keyword": "define",
+    "chip": true
+  },
+  "settings": [
+    {
+      "key": "examples",
+      "type": "switch",
+      "label": "Show examples",
+      "default": "true"
+    }
+  ]
+}
+```
+
+The phone editor has **Keyword** and **Offer a tile for the toolbar** in
+**Name and permissions**. It cannot add settings yet, so leave out the
+`examples` lines below if you build on the phone.
+
+```python title="main.py"
+from wm import plugin, ui, http
+
+API = "https://api.dictionaryapi.dev/api/v2/entries/en/"
+
+state = plugin.state(word="", meanings=[], error="", busy=False)
+saved = plugin.state(recent=[], persist=True)
+
+
+def set_word(text):
+    state.word = text
+
+
+def look_up(word=None):
+    word = (word or state.word).strip().lower()
+    if not word:
+        return
+    state.word = word
+    state.error = ""
+    state.meanings = []
+    state.busy = True
+    http.get(API + word, then=show, on_error=failed)
+
+
+def show(r):
+    state.busy = False
+    if r.status_code == 404:
+        state.error = "No meanings found for " + state.word + "."
+        return
+    if not r.ok:
+        state.error = "The dictionary answered " + str(r.status_code) + "."
+        return
+    entry = r.json()[0]
+    for m in entry["meanings"]:
+        state.meanings.append({
+            "part": m["partOfSpeech"],
+            "text": m["definitions"][0]["definition"],
+            "example": m["definitions"][0].get("example", ""),
+        })
+    remember(state.word)
+
+
+def remember(word):
+    others = [w for w in saved.recent if w != word]
+    saved.recent = [word] + others[:7]
+
+
+def failed(error):
+    state.busy = False
+    if isinstance(error, PermissionError):
+        state.error = "Allow internet access to look words up."
+    else:
+        state.error = "Could not reach the dictionary: " + str(error)
+
+
+@plugin.keyword("define")
+def from_keyword(text):
+    look_up(text)
+
+
+@plugin.command("Clear history", icon="history")
+def clear_history():
+    saved.recent = []
+
+
+def render():
+    with ui.column():
+        with ui.row(weights=[3, 1]):
+            ui.input(label="Word", value=state.word, on_change=set_word, on_submit=look_up)
+            ui.button("Look up", on_click=look_up, primary=True)
+        if saved.recent:
+            ui.chips(saved.recent, on_change=look_up)
+        if state.busy:
+            ui.progress()
+        if state.error:
+            ui.label(state.error, color="danger")
+        for m in state.meanings:
+            with ui.card(title=m["part"]):
+                ui.output(m["text"])
+                if m["example"] and plugin.settings.examples:
+                    ui.caption("Example: " + m["example"])
+```
+
+**Check it.** The panel's header now has a **Clear history** button. In the
+**Events** tab, send a `keyword` event with the id `define` and the value
+`rain`: the plugin looks `rain` up.
+
+What is new:
+
+- `@plugin.keyword("define")` marks the function the keyboard calls with the
+  text after `@define`. The manifest's `tool.keyword` names the same word. The
+  chip appears while [Search shortcuts](/smart/chips/#search-shortcuts) are on.
+- `@plugin.command("Clear history", icon="history")` adds a button to the
+  panel's header. Icons are [Material Symbols](https://fonts.google.com/icons)
+  names.
+- `plugin.settings.examples` is the user's value for the `examples` setting.
+  The app draws the settings page from the manifest; your code only reads it.
+- `"tile": true` lets the user put the plugin on the toolbar from
+  [Custom buttons](/tools/custom-buttons/). Any plugin can also go on a key,
+  through the [layout editor](/languages/custom-layouts/)'s **Open a plugin**
+  action.
+
+## Step 8: Share it
+
+<Tabs syncKey="editor">
+<TabItem label="In the browser">
+
+Press **Install the plugin** (the arrow at the top). The browser saves
+`Dictionary-1.0.0.wmplugin`. Copy it to the phone and open it from a file
+manager. The keyboard shows what the plugin asks for and installs it.
+
+</TabItem>
+<TabItem label="On the phone">
+
+Press **Install the plugin**. The plugin is in the keyboard's **Plugins** tool
+at once. To give it to someone, choose **Save as a file** in the menu.
+
+</TabItem>
+</Tabs>
+
+After the install, open the plugin's page and turn on **internet access**:
+
+<SettingsPath path="Tools / Plugins / Manage plugins" />
+
+A `.wmplugin` file is a ZIP of `plugin.json` and `main.py`. To list it in an
+addon repository, see [Sharing your plugin](/plugins/guides/sharing/).
+
+<FileTree>
+
+- Dictionary-1.0.0.wmplugin
+  - plugin.json
+  - main.py
+
+</FileTree>
+
+## What you learned
+
+- `render()` describes the panel. The keyboard calls it again after every event.
+- `plugin.state` holds what the panel remembers; `persist=True` saves it.
+- Widgets take callbacks: `on_click`, `on_change`, `on_submit`.
+- `http` needs `network` and a `hosts` entry, and its errors are ordinary
+  Python exceptions.
+- `then=` keeps the panel moving while an answer is on its way.
+- Decorators tell the keyboard what your plugin offers: `@plugin.keyword`,
+  `@plugin.command`.
+
+<CardGrid>
+	<LinkCard title="Guides" description="Each topic from this tutorial, in depth." href="/plugins/guides/drawing/" />
+	<LinkCard title="Examples" description="More plugins to copy: a stopwatch, a QR maker, notes, a game." href="/plugins/examples/" />
+</CardGrid>

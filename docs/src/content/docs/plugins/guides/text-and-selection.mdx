@@ -1,0 +1,168 @@
+---
+title: "Working with text"
+description: "Get text in and out of a plugin, type into the field, use the clipboard, and add buttons over selected text."
+sidebar:
+  label: "Working with text"
+  order: 5.05
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+A keyboard plugin is mostly about text: text the user gives it, and text it
+gives back. This page goes from the ways that need no permission to the ones
+that need the most.
+
+## In and out, with no permission
+
+Most plugins need no text permission at all.
+
+**In.** Draw a `ui.input`. The user types into it, or presses **Paste** next
+to it. They see exactly what they give you.
+
+**Out.** Draw a `ui.output`. The keyboard puts **Insert** and **Copy** buttons
+under it. **Insert** types the text into the app the user is writing in.
+
+```python
+from wm import plugin, ui
+
+state = plugin.state(text="")
+
+
+def set_text(t):
+    state.text = t
+
+
+def render():
+    with ui.column():
+        ui.input(label="Text", value=state.text, on_change=set_text, multiline=True)
+        ui.output(state.text.upper())
+```
+
+That is a complete "make it uppercase" tool. Nothing in it can read the user's
+text by itself.
+
+## Typing into the field
+
+With the `field.write` permission, your code can change the text in the app
+directly:
+
+| Call | Does |
+|---|---|
+| `field.insert(text)` | types `text` at the cursor, replacing any selection |
+| `field.replace_selection(text)` | replaces the selected text |
+| `field.delete(before=1, after=0)` | deletes characters around the cursor |
+| `field.move_cursor(by)` | moves the cursor; negative goes back |
+| `field.send()` | presses the field's action key: Send, Search or Go |
+| `field.insert_image(data, mime="image/png")` | sends a picture to apps that take one |
+
+```python
+from wm import field, ui
+
+EMOJI = [["😀", "😂", "😍", "🤔"], ["👍", "🙏", "🎉", "❤️"]]
+
+
+def render():
+    ui.keys(EMOJI, on_press=field.insert)
+```
+
+`field.write` is listed on the install screen and works as soon as the plugin
+is installed. The user sees every change happen in their app.
+
+## Reading the field
+
+`field.read` is a risky permission. With it, and after the user turns it on:
+
+| Call | Gives |
+|---|---|
+| `field.selection()` | the selected text, or `""` |
+| `field.text_before(n=1000)` | up to `n` characters before the cursor |
+| `field.text_after(n=1000)` | up to `n` characters after it |
+| `field.info()` | what kind of field it is: `kind` (`text`, `email`, `url`, `number` and so on), `app`, `hint`, `multiline` |
+
+Two rules hold whatever the user allowed:
+
+- **Only in answer to the user.** These calls work only inside a callback for
+  something the user did in your panel: a press, a change, a submitted box, a
+  key, a header button, a keyword chip. From a timer, an answer from the
+  internet, or `on_open`, they raise `PermissionError`. A plugin cannot watch
+  the field.
+- **Never protected text.** Password fields and incognito text raise
+  `PermissionError`, for reading and for writing.
+
+```python
+from wm import field, ui
+
+
+def count_selection():
+    text = field.selection() or field.text_before(2000)
+    state.words = len(text.split())
+
+
+def render():
+    ui.button("Count words", on_click=count_selection)
+```
+
+## The clipboard
+
+- `clipboard.set(text)` copies text. It needs `clipboard.write`.
+- `clipboard.get()` reads the newest clip. It needs the risky
+  `clipboard.read`, works only in answer to the user like the field, and never
+  sees a clip marked private.
+
+`ui.output` already has a **Copy** button, so you often need neither.
+
+## Buttons over selected text
+
+A **selection action** adds your button to the bar that appears over selected
+text. The user selects text, presses your button, and what your function
+returns replaces the selection. Undo on the bar takes it back.
+
+List the actions in the manifest, and ask for `selection`:
+
+```json title="plugin.json (excerpt)"
+"permissions": ["selection"],
+"actions": [
+  {"id": "title", "name": "Title Case", "icon": "text_fields"},
+  {"id": "count", "name": "Count words", "replaces": false}
+]
+```
+
+Then mark a function for each id:
+
+```python
+from wm import plugin
+
+
+@plugin.action("title")
+def title_case(text):
+    return text.title()
+
+
+@plugin.action("count")
+def count_words(text):
+    return f" ({len(text.split())} words)"
+```
+
+- Return a string to put in place of the selection, or `None` to leave it
+  alone.
+- `"replaces": false` keeps the selection and adds your text after it.
+- `"input": "none"` calls your function with `""`, for an action that makes
+  text from nothing, such as today's date.
+- Each press loads your plugin fresh, so nothing in `plugin.state` carries over
+  between presses. Use [`storage`](/plugins/guides/saving-and-settings/) for
+  that.
+- A plugin that is only actions, with no panel, sets `"panel": false`.
+
+The user can switch each action off here, where plugin actions follow the
+built-in ones:
+
+<SettingsPath path="Advanced / Selection actions" />
+
+The [action fields](/plugins/api-reference/#selection-actions) are listed in
+the classic API reference; they are the same in API 5.
+
+## Keywords
+
+A keyword lets the user reach your plugin from the text: typing `@define rain`
+offers your plugin on the suggestion strip. See
+[Where a plugin opens from](/plugins/guides/pages-and-timers/#where-a-plugin-opens-from).

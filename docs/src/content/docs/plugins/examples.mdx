@@ -1,0 +1,601 @@
+---
+title: "Examples"
+description: "Ten small, complete plugins to copy, run and change: a stopwatch, a converter, notes, a selection action, an AI helper, a game and more."
+sidebar:
+  label: "Examples"
+  order: 4
+---
+
+Each example on this page is a whole plugin: its `plugin.json` and its
+`main.py`. Every one was run before it was published. To try one, make a
+blank plugin in the [web editor](/addons/new?type=plugin), paste `main.py`
+into the code, and paste `plugin.json` into the **plugin.json** box in the
+**Details** tab.
+
+| Example | Shows |
+|---|---|
+| [Stopwatch](#stopwatch) | `@plugin.every`, `@plugin.command`, `ui.stat`, `ui.list` |
+| [QR code maker](#qr-code-maker) | `ui.input` with `on_change`, `ui.qr`, `ui.empty` |
+| [Unit converter](#unit-converter) | `ui.select` in both styles, `kind="number"`, `ui.output` |
+| [Tip splitter](#tip-splitter) | `ui.slider`, `ui.stepper`, `ui.grid`, `key=` |
+| [Quick notes](#quick-notes) | `plugin.state(persist=True)`, `ui.item` actions, `on_submit`, `time.format` |
+| [Kaomoji board](#kaomoji-board) | `ui.chips`, `ui.keys`, `field.insert` |
+| [Title Case](#title-case) | `@plugin.action`, `"panel": false` |
+| [Reply helper](#reply-helper) | `ai.available`, `ai.stream`, `ui.chips`, `on_error` |
+| [Exchange rates](#exchange-rates) | `http.get(..., then=)`, `@plugin.on_open`, `ui.stat` |
+| [Tap the dot](#tap-the-dot) | `ui.canvas` with `on_tap`, shapes, `@plugin.every`, two states |
+
+## Stopwatch
+
+A timer that ticks once a second while the panel is open, with laps and a Reset button in the header.
+
+Timers run only while the panel is open, so the stopwatch stops when you close the panel and starts over when you open it again.
+
+```json title="plugin.json"
+{
+  "format": "wmkeyboard-plugin",
+  "id": "com.example.stopwatch",
+  "name": "Stopwatch",
+  "pluginVersion": "1.0.0",
+  "apiVersion": 5,
+  "permissions": []
+}
+```
+
+```python title="main.py"
+from wm import plugin, ui
+
+state = plugin.state(running=False, seconds=0, laps=[])
+
+
+@plugin.every(seconds=1)
+def tick():
+    if state.running:
+        state.seconds += 1
+
+
+def start_stop():
+    state.running = not state.running
+
+
+@plugin.command("Reset", icon="restart_alt")
+def reset():
+    state.update(running=False, seconds=0, laps=[])
+
+
+def lap():
+    state.laps.insert(0, state.seconds)
+
+
+def shown(seconds):
+    return f"{seconds // 60:02d}:{seconds % 60:02d}"
+
+
+def render():
+    with ui.column():
+        ui.stat("Time", shown(state.seconds))
+        with ui.row():
+            ui.button("Stop" if state.running else "Start", on_click=start_stop, primary=True)
+            ui.button("Lap", on_click=lap, enabled=state.running)
+        ui.list([ui.item(shown(t), subtitle=f"Lap {len(state.laps) - i}") for i, t in enumerate(state.laps)])
+```
+
+## QR code maker
+
+Type text or a link and get a QR code to show someone.
+
+```json title="plugin.json"
+{
+  "format": "wmkeyboard-plugin",
+  "id": "com.example.qrmaker",
+  "name": "QR code maker",
+  "pluginVersion": "1.0.0",
+  "apiVersion": 5,
+  "permissions": []
+}
+```
+
+```python title="main.py"
+from wm import plugin, ui
+
+state = plugin.state(text="https://wmkeyboard.pages.dev")
+
+
+def set_text(text):
+    state.text = text
+
+
+def render():
+    with ui.column():
+        ui.input(label="Text or link", value=state.text, on_change=set_text)
+        if state.text.strip():
+            ui.qr(state.text)
+        else:
+            ui.empty("Type something to make a code", icon="qr_code_2")
+```
+
+## Unit converter
+
+Length, weight and volume, with the result ready to insert.
+
+To add a kind, add a dict to `UNITS`: each unit, and how many of the first unit one of it is.
+
+```json title="plugin.json"
+{
+  "format": "wmkeyboard-plugin",
+  "id": "com.example.units",
+  "name": "Unit converter",
+  "pluginVersion": "1.0.0",
+  "apiVersion": 5,
+  "permissions": []
+}
+```
+
+```python title="main.py"
+from wm import plugin, ui
+
+# Each kind: unit name -> how many of the base unit one of it is.
+UNITS = {
+    "Length": {"m": 1, "km": 1000, "cm": 0.01, "mile": 1609.344, "ft": 0.3048, "inch": 0.0254},
+    "Weight": {"kg": 1, "g": 0.001, "lb": 0.45359237, "oz": 0.028349523},
+    "Volume": {"l": 1, "ml": 0.001, "US gallon": 3.785411784, "cup": 0.2365882365},
+}
+
+state = plugin.state(kind="Length", amount="1", source="mile", target="km")
+
+
+def set_kind(kind):
+    names = list(UNITS[kind])
+    state.update(kind=kind, source=names[0], target=names[1])
+
+
+def convert():
+    try:
+        amount = float(state.amount)
+    except ValueError:
+        return None
+    units = UNITS[state.kind]
+    return amount * units[state.source] / units[state.target]
+
+
+def render():
+    names = list(UNITS[state.kind])
+    with ui.column():
+        ui.select(list(UNITS), value=state.kind, on_change=set_kind, style="segmented")
+        ui.input(label="Amount", value=state.amount, kind="number",
+                 on_change=lambda v: setattr(state, "amount", v))
+        with ui.row():
+            ui.select(names, value=state.source, label="From", on_change=lambda v: setattr(state, "source", v))
+            ui.select(names, value=state.target, label="To", on_change=lambda v: setattr(state, "target", v))
+        result = convert()
+        if result is None:
+            ui.label("Type a number", color="danger")
+        else:
+            text = f"{result:,.4g} {state.target}"
+            ui.stat(f"{state.amount} {state.source} is", text)
+            ui.output(text)
+```
+
+## Tip splitter
+
+How much each person pays, with the tip.
+
+The slider's label changes as it moves, so `key="tip"` keeps it the same widget from one draw to the next.
+
+```json title="plugin.json"
+{
+  "format": "wmkeyboard-plugin",
+  "id": "com.example.tipsplitter",
+  "name": "Tip splitter",
+  "pluginVersion": "1.0.0",
+  "apiVersion": 5,
+  "permissions": []
+}
+```
+
+```python title="main.py"
+from wm import plugin, ui
+
+state = plugin.state(bill="", tip=10, people=2)
+
+
+def render():
+    try:
+        bill = float(state.bill)
+    except ValueError:
+        bill = 0.0
+    total = bill * (1 + state.tip / 100)
+    each = total / state.people
+    with ui.column():
+        ui.input(label="Bill", value=state.bill, kind="number",
+                 on_change=lambda v: setattr(state, "bill", v))
+        # key= keeps the slider the same widget while its label changes.
+        ui.slider(state.tip, min=0, max=30, step=1, label=f"Tip: {state.tip}%", key="tip",
+                  on_change=lambda v: setattr(state, "tip", int(v)))
+        ui.stepper(state.people, min=1, max=50, label="People",
+                   on_change=lambda v: setattr(state, "people", int(v)))
+        with ui.grid(columns=2):
+            ui.stat("Total", f"{total:.2f}")
+            ui.stat("Each pays", f"{each:.2f}")
+```
+
+## Quick notes
+
+Short notes that stay on the phone, newest first.
+
+Each row has a **⋯** chip with **Delete**. Notes are kept after the panel closes, and the user can clear them on the plugin's page.
+
+```json title="plugin.json"
+{
+  "format": "wmkeyboard-plugin",
+  "id": "com.example.notes",
+  "name": "Quick notes",
+  "pluginVersion": "1.0.0",
+  "apiVersion": 5,
+  "permissions": [
+    "storage"
+  ]
+}
+```
+
+```python title="main.py"
+import time
+from wm import plugin, ui
+
+saved = plugin.state(notes=[], persist=True)
+state = plugin.state(draft="")
+
+
+def set_draft(text):
+    state.draft = text
+
+
+def add(text=None):
+    text = (text or state.draft).strip()
+    if text:
+        saved.notes.insert(0, {"text": text, "when": time.format("d MMM, HH:mm")})
+        state.draft = ""
+
+
+def delete(note):
+    saved.notes.remove(note)
+
+
+def render():
+    with ui.column():
+        with ui.row(weights=[4, 1]):
+            ui.input(label="New note", value=state.draft, on_change=set_draft, on_submit=add)
+            ui.icon_button("add", on_click=add, label="Add")
+        ui.list(
+            [
+                ui.item(n["text"], subtitle=n["when"], icon="sticky_note_2",
+                        actions={"Delete": lambda n=n: delete(n)})
+                for n in saved.notes
+            ],
+            empty="No notes yet. Type one above.",
+        )
+```
+
+## Kaomoji board
+
+Pick a mood, then press a face to type it.
+
+`on_press=field.insert` hands the pressed label straight to `field.insert`. In the web editor the faces go into a pretend field, and the console shows it.
+
+```json title="plugin.json"
+{
+  "format": "wmkeyboard-plugin",
+  "id": "com.example.kaomoji",
+  "name": "Kaomoji board",
+  "pluginVersion": "1.0.0",
+  "apiVersion": 5,
+  "permissions": [
+    "field.write"
+  ]
+}
+```
+
+```python title="main.py"
+from wm import plugin, ui, field
+
+FACES = {
+    "Happy": [["(＾▽＾)", "(◕‿◕)", "ヽ(・∀・)ﾉ"], ["(ﾉ◕ヮ◕)ﾉ", "(✿◠‿◠)", "(*^ω^*)"]],
+    "Sad": [["(╥﹏╥)", "(ಥ﹏ಥ)", "(T_T)"], ["(｡•́︿•̀｡)", "(._.)", "(ノ_<。)"]],
+    "Shrug": [["¯\\_(ツ)_/¯", "┐(︶▽︶)┌", "ʅ(°_°)ʃ"]],
+}
+
+state = plugin.state(mood="Happy")
+
+
+def render():
+    with ui.column():
+        ui.chips(list(FACES), value=state.mood, on_change=lambda m: setattr(state, "mood", m))
+        ui.keys(FACES[state.mood], on_press=field.insert)
+```
+
+## Title Case
+
+Two buttons over selected text, Title Case and Sentence case, and no panel.
+
+Select some text, and the two buttons appear on the bar over it. Each press loads the plugin fresh, runs one function, and puts what it returns in place of the selection.
+
+```json title="plugin.json"
+{
+  "format": "wmkeyboard-plugin",
+  "id": "com.example.titlecase",
+  "name": "Title Case",
+  "pluginVersion": "1.0.0",
+  "apiVersion": 5,
+  "permissions": [
+    "selection"
+  ],
+  "panel": false,
+  "actions": [
+    {
+      "id": "title",
+      "name": "Title Case",
+      "icon": "text_fields"
+    },
+    {
+      "id": "sentence",
+      "name": "Sentence case"
+    }
+  ]
+}
+```
+
+```python title="main.py"
+from wm import plugin
+
+SMALL = {"a", "an", "and", "as", "at", "but", "by", "for", "in", "of", "on", "or", "the", "to"}
+
+
+@plugin.action("title")
+def title_case(text):
+    words = text.lower().split(" ")
+    out = []
+    for i, word in enumerate(words):
+        if 0 < i < len(words) - 1 and word in SMALL:
+            out.append(word)
+        else:
+            out.append(word[:1].upper() + word[1:])
+    return " ".join(out)
+
+
+@plugin.action("sentence")
+def sentence_case(text):
+    text = text.lower()
+    return text[:1].upper() + text[1:]
+```
+
+## Reply helper
+
+Paste a message, pick a tone, and the user's AI model writes a reply while you watch.
+
+`ai` is a risky permission, off until the user turns it on. The web editor answers with a pretend reply, so you can try the flow there.
+
+```json title="plugin.json"
+{
+  "format": "wmkeyboard-plugin",
+  "id": "com.example.replyhelper",
+  "name": "Reply helper",
+  "pluginVersion": "1.0.0",
+  "apiVersion": 5,
+  "permissions": [
+    "ai"
+  ]
+}
+```
+
+```python title="main.py"
+from wm import plugin, ui, ai
+
+TONES = ["Friendly", "Formal", "Short", "Funny"]
+
+state = plugin.state(message="", tone="Friendly", reply="", busy=False, error="")
+
+
+def write():
+    if not state.message.strip():
+        return
+    state.update(reply="", busy=True, error="")
+    ai.stream(
+        f"Write a {state.tone.lower()} reply to this message. Give only the reply.\n\n{state.message}",
+        system="You help people answer text messages.",
+        on_chunk=add,
+        then=done,
+        on_error=failed,
+    )
+
+
+def add(piece):
+    state.reply += piece
+
+
+def done(text):
+    state.busy = False
+
+
+def failed(error):
+    state.update(busy=False, error=str(error))
+
+
+def render():
+    with ui.column():
+        if not ai.available():
+            ui.empty("Set up an AI model in the keyboard's settings first.", icon="smart_toy")
+            return
+        ui.input(label="Message you got", value=state.message, multiline=True,
+                 on_change=lambda v: setattr(state, "message", v))
+        ui.chips(TONES, value=state.tone, on_change=lambda t: setattr(state, "tone", t))
+        ui.button("Write a reply", on_click=write, primary=True, enabled=not state.busy, icon="auto_awesome")
+        if state.busy and not state.reply:
+            ui.progress()
+        if state.error:
+            ui.label(state.error, color="danger")
+        if state.reply:
+            ui.output(state.reply)
+```
+
+## Exchange rates
+
+Convert between eight currencies with the day's rates from the free Frankfurter API.
+
+The rates load when the panel opens, and again when the user picks a currency. Any failure, including the internet not being allowed yet, lands in `failed`.
+
+```json title="plugin.json"
+{
+  "format": "wmkeyboard-plugin",
+  "id": "com.example.exchange",
+  "name": "Exchange rates",
+  "pluginVersion": "1.0.0",
+  "apiVersion": 5,
+  "permissions": [
+    "network"
+  ],
+  "hosts": [
+    "api.frankfurter.dev"
+  ]
+}
+```
+
+```python title="main.py"
+from wm import plugin, ui, http
+
+API = "https://api.frankfurter.dev/v1/latest"
+CURRENCIES = ["USD", "EUR", "GBP", "INR", "JPY", "CNY", "AUD", "CAD"]
+
+state = plugin.state(amount="100", base="USD", target="EUR", rate=None, date="", error="", busy=False)
+
+
+def fetch():
+    state.update(busy=True, error="")
+    http.get(API, params={"base": state.base, "symbols": state.target}, then=got, on_error=failed)
+
+
+def got(r):
+    state.busy = False
+    if not r.ok:
+        state.error = f"The rates service answered {r.status_code}."
+        return
+    data = r.json()
+    state.rate = data["rates"][state.target]
+    state.date = data["date"]
+
+
+def failed(error):
+    state.update(busy=False, error=str(error))
+
+
+def pick(which, code):
+    state[which] = code
+    if state.base == state.target:
+        state.rate, state.date = 1.0, ""
+    else:
+        fetch()
+
+
+@plugin.on_open
+def opened():
+    fetch()
+
+
+def render():
+    with ui.column():
+        ui.input(label="Amount", value=state.amount, kind="number",
+                 on_change=lambda v: setattr(state, "amount", v))
+        with ui.row():
+            ui.select(CURRENCIES, value=state.base, label="From", on_change=lambda c: pick("base", c))
+            ui.select(CURRENCIES, value=state.target, label="To", on_change=lambda c: pick("target", c))
+        if state.busy:
+            ui.progress()
+        if state.error:
+            ui.label(state.error, color="danger")
+        elif state.rate is not None:
+            try:
+                result = float(state.amount) * state.rate
+            except ValueError:
+                ui.label("Type a number", color="danger")
+                return
+            text = f"{result:,.2f} {state.target}"
+            ui.stat(f"{state.amount} {state.base}", text, caption=f"Rate from {state.date}" if state.date else None)
+            ui.output(text)
+```
+
+## Tap the dot
+
+A 20-second game: press the dot as many times as you can. The best score is kept.
+
+Canvas coordinates are your own units, here 300 by 200, scaled to the panel. `on_tap` gets `x` and `y` in the same units.
+
+```json title="plugin.json"
+{
+  "format": "wmkeyboard-plugin",
+  "id": "com.example.tapthedot",
+  "name": "Tap the dot",
+  "pluginVersion": "1.0.0",
+  "apiVersion": 5,
+  "permissions": [
+    "storage"
+  ]
+}
+```
+
+```python title="main.py"
+import random
+from wm import plugin, ui
+
+W, H, R = 300, 200, 18
+
+saved = plugin.state(best=0, persist=True)
+state = plugin.state(x=150, y=100, score=0, left=0)
+
+
+def move_dot():
+    state.x = random.randint(R, W - R)
+    state.y = random.randint(R, H - R)
+
+
+def start():
+    state.update(score=0, left=20)
+    move_dot()
+
+
+@plugin.every(seconds=1)
+def tick():
+    if state.left > 0:
+        state.left -= 1
+        if state.left == 0:
+            saved.best = max(saved.best, state.score)
+
+
+def tapped(x, y):
+    if state.left == 0:
+        return
+    if (x - state.x) ** 2 + (y - state.y) ** 2 <= (R + 6) ** 2:
+        state.score += 1
+        move_dot()
+
+
+def render():
+    with ui.column():
+        with ui.row():
+            ui.stat("Score", state.score)
+            ui.stat("Time", state.left)
+            ui.stat("Best", saved.best)
+        shapes = [ui.rect(0, 0, W, H, color="muted", radius=12, fill=False)]
+        if state.left > 0:
+            shapes.append(ui.circle(state.x, state.y, R, color="accent"))
+        else:
+            shapes.append(ui.text_at(W / 2, H / 2, "Press Start", size=18))
+        ui.canvas(W, H, shapes, on_tap=tapped)
+        ui.button("Start", on_click=start, primary=True, enabled=state.left == 0)
+```
+
+## More to read
+
+- The [official addon repository](https://github.com/wasi-master/wmkeyboard-addon-repository)
+  has the source of every published plugin.
+- A new plugin in either editor can start from a template, including
+  **Weather** (Open-Meteo, a setting, a timer and a header button) and
+  **Text generator**.

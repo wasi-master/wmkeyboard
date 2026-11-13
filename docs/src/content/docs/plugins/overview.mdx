@@ -1,6 +1,6 @@
 ---
 title: "WM Keyboard plugins"
-description: "Plugins are small sandboxed Python scripts that add tools to the keyboard."
+description: "Plugins are small Python programs that add tools to the keyboard. Start here: learn, look things up, or get help."
 sidebar:
   label: "Overview"
   order: 1
@@ -9,66 +9,86 @@ sidebar:
 import { LinkCard, CardGrid } from '@astrojs/starlight/components';
 import SettingsPath from '@components/SettingsPath.astro';
 
-A plugin is a small Python script that adds a tool to the keyboard. It draws a
-panel (some text, a few buttons, maybe a text box) and does whatever you write
-it to do.
+A plugin is a small Python program that adds a tool to the keyboard. It draws
+a panel, reacts when the user presses things, and can type into the app the
+user is writing in. With the user's say-so, it can also reach a website or
+the user's AI model.
 
 ```python title="main.py"
-def render():
-    return ui.column(
-        ui.label("Hello!", style="title"),
-        ui.button("wave", "Wave back"),
-    )
+from wm import plugin, ui
 
-def on_event(e):
-    if e.id == "wave":
-        wm.log("👋")
+state = plugin.state(count=0)
+
+
+def add():
+    state.count += 1
+
+
+def render():
+    with ui.column():
+        ui.title(f"Pressed {state.count} times")
+        ui.button("Press me", on_click=add, primary=True)
 ```
 
-That is a complete plugin, minus its `plugin.json`.
+That is a whole plugin, apart from a short `plugin.json`. You can write one on
+the phone or in the browser, with a live preview beside the code:
 
-You can also write one on the phone. <SettingsPath path="Tools / Plugins / Write a plugin" /> opens an in-app editor with a live preview and starter templates, and its Install button installs the result directly, with no ZIP file.
+<SettingsPath path="Tools / Plugins / Write a plugin" />
 
-## Start here
+## Getting started
 
 <CardGrid>
-	<LinkCard
-		title="Getting started"
-		description="Build a working cipher tool from an empty folder, in plain Python."
-		href="/plugins/getting-started/"
-	/>
-	<LinkCard
-		title="API reference"
-		description="The manifest, every widget, every event, every wm.* function, and every limit."
-		href="/plugins/api-reference/"
-	/>
-	<LinkCard
-		title="Permissions"
-		description="The one thing a plugin can ask for, and the many it cannot."
-		href="/plugins/permissions/"
-	/>
-	<LinkCard
-		title="Security"
-		description="What the sandbox does, what it leaves out on purpose, and where the limits really are."
-		href="/plugins/security/"
-	/>
+	<LinkCard title="Quickstart" description="A working plugin in five minutes, then every line explained." href="/plugins/quickstart/" />
+	<LinkCard title="Tutorial" description="Build a dictionary tool step by step: the internet, errors, saved history, a keyword and a setting." href="/plugins/tutorial/" />
+	<LinkCard title="Examples" description="Ten small plugins to copy: a stopwatch, a converter, notes, an AI helper, a game." href="/plugins/examples/" />
+	<LinkCard title="Web editor" description="Write and run a plugin in your browser. Nothing to install." href="/addons/new?type=plugin" />
 </CardGrid>
+
+## Guides
+
+One topic a page, in plain words, with code you can run:
+
+- [Drawing the panel](/plugins/guides/drawing/): layout, text, inputs, lists, pictures, colours.
+- [State and events](/plugins/guides/state-and-events/): callbacks, `plugin.state`, saving values.
+- [Pages, timers and places](/plugins/guides/pages-and-timers/): open and close, several pages, timers, tiles and keywords.
+- [The internet and AI](/plugins/guides/internet-and-ai/): `http`, API keys, the user's own server, `ai`.
+- [Working with text](/plugins/guides/text-and-selection/): the field, the clipboard, buttons over selected text.
+- [Saving data and settings](/plugins/guides/saving-and-settings/): `storage`, `secrets`, a settings page, reminders.
+- [Phone features](/plugins/guides/phone-features/): vibrate, speak, share, scan, sensors, location, files.
+- [Translating your plugin](/plugins/guides/translations/): `_()` and a file per language.
+- [Testing and debugging](/plugins/guides/testing/): the web editor's tabs, the phone, automatic tests.
+- [Sharing your plugin](/plugins/guides/sharing/): the `.wmplugin` file, updates, addon repositories.
+
+## Reference
+
+<CardGrid>
+	<LinkCard title="API reference" description="Every module and function in the wm package, with arguments, results and errors." href="/plugins/wm-package/" />
+	<LinkCard title="Permissions" description="What a plugin can ask for, and which permissions stay off until the user allows them." href="/plugins/permissions/" />
+	<LinkCard title="Security" description="What the sandbox enforces, how, and where its limits are." href="/plugins/security/" />
+	<LinkCard title="Help and questions" description="Common questions, every error message, and where to ask." href="/plugins/help/" />
+</CardGrid>
+
+Plugins written for API 4 keep working. Their pages are the
+[classic tutorial](/plugins/getting-started/) and the
+[classic API reference](/plugins/api-reference/).
 
 ## What a plugin can do
 
-Compute things, draw its own panel, and add buttons to the bar over selected
-text. A plugin can also be nothing but those buttons: a
-[selection action](/plugins/api-reference/#selection-actions) that turns the
-text you selected into something else, which is also how a
-[Clink action](/reference/importing-other-keyboards/#clink-actions) installs.
+- Draw its own panel from the keyboard's widgets, in the user's theme.
+- Put text into the app: through an **Insert** button the user presses, or by
+  typing with the `field.write` permission.
+- Add buttons to the bar over selected text, which turn the selection into
+  something else.
+- Open from the Plugins tool, a toolbar tile, a key, the floating box, or a
+  keyword like `@define rain`.
+- Keep data on the phone, run timers while it is open, and have a settings
+  page the app draws.
+- With the user's permission: reach the websites it lists, ask the user's AI
+  model, read the text being written when the user presses something in its
+  panel, or read the clipboard.
 
-Plugins written for API 5 (the [`wm` package](/plugins/wm-package/)) can be
-whole tools: a tile on the toolbar, a floating box, a key or a keyword that
-opens them, timers while they are open, and, when you allow it, the internet,
-your AI model, the text you are writing, the clipboard, your location or files
-you pick. Each of those is a [permission](/plugins/permissions/) you see before
-install, and the ones that can read your things or send them away stay off
-until you turn them on.
+Each permission is shown before install. The ones that can read the user's
+things or send them away are [off until the user turns them on](/plugins/permissions/#risky-permissions).
 
 ## What a plugin cannot do
 
@@ -90,33 +110,14 @@ No permission gets around them. See [Security](/plugins/security/) for how they
 are enforced, and what the residual risks honestly are.
 :::
 
-Text still gets into a plugin: you type into its box, tap **Paste** on it, or
-select text and tap one of its buttons on the selection bar. Results come back
-out when you tap **Insert** under a result, or in place of the selection. Every
-one of those is a deliberate tap, on a control the keyboard drew.
+Text still gets into a plugin: you type into its box, press **Paste** on it,
+or select text and press one of its buttons on the selection bar. Results come
+back out when you press **Insert** under a result, or in place of the
+selection. Every one of those is a deliberate press, on a control the keyboard
+drew.
 
-## Trying the examples
-
-The five demo plugins in the
-[addon repository](https://github.com/wasi-master/wmkeyboard-addon-repository)
-are meant to be read. Each one is a single `main.py`:
-
-| Plugin | Shows |
-|---|---|
-| **Cipher Tool** | Tabs, inputs, buttons, insertable output. The getting-started build. |
-| **UI Kitchen Sink** | Every widget and every event, with a live event log. |
-| **Todo List** | `wm.storage`, `wm.reminders`, `json` and the date widget: items with due dates, and a reminder when one is due. |
-| **Text Tools** | The paste-in, transform, insert-out flow. |
-| **Math Mode** | A real text engine: a tokenizer, symbol tables, a live result on every keystroke, and options kept in `wm.storage`. |
-
-A new plugin in the editor can start from most of these, and from two written
-for [API 5](/plugins/wm-package/): **Text generator** (placeholder words,
-sentences and paragraphs, drawn with callbacks and `plugin.state`) and
-**Weather** (a forecast from Open-Meteo, with internet access to two listed
-websites, a setting, a timer and a header button).
-
-:::tip[Enabling plugins]
-Plugins are **off until you ask for them**. Turn them on here, with **Allow
+:::tip[Turning plugins on]
+Plugins are **off until you ask for them**. Turn them on with **Allow
 plugins**. The first time, the app fetches the library that runs them, from
 Google Play on a Play install and from the project's own data repository
 otherwise. Then install one from the Addons screen, or open a `.wmplugin` file:
@@ -132,7 +133,7 @@ since nothing is left to run it. The keyboard's plugin list and the Plugins
 screen say which ones went.
 
 What each one saved is kept. Install a Python plugin with the same id and its
-data comes back as it was. The five demos above kept their ids in the move, so
+data comes back as it was. The five demo plugins in the [addon repository](https://github.com/wasi-master/wmkeyboard-addon-repository) (Cipher Tool, UI Kitchen Sink, Todo List, Text Tools and Math Mode) kept their ids in the move, so
 installing the Python **Todo List** brings your list back. Only what a plugin
 saved with `wm.storage` is kept; its log and any reminders it had set are not.
 

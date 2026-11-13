@@ -1,0 +1,234 @@
+---
+title: "The internet and AI"
+description: "Call web APIs with http, keep keys in secrets, let users point at their own server, and ask the user's AI model."
+sidebar:
+  label: "The internet and AI"
+  order: 5.04
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+A plugin can call web APIs and the AI model the user set up in the keyboard.
+Both are [risky permissions](/plugins/permissions/#risky-permissions): the
+user sees them before install, and they stay off until the user turns them on
+for your plugin.
+
+## Asking for the internet
+
+Two lines in the manifest:
+
+```json title="plugin.json (excerpt)"
+"permissions": ["network"],
+"hosts": ["api.open-meteo.com", "*.openfoodfacts.org"]
+```
+
+- `hosts` lists every website your plugin may reach. Write only the name: no
+  `https://`, no port, no path. `*.example.com` covers `example.com` and every
+  name under it. Up to 16.
+- A plugin with `network` and no `hosts` is refused at install, unless it has a
+  [host setting](#the-users-own-server).
+
+In the editors, risky permissions count as allowed so you can test. After a
+real install, each call raises `PermissionError` until the user turns
+`network` on. When that happens, the keyboard shows the permission in your
+panel with an **Allow** button that leads the user to the switch. They also
+need risky permissions allowed for plugins as a whole:
+
+<SettingsPath path="Tools / Plugins / Allow risky permissions" />
+
+## Making requests
+
+The `http` module looks like the popular
+[`requests`](https://requests.readthedocs.io/) library:
+
+```python
+from wm import http
+
+r = http.get("https://api.open-meteo.com/v1/forecast",
+             params={"latitude": 23.8, "longitude": 90.4, "current": "temperature_2m"})
+r.raise_for_status()
+temp = r.json()["current"]["temperature_2m"]
+```
+
+| Call | Sends |
+|---|---|
+| `http.get(url, params=, headers=)` | a GET request; `params` become `?a=1&b=2` |
+| `http.post(url, json=)` | a JSON body |
+| `http.post(url, data={"a": "1"})` | a form |
+| `http.post(url, data="text")` or `data=b"..."` | text or bytes as they are |
+| `http.put`, `http.patch`, `http.delete` | the same, with that method |
+| `http.request(method, url, ...)` | any method |
+
+Every call also takes `headers=`, `timeout=` (15 seconds at most) and
+`binary=True` (keep the reply's bytes for a picture or a file).
+
+What you get back is a `Response`:
+
+| | |
+|---|---|
+| `r.status_code` | `200`, `404` and so on |
+| `r.ok` | `True` when the status is under 400 |
+| `r.text` | the body as text |
+| `r.json()` | the body read as JSON |
+| `r.content` | the body as bytes |
+| `r.headers` | a dict, with lowercase names |
+| `r.url` | the address that answered, after redirects |
+| `r.raise_for_status()` | raises `http.HTTPError` for 400 and up, else gives back `r` |
+
+## Errors
+
+| Error | Means |
+|---|---|
+| `PermissionError` | `network` is not in the manifest, the host is not in `hosts`, or the user has not turned `network` on |
+| `ConnectionError` | no connection, the server could not be reached, or Data saver is on |
+| `TimeoutError` | no answer in time |
+| `http.HTTPError` | from `raise_for_status()`; `e.response` is the `Response` |
+
+Catch them and tell the user. A plugin that lets an error escape stops, and
+the panel shows the error instead of your interface:
+
+```python
+try:
+    r = http.get(URL, params={"q": query})
+    r.raise_for_status()
+except PermissionError:
+    state.error = "Allow internet access to search."
+except (ConnectionError, TimeoutError) as e:
+    state.error = f"No connection: {e}"
+except http.HTTPError as e:
+    state.error = f"The server said {e.response.status_code}."
+```
+
+## Without waiting
+
+`http.get(url)` waits for the answer, and the panel cannot react while it
+waits. Pass `then=` and the call returns at once:
+
+```python
+def search():
+    state.busy = True
+    http.get(URL, params={"q": state.query}, then=got, on_error=failed)
+
+
+def got(r):
+    state.busy = False
+    state.results = r.json()["items"] if r.ok else []
+
+
+def failed(error):
+    state.busy = False
+    state.error = str(error)
+```
+
+The keyboard calls `got` with the `Response` when it arrives, then draws the
+panel again. If anything goes wrong, it calls `failed` with the exception
+instead, even when the keyboard refused to send the request at all (the
+internet not allowed, Data saver on, a host not in your list). Without
+`on_error`, a refusal raises right at the call, and a later failure raises
+when the answer arrives. Show
+`ui.progress()` while `state.busy` is true. The [tutorial](/plugins/tutorial/#step-5-keep-the-panel-moving)
+builds this step by step.
+
+## The rules every request follows
+
+- https only. No IP addresses and no `localhost`.
+- Every redirect is checked against `hosts` again.
+- Replies up to 1 MB. 15 seconds at most. 60 requests a minute.
+- Nothing is sent while Data saver is on.
+- Each request shows in the keyboard's Network activity under your plugin's
+  name, so the user can see what you sent and where.
+- No cookies are kept between requests.
+
+## API keys
+
+Some services need a key. Never put yours in the plugin: anyone can unzip a
+`.wmplugin` and read it. Let the user paste their own, and keep it in
+`secrets`, which is encrypted like the keyboard's own API keys and never shown
+in backups or the storage inspector. `secrets` needs the `storage` permission.
+
+```python
+from wm import plugin, ui, http, secrets
+
+state = plugin.state(key=secrets.get("api_key", ""))
+
+
+def save_key(text):
+    secrets.set("api_key", text.strip())
+    state.key = text.strip()
+
+
+def render():
+    if not state.key:
+        ui.input(label="Your API key", kind="password", on_submit=save_key)
+        return
+    ...
+
+
+def search(q):
+    return http.get(URL, params={"q": q}, headers={"Authorization": "Bearer " + state.key})
+```
+
+## The user's own server
+
+For a self-hosted service (a home server, a company instance), you cannot know
+the address. Add a `host` setting. The app draws a box for it on your
+plugin's page, and the website the user types there is added to your `hosts`:
+
+```json title="plugin.json (excerpt)"
+"permissions": ["network"],
+"settings": [
+  {"key": "server", "type": "host", "label": "Your server"}
+]
+```
+
+```python
+base = "https://" + plugin.settings.server
+r = http.get(base + "/api/items")
+```
+
+## The AI model
+
+With the `ai` permission, your plugin can ask the AI model the user chose in
+the keyboard's settings. That may be a model on the phone or a provider they
+signed in to. You never see their key or which provider it is.
+
+```python
+from wm import ai
+
+reply = ai.ask("Write a short, friendly reply to: " + text,
+               system="You write short text messages.")
+```
+
+| Call | Does |
+|---|---|
+| `ai.ask(prompt, system=, max_tokens=)` | waits, and returns the reply as text |
+| `ai.ask(prompt, then=fn, on_error=fn)` | returns at once; `fn` gets the reply |
+| `ai.stream(prompt, on_chunk=fn, then=done)` | `fn` gets each piece of the reply as it is written; `done` gets the whole reply |
+| `ai.available()` | whether the user has a model set up |
+
+Models are slow, so prefer `then=` or `ai.stream`. Streaming feels fastest:
+
+```python
+def write():
+    state.reply = ""
+    ai.stream(state.prompt, on_chunk=add_piece)
+
+
+def add_piece(piece):
+    state.reply += piece
+```
+
+`ai` raises `RuntimeError` when no model is set up, and `ConnectionError` when
+Data saver is on. Check `ai.available()` first and show a hint instead of a
+broken button.
+
+## In the web editor
+
+The web editor sends real requests from your browser to your `hosts`. A
+browser can read the answer only if the website allows other pages to read it
+(CORS). Many public APIs do. If one does not, the console says so; the phone
+has no such limit.
+
+The web editor has no AI model. `ai.ask` and `ai.stream` answer with a pretend
+reply of the same shape, and the console marks it, so your code paths still
+run. Install the plugin to try a real model.

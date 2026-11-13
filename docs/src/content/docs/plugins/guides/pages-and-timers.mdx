@@ -1,0 +1,159 @@
+---
+title: "Pages, timers and places"
+description: "Open and close hooks, several pages with Back, header buttons, timers, and every place a plugin can open from."
+sidebar:
+  label: "Pages, timers and places"
+  order: 5.03
+---
+
+This page covers a plugin's life: what runs when the panel opens and closes,
+how to show more than one page, how to run code on a timer, and where the user
+can open your plugin from.
+
+## Opening and closing
+
+```python
+from wm import plugin
+
+@plugin.on_open
+def opened():
+    # Each time the panel opens, before it draws.
+    if saved.city:
+        look_up(saved.city)
+
+
+@plugin.on_close
+def closed():
+    # When the panel closes. Keep it short.
+    saved.save()
+```
+
+Each time the panel opens, your file runs from the top: imports, constants,
+`plugin.state(...)`. Then `on_open` runs, then `render()`. So values in a
+`plugin.state` without `persist=True` start over at each opening, and saved
+ones come back. When the panel closes, `on_close` runs and the plugin stops.
+
+A few values describe where the plugin is running:
+
+| | |
+|---|---|
+| `plugin.surface` | `"panel"` in the keyboard, `"float"` in the floating box |
+| `plugin.dark` | `True` when the keyboard's theme is dark |
+| `plugin.locale` | the user's language, such as `"bn-BD"` |
+| `plugin.id`, `plugin.version` | from your manifest |
+
+## Several pages
+
+`plugin.push(render_fn, title=)` shows another page on top. The keyboard draws
+a back arrow in the header, and pressing it (or the phone's Back) returns to
+the page before:
+
+```python
+from wm import plugin, ui
+
+state = plugin.state(open_note=None)
+
+
+def show_note(note):
+    state.open_note = note
+    plugin.push(note_page, title=note["title"])
+
+
+def note_page():
+    with ui.column():
+        ui.label(state.open_note["text"])
+        ui.button("Done", on_click=plugin.back)
+
+
+def render():
+    ui.list([ui.item(n["title"], on_click=lambda n=n: show_note(n)) for n in NOTES])
+```
+
+- `plugin.back()` closes the top page. It returns `False` if there was none.
+- `plugin.set_title(text)` changes the header text of the main page.
+- Pages stack: push from a pushed page and Back walks them in order.
+
+## Header buttons
+
+`@plugin.command` adds a button to the panel's header, next to the title. Use
+it for actions that apply to the whole plugin, like Refresh or Clear:
+
+```python
+@plugin.command("Refresh", icon="refresh")
+def refresh_now():
+    look_up()
+```
+
+Up to three. Each has a label and, if you like, an icon. Icons are [Material Symbols](https://fonts.google.com/icons) names.
+
+## Timers
+
+```python
+@plugin.every(seconds=1)
+def tick():
+    state.elapsed += 1
+
+
+plugin.after(5, hide_message)       # once, five seconds from now
+```
+
+- `@plugin.every(seconds=, minutes=, hours=)` calls the function again and
+  again. The shortest period is one second.
+- `plugin.after(seconds, fn)` calls `fn` once. It returns a name you can pass
+  to `plugin.cancel(name)` to stop it.
+- `@plugin.every(..., name="clock")` names a repeating timer, so
+  `plugin.cancel("clock")` stops it. Without `name`, the function's name is the
+  timer's name.
+- The panel draws again after each timer call.
+
+:::note[Only while the panel is open]
+Timers run only while your panel or floating box is open. Nothing of yours
+runs in the background. To tell the user something later, when the panel is
+closed, use a [reminder](/plugins/guides/saving-and-settings/#reminders): the
+app shows it for you.
+:::
+
+## Closing the panel yourself
+
+`plugin.close()` closes your panel, the way the user's close button does. Use
+it after a one-shot job, such as inserting a picked emoji.
+
+## Where a plugin opens from
+
+Every plugin with a panel is in the keyboard's **Plugins** tool. The `tool`
+block in the manifest offers more places:
+
+```json title="plugin.json (excerpt)"
+"tool": {
+  "icon": "dictionary",
+  "tile": true,
+  "float": true,
+  "keyword": "define",
+  "chip": true
+}
+```
+
+| Field | What it adds |
+|---|---|
+| `icon` | A Material Symbols name for the tile and the panel header. |
+| `tile` | The plugin is offered first when the user adds a plugin button in [Custom buttons](/tools/custom-buttons/). That button can sit on the toolbar, in the toolbox or on the floating button. |
+| `float` | The panel may open in the [floating box](/tools/overview/#tools-in-a-floating-box), over the app, with the keyboard closed. |
+| `keyword` | A word the user types as `@define`. 1 to 16 lowercase letters or digits. |
+| `chip` | With a keyword: typing `@define rain` offers your plugin on the suggestion strip, while [Search shortcuts](/smart/chips/#search-shortcuts) are on. |
+| `height` | The panel's height in dp. Leave it out for the keyboard's own. |
+
+For a keyword, mark the function that hears what followed it:
+
+```python
+@plugin.keyword("define")
+def from_keyword(text):
+    look_up(text)
+```
+
+The keyboard matches the keyword itself. Your plugin hears only the text after
+it, and only when the user presses the chip. It never sees the rest of what
+they type.
+
+Users can also put any plugin on a key, a flick or a multi-finger swipe, with
+the **Open a plugin** action in the [layout editor](/languages/custom-layouts/).
+You don't need to do anything for that.

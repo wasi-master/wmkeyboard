@@ -1,13 +1,20 @@
 ---
-title: "Writing your first plugin"
-description: "Build the Cipher Tool in Python: a plugin panel with two tabs, made with nothing but a text editor."
+title: "Classic tutorial (API 4)"
+description: "Build the Cipher Tool with the API 4 globals, render() and on_event(). For new plugins, start with the Quickstart."
 sidebar:
-  label: "Getting started"
-  order: 2
+  label: "Classic tutorial (API 4)"
+  order: 20
 ---
 
 import { FileTree, LinkCard, CardGrid } from '@astrojs/starlight/components';
 import SettingsPath from '@components/SettingsPath.astro';
+
+:::note[This tutorial is for API 4]
+It builds a plugin the API 4 way, with the `ui` and `wm` globals and one
+`on_event` function. API 4 plugins keep working, but new plugins are easier to
+write for API 5. Start with the [Quickstart](/plugins/quickstart/) and the
+[tutorial](/plugins/tutorial/).
+:::
 
 By the end of this you will have built the Cipher Tool: a keyboard panel with
 two tabs that encodes and decodes text. Plugins are written in Python. If you

@@ -1,0 +1,172 @@
+---
+title: "Testing and debugging"
+description: "Run a plugin in the web editor, read its console and events, test it on the phone, and write automatic tests with the command-line runner."
+sidebar:
+  label: "Testing and debugging"
+  order: 5.09
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import SettingsPath from '@components/SettingsPath.astro';
+
+There are three places to run a plugin while you build it: the web editor,
+the editor on the phone, and a command-line runner for automatic tests. All
+three run the same interpreter the keyboard uses.
+
+## The web editor
+
+The [web editor](/addons/new?type=plugin) runs your plugin in the browser,
+next to the code. With **Run as you type** on, it runs again each time you
+stop typing. The tabs under the code show what is going on:
+
+| Tab | Shows |
+|---|---|
+| **Console** | What `print()` writes, errors with their line numbers, and a line for each thing the plugin did that a browser cannot really do |
+| **Problems** | Mistakes the checker finds before you run: a misspelt name, a name the `wm` package does not have, Python that plugins do not support |
+| **Outline** | Your functions, to jump between them |
+| **Events** | Every button, switch, box and tab in the panel, with a button to send each one an event. **Any event** sends one you write yourself, such as a `keyword` event |
+| **Storage** | What the plugin saved, which you can edit or delete |
+| **Details** | The name, permissions and hosts, the whole `plugin.json`, and the file's size |
+
+The editor completes names as you type (`plugin.`, `ui.`, `from wm import `),
+and shows what each one does when you point at it.
+
+### What the preview can and cannot do
+
+The preview treats every permission your manifest asks for as allowed. For the
+rest, it does what a browser can:
+
+- `http` sends real requests to your `hosts`, if the website lets other pages
+  read its answers. Many APIs do.
+- `field` writes to a pretend text field, and the console shows what it holds.
+- `ai`, `location`, `files`, `sensors` and `scan` get pretend answers of the
+  right shape. [Phone features](/plugins/guides/phone-features/#in-the-web-editor)
+  lists each one.
+- Translations do not apply: the preview shows your English.
+
+## On the phone
+
+The editor on the phone works the same way, with a preview beside the code.
+It runs inside the real keyboard, so it is the place to check how the panel
+looks in your theme and how the field calls behave.
+
+<SettingsPath path="Tools / Plugins / Write a plugin" />
+
+**Install the plugin** puts the current version in the keyboard at once. Each
+installed plugin also keeps a log of what it printed, on its page:
+
+<SettingsPath path="Tools / Plugins / Manage plugins" />
+
+## Automatic tests
+
+`wm-python-cli` runs a plugin with no phone and no browser. It is for tests
+you run again and again, and for checking plugins in an addon repository's CI.
+
+<Steps>
+
+1. Install [Rust](https://rustup.rs/).
+
+2. Get the WM Keyboard source: `git clone https://github.com/wasi-master/wmkeyboard`
+
+3. Build the runner: `cd wmkeyboard/native/wm-python-cli && cargo build --release`
+
+4. The program is `target/release/wm-python-cli`.
+
+</Steps>
+
+### Run once
+
+```bash
+wm-python-cli run my-plugin/ --mock mock.json
+```
+
+This loads the plugin in `my-plugin/` and prints the first draw as JSON. The
+mock file answers host calls by name:
+
+```json title="mock.json"
+{
+  "http.request": {"status": 200, "text": "{\"temp\": 21}", "headers": {}},
+  "ai.ask": {"text": "A pretend reply"}
+}
+```
+
+A call with no answer in the file raises `NotImplementedError`. An answer that
+is only an error raises that error, so you can test the unhappy paths:
+
+```json
+{"http.request": {"error": {"kind": "TimeoutError", "message": "no answer in 15 s"}}}
+```
+
+### Write tests
+
+Put a `test.py` beside `main.py` and run `wm-python-cli test my-plugin/`. A
+test fails by raising, so plain `assert` works:
+
+```python title="test.py"
+import json
+
+mock = {"http.request": {"status": 200, "text": json.dumps({"temp": 21}), "headers": {}}}
+
+s = plugin_test.session(mock=mock, settings={"units": "metric"})
+r = s["load"]()
+assert r["ok"], r
+
+r = s["event"]({"type": "click", "id": "button:Refresh"})
+assert "21" in json.dumps(r["ui"]), r["ui"]
+```
+
+`plugin_test.session(mock=, settings=)` gives you the plugin as the keyboard
+runs it:
+
+| | Does |
+|---|---|
+| `load()` | runs the file and draws the panel |
+| `render()` | draws it again |
+| `event(e)` | sends one event, then draws |
+| `transform(text, id)` | runs a selection action |
+| `storage()` | what the plugin saved, as a dict |
+
+Each gives back a dict: `ok`, the drawn `ui`, any `error`, and the `host`
+block (timers, header buttons, how many `then=` answers are waiting).
+
+Events look like this. A widget's id is its type and text, such as
+`"button:Look up"` or `"input:Word"`, unless you passed `key=`:
+
+```python
+{"type": "click", "id": "button:Look up"}
+{"type": "change", "id": "input:Word", "value": "rain"}
+{"type": "submit", "id": "input:Word", "value": "rain"}
+{"type": "keyword", "id": "define", "value": "rain"}
+{"type": "command", "id": "clear_history"}
+```
+
+A call made with `then=` waits until you answer it with a `result` event. Its
+token is the module's name and a number that counts every such call (and
+every `plugin.after`) in the session: the first look-up is `"http:1"`, and an
+`ai.ask` after it would be `"ai:2"`.
+
+```python
+s["event"]({"type": "click", "id": "button:Look up"})
+r = s["event"]({"type": "result", "token": "http:1", "value": mock["http.request"]})
+```
+
+`plugin_test.read(name)` reads a file from the plugin's folder, which is
+handy for a long mock reply kept in its own file.
+
+## Reading an error
+
+When your code raises an error nothing catches, the run stops and the console
+or the panel shows the error and its line. The [Help](/plugins/help/#error-messages)
+page explains the common ones.
+
+Two kinds of stop come from the keyboard, not from Python:
+
+- **Too much work.** Each part of a run has a budget of steps: 9 million to
+  load, 6 million for each event, 1.2 million to draw. A step is about one
+  line or one turn of a loop. A plugin that runs out is stopped. Look for a
+  loop that never ends, or work that belongs in a smaller piece.
+- **Too slow.** Loading has 3 seconds, an event 2, a draw half a second. Time
+  spent waiting for `http` or `ai` does not count.
+
+A plugin that is stopped twice is switched off until the user turns it on
+again, so fix these before you share it.

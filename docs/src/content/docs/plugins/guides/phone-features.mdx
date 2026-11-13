@@ -1,0 +1,161 @@
+---
+title: "Phone features"
+description: "Vibrate, speak, share, scan, sensors, location and files: what each needs, and what works today."
+sidebar:
+  label: "Phone features"
+  order: 5.07
+---
+
+A plugin can reach a few things of the phone's, each through one named call
+and one permission. A plugin never gets a camera picture, a file path or a raw
+sensor: the keyboard does the work and hands back only the result.
+
+:::caution[Not all of these work on the phone yet]
+In this version the keyboard answers `device` and `share`. The calls for
+`notify`, `location`, `files`, `sensors` and `scan` are part of API 5, and the
+web editor answers them with pretend data, but on the phone they raise
+`NotImplementedError` for now. Catch it, so your plugin still works when they
+arrive:
+
+```python
+try:
+    here = location.get()
+except NotImplementedError:
+    here = None
+```
+:::
+
+| Module | Calls | Permission | On the phone |
+|---|---|---|---|
+| `device` | `vibrate(ms)`, `flashlight(on)`, `speak(text, language=)`, `battery()` | `device` | yes |
+| `share` | `text(text)`, `open(url)` | `share` | yes |
+| `notify` | `show(text, title=, id=)`, `cancel(id)` | `notifications` | not yet |
+| `scan` | `qr(then=)`, `text(then=)` | `scan` | not yet |
+| `sensors` | `subscribe(kind, on_reading=, hz=)`, `unsubscribe(token)`, `available()` | `sensors` | not yet |
+| `location` | `get(accuracy=, then=)` | risky `location` | not yet |
+| `files` | `pick(kind=, then=)`, `save(name, data)` | risky `files` | not yet |
+
+## device
+
+```python
+from wm import device
+
+device.vibrate(40)                 # milliseconds, 1 to 1000
+device.flashlight(True)
+device.speak("Hello", language="en")
+level = device.battery()           # {"level": 0-100, "charging": True or False}
+```
+
+## share
+
+```python
+from wm import share
+
+share.text("Meet at 6")            # the system share sheet
+share.open("https://example.com")  # the browser, after the user confirms
+```
+
+The keyboard always shows what is shared, and where, before it goes. `open`
+takes https links only.
+
+## notify
+
+```python
+from wm import notify
+
+notify.show("Upload finished", title="Photos", id="upload")
+notify.cancel("upload")
+```
+
+The notification is titled with your plugin's name, so it cannot pretend to
+come from another app. For a notification at a later time, when your panel is
+closed, use a [reminder](/plugins/guides/saving-and-settings/#reminders).
+
+## scan
+
+The keyboard opens its own scanner over the keyboard, and your function gets
+the result as text:
+
+```python
+from wm import scan
+
+scan.qr(then=found)        # the code's text
+scan.text(then=read)       # text read from the camera
+```
+
+You never get the camera picture.
+
+## sensors
+
+```python
+from wm import sensors
+
+token = sensors.subscribe("accelerometer", on_reading=moved, hz=10)
+
+
+def moved(r):
+    state.tilt = r["x"]
+```
+
+Kinds: `accelerometer`, `gyroscope` and `magnetometer` send `{"x", "y", "z"}`;
+`light`, `steps`, `proximity` and `pressure` send `{"value"}`. `hz` is from 1
+to 30. Readings stop when the panel closes, or with
+`sensors.unsubscribe(token)`. `sensors.available()` lists the kinds the phone
+has.
+
+## location
+
+A risky permission: it is off until the user turns it on for your plugin.
+
+```python
+from wm import location
+
+here = location.get()                    # waits
+location.get(accuracy="fine", then=got)  # does not wait
+# {"lat": 23.81, "lon": 90.41, "accuracy": 1500, "time": 1794557000.0}
+```
+
+`accuracy` is `"coarse"`, the default, or `"fine"`. The answer's `accuracy` is
+in metres, and `time` is seconds since 1970.
+
+## files
+
+A risky permission. The user picks a file in the system picker, and your
+plugin gets only that file:
+
+```python
+from wm import files
+
+files.pick(kind="image", then=got)
+
+
+def got(f):
+    state.name = f["name"]       # "holiday.jpg"
+    state.mime = f["mime"]       # "image/jpeg"
+    picture = f["data"]          # bytes
+
+
+files.save("notes.txt", "milk\neggs\n")   # the user picks where
+```
+
+`kind` is `"any"`, `"image"`, `"text"`, `"audio"`, `"video"` or a MIME type.
+Your plugin never sees a path or a folder.
+
+## In the web editor
+
+The web editor answers every call on this page so you can run your code:
+
+| Call | Answer in the web editor |
+|---|---|
+| `device.speak` | your browser's own voice |
+| `device.vibrate` | the browser's vibration, on a phone browser |
+| `device.battery` | 76%, not charging |
+| `share.text`, `share.open` | the browser's share sheet, and a new tab |
+| `notify.show`, `device.flashlight` | a line in the console |
+| `scan.qr`, `scan.text` | a pretend link, and a pretend line of text |
+| `sensors.subscribe` | pretend readings of a phone lying on a table |
+| `location.get` | a pretend place in Dhaka |
+| `files.pick` | a pretend picture, sound or text file of the kind you asked for |
+| `files.save` | a line in the console with the name and size |
+
+The console marks each pretend answer, so you always know which ones were real.

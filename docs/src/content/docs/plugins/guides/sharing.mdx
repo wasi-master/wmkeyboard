@@ -1,0 +1,109 @@
+---
+title: "Sharing your plugin"
+description: "Make a .wmplugin file, add modules, pictures and translations, ship updates, and list it in an addon repository."
+sidebar:
+  label: "Sharing your plugin"
+  order: 5.10
+---
+
+import { Steps, FileTree } from '@astrojs/starlight/components';
+import SettingsPath from '@components/SettingsPath.astro';
+
+A plugin travels as one file, `name.wmplugin`. This page covers how to make
+one, what can go in it, how updates work, and how to list it where other
+people can find it.
+
+## Make the file
+
+The editors make the file for you:
+
+- **In the browser**, press **Install the plugin** at the top of the editor, or
+  **Save as a file** in the **Details** tab. The browser saves
+  `Name-1.0.0.wmplugin`.
+- **On the phone**, choose **Save as a file** in the editor's menu.
+
+To install it, open the file on the phone from a file manager. The keyboard
+shows the name, the author and every permission, and installs it when you
+confirm. Plugins must be allowed first:
+
+<SettingsPath path="Tools / Plugins / Manage plugins" />
+
+## By hand
+
+A `.wmplugin` is a ZIP file with `plugin.json` at the top:
+
+```bash
+cd my-plugin && zip -r ../my-plugin.wmplugin plugin.json main.py
+```
+
+Build it by hand when you want more than one file.
+
+## Several files
+
+A `.wmplugin` archive can hold up to 64 entries and 4 MB. Any other `.py` file
+is a module you can import, and `assets/` holds pictures and data (png, webp,
+jpg, svg, json, txt; 512 KB each):
+
+```
+weather.wmplugin
+├── plugin.json
+├── main.py
+├── forecast.py        import forecast
+├── lib/__init__.py    from lib import parse
+├── locales/bn.json    _("Look up") in Bengali
+└── assets/logo.png    ui.image("assets/logo.png")
+```
+
+`locales/` holds [translations](/plugins/guides/translations/). Module names are Python identifiers. A name that is not refuses the install.
+`wm` and the [standard library](/plugins/api-reference/#the-python-you-get) names
+are taken.
+
+<FileTree>
+
+- weather/
+  - plugin.json
+  - main.py
+  - forecast.py a module: `import forecast`
+  - assets/
+    - logo.png
+  - locales/
+    - bn.json
+
+</FileTree>
+
+Then `cd weather && zip -r ../weather.wmplugin .` makes the file.
+
+## Updates
+
+Change `pluginVersion` (for example `"1.0.0"` to `"1.1.0"`) and keep the same
+`id`. Installing the new file replaces the old one and keeps what the plugin
+saved.
+
+- An update that asks for a new **risky** permission, or a new host, leaves
+  it off. The plugin's page tells the user what is new, and they decide.
+- Changing the `id` makes a different plugin, with its own empty storage.
+
+## List it in an addon repository
+
+The keyboard's Addons screen reads addon repositories: a JSON file that lists
+addons and where to download them. Anyone can host one on GitHub or any web
+server.
+
+<Steps>
+
+1. Put the `.wmplugin` file in your repository, under `plugins/`.
+
+2. In the web editor, open the **Details** tab and press **Copy repository entry (with sha256)**.
+
+3. Paste the entry into your repository's `wmkeyboard-repo.json`, in its `addons` list.
+
+4. Change the `path` if your file is somewhere else.
+
+</Steps>
+
+The app checks each plugin against its `sha256` before it installs, and
+refuses one without it. [Addon repositories](/development/addon-repos/) and
+the [repository format](/development/addon-repos/repo-format/) explain the
+rest. The [official addon repository](https://github.com/wasi-master/wmkeyboard-addon-repository)
+has plugins to read and copy, and its `tools/validate.py` checks a whole
+repository before you publish it.

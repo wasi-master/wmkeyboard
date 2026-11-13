@@ -1,0 +1,165 @@
+---
+title: "Quickstart"
+description: "Make a working plugin in five minutes, then read it line by line."
+sidebar:
+  label: "Quickstart"
+  order: 2
+---
+
+import { Steps, Tabs, TabItem, LinkCard, CardGrid } from '@astrojs/starlight/components';
+import SettingsPath from '@components/SettingsPath.astro';
+
+This page makes a small plugin that flips a coin, and then explains every line
+of it. You need no tools on your computer. The plugin editor runs in your
+browser and on the phone.
+
+## The whole plugin
+
+```python title="main.py"
+import random
+from wm import plugin, ui
+
+state = plugin.state(result="Press Flip")
+
+
+def flip():
+    state.result = random.choice(["Heads", "Tails"])
+
+
+def render():
+    with ui.column():
+        ui.title(state.result)
+        ui.button("Flip", on_click=flip, primary=True)
+```
+
+That is all of it. The keyboard shows a title and a button. Press the button
+and the title says Heads or Tails.
+
+## Run it
+
+<Tabs syncKey="editor">
+<TabItem label="In the browser">
+
+<Steps>
+
+1. Open the [plugin editor](/addons/new?type=plugin).
+
+2. Under **Start from**, choose **A blank plugin**. Type a name and press **Create**.
+
+3. Open the menu (⋮) and choose **Name and permissions**. Turn on **Use API 5 (the wm package)**. Press **Save**.
+
+4. Delete the code in the editor. Paste the code from above.
+
+5. Look at the **Preview** beside the code. Press **Flip**.
+
+</Steps>
+
+With **Run as you type** on, the preview runs your code again each time you
+stop typing. Errors show in the **Console** tab under the code.
+
+</TabItem>
+<TabItem label="On the phone">
+
+<Steps>
+
+1. Open the editor:
+   <SettingsPath path="Tools / Plugins / Write a plugin" />
+
+2. Choose **A blank plugin**. Type a name and press **Create**.
+
+3. Open the menu (⋮) and choose **Name and permissions**. Turn on **Use API 5 (the wm package)**. Press **Save**.
+
+4. Replace the code with the code from above.
+
+5. Press the run button. The preview shows the panel. Press **Flip**.
+
+6. Press **Install the plugin** to put it in the keyboard's Plugins tool.
+
+</Steps>
+
+</TabItem>
+</Tabs>
+
+:::tip[Turn plugins on first]
+The phone runs plugins only after you allow them. Switch on **Allow plugins** here:
+<SettingsPath path="Tools / Plugins / Manage plugins" />
+:::
+
+## What each line does
+
+```python
+import random
+```
+
+`random` is part of the Python that plugins get. It picks things by chance.
+The [API reference](/plugins/wm-package/#the-python-you-get) lists every module
+you can import.
+
+```python
+from wm import plugin, ui
+```
+
+`wm` is the keyboard's own package. `plugin` is your plugin itself: its state,
+its timers and its buttons. `ui` draws the panel.
+
+```python
+state = plugin.state(result="Press Flip")
+```
+
+`state` holds the values your plugin needs to remember while its panel is open.
+Here there is one value, `result`, and it starts as `"Press Flip"`. You read
+and change it as `state.result`.
+
+```python
+def flip():
+    state.result = random.choice(["Heads", "Tails"])
+```
+
+A plain function. It sets `result` to Heads or Tails. Nothing calls it yet.
+
+```python
+def render():
+```
+
+The keyboard calls `render()` to find out what the panel looks like. It calls
+it once when the panel opens, and again after anything happens.
+
+```python
+    with ui.column():
+        ui.title(state.result)
+        ui.button("Flip", on_click=flip, primary=True)
+```
+
+A column with two things in it, top to bottom: a title that shows `result`,
+and a button. `on_click=flip` tells the keyboard to call `flip` when the user
+presses the button. `primary=True` gives it the theme's main colour.
+
+So the loop is this:
+
+1. The keyboard calls `render()` and draws the title and the button.
+2. You press **Flip**. The keyboard calls `flip()`, which changes `state.result`.
+3. The keyboard calls `render()` again, and the title shows the new result.
+
+You never change the screen yourself. You change `state`, and `render()`
+describes what the panel looks like now.
+
+## Make it yours
+
+Try these small changes. Each one takes a line or two.
+
+- **Count the flips.** Add `flips=0` to `plugin.state(...)`, add
+  `state.flips += 1` in `flip()`, and show it with
+  `ui.caption(f"{state.flips} flips")`.
+- **Let the user put the result in their text.** Add
+  `ui.output(state.result)` in `render()`. The keyboard draws an **Insert**
+  button under it, and no permission is needed.
+- **Roll a die instead.** Use `str(random.randint(1, 6))`.
+
+## Where to go next
+
+<CardGrid>
+	<LinkCard title="Tutorial" description="Build a dictionary tool step by step: the internet, errors, saved history and a keyword." href="/plugins/tutorial/" />
+	<LinkCard title="Guides" description="One topic a page: drawing, state, timers, the internet, text, settings and more." href="/plugins/guides/drawing/" />
+	<LinkCard title="Examples" description="Ten small plugins you can copy and change." href="/plugins/examples/" />
+	<LinkCard title="API reference" description="Every function in the wm package." href="/plugins/wm-package/" />
+</CardGrid>
