@@ -2622,7 +2622,7 @@ private fun ClipFullTextPopup(
                     .fillMaxWidth()
                     .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
             ) {
-                Column(modifier = Modifier.padding(top = if (shape == null) 10.dp else 2.dp)) {
+                Column(modifier = Modifier.padding(top = if (shape == null) 10.dp else 4.dp)) {
                     Row(
                         modifier = Modifier.padding(start = 14.dp, end = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -2638,9 +2638,9 @@ private fun ClipFullTextPopup(
                             fontWeight = FontWeight.Medium,
                             color = dim,
                             maxLines = 1,
-                            modifier = Modifier.weight(1f, fill = false),
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
                         )
-                        Spacer(Modifier.weight(1f))
                         // Code with no language to colour and Markdown too long to
                         // draw have only one view, so no button.
                         val switchable = when (shape) {
@@ -2652,6 +2652,7 @@ private fun ClipFullTextPopup(
                             TextButton(
                                 onClick = { formatted = !formatted },
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
+                                modifier = Modifier.height(34.dp),
                             ) {
                                 Text(
                                     stringResource(if (formatted) R.string.ime_clip_show_raw else R.string.ime_clip_show_formatted),
@@ -2945,11 +2946,14 @@ private fun ClipFormattedBody(item: ClipItem, shape: CodeSniff.Shape, maxLines: 
         }
     }
     val code = shape is CodeSniff.Code
+    // One line of code (a JSON blob, a command, a query) wraps, or the card
+    // would show its first few words; more lines keep their shape.
+    val oneLine = remember(item.text) { item.text.trim().indexOf('\n') < 0 }
     Text(
         text = text,
         maxLines = maxLines,
-        overflow = if (code) TextOverflow.Clip else TextOverflow.Ellipsis,
-        softWrap = !code,
+        overflow = if (code && !oneLine) TextOverflow.Clip else TextOverflow.Ellipsis,
+        softWrap = !code || oneLine,
         fontSize = if (code) 12.sp else 13.sp,
         fontFamily = if (code) codeFontFamily() else null,
         lineHeight = hold.lineHeight,
