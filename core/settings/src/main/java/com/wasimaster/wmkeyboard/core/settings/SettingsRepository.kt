@@ -10952,10 +10952,12 @@ const val LM_STRENGTH_MAX = 200
 
 /**
  * The languages a picked suggestion commits bare in until the user says
- * otherwise (#986): Bangla, whose words take case markers and suffixes straight
- * after a pick, and whose kars are picked inside a word.
+ * otherwise: none. Bangla started off for a while (#986), for the kar picked
+ * inside a word, but that took the space from every whole word too; the
+ * keyboard now leaves the space out of a pick that lands mid-word or is a lone
+ * sign in every language, so Bangla gets the space back like the rest.
  */
-val DefaultSpaceAfterSuggestionOffLangs: Set<String> = setOf("bn", "bn-IN")
+val DefaultSpaceAfterSuggestionOffLangs: Set<String> = emptySet()
 
 /**
  * Suggestion-strip content options, grouped into their own object (see
@@ -11308,8 +11310,8 @@ data class SuggestionStripSettings(
      * on for the rest (#813): Bangla words take their case markers, postpositions
      * and suffixes straight after a suggestion, so the space is wrong more
      * often than right there. Only the switched-off languages are stored, so a
-     * language added later gets the space. Bangla starts off (#986): picking ি
-     * inside a word should not split it, and nobody asked for the space there.
+     * language added later gets the space. A pick that lands inside a word or
+     * is a lone sign (ি) gets no space whatever this holds (#986).
      */
     val spaceAfterSuggestionOffLangs: Set<String> = DefaultSpaceAfterSuggestionOffLangs,
     /**

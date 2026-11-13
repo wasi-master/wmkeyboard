@@ -31509,11 +31509,14 @@ open class WMKeyboardService : InputMethodService() {
         // already, so it earns no space of its own on top (#552).
         // A word typed into the middle of another one (a kar put back into
         // কিঞ্চ|ত) is a piece of that word, and a space after it would split
-        // the word in two (#986).
+        // the word in two (#986). So is a lone vowel sign or other mark (ি
+        // picked on its own), wherever it lands: it belongs to the letter
+        // before it, and the word it is part of goes on after it.
         val pickState = _uiState.value
         val after = ic.getTextAfterCursor(1, 0)
         val autoSpace = pickState.settings.suggestionStrip.autoSpaceAfterSuggestionFor(pickState.language.id) &&
             suggestion.lastOrNull()?.isWhitespace() != true &&
+            !isLoneSign(suggestion) &&
             !spendNoSpaceOnPick() &&
             !composingInsideWord(ic, pickState, after)
         val spaced = autoSpace && spaceToStepOver(after)
@@ -31669,6 +31672,18 @@ open class WMKeyboardService : InputMethodService() {
         return before.length > shown && WordContext.isWordChar(before[before.length - shown - 1])
     }
 
+    /**
+     * Whether [pick] is a vowel sign or other mark on its own (ি, ্, ং), with no
+     * letter of its own to stand on: a piece of the word it is put into, never
+     * a word to space after (#986).
+     */
+    private fun isLoneSign(pick: String): Boolean = pick.isNotEmpty() && pick.all {
+        it == '\u200C' || it == '\u200D' || when (Character.getType(it).toByte()) {
+            Character.NON_SPACING_MARK, Character.COMBINING_SPACING_MARK, Character.ENCLOSING_MARK -> true
+            else -> false
+        }
+    }
+
     /** How a pick that replaces a word where it stands is spaced; see [splicedPickSpacing]. */
     private class PickSpacing(val tail: String, val caretOffset: Int, val deferred: Boolean)
 
@@ -31757,9 +31772,13 @@ open class WMKeyboardService : InputMethodService() {
         stopVoiceForManualInput()
         vibrate()
         val state = _uiState.value
-        val autoSpace = state.settings.suggestionStrip.autoSpaceAfterSuggestionFor(state.language.id) &&
-            !spendNoSpaceOnPick()
         val after = ic.getTextAfterCursor(1, 0)
+        // A lone sign, or a word finished in the middle of another, is a piece
+        // of that word: no space after it, as on the strip (#986).
+        val autoSpace = state.settings.suggestionStrip.autoSpaceAfterSuggestionFor(state.language.id) &&
+            !isLoneSign(word) &&
+            !spendNoSpaceOnPick() &&
+            !composingInsideWord(ic, state, after)
         val spaced = autoSpace && spaceToStepOver(after)
         val deferSpace = autoSpace && !spaced && markHugsCaretWord(after)
         val tail = if (autoSpace && !spaced && !deferSpace) " " else ""
