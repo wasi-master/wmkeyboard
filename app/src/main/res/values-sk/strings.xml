@@ -3257,12 +3257,9 @@
     <string name="import_font_body">Aplikácia pridá toto písmo k vašim písmam. Vyberte, kde sa má text vykresľovať v časti Písma.</string>
     <string name="import_foreign_layout_body">Toto je rozloženie z inej klávesnice (FlorisBoard alebo Keyman). Aplikácia pridá jej klávesy ako vaše rozloženie. Rozloženie zostane vypnuté. Ak chcete s ním písať, zapnite ho v časti Jazyky.</string>
     <string name="import_futo_body">Toto je rozloženie klávesnice FUTO. Aplikácia pridá svoje klávesy s písmenami ako vaše rozloženie; klávesy so symbolmi a číslami zostávajú tie, ktoré máte. Rozloženie zostáva vypnuté. Ak chcete s ním písať, zapnite ho v časti Jazyky.</string>
-    <string name="import_futo_theme_body">Aplikácia prevedie farby tohto motívu klávesnice FUTO, ako aj jeho obrázok na pozadí a písmo, ak ich obsahuje. Aplikácia motív uloží, ale neaktivuje ho, aby ste si ho mohli najprv pozrieť.</string>
     <string name="import_futo_theme_credit">Vytvoril %1$s.</string>
     <string name="import_futo_theme_done">Aplikácia uložila %1$s. Otvorte Témy a pozrite si ju.</string>
-    <string name="import_futo_theme_dropped_pictures">Téma vykresľuje niektoré klávesy s vlastnými obrázkami. Táto aplikácia vykresľuje tieto klávesy vo farbách témy.</string>
     <string name="import_futo_theme_dropped_shader">Téma vykresľuje animovaný vzor za klávesmi, čo táto aplikácia nevykresľuje.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Motív preberá niektoré farby z tapety. Táto aplikácia ich nedokáže prečítať, preto si pre tieto časti vypočíta vlastné farby.</string>
     <string name="import_futo_theme_title">Motív z klávesnice FUTO</string>
     <string name="import_futo_theme_unreadable_body">Aplikácia nedokáže prečítať tento súbor ako tému klávesnice FUTO. Vyberte .zip súbor témy, ktorý obsahuje theme.txt alebo config.json.</string>
     <string name="import_gboard_body">Aplikácia môže použiť %1$d z %2$d pravidiel štýlu v tomto motíve. Motívy Gboard nastavujú časti klávesnice, ktoré táto aplikácia vykresľuje iným spôsobom. Aplikácia motív uloží, ale neaktivuje ho, aby ste si ho mohli najprv pozrieť.</string>

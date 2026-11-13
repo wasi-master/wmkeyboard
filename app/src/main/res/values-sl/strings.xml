@@ -3257,12 +3257,9 @@
     <string name="import_font_body">Aplikacija doda to pisavo med vaše pisave. Izberite, kje naj izrisuje besedilo v razdelku Pisave.</string>
     <string name="import_foreign_layout_body">To je postavitev z druge tipkovnice (FlorisBoard ali Keyman). Aplikacija doda njene tipke kot vašo postavitev. Postavitev ostane izklopljena. Če želite tipkati z njo, jo vklopite v Jezikih.</string>
     <string name="import_futo_body">To je razporeditev tipkovnice FUTO. Aplikacija doda njene tipke s črkami kot vašo razporeditev; tipke s simboli in številkami ostanejo tiste, ki jih že imate. Razporeditev ostane izklopljena. Če želite tipkati z njo, jo vklopite v Jezikih.</string>
-    <string name="import_futo_theme_body">Aplikacija pretvori barve te teme tipkovnice FUTO ter njeno sliko ozadja in pisavo, če ju ima. Aplikacija shrani temo, vendar je ne vklopi, da si jo lahko najprej ogledate.</string>
     <string name="import_futo_theme_credit">Izdelal %1$s.</string>
     <string name="import_futo_theme_done">Aplikacija je shranila %1$s. Odprite Teme, da si jo ogledate.</string>
-    <string name="import_futo_theme_dropped_pictures">Tema riše nekatere tipke z lastnimi slikami. Ta aplikacija te tipke riše v barvah teme.</string>
     <string name="import_futo_theme_dropped_shader">Tema izriše animiran vzorec za tipkami, česar ta aplikacija ne podpira.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Tema prevzame nekatere barve iz ozadja. Ta aplikacija jih ne more prebrati, zato za te dele določi lastne barve.</string>
     <string name="import_futo_theme_title">Tema iz tipkovnice FUTO</string>
     <string name="import_futo_theme_unreadable_body">Aplikacija tega ne more prebrati kot teme tipkovnice FUTO. Izberite datoteko .zip teme, tisto, ki vsebuje theme.txt ali config.json.</string>
     <string name="import_gboard_body">Aplikacija lahko uporabi %1$d od %2$d slogovnih pravil v tej temi. Teme Gboard določajo dele tipkovnice, ki jih ta aplikacija izriše na drugačen način. Aplikacija temo shrani, vendar je ne vklopi, tako da si jo lahko najprej ogledate.</string>

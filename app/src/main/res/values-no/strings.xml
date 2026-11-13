@@ -3258,12 +3258,9 @@
     <string name="import_font_body">Appen legger denne skrifttypen til i dine skrifttyper. Velg hvor den skal tegne tekst under Skrifttyper.</string>
     <string name="import_foreign_layout_body">Dette er et oppsett fra et annet tastatur (FlorisBoard eller Keyman). Appen legger til tastene som et av dine oppsett. Oppsettet forblir av. For å skrive med det, slå det på under Språk.</string>
     <string name="import_futo_body">Dette er et FUTO Keyboard-oppsett. Appen legger til bokstavtastene som et av dine oppsett; symbol- og talltastene forblir de du har. Oppsettet forblir av. For å skrive med det, slå det på under Språk.</string>
-    <string name="import_futo_theme_body">Appen konverterer fargene i dette FUTO Keyboard-temaet, samt bakgrunnsbilde og skrifttype hvis det finnes. Appen lagrer temaet, men aktiverer det ikke, slik at du kan se på det først.</string>
     <string name="import_futo_theme_credit">Laget av %1$s.</string>
     <string name="import_futo_theme_done">Appen lagret %1$s. Åpne Temaer for å se på det.</string>
-    <string name="import_futo_theme_dropped_pictures">Temaet tegner noen taster med egne bilder. Denne appen tegner disse tastene i temaets farger.</string>
     <string name="import_futo_theme_dropped_shader">Temaet tegner et animert mønster bak tastene, noe denne appen ikke tegner.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Temaet henter noen farger fra bakgrunnsbildet. Denne appen kan ikke lese disse, så den finner ut sine egne farger for de delene.</string>
     <string name="import_futo_theme_title">Tema fra FUTO Keyboard</string>
     <string name="import_futo_theme_unreadable_body">Appen kan ikke lese dette som et FUTO Keyboard-tema. Velg temaets .zip-fil, den som inneholder theme.txt eller config.json.</string>
     <string name="import_gboard_body">Appen kan bruke %1$d av de %2$d stilreglene i dette temaet. Gboard-temaer angir deler av et tastatur som denne appen tegner på en annen måte. Appen lagrer temaet, men slår det ikke på, slik at du kan se på det først.</string>

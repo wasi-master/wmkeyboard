@@ -3255,12 +3255,9 @@
     <string name="import_font_body">એપ આ ફોન્ટને તમારા ફોન્ટ્સમાં ઉમેરે છે. ફોન્ટ્સ હેઠળ તે ક્યાં ટેક્સ્ટ દોરે છે તે પસંદ કરો.</string>
     <string name="import_foreign_layout_body">આ અન્ય કીબોર્ડ (FlorisBoard અથવા Keyman) નું લેઆઉટ છે. એપ તેની કીને તમારા લેઆઉટ તરીકે ઉમેરે છે. લેઆઉટ બંધ રહે છે. તેની સાથે ટાઈપ કરવા માટે, તેને ભાષાઓમાં ચાલુ કરો.</string>
     <string name="import_futo_body">આ એક FUTO કીબોર્ડ લેઆઉટ છે. એપ તેના અક્ષર કીઓને તમારા લેઆઉટ તરીકે ઉમેરે છે; પ્રતીક અને નંબર કી તમારી પાસે છે તે જ રહે છે. લેઆઉટ બંધ રહે છે. તેનાથી ટાઇપ કરવા માટે, તેને ભાષાઓમાં ચાલુ કરો.</string>
-    <string name="import_futo_theme_body">આ એપ આ FUTO કીબોર્ડ થીમના રંગો, અને જો તેમાં હોય તો તેની બેકગ્રાઉન્ડ પિક્ચર અને ફોન્ટને કન્વર્ટ કરે છે. એપ થીમને સાચવે છે પણ તેને ચાલુ કરતી નથી, જેથી તમે પહેલા તેને જોઈ શકો.</string>
     <string name="import_futo_theme_credit">%1$s દ્વારા બનાવવામાં આવ્યું છે.</string>
     <string name="import_futo_theme_done">એપે %1$s સાચવ્યું. તેને જોવા માટે થીમ્સ ખોલો.</string>
-    <string name="import_futo_theme_dropped_pictures">થીમ કેટલીક કીઓને તેમના પોતાના ચિત્રો સાથે દોરે છે. આ એપ તે કીઓને થીમના રંગોમાં દોરે છે.</string>
     <string name="import_futo_theme_dropped_shader">થીમ કીની પાછળ એક એનિમેટેડ પેટર્ન દોરે છે, જે આ એપ દોરતી નથી.</string>
-    <string name="import_futo_theme_dropped_wallpaper">થીમ વોલપેપરમાંથી કેટલાક રંગો લે છે. આ એપ તે વાંચી શકતી નથી, તેથી તે તે ભાગો માટે તેના પોતાના રંગો નક્કી કરે છે.</string>
     <string name="import_futo_theme_title">FUTO કીબોર્ડમાંથી થીમ</string>
     <string name="import_futo_theme_unreadable_body">એપ તેને FUTO કીબોર્ડ થીમ તરીકે વાંચી શકતી નથી. થીમની .zip ફાઇલ પસંદ કરો, જેમાં theme.txt અથવા config.json હોય.</string>
     <string name="import_gboard_body">એપ આ થીમના %2$d સ્ટાઇલ નિયમોમાંથી %1$d નો ઉપયોગ કરી શકે છે. Gboard થીમ્સ કીબોર્ડના એવા ભાગો સેટ કરે છે જે આ એપ અલગ રીતે દોરે છે. એપ થીમને સાચવે છે પણ તેને ચાલુ કરતી નથી, જેથી તમે પહેલા તેને જોઈ શકો.</string>

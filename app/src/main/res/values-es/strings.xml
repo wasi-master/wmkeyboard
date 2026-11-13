@@ -3258,12 +3258,9 @@
     <string name="import_font_body">La aplicación añade esta fuente a tus fuentes. Elige dónde dibuja el texto en Fuentes.</string>
     <string name="import_foreign_layout_body">Esta es una distribución de otro teclado (FlorisBoard o Keyman). La aplicación añade sus teclas como una distribución tuya. La distribución permanece desactivada. Para escribir con ella, actívala en Idiomas.</string>
     <string name="import_futo_body">Esta es una distribución de teclado FUTO. La aplicación añade sus teclas de letras como una distribución tuya; las teclas de símbolos y números siguen siendo las que tienes. La distribución permanece desactivada. Para escribir con ella, actívala en Idiomas.</string>
-    <string name="import_futo_theme_body">La aplicación convierte los colores de este tema de FUTO Keyboard, así como su imagen de fondo y fuente si los tiene. La aplicación guarda el tema pero no lo activa, para que puedas verlo primero.</string>
     <string name="import_futo_theme_credit">Creado por %1$s.</string>
     <string name="import_futo_theme_done">La aplicación guardó %1$s. Abre Temas para verlo.</string>
-    <string name="import_futo_theme_dropped_pictures">El tema dibuja algunas teclas con sus propias imágenes. Esta aplicación dibuja esas teclas con los colores del tema.</string>
     <string name="import_futo_theme_dropped_shader">El tema dibuja un patrón animado detrás de las teclas, el cual esta aplicación no dibuja.</string>
-    <string name="import_futo_theme_dropped_wallpaper">El tema toma algunos colores del fondo de pantalla. Esta aplicación no puede leerlos, por lo que calcula sus propios colores para esas partes.</string>
     <string name="import_futo_theme_title">Tema del teclado FUTO</string>
     <string name="import_futo_theme_unreadable_body">La aplicación no puede leer eso como un tema de FUTO Keyboard. Selecciona el archivo .zip del tema, el que contiene theme.txt o config.json.</string>
     <string name="import_gboard_body">La aplicación puede usar %1$d de las %2$d reglas de estilo en este tema. Los temas de Gboard configuran partes de un teclado que esta aplicación dibuja de una manera diferente. La aplicación guarda el tema pero no lo activa, para que pueda verlo primero.</string>

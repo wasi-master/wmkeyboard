@@ -3257,12 +3257,9 @@
     <string name="import_font_body">Aplicația adaugă acest font la fonturile tale. Alege unde desenează textul sub Fonturi.</string>
     <string name="import_foreign_layout_body">Acesta este un aspect de la o altă tastatură (FlorisBoard sau Keyman). Aplicația adaugă tastele sale ca pe un aspect al tău. Aspectul rămâne dezactivat. Pentru a tasta cu el, activează-l în Limbi.</string>
     <string name="import_futo_body">Acesta este un aspect de tastatură FUTO. Aplicația adaugă tastele sale cu litere ca un aspect al dvs.; tastele cu simboluri și numere rămân cele pe care le aveți. Aspectul rămâne dezactivat. Pentru a tasta cu el, activați-l în Limbi.</string>
-    <string name="import_futo_theme_body">Aplicația convertește culorile acestei teme FUTO Keyboard, precum și imaginea de fundal și fontul, dacă acestea există. Aplicația salvează tema, dar nu o activează, pentru a o putea vizualiza mai întâi.</string>
     <string name="import_futo_theme_credit">Creat de %1$s.</string>
     <string name="import_futo_theme_done">Aplicația a salvat %1$s. Deschide Teme pentru a o vedea.</string>
-    <string name="import_futo_theme_dropped_pictures">Tema desenează unele taste cu propriile imagini. Această aplicație desenează acele taste în culorile temei.</string>
     <string name="import_futo_theme_dropped_shader">Tema desenează un model animat în spatele tastelor, pe care această aplicație nu îl desenează.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Tema preia câteva culori din imaginea de fundal. Această aplicație nu le poate citi, așa că își calculează propriile culori pentru acele părți.</string>
     <string name="import_futo_theme_title">Temă din tastatura FUTO</string>
     <string name="import_futo_theme_unreadable_body">Aplicația nu poate citi acest fișier ca o temă FUTO Keyboard. Alege fișierul .zip al temei, cel care conține theme.txt sau config.json.</string>
     <string name="import_gboard_body">Aplicația poate utiliza %1$d din cele %2$d reguli de stil din această temă. Temele Gboard setează părți ale unei tastaturi pe care această aplicație le desenează într-un mod diferit. Aplicația salvează tema, dar nu o activează, pentru a o putea vizualiza mai întâi.</string>

@@ -3257,12 +3257,9 @@
     <string name="import_font_body">Appen lägger till detta typsnitt i dina typsnitt. Välj var det ska rita text under Typsnitt.</string>
     <string name="import_foreign_layout_body">Detta är en layout från ett annat tangentbord (FlorisBoard eller Keyman). Appen lägger till dess tangenter som en av dina layouter. Layouten förblir inaktiverad. För att skriva med den, aktivera den under Språk.</string>
     <string name="import_futo_body">Detta är en FUTO-tangentbordslayout. Appen lägger till dess bokstavstangenter som en av dina layouter; symbol- och siffertangenterna förblir de du har. Layouten förblir avstängd. För att skriva med den, aktivera den under Språk.</string>
-    <string name="import_futo_theme_body">Appen konverterar färgerna i detta FUTO Keyboard-tema, samt dess bakgrundsbild och typsnitt om sådana finns. Appen sparar temat men aktiverar det inte, så att du kan titta på det först.</string>
     <string name="import_futo_theme_credit">Skapad av %1$s.</string>
     <string name="import_futo_theme_done">Appen sparade %1$s. Öppna Teman för att titta på det.</string>
-    <string name="import_futo_theme_dropped_pictures">Temat ritar vissa tangenter med egna bilder. Den här appen ritar dessa tangenter i temats färger.</string>
     <string name="import_futo_theme_dropped_shader">Temat ritar ett animerat mönster bakom tangenterna, vilket den här appen inte ritar.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Temat tar vissa färger från bakgrundsbilden. Denna app kan inte läsa dessa, så den räknar ut sina egna färger för dessa delar.</string>
     <string name="import_futo_theme_title">Tema från FUTO Keyboard</string>
     <string name="import_futo_theme_unreadable_body">Appen kan inte läsa detta som ett FUTO Keyboard-tema. Välj temats .zip-fil, den som innehåller theme.txt eller config.json.</string>
     <string name="import_gboard_body">Appen kan använda %1$d av de %2$d stilreglerna i detta tema. Gboard-teman ställer in delar av ett tangentbord som denna app ritar på ett annat sätt. Appen sparar temat men aktiverar det inte, så att du kan titta på det först.</string>

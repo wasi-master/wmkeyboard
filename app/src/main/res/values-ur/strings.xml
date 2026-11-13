@@ -3254,12 +3254,9 @@
     <string name="import_font_body">ایپ اس فونٹ کو آپ کے فونٹس میں شامل کرتی ہے۔ منتخب کریں کہ یہ فونٹس کے تحت متن کہاں ڈرا کرتا ہے۔</string>
     <string name="import_foreign_layout_body">یہ کسی دوسرے کی بورڈ (FlorisBoard یا Keyman) کا لے آؤٹ ہے۔ ایپ اس کی کلیدوں کو آپ کے لے آؤٹ کے طور پر شامل کرتی ہے۔ لے آؤٹ بند رہتا ہے۔ اس کے ساتھ ٹائپ کرنے کے لیے، اسے زبانوں میں آن کریں۔</string>
     <string name="import_futo_body">یہ ایک FUTO کی بورڈ لے آؤٹ ہے۔ ایپ اس کے لیٹر کیز کو آپ کے لے آؤٹ کے طور پر شامل کرتی ہے؛ علامت اور نمبر کیز وہی رہتی ہیں جو آپ کے پاس ہیں۔ لے آؤٹ بند رہتا ہے۔ اس کے ساتھ ٹائپ کرنے کے لیے، اسے زبانوں (Languages) میں آن کریں۔</string>
-    <string name="import_futo_theme_body">ایپ اس FUTO کی بورڈ تھیم کے رنگوں، اور اگر اس میں پس منظر کی تصویر اور فونٹ ہے تو اسے تبدیل کرتی ہے۔ ایپ تھیم کو محفوظ کرتی ہے لیکن اسے آن نہیں کرتی، تاکہ آپ پہلے اسے دیکھ سکیں۔</string>
     <string name="import_futo_theme_credit">%1$s کی طرف سے بنایا گیا۔</string>
     <string name="import_futo_theme_done">ایپ نے %1$s کو محفوظ کر لیا ہے۔ اسے دیکھنے کے لیے تھیمز کھولیں۔</string>
-    <string name="import_futo_theme_dropped_pictures">تھیم کچھ کلیدوں کو ان کی اپنی تصاویر کے ساتھ ڈرا کرتی ہے۔ یہ ایپ ان کلیدوں کو تھیم کے رنگوں میں ڈرا کرتی ہے۔</string>
     <string name="import_futo_theme_dropped_shader">تھیم کلیدوں کے پیچھے ایک متحرک پیٹرن کھینچتی ہے، جسے یہ ایپ نہیں کھینچتی۔</string>
-    <string name="import_futo_theme_dropped_wallpaper">تھیم وال پیپر سے کچھ رنگ لیتی ہے۔ یہ ایپ انہیں پڑھ نہیں سکتی، اس لیے یہ ان حصوں کے لیے اپنے رنگ خود تیار کرتی ہے۔</string>
     <string name="import_futo_theme_title">FUTO کی بورڈ سے تھیم</string>
     <string name="import_futo_theme_unreadable_body">ایپ اسے FUTO کی بورڈ تھیم کے طور پر نہیں پڑھ سکتی۔ تھیم کی .zip فائل منتخب کریں، جس میں theme.txt یا config.json موجود ہو۔</string>
     <string name="import_gboard_body">ایپ اس تھیم میں %2$d اسٹائل رولز میں سے %1$d استعمال کر سکتی ہے۔ Gboard تھیمز کی بورڈ کے ان حصوں کو سیٹ کرتے ہیں جنہیں یہ ایپ مختلف طریقے سے ڈرا کرتی ہے۔ ایپ تھیم کو محفوظ کرتی ہے لیکن اسے آن نہیں کرتی، تاکہ آپ پہلے اسے دیکھ سکیں۔</string>

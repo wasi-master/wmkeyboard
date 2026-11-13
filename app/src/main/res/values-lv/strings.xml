@@ -3259,12 +3259,9 @@
     <string name="import_font_body">Lietotne pievieno šo fontu jūsu fontiem. Izvēlieties, kur tas zīmē tekstu sadaļā Fonti.</string>
     <string name="import_foreign_layout_body">Šis ir izkārtojums no citas tastatūras (FlorisBoard vai Keyman). Lietotne pievieno tās taustiņus kā jūsu izkārtojumu. Izkārtojums paliek izslēgts. Lai ar to rakstītu, ieslēdziet to sadaļā Valodas.</string>
     <string name="import_futo_body">Šis ir FUTO tastatūras izkārtojums. Lietotne pievieno savus burtu taustiņus kā jūsu izkārtojumu; simbolu un ciparu taustiņi paliek tādi, kādi tie ir. Izkārtojums paliek izslēgts. Lai rakstītu ar to, ieslēdziet to sadaļā Valodas.</string>
-    <string name="import_futo_theme_body">Lietotne konvertē šīs FUTO tastatūras tēmas krāsas, kā arī tās fona attēlu un fontu, ja tādi ir. Lietotne saglabā tēmu, bet neieslēdz to, lai jūs vispirms varētu to apskatīt.</string>
     <string name="import_futo_theme_credit">Izveidoja %1$s.</string>
     <string name="import_futo_theme_done">Lietotne saglabāja %1$s. Atveriet Tēmas, lai to apskatītu.</string>
-    <string name="import_futo_theme_dropped_pictures">Tēma zīmē dažus taustiņus ar saviem attēliem. Šī lietotne zīmē šos taustiņus tēmas krāsās.</string>
     <string name="import_futo_theme_dropped_shader">Motīvs zīmē animētu rakstu aiz taustiņiem, ko šī lietotne nezīmē.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Motīvs iegūst dažas krāsas no fona attēla. Šī lietotne tās nevar nolasīt, tāpēc tā pati izrēķina krāsas šīm daļām.</string>
     <string name="import_futo_theme_title">FUTO tastatūras motīvs</string>
     <string name="import_futo_theme_unreadable_body">Lietotne nevar nolasīt šo kā FUTO tastatūras motīvu. Izvēlieties motīva .zip failu, kurā ir theme.txt vai config.json.</string>
     <string name="import_gboard_body">Lietotne var izmantot %1$d no %2$d stila noteikumiem šajā motīvā. Gboard motīvi iestata tastatūras daļas, kuras šī lietotne attēlo citādā veidā. Lietotne saglabā motīvu, bet to neieslēdz, lai jūs varētu to vispirms apskatīt.</string>

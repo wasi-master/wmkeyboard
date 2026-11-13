@@ -46,6 +46,38 @@ data class WallpaperTones(
 ) {
     companion object {
         /**
+         * Material 3's baseline tonal palettes, the published reference tokens,
+         * for a phone with no wallpaper palette (below Android 12) or a
+         * conversion run off the device. The tonal twin of
+         * [SnyggPalette.Baseline].
+         */
+        val Baseline = WallpaperTones(
+            primary = listOf(
+                0xFFFFFFFF, 0xFFFFFBFE, 0xFFF6EDFF, 0xFFEADDFF, 0xFFD0BCFF, 0xFFB69DF8, 0xFF9A82DB,
+                0xFF7F67BE, 0xFF6750A4, 0xFF4F378B, 0xFF381E72, 0xFF21005D, 0xFF000000,
+            ),
+            secondary = listOf(
+                0xFFFFFFFF, 0xFFFFFBFE, 0xFFF6EDFF, 0xFFE8DEF8, 0xFFCCC2DC, 0xFFB0A7C0, 0xFF958DA5,
+                0xFF7A7289, 0xFF625B71, 0xFF4A4458, 0xFF332D41, 0xFF1D192B, 0xFF000000,
+            ),
+            tertiary = listOf(
+                0xFFFFFFFF, 0xFFFFFBFA, 0xFFFFECF1, 0xFFFFD8E4, 0xFFEFB8C8, 0xFFD29DAC, 0xFFB58392,
+                0xFF986977, 0xFF7D5260, 0xFF633B48, 0xFF492532, 0xFF31111D, 0xFF000000,
+            ),
+            neutral = listOf(
+                0xFFFFFFFF, 0xFFFFFBFE, 0xFFF4EFF4, 0xFFE6E1E5, 0xFFC9C5CA, 0xFFAEAAAE, 0xFF939094,
+                0xFF787579, 0xFF605D62, 0xFF484649, 0xFF313033, 0xFF1C1B1F, 0xFF000000,
+            ),
+            neutralVariant = listOf(
+                0xFFFFFFFF, 0xFFFFFBFE, 0xFFF5EEFA, 0xFFE7E0EC, 0xFFCAC4D0, 0xFFAEA9B4, 0xFF938F99,
+                0xFF79747E, 0xFF605D66, 0xFF49454F, 0xFF322F37, 0xFF1D1A22, 0xFF000000,
+            ),
+        )
+
+        /** [palettes]' names, in the same order, as [wallpaperToneKey] spells them. */
+        val PALETTE_NAMES = listOf("primary", "secondary", "tertiary", "neutral", "neutralvariant")
+
+        /**
          * The tone of each shade Android publishes, matching the `_0`, `_10`,
          * `_50`, `_100` … `_1000` suffixes of the system colour resources.
          */
@@ -145,7 +177,7 @@ fun ThemeSpec.followingWallpaper(palette: WallpaperPalette?): ThemeSpec {
  */
 fun ThemeSpec.recoloredBy(palette: WallpaperPalette): ThemeSpec {
     val remap: (Long) -> Long = if (wallpaperRoles.isNotEmpty()) {
-        roleRemap(wallpaperRoles, palette.roles)
+        roleRemap(wallpaperRoles, palette)
     } else {
         toneRemap(palette.tones, anchorHue())
     }
@@ -160,8 +192,29 @@ fun ThemeSpec.recoloredBy(palette: WallpaperPalette): ThemeSpec {
 fun wallpaperRoleKey(dark: Boolean, role: String): String =
     (if (dark) DARK_PREFIX else LIGHT_PREFIX) + SnyggPalette.normalizeRole(role)
 
+/**
+ * The key [ThemeSpec.wallpaperRoles] uses for one shade of one tonal palette
+ * rather than a scheme role: `tone:neutralvariant:60`. [palette] is one of
+ * [WallpaperTones.PALETTE_NAMES]. A FUTO theme names its colours this way as
+ * often as by role (`system_neutralVariant60`, `system_accent1_200`).
+ */
+fun wallpaperToneKey(palette: String, tone: Int): String =
+    TONE_PREFIX + SnyggPalette.normalizeRole(palette) + ":" + tone.coerceIn(0, 100)
+
 private const val DARK_PREFIX = "dark:"
 private const val LIGHT_PREFIX = "light:"
+private const val TONE_PREFIX = "tone:"
+
+/** The colour a [wallpaperToneKey] names in [tones], or null for a key that is not one. */
+internal fun toneKeyValue(key: String, tones: WallpaperTones): Long? {
+    if (!key.startsWith(TONE_PREFIX)) return null
+    val parts = key.removePrefix(TONE_PREFIX).split(':')
+    if (parts.size != 2) return null
+    val index = WallpaperTones.PALETTE_NAMES.indexOf(parts[0])
+    val tone = parts[1].toIntOrNull() ?: return null
+    val palette = tones.palettes.getOrNull(index)?.takeIf { it.size == WallpaperTones.TONES.size } ?: return null
+    return WallpaperTones.shade(palette, tone)
+}
 
 /**
  * Old colour to new, one entry per distinct import-time value.
@@ -171,12 +224,14 @@ private const val LIGHT_PREFIX = "light:"
  * is the one the stylesheet named first; roles that were equal once almost
  * always still are.
  */
-private fun roleRemap(recorded: Map<String, Long>, live: SnyggPalette): (Long) -> Long {
+private fun roleRemap(recorded: Map<String, Long>, live: WallpaperPalette): (Long) -> Long {
     val moves = HashMap<Long, Long>()
     for ((key, old) in recorded) {
-        val dark = key.startsWith(DARK_PREFIX)
-        val role = key.substringAfter(':')
-        val now = live.resolve(dark, role) ?: continue
+        val now = if (key.startsWith(TONE_PREFIX)) {
+            toneKeyValue(key, live.tones)
+        } else {
+            live.roles.resolve(key.startsWith(DARK_PREFIX), key.substringAfter(':'))
+        } ?: continue
         moves.putIfAbsent(old and RGB, now and RGB)
     }
     return { color -> moves[color and RGB]?.let { (color and ALPHA) or it } ?: color }

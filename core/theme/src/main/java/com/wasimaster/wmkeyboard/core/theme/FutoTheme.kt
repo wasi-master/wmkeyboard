@@ -39,9 +39,16 @@ import kotlin.math.roundToInt
  * under its own source-first licence; what is transcribed here is the shape of
  * a file, the same footing as the other converters.
  *
- * What does not come across: pictures drawn per key (FUTO's `matchrules`, its
- * nine-patch key borders and icons), the background shader, and colours taken
- * from the wallpaper. Each is named in [FutoThemeResult.Converted.dropped].
+ * Pictures drawn per key (FUTO's `matchrules`: nine-slice key borders and
+ * glyphs) come across as key textures, single-key styles and icon slots; see
+ * [FutoMatchRules]. Colours taken from the wallpaper (`system_primary_dark`,
+ * `system_neutralVariant60`, `system_accent1_200`) are resolved against the
+ * phone's own Material You palette and recorded as roles, so the theme keeps
+ * following the wallpaper ([ThemeSpec.wallpaperRoles]).
+ *
+ * What does not come across: the background shader, rules that pick keys by
+ * row and column, and pictures for states this app has none for. Each is named
+ * in [FutoThemeResult.Converted.dropped].
  */
 object FutoTheme {
 
@@ -65,40 +72,50 @@ object FutoTheme {
     fun looksLikeFutoTheme(names: Collection<String>): Boolean =
         VERSION_ENTRY in names || TOML_CONFIG in names
 
-    /** Reads a theme ZIP. Never throws. */
-    fun read(input: InputStream): FutoThemeResult {
+    /**
+     * Reads a theme ZIP. Never throws.
+     *
+     * [palette] is the phone's wallpaper palette (`deviceWallpaperPalette`),
+     * which the theme's `system_…` colours are resolved against. Null stands
+     * in Material's baseline colours, and the import says so.
+     */
+    fun read(input: InputStream, palette: WallpaperPalette? = null): FutoThemeResult {
         val files = runCatching { unzip(input) }.getOrNull() ?: return FutoThemeResult.Unreadable
-        return read(files)
+        return read(files, palette)
     }
 
     /** Reads a theme already unpacked, by entry name. */
-    fun read(files: Map<String, ByteArray>): FutoThemeResult {
+    fun read(files: Map<String, ByteArray>, palette: WallpaperPalette? = null): FutoThemeResult {
         // TOML first, as FUTO does: a theme written by hand and then opened in
         // FUTO's editor keeps its hand-written file.
         files[TOML_CONFIG]?.let { bytes ->
             val toml = MiniToml.parse(bytes.decodeToString()) ?: return FutoThemeResult.NotATheme
-            return fromToml(toml, files)
+            return fromToml(toml, files, palette)
         }
         files[JSON_CONFIG]?.let { bytes ->
             val obj = runCatching { json.parseToJsonElement(bytes.decodeToString()) }.getOrNull() as? JsonObject
                 ?: return FutoThemeResult.NotATheme
-            return fromJson(obj, files)
+            return fromJson(obj, files, palette)
         }
         return FutoThemeResult.NotATheme
     }
 
     // ---- the two files ----
 
-    private fun fromToml(toml: Map<String, Any?>, files: Map<String, ByteArray>): FutoThemeResult {
+    private fun fromToml(
+        toml: Map<String, Any?>,
+        files: Map<String, ByteArray>,
+        palette: WallpaperPalette?,
+    ): FutoThemeResult {
         val colours = toml.table("colors") ?: return FutoThemeResult.NotATheme
         val options = toml.table("options").orEmpty()
         val background = options.table("background")
-        val matchrules = toml.table("matchrules").orEmpty()
         val roles = LinkedHashMap<String, String>()
         for ((key, value) in colours) (value as? String)?.let { roles[key] = it }
+        val reader = FutoColours(alphaLast = true, palette = palette)
         return convert(
             roles = roles,
-            alphaLast = true,
+            colours = reader,
             name = toml["name"] as? String,
             author = toml["author"] as? String,
             borders = options["auto_borders"] as? Boolean ?: true,
@@ -109,8 +126,8 @@ object FutoTheme {
             backgroundImage = background?.get("image") as? String,
             backgroundOpacity = (background?.get("opacity") as? Number)?.toFloat() ?: TOML_BACKGROUND_OPACITY,
             font = options.table("font")?.get("font") as? String,
-            keyPictures = (matchrules["border"] as? List<*>).orEmpty().isNotEmpty() ||
-                (matchrules["icon"] as? List<*>).orEmpty().isNotEmpty(),
+            rules = FutoMatchRules(toml, files) { reader.colour(it) }.takeUnless { it.isEmpty },
+            keyPictures = false,
             shader = false,
             hint = null,
             navigationBar = null,
@@ -118,7 +135,7 @@ object FutoTheme {
         )
     }
 
-    private fun fromJson(obj: JsonObject, files: Map<String, ByteArray>): FutoThemeResult {
+    private fun fromJson(obj: JsonObject, files: Map<String, ByteArray>, palette: WallpaperPalette?): FutoThemeResult {
         val roles = LinkedHashMap<String, String>()
         for ((key, value) in obj) {
             val text = (value as? JsonPrimitive)?.takeIf { it.isString }?.content ?: continue
@@ -130,7 +147,7 @@ object FutoTheme {
             (obj["keyIcons"] as? JsonObject)?.isNotEmpty() == true
         return convert(
             roles = roles,
-            alphaLast = false,
+            colours = FutoColours(alphaLast = false, palette = palette),
             name = string("name"),
             author = string("author"),
             borders = (obj["keyBorders"] as? JsonPrimitive)?.booleanOrNull ?: true,
@@ -141,6 +158,9 @@ object FutoTheme {
             backgroundImage = string("backgroundImage"),
             backgroundOpacity = float("backgroundImageOpacity") ?: 1f,
             font = string("keysFont"),
+            rules = null,
+            // What the editor's own file says about pictures is not
+            // published, so its per-key pictures are still named and dropped.
             keyPictures = keyPictures,
             shader = !string("keyboardBackgroundShader").isNullOrBlank(),
             hint = roles["hint_color"],
@@ -154,7 +174,7 @@ object FutoTheme {
     @Suppress("LongParameterList")
     private fun convert(
         roles: Map<String, String>,
-        alphaLast: Boolean,
+        colours: FutoColours,
         name: String?,
         author: String?,
         borders: Boolean,
@@ -165,6 +185,7 @@ object FutoTheme {
         backgroundImage: String?,
         backgroundOpacity: Float,
         font: String?,
+        rules: FutoMatchRules?,
         keyPictures: Boolean,
         shader: Boolean,
         hint: String?,
@@ -172,16 +193,7 @@ object FutoTheme {
         files: Map<String, ByteArray>,
     ): FutoThemeResult {
         val dropped = linkedSetOf<FutoThemeUnsupported>()
-        fun colour(text: String?): Long? {
-            if (text == null) return null
-            if (!text.startsWith("#")) {
-                // A wallpaper colour, or a name for another role: FUTO only
-                // allows the first in the colour table.
-                if (text.startsWith(SYSTEM_PREFIX)) dropped += FutoThemeUnsupported.WALLPAPER_COLOURS
-                return null
-            }
-            return parseHex(text, alphaLast)
-        }
+        fun colour(text: String?): Long? = colours.colour(text)
         fun role(name: String): Long? = colour(roles[name])
 
         val board = role("keyboard_surface") ?: role("background") ?: return FutoThemeResult.NotATheme
@@ -205,7 +217,7 @@ object FutoTheme {
             bytesOf(path, files)?.let { ConvertedFont(name ?: DEFAULT_NAME, path.substringAfterLast('/'), it) }
         }
 
-        val theme = ThemeSpec(
+        val plain = ThemeSpec(
             id = "",
             name = name?.takeIf { it.isNotBlank() } ?: DEFAULT_NAME,
             dark = night,
@@ -238,10 +250,107 @@ object FutoTheme {
             boldKeyLabels = textWeight?.takeIf { it >= BOLD_WEIGHT }?.let { true },
             backgroundImageOpacity = if (images.isEmpty()) 1f else backgroundOpacity.coerceIn(0f, 1f),
         )
+        // The pictures lay over the colours, so they go on last; with key
+        // borders off FUTO draws no key face for a picture to replace.
+        val pictured = if (rules != null && borders) {
+            withPictures(plain, rules, images).also { dropped += rules.dropped }
+        } else {
+            if (rules != null) dropped += FutoThemeUnsupported.KEY_PICTURES
+            plain
+        }
+        val theme = pictured.copy(
+            followWallpaper = colours.recorded.isNotEmpty(),
+            wallpaperRoles = colours.recorded.toMap(),
+        )
+        dropped += colours.dropped
         return FutoThemeResult.Converted(
             converted = ConvertedTheme(theme, images, fontFile),
             author = author?.takeIf { it.isNotBlank() && it != "Anonymous" }.orEmpty(),
             dropped = dropped.toList(),
+        )
+    }
+
+    /**
+     * [theme] with the matchrules' pictures laid on: class textures, single-key
+     * styles and icon slots, their bytes written into [images] under the
+     * transport slots `stored` writes out.
+     *
+     * A key a picture covers has its face colour made clear, because FUTO
+     * draws the picture *instead of* the key face: the rounded rectangle
+     * would otherwise show round a picture with its own outline. The picture's
+     * `foreground_tint` becomes the label colour on it, which is what FUTO
+     * draws there.
+     */
+    private fun withPictures(
+        theme: ThemeSpec,
+        rules: FutoMatchRules,
+        images: MutableMap<String, ByteArray>,
+    ): ThemeSpec {
+        val laid = rules.resolve()
+        val slices = LinkedHashMap<String, TextureSlice>()
+        fun put(slot: String, name: String): Boolean {
+            val picture = rules.border(name) ?: return false
+            images[slot] = picture.bytes
+            picture.slice?.let { slices[slot] = it }
+            return true
+        }
+        val classes = LinkedHashMap<String, String>()
+        for ((slot, name) in laid.classSlots) if (name != null && put(slot, name)) classes[slot] = name
+        val normal = classes[ASSET_KEY_TEXTURE]
+        val modifier = classes[ASSET_KEY_TEXTURE_MODIFIER] ?: normal
+        val enter = classes[ASSET_KEY_TEXTURE_ENTER] ?: modifier
+        val space = classes[ASSET_KEY_TEXTURE_SPACE] ?: normal
+
+        fun fg(name: String?): Long? = name?.let { laid.foreground[it] }
+        val keyText = fg(normal) ?: theme.keyText
+        val modifierText = fg(modifier) ?: theme.modifierKeyText
+        val enterText = fg(enter) ?: theme.enterKeyText
+        val keyFace = if (normal != null) CLEAR else theme.keyBackground
+        val modifierFace = if (modifier != null) CLEAR else theme.modifierKeyBackground
+        val enterFace = if (enter != null) CLEAR else theme.enterKeyBackground
+
+        val overrides = LinkedHashMap(theme.keyOverrides)
+        fun edit(id: String, change: (KeyOverride) -> KeyOverride) {
+            overrides[id] = change(overrides[id] ?: KeyOverride())
+        }
+        // An entry has to exist for `withExtractedImages` to write the
+        // picture out; it fills in the path itself.
+        for ((id, name) in laid.keyTextures) if (put(ASSET_KEY_OVERRIDE_TEXTURE_PREFIX + id, name)) edit(id) { it }
+        for ((id, name) in laid.keyPressed) if (put(ASSET_KEY_OVERRIDE_PRESSED_PREFIX + id, name)) edit(id) { it }
+        for (probe in FutoMatchRules.PROBES) {
+            val own = laid.keyTextures[probe.id]?.takeIf { (ASSET_KEY_OVERRIDE_TEXTURE_PREFIX + probe.id) in images }
+            val shown = own ?: when (probe.kind) {
+                ProbeKind.LETTER -> normal
+                ProbeKind.MODIFIER -> modifier
+                ProbeKind.ENTER -> enter
+                ProbeKind.SPACE -> space
+            } ?: continue
+            val (face, text) = when (probe.kind) {
+                ProbeKind.LETTER -> keyFace to keyText
+                ProbeKind.ENTER -> enterFace to enterText
+                else -> modifierFace to modifierText
+            }
+            if (face != CLEAR) edit(probe.id) { it.copy(background = CLEAR) }
+            fg(shown)?.takeIf { it != text }?.let { colour -> edit(probe.id) { it.copy(text = colour) } }
+        }
+
+        for ((slot, name) in laid.icons) {
+            rules.icon(name)?.let { images[ASSET_KEY_ICON_PREFIX + slot] = it }
+        }
+        if (classes.isEmpty() && overrides == theme.keyOverrides) return theme
+        return theme.copy(
+            keyBackground = keyFace,
+            keyText = keyText,
+            modifierKeyBackground = modifierFace,
+            modifierKeyText = modifierText,
+            enterKeyBackground = enterFace,
+            enterKeyText = enterText,
+            // The key preview kept the key's colour before the face went clear.
+            popupBackground = theme.popupBackground ?: theme.keyBackground,
+            pressedKeyBackground = if (ASSET_KEY_TEXTURE_PRESSED in classes) CLEAR else theme.pressedKeyBackground,
+            keyTextureScale = KeyTextureScale.STRETCH.name.lowercase(),
+            keyOverrides = overrides,
+            textureSlices = slices,
         )
     }
 
@@ -321,7 +430,8 @@ object FutoTheme {
 
     private val json = Json { isLenient = true; ignoreUnknownKeys = true }
 
-    private const val SYSTEM_PREFIX = "system_"
+    /** A key face with nothing drawn: a picture stands in for it. */
+    private const val CLEAR = 0x00000000L
     private const val DEFAULT_NAME = "FUTO theme"
     private const val OPAQUE_BLACK = 0xFF000000L
     private const val DARK_THRESHOLD = 0.5f
@@ -361,11 +471,107 @@ enum class FutoThemeUnsupported {
     /** Pictures drawn per key: FUTO's key borders and icons. */
     KEY_PICTURES,
 
-    /** Colours taken from the wallpaper, which this app works out for itself. */
+    /** Colours taken from the wallpaper under a name this app does not know. */
     WALLPAPER_COLOURS,
+
+    /**
+     * Colours taken from the wallpaper on a phone with no wallpaper palette
+     * (below Android 12): Material's own colours stand in for them.
+     */
+    WALLPAPER_STAND_IN,
 
     /** A shader drawn behind the keys. */
     SHADER,
+
+    /** Key pictures picked by row and column, which a layout here does not share. */
+    KEY_POSITIONS,
+
+    /** Key pictures for states this app has no picture for: shift on, a held glyph, the long-press popup. */
+    KEY_STATES,
+}
+
+/**
+ * Reads FUTO's colour strings: `#RRGGBB` and friends, and the `system_…` names
+ * that stand for the wallpaper's colours.
+ *
+ * A wallpaper colour is resolved against [palette] now and recorded in
+ * [recorded] under the role or shade it names, which is what
+ * [followingWallpaper] needs to move it onto the next wallpaper. Three
+ * spellings occur in published themes:
+ *
+ * - a scheme role with its scheme: `system_primary_dark`,
+ *   `system_on_surface_light`, `system_surface_container_high_dark`;
+ * - Android's own tonal shades: `system_accent1_200` (`accent1..3` are the
+ *   primary, secondary and tertiary palettes, `neutral1..2` the neutral ones,
+ *   and the number is a thousandth of the way from white to black);
+ * - FUTO's shorter tonal shades: `system_primary80`, `system_neutralVariant60`,
+ *   `system_neutral0`, the number being the tone itself.
+ */
+internal class FutoColours(private val alphaLast: Boolean, palette: WallpaperPalette?) {
+    private val roles = palette?.roles ?: SnyggPalette.Baseline
+    private val tones = palette?.tones ?: WallpaperTones.Baseline
+    private val standIn = palette == null || !palette.roles.fromDevice
+
+    val recorded = LinkedHashMap<String, Long>()
+    val dropped = linkedSetOf<FutoThemeUnsupported>()
+
+    fun colour(text: String?): Long? {
+        if (text == null) return null
+        if (text.startsWith("#")) return FutoTheme.parseHex(text, alphaLast)
+        // FUTO allows only a wallpaper colour by name in the colour table.
+        if (!text.startsWith(SYSTEM_PREFIX)) return null
+        val (key, value) = system(text.removePrefix(SYSTEM_PREFIX)) ?: run {
+            dropped += FutoThemeUnsupported.WALLPAPER_COLOURS
+            return null
+        }
+        if (standIn) dropped += FutoThemeUnsupported.WALLPAPER_STAND_IN
+        recorded.putIfAbsent(key, value)
+        return value
+    }
+
+    /** The record key and today's colour for one name with its `system_` taken off. */
+    private fun system(name: String): Pair<String, Long>? {
+        val lower = name.lowercase()
+        ANDROID_SHADE.matchEntire(lower)?.let { match ->
+            val palette = ANDROID_PALETTES.getValue(match.groupValues[1])
+            val step = match.groupValues[2].toInt()
+            if (step > ANDROID_STEPS) return null
+            return shade(palette, TONE_MAX - step / ANDROID_STEP_PER_TONE)
+        }
+        FUTO_SHADE.matchEntire(lower)?.let { match ->
+            val palette = match.groupValues[1].replace("_", "")
+            val tone = match.groupValues[2].toInt()
+            if (tone > TONE_MAX) return null
+            return shade(palette, tone)
+        }
+        val dark = !lower.endsWith(LIGHT_SUFFIX)
+        val role = lower.removeSuffix(DARK_SUFFIX).removeSuffix(LIGHT_SUFFIX)
+        val value = roles.resolve(dark, role) ?: return null
+        return wallpaperRoleKey(dark, role) to value
+    }
+
+    private fun shade(palette: String, tone: Int): Pair<String, Long>? {
+        val key = wallpaperToneKey(palette, tone)
+        return toneKeyValue(key, tones)?.let { key to it }
+    }
+
+    private companion object {
+        const val SYSTEM_PREFIX = "system_"
+        const val DARK_SUFFIX = "_dark"
+        const val LIGHT_SUFFIX = "_light"
+        const val TONE_MAX = 100
+        const val ANDROID_STEPS = 1000
+        const val ANDROID_STEP_PER_TONE = 10
+        val ANDROID_SHADE = Regex("(accent1|accent2|accent3|neutral1|neutral2)_(\\d{1,4})")
+        val ANDROID_PALETTES = mapOf(
+            "accent1" to "primary",
+            "accent2" to "secondary",
+            "accent3" to "tertiary",
+            "neutral1" to "neutral",
+            "neutral2" to "neutralvariant",
+        )
+        val FUTO_SHADE = Regex("(primary|secondary|tertiary|neutral_?variant|neutral)(\\d{1,3})")
+    }
 }
 
 /**

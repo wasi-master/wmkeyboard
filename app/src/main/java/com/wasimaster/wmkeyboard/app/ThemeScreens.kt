@@ -378,6 +378,7 @@ import kotlin.math.roundToInt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.core.theme.FlexResult
 import com.wasimaster.wmkeyboard.core.theme.FlexTheme
+import com.wasimaster.wmkeyboard.core.theme.deviceWallpaperPalette
 import com.wasimaster.wmkeyboard.core.theme.dynamicSnyggPalette
 import com.wasimaster.wmkeyboard.core.theme.GboardResult
 import com.wasimaster.wmkeyboard.core.theme.GboardTheme
@@ -1419,7 +1420,7 @@ fun ThemesScreen(
     suspend fun importFutoTheme(uri: android.net.Uri, id: String): ThemeFileOutcome {
         val result = withContext(Dispatchers.IO) {
             runCatching {
-                context.contentResolver.requireInputStream(uri).use { FutoTheme.read(it) }
+                context.contentResolver.requireInputStream(uri).use { FutoTheme.read(it, deviceWallpaperPalette(context)) }
             }.getOrElse { FutoThemeResult.Unreadable }
         }
         return if (result is FutoThemeResult.Converted) {

@@ -3255,12 +3255,9 @@
     <string name="import_font_body">Rakendus lisab selle fondi sinu fontide hulka. Vali fontide alt, kus see teksti joonistab.</string>
     <string name="import_foreign_layout_body">See on paigutus teiselt klaviatuurilt (FlorisBoard või Keyman). Rakendus lisab selle klahvid teie paigutuste hulka. Paigutus jääb väljalülitatuks. Sellega kirjutamiseks lülitage see keelte all sisse.</string>
     <string name="import_futo_body">See on FUTO klaviatuuripaigutus. Rakendus lisab selle täheklahvid sinu paigutusele; sümbolite ja numbrite klahvid jäävad samaks, mis sul on. Paigutus jääb väljalülitatuks. Sellega kirjutamiseks lülita see Keelte all sisse.</string>
-    <string name="import_futo_theme_body">Rakendus teisendab selle FUTO Keyboardi teema värvid ning taustapildi ja fondi, kui need on olemas. Rakendus salvestab teema, kuid ei lülita seda sisse, et saaksite seda kõigepealt vaadata.</string>
     <string name="import_futo_theme_credit">Looja: %1$s.</string>
     <string name="import_futo_theme_done">Rakendus salvestas %1$s. Selle vaatamiseks ava Teemad.</string>
-    <string name="import_futo_theme_dropped_pictures">Teema joonistab mõned klahvid nende endi piltidega. See rakendus joonistab need klahvid teema värvides.</string>
     <string name="import_futo_theme_dropped_shader">Teema joonistab klahvide taha animeeritud mustri, mida see rakendus ei joonista.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Teema võtab taustapildilt mõned värvid. See rakendus ei saa neid lugeda, seega määrab ta nende osade jaoks oma värvid.</string>
     <string name="import_futo_theme_title">Teema FUTO klaviatuurist</string>
     <string name="import_futo_theme_unreadable_body">Rakendus ei saa seda FUTO klaviatuuri teemana lugeda. Vali teema .zip-fail, milles on theme.txt või config.json.</string>
     <string name="import_gboard_body">Rakendus saab kasutada %1$d %2$d-st stiilireeglist selles teemas. Gboardi teemad määravad klaviatuuri osad, mida see rakendus joonistab teistmoodi. Rakendus salvestab teema, kuid ei lülita seda sisse, et saaksite seda kõigepealt vaadata.</string>

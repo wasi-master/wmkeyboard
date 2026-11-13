@@ -3253,12 +3253,9 @@
     <string name="import_font_body">Aplikasi menambahkan font ini ke font Anda. Pilih tempat font ini menggambar teks di bawah Font.</string>
     <string name="import_foreign_layout_body">Ini adalah tata letak dari papan ketik lain (FlorisBoard atau Keyman). Aplikasi menambahkan tombolnya sebagai tata letak Anda. Tata letak tetap nonaktif. Untuk mengetik dengannya, aktifkan di Bahasa.</string>
     <string name="import_futo_body">Ini adalah tata letak FUTO Keyboard. Aplikasi menambahkan tombol hurufnya sebagai tata letak Anda; tombol simbol dan angka tetap seperti yang Anda miliki. Tata letak tetap nonaktif. Untuk mengetik dengannya, aktifkan di Bahasa.</string>
-    <string name="import_futo_theme_body">Aplikasi ini mengonversi warna tema FUTO Keyboard ini, serta gambar latar belakang dan font-nya jika ada. Aplikasi menyimpan tema tersebut tetapi tidak mengaktifkannya, sehingga Anda dapat melihatnya terlebih dahulu.</string>
     <string name="import_futo_theme_credit">Dibuat oleh %1$s.</string>
     <string name="import_futo_theme_done">Aplikasi telah menyimpan %1$s. Buka Tema untuk melihatnya.</string>
-    <string name="import_futo_theme_dropped_pictures">Tema ini menggambar beberapa tombol dengan gambarnya sendiri. Aplikasi ini menggambar tombol-tombol tersebut dengan warna tema.</string>
     <string name="import_futo_theme_dropped_shader">Tema ini menggambar pola animasi di belakang tombol, yang tidak digambar oleh aplikasi ini.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Tema mengambil beberapa warna dari wallpaper. Aplikasi ini tidak dapat membacanya, jadi aplikasi ini menentukan warnanya sendiri untuk bagian tersebut.</string>
     <string name="import_futo_theme_title">Tema dari FUTO Keyboard</string>
     <string name="import_futo_theme_unreadable_body">Aplikasi tidak dapat membacanya sebagai tema FUTO Keyboard. Pilih file .zip tema, yang berisi theme.txt atau config.json di dalamnya.</string>
     <string name="import_gboard_body">Aplikasi ini dapat menggunakan %1$d dari %2$d aturan gaya dalam tema ini. Tema Gboard mengatur bagian keyboard yang digambar aplikasi ini dengan cara yang berbeda. Aplikasi menyimpan tema tersebut tetapi tidak mengaktifkannya, agar Anda dapat melihatnya terlebih dahulu.</string>

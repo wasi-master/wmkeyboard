@@ -3254,12 +3254,9 @@
     <string name="import_font_body">Az alkalmazás hozzáadja ezt a betűtípust a betűtípusaihoz. A Betűtípusok alatt kiválaszthatja, hol használja a szöveg megjelenítésére.</string>
     <string name="import_foreign_layout_body">Ez egy másik billentyűzet (FlorisBoard vagy Keyman) kiosztása. Az alkalmazás hozzáadja a billentyűit az Ön kiosztásaihoz. A kiosztás inaktív marad. A használatához kapcsolja be a Nyelvek menüpontban.</string>
     <string name="import_futo_body">Ez egy FUTO billentyűzetkiosztás. Az alkalmazás hozzáadja a betűbillentyűit az Ön kiosztásához; a szimbólum- és számbillentyűk maradnak az eredetiek. A kiosztás kikapcsolva marad. A használatához kapcsolja be a Nyelvek menüben.</string>
-    <string name="import_futo_theme_body">Az alkalmazás konvertálja ennek a FUTO billentyűzettémának a színeit, valamint a háttérképét és betűtípusát, ha vannak. Az alkalmazás elmenti a témát, de nem aktiválja, hogy előbb megtekinthesse.</string>
     <string name="import_futo_theme_credit">Készítette: %1$s.</string>
     <string name="import_futo_theme_done">Az alkalmazás elmentette a következőt: %1$s. Nyissa meg a Témákat a megtekintéséhez.</string>
-    <string name="import_futo_theme_dropped_pictures">A téma egyes billentyűket saját képekkel jelenít meg. Ez az alkalmazás ezeket a billentyűket a téma színeivel rajzolja ki.</string>
     <string name="import_futo_theme_dropped_shader">A téma animált mintát rajzol a billentyűk mögé, amit ez az alkalmazás nem támogat.</string>
-    <string name="import_futo_theme_dropped_wallpaper">A téma színeket vesz át a háttérképből. Az alkalmazás ezeket nem tudja beolvasni, ezért saját színeket határoz meg ezekhez a részekhez.</string>
     <string name="import_futo_theme_title">Téma a FUTO billentyűzetből</string>
     <string name="import_futo_theme_unreadable_body">Az alkalmazás nem tudja FUTO billentyűzettémaként beolvasni. Válassza ki a téma .zip fájlját, amely tartalmazza a theme.txt vagy config.json fájlt.</string>
     <string name="import_gboard_body">Az alkalmazás a témában található %2$d stílusszabályból %1$d-et tud használni. A Gboard-témák a billentyűzet olyan részeit állítják be, amelyeket ez az alkalmazás eltérő módon rajzol ki. Az alkalmazás elmenti a témát, de nem kapcsolja be, hogy először megtekinthesse.</string>

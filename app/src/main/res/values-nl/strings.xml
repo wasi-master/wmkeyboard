@@ -3257,12 +3257,9 @@
     <string name="import_font_body">De app voegt dit lettertype toe aan je lettertypen. Kies onder Lettertypen waar het tekst moet tekenen.</string>
     <string name="import_foreign_layout_body">Dit is een lay-out van een ander toetsenbord (FlorisBoard of Keyman). De app voegt de toetsen toe als een van jouw lay-outs. De lay-out blijft uitgeschakeld. Om ermee te typen, moet je deze inschakelen bij Talen.</string>
     <string name="import_futo_body">Dit is een FUTO Keyboard-indeling. De app voegt de lettertoetsen toe als een van jouw indelingen; de symbool- en cijfertoetsen blijven zoals ze zijn. De indeling blijft uitgeschakeld. Om ermee te typen, schakel je deze in bij Talen.</string>
-    <string name="import_futo_theme_body">De app converteert de kleuren van dit FUTO Keyboard-thema, evenals de achtergrondafbeelding en het lettertype als die aanwezig zijn. De app slaat het thema op, maar schakelt het niet in, zodat je het eerst kunt bekijken.</string>
     <string name="import_futo_theme_credit">Gemaakt door %1$s.</string>
     <string name="import_futo_theme_done">De app heeft %1$s opgeslagen. Open Thema\'s om het te bekijken.</string>
-    <string name="import_futo_theme_dropped_pictures">Het thema tekent sommige toetsen met hun eigen afbeeldingen. Deze app tekent die toetsen in de kleuren van het thema.</string>
     <string name="import_futo_theme_dropped_shader">Het thema tekent een geanimeerd patroon achter de toetsen, wat deze app niet tekent.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Het thema haalt enkele kleuren uit de achtergrond. Deze app kan die niet lezen, dus berekent hij zijn eigen kleuren voor die onderdelen.</string>
     <string name="import_futo_theme_title">Thema van FUTO Keyboard</string>
     <string name="import_futo_theme_unreadable_body">De app kan dit niet lezen als een FUTO Keyboard-thema. Kies het .zip-bestand van het thema, degene met theme.txt of config.json erin.</string>
     <string name="import_gboard_body">De app kan %1$d van de %2$d stijlregels in dit thema gebruiken. Gboard-thema\'s stellen onderdelen van een toetsenbord in die deze app op een andere manier tekent. De app slaat het thema op maar schakelt het niet in, zodat je het eerst kunt bekijken.</string>

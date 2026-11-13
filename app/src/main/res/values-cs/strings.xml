@@ -3255,12 +3255,9 @@
     <string name="import_font_body">Aplikace přidá toto písmo k vašim písmům. V části Písma vyberte, kde se má text vykreslovat.</string>
     <string name="import_foreign_layout_body">Toto je rozložení z jiné klávesnice (FlorisBoard nebo Keyman). Aplikace přidá její klávesy jako vaše rozložení. Rozložení zůstane vypnuté. Chcete-li s ním psát, zapněte jej v Jazycích.</string>
     <string name="import_futo_body">Toto je rozložení klávesnice FUTO. Aplikace přidá svá písmenná tlačítka jako vaše rozložení; klávesy se symboly a číslicemi zůstávají ty, které máte. Rozložení zůstává vypnuté. Chcete-li s ním psát, zapněte jej v Jazycích.</string>
-    <string name="import_futo_theme_body">Aplikace převede barvy tohoto motivu klávesnice FUTO, včetně obrázku na pozadí a písma, pokud je obsahuje. Aplikace motiv uloží, ale neaktivuje, abyste si jej mohli nejprve prohlédnout.</string>
     <string name="import_futo_theme_credit">Vytvořil %1$s.</string>
     <string name="import_futo_theme_done">Aplikace uložila %1$s. Otevřete Motivy a prohlédněte si jej.</string>
-    <string name="import_futo_theme_dropped_pictures">Téma vykresluje některé klávesy s vlastními obrázky. Tato aplikace vykresluje tyto klávesy v barvách tématu.</string>
     <string name="import_futo_theme_dropped_shader">Motiv vykresluje animovaný vzor za klávesami, což tato aplikace nevykresluje.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Motiv přebírá některé barvy z tapety. Tato aplikace je nedokáže přečíst, takže si pro tyto části vypočítá vlastní barvy.</string>
     <string name="import_futo_theme_title">Motiv z klávesnice FUTO</string>
     <string name="import_futo_theme_unreadable_body">Aplikace nemůže toto přečíst jako motiv klávesnice FUTO. Vyberte soubor .zip motivu, ten, který obsahuje theme.txt nebo config.json.</string>
     <string name="import_gboard_body">Aplikace může použít %1$d z %2$d pravidel stylu v tomto motivu. Motivy Gboard nastavují části klávesnice, které tato aplikace vykresluje jiným způsobem. Aplikace motiv uloží, ale nezapne jej, abyste si jej mohli nejprve prohlédnout.</string>

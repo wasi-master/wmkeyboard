@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.settings
 
+import com.wasimaster.wmkeyboard.core.theme.KeyOverride
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -17,6 +18,27 @@ class ThemePhotoSweepTest {
         backgroundImage = image?.let { "/data/files/theme_images/$it" },
         backgroundImageLandscape = landscape?.let { "/data/files/theme_images/$it" },
     )
+
+    @Test
+    fun `key glyphs and held-key pictures count as references`() {
+        val dir = "/data/files/theme_images/"
+        val themed = theme("a").copy(
+            keyIcons = mapOf("key.backspace" to dir + "a_keyicon_keybackspace.img"),
+            keyOverrides = mapOf("ENTER" to KeyOverride(pressedTexture = dir + "a_keypress_ENTER.img")),
+        )
+        val plan = themePhotoSweepPlan(
+            themes = listOf(themed),
+            rotationStates = emptyMap(),
+            imagesOnDisk = listOf(
+                SweptFile("a_keyicon_keybackspace.img", old),
+                SweptFile("a_keypress_ENTER.img", old),
+                SweptFile("orphan.img", old),
+            ),
+            poolFileNames = emptySet(),
+            nowMs = now,
+        )
+        assertEquals(listOf("orphan.img"), plan.deleteImages)
+    }
 
     @Test
     fun `a file no theme refers to is swept`() {

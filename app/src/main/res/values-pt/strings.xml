@@ -3254,12 +3254,9 @@
     <string name="import_font_body">O aplicativo adiciona esta fonte às suas fontes. Escolha onde ele desenha o texto em Fontes.</string>
     <string name="import_foreign_layout_body">Este é um layout de outro teclado (FlorisBoard ou Keyman). O aplicativo adiciona suas teclas como um layout seu. O layout permanece desativado. Para digitar com ele, ative-o em Idiomas.</string>
     <string name="import_futo_body">Este é um layout de teclado FUTO. O aplicativo adiciona suas teclas de letras como um layout seu; as teclas de símbolos e números permanecem as que você já possui. O layout permanece desativado. Para digitar com ele, ative-o em Idiomas.</string>
-    <string name="import_futo_theme_body">O aplicativo converte as cores deste tema do FUTO Keyboard, bem como sua imagem de fundo e fonte, se houver. O aplicativo salva o tema, mas não o ativa, para que você possa visualizá-lo primeiro.</string>
     <string name="import_futo_theme_credit">Feito por %1$s.</string>
     <string name="import_futo_theme_done">A aplicação guardou %1$s. Abra os Temas para o ver.</string>
-    <string name="import_futo_theme_dropped_pictures">O tema desenha algumas teclas com imagens próprias. Este aplicativo desenha essas teclas com as cores do tema.</string>
     <string name="import_futo_theme_dropped_shader">O tema desenha um padrão animado atrás das teclas, o que este aplicativo não desenha.</string>
-    <string name="import_futo_theme_dropped_wallpaper">O tema retira algumas cores do papel de parede. Este aplicativo não consegue lê-las, então ele calcula suas próprias cores para essas partes.</string>
     <string name="import_futo_theme_title">Tema do Teclado FUTO</string>
     <string name="import_futo_theme_unreadable_body">O aplicativo não consegue ler isso como um tema do FUTO Keyboard. Escolha o arquivo .zip do tema, aquele que contém theme.txt ou config.json.</string>
     <string name="import_gboard_body">O aplicativo pode usar %1$d das %2$d regras de estilo neste tema. Os temas do Gboard definem partes de um teclado que este aplicativo desenha de uma maneira diferente. O aplicativo salva o tema, mas não o ativa, para que você possa visualizá-lo primeiro.</string>

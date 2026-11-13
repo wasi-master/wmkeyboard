@@ -116,6 +116,7 @@ import com.wasimaster.wmkeyboard.core.theme.FutoTheme
 import com.wasimaster.wmkeyboard.core.theme.FutoThemeResult
 import com.wasimaster.wmkeyboard.core.theme.FutoThemeUnsupported
 import com.wasimaster.wmkeyboard.core.theme.LooseTheme
+import com.wasimaster.wmkeyboard.core.theme.deviceWallpaperPalette
 import com.wasimaster.wmkeyboard.core.theme.dynamicSnyggPalette
 import com.wasimaster.wmkeyboard.core.fonts.FontFile
 import com.wasimaster.wmkeyboard.core.fonts.FontImportResult
@@ -940,7 +941,7 @@ object WMFileTypes {
         // FUTO's colours before the file counts as one.
         if (FutoTheme.looksLikeFutoTheme(names)) {
             val result = runCatching {
-                context.contentResolver.requireInputStream(uri).use { FutoTheme.read(it) }
+                context.contentResolver.requireInputStream(uri).use { FutoTheme.read(it, deviceWallpaperPalette(context)) }
             }.getOrNull()
             if (result is FutoThemeResult.Converted) return Opened.FutoThemeFile(result)
         }
@@ -948,7 +949,7 @@ object WMFileTypes {
         // first: its settings, or its export's version stamp.
         if (ForeignBackups.looksLikeBackup(names)) {
             val backup = runCatching {
-                context.contentResolver.requireInputStream(uri).use { ForeignBackups.read(it) }
+                context.contentResolver.requireInputStream(uri).use { ForeignBackups.read(it, deviceWallpaperPalette(context)) }
             }.getOrNull()
             return if (backup != null) Opened.ForeignBackupFile(backup) else Opened.Unrecognized
         }
@@ -2702,7 +2703,10 @@ internal fun futoThemeDroppedLine(context: android.content.Context, dropped: Fut
         when (dropped) {
             FutoThemeUnsupported.KEY_PICTURES -> R.string.import_futo_theme_dropped_pictures
             FutoThemeUnsupported.WALLPAPER_COLOURS -> R.string.import_futo_theme_dropped_wallpaper
+            FutoThemeUnsupported.WALLPAPER_STAND_IN -> R.string.import_futo_theme_dropped_wallpaper_stand_in
             FutoThemeUnsupported.SHADER -> R.string.import_futo_theme_dropped_shader
+            FutoThemeUnsupported.KEY_POSITIONS -> R.string.import_futo_theme_dropped_positions
+            FutoThemeUnsupported.KEY_STATES -> R.string.import_futo_theme_dropped_states
         },
     )
 

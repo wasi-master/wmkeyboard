@@ -3254,12 +3254,9 @@
     <string name="import_font_body">L\'app aggiunge questo font ai tuoi font. Scegli dove applicarlo sotto Font.</string>
     <string name="import_foreign_layout_body">Questo è un layout proveniente da un\'altra tastiera (FlorisBoard o Keyman). L\'app aggiunge i suoi tasti come un tuo layout. Il layout rimane disattivato. Per usarlo, attivalo in Lingue.</string>
     <string name="import_futo_body">Questo è un layout di FUTO Keyboard. L\'app aggiunge i suoi tasti lettera come un tuo layout; i tasti simbolo e numero rimangono quelli che hai. Il layout rimane disattivato. Per digitare con esso, attivalo in Lingue.</string>
-    <string name="import_futo_theme_body">L\'app converte i colori di questo tema della tastiera FUTO, insieme alla sua immagine di sfondo e al carattere, se presenti. L\'app salva il tema ma non lo attiva, in modo che tu possa prima visualizzarlo.</string>
     <string name="import_futo_theme_credit">Creato da %1$s.</string>
     <string name="import_futo_theme_done">L\'app ha salvato %1$s. Apri Temi per visualizzarlo.</string>
-    <string name="import_futo_theme_dropped_pictures">Il tema disegna alcuni tasti con immagini proprie. Questa app disegna quei tasti con i colori del tema.</string>
     <string name="import_futo_theme_dropped_shader">Il tema disegna un motivo animato dietro i tasti, che questa app non disegna.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Il tema prende alcuni colori dallo sfondo. Questa app non può leggerli, quindi elabora i propri colori per quelle parti.</string>
     <string name="import_futo_theme_title">Tema da FUTO Keyboard</string>
     <string name="import_futo_theme_unreadable_body">L\'app non può leggerlo come tema della tastiera FUTO. Scegli il file .zip del tema, quello che contiene theme.txt o config.json.</string>
     <string name="import_gboard_body">L\'app può utilizzare %1$d delle %2$d regole di stile in questo tema. I temi di Gboard impostano parti della tastiera che questa app disegna in modo diverso. L\'app salva il tema ma non lo attiva, così che tu possa prima visualizzarlo.</string>

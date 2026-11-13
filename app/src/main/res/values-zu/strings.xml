@@ -3258,12 +3258,9 @@
     <string name="import_font_body">Uhlelo lokusebenza lungeza le fonti kumafonti akho. Khetha lapho idweba khona umbhalo ngaphansi kwe-Fonts.</string>
     <string name="import_foreign_layout_body">Lesi isakhiwo esivela kwelinye ikhibhodi (FlorisBoard noma Keyman). Uhlelo lokusebenza lungeza izinkinobho zaso njengesakhiwo sakho. Isakhiwo sihlala sicishiwe. Ukuze uthayiphe ngaso, usivule ku-Languages.</string>
     <string name="import_futo_body">Lesi isakhiwo sekhibhodi se-FUTO. Uhlelo lokusebenza lungeza izinkinobho zayo zezinhlamvu njengesakhiwo sakho; izinkinobho zezimpawu nezinombolo zihlala lezo onazo. Isakhiwo sihlala sivaliwe. Ukuze uthayiphe ngaso, usivule ku-Languages.</string>
-    <string name="import_futo_theme_body">Uhlelo lokusebenza luguqula imibala yale timu ye-FUTO Keyboard, nesithombe sayo sangemuva nefonti uma inayo. Uhlelo lokusebenza lulondoloza itimu kodwa aluyivuli, ukuze ukwazi ukuyibuka kuqala.</string>
     <string name="import_futo_theme_credit">Kwenziwe ngu-%1$s.</string>
     <string name="import_futo_theme_done">Uhlelo lokusebenza lulondoloze i-%1$s. Vula Izindikimba ukuze uyibuke.</string>
-    <string name="import_futo_theme_dropped_pictures">Itimu idweba okhiye abathile abanezithombe zabo. Lolu hlelo lokusebenza ludweba labo khiye ngemibala yetimu.</string>
     <string name="import_futo_theme_dropped_shader">Itimu idweba iphethini enyakazayo ngemuva kokhiye, okuyinto lolu hlelo lokusebenza olungayidwebi.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Itimu ithatha imibala ethile kusuka kusithombe sangemuva. Lolu hlelo lokusebenza alukwazi ukuyifunda leyo, ngakho luthola imibala yalo yalezo zingxenye.</string>
     <string name="import_futo_theme_title">Itimu evela kukhibhodi ye-FUTO</string>
     <string name="import_futo_theme_unreadable_body">Uhlelo lokusebenza alukwazi ukufunda lokho njengetimu ye-FUTO Keyboard. Khetha ifayela le-.zip letimu, lelo eline-theme.txt noma i-config.json kulo.</string>
     <string name="import_gboard_body">Uhlelo lokusebenza lungasebenzisa ama-%1$d kwangu-%2$d emithetho yezitayela kule ngqikithi. Izindikimba ze-Gboard zisetha izingxenye zekhibhodi lolu hlelo lokusebenza oluzidwebayo ngendlela ehlukile. Uhlelo lokusebenza lugcina ingqikithi kodwa aluyivuli, ukuze ukwazi ukuyibuka kuqala.</string>

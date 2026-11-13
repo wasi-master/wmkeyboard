@@ -26863,7 +26863,7 @@ internal fun KeyButton(
                 val texturePaint = texture?.let {
                     KeyTexturePaint.of(it, textures, outline, size)
                 }
-                val pressedTexture = textures.pressed
+                val pressedTexture = textures.pressedForKey(visual.overrideId)
                 val pressedPaint = pressedTexture?.let {
                     KeyTexturePaint.of(it, textures, outline, size)
                 }

@@ -3252,12 +3252,9 @@
     <string name="import_font_body">L\'application ajoute cette police à vos polices. Choisissez où elle doit afficher le texte dans Polices.</string>
     <string name="import_foreign_layout_body">Il s\'agit d\'une disposition provenant d\'un autre clavier (FlorisBoard ou Keyman). L\'application ajoute ses touches en tant que disposition personnelle. La disposition reste désactivée. Pour l\'utiliser, activez-la dans Langues.</string>
     <string name="import_futo_body">Ceci est une disposition de clavier FUTO. L\'application ajoute ses touches de lettres en tant que disposition personnelle ; les touches de symboles et de chiffres restent celles que vous avez. La disposition reste désactivée. Pour écrire avec, activez-la dans Langues.</string>
-    <string name="import_futo_theme_body">L\'application convertit les couleurs de ce thème FUTO Keyboard, ainsi que son image d\'arrière-plan et sa police s\'il en possède. L\'application enregistre le thème mais ne l\'active pas, afin que vous puissiez d\'abord le consulter.</string>
     <string name="import_futo_theme_credit">Créé par %1$s.</string>
     <string name="import_futo_theme_done">L\'application a enregistré %1$s. Ouvrez les thèmes pour le consulter.</string>
-    <string name="import_futo_theme_dropped_pictures">Le thème dessine certaines touches avec leurs propres images. Cette application dessine ces touches aux couleurs du thème.</string>
     <string name="import_futo_theme_dropped_shader">Le thème dessine un motif animé derrière les touches, ce que cette application ne fait pas.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Le thème tire certaines couleurs du fond d\'écran. Cette application ne peut pas les lire, elle calcule donc ses propres couleurs pour ces parties.</string>
     <string name="import_futo_theme_title">Thème du clavier FUTO</string>
     <string name="import_futo_theme_unreadable_body">L\'application ne peut pas lire ceci comme un thème de clavier FUTO. Choisissez le fichier .zip du thème, celui qui contient theme.txt ou config.json.</string>
     <string name="import_gboard_body">L\'application peut utiliser %1$d des %2$d règles de style de ce thème. Les thèmes Gboard définissent des parties d\'un clavier que cette application dessine différemment. L\'application enregistre le thème mais ne l\'active pas, afin que vous puissiez d\'abord le consulter.</string>

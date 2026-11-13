@@ -3257,12 +3257,9 @@
     <string name="import_font_body">האפליקציה מוסיפה את הגופן הזה לגופנים שלך. בחר היכן הוא יצייר טקסט תחת \'גופנים\'.</string>
     <string name="import_foreign_layout_body">זוהי פריסה ממקלדת אחרת (FlorisBoard או Keyman). האפליקציה מוסיפה את המקשים שלה כפריסה משלך. הפריסה נשארת כבויה. כדי להקליד איתה, הפעל אותה תחת \'שפות\'.</string>
     <string name="import_futo_body">זוהי פריסת מקלדת של FUTO. האפליקציה מוסיפה את מקשי האותיות שלה כפריסה משלך; מקשי הסמלים והמספרים נשארים אלו שיש לך. הפריסה נשארת כבויה. כדי להקליד איתה, הפעל אותה תחת \'שפות\'.</string>
-    <string name="import_futo_theme_body">האפליקציה ממירה את הצבעים של ערכת נושא זו של FUTO Keyboard, ואת תמונת הרקע והגופן שלה אם יש כאלה. האפליקציה שומרת את ערכת הנושא אך לא מפעילה אותה, כדי שתוכל להסתכל עליה קודם.</string>
     <string name="import_futo_theme_credit">נוצר על ידי %1$s.</string>
     <string name="import_futo_theme_done">האפליקציה שמרה את %1$s. פתח את \'ערכות נושא\' כדי לצפות בו.</string>
-    <string name="import_futo_theme_dropped_pictures">ערכת הנושא מציירת כמה מקשים עם תמונות משלהם. אפליקציה זו מציירת את המקשים האלה בצבעי ערכת הנושא.</string>
     <string name="import_futo_theme_dropped_shader">הערכת נושא מציירת דפוס מונפש מאחורי המקשים, דבר שהאפליקציה הזו לא מציירת.</string>
-    <string name="import_futo_theme_dropped_wallpaper">הערכת הנושא שואבת צבעים מסוימים מהטפט. אפליקציה זו אינה יכולה לקרוא אותם, לכן היא מחשבת צבעים משלה עבור חלקים אלו.</string>
     <string name="import_futo_theme_title">ערכת נושא מ-FUTO Keyboard</string>
     <string name="import_futo_theme_unreadable_body">האפליקציה לא יכולה לקרוא זאת כערכת נושא של FUTO Keyboard. בחר את קובץ ה-.zip של ערכת הנושא, זה שמכיל theme.txt או config.json.</string>
     <string name="import_gboard_body">האפליקציה יכולה להשתמש ב-%1$d מתוך %2$d חוקי העיצוב בערכת נושא זו. ערכות נושא של Gboard מגדירות חלקים מהמקלדת שהאפליקציה הזו מציירת בצורה שונה. האפליקציה שומרת את ערכת הנושא אך לא מפעילה אותה, כדי שתוכל להסתכל עליה תחילה.</string>

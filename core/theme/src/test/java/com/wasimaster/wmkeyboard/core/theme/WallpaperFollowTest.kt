@@ -43,6 +43,35 @@ class WallpaperFollowTest {
     }
 
     @Test
+    fun `a recorded tonal shade takes the wallpaper's shade now`() {
+        // FUTO names shades as often as roles: `system_neutralVariant60`.
+        val spec = ThemeSpec(
+            id = "t",
+            name = "T",
+            followWallpaper = true,
+            boardBackground = 0xFF111111,
+            keyBackground = 0xFF939094,
+            wallpaperRoles = mapOf(
+                wallpaperToneKey("neutralVariant", 60) to 0xFF939094,
+                wallpaperRoleKey(dark = true, role = "surface") to 0xFF111111,
+            ),
+        )
+        val live = palette(SnyggPalette(light = emptyMap(), dark = mapOf("surface" to 0xFFAA0000)))
+        val shown = spec.followingWallpaper(live)
+        assertEquals(WallpaperTones.shade(live.tones.neutralVariant, 60), shown.keyBackground)
+        assertEquals(0xFFAA0000, shown.boardBackground)
+    }
+
+    @Test
+    fun `tone keys read back only for a palette and tone that exist`() {
+        val tones = palette().tones
+        assertEquals("tone:neutralvariant:60", wallpaperToneKey("neutral_variant", 60))
+        assertEquals(tones.primary.first(), toneKeyValue(wallpaperToneKey("primary", 100), tones))
+        assertEquals(null, toneKeyValue("tone:magenta:50", tones))
+        assertEquals(null, toneKeyValue("dark:primary", tones))
+    }
+
+    @Test
     fun `recorded roles take the wallpaper's value now`() {
         val spec = ThemeSpec(
             id = "t",

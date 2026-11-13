@@ -3253,12 +3253,9 @@
     <string name="import_font_body">Uygulama bu yazı tipini yazı tiplerinize ekler. Metni nerede çizeceğini Yazı Tipleri altından seçin.</string>
     <string name="import_foreign_layout_body">Bu, başka bir klavyeden (FlorisBoard veya Keyman) alınan bir düzendir. Uygulama, tuşlarını kendi düzenlerinizden biri olarak ekler. Düzen kapalı kalır. Onunla yazmak için Diller kısmından açın.</string>
     <string name="import_futo_body">Bu bir FUTO Klavye düzenidir. Uygulama, harf tuşlarını sizin düzeninize ekler; sembol ve sayı tuşları mevcut olanlar olarak kalır. Düzen kapalı kalır. Bununla yazmak için Diller kısmından açın.</string>
-    <string name="import_futo_theme_body">Uygulama, bu FUTO Klavye temasının renklerini ve varsa arka plan resmini ve yazı tipini dönüştürür. Uygulama temayı kaydeder ancak önce inceleyebilmeniz için etkinleştirmez.</string>
     <string name="import_futo_theme_credit">%1$s tarafından yapılmıştır.</string>
     <string name="import_futo_theme_done">Uygulama %1$s öğesini kaydetti. Görüntülemek için Temalar\'ı açın.</string>
-    <string name="import_futo_theme_dropped_pictures">Tema, bazı tuşları kendi resimleriyle çizer. Bu uygulama, o tuşları temanın renklerinde çizer.</string>
     <string name="import_futo_theme_dropped_shader">Tema, tuşların arkasında hareketli bir desen çizer, ancak bu uygulama bunu çizmez.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Tema, duvar kağıdından bazı renkleri alır. Bu uygulama bunları okuyamadığı için, bu kısımlar için kendi renklerini belirler.</string>
     <string name="import_futo_theme_title">FUTO Klavye\'den tema</string>
     <string name="import_futo_theme_unreadable_body">Uygulama bunu FUTO Klavye teması olarak okuyamıyor. Lütfen içinde theme.txt veya config.json dosyası bulunan temanın .zip dosyasını seçin.</string>
     <string name="import_gboard_body">Uygulama, bu temadaki %2$d stil kuralının %1$d tanesini kullanabilir. Gboard temaları, klavyenin bu uygulamanın farklı bir şekilde çizdiği bölümlerini ayarlar. Uygulama temayı kaydeder ancak etkinleştirmez, böylece önce onu inceleyebilirsiniz.</string>

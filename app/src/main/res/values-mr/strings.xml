@@ -3255,12 +3255,9 @@
     <string name="import_font_body">ॲप हा फॉन्ट तुमच्या फॉन्ट्समध्ये जोडते. फॉन्ट्स अंतर्गत तो मजकूर कुठे काढतो ते निवडा.</string>
     <string name="import_foreign_layout_body">ही दुसऱ्या कीबोर्डची (FlorisBoard किंवा Keyman) लेआउट आहे. ॲप तिच्या कीज तुमची लेआउट म्हणून जोडते. लेआउट बंद राहते. त्याद्वारे टाइप करण्यासाठी, भाषांमध्ये ते चालू करा.</string>
     <string name="import_futo_body">हे एक FUTO कीबोर्ड लेआउट आहे. ॲप त्याच्या अक्षर की तुमच्या लेआउटमध्ये जोडते; चिन्ह आणि अंकांच्या की तुमच्या सध्याच्याच राहतात. लेआउट बंद राहतो. त्याचा वापर करून टाईप करण्यासाठी, \'भाषा\' (Languages) मध्ये तो चालू करा.</string>
-    <string name="import_futo_theme_body">ॲप या FUTO कीबोर्ड थीमचे रंग आणि तिचे बॅकग्राउंड चित्र आणि फॉन्ट (असल्यास) रूपांतरित करते. ॲप थीम सेव्ह करते पण ती चालू करत नाही, जेणेकरून तुम्ही ती आधी पाहू शकाल.</string>
     <string name="import_futo_theme_credit">%1$s द्वारे तयार केलेले.</string>
     <string name="import_futo_theme_done">ॲपने %1$s सेव्ह केले आहे. ते पाहण्यासाठी \'थीम्स\' उघडा.</string>
-    <string name="import_futo_theme_dropped_pictures">थीम काही कीज स्वतःच्या चित्रांसह काढते. हे ॲप त्या कीज थीमच्या रंगात काढते.</string>
     <string name="import_futo_theme_dropped_shader">थीम कीजच्या मागे एक ॲनिमेटेड पॅटर्न काढते, जे हे ॲप काढत नाही.</string>
-    <string name="import_futo_theme_dropped_wallpaper">थीम वॉलपेपरमधून काही रंग घेते. हे ॲप ते वाचू शकत नाही, म्हणून ते त्या भागांसाठी स्वतःचे रंग ठरवते.</string>
     <string name="import_futo_theme_title">FUTO कीबोर्डवरून थीम</string>
     <string name="import_futo_theme_unreadable_body">ॲप ते FUTO कीबोर्ड थीम म्हणून वाचू शकत नाही. थीमची .zip फाईल निवडा, ज्यामध्ये theme.txt किंवा config.json आहे.</string>
     <string name="import_gboard_body">हे ॲप या थीममधील %2$d पैकी %1$d शैली नियम वापरू शकते. Gboard थीम्स कीबोर्डचे काही भाग सेट करतात जे हे ॲप वेगळ्या पद्धतीने काढते. ॲप थीम सेव्ह करते पण ती चालू करत नाही, जेणेकरून तुम्ही ती आधी पाहू शकाल.</string>

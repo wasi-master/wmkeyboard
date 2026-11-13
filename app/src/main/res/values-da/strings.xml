@@ -3257,12 +3257,9 @@
     <string name="import_font_body">Appen tilføjer denne skrifttype til dine skrifttyper. Vælg hvor den skal tegne tekst under Skrifttyper.</string>
     <string name="import_foreign_layout_body">Dette er et layout fra et andet tastatur (FlorisBoard eller Keyman). Appen tilføjer dets taster som et af dine layouts. Layoutet forbliver deaktiveret. For at skrive med det, skal du aktivere det under Sprog.</string>
     <string name="import_futo_body">Dette er et FUTO-tastaturlayout. Appen tilføjer dens bogstavtaster som et af dine layouts; symbol- og taltasterne forbliver dem, du har. Layoutet forbliver slået fra. For at skrive med det, skal du slå det til under Sprog.</string>
-    <string name="import_futo_theme_body">Appen konverterer farverne i dette FUTO Keyboard-tema, samt dets baggrundsbillede og skrifttype, hvis det har dem. Appen gemmer temaet, men slår det ikke til, så du først kan se på det.</string>
     <string name="import_futo_theme_credit">Lavet af %1$s.</string>
     <string name="import_futo_theme_done">Appen gemte %1$s. Åbn Temaer for at se det.</string>
-    <string name="import_futo_theme_dropped_pictures">Temaet tegner nogle taster med deres egne billeder. Denne app tegner disse taster i temaets farver.</string>
     <string name="import_futo_theme_dropped_shader">Temaet tegner et animeret mønster bag tasterne, hvilket denne app ikke tegner.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Temaet henter nogle farver fra tapetet. Denne app kan ikke læse dem, så den finder selv på sine egne farver til de dele.</string>
     <string name="import_futo_theme_title">Tema fra FUTO Keyboard</string>
     <string name="import_futo_theme_unreadable_body">Appen kan ikke læse dette som et FUTO-tastaturtema. Vælg temaets .zip-fil, den der indeholder theme.txt eller config.json.</string>
     <string name="import_gboard_body">Appen kan bruge %1$d af de %2$d stilregler i dette tema. Gboard-temaer indstiller dele af et tastatur, som denne app tegner på en anden måde. Appen gemmer temaet, men aktiverer det ikke, så du først kan se på det.</string>

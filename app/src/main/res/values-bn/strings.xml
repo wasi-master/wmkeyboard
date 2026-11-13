@@ -3259,12 +3259,9 @@
     <string name="import_font_body">অ্যাপটি এই ফন্টটিকে আপনার ফন্টগুলোর সাথে যোগ করে। ফন্টস-এর অধীনে এটি কোথায় টেক্সট ড্র করবে তা বেছে নিন।</string>
     <string name="import_foreign_layout_body">এটি অন্য একটি কিবোর্ডের (FlorisBoard বা Keyman) লেআউট। অ্যাপটি এর কিগুলোকে আপনার লেআউট হিসেবে যোগ করে। লেআউটটি বন্ধ থাকে। এটি দিয়ে টাইপ করতে, ল্যাঙ্গুয়েজে গিয়ে এটি চালু করুন।</string>
     <string name="import_futo_body">এটি একটি FUTO কীবোর্ড লেআউট। অ্যাপটি এর লেটার কীগুলোকে আপনার একটি লেআউট হিসেবে যোগ করে; চিহ্ন এবং সংখ্যার কীগুলো আপনার আগের মতোই থাকে। লেআউটটি বন্ধ থাকে। এটি দিয়ে টাইপ করতে, ভাষা (Languages) সেকশনে গিয়ে এটি চালু করুন।</string>
-    <string name="import_futo_theme_body">অ্যাপটি এই FUTO কীবোর্ড থিমের রঙ, এবং এর ব্যাকগ্রাউন্ড ছবি ও ফন্ট থাকলে তা রূপান্তর করে। অ্যাপটি থিমটি সেভ করে কিন্তু চালু করে না, যাতে আপনি আগে সেটি দেখে নিতে পারেন।</string>
     <string name="import_futo_theme_credit">%1$s দ্বারা তৈরি।</string>
     <string name="import_futo_theme_done">অ্যাপটি %1$s সংরক্ষণ করেছে। এটি দেখতে থিম (Themes) খুলুন।</string>
-    <string name="import_futo_theme_dropped_pictures">এই থিমটি কিছু কি (keys) তাদের নিজস্ব ছবি দিয়ে আঁকে। এই অ্যাপটি সেই কিগুলোকে থিমের রঙে ফুটিয়ে তোলে।</string>
     <string name="import_futo_theme_dropped_shader">থিমটি কীবোর্ডের পেছনে একটি অ্যানিমেটেড প্যাটার্ন আঁকে, যা এই অ্যাপটি আঁকে না।</string>
-    <string name="import_futo_theme_dropped_wallpaper">থিমটি ওয়ালপেপার থেকে কিছু রঙ নেয়। এই অ্যাপটি সেগুলো পড়তে পারে না, তাই এটি সেই অংশগুলোর জন্য নিজস্ব রঙ তৈরি করে নেয়।</string>
     <string name="import_futo_theme_title">FUTO কীবোর্ড থেকে থিম</string>
     <string name="import_futo_theme_unreadable_body">অ্যাপটি এটিকে FUTO কিবোর্ড থিম হিসেবে পড়তে পারছে না। থিমের .zip ফাইলটি বেছে নিন, যেটিতে theme.txt বা config.json আছে।</string>
     <string name="import_gboard_body">অ্যাপটি এই থিমের %2$dটি স্টাইল রুলের মধ্যে %1$dটি ব্যবহার করতে পারে। Gboard থিমগুলো কিবোর্ডের এমন কিছু অংশ সেট করে যা এই অ্যাপটি ভিন্নভাবে আঁকে। অ্যাপটি থিমটি সেভ করে কিন্তু চালু করে না, যাতে আপনি প্রথমে এটি দেখে নিতে পারেন।</string>

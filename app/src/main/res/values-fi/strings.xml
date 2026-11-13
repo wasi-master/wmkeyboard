@@ -3257,12 +3257,9 @@
     <string name="import_font_body">Sovellus lisää tämän fontin fontteihisi. Valitse Fontit-kohdasta, missä se piirtää tekstiä.</string>
     <string name="import_foreign_layout_body">Tämä on asettelu toisesta näppäimistöstä (FlorisBoard tai Keyman). Sovellus lisää sen näppäimet yhtenä asettelunasi. Asettelu pysyy pois päältä. Käytä sitä ottamalla se käyttöön Kieliasetuksissa.</string>
     <string name="import_futo_body">Tämä on FUTO-näppäimistöasettelu. Sovellus lisää sen kirjainnäppäimet yhtenä asettelunasi; symboli- ja numeronäppäimet pysyvät entisellään. Asettelu pysyy pois päältä. Käytä sitä kytkemällä se päälle Kieliasetuksista.</string>
-    <string name="import_futo_theme_body">Sovellus muuntaa tämän FUTO-näppäimistöteeman värit sekä sen taustakuvan ja fontin, jos sellaiset on käytössä. Sovellus tallentaa teeman, mutta ei ota sitä käyttöön, jotta voit tarkastella sitä ensin.</string>
     <string name="import_futo_theme_credit">Tekijä: %1$s.</string>
     <string name="import_futo_theme_done">Sovellus tallensi teeman %1$s. Avaa Teemat tarkastellaksesi sitä.</string>
-    <string name="import_futo_theme_dropped_pictures">Teema piirtää joitakin näppäimiä omilla kuvillaan. Tämä sovellus piirtää kyseiset näppäimet teeman väreillä.</string>
     <string name="import_futo_theme_dropped_shader">Teema piirtää animoidun kuvion näppäinten taakse, mitä tämä sovellus ei piirrä.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Teema ottaa värejä taustakuvasta. Tämä sovellus ei voi lukea niitä, joten se laskee omat värinsä kyseisille osille.</string>
     <string name="import_futo_theme_title">Teema FUTO-näppäimistöstä</string>
     <string name="import_futo_theme_unreadable_body">Sovellus ei voi lukea tätä FUTO-näppäimistöteemana. Valitse teeman .zip-tiedosto, jossa on theme.txt tai config.json.</string>
     <string name="import_gboard_body">Sovellus voi käyttää %1$d tyylisäännöstä tämän teeman %2$d tyylisäännöstä. Gboard-teemat asettavat näppäimistön osia, jotka tämä sovellus piirtää eri tavalla. Sovellus tallentaa teeman, muttei ota sitä käyttöön, jotta voit tarkastella sitä ensin.</string>

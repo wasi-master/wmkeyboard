@@ -3260,12 +3260,9 @@
     <string name="import_font_body">سيضيف التطبيق هذا الخط إلى خطوطك. اختر المكان الذي يتم فيه رسم النص ضمن الخطوط.</string>
     <string name="import_foreign_layout_body">هذا تخطيط من لوحة مفاتيح أخرى (FlorisBoard أو Keyman). سيضيف التطبيق مفاتيحه كتخطيط خاص بك. يظل التخطيط معطلاً. للكتابة به، قم بتفعيله في اللغات.</string>
     <string name="import_futo_body">هذا تخطيط لوحة مفاتيح FUTO. يضيف التطبيق مفاتيح الحروف الخاصة به كتخطيط خاص بك؛ بينما تظل مفاتيح الرموز والأرقام كما هي لديك. يظل التخطيط معطلاً. للكتابة باستخدامه، قم بتفعيله في اللغات.</string>
-    <string name="import_futo_theme_body">يقوم التطبيق بتحويل ألوان سمة لوحة مفاتيح FUTO هذه، وصورتها الخلفية وخطها إذا كانت تحتوي عليها. يحفظ التطبيق السمة ولكنه لا يقوم بتفعيلها، حتى تتمكن من إلقاء نظرة عليها أولاً.</string>
     <string name="import_futo_theme_credit">من صنع %1$s.</string>
     <string name="import_futo_theme_done">تم حفظ %1$s. افتح السمات للاطلاع عليها.</string>
-    <string name="import_futo_theme_dropped_pictures">ترسم السمة بعض المفاتيح بصور خاصة بها. يرسم هذا التطبيق تلك المفاتيح بألوان السمة.</string>
     <string name="import_futo_theme_dropped_shader">يرسم السمة نمطاً متحركاً خلف المفاتيح، وهو ما لا يرسمه هذا التطبيق.</string>
-    <string name="import_futo_theme_dropped_wallpaper">يستمد السمة بعض الألوان من خلفية الشاشة. لا يمكن لهذا التطبيق قراءة تلك الألوان، لذا فهو يحدد ألوانه الخاصة لتلك الأجزاء.</string>
     <string name="import_futo_theme_title">سمة من لوحة مفاتيح FUTO</string>
     <string name="import_futo_theme_unreadable_body">لا يمكن للتطبيق قراءة هذا كسمة لوحة مفاتيح FUTO. اختر ملف .zip الخاص بالسمة، الذي يحتوي على theme.txt أو config.json.</string>
     <string name="import_gboard_body">يمكن للتطبيق استخدام %1$d من أصل %2$d من قواعد النمط في هذا المظهر. تحدد مظاهر Gboard أجزاءً من لوحة المفاتيح يرسمها هذا التطبيق بطريقة مختلفة. يحفظ التطبيق المظهر ولكنه لا يفعله، حتى تتمكن من معاينته أولاً.</string>

@@ -3253,12 +3253,9 @@
     <string name="import_font_body">アプリはこのフォントをフォントリストに追加します。「フォント」設定で、どのテキストに適用するかを選択してください。</string>
     <string name="import_foreign_layout_body">これは他のキーボード（FlorisBoardまたはKeyman）のレイアウトです。アプリはそのキーを独自のレイアウトとして追加します。レイアウトはオフのままになります。使用するには、「言語」設定でオンにしてください。</string>
     <string name="import_futo_body">これはFUTOキーボードレイアウトです。アプリは文字キーを独自のレイアウトとして追加しますが、記号キーと数字キーは現在のものが維持されます。レイアウトはオフの状態で追加されます。使用するには「言語」設定でオンにしてください。</string>
-    <string name="import_futo_theme_body">アプリはこのFUTOキーボードテーマの色を変換し、背景画像やフォントがある場合はそれらも変換します。アプリはテーマを保存しますが、有効にはしないため、最初に確認することができます。</string>
     <string name="import_futo_theme_credit">作成者: %1$s</string>
     <string name="import_futo_theme_done">%1$s を保存しました。「テーマ」を開いて確認してください。</string>
-    <string name="import_futo_theme_dropped_pictures">このテーマには独自の画像が設定されたキーが含まれています。このアプリは、それらのキーをテーマの色で描画します。</string>
     <string name="import_futo_theme_dropped_shader">このテーマはキーの背後にアニメーションパターンを描画しますが、このアプリでは描画されません。</string>
-    <string name="import_futo_theme_dropped_wallpaper">テーマは壁紙からいくつかの色を取得します。このアプリはそれらを読み取ることができないため、該当する部分については独自の色を算出します。</string>
     <string name="import_futo_theme_title">FUTOキーボードのテーマ</string>
     <string name="import_futo_theme_unreadable_body">このアプリでは、それをFUTOキーボードテーマとして読み取ることができません。theme.txtまたはconfig.jsonが含まれているテーマの.zipファイルを選択してください。</string>
     <string name="import_gboard_body">このアプリは、このテーマに含まれる%2$d個のスタイルルールのうち%1$d個を使用できます。Gboardのテーマは、このアプリが描画するキーボードの一部を異なる方法で設定します。アプリはテーマを保存しますが、まずは確認できるように適用はしません。</string>

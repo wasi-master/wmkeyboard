@@ -3253,12 +3253,9 @@
     <string name="import_font_body">แอปจะเพิ่มฟอนต์นี้ลงในฟอนต์ของคุณ เลือกตำแหน่งที่จะใช้วาดข้อความได้ในส่วนฟอนต์</string>
     <string name="import_foreign_layout_body">นี่คือเลย์เอาต์จากคีย์บอร์ดอื่น (FlorisBoard หรือ Keyman) แอปจะเพิ่มปุ่มต่างๆ เป็นเลย์เอาต์ของคุณ เลย์เอาต์จะยังคงปิดอยู่ หากต้องการใช้พิมพ์ ให้เปิดใช้งานในส่วนภาษา</string>
     <string name="import_futo_body">นี่คือเลย์เอาต์ของ FUTO Keyboard แอปจะเพิ่มคีย์ตัวอักษรเป็นเลย์เอาต์ของคุณ ส่วนคีย์สัญลักษณ์และตัวเลขจะยังคงเป็นแบบเดิม เลย์เอาต์จะยังคงปิดอยู่ หากต้องการพิมพ์ด้วยเลย์เอาต์นี้ ให้เปิดใช้งานในเมนูภาษา</string>
-    <string name="import_futo_theme_body">แอปจะแปลงสีของธีม FUTO Keyboard นี้ รวมถึงรูปภาพพื้นหลังและแบบอักษรหากมี แอปจะบันทึกธีมไว้แต่ยังไม่เปิดใช้งาน เพื่อให้คุณสามารถตรวจสอบดูก่อนได้</string>
     <string name="import_futo_theme_credit">สร้างโดย %1$s</string>
     <string name="import_futo_theme_done">แอปบันทึก %1$s แล้ว เปิดธีมเพื่อดูได้เลย</string>
-    <string name="import_futo_theme_dropped_pictures">ธีมนี้วาดปุ่มบางปุ่มด้วยรูปภาพของตัวเอง แอปนี้จะวาดปุ่มเหล่านั้นด้วยสีของธีม</string>
     <string name="import_futo_theme_dropped_shader">ธีมนี้วาดรูปแบบเคลื่อนไหวไว้หลังปุ่มกด ซึ่งแอปนี้ไม่รองรับการวาดดังกล่าว</string>
-    <string name="import_futo_theme_dropped_wallpaper">ธีมนี้ดึงสีบางส่วนมาจากวอลเปเปอร์ แอปไม่สามารถอ่านค่าเหล่านั้นได้ จึงกำหนดสีสำหรับส่วนดังกล่าวด้วยตัวเอง</string>
     <string name="import_futo_theme_title">ธีมจาก FUTO Keyboard</string>
     <string name="import_futo_theme_unreadable_body">แอปไม่สามารถอ่านไฟล์นี้เป็นธีม FUTO Keyboard ได้ โปรดเลือกไฟล์ .zip ของธีมที่มีไฟล์ theme.txt หรือ config.json อยู่ข้างใน</string>
     <string name="import_gboard_body">แอปสามารถใช้กฎรูปแบบได้ %1$d จาก %2$d กฎในธีมนี้ ธีมของ Gboard จะกำหนดส่วนต่างๆ ของแป้นพิมพ์ที่แอปนี้วาดในรูปแบบที่ต่างออกไป แอปจะบันทึกธีมไว้แต่ยังไม่เปิดใช้งาน เพื่อให้คุณตรวจสอบดูก่อนได้</string>

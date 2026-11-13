@@ -54,7 +54,7 @@ Under the seed swatches, **Follow wallpaper colors** makes the theme change colo
 The theme keeps its own colors. The keyboard moves them onto your wallpaper's palette as it draws them, so turning the switch off gives you the stored colors back, and the color rows in the editor always show the stored ones. How the colors move depends on where the theme came from:
 
 - **Most themes** (your own, copies of built-ins, Gboard, Rboard and HeliBoard imports) keep how light or dark each color is and take the wallpaper's hue. Greys go to the wallpaper's neutral tones, colors go to its main accent, and a color on the far side of the color wheel from the theme's accent goes to the wallpaper's third accent, so a two-color theme stays two colors. Because the lightness stays put, text that was easy to read stays easy to read. Pure black and pure white stay as they are.
-- **FlorisBoard themes written in Material You colors**, such as FloriStyle and Gboardish, remember which Material You color each part used. They follow the wallpaper exactly as they would in FlorisBoard, and the switch is already on when you import one. A color you change in the editor stays the color you picked.
+- **FlorisBoard themes written in Material You colors**, such as FloriStyle and Gboardish, and **FUTO themes written in `system_…` colors** remember which Material You color or tone each part used. They follow the wallpaper exactly as they would in their own keyboard, and the switch is already on when you import one. A color you change in the editor stays the color you picked.
 
 Tapping a seed swatch or flipping **Dark theme** keeps the switch as it is.
 
@@ -200,6 +200,8 @@ Keys can wear an image instead of a flat color. One picture for the letter keys 
 - **Texture opacity** blends the image over the key color underneath. That color stays the base coat, and it's what high-contrast accessibility falls back to, since textures don't draw there at all.
 
 Textures travel inside the theme file when you export it. An older app version imports the same file as a plain color theme and loses nothing else.
+
+An imported FUTO theme's key pictures are drawn nine-slice: the corners keep their size and only the edges and middle stretch, so one rounded frame fits a letter and the space bar alike. Picking a new image for a key in the editor drops that cut and draws your image with the fit above. Such a theme can also give one key its own picture while held, such as a pressed enter key that differs from a pressed letter; that comes from the import and has no row in the editor.
 
 To find out how big to draw each texture, open **Image sizes and templates** in the **Board** section. It measures your keyboard and saves templates to draw on. See [Image sizes and templates](/themes/backgrounds/#image-sizes-and-templates).
 

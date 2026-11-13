@@ -3257,12 +3257,9 @@
     <string name="import_font_body">Aplikacja dodaje tę czcionkę do Twoich czcionek. Wybierz, gdzie ma być używana do wyświetlania tekstu w sekcji Czcionki.</string>
     <string name="import_foreign_layout_body">To jest układ z innej klawiatury (FlorisBoard lub Keyman). Aplikacja dodaje jego klawisze jako Twój układ. Układ pozostaje wyłączony. Aby pisać za jego pomocą, włącz go w sekcji Języki.</string>
     <string name="import_futo_body">To jest układ klawiatury FUTO. Aplikacja dodaje swoje klawisze literowe jako Twój układ; klawisze symboli i cyfr pozostają takie, jakie masz. Układ pozostaje wyłączony. Aby pisać z jego użyciem, włącz go w Językach.</string>
-    <string name="import_futo_theme_body">Aplikacja konwertuje kolory tego motywu klawiatury FUTO, a także jego obraz tła i czcionkę, jeśli je posiada. Aplikacja zapisuje motyw, ale go nie włącza, aby można było go najpierw obejrzeć.</string>
     <string name="import_futo_theme_credit">Stworzone przez %1$s.</string>
     <string name="import_futo_theme_done">Aplikacja zapisała %1$s. Otwórz Motywy, aby go zobaczyć.</string>
-    <string name="import_futo_theme_dropped_pictures">Motyw rysuje niektóre klawisze z własnymi obrazkami. Ta aplikacja rysuje te klawisze w kolorach motywu.</string>
     <string name="import_futo_theme_dropped_shader">Motyw rysuje animowany wzór za klawiszami, czego ta aplikacja nie obsługuje.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Motyw pobiera niektóre kolory z tapety. Ta aplikacja nie może ich odczytać, więc wylicza własne kolory dla tych części.</string>
     <string name="import_futo_theme_title">Motyw z klawiatury FUTO</string>
     <string name="import_futo_theme_unreadable_body">Aplikacja nie może odczytać tego jako motywu klawiatury FUTO. Wybierz plik .zip motywu, ten zawierający theme.txt lub config.json.</string>
     <string name="import_gboard_body">Aplikacja może użyć %1$d z %2$d reguł stylu w tym motywie. Motywy Gboard ustawiają części klawiatury, które ta aplikacja rysuje w inny sposób. Aplikacja zapisuje motyw, ale go nie włącza, aby można było go najpierw przejrzeć.</string>

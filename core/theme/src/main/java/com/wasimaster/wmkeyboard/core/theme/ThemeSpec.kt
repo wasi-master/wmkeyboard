@@ -646,6 +646,15 @@ data class ThemeSpec(
      */
     val keyIcons: Map<String, String> = emptyMap(),
     /**
+     * Key pictures drawn nine-slice rather than fitted, keyed by the picture's
+     * transport slot ([ASSET_KEY_TEXTURE], [ASSET_KEY_TEXTURE_ENTER],
+     * `keyOverrideTexture:ENTER`, `keyOverridePressed:a`, …); see
+     * [TextureSlice]. Empty for every theme but an imported FUTO one, whose
+     * key borders are nine-slice art: a rounded frame whose corners must keep
+     * their size on a wide space bar and a narrow letter alike.
+     */
+    val textureSlices: Map<String, TextureSlice> = emptyMap(),
+    /**
      * Auxiliary image bytes for transport, keyed by slot name — the key
      * textures today (`"keyTexture"`, `"keyTextureModifier"`, …), whatever
      * needs to travel tomorrow. The generic sibling of
@@ -775,6 +784,15 @@ data class KeyOverride(
      */
     val texture: String? = null,
     /**
+     * The picture this key wears while held, as a local image path: the
+     * per-key twin of [ThemeSpec.keyTexturePressed]. Null falls back to that
+     * board-wide one, then to the pressed colour over [texture]. Set by the
+     * FUTO importer, whose themes draw a pressed enter key and a pressed
+     * letter from different pictures. Never set in exports; the bytes travel
+     * in [ThemeSpec.assets] under `keyOverridePressed:<id>`.
+     */
+    val pressedTexture: String? = null,
+    /**
      * The particle burst *this* key throws, as a [KeyEffectKind] name; null
      * follows the theme's own effect. A string for the usual forward-compat
      * reason; read through [keyEffectKindOrNull].
@@ -833,7 +851,7 @@ data class KeyOverride(
     val isEmpty: Boolean
         get() = background == null && text == null && border == null &&
             popupBackground == null && popupText == null && hint == null &&
-            texture == null && effect == null && effectParam == null &&
+            texture == null && pressedTexture == null && effect == null && effectParam == null &&
             labelScale == null && bold == null && shape == null &&
             gradient == null && glow == null && glowDp == null && cornerRadiusDp == null
 
@@ -844,6 +862,44 @@ data class KeyOverride(
      */
     val effectKind: KeyEffectKind?
         get() = keyEffectKindOrNull(effect)?.takeIf { it != KeyEffectKind.CUSTOM_IMAGE }
+}
+
+/**
+ * How one key picture is cut nine-slice: four corners drawn at their own size,
+ * four edges stretched one way, and the middle stretched both ways, so a frame
+ * drawn once fits a key of any width.
+ *
+ * [left], [top], [right] and [bottom] bound the stretching middle, as fractions
+ * of the picture's width and height (FUTO's `slicing`). [widthDp] and
+ * [heightDp] are the picture's natural size on screen, which sets how big the
+ * fixed corners draw; null fits the corners to the key's height instead. Where
+ * the corners of a small key would overlap, they shrink together.
+ *
+ * [path] ties the cut to the one file it was made for. It is stamped when the
+ * picture is written to disk and cleared when the theme is exported, so a
+ * picture the user later swaps in the editor is drawn the ordinary way instead
+ * of being cut along lines that belong to another image.
+ */
+@Serializable
+data class TextureSlice(
+    val left: Float = 0f,
+    val top: Float = 0f,
+    val right: Float = 1f,
+    val bottom: Float = 1f,
+    val widthDp: Float? = null,
+    val heightDp: Float? = null,
+    /** Multiplied into the picture's colours (FUTO's `background_tint`); null leaves them. */
+    val tint: Long? = null,
+    val path: String? = null,
+) {
+    /** The cut with its fractions put in order and inside the picture. */
+    fun normalized(): TextureSlice {
+        val l = left.coerceIn(0f, 1f)
+        val r = right.coerceIn(0f, 1f)
+        val t = top.coerceIn(0f, 1f)
+        val b = bottom.coerceIn(0f, 1f)
+        return copy(left = minOf(l, r), right = maxOf(l, r), top = minOf(t, b), bottom = maxOf(t, b))
+    }
 }
 
 /**
@@ -1032,6 +1088,7 @@ fun ThemeSpec.withEmbeddedImages(): ThemeSpec {
         }
         for ((key, override) in keyOverrides) {
             encode(override.texture)?.let { put("$ASSET_KEY_OVERRIDE_TEXTURE_PREFIX$key", it) }
+            encode(override.pressedTexture)?.let { put("$ASSET_KEY_OVERRIDE_PRESSED_PREFIX$key", it) }
         }
         for ((slot, path) in keyIcons) {
             encode(path)?.let { put("$ASSET_KEY_ICON_PREFIX$slot", it) }
@@ -1056,8 +1113,13 @@ fun ThemeSpec.withEmbeddedImages(): ThemeSpec {
         popupTexture = null,
         decals = decals.map { it.copy(image = null) },
         keyEffectImages = emptyList(),
-        keyOverrides = keyOverrides.mapValues { (_, override) -> override.copy(texture = null) },
+        keyOverrides = keyOverrides.mapValues { (_, override) ->
+            override.copy(texture = null, pressedTexture = null)
+        },
         keyIcons = emptyMap(),
+        // A cut names the file it was made for; on another device that file is
+        // the one the import writes, which stamps it again.
+        textureSlices = textureSlices.mapValues { (_, slice) -> slice.copy(path = null) },
         assets = embedded,
         // Each variant embeds its own images; the nested-variant strip keeps
         // the one-level contract even for hand-edited files.
@@ -1095,6 +1157,13 @@ const val ASSET_EFFECT_IMAGE_PREFIX = "effectImage:"
 const val ASSET_KEY_OVERRIDE_TEXTURE_PREFIX = "keyOverrideTexture:"
 
 /**
+ * Prefix of a single key's held-down picture's transport slot; the override's
+ * own map key follows it (`keyOverridePressed:ENTER`). See
+ * [KeyOverride.pressedTexture].
+ */
+const val ASSET_KEY_OVERRIDE_PRESSED_PREFIX = "keyOverridePressed:"
+
+/**
  * Prefix of a theme key glyph's transport slot; the icon-slot id follows it
  * (`keyIcon:key.backspace`). See [ThemeSpec.keyIcons].
  */
@@ -1114,7 +1183,7 @@ fun ThemeSpec.withExtractedImages(dir: File): ThemeSpec {
             File(dir, name).apply { writeBytes(Base64.decode(it, Base64.DEFAULT)) }.absolutePath
         }.getOrNull()
     }
-    return copy(
+    val extracted = copy(
         backgroundImage = write("$id.img", backgroundImageBase64) ?: backgroundImage,
         backgroundImageBase64 = null,
         backgroundImageLandscape = write("${id}_land.img", backgroundImageLandscapeBase64)
@@ -1154,6 +1223,10 @@ fun ThemeSpec.withExtractedImages(dir: File): ThemeSpec {
                     "${id}_keytex_$tag.img",
                     assets["$ASSET_KEY_OVERRIDE_TEXTURE_PREFIX$key"],
                 ) ?: override.texture,
+                pressedTexture = write(
+                    "${id}_keypress_$tag.img",
+                    assets["$ASSET_KEY_OVERRIDE_PRESSED_PREFIX$key"],
+                ) ?: override.pressedTexture,
             )
         },
         // Driven off the asset keys rather than off `keyIcons`, because on the
@@ -1175,6 +1248,44 @@ fun ThemeSpec.withExtractedImages(dir: File): ThemeSpec {
         // unique, so a family extracts without collisions.
         variants = variants.map { it.withExtractedImages(dir) },
     )
+    if (textureSlices.isEmpty()) return extracted
+    // Each cut is tied to the file just written for its slot. A slot with no
+    // bytes in this file keeps whatever tie it had.
+    return extracted.copy(
+        textureSlices = textureSlices.mapValues { (slot, slice) ->
+            if (slot in assets) slice.copy(path = extracted.texturePathFor(slot)) else slice
+        },
+    )
+}
+
+/**
+ * The local path the picture in transport [slot] lives at, or null when the
+ * theme has none there. The inverse of the slot names [withEmbeddedImages]
+ * writes, for the key pictures only.
+ */
+fun ThemeSpec.texturePathFor(slot: String): String? = when {
+    slot == ASSET_KEY_TEXTURE -> keyTexture
+    slot == ASSET_KEY_TEXTURE_MODIFIER -> keyTextureModifier
+    slot == ASSET_KEY_TEXTURE_ENTER -> keyTextureEnter
+    slot == ASSET_KEY_TEXTURE_SPACE -> keyTextureSpace
+    slot == ASSET_KEY_TEXTURE_PRESSED -> keyTexturePressed
+    slot == ASSET_POPUP_TEXTURE -> popupTexture
+    slot.startsWith(ASSET_KEY_OVERRIDE_TEXTURE_PREFIX) ->
+        keyOverrides[slot.removePrefix(ASSET_KEY_OVERRIDE_TEXTURE_PREFIX)]?.texture
+    slot.startsWith(ASSET_KEY_OVERRIDE_PRESSED_PREFIX) ->
+        keyOverrides[slot.removePrefix(ASSET_KEY_OVERRIDE_PRESSED_PREFIX)]?.pressedTexture
+    else -> null
+}
+
+/**
+ * The nine-slice cut for the picture at [path] in transport [slot], or null to
+ * draw it fitted: no cut was made for the slot, or the cut was made for a
+ * different file than the one there now.
+ */
+fun Map<String, TextureSlice>.sliceFor(slot: String, path: String?): TextureSlice? {
+    if (path == null) return null
+    val slice = this[slot] ?: return null
+    return slice.takeIf { it.path == path }?.normalized()
 }
 
 // ---- theme families ----

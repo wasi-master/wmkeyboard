@@ -3256,12 +3256,9 @@
     <string name="import_font_body">Die App fügt diese Schriftart zu deinen Schriftarten hinzu. Wähle unter Schriftarten aus, wo sie Text darstellen soll.</string>
     <string name="import_foreign_layout_body">Dies ist ein Layout einer anderen Tastatur (FlorisBoard oder Keyman). Die App fügt dessen Tasten als dein Layout hinzu. Das Layout bleibt deaktiviert. Um damit zu tippen, aktiviere es unter Sprachen.</string>
     <string name="import_futo_body">Dies ist ein FUTO-Tastaturlayout. Die App fügt ihre Buchstabentasten als Ihr Layout hinzu; die Symbol- und Zahlentasten bleiben die, die Sie bereits haben. Das Layout bleibt deaktiviert. Um damit zu schreiben, aktivieren Sie es unter Sprachen.</string>
-    <string name="import_futo_theme_body">Die App konvertiert die Farben dieses FUTO-Tastaturdesigns sowie dessen Hintergrundbild und Schriftart, falls vorhanden. Die App speichert das Design, aktiviert es jedoch nicht, damit Sie es sich zuerst ansehen können.</string>
     <string name="import_futo_theme_credit">Erstellt von %1$s.</string>
     <string name="import_futo_theme_done">Die App hat %1$s gespeichert. Öffne die Designs, um es dir anzusehen.</string>
-    <string name="import_futo_theme_dropped_pictures">Das Design zeichnet einige Tasten mit eigenen Bildern. Diese App zeichnet diese Tasten in den Farben des Designs.</string>
     <string name="import_futo_theme_dropped_shader">Das Design zeichnet ein animiertes Muster hinter die Tasten, welches von dieser App nicht unterstützt wird.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Das Design übernimmt einige Farben vom Hintergrundbild. Diese App kann diese nicht lesen, daher berechnet sie ihre eigenen Farben für diese Teile.</string>
     <string name="import_futo_theme_title">Design von FUTO Keyboard</string>
     <string name="import_futo_theme_unreadable_body">Die App kann dies nicht als FUTO-Tastatur-Design lesen. Wählen Sie die .zip-Datei des Designs, diejenige, die theme.txt oder config.json enthält.</string>
     <string name="import_gboard_body">Die App kann %1$d der %2$d Stilregeln in diesem Design verwenden. Gboard-Designs legen Teile einer Tastatur fest, die diese App anders darstellt. Die App speichert das Design, aktiviert es jedoch nicht, damit Sie es sich zuerst ansehen können.</string>

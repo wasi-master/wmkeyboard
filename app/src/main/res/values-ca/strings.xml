@@ -3257,12 +3257,9 @@
     <string name="import_font_body">L\'aplicació afegeix aquest tipus de lletra als vostres tipus de lletra. Trieu on dibuixa el text a Tipus de lletra.</string>
     <string name="import_foreign_layout_body">Aquesta és una disposició d\'un altre teclat (FlorisBoard o Keyman). L\'aplicació n\'afegeix les tecles com una disposició vostra. La disposició roman desactivada. Per escriure-hi, activeu-la a Idiomes.</string>
     <string name="import_futo_body">Aquesta és una disposició de teclat FUTO. L\'aplicació afegeix les seves tecles de lletres com una disposició teva; les tecles de símbols i números segueixen sent les que ja tens. La disposició roman desactivada. Per escriure amb ella, activa-la a Idiomes.</string>
-    <string name="import_futo_theme_body">L\'aplicació converteix els colors d\'aquest tema del teclat FUTO, així com la seva imatge de fons i el tipus de lletra si en té. L\'aplicació desa el tema però no l\'activa, perquè puguis fer-hi un cop d\'ull primer.</string>
     <string name="import_futo_theme_credit">Creat per %1$s.</string>
     <string name="import_futo_theme_done">L\'aplicació ha desat %1$s. Obre els temes per veure\'l.</string>
-    <string name="import_futo_theme_dropped_pictures">El tema dibuixa algunes tecles amb les seves pròpies imatges. Aquesta aplicació dibuixa aquestes tecles amb els colors del tema.</string>
     <string name="import_futo_theme_dropped_shader">El tema dibuixa un patró animat darrere de les tecles, el qual aquesta aplicació no dibuixa.</string>
-    <string name="import_futo_theme_dropped_wallpaper">El tema agafa alguns colors del fons de pantalla. Aquesta aplicació no els pot llegir, així que calcula els seus propis colors per a aquestes parts.</string>
     <string name="import_futo_theme_title">Tema de FUTO Keyboard</string>
     <string name="import_futo_theme_unreadable_body">L\'aplicació no pot llegir això com un tema del teclat FUTO. Trieu el fitxer .zip del tema, el que conté theme.txt o config.json.</string>
     <string name="import_gboard_body">L\'aplicació pot utilitzar %1$d de les %2$d regles d\'estil d\'aquest tema. Els temes de Gboard defineixen parts d\'un teclat que aquesta aplicació dibuixa d\'una manera diferent. L\'aplicació desa el tema però no l\'activa, perquè primer hi pugueu fer una ullada.</string>

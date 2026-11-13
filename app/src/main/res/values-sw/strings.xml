@@ -3261,12 +3261,9 @@
     <string name="import_font_body">Programu inaongeza fonti hii kwenye fonti zako. Chagua mahali inapotumia maandishi chini ya Fonti.</string>
     <string name="import_foreign_layout_body">Hii ni mpangilio kutoka kwa kibodi nyingine (FlorisBoard au Keyman). Programu inaongeza vitufe vyake kama mpangilio wako. Mpangilio unabaki umezimwa. Ili kuandika nao, uwashe katika Lugha.</string>
     <string name="import_futo_body">Huu ni mpangilio wa Kibodi ya FUTO. Programu huongeza funguo zake za herufi kama mpangilio wako; funguo za alama na nambari hubaki zile ulizonazo. Mpangilio hubaki umezimwa. Ili kuandika nao, uwashe katika Lugha.</string>
-    <string name="import_futo_theme_body">Programu hubadilisha rangi za mada hii ya Kibodi ya FUTO, pamoja na picha ya mandharinyuma na fonti ikiwa nayo. Programu huhifadhi mada lakini haiiwashi, ili uweze kuitazama kwanza.</string>
     <string name="import_futo_theme_credit">Imetengenezwa na %1$s.</string>
     <string name="import_futo_theme_done">Programu imehifadhi %1$s. Fungua Mandhari ili kuitazama.</string>
-    <string name="import_futo_theme_dropped_pictures">Mandhari huchora baadhi ya vitufe na picha zao wenyewe. Programu hii huchora vitufe hivyo katika rangi za mandhari.</string>
     <string name="import_futo_theme_dropped_shader">Mandhari huchora muundo unaosonga nyuma ya funguo, ambao programu hii haichori.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Mandhari huchukua rangi kutoka kwenye wallpaper. Programu hii haiwezi kusoma rangi hizo, hivyo hujiwekea rangi zake yenyewe kwa sehemu hizo.</string>
     <string name="import_futo_theme_title">Mandhari kutoka Kibodi ya FUTO</string>
     <string name="import_futo_theme_unreadable_body">Programu haiwezi kusoma hiyo kama mandhari ya Kibodi ya FUTO. Chagua faili ya .zip ya mandhari, ile yenye theme.txt au config.json ndani yake.</string>
     <string name="import_gboard_body">Programu inaweza kutumia %1$d kati ya %2$d sheria za mtindo katika mandhari haya. Mandhari ya Gboard huweka sehemu za kibodi ambazo programu hii huchora kwa njia tofauti. Programu huhifadhi mandhari lakini haiwashi, ili uweze kuitazama kwanza.</string>

@@ -21,6 +21,7 @@ import com.wasimaster.wmkeyboard.core.theme.HeliUnsupported
 import com.wasimaster.wmkeyboard.core.theme.KineticaTheme
 import com.wasimaster.wmkeyboard.core.theme.KineticaThemeResult
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
+import com.wasimaster.wmkeyboard.core.theme.WallpaperPalette
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonNull
@@ -191,11 +192,15 @@ object ForeignBackups {
     fun looksLikeBackup(names: Collection<String>): Boolean =
         names.any { it == HELI_PREFS || it == FUTO_VERSION || it == FLORIS_METADATA || it == CLEVER_MANIFEST }
 
-    /** Reads a backup ZIP. Null when it is none of the formats, or holds nothing usable. */
-    fun read(input: InputStream): ForeignBackup? {
+    /**
+     * Reads a backup ZIP. Null when it is none of the formats, or holds nothing
+     * usable. [palette] is the phone's wallpaper palette, which a FUTO theme's
+     * wallpaper colours are resolved against.
+     */
+    fun read(input: InputStream, palette: WallpaperPalette? = null): ForeignBackup? {
         val archive = unzip(input) ?: return null
         val backup = when {
-            FUTO_VERSION in archive.kept -> futo(archive)
+            FUTO_VERSION in archive.kept -> futo(archive, palette)
             FLORIS_METADATA in archive.kept -> floris(archive)
             HELI_PREFS in archive.kept -> heli(archive)
             CLEVER_MANIFEST in archive.kept -> cleverKeysArchive(archive)
@@ -459,7 +464,7 @@ object ForeignBackups {
 
     // ---- FUTO Keyboard ----
 
-    private fun futo(archive: Archive): ForeignBackup? {
+    private fun futo(archive: Archive, palette: WallpaperPalette?): ForeignBackup? {
         val prefs = LinkedHashMap<String, Any>()
         archive.kept[FUTO_DATASTORE]?.let(ForeignPrefs::datastore)?.let(prefs::putAll)
         archive.text(FUTO_SHARED)?.let(ForeignPrefs::futoSharedPrefs)?.let(prefs::putAll)
@@ -515,7 +520,8 @@ object ForeignBackups {
         // follows the system's dark mode.
         val themeFiles = archive.kept.filterKeys { it.startsWith(FUTO_THEMES) && it.endsWith(".zip") }
         val themes = themeFiles.mapNotNull { (name, bytes) ->
-            val result = FutoTheme.read(bytes.inputStream()) as? FutoThemeResult.Converted ?: return@mapNotNull null
+            val result = FutoTheme.read(bytes.inputStream(), palette) as? FutoThemeResult.Converted
+                ?: return@mapNotNull null
             val ref = name.removePrefix(FUTO_THEMES).removeSuffix(".zip")
             ForeignTheme.Futo(ref, result.converted.theme.name, result)
         }

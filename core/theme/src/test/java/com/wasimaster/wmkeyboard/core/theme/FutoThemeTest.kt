@@ -37,14 +37,19 @@ class FutoThemeTest {
     }
 
     @Test
-    fun wallpaperColoursAndKeyPicturesAreNamed() {
+    fun wallpaperColoursResolveAndMissingPicturesAreNamed() {
         val text = TOML.replace("primary = \"#8AB4F8\"", "primary = \"system_accent1_200\"") +
             "\n[[matchrules.border]]\nselector = \"normal\"\nasset = \"key.png\"\n"
         val result = FutoTheme.read(mapOf(FutoTheme.TOML_CONFIG to text.toByteArray())) as FutoThemeResult.Converted
-        assertTrue(FutoThemeUnsupported.WALLPAPER_COLOURS in result.dropped)
+        val theme = result.converted.theme
+        // No phone palette handed in: Material's baseline stands in, and says so.
+        assertTrue(FutoThemeUnsupported.WALLPAPER_STAND_IN in result.dropped)
+        // `accent1_200` is the primary palette at tone 80.
+        assertEquals(0xFFD0BCFFL, theme.enterKeyBackground)
+        assertTrue(theme.followWallpaper)
+        assertEquals(0xFFD0BCFFL, theme.wallpaperRoles[wallpaperToneKey("primary", 80)])
+        // The picture the rule names is not in the ZIP.
         assertTrue(FutoThemeUnsupported.KEY_PICTURES in result.dropped)
-        // The enter key falls back to the other keys' colour.
-        assertEquals(0xFF1C2028L, result.converted.theme.enterKeyBackground)
     }
 
     @Test

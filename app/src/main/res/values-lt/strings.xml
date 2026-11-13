@@ -3258,12 +3258,9 @@
     <string name="import_font_body">Programa prideda šį šriftą prie jūsų šriftų. Pasirinkite, kur jis pieš tekstą skiltyje „Šriftai“.</string>
     <string name="import_foreign_layout_body">Tai kitos klaviatūros („FlorisBoard“ arba „Keyman“) išdėstymas. Programa prideda jos klavišus kaip jūsų išdėstymą. Išdėstymas lieka išjungtas. Norėdami rašyti naudodami jį, įjunkite jį skiltyje „Kalbos“.</string>
     <string name="import_futo_body">Tai „FUTO Keyboard“ išdėstymas. Programa prideda savo raidžių klavišus kaip jūsų išdėstymą; simbolių ir skaičių klavišai lieka tokie, kokius turite. Išdėstymas lieka išjungtas. Norėdami rašyti naudodami jį, įjunkite jį skiltyje „Kalbos“.</string>
-    <string name="import_futo_theme_body">Programa konvertuoja šios „FUTO Keyboard“ temos spalvas, taip pat fono paveikslėlį ir šriftą, jei tokių yra. Programa išsaugo temą, bet jos neįjungia, kad galėtumėte pirmiausia ją peržiūrėti.</string>
     <string name="import_futo_theme_credit">Sukūrė %1$s.</string>
     <string name="import_futo_theme_done">Programėlė išsaugojo %1$s. Atidarykite „Temos“, kad peržiūrėtumėte.</string>
-    <string name="import_futo_theme_dropped_pictures">Tema kai kuriuos klavišus piešia su jų pačių paveikslėliais. Ši programėlė tuos klavišus piešia temos spalvomis.</string>
     <string name="import_futo_theme_dropped_shader">Tema piešia animuotą raštą už klavišų, ko ši programėlė nedaro.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Tema paima kai kurias spalvas iš ekrano užsklandos. Ši programa negali jų nuskaityti, todėl toms dalims ji parenka savo spalvas.</string>
     <string name="import_futo_theme_title">Tema iš „FUTO Keyboard“</string>
     <string name="import_futo_theme_unreadable_body">Programa negali nuskaityti to kaip „FUTO Keyboard“ temos. Pasirinkite temos .zip failą, kuriame yra theme.txt arba config.json.</string>
     <string name="import_gboard_body">Programėlė gali naudoti %1$d iš %2$d šios temos stiliaus taisyklių. „Gboard“ temos nustato klaviatūros dalis, kurias ši programėlė piešia kitaip. Programėlė išsaugo temą, bet jos neįjungia, kad galėtumėte pirmiausia ją peržiūrėti.</string>

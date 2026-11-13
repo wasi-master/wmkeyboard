@@ -614,10 +614,32 @@ FUTO paints its keyboard from a handful of its colour roles, and those are the o
 
 The other thirty-odd roles colour FUTO's own menus and have nothing to fill here. **Key borders off** becomes the **None** key shape, labels on the bare board. The key roundness becomes the corner radius (FUTO's 9 dp a step), and the label size and a heavy label weight come across from a `theme.txt`. A background picture comes across with its opacity, and a font in the file is installed and used.
 
-What does not come across, and the dialog lists whichever applies:
+#### Key pictures and icons
 
-- **Pictures drawn per key**, FUTO's `matchrules` key borders and icons. Those keys are drawn in the theme's colours instead.
-- **Colours from the wallpaper**, written as `system_…`. This app works out its own colours for those parts.
+An advanced FUTO theme draws its keys from pictures, picked by `matchrules`: each rule has a selector such as `normal`, `action pressed` or `label q`, and the first rule that fits a key is the one drawn on it. Those rules come across:
+
+| FUTO selector | Here |
+|---|---|
+| `normal`, `functional`, `action`, `spacebar` | The key picture for letters, the other keys, enter and the space bar |
+| `pressed` with any of those | The picture a key shows while held, for the board or for one key |
+| `popup` | The key preview bubble |
+| `label q`, or a single key whose rule differs from its class | That key's own style, as if set in [Single-key styles](/themes/editor/#single-key-styles) |
+| `icon shift_key`, `icon shift_key_shifted`, `icon delete_key`, `icon enter_key`, `icon action_emoji` | The shift (off and on), delete, enter and emoji icons |
+
+Each picture is cut nine-slice where its asset entry gives a `slicing`: the corners keep the size the theme drew them at (`target_density`), and only the edges and middle stretch, so one frame fits both a letter key and the space bar. A picture's `foreground_tint` becomes the label colour on it, and a `background_tint` other than white is multiplied in. The key colour under a picture is cleared, because FUTO draws the picture instead of the key face.
+
+#### Wallpaper colours
+
+A colour written as `system_…` comes from the phone's wallpaper. All three spellings FUTO themes use are read: a role with its scheme (`system_primary_dark`, `system_on_surface_light`), Android's tonal shades (`system_accent1_200`), and FUTO's shorter ones (`system_neutralVariant60`). Each is taken from your wallpaper when you import, and the theme then keeps following it the way a [wallpaper-following theme](/themes/editor/) does: change the wallpaper and those parts change with it. A phone below Android 12 has no wallpaper colours, so the standard Material colours stand in, and the dialog says so.
+
+#### What does not come across
+
+The dialog lists whichever applies:
+
+- **Pictures picked by row and column** (`row 2 col 8`, `rowmod`, `layer`). This app's layouts do not share FUTO's grid, so those keys show the picture of their key type.
+- **Pictures for states this app draws without a picture**: a shift key that is on (`stickyon`), an icon while it is held, and the long-press popup (`morekey`, `morekeysbox`).
+- **Pictures missing from the file**, or a picture for a key with no icon slot here.
+- **Colours from the wallpaper under a name this app does not know.**
 - **An animated background shader.**
 
 Like the other converted themes, a FUTO theme is saved but not turned on.

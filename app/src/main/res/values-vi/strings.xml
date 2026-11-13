@@ -3252,12 +3252,9 @@
     <string name="import_font_body">Ứng dụng sẽ thêm phông chữ này vào danh sách phông chữ của bạn. Hãy chọn nơi hiển thị văn bản trong phần Phông chữ.</string>
     <string name="import_foreign_layout_body">Đây là bố cục từ một bàn phím khác (FlorisBoard hoặc Keyman). Ứng dụng sẽ thêm các phím của nó dưới dạng một bố cục của bạn. Bố cục này vẫn ở trạng thái tắt. Để nhập liệu bằng bố cục đó, hãy bật nó trong phần Ngôn ngữ.</string>
     <string name="import_futo_body">Đây là bố cục bàn phím FUTO. Ứng dụng sẽ thêm các phím chữ cái của nó vào bố cục của bạn; các phím ký hiệu và số vẫn giữ nguyên như cũ. Bố cục này vẫn ở trạng thái tắt. Để nhập liệu bằng bố cục này, hãy bật nó trong phần Ngôn ngữ.</string>
-    <string name="import_futo_theme_body">Ứng dụng sẽ chuyển đổi màu sắc của chủ đề Bàn phím FUTO này, cùng với hình nền và phông chữ nếu có. Ứng dụng sẽ lưu chủ đề nhưng không kích hoạt nó, để bạn có thể xem trước.</string>
     <string name="import_futo_theme_credit">Được tạo bởi %1$s.</string>
     <string name="import_futo_theme_done">Ứng dụng đã lưu %1$s. Mở Chủ đề để xem nó.</string>
-    <string name="import_futo_theme_dropped_pictures">Chủ đề này vẽ một số phím bằng hình ảnh riêng của chúng. Ứng dụng này vẽ các phím đó theo màu sắc của chủ đề.</string>
     <string name="import_futo_theme_dropped_shader">Chủ đề vẽ một mẫu hoạt hình phía sau các phím, mà ứng dụng này không vẽ.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Chủ đề lấy một số màu từ hình nền. Ứng dụng này không thể đọc được các màu đó, vì vậy nó tự tính toán màu sắc cho các phần đó.</string>
     <string name="import_futo_theme_title">Chủ đề từ Bàn phím FUTO</string>
     <string name="import_futo_theme_unreadable_body">Ứng dụng không thể đọc tệp này dưới dạng chủ đề Bàn phím FUTO. Hãy chọn tệp .zip của chủ đề, tệp có chứa theme.txt hoặc config.json bên trong.</string>
     <string name="import_gboard_body">Ứng dụng có thể sử dụng %1$d trong tổng số %2$d quy tắc kiểu trong chủ đề này. Các chủ đề Gboard thiết lập các phần của bàn phím mà ứng dụng này vẽ theo một cách khác. Ứng dụng sẽ lưu chủ đề nhưng không bật nó lên, để bạn có thể xem trước.</string>

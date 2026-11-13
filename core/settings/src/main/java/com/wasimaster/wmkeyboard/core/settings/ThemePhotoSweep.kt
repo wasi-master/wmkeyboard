@@ -59,7 +59,10 @@ fun themePhotoSweepPlan(
             theme.keyEffectImages.forEach { add(it.substringAfterLast('/')) }
             theme.keyOverrides.values.forEach { override ->
                 override.texture?.let { add(it.substringAfterLast('/')) }
+                override.pressedTexture?.let { add(it.substringAfterLast('/')) }
             }
+            // A converted theme's own key glyphs are written here too.
+            theme.keyIcons.values.forEach { add(it.substringAfterLast('/')) }
         }
         rotationStates.values.forEach { state ->
             state.imagePath?.let { add(it.substringAfterLast('/')) }

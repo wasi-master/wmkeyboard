@@ -3258,12 +3258,9 @@
     <string name="import_font_body">Aplikacija dodaje ovaj font vašim fontovima. Odaberite gdje iscrtava tekst pod Fontovi.</string>
     <string name="import_foreign_layout_body">Ovo je raspored s druge tipkovnice (FlorisBoard ili Keyman). Aplikacija dodaje njezine tipke kao vaš raspored. Raspored ostaje isključen. Da biste tipkali s njim, uključite ga u jezicima.</string>
     <string name="import_futo_body">Ovo je FUTO raspored tipkovnice. Aplikacija dodaje svoje tipke sa slovima kao vaš raspored; tipke sa simbolima i brojevima ostaju one koje imate. Raspored ostaje isključen. Za tipkanje s njim, uključite ga u jezicima.</string>
-    <string name="import_futo_theme_body">Aplikacija pretvara boje ove FUTO tipkovničke teme, kao i njezinu pozadinsku sliku i font ako ih ima. Aplikacija sprema temu, ali je ne aktivira, kako biste je prvo mogli pogledati.</string>
     <string name="import_futo_theme_credit">Izradio %1$s.</string>
     <string name="import_futo_theme_done">Aplikacija je spremila %1$s. Otvorite Teme da biste ga pregledali.</string>
-    <string name="import_futo_theme_dropped_pictures">Tema iscrtava neke tipke s vlastitim slikama. Ova aplikacija iscrtava te tipke u bojama teme.</string>
     <string name="import_futo_theme_dropped_shader">Tema iscrtava animirani uzorak iza tipki, što ova aplikacija ne iscrtava.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Tema preuzima neke boje s pozadine. Ova aplikacija ih ne može pročitati, pa sama određuje boje za te dijelove.</string>
     <string name="import_futo_theme_title">Tema iz FUTO tipkovnice</string>
     <string name="import_futo_theme_unreadable_body">Aplikacija ne može pročitati tu datoteku kao FUTO temu tipkovnice. Odaberite .zip datoteku teme, onu koja sadrži theme.txt ili config.json.</string>
     <string name="import_gboard_body">Aplikacija može koristiti %1$d od %2$d pravila stila u ovoj temi. Gboard teme postavljaju dijelove tipkovnice koje ova aplikacija iscrtava na drugačiji način. Aplikacija sprema temu, ali je ne uključuje, kako biste je prvo mogli pregledati.</string>

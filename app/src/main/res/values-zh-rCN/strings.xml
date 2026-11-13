@@ -3251,12 +3251,9 @@
     <string name="import_font_body">应用会将此字体添加到您的字体库中。请在“字体”下选择它绘制文本的位置。</string>
     <string name="import_foreign_layout_body">这是来自其他键盘（FlorisBoard 或 Keyman）的布局。应用会将其键位添加为您的布局。该布局保持关闭状态。若要使用它输入，请在“语言”中将其开启。</string>
     <string name="import_futo_body">这是一个 FUTO 键盘布局。应用会将它的字母键添加为您的布局之一；符号键和数字键保持为您现有的设置。该布局保持关闭状态。要使用它输入，请在“语言”中将其开启。</string>
-    <string name="import_futo_theme_body">该应用会转换此 FUTO 键盘主题的颜色，以及其背景图片和字体（如果有）。应用会保存该主题但不会启用它，以便您可以先预览。</string>
     <string name="import_futo_theme_credit">由 %1$s 制作。</string>
     <string name="import_futo_theme_done">应用已保存 %1$s。请打开“主题”查看。</string>
-    <string name="import_futo_theme_dropped_pictures">该主题绘制了一些带有自定义图片的按键。此应用会以主题的颜色绘制这些按键。</string>
     <string name="import_futo_theme_dropped_shader">该主题在按键后绘制动画图案，但本应用不支持此绘制。</string>
-    <string name="import_futo_theme_dropped_wallpaper">该主题从壁纸中提取了一些颜色。由于此应用无法读取这些颜色，它会自行计算相关部分的颜色。</string>
     <string name="import_futo_theme_title">来自 FUTO 键盘的主题</string>
     <string name="import_futo_theme_unreadable_body">应用程序无法读取该文件作为 FUTO 键盘主题。请选择主题的 .zip 文件，即包含 theme.txt 或 config.json 的文件。</string>
     <string name="import_gboard_body">应用可以使用此主题中 %2$d 个样式规则中的 %1$d 个。Gboard 主题以不同方式设置此应用绘制的键盘部分。应用会保存该主题但不会启用它，以便您可以先查看。</string>

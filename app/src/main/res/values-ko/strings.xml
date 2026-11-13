@@ -3252,12 +3252,9 @@
     <string name="import_font_body">앱이 이 폰트를 폰트 목록에 추가합니다. 폰트 설정에서 텍스트를 그릴 위치를 선택하세요.</string>
     <string name="import_foreign_layout_body">이것은 다른 키보드(FlorisBoard 또는 Keyman)의 레이아웃입니다. 앱이 해당 키를 사용자의 레이아웃으로 추가합니다. 레이아웃은 꺼진 상태로 유지됩니다. 사용하려면 언어 설정에서 켜세요.</string>
     <string name="import_futo_body">이것은 FUTO 키보드 레이아웃입니다. 앱이 해당 문자 키를 사용자의 레이아웃으로 추가하며, 기호 및 숫자 키는 기존 설정을 유지합니다. 레이아웃은 기본적으로 꺼져 있습니다. 사용하려면 언어 설정에서 켜십시오.</string>
-    <string name="import_futo_theme_body">앱이 이 FUTO 키보드 테마의 색상과 배경 사진 및 글꼴(있는 경우)을 변환합니다. 앱이 테마를 저장하지만 바로 적용하지는 않으므로 먼저 확인해 볼 수 있습니다.</string>
     <string name="import_futo_theme_credit">%1$s 제작.</string>
     <string name="import_futo_theme_done">%1$s을(를) 저장했습니다. 테마를 열어 확인하세요.</string>
-    <string name="import_futo_theme_dropped_pictures">이 테마는 일부 키에 자체 이미지를 사용합니다. 이 앱은 해당 키를 테마의 색상으로 그립니다.</string>
     <string name="import_futo_theme_dropped_shader">이 테마는 키 뒤에 애니메이션 패턴을 그리지만, 이 앱은 이를 지원하지 않습니다.</string>
-    <string name="import_futo_theme_dropped_wallpaper">테마는 배경화면에서 일부 색상을 가져옵니다. 이 앱은 해당 색상을 읽을 수 없으므로 해당 부분에 대해 자체 색상을 계산합니다.</string>
     <string name="import_futo_theme_title">FUTO 키보드 테마</string>
     <string name="import_futo_theme_unreadable_body">이 앱은 해당 파일을 FUTO 키보드 테마로 읽을 수 없습니다. theme.txt 또는 config.json이 포함된 테마의 .zip 파일을 선택하세요.</string>
     <string name="import_gboard_body">이 앱은 이 테마에 있는 %2$d개의 스타일 규칙 중 %1$d개를 사용할 수 있습니다. Gboard 테마는 이 앱이 그리는 키보드 부분을 다른 방식으로 설정합니다. 앱이 테마를 저장하지만 바로 적용하지는 않으므로 먼저 확인해 볼 수 있습니다.</string>

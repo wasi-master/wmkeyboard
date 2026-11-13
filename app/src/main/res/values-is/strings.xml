@@ -3252,12 +3252,9 @@
     <string name="import_font_body">Forritið bætir þessu letri við letursafnið þitt. Veldu hvar það á að birta texta undir Leturgerðir.</string>
     <string name="import_foreign_layout_body">Þetta er lyklaborðsuppsetning frá öðru lyklaborði (FlorisBoard eða Keyman). Forritið bætir tökkunum við sem þinni uppsetningu. Uppsetningin er óvirk. Til að nota hana, virkjaðu hana undir Tungumálum.</string>
     <string name="import_futo_body">Þetta er FUTO-lyklaborðsuppsetning. Forritið bætir stafatökkunum við sem þinni uppsetningu; tákna- og tölutakkarnir haldast þeir sem þú hefur. Uppsetningin er óvirk. Til að skrifa með henni, kveiktu á henni undir Tungumál.</string>
-    <string name="import_futo_theme_body">Forritið breytir litum þessa FUTO lyklaborðsþema, ásamt bakgrunnsmynd og letri ef þau eru til staðar. Forritið vistar þemað en virkjar það ekki, svo þú getir skoðað það fyrst.</string>
     <string name="import_futo_theme_credit">Gert af %1$s.</string>
     <string name="import_futo_theme_done">Forritið vistaði %1$s. Opnaðu Þemu til að skoða það.</string>
-    <string name="import_futo_theme_dropped_pictures">Þemað teiknar suma takka með sínum eigin myndum. Þetta forrit teiknar þessa takka í litum þemans.</string>
     <string name="import_futo_theme_dropped_shader">Þemað teiknar hreyfimyndamynstur fyrir aftan takkana, sem þetta forrit teiknar ekki.</string>
-    <string name="import_futo_theme_dropped_wallpaper">Þemað tekur nokkra liti úr veggfóðrinu. Þetta forrit getur ekki lesið þá, svo það býr til sína eigin liti fyrir þá hluta.</string>
     <string name="import_futo_theme_title">Þema frá FUTO lyklaborði</string>
     <string name="import_futo_theme_unreadable_body">Forritið getur ekki lesið þetta sem FUTO Keyboard þema. Veldu .zip skrá þemans, þá sem inniheldur theme.txt eða config.json.</string>
     <string name="import_gboard_body">Forritið getur notað %1$d af %2$d stílreglunum í þessu þema. Gboard-þemu setja hluta lyklaborðsins sem þetta forrit teiknar á annan hátt. Forritið vistar þemað en virkjar það ekki, svo að þú getir skoðað það fyrst.</string>

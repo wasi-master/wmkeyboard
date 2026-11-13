@@ -114,6 +114,7 @@ import com.wasimaster.wmkeyboard.core.theme.MAX_EFFECT_IMAGES
 import com.wasimaster.wmkeyboard.core.theme.SECONDARY_SUGGESTION_SCALE_RANGE
 import com.wasimaster.wmkeyboard.core.theme.keyEffectColorMode
 import com.wasimaster.wmkeyboard.core.theme.KeyTextureScale
+import com.wasimaster.wmkeyboard.core.theme.TextureSlice
 import com.wasimaster.wmkeyboard.core.theme.ThemeAnimation
 import com.wasimaster.wmkeyboard.core.theme.ThemeBackgroundImage
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
@@ -279,6 +280,8 @@ data class KbTheme(
     val popupSelectedText: Color,
     /** Image painted inside the preview bubble, clipped to its shape. */
     val popupTexture: String?,
+    /** Nine-slice cuts of the key pictures, as [ThemeSpec.textureSlices]. */
+    val textureSlices: Map<String, TextureSlice> = emptyMap(),
     val toolbarIcon: Color,
     val toolCircle: Color,
     val toolCircleActive: Color,
@@ -1182,6 +1185,7 @@ private fun specKbTheme(spec: ThemeSpec, settings: KeyboardSettings): KbTheme {
                 minRatio = SELECTED_GLYPH_CONTRAST,
             ),
         popupTexture = spec.popupTexture,
+        textureSlices = spec.textureSlices,
         toolbarIcon = spec.toolbarIcon?.let(::colorOf) ?: secondary,
         toolCircle = spec.toolCircleBackground?.let(::colorOf)
             ?: blendOver(keyText, board, 0.14f),
@@ -2092,6 +2096,7 @@ private fun lerpKbTheme(a: KbTheme, b: KbTheme, t: Float): KbTheme {
         popupSelected = lerp(a.popupSelected, b.popupSelected, t),
         popupSelectedText = lerp(a.popupSelectedText, b.popupSelectedText, t),
         popupTexture = if (past) b.popupTexture else a.popupTexture,
+        textureSlices = if (past) b.textureSlices else a.textureSlices,
         toolbarIcon = lerp(a.toolbarIcon, b.toolbarIcon, t),
         toolCircle = lerp(a.toolCircle, b.toolCircle, t),
         toolCircleActive = lerp(a.toolCircleActive, b.toolCircleActive, t),
