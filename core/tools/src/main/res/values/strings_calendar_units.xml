@@ -240,7 +240,15 @@
     <!-- Small raised and lowered digits and letters. -->
     <string name="core_tools_symbol_category_superscript_label">Superscript</string>
     <string name="core_tools_symbol_category_punctuation_label">Punctuation</string>
-    <string name="core_tools_symbol_category_shapes_label">Shapes and stars</string>
+    <string name="core_tools_symbol_category_shapes_label">Shapes</string>
+    <!-- Star symbols, asterisks and florets: ★ ✦ ✱ ❀. -->
+    <string name="core_tools_symbol_category_stars_label">Stars</string>
+    <!-- Sun, cloud, rain and snow symbols and the temperature units: ☀ ☁ ❄ ℃. -->
+    <string name="core_tools_symbol_category_weather_label">Weather</string>
+    <!-- Music notation: notes, sharps and flats, clefs: ♪ ♯ 𝄞. -->
+    <string name="core_tools_symbol_category_music_label">Music</string>
+    <!-- Keyboard key symbols and media controls: ⌘ ⌫ ⏎ ⏯. -->
+    <string name="core_tools_symbol_category_technical_label">Technical</string>
     <!-- The characters that fit no other category. -->
     <string name="core_tools_symbol_category_other_label">Other</string>
 
