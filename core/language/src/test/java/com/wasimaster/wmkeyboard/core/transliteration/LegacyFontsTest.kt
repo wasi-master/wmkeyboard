@@ -250,6 +250,41 @@ class LegacyFontsTest {
         assertEquals("kIitR>", LegacyFonts.convert(LegacyFonts.Font.SANSKRIT_99, "\u0915\u0940\u0930\u094D\u0924\u093F\u0903"))
     }
 
+    /** Each glyph-table font's own name for its language, as Padma reads it back. */
+    @Test
+    fun glyphTableFontsWriteTheirLanguagesName() {
+        assertEquals("\u00A8\u00C9\u00AE\u00C9`\u00D2", LegacyFonts.convert(LegacyFonts.Font.of("dvtt")!!, "\u092E\u0930\u093E\u0920\u0940")) // dvtt
+        assertEquals("\u00A8\u00C9\u00AE\u00C9`\u00D2", LegacyFonts.convert(LegacyFonts.Font.of("dvwtt")!!, "\u092E\u0930\u093E\u0920\u0940")) // dvwtt
+        assertEquals("_amRr", LegacyFonts.convert(LegacyFonts.Font.of("shreedev714")!!, "\u092E\u0930\u093E\u0920\u0940")) // shreedev714
+        assertEquals("_amRr", LegacyFonts.convert(LegacyFonts.Font.of("shreepudhari")!!, "\u092E\u0930\u093E\u0920\u0940")) // shreepudhari
+        assertEquals("_amRr", LegacyFonts.convert(LegacyFonts.Font.of("shreepud77")!!, "\u092E\u0930\u093E\u0920\u0940")) // shreepud77
+        assertEquals("\u00D7\u00DA\u00E6\u00C6\u00E8", LegacyFonts.convert(LegacyFonts.Font.of("htchanakya")!!, "\u092E\u0930\u093E\u0920\u0940")) // htchanakya
+        assertEquals("marazI", LegacyFonts.convert(LegacyFonts.Font.of("shusha")!!, "\u092E\u0930\u093E\u0920\u0940")) // shusha
+        assertEquals("marazI", LegacyFonts.convert(LegacyFonts.Font.of("shivaji")!!, "\u092E\u0930\u093E\u0920\u0940")) // shivaji
+        assertEquals("gaujaratI", LegacyFonts.convert(LegacyFonts.Font.of("vakil")!!, "\u0A97\u0AC1\u0A9C\u0AB0\u0ABE\u0AA4\u0AC0")) // vakil
+        assertEquals("\u2122\u00F0\u00CB#V#", LegacyFonts.convert(LegacyFonts.Font.of("shreetel900")!!, "\u0C24\u0C46\u0C32\u0C41\u0C17\u0C41")) // shreetel900
+        assertEquals("\u0153\u00C9\u00A8\u00C5\u008F\u00C5", LegacyFonts.convert(LegacyFonts.Font.of("telugulipi")!!, "\u0C24\u0C46\u0C32\u0C41\u0C17\u0C41")) // telugulipi
+        assertEquals("\u00C5\u00E3\u2122\u00D5\u2019\u00D5", LegacyFonts.convert(LegacyFonts.Font.of("eenadu")!!, "\u0C24\u0C46\u0C32\u0C41\u0C17\u0C41")) // eenadu
+        assertEquals("\u00E9\u009E\u00AA\u00D7\u2019\u00D7", LegacyFonts.convert(LegacyFonts.Font.of("vaartha")!!, "\u0C24\u0C46\u0C32\u0C41\u0C17\u0C41")) // vaartha
+        assertEquals("\u0099\u00D4\\Q>Q", LegacyFonts.convert(LegacyFonts.Font.of("vikaas")!!, "\u0C24\u0C46\u0C32\u0C41\u0C17\u0C41")) // vikaas
+        assertEquals("u\u00AA\u00CC", LegacyFonts.convert(LegacyFonts.Font.of("shreetam802")!!, "\u0BA4\u0BAE\u0BBF\u0BB4\u0BCD")) // shreetam802
+        assertEquals("R\u2013\u00B2", LegacyFonts.convert(LegacyFonts.Font.of("elango")!!, "\u0BA4\u0BAE\u0BBF\u0BB4\u0BCD")) // elango
+        assertEquals("jkpH:", LegacyFonts.convert(LegacyFonts.Font.of("amudham")!!, "\u0BA4\u0BAE\u0BBF\u0BB4\u0BCD")) // amudham
+        assertEquals("\u00CE\u00DC\u00CF\u00DE{\u00A2", LegacyFonts.convert(LegacyFonts.Font.of("manorama")!!, "\u0D2E\u0D32\u0D2F\u0D3E\u0D33\u0D02")) // manorama
+        assertEquals("hki\u00EAq\u00F9", LegacyFonts.convert(LegacyFonts.Font.of("matweb")!!, "\u0D2E\u0D32\u0D2F\u0D3E\u0D33\u0D02")) // matweb
+        assertEquals("\u00C4\u00F2\u00F0\u00A1\u00F8\u00AC", LegacyFonts.convert(LegacyFonts.Font.of("kairali")!!, "\u0D2E\u0D32\u0D2F\u0D3E\u0D33\u0D02")) // kairali
+        assertEquals("hki\u00A1q\u00AB", LegacyFonts.convert(LegacyFonts.Font.of("thoolika")!!, "\u0D2E\u0D32\u0D2F\u0D3E\u0D33\u0D02")) // thoolika
+        assertEquals("\u00C4\u00F2\u00F0\u00A1\u00F8\u00AC", LegacyFonts.convert(LegacyFonts.Font.of("panchami")!!, "\u0D2E\u0D32\u0D2F\u0D3E\u0D33\u0D02")) // panchami
+        assertEquals("\u00D2\u00D5\u00D3\u00E3\u00DB\u00ED", LegacyFonts.convert(LegacyFonts.Font.of("kalakaumudi")!!, "\u0D2E\u0D32\u0D2F\u0D3E\u0D33\u0D02")) // kalakaumudi
+        assertEquals("pSjfbI", LegacyFonts.convert(LegacyFonts.Font.of("drchatrik")!!, "\u0A2A\u0A70\u0A1C\u0A3E\u0A2C\u0A40")) // drchatrik
+    }
+
+    @Test
+    fun glyphTableFontsLeaveOtherScriptsAlone() {
+        assertEquals("abc \u0939\u093F", LegacyFonts.convert(LegacyFonts.Font.VAKIL, "abc \u0939\u093F"))
+        assertEquals(false, LegacyFonts.isScriptChar(LegacyFonts.Font.MANORAMA, '\u0928'))
+    }
+
     /** What open-tamil's tscii2utf8 table gives; the Grantha u signs are TSCII 0xA4 and 0xA5, as in its ஜு. */
     @Test
     fun tsciiMatchesTheReferenceConverter() {
@@ -300,12 +335,17 @@ class LegacyFontsTest {
 
     @Test
     fun everyLanguageOffersItsFonts() {
-        assertEquals(listOf(LegacyFonts.Font.PREETI, LegacyFonts.Font.KRUTI_DEV, LegacyFonts.Font.CHANAKYA, LegacyFonts.Font.SANSKRIT_99), LegacyFonts.fontsFor("ne"))
-        assertEquals(listOf(LegacyFonts.Font.SANSKRIT_99, LegacyFonts.Font.KRUTI_DEV, LegacyFonts.Font.CHANAKYA), LegacyFonts.fontsFor("sa"))
-        assertEquals(listOf(LegacyFonts.Font.KRUTI_DEV, LegacyFonts.Font.CHANAKYA, LegacyFonts.Font.SANSKRIT_99), LegacyFonts.fontsFor("hi"))
-        assertEquals(listOf(LegacyFonts.Font.BAMINI, LegacyFonts.Font.TSCII), LegacyFonts.fontsFor("ta"))
+        assertEquals(listOf(LegacyFonts.Font.PREETI, LegacyFonts.Font.KRUTI_DEV, LegacyFonts.Font.CHANAKYA, LegacyFonts.Font.SANSKRIT_99), LegacyFonts.fontsFor("ne").take(4))
+        assertEquals(listOf(LegacyFonts.Font.SANSKRIT_99, LegacyFonts.Font.KRUTI_DEV, LegacyFonts.Font.CHANAKYA), LegacyFonts.fontsFor("sa").take(3))
+        assertEquals(listOf(LegacyFonts.Font.KRUTI_DEV, LegacyFonts.Font.CHANAKYA, LegacyFonts.Font.SANSKRIT_99, LegacyFonts.Font.DV_TT), LegacyFonts.fontsFor("hi").take(4))
+        assertEquals(listOf(LegacyFonts.Font.KRUTI_DEV, LegacyFonts.Font.DV_TT, LegacyFonts.Font.DVW_TT), LegacyFonts.fontsFor("mr").take(3))
+        assertEquals(listOf(LegacyFonts.Font.VAKIL), LegacyFonts.fontsFor("gu"))
+        assertEquals(LegacyFonts.Font.SHREE_TEL_900, LegacyFonts.fontsFor("te").first())
+        assertEquals(listOf(LegacyFonts.Font.BAMINI, LegacyFonts.Font.TSCII), LegacyFonts.fontsFor("ta").take(2))
         assertEquals(listOf(LegacyFonts.Font.NUDI), LegacyFonts.fontsFor("kn"))
-        assertEquals(listOf(LegacyFonts.Font.ML_TT, LegacyFonts.Font.FML), LegacyFonts.fontsFor("ml"))
+        assertEquals(listOf(LegacyFonts.Font.ML_TT, LegacyFonts.Font.FML), LegacyFonts.fontsFor("ml").take(2))
+        // Every badge tells its font apart on the strip.
+        assertEquals(LegacyFonts.Font.entries.size, LegacyFonts.Font.entries.map { it.badge }.toSet().size)
         assertEquals(listOf(LegacyFonts.Font.FM_ABHAYA), LegacyFonts.fontsFor("si"))
     }
 

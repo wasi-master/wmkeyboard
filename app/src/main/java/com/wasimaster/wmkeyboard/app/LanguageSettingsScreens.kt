@@ -1614,7 +1614,7 @@ internal fun LanguageDetailScreen(
                     subtitle = stringResource(R.string.languages_legacy_font_subtitle),
                     info = stringResource(R.string.languages_legacy_font_info),
                     options = listOf("" to stringResource(R.string.languages_legacy_font_off)) +
-                        legacyFonts.map { it.id to stringResource(legacyFontLabel(it)) },
+                        legacyFonts.map { font -> font.id to (legacyFontLabel(font)?.let { stringResource(it) } ?: font.title) },
                     selected = settings.watch { it.suggestionStrip.legacyFonts[langId].orEmpty() },
                     default = "",
                 ) { scope.launch { repository.setLegacyFont(langId, it) } }
@@ -2645,8 +2645,8 @@ private fun readingOnSwitchDescRes(choice: ReadingOnSwitch): Int = when (choice)
     ReadingOnSwitch.DISCARD -> R.string.languages_cjk_reading_on_switch_discard_desc
 }
 
-/** The name a legacy font goes by in the settings (#1252). */
-private fun legacyFontLabel(font: LegacyFonts.Font): Int = when (font) {
+/** The name a legacy font goes by in the settings (#1252); the glyph-table fonts go by their [LegacyFonts.Font.title]. */
+private fun legacyFontLabel(font: LegacyFonts.Font): Int? = when (font) {
     LegacyFonts.Font.KRUTI_DEV -> R.string.languages_legacy_font_krutidev
     LegacyFonts.Font.CHANAKYA -> R.string.languages_legacy_font_chanakya
     LegacyFonts.Font.SANSKRIT_99 -> R.string.languages_legacy_font_sanskrit99
@@ -2658,4 +2658,5 @@ private fun legacyFontLabel(font: LegacyFonts.Font): Int = when (font) {
     LegacyFonts.Font.ML_TT -> R.string.languages_legacy_font_mltt
     LegacyFonts.Font.FML -> R.string.languages_legacy_font_fml
     LegacyFonts.Font.FM_ABHAYA -> R.string.languages_legacy_font_fmabhaya
+    else -> null
 }

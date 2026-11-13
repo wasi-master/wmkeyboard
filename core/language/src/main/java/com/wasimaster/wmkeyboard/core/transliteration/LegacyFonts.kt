@@ -15,9 +15,11 @@ import java.text.Normalizer
  * only reads the output back in the checks.
  *
  * Left out on the evidence: Gujarati's Terafont (the only table gives one
- * glyph to two letters, with nothing to check it against), Odia's Akruti (the
- * only converter's table contradicts itself on the reph), Tamil's TAB (no ூ
- * for several letters) and TAM (leaves Tamil letters unconverted).
+ * glyph to two letters, with nothing to check it against), Odia's Akruti, ORTT,
+ * Aprant and Shreelipi (at best 94% of words read back), Tamil's TAB (no ூ for
+ * several letters) and TAM (leaves Tamil letters unconverted), Kannada's
+ * Shree-Kan and Nandi (they need Nudi's letter order), the Anandabazar Bengali
+ * fonts (no anusvara in their table) and Padma's fonts under 99%.
  *
  * The tables in [LegacyFontTables] are generated:
  *
@@ -42,14 +44,20 @@ import java.text.Normalizer
  * - **Preeti** (Nepali): [PreetiEncoding].
  * - **FM Abhaya** and the rest of the FM family (Sinhala): [FmAbhayaEncoding].
  * - **ML-TT** and **FML** (Malayalam): [MalayalamAsciiEncoding].
+ * - The newspaper and DTP fonts with a [Font.block] (DV-TT, Shree Lipi's, Shusha,
+ *   Vakil, Eenadu, Manorama, DrChatrik and the rest): [GlyphTableEncoding] over
+ *   Padma's glyph tables ([GlyphFontTables]), each reading back through Padma
+ *   unchanged for at least 99% of the app's own words in its language.
  */
 object LegacyFonts {
 
     /**
      * A legacy encoding, by the id the settings store, with the [badge] its
-     * strip button shows and the [title] its toast names.
+     * strip button shows and the [title] its toast and the settings name. A
+     * font with a [block] is one of [GlyphFontTables]', written by
+     * [GlyphTableEncoding] for that Unicode block.
      */
-    enum class Font(val id: String, val badge: String, val title: String) {
+    enum class Font(val id: String, val badge: String, val title: String, val block: Int = 0) {
         KRUTI_DEV("krutidev", "KD", "Kruti Dev"),
         CHANAKYA("chanakya", "WC", "Walkman Chanakya"),
         SANSKRIT_99("sanskrit99", "S9", "Sanskrit 99"),
@@ -61,6 +69,32 @@ object LegacyFonts {
         ML_TT("mltt", "ML", "ML-TT"),
         FML("fml", "FM", "FML"),
         FM_ABHAYA("fmabhaya", "FA", "FM Abhaya"),
+
+        // The glyph-table fonts (GlyphFontTables): newspaper and DTP fonts, mostly Shree Lipi's and the dailies'.
+        DV_TT("dvtt", "DV", "DV-TT Surekh / Ganesh / Yogesh", 0x900),
+        DVW_TT("dvwtt", "DW", "DVW-TT Surekh / Ganesh / Yogesh", 0x900),
+        SHREE_DEV_714("shreedev714", "SD", "Shree-Dev-0714", 0x900),
+        SHUSHA("shusha", "SU", "Shusha", 0x900),
+        SHIVAJI("shivaji", "SV", "Shivaji", 0x900),
+        SHREE_PUDHARI("shreepudhari", "PU", "Shree Pudhari", 0x900),
+        SHREE_PUD_77("shreepud77", "P7", "Shree-Pud-77", 0x900),
+        HT_CHANAKYA("htchanakya", "HT", "HT Chanakya", 0x900),
+        VAKIL("vakil", "VK", "Vakil", 0xA80),
+        SHREE_TEL_900("shreetel900", "ST", "Shree-Tel-0900", 0xC00),
+        TELUGU_LIPI("telugulipi", "TL", "Telugu Lipi", 0xC00),
+        EENADU("eenadu", "EN", "Eenadu", 0xC00),
+        VAARTHA("vaartha", "VR", "Vaartha", 0xC00),
+        VIKAAS("vikaas", "VI", "Vikaas", 0xC00),
+        SHREE_TAM_802("shreetam802", "SM", "Shree-Tam-0802", 0xB80),
+        ELANGO("elango", "EP", "Elango Panchali", 0xB80),
+        AMUDHAM("amudham", "AM", "Amudham", 0xB80),
+        MANORAMA("manorama", "MN", "Manorama", 0xD00),
+        MATWEB("matweb", "MW", "Matweb", 0xD00),
+        KAIRALI("kairali", "KR", "Kairali", 0xD00),
+        THOOLIKA("thoolika", "TH", "Thoolika", 0xD00),
+        PANCHAMI("panchami", "PC", "Panchami", 0xD00),
+        KALAKAUMUDI("kalakaumudi", "KK", "Kalakaumudi", 0xD00),
+        DR_CHATRIK("drchatrik", "DC", "DrChatrik", 0xA00),
         ;
 
         companion object {
@@ -71,17 +105,30 @@ object LegacyFonts {
     /** The languages written in Devanagari, which Kruti Dev covers. */
     private val DEVANAGARI_LANGUAGES = setOf("hi", "mr", "ne", "sa", "mai", "bho", "awa", "mag", "kok", "doi")
 
+    /** The Devanagari glyph-table fonts, Marathi's DTP fonts first. */
+    private val DEVANAGARI_GLYPH_FONTS = listOf(
+        Font.DV_TT, Font.DVW_TT, Font.SHREE_DEV_714, Font.SHUSHA, Font.SHIVAJI,
+        Font.SHREE_PUDHARI, Font.SHREE_PUD_77, Font.HT_CHANAKYA,
+    )
+
     /** The fonts offered for [languageId], in the order the settings list them. */
     fun fontsFor(languageId: String): List<Font> = when (languageId) {
         // Preeti is what Nepali is typed in; Kruti Dev reads Nepali too.
-        "ne" -> listOf(Font.PREETI, Font.KRUTI_DEV, Font.CHANAKYA, Font.SANSKRIT_99)
+        "ne" -> listOf(Font.PREETI, Font.KRUTI_DEV, Font.CHANAKYA, Font.SANSKRIT_99) + DEVANAGARI_GLYPH_FONTS
         // Sanskrit 99 has the conjuncts Sanskrit needs, so Sanskrit lists it first.
-        "sa" -> listOf(Font.SANSKRIT_99, Font.KRUTI_DEV, Font.CHANAKYA)
-        in DEVANAGARI_LANGUAGES -> listOf(Font.KRUTI_DEV, Font.CHANAKYA, Font.SANSKRIT_99)
-        "ta" -> listOf(Font.BAMINI, Font.TSCII)
+        "sa" -> listOf(Font.SANSKRIT_99, Font.KRUTI_DEV, Font.CHANAKYA) + DEVANAGARI_GLYPH_FONTS
+        // Marathi print runs on DV-TT and Shree Lipi more than on Kruti Dev.
+        "mr" -> listOf(Font.KRUTI_DEV) + DEVANAGARI_GLYPH_FONTS + listOf(Font.CHANAKYA, Font.SANSKRIT_99)
+        in DEVANAGARI_LANGUAGES -> listOf(Font.KRUTI_DEV, Font.CHANAKYA, Font.SANSKRIT_99) + DEVANAGARI_GLYPH_FONTS
+        "gu" -> listOf(Font.VAKIL)
+        "te" -> listOf(Font.SHREE_TEL_900, Font.TELUGU_LIPI, Font.EENADU, Font.VAARTHA, Font.VIKAAS)
+        "ta" -> listOf(Font.BAMINI, Font.TSCII, Font.SHREE_TAM_802, Font.ELANGO, Font.AMUDHAM)
         "kn" -> listOf(Font.NUDI)
-        "pa" -> listOf(Font.ANMOL_LIPI)
-        "ml" -> listOf(Font.ML_TT, Font.FML)
+        "pa" -> listOf(Font.ANMOL_LIPI, Font.DR_CHATRIK)
+        "ml" -> listOf(
+            Font.ML_TT, Font.FML, Font.MANORAMA, Font.MATWEB, Font.KAIRALI,
+            Font.THOOLIKA, Font.PANCHAMI, Font.KALAKAUMUDI,
+        )
         "si" -> listOf(Font.FM_ABHAYA)
         else -> emptyList()
     }
@@ -90,7 +137,7 @@ object LegacyFonts {
     fun needsConversion(font: Font, text: CharSequence): Boolean = text.any { converts(font, it) }
 
     /** Whether [c] is a character [font] changes. */
-    fun converts(font: Font, c: Char): Boolean = when (font) {
+    fun converts(font: Font, c: Char): Boolean = if (font.block != 0) c.code - font.block in 0..0x7F || c == '\u0964' || c == '\u0965' else when (font) {
         Font.KRUTI_DEV -> c in '\u0900'..'\u097F' || c in KRUTI_DEV_MARKS
         Font.CHANAKYA -> c in '\u0900'..'\u097F' || c in ChanakyaEncoding.MARKS
         Font.SANSKRIT_99 -> c in '\u0900'..'\u097F'
@@ -101,21 +148,26 @@ object LegacyFonts {
         Font.ANMOL_LIPI -> c in '\u0A00'..'\u0A7F' || c == '\u0964' || c == '\u0965'
         Font.ML_TT, Font.FML -> c in '\u0D00'..'\u0D7F' || c in MalayalamAsciiEncoding.MARKS
         Font.FM_ABHAYA -> c in '\u0D80'..'\u0DFF' || c in FmAbhayaEncoding.MARKS
+        else -> false
     }
 
     /** A letter or sign of [font]'s script, or a joiner: what a word is made of. */
-    fun isScriptChar(font: Font, c: Char): Boolean = c == '\u200C' || c == '\u200D' || when (font) {
+    fun isScriptChar(font: Font, c: Char): Boolean = c == '\u200C' || c == '\u200D' || if (font.block != 0) {
+        c.code - font.block in 0..0x7F && (font.block != 0x900 || c != '\u0964' && c != '\u0965')
+    } else when (font) {
         Font.KRUTI_DEV, Font.PREETI, Font.CHANAKYA, Font.SANSKRIT_99 -> c in '\u0900'..'\u0963' || c in '\u0966'..'\u097F'
         Font.BAMINI, Font.TSCII -> c in '\u0B80'..'\u0BFF'
         Font.NUDI -> c in '\u0C80'..'\u0CFF'
         Font.ANMOL_LIPI -> c in '\u0A00'..'\u0A7F'
         Font.ML_TT, Font.FML -> c in '\u0D00'..'\u0D7F'
         Font.FM_ABHAYA -> c in '\u0D80'..'\u0DFF'
+        else -> false
     }
 
     /** Unicode [text] in [font]. Text with nothing for the font to change comes back as it was. */
     fun convert(font: Font, text: String): String {
         if (!needsConversion(font, text)) return text
+        if (font.block != 0) return GlyphFontTables.encoding(font.id)?.convert(text) ?: text
         return when (font) {
             Font.KRUTI_DEV -> toKrutiDev(text)
             Font.PREETI -> PreetiEncoding.convert(text)
@@ -128,6 +180,7 @@ object LegacyFonts {
             Font.ML_TT -> MalayalamAsciiEncoding.convert(text, fml = false)
             Font.FML -> MalayalamAsciiEncoding.convert(text, fml = true)
             Font.FM_ABHAYA -> FmAbhayaEncoding.convert(text)
+            else -> text
         }
     }
 

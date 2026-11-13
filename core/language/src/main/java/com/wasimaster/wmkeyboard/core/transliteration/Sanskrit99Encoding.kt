@@ -35,9 +35,9 @@ internal object Sanskrit99Encoding {
     private val PART = Regex("$C\\u094D?")
 
     /** Letters without a stem on the right, which take the virama under them (`œ`). */
-    private const val STEMLESS = "कङछटठडढदफरह"
+    private const val STEMLESS = "\u0915\u0919\u091B\u091F\u0920\u0921\u0922\u0926\u092B\u0930\u0939"
 
-    private const val VIRAMA_MARK = ''
+    private const val VIRAMA_MARK = '\uE002'
 
     private val LONGEST = Sanskrit99Table.GLYPHS.keys.maxOf { it.length }
 
@@ -45,13 +45,13 @@ internal object Sanskrit99Encoding {
         var s = Normalizer.normalize(text, Normalizer.Form.NFC)
         s = LONE_VIRAMA.replace(s) { it.groupValues[1] + VIRAMA_MARK }
         s = REPH.replace(s) { m ->
-            m.groupValues[1] + m.groupValues[2] + if (m.groupValues[3] == "ं") "¡" else "R" + m.groupValues[3]
+            m.groupValues[1] + m.groupValues[2] + if (m.groupValues[3] == "\u0902") "\u00A1" else "R" + m.groupValues[3]
         }
         s = I_SIGN.replace(s) { m ->
             val parts = PART.findAll(m.groupValues[1]).map { it.value }.toList()
             var cut = 0
             for (k in 0 until parts.size - 1) if (parts[k] !in Sanskrit99Table.GLYPHS) cut = k + 1
-            parts.subList(0, cut).joinToString("") + "ि" + parts.subList(cut, parts.size).joinToString("")
+            parts.subList(0, cut).joinToString("") + "\u093F" + parts.subList(cut, parts.size).joinToString("")
         }
         return encode(s)
     }
@@ -72,12 +72,12 @@ internal object Sanskrit99Encoding {
                 val glyphs = table[key] ?: continue
                 val next = i + length
                 // A half letter does not swallow the consonant that takes the ra under it.
-                if (length > 2 && key.endsWith('्') && s.startsWith("र", next) &&
-                    (key[length - 2].toString() + "्र") in table
+                if (length > 2 && key.endsWith('\u094D') && s.startsWith("\u0930", next) &&
+                    (key[length - 2].toString() + "\u094D\u0930") in table
                 ) continue
                 // Nor does a letter leave its nukta behind.
-                if (s.startsWith("़", next) && key.last() != '़') continue
-                out.append(if (key == "्") viramaAfter(s, i) else glyphs)
+                if (s.startsWith("\u093C", next) && key.last() != '\u093C') continue
+                out.append(if (key == "\u094D") viramaAfter(s, i) else glyphs)
                 i = next
                 matched = true
                 break
@@ -93,7 +93,7 @@ internal object Sanskrit99Encoding {
     /** The virama mark for the letter before [at]: under a letter with no stem, after one with a stem. */
     private fun viramaAfter(s: String, at: Int): Char {
         var j = at - 1
-        if (j >= 0 && s[j] == '़') j--
-        return if (j >= 0 && s[j] in STEMLESS) 'œ' else '!'
+        if (j >= 0 && s[j] == '\u093C') j--
+        return if (j >= 0 && s[j] in STEMLESS) '\u0153' else '!'
     }
 }
