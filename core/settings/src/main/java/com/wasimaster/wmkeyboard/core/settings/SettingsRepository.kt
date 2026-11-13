@@ -9851,6 +9851,12 @@ data class IconSettings(
     val themeIcons: Map<String, String> = emptyMap(),
 )
 
+/** Where a key's corner hint sits ([LayoutBehaviorSettings.hintCorner]). */
+enum class HintCorner(val bottom: Boolean, val side: Int) {
+    TOP_START(false, -1), TOP_CENTER(false, 0), TOP_END(false, 1),
+    BOTTOM_START(true, -1), BOTTOM_CENTER(true, 0), BOTTOM_END(true, 1),
+}
+
 /**
  * Assorted layout & gesture behaviours layered on top of the base keyboard,
  * grouped into their own class rather than sitting flat on [KeyboardSettings]
@@ -10133,6 +10139,14 @@ data class LayoutBehaviorSettings(
      * a large hint the label would otherwise cover.
      */
     val hintOffsetXDp: Int = 0,
+    /**
+     * Which corner of the key the hint sits in (competitor gap list item 21,
+     * FlorisBoard's and AnySoftKeyboard's hint placement). [hintOffsetDp] then
+     * measures from that corner's top or bottom edge and [hintOffsetXDp] from
+     * its side; a centred hint takes the side offset as a nudge. Top end, the
+     * long-standing place, by default.
+     */
+    val hintCorner: HintCorner = HintCorner.TOP_END,
     /**
      * The main label moved sideways and down from the key's centre, in dp
      * (#970): out of the way of a large corner hint. Negative moves it left
@@ -12377,6 +12391,7 @@ class SettingsRepository(private val context: Context) {
         private val HINT_FONT_SCALE = floatPreferencesKey("hint_font_scale")
         private val HINT_OFFSET = intPreferencesKey("hint_offset_dp")
         private val HINT_OFFSET_X = intPreferencesKey("hint_offset_x_dp")
+        private val HINT_CORNER = stringPreferencesKey("hint_corner")
         private val LABEL_OFFSET_X = intPreferencesKey("label_offset_x_dp")
         private val LABEL_OFFSET_Y = intPreferencesKey("label_offset_y_dp")
         private val FLICK_HINTS = booleanPreferencesKey("flick_hints")
@@ -15345,6 +15360,8 @@ class SettingsRepository(private val context: Context) {
             hintFontScale = p[HINT_FONT_SCALE] ?: defaults.layoutBehavior.hintFontScale,
             hintOffsetDp = p[HINT_OFFSET]?.coerceIn(HintOffsetRange) ?: defaults.layoutBehavior.hintOffsetDp,
             hintOffsetXDp = p[HINT_OFFSET_X]?.coerceIn(HintOffsetRange) ?: defaults.layoutBehavior.hintOffsetXDp,
+            hintCorner = p[HINT_CORNER]?.let { name -> HintCorner.entries.firstOrNull { it.name == name } }
+                ?: defaults.layoutBehavior.hintCorner,
             labelOffsetXDp = p[LABEL_OFFSET_X]?.coerceIn(LabelOffsetRange) ?: defaults.layoutBehavior.labelOffsetXDp,
             labelOffsetYDp = p[LABEL_OFFSET_Y]?.coerceIn(LabelOffsetRange) ?: defaults.layoutBehavior.labelOffsetYDp,
             flickHints = p[FLICK_HINTS] ?: defaults.layoutBehavior.flickHints,
@@ -22279,6 +22296,7 @@ class SettingsRepository(private val context: Context) {
         it.remove(HINT_FONT_SCALE)
         it.remove(HINT_OFFSET)
         it.remove(HINT_OFFSET_X)
+        it.remove(HINT_CORNER)
         it.remove(LABEL_OFFSET_X)
         it.remove(LABEL_OFFSET_Y)
     }
@@ -23290,6 +23308,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setHintOffsetXDp(value: Int) =
         editPrefs { it[HINT_OFFSET_X] = value.coerceIn(HintOffsetRange) }
+
+    suspend fun setHintCorner(value: HintCorner) =
+        editPrefs { it[HINT_CORNER] = value.name }
 
     suspend fun setLabelOffsetXDp(value: Int) =
         editPrefs { it[LABEL_OFFSET_X] = value.coerceIn(LabelOffsetRange) }

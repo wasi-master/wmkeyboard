@@ -38,6 +38,7 @@ Three sliders that apply to every key, whatever layout is active. All three are 
 | Key corner radius | 0–28 dp | 8 dp |
 | Key label font size | ×0.7–×2.0 | ×1.00 |
 | Key hint font size | ×0.5–×3.0 | ×1.00 |
+| Key hint corner | Top left, top middle, top right, bottom left, bottom middle, bottom right | Top right |
 | Key hint position | −6–16 dp | 1 dp |
 | Key hint side position | −6–16 dp | 0 dp |
 | Key label across | −12–12 dp | 0 dp |
@@ -49,7 +50,7 @@ Three sliders that apply to every key, whatever layout is active. All three are 
 
 **Key hint font size** scales the small corner hint on a key: the character or symbol a long-press on that key types. This slider only controls their size once they're showing. The "Press and hold hints" toggle that turns the hints on or off in the first place lives on the [Key press](/reference/settings/keypress/) screen, not here. See [Key basics](/typing/basics/) for how long-press hints work.
 
-**Key hint position** moves that corner hint up or down. At 0 the hint touches the top edge of the key. Raise it to bring the hint down toward the letter, or go below 0 to push it up into the key's own margin. **Key hint side position** does the same sideways: higher numbers move the hint in from the key's side, and below 0 moves it out to the edge.
+**Key hint position** moves that corner hint up or down. At 0 the hint touches the top edge of the key. Raise it to bring the hint down toward the letter, or go below 0 to push it up into the key's own margin. **Key hint side position** does the same sideways: higher numbers move the hint in from the key's side, and below 0 moves it out to the edge. **Key hint corner** picks which corner the hint sits in, top or bottom, left, middle or right, and the two sliders then measure from that corner: from the bottom edge for a bottom corner, and from the left for a left one. On a middle corner the side slider nudges the hint left or right. In a right-to-left language left and right swap, as the hint's usual corner does.
 
 **Key label across** and **Key label up or down** move the main letter on every key off its centre, so a corner hint made large enough to read, an Arabic haraka at ×2.5 for example, no longer sits under the letter. A layout can also make one key's hint larger than the rest with its **Hint size**, in the [layout editor](/languages/custom-layouts/).
 

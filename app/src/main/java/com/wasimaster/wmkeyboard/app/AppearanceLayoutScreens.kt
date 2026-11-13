@@ -9,6 +9,7 @@ import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
 import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
 import com.wasimaster.wmkeyboard.core.layout.resolveLayoutLanguage
 import com.wasimaster.wmkeyboard.core.layout.resolveLayoutName
+import com.wasimaster.wmkeyboard.core.settings.HintCorner
 import com.wasimaster.wmkeyboard.core.settings.HintOffsetRange
 import com.wasimaster.wmkeyboard.core.settings.LabelOffsetRange
 import com.wasimaster.wmkeyboard.core.settings.ArrowKey
@@ -256,6 +257,24 @@ internal fun AppearanceSettings(
                 disabledReason = pin,
                 default = SettingsDefaults.layoutBehavior.hintFontScale,
             ) { scope.launch { repository.setHintFontScale(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            // Gap list item 21: the corner the hint sits in. Six choices, so
+            // the row falls back to a sheet where segments would not fit.
+            ChoiceSetting(
+                R.string.appearance_key_hint_corner_title,
+                subtitle = stringResource(R.string.appearance_key_hint_corner_subtitle),
+                options = listOf(
+                    HintCorner.TOP_START to stringResource(R.string.appearance_key_hint_corner_top_start),
+                    HintCorner.TOP_CENTER to stringResource(R.string.appearance_key_hint_corner_top_center),
+                    HintCorner.TOP_END to stringResource(R.string.appearance_key_hint_corner_top_end),
+                    HintCorner.BOTTOM_START to stringResource(R.string.appearance_key_hint_corner_bottom_start),
+                    HintCorner.BOTTOM_CENTER to stringResource(R.string.appearance_key_hint_corner_bottom_center),
+                    HintCorner.BOTTOM_END to stringResource(R.string.appearance_key_hint_corner_bottom_end),
+                ),
+                selected = settings.watch { it.layoutBehavior.hintCorner },
+                default = SettingsDefaults.layoutBehavior.hintCorner,
+            ) { scope.launch { repository.setHintCorner(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
             SliderSetting(

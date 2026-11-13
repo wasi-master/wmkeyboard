@@ -32,6 +32,14 @@
     <string name="appearance_key_hint_size_subtitle">Scale of the small hint character in the corner of each key</string>
     <!-- "Press and hold hints" is the name of a setting on the Key press
          screen. Translate it as it is translated there. -->
+    <string name="appearance_key_hint_corner_title">Key hint corner</string>
+    <string name="appearance_key_hint_corner_subtitle">Which corner of the key the long-press hint sits in</string>
+    <string name="appearance_key_hint_corner_top_start">Top left</string>
+    <string name="appearance_key_hint_corner_top_center">Top middle</string>
+    <string name="appearance_key_hint_corner_top_end">Top right</string>
+    <string name="appearance_key_hint_corner_bottom_start">Bottom left</string>
+    <string name="appearance_key_hint_corner_bottom_center">Bottom middle</string>
+    <string name="appearance_key_hint_corner_bottom_end">Bottom right</string>
     <string name="appearance_key_hint_offset_title">Key hint position</string>
     <string name="appearance_key_hint_offset_subtitle">Distance of the corner hint from the top edge of the key</string>
     <!-- dp is the Android unit for screen size. Keep the two letters. -->

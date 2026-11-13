@@ -120,6 +120,7 @@ internal val SettingsSearchKeywords: Map<Int, Int> = buildMap {
     put(R.string.keypress_dnd_mute_title, R.string.search_kw_keypress_dnd_mute)
     put(R.string.keypress_haptics_hardware_title, R.string.search_kw_keypress_haptics_hardware)
     put(R.string.keypress_long_press_delay_title, R.string.search_kw_keypress_long_press_delay)
+    put(R.string.appearance_key_hint_corner_title, R.string.search_kw_appearance_key_hint_corner)
     put(R.string.keypress_long_press_system_title, R.string.search_kw_keypress_long_press_system)
     put(R.string.keypress_multitap_timeout_title, R.string.search_kw_keypress_multitap_timeout)
     put(R.string.keypress_long_press_hints_title, R.string.search_kw_keypress_long_press_hints)

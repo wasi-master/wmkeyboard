@@ -1078,6 +1078,7 @@ private fun SearchStrings.appearanceRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_key_corner_radius_title, R.string.appearance_key_corner_radius_subtitle),
         row(R.string.appearance_key_label_size_title, R.string.appearance_key_label_size_subtitle),
         row(R.string.appearance_key_hint_size_title, R.string.appearance_key_hint_size_subtitle),
+        row(R.string.appearance_key_hint_corner_title, R.string.appearance_key_hint_corner_subtitle),
         row(R.string.appearance_key_hint_offset_title, R.string.appearance_key_hint_offset_subtitle),
         row(R.string.appearance_key_hint_offset_x_title, R.string.appearance_key_hint_offset_x_subtitle),
         row(R.string.appearance_key_label_offset_x_title, R.string.appearance_key_label_offset_x_subtitle),

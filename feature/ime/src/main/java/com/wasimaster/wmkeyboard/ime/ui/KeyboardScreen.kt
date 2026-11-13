@@ -470,6 +470,7 @@ import com.wasimaster.wmkeyboard.core.settings.TextEditingSettings
 import com.wasimaster.wmkeyboard.core.prediction.OctopusWord
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticCandidateList
 import com.wasimaster.wmkeyboard.core.settings.ArrowKey
+import com.wasimaster.wmkeyboard.core.settings.HintCorner
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.OctopusPlacement
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
@@ -8657,7 +8658,7 @@ private fun SymbolCell(
                 Text(
                     text = labels.first(),
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
+                        .align(hintAlignment(settings))
                         .hintPlacement(settings, end = 3.dp),
                     fontSize = (HintLabelSp * settings.layoutBehavior.hintFontScale).sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -29364,7 +29365,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     contentDescription = null,
                     tint = visual.hintColor ?: contentColor.copy(alpha = 0.55f),
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
+                        .align(hintAlignment(settings))
                         .hintPlacement(settings)
                         .size(
                             (HintIconDp * fontScale * settings.layoutBehavior.hintFontScale).dp,
@@ -29928,7 +29929,7 @@ private fun BoxScope.KeyCornerHint(
             text = translit,
             modifier = Modifier
                 .clearAndSetSemantics {}
-                .align(Alignment.TopEnd)
+                .align(hintAlignment(settings))
                 .hintPlacement(settings, shift = shift),
             fontSize = (TranslitHintSp * fontScale * settings.layoutBehavior.hintFontScale).sp,
             color = hintColor,
@@ -29942,7 +29943,7 @@ private fun BoxScope.KeyCornerHint(
             contentDescription = null,
             tint = hintColor,
             modifier = hintMask
-                .align(Alignment.TopEnd)
+                .align(hintAlignment(settings))
                 .hintPlacement(settings, shift = shift)
                 .size((HintIconDp * fontScale * settings.layoutBehavior.hintFontScale).dp),
         )
@@ -29950,7 +29951,7 @@ private fun BoxScope.KeyCornerHint(
             text = hint,
             modifier = hintMask
                 .clearAndSetSemantics {}
-                .align(Alignment.TopEnd)
+                .align(hintAlignment(settings))
                 .hintPlacement(settings, shift = shift),
             fontSize = (HintLabelSp * fontScale * settings.layoutBehavior.hintFontScale).sp,
             color = hintColor,
@@ -30014,19 +30015,44 @@ internal fun Modifier.hintPlacement(
     end: Dp = HintEndPadding,
     shift: DpOffset = DpOffset.Zero,
 ): Modifier {
+    val corner = settings.layoutBehavior.hintCorner
     // A bigger font puts more empty line above the glyph, so the slider alone
     // walked the hint down the key (#970). Taken back, the glyph's top stays put.
-    val grown = (settings.layoutBehavior.hintFontScale - 1f) * HintLabelSp * HintGlyphTopGap
-    val top = settings.layoutBehavior.hintOffsetDp.dp - grown.dp + shift.y
+    // A hint at the bottom sits on its baseline's line box instead, so no take-back.
+    val grown = if (corner.bottom) 0f else (settings.layoutBehavior.hintFontScale - 1f) * HintLabelSp * HintGlyphTopGap
+    val vertical = settings.layoutBehavior.hintOffsetDp.dp - grown.dp + shift.y
     val side = end + settings.layoutBehavior.hintOffsetXDp.dp + shift.x
-    val padded = padding(top = top.coerceAtLeast(0.dp), end = side.coerceAtLeast(0.dp))
-    return if (top >= 0.dp && side >= 0.dp) {
-        padded
-    } else {
-        // Toward the end edge is +x in a left-to-right row; offset mirrors it
-        // for a right-to-left one, the way the end padding does.
-        padded.offset(x = -side.coerceAtMost(0.dp), y = top.coerceAtMost(0.dp))
+    // The offsets measure in from the hint's own corner (gap list item 21):
+    // from the bottom for a bottom corner, from the start for a start one. A
+    // centred hint has no side to keep clear of, so the side offset nudges it.
+    val inset = vertical.coerceAtLeast(0.dp)
+    val sideInset = side.coerceAtLeast(0.dp)
+    val padded = padding(
+        top = if (corner.bottom) 0.dp else inset,
+        bottom = if (corner.bottom) inset else 0.dp,
+        end = if (corner.side > 0) sideInset else 0.dp,
+        start = if (corner.side < 0) sideInset else 0.dp,
+    )
+    // What padding cannot take (a negative inset, or a centred hint's nudge)
+    // goes in as an offset. Toward the end edge is +x in a left-to-right row;
+    // offset mirrors it for a right-to-left one, the way the end padding does.
+    val dx = when {
+        corner.side > 0 -> -side.coerceAtMost(0.dp)
+        corner.side < 0 -> side.coerceAtMost(0.dp)
+        else -> -(settings.layoutBehavior.hintOffsetXDp.dp + shift.x)
     }
+    val dy = if (corner.bottom) -vertical.coerceAtMost(0.dp) else vertical.coerceAtMost(0.dp)
+    return if (dx == 0.dp && dy == 0.dp) padded else padded.offset(x = dx, y = dy)
+}
+
+/** The corner of the key the hint is aligned to ([LayoutBehaviorSettings.hintCorner]). */
+internal fun hintAlignment(settings: KeyboardSettings): Alignment = when (settings.layoutBehavior.hintCorner) {
+    HintCorner.TOP_START -> Alignment.TopStart
+    HintCorner.TOP_CENTER -> Alignment.TopCenter
+    HintCorner.TOP_END -> Alignment.TopEnd
+    HintCorner.BOTTOM_START -> Alignment.BottomStart
+    HintCorner.BOTTOM_CENTER -> Alignment.BottomCenter
+    HintCorner.BOTTOM_END -> Alignment.BottomEnd
 }
 
 /**
