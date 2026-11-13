@@ -13,6 +13,10 @@ Python: classes, decorators, `with` blocks, several modules. Set
 `"apiVersion": 5` in `plugin.json`. Plugins written for API 4 keep working
 unchanged with the [globals they had](/plugins/api-reference/).
 
+The plugin editor, on the phone and on the web, completes names from the
+package (type `plugin.` or `from wm.ui import `), shows what each one does,
+and marks a misspelt one such as `plugin.stat`.
+
 ```python title="main.py"
 from wm import plugin, ui, http
 

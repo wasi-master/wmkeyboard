@@ -25,6 +25,7 @@ pub mod highlight;
 mod infer;
 pub mod lexer;
 pub mod navigate;
+pub mod package;
 pub mod parser;
 pub mod structure;
 pub mod text;

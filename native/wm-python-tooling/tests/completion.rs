@@ -177,3 +177,15 @@ fn carets_in_items_are_utf16() {
     let c = at("café = 1\nca|", false).unwrap();
     assert!(c.items.iter().any(|i| i.label == "café" && i.caret == 4));
 }
+
+#[test]
+fn members_of_the_api_5_package() {
+    has("from wm import |", false, &["plugin", "ui", "http", "storage", "_", "ngettext"]);
+    has("from wm import plugin\nplugin.|", false, &["state", "every", "command", "settings", "on_open"]);
+    has("from wm import ui\nui.|", false, &["card", "column", "chart", "canvas", "toast", "dialog"]);
+    has("from wm import http\nhttp.|", false, &["get", "post", "Response", "HTTPError"]);
+    has("from wm.ui import |", false, &["column", "button"]);
+    let c = at("from wm import ui\nui.car|", false).unwrap();
+    let card = c.items.iter().find(|i| i.label == "card").unwrap();
+    assert_eq!(card.doc_path.as_deref(), Some("wm5.ui.card"));
+}

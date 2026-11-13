@@ -159,13 +159,23 @@ impl<'a> Checks<'a> {
                 if module.starts_with('.') || self.importable(module) {
                     return;
                 }
-                if !api::MODULES.contains(&module.as_str()) && !api::API_GLOBALS.contains(&module.as_str()) {
+                let package = module.starts_with("wm.") && api::import_path(module, None).starts_with(crate::package::ROOT);
+                if !api::MODULES.contains(&module.as_str()) && !api::API_GLOBALS.contains(&module.as_str()) && !package {
                     self.out.push(Diagnostic::new(Code::ImportNotAvailable, *module_span, &[module]));
                     return;
                 }
                 for n in names {
-                    if module == "wm" && api::WM_PACKAGE.contains(&n.name.as_str()) {
-                        continue;
+                    // An API 5 package name: there, or a typo of one.
+                    if module == "wm" || module.starts_with("wm.") {
+                        let path = api::import_path(module, Some(&n.name));
+                        if path.starts_with(crate::package::ROOT) || (module == "wm" && api::WM_PACKAGE.contains(&n.name.as_str())) {
+                            continue;
+                        }
+                        if module != "wm" {
+                            let base = api::import_path(module, None);
+                            self.member(&base, &n.name, &path, n.span);
+                            continue;
+                        }
                     }
                     let full = format!("{module}.{}", n.name);
                     self.member(module, &n.name, &full, n.span);
@@ -191,8 +201,11 @@ impl<'a> Checks<'a> {
                     let s = &self.a.symbols[id];
                     match &s.import {
                         Some((module, None)) if api::MODULES.contains(&module.as_str()) => Some(module.clone()),
-                        // An API 5 package module: not modelled, so not checked.
-                        Some((module, Some(member))) if module == "wm" && api::WM_PACKAGE.contains(&member.as_str()) => None,
+                        // The API 5 package, modelled from its own source.
+                        Some((module, member)) if module == "wm" || module.starts_with("wm.") => {
+                            let path = api::import_path(module, member.as_deref());
+                            path.starts_with(crate::package::ROOT).then_some(path)
+                        }
                         Some((module, Some(member))) if api::MODULES.contains(&module.as_str()) || module == "wm" => {
                             Some(format!("{module}.{member}"))
                         }

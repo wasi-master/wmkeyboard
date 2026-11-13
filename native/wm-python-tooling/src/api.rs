@@ -197,6 +197,11 @@ pub fn is_builtin(name: &str) -> bool {
     model().find(name).is_some_and(|e| matches!(e.kind, ApiKind::Builtin | ApiKind::Exception))
 }
 
+/// The model path an import names; `from wm import plugin` is the API 5 package's `wm5.plugin`.
+pub fn import_path(module: &str, member: Option<&str>) -> String {
+    crate::package::import_path(module, member, |p| model().find(p).is_some())
+}
+
 pub fn use_instead(path: &str) -> Option<&'static str> {
     USE_INSTEAD.iter().find(|(from, _)| *from == path).map(|(_, to)| *to)
 }
@@ -595,6 +600,8 @@ fn build() -> Model {
     ] {
         add(leak(format!("tuple.{name}")), Method, Some(leak(sig.to_string())), None, doc);
     }
+
+    entries.extend(crate::package::entries(&leak));
 
     let mut by_path = HashMap::new();
     let mut by_parent: HashMap<&'static str, Vec<usize>> = HashMap::new();

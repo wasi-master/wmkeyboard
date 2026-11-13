@@ -350,11 +350,7 @@ fn entry_ending_at(doc: &Document, last: usize) -> Option<&'static ApiEntry> {
         Target::Api => Some(root_name.clone()),
         Target::Builtin if parts.len() == 1 => return model.find(&root_name),
         Target::Builtin if root_name == "bytes" => Some("bytes".to_string()),
-        Target::Symbol(id) => match &a.symbols[id].import {
-            Some((module, None)) => Some(module.clone()),
-            Some((module, Some(member))) => Some(format!("{module}.{member}")),
-            None => None,
-        },
+        Target::Symbol(id) => a.symbols[id].import.as_ref().map(|(module, member)| api::import_path(module, member.as_deref())),
         _ => None,
     };
     if let Some(base) = base {

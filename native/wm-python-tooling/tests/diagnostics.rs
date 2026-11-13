@@ -254,3 +254,16 @@ fn an_api_5_plugin_importing_the_wm_package_earns_nothing() {
     let found = serious(source, &panel());
     assert!(found.is_empty(), "{found:#?}");
 }
+
+#[test]
+fn the_wm_package_is_checked_name_by_name() {
+    let typo = "from wm import plugin\n\nstate = plugin.stat(n=1)\n";
+    let found = serious(typo, &panel());
+    assert!(found.iter().any(|d| d.starts_with("member_typo")), "{found:#?}");
+    let bad_import = "from wm.ui import colum\n";
+    let found = serious(bad_import, &panel());
+    assert!(found.iter().any(|d| d.starts_with("member_typo")), "{found:#?}");
+    let fine = "from wm.ui import column, button\nfrom wm import _, ngettext, i18n\n\ndef render():\n    with column():\n        button(_(\"Go\"))\n        button(ngettext(\"{n} day\", \"{n} days\", 2) + i18n.locale)\n";
+    let found = serious(fine, &panel());
+    assert!(found.is_empty(), "{found:#?}");
+}

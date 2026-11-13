@@ -298,11 +298,22 @@ impl<'a> Context<'a> {
         let t = self.t;
         let first = self.line_first(b)?;
         if t.is_keyword(first, "from") {
-            let module = t.next_code(first).map(|m| self.text(m)).unwrap_or_default();
+            // The whole dotted name between `from` and `import`.
+            let mut module = String::new();
+            let mut at = t.next_code(first);
+            while let Some(k) = at {
+                if t.is_keyword(k, "import") {
+                    break;
+                }
+                module.push_str(&self.text(k));
+                at = t.next_code(k);
+            }
+            // `from wm import` offers the API 5 package; `from wm.ui import` its module.
+            let module = if module == "wm" { crate::package::ROOT.to_string() } else { api::import_path(&module, None) };
             let items = api::model()
                 .children(&module)
                 .into_iter()
-                .filter(|e| e.kind != ApiKind::Module || module == "wm")
+                .filter(|e| e.kind != ApiKind::Module || module == "wm" || module == crate::package::ROOT)
                 .map(|e| self.api_item(e))
                 .collect();
             return self.finish(items, false);
@@ -362,8 +373,7 @@ impl<'a> Context<'a> {
             Target::Symbol(id) => {
                 let s = &self.a.symbols[id];
                 match &s.import {
-                    Some((module, None)) => module.clone(),
-                    Some((module, Some(member))) => format!("{module}.{member}"),
+                    Some((module, member)) => api::import_path(module, member.as_deref()),
                     None => return None,
                 }
             }
@@ -854,10 +864,7 @@ impl<'a> Context<'a> {
             let insert = if kind == ItemKind::Function { format!("{}(|)", s.name) } else { format!("{}|", s.name) };
             let mut item = Item::template(&s.name, kind, &insert, rank);
             if let Some((module, member)) = &s.import {
-                let path = match member {
-                    Some(m) => format!("{module}.{m}"),
-                    None => module.clone(),
-                };
+                let path = api::import_path(module, member.as_deref());
                 if let Some(e) = model.find(&path) {
                     item = item.detail(e.signature).doc(e.path);
                 }
