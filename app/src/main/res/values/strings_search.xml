@@ -381,6 +381,8 @@
     <!-- Search words for removing tracking parameters from copied links. -->
     <string name="search_kw_clean_links">tracker, trackers, tracking, utm, fbclid, clean, url, link, privacy, remove, delete</string>
     <!-- Search words for removing EXIF, GPS and other metadata from pictures and videos. -->
+    <!-- The Backspace removes a paste row, by FUTO's name for it and the words people search with. -->
+    <string name="search_kw_backspace_paste">delete pasted text, delete inserted text, undo paste, remove paste, backspace, delete</string>
     <string name="search_kw_strip_media">exif gps geotag xmp iptc serial number privacy strip picture</string>
     <string name="search_kw_strip_location">exif geotag coordinates metadata privacy strip picture</string>
     <string name="search_kw_strip_camera">exif metadata xmp iptc privacy strip photo picture video</string>

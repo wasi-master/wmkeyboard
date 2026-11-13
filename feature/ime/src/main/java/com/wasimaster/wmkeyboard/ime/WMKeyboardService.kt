@@ -2847,8 +2847,11 @@ open class WMKeyboardService : InputMethodService() {
         /**
          * SCRIPT is a phonetic layout's commit that could have gone in either
          * script (`to` as তো or as to): [original] is the other script's word.
+         *
+         * PASTE is a paste or a panel's text insert ([notePasted]): [original]
+         * is empty, so taking it back deletes [committed] whole.
          */
-        enum class Kind { AUTOCORRECT, SNIPPET, JOIN, REVISION, SCRIPT }
+        enum class Kind { AUTOCORRECT, SNIPPET, JOIN, REVISION, SCRIPT, PASTE }
     }
 
     /**
@@ -16396,6 +16399,9 @@ open class WMKeyboardService : InputMethodService() {
         // The keyboard chose the script, the way it chooses a
         // correction, so the same switch says whether backspace argues.
         RevertibleCommit.Kind.SCRIPT -> state.settings.correction.revertOnBackspace
+        // A paste has its own switch, checked again here in case it was
+        // turned off between the paste and the press.
+        RevertibleCommit.Kind.PASTE -> state.settings.clipboard.backspaceUndoesPaste
     }
 
     /**
@@ -16427,7 +16433,9 @@ open class WMKeyboardService : InputMethodService() {
             joinUndoable = join,
             autoSpaceBehind = spaceBehind,
             spaceOwed = !open && deferredWordSpace,
-            correctionUndoable = !open && lastRevertible?.let { revertAllowedOnBackspace(it.kind, state) } == true,
+            correctionUndoable = !open && lastRevertible?.let {
+                it.kind != RevertibleCommit.Kind.PASTE && revertAllowedOnBackspace(it.kind, state)
+            } == true,
             wordOpen = open,
             wordBehind = !open && twoThumbWordBehind,
             ordinaryGlideBehind = !open && !twoThumbWordBehind && lastGestureWord != null && committedDuet == null,
@@ -16487,6 +16495,26 @@ open class WMKeyboardService : InputMethodService() {
                 syncPreviousWordFromField(ic)
                 refreshSuggestions()
                 return
+            }
+        }
+        // The first press after a paste takes the whole paste back, while the
+        // caret is still at its end and nothing was typed since (FUTO's
+        // "Delete pasted/inserted text on backspace"). Ahead of the two-thumb
+        // steps: a paste is the newest thing in the field, whatever came
+        // before it. The text in front of the caret must still be the paste,
+        // as sent or as the field restyled it; anything else is an ordinary press.
+        lastRevertible?.takeIf { it.kind == RevertibleCommit.Kind.PASTE }?.let { paste ->
+            lastRevertible = null
+            if (revertAllowedOnBackspace(paste.kind, state)) {
+                val forms = PasteUndo.forms(paste.committed, fieldForm(paste.committed, state))
+                val before = ic.getTextBeforeCursor(forms.first().length, 0)
+                val length = PasteUndo.deleteLength(forms, before, composing.isEmpty())
+                if (length > 0) {
+                    ic.deleteSurroundingText(length, 0)
+                    revertCommitted(ic, paste, state, tail = "")
+                    refreshSuggestions()
+                    return
+                }
             }
         }
         // Two-thumb typing's own Backspace (#1188), when the user chose one:
@@ -16910,6 +16938,12 @@ open class WMKeyboardService : InputMethodService() {
                 dropUndoFor(revert.original, revert.committed)
                 invalidateRecentWords()
                 syncPreviousWordFromField(ic)
+            }
+            RevertibleCommit.Kind.PASTE -> {
+                // Nothing was learned from a paste, so nothing is unlearned;
+                // the word in front of the caret is whatever preceded it.
+                syncPreviousWordFromField(ic)
+                invalidateRecentWords()
             }
         }
     }
@@ -17889,6 +17923,13 @@ open class WMKeyboardService : InputMethodService() {
         // composing, and backspace edits a composing buffer instead of taking
         // the expansion back — which is the one thing backspace has to do here.
         if (lastRevertible?.kind == RevertibleCommit.Kind.SNIPPET) {
+            refreshSmartSuggestion()
+            return
+        }
+        // And after a paste: a paste ending in a letter would have its last
+        // word re-armed as composing the same way, and the press that should
+        // take the paste back would edit that word instead.
+        if (lastRevertible?.kind == RevertibleCommit.Kind.PASTE) {
             refreshSmartSuggestion()
             return
         }
@@ -20832,6 +20873,50 @@ open class WMKeyboardService : InputMethodService() {
         commitComposing(ic, autocorrect = false)
         ic.commitText(text, 1)
     }
+
+    /**
+     * [commitToField] for a paste or a block of text a panel inserts whole: a
+     * clip, a kaomoji, a tool's result. The first Backspace after it takes
+     * it all back ([notePasted]).
+     */
+    private fun commitPastedToField(text: String) {
+        if (currentInputConnection == null) return
+        commitToField(text)
+        notePasted(text)
+    }
+
+    /**
+     * Arms the one-press undo for [text], just pasted or inserted at the
+     * caret ([ClipboardSettings.backspaceUndoesPaste]). Called after the
+     * commit, since committing the word before it clears the record. The
+     * caret guard ([revertAnchor]) retires it once the caret leaves the
+     * paste's end, and any key typed does too. Not in a terminal's typeless
+     * field, nor for a paste the app makes from its own menu, which the
+     * keyboard never sees.
+     */
+    private fun notePasted(text: CharSequence?) {
+        val enabled = _uiState.value.settings.clipboard.backspaceUndoesPaste
+        if (!PasteUndo.recordable(text, enabled, isNullField())) return
+        lastRevertible = RevertibleCommit(RevertibleCommit.Kind.PASTE, original = "", committed = text.toString())
+        armRevertGuard()
+    }
+
+    /**
+     * The text the editor's own paste is about to put in, read before the
+     * keyboard asks for it, for [notePasted]. Null with no text clip; the
+     * press after it then reads the field, so an app that pastes something
+     * else (plain text from a styled clip, one line of several) just gets
+     * an ordinary Backspace.
+     */
+    private fun systemClipText(): CharSequence? =
+        if (!_uiState.value.settings.clipboard.backspaceUndoesPaste) {
+            null
+        } else {
+            runCatching {
+                (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip
+                    ?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(this)
+            }.getOrNull()
+        }
 
     /**
      * Puts a single typed character into the field, as a real key event when it
@@ -40913,6 +40998,7 @@ open class WMKeyboardService : InputMethodService() {
         val ic = currentInputConnection ?: return
         commitComposing(ic, autocorrect = false)
         ic.commitText(text, 1)
+        notePasted(text)
     }
 
     // ---- password generator tool ----
@@ -44992,7 +45078,7 @@ open class WMKeyboardService : InputMethodService() {
         val ai = _uiState.value.ai as? AiUi.Ready ?: return
         vibrate()
         noteAiCommitted(AiHistoryEntry.COMMITTED_INSERT)
-        commitToField(aiInsertableText(ai))
+        commitPastedToField(aiInsertableText(ai))
     }
 
     /**
@@ -46321,7 +46407,7 @@ open class WMKeyboardService : InputMethodService() {
     /** Insert on the engine's answer or one of its code blocks (#879). */
     fun onSearchInsertText(text: String) {
         vibrate()
-        commitToField(text)
+        commitPastedToField(text)
     }
 
     /** Copy in the search panel (#879): the engine's answer, or a result's link. */
@@ -48175,7 +48261,7 @@ open class WMKeyboardService : InputMethodService() {
         val translated = _uiState.value.translate.translated
         if (translated.isEmpty()) return
         vibrate()
-        commitToField(translated)
+        commitPastedToField(translated)
         // Clear after inserting (#1092): the box is ready for the next message.
         if (_uiState.value.settings.translate.clearOnInsert) clearTranslateBox()
     }
@@ -52984,7 +53070,9 @@ open class WMKeyboardService : InputMethodService() {
                 if (!isClipboardAccessible()) return
                 releaseUserShift()
                 if (pasteHeldImage() || privatePaste(ic) || pasteIntoNullField(ic)) return
+                val pasted = systemClipText()
                 ic.performContextMenuAction(android.R.id.paste)
+                notePasted(pasted)
                 purgeAfterPasswordPaste()
             }
             // Handled above, before the composing text was committed.
@@ -53080,6 +53168,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun privatePaste(ic: InputConnection): Boolean {
         val held = KeyboardClipboard.held ?: return false
         ic.commitText(held, 1)
+        notePasted(held)
         return true
     }
 
@@ -53303,7 +53392,9 @@ open class WMKeyboardService : InputMethodService() {
                 if (!isClipboardAccessible()) return
                 releaseUserShift()
                 if (pasteHeldImage() || privatePaste(ic) || pasteIntoNullField(ic)) return
+                val pasted = systemClipText()
                 ic.performContextMenuAction(android.R.id.paste)
+                notePasted(pasted)
                 purgeAfterPasswordPaste()
             }
             ClipboardKeyAction.UNDO, ClipboardKeyAction.REDO -> Unit
@@ -53981,7 +54072,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onTextArtTapped(art: String) {
         vibrate()
-        commitToField(art)
+        commitPastedToField(art)
         // Same "return to keyboard after emoji" courtesy as a real emoji tap.
         if (_uiState.value.settings.emoji.closeAfterInsert &&
             _uiState.value.panel == PanelMode.EMOJI
@@ -55741,7 +55832,7 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.value.captureTarget()?.movableCaret == true && captureTyped(item.text) -> Unit
                 _uiState.value.settings.clipboard.typeOutPastes &&
                     item.text.length in 2..ClipTypeOutMaxChars -> commitCharacterByCharacter(item.text)
-                else -> commitToField(item.text)
+                else -> commitPastedToField(item.text)
             }
         }
         // Zawgyi pasted into a Unicode field reads as garbage; the strip
@@ -55805,7 +55896,7 @@ open class WMKeyboardService : InputMethodService() {
         if (entity.kind == ClipEntityKind.OTP) {
             commitCodeToField(entity.value)
         } else {
-            commitToField(entity.value)
+            commitPastedToField(entity.value)
         }
         clearClipboardSuggestion()
         clipboardStore.items().firstOrNull { it.id == entity.sourceId }
@@ -57246,7 +57337,7 @@ open class WMKeyboardService : InputMethodService() {
                 override fun available() = isClipboardAccessible()
                 override fun paste(text: String) {
                     if (!isClipboardAccessible()) return
-                    commitToField(text)
+                    commitPastedToField(text)
                     closePanelAfterInsertIfEnabled()
                 }
                 override fun copy(text: String) {

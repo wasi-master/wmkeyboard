@@ -1015,6 +1015,15 @@ internal fun ClipboardSettings(
         }
         item {
             ToggleSetting(
+                R.string.clipboard_backspace_undoes_paste_title,
+                stringResource(R.string.clipboard_backspace_undoes_paste_subtitle),
+                settings.watch { it.clipboard.backspaceUndoesPaste },
+                info = stringResource(R.string.clipboard_backspace_undoes_paste_info),
+                default = SettingsDefaults.clipboard.backspaceUndoesPaste,
+            ) { scope.launch { repository.setClipboardBackspaceUndoesPaste(it) } }
+        }
+        item {
+            ToggleSetting(
                 R.string.clipboard_type_tags_title,
                 stringResource(R.string.clipboard_type_tags_subtitle),
                 settings.watch { it.clipboard.typeTags },
