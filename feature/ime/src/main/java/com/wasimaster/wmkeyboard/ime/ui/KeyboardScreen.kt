@@ -5947,14 +5947,20 @@ private fun RowScope.StripWords(
                 // A kaomoji chip ("shrug" → ¯\_(ツ)_/¯) is text, not a glyph:
                 // the text face at a text size, or it would run off the strip.
                 // It takes the words' colour too: the content colour here is
-                // not the strip's, and read black on dark themes.
+                // not the strip's, and read black on dark themes. So does a
+                // character found by its name (#1152): ω or — is a plain glyph,
+                // drawn in the colour it is given, and came out dark grey on a
+                // dark strip, an em dash all but invisible. A colour emoji
+                // ignores the colour, and the alpha is kept at 1 so a theme's
+                // faded words never fade one.
                 val face = KaomojiLibrary.isTextArt(emoji)
+                val glyphColour = LocalKbTheme.current.suggestionText.copy(alpha = 1f)
                 CachedTextLine(
                     text = AnnotatedString(if (face) emoji else LocalEmojiShaper.current.shape(emoji)),
                     style = LocalTextStyle.current.merge(
                         if (face) TextStyle(fontSize = 14.sp) else TextStyle(fontSize = 22.sp, fontFamily = emojiFamilyFor(emoji)),
                     ),
-                    color = if (face) LocalKbTheme.current.secondarySuggestionText else LocalContentColor.current,
+                    color = if (face) LocalKbTheme.current.secondarySuggestionText else glyphColour,
                     overflow = TextOverflow.Clip,
                 )
             }

@@ -30801,11 +30801,16 @@ open class WMKeyboardService : InputMethodService() {
         val strip = state.settings.suggestionStrip
         val seed = forWord.ifEmpty { pagesWord.orEmpty() }
         val emoji = if (strip.pagesEmoji && state.allowsTypingIntelligence && seed.length >= 2) {
-            emojiSearch?.search(seed, limit = PAGES_EMOJI_MAX).orEmpty()
-                .map { it.emoji }
-                .filterNot { it in state.hiddenEmoji }
-                .map { applyEmojiTone(it) }
-                .distinct()
+            // The characters the strip found by name (#1152) first, as on the
+            // strip: a tap on one goes in place of its name, words before it
+            // included, the way the strip's chip does.
+            val named = unicodeStripNames.keys.toList()
+            (
+                named + emojiSearch?.search(seed, limit = PAGES_EMOJI_MAX).orEmpty()
+                    .map { it.emoji }
+                    .filterNot { it in state.hiddenEmoji }
+                    .map { applyEmojiTone(it) }
+                ).distinct()
         } else {
             emptyList()
         }
