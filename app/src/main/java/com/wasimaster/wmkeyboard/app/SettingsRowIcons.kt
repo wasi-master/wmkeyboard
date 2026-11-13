@@ -1150,6 +1150,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_autocorrect_on_enter_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.typing_autocorrect_mark_title) { Icons.Outlined.FormatUnderlined }
         put(R.string.typing_autocorrect_on_punctuation_title) { Icons.Outlined.Spellcheck }
+        put(R.string.typing_autocorrect_on_emoji_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.typing_dictionary_capitals_title) { Icons.Outlined.TextFields }
         put(R.string.typing_skip_typed_word_title) { Icons.Outlined.FilterList }
         put(R.string.typing_typed_word_first_title) { Icons.Outlined.TextFields }

@@ -485,6 +485,15 @@ internal fun TypingCorrectionsSettings(
             }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
+                    R.string.typing_autocorrect_on_emoji_title,
+                    stringResource(R.string.typing_autocorrect_on_emoji_subtitle),
+                    settings.watch { it.correction.onEmoji },
+                    info = stringResource(R.string.typing_autocorrect_on_emoji_info),
+                    default = SettingsDefaults.correction.onEmoji,
+                ) { scope.launch { repository.setAutocorrectOnEmoji(it) } }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
                     R.string.typing_autocorrect_splits_title,
                     stringResource(R.string.typing_autocorrect_splits_subtitle),
                     settings.watch { it.suggestionStrip.autocorrectSplits },

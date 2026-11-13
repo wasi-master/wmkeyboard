@@ -21531,6 +21531,36 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * [commitToField] for an emoji picked from the emoji panel or the emoji
+     * row: the word in front of it ends the way space would end it, corrected
+     * and with its apostrophe put back, when **Correct the word before an
+     * emoji** is on. An emoji usually closes a message, and it often goes
+     * straight after the last word with no space ("see you tmrw😂"), which
+     * left that word as typed. Pattern snippets stay out of it, as they do for
+     * every end that is not space, Enter or a mark.
+     */
+    private fun commitEmojiToField(emoji: String) {
+        val ic = currentInputConnection ?: return
+        val state = _uiState.value
+        val correction = state.settings.correction
+        if (composing.isEmpty() || !correction.onEmoji || !correction.enabledFor(state.language.id)) {
+            commitToField(emoji)
+            return
+        }
+        // One edit for the word and the emoji, as the space bar batches the
+        // word and its space: one selection update, and no frame with the
+        // corrected word standing alone.
+        ic.beginBatchEdit()
+        val committed = commitComposing(ic, autocorrect = true, fixApostrophes = state.settings.autoText.apostrophe)
+        // A region the keyboard already let go of would be replaced by the
+        // emoji rather than followed by it; finishing changes no text.
+        if (!committed) ic.finishComposingText()
+        swallowTerminatorAfterCommit = false
+        ic.commitText(emoji, 1)
+        ic.endBatchEdit()
+    }
+
+    /**
      * The Timestamp tool: now, typed in the format the Clock tool's insert
      * sheet is set to, on the phone's own time zone. "Relative" would only
      * ever say "now", so it types the date and time instead. Inserted as a
@@ -55637,7 +55667,7 @@ open class WMKeyboardService : InputMethodService() {
 
     fun onEmojiTapped(emoji: String) {
         vibrate()
-        commitToField(emoji)
+        commitEmojiToField(emoji)
         learnEmoji(emoji)
         recordEmojiUse(emoji)
         // An emoji one of the user's stickers carries offers that sticker, in
