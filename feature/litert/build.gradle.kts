@@ -29,11 +29,11 @@ android {
         // does not, and Play takes the `en` bundle.
         missingDimensionStrategy("languages", "en", "intl")
         // bundletool requires every module with native libraries to support
-        // the SAME ABI set, and LiteRT ships one more than the base does
-        // (x86). These are the release base's three; see the `release` build
-        // type in app/build.gradle.kts.
+        // the SAME ABI set, and LiteRT ships x86 and x86_64 besides. These
+        // are the release base's two; see the `release` build type in
+        // app/build.gradle.kts.
         ndk {
-            abiFilters += setOf("arm64-v8a", "armeabi-v7a", "x86_64")
+            abiFilters += setOf("arm64-v8a", "armeabi-v7a")
         }
     }
 

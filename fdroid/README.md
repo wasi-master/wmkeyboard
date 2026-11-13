@@ -179,7 +179,7 @@ between builds, so every entry pays it. fdroiddata's own CI is different: its
 other on one machine, under GitLab.com's three-hour cap on hosted runners
 (a project timeout above that is ignored), and three entries at over an
 hour each did not fit. So the script keeps the bootstrapped binary under
-`~/.cache/wmkeyboard` and the second and third entries find it there. The
+`~/.cache/wmkeyboard` and the second entry finds it there. The
 0.6.3 merge request predates that and its pipeline shows the cap: entries
 381 and 382 built, 383 was cut off.
 The next entry's `scandelete` needs `core/input/src/mozc/jniLibs` added,
@@ -293,32 +293,35 @@ what Bazel's bootstrap needs beyond the image. Bazel 9 is built with a JDK
 `java-21-openjdk` itself and leaves the Gradle build's JDK alone; `compile.sh`
 also wants `zip` beside the `unzip` the image has.
 
-**Three entries per version, and `VercodeOperation`** (from 0.6.2): one
+**Two entries per version, and `VercodeOperation`** (from 0.6.2): one
 APK per ABI ([#801](https://github.com/wasi-master/wmkeyboard/issues/801)).
-Up to 0.6.1 the one APK carried the native libraries of all three ABIs to
-every phone, about 16 MB more than an arm64 phone uses. Each entry sets
+Up to 0.6.1 the one APK carried the native libraries of every ABI to every
+phone, about 16 MB more than an arm64 phone uses. Each entry sets
 `wmkb.abi`, which makes Gradle package that ABI's libraries alone and stamp
 its versionCode (`wmkb.versionCode * 10 + digit`: 1 armeabi-v7a, 2
-arm64-v8a, 3 x86_64; `abiDigits` in `app/build.gradle.kts`), and
-`WMKB_ABIS` in `build`, which makes `native/build-fdroid-libs.sh` compile that
-ABI alone, so ExecuTorch builds once per entry instead of three times. The
-F-Droid client installs the highest code a phone can run, which is why
-arm64-v8a sits above armeabi-v7a.
+arm64-v8a; `abiDigits` in `app/build.gradle.kts`), and `WMKB_ABIS` in
+`build`, which makes `native/build-fdroid-libs.sh` compile that ABI alone,
+so ExecuTorch builds once per entry instead of once per ABI. The F-Droid
+client installs the highest code a phone can run, which is why arm64-v8a
+sits above armeabi-v7a.
+
+x86_64 is no longer built. 0.6.2 and 0.6.3 had a third entry for it (digit
+3); those entries are gone from the recipe, and digit 3 is not reused.
 
 `VercodeOperation` turns the one versionCode in `gradle.properties` into the
-three. Their bot (`checkupdates.py`) copies the last *three* `Builds:`
-entries and gives them the three codes in ascending order, so the entries
-have to stay last and in that order: armeabi-v7a, arm64-v8a, x86_64.
-`CurrentVersionCode` is the highest of them, x86_64's.
+two. Their bot (`checkupdates.py`) copies the last *two* `Builds:` entries
+and gives them the two codes in ascending order, so the entries have to
+stay last and in that order: armeabi-v7a, arm64-v8a. `CurrentVersionCode`
+is the higher of them, arm64-v8a's.
 
 `Binaries:` is unchanged, and that is why the reference APKs are named by
 the full code (`-vc352-fdroid.apk`) while every other release asset keeps
 the plain one: `%c` is the entry's versionCode and the pattern has nothing
 else to tell the ABIs apart by. The in-app update check reads F-Droid's
 index in the same terms and divides by ten (`FdroidIndex.releaseCode`),
-because the index's suggested build is x86_64's whatever the phone is.
+because the index's suggested build is arm64-v8a's whatever the phone is.
 
-Store changelogs follow the codes: `changelogs/351.txt` to `353.txt` are
+Store changelogs follow the codes: `changelogs/351.txt` and `352.txt` are
 copies of `35.txt`, made by `scripts/changelog-abi-copies.sh`.
 
 **`timeout`**: five hours. fdroidserver stops a build after two by default,

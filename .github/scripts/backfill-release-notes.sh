@@ -72,7 +72,7 @@ for tag in "$@"; do
   # re-uploading anything under the modern ones.
   if [ -f "$dist/app-full-universal-release.apk" ]; then
     for flavor in full lite; do
-      for abi in arm64-v8a armeabi-v7a x86_64 universal; do
+      for abi in arm64-v8a armeabi-v7a universal; do
         sed -i.bak "s|wmkeyboard-${version}-vc${code}-${flavor}-${abi}\.apk|app-${flavor}-${abi}-release.apk|g" "$body"
       done
     done

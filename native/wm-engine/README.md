@@ -71,7 +71,7 @@ interpreter, never the table.
 `../wm-engine-jni` is the Android bridge: a `cdylib` with one JNI entry point
 per engine function, loaded by `EngineNative` in `core/language`, which the
 Kotlin facades (`AvroPhonetic`, `Khipro`, `BijoyAnsi`...) call. Its `build.sh`
-cross-compiles the three ABIs with `cargo ndk` into
+cross-compiles both ABIs with `cargo ndk` into
 `core/language/src/main/jniLibs`, as `harper-jni/build.sh` does; F-Droid
 rebuilds it from source. `build-host.sh` builds it for this machine, which
 the JVM unit tests load. The desktop app depends on this crate directly.

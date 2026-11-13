@@ -24,7 +24,7 @@ extensions.getByType(AndroidComponentsExtension::class.java).apply {
             OnnxRuntimeLibs::class.java,
         ) {
             archives.from(webRtc)
-            abis.set(listOf("arm64-v8a", "armeabi-v7a", "x86_64"))
+            abis.set(listOf("arm64-v8a", "armeabi-v7a"))
             library.set("libjingle_peerconnection_so.so")
         }
         variant.sources.jniLibs?.addGeneratedSourceDirectory(task, OnnxRuntimeLibs::outputDir)

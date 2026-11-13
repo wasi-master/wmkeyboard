@@ -22,8 +22,7 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
 # CTranslate2: the library alone. ruy runs both the int8 and the float GEMM
 # (backend.cc picks it for each when nothing else is compiled in) and brings
-# its own thread pool, so OpenMP is not needed either. CPU dispatch stays on:
-# x86_64 gets AVX, AVX2 and AVX-512 kernels chosen at run time, arm64 NEON.
+# its own thread pool, so OpenMP is not needed either. arm64 runs NEON.
 set(WITH_MKL OFF CACHE BOOL "" FORCE)
 set(WITH_DNNL OFF CACHE BOOL "" FORCE)
 set(WITH_ACCELERATE OFF CACHE BOOL "" FORCE)

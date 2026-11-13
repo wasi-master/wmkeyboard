@@ -7,10 +7,10 @@
 # From 0.6.2 (wmkb.versionCode 35) every APK's manifest carries
 # `versionCode * 10 + ABI digit` (abiDigits in app/build.gradle.kts), and both
 # stores read release notes by that number: F-Droid looks for
-# changelogs/351.txt, 352.txt and 353.txt beside the three APKs it builds, and
-# Play for 350.txt beside the bundle. Neither falls back to 35.txt. So the
-# changelog is still written once, as changelogs/<wmkb.versionCode>.txt, and
-# this script makes the four copies; commit them with it, before the tag,
+# changelogs/351.txt and 352.txt beside the two APKs it builds, and Play for
+# 350.txt beside the bundle. Neither falls back to 35.txt. So the changelog is
+# still written once, as changelogs/<wmkb.versionCode>.txt, and this script
+# makes the three copies; commit them with it, before the tag,
 # because F-Droid reads them from the tagged commit.
 #
 # Play's own override tree (fastlane/play/...) only needs the bundle's copy.
@@ -46,6 +46,6 @@ copy() { # <dir> <digits...>
   done
 }
 
-copy fastlane/metadata/android/en-US/changelogs 0 1 2 3
+copy fastlane/metadata/android/en-US/changelogs 0 1 2
 copy fastlane/play/metadata/android/en-US/changelogs 0
 exit $status

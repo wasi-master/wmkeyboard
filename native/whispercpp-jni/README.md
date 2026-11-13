@@ -53,7 +53,6 @@ weights are OpenAI's Whisper (MIT), quantized by the whisper.cpp project.
 | arm64-v8a | `libwmwhispercpp_v82.so` | ARMv8.2 with dot product and fp16 |
 | armeabi-v7a | `libwmwhispercpp.so` | ARMv7 with NEON |
 | arm64-v8a | `libwmwhispercpp_opencl.so` | ARMv8.2 as above, plus ggml's OpenCL backend for Adreno |
-| x86_64 | `libwmwhispercpp.so` | SSE4.2, as the Android ABI guarantees |
 
 `WhisperCpp` loads the ARMv8.2 build only when every core's `Features` line in
 `/proc/cpuinfo` lists `asimddp`, `asimdhp` and `fphp`; big.LITTLE parts can mix

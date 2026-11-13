@@ -319,10 +319,10 @@ jobs:
   # its alignment, which is what apksigcopier needs to carry the signature
   # back onto F-Droid's build.
   #
-  # One per ABI from 0.6.2. F-Droid builds the recipe's three entries as three
+  # One per ABI from 0.6.2. F-Droid builds the recipe's two entries as two
   # APKs and serves each phone the one for its processor, told apart by the
   # versionCode's last digit (abiDigits in app/build.gradle.kts), so there are
-  # three reference APKs to match, named by that full versionCode because
+  # two reference APKs to match, named by that full versionCode because
   # `Binaries:` only knows %v and %c. One fat APK carried every ABI's native
   # code to every phone: 98 MB in 0.6.0 against 82 MB for arm64 alone (#801).
   #
@@ -341,10 +341,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 300
     strategy:
-      # All three logs, even when one ABI fails: the release waits on every one.
+      # Both logs, even when one ABI fails: the release waits on every one.
       fail-fast: false
       matrix:
-        abi: [armeabi-v7a, arm64-v8a, x86_64]
+        abi: [armeabi-v7a, arm64-v8a]
     steps:
       - uses: actions/checkout@v7
 
@@ -407,7 +407,6 @@ jobs:
           case '${{ matrix.abi }}' in
             armeabi-v7a) code=$((code * 10 + 1)) ;;
             arm64-v8a)   code=$((code * 10 + 2)) ;;
-            x86_64)      code=$((code * 10 + 3)) ;;
           esac
           apksigner=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
           mkdir -p out

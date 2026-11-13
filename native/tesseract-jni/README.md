@@ -35,7 +35,7 @@ is 1.68 MB, from the same sources:
 | `lstm/` and `arch/` back at `-O2`, the recognition hot path | 1.82 MB |
 | Own JNI (5 functions) instead of Tesseract4Android's 113 | 1.68 MB |
 
-armeabi-v7a is 1.15 MB and x86_64 1.75 MB. `-Oz` saves another ~0.13 MB and
+armeabi-v7a is 1.15 MB. `-Oz` saves another ~0.13 MB and
 was not taken, because it would also shrink the matrix code the reads spend
 their time in.
 

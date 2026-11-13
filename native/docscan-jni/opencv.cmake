@@ -32,9 +32,8 @@ foreach(off
     set(${off} OFF CACHE BOOL "")
 endforeach()
 
-# Only the baseline instruction set: no extra SSE4/AVX2/AVX-512 or NEON
-# dot-product copies of each kernel, which double their size for the one
-# x86_64 ABI that is almost only emulators.
+# Only the baseline instruction set: no extra NEON dot-product copies of
+# each kernel, which would double their size.
 set(CPU_DISPATCH "" CACHE STRING "")
 
 # Nothing about the machine or the moment goes into the build information

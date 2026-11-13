@@ -111,6 +111,6 @@ phone.
 
 ## ABIs
 
-arm64-v8a, armeabi-v7a and x86_64, API 24, 16 KB page aligned, about 450 KB
+arm64-v8a and armeabi-v7a, API 24, 16 KB page aligned, about 450 KB
 (arm64) each, most of it libc++'s streams, which zinnia's error messages use.
 Only the four `Java_..._ZinniaNative_*` functions are exported.

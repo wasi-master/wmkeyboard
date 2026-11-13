@@ -45,7 +45,7 @@ Each release on the [GitHub releases page](https://github.com/wasi-master/wmkeyb
 
    **No Google libraries** is the [F-Droid build](/start/editions/), which leaves out Google's ML Kit and LiteRT. The release attaches it for each processor with all 48 interface languages, and from 0.6.7 also in English only for `arm64-v8a` (`-fdroid-en.apk`), which is much smaller. All of them carry the same signature as the other builds, so each installs over the others. Their update check sends you to F-Droid, and an update from the F-Droid app brings back the all-languages build, so get the next English-only one from the releases page.
 
-3. Pick your CPU architecture. Almost every phone made since 2017 is `arm64-v8a`. Older or budget devices are `armeabi-v7a`. Emulators and a few tablets are `x86_64`. The `universal` APK holds all three and works anywhere, at several times the download size. The offline build comes in `arm64-v8a` and `universal`, the offline all-languages build in `universal` only.
+3. Pick your CPU architecture. Almost every phone made since 2017 is `arm64-v8a`. Older or budget devices are `armeabi-v7a`. The `universal` APK holds both and works on either, at several times the download size. The offline build comes in `arm64-v8a` and `universal`, the offline all-languages build in `universal` only.
 
 4. Download the APK to your device.
 
@@ -112,7 +112,7 @@ Installing a new build over an existing install (same package, same signing key)
 
 F-Droid builds and the GitHub APKs share a key from 0.5.10 on, so you can move between them the same way. The copy from Google Play is signed with Play's own key, so it can't be swapped for either of them in place. Move across with a backup, the same way as below. F-Droid still compiles its copy from source, and it publishes one only after checking it is identical to the `-fdroid.apk` on the same GitHub release.
 
-From 0.6.2, F-Droid builds one APK per CPU architecture and installs the one that fits your phone, instead of one APK carrying all three. Each release's version code now ends in a digit for the architecture (1 for `armeabi-v7a`, 2 for `arm64-v8a`, 3 for `x86_64`, 0 for `universal`), and the GitHub APKs carry the same digits, so the `arm64-v8a` APK from GitHub and the one from F-Droid still install over each other. A `universal` APK of the same version can't go over an F-Droid install, because its version code is lower; the next release installs as usual.
+From 0.6.2, F-Droid builds one APK per CPU architecture and installs the one that fits your phone, instead of one APK carrying every architecture. Each release's version code now ends in a digit for the architecture (1 for `armeabi-v7a`, 2 for `arm64-v8a`, 0 for `universal`), and the GitHub APKs carry the same digits, so the `arm64-v8a` APK from GitHub and the one from F-Droid still install over each other. A `universal` APK of the same version can't go over an F-Droid install, because its version code is lower; the next release installs as usual.
 
 The exception is an install from F-Droid of 0.5.9 or older. Those were signed with F-Droid's own key, and Android will not update an app to a build signed with a different one, so F-Droid can't update it to 0.5.10. To move over once: export a backup (see below), uninstall, install WM Keyboard from F-Droid again, and import the backup. Every update after that is ordinary.
 
@@ -135,7 +135,7 @@ This separate toggle is off by default. It opts the keyboard into Android's own 
 ## System requirements
 
 - **Android 7.0 (API 24) or newer** is the floor the app is built against. It targets Android 16 (API 36).
-- **Supported CPU architectures:** `arm64-v8a`, `armeabi-v7a`, and `x86_64`. Generic 32-bit `x86` is not supported. Only the 64-bit `x86_64` is.
+- **Supported CPU architectures:** `arm64-v8a` and `armeabi-v7a`. Intel and AMD processors (`x86`, `x86_64`), as in some Chromebooks and the Android emulator, are not supported.
 - Camera, microphone and sensor access are all optional. Every hardware-backed tool (camera scanner, voice dictation, compass) declares the hardware feature it needs as non-required in the manifest. Missing hardware disables that one tool instead of blocking the install.
 
 ## Details & edge cases

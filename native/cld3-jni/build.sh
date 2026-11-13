@@ -103,9 +103,9 @@ build() {
 }
 
 # WMKB_ABIS narrows the build to some of the three (native/build-fdroid-libs.sh).
-for abi in ${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64}; do
+for abi in ${WMKB_ABIS:-arm64-v8a armeabi-v7a}; do
     case $abi in
-        arm64-v8a|armeabi-v7a|x86_64) build "$abi" ;;
+        arm64-v8a|armeabi-v7a) build "$abi" ;;
         *) echo "unknown ABI $abi" >&2; exit 1 ;;
     esac
 done

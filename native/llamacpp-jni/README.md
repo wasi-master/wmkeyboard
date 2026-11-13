@@ -70,7 +70,6 @@ other's symbols.
 | arm64-v8a | `libwmllama_v82.so` | ARMv8.2 with dot product and fp16 |
 | armeabi-v7a | `libwmllama.so` | ARMv7 with NEON; small models only (32-bit address space) |
 | arm64-v8a | `libwmllama_opencl.so` | ARMv8.2 as above, plus the OpenCL backend for Adreno; in `core/intelligence/src/llamagpu/jniLibs`, gate `llamagpu` |
-| x86_64 | `libwmllama.so` | SSE4.2, as the Android ABI guarantees |
 
 `LlamaNative` loads the ARMv8.2 build only when every core's `Features` line
 in `/proc/cpuinfo` lists `asimddp`, `asimdhp` and `fphp`, the same rule as
@@ -198,11 +197,11 @@ tokens; an abort from another thread ended the answer within one token; and
 scoring put "tomorow" 11 nats below "tomorrow" under Qwen.
 
 Library sizes (stripped), b11951 with NDK r29: arm64 7.3 MB each, the
-OpenCL build 10.5 MB, armeabi-v7a 5.1 MB, x86_64 7.8 MB. With libmtmd on
-b11753 and NDK r27 (2026-10-21) they were 7.15, 10.1, 4.9 and 7.7 MB. libmtmd
+OpenCL build 10.5 MB, armeabi-v7a 5.1 MB. With libmtmd on b11753 and NDK r27
+(2026-10-21) they were 7.15, 10.1 and 4.9 MB. libmtmd
 added about 0.8 MB to each; the OpenCL backend and its kernels (embedded as
 OpenCL C source, compiled by the phone's driver on first use) about 3 MB.
-Before that: arm64 6.4 MB each, armeabi-v7a 4.4 MB, x86_64 6.9 MB. About 2.6 MB of that is llama.cpp's code for the model architectures
+Before that: arm64 6.4 MB each, armeabi-v7a 4.4 MB. About 2.6 MB of that is llama.cpp's code for the model architectures
 it knows, and roughly 1.5 MB the chat templates' Jinja interpreter and
 template analysis, built at `-Os`. llama itself at `-Os` would save another
 12% but looked slower on a small model in these noisy runs, so it stays at

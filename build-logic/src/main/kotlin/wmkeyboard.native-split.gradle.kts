@@ -39,11 +39,11 @@ extensions.configure<DynamicFeatureExtension> {
         // does not, and Play takes the `en` bundle.
         missingDimensionStrategy("languages", "en", "intl")
         // bundletool requires every module with native libraries to support
-        // the SAME ABI set: the release base's three, which is also exactly
+        // the SAME ABI set: the release base's two, which is also exactly
         // what the directories below carry. An arm64-only library (Whistle)
-        // therefore rides in a split that has the other two.
+        // therefore rides in a split that has an armeabi-v7a stand-in.
         ndk {
-            abiFilters += setOf("arm64-v8a", "armeabi-v7a", "x86_64")
+            abiFilters += setOf("arm64-v8a", "armeabi-v7a")
         }
     }
 

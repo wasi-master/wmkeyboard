@@ -97,10 +97,10 @@ The phonetic engines (Avro, Khipro, Hindi, Urdu, Arabic, Persian, Assamese and t
 
 ```sh
 # One-time setup, as for the grammar engine below
-rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
+rustup target add aarch64-linux-android armv7-linux-androideabi
 cargo install cargo-ndk
 
-# All three ABIs, into core/language/src/main/jniLibs/
+# Both ABIs, into core/language/src/main/jniLibs/
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/wm-engine-jni/build.sh
 ```
 
@@ -116,19 +116,19 @@ The grammar tool's linter is a Rust `cdylib` (`native/harper-jni/`) that wraps [
 
 ```sh
 # One-time setup
-rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
+rustup target add aarch64-linux-android armv7-linux-androideabi
 cargo install cargo-ndk
 brew install --cask android-ndk   # or any NDK; set ANDROID_NDK_HOME
 
-# Build all three ABIs, from native/harper-jni/
+# Build both ABIs, from native/harper-jni/
 ANDROID_NDK_HOME=/opt/homebrew/share/android-ndk \
-cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 --platform 24 \
+cargo ndk -t arm64-v8a -t armeabi-v7a --platform 24 \
   -o ../../core/intelligence/src/main/jniLibs build --release
 ```
 
 The same command is in `native/harper-jni/README.md`, along with the JNI contract the Kotlin side depends on.
 
-`--platform 24` matches the app's `minSdk` exactly. Release builds package all three supported ABIs (`arm64-v8a`, `armeabi-v7a` and `x86_64`) through `ndk.abiFilters` in `app/build.gradle.kts`. Debug builds restrict to `arm64-v8a` so local compiles finish sooner. Generic 32-bit `x86` is not supported.
+`--platform 24` matches the app's `minSdk` exactly. Release builds package both supported ABIs (`arm64-v8a` and `armeabi-v7a`) through `ndk.abiFilters` in `app/build.gradle.kts`. Debug builds restrict to `arm64-v8a` so local compiles finish sooner. Neither `x86` nor `x86_64` is built.
 
 ## Rebuilding the text scanner's Tesseract library
 
@@ -141,7 +141,7 @@ The text scanner reads most non-Latin scripts with [Tesseract](https://github.co
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/tesseract-jni/build.sh
 ```
 
-The script fetches the pinned Tesseract4Android sources, builds all three ABIs and copies the stripped libraries into place. The **Tesseract native build** workflow on GitHub does the same and uploads the result. `native/tesseract-jni/README.md` has the JNI contract and the size measurements behind each build flag.
+The script fetches the pinned Tesseract4Android sources, builds both ABIs and copies the stripped libraries into place. The **Tesseract native build** workflow on GitHub does the same and uploads the result. `native/tesseract-jni/README.md` has the JNI contract and the size measurements behind each build flag.
 
 ## Rebuilding the Hunspell library
 
@@ -152,7 +152,7 @@ Spell checking against an imported Hunspell `.aff` and `.dic` runs on upstream [
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/hunspell-jni/build.sh
 ```
 
-The script fetches Hunspell at its pinned commit, builds all three ABIs in about ten seconds and copies the stripped libraries into place. `native/hunspell-jni/README.md` has the JNI contract. Upstream Hunspell rather than nuspell: nuspell needs ICU4C, which the NDK only exposes from API 31.
+The script fetches Hunspell at its pinned commit, builds both ABIs in about ten seconds and copies the stripped libraries into place. `native/hunspell-jni/README.md` has the JNI contract. Upstream Hunspell rather than nuspell: nuspell needs ICU4C, which the NDK only exposes from API 31.
 
 ## Rebuilding the divvunspell library
 
@@ -163,7 +163,7 @@ GiellaLT spellers (`.bhfst`) run on [divvunspell](https://github.com/divvun/divv
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/divvunspell-jni/build.sh
 ```
 
-divvunspell is a git dependency pinned to one commit in `Cargo.toml` and `Cargo.lock`, because crates.io's last release is from 2023. A cold build of the three ABIs takes about 25 minutes, nearly all of it link-time optimisation. `native/divvunspell-jni/README.md` has the JNI contract and a host check (`cargo run --release --example probe -- <archive> <words>`) that runs the same code on a Mac against real archives.
+divvunspell is a git dependency pinned to one commit in `Cargo.toml` and `Cargo.lock`, because crates.io's last release is from 2023. A cold build of both ABIs takes about 25 minutes, nearly all of it link-time optimisation. `native/divvunspell-jni/README.md` has the JNI contract and a host check (`cargo run --release --example probe -- <archive> <words>`) that runs the same code on a Mac against real archives.
 
 ## Rebuilding the GiellaLT grammar library
 
@@ -185,7 +185,7 @@ Language identification on the builds without ML Kit runs on Google's [CLD3](htt
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/cld3-jni/build.sh
 ```
 
-The script fetches CLD3 and protobuf 3.21.12 at pinned commits, builds protoc from the same protobuf for the machine it runs on, generates CLD3's three protos with it, and builds the three ABIs.
+The script fetches CLD3 and protobuf 3.21.12 at pinned commits, builds protoc from the same protobuf for the machine it runs on, generates CLD3's three protos with it, and builds both ABIs.
 
 ## Rebuilding the fastText library
 
@@ -196,7 +196,7 @@ The same gate's first identifier is [fastText](https://github.com/facebookresear
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/fasttext-jni/build.sh
 ```
 
-The script fetches fastText at a pinned commit (the repository is archived) and the model from Meta's download server, checks the model's SHA-256, and builds the three ABIs. `FASTTEXT_SRC` and `LID_MODEL` point it at local copies instead.
+The script fetches fastText at a pinned commit (the repository is archived) and the model from Meta's download server, checks the model's SHA-256, and builds both ABIs. `FASTTEXT_SRC` and `LID_MODEL` point it at local copies instead.
 
 ## Rebuilding the Voikko library
 
@@ -207,7 +207,7 @@ Finnish spell checking runs on [libvoikko](https://github.com/voikko/corevoikko)
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/voikko-jni/build.sh
 ```
 
-The script fetches corevoikko at the `rel-libvoikko-4.3.3` tag and builds the three ABIs in about 20 seconds with CMake, standing in for libvoikko's autotools build. `build.sh --host <dir>` builds the same library for the Mac or Linux machine instead, to test the JNI from a desktop JVM. The Finnish dictionary the app downloads is built from the signed voikko-fi 2.6 source release by `native/voikko-jni/build-dict.sh <out-dir>`, which needs foma (`brew install foma`) and gives the same zip every time. `native/voikko-jni/README.md` has the JNI contract, the licence reasoning and the desktop check.
+The script fetches corevoikko at the `rel-libvoikko-4.3.3` tag and builds both ABIs in about 20 seconds with CMake, standing in for libvoikko's autotools build. `build.sh --host <dir>` builds the same library for the Mac or Linux machine instead, to test the JNI from a desktop JVM. The Finnish dictionary the app downloads is built from the signed voikko-fi 2.6 source release by `native/voikko-jni/build-dict.sh <out-dir>`, which needs foma (`brew install foma`) and gives the same zip every time. `native/voikko-jni/README.md` has the JNI contract, the licence reasoning and the desktop check.
 
 ## Rebuilding the Bergamot library
 
@@ -218,7 +218,7 @@ On-device translation without Google runs on Mozilla's [bergamot-translator](htt
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/bergamot-jni/build.sh
 ```
 
-The script fetches the revision of `mozilla/translations` that Firefox ships (only `inference/` and the five submodules the CPU library compiles), PCRE2 and zstd at pinned commits, and builds arm64-v8a and x86_64 for Android 9 (API 28), which Marian's path library needs. ARM runs Marian's integer maths on Google's ruy, the way Firefox's own ARM builds do; x86_64 uses intgemm's kernels, chosen at run time. armeabi-v7a gets `stub.c`, a library that refuses to load: Marian's NEON code needs AArch64, and Play wants the split to cover all three ABIs. A full build takes several minutes per engine ABI.
+The script fetches the revision of `mozilla/translations` that Firefox ships (only `inference/` and the five submodules the CPU library compiles), PCRE2 and zstd at pinned commits, and builds arm64-v8a for Android 9 (API 28), which Marian's path library needs. ARM runs Marian's integer maths on Google's ruy, the way Firefox's own ARM builds do. armeabi-v7a gets `stub.c`, a library that refuses to load: Marian's NEON code needs AArch64, and Play wants the split to cover both ABIs. A full build takes several minutes per engine ABI.
 
 The model list is generated: `native/bergamot-jni/catalog.py` reads Mozilla's public Remote Settings collection `translations-models-v2` and writes `BergamotCatalog.kt` with each file's address, size and SHA-256. Run it to move to Mozilla's newer models, then review the diff. The app falls back to a copy of the pinned files in the data repository's `translations` release (`<sha256>-<name>.zst`, see `BergamotSources`): after re-pinning, run `scripts/mirror_translations.py --catalog <path to BergamotCatalog.kt>` in the data repository to upload the new files. It downloads each from Mozilla, checks it against the pin, and skips what the release already has. `native/bergamot-jni/README.md` has the JNI contract and the reasons behind each build flag.
 
@@ -231,7 +231,7 @@ The NLLB-200 translation engine runs on OpenNMT's [CTranslate2](https://github.c
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/ctranslate2-jni/build.sh
 ```
 
-The script fetches CTranslate2 and SentencePiece at pinned tags, with CTranslate2's ruy, spdlog and cpu_features submodules and the abseil tag SentencePiece's own CMake would fetch, so configuring needs no network. Every matrix product runs on ruy, int8 and float alike, with no BLAS and no OpenMP; ruy picks the dot-product kernels on the phones that have them. arm64-v8a and x86_64 build for Android 7 (API 24). armeabi-v7a gets `stub.c`, since 600 MB of weights is more than a 32-bit process can count on. A build takes a few minutes per ABI.
+The script fetches CTranslate2 and SentencePiece at pinned tags, with CTranslate2's ruy and spdlog submodules and the abseil tag SentencePiece's own CMake would fetch, so configuring needs no network. Every matrix product runs on ruy, int8 and float alike, with no BLAS and no OpenMP; ruy picks the dot-product kernels on the phones that have them. arm64-v8a builds for Android 7 (API 24). armeabi-v7a gets `stub.c`, since 600 MB of weights is more than a 32-bit process can count on. A build takes a few minutes per ABI.
 
 The model is not in the library. `NllbTranslator.FILES` pins the four files of one Hugging Face revision by size and SHA-256. `native/ctranslate2-jni/README.md` has the JNI contract, the desktop test and the measurements behind the memory floor.
 
@@ -244,7 +244,7 @@ Chinese and Japanese handwriting without ML Kit runs on [zinnia](https://github.
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/zinnia-jni/build.sh
 ```
 
-The script fetches zinnia at its pinned commit, compiles the recogniser's four sources for all three ABIs in about fifteen seconds and copies the stripped libraries into place. `build.sh --desktop DIR` builds the same library for the machine it runs on, for testing the JNI from a plain JVM. The models are not part of the build: the Tegaki project's three, pinned in `core/input/.../zinnia/ZinniaData.kt`, download from the data repository as CJK packs. `native/zinnia-jni/README.md` has the JNI contract, where each model came from, and the desktop test's numbers.
+The script fetches zinnia at its pinned commit, compiles the recogniser's four sources for both ABIs in about fifteen seconds and copies the stripped libraries into place. `build.sh --desktop DIR` builds the same library for the machine it runs on, for testing the JNI from a plain JVM. The models are not part of the build: the Tegaki project's three, pinned in `core/input/.../zinnia/ZinniaData.kt`, download from the data repository as CJK packs. `native/zinnia-jni/README.md` has the JNI contract, where each model came from, and the desktop test's numbers.
 
 ## Rebuilding the llama.cpp library
 
@@ -255,7 +255,7 @@ GGUF models for on-device AI run on [llama.cpp](https://github.com/ggml-org/llam
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/llamacpp-jni/build.sh
 ```
 
-The script fetches llama.cpp at the release `pin.sh` names, with the KleidiAI release its ggml names (checked against the hash in `pin.sh`, so configuring downloads nothing), and builds the CPU libraries: arm64 three times (ARMv8.0; ARMv8.2 with dot product and fp16; and ARMv8.2 with i8mm, the int8 matrix instructions of 2022 and later cores, picked from `/proc/cpuinfo` at load the way whisper.cpp's are), armeabi-v7a and x86_64. Every arm64 build carries Arm's KleidiAI kernels, which choose themselves at run time from the CPU's features. Then come the GPU builds on arm64: OpenCL for Adreno (gate `llamagpu`) and Vulkan for every other GPU (gate `llamavulkan`). The Vulkan build compiles its shaders with a glslc that `native/vulkan.sh` builds from a pinned shaderc release, since the NDK's is too old for the extensions ggml's newer shaders use; whisper.cpp's build shares the same file. `WMKB_LLAMA_CPU=0`, `WMKB_LLAMA_GPU=0` and `WMKB_LLAMA_VULKAN=0` skip parts. A Hexagon NPU build needs Qualcomm's Hexagon SDK, which runs only on x86-64 Linux, so it is built by the `llama.cpp Hexagon build` workflow (`.github/workflows/llama-hexagon.yml`) in Qualcomm's toolchain container, run by hand, and its artifact committed into `core/intelligence/src/llamanpu/jniLibs/` (gate `llamanpu`). Its library and DSP skels, one per Hexagon generation from v73 to v85, linked at 16 KB like every library in `lib/arm64-v8a`, are never part of F-Droid's build. The DSP loads its skel off the filesystem through `ADSP_LIBRARY_PATH`, so `LlamaHexagon` copies this chip's out of the APK when Play left it inside. It keeps its own copy of ggml rather than sharing whisper.cpp's: the two projects move ggml at different times, and the two libraries come through different gates. `native/llamacpp-jni/host-test.sh` builds the same bridge for the Mac or Linux, so `LlamaNative` can be run on a desktop JVM; the README has the contract, the harness recipe and the measured speeds.
+The script fetches llama.cpp at the release `pin.sh` names, with the KleidiAI release its ggml names (checked against the hash in `pin.sh`, so configuring downloads nothing), and builds the CPU libraries: arm64 three times (ARMv8.0; ARMv8.2 with dot product and fp16; and ARMv8.2 with i8mm, the int8 matrix instructions of 2022 and later cores, picked from `/proc/cpuinfo` at load the way whisper.cpp's are) and armeabi-v7a. Every arm64 build carries Arm's KleidiAI kernels, which choose themselves at run time from the CPU's features. Then come the GPU builds on arm64: OpenCL for Adreno (gate `llamagpu`) and Vulkan for every other GPU (gate `llamavulkan`). The Vulkan build compiles its shaders with a glslc that `native/vulkan.sh` builds from a pinned shaderc release, since the NDK's is too old for the extensions ggml's newer shaders use; whisper.cpp's build shares the same file. `WMKB_LLAMA_CPU=0`, `WMKB_LLAMA_GPU=0` and `WMKB_LLAMA_VULKAN=0` skip parts. A Hexagon NPU build needs Qualcomm's Hexagon SDK, which runs only on x86-64 Linux, so it is built by the `llama.cpp Hexagon build` workflow (`.github/workflows/llama-hexagon.yml`) in Qualcomm's toolchain container, run by hand, and its artifact committed into `core/intelligence/src/llamanpu/jniLibs/` (gate `llamanpu`). Its library and DSP skels, one per Hexagon generation from v73 to v85, linked at 16 KB like every library in `lib/arm64-v8a`, are never part of F-Droid's build. The DSP loads its skel off the filesystem through `ADSP_LIBRARY_PATH`, so `LlamaHexagon` copies this chip's out of the APK when Play left it inside. It keeps its own copy of ggml rather than sharing whisper.cpp's: the two projects move ggml at different times, and the two libraries come through different gates. `native/llamacpp-jni/host-test.sh` builds the same bridge for the Mac or Linux, so `LlamaNative` can be run on a desktop JVM; the README has the contract, the harness recipe and the measured speeds.
 
 ## Rebuilding the document scanner library
 
@@ -266,7 +266,7 @@ The built-in document scanner, which the scanner tool opens where Google's is mi
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/docscan-jni/build.sh
 ```
 
-The script fetches OpenCV at its pinned commit and builds the three ABIs one after another, deleting each build tree before the next. `native/docscan-jni/opencv.cmake` holds the OpenCV options: no IPP or any other accelerator that downloads a binary at configure time. The arm64 build adds Arm's KleidiCV as OpenCV's HAL, from a release archive `build.sh` fetches and checks against its pinned hash. To try detection and the clean-up modes on photos without a phone, `native/docscan-jni/desktop/check.sh <photos> <out>` builds the same `docscan.cpp` against a host OpenCV and writes each photo's outline, flattened page and filtered versions; `desktop/make_samples.py` makes synthetic test photos with known corners.
+The script fetches OpenCV at its pinned commit and builds both ABIs one after another, deleting each build tree before the next. `native/docscan-jni/opencv.cmake` holds the OpenCV options: no IPP or any other accelerator that downloads a binary at configure time. The arm64 build adds Arm's KleidiCV as OpenCV's HAL, from a release archive `build.sh` fetches and checks against its pinned hash. To try detection and the clean-up modes on photos without a phone, `native/docscan-jni/desktop/check.sh <photos> <out>` builds the same `docscan.cpp` against a host OpenCV and writes each photo's outline, flattened page and filtered versions; `desktop/make_samples.py` makes synthetic test photos with known corners.
 
 The QR scanner's open-source reader, used where ML Kit's barcode reader can't run or isn't picked, is [zxing-cpp](https://github.com/zxing-cpp/zxing-cpp) v3.1.1 with its readers only (no writers, so none of its bundled libzint), built static under a small JNI bridge into `libwmzxing.so` from `native/zxingcpp-jni/`. `ZxingNative.kt` in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/barcode/` is the Kotlin entry point, the prebuilt files sit under `core/intelligence/src/zxing/jniLibs/<abi>/`, and the gate is `zxing` in `native/gates.json`: pinned for download on GitHub, the on-demand `:feature:zxing` split on Play, built from source on F-Droid. Rebuild after you edit `native/zxingcpp-jni/`:
 

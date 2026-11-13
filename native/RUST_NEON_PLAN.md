@@ -102,7 +102,7 @@ Phase 2 port. Status: done.
 (`dot.rs` is the first: `dot_f32`, `dot_rows_f32`, `dot_i8`). Each kernel has:
 
 - `scalar::name`, the reference: plain Rust, the definition of the result.
-  x86_64 and armv7 run it.
+  armv7 runs it.
 - `neon::name` (and `dotprod::name`, `fp16::name` for the optional armv8.2
   extensions): `#[target_feature(enable = ...)]` over stable
   `core::arch::aarch64` intrinsics. `dotprod` and `fp16` are stable in the
@@ -208,9 +208,8 @@ The bands column copies each band into a fresh array, as `getPixels` does,
 and is the shape the renderer runs; the bands stay so a 12 MP picture is never
 held as one 48 MB `IntArray`. Phone column owed (`run.sh device` now pushes
 the arm64 `.so` and names it with `WM_ENGINE_LIB`). Library growth over
-main's build with the glide decoders: arm64 +4,400 bytes, armv7 +2,160,
-x86_64 +3,304. armv7 and x86_64 run the Rust
-scalar reference, unmeasured.
+main's build with the glide decoders: arm64 +4,400 bytes, armv7 +2,160.
+armv7 runs the Rust scalar reference, unmeasured.
 
 A RuntimeShader on API 33+ was not built. It does not fit `base()`, which
 draws on a software canvas so the vignette, grain and later layers can share
@@ -328,10 +327,9 @@ A photo the detector grows (scale 1 or more) stays on the Kotlin bilinear.
   logits per piece. Phone not measured (no pairing).
 - Size, against a build of the main it merged into (55a8517e0, with the
   sharpen kernel): libwm_engine_jni arm64-v8a 2,120,680 -> 2,129,208 B
-  (+8,528), armeabi-v7a 1,546,856 -> 1,550,248 (+3,392), x86_64 2,426,960
-  -> 2,433,080 (+6,120). Segment padding makes these jumpy: main's build
+  (+8,528), armeabi-v7a 1,546,856 -> 1,550,248 (+3,392). Segment padding makes these jumpy: main's build
   with and without sharpen is the same size, and the same two kernels
-  measured +4,048 / +1,296 / +2,816 on the main before it.
+  measured +4,048 / +1,296 on the main before it.
 
 ### GIF encoder (done, in Rust)
 
@@ -383,8 +381,7 @@ delays past both clamps, no frames).
   Phone column owed.
 - Size, against the main it merged into (c8d8068f3, with the OCR
   kernels): libwm_engine_jni arm64-v8a 2,129,208 -> 2,149,240 B (+20,032),
-  armeabi-v7a 1,550,248 -> 1,562,240 (+11,992), x86_64 2,433,080 ->
-  2,453,056 (+19,976).
+  armeabi-v7a 1,550,248 -> 1,562,240 (+11,992).
 
 ## Phase 2: prediction core in Rust
 
@@ -425,8 +422,7 @@ node by node; those go when the walks move (steps 2 and 4).
   agreed: 1.29M completions, every word's frequency, every entry in order,
   every vocabulary id, count and follower list.
 - Size: libwm_engine_jni arm64-v8a 1,114,720 -> 1,177,680 B (+62,960),
-  armeabi-v7a 784,728 -> 831,264 (+46,536), x86_64 1,245,760 -> 1,311,984
-  (+66,224).
+  armeabi-v7a 784,728 -> 831,264 (+46,536).
 - Latency (`MappedTrieLatencyBench`, `PredictionLatencyBench`, two runs each,
   load average 3.5-4.3 with other sessions running): `frequencyOf` p50 0.75
   -> 0.42-0.54 us, `complete(3, 10)` p50 3.6-8.3 -> 5.1-5.3 us (p99 14-35 ->
@@ -459,7 +455,7 @@ half-space and supplementary letters are all in the port.
   about 1% of results. The Kotlin walk calls `StrictMath.log` too, so the
   two agree on every runtime; on the aarch64 JVM the evals run on,
   `Math.log`, `exp` and `pow` already equal `StrictMath` (8M samples), so
-  that switch changed no number there. x86_64 HotSpot's `Math.log` is an
+  that switch changed no number there. Other JVMs' `Math.log` may be an
   intrinsic that need not be fdlibm, which is why the switch was made.
 - Parity: `NativeFuzzyParityTest` (`:app`), the prediction eval's 2,000 typo
   cases and 2,000 clean words over the bundled English list, through the
@@ -475,7 +471,7 @@ half-space and supplementary letters are all in the port.
   0.649/0.656 -> 0.466/0.475 ms; octopus keystroke p50 0.508/0.560 ->
   0.348/0.346 ms.
 - Size: arm64-v8a 1,177,680 -> 1,285,552 B (+107,872), armeabi-v7a 831,264
-  -> 923,592 (+92,328), x86_64 1,311,984 -> 1,439,552 (+127,568): the walk,
+  -> 923,592 (+92,328): the walk,
   and the accent fold tables it is the first JNI caller of.
 - Not deleted yet: the Kotlin walk still serves any search with a non-empty
   `Trie` (the user lexicon, the system personal dictionary), which has no
@@ -598,8 +594,7 @@ them so no caller changed.
   Rust code before and after, and its keystroke p50 (0.382/0.345 -> 0.490/
   0.382 ms) moved with the load, not the change. Worth re-running idle.
 - Size: arm64-v8a 2,010,704 -> 2,116,264 B (+105,560), armeabi-v7a
-  1,462,992 -> 1,544,696 (+81,704), x86_64 2,297,184 -> 2,423,656
-  (+126,472), against step 3's libraries, which already carried an unwired
+  1,462,992 -> 1,544,696 (+81,704), against step 3's libraries, which already carried an unwired
   early build of the stroke decoder. The whole of glide against a step-3
   arm64 build without it: 1,887,872 -> 2,116,264 (+228,392).
 
@@ -774,8 +769,7 @@ segmentation Thai, Lao, Khmer and Burmese prediction lacked. ICU4X 2.3
 - **Size**, against a fresh build of the main this branched from
   (f72a36bca, with the Zawgyi port; same size as its committed library):
   libwm_engine_jni arm64-v8a 2,232,944 -> 2,716,488 B (+483,544, +22%),
-  armeabi-v7a 1,622,272 -> 2,082,712 (+460,440), x86_64 2,538,744 ->
-  3,029,264 (+490,520). Measured piece by piece in a bare arm64 cdylib with
+  armeabi-v7a 1,622,272 -> 2,082,712 (+460,440). Measured piece by piece in a bare arm64 cdylib with
   the same profile: the segmenter about 373 KB (310 KB of it the four LSTM
   models, the rest word and grapheme break rules and the inference code),
   NFC about 73 KB, case mapping about 29 KB, the general-category map a few
@@ -807,15 +801,15 @@ and the linker map (2,716,488 B stripped, main 16d35c10b):
 
 **What changed**, each measured with `build.sh` (stripped, all paths remapped):
 
-| Change | arm64-v8a | armeabi-v7a | x86_64 |
-|---|---|---|---|
-| Before (16d35c10b) | 2,716,488 | 2,082,712 | 3,029,264 |
-| Stable sorts through one instantiation (`wm_engine::sort`) | 2,324,752 (-391,736) | 1,781,496 (-301,216) | 2,516,168 (-513,096) |
-| Khipro specs compiled in deflated | 2,177,496 (-147,256) | 1,629,280 (-152,216) | 2,371,616 (-144,552) |
-| Relocations packed (`--pack-dyn-relocs=android`) | 2,065,864 (-111,632) | | |
-| `opt-level = "s"` for serde_json and miniz_oxide | 2,062,464 (-3,400) | 1,588,632 (-40,648 with the row above) | 2,246,392 (-125,224 with the row above) |
-| **After** | **2,062,464 (-24.1%)** | **1,588,632 (-23.7%)** | **2,246,392 (-25.8%)** |
-| Merged onto main 0afd03d6a (CTC stroke readings), against its library | 2,737,336 -> 2,083,280 | 2,095,424 -> 1,601,392 | 3,053,648 -> 2,270,776 |
+| Change | arm64-v8a | armeabi-v7a |
+|---|---|---|
+| Before (16d35c10b) | 2,716,488 | 2,082,712 |
+| Stable sorts through one instantiation (`wm_engine::sort`) | 2,324,752 (-391,736) | 1,781,496 (-301,216) |
+| Khipro specs compiled in deflated | 2,177,496 (-147,256) | 1,629,280 (-152,216) |
+| Relocations packed (`--pack-dyn-relocs=android`) | 2,065,864 (-111,632) | |
+| `opt-level = "s"` for serde_json and miniz_oxide | 2,062,464 (-3,400) | 1,588,632 (-40,648 with the row above) |
+| **After** | **2,062,464 (-24.1%)** | **1,588,632 (-23.7%)** |
+| Merged onto main 0afd03d6a (CTC stroke readings), against its library | 2,737,336 -> 2,083,280 | 2,095,424 -> 1,601,392 |
 
 - **Sorts**: `wm_engine::sort::by` / `by_key` sort the positions `0..len`
   as `u32` through one comparator behind `dyn`, then permute the slice in
@@ -1098,10 +1092,9 @@ at the end of a long word, which makes it a candidate for algorithmic work
 
 libwm_engine_jni against main after the library size pass (5e9207382),
 rebuilt with these kernels merged in: arm64-v8a 2,083,280 -> 2,105,224 B
-(+21,944), armeabi-v7a 1,601,392 -> 1,611,920 (+10,528), x86_64
-2,270,776 -> 2,287,608 (+16,832). Before that merge, against the main it
+(+21,944), armeabi-v7a 1,601,392 -> 1,611,920 (+10,528). Before that merge, against the main it
 branched from, the band kernel alone was +3,776 on arm64 and all four
-+22,792. armv7 and x86_64 carry only the scalar references.
++22,792. armv7 carries only the scalar references.
 
 Found on the way, outside this plan: rotating a 12 MP OCR still upright
 (`ImageProxy.toFramedBitmap`'s `createBitmap` with a matrix) takes about
@@ -1258,8 +1251,7 @@ been measured. The crossing is a tenth of the keystroke, and for Japanese the
 target would be `by_first_word`, not the Viterbi.
 
 **Costs:** libwm_engine_jni arm64-v8a 2,223,032 -> 2,511,328 B (+288,296),
-armeabi-v7a 1,697,808 -> 1,915,576 (+217,768), x86_64 2,418,696 -> 2,756,592
-(+337,896). Each `.wmcd` is about 16% bigger than its pack and sits beside it:
+armeabi-v7a 1,697,808 -> 1,915,576 (+217,768). Each `.wmcd` is about 16% bigger than its pack and sits beside it:
 `ja_kana` is 41.5 MB plus 48.0, 89.5 MB in all.
 
 ## Rules for every step
@@ -1271,7 +1263,7 @@ armeabi-v7a 1,697,808 -> 1,915,576 (+217,768), x86_64 2,418,696 -> 2,756,592
   Runtime detection (`is_aarch64_feature_detected!`) for `dotprod` and `fp16`.
   armv7's NEON intrinsics are unstable in Rust, so armv7 runs the scalar
   reference (built with the target's `+neon`, which LLVM may vectorise);
-  x86_64 and anything else get the scalar path too.
+  anything else gets the scalar path too.
   Every kernel keeps a scalar reference implementation and a test comparing
   the two within a stated tolerance.
 - **JNI:** batch work per call, never one crossing per element. Primitive

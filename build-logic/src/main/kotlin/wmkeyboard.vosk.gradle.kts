@@ -31,8 +31,8 @@ extensions.getByType(AndroidComponentsExtension::class.java).apply {
             OnnxRuntimeLibs::class.java,
         ) {
             archives.from(vosk)
-            // The ABIs the app ships; the AAR's x86 goes nowhere.
-            abis.set(listOf("arm64-v8a", "armeabi-v7a", "x86_64"))
+            // The ABIs the app ships; the AAR's x86 and x86_64 go nowhere.
+            abis.set(listOf("arm64-v8a", "armeabi-v7a"))
             library.set("libvosk.so")
         }
         variant.sources.jniLibs?.addGeneratedSourceDirectory(task, OnnxRuntimeLibs::outputDir)

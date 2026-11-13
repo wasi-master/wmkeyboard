@@ -24,10 +24,10 @@
 #
 #   ANDROID_NDK=/path/to/ndk native/build-fdroid-libs.sh
 #
-# WMKB_ABIS="arm64-v8a" builds one ABI's libraries instead of all three
-# (any of arm64-v8a, armeabi-v7a and x86_64, space-separated). F-Droid's
-# recipe has one build entry per ABI and each passes its own, so ExecuTorch
-# is compiled once per entry rather than three times. Every ABI is built on
+# WMKB_ABIS="arm64-v8a" builds one ABI's libraries instead of both
+# (arm64-v8a, armeabi-v7a, or both space-separated). F-Droid's recipe has
+# one build entry per ABI and each passes its own, so ExecuTorch is compiled
+# once per entry rather than twice. Every ABI is built on
 # its own either way, so its libraries come out the same bytes.
 #
 # The text engines are the phonetic and fixed-layout engines every edition

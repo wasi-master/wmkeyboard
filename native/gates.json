@@ -1,6 +1,6 @@
 {
   "$comment": "Every on-demand native gate, in one place. Read by build-logic (FeatureModules, the Play splits, settings includes, dynamicFeatures, native pins, proguard keeps, the core modules' jniLibs) and by native/gates.py for the shell side (collect-natives.sh, release.yml, build-fdroid-libs.sh). How to add a gate: docs/src/content/docs/development/architecture.md, 'Adding a native gate'.",
-  "abis": ["arm64-v8a", "armeabi-v7a", "x86_64"],
+  "abis": ["arm64-v8a", "armeabi-v7a"],
   "base": [
     {
       "name": "libwm_engine_jni.so",
@@ -162,7 +162,7 @@
     {
       "id": "kiwi",
       "property": "kiwi",
-      "doc": "`:feature:kiwi`: the Kiwi morphological analyser behind Korean spacing correction (`:core:input`), upstream's prebuilt library, about 18 MB. Upstream builds for arm64 and x86-64 only, so armeabi-v7a holds an empty stand-in that bundletool's same-ABI rule asks for and KoreanSpacing never loads. Not built here from source, so not in F-Droid's build.",
+      "doc": "`:feature:kiwi`: the Kiwi morphological analyser behind Korean spacing correction (`:core:input`), upstream's prebuilt library, about 18 MB. Upstream builds no 32-bit ARM library, so armeabi-v7a holds an empty stand-in that bundletool's same-ABI rule asks for and KoreanSpacing never loads. Not built here from source, so not in F-Droid's build.",
       "play": "split",
       "google": true,
       "libraries": [

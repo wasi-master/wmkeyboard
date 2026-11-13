@@ -62,6 +62,6 @@ quarter of a second), so the engine asks for it only on its background pass.
 
 ## ABIs
 
-arm64-v8a, armeabi-v7a and x86_64, API 24, 16 KB page aligned, about 1.1 MB
+arm64-v8a and armeabi-v7a, API 24, 16 KB page aligned, about 1.1 MB
 (arm64) each, most of it libc++'s streams, which Hunspell reads its files
 with.

@@ -14,7 +14,7 @@ import java.util.zip.ZipInputStream
  * (bab2min/Kiwi, Apache-2.0): 나는학교에간다 becomes 나는 학교에 간다.
  *
  * Three things have to be on the phone: the `kiwi` gate's library, about 18 MB, built
- * upstream for arm64 and x86-64 only, and the [PACK_ID] pack, an 88 MB zip of the
+ * upstream for arm64 only, and the [PACK_ID] pack, an 88 MB zip of the
  * model that takes 104 MB unpacked. Opened on a Mac it took 3.3 seconds to load and
  * 450 MB of memory, so it is never held between uses: [release] lets it go, and the
  * caller is expected to call that soon after the last [fix].
@@ -38,7 +38,7 @@ object KoreanSpacing {
 
     /** This build has the library at all, and for this phone's processor. */
     val supported: Boolean
-        get() = FeatureModules.kiwi !== NotInBuild && Build.SUPPORTED_ABIS.orEmpty().any { it == "arm64-v8a" || it == "x86_64" }
+        get() = FeatureModules.kiwi !== NotInBuild && Build.SUPPORTED_ABIS.orEmpty().any { it == "arm64-v8a" }
 
     /** Everything is on the phone, so [fix] can answer. A few file checks at most. */
     fun ready(filesDir: File): Boolean = supported && FeatureModules.kiwi.installed && modelPack(filesDir) != null

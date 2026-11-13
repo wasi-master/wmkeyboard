@@ -54,7 +54,7 @@ BIN=$(ls -d "$NDK"/toolchains/llvm/prebuilt/*/bin)
 WORK=${ET_WORK:-$(mktemp -d)}
 mkdir -p "$WORK"
 WORK=$(cd "$WORK" && pwd -P)
-# A scratch directory of our own is about 4.7 GB after three ABIs; remove it
+# A scratch directory of our own is about 4.7 GB after both ABIs; remove it
 # on exit like the other build scripts. An ET_WORK the caller named is kept,
 # since reusing it is the point of naming one.
 [ -n "${ET_WORK:-}" ] || trap 'rm -rf "$WORK"' EXIT
@@ -332,7 +332,7 @@ build_et() {
     echo "$abi lib$name.so: $(wc -c < "$dest/lib$name.so") bytes"
 }
 
-for abi in ${ET_ABIS:-${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64}}; do
+for abi in ${ET_ABIS:-${WMKB_ABIS:-arm64-v8a armeabi-v7a}}; do
     [ "${WMKB_ET_CPU:-1}" = 1 ] && build_et "$abi"
     if [ "$abi" = arm64-v8a ] && [ -n "$QNN_ROOT" ]; then
         build_et "$abi" qnn "${ET_QNN_OUT:-$REPO/core/voice/src/executorchqnn/jniLibs}"

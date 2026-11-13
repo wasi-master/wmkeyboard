@@ -120,7 +120,7 @@ build() {
 }
 
 # WMKB_ABIS narrows the build to some of the three (native/build-fdroid-libs.sh).
-wanted() { case " ${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64} " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
+wanted() { case " ${WMKB_ABIS:-arm64-v8a armeabi-v7a} " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
 
 # arm64: a baseline ARMv8.0 build every 64-bit phone runs, one for ARMv8.2
 # cores with dot-product and half-precision instructions (2018 on), which
@@ -199,9 +199,4 @@ fi
 # kernels do the same work there.
 if wanted armeabi-v7a; then
     build armeabi-v7a wmllama -DGGML_LLAMAFILE=OFF
-fi
-# x86_64 (Chromebooks, emulators): SSE4.2 is what the Android ABI guarantees.
-if wanted x86_64; then
-    build x86_64 wmllama -DGGML_SSE42=ON -DGGML_AVX=OFF -DGGML_AVX2=OFF -DGGML_FMA=OFF \
-        -DGGML_F16C=OFF -DGGML_AVX512=OFF -DGGML_BMI2=OFF -DGGML_AVX_VNNI=OFF
 fi

@@ -30,11 +30,11 @@ It needs the NDK, CMake and Ninja, and fetches libopus at the pinned commit
 unless `OPUS_SRC` points at a checkout. libopus is built as a static float
 library with `-ffunction-sections`; only the five JNI functions are exported
 (`jni.map`), so `--gc-sections` leaves the decoder out. Sizes: arm64-v8a
-295,464 B, armeabi-v7a 228,284 B, x86_64 365,640 B; every LOAD segment 16 KB
+295,464 B, armeabi-v7a 228,284 B; every LOAD segment 16 KB
 aligned; no NEEDED beyond libc, libm and libdl.
 
 Reproducible: a fresh clone and a local checkout of the same commit give
-byte-identical libraries on all three ABIs. `-g0` matters here: the NDK adds
+byte-identical libraries on both ABIs. `-g0` matters here: the NDK adds
 `-g` by default, and the debug info in `libopus.a` carries a path that would
 otherwise change the build id.
 

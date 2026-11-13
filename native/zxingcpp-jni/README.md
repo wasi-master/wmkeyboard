@@ -107,6 +107,6 @@ a phone will be several times slower, still well inside a frame.
 
 ## ABIs
 
-arm64-v8a, armeabi-v7a and x86_64, API 24, 16 KB page aligned: 1,097,400,
-772,668 and 1,118,640 bytes. Only the two `Java_..._ZxingNative_*` functions
+arm64-v8a and armeabi-v7a, API 24, 16 KB page aligned: 1,097,400 and
+772,668 bytes. Only the two `Java_..._ZxingNative_*` functions
 are exported, and the library needs nothing but libc, libm and libdl.

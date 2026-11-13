@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
  * transcription can be stopped part way, and a clip can run past 30 seconds.
  *
  * The libraries ship in `src/main/jniLibs` for arm64 (two builds, picked by
- * [load]), armv7 and x86_64. Play builds move them into the on-demand
+ * [load]) and armv7. Play builds move them into the on-demand
  * `:feature:speech` split, fetched the first time a GGML model is used, so
  * [shipped] says whether the build has them and [available] whether they are
  * loaded. A build without them (F-Droid deletes prebuilt libraries) offers no

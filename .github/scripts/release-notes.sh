@@ -118,7 +118,6 @@ cat <<EOF
 |:---|:---|:---|
 | Almost every phone (arm64-v8a) | $(cell "${prefix}-full-en-arm64-v8a.apk") | $(cell "${prefix}-full-intl-arm64-v8a.apk") |
 | Older 32-bit phone or watch (armeabi-v7a) | $(cell "${prefix}-full-en-armeabi-v7a.apk") | $(cell "${prefix}-full-intl-armeabi-v7a.apk") |
-| Chromebook, emulator, x86 tablet (x86_64) | $(cell "${prefix}-full-en-x86_64.apk") | $(cell "${prefix}-full-intl-x86_64.apk") |
 | Not sure, just make it work (universal) | $(cell "${prefix}-full-en-universal.apk") | $(cell "${prefix}-full-intl-universal.apk") |
 
 **All languages** is the same app with all 48 interface languages built in
@@ -136,7 +135,6 @@ cat <<EOF
 | Your device | Download |
 |:---|:---|
 | Older 32-bit phone or watch | armeabi-v7a, $(cell "${prefix}-full-en-armeabi-v7a.apk") |
-| Chromebook, emulator, x86 tablet | x86_64, $(cell "${prefix}-full-en-x86_64.apk") |
 | Not sure, just make it work | universal, $(cell "${prefix}-full-en-universal.apk") |
 
 </details>
@@ -313,7 +311,6 @@ fdroid_row() { # <abi> <digit> <who>
 }
 fdroid_row arm64-v8a 2 'to most phones'
 fdroid_row armeabi-v7a 1 'to 32-bit phones'
-fdroid_row x86_64 3 'to x86 Chromebooks and tablets'
 # The English-only variant of the arm64 F-Droid build (#1290), from 0.6.7.
 row "wmkeyboard-${version}-vc$((code * 10 + 2))-fdroid-en.apk" 'The F-Droid build for **arm64-v8a** in **English only, no Google libraries**: the F-Droid build without the 48 interface languages. Built beside it from the same source, signed with the same key and carrying the same versionCode, so either installs over the other. F-Droid does not serve this one: its update check looks at F-Droid, and an update through the F-Droid client brings back the all-languages build. Come back here for the next English-only one'
 row "${prefix}-full-en-mapping.txt.gz" 'R8 mapping, **standard build**. Retraces a stack trace'
@@ -326,7 +323,6 @@ fdroid_map_row() { # <abi> <digit>
 }
 fdroid_map_row arm64-v8a 2
 fdroid_map_row armeabi-v7a 1
-fdroid_map_row x86_64 3
 row "wmkeyboard-${version}-vc$((code * 10 + 2))-fdroid-en-mapping.txt.gz" 'R8 mapping, **English-only F-Droid build** (arm64-v8a). Its own R8 run, so the all-languages F-Droid mapping does not fit it'
 row "${prefix}-full-intl-native-symbols.zip" 'Native debug symbols, **all-languages build**'
 row "${prefix}-full-en-native-symbols.zip" 'Native debug symbols, **standard build**'

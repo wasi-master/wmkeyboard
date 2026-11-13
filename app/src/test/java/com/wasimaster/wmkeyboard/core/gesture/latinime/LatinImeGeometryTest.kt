@@ -273,8 +273,8 @@ class LatinImeGeometryTest {
     }
 
     @Test
-    fun pinsCoverTheFourAbisAndAreLowercaseSha256() {
-        assertEquals(setOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86"), LatinImePins.byAbi.keys)
+    fun pinsCoverTheTwoAbisAndAreLowercaseSha256() {
+        assertEquals(setOf("arm64-v8a", "armeabi-v7a"), LatinImePins.byAbi.keys)
         for (hash in LatinImePins.byAbi.values) assertTrue(hash, Regex("[0-9a-f]{64}").matches(hash))
         assertEquals("arm64-v8a", LatinImePins.abiOf(LatinImePins.byAbi.getValue("arm64-v8a").uppercase()))
         assertNull(LatinImePins.abiOf("0".repeat(64)))

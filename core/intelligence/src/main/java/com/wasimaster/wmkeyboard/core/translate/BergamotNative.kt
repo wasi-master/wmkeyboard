@@ -30,7 +30,7 @@ object BergamotNative {
     /**
      * Android 9 or later, in a 64-bit process: Marian's ARM path needs AArch64
      * (sse2neon), so armeabi-v7a carries a stub that refuses to load (see
-     * native/bergamot-jni/stub.c), and x86_64 is the other build.
+     * native/bergamot-jni/stub.c).
      */
     val supported: Boolean get() = Build.VERSION.SDK_INT >= MIN_SDK && Process.is64Bit()
 

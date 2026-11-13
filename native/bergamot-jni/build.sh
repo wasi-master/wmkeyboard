@@ -165,16 +165,13 @@ stub() {
 
 # arm64: Marian's integer GEMM runs on Google's ruy, with simde standing in for
 # the SSE it was written against (the path Firefox's own arm64 builds take).
-# x86_64: intgemm, which picks SSSE3, AVX2 or AVX-512 kernels at run time,
-# and ruy for the float GEMM, so no BLAS is needed anywhere.
-for abi in ${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64}; do
+for abi in ${WMKB_ABIS:-arm64-v8a armeabi-v7a}; do
     case $abi in
         arm64-v8a) build arm64-v8a armv8-a "" ;;
         # No engine on 32-bit ARM: Marian's NEON path (sse2neon) needs
         # AArch64. stub.c only fails to load, so the split and the pins
-        # still cover all three ABIs; BergamotNative wants a 64-bit process.
+        # still cover both ABIs; BergamotNative wants a 64-bit process.
         armeabi-v7a) stub armeabi-v7a ;;
-        x86_64) build x86_64 x86-64 "" -DUSE_RUY=ON -DUSE_RUY_SGEMM=ON ;;
         *) echo "unknown ABI $abi" >&2; exit 1 ;;
     esac
 done

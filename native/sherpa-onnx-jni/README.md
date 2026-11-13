@@ -121,9 +121,8 @@ of it themselves.
 |---|---|
 | arm64-v8a | about 2.4 MB |
 | armeabi-v7a | about 1.6 MB |
-| x86_64 | about 2.5 MB |
 
-All three are 16 KB aligned (`-z max-page-size=16384`), as is Microsoft's
+Both are 16 KB aligned (`-z max-page-size=16384`), as is Microsoft's
 runtime from 1.30.0.
 
 ## Contract with Kotlin

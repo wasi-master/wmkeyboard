@@ -93,7 +93,6 @@ triple() {
     case $1 in
         arm64-v8a) echo aarch64-linux-android24 ;;
         armeabi-v7a) echo armv7a-linux-androideabi24 ;;
-        x86_64) echo x86_64-linux-android24 ;;
     esac
 }
 
@@ -132,7 +131,7 @@ build() {
 }
 
 # WMKB_ABIS narrows the build to some of the three (native/build-fdroid-libs.sh).
-wanted() { case " ${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64} " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
+wanted() { case " ${WMKB_ABIS:-arm64-v8a armeabi-v7a} " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
 
 QNN_ROOT=
 QNN_OUT=${SHERPA_QNN_OUT:-$REPO/core/voice/src/sherpaqnn/jniLibs}
@@ -150,17 +149,17 @@ fi
 # WMKB_SHERPA_PLAIN=0 builds the QNN library alone, leaving libwmsherpa.so
 # as it is.
 if [ "${WMKB_SHERPA_PLAIN:-1}" = 1 ]; then
-    for abi in arm64-v8a armeabi-v7a x86_64; do
+    for abi in arm64-v8a armeabi-v7a; do
         if wanted "$abi"; then build "$abi"; fi
     done
 fi
 if [ -n "$QNN_ROOT" ]; then
     build arm64-v8a qnn
-    # The split's armeabi-v7a and x86_64 stand-ins (feature/sherpaqnn/stub/
-    # stub.c says why), made with the arm64 library so the two never part:
+    # The split's armeabi-v7a stand-in (feature/sherpaqnn/stub/stub.c says
+    # why), made with the arm64 library so the two never part:
     # Play's bundle refuses a module that covers other ABIs than the base.
     STUBS=${SHERPA_QNN_STUBS:-$REPO/feature/sherpaqnn/src/main/jniLibs}
-    for t in armv7a-linux-androideabi28:armeabi-v7a x86_64-linux-android28:x86_64; do
+    for t in armv7a-linux-androideabi28:armeabi-v7a; do
         mkdir -p "$STUBS/${t##*:}"
         "$BIN/clang" --target="${t%%:*}" -O2 -shared -fPIC -nostdlib++ -Wl,--build-id=sha1 \
             -Wl,-z,max-page-size=16384 -o "$WORK/stub.so" "$REPO/feature/sherpaqnn/stub/stub.c"

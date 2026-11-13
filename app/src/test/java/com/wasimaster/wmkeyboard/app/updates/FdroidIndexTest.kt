@@ -33,12 +33,11 @@ class FdroidIndexTest {
 
     @Test
     fun perAbiCodesCompareAsTheirRelease() {
-        // 0.6.2's three F-Droid APKs: armeabi-v7a, arm64-v8a, x86_64. F-Droid
-        // suggests the highest, which is not the one an arm64 phone runs.
+        // A release's two F-Droid APKs: armeabi-v7a, arm64-v8a. F-Droid
+        // suggests the highest, which is not the one a 32-bit phone runs.
         val index = FdroidIndex.decode(
-            """{"packageName":"com.wasimaster.wmkeyboard","suggestedVersionCode":353,""" +
-                """"packages":[{"versionName":"0.6.2","versionCode":353},""" +
-                """{"versionName":"0.6.2","versionCode":352},{"versionName":"0.6.2","versionCode":351}]}""",
+            """{"packageName":"com.wasimaster.wmkeyboard","suggestedVersionCode":352,""" +
+                """"packages":[{"versionName":"0.6.2","versionCode":352},{"versionName":"0.6.2","versionCode":351}]}""",
         )!!
         assertNull(FdroidIndex.newerThan(index, 35))
         val newer = FdroidIndex.newerThan(index, 34)
@@ -50,7 +49,7 @@ class FdroidIndexTest {
     fun codesBeforeTheAbiDigitAreTheReleaseItself() {
         assertEquals(34, FdroidIndex.releaseCode(34))
         assertEquals(35, FdroidIndex.releaseCode(350))
-        assertEquals(35, FdroidIndex.releaseCode(353))
+        assertEquals(35, FdroidIndex.releaseCode(352))
     }
 
     @Test

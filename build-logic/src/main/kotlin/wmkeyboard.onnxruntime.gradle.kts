@@ -24,8 +24,8 @@ catalog.findLibrary("onnxruntime-android").get().get().let { module ->
     dependencies.add(onnxRuntime.name, "${module.module.group}:${module.module.name}:${module.versionConstraint.requiredVersion}@aar")
 }
 
-// The ABIs the app ships; the AAR's x86 goes nowhere.
-val onnxAbis = listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+// The ABIs the app ships; the AAR's x86 and x86_64 go nowhere.
+val onnxAbis = listOf("arm64-v8a", "armeabi-v7a")
 
 // One task per variant: AGP points each one's output at a directory of its
 // own variant's, which one shared task could not have.

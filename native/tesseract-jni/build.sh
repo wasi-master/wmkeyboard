@@ -10,7 +10,7 @@ set -euo pipefail
 # the Android config headers this build reuses. Pinned by commit, not tag.
 T4A_URL=https://github.com/adaptech-cz/Tesseract4Android
 T4A_COMMIT=15c534717b1cb58261b58d4e4c1200c7f81f668c
-ABIS=(arm64-v8a armeabi-v7a x86_64)
+ABIS=(arm64-v8a armeabi-v7a)
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)

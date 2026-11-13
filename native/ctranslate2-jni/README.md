@@ -22,14 +22,14 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/ctranslate2-jni/build.sh
 It needs git, CMake and Ninja on `PATH`, and fetches the sources at their
 pinned commits unless `CT2_SRC` and `SPM_SRC` point at checkouts of them
 (`SPM_SRC` with abseil already cloned into `third_party/abseil-cpp`).
-`WMKB_ABIS` narrows the build to some of the three ABIs.
+`WMKB_ABIS` narrows the build to one of the two ABIs.
 
 ## Provenance
 
 | Source | Pin | Licence |
 |---|---|---|
 | OpenNMT/CTranslate2 | `v4.8.4`, `5de572ef60b67a0276c5989ee73d0072808ff4c3` | MIT |
-| its submodules `ruy` (+ `cpuinfo`), `spdlog` (bundles {fmt}), `cpu_features` | the commits that tag records | Apache-2.0 (+ BSD-2), MIT, Apache-2.0 |
+| its submodules `ruy` (+ `cpuinfo`), `spdlog` (bundles {fmt}) | the commits that tag records | Apache-2.0 (+ BSD-2), MIT |
 | google/sentencepiece | `v0.2.2`, `e0cce7d37b065b5140349dbe12c6bcf6192fdd78` (bundles protobuf-lite, darts-clone) | Apache-2.0 (BSD-3, BSD-2) |
 | abseil/abseil-cpp | `20260526.0`, `5650e9cf76d3be4318d5fa3af38ee483ddfd5e4a`, the tag SentencePiece's CMake fetches | Apache-2.0 |
 
@@ -61,15 +61,14 @@ them from Hugging Face only after the user accepts that licence
 | Choice | Why |
 |---|---|
 | ruy for the int8 and the float GEMM, no BLAS, no OpenMP | `backend.cc` picks ruy for both when nothing else is compiled in, and ruy has its own thread pool. ruy chooses its dot-product kernels at run time on the phones that have them |
-| CPU dispatch on | x86_64 gets CTranslate2's AVX, AVX2 and AVX-512 kernels, picked at run time through cpu_features |
 | API 24 | nothing in either library needs more |
-| armeabi-v7a: `stub.c`, no engine | 600 MB of weights held in memory is more than a 32-bit process can count on. Play wants every split to cover the base's three ABIs, so 32-bit ARM gets a library whose `JNI_OnLoad` fails; `Ct2Native.supported` wants a 64-bit process anyway |
+| armeabi-v7a: `stub.c`, no engine | 600 MB of weights held in memory is more than a 32-bit process can count on. Play wants every split to cover the base's two ABIs, so 32-bit ARM gets a library whose `JNI_OnLoad` fails; `Ct2Native.supported` wants a 64-bit process anyway |
 | `c++_static`, `--gc-sections`, `--icf=all`, `--exclude-libs,ALL`, a version script | one self-contained library exporting only `JNI_OnLoad` and the three bridge functions; it needs only `liblog`, `libdl`, `libm` and `libc` |
 | `-z max-page-size=16384` | 16 KB page devices |
 | `-ffile-prefix-map` for both source trees, the build directory and the NDK | the same bytes from any machine with NDK r29, which F-Droid's reproducible build relies on |
 
-Size, stripped, NDK r29: arm64-v8a 2,745,040 bytes, x86_64 3,098,352, the
-armeabi-v7a stub 2,772.
+Size, stripped, NDK r29: arm64-v8a 2,745,040 bytes, the armeabi-v7a stub
+2,772.
 
 ## Contract with Kotlin
 
@@ -132,7 +131,7 @@ sentence. Swahili, which Bergamot lacks, came out of NLLB readable with one
 wrong word ("cancelled" as "rejected"). Hence the order in the translate
 list: Bergamot where it has the pair, NLLB for the rest.
 
-Two builds of all three ABIs from fresh clones in different directories
+Two builds of both ABIs from fresh clones in different directories
 came out byte for byte the same (NDK r29, CMake 4.x, macOS host).
 
 The figures above are for the whole vocabulary, before the cut described

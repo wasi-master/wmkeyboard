@@ -228,8 +228,8 @@ val splitApks = flag("wmkb.splitApks", "WMKB_SPLIT_APKS")
 // Every APK and bundle carries `wmkb.versionCode * 10 + digit` in its manifest
 // (from 0.6.2): 0 for one that holds every ABI (the universal APK, the Play
 // bundle, a build with no split), then one per ABI. A phone that runs two of
-// them installs the highest it can, so arm64-v8a sits above armeabi-v7a, and
-// x86_64 above both for the x86 Chromebooks that also translate ARM code.
+// them installs the highest it can, so arm64-v8a sits above armeabi-v7a.
+// Digit 3 was x86_64's until that ABI was dropped: never reuse it.
 // F-Droid builds one APK per ABI and serves each phone the right one by these
 // numbers (VercodeOperation in fdroid/com.wasimaster.wmkeyboard.yml), and the
 // GitHub splits carry the same digits, so a GitHub APK and an F-Droid APK of
@@ -238,7 +238,7 @@ val splitApks = flag("wmkb.splitApks", "WMKB_SPLIT_APKS")
 // Only the manifest gets the digit. BuildConfig.RELEASE_VERSION_CODE, the
 // release asset names and the changelog files keep the plain number, which
 // is what the update checks compare.
-val abiDigits = linkedMapOf("armeabi-v7a" to 1, "arm64-v8a" to 2, "x86_64" to 3)
+val abiDigits = linkedMapOf("armeabi-v7a" to 1, "arm64-v8a" to 2)
 val baseVersionCode = providers.gradleProperty("wmkb.versionCode").get().toInt()
 
 // `-Pwmkb.abi=arm64-v8a`: a release with that ABI's native code alone and that
@@ -515,8 +515,8 @@ android {
             if (playStoreChannel) excludes += "**/libjingle_peerconnection_so.so"
             // No keepDebugSymbols override: AGP strips as usual. Every .so we
             // package — ours and the prebuilt ML Kit/LiteRT ones — already
-            // ships stripped (measured: 48 bytes of symbol table across all
-            // three ABIs), so keeping them was buying nothing.
+            // ships stripped (measured: 48 bytes of symbol table across every
+            // ABI), so keeping them was buying nothing.
         }
         resources {
             // Bouncy Castle's bcprov, bcutil and bcpg each carry the same licence file.

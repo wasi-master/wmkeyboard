@@ -14,16 +14,17 @@ plugins {
 // reflection, plus the litertlm dependency whose ~20 MB per ABI of native
 // code is the entire point of the split.
 //
-// src/main/jniLibs holds three ~2 KB libwmllm_abi_parity.so placeholders
+// src/main/jniLibs holds two ~2 KB libwmllm_abi_parity.so placeholders
 // (empty NDK-built ELFs, nothing ever loads them). They exist because
 // bundletool requires every module with native libraries to support the SAME
 // ABI set, and litertlm ships no armeabi-v7a — without the placeholders the
-// Play bundle fails with "module 'base' supports [ARM64_V8A, ARMEABI_V7A,
-// X86_64] and module 'llm' supports [ARM64_V8A, X86_64]". A v7a device that
+// Play bundle fails with "module 'base' supports [ARM64_V8A, ARMEABI_V7A]
+// and module 'llm' supports [ARM64_V8A]". litertlm's x86_64 libraries are
+// filtered out below for the same reason. A v7a device that
 // installs the module gets litertlm's dex but no real .so, and the engine's
 // existing load-failure path reports it — identical to what v7a users of the
 // universal sideload APK have always seen. Rebuild recipe in the commit that
-// added them (NDK clang, -nostdlib, 16 KB max-page-size on the 64-bit pair).
+// added them (NDK clang, -nostdlib, 16 KB max-page-size on arm64).
 android {
     namespace = "com.wasimaster.wmkeyboard.llmfeature"
     compileSdk {
@@ -38,6 +39,11 @@ android {
         // :app a second time as intlRelease just to give this module a
         // classpath, and links the split against a base it will not ship with.
         missingDimensionStrategy("languages", "en", "intl")
+        // The release base's two ABIs; see the `release` build type in
+        // app/build.gradle.kts.
+        ndk {
+            abiFilters += setOf("arm64-v8a", "armeabi-v7a")
+        }
     }
 
     compileOptions {

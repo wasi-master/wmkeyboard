@@ -15,7 +15,7 @@ NDK=${ANDROID_NDK:-${ANDROID_NDK_HOME:-}}
 BIN=$(ls -d "$NDK"/toolchains/llvm/prebuilt/*/bin)
 
 # Only arm64: Cactus's armv7 archive needs a libc++ symbol no NDK ships
-# (README.md), and there is no x86_64 archive. Other ABIs simply have no
+# (README.md). Other ABIs simply have no
 # library, and WhistleEngine reports itself unavailable there.
 abi=arm64-v8a
 dest=$REPO/core/voice/src/whistle/jniLibs/$abi

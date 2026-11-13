@@ -104,7 +104,7 @@ build() {
     local extra=()
     # SME2 and KleidiAI kernels are arm64 only, and so are the GPU backends:
     # the sticker generator's Compute choice is for phones that draw on
-    # their GPU, which 32-bit and x86 ones do not. Both open the system's
+    # their GPU, which 32-bit ones do not. Both open the system's
     # libOpenCL.so or libvulkan.so at run time (MNN_USE_SYSTEM_LIB off), so a
     # phone without one keeps the CPU; their kernels and shaders are compiled
     # into MNN's source, so the build needs no shader compiler.
@@ -132,9 +132,9 @@ build() {
     rm -rf "$mnn" "$out"
 }
 
-for abi in ${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64}; do
+for abi in ${WMKB_ABIS:-arm64-v8a armeabi-v7a}; do
     case $abi in
-        arm64-v8a|armeabi-v7a|x86_64) build "$abi" ;;
+        arm64-v8a|armeabi-v7a) build "$abi" ;;
         *) echo "unknown ABI $abi" >&2; exit 1 ;;
     esac
 done

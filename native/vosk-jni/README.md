@@ -32,7 +32,7 @@ floats into the same buffer its `short` entry point fills).
 ## Not in F-Droid's build
 
 libvosk is a prebuilt binary, and building it from source means Kaldi,
-OpenFst and CLAPACK for three ABIs. The gate is marked `google` (left out of
+OpenFst and CLAPACK for both ABIs. The gate is marked `google` (left out of
 F-Droid's build, like `kiwi` and `webrtc`), and has no `fdroidBuild` script.
 
 ## Provenance

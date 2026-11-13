@@ -83,9 +83,9 @@ internal object FdroidIndex {
      * (`BuildConfig.RELEASE_VERSION_CODE`), and so is the code returned. The
      * index speaks in manifest codes, which carry an ABI digit from 0.6.2
      * (app/build.gradle.kts, abiDigits), and its suggested build is the
-     * highest of the release's three APKs: x86_64's, whatever this phone is.
-     * Compared as they stand, an arm64 phone on the newest version would see
-     * an update for ever.
+     * highest of the release's APKs, whatever this phone is: arm64-v8a's,
+     * which a 32-bit phone does not run. Compared as they stand, every phone
+     * on the newest version would see an update for ever.
      */
     fun newerThan(index: FdroidPackages, installedVersionCode: Int): FdroidPackage? {
         val suggested = index.suggestedVersionCode

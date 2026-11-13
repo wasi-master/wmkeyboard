@@ -25,7 +25,7 @@ flavor drive all of it, so nothing here needs a branch or a patched source tree.
 | `wmkb.enableCrashScreen` | not set | not set | `false`, forced by the Fastfile over `local.properties` |
 | Automation `TYPE_TEXT` | offered | offered | left out |
 | Artifact | the standard build (`full-en`), one APK per ABI, plus one signed language pack per interface language (`-lang-<locale>.apk`), R8 mappings, native symbols, the all-languages build (`full-intl`), one APK per ABI, the baseline profile as dex metadata (`*-api31.dm` and `*-api28.dm`, which the in-app updater installs with the APK); the `offline` job adds `full-en-nointernet` in `arm64-v8a` and `universal` and `full-intl-nointernet` in `universal`. The feature libraries go to the data repository's `natives` release | one APK per ABI from 0.6.2, built by F-Droid, each carrying our signature once it matches the release's `-vc<code>-fdroid.apk` for that ABI | one AAB, with its R8 mapping and native symbols inside |
-| Manifest `versionCode` (from 0.6.2) | `wmkb.versionCode × 10` plus 1 for `armeabi-v7a`, 2 for `arm64-v8a`, 3 for `x86_64`, 0 for `universal` | the same three digits, one APK each | `× 10`, digit 0 |
+| Manifest `versionCode` (from 0.6.2) | `wmkb.versionCode × 10` plus 1 for `armeabi-v7a`, 2 for `arm64-v8a`, 0 for `universal` (3 was `x86_64`'s until it was dropped, and is not reused) | the same two digits, one APK each | `× 10`, digit 0 |
 | ML Kit | bundled in the APK | absent | unbundled, fetched from Play services |
 | Local LLM | bundled | absent | on-demand `:feature:llm` module |
 | On-device translation (ML Kit) | bundled | absent | on-demand `:feature:translate` module |
@@ -606,17 +606,17 @@ the recipe was Gradle alone. From 0.6.0 the recipe compiles Harper, whisper.cpp
 and ExecuTorch with the NDK and Rust, and only fdroidserver itself reproduces
 that faithfully.
 
-From 0.6.2 there are three of everything. Up to 0.6.1 F-Droid built one APK
+From 0.6.2 there is one of everything per ABI. Up to 0.6.1 F-Droid built one APK
 with all three ABIs' native code in it, which made 0.6.0's 98 MB where the
 arm64 build alone is 82 MB ([#801](https://github.com/wasi-master/wmkeyboard/issues/801)).
 The recipe now has one `Builds:` entry per ABI, each setting `wmkb.abi`
 (Gradle packages that ABI alone and gives it its digit) and `WMKB_ABIS`
 (`native/build-fdroid-libs.sh` compiles that ABI alone), and
-`VercodeOperation` tells their bot to write three entries per tag. F-Droid
+`VercodeOperation` tells their bot to write two entries per tag, one per ABI. 0.6.2 and 0.6.3 also had an `x86_64` entry; that ABI is no longer built. F-Droid
 serves each phone the highest `versionCode` it can run. `%c` in `Binaries:`
 is each entry's full code, so the reference APKs are
 `wmkeyboard-<version>-vc<code × 10 + digit>-fdroid.apk`, and the `fdroid`
-job is a matrix over the three ABIs, each running `fdroid-build.sh` with its
+job is a matrix over the two ABIs, each running `fdroid-build.sh` with its
 ABI and checking that no other ABI's code is in its APK.
 
 The rules that follow from this:

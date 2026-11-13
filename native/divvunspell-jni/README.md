@@ -121,6 +121,6 @@ never waits more than 15 ms for one on the main thread. Keyboard mash
 
 ## ABIs
 
-arm64-v8a, armeabi-v7a and x86_64, API 24, 16 KB page aligned: 2.8 MB
-(arm64), 2.0 MB (armeabi-v7a) and 3.1 MB (x86_64). The only dynamic symbols
+arm64-v8a and armeabi-v7a, API 24, 16 KB page aligned: 2.8 MB (arm64) and
+2.0 MB (armeabi-v7a). The only dynamic symbols
 are the five `Java_..._DivvunNative_*` entry points.

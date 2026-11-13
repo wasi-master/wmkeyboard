@@ -2,7 +2,7 @@ package com.wasimaster.wmkeyboard.core.gesture.latinime
 
 /**
  * The builds of Google's gesture typing library (`libjni_latinime.so`) this
- * app agrees to load: one per ABI, by SHA-256. The same builds HeliBoard pins,
+ * app agrees to load: one per ABI the app ships, by SHA-256. HeliBoard's pins,
  * which is what makes them a known quantity: that keyboard has loaded exactly
  * these bytes against exactly the JNI interface in
  * `com.android.inputmethod.latin` for years.
@@ -25,8 +25,6 @@ object LatinImePins {
     val byAbi: Map<String, String> = mapOf(
         "arm64-v8a" to "b1049983e6ac5cfc6d1c66e38959751044fad213dff0637a6cf1d2a2703e754f",
         "armeabi-v7a" to "442a2a8bfcb25489564bc9433a916fa4dc0dba9000fe6f6f03f5939b985091e6",
-        "x86_64" to "c882e12e6d48dd946e0b644c66868a720bd11ac3fecf152000e21a3d5abd59c9",
-        "x86" to "bd946d126c957b5a6dea3bafa07fa36a27950b30e2b684dffc60746d0a1c7ad8",
     )
 
     /** Whether [name] is a name the library is published under, so an import can be routed by name. */

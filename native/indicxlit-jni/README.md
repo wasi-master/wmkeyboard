@@ -86,6 +86,5 @@ Tamil and Urdu (25 ms a word, beam 4, one thread, on a busy M-series Mac).
 |---|---|
 | arm64-v8a | about 250 KB |
 | armeabi-v7a | about 160 KB |
-| x86_64 | about 260 KB |
 
-All three are 16 KB aligned (`-z max-page-size=16384`).
+Both are 16 KB aligned (`-z max-page-size=16384`).

@@ -178,11 +178,10 @@ the light grid is 18 px coarse at that size, and real shadows are softer.
 
 ## ABIs
 
-arm64-v8a, armeabi-v7a and x86_64, API 24, 16 KB page aligned. Only the four
+arm64-v8a and armeabi-v7a, API 24, 16 KB page aligned. Only the four
 `Java_..._DocScanNative_*` symbols are exported. Sizes are in the table below.
 
 | ABI | libwmdocscan.so |
 |---|---|
 | arm64-v8a | 3,523,952 bytes |
 | armeabi-v7a | 2,589,252 bytes |
-| x86_64 | 3,906,224 bytes |

@@ -23,7 +23,7 @@ NDK=${ANDROID_NDK:-${ANDROID_NDK_HOME:-}}
     echo "Set ANDROID_NDK to an NDK install (r27 or newer)" >&2; exit 1; }
 NDK=$(cd "$NDK" && pwd -P)
 
-TARGETS=(aarch64-linux-android armv7-linux-androideabi x86_64-linux-android)
+TARGETS=(aarch64-linux-android armv7-linux-androideabi)
 rustup toolchain install "$RUST_VERSION" --profile minimal --no-self-update \
     $(printf -- '--target %s ' "${TARGETS[@]}") >/dev/null
 export RUSTUP_TOOLCHAIN=$RUST_VERSION
@@ -43,7 +43,7 @@ export RUSTFLAGS="--remap-path-prefix=$CARGO_HOME=/cargo --remap-path-prefix=$SY
 
 cd "$HERE"
 # WMKB_ABIS narrows the build to some of the three (native/build-fdroid-libs.sh).
-ABIS=(${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64})
+ABIS=(${WMKB_ABIS:-arm64-v8a armeabi-v7a})
 ANDROID_NDK_HOME=$NDK cargo ndk $(printf -- '-t %s ' "${ABIS[@]}") --platform 24 \
     -o "$OUT" build --release --locked
 for abi in "${ABIS[@]}"; do

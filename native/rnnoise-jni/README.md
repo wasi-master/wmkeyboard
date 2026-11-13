@@ -32,17 +32,13 @@ checkout, and the model tarball (22 MB, checked against its SHA-256) unless
 RNNoise commit `372f7b4b76cde4ca1ec4605353dd17898a99de38`, unmodified,
 BSD-3-Clause. That is the 0.2 release (`v0.2`, `904a876d`) plus its only
 child, upstream's "Fix compilation errors": the tag itself does not compile
-for ARM or x86 (`os_support.h` and `OPUS_CLEAR` are missing). The weights are
+for ARM (`os_support.h` and `OPUS_CLEAR` are missing). The weights are
 not in the repository; `model_version` at the pin names `0b50c45`, fetched
 from `https://media.xiph.org/rnnoise/models/rnnoise_data-0b50c45.tar.gz`
 (SHA-256 `4ac81c5c0884ec4bd5907026aaae16209b7b76cd9d7f71af582094a2f98f4b43`).
 The tarball holds two models behind one header; the build compiles in the
 little one (`rnnoise_data_little.c`, 2.9 MB of library). The default one would
 make the library 5.6 MB. 0.1.1's model was about 90 KB, the library 126 KB.
-
-x86 run-time CPU detection is left out, as upstream's configure does by
-default, so x86_64 (emulators) runs the SSE2 path and the compiler warns
-about it.
 
 Checked on the host (2026-10-28) with a 220 Hz + 660 Hz tone, amplitude
 modulated at 4 Hz, plus white noise at -31 dBFS, through `denoise_jni.c`'s

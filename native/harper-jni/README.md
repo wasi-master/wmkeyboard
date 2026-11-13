@@ -13,7 +13,7 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/harper-jni/build.sh
 ```
 
 `build.sh` installs the pinned Rust toolchain and Android targets through
-rustup and the pinned `cargo-ndk`, builds arm64-v8a, armeabi-v7a and x86_64,
+rustup and the pinned `cargo-ndk`, builds arm64-v8a and armeabi-v7a,
 and remaps the registry, standard library and repository paths out of the
 panic messages, so two machines with the same toolchain build the same bytes.
 F-Droid deletes the committed copies and builds them with it (through
@@ -44,7 +44,7 @@ out):
   about ten times as fast (2 s against 21 s). Its `pos_tags` snapshot test
   fails by design: the snapshots record the neural chunker's noun phrases.
 
-Together: arm64 5.5 MB to 2.4 MB, armv7 4.9 to 1.9, x86_64 6.0 to 2.7.
+Together: arm64 5.5 MB to 2.4 MB, armv7 4.9 to 1.9.
 
 To bump harper-core: copy the new versions of both crates into `vendor/`
 (without `tests` and `benches`), deflate the same five files with raw deflate

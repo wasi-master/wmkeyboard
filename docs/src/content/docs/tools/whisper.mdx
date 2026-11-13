@@ -36,7 +36,7 @@ Offline Whisper runs two kinds of model, and the catalog lists both.
   - Each one is a single `.bin` file, checked against its published SHA-256 once it downloads.
 - **LiteRT models** are the community `.tflite` conversions the app started with. Each has the whole decoding loop compiled in, so none of the above can be asked of it, and a few can only be told one of a fixed set of languages. They still work, and a model you already downloaded keeps working. Where whisper.cpp is available their names end in "(LiteRT)".
 
-whisper.cpp is in every build, on 64-bit and 32-bit ARM phones and on x86_64. A phone whose cores all have the ARMv8.2 dot-product instructions (most from 2018 on) gets a build that uses them, which is several times faster at the arithmetic these models are made of. On a phone with a Qualcomm Snapdragon chip (an Adreno GPU), the whisper.cpp models can also run on the GPU; see [Running on the GPU](#running-on-the-gpu).
+whisper.cpp is in every build, on 64-bit and 32-bit ARM phones. A phone whose cores all have the ARMv8.2 dot-product instructions (most from 2018 on) gets a build that uses them, which is several times faster at the arithmetic these models are made of. On a phone with a Qualcomm Snapdragon chip (an Adreno GPU), the whisper.cpp models can also run on the GPU; see [Running on the GPU](#running-on-the-gpu).
 
 Bigger models trade download size and speed for accuracy:
 

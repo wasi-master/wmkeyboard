@@ -60,7 +60,6 @@ mozc_cc_binary(
     for abi, cpu in [
         ("arm64-v8a", "arm64-v8a"),
         ("armeabi-v7a", "armv7"),
-        ("x86_64", "x86_64"),
     ]
 ]
 
@@ -72,7 +71,6 @@ mozc_cc_binary(
     for abi, cpu in [
         ("arm64-v8a", "arm64"),
         ("armeabi-v7a", "armv7"),
-        ("x86_64", "x86_64"),
     ]
 ]
 

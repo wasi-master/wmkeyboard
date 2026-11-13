@@ -40,7 +40,7 @@ set(PCRE2_LIBRARIES pcre2-8-static CACHE STRING "" FORCE)
 set(PCRE2_INCLUDE_DIRS ${CMAKE_BINARY_DIR}/pcre2 CACHE PATH "" FORCE)
 
 # Bergamot and Marian: the library alone, CPU only, static, no BLAS but ruy
-# (or intgemm on x86_64, chosen by build.sh), no git, no network.
+# on arm64, no git, no network.
 set(GIT_SUBMODULE OFF CACHE BOOL "" FORCE)
 set(COMPILE_CUDA OFF CACHE BOOL "" FORCE)
 set(COMPILE_TESTS OFF CACHE BOOL "" FORCE)
@@ -83,14 +83,8 @@ foreach(target bergamot-translator-source)
     target_compile_options(${target} PUBLIC ${marian_options})
 endforeach()
 
-# faiss uses __m128 under __SSE__ and counts on glibc's headers to have
-# pulled in the intrinsics; bionic's do not.
-if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
-    target_compile_options(faiss PRIVATE -include immintrin.h)
-endif()
-
 # zstd's decompressor, for the .zst files Mozilla publishes the models as.
-# The x86_64 assembly fast path is left out, so every ABI compiles the same C.
+# The C decoder alone, no assembly.
 file(GLOB zstd_sources ${ZSTD_SRC}/lib/common/*.c ${ZSTD_SRC}/lib/decompress/*.c)
 add_library(wmzstd STATIC ${zstd_sources})
 target_include_directories(wmzstd PUBLIC ${ZSTD_SRC}/lib)

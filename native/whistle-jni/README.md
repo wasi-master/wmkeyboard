@@ -39,8 +39,7 @@ with SHA-256 `b6e02f048568ac5d01a2042556c658061e699acbc0aa2a1439f52f3d461dffeb`.
 ## ABIs
 
 arm64 only. Upstream's armv7 archive references libc++'s private
-`std::__ndk1::__hash_memory`, which no NDK runtime exports, and there is no
-x86_64 archive. On those devices no library loads, `WhistleEngine.available` is
+`std::__ndk1::__hash_memory`, which no NDK runtime exports. On armv7 no library loads, `WhistleEngine.available` is
 false, and the engine is not offered.
 
 ## Contract with Kotlin

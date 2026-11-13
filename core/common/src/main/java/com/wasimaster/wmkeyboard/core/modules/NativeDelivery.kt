@@ -251,8 +251,6 @@ object NativeDelivery {
         when (context.applicationInfo.nativeLibraryDir?.let { File(it).name }) {
             "arm64" -> "arm64-v8a"
             "arm" -> "armeabi-v7a"
-            "x86_64" -> "x86_64"
-            "x86" -> "x86"
             else -> android.os.Build.SUPPORTED_ABIS.firstOrNull().orEmpty()
         }
 }

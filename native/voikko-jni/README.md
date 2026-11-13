@@ -64,7 +64,7 @@ and defines what `configure` would. `DISABLE_EXTDICTS` keeps the library from
 looking in `$HOME/.voikko` or `VOIKKO_DICTIONARY_PATH`, and there is no
 built-in dictionary path, so it reads only the folder Kotlin hands it.
 
-Three ABIs, API 24, 16 KB page aligned, about 560 KB on arm64, exporting only
+Both ABIs, API 24, 16 KB page aligned, about 560 KB on arm64, exporting only
 the five `Java_..._VoikkoNative_*` functions. A rebuild takes about 20
 seconds. The committed libraries were built with NDK r29
 (`29.0.14206865`), the one F-Droid's recipe names. Build paths are mapped out

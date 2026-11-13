@@ -3,7 +3,7 @@
 # master, inside F-Droid's own buildserver image, from this repo's recipe
 # (fdroid/com.wasimaster.wmkeyboard.yml) with one build entry for the commit
 # being released and one ABI. The recipe has one entry per ABI from 0.6.2
-# (VercodeOperation there), so a release takes three runs of this script.
+# (VercodeOperation there), so a release takes two runs of this script.
 # The steps follow the `fdroid build` job in fdroiddata's .gitlab-ci.yml,
 # which is the job that checks a reproducible build against its reference APK.
 #
@@ -37,7 +37,6 @@ extra=${5:-}
 case "$abi" in
     armeabi-v7a) code=$((release * 10 + 1)) ;;
     arm64-v8a)   code=$((release * 10 + 2)) ;;
-    x86_64)      code=$((release * 10 + 3)) ;;
     *) echo "unknown ABI $abi" >&2; exit 1 ;;
 esac
 appid=com.wasimaster.wmkeyboard

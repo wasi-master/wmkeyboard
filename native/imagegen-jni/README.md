@@ -32,8 +32,8 @@ NPU paths share one loop.
 ANDROID_NDK=/path/to/ndk native/imagegen-jni/build.sh
 ```
 
-Fetches MNN at the pinned commit (or uses `MNN_SRC`), builds `arm64-v8a`,
-`armeabi-v7a` and `x86_64` one after another into
+Fetches MNN at the pinned commit (or uses `MNN_SRC`), builds `arm64-v8a`
+and `armeabi-v7a` one after another into
 `core/intelligence/src/imagegen/jniLibs/`. The MNN options leave out everything
 that downloads at configure time (KleidiAI), the float16 kernels, transformer
 fusion, the tools and the converter. `MNN_INTERNAL` (model authentication and

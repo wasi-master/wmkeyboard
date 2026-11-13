@@ -74,10 +74,11 @@ internal object ReleaseAssets {
      * `wmkeyboard-0.6.0-beta.1-vc15-full-intl-arm64-v8a.apk` splits at the
      * right hyphen. The languages part is optional, for the names releases
      * carried before it existed. The ABI list is spelled out rather than
-     * matched loosely so a file this app cannot use never looks like one it can.
+     * matched loosely so a file this app cannot use never looks like one it can,
+     * which is also why the x86_64 APKs older releases carried no longer parse.
      */
     private val ASSET = Regex(
-        """^wmkeyboard-(.+?)-vc(\d+)-(full|lite)(?:-(intl|en))?-(arm64-v8a|armeabi-v7a|x86_64|universal)\.apk$""",
+        """^wmkeyboard-(.+?)-vc(\d+)-(full|lite)(?:-(intl|en))?-(arm64-v8a|armeabi-v7a|universal)\.apk$""",
     )
 
     private val SHA256 = Regex("""^[0-9a-f]{64}$""")
@@ -151,8 +152,8 @@ internal object ReleaseAssets {
      *
      * [supportedAbis] is [android.os.Build.SUPPORTED_ABIS], which is ordered
      * by the device's own preference, so the first one with a matching asset
-     * is the right answer. The universal APK is the last resort, and it is why
-     * a 32-bit x86 device is not left out even though no x86 split is built.
+     * is the right answer. The universal APK is the last resort, for a device
+     * whose first ABI has no split of its own.
      *
      * [flavor] is the edition token, [STANDARD_FLAVOR] for this app, and
      * [languages] the `languages` flavour (`BuildConfig.FLAVOR`, the only dimension).

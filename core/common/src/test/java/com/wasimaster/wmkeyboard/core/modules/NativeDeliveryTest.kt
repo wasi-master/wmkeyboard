@@ -103,7 +103,7 @@ class NativeDeliveryTest {
         val out = ByteArrayOutputStream()
         ZipRangeReader.extract(source, entry, out)
         assertArrayEquals(lib, out.toByteArray())
-        assertNull(ZipRangeReader.find(source, "jni/x86/libx.so"))
+        assertNull(ZipRangeReader.find(source, "jni/armeabi-v7a/libx.so"))
     }
 
     @Test fun extractsAStoredEntry() {

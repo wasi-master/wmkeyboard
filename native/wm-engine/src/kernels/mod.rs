@@ -4,8 +4,8 @@
 //! without reading the others:
 //!
 //! - `scalar::name` is the reference: plain Rust, written for clarity, the
-//!   definition of what the kernel computes. It is also what x86_64 and
-//!   armv7 run (LLVM may vectorise it there; nothing here relies on that).
+//!   definition of what the kernel computes. It is also what armv7
+//!   and non-ARM hosts run (LLVM may vectorise it there; nothing here relies on that).
 //! - `neon::name` (and `dotprod::name`, `fp16::name` for the optional
 //!   extensions) is the aarch64 version, on the stable `core::arch::aarch64`
 //!   intrinsics, marked `#[target_feature(enable = ...)]`, `unsafe` only for

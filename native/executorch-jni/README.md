@@ -19,7 +19,7 @@ the settings screens are shared by all three engines.
 
 It is not the published `executorch-android` AAR. That one carries every
 operator, the LLM, image and ASR runners, fbjni and its own `libc++_shared.so`
-(9 MB on arm64, 12 MB on x86_64, no armv7). This build carries only the
+(9 MB on arm64, no armv7). This build carries only the
 operators in `ops.txt` (the union of what the three models' programs call,
 read from the programs themselves), the optimized kernels where they exist
 and the portable ones otherwise, and the XNNPACK delegate; it links libc++

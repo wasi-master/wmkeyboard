@@ -293,14 +293,12 @@ A pause or a wiggle on a key does not mark a letter with FUTO Swipe. The model r
 
 The third choice under **Glide engine** is **Google's gesture library (imported)**. This is the closed-source glide engine from Google's own keyboard, the same file HeliBoard and other open keyboards based on AOSP can load. WM Keyboard doesn't include it, host it or download it, because it belongs to Google and isn't licensed for anyone else to hand out. You bring the file yourself.
 
-The file is called `libjni_latinime.so`. GApps packages (the bundles of Google apps that custom Android builds install separately) carry it as `libjni_latinimegoogle.so`, usually inside a folder or zip called "swypelibs"; rename it or not, the keyboard accepts either name. There is one build for each processor type, and the keyboard takes only the exact builds HeliBoard accepts, checked by their SHA-256:
+The file is called `libjni_latinime.so`. GApps packages (the bundles of Google apps that custom Android builds install separately) carry it as `libjni_latinimegoogle.so`, usually inside a folder or zip called "swypelibs"; rename it or not, the keyboard accepts either name. There is one build for each processor type, and the keyboard takes only the exact ARM builds HeliBoard accepts, checked by their SHA-256:
 
 | Processor (ABI) | SHA-256 |
 |---|---|
 | arm64-v8a | `b1049983e6ac5cfc6d1c66e38959751044fad213dff0637a6cf1d2a2703e754f` |
 | armeabi-v7a | `442a2a8bfcb25489564bc9433a916fa4dc0dba9000fe6f6f03f5939b985091e6` |
-| x86_64 | `c882e12e6d48dd946e0b644c66868a720bd11ac3fecf152000e21a3d5abd59c9` |
-| x86 | `bd946d126c957b5a6dea3bafa07fa36a27950b30e2b684dffc60746d0a1c7ad8` |
 
 Almost every phone sold in the last several years is arm64-v8a, and the **Gesture library** row names the one your phone needs. Any other file is refused with a reason: a build for another processor says which one it is, and anything else is "not a build this keyboard knows". The check is strict on purpose. The library is machine code that runs inside the keyboard, written against one exact set of entry points, and a different build would crash it or behave in ways nobody has looked at. Turning off **Verify downloaded files** in Privacy doesn't relax it. Import a file only from a source you trust.
 

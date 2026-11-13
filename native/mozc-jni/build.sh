@@ -224,15 +224,15 @@ bazel() {
 }
 
 # WMKB_ABIS narrows the build to some of the three (native/build-fdroid-libs.sh).
-wanted() { case " ${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64} " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
+wanted() { case " ${WMKB_ABIS:-arm64-v8a armeabi-v7a} " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
 targets=()
-for abi in arm64-v8a armeabi-v7a x86_64; do
+for abi in arm64-v8a armeabi-v7a; do
     if wanted "$abi"; then targets+=("//wmkeyboard:wmmozc.$abi"); fi
 done
 log=$WORK/bazel.log
 bazel build --config oss_android --config release_build "${targets[@]}" > "$log" 2>&1 \
     || { tail -60 "$log"; exit 1; }
-for abi in arm64-v8a armeabi-v7a x86_64; do
+for abi in arm64-v8a armeabi-v7a; do
     wanted "$abi" || continue
     lib=$(bazel cquery --config oss_android --config release_build --output=files \
         "//wmkeyboard:wmmozc.$abi" 2>/dev/null | head -1)

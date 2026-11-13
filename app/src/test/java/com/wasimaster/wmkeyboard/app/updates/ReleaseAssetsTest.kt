@@ -60,7 +60,7 @@ class ReleaseAssetsTest {
 
     @Test
     fun `a hyphenated pre-release version splits at the right hyphen`() {
-        val parsed = ReleaseAssets.parseAssetName("wmkeyboard-0.6.0-beta.1-vc15-lite-x86_64.apk")
+        val parsed = ReleaseAssets.parseAssetName("wmkeyboard-0.6.0-beta.1-vc15-lite-armeabi-v7a.apk")
         assertEquals("0.6.0-beta.1", parsed?.versionName)
         assertEquals(15, parsed?.versionCode)
         assertEquals("lite", parsed?.flavor)
@@ -72,6 +72,8 @@ class ReleaseAssetsTest {
         assertNull(ReleaseAssets.parseAssetName("wmkeyboard-0.5.3-full-arm64-v8a.apk"))
         assertNull(ReleaseAssets.parseAssetName("wmkeyboard-0.5.3-vc14-pro-arm64-v8a.apk"))
         assertNull(ReleaseAssets.parseAssetName("wmkeyboard-0.5.3-vc14-full-mips.apk"))
+        // Older releases carried x86_64 splits; that ABI is no longer built.
+        assertNull(ReleaseAssets.parseAssetName("wmkeyboard-0.5.3-vc14-full-x86_64.apk"))
         assertNull(ReleaseAssets.parseAssetName("other-0.5.3-vc14-full-arm64-v8a.apk"))
     }
 
@@ -109,8 +111,8 @@ class ReleaseAssetsTest {
         val picked = ReleaseAssets.pickAsset(
             release = release(),
             flavor = "full",
-            // 32-bit x86, which the workflow does not build a split for.
-            supportedAbis = listOf("x86"),
+            // RISC-V, which the workflow does not build a split for.
+            supportedAbis = listOf("riscv64"),
         )
         assertEquals("wmkeyboard-0.5.3-vc14-full-universal.apk", picked?.name)
     }
@@ -296,7 +298,7 @@ class ReleaseAssetsTest {
             $hex  wmkeyboard-0.5.3-vc14-full-arm64-v8a.apk
         """.trimIndent()
         assertEquals(hex, ReleaseAssets.sha256From(body, "wmkeyboard-0.5.3-vc14-full-arm64-v8a.apk"))
-        assertNull(ReleaseAssets.sha256From(body, "wmkeyboard-0.5.3-vc14-full-x86_64.apk"))
+        assertNull(ReleaseAssets.sha256From(body, "wmkeyboard-0.5.3-vc14-full-armeabi-v7a.apk"))
     }
 
     @Test
@@ -319,15 +321,13 @@ class ReleaseAssetsTest {
     }
 
     private companion object {
-        /** The eight APKs a release actually ships, by name. */
+        /** The six APKs a release actually ships, by name. */
         val RELEASE_ASSETS = listOf(
             "wmkeyboard-0.5.3-vc14-full-arm64-v8a.apk",
             "wmkeyboard-0.5.3-vc14-full-armeabi-v7a.apk",
-            "wmkeyboard-0.5.3-vc14-full-x86_64.apk",
             "wmkeyboard-0.5.3-vc14-full-universal.apk",
             "wmkeyboard-0.5.3-vc14-lite-arm64-v8a.apk",
             "wmkeyboard-0.5.3-vc14-lite-armeabi-v7a.apk",
-            "wmkeyboard-0.5.3-vc14-lite-x86_64.apk",
             "wmkeyboard-0.5.3-vc14-lite-universal.apk",
         )
 
@@ -352,7 +352,7 @@ class ReleaseAssetsTest {
             names: List<String>? = null,
         ): GithubRelease {
             val version = tag.removePrefix("v")
-            val assets = names ?: listOf("arm64-v8a", "armeabi-v7a", "x86_64", "universal")
+            val assets = names ?: listOf("arm64-v8a", "armeabi-v7a", "universal")
                 .map { "wmkeyboard-$version-vc$code-full-$it.apk" }
             return GithubRelease(
                 tagName = tag,

@@ -8,7 +8,7 @@
 #   ANDROID_NDK=/path/to/ndk native/rnnoise-jni/build.sh
 set -euo pipefail
 
-# v0.2 (904a876d) does not compile for ARM or x86 without its only child,
+# v0.2 (904a876d) does not compile for ARM without its only child,
 # 372f7b4b "Fix compilation errors", so the pin is that commit.
 RNNOISE_COMMIT=372f7b4b76cde4ca1ec4605353dd17898a99de38
 # The weights live outside the repository; model_version at the pin names them.
@@ -72,7 +72,6 @@ triple() {
     case $1 in
         arm64-v8a) echo aarch64-linux-android24 ;;
         armeabi-v7a) echo armv7a-linux-androideabi24 ;;
-        x86_64) echo x86_64-linux-android24 ;;
     esac
 }
 
@@ -82,8 +81,7 @@ build() {
     local tmp=$WORK/libwmdenoise-$abi.so
     mkdir -p "$dest"
     # The little model is compiled in; no file to load. Upstream's Makefile
-    # sources, x86 run-time CPU detection left out as its configure does by
-    # default: x86_64 runs the SSE path every x86_64 phone has.
+    # sources.
     "$BIN/$(triple "$abi")-clang" -shared -fPIC -O2 -std=c99 $MAP \
         -fvisibility=hidden -ffunction-sections -fdata-sections -Wno-null-dereference \
         -I"$SRC/include" -I"$SRC/src" -I"$MODEL/src" \
@@ -100,8 +98,8 @@ build() {
 }
 
 # WMKB_ABIS narrows the build to some of the three (native/build-fdroid-libs.sh).
-wanted() { case " ${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64} " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
+wanted() { case " ${WMKB_ABIS:-arm64-v8a armeabi-v7a} " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
 
-for abi in arm64-v8a armeabi-v7a x86_64; do
+for abi in arm64-v8a armeabi-v7a; do
     if wanted "$abi"; then build "$abi"; fi
 done

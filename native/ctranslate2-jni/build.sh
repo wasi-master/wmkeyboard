@@ -19,8 +19,8 @@ ABSL_TAG=20260526.0
 ABSL_COMMIT=5650e9cf76d3be4318d5fa3af38ee483ddfd5e4a
 
 # The submodules a CPU build compiles: ruy for every GEMM (with its cpuinfo),
-# spdlog for logging, cpu_features for the x86_64 ISA dispatch.
-CT2_SUBMODULES="third_party/ruy third_party/spdlog third_party/cpu_features"
+# spdlog for logging.
+CT2_SUBMODULES="third_party/ruy third_party/spdlog"
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
@@ -135,19 +135,16 @@ stub() {
     echo "$abi libwmct2.so (stub): $(wc -c < "$dest/libwmct2.so") bytes"
 }
 
-for abi in ${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64}; do
+for abi in ${WMKB_ABIS:-arm64-v8a armeabi-v7a}; do
     case $abi in
         # ruy's NEON kernels, with the dot-product ones picked at run time
         # on the phones that have them (Cortex-A55/A75 and later).
         arm64-v8a) build arm64-v8a ;;
         # No engine on 32-bit ARM: the model alone is 600 MB of int8 weights
         # held in memory, more than a 32-bit process can count on. stub.c
-        # only fails to load, so the split and the pins still cover all
-        # three ABIs; Ct2Native wants a 64-bit process.
+        # only fails to load, so the split and the pins still cover both
+        # ABIs; Ct2Native wants a 64-bit process.
         armeabi-v7a) stub armeabi-v7a ;;
-        # ruy's AVX2 and AVX-512 paths, CTranslate2's own kernels for AVX,
-        # AVX2 and AVX-512, each chosen at run time.
-        x86_64) build x86_64 ;;
         *) echo "unknown ABI $abi" >&2; exit 1 ;;
     esac
 done
