@@ -76,6 +76,12 @@ sealed interface FilePickRequest {
         override fun systemIntent(context: Context) = GalleryPickActivity.cameraIntent(context)
     }
 
+    /** One file for an API 5 plugin's `files.pick`, of [mimes] (empty for any). */
+    data class PluginFile(override val mimes: List<String>) : FilePickRequest {
+        override val limit: Int get() = 1
+        override fun systemIntent(context: Context) = GalleryPickActivity.pluginPickIntent(context)
+    }
+
     companion object {
         private const val MANY = 100
     }

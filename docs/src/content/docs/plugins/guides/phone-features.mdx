@@ -1,6 +1,6 @@
 ---
 title: "Phone features"
-description: "Vibrate, speak, share, scan, sensors, location and files: what each needs, and what works today."
+description: "Vibrate, speak, share, notify, scan, sensors, location and files: what each call needs and what it answers."
 sidebar:
   label: "Phone features"
   order: 5.07
@@ -10,30 +10,19 @@ A plugin can reach a few things of the phone's, each through one named call
 and one permission. A plugin never gets a camera picture, a file path or a raw
 sensor: the keyboard does the work and hands back only the result.
 
-:::caution[Not all of these work on the phone yet]
-In this version the keyboard answers `device` and `share`. The calls for
-`notify`, `location`, `files`, `sensors` and `scan` are part of API 5, and the
-web editor answers them with pretend data, but on the phone they raise
-`NotImplementedError` for now. Catch it, so your plugin still works when they
-arrive:
+| Module | Calls | Permission |
+|---|---|---|
+| `device` | `vibrate(ms)`, `flashlight(on)`, `speak(text, language=)`, `battery()` | `device` |
+| `share` | `text(text)`, `open(url)` | `share` |
+| `notify` | `show(text, title=, id=)`, `cancel(id)` | `notifications` |
+| `scan` | `qr(then=)`, `text(then=)` | `scan` |
+| `sensors` | `subscribe(kind, on_reading=, hz=)`, `unsubscribe(token)`, `available()` | `sensors` |
+| `location` | `get(accuracy=, then=)` | risky `location` |
+| `files` | `pick(kind=, then=)`, `save(name, data)` | risky `files` |
 
-```python
-try:
-    here = location.get()
-except NotImplementedError:
-    here = None
-```
-:::
-
-| Module | Calls | Permission | On the phone |
-|---|---|---|---|
-| `device` | `vibrate(ms)`, `flashlight(on)`, `speak(text, language=)`, `battery()` | `device` | yes |
-| `share` | `text(text)`, `open(url)` | `share` | yes |
-| `notify` | `show(text, title=, id=)`, `cancel(id)` | `notifications` | not yet |
-| `scan` | `qr(then=)`, `text(then=)` | `scan` | not yet |
-| `sensors` | `subscribe(kind, on_reading=, hz=)`, `unsubscribe(token)`, `available()` | `sensors` | not yet |
-| `location` | `get(accuracy=, then=)` | risky `location` | not yet |
-| `files` | `pick(kind=, then=)`, `save(name, data)` | risky `files` | not yet |
+`scan` and `files` work from your panel or the floating box, not from a
+[selection action](/plugins/guides/text-and-selection/#buttons-over-selected-text): they need a screen to
+come back to.
 
 ## device
 
@@ -68,13 +57,17 @@ notify.cancel("upload")
 ```
 
 The notification is titled with your plugin's name, so it cannot pretend to
-come from another app. For a notification at a later time, when your panel is
+come from another app. Your `title` goes in the small header line beside the
+keyboard's name, and showing the same `id` again replaces the notification.
+It uses the same channel as reminders, so if the user turned notifications off
+for the keyboard, `show` raises `PermissionError`. For a notification at a later time, when your panel is
 closed, use a [reminder](/plugins/guides/saving-and-settings/#reminders).
 
 ## scan
 
-The keyboard opens its own scanner over the keyboard, and your function gets
-the result as text:
+The keyboard swaps your panel for its own QR scanner or text reader. When
+the user takes a code or a line of text, your panel comes back and your
+function gets the result as text:
 
 ```python
 from wm import scan
@@ -83,7 +76,8 @@ scan.qr(then=found)        # the code's text
 scan.text(then=read)       # text read from the camera
 ```
 
-You never get the camera picture.
+You never get the camera picture. If the user closes the scanner instead,
+your panel comes back and `then` gets `None`.
 
 ## sensors
 
@@ -101,7 +95,8 @@ Kinds: `accelerometer`, `gyroscope` and `magnetometer` send `{"x", "y", "z"}`;
 `light`, `steps`, `proximity` and `pressure` send `{"value"}`. `hz` is from 1
 to 30. Readings stop when the panel closes, or with
 `sensors.unsubscribe(token)`. `sensors.available()` lists the kinds the phone
-has.
+has. `steps` needs Android's physical activity permission, which the keyboard
+does not ask for, so it is usually missing from that list.
 
 ## location
 
@@ -116,12 +111,19 @@ location.get(accuracy="fine", then=got)  # does not wait
 ```
 
 `accuracy` is `"coarse"`, the default, or `"fine"`. The answer's `accuracy` is
-in metres, and `time` is seconds since 1970.
+in metres, and `time` is seconds since 1970. A coarse answer is rounded to
+about a kilometre even when the phone knows better, so your plugin gets no more
+than it asked for.
+
+The keyboard also needs Android's own location permission. The first time a
+plugin asks without it, Android shows its question and `get` raises
+`PermissionError`. Once the user allows it, call `get` again.
 
 ## files
 
-A risky permission. The user picks a file in the system picker, and your
-plugin gets only that file:
+A risky permission. The user picks a file in the keyboard's own file manager,
+or in Android's picker where the keyboard has none, and your plugin gets only
+that file:
 
 ```python
 from wm import files
@@ -139,7 +141,11 @@ files.save("notes.txt", "milk\neggs\n")   # the user picks where
 ```
 
 `kind` is `"any"`, `"image"`, `"text"`, `"audio"`, `"video"` or a MIME type.
-Your plugin never sees a path or a folder.
+Your plugin never sees a path or a folder. A file can be up to 4 MB, both ways.
+
+`save` opens Android's save screen, where the user picks the folder and may
+change the name. With `then=`, your function gets the name the file was saved
+under. Either call gives `then` the value `None` if the user backs out.
 
 ## In the web editor
 

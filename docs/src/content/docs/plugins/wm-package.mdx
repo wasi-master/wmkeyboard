@@ -329,8 +329,8 @@ clip.
 ## notify
 
 `from wm import notify`. Needs `notifications`. `notify.show(text, title=None, id=None)`,
-`notify.cancel(id)`. Titled with your plugin's name. Not on the phone yet:
-see [Phone features](/plugins/guides/phone-features/).
+`notify.cancel(id)`. Titled with your plugin's name; see
+[Phone features](/plugins/guides/phone-features/#notify).
 
 ## reminders
 
@@ -342,7 +342,8 @@ moves that reminder.
 ## scan
 
 `from wm import scan`. Needs `scan`. `scan.qr(then, on_error=None)` (also
-`barcode`) and `scan.text(then, on_error=None)` give text. Not on the phone yet.
+`barcode`) and `scan.text(then, on_error=None)` give text, or `None` when the
+user closes the scanner.
 
 ## sensors
 
@@ -350,14 +351,16 @@ moves that reminder.
 `sensors.subscribe(kind, on_reading, hz=5)` returns a token;
 `sensors.unsubscribe(token)`; `sensors.available()`. Kinds: `accelerometer`,
 `gyroscope`, `magnetometer` (`{"x", "y", "z"}`), `light`, `steps`,
-`proximity`, `pressure` (`{"value"}`). `hz` from 1 to 30. Not on the phone yet.
+`proximity`, `pressure` (`{"value"}`). `hz` from 1 to 30. Readings stop when
+the panel closes.
 
 ## location
 
 `from wm import location`. Needs the risky `location`.
 `location.get(accuracy="coarse", then=None, on_error=None)` →
-`{"lat", "lon", "accuracy", "time"}`. `accuracy` may be `"fine"`. Not on the
-phone yet.
+`{"lat", "lon", "accuracy", "time"}`. `accuracy` may be `"fine"`. The first
+call without Android's location permission asks for it and raises
+`PermissionError`.
 
 ## files
 
@@ -365,7 +368,8 @@ phone yet.
 `files.pick(kind="any", then=None, on_error=None)` gives
 `{"name", "mime", "data"}` with `data` as bytes; `kind` is `any`, `image`,
 `text`, `audio`, `video` or a MIME type. `files.save(name, data, mime=None, then=None, on_error=None)`
-lets the user pick where. Not on the phone yet.
+lets the user pick where, and `then` gets the name saved under. Both give `None`
+when the user backs out; files are up to 4 MB.
 
 ## Translations
 

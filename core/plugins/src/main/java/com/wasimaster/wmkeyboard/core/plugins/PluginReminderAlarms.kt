@@ -138,6 +138,42 @@ object PluginReminderAlarms {
         runCatching { NotificationManagerCompat.from(context).notify(id, notification) }
     }
 
+    /**
+     * `notify.show` from a running API 5 plugin: a notification now, in the
+     * reminders' channel, under the same rule as a reminder. The plugin's name
+     * is the title; its [title], if any, goes in the header beside the app's
+     * name, and [text] is the body. Showing the same [noticeId] again replaces it.
+     */
+    fun postNotice(context: Context, plugin: InstalledPlugin, noticeId: String, title: String?, text: String): Boolean {
+        val app = context.applicationContext
+        if (!WmNotifications.canPost(app)) return false
+        ensureChannel(app)
+        val id = NotificationIds.forPluginReminder(plugin.id, NOTICE_PREFIX + noticeId)
+        val open = PendingIntent.getActivity(
+            app,
+            id,
+            MainActivityContract.intent(app, "plugin/${plugin.id}"),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val notification = NotificationCompat.Builder(app, CHANNEL_ID)
+            .setSmallIcon(CommonR.drawable.common_ic_notification)
+            .setContentTitle(plugin.displayName)
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .apply { if (!title.isNullOrBlank()) setSubText(title) }
+            .setShowWhen(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setContentIntent(open)
+            .build()
+        return runCatching { NotificationManagerCompat.from(app).notify(id, notification) }.isSuccess
+    }
+
+    /** `notify.cancel`: takes one of [postNotice]'s back down. Nothing happens for one never shown. */
+    fun cancelNotice(context: Context, pluginId: String, noticeId: String) {
+        WmNotifications.cancel(context, NotificationIds.forPluginReminder(pluginId, NOTICE_PREFIX + noticeId))
+    }
+
     private fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
@@ -166,6 +202,9 @@ object PluginReminderAlarms {
      * channel settings turn all of them off at once.
      */
     const val CHANNEL_ID = "plugin_reminders"
+
+    /** Keeps a notice's id apart from a reminder's of the same name. */
+    private const val NOTICE_PREFIX = "notify:"
 
     internal const val ACTION_WAKE = "com.wasimaster.wmkeyboard.plugins.REMINDER_WAKE"
     private const val REQUEST_WAKE = 1

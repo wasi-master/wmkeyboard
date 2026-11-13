@@ -1,26 +1,44 @@
 package com.wasimaster.wmkeyboard.ime
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.hardware.camera2.CameraManager
 import android.net.Uri
 import android.os.BatteryManager
+import android.os.Build
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
+import android.provider.OpenableColumns
 import android.util.Base64
 import android.view.inputmethod.InputConnection
+import com.wasimaster.wmkeyboard.app.LocationPermissionActivity
+import com.wasimaster.wmkeyboard.core.location.LocationAccess
+import com.wasimaster.wmkeyboard.core.location.LocationFix
+import com.wasimaster.wmkeyboard.core.location.LocationFixer
+import com.wasimaster.wmkeyboard.core.location.LocationGrant
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.plugins.PluginCall
 import com.wasimaster.wmkeyboard.core.plugins.PluginCallException
 import com.wasimaster.wmkeyboard.core.plugins.PluginHost
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifestCodec
+import com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms
 import com.wasimaster.wmkeyboard.core.plugins.PluginSecrets
 import com.wasimaster.wmkeyboard.core.plugins.PluginServices
 import com.wasimaster.wmkeyboard.core.plugins.displayName
 import com.wasimaster.wmkeyboard.core.settings.AiSettings
 import com.wasimaster.wmkeyboard.core.tools.AiClient
 import com.wasimaster.wmkeyboard.core.tools.AiThinking
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -37,13 +55,15 @@ import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
 import java.net.URL
 import java.net.URLEncoder
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 /**
  * What the keyboard does for API 5 plugins: the field, the clipboard, the
- * network, the AI model, the phone's small things and the share sheet.
+ * network, the AI model, the phone's small things, the share sheet,
+ * notifications, the location, files, sensors and the scanners.
  * [PluginHost] has already checked the manifest, the user's grants, the
  * risky switch, the field and Data saver before any of this runs.
  *
@@ -66,6 +86,14 @@ internal class PluginKeyboardServices(
     private val toast: (String) -> Unit,
     private val vibrate: (Int) -> Unit,
     private val closePanel: () -> Unit,
+    /**
+     * Puts up the keyboard's own screen for [PluginHandoff] (a scanner, the
+     * file manager, Android's picker) over the plugin that asked, or answers
+     * false when that plugin is not the one on screen. Main thread.
+     */
+    private val startHandoff: (PluginHandoff) -> Boolean,
+    /** The plugin's call stopped waiting on [PluginHandoff], answered or not. Main thread. */
+    private val handoffDone: (PluginHandoff) -> Unit,
 ) : PluginServices {
 
     private val main = Handler(Looper.getMainLooper())
@@ -132,6 +160,22 @@ internal class PluginKeyboardServices(
             PluginSecrets.of(context, call.plugin.id).remove(name(call))
             JsonNull
         }
+        "notify.show" -> notify(call)
+        "notify.cancel" -> {
+            PluginReminderAlarms.cancelNotice(context, call.plugin.id, noticeId(call))
+            JsonNull
+        }
+        "location.get" -> location(call)
+        "files.pick" -> pick(call)
+        "files.save" -> save(call)
+        "sensors.list" -> JsonArray(sensorKinds().map(::JsonPrimitive))
+        "sensors.subscribe" -> subscribe(call)
+        "sensors.unsubscribe" -> {
+            call.string("token")?.let { subscriptions.remove(it)?.countDown() }
+            JsonNull
+        }
+        "scan.qr" -> scan(call, PluginHandoff.Kind.QR)
+        "scan.text" -> scan(call, PluginHandoff.Kind.TEXT)
         else -> throw PluginCallException("NotImplementedError", "${call.op} is not available in this version of the keyboard yet")
     }
 
@@ -232,7 +276,7 @@ internal class PluginKeyboardServices(
                     return@repeat
                 }
                 val stream = if (status >= 400) connection.errorStream else connection.inputStream
-                val bytes = stream?.use { readCapped(it) } ?: ByteArray(0)
+                val bytes = stream?.use { readCapped(it, MAX_REPLY) } ?: ByteArray(0)
                 net.received(bytes.size.toLong())
                 net.end()
                 return buildJsonObject {
@@ -264,14 +308,14 @@ internal class PluginKeyboardServices(
 
     private class PluginTooLarge : IOException("too large")
 
-    private fun readCapped(input: InputStream): ByteArray {
+    private fun readCapped(input: InputStream, limit: Int): ByteArray {
         val out = ByteArrayOutputStream()
         val buffer = ByteArray(BUFFER)
         while (true) {
             val n = input.read(buffer)
             if (n < 0) break
             out.write(buffer, 0, n)
-            if (out.size() > MAX_REPLY) throw PluginTooLarge()
+            if (out.size() > limit) throw PluginTooLarge()
         }
         return out.toByteArray()
     }
@@ -391,8 +435,249 @@ internal class PluginKeyboardServices(
         }
     }
 
+    // ---- notifications ---------------------------------------------------
+
+    /** Titled with the plugin's name, always; the plugin's own title goes in the header beside it. */
+    private fun notify(call: PluginCall): JsonElement {
+        val text = text(call).take(MAX_NOTICE)
+        val title = call.string("title")?.take(MAX_NOTICE_TITLE)
+        if (!PluginReminderAlarms.postNotice(context, call.plugin, noticeId(call), title, text)) {
+            throw PluginCallException("PermissionError", "notifications are turned off for the keyboard in Android's settings")
+        }
+        return JsonNull
+    }
+
+    private fun noticeId(call: PluginCall): String = call.string("id").orEmpty().take(MAX_NOTICE_ID)
+
+    // ---- the location ----------------------------------------------------
+
+    /**
+     * One reading, the way the Location tool takes one. The first call without
+     * Android's permission asks for it and fails; the next one works. "coarse"
+     * is rounded to about a kilometre even when the keyboard may read more,
+     * so a plugin gets no more than it asked for.
+     */
+    private fun location(call: PluginCall): JsonElement {
+        if (!LocationAccess.declared(context)) {
+            throw PluginCallException("NotImplementedError", "this build of the keyboard does not read the location")
+        }
+        if (LocationAccess.grant(context) == LocationGrant.NONE) {
+            onMain {
+                context.startActivity(Intent(context, LocationPermissionActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }
+            throw PluginCallException("PermissionError", "Android has not let the keyboard read the location yet: allow it, then try again")
+        }
+        if (!LocationAccess.servicesOn(context)) throw PluginCallException("RuntimeError", "location is switched off on this phone")
+        val fine = call.string("accuracy") == "fine"
+        val fixer = LocationFixer(context)
+        val fix = (if (fine) null else fixer.lastKnown(COARSE_MAX_AGE_MS)) ?: runBlocking {
+            var best: LocationFix? = null
+            withTimeoutOrNull(LocationFixer.TIMEOUT_MS + LOCATION_SLACK_MS) {
+                fixer.fixes(goodEnoughM = if (fine) LocationFixer.GOOD_ENOUGH_M else COARSE_ENOUGH_M).collect { fix ->
+                    best = fix
+                    if (!call.isActive()) throw PluginCallException("RuntimeError", "the plugin closed")
+                }
+            }
+            best
+        } ?: throw PluginCallException("TimeoutError", "the phone could not tell where it is in time")
+        val accuracy = fix.accuracyM?.toDouble() ?: if (fine) 0.0 else COARSE_ACCURACY_M
+        return buildJsonObject {
+            if (fine) {
+                put("lat", fix.point.latitude)
+                put("lon", fix.point.longitude)
+                put("accuracy", accuracy)
+            } else {
+                put("lat", Math.round(fix.point.latitude * COARSE_GRID) / COARSE_GRID)
+                put("lon", Math.round(fix.point.longitude * COARSE_GRID) / COARSE_GRID)
+                put("accuracy", maxOf(accuracy, COARSE_ACCURACY_M))
+            }
+            put("time", fix.timeMillis / 1000.0)
+        }
+    }
+
+    // ---- files -----------------------------------------------------------
+
+    /** One file the user picks, in the keyboard's own file manager or Android's picker. Null when they back out. */
+    private fun pick(call: PluginCall): JsonElement {
+        val handoff = PluginHandoff(call.plugin.id, PluginHandoff.Kind.PICK, mimesFor(call.string("kind")))
+        PluginFilePicks.begin(handoff)
+        val uri = handOff(call, handoff) as? Uri ?: return JsonNull
+        val resolver = context.contentResolver
+        var name = ""
+        var size = -1L
+        runCatching {
+            resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)?.use { c ->
+                if (c.moveToFirst()) {
+                    val n = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    val s = c.getColumnIndex(OpenableColumns.SIZE)
+                    if (n >= 0 && !c.isNull(n)) name = c.getString(n).orEmpty()
+                    if (s >= 0 && !c.isNull(s)) size = c.getLong(s)
+                }
+            }
+        }
+        if (size > MAX_FILE) throw PluginCallException("ValueError", "the file is larger than ${MAX_FILE / MB} MB")
+        val bytes = (
+            try {
+                resolver.openInputStream(uri)?.use { readCapped(it, MAX_FILE) }
+            } catch (tooLarge: PluginTooLarge) {
+                throw PluginCallException("ValueError", "the file is larger than ${MAX_FILE / MB} MB")
+            } catch (failure: IOException) {
+                throw PluginCallException("OSError", failure.message ?: "the file could not be read")
+            } catch (refused: SecurityException) {
+                throw PluginCallException("OSError", refused.message ?: "the file could not be read")
+            }
+        ) ?: throw PluginCallException("OSError", "the file could not be read")
+        return buildJsonObject {
+            put("name", name)
+            put("mime", resolver.getType(uri) ?: "application/octet-stream")
+            put("data", Base64.encodeToString(bytes, Base64.NO_WRAP))
+        }
+    }
+
+    /**
+     * Android's save screen, where the user picks the folder and may change
+     * the name. Its own screen writes the bytes, so the grant on the place
+     * never leaves it. Answers the name saved under, or null.
+     */
+    private fun save(call: PluginCall): JsonElement {
+        val data = call.string("data").orEmpty()
+        if (data.length > MAX_FILE / 3 * 4 + 4) throw PluginCallException("ValueError", "a file to save may be at most ${MAX_FILE / MB} MB")
+        val bytes = runCatching { Base64.decode(data, Base64.DEFAULT) }.getOrNull()
+            ?: throw PluginCallException("ValueError", "the data to save is not bytes")
+        val name = name(call).replace('/', '_').replace('\\', '_').trim().take(MAX_FILE_NAME).ifEmpty { "file" }
+        val mime = call.string("mime")?.takeIf { '/' in it } ?: "application/octet-stream"
+        val handoff = PluginHandoff(call.plugin.id, PluginHandoff.Kind.SAVE, listOf(mime), name)
+        PluginFilePicks.begin(handoff, bytes)
+        val uri = handOff(call, handoff) as? Uri ?: return JsonNull
+        val saved = runCatching {
+            context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c ->
+                if (c.moveToFirst() && !c.isNull(0)) c.getString(0) else null
+            }
+        }.getOrNull()
+        return JsonPrimitive(saved ?: name)
+    }
+
+    private fun mimesFor(kind: String?): List<String> = when (val k = kind?.trim()?.lowercase().orEmpty()) {
+        "", "any" -> emptyList()
+        "image", "text", "audio", "video" -> listOf("$k/*")
+        else -> if ('/' in k) listOf(k) else emptyList()
+    }
+
+    // ---- the scanners ----------------------------------------------------
+
+    /** The keyboard's QR scanner or text reader, over the plugin. The text the user took, or null. */
+    private fun scan(call: PluginCall, kind: PluginHandoff.Kind): JsonElement {
+        val text = handOff(call, PluginHandoff(call.plugin.id, kind)) as? String ?: return JsonNull
+        return JsonPrimitive(text.take(MAX_SCAN))
+    }
+
+    /**
+     * Puts up the screen for [handoff] and waits for the user, on the host's
+     * pool. Only for a plugin on screen: a selection action has no panel to
+     * come back to.
+     */
+    private fun handOff(call: PluginCall, handoff: PluginHandoff): Any? {
+        if (call.surface == "action") {
+            PluginFilePicks.cancel(handoff)
+            throw PluginCallException("RuntimeError", "${call.op} works only from the plugin's panel")
+        }
+        if (onMain { startHandoff(handoff) } != true) {
+            PluginFilePicks.cancel(handoff)
+            throw PluginCallException("RuntimeError", "${call.op} works only while the plugin is on screen")
+        }
+        try {
+            return handoff.await(call.isActive, HANDOFF_TIMEOUT_MS)
+        } finally {
+            PluginFilePicks.cancel(handoff)
+            main.post { handoffDone(handoff) }
+        }
+    }
+
+    // ---- sensors ---------------------------------------------------------
+
+    /** Open subscriptions, by the call's token: count one down to end it. */
+    private val subscriptions = ConcurrentHashMap<String, CountDownLatch>()
+
+    /** Where readings arrive, off the main thread. Made by the first subscription. */
+    private val sensorHandler: Handler by lazy {
+        Handler(HandlerThread("wm-plugin-sensors").apply { start() }.looper)
+    }
+
+    private fun sensorManager(): SensorManager? = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
+
+    /** The kinds this phone has, and steps only with Android's activity permission. */
+    private fun sensorKinds(): List<String> {
+        val manager = sensorManager() ?: return emptyList()
+        return SENSOR_TYPES.filter { (kind, type) ->
+            manager.getDefaultSensor(type) != null && (kind != "steps" || stepsAllowed())
+        }.keys.toList()
+    }
+
+    private fun stepsAllowed(): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+            context.checkSelfPermission(Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED
+
+    /**
+     * Readings at most [hz] a second, each one a stream piece, until the
+     * plugin unsubscribes or its session ends (the panel closing ends it).
+     * Holds a pool thread the whole time, which is what the async call is for.
+     */
+    private fun subscribe(call: PluginCall): JsonElement {
+        val kind = call.string("kind").orEmpty()
+        val type = SENSOR_TYPES[kind]
+            ?: throw PluginCallException("ValueError", "unknown sensor '$kind': use one of ${SENSOR_TYPES.keys.joinToString()}")
+        val token = call.string("async")
+            ?: throw PluginCallException("ValueError", "sensors.subscribe answers with on_reading, never by waiting")
+        if (kind == "steps" && !stepsAllowed()) {
+            throw PluginCallException("PermissionError", "Android has not let the keyboard count steps")
+        }
+        val manager = sensorManager() ?: throw PluginCallException("RuntimeError", "this phone has no sensors")
+        val sensor: Sensor = manager.getDefaultSensor(type) ?: throw PluginCallException("RuntimeError", "this phone has no $kind sensor")
+        if (subscriptions.size >= MAX_SUBSCRIPTIONS) {
+            throw PluginCallException("RuntimeError", "too many sensors at once: at most $MAX_SUBSCRIPTIONS")
+        }
+        val hz = ((call.args["hz"] as? JsonPrimitive)?.intOrNull ?: DEFAULT_HZ).coerceIn(1, MAX_HZ)
+        val gapNanos = NANOS_PER_SECOND / hz
+        val stop = CountDownLatch(1)
+        subscriptions[token] = stop
+        val listener = object : SensorEventListener {
+            private var last = 0L
+
+            override fun onSensorChanged(event: SensorEvent) {
+                if (last != 0L && event.timestamp - last < gapNanos) return
+                last = event.timestamp
+                call.emit(reading(kind, event.values))
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+        }
+        try {
+            if (!manager.registerListener(listener, sensor, (MICROS_PER_SECOND / hz).toInt(), sensorHandler)) {
+                throw PluginCallException("RuntimeError", "the $kind sensor would not start")
+            }
+            while (!stop.await(SENSOR_POLL_MS, TimeUnit.MILLISECONDS)) {
+                if (!call.isActive()) break
+            }
+        } finally {
+            manager.unregisterListener(listener)
+            subscriptions.remove(token)
+        }
+        return JsonNull
+    }
+
+    private fun reading(kind: String, values: FloatArray): JsonElement = buildJsonObject {
+        if (kind in THREE_AXES) {
+            put("x", values.getOrElse(0) { 0f }.toDouble())
+            put("y", values.getOrElse(1) { 0f }.toDouble())
+            put("z", values.getOrElse(2) { 0f }.toDouble())
+        } else {
+            put("value", values.getOrElse(0) { 0f }.toDouble())
+        }
+    }
+
     /** Lets go of the voice. The service calls it when it is destroyed. */
     fun shutdown() {
+        subscriptions.values.forEach { it.countDown() }
         main.post {
             voice?.shutdown()
             voice = null
@@ -449,5 +734,41 @@ internal class PluginKeyboardServices(
         private const val MAX_HINT = 200
         private const val MAX_PROMPT = 32 * 1024
         private const val MAIN_WAIT_SECONDS = 5L
+        private const val MAX_NOTICE = 1000
+        private const val MAX_NOTICE_TITLE = 100
+        private const val MAX_NOTICE_ID = 64
+        private const val MAX_SCAN = 64 * 1024
+        private const val MB = 1024 * 1024
+        private const val MAX_FILE = 4 * MB
+        private const val MAX_FILE_NAME = 120
+
+        /** How long a scan or a pick may stay open before the plugin stops waiting. */
+        private const val HANDOFF_TIMEOUT_MS = 10 * 60_000L
+
+        /** A reading Android already holds is good enough for "coarse" while it is this young. */
+        private const val COARSE_MAX_AGE_MS = 10 * 60_000L
+        private const val COARSE_ENOUGH_M = 2000f
+        private const val COARSE_ACCURACY_M = 1500.0
+
+        /** Hundredths of a degree: about a kilometre. */
+        private const val COARSE_GRID = 100.0
+        private const val LOCATION_SLACK_MS = 2000L
+
+        private val SENSOR_TYPES = linkedMapOf(
+            "accelerometer" to Sensor.TYPE_ACCELEROMETER,
+            "gyroscope" to Sensor.TYPE_GYROSCOPE,
+            "magnetometer" to Sensor.TYPE_MAGNETIC_FIELD,
+            "light" to Sensor.TYPE_LIGHT,
+            "steps" to Sensor.TYPE_STEP_COUNTER,
+            "proximity" to Sensor.TYPE_PROXIMITY,
+            "pressure" to Sensor.TYPE_PRESSURE,
+        )
+        private val THREE_AXES = setOf("accelerometer", "gyroscope", "magnetometer")
+        private const val MAX_SUBSCRIPTIONS = 8
+        private const val DEFAULT_HZ = 5
+        private const val MAX_HZ = 30
+        private const val SENSOR_POLL_MS = 200L
+        private const val NANOS_PER_SECOND = 1_000_000_000L
+        private const val MICROS_PER_SECOND = 1_000_000L
     }
 }

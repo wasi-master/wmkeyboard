@@ -108,7 +108,6 @@ the user presses something in its panel, and never in a password field.
 | `ValueError` when writing to `storage` | You are over the [storage limits](/plugins/guides/saving-and-settings/#storage). |
 | `ValueError` naming a colour | Use a [colour role](/plugins/guides/drawing/#colours-are-roles), such as `primary` or `danger`. |
 | `NotImplementedError: “…” is not available in the web preview` | The web editor has no answer for that call. Install the plugin to try it. |
-| `NotImplementedError: location.get is not available in this version of the keyboard yet` | Some [phone features](/plugins/guides/phone-features/) are not wired up yet. Catch it. |
 | This plugin did too much work at one time. The app stopped it. | A loop ran too long. See [Reading an error](/plugins/guides/testing/#reading-an-error). |
 | This plugin took too long. The app stopped it. | The same, measured in time. |
 | This plugin called itself too many times. The app stopped it. | A function calls itself without end. The limit is 300 calls deep. |

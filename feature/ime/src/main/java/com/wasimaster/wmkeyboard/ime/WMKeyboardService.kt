@@ -35431,7 +35431,11 @@ open class WMKeyboardService : InputMethodService() {
         // backgrounded: the Globals are dropped and the thread is shut down, so
         // after this there is no plugin left in the process to receive
         // anything the user types.
-        if (_uiState.value.panel != PanelMode.PLUGINS && _uiState.value.appletPanel != PanelMode.PLUGINS) pluginRuntime?.close()
+        // A plugin waiting on a scanner or a pick is the one exception, until it has its answer.
+        val handoffHolds = pluginHandoffHolds()
+        if (_uiState.value.panel != PanelMode.PLUGINS && _uiState.value.appletPanel != PanelMode.PLUGINS && !handoffHolds) {
+            pluginRuntime?.close()
+        }
         // Either direction is a history surface changing hands — the emoji
         // panel's grids coming up, or the emoji row it hid coming back — so
         // this is where a ranking moved by earlier taps lands.
@@ -35592,7 +35596,7 @@ open class WMKeyboardService : InputMethodService() {
                 prefillTranslateFromHint()
                 prefillTranslateFromSelection()
             }
-            PanelMode.PLUGINS -> {
+            PanelMode.PLUGINS -> if (!pluginReturnShown()) {
                 openPluginList()
                 // A plugin coming in from the floating box opens where it was.
                 pluginCarry?.let {
@@ -41401,7 +41405,143 @@ open class WMKeyboardService : InputMethodService() {
             toast = { toast(it) },
             vibrate = { vibrate() },
             closePanel = { openPluginList() },
+            startHandoff = ::startPluginHandoff,
+            handoffDone = ::pluginHandoffDone,
         ).also { pluginServicesOrNull = it }
+
+    /**
+     * A plugin waiting on one of the keyboard's own screens: a scanner, the
+     * file manager, or Android's picker or save screen. While it waits, its
+     * session outlives the panel change, and the keyboard hiding, that
+     * leaving the Plugins panel would otherwise end it with. Main thread.
+     */
+    private var pluginHandoff: PluginHandoff? = null
+
+    /** A hand-off just answered: the next opening of the Plugins panel puts its plugin back as it was. */
+    private var pluginReturn: PluginHandoff? = null
+
+    /** Puts up the screen [handoff] asks for, over the plugin on screen that asked. */
+    private fun startPluginHandoff(handoff: PluginHandoff): Boolean {
+        val state = _uiState.value
+        val running = state.plugins as? PluginPanelUi.Running ?: return false
+        if (running.plugin.id != handoff.pluginId || pluginRuntime?.activePluginId != handoff.pluginId) return false
+        val float = state.appletPanel == PanelMode.PLUGINS
+        if (!float && state.panel != PanelMode.PLUGINS) return false
+        val shown = isInputViewShown
+        if (!shown && (handoff.kind == PluginHandoff.Kind.QR || handoff.kind == PluginHandoff.Kind.TEXT)) return false
+        pluginHandoff?.let(::cancelPluginHandoff)
+        handoff.shown = running
+        handoff.inputs = state.pluginInputs
+        handoff.float = float
+        when (handoff.kind) {
+            PluginHandoff.Kind.QR, PluginHandoff.Kind.TEXT -> {
+                handoff.panel = if (handoff.kind == PluginHandoff.Kind.QR) PanelMode.QR_SCAN else PanelMode.OCR
+                pluginHandoff = handoff
+                onPanelChange(handoff.panel, haptic = false)
+                if (_uiState.value.panel != handoff.panel) {
+                    pluginHandoff = null
+                    return false
+                }
+            }
+            PluginHandoff.Kind.PICK -> {
+                val request = com.wasimaster.wmkeyboard.ime.files.FilePickRequest.PluginFile(handoff.mimes)
+                pluginHandoff = handoff
+                if (shown && filePanelReady()) {
+                    handoff.panel = PanelMode.FILES
+                    openFilePick(request)
+                } else {
+                    handoff.panel = PanelMode.PLUGINS
+                    if (runCatching { startActivity(request.systemIntent(this)) }.isFailure) {
+                        pluginHandoff = null
+                        return false
+                    }
+                }
+            }
+            PluginHandoff.Kind.SAVE -> {
+                handoff.panel = PanelMode.PLUGINS
+                pluginHandoff = handoff
+                val intent = com.wasimaster.wmkeyboard.app.GalleryPickActivity.pluginSaveIntent(this)
+                if (runCatching { startActivity(intent) }.isFailure) {
+                    pluginHandoff = null
+                    return false
+                }
+            }
+        }
+        return true
+    }
+
+    /** The plugin stopped waiting on [handoff]. One that Android's own screen answered ends here. */
+    private fun pluginHandoffDone(handoff: PluginHandoff) {
+        if (pluginHandoff !== handoff) return
+        if (handoff.panel == PanelMode.PLUGINS || pluginRuntime?.activePluginId != handoff.pluginId) pluginHandoff = null
+    }
+
+    private fun cancelPluginHandoff(handoff: PluginHandoff) {
+        com.wasimaster.wmkeyboard.ime.PluginFilePicks.cancel(handoff)
+        handoff.answer(null)
+    }
+
+    /**
+     * Whether the plugin waiting on a screen keeps its session through the
+     * panel change just made. The screen it waits on, the file manager (the
+     * scanners pick pictures there) and the Plugins panel keep it. Closing
+     * the scanner goes back to the plugin, which hears that the user backed
+     * out; anything else ends the wait and, as ever, the session.
+     */
+    private fun pluginHandoffHolds(): Boolean {
+        val handoff = pluginHandoff ?: return false
+        val now = _uiState.value.panel
+        if (now == handoff.panel || now == PanelMode.FILES || now == PanelMode.PLUGINS) return true
+        pluginHandoff = null
+        cancelPluginHandoff(handoff)
+        if (handoff.float || now != PanelMode.NONE || handoff.panel == PanelMode.PLUGINS) return false
+        pluginReturn = handoff
+        serviceScope.launch {
+            if (_uiState.value.panel == PanelMode.NONE && pluginReturn === handoff) {
+                onPanelChange(PanelMode.PLUGINS, haptic = false)
+            } else if (pluginReturn === handoff) {
+                pluginReturn = null
+                if (_uiState.value.panel != PanelMode.PLUGINS && _uiState.value.appletPanel != PanelMode.PLUGINS) pluginRuntime?.close()
+            }
+        }
+        return true
+    }
+
+    /**
+     * Opening the Plugins panel after a hand-off: the plugin that asked, as
+     * it was, rather than the list. A wait still open here was given up on
+     * (the file manager closed without a pick). False opens the list.
+     */
+    private fun pluginReturnShown(): Boolean {
+        val pending = pluginHandoff?.takeIf { !it.float }
+        if (pending != null) {
+            pluginHandoff = null
+            cancelPluginHandoff(pending)
+        }
+        val back = pluginReturn ?: pending
+        pluginReturn = null
+        val shown = back?.shown ?: return false
+        if (pluginRuntime?.activePluginId != shown.plugin.id) return false
+        _uiState.update { it.copy(plugins = shown, pluginInputs = back.inputs, pluginFocusedInput = null) }
+        return true
+    }
+
+    /** What the scanner read goes to the plugin that opened it, and the plugin comes back. */
+    private fun answerPluginScan(text: String): Boolean {
+        val handoff = pluginHandoff ?: return false
+        if (handoff.kind != PluginHandoff.Kind.QR && handoff.kind != PluginHandoff.Kind.TEXT) return false
+        if (_uiState.value.panel != handoff.panel) return false
+        vibrate()
+        handoff.answer(text)
+        pluginHandoff = null
+        if (handoff.float) {
+            onPanelChange(handoff.panel, haptic = false)
+        } else {
+            pluginReturn = handoff
+            onPanelChange(PanelMode.PLUGINS, haptic = false)
+        }
+        return true
+    }
 
     private val pluginListener = object : PluginRuntime.Listener {
         override fun onUi(pluginId: String, ui: RenderedUi) {
@@ -41470,6 +41610,11 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Shows the installed list. The panel's home screen. */
     private fun openPluginList() {
+        pluginHandoff?.let {
+            pluginHandoff = null
+            cancelPluginHandoff(it)
+        }
+        pluginReturn = null
         pluginRuntime?.close()
         val store = PluginStore.get(this)
         store.reconcile()
@@ -41616,8 +41761,9 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun stopPlugins() {
         // A plugin in the floating box keeps running over the app: the box is
-        // its panel, and none of its boxes ever has the keys there.
-        if (_uiState.value.appletPanel != PanelMode.PLUGINS) pluginRuntime?.close()
+        // its panel, and none of its boxes ever has the keys there. So does
+        // one waiting on Android's picker, which hides the keyboard to show.
+        if (_uiState.value.appletPanel != PanelMode.PLUGINS && pluginHandoff == null) pluginRuntime?.close()
         if (_uiState.value.pluginFocusedInput == null && _uiState.value.pluginInputs.isEmpty()) return
         _uiState.update { it.copy(pluginFocusedInput = null, pluginInputs = emptyMap()) }
     }
@@ -45948,6 +46094,8 @@ open class WMKeyboardService : InputMethodService() {
 
     /** OCR/QR tools: insert recognized text like a (long) key press. */
     fun onScannedTextInsert(text: String) {
+        // Opened by a plugin's scan.qr or scan.text: the text is the plugin's, not the field's.
+        if (answerPluginScan(text)) return
         vibrate()
         val ic = currentInputConnection ?: return
         commitComposing(ic, autocorrect = false)

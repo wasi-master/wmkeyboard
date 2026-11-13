@@ -10,6 +10,8 @@ import android.provider.OpenableColumns
 import androidx.activity.ComponentActivity
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import com.wasimaster.wmkeyboard.ime.PluginFilePicks
+import kotlin.concurrent.thread
 
 /**
  * Invisible trampoline for the gallery tool's system pickers (#708): an input
@@ -33,6 +35,11 @@ import androidx.activity.result.contract.ActivityResultContracts
  * same to translate or search a photo already on the phone (#807), in its
  * own queue too ([consumeCamera]), and the text reader to read one (#869),
  * in a third ([consumeOcr]).
+ *
+ * An API 5 plugin's `files.pick` and `files.save` come here too when the
+ * keyboard's own file manager cannot answer: the pick or the place goes
+ * straight to [PluginFilePicks], and for a save this screen writes the bytes
+ * itself, so the write grant on the place the user chose never leaves it.
  */
 class GalleryPickActivity : ComponentActivity() {
 
@@ -50,6 +57,8 @@ class GalleryPickActivity : ComponentActivity() {
         private const val EXTRA_QR = "qr"
         private const val EXTRA_CAMERA = "camera"
         private const val EXTRA_OCR = "ocr"
+        private const val EXTRA_PLUGIN_PICK = "plugin_pick"
+        private const val EXTRA_PLUGIN_SAVE = "plugin_save"
 
         private val pending = ArrayDeque<Picked>()
 
@@ -89,6 +98,20 @@ class GalleryPickActivity : ComponentActivity() {
         fun cameraIntent(context: Context): Intent =
             Intent(context, GalleryPickActivity::class.java)
                 .putExtra(EXTRA_CAMERA, true)
+                .putExtra(EXTRA_LIMIT, 1)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        /** One file for a plugin, of the types [PluginFilePicks] holds. */
+        fun pluginPickIntent(context: Context): Intent =
+            Intent(context, GalleryPickActivity::class.java)
+                .putExtra(EXTRA_PLUGIN_PICK, true)
+                .putExtra(EXTRA_LIMIT, 1)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        /** Android's save screen for the file [PluginFilePicks] holds. */
+        fun pluginSaveIntent(context: Context): Intent =
+            Intent(context, GalleryPickActivity::class.java)
+                .putExtra(EXTRA_PLUGIN_SAVE, true)
                 .putExtra(EXTRA_LIMIT, 1)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
@@ -153,10 +176,22 @@ class GalleryPickActivity : ComponentActivity() {
     // intent, and registering before STARTED is all the API asks.
     private var multiple: androidx.activity.result.ActivityResultLauncher<PickVisualMediaRequest>? = null
 
+    private val pluginOpen = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        PluginFilePicks.deliver(uri)
+        finish()
+    }
+
+    // In onCreate too: the save screen's type is the file's, from the plugin.
+    private var pluginCreate: androidx.activity.result.ActivityResultLauncher<String>? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val limit = intent.getIntExtra(EXTRA_LIMIT, 20).coerceAtLeast(1).coerceAtMost(pickerLimit())
         if (limit > 1) {
             multiple = registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(limit)) { deliver(it) }
+        }
+        val saveAs = if (intent.getBooleanExtra(EXTRA_PLUGIN_SAVE, false)) PluginFilePicks.saveAs() else null
+        if (saveAs != null) {
+            pluginCreate = registerForActivityResult(ActivityResultContracts.CreateDocument(saveAs.second)) { uri -> savePlugin(uri) }
         }
         super.onCreate(savedInstanceState)
         // A restarted activity (rotation, process restore) is already waiting
@@ -164,6 +199,10 @@ class GalleryPickActivity : ComponentActivity() {
         if (savedInstanceState != null) return
         val launched = runCatching {
             when {
+                intent.getBooleanExtra(EXTRA_PLUGIN_PICK, false) ->
+                    pluginOpen.launch(PluginFilePicks.mimes().ifEmpty { listOf("*/*") }.toTypedArray())
+                intent.getBooleanExtra(EXTRA_PLUGIN_SAVE, false) ->
+                    saveAs?.let { pluginCreate?.launch(it.first) } ?: error("nothing to save")
                 intent.getBooleanExtra(EXTRA_QR, false) || intent.getBooleanExtra(EXTRA_CAMERA, false) ||
                     intent.getBooleanExtra(EXTRA_OCR, false) ->
                     single.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -172,7 +211,39 @@ class GalleryPickActivity : ComponentActivity() {
                 else -> single.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
             }
         }.isSuccess
-        if (!launched) finish()
+        if (!launched) {
+            if (isPluginMode()) PluginFilePicks.deliver(null)
+            finish()
+        }
+    }
+
+    private fun isPluginMode(): Boolean =
+        intent.getBooleanExtra(EXTRA_PLUGIN_PICK, false) || intent.getBooleanExtra(EXTRA_PLUGIN_SAVE, false)
+
+    /** Writes the plugin's bytes to the place picked, off the main thread, then answers. */
+    private fun savePlugin(uri: Uri?) {
+        val bytes = PluginFilePicks.saving
+        if (uri == null || bytes == null) {
+            PluginFilePicks.deliver(null)
+            finish()
+            return
+        }
+        thread(name = "plugin-save", isDaemon = true) {
+            val written = runCatching {
+                contentResolver.openOutputStream(uri, "wt")?.use { it.write(bytes) } != null
+            }.getOrDefault(false)
+            runOnUiThread {
+                PluginFilePicks.deliver(if (written) uri else null)
+                finish()
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        // Swiped away with the picker open: the plugin hears "backed out"
+        // rather than waiting for its timeout. A no-op once it has its answer.
+        if (isFinishing && isPluginMode()) PluginFilePicks.deliver(null)
+        super.onDestroy()
     }
 
     /** The photo picker's own ceiling on a multi-pick, where it says one. */

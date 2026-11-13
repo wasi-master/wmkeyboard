@@ -433,6 +433,7 @@ internal class FileManagerController(
             FilePickRequest.QrPicture -> GalleryPickActivity.offerQr(uris.first())
             FilePickRequest.OcrPicture -> GalleryPickActivity.offerOcr(uris.first())
             FilePickRequest.CameraPicture -> GalleryPickActivity.offerCamera(uris.first())
+            is FilePickRequest.PluginFile -> com.wasimaster.wmkeyboard.ime.PluginFilePicks.deliver(uris.first())
         }
         close()
         host.takePicks()
