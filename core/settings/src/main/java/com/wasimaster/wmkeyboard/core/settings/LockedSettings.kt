@@ -50,6 +50,10 @@ class LockedSettings(context: Context) {
 
     private val json = Json { ignoreUnknownKeys = true }
 
+    /** The snapshot [write] last mirrored, so the same one is not encoded again. */
+    @Volatile
+    private var lastWritten: Preferences? = null
+
     /**
      * The mirrored preferences, or an empty set when nothing has been mirrored
      * yet (a first run that has never been unlocked, or an upgrade whose first
@@ -70,6 +74,13 @@ class LockedSettings(context: Context) {
      * string compare rather than disk.
      */
     fun write(source: Preferences) {
+        // Every collector of the settings flow calls this with the same
+        // snapshot, and DataStore re-emits unchanged ones after a no-op
+        // write: the whole store encoded to JSON each time, while typing on a
+        // G99 a fifteenth of the keyboard's background work. Preferences
+        // compare as maps, far cheaper than the encode.
+        if (source == lastWritten) return
+        lastWritten = source
         val encoded = json.encodeToString(
             JsonObject.serializer(),
             SettingsBackup.encodeSettings(source, includeSecrets = false),
@@ -85,6 +96,7 @@ class LockedSettings(context: Context) {
      * and the unlock that introduces the other one discards this copy anyway.
      */
     suspend fun edit(transform: suspend (MutablePreferences) -> Unit) {
+        lastWritten = null
         val current = read().toMutablePreferences()
         transform(current)
         prefs.edit().putString(
@@ -105,6 +117,7 @@ class LockedSettings(context: Context) {
      * mirror is a [write] of empty settings after unlock.
      */
     fun clear() {
+        lastWritten = null
         prefs.edit().remove(KEY_SNAPSHOT).apply()
     }
 

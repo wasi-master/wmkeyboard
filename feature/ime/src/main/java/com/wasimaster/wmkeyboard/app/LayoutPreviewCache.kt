@@ -55,6 +55,9 @@ internal object LayoutPreviewCache {
      * longest ago go first.
      */
     private const val DISK_MAX_FILES = 200
+
+    /** The lossless encoder's effort, 0 to 100; see [save]. */
+    private const val LOSSLESS_EFFORT = 25
     private const val DISK_MAX_BYTES = 12L shl 20
 
     /** Pointers to each layout's last picture (see [loadLast]); a few dozen bytes each. */
@@ -238,13 +241,18 @@ internal object LayoutPreviewCache {
                 }
                 val temp = File(dir, "$key.tmp")
                 temp.outputStream().use { out ->
+                    // Lossless reads the quality as effort, not fidelity: the
+                    // pixels are the same at any value. At 100 the encoder's
+                    // match search was a quarter of the process's background
+                    // work while the settings app was open on a G99; the
+                    // file comes out a little bigger at LOSSLESS_EFFORT.
                     @Suppress("DEPRECATION")
-                    val format = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        Bitmap.CompressFormat.WEBP_LOSSLESS
+                    val (format, quality) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        Bitmap.CompressFormat.WEBP_LOSSLESS to LOSSLESS_EFFORT
                     } else {
-                        Bitmap.CompressFormat.WEBP
+                        Bitmap.CompressFormat.WEBP to 100
                     }
-                    bitmap.compress(format, 100, out)
+                    bitmap.compress(format, quality, out)
                 }
                 if (bitmap !== source) bitmap.recycle()
                 temp.renameTo(File(dir, "$key.webp"))
@@ -264,16 +272,21 @@ internal object LayoutPreviewCache {
         val files = dir.listFiles() ?: return
         val (pointers, pictures) = files.partition { it.name.endsWith(POINTER) }
         var bytes = 0L
-        pictures.sortedByDescending { it.lastModified() }.forEachIndexed { index, file ->
+        // Each file's time read once: asked inside the comparator, every
+        // comparison was two trips to the file system.
+        newestFirst(pictures).forEachIndexed { index, file ->
             bytes += file.length()
             if (index >= DISK_MAX_FILES || bytes > DISK_MAX_BYTES) file.delete()
         }
         if (pointers.size > DISK_MAX_POINTERS) {
-            pointers.sortedByDescending { it.lastModified() }
+            newestFirst(pointers)
                 .drop(DISK_MAX_POINTERS)
                 .forEach { it.delete() }
         }
     }
+
+    private fun newestFirst(files: List<File>): List<File> =
+        files.map { it to it.lastModified() }.sortedByDescending { it.second }.map { it.first }
 
     private fun dir(context: Context) = File(context.cacheDir, DIR)
 

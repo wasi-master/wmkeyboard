@@ -1649,6 +1649,16 @@ open class WMKeyboardService : InputMethodService() {
     /** The guess in flight for the sentence as it stands; a keystroke cancels it. */
     private var punctuationJob: Job? = null
 
+    /**
+     * The last question the smart punctuation model answered, and its
+     * answer. The strip refreshes more than once a keystroke (the key, then
+     * the editor's echo of the caret), often further apart than the
+     * debounce, and each refresh asked the model the same sentence again: a
+     * fifth of the keyboard's background work while typing on a G99.
+     */
+    @Volatile
+    private var punctuationAsked: PunctuationAsk? = null
+
     /** The user's record with the context model, scaling its say in the rerank; see [ContextAdapter]. Memory-only until the personal stores attach. */
     private var contextAdapter: ContextAdapter = ContextAdapter(null)
 
@@ -1723,10 +1733,20 @@ open class WMKeyboardService : InputMethodService() {
         val allowComma = state.settings.autoText.smartPunctuationComma
         val script = state.script
         val languageId = state.language.id
+        val ask = PunctuationAsk(model, words, languageId, allowComma, script)
+        punctuationAsked?.takeIf { it.sameAs(ask) }?.let { asked ->
+            // Answered already; no answer leaves the key as it stands, which
+            // is what asking again would have done.
+            asked.glyph?.let(::publishSmartPunctuation)
+            return
+        }
         punctuationJob = serviceScope.launch(suggestionDispatcher) {
             delay(SMART_PUNCTUATION_DEBOUNCE_MS)
-            val mark = PunctuationModel.markFor(model.predict(words, languageId), allowComma) ?: return@launch
-            publishSmartPunctuation(SmartPunctuation.glyph(mark, script))
+            val mark = PunctuationModel.markFor(model.predict(words, languageId), allowComma)
+            val glyph = mark?.let { SmartPunctuation.glyph(it, script) }
+            ask.glyph = glyph
+            punctuationAsked = ask
+            if (glyph != null) publishSmartPunctuation(glyph)
         }
     }
 
@@ -25820,8 +25840,10 @@ open class WMKeyboardService : InputMethodService() {
      * longer the one the keyboard is attached to. Reading text then would
      * judge these corrections against somebody else's text, so the ones that
      * needed a read simply go unjudged.
+     *
+     * [persistNow] false lets the stores' save wait: see [saveLearningStoresSoon].
      */
-    private fun flushLearningBuffer(verifyCorrections: Boolean = true) {
+    private fun flushLearningBuffer(verifyCorrections: Boolean = true, persistNow: Boolean = true) {
         val drainedLearning = learningBuffer.drain()
         val drainedCorrections = correctionWatch.drain()
         settleLearned(drainedLearning, verify = verifyCorrections)
@@ -25835,7 +25857,32 @@ open class WMKeyboardService : InputMethodService() {
 
         // Persist learning stores to disk when new items have been settled.
         if (drainedLearning.isNotEmpty() || drainedCorrections.isNotEmpty()) {
-            serviceScope.launch(persistDispatcher) { saveLearningStores() }
+            if (persistNow) {
+                learningSaveJob?.cancel()
+                learningSaveJob = null
+                serviceScope.launch(persistDispatcher) { saveLearningStores() }
+            } else {
+                saveLearningStoresSoon()
+            }
+        }
+    }
+
+    /** A learning save a sent message put off; see [saveLearningStoresSoon]. */
+    private var learningSaveJob: Job? = null
+
+    /**
+     * Saves the learning stores [LEARNING_SAVE_DELAY_MS] from now, unless a
+     * save is already waiting. Each save encodes every store whole, the
+     * personal dictionary included, and a chat sends a message every few
+     * seconds: on a G99 that was a sixth of the keyboard's background work
+     * while typing. The keyboard hiding or going away still saves at once:
+     * both save every store after their flush.
+     */
+    private fun saveLearningStoresSoon() {
+        if (learningSaveJob?.isActive == true) return
+        learningSaveJob = serviceScope.launch {
+            delay(LEARNING_SAVE_DELAY_MS)
+            withContext(persistDispatcher) { saveLearningStores() }
         }
     }
 
@@ -26262,8 +26309,9 @@ open class WMKeyboardService : InputMethodService() {
             // buffer; this is the app's or a hardware keyboard's.
             if (oldSelStart == 0 && oldSelEnd > 0) learningBuffer.clear()
             // Before the caret is handed on, so a send does not read as the
-            // user going back in front of every word in the message.
-            flushLearningBuffer()
+            // user going back in front of every word in the message. The
+            // disk can wait for the next few messages.
+            flushLearningBuffer(persistNow = false)
             return
         }
         val moved = learningBuffer.onCaret(selStart)
@@ -37995,23 +38043,32 @@ open class WMKeyboardService : InputMethodService() {
     private fun personalVoiceWords(limit: Int): List<String> {
         val state = _uiState.value
         val lexicon = userLexicon.allWords()
-        val byHand = lexicon
-            .filter { userLexicon.isAddedByHand(it.first) }
-            .sortedByDescending { it.second }
-            .map { it.first }
+        // One pass, one question per word across the bridge, and a sort of
+        // indices rather than pairs: on a big personal dictionary the old
+        // shape asked "by hand?" of every word twice and sorted the lot twice,
+        // half the keyboard's background work on a G99 whenever it opened.
+        val handMade = BooleanArray(lexicon.size) { userLexicon.isAddedByHand(lexicon[it].first) }
+        val order = lexicon.indices.sortedByDescending { lexicon[it].second }
+        val byHand = order.filter { handMade[it] }.map { lexicon[it].first }
         val system = if (state.settings.suggestionStrip.useSystemDictionary) {
             runCatching { SystemUserDictionary.spellings(applicationContext) }.getOrDefault(emptyList())
         } else {
             emptyList()
         }
         val engine = suggestionEngine
-        val unlisted = lexicon.asSequence()
-            .filter { (word, _) -> word.length > 1 && !userLexicon.isAddedByHand(word) }
-            .sortedByDescending { it.second }
-            .map { it.first }
-            .filter { engine?.inDictionaries(it.lowercase(), includePlatform = false) != true }
-            .take(limit)
-            .toList()
+        // Most learned words are in the word lists; the ones a recognizer
+        // needs telling about are the names and jargon among the commonest.
+        // Only the top of the dictionary is searched for them, so a store of
+        // tens of thousands of everyday words is not checked word by word.
+        val unlisted = ArrayList<String>(limit)
+        var looked = 0
+        for (i in order) {
+            if (unlisted.size >= limit || looked >= VOICE_BIAS_SCAN) break
+            val word = lexicon[i].first
+            if (word.length <= 1 || handMade[i]) continue
+            looked++
+            if (engine?.inDictionaries(word.lowercase(), includePlatform = false) != true) unlisted.add(word)
+        }
         return byHand + system + unlisted
     }
 
@@ -61303,6 +61360,12 @@ open class WMKeyboardService : InputMethodService() {
         /** How long the recognizer's word list is used before it is gathered again. */
         private const val VOICE_BIAS_TTL_MS = 5 * 60_000L
 
+        /** How long a sent message's learning waits to be saved, gathering the ones after it. */
+        private const val LEARNING_SAVE_DELAY_MS = 30_000L
+
+        /** The most learned words, commonest first, checked against the word lists for voice bias. */
+        private const val VOICE_BIAS_SCAN = 5_000
+
         /** The engines that take the user's words as a hint (#305, #548, #440), Sherpa's as hotwords. */
         private val VOICE_BIAS_ENGINES = setOf("system", "whistle", "whisper", EtEngine.SHERPA.id)
 
@@ -62541,6 +62604,26 @@ private const val IDEOGRAPHIC_SPACE = "\u3000"
  * density alone would leave most keys bare.
  */
 private const val OCTOPUS_POOL_DEPTH = 4
+
+/**
+ * One question to the smart punctuation model, and the key glyph it answered
+ * once asked ([glyph] stays null when the model named no mark). The model
+ * object is part of the question: a new download is a new model.
+ */
+private class PunctuationAsk(
+    val model: PunctuationModel,
+    val words: List<String>,
+    val languageId: String,
+    val allowComma: Boolean,
+    val script: ScriptDef,
+) {
+    @Volatile
+    var glyph: String? = null
+
+    fun sameAs(other: PunctuationAsk): Boolean =
+        model === other.model && languageId == other.languageId && allowComma == other.allowComma &&
+            script == other.script && words == other.words
+}
 
 private class GesturePreviewRequest(
     val points: List<GesturePoint>,
