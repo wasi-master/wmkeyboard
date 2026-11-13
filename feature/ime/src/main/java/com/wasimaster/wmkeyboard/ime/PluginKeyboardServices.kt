@@ -1134,7 +1134,6 @@ internal class PluginKeyboardServices(
         private const val MAX_EVENTS = 500
         private const val MAX_EVENT_TEXT = 500
         private const val MAX_EVENT_NOTES = 4000
-        private const val DAY_MS = 24L * 60 * 60 * 1000
         private const val MAX_TODO_LIST = 1000
         private const val MAX_PHOTO_SAMPLE = 16
         private const val PHOTO_QUALITY = 90
