@@ -195,6 +195,18 @@ data class PowerSavingSettings(
      * [dropEmojiPrediction] is off: a strip that goes blank reads as broken.
      */
     val dropSuggestions: Boolean = false,
+    /**
+     * Let the keyboard ease off by itself while the phone is struggling: hot,
+     * short of memory, dropping the board's frames or slow to read the strip
+     * (see [LoadLevel]). On by default, unlike every trigger above, because
+     * what it gives up while the phone is merely busy is invisible (fewer
+     * frames for a moving theme, a slightly longer wait before the strip
+     * reads), and what it gives up when the phone is struggling (a theme's
+     * motion, the system blur, the words over the keys, panel animations)
+     * comes back by itself once the load has gone. Not a drop: power saving
+     * does not have to be on, and no bundle touches it.
+     */
+    val adaptToLoad: Boolean = true,
 ) {
     /** Whether power saving should be in force given the device's [state]. */
     fun appliesTo(state: DevicePowerState): Boolean {

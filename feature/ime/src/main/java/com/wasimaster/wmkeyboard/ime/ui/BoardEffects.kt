@@ -74,6 +74,11 @@ fun BoardEffectLayer(effect: KbBoardEffect, modifier: Modifier = Modifier, still
         LaunchedEffect(effect) {
             var last = withFrameMillis { it }
             while (true) {
+                // Capped (see ThemeFramePacing): a display's full rate is up
+                // to 120 redraws of the board a second, for motion that 60,
+                // or 30 on a busy phone, draws just as well. The clock steps
+                // by the real time between frames, so the pace is the same.
+                paceBoardEffectFrame()
                 withFrameMillis { now ->
                     val dt = ((now - last).coerceIn(0L, 100L)) / 1000f
                     last = now

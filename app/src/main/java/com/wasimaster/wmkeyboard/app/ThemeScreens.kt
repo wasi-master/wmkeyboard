@@ -2902,6 +2902,9 @@ private fun ThemeCard(
             theme,
             modifier = if (editRoute == null) Modifier
             else Modifier.wmSharedBounds(takeOffKey("preview", editRoute)),
+            // Drawn once and kept as a picture: the gallery is dozens of
+            // cards, and a glass or photo theme is a lot of work per card.
+            cached = true,
         )
         swatches?.invoke()
         Row(verticalAlignment = Alignment.CenterVertically) {

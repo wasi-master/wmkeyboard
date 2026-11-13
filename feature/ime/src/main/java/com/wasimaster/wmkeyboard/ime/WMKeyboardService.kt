@@ -85,6 +85,7 @@ import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.app.CameraPermissionActivity
 import com.wasimaster.wmkeyboard.app.DocScanActivity
 import com.wasimaster.wmkeyboard.app.MainActivityContract
+import com.wasimaster.wmkeyboard.app.ThemePreviewCache
 import com.wasimaster.wmkeyboard.app.MicPermissionActivity
 import com.wasimaster.wmkeyboard.app.SpecialAccess
 import com.wasimaster.wmkeyboard.app.SpecialAccessActivity
@@ -424,7 +425,14 @@ import com.wasimaster.wmkeyboard.core.debug.KeyboardDebugSnapshot
 import com.wasimaster.wmkeyboard.core.settings.withSystemMotion
 import com.wasimaster.wmkeyboard.core.settings.DataSaverSettings
 import com.wasimaster.wmkeyboard.core.settings.DataSaverStatus
+import com.wasimaster.wmkeyboard.core.settings.DeviceLoad
 import com.wasimaster.wmkeyboard.core.settings.DevicePowerState
+import com.wasimaster.wmkeyboard.core.settings.LoadLevel
+import com.wasimaster.wmkeyboard.core.settings.MotionBudget
+import com.wasimaster.wmkeyboard.core.settings.backgroundWorkStretch
+import com.wasimaster.wmkeyboard.core.settings.suggestionDebounceFloorMs
+import com.wasimaster.wmkeyboard.core.settings.underLoad
+import com.wasimaster.wmkeyboard.ime.ui.ThemeFramePacing
 import com.wasimaster.wmkeyboard.core.settings.DeviceNetworkState
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.MeteredFeature
@@ -432,6 +440,7 @@ import com.wasimaster.wmkeyboard.core.settings.CameraSettings
 import com.wasimaster.wmkeyboard.core.settings.PhotoSearchEngine
 import com.wasimaster.wmkeyboard.core.settings.PhotoSearchTarget
 import com.wasimaster.wmkeyboard.core.settings.onMeteredNetwork
+import com.wasimaster.wmkeyboard.core.power.LoadGovernor
 import com.wasimaster.wmkeyboard.core.power.PowerSaver
 import com.wasimaster.wmkeyboard.core.net.NetworkWatcher
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
@@ -1411,6 +1420,29 @@ open class WMKeyboardService : InputMethodService() {
     private val powerSaver = PowerSaver(this)
 
     /**
+     * How hard the phone is working (see [LoadGovernor]): the keyboard's own
+     * frames, the phone's temperature and memory, and what a suggestion pass
+     * costs. Under load the budgets nobody sees tighten ([deviceLoad]); when
+     * the phone is struggling, a settings view takes the theme's motion and
+     * the other per-frame extras away until it calms down ([underLoad]).
+     */
+    private val loadGovernor = LoadGovernor(this)
+
+    /**
+     * The load as it last came out of [loadGovernor], or no load at all when
+     * the user switched adapting off. Read from the suggestion, punctuation
+     * and glide paths, so volatile.
+     */
+    @Volatile
+    private var deviceLoad = DeviceLoad()
+
+    /** Hands [load]'s budgets to the paths that read them. */
+    private fun applyDeviceLoad(load: DeviceLoad) {
+        deviceLoad = load
+        ThemeFramePacing.budget = MotionBudget.of(load)
+    }
+
+    /**
      * The window's blur for a glass theme (see [WindowFrostHost]): the system
      * blurs the app behind the keyboard's window on Android 12 and later, and
      * the keyboard reports whether that can run right now — the phone's own
@@ -1503,6 +1535,8 @@ open class WMKeyboardService : InputMethodService() {
         val network: DeviceNetworkState,
         /** The panel layouts (issue #63), resolved and repaired; their own flow, see [SettingsRepository.panelLayouts]. */
         val panelLayouts: Map<PanelKind, PanelLayoutSpec>,
+        /** The phone is under [LoadLevel.HEAVY] load (see [loadGovernor]). */
+        val struggling: Boolean,
     )
 
     /** Manual pick from the Modes tool; wins until the user switches app. */
@@ -1741,7 +1775,9 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         punctuationJob = serviceScope.launch(suggestionDispatcher) {
-            delay(SMART_PUNCTUATION_DEBOUNCE_MS)
+            // Longer under load: the model is a read per pause in typing,
+            // and on a busy phone the pause has to be a real one.
+            delay(SMART_PUNCTUATION_DEBOUNCE_MS * deviceLoad.backgroundWorkStretch())
             val mark = PunctuationModel.markFor(model.predict(words, languageId), allowComma)
             val glyph = mark?.let { SmartPunctuation.glyph(it, script) }
             ask.glyph = glyph
@@ -5248,6 +5284,15 @@ open class WMKeyboardService : InputMethodService() {
 
         powerSaver.start()
         networkWatcher.start()
+        loadGovernor.start()
+        // The budgets nobody sees follow the load straight away; only the
+        // step to HEAVY goes through the settings (the combine below).
+        serviceScope.launch {
+            loadGovernor.state.collect { load ->
+                val adapting = _uiState.value.settings.powerSaving.adaptToLoad
+                applyDeviceLoad(if (adapting) load else DeviceLoad())
+            }
+        }
         // The Resources screen's "Unload everything" (#1163) goes through
         // the same release the keyboard runs when it is idle, with its checks
         // for a dictation in progress and the panel on screen.
@@ -5394,6 +5439,10 @@ open class WMKeyboardService : InputMethodService() {
                 deviceForm,
                 networkWatcher.state,
                 settingsRepository.panelLayouts,
+                // Only whether the phone is struggling: that is all the
+                // settings view reads, and a settings pass for every change
+                // of the lighter budgets would be work of its own.
+                loadGovernor.state.map { it.level == LoadLevel.HEAVY }.distinctUntilChanged(),
             ) { inputs ->
                 @Suppress("UNCHECKED_CAST")
                 val stored = inputs[0] as KeyboardSettings
@@ -5404,12 +5453,13 @@ open class WMKeyboardService : InputMethodService() {
                 val network = inputs[4] as DeviceNetworkState
                 @Suppress("UNCHECKED_CAST")
                 val panelLayouts = inputs[5] as Map<PanelKind, PanelLayoutSpec>
+                val struggling = inputs[6] as Boolean
                 // Published rather than folded into the settings object: the
                 // rotating photo is laid over a theme where it is drawn, not
                 // written into the theme the user saved.
                 PhotoBackgroundManager.publishRotationStates(rotation)
-                SettingsInputs(stored, power, form, network, panelLayouts)
-            }.collect { (stored, power, form, network, panelLayouts) ->
+                SettingsInputs(stored, power, form, network, panelLayouts, struggling)
+            }.collect { (stored, power, form, network, panelLayouts, struggling) ->
                 // Screen size first, because these are *defaults* — the least
                 // specific thing in the chain, and every overlay below is
                 // entitled to beat them. It also has to precede direct boot: a
@@ -5439,9 +5489,21 @@ open class WMKeyboardService : InputMethodService() {
                 // own switch: the phone's battery saver is never read here. (It
                 // does stop the blur all the same, by switching the system's
                 // cross-window blur off, which the listener reports.)
-                windowFrost.powerSaving.value = saving && unlockedSettings.powerSaving.dropGlassBlur
+                // Adapting to load is the user's to switch off; off, the
+                // governor stops listening and its load reads as none.
+                val adapting = unlockedSettings.powerSaving.adaptToLoad
+                loadGovernor.setEnabled(adapting)
+                val heavy = adapting && struggling
+                // A struggling phone gives up the system blur too: it is GPU
+                // work in the compositor on every frame the keyboard is up.
+                windowFrost.powerSaving.value =
+                    (saving && unlockedSettings.powerSaving.dropGlassBlur) || heavy
+                // Load after power saving: both only take away, and the load
+                // view is the one that comes back by itself.
                 val savedSettings =
-                    if (saving) unlockedSettings.underPowerSaving() else unlockedSettings
+                    (if (saving) unlockedSettings.underPowerSaving() else unlockedSettings)
+                        .underLoad(if (heavy) LoadLevel.HEAVY else LoadLevel.NORMAL)
+                applyDeviceLoad(if (adapting) loadGovernor.state.value else DeviceLoad())
                 // Data saving last of the three views: it is the one keyed to
                 // something outside the phone, and it should be able to take
                 // away a fetch that power saving was still happy to make.
@@ -9403,6 +9465,9 @@ open class WMKeyboardService : InputMethodService() {
         // moment it can start mattering, and a keyboard that wakes on every
         // percentage point to decide whether to save power is self-defeating.
         powerSaver.refresh()
+        // Memory and the thermal forecast are read when the keyboard comes up,
+        // for the same reason.
+        loadGovernor.refresh()
         // Same reasoning for the network: the callback may have fired while
         // this process was gone, and this is the moment the answer starts
         // mattering again.
@@ -10958,6 +11023,8 @@ open class WMKeyboardService : InputMethodService() {
         onKeyguardGone()
         lifecycleOwner.onResume()
         jankMonitor.start(window.window)
+        // The board's own frames are one of the load readings.
+        if (_uiState.value.settings.powerSaving.adaptToLoad) loadGovernor.attach(window.window)
         // The screenshot watcher was only registered when the setting changed,
         // so a photos grant that came after it (the toggle goes on first, the
         // permission second) or a start without one left it off until the
@@ -10985,6 +11052,7 @@ open class WMKeyboardService : InputMethodService() {
         forcedShowUp = false
         lifecycleOwner.onStop()
         jankMonitor.stop()
+        loadGovernor.detach()
         // A drop made while the keyboard was up lasted until now.
         floatingButtonDismissed = false
         // A chat name the model proposed on the keyboard's chat and nobody
@@ -11226,6 +11294,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         powerSaver.stop()
         networkWatcher.stop()
+        loadGovernor.stop()
         ResidentModels.keyboardRelease = null
         (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
             .removePrimaryClipChangedListener(clipboardListener)
@@ -11441,6 +11510,10 @@ open class WMKeyboardService : InputMethodService() {
         // from the file. Trimmed at every level, since holding them through an
         // idle hour is part of what gets a keyboard killed.
         BackgroundBitmapCache.trim(level)
+        // Theme card pictures: the disk keeps them, so memory can let go.
+        ThemePreviewCache.trim(level)
+        // A phone short of memory is a phone under load.
+        loadGovernor.noteTrimMemory(level)
         @Suppress("DEPRECATION")
         if (level >= ComponentCallbacks2.TRIM_MEMORY_MODERATE) {
             releaseHeavyEngines(onScreen = true)
@@ -29807,7 +29880,9 @@ open class WMKeyboardService : InputMethodService() {
             // on the main thread (see [commitResolution] in commitComposing),
             // which is the cost this is trying to avoid. Devices that are fast
             // enough for cost/2 to stay under the old 40 ms are unaffected.
-            delay((suggestionCostMs / 2).coerceIn(16L, MAX_SUGGESTION_DEBOUNCE_MS))
+            // A busier phone waits a little longer for the burst to end
+            // (see suggestionDebounceFloorMs), so it reads once, not per key.
+            delay((suggestionCostMs / 2).coerceIn(deviceLoad.suggestionDebounceFloorMs(), MAX_SUGGESTION_DEBOUNCE_MS))
             val started = SystemClock.uptimeMillis()
             val touchFrame = composingTouchFrame()
             // Snapshot with the taps, for the same reason: the key sets belong
@@ -30172,6 +30247,7 @@ open class WMKeyboardService : InputMethodService() {
             }
             val results = if (typed.isEmpty()) withRestWords(completed, state) else completed
             suggestionCostMs = (suggestionCostMs + (SystemClock.uptimeMillis() - started)) / 2
+            loadGovernor.noteSuggestionCost(suggestionCostMs)
             // Drop emoji the device can't draw, then apply the default skin tone
             // (filter first — the hidden set is keyed by the neutral base).
             val hidden = _uiState.value.hiddenEmoji
@@ -33704,7 +33780,10 @@ open class WMKeyboardService : InputMethodService() {
                 // waits here.
                 val spent = SystemClock.uptimeMillis() - readFrom
                 if (spent >= GLIDE_PREVIEW_PACE_FROM_MS) {
-                    delay(spent.coerceAtMost(GLIDE_PREVIEW_PACE_MAX_MS))
+                    // Twice as long under load, so the trail's frames and
+                    // the lift's read get the core the previews were holding.
+                    val stretch = deviceLoad.backgroundWorkStretch().coerceAtMost(2)
+                    delay((spent * stretch).coerceAtMost(GLIDE_PREVIEW_PACE_MAX_MS * stretch))
                 }
             }
         }

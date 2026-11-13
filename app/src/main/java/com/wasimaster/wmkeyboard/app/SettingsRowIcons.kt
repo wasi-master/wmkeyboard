@@ -1633,6 +1633,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_power_drop_suggestions_title) { Icons.Outlined.Lightbulb }
         put(R.string.tooldetail_power_drop_floating_button_title) { Icons.Outlined.Adjust }
         put(R.string.tooldetail_power_drop_warm_models_title) { Icons.Outlined.Memory }
+        put(R.string.tooldetail_power_adapt_title) { Icons.Outlined.Speed }
 
         // ---- Media control tool ----
         put(R.string.tooldetail_mediactl_pin_title) { Icons.Outlined.PushPin }

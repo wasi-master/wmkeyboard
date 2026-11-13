@@ -83,6 +83,22 @@ Power saving only does anything *useful* if at least one of these is on. Turn ev
 
 If what you're protecting is a data allowance rather than a battery, [Data saver](/privacy/data-saver/) is the same idea pointed at the network, with a per-feature ask-first answer power saving has no use for. Both can be on at once, and either one holding a fetch back is enough.
 
+## When the phone is busy
+
+<SettingsPath path="Tools / Power saving" />
+
+**Adapt to the phone's load** is on by default, and it works whether or not power saving is. The keyboard keeps an eye on four things that cost it next to nothing to read: how many of its own frames arrive late, how long the suggestion strip takes to read after a key, the phone's temperature (Android 10 and later), and whether the phone is short of memory. From those it settles on one of three states.
+
+- **Calm.** Everything runs as you set it.
+- **Busy.** The keyboard saves work you can't see. A moving background draws 30 frames a second instead of 60, and an animated gradient 15 instead of 30. The suggestion strip, the [smart punctuation key](/smart/autocorrect/#the-smart-punctuation-key) and glide previews wait a little longer for a burst of typing to end, so a run of keys costs one read instead of several. A phone with little memory or a slow processor stays at this level all the time, even when nothing else is running.
+- **Struggling.** On top of that, a moving theme holds still, the system blur behind a [glass theme](/themes/glass/) stops, [Words on the keys](/typing/words-on-the-keys/) goes, and panel animations are cut.
+
+The keyboard moves up a state after a couple of seconds of strain, or at once when the phone is hot or the system asks for memory. It moves back down one state at a time, and only after half a minute of calm. When stilling a theme was what fixed the frames, the theme moving again would bring the stutter straight back, so each quick return doubles the calm it waits for next time, up to ten minutes. Like power saving, this is a view over your settings: nothing you chose is changed, and every feature comes back by itself.
+
+Turn the switch off if you would rather the keyboard always look and behave the same, whatever the phone is doing.
+
+Some of this applies to everyone, all the time. A [moving background](/themes/editor/#moving-background) never draws more than 60 frames a second, and an animated gradient never more than 30, however fast the screen refreshes. On a 120 Hz screen that halves or quarters what a moving theme costs, and nobody can tell the difference.
+
 ## Options
 
 <SettingsPath path="Tools / Power saving" />
@@ -96,6 +112,8 @@ The **Power saving** group holds the controls above:
 | Turn on by itself | Only when I turn it on |
 | Low battery is | 20% (5%–50% range) |
 | Off while charging | On |
+
+**Adapt to the phone's load** (on) sits in its own **When the phone is busy** card below it.
 
 Below it the seventeen switches sit in three cards, shown at the Everything settings depth: **Effects to drop** (Key vibration, Key sounds, Animations, Glide trail, Glass blur, Moving themes, Dark theme), **Typing helpers to drop** (Glide typing, Emoji suggestions, Smart chips, Word suggestions) and **Background work to drop** (Background network, Screenshot watching, On-device models, Media tool pin, Floating button, Loaded models). The key popup and the typing statistics are no longer droppable: the popup is cheap to draw and the counters are a few integer bumps per keystroke, so neither saved anything you could measure.
 

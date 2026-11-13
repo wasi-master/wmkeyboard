@@ -1457,7 +1457,7 @@ private fun ThemesPanelBody(
                     nameOnDark = Color(theme.boardBackground.toInt()).luminance() < 0.5f,
                     focused = focused == index + 1,
                     onClick = { if (!locked) onThemeSelect(theme.id) },
-                ) { ThemePreview(theme) }
+                ) { ThemePreview(theme, cached = true) }
             }
             getMoreItem(
                 labelRes = R.string.ime_themes_more_label,

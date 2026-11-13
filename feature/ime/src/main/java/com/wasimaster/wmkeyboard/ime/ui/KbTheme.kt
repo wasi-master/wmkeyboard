@@ -4,11 +4,6 @@ import android.content.Context
 import android.os.Build
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -28,7 +23,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.withFrameMillis
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -2280,23 +2277,23 @@ fun autoKbTheme(settings: KeyboardSettings): KbTheme {
 @Composable
 fun themeAnimationPhase(animation: ThemeAnimation, speed: Float, reduceMotion: Boolean): () -> Float {
     if (animation == ThemeAnimation.NONE || reduceMotion) return NoThemePhase
-    val transition = rememberInfiniteTransition(label = "themeAnim")
-    val phase = transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = (16000f / speed.coerceIn(0.25f, 3f)).toInt(),
-                easing = LinearEasing,
-            ),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "phase",
-    )
+    val periodMs = (16000f / speed.coerceIn(0.25f, 3f)).toLong().coerceAtLeast(1L)
+    val phase = remember { mutableFloatStateOf(0f) }
+    // A frame loop of its own rather than an infinite transition, so it can
+    // be paced (see ThemeFramePacing): the flow takes many seconds to go
+    // round, and drawing it at the display's 90 or 120 Hz redrew the whole
+    // board that often for a change nobody could see between two frames.
+    LaunchedEffect(periodMs) {
+        val start = withFrameMillis { it } - (phase.floatValue * periodMs).toLong()
+        while (true) {
+            paceThemeFlowFrame()
+            withFrameMillis { now -> phase.floatValue = ((now - start) % periodMs) / periodMs.toFloat() }
+        }
+    }
     // Handed out as a reader rather than the value, so the frame-by-frame
     // change lands in the draw that asks for it. Read here, it recomposed
     // [BoardBackground] on every frame for as long as the keyboard was up.
-    return remember(phase) { { phase.value } }
+    return remember(phase) { { phase.floatValue } }
 }
 
 private val NoThemePhase: () -> Float = { 0f }

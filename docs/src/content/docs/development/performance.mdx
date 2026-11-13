@@ -25,6 +25,17 @@ adb logcat -s WMJank
 
 The property is read each time the window comes back, so hide and show the keyboard (or leave and reopen the settings app) after setting it. A summary names the window, counts its frames and janky frames, and gives the worst one. Every janky frame is tagged with the screen that was showing: the keyboard's open panel, or the settings route. A stutter that only happens in the emoji panel says so. A frame counts as janky by JankStats' own measure, twice the display's refresh interval. `adb shell setprop log.tag.WMJank ""` turns it off again.
 
+### Watching the keyboard adapt to load
+
+`LoadGovernor` (in `core/settings`) reads the keyboard's own frame metrics, the strip's measured pass cost, the thermal status and the trim-memory callbacks, and turns them into a `LoadLevel` that the service applies as budgets and, at `HEAVY`, as a settings view (`underLoad`). Each change of level can be logged:
+
+```sh
+adb shell setprop log.tag.WMLoad DEBUG
+adb logcat -s WMLoad
+```
+
+A line names the new level, the phone's class and the reading from each signal, plus the calm the next step down will wait for. To push a phone into the thermal path without heating it, `adb shell cmd thermalservice override-status 3` reports a severe status (`reset` undoes it); `adb shell am send-trim-memory com.wasimaster.wmkeyboard RUNNING_CRITICAL` exercises the memory path. The user-facing description is [When the phone is busy](/typing/power-saving/#when-the-phone-is-busy).
+
 ## Where did a frame go?
 
 ```sh

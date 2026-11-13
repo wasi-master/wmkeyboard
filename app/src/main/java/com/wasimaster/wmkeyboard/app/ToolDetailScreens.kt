@@ -1904,6 +1904,20 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setPowerSavingOffWhileCharging(it) } }
                 }
             }
+            // Not part of power saving's switch or bundles: it runs whether or
+            // not saving is on, and is here because it is the same question,
+            // what the keyboard gives up and when.
+            SettingsGroup(stringResource(R.string.tooldetail_power_load_group)) {
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_power_adapt_title,
+                        stringResource(R.string.tooldetail_power_adapt_subtitle),
+                        settings.watch { it.powerSaving.adaptToLoad },
+                        info = stringResource(R.string.tooldetail_power_adapt_info),
+                        default = SettingsDefaults.powerSaving.adaptToLoad,
+                    ) { scope.launch { repository.setPowerSavingAdaptToLoad(it) } }
+                }
+            }
             SettingsGroup(
                 stringResource(R.string.tooldetail_power_drop_group),
                 info = stringResource(R.string.tooldetail_power_info),

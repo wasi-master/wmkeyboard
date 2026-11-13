@@ -1,5 +1,21 @@
 package com.wasimaster.wmkeyboard.app
 
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import com.wasimaster.wmkeyboard.ime.ui.DECAL_DECODE_PX
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -116,15 +132,35 @@ fun ThemePreview(
     imageOverride: Any? = null,
     landscape: Boolean = false,
     animatedBadge: Boolean = true,
-) = ThemePreviewContent(
+    /**
+     * Draw the card once and keep it as a picture ([ThemePreviewCache]), for
+     * the galleries that show many cards and show them again: the Themes
+     * screen and the keyboard's theme panel. Off for a preview that follows
+     * an edit as it happens, where every picture would be thrown away.
+     */
+    cached: Boolean = false,
+) {
     // In the wallpaper's colours when the theme follows it, so the card and
     // the keyboard never disagree about what the theme looks like today.
-    theme = rememberWallpaperFollowed(theme),
-    modifier = modifier,
-    imageOverride = imageOverride,
-    landscape = landscape,
-    animatedBadge = animatedBadge,
-)
+    val shown = rememberWallpaperFollowed(theme)
+    val image = imageOverride as? String
+    // A photo still on the service's server is drawn straight from there,
+    // and is only ever looked at once, so it is not worth a picture.
+    if (cached && (imageOverride == null || (image != null && !image.startsWith("http")))) {
+        CachedThemePreview(shown, modifier, image, landscape, animatedBadge)
+    } else {
+        ThemePreviewContent(shown, modifier, imageOverride, landscape, animatedBadge)
+    }
+}
+
+/** The card's frame: keyboard-shaped and rounded, the same for the live card and its picture. */
+private fun Modifier.previewFrame(landscape: Boolean): Modifier =
+    fillMaxWidth()
+        // Shaped like a keyboard rather than like a letterbox. The old
+        // fixed height made every preview a wide, flat strip that told the
+        // user very little about how the real thing would look.
+        .aspectRatio(if (landscape) PREVIEW_ASPECT_LANDSCAPE else PREVIEW_ASPECT_PORTRAIT)
+        .clip(RoundedCornerShape(10.dp))
 
 @Composable
 private fun ThemePreviewContent(
@@ -133,6 +169,180 @@ private fun ThemePreviewContent(
     imageOverride: Any?,
     landscape: Boolean,
     animatedBadge: Boolean,
+) {
+    // The size the preview is really drawn at, so its photo is decoded for
+    // that and not for the whole screen. A gallery card is half the screen
+    // wide, and decoding every one of them at full width cost four times the
+    // memory, which also pushed the shared bitmap cache into evicting what
+    // the next card back up the list needed again. Nothing is decoded before
+    // the first measure, which the old screen-width guess only hid: the
+    // decode was asynchronous then too.
+    var drawnWidth by remember { mutableIntStateOf(0) }
+    Box(
+        modifier = modifier
+            .previewFrame(landscape)
+            .onSizeChanged { if (it.width != drawnWidth) drawnWidth = it.width },
+    ) {
+        ThemePreviewBody(theme, imageOverride, landscape, drawnWidth, loads = null)
+        if (animatedBadge && theme.animation != ThemeAnimation.NONE) {
+            AnimatedThemeBadge(
+                theme = theme,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(6.dp),
+            )
+        }
+    }
+}
+
+/**
+ * A card drawn once and then shown as a picture (see [ThemePreviewCache]).
+ *
+ * The picture is found by the theme itself on the main thread when this
+ * process has drawn it before, from disk otherwise. Only when neither has
+ * it is the card drawn live, as it always was, and taken as a picture once
+ * everything it loads (the photo, the glass backdrop, the texture, the
+ * stickers) is in. From then on the card is one image: no decoding, no
+ * glass nodes, nothing to compose but the image and the badge.
+ */
+@Composable
+private fun CachedThemePreview(
+    theme: ThemeSpec,
+    modifier: Modifier,
+    image: String?,
+    landscape: Boolean,
+    animatedBadge: Boolean,
+) {
+    val context = LocalContext.current
+    val density = LocalDensity.current.density
+    var widthPx by remember { mutableIntStateOf(0) }
+    // The last picture of this theme while the right one is looked up, so a
+    // card that scrolls back into view is never blank for a frame.
+    var picture by remember(theme.id, image, landscape) {
+        mutableStateOf(ThemePreviewCache.stale(theme, image, landscape))
+    }
+    var render by remember(theme, image, landscape) { mutableStateOf<CardRender?>(null) }
+    val layer = rememberGraphicsLayer()
+    LaunchedEffect(theme, image, landscape, widthPx, density) {
+        if (widthPx == 0) return@LaunchedEffect
+        ThemePreviewCache.known(theme, image, landscape, widthPx)?.let { known ->
+            picture = known
+            render = null
+            return@LaunchedEffect
+        }
+        val key = withContext(Dispatchers.Default) {
+            ThemePreviewCache.keyOf(context, theme, image, landscape, widthPx, density)
+        }
+        ThemePreviewCache.noteKey(theme, image, landscape, widthPx, key)
+        val found = ThemePreviewCache.get(key) ?: ThemePreviewCache.load(context, key)
+        if (found != null) {
+            ThemePreviewCache.put(theme, image, landscape, key, found)
+            picture = found
+            render = null
+            return@LaunchedEffect
+        }
+        // Decoded ahead, so the live card's own loads find them in the
+        // cache in its first frames instead of racing the picture.
+        withContext(Dispatchers.IO) { preloadThemeImages(theme, image, landscape, widthPx) }
+        val job = CardRender()
+        // The old picture goes as the live card comes up, in the same frame:
+        // a glass board drawn over it would show it through.
+        picture = null
+        render = job
+        job.drawn.await()
+        // Everything the card loads for itself, then a moment for the last
+        // of it to draw. A card whose loads never finish (a file that went
+        // away mid-read) stays live and keeps nothing.
+        withTimeoutOrNull(CARD_LOADS_TIMEOUT_MS) {
+            snapshotFlow { job.loads.ready }.first { it }
+        } ?: return@LaunchedEffect
+        repeat(CARD_SETTLE_FRAMES) { withFrameNanos { } }
+        delay(CARD_SETTLE_MS)
+        val taken = layer.toImageBitmap()
+        ThemePreviewCache.put(theme, image, landscape, key, taken)
+        ThemePreviewCache.save(context, key, taken)
+        picture = taken
+        render = null
+    }
+    Box(
+        modifier = modifier
+            .previewFrame(landscape)
+            .onSizeChanged { if (it.width != widthPx) widthPx = it.width },
+    ) {
+        val job = render
+        val shownPicture = picture
+        if (job != null) {
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .drawWithContent {
+                        layer.record { this@drawWithContent.drawContent() }
+                        drawLayer(layer)
+                        job.drawn.complete(Unit)
+                    },
+            ) {
+                // Fresh state per drawing, so a flag left from the last one
+                // cannot say the new one's loads are in.
+                key(job) { ThemePreviewBody(theme, image, landscape, widthPx, job.loads) }
+            }
+        } else if (shownPicture != null) {
+            Image(
+                bitmap = shownPicture,
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.matchParentSize(),
+            )
+        } else {
+            // A frame or two while the picture is looked up: the board's
+            // own colour, which is what the card opens on anyway.
+            Box(Modifier.matchParentSize().background(colorOf(theme.boardBackground).copy(alpha = 1f)))
+        }
+        if (animatedBadge && theme.animation != ThemeAnimation.NONE) {
+            AnimatedThemeBadge(
+                theme = theme,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(6.dp),
+            )
+        }
+    }
+}
+
+/** A card being drawn live to be taken as a picture. */
+private class CardRender {
+    val drawn = CompletableDeferred<Unit>()
+    val loads = PreviewLoads()
+}
+
+/** Whether everything a live card loads for itself has arrived. */
+private class PreviewLoads {
+    var ready by mutableStateOf(false)
+}
+
+/**
+ * Decodes the pictures [ThemeBackgroundImage] and [DecalsCanvas] will ask
+ * for, at the sizes they will ask for them, into [BackgroundBitmapCache].
+ */
+private suspend fun preloadThemeImages(theme: ThemeSpec, image: String?, landscape: Boolean, widthPx: Int) {
+    val themeImage = if (landscape) theme.backgroundImageLandscape ?: theme.backgroundImage else theme.backgroundImage
+    val heightPx = (widthPx / PREVIEW_ASPECT_PORTRAIT).toInt()
+    (image ?: themeImage)?.let { BackgroundBitmapCache.load(it, theme.backgroundImageBlur, widthPx, heightPx) }
+    for (decal in theme.decals) {
+        decal.image?.let { BackgroundBitmapCache.load(it, 0f, DECAL_DECODE_PX, DECAL_DECODE_PX) }
+    }
+}
+
+/**
+ * The card's drawing, inside a box the caller sizes and clips. [loads] hears
+ * when what it loads for itself (the glass backdrop, the key texture) is in.
+ */
+@Composable
+private fun BoxScope.ThemePreviewBody(
+    theme: ThemeSpec,
+    imageOverride: Any?,
+    landscape: Boolean,
+    drawnWidth: Int,
+    loads: PreviewLoads?,
 ) {
     // Half the 3 dp the rows space their keys by, so a leaning shape spills
     // into the gap here exactly as it does on the keyboard itself.
@@ -154,167 +364,148 @@ private fun ThemePreviewContent(
             theme.toolCircleRadiusDp ?: 20,
         )
     }
-    // The size the preview is really drawn at, so its photo is decoded for
-    // that and not for the whole screen. A gallery card is half the screen
-    // wide, and decoding every one of them at full width cost four times the
-    // memory, which also pushed the shared bitmap cache into evicting what
-    // the next card back up the list needed again. Nothing is decoded before
-    // the first measure, which the old screen-width guess only hid: the
-    // decode was asynchronous then too.
-    var drawnWidth by remember { mutableIntStateOf(0) }
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            // Shaped like a keyboard rather than like a letterbox. The old
-            // fixed height made every preview a wide, flat strip that told the
-            // user very little about how the real thing would look.
-            .aspectRatio(if (landscape) PREVIEW_ASPECT_LANDSCAPE else PREVIEW_ASPECT_PORTRAIT)
-            .clip(RoundedCornerShape(10.dp))
-            .onSizeChanged { if (it.width != drawnWidth) drawnWidth = it.width },
-    ) {
-        val themeImage = if (landscape) {
-            theme.backgroundImageLandscape ?: theme.backgroundImage
-        } else {
-            theme.backgroundImage
-        }
-        val targetW = drawnWidth
-        val targetH = (targetW / PREVIEW_ASPECT_PORTRAIT).toInt()
-        val measured = targetW > 0
-        // The glass, as the keyboard draws it where the window is not blurred
-        // (the gallery has no app behind it): the image, or the wallpaper's
-        // band, baked blurred for the keys to sample, and the wallpaper as the
-        // board's own picture. Without either the glass is the keys' own
-        // translucency, their rim and their grain.
-        val frost = theme.frost?.let { resolveFrost(it, theme.dark) }
-        val backdrop = if (frost != null) remember { FrostBackdrop() } else null
-        val glassImage = (imageOverride as? String)?.takeUnless { it.startsWith("http") } ?: themeImage
-        val kind = frost?.backdropKind(hasImage = glassImage != null, blurLive = false)
-        if (frost != null && backdrop != null && measured) {
-            val context = LocalContext.current
-            val configuration = LocalConfiguration.current
-            LaunchedEffect(backdrop, kind, frost.backdropBlur, frost.saturation, frost.brightness, frost.wallpaperBand, glassImage, targetW, targetH, configuration) {
-                backdrop.bitmap = when (kind) {
-                    null -> null
-                    BackdropKind.IMAGE -> glassImage?.let {
-                        BackgroundBitmapCache.loadFrosted(
-                            it, frost.backdropBlur, frost.saturation, frost.brightness, targetW, targetH,
-                        )?.asImageBitmap()
-                    }
-                    else -> WallpaperBackdrop.loadFrosted(
-                        context, frost.wallpaperBand, frost.backdropBlur, frost.saturation, frost.brightness,
-                        targetW, targetH, theme.dark,
-                        fallbackColors = listOf(theme.boardBackground, theme.accent, theme.keyBackground),
+    val themeImage = if (landscape) {
+        theme.backgroundImageLandscape ?: theme.backgroundImage
+    } else {
+        theme.backgroundImage
+    }
+    val targetW = drawnWidth
+    val targetH = (targetW / PREVIEW_ASPECT_PORTRAIT).toInt()
+    val measured = targetW > 0
+    // The glass, as the keyboard draws it where the window is not blurred
+    // (the gallery has no app behind it): the image, or the wallpaper's
+    // band, baked blurred for the keys to sample, and the wallpaper as the
+    // board's own picture. Without either the glass is the keys' own
+    // translucency, their rim and their grain.
+    val frost = theme.frost?.let { resolveFrost(it, theme.dark) }
+    val backdrop = if (frost != null) remember { FrostBackdrop() } else null
+    val glassImage = (imageOverride as? String)?.takeUnless { it.startsWith("http") } ?: themeImage
+    val kind = frost?.backdropKind(hasImage = glassImage != null, blurLive = false)
+    var backdropLoaded by remember { mutableStateOf(false) }
+    if (frost != null && backdrop != null && measured) {
+        val context = LocalContext.current
+        val configuration = LocalConfiguration.current
+        LaunchedEffect(backdrop, kind, frost.backdropBlur, frost.saturation, frost.brightness, frost.wallpaperBand, glassImage, targetW, targetH, configuration) {
+            backdrop.bitmap = when (kind) {
+                null -> null
+                BackdropKind.IMAGE -> glassImage?.let {
+                    BackgroundBitmapCache.loadFrosted(
+                        it, frost.backdropBlur, frost.saturation, frost.brightness, targetW, targetH,
                     )?.asImageBitmap()
                 }
+                else -> WallpaperBackdrop.loadFrosted(
+                    context, frost.wallpaperBand, frost.backdropBlur, frost.saturation, frost.brightness,
+                    targetW, targetH, theme.dark,
+                    fallbackColors = listOf(theme.boardBackground, theme.accent, theme.keyBackground),
+                )?.asImageBitmap()
             }
+            backdropLoaded = true
         }
-        // The board's picture frosted, as the keyboard draws it: the wallpaper
-        // band always, a theme image when the theme frosts the board too.
-        if (kind == BackdropKind.WALLPAPER || (kind == BackdropKind.IMAGE && frost?.blurBoard == true && !frost.cutout)) {
-            backdrop?.bitmap?.let { picture ->
-                Image(
-                    bitmap = picture,
-                    contentDescription = null,
-                    modifier = Modifier.matchParentSize(),
-                    contentScale = ContentScale.Crop,
-                )
-            }
-        }
-        // Nothing to stand on and no blur: the board at its fallback opacity,
-        // as the keyboard draws it on a phone that cannot blur.
-        val boardFloor = frost?.takeIf { it.windowBlur && kind == null }?.fallbackOpacity
-        val remote = imageOverride as? String
-        // The board's colour, solid, under the picture, as the keyboard lays
-        // it (#1222): the picture's opacity fades it into the board.
-        if ((remote ?: themeImage) != null && frost?.windowBlur != true && frost?.cutout != true) {
-            Box(modifier = Modifier.matchParentSize().background(colorOf(theme.boardBackground).copy(alpha = 1f)))
-        }
-        if (remote != null && remote.startsWith("http")) {
-            // A photo being considered has not been downloaded yet, so it is
-            // shown straight from the service. Without this the preview drew
-            // whatever the theme already had, which answered the wrong question.
-            AsyncImage(
-                model = remote,
+    }
+    // The board's picture frosted, as the keyboard draws it: the wallpaper
+    // band always, a theme image when the theme frosts the board too.
+    if (kind == BackdropKind.WALLPAPER || (kind == BackdropKind.IMAGE && frost?.blurBoard == true && !frost.cutout)) {
+        backdrop?.bitmap?.let { picture ->
+            Image(
+                bitmap = picture,
                 contentDescription = null,
-                imageLoader = rememberMediaImageLoader(),
-                modifier = Modifier
-                    .matchParentSize()
-                    .alpha(theme.backgroundImageOpacity),
+                modifier = Modifier.matchParentSize(),
                 contentScale = ContentScale.Crop,
-            )
-        } else if (measured && !(frost?.cutout == true && kind == BackdropKind.IMAGE && !theme.backgroundAnimated)) {
-            // A picture-on-keys theme leaves the picture to the keys' glass.
-            ThemeBackgroundImage(
-                path = remote ?: themeImage,
-                blur = theme.backgroundImageBlur,
-                opacity = theme.backgroundImageOpacity,
-                targetW = targetW,
-                targetH = targetH,
-            )
-        }
-        // Static (phase 0) gradient — the preview doesn't animate.
-        val boardGradient = theme.boardGradient
-        val boardModifier = Modifier.matchParentSize()
-            .then(if (backdrop != null) Modifier.frostLocalBoardBounds(backdrop) else Modifier)
-        if (boardGradient != null) {
-            Box(modifier = boardModifier.background(boardGradient.brush()))
-        } else {
-            val board = colorOf(theme.boardBackground).let { color ->
-                if (boardFloor == null || color.alpha >= boardFloor) color else color.copy(alpha = boardFloor)
-            }
-            Box(modifier = boardModifier.background(board))
-        }
-        // The skin's board art and a still frame of the moving board, as the
-        // keyboard layers them: over the board colour, under the keys.
-        theme.keySkin?.board?.let { slot ->
-            val palette = remember(theme) { theme.skinPalette() }
-            Box(
-                Modifier.matchParentSize().drawWithCache {
-                    val art = KeySkinDrawing.of(slot, size, SkinRoles(palette, palette.board, palette.label))
-                    onDrawBehind { art.draw(this, false) }
-                },
-            )
-        }
-        val boardEffect = theme.boardEffect?.let { resolveBoardEffect(it, colorOf(theme.accent), colorOf(theme.keyText)) }
-        boardEffect?.takeUnless { it.kind.onPress }?.let { BoardEffectLayer(it, Modifier.matchParentSize(), still = true) }
-        // The letter-key texture, drawn the way the real board draws it: over
-        // the key colour, clipped to the key shape. One 128 px decode serves
-        // every key of the mock-up.
-        val texturePath = theme.keyTexture?.takeIf { theme.keyShape != KeyShapeKind.NONE }
-        val texture by produceState<ImageBitmap?>(null, texturePath) {
-            value = texturePath?.let {
-                BackgroundBitmapCache.load(it, 0f, PREVIEW_TEXTURE_PX, PREVIEW_TEXTURE_PX)
-                    ?.asImageBitmap()
-            }
-        }
-        if (frost == null || backdrop == null) {
-            // One node for the toolbar and every key. Drawn as composables,
-            // each preview was some forty-five layout nodes, and a gallery of
-            // forty themes composed and measured every one of them before it
-            // could draw its first card.
-            val grid = remember(theme, keyShape, toolShape, texture) {
-                Modifier.previewKeyGrid(theme, keyShape, toolShape, texture)
-            }
-            Spacer(Modifier.matchParentSize().then(grid))
-        } else {
-            GlassPreviewKeys(theme, keyShape, toolShape, texture, PreviewGlass(frost, backdrop))
-        }
-        // Stickers over the mock-up keys, the same normalized placement the
-        // real grid uses. The toolbar row is excluded there and included here;
-        // at this scale the difference does not read.
-        DecalsCanvas(theme.decals)
-        // A press splash lands over the keys on the keyboard, so it does here,
-        // caught part way as a picture.
-        boardEffect?.takeIf { it.kind.onPress }?.let { BoardEffectLayer(it, Modifier.matchParentSize(), still = true) }
-        if (animatedBadge && theme.animation != ThemeAnimation.NONE) {
-            AnimatedThemeBadge(
-                theme = theme,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(6.dp),
             )
         }
     }
+    // Nothing to stand on and no blur: the board at its fallback opacity,
+    // as the keyboard draws it on a phone that cannot blur.
+    val boardFloor = frost?.takeIf { it.windowBlur && kind == null }?.fallbackOpacity
+    val remote = imageOverride as? String
+    // The board's colour, solid, under the picture, as the keyboard lays
+    // it (#1222): the picture's opacity fades it into the board.
+    if ((remote ?: themeImage) != null && frost?.windowBlur != true && frost?.cutout != true) {
+        Box(modifier = Modifier.matchParentSize().background(colorOf(theme.boardBackground).copy(alpha = 1f)))
+    }
+    if (remote != null && remote.startsWith("http")) {
+        // A photo being considered has not been downloaded yet, so it is
+        // shown straight from the service. Without this the preview drew
+        // whatever the theme already had, which answered the wrong question.
+        AsyncImage(
+            model = remote,
+            contentDescription = null,
+            imageLoader = rememberMediaImageLoader(),
+            modifier = Modifier
+                .matchParentSize()
+                .alpha(theme.backgroundImageOpacity),
+            contentScale = ContentScale.Crop,
+        )
+    } else if (measured && !(frost?.cutout == true && kind == BackdropKind.IMAGE && !theme.backgroundAnimated)) {
+        // A picture-on-keys theme leaves the picture to the keys' glass.
+        ThemeBackgroundImage(
+            path = remote ?: themeImage,
+            blur = theme.backgroundImageBlur,
+            opacity = theme.backgroundImageOpacity,
+            targetW = targetW,
+            targetH = targetH,
+        )
+    }
+    // Static (phase 0) gradient — the preview doesn't animate.
+    val boardGradient = theme.boardGradient
+    val boardModifier = Modifier.matchParentSize()
+        .then(if (backdrop != null) Modifier.frostLocalBoardBounds(backdrop) else Modifier)
+    if (boardGradient != null) {
+        Box(modifier = boardModifier.background(boardGradient.brush()))
+    } else {
+        val board = colorOf(theme.boardBackground).let { color ->
+            if (boardFloor == null || color.alpha >= boardFloor) color else color.copy(alpha = boardFloor)
+        }
+        Box(modifier = boardModifier.background(board))
+    }
+    // The skin's board art and a still frame of the moving board, as the
+    // keyboard layers them: over the board colour, under the keys.
+    theme.keySkin?.board?.let { slot ->
+        val palette = remember(theme) { theme.skinPalette() }
+        Box(
+            Modifier.matchParentSize().drawWithCache {
+                val art = KeySkinDrawing.of(slot, size, SkinRoles(palette, palette.board, palette.label))
+                onDrawBehind { art.draw(this, false) }
+            },
+        )
+    }
+    val boardEffect = theme.boardEffect?.let { resolveBoardEffect(it, colorOf(theme.accent), colorOf(theme.keyText)) }
+    boardEffect?.takeUnless { it.kind.onPress }?.let { BoardEffectLayer(it, Modifier.matchParentSize(), still = true) }
+    // The letter-key texture, drawn the way the real board draws it: over
+    // the key colour, clipped to the key shape. One 128 px decode serves
+    // every key of the mock-up.
+    val texturePath = theme.keyTexture?.takeIf { theme.keyShape != KeyShapeKind.NONE }
+    var textureLoaded by remember(texturePath) { mutableStateOf(texturePath == null) }
+    val texture by produceState<ImageBitmap?>(null, texturePath) {
+        value = texturePath?.let {
+            BackgroundBitmapCache.load(it, 0f, PREVIEW_TEXTURE_PX, PREVIEW_TEXTURE_PX)
+                ?.asImageBitmap()
+        }
+        textureLoaded = true
+    }
+    if (loads != null) {
+        val ready = textureLoaded && (frost == null || backdropLoaded)
+        SideEffect { loads.ready = ready }
+    }
+    if (frost == null || backdrop == null) {
+        // One node for the toolbar and every key. Drawn as composables,
+        // each preview was some forty-five layout nodes, and a gallery of
+        // forty themes composed and measured every one of them before it
+        // could draw its first card.
+        val grid = remember(theme, keyShape, toolShape, texture) {
+            Modifier.previewKeyGrid(theme, keyShape, toolShape, texture)
+        }
+        Spacer(Modifier.matchParentSize().then(grid))
+    } else {
+        GlassPreviewKeys(theme, keyShape, toolShape, texture, PreviewGlass(frost, backdrop))
+    }
+    // Stickers over the mock-up keys, the same normalized placement the
+    // real grid uses. The toolbar row is excluded there and included here;
+    // at this scale the difference does not read.
+    DecalsCanvas(theme.decals)
+    // A press splash lands over the keys on the keyboard, so it does here,
+    // caught part way as a picture.
+    boardEffect?.takeIf { it.kind.onPress }?.let { BoardEffectLayer(it, Modifier.matchParentSize(), still = true) }
 }
 
 /**
@@ -710,6 +901,13 @@ private fun RowScope.LetterKey(
         }
     }
 }
+
+/** How long a live card may take to load what it draws before it is left live and not kept. */
+private const val CARD_LOADS_TIMEOUT_MS = 4_000L
+
+/** Frames, then a moment, for the last of a card's loads to reach the screen before it is taken. */
+private const val CARD_SETTLE_FRAMES = 2
+private const val CARD_SETTLE_MS = 150L
 
 /** Decode edge for the mock-up's key texture; its keys are a few dp across. */
 private const val PREVIEW_TEXTURE_PX = 128

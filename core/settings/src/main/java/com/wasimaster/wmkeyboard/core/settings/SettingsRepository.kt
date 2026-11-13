@@ -12748,6 +12748,8 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("power_saving_dark_theme")
         private val PS_DROP_SUGGESTIONS =
             booleanPreferencesKey("power_saving_drop_suggestions")
+        private val PS_ADAPT_TO_LOAD =
+            booleanPreferencesKey("power_saving_adapt_to_load")
         private val DS_MANUAL = booleanPreferencesKey("data_saver_manual")
         private val DS_TRIGGER = stringPreferencesKey("data_saver_trigger")
         private val DS_LINK_PREVIEWS = stringPreferencesKey("data_saver_link_previews")
@@ -16373,6 +16375,8 @@ class SettingsRepository(private val context: Context) {
                 p[PS_DARK_THEME] ?: defaults.powerSaving.darkTheme,
             dropSuggestions =
                 p[PS_DROP_SUGGESTIONS] ?: defaults.powerSaving.dropSuggestions,
+            adaptToLoad =
+                p[PS_ADAPT_TO_LOAD] ?: defaults.powerSaving.adaptToLoad,
         )
 
     private fun readRateSources(p: Preferences, defaults: KeyboardSettings) =
@@ -23943,6 +23947,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPowerSavingDropSuggestions(value: Boolean) =
         editPrefs { it[PS_DROP_SUGGESTIONS] = value }
+
+    suspend fun setPowerSavingAdaptToLoad(value: Boolean) =
+        editPrefs { it[PS_ADAPT_TO_LOAD] = value }
 
     // ---- data saving ----
 
