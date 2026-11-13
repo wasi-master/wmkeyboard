@@ -2371,6 +2371,7 @@ internal object SettingsRowIcons {
 
         // ---- Themes, panels, gallery ----
         put(R.string.theme_assets_title) { Icons.Outlined.PhotoSizeSelectLarge }
+        put(R.string.theme_rule_sheet_title) { Icons.Outlined.DataObject }
         put(R.string.theme_glass_title) { Icons.Outlined.Opacity }
         put(R.string.theme_glass_window_blur_title) { Icons.Outlined.BlurOn }
         put(R.string.theme_glass_wallpaper_permission_title) { Icons.Outlined.Wallpaper }

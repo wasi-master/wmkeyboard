@@ -129,6 +129,7 @@ internal object SettingsRoutes {
         "themes",
         "theme_edit/{themeId}",
         "theme_assets/{themeId}",
+        "theme_rules/{themeId}",
         "photos",
         "photo_browse",
         "photo_library",

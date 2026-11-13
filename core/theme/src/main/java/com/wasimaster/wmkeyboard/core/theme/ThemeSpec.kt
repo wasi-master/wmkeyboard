@@ -655,6 +655,14 @@ data class ThemeSpec(
      */
     val textureSlices: Map<String, TextureSlice> = emptyMap(),
     /**
+     * The user's own rule sheet for this theme, as they typed it: FlorisBoard
+     * snygg rules naming keys by code, output, style id or class, with
+     * variables. Compiled onto the theme's key colours and single-key styles
+     * each time it is drawn, never saved into them; see [KeyRuleSheet]. Null
+     * or blank is no sheet.
+     */
+    val ruleSheet: String? = null,
+    /**
      * Auxiliary image bytes for transport, keyed by slot name — the key
      * textures today (`"keyTexture"`, `"keyTextureModifier"`, …), whatever
      * needs to travel tomorrow. The generic sibling of
@@ -767,6 +775,12 @@ fun ThemeSpec.withSidePad(left: Float? = null, right: Float? = null): ThemeSpec 
 @Serializable
 data class KeyOverride(
     val background: Long? = null,
+    /**
+     * This key's face while held; null derives a shade from [background], or
+     * follows the board's pressed colour when the key has no face of its own.
+     * Set by a rule sheet's `key[…]:pressed` (see [KeyRuleSheet]).
+     */
+    val pressedBackground: Long? = null,
     val text: Long? = null,
     val border: Long? = null,
     val popupBackground: Long? = null,
@@ -852,6 +866,7 @@ data class KeyOverride(
         get() = background == null && text == null && border == null &&
             popupBackground == null && popupText == null && hint == null &&
             texture == null && pressedTexture == null && effect == null && effectParam == null &&
+            pressedBackground == null &&
             labelScale == null && bold == null && shape == null &&
             gradient == null && glow == null && glowDp == null && cornerRadiusDp == null
 

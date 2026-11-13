@@ -5281,6 +5281,16 @@ private fun ThemeEditorContent(
                 }
             }
         }
+        item {
+            // Many keys at once, by code, output or kind, as text (gap list 53).
+            val rules = look.watch { it.ruleSheet?.takeIf { sheet -> !isEmptySheet(sheet) } != null }
+            NavRow(
+                R.string.theme_rule_sheet_title,
+                subtitle = stringResource(
+                    if (rules) R.string.theme_rule_sheet_subtitle_on else R.string.theme_rule_sheet_subtitle_off,
+                ),
+            ) { onNavigate(themeRulesRoute(look.id)) }
+        }
     }
     if (addOverrideOpen) {
         AddKeyOverrideDialog(

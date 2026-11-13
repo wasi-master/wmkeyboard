@@ -119,7 +119,7 @@ internal object SettingLinks {
      */
     const val CURRENT_THEME = "current"
 
-    private val PER_THEME = Regex("^(theme_edit|theme_assets)/[^/?]+")
+    private val PER_THEME = Regex("^(theme_edit|theme_assets|theme_rules)/[^/?]+")
 
     /** [route] with anything that names one phone's own theme made to name the reader's. */
     fun portable(route: String): String = PER_THEME.replace(route) { "${it.groupValues[1]}/$CURRENT_THEME" }

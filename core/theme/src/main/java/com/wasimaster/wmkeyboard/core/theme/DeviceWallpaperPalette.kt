@@ -73,11 +73,13 @@ fun deviceWallpaperPalette(context: Context): WallpaperPalette? {
  */
 @Composable
 fun rememberWallpaperFollowed(spec: ThemeSpec): ThemeSpec {
-    if (!spec.followWallpaper) return spec
+    // The theme's rule sheet is part of how it is drawn, here as on the keyboard.
+    val sheeted = remember(spec) { spec.withRuleSheet() }
+    if (!sheeted.followWallpaper) return sheeted
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
-    return remember(spec, context, configuration) {
-        spec.followingWallpaper(deviceWallpaperPalette(context))
+    return remember(sheeted, context, configuration) {
+        sheeted.followingWallpaper(deviceWallpaperPalette(context))
     }
 }
 

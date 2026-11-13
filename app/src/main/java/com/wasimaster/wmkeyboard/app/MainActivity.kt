@@ -1784,6 +1784,18 @@ private fun SettingsNavGraph(
                 }
             }
         }
+        composable("theme_rules/{themeId}") { backStackEntry ->
+            val requested = backStackEntry.arguments?.getString("themeId").orEmpty()
+            // Same reading of a copied link as theme_edit above.
+            val darkSlot = isSystemInDarkTheme()
+            val themeId = settings.watch { s ->
+                SettingLinks.themeEditTarget(requested, s.effectiveThemeId(darkSlot)) { id ->
+                    s.customThemes.findThemeFamily(id) != null
+                }
+            }
+            // Its own Scaffold, like the layout's JSON: the code needs the height.
+            ThemeRuleSheetScreen(repository, settings, themeId) { navController.popBackStack() }
+        }
         composable("theme_assets/{themeId}") { backStackEntry ->
             val requested = backStackEntry.arguments?.getString("themeId").orEmpty()
             // Same reading of a copied link as theme_edit above.

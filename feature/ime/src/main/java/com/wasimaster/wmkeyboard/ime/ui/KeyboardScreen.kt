@@ -18774,11 +18774,12 @@ internal fun keyVisual(
         background = background,
         // An overridden face derives its own pressed shade the way specKbTheme
         // derives the theme's: a quarter of the way toward the label colour.
-        pressedBackground = if (overrideBackground != null) {
-            lerp(overrideBackground, contentColor, 0.25f)
-        } else {
-            palette.pressedKey
-        },
+        pressedBackground = override?.pressedBackground?.let { Color(it.toInt()) }
+            ?: if (overrideBackground != null) {
+                lerp(overrideBackground, contentColor, 0.25f)
+            } else {
+                palette.pressedKey
+            },
         contentColor = contentColor,
         // Enter is the one key that recolours under the finger: its text colour
         // is picked for its own accented face, which the press paints over.

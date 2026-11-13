@@ -151,6 +151,7 @@ import com.wasimaster.wmkeyboard.core.theme.bounded
 import com.wasimaster.wmkeyboard.core.theme.keyLightingPatternOrNull
 import com.wasimaster.wmkeyboard.core.theme.keyLightingTargetOrNull
 import com.wasimaster.wmkeyboard.core.theme.resolveMaterial
+import com.wasimaster.wmkeyboard.core.theme.withRuleSheet
 import com.wasimaster.wmkeyboard.core.theme.brush
 import com.wasimaster.wmkeyboard.core.theme.castsElevationShadow
 import com.wasimaster.wmkeyboard.core.theme.hueShift
@@ -1342,6 +1343,7 @@ private fun KeyOverride.mapColors(f: (Color) -> Color): KeyOverride {
     fun map(value: Long?): Long? = value?.let { f(Color(it.toInt())).argbLong() }
     return copy(
         background = map(background),
+        pressedBackground = map(pressedBackground),
         text = map(text),
         border = map(border),
         popupBackground = map(popupBackground),
@@ -1650,7 +1652,9 @@ fun KeyboardThemeProvider(
         // The app's colours take the wallpaper's place the same way, for the
         // themes the scope covers: the ones that follow the wallpaper already
         // (and Default, below), or every theme.
-        val spec = settings.activeThemeSpec(darkSlot)?.let { stored ->
+        // The theme's own rule sheet is laid over it first, so the colours it
+        // sets follow the wallpaper or the app like any other.
+        val spec = settings.activeThemeSpec(darkSlot)?.withRuleSheet()?.let { stored ->
             when {
                 appPalette != null &&
                     (stored.followWallpaper || settings.appColors.scope == AppColorScope.ALL) ->

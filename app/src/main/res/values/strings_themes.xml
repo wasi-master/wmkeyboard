@@ -552,6 +552,23 @@
     <string name="theme_key_override_section_title">Single-key styles</string>
     <string name="theme_key_override_section_body">Give one key a style of its own: its colors, a texture, the burst it throws, and how its label is drawn. A letter keeps its style on every layout that has it.</string>
     <string name="theme_key_override_add_action">Add a key</string>
+    <string name="theme_rule_sheet_title">Rule sheet</string>
+    <string name="theme_rule_sheet_subtitle_off">Style many keys at once with rules you write as text</string>
+    <string name="theme_rule_sheet_subtitle_on">On. The rules apply over the styles above</string>
+    <string name="theme_rule_sheet_missing_message">This theme is not in your themes any more.</string>
+    <string name="theme_rule_sheet_example_action">Example</string>
+    <string name="theme_rule_sheet_empty_status">No rules. Tap Example to start from a short sheet.</string>
+    <plurals name="theme_rule_sheet_applied_status">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> rule changes the theme</item>
+        <item quantity="other"><xliff:g id="count" example="4">%1$d</xliff:g> rules change the theme</item>
+    </plurals>
+    <string name="theme_rule_sheet_issue_unreadable">The text is not a rule sheet. A rule sheet is one JSON object, with a selector before each set of properties.</string>
+    <string name="theme_rule_sheet_issue_too_long">The sheet is too long. The app does not use it.</string>
+    <string name="theme_rule_sheet_issue_element"><xliff:g id="rule" example="smartbar">%1$s</xliff:g>: a rule sheet styles only key, key-hint and key-popup.</string>
+    <string name="theme_rule_sheet_issue_state"><xliff:g id="rule" example="key:focus">%1$s</xliff:g>: the only state is :pressed.</string>
+    <string name="theme_rule_sheet_issue_attribute"><xliff:g id="rule" example="key[mode=numeric]">%1$s</xliff:g>: name keys with code, output, id or class.</string>
+    <string name="theme_rule_sheet_issue_key"><xliff:g id="rule" example="key[code=-999]">%1$s</xliff:g>: some keys that it names are not in this app.</string>
+    <string name="theme_rule_sheet_issue_property"><xliff:g id="rule" example="key-hint">%1$s</xliff:g>: <xliff:g id="properties" example="background">%2$s</xliff:g> has no effect here.</string>
     <string name="theme_key_override_add_body">Type a letter, or choose one of the special keys.</string>
     <string name="theme_key_override_letter_label">Letter</string>
     <string name="theme_key_override_texture_title">Key image</string>

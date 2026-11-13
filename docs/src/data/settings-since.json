@@ -147,6 +147,7 @@
 		"telegram_stickers": "0.6.0",
 		"theme_assets/{themeId}": "0.5.13",
 		"theme_edit/{themeId}": "0.5.3",
+		"theme_rules/{themeId}": "0.6.7",
 		"themes": "0.5.3",
 		"todo": "0.6.4",
 		"tool/{toolName}": "0.5.3",

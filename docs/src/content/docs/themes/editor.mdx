@@ -224,6 +224,37 @@ The key's style opens on the page straight under the preview, which stays pinned
 
 An armed or locked modifier still shows the accent or pressed face whatever color you gave it, because state has to stay visible. A key image and a press effect travel inside the exported theme the same way the board's do. High-contrast accessibility drops single-key styles with the rest of the decoration, and a press effect never plays under reduce motion or power saving.
 
+### Rule sheet
+
+<SettingsPath path="Appearance / Keyboard themes / (edit a theme) / Single-key styles / Rule sheet" />
+
+A rule sheet styles many keys at once with a few lines of text instead of one key at a time. It opens in the same code editor as a layout's JSON, and the rules are FlorisBoard's: a rule copied out of a FlorisBoard theme works here unchanged.
+
+```json
+{
+  "@defines": { "--accent": "#FF5577" },
+  "key[class=`modifier`]": { "background": "#33363C" },
+  "key[code=10]": { "background": "var(--accent)", "shape": "circle()" },
+  "key[code=10]:pressed": { "background": "#CC3355" },
+  "key[output=`a`], key[output=`e`]": { "foreground": "var(--accent)" },
+  "key-hint[id=`q`]": { "foreground": "#BBBBBB" }
+}
+```
+
+Each rule is a selector and the properties it sets. The selector names the part (`key`, `key-hint` for the small corner hint, `key-popup` for the preview bubble), then which keys:
+
+| In brackets | Styles |
+|---|---|
+| `code=10`, `code=48..57`, `code=97,101` | Keys by FlorisBoard key code: 10 is enter, 32 the space bar, -11 shift, -7 delete, a character's own code its letter |
+| ``output=`a` ``, ``output=`action/enter` `` | Keys by what they type or do |
+| ``id=`EDIT_UNDO` `` | Keys by the name [Single-key styles](#single-key-styles) gives them, which reaches every key the picker can press, panels included |
+| ``class=`letter` ``, `modifier`, `enter`, `space` | A whole kind of key. A plain `key` with no brackets is the letters |
+| nothing, then `:pressed` | The same keys while held |
+
+The properties are `background`, `foreground`, `border-color`, `shape` (`circle()`, `rounded-corner(8dp)`, `rectangle()`, `cut-corner(6dp)`), `font-size` in sp and `font-weight`. `@defines` holds variables, used as `var(--name)`, and one body can serve several selectors separated by commas. A later rule wins over an earlier one.
+
+The sheet is applied each time the theme is drawn and is never saved into the theme's colors, so it always wins over the rows above it, and deleting a line takes its effect away. A key's own style from **Pick on keyboard** keeps whatever the sheet doesn't set. Under the editor, a line says how many rules change the theme, and each rule that does nothing says why: an element other than the three above, a state other than `:pressed`, a code with no key here, or a property that part does not take. **Example** fills an empty sheet with a short one to start from, and **Apply** saves it.
+
 ### Stickers
 
 Up to six images laid over the keys, purely for decoration: typing goes straight through them. Transparent PNGs work best. Each sticker has position, size, rotation and opacity sliders, adjusted over a live miniature preview so what you drag is what the keyboard shows. Stickers travel with the exported theme the same way textures do.

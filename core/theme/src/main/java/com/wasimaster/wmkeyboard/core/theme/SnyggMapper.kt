@@ -402,7 +402,7 @@ internal class SnyggMapper(private val style: Stylesheet) {
         ENTER_CODES.firstNotNullOfOrNull { style.forCode(EL_KEY, it) }
             ?: style.forOutput(EL_KEY, OUTPUT_ENTER)
 
-    private companion object {
+    internal companion object {
 
         const val PRESSED = "pressed"
         const val FOCUS = "focus"
