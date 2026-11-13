@@ -125,6 +125,9 @@
     <string name="search_kw_keypress_popup">preview flyout magnifier</string>
     <string name="search_kw_keypress_symbols_numpad">numpad keypad dialpad</string>
     <string name="search_kw_layout_symbols_numpad_key">numpad keypad dialpad gboard</string>
+    <string name="search_kw_layout_bottom_row_preset">preset iphone ios minimal classic emoji anysoftkeyboard spacebar</string>
+    <string name="search_kw_layout_hold_actions_key">fn florisboard futo enter comma globe menu popup</string>
+    <string name="search_kw_layout_hold_actions">fn florisboard futo menu undo redo clipboard tools shortcuts</string>
     <string name="search_kw_layout_symbols_text_edit_key">dpad arrows cursor select copy paste heliboard</string>
     <string name="search_kw_keypress_enter_emoji">return smiley emoticon longpress</string>
     <string name="search_kw_langemoji_emoji_animated">gif live</string>

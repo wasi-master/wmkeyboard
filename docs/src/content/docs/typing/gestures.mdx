@@ -193,6 +193,16 @@ Once the spacebar carries keys, it draws the first one small in its top right co
 
 A layout can carry its own set instead. Open a layout in the [layout editor](/languages/custom-layouts/), tap the spacebar, and the alternates fields are there like on any other key. The setting comes first in the popup, and the layout's own keys follow it.
 
+## Your own actions on a long press
+
+<SettingsPath path="Layout & size / Bottom-row keys / Hold actions" />
+
+**Hold actions** is a list of actions that you build once and that shows up in the long-press popup of one bottom-row key on every layout, without opening the layout editor. **Key with your hold actions** picks the key: <KeyCap>⏎</KeyCap> (the default), the comma, or the <KeyCap>🌐</KeyCap> key. FlorisBoard calls this an Fn key, and FUTO puts a menu like it on Enter.
+
+Tap **Hold actions** to edit the list. **Add an action** opens the same picker a [multi-finger swipe](#swiping-with-several-fingers) uses: a piece of text, a tool or panel such as the clipboard or **Text editing**, a text-editing step such as undo or select all, a layer, a layout, a keyboard mode, another keyboard app, Tab or an arrow, or a broadcast for an automation app. The arrows beside each action move it up or down, and the cross removes it. The popup shows the actions in the same order.
+
+Your actions go at the end of the popup, after whatever the key already offers there. The comma keeps its marks first, and in a field that sends or searches, Enter keeps its line break first. That order matters with **Hold to select** on, because a plain hold and release picks the first entry. The list also follows the key onto the symbols pages, and when <KeyCap>🌐</KeyCap> is the chosen key it stays on that spot after **Emoji key instead of 🌐** turns it into the emoji key. A popup on <KeyCap>🌐</KeyCap> takes over that key's hold, so the language picker no longer opens there. Holding the spacebar still opens it, unless you gave the spacebar its own keys.
+
 ## Deleting more than a character with backspace
 
 <SettingsPath path="Key press / Delete keys" />
@@ -434,6 +444,8 @@ A printable table of every gesture on one page lives at [Gesture cheat sheet](/r
 | Chords with ?123 | On |
 | ?123 + L | Next language |
 | Swipes on keys | On, with no keys set |
+| Key with your hold actions *(Layout & size)* | Enter |
+| Hold actions *(Layout & size)* | None |
 
 Open the **Typing** tile in settings, or search "Gestures", "Delete keys" or "Volume keys". The last two rows live under Typing / Key press rather than Delete keys, and Word delete interval only appears while Holding delete clears words is on. Cursor speed and Cursor magnifier only appear while a swipe slot is set to Cursor. Swipe deletes, Show what you will delete and the two step distances only appear while Swipe to delete is on, and the two distances are one setting each: Words mode shows Word delete distance, Characters mode shows Character delete distance. The Gestures group's language-switching settings (Arrows on the spacebar, The spacebar shows, Spacebar text, Typing speed on the spacebar) are covered on [Switching languages](/languages/switching/#swiping-the-spacebar) instead of here. For the field-by-field breakdown see [Typing settings](/reference/settings/typing/).
 

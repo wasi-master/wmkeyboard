@@ -207,6 +207,9 @@ Full detail on all three (plus the floating panel's drag pill and resize grip) i
 
 | Setting | Control | Default |
 |---|---|---|
+| Bottom row | Choice: As laid out, Classic, iPhone-like, Minimal, With emoji | As laid out |
+| Key with your hold actions | Choice: Enter, Comma, 🌐 | Enter |
+| Hold actions | List of actions | None |
 | Comma key opens emoji | Toggle | Off |
 | 1234 key on the symbol pages | Toggle | Off |
 | Text editing key on the symbol pages | Toggle | Off |
@@ -222,6 +225,10 @@ Full detail on all three (plus the floating panel's drag pill and resize grip) i
 </PhoneFrame>
 
 **Emoji key instead of 🌐** is on by default. The bottom-row <KeyCap>🌐</KeyCap> key opens the emoji panel instead of switching language, and language switching moves to a spacebar swipe (Language, by default). **Key in place of 🌐** picks what that key opens: the emoji panel, or any tool, such as Stickers, Clipboard or Translate, whose icon the key then wears. **Comma key opens emoji** takes over the comma key the same way, with comma demoted to a long-press alternate. Turning it on also removes the emoji tool from the toolbar, since the key is meant to replace it.
+
+**Bottom row** draws one bottom row on the letters page of every layout in place of the row the layout comes with. **As laid out**, the default, changes nothing. **Classic** is `?123` · `,` · space · `.` · ⏎, with no 🌐 key, so languages change on a spacebar swipe. **iPhone-like** is `?123` · 🌐 · space · ⏎. **Minimal** is `?123` · space · ⏎, the widest spacebar, with punctuation on the symbols page. **With emoji** is `?123` · emoji · `,` · 🌐 · space · `.` · ⏎, for a multilingual keyboard that wants both keys: on this row the 🌐 key stays a language key even with **Emoji key instead of 🌐** on, and **Comma key opens emoji** does nothing, so the row never has two emoji keys. The rows below still apply to whichever row is drawn: **Show the 🌐 key** off removes the 🌐 key and gives its width to the spacebar, **Emoji key instead of 🌐** turns it into the emoji key, and **Swap the comma and 🌐 keys** trades the two. **Keep the 🌐 key in one place** stands down, because the preset already puts the key where it goes. The preset reuses the layout's own keys and keeps the row's total width. The symbols pages, a secondary layout, the expanded tablet grid, a layer you arranged by hand in the layout editor, and a layout whose bottom row is its own (a 12-key pad, a kana or CJK board, or a row with letters on it) keep their rows.
+
+**Key with your hold actions** and **Hold actions** add your own list of actions to the long-press popup of Enter, the comma or the 🌐 key, on every layout. The actions come after whatever the popup already offers, so Enter keeps its line break first in a field that sends. See [Your own actions on a long press](/typing/gestures/#your-own-actions-on-a-long-press).
 
 **1234 key on the symbol pages** is off by default. Turn it on and both symbol pages get a <KeyCap>1234</KeyCap> key straight after <KeyCap>ABC</KeyCap>, as in Gboard, which opens the [number pad](/tools/text-editing/#the-numeric-keypad) over the current field. The spacebar gives up one key's width to make room, so the row keeps its length. A layout that already has a number pad key, a symbol page you arranged by hand in the layout editor, and a spacebar too narrow to give up the width are all left as they are.
 

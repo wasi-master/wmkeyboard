@@ -88,6 +88,9 @@ import com.wasimaster.wmkeyboard.core.layout.DefaultFingerSwipes
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipe
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCodec
 import com.wasimaster.wmkeyboard.core.layout.SpaceSwipeBindingCodec
+import com.wasimaster.wmkeyboard.core.layout.BottomRowPreset
+import com.wasimaster.wmkeyboard.core.layout.HoldActionsCodec
+import com.wasimaster.wmkeyboard.core.layout.HoldActionsKey
 import com.wasimaster.wmkeyboard.core.layout.SpaceSwipeSlot
 import com.wasimaster.wmkeyboard.core.layout.SymbolChordCodec
 import com.wasimaster.wmkeyboard.core.layout.FlickDirection
@@ -4195,6 +4198,8 @@ data class KeyboardSettings(
      * to the spacebar where a punctuation key belongs.
      */
     val swapCommaAndGlobe: Boolean = true,
+    /** The bottom row preset and the hold actions key (competitor gap list items 14, 15; see [BottomRowSettings]). */
+    val bottomRow: BottomRowSettings = BottomRowSettings(),
     /** History tab of the emoji panel: recently used, most used, or no tab at all. */
     val emojiTabMode: EmojiTabMode = EmojiTabMode.RECENTS,
     /** "Clear recents" button on the emoji panel's history tab. Off by default. */
@@ -7179,6 +7184,36 @@ enum class TopRowHolds { AUTO, DIGITS, SYMBOLS, NONE }
  * apply to them.
  */
 enum class CursorWordSteps { APP, SPACES, PUNCTUATION }
+
+/**
+ * The bottom row drawn on every letters layout, and the key whose hold offers
+ * the user's own list of actions (competitor gap list items 15 and 14), grouped
+ * into their own object (see [CameraSettings] for why). DataStore keys stay
+ * flat.
+ */
+data class BottomRowSettings(
+    /**
+     * A whole bottom row for every letters layout in place of its own (ASK's
+     * common bottom row). [BottomRowPreset.AS_LAID_OUT] by default, which
+     * changes nothing. The 🌐 and comma settings act on the row it draws; a
+     * layer laid out by hand in the editor, a secondary layout, the expanded
+     * tablet grid and a layout whose bottom row is its own (12-key pads, kana
+     * and CJK boards) keep theirs.
+     */
+    val preset: BottomRowPreset = BottomRowPreset.AS_LAID_OUT,
+    /**
+     * The key whose long-press popup gains [holdActions]: enter, the comma or
+     * the 🌐 seat (FlorisBoard's Fn key, FUTO's enter hold menu).
+     */
+    val holdKey: HoldActionsKey = HoldActionsKey.ENTER,
+    /**
+     * Actions added, in this order, after whatever [holdKey]'s popup already
+     * offers, on every layout and layer that key is on. Empty by default, which
+     * leaves every popup as it was. Picked with the multi-finger swipes' own
+     * action picker, so it is anything a key can do.
+     */
+    val holdActions: List<KeyAlternate> = emptyList(),
+)
 
 /**
  * Text-editing tool and selection-editing settings, grouped into their own
@@ -12828,6 +12863,9 @@ class SettingsRepository(private val context: Context) {
         private val THEMES_PANEL_BUILTINS = stringSetPreferencesKey("themes_panel_builtins")
         private val COMMA_AS_EMOJI = booleanPreferencesKey("comma_as_emoji")
         private val SWAP_COMMA_GLOBE = booleanPreferencesKey("swap_comma_globe")
+        private val BOTTOM_ROW_PRESET = stringPreferencesKey("bottom_row_preset")
+        private val HOLD_ACTIONS_KEY = stringPreferencesKey("hold_actions_key")
+        private val HOLD_ACTIONS = stringPreferencesKey("hold_actions")
         private val EMOJI_TAB_MODE = stringPreferencesKey("emoji_tab_mode")
         private val EMOJI_CLEAR_RECENTS_BUTTON = booleanPreferencesKey("emoji_clear_recents_button")
         private val EMOJI_LONG_PRESS_NAME = booleanPreferencesKey("emoji_long_press_name")
@@ -13989,6 +14027,11 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.toolShape,
             commaAsEmoji = p[COMMA_AS_EMOJI] ?: defaults.commaAsEmoji,
             swapCommaAndGlobe = p[SWAP_COMMA_GLOBE] ?: defaults.swapCommaAndGlobe,
+            bottomRow = BottomRowSettings(
+                preset = p[BOTTOM_ROW_PRESET]?.let(BottomRowPreset::parse) ?: defaults.bottomRow.preset,
+                holdKey = p[HOLD_ACTIONS_KEY]?.let(HoldActionsKey::parse) ?: defaults.bottomRow.holdKey,
+                holdActions = p[HOLD_ACTIONS]?.let(HoldActionsCodec::decode) ?: defaults.bottomRow.holdActions,
+            ),
             emojiTabMode = p[EMOJI_TAB_MODE]
                 ?.let { runCatching { EmojiTabMode.valueOf(it) }.getOrNull() }
                 ?: defaults.emojiTabMode,
@@ -18360,6 +18403,20 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSwapCommaAndGlobe(value: Boolean) =
         editPrefs { it[SWAP_COMMA_GLOBE] = value }
+
+    /** The bottom row every letters layout draws (competitor gap list item 15). */
+    suspend fun setBottomRowPreset(value: BottomRowPreset) =
+        editPrefs { it[BOTTOM_ROW_PRESET] = value.name }
+
+    /** Which key's hold carries the hold actions (competitor gap list item 14). */
+    suspend fun setHoldActionsKey(value: HoldActionsKey) =
+        editPrefs { it[HOLD_ACTIONS_KEY] = value.name }
+
+    /** The hold actions, in order. An empty list removes the key, so the default reads again. */
+    suspend fun setHoldActions(value: List<KeyAlternate>) =
+        editPrefs {
+            if (value.isEmpty()) it.remove(HOLD_ACTIONS) else it[HOLD_ACTIONS] = HoldActionsCodec.encode(value)
+        }
 
     /**
      * Switches the active layout.

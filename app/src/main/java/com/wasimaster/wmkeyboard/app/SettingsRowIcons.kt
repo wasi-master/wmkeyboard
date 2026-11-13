@@ -916,6 +916,9 @@ internal object SettingsRowIcons {
         put(R.string.layout_globe_guard_title) { Icons.Outlined.Timer }
         put(R.string.layout_globe_emoji_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.layout_globe_tool_title) { Icons.Outlined.Handyman }
+        put(R.string.layout_bottom_row_preset_title) { Icons.Outlined.SpaceBar }
+        put(R.string.layout_hold_actions_key_title) { Icons.Outlined.Keyboard }
+        put(R.string.layout_hold_actions_title) { Icons.Outlined.TouchApp }
         put(R.string.layout_swap_comma_globe_title) { Icons.Outlined.SwapHoriz }
         put(R.string.layout_globe_in_one_place_title) { Icons.Outlined.PinDrop }
         put(R.string.layout_editor_action_row_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }

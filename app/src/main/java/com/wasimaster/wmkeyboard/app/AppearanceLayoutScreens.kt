@@ -2,7 +2,10 @@ package com.wasimaster.wmkeyboard.app
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import com.wasimaster.wmkeyboard.core.layout.BottomRowPreset
+import com.wasimaster.wmkeyboard.core.layout.HoldActionsKey
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
+import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
 import com.wasimaster.wmkeyboard.core.layout.resolveLayoutLanguage
 import com.wasimaster.wmkeyboard.core.layout.resolveLayoutName
 import com.wasimaster.wmkeyboard.core.settings.HintOffsetRange
@@ -1338,7 +1341,60 @@ internal fun LayoutSettings(
     // them to change.
     val globeShown = settings.watch { it.showGlobeKey }
     val globeAsEmoji = settings.watch { it.globeAsEmoji }
+    val holdActions = settings.watch { it.bottomRow.holdActions }
     SettingsGroup(stringResource(R.string.layout_bottom_row_keys_title)) {
+        // Competitor gap list item 15: one row for every letters layout. First,
+        // since every row below acts on the row it draws.
+        item(level = SettingLevel.STANDARD) {
+            ChoiceSetting(
+                title = R.string.layout_bottom_row_preset_title,
+                subtitle = stringResource(R.string.layout_bottom_row_preset_subtitle),
+                info = stringResource(R.string.layout_bottom_row_preset_info),
+                options = BottomRowPreset.entries.map { it to stringResource(bottomRowPresetLabel(it)) },
+                selected = settings.watch { it.bottomRow.preset },
+                default = SettingsDefaults.bottomRow.preset,
+                detail = { ChoiceDetail(stringResource(bottomRowPresetDesc(it))) },
+            ) { scope.launch { repository.setBottomRowPreset(it) } }
+        }
+        // Competitor gap list item 14: FlorisBoard's Fn key and FUTO's enter
+        // hold menu, as a list on a key the user already has.
+        item(level = SettingLevel.STANDARD) {
+            ChoiceSetting(
+                title = R.string.layout_hold_actions_key_title,
+                subtitle = stringResource(R.string.layout_hold_actions_key_subtitle),
+                info = stringResource(R.string.layout_hold_actions_key_info),
+                options = HoldActionsKey.entries.map {
+                    it to stringResource(
+                        when (it) {
+                            HoldActionsKey.ENTER -> R.string.layout_hold_actions_key_enter
+                            HoldActionsKey.COMMA -> R.string.layout_hold_actions_key_comma
+                            HoldActionsKey.GLOBE -> R.string.layout_hold_actions_key_globe
+                        },
+                    )
+                },
+                selected = settings.watch { it.bottomRow.holdKey },
+                default = SettingsDefaults.bottomRow.holdKey,
+            ) { scope.launch { repository.setHoldActionsKey(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            val layouts = secondaryLayouts(settings.watch { it.customLayouts })
+            val modes = settings.watch { it.keyboardModes }
+            var editing by remember { mutableStateOf(false) }
+            NavRow(
+                R.string.layout_hold_actions_title,
+                stringResource(R.string.layout_hold_actions_subtitle),
+                value = holdActionsSummary(holdActions, layouts, modes),
+            ) { editing = true }
+            if (editing) {
+                HoldActionsDialog(
+                    actions = holdActions,
+                    layouts = layouts,
+                    modes = modes,
+                    onChange = { scope.launch { repository.setHoldActions(it) } },
+                    onDismiss = { editing = false },
+                )
+            }
+        }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.layout_comma_emoji_title,
@@ -2334,3 +2390,23 @@ private val DefaultToolbarFit = when {
  */
 private fun toolbarHoldDelayStep(value: Float): Int =
     if (value < 100f) 0 else ((value / 50f).roundToInt() * 50).coerceAtMost(1500)
+
+/** The name of a [BottomRowPreset] in the Bottom row choice. */
+@StringRes
+private fun bottomRowPresetLabel(preset: BottomRowPreset): Int = when (preset) {
+    BottomRowPreset.AS_LAID_OUT -> R.string.layout_bottom_row_preset_as_laid_out
+    BottomRowPreset.CLASSIC -> R.string.layout_bottom_row_preset_classic
+    BottomRowPreset.IPHONE -> R.string.layout_bottom_row_preset_iphone
+    BottomRowPreset.MINIMAL -> R.string.layout_bottom_row_preset_minimal
+    BottomRowPreset.WITH_EMOJI -> R.string.layout_bottom_row_preset_with_emoji
+}
+
+/** The row a [BottomRowPreset] draws, spelled out under its name. */
+@StringRes
+private fun bottomRowPresetDesc(preset: BottomRowPreset): Int = when (preset) {
+    BottomRowPreset.AS_LAID_OUT -> R.string.layout_bottom_row_preset_as_laid_out_desc
+    BottomRowPreset.CLASSIC -> R.string.layout_bottom_row_preset_classic_desc
+    BottomRowPreset.IPHONE -> R.string.layout_bottom_row_preset_iphone_desc
+    BottomRowPreset.MINIMAL -> R.string.layout_bottom_row_preset_minimal_desc
+    BottomRowPreset.WITH_EMOJI -> R.string.layout_bottom_row_preset_with_emoji_desc
+}

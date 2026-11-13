@@ -609,6 +609,7 @@ import com.wasimaster.wmkeyboard.ime.cycleCaseForShift
 import com.wasimaster.wmkeyboard.ime.displayCaseForShift
 import com.wasimaster.wmkeyboard.ime.shiftCyclesCase
 import com.wasimaster.wmkeyboard.ime.shiftForGlide
+import com.wasimaster.wmkeyboard.core.layout.BottomRowPreset
 import com.wasimaster.wmkeyboard.core.layout.BottomRowRules
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCounts
@@ -623,6 +624,8 @@ import com.wasimaster.wmkeyboard.core.layout.holdActionKey
 import com.wasimaster.wmkeyboard.core.layout.hasFlicks
 import com.wasimaster.wmkeyboard.core.layout.SymbolChord
 import com.wasimaster.wmkeyboard.core.layout.withSwipeArms
+import com.wasimaster.wmkeyboard.core.layout.withHoldActions
+import com.wasimaster.wmkeyboard.core.layout.owns
 import com.wasimaster.wmkeyboard.core.layout.isSwipeOnly
 import com.wasimaster.wmkeyboard.core.layout.takesFlickActions
 import com.wasimaster.wmkeyboard.core.layout.arrangedBy
@@ -24417,16 +24420,24 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // expanded tablet grid arranges its own bottom row. A layer laid out by
     // hand in the editor is left alone by every one of these; see
     // [LayerSpec.bottomRowAsLaidOut].
+    //
+    // The Bottom row preset (competitor gap list item 15) draws a whole row in
+    // place of the letters page's own before any of that, and only there: the
+    // symbols pages keep their ABC row, and a secondary layout and the tablet
+    // grid are exempt for the reasons above.
     val secondaryGrid = state.layoutMode == LayoutMode.SECONDARY
     val laidOut = grid.bottomRowAsLaidOut
-    val arranged = grid.arrangedBy(
+    val presetHere = state.layoutMode == LayoutMode.LETTERS && state.layouts.gridWidth == null
+    val arrangement = grid.arrangedBy(
         BottomRowRules(
+            preset = if (presetHere) state.settings.bottomRow.preset else BottomRowPreset.AS_LAID_OUT,
             hideGlobe = !state.settings.showGlobeKey && !secondaryGrid,
             globeInOnePlace = state.settings.layoutBehavior.globeInOnePlace &&
                 !secondaryGrid && state.layouts.gridWidth == null,
             swapCommaAndGlobe = state.settings.swapCommaAndGlobe,
         ),
-    ).layout
+    )
+    val arranged = arrangement.layout
     // Issue #423: Gboard's 1234 key beside ABC on the symbols pages, opt-in.
     val symbolsPage = state.layoutMode == LayoutMode.SYMBOLS ||
         state.layoutMode == LayoutMode.SYMBOLS_SHIFTED
@@ -24502,10 +24513,11 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     val tabletGrid = state.layouts.gridWidth != null
     // Optional Gboard-style emoji key: the letter layouts' comma key becomes
     // an emoji-panel key, with comma demoted to its long-press alternates.
+    // Neither on a row the With emoji preset drew, which has its own.
     val commaAsEmoji = state.settings.commaAsEmoji && !tabletGrid && !laidOut &&
-        state.layoutMode == LayoutMode.LETTERS
+        state.layoutMode == LayoutMode.LETTERS && !arrangement.ownEmojiKey
     // 🌐 → emoji key: language switching lives on spacebar swipes instead.
-    val globeAsEmoji = state.settings.globeAsEmoji && !tabletGrid && !laidOut
+    val globeAsEmoji = state.settings.globeAsEmoji && !tabletGrid && !laidOut && !arrangement.ownEmojiKey
     // What the digits on the letters' long press become (issue #672). Auto is
     // the long-standing rule: with the dedicated number row on they are
     // redundant, so they go and those keys lead with their accents (or lose
@@ -24630,6 +24642,10 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // Opt-in: the emoji panel under a hold on enter, for a bottom row with no
     // emoji key. See [LayoutBehaviorSettings.enterLongPressEmoji].
     val emojiAlternate = state.settings.layoutBehavior.enterLongPressEmoji
+    // Competitor gap list item 14: the user's own actions under a hold on
+    // enter, the comma or the 🌐 seat, on every layer that key is on.
+    val holdActions = state.settings.bottomRow.holdActions
+    val holdActionsKey = state.settings.bottomRow.holdKey
     // Issue #340: the keys that stand in for 小゛゜ while the reading ends in a
     // kana that has one of those forms.
     val kanaVariantKeys = state.kanaVariantReady
@@ -24653,7 +24669,7 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
         punctuationPicks.isEmpty() && smartMark == null &&
         clipboardKeys.isEmpty() && fieldKey == null && domainAlternates.isEmpty() &&
         currencyKeys.isEmpty() && !allAccents && !noAccents && !shiftedKeys && fullStop == null &&
-        !newlineAlternate && !emojiAlternate && spaceHoldKeys.isEmpty() &&
+        !newlineAlternate && !emojiAlternate && holdActions.isEmpty() && spaceHoldKeys.isEmpty() &&
         punctuationAlternates.isEmpty() && !kanaVariantKeys && nativeLetters.isEmpty() &&
         questionMark == null && questionSwap == null && periodAlternates.isEmpty() &&
         !reorderAlternates && !numpadOnHold && !fancyDigits &&
@@ -24951,6 +24967,13 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                     actionAlternates = listOf(KeyAlternate(action = KeyAction.Numpad)) +
                         mapped.actionAlternates,
                 )
+            }
+            // Last of the popup passes, so the user's list lands after
+            // everything the key already offered: enter's line break and
+            // emoji, the comma's marks. The key is found as laid out, so the
+            // 🌐 seat the emoji preference took over is still the 🌐's.
+            if (holdActions.isNotEmpty() && holdActionsKey.owns(rowKey, rowIndex, bottom)) {
+                mapped = mapped.withHoldActions(holdActions)
             }
             // After the passes above, so a key keyed by what it types is keyed by
             // what it types now. The layout's own arms keep their directions.

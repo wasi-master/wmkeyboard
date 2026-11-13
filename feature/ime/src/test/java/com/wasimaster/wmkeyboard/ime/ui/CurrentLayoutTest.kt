@@ -1,7 +1,9 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
 import com.wasimaster.wmkeyboard.core.layout.AlternateEntry
+import com.wasimaster.wmkeyboard.core.layout.BottomRowPreset
 import com.wasimaster.wmkeyboard.core.layout.BottomRowRules
+import com.wasimaster.wmkeyboard.core.layout.HoldActionsKey
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
@@ -20,6 +22,7 @@ import com.wasimaster.wmkeyboard.core.layout.withoutGlobeKey
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.script.ScriptRegistry
+import com.wasimaster.wmkeyboard.core.settings.BottomRowSettings
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.LongPressLetterActions
@@ -353,6 +356,78 @@ class CurrentLayoutTest {
             listOf(KeyAction.Emoji, KeyAction.Newline),
             enterKeyOf(s).actionAlternates.map { it.action },
         )
+    }
+
+    private fun withBottomRow(
+        base: KeyboardSettings,
+        preset: BottomRowPreset = BottomRowPreset.AS_LAID_OUT,
+        holdKey: HoldActionsKey = HoldActionsKey.ENTER,
+        holdActions: List<KeyAlternate> = emptyList(),
+    ): KeyboardSettings = base.copy(bottomRow = BottomRowSettings(preset, holdKey, holdActions))
+
+    private val undo = KeyAlternate(KeyAction.Tool(ToolbarTool.UNDO))
+    private val clipboard = KeyAlternate(KeyAction.Tool(ToolbarTool.CLIPBOARD))
+
+    /** Competitor gap list item 14: the list lands behind the send field's line break. */
+    @Test
+    fun `hold actions follow the line break on a send field`() {
+        val settings = withBottomRow(plain(), holdActions = listOf(undo, clipboard))
+        val s = state(settings = settings).copy(keyFaces = KeyFaces(enterAction = EnterAction.SEND))
+        assertEquals(
+            listOf(KeyAction.Newline, undo.action, clipboard.action),
+            enterKeyOf(s).actionAlternates.map { it.action },
+        )
+    }
+
+    /** With every other rewrite off, the list alone still reaches the key. */
+    @Test
+    fun `hold actions reach the enter key on a plain field`() {
+        val s = state(settings = withBottomRow(plain(), holdActions = listOf(undo)))
+        assertEquals(listOf(undo), enterKeyOf(s).actionAlternates)
+        assertTrue(enterKeyOf(s).opensAlternatesPopup())
+    }
+
+    /** The 🌐 seat keeps the list when the emoji preference has taken it over. */
+    @Test
+    fun `hold actions follow the globe seat into the emoji key`() {
+        val settings = withBottomRow(
+            KeyboardSettings(swapCommaAndGlobe = false),
+            holdKey = HoldActionsKey.GLOBE,
+            holdActions = listOf(undo),
+        )
+        val bottom = currentLayout(state(settings = settings)).rows.last()
+        val seat = bottom.single { it.action == KeyAction.Emoji }
+        assertEquals(listOf(undo), seat.actionAlternates)
+        assertTrue(bottom.single { it.action == KeyAction.Enter }.actionAlternates.isEmpty())
+    }
+
+    @Test
+    fun `hold actions on the comma come after its marks`() {
+        val settings = withBottomRow(plain(), holdKey = HoldActionsKey.COMMA, holdActions = listOf(undo))
+        val bottom = currentLayout(state(settings = settings)).rows.last()
+        val comma = bottom.single { it.roleIn(0, 0) == KeyRole.Comma }
+        assertTrue(comma.longPress.isNotEmpty())
+        assertEquals(AlternateEntry.Action(undo), comma.alternateEntries().last())
+    }
+
+    /** Competitor gap list item 15: the letters page takes the preset, the symbols page keeps ABC. */
+    @Test
+    fun `a bottom row preset draws on the letters only`() {
+        val settings = withBottomRow(plain(), preset = BottomRowPreset.MINIMAL)
+        val letters = currentLayout(state(settings = settings)).rows.last()
+        assertEquals(listOf(KeyAction.Symbols, KeyAction.Space, KeyAction.Enter), letters.map { it.action })
+        val symbols = currentLayout(state(settings = settings).copy(layoutMode = LayoutMode.SYMBOLS)).rows.last()
+        assertTrue(symbols.any { it.action == KeyAction.Letters })
+        assertTrue(symbols.size > 3)
+    }
+
+    /** The With emoji row keeps its 🌐 key a language key, though the emoji preference ships on. */
+    @Test
+    fun `the with emoji preset keeps one emoji key and the globe`() {
+        val settings = withBottomRow(KeyboardSettings(), preset = BottomRowPreset.WITH_EMOJI)
+        val bottom = currentLayout(state(settings = settings)).rows.last()
+        assertEquals(1, bottom.count { it.action == KeyAction.Emoji })
+        assertEquals(1, bottom.count { it.action == KeyAction.LanguageSwitch })
     }
 
     private fun spaceKeyOf(s: KeyboardUiState): Key =

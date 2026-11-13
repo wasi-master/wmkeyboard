@@ -70,6 +70,7 @@ import com.wasimaster.wmkeyboard.core.layout.hasFlicks
 import com.wasimaster.wmkeyboard.core.layout.isSwipeOnly
 import com.wasimaster.wmkeyboard.core.layout.takesFlickActions
 import com.wasimaster.wmkeyboard.core.layout.arrangedBy
+import com.wasimaster.wmkeyboard.core.layout.BottomRowPreset
 import com.wasimaster.wmkeyboard.core.layout.FlickDirection
 import com.wasimaster.wmkeyboard.core.layout.KanaVariantKeyLabel
 import com.wasimaster.wmkeyboard.core.layout.LayerFile
@@ -2032,6 +2033,7 @@ internal fun editorBottomRowRules(
     BottomRowRules()
 } else {
     BottomRowRules(
+        preset = if (layer == LayoutLayer.LETTERS && !secondary) settings.bottomRow.preset else BottomRowPreset.AS_LAID_OUT,
         hideGlobe = !settings.showGlobeKey && !secondary,
         globeInOnePlace = settings.layoutBehavior.globeInOnePlace && !secondary,
         swapCommaAndGlobe = settings.swapCommaAndGlobe,
@@ -2044,6 +2046,7 @@ internal fun editorBottomRowRules(
 /** The setting that each [BottomRowRule] is, by the title its row carries. */
 @StringRes
 private fun BottomRowRule.titleRes(): Int = when (this) {
+    BottomRowRule.PRESET -> R.string.layout_bottom_row_preset_title
     BottomRowRule.HIDE_GLOBE -> R.string.layout_show_globe_title
     BottomRowRule.GLOBE_IN_ONE_PLACE -> R.string.layout_globe_in_one_place_title
     BottomRowRule.SWAP_COMMA_AND_GLOBE -> R.string.layout_swap_comma_globe_title

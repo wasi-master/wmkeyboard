@@ -244,6 +244,32 @@
          same way as that action. -->
     <string name="layout_globe_emoji_info">The 🌐 key on the bottom row opens the emoji panel and does not change the language. You can still change the language from the spacebar. Set a swipe to \"Language\" under Typing → Gestures. A short swipe does this by default. Turn this off to get the 🌐 key back.</string>
     <!-- 🌐 is the globe key that changes the language. Keep the emoji. -->
+    <string name="layout_bottom_row_preset_title">Bottom row</string>
+    <string name="layout_bottom_row_preset_subtitle">One bottom row for every layout</string>
+    <string name="layout_bottom_row_preset_info">Draws the same bottom row on the letters page of every layout, instead of the row each layout comes with. The settings below still apply to it: the 🌐 key can be hidden, turned into the emoji key or swapped with the comma. Layouts with a bottom row of their own, such as 12-key pads and kana boards, keep it, and so does a layout whose bottom row you arranged by hand in the layout editor.</string>
+    <string name="layout_bottom_row_preset_as_laid_out">As laid out</string>
+    <string name="layout_bottom_row_preset_as_laid_out_desc">Each layout keeps its own bottom row</string>
+    <string name="layout_bottom_row_preset_classic">Classic</string>
+    <string name="layout_bottom_row_preset_classic_desc">\?123 · , · space · . · enter. Languages change on the spacebar</string>
+    <string name="layout_bottom_row_preset_iphone">iPhone-like</string>
+    <string name="layout_bottom_row_preset_iphone_desc">\?123 · 🌐 · space · enter</string>
+    <string name="layout_bottom_row_preset_minimal">Minimal</string>
+    <string name="layout_bottom_row_preset_minimal_desc">\?123 · space · enter. Punctuation is on the symbols page</string>
+    <string name="layout_bottom_row_preset_with_emoji">With emoji</string>
+    <string name="layout_bottom_row_preset_with_emoji_desc">\?123 · emoji · , · 🌐 · space · . · enter. The 🌐 key stays a language key</string>
+    <string name="layout_hold_actions_key_title">Key with your hold actions</string>
+    <string name="layout_hold_actions_key_subtitle">Its long press shows the actions below</string>
+    <string name="layout_hold_actions_key_info">The actions you add below go at the end of this key\'s long-press popup, after anything it already offers, on every layout. Enter keeps its line break first in fields that send or search. On the 🌐 key the popup takes the place of the language picker; holding the spacebar opens it unless you gave the spacebar characters to hold.</string>
+    <string name="layout_hold_actions_key_enter">Enter</string>
+    <string name="layout_hold_actions_key_comma">Comma</string>
+    <string name="layout_hold_actions_key_globe">🌐</string>
+    <string name="layout_hold_actions_title">Hold actions</string>
+    <string name="layout_hold_actions_subtitle">Added to that key\'s long-press popup</string>
+    <string name="layout_hold_actions_none">None</string>
+    <string name="layout_hold_actions_add">Add an action</string>
+    <string name="layout_hold_actions_empty">No actions yet. Each one you add shows after what the key already offers.</string>
+    <string name="layout_hold_actions_move_up">Move up</string>
+    <string name="layout_hold_actions_move_down">Move down</string>
     <string name="layout_globe_tool_title">Key in place of 🌐</string>
     <string name="layout_globe_tool_subtitle">What the key in the 🌐 key\'s place opens</string>
     <string name="layout_globe_tool_emoji_value">Emoji</string>
