@@ -38,6 +38,7 @@ WM Keyboard writes several file formats: themes, layouts, snippet packs, sticker
 | `.wmsettings.json` | A settings-only backup (legacy) | No export path anymore; still accepted on import |
 | `.wmdict` | A compiled binary dictionary | Never exported; internal to the app, see [below](#wmdict-the-one-format-you-never-touch) |
 | `.txt` word lists, `.tsv` emoji keywords | Custom dictionaries and keyword packs | Import-only; not produced by the app |
+| `suggestion-blacklist.txt` | The suggestion blacklist: one word or `/pattern/` per line, ` @en` for one language | **Typing / Suggestions / Suggestion blacklist** → Export to a file. See [Suggestion blacklist](/smart/blacklist/#importing-and-exporting-a-file) |
 | `.csv` / `.tsv` snippet tables | Snippets, one row each: a trigger column and a text column | Import-only; written by other text expanders and spreadsheets. See [Snippets](/tools/snippets/#import-and-export) |
 | `PersonalDictionary.zip` / `dictionary.txt` | Gboard's personal dictionary: words, and shortcuts for them | Another keyboard's format, read and converted. See [Gboard's personal dictionary](/reference/importing-other-keyboards/#gboards-personal-dictionary) |
 | `.flex` | A FlorisBoard theme extension | Another keyboard's format, read and converted. See [Importing from other keyboards](/reference/importing-other-keyboards/) |
@@ -137,6 +138,10 @@ Two plain-text formats exist purely to be imported, never produced by the app:
 
 - A custom dictionary is a `.txt` file, one entry per line as `word frequency` (frequency is optional and defaults to 1). Lines starting with `#` are comments. Everything else is read permissively: a line with no parseable frequency becomes a word at frequency 1 rather than being rejected, so most word lists found in the wild import as-is. Imported lists stack, and several can sit under one language at once, capped at 32 MB per file. See [Downloadable dictionaries](/languages/dictionaries/) for the app's own dictionary downloads (a similar word-frequency format, but fetched and filtered through its own stricter parser rather than this loader).
 - An emoji keyword pack is a `.tsv` file, one row per emoji: the emoji itself, a comma-separated list of keywords, and an optional display name (tab-separated, capped at 8 MB). A file that instead starts with `[` is read as the data repository's JSON dictionary format rather than TSV, so a `.json` file pulled straight from that repository also imports without conversion. See [Emoji customization](/emoji/customization/) for keyword pack downloads and language coverage.
+
+## The suggestion blacklist
+
+The [suggestion blacklist](/smart/blacklist/) goes to and from a `.txt` of its own, apart from the backup. One entry per line: a word, or a regular expression between slashes (`/lo+l/`). Lines starting with `#` are comments. An entry may end with a space, `@` and a language id (`whatever @en`) to block it in that language only. Import lowercases words, drops repeats, refuses a pattern that fails the same checks as the editor, and only ever adds. Like word lists, the file is picked from the screen's own import row rather than opened from a file manager.
 
 ## Vocabulary packs
 

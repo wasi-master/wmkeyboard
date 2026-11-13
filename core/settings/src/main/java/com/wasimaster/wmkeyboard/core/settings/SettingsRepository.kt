@@ -60,6 +60,9 @@ import com.wasimaster.wmkeyboard.core.input.composer.PinyinFuzzy
 import com.wasimaster.wmkeyboard.core.gesture.GlideBeam
 import com.wasimaster.wmkeyboard.core.gesture.GlideShapeStore
 import com.wasimaster.wmkeyboard.core.gesture.GlideTolerances
+import com.wasimaster.wmkeyboard.core.prediction.BlacklistFile
+import com.wasimaster.wmkeyboard.core.prediction.BlacklistMatcher
+import com.wasimaster.wmkeyboard.core.prediction.BlacklistPatterns
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticStripSource
@@ -3324,16 +3327,38 @@ data class SuggestionSourceSettings(
         return if (own.isNullOrEmpty()) blacklist else blacklist + own
     }
 
-    /** True when [word] is blocked while [languageId] is being typed (case-insensitive). */
+    /**
+     * The global list compiled once per settings value: its pattern entries
+     * (`/…/`, see [BlacklistPatterns]) are what the word lookups below miss.
+     */
+    private val globalMatcher by lazy(LazyThreadSafetyMode.PUBLICATION) { BlacklistMatcher.of(blacklist) }
+
+    /** True when [word] is blocked while [languageId] is being typed (case-insensitive), as a word or by a pattern. */
     fun blacklisted(word: String, languageId: String): Boolean {
         val lower = word.lowercase()
-        return lower in blacklist || blacklistByLanguage[languageId]?.contains(lower) == true
+        if (lower in blacklist || blacklistByLanguage[languageId]?.contains(lower) == true) return true
+        if (globalMatcher.hasPatterns && globalMatcher.matchesPattern(lower)) return true
+        val own = blacklistByLanguage[languageId] ?: return false
+        return BlacklistMatcher.of(own).let { it.hasPatterns && it.matchesPattern(lower) }
     }
 
-    /** True when [word] is blocked anywhere — globally or in any one language. */
+    /** True when [word] is blocked anywhere — globally or in any one language, as a word or by a pattern. */
     fun blacklistedAnywhere(word: String): Boolean {
         val lower = word.lowercase()
-        return lower in blacklist || blacklistByLanguage.values.any { lower in it }
+        if (lower in blacklist || blacklistByLanguage.values.any { lower in it }) return true
+        if (globalMatcher.hasPatterns && globalMatcher.matchesPattern(lower)) return true
+        return blacklistByLanguage.values.any { own -> BlacklistMatcher.of(own).let { it.hasPatterns && it.matchesPattern(lower) } }
+    }
+
+    /**
+     * True when [word] is blocked while [languageId] is being typed only by a
+     * pattern, not as a word of its own: removing the word cannot unblock it,
+     * so "Suggest again" has to say so rather than look broken.
+     */
+    fun blacklistedByPatternOnly(word: String, languageId: String): Boolean {
+        val lower = word.lowercase()
+        if (lower in blacklist || blacklistByLanguage[languageId]?.contains(lower) == true) return false
+        return blacklisted(word, languageId)
     }
 
     /** How many entries the blacklist holds in all, counting a word once per list it is on. */
@@ -22376,19 +22401,44 @@ class SettingsRepository(private val context: Context) {
     /**
      * Adds a word to the never-suggest blacklist (lowercased, trimmed): the
      * global list, or [languageId]'s own list when one is named (#136).
+     *
+     * A `/…/` entry is a pattern and is kept as written (L8). One the guards
+     * refuse ([BlacklistPatterns.check]) is not added; the editor shows why
+     * before it ever gets here.
      */
     suspend fun addSuggestionBlacklistWord(word: String, languageId: String? = null) {
-        val normalized = word.trim().lowercase()
-        if (normalized.isEmpty()) return
+        val normalized = BlacklistPatterns.normalize(word) ?: return
+        if (BlacklistPatterns.check(normalized) != null) return
         val key = languageId?.let(::blacklistLanguageKey) ?: SUGGESTION_BLACKLIST
         editPrefs { it[key] = (it[key].orEmpty() + normalized) }
     }
 
     /** [addSuggestionBlacklistWord] for a whole list at once, in one write. */
     suspend fun addSuggestionBlacklistWords(words: Collection<String>) {
-        val normalized = words.map { it.trim().lowercase() }.filter { it.isNotEmpty() }
+        val normalized = words.mapNotNull(BlacklistPatterns::normalize).filter { BlacklistPatterns.check(it) == null }
         if (normalized.isEmpty()) return
         editPrefs { it[SUGGESTION_BLACKLIST] = it[SUGGESTION_BLACKLIST].orEmpty() + normalized }
+    }
+
+    /**
+     * Adds what a blacklist file held ([BlacklistFile.parse]) in one write,
+     * each entry onto its language's list or the global one. Returns how many
+     * were not already there.
+     */
+    suspend fun importSuggestionBlacklist(entries: Collection<BlacklistFile.Entry>): Int {
+        if (entries.isEmpty()) return 0
+        var added = 0
+        editPrefs { prefs ->
+            added = 0
+            for ((language, group) in entries.groupBy { it.languageId }) {
+                val key = language?.let(::blacklistLanguageKey) ?: SUGGESTION_BLACKLIST
+                val before = prefs[key].orEmpty()
+                val next = before + group.map { it.entry }
+                added += next.size - before.size
+                if (next.size != before.size) prefs[key] = next
+            }
+        }
+        return added
     }
 
     /**
@@ -22396,7 +22446,7 @@ class SettingsRepository(private val context: Context) {
      * from [languageId]'s own list when one is named.
      */
     suspend fun removeSuggestionBlacklistWord(word: String, languageId: String? = null) {
-        val normalized = word.trim().lowercase()
+        val normalized = BlacklistPatterns.normalize(word) ?: return
         val key = languageId?.let(::blacklistLanguageKey) ?: SUGGESTION_BLACKLIST
         editPrefs { prefs ->
             val next = prefs[key].orEmpty() - normalized

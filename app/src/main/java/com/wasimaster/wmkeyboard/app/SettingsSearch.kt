@@ -600,6 +600,16 @@ private fun SearchStrings.blacklistRows(): List<SettingsSearchEntry> = listOf(
         R.string.typing_blacklist_title, "blacklist",
         screenParent = R.string.typing_group_suggestions_title, screenRoot = R.string.home_typing_title,
     ),
+    entry(
+        R.string.backup_blacklist_import_title, R.string.backup_blacklist_import_subtitle,
+        R.string.typing_blacklist_title, "blacklist",
+        screenParent = R.string.typing_group_suggestions_title, screenRoot = R.string.home_typing_title,
+    ),
+    entry(
+        R.string.backup_blacklist_export_title, R.string.backup_blacklist_export_subtitle,
+        R.string.typing_blacklist_title, "blacklist",
+        screenParent = R.string.typing_group_suggestions_title, screenRoot = R.string.home_typing_title,
+    ),
 )
 
 /** Rows on the typing/chips page, in screen order. */

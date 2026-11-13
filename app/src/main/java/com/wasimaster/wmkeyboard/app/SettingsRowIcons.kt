@@ -593,6 +593,8 @@ internal object SettingsRowIcons {
         put(R.string.backup_section_statistics_label) { Icons.Outlined.QueryStats }
         put(R.string.backup_section_vocab_label) { Icons.Outlined.AutoStories }
         put(R.string.backup_blacklist_clear_title) { Icons.Outlined.DeleteSweep }
+        put(R.string.backup_blacklist_import_title) { Icons.Outlined.FileOpen }
+        put(R.string.backup_blacklist_export_title) { Icons.Outlined.Upload }
         put(R.string.backup_include_secrets_title) { Icons.Outlined.Key }
         put(R.string.backup_sync_title) { Icons.Outlined.Sync }
         put(R.string.restore_screen_title) { Icons.Outlined.History }

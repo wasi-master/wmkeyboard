@@ -714,6 +714,42 @@
     <string name="backup_blacklist_language_label">Block in</string>
     <string name="backup_blacklist_all_languages_label">All languages</string>
     <string name="backup_blacklist_language_word_subtitle">Only in <xliff:g id="language" example="French">%1$s</xliff:g></string>
+    <!-- Switch in the Add word dialog of the suggestion blacklist: the entry is
+         a regular expression rather than one word. -->
+    <string name="backup_blacklist_pattern_label">Pattern (regular expression)</string>
+    <string name="backup_blacklist_pattern_field_label">Pattern</string>
+    <!-- Under the pattern field. Keep the examples as they are: /lo+l/ is the pattern. -->
+    <string name="backup_blacklist_pattern_body">Hides every word the pattern matches from start to end, ignoring case. /lo+l/ hides lol and loooool but not lolly.</string>
+    <!-- Line under a blacklist row that is a pattern rather than a word. -->
+    <string name="backup_blacklist_pattern_subtitle">Pattern</string>
+    <string name="backup_blacklist_pattern_language_subtitle">Pattern, only in <xliff:g id="language" example="French">%1$s</xliff:g></string>
+    <!-- Why a pattern cannot go on the blacklist. -->
+    <string name="backup_blacklist_pattern_empty_error">Write a pattern between the slashes.</string>
+    <string name="backup_blacklist_pattern_too_long_error">A pattern can be up to <xliff:g id="count" example="200">%1$d</xliff:g> characters long.</string>
+    <string name="backup_blacklist_pattern_syntax_error">The app cannot read this pattern.</string>
+    <string name="backup_blacklist_pattern_backreference_error">Backreferences such as \\1 are not allowed.</string>
+    <string name="backup_blacklist_pattern_nested_error">A repeated group cannot repeat inside itself, as in (a+)+. Patterns like that can take too long to check.</string>
+    <string name="backup_blacklist_pattern_runaway_error">This pattern takes too long to check a word.</string>
+    <string name="backup_blacklist_pattern_everything_error">This pattern would hide every word.</string>
+    <string name="backup_blacklist_import_title">Import from a file</string>
+    <string name="backup_blacklist_import_subtitle">A text file with one word or /pattern/ per line</string>
+    <string name="backup_blacklist_export_title">Export to a file</string>
+    <string name="backup_blacklist_export_subtitle">Save the blacklist as a text file you can edit or share</string>
+    <plurals name="backup_blacklist_import_added_toast">
+        <item quantity="one"><xliff:g id="count" example="1">%d</xliff:g> entry added.</item>
+        <item quantity="other"><xliff:g id="count" example="12">%d</xliff:g> entries added.</item>
+    </plurals>
+    <plurals name="backup_blacklist_import_duplicates_toast">
+        <item quantity="one"><xliff:g id="count" example="1">%d</xliff:g> was already on the list.</item>
+        <item quantity="other"><xliff:g id="count" example="3">%d</xliff:g> were already on the list.</item>
+    </plurals>
+    <plurals name="backup_blacklist_import_refused_toast">
+        <item quantity="one"><xliff:g id="count" example="1">%d</xliff:g> pattern was refused.</item>
+        <item quantity="other"><xliff:g id="count" example="2">%d</xliff:g> patterns were refused.</item>
+    </plurals>
+    <string name="backup_blacklist_import_failed">That file could not be read.</string>
+    <string name="backup_blacklist_exported">Blacklist saved.</string>
+    <string name="backup_blacklist_export_failed">The file could not be written.</string>
 
     <!-- Shared by the new location kinds. -->
     <string name="backup_location_folder_label">Folder</string>

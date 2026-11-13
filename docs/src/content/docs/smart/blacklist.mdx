@@ -19,13 +19,59 @@ The suggestion blacklist is a list of words you never want offered back to you. 
 
 <SettingsPath path="Typing / Suggestions / Suggestion blacklist" />
 
-Tap **Add word** at the top of the editor. A dialog opens with a **Word** field and a **Block in** row of chips: **All languages**, then one chip per language you have enabled. Type the word, pick where it applies, then confirm with **Add**. The **Add** button stays disabled until the field has something in it. The word is stored lowercased and trimmed, so capitalization and stray spaces in what you type don't matter.
+Tap **Add word** at the top of the editor. A dialog opens with a **Word** field and a **Block in** row of chips: **All languages**, then one chip per language you have enabled. Type the word, pick where it applies, then confirm with **Add**. The **Add** button stays disabled until the field has something in it. The word is stored lowercased and trimmed, so capitalization and stray spaces in what you type don't matter. The **Pattern (regular expression)** switch under the field turns the entry into a pattern instead of a word; see [Patterns](#patterns).
 
 The list itself is sorted alphabetically, with a plain trash icon on each row to remove one. A word blocked in one language says so under the word ("Only in French"); a word blocked everywhere has no line under it. Once the list has at least one word in it, a **Clear the blacklist** row appears above it, which empties every list, global and per-language alike, after a confirmation. Past a dozen words a search field appears above the list, the same threshold the [personal dictionary](/smart/personal-dictionary/) screen uses, and the list itself draws 100 rows at a time with a **Show N more words** row to reveal the rest, so a list hundreds of words long never composes all at once.
 
 You can also add a word without leaving the keyboard. Press and hold it on the suggestion strip and pick **Never suggest** from the menu that opens. The same menu offers **Suggest again** for a word that is already on the list, so a slip is one hold away from being undone.
 
 Email addresses work the same way. In an email field the strip offers addresses you typed before and, if you allowed it, your contacts' addresses; holding one and picking **Never suggest** keeps it off the strip from then on. An address the keyboard remembered from your own typing is also deleted from that memory, and one added on this screen is deleted from it too. The rest of that menu, and the word card behind its **Edit** item, are described on [Personal dictionary](/smart/personal-dictionary/#from-the-suggestion-strip).
+
+## Patterns
+
+A pattern blocks every word of one shape at once, where a word entry blocks one spelling. `lol`, `lool` and `loooool` are three words to the blacklist, while the pattern `/lo+l/` covers all of them and any longer one you type next week.
+
+Turn on **Pattern (regular expression)** in the Add dialog and write the expression in the field, or leave the switch off and write it between two slashes; either way it is stored as `/lo+l/` and the row says **Pattern** under it. The syntax is Java's regular expressions, the same one [pattern snippets](/tools/snippets/) use. Two rules decide what a pattern hides:
+
+- **It has to match the whole word.** `/lo+l/` hides "lool" but not "lolly". To hide anything that contains a piece, put `.*` on the side that is open: `/.*ing/` hides every word ending in "ing".
+- **Case is ignored.** `/LO+L/` and `/lo+l/` hide the same words. A pattern is stored exactly as you wrote it, though, since `\S` and `\s` mean different things.
+
+A pattern can be blocked in one language like a word, and the row then reads "Pattern, only in French". It filters every path listed under [What gets filtered](#what-gets-filtered), autocorrect targets included.
+
+The dialog checks the pattern as you type and turns **Add** off, with the reason under the field, when the keyboard would refuse it:
+
+- it isn't valid syntax (the error from Java follows the reason, untranslated);
+- it is longer than 200 characters;
+- it uses a backreference such as `\1`;
+- it repeats a group that repeats inside itself, as in `(a+)+`;
+- it takes too long to check a word, tried against a few long runs of letters;
+- it matches every one of a handful of everyday words (`/.*/`, `/\w+/`), which would leave the strip empty.
+
+Those are the same guards pattern snippets run behind, and for the same reason: a pattern runs on every suggestion while you type, and a regular expression can take a very long time on the wrong input. Each check of a word is also capped at a fixed amount of work. A pattern that ever hits the cap on a real word is skipped for the rest of the keyboard session instead of being retried on every keystroke.
+
+**Suggest again** on a word that a pattern hides cannot help, because the word itself isn't on the list. The keyboard says so in a short message naming the word, and the pattern has to be edited or removed here.
+
+## Importing and exporting a file
+
+<SettingsPath path="Typing / Suggestions / Suggestion blacklist / Import from a file" />
+
+The blacklist travels in a [settings backup](/privacy/backup/), and it can also go to and from a plain-text file of its own. **Export to a file** (shown once the list has entries) saves `suggestion-blacklist.txt` wherever you pick. **Import from a file** reads one back, or a list you wrote yourself:
+
+```
+# Words and patterns to never suggest
+idk
+/lo+l/
+whatever @en
+ugh @fr
+```
+
+- One entry per line: a word, or a pattern between slashes.
+- A line starting with `#` is a comment, and blank lines are skipped. A word that really starts with `#` can't be imported this way; add it in the dialog.
+- A space, `@` and a language id at the end of a line (`whatever @en`) puts the entry on that language's list. Without one it goes on the list for all languages. The export writes the ids it uses, so an exported file shows the form.
+- Words are lowercased and trimmed on the way in, as in the dialog. A pattern goes through the same checks as one typed in the dialog, and one that fails is left out.
+- Repeats are dropped, both within the file and against what is already on the list.
+
+Importing only adds; it never removes anything already on the list. When it finishes, a message counts the entries added, the ones that were already there, and any patterns that were refused.
 
 ## Blocking a word in one language only
 
@@ -69,7 +115,7 @@ The blacklist never touches the word itself as text. Typing it, editing it, and 
 - **It's mostly independent of your personal dictionary, with one automatic link.** The blacklist and the [personal dictionary](/smart/personal-dictionary/) of learned words are two separate stores, and neither settings screen offers a shortcut to push a word from one into the other. But blocking a word everywhere does purge it from the personal dictionary and from the words still waiting to be learned, the moment the keyboard picks up the change, and it stays out of both while it remains blocked; blocking it in one language only filters the suggestion, leaving what the keyboard learned alone. There's also a link on the keyboard itself: **Delete** on a held suggestion forgets the word from the personal dictionary and, when the word is still in a downloaded or imported list, puts it on the blacklist as well, since that is the only way to unlist one word from a read-only list. As a candidate, meaning something offered to complete another word or something autocorrect would replace a typo with, the blacklist always wins, so the word stays suppressed either way. But if you type that exact word yourself, autocorrect leaves it alone regardless of the blacklist, the same as it would for any word already known to the keyboard.
 - **Removing a word un-blocks it immediately.** If a global block already purged it from your personal dictionary, taking it off the blacklist starts the word over rather than restoring what it had learned before. You don't need to touch the personal dictionary at all.
 - **A word doesn't need history to be blacklisted.** You can blacklist any word, learned or not. The blacklist doesn't check whether the word exists in any dictionary first.
-- **Backed up like any other setting.** The list lives in the same settings store as everything else in the app, so it's included automatically in a [settings backup](/privacy/backup/). There's no separate export step for it.
+- **Backed up like any other setting.** The list lives in the same settings store as everything else in the app, so it's included automatically in a [settings backup](/privacy/backup/). [Export to a file](#importing-and-exporting-a-file) is there for moving just the list.
 - **An email field is the one gap.** In a field the app marked as an email address, the strip is driven straight from your contacts' addresses rather than through the ordinary suggestion pass, and that shortcut doesn't consult the blacklist. Blacklisting an address keeps it out of the strip everywhere else, but not there. See [Contact-aware typing](/smart/contacts/) for what that path does.
 
 For the rest of the suggestion strip (completions, corrections, and next-word prediction), see [Suggestions & prediction](/smart/suggestions/). For teaching the keyboard new words instead of blocking them, see [Personal dictionary](/smart/personal-dictionary/).

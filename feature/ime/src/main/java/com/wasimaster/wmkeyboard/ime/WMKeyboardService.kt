@@ -240,6 +240,8 @@ import com.wasimaster.wmkeyboard.core.input.MorseInput
 import com.wasimaster.wmkeyboard.core.input.MultitapCycle
 import com.wasimaster.wmkeyboard.core.prediction.AppNames
 import com.wasimaster.wmkeyboard.core.prediction.AvroDesktop
+import com.wasimaster.wmkeyboard.core.prediction.BlacklistMatcher
+import com.wasimaster.wmkeyboard.core.prediction.BlacklistPatterns
 import com.wasimaster.wmkeyboard.core.prediction.ContactEmails
 import com.wasimaster.wmkeyboard.core.prediction.ContactNames
 import com.wasimaster.wmkeyboard.core.prediction.Elisions
@@ -4121,7 +4123,8 @@ open class WMKeyboardService : InputMethodService() {
         }
 
     private suspend fun purgeBlacklisted(blacklist: Set<String>) {
-        val added = blacklist - purgedBlacklist
+        // A pattern names no one word to forget; only plain entries purge.
+        val added = (blacklist - purgedBlacklist).filterNotTo(HashSet(), BlacklistPatterns::isPattern)
         purgedBlacklist = blacklist
         // An address put on the list from settings leaves the remembered ones too.
         forgetTypedEmails(added)
@@ -25448,9 +25451,9 @@ open class WMKeyboardService : InputMethodService() {
             original = fired.typed
         }
         if (!CorrectionMemory.accepts(original, rev.revised, ::isKnownWord)) return null
-        val blacklist = _uiState.value.let { it.settings.suggestionSources.blacklistFor(it.language.id) }
-        if (original.lowercase() in blacklist ||
-            rev.revised.lowercase().split(' ').any { it in blacklist }
+        val blocked = _uiState.value.let { BlacklistMatcher.of(it.settings.suggestionSources.blacklistFor(it.language.id)) }
+        if (blocked.matches(original.lowercase()) ||
+            rev.revised.lowercase().split(' ').any(blocked::matches)
         ) {
             return null
         }
@@ -25495,8 +25498,8 @@ open class WMKeyboardService : InputMethodService() {
         // not the keyboard is allowed to learn from it.
         recordStat { onHandFix(System.currentTimeMillis()) }
         if (!revisionsWanted()) return
-        val blacklist = _uiState.value.let { it.settings.suggestionSources.blacklistFor(it.language.id) }
-        if (original.lowercase() in blacklist || revised.lowercase().split(' ').any { it in blacklist }) return
+        val blocked = _uiState.value.let { BlacklistMatcher.of(it.settings.suggestionSources.blacklistFor(it.language.id)) }
+        if (blocked.matches(original.lowercase()) || revised.lowercase().split(' ').any(blocked::matches)) return
         val kind = revisionKind(entry.replacesOrigin) { isKnownWord(original) }
         correctionMemory.teach(original, revised, _uiState.value.layoutId, kind)
         pushLearnedHabits()
@@ -54940,6 +54943,12 @@ open class WMKeyboardService : InputMethodService() {
         // Off every list it is on: "Suggest again" is the whole opinion, not
         // one per language (#136).
         serviceScope.launch { settingsRepository.removeSuggestionBlacklistWordEverywhere(trimmed) }
+        // A pattern entry (L8) is not this word, so removing the word leaves
+        // it hidden; say so rather than look like the menu did nothing.
+        val state = _uiState.value
+        if (state.settings.suggestionSources.blacklistedByPatternOnly(trimmed, state.language.id)) {
+            toast(getString(R.string.ime_suggestion_pattern_still_hides, trimmed))
+        }
     }
 
     /**

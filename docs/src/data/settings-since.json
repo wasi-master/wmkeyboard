@@ -314,6 +314,8 @@
 		"backup_auto_keep_title": "0.5.3",
 		"backup_auto_staggered_title": "0.6.4",
 		"backup_auto_targets_title": "0.5.12",
+		"backup_blacklist_export_title": "0.6.7",
+		"backup_blacklist_import_title": "0.6.7",
 		"backup_blacklist_scope_title": "0.5.9",
 		"backup_downloads_import_title": "0.6.5",
 		"backup_files_export_title": "0.5.12",

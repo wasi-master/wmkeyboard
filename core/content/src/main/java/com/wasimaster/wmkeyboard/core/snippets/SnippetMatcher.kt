@@ -1,9 +1,9 @@
 package com.wasimaster.wmkeyboard.core.snippets
 
+import com.wasimaster.wmkeyboard.core.regex.GuardedRegex
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
-import java.util.regex.PatternSyntaxException
 
 /**
  * The pattern half of snippet expansion: a snippet whose trigger is a regular
@@ -193,17 +193,15 @@ object SnippetMatcher {
 
     /** Checks a pattern the way [SnippetIndex] will, without building one. */
     fun validate(pattern: String): PatternError? {
-        val source = pattern.trim()
-        if (source.isEmpty()) return PatternError(Fault.EMPTY)
-        if (source.length > MAX_PATTERN_LENGTH) return PatternError(Fault.TOO_LONG)
-        if (hasBackreference(source)) return PatternError(Fault.BACKREFERENCE)
-        if (hasNestedQuantifier(source)) return PatternError(Fault.NESTED_QUANTIFIER)
-        return try {
-            compile(source)
-            null
-        } catch (e: PatternSyntaxException) {
-            PatternError(Fault.SYNTAX, e.description)
+        val error = GuardedRegex.check(pattern, MAX_PATTERN_LENGTH) ?: return null
+        val fault = when (error.fault) {
+            GuardedRegex.Fault.EMPTY -> Fault.EMPTY
+            GuardedRegex.Fault.TOO_LONG -> Fault.TOO_LONG
+            GuardedRegex.Fault.SYNTAX -> Fault.SYNTAX
+            GuardedRegex.Fault.BACKREFERENCE -> Fault.BACKREFERENCE
+            GuardedRegex.Fault.NESTED_QUANTIFIER -> Fault.NESTED_QUANTIFIER
         }
+        return PatternError(fault, error.description)
     }
 
     /**
@@ -262,8 +260,7 @@ object SnippetMatcher {
     }
 
     /** Compiles [source] the way every pattern in this file is compiled. */
-    internal fun compile(source: String): Pattern =
-        Pattern.compile(source, Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE)
+    internal fun compile(source: String): Pattern = GuardedRegex.compile(source)
 
     /**
      * The numbers of [source]'s groups that may only hold a name (#1291): the
@@ -312,85 +309,6 @@ object SnippetMatcher {
     const val NAME_GROUP = "name"
 
     private val NO_GROUPS = IntArray(0)
-
-    /** True when [source] refers back to an earlier group. */
-    private fun hasBackreference(source: String): Boolean {
-        var i = 0
-        while (i < source.length - 1) {
-            if (source[i] == '\\') {
-                val next = source[i + 1]
-                if (next in '1'..'9' || next == 'k') return true
-                i += 2
-                continue
-            }
-            i++
-        }
-        return false
-    }
-
-    /**
-     * True when [source] quantifies a group whose own body is quantified, the
-     * `(a+)+` shape that turns a hundred characters into an unbounded search.
-     *
-     * This is a screen, not a proof: it looks only at the group that a
-     * quantifier closes over. The step budget in [SnippetIndex] is what
-     * actually protects the keyboard.
-     */
-    private fun hasNestedQuantifier(source: String): Boolean {
-        for (close in source.indices) {
-            if (source[close] != ')' || isEscaped(source, close)) continue
-            val quantifier = source.getOrNull(close + 1) ?: continue
-            if (quantifier !in QUANTIFIERS) continue
-            val open = matchingOpen(source, close) ?: continue
-            if (bodyIsQuantified(source, open + 1, close)) return true
-        }
-        return false
-    }
-
-    /** True when the character at [index] is spelled out by a backslash. */
-    private fun isEscaped(source: String, index: Int): Boolean {
-        var slashes = 0
-        var i = index - 1
-        while (i >= 0 && source[i] == '\\') {
-            slashes++
-            i--
-        }
-        return slashes % 2 == 1
-    }
-
-    /** The `(` that [close] closes, or null when the pattern is unbalanced. */
-    private fun matchingOpen(source: String, close: Int): Int? {
-        var depth = 0
-        for (i in close downTo 0) {
-            if (isEscaped(source, i)) continue
-            when (source[i]) {
-                ')' -> depth++
-                '(' -> {
-                    depth--
-                    if (depth == 0) return i
-                }
-                else -> Unit
-            }
-        }
-        return null
-    }
-
-    /** True when the group body in `[start, end)` quantifies anything itself. */
-    private fun bodyIsQuantified(source: String, start: Int, end: Int): Boolean {
-        var inClass = false
-        var i = start
-        while (i < end) {
-            val c = source[i]
-            when {
-                c == '\\' -> i++
-                c == '[' -> inClass = true
-                c == ']' -> inClass = false
-                !inClass && c in QUANTIFIERS -> return true
-            }
-            i++
-        }
-        return false
-    }
 
     /**
      * A snippet text with its capture references blanked out.
@@ -983,10 +901,10 @@ class SnippetIndex private constructor(
         context: SnippetStore.Companion.Context,
         isName: ((String) -> Boolean)?,
     ): SnippetMatch? {
-        val matcher = compiled.pattern.matcher(StepBudget(span, SnippetMatcher.MAX_STEPS))
+        val matcher = compiled.pattern.matcher(GuardedRegex.budgeted(span, SnippetMatcher.MAX_STEPS))
         val matched = try {
             matcher.matches()
-        } catch (_: StepBudgetExceeded) {
+        } catch (_: GuardedRegex.Runaway) {
             stopped.add(compiled.snippet.id)
             return null
         }
@@ -1127,33 +1045,4 @@ class SnippetIndex private constructor(
             return SnippetIndex(plain, prefixed, suffixed, immediate, immediateWords, byHead, ungated, asking)
         }
     }
-}
-
-/**
- * Stops a matcher that will not stop itself.
- *
- * `java.util.regex` offers no timeout, but it reads the input one character at
- * a time through [get], including on every backtracking step. Counting those
- * reads bounds the work a pattern can do without changing what it matches.
- */
-private class StepBudget(private val source: CharSequence, private val budget: Int) : CharSequence {
-
-    private var steps = 0
-
-    override val length: Int get() = source.length
-
-    override fun get(index: Int): Char {
-        if (++steps > budget) throw StepBudgetExceeded()
-        return source[index]
-    }
-
-    override fun subSequence(startIndex: Int, endIndex: Int): CharSequence =
-        source.subSequence(startIndex, endIndex)
-
-    override fun toString(): String = source.toString()
-}
-
-/** Thrown out of a runaway matcher. Carries no stack: this is the typing path. */
-private class StepBudgetExceeded : RuntimeException() {
-    override fun fillInStackTrace(): Throwable = this
 }

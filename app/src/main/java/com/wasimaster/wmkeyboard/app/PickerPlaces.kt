@@ -30,6 +30,8 @@ internal object PickerPlaces {
     const val DOWNLOADS_EXPORT = "downloads_export"
     const val DOWNLOADS_IMPORT = "downloads_import"
     const val BACKUP_FOLDER = "backup_folder"
+    const val BLACKLIST_EXPORT = "blacklist_export"
+    const val BLACKLIST_IMPORT = "blacklist_import"
 
     private const val PREFS = "picker_places"
 
