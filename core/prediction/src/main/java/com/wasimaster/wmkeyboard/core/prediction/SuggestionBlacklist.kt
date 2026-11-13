@@ -264,8 +264,11 @@ object BlacklistFile {
         }
     }
 
-    /** [line] split into its entry and its language tag, if it ends with one. */
-    internal fun splitTag(line: String): Pair<String, String?> {
+    /**
+     * [line] split into its entry and its language tag, if it ends with one.
+     * Public because its tests live in `:app`, a different Kotlin module.
+     */
+    fun splitTag(line: String): Pair<String, String?> {
         val space = line.indexOfLast { it.isWhitespace() }
         if (space <= 0) return line to null
         val tag = line.substring(space + 1)
