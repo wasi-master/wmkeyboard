@@ -41,9 +41,13 @@
     <!-- Button under the game-over score that starts a fresh round. -->
     <string name="egg_game_play_again_action">Play again</string>
     <!-- Instruction on the start card, before the first keycap falls. -->
-    <string name="egg_game_hint">Drag anywhere to move the spacebar. Catch the falling letters and spell the word at the top.</string>
+    <string name="egg_game_hint">Drag anywhere to steer the spacebar. Catch the outlined letter to spell the word at the top. The game speeds up as you go.</string>
     <!-- Button on the start card that begins the first round. -->
     <string name="egg_game_start_action">Play</string>
+    <!-- Start card legend: the outlined key, the word's next letter. -->
+    <string name="egg_game_legend_target">The next letter: missing it costs a life</string>
+    <!-- Start card legend: a plain letter key, which is a decoy. -->
+    <string name="egg_game_legend_decoy">Any other letter breaks your combo</string>
     <!-- Start card legend: what catching the gold Enter key does. -->
     <string name="egg_game_legend_enter">Worth five letters</string>
     <!-- Start card legend: what catching the heart key does. -->
@@ -56,6 +60,10 @@
     <string name="egg_game_paused_title">Paused</string>
     <!-- Button that carries on a paused round. -->
     <string name="egg_game_resume_action">Resume</string>
+    <!-- Button on the pause card that throws the round away and starts a fresh one. -->
+    <string name="egg_game_restart_action">Restart</string>
+    <!-- Button on the game's cards that leaves the game for the settings app. -->
+    <string name="egg_game_quit_action">Quit</string>
     <!-- Shown on the game-over card when the round beat the old best score. -->
     <string name="egg_game_new_best">New best!</string>
     <!-- Current difficulty level. %1$d is the level number. -->

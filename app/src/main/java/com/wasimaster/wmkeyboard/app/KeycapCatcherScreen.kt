@@ -1,6 +1,5 @@
 package com.wasimaster.wmkeyboard.app
 
-import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -33,7 +32,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -47,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -86,25 +88,33 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 
 /**
  * The keycap catcher: the mini game behind seven taps on the version row.
  *
  * Full screen and immersive: the system bars hide while it is open and come
- * back when it closes, and the screen stays on during a round. Keycaps fall
- * from the top; a spacebar at the bottom follows the finger anywhere on the
- * screen. A word to spell sits at the top, and catching its letters in order
- * pays a bonus when it is complete. Catches in a row build a multiplier, and
- * a few special keys fall among the letters:
+ * back when it closes, and the screen stays on. A word to spell sits at the
+ * top. Exactly one key in the air is its next letter, drawn outlined; catch it
+ * with the spacebar at the bottom and the word moves on, let it hit the floor
+ * and a life goes. Every other letter is a decoy: catching one breaks the
+ * combo, letting it fall costs nothing. Special keys fall among them:
  *
  * - ↵ is worth five letters,
  * - ♥ gives a life back (up to [MAX_LIVES]),
  * - ␣ widens the spacebar for a few seconds,
  * - ⌫ is the one to dodge: catching it costs a life.
  *
- * A letter that hits the floor costs a life; the special keys do not. The
- * level rises with the score and brings faster keys and more of them.
+ * The spacebar chases the finger at a capped speed rather than jumping to it,
+ * so a key on the far side of the screen is a race, not a tap. A key counts
+ * as caught only in the frame its bottom crosses the bar's top: sliding the
+ * bar into a key that is already past it does nothing.
+ *
+ * Difficulty runs on the clock, not the score, so it rises at the same pace
+ * however the points come in: every [LEVEL_SECONDS] is a level, and each level
+ * makes keys fall faster and thicker, brings more ⌫, longer words, more decoys
+ * at once, keys that weave from side to side, and a narrower spacebar.
  *
  * Not a settings screen at all, so it draws its own chrome instead of the
  * scaffold: a game cannot live inside the scaffold's scrolling column, and a
@@ -141,12 +151,21 @@ private enum class CapKind { LETTER, ENTER, HEART, SPACE, BACKSPACE }
 private class FallingCap(
     val kind: CapKind,
     val label: String,
-    val xFrac: Float,
+    /** Where it fell from, as a fraction of the width; [x] adds the weave. */
+    val baseX: Float,
     var y: Float,
     val speed: Float,
     val spin: Float,
     val phase: Float,
-)
+    /** Side-to-side swing as a fraction of the width; 0 falls straight. */
+    val weave: Float,
+    /** Whether this is the word's next letter: the one key a miss costs a life for. */
+    var target: Boolean,
+) {
+    var age = 0f
+
+    fun x(): Float = (baseX + weave * sin(age * WEAVE_RATE + phase)).coerceIn(EDGE, 1f - EDGE)
+}
 
 /** A spark from a catch, or a chip of a lost key. */
 private class Spark(
@@ -167,17 +186,21 @@ private class Popup(
     val big: Boolean,
 )
 
-/** Everything one round changes, kept out of the snapshot system; [frame] is what tells Compose to redraw. */
+/** Everything one round changes, kept out of the snapshot system; `frame` is what tells Compose to redraw. */
 private class GameWorld {
     val caps = ArrayList<FallingCap>()
     val sparks = ArrayList<Spark>()
     val popups = ArrayList<Popup>()
     var untilSpawn = FIRST_SPAWN_S
+    var untilTarget = FIRST_SPAWN_S
     var wideLeft = 0f
     var catcherWidthNow = 1f
     var glow = 0f
     var shake = 0f
     var time = 0f
+
+    /** Seconds of play this round, pauses left out: what the difficulty runs on. */
+    var elapsed = 0f
 
     // Lifetime figures not yet written to EggPrefs: flushed on pause, at
     // game over and when the screen goes, not sixty times a second.
@@ -189,12 +212,25 @@ private class GameWorld {
         sparks.clear()
         popups.clear()
         untilSpawn = FIRST_SPAWN_S
+        untilTarget = FIRST_SPAWN_S
         wideLeft = 0f
+        catcherWidthNow = 1f
         glow = 0f
         shake = 0f
+        elapsed = 0f
     }
 
     val busy get() = caps.isNotEmpty() || sparks.isNotEmpty() || popups.isNotEmpty() || shake > 0f || glow > 0f
+}
+
+/** The level a round is on after [elapsed] seconds of play. */
+private fun levelAt(elapsed: Float): Int = 1 + (elapsed / LEVEL_SECONDS).toInt()
+
+/** A word whose length suits [level]: three or four letters at first, up to ten. */
+private fun wordFor(level: Int, previous: String?): String {
+    val shortest = (3 + (level - 1) / 2).coerceAtMost(8)
+    val pool = WORDS.filter { it.length in shortest..shortest + 2 && it != previous }
+    return pool.ifEmpty { WORDS.filter { it != previous } }.random()
 }
 
 @Composable
@@ -208,7 +244,8 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
     var score by remember { mutableIntStateOf(0) }
     var lives by remember { mutableIntStateOf(START_LIVES) }
     var combo by remember { mutableIntStateOf(0) }
-    var word by remember { mutableStateOf(WORDS.random()) }
+    var level by remember { mutableIntStateOf(1) }
+    var word by remember { mutableStateOf(wordFor(1, null)) }
     var spelled by remember { mutableIntStateOf(0) }
     var newBest by remember { mutableStateOf(false) }
     var targetX by remember { mutableFloatStateOf(0.5f) }
@@ -217,7 +254,6 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
     var areaSize by remember { mutableStateOf(IntSize.Zero) }
     val world = remember { GameWorld() }
 
-    val level = 1 + score / POINTS_PER_LEVEL
     val multiplier = (1 + combo / COMBO_STEP).coerceAtMost(MAX_MULTIPLIER)
 
     val density = LocalDensity.current
@@ -238,6 +274,7 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
     }
 
     fun pause() {
+        if (phase != GamePhase.PLAYING) return
         phase = GamePhase.PAUSED
         saveTally()
     }
@@ -250,9 +287,12 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
         score = 0
         lives = START_LIVES
         combo = 0
+        level = 1
         spelled = 0
-        word = WORDS.random()
+        word = wordFor(1, word)
         newBest = false
+        catcherX = 0.5f
+        targetX = 0.5f
         phase = GamePhase.PLAYING
     }
 
@@ -265,38 +305,37 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
         while (world.sparks.size > MAX_SPARKS) world.sparks.removeAt(0)
     }
 
+    fun endRound() {
+        // Every key still in the air shatters, so the round ends with a bang
+        // and the loop can settle once the sparks are gone.
+        for (cap in world.caps) {
+            burst(cap.x() * areaSize.width, cap.y, scheme.outline, 6, areaSize.height * 0.3f)
+        }
+        world.caps.clear()
+        phase = GamePhase.OVER
+        saveTally()
+        if (level > eggPrefs.gameBestLevel) eggPrefs.gameBestLevel = level
+        if (score > best) {
+            best = score
+            newBest = true
+            eggPrefs.gameHighScore = score
+        }
+    }
+
     fun loseLife() {
         lives--
         combo = 0
         world.shake = 1f
         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-        if (lives <= 0) {
-            // Every key still in the air shatters, so the round ends with a bang
-            // and the loop can settle once the sparks are gone.
-            for (cap in world.caps) {
-                burst(cap.xFrac * areaSize.width, cap.y, scheme.outline, 6, areaSize.height * 0.3f)
-            }
-            world.caps.clear()
-            phase = GamePhase.OVER
-            saveTally()
-            val reached = 1 + score / POINTS_PER_LEVEL
-            if (reached > eggPrefs.gameBestLevel) eggPrefs.gameBestLevel = reached
-            if (score > best) {
-                best = score
-                newBest = true
-                eggPrefs.gameHighScore = score
-            }
-        }
+        if (lives <= 0) endRound()
     }
 
     // Leaving the app, or Back mid-round, pauses rather than throwing the round away.
-    LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) {
-        if (phase == GamePhase.PLAYING) pause()
-    }
+    LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) { pause() }
     BackHandler(enabled = phase == GamePhase.PLAYING) { pause() }
 
     val letterFill = scheme.surfaceVariant
-    val nextFill = scheme.primaryContainer
+    val targetFill = scheme.primaryContainer
     val sparkColors = listOf(scheme.primary, scheme.tertiary, scheme.secondary, GoldKey)
 
     // The game loop. Deliberately triggered motion — seven taps asked for it —
@@ -334,94 +373,135 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
 
             if (playing) {
                 world.unsavedPlayS += dt
-                catcherX += (targetX - catcherX) * (dt * CATCHER_EASE).coerceAtMost(1f)
+                world.elapsed += dt
+                // 0 at the start, +1 per level, continuous: everything below scales with it.
+                val heat = world.elapsed / LEVEL_SECONDS
+                val nowLevel = levelAt(world.elapsed)
+                if (nowLevel > level) {
+                    level = nowLevel
+                    world.popups += Popup(
+                        context.getString(R.string.egg_game_level_label, nowLevel),
+                        w / 2, h * 0.35f, 1.3f, big = true,
+                    )
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                }
+
+                // The bar chases the finger at a capped speed, and narrows as the levels climb.
+                val maxStep = CATCHER_SPEED * dt
+                catcherX += (targetX - catcherX).coerceIn(-maxStep, maxStep)
                 world.wideLeft = (world.wideLeft - dt).coerceAtLeast(0f)
-                val wantWidth = if (world.wideLeft > 0f) WIDE_FACTOR else 1f
+                val baseWidth = (1f - heat * CATCHER_SHRINK).coerceAtLeast(MIN_CATCHER_FACTOR)
+                val wantWidth = baseWidth * if (world.wideLeft > 0f) WIDE_FACTOR else 1f
                 world.catcherWidthNow += (wantWidth - world.catcherWidthNow) * (dt * 8f).coerceAtMost(1f)
 
-                val lvl = 1 + score / POINTS_PER_LEVEL
+                // The word's next letter: always exactly one in the air, a beat after the last.
+                val next = word.getOrNull(spelled)
+                if (next != null && world.caps.none { it.target }) {
+                    world.untilTarget -= dt
+                    if (world.untilTarget <= 0f) {
+                        world.caps += newCap(CapKind.LETTER, next.toString(), heat, capPx, h, target = true)
+                        world.untilTarget = TARGET_GAP_S
+                    }
+                }
+
+                // Everything else: decoys and special keys, faster and thicker with the heat.
                 world.untilSpawn -= dt
                 if (world.untilSpawn <= 0f) {
-                    world.caps += spawnCap(lvl, score, lives, word.getOrNull(spelled), capPx, h)
-                    world.untilSpawn = (SPAWN_EVERY_S - (lvl - 1) * SPAWN_RAMP_S).coerceAtLeast(SPAWN_FLOOR_S) *
+                    val drops = if (Random.nextFloat() < (heat * 0.12f).coerceAtMost(0.55f)) 2 else 1
+                    repeat(drops) { world.caps += spawnOther(heat, lives, next, capPx, h) }
+                    world.untilSpawn = (SPAWN_EVERY_S / (1f + heat * SPAWN_RAMP)).coerceAtLeast(SPAWN_FLOOR_S) *
                         (0.75f + Random.nextFloat() * 0.5f)
                 }
 
-                val speedMult = (1f + (lvl - 1) * 0.12f).coerceAtMost(MAX_SPEED_MULT)
+                val speedMult = (1f + heat * SPEED_RAMP).coerceAtMost(MAX_SPEED_MULT)
                 val halfCatcher = catcherW * world.catcherWidthNow / 2
                 val catchTop = h - bottomMargin - catcherH
                 val iterator = world.caps.iterator()
                 while (iterator.hasNext() && phase == GamePhase.PLAYING) {
                     val cap = iterator.next()
+                    val wasAbove = cap.y + capPx / 2 < catchTop
+                    cap.age += dt
                     cap.y += cap.speed * speedMult * dt
-                    val capX = cap.xFrac * w
-                    val caught = cap.y + capPx / 2 >= catchTop && cap.y - capPx / 2 <= catchTop + catcherH &&
-                        abs(capX - catcherX * w) <= halfCatcher + capPx / 2
+                    val capX = cap.x() * w
+                    // Caught only as it crosses the bar's top: no scooping a key from the side.
+                    val caught = wasAbove && cap.y + capPx / 2 >= catchTop &&
+                        abs(capX - catcherX * w) <= halfCatcher + capPx * CATCH_GRACE
                     when {
                         caught -> {
                             iterator.remove()
+                            val popY = catchTop - capPx
                             when (cap.kind) {
                                 CapKind.BACKSPACE -> {
                                     burst(capX, catchTop, scheme.error, 18, h * 0.5f)
-                                    world.popups += Popup("⌫", capX, catchTop - capPx, 0.8f, big = true)
+                                    world.popups += Popup("⌫", capX, popY, 0.8f, big = true)
                                     loseLife()
                                 }
                                 CapKind.HEART -> {
-                                    combo++
                                     if (lives < MAX_LIVES) {
                                         lives++
-                                        world.popups += Popup("+♥", capX, catchTop - capPx, 0.9f, big = true)
+                                        world.popups += Popup("+♥", capX, popY, 0.9f, big = true)
                                     } else {
-                                        score += 3
-                                        world.popups += Popup("+3", capX, catchTop - capPx, 0.8f, big = false)
+                                        val gained = ENTER_POINTS / 2 * multiplierFor(combo)
+                                        score += gained
+                                        world.popups += Popup("+$gained", capX, popY, 0.8f, big = false)
                                     }
                                     burst(capX, catchTop, scheme.error, 14, h * 0.4f)
                                     haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 }
                                 CapKind.SPACE -> {
-                                    combo++
                                     world.wideLeft = WIDE_SECONDS
-                                    world.popups += Popup("␣ ↔", capX, catchTop - capPx, 0.9f, big = true)
+                                    world.popups += Popup("␣ ↔", capX, popY, 0.9f, big = true)
                                     burst(capX, catchTop, scheme.tertiary, 14, h * 0.4f)
                                     haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 }
-                                CapKind.ENTER, CapKind.LETTER -> {
+                                CapKind.ENTER -> {
+                                    val gained = ENTER_POINTS * multiplierFor(combo)
+                                    score += gained
+                                    world.popups += Popup("+$gained", capX, popY, 0.8f, big = true)
+                                    burst(capX, catchTop, GoldKey, 18, h * 0.4f)
+                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                }
+                                CapKind.LETTER -> if (cap.label == next?.toString()) {
+                                    // The right letter, flagged or not: the word moves on.
                                     combo++
-                                    val mult = (1 + combo / COMBO_STEP).coerceAtMost(MAX_MULTIPLIER)
-                                    var gained = (if (cap.kind == CapKind.ENTER) 5 else 1) * mult
-                                    if (cap.kind == CapKind.LETTER && cap.label == word.getOrNull(spelled)?.toString()) {
-                                        spelled++
-                                        if (spelled == word.length) {
-                                            val bonus = WORD_BONUS * lvl
-                                            gained += bonus
-                                            world.popups += Popup(word, w / 2, h * 0.42f, 1.4f, big = true)
-                                            repeat(4) { i ->
-                                                burst(w * (0.2f + 0.2f * i), h * 0.45f, sparkColors[i % sparkColors.size], 16, h * 0.6f)
-                                            }
-                                            word = WORDS.filter { it != word }.random()
-                                            spelled = 0
-                                            eggPrefs.gameWordsSpelled += 1
-                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    var gained = LETTER_POINTS * multiplierFor(combo)
+                                    spelled++
+                                    // Whatever was flagged for this letter is a plain decoy now.
+                                    world.caps.forEach { it.target = false }
+                                    world.untilTarget = TARGET_GAP_S
+                                    if (spelled == word.length) {
+                                        gained += WORD_POINTS * word.length * multiplierFor(combo)
+                                        world.popups += Popup(word, w / 2, h * 0.42f, 1.4f, big = true)
+                                        repeat(4) { i ->
+                                            burst(w * (0.2f + 0.2f * i), h * 0.45f, sparkColors[i % sparkColors.size], 16, h * 0.6f)
                                         }
+                                        word = wordFor(level, word)
+                                        spelled = 0
+                                        eggPrefs.gameWordsSpelled += 1
+                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    } else {
+                                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                     }
                                     score += gained
-                                    world.popups += Popup("+$gained", capX, catchTop - capPx, 0.7f, big = gained >= 5)
-                                    burst(
-                                        capX, catchTop,
-                                        if (cap.kind == CapKind.ENTER) GoldKey else sparkColors.random(),
-                                        if (cap.kind == CapKind.ENTER) 16 else 8,
-                                        h * 0.35f,
-                                    )
-                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    world.popups += Popup("+$gained", capX, popY, 0.7f, big = gained >= ENTER_POINTS)
+                                    burst(capX, catchTop, sparkColors.random(), 10, h * 0.35f)
+                                } else {
+                                    // A decoy: no life lost, but the combo goes.
+                                    combo = 0
+                                    world.shake = 0.45f
+                                    world.popups += Popup("✗", capX, popY, 0.7f, big = true)
+                                    burst(capX, catchTop, scheme.outline, 8, h * 0.3f)
+                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                 }
                             }
                             if (cap.kind != CapKind.BACKSPACE) world.unsavedCaught++
-                            world.glow = 1f
+                            if (cap.kind != CapKind.BACKSPACE) world.glow = 1f
                         }
                         cap.y - capPx / 2 > h -> {
                             iterator.remove()
-                            if (cap.kind == CapKind.LETTER) {
-                                burst(capX, h - depthPx, scheme.outline, 10, h * 0.3f)
+                            if (cap.target) {
+                                burst(capX, h - depthPx, scheme.error, 12, h * 0.3f)
+                                world.untilTarget = TARGET_GAP_S
                                 loseLife()
                             }
                         }
@@ -445,15 +525,15 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
             .background(Brush.verticalGradient(listOf(scheme.surface, scheme.surfaceVariant.copy(alpha = 0.6f))))
             .onSizeChanged { areaSize = it }
             .pointerInput(Unit) {
-                // The spacebar follows the finger wherever it is, from the first touch.
+                // The spacebar heads for the finger wherever it is, from the first touch.
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
-                    if (size.width > 0) targetX = (down.position.x / size.width).coerceIn(0.04f, 0.96f)
+                    if (size.width > 0) targetX = (down.position.x / size.width).coerceIn(EDGE, 1f - EDGE)
                     while (true) {
                         val event = awaitPointerEvent()
                         val change = event.changes.firstOrNull { it.id == down.id } ?: break
                         if (!change.pressed) break
-                        if (size.width > 0) targetX = (change.position.x / size.width).coerceIn(0.04f, 0.96f)
+                        if (size.width > 0) targetX = (change.position.x / size.width).coerceIn(EDGE, 1f - EDGE)
                         change.consume()
                     }
                 }
@@ -478,12 +558,11 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
                 top = if (shakeAmp > 0f) (Random.nextFloat() - 0.5f) * shakeAmp else 0f,
             ) {
                 val corner = CornerRadius(capPx * 0.22f)
-                val nextLetter = word.getOrNull(spelled)?.toString()
                 for (cap in world.caps) {
-                    val cx = cap.xFrac * size.width
+                    val cx = cap.x() * size.width
                     val topLeft = Offset(cx - capPx / 2, cap.y - capPx / 2)
                     val (fill, ink) = when (cap.kind) {
-                        CapKind.LETTER -> (if (cap.label == nextLetter) nextFill else letterFill) to scheme.onSurface
+                        CapKind.LETTER -> (if (cap.target) targetFill else letterFill) to scheme.onSurface
                         CapKind.ENTER -> GoldKey to GoldInk
                         CapKind.HEART -> scheme.errorContainer to scheme.error
                         CapKind.SPACE -> scheme.tertiaryContainer to scheme.onTertiaryContainer
@@ -498,10 +577,10 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
                             cornerRadius = corner,
                         )
                         drawRoundRect(fill, topLeft = topLeft, size = Size(capPx, capPx), cornerRadius = corner)
-                        if (cap.kind == CapKind.LETTER && cap.label == nextLetter) {
+                        if (cap.target) {
                             drawRoundRect(
                                 scheme.primary, topLeft = topLeft, size = Size(capPx, capPx),
-                                cornerRadius = corner, style = Stroke(width = 2.5.dp.toPx()),
+                                cornerRadius = corner, style = Stroke(width = 3.dp.toPx()),
                             )
                         } else if (cap.kind == CapKind.BACKSPACE) {
                             drawRoundRect(
@@ -595,8 +674,10 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
         when (phase) {
             GamePhase.READY -> GameCard(
                 title = stringResource(R.string.egg_game_title),
-                action = stringResource(R.string.egg_game_start_action),
-                onAction = ::start,
+                primary = stringResource(R.string.egg_game_start_action) to ::start,
+                others = listOf(stringResource(R.string.egg_game_quit_action) to onClose),
+                // The taps that opened the game land here: a long beat before Play takes one.
+                armDelayMs = READY_ARM_MS,
             ) {
                 Text(
                     stringResource(R.string.egg_game_hint),
@@ -604,6 +685,8 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(12.dp))
+                LegendLine("A", scheme.primaryContainer, scheme.onSurface, stringResource(R.string.egg_game_legend_target), outline = scheme.primary)
+                LegendLine("Q", scheme.surfaceVariant, scheme.onSurface, stringResource(R.string.egg_game_legend_decoy))
                 LegendLine("↵", GoldKey, GoldInk, stringResource(R.string.egg_game_legend_enter))
                 LegendLine("♥", scheme.errorContainer, scheme.error, stringResource(R.string.egg_game_legend_heart))
                 LegendLine("␣", scheme.tertiaryContainer, scheme.onTertiaryContainer, stringResource(R.string.egg_game_legend_space))
@@ -619,18 +702,29 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
             }
             GamePhase.PAUSED -> GameCard(
                 title = stringResource(R.string.egg_game_paused_title),
-                action = stringResource(R.string.egg_game_resume_action),
-                onAction = { phase = GamePhase.PLAYING },
+                primary = stringResource(R.string.egg_game_resume_action) to { phase = GamePhase.PLAYING },
+                others = listOf(
+                    stringResource(R.string.egg_game_restart_action) to ::start,
+                    stringResource(R.string.egg_game_quit_action) to onClose,
+                ),
+                armDelayMs = PAUSE_ARM_MS,
             ) {
                 Text(
                     stringResource(R.string.egg_game_score_label, score),
                     style = MaterialTheme.typography.bodyLarge,
                 )
+                Text(
+                    stringResource(R.string.egg_game_level_label, level),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = scheme.onSurfaceVariant,
+                )
             }
             GamePhase.OVER -> GameCard(
                 title = stringResource(R.string.egg_game_over_title),
-                action = stringResource(R.string.egg_game_play_again_action),
-                onAction = ::start,
+                primary = stringResource(R.string.egg_game_play_again_action) to ::start,
+                others = listOf(stringResource(R.string.egg_game_quit_action) to onClose),
+                // A finger still steering when the last life goes must not restart the game.
+                armDelayMs = OVER_ARM_MS,
             ) {
                 if (newBest) {
                     Text(
@@ -660,12 +754,31 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
     }
 }
 
-private fun spawnCap(level: Int, score: Int, lives: Int, next: Char?, capPx: Float, h: Float): FallingCap {
+private fun multiplierFor(combo: Int): Int = (1 + combo / COMBO_STEP).coerceAtMost(MAX_MULTIPLIER)
+
+/** A key that falls from a random spot, at a speed set by the [heat]; weaving from level 3. */
+private fun newCap(kind: CapKind, label: String, heat: Float, capPx: Float, h: Float, target: Boolean): FallingCap {
+    val weaves = heat >= 2f && Random.nextFloat() < (0.15f + (heat - 2f) * 0.08f).coerceAtMost(0.5f)
+    return FallingCap(
+        kind = kind,
+        label = label,
+        baseX = EDGE + Random.nextFloat() * (1f - 2 * EDGE),
+        y = -capPx,
+        speed = h * (BASE_FALL + Random.nextFloat() * FALL_SPREAD) * if (kind == CapKind.ENTER) 1.3f else 1f,
+        spin = 1.5f + Random.nextFloat() * 2.5f,
+        phase = Random.nextFloat() * 6.28f,
+        weave = if (weaves) 0.06f + Random.nextFloat() * (0.04f + heat * 0.01f).coerceAtMost(0.1f) else 0f,
+        target = target,
+    )
+}
+
+/** A decoy letter or a special key. */
+private fun spawnOther(heat: Float, lives: Int, next: Char?, capPx: Float, h: Float): FallingCap {
     // Backspaces only once the player has had a moment to find their feet.
-    val bomb = if (score >= 6) (0.06f + level * 0.012f).coerceAtMost(0.18f) else 0f
+    val bomb = if (heat >= 0.5f) (0.10f + heat * 0.03f).coerceAtMost(0.32f) else 0f
     val enter = bomb + 0.05f
-    val heart = enter + if (lives < MAX_LIVES) 0.035f else 0f
-    val space = heart + 0.04f
+    val heart = enter + if (lives < MAX_LIVES) 0.025f else 0f
+    val space = heart + 0.035f
     val r = Random.nextFloat()
     val kind = when {
         r < bomb -> CapKind.BACKSPACE
@@ -675,22 +788,14 @@ private fun spawnCap(level: Int, score: Int, lives: Int, next: Char?, capPx: Flo
         else -> CapKind.LETTER
     }
     val label = when (kind) {
-        // The next letter of the word turns up often enough to be chased.
-        CapKind.LETTER -> if (next != null && Random.nextFloat() < 0.4f) next.toString() else ('A' + Random.nextInt(26)).toString()
+        // Never the letter being chased, so a decoy is always a decoy when it spawns.
+        CapKind.LETTER -> generateSequence { 'A' + Random.nextInt(26) }.first { it != next }.toString()
         CapKind.ENTER -> "↵"
         CapKind.HEART -> "♥"
         CapKind.SPACE -> "␣"
         CapKind.BACKSPACE -> "⌫"
     }
-    return FallingCap(
-        kind = kind,
-        label = label,
-        xFrac = 0.07f + Random.nextFloat() * 0.86f,
-        y = -capPx,
-        speed = h * (0.18f + Random.nextFloat() * 0.12f) * if (kind == CapKind.ENTER) 1.25f else 1f,
-        spin = 1.5f + Random.nextFloat() * 2.5f,
-        phase = Random.nextFloat() * 6.28f,
-    )
+    return newCap(kind, label, heat, capPx, h, target = false)
 }
 
 @Composable
@@ -751,7 +856,7 @@ private fun GameHud(
                 Spacer(Modifier.width(48.dp))
             }
         }
-        // The word to spell: caught letters filled, the next one outlined.
+        // The word to spell: caught letters filled, the next one tinted.
         val wordDesc = stringResource(R.string.egg_game_word_desc, word)
         Row(
             Modifier
@@ -762,11 +867,10 @@ private fun GameHud(
         ) {
             word.forEachIndexed { i, c ->
                 val done = i < spelled
-                val shape = RoundedCornerShape(6.dp)
                 Box(
                     Modifier
                         .size(26.dp)
-                        .clip(shape)
+                        .clip(RoundedCornerShape(6.dp))
                         .background(
                             when {
                                 done -> scheme.primary
@@ -788,13 +892,27 @@ private fun GameHud(
     }
 }
 
+/**
+ * A card over the play area with one main button and any number of quieter
+ * ones. Its buttons ignore taps for [armDelayMs] after it appears: the card
+ * comes up under a finger that was busy with something else (the version row,
+ * the spacebar), and a tap meant for that must not press Play or Play again.
+ */
 @Composable
 private fun GameCard(
     title: String,
-    action: String,
-    onAction: () -> Unit,
+    primary: Pair<String, () -> Unit>,
+    others: List<Pair<String, () -> Unit>> = emptyList(),
+    armDelayMs: Long = 0L,
     content: @Composable () -> Unit,
 ) {
+    var armed by remember { mutableStateOf(armDelayMs <= 0L) }
+    LaunchedEffect(Unit) {
+        if (!armed) {
+            delay(armDelayMs)
+            armed = true
+        }
+    }
     // A scrim that swallows touches, so steering underneath stops while a card is up.
     Box(
         Modifier
@@ -812,14 +930,35 @@ private fun GameCard(
                 Spacer(Modifier.height(12.dp))
                 content()
                 Spacer(Modifier.height(20.dp))
-                Button(onClick = onAction) { Text(action) }
+                // Faded until armed, so the pause reads as deliberate rather than broken.
+                Column(
+                    Modifier.alpha(if (armed) 1f else 0.5f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Button(
+                        onClick = { if (armed) primary.second() },
+                        modifier = Modifier.widthIn(min = 160.dp),
+                    ) { Text(primary.first) }
+                    others.forEachIndexed { i, (label, action) ->
+                        Spacer(Modifier.height(8.dp))
+                        // The last one is the way out, and the quietest.
+                        if (i == others.lastIndex) {
+                            TextButton(onClick = { if (armed) action() }) { Text(label) }
+                        } else {
+                            OutlinedButton(
+                                onClick = { if (armed) action() },
+                                modifier = Modifier.widthIn(min = 160.dp),
+                            ) { Text(label) }
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun LegendLine(key: String, fill: Color, ink: Color, text: String) {
+private fun LegendLine(key: String, fill: Color, ink: Color, text: String, outline: Color? = null) {
     Row(
         Modifier.fillMaxWidth().padding(vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -828,6 +967,9 @@ private fun LegendLine(key: String, fill: Color, ink: Color, text: String) {
             Modifier
                 .size(28.dp)
                 .clip(RoundedCornerShape(6.dp))
+                .background(outline ?: fill)
+                .padding(if (outline != null) 2.dp else 0.dp)
+                .clip(RoundedCornerShape(5.dp))
                 .background(fill),
             contentAlignment = Alignment.Center,
         ) {
@@ -843,30 +985,60 @@ private fun LegendLine(key: String, fill: Color, ink: Color, text: String) {
     }
 }
 
-/** Words to spell: all keyboard talk, all capital A–Z so every letter can fall. */
+/** Words to spell: all keyboard talk, all capital A–Z so every letter can fall. Grouped by length. */
 private val WORDS = listOf(
-    "KEYBOARD", "QWERTY", "GLIDE", "SWIPE", "EMOJI", "SHIFT", "ENTER", "SPACE",
-    "TYPING", "KEYCAP", "THEME", "LAYOUT", "CLIPBOARD", "DICTATE", "CURSOR",
-    "SPELL", "ACCENT", "SYMBOL", "STICKER", "TOOLBAR", "UNDO", "PASTE",
+    "KEY", "TAB", "ESC", "ALT", "TAP", "CAP", "FONT",
+    "CAPS", "TYPE", "WORD", "TEXT", "UNDO", "COPY", "ICON", "CTRL", "HOME", "EMOJI",
+    "SHIFT", "ENTER", "SPACE", "GLIDE", "SWIPE", "THEME", "PASTE", "SPELL", "CARET",
+    "QWERTY", "TYPING", "KEYCAP", "LAYOUT", "CURSOR", "ACCENT", "SYMBOL", "NUMPAD",
+    "DICTATE", "STICKER", "TOOLBAR", "HOTKEY", "UNICODE",
+    "KEYBOARD", "SHORTCUT", "AUTOFILL", "LANGUAGE",
+    "BACKSPACE", "CLIPBOARD", "SELECTION", "GESTURES",
+    "PREDICTION", "DICTIONARY", "HANDWRITING", "AUTOCORRECT",
 )
 
 private val GoldKey = Color(0xFFFFC94D)
 private val GoldInk = Color(0xFF3A2A00)
 private val CapSize = 46.dp
-private val CatcherWidth = 132.dp
+private val CatcherWidth = 120.dp
 private val CatcherHeight = 22.dp
+
 private const val START_LIVES = 3
 private const val MAX_LIVES = 5
-private const val FIRST_SPAWN_S = 0.8f
-private const val SPAWN_EVERY_S = 1.05f
-private const val SPAWN_RAMP_S = 0.07f
-private const val SPAWN_FLOOR_S = 0.36f
-private const val MAX_SPEED_MULT = 2.6f
-private const val POINTS_PER_LEVEL = 30
-private const val COMBO_STEP = 8
-private const val MAX_MULTIPLIER = 4
-private const val WORD_BONUS = 10
-private const val WIDE_FACTOR = 1.7f
-private const val WIDE_SECONDS = 8f
-private const val CATCHER_EASE = 22f
+
+/** Seconds of play per level. */
+private const val LEVEL_SECONDS = 20f
+
+private const val FIRST_SPAWN_S = 0.7f
+private const val TARGET_GAP_S = 0.35f
+private const val SPAWN_EVERY_S = 1.0f
+private const val SPAWN_RAMP = 0.22f
+private const val SPAWN_FLOOR_S = 0.24f
+
+/** Fall speed, in screen heights a second, before the ramp. */
+private const val BASE_FALL = 0.20f
+private const val FALL_SPREAD = 0.08f
+private const val SPEED_RAMP = 0.16f
+private const val MAX_SPEED_MULT = 3.2f
+
+/** How far the bar may move in a second, in screen widths. */
+private const val CATCHER_SPEED = 1.7f
+private const val CATCHER_SHRINK = 0.035f
+private const val MIN_CATCHER_FACTOR = 0.6f
+private const val CATCH_GRACE = 0.3f
+
+private const val LETTER_POINTS = 10
+private const val ENTER_POINTS = 50
+private const val WORD_POINTS = 10
+private const val COMBO_STEP = 4
+private const val MAX_MULTIPLIER = 5
+
+private const val WIDE_FACTOR = 1.6f
+private const val WIDE_SECONDS = 6f
+private const val WEAVE_RATE = 2.4f
+private const val EDGE = 0.07f
 private const val MAX_SPARKS = 220
+
+private const val READY_ARM_MS = 900L
+private const val PAUSE_ARM_MS = 250L
+private const val OVER_ARM_MS = 900L

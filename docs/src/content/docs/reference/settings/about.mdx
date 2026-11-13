@@ -12,8 +12,8 @@ import Shot from '@components/Shot.astro';
 
 About has its own group on the Settings home screen: one tap gets you the build you're running, every licence bundled into the app, and a diagnostics screen for pulling a shareable report when something needs debugging.
 
-<PhoneFrame caption="The About screen: Community, Feedback, App, Updates, Documentation, Share, Third party, and Word lists groups.">
-  <Shot id="reference/settings/about-screen" alt="The About screen: Community, Feedback, App, Updates, Documentation, Share, Third party, and Word lists groups." />
+<PhoneFrame caption="The About screen: App, Updates, Data and diagnostics, Community, Feedback, Settings app, Documentation, Share, Third party, and Word lists groups.">
+  <Shot id="reference/settings/about-screen" alt="The About screen: App, Updates, Data and diagnostics, Community, Feedback, Settings app, Documentation, Share, Third party, and Word lists groups." />
 </PhoneFrame>
 
 ## Joining the community
@@ -62,29 +62,41 @@ Something a model wrote isn't a bug in the app, and it has its own button. See [
 
 ## Checking version, licence, and source
 
-The **App** group holds twelve rows:
+The **App** group, at the top of the screen, holds five rows:
 
 - **Version** shows the build, build type and store channel as its subtitle ("Standard build (release · Play Store)", "Standard build (release · F-Droid)", or "Offline build (release)" for the GitHub build with no internet permission), with the build number after "code," and the version name as the row's trailing value. A second line names the commit the build was made from and that commit's date ("Commit ca9cd11053 · 2026-11-14"), so a screenshot of the row says exactly which source a bug report is about. Builds made without git, such as from a source tarball, leave that line out. It navigates nowhere, but it isn't quite inert. Tap it seven times and you get [the hidden mini game](/reference/easter-eggs/#find-the-hidden-mini-game), with a toast counting you down from the fourth tap.
 - **What's new** opens the release notes of the version you have installed, on every build. See [Reading what changed](#reading-what-changed).
 - **New settings** brings back the bar that walks through the settings the latest update added, with their gold borders, after you've closed it. On a first install there is nothing to show yet. See [Seeing what an update added](/reference/settings/#seeing-what-an-update-added).
 - **Licence** shows "MIT, © 2026 Wasi Master" and opens the app's own MIT licence text in full underneath it, monospaced and horizontally scrollable.
 - **Source code** opens the GitHub repository directly in your browser; unlike the Share rows further down, this one navigates immediately rather than opening a share sheet.
-- **Short app name** is a switch, off by default. Turn it on and your app drawer and home screen call the app **WMK** instead of **WM Keyboard**, so a narrow launcher grid doesn't cut the name short. See [Changing the name under the icon](#changing-the-name-under-the-icon).
-- **Show in app drawer** is a switch, on by default. Turn it off and the icon leaves your app drawer and home screen, while the keyboard keeps working. See [Hiding the icon](#hiding-the-icon). Android TV doesn't show this row.
-- **App language** picks the language the app's menus and settings are shown in, separate from your phone's. See [Changing the app's language](#changing-the-apps-language).
+
+Underneath the group, a caption spells out what the MIT licence means in practice: you can use, modify, and redistribute the app, provided the copyright notice and licence text travel with it.
+
+## Opening your data and diagnostics
+
+The **Data and diagnostics** group, right under the updates, gathers the screens people come back to:
+
+- **Statistics** opens [Statistics](/reference/settings/statistics/): your level and achievements, a heatmap of where you tap, how much you type day by day, plus the switch that turns the counting off.
 - **Storage** opens the [storage screen](#seeing-what-the-app-is-using) below, which is where you see what the app keeps on your device and delete any of it.
 - **Resources** opens the [resources screen](#seeing-what-the-keyboard-holds-in-memory) below: memory, processor time and the models loaded right now, with a button to unload each.
-- **Statistics** opens [Statistics](/reference/settings/statistics/): your level and achievements, a heatmap of where you tap, how much you type day by day, plus the switch that turns the counting off.
+- **Feature libraries** lists the downloadable libraries some features need, which ones are missing, and downloads them in one place.
+- **Import** puts every import in the app on one screen, for setting up after an install.
 - **Diagnostics** opens the [diagnostics screen](#diagnosing-a-problem) covered below.
 - **Debug info** (Advanced) opens the report the keyboard's Debug info action takes on a text field; see [Describing a text field](#describing-a-text-field).
+
+## Shaping the settings app
+
+The **Settings app** group sits further down, under Community and Feedback, because its rows are set once and rarely touched again. The two launcher switches come last.
+
+- **App language** picks the language the app's menus and settings are shown in, separate from your phone's. See [Changing the app's language](#changing-the-apps-language).
 - **How you set the keyboard up** shows the two answers you gave the setup wizard, as *depth · languages*. "A good middle · Several languages", for instance, or "Not answered" if you skipped it. Depth is one of Keep it simple, A good middle, or Show me everything, and languages is One language or Several languages. These aren't decoration. They still decide how many tools get pinned, how the theme gallery is laid out, how much of the settings app shows until you pick a depth yourself, and which pages the wizard would show you. Tapping the row opens the wizard at that first question.
+- **Run setup again** walks you back through the first-run wizard. A replay changes nothing on its own, so your settings stay as they are. See [Running it again](/start/setup/#running-it-again).
 - **How many settings to show** is the settings depth: Simple, Standard or Everything. It starts from the setup wizard's answer above. See [Choosing how many settings you see](/reference/settings/#choosing-how-many-settings-you-see).
 - **Show where settings are hidden** (off by default) puts a **more settings** row at the end of every group the depth left something out of, and shows Home's left-out rows as a closed **More** group.
 - **Show switched-off settings** (off by default) keeps the settings that only appear once another one is on in view all the time. While the setting they depend on is off they are greyed out and do nothing when tapped. Together with the depth at **Everything**, every setting is on screen.
 - **Other paths under the path bar** (on by default) is the **Also under** line under a page's path, which names the other ways you have reached that page in this visit. Off gives its line back to the page. Pages opened by the New settings walk-through or a link never add to it.
-- **Run setup again** walks you back through the first-run wizard. A replay changes nothing on its own, so your settings stay as they are. See [Running it again](/start/setup/#running-it-again).
-
-Underneath the group, a caption spells out what the MIT licence means in practice: you can use, modify, and redistribute the app, provided the copyright notice and licence text travel with it.
+- **Short app name** is a switch, off by default. Turn it on and your app drawer and home screen call the app **WMK** instead of **WM Keyboard**, so a narrow launcher grid doesn't cut the name short. See [Changing the name under the icon](#changing-the-name-under-the-icon).
+- **Show in app drawer** is a switch, on by default. Turn it off and the icon leaves your app drawer and home screen, while the keyboard keeps working. See [Hiding the icon](#hiding-the-icon). Android TV doesn't show this row.
 
 ### Changing the name under the icon
 

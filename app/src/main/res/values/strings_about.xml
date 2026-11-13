@@ -12,6 +12,10 @@
 
     <!-- About screen: the App group. -->
     <string name="about_app_title">App</string>
+    <!-- About screen: the group with Statistics, Storage, Resources, Diagnostics and the like. -->
+    <string name="about_data_title">Data and diagnostics</string>
+    <!-- About screen: the group of switches for the settings app itself (how many settings show, its language, its name in the launcher). -->
+    <string name="about_settings_app_title">Settings app</string>
     <string name="about_version_title">Version</string>
     <string name="about_whats_new_subtitle">What changed in <xliff:g id="version" example="0.6.2">%1$s</xliff:g></string>
     <!--
