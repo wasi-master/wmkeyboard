@@ -58,6 +58,12 @@ data class InstalledPlugin(
      * ungranted. The plugin's page says so until the user looks.
      */
     val newSinceUpdate: List<String> = emptyList(),
+    /**
+     * The `@` keys of each `locales/<tag>.json`, by tag: the name, description,
+     * action and setting labels the app shows in the user's language without
+     * reading the files. The script's own strings stay on disk ([PluginStore.strings]).
+     */
+    val labels: Map<String, Map<String, String>> = emptyMap(),
 ) {
     val isPython: Boolean
         get() = language == PluginManifestCodec.LANGUAGE_PYTHON
@@ -556,6 +562,7 @@ class PluginStore(
         keepState: Boolean = false,
         modules: Map<String, String> = emptyMap(),
         assets: Map<String, ByteArray> = emptyMap(),
+        locales: Map<String, String> = emptyMap(),
     ): PluginAdoptResult {
         if (baseDir == null) return PluginAdoptResult.Failed
         val dir = dirFor(manifest.id) ?: return PluginAdoptResult.Failed
@@ -565,7 +572,8 @@ class PluginStore(
         val written = writeAtomically(File(dir, MANIFEST_FILE), PluginManifestCodec.encode(manifest)) &&
             writeAtomically(File(dir, SCRIPT_FILE), script) &&
             writeModules(dir, modules) &&
-            writeAssets(dir, assets)
+            writeAssets(dir, assets) &&
+            writeLocales(dir, locales)
         if (!written) return PluginAdoptResult.Failed
         val carried = existing?.takeIf { keepState }
         unpark(manifest.id, dir)
@@ -591,6 +599,9 @@ class PluginStore(
             settings = manifest.settings,
             settingValues = existing?.settingValues.orEmpty().filterKeys { key -> manifest.settings.any { it.key == key } },
             newSinceUpdate = added,
+            labels = locales.mapNotNull { (tag, text) ->
+                PluginLocales.parse(text)?.let { tag to PluginLocales.labels(it) }?.takeIf { it.second.isNotEmpty() }
+            }.toMap(),
         )
         // A permission the new version dropped must stop applying, which happens
         // for free: the record is rebuilt from the new manifest rather than
@@ -628,6 +639,39 @@ class PluginStore(
             return true
         }
         return writeAtomically(file, json.encodeToString(modules))
+    }
+
+    /** Replaces the translations folder with [locales], by tag, which [PluginFile] checked. */
+    private fun writeLocales(dir: File, locales: Map<String, String>): Boolean = runCatching {
+        val folder = File(dir, PluginLocales.DIR)
+        folder.deleteRecursively()
+        if (locales.isEmpty()) return@runCatching true
+        folder.mkdirs()
+        for ((tag, text) in locales) {
+            if (!PluginLocales.isTag(tag)) continue
+            File(folder, tag + PluginLocales.SUFFIX).writeText(text)
+        }
+        true
+    }.getOrDefault(false)
+
+    /** The languages the plugin is translated into, by tag. */
+    fun localeTags(id: String): List<String> {
+        val folder = dirFor(id)?.let { File(it, PluginLocales.DIR) } ?: return emptyList()
+        return folder.list().orEmpty().filter { it.endsWith(PluginLocales.SUFFIX) }
+            .map { it.removeSuffix(PluginLocales.SUFFIX) }.filter(PluginLocales::isTag).sorted()
+    }
+
+    /**
+     * The script's strings for the user's language: the file [PluginLocales.pick]
+     * chooses, whole, or an empty object when there is none and English stands.
+     */
+    fun strings(id: String, preferred: List<java.util.Locale> = PluginLocales.preferred()): kotlinx.serialization.json.JsonObject {
+        val tag = PluginLocales.pick(localeTags(id), preferred) ?: return kotlinx.serialization.json.JsonObject(emptyMap())
+        val file = dirFor(id)?.let { File(File(it, PluginLocales.DIR), tag + PluginLocales.SUFFIX) }
+        val text = file?.takeIf { it.isFile }?.let { runCatching { it.readText() }.getOrNull() }
+        val parsed = text?.let(PluginLocales::parse) ?: return kotlinx.serialization.json.JsonObject(emptyMap())
+        // Which file it is, so ngettext picks the plural rules of that language.
+        return kotlinx.serialization.json.JsonObject(parsed + ("@lang" to kotlinx.serialization.json.JsonPrimitive(tag)))
     }
 
     /** Replaces the assets folder with [assets], whose names [PluginFile] checked. */

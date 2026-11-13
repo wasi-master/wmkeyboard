@@ -166,6 +166,7 @@ impl SessionConfig {
             files,
             settings: v.get("settings").cloned().unwrap_or(Json::Null),
             context: v.get("context").cloned().unwrap_or(Json::Null),
+            strings: v.get("strings").cloned().unwrap_or(Json::Null),
         };
         Ok(SessionConfig {
             info: PluginInfo { id: s("id"), version: s("version"), permissions, panel: mode == "panel" },

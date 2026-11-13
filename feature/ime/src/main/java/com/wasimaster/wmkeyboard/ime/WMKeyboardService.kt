@@ -370,6 +370,8 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginText
 import com.wasimaster.wmkeyboard.core.plugins.PluginWidget
 import com.wasimaster.wmkeyboard.core.plugins.PythonSession
 import com.wasimaster.wmkeyboard.core.plugins.childWidgets
+import com.wasimaster.wmkeyboard.core.plugins.displayName
+import com.wasimaster.wmkeyboard.core.plugins.label
 import com.wasimaster.wmkeyboard.core.plugins.RenderedUi
 import com.wasimaster.wmkeyboard.core.plugins.inputIds
 import com.wasimaster.wmkeyboard.core.plugins.resolve
@@ -41187,7 +41189,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun pluginKeywordChips(): Map<String, Pair<String, String>> =
         PluginStore.get(this).keywordPlugins()
             .filterValues { it.tool.chip }
-            .mapValues { (_, plugin) -> plugin.id to plugin.name }
+            .mapValues { (_, plugin) -> plugin.id to plugin.displayName }
 
     /**
      * What API 5 plugins reach through [com.wasimaster.wmkeyboard.core.plugins.PluginHost]:
@@ -51195,9 +51197,9 @@ open class WMKeyboardService : InputMethodService() {
                     key = ref.key,
                     pluginId = ref.plugin.id,
                     actionId = ref.action.id,
-                    label = ref.action.name,
+                    label = ref.plugin.label("@action.${ref.action.id}", ref.action.name),
                     icon = ref.action.icon,
-                    pluginName = ref.plugin.name,
+                    pluginName = ref.plugin.displayName,
                 )
             }
     }

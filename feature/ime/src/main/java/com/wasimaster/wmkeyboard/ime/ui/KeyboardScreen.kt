@@ -15674,7 +15674,7 @@ private fun KeyboardBody(
                     state,
                     // An API 5 plugin may title the page it pushed; the
                     // plugin's own name stays the default.
-                    title = (state.plugins as? PluginPanelUi.Running)?.let { it.host?.title ?: it.plugin.name }
+                    title = (state.plugins as? PluginPanelUi.Running)?.let { it.host?.title ?: it.plugin.displayName }
                         ?: stringResource(R.string.ime_tool_plugins),
                     headerActions = if (state.plugins is PluginPanelUi.Running) {
                         { PluginHeaderActions(state.plugins as PluginPanelUi.Running, onPluginEvent) }

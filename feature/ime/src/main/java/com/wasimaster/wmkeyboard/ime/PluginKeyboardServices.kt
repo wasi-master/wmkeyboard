@@ -17,6 +17,7 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginHost
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifestCodec
 import com.wasimaster.wmkeyboard.core.plugins.PluginSecrets
 import com.wasimaster.wmkeyboard.core.plugins.PluginServices
+import com.wasimaster.wmkeyboard.core.plugins.displayName
 import com.wasimaster.wmkeyboard.core.settings.AiSettings
 import com.wasimaster.wmkeyboard.core.tools.AiClient
 import com.wasimaster.wmkeyboard.core.tools.AiThinking
@@ -98,7 +99,7 @@ internal class PluginKeyboardServices(
         }
         "ui.toast" -> {
             val text = text(call).take(MAX_TOAST)
-            onMain { toast("${call.plugin.name}: $text") }
+            onMain { toast("${call.plugin.displayName}: $text") }
             JsonNull
         }
         "plugin.close" -> {
@@ -351,7 +352,7 @@ internal class PluginKeyboardServices(
     private fun share(call: PluginCall): JsonElement {
         val text = text(call).take(MAX_SHARE)
         val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
-        val chooser = Intent.createChooser(send, call.string("title") ?: call.plugin.name).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val chooser = Intent.createChooser(send, call.string("title") ?: call.plugin.displayName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         onMain { context.startActivity(chooser) }
         return JsonNull
     }

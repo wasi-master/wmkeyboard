@@ -28,3 +28,5 @@ def timestamp(year, month, day, hour=12, minute=0, second=0):
 from wm._storage import Storage as _Storage
 
 storage = _Storage()
+
+from wm.i18n import _, gettext, ngettext

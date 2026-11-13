@@ -35,6 +35,8 @@ sealed interface PluginReadResult {
         val modules: Map<String, String> = emptyMap(),
         /** API 5: `assets/<name>` entries, by name. */
         val assets: Map<String, ByteArray> = emptyMap(),
+        /** API 5: `locales/<tag>.json` translation files, by tag, checked by [PluginLocales.parse]. */
+        val locales: Map<String, String> = emptyMap(),
     ) : PluginReadResult
 
     /** No manifest, or a manifest for something else entirely. */
@@ -152,6 +154,7 @@ object PluginFile {
         script: String,
         modules: Map<String, String> = emptyMap(),
         assets: Map<String, ByteArray> = emptyMap(),
+        locales: Map<String, String> = emptyMap(),
     ) {
         ZipOutputStream(out.buffered()).use { zip ->
             zip.putNextEntry(ZipEntry(MANIFEST))
@@ -171,6 +174,12 @@ object PluginFile {
                 if (!isAssetName(name)) continue
                 zip.putNextEntry(ZipEntry(ASSETS_PREFIX + name))
                 zip.write(bytes)
+                zip.closeEntry()
+            }
+            for ((tag, text) in locales) {
+                if (!PluginLocales.isTag(tag)) continue
+                zip.putNextEntry(ZipEntry(PluginLocales.PREFIX + tag + PluginLocales.SUFFIX))
+                zip.write(text.toByteArray())
                 zip.closeEntry()
             }
         }
@@ -256,6 +265,7 @@ object PluginFile {
         }
         val modules = LinkedHashMap<String, String>()
         val assets = LinkedHashMap<String, ByteArray>()
+        val locales = LinkedHashMap<String, String>()
         val entryName = unpacked.nameOf(manifest.entry)
         for ((name, bytes) in unpacked.files) {
             when {
@@ -267,6 +277,16 @@ object PluginFile {
                     }
                     assets[asset] = bytes
                 }
+                name.startsWith(PluginLocales.PREFIX) -> {
+                    // A translation is text the keyboard shows, so one it cannot
+                    // read refuses the install rather than showing half of it.
+                    val tag = PluginLocales.tagOf(name)
+                    val text = bytes.takeIf { tag != null && it.size <= PluginLocales.MAX_BYTES }
+                        ?.let { runCatching { it.decodeToString(throwOnInvalidSequence = true) }.getOrNull() }
+                        ?.takeIf { PluginLocales.parse(it) != null }
+                        ?: return PluginReadResult.Rejected(PluginText.of(R.string.core_plugins_reject_bad_locale, manifest.name, name))
+                    locales[tag!!] = text
+                }
                 name.endsWith(".py") -> {
                     val text = bytes.takeIf { isModuleName(name) && it.size <= MAX_SCRIPT_BYTES }
                         ?.let { runCatching { it.decodeToString(throwOnInvalidSequence = true) }.getOrNull() }
@@ -277,7 +297,7 @@ object PluginFile {
                 else -> Unit
             }
         }
-        return PluginReadResult.Ok(manifest, accepted.permissions, script, modules, assets)
+        return PluginReadResult.Ok(manifest, accepted.permissions, script, modules, assets, locales)
     }
 
     /**
@@ -290,7 +310,14 @@ object PluginFile {
         now: Long = System.currentTimeMillis(),
     ): PluginImportResult = when (val outcome = read(input)) {
         is PluginReadResult.Ok -> when (
-            val adopted = store.adopt(outcome.manifest, outcome.script, now, modules = outcome.modules, assets = outcome.assets)
+            val adopted = store.adopt(
+                outcome.manifest,
+                outcome.script,
+                now,
+                modules = outcome.modules,
+                assets = outcome.assets,
+                locales = outcome.locales,
+            )
         ) {
             is PluginAdoptResult.Adopted -> PluginImportResult.Imported(adopted.plugin, adopted.replaced)
             PluginAdoptResult.TooManyPlugins -> PluginImportResult.TooManyPlugins

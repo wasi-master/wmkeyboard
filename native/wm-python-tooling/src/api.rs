@@ -145,7 +145,7 @@ pub const NEVER: &[&str] = &[
 /// name by name; the interpreter and the host check them when they run.
 pub const WM_PACKAGE: &[&str] = &[
     "plugin", "ui", "http", "ai", "field", "clipboard", "location", "files", "sensors", "scan", "device", "share",
-    "notify", "secrets", "reminders", "storage", "log", "timestamp",
+    "notify", "secrets", "reminders", "storage", "log", "timestamp", "i18n", "_", "gettext", "ngettext",
 ];
 
 /// Names that do not exist here but have a counterpart that does.

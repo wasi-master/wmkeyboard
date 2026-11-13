@@ -41,6 +41,8 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginPermission
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.plugins.PluginWidget
 import com.wasimaster.wmkeyboard.core.plugins.PythonSession
+import com.wasimaster.wmkeyboard.core.plugins.displayDescription
+import com.wasimaster.wmkeyboard.core.plugins.displayName
 import com.wasimaster.wmkeyboard.core.plugins.resolve
 import com.wasimaster.wmkeyboard.core.plugins.ui.LocalPluginPanelStyle
 import com.wasimaster.wmkeyboard.core.plugins.ui.PluginInputHost
@@ -181,7 +183,7 @@ private fun PluginRow(plugin: InstalledPlugin, focused: Boolean = false, onClick
             .padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
         Text(
-            plugin.name,
+            plugin.displayName,
             color = kb.chipText,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
@@ -190,7 +192,7 @@ private fun PluginRow(plugin: InstalledPlugin, focused: Boolean = false, onClick
         )
         // Read outside ifBlank: that lambda is not a composable one.
         val versionLabel = stringResource(R.string.ime_plugin_version_label, plugin.version)
-        val subtitle = plugin.description.ifBlank { versionLabel }
+        val subtitle = plugin.displayDescription.ifBlank { versionLabel }
         Text(
             subtitle,
             color = kb.secondaryText,

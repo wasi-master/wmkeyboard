@@ -111,6 +111,52 @@ class PluginApi5ManifestTest {
     }
 
     @Test
+    fun `translations install, name the plugin and reach the script`() {
+        val out = ByteArrayOutputStream()
+        val m = manifest(settings = listOf(PluginSettingSpec(key = "units", type = "switch", label = "Metric")))
+        PluginFile.write(
+            out,
+            m,
+            "from wm import ui, _",
+            locales = mapOf(
+                "bn" to """{"@name": "আবহাওয়া", "@setting.units": "মেট্রিক", "Look up": "খুঁজুন"}""",
+                "pt-BR" to """{"@name": "Tempo", "{n} day": {"one": "{n} dia", "other": "{n} dias"}}""",
+            ),
+        )
+        val store = PluginStore(temp.newFolder())
+        PluginFile.import(ByteArrayInputStream(out.toByteArray()), store)
+        val plugin = store.plugin(m.id)!!
+        assertEquals("আবহাওয়া", plugin.label("@name", plugin.name, listOf(java.util.Locale("bn", "BD"))))
+        assertEquals("Tempo", plugin.label("@name", plugin.name, listOf(java.util.Locale.forLanguageTag("pt-BR"))))
+        assertEquals("Weather", plugin.label("@name", plugin.name, listOf(java.util.Locale.FRENCH)))
+        assertEquals("মেট্রিক", plugin.label("@setting.units", "Metric", listOf(java.util.Locale("bn"))))
+        val strings = store.strings(m.id, listOf(java.util.Locale("bn")))
+        assertEquals("খুঁজুন", (strings["Look up"] as kotlinx.serialization.json.JsonPrimitive).content)
+        assertEquals("bn", (strings["@lang"] as kotlinx.serialization.json.JsonPrimitive).content)
+        assertTrue(store.strings(m.id, listOf(java.util.Locale.JAPANESE)).isEmpty())
+    }
+
+    @Test
+    fun `a translation file that is not text refuses the install`() {
+        for ((entry, body) in listOf(
+            "locales/bn.json" to """{"Look up": 3}""",
+            "locales/Bengali.json" to """{}""",
+            "locales/bn.json" to "not json",
+        )) {
+            val out = ByteArrayOutputStream()
+            java.util.zip.ZipOutputStream(out).use { zip ->
+                zip.putNextEntry(java.util.zip.ZipEntry(PluginFile.MANIFEST))
+                zip.write(PluginManifestCodec.encode(manifest()).toByteArray())
+                zip.putNextEntry(java.util.zip.ZipEntry("main.py"))
+                zip.write("x = 1".toByteArray())
+                zip.putNextEntry(java.util.zip.ZipEntry(entry))
+                zip.write(body.toByteArray())
+            }
+            assertTrue(entry + body, PluginFile.read(ByteArrayInputStream(out.toByteArray())) is PluginReadResult.Rejected)
+        }
+    }
+
+    @Test
     fun `a module that cannot be imported refuses the install`() {
         val out = ByteArrayOutputStream()
         java.util.zip.ZipOutputStream(out).use { zip ->

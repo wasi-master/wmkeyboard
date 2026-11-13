@@ -56,6 +56,8 @@ class PythonSession private constructor(@Volatile private var handle: Long, priv
         val dark: Boolean = false,
         /** "panel", "float" or "action". */
         val surface: String = mode,
+        /** API 5: the plugin's translations for the user's language, as `_()` reads them. */
+        val strings: JsonObject = JsonObject(emptyMap()),
     ) {
         fun toJson(): String = buildJsonObject {
             put("id", plugin.id)
@@ -68,6 +70,7 @@ class PythonSession private constructor(@Volatile private var handle: Long, priv
             if (plugin.isPackage) {
                 put("files", buildJsonObject { for ((name, source) in modules) put(name, source) })
                 put("settings", plugin.settingsJson())
+                put("strings", strings)
                 put(
                     "context",
                     buildJsonObject {

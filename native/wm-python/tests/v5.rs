@@ -600,3 +600,48 @@ fn the_load_phase_counts_the_package_and_the_plugin_together() {
         assert_eq!(r["error"]["abort"], "steps", "{r:#}");
     });
 }
+
+#[test]
+fn translations_fill_text_and_plurals_and_fall_back_to_english() {
+    big(|| {
+        let strings = json!({
+            "@lang": "ru",
+            "Look up": "Найти",
+            "Hello, {name}": "Привет, {name}",
+            "{n} day": {"one": "{n} день", "few": "{n} дня", "many": "{n} дней"},
+            "Broken {who}": "Сломано {nobody}",
+        });
+        let mut s = session(&[], json!({"strings": strings}));
+        let src = r#"
+from wm import ui, _, ngettext
+from wm import i18n
+
+def render():
+    return ui.column(
+        ui.label(_("Look up")),
+        ui.label(_("Not translated")),
+        ui.label(_("Hello, {name}", name="Ana")),
+        ui.label(" | ".join(ngettext("{n} day", "{n} days", n) for n in [1, 3, 5, 21])),
+        ui.label(_("Broken {who}", who="me")),
+        ui.label(str(i18n.language)),
+    )
+"#;
+        let r = parse(s.load(src));
+        ok(&r);
+        let labels: Vec<String> = root(&r)[0]["children"].as_array().unwrap().iter().map(|w| w["text"].as_str().unwrap().to_string()).collect();
+        assert_eq!(
+            labels,
+            vec!["Найти", "Not translated", "Привет, Ana", "1 день | 3 дня | 5 дней | 21 день", "Broken me", "ru"]
+        );
+    });
+}
+
+#[test]
+fn without_translations_english_and_plurals_still_work() {
+    big(|| {
+        let mut s = session(&[], json!({}));
+        let r = parse(s.load("from wm import ui, _, ngettext\ndef render():\n    return ui.label(_('Hi') + ' ' + ngettext('{n} item', '{n} items', 2))\n"));
+        ok(&r);
+        assert_eq!(root(&r)[0]["text"], "Hi 2 items");
+    });
+}

@@ -35,6 +35,9 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginLog
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifestResult
 import com.wasimaster.wmkeyboard.core.plugins.ParkedPlugin
 import com.wasimaster.wmkeyboard.core.plugins.InstalledPlugin
+import com.wasimaster.wmkeyboard.core.plugins.displayDescription
+import com.wasimaster.wmkeyboard.core.plugins.displayName
+import com.wasimaster.wmkeyboard.core.plugins.label
 import com.wasimaster.wmkeyboard.core.plugins.PluginPermission
 import com.wasimaster.wmkeyboard.core.plugins.PluginSettingSpec
 import com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms
@@ -225,7 +228,7 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
                         }
                         HighlightableItem(plugin.id) {
                             WmRow(
-                                title = plugin.name,
+                                title = plugin.displayName,
                                 subtitle = subtitle,
                                 trailing = {
                                     Icon(
@@ -416,8 +419,8 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
                 stringResource(R.string.plugins_row_version, plugin.version)
             }
             WmRow(
-                title = plugin.name,
-                subtitle = plugin.description.ifBlank { noDescription } + "\n\n" + versionLine,
+                title = plugin.displayName,
+                subtitle = plugin.displayDescription.ifBlank { noDescription } + "\n\n" + versionLine,
             )
         }
         item {
@@ -478,8 +481,8 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
             for (action in plugin.actions) {
                 item(key = "action:${action.id}") {
                     WmRow(
-                        title = action.name,
-                        subtitle = action.summary.takeIf { it.isNotBlank() },
+                        title = plugin.label("@action.${action.id}", action.name),
+                        subtitle = plugin.label("@action.${action.id}.summary", action.summary).takeIf { it.isNotBlank() },
                         icon = pluginActionIcon(action.icon),
                     )
                 }
@@ -549,7 +552,7 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
     if (confirmUninstall) {
         AlertDialog(
             onDismissRequest = { confirmUninstall = false },
-            title = { Text(stringResource(R.string.plugins_uninstall_confirm_title, plugin.name)) },
+            title = { Text(stringResource(R.string.plugins_uninstall_confirm_title, plugin.displayName)) },
             text = { Text(stringResource(R.string.plugins_uninstall_confirm_body)) },
             confirmButton = {
                 TextButton({
@@ -654,8 +657,8 @@ private fun PluginSettingsGroup(store: PluginStore, plugin: InstalledPlugin) {
                 val value = plugin.settingValues[setting.key] ?: setting.default
                 when (setting.type) {
                     PluginSettingSpec.TYPE_SWITCH -> WmRow(
-                        title = setting.label,
-                        subtitle = setting.summary.takeIf { it.isNotBlank() },
+                        title = plugin.label("@setting.${setting.key}", setting.label),
+                        subtitle = plugin.label("@setting.${setting.key}.summary", setting.summary).takeIf { it.isNotBlank() },
                         trailing = {
                             Switch(
                                 checked = value == "true",
@@ -665,8 +668,9 @@ private fun PluginSettingsGroup(store: PluginStore, plugin: InstalledPlugin) {
                     )
 
                     PluginSettingSpec.TYPE_CHOICE -> WmRow(
-                        title = setting.label,
-                        subtitle = value.ifBlank { setting.summary },
+                        title = plugin.label("@setting.${setting.key}", setting.label),
+                        subtitle = plugin.label("@option.${setting.key}.$value", value)
+                            .ifBlank { plugin.label("@setting.${setting.key}.summary", setting.summary) },
                         onClick = {
                             val i = setting.options.indexOf(value)
                             val next = setting.options.getOrNull((i + 1) % setting.options.size.coerceAtLeast(1)) ?: return@WmRow
@@ -675,8 +679,8 @@ private fun PluginSettingsGroup(store: PluginStore, plugin: InstalledPlugin) {
                     )
 
                     else -> WmRow(
-                        title = setting.label,
-                        subtitle = value.ifBlank { setting.summary },
+                        title = plugin.label("@setting.${setting.key}", setting.label),
+                        subtitle = value.ifBlank { plugin.label("@setting.${setting.key}.summary", setting.summary) },
                         onClick = { editing = setting },
                     )
                 }
@@ -687,7 +691,7 @@ private fun PluginSettingsGroup(store: PluginStore, plugin: InstalledPlugin) {
         var text by remember(setting.key) { mutableStateOf(plugin.settingValues[setting.key] ?: setting.default) }
         AlertDialog(
             onDismissRequest = { editing = null },
-            title = { Text(setting.label) },
+            title = { Text(plugin.label("@setting.${setting.key}", setting.label)) },
             text = {
                 androidx.compose.material3.OutlinedTextField(
                     value = text,

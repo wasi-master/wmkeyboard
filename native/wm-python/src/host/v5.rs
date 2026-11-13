@@ -76,6 +76,7 @@ pub const PRELUDE: &[(&str, &str, bool)] = &[
     ("wm.field", include_str!("prelude/field.py"), false),
     ("wm.files", include_str!("prelude/files.py"), false),
     ("wm.http", include_str!("prelude/http.py"), false),
+    ("wm.i18n", include_str!("prelude/i18n.py"), false),
     ("wm.location", include_str!("prelude/location.py"), false),
     ("wm.notify", include_str!("prelude/notify.py"), false),
     ("wm.plugin", include_str!("prelude/plugin.py"), false),
@@ -142,6 +143,8 @@ pub struct Extras {
     pub settings: Json,
     /// `{"locale", "theme", "surface"}`.
     pub context: Json,
+    /// The plugin's translations for the user's language, `{"English": "translation"}`.
+    pub strings: Json,
 }
 
 /// A file name in the archive as the module name it imports as, or None
@@ -196,6 +199,8 @@ pub(crate) fn install(
     let settings = if matches!(settings, Value::Dict(_)) { settings } else { Value::dict(Vec::<(&str, Value)>::new()) };
     let context = json_to_value(&extras.context);
     let context = if matches!(context, Value::Dict(_)) { context } else { Value::dict(Vec::<(&str, Value)>::new()) };
+    let strings = json_to_value(&extras.strings);
+    let strings = if matches!(strings, Value::Dict(_)) { strings } else { Value::dict(Vec::<(&str, Value)>::new()) };
     let state2 = state.clone();
     rt.define_module("_wm", move |m| {
         let state = state2;
@@ -206,6 +211,7 @@ pub(crate) fn install(
         m.set("permissions", Value::list(info.permissions.iter().map(|p| Value::str(p.trim())).collect()));
         m.set("settings", settings);
         m.set("context", context);
+        m.set("strings", strings);
         m.set("storage_quota", Value::Int(quota as i64));
 
         let s = state.clone();

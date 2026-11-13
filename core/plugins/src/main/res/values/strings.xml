@@ -99,6 +99,7 @@
     <!-- %1$s is the name of the plugin. -->
     <string name="core_plugins_reject_bad_tool">“%1$s” has a tool keyword that is not valid. A keyword is up to 16 lowercase letters and numbers.</string>
     <!-- %1$s is the name of the plugin. -->
+    <string name="core_plugins_reject_bad_locale">“%1$s” has a translation file the keyboard cannot read: %2$s. Each file under locales/ must be a language tag such as bn.json or pt-BR.json, holding a JSON object of text, at most 64 KB.</string>
     <string name="core_plugins_reject_bad_module">“%1$s” has a file this version of WM Keyboard cannot load.</string>
     <!-- %1$s is the name of the plugin. %2$d is the size limit in kilobytes. -->
     <string name="core_plugins_reject_archive_too_large" tools:ignore="PluralsCandidate">“%1$s” is larger than %2$d KB.</string>

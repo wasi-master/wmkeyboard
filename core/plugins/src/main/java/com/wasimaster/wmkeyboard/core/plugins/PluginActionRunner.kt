@@ -163,6 +163,7 @@ class PluginActionRunner(
                 remindersPath = store.remindersFile(plugin.id)?.path,
                 action = limit,
                 modules = store.modules(plugin.id),
+                strings = store.strings(plugin.id),
             ),
         ) ?: return PluginActionResult.Failed(PluginText.of(R.string.core_plugins_error_not_ready))
         call.python = python

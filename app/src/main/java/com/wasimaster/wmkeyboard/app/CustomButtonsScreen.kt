@@ -47,6 +47,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bookmarks
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
+import com.wasimaster.wmkeyboard.core.plugins.displayDescription
+import com.wasimaster.wmkeyboard.core.plugins.displayName
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ToggleOn
 import com.wasimaster.wmkeyboard.core.settings.CUSTOM_BUTTON_LABEL_MAX
 import com.wasimaster.wmkeyboard.core.settings.CustomButton
@@ -490,8 +492,8 @@ private fun PluginTilePicker(taken: Set<String>, onDismiss: () -> Unit, onPick: 
     val rows = plugins.map { plugin ->
         PickerRow(
             key = plugin.id,
-            title = plugin.name,
-            subtitle = plugin.description.takeIf { it.isNotBlank() },
+            title = plugin.displayName,
+            subtitle = plugin.displayDescription.takeIf { it.isNotBlank() },
             leading = { Icon(Icons.Outlined.Extension, contentDescription = null) },
             onPick = { onPick(plugin.id) },
         )

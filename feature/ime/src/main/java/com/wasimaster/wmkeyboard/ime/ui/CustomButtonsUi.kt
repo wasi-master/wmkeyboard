@@ -47,6 +47,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bookmarks
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiSymbols
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
+import com.wasimaster.wmkeyboard.core.plugins.displayName
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Gesture
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Handyman
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Home
@@ -203,7 +204,7 @@ object CustomButtonFaces {
         button.label.takeIf { it.isNotBlank() } ?: when (button.kind) {
             CustomButtonKind.SETTING -> button.toggle?.let { context.getString(customToggleLabelRes(it)) }
             CustomButtonKind.PAGE -> button.page?.let { context.getString(customPageLabelRes(it)) }
-            CustomButtonKind.PLUGIN -> com.wasimaster.wmkeyboard.core.plugins.PluginStore.get(context).plugin(button.target)?.name
+            CustomButtonKind.PLUGIN -> com.wasimaster.wmkeyboard.core.plugins.PluginStore.get(context).plugin(button.target)?.displayName
             CustomButtonKind.SHORTCUT -> FloatingAppIcons.label(context, button.packageName)
         } ?: context.getString(R.string.ime_custom_button_label)
 

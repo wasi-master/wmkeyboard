@@ -149,6 +149,8 @@ class PluginRuntime(
         val liveReminders: Boolean = false,
         /** API 5: the plugin's other modules, `{"helpers.py": source}`. */
         val modules: Map<String, String> = emptyMap(),
+        /** API 5: its translations for the user's language. */
+        val strings: kotlinx.serialization.json.JsonObject = kotlinx.serialization.json.JsonObject(emptyMap()),
     )
 
     data class Limits(
@@ -202,6 +204,7 @@ class PluginRuntime(
                 reminders = store.remindersFile(pluginId),
                 liveReminders = true,
                 modules = store.modules(pluginId),
+                strings = store.strings(pluginId),
             ),
         )
     }
@@ -320,6 +323,8 @@ class PluginRuntime(
                 event = limits.event,
                 render = limits.render,
                 modules = draft.modules,
+                strings = draft.strings,
+                locale = PluginLocales.preferred().firstOrNull()?.toLanguageTag() ?: java.util.Locale.getDefault().toLanguageTag(),
                 dark = dark(),
                 surface = surface,
             ),
