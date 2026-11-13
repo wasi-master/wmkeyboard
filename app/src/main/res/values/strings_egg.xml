@@ -40,7 +40,31 @@
     <string name="egg_game_over_title">Game over</string>
     <!-- Button under the game-over score that starts a fresh round. -->
     <string name="egg_game_play_again_action">Play again</string>
-    <!-- One-line instruction shown before the first keycap falls. -->
-    <string name="egg_game_hint">Drag the spacebar. Catch the falling keys.</string>
+    <!-- Instruction on the start card, before the first keycap falls. -->
+    <string name="egg_game_hint">Drag anywhere to move the spacebar. Catch the falling letters and spell the word at the top.</string>
+    <!-- Button on the start card that begins the first round. -->
+    <string name="egg_game_start_action">Play</string>
+    <!-- Start card legend: what catching the gold Enter key does. -->
+    <string name="egg_game_legend_enter">Worth five letters</string>
+    <!-- Start card legend: what catching the heart key does. -->
+    <string name="egg_game_legend_heart">Gives a life back</string>
+    <!-- Start card legend: what catching the spacebar key does. -->
+    <string name="egg_game_legend_space">Widens your spacebar for a while</string>
+    <!-- Start card legend: the key to avoid. -->
+    <string name="egg_game_legend_backspace">Dodge it: catching it costs a life</string>
+    <!-- Title of the card shown while a round is paused. -->
+    <string name="egg_game_paused_title">Paused</string>
+    <!-- Button that carries on a paused round. -->
+    <string name="egg_game_resume_action">Resume</string>
+    <!-- Shown on the game-over card when the round beat the old best score. -->
+    <string name="egg_game_new_best">New best!</string>
+    <!-- Current difficulty level. %1$d is the level number. -->
+    <string name="egg_game_level_label">Level <xliff:g id="level" example="3">%1$d</xliff:g></string>
+    <!-- Screen reader name for the button that leaves the game. -->
+    <string name="egg_game_close_desc">Close game</string>
+    <!-- Screen reader name for the button that pauses the round. -->
+    <string name="egg_game_pause_desc">Pause</string>
+    <!-- Screen reader name for the word being spelled. %1$s is the word, in English capitals. -->
+    <string name="egg_game_word_desc">Word to spell: <xliff:g id="word" example="KEYBOARD">%1$s</xliff:g></string>
 
 </resources>

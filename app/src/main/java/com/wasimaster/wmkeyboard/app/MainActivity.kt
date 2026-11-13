@@ -3048,7 +3048,7 @@ private fun SettingsNavGraph(
             // The screen behind seven taps on the version row. Deliberately
             // absent from the search index and the launcher shortcuts — a
             // secret that can be searched for is a menu entry.
-            KeycapCatcherScreen(anim = this) { navController.popBackStack() }
+            KeycapCatcherScreen { navController.popBackStack() }
         }
         composable("import_hub") {
             SettingsScreen(

@@ -21,6 +21,11 @@
       %4$d = the numeric version code.
     -->
     <string name="about_version_subtitle"><xliff:g id="flavour" example="Standard">%1$s</xliff:g> build (<xliff:g id="build_type" example="release">%2$s</xliff:g><xliff:g id="channel" example=" · Play Store">%3$s</xliff:g>) · code <xliff:g id="version_code" example="3">%4$d</xliff:g></string>
+    <!--
+      Second line of the version row's subtitle: the source commit this build was made from.
+      %1$s = short commit hash (not translated), %2$s = the commit's date, YYYY-MM-DD.
+    -->
+    <string name="about_version_commit">Commit <xliff:g id="commit" example="ca9cd11053">%1$s</xliff:g> · <xliff:g id="date" example="2026-11-14">%2$s</xliff:g></string>
     <!-- The row that brings back the bar walking through the settings the latest update added (#970). -->
     <string name="about_new_settings_title">New settings</string>
     <plurals name="about_new_settings_subtitle">

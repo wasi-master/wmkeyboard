@@ -1671,13 +1671,20 @@ internal fun AboutSettings(
         item {
             NavRow(
                 R.string.about_version_title,
-                stringResource(
-                    R.string.about_version_subtitle,
-                    flavor,
-                    BuildConfig.BUILD_TYPE,
-                    channel,
-                    BuildConfig.VERSION_CODE,
-                ),
+                listOfNotNull(
+                    stringResource(
+                        R.string.about_version_subtitle,
+                        flavor,
+                        BuildConfig.BUILD_TYPE,
+                        channel,
+                        BuildConfig.VERSION_CODE,
+                    ),
+                    // The source commit, so a screenshot of this row says
+                    // exactly which code a report is about. Blank without git.
+                    BuildConfig.GIT_COMMIT.takeIf { it.isNotEmpty() }?.let {
+                        stringResource(R.string.about_version_commit, it, BuildConfig.GIT_COMMIT_DATE)
+                    },
+                ).joinToString("\n"),
                 value = BuildConfig.VERSION_NAME,
             ) {
                 versionTaps++

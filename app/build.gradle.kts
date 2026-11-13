@@ -252,6 +252,20 @@ val singleAbi = providers.gradleProperty("wmkb.abi").orNull?.trim()?.takeIf { it
 val benchmarkBuild = flag("wmkb.benchmark", "WMKB_BENCHMARK")
 
 
+// The commit this build was made from, shown under About's version row so a
+// screenshot of it names the exact source. Read from git at configuration
+// time; blank where there is no git (a source tarball, a stripped checkout),
+// and the row then leaves it out. Only the clean hash, never a "dirty" mark:
+// F-Droid rebuilds from the same commit and must produce the same bytes.
+fun gitOutput(vararg args: String): String = runCatching {
+    providers.exec {
+        commandLine("git", *args)
+        isIgnoreExitValue = true
+    }.standardOutput.asText.get().trim()
+}.getOrDefault("")
+val gitCommit = gitOutput("rev-parse", "--short=10", "HEAD")
+val gitCommitDate = gitOutput("log", "-1", "--format=%cs", "HEAD")
+
 // Where the generated baseline profile lives: AGP's own default directory for
 // the one variant that generates it (see the benchmark block near the end).
 val generatedProfileDir = "src/intlRelease/baselineProfiles"
@@ -293,6 +307,10 @@ android {
         // release. The update checks compare this, never the manifest's
         // number: F-Droid's index and the GitHub asset names speak in it.
         buildConfigField("int", "RELEASE_VERSION_CODE", "$baseVersionCode")
+        // See gitCommit above: the source this APK was built from, and that
+        // commit's date (YYYY-MM-DD). Both blank without git.
+        buildConfigField("String", "GIT_COMMIT", "\"$gitCommit\"")
+        buildConfigField("String", "GIT_COMMIT_DATE", "\"$gitCommitDate\"")
         buildConfigField("Boolean", "ENABLE_PLAY_STORE", "$playStoreChannel")
         buildConfigField("Boolean", "ENABLE_FDROID", "$fdroidChannel")
         // The third channel is the absence of the other two, which is a fact
