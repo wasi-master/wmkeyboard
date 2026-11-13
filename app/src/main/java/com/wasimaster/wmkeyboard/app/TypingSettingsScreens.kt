@@ -30,6 +30,8 @@ import com.wasimaster.wmkeyboard.core.settings.FlickDistanceRange
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeDistanceRange
 import com.wasimaster.wmkeyboard.core.settings.FlickReachRange
 import com.wasimaster.wmkeyboard.core.settings.MAX_STOP_AFTER_DECLINES
+import com.wasimaster.wmkeyboard.core.settings.NextWordAmount
+import com.wasimaster.wmkeyboard.core.settings.NextWordSuggestions
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
@@ -1000,6 +1002,7 @@ internal fun TypingSuggestionsSettings(
     // What decides which rows the group holds; each row reads its own value.
     val suggestionsOn = settings.watch { it.suggestions }
     val punctuationOn = settings.watch { it.suggestionStrip.punctuation }
+    val nextWords = settings.watch { it.suggestionStrip.nextWords }
     val autocorrectOn = settings.watch { it.correction.enabled }
     val askBeforeLearning = settings.watch { it.suggestionStrip.askBeforeLearning }
     val scrollable = settings.watch { it.suggestionStrip.scrollable }
@@ -1030,7 +1033,62 @@ internal fun TypingSuggestionsSettings(
                 default = SettingsDefaults.suggestionStrip.punctuation,
             ) { scope.launch { repository.setPunctuationSuggestions(it) } }
         }
-        item(visible = suggestionsOn && punctuationOn, level = SettingLevel.ADVANCED) {
+        // Next-word suggestions: one switch over the empty strip, and how
+        // eagerly it guesses (the engine's NextWordReach).
+        if (suggestionsOn) item {
+            ChoiceSetting(
+                R.string.typing_next_words_title,
+                subtitle = stringResource(R.string.typing_next_words_subtitle),
+                info = stringResource(R.string.typing_next_words_info),
+                options = listOf(
+                    NextWordSuggestions.OFF to stringResource(R.string.typing_next_words_off),
+                    NextWordSuggestions.WORDS to stringResource(R.string.typing_next_words_words),
+                    NextWordSuggestions.WORDS_AND_PUNCTUATION to stringResource(R.string.typing_next_words_punct),
+                ),
+                selected = nextWords,
+                default = SettingsDefaults.suggestionStrip.nextWords,
+                detail = { mode ->
+                    ChoiceDetail(
+                        stringResource(
+                            when (mode) {
+                                NextWordSuggestions.OFF -> R.string.typing_next_words_off_desc
+                                NextWordSuggestions.WORDS -> R.string.typing_next_words_words_desc
+                                NextWordSuggestions.WORDS_AND_PUNCTUATION -> R.string.typing_next_words_punct_desc
+                            },
+                        ),
+                    )
+                },
+            ) { scope.launch { repository.setNextWordSuggestions(it) } }
+        }
+        item(visible = suggestionsOn && nextWords != NextWordSuggestions.OFF, level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                R.string.typing_next_word_amount_title,
+                subtitle = stringResource(R.string.typing_next_word_amount_subtitle),
+                info = stringResource(R.string.typing_next_word_amount_info),
+                options = listOf(
+                    NextWordAmount.FEWER to stringResource(R.string.typing_next_word_amount_fewer),
+                    NextWordAmount.NORMAL to stringResource(R.string.typing_next_word_amount_normal),
+                    NextWordAmount.MORE to stringResource(R.string.typing_next_word_amount_more),
+                ),
+                selected = settings.watch { it.suggestionStrip.nextWordAmount },
+                default = SettingsDefaults.suggestionStrip.nextWordAmount,
+                detail = { level ->
+                    ChoiceDetail(
+                        stringResource(
+                            when (level) {
+                                NextWordAmount.FEWER -> R.string.typing_next_word_amount_fewer_desc
+                                NextWordAmount.NORMAL -> R.string.typing_next_word_amount_normal_desc
+                                NextWordAmount.MORE -> R.string.typing_next_word_amount_more_desc
+                            },
+                        ),
+                    )
+                },
+            ) { scope.launch { repository.setNextWordAmount(it) } }
+        }
+        item(
+            visible = suggestionsOn && (punctuationOn || nextWords == NextWordSuggestions.WORDS_AND_PUNCTUATION),
+            level = SettingLevel.ADVANCED,
+        ) {
             TextFieldSetting(
                 label = stringResource(R.string.typing_punctuation_marks_title),
                 value = settings.watch { it.suggestionStrip.punctuationChips },

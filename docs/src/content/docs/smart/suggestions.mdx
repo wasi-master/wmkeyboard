@@ -96,6 +96,20 @@ Each model has a vocabulary of about twenty thousand words plus four thousand wo
 
 **Re-check the previous word** (<SettingsPath path="Typing / Automatic corrections" />, on) is the model reading backwards. The word you have just typed often shows what the word before it should have been: "I want to by" is fine until "a car" lands. Once the next word is in, the keyboard asks the model about the previous word's other readings, the words the strip had for it at the time, with both sides of the sentence in sight, and it keeps asking as the words after it land, so a reading that two or three later words make obvious is still found. When one fits twenty times better than what stands there, a chip offers it, the same chip the confusable rule uses for "their" and "they're". It never rewrites anything on its own, and it only ever offers a word the strip had already found for the taps you made, so it cannot invent a correction from the sentence alone. When you stop typing for a second with the strip empty, it also reads the last few words together once and offers the one swap among them that fits best, if any clears the same bar; the chip goes away as soon as you type on.
 
+## How many next words
+
+**Next-word suggestions** (<SettingsPath path="Typing / Suggestions" />, **Words only**) decides what the strip offers after a space, before the first letter of the next word. **Off** leaves the strip empty until you type, so it never guesses ahead of you. **Words only** offers the predictions described above. **Words and punctuation** puts the punctuation marks beside those predictions as well, the marks the [Punctuation chips](#punctuation-chips) row uses, even with that row's own toggle off, so a comma or a full stop after a finished word is one press away. Phrase suggestions and **Words before you type** are their own settings and keep working with this off.
+
+**How many next words** (Advanced, **Normal**) sets how eagerly those words are guessed. It moves the switches the engine already had and adds no new scoring:
+
+| Level | Guessed from | While you type the next word |
+| --- | --- | --- |
+| Fewer | Only what you have typed after this word before, contacts and the context model | One of your own predictions stays on the strip |
+| Normal | All of the above, then the language's downloaded word pairs and the built-in English pairs | Up to three of your own predictions stay |
+| More | The same sources as Normal | Up to five stay, the downloaded word pairs' guesses among them |
+
+Fewer suits someone who finds the strip's guesses distracting until it has learned their phrases. More suits someone who taps predictions often. On the typing harness the word pairs' guesses carried into a typed word were right about one time in eight, which is why Normal keeps only your own.
+
 ## Before you type
 
 **Words before you type**, under Typing / Suggestions, puts your own words on the strip while nothing is typed. At the start of a sentence they replace the usual openers. After a word, predictions keep their slots, your words fill any left empty, and the rest head the grid behind the strip.
@@ -198,6 +212,8 @@ The same two lists are editable from settings, if you would rather not chase the
 | --- | --- |
 | Suggestions | On |
 | Punctuation suggestions | Off |
+| Next-word suggestions | Words only |
+| How many next words | Normal |
 | Number of suggestions | 3 (range 2&ndash;6) |
 | Swipe down for more suggestions | Off |
 | Swipe up for more suggestions | Off |

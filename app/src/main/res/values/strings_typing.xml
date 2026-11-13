@@ -268,6 +268,25 @@
     <string name="typing_punctuation_suggestions_subtitle">Chips for . , ? ! and \' beside the word candidates</string>
     <string name="typing_punctuation_suggestions_info">The keyboard adds a short row of common punctuation to the end of the suggestion strip while candidates show. A full stop or a comma is one press away, with no change to the symbols layout. A press acts the same as the key. When the keyboard offers an emoji prediction, the emoji takes the end of the strip instead.</string>
 
+    <string name="typing_next_words_title">Next-word suggestions</string>
+    <string name="typing_next_words_subtitle">What the strip offers after a space, before you type the next word</string>
+    <string name="typing_next_words_info">After you finish a word, the strip guesses the next one from your own phrases, your contacts, the context model and any word pairs downloaded for the language. Off leaves the strip empty until you type a letter. Words and punctuation also puts the punctuation marks beside those words, even with Punctuation suggestions off, so a comma or full stop after a finished word is one press away.</string>
+    <string name="typing_next_words_off">Off</string>
+    <string name="typing_next_words_off_desc">The strip waits for the first letter of the next word</string>
+    <string name="typing_next_words_words">Words only</string>
+    <string name="typing_next_words_words_desc">The words most likely to come next</string>
+    <string name="typing_next_words_punct">Words and punctuation</string>
+    <string name="typing_next_words_punct_desc">The likely next words, with the punctuation marks beside them</string>
+    <string name="typing_next_word_amount_title">How many next words</string>
+    <string name="typing_next_word_amount_subtitle">How eagerly the strip guesses the next word</string>
+    <string name="typing_next_word_amount_info">Fewer guesses only from what you have typed before, your contacts and the context model, so the strip stays quiet until it has learned your phrases. Normal adds the word pairs downloaded for the language and the built-in English pairs. More also keeps those guesses on the strip once you start typing the next word, so a likely word stays one press away after its first letter.</string>
+    <string name="typing_next_word_amount_fewer">Fewer</string>
+    <string name="typing_next_word_amount_fewer_desc">Only words you have typed after this one before, contacts and the context model</string>
+    <string name="typing_next_word_amount_normal">Normal</string>
+    <string name="typing_next_word_amount_normal_desc">Your own phrases first, then the language\'s word pairs</string>
+    <string name="typing_next_word_amount_more">More</string>
+    <string name="typing_next_word_amount_more_desc">Guesses also stay on the strip while you type the next word</string>
+
     <string name="typing_suggestions_all_fields_title">Suggestions in every field</string>
     <string name="typing_suggestions_all_fields_subtitle">Show the suggestion strip even where an app asks to hide it</string>
     <string name="typing_suggestions_all_fields_info">Some apps, such as Instagram and Google Keep, tell the keyboard to hide the suggestion strip on ordinary text fields. This setting is on by default, and the keyboard shows the strip anyway, as most keyboards do. Turn it off to follow the app and hide the strip. In the address bar of a browser it also lets the keyboard complete the words that you type, though it never autocorrects them there. Autocorrect, glide typing and Bengali (Avro) composing work either way, because they no longer depend on the strip. Password fields and number pads never show suggestions.</string>

@@ -1841,6 +1841,8 @@
 		"typing_mistype_tolerance_title": "0.5.14",
 		"typing_neural_context_title": "0.6.4",
 		"typing_new_word_sightings_title": "0.5.3",
+		"typing_next_word_amount_title": "0.6.7",
+		"typing_next_words_title": "0.6.7",
 		"typing_number_prediction_title": "0.5.8",
 		"typing_number_row_corrections_title": "0.5.3",
 		"typing_octopus_density_title": "0.5.4",

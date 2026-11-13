@@ -506,6 +506,8 @@ private fun SearchStrings.typingSuggestionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_suggestion_scroll_title, R.string.typing_suggestion_scroll_subtitle),
         row(R.string.typing_suggestion_more_arrow_title, R.string.typing_suggestion_more_arrow_subtitle),
         row(R.string.typing_punctuation_suggestions_title, R.string.typing_punctuation_suggestions_subtitle),
+        row(R.string.typing_next_words_title, R.string.typing_next_words_subtitle),
+        row(R.string.typing_next_word_amount_title, R.string.typing_next_word_amount_subtitle),
         row(R.string.typing_suggestions_all_fields_title, R.string.typing_suggestions_all_fields_subtitle),
         row(R.string.typing_learn_threshold_title, R.string.typing_learn_threshold_subtitle),
         row(R.string.typing_new_word_sightings_title, R.string.typing_new_word_sightings_subtitle),

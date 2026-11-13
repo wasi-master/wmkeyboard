@@ -132,6 +132,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Workspaces
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.wasimaster.wmkeyboard.core.script.NumeralCommitScope
 import com.wasimaster.wmkeyboard.core.settings.AppSortOrder
+import com.wasimaster.wmkeyboard.core.settings.NextWordSuggestions
 import com.wasimaster.wmkeyboard.core.settings.AutoThemeTrigger
 import com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit
 import com.wasimaster.wmkeyboard.core.settings.TopRowHolds
@@ -596,6 +597,9 @@ internal object ChoiceOptionIcons {
         put(SlipFixes.OFF) { Icons.Outlined.Block }
         put(SlipFixes.CAREFUL) { Icons.Outlined.TouchApp }
         put(SlipFixes.EAGER) { Icons.Outlined.TouchApp }
+        put(NextWordSuggestions.OFF) { Icons.Outlined.Block }
+        put(NextWordSuggestions.WORDS) { Icons.AutoMirrored.Outlined.ShortText }
+        put(NextWordSuggestions.WORDS_AND_PUNCTUATION) { Icons.Outlined.TextFields }
 
         // ---- Accessibility: colour vision ----
         // The three deficiencies share a glyph because they are the same kind

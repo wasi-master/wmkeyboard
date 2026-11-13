@@ -5618,6 +5618,7 @@ open class WMKeyboardService : InputMethodService() {
                 suggestionEngine?.dictionaryCapitalsEnabled = settings.correction.dictionaryCapitals
                 suggestionEngine?.learnedWordMinCount =
                     settings.suggestionStrip.learnedWordMinCount
+                suggestionEngine?.nextWordReach = settings.suggestionStrip.nextWordReach()
                 emojiUsage.maxRecents = settings.emoji.recentsLimit
                 // The snippet index partitions on this — which snippets rewrite
                 // text and which only offer to — so the store has to be told
@@ -6210,6 +6211,7 @@ open class WMKeyboardService : InputMethodService() {
                 bundledCapitals = loadBundledCapitals()
                 learnedWordMinCount =
                     _uiState.value.settings.suggestionStrip.learnedWordMinCount
+                nextWordReach = _uiState.value.settings.suggestionStrip.nextWordReach()
                 autocorrectSplits = _uiState.value.settings.suggestionStrip.autocorrectSplits
                 digitSlipCorrections = digitSlipsOn(_uiState.value.settings)
                 apostropheFixes = _uiState.value.settings.autoText.apostrophe
@@ -29875,8 +29877,14 @@ open class WMKeyboardService : InputMethodService() {
             // only when there are candidates to ride (otherwise the strip is
             // idle and flips to the toolbar) and no emoji prediction is actually
             // drawn in the tail (gate on the shown set, not the raw one).
+            // Next-word suggestions set to words and punctuation bring the
+            // marks beside the words predicted after a space, with the row
+            // itself off.
             val punct = if (
-                state.settings.suggestionStrip.punctuation &&
+                (
+                    state.settings.suggestionStrip.punctuation ||
+                        (typed.isEmpty() && state.settings.suggestionStrip.punctuationAfterWords)
+                    ) &&
                 results.isNotEmpty() &&
                 shownEmojis.isEmpty()
             ) {

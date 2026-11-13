@@ -1147,6 +1147,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_suggestions_title) { Icons.Outlined.Lightbulb }
         put(R.string.typing_suggestions_all_fields_title) { Icons.Outlined.Lightbulb }
         put(R.string.typing_punctuation_suggestions_title) { Icons.Outlined.MoreHoriz }
+        put(R.string.typing_next_words_title) { Icons.Outlined.Lightbulb }
+        put(R.string.typing_next_word_amount_title) { Icons.Outlined.Tune }
         put(R.string.typing_suggestions_first_title) { Icons.Outlined.VerticalAlignTop }
         put(R.string.typing_suggestion_slots_title) { Icons.Outlined.Numbers }
         put(R.string.typing_fit_more_words_title) { Icons.Outlined.ViewWeek }

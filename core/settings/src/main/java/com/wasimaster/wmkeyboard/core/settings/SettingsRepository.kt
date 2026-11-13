@@ -64,6 +64,7 @@ import com.wasimaster.wmkeyboard.core.gesture.GlideTolerances
 import com.wasimaster.wmkeyboard.core.prediction.BlacklistFile
 import com.wasimaster.wmkeyboard.core.prediction.BlacklistMatcher
 import com.wasimaster.wmkeyboard.core.prediction.BlacklistPatterns
+import com.wasimaster.wmkeyboard.core.prediction.NextWordReach
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticStripSource
@@ -10776,6 +10777,22 @@ enum class LearnFromTextSort { MOST_FREQUENT, TEXT_ORDER, ALPHABETICAL }
 enum class SuggestionOverflow { MIDDLE, END }
 
 /**
+ * What the strip offers after a space, before the next word's first letter.
+ * [WORDS_AND_PUNCTUATION] adds the strip's punctuation marks beside those
+ * predictions even with [SuggestionStripSettings.punctuation] off, so a mark
+ * after a finished word is one tap away.
+ */
+enum class NextWordSuggestions { OFF, WORDS, WORDS_AND_PUNCTUATION }
+
+/**
+ * How eagerly the next word is predicted. [FEWER] offers only the user's own
+ * habits, contacts and the context model; [NORMAL] adds the downloaded word
+ * pairs and the bundled seed pairs, as the strip always has; [MORE] also lets
+ * those followers carry into the strip of a word being typed.
+ */
+enum class NextWordAmount { FEWER, NORMAL, MORE }
+
+/**
  * The languages a picked suggestion commits bare in until the user says
  * otherwise (#986): Bangla, whose words take case markers and suffixes straight
  * after a pick, and whose kars are picked inside a word.
@@ -11396,6 +11413,14 @@ data class SuggestionStripSettings(
      */
     val wordPairsOffLangs: Set<String> = emptySet(),
     /**
+     * Next-word suggestions: the words the strip offers after a space, and
+     * whether the punctuation marks ride beside them. One switch for what
+     * [wordPairsOffLangs] and the punctuation row each do in part.
+     */
+    val nextWords: NextWordSuggestions = NextWordSuggestions.WORDS,
+    /** How eagerly [nextWords] predicts; not read while it is off. */
+    val nextWordAmount: NextWordAmount = NextWordAmount.NORMAL,
+    /**
      * Detect which language of the mix the current field is being written in
      * — from the words already in it — and lean suggestions and autocorrect
      * toward that language while it holds. Typing "ami tomake" on the English
@@ -11626,6 +11651,18 @@ data class SuggestionStripSettings(
 
     /** Whether predictions read [langId]'s downloaded word-pair data. */
     fun wordPairsEnabledFor(langId: String): Boolean = langId !in wordPairsOffLangs
+
+    /** The engine's reach for the next word, from [nextWords] and [nextWordAmount]. */
+    fun nextWordReach(): NextWordReach = when {
+        nextWords == NextWordSuggestions.OFF -> NextWordReach.OFF
+        nextWordAmount == NextWordAmount.FEWER -> NextWordReach.FEWER
+        nextWordAmount == NextWordAmount.MORE -> NextWordReach.MORE
+        else -> NextWordReach.NORMAL
+    }
+
+    /** Whether the punctuation marks ride beside the words predicted after a space. */
+    val punctuationAfterWords: Boolean
+        get() = nextWords == NextWordSuggestions.WORDS_AND_PUNCTUATION
 }
 
 /**
@@ -12272,6 +12309,8 @@ class SettingsRepository(private val context: Context) {
         private val RAW_KEYS_CHIP_OFF_LANGS = stringSetPreferencesKey("raw_keys_chip_off_langs")
         private val IMPORTED_ONLY_LANGS = stringSetPreferencesKey("imported_only_langs")
         private val WORD_PAIRS_OFF_LANGS = stringSetPreferencesKey("word_pairs_off_langs")
+        private val NEXT_WORD_SUGGESTIONS = stringPreferencesKey("next_word_suggestions")
+        private val NEXT_WORD_AMOUNT = stringPreferencesKey("next_word_amount")
         private val WORD_MENU_ITEMS = stringSetPreferencesKey("word_menu_items")
 
         /**
@@ -15228,6 +15267,12 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.importedOnlyLangs,
             wordPairsOffLangs = p[WORD_PAIRS_OFF_LANGS]
                 ?: defaults.suggestionStrip.wordPairsOffLangs,
+            nextWords = p[NEXT_WORD_SUGGESTIONS]
+                ?.let { runCatching { NextWordSuggestions.valueOf(it) }.getOrNull() }
+                ?: defaults.suggestionStrip.nextWords,
+            nextWordAmount = p[NEXT_WORD_AMOUNT]
+                ?.let { runCatching { NextWordAmount.valueOf(it) }.getOrNull() }
+                ?: defaults.suggestionStrip.nextWordAmount,
             languageDetection = p[LANGUAGE_DETECTION]
                 ?: defaults.suggestionStrip.languageDetection,
             languageDetectionStrength = p[LANGUAGE_DETECTION_STRENGTH]
@@ -18224,6 +18269,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSlipFixes(value: SlipFixes) =
         editPrefs { it[SLIP_FIXES] = value.name }
+
+    suspend fun setNextWordSuggestions(value: NextWordSuggestions) =
+        editPrefs { it[NEXT_WORD_SUGGESTIONS] = value.name }
+
+    suspend fun setNextWordAmount(value: NextWordAmount) =
+        editPrefs { it[NEXT_WORD_AMOUNT] = value.name }
 
     suspend fun setSuggestionsSwipeForMore(value: Boolean) =
         editPrefs { it[SUGGESTIONS_SWIPE_FOR_MORE] = value }
