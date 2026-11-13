@@ -12231,7 +12231,6 @@
     <string name="typing_finger_swipes_reset_title">स्वाइप क्रिया रीसेट करा</string>
     <string name="typing_finger_swipes_subtitle">कृती करण्यासाठी कीजवर दोन, तीन किंवा चार बोटे एकत्र स्वाइप करा</string>
     <string name="typing_finger_swipes_title">मल्टी-फिंगर स्वाइप्स</string>
-    <string name="typing_fit_more_words_info">स्ट्रिप अजूनही सूचनांच्या संख्येपासून सुरू होते. जेव्हा पुढचे शब्द लहान असतात, तेव्हा ते त्यांच्यासाठी तीन अधिक जागा जोडते, जोपर्यंत प्रत्येक शब्द पूर्ण आकारात स्ट्रिपच्या वाट्याला येतो. लांब शब्द नेहमीची जागा घेतात. सूचना स्क्रोल होत असताना किंवा स्थिर असताना हे काहीही करत नाही. हे सेटिंग डीफॉल्टनुसार बंद असते.</string>
     <string name="typing_fit_more_words_subtitle">जेव्हा शब्द लहान असतात आणि आकुंचन न पावता बसू शकतात, तेव्हा तीन अधिक सूचना दाखवा</string>
     <string name="typing_fit_more_words_title">लहान शब्दांसाठी अधिक जागा</string>
     <string name="typing_fix_several_slips_careful">सावध</string>

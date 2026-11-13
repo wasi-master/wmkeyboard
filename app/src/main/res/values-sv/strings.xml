@@ -12238,7 +12238,6 @@
     <string name="typing_finger_swipes_reset_title">Återställ svepåtgärder</string>
     <string name="typing_finger_swipes_subtitle">Svep med två, tre eller fyra fingrar samtidigt över tangenterna för att köra en åtgärd</string>
     <string name="typing_finger_swipes_title">Svep med flera fingrar</string>
-    <string name="typing_fit_more_words_info">Listen börjar fortfarande från Antal förslag. När nästa ord är korta lägger den till platser för dem, upp till tre till, så länge varje ord får plats i sin del av listen i full storlek. Långa ord behåller det vanliga antalet platser. Den gör ingenting medan förslagen rullar eller hålls på plats. Den här inställningen är avstängd som standard.</string>
     <string name="typing_fit_more_words_subtitle">Visa upp till tre förslag till när de är tillräckligt korta för att få plats utan att krympa</string>
     <string name="typing_fit_more_words_title">Fler platser för korta ord</string>
     <string name="typing_fix_several_slips_careful">Försiktig</string>

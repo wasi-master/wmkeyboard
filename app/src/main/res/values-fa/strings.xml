@@ -12237,7 +12237,6 @@
     <string name="typing_finger_swipes_reset_title">بازنشانی عملکردهای کشیدن انگشت</string>
     <string name="typing_finger_swipes_subtitle">دو، سه یا چهار انگشت را همزمان روی کلیدها بکشید تا یک عمل اجرا شود</string>
     <string name="typing_finger_swipes_title">کشیدن با چند انگشت</string>
-    <string name="typing_fit_more_words_info">نوار پیشنهادات همچنان با «تعداد پیشنهادات» شروع می‌شود. وقتی کلمات بعدی کوتاه هستند، تا سه جایگاه دیگر برای آن‌ها اضافه می‌شود، به شرطی که هر کلمه با اندازه کامل در سهم خود از نوار جا شود. کلمات بلند تعداد معمول جایگاه‌ها را حفظ می‌کنند. این ویژگی هنگام پیمایش پیشنهادات یا ثابت نگه داشتن آن‌ها تأثیری ندارد. این تنظیم به‌صورت پیش‌فرض خاموش است.</string>
     <string name="typing_fit_more_words_subtitle">نمایش حداکثر سه پیشنهاد بیشتر زمانی که به اندازه کافی کوتاه هستند تا بدون کوچک شدن جا شوند</string>
     <string name="typing_fit_more_words_title">جایگاه‌های بیشتر برای کلمات کوتاه</string>
     <string name="typing_fix_several_slips_careful">دقیق</string>

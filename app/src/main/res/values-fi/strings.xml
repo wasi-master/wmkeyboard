@@ -12222,7 +12222,6 @@
     <string name="typing_finger_swipes_reset_title">Nollaa pyyhkäisytoiminnot</string>
     <string name="typing_finger_swipes_subtitle">Pyyhkäise kahdella, kolmella tai neljällä sormella näppäinten yli suorittaaksesi toiminnon</string>
     <string name="typing_finger_swipes_title">Monisormipyyhkäisyt</string>
-    <string name="typing_fit_more_words_info">Palkki alkaa edelleen ehdotusten määrästä. Kun seuraavat sanat ovat lyhyitä, se lisää niille paikkoja, enintään kolme lisää, niin kauan kuin jokainen sana mahtuu sille kuuluvaan tilaan täysikokoisena. Pitkät sanat säilyttävät tavallisen määrän paikkoja. Tämä ei tee mitään, kun ehdotukset vierivät tai ne pidetään paikoillaan. Tämä asetus on oletuksena pois päältä.</string>
     <string name="typing_fit_more_words_subtitle">Näytä jopa kolme lisäehdotusta, kun ne ovat tarpeeksi lyhyitä mahtuakseen ilman pienentämistä</string>
     <string name="typing_fit_more_words_title">Lisää paikkoja lyhyille sanoille</string>
     <string name="typing_fix_several_slips_careful">Varovainen</string>

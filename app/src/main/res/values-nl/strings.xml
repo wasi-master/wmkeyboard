@@ -12231,7 +12231,6 @@
     <string name="typing_finger_swipes_reset_title">Veegacties resetten</string>
     <string name="typing_finger_swipes_subtitle">Veeg met twee, drie of vier vingers tegelijk over de toetsen om een actie uit te voeren</string>
     <string name="typing_finger_swipes_title">Vegen met meerdere vingers</string>
-    <string name="typing_fit_more_words_info">De balk begint nog steeds bij het aantal suggesties. Wanneer de volgende woorden kort zijn, voegt het tot drie extra plaatsen toe, zolang elk woord op ware grootte in zijn deel van de balk past. Lange woorden behouden het gebruikelijke aantal plaatsen. Het doet niets terwijl de suggesties scrollen of op hun plek worden gehouden. Deze instelling staat standaard uit.</string>
     <string name="typing_fit_more_words_subtitle">Toon tot drie suggesties extra als ze kort genoeg zijn om te passen zonder te verkleinen</string>
     <string name="typing_fit_more_words_title">Meer plekken voor korte woorden</string>
     <string name="typing_fix_several_slips_careful">Voorzichtig</string>

@@ -12222,7 +12222,6 @@
     <string name="typing_finger_swipes_reset_title">スワイプアクションをリセット</string>
     <string name="typing_finger_swipes_subtitle">2本、3本、または4本の指を合わせてキーボード上でスワイプするとアクションが実行されます</string>
     <string name="typing_finger_swipes_title">マルチフィンガースワイプ</string>
-    <string name="typing_fit_more_words_info">ストリップは引き続き「提案数」から開始されます。次の単語が短い場合、各単語がフルサイズでストリップの割り当て分に収まる限り、最大3つまでスロットが追加されます。長い単語は通常のスロット数を維持します。提案がスクロール中または固定されている間は機能しません。この設定はデフォルトでオフです。</string>
     <string name="typing_fit_more_words_subtitle">縮小しなくても収まる程度の短い候補を最大3つ追加で表示する</string>
     <string name="typing_fit_more_words_title">短い単語用のスロットを増やす</string>
     <string name="typing_fix_several_slips_careful">慎重</string>

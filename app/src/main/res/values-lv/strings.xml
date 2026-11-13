@@ -12236,7 +12236,6 @@
     <string name="typing_finger_swipes_reset_title">Atiestatīt vilkšanas darbības</string>
     <string name="typing_finger_swipes_subtitle">Pārvelciet divus, trīs vai četrus pirkstus vienlaikus pāri taustiņiem, lai izpildītu darbību</string>
     <string name="typing_finger_swipes_title">Vairāku pirkstu vilcieni</string>
-    <string name="typing_fit_more_words_info">Josla joprojām sākas no ieteikumu skaita. Kad nākamie vārdi ir īsi, tā tiem pievieno vietas (līdz trim papildu vietām), ja vien katrs vārds pilnā izmērā iekļaujas tam atvēlētajā joslas daļā. Gariem vārdiem paliek parastais vietu skaits. Tas nedarbojas, kamēr ieteikumi ritina vai ir fiksēti savā vietā. Šis iestatījums pēc noklusējuma ir izslēgts.</string>
     <string name="typing_fit_more_words_subtitle">Rādīt līdz trim papildu ieteikumiem, ja tie ir pietiekami īsi, lai ietilptu bez samazināšanas</string>
     <string name="typing_fit_more_words_title">Vairāk vietu īsiem vārdiem</string>
     <string name="typing_fix_several_slips_careful">Uzmanīgi</string>

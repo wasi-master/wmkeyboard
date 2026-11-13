@@ -12220,7 +12220,6 @@
     <string name="typing_finger_swipes_reset_title">Đặt lại các thao tác vuốt</string>
     <string name="typing_finger_swipes_subtitle">Vuốt hai, ba hoặc bốn ngón tay cùng lúc trên các phím để thực hiện hành động</string>
     <string name="typing_finger_swipes_title">Vuốt bằng nhiều ngón tay</string>
-    <string name="typing_fit_more_words_info">Dải gợi ý vẫn bắt đầu từ Số lượng gợi ý. Khi các từ tiếp theo ngắn, nó sẽ thêm các vị trí cho chúng, tối đa thêm ba từ nữa, miễn là mỗi từ vừa với phần của nó trên dải ở kích thước đầy đủ. Các từ dài vẫn giữ nguyên số lượng vị trí thông thường. Nó không thực hiện gì khi các gợi ý cuộn hoặc được giữ nguyên vị trí. Cài đặt này bị tắt theo mặc định.</string>
     <string name="typing_fit_more_words_subtitle">Hiển thị tối đa ba gợi ý nữa khi chúng đủ ngắn để vừa mà không cần thu nhỏ</string>
     <string name="typing_fit_more_words_title">Thêm vị trí cho các từ ngắn</string>
     <string name="typing_fix_several_slips_careful">Cẩn thận</string>

@@ -12229,7 +12229,6 @@
     <string name="typing_finger_swipes_reset_title">איפוס פעולות החלקה</string>
     <string name="typing_finger_swipes_subtitle">החלק שתי, שלוש או ארבע אצבעות יחד על המקשים כדי להפעיל פעולה</string>
     <string name="typing_finger_swipes_title">החלקות מרובות אצבעות</string>
-    <string name="typing_fit_more_words_info">הרצועה עדיין מתחילה ממספר ההצעות. כאשר המילים הבאות קצרות, היא מוסיפה להן משבצות, עד שלוש נוספות, כל עוד כל מילה מתאימה לחלקה ברצועה בגודל מלא. מילים ארוכות שומרות על מספר המשבצות הרגיל. זה לא עושה דבר בזמן שההצעות נגללות או נשמרות במקומן. הגדרה זו כבויה כברירת מחדל.</string>
     <string name="typing_fit_more_words_subtitle">הצג עד שלוש הצעות נוספות כשהן קצרות מספיק כדי להתאים ללא כיווץ</string>
     <string name="typing_fit_more_words_title">יותר מקומות למילים קצרות</string>
     <string name="typing_fix_several_slips_careful">זהירות</string>

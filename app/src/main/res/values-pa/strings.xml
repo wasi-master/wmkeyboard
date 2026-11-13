@@ -12242,7 +12242,6 @@
     <string name="typing_finger_swipes_reset_title">ਸਵਾਈਪ ਕਿਰਿਆਵਾਂ ਰੀਸੈੱਟ ਕਰੋ</string>
     <string name="typing_finger_swipes_subtitle">ਕੋਈ ਕਾਰਵਾਈ ਚਲਾਉਣ ਲਈ ਕੁੰਜੀਆਂ ਉੱਤੇ ਦੋ, ਤਿੰਨ ਜਾਂ ਚਾਰ ਉਂਗਲਾਂ ਨੂੰ ਇਕੱਠੇ ਸਵਾਈਪ ਕਰੋ</string>
     <string name="typing_finger_swipes_title">ਮਲਟੀ-ਫਿੰਗਰ ਸਵਾਈਪ</string>
-    <string name="typing_fit_more_words_info">ਸਟ੍ਰਿਪ ਅਜੇ ਵੀ ਸੁਝਾਵਾਂ ਦੀ ਗਿਣਤੀ ਤੋਂ ਸ਼ੁਰੂ ਹੁੰਦੀ ਹੈ। ਜਦੋਂ ਅਗਲੇ ਸ਼ਬਦ ਛੋਟੇ ਹੁੰਦੇ ਹਨ, ਤਾਂ ਇਹ ਉਹਨਾਂ ਲਈ ਤਿੰਨ ਹੋਰ ਸਲਾਟ ਸ਼ਾਮਲ ਕਰਦਾ ਹੈ, ਜਿੰਨਾ ਚਿਰ ਹਰ ਸ਼ਬਦ ਪੂਰੇ ਆਕਾਰ ਵਿੱਚ ਸਟ੍ਰਿਪ ਦੇ ਆਪਣੇ ਹਿੱਸੇ ਵਿੱਚ ਫਿੱਟ ਹੋ ਜਾਂਦਾ ਹੈ। ਲੰਬੇ ਸ਼ਬਦ ਆਮ ਗਿਣਤੀ ਵਿੱਚ ਸਲਾਟ ਰੱਖਦੇ ਹਨ। ਇਹ ਉਦੋਂ ਕੁਝ ਨਹੀਂ ਕਰਦਾ ਜਦੋਂ ਸੁਝਾਅ ਸਕ੍ਰੋਲ ਹੁੰਦੇ ਹਨ ਜਾਂ ਆਪਣੀ ਜਗ੍ਹਾ \'ਤੇ ਰੱਖੇ ਜਾਂਦੇ ਹਨ। ਇਹ ਸੈਟਿੰਗ ਡਿਫੌਲਟ ਰੂਪ ਵਿੱਚ ਬੰਦ ਹੈ।</string>
     <string name="typing_fit_more_words_subtitle">ਤਿੰਨ ਹੋਰ ਸੁਝਾਅ ਦਿਖਾਓ ਜਦੋਂ ਉਹ ਛੋਟੇ ਹੋਣ ਤਾਂ ਜੋ ਉਹ ਸੁੰਗੜੇ ਬਿਨਾਂ ਫਿੱਟ ਹੋ ਸਕਣ</string>
     <string name="typing_fit_more_words_title">ਛੋਟੇ ਸ਼ਬਦਾਂ ਲਈ ਹੋਰ ਸਲਾਟ</string>
     <string name="typing_fix_several_slips_careful">ਸਾਵਧਾਨ</string>

@@ -12230,7 +12230,6 @@
     <string name="typing_finger_swipes_reset_title">સ્વાઇપ ક્રિયાઓ રીસેટ કરો</string>
     <string name="typing_finger_swipes_subtitle">કોઈ ક્રિયા ચલાવવા માટે કી પર બે, ત્રણ કે ચાર આંગળીઓ એકસાથે સ્વાઇપ કરો</string>
     <string name="typing_finger_swipes_title">મલ્ટી-ફિંગર સ્વાઇપ્સ</string>
-    <string name="typing_fit_more_words_info">સ્ટ્રીપ હજુ પણ સૂચનોની સંખ્યાથી શરૂ થાય છે. જ્યારે પછીના શબ્દો ટૂંકા હોય, ત્યારે તે તેમના માટે વધુ ત્રણ સ્લોટ ઉમેરે છે, જ્યાં સુધી દરેક શબ્દ તેની સંપૂર્ણ સાઈઝમાં સ્ટ્રીપમાં ફિટ થઈ જાય. લાંબા શબ્દો સામાન્ય સંખ્યામાં સ્લોટ જાળવી રાખે છે. જ્યારે સૂચનો સ્ક્રોલ થાય છે અથવા પોતાની જગ્યાએ રહે છે ત્યારે તે કંઈ કરતું નથી. આ સેટિંગ ડિફોલ્ટ રૂપે બંધ છે.</string>
     <string name="typing_fit_more_words_subtitle">જ્યારે સૂચનો નાના હોય અને સંકોચાયા વગર ફિટ થઈ શકે ત્યારે વધુ ત્રણ સૂચનો બતાવો</string>
     <string name="typing_fit_more_words_title">ટૂંકા શબ્દો માટે વધુ સ્લોટ</string>
     <string name="typing_fix_several_slips_careful">સાવધ</string>

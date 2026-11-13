@@ -12222,7 +12222,6 @@
     <string name="typing_finger_swipes_reset_title">Réinitialiser les actions de balayage</string>
     <string name="typing_finger_swipes_subtitle">Faites glisser deux, trois ou quatre doigts ensemble sur les touches pour exécuter une action</string>
     <string name="typing_finger_swipes_title">Balayages multi-doigts</string>
-    <string name="typing_fit_more_words_info">La bande commence toujours par le Nombre de suggestions. Lorsque les mots suivants sont courts, elle ajoute jusqu\'à trois emplacements supplémentaires, tant que chaque mot tient dans sa portion de bande en taille réelle. Les mots longs conservent le nombre habituel d\'emplacements. Cela ne s\'active pas pendant que les suggestions défilent ou sont maintenues en place. Ce paramètre est désactivé par défaut.</string>
     <string name="typing_fit_more_words_subtitle">Afficher jusqu\'à trois suggestions supplémentaires lorsqu\'elles sont assez courtes pour tenir sans être réduites</string>
     <string name="typing_fit_more_words_title">Plus d\'emplacements pour les mots courts</string>
     <string name="typing_fix_several_slips_careful">Prudent</string>

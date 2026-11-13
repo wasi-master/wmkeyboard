@@ -12236,7 +12236,6 @@
     <string name="typing_finger_swipes_reset_title">Ponastavi dejanja vlečenja</string>
     <string name="typing_finger_swipes_subtitle">Povlecite z dvema, tremi ali štirimi prsti po tipkah, da zaženete dejanje</string>
     <string name="typing_finger_swipes_title">Povleki z več prsti</string>
-    <string name="typing_fit_more_words_info">Vrstica se še vedno začne s številom predlogov. Ko so naslednje besede kratke, doda prostor zanje, do tri dodatne, če vsaka beseda v polni velikosti ustreza svojemu delu vrstice. Dolge besede ohranijo običajno število mest. Med pomikanjem predlogov ali ko so ti na mestu, se ne zgodi nič. Ta nastavitev je privzeto izklopljena.</string>
     <string name="typing_fit_more_words_subtitle">Prikaži do tri dodatne predloge, ko so dovolj kratke, da se prilegajo brez pomanjšanja</string>
     <string name="typing_fit_more_words_title">Več mest za kratke besede</string>
     <string name="typing_fix_several_slips_careful">Previdno</string>

@@ -1129,7 +1129,7 @@ internal fun TypingSuggestionsSettings(
                 R.string.typing_fit_more_words_title,
                 stringResource(R.string.typing_fit_more_words_subtitle),
                 settings.watch { it.suggestionStrip.fitMoreWords },
-                info = stringResource(R.string.typing_fit_more_words_info),
+                info = stringResource(R.string.typing_fit_more_words_in_place_info),
                 default = SettingsDefaults.suggestionStrip.fitMoreWords,
             ) { scope.launch { repository.setFitMoreWords(it) } }
         }

@@ -12226,7 +12226,6 @@
     <string name="typing_finger_swipes_reset_title">Reset tindakan usap</string>
     <string name="typing_finger_swipes_subtitle">Geser dua, tiga, atau empat jari secara bersamaan di atas tombol untuk menjalankan tindakan</string>
     <string name="typing_finger_swipes_title">Usapan multi-jari</string>
-    <string name="typing_fit_more_words_info">Strip masih dimulai dari Jumlah saran. Saat kata berikutnya pendek, strip akan menambahkan slot untuk kata tersebut, hingga tiga lagi, selama setiap kata pas dengan bagian stripnya pada ukuran penuh. Kata panjang tetap menggunakan jumlah slot yang biasa. Ini tidak melakukan apa pun saat saran digulir atau tetap di tempatnya. Pengaturan ini nonaktif secara default.</string>
     <string name="typing_fit_more_words_subtitle">Tampilkan hingga tiga saran tambahan jika cukup pendek agar muat tanpa memperkecil</string>
     <string name="typing_fit_more_words_title">Lebih banyak slot untuk kata pendek</string>
     <string name="typing_fix_several_slips_careful">Hati-hati</string>

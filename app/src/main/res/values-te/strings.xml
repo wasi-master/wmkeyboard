@@ -12238,7 +12238,6 @@
     <string name="typing_finger_swipes_reset_title">స్వైప్ చర్యలను రీసెట్ చేయండి</string>
     <string name="typing_finger_swipes_subtitle">ఒక చర్యను అమలు చేయడానికి కీలపై రెండు, మూడు లేదా నాలుగు వేళ్లతో స్వైప్ చేయండి</string>
     <string name="typing_finger_swipes_title">మల్టీ-ఫింగర్ స్వైప్‌లు</string>
-    <string name="typing_fit_more_words_info">ఈ స్ట్రిప్ ఇప్పటికీ సూచనల సంఖ్యతోనే ప్రారంభమవుతుంది. తదుపరి పదాలు చిన్నవిగా ఉన్నప్పుడు, ప్రతి పదం పూర్తి పరిమాణంలో స్ట్రిప్‌లో సరిపోయేంత వరకు, ఇది మరో మూడు స్లాట్‌లను జోడిస్తుంది. పొడవైన పదాలు సాధారణ సంఖ్యలో స్లాట్‌లను కలిగి ఉంటాయి. సూచనలు స్క్రోల్ అవుతున్నప్పుడు లేదా స్థానంలో ఉన్నప్పుడు ఇది ఏమీ చేయదు. ఈ సెట్టింగ్ డిఫాల్ట్‌గా ఆఫ్‌లో ఉంటుంది.</string>
     <string name="typing_fit_more_words_subtitle">సూచనలు చిన్నవిగా ఉండి, కుదించాల్సిన అవసరం లేనప్పుడు మరో మూడు అదనపు సూచనలను చూపండి</string>
     <string name="typing_fit_more_words_title">చిన్న పదాల కోసం మరిన్ని స్లాట్లు</string>
     <string name="typing_fix_several_slips_careful">జాగ్రత్తగా</string>

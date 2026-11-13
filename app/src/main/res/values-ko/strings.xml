@@ -12218,7 +12218,6 @@
     <string name="typing_finger_swipes_reset_title">스와이프 동작 초기화</string>
     <string name="typing_finger_swipes_subtitle">두 개, 세 개 또는 네 개의 손가락을 함께 키 위로 스와이프하여 동작 실행</string>
     <string name="typing_finger_swipes_title">다중 손가락 스와이프</string>
-    <string name="typing_fit_more_words_info">스트립은 여전히 제안 개수부터 시작합니다. 다음 단어들이 짧은 경우, 각 단어가 전체 크기의 스트립에서 자신의 몫을 차지할 수 있는 한 최대 3개의 슬롯을 추가합니다. 긴 단어는 일반적인 슬롯 수를 유지합니다. 제안이 스크롤되거나 고정되어 있을 때는 아무 작업도 수행하지 않습니다. 이 설정은 기본적으로 꺼져 있습니다.</string>
     <string name="typing_fit_more_words_subtitle">축소하지 않고도 들어갈 만큼 짧은 경우 최대 3개의 제안을 더 표시</string>
     <string name="typing_fit_more_words_title">짧은 단어를 위한 슬롯 추가</string>
     <string name="typing_fix_several_slips_careful">주의</string>

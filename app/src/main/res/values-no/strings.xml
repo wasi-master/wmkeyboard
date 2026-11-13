@@ -12230,7 +12230,6 @@
     <string name="typing_finger_swipes_reset_title">Tilbakestill sveipehandlinger</string>
     <string name="typing_finger_swipes_subtitle">Sveip to, tre eller fire fingre sammen over tastene for å utføre en handling</string>
     <string name="typing_finger_swipes_title">Sveip med flere fingre</string>
-    <string name="typing_fit_more_words_info">Stripen starter fortsatt fra Antall forslag. Når de neste ordene er korte, legger den til plasser for dem, opptil tre til, så lenge hvert ord passer sin del av stripen i full størrelse. Lange ord beholder det vanlige antallet plasser. Den gjør ingenting mens forslagene ruller eller holdes på plass. Denne innstillingen er av som standard.</string>
     <string name="typing_fit_more_words_subtitle">Vis opptil tre forslag til når de er korte nok til å få plass uten å krympe</string>
     <string name="typing_fit_more_words_title">Flere plasser for korte ord</string>
     <string name="typing_fix_several_slips_careful">Forsiktig</string>

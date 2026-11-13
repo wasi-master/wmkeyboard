@@ -12231,7 +12231,6 @@
     <string name="typing_finger_swipes_reset_title">Obnoviť akcie potiahnutia</string>
     <string name="typing_finger_swipes_subtitle">Potiahnutím dvoch, troch alebo štyroch prstov naraz po klávesoch spustíte akciu</string>
     <string name="typing_finger_swipes_title">Gestá viacerými prstami</string>
-    <string name="typing_fit_more_words_info">Pás stále začína od počtu návrhov. Keď sú nasledujúce slová krátke, pridá pre ne miesta, až o tri ďalšie, pokiaľ sa každé slovo zmestí do svojho podielu pásu v plnej veľkosti. Dlhé slová si zachovávajú obvyklý počet miest. Počas posúvania návrhov alebo ich ponechania na mieste nerobí nič. Toto nastavenie je predvolene vypnuté.</string>
     <string name="typing_fit_more_words_subtitle">Zobraziť až o tri návrhy viac, ak sú dostatočne krátke na to, aby sa zmestili bez zmenšenia</string>
     <string name="typing_fit_more_words_title">Viac pozícií pre krátke slová</string>
     <string name="typing_fix_several_slips_careful">Opatrne</string>

@@ -12224,7 +12224,6 @@
     <string name="typing_finger_swipes_reset_title">Restableix les accions de lliscament</string>
     <string name="typing_finger_swipes_subtitle">Llisca dos, tres o quatre dits junts sobre les tecles per executar una acció</string>
     <string name="typing_finger_swipes_title">Lliscaments amb diversos dits</string>
-    <string name="typing_fit_more_words_info">La franja encara comença des del nombre de suggeriments. Quan les paraules següents són curtes, afegeix espais per a elles, fins a tres més, sempre que cada paraula càpiga a la seva part de la franja a mida completa. Les paraules llargues mantenen el nombre habitual d\'espais. No fa res mentre els suggeriments es desplacen o es mantenen al seu lloc. Aquesta configuració està desactivada per defecte.</string>
     <string name="typing_fit_more_words_subtitle">Mostra fins a tres suggeriments més quan siguin prou curts per cabre sense reduir-se</string>
     <string name="typing_fit_more_words_title">Més espais per a paraules curtes</string>
     <string name="typing_fix_several_slips_careful">Ves amb compte</string>

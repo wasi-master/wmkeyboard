@@ -12227,7 +12227,6 @@
     <string name="typing_finger_swipes_reset_title">Atstatyti braukimo veiksmus</string>
     <string name="typing_finger_swipes_subtitle">Braukite dviem, trimis ar keturiais pirštais per klavišus, kad atliktumėte veiksmą</string>
     <string name="typing_finger_swipes_title">Braukimas keliais pirštais</string>
-    <string name="typing_fit_more_words_info">Juosta vis dar prasideda nuo pasiūlymų skaičiaus. Kai sekantys žodžiai yra trumpi, pridedami laukeliai jiems (iki trijų papildomų), su sąlyga, kad kiekvienas žodis pilnu dydžiu telpa savo dalyje. Ilgi žodžiai išsaugo įprastą laukelių skaičių. Tai neveikia, kol pasiūlymai slenka arba yra fiksuoti savo vietose. Šis nustatymas pagal numatytuosius parametrus yra išjungtas.</string>
     <string name="typing_fit_more_words_subtitle">Rodyti iki trijų papildomų pasiūlymų, kai jie yra pakankamai trumpi, kad tilptų nesumažinant</string>
     <string name="typing_fit_more_words_title">Daugiau laukelių trumpiems žodžiams</string>
     <string name="typing_fix_several_slips_careful">Atsargus</string>

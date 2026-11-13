@@ -12232,7 +12232,6 @@
     <string name="typing_finger_swipes_reset_title">Restablecer acciones de deslizamiento</string>
     <string name="typing_finger_swipes_subtitle">Desliza dos, tres o cuatro dedos juntos sobre las teclas para ejecutar una acción</string>
     <string name="typing_finger_swipes_title">Deslizamientos con varios dedos</string>
-    <string name="typing_fit_more_words_info">La franja aún comienza desde el número de sugerencias. Cuando las siguientes palabras son cortas, agrega espacios para ellas, hasta tres más, siempre que cada palabra quepa en su parte de la franja a tamaño completo. Las palabras largas mantienen el número habitual de espacios. No hace nada mientras las sugerencias se desplazan o se mantienen en su lugar. Esta configuración está desactivada de forma predeterminada.</string>
     <string name="typing_fit_more_words_subtitle">Mostrar hasta tres sugerencias más cuando sean lo suficientemente breves para caber sin reducir el tamaño</string>
     <string name="typing_fit_more_words_title">Más espacios para palabras cortas</string>
     <string name="typing_fix_several_slips_careful">Cuidadoso</string>

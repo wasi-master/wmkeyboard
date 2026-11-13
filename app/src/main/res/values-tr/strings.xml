@@ -12220,7 +12220,6 @@
     <string name="typing_finger_swipes_reset_title">Kaydırma eylemlerini sıfırla</string>
     <string name="typing_finger_swipes_subtitle">Bir eylemi çalıştırmak için iki, üç veya dört parmağınızı tuşların üzerinde birlikte kaydırın</string>
     <string name="typing_finger_swipes_title">Çok parmaklı kaydırma</string>
-    <string name="typing_fit_more_words_info">Şerit hâlâ Öneri sayısı ile başlar. Sonraki kelimeler kısa olduğunda, her kelime tam boyutta şeritteki payına sığdığı sürece onlar için üç taneye kadar ek yuva ekler. Uzun kelimeler her zamanki yuva sayısını korur. Öneriler kaydırılırken veya yerinde tutulurken hiçbir şey yapmaz. Bu ayar varsayılan olarak kapalıdır.</string>
     <string name="typing_fit_more_words_subtitle">Küçültülmeden sığacak kadar kısa olduklarında üç adede kadar daha fazla öneri göster</string>
     <string name="typing_fit_more_words_title">Kısa kelimeler için daha fazla yuva</string>
     <string name="typing_fix_several_slips_careful">Dikkatli</string>

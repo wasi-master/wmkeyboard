@@ -12222,7 +12222,6 @@
     <string name="typing_finger_swipes_reset_title">Húzási műveletek alaphelyzetbe állítása</string>
     <string name="typing_finger_swipes_subtitle">Húzz végig két, három vagy négy ujjat egyszerre a billentyűkön egy művelet végrehajtásához</string>
     <string name="typing_finger_swipes_title">Többujjas csúsztatások</string>
-    <string name="typing_fit_more_words_info">A sáv továbbra is a javaslatok számától indul. Amikor a következő szavak rövidek, további helyeket ad hozzájuk, legfeljebb hármat, feltéve, hogy minden szó teljes méretben elfér a sáv rá eső részén. A hosszú szavak megtartják a szokásos számú helyet. Ez nem tesz semmit, amíg a javaslatok görgetnek vagy rögzítve vannak. Ez a beállítás alapértelmezés szerint ki van kapcsolva.</string>
     <string name="typing_fit_more_words_subtitle">Legfeljebb három további javaslat megjelenítése, ha azok elég rövidek ahhoz, hogy elférjenek a zsugorításuk nélkül</string>
     <string name="typing_fit_more_words_title">Több hely a rövid szavaknak</string>
     <string name="typing_fix_several_slips_careful">Óvatos</string>

@@ -12234,7 +12234,6 @@
     <string name="typing_finger_swipes_reset_title">Zresetuj akcje gestów</string>
     <string name="typing_finger_swipes_subtitle">Przesuń dwa, trzy lub cztery palce jednocześnie po klawiszach, aby wykonać akcję</string>
     <string name="typing_finger_swipes_title">Przesunięcia wieloma palcami</string>
-    <string name="typing_fit_more_words_info">Pasek nadal zaczyna się od liczby sugestii. Gdy kolejne słowa są krótkie, dodaje dla nich miejsca, maksymalnie trzy dodatkowe, o ile każde słowo mieści się w swojej części paska w pełnym rozmiarze. Długie słowa zachowują zwykłą liczbę miejsc. Nie działa, gdy sugestie są przewijane lub utrzymywane w miejscu. To ustawienie jest domyślnie wyłączone.</string>
     <string name="typing_fit_more_words_subtitle">Pokazuj do trzech dodatkowych sugestii, gdy są one wystarczająco krótkie, by zmieścić się bez zmniejszania</string>
     <string name="typing_fit_more_words_title">Więcej miejsc na krótkie słowa</string>
     <string name="typing_fix_several_slips_careful">Ostrożnie</string>

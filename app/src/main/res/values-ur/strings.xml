@@ -12228,7 +12228,6 @@
     <string name="typing_finger_swipes_reset_title">سوائپ ایکشنز کو ری سیٹ کریں</string>
     <string name="typing_finger_swipes_subtitle">کوئی عمل چلانے کے لیے کیز پر دو، تین یا چار انگلیاں ایک ساتھ سوائپ کریں</string>
     <string name="typing_finger_swipes_title">کثیر انگلیوں کے سوائپس</string>
-    <string name="typing_fit_more_words_info">پٹی اب بھی تجاویز کی تعداد سے شروع ہوتی ہے۔ جب اگلے الفاظ چھوٹے ہوتے ہیں، تو یہ ان کے لیے تین مزید سلاٹ شامل کرتی ہے، بشرطیکہ ہر لفظ اپنی پوری جسامت میں پٹی کے اپنے حصے میں فٹ ہو جائے۔ لمبے الفاظ معمول کے مطابق سلاٹ کی تعداد برقرار رکھتے ہیں۔ جب تجاویز اسکرول ہو رہی ہوں یا اپنی جگہ پر رکھی گئی ہوں تو یہ کچھ نہیں کرتا۔ یہ ترتیب پہلے سے بند ہوتی ہے۔</string>
     <string name="typing_fit_more_words_subtitle">تین اضافی تجاویز دکھائیں جب وہ چھوٹی ہوں اور بغیر چھوٹا کیے فٹ ہو سکیں</string>
     <string name="typing_fit_more_words_title">مختصر الفاظ کے لیے مزید سلاٹس</string>
     <string name="typing_fix_several_slips_careful">محتاط</string>

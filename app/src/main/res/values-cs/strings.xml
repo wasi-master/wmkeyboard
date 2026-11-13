@@ -12225,7 +12225,6 @@
     <string name="typing_finger_swipes_reset_title">Resetovat gesta přejetí</string>
     <string name="typing_finger_swipes_subtitle">Přejeďte dvěma, třemi nebo čtyřmi prsty společně přes klávesy pro spuštění akce</string>
     <string name="typing_finger_swipes_title">Tah prstem více prsty</string>
-    <string name="typing_fit_more_words_info">Pruh stále začíná počtem návrhů. Když jsou další slova krátká, přidá pro ně další sloty (až tři), pokud se každé slovo ve své plné velikosti vejde do svého vyhrazeného prostoru v pruhu. Dlouhá slova si zachovávají obvyklý počet slotů. Tato funkce nefunguje, pokud návrhy rolují nebo jsou ukotveny. Toto nastavení je ve výchozím stavu vypnuto.</string>
     <string name="typing_fit_more_words_subtitle">Zobrazit až tři další návrhy, pokud jsou dostatečně krátké, aby se vešly bez zmenšování</string>
     <string name="typing_fit_more_words_title">Více místa pro krátká slova</string>
     <string name="typing_fix_several_slips_careful">Pečlivě</string>

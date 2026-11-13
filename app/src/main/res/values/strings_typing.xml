@@ -1242,7 +1242,7 @@
     <!-- #970: more suggestion slots while the words are short. -->
     <string name="typing_fit_more_words_title">More slots for short words</string>
     <string name="typing_fit_more_words_subtitle">Show up to three more suggestions when they are short enough to fit without shrinking</string>
-    <string name="typing_fit_more_words_info">The strip still starts from Number of suggestions. When the next words are short, it adds slots for them, up to three more, as long as every word fits its share of the strip at full size. Long words keep the usual number of slots. It does nothing while the suggestions scroll or are kept in place. This setting is off by default.</string>
+    <string name="typing_fit_more_words_in_place_info">The strip still starts from Number of suggestions. When the next words are short, it adds slots for them, up to three more, as long as every word fits its share of the strip at full size. Long words keep the usual number of slots. It does nothing while the suggestions scroll, or while they are kept in place with the best word in the middle. Kept in place with the best word first, the added slots go after the others, so nothing you see moves. This setting is off by default.</string>
     <string name="typing_suggestion_slots_info">The strip splits its width evenly between the suggestions, so more of them means each one is narrower and long words are shrunk further to fit. Three suits a phone. A tablet or a landscape screen has room for more. This setting is 3 by default.</string>
     <string name="typing_suggestion_emoji_slot_title">Emoji takes a slot</string>
     <string name="typing_suggestion_emoji_slot_subtitle">Count a suggested emoji as one of the suggestions</string>

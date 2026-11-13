@@ -12215,7 +12215,6 @@
     <string name="typing_finger_swipes_reset_title">Endurstilla strjúkaðgerðir</string>
     <string name="typing_finger_swipes_subtitle">Strjúktu tveimur, þremur eða fjórum fingrum saman yfir lyklana til að framkvæma aðgerð</string>
     <string name="typing_finger_swipes_title">Strjúkur með mörgum fingrum</string>
-    <string name="typing_fit_more_words_info">Ræman byrjar enn á fjölda tillagna. Þegar næstu orð eru stutt bætir hún við plássum fyrir þau, allt að þremur í viðbót, svo lengi sem hvert orð passar í sitt pláss á ræmunni í fullri stærð. Löng orð halda venjulegum fjölda plássa. Hún gerir ekkert á meðan tillögurnar skruna eða er haldið á sínum stað. Þessi stilling er sjálfgefið slökkt.</string>
     <string name="typing_fit_more_words_subtitle">Sýna allt að þrjár tillögur til viðbótar þegar þær eru nógu stuttar til að passa án þess að minnka</string>
     <string name="typing_fit_more_words_title">Fleiri pláss fyrir stutt orð</string>
     <string name="typing_fix_several_slips_careful">Varlega</string>

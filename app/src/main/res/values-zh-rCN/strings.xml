@@ -12214,7 +12214,6 @@
     <string name="typing_finger_swipes_reset_title">重置滑动操作</string>
     <string name="typing_finger_swipes_subtitle">在按键上同时滑动两根、三根或四根手指以执行操作</string>
     <string name="typing_finger_swipes_title">多指滑动</string>
-    <string name="typing_fit_more_words_info">建议栏仍从“建议数量”开始。当后续单词较短时，它会增加最多三个插槽，前提是每个单词在全尺寸下都能适应其在建议栏中的份额。长单词保持通常的插槽数量。当建议滚动或固定时，此设置不起作用。此设置默认关闭。</string>
     <string name="typing_fit_more_words_subtitle">当建议词足够短且无需缩小字体即可容纳时，最多显示三个额外建议</string>
     <string name="typing_fit_more_words_title">为短单词提供更多槽位</string>
     <string name="typing_fix_several_slips_careful">小心</string>

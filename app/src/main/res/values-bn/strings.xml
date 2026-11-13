@@ -12252,7 +12252,6 @@
     <string name="typing_finger_swipes_reset_title">সোয়াইপ অ্যাকশন রিসেট করুন</string>
     <string name="typing_finger_swipes_subtitle">কোনো অ্যাকশন চালানোর জন্য কিবোর্ডের ওপর দুই, তিন বা চারটি আঙুল একসাথে সোয়াইপ করুন</string>
     <string name="typing_finger_swipes_title">মাল্টি-ফিঙ্গার সোয়াইপ</string>
-    <string name="typing_fit_more_words_info">স্ট্রিপটি এখনও পরামর্শের সংখ্যা থেকে শুরু হয়। যখন পরবর্তী শব্দগুলো ছোট হয়, তখন এটি সেগুলোর জন্য আরও তিনটি পর্যন্ত স্লট যোগ করে, যতক্ষণ না প্রতিটি শব্দ তার পূর্ণ আকারে স্ট্রিপের অংশ দখল করে। দীর্ঘ শব্দগুলো স্বাভাবিক সংখ্যক স্লটই ব্যবহার করে। পরামর্শগুলো স্ক্রোল করার সময় বা নির্দিষ্ট স্থানে রাখা হলে এটি কোনো কাজ করে না। এই সেটিংটি ডিফল্টভাবে বন্ধ থাকে।</string>
     <string name="typing_fit_more_words_subtitle">যখন পরামর্শগুলো ছোট হয় এবং ছোট না করেই জায়গা হয়, তখন আরও তিনটি পর্যন্ত পরামর্শ দেখান</string>
     <string name="typing_fit_more_words_title">ছোট শব্দের জন্য আরও স্লট</string>
     <string name="typing_fix_several_slips_careful">সতর্ক</string>

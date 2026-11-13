@@ -12232,7 +12232,6 @@
     <string name="typing_finger_swipes_reset_title">Lähtesta pühkimistoimingud</string>
     <string name="typing_finger_swipes_subtitle">Toimingu käivitamiseks nipsa kahe, kolme või nelja sõrmega üle klahvide</string>
     <string name="typing_finger_swipes_title">Mitme sõrme libistamine</string>
-    <string name="typing_fit_more_words_info">Riba algab endiselt soovitatud sõnade arvust. Kui järgmised sõnad on lühikesed, lisab see neile kohti, kuni kolm tükki lisaks, juhul kui iga sõna mahub oma talle ettenähtud osa piires täismõõdus ribale. Pikad sõnad säilitavad tavapärase kohtade arvu. See ei tee midagi, kui soovitusi keritakse või hoitakse paigal. See säte on vaikimisi väljas.</string>
     <string name="typing_fit_more_words_subtitle">Kuva kuni kolm täiendavat soovitust, kui need on piisavalt lühikesed, et ära mahtuda ilma vähendamata</string>
     <string name="typing_fit_more_words_title">Rohkem kohti lühikestele sõnadele</string>
     <string name="typing_fix_several_slips_careful">Ettevaatlik</string>

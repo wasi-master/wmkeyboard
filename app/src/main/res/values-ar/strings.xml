@@ -12236,7 +12236,6 @@
     <string name="typing_finger_swipes_reset_title">إعادة تعيين إجراءات التمرير</string>
     <string name="typing_finger_swipes_subtitle">اسحب بإصبعين أو ثلاثة أو أربعة معاً فوق المفاتيح لتنفيذ إجراء</string>
     <string name="typing_finger_swipes_title">سحب متعدد الأصابع</string>
-    <string name="typing_fit_more_words_info">لا يزال الشريط يبدأ من عدد الاقتراحات. عندما تكون الكلمات التالية قصيرة، يضيف خانات لها، حتى ثلاث كلمات إضافية، بشرط أن تتناسب كل كلمة مع حصتها من الشريط بالحجم الكامل. الكلمات الطويلة تحافظ على العدد المعتاد من الخانات. لا يحدث أي تغيير أثناء تمرير الاقتراحات أو تثبيتها. هذا الإعداد متوقف عن التشغيل افتراضيًا.</string>
     <string name="typing_fit_more_words_subtitle">إظهار ما يصل إلى ثلاث اقتراحات إضافية عندما تكون قصيرة بما يكفي لتناسب المساحة دون تصغير</string>
     <string name="typing_fit_more_words_title">مساحات إضافية للكلمات القصيرة</string>
     <string name="typing_fix_several_slips_careful">حذر</string>

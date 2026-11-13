@@ -6366,8 +6366,12 @@ internal fun RowScope.LatinSuggestionChips(
         val baseSize = (
             if (baseStyle.fontSize.isSpecified) baseStyle.fontSize else SuggestionFontSize
             ) * textScale
-        // Short words make room for more of them (#970).
-        val wanted = if (fitMore && !scrollable && !fixedSlots && candidates.size > slotCount) {
+        // Short words make room for more of them (#970). Kept in place too
+        // when the best word holds the first slot (#1154): the added slots go
+        // on after it, so nothing already shown moves. Not with it centred,
+        // where one more slot would move the middle.
+        val fitsInPlace = !fixedSlots || !centerPrimaryEnabled
+        val wanted = if (fitMore && !scrollable && fitsInPlace && candidates.size > slotCount) {
             remember(candidates, slotCount, maxWidth, textPadding, baseSize, baseStyle, shiftState) {
                 slotsThatFit(candidates, slotCount, maxWidth, textPadding) { word ->
                     measurer.measure(
@@ -6393,9 +6397,9 @@ internal fun RowScope.LatinSuggestionChips(
         // order — this is display-only.
         val centerPrimary = centerPrimaryEnabled && ranked.size >= 2
         // Slots held in place only while there is room for all of them.
-        val fixed = fixedSlots && !scrollable && ranked.isNotEmpty() && slots == slotCount
+        val fixed = fixedSlots && !scrollable && ranked.isNotEmpty() && slots == wanted
         val arranged: List<String?> = when {
-            fixed -> fixedSlotOrder(ranked, slotCount, if (centerPrimaryEnabled) primarySlot else 0)
+            fixed -> fixedSlotOrder(ranked, slots, if (centerPrimaryEnabled) primarySlot else 0)
             centerPrimary -> listOf(ranked[1], ranked[0]) + ranked.drop(2)
             else -> ranked
         }

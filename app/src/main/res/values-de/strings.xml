@@ -12228,7 +12228,6 @@
     <string name="typing_finger_swipes_reset_title">Wischaktionen zurücksetzen</string>
     <string name="typing_finger_swipes_subtitle">Wischen Sie mit zwei, drei oder vier Fingern gleichzeitig über die Tasten, um eine Aktion auszuführen</string>
     <string name="typing_finger_swipes_title">Mehrfinger-Wischgesten</string>
-    <string name="typing_fit_more_words_info">Die Leiste beginnt weiterhin bei der Anzahl der Vorschläge. Wenn die nächsten Wörter kurz sind, fügt sie bis zu drei weitere Plätze hinzu, solange jedes Wort in voller Größe in seinen Bereich der Leiste passt. Lange Wörter behalten die übliche Anzahl an Plätzen bei. Dies hat keine Auswirkungen, während die Vorschläge scrollen oder fixiert sind. Diese Einstellung ist standardmäßig deaktiviert.</string>
     <string name="typing_fit_more_words_subtitle">Zeige bis zu drei weitere Vorschläge an, wenn sie kurz genug sind, um ohne Verkleinerung zu passen</string>
     <string name="typing_fit_more_words_title">Mehr Plätze für kurze Wörter</string>
     <string name="typing_fix_several_slips_careful">Vorsichtig</string>

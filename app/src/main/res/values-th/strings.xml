@@ -12221,7 +12221,6 @@
     <string name="typing_finger_swipes_reset_title">รีเซ็ตการดำเนินการปัด</string>
     <string name="typing_finger_swipes_subtitle">ปัดนิ้วสอง สาม หรือสี่นิ้วพร้อมกันบนปุ่มเพื่อเรียกใช้การดำเนินการ</string>
     <string name="typing_finger_swipes_title">การปัดด้วยหลายนิ้ว</string>
-    <string name="typing_fit_more_words_info">แถบคำแนะนำยังคงเริ่มต้นจากจำนวนคำแนะนำ เมื่อคำถัดไปสั้น ระบบจะเพิ่มช่องสำหรับคำเหล่านั้นสูงสุดอีกสามช่อง ตราบใดที่แต่ละคำพอดีกับส่วนแบ่งของแถบในขนาดเต็ม คำยาวจะยังคงใช้จำนวนช่องปกติ ระบบจะไม่ทำอะไรในขณะที่คำแนะนำเลื่อนหรือถูกตรึงไว้ การตั้งค่านี้ปิดอยู่โดยค่าเริ่มต้น</string>
     <string name="typing_fit_more_words_subtitle">แสดงคำแนะนำเพิ่มเติมสูงสุดสามคำเมื่อคำเหล่านั้นสั้นพอที่จะใส่ได้โดยไม่ต้องย่อขนาด</string>
     <string name="typing_fit_more_words_title">เพิ่มช่องสำหรับคำสั้นๆ</string>
     <string name="typing_fix_several_slips_careful">ระมัดระวัง</string>

@@ -12225,7 +12225,6 @@
     <string name="typing_finger_swipes_reset_title">Скинути дії свайпів</string>
     <string name="typing_finger_swipes_subtitle">Проведіть двома, трьома або чотирма пальцями по клавішах, щоб виконати дію</string>
     <string name="typing_finger_swipes_title">Проведення кількома пальцями</string>
-    <string name="typing_fit_more_words_info">Панель, як і раніше, починається з «Кількості підказок». Коли наступні слова короткі, вона додає для них місця, щонайбільше три додаткові, за умови, що кожне слово вміщується у свою частку панелі в повному розмірі. Довгі слова займають звичайну кількість місць. Налаштування не працює під час прокручування підказок або коли вони зафіксовані. За замовчуванням це налаштування вимкнено.</string>
     <string name="typing_fit_more_words_subtitle">Показувати до трьох додаткових підказок, якщо вони достатньо короткі, щоб поміститися без зменшення розміру</string>
     <string name="typing_fit_more_words_title">Більше місця для коротких слів</string>
     <string name="typing_fix_several_slips_careful">Обережно</string>

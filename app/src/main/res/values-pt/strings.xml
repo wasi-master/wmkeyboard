@@ -12229,7 +12229,6 @@
     <string name="typing_finger_swipes_reset_title">Redefinir ações de deslizar</string>
     <string name="typing_finger_swipes_subtitle">Deslize dois, três ou quatro dedos em conjunto sobre as teclas para executar uma ação</string>
     <string name="typing_finger_swipes_title">Deslizes com vários dedos</string>
-    <string name="typing_fit_more_words_info">A faixa ainda começa a partir do Número de sugestões. Quando as próximas palavras são curtas, ela adiciona espaços para elas, até mais três, desde que cada palavra caiba na sua parte da faixa em tamanho real. Palavras longas mantêm o número habitual de espaços. Isso não faz nada enquanto as sugestões rolam ou são mantidas no lugar. Esta configuração está desativada por padrão.</string>
     <string name="typing_fit_more_words_subtitle">Mostrar até três sugestões a mais quando forem curtas o suficiente para caber sem reduzir</string>
     <string name="typing_fit_more_words_title">Mais slots para palavras curtas</string>
     <string name="typing_fix_several_slips_careful">Cuidadoso</string>

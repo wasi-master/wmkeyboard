@@ -12221,7 +12221,6 @@
     <string name="typing_finger_swipes_reset_title">Ripristina azioni di scorrimento</string>
     <string name="typing_finger_swipes_subtitle">Scorri due, tre o quattro dita insieme sui tasti per eseguire un\'azione</string>
     <string name="typing_finger_swipes_title">Scorrimenti multi-dito</string>
-    <string name="typing_fit_more_words_info">La barra inizia ancora dal Numero di suggerimenti. Quando le parole successive sono brevi, aggiunge spazi per loro, fino a tre in più, a condizione che ogni parola si adatti alla sua parte della barra a dimensione intera. Le parole lunghe mantengono il solito numero di spazi. Non ha effetto mentre i suggerimenti scorrono o sono mantenuti in posizione. Questa impostazione è disattivata per impostazione predefinita.</string>
     <string name="typing_fit_more_words_subtitle">Mostra fino a tre suggerimenti in più quando sono abbastanza brevi da entrare senza rimpicciolire</string>
     <string name="typing_fit_more_words_title">Più spazi per parole brevi</string>
     <string name="typing_fix_several_slips_careful">Attento</string>

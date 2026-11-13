@@ -12231,7 +12231,6 @@
     <string name="typing_finger_swipes_reset_title">Nulstil swipe-handlinger</string>
     <string name="typing_finger_swipes_subtitle">Swipe med to, tre eller fire fingre sammen over tasterne for at udføre en handling</string>
     <string name="typing_finger_swipes_title">Stryg med flere fingre</string>
-    <string name="typing_fit_more_words_info">Striben starter stadig fra Antal forslag. Når de næste ord er korte, tilføjer den pladser til dem, op til tre mere, så længe hvert ord passer til sin del af striben i fuld størrelse. Lange ord beholder det sædvanlige antal pladser. Den gør intet, mens forslagene ruller eller holdes på plads. Denne indstilling er slået fra som standard.</string>
     <string name="typing_fit_more_words_subtitle">Vis op til tre forslag mere, når de er korte nok til at passe uden at blive formindsket</string>
     <string name="typing_fit_more_words_title">Flere pladser til korte ord</string>
     <string name="typing_fix_several_slips_careful">Forsigtig</string>

@@ -12231,7 +12231,6 @@
     <string name="typing_finger_swipes_reset_title">Resetează acțiunile de glisare</string>
     <string name="typing_finger_swipes_subtitle">Glisează două, trei sau patru degete simultan peste taste pentru a executa o acțiune</string>
     <string name="typing_finger_swipes_title">Glisări cu mai multe degete</string>
-    <string name="typing_fit_more_words_info">Banda începe tot de la Numărul de sugestii. Când următoarele cuvinte sunt scurte, adaugă sloturi pentru ele, până la încă trei, atâta timp cât fiecare cuvânt se potrivește cu partea sa din bandă la dimensiune completă. Cuvintele lungi păstrează numărul obișnuit de sloturi. Nu face nimic în timp ce sugestiile se derulează sau sunt menținute pe loc. Această setare este dezactivată implicit.</string>
     <string name="typing_fit_more_words_subtitle">Afișați până la trei sugestii suplimentare atunci când sunt suficient de scurte pentru a se potrivi fără a fi micșorate</string>
     <string name="typing_fit_more_words_title">Mai multe sloturi pentru cuvinte scurte</string>
     <string name="typing_fix_several_slips_careful">Cu atenție</string>

@@ -12240,7 +12240,6 @@
     <string name="typing_finger_swipes_reset_title">स्वाइप क्रियाओं को रीसेट करें</string>
     <string name="typing_finger_swipes_subtitle">कोई एक्शन चलाने के लिए दो, तीन या चार उंगलियों को एक साथ कीज़ पर स्वाइप करें</string>
     <string name="typing_finger_swipes_title">मल्टी-फिंगर स्वाइप</string>
-    <string name="typing_fit_more_words_info">पट्टी अभी भी सुझावों की संख्या से शुरू होती है। जब अगले शब्द छोटे होते हैं, तो यह उनके लिए जगह जोड़ती है (अधिकतम तीन और), जब तक कि हर शब्द अपनी पूरी साइज़ में पट्टी के अपने हिस्से में फिट हो जाए। लंबे शब्द सामान्य संख्या में जगह घेरते रहते हैं। यह सेटिंग सुझावों के स्क्रॉल होने या जगह पर बने रहने के दौरान कोई काम नहीं करती है। यह सेटिंग डिफ़ॉल्ट रूप से बंद है।</string>
     <string name="typing_fit_more_words_subtitle">तीन और सुझाव दिखाएं जब वे बिना छोटे हुए फिट होने के लिए पर्याप्त छोटे हों</string>
     <string name="typing_fit_more_words_title">छोटे शब्दों के लिए और स्लॉट</string>
     <string name="typing_fix_several_slips_careful">सावधान</string>
