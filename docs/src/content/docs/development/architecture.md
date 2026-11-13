@@ -215,8 +215,7 @@ Prediction's engines live in `native/wm-engine`, the Rust crate that also
 holds the phonetic engines, so the phone and WMK Desktop run one
 implementation: the dictionary and n-gram readers, the correction walk, the
 learning stores and the glide decoders. `SuggestionEngine`'s orchestration
-stays in Kotlin. The order the pieces moved in and the rules they moved
-under are in `native/RUST_NEON_PLAN.md`. Each kept its Kotlin copy until a
+stays in Kotlin. Each kept its Kotlin copy until a
 parity test showed the Rust one gives identical output on the real
 dictionaries and the eval sets, bit for bit; then the copy left the app for
 the test sources, where it stays as the reference that test compares

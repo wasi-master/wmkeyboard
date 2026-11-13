@@ -61,11 +61,6 @@ docs/screenshots/.incoming/
 bin/
 **/bin/
 
-# Internal working notes (kept locally, not published)
-ORIGINAL_PROMPT.md
-SETTINGS_AUDIT.md
-docs/SONNET_PROMPT.md
-
 # Tool artifacts & local build output
 build-out/
 .claude/
