@@ -52,6 +52,7 @@ Every override here defaults to **Inherit** (unset, so the mode falls through to
 | Glide typing | Inherit / On / Off |
 | Two-thumb typing | Inherit / On / Off |
 | Commit every key | Inherit / On / Off |
+| Characters inside words | None, or the symbols you type, such as `%_` |
 | Layout | Inherit, or any layout you currently have switched on |
 | Theme | Inherit, or any built-in or custom theme |
 | Custom pinned tools | Off, or a toolbar tool list of its own |
@@ -65,6 +66,8 @@ Every override here defaults to **Inherit** (unset, so the mode falls through to
 **Autocorrect**, **Automatic capitals**, **Suggestions**, **Automatic spaces**, **Glide typing** and **Two-thumb typing** are the six typing overrides, and they're why a Coding mode is worth having: a mode that only redressed the keyboard would still correct your identifiers into English words.
 
 **Automatic spaces** is one switch over every space the keyboard puts in that you didn't press for: the space [after punctuation](/reference/settings/typing/), the one [after a suggestion](/reference/settings/typing/) you pick from the strip, and the ones before and [after a glided word](/typing/glide-typing/) (the one in front has no switch of its own; only a mode turns it off). Off means every space in the field is one you typed, which is what you want when you're renaming a file extension, typing a command, or filling a structured field. On turns all three on, including the space after punctuation, which is off by default everywhere else.
+
+**Characters inside words** keeps the symbols you type there inside a word rather than ending it at them, so `%_` keeps a Tasker variable such as `%output_var` one word. Such a word gets no suggestions, no correction and isn't learned. See [Modes & the symbol row](/typing/modes/#how-a-mode-gets-picked).
 
 **Glide typing** off keeps a drifting tap from starting a swipe, and **Two-thumb typing** off stops a pause from ending a tapped word with a space. Turn glide, autocorrect, suggestions and automatic spaces off together and you have a peck mode, where every tap types exactly its key. Switching to such a mode in the middle of a two-thumb word types that word as it stands first.
 
@@ -95,6 +98,8 @@ The symbol row itself can switch **Symbol row** to Off for the mode it's showing
 **Multi-line text**, **Single-line text** and **No suggestions** describe the shape of a text box rather than what goes in it, and every text field reports one of the first two on top of its kind. They tell apart fields Android otherwise reports identically: a file manager's rename box is single-line, its text editor is multi-line, and its code editor is multi-line with suggestions turned off. Password boxes report no shape, for the reason they're excluded from Text.
 
 **Field hints** is a list of words the field's placeholder text (the grey text of an empty box) has to contain, case ignored. One row per hint, each removable, and an **Add hint** row that opens a one-line dialog. Apps write that placeholder in their own language, so a hint added in English does not match when the app runs in another language.
+
+**Dark mode** (Any / On / Off) is one of the conditions further down the editor, with screen direction, time of day and the rest. It reads the phone's dark theme, so a mode set to On with key sound and key vibration off keeps the keyboard quiet at night with no app or field bound. See [Modes & the symbol row](/typing/modes/#how-a-mode-gets-picked).
 
 Below that is the app list. One row per bound app, resolved to its display name and falling back to the raw package name, each removable. An **Add app** row at the end opens a searchable picker of every launcher app on the device.
 
@@ -175,6 +180,7 @@ Keyboard modes are also a bundle on [Extensions](/reference/settings/extensions/
 | Automatic spaces | Inherit, on every built-in too |
 | Glide typing | Inherit, on every built-in too |
 | Two-thumb typing | Inherit, on every built-in too |
+| Characters inside words | None, on every built-in too |
 | Layout | Inherit, on every built-in too |
 | Theme | Inherit, on every built-in too |
 | Custom pinned tools | Off, except Passwords/Chat/Writing |
@@ -182,6 +188,7 @@ Keyboard modes are also a bundle on [Extensions](/reference/settings/extensions/
 | Custom symbol sets | Off, except Email/Browser/Writing/Coding |
 | Field types | Mode-specific |
 | Field hints | None on every built-in |
+| Dark mode | Any, on every built-in too |
 | Apps | Mode-specific |
 
 ## Linking to one mode

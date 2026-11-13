@@ -512,6 +512,14 @@ internal fun ToolsSettings(
         onChange = { scope.launch { repository.setFloatingBoxGestures(it) } },
         default = SettingsDefaults.summonButton.boxGestures,
     )
+    // A hold, then a drag, moves the box from anywhere on it (#1263).
+    ToggleSetting(
+        title = R.string.tools_box_hold_to_move_title,
+        subtitle = stringResource(R.string.tools_box_hold_to_move_subtitle),
+        checked = settings.watch { it.summonButton.boxHoldToMove },
+        onChange = { scope.launch { repository.setFloatingBoxHoldToMove(it) } },
+        default = SettingsDefaults.summonButton.boxHoldToMove,
+    )
     // Panels as one group or two (#759). Above the groups it reshapes, so
     // the switch and what it changes are on screen together.
     val splitPanels = settings.watch { it.appUi.splitToolPanels }

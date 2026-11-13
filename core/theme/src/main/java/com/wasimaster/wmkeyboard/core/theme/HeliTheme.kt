@@ -236,6 +236,12 @@ object HeliTheme {
             chipBackground = of(ChipRoles),
             chipText = of(ChipTextRoles),
             chipActiveBackground = of(ChipActiveRoles),
+            // Read after the shared chip lists, which name the same roles, so
+            // a theme stating only these still has a card colour too.
+            emojiSearchBackground = of(EmojiSearchRoles),
+            emojiSearchText = of(EmojiSearchTextRoles),
+            clipboardChipBackground = of(ClipChipRoles),
+            clipboardChipText = of(ClipChipTextRoles),
             navigationBarBackground = of(NavBarRoles),
             oneHandedPanelIcon = of(OneHandedRoles),
             accent = accent ?: enterBackground ?: onColorFor(board),
@@ -396,6 +402,13 @@ object HeliTheme {
         R_CLIPBOARD_SUGGESTION_ICON, R_CLIPBOARD_PIN, R_EMOJI_SEARCH_TEXT,
     )
     private val ChipActiveRoles = listOf(R_EMOJI_CATEGORY_SELECTED)
+    // The two surfaces with roles of their own (HeliBoard v4.0 and v4.1), and
+    // fields of their own here (gap list item 28): a theme that colours them
+    // apart from the other chips keeps the difference on import.
+    private val EmojiSearchRoles = listOf(R_EMOJI_SEARCH_BACKGROUND)
+    private val EmojiSearchTextRoles = listOf(R_EMOJI_SEARCH_TEXT)
+    private val ClipChipRoles = listOf(R_CLIPBOARD_SUGGESTION_BACKGROUND)
+    private val ClipChipTextRoles = listOf(R_CLIPBOARD_SUGGESTION_ICON)
     private val NavBarRoles = listOf(R_NAVIGATION_BAR)
     private val OneHandedRoles = listOf(R_ONE_HANDED_MODE_BUTTON)
     private val AccentRoles = listOf(C_ACCENT, R_SUGGESTION_AUTO_CORRECT, R_ACTION_KEY_BACKGROUND)
@@ -418,7 +431,8 @@ object HeliTheme {
         EnterTextRoles, HintRoles, PopupRoles, PopupTextRoles, StripRoles, SuggestionRoles,
         SecondaryRoles, ToolRoles, ToolBackgroundRoles, ToolActiveRoles, ChipRoles,
         ChipTextRoles, ChipActiveRoles, NavBarRoles, OneHandedRoles, AccentRoles,
-        GestureRoles, SpaceRoles, SpaceTextRoles, ShiftRoles,
+        GestureRoles, SpaceRoles, SpaceTextRoles, ShiftRoles, EmojiSearchRoles,
+        EmojiSearchTextRoles, ClipChipRoles, ClipChipTextRoles,
     ).flatten().toSet()
 
     /** The [KeyOverride] map keys for the two keys with colours of their own. */

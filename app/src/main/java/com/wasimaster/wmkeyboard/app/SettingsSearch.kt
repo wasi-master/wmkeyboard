@@ -836,6 +836,12 @@ private fun SearchStrings.typingFlicksRows(): List<SettingsSearchEntry> {
         row(R.string.typing_stretch_row_title),
         row(R.string.typing_pinch_row_title),
         row(R.string.typing_pinch_reset_title, R.string.typing_pinch_reset_subtitle),
+        row(R.string.typing_one_finger_swipes_title, R.string.typing_one_finger_swipes_subtitle),
+        row(R.string.typing_one_finger_up_title),
+        row(R.string.typing_one_finger_down_title),
+        row(R.string.typing_one_finger_left_title),
+        row(R.string.typing_one_finger_right_title),
+        row(R.string.typing_one_finger_reset_title, R.string.typing_one_finger_reset_subtitle),
         row(R.string.typing_symbol_chords_title, R.string.typing_symbol_chords_subtitle),
         row(R.string.typing_symbol_chord_add_title, R.string.typing_symbol_chord_add_subtitle),
         row(R.string.typing_symbol_chords_reset_title, R.string.typing_symbol_chords_reset_subtitle),
@@ -978,6 +984,9 @@ private fun SearchStrings.keypressPopupRows(): List<SettingsSearchEntry> {
         row(R.string.keypress_popup_text_color_title, R.string.keypress_popup_text_color_subtitle),
         row(R.string.keypress_popup_shape_title, R.string.keypress_popup_shape_subtitle),
         row(R.string.keypress_popup_radius_title, R.string.keypress_popup_radius_subtitle),
+        row(R.string.keypress_preview_width_title, R.string.keypress_preview_width_subtitle),
+        row(R.string.keypress_preview_radius_title, R.string.keypress_preview_radius_subtitle),
+        row(R.string.keypress_pop_text_title, R.string.keypress_pop_text_subtitle),
     )
 }
 
@@ -1083,6 +1092,7 @@ private fun SearchStrings.appearanceRows(): List<SettingsSearchEntry> {
         icon(R.string.plugins_icons_library_title, R.string.plugins_icons_library_subtitle_empty),
         row(R.string.appearance_key_corner_radius_title, R.string.appearance_key_corner_radius_subtitle),
         row(R.string.appearance_key_label_size_title, R.string.appearance_key_label_size_subtitle),
+        row(R.string.appearance_key_label_case_title, R.string.appearance_key_label_case_subtitle),
         row(R.string.appearance_key_hint_size_title, R.string.appearance_key_hint_size_subtitle),
         row(R.string.appearance_key_hint_corner_title, R.string.appearance_key_hint_corner_subtitle),
         row(R.string.appearance_key_hint_offset_title, R.string.appearance_key_hint_offset_subtitle),
@@ -1214,6 +1224,12 @@ private fun SearchStrings.layoutRows(): List<SettingsSearchEntry> {
             R.string.home_keymaps_title,
             "keymaps",
         ),
+        entry(
+            R.string.layout_editor_hex_grid_title,
+            R.string.layout_editor_hex_grid_subtitle,
+            R.string.home_keymaps_title,
+            "keymaps",
+        ),
     )
 }
 
@@ -1267,6 +1283,7 @@ private fun SearchStrings.layoutOnehandedRows(): List<SettingsSearchEntry> {
         row(R.string.layout_floating_title, R.string.layout_floating_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.layout_floating_landscape_title, R.string.layout_floating_landscape_subtitle),
         row(R.string.layout_landscape_fullscreen_title, R.string.layout_landscape_fullscreen_subtitle),
+        row(R.string.layout_portrait_fullscreen_title, R.string.layout_portrait_fullscreen_subtitle),
         row(R.string.layout_floating_handle_title, R.string.layout_floating_handle_subtitle),
         row(R.string.layout_floating_width_title, R.string.layout_floating_width_subtitle),
         row(R.string.layout_persistent_title, R.string.layout_persistent_subtitle, weight = EntryWeight.PRIMARY),
@@ -1626,6 +1643,7 @@ private fun SearchStrings.clipboardHistoryRows(): List<SettingsSearchEntry> {
         row(R.string.clipboard_pinned_last_title, R.string.clipboard_pinned_last_subtitle),
         row(R.string.clipboard_pinned_in_place_title, R.string.clipboard_pinned_in_place_subtitle),
         row(R.string.clipboard_pinned_folders_title, R.string.clipboard_pinned_folders_subtitle),
+        row(R.string.clipboard_text_only_title, R.string.clipboard_text_only_subtitle),
         row(R.string.clipboard_screenshots_title, R.string.clipboard_screenshots_subtitle)
             .takeIf { ChannelFeatures.SCREENSHOT_CLIPS },
         row(R.string.clipboard_track_source_title, R.string.clipboard_track_source_subtitle),
@@ -1697,6 +1715,7 @@ private fun SearchStrings.expanderRows(): List<SettingsSearchEntry> {
         // and it appears nowhere else in the index.
         row(R.string.expander_import_source_title, R.string.expander_source_espanso_body),
         row(R.string.expander_export_target_title, R.string.expander_target_espanso_body),
+        row(R.string.expander_text_action, R.string.expander_source_text_body),
     )
 }
 
@@ -2042,6 +2061,16 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         ToolbarTool.POWER_SAVING,
         R.string.tooldetail_power_drop_warm_models_title,
         R.string.tooldetail_power_drop_warm_models_subtitle,
+    ),
+    toolEntry(
+        ToolbarTool.POWER_SAVING,
+        R.string.tooldetail_power_dark_theme_title,
+        R.string.tooldetail_power_dark_theme_subtitle,
+    ),
+    toolEntry(
+        ToolbarTool.POWER_SAVING,
+        R.string.tooldetail_power_drop_suggestions_title,
+        R.string.tooldetail_power_drop_suggestions_subtitle,
     ),
     toolEntry(
         ToolbarTool.MEDIA_CONTROL,
@@ -3221,6 +3250,7 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
         under(R.string.customdict_emoji_import_action, 0, R.string.typing_custom_dictionaries_title, "customdictionaries"),
         under(R.string.backup_android_import_title, R.string.backup_android_import_subtitle, R.string.typing_personal_dictionary_title, "dictionary"),
         under(R.string.backup_gboard_import_title, R.string.backup_gboard_import_subtitle, R.string.typing_personal_dictionary_title, "dictionary"),
+        under(R.string.backup_dictionary_export_title, R.string.backup_dictionary_export_subtitle, R.string.typing_personal_dictionary_title, "dictionary"),
         under(R.string.backup_downloads_import_title, R.string.backup_downloads_import_subtitle, R.string.home_backup_title, "backup"),
         // The kaomoji library hangs off the emoji panel's page, beside the
         // switch that shows its tab.

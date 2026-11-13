@@ -200,6 +200,14 @@ data class LayerSpec(
      * nothing a user would see. Additive and defaulted, so no format-version bump.
      */
     val direct: Boolean = false,
+    /**
+     * This layer's own grid kind, over the layout's [LayoutSpec.grid]: `"hex"`
+     * lays it out as a honeycomb, `"rect"` as plain rows on a honeycomb layout
+     * (a symbols page written in rows, say). Null follows the layout.
+     *
+     * Additive and defaulted, so no format-version bump.
+     */
+    val grid: String? = null,
 )
 
 /**
@@ -417,6 +425,19 @@ data class LayoutSpec(
      * [tabletExpand] gives.
      */
     val strip: Boolean = false,
+    /**
+     * How the rows of this layout's own layers fit together. Null, every
+     * layout but the honeycombs, is plain rows. `"hex"` ([HexGridKind]) lays
+     * them out as interlocking hexagons: every other row half a cell over,
+     * cells edge to edge, a touch going to the nearest cell centre and every
+     * key drawn as hexagons whatever the theme's key shape (see [hexBoard]).
+     *
+     * Only the layers the layout writes itself: a borrowed symbols page keeps
+     * its rows. A layer may say otherwise with [LayerSpec.grid]. An unknown
+     * kind reads as plain rows. Additive and defaulted, so no format-version
+     * bump, for the reason [tabletExpand] gives.
+     */
+    val grid: String? = null,
     /**
      * A theme of this layout's own (a `ThemeSpec.id`), used while any of its
      * layers is on screen, in place of the theme the settings select and of an

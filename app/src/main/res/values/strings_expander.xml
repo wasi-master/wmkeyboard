@@ -11,6 +11,9 @@
     <string name="expander_variables_title">Template variables</string>
     <!-- Meaning of the {date:…} variable, shown next to the token itself. -->
     <string name="expander_var_date_pattern_info">any date format that you want</string>
+    <string name="expander_var_bullets_info">that many bulleted lines, with the cursor in the first. {bullets} alone writes three</string>
+    <string name="expander_var_list_info">that many numbered lines, with the cursor in the first. {list} alone writes three</string>
+    <string name="expander_var_tab_sample">a tab, as the Tab key types</string>
     <string name="expander_var_location_info">where you are, from the location tool. Add :link, :address, :coordinates, :dms, :plus_code or :message for one format</string>
     <string name="expander_var_location_sample">📍 your street and a map link</string>
     <string name="expander_var_place_info">a place you saved in the location tool, by name. A format can follow, as for {location}</string>
@@ -217,6 +220,69 @@
     <plurals name="expander_linked_count">
         <item quantity="one">%1$d linked snippet</item>
         <item quantity="other">%1$d linked snippets</item>
+    </plurals>
+
+    <!-- Edit all as text (SnippetTextScreen): every snippet as === trigger === blocks. -->
+    <string name="expander_text_action">Edit as text</string>
+    <string name="expander_text_title">Edit all as text</string>
+    <string name="expander_text_header_1">WM Keyboard snippets. Each one starts with a line like === omw ===, then any \@settings, then its text.</string>
+    <string name="expander_text_header_2">A line of --- starts another expansion of the same snippet. Lines starting with # up here are skipped.</string>
+    <string name="expander_text_saved">Snippets saved</string>
+    <string name="expander_text_nothing_changed">Nothing to save. The text matches your snippets</string>
+    <string name="expander_text_restored">Your snippets are back as they were before the last save</string>
+    <string name="expander_text_read_in">Read into the editor. Save to keep it</string>
+    <string name="expander_text_read_failed">That file is not a snippets text file</string>
+    <string name="expander_text_exported">Exported</string>
+    <string name="expander_text_restore">Undo last save</string>
+    <string name="expander_text_import">Open a .txt file</string>
+    <string name="expander_text_export">Export as .txt</string>
+    <string name="expander_text_line">Line %1$d: %2$s</string>
+    <string name="expander_text_go_to_first">Go to the first</string>
+    <string name="expander_text_discard_title">Leave without saving?</string>
+    <string name="expander_text_discard_body">Your changes to the text are not saved yet.</string>
+    <string name="expander_text_discard">Leave</string>
+    <string name="expander_text_keep_editing">Keep editing</string>
+    <string name="expander_text_diff_title">Save these changes?</string>
+    <string name="expander_text_diff_reordered">The order changed.</string>
+    <string name="expander_source_text">A text file</string>
+    <string name="expander_source_text_body">A .txt file of === trigger === blocks, as Edit as text writes it.</string>
+    <string name="expander_target_text">A text file</string>
+    <string name="expander_target_text_body">Every snippet as === trigger === blocks in one .txt file. Picture snippets keep only the picture\'s file name.</string>
+    <plurals name="expander_text_refused_title">
+        <item quantity="one">Fix %1$d mistake before saving</item>
+        <item quantity="other">Fix %1$d mistakes before saving</item>
+    </plurals>
+    <plurals name="expander_text_more">
+        <item quantity="one">and %1$d more</item>
+        <item quantity="other">and %1$d more</item>
+    </plurals>
+    <plurals name="expander_text_diff_added">
+        <item quantity="one">%1$d added</item>
+        <item quantity="other">%1$d added</item>
+    </plurals>
+    <plurals name="expander_text_diff_changed">
+        <item quantity="one">%1$d changed</item>
+        <item quantity="other">%1$d changed</item>
+    </plurals>
+    <plurals name="expander_text_diff_removed">
+        <item quantity="one">%1$d deleted</item>
+        <item quantity="other">%1$d deleted</item>
+    </plurals>
+    <plurals name="expander_text_diff_folders">
+        <item quantity="one">New folder: %1$s</item>
+        <item quantity="other">New folders: %1$s</item>
+    </plurals>
+    <plurals name="expander_text_status_problems">
+        <item quantity="one">%1$d mistake. %2$s</item>
+        <item quantity="other">%1$d mistakes. First: %2$s</item>
+    </plurals>
+    <plurals name="expander_text_status_count">
+        <item quantity="one">%1$d snippet</item>
+        <item quantity="other">%1$d snippets</item>
+    </plurals>
+    <plurals name="expander_text_import_title">
+        <item quantity="one">Import %1$d snippet from the text file?</item>
+        <item quantity="other">Import %1$d snippets from the text file?</item>
     </plurals>
 
 </resources>

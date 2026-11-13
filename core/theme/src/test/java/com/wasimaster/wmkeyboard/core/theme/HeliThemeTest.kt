@@ -182,6 +182,32 @@ class HeliThemeTest {
     }
 
     @Test
+    fun `the emoji search bar and the clipboard chip keep colours of their own`() {
+        // Gap list item 28: both used to fold into the shared card colour, so a
+        // theme that coloured them apart lost the difference.
+        val theme = converted(
+            """{"MAIN_BACKGROUND":-1,"EMOJI_SEARCH_BACKGROUND":-1118482,
+                "EMOJI_SEARCH_TEXT":-16777216,"CLIPBOARD_SUGGESTION_BACKGROUND":-16776961,
+                "CLIPBOARD_SUGGESTION_ICON":-1}""",
+        ).theme
+        assertEquals(0xFFEEEEEE, theme.emojiSearchBackground)
+        assertEquals(0xFF000000, theme.emojiSearchText)
+        assertEquals(0xFF0000FF, theme.clipboardChipBackground)
+        assertEquals(0xFFFFFFFF, theme.clipboardChipText)
+        // The cards still get a colour from the same file.
+        assertEquals(0xFF0000FF, theme.chipBackground)
+    }
+
+    @Test
+    fun `a theme without those roles leaves the new fields to fall back`() {
+        val theme = converted("""{"MAIN_BACKGROUND":-1,"KEY_BACKGROUND":-1118482}""").theme
+        assertNull(theme.emojiSearchBackground)
+        assertNull(theme.emojiSearchText)
+        assertNull(theme.clipboardChipBackground)
+        assertNull(theme.clipboardChipText)
+    }
+
+    @Test
     fun `a theme that leaves colours to the keyboard says so`() {
         val result = converted(
             """{"name":"Half","moreColors":0,"colors":{

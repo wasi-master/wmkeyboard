@@ -499,6 +499,8 @@
     <string name="layout_editor_tablet_expand_title">Add tablet keys automatically</string>
     <string name="layout_editor_tablet_expand_subtitle">On a tablet, add tab, backslash, caps lock, a second shift and the arrow keys around this layout</string>
     <string name="layout_editor_tablet_expand_subtitle_na">This layout is not one the tablet keys can be added to, so this setting has no effect on it</string>
+    <string name="layout_editor_hex_grid_title">Honeycomb grid</string>
+    <string name="layout_editor_hex_grid_subtitle">Draw this layout\'s keys as hexagons, every other row half a key over, with the rows fitted into each other</string>
     <string name="layout_editor_action_caps_lock_title">Caps lock</string>
     <string name="layout_editor_action_caps_lock_detail">Turns caps lock on and off with one press. For wide layouts that also have a shift key</string>
     <!-- Name of the key that deletes the character before the cursor. -->

@@ -77,7 +77,49 @@ class PowerSavingSettingsTest {
                 dropOnDeviceModels = false, dropMediaPin = false,
                 dropGlassBlur = false,
                 dropMovingThemes = false, dropFloatingButton = false, dropWarmModels = false,
+                darkTheme = false, dropSuggestions = false,
             ).dropsAnything,
+        )
+    }
+
+    @Test
+    fun `the dark theme and the suggestions are off by default and each counts as a drop`() {
+        val defaults = PowerSavingSettings()
+        assertFalse(defaults.darkTheme)
+        assertFalse(defaults.dropSuggestions)
+        val nothing = PowerSavingSettings(
+            dropHaptics = false, dropKeySound = false, dropAnimations = false,
+            dropGlideTrail = false, dropOctopus = false, dropGlassBlur = false,
+            dropBackgroundNetwork = false, dropScreenshotWatch = false,
+            dropOnDeviceModels = false, dropMediaPin = false, dropMovingThemes = false,
+        )
+        assertFalse(nothing.dropsAnything)
+        assertTrue(nothing.copy(darkTheme = true).dropsAnything)
+        assertTrue(nothing.copy(dropSuggestions = true).dropsAnything)
+    }
+
+    @Test
+    fun `the dark theme is a view that beats the picked theme and the auto pair`() {
+        val base = KeyboardSettings(
+            keyboardThemeId = "custom_1",
+            autoTheme = AutoThemeSettings(enabled = true, darkThemeId = "dracula"),
+        )
+        assertEquals("off by default: the theme is left alone", "custom_1", base.underPowerSaving().keyboardThemeId)
+        assertTrue(base.underPowerSaving().autoTheme.enabled)
+        val opted = base.copy(powerSaving = PowerSavingSettings(darkTheme = true))
+        val saving = opted.underPowerSaving()
+        assertEquals(POWER_SAVING_THEME_ID, saving.keyboardThemeId)
+        assertFalse("the pair stands down or it would paint over the id", saving.autoTheme.enabled)
+        assertEquals("the pair itself is untouched", "dracula", saving.autoTheme.darkThemeId)
+        assertEquals("and the stored pick comes back with the charger", "custom_1", opted.keyboardThemeId)
+    }
+
+    @Test
+    fun `suggestions go only when asked`() {
+        val base = KeyboardSettings(suggestions = true)
+        assertTrue(base.underPowerSaving().suggestions)
+        assertFalse(
+            base.copy(powerSaving = PowerSavingSettings(dropSuggestions = true)).underPowerSaving().suggestions,
         )
     }
 

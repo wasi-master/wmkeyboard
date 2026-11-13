@@ -168,7 +168,7 @@ A snippet can insert a picture instead of text: a sticker you send a lot, a sign
 
 It fires the way any snippet does. Tap its card in the panel, where the card shows the picture under the name, or type its trigger. With [ask first](#ask-before-it-expands) on, the trigger puts a chip on the suggestion bar showing a thumbnail of the picture. The trigger you typed is taken out, and the picture goes to the app the way a picture from the [clipboard](/tools/clipboard/) does. Apps that take pictures from the keyboard, which covers most chat apps, get it straight away in a format they accept. Anywhere else the keyboard puts the picture on the clipboard and asks the field to paste it, which works in apps that take a pasted picture without saying so, and shows a short note when it doesn't.
 
-Pictures travel with the snippets section of a [config backup](#snippet-packs-and-backups), up to 12&nbsp;MB of them. A `.wmsnippets.json` export is text only, so a picture snippet arrives on the other phone without its picture, and inserts its text instead (often nothing). The same happens on this phone if the picture file goes missing.
+Pictures travel with the snippets section of a [config backup](#snippet-packs-and-backups) and with settings sync, and a `.wmsnippets.json` export carries them inside the file, up to 12&nbsp;MB of them each time. Past that, the remaining picture snippets arrive as their text, and one with no text is left out. If the picture file goes missing on this phone, the snippet inserts its text instead (often nothing).
 
 ## Template variables
 
@@ -193,12 +193,22 @@ A snippet's text can include any of these tokens. They're substituted the moment
 | `{app}` | Name of the app you're typing into |
 | `{package}` | That app's package name |
 | `{uuid}` | A fresh random UUID, different every time it's used |
+| `{greeting}` | Good morning, Good afternoon or Good evening by the time of day, in the keyboard language; see below |
+| `{battery}` | The battery charge, e.g. 85% |
+| `{language}` | The keyboard language you're typing in, by the name the language picker shows |
+| `{tab}` | A tab character |
+| `{bullets:3}` | Three lines that each start with a bullet, the cursor after the first. Any number from 1 to 50; `{bullets}` alone writes three |
+| `{list:3}` | The same with numbers: `1.`, `2.`, `3.` |
 | `{cursor}` | Not text; marks where the cursor lands after insertion |
 | `{random:a\|b\|c}` | One of the alternatives, picked fresh each insertion |
 | `{ask:Name}` | Whatever you type for it when the snippet expands; see [Fill-in fields](#fill-in-fields). `{ask:Name:Sam}` fills in Sam unless you type something else |
 | `{location}` | Where you are, from the [Location tool](/tools/location/#in-snippets), in its default format. `{location:link}`, `{location:address}`, `{location:coordinates}`, `{location:dms}`, `{location:plus_code}`, `{location:message}` or `{location:custom}` pick one |
 | `{place:Home}` | A place you saved in the Location tool, by its name in any case. A format can follow: `{place:Home:address}` |
 | `{ha:sensor.outside_temperature}` | A [smart home](/tools/home-assistant/) entity's state with its unit, as the keyboard last saw it, looked for in every home on the list; `{ha:home_key\|sensor.x}` names one. An attribute can follow: `{ha:light.kitchen:brightness}`. Empty when the tool is off |
+
+`{greeting}` says good morning from 04:00 until noon and good afternoon until 18:00, and good evening the rest of the night, since "good night" is a goodbye. It's in the language of the keyboard you're typing on for about thirty languages, among them Spanish, French, German, Portuguese, Russian, Arabic, Bengali, Hindi, Japanese, Korean and Chinese, and in English for the rest. A romanized keyboard such as Hinglish gets English rather than words in a script it doesn't type.
+
+`{bullets:N}` and `{list:N}` put the cursor in the first line so you can start typing at once. If the snippet has a `{cursor}` of its own, that one wins and the list is written out empty. Only the first list in a snippet takes the cursor. The two don't overlap with the `{clip:…}` modifiers or `{ask:…}` fields, so all of them can sit in one snippet.
 
 `{timezone}` is the one worth a second look. It writes the zone's long name, not an offset, so you get "Bangladesh Standard Time" or "Central European Summer Time" rather than GMT+06:00. An offset only shows up for a zone with no name of its own. The settings screen's reference card gives GMT+06:00 as its example, which is the fallback rather than the usual case, but the live preview next to it always shows what you'd actually get. If you want the offset itself, `{date:XXX}` or `{date:ZZZZ}` will give you one.
 
@@ -294,9 +304,51 @@ Both show the same confirm dialog as an Espanso file, with a folder name to put 
 
 **Export** writes every current snippet to a `.wmsnippets.json` file (see [file formats](/reference/file-formats/)), along with the folders they're filed in. A folder with nothing in it isn't written, so exporting doesn't carry empty shelves along. **Import** always adds alongside what's already there rather than replacing it, so importing the same file twice leaves you with two copies. The file's folders come back as new folders of the same name, and a snippet that was in none stays in none.
 
-The fourth choice under **Export**, **Share with everyone**, sends one folder of snippets, or all of them, to the [community repository](/addons/community/) for anyone to install. It asks which folder, and reminds you to check there's nothing personal in them first.
+**A text file** is the fourth choice under **Export** and the fifth under **Import**: every snippet as `=== trigger ===` blocks in one `.txt`, the same text [Edit all as text](#edit-all-as-text) shows. A text file can't hold a picture, so picture snippets keep only the picture's file name. Importing one from another phone brings those in as their words, or leaves out the ones that have none, and says how many. A block with a mistake in it is skipped and named by its line.
+
+The last choice under **Export**, **Share with everyone**, sends one folder of snippets, or all of them, to the [community repository](/addons/community/) for anyone to install. It asks which folder, and reminds you to check there's nothing personal in them first.
 
 Rows are repaired rather than rejected when something's off. A snippet with no text is dropped. Text over 20,000 characters is trimmed. A blank label is filled in from the snippet's own first line. A trigger pattern that won't compile, or that runs past 200 characters, is removed while the snippet itself is kept. Only the first 500 snippets of an oversized file are kept, and the first 100 folders. A folder with no name, or one repeating another's ID, is dropped and its snippets arrive ungrouped. Once the import finishes you get a summary of everything that changed.
+
+### Edit all as text
+
+**Edit as text**, beside Import and Export, opens every snippet as one plain-text document in the code editor. It's the quick way to fix a typo in forty snippets, move a dozen into a folder, or paste in a list written somewhere else. Each snippet is a block that starts with its trigger between `===` marks. Settings follow on lines that start with `@`, then the text:
+
+```text
+=== omw ===
+On my way!
+
+=== addr ===
+@label: Home address
+@folder: Personal
+@flags: confirm
+12 Example Road
+---
+PO Box 7
+```
+
+A line of exactly `---` starts another [expansion](#several-expansions) of the same snippet. A snippet with no trigger has nothing between the marks (`=== ===`) and needs an `@label` or an `@pattern`. The settings a block can carry:
+
+| Line | Means |
+|---|---|
+| `@label: Home address` | The name on its card. Without one, the trigger is the name |
+| `@alias: adr` | Another way to type it; one line each |
+| `@pattern: (\w+) x2` | A [pattern trigger](#pattern-triggers); `@words: 3` says how many words back it looks |
+| `@case: capitalize` | [Matching capitals](#matching-capitals): `capitalize`, `capitalize_words` or `uppercase` |
+| `@flags: confirm, immediate, inside-words` | Ask before it expands, expand immediately, and inside words |
+| `@several: chips` | What a match with several expansions does: `chips` or `insert` |
+| `@folder: Personal` | The folder, by name. A name that doesn't exist yet makes a new folder |
+| `@tag: post` | A [tag](#tags); one line each |
+| `@link: brb` | A [linked snippet](#linked-snippets), by its trigger; one line each |
+| `@picture: s_1a2b.png` | The picture of a [picture snippet](#picture-snippets) |
+
+Lines that start with `#` above the first block are comments. Inside a snippet, a line of text that would read as markup gets a backslash in front: `\@john` for text that starts with `@`, `\===` and `\---` likewise, and a lone `\` for a blank line at the very start or end of a text. The editor writes these for you, so they only matter when you type one.
+
+Mistakes show as you type: the line number turns red and the line is underlined, and the first one is named under the editor. Tap it to jump there. **Save** refuses while any are left and lists them by line. With none, it shows what saving would do, by snippet: how many it adds, changes and deletes, plus any new folders, and nothing is written until you confirm. A block is matched to the snippet it was by its trigger, or by its text when the trigger changed, so renaming a trigger is a change rather than a delete and an add.
+
+After a save, **Undo** on the message puts the whole list back as it was, and so does **Undo last save** in the ⋮ menu for as long as the app stays open. Only the latest save is kept. The ⋮ menu also copies and pastes the whole text, opens a `.txt` file into the editor without saving it, and exports what's in the editor.
+
+Two things the text can't do. Pictures are added in a snippet's own editor, so an `@picture` line must name a picture one of your snippets already uses; typing a new file name is refused. And folders are only ever made, never deleted: a folder left with nothing in it stays, switched on or off as it was, until you delete it. Leaving with unsaved edits asks first.
 
 ## Options
 

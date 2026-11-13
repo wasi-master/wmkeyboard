@@ -26,6 +26,10 @@
     <!-- Tag drawn on the chip. The app prints it in capital letters. -->
     <string name="core_content_clip_entity_phone_tag">PHONE</string>
 
+    <string name="core_content_clip_entity_email_label">Email address</string>
+    <!-- Tag drawn on the chip. The app prints it in capital letters. -->
+    <string name="core_content_clip_entity_email_tag">EMAIL</string>
+
     <string name="core_content_clip_entity_url_label">Link</string>
     <!-- Tag drawn on the chip. The app prints it in capital letters. -->
     <string name="core_content_clip_entity_url_tag">LINK</string>
@@ -59,6 +63,25 @@
     <string name="core_content_snippet_var_app_info">The name of the app you type in</string>
     <string name="core_content_snippet_var_package_info">The package name of that app</string>
     <string name="core_content_snippet_var_uuid_info">A new random UUID</string>
+    <!-- Snippets as one text document (SnippetText). Each is shown after "Line N:". -->
+    <string name="core_content_snippet_text_before_header">Text before the first === trigger === line. Start a block with one, or begin the line with #</string>
+    <string name="core_content_snippet_text_bad_header">Starts with === but is not a whole === trigger === line. To start a line of text with ===, write \\=== instead</string>
+    <string name="core_content_snippet_text_unknown_setting">The keyboard does not know the setting <xliff:g id="setting" example="\@lable">%1$s</xliff:g>. To start a snippet\'s text with @, write \\@ instead</string>
+    <string name="core_content_snippet_text_bad_value"><xliff:g id="setting" example="\@words">%1$s</xliff:g> cannot be <xliff:g id="value" example="nine">%2$s</xliff:g></string>
+    <string name="core_content_snippet_text_bad_pattern">The pattern cannot be used: <xliff:g id="reason" example="Unclosed group">%1$s</xliff:g></string>
+    <string name="core_content_snippet_text_no_trigger">A snippet with nothing between the === marks needs an \@label or an \@pattern line</string>
+    <string name="core_content_snippet_text_no_text">This snippet has no text</string>
+    <string name="core_content_snippet_text_unknown_link">The \@link names <xliff:g id="key" example="brb">%1$s</xliff:g>, and no snippet here has that trigger</string>
+    <string name="core_content_snippet_text_unknown_picture">The \@picture names <xliff:g id="file" example="s_1a2b.png">%1$s</xliff:g>, which no snippet uses. Add pictures in the snippet\'s own editor</string>
+    <string name="core_content_snippet_text_skipped_line">Skipped the snippet at line <xliff:g id="line" example="12">%1$d</xliff:g>, which has a mistake in it</string>
+    <plurals name="core_content_snippet_text_pictures_left">
+        <item quantity="one">%1$d picture snippet came in as its text: a text file holds no pictures</item>
+        <item quantity="other">%1$d picture snippets came in as their text: a text file holds no pictures</item>
+    </plurals>
+    <string name="core_content_snippet_var_greeting_info">Good morning, afternoon or evening by the time, in the keyboard language</string>
+    <string name="core_content_snippet_var_battery_info">The battery charge, for example 85%</string>
+    <string name="core_content_snippet_var_language_info">The keyboard language you type in</string>
+    <string name="core_content_snippet_var_tab_info">A tab character</string>
     <string name="core_content_snippet_var_cursor_info">The place where the cursor lands</string>
 
     <!-- ================================================================== -->

@@ -52,6 +52,7 @@ import com.wasimaster.wmkeyboard.core.share.RemixCredit
 import com.wasimaster.wmkeyboard.core.snippets.Snippet
 import com.wasimaster.wmkeyboard.core.snippets.SnippetFile
 import com.wasimaster.wmkeyboard.core.snippets.SnippetFolder
+import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.core.stickers.StickerPack
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackFile
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
@@ -143,6 +144,7 @@ internal fun PublishStickerPackDialog(pack: StickerPack, onDismiss: () -> Unit) 
  */
 @Composable
 internal fun PublishSnippetsDialog(snippets: List<Snippet>, folders: List<SnippetFolder>, onDismiss: () -> Unit) {
+    val context = LocalContext.current
     // Only folders something is filed in; null is every snippet.
     val filled = folders.filter { folder -> snippets.any { it.folderId == folder.id } }
     var folderId by rememberSaveable { mutableStateOf<Long?>(filled.firstOrNull()?.id) }
@@ -157,6 +159,7 @@ internal fun PublishSnippetsDialog(snippets: List<Snippet>, folders: List<Snippe
                 appVersion = BuildConfig.VERSION_CODE,
                 appVersionName = BuildConfig.VERSION_NAME,
                 folders = folders,
+                images = SnippetStore.imageBytes(context.filesDir, chosen),
             ).toByteArray()
         },
         canShrink = false,

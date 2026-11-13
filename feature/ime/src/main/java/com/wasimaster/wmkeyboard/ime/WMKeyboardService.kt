@@ -1341,11 +1341,6 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var clipUndoSystemClip: android.content.ClipData? = null
     /**
-     * The text Undo is putting back on the system clipboard, so the copy
-     * listener does not record it as a new copy (see [restoreSystemClipOnUndo]).
-     */
-    private var restoringSystemClipText: String? = null
-    /**
      * The last copy Remove trackers from copied links changed (#762): the
      * copy as it came, and the clean text it became. Undo with the clean text
      * just pasted in front of the caret swaps the original back, in case the
@@ -3896,6 +3891,13 @@ open class WMKeyboardService : InputMethodService() {
     private var animatedEmojiJob: Job? = null
     private var webSearchJob: Job? = null
 
+    /**
+     * Pop text (gap list item 45): finished words float up off the space bar.
+     * The grid writes the setting into it, and it drops every call while the
+     * setting is off, so the commit below costs one check.
+     */
+    private val popText = com.wasimaster.wmkeyboard.ime.ui.PopTextField()
+
     /** The search panel's own actions (#879); see [com.wasimaster.wmkeyboard.ime.ui.SearchActions]. */
     private val searchActions by lazy {
         com.wasimaster.wmkeyboard.ime.ui.SearchActions(
@@ -4228,15 +4230,6 @@ open class WMKeyboardService : InputMethodService() {
             ClipboardDiagnostics.onSelfWriteSkip()
             return@OnPrimaryClipChangedListener
         }
-        restoringSystemClipText?.let { restoring ->
-            restoringSystemClipText = null
-            val back = runCatching {
-                (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-                    .primaryClip?.getItemAt(0)?.text?.toString()
-            }.getOrNull()
-            // Undo's own copy: the clip is already back in the history, where it was.
-            if (back == restoring) return@OnPrimaryClipChangedListener
-        }
         val state = _uiState.value
         kdeClipboardChanged(state)
         sendLinkClipboardChanged(state)
@@ -4293,6 +4286,11 @@ open class WMKeyboardService : InputMethodService() {
         val imageMime = uri?.let { u ->
             runCatching { contentResolver.getType(u) }.getOrNull()?.takeIf { it.startsWith("image/") }
         }
+        // Text only (gap list item 25): a picture, video or file stays on the
+        // system clipboard and out of history. One that also carries text
+        // falls through to the text path below and is stored as its text.
+        val textOnly = state.settings.clipboard.textOnly
+        if (textOnly && uri != null && item.text == null) return@OnPrimaryClipChangedListener
         // Non-image URIs are files, folders or videos copied from a file
         // manager or gallery; record them by reference (see [addFileClips])
         // rather than copying — a copied movie is routinely gigabytes.
@@ -4303,7 +4301,7 @@ open class WMKeyboardService : InputMethodService() {
                 return@OnPrimaryClipChangedListener
             }
         }
-        if (uri != null && imageMime != null) {
+        if (uri != null && imageMime != null && !textOnly) {
             // Copy the image out of the source app's content provider while the
             // clip's URI grant is valid; the store owns the file afterwards.
             serviceScope.launch(Dispatchers.IO) {
@@ -4568,7 +4566,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun refreshScreenshotObserver(settings: KeyboardSettings = _uiState.value.settings) {
         updateScreenshotObserver(
-            settings.clipboard.userScreenshots ||
+            (settings.clipboard.userScreenshots && !settings.clipboard.textOnly) ||
                 (_uiState.value.panel == PanelMode.AI_REPLY && settings.ai.reply.catchScreenshots),
         )
     }
@@ -4619,7 +4617,7 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         // Two users of one watcher: the clipboard (its setting, history on,
         // not paused) and the reply panel (open, not over a password field).
-        val forClipboard = state.settings.clipboard.userScreenshots &&
+        val forClipboard = state.settings.clipboard.userScreenshots && !state.settings.clipboard.textOnly &&
             state.settings.clipboard.history && !clipCapturePaused(state)
         val forReply = state.panel == PanelMode.AI_REPLY && !state.secureField &&
             state.settings.ai.reply.catchScreenshots
@@ -6590,8 +6588,10 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
         }
         linkPreviewsEnabled = settings.clipboard.linkPreviews
-        if (userScreenshotsEnabled != settings.clipboard.userScreenshots) {
-            userScreenshotsEnabled = settings.clipboard.userScreenshots
+        // Text only switches screenshots off too, so the watcher follows both.
+        val screenshotsWanted = settings.clipboard.userScreenshots && !settings.clipboard.textOnly
+        if (userScreenshotsEnabled != screenshotsWanted) {
+            userScreenshotsEnabled = screenshotsWanted
             refreshScreenshotObserver(settings)
         }
         if (!settings.floatingFor(landscapeNow())) floatingPanelBounds = null
@@ -6806,6 +6806,7 @@ open class WMKeyboardService : InputMethodService() {
                 com.wasimaster.wmkeyboard.ime.ui.LocalClipChipDelete provides ::onClipChipDelete,
                 com.wasimaster.wmkeyboard.ime.ui.LocalScreenCapture provides ::onCaptureScreen,
                 com.wasimaster.wmkeyboard.ime.ui.LocalSearchActions provides searchActions,
+                com.wasimaster.wmkeyboard.ime.ui.LocalPopText provides popText,
             ) {
                 ScrollFrameRateVote { ServiceKeyboardContent() }
             }
@@ -7510,18 +7511,26 @@ open class WMKeyboardService : InputMethodService() {
      *
      * And not when the user has turned it off (#883): a phone held sideways
      * then keeps the app in view above the keys.
+     *
+     * Upright, the platform never asks for it, but a user can (gap list item
+     * 50): [LayoutBehaviorSettings.portraitFullscreen] turns it on there too,
+     * under every exception above.
      */
-    override fun onEvaluateFullscreenMode(): Boolean =
+    override fun onEvaluateFullscreenMode(): Boolean {
+        val behavior = _uiState.value.settings.layoutBehavior
         if (floatingNow() || voiceBarShowing() ||
-            !_uiState.value.settings.layoutBehavior.landscapeFullscreen ||
             handwritingFullScreen(_uiState.value) ||
             (pinnedNow() && isNullField()) ||
             DeviceForm.of(resources.configuration.smallestScreenWidthDp).isTablet
         ) {
-            false
-        } else {
-            super.onEvaluateFullscreenMode()
+            return false
         }
+        return if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            behavior.landscapeFullscreen && super.onEvaluateFullscreenMode()
+        } else {
+            behavior.portraitFullscreen
+        }
+    }
 
     /**
      * The platform sizes the soft-input window here on every show. Its own
@@ -8607,6 +8616,7 @@ open class WMKeyboardService : InputMethodService() {
             panel,
             getString(com.wasimaster.wmkeyboard.ime.ui.toolLabelRes(tool)),
             com.wasimaster.wmkeyboard.ime.ui.IconDefaults.forTool(tool),
+            tool,
         )
         if (!opened) return
         toolUsage.record(tool)
@@ -9012,7 +9022,8 @@ open class WMKeyboardService : InputMethodService() {
                 ),
             )
         }
-        // A mode kept to one way up, or to a hardware keyboard, follows it now.
+        // A mode kept to one way up, to a hardware keyboard, or to the phone's
+        // dark mode (a uiMode change lands here too) follows it now.
         if (baseSettings?.keyboardModes?.any { it.hasDeviceCondition } == true) applyManualMode(manualModeId)
         // Any configuration change can swap the ScreenVariant out from under
         // an open resize session, and its preview would then belong to the
@@ -10929,7 +10940,7 @@ open class WMKeyboardService : InputMethodService() {
         // so a photos grant that came after it (the toggle goes on first, the
         // permission second) or a start without one left it off until the
         // setting was toggled again (Telegram 5480). Each show looks again.
-        if (screenshotObserver == null && _uiState.value.settings.clipboard.userScreenshots) {
+        if (screenshotObserver == null && _uiState.value.settings.clipboard.let { it.userScreenshots && !it.textOnly }) {
             refreshScreenshotObserver()
         }
     }
@@ -13068,7 +13079,10 @@ open class WMKeyboardService : InputMethodService() {
         // (#454), rather than landing as the bare key.
         val run = if (composesInCapture(state.composer)) liveCaptureComposition(state, before) else null
         if (text == " " && state.typesIntoTranslate() && translateCodesTyped(target, before, run)) return true
-        if (capturesComposingKey(state.composer, target, text, run)) {
+        // A page that types its key caps (the flick pad's ABC page, #1228)
+        // skips the composer here as in the app's field: the reading in
+        // progress settles below and the letter follows it as typed.
+        if (!typesKeyCaps(state) && capturesComposingKey(state.composer, target, text, run)) {
             rewriteCaptureComposition(state, target, before, run, run?.keys.orEmpty() + text)
             return true
         }
@@ -14882,6 +14896,14 @@ open class WMKeyboardService : InputMethodService() {
                     joinsComposingWord(text[0], composing) &&
                         !state.composer.isTransliterating &&
                         !state.layouts.ambiguousKeys
+                    ) ||
+                (
+                    // The in-word characters the active mode names (gap list
+                    // item 34): `%` and `_` keep a Tasker variable one word.
+                    // Same boards as the hyphen, for the same reason.
+                    joinsAsModeWordChar(text[0], state.settings.autoText.wordChars) &&
+                        !state.composer.isTransliterating &&
+                        !state.layouts.ambiguousKeys
                     )
             )
         val isWordChar = singleWordChar || clusterContinuation
@@ -14924,7 +14946,12 @@ open class WMKeyboardService : InputMethodService() {
         // Nor is the space already in front of it taken back: armed, `best .`
         // keeps the space after `best` (#863).
         val spacedRun = if (unspacedKey) null else spacedMarkRun(ic, text, state)
-        val ateAutoSpace = spacedRun == null && !unspacedKey &&
+        // A mode's in-word character opening a word is that word's first letter
+        // (the `%` of `%output_var`), not a mark hugging the word before it: `%`
+        // and `_` are both marks that swallow the space otherwise (item 34).
+        val opensModeWord = composing.isEmpty() && text.length == 1 &&
+            joinsAsModeWordChar(text[0], state.settings.autoText.wordChars)
+        val ateAutoSpace = spacedRun == null && !unspacedKey && !opensModeWord &&
             takeBackAutoSpace(ic, text, state, followsWordSpace)
 
         // ":" on a word boundary opens inline emoji search: the colon and the
@@ -14994,7 +15021,7 @@ open class WMKeyboardService : InputMethodService() {
         // the two words and still in front of the mark.
         // Only while a space is still the keyboard's to add: a mode switched
         // to automatic spaces off since the word was picked owes none (#1234).
-        if (spaceOwed && composing.isEmpty() && text.firstOrNull()?.isLetterOrDigit() == true &&
+        if (spaceOwed && composing.isEmpty() && (text.firstOrNull()?.isLetterOrDigit() == true || opensModeWord) &&
             (state.settings.gesture.autoSpaceAfterGlide || state.settings.suggestionStrip.autoSpaceAfterSuggestion)
         ) {
             ic.commitText(" ", 1)
@@ -19957,6 +19984,12 @@ open class WMKeyboardService : InputMethodService() {
      * in the switcher instead, which is nearly always the same one.
      */
     private var secondaryBoardReturnId: String? = null
+        set(value) {
+            field = value
+            // Published for the spacebar's language swipe, which steps from it
+            // while the board is up, the way [cycleAnchor] does for 🌐.
+            _uiState.update { if (it.languageAnchorId == value) it else it.copy(languageAnchorId = value) }
+        }
 
     /**
      * Swaps the board pinned on the Secondary layout tool in, or, when it is
@@ -21668,7 +21701,10 @@ open class WMKeyboardService : InputMethodService() {
         // in as typed, the same as a fragment glued onto a word. Not on an
         // ambiguous board, whose buffer is anchor letters rather than the text.
         val inAddress = behind != null && !state.layouts.ambiguousKeys && AddressToken.endsInAddress(behind)
-        val gluedToWord = inAddress || (fixApostrophes || autocorrect) && (
+        // A word holding one of the mode's own in-word characters ("%output_var",
+        // gap list item 34) is a name the app defines: as typed, like an address.
+        val modeName = holdsModeWordChar(typed, state.settings.autoText.wordChars)
+        val gluedToWord = inAddress || modeName || (fixApostrophes || autocorrect) && (
             behind
                 ?.let { it.subSequence((it.length - fieldText.length - ELISION_LOOKBACK).coerceAtLeast(0), it.length) }
                 ?.takeIf { it.length > fieldText.length }
@@ -21944,6 +21980,9 @@ open class WMKeyboardService : InputMethodService() {
             },
             1,
         )
+        // Pop text (gap list item 45): the word floats up off the space bar,
+        // or only a corrected one, as the setting asks.
+        popText.word(output.trim(), corrected = corrected != null)
         // An autocorrected word was the engine's choice, not the user's —
         // it earns no personal-dictionary reinforcement, only the bigram.
         // Conversion-IME output (Hanzi/Kanji) is never learned into the lexicon,
@@ -23970,6 +24009,19 @@ open class WMKeyboardService : InputMethodService() {
         state.layoutMode == LayoutMode.NAMED &&
             state.namedLayer?.let { state.layouts.named[it] }?.direct == true
 
+    /** [swapCaseBeforeCaret] for a keyboard-owned field. */
+    private fun swapCaseBeforeCaptureCaret(target: CaptureTarget, before: CaretText) {
+        if (before.hasSelection || before.at <= 0) return
+        val cp = before.text.codePointBefore(before.at)
+        val swapped = when {
+            Character.isUpperCase(cp) -> Character.toLowerCase(cp)
+            Character.isLowerCase(cp) -> Character.toUpperCase(cp)
+            else -> return
+        }
+        if (swapped == cp) return
+        captureWrite(target, before, before.deletedBackward(Character.charCount(cp)).typed(String(Character.toChars(swapped))))
+    }
+
     /**
      * Upper case for lower and lower for upper, on the one letter in front of
      * the caret. Anything that is not a cased letter, or a selection, is left
@@ -24002,6 +24054,11 @@ open class WMKeyboardService : InputMethodService() {
     private fun cycleCaptureKanaVariant(): Boolean {
         val state = _uiState.value
         val target = state.captureTarget() ?: return false
+        // The ABC page's a/A key (#1228), the same in a tool's field as in the app's.
+        if (typesKeyCaps(state)) {
+            swapCaseBeforeCaptureCaret(target, state.captureCaretText() ?: return true)
+            return true
+        }
         if (!composesInCapture(state.composer)) return true
         val before = state.captureCaretText() ?: return true
         val run = liveCaptureComposition(state, before) ?: return true
@@ -29621,7 +29678,10 @@ open class WMKeyboardService : InputMethodService() {
         // correction or next word for them, and nothing is resolved ahead for
         // the commit, which leaves the piece as typed anyway. Email-field
         // completion and the domain keys are drawn elsewhere and stay.
-        if (caretInAddress(state)) {
+        // A word holding one of the active mode's in-word characters (a Tasker
+        // variable, gap list item 34) is the same: a name, not a word, so the
+        // strip offers nothing a tap could swap it for.
+        if (caretInAddress(state) || holdsModeWordChar(composing, state.settings.autoText.wordChars)) {
             suggestionJob?.cancel()
             resolutionJob?.cancel()
             pendingResolution = null
@@ -35952,7 +36012,7 @@ open class WMKeyboardService : InputMethodService() {
         // Leaving the reply panel, by closing it or opening another: the
         // screenshot watcher goes back to what the clipboard setting says (#234).
         if (_uiState.value.panel == PanelMode.AI_REPLY) {
-            updateScreenshotObserver(_uiState.value.settings.clipboard.userScreenshots)
+            updateScreenshotObserver(_uiState.value.settings.clipboard.let { it.userScreenshots && !it.textOnly })
         }
         // Whatever the GIF/sticker panel was showing survives it closing.
         stashMediaSearch(_uiState.value)
@@ -41460,6 +41520,11 @@ open class WMKeyboardService : InputMethodService() {
         return com.wasimaster.wmkeyboard.core.settings.ModeContext(
             tablet = DeviceForm.of(resources.configuration.smallestScreenWidthDp).isTablet,
             oneHanded = base != null && base.oneHandedMode != com.wasimaster.wmkeyboard.core.settings.OneHandedMode.OFF,
+            // The phone's dark mode, not the keyboard's theme: a night mode
+            // follows the system. [onConfigurationChanged] re-picks the mode
+            // when it flips, since a dark-mode condition is a device one.
+            darkMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES,
             bluetoothNames = if (modes.any { it.readsBluetooth }) bluetoothAudioNames() else emptyList(),
             fieldName = currentFieldName,
             fieldId = currentFieldId,
@@ -54571,6 +54636,13 @@ open class WMKeyboardService : InputMethodService() {
             location = { format -> locationTool.snippetLocation(format) },
             place = { name, format -> locationTool.snippetPlace(name, format) },
             homeAssistant = { id, attribute -> haTool.snippetValue(id, attribute) },
+            // A lambda, so the battery is asked only by a snippet that says {battery}.
+            battery = {
+                (getSystemService(BATTERY_SERVICE) as? android.os.BatteryManager)
+                    ?.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY)
+            },
+            language = _uiState.value.language.displayName,
+            languageTag = _uiState.value.language.localeTag,
         )
     }
 
@@ -57560,6 +57632,7 @@ open class WMKeyboardService : InputMethodService() {
         onUndoDismiss = ::onClipboardUndoDismiss,
         onClearUnpinned = ::onClipboardClearUnpinned,
         onOpenLink = ::onClipboardOpenLink,
+        onComposeEmail = ::onClipboardComposeEmail,
         onViewImage = ::onClipboardViewImage,
         onShareImage = ::onClipboardShareImage,
         onExtractText = ::onClipboardExtractText,
@@ -57651,6 +57724,23 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * A held clip's Compose email (gap list item 26): the mail app, a new
+     * message to [address]. The address alone goes in the mailto, never the
+     * rest of the clip.
+     */
+    fun onClipboardComposeEmail(address: String) {
+        if (!isClipboardAccessible()) return
+        vibrate()
+        val opened = runCatching {
+            startActivity(
+                Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:" + Uri.encode(address, "@.+-_")))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        }.isSuccess
+        if (!opened) toast(R.string.ime_selection_macro_no_app_toast)
+    }
+
+    /**
      * Shows an image clip full screen, from its press-and-hold popup (#371).
      * The viewer is the app's own, in the settings app's module, so it is
      * started by name; it reads the file straight out of the history's folder.
@@ -57728,7 +57818,7 @@ open class WMKeyboardService : InputMethodService() {
      * Private, the keyboard's own copy holds it and nothing reaches the
      * system clipboard. Otherwise it goes there with the echo marked as the
      * keyboard's own, so the copy listener does not file it again: text by
-     * [restoringSystemClipText], a picture by the keyboard's file provider,
+     * the write gate's self-write token, a picture by the keyboard's file provider,
      * which the listener already skips.
      */
     fun onClipboardPasteNext(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
@@ -57740,12 +57830,11 @@ open class WMKeyboardService : InputMethodService() {
     /** [onClipboardPasteNext] without the buzz and the toast; true when the paste keys now paste [item]. */
     private fun holdClipForPaste(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem): Boolean {
         if (item.sensitive) return false
-        val manager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         return when {
-            item.kind.isTextual -> KeyboardClipboard.holdForPaste(item.text) || runCatching {
-                restoringSystemClipText = item.text
-                manager.setPrimaryClip(android.content.ClipData.newPlainText(null, item.text))
-            }.isSuccess
+            // A self-write: the clip is already in the history, where it was,
+            // so the copy listener lets this one go by (#1215).
+            item.kind.isTextual -> KeyboardClipboard.holdForPaste(item.text) ||
+                ClipboardWriteGate.writeText(this, item.text, null, selfWrite = true)
             item.kind == ClipKind.IMAGE && !KeyboardClipboard.isPrivate &&
                 _uiState.value.settings.clipboard.stripMediaMetadata -> {
                 // The cleaned copy goes on the clipboard (#1179), made off the main thread.
@@ -57754,10 +57843,7 @@ open class WMKeyboardService : InputMethodService() {
                     val uri = runCatching {
                         FileProvider.getUriForFile(this, clipboardFileProviderAuthority, clean.file)
                     }.getOrNull()
-                    if (uri != null && runCatching {
-                            manager.setPrimaryClip(android.content.ClipData.newUri(contentResolver, "image", uri))
-                        }.isSuccess
-                    ) {
+                    if (uri != null && ClipboardWriteGate.writeUri(this, uri, "image")) {
                         heldImageClipId = item.id
                         toast(R.string.ime_clip_paste_next_toast)
                     }
@@ -57769,11 +57855,8 @@ open class WMKeyboardService : InputMethodService() {
             item.kind == ClipKind.IMAGE && !KeyboardClipboard.isPrivate -> {
                 val file = item.imagePath?.let(::File)?.takeIf { it.exists() }
                 val uri = file?.let { runCatching { FileProvider.getUriForFile(this, clipboardFileProviderAuthority, it) }.getOrNull() }
-                (
-                    uri != null && runCatching {
-                        manager.setPrimaryClip(android.content.ClipData.newUri(contentResolver, "image", uri))
-                    }.isSuccess
-                    ).also { if (it) heldImageClipId = item.id }
+                (uri != null && ClipboardWriteGate.writeUri(this, uri, "image"))
+                    .also { if (it) heldImageClipId = item.id }
             }
             else -> false
         }

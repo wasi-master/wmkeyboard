@@ -32,6 +32,12 @@
     <string name="appearance_key_hint_size_subtitle">Scale of the small hint character in the corner of each key</string>
     <!-- "Press and hold hints" is the name of a setting on the Key press
          screen. Translate it as it is translated there. -->
+    <string name="appearance_key_label_case_title">Letter case on keys</string>
+    <string name="appearance_key_label_case_subtitle">Draw the letters in small or capital letters, or follow Shift</string>
+    <string name="appearance_key_label_case_info">This changes only how the letters on the keys look. What a key types still follows Shift: with "Lowercase", the keys show a, b, c while Shift is on, and the letters you type are still capitals.\n\nLetters that have no capitals, and the keys of phonetic layouts such as Avro, where a and A type different letters, keep following Shift.</string>
+    <string name="appearance_key_label_case_follow">Follow Shift</string>
+    <string name="appearance_key_label_case_lower">Lowercase</string>
+    <string name="appearance_key_label_case_upper">Capitals</string>
     <string name="appearance_key_hint_corner_title">Key hint corner</string>
     <string name="appearance_key_hint_corner_subtitle">Which corner of the key the long-press hint sits in</string>
     <string name="appearance_key_hint_corner_top_start">Top left</string>

@@ -31,12 +31,13 @@ Reference pages for each of these three screens: [Keyboard themes](/reference/se
 
 <SettingsPath path="Appearance / Keys" />
 
-Three sliders that apply to every key, whatever layout is active. All three are the global value, and a theme may override any of them:
+Settings that apply to every key, whatever layout is active. The sliders are the global value, and a theme may override any of them:
 
 | Setting | Range | Default |
 |---|---|---|
 | Key corner radius | 0–28 dp | 8 dp |
 | Key label font size | ×0.7–×2.0 | ×1.00 |
+| Letter case on keys | Follow Shift, Lowercase, Capitals | Follow Shift |
 | Key hint font size | ×0.5–×3.0 | ×1.00 |
 | Key hint corner | Top left, top middle, top right, bottom left, bottom middle, bottom right | Top right |
 | Key hint position | −6–16 dp | 1 dp |
@@ -47,6 +48,8 @@ Three sliders that apply to every key, whatever layout is active. All three are 
 **Key corner radius** goes from square keys at 0 to fully pill-shaped keys at 28. Turn on "Corner radii for this theme" in the theme editor and it seeds that theme's own key-radius slider from this value. See [Themes](/themes/overview/) for how a theme can override it.
 
 **Key label font size** scales every printed letter on the keys themselves. It's separate from the popup bubble that appears on a key press, which has its own size under [Key press](/reference/settings/keypress/) → Key popup.
+
+**Letter case on keys** changes how the letters on the keys are drawn, and nothing else. **Follow Shift** is the usual look: small letters, and capitals while Shift or Caps Lock is on. **Lowercase** always draws small letters, and **Capitals** always draws capitals, like the keycaps of a physical keyboard. What a key types still follows Shift either way. Letters with no capitals, and the keys of a phonetic layout such as Avro, where `t` and `T` type different letters, keep following Shift so the key still shows what it will type.
 
 **Key hint font size** scales the small corner hint on a key: the character or symbol a long-press on that key types. This slider only controls their size once they're showing. The "Press and hold hints" toggle that turns the hints on or off in the first place lives on the [Key press](/reference/settings/keypress/) screen, not here. See [Key basics](/typing/basics/) for how long-press hints work.
 
