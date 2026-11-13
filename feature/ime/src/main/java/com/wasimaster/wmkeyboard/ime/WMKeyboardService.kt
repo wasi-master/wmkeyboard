@@ -5135,6 +5135,12 @@ open class WMKeyboardService : InputMethodService() {
                 .distinctUntilChanged()
                 .collect { hide -> showSystemKeyboardBar(!hide) }
         }
+        // The window's height follows the full-height switch at once (#1297).
+        serviceScope.launch {
+            _uiState.map { it.settings.layoutBehavior.fullHeightWindow }
+                .distinctUntilChanged()
+                .collect { window?.window?.let { win -> fitImeWindowHeight(win) } }
+        }
         // Whether the keyboard's copies stay inside it (#392). Off again the
         // moment incognito is, which also forgets the private clip.
         // Always, too, when the clipboard settings ask for it (#612).
@@ -7664,12 +7670,16 @@ open class WMKeyboardService : InputMethodService() {
      * the window's whole rectangle, so a full-height window blurred the entire
      * app above the keys. While the blur runs the window is as tall as the
      * keyboard again, the platform's own choice, and a height change is a
-     * window resize as it was before #1123.
+     * window resize as it was before #1123. The same when the full-height
+     * window is switched off (#1297), for builds that animate all of it when
+     * the keyboard hides.
      */
     private fun fitImeWindowHeight(win: android.view.Window) {
         if (imeWindowPlatformSized) return
         try {
             val height = if (windowBlurring && !privacyShade.showing) {
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            } else if (!_uiState.value.settings.layoutBehavior.fullHeightWindow) {
                 android.view.ViewGroup.LayoutParams.WRAP_CONTENT
             } else if (boardAtWindowBottom(win)) {
                 android.view.ViewGroup.LayoutParams.MATCH_PARENT

@@ -10130,6 +10130,15 @@ data class LayoutBehaviorSettings(
      */
     val hideSystemKeyboardBar: Boolean = false,
     /**
+     * The keyboard's window covers the whole screen, with the keys pinned to
+     * its bottom and the rest see-through, so a taller or shorter board is a
+     * redraw instead of a window resize (#1123). Off, the window is as tall as
+     * the keyboard again, the platform's own choice. Off by default on Huawei
+     * phones: HarmonyOS 4.2 slides the whole tall window away when the
+     * keyboard hides, so the keys jump up, stop halfway and vanish (#1297).
+     */
+    val fullHeightWindow: Boolean = fullHeightImeWindowByDefault(),
+    /**
      * The keys at the ends of a row narrower than the board take the blank
      * space beside them (#530): a tap left of QWERTY's `a` or right of its `l`
      * types that letter instead of landing on nothing, the way Gboard does.
@@ -12600,6 +12609,7 @@ class SettingsRepository(private val context: Context) {
         private val FULL_BLEED_EXTRA_HEIGHT_DP = intPreferencesKey("full_bleed_extra_height_dp")
         private val KEY_LABEL_CASE = stringPreferencesKey("key_label_case")
         private val HIDE_SYSTEM_KEYBOARD_BAR = booleanPreferencesKey("hide_system_keyboard_bar")
+        private val FULL_HEIGHT_IME_WINDOW = booleanPreferencesKey("full_height_ime_window")
         private val EXTEND_EDGE_KEYS = booleanPreferencesKey("extend_edge_keys")
         private val GLOBE_IN_ONE_PLACE = booleanPreferencesKey("globe_in_one_place")
         private val GLOBE_TOOL = stringPreferencesKey("globe_tool")
@@ -15587,6 +15597,7 @@ class SettingsRepository(private val context: Context) {
             portraitFullscreen = p[PORTRAIT_FULLSCREEN] ?: defaults.layoutBehavior.portraitFullscreen,
             hideSystemKeyboardBar =
                 p[HIDE_SYSTEM_KEYBOARD_BAR] ?: defaults.layoutBehavior.hideSystemKeyboardBar,
+            fullHeightWindow = p[FULL_HEIGHT_IME_WINDOW] ?: defaults.layoutBehavior.fullHeightWindow,
             extendEdgeKeys = p[EXTEND_EDGE_KEYS] ?: defaults.layoutBehavior.extendEdgeKeys,
             globeInOnePlace = p[GLOBE_IN_ONE_PLACE] ?: defaults.layoutBehavior.globeInOnePlace,
             globeTool = p[GLOBE_TOOL]?.let { name -> ToolbarTool.entries.firstOrNull { it.name == name } }
@@ -23670,6 +23681,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setHideSystemKeyboardBar(value: Boolean) =
         editPrefs { it[HIDE_SYSTEM_KEYBOARD_BAR] = value }
+
+    /** See [LayoutBehaviorSettings.fullHeightWindow]. */
+    suspend fun setFullHeightWindow(value: Boolean) =
+        editPrefs { it[FULL_HEIGHT_IME_WINDOW] = value }
 
     suspend fun setExtendEdgeKeys(value: Boolean) =
         editPrefs { it[EXTEND_EDGE_KEYS] = value }

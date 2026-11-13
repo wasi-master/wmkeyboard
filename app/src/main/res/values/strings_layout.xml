@@ -114,6 +114,9 @@
     <string name="layout_extend_edge_keys_info">Some rows are shorter than the keyboard, for example the A to L row of QWERTY. They have blank space at the left and right ends. With this setting on, a tap in that space types the key at that end of the row, so a tap to the left of A types A. Also, a tap in the space below the bottom row types the key above it, so a tap below the space bar types a space. The keys do not change size or position. Only the area that you can tap gets larger. This setting is off by default.</string>
     <string name="layout_bottom_padding_title">Bottom padding</string>
     <string name="layout_bottom_padding_subtitle">More space below the keys, above the navigation bar</string>
+    <string name="layout_full_height_window_title">Full-height keyboard window</string>
+    <string name="layout_full_height_window_subtitle">Changes of keyboard height redraw without a flicker. Turn off if the keyboard jumps when it hides</string>
+    <string name="layout_full_height_window_info">The keyboard\'s window covers the whole screen, with the keys at its bottom and the rest see-through, so a taller or shorter keyboard (selection mode\'s row, a panel\'s height bar, a tool opening) redraws in place instead of resizing the window, which on some phones showed a stale frame or the app\'s own toolbar for a moment.\n\nSome phones animate that whole window when the keyboard hides, so the keys jump up, stop halfway down and then vanish. Turn this off there and the window is as tall as the keyboard again. Off by default on Huawei phones.</string>
     <string name="layout_hide_system_keyboard_bar_title">Hide the system keyboard bar</string>
     <string name="layout_hide_system_keyboard_bar_subtitle">Remove the bar with the hide and switch keyboard buttons below the keys</string>
     <string name="layout_hide_system_keyboard_bar_unsupported">Needs Android 16 or later</string>

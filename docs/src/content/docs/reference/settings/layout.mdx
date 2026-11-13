@@ -124,6 +124,7 @@ At the Simple settings depth this page shows **Resize by dragging**, **Key heigh
 | Extend edge keys into the gaps | Toggle | On / Off | Off |
 | Bottom padding | Slider | 0–160 dp | 32 dp (Android 15+ with gesture navigation) / 8 dp (three-button navigation, or older) |
 | Hide the system keyboard bar *(Android 16 and up)* | Toggle | On / Off | Off |
+| Full-height keyboard window | Toggle | On / Off | On (Off on Huawei phones) |
 | Round top corners | Slider | Square, or 1–40 dp | Square |
 | Round bottom corners | Slider | Square, or 1–40 dp | Square |
 | Which corners *(shown once either corner slider is above Square)* | Filter chips | Top left, Top right, Bottom left, Bottom right | All four |
@@ -263,6 +264,7 @@ See [Switching languages](/languages/switching/#using-the-globe-key) and [Openin
 - **Bottom row height's 0 value reads as "Follow keys," not "0 dp."** It's the default, and it means the space/enter row matches the letter-key height exactly.
 - **Bottom padding's default depends on your Android version and navigation mode.** It's 32 dp on Android 15 and up with gesture navigation, where the IME window draws behind the gesture bar and the system's hide-keyboard and switch-keyboard buttons, and 8 dp with three-button navigation or on older versions.
 - **Hide the system keyboard bar needs Android 16.** With gesture navigation, Android draws a bar under the keyboard with a hide-keyboard chevron and a switch-keyboard button. Android 16 is the first version that lets a keyboard ask for that bar to go, so the switch is greyed out on older versions. It is greyed out as well with three-button navigation, and on a build that draws the bar into the system navigation bar, because no keyboard can remove it there. With it gone, Back hides the keyboard, the 🌐 key changes keyboards, and the keys move down into the bar's space while still clearing the gesture handle. Automatic Bottom padding drops to 8 dp then; set it lower still if you want the space bar nearer the edge.
+- **Full-height keyboard window.** Since 0.6.6 the keyboard's window covers the whole screen, with the keys at its bottom and the rest see-through, so a change of keyboard height (selection mode's row, a panel's height bar, a tool opening) redraws in place. Before, each change resized the window, and some phones showed a stale frame or the app's own toolbar for a moment. A few phones animate that whole window when the keyboard hides: the keys jump up, stop halfway down and then vanish. HarmonyOS 4.2 on a Huawei nova 9 does this, so the switch starts out off on Huawei phones. Turn it off on any other phone that does the same, and the window is as tall as the keyboard again.
 - **Per-screen overrides don't reset one field at a time.** **Follow portrait again** clears a whole shape instead. **Characters that go back** has no restore button either, since it's a plain text field: empty it and the built-in `!?.,;:` comes back. Everything else on this screen has the usual [per-setting restore button](/reference/settings/#putting-one-setting-back).
 - **No build differences.** Every control on this screen behaves the same in every build.
 

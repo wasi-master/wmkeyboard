@@ -2036,6 +2036,15 @@ internal fun LayoutSizeSettings(
             ) { scope.launch { repository.setHideSystemKeyboardBar(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.layout_full_height_window_title,
+                stringResource(R.string.layout_full_height_window_subtitle),
+                settings.watch { it.layoutBehavior.fullHeightWindow },
+                info = stringResource(R.string.layout_full_height_window_info),
+                default = SettingsDefaults.layoutBehavior.fullHeightWindow,
+            ) { scope.launch { repository.setFullHeightWindow(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
             val square = stringResource(R.string.layout_board_corner_square)
             SliderSetting(
                 R.string.layout_board_corner_top_title,
