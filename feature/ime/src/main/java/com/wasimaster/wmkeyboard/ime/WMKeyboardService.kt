@@ -510,6 +510,8 @@ import com.wasimaster.wmkeyboard.core.settings.LEARNED_CORRECTIONS_FILE
 import com.wasimaster.wmkeyboard.core.settings.PHONETIC_SCRIPT_CHOICES_FILE
 import com.wasimaster.wmkeyboard.core.settings.TAP_MODEL_FILE
 import com.wasimaster.wmkeyboard.core.perf.JankMonitor
+import com.wasimaster.wmkeyboard.core.perf.TypingCadence
+import com.wasimaster.wmkeyboard.core.perf.WorkLane
 import com.wasimaster.wmkeyboard.core.text.AddressToken
 import com.wasimaster.wmkeyboard.core.text.EmojiGraphemes
 import com.wasimaster.wmkeyboard.core.text.Graphemes
@@ -1012,10 +1014,55 @@ open class WMKeyboardService : InputMethodService() {
      *    `ThreadLocal`, and a thread-local on a pooled thread is retained for
      *    the life of the process at its high-water mark.
      *
-     * A view over [Dispatchers.Default], so it costs no thread of its own.
+     * A single thread of its own ([typingLane]) rather than a view over
+     * [Dispatchers.Default]: a fixed thread can be given a priority above the
+     * shared pool and tied to the system's performance hints, which a pool
+     * thread that also runs everything else cannot.
      */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val suggestionDispatcher = Dispatchers.Default.limitedParallelism(1, "wmkb-suggest")
+    private val suggestionDispatcher by lazy { typingLane.dispatcher }
+
+    /**
+     * The strip's thread: a notch above ordinary priority (never above the UI
+     * or render threads) and, on Android 12 and later, in an ADPF hint session
+     * that targets [SUGGESTION_TARGET_MS] a pass. A pass that runs over on a
+     * busy or hot phone gets a faster core or a higher clock for this thread
+     * alone; see [WorkLane].
+     */
+    private val typingLaneLazy = lazy {
+        WorkLane(this, "wmkb-suggest", threads = 1, priority = FOREGROUND_WORK_PRIORITY, targetMs = SUGGESTION_TARGET_MS)
+    }
+    private val typingLane by typingLaneLazy
+
+    /**
+     * Glide decoding: two threads, so the lift's read never waits behind a
+     * preview still running, hinted toward [GLIDE_TARGET_MS] a decode. Apart
+     * from [typingLane] so a glide never queues behind a typing pass.
+     */
+    private val glideLaneLazy = lazy {
+        WorkLane(this, "wmkb-glide", threads = 2, priority = FOREGROUND_WORK_PRIORITY, targetMs = GLIDE_TARGET_MS)
+    }
+    private val glideLane by glideLaneLazy
+
+    /**
+     * Work nobody is waiting on (warm-ups the keyboard does when it opens),
+     * at background priority: the scheduler keeps it on the small cores and
+     * lets the typing, the frames and the app behind go first.
+     */
+    private val idleLaneLazy = lazy {
+        WorkLane(this, "wmkb-idle", threads = 1, priority = Process.THREAD_PRIORITY_BACKGROUND, targetMs = 0L)
+    }
+    private val idleLane by idleLaneLazy
+
+    /** The typist's pace, for telling a burst from a pause (see [TypingCadence]). */
+    private val typingCadence = TypingCadence()
+
+    /** A pass on [typingLane], reported to its hint session as one cycle. */
+    private suspend inline fun <T> onTypingLane(crossinline block: suspend CoroutineScope.() -> T): T =
+        withContext(suggestionDispatcher) { typingLane.measured { block() } }
+
+    /** A decode on [glideLane], reported to its hint session as one cycle. */
+    private suspend inline fun <T> onGlideLane(crossinline block: suspend CoroutineScope.() -> T): T =
+        withContext(glideLane.dispatcher) { glideLane.measured { block() } }
 
     /**
      * Where the learning stores are written: one at a time, off the main
@@ -1441,6 +1488,60 @@ open class WMKeyboardService : InputMethodService() {
     private fun applyDeviceLoad(load: DeviceLoad) {
         deviceLoad = load
         ThemeFramePacing.budget = MotionBudget.of(load)
+        applyRefreshCap()
+    }
+
+    /**
+     * Asks for at most [LOADED_REFRESH_HZ] while the keyboard is up on a busy
+     * or low-end phone, through the window's preferred refresh rate.
+     *
+     * The keyboard's window sits above the app's, so its preference is the
+     * one the window manager finds first (see ScrollFrameRate.kt), and a
+     * 90 or 120 Hz panel then draws everything, the app behind included, at
+     * 60 for as long as the keyboard is up. Half the frames is half the work
+     * for the processor and the graphics chip, which is what a struggling
+     * phone needs most; nobody sees the difference while typing. Scrolling
+     * still asks for the fast mode by its own display mode request, which
+     * outranks this one, and touch boost stays on.
+     *
+     * One window update when the level changes, none per frame.
+     */
+    private fun applyRefreshCap() {
+        val imeWindow = window?.window ?: return
+        val cap = if (deviceLoad.budgetLevel != LoadLevel.NORMAL) LOADED_REFRESH_HZ else 0f
+        runCatching {
+            if (imeWindow.attributes.preferredRefreshRate == cap) return
+            val attrs = android.view.WindowManager.LayoutParams().apply { copyFrom(imeWindow.attributes) }
+            attrs.preferredRefreshRate = cap
+            imeWindow.attributes = attrs
+        }
+    }
+
+    /** Pending [scheduleWarmUps]. */
+    private var warmUpJob: Job? = null
+
+    /**
+     * The work the keyboard does for itself when it opens, moved off the
+     * moment it opens: it waits for the first frames to draw and for the
+     * first pause in typing (at most [WARM_UP_WAIT_MAX_MS]), then runs on
+     * [idleLane] at background priority. Opening the keyboard is when the
+     * app behind is relaying out and the board is composing; a warm-up that
+     * started then competed with both for the same cores.
+     */
+    private fun scheduleWarmUps() {
+        warmUpJob?.cancel()
+        warmUpJob = serviceScope.launch {
+            val deadline = SystemClock.uptimeMillis() + WARM_UP_WAIT_MAX_MS
+            delay(WARM_UP_FIRST_FRAMES_MS)
+            while (true) {
+                val now = SystemClock.uptimeMillis()
+                val wait = typingCadence.untilPauseMs(now)
+                if (wait <= 0L || now >= deadline) break
+                delay(minOf(wait, deadline - now))
+            }
+            // Ready before the first press of the mic, not after it (#305).
+            refreshVoiceBias()
+        }
     }
 
     /**
@@ -4144,7 +4245,7 @@ open class WMKeyboardService : InputMethodService() {
         // it, on the thread the strip's own suggestions run on.
         lexicon = InkLexicon { reading, previous, limit ->
             val engine = suggestionEngine ?: return@InkLexicon null
-            withContext(suggestionDispatcher) { engine.suggest(composing = reading, previousWord = previous, limit = limit) }
+            onTypingLane { engine.suggest(composing = reading, previousWord = previous, limit = limit) }
         }
     }
     private var hwJob: Job? = null
@@ -5501,6 +5602,9 @@ open class WMKeyboardService : InputMethodService() {
                 // governor stops listening and its load reads as none.
                 val adapting = unlockedSettings.powerSaving.adaptToLoad
                 loadGovernor.setEnabled(adapting)
+                // Asking for faster cores is the opposite of saving power.
+                typingLane.hinting = !saving
+                glideLane.hinting = !saving
                 val heavy = adapting && struggling
                 // A struggling phone gives up the system blur too: it is GPU
                 // work in the compositor on every frame the keyboard is up.
@@ -9470,8 +9574,10 @@ open class WMKeyboardService : InputMethodService() {
         syncMediaTracking()
         syncKdeConnect()
         syncHomeAssistant()
-        // Ready before the first press of the mic, not after it (#305).
-        refreshVoiceBias()
+        // A new field: the last key of the old one is not a gap to learn from.
+        typingCadence.reset()
+        // The voice words the mic will want, once the opening frames are drawn.
+        scheduleWarmUps()
         refreshHardwareKeyboardState()
         // The battery level is read here rather than subscribed to: this is the
         // moment it can start mattering, and a keyboard that wakes on every
@@ -11035,6 +11141,8 @@ open class WMKeyboardService : InputMethodService() {
         onKeyguardGone()
         lifecycleOwner.onResume()
         jankMonitor.start(window.window)
+        // The refresh cap is a window attribute, set again for a fresh window.
+        applyRefreshCap()
         // The board's own frames are one of the load readings.
         if (_uiState.value.settings.powerSaving.adaptToLoad) loadGovernor.attach(window.window)
         // The screenshot watcher was only registered when the setting changed,
@@ -11307,6 +11415,11 @@ open class WMKeyboardService : InputMethodService() {
         powerSaver.stop()
         networkWatcher.stop()
         loadGovernor.stop()
+        // The lanes' threads belong to this service; a new one makes its own.
+        warmUpJob?.cancel()
+        for (lane in listOf(typingLaneLazy, glideLaneLazy, idleLaneLazy)) {
+            if (lane.isInitialized()) lane.value.shutdown()
+        }
         ResidentModels.keyboardRelease = null
         (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
             .removePrimaryClipChangedListener(clipboardListener)
@@ -11789,7 +11902,12 @@ open class WMKeyboardService : InputMethodService() {
 
     // No vibrate() here: press-time haptics fire from the UI's pointer-down
     // callback (onKeyPressed) so feedback lands on touch, not on release.
-    fun onKey(key: Key) = trace(ImeTrace.KEY) { if (!deferBehindDuet(key)) handleKey(key) }
+    fun onKey(key: Key) = trace(ImeTrace.KEY) {
+        // The first key of a burst warns the system that the strip's passes
+        // are coming, before the first one has a chance to run late.
+        if (typingCadence.noteKey(SystemClock.uptimeMillis())) typingLane.loadUp()
+        if (!deferBehindDuet(key)) handleKey(key)
+    }
 
     /**
      * Keys pressed while a two-thumb word's latest gesture is still being
@@ -17714,7 +17832,7 @@ open class WMKeyboardService : InputMethodService() {
         clearGlidePreview()
         val composer = _uiState.value.composer
         gestureJob = serviceScope.launch {
-            val reading = withContext(Dispatchers.Default) { glideDecode(points, keys, keyWidthPx) }
+            val reading = onGlideLane { glideDecode(points, keys, keyWidthPx) }
             val word = reading.words.firstOrNull()
             val spelled = if (composer.glidesKanaReadings) {
                 word?.filter { it in 'ぁ'..'ゖ' || it == 'ー' }
@@ -29396,7 +29514,7 @@ open class WMKeyboardService : InputMethodService() {
             var readings = emptyList<String>()
             var board: OctopusBoard = emptyMap()
             var bias: Map<Char, Float> = emptyMap()
-            val (cands, expanded, found) = withContext(suggestionDispatcher) {
+            val (cands, expanded, found) = onTypingLane {
                 val cands = composer.candidates(typed)
                 readings = composer.readings(typed)
                 // Autopilot's keys: the Hanzi share no letters with the reading,
@@ -29954,7 +30072,7 @@ open class WMKeyboardService : InputMethodService() {
             // IndicXlit's readings, when the language has them on: asked now,
             // read after the walk, so the two overlap.
             val neural = if (state.composer.completionLanguage == null) requestNeuralReadings(state, spelled) else null
-            val (walkResults, emojis, bias, floating) = withContext(suggestionDispatcher) {
+            val (walkResults, emojis, bias, floating) = onTypingLane {
                 // A layout whose keys already spell the word (Khipro) is
                 // completed from what they spelled, not from the roman keys;
                 // the tap and key frames belong to those keys, so they stay out.
@@ -33695,7 +33813,7 @@ open class WMKeyboardService : InputMethodService() {
                 // Paced at the end of the loop: see GLIDE_PREVIEW_PACE_FROM_MS.
                 val readFrom = SystemClock.uptimeMillis()
                 var phraseSoFar = emptyList<String>()
-                val reading = withContext(Dispatchers.Default) {
+                val reading = onGlideLane {
                     // Same sources as the final decode, so the previewed word
                     // never differs from the one that commits on finger-up.
                     request.tokens?.let {
@@ -38122,7 +38240,9 @@ open class WMKeyboardService : InputMethodService() {
         if (voiceBiasJob?.isActive == true) return
         if (voiceBiasStamp != 0L && now - voiceBiasStamp < VOICE_BIAS_TTL_MS) return
         voiceBiasStamp = now
-        voiceBiasJob = serviceScope.launch(Dispatchers.Default) {
+        // Background priority: nobody is waiting on it, and it walks the
+        // whole personal dictionary.
+        voiceBiasJob = serviceScope.launch(idleLane.dispatcher) {
             voiceBiasPersonal = runCatching { personalVoiceWords(VoiceBias.RECOGNIZER_LIMIT) }
                 .getOrDefault(emptyList())
         }
@@ -56514,7 +56634,7 @@ open class WMKeyboardService : InputMethodService() {
         clearGlidePreview()
         val steadiness = _uiState.value.settings.gesture.previewSteadiness
         gestureJob = serviceScope.launch {
-            val reading = withContext(Dispatchers.Default) { glideDecode(points, keys, keyWidthPx) }
+            val reading = onGlideLane { glideDecode(points, keys, keyWidthPx) }
             val picked = (verdict as? GlideVerdict.Word)?.word
                 ?: previewGate.commit(reading.words, reading.scores, steadiness, shownAtLift)
                 ?: reading.words.firstOrNull()
@@ -61847,6 +61967,28 @@ open class WMKeyboardService : InputMethodService() {
          * at all, which is what made #313 possible.
          */
         private const val MAX_SUGGESTION_DEBOUNCE_MS = 120L
+
+        /** What one suggestion pass should take; see [typingLane]. */
+        private const val SUGGESTION_TARGET_MS = 30L
+
+        /** What one glide decode should take; see [glideLane]. */
+        private const val GLIDE_TARGET_MS = 40L
+
+        /**
+         * The typing and glide lanes' priority: two notches above an ordinary
+         * thread, still well below the UI and render threads' DISPLAY.
+         */
+        private const val FOREGROUND_WORK_PRIORITY =
+            Process.THREAD_PRIORITY_DEFAULT + 2 * Process.THREAD_PRIORITY_MORE_FAVORABLE
+
+        /** How long after the keyboard opens the warm-ups wait for a pause, at most. */
+        private const val WARM_UP_WAIT_MAX_MS = 1_500L
+
+        /** The opening frames the warm-ups stay out of. */
+        private const val WARM_UP_FIRST_FRAMES_MS = 300L
+
+        /** The refresh rate a busy or low-end phone draws at while the keyboard is up; see [applyRefreshCap]. */
+        private const val LOADED_REFRESH_HZ = 60f
 
         /**
          * How long a suggestion pass waits for IndicXlit, counted from the

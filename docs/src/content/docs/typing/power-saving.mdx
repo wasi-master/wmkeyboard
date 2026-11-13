@@ -90,7 +90,7 @@ If what you're protecting is a data allowance rather than a battery, [Data saver
 **Adapt to the phone's load** is on by default, and it works whether or not power saving is. The keyboard keeps an eye on four things that cost it next to nothing to read: how many of its own frames arrive late, how long the suggestion strip takes to read after a key, the phone's temperature (Android 10 and later), and whether the phone is short of memory. From those it settles on one of three states.
 
 - **Calm.** Everything runs as you set it.
-- **Busy.** The keyboard saves work you can't see. A moving background draws 30 frames a second instead of 60, and an animated gradient 15 instead of 30. The suggestion strip, the [smart punctuation key](/smart/autocorrect/#the-smart-punctuation-key) and glide previews wait a little longer for a burst of typing to end, so a run of keys costs one read instead of several. A phone with little memory or a slow processor stays at this level all the time, even when nothing else is running.
+- **Busy.** The keyboard saves work you can't see. A moving background draws 30 frames a second instead of 60, and an animated gradient 15 instead of 30. On a 90 or 120 Hz screen, the keyboard asks for 60 Hz while it is up, which halves the frames the whole screen draws; scrolling a list in the keyboard still runs at the full rate. The suggestion strip, the [smart punctuation key](/smart/autocorrect/#the-smart-punctuation-key) and glide previews wait a little longer for a burst of typing to end, so a run of keys costs one read instead of several. A phone with little memory or a slow processor stays at this level all the time, even when nothing else is running.
 - **Struggling.** On top of that, a moving theme holds still, the system blur behind a [glass theme](/themes/glass/) stops, [Words on the keys](/typing/words-on-the-keys/) goes, and panel animations are cut.
 
 The keyboard moves up a state after a couple of seconds of strain, or at once when the phone is hot or the system asks for memory. It moves back down one state at a time, and only after half a minute of calm. When stilling a theme was what fixed the frames, the theme moving again would bring the stutter straight back, so each quick return doubles the calm it waits for next time, up to ten minutes. Like power saving, this is a view over your settings: nothing you chose is changed, and every feature comes back by itself.
@@ -99,7 +99,9 @@ Low-end phones (little memory or a slow chip) also let go of loaded models 45 se
 
 Turn the switch off if you would rather the keyboard always look and behave the same, whatever the phone is doing.
 
-Some of this applies to everyone, all the time. A [moving background](/themes/editor/#moving-background) never draws more than 60 frames a second, and an animated gradient never more than 30, however fast the screen refreshes. On a 120 Hz screen that halves or quarters what a moving theme costs, and nobody can tell the difference.
+Some of this applies to everyone, all the time. The suggestion strip and glide typing run on threads of their own, a notch above ordinary priority, and on Android 12 and later the keyboard tells the system how long a suggestion pass or a glide should take. When they run late on a hot or busy phone, the system gives those threads, and only those, a faster core or a higher clock; the first key after a pause warns it in advance (Android 13 and later). Work nobody is waiting on, like gathering your words for voice typing when the keyboard opens, waits for the first pause in your typing and runs at background priority. Power saving turns the speed requests off, since they cost battery.
+
+ A [moving background](/themes/editor/#moving-background) never draws more than 60 frames a second, and an animated gradient never more than 30, however fast the screen refreshes. On a 120 Hz screen that halves or quarters what a moving theme costs, and nobody can tell the difference.
 
 ## Options
 

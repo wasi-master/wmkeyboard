@@ -36,6 +36,12 @@ adb logcat -s WMLoad
 
 A line names the new level, the phone's class and the reading from each signal, plus the calm the next step down will wait for. To push a phone into the thermal path without heating it, `adb shell cmd thermalservice override-status 3` reports a severe status (`reset` undoes it); `adb shell am send-trim-memory com.wasimaster.wmkeyboard RUNNING_CRITICAL` exercises the memory path. The user-facing description is [When the phone is busy](/typing/power-saving/#when-the-phone-is-busy).
 
+### Work lanes and performance hints
+
+The strip's passes run on `typingLane` (one thread), glide decodes on `glideLane` (two), and warm-ups on `idleLane` (one, background priority). Each is a `WorkLane` (`core/common/.../perf/WorkLane.kt`): fixed threads at a set priority and, on Android 12 and later, an ADPF hint session (`PerformanceHintManager`) with a target of 30 ms per pass and 40 ms per decode. Each pass and decode reports its duration; `TypingCadence` marks the first key of a burst, which sends `CPU_LOAD_UP` on Android 13 and later. In a Perfetto trace the threads are named `wmkb-suggest-1`, `wmkb-glide-1`/`-2` and `wmkb-idle-1`, so their core placement and clock can be read straight off the CPU tracks. Power saving turns the reports off.
+
+The key preview bubbles come from a pool of four permanently composed bubbles (`BubblePool`), so a press recomposes a bubble that is already there rather than composing and disposing one. A fifth simultaneous bubble falls back to the old per-press composition.
+
 ## Where did a frame go?
 
 ```sh

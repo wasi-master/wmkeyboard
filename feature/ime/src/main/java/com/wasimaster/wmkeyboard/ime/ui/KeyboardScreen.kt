@@ -19589,6 +19589,16 @@ internal fun KeyPreviewOverlay(
     }
     // The bubbles' label layouts, kept across presses; see [KeyPreviewBubble].
     val labelCache = rememberTextMeasurer(cacheSize = BubbleLabelCacheSize)
+    // A few bubbles composed once and reused press after press; see [BubblePool].
+    val pool = remember { BubblePool<KeyPreview>() }
+    val spill = pool.assign(bubbles) { it.token }
+    // What each child of the Layout below shows, in composition order: the
+    // pool's slots, then any spill. Null is an idle slot: composed, kept for
+    // the next press, but neither measured nor placed, so it draws nothing.
+    val children: List<KeyPreview?> = buildList(pool.used + spill.size) {
+        for (slot in 0 until pool.used) add(if (pool.live[slot]) pool.item(slot) else null)
+        addAll(spill)
+    }
     // In the tree even while nothing is previewing, with no children. Taking
     // the node out on release and putting it back on the next press changed
     // the frame's own child list twice a keystroke, and the frame is sized by
@@ -19617,11 +19627,23 @@ internal fun KeyPreviewOverlay(
             // Transient, and already spoken by the key: a screen reader has no
             // use for a bubble that is gone before the description finishes.
             modifier = Modifier.fillMaxSize().clearAndSetSemantics { },
-            // Keyed by the pressing key, so a bubble expiring under a finger that
-            // is still down removes that bubble rather than shuffling the rest up
-            // into its slot.
+            // Keyed by pool slot, so a press reuses a bubble already composed,
+            // and a bubble expiring under a finger that is still down leaves the
+            // others in their slots rather than shuffling them up. The spill,
+            // past the pool, is keyed by the pressing key as before.
             content = {
-                for (preview in bubbles) {
+                for (slot in 0 until pool.used) {
+                    val preview = pool.item(slot) ?: continue
+                    key(BubbleSlotKey, slot) {
+                        val heightPx = if (onKeyStyle) {
+                            onKeyBubbleHeightPx(bubbleHeightPx, preview.size.height, onKeyLabelLanePx)
+                        } else {
+                            bubbleHeightPx
+                        }
+                        KeyPreviewBubble(preview, popup, onKeyStyle, heightPx, labelCache)
+                    }
+                }
+                for (preview in spill) {
                     key(preview.token) {
                         val heightPx = if (onKeyStyle) {
                             onKeyBubbleHeightPx(bubbleHeightPx, preview.size.height, onKeyLabelLanePx)
@@ -19637,10 +19659,12 @@ internal fun KeyPreviewOverlay(
             // The space the providers clamp into: the overlay, plus the band a
             // host without one is pretending to have above it.
             val room = IntSize(laidOut.width, laidOut.height + headroomPx)
-            val placeables = measurables.map { it.measure(Constraints()) }
+            // Idle slots are skipped: not measured, not placed, not drawn.
+            val placeables = measurables.mapIndexedNotNull { index, measurable ->
+                children.getOrNull(index)?.let { it to measurable.measure(Constraints()) }
+            }
             layout(laidOut.width, laidOut.height) {
-                placeables.forEachIndexed { index, placeable ->
-                    val preview = bubbles[index]
+                placeables.forEach { (preview, placeable) ->
                     // The key in the overlay's space, pushed down by the band.
                     val keyBounds = IntRect(
                         IntOffset(
@@ -19666,6 +19690,9 @@ internal fun KeyPreviewOverlay(
         }
     }
 }
+
+/** Marks a pooled bubble's key, so a slot number never equals a press's token. */
+private object BubbleSlotKey
 
 /**
  * One preview bubble. In on-key mode it is key-wide with a large label near the
