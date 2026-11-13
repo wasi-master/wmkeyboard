@@ -17321,3 +17321,7 @@ nothing's 3286
 anyone's 3283
 somebody's 3281
 anybody's 3275
+# Latin abbreviations Apostrophes.fix writes for "ie" and "eg" (gap list item 43).
+# Not in the subtitle counts, so placed by hand near "etc".
+i.e. 1300
+e.g. 1300

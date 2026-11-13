@@ -106,6 +106,12 @@ object Apostrophes {
         // capitalizes it now, from the bundled capitals (#620), but only with
         // autocorrect on; this keeps it fixed with autocorrect off.
         "i" to "I",
+        // Nor are these: two Latin abbreviations typed without their stops
+        // (competitor gap list item 43, after FUTO). Neither bare spelling is
+        // an English word. Typed in capitals they are left alone, since "IE"
+        // and "EG" are names of their own; see [fix].
+        "ie" to "i.e.",
+        "eg" to "e.g.",
     )
 
     /**
@@ -256,8 +262,11 @@ object Apostrophes {
 
     private fun fix(word: String, table: Map<String, String>): String? {
         val fixed = table[word.lowercase()] ?: return null
+        val shouted = word.codePointCount(0, word.length) > 1 && lettersAllUpper(word)
+        // An abbreviation in capitals is an initialism, not a slip: IE, EG.
+        if (shouted && '.' in fixed) return null
         val result = when {
-            word.codePointCount(0, word.length) > 1 && lettersAllUpper(word) -> fixed.uppercase()
+            shouted -> fixed.uppercase()
             startsUpperCase(word) -> capitalizeFirst(fixed)
             else -> fixed
         }

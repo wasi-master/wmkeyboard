@@ -14883,6 +14883,19 @@ open class WMKeyboardService : InputMethodService() {
                 consumeShift()
                 return
             }
+            // "ie." typed with its own stop: the repair has already written
+            // "i.e." (gap list item 43), and the stop would make it "i.e..".
+            // Only that repair: a word the commit just rewrote into one ending
+            // in a stop, which is still the text behind the caret.
+            val repairStop = lastRevertible?.takeIf {
+                it.kind == RevertibleCommit.Kind.AUTOCORRECT && it.committed.endsWith('.')
+            }
+            if (committedWord && text == "." && repairStop != null &&
+                ic.getTextBeforeCursor(repairStop.committed.length, 0)?.toString() == repairStop.committed
+            ) {
+                consumeShift()
+                return
+            }
             // A closer typed straight onto the one the auto-close rule put
             // there steps over it instead of doubling it. Before every spacing
             // rule below, because nothing is being typed: the caret moves and

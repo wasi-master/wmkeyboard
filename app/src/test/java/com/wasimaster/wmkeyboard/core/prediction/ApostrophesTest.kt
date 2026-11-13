@@ -107,6 +107,17 @@ class ApostrophesTest {
         assertNull(Apostrophes.fixExplicit(""))
     }
 
+    /** Gap list item 43: the two Latin abbreviations get their stops; their capitals are names. */
+    @Test
+    fun latinAbbreviationsGetTheirStops() {
+        assertEquals("i.e.", Apostrophes.fix("ie"))
+        assertEquals("e.g.", Apostrophes.fix("eg"))
+        assertEquals("E.g.", Apostrophes.fix("Eg"))
+        assertNull(Apostrophes.fix("IE"))
+        assertNull(Apostrophes.fix("EG"))
+        assertNull(Apostrophes.fix("i.e."))
+    }
+
     @Test
     fun fixedWordsRoundTripToNull() {
         // Words already carrying their apostrophe are not in the table.
