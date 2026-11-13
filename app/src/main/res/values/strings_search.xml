@@ -119,6 +119,8 @@
     <string name="search_kw_keypress_haptics_hardware">vibration silent bypass</string>
     <string name="search_kw_keypress_shifted_popup">uppercase majuscule case layer page second</string>
     <string name="search_kw_keypress_long_press_delay">timeout duration</string>
+    <string name="search_kw_keypress_long_press_system">system accessibility touch and hold delay long press timeout motor</string>
+    <string name="search_kw_keypress_multitap_timeout">multitap multi tap cycle timeout cheonjiin t9 keypad feature phone</string>
     <string name="search_kw_keypress_long_press_hints">secondary labels marks</string>
     <string name="search_kw_keypress_popup">preview flyout magnifier</string>
     <string name="search_kw_keypress_symbols_numpad">numpad keypad dialpad</string>

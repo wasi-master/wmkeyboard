@@ -910,6 +910,8 @@ private fun SearchStrings.keyPressRows(): List<SettingsSearchEntry> {
         ),
         row(R.string.keypress_alternates_order_title, R.string.keypress_alternates_order_subtitle),
         row(R.string.keypress_long_press_delay_title, R.string.keypress_long_press_delay_subtitle, weight = EntryWeight.PRIMARY),
+        row(R.string.keypress_long_press_system_title, R.string.keypress_long_press_system_subtitle),
+        row(R.string.keypress_multitap_timeout_title, R.string.keypress_multitap_timeout_subtitle),
         row(R.string.keypress_delete_repeat_title, R.string.keypress_delete_repeat_subtitle),
         row(R.string.keypress_hold_words_title, R.string.keypress_hold_words_subtitle),
         row(R.string.keypress_word_stops_punctuation_title, R.string.keypress_word_stops_punctuation_subtitle),

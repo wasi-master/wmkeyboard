@@ -678,6 +678,8 @@ internal object SettingsRowIcons {
         put(R.string.keypress_popup_shape_title) { Icons.Outlined.Category }
         put(R.string.keypress_popup_radius_title) { Icons.Outlined.RoundedCorner }
         put(R.string.keypress_long_press_delay_title) { Icons.Outlined.Timer }
+        put(R.string.keypress_long_press_system_title) { Icons.Outlined.Accessibility }
+        put(R.string.keypress_multitap_timeout_title) { Icons.Outlined.Dialpad }
         put(R.string.keypress_repeat_start_title) { Icons.Outlined.Timer }
         put(R.string.keypress_delete_repeat_title) { Icons.Outlined.Repeat }
         put(R.string.keypress_hold_words_title) { Icons.AutoMirrored.Outlined.Backspace }

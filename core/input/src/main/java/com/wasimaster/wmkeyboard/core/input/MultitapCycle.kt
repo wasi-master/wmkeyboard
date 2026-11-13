@@ -19,7 +19,10 @@ import com.wasimaster.wmkeyboard.core.layout.Key
  * spends on saying "next letter". Ending is how the same letter is typed twice:
  * ㄱ, pause, ㄱ is ㄱㄱ, where ㄱ ㄱ in one run is ㅋ.
  */
-class MultitapCycle(private val timeoutMs: Long = TIMEOUT_MS) {
+class MultitapCycle(
+    /** The pause that ends a run; the service sets it from the user's setting before each tap. */
+    var timeoutMs: Long = TIMEOUT_MS,
+) {
 
     /**
      * What one tap types. [replaces] is the text the previous tap of this run
@@ -83,9 +86,10 @@ class MultitapCycle(private val timeoutMs: Long = TIMEOUT_MS) {
 
     companion object {
         /**
-         * How long a run waits for the next tap. A second is what feature phones
-         * and Samsung's Cheonjiin pad settled on: long enough for a deliberate
-         * second tap, short enough that a pause reads as "next letter".
+         * How long a run waits for the next tap by default. A second is what
+         * feature phones and Samsung's Cheonjiin pad settled on: long enough for
+         * a deliberate second tap, short enough that a pause reads as "next
+         * letter". The user can change it (`LayoutBehaviorSettings.multitapTimeoutMs`).
          */
         const val TIMEOUT_MS = 1_000L
     }

@@ -12075,6 +12075,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun onMultitapKey(key: Key) {
         val now = SystemClock.uptimeMillis()
+        multitap.timeoutMs = _uiState.value.settings.layoutBehavior.multitapTimeoutMs.toLong()
         var tap = multitap.press(key, now)
         var fromField = false
         if (tap.replaces != null) {
@@ -12236,6 +12237,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun onKeymanMultitapKey(key: Key) {
         val now = SystemClock.uptimeMillis()
+        multitap.timeoutMs = _uiState.value.settings.layoutBehavior.multitapTimeoutMs.toLong()
         var tap = multitap.press(key, now)
         val ic = currentInputConnection
         // One batch for the take-back and the step, so the editor reports one

@@ -29,6 +29,15 @@ class MultitapCycleTest {
         assertEquals(MultitapCycle.Tap("ㄱ", null), cycle.press(giyeok, 1_001))
     }
 
+    @Test fun `a timeout changed between taps applies to the next one`() {
+        val cycle = MultitapCycle()
+        cycle.press(giyeok, 0)
+        cycle.timeoutMs = 2_000
+        assertEquals(MultitapCycle.Tap("ㅋ", "ㄱ"), cycle.press(giyeok, 1_500))
+        cycle.timeoutMs = 400
+        assertEquals(MultitapCycle.Tap("ㄱ", null), cycle.press(giyeok, 2_000))
+    }
+
     @Test fun `a different key starts its own run`() {
         val cycle = MultitapCycle()
         cycle.press(giyeok, 0)

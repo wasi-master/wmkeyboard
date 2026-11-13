@@ -19,6 +19,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.settings.AlternateGroup
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.settings.GboardHoldSymbols
 import com.wasimaster.wmkeyboard.core.settings.GboardNumberRowHoldSymbols
 import com.wasimaster.wmkeyboard.core.settings.SamsungHoldSymbols
@@ -1105,9 +1106,28 @@ internal fun KeyPressSettings(
 
     SettingsGroup(stringResource(R.string.keypress_timing_group_title)) {
         item {
+            ToggleSetting(
+                R.string.keypress_long_press_system_title,
+                stringResource(R.string.keypress_long_press_system_subtitle),
+                settings.watch { it.layoutBehavior.longPressFollowsSystem },
+                info = stringResource(R.string.keypress_long_press_system_info),
+                default = SettingsDefaults.layoutBehavior.longPressFollowsSystem,
+            ) { scope.launch { repository.setLongPressFollowsSystem(it) } }
+        }
+        item {
+            // While the system's delay is followed, the slider shows that
+            // value and stays put; the user's own number is kept for when the
+            // switch goes off again.
+            val followsSystem = settings.watch { it.layoutBehavior.longPressFollowsSystem }
             SliderSetting(
                 R.string.keypress_long_press_delay_title,
                 subtitle = stringResource(R.string.keypress_long_press_delay_subtitle),
+                enabled = !followsSystem,
+                disabledReason = if (followsSystem) {
+                    DisabledReason(stringResource(R.string.keypress_long_press_system_reason))
+                } else {
+                    null
+                },
                 value = settings.watch { it.longPressDelayMs }.toFloat(),
                 // To 3 s: a screen reader's double tap and hold reaches the
                 // key as a held press, and 800 ms ran out before a TalkBack
@@ -1117,6 +1137,17 @@ internal fun KeyPressSettings(
                 info = stringResource(R.string.keypress_long_press_delay_info),
                 default = SettingsDefaults.longPressDelayMs.toFloat(),
             ) { scope.launch { repository.setLongPressDelayMs(it.toInt()) } }
+        }
+        item {
+            SliderSetting(
+                R.string.keypress_multitap_timeout_title,
+                subtitle = stringResource(R.string.keypress_multitap_timeout_subtitle),
+                value = settings.watch { it.layoutBehavior.multitapTimeoutMs }.toFloat(),
+                range = 300f..3000f,
+                display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
+                info = stringResource(R.string.keypress_multitap_timeout_info),
+                default = SettingsDefaults.layoutBehavior.multitapTimeoutMs.toFloat(),
+            ) { scope.launch { repository.setMultitapTimeoutMs(it.toInt()) } }
         }
         item(level = SettingLevel.ADVANCED) {
             SliderSetting(

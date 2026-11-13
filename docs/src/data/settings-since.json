@@ -854,6 +854,8 @@
 		"keypress_hold_symbols_title": "0.6.4",
 		"keypress_hold_words_title": "0.5.9",
 		"keypress_long_press_delay_title": "0.5.3",
+		"keypress_long_press_system_title": "0.6.7",
+		"keypress_multitap_timeout_title": "0.6.7",
 		"keypress_long_press_haptics_title": "0.5.3",
 		"keypress_long_press_hints_title": "0.5.3",
 		"keypress_long_press_release_title": "0.5.3",

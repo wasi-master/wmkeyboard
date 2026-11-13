@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.settings
 import android.content.Context
 import android.os.Build
 import android.os.SystemClock
+import android.view.ViewConfiguration
 import androidx.annotation.StringRes
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
@@ -9821,6 +9822,24 @@ data class LayoutBehaviorSettings(
      */
     val symbolsTextEditKey: Boolean = false,
     /**
+     * Key holds wait for Android's own "touch and hold delay" (Settings →
+     * Accessibility) instead of the keyboard's own slider, so someone who
+     * slowed it down system-wide for motor reasons gets the same wait on the
+     * keys (FlorisBoard does this; competitor gap list item 5). When on,
+     * [KeyboardSettings.longPressDelayMs] is read as the system value, so
+     * every hold that uses it follows along. Off by default: it would change
+     * the 300 ms most people are used to.
+     */
+    val longPressFollowsSystem: Boolean = false,
+    /**
+     * How long a multi-tap key (Cheonjiin, Vega, T9 pads, Keyman cycles,
+     * Samsung's .,?! key) waits for the next tap before a tap starts afresh.
+     * A second is what feature phones settled on; slow tappers want longer,
+     * fast ones want a shorter pause to type the same letter twice
+     * (competitor gap list item 4).
+     */
+    val multitapTimeoutMs: Int = 1_000,
+    /**
      * Holding the enter key offers the emoji panel, the way SwiftKey's enter
      * key does, for a layout whose bottom row has no emoji key of its own.
      *
@@ -12247,6 +12266,8 @@ class SettingsRepository(private val context: Context) {
         private val SYMBOLS_LONGPRESS_NUMPAD = booleanPreferencesKey("symbols_longpress_numpad")
         private val SYMBOLS_NUMPAD_KEY = booleanPreferencesKey("symbols_numpad_key")
         private val SYMBOLS_TEXT_EDIT_KEY = booleanPreferencesKey("symbols_text_edit_key")
+        private val LONG_PRESS_FOLLOWS_SYSTEM = booleanPreferencesKey("long_press_follows_system")
+        private val MULTITAP_TIMEOUT = intPreferencesKey("multitap_timeout_ms")
         private val ENTER_LONGPRESS_EMOJI = booleanPreferencesKey("enter_longpress_emoji")
         private val LANDSCAPE_FULLSCREEN = booleanPreferencesKey("landscape_fullscreen")
         private val SPACE_SWIPE_DOWN_HIDE = booleanPreferencesKey("space_swipe_down_hide")
@@ -13921,7 +13942,8 @@ class SettingsRepository(private val context: Context) {
             otp = readOtp(p, defaults),
             autoBackup = readAutoBackup(p, defaults),
             suggestionStrip = readSuggestionStrip(p, defaults),
-            longPressDelayMs = p[LONG_PRESS_DELAY] ?: defaults.longPressDelayMs,
+            longPressDelayMs = (if (p[LONG_PRESS_FOLLOWS_SYSTEM] == true) systemLongPressTimeoutMs() else null)
+                ?: p[LONG_PRESS_DELAY] ?: defaults.longPressDelayMs,
             keyRepeat = readKeyRepeat(p, defaults),
             longPressHints = p[LONG_PRESS_HINTS] ?: defaults.longPressHints,
             octopus = readOctopus(p, defaults),
@@ -15161,6 +15183,15 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.octopus.wordsPerKey,
         )
 
+    /**
+     * Android's "touch and hold delay" in milliseconds, or null when it can't
+     * be read or is outside the keyboard's own 100–3000 ms range (the JVM test
+     * stubs return 0). Read on every settings load, so a change made in
+     * Android's settings arrives with the next settings change or restart.
+     */
+    private fun systemLongPressTimeoutMs(): Int? =
+        runCatching { ViewConfiguration.getLongPressTimeout() }.getOrNull()?.takeIf { it in 100..3000 }
+
     private fun readLayoutBehavior(p: Preferences, defaults: KeyboardSettings) =
         LayoutBehaviorSettings(
             incognitoWatermark = p[INCOGNITO_WATERMARK] ?: defaults.layoutBehavior.incognitoWatermark,
@@ -15169,6 +15200,9 @@ class SettingsRepository(private val context: Context) {
                 p[SYMBOLS_LONGPRESS_NUMPAD] ?: defaults.layoutBehavior.symbolsLongPressNumpad,
             symbolsNumpadKey = p[SYMBOLS_NUMPAD_KEY] ?: defaults.layoutBehavior.symbolsNumpadKey,
             symbolsTextEditKey = p[SYMBOLS_TEXT_EDIT_KEY] ?: defaults.layoutBehavior.symbolsTextEditKey,
+            longPressFollowsSystem =
+                p[LONG_PRESS_FOLLOWS_SYSTEM] ?: defaults.layoutBehavior.longPressFollowsSystem,
+            multitapTimeoutMs = p[MULTITAP_TIMEOUT] ?: defaults.layoutBehavior.multitapTimeoutMs,
             enterLongPressEmoji =
                 p[ENTER_LONGPRESS_EMOJI] ?: defaults.layoutBehavior.enterLongPressEmoji,
             spaceSwipeDownHide =
@@ -22981,6 +23015,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSymbolsTextEditKey(value: Boolean) =
         editPrefs { it[SYMBOLS_TEXT_EDIT_KEY] = value }
+
+    suspend fun setLongPressFollowsSystem(value: Boolean) =
+        editPrefs { it[LONG_PRESS_FOLLOWS_SYSTEM] = value }
+
+    suspend fun setMultitapTimeoutMs(value: Int) =
+        editPrefs { it[MULTITAP_TIMEOUT] = value.coerceIn(300, 3000) }
 
     suspend fun setEnterLongPressEmoji(value: Boolean) =
         editPrefs { it[ENTER_LONGPRESS_EMOJI] = value }

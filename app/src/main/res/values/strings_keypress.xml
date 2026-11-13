@@ -180,6 +180,13 @@
 
     <string name="keypress_long_press_delay_title">Press and hold delay</string>
     <string name="keypress_long_press_delay_subtitle">How long you hold a key before the alternate characters appear</string>
+    <string name="keypress_long_press_system_title">Use Android\'s hold delay</string>
+    <string name="keypress_long_press_system_subtitle">Holding a key waits as long as Android\'s touch and hold delay</string>
+    <string name="keypress_long_press_system_info">Android has its own touch and hold delay under Settings → Accessibility. With this on, holding a key waits that long instead of the slider below, so a delay you set for the whole phone applies to the keys too.</string>
+    <string name="keypress_long_press_system_reason">Following Android\'s touch and hold delay</string>
+    <string name="keypress_multitap_timeout_title">Multi-tap pause</string>
+    <string name="keypress_multitap_timeout_subtitle">How long a keypad key waits for another tap</string>
+    <string name="keypress_multitap_timeout_info">On keys that cycle through letters when tapped again, such as the Korean 천지인 pad, the T9 keypads and the .,?! key, a second tap within this time swaps the letter. After a longer pause the next tap starts afresh, which is how you type the same letter twice.</string>
     <string name="keypress_long_press_delay_info">This is how long you hold a key before its alternate characters appear. The alternates are accents, digits and symbols. A lower value is faster, but the popup opens by accident more easily.</string>
 
     <string name="keypress_delete_repeat_title">Delete repeat interval</string>
