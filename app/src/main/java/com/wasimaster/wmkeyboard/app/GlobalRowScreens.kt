@@ -95,6 +95,7 @@ internal fun GlobalRowEditorScreen(
     row: GlobalRow,
     onNavigate: (String) -> Unit,
 ) {
+    RegisterHidingHeader()
     val scope = rememberCoroutineScope()
     val stored = settings.watch { row.stored(it) }
     val builtIn = settings.watch { row.builtIn(it) }

@@ -243,6 +243,7 @@ private class CanvasDissolve {
  */
 @Composable
 internal fun StickerEditorScreen(request: StickerEditRequest, onDone: () -> Unit) {
+    RegisterHidingHeader()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val store = remember { StickerPackStore.get(context) }

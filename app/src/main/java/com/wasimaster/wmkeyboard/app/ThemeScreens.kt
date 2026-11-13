@@ -3566,6 +3566,8 @@ private fun ThemeEditorContent(
     }
     val reduceMotion = settings.watch { it.reduceMotion }
     val previewScale = rememberPreviewScale(PreviewScaleSlot.THEME_EDITOR)
+    // The heading scrolls away over the pinned keyboard; see RegisterHidingHeader.
+    RegisterHidingHeader()
     RegisterPinned {
         AnimatedVisibility(
             visible = !keyboardDocked,

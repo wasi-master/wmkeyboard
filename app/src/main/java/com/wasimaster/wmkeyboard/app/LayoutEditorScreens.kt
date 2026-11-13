@@ -153,6 +153,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Slider
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
@@ -2766,6 +2767,8 @@ internal fun KeyLayoutEditorScreen(
     // back the moment the keyboard goes.
     val imeUp = WindowInsets.isImeVisible
     val previewScale = rememberPreviewScale(PreviewScaleSlot.LAYOUT_EDITOR)
+    // The heading scrolls away over the pinned grid; see RegisterHidingHeader.
+    RegisterHidingHeader()
     if (!imeUp) RegisterPinned {
         Column {
             if (!secondary) {
@@ -4117,11 +4120,11 @@ private fun ExtraBand.captionRes(): Int = when (this) {
  * point is flicking between them and watching the keys change.
  */
 @Composable
-private fun PreviewFieldChips(selected: EditorPreviewField, onSelect: (EditorPreviewField) -> Unit) {
+private fun PreviewFieldChips(selected: EditorPreviewField, onSelect: (EditorPreviewField) -> Unit) = CompactChips {
     Row(
         modifier = Modifier
             .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 2.dp),
+            .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -4134,6 +4137,7 @@ private fun PreviewFieldChips(selected: EditorPreviewField, onSelect: (EditorPre
             FilterChip(
                 selected = field == selected,
                 onClick = { onSelect(field) },
+                modifier = Modifier.height(CompactChipHeight),
                 label = {
                     Text(
                         stringResource(
@@ -4301,10 +4305,11 @@ private fun LayerChips(
     pages: List<String> = emptyList(),
     selectedPage: String? = null,
     onSelectPage: (String) -> Unit = {},
-) {
+) = CompactChips {
     LazyRow(
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+        modifier = Modifier.padding(horizontal = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         items(LayoutLayer.entries) { layer ->
             LayerChip(
@@ -4346,11 +4351,30 @@ private fun pageTitle(key: String): String {
     }
 }
 
+/**
+ * The two chip strips over the layout editor's grid, at a height they can
+ * afford. They stay on screen for the whole edit, and at Material's 48 dp
+ * touch row each they took two finger-heights from the keys' own settings
+ * below. Each chip is drawn shorter and touched over a slightly taller band,
+ * which still clears the chip itself on both sides.
+ */
+@Composable
+private fun CompactChips(content: @Composable () -> Unit) {
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides CompactChipTouch, content = content)
+}
+
+/** How tall a chip in [CompactChips] is drawn. */
+private val CompactChipHeight = 28.dp
+
+/** How tall a chip in [CompactChips] is touched, and so how tall its strip is. */
+private val CompactChipTouch = 36.dp
+
 @Composable
 private fun LayerChip(title: String, selected: Boolean, authored: Boolean, onClick: () -> Unit) {
     FilterChip(
         selected = selected,
         onClick = onClick,
+        modifier = Modifier.height(CompactChipHeight),
         label = { Text(title, maxLines = 1) },
         leadingIcon = if (authored) {
             {

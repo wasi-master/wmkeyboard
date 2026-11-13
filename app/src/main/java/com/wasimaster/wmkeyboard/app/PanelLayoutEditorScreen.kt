@@ -232,6 +232,7 @@ internal fun PanelLayoutEditorScreen(
     kind: PanelKind,
     onNavigate: (String) -> Unit,
 ) {
+    RegisterHidingHeader()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     // Null until the store answers, so the first frame does not flash the

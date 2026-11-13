@@ -91,6 +91,7 @@ import kotlinx.coroutines.withContext
  */
 @Composable
 internal fun NoteEditorScreen(settings: LiveSettings, noteId: Long, onDone: () -> Unit) {
+    RegisterHidingHeader()
     val state = rememberNotesState(settings) ?: return
     val initial = remember(state.active, state.archived, state.trash, noteId) {
         (state.active + state.archived + state.trash).firstOrNull { it.id == noteId }
