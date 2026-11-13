@@ -22,7 +22,8 @@
 //! swipes and not the list (success per swipe), and `DUMP=<path>` writes
 //! one line per stroke (`word`, top-1, hit, in list, then every candidate
 //! as `word:score` joined by `|`, best first) for a regression set or a
-//! rerank sweep over the scored pool.
+//! rerank sweep over the scored pool. `SHAPE_COST=1` adds each candidate's
+//! alignment cost (`word:score:shape_cost`).
 //! Words are read in any alphabet, not Latin letters alone.
 //!
 //! `CHAIN=1` measures chained strokes instead (#968): consecutive records on
@@ -160,6 +161,9 @@ fn main() {
     let all = std::env::var("ALL").is_ok_and(|v| v == "1");
     let results = std::env::var("RESULTS").ok().and_then(|v| v.parse().ok()).unwrap_or(4usize).max(1);
     let dump = std::env::var("DUMP").ok().filter(|p| !p.is_empty());
+    // `SHAPE_COST=1` writes each dumped candidate as `word:score:shape_cost`,
+    // the alignment cost the decoder explained the stroke at (#1291).
+    let shape_costs = std::env::var("SHAPE_COST").is_ok_and(|v| v == "1");
     // `ONE_LETTER=1` keeps the swipes for one-letter words, which sentences
     // are full of.
     let min_letters = if std::env::var("ONE_LETTER").is_ok_and(|v| v == "1") { 1 } else { 2 };
@@ -219,7 +223,14 @@ fn main() {
                                 let top = words.first().map(String::as_str).unwrap_or("-");
                                 let pool = out
                                     .iter()
-                                    .map(|c| format!("{}:{:.6}", String::from_utf16_lossy(&c.word).to_lowercase(), c.score))
+                                    .map(|c| {
+                                        let word = String::from_utf16_lossy(&c.word).to_lowercase();
+                                        if shape_costs {
+                                            format!("{word}:{:.6}:{:.6}", c.score, c.shape_cost)
+                                        } else {
+                                            format!("{word}:{:.6}", c.score)
+                                        }
+                                    })
                                     .collect::<Vec<_>>()
                                     .join("|");
                                 lines.push(format!(

@@ -1756,6 +1756,39 @@ enum class GlideLookAhead(
 }
 
 /**
+ * When a glide puts the letters the stroke itself spells on the strip (#1291):
+ * the keys where it started, turned sharply, paused and ended
+ * (`GlideLiteral`), offered as a word for a word no list has, such as a name
+ * or a word of another language written in this alphabet. Never typed by the
+ * lift: the decoder's own reading still goes in, and the letters are one tap
+ * away on the strip. Picking them is a new word typed by hand, counted toward
+ * the personal dictionary the same way, and the stroke's shape goes with it.
+ *
+ * Measured 2026-11-13 on 2,000 real swipes (FUTO's swipe.futo.org, MIT): the
+ * letters are the word on .387 of them (.410 less doubled letters, which one
+ * mark cannot show). [WHEN_UNSURE] offers them when they explain the stroke in
+ * at most `GlideLiteral.FIT_SHARE` of the best reading's alignment cost. On
+ * strokes whose word the list has, that is beside .073 of the right readings,
+ * and the right word lost its place on a three-word strip on 8 of the 2,000;
+ * with the words taken out of the list it offered the right letters on .155
+ * of the strokes, right 42 times in a hundred when it offered anything.
+ */
+enum class GlideDrawnLetters(@StringRes val labelRes: Int) {
+    /** Only the decoder's words. */
+    OFF(R.string.core_settings_glide_drawn_letters_off_label),
+
+    /**
+     * On the strip a backspaced glide leaves (the deeper search behind an
+     * undo) and on a full search while proofreading, never right after a
+     * stroke: by then the user has said the reading was wrong.
+     */
+    AFTER_UNDO(R.string.core_settings_glide_drawn_letters_after_undo_label),
+
+    /** As [AFTER_UNDO], and right after a stroke whose best reading fits it far worse than its own letters do. */
+    WHEN_UNSURE(R.string.core_settings_glide_drawn_letters_when_unsure_label),
+}
+
+/**
  * Which decoder reads a glide.
  *
  * [BUILT_IN] is `GlideBeam`, the app's own decoder, for every language and
@@ -9341,6 +9374,14 @@ data class GestureSettings(
      */
     val lookAhead: GlideLookAhead = GlideLookAhead.OFF,
     /**
+     * When a glide offers the letters the stroke itself spells — see
+     * [GlideDrawnLetters]. [GlideDrawnLetters.WHEN_UNSURE] by default: it
+     * never changes what a lift types, only the strip's last slot, and only
+     * where the stroke's own letters fit it far better than any word the
+     * lists hold (#1291).
+     */
+    val drawnLetters: GlideDrawnLetters = GlideDrawnLetters.WHEN_UNSURE,
+    /**
      * Which decoder reads a glide — see [GlideEngine]. [GlideEngine.BUILT_IN]
      * by default.
      */
@@ -12104,6 +12145,7 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_SANDBOX = stringPreferencesKey("gesture_sandbox")
         private val GESTURE_PREVIEW_STEADINESS = stringPreferencesKey("gesture_preview_steadiness")
         private val GESTURE_LOOK_AHEAD = stringPreferencesKey("gesture_look_ahead")
+        private val GESTURE_DRAWN_LETTERS = stringPreferencesKey("gesture_drawn_letters")
         private val GESTURE_ENGINE = stringPreferencesKey("gesture_engine")
         private val GESTURE_COMMIT_COLOR = stringPreferencesKey("gesture_commit_color")
         private val GESTURE_COMMIT_COLOR_SCOPE =
@@ -14370,6 +14412,9 @@ class SettingsRepository(private val context: Context) {
             lookAhead = p[GESTURE_LOOK_AHEAD]
                 ?.let { runCatching { GlideLookAhead.valueOf(it) }.getOrNull() }
                 ?: defaults.gesture.lookAhead,
+            drawnLetters = p[GESTURE_DRAWN_LETTERS]
+                ?.let { runCatching { GlideDrawnLetters.valueOf(it) }.getOrNull() }
+                ?: defaults.gesture.drawnLetters,
             engine = p[GESTURE_ENGINE]
                 ?.let { runCatching { GlideEngine.valueOf(it) }.getOrNull() }
                 ?: defaults.gesture.engine,
@@ -22779,6 +22824,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGestureLookAhead(value: GlideLookAhead) =
         editPrefs { it[GESTURE_LOOK_AHEAD] = value.name }
+
+    suspend fun setGestureDrawnLetters(value: GlideDrawnLetters) =
+        editPrefs { it[GESTURE_DRAWN_LETTERS] = value.name }
 
     suspend fun setGestureEngine(value: GlideEngine) =
         editPrefs { it[GESTURE_ENGINE] = value.name }

@@ -267,3 +267,27 @@ Measured 2026-10-30 (32,285 words; held-out half of the sessions for the last th
 `ORACLE=1` hands the decoder the walks' true lengths (.792 without one-letter
 words). `WALK=straight` is the column walk `CHAIN=1` uses, which flatters the
 decoder: .814 on the old `open_run`, where curved walks read .552.
+
+## The letters a stroke marks (#1291)
+
+`GlideLiteral` reads the keys where a stroke starts, turns, pauses and ends,
+for a word no list has, and offers them when they explain the stroke within a
+share of the best reading's alignment cost. `literal_gate.py` measures both on
+the 2,000 strokes of `app/src/test/resources/glide/futo-swipes.txt.gz`, with
+the word list less every word the fixture holds standing in for words a list
+lacks; its docstring has the commands (`SHAPE_COST=1` makes `glide_beam_eval`
+dump each candidate's alignment cost). Measured 2026-11-13 over the bundled
+en.txt: the letters are the word on .388 of the strokes, the word less its
+doubled letters on .411 (the start and end keys alone: .146).
+
+| share | beside a right reading | right word pushed off 3 slots | right on a missing word | of offers |
+|---|---|---|---|---|
+| 0.30 | .055 | 6 | .139 | .464 |
+| 0.35 (shipped) | .073 | 8 | .155 | .420 |
+| 0.40 | .098 | 9 | .175 | .394 |
+| 0.50 | .139 | 13 | .201 | .365 |
+| always | .436 | 31 | .261 | .331 |
+
+Over a 300,000-word English list (en_full's top, scaled like en.txt) the
+same rows read .050 / .068 / .090 / .130 / .414 beside right readings and
+.117 / .134 / .151 / .175 / .238 right on a missing word.

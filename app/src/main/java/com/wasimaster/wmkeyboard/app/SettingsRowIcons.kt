@@ -1219,6 +1219,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_glide_checkup_measure_title) { Icons.Outlined.Science }
         put(R.string.typing_glide_steadiness_title) { Icons.Outlined.Anchor }
         put(R.string.typing_glide_lookahead_title) { Icons.Outlined.FastForward }
+        put(R.string.typing_glide_drawn_letters_title) { Icons.Outlined.Gesture }
         put(R.string.typing_glide_engine_title) { Icons.Outlined.Psychology }
         put(R.string.typing_glide_library_title) { Icons.Outlined.Extension }
         put(R.string.typing_glide_library_remove_title) { Icons.Outlined.Extension }

@@ -110,6 +110,7 @@ import com.wasimaster.wmkeyboard.core.settings.GlidePickerSensitivity
 import com.wasimaster.wmkeyboard.core.settings.GlideCommitColor
 import com.wasimaster.wmkeyboard.core.settings.GlideCommitColorScope
 import com.wasimaster.wmkeyboard.core.settings.GlideLookAhead
+import com.wasimaster.wmkeyboard.core.settings.GlideDrawnLetters
 import com.wasimaster.wmkeyboard.core.settings.GlidePreviewSteadiness
 import com.wasimaster.wmkeyboard.core.settings.GlideSandbox
 import com.wasimaster.wmkeyboard.core.settings.GlideVocabulary
@@ -4421,6 +4422,19 @@ private fun SettingsGroupScope.glideVocabularyRows(
             selected = settings.watch { it.gesture.lookAhead },
             onChange = { scope.launch { repository.setGestureLookAhead(it) } },
             default = SettingsDefaults.gesture.lookAhead,
+        )
+    }
+    // The letters the stroke itself marks, for a word no list has (#1291):
+    // the other way a swipe can answer with something it was not given.
+    item {
+        ChoiceSetting(
+            title = R.string.typing_glide_drawn_letters_title,
+            subtitle = stringResource(R.string.typing_glide_drawn_letters_subtitle),
+            info = stringResource(R.string.typing_glide_drawn_letters_info),
+            options = GlideDrawnLetters.entries.map { it to stringResource(it.labelRes) },
+            selected = settings.watch { it.gesture.drawnLetters },
+            onChange = { scope.launch { repository.setGestureDrawnLetters(it) } },
+            default = SettingsDefaults.gesture.drawnLetters,
         )
     }
     // Which word the stroke colours rather than only bolds, and how far that

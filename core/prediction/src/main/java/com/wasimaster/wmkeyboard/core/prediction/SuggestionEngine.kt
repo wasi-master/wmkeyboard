@@ -2363,6 +2363,30 @@ class SuggestionEngine(
     ): GlideBeam.Alignment? = glideBeam.align(word, path, keys, keyWidth, glideWorkspace.get())
 
     /**
+     * How well [word] alone explains [path]: the built-in decoder's alignment
+     * cost for it ([GlideBeam.Candidate.shapeCost]), read through a list
+     * holding nothing else, or null when the stroke cannot be read as it at
+     * all. Comparable with the costs of the readings [glide] returns from the
+     * built-in decoder, which is what a glide's literal reading is weighed
+     * against (`GlideLiteral.offerBeside`, #1291).
+     */
+    fun glideFitOf(
+        word: String,
+        path: List<GesturePoint>,
+        keys: GlideKeyMap,
+        keyWidth: Float,
+    ): Double? {
+        if (word.length < 2) return null
+        val only = PackedTrie.of(listOf(word.lowercase() to 1))
+        val sources = only.walkers().map { FuzzyBeamSearch.WalkSource(it, 0.0, FuzzyBeamSearch.Tier.USER) }
+        // Folded the way [glide] folds it, so both costs are of one stroke.
+        val stroke = GlideOverhang.fold(path, keys, keyWidth)
+        return glideBeam.decode(stroke, keys, keyWidth, sources, glideWorkspace.get(), limit = 1)
+            .firstOrNull { it.ahead == 0 && it.word.equals(word, ignoreCase = true) }
+            ?.shapeCost
+    }
+
+    /**
      * [path] as the shape store keeps a stroke, for the learning buffer to
      * carry until its word settles (issue #52). Null for a stroke too short
      * to be a glide.

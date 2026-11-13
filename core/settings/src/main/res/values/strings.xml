@@ -247,6 +247,11 @@
     <string name="core_settings_glide_lookahead_confident_label">When sure</string>
     <string name="core_settings_glide_lookahead_eager_label">Eager</string>
 
+    <!-- When a glide offers the letters the stroke itself spells, for a word no list has. -->
+    <string name="core_settings_glide_drawn_letters_off_label">Off</string>
+    <string name="core_settings_glide_drawn_letters_after_undo_label">After an undo</string>
+    <string name="core_settings_glide_drawn_letters_when_unsure_label">When unsure</string>
+
     <!-- Which decoder reads a glide. "FUTO Swipe" is a product name: keep it as is. -->
     <string name="core_settings_glide_engine_built_in_label">Built-in</string>
     <string name="core_settings_glide_engine_futo_label">FUTO Swipe (English, QWERTY)</string>

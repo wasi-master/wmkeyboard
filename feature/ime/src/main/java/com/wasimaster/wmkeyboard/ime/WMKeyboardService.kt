@@ -197,6 +197,7 @@ import com.wasimaster.wmkeyboard.core.gesture.GlideBeam
 import com.wasimaster.wmkeyboard.core.gesture.GlideCoverage
 import com.wasimaster.wmkeyboard.core.gesture.RomanizedIndex
 import com.wasimaster.wmkeyboard.core.gesture.GlideKeyMap
+import com.wasimaster.wmkeyboard.core.gesture.GlideLiteral
 import com.wasimaster.wmkeyboard.core.gesture.GlideShapeSample
 import com.wasimaster.wmkeyboard.core.gesture.GlideStroke
 import com.wasimaster.wmkeyboard.core.gesture.GlideShapeSource
@@ -476,6 +477,7 @@ import com.wasimaster.wmkeyboard.core.settings.GlideCommitColor
 import com.wasimaster.wmkeyboard.core.settings.GlideCommitColorScope
 import com.wasimaster.wmkeyboard.core.settings.GlideEngine
 import com.wasimaster.wmkeyboard.core.settings.GlideLookAhead
+import com.wasimaster.wmkeyboard.core.settings.GlideDrawnLetters
 import com.wasimaster.wmkeyboard.core.settings.GlidePreviewSteadiness
 import com.wasimaster.wmkeyboard.core.settings.GlideSandbox
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
@@ -31534,6 +31536,14 @@ open class WMKeyboardService : InputMethodService() {
          * [GlideLookAhead.CONFIDENT] every admitted guess is already in it.
          */
         val sure: Set<String> = emptySet(),
+        /**
+         * The alignment cost of the best reading the stroke spells out
+         * ([GlideBeam.Candidate.shapeCost]), what its literal is weighed
+         * against (#1291). Null when another engine read the stroke, whose
+         * costs are on another scale, or nothing was read. Not carried by
+         * [with], [ordered] or [leading]: only the lift's own decode asks.
+         */
+        val leaderCost: Double? = null,
     ) {
         /** [word]'s score in this reading, or null when it is not in it. */
         fun scoreOf(word: String): Double? {
@@ -31907,6 +31917,9 @@ open class WMKeyboardService : InputMethodService() {
     ): GlideReading {
         val engine = suggestionEngine ?: return GlideReading.NONE
         engine.externalGlide = glideEngineNow()
+        // Only the built-in decoder's alignment costs can be weighed against
+        // a literal's (#1291); another engine's are on its own scale.
+        val builtIn = engine.externalGlide == null
         val policy = sandboxPolicy()
         val gesture = _uiState.value.settings.gesture
         // The lift decodes exactly what the previews decoded (#121). This used
@@ -32028,6 +32041,7 @@ open class WMKeyboardService : InputMethodService() {
             scores = declared.map { byWord[it] ?: leaderScore },
             guesses = guesses,
             sure = sure,
+            leaderCost = if (builtIn) kept.firstOrNull { it.ahead == 0 }?.shapeCost else null,
         )
     }
 
@@ -32104,7 +32118,68 @@ open class WMKeyboardService : InputMethodService() {
             shapes = shapeSourceFor(stroke.keys, stroke.keyWidthPx),
         ).map { restoreApostrophe(it.word) ?: it.word }
             .filterNot { it.equals(rejected, ignoreCase = true) }
-            .take(slots)
+            .let { words ->
+                // The user has said the reading was wrong, so the letters
+                // the stroke marked go on whatever the fit (#1291).
+                val letters = drawnLettersOf(stroke.points, stroke.keys, stroke.keyWidthPx, words + rejected, _uiState.value)
+                withDrawnLetters(words.take(slots), letters, slots).take(slots)
+            }
+    }
+
+    /**
+     * The letters [points] marks on the grid ([GlideLiteral]), to offer beside
+     * [words] (#1291), or null: the setting is off, the composer's answers are
+     * not the keys' letters (a phonetic layout spells a romanization, Pinyin
+     * and kana a reading), a word already there spells them ([GlideLiteral.coveredBy]),
+     * or the user put them on the never-suggest list.
+     */
+    private fun drawnLettersOf(
+        points: List<GesturePoint>,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+        words: List<String>,
+        state: KeyboardUiState,
+    ): String? {
+        if (state.settings.gesture.drawnLetters == GlideDrawnLetters.OFF) return null
+        if (state.composer.isTransliterating || state.composer.isConversion) return null
+        val literal = GlideLiteral.read(points, keyMapFor(keys, keyWidthPx), keyWidthPx) ?: return null
+        if (words.any { GlideLiteral.coveredBy(literal, it) }) return null
+        if (state.settings.suggestionSources.blacklisted(literal, state.language.id)) return null
+        return literal
+    }
+
+    /**
+     * The letters a stroke marks, when [reading] — the lift's own decode —
+     * is weak enough to offer them right away ([GlideDrawnLetters.WHEN_UNSURE]):
+     * they explain the stroke within [GlideLiteral.FIT_SHARE] of the best
+     * reading's alignment cost. Null otherwise, and whenever the stroke was
+     * read by an engine whose costs cannot be compared. Off the main thread.
+     */
+    private fun lettersForWeakReading(
+        reading: GlideReading,
+        points: List<GesturePoint>,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+        state: KeyboardUiState,
+    ): String? {
+        if (state.settings.gesture.drawnLetters != GlideDrawnLetters.WHEN_UNSURE) return null
+        val cost = reading.leaderCost ?: return null
+        val engine = suggestionEngine ?: return null
+        val literal = drawnLettersOf(points, keys, keyWidthPx, reading.words, state) ?: return null
+        val fit = engine.glideFitOf(literal, points, keyMapFor(keys, keyWidthPx), keyWidthPx) ?: return null
+        return literal.takeIf { GlideLiteral.offerBeside(cost, fit) }
+    }
+
+    /**
+     * [words] with [letters] in the strip's last slot of [slots], or after
+     * them on a strip they do not fill; never the first slot, which is the
+     * word the stroke typed. The word it moves along stays on the strip's
+     * further pages.
+     */
+    private fun withDrawnLetters(words: List<String>, letters: String?, slots: Int): List<String> {
+        if (letters == null) return words
+        val at = minOf(maxOf(slots - 1, 1), words.size)
+        return words.toMutableList().apply { add(at, letters) }
     }
 
     /**
@@ -34086,8 +34161,12 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         gestureJob = serviceScope.launch {
-            val reading = withContext(Dispatchers.Default) {
-                glideDecode(points, keys, keyWidthPx)
+            // The letters the stroke marks ride the same hop as its decode
+            // (#1291): a one-word decode more, and only when the reading is
+            // weak enough for them to be offered at all.
+            val (reading, drawnLetters) = withContext(Dispatchers.Default) {
+                val read = glideDecode(points, keys, keyWidthPx)
+                read to lettersForWeakReading(read, points, keys, keyWidthPx, state)
             }
             val candidates = reading.words
             // The words before this one, as the decode saw them, for the
@@ -34140,7 +34219,10 @@ open class WMKeyboardService : InputMethodService() {
             val strip = when {
                 drawn != null -> glideEarlyLiftStrip(picked, drawn, candidates)
                 chosen != null -> glideStripOrder(candidates, chosen)
-                else -> candidates
+                // The stroke's own letters take the strip's last slot when
+                // no word fits it nearly as well (#1291). Never typed: a tap
+                // on them is a pick over the word that was, and teaches it.
+                else -> withDrawnLetters(candidates, drawnLetters, state.settings.suggestionStrip.slotCount)
             }
             val word = glideCased(picked, shiftAtGesture, verdict.caseAt(0), points, keys, keyWidthPx)
             gestureWordShifted = shiftAtGesture != ShiftState.OFF || verdict.caseAt(0) != GlideCase.None
