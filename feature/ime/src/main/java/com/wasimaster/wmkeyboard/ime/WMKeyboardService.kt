@@ -549,6 +549,8 @@ import com.wasimaster.wmkeyboard.core.tools.parsePickModeKey
 import com.wasimaster.wmkeyboard.core.tools.pickModeKeyFor
 import com.wasimaster.wmkeyboard.core.tools.pickerLetter
 import com.wasimaster.wmkeyboard.core.tools.toolbarHintButtons
+import com.wasimaster.wmkeyboard.ime.ui.SplitBarShift
+import com.wasimaster.wmkeyboard.ime.ui.SplitBarTouchFrame
 import com.wasimaster.wmkeyboard.ime.ui.StableMeasureFrame
 import com.wasimaster.wmkeyboard.ime.ui.ImeNavigationBars
 import com.wasimaster.wmkeyboard.ime.ui.LocalImeNavigationBars
@@ -7024,11 +7026,23 @@ open class WMKeyboardService : InputMethodService() {
         // whole window.
         // The keyboard keeps the params the input frame gives an input view:
         // full width, its own height.
+        // Between the two, the frame that moves a touch on a split bar row's
+        // right half to where the row laid it out (#1256).
+        val touchFrame = SplitBarTouchFrame(this).apply {
+            addView(
+                view,
+                android.widget.FrameLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                ),
+            )
+        }
+        splitBarTouchFrame = touchFrame
         return StableMeasureFrame(this, navigationBars).apply {
             edgeSwipeBackEnabled = { _uiState.value.settings.layoutBehavior.edgeSwipeBack }
             onEdgeSwipeBack = ::onEdgeSwipeBack
             addView(
-                view,
+                touchFrame,
                 android.widget.FrameLayout.LayoutParams(
                     android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                     android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -7473,7 +7487,11 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var splitGapRects: List<android.graphics.Rect> = emptyList()
 
-    private fun onSplitGaps(gaps: List<IntRect>) {
+    /** The input view's frame that moves touches on split bar rows; see [SplitBarTouchFrame]. */
+    private var splitBarTouchFrame: SplitBarTouchFrame? = null
+
+    private fun onSplitGaps(gaps: List<IntRect>, shifts: List<SplitBarShift>) {
+        splitBarTouchFrame?.shifts = shifts
         val rects = gaps.map { android.graphics.Rect(it.left, it.top, it.right, it.bottom) }
         if (rects != splitGapRects) {
             splitGapRects = rects
@@ -11137,7 +11155,8 @@ open class WMKeyboardService : InputMethodService() {
         // back from another keyboard must not keep the ones it left with.
         inputRootView?.requestApplyInsets()
         // Nor a height hold learned while it was last up (#669).
-        (inputRootView?.parent as? StableMeasureFrame)?.onShownAgain()
+        generateSequence(inputRootView?.parent) { it.parent }
+            .filterIsInstance<StableMeasureFrame>().firstOrNull()?.onShownAgain()
     }
 
     /**

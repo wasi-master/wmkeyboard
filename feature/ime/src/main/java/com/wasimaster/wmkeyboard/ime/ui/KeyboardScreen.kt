@@ -2509,7 +2509,12 @@ private fun DockedKeyboardFrame(
     // on a television or in a settings preview, where there is no app behind.
     val gapSeeThrough = state.settings.layoutBehavior.splitGapSeeThrough && resize == null &&
         !state.television && !LocalKeyboardPreviewHost.current
-    val gapCutout = remember(gapSeeThrough) { if (gapSeeThrough) SplitGapCutout() else null }
+    // The bar rows' holes reach down (or up) to the keys' over the board's
+    // padding between them, so the column runs through unbroken.
+    val gapBridgePx = with(density) { SplitGapBridge.toPx() }
+    val gapCutout = remember(gapSeeThrough, gapBridgePx) {
+        if (gapSeeThrough) SplitGapCutout(gapBridgePx) else null
+    }
     val gapHoles = remember(gapCutout) { Modifier.splitGapHoles(gapCutout) }
     SplitGapReporter(gapCutout)
     val revealingBody: @Composable ColumnScope.(KeyboardUiState) -> Unit = { bodyState ->
@@ -6380,6 +6385,9 @@ internal fun RowScope.LatinSuggestionChips(
     // Candidates change under the menu as the user keeps typing; a menu still
     // naming the old word would blacklist something they never held.
     LaunchedEffect(candidates) { heldWord = null }
+    // Where a see-through split gap cuts the strip (#1256), so no word is
+    // drawn half on each side of it.
+    val splitCut = rememberSplitCutTracker()
 
     // BoxWithConstraints, not a bare Row, because the chips shrink long words to
     // fit and that needs the slot width up front. One subcomposition covers
@@ -6388,6 +6396,7 @@ internal fun RowScope.LatinSuggestionChips(
         modifier = Modifier
             .weight(weight)
             .fillMaxHeight()
+            .then(splitCut?.tracker ?: Modifier)
             // Fades in a beat behind the emoji's slide as candidates arrive,
             // and out as they leave (see [stripContentAlpha]).
             .graphicsLayer { this.alpha = alpha() },
@@ -6465,7 +6474,19 @@ internal fun RowScope.LatinSuggestionChips(
         // "it" is drawn whole rather than squeezed while two slots sit half
         // empty. Only when some word needs it: words that all fit keep the
         // equal slots, and with them where each one sits under the thumb.
-        val shareWidths: List<Dp>? = if (!scrollable && !fixed && shown.size >= 2) {
+        // Split around the gap: the slots before the cut share what is left of
+        // it and the rest what is right of it, so a slot edge is where the
+        // gap is. Not a scrolling strip, whose words move under the cut.
+        val cutAt = if (scrollable) null else splitCut?.cutIn()
+        val split = cutAt?.let { cut ->
+            with(density) {
+                cellsAroundCut(shown.size, maxWidth.toPx(), cut, SuggestionDividerWidth.toPx())
+                    ?.let { (widths, after) -> widths.map { it.toDp() } to after }
+            }
+        }
+        val shareWidths: List<Dp>? = if (split != null) {
+            split.first
+        } else if (!scrollable && !fixed && shown.size >= 2) {
             remember(shown, maxWidth, textPadding, baseSize, baseStyle, shiftState) {
                 val style = baseStyle.merge(TextStyle(fontSize = baseSize, fontWeight = FontWeight.SemiBold))
                 val needs = shown.map { word ->
@@ -6492,7 +6513,8 @@ internal fun RowScope.LatinSuggestionChips(
                 VerticalDivider(
                     modifier = Modifier.height(20.dp),
                     thickness = SuggestionDividerWidth,
-                    color = if (!tinted && suggestion != null && shown[index - 1] != null) {
+                    // Not against the gap, where the halves already stand apart.
+                    color = if (!tinted && suggestion != null && shown[index - 1] != null && index != split?.second) {
                         MaterialTheme.colorScheme.outlineVariant
                     } else {
                         Color.Transparent
@@ -6500,7 +6522,11 @@ internal fun RowScope.LatinSuggestionChips(
                 )
             }
             if (suggestion == null) {
-                Box(modifier = Modifier.weight(1f).fillMaxHeight())
+                Box(
+                    modifier = Modifier
+                        .weight(shareWidths?.getOrNull(index)?.value?.coerceAtLeast(1f) ?: 1f)
+                        .fillMaxHeight(),
+                )
                 return@slot
             }
             // Fixed mode splits the width by weight. Scroll mode cannot
@@ -12633,10 +12659,34 @@ private fun RowScope.ToolbarRow(
         }
     }
     if (greedy) {
+        // Over a see-through split gap (#1256), the grid moves in from one end
+        // until an edge between two cells is where the gap is, so no button is
+        // drawn half on each side of it. Every cell the row lays out counts:
+        // the way back, the toolbox's search beside it, the toolbox, the
+        // tools (one empty cell when there are none) and the search at the end.
+        val gridCut = rememberSplitCutTracker()
+        val gridCells = (if (panelOpen && !toolboxIsBack) 1 else 0) +
+            (if (toolboxSearchShown) 1 else 0) +
+            (if (barToolboxShown(state)) 1 else 0) +
+            (displayTools.size + pinnedFolders.size + pinnedApps.size + pinnedCustom.size).coerceAtLeast(1)
+        val gridInset = gridCut?.let { cut ->
+            cut.cutIn()?.let { insetToCut(gridCells, cut.laidOutWidth.toFloat(), it) }
+        }
+        val gridDensity = LocalDensity.current
         Row(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight(),
+                .fillMaxHeight()
+                .then(gridCut?.tracker ?: Modifier)
+                .then(
+                    if (gridInset == null) {
+                        Modifier
+                    } else {
+                        with(gridDensity) {
+                            Modifier.absolutePadding(left = gridInset.first.toDp(), right = gridInset.second.toDp())
+                        }
+                    },
+                ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             leading(
@@ -15410,10 +15460,14 @@ private fun KeyboardBody(
             // through ColumnScope's own AnimatedVisibility.
             @Composable
             fun BarRowSlot(row: BarRow) {
+                // Split around the keys' see-through gap (#1256), inside the
+                // fill so the fill and its glass stay where they are.
+                val splitHalves = rememberSplitBarHalves(LocalSplitGapCutout.current)
                 Column(
                     modifier = Modifier.barRowFill(
                         if (row == BarRow.TOOLS || row == BarRow.SECOND_TOOLBAR) toolsFill else barFill,
                     )
+                        .then(splitHalves?.modifier ?: Modifier)
                         .duetBarTouch(state, onGesturePreview)
                         // The all-thumbs-up pause, shrinking along the strip (#747).
                         .then(
@@ -15424,6 +15478,8 @@ private fun KeyboardBody(
                             },
                         ),
                 ) {
+                    // What sits on the row keeps clear of where it is cut.
+                    CompositionLocalProvider(LocalSplitBarHalves provides splitHalves) {
                     when (row) {
                         BarRow.TOPBAR -> when {
                             // A snippet waiting for its {ask:} answers holds
@@ -15677,6 +15733,7 @@ private fun KeyboardBody(
                         // Stands for the keys themselves: the split below draws
                         // them, so the entry itself is never a row.
                         BarRow.KEYBOARD -> {}
+                    }
                     }
                 }
             }
