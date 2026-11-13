@@ -6857,6 +6857,16 @@ data class VoiceBarSettings(
      */
     val aiTidy: Boolean = false,
     /**
+     * Swear words in dictation are masked to their first letter ("f***").
+     * Off by default: the words go in as they were said. Off also asks the
+     * system recognizer not to mask them (`EXTRA_MASK_OFFENSIVE_WORDS`,
+     * Android 13+), which Google's does by default; on, the short lists in
+     * `assets/dictionaries/swearing/` (`VoiceSwearing`) mask what every engine
+     * hears, including the on-device ones and transcription servers, which
+     * have no filter of their own.
+     */
+    val maskSwearing: Boolean = false,
+    /**
      * The surface the bar's expand button goes back to — whichever of
      * [MODE_PANEL] or [MODE_STRIP] the user collapsed from, defaulting to the
      * panel when the bar was chosen in settings instead.
@@ -12981,6 +12991,7 @@ class SettingsRepository(private val context: Context) {
         private val VOICE_SYSTEM_SERVICE = stringPreferencesKey("voice_system_service")
         private val VOICE_BY_LANG = stringPreferencesKey("voice_by_lang")
         private val VOICE_AI_TIDY = booleanPreferencesKey("voice_ai_tidy")
+        private val VOICE_MASK_SWEARING = booleanPreferencesKey("voice_mask_swearing")
         private val VOICE_UI_RETURN_MODE = stringPreferencesKey("voice_ui_return_mode")
         private val VOICE_BAR_INLINE = booleanPreferencesKey("voice_bar_inline")
         private val VOICE_CONTINUOUS = booleanPreferencesKey("voice_continuous")
@@ -15675,6 +15686,7 @@ class SettingsRepository(private val context: Context) {
             micSwitch = p[VOICE_MIC_SWITCH] ?: defaults.voiceBar.micSwitch,
             enginePicker = p[VOICE_ENGINE_PICKER] ?: defaults.voiceBar.enginePicker,
             aiTidy = p[VOICE_AI_TIDY] ?: defaults.voiceBar.aiTidy,
+            maskSwearing = p[VOICE_MASK_SWEARING] ?: defaults.voiceBar.maskSwearing,
             returnMode = p[VOICE_UI_RETURN_MODE] ?: defaults.voiceBar.returnMode,
             inline = p[VOICE_BAR_INLINE] ?: defaults.voiceBar.inline,
         )
@@ -17358,6 +17370,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVoiceAiTidy(value: Boolean) =
         editPrefs { it[VOICE_AI_TIDY] = value }
+
+    /** [VoiceBarSettings.maskSwearing]. */
+    suspend fun setVoiceMaskSwearing(value: Boolean) =
+        editPrefs { it[VOICE_MASK_SWEARING] = value }
 
     suspend fun setVoiceBarActive(value: Boolean) =
         editPrefs { it[VOICE_BAR_ACTIVE] = value }

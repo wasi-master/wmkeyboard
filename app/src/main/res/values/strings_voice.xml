@@ -255,6 +255,9 @@
     <!-- #499: each dictated phrase is cleaned up by the model of the AI tool. -->
     <string name="voice_ai_tidy_title">Tidy dictation with AI</string>
     <string name="voice_ai_tidy_subtitle">Remove filler words, repeats and spoken corrections from each phrase</string>
+    <string name="voice_mask_swearing_title">Mask swear words</string>
+    <string name="voice_mask_swearing_subtitle">Dictated swear words go in as f***</string>
+    <string name="voice_mask_swearing_info">Off, the keyboard asks Google\'s speech recognition not to mask swear words, which it does by default on Android 13 and later. Some other recognizers ignore the request. On, swear words and slurs keep their first letter and the rest becomes asterisks, whichever engine heard them. Whisper, the other on-device engines and transcription servers have no filter of their own, so the keyboard uses a short list of its own for them, in English, Spanish, French, German, Italian and Portuguese. Dictation in another language is only masked when it goes through Google.</string>
     <string name="voice_ai_tidy_info">After each phrase goes into the field, the keyboard sends it to the model of the AI tool. The model removes filler words such as um and uh, false starts, repeated words and the parts that you corrected aloud: \"at three, no, four\" becomes \"at four\". Your words, language and tone stay the same. The phrase stays as you said it if the answer is slow or fails, or if you change the text first. The next phrase starts when the answer arrives. Each phrase goes to the AI provider that you set for the AI tool. Plain text mode, password fields and the boxes of the keyboard itself are not tidied.</string>
     <string name="voice_hold_picks_title">Hold the tool to pick a mode</string>
     <string name="voice_hold_picks_subtitle">Press and hold the Voice tool on the toolbar to choose a voice typing mode and start at once</string>

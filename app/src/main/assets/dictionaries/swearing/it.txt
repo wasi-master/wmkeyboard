@@ -1,0 +1,33 @@
+# Swear words and slurs masked in dictation ("f***") while "Mask swear
+# words" is on, for Italian. Deliberately short: the offensive/ lists next door
+# hide suggestions and carry everyday words (kill, sex, upright) that must
+# never be masked in speech. One lowercased word per line, inflections
+# listed out; blank lines and lines starting with # are ignored.
+
+cazzo
+cazzi
+cazzata
+cazzate
+incazzato
+incazzata
+stronzo
+stronza
+stronzi
+stronze
+vaffanculo
+fanculo
+puttana
+puttane
+troia
+troie
+minchia
+coglione
+coglioni
+merda
+merde
+frocio
+froci
+bastardo
+bastarda
+bastardi
+figa

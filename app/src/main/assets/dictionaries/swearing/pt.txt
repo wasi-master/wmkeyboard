@@ -1,0 +1,30 @@
+# Swear words and slurs masked in dictation ("f***") while "Mask swear
+# words" is on, for Portuguese. Deliberately short: the offensive/ lists next door
+# hide suggestions and carry everyday words (kill, sex, upright) that must
+# never be masked in speech. One lowercased word per line, inflections
+# listed out; blank lines and lines starting with # are ignored.
+
+porra
+porras
+caralho
+caralhos
+merda
+merdas
+foda
+fodas
+foder
+fodido
+fodida
+fodidos
+fodidas
+puta
+putas
+puto
+putos
+viado
+viados
+buceta
+bucetas
+arrombado
+arrombada
+cuzão

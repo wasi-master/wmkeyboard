@@ -1,0 +1,33 @@
+# Swear words and slurs masked in dictation ("f***") while "Mask swear
+# words" is on, for German. Deliberately short: the offensive/ lists next door
+# hide suggestions and carry everyday words (kill, sex, upright) that must
+# never be masked in speech. One lowercased word per line, inflections
+# listed out; blank lines and lines starting with # are ignored.
+
+scheiße
+scheisse
+scheiß
+scheiss
+scheißegal
+beschissen
+fick
+ficken
+fickt
+fickst
+gefickt
+ficker
+arschloch
+arschlöcher
+fotze
+fotzen
+hurensohn
+hurensöhne
+wichser
+schlampe
+schlampen
+hure
+huren
+schwuchtel
+schwuchteln
+missgeburt
+missgeburten

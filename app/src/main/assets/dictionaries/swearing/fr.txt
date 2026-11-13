@@ -1,0 +1,33 @@
+# Swear words and slurs masked in dictation ("f***") while "Mask swear
+# words" is on, for French. Deliberately short: the offensive/ lists next door
+# hide suggestions and carry everyday words (kill, sex, upright) that must
+# never be masked in speech. One lowercased word per line, inflections
+# listed out; blank lines and lines starting with # are ignored.
+
+putain
+putains
+pute
+putes
+merde
+merdes
+merdique
+connard
+connards
+connasse
+connasses
+salope
+salopes
+salaud
+salauds
+enculé
+enculée
+enculés
+enculer
+encule
+nique
+niquer
+niqué
+pédé
+pédés
+tapette
+tapettes

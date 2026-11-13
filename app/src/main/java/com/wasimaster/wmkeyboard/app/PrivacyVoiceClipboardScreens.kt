@@ -520,6 +520,15 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.voiceBar.aiTidy,
             ) { scope.launch { repository.setVoiceAiTidy(it) } }
         }
+        item {
+            ToggleSetting(
+                R.string.voice_mask_swearing_title,
+                stringResource(R.string.voice_mask_swearing_subtitle),
+                settings.watch { it.voiceBar.maskSwearing },
+                info = stringResource(R.string.voice_mask_swearing_info),
+                default = SettingsDefaults.voiceBar.maskSwearing,
+            ) { scope.launch { repository.setVoiceMaskSwearing(it) } }
+        }
     }
     // The keyboard's engines for every other app's microphone (#1142).
     SettingsGroup(stringResource(R.string.voice_other_apps_group)) {

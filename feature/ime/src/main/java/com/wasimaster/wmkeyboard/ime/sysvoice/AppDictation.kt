@@ -25,6 +25,7 @@ import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
 import com.wasimaster.wmkeyboard.core.voice.VoiceInputEngine
 import com.wasimaster.wmkeyboard.core.voice.VoiceMics
 import com.wasimaster.wmkeyboard.core.voice.VoicePunctuation
+import com.wasimaster.wmkeyboard.core.voice.VoiceSwearing
 import com.wasimaster.wmkeyboard.core.voice.VoiceStream
 import com.wasimaster.wmkeyboard.core.voice.WhisperRecorder
 import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllEngine
@@ -455,7 +456,8 @@ class AppDictation(
                     val text = stream.text().trim()
                     if (text != shown) {
                         shown = text
-                        withContext(Dispatchers.Main) { if (!done && recorder === rec) listener.onPartial(text) }
+                        val partial = masked(text)
+                        withContext(Dispatchers.Main) { if (!done && recorder === rec) listener.onPartial(partial) }
                     }
                     if (stream.endpoint) {
                         withContext(Dispatchers.Main) { if (recorder === rec) endPhrase() }
@@ -645,6 +647,7 @@ class AppDictation(
             formatting = !plain,
             bias = VoiceBiasRequest(biasWords(VoiceBias.RECOGNIZER_LIMIT), deviceContext = settings.whisper.biasPersonalWords),
             alsoListenFor = languageIds.drop(1).map(::tagOf),
+            maskOffensive = settings.voiceBar.maskSwearing,
             listener = object : VoiceInputEngine.Listener {
                 override fun onListening() {
                     if (forward === engine && !done) listener.onReady()
@@ -660,7 +663,7 @@ class AppDictation(
                         spoke = true
                         listener.onSpeechStart()
                     }
-                    listener.onPartial(text)
+                    listener.onPartial(masked(text))
                 }
 
                 override fun onEndOfSpeech() {
@@ -699,10 +702,15 @@ class AppDictation(
         // Said punctuation ("comma") as the keyboard types it. An engine that
         // went through [punctuated] has had it already; a second pass finds
         // nothing left to turn into a mark.
-        val out = if (settings.voiceSpokenPunctuation && !plain) VoicePunctuation.apply(text, tag) else text
-        listener.onResult(out)
+        val spoken = if (settings.voiceSpokenPunctuation && !plain) VoicePunctuation.apply(text, tag) else text
+        // "Mask swear words": the engines with no filter of their own get one.
+        listener.onResult(masked(spoken))
         scope.cancel()
     }
+
+    /** [text] with its swear words masked when "Mask swear words" is on. */
+    private fun masked(text: String): String =
+        if (settings.voiceBar.maskSwearing) VoiceSwearing.mask(app, text, languageIds) else text
 
     private fun fail(error: Error) {
         if (done) return

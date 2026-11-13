@@ -762,6 +762,7 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 import com.wasimaster.wmkeyboard.core.voice.moonshine.MoonshineEngine
 import com.wasimaster.wmkeyboard.core.voice.parakeet.ParakeetEngine
 import com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation
+import com.wasimaster.wmkeyboard.core.voice.VoiceSwearing
 import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
@@ -36300,10 +36301,20 @@ open class WMKeyboardService : InputMethodService() {
      * written in Latin letters. A partial goes through it as well as the
      * finished phrase, so the words do not change script as they land.
      * Idempotent: the Latin it writes is left alone a second time.
+     *
+     * Swear words are masked here too when "Mask swear words" is on, before
+     * the script changes, since the lists are spelled in each language's own
+     * script; being every engine's last step, a partial never shows a word
+     * the phrase will not keep.
      */
     private fun romanizedVoiceText(text: String): String {
+        val heard = if (_uiState.value.settings.voiceBar.maskSwearing) {
+            VoiceSwearing.mask(applicationContext, text, voiceLanguageIds())
+        } else {
+            text
+        }
         val ids = voiceRomanizedIds()
-        return if (ids.isEmpty()) text else romanizedDictation.romanize(text, ids)
+        return if (ids.isEmpty()) heard else romanizedDictation.romanize(heard, ids)
     }
 
     /** The language a dictation starts in; see [voiceLanguageIds]. */
@@ -36772,6 +36783,8 @@ open class WMKeyboardService : InputMethodService() {
             formatting = !plainVoice(),
             bias = recognizerBias(),
             alsoListenFor = languageIds.drop(1).map(::voiceTagOf),
+            // Off, Google's recognizer is asked to stop putting "f***" in.
+            maskOffensive = _uiState.value.settings.voiceBar.maskSwearing,
             listener = object : VoiceInputEngine.Listener {
                 override fun onListening() {
                     if (generation != voiceGeneration) return

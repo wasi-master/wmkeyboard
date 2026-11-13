@@ -1,0 +1,42 @@
+# Swear words and slurs masked in dictation ("f***") while "Mask swear
+# words" is on, for Spanish. Deliberately short: the offensive/ lists next door
+# hide suggestions and carry everyday words (kill, sex, upright) that must
+# never be masked in speech. One lowercased word per line, inflections
+# listed out; blank lines and lines starting with # are ignored.
+
+puta
+putas
+puto
+putos
+putada
+hijoputa
+joder
+jodido
+jodida
+jodidos
+jodidas
+coño
+cabrón
+cabrona
+cabrones
+gilipollas
+mierda
+mierdas
+pendejo
+pendeja
+pendejos
+pendejas
+chingar
+chinga
+chingada
+chingado
+chingados
+verga
+marica
+maricón
+maricones
+culero
+culera
+culeros
+mamón
+mamona
