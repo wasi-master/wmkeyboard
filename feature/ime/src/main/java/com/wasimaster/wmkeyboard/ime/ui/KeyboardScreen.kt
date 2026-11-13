@@ -7145,12 +7145,45 @@ private fun CandidateGridPanel(
         // four, which fixed columns would leave ragged, so they always wrap.
         val columns = state.settings.suggestionStrip.slotCount.coerceAtLeast(1)
         if (!state.composer.isConversion && state.settings.suggestionStrip.expandedGrid) {
-            state.expandedCandidates.chunked(columns).forEachIndexed { row, words ->
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    words.forEachIndexed { column, candidate ->
-                        chip(Modifier.weight(1f), row * columns + column, candidate)
+            // A word wider than one cell takes as many cells as it needs, in
+            // its place in the order, so a long Bengali word reads whole
+            // instead of ending in "…" (Telegram 8723). Rows still line up
+            // on the strip's columns.
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val measurer = rememberTextMeasurer()
+                val density = LocalDensity.current
+                val baseStyle = LocalTextStyle.current
+                val cellPx = (constraints.maxWidth / columns).coerceAtLeast(1)
+                val chipPaddingPx = with(density) { (CandidateGridChipPadding * 2).roundToPx() }
+                val candidates = state.expandedCandidates
+                val rows = remember(candidates, cellPx, textScale, baseStyle) {
+                    val style = baseStyle.merge(
+                        TextStyle(fontSize = CandidateFontSize * textScale, fontWeight = FontWeight.SemiBold),
+                    )
+                    val out = mutableListOf<MutableList<Pair<Int, Int>>>()
+                    var used = columns
+                    candidates.forEachIndexed { index, word ->
+                        val width = measurer.measure(word, style, maxLines = 1).size.width + chipPaddingPx
+                        val span = ((width + cellPx - 1) / cellPx).coerceIn(1, columns)
+                        if (used + span > columns) {
+                            out += mutableListOf<Pair<Int, Int>>()
+                            used = 0
+                        }
+                        out.last() += index to span
+                        used += span
                     }
-                    repeat(columns - words.size) { Spacer(modifier = Modifier.weight(1f)) }
+                    out
+                }
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    rows.forEach { cells ->
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            cells.forEach { (index, span) ->
+                                chip(Modifier.weight(span.toFloat()), index, candidates[index])
+                            }
+                            val left = columns - cells.sumOf { it.second }
+                            if (left > 0) Spacer(modifier = Modifier.weight(left.toFloat()))
+                        }
+                    }
                 }
             }
         } else {
@@ -7292,6 +7325,9 @@ internal fun fixedSlotOrder(ranked: List<String>, slots: Int, primarySlot: Int):
 
 /** Row height in the expanded grid — a comfortable tap target for one glyph. */
 private val CandidateGridRowHeight = 44.dp
+
+/** A grid chip's outer padding plus its text's, each side: 2dp + 10dp. */
+private val CandidateGridChipPadding = 12.dp
 
 /** Tap-target floor for a candidate chip; single Hanzi would be narrower. */
 private val CandidateChipMinWidth = 44.dp
