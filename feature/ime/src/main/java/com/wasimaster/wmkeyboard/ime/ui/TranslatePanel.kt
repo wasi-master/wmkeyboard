@@ -27,6 +27,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.VolumeUp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowDropDown
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoMode
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
@@ -115,6 +116,8 @@ data class TranslateCallbacks(
     val onClear: () -> Unit = {},
     /** Translate only when asked (#1226): sends the box's text, once. */
     val onTranslate: () -> Unit = {},
+    /** Reads the translation aloud in its own language (#1085). */
+    val onSpeak: () -> Unit = {},
 )
 
 /**
@@ -256,6 +259,7 @@ internal fun TranslateTool(
                         .weight(1f)
                         .heightIn(max = FullBleedHeaderHeight)
                         .padding(start = 8.dp),
+                    callbacks.onSpeak,
                 )
                 TranslateActionRow(
                     state,
@@ -347,6 +351,7 @@ private fun TranslatePanel(
                 Modifier
                     .weight(1f)
                     .fillMaxHeight(),
+                callbacks.onSpeak,
             )
         }
         return
@@ -363,7 +368,7 @@ private fun TranslatePanel(
             )
         },
         languages = { TranslateLanguageRow(state, callbacks, menus) },
-        result = { TranslateResult(state, Modifier.fillMaxSize()) },
+        result = { TranslateResult(state, Modifier.fillMaxSize(), callbacks.onSpeak) },
         actions = {
             TranslateActionRow(
                 state,
@@ -630,9 +635,13 @@ private fun TranslateLanguageRow(
     }
 }
 
-/** The translation, the error in its place, or the offer of the models it needs. */
+/**
+ * The translation, the error in its place, or the offer of the models it
+ * needs. A translation has a speaker at its corner that reads it aloud in its
+ * own language (#1085).
+ */
 @Composable
-private fun TranslateResult(state: KeyboardUiState, modifier: Modifier) {
+private fun TranslateResult(state: KeyboardUiState, modifier: Modifier, onSpeak: () -> Unit = {}) {
     val kb = LocalKbTheme.current
     val translate = state.translate
     val animate = kb.motion.toolResults
@@ -645,10 +654,31 @@ private fun TranslateResult(state: KeyboardUiState, modifier: Modifier) {
         if (offer) {
             TranslateDownloadOffer(translate = translate, modifier = Modifier.fillMaxSize(), animate = animate)
         } else {
-            TranslateText(state, animate, Modifier.fillMaxSize())
+            Box(Modifier.fillMaxSize()) {
+                val speakable = translate.translated.isNotEmpty() && translate.error == null
+                TranslateText(state, animate, Modifier.fillMaxSize().padding(end = if (speakable) TranslateSpeakSize else 0.dp))
+                if (speakable) {
+                    val speak = stringResource(R.string.ime_translate_speak_desc)
+                    IconHint(speak, modifier = Modifier.align(Alignment.TopEnd)) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.VolumeUp,
+                            contentDescription = speak,
+                            tint = kb.secondaryText,
+                            modifier = Modifier
+                                .size(TranslateSpeakSize)
+                                .clip(CircleShape)
+                                .clickable(onClick = onSpeak)
+                                .padding(5.dp),
+                        )
+                    }
+                }
+            }
         }
     }
 }
+
+/** The speaker at the translation's corner, padding included. */
+private val TranslateSpeakSize = 28.dp
 
 /** The translation, or the line standing in for it, fading in where it changed. */
 @Composable

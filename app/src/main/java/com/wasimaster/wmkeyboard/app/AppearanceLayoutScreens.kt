@@ -70,6 +70,9 @@ import com.wasimaster.wmkeyboard.core.settings.oneHandedAllowedOn
 import com.wasimaster.wmkeyboard.core.settings.splitAllowedOn
 import com.wasimaster.wmkeyboard.core.settings.ToolbarColumn
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
+import com.wasimaster.wmkeyboard.core.settings.SecondToolbarPlace
+import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
+import com.wasimaster.wmkeyboard.core.settings.secondToolbarPlace
 import com.wasimaster.wmkeyboard.core.settings.ToolboxLayout
 import com.wasimaster.wmkeyboard.core.settings.ToolboxSort
 import com.wasimaster.wmkeyboard.core.settings.ToolboxPageSizeRange
@@ -356,7 +359,11 @@ internal fun AppearanceToolbarSettings(
     val widthPinned = themePin(settings) { it.toolWidthDp }
     val toolbarMoved = settings.watch { s ->
         val d = SettingsDefaults
-        s.toolbarBehavior != d.toolbarBehavior ||
+        // Without the second toolbar (#1217), which the reset leaves alone.
+        s.toolbarBehavior.copy(
+            secondRow = d.toolbarBehavior.secondRow,
+            secondRowTools = d.toolbarBehavior.secondRowTools,
+        ) != d.toolbarBehavior ||
             s.toolbarHeightDp != d.toolbarHeightDp ||
             s.toolbarLabels != d.toolbarLabels ||
             s.toolbarLabelSize != d.toolbarLabelSize ||
@@ -823,6 +830,78 @@ internal fun AppearanceToolbarSettings(
                 action = stringResource(CommonR.string.common_reset),
                 confirm = stringResource(R.string.appearance_toolbar_reset_confirm),
             ) { scope.launch { repository.resetToolbar() } }
+        }
+    }
+    // A row of tools of its own (#1217), picked apart from the pinned ones.
+    // Not gated on the toolbar: the row stays with the toolbar switched off.
+    val secondOn = settings.watch { it.toolbarBehavior.secondRow }
+    SettingsGroup(stringResource(R.string.appearance_second_toolbar_section_title)) {
+        item {
+            ToggleSetting(
+                R.string.appearance_second_toolbar_title,
+                stringResource(R.string.appearance_second_toolbar_subtitle),
+                secondOn,
+                info = stringResource(R.string.appearance_second_toolbar_info),
+                default = SettingsDefaults.toolbarBehavior.secondRow,
+            ) { scope.launch { repository.setSecondToolbar(it) } }
+        }
+        // The row order on Rows & bars places it anywhere; this names the
+        // two places the issue asked for, and moves its entry there.
+        item(visible = secondOn) {
+            ChoiceSetting(
+                title = R.string.appearance_second_toolbar_place_title,
+                subtitle = stringResource(R.string.appearance_second_toolbar_place_subtitle),
+                options = listOf(
+                    SecondToolbarPlace.ABOVE_TOOLBAR to
+                        stringResource(R.string.appearance_second_toolbar_place_above_label),
+                    SecondToolbarPlace.BELOW_STRIP to
+                        stringResource(R.string.appearance_second_toolbar_place_below_label),
+                ),
+                selected = settings.watch { secondToolbarPlace(it.barOrder) },
+                onChange = { scope.launch { repository.setSecondToolbarPlace(it) } },
+                default = secondToolbarPlace(SettingsDefaults.barOrder),
+            )
+        }
+        // Its tools, picked the way the strip's buttons are: add from the
+        // tool list, drag to reorder, the bin to take one off.
+        item(visible = secondOn) {
+            val tools = settings.watch { it.toolbarBehavior.secondRowTools }
+            var picking by remember { mutableStateOf(false) }
+            NavRow(
+                title = R.string.appearance_second_toolbar_tools_title,
+                subtitle = stringResource(R.string.appearance_second_toolbar_tools_subtitle),
+                value = stringResource(R.string.langemoji_strip_tools_add_value),
+            ) { picking = true }
+            if (picking) {
+                ToolPickerDialog(
+                    title = stringResource(R.string.appearance_second_toolbar_tools_title),
+                    current = null,
+                    // Not the action-only tools: they are never drawn as a
+                    // button, so one picked here would leave a gap in the row.
+                    options = ToolbarTool.entries.filter {
+                        isSupportedTool(it) && it !in ActionOnlyTools && it !in tools
+                    },
+                    onDismiss = { picking = false },
+                    onPick = { picked ->
+                        picking = false
+                        if (picked != null) scope.launch { repository.setSecondToolbarTools(tools + picked) }
+                    },
+                )
+            }
+        }
+        item(visible = secondOn) {
+            val tools = settings.watch { it.toolbarBehavior.secondRowTools }
+            // Every tool's name, not only the chosen ones': the list adopts a
+            // change a frame after it lands, so a tool just taken off is
+            // still drawn once more by name.
+            val names = ToolbarTool.entries.associateWith { stringResource(toolTitle(it)) }
+            ReorderableColumn(
+                items = tools,
+                label = { names[it] ?: it.name },
+                onReorder = { order -> scope.launch { repository.setSecondToolbarTools(order) } },
+                onDelete = { tool -> scope.launch { repository.setSecondToolbarTools(tools - tool) } },
+                keepLast = false,
+            )
         }
     }
 }

@@ -207,7 +207,15 @@ import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.settings.AutoThemeTrigger
 import com.wasimaster.wmkeyboard.core.settings.AppColorScope
 import com.wasimaster.wmkeyboard.core.theme.AppColorSource
+import com.wasimaster.wmkeyboard.core.theme.DEFAULT_KEY_GLOW_DP
+import com.wasimaster.wmkeyboard.core.theme.KEY_GLOW_RANGE
+import com.wasimaster.wmkeyboard.core.theme.KEY_OVERRIDE_RADIUS_RANGE
+import com.wasimaster.wmkeyboard.core.theme.LooseTheme
+import com.wasimaster.wmkeyboard.core.theme.ORB_SPOT_POSITION_RANGE
+import com.wasimaster.wmkeyboard.core.theme.ORB_SPOT_RADIUS_RANGE
+import com.wasimaster.wmkeyboard.core.theme.OrbSpot
 import com.wasimaster.wmkeyboard.core.theme.PaletteStyle
+import com.wasimaster.wmkeyboard.core.theme.defaultOrbSpots
 import com.wasimaster.wmkeyboard.core.theme.paletteStyleSwatch
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.effectiveThemeId
@@ -1330,8 +1338,17 @@ fun ThemesScreen(
                 context.contentResolver.readTextCapped(uri)
             }.getOrNull()
         }
-        val parsed = text?.let { ThemeCodec.decode(it) }
-            ?: return ThemeFileOutcome.failed(context.getString(R.string.theme_import_wrong_file_error))
+        // A file this app wrote decodes as itself. Anything else is read for
+        // the colours it names before the plain decoder is tried: that one
+        // takes any JSON object at all, and turned a chat assistant's theme
+        // into the default grey with the file's name on it.
+        val parsed = text?.let {
+            if (WMFileTypes.looksLikeThemeExport(it)) {
+                ThemeCodec.decode(it)
+            } else {
+                LooseTheme.read(it) ?: ThemeCodec.decode(it)
+            }
+        } ?: return ThemeFileOutcome.failed(context.getString(R.string.theme_import_wrong_file_error))
         // Set the fresh ids first — the parent's and every variant's — so
         // the extracted image filenames key off them and stay unique
         // against existing themes.
@@ -6318,12 +6335,14 @@ private fun ThemeEditorContent(
                     info = stringResource(R.string.theme_board_effect_reactive_body),
                 ) { v -> updateBoardEffect { it.copy(reactive = (v * 20).roundToInt() / 20f) } }
             }
-            for (slot in 0 until 2) {
+            // Two colours always; a third and a fourth once the one before is set.
+            for (slot in 0 until MAX_BOARD_EFFECT_COLORS) {
+                if (slot >= 2 && slot > boardEffect.colors.size) continue
                 item(level = SettingLevel.STANDARD) {
                     NullableColorRow(
-                        if (slot == 0) R.string.theme_board_effect_color_title else R.string.theme_board_effect_color2_title,
+                        BOARD_EFFECT_COLOR_TITLES[slot],
                         boardEffect.colors.getOrNull(slot),
-                        fallback = look.watch { if (slot == 0) it.accent else it.keyText },
+                        fallback = look.watch { if (slot == 1) it.keyText else it.accent },
                         supportsAlpha = true,
                         onChange = { c ->
                             updateBoardEffect { spec ->
@@ -6339,6 +6358,49 @@ private fun ThemeEditorContent(
                             }
                         },
                     )
+                }
+            }
+            if (boardEffectKindOrNull(boardEffect.kind) == BoardEffectKind.ORBS) {
+                item(level = SettingLevel.STANDARD) {
+                    ToggleSetting(
+                        title = R.string.theme_board_effect_orb_spots_title,
+                        subtitle = null,
+                        checked = boardEffect.orbSpots.isNotEmpty(),
+                        info = stringResource(R.string.theme_board_effect_orb_spots_body),
+                    ) { on ->
+                        updateBoardEffect {
+                            it.copy(orbSpots = if (on) defaultOrbSpots(maxOf(it.colors.size, 2)) else emptyList())
+                        }
+                    }
+                }
+                boardEffect.orbSpots.forEachIndexed { index, spot ->
+                    fun setSpot(change: (OrbSpot) -> OrbSpot) = updateBoardEffect { spec ->
+                        spec.copy(orbSpots = spec.orbSpots.mapIndexed { i, s -> if (i == index) change(s) else s })
+                    }
+                    item(level = SettingLevel.STANDARD) {
+                        SliderRow(
+                            stringResource(R.string.theme_board_effect_orb_x_title, index + 1),
+                            value = spot.x,
+                            range = ORB_SPOT_POSITION_RANGE,
+                            display = { "%d%%".format((it * 100).roundToInt()) },
+                        ) { v -> setSpot { it.copy(x = (v * 50).roundToInt() / 50f) } }
+                    }
+                    item(level = SettingLevel.STANDARD) {
+                        SliderRow(
+                            stringResource(R.string.theme_board_effect_orb_y_title, index + 1),
+                            value = spot.y,
+                            range = ORB_SPOT_POSITION_RANGE,
+                            display = { "%d%%".format((it * 100).roundToInt()) },
+                        ) { v -> setSpot { it.copy(y = (v * 50).roundToInt() / 50f) } }
+                    }
+                    item(level = SettingLevel.STANDARD) {
+                        SliderRow(
+                            stringResource(R.string.theme_board_effect_orb_size_title, index + 1),
+                            value = spot.radius,
+                            range = ORB_SPOT_RADIUS_RANGE,
+                            display = { "%d%%".format((it * 100).roundToInt()) },
+                        ) { v -> setSpot { it.copy(radius = (v * 50).roundToInt() / 50f) } }
+                    }
                 }
             }
         }
@@ -7489,12 +7551,12 @@ private fun KeyOverrideDialog(
         }
     }
     if (shapePickerOpen) {
-        // The board's radius still decides how round a rounded key is: one
-        // number per theme is the shape the slider has, and the shapes that
-        // need their own (circle, pill) read no radius at all.
+        // Drawn at the radius this key will have: its own where it has one,
+        // else the board's. The shapes that need their own (circle, pill)
+        // read no radius at all.
         KeyShapePickerDialog(
             selected = keyShapeKindOrNull(override.shape),
-            radiusDp = theme.keyCornerRadiusDp ?: 8,
+            radiusDp = override.cornerRadiusDp ?: theme.keyCornerRadiusDp ?: 8,
             title = R.string.theme_key_override_shape_title,
             onAuto = {
                 onChange(override.copy(shape = null))
@@ -7536,6 +7598,61 @@ private fun KeyOverrideDialog(
                 override.border, fallback = theme.keyBorderColor ?: theme.keyText,
                 onChange = { onChange(override.copy(border = it)) },
             )
+            // The face as a gradient: a red-to-crimson enter key, a space bar
+            // that fades. Turned on, it starts from the colour the key has
+            // now and shades it darker, so the first look is a gentle one.
+            val faceStart = override.background ?: theme.keyBackground
+            ToggleSetting(
+                title = R.string.theme_key_override_gradient_title,
+                subtitle = null,
+                checked = override.gradient != null,
+            ) { on ->
+                onChange(
+                    override.copy(
+                        gradient = if (on) {
+                            GradientSpec(listOf(faceStart, faceStart.shaded(0.7f)), GradientType.LINEAR, 90f)
+                        } else {
+                            null
+                        },
+                    ),
+                )
+            }
+            override.gradient?.let { gradient ->
+                ColorRow(
+                    R.string.theme_key_override_gradient_start_title,
+                    gradient.colors.firstOrNull() ?: faceStart,
+                    supportsAlpha = true,
+                ) { c ->
+                    onChange(override.copy(gradient = gradient.copy(colors = listOf(c) + gradient.colors.drop(1).ifEmpty { listOf(c) })))
+                }
+                ColorRow(
+                    R.string.theme_key_override_gradient_end_title,
+                    gradient.colors.lastOrNull() ?: faceStart,
+                    supportsAlpha = true,
+                ) { c ->
+                    onChange(override.copy(gradient = gradient.copy(colors = gradient.colors.dropLast(1).ifEmpty { listOf(c) } + c)))
+                }
+                SliderRow(
+                    R.string.theme_key_override_gradient_angle_title,
+                    value = gradient.angleDeg.mod(360f).coerceIn(0f, 345f),
+                    range = 0f..345f,
+                    display = { "${it.roundToInt()}°" },
+                ) { v -> onChange(override.copy(gradient = gradient.copy(angleDeg = (v / 15f).roundToInt() * 15f))) }
+            }
+            NullableColorRow(
+                R.string.theme_key_override_glow_title,
+                override.glow, fallback = theme.accent,
+                supportsAlpha = true,
+                onChange = { glow -> onChange(override.copy(glow = glow, glowDp = if (glow == null) null else override.glowDp)) },
+            )
+            if (override.glow != null) {
+                SliderRow(
+                    R.string.theme_key_override_glow_size_title,
+                    value = override.glowDp ?: DEFAULT_KEY_GLOW_DP,
+                    range = KEY_GLOW_RANGE,
+                    display = { "${it.roundToInt()} dp" },
+                ) { v -> onChange(override.copy(glowDp = v.roundToInt().toFloat())) }
+            }
             if (popupsShown) {
                 NullableColorRow(
                     R.string.theme_popup_background_title,
@@ -7634,6 +7751,19 @@ private fun KeyOverrideDialog(
                     ?: stringResource(CommonR.string.common_auto),
                 onClick = { shapePickerOpen = true },
             )
+            ToggleSetting(
+                title = R.string.theme_key_override_radius_title,
+                subtitle = override.cornerRadiusDp?.let { "$it dp" } ?: stringResource(CommonR.string.common_auto),
+                checked = override.cornerRadiusDp != null,
+            ) { on -> onChange(override.copy(cornerRadiusDp = if (on) theme.keyCornerRadiusDp ?: 8 else null)) }
+            override.cornerRadiusDp?.let { radius ->
+                SliderRow(
+                    R.string.theme_key_override_radius_title,
+                    value = radius.toFloat(),
+                    range = KEY_OVERRIDE_RADIUS_RANGE.first.toFloat()..KEY_OVERRIDE_RADIUS_RANGE.last.toFloat(),
+                    display = { "${it.roundToInt()} dp" },
+                ) { onChange(override.copy(cornerRadiusDp = it.roundToInt())) }
+            }
             ChoiceControl(
                 options = listOf(
                     null to stringResource(CommonR.string.common_auto),
@@ -8209,6 +8339,20 @@ private fun CropImageDialog(
 }
 
 // ---- small building blocks ----
+
+/** The board effect's colour rows, in slot order. */
+private val BOARD_EFFECT_COLOR_TITLES = listOf(
+    R.string.theme_board_effect_color_title,
+    R.string.theme_board_effect_color2_title,
+    R.string.theme_board_effect_color3_title,
+    R.string.theme_board_effect_color4_title,
+)
+
+/** [this] ARGB colour with its red, green and blue scaled by [factor]; alpha kept. */
+private fun Long.shaded(factor: Float): Long {
+    fun ch(shift: Int) = (((this ushr shift) and 0xFF) * factor).roundToInt().coerceIn(0, 255).toLong() shl shift
+    return (this and 0xFF000000L) or ch(16) or ch(8) or ch(0)
+}
 
 /** Shared with the sticker editor, which needs the same throttled slider. */
 @Composable

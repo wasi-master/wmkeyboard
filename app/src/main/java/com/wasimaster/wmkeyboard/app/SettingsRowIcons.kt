@@ -294,6 +294,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Today
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Toll
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TouchApp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInFull
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloseFullscreen
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInBrowser
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TravelExplore
@@ -788,6 +789,7 @@ internal object SettingsRowIcons {
         put(R.string.languages_cjk_fuzzy_title) { Icons.Outlined.BlurOn }
         put(R.string.languages_cjk_lazy_title) { Icons.Outlined.RecordVoiceOver }
         put(R.string.languages_cjk_loose_marks_title) { Icons.Outlined.Spellcheck }
+        put(R.string.languages_cjk_flick_only_title) { Icons.Outlined.TouchApp }
         put(R.string.languages_cjk_full_width_space_title) { Icons.Outlined.SpaceBar }
         put(R.string.languages_cjk_space_steps_title) { Icons.Outlined.SwapHoriz }
         put(R.string.languages_cjk_fuzzy_pairs_reset_title) { Icons.Outlined.Restore }
@@ -1240,6 +1242,10 @@ internal object SettingsRowIcons {
         put(R.string.typing_two_thumb_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_finger_swipes_title) { Icons.Outlined.Swipe }
         put(R.string.typing_finger_swipes_reset_title) { Icons.Outlined.RestartAlt }
+        put(R.string.typing_pinch_gestures_title) { Icons.Outlined.VerticalSplit }
+        put(R.string.typing_stretch_row_title) { Icons.Outlined.OpenInFull }
+        put(R.string.typing_pinch_row_title) { Icons.Outlined.CloseFullscreen }
+        put(R.string.typing_pinch_reset_title) { Icons.Outlined.RestartAlt }
         put(R.string.typing_symbol_chords_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_symbol_chord_add_title) { Icons.Outlined.Add }
         put(R.string.typing_symbol_chords_reset_title) { Icons.Outlined.RestartAlt }
@@ -2013,6 +2019,13 @@ internal object SettingsRowIcons {
         put(R.string.theme_effect_duration_title) { Icons.Outlined.Timer }
         put(R.string.theme_key_override_shape_title) { Icons.Outlined.Category }
         put(R.string.theme_key_override_label_size_title) { Icons.Outlined.FormatSize }
+        put(R.string.theme_key_override_gradient_title) { Icons.Outlined.Gradient }
+        put(R.string.theme_key_override_gradient_start_title) { Icons.Outlined.Palette }
+        put(R.string.theme_key_override_gradient_end_title) { Icons.Outlined.Palette }
+        put(R.string.theme_key_override_gradient_angle_title) { Icons.Outlined.Architecture }
+        put(R.string.theme_key_override_glow_title) { Icons.Outlined.LightMode }
+        put(R.string.theme_key_override_glow_size_title) { Icons.Outlined.BlurOn }
+        put(R.string.theme_key_override_radius_title) { Icons.Outlined.RoundedCorner }
         put(R.string.theme_decal_x_title) { Icons.Outlined.SwapHoriz }
         put(R.string.theme_decal_y_title) { Icons.Outlined.SwapVert }
         put(R.string.theme_decal_size_title) { Icons.Outlined.PhotoSizeSelectLarge }
@@ -2474,6 +2487,7 @@ internal object SettingsRowIcons {
         put(R.string.theme_board_effect_intensity_title) { Icons.Outlined.Tune }
         put(R.string.theme_board_effect_scale_title) { Icons.Outlined.ZoomOutMap }
         put(R.string.theme_board_effect_reactive_title) { Icons.Outlined.TouchApp }
+        put(R.string.theme_board_effect_orb_spots_title) { Icons.Outlined.Tune }
         put(R.string.theme_lighting_color_title) { Icons.Outlined.ColorLens }
         put(R.string.theme_lighting_intensity_title) { Icons.Outlined.LightMode }
         put(R.string.theme_lighting_size_title) { Icons.Outlined.BlurOn }

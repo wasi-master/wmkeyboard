@@ -411,6 +411,10 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import com.wasimaster.wmkeyboard.core.theme.KEY_OVERRIDE_LABEL_SCALE_RANGE
+import com.wasimaster.wmkeyboard.core.theme.DEFAULT_KEY_GLOW_DP
+import com.wasimaster.wmkeyboard.core.theme.GradientSpec
+import com.wasimaster.wmkeyboard.core.theme.KEY_GLOW_RANGE
+import com.wasimaster.wmkeyboard.core.theme.KEY_OVERRIDE_RADIUS_RANGE
 import com.wasimaster.wmkeyboard.core.theme.KeyOverride
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
@@ -614,6 +618,7 @@ import com.wasimaster.wmkeyboard.core.layout.BottomRowRules
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCounts
 import com.wasimaster.wmkeyboard.core.layout.actionOf
+import com.wasimaster.wmkeyboard.core.layout.PinchGesture
 import com.wasimaster.wmkeyboard.core.layout.effectiveChords
 import com.wasimaster.wmkeyboard.core.layout.PAD_SPACE_LABEL
 import com.wasimaster.wmkeyboard.core.layout.FlickArm
@@ -18513,6 +18518,17 @@ internal data class KeyVisual(
      * family of imported themes is built on (issue #266).
      */
     val shapeKind: KeyShapeKind? = null,
+    /** This one key's corner radius from the theme; null follows the board's. */
+    val cornerRadiusDp: Int? = null,
+    /**
+     * The theme's gradient for this key's resting face, drawn over
+     * [background]; null paints the solid colour alone. Not drawn while a
+     * modifier is latched, for the reason a per-key background is not.
+     */
+    val faceGradient: GradientSpec? = null,
+    /** A halo behind this key, and how far it reaches in dp; null draws none. */
+    val glow: Color? = null,
+    val glowDp: Float = DEFAULT_KEY_GLOW_DP,
     /**
      * The roman this key feeds a transliterating layout's buffer, shift
      * included ([transliterationRoman]), for the corner to ask the composer
@@ -18716,6 +18732,11 @@ internal fun keyVisual(
         bold = override?.bold,
         stripLetter = stripLetter,
         shapeKind = overrideShape,
+        cornerRadiusDp = override?.cornerRadiusDp?.coerceIn(KEY_OVERRIDE_RADIUS_RANGE),
+        faceGradient = override?.gradient
+            ?.takeIf { it.colors.isNotEmpty() && (latch == null || latch == ModifierState.OFF) },
+        glow = override?.glow?.let { Color(it.toInt()) }?.takeIf { it.alpha > 0f },
+        glowDp = override?.glowDp?.takeIf { it.isFinite() }?.coerceIn(KEY_GLOW_RANGE) ?: DEFAULT_KEY_GLOW_DP,
         transliterationRoman = transliterationRoman(key, state),
         alternatesShifted = key.longPress.isNotEmpty() && state.shiftCasesText(),
         flickShiftOn = key.hasFlicks() && state.shiftState != ShiftState.OFF,
@@ -19938,6 +19959,14 @@ private fun KeyRows(
     val fingerSwipesOn = gesture.multiFingerSwipes && !state.typingTestActive &&
         (state.panel == PanelMode.NONE || keysInBox || state.captureHandedToApp)
     val fingerSwipeMap = rememberUpdatedState(gesture.fingerSwipes)
+    // Pinch and stretch (gap list item 18): the same places, but never on the
+    // floating keyboard, whose own pinch resizes it, and never under two-thumb
+    // glide, where two thumbs moving apart are two words.
+    val pinchOn = gesture.pinchGestures && !state.typingTestActive && !state.settings.floatingKeyboard &&
+        !(twoThumbOn && gestureEnabled) &&
+        (state.panel == PanelMode.NONE || keysInBox || state.captureHandedToApp)
+    val pinchMap = rememberUpdatedState(gesture.pinchBindings)
+    val splitNow = rememberUpdatedState(state.settings.splitKeyboard)
     val boxSelection = rememberUpdatedState(
         if (keysInBox) LocalCaptureCaret.current.onSelectionAction else null,
     )
@@ -20105,6 +20134,7 @@ private fun KeyRows(
                 awaitEachGesture {
                     val first = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
                     fingerGate.claimed = false
+                    fingerGate.pinched = false
                     val tracker = FingerSwipeTracker(claimPx, thumbsGlide)
                     tracker.track(first.id.value, first.position.x, first.position.y, pressed = true)
                     // Which trail each finger draws in, given at the claim.
@@ -20117,6 +20147,8 @@ private fun KeyRows(
                             }
                         }
                         if (tracker.abandoned) return@awaitEachGesture
+                        // A pinch took the pair (gap list item 18): it is not a swipe.
+                        if (fingerGate.pinched) return@awaitEachGesture
                         if (tracker.claimed) {
                             for (change in event.changes) {
                                 change.consume()
@@ -20150,6 +20182,70 @@ private fun KeyRows(
                     for (slot in slots.values) fingerTrails[slot].release()
                     val swipe = tracker.result() ?: return@awaitEachGesture
                     val binding = fingerSwipeMap.value.actionOf(swipe) ?: return@awaitEachGesture
+                    val inBox = boxSelection.value?.let { onBox -> binding.action.inCaptureBox()?.let { onBox to it } }
+                    if (inBox != null) {
+                        val (onBox, meant) = inBox
+                        if (meant is CaptureSwipe.Selection) onBox(meant.action)
+                        return@awaitEachGesture
+                    }
+                    if (hapticOn.value) pickerHaptic()
+                    if (binding.action == KeyAction.Text) {
+                        if (binding.label.isNotEmpty()) stampedOnText(binding.label)
+                    } else {
+                        stampedOnKey(Key(label = binding.label, action = binding.action))
+                    }
+                }
+            }
+            // Gap list item 18: two fingers stretched apart or pinched together
+            // on the keys run the action bound to that gesture, split and merge
+            // out of the box. Second in the chain, after the multi-finger swipe,
+            // and built the same way: nothing is consumed until [PinchTracker]
+            // claims the pair, so taps, glides and swipes are untouched, and the
+            // claim sets [fingerGate] so every other loop stands down at its lift.
+            // A touch a swipe has claimed, or one on which a key has already
+            // typed, is given up. The action runs once every finger is up, so
+            // the board never changes shape under fingers still on it, and it
+            // draws nothing, so there is no motion for reduceMotion to cut.
+            .pointerInput(pinchOn, stampedOnKey, stampedOnText) {
+                if (!pinchOn) return@pointerInput
+                val spanPx = PinchSpanDp.dp.toPx()
+                val fingerPx = PinchFingerDp.dp.toPx()
+                val landSlopPx = PinchLandSlopDp.dp.toPx()
+                awaitEachGesture {
+                    val first = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                    fingerGate.claimed = false
+                    fingerGate.pinched = false
+                    val since = first.uptimeMillis
+                    val tracker = PinchTracker(spanPx, fingerPx, landSlopPx)
+                    tracker.track(first.id.value, first.position.x, first.position.y, pressed = true, uptimeMs = since)
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        if (fingerGate.claimed && !fingerGate.pinched) tracker.abandon()
+                        if (lastKeyPressTime.longValue >= since) tracker.abandon()
+                        if (tracker.abandoned) return@awaitEachGesture
+                        for (change in event.changes) {
+                            val claimedNow = tracker.track(
+                                change.id.value, change.position.x, change.position.y, change.pressed, change.uptimeMillis,
+                            )
+                            if (claimedNow) {
+                                fingerGate.claimed = true
+                                fingerGate.pinched = true
+                            }
+                        }
+                        if (tracker.abandoned) return@awaitEachGesture
+                        if (tracker.claimed != null) event.changes.forEach { it.consume() }
+                        if (event.changes.none { it.pressed }) break
+                    }
+                    val pinch = tracker.result() ?: return@awaitEachGesture
+                    val binding = pinchMap.value.actionOf(pinch) ?: return@awaitEachGesture
+                    // The split toggle runs one way per gesture: a stretch only
+                    // splits and a pinch only merges, so a second stretch on a
+                    // split board does not put it back together.
+                    if ((binding.action as? KeyAction.Tool)?.tool == ToolbarTool.SPLIT &&
+                        splitNow.value == (pinch == PinchGesture.STRETCH)
+                    ) {
+                        return@awaitEachGesture
+                    }
                     val inBox = boxSelection.value?.let { onBox -> binding.action.inCaptureBox()?.let { onBox to it } }
                     if (inBox != null) {
                         val (onBox, meant) = inBox
@@ -23334,7 +23430,7 @@ private fun ReadingColumnKey(
     val picking = readings.isNotEmpty()
     val entries = if (picking) readings else key.longPress
     val kb = LocalKbTheme.current
-    val keyShape = kb.keyShape(bleedDp = keyGapH(settings).value, kind = visual.shapeKind)
+    val keyShape = kb.keyShape(bleedDp = keyGapH(settings).value, kind = visual.shapeKind, radiusDp = visual.cornerRadiusDp)
     val onPress = LocalKeyRoleFeedback.current
     val listState = rememberLazyListState()
     LaunchedEffect(entries) { listState.scrollToItem(0) }
@@ -26318,7 +26414,7 @@ internal fun KeyButton(
     // The gap is handed to the shape as the room a leaning outline may spill
     // into: a slanted key then leans across the gap rather than out of its own
     // width, and neighbouring keys interlock instead of thinning out.
-    val keyShape = kb.keyShape(bleedDp = keyGapH(settings).value, kind = visual.shapeKind)
+    val keyShape = kb.keyShape(bleedDp = keyGapH(settings).value, kind = visual.shapeKind, radiusDp = visual.cornerRadiusDp)
     // A key the theme gave its own shape re-runs the shadow guard for that
     // shape: a round enter key may cast one on a board whose own shape cannot.
     // Only an opaque face casts one: the platform shadow is a solid slab under
@@ -26677,6 +26773,19 @@ internal fun KeyButton(
                 val sheen = kb.keyGradient
                     ?.takeIf { faces && key.action == KeyAction.Text }
                     ?.brush()
+                // This key's own gradient face, which a theme names outright
+                // and so draws whether or not the board's keys have faces.
+                val faceBrush = visual.faceGradient?.brush()
+                // Its halo, as rings stepping outwards from the face the way
+                // the GLOW key lighting draws one: cheaper than a blur and
+                // close enough at the width of a key gap.
+                val glowColor = visual.glow
+                val glowReach = visual.glowDp * density
+                val glowCorner = when (visual.shapeKind ?: kb.keyShapeKind) {
+                    KeyShapeKind.PILL, KeyShapeKind.CIRCLE -> size.minDimension / 2f
+                    KeyShapeKind.SHARP -> 0f
+                    else -> (visual.cornerRadiusDp ?: kb.keyRadiusDp) * density
+                }
                 // The theme's texture for this key class, prepared here so the
                 // press-path draw below only picks between ready-made values.
                 // The clip path and tile brush depend on size/shape alone —
@@ -26697,7 +26806,7 @@ internal fun KeyButton(
                 val frost = kb.frost?.takeIf { faces && it.has(frostSurfaceFor(key.action)) }
                 val glass = frost?.let {
                     val lensKind = visual.shapeKind ?: kb.keyShapeKind
-                    val lensRadius = lensRadiusPx(lensKind, kb.keyRadiusDp, size, this)
+                    val lensRadius = lensRadiusPx(lensKind, visual.cornerRadiusDp ?: kb.keyRadiusDp, size, this)
                     GlassPaint.of(
                         backdrop, outline, keyBounds.value.topLeft, it, size, lensRadius, kb.boardFill,
                         pxPerDp = density, withPress = true,
@@ -26722,6 +26831,18 @@ internal fun KeyButton(
                 }
                 onDrawBehind {
                     val down = pressed.value
+                    if (glowColor != null) {
+                        val steps = 4
+                        for (step in steps downTo 1) {
+                            val grow = glowReach * step / steps
+                            drawRoundRect(
+                                glowColor.copy(alpha = glowColor.alpha * 0.3f * (1f - (step - 1f) / steps)),
+                                Offset(-grow, -grow),
+                                Size(size.width + grow * 2, size.height + grow * 2),
+                                CornerRadius(glowCorner + grow),
+                            )
+                        }
+                    }
                     glass?.draw(this, down)
                     if (skin != null) {
                         skin.draw(this, down)
@@ -26738,6 +26859,7 @@ internal fun KeyButton(
                             drawOutline(outline, visual.pressedBackground.copy(alpha = 0.5f))
                         }
                     }
+                    if (faceBrush != null && !down) drawOutline(outline, faceBrush)
                     if (sheen != null && !down) drawOutline(outline, sheen)
                     material?.drawOver(this, down)
                     rim?.draw(this)

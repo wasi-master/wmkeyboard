@@ -53,6 +53,15 @@ class TextWordScanTest {
     }
 
     @Test
+    fun bareHostsAreSkippedButAMissingSpaceIsNot() {
+        val result = scan("read examplesite.com/pathname (wikisite.org). The end.Then more")
+        val keys = result.words.map { it.key }
+        assertFalse(keys.any { it.contains("examplesite") || it.contains("pathname") || it.contains("wikisite") })
+        assertTrue("then" in keys)
+        assertTrue("end" in keys)
+    }
+
+    @Test
     fun sentenceStartCapitalIsNotCaseEvidence() {
         val result = scan("Hello there. Then Zelda came, and zelda left with Zelda.")
         val hello = result.word("hello")

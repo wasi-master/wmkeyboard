@@ -2189,6 +2189,18 @@ private fun CjkDictPackManager(
             ) { on -> scope.launch { repository.setKanaLooseMarks(on) } }
         }
 
+        // Japanese-only: the flick pad takes repeated taps (あ → い → う) as
+        // well as flicks, the keitai way; this keeps it to flicks.
+        item(visible = langId == "ja", level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.languages_cjk_flick_only_title,
+                stringResource(R.string.languages_cjk_flick_only_subtitle),
+                settings.watch { it.cjk.kanaFlickOnly },
+                info = stringResource(R.string.languages_cjk_flick_only_info),
+                default = SettingsDefaults.cjk.kanaFlickOnly,
+            ) { on -> scope.launch { repository.setKanaFlickOnly(on) } }
+        }
+
         // Issue #341: Japanese and Chinese are spaced with the ideographic
         // space, twice the width of an ASCII one. Per language, since the two
         // conventions differ, and off until asked for.

@@ -1453,6 +1453,17 @@
     <string name="typing_finger_swipe_broadcast_title">Broadcast action</string>
     <string name="typing_finger_swipes_reset_title">Reset swipe actions</string>
     <string name="typing_finger_swipes_reset_subtitle">Put every multi-finger swipe back to its default</string>
+    <string name="typing_group_pinch_title">Pinch and stretch</string>
+    <string name="typing_pinch_gestures_title">Pinch and stretch</string>
+    <string name="typing_pinch_gestures_subtitle">Two fingers moved apart or together on the keys run an action</string>
+    <string name="typing_pinch_two_thumb_subtitle">Off while two-thumb typing is on</string>
+    <string name="typing_pinch_gestures_info">Put two fingers on the keys at the same time and move them apart (stretch) or together (pinch). Instead of typing, the gesture runs the action you chose for it. Out of the box, a stretch splits the keyboard in two and a pinch puts it back together. Both fingers have to land together and move a clear distance along the line between them before anything happens, so two quick taps, a glide or a multi-finger swipe still work as before. Lifting a finger first leaves the keys to type as usual. It does nothing on the floating keyboard or while two-thumb typing is on.</string>
+    <string name="typing_stretch_row_title">Stretch</string>
+    <string name="typing_pinch_row_title">Pinch</string>
+    <string name="typing_pinch_split_value">Split the keyboard</string>
+    <string name="typing_pinch_merge_value">Merge the keyboard</string>
+    <string name="typing_pinch_reset_title">Reset pinch actions</string>
+    <string name="typing_pinch_reset_subtitle">Put pinch and stretch back to splitting and merging</string>
     <string name="typing_group_symbol_chords_title">Chords with ?123</string>
     <string name="typing_symbol_chords_title">Chords with ?123</string>
     <string name="typing_symbol_chords_subtitle">Hold ?123 still and tap a key to run an action</string>

@@ -132,6 +132,8 @@ A theme can carry a key sound of its own, and where it does, it wins over everyt
 | Character delete distance | Slider, 8–48 dp | 20 dp | Swipe deletes = Characters |
 | Swipe up to clear all | Toggle | Off | always |
 | Swipe up or down to delete lines | Toggle | Off | always |
+| Swipe up deletes lines | Toggle | On | Swipe up or down to delete lines on |
+| Swipe down deletes lines | Toggle | On | Swipe up or down to delete lines on |
 | Swipe on forward delete | Toggle | On | always |
 | Backspace as a key press on web pages | Toggle | On | always |
 
@@ -139,7 +141,7 @@ A leftward drag on <KeyCap>⌫</KeyCap> deletes more than the one character a pr
 
 **Swipe up to clear all** selects everything in the text box when you swipe straight up on <KeyCap>⌫</KeyCap>, and deletes it when you lift. Bring your finger back down first and nothing is deleted. See [Swiping up to clear everything](/typing/gestures/#swiping-up-to-clear-everything).
 
-**Swipe up or down to delete lines** makes a swipe up on <KeyCap>⌫</KeyCap> delete back to the start of the line, or the whole line above when the cursor is at a line's start, and a swipe down delete to the end of the line, then the line below. Held out, it repeats a line at a time. **Swipe up to clear all** keeps the swipe up when both are on.
+**Swipe up or down to delete lines** makes a swipe up on <KeyCap>⌫</KeyCap> delete back to the start of the line, or the whole line above when the cursor is at a line's start, and a swipe down delete to the end of the line, then the line below. Held out, it repeats a line at a time. **Swipe up deletes lines** and **Swipe down deletes lines** turn either direction off on its own. **Swipe up to clear all** keeps the swipe up when both are on.
 
 **Swipe on forward delete** gives <KeyCap>⌦</KeyCap> the same drag pointed the other way: rightward, over the text after the cursor. It has its own on/off switch and then borrows every other row above, so the two delete keys cannot end up tuned differently. No built-in layout carries a <KeyCap>⌦</KeyCap> key; add one in the [layout editor](/languages/custom-layouts/). Full writeup: [Gestures](/typing/gestures/#deleting-more-than-a-character-with-backspace). This group moved here from the [Typing](/reference/settings/typing/) screen: what a key does under a swipe is a key-press matter.
 
@@ -214,7 +216,7 @@ The repeat interval is two sliders, because delete and space are held for opposi
 
 **Holding delete clears words** changes what the repeat takes: one whole word per tick instead of one letter, on <KeyCap>⌫</KeyCap> and <KeyCap>⌦</KeyCap> alike, each clearing the way its own key points. A single press is untouched and still deletes one character. Word clearing runs on **Word delete interval** rather than the letter one, and ships slower on purpose: at 50 ms a word a held key empties a paragraph before you can lift your finger. The words come off the way a delete swipe takes them, so the whitespace beside the cursor goes with the word beyond it. Both settings are off and hidden respectively out of the box; the swipe gestures are separate, under [Delete keys](#delete-keys) above. Once a held delete key has started to repeat, it stays a hold: a thumb that rolls sideways on the key no longer turns it into a swipe, which used to stop the delete with your finger still down.
 
-**Words stop at punctuation**, **Words stop at capitals** and **Words stop at numbers** say what one word is, for the held delete key and for a backspace swipe set to words. With punctuation on, as it ships, `wmkeyboard.pages.dev` goes as `dev`, `.`, `pages` and so on, and an underscore counts as punctuation too, while an apostrophe inside a word does not, so `don't` goes whole; off, all of it goes in one step, up to the last space. With capitals on, `GrapheneOS` goes as `OS` and then `Graphene`. With numbers on, `word1` goes as `1` and then `word`. The word cursor tools have their own settings for this, under [Where a word ends](/tools/text-editing/#where-a-word-ends).
+**Words stop at punctuation**, **Words stop at capitals** and **Words stop at numbers** say what one word is, for the held delete key and for a backspace swipe set to words. With punctuation on, as it ships, `end.Then` goes as `Then`, `.` and `end`, and an underscore counts as punctuation too, while an apostrophe inside a word does not, so `don't` goes whole; off, all of it goes in one step, up to the last space. A web or email address, such as `wmkeyboard.pages.dev/typing/` or `test@pm.me`, goes in one step either way ([which runs count](/typing/gestures/)). With capitals on, `GrapheneOS` goes as `OS` and then `Graphene`. With numbers on, `word1` goes as `1` and then `word`. The word cursor tools have their own settings for this, under [Where a word ends](/tools/text-editing/#where-a-word-ends).
 
 **Repeating key interval** is the third of those speeds, and it belongs to the keys you set to repeat yourself, and a row of arrow keys is the usual one. It ships at delete's 50 ms, because an arrow key and a backspace are held for the same reason: keep going until the cursor is where you want it. Delete and space keep their own numbers, so changing this one leaves them alone.
 

@@ -97,6 +97,10 @@ With the layout on, selecting text puts two more chips on the [selection bar](/s
 
 The [typing test](/tools/utilities/) has a Hindi word list and quotations of its own, so it works before you've downloaded anything.
 
+## Writing Kruti Dev text
+
+Since 0.6.7 the keyboard can write Hindi for Kruti Dev 010 and DevLys 010, the pre-Unicode fonts many print shops, design programs and government forms still use. Those fonts store each glyph as a Latin character, so हिन्दी is stored as `fgUnh` and धर्म as `/keZ`. Pick **Kruti Dev 010 / DevLys 010** under <SettingsPath path="Languages & layouts / Hindi / Legacy font output / Write for a legacy font" /> and every Hindi layout gets a **KD** button beside the suggestions. With it lit, everything the keyboard writes in Hindi goes into the text box as Kruti Dev. Marathi, Nepali, Sanskrit and the other Devanagari languages have the same option on their own screens. How it works, and what it can't do, is on [Writing for legacy fonts](/languages/overview/#writing-for-legacy-fonts).
+
 ## Editing
 
 Backspace inside a word you're still typing removes one Latin letter per press, and the Devanagari redraws. Over text that's already committed it removes one code point, or a whole conjunct if you turn on <SettingsPath path="Languages & layouts / Hindi / Clusters / Conjunct-aware backspace" />. That toggle is off by default and applies to every Hindi layout.
@@ -128,6 +132,7 @@ No transliteration, no keymap to learn: the Devanagari is printed on the keys, i
 - **Dictionary words**: <SettingsPath path="Languages & layouts / Hindi / Spellings / Correct to dictionary words" />, on by default. Off, space commits exactly what the rules spell instead of a word from the list that sounds like it, and the list's words stay in the suggestion strip. This runs whether or not autocorrect is on.
 - **The words before**: <SettingsPath path="Languages & layouts / Hindi / Spellings / Use the words before" />, on by default. One spelling can stand for several words, and the one or two words you typed just before pick between them, on the strip and for what space writes: "kam" is काम or कम by what came before. The evidence is your own typing and, where the language has one, the downloaded word-pair data. A known spelling only trades places with another known spelling of the same buffer, so the composing text is still what space writes. Turn it off if a word comes out differently after certain words than you expect.
 - **Also suggest from**: with English picked, the phonetic layout's strip also carries the word as you typed it in Latin letters, and an **English words** group appears right below: **Type English words as English** makes the space bar write `hello` as hello, and **Switch on the suggestion strip** shows or hides the small button that turns that on and off while you type. See [English on Avro and Hindi phonetic](/smart/mixed-language/#english-on-avro-and-hindi-phonetic).
+- **Legacy font output**: <SettingsPath path="Languages & layouts / Hindi / Legacy font output / Write for a legacy font" />, Off by default. **Kruti Dev 010 / DevLys 010** puts a KD button on the strip that writes Hindi for those fonts. See [Writing Kruti Dev text](#writing-kruti-dev-text).
 - **Numerals**: `०-९` or `0-9`.
 - **Dictionary**: the downloadable Hindi list has about 243,000 words. You can import your own as well, and imported words are found phonetically too.
 - **Clusters**: conjunct-aware backspace, above.

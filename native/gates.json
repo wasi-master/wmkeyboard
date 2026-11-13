@@ -61,7 +61,8 @@
         { "name": "libwmwhispercpp_v82.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/whispercpp-jni/build.sh", "abis": ["arm64-v8a"] },
         { "name": "libwmwhispercpp_i8mm.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/whispercpp-jni/build.sh", "abis": ["arm64-v8a"] },
         { "name": "libwmwhispercpp_opencl.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/whispercpp-jni/build.sh", "abis": ["arm64-v8a"] },
-        { "name": "libwmwhistle.so", "dir": "core/voice/src/whistle/jniLibs", "abis": ["arm64-v8a"] },
+        { "name": "libwmwhistle.so", "dir": "core/voice/src/whistle/jniLibs", "abis": ["arm64-v8a"],
+          "fdroidPin": { "gate": "whistle", "arm64-v8a": { "sha256": "60a5166cb70fc2253cc839a44edac1dbce493ef1d84b6c52076cbebd9c8a9f7a", "size": 622240 } } },
         { "name": "libwmdenoise.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/rnnoise-jni/build.sh" }
       ]
     },

@@ -31,6 +31,18 @@ import org.gradle.api.tasks.TaskAction
  */
 abstract class NativePinsTask : DefaultTask() {
 
+    /**
+     * `gate\tabi\tname\tsha256\tsize` for each prebuilt library with an
+     * F-Droid pin (`fdroidPin` in native/gates.json). A file of that name and
+     * ABI among [ownLibraries] must hash to it; an absent one (F-Droid's
+     * build, which deletes it) is pinned from it when [fdroid] is set.
+     */
+    @get:Input
+    abstract val fdroidPins: ListProperty<String>
+
+    @get:Input
+    abstract val fdroid: org.gradle.api.provider.Property<Boolean>
+
     /** `gate\tabi\tname\tpath` for each of the project's own libraries. */
     @get:Input
     abstract val ownLibraries: ListProperty<String>
@@ -62,11 +74,26 @@ abstract class NativePinsTask : DefaultTask() {
     fun write() {
         val lines = ArrayList<String>()
         val pinned = HashSet<String>()
+        val ownShas = HashMap<String, String>()
         for (entry in ownLibraries.get()) {
             val (gate, abi, name, path) = entry.split('\t')
             val file = File(path)
-            lines += line(gate, abi, name, sha256(file.readBytes()), file.length(), "data", "")
+            val sha = sha256(file.readBytes())
+            lines += line(gate, abi, name, sha, file.length(), "data", "")
             pinned += name
+            ownShas["$abi/$name"] = sha
+        }
+        for (entry in fdroidPins.get()) {
+            val (gate, abi, name, sha, size) = entry.split('\t')
+            val present = ownShas["$abi/$name"]
+            if (present != null) {
+                check(present == sha) {
+                    "native pins: $abi/$name is $present, but its fdroidPin in native/gates.json says $sha. " +
+                        "Update the pin (and the size) after rebuilding the library."
+                }
+            } else if (fdroid.get()) {
+                lines += line(gate, abi, name, sha, size.toLong(), "data", "")
+            }
         }
         val wanted = mavenLibraries.get().map { it.split('\t') }
         val byModule = wanted.groupBy { it[2] }

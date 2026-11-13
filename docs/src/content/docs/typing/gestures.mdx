@@ -226,6 +226,8 @@ Each step costs a certain amount of leftward travel. In Words mode the cost shri
 
 While the highlight is up the swipe is still undoable: dragging back to the right shrinks it a step at a time, and dragging all the way back to where the swipe started leaves the text alone entirely. The gesture retraces its own steps, so a word that cost a short pull on the shrinking curve gives itself back for the same short pull.
 
+The same goes for <KeyCap>⌦</KeyCap>'s swipe, which before 0.6.7 deleted as it went in an app's text field whatever this setting said.
+
 Turn the setting off to get the older behaviour, where each word or character goes the moment the swipe passes it. Deleted text cannot be given back, so dragging right only re-anchors the gesture, and the next word costs the full first-word distance again instead of picking up where the shrinking curve left off. A few editors cannot hold a selection while the keyboard drives it, and a search box drawn by the keyboard itself (emoji search, for one) has no cursor to select with. The swipe falls back to deleting as it goes in both cases, with no setting to change. It does the same over a word that is still being converted, such as pinyin or Vietnamese Telex, so what is left of the word is still read as one.
 
 ### Swiping up to clear everything
@@ -236,7 +238,7 @@ The swipe has to be steeper than it is wide, so a leftward word swipe that drift
 
 ### Swiping up or down to delete lines
 
-**Swipe up or down to delete lines** (off by default) turns the two vertical swipes on <KeyCap>⌫</KeyCap> into line deletes. A swipe up deletes back to the start of the line the cursor is on. With the cursor already at the start of a line, it deletes the whole line above, so each swipe up takes one more line. A swipe down deletes to the end of the line, then the line below. Keep your finger out after the swipe and it goes on a line at a time, the way holding delete repeats. With **Swipe up to clear all** on as well, the swipe up still clears everything and only the swipe down deletes lines. A delete key your layout already gave an up or down swipe keeps its own. The same two steps are **Delete line** and **Delete line forward** in the layout editor's actions, for any key or swipe.
+**Swipe up or down to delete lines** (off by default) turns the two vertical swipes on <KeyCap>⌫</KeyCap> into line deletes. A swipe up deletes back to the start of the line the cursor is on. With the cursor already at the start of a line, it deletes the whole line above, so each swipe up takes one more line. A swipe down deletes to the end of the line, then the line below. Keep your finger out after the swipe and it goes on a line at a time, the way holding delete repeats. Since 0.6.7, with **Show what you will delete** on, the lines are selected rather than deleted while your finger is out: the highlight grows a line at a time as you hold, the lift deletes it, and bringing your finger back to the key before you lift leaves the text alone. In a text box of the keyboard's own, or with text already selected, the swipe deletes straight away as before. Since 0.6.7 each direction has a row of its own under the setting, **Swipe up deletes lines** and **Swipe down deletes lines**, both on, so you can keep one swipe without the other. With **Swipe up to clear all** on as well, the swipe up still clears everything and only the swipe down deletes lines. A delete key your layout already gave an up or down swipe keeps its own. The same two steps are **Delete line** and **Delete line forward** in the layout editor's actions, for any key or swipe.
 
 ### Holding delete to clear words
 
@@ -260,6 +262,8 @@ Where you put a delete key does not change what it is. The text-editing pad's ow
 
 One step deletes any trailing whitespace plus the run of same-kind characters behind the cursor, where letters and digits count as one kind and punctuation as another. That's what stops a step from stalling on a run like `...` or a string of dashes. It also means a word glued to punctuation (a contraction, a trailing comma) can take more than one step to clear, since the letters and the punctuation are different kinds and each gets its own step.
 
+A web or email address is the exception: it goes in one step, marks and all. `https://example.com/path?q=1`, `example.com/path` and `test@pm.me` each count as a single word, so a step doesn't stop at every dot and slash. The same rule covers the swipe, the word-clearing hold, <KeyCap>⌦</KeyCap> and the word-delete keys on the [text-editing pad](/tools/text-editing/). A run counts as an address when it starts with `http://`, `https://`, `ftp://` or `www.`, has the shape of an email address, or ends its host in a domain ending such as `.com`, `.org` or `.dev`. Endings that are also words, such as `.it`, `.me` and `.in`, count only with a path after them (`t.me/name`). Prose is left alone: `end.Then`, typed without the space after the full stop, is still two words, and so are `e.g.`, `U.S.` and `3.14`. A full stop after an address ends the sentence, so `Visit example.com.` takes the full stop first and the address on the next step. With **Words stop at punctuation** off, everything up to the last space was one word already.
+
 A few things a word-delete step does specially, rather than falling back to plain character deletion:
 
 - If there's an active text selection, one step clears the whole selection instead of doing word math.
@@ -270,7 +274,7 @@ See [Sound & vibration](/typing/feedback/) for the **Vibrate on delete swipe** h
 
 ## Dragging from a modifier key
 
-Drag from <KeyCap>Shift</KeyCap> onto a letter and lift, and you get the capital: one movement instead of a shift tap and then the letter. A band stretches from the key you started on to your fingertip while you drag, drawn in the [glide typing](/typing/glide-typing/) trail's colour and width. It stays a straight line rather than tracing the path your finger took, because the chord is the two keys at its ends and the route between them means nothing. While you drag from Shift the letters turn to capitals, and the key under your finger lights up the way a pressed key does, so you can see which capital the lift will type. The same light follows your finger from Ctrl, Alt and Meta, on any key that has a combination to send.
+Drag from <KeyCap>Shift</KeyCap> onto a letter and lift, and you get the capital: one movement instead of a shift tap and then the letter. A band stretches from the key you started on to your fingertip while you drag, drawn in the [glide typing](/typing/glide-typing/) trail's colour and width. Since 0.6.7 the band is drawn only while glide typing is on; with it off, the lit key alone shows where the drag will land. It stays a straight line rather than tracing the path your finger took, because the chord is the two keys at its ends and the route between them means nothing. While you drag from Shift the letters turn to capitals, and the key under your finger lights up the way a pressed key does, so you can see which capital the lift will type. The same light follows your finger from Ctrl, Alt and Meta, on any key that has a combination to send.
 
 <KeyCap>Ctrl</KeyCap>, <KeyCap>Alt</KeyCap> and <KeyCap>Meta</KeyCap> keys work the same way, and send the combination to the app: Ctrl to <KeyCap>C</KeyCap> copies, Ctrl to <KeyCap>Z</KeyCap> undoes, Ctrl to <KeyCap>Enter</KeyCap> sends the message in the apps that bind it. Shift does that too on any key that isn't a letter, so Shift to <KeyCap>Enter</KeyCap> is a real Shift+Enter and Shift to <KeyCap>Tab</KeyCap> tabs backwards.
 
@@ -293,7 +297,7 @@ Drag off <KeyCap>?123</KeyCap> and the symbols come up under your finger. Lift o
 
 The drag works from a panel too. Put <KeyCap>?123</KeyCap> or <KeyCap>ABC</KeyCap> on the text editing pad, the Numpad or any other [panel layout](/languages/custom-layouts/#panel-layouts), drag off it, and that layer shows over the panel for as long as you hold. Lift and the panel is back, with the emoji or clipboard list still where you left it. A panel isn't one of the keyboard's layers, so <KeyCap>ABC</KeyCap> on a panel always shows the letters.
 
-While you drag, the key under your finger lights up the way a pressed key does, and a straight band stretches from the key you started on to your fingertip, the same one the [modifier drag](#dragging-from-a-modifier-key) draws.
+While you drag, the key under your finger lights up the way a pressed key does, and a straight band stretches from the key you started on to your fingertip, the same one the [modifier drag](#dragging-from-a-modifier-key) draws, and like it only while glide typing is on.
 
 Hold still over a key and its press-and-hold popup opens. Slide onto the character you want, lift, and that's what you get. This popup always follows your finger, whatever **Choose without lifting** is set to, because lifting is what ends the gesture: a popup waiting for a separate tap could never be answered here.
 
@@ -328,6 +332,31 @@ A line follows each finger while the swipe is on, in the [glide typing](/typing/
 The swipes also work on the keys under a tool that types into a box of its own, such as [Translate](/tools/translate/), a search box or a note. There select all, copy, cut, paste and undo act on that box's text, the way its own selection bar does, and not on the app behind the keyboard. Redo has nothing to undo back in those boxes, so it does nothing there.
 
 Fast typing is never mistaken for a swipe. Nothing is decided until every finger on the keys has travelled about 28&nbsp;dp, all of them the same way. A typist rolling from one key to the next lifts long before that, and the keys type as they always did. Lifting any finger before the swipe is recognised hands the whole touch back to the keys.
+
+## Pinch and stretch
+
+<SettingsPath path="Typing / Gestures / Pinch and stretch" />
+
+Put two fingers on the keys at the same time and spread them apart to split the keyboard in two, or pinch them together to put it back. The split is the same one the **Split** tool and the [split keyboard](/typing/size-position/#splitting-the-keyboard-in-half) setting give you. A stretch on a board that is already split does nothing, and so does a pinch on one that is whole, so a stray gesture never undoes the last one.
+
+| Gesture | Does out of the box |
+| --- | --- |
+| Stretch (two fingers apart) | Splits the keyboard |
+| Pinch (two fingers together) | Merges the keyboard |
+
+Tap **Stretch** or **Pinch** to bind it to something else from the same list a [multi-finger swipe](#swiping-with-several-fingers) uses: one-handed mode, a tool, a text-editing step, a layer, another keyboard app, a piece of text. **No action** turns that gesture off and leaves the other one working. **Reset pinch actions** puts both back to split and merge.
+
+The action runs when both fingers have lifted, so the keyboard never changes shape under them. Nothing is drawn while you pinch.
+
+A pinch has to be clearly a pinch before it takes the touch, so typing with two thumbs, gliding and multi-finger swipes work as before:
+
+- Both fingers land within about 0.3&nbsp;s of each other, before the first has moved. A thumb already holding a key, gliding or moving the cursor on the spacebar is doing something else.
+- The gap between them grows or shrinks by at least 40&nbsp;dp and by at least a quarter.
+- Each finger travels at least 14&nbsp;dp, heading roughly toward the other (pinch) or away from it (stretch). One still finger and one moving finger is a held key and a glide, not a stretch.
+- The two fingers do not drift together as a pair. Two thumbs tracing two words wander; a pinch stays roughly where it began.
+- No third finger, no finger lifted first, and no key typed since the first finger landed.
+
+It stands aside on the [floating keyboard](/typing/size-position/#floating-the-keyboard), whose own pinch resizes it, and while [two-thumb typing](/typing/glide-typing/) is on, where two thumbs moving apart are two words.
 
 ## Chords with ?123
 
@@ -441,6 +470,8 @@ A printable table of every gesture on one page lives at [Gesture cheat sheet](/r
 | Multi-finger swipes | On |
 | Two fingers up / left / right / down | Select all / Undo / Redo / Paste |
 | Three and four fingers, any direction | Nothing |
+| Pinch and stretch | On |
+| Stretch / Pinch | Split the keyboard / Merge the keyboard |
 | Chords with ?123 | On |
 | ?123 + L | Next language |
 | Swipes on keys | On, with no keys set |
@@ -463,7 +494,8 @@ Open the **Typing** tile in settings, or search "Gestures", "Delete keys" or "Vo
 - **A multi-finger swipe takes the whole touch once it is recognised.** A word you had started gliding with the first finger is dropped, a key press under any of the fingers types nothing, and a chord or layer drag fires nothing at the lift. The swipe is counted by the most fingers that were down at once, so a third finger that lands a moment late still makes it a three-finger swipe.
 - **Not inside a typing test, and not over a panel without typing keys.** The test counts every keystroke in order, so it keeps the keys to itself; a panel such as emoji or the numpad has no letters to swipe on.
 - **Two-finger swipes stand aside while [two-thumb typing](/typing/glide-typing/) is on.** There two thumbs moving together are two halves of a word, so only three and four finger swipes run. The two-finger rows say so.
-- **A swipe that leans more than about 35° off straight up, down, left or right is no swipe at all**, and neither is one where the fingers head different ways, such as a pinch. Those fall through to the keys.
+- **A swipe that leans more than about 35° off straight up, down, left or right is no swipe at all**, and neither is one where the fingers head different ways. Two fingers moving apart or together along the line between them are a [pinch or stretch](#pinch-and-stretch) instead; anything else falls through to the keys.
+- **A pinch or stretch takes the whole touch once it is recognised**, the same way a multi-finger swipe does: neither finger's key types, and a glide either finger had begun is dropped. A third finger before then makes it a multi-finger swipe, never a pinch.
 - **Volume-key cursor control re-checks "is audio playing" on every key press**, not once at the start of the drag, so control passes back and forth live as playback starts and stops.
 - **A drag off <KeyCap>?123</KeyCap> or <KeyCap>ABC</KeyCap> is never read as a word either**, for the same reason as a modifier drag: <KeyCap>?123</KeyCap> sits against the bottom row beside the spacebar, and a touch that starts there belongs to the layer drag.
 - **A drag off a modifier or Shift key is never read as a word.** Glide typing and handwriting both measure where your finger landed, and a touch that started on one of those keys belongs to the chord drag. Shift is the one you may notice: it sits against the bottom letter row, so a glide that used to be startable from its inner edge now capitalizes instead. Start the word one key further in.

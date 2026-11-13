@@ -736,7 +736,10 @@ fun Key.flickKey(direction: FlickDirection): Key? {
             val target = (action as? KeyAction.KeymanKey)?.flick?.get(direction)
             // The arm's own shift form, never the centre's: under Shift the
             // flick used to type the tap's shiftLabel, whatever arm it took.
-                ?: return copy(output = arm.text, shiftLabel = flickShift[direction])
+                // The cycle stays with the tap: a flicked kana is its own text,
+                // so two quick flicks to い type いい rather than stepping い's
+                // tap cycle (the flick pad's toggle input, gap list item 17).
+                ?: return copy(output = arm.text, shiftLabel = flickShift[direction], multitap = emptyList())
             return Key(label = arm.text, output = target.text, action = target.toAction())
         }
     }
@@ -1165,16 +1168,17 @@ fun Key.flickArmRepeats(): Boolean =
  * down deleting lines after it (#1162), as action arms of its own, so the key's
  * gesture handles them the way it handles any arm: the sideways delete swipe
  * keeps the directions they leave, and a finger held out repeats them. A
- * direction the layout already armed keeps its own arm, and [up] false leaves
- * the swipe up to Swipe up to clear all.
+ * direction the layout already armed keeps its own arm. [up] false leaves the
+ * swipe up to Swipe up to clear all, or to nothing, and [down] false the swipe
+ * down (#1269).
  */
-fun Key.withDeleteLineArms(up: Boolean): Key {
+fun Key.withDeleteLineArms(up: Boolean, down: Boolean = true): Key {
     val add = HashMap<FlickDirection, KeyAlternate>()
     fun free(direction: FlickDirection) = direction !in flickActions && direction !in activeFlick
     if (up && free(FlickDirection.UP)) {
         add[FlickDirection.UP] = KeyAlternate(KeyAction.Edit(TextEditAction.DELETE_LINE))
     }
-    if (free(FlickDirection.DOWN)) {
+    if (down && free(FlickDirection.DOWN)) {
         add[FlickDirection.DOWN] = KeyAlternate(KeyAction.Edit(TextEditAction.DELETE_LINE_FORWARD))
     }
     return if (add.isEmpty()) this else copy(flickActions = flickActions + add)
