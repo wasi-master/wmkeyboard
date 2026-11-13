@@ -19911,6 +19911,10 @@ private fun KeyRows(
     // goes with gesture typing (#1253); the lit key still says what the lift
     // types. Read live so a change doesn't restart the gesture handler.
     val chordBandLive = rememberUpdatedState(state.settings.gestureTyping)
+    // Whether a drag off a modifier types under it at all (#1253). Off, the
+    // loop below still runs for Shift, whose hold types capitals under the
+    // other fingers, but never starts a drag.
+    val modifierDragLive = rememberUpdatedState(state.settings.layoutBehavior.modifierDrag)
     // Every other keyboard-owned field glides too (#161): the stroke spells a
     // word into that field's own buffer at its own caret, never into the app
     // behind the panel. `state.panel == PanelMode.NONE` used to be the whole
@@ -20807,7 +20811,8 @@ private fun KeyRows(
                             // Once something was typed under the held shift, the
                             // shift finger drifting is a hand at work, not a
                             // chord drag towards the key it ends on.
-                            if (!dragging && (slideSource || !shiftHold.typed) && starts) {
+                            val dragAllowed = globe || slideSource || modifierDragLive.value
+                            if (!dragging && dragAllowed && (slideSource || !shiftHold.typed) && starts) {
                                 // A 🌐 held still long enough has opened the
                                 // language picker, and a drag from there is the
                                 // picker's: the key's own press is left as it is.

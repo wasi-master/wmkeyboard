@@ -1116,6 +1116,9 @@
     <string name="typing_backspace_up_clears_info">Press backspace and swipe straight up. Once your finger is far enough up, the keyboard selects all the text in the box and deletes it when you lift. Bring your finger back down before you lift and nothing is deleted.\n\nThe swipe goes as far up as the first word of a backspace swipe goes sideways, the Word delete distance. In a box that shows only part of its text to the keyboard, the swipe does nothing, so it never leaves half a message behind.\n\nA backspace key with its own flick up, set in the layout editor, keeps that flick instead.</string>
 
     <string name="typing_forward_delete_swipe_title">Swipe on forward delete</string>
+    <string name="typing_modifier_drag_title">Drag from Shift and Ctrl</string>
+    <string name="typing_modifier_drag_subtitle">Drag from Shift onto a letter for its capital, or from Ctrl onto a key for the shortcut</string>
+    <string name="typing_modifier_drag_info">Drag from Shift onto a letter and lift, and it types the capital. From Ctrl, Alt or Meta onto a key, it sends that shortcut, such as Ctrl+C. Turn this off if those drags get in the way of your own gestures. Tapping Shift, double-tapping it for caps lock, and holding it to type capitals with another finger all keep working.</string>
     <string name="typing_forward_delete_swipe_subtitle">Swipe right on the forward delete key to clear the text ahead</string>
     <string name="typing_web_backspace_key_title">Backspace as a key press on web pages</string>
     <string name="typing_web_backspace_key_subtitle">Lets code editors and other page editors see backspace</string>

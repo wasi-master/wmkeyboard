@@ -10139,6 +10139,13 @@ data class LayoutBehaviorSettings(
      */
     val fullHeightWindow: Boolean = fullHeightImeWindowByDefault(),
     /**
+     * A drag off Shift, Ctrl, Alt or Meta onto another key types that key
+     * under the modifier (#67): the capital, or Ctrl+C. Off, the drag does
+     * nothing (#1253), for someone whose own gestures start on those keys;
+     * holding Shift to type capitals with other fingers still works.
+     */
+    val modifierDrag: Boolean = true,
+    /**
      * The keys at the ends of a row narrower than the board take the blank
      * space beside them (#530): a tap left of QWERTY's `a` or right of its `l`
      * types that letter instead of landing on nothing, the way Gboard does.
@@ -12610,6 +12617,7 @@ class SettingsRepository(private val context: Context) {
         private val KEY_LABEL_CASE = stringPreferencesKey("key_label_case")
         private val HIDE_SYSTEM_KEYBOARD_BAR = booleanPreferencesKey("hide_system_keyboard_bar")
         private val FULL_HEIGHT_IME_WINDOW = booleanPreferencesKey("full_height_ime_window")
+        private val MODIFIER_DRAG = booleanPreferencesKey("modifier_drag")
         private val EXTEND_EDGE_KEYS = booleanPreferencesKey("extend_edge_keys")
         private val GLOBE_IN_ONE_PLACE = booleanPreferencesKey("globe_in_one_place")
         private val GLOBE_TOOL = stringPreferencesKey("globe_tool")
@@ -15598,6 +15606,7 @@ class SettingsRepository(private val context: Context) {
             hideSystemKeyboardBar =
                 p[HIDE_SYSTEM_KEYBOARD_BAR] ?: defaults.layoutBehavior.hideSystemKeyboardBar,
             fullHeightWindow = p[FULL_HEIGHT_IME_WINDOW] ?: defaults.layoutBehavior.fullHeightWindow,
+            modifierDrag = p[MODIFIER_DRAG] ?: defaults.layoutBehavior.modifierDrag,
             extendEdgeKeys = p[EXTEND_EDGE_KEYS] ?: defaults.layoutBehavior.extendEdgeKeys,
             globeInOnePlace = p[GLOBE_IN_ONE_PLACE] ?: defaults.layoutBehavior.globeInOnePlace,
             globeTool = p[GLOBE_TOOL]?.let { name -> ToolbarTool.entries.firstOrNull { it.name == name } }
@@ -23685,6 +23694,10 @@ class SettingsRepository(private val context: Context) {
     /** See [LayoutBehaviorSettings.fullHeightWindow]. */
     suspend fun setFullHeightWindow(value: Boolean) =
         editPrefs { it[FULL_HEIGHT_IME_WINDOW] = value }
+
+    /** See [LayoutBehaviorSettings.modifierDrag]. */
+    suspend fun setModifierDrag(value: Boolean) =
+        editPrefs { it[MODIFIER_DRAG] = value }
 
     suspend fun setExtendEdgeKeys(value: Boolean) =
         editPrefs { it[EXTEND_EDGE_KEYS] = value }

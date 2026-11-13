@@ -1009,6 +1009,15 @@ internal fun KeyPressSettings(
         }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
+                R.string.typing_modifier_drag_title,
+                stringResource(R.string.typing_modifier_drag_subtitle),
+                settings.watch { it.layoutBehavior.modifierDrag },
+                info = stringResource(R.string.typing_modifier_drag_info),
+                default = SettingsDefaults.layoutBehavior.modifierDrag,
+            ) { scope.launch { repository.setModifierDrag(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
                 R.string.typing_web_backspace_key_title,
                 stringResource(R.string.typing_web_backspace_key_subtitle),
                 settings.watch { it.textEditing.webBackspaceKeyEvents },
