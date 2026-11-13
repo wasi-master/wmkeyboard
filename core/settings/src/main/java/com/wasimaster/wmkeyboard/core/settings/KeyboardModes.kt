@@ -640,6 +640,10 @@ val DefaultKeyboardModes: List<KeyboardMode> = listOf(
             ToolbarTool.NUMPAD, ToolbarTool.SYMBOLS, ToolbarTool.SETTINGS,
         ),
         symbolRowEnabled = false,
+        // Passwords mix digits in far more often than prose does, so the
+        // digits sit on the board even for someone who keeps the number row
+        // off everywhere else (FUTO and AnySoftKeyboard do the same).
+        numberRow = true,
         fieldKinds = listOf(ModeField.PASSWORD),
     ),
     // Field-bound only: an email box is an email box in any app. The mail
@@ -756,7 +760,15 @@ val DefaultKeyboardModes: List<KeyboardMode> = listOf(
  * so upgrades pick the new modes up — see
  * `SettingsRepository.seedNewDefaultModes`.
  */
-const val CurrentModeSeedVersion: Int = 3
+const val CurrentModeSeedVersion: Int = 4
+
+/**
+ * Stored default modes that get `numberRow = true` in seed version 4, when
+ * the Passwords mode started showing the number row. Only a mode that still
+ * leaves the number row to the global setting (`null`) is touched, so a user
+ * who set it either way in the mode editor keeps their choice.
+ */
+val ModesNumberRowInSeedVersion4: Set<String> = setOf("mode_password")
 
 /** Default modes added in seed version 2 (chat and writing). */
 val ModesAddedInSeedVersion2: Set<String> = setOf("mode_chat", "mode_writing")

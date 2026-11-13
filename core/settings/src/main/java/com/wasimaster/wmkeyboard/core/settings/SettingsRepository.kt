@@ -25360,6 +25360,11 @@ class SettingsRepository(private val context: Context) {
                 stored = topUpModeApps(stored, ModeAppsAddedInSeedVersion3)
                 stored = topUpModeFields(stored, ModeFieldsAddedInSeedVersion3)
             }
+            if (seeded < 4) {
+                stored = stored.map {
+                    if (it.id in ModesNumberRowInSeedVersion4 && it.numberRow == null) it.copy(numberRow = true) else it
+                }
+            }
             prefs[KEYBOARD_MODES] = KeyboardModeCodec.encodeList(stored)
         }
 
