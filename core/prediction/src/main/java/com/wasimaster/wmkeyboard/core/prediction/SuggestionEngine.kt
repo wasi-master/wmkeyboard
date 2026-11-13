@@ -3331,6 +3331,15 @@ class SuggestionEngine(
         /** Nats a known word's slip stays under it at best: ln 2, half as likely. */
         private val KNOWN_WORD_SLIP_GAP = ln(2.0)
 
+        /** Nats between two known-word slips held at the ceiling, to keep their order. */
+        private const val KNOWN_WORD_SLIP_STEP = 1e-6
+
+        /**
+         * One-edit words [directSlips] asks for: more than [KNOWN_WORD_SLIPS],
+         * so the hidden ones and the walk's own can be dropped and two remain.
+         */
+        private const val DIRECT_SLIP_POOL = 8
+
         /**
          * Where a glided leader's slips go on the strip ([withLeaderSlips]):
          * after the leader and the decoder's runner-up.
@@ -4114,8 +4123,8 @@ class SuggestionEngine(
         }
         if (accented != null) merged.merge(accented.first, accented.second, ::maxOf)
         val slips = when {
-            known -> knownWordSlips(lower, walked, merged)
-            accented != null -> knownWordSlips(lower, walked, merged, accented.second)
+            known -> knownWordSlips(lower, walked, merged, touch)
+            accented != null -> knownWordSlips(lower, walked, merged, touch, accented.second)
             else -> emptySet()
         }
         // A word typed without its apostrophe — "thats" for that's, "cest"
@@ -4374,20 +4383,84 @@ class SuggestionEngine(
      * Only the strip changes. Autocorrect still leaves a known word alone.
      * [typedScore] is the word the keys spell: [lower] itself, or its
      * accented spelling when only that is listed (#215).
+     *
+     * A rare word the lists hold, `tnr` on the Full English download, is
+     * outscored by its own neighbours' completions: the walk's top ranks fill
+     * with `try`, `three` and `through`, and neither the word nor any plain
+     * one-edit word makes them. Its score is then read from the lists
+     * directly and its one-edit words from the tries ([OneEditWords]), so
+     * the strip still offers the slip it was most likely typed for instead
+     * of the typed word alone. The walk's own slips come first, and the
+     * tries are read only when it has fewer than [KNOWN_WORD_SLIPS] and was
+     * cut short, so an ordinary word pays nothing more per keystroke.
      */
     private fun knownWordSlips(
         lower: String,
         walked: List<FuzzyBeamSearch.ScoredCandidate>,
         merged: HashMap<String, Double>,
-        typedScore: Double? = walked.firstOrNull {
-            it.edits == 0 && it.completedChars == 0 && it.word.lowercase() == lower
-        }?.score,
+        touch: List<TouchPoint?>?,
+        typedScore: Double? = null,
     ): Set<String> {
-        val typed = typedScore ?: return emptySet()
+        val typed = typedScore
+            ?: walked.firstOrNull { it.edits == 0 && it.completedChars == 0 && it.word.lowercase() == lower }?.score
+            ?: listedScore(lower)?.also { merged.merge(lower, it, ::maxOf) }
+            ?: return emptySet()
         val ceiling = typed - KNOWN_WORD_SLIP_GAP
-        val slips = slipsOf(lower, walked).take(KNOWN_WORD_SLIPS).toList()
-        for (c in slips) merged.merge(c.word, minOf(c.score, ceiling), ::maxOf)
-        return slips.mapTo(HashSet()) { it.word.lowercase() }
+        val fromWalk = slipsOf(lower, walked).take(KNOWN_WORD_SLIPS).map { it.word to it.score }.toList()
+        // A walk that came back short of [WALK_K] ran out of words rather than
+        // room, so it already holds every one-edit word there is.
+        val slips = if (fromWalk.size >= KNOWN_WORD_SLIPS || walked.size < WALK_K) {
+            fromWalk
+        } else {
+            (fromWalk + directSlips(lower, touch, fromWalk.map { it.first })).take(KNOWN_WORD_SLIPS)
+        }
+        // A step under the ceiling per place, so two slips that both reach it
+        // keep their order rather than falling back to the alphabet's.
+        slips.forEachIndexed { i, (word, score) ->
+            merged.merge(word, minOf(score, ceiling - i * KNOWN_WORD_SLIP_STEP), ::maxOf)
+        }
+        return slips.mapTo(HashSet()) { it.first.lowercase() }
+    }
+
+    /**
+     * [lower]'s best score in any walk source, the user's own tier included,
+     * on the walk's scale before taps are priced; null when none holds it.
+     */
+    private fun listedScore(lower: String): Double? {
+        var best = Double.NEGATIVE_INFINITY
+        for (src in walkSources()) {
+            val walker = src.walker
+            var node = walker.root
+            for (ch in lower) {
+                node = walker.child(node, ch)
+                if (node < 0) break
+            }
+            if (node >= 0 && walker.isWord(node)) {
+                best = maxOf(best, src.logWeight + ln(1.0 + walker.frequency(node)))
+            }
+        }
+        return best.takeIf { it.isFinite() }
+    }
+
+    /**
+     * [lower]'s one-edit words read off the tries ([OneEditWords]), best
+     * first, less [have] and what [slipsOf] would leave out: the word itself,
+     * its hyphenated spelling and anything the user has hidden.
+     */
+    private fun directSlips(
+        lower: String,
+        touch: List<TouchPoint?>?,
+        have: List<String>,
+    ): List<Pair<String, Double>> {
+        val key = WordKey.of(lower)
+        val seen = have.mapTo(HashSet()) { WordKey.of(it) }
+        return OneEditWords.of(lower, walkSources(), proximity, touchModelField, touch, DIRECT_SLIP_POOL)
+            .asSequence()
+            .filter { WordKey.of(it.word).let { k -> k != key && k !in seen } }
+            .filterNot { it.word.replace("-", "").lowercase() == lower }
+            .filterNot { suppressed(it.word) }
+            .map { it.word to it.score }
+            .toList()
     }
 
     /**

@@ -1428,6 +1428,22 @@ class SuggestionEngineTest {
         assertNull(e.shouldAutocorrect("is"))
     }
 
+    @Test fun `a rare known word still offers its slip when completions crowd the walk`() {
+        // `tnr` is listed (the Full English download keeps it twice), but the
+        // walk's top ranks fill with `tr…` completions after dropping its `n`,
+        // so neither it nor `tmr` makes them. The strip used to show `tnr`
+        // and nothing else.
+        val dictionary = Trie().apply {
+            insert("tnr", 2)
+            insert("tmr", 1_000)
+            for (a in 'a'..'z') for (b in "ab") insert("tr$a$b", 100_000)
+        }
+        val e = SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), UserLexicon(null))
+        val s = e.suggest("tnr", previousWord = null)
+        assertEquals("tnr", s.first())
+        assertTrue("tmr offered in $s", "tmr" in s)
+    }
+
     @Test fun `a secondary word one slip from a primary word reaches the strip`() {
         val primary = Trie().apply { insert("kalb", 5_000) }
         val secondary = Trie().apply { insert("kelb", 5_000) }
