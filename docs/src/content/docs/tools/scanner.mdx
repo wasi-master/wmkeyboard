@@ -48,7 +48,7 @@ After a capture, the recognized words appear as tappable chips grouped by line:
 </PhoneFrame>
 
 - With **Start with everything selected** on (the default), every word starts selected and tapping a chip deselects it, so you can trim the capture down to what you need. Turn it off and chips start empty, so you tap to pick words one at a time instead.
-- **Copy** and **Insert** act on whatever's currently selected.
+- **Copy**, **Translate** and **Insert** sit stacked to the right of the chips, and act on whatever's currently selected.
 - **Translate** opens the [Translate](/tools/translate/) tool on the selected words, translated straight away into its language. Pick only the line you need first, and only that line is translated.
 - **Scan again** discards the capture and returns to the viewfinder. A select-all/deselect-all toggle flips every chip at once.
 
@@ -72,7 +72,7 @@ A picture you copied can be read the same way, with no camera at all: press and 
   {/* shot: tools/qr-scan-live */}
 </PhoneFrame>
 
-The first code it decodes freezes into a result card with **Scan again**, **Copy**, **Share** and **Insert**. If the decoded value is a plain URL (`https://…`, `http://…`, or `www.…`), an **Open** button appears above that row. Anything else is text only, so a scanned value like a Wi-Fi network payload inserts as raw text rather than turning into a connect action. Pinch to zoom while scanning, and a small pill reads out the zoom ("1.2x" style) above roughly 1.05x. One particular link gets a little extra recognition on the result card, over on [Easter eggs](/reference/easter-eggs/#scan-the-inevitable-qr-code).
+The first code it decodes freezes into a result card: the code on the left, and **Scan again**, **Copy**, **Share** and **Insert** stacked down the right. Buttons that don't fit the panel's height move into a second column beside the first. If the decoded value is a plain URL (`https://…`, `http://…`, or `www.…`), an **Open** button heads the stack. Anything else is text only, so a scanned value like a Wi-Fi network payload inserts as raw text rather than turning into a connect action. Pinch to zoom while scanning, and a small pill reads out the zoom ("1.2x" style) above roughly 1.05x. One particular link gets a little extra recognition on the result card, over on [Easter eggs](/reference/easter-eggs/#scan-the-inevitable-qr-code).
 
 To read a code that's already on your phone, such as a screenshot of a QR code, tap the picture button in the bottom-left corner of the camera view. The keyboard's [file manager](/tools/files/) opens, or Android's photo picker in the Play Store build, and the photo you choose is read the same way, on-device, landing on the same result card. When the picture holds no code, a short message says so and the camera view stays up.
 

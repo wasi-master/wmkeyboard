@@ -38,6 +38,9 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowColumn
+import androidx.compose.foundation.layout.FlowColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -818,15 +821,16 @@ private fun CameraContent(
                 panel = PanelMode.CAMERA,
                 region = FocusRegion.ACTIONS,
                 count = focusable.size,
-                columns = focusable.size,
+                // Stacked: up and down walk them.
+                columns = 1,
             ) { index -> focusable.getOrNull(index)?.let(act) }
             val focusedAction = state.focusedIndex(FocusRegion.ACTIONS)
             if (locationOffered && !state.cameraSearchOnly) {
                 LocationCaptionToggle(
                     on = caption,
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 62.dp)
+                        .align(Alignment.BottomStart)
+                        .padding(10.dp)
                         .then(stillLayer),
                 ) {
                     feedback()
@@ -835,13 +839,14 @@ private fun CameraContent(
                     scope.launch { settingsRepo.setCameraLocationCaption(next) }
                 }
             }
-            Row(
+            // Stacked down the right edge, under the round buttons and the
+            // provider chip at the top right, so the photo keeps its middle.
+            CaptureActionStack(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 10.dp)
+                    .align(Alignment.BottomEnd)
+                    .padding(start = 10.dp, end = 10.dp, bottom = 10.dp, top = 60.dp)
                     .then(stillLayer),
-                horizontalArrangement = Arrangement.spacedBy(if (actions.size > 2) 10.dp else 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Bottom,
             ) {
                 actions.forEachIndexed { index, action ->
                     CaptureActionButton(
@@ -858,6 +863,7 @@ private fun CameraContent(
                         accent = action == CaptureAction.SEND ||
                             (action == CaptureAction.SEARCH && CaptureAction.SEND !in actions),
                         focused = focusedAction == index,
+                        modifier = stackWidth(),
                     ) { act(action) }
                 }
             }
@@ -1329,6 +1335,10 @@ internal fun CaptureActionButton(
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
+    // White on the accent read badly wherever the accent is light (the
+    // default theme's dark mode takes Material's pastel primary): the ink
+    // is whichever of white and black stands out more from it.
+    val ink = if (accent) inkOn(kb.accent) else Color.White
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(22.dp))
@@ -1339,10 +1349,10 @@ internal fun CaptureActionButton(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color.White)
+        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = ink)
         Text(
             label,
-            color = Color.White,
+            color = ink,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             maxLines = 1,
@@ -1351,6 +1361,37 @@ internal fun CaptureActionButton(
         )
     }
 }
+
+/** White or black, whichever contrasts more with [fill]. */
+private fun inkOn(fill: Color): Color =
+    if (contrastRatio(Color.White, fill) >= contrastRatio(Color.Black, fill)) Color.White else Color.Black
+
+/**
+ * [CaptureActionButton]s stacked one above another, each as wide as the
+ * widest in its column, spilling into another column beside it when the
+ * height runs out. A row of pills ran off the side of a phone held upright
+ * (Scan again, Copy, Share, Insert) and hid its last action behind a scroll.
+ * Needs a bounded height to wrap: give it fillMaxHeight or an aligned slot
+ * in a sized Box. Children take [stackWidth] to line up.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun CaptureActionStack(
+    modifier: Modifier = Modifier,
+    verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
+    content: @Composable FlowColumnScope.() -> Unit,
+) {
+    FlowColumn(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp, verticalAlignment),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        content = content,
+    )
+}
+
+/** A [CaptureActionStack] child as wide as the widest in its column. */
+@OptIn(ExperimentalLayoutApi::class)
+internal fun FlowColumnScope.stackWidth(): Modifier = Modifier.fillMaxColumnWidth()
 
 @Composable
 internal fun PanelCenteredMessage(text: String) {

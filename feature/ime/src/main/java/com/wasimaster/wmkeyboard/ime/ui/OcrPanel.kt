@@ -39,6 +39,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -1050,82 +1051,88 @@ private fun OcrResultView(
                 )
             }
         } else {
-            Column(
+            // The words on the left, the actions stacked on the right: a row
+            // under the words took a whole line of their height and ran off
+            // an upright phone's edge with a large font (#945).
+            Row(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                    .padding(end = 8.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                for (line in result.lines) {
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        for (word in line) {
-                            val on = word.id in selected
-                            Text(
-                                word.text,
-                                color = if (on) kb.toolCircleActiveIcon else kb.suggestionText,
-                                fontSize = 14.sp,
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (on) kb.toolCircleActive else kb.chip)
-                                    .focusRing(word.id == focusedWord)
-                                    .pointerInput(word.id) {
-                                        detectTapGestures {
-                                            feedback()
-                                            selected = if (on) selected - word.id else selected + word.id
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState())
+                        .padding(start = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    for (line in result.lines) {
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            for (word in line) {
+                                val on = word.id in selected
+                                Text(
+                                    word.text,
+                                    color = if (on) kb.toolCircleActiveIcon else kb.suggestionText,
+                                    fontSize = 14.sp,
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(if (on) kb.toolCircleActive else kb.chip)
+                                        .focusRing(word.id == focusedWord)
+                                        .pointerInput(word.id) {
+                                            detectTapGestures {
+                                                feedback()
+                                                selected = if (on) selected - word.id else selected + word.id
+                                            }
                                         }
-                                    }
-                                    .padding(horizontal = 8.dp, vertical = 5.dp),
-                            )
+                                        .padding(horizontal = 8.dp, vertical = 5.dp),
+                                )
+                            }
                         }
                     }
+                    Spacer(Modifier.height(6.dp))
                 }
-                Spacer(Modifier.height(6.dp))
-            }
-            // Each pill takes no more than its share of the row, so a large
-            // font shortens their labels rather than squeezing the last one
-            // to a sliver (#945).
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-            ) {
-                CaptureActionButton(
-                    icon = Icons.Outlined.ContentCopy,
-                    label = stringResource(CommonR.string.common_copy),
-                    accent = false,
-                    focused = focusedAction == 2,
-                    modifier = Modifier.weight(1f, fill = false),
+                CaptureActionStack(
+                    modifier = Modifier.fillMaxHeight(),
+                    verticalAlignment = Alignment.Bottom,
                 ) {
-                    feedback()
-                    copySelected()
-                }
-                // The picked words in the Translate tool (#807), which then
-                // reads them in the language it translates into.
-                CaptureActionButton(
-                    icon = Icons.Outlined.Translate,
-                    label = stringResource(R.string.ime_scanner_translate_action),
-                    accent = false,
-                    focused = focusedAction == 3,
-                    modifier = Modifier.weight(1f, fill = false),
-                ) {
-                    val text = selectedText()
-                    if (text.isNotEmpty()) onTranslate(text)
-                }
-                CaptureActionButton(
-                    icon = Icons.AutoMirrored.Outlined.Send,
-                    label = stringResource(R.string.ime_scanner_insert_action),
-                    accent = true,
-                    focused = focusedAction == 4,
-                    modifier = Modifier.weight(1f, fill = false),
-                ) {
-                    val text = selectedText()
-                    if (text.isNotEmpty()) onInsert(text)
+                    CaptureActionButton(
+                        icon = Icons.Outlined.ContentCopy,
+                        label = stringResource(CommonR.string.common_copy),
+                        accent = false,
+                        focused = focusedAction == 2,
+                        modifier = stackWidth(),
+                    ) {
+                        feedback()
+                        copySelected()
+                    }
+                    // The picked words in the Translate tool (#807), which then
+                    // reads them in the language it translates into.
+                    CaptureActionButton(
+                        icon = Icons.Outlined.Translate,
+                        label = stringResource(R.string.ime_scanner_translate_action),
+                        accent = false,
+                        focused = focusedAction == 3,
+                        modifier = stackWidth(),
+                    ) {
+                        val text = selectedText()
+                        if (text.isNotEmpty()) onTranslate(text)
+                    }
+                    CaptureActionButton(
+                        icon = Icons.AutoMirrored.Outlined.Send,
+                        label = stringResource(R.string.ime_scanner_insert_action),
+                        accent = true,
+                        focused = focusedAction == 4,
+                        modifier = stackWidth(),
+                    ) {
+                        val text = selectedText()
+                        if (text.isNotEmpty()) onInsert(text)
+                    }
                 }
             }
         }

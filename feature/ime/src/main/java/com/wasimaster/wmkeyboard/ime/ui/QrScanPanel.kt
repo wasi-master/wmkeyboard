@@ -12,18 +12,19 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
@@ -315,7 +316,8 @@ private fun QrScanContent(
                 panel = PanelMode.QR_SCAN,
                 region = FocusRegion.ACTIONS,
                 count = if (url != null) 5 else 4,
-                columns = 5,
+                // Stacked: up and down walk them.
+                columns = 1,
             ) { index ->
                 val slot = if (url != null) index else index + 1
                 when (slot) {
@@ -336,80 +338,82 @@ private fun QrScanContent(
             }
             val focusedAction = state.focusedIndex(FocusRegion.ACTIONS)
                 ?.let { if (url != null) it else it + 1 }
-            Column(
+            // What was read on the left, the actions stacked on the right:
+            // the panel is wide and short, and a row of four or five pills
+            // ran off an upright phone's edge behind a scroll.
+            Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+                    .padding(start = 24.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                LinkPreviewCard(linkPreviews && url != null && pairingWith == null, preview)
-                pairingWith?.let { name ->
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    LinkPreviewCard(linkPreviews && url != null && pairingWith == null, preview)
+                    pairingWith?.let { name ->
+                        Text(
+                            stringResource(R.string.ime_kde_pairing_by_code, name.ifEmpty { stringResource(R.string.ime_kde_pairing_by_code_unnamed) }),
+                            color = kb.suggestionText,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                    }
+                    // Easter egg: the one link every QR scanner eventually meets.
+                    // Matched on the raw payload, not on `url` — ClipLinks.asUrl
+                    // only accepts a bare URL and a rickroll deserves recognition
+                    // even when it travels with company.
+                    if (remember(code) { EggLinks.isRickroll(code.value) }) {
+                        Text(
+                            stringResource(R.string.ime_qr_rickroll_info),
+                            color = kb.secondaryText,
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                    }
                     Text(
-                        stringResource(R.string.ime_kde_pairing_by_code, name.ifEmpty { stringResource(R.string.ime_kde_pairing_by_code_unnamed) }),
+                        code.value,
                         color = kb.suggestionText,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         textAlign = TextAlign.Center,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                }
-                // Easter egg: the one link every QR scanner eventually meets.
-                // Matched on the raw payload, not on `url` — ClipLinks.asUrl
-                // only accepts a bare URL and a rickroll deserves recognition
-                // even when it travels with company.
-                if (remember(code) { EggLinks.isRickroll(code.value) }) {
-                    Text(
-                        stringResource(R.string.ime_qr_rickroll_info),
-                        color = kb.secondaryText,
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center,
+                        maxLines = 6,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Spacer(Modifier.height(4.dp))
+                    Text(
+                        stringResource(code.formatLabelRes),
+                        color = kb.secondaryText,
+                        fontSize = 12.sp,
+                    )
                 }
-                Text(
-                    code.value,
-                    color = kb.suggestionText,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    stringResource(code.formatLabelRes),
-                    color = kb.secondaryText,
-                    fontSize = 12.sp,
-                )
-                Spacer(Modifier.height(12.dp))
-                // Open (URLs only) gets its own row above the rest, so the
-                // primary action isn't crowded in with Rescan/Copy/Insert.
-                if (url != null) {
-                    CaptureActionButton(
-                        icon = Icons.AutoMirrored.Outlined.OpenInNew,
-                        label = stringResource(R.string.ime_scanner_qr_open_action),
-                        accent = false,
-                        focused = focusedAction == 0,
-                    ) {
-                        feedback()
-                        onOpenUrl(url)
+                CaptureActionStack(modifier = Modifier.fillMaxHeight()) {
+                    // Open leads when the code is a link.
+                    if (url != null) {
+                        CaptureActionButton(
+                            icon = Icons.AutoMirrored.Outlined.OpenInNew,
+                            label = stringResource(R.string.ime_scanner_qr_open_action),
+                            accent = false,
+                            focused = focusedAction == 0,
+                            modifier = stackWidth(),
+                        ) {
+                            feedback()
+                            onOpenUrl(url)
+                        }
                     }
-                    Spacer(Modifier.height(10.dp))
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        12.dp, Alignment.CenterHorizontally,
-                    ),
-                ) {
                     CaptureActionButton(
                         icon = Icons.Outlined.Refresh,
                         label = stringResource(R.string.ime_scanner_scan_again_action),
                         accent = false,
                         focused = focusedAction == 1,
+                        modifier = stackWidth(),
                     ) {
                         feedback()
                         result = null
@@ -420,6 +424,7 @@ private fun QrScanContent(
                         label = stringResource(CommonR.string.common_copy),
                         accent = false,
                         focused = focusedAction == 2,
+                        modifier = stackWidth(),
                     ) {
                         feedback()
                         copyPlainText(context, code.value)
@@ -434,6 +439,7 @@ private fun QrScanContent(
                         label = stringResource(CommonR.string.common_share),
                         accent = false,
                         focused = focusedAction == 3,
+                        modifier = stackWidth(),
                     ) {
                         feedback()
                         onShare(code.value)
@@ -443,6 +449,7 @@ private fun QrScanContent(
                         label = stringResource(R.string.ime_scanner_insert_action),
                         accent = true,
                         focused = focusedAction == 4,
+                        modifier = stackWidth(),
                     ) { onInsert(code.value) }
                 }
             }
