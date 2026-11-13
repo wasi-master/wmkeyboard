@@ -201,10 +201,40 @@ finished word:
 | 0.28, 2 (shipped "When sure") | .072 | .213 | .236 | .157 | .005 |
 | 0.28, 0.2 | .134 | .422 | .306 | .272 | .034 |
 
-Not measured here: the context stages after the decoder (the context
-model's blend and the n-gram rerank, which reorders by rank and never sees
-how far apart two readings scored), which need the split's sentences, and
-learned-shape seeding, which needs a user's stored shapes.
+The words before a stroke, which the fixture does not carry: `test.jsonl`
+with its sentences, the English pack's text files and the context model from
+the data repo, the 34,007 strokes that have a word before them
+(`glide_context_eval`; `mode=rank` is the n-gram reorder a single stroke went
+through until this was measured, by place in the list, and `mode=score` the
+phrase lattice's lift added to the decoder's score):
+
+```bash
+printf '%s\n' 'pack=1 blend=0.7 cap=3 mode=rank' 'pack=1 blend=0.7 cap=3 mode=score' | \
+  MODEL=en_context.wmlm BIGRAMS=en_bigrams.txt TRIGRAMS=en_trigrams.txt cargo run --release --example glide_context_eval -- \
+  test.jsonl qwerty.json ../../app/dictionaries-src/en.txt ../../app/src/main/assets/dictionaries/en_bigrams.txt
+```
+
+| | top-1 | top-4 | held-out half | right readings taken away | of those, the right word 4+ nats ahead |
+|---|---|---|---|---|---|
+| seed pairs only, no n-gram step | .8650 | .9626 | .8537 | | |
+| seed pairs, by rank | .8681 | .9630 | .8564 | 31 | 6 |
+| seed pairs, in nats | .8676 | .9632 | .8564 | 3 | 0 |
+| pack, by rank | .8797 | .9648 | .8704 | 139 | 49 |
+| pack, in nats | .8940 | .9677 | .8860 | 141 | 0 |
+| pack, by rank only within 2 nats | .8809 | .9646 | .8718 | 49 | 0 |
+| pack and model, blend alone | .9095 | .9705 | .9064 | | |
+| pack and model, blend then by rank | .9017 | .9707 | .8987 | 380 | 245 |
+| pack and model, blend then in nats | .9103 | .9708 | .9076 | 216 | 19 |
+| the same at half the n-gram weights | .9113 | .9709 | .9090 | 106 | 1 |
+| the same with the blend at 0.5 | .9150 | .9716 | .9114 | 204 | 11 |
+| seed pairs and model, blend then by rank | .9059 | .9705 | .9025 | 154 | 97 |
+| seed pairs and model, blend then in nats | .9097 | .9706 | .9064 | 16 | 0 |
+
+The lift's weights are the lattice's, fitted on phrases without the blend;
+the last two pack rows say a joint fit of the blend and the lift has about
+half a point left in it. Not measured here: learned-shape seeding, which
+needs a user's stored shapes, and the user's own pairs, which the split has
+none of.
 
 ## GlideBeam on whole phrases
 

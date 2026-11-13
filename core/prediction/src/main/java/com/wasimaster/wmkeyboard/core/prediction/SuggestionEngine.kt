@@ -1953,11 +1953,28 @@ class SuggestionEngine(
         previousWord2: String?,
         useModel: Boolean = true,
     ): List<List<String>> {
+        val lift = glideContextLift()
+        val back1 = previousWord?.takeUnless(WordContext::isSentinel)
+        val back2 = previousWord2?.takeUnless(WordContext::isSentinel).takeIf { back1 != null }
+        val phrases = GlidePhraseLattice.read(slots, back2, back1, lift = lift)
+        val best = (if (useModel) withPhraseModel(phrases) else phrases).firstOrNull() ?: return slots.map { it.words }
+        return GlidePhraseLattice.slotOrders(slots, best, back2, back1, lift)
+    }
+
+    /**
+     * What the n-grams say of a word after the two before it, in the
+     * decoder's nats ([GlidePhraseLattice.lift]): the user's own trigrams and
+     * pairs, the corpus pack's, and the bundled seed pairs. One reading of
+     * the evidence for a stroke that crossed the spacebar ([readGlidePhrase])
+     * and for a single one ([liftGlideByContext]). Holds its answers for the
+     * call that asked for it.
+     */
+    private fun glideContextLift(): GlidePhraseLattice.Lift {
         val followers = HashMap<String, Boolean>()
         // The same three words come up on many paths, and each asks the stores
         // across the native boundary several times.
         val lifts = HashMap<Triple<String?, String?, String>, Double>()
-        val lift = GlidePhraseLattice.Lift { back2, back1, word ->
+        return GlidePhraseLattice.Lift { back2, back1, word ->
             if (back1 == null) return@Lift 0.0
             lifts[Triple(back2, back1, word)]?.let { return@Lift it }
             val w = word.lowercase()
@@ -1983,11 +2000,6 @@ class SuggestionEngine(
                 followers.getOrPut(w1) { ngramPack.nextWords(w1, 1).isNotEmpty() }
             GlidePhraseLattice.lift(trigram, bigram, known).also { lifts[Triple(back2, back1, word)] = it }
         }
-        val back1 = previousWord?.takeUnless(WordContext::isSentinel)
-        val back2 = previousWord2?.takeUnless(WordContext::isSentinel).takeIf { back1 != null }
-        val phrases = GlidePhraseLattice.read(slots, back2, back1, lift = lift)
-        val best = (if (useModel) withPhraseModel(phrases) else phrases).firstOrNull() ?: return slots.map { it.words }
-        return GlidePhraseLattice.slotOrders(slots, best, back2, back1, lift)
     }
 
     /**
@@ -2129,7 +2141,13 @@ class SuggestionEngine(
             filtered
         } else {
             val blended = blendGlideContextModel(filtered)
-            rerankGlide(blended, previousWord, previousWord2, previousWord3, recentWords)
+            // The n-grams speak in the decoder's own nats (#1250). Any other
+            // reranker, a measurement's oracle say, still reorders the list.
+            if (reranker is NgramReranker) {
+                liftGlideByContext(blended, previousWord, previousWord2)
+            } else {
+                rerankGlide(blended, previousWord, previousWord2, previousWord3, recentWords)
+            }
         }
         val ranked = shiftGlideScores(reranked)
             // One word per spelling, whatever source it came from (#172). The
@@ -2307,7 +2325,7 @@ class SuggestionEngine(
      * top-4 unchanged at 88.50 %, at no piece pass. German's compounds keep
      * the spelling. The reference is the first candidate the model can read,
      * and never moves; a word it cannot read keeps its decoder score. Before
-     * [rerankGlide], which still reorders on its own evidence.
+     * [liftGlideByContext], which adds the n-grams' say on top.
      *
      * Pieces cost a forward step each, so only the pool the strip can show is
      * spelled (8 ordinarily, 16 after a deep search), never the whole walk.
@@ -2396,10 +2414,65 @@ class SuggestionEngine(
     }
 
     /**
+     * The n-grams' say on a single stroke's candidates, added to the decoder's
+     * scores: [glideContextLift], the same evidence at the same weights a
+     * stroke across the spacebar is read with.
+     *
+     * Until #1250 this was [rerankGlide] through the strip's [NgramReranker],
+     * which works in ranks: a candidate's place in the list plus its
+     * evidence, and never how far apart the decoder scored two of them. That
+     * suits typed candidates, whose scores it was built on. On a stroke it
+     * let a word four nats and more behind take the lead for being a common follower,
+     * which is how a carefully drawn word lost to a commoner one that fit the
+     * sentence. On 34,007 real swipes with a word before them
+     * (swipe.futo.org's test split, the bundled list, the English pack;
+     * `glide_context_eval` in `native/wm-engine`), top-1 and the right
+     * readings the step took away, by how far the right word had led:
+     *
+     *                                     no model            with the context model
+     *     no n-gram step                  .8650               .9095
+     *     in ranks (until now)            .8797  139 (49)     .9017  380 (245)
+     *     in nats                         .8940  141 (0)      .9103  216 (19)
+     *
+     * (in brackets, those where the right word led by four nats or more).
+     * With the model the ranked step was worse than no step at all. With only
+     * the bundled seed pairs the two read alike, .8681 and .8676.
+     *
+     * Only readings are moved. A guess at a word the stroke has not finished
+     * ([GlideBeam.Candidate.ahead]) keeps its score, so the tier it has to
+     * clear is the one `glide_ahead_eval` measured. Nothing moves with
+     * **Context-aware suggestions** off, when [reranker] is not the n-gram
+     * one, or at the start of a sentence.
+     */
+    private fun liftGlideByContext(
+        decoded: List<GlideBeam.Candidate>,
+        previousWord: String?,
+        previousWord2: String?,
+    ): List<GlideBeam.Candidate> {
+        if (decoded.size < 2) return decoded
+        val back1 = previousWord?.takeUnless(WordContext::isSentinel) ?: return decoded
+        val back2 = previousWord2?.takeUnless(WordContext::isSentinel)
+        val lift = glideContextLift()
+        var moved = false
+        val lifted = decoded.map { c ->
+            val by = if (c.ahead == 0 && c.score.isFinite()) lift.of(back2, back1, c.word) else 0.0
+            if (by == 0.0) {
+                c
+            } else {
+                moved = true
+                GlideBeam.Candidate(c.word, c.score + by, c.shapeCost, c.tier, c.ahead)
+            }
+        }
+        // Stable, so ties keep the order the blend left.
+        return if (moved) lifted.sortedByDescending { it.score } else decoded
+    }
+
+    /**
      * Reorders a decoded stroke's candidates by context, defended the way
      * [suggest] defends its own rerank: only words the decoder actually
      * produced may appear, and anything the model does not mention keeps its
-     * decoded order behind those it does.
+     * decoded order behind those it does. For a [reranker] that is not the
+     * n-gram one, whose evidence [liftGlideByContext] reads instead.
      *
      * Autocorrect-style caution does not apply here — a glide has no "what the
      * user literally typed" to preserve. Every candidate is already the
