@@ -179,7 +179,11 @@ A touch goes to the cell whose centre is nearest. The point of a hexagon that re
 
 The keys are hexagons whatever [key shape](/themes/editor/#key-shapes) the theme sets, and the theme still colours, textures and outlines them. A [split keyboard](/typing/size-position/#splitting-the-keyboard-in-half) cuts each row near the middle on one of that row's own edges, so the two halves stay honeycombs, one for each thumb, with a stepped channel between them. The spacebar is cut in two, or kept whole across the gap with **Split the spacebar** off. Tablet keys are never added to a honeycomb, and a row span on one of its keys is ignored.
 
-One layer can differ from the rest: `"grid": "rect"` on a layer keeps that page in plain rows on a honeycomb layout, and `"grid": "hex"` on a layer makes that page alone a honeycomb. The symbols pages a layout borrows from the keyboard stay in rows. The grid editor opens a honeycomb and edits its keys, but its preview draws them as plain rows in the same places, and the grid kind itself is set in the JSON.
+One layer can differ from the rest: `"grid": "rect"` on a layer keeps that page in plain rows on a honeycomb layout, and `"grid": "hex"` on a layer makes that page alone a honeycomb. The symbols pages a layout borrows from the keyboard stay in rows.
+
+**Honeycomb grid**, a switch in the grid editor's layout settings, turns the whole layout into a honeycomb or back, and the editor's preview draws the hexagons the way the keyboard will. A layer's own `grid` is set in the JSON. Tapping and dragging keys in the preview works as on any layout.
+
+Everything the theme draws over the keys follows the hexagons too: key lighting, the press colour while a drag passes over a key, Autopilot's grown letters and its outlines, and the corner hint, which moves down out of the slant of the key's top edge. The flick arms a key draws on its face stay in its corners, and the press splashes of the Meld effect still round off the key's rectangle. On Android 9 and older, a key's shadow is cast from the hexagons' outer outline.
 
 ### Reaching the raw JSON
 

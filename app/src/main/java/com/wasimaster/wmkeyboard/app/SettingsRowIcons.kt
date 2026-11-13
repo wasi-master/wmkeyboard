@@ -932,6 +932,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_editor_role_title) { Icons.Outlined.Tune }
         put(R.string.layout_editor_show_shift_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.layout_editor_tablet_expand_title) { Icons.Outlined.TabletAndroid }
+        put(R.string.layout_editor_hex_grid_title) { Icons.Outlined.Category }
         put(R.string.layout_editor_persist_title) { Icons.Outlined.PushPin }
         put(R.string.layout_editor_flick_hints_title) { Icons.Outlined.OpenWith }
         put(R.string.layout_editor_theme_title) { Icons.Outlined.Palette }

@@ -17310,6 +17310,24 @@ internal class KeyRects {
     /** Every cell, in root space; a copy, for the same reason as [focusCells]. */
     fun cellRects(): List<Rect> = cells.keys.toList()
 
+    /**
+     * The outline each key of a honeycomb is drawn in ([KeyVisual.faceShape]),
+     * by key; empty on every other board. Set by the grid as it composes, and
+     * read by the layers that paint over the keys (the key lighting, a press
+     * lit by a drag, Autopilot) so that they paint hexagons where the keys are
+     * hexagons.
+     */
+    var faceShapes: Map<Key, Shape> = emptyMap()
+
+    /** The face outline of the key whose cell is [rect], as [cellRects] gave it; null for the theme's. */
+    fun shapeAt(rect: Rect): Shape? = if (faceShapes.isEmpty()) null else cells[rect]?.let { faceShapes[it] }
+
+    /** The face outline of the key under [point], in root space; null for the theme's. */
+    fun shapeNear(point: Offset): Shape? = if (faceShapes.isEmpty()) null else keyAt(point)?.let { faceShapes[it] }
+
+    /** The face outline [key] is drawn in; null for the theme's. */
+    fun shapeOf(key: Key): Shape? = if (faceShapes.isEmpty()) null else faceShapes[key]
+
     /** The key whose cell holds [point], or null outside the grid. */
     fun keyAt(point: Offset): Key? {
         for ((rect, key) in cells) {
@@ -18151,9 +18169,14 @@ internal suspend fun PointerInputScope.detectLayerPeek(
  * recomposes.
  */
 @Composable
-internal fun BoxScope.LayerPeekHighlight(peek: LayerPeek, settings: KeyboardSettings) {
+internal fun BoxScope.LayerPeekHighlight(
+    peek: LayerPeek,
+    settings: KeyboardSettings,
+    rects: KeyRects? = null,
+    origin: Offset = Offset.Zero,
+) {
     if (peek.mode == null) return
-    GridPressHighlight(peek.pressRect, settings)
+    GridPressHighlight(peek.pressRect, settings, rects, origin)
 }
 
 /**
@@ -18257,7 +18280,13 @@ internal class ShiftHold {
  * of the very key it points at. It blends instead ([pressHighlightBlend]).
  */
 @Composable
-internal fun BoxScope.GridPressHighlight(pressRect: State<Rect?>, settings: KeyboardSettings) {
+internal fun BoxScope.GridPressHighlight(
+    pressRect: State<Rect?>,
+    settings: KeyboardSettings,
+    /** Where to ask a honeycomb key's own outline ([KeyRects.shapeNear]); [origin] is this box's place in root. */
+    rects: KeyRects? = null,
+    origin: Offset = Offset.Zero,
+) {
     val kbTheme = LocalKbTheme.current
     val gapH = keyGapH(settings)
     val gapV = keyGapV(settings)
@@ -18276,7 +18305,8 @@ internal fun BoxScope.GridPressHighlight(pressRect: State<Rect?>, settings: Keyb
             cell.height - gapV.toPx() * 2,
         )
         if (face.width <= 0f || face.height <= 0f) return@Canvas
-        val outline = faceShape.createOutline(face, layoutDirection, this)
+        val shape = rects?.shapeNear(cell.center + origin) ?: faceShape
+        val outline = shape.createOutline(face, layoutDirection, this)
         translate(cell.left + gapH.toPx(), cell.top + gapV.toPx()) {
             drawOutline(outline, fill, blendMode = blend)
         }
@@ -19195,6 +19225,14 @@ private fun hexBandVisual(
         hex = board,
         hexMaxAmplitudeDp = maxAmplitude,
     )
+}
+
+/** Each key of a honeycomb band and the outline it is drawn in; empty for any other grid. */
+private fun hexFaceShapes(blocks: List<KeyGridBlock>): Map<Key, Shape> {
+    val band = (blocks.singleOrNull() as? KeyGridBlock.Band)?.band?.takeIf { it.hex != null } ?: return emptyMap()
+    val out = HashMap<Key, Shape>(band.slots.size)
+    for (slot in band.slots) slot.visual.faceShape?.let { out[slot.visual.key] = it }
+    return out
 }
 
 /** A key whose preview bubble is up, and where that key sits. */
@@ -21827,6 +21865,7 @@ private fun KeyRows(
                 it, keyRects::cellRects, { keyRects.revision }, kbTheme.keyRadiusDp.toFloat(),
                 behind = true, modifier = Modifier.matchParentSize(),
                 gapHDp = keyGapH(state.settings).value, gapVDp = keyGapV(state.settings).value,
+                shapeAt = keyRects::shapeAt,
             )
         }
         // The touch bloom's light, the full half: across the board under the keys.
@@ -22003,6 +22042,7 @@ private fun KeyRows(
                 onHandwritingStroke = onKeyboardHandwritingStroke,
                 onHandwritingUndo = onHandwritingUndo,
                 onHandwritingDownload = onHandwritingDownload,
+                keyRects = keyRects,
             )
         }
 
@@ -22027,6 +22067,7 @@ private fun KeyRows(
                 it, keyRects::cellRects, { keyRects.revision }, kbTheme.keyRadiusDp.toFloat(),
                 behind = false, modifier = Modifier.matchParentSize(),
                 gapHDp = keyGapH(state.settings).value, gapVDp = keyGapV(state.settings).value,
+                shapeAt = keyRects::shapeAt,
             )
         }
         // And its faint wash over the keys, for a theme whose keys hide the board.
@@ -22038,9 +22079,9 @@ private fun KeyRows(
         // screen says which symbol the lift is about to type. Composed only
         // while a peek is up — the rect inside it is read in the draw lambda,
         // so the finger crossing keys repaints and never recomposes.
-        LayerPeekHighlight(layerPeek, state.settings)
+        LayerPeekHighlight(layerPeek, state.settings, keyRects, boxOrigin)
         // The key a chord drag would fire on, lit for the same reason (#345).
-        if (chordDrag.active) GridPressHighlight(chordDrag.pressRect, state.settings)
+        if (chordDrag.active) GridPressHighlight(chordDrag.pressRect, state.settings, keyRects, boxOrigin)
 
         // Autopilot's drawn letters and the octopus words over the keys.
         KeyGridWordOverlays(
@@ -22058,6 +22099,7 @@ private fun KeyRows(
             kbTheme = kbTheme,
             pickerOpen = picker.words.isNotEmpty(),
             octopusRects = octopusRects,
+            keyRects = keyRects,
         )
 
         // The press bursts, over the decals and under the trail. Composed only
@@ -22248,6 +22290,8 @@ private fun KeyGridRows(
     onHandwritingStroke: (HwStroke, IntSize) -> Unit,
     onHandwritingUndo: () -> Unit,
     onHandwritingDownload: () -> Unit,
+    /** The cell table, told which keys draw as hexagons; see [KeyRects.faceShapes]. */
+    keyRects: KeyRects? = null,
 ) {
     // Layers shorter than the reserved span (the symbols pages under a
     // six-row alphabet, a keypad under a five-row board) fill it the way
@@ -22274,6 +22318,7 @@ private fun KeyGridRows(
     val padLeft = padHeight - (stretchDp * stretchRows).dp
     val (numberRowVisual, bodyBlocks) =
         rememberKeyGrid(gridState, layout, bodyRows, extraRow, palette, gridWeight, stretchDp)
+    if (keyRects != null) keyRects.faceShapes = remember(bodyBlocks) { hexFaceShapes(bodyBlocks) }
     // Issue #649: the bottom row reaches down over this column's own
     // bottom padding and the board's room under it, so a tap under the
     // spacebar types a space, the way #530 lets a tap beside `a` type
@@ -22721,6 +22766,7 @@ private fun BoxScope.KeyGridWordOverlays(
     kbTheme: KbTheme,
     pickerOpen: Boolean,
     octopusRects: OctopusRects,
+    keyRects: KeyRects? = null,
 ) {
     // The expected letters and the promised word change with every key: read
     // live, so only this overlay recomposes for them (see [withLiveTyping]).
@@ -22750,6 +22796,8 @@ private fun BoxScope.KeyGridWordOverlays(
             showEffect = autopilotShow,
             visualScale = state.settings.layoutBehavior.autopilotVisualScale,
             outline = autopilotOutline,
+            // A honeycomb's letters grow as hexagons.
+            shapeOf = remember(letterKeys, keyRects) { { ch: Char -> letterKeys[ch]?.let { keyRects?.shapeOf(it) } } },
         )
     }
 
@@ -26926,7 +26974,7 @@ internal fun KeyButton(
                     // The theme's shadow colour, where it has one; both halves
                     // of the platform shadow take it (Android 9 and up).
                     val shadow = kb.keyShadow ?: DefaultShadowColor
-                    Modifier.shadow(keyElevation, keyShape, clip = false, ambientColor = shadow, spotColor = shadow)
+                    Modifier.shadow(keyElevation, keyShape.forShadow(), clip = false, ambientColor = shadow, spotColor = shadow)
                 } else {
                     Modifier
                 }
@@ -29838,11 +29886,14 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             } else {
                 null
             }
-            val hintMask = if (octopusHere == null) {
-                Modifier
-            } else {
-                Modifier.drawWithContent { if (!octopusHere.value) drawContent() }
-            }
+            // A honeycomb key's slanted top would cut through a hint in its corner.
+            val hintMask = (
+                if (octopusHere == null) {
+                    Modifier
+                } else {
+                    Modifier.drawWithContent { if (!octopusHere.value) drawContent() }
+                }
+                ).clearHexCorner(visual.faceShape)
             // An arm drawn in the top right corner (issue #410) owns it; the
             // character hint would sit on top of it. The alternates are still
             // one hold away, as with [Key.hideHint].

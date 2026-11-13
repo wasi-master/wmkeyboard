@@ -1,7 +1,9 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import android.os.Build
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
@@ -10,10 +12,12 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.input.pointer.changedToDownIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import com.wasimaster.wmkeyboard.core.layout.HexBoard
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
@@ -33,30 +37,22 @@ import com.wasimaster.wmkeyboard.core.layout.hexFaceOutline
  *
  * Everything is in cells and dp here and resolved against the face's size at
  * draw time, so one shape serves every screen width; [maxAmplitudeDp] caps the
- * zigzag for the short, wide keys of a landscape board.
+ * zigzag for the short, wide keys of a landscape board. Public because the
+ * layout editor's preview, in the app module, draws its honeycombs with it.
  */
 @Immutable
-internal data class HexFaceShape(
+data class HexFaceShape(
     val widthCells: Float,
     val startPhase: Float,
     val zigTop: Boolean,
     val zigBottom: Boolean,
     val gapDp: Float,
     val maxAmplitudeDp: Float,
+    /** The outline's convex hull instead; see [forShadow]. */
+    val convex: Boolean = false,
 ) : Shape {
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
-        val gap = gapDp * density.density
-        val cell = if (widthCells > 0f) (size.width + gap * 2f) / widthCells else 0f
-        val points = hexFaceOutline(
-            widthCells = widthCells,
-            startPhase = startPhase,
-            zigTop = zigTop,
-            zigBottom = zigBottom,
-            faceWidth = size.width,
-            faceHeight = size.height,
-            gapPx = gap,
-            amplitude = hexAmplitude(cell, maxAmplitudeDp * density.density),
-        )
+        val points = points(size, density.density)
         // A right-to-left board is placed mirrored, so its faces are too.
         val mirror = layoutDirection == LayoutDirection.Rtl
         val path = Path()
@@ -68,7 +64,94 @@ internal data class HexFaceShape(
         path.close()
         return Outline.Generic(path)
     }
+
+    /** The outline's corners, as [hexFaceOutline] gives them, for a face of [size]. */
+    private fun points(size: Size, density: Float): FloatArray {
+        val gap = gapDp * density
+        val cell = if (widthCells > 0f) (size.width + gap * 2f) / widthCells else 0f
+        return hexFaceOutline(
+            widthCells = widthCells,
+            startPhase = startPhase,
+            zigTop = zigTop,
+            zigBottom = zigBottom,
+            faceWidth = size.width,
+            faceHeight = size.height,
+            gapPx = gap,
+            amplitude = hexAmplitude(cell, maxAmplitudeDp * density),
+            convex = convex,
+        )
+    }
+
+    /**
+     * How far the top edge dips below the face's top at its two corners, in
+     * pixels, the deeper of the two: where a corner falls on a notch, the
+     * face starts that much lower, and a hint drawn in the corner would sit
+     * across the slanted edge and out over the key gap.
+     */
+    fun cornerDropPx(size: Size, density: Float): Float {
+        if (!zigTop) return 0f
+        val points = points(size, density)
+        // The top edge runs from the first point to the first at the far side.
+        var end = 1
+        while (end < points.size / 2 && points[end * 2] < size.width) end++
+        val right = points.getOrElse(end * 2 + 1) { 0f }
+        return maxOf(0f, points[1], right)
+    }
+
+    /**
+     * This shape as a platform shadow can be cast from: on Android 9 and
+     * older a shadow needs a convex outline and casts nothing at all from
+     * any other, which a key two cells wide is.
+     */
+    fun forShadow(): HexFaceShape =
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && !convex) copy(convex = true) else this
 }
+
+/** [this] as a platform shadow can be cast from; see [HexFaceShape.forShadow]. */
+internal fun Shape.forShadow(): Shape = (this as? HexFaceShape)?.forShadow() ?: this
+
+/**
+ * Moves a corner hint down out of the slant of a honeycomb key's top edge
+ * ([HexFaceShape.cornerDropPx]), measured against the face it is laid out in:
+ * the hint is a child of the face, so its constraints are the face's size.
+ * Nothing on any other key.
+ */
+internal fun Modifier.clearHexCorner(shape: Shape?): Modifier {
+    val hex = shape as? HexFaceShape ?: return this
+    return layout { measurable, constraints ->
+        val placeable = measurable.measure(constraints)
+        val drop = if (constraints.hasBoundedWidth && constraints.hasBoundedHeight) {
+            val face = Size(constraints.maxWidth.toFloat(), constraints.maxHeight.toFloat())
+            hex.cornerDropPx(face, density).roundToInt()
+        } else {
+            0
+        }
+        // Its own size kept, so its alignment in the face is unchanged; only
+        // where it is drawn moves down.
+        layout(placeable.width, placeable.height) { placeable.place(0, drop) }
+    }
+}
+
+/**
+ * Honeycomb outlines for overlays that repaint every frame (the key lighting),
+ * made once per key and size rather than once per frame. Keyed by the key's
+ * cell, which is what those overlays walk.
+ */
+internal class FaceOutlines {
+    private class Made(val shape: Shape, val size: Size, val outline: Outline)
+
+    private val made = HashMap<Rect, Made>()
+
+    fun of(cell: Rect, shape: Shape, size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+        made[cell]?.let { if (it.shape == shape && it.size == size) return it.outline }
+        // Cells move with the board, so old ones are dropped rather than kept.
+        if (made.size > MaxFaceOutlines) made.clear()
+        return shape.createOutline(size, layoutDirection, density).also { made[cell] = Made(shape, size, it) }
+    }
+}
+
+/** More cells than any layer has keys, so the table is only cleared on a move. */
+private const val MaxFaceOutlines = 256
 
 /**
  * Settles which key a touch on a honeycomb belongs to, as the finger goes down.

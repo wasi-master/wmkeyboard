@@ -354,6 +354,11 @@ private fun placeRow(
  * [widthCells] is the face's width in cells and [startPhase] where its cell
  * starts in the honeycomb ([HexBoard.startPhase]); together they put a point
  * over every cell centre the key covers and a notch at every cell edge.
+ *
+ * [convex] drops the notches between the points, leaving the outline's convex
+ * hull: what a platform shadow can be cast from on Android 9 and older, which
+ * only shadows convex shapes. A one-cell key is convex already and comes back
+ * the same.
  */
 fun hexFaceOutline(
     widthCells: Float,
@@ -364,6 +369,7 @@ fun hexFaceOutline(
     faceHeight: Float,
     gapPx: Float,
     amplitude: Float,
+    convex: Boolean = false,
 ): FloatArray {
     val w = faceWidth.coerceAtLeast(0f)
     val h = faceHeight.coerceAtLeast(0f)
@@ -386,16 +392,19 @@ fun hexFaceOutline(
     }
     xs += w
     fun toCentre(x: Float): Float = abs(latticeFraction(phaseAtLeft + x / cell) - 0.5f)
-    val out = FloatArray(xs.size * 4)
-    var i = 0
-    for (x in xs) {
-        out[i++] = x
-        out[i++] = if (zigTop) -amp / 2f + 2f * amp * toCentre(x) else 0f
+    // A notch is a turning point away from the centre line's far side; the
+    // hull keeps the sides and the points and lets the edge run straight.
+    fun kept(k: Int): Boolean = !convex || k == 0 || k == xs.lastIndex || toCentre(xs[k]) < 0.25f
+    val out = ArrayList<Float>(xs.size * 4)
+    for (k in xs.indices) {
+        if (zigTop && !kept(k)) continue
+        out += xs[k]
+        out += if (zigTop) -amp / 2f + 2f * amp * toCentre(xs[k]) else 0f
     }
     for (k in xs.indices.reversed()) {
-        val x = xs[k]
-        out[i++] = x
-        out[i++] = if (zigBottom) h + amp / 2f - 2f * amp * toCentre(x) else h
+        if (zigBottom && !kept(k)) continue
+        out += xs[k]
+        out += if (zigBottom) h + amp / 2f - 2f * amp * toCentre(xs[k]) else h
     }
-    return out
+    return out.toFloatArray()
 }

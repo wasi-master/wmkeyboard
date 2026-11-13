@@ -1211,6 +1211,12 @@ private fun SearchStrings.layoutRows(): List<SettingsSearchEntry> {
             R.string.home_keymaps_title,
             "keymaps",
         ),
+        entry(
+            R.string.layout_editor_hex_grid_title,
+            R.string.layout_editor_hex_grid_subtitle,
+            R.string.home_keymaps_title,
+            "keymaps",
+        ),
     )
 }
 

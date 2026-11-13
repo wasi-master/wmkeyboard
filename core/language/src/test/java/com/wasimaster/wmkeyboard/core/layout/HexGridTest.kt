@@ -236,6 +236,29 @@ class HexGridTest {
     }
 
     @Test
+    fun `the convex hull of a wide key runs straight between its points`() {
+        val outline = hexFaceOutline(
+            widthCells = 2f, startPhase = 0f, zigTop = true, zigBottom = true,
+            faceWidth = 72f, faceHeight = 50f, gapPx = 0f, amplitude = 10f, convex = true,
+        )
+        // Corners, then the two points, along each edge; the notch at 36 is gone.
+        assertArrayEquals(
+            floatArrayOf(0f, 5f, 18f, -5f, 54f, -5f, 72f, 5f, 72f, 45f, 54f, 55f, 18f, 55f, 0f, 45f),
+            outline,
+            0.0001f,
+        )
+        // Every turn of a convex outline goes the same way round.
+        val n = outline.size / 2
+        val turns = (0 until n).map { i ->
+            val ax = outline[i * 2]; val ay = outline[i * 2 + 1]
+            val bx = outline[(i + 1) % n * 2]; val by = outline[(i + 1) % n * 2 + 1]
+            val cx = outline[(i + 2) % n * 2]; val cy = outline[(i + 2) % n * 2 + 1]
+            (bx - ax) * (cy - by) - (by - ay) * (cx - bx)
+        }
+        assertTrue(turns.all { it >= -0.0001f } || turns.all { it <= 0.0001f })
+    }
+
+    @Test
     fun `rows that do not interlock keep straight edges`() {
         val outline = hexFaceOutline(1f, 0f, zigTop = false, zigBottom = false, 36f, 50f, 0f, 10f)
         assertArrayEquals(floatArrayOf(0f, 0f, 36f, 0f, 36f, 50f, 0f, 50f), outline, 0f)
