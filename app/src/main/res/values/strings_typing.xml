@@ -88,7 +88,7 @@
 
     <string name="typing_phrase_completion_title">Phrase suggestions</string>
     <string name="typing_phrase_completion_subtitle">Offer the next few words as one chip</string>
-    <string name="typing_phrase_completion_info">After a space, the strip can offer two or three words at once, when the context model is sure of each of them. Tap the chip to type them all. Needs the context model.</string>
+    <string name="typing_phrase_completion_info">After a space, the strip can offer two or three words at once: words you have typed after the last ones at least three times, or, with the context model downloaded, words it is sure of. Tap the chip to type them all.</string>
 
     <string name="typing_whole_phrases_title">Read whole phrases</string>
     <string name="typing_whole_phrases_subtitle">Fix a phrase typed with its spaces missed or on the wrong key</string>

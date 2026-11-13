@@ -725,16 +725,51 @@ class SuggestionEngine(
     }
 
     /**
-     * The words the context model would write next, as one chip: up to
-     * [maxWords] of them, each at least [ContextModel.PHRASE_MIN_PROB] likely
-     * at its step, joined with spaces. Null without a model, or when it is
-     * not sure of at least two words. Read after [setSentenceContext].
+     * The next few words as one chip, joined with spaces: first what this user
+     * has written after [previousWord] (and [previousWord2]) often enough to
+     * offer whole (#1291, see [LearnedPhrase]), else what the context model
+     * would write next, up to [maxWords] words each at least
+     * [ContextModel.PHRASE_MIN_PROB] likely at its step. Null when neither is
+     * sure of at least two words. Read after [setSentenceContext].
      */
-    fun phraseCompletion(maxWords: Int = PHRASE_WORDS): String? {
+    fun phraseCompletion(
+        maxWords: Int = PHRASE_WORDS,
+        previousWord: String? = null,
+        previousWord2: String? = null,
+    ): String? {
+        learnedPhrase(previousWord, previousWord2, maxWords)?.let { return it }
         val model = contextModel ?: return null
         val (words, _) = model.phrase(maxWords)
         if (words.size < 2) return null
         if (words.any { suppressed(it) || WordContext.isSentinel(it) }) return null
+        return words.joinToString(" ") { displayForm(it) }
+    }
+
+    /**
+     * The user's own phrase after [previousWord] and [previousWord2], from the
+     * pairs and triples they have typed, or null (#1291). Stops at a word that
+     * is never to be offered, and at one with no letter in it (a learned
+     * emoji follower belongs in the emoji slot, not in a phrase).
+     */
+    private fun learnedPhrase(previousWord: String?, previousWord2: String?, maxWords: Int): String? {
+        val back1 = previousWord?.lowercase() ?: return null
+        val words = LearnedPhrase.chain(
+            back1 = back1,
+            back2 = previousWord2?.lowercase(),
+            maxWords = maxWords,
+            triples = { b2, b1 ->
+                userLexicon.nextWordsAfter(b2, b1, LearnedPhrase.POOL)
+                    .map { LearnedPhrase.Follower(it, userLexicon.trigramCount(b2, b1, it)) }
+            },
+            pairs = { b1 ->
+                userLexicon.nextWords(b1, LearnedPhrase.POOL)
+                    .map { LearnedPhrase.Follower(it, userLexicon.bigramCount(b1, it)) }
+            },
+            accepts = { word ->
+                !WordContext.isSentinel(word) && !suppressed(word) && word.any(Char::isLetter)
+            },
+        )
+        if (words.isEmpty()) return null
         return words.joinToString(" ") { displayForm(it) }
     }
 

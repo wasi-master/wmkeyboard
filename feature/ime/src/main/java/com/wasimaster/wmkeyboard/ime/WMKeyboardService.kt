@@ -29362,11 +29362,23 @@ open class WMKeyboardService : InputMethodService() {
                     )
                 }
             }
-            // Phrase suggestions: the context model's next few words as one
-            // chip, after a space only, when it is sure of each of them.
+            // Phrase suggestions: the next few words as one chip, after a space
+            // only. The user's own habit first, then the context model's, each
+            // only when sure of every word (#1291). In the strip's last slot,
+            // where it shows without taking the next word's place; at the end
+            // of the list it was seldom drawn at all.
             val completed = if (typed.isEmpty() && state.settings.suggestionStrip.phraseCompletion && state.allowsTypingIntelligence) {
-                withContext(suggestionDispatcher) { engine.phraseCompletion() }
-                    ?.let { phrase -> if (phrase in walkResults) walkResults else walkResults + phrase }
+                val back1 = previousWord
+                val back2 = previousWord2
+                withContext(suggestionDispatcher) { engine.phraseCompletion(previousWord = back1, previousWord2 = back2) }
+                    ?.let { phrase ->
+                        if (phrase in walkResults) {
+                            walkResults
+                        } else {
+                            val at = (state.settings.suggestionStrip.slotCount - 1).coerceIn(0, walkResults.size)
+                            walkResults.take(at) + phrase + walkResults.drop(at)
+                        }
+                    }
                     ?: walkResults
             } else {
                 walkResults
