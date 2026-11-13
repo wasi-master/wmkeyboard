@@ -20,6 +20,13 @@ import kotlin.math.abs
  * where the grid is drawn, which only the caller knows.
  */
 data class BottomRowRules(
+    /**
+     * A whole bottom row to draw instead of the authored one (competitor gap
+     * list item 15). Run before every other rule, which then acts on the row
+     * it drew. The caller passes [BottomRowPreset.AS_LAID_OUT] for every grid
+     * that is not a letters page.
+     */
+    val preset: BottomRowPreset = BottomRowPreset.AS_LAID_OUT,
     /** Take the 🌐 key off the bottom row and give its width to the spacebar (#139). */
     val hideGlobe: Boolean = false,
     /** Put the 🌐 key in the slot the built-in bottom row gives it (#310). */
@@ -36,6 +43,7 @@ data class BottomRowRules(
 
 /** One of [BottomRowRules], named, for saying which of them changed a grid. */
 enum class BottomRowRule {
+    PRESET,
     HIDE_GLOBE,
     GLOBE_IN_ONE_PLACE,
     SWAP_COMMA_AND_GLOBE,
@@ -58,9 +66,19 @@ class ArrangedGrid internal constructor(
     private val columns: List<List<Int>>,
     /** The rules that changed something here, and only those. */
     val applied: Set<BottomRowRule>,
+    /**
+     * Whether the row drawn here came from a [BottomRowPreset] that carries an
+     * emoji key of its own ([BottomRowPreset.WITH_EMOJI]). The 🌐 and comma
+     * emoji rewrites stand down on such a grid, wherever they run, so the row
+     * never holds two emoji keys.
+     */
+    val ownEmojiKey: Boolean = false,
 ) {
-    /** The column in [source] the key drawn at [row], [col] came from. */
-    fun sourceColumn(row: Int, col: Int): Int? = columns.getOrNull(row)?.getOrNull(col)
+    /**
+     * The column in [source] the key drawn at [row], [col] came from, or null
+     * for a key a [BottomRowPreset] added that the layout never had.
+     */
+    fun sourceColumn(row: Int, col: Int): Int? = columns.getOrNull(row)?.getOrNull(col)?.takeIf { it >= 0 }
 
     /** Whether [row] is drawn in any way other than as it is laid out. */
     fun rowChanged(row: Int): Boolean = layout.rows.getOrNull(row) != source.rows.getOrNull(row)
@@ -69,26 +87,37 @@ class ArrangedGrid internal constructor(
      * Whether the key drawn at [row], [col] is anything but its authored self in
      * its authored order: a different width or action, or a key that has changed
      * sides with another one. A key that only shifted along because the 🌐 key
-     * before it was hidden is still itself.
+     * before it was hidden is still itself. A key a preset added is always
+     * rewritten: there is no authored key for an edit to go to.
      */
     fun rewritten(row: Int, col: Int): Boolean {
-        val from = sourceColumn(row, col) ?: return false
+        val from = columns.getOrNull(row)?.getOrNull(col) ?: return false
+        if (from < 0) return true
         if (layout.rows[row][col] != source.rows[row][from]) return true
-        return columns[row].withIndex().any { (i, c) -> (i < col && c > from) || (i > col && c < from) }
+        return columns[row].withIndex().any { (i, c) ->
+            c >= 0 && ((i < col && c > from) || (i > col && c < from))
+        }
     }
 }
 
-/** A key, and the column it has in the grid as laid out. */
+/**
+ * A key, and the column it has in the grid as laid out; [FRESH_SEAT] for a
+ * key a [BottomRowPreset] added.
+ */
 private data class Seat(val key: Key, val from: Int)
+
+private const val FRESH_SEAT = -1
 
 /**
  * This grid as the Bottom row settings in [rules] draw it.
  *
- * The order is load-bearing. The 🌐 key is hidden before anything else reads the
- * row, because both the placement and the swap find it by where it is. The
- * placement comes next and, under the swap, already leaves the comma after the
- * key, so the swap is not run on a row it has placed; swapping again would undo
- * it. The emoji keys come last, because they are found by what the keys were.
+ * The order is load-bearing. A [BottomRowRules.preset] goes first, because it
+ * replaces the row the others read; the 🌐 key's placement stands down after
+ * it, since a preset already puts the key where it wants it. The 🌐 key is
+ * hidden before anything else reads the row, because both the placement and
+ * the swap find it by where it is. The placement comes next and, under the
+ * swap, already leaves the comma after the key, so the swap is not run on a
+ * row it has placed; swapping again would undo it. The emoji keys come last, because they are found by what the keys were.
  *
  * A grid with [KeyboardLayout.bottomRowAsLaidOut] set comes back untouched.
  */
@@ -99,6 +128,19 @@ fun KeyboardLayout.arrangedBy(rules: BottomRowRules): ArrangedGrid {
     var seats = rows.map { row -> row.mapIndexed { i, key -> Seat(key, i) } }
     val lastRow = seats.lastIndex
 
+    if (rules.preset != BottomRowPreset.AS_LAID_OUT) {
+        seatsForPreset(seats, rules.preset)?.let { row ->
+            if (row !== seats.last()) {
+                seats = seats.dropLast(1) + listOf(row)
+                applied += BottomRowRule.PRESET
+            }
+        }
+    }
+    val presetDrawn = BottomRowRule.PRESET in applied
+    // The emoji rewrites below would add a second emoji key to a row that
+    // already has one of its own.
+    val presetEmoji = presetDrawn && seats.last().any { it.key.action == KeyAction.Emoji }
+
     if (rules.hideGlobe) {
         seatsWithoutGlobe(seats.last())?.let {
             seats = seats.dropLast(1) + listOf(it)
@@ -106,7 +148,11 @@ fun KeyboardLayout.arrangedBy(rules: BottomRowRules): ArrangedGrid {
         }
     }
 
-    val placed = if (rules.globeInOnePlace) seatsWithGlobeInPlace(seats, rules.swapCommaAndGlobe) else null
+    val placed = if (rules.globeInOnePlace && !presetDrawn) {
+        seatsWithGlobeInPlace(seats, rules.swapCommaAndGlobe)
+    } else {
+        null
+    }
     if (placed != null && placed != seats.last()) {
         val before = seats.last()
         seats = seats.dropLast(1) + listOf(placed)
@@ -132,16 +178,18 @@ fun KeyboardLayout.arrangedBy(rules: BottomRowRules): ArrangedGrid {
         }
     }
 
-    if (rules.globeAsEmoji || rules.commaAsEmoji) {
+    val commaAsEmoji = rules.commaAsEmoji && !presetEmoji
+    val globeAsEmoji = rules.globeAsEmoji && !presetEmoji
+    if (globeAsEmoji || commaAsEmoji) {
         seats = seats.mapIndexed { r, row ->
             row.map { seat ->
                 val key = seat.key
                 when {
-                    rules.commaAsEmoji && key.roleIn(r, lastRow) == KeyRole.Comma -> {
+                    commaAsEmoji && key.roleIn(r, lastRow) == KeyRole.Comma -> {
                         applied += BottomRowRule.COMMA_AS_EMOJI
                         seat.copy(key = key.asEmojiKey())
                     }
-                    rules.globeAsEmoji && key.action == KeyAction.LanguageSwitch -> {
+                    globeAsEmoji && key.action == KeyAction.LanguageSwitch -> {
                         applied += BottomRowRule.GLOBE_AS_EMOJI
                         seat.copy(key = key.asGlobeReplacement(rules.globeTool))
                     }
@@ -157,8 +205,101 @@ fun KeyboardLayout.arrangedBy(rules: BottomRowRules): ArrangedGrid {
         source = this,
         columns = seats.map { row -> row.map { it.from } },
         applied = applied,
+        ownEmojiKey = presetEmoji,
     )
 }
+
+/**
+ * The bottom row [preset] draws in place of the authored one, built from the
+ * authored keys wherever the row has them, or null when the row is not one a
+ * preset can stand in for (competitor gap list item 15).
+ *
+ * The authored `?123`, spacebar, enter, 🌐, emoji, comma and full stop keys
+ * are reused rather than rebuilt, so their labels, holds and roles survive: an
+ * Arabic row keeps its ، and the comma's hold keeps its marks. A key the
+ * preset wants and the row lacks is added fresh. Each key gets the preset's
+ * share of the row, and the row keeps its total, so a key spanning down into
+ * it stays where it was.
+ *
+ * Returns null, leaving the row alone, when:
+ * - the row has more or fewer than one `?123`, spacebar and enter key;
+ * - any key in the grid spans rows, since the row's keys would slide under it;
+ * - the row holds any other kind of key, a flick or multi-tap key, or a key
+ *   that types a letter, a digit or a combining mark. That is the row a 12-key
+ *   pad, a kana board or a CJK layout builds for itself, and a script whose
+ *   letters reach the bottom row needs them there.
+ */
+private fun seatsForPreset(rows: List<List<Seat>>, preset: BottomRowPreset): List<Seat>? {
+    if (preset == BottomRowPreset.AS_LAID_OUT) return null
+    val bottom = rows.lastOrNull() ?: return null
+    if (rows.any { row -> row.any { it.key.rowSpan > 1 } }) return null
+    if (bottom.any { !it.key.fitsPreset() }) return null
+    fun only(action: KeyAction): Seat? = bottom.filter { it.key.action == action }.singleOrNull()
+    val symbols = only(KeyAction.Symbols) ?: return null
+    val space = only(KeyAction.Space) ?: return null
+    val enter = only(KeyAction.Enter) ?: return null
+    val lastRow = rows.lastIndex
+    val spaceAt = bottom.indexOf(space)
+    val marks = bottom.filter { it.key.action == KeyAction.Text }
+    val period = marks.firstOrNull { it.key.roleIn(lastRow, lastRow) == KeyRole.Period }
+        ?: marks.lastOrNull { bottom.indexOf(it) > spaceAt && it.key.roleIn(lastRow, lastRow) != KeyRole.Comma }
+    val comma = marks.lastOrNull { it !== period && it.key.roleIn(lastRow, lastRow) == KeyRole.Comma }
+        ?: marks.firstOrNull { it !== period && bottom.indexOf(it) < spaceAt }
+    val globe = bottom.firstOrNull { it.key.action == KeyAction.LanguageSwitch }
+    val emoji = bottom.firstOrNull { it.key.action == KeyAction.Emoji }
+    val commaSeat = comma ?: Seat(PresetComma, FRESH_SEAT)
+    val periodSeat = period ?: Seat(PresetPeriod, FRESH_SEAT)
+
+    // Shares of a ten-unit row: ?123 and enter as the built-in row has them.
+    val plan: List<Pair<Seat, Float>> = when (preset) {
+        BottomRowPreset.AS_LAID_OUT -> return null
+        BottomRowPreset.CLASSIC -> listOf(
+            symbols to 1.5f, commaSeat to 1f, space to 5f, periodSeat to 1f, enter to 1.5f,
+        )
+        BottomRowPreset.IPHONE -> listOf(
+            symbols to 1.5f, (globe ?: Seat(PresetGlobe, FRESH_SEAT)) to 1.5f, space to 5f, enter to 2f,
+        )
+        BottomRowPreset.MINIMAL -> listOf(symbols to 1.5f, space to 6.5f, enter to 2f)
+        BottomRowPreset.WITH_EMOJI -> buildList {
+            add(symbols to 1.5f)
+            add((emoji ?: Seat(PresetEmoji, FRESH_SEAT)) to 1f)
+            add(commaSeat to 1f)
+            if (globe != null) add(globe to 1f)
+            add(space to if (globe != null) 3f else 4f)
+            add(periodSeat to 1f)
+            add(enter to 1.5f)
+        }
+    }
+    val unit = bottom.sumOf { it.key.width.toDouble() }.toFloat() / PRESET_ROW_UNITS
+    val row = plan.map { (seat, share) -> seat.withSnappedWidth(share * unit) }
+    return if (sameSeats(row, bottom)) bottom else row
+}
+
+/**
+ * Whether a [BottomRowPreset] knows what to do with this bottom-row key: keep
+ * it, move it or drop it. Anything else means the row is the layout's own.
+ */
+private fun Key.fitsPreset(): Boolean = when (action) {
+    KeyAction.Symbols, KeyAction.Space, KeyAction.Enter, KeyAction.LanguageSwitch, KeyAction.Emoji -> true
+    KeyAction.Text -> flick.isEmpty() && flickActions.isEmpty() && multitap.isEmpty() &&
+        !kanaVariantWhileComposing && (output ?: label).let { text -> text.isNotEmpty() && text.none(::isWordChar) }
+    else -> false
+}
+
+/** A letter, a digit or a combining mark: a character a script types, not punctuation. */
+private fun isWordChar(c: Char): Boolean = c.isLetterOrDigit() || when (Character.getType(c).toByte()) {
+    Character.NON_SPACING_MARK, Character.COMBINING_SPACING_MARK, Character.ENCLOSING_MARK -> true
+    else -> false
+}
+
+/** The keys a preset adds to a row that lacks them, as the built-in row has them. */
+private val PresetComma = Key(",", role = KeyRole.Comma, longPress = listOf("!", "?"))
+private val PresetPeriod = Key(".", role = KeyRole.Period, longPress = listOf("…", ",", "?", "!", ":", ";"))
+private val PresetGlobe = Key("🌐", action = KeyAction.LanguageSwitch)
+private val PresetEmoji = Key("☺", action = KeyAction.Emoji)
+
+/** The units [seatsForPreset] shares a row out in; the built-in row is ten keys wide. */
+private const val PRESET_ROW_UNITS = 10f
 
 /**
  * The 🌐 key as the key the user put in its seat (#1126): the emoji key, or

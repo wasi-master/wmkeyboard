@@ -38,10 +38,6 @@
         <item quantity="one">Sovellus ohitti %1$d tekstinpätkän, jossa ei ole mitään lisättävää.</item>
         <item quantity="other">Sovellus ohitti %1$d tekstinpätkää, joissa ei ole mitään lisättävää.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d tekstinpätkä pyytää sinua täyttämään lomakkeen. Sovellus lisää lomakkeen tekstinä, ja kohdistin on ensimmäisessä tyhjässä kohdassa.</item>
-        <item quantity="other">%1$d tekstinpätkää pyytävät sinua täyttämään lomakkeen. Sovellus lisää jokaisen lomakkeen tekstinä, ja kohdistin on ensimmäisessä tyhjässä kohdassa.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Sovellus ohitti %1$d tekstinpätkän, joka lisää kuvan.</item>
         <item quantity="other">Sovellus ohitti %1$d tekstinpätkää, jotka lisäävät kuvia.</item>

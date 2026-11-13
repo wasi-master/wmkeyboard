@@ -38,10 +38,6 @@
         <item quantity="one">O aplicativo ignorou %1$d snippet que não tem nada para inserir.</item>
         <item quantity="other">O aplicativo ignorou %1$d snippets que não têm nada para inserir.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d snippet pede que você preencha um formulário. O aplicativo insere o formulário como texto, com o cursor no primeiro campo em branco.</item>
-        <item quantity="other">%1$d snippets pedem que você preencha um formulário. O aplicativo insere cada formulário como texto, com o cursor no primeiro campo em branco.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">O aplicativo ignorou %1$d snippet que insere uma imagem.</item>
         <item quantity="other">O aplicativo ignorou %1$d snippets que inserem imagens.</item>

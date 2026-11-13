@@ -38,10 +38,6 @@
         <item quantity="one">De app heeft %1$d fragment overgeslagen dat niets bevat om in te voegen.</item>
         <item quantity="other">De app heeft %1$d fragmenten overgeslagen die niets bevatten om in te voegen.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d fragment vraagt je om een formulier in te vullen. De app voegt het formulier in als tekst, met de cursor in het eerste lege veld.</item>
-        <item quantity="other">%1$d fragmenten vragen je om een formulier in te vullen. De app voegt elk formulier in als tekst, met de cursor in het eerste lege veld.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">De app heeft %1$d fragment overgeslagen dat een afbeelding invoegt.</item>
         <item quantity="other">De app heeft %1$d fragmenten overgeslagen die afbeeldingen invoegen.</item>

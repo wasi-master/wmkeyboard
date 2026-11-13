@@ -65,11 +65,14 @@ import com.wasimaster.wmkeyboard.core.layout.BottomRowRule
 import com.wasimaster.wmkeyboard.core.layout.BottomRowRules
 import com.wasimaster.wmkeyboard.core.layout.KeyRole
 import com.wasimaster.wmkeyboard.core.layout.FlickArm
+import com.wasimaster.wmkeyboard.core.layout.SymbolsPage
+import com.wasimaster.wmkeyboard.core.layout.borrowsSymbolsPage
 import com.wasimaster.wmkeyboard.core.layout.flickArm
 import com.wasimaster.wmkeyboard.core.layout.hasFlicks
 import com.wasimaster.wmkeyboard.core.layout.isSwipeOnly
 import com.wasimaster.wmkeyboard.core.layout.takesFlickActions
 import com.wasimaster.wmkeyboard.core.layout.arrangedBy
+import com.wasimaster.wmkeyboard.core.layout.BottomRowPreset
 import com.wasimaster.wmkeyboard.core.layout.FlickDirection
 import com.wasimaster.wmkeyboard.core.layout.KanaVariantKeyLabel
 import com.wasimaster.wmkeyboard.core.layout.LayerFile
@@ -2062,6 +2065,7 @@ internal fun editorBottomRowRules(
     BottomRowRules()
 } else {
     BottomRowRules(
+        preset = if (layer == LayoutLayer.LETTERS && !secondary) settings.bottomRow.preset else BottomRowPreset.AS_LAID_OUT,
         hideGlobe = !settings.showGlobeKey && !secondary,
         globeInOnePlace = settings.layoutBehavior.globeInOnePlace && !secondary,
         swapCommaAndGlobe = settings.swapCommaAndGlobe,
@@ -2074,6 +2078,7 @@ internal fun editorBottomRowRules(
 /** The setting that each [BottomRowRule] is, by the title its row carries. */
 @StringRes
 private fun BottomRowRule.titleRes(): Int = when (this) {
+    BottomRowRule.PRESET -> R.string.layout_bottom_row_preset_title
     BottomRowRule.HIDE_GLOBE -> R.string.layout_show_globe_title
     BottomRowRule.GLOBE_IN_ONE_PLACE -> R.string.layout_globe_in_one_place_title
     BottomRowRule.SWAP_COMMA_AND_GLOBE -> R.string.layout_swap_comma_globe_title
@@ -2217,6 +2222,9 @@ internal fun KeyLayoutEditorScreen(
         return spec.copy(layers = spec.layers + (layer.key to existing.copy(rows = rows)))
     }
 
+    /** The page a layout with no symbols page of its own borrows, as the keyboard does. */
+    fun borrowedSymbolsPage(): SymbolsPage = settings.value.layoutBehavior.symbolsPage
+
     /**
      * The layer an edit starts from: this layout's own, the shipped one it
      * inherits, or an empty grid.
@@ -2227,9 +2235,13 @@ internal fun KeyLayoutEditorScreen(
      * second copy of the alphabet.
      */
     fun baseLayerOf(spec: LayoutSpec): LayerSpec {
-        spec.layer(layer)?.let { return it }
+        // A shipped symbols page the Symbols page setting swaps out is not one
+        // to edit: the keyboard draws the number pad page in its place.
+        val swapped = layer == LayoutLayer.SYMBOLS && borrowedSymbolsPage() == SymbolsPage.NUMBER_PAD &&
+            spec.borrowsSymbolsPage()
+        spec.layer(layer)?.takeUnless { swapped }?.let { return it }
         if (BuiltInLayouts.default.layer(layer) == null) return LayerSpec(rows = emptyList())
-        val compiled = spec.compile(layer)
+        val compiled = spec.compile(layer, borrowedSymbolsPage())
         return LayerSpec(rows = compiled.rows, rowHeights = compiled.rowHeights)
     }
 
@@ -2299,7 +2311,8 @@ internal fun KeyLayoutEditorScreen(
     fun laidOutAsDrawn(spec: LayoutSpec): LayoutSpec {
         val base = baseLayerOf(spec)
         if (base.bottomRowAsLaidOut || base.rows.isEmpty()) return spec
-        val arranged = spec.compile(layer).arrangedBy(editorBottomRowRules(settings.value, layer, spec.secondary))
+        val arranged = spec.compile(layer, borrowedSymbolsPage())
+            .arrangedBy(editorBottomRowRules(settings.value, layer, spec.secondary))
         if (arranged.applied.isEmpty()) return spec
         val laidOut = base.copy(rows = arranged.layout.rows, bottomRowAsLaidOut = true)
         return spec.copy(layers = spec.layers + (layer.key to laidOut))
@@ -2317,7 +2330,7 @@ internal fun KeyLayoutEditorScreen(
         val cleared = own.copy(bottomRowAsLaidOut = false)
         val without = spec.copy(layers = spec.layers - layer.key)
         if (BuiltInLayouts.default.layer(layer) != null) {
-            val inherited = without.compile(layer)
+            val inherited = without.compile(layer, borrowedSymbolsPage())
             val drawn = inherited.arrangedBy(editorBottomRowRules(settings.value, layer, spec.secondary)).layout
             if (cleared == LayerSpec(rows = drawn.rows, rowHeights = inherited.rowHeights)) return without
         }
@@ -2397,10 +2410,13 @@ internal fun KeyLayoutEditorScreen(
 
     val hasOwnLayer = edited.watch { it.layer(layer) != null }
     val layerHasFlicks = edited.watch { it.layer(layer)?.rows.orEmpty().any { row -> row.any { k -> k.hasFlicks() } } }
+    // The symbols page a layout without its own borrows (the Symbols page
+    // setting), so the tab shows, and an edit starts from, the page ?123 opens.
+    val symbolsPage = settings.watch { it.layoutBehavior.symbolsPage }
     val compiled = edited.watch { spec ->
         val inheritable = spec.layer(layer) != null || BuiltInLayouts.default.layer(layer) != null
         if (inheritable) {
-            spec.compile(layer)
+            spec.compile(layer, symbolsPage)
         } else {
             KeyboardLayout(name = "$layoutId/${layer.key}", rows = emptyList())
         }
@@ -2525,7 +2541,7 @@ internal fun KeyLayoutEditorScreen(
             val current = spec.layer(layer) ?: return@edit spec
             val cleared = current.withExtraRow(band, null)
             val without = spec.copy(layers = spec.layers - layer.key)
-            val inherited = without.compile(layer)
+            val inherited = without.compile(layer, borrowedSymbolsPage())
             if (cleared == LayerSpec(rows = inherited.rows, rowHeights = inherited.rowHeights)) {
                 without
             } else {

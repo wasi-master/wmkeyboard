@@ -38,10 +38,6 @@
         <item quantity="one">অ্যাপটি %1$dটি স্নিপেট বাদ দিয়েছে যাতে ইনসার্ট করার মতো কিছু নেই।</item>
         <item quantity="other">অ্যাপটি %1$dটি স্নিপেট বাদ দিয়েছে যাতে ইনসার্ট করার মতো কিছু নেই।</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d স্নিপেট আপনাকে একটি ফর্ম পূরণ করতে বলছে। অ্যাপটি ফর্মটিকে টেক্সট হিসেবে ইনসার্ট করে, কার্সার প্রথম খালি ঘরে থাকে।</item>
-        <item quantity="other">%1$d স্নিপেট আপনাকে ফর্ম পূরণ করতে বলছে। অ্যাপটি প্রতিটি ফর্মকে টেক্সট হিসেবে ইনসার্ট করে, কার্সার প্রথম খালি ঘরে থাকে।</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">অ্যাপটি %1$d টি স্নিপেট এড়িয়ে গেছে যা একটি ছবি ইনসার্ট করে।</item>
         <item quantity="other">অ্যাপটি %1$d টি স্নিপেট এড়িয়ে গেছে যা ছবি ইনসার্ট করে।</item>

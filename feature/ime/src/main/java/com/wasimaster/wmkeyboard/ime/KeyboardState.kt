@@ -2615,6 +2615,8 @@ data class SnippetChip(
     val cursorOffset: Int,
     /** True when tapping into that linked snippet would show more. */
     val drillable: Boolean,
+    /** A picture snippet's file name ([com.wasimaster.wmkeyboard.core.snippets.Snippet.image]), drawn and inserted instead of [text]. */
+    val image: String? = null,
 )
 
 /**
@@ -5055,6 +5057,7 @@ data class KeyboardUiState(
      * used, so nothing changes hands.
      */
     fun panelFieldTarget(): CaptureTarget? = when {
+        toolText.snippetAsk != null -> CaptureTarget.SNIPPET_ASK
         typingTestActive -> CaptureTarget.TYPING_TEST
         aiCustomInputActive -> CaptureTarget.AI_CUSTOM
         aiChatComposing -> CaptureTarget.AI_CHAT
@@ -5196,6 +5199,7 @@ data class KeyboardUiState(
         CaptureTarget.CLIP_BASE -> clipCombine?.focusedText.orEmpty()
         CaptureTarget.CLIP_APPEND -> clipCombine?.append.orEmpty()
         CaptureTarget.SNIPPET_SEARCH -> snippetQuery
+        CaptureTarget.SNIPPET_ASK -> toolText.snippetAsk?.text.orEmpty()
         CaptureTarget.NOTE_SEARCH -> notes.query
         CaptureTarget.NOTE_TITLE -> notes.editing?.titleDraft.orEmpty()
         CaptureTarget.NOTE_BODY -> notes.editing?.bodyDraft.orEmpty()
@@ -5607,4 +5611,10 @@ data class ToolTextEntries(
      * (#1077). The rest of the tool's state is the controller's.
      */
     val wmPass: com.wasimaster.wmkeyboard.ime.wmpass.WmPassTextEntry? = null,
+    /**
+     * The fill-in row of a snippet that asks for `{ask:Name}` values as it
+     * expands. Over every other field while it is up: the snippet is waiting
+     * to go into the app's field, and only Enter or Cancel lets it.
+     */
+    val snippetAsk: SnippetAskEntry? = null,
 )

@@ -38,10 +38,6 @@
         <item quantity="one">האפליקציה דילגה על קטע קוד %1$d שאין לו מה להוסיף.</item>
         <item quantity="other">האפליקציה דילגה על %1$d קטעי קוד שאין להם מה להוסיף.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d קטע מבקש ממך למלא טופס. האפליקציה מכניסה את הטופס כטקסט, עם הסמן בריק הראשון.</item>
-        <item quantity="other">%1$d קטעים מבקשים ממך למלא טופס. האפליקציה מכניסה כל טופס כטקסט, עם הסמן בריק הראשון.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">האפליקציה דילגה על %1$d קטע קוד שמכניס תמונה.</item>
         <item quantity="other">האפליקציה דילגה על %1$d קטעי קוד שמכניסים תמונות.</item>

@@ -162,6 +162,14 @@ Links are a graph rather than a tree, so two snippets can share a child and a pa
 
 Tags are free words you file a snippet under so you can find it again. Add them in the editor the same way you add triggers: type one, press enter, it becomes a chip. They do nothing while you type; they're for searching in the snippet picker when a list has grown past the point of scrolling it.
 
+## Picture snippets
+
+A snippet can insert a picture instead of text: a sticker you send a lot, a signature scan, a QR code for your payment details. In the snippet editor, **Picture** → **Choose a picture** copies one into the keyboard's own storage (PNG, JPEG, GIF or WebP, up to 8&nbsp;MB), so the snippet keeps working after the original is moved or deleted. **Change** swaps it and **Remove** turns the snippet back into a text one. A picture snippet has no expansions to edit, since the picture is what it inserts.
+
+It fires the way any snippet does. Tap its card in the panel, where the card shows the picture under the name, or type its trigger. With [ask first](#ask-before-it-expands) on, the trigger puts a chip on the suggestion bar showing a thumbnail of the picture. The trigger you typed is taken out, and the picture goes to the app the way a picture from the [clipboard](/tools/clipboard/) does. Apps that take pictures from the keyboard, which covers most chat apps, get it straight away in a format they accept. Anywhere else the keyboard puts the picture on the clipboard and asks the field to paste it, which works in apps that take a pasted picture without saying so, and shows a short note when it doesn't.
+
+Pictures travel with the snippets section of a [config backup](#snippet-packs-and-backups), up to 12&nbsp;MB of them. A `.wmsnippets.json` export is text only, so a picture snippet arrives on the other phone without its picture, and inserts its text instead (often nothing). The same happens on this phone if the picture file goes missing.
+
 ## Template variables
 
 A snippet's text can include any of these tokens. They're substituted the moment the snippet is inserted, not when you save it, so `{date}` always reflects the day you actually type it:
@@ -187,6 +195,7 @@ A snippet's text can include any of these tokens. They're substituted the moment
 | `{uuid}` | A fresh random UUID, different every time it's used |
 | `{cursor}` | Not text; marks where the cursor lands after insertion |
 | `{random:a\|b\|c}` | One of the alternatives, picked fresh each insertion |
+| `{ask:Name}` | Whatever you type for it when the snippet expands; see [Fill-in fields](#fill-in-fields). `{ask:Name:Sam}` fills in Sam unless you type something else |
 | `{location}` | Where you are, from the [Location tool](/tools/location/#in-snippets), in its default format. `{location:link}`, `{location:address}`, `{location:coordinates}`, `{location:dms}`, `{location:plus_code}`, `{location:message}` or `{location:custom}` pick one |
 | `{place:Home}` | A place you saved in the Location tool, by its name in any case. A format can follow: `{place:Home:address}` |
 | `{ha:sensor.outside_temperature}` | A [smart home](/tools/home-assistant/) entity's state with its unit, as the keyboard last saw it, looked for in every home on the list; `{ha:home_key\|sensor.x}` names one. An attribute can follow: `{ha:light.kitchen:brightness}`. Empty when the tool is off |
@@ -213,6 +222,20 @@ A modifier the keyboard doesn't know is skipped, so a typo leaves the text as it
 
 `{date:pattern}` takes any date pattern you like, for example `` {date:EEEE 'week' w} `` or `` {date:dd/MM/yy} ``. A `+` or `-` and a number of seconds before the colon shifts it: `{date+86400:dd/MM/yy}` is tomorrow, `{date-86400}` was yesterday, and a bare `{date+3600}` is an hour from now in the usual format. It's checked before the plain `{date}` token, so a literal pattern can't be partly swallowed by it. A malformed pattern quietly expands to nothing instead of breaking the rest of the snippet. Tokens the expander doesn't recognize, like `{nope}`, are left untouched. A variable with nothing to draw on expands to an empty string rather than leaving the raw token behind, which is what you get from `{app}` outside the keyboard or `{clip}` with an empty clipboard.
 
+### Fill-in fields
+
+`{ask:Name}` turns part of a snippet into a question you answer each time it expands. With the text `Dear {ask:Name}, thanks for the {ask:Item}.` and the trigger `ty`, typing `ty` and a space opens a row above the keys in place of the suggestion bar. It names the field, **Name 1/2**, and the keys type into its box rather than into the app. Enter, or the arrow at the end of the row, keeps the answer and moves on to **Item**. On the last field the arrow becomes a tick, and Enter or the tick puts the whole snippet in with both answers filled in.
+
+- A default goes after a second colon: `{ask:Day:Friday}`. It's already in the box, selected, so typing replaces it and Enter on its own keeps it. A field left empty uses its default, or nothing if it has none. The default can hold colons, as in `{ask:Time:9:30}`.
+- The same name twice asks once, whatever the capitals: `{ask:name}` and `{ask:Name}` are one field, and the answer goes in both places.
+- The × at the start of the row, or Back, cancels. Nothing is inserted, and the trigger you typed goes back where it was. Tapping a snippet in the panel and cancelling leaves the field untouched.
+- The space or punctuation that fired the trigger is used up, so nothing lands in front of the snippet while you're answering. One backspace after it goes in puts the trigger back, the same as any expansion.
+- An answer goes in exactly as typed. Typing `{clip}` into a field gives the six characters, never your clipboard, and an answer is never asked about again.
+- A snippet asks at most 12 questions. Tokens past the twelfth are left as written.
+- `{ask:` doesn't overlap with anything else the expander reads: `{random:…}`, `{date:…}`, the `{clip:…}` modifiers and a pattern's `$1` all work alongside it, and a field can sit inside a pattern snippet's text.
+- Two places have no row to ask in, so their fields take their defaults instead: swapping one expansion for another with a chip after [Insert first](#several-expansions) has already typed one, and inserting into a note or task open in the [floating box](/tools/overview/#tools-in-a-floating-box).
+- Moving to another text field while the row is up drops it, and nothing is inserted anywhere.
+
 ## Managing snippets
 
 Find the list under Settings → Text expansion (see [Options](#options) below for the exact path). The Snippets tool page has one row that opens the same screen.
@@ -227,11 +250,11 @@ The settings screen opens with a reference card listing all 18 variables plus `{
   <Shot id="tools/snippets-add-dialog" alt="Adding a snippet: label, text with variables, and a Word or Pattern trigger." />
 </PhoneFrame>
 
-- **Add snippet** opens the editor screen: a label, an optional folder, the [expansions](#several-expansions) it can insert, and a Word / Pattern switch for how it expands as you type.
+- **Add snippet** opens the editor screen: a label, an optional folder, an optional [picture](#picture-snippets), the [expansions](#several-expansions) it can insert, and a Word / Pattern switch for how it expands as you type.
 - The section that holds both is called **Trigger**. Choosing **Word** gives you the [Triggers](#several-triggers) chip field and a **Match the trigger's capitals** switch that reveals its style choice when you turn it on. Choosing **Pattern** gives you the pattern itself, chips that write `(.+)`, `$1`, `^` and `$` at the cursor, a words-to-match picker, and a **Try it** box. Type into **Try it** what you'd type on the keyboard, and the result appears underneath. A pattern that won't compile is flagged as you type, with the regular-expression engine's own complaint under it. Save stays disabled until you fix it.
 - Under both is **Ask before it expands**, which turns the trigger into a suggestion-bar offer instead of an automatic rewrite (see [Ask before it expands](#ask-before-it-expands)). With it off, a word trigger also gets **Expand immediately**, and once that's on, **Also inside words** (see [Expanding immediately](#expanding-immediately)).
 - Below that come [Linked snippets](#linked-snippets) and [Tags](#tags).
-- Pressing a saved snippet reopens the same screen, filled in, to edit it. Nothing is saved until you press **Save**, the button that floats at the bottom corner of the screen so it's always in reach. It's greyed out until the snippet has a label and some text. Leaving with changes you haven't saved, by the back arrow or the back gesture, asks first: save them, discard them, or go back to editing.
+- Pressing a saved snippet reopens the same screen, filled in, to edit it. Nothing is saved until you press **Save**, the button that floats at the bottom corner of the screen so it's always in reach. It's greyed out until the snippet has a label and some text, or a label and a picture. Leaving with changes you haven't saved, by the back arrow or the back gesture, asks first: save them, discard them, or go back to editing.
 - The trash icon at the end of the row deletes it immediately. Swiping the row to the left shows the same delete button behind it, and a long swipe past about half the row deletes it outright. There is no confirmation prompt. Instead a bar appears at the foot of the screen naming what went, with **Undo** on it for a few seconds; undo puts the snippet back with its own id, its place in the list, and the links any other snippet had to it. Once that bar goes, the delete stands, so keep an [export](#import-and-export) around for anything that took a while to write. Deleting a second snippet replaces the bar rather than queueing behind it, so only the last delete can be undone.
 - Every row also shows a live "Inserts as: …" preview whenever the expanded text would differ from what you typed, and "Expands by itself from: …" if you've set a trigger (or the pattern itself, if you set one of those). A snippet set to ask first says "Offers itself after: …" instead. A snippet with more than one expansion, or with links, counts them on a line of its own.
 

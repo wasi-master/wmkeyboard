@@ -21,13 +21,19 @@ enum class EspansoNote(@get:PluralsRes val pluralsRes: Int) {
      */
     SHELL(R.plurals.core_content_espanso_note_shell),
 
-    /** The match asked for a fill-in form, which this app has no panel for. */
-    FORM(R.plurals.core_content_espanso_note_form),
+    /**
+     * A form field offered a list to pick from; it became a typed fill-in
+     * field whose default is the list's first value.
+     */
+    FORM(R.plurals.core_content_espanso_note_form_choice),
 
     /** The match was rich text (Markdown or HTML), flattened to plain. */
     RICH_TEXT(R.plurals.core_content_espanso_note_rich_text),
 
-    /** The match inserted an image file, which cannot travel in a text file. */
+    /**
+     * The match inserted an image file that was not in what was imported: a
+     * lone match file, or a package without the picture in it.
+     */
     IMAGE(R.plurals.core_content_espanso_note_image),
 
     /** The match was limited to certain desktop apps, which means nothing here. */
@@ -84,6 +90,12 @@ enum class EspansoNote(@get:PluralsRes val pluralsRes: Int) {
 
     /** The snippet linked to other snippets, which Espanso has no word for. */
     LINKS(R.plurals.core_content_espanso_note_links),
+
+    /**
+     * The snippet inserts a picture, which a text file cannot carry; only its
+     * words went out.
+     */
+    PICTURE_EXPORT(R.plurals.core_content_espanso_note_picture_export),
 }
 
 /**

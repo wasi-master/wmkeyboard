@@ -38,10 +38,6 @@
         <item quantity="one">ॲपने %1$d स्निपेट वगळले ज्यामध्ये समाविष्ट करण्यासाठी काहीही नाही.</item>
         <item quantity="other">ॲपने %1$d स्निपेट्स वगळले ज्यामध्ये समाविष्ट करण्यासाठी काहीही नाही.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d स्निपेट तुम्हाला फॉर्म भरण्यास सांगते. ॲप फॉर्म मजकूर म्हणून समाविष्ट करते, कर्सर पहिल्या रिकाम्या जागेत असतो.</item>
-        <item quantity="other">%1$d स्निपेट्स तुम्हाला फॉर्म भरण्यास सांगतात. ॲप प्रत्येक फॉर्म मजकूर म्हणून समाविष्ट करते, कर्सर पहिल्या रिकाम्या जागेत असतो.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">ॲपने %1$d स्निपेट वगळले जे चित्र समाविष्ट करते.</item>
         <item quantity="other">ॲपने %1$d स्निपेट्स वगळले जे चित्रे समाविष्ट करतात.</item>

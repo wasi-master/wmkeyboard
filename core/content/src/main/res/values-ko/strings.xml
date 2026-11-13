@@ -38,10 +38,6 @@
         <item quantity="one">삽입할 내용이 없는 스니펫 %1$d개를 건너뛰었습니다.</item>
         <item quantity="other">삽입할 내용이 없는 스니펫 %1$d개를 건너뛰었습니다.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d개의 스니펫이 양식 작성을 요청합니다. 앱이 첫 번째 빈칸에 커서를 둔 채 양식을 텍스트로 삽입합니다.</item>
-        <item quantity="other">%1$d개의 스니펫이 양식 작성을 요청합니다. 앱이 각 양식을 첫 번째 빈칸에 커서를 둔 채 텍스트로 삽입합니다.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">앱이 사진을 삽입하는 스니펫 %1$d개를 건너뛰었습니다.</item>
         <item quantity="other">앱이 사진을 삽입하는 스니펫 %1$d개를 건너뛰었습니다.</item>

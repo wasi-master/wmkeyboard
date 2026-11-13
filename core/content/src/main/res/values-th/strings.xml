@@ -38,10 +38,6 @@
         <item quantity="one">แอปข้ามสนิปเปต %1$d รายการที่ไม่มีอะไรให้แทรก</item>
         <item quantity="other">แอปข้ามสนิปเปต %1$d รายการที่ไม่มีอะไรให้แทรก</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">สนิปเพ็ต %1$d รายการขอให้คุณกรอกแบบฟอร์ม แอปจะแทรกแบบฟอร์มเป็นข้อความ โดยมีเคอร์เซอร์อยู่ในช่องว่างแรก</item>
-        <item quantity="other">สนิปเพ็ต %1$d รายการขอให้คุณกรอกแบบฟอร์ม แอปจะแทรกแต่ละแบบฟอร์มเป็นข้อความ โดยมีเคอร์เซอร์อยู่ในช่องว่างแรก</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">แอปข้ามสนิปเพ็ต %1$d รายการที่แทรกรูปภาพ</item>
         <item quantity="other">แอปข้ามสนิปเพ็ต %1$d รายการที่แทรกรูปภาพ</item>

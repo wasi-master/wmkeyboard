@@ -52,7 +52,7 @@ The photo grid in [Online photos](/themes/online-photos/) dims the parts of each
 
 A photo behind your keys can easily fight with legibility, so two sliders and a switch sit right below the image row:
 
-- **Image opacity** fades the image itself, from fully transparent to fully opaque (the default). Below 100%, with the board color still see-through, whatever is behind the keyboard shows through the photo. An image with transparent areas of its own does the same.
+- **Image opacity** fades the image itself, from fully transparent to fully opaque (the default). Below 100% the photo fades into the board color, laid solid under it, so the keyboard stays opaque; transparent areas in an image of your own show that color too. Before 0.6.7 the app behind the keyboard showed through instead, which read as a board that ignored its opacity. A theme with **Blur behind the keyboard** on still lets the app through.
 - **Image blur** softens the image from sharp (the default) up to a heavy blur.
 - **Play animated image** plays the background when it's a GIF or an animated WebP, and turns itself on when the picture you picked is one. Turning it on zeroes the blur, and raising the blur turns it off: blurring a running animation would re-render the effect on every frame. The animation also stays still under reduce motion or power saving, and on app versions from before this feature the same file shows its first frame.
 

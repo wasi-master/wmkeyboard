@@ -38,10 +38,6 @@
         <item quantity="one">એપે %1$d સ્નિપેટ છોડી દીધું છે જેમાં દાખલ કરવા માટે કંઈ નથી.</item>
         <item quantity="other">એપે %1$d સ્નિપેટ્સ છોડી દીધા છે જેમાં દાખલ કરવા માટે કંઈ નથી.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d સ્નિપેટ તમને ફોર્મ ભરવા માટે કહે છે. એપ ફોર્મને ટેક્સ્ટ તરીકે દાખલ કરે છે, જેમાં કર્સર પ્રથમ ખાલી જગ્યામાં હોય છે.</item>
-        <item quantity="other">%1$d સ્નિપેટ્સ તમને ફોર્મ ભરવા માટે કહે છે. એપ દરેક ફોર્મને ટેક્સ્ટ તરીકે દાખલ કરે છે, જેમાં કર્સર પ્રથમ ખાલી જગ્યામાં હોય છે.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">એપે %1$d સ્નિપેટ છોડી દીધું જે ચિત્ર દાખલ કરે છે.</item>
         <item quantity="other">એપે %1$d સ્નિપેટ્સ છોડી દીધા જે ચિત્રો દાખલ કરે છે.</item>

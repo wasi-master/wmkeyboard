@@ -4,6 +4,7 @@ import com.wasimaster.wmkeyboard.core.content.ContentText
 import com.wasimaster.wmkeyboard.core.snippets.MultiExpand
 import com.wasimaster.wmkeyboard.core.snippets.Snippet
 import com.wasimaster.wmkeyboard.core.snippets.SnippetMatcher
+import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.core.snippets.SnippetVariable
 import com.wasimaster.wmkeyboard.core.snippets.UppercaseStyle
 
@@ -16,6 +17,12 @@ data class EspansoImport(
     val notes: List<ContentText>,
     /** Matches seen, including the ones that produced no snippet. */
     val total: Int,
+    /**
+     * The pictures the image matches insert, by the [Snippet.image] name each
+     * one was given. Written beside the snippets before they are added; see
+     * [com.wasimaster.wmkeyboard.core.snippets.SnippetStore.writeImages].
+     */
+    val images: Map<String, ByteArray> = emptyMap(),
 )
 
 /**
@@ -80,8 +87,18 @@ object EspansoFile {
      *
      * [name] names the folder the snippets land in, unless [folderName]
      * overrides it with something better, such as a package manifest's title.
+     *
+     * [image] fetches the file an `image_path` match names, given the path as
+     * written; null, or an answer of null, means the file is out of reach and
+     * the match is skipped with a note. A lone match file has nothing beside
+     * it to reach; a package archive has its own files ([EspansoPackage]).
      */
-    fun read(text: String, name: String, folderName: String? = null): EspansoImport? {
+    fun read(
+        text: String,
+        name: String,
+        folderName: String? = null,
+        image: ((path: String) -> ByteArray?)? = null,
+    ): EspansoImport? {
         val root = EspansoYaml.asMap(EspansoYaml.load(text, MAX_BYTES)) ?: return null
         val matches = EspansoYaml.asList(root["matches"])
         if (matches.isEmpty() && root["matches"] == null) return null
@@ -91,11 +108,16 @@ object EspansoFile {
 
         val globals = readVariables(EspansoYaml.asList(root["global_vars"]))
         val snippets = ArrayList<Snippet>(minOf(matches.size, MAX_SNIPPETS))
+        val images = LinkedHashMap<String, ByteArray>()
         var total = 0
         for (entry in matches) {
             total++
             if (snippets.size >= MAX_SNIPPETS) continue
             val map = EspansoYaml.asMap(entry) ?: continue
+            imageSnippet(map, image, images, notes)?.let {
+                snippets += it
+                continue
+            }
             snippets += convert(map, globals, notes) ?: continue
         }
         return EspansoImport(
@@ -103,6 +125,7 @@ object EspansoFile {
             folderName = (folderName ?: fallbackFolderName(name)).trim().ifEmpty { name },
             notes = notes.build(),
             total = total,
+            images = images,
         )
     }
 
@@ -111,6 +134,51 @@ object EspansoFile {
         name.substringBeforeLast('.').replace('-', ' ').replace('_', ' ').trim()
 
     // ---- one match -------------------------------------------------------
+
+    /**
+     * An `image_path` match as a picture snippet, when the file can be had.
+     *
+     * Only a match whose whole replacement is the picture: one that also says
+     * `replace`, `markdown`, `html` or `form` is text, as Espanso reads it too.
+     * Null when the file is out of reach, too large, or not a picture, and
+     * then [readBody] notes the match as skipped.
+     */
+    private fun imageSnippet(
+        match: Map<String, Any?>,
+        fetch: ((String) -> ByteArray?)?,
+        images: MutableMap<String, ByteArray>,
+        notes: EspansoNotes,
+    ): Snippet? {
+        if (fetch == null) return null
+        if (TEXT_KEYS.any { match[it] != null }) return null
+        val path = EspansoYaml.asText(match["image_path"])?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        val bytes = runCatching { fetch(path) }.getOrNull() ?: return null
+        if (bytes.isEmpty() || bytes.size > SnippetStore.MAX_IMAGE_BYTES) return null
+        // The bytes decide, not the path: `$CONFIG/cat` has no extension, and a
+        // `.png` that is really a text file must not be offered to a chat app.
+        SnippetStore.sniffExtension(bytes.copyOf(minOf(bytes.size, SNIFF_BYTES))) ?: return null
+        notes.addIf(
+            EspansoYaml.asList(match["apps"]).isNotEmpty() ||
+                EspansoYaml.asList(match["exclude_apps"]).isNotEmpty(),
+            EspansoNote.APPS,
+        )
+        val triggers = readTriggers(match, notes)
+        val regex = EspansoYaml.asText(match["regex"])?.trim()?.takeIf { it.isNotEmpty() }
+        val pattern = if (triggers.isEmpty() && regex != null) convertRegex(regex, notes) else null
+        if (triggers.isEmpty() && pattern == null) return null
+        val stored = SnippetStore.newImageName(null, bytes.copyOf(minOf(bytes.size, SNIFF_BYTES)))
+        images[stored] = bytes
+        val file = path.substringAfterLast('/').substringAfterLast('\\')
+        val label = EspansoYaml.asText(match["label"])?.trim()?.takeIf { it.isNotEmpty() }
+            ?: file.substringBeforeLast('.').ifEmpty { file }.take(LABEL_MAX)
+        return snippet(label, "", triggers, pattern, match).copy(image = stored)
+    }
+
+    /** The keys that make a match text, whatever else it says. */
+    private val TEXT_KEYS = listOf("replace", "markdown", "html", "form")
+
+    /** Bytes a picture's type is read from. */
+    private const val SNIFF_BYTES = 16
 
     @Suppress("ReturnCount")
     private fun convert(
@@ -429,8 +497,7 @@ object EspansoFile {
             return EspansoRichText.fromHtml(it)
         }
         EspansoYaml.asText(match["form"])?.let {
-            notes.add(EspansoNote.FORM)
-            return flattenForm(it)
+            return formText(it, EspansoYaml.asMap(match["form_fields"]).orEmpty(), notes)
         }
         if (match["image_path"] != null) {
             notes.add(EspansoNote.IMAGE)
@@ -440,30 +507,39 @@ object EspansoFile {
         // the layout instead. Its fields are read the same way.
         val form = locals.values.firstOrNull { it.type == "form" } ?: return null
         val layout = EspansoYaml.asText(form.params["layout"]) ?: return null
-        notes.add(EspansoNote.FORM)
-        return flattenForm(layout)
+        return formText(layout, EspansoYaml.asMap(form.params["fields"]).orEmpty(), notes)
     }
 
     /**
-     * A form layout as ordinary snippet text.
+     * A form layout as snippet text whose fields are this app's fill-in
+     * fields: `[[name]]` becomes `{ask:name}`, and the keyboard asks for each
+     * one, in order, when the snippet expands.
      *
-     * The first `[[field]]` becomes the cursor marker, so the caret lands where
-     * the first answer goes. The rest stay as they are written: a visible
-     * `[[email]]` is a person's cue to type an address there, and blanking them
-     * would leave a sentence with holes in it and nothing to say what belongs
-     * in each.
+     * [fields] is the form's per-field settings. A `default` carries across.
+     * A pick-one field has no list to pick from here, so it becomes a typed
+     * field whose default is its first value, and that is noted.
      */
-    private fun flattenForm(layout: String): String {
-        var first = true
-        return FORM_FIELD.replace(layout) { match ->
-            if (first) {
-                first = false
-                SnippetVariable.CURSOR.token
-            } else {
-                match.value
-            }
-        }
+    private fun formText(layout: String, fields: Map<String, Any?>, notes: EspansoNotes): String =
+        FORM_FIELD.replace(layout) { match -> askToken(match.groupValues[1], fields, notes) }
+
+    /** `{ask:name}` for form field [name], with its default when it has one. */
+    private fun askToken(name: String, fields: Map<String, Any?>, notes: EspansoNotes): String {
+        val clean = name.trim().take(ASK_NAME_MAX)
+        val field = EspansoYaml.asMap(fields[name]).orEmpty()
+        val type = EspansoYaml.asText(field["type"])?.trim()?.lowercase()
+        val choice = type == "choice" || type == "list"
+        notes.addIf(choice, EspansoNote.FORM)
+        val default = EspansoYaml.asText(field["default"])
+            ?: if (choice) EspansoYaml.asList(field["values"]).firstNotNullOfOrNull { EspansoYaml.asText(choiceLabel(it)) } else null
+        // A brace or a line break would end the token early; neither belongs
+        // in a one-line answer anyway.
+        val safe = default?.replace(Regex("[}\\r\\n]+"), " ")?.trim()?.take(ASK_DEFAULT_MAX).orEmpty()
+        return if (safe.isEmpty()) "{ask:$clean}" else "{ask:$clean:$safe}"
     }
+
+    /** Longest field name and default a token carries; see [SnippetStore.asks]. */
+    private const val ASK_NAME_MAX = 40
+    private const val ASK_DEFAULT_MAX = 200
 
     // ---- variables -------------------------------------------------------
 
@@ -515,6 +591,14 @@ object EspansoFile {
             val variable = vars[reference] ?: vars[reference.substringBefore('.')]
             if (variable == null) {
                 ""
+            } else if (variable.type == "form" && reference.contains('.')) {
+                // The verbose form's answer, `{{form1.name}}`: asked for when
+                // the snippet expands, like the shorthand form's `[[name]]`.
+                askToken(
+                    reference.substringAfter('.'),
+                    EspansoYaml.asMap(variable.params["fields"]).orEmpty(),
+                    notes,
+                )
             } else {
                 inject(valueOf(variable, notes), vars, groups, notes, depth + 1)
             }
@@ -540,6 +624,8 @@ object EspansoFile {
                 notes.add(EspansoNote.SHELL)
                 return ""
             }
+            // Reached only for the bare `{{form1}}`; a field of it,
+            // `{{form1.name}}`, is a fill-in field (see [inject]).
             "form" -> return ""
             else -> {
                 notes.add(EspansoNote.VARIABLE)

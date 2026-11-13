@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.snippets.espanso
 
+import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import java.io.InputStream
 import java.util.zip.ZipInputStream
 
@@ -15,15 +16,30 @@ import java.util.zip.ZipInputStream
  *
  * Nothing here uses an entry name as a file path. Entries are read into memory
  * under a cap and nothing is written to disk, so a maliciously named entry has
- * nowhere to escape to.
+ * nowhere to escape to. That includes the pictures an `image_path` match
+ * inserts: they are found by file name among the archive's own entries and
+ * handed back as bytes, and the store names them itself.
  */
 object EspansoPackage {
 
     /** Entries scanned before the archive is judged to be something else. */
     private const val MAX_ENTRIES = 400
 
-    /** Total uncompressed bytes read, across every entry. */
+    /** Total uncompressed bytes read, across the text entries. */
     private const val MAX_TOTAL_BYTES = 8L * 1024 * 1024
+
+    /**
+     * Total uncompressed bytes of pictures kept. A budget of its own, so a
+     * package whose pictures come first in the archive still has room left
+     * for its match file.
+     */
+    private const val MAX_IMAGE_TOTAL_BYTES = 16L * 1024 * 1024
+
+    /** Most pictures one package may bring. */
+    private const val MAX_IMAGES = 64
+
+    /** What a picture entry is called. The bytes are checked again before use. */
+    private val IMAGE_FILE = Regex("""(?i).+\.(png|jpe?g|gif|webp)""")
 
     /** Uncompressed bytes read from any single entry. */
     private const val MAX_ENTRY_BYTES = EspansoFile.MAX_BYTES.toLong()
@@ -53,6 +69,10 @@ object EspansoPackage {
         var matchesDir: String? = null
         var total = 0L
         var seen = 0
+        // By lower-cased file name: an `image_path` names a place on the
+        // author's computer, and the file name is the part that survives.
+        val images = HashMap<String, ByteArray>()
+        var imageTotal = 0L
 
         ZipInputStream(input).use { zip ->
             while (seen++ < MAX_ENTRIES && total < MAX_TOTAL_BYTES) {
@@ -63,6 +83,20 @@ object EspansoPackage {
                     file.equals(MATCHES, ignoreCase = true) -> matches == null
                     file.equals(MANIFEST, ignoreCase = true) -> manifest == null
                     else -> false
+                }
+                val picture = !wanted && !entry.isDirectory && images.size < MAX_IMAGES &&
+                    imageTotal < MAX_IMAGE_TOTAL_BYTES &&
+                    path.count { it == '/' } <= MAX_DEPTH + 1 && IMAGE_FILE.matches(file) &&
+                    file.lowercase() !in images
+                if (picture) {
+                    val room = minOf(SnippetStore.MAX_IMAGE_BYTES.toLong(), MAX_IMAGE_TOTAL_BYTES - imageTotal)
+                    val bytes = zip.readAtMost(room + 1)
+                    // One byte over the room means it did not fit; a cut-off
+                    // picture is worse than none.
+                    if (bytes.size <= room) {
+                        imageTotal += bytes.size
+                        images[file.lowercase()] = bytes
+                    }
                 }
                 if (wanted) {
                     val bytes = zip.readAtMost(MAX_ENTRY_BYTES)
@@ -84,7 +118,9 @@ object EspansoPackage {
         val title = manifest
             ?.takeIf { matchesDir != null }
             ?.let(::titleOf)
-        return EspansoFile.read(text, name, folderName = title)
+        return EspansoFile.read(text, name, folderName = title) { imagePath ->
+            images[imagePath.replace('\\', '/').substringAfterLast('/').lowercase()]
+        }
     }
 
     /** The `title` a manifest declares, else its `name`, else null. */

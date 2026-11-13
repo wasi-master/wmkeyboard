@@ -386,6 +386,13 @@ enum class CaptureTarget(
     /** The snippets panel's search pill (#471). */
     SNIPPET_SEARCH(takesWords = true),
 
+    /**
+     * The fill-in row of a snippet that asks for `{ask:Name}` values as it
+     * expands: one answer at a time, one line; Enter moves on, and on the last
+     * field inserts the snippet.
+     */
+    SNIPPET_ASK(takesWords = true),
+
     /** The Notes panel's search pill (#560). */
     NOTE_SEARCH(takesWords = true),
 
@@ -494,7 +501,10 @@ enum class CaptureTarget(
      */
     val handsKeysToApp: Boolean
         get() = this != TYPING_TEST && this != WORD_SPELL && this != TOOLBOX_SEARCH &&
-            this != TOOLBOX_FOLDER_NAME && this != LAUNCHER_FOLDER_NAME
+            this != TOOLBOX_FOLDER_NAME && this != LAUNCHER_FOLDER_NAME &&
+            // The snippet waits to go in at the app's caret: typing there
+            // first would put the answer somewhere else entirely.
+            this != SNIPPET_ASK
 
     /**
      * Whether the field's key rows can be put down to see the panel under them

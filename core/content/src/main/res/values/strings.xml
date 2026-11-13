@@ -207,17 +207,21 @@
         <item quantity="one">%1$d snippet runs a command on your computer. The app left the command out and never runs it.</item>
         <item quantity="other">%1$d snippets run commands on your computer. The app left the commands out and never runs them.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d snippet asks you to fill in a form. The app inserts the form as text, with the cursor in the first blank.</item>
-        <item quantity="other">%1$d snippets ask you to fill in a form. The app inserts each form as text, with the cursor in the first blank.</item>
+    <plurals name="core_content_espanso_note_form_choice">
+        <item quantity="one">%1$d form field offers a list to pick from. The app asks for it as a typed answer, with the first choice filled in.</item>
+        <item quantity="other">%1$d form fields offer a list to pick from. The app asks for each as a typed answer, with the first choice filled in.</item>
+    </plurals>
+    <plurals name="core_content_espanso_note_picture_export">
+        <item quantity="one">%1$d snippet inserts a picture. A text file cannot hold the picture, so only its words went out.</item>
+        <item quantity="other">%1$d snippets insert pictures. A text file cannot hold the pictures, so only their words went out.</item>
     </plurals>
     <plurals name="core_content_espanso_note_rich_text">
         <item quantity="one">%1$d snippet uses formatted text. The app keeps the words and drops the formatting.</item>
         <item quantity="other">%1$d snippets use formatted text. The app keeps the words and drops the formatting.</item>
     </plurals>
     <plurals name="core_content_espanso_note_image">
-        <item quantity="one">The app skipped %1$d snippet that inserts a picture.</item>
-        <item quantity="other">The app skipped %1$d snippets that insert pictures.</item>
+        <item quantity="one">The app skipped %1$d snippet that inserts a picture, because the picture was not in the file.</item>
+        <item quantity="other">The app skipped %1$d snippets that insert pictures, because the pictures were not in the file.</item>
     </plurals>
     <plurals name="core_content_espanso_note_apps">
         <item quantity="one">%1$d snippet is limited to certain computer programs. On your phone it works everywhere.</item>

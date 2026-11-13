@@ -103,6 +103,7 @@
     <string name="storage_lib_translate">ML Kit\'s on-device translator, for the Translate tool</string>
     <string name="storage_lib_litert">Offline Whisper voice typing and the sticker background remover</string>
     <string name="storage_lib_handwriting">ML Kit\'s handwriting recognizer</string>
+    <string name="storage_lib_whistle">Whistle voice typing. Cactus Compute\'s own build, which F-Droid cannot build from source</string>
     <string name="storage_lib_speech">whisper.cpp and Whistle voice typing, and noise removal for dictation</string>
     <string name="storage_lib_opus">Makes dictation audio smaller before it goes to a transcription server</string>
     <string name="storage_lib_executorch">Asr4All, Parakeet and Moonshine voice typing, and the FUTO Swipe glide engine</string>

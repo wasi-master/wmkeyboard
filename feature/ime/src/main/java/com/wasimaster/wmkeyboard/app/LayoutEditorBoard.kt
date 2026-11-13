@@ -93,7 +93,11 @@ fun editorBoardView(
     val letters = if (layer == LayoutLayer.LETTERS) grid else spec.compile(LayoutLayer.LETTERS)
     val layouts = LayoutSet(
         letters = letters,
-        symbols = if (layer == LayoutLayer.SYMBOLS) grid else spec.compile(LayoutLayer.SYMBOLS),
+        symbols = if (layer == LayoutLayer.SYMBOLS) {
+            grid
+        } else {
+            spec.compile(LayoutLayer.SYMBOLS, settings.layoutBehavior.symbolsPage)
+        },
         symbolsShifted = if (layer == LayoutLayer.SYMBOLS_SHIFTED) grid else spec.compile(LayoutLayer.SYMBOLS_SHIFTED),
         fn = grid.takeIf { layer == LayoutLayer.FN },
         secondaries = if (spec.secondary) mapOf(spec.id to grid) else emptyMap(),

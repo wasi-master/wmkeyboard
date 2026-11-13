@@ -224,6 +224,11 @@
     <string name="voice_resume_info">When the keyboard goes away with the voice panel, the compact bar or the collapsed bar on screen, the next text field you tap opens on the same view and starts listening.\n\nTo stop that, leave voice typing before you close the keyboard: press Back or the close button on the panel or the compact bar, the keyboard button on the collapsed bar, or the Voice tool. The keyboard then opens on the keys as usual until you start voice typing again. Password fields always open on the keys.</string>
     <string name="voice_pause_media_title">Pause media during voice typing</string>
     <string name="voice_pause_media_subtitle">Pause music and video while the microphone listens</string>
+    <!-- A sound of the user's own when the microphone opens (#1260). -->
+    <string name="voice_start_sound_title">Sound when the mic opens</string>
+    <string name="voice_start_sound_subtitle">Play a sound you pick each time voice typing starts listening</string>
+    <string name="voice_start_sound_none">None</string>
+    <string name="voice_start_sound_custom">Your sound</string>
     <string name="voice_mic_title">Microphone</string>
     <string name="voice_mic_subtitle">Prefer a Bluetooth, wired or USB microphone when one is connected</string>
     <string name="voice_mic_info">Which microphone voice typing listens through. Automatic uses the one Android picks, which is a plugged-in headset before the phone. Pick a kind to prefer it whenever one is connected. When it is not connected, voice typing uses the automatic choice.\n\nOffline Whisper and the transcription server can use every kind. The system recognizer records the audio itself, so for it only Bluetooth has an effect.\n\nThe microphone button on the voice panel and both voice bars shows the microphone in use. Tap it to switch to the next one that is connected.</string>
@@ -352,7 +357,8 @@
     <string name="voice_system_input_subtitle">Offer the keyboard\'s voice engines as the phone\'s voice input</string>
     <string name="voice_system_input_info">Lists WM Keyboard among Android\'s voice input apps, so the microphone in a browser\'s search box, a notes app or a launcher can use the engines set up on this screen without the keyboard being open. Each language uses its own engine, as it does here. Turning this on does not change the phone\'s voice input: pick WM Keyboard under the row below. With the phone\'s recognizer as the engine, requests go on to it. Turn this off and WM Keyboard leaves the list.</string>
     <string name="voice_system_input_pick_title">Choose the phone\'s voice input</string>
-    <string name="voice_system_input_pick_subtitle">Opens Android\'s settings, where WM Keyboard can be picked</string>
+    <string name="voice_system_input_pick_subtitle">Opens Android\'s digital assistant page. Pick WM Keyboard under Voice input, near the bottom</string>
+    <string name="voice_system_input_pick_hint">Tap Voice input on this page and pick WM Keyboard</string>
     <string name="voice_input_label">WM Keyboard voice input</string>
     <string name="voice_input_speak_now">Speak now</string>
     <string name="voice_input_mic">Microphone. Tap to finish</string>

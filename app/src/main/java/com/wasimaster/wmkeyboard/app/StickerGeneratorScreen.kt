@@ -96,6 +96,7 @@ import com.wasimaster.wmkeyboard.core.stickers.SubjectCutout
 import com.wasimaster.wmkeyboard.core.util.PhoneGpu
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.IOException
 import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -153,17 +154,19 @@ internal fun StickerGeneratorScreen(
     var tokenizer by remember { mutableStateOf<ClipTokenizer?>(null) }
     // A model on the phone whose files could not be read (#903): said, rather
     // than leaving Generate off with the model reading as ready.
-    var unreadable by remember { mutableStateOf(false) }
+    // What went wrong, in English, or null while it reads (#903): the next
+    // report then says which file and why, not only that one failed.
+    var unreadable by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(modelId, modelReady) {
         spec = null
         tokenizer = null
-        unreadable = false
+        unreadable = null
         if (!modelReady) return@LaunchedEffect
         withContext(Dispatchers.IO) {
             val loaded = loadSpec(context, modelId)
-            spec = loaded?.first
-            tokenizer = loaded?.second
-            unreadable = loaded == null
+            spec = loaded.getOrNull()?.first
+            tokenizer = loaded.getOrNull()?.second
+            unreadable = loaded.exceptionOrNull()?.let { it.message ?: it.javaClass.simpleName }
         }
     }
     // The generator's engine is a library of its own; the offline build and
@@ -605,8 +608,10 @@ internal fun StickerGeneratorScreen(
                 if (!online && engine != null && spec == null && !modelReady) {
                     CaptionText(stringResource(R.string.stickergen_need_model), modifier = Modifier.padding(top = 4.dp))
                 }
-                if (!online && engine != null && unreadable) {
+                val why = unreadable
+                if (!online && engine != null && why != null) {
                     CaptionText(stringResource(R.string.stickergen_model_unreadable), modifier = Modifier.padding(top = 4.dp), error = true)
+                    CaptionText(stringResource(R.string.stickergen_model_unreadable_reason, why), modifier = Modifier.padding(top = 2.dp))
                 }
                 status?.let {
                     LinearProgressIndicator(
@@ -980,27 +985,39 @@ private fun modelSubtitle(context: Context, model: ImageGenModels.Catalog, state
 }
 
 /** The model's spec and tokenizer, read off disk. */
-private fun loadSpec(context: Context, modelId: String): Pair<ModelSpec, ClipTokenizer>? = runCatching {
+/** The model's schedule and tokenizer, or the reason, in English, they could not be read (#903). */
+private fun loadSpec(context: Context, modelId: String): kotlin.Result<Pair<ModelSpec, ClipTokenizer>> = runCatching {
     val noBackup = context.noBackupFilesDir
     val catalog = ImageGenModels.Catalog.byId(modelId)
     if (catalog?.runtime == ImageRuntime.QNN) {
         val merges = ImageGenModels.file(noBackup, catalog, catalog.parts.first())
-        return@runCatching ImageGenModels.npuSpec() to ClipTokenizer.fromFile(merges)
+        return@runCatching ImageGenModels.npuSpec() to tokenizerFrom(merges)
     }
     val dir = if (catalog != null) ImageGenModels.dir(noBackup, catalog) else File(ImageGenModels.importedRoot(noBackup), modelId)
     // An imported Qualcomm build: its context binaries run on the catalog's
     // own schedule, with the tokenizer beside them and no wmimage.json of
     // their own.
     if (File(dir, ImageGenModels.NPU_UNET).isFile) {
-        val merges = dir.listFiles().orEmpty().firstOrNull { it.name.endsWith("merges.txt") } ?: return@runCatching null
-        return@runCatching ImageGenModels.npuSpec(modelId) to ClipTokenizer.fromFile(merges)
+        val merges = dir.listFiles().orEmpty().firstOrNull { it.name.endsWith("merges.txt") }
+            ?: throw IOException("no merges.txt beside ${ImageGenModels.NPU_UNET}")
+        return@runCatching ImageGenModels.npuSpec(modelId) to tokenizerFrom(merges)
     }
     val files = dir.listFiles().orEmpty()
-    val json = files.firstOrNull { it.name.endsWith("wmimage.json") }?.readText() ?: return@runCatching null
-    val merges = files.firstOrNull { it.name.endsWith("merges.txt") } ?: return@runCatching null
-    val spec = ModelSpec.parse(modelId, json) ?: return@runCatching null
-    spec to ClipTokenizer.fromFile(merges)
-}.getOrNull()
+    if (files.isEmpty()) throw IOException("the model's folder is empty or missing")
+    val json = files.firstOrNull { it.name.endsWith("wmimage.json") }?.readText()
+        ?: throw IOException("no wmimage.json among ${files.joinToString { it.name }}")
+    val merges = files.firstOrNull { it.name.endsWith("merges.txt") } ?: throw IOException("no merges.txt")
+    val spec = ModelSpec.parse(modelId, json) ?: throw IOException("wmimage.json is not a format this version reads")
+    spec to tokenizerFrom(merges)
+}
+
+/** CLIP's tokenizer from [merges], named in the error when the file is not one. */
+private fun tokenizerFrom(merges: File): ClipTokenizer =
+    try {
+        ClipTokenizer.fromFile(merges)
+    } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+        throw IOException("${merges.name} (${merges.length()} bytes) is not CLIP's merges.txt: ${e.message ?: e.javaClass.simpleName}", e)
+    }
 
 /**
  * The pack a picked sticker goes to: the route's, else the last one used,

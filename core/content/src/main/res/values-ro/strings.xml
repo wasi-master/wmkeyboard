@@ -38,10 +38,6 @@
         <item quantity="one">Aplicația a omis %1$d fragment care nu are nimic de inserat.</item>
         <item quantity="other">Aplicația a omis %1$d fragmente care nu au nimic de inserat.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d fragment îți cere să completezi un formular. Aplicația inserează formularul ca text, cu cursorul în primul spațiu liber.</item>
-        <item quantity="other">%1$d fragmente îți cer să completezi un formular. Aplicația inserează fiecare formular ca text, cu cursorul în primul spațiu liber.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Aplicația a omis %1$d fragment care inserează o imagine.</item>
         <item quantity="other">Aplicația a omis %1$d fragmente care inserează imagini.</item>

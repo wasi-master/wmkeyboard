@@ -38,10 +38,6 @@
         <item quantity="one">برنامه %1$d قطعه کد را که چیزی برای درج نداشت، نادیده گرفت.</item>
         <item quantity="other">برنامه %1$d قطعه کد را که چیزی برای درج نداشتند، نادیده گرفت.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d قطعه کد از شما می‌خواهد فرمی را پر کنید. برنامه فرم را به عنوان متن درج می‌کند و مکان‌نما در اولین جای خالی قرار می‌گیرد.</item>
-        <item quantity="other">%1$d قطعه کد از شما می‌خواهند فرمی را پر کنید. برنامه هر فرم را به عنوان متن درج می‌کند و مکان‌نما در اولین جای خالی قرار می‌گیرد.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">برنامه %1$d قطعه متنی که تصویر درج می‌کند را نادیده گرفت.</item>
         <item quantity="other">برنامه %1$d قطعه متنی که تصویر درج می‌کنند را نادیده گرفت.</item>

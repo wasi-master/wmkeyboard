@@ -146,4 +146,34 @@ class WordDeleteTest {
         val spaced = WordBreaks(punctuation = false, capitals = false, digits = true)
         assertEquals("1.0".length, WordDelete.lengthBefore("v1.0", spaced))
     }
+
+    @Test
+    fun `an address goes in one step when asked`() {
+        val urls = WordBreaks(punctuation = true, capitals = false, addresses = true)
+        assertEquals("https://example.com/path".length, WordDelete.lengthBefore("open https://example.com/path", urls))
+        assertEquals("example.com/path ".length, WordDelete.lengthBefore("see example.com/path ", urls))
+        assertEquals("test@pm.me".length, WordDelete.lengthBefore("mail test@pm.me", urls))
+        assertEquals("https://www.word1.com/wordtwo_wordthree".length, WordDelete.lengthBefore("https://www.word1.com/wordtwo_wordthree", urls))
+        // The full stop after an address is its own step, then the address.
+        assertEquals(".".length, WordDelete.lengthBefore("Visit example.com.", urls))
+        assertEquals("example.com".length, WordDelete.lengthBefore("Visit example.com", urls))
+        // A bracket stays for the next step.
+        assertEquals("https://x.io".length, WordDelete.lengthBefore("(https://x.io", urls))
+        // Forward, the same.
+        assertEquals(" example.com/path".length, WordDelete.lengthAfter(" example.com/path now", urls))
+        assertEquals("example.com".length, WordDelete.lengthAfter("example.com. Next", urls))
+    }
+
+    @Test
+    fun `prose keeps its word steps with addresses on`() {
+        val urls = WordBreaks(punctuation = true, capitals = false, addresses = true)
+        // A missing space after a full stop is still two words.
+        assertEquals("Then".length, WordDelete.lengthBefore("The end.Then", urls))
+        assertEquals(".".length, WordDelete.lengthBefore("e.g.", urls))
+        assertEquals(".".length, WordDelete.lengthBefore("U.S.", urls))
+        assertEquals("14".length, WordDelete.lengthBefore("pi is 3.14", urls))
+        assertEquals("end".length, WordDelete.lengthAfter("end.Then", urls))
+        // Off, the address splits at its marks as before.
+        assertEquals("path".length, len("see example.com/path"))
+    }
 }

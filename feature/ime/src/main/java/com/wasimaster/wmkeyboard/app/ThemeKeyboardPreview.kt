@@ -67,6 +67,7 @@ import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
+import com.wasimaster.wmkeyboard.core.layout.SymbolsPage
 import com.wasimaster.wmkeyboard.core.layout.compile
 import com.wasimaster.wmkeyboard.core.layout.composerType
 import com.wasimaster.wmkeyboard.core.layout.expandForTablet
@@ -181,8 +182,9 @@ fun ThemeKeyboardPreview(
     val current = sandbox.value
     val layoutId = current.layoutId ?: previewSettings.activeLayoutId
     val spec = remember(customs, layoutId) { resolveLayout(customs, layoutId) }
-    val layouts = remember(spec, form, previewSettings.numberRow, customs) {
-        previewLayoutSet(spec, form, previewSettings.numberRow, customs)
+    val symbolsPage = previewSettings.layoutBehavior.symbolsPage
+    val layouts = remember(spec, form, previewSettings.numberRow, symbolsPage, customs) {
+        previewLayoutSet(spec, form, previewSettings.numberRow, symbolsPage, customs)
     }
     val script = remember(spec) { spec.script() }
     val composer = remember(spec, script) { composerFor(script, spec.composerType(), spec.langId) }
@@ -528,6 +530,7 @@ private fun previewLayoutSet(
     spec: LayoutSpec,
     form: DeviceForm,
     numberRowShown: Boolean,
+    symbolsPage: SymbolsPage,
     customs: List<LayoutSpec>,
 ): LayoutSet {
     val safe = spec.repair().spec
@@ -537,7 +540,7 @@ private fun previewLayoutSet(
     return LayoutSet(
         letters = (if (gridWidth != null) letters.expandForTablet(form, numberRowShown) else letters)
             .unthemed(),
-        symbols = safe.compile(LayoutLayer.SYMBOLS).unthemed(),
+        symbols = safe.compile(LayoutLayer.SYMBOLS, symbolsPage).unthemed(),
         symbolsShifted = safe.compile(LayoutLayer.SYMBOLS_SHIFTED).unthemed(),
         fn = safe.layer(LayoutLayer.FN)?.let { safe.compile(LayoutLayer.FN).unthemed() },
         number = safe.layer(LayoutLayer.NUMBER)?.let { safe.compile(LayoutLayer.NUMBER).unthemed() },

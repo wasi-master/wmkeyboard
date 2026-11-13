@@ -806,18 +806,36 @@ data class KeyOverride(
      *
      * A single round enter key on a grid of soft rectangles is a signature a
      * whole family of themes is built on, and it is the one thing a per-key
-     * style could not say. The key's own radius still comes from the board:
-     * one number per theme is the shape the radius slider has, and a shape
-     * that needs its own is [KeyShapeKind.CIRCLE] or [KeyShapeKind.PILL],
-     * neither of which reads a radius.
+     * style could not say. How round a rounded key is comes from
+     * [cornerRadiusDp], and from the board's radius where that is null.
      */
     val shape: String? = null,
+    /**
+     * The key's resting face as a gradient, painted over [background]. A
+     * press still paints the solid pressed colour, so the hit stays legible.
+     * A red-to-crimson enter key, a space bar that fades at its ends: looks
+     * one colour cannot give.
+     */
+    val gradient: GradientSpec? = null,
+    /**
+     * A halo of this colour behind the key, showing in the gaps round it.
+     * Alpha is honoured, so a faint glow is a translucent colour.
+     */
+    val glow: Long? = null,
+    /** How far that halo reaches past the key, in dp; null is [DEFAULT_KEY_GLOW_DP]. */
+    val glowDp: Float? = null,
+    /**
+     * This key's own corner radius for the rounded and cut shapes, in dp;
+     * null follows the board's. See [KEY_OVERRIDE_RADIUS_RANGE].
+     */
+    val cornerRadiusDp: Int? = null,
 ) {
     val isEmpty: Boolean
         get() = background == null && text == null && border == null &&
             popupBackground == null && popupText == null && hint == null &&
             texture == null && effect == null && effectParam == null &&
-            labelScale == null && bold == null && shape == null
+            labelScale == null && bold == null && shape == null &&
+            gradient == null && glow == null && glowDp == null && cornerRadiusDp == null
 
     /**
      * The kind of burst this key throws on its own, or null when it follows
@@ -835,6 +853,15 @@ data class KeyOverride(
  * together by `KeyOverrideLabelScaleRangeTest` instead.
  */
 val KEY_OVERRIDE_LABEL_SCALE_RANGE = 0.3f..2f
+
+/** Bounds of [KeyOverride.glowDp]; past a key gap or two a glow is a smear. */
+val KEY_GLOW_RANGE = 1f..16f
+
+/** What [KeyOverride.glowDp] means when the key names a glow and no reach. */
+const val DEFAULT_KEY_GLOW_DP = 4f
+
+/** Bounds of [KeyOverride.cornerRadiusDp]; the board's own radius slider shares them. */
+val KEY_OVERRIDE_RADIUS_RANGE = 0..28
 
 /**
  * One decorative sticker laid over the key grid — a character leaning on the

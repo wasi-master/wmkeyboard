@@ -38,10 +38,6 @@
         <item quantity="one">Aplikacja pominęła %1$d fragment, który nie ma nic do wstawienia.</item>
         <item quantity="other">Aplikacja pominęła %1$d fragmentów, które nie mają nic do wstawienia.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d fragment wymaga wypełnienia formularza. Aplikacja wstawi formularz jako tekst, z kursorem w pierwszym polu.</item>
-        <item quantity="other">%1$d fragmentów wymaga wypełnienia formularza. Aplikacja wstawi każdy formularz jako tekst, z kursorem w pierwszym polu.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Aplikacja pominęła %1$d fragment, który wstawia obraz.</item>
         <item quantity="other">Aplikacja pominęła %1$d fragmentów, które wstawiają obrazy.</item>

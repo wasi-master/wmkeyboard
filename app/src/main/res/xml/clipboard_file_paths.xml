@@ -5,6 +5,8 @@
     <files-path name="doc_scans" path="docscan/" />
     <!-- The user's own sticker packs, committed straight from storage. -->
     <files-path name="sticker_packs" path="stickers/" />
+    <!-- Picture snippets, committed straight from storage. -->
+    <files-path name="snippet_images" path="snippets/images/" />
     <!-- Files a paired computer sent over KDE Connect, below Android 10 where
          they cannot go to Downloads without a storage permission. -->
     <files-path name="kde_received" path="kdeconnect/received/" />

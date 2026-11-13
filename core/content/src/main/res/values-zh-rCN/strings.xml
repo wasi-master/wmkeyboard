@@ -38,10 +38,6 @@
         <item quantity="one">应用跳过了 %1$d 个没有内容可插入的代码片段。</item>
         <item quantity="other">应用跳过了 %1$d 个没有内容可插入的代码片段。</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d 个代码片段要求您填写表单。应用会将表单作为文本插入，并将光标置于第一个空白处。</item>
-        <item quantity="other">%1$d 个代码片段要求您填写表单。应用会将每个表单作为文本插入，并将光标置于第一个空白处。</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">应用跳过了 %1$d 个插入图片的片段。</item>
         <item quantity="other">应用跳过了 %1$d 个插入图片的片段。</item>

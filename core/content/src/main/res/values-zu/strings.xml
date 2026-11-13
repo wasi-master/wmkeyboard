@@ -38,10 +38,6 @@
         <item quantity="one">Uhlelo lokusebenza lweqe isicashunisi esingu-%1$d esingenalutho olungafakwa.</item>
         <item quantity="other">Uhlelo lokusebenza lweqe izicashunisi ezingu-%1$d ezingenalutho olungafakwa.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">Isiqeshana esingu-%1$d sikucela ukuthi ugcwalise ifomu. Uhlelo lokusebenza lufaka ifomu njengombhalo, nesikhombisi endaweni yokuqala engenalutho.</item>
-        <item quantity="other">Iziqeshana ezingu-%1$d zikucela ukuthi ugcwalise ifomu. Uhlelo lokusebenza lufaka ifomu ngalinye njengombhalo, nesikhombisi endaweni yokuqala engenalutho.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Uhlelo lokusebenza lweqe isiqeshana esingu-%1$d esifaka isithombe.</item>
         <item quantity="other">Uhlelo lokusebenza lweqe iziqeshana ezingu-%1$d ezifaka izithombe.</item>

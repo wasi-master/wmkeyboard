@@ -38,10 +38,6 @@
         <item quantity="one">Die App hat %1$d Textbaustein übersprungen, der nichts zum Einfügen enthält.</item>
         <item quantity="other">Die App hat %1$d Textbausteine übersprungen, die nichts zum Einfügen enthalten.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d Textbaustein fordert Sie auf, ein Formular auszufüllen. Die App fügt das Formular als Text ein, wobei der Cursor im ersten leeren Feld steht.</item>
-        <item quantity="other">%1$d Textbausteine fordern Sie auf, ein Formular auszufüllen. Die App fügt jedes Formular als Text ein, wobei der Cursor im ersten leeren Feld steht.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Die App hat %1$d Snippet übersprungen, das ein Bild einfügt.</item>
         <item quantity="other">Die App hat %1$d Snippets übersprungen, die Bilder einfügen.</item>

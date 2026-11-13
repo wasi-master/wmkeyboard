@@ -38,10 +38,6 @@
         <item quantity="one">Appen sprang %1$d tekststykke over, som ikke har noget at indsætte.</item>
         <item quantity="other">Appen sprang %1$d tekststykker over, som ikke har noget at indsætte.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d tekstfragment beder dig om at udfylde en formular. Appen indsætter formularen som tekst med markøren i det første felt.</item>
-        <item quantity="other">%1$d tekstfragmenter beder dig om at udfylde en formular. Appen indsætter hver formular som tekst med markøren i det første felt.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Appen sprang %1$d tekststump over, der indsætter et billede.</item>
         <item quantity="other">Appen sprang %1$d tekststumper over, der indsætter billeder.</item>

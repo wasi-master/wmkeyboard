@@ -57,6 +57,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
+import com.wasimaster.wmkeyboard.core.layout.SymbolsPage
 import com.wasimaster.wmkeyboard.core.layout.composerType
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
@@ -554,7 +555,9 @@ private fun layoutPreviewState(
         composer = composerFor(script, spec.composerType(), spec.langId),
         layoutId = spec.id,
         layoutName = spec.name,
-        layouts = PreviewLayoutSets.get(spec, form, shown.numberRow, shown.customLayouts, television),
+        layouts = PreviewLayoutSets.get(
+            spec, form, shown.numberRow, shown.layoutBehavior.symbolsPage, shown.customLayouts, television,
+        ),
     )
 }
 
@@ -574,6 +577,7 @@ private object PreviewLayoutSets {
         val spec: LayoutSpec,
         val form: DeviceForm,
         val numberRow: Boolean,
+        val symbolsPage: SymbolsPage,
         val television: Boolean,
     )
 
@@ -626,14 +630,15 @@ private object PreviewLayoutSets {
         spec: LayoutSpec,
         form: DeviceForm,
         numberRow: Boolean,
+        symbolsPage: SymbolsPage,
         customs: List<LayoutSpec>,
         television: Boolean,
     ): LayoutSet {
         val secondaries = secondaryCache?.takeIf { it.first === customs }?.second
             ?: compileSecondaryGrids(customs).also { secondaryCache = customs to it }
-        val key = Key(spec, form, numberRow, television)
+        val key = Key(spec, form, numberRow, symbolsPage, television)
         sets[key]?.let { (grids, set) -> if (grids === secondaries) return set }
-        val set = compileLayoutSet(spec, FieldKind.TEXT, form, numberRow, secondaries, television)
+        val set = compileLayoutSet(spec, FieldKind.TEXT, form, numberRow, secondaries, television, symbolsPage = symbolsPage)
         weight -= weights.remove(key) ?: 0
         sets[key] = secondaries to set
         weights[key] = keyCount(spec).also { weight += it }

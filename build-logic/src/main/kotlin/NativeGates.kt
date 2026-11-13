@@ -25,7 +25,19 @@ class NativeGates(val abis: List<String>, val base: List<OwnLibrary>, val gates:
         val abis: List<String>?,
         /** JNI classes R8 must keep whole, for libraries that bind by mangled name. */
         val keep: List<String>,
+        /**
+         * A prebuilt library F-Droid's build cannot make (no [fdroidBuild])
+         * but may fetch after the user's opt-in: the committed file's hash per
+         * ABI, pinned under a gate of its own there, since F-Droid deletes the
+         * file before the build can hash it. Every other build checks the
+         * committed file against it, so a rebuilt library fails the build until
+         * the pin is brought up to date.
+         */
+        val fdroidPin: FdroidPin? = null,
     )
+
+    /** See [OwnLibrary.fdroidPin]. [byAbi] is ABI to SHA-256 and size. */
+    data class FdroidPin(val gate: String, val byAbi: Map<String, Pair<String, Long>>)
 
     /** A library read out of a dependency's AAR on its own Maven repository. */
     data class MavenLibrary(
@@ -140,6 +152,15 @@ class NativeGates(val abis: List<String>, val base: List<OwnLibrary>, val gates:
             fdroidBuild = map["fdroidBuild"] as String?,
             abis = (map["abis"] as List<*>?)?.map { it as String },
             keep = strings(map["keep"]),
+            fdroidPin = (map["fdroidPin"] as Map<*, *>?)?.let { pin ->
+                FdroidPin(
+                    gate = pin["gate"] as String,
+                    byAbi = pin.filterKeys { it != "gate" }.entries.associate { (abi, value) ->
+                        val v = value as Map<*, *>
+                        abi as String to ((v["sha256"] as String) to (v["size"] as Number).toLong())
+                    },
+                )
+            },
         )
 
         private fun strings(value: Any?): List<String> = (value as List<*>?).orEmpty().map { it as String }

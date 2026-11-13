@@ -38,10 +38,6 @@
         <item quantity="one">Forritið sleppti %1$d bút sem hefur ekkert til að setja inn.</item>
         <item quantity="other">Forritið sleppti %1$d bútum sem hafa ekkert til að setja inn.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d bútur biður þig um að fylla út eyðublað. Forritið setur eyðublaðið inn sem texta, með bendilinn í fyrsta auða reitnum.</item>
-        <item quantity="other">%1$d bútar biðja þig um að fylla út eyðublað. Forritið setur hvert eyðublað inn sem texta, með bendilinn í fyrsta auða reitnum.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Forritið sleppti %1$d textabút sem setur inn mynd.</item>
         <item quantity="other">Forritið sleppti %1$d textabútum sem setja inn myndir.</item>

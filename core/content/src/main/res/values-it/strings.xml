@@ -38,10 +38,6 @@
         <item quantity="one">L\'app ha saltato %1$d snippet che non ha nulla da inserire.</item>
         <item quantity="other">L\'app ha saltato %1$d snippet che non hanno nulla da inserire.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d snippet ti chiede di compilare un modulo. L\'app inserisce il modulo come testo, con il cursore nel primo spazio vuoto.</item>
-        <item quantity="other">%1$d snippet ti chiedono di compilare un modulo. L\'app inserisce ogni modulo come testo, con il cursore nel primo spazio vuoto.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">L\'app ha saltato %1$d snippet che inserisce un\'immagine.</item>
         <item quantity="other">L\'app ha saltato %1$d snippet che inseriscono immagini.</item>
