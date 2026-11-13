@@ -9029,6 +9029,7 @@ internal fun InputMethodPickerDialog(
  * until the app was restarted. The window's last insets are read on every
  * composition, so opening the editor again finds the truth.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun imeShownNow(): Boolean {
     val composeSays = WindowInsets.isImeVisible
