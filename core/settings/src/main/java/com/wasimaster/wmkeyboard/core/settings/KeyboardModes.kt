@@ -27,16 +27,11 @@ import kotlinx.serialization.json.jsonArray
  * same way: it opens when the text before the cursor asks for a sticker, and
  * has a slot only while that feature is switched on.
  *
- * [SECOND_TOOLBAR] (#1217) is a second row of tools the user picks apart from
- * the toolbar's pinned ones, drawn while `ToolbarBehavior.secondRow` is on.
- * Unlike [TOOLS] it does not hang off the toolbar: it stays with the toolbar
- * switched off, and whatever the strip is showing.
- *
  * Stored by name. The reader drops a name it does not know and
  * [sanitizeBarOrder] fills the gap, so a build that predates a constant
  * still decodes an order written by a newer one.
  */
-enum class BarRow { TOPBAR, EMOJI, SYMBOL, FANCY, TOOLS, DICTIONARY, MACROS, STICKERS, RECENT, SECOND_TOOLBAR, KEYBOARD }
+enum class BarRow { TOPBAR, EMOJI, SYMBOL, FANCY, TOOLS, DICTIONARY, MACROS, STICKERS, RECENT, KEYBOARD }
 
 /**
  * The shipped stacking: emoji on top because it is reached for most, the
@@ -57,53 +52,14 @@ enum class BarRow { TOPBAR, EMOJI, SYMBOL, FANCY, TOOLS, DICTIONARY, MACROS, STI
  * they were a row of their own; [sanitizeBarOrder] puts them there for an
  * order stored before they were.
  *
- * The second toolbar (#1217) goes directly under the strip, between it and
- * the keys; [sanitizeBarOrder] puts it there for an order stored before it.
- *
  * The keys come last, so every row sits above them — which is also where
  * [sanitizeBarOrder] puts the keys for an order stored before they were an
  * entry, keeping that user's keyboard exactly as it was.
  */
 val DefaultBarOrder: List<BarRow> = listOf(
-    BarRow.STICKERS, BarRow.EMOJI, BarRow.TOOLS, BarRow.MACROS, BarRow.RECENT, BarRow.TOPBAR,
-    BarRow.SECOND_TOOLBAR, BarRow.SYMBOL, BarRow.DICTIONARY, BarRow.FANCY, BarRow.KEYBOARD,
+    BarRow.STICKERS, BarRow.EMOJI, BarRow.TOOLS, BarRow.MACROS, BarRow.RECENT, BarRow.TOPBAR, BarRow.SYMBOL,
+    BarRow.DICTIONARY, BarRow.FANCY, BarRow.KEYBOARD,
 )
-
-/**
- * Where the second toolbar (#1217) sits against the toolbar and the strip: the
- * two places its settings offer. The row order on Rows & bars can put it
- * anywhere else as well; this only names the two ends of the toolbar.
- */
-enum class SecondToolbarPlace { ABOVE_TOOLBAR, BELOW_STRIP }
-
-/**
- * Which of the two [SecondToolbarPlace]s [order] puts the second toolbar in:
- * above when it comes before the strip, below otherwise.
- */
-fun secondToolbarPlace(order: List<BarRow>): SecondToolbarPlace {
-    val second = order.indexOf(BarRow.SECOND_TOOLBAR)
-    val strip = order.indexOf(BarRow.TOPBAR)
-    return if (second in 0 until strip) SecondToolbarPlace.ABOVE_TOOLBAR else SecondToolbarPlace.BELOW_STRIP
-}
-
-/**
- * [order] with the second toolbar moved to [place]: directly over the topmost
- * of the strip and the tools row, or directly under the strip. Every other row
- * keeps its place, so a hand-made order survives the switch.
- */
-fun withSecondToolbarAt(order: List<BarRow>, place: SecondToolbarPlace): List<BarRow> {
-    val out = sanitizeBarOrder(order).filter { it != BarRow.SECOND_TOOLBAR }.toMutableList()
-    val strip = out.indexOf(BarRow.TOPBAR)
-    val at = when (place) {
-        SecondToolbarPlace.ABOVE_TOOLBAR -> {
-            val tools = out.indexOf(BarRow.TOOLS)
-            if (tools in 0 until strip) tools else strip
-        }
-        SecondToolbarPlace.BELOW_STRIP -> strip + 1
-    }
-    out.add(at.coerceIn(0, out.size), BarRow.SECOND_TOOLBAR)
-    return out
-}
 
 /**
  * Ensures every row appears exactly once, preserving the stored order.

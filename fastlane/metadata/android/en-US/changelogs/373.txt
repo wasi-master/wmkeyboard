@@ -1,1 +1,0 @@
-A redesigned AI chat with memory, a search panel with an Images tab, search by meaning, a sticker generator, scanning without Play services, more on-device translation and offline voices for 1,132 languages. RIME and Mozc engines for Chinese and Japanese, a recent-words row, and many two-thumb and glide fixes.

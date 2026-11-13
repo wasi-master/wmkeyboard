@@ -318,5 +318,4 @@
     <string name="core_tools_location_format_address">Address</string>
     <string name="core_tools_location_format_plus_code">Plus code</string>
     <string name="core_tools_location_format_custom">Custom</string>
-    <string name="core_tools_speak_no_voice">This phone has no %1$s voice to read it with. Add one in Android\'s text-to-speech settings, or download an offline voice under Tools › Read back.</string>
 </resources>

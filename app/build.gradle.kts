@@ -504,10 +504,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-        // java.time (the to-do list's due dates, service usage months) is API
-        // 26, and minSdk is 24: Android 7 crashed on ZoneId (#1280). The app's
-        // dex step desugars every module's code against the library below.
-        isCoreLibraryDesugaringEnabled = true
     }
     packaging {
         jniLibs {
@@ -1356,7 +1352,6 @@ tasks.named("check") {
 
 dependencies {
     dictc(project(":tools:dictc"))
-    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // Installs app/src/main/baseline-prof.txt into the app's ART profile so the
     // listed methods are compiled ahead of time. Declared explicitly, not left

@@ -182,8 +182,6 @@
 
     <!-- "Add to home screen" on the tools with a screen of their own (#970). -->
     <string name="home_shortcut_picker_title">WM Keyboard tool</string>
-    <!-- Heading over the settings pages in a launcher's add-a-shortcut list (#1288). -->
-    <string name="home_shortcut_picker_pages">Settings pages</string>
     <string name="home_shortcut_add_title">Add to home screen</string>
     <string name="home_shortcut_add_subtitle">Put %1$s on your home screen, to open without going through the settings</string>
     <string name="home_shortcut_add_action">Add</string>

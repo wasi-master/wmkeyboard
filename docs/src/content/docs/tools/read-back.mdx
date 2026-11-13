@@ -23,7 +23,7 @@ Kokoro reads from pronunciation dictionaries, and a word missing from them, such
 
 ## Offline voices
 
-The phone's own text-to-speech voice reads by default. Many phones have no voice for smaller languages at all, and that is what the offline voices are for. Since 0.6.7, when neither the phone nor a downloaded voice can read a language, the speaker buttons (Read back, the Dictionary's, the translation's) say so in a message instead of reading the text in another language's voice. The offline voices are Meta's [MMS-TTS](https://huggingface.co/facebook/mms-tts) voices, one per language, for more than 1,100 languages. A downloaded voice reads its language on the phone, with no connection.
+The phone's own text-to-speech voice reads by default. Many phones have no voice for smaller languages at all, and that is what the offline voices are for: Meta's [MMS-TTS](https://huggingface.co/facebook/mms-tts) voices, one per language, for more than 1,100 languages. A downloaded voice reads its language on the phone, with no connection.
 
 <SettingsPath path="Tools / Read back / Offline voices" /> lists a voice for each of your keyboard languages that has one, with a Download button. Each voice is about 114 MB. Languages with no MMS voice are named under the list; the phone's voice keeps reading those.
 

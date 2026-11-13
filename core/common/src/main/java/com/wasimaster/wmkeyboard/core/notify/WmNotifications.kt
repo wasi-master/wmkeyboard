@@ -295,9 +295,6 @@ object NotificationIds {
     /** The stopwatch, running or paused. */
     const val CLOCK_STOPWATCH = 101
 
-    /** Alarms set, and an update took the full-screen grant the ring screen needs (#1287). */
-    const val CLOCK_FULL_SCREEN_LOST = 102
-
     /** The Send files tool's upload in flight, then its finished link. */
     const val SEND_UPLOAD = 7
 

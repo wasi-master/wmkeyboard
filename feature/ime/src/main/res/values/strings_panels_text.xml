@@ -482,7 +482,6 @@
     <string name="ime_calendar_remove_desc">Remove</string>
     <!-- The header's view toggle: the month as a grid, or as a list down a day rail. -->
     <string name="ime_calendar_view_month">Month</string>
-    <string name="ime_calendar_view_day">Day</string>
     <string name="ime_calendar_view_agenda">Agenda</string>
     <string name="ime_calendar_pick_month_desc">Pick a month</string>
     <string name="ime_calendar_previous_year_desc">Previous year</string>

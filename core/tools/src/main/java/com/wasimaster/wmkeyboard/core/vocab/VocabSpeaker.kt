@@ -3,12 +3,8 @@ package com.wasimaster.wmkeyboard.core.vocab
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.os.Handler
-import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import android.widget.Toast
-import com.wasimaster.wmkeyboard.tools.R
 import com.wasimaster.wmkeyboard.core.tools.DictEntry
 import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries
 import com.wasimaster.wmkeyboard.core.voice.speech.SpeechOut
@@ -138,29 +134,11 @@ class VocabSpeaker(context: Context) {
     }
 
     private fun utter(engine: TextToSpeech, word: String, rate: Float, pitch: Float, locale: Locale) {
-        // A voice the phone does not have is not read in another one (#1085):
-        // Android keeps the voice it had, so a French word came out in
-        // English. Asked of the language alone, so a missing regional variant
-        // still reads in the language's own voice.
-        val available = runCatching { engine.isLanguageAvailable(Locale(locale.language)) }.getOrDefault(TextToSpeech.LANG_AVAILABLE)
-        if (available < TextToSpeech.LANG_AVAILABLE) {
-            noVoice(locale)
-            finished()
-            return
-        }
         runCatching {
             engine.language = locale
             engine.setSpeechRate(rate.coerceIn(MIN_RATE, MAX_RATE))
             engine.setPitch(pitch.coerceIn(MIN_RATE, MAX_RATE))
             engine.speak(word, TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID)
-        }
-    }
-
-    /** Says that the phone has no voice for [locale], on the main thread. */
-    private fun noVoice(locale: Locale) {
-        val name = locale.getDisplayLanguage(Locale.getDefault()).ifEmpty { locale.language }
-        Handler(Looper.getMainLooper()).post {
-            Toast.makeText(appContext, appContext.getString(R.string.core_tools_speak_no_voice, name), Toast.LENGTH_LONG).show()
         }
     }
 

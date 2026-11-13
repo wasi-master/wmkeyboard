@@ -1,1 +1,0 @@
-Look up words from any app, a Settings assistant, send files, and a smart home tool for Home Assistant, Google Home, SmartThings, Hue and more. Many two-thumb typing fixes, word lists for 128 languages, a recent-word bar, and clips as QR codes. F-Droid now builds one APK per processor, so the download is smaller.

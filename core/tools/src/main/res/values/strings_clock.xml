@@ -18,10 +18,6 @@
     <string name="core_tools_clock_snoozed_until">Snoozed until %1$s</string>
     <string name="core_tools_clock_coming_at">Rings at %1$s</string>
     <string name="core_tools_clock_missed_title">Missed: %1$s</string>
-    <!-- After an update took the full-screen alerts grant while alarms are set (#1287). -->
-    <string name="core_tools_clock_full_screen_lost_title">Alarms can\'t light up the lock screen</string>
-    <string name="core_tools_clock_full_screen_lost_text">Android switched off Full-screen alerts for WM Keyboard with the update. Until it is back on, a ringing alarm shows only as a notification. Tap to turn it on again.</string>
-    <string name="core_tools_clock_full_screen_allow">Allow</string>
     <string name="core_tools_clock_missed_at">Rang at %1$s with nobody to answer it</string>
     <string name="core_tools_clock_focus">Focus</string>
     <string name="core_tools_clock_short_break">Short break</string>

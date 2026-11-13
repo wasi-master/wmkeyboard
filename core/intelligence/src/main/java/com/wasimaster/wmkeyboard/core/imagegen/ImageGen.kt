@@ -154,7 +154,7 @@ object ImageGen {
                     // The process was ended (memory, most likely). The next
                     // request binds again and the system restarts it.
                     service = null
-                    failAll(STOPPED)
+                    failAll("the generator stopped")
                 }
 
                 override fun onBindingDied(name: ComponentName?) = disconnect()
@@ -171,28 +171,15 @@ object ImageGen {
         }
     }
 
-    /**
-     * Every request still waiting gets [message]: picture runs, and a check of
-     * an import (#903), which used to wait out its three minutes and then
-     * report "took too long" when the process had died loading the model.
-     */
     private fun failAll(message: String) {
         for (listener in listeners.values.toList()) listener(ImageGenEvent.Failed(message))
-        for (check in verifications.values.toList()) check.complete(STOPPED_CHECKING)
     }
-
-    private const val STOPPED = "the generator stopped"
-
-    /** The generator's process ended while it loaded an import to check it. */
-    private const val STOPPED_CHECKING =
-        "the generator stopped while loading the model to check it: the phone ended it, most often for memory, " +
-            "or the engine library crashed on these files"
 
     private fun disconnect() {
         val conn = connection ?: return
         connection = null
         service = null
         runCatching { appContext?.unbindService(conn) }
-        failAll(STOPPED)
+        failAll("the generator stopped")
     }
 }

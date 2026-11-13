@@ -466,7 +466,7 @@ class KeyboardModeTest {
         assertEquals(
             listOf(
                 BarRow.STICKERS, BarRow.EMOJI, BarRow.TOOLS, BarRow.MACROS, BarRow.RECENT, BarRow.TOPBAR,
-                BarRow.SECOND_TOOLBAR, BarRow.SYMBOL, BarRow.DICTIONARY, BarRow.FANCY, BarRow.KEYBOARD,
+                BarRow.SYMBOL, BarRow.DICTIONARY, BarRow.FANCY, BarRow.KEYBOARD,
             ),
             sanitizeBarOrder(listOf(BarRow.EMOJI, BarRow.EMOJI, BarRow.TOPBAR)),
         )
@@ -479,31 +479,13 @@ class KeyboardModeTest {
         assertEquals(
             listOf(
                 BarRow.STICKERS, BarRow.TOOLS, BarRow.MACROS, BarRow.RECENT, BarRow.TOPBAR, BarRow.EMOJI,
-                BarRow.SECOND_TOOLBAR, BarRow.SYMBOL, BarRow.DICTIONARY, BarRow.FANCY, BarRow.KEYBOARD,
+                BarRow.SYMBOL, BarRow.DICTIONARY, BarRow.FANCY, BarRow.KEYBOARD,
             ),
             sanitizeBarOrder(listOf(BarRow.TOPBAR, BarRow.EMOJI, BarRow.SYMBOL)),
         )
         // A stored order is never reshuffled, only filled in.
         val reversed = DefaultBarOrder.reversed()
         assertEquals(reversed, sanitizeBarOrder(reversed))
-    }
-
-    @Test
-    fun `second toolbar moves between the toolbar's two ends`() {
-        // Under the strip by default.
-        assertEquals(SecondToolbarPlace.BELOW_STRIP, secondToolbarPlace(DefaultBarOrder))
-        val above = withSecondToolbarAt(DefaultBarOrder, SecondToolbarPlace.ABOVE_TOOLBAR)
-        assertEquals(SecondToolbarPlace.ABOVE_TOOLBAR, secondToolbarPlace(above))
-        // Over the tools row, which sits over the strip by default.
-        assertEquals(above.indexOf(BarRow.TOOLS) - 1, above.indexOf(BarRow.SECOND_TOOLBAR))
-        // Nothing else moves.
-        assertEquals(DefaultBarOrder - BarRow.SECOND_TOOLBAR, above - BarRow.SECOND_TOOLBAR)
-        val back = withSecondToolbarAt(above, SecondToolbarPlace.BELOW_STRIP)
-        assertEquals(DefaultBarOrder, back)
-        // With the tools row under the strip, above means over the strip.
-        val toolsBelow = listOf(BarRow.TOPBAR, BarRow.TOOLS, BarRow.SECOND_TOOLBAR, BarRow.KEYBOARD)
-        val moved = withSecondToolbarAt(toolsBelow, SecondToolbarPlace.ABOVE_TOOLBAR)
-        assertEquals(BarRow.SECOND_TOOLBAR, moved.first())
     }
 
     @Test

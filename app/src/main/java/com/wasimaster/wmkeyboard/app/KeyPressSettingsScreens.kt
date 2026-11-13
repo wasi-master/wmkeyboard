@@ -842,8 +842,6 @@ internal fun KeyPressSettings(
     val context = LocalContext.current
     // What decides which rows the groups hold; each row reads its own value.
     val swipeDelete = settings.watch { it.backspaceSwipeDelete }
-    val lineSwipes = settings.watch { it.textEditing.deleteLineSwipes }
-    val upClears = settings.watch { it.textEditing.backspaceSwipeUpClears }
     val swipeUnit = settings.watch { it.textEditing.backspaceSwipeUnit }
     val holdDeletesWords = settings.watch { it.textEditing.deleteHoldDeletesWords }
     SettingsGroup {
@@ -966,33 +964,10 @@ internal fun KeyPressSettings(
             ToggleSetting(
                 R.string.typing_backspace_lines_title,
                 stringResource(R.string.typing_backspace_lines_subtitle),
-                lineSwipes,
+                settings.watch { it.textEditing.deleteLineSwipes },
                 info = stringResource(R.string.typing_backspace_lines_info),
                 default = SettingsDefaults.textEditing.deleteLineSwipes,
             ) { scope.launch { repository.setDeleteLineSwipes(it) } }
-        }
-        // Each direction on its own (#1269), so one can be kept without the
-        // other. While Swipe up to clear all is on, it has the swipe up.
-        if (lineSwipes) {
-            item(level = SettingLevel.STANDARD) {
-                ToggleSetting(
-                    R.string.typing_backspace_lines_up_title,
-                    stringResource(
-                        if (upClears) R.string.typing_backspace_lines_up_cleared_subtitle
-                        else R.string.typing_backspace_lines_up_subtitle,
-                    ),
-                    settings.watch { it.textEditing.deleteLineSwipeUp },
-                    default = SettingsDefaults.textEditing.deleteLineSwipeUp,
-                ) { scope.launch { repository.setDeleteLineSwipeUp(it) } }
-            }
-            item(level = SettingLevel.STANDARD) {
-                ToggleSetting(
-                    R.string.typing_backspace_lines_down_title,
-                    stringResource(R.string.typing_backspace_lines_down_subtitle),
-                    settings.watch { it.textEditing.deleteLineSwipeDown },
-                    default = SettingsDefaults.textEditing.deleteLineSwipeDown,
-                ) { scope.launch { repository.setDeleteLineSwipeDown(it) } }
-            }
         }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(

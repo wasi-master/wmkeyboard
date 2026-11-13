@@ -75,17 +75,6 @@
     <string name="appearance_toolbar_strip_only_words_info">The opposite of the shared strip, where the tools give way to the words. Here the tools row is always there, and the suggestion row above or below it folds away while it is empty: before you start typing, in a field with no suggestions, or with a tool open. The first word to suggest, or a chip such as a one-time code or the paste chip, brings it back. The keyboard gets one row taller when it shows and one row shorter when it goes.</string>
     <string name="appearance_toolbar_show_strip_info">Turn this off to remove the suggestion row and keep only the row of tools. The keyboard gets one row shorter. Useful if you have turned suggestions off and the row sits empty. Everything else that appears in that row goes too: the paste chip for your last copy, one-time codes, snippet offers and other chips. Voice typing\'s compact bar still shows there while you dictate.</string>
     <string name="appearance_toolbar_placement_always_desc">The tools keep a row of their own, always open</string>
-    <!-- #1217: a second row of tools, picked apart from the pinned ones. -->
-    <string name="appearance_second_toolbar_section_title">Second toolbar</string>
-    <string name="appearance_second_toolbar_title">Second toolbar</string>
-    <string name="appearance_second_toolbar_subtitle">A row of tools you pick, on screen whatever the strip shows</string>
-    <string name="appearance_second_toolbar_info">Adds a row of its own with the tools you choose below, apart from the ones pinned on the toolbar. Select all, cut, copy, paste, line start, line end, undo and redo to begin with. Turning the row on, or adding a tool to it, switches those tools on under Tools if they were off. The row stays while you type and while the strip shows suggestions, and it stays with the toolbar switched off. Its buttons look and hold like the toolbar's: the cursor moves repeat while held, and a hold you bound to a tool runs it. The keyboard gets one toolbar's height taller. A tool that takes the whole keyboard hides the row like the other bars.</string>
-    <string name="appearance_second_toolbar_place_title">Where it goes</string>
-    <string name="appearance_second_toolbar_place_subtitle">Over the toolbar, or between the suggestions and the keys</string>
-    <string name="appearance_second_toolbar_place_above_label">Above the toolbar</string>
-    <string name="appearance_second_toolbar_place_below_label">Below the suggestions</string>
-    <string name="appearance_second_toolbar_tools_title">Tools on the second toolbar</string>
-    <string name="appearance_second_toolbar_tools_subtitle">Add a tool, then drag to change the order</string>
     <string name="appearance_toolbar_landscape_column_title">Tools in landscape</string>
     <string name="appearance_toolbar_landscape_column_subtitle">A column beside the keys while the phone is sideways</string>
     <string name="appearance_toolbar_landscape_column_info">A phone on its side has width to spare and little height. Pick a side and, in landscape, the tools leave the top of the keyboard and stand in a column down that edge, next to the suggestions and the keys, always in reach. If the tools had a row of their own, its height goes back to the keys. The column follows the rest of the toolbar settings: your pinned tools in their order, their colors and labels, and how they fit. Portrait is unchanged.</string>

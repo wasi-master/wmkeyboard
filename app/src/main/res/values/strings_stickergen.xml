@@ -28,7 +28,6 @@
     <string name="stickergen_model_delete">Delete %1$s</string>
     <string name="stickergen_need_model">Download a model above first.</string>
     <string name="stickergen_model_unreadable">This model\'s files could not be read. Delete it and import or download it again.</string>
-    <string name="stickergen_model_unreadable_reason">What went wrong: %1$s</string>
 
     <string name="stickergen_import_title">Import a model</string>
     <string name="stickergen_import_subtitle">A converted model: a zip, or its five files picked together</string>

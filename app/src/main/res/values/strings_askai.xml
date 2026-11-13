@@ -35,5 +35,4 @@
     <string name="toolai_assistant_info">Lists WM Keyboard among Android\'s digital assistant apps. Picked there, a long press on the home or power button, or a swipe up from a bottom corner, opens a short menu over the app you are in: ask about the screen, explain it, translate it, ask by voice, or start a chat. Each one opens the AI chat with the AI tool\'s models and tools, and nothing is sent until you send it. The screen\'s text only comes along when Use text from screen is on in Android\'s assistant settings. While WM Keyboard is the assistant, it is also the phone\'s speech recognizer, using the engines on the Voice typing screen. Turning this on does not change the assistant: pick WM Keyboard under the row below.</string>
     <string name="toolai_assistant_pick_title">Choose the phone\'s assistant</string>
     <string name="toolai_assistant_pick_subtitle">Opens Android\'s settings, where WM Keyboard can be picked</string>
-    <string name="toolai_assistant_pick_hint">Tap Digital assistant app on this page and pick WM Keyboard</string>
 </resources>

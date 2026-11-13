@@ -1,7 +1,5 @@
 [versions]
 agp = "9.4.1"
-# java.time and friends on Android 7 (#1280): minSdk is 24 and they arrived in 26.
-desugarJdkLibs = "2.1.5"
 kotlin = "2.4.21"
 coreKtx = "1.19.1"
 profileinstaller = "1.4.1"
@@ -208,7 +206,6 @@ shizuku = "13.1.5"
 hiddenapibypass = "6.1"
 
 [libraries]
-desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

@@ -44,10 +44,7 @@ class ClockReceiver : BroadcastReceiver() {
             -> if (ClockStore.exists(app)) {
                 ClockEngine.onTimerWake(app, now)
                 ClockEngine.rearm(app)
-                val data = ClockStore.get(app).data
-                ClockNotifications.refresh(app, data)
-                // An update can take the full-screen grant with it (#1287).
-                if (intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) ClockNotifications.checkFullScreenAfterUpdate(app, data)
+                ClockNotifications.refresh(app, ClockStore.get(app).data)
             }
         }
     }

@@ -35,9 +35,10 @@ const BDT_PER_USD = 122;
 const TOLERANCE = 0.1;
 
 /**
- * A tip as the supporter paid it. Someone paying in dollars reaches us as
- * SupportKori's conversion to taka, ৳618 rather than $5, which no number of
- * ৳300 coffees adds up to. Such an amount is shown as the dollar coffees it is
+ * A tip or membership as the supporter paid it. Someone paying in dollars
+ * reaches us as SupportKori's conversion to taka, ৳618 rather than $5, which
+ * no number of ৳300 coffees adds up to. A dollar membership arrives the same
+ * way, ৳618 or ৳620 a month for $5. Such an amount is shown as the dollar coffees it is
  * closest to, when it is close enough; anything else is left as it came.
  */
 export function paidAs(amount, currency) {
@@ -54,7 +55,7 @@ export function paidAs(amount, currency) {
 /** "Tip · ৳300 · 12 Oct 2026", leaving out whatever is not known. */
 export function metaOf(s) {
 	const parts = [s.kind === 'member' ? 'Member' : 'Tip'];
-	const paid = s.kind === 'member' ? s : paidAs(s.amount, s.currency);
+	const paid = paidAs(s.amount, s.currency);
 	const amount = amountOf(paid.amount, paid.currency);
 	if (amount) parts.push(s.kind === 'member' ? `${amount} a month` : amount);
 	parts.push(dateOf(s.at));
