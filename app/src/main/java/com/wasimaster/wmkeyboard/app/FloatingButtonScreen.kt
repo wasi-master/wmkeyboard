@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -877,6 +878,7 @@ private fun FloatingCategoryPage(
     var adding by remember { mutableStateOf(false) }
     var addingApp by remember { mutableStateOf(false) }
     var pickingIcon by remember { mutableStateOf(false) }
+    var pickingPackIcon by remember { mutableStateOf(false) }
     var addingPair by remember { mutableStateOf(false) }
     val fallback = stringResource(R.string.floating_button_category_default_name)
     fun commitName() {
@@ -920,6 +922,11 @@ private fun FloatingCategoryPage(
                         subtitle = stringResource(R.string.floating_button_category_icon_subtitle),
                         icon = ModeIcons.iconOrNull(category.icon) ?: Icons.Outlined.Folder,
                     ) { pickingIcon = true }
+                    // Or one out of an icon pack installed on the phone (#1275).
+                    NavRow(
+                        R.string.floating_button_category_pack_icon_title,
+                        subtitle = stringResource(R.string.floating_button_category_pack_icon_subtitle),
+                    ) { pickingPackIcon = true }
                     Text(
                         stringResource(R.string.floating_button_category_count, category.items.size, MAX_FLOATING_MENU_ITEMS),
                         style = MaterialTheme.typography.labelMedium,
@@ -982,6 +989,29 @@ private fun FloatingCategoryPage(
             onDismiss = { pickingIcon = false },
             title = stringResource(R.string.floating_button_category_icon_picker_title),
             clearLabel = stringResource(R.string.floating_button_category_icon_none),
+        )
+    }
+    if (pickingPackIcon) {
+        val packs = rememberSystemIconPacks()
+        AlertDialog(
+            onDismissRequest = { pickingPackIcon = false },
+            title = { Text(stringResource(R.string.floating_button_category_icon_picker_title)) },
+            text = {
+                SystemPackIconGrid(
+                    packs = packs,
+                    selected = category.icon,
+                    onPick = { source ->
+                        pickingPackIcon = false
+                        onChange(category.copy(icon = source))
+                    },
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    pickingPackIcon = false
+                    onChange(category.copy(icon = null))
+                }) { Text(stringResource(R.string.floating_button_category_icon_none)) }
+            },
         )
     }
     if (addingPair) {

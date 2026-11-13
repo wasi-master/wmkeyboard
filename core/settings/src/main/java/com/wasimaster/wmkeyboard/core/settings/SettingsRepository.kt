@@ -2238,6 +2238,13 @@ data class ToolbarBehavior(
      */
     val floatOnTap: Set<ToolbarTool> = emptySet(),
     /**
+     * The tools whose floating box does the opposite of
+     * [SummonButtonSettings.boxClosesOutside] on a tap outside it (#1262):
+     * stays open while the rest close, or closes while the rest stay. Read
+     * through [KeyboardSettings.boxClosesOutside].
+     */
+    val boxOutsideFlipped: Set<ToolbarTool> = emptySet(),
+    /**
      * The tools whose buttons stay beside the suggestions while the pinned
      * tools are off the row, in the order they are drawn (#462). The emoji
      * tool alone by default, which is the button this has always been;
@@ -3155,6 +3162,14 @@ data class AutoTextSettings(
      * [KeyboardMode.commitAsTyped]; never stored, so it has no key of its own.
      */
     val commitAsTyped: Boolean = false,
+    /**
+     * Characters that count as part of a word, on top of letters and the
+     * apostrophe, so the composing word does not end at them: `%` and `_` for
+     * a Tasker variable (competitor gap list item 34). Only ever set by a
+     * keyboard mode's [KeyboardMode.wordChars], already cleaned by
+     * [modeWordChars]; never stored, so it has no key of its own.
+     */
+    val wordChars: String = "",
     /** Fix missing apostrophes on commit: arent → aren't, im → I'm. */
     val apostrophe: Boolean = true,
     /** Capitalize the first letter of a sentence. */
@@ -8288,6 +8303,9 @@ enum class ClipHoldAction {
     WEB_SEARCH,
     WIKIPEDIA,
     OPEN_LINK,
+
+    /** A clip with an email address in it: a new email to that address (gap list item 26). */
+    COMPOSE_EMAIL,
     EXTRACT,
     PIN,
     DELETE,
@@ -8478,6 +8496,12 @@ data class ClipboardSettings(
     val searchNotes: Boolean = true,
     /** Show user screenshots in the clipboard alongside copied text and images. */
     val userScreenshots: Boolean = false,
+    /**
+     * Keep text alone in history (gap list item 25): a copied picture, video
+     * or file is left on the system clipboard and not stored, and screenshots
+     * are not added either. Off by default, which keeps everything as before.
+     */
+    val textOnly: Boolean = false,
     /**
      * Delete a clip from history *and* from the system clipboard the moment it
      * is pasted into a password field. A password pasted out of a manager is
@@ -10004,6 +10028,13 @@ data class LayoutBehaviorSettings(
      * keys, as it does in portrait. Tablets never get it either way.
      */
     val landscapeFullscreen: Boolean = true,
+    /**
+     * The same full-screen editor with the phone upright (competitor gap list
+     * item 50, after AnySoftKeyboard). Off by default, which is Android's own
+     * behaviour; on, every field on a phone is typed into the platform's text
+     * box with a Done button, which some people find easier to read.
+     */
+    val portraitFullscreen: Boolean = false,
     /**
      * Asks Android to take away the bar it draws under the keyboard in gesture
      * navigation, with its hide-keyboard and switch-keyboard buttons (#582).
@@ -12005,6 +12036,7 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_BUTTON_TUCK = booleanPreferencesKey("floating_button_tuck")
         private val FLOATING_BOX_CLOSE_OUTSIDE = booleanPreferencesKey("floating_box_close_outside")
         private val FLOATING_BOX_GESTURES = booleanPreferencesKey("floating_box_gestures")
+        private val FLOATING_BOX_HOLD_TO_MOVE = booleanPreferencesKey("floating_box_hold_to_move")
         private val FLOATING_BUTTON_WHILE_TYPING = booleanPreferencesKey("floating_button_while_typing")
         private val FLOATING_BUTTON_HIDE_LANDSCAPE = booleanPreferencesKey("floating_button_hide_landscape")
         private val FLOATING_BUTTON_HAPTICS = booleanPreferencesKey("floating_button_haptics")
@@ -12419,6 +12451,7 @@ class SettingsRepository(private val context: Context) {
         private val MULTITAP_TIMEOUT = intPreferencesKey("multitap_timeout_ms")
         private val ENTER_LONGPRESS_EMOJI = booleanPreferencesKey("enter_longpress_emoji")
         private val LANDSCAPE_FULLSCREEN = booleanPreferencesKey("landscape_fullscreen")
+        private val PORTRAIT_FULLSCREEN = booleanPreferencesKey("portrait_fullscreen")
         private val SPACE_SWIPE_DOWN_HIDE = booleanPreferencesKey("space_swipe_down_hide")
         private val EDGE_SWIPE_BACK = booleanPreferencesKey("edge_swipe_back")
         private val PANEL_OVER_KEYS_EXTRA_HEIGHT_DP = intPreferencesKey("panel_over_keys_extra_height_dp")
@@ -12568,6 +12601,10 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("power_saving_drop_moving_themes")
         private val PS_DROP_WARM_MODELS =
             booleanPreferencesKey("power_saving_drop_warm_models")
+        private val PS_DARK_THEME =
+            booleanPreferencesKey("power_saving_dark_theme")
+        private val PS_DROP_SUGGESTIONS =
+            booleanPreferencesKey("power_saving_drop_suggestions")
         private val DS_MANUAL = booleanPreferencesKey("data_saver_manual")
         private val DS_TRIGGER = stringPreferencesKey("data_saver_trigger")
         private val DS_LINK_PREVIEWS = stringPreferencesKey("data_saver_link_previews")
@@ -12754,6 +12791,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_SEARCH_REGEX = booleanPreferencesKey("clipboard_search_regex")
         private val CLIPBOARD_SEARCH_NOTES = booleanPreferencesKey("clipboard_search_notes")
         private val CLIPBOARD_USER_SCREENSHOTS = booleanPreferencesKey("clipboard_user_screenshots")
+        private val CLIPBOARD_TEXT_ONLY = booleanPreferencesKey("clipboard_text_only")
         private val CLIPBOARD_CLEAR_AFTER_PASSWORD_PASTE =
             booleanPreferencesKey("clipboard_clear_after_password_paste")
         private val CLIPBOARD_DETECT_ENTITIES = booleanPreferencesKey("clipboard_detect_entities")
@@ -12949,6 +12987,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_LANDSCAPE_COLUMN = stringPreferencesKey("toolbar_landscape_column")
         private val TOOLBAR_HOLD_ACTIONS = stringPreferencesKey("toolbar_hold_actions")
         private val TOOLBAR_FLOAT_ON_TAP = stringPreferencesKey("toolbar_float_on_tap")
+        private val TOOLBAR_BOX_OUTSIDE_FLIPPED = stringPreferencesKey("toolbar_box_outside_flipped")
         /** The single tool #462 stored, before the strip took a list. Read as a one-tool list. */
         private val TOOLBAR_STRIP_SHORTCUT = stringPreferencesKey("toolbar_strip_shortcut")
         private val TOOLBAR_STRIP_SHORTCUTS = stringPreferencesKey("toolbar_strip_shortcuts")
@@ -14953,6 +14992,7 @@ class SettingsRepository(private val context: Context) {
             searchRegex = p[CLIPBOARD_SEARCH_REGEX] ?: defaults.clipboard.searchRegex,
             searchNotes = p[CLIPBOARD_SEARCH_NOTES] ?: defaults.clipboard.searchNotes,
             userScreenshots = p[CLIPBOARD_USER_SCREENSHOTS] ?: defaults.clipboard.userScreenshots,
+            textOnly = p[CLIPBOARD_TEXT_ONLY] ?: defaults.clipboard.textOnly,
             clearAfterPasswordPaste = p[CLIPBOARD_CLEAR_AFTER_PASSWORD_PASTE]
                 ?: defaults.clipboard.clearAfterPasswordPaste,
             detectEntities = p[CLIPBOARD_DETECT_ENTITIES] ?: defaults.clipboard.detectEntities,
@@ -15388,6 +15428,7 @@ class SettingsRepository(private val context: Context) {
                 p[SPACE_SWIPE_DOWN_HIDE] ?: defaults.layoutBehavior.spaceSwipeDownHide,
             edgeSwipeBack = p[EDGE_SWIPE_BACK] ?: defaults.layoutBehavior.edgeSwipeBack,
             landscapeFullscreen = p[LANDSCAPE_FULLSCREEN] ?: defaults.layoutBehavior.landscapeFullscreen,
+            portraitFullscreen = p[PORTRAIT_FULLSCREEN] ?: defaults.layoutBehavior.portraitFullscreen,
             hideSystemKeyboardBar =
                 p[HIDE_SYSTEM_KEYBOARD_BAR] ?: defaults.layoutBehavior.hideSystemKeyboardBar,
             extendEdgeKeys = p[EXTEND_EDGE_KEYS] ?: defaults.layoutBehavior.extendEdgeKeys,
@@ -15608,6 +15649,11 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.toolbarBehavior.landscapeColumn,
             holdActions = ToolHoldActions.decode(p[TOOLBAR_HOLD_ACTIONS]),
             floatOnTap = p[TOOLBAR_FLOAT_ON_TAP]
+                ?.split(',')
+                ?.mapNotNull { name -> runCatching { ToolbarTool.valueOf(name) }.getOrNull()?.takeIf { it.floats } }
+                ?.toSet()
+                .orEmpty(),
+            boxOutsideFlipped = p[TOOLBAR_BOX_OUTSIDE_FLIPPED]
                 ?.split(',')
                 ?.mapNotNull { name -> runCatching { ToolbarTool.valueOf(name) }.getOrNull()?.takeIf { it.floats } }
                 ?.toSet()
@@ -16166,6 +16212,10 @@ class SettingsRepository(private val context: Context) {
                 p[PS_DROP_MOVING_THEMES] ?: defaults.powerSaving.dropMovingThemes,
             dropWarmModels =
                 p[PS_DROP_WARM_MODELS] ?: defaults.powerSaving.dropWarmModels,
+            darkTheme =
+                p[PS_DARK_THEME] ?: defaults.powerSaving.darkTheme,
+            dropSuggestions =
+                p[PS_DROP_SUGGESTIONS] ?: defaults.powerSaving.dropSuggestions,
         )
 
     private fun readRateSources(p: Preferences, defaults: KeyboardSettings) =
@@ -18522,6 +18572,27 @@ class SettingsRepository(private val context: Context) {
             prefs[TOOLBAR_HOLD_ACTIONS] = ToolHoldActions.encode(current)
         }
 
+    /**
+     * Whether a tap outside [tool]'s floating box closes it (#1262), stored as
+     * a difference from the setting for every box, so changing that one
+     * carries the tools that were not set apart along with it.
+     */
+    suspend fun setToolBoxClosesOutside(tool: ToolbarTool, value: Boolean) =
+        editPrefs { prefs ->
+            val everyBox = prefs[FLOATING_BOX_CLOSE_OUTSIDE] ?: SettingsDefaults.summonButton.boxClosesOutside
+            val current = prefs[TOOLBAR_BOX_OUTSIDE_FLIPPED]
+                ?.split(',')
+                ?.mapNotNull { name -> runCatching { ToolbarTool.valueOf(name) }.getOrNull() }
+                .orEmpty()
+                .toMutableSet()
+            if (value != everyBox && tool.floats) current += tool else current -= tool
+            if (current.isEmpty()) {
+                prefs.remove(TOOLBAR_BOX_OUTSIDE_FLIPPED)
+            } else {
+                prefs[TOOLBAR_BOX_OUTSIDE_FLIPPED] = current.joinToString(",") { it.name }
+            }
+        }
+
     /** A tap on [tool] opens it in the floating box (#1259), or as its panel again; see [ToolbarBehavior.floatOnTap]. */
     suspend fun setToolFloatsOnTap(tool: ToolbarTool, value: Boolean) =
         editPrefs { prefs ->
@@ -19541,6 +19612,7 @@ class SettingsRepository(private val context: Context) {
             haptics = p[FLOATING_BUTTON_HAPTICS] ?: d.haptics,
             boxClosesOutside = p[FLOATING_BOX_CLOSE_OUTSIDE] ?: d.boxClosesOutside,
             boxGestures = p[FLOATING_BOX_GESTURES] ?: d.boxGestures,
+            boxHoldToMove = p[FLOATING_BOX_HOLD_TO_MOVE] ?: d.boxHoldToMove,
         )
     }
 
@@ -19752,6 +19824,10 @@ class SettingsRepository(private val context: Context) {
     /** Gestures in place of a floating box's buttons (#1262); see [SummonButtonSettings.boxGestures]. */
     suspend fun setFloatingBoxGestures(value: Boolean) =
         editFloatingButton { it[FLOATING_BOX_GESTURES] = value }
+
+    /** A hold then a drag moves a floating box from anywhere (#1263); see [SummonButtonSettings.boxHoldToMove]. */
+    suspend fun setFloatingBoxHoldToMove(value: Boolean) =
+        editFloatingButton { it[FLOATING_BOX_HOLD_TO_MOVE] = value }
 
     suspend fun setFloatingButtonWhileTyping(value: Boolean) =
         editFloatingButton { it[FLOATING_BUTTON_WHILE_TYPING] = value }
@@ -22310,6 +22386,25 @@ class SettingsRepository(private val context: Context) {
         if (row.isNullOrEmpty()) prefs.remove(CUSTOM_ARROW_ROW) else prefs[CUSTOM_ARROW_ROW] = KeyRowCodec.encode(row)
     }
 
+    /**
+     * Changes the keyboard-wide number row ([arrow] false) or arrow row as it
+     * is stored at the moment of writing, [fallback] standing in while none
+     * is. Read and written in one edit, so two quick changes in the row
+     * editor both land: one that read the row before the other was saved
+     * used to write over it.
+     */
+    suspend fun updateCustomRow(
+        arrow: Boolean,
+        fallback: List<LayoutKey>,
+        transform: (List<LayoutKey>) -> List<LayoutKey>?,
+    ) = editPrefs { prefs ->
+        val key = if (arrow) CUSTOM_ARROW_ROW else CUSTOM_NUMBER_ROW
+        val current = prefs[key]?.let { runCatching { KeyRowCodec.decode(it) }.getOrNull() }
+            ?.takeIf { it.isNotEmpty() } ?: fallback
+        val row = transform(current)
+        if (row.isNullOrEmpty()) prefs.remove(key) else prefs[key] = KeyRowCodec.encode(row)
+    }
+
     suspend fun setBottomRowHeightDp(value: Int) =
         editPrefs { it[BOTTOM_ROW_HEIGHT] = value.coerceIn(0, BottomRowHeightRange.last) }
 
@@ -23345,6 +23440,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setLandscapeFullscreen(value: Boolean) =
         editPrefs { it[LANDSCAPE_FULLSCREEN] = value }
 
+    suspend fun setPortraitFullscreen(value: Boolean) =
+        editPrefs { it[PORTRAIT_FULLSCREEN] = value }
+
     suspend fun setSpaceSwipeDownHide(value: Boolean) =
         editPrefs { it[SPACE_SWIPE_DOWN_HIDE] = value }
 
@@ -23632,6 +23730,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPowerSavingDropWarmModels(value: Boolean) =
         editPrefs { it[PS_DROP_WARM_MODELS] = value }
+
+    suspend fun setPowerSavingDarkTheme(value: Boolean) =
+        editPrefs { it[PS_DARK_THEME] = value }
+
+    suspend fun setPowerSavingDropSuggestions(value: Boolean) =
+        editPrefs { it[PS_DROP_SUGGESTIONS] = value }
 
     // ---- data saving ----
 
@@ -24350,6 +24454,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardUserScreenshots(value: Boolean) =
         editPrefs { it[CLIPBOARD_USER_SCREENSHOTS] = value }
+
+    suspend fun setClipboardTextOnly(value: Boolean) =
+        editPrefs { it[CLIPBOARD_TEXT_ONLY] = value }
 
     suspend fun setClipboardClearAfterPasswordPaste(value: Boolean) =
         editPrefs { it[CLIPBOARD_CLEAR_AFTER_PASSWORD_PASTE] = value }

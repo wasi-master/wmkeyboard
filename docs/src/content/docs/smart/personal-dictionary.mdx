@@ -215,6 +215,8 @@ Words match whatever their capitals, so "Boston" and "boston" count as one word 
 
 A third row, **Import a Gboard dictionary**, takes the `PersonalDictionary.zip` from Gboard's own Export (in Gboard: Settings, Dictionary, Personal dictionary, then Export in the menu). A dialog counts what is in it first. Its words come into this list as words you added by hand, capitals kept, each filed under the language Gboard had it under when WM Keyboard has that language (under **All languages** otherwise), and its shortcuts become [snippets](/tools/snippets/) in a folder called **Gboard** that show their word as a suggestion, as Gboard does. A Japanese word filed under a kana reading becomes a Japanese conversion candidate instead of a snippet. See [Gboard's personal dictionary](/reference/importing-other-keyboards/#gboards-personal-dictionary).
 
+**Export to a text file** writes your words to a `.txt` file wherever you choose to save it. It asks which words first: **All words**, one language's, or the words filed under **All languages**, each with how many it holds. The file is the same `dictionary.txt` that Gboard exports, one word per line, most used first, with the language it is filed under after a tab. So it opens in any text editor, Gboard's own Import reads it, and **Import a Gboard dictionary** here brings it back with its languages. Weights stay behind, so the words come back in as words you added by hand. Shortcuts are [snippets](/tools/snippets/) and export from there.
+
 ## Clearing everything at once
 
 <SettingsPath path="Privacy / Your data / Learned words" />

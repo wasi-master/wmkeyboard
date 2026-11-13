@@ -102,12 +102,12 @@ internal fun GlobalRowEditorScreen(
     val keys = stored ?: builtIn
     var selected by remember(row) { mutableStateOf<Int?>(null) }
 
-    // Applied to the row as it is now, not as this composition read it, so a
-    // change made just before this one is not undone by it.
+    // Applied to the row as it is stored when the write lands, inside that
+    // write, so a change made just before this one, still on its way to
+    // disk, is not undone by it.
     fun edit(transform: (List<Key>) -> List<Key>) {
-        val now = settings.value
-        val current = row.stored(now) ?: row.builtIn(now)
-        scope.launch { repository.saveGlobalRow(row, transform(current)) }
+        val fallback = row.builtIn(settings.value)
+        scope.launch { repository.updateCustomRow(row == GlobalRow.ARROW, fallback, transform) }
     }
 
     CaptionText(stringResource(row.captionRes()))

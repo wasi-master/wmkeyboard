@@ -180,6 +180,21 @@ data class PowerSavingSettings(
      * next field is the part that does cost battery.
      */
     val dropWarmModels: Boolean = false,
+    /**
+     * Wear [POWER_SAVING_THEME_ID], a plain near-black theme, while saving
+     * (competitor gap list item 27, AnySoftKeyboard's power saving). Off by
+     * default: it changes how the keyboard looks, which only the user may
+     * decide. Black pixels cost nothing on an OLED screen, and the theme has
+     * no image, blur or motion to draw. No bundle sets it, so picking one
+     * leaves it as it is.
+     */
+    val darkTheme: Boolean = false,
+    /**
+     * Turn word suggestions off while saving, the strip's per-keystroke
+     * look-ups with them. Off by default and in no bundle, for the reason
+     * [dropEmojiPrediction] is off: a strip that goes blank reads as broken.
+     */
+    val dropSuggestions: Boolean = false,
 ) {
     /** Whether power saving should be in force given the device's [state]. */
     fun appliesTo(state: DevicePowerState): Boolean {
@@ -200,8 +215,18 @@ data class PowerSavingSettings(
             dropKeyPopup || dropGlassBlur || dropGestureTyping || dropEmojiPrediction || dropSmartChips ||
             dropOctopus ||
             dropBackgroundNetwork || dropScreenshotWatch || dropOnDeviceModels ||
-            dropTypingStats || dropMediaPin || dropFloatingButton || dropMovingThemes || dropWarmModels
+            dropTypingStats || dropMediaPin || dropFloatingButton || dropMovingThemes || dropWarmModels ||
+            darkTheme || dropSuggestions
 }
+
+/**
+ * The theme [PowerSavingSettings.darkTheme] puts on: Pitch black, the built-in
+ * that is near-black keys on true black with nothing that moves. An id rather
+ * than a lookup, since this module does not see the theme list; it is stored
+ * in settings the same way and resolves through the same finder.
+ */
+const val POWER_SAVING_THEME_ID = "builtin_pitch"
+
 
 /**
  * How long the keyboard waits, once hidden, before it lets go of its loaded
@@ -230,6 +255,11 @@ enum class PowerSavingPreset { LIGHT, BALANCED, AGGRESSIVE, CUSTOM }
  * receiver unchanged. The key popup and the typing statistics are never
  * dropped by a bundle: the popup is cheap to draw and the counters are a few
  * integer bumps per keystroke, so neither saves anything measurable.
+ *
+ * [PowerSavingSettings.darkTheme] and [PowerSavingSettings.dropSuggestions]
+ * are not drops a bundle stands for at all: they change how the keyboard
+ * looks and what it offers, so they are left as they are, like the triggers,
+ * and [preset] reads the same with them either way.
  */
 fun PowerSavingSettings.withPreset(preset: PowerSavingPreset): PowerSavingSettings {
     if (preset == PowerSavingPreset.CUSTOM) return this
@@ -309,6 +339,13 @@ fun KeyboardSettings.underPowerSaving(): KeyboardSettings {
             else -> summonButton
         },
         popup = if (ps.dropKeyPopup) popup.copy(enabled = false) else popup,
+        // The dark theme as a view, exactly as a mode's theme is put on in
+        // applyMode: the stored pick and the auto pair are untouched, and both
+        // come back when saving ends. The pair has to stand down, or it would
+        // keep painting its own half over this id.
+        keyboardThemeId = if (ps.darkTheme) POWER_SAVING_THEME_ID else keyboardThemeId,
+        autoTheme = if (ps.darkTheme) autoTheme.copy(enabled = false) else autoTheme,
+        suggestions = if (ps.dropSuggestions) false else suggestions,
         // A zero-opacity trail is never drawn, so the gesture keeps working
         // while the per-frame overlay stops.
         gesture = if (ps.dropGlideTrail) gesture.copy(trailOpacity = 0f) else gesture,

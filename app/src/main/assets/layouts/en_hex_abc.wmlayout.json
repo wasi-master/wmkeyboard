@@ -1,0 +1,282 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_en_hex_abc",
+    "name": "Hex ABC",
+    "langId": "en",
+    "grid": "hex",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "a",
+              "longPress": [
+                "1",
+                "à",
+                "á",
+                "â",
+                "ä",
+                "å"
+              ]
+            },
+            {
+              "label": "b",
+              "longPress": [
+                "2"
+              ]
+            },
+            {
+              "label": "c",
+              "longPress": [
+                "3",
+                "ç",
+                "ć"
+              ]
+            },
+            {
+              "label": "d",
+              "longPress": [
+                "4"
+              ]
+            },
+            {
+              "label": "e",
+              "longPress": [
+                "5",
+                "è",
+                "é",
+                "ê",
+                "ë"
+              ]
+            },
+            {
+              "label": "f",
+              "longPress": [
+                "6"
+              ]
+            },
+            {
+              "label": "g",
+              "longPress": [
+                "7"
+              ]
+            },
+            {
+              "label": "h",
+              "longPress": [
+                "8"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "i",
+              "longPress": [
+                "9",
+                "ì",
+                "í",
+                "î",
+                "ï"
+              ],
+              "width": 1.5
+            },
+            {
+              "label": "j",
+              "longPress": [
+                "0"
+              ]
+            },
+            {
+              "label": "k",
+              "longPress": [
+                "@"
+              ]
+            },
+            {
+              "label": "l",
+              "longPress": [
+                "#"
+              ]
+            },
+            {
+              "label": "m",
+              "longPress": [
+                "$"
+              ]
+            },
+            {
+              "label": "n",
+              "longPress": [
+                "_",
+                "ñ",
+                "ń"
+              ]
+            },
+            {
+              "label": "o",
+              "longPress": [
+                "&",
+                "ò",
+                "ó",
+                "ô",
+                "ö"
+              ],
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "p",
+              "longPress": [
+                "-"
+              ]
+            },
+            {
+              "label": "q",
+              "longPress": [
+                "+"
+              ]
+            },
+            {
+              "label": "r",
+              "longPress": [
+                "("
+              ]
+            },
+            {
+              "label": "s",
+              "longPress": [
+                ")",
+                "ß",
+                "ś"
+              ]
+            },
+            {
+              "label": "t",
+              "longPress": [
+                "*"
+              ]
+            },
+            {
+              "label": "u",
+              "longPress": [
+                "\"",
+                "ù",
+                "ú",
+                "û",
+                "ü"
+              ]
+            },
+            {
+              "label": "v",
+              "longPress": [
+                ":"
+              ]
+            },
+            {
+              "label": "w",
+              "longPress": [
+                ";"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "x",
+              "longPress": [
+                "/"
+              ]
+            },
+            {
+              "label": "y",
+              "longPress": [
+                "!"
+              ]
+            },
+            {
+              "label": "z",
+              "longPress": [
+                "?",
+                "ż",
+                "ź"
+              ]
+            },
+            {
+              "label": "'",
+              "longPress": [
+                "\"",
+                "`"
+              ]
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 3
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 2
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -159,6 +159,22 @@ object GboardDictionary {
     fun looksLikeGboardZip(names: List<String>): Boolean =
         names.any { it.substringAfterLast('/').equals(ENTRY_NAME, ignoreCase = true) }
 
+    /**
+     * [entries] as a `dictionary.txt`, the file [read] takes back and Gboard's
+     * own Import takes too. A tab or a line break inside a field would split
+     * it, so each becomes a space.
+     */
+    fun write(entries: List<Entry>): String = buildString {
+        append(HEADER).append("1\n")
+        for (entry in entries) {
+            append(field(entry.shortcut)).append('\t')
+            append(field(entry.word)).append('\t')
+            append(field(entry.locale)).append('\n')
+        }
+    }
+
+    private fun field(text: String): String = text.replace(Regex("[\t\r\n]+"), " ").trim()
+
     /** Reads the text of a `dictionary.txt`, or null when it is not one. */
     fun read(text: String): Contents? {
         if (!looksLikeGboard(text)) return null

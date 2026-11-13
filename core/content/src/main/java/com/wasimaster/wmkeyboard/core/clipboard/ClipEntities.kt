@@ -14,6 +14,9 @@ import com.wasimaster.wmkeyboard.core.location.ParsedLocation
 enum class ClipEntityKind {
     OTP,
     PHONE,
+
+    /** An email address (gap list item 26), which a held clip offers to write to. */
+    EMAIL,
     URL,
 
     /**
@@ -28,6 +31,7 @@ enum class ClipEntityKind {
         get() = when (this) {
             OTP -> R.string.core_content_clip_entity_otp_label
             PHONE -> R.string.core_content_clip_entity_phone_label
+            EMAIL -> R.string.core_content_clip_entity_email_label
             URL -> R.string.core_content_clip_entity_url_label
             PLACE -> R.string.core_content_clip_entity_place_label
         }
@@ -38,6 +42,7 @@ enum class ClipEntityKind {
         get() = when (this) {
             OTP -> R.string.core_content_clip_entity_otp_tag
             PHONE -> R.string.core_content_clip_entity_phone_tag
+            EMAIL -> R.string.core_content_clip_entity_email_tag
             URL -> R.string.core_content_clip_entity_url_tag
             PLACE -> R.string.core_content_clip_entity_place_tag
         }
@@ -65,7 +70,8 @@ data class ClipEntity(
 }
 
 /**
- * Pulls one-time codes, phone numbers and links out of clipboard text.
+ * Pulls one-time codes, phone numbers, email addresses and links out of
+ * clipboard text.
  *
  * Everything here is deliberately conservative in one direction and loose in
  * the other: a missed fragment costs the user a manual retype, a wrong one
@@ -105,6 +111,20 @@ object ClipEntities {
         """(?<![\w@./-])${ClipLinks.BARE_HOST}(?![\w@-])(?:[/?#][^\s<>"'`]*)?""",
         RegexOption.IGNORE_CASE,
     )
+
+    /**
+     * `name@example.com`, ASCII only, with a dotted domain that ends in two or
+     * more letters. The guards keep it from starting inside a longer run of
+     * address characters or ending halfway through a domain label.
+     */
+    private val EMAIL = Regex("""(?<![\w.%+-])[A-Za-z0-9][A-Za-z0-9._%+-]{0,63}@[A-Za-z0-9](?:[A-Za-z0-9-]{0,62}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,62}[A-Za-z0-9])?)*\.[A-Za-z]{2,24}(?![\w-])""")
+
+    /**
+     * The first email address in [text], or null: what a held clip's Compose
+     * email writes to. The whole clip counts here, unlike in [entitiesIn],
+     * since the action is the point rather than a chip.
+     */
+    fun emailIn(text: String): String? = EMAIL.find(text.take(MAX_SCANNED_CHARS))?.value
 
     // The word-character guards keep digit runs glued to an identifier out —
     // `emoji_864356927` is a filename's tail, not a number to dial.
@@ -211,6 +231,11 @@ object ClipEntities {
             if (url.length >= 8 && url.substringAfterLast('.').isNotBlank()) {
                 claim(ClipEntityKind.URL, url, match.range.first)
             }
+        }
+        // After the links with a scheme, so `https://me@host/` stays a link,
+        // and before the bare ones, which would otherwise take the domain.
+        for (match in EMAIL.findAll(text)) {
+            claim(ClipEntityKind.EMAIL, match.value, match.range.first)
         }
         // After the ones with a scheme, which claim their own host first.
         for (match in BARE_URL.findAll(text)) {

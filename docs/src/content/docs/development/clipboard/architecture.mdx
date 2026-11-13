@@ -16,9 +16,8 @@ are on the [data page](/development/clipboard/data-and-state/).
 `clearPrimaryClip`. Tools and panels (music, Send files, share, gallery,
 kaomoji, the camera's Copy, the box's Insert), the listener's write-back of a
 tidied copy, Undo, the KDE Connect clipboard and the clears after a delete all
-go through it. `ArchitectureTest` fails a new direct call in `feature/ime`; the
-paste-next path in `holdClipForPaste` is the one place still writing directly,
-allowed by count until it moves.
+go through it, and so does Paste next (`holdClipForPaste`), whose text write is
+a self-write. `ArchitectureTest` fails any direct call in `feature/ime`.
 
 | Call | What it does |
 |---|---|
@@ -63,8 +62,8 @@ accepted once and removed.
 This replaced comparing the clipboard's text with what the keyboard had just
 written (`restoringSystemClipText`). The text comparison let a real copy of the
 same text go by when the keyboard's own write never produced a callback, and
-had nothing to compare for a picture. `holdClipForPaste` still uses the old
-field until it moves to the gate; both checks run, the token first.
+had nothing to compare for a picture. Paste next was the last user of the old
+field, and the field is gone.
 
 The ledger holds at most 64 tokens, prunes expired ones on every call, and
 never holds content.

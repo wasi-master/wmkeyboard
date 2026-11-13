@@ -927,10 +927,12 @@
                  chat app or a file manager. The file arrives as EXTRA_STREAM,
                  which ImportFileActivity reads when the intent carries no data
                  URI of its own. No scheme is declared because a share sheet
-                 matches on the type alone.
+                 matches on the type alone. SEND_MULTIPLE brings several, which
+                 the activity takes one confirm after another.
             -->
             <intent-filter android:label="@string/import_file_label">
                 <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="application/json" />
                 <data android:mimeType="application/octet-stream" />

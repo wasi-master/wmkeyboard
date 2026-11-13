@@ -3543,6 +3543,12 @@ data class KeyboardUiState(
     /** The layout being typed on; what the 🌐 cycle steps through. */
     val layoutId: String = BuiltInLayouts.DEFAULT_ID,
     /**
+     * The layout the board pinned on the Secondary layout tool interrupted
+     * (#1230), or null. That board is not in the language cycle, so a spacebar
+     * language swipe or the language list starts from this one instead.
+     */
+    val languageAnchorId: String? = null,
+    /**
      * The layout's display name, for the spacebar label. Carried on the state
      * rather than looked up, because a custom layout has no [InputMode] of its
      * own to name it by — two layouts can share a base mode and still deserve
@@ -5329,7 +5335,8 @@ sealed interface PluginPanelUi {
         /** What an API 5 plugin asked of the panel: header buttons, a page title, whether Back goes back a page. */
         val host: com.wasimaster.wmkeyboard.core.plugins.PythonSession.HostState? = null,
         /** Risky permissions a call needed and the user has not granted; drawn as a banner with Allow. */
-        val needs: List<com.wasimaster.wmkeyboard.core.plugins.PluginPermission> = emptyList(),
+        // Spelled out: inside PluginPanelUi, a bare List is the List panel state above.
+        val needs: kotlin.collections.List<com.wasimaster.wmkeyboard.core.plugins.PluginPermission> = emptyList(),
     ) : PluginPanelUi
 }
 

@@ -145,6 +145,12 @@ data class SummonButtonSettings(
      * Off by default, where the tuck, keyboard and close buttons are shown.
      */
     val boxGestures: Boolean = false,
+    /**
+     * A hold, then a drag, anywhere on a floating box moves it (#1263), even
+     * over a part of the tool that scrolls or slides, which a plain drag
+     * leaves to the tool. Off by default.
+     */
+    val boxHoldToMove: Boolean = false,
 )
 
 /** What a tap does with the keyboard up or down. */

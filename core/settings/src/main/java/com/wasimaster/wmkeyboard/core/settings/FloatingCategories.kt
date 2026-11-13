@@ -34,6 +34,12 @@ data class FloatingCategory(
 /** The longest icon id kept; the catalogue's are short words. */
 private const val FLOATING_CATEGORY_ICON_MAX = 40
 
+/**
+ * The longest icon kept when it names a drawable in an installed icon pack
+ * (`s:<package>/<drawable>`, #1275), which a package name makes longer.
+ */
+private const val FLOATING_CATEGORY_PACK_ICON_MAX = 200
+
 /** The longest category name kept; it hangs under a slot. */
 const val FLOATING_CATEGORY_NAME_MAX = 32
 
@@ -70,7 +76,10 @@ fun List<FloatingCategory>.normalizedCategories(): List<FloatingCategory> {
         category.copy(
             name = category.name.trim().take(FLOATING_CATEGORY_NAME_MAX),
             items = categoryItems(category.items),
-            icon = category.icon?.trim()?.takeIf { it.isNotEmpty() && it.length <= FLOATING_CATEGORY_ICON_MAX },
+            icon = category.icon?.trim()?.takeIf {
+                it.isNotEmpty() &&
+                    it.length <= if (it.startsWith("s:")) FLOATING_CATEGORY_PACK_ICON_MAX else FLOATING_CATEGORY_ICON_MAX
+            },
         )
     }
 }

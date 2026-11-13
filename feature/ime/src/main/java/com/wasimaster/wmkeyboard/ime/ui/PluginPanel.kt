@@ -55,6 +55,7 @@ import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.PluginPanelUi
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.ime.ui.send.QrImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
