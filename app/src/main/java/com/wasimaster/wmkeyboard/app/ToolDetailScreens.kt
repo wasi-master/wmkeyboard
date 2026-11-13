@@ -50,6 +50,7 @@ import com.wasimaster.wmkeyboard.app.launcher.LauncherShizukuRow
 import com.wasimaster.wmkeyboard.core.settings.PhotoSearchEngine
 import com.wasimaster.wmkeyboard.core.settings.PhotoSearchTarget
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import com.wasimaster.wmkeyboard.core.settings.toolKeywordScripts
 import com.wasimaster.wmkeyboard.core.settings.HandwritingFullScreenMode
 import com.wasimaster.wmkeyboard.core.tools.PasswordGen
 import com.wasimaster.wmkeyboard.core.tools.AiPrompts
@@ -4412,10 +4413,14 @@ private fun ToolKeywordSetting(
     settings: LiveSettings,
     tool: ToolbarTool,
 ) {
-    val defaults = SmartSuggest.defaultKeywords[tool] ?: return
+    if (tool !in SmartSuggest.defaultKeywords) return
+    // Only the defaults the user's languages can type: no 翻译 for someone
+    // with no Chinese layout.
+    val scripts = settings.watch { it.toolKeywordScripts }
+    val defaults = SmartSuggest.defaultKeywordsFor(tool, scripts)
     val scope = rememberCoroutineScope()
     // Decides whether the reset row is in the group, and seeds the field.
-    val saved = settings.watch { SmartSuggest.keywordsFor(tool, it.toolKeywords) }
+    val saved = settings.watch { SmartSuggest.keywordsFor(tool, it.toolKeywords, it.toolKeywordScripts) }
     var text by remember(tool) { mutableStateOf(saved.joinToString(", ")) }
     SettingsGroup(stringResource(R.string.toolai_keyword_group_title), foldKey = "tool_keyword", level = SettingLevel.STANDARD) {
         item {
@@ -4423,7 +4428,7 @@ private fun ToolKeywordSetting(
                 value = text,
                 onValueChange = {
                     text = it
-                    scope.launch { repository.setToolKeywords(tool, it.split(',')) }
+                    scope.launch { repository.setToolKeywords(tool, it.split(','), scripts) }
                 },
                 label = { Text(stringResource(R.string.toolai_keyword_field_label)) },
                 singleLine = true,
@@ -4467,7 +4472,7 @@ private fun ToolKeywordSetting(
                 icon = SettingsRowIcons[CommonR.string.common_reset_defaults],
                 onClick = {
                     text = defaults.joinToString(", ")
-                    scope.launch { repository.setToolKeywords(tool, defaults) }
+                    scope.launch { repository.setToolKeywords(tool, defaults, scripts) }
                 },
             )
         }

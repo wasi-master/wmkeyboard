@@ -256,6 +256,11 @@ object SmartSuggest {
         val compoundUnits: Boolean = true,
         val enabledTools: Collection<ToolbarTool> = emptyList(),
         val keywordOverrides: String = "",
+        /**
+         * The writing systems the user's languages type, which decide which of
+         * a tool's default keywords are live. See [KeywordScripts].
+         */
+        val keywordScripts: KeywordScripts = KeywordScripts.ALL,
         /** Tools whose keywords must match the typed capitals exactly. */
         val caseSensitiveKeywords: String = "",
         // ---- contextual chips ----
@@ -1834,7 +1839,7 @@ object SmartSuggest {
         val exact = decodeCaseSensitive(ctx.caseSensitiveKeywords)
         return ToolbarTool.entries.firstOrNull { candidate ->
             candidate in ctx.enabledTools &&
-                matchesKeyword(word, overrides[candidate] ?: defaultKeywords[candidate].orEmpty(), candidate in exact)
+                matchesKeyword(word, overrides[candidate] ?: defaultKeywordsFor(candidate, ctx.keywordScripts), candidate in exact)
         }
     }
 
@@ -1874,7 +1879,7 @@ object SmartSuggest {
         if (!run.last().writtenWithoutSpaces()) return null
         val overrides = decodeKeywords(ctx.keywordOverrides)
         return ToolbarTool.entries.filter { it in ctx.enabledTools }
-            .flatMap { tool -> (overrides[tool] ?: defaultKeywords[tool].orEmpty()).map { tool to it } }
+            .flatMap { tool -> (overrides[tool] ?: defaultKeywordsFor(tool, ctx.keywordScripts)).map { tool to it } }
             .filter { (_, keyword) ->
                 keyword.length >= 2 && run.endsWith(keyword) && keyword.all { it.writtenWithoutSpaces() }
             }
@@ -2129,8 +2134,51 @@ object SmartSuggest {
         ToolbarTool.TEXT_REPEAT to listOf("repeat", "重复文本", "重複文字", "繰り返し", "반복"),
     )
 
-    fun keywordsFor(tool: ToolbarTool, overrides: String): List<String> =
-        decodeKeywords(overrides)[tool] ?: defaultKeywords[tool].orEmpty()
+    /**
+     * The CJK writing systems the user can type, and so which of
+     * [defaultKeywords] apply to them.
+     *
+     * Every tool ships its words in Chinese, Japanese and Korean beside the
+     * English ones, but someone typing English and Bengali can never type
+     * 翻译, and seeing it in a tool's keyword list reads as noise. A default
+     * keyword written in one of these scripts counts only when one of the
+     * user's languages writes it: Hangul for Korean, kana for Japanese, and a
+     * Han-only word for Chinese, Cantonese or Japanese, which all write Han.
+     * Everything else (the English words) always counts.
+     *
+     * Only defaults are filtered. Words the user typed in are theirs, and a
+     * language enabled later brings its defaults back with it.
+     */
+    data class KeywordScripts(
+        val han: Boolean = false,
+        val kana: Boolean = false,
+        val hangul: Boolean = false,
+    ) {
+        fun admits(keyword: String): Boolean = when {
+            keyword.any { it.isHangul() } -> hangul
+            keyword.any { it in '\u3040'..'\u30FF' } -> kana
+            keyword.any { it in '\u3400'..'\u9FFF' || it in '\uF900'..'\uFAFF' } -> han
+            else -> true
+        }
+
+        private fun Char.isHangul(): Boolean =
+            this in '\uAC00'..'\uD7AF' || this in '\u1100'..'\u11FF' || this in '\u3130'..'\u318F'
+
+        companion object {
+            /** Every script, for callers with no language list to go on. */
+            val ALL = KeywordScripts(han = true, kana = true, hangul = true)
+        }
+    }
+
+    /** [tool]'s shipped keywords the user's [scripts] can type. */
+    fun defaultKeywordsFor(tool: ToolbarTool, scripts: KeywordScripts): List<String> =
+        defaultKeywords[tool].orEmpty().filter(scripts::admits)
+
+    fun keywordsFor(
+        tool: ToolbarTool,
+        overrides: String,
+        scripts: KeywordScripts = KeywordScripts.ALL,
+    ): List<String> = decodeKeywords(overrides)[tool] ?: defaultKeywordsFor(tool, scripts)
 
     /**
      * Overrides encode as "TOOL=a,b;TOOL=c". A tool with an empty list is
@@ -2157,13 +2205,24 @@ object SmartSuggest {
     fun encodeKeywords(map: Map<ToolbarTool, List<String>>): String =
         map.entries.joinToString(";") { (tool, words) -> "${tool.name}=${words.joinToString(",")}" }
 
-    /** Replaces one tool's keywords inside an encoded override string. */
-    fun withKeywords(encoded: String, tool: ToolbarTool, words: List<String>): String {
+    /**
+     * Replaces one tool's keywords inside an encoded override string.
+     *
+     * A list equal to the defaults [scripts] admits is stored as no override
+     * at all, so a language enabled later still adds its words to the tool.
+     */
+    fun withKeywords(
+        encoded: String,
+        tool: ToolbarTool,
+        words: List<String>,
+        scripts: KeywordScripts = KeywordScripts.ALL,
+    ): String {
         val map = decodeKeywords(encoded).toMutableMap()
         val cleaned = words.map { it.trim() }
             .filter { it.length >= 2 && it.all(Char::isLetter) }
             .distinct()
-        if (cleaned == defaultKeywords[tool].orEmpty()) map.remove(tool) else map[tool] = cleaned
+        val defaults = defaultKeywords[tool].orEmpty()
+        if (cleaned == defaults || cleaned == defaults.filter(scripts::admits)) map.remove(tool) else map[tool] = cleaned
         return encodeKeywords(map)
     }
 

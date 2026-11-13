@@ -706,6 +706,34 @@ class SmartSuggestTest {
         assertEquals("", encoded)
     }
 
+    @Test
+    fun defaultKeywordsFollowTheScriptsTheUserTypes() {
+        val none = SmartSuggest.KeywordScripts()
+        assertEquals(listOf("translate"), SmartSuggest.defaultKeywordsFor(ToolbarTool.TRANSLATE, none))
+        assertEquals(
+            listOf("translate", "번역"),
+            SmartSuggest.defaultKeywordsFor(ToolbarTool.TRANSLATE, SmartSuggest.KeywordScripts(hangul = true)),
+        )
+        val japanese = SmartSuggest.KeywordScripts(han = true, kana = true)
+        assertTrue("QRコード" in SmartSuggest.defaultKeywordsFor(ToolbarTool.QR_GEN, japanese))
+        assertTrue("큐알코드" !in SmartSuggest.defaultKeywordsFor(ToolbarTool.QR_GEN, japanese))
+    }
+
+    @Test
+    fun aKeywordInAScriptNobodyTypesOffersNothing() {
+        val latin = ctx.copy(keywordScripts = SmartSuggest.KeywordScripts())
+        assertNull(hit("笔记", latin))
+        assertNull(hit("我的笔记", latin))
+        assertEquals(ToolbarTool.NOTES, hit("notes", latin)?.tool)
+    }
+
+    @Test
+    fun writingBackTheShownDefaultsDropsTheOverride() {
+        val none = SmartSuggest.KeywordScripts()
+        val shown = SmartSuggest.defaultKeywordsFor(ToolbarTool.WIKIPEDIA, none)
+        assertEquals("", SmartSuggest.withKeywords("", ToolbarTool.WIKIPEDIA, shown, none))
+    }
+
     // ---- keyword case sensitivity ----
 
     @Test

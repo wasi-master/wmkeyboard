@@ -4617,7 +4617,9 @@ data class KeyboardSettings(
     val selectionMacros: SelectionMacroSettings = SelectionMacroSettings(),
     /**
      * Per-tool keyword overrides, "TOOL=a,b;TOOL=c". Tools missing from the
-     * string use [com.wasimaster.wmkeyboard.core.tools.SmartSuggest.defaultKeywords].
+     * string use [com.wasimaster.wmkeyboard.core.tools.SmartSuggest.defaultKeywordsFor]
+     * for [toolKeywordScripts]: the shipped words in the scripts the enabled
+     * languages type.
      */
     val toolKeywords: String = "",
     /**
@@ -26371,10 +26373,14 @@ class SettingsRepository(private val context: Context) {
     suspend fun setSelectionMacroIconSize(value: Float) =
         editPrefs { it[SELECTION_MACROS_ICON_SIZE] = value.coerceIn(SelectionIconSizeRange) }
 
-    /** Replaces one tool's trigger words; an empty list silences that tool. */
-    suspend fun setToolKeywords(tool: ToolbarTool, words: List<String>) =
+    /**
+     * Replaces one tool's trigger words; an empty list silences that tool.
+     * [scripts] are the ones the user types, so a list equal to the defaults
+     * they see is stored as no override.
+     */
+    suspend fun setToolKeywords(tool: ToolbarTool, words: List<String>, scripts: SmartSuggest.KeywordScripts) =
         editPrefs {
-            it[TOOL_KEYWORDS] = SmartSuggest.withKeywords(it[TOOL_KEYWORDS].orEmpty(), tool, words)
+            it[TOOL_KEYWORDS] = SmartSuggest.withKeywords(it[TOOL_KEYWORDS].orEmpty(), tool, words, scripts)
         }
 
     /** Whether one tool's trigger words have to match the typed capitals. */

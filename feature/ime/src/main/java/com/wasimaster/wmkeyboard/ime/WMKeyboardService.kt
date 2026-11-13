@@ -9,6 +9,7 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.providerMode
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
+import com.wasimaster.wmkeyboard.core.settings.toolKeywordScripts
 import android.app.AppOpsManager
 import android.app.KeyguardManager
 import android.app.NotificationManager
@@ -28217,6 +28218,7 @@ open class WMKeyboardService : InputMethodService() {
             compoundUnits = state.settings.compoundUnits,
             enabledTools = usableTools(state.settings),
             keywordOverrides = state.settings.toolKeywords,
+            keywordScripts = state.settings.toolKeywordScripts,
             caseSensitiveKeywords = state.settings.toolKeywordCase,
             dateChips = state.settings.smartChips.dates,
             todayJdn = todayJdn(),
