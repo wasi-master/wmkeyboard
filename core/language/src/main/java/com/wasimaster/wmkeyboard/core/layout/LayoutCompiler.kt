@@ -16,13 +16,24 @@ package com.wasimaster.wmkeyboard.core.layout
  * a settings emission re-decodes the stored JSON into fresh instances every
  * time, so an identity check would never hit.
  */
-fun LayoutSpec.compile(layer: LayoutLayer): KeyboardLayout = synchronized(compileCache) {
-    val cacheKey = id to layer
+fun LayoutSpec.compile(
+    layer: LayoutLayer,
+    /**
+     * The page to borrow for [LayoutLayer.SYMBOLS] when this layout has none of
+     * its own. Ignored for every other layer, and for a layout that wrote its
+     * own symbols page.
+     */
+    symbolsPage: SymbolsPage = SymbolsPage.STANDARD,
+): KeyboardLayout = synchronized(compileCache) {
+    val cacheKey = CompileKey(id, layer, symbolsPage.takeIf { layer == LayoutLayer.SYMBOLS })
     compileCache[cacheKey]?.let { (spec, built) -> if (spec == this) return built }
     // Resolve the whole layer (not just its rows) so per-row heights travel with
     // the grid through the same fallback chain.
-    val own = layer(layer)
+    val numberPad = layer == LayoutLayer.SYMBOLS && symbolsPage == SymbolsPage.NUMBER_PAD &&
+        borrowsSymbolsPage()
+    val own = layer(layer)?.takeUnless { numberPad }
     val resolved = own
+        ?: NumberPadSymbols.layer.takeIf { numberPad }
         ?: BuiltInLayouts.default.layer(layer)
         ?: BuiltInLayouts.default.layer(LayoutLayer.LETTERS)
             ?: error("The default layout has no LETTERS layer")
@@ -64,6 +75,7 @@ fun LayoutSpec.compile(layer: LayoutLayer): KeyboardLayout = synchronized(compil
         flickHints = resolved.flickHints,
         keymanFrames = resolved.keymanFrames.orEmpty(),
         direct = resolved.direct,
+        digitPad = layer == LayoutLayer.SYMBOLS && carriesDigitPad(rows),
     )
     compileCache[cacheKey] = this to built
     built
@@ -286,8 +298,11 @@ fun leadsWithDigitRow(rows: List<List<Key>>): Boolean =
         key.action == KeyAction.Text && text.length == 1 && text[0].isDigit()
     } ?: false
 
+/** What [compile] caches a grid under; [symbolsPage] is null for every layer but the symbols page. */
+private data class CompileKey(val id: String, val layer: LayoutLayer, val symbolsPage: SymbolsPage?)
+
 private val compileCache =
-    HashMap<Pair<String, LayoutLayer>, Pair<LayoutSpec, KeyboardLayout>>()
+    HashMap<CompileKey, Pair<LayoutSpec, KeyboardLayout>>()
 
 /**
  * The compiled built-in grids under the names the keyboard view has always used.

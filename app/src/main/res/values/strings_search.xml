@@ -124,6 +124,7 @@
     <string name="search_kw_keypress_long_press_hints">secondary labels marks</string>
     <string name="search_kw_keypress_popup">preview flyout magnifier</string>
     <string name="search_kw_keypress_symbols_numpad">numpad keypad dialpad</string>
+    <string name="search_kw_layout_symbols_page">swiftkey numpad keypad numbers digits symbols layout</string>
     <string name="search_kw_layout_symbols_numpad_key">numpad keypad dialpad gboard</string>
     <string name="search_kw_layout_bottom_row_preset">preset iphone ios minimal classic emoji anysoftkeyboard spacebar</string>
     <string name="search_kw_layout_hold_actions_key">fn florisboard futo enter comma globe menu popup</string>

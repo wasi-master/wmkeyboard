@@ -125,6 +125,7 @@ internal val SettingsSearchKeywords: Map<Int, Int> = buildMap {
     put(R.string.keypress_long_press_hints_title, R.string.search_kw_keypress_long_press_hints)
     put(R.string.keypress_popup_title, R.string.search_kw_keypress_popup)
     put(R.string.keypress_symbols_numpad_title, R.string.search_kw_keypress_symbols_numpad)
+    put(R.string.layout_symbols_page_title, R.string.search_kw_layout_symbols_page)
     put(R.string.layout_symbols_numpad_key_title, R.string.search_kw_layout_symbols_numpad_key)
     put(R.string.layout_symbols_text_edit_key_title, R.string.search_kw_layout_symbols_text_edit_key)
     put(R.string.keypress_enter_emoji_title, R.string.search_kw_keypress_enter_emoji)

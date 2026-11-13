@@ -82,6 +82,7 @@ import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.KeymanLayoutPack
 import com.wasimaster.wmkeyboard.core.layout.Key as LayoutKey
 import com.wasimaster.wmkeyboard.core.layout.KeyRowCodec
+import com.wasimaster.wmkeyboard.core.layout.SymbolsPage
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.DefaultFingerSwipes
@@ -9892,6 +9893,13 @@ data class LayoutBehaviorSettings(
      */
     val symbolsTextEditKey: Boolean = false,
     /**
+     * The page `?123` opens on a layout that has no symbols page of its own:
+     * the shipped one, or SwiftKey's arrangement with the digits as a phone
+     * keypad ([SymbolsPage.NUMBER_PAD]). A layout's own symbols page wins
+     * either way. Standard by default, the page everyone already knows.
+     */
+    val symbolsPage: SymbolsPage = SymbolsPage.STANDARD,
+    /**
      * Key holds wait for Android's own "touch and hold delay" (Settings →
      * Accessibility) instead of the keyboard's own slider, so someone who
      * slowed it down system-wide for motor reasons gets the same wait on the
@@ -12344,6 +12352,7 @@ class SettingsRepository(private val context: Context) {
         private val SYMBOLS_LONGPRESS_NUMPAD = booleanPreferencesKey("symbols_longpress_numpad")
         private val SYMBOLS_NUMPAD_KEY = booleanPreferencesKey("symbols_numpad_key")
         private val SYMBOLS_TEXT_EDIT_KEY = booleanPreferencesKey("symbols_text_edit_key")
+        private val SYMBOLS_PAGE = stringPreferencesKey("symbols_page")
         private val LONG_PRESS_FOLLOWS_SYSTEM = booleanPreferencesKey("long_press_follows_system")
         private val MULTITAP_TIMEOUT = intPreferencesKey("multitap_timeout_ms")
         private val ENTER_LONGPRESS_EMOJI = booleanPreferencesKey("enter_longpress_emoji")
@@ -15292,6 +15301,9 @@ class SettingsRepository(private val context: Context) {
                 p[SYMBOLS_LONGPRESS_NUMPAD] ?: defaults.layoutBehavior.symbolsLongPressNumpad,
             symbolsNumpadKey = p[SYMBOLS_NUMPAD_KEY] ?: defaults.layoutBehavior.symbolsNumpadKey,
             symbolsTextEditKey = p[SYMBOLS_TEXT_EDIT_KEY] ?: defaults.layoutBehavior.symbolsTextEditKey,
+            symbolsPage = p[SYMBOLS_PAGE]
+                ?.let { runCatching { SymbolsPage.valueOf(it) }.getOrNull() }
+                ?: defaults.layoutBehavior.symbolsPage,
             longPressFollowsSystem =
                 p[LONG_PRESS_FOLLOWS_SYSTEM] ?: defaults.layoutBehavior.longPressFollowsSystem,
             multitapTimeoutMs = p[MULTITAP_TIMEOUT] ?: defaults.layoutBehavior.multitapTimeoutMs,
@@ -23141,6 +23153,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSymbolsTextEditKey(value: Boolean) =
         editPrefs { it[SYMBOLS_TEXT_EDIT_KEY] = value }
+
+    suspend fun setSymbolsPage(value: SymbolsPage) =
+        editPrefs { it[SYMBOLS_PAGE] = value.name }
 
     suspend fun setLongPressFollowsSystem(value: Boolean) =
         editPrefs { it[LONG_PRESS_FOLLOWS_SYSTEM] = value }

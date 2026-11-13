@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import com.wasimaster.wmkeyboard.core.layout.SymbolsPage
 import com.wasimaster.wmkeyboard.core.layout.BottomRowPreset
 import com.wasimaster.wmkeyboard.core.layout.HoldActionsKey
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
@@ -1331,8 +1332,26 @@ internal fun LayoutSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.layout_symbols_title), level = SettingLevel.ADVANCED) {
+    // The group was advanced-only until the Symbols page choice joined it;
+    // its other rows still are.
+    SettingsGroup(stringResource(R.string.layout_symbols_title)) {
         item {
+            // SwiftKey's symbols page, the digits as a keypad: asked for again
+            // and again in the Telegram group. Only for layouts that borrow
+            // the shipped page; a layout's own symbols page wins.
+            ChoiceSetting(
+                R.string.layout_symbols_page_title,
+                subtitle = stringResource(R.string.layout_symbols_page_subtitle),
+                info = stringResource(R.string.layout_symbols_page_info),
+                options = listOf(
+                    SymbolsPage.STANDARD to stringResource(R.string.layout_symbols_page_standard_label),
+                    SymbolsPage.NUMBER_PAD to stringResource(R.string.layout_symbols_page_number_pad_label),
+                ),
+                selected = settings.watch { it.layoutBehavior.symbolsPage },
+                default = SettingsDefaults.layoutBehavior.symbolsPage,
+            ) { scope.launch { repository.setSymbolsPage(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_symbols_return_title,
                 stringResource(R.string.layout_symbols_return_subtitle),
@@ -1341,7 +1360,7 @@ internal fun LayoutSettings(
                 default = SettingsDefaults.layoutBehavior.symbolsReturnToLetters,
             ) { scope.launch { repository.setSymbolsReturnToLetters(it) } }
         }
-        item(visible = symbolsReturn) {
+        item(visible = symbolsReturn, level = SettingLevel.ADVANCED) {
             // Saves as it is typed, like the currency keys field; blank
             // restores the default set. Seeded once rather than re-read on
             // every keystroke: the repository drops spaces and duplicates,
@@ -1365,7 +1384,7 @@ internal fun LayoutSettings(
                 )
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_symbols_return_space_title,
                 stringResource(R.string.layout_symbols_return_space_subtitle),

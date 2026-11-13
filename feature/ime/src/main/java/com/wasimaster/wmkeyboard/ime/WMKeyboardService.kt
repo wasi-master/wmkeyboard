@@ -800,6 +800,7 @@ import com.wasimaster.wmkeyboard.core.keyman.ProcessorResult
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.KeymanTarget
+import com.wasimaster.wmkeyboard.core.layout.SymbolsPage
 import com.wasimaster.wmkeyboard.core.layout.hasDigitRowOfItsOwn
 import com.wasimaster.wmkeyboard.core.layout.letterSet
 import com.wasimaster.wmkeyboard.core.layout.multitapKey
@@ -5547,6 +5548,7 @@ open class WMKeyboardService : InputMethodService() {
                             it.fieldKind,
                             form,
                             modeSettings.numberRow,
+                            modeSettings.layoutBehavior.symbolsPage,
                             modeSettings.customLayouts,
                         ),
                         activeModeId = mode?.id,
@@ -8816,6 +8818,7 @@ open class WMKeyboardService : InputMethodService() {
                     it.fieldKind,
                     deviceForm.value,
                     it.settings.numberRow,
+                    it.settings.layoutBehavior.symbolsPage,
                     it.settings.customLayouts,
                 ),
             )
@@ -9524,6 +9527,7 @@ open class WMKeyboardService : InputMethodService() {
                     fieldKind,
                     deviceForm.value,
                     modeSettings.numberRow,
+                    modeSettings.layoutBehavior.symbolsPage,
                     modeSettings.customLayouts,
                 ),
                 activeModeId = activeMode?.id,
@@ -19980,10 +19984,11 @@ open class WMKeyboardService : InputMethodService() {
         fieldKind: FieldKind,
         form: DeviceForm,
         numberRowShown: Boolean,
+        symbolsPage: SymbolsPage,
         customs: List<LayoutSpec>,
     ): LayoutSet {
         val landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        val key = LayoutSetKey(spec.id, fieldKind, form, numberRowShown, landscape)
+        val key = LayoutSetKey(spec.id, fieldKind, form, numberRowShown, symbolsPage, landscape)
         // The secondary grids ride along by reference, so an edit to one of
         // them — which re-decodes the custom list — misses the cache too.
         val secondaries = secondaryGrids(customs)
@@ -19995,7 +20000,7 @@ open class WMKeyboardService : InputMethodService() {
         val drawn = spec.landscapeLayoutId?.takeIf { landscape }
             ?.let { id -> resolveLayout(customs, id).takeIf { it.id == id } }
             ?: spec
-        val set = compileLayoutSet(drawn, fieldKind, form, numberRowShown, secondaries, television, landscape)
+        val set = compileLayoutSet(drawn, fieldKind, form, numberRowShown, secondaries, television, landscape, symbolsPage)
         layoutSetCache[key] = spec to set
         return set
     }
@@ -20013,6 +20018,8 @@ open class WMKeyboardService : InputMethodService() {
         val fieldKind: FieldKind,
         val form: DeviceForm,
         val numberRowShown: Boolean,
+        /** Which page a layout without its own symbols page borrows. */
+        val symbolsPage: SymbolsPage,
         val landscape: Boolean,
     )
 
@@ -20514,6 +20521,7 @@ open class WMKeyboardService : InputMethodService() {
                     it.fieldKind,
                     deviceForm.value,
                     it.settings.numberRow,
+                    it.settings.layoutBehavior.symbolsPage,
                     it.settings.customLayouts,
                 ),
                 layoutMode = LayoutMode.LETTERS,

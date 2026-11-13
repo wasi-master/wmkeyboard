@@ -24537,14 +24537,17 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // Issue #423: Gboard's 1234 key beside ABC on the symbols pages, opt-in.
     val symbolsPage = state.layoutMode == LayoutMode.SYMBOLS ||
         state.layoutMode == LayoutMode.SYMBOLS_SHIFTED
-    val withNumpad = if (state.settings.layoutBehavior.symbolsNumpadKey && symbolsPage && !laidOut) {
+    // A page that is a number pad already (the Number pad symbols page) has
+    // no use for a key that opens one, so it gets neither of the keys below.
+    val addsKeys = symbolsPage && !laidOut && !grid.digitPad
+    val withNumpad = if (state.settings.layoutBehavior.symbolsNumpadKey && addsKeys) {
         arranged.withNumpadKey()
     } else {
         arranged
     }
     // HeliBoard's D-pad key (competitor gap list item 3), opt-in for the same
     // reason: a new key on a row people know by touch gets hit by accident.
-    val base = if (state.settings.layoutBehavior.symbolsTextEditKey && symbolsPage && !laidOut) {
+    val base = if (state.settings.layoutBehavior.symbolsTextEditKey && addsKeys) {
         withNumpad.withTextEditKey()
     } else {
         withNumpad
@@ -25690,7 +25693,10 @@ internal fun numberRowShown(state: KeyboardUiState): Boolean =
         (state.settings.layoutBehavior.numberRowOnKeypad || !numericPadActive(state)) &&
         (state.settings.layoutBehavior.numberRowInSymbols ||
             (state.layoutMode != LayoutMode.SYMBOLS &&
-                state.layoutMode != LayoutMode.SYMBOLS_SHIFTED))
+                state.layoutMode != LayoutMode.SYMBOLS_SHIFTED)) &&
+        // A symbols page with a number pad of its own would show every digit
+        // twice under a number row.
+        !(state.layoutMode == LayoutMode.SYMBOLS && state.layouts.symbols.digitPad)
 
 /**
  * Whether the arrow row (issue #369) is drawn under the current layer. Shared

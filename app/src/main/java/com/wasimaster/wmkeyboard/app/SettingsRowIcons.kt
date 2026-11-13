@@ -911,6 +911,7 @@ internal object SettingsRowIcons {
         put(R.string.floating_button_reset_position_title) { Icons.Outlined.Restore }
         put(R.string.layout_reset_sizing_title) { Icons.Outlined.Restore }
         put(R.string.layout_comma_emoji_title) { Icons.Outlined.EmojiEmotions }
+        put(R.string.layout_symbols_page_title) { Icons.Outlined.Pin }
         put(R.string.layout_symbols_numpad_key_title) { Icons.Outlined.Dialpad }
         put(R.string.layout_symbols_text_edit_key_title) { Icons.Outlined.EditNote }
         put(R.string.layout_show_globe_title) { Icons.Outlined.Language }

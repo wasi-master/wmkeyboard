@@ -230,6 +230,13 @@
     <string name="layout_bottom_row_keys_title">Bottom row keys</string>
     <string name="layout_comma_emoji_title">Comma key opens emoji</string>
     <string name="layout_comma_emoji_subtitle">Replace the comma key with an emoji key</string>
+    <!-- ?123 is the key that opens the symbols page; {&= is a key label on
+         that page. Keep both as they are. -->
+    <string name="layout_symbols_page_title">Symbols page</string>
+    <string name="layout_symbols_page_subtitle">The page the ?123 key opens</string>
+    <string name="layout_symbols_page_standard_label">Standard</string>
+    <string name="layout_symbols_page_number_pad_label">Number pad</string>
+    <string name="layout_symbols_page_info">Standard puts a row of digits over two rows of symbols. Number pad puts the digits on the right like a phone keypad, with the common symbols in narrow columns beside them, the way SwiftKey arranges its symbols page. On the number pad page, the {&amp;= key opens the second symbols page. A layout that has its own symbols page keeps it. The number row and the 1234 key do not appear over the number pad page, because it already has every digit.</string>
     <string name="layout_symbols_numpad_key_title">1234 key on the symbol pages</string>
     <string name="layout_symbols_numpad_key_subtitle">A key after ABC that opens the number pad</string>
     <string name="layout_symbols_numpad_key_info">The symbol pages get a 1234 key directly after the ABC key, as in Gboard. Press it to open the number pad panel over the current field. The spacebar gets narrower by one key to make room. A layout that already has a number pad key, or a symbol page you arranged by hand in the layout editor, does not change.</string>

@@ -858,6 +858,12 @@ data class KeyboardLayout(
      * wrote itself is drawn as written.
      */
     val borrowedSymbols: Boolean = false,
+    /**
+     * Whether this symbols page holds a number pad of its own ([carriesDigitPad]),
+     * so the number row and the 1234 key stay off it. Worked out once here
+     * because the renderer asks on every frame.
+     */
+    val digitPad: Boolean = false,
 )
 
 /**
