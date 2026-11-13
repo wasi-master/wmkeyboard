@@ -183,3 +183,13 @@ fn rejected_syntax_says_why() {
     assert!(failure("def f():\n    yield 1").contains("'yield' is not supported"));
     assert!(failure("async def f():\n    pass").contains("'async' is not supported"));
 }
+
+#[test]
+fn defaults_are_evaluated_once_when_defined() {
+    // As CPython: so the `lambda i=i:` idiom keeps each loop turn's value.
+    assert_eq!("[0, 1, 2]", output("fs = [lambda i=i: i for i in range(3)]\nresult = [f() for f in fs]"));
+    assert_eq!("[0, 1, 2]", output("fs = []\nfor i in range(3):\n    def f(k=i):\n        return k\n    fs.append(f)\nresult = [f() for f in fs]"));
+    assert_eq!("1", output("n = 1\ndef f(x=n):\n    return x\nn = 2\nresult = f()"));
+    assert_eq!("[[1], [1, 1]]", output("def add(x, into=[]):\n    into.append(x)\n    return list(into)\nresult = [add(1), add(1)]"));
+    assert_eq!("7", output("def f(*, k=3 + 4):\n    return k\nresult = f()"));
+}

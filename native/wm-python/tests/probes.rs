@@ -11,14 +11,18 @@
 //!
 //! [DIVERGES] lists the probes where this port parts from PyMini on purpose,
 //! with what it prints instead. Each one is CPython's behaviour: classes and
-//! `**kwargs` exist here, and a keyword that repeats a positional argument is
-//! an error, not a silent overwrite. The oracle's own `.out` stays as it was.
+//! `**kwargs` exist here, a keyword that repeats a positional argument is
+//! an error, not a silent overwrite, and a default is evaluated once, when
+//! the `def` or `lambda` runs, so `lambda i=i: ...` in a loop keeps each
+//! turn's value. The oracle's own `.out` stays as it was.
 
 use wm_python::interp::{Limits, Runtime, STANDARD_MODULES};
 
 const DIVERGES: &[(&str, &str)] = &[
     ("120-syntax-class.py", "None\n"),
     ("126-syntax-kwargs.py", "None\n"),
+    ("154-lambda-default-closure.py", "[10, 11, 12]\n"),
+    ("192-edge-default-eval-time.py", "1\n"),
     ("193-edge-variadic-kw-collision.py", "ERROR: Line 3: TypeError: f() got multiple values for argument 'a'\n"),
 ];
 

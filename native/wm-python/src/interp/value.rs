@@ -155,11 +155,16 @@ pub struct Function {
     pub(crate) closure: Rc<Env>,
     /// The class whose body defined it, which is where `super()` starts.
     pub(crate) owner: RefCell<Option<std::rc::Weak<Class>>>,
+    /// Default values, evaluated once when the `def` or `lambda` ran, as
+    /// Python does: one per positional parameter, then one per keyword-only
+    /// one, None where there is no default. So `lambda i=i: i` in a loop
+    /// keeps each turn's `i`.
+    pub(crate) defaults: Vec<Option<Value>>,
 }
 
 impl Function {
-    pub(crate) fn new(name: Rc<str>, body: FnBody, closure: Rc<Env>) -> Function {
-        Function { name, body, closure, owner: RefCell::new(None) }
+    pub(crate) fn new(name: Rc<str>, body: FnBody, closure: Rc<Env>, defaults: Vec<Option<Value>>) -> Function {
+        Function { name, body, closure, owner: RefCell::new(None), defaults }
     }
 
     pub(crate) fn signature(&self) -> &Params {

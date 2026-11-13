@@ -529,8 +529,9 @@ impl Interp {
         for d in &def.decorators {
             decorators.push(self.eval(d, env)?);
         }
+        let defaults = self.eval_defaults(&def.params, env)?;
         self.track_closure(env);
-        let f = Function::new(def.name.clone(), FnBody::Def(def.clone()), env.clone());
+        let f = Function::new(def.name.clone(), FnBody::Def(def.clone()), env.clone(), defaults);
         let mut value = Value::Function(Rc::new(f));
         for d in decorators.iter().rev() {
             value = self.call_value(d, vec![value], Vec::new())?;
@@ -826,7 +827,7 @@ impl Interp {
             Expr::Index(base, idx) => self.eval_index(base, idx, env),
             Expr::Slice(s) => self.eval_slice(s, env),
             Expr::Attribute(obj, name) => self.eval_attribute(obj, name, env),
-            Expr::Lambda(def) => Ok(self.eval_lambda(def, env)),
+            Expr::Lambda(def) => self.eval_lambda(def, env),
             Expr::Comprehension(c) => self.run_comprehension(c, env),
             Expr::Starred(_) => Err(self.error("'*' can only be used in a call's arguments", "SyntaxError")),
             Expr::Call(callee, args, kwargs) => self.eval_call(callee, args, kwargs, env),
@@ -964,9 +965,28 @@ impl Interp {
     }
 
     #[inline(never)]
-    fn eval_lambda(&mut self, def: &Rc<LambdaDef>, env: &Rc<Env>) -> Value {
+    fn eval_lambda(&mut self, def: &Rc<LambdaDef>, env: &Rc<Env>) -> R<Value> {
+        let defaults = self.eval_defaults(&def.params, env)?;
         self.track_closure(env);
-        Value::Function(Rc::new(Function::new(Rc::from("<lambda>"), FnBody::Lambda(def.clone(), self.current_line), env.clone())))
+        Ok(Value::Function(Rc::new(Function::new(
+            Rc::from("<lambda>"),
+            FnBody::Lambda(def.clone(), self.current_line),
+            env.clone(),
+            defaults,
+        ))))
+    }
+
+    /// Each parameter's default, evaluated now in [env]: positional ones,
+    /// then keyword-only ones, None where there is none.
+    fn eval_defaults(&mut self, params: &Params, env: &Rc<Env>) -> R<Vec<Option<Value>>> {
+        let mut out = Vec::with_capacity(params.positional.len() + params.keyword_only.len());
+        for p in params.positional.iter().chain(params.keyword_only.iter()) {
+            out.push(match &p.default {
+                Some(e) => Some(self.eval(e, env)?),
+                None => None,
+            });
+        }
+        Ok(out)
     }
 
     #[inline(never)]
@@ -1316,14 +1336,13 @@ impl Interp {
                 return Err(self.error(format!("{}() got an unexpected keyword argument '{k}'", f.name), "TypeError"));
             }
         }
-        for p in params.iter().chain(sig.keyword_only.iter()) {
+        for (i, p) in params.iter().chain(sig.keyword_only.iter()).enumerate() {
             if bound.contains(&p.name) {
                 continue;
             }
-            let Some(def) = &p.default else {
+            let Some(v) = f.defaults.get(i).cloned().flatten() else {
                 return Err(self.error(format!("{}() missing required argument '{}'", f.name, p.name), "TypeError"));
             };
-            let v = self.eval(def, &f.closure)?;
             env.define(&p.name, v);
         }
         if let Some(k) = &sig.kwargs {
