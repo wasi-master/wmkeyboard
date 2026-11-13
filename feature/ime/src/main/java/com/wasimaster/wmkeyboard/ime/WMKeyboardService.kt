@@ -8415,6 +8415,7 @@ open class WMKeyboardService : InputMethodService() {
             panel,
             getString(com.wasimaster.wmkeyboard.ime.ui.toolLabelRes(tool)),
             com.wasimaster.wmkeyboard.ime.ui.IconDefaults.forTool(tool),
+            tool,
         )
         if (!opened) return
         toolUsage.record(tool)

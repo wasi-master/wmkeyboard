@@ -2228,6 +2228,13 @@ data class ToolbarBehavior(
      */
     val floatOnTap: Set<ToolbarTool> = emptySet(),
     /**
+     * The tools whose floating box does the opposite of
+     * [SummonButtonSettings.boxClosesOutside] on a tap outside it (#1262):
+     * stays open while the rest close, or closes while the rest stay. Read
+     * through [KeyboardSettings.boxClosesOutside].
+     */
+    val boxOutsideFlipped: Set<ToolbarTool> = emptySet(),
+    /**
      * The tools whose buttons stay beside the suggestions while the pinned
      * tools are off the row, in the order they are drawn (#462). The emoji
      * tool alone by default, which is the button this has always been;
@@ -11998,6 +12005,7 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_BUTTON_TUCK = booleanPreferencesKey("floating_button_tuck")
         private val FLOATING_BOX_CLOSE_OUTSIDE = booleanPreferencesKey("floating_box_close_outside")
         private val FLOATING_BOX_GESTURES = booleanPreferencesKey("floating_box_gestures")
+        private val FLOATING_BOX_HOLD_TO_MOVE = booleanPreferencesKey("floating_box_hold_to_move")
         private val FLOATING_BUTTON_WHILE_TYPING = booleanPreferencesKey("floating_button_while_typing")
         private val FLOATING_BUTTON_HIDE_LANDSCAPE = booleanPreferencesKey("floating_button_hide_landscape")
         private val FLOATING_BUTTON_HAPTICS = booleanPreferencesKey("floating_button_haptics")
@@ -12947,6 +12955,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_LANDSCAPE_COLUMN = stringPreferencesKey("toolbar_landscape_column")
         private val TOOLBAR_HOLD_ACTIONS = stringPreferencesKey("toolbar_hold_actions")
         private val TOOLBAR_FLOAT_ON_TAP = stringPreferencesKey("toolbar_float_on_tap")
+        private val TOOLBAR_BOX_OUTSIDE_FLIPPED = stringPreferencesKey("toolbar_box_outside_flipped")
         /** The single tool #462 stored, before the strip took a list. Read as a one-tool list. */
         private val TOOLBAR_STRIP_SHORTCUT = stringPreferencesKey("toolbar_strip_shortcut")
         private val TOOLBAR_STRIP_SHORTCUTS = stringPreferencesKey("toolbar_strip_shortcuts")
@@ -15605,6 +15614,11 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.toolbarBehavior.landscapeColumn,
             holdActions = ToolHoldActions.decode(p[TOOLBAR_HOLD_ACTIONS]),
             floatOnTap = p[TOOLBAR_FLOAT_ON_TAP]
+                ?.split(',')
+                ?.mapNotNull { name -> runCatching { ToolbarTool.valueOf(name) }.getOrNull()?.takeIf { it.floats } }
+                ?.toSet()
+                .orEmpty(),
+            boxOutsideFlipped = p[TOOLBAR_BOX_OUTSIDE_FLIPPED]
                 ?.split(',')
                 ?.mapNotNull { name -> runCatching { ToolbarTool.valueOf(name) }.getOrNull()?.takeIf { it.floats } }
                 ?.toSet()
@@ -18519,6 +18533,27 @@ class SettingsRepository(private val context: Context) {
             prefs[TOOLBAR_HOLD_ACTIONS] = ToolHoldActions.encode(current)
         }
 
+    /**
+     * Whether a tap outside [tool]'s floating box closes it (#1262), stored as
+     * a difference from the setting for every box, so changing that one
+     * carries the tools that were not set apart along with it.
+     */
+    suspend fun setToolBoxClosesOutside(tool: ToolbarTool, value: Boolean) =
+        editPrefs { prefs ->
+            val everyBox = prefs[FLOATING_BOX_CLOSE_OUTSIDE] ?: SettingsDefaults.summonButton.boxClosesOutside
+            val current = prefs[TOOLBAR_BOX_OUTSIDE_FLIPPED]
+                ?.split(',')
+                ?.mapNotNull { name -> runCatching { ToolbarTool.valueOf(name) }.getOrNull() }
+                .orEmpty()
+                .toMutableSet()
+            if (value != everyBox && tool.floats) current += tool else current -= tool
+            if (current.isEmpty()) {
+                prefs.remove(TOOLBAR_BOX_OUTSIDE_FLIPPED)
+            } else {
+                prefs[TOOLBAR_BOX_OUTSIDE_FLIPPED] = current.joinToString(",") { it.name }
+            }
+        }
+
     /** A tap on [tool] opens it in the floating box (#1259), or as its panel again; see [ToolbarBehavior.floatOnTap]. */
     suspend fun setToolFloatsOnTap(tool: ToolbarTool, value: Boolean) =
         editPrefs { prefs ->
@@ -19538,6 +19573,7 @@ class SettingsRepository(private val context: Context) {
             haptics = p[FLOATING_BUTTON_HAPTICS] ?: d.haptics,
             boxClosesOutside = p[FLOATING_BOX_CLOSE_OUTSIDE] ?: d.boxClosesOutside,
             boxGestures = p[FLOATING_BOX_GESTURES] ?: d.boxGestures,
+            boxHoldToMove = p[FLOATING_BOX_HOLD_TO_MOVE] ?: d.boxHoldToMove,
         )
     }
 
@@ -19749,6 +19785,10 @@ class SettingsRepository(private val context: Context) {
     /** Gestures in place of a floating box's buttons (#1262); see [SummonButtonSettings.boxGestures]. */
     suspend fun setFloatingBoxGestures(value: Boolean) =
         editFloatingButton { it[FLOATING_BOX_GESTURES] = value }
+
+    /** A hold then a drag moves a floating box from anywhere (#1263); see [SummonButtonSettings.boxHoldToMove]. */
+    suspend fun setFloatingBoxHoldToMove(value: Boolean) =
+        editFloatingButton { it[FLOATING_BOX_HOLD_TO_MOVE] = value }
 
     suspend fun setFloatingButtonWhileTyping(value: Boolean) =
         editFloatingButton { it[FLOATING_BUTTON_WHILE_TYPING] = value }

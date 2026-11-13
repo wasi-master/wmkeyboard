@@ -1374,6 +1374,8 @@
     <string name="tooldetail_hold_settings_title">Settings page</string>
     <string name="tooldetail_hold_floating_title">In a floating box</string>
     <string name="tooldetail_hold_floating_subtitle">Opens the tool in a box over the app, which stays when the keyboard closes</string>
+    <string name="tooldetail_box_close_outside_title">Close its floating box on a tap outside</string>
+    <string name="tooldetail_box_close_outside_subtitle">For this tool only; the setting on the Tools screen covers the rest</string>
     <string name="tooldetail_float_on_tap_title">Open in a floating box</string>
     <string name="tooldetail_float_on_tap_subtitle">A tap on the tool\'s button opens it in a box over the app instead of in the keyboard</string>
     <string name="tooldetail_hold_settings_subtitle">Opens the settings of this tool, as the hold did before</string>

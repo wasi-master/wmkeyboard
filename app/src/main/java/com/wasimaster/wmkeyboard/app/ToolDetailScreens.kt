@@ -170,6 +170,7 @@ import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.settings.LauncherToolSettings
+import com.wasimaster.wmkeyboard.core.settings.boxClosesOutside
 import com.wasimaster.wmkeyboard.core.settings.floats
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.ToolBlocker
@@ -3860,6 +3861,16 @@ internal fun ToolDetailSettings(
                 checked = settings.watch { tool in it.toolbarBehavior.floatOnTap },
                 onChange = { scope.launch { repository.setToolFloatsOnTap(tool, it) } },
                 default = false,
+            )
+        }
+        // This tool's box on a tap outside it (#1262), set apart from every other box's.
+        item(visible = tool.floats) {
+            ToggleSetting(
+                title = R.string.tooldetail_box_close_outside_title,
+                subtitle = stringResource(R.string.tooldetail_box_close_outside_subtitle),
+                checked = settings.watch { it.boxClosesOutside(tool) },
+                onChange = { scope.launch { repository.setToolBoxClosesOutside(tool, it) } },
+                default = settings.watch { it.summonButton.boxClosesOutside },
             )
         }
     }
