@@ -4,6 +4,7 @@ import android.view.KeyEvent
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputConnectionWrapper
 import com.wasimaster.wmkeyboard.core.transliteration.BijoyAnsi
+import com.wasimaster.wmkeyboard.core.transliteration.LegacyFonts
 import com.wasimaster.wmkeyboard.core.transliteration.Zawgyi
 
 /**
@@ -71,6 +72,22 @@ internal sealed interface OutputEncoding {
 
         override val readsBefore = false
         override val maxRun = 160
+    }
+
+    /**
+     * Hindi as Kruti Dev, Tamil as Bamini, Punjabi as AnmolLipi (#1252); see
+     * [LegacyFonts]. Like ANSI they type in visual order (ि before its
+     * cluster, the reph after its syllable), so a word is rewritten whole.
+     */
+    data class LegacyFont(val font: LegacyFonts.Font) : OutputEncoding {
+        override fun needsConversion(text: CharSequence) = LegacyFonts.needsConversion(font, text)
+
+        override fun isRunChar(c: Char) = LegacyFonts.isScriptChar(font, c)
+
+        override fun convert(text: String, before: String) = LegacyFonts.convert(font, text)
+
+        override val readsBefore = false
+        override val maxRun = 48
     }
 }
 
