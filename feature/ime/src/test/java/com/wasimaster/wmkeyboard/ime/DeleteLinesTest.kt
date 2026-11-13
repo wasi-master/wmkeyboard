@@ -24,6 +24,28 @@ class DeleteLinesTest {
     }
 
     @Test
+    fun `back goes a drawn line at a time through a wrapped paragraph`() {
+        // Drawn as "the quick " / "brown fox " / "jumps".
+        val before = "the quick brown fox jumps"
+        val wraps = listOf(10, 20)
+        assertEquals(5, DeleteLines.step(before, forward = false, wraps = wraps))
+        assertEquals(listOf(5, 15, 25), DeleteLines.reach(before, 5, forward = false, wraps = wraps))
+    }
+
+    @Test
+    fun `forward goes a drawn line at a time, then takes the break as before`() {
+        val after = "the quick brown fox jumps\nnext"
+        val wraps = listOf(10, 20)
+        assertEquals(listOf(10, 20, 25, 30), DeleteLines.reach(after, 5, forward = true, wraps = wraps))
+    }
+
+    @Test
+    fun `a wrap on a hard line start changes nothing`() {
+        assertEquals(4, DeleteLines.step("\nabc", forward = true, wraps = listOf(1)))
+        assertEquals(4, DeleteLines.step("one\ntwo\n", forward = false, wraps = listOf(4)))
+    }
+
+    @Test
     fun `nothing to take is no step`() {
         assertEquals(0, DeleteLines.step("", forward = true))
         assertEquals(emptyList<Int>(), DeleteLines.reach("", 2, forward = false))

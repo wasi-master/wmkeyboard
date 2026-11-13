@@ -18377,8 +18377,9 @@ open class WMKeyboardService : InputMethodService() {
             deleteSwipeText = (
                 if (forward) ic.getTextAfterCursor(DELETE_LINE_LOOKBACK, 0) else ic.getTextBeforeCursor(DELETE_LINE_LOOKBACK, 0)
                 ) ?: ""
+            requestDeleteSwipeWraps(ic, forward)
         }
-        val reach = DeleteLines.reach(deleteSwipeText, lines, forward)
+        val reach = DeleteLines.reach(deleteSwipeText, lines, forward, deleteSwipeWraps)
         val covered = reach.size
         if (covered == deleteSwipeUnits) return covered
         val length = reach.lastOrNull() ?: 0
@@ -18636,6 +18637,71 @@ open class WMKeyboardService : InputMethodService() {
 
     /** How far into [deleteSwipeText] 1, 2, 3... units reach, in UTF-16 units. */
     private val deleteSwipeSteps = ArrayList<Int>()
+
+    /**
+     * Where the editor wrapped [deleteSwipeText] onto more lines, as offsets
+     * into it, so a delete-line swipe goes a drawn line at a time through a
+     * long paragraph (competitor gap list item 16). Empty until the editor
+     * answers, and on Android 13 and older, where lines are hard lines.
+     */
+    private var deleteSwipeWraps: List<Int> = emptyList()
+
+    /** Which swipe a text-bounds answer belongs to; a late answer for an old one is dropped. */
+    private var deleteSwipeWrapsAsk = 0
+
+    /**
+     * Asks the editor where it drew the lines on screen (Android 14's
+     * `requestTextBoundsInfo`) and, when it answers, reads the line starts
+     * that fall inside [deleteSwipeText] into [deleteSwipeWraps] and selects
+     * the preview again in drawn lines. The whole screen is the area asked
+     * about: the caret's line and its neighbours are what a swipe reaches, and
+     * lines scrolled out of view fall back to hard lines. An editor that does
+     * not answer, or answers with nothing, leaves hard lines as they were.
+     */
+    private fun requestDeleteSwipeWraps(ic: InputConnection, forward: Boolean) {
+        deleteSwipeWraps = emptyList()
+        val ask = ++deleteSwipeWrapsAsk
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return
+        val metrics = resources.displayMetrics
+        val screen = android.graphics.RectF(0f, 0f, metrics.widthPixels.toFloat(), metrics.heightPixels.toFloat())
+        val length = deleteSwipeText.length
+        val textStart = if (forward) deleteSwipeEnd else deleteSwipeBase - length
+        if (textStart < 0 || length == 0) return
+        runCatching {
+            ic.requestTextBoundsInfo(screen, mainExecutor) { result ->
+                if (ask != deleteSwipeWrapsAsk || !deleteSwipeActive || deleteSwipeForward != forward) {
+                    return@requestTextBoundsInfo
+                }
+                val info = result.textBoundsInfo
+                if (result.resultCode != android.view.inputmethod.TextBoundsInfoResult.CODE_SUCCESS || info == null) {
+                    return@requestTextBoundsInfo
+                }
+                val wraps = drawnLineStarts(info, textStart, length)
+                if (wraps.isEmpty()) return@requestTextBoundsInfo
+                deleteSwipeWraps = wraps
+                // The preview up now was measured in hard lines: the same
+                // number of drawn lines takes its place.
+                val shown = deleteSwipeUnits
+                if (shown > 0) {
+                    deleteSwipeUnits = -1
+                    onDeleteSwipeSelectLines(shown, forward)
+                }
+            }
+        }
+    }
+
+    /** The drawn-line starts [info] reports inside the [length] characters from [textStart], relative to it. */
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private fun drawnLineStarts(info: android.view.inputmethod.TextBoundsInfo, textStart: Int, length: Int): List<Int> {
+        val finder = info.lineSegmentFinder
+        val out = ArrayList<Int>()
+        var at = finder.nextStartBoundary(maxOf(textStart, info.startIndex - 1))
+        while (at != android.text.SegmentFinder.DONE && at < textStart + length && out.size < MAX_DRAWN_LINES) {
+            if (at > textStart) out += at - textStart
+            at = finder.nextStartBoundary(at)
+        }
+        return out
+    }
 
     /**
      * One step of a delete swipe that deletes as it goes (the preview turned
@@ -18952,6 +19018,8 @@ open class WMKeyboardService : InputMethodService() {
         deleteSwipeForward = false
         deleteSwipeText = ""
         deleteSwipeSteps.clear()
+        deleteSwipeWraps = emptyList()
+        deleteSwipeWrapsAsk++
     }
 
     private fun onSpace() {
@@ -60800,6 +60868,9 @@ open class WMKeyboardService : InputMethodService() {
         private const val QWERTY_MIN_ROW = 6
 
         /** The most [clearWholeField] reads either side of the caret in one tap. */
+        /** Most drawn lines a delete-line swipe reads back from the editor: far past a screenful. */
+        private const val MAX_DRAWN_LINES = 400
+
         private const val CLEAR_FIELD_MAX_CHARS = 200_000
 
         /** How long a summoned keyboard keeps the floating button's panel through field reports (#1196). */
