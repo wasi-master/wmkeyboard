@@ -2513,6 +2513,16 @@ internal fun LayoutOneHandedSettings(
                 default = SettingsDefaults.layoutBehavior.landscapeFullscreen,
             ) { scope.launch { repository.setLandscapeFullscreen(it) } }
         }
+        // The same text box with the phone upright (gap list item 50).
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.layout_portrait_fullscreen_title,
+                stringResource(R.string.layout_portrait_fullscreen_subtitle),
+                settings.watch { it.layoutBehavior.portraitFullscreen },
+                info = stringResource(R.string.layout_portrait_fullscreen_info),
+                default = SettingsDefaults.layoutBehavior.portraitFullscreen,
+            ) { scope.launch { repository.setPortraitFullscreen(it) } }
+        }
         item(visible = floating, level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 title = R.string.layout_floating_handle_title,

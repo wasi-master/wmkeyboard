@@ -7501,18 +7501,26 @@ open class WMKeyboardService : InputMethodService() {
      *
      * And not when the user has turned it off (#883): a phone held sideways
      * then keeps the app in view above the keys.
+     *
+     * Upright, the platform never asks for it, but a user can (gap list item
+     * 50): [LayoutBehaviorSettings.portraitFullscreen] turns it on there too,
+     * under every exception above.
      */
-    override fun onEvaluateFullscreenMode(): Boolean =
+    override fun onEvaluateFullscreenMode(): Boolean {
+        val behavior = _uiState.value.settings.layoutBehavior
         if (floatingNow() || voiceBarShowing() ||
-            !_uiState.value.settings.layoutBehavior.landscapeFullscreen ||
             handwritingFullScreen(_uiState.value) ||
             (pinnedNow() && isNullField()) ||
             DeviceForm.of(resources.configuration.smallestScreenWidthDp).isTablet
         ) {
-            false
-        } else {
-            super.onEvaluateFullscreenMode()
+            return false
         }
+        return if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            behavior.landscapeFullscreen && super.onEvaluateFullscreenMode()
+        } else {
+            behavior.portraitFullscreen
+        }
+    }
 
     /**
      * The platform sizes the soft-input window here on every show. Its own

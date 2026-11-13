@@ -9983,6 +9983,13 @@ data class LayoutBehaviorSettings(
      */
     val landscapeFullscreen: Boolean = true,
     /**
+     * The same full-screen editor with the phone upright (competitor gap list
+     * item 50, after AnySoftKeyboard). Off by default, which is Android's own
+     * behaviour; on, every field on a phone is typed into the platform's text
+     * box with a Done button, which some people find easier to read.
+     */
+    val portraitFullscreen: Boolean = false,
+    /**
      * Asks Android to take away the bar it draws under the keyboard in gesture
      * navigation, with its hide-keyboard and switch-keyboard buttons (#582).
      * The keyboard has its own 🌐 key and Back already hides it, so the bar
@@ -12397,6 +12404,7 @@ class SettingsRepository(private val context: Context) {
         private val MULTITAP_TIMEOUT = intPreferencesKey("multitap_timeout_ms")
         private val ENTER_LONGPRESS_EMOJI = booleanPreferencesKey("enter_longpress_emoji")
         private val LANDSCAPE_FULLSCREEN = booleanPreferencesKey("landscape_fullscreen")
+        private val PORTRAIT_FULLSCREEN = booleanPreferencesKey("portrait_fullscreen")
         private val SPACE_SWIPE_DOWN_HIDE = booleanPreferencesKey("space_swipe_down_hide")
         private val EDGE_SWIPE_BACK = booleanPreferencesKey("edge_swipe_back")
         private val PANEL_OVER_KEYS_EXTRA_HEIGHT_DP = intPreferencesKey("panel_over_keys_extra_height_dp")
@@ -15364,6 +15372,7 @@ class SettingsRepository(private val context: Context) {
                 p[SPACE_SWIPE_DOWN_HIDE] ?: defaults.layoutBehavior.spaceSwipeDownHide,
             edgeSwipeBack = p[EDGE_SWIPE_BACK] ?: defaults.layoutBehavior.edgeSwipeBack,
             landscapeFullscreen = p[LANDSCAPE_FULLSCREEN] ?: defaults.layoutBehavior.landscapeFullscreen,
+            portraitFullscreen = p[PORTRAIT_FULLSCREEN] ?: defaults.layoutBehavior.portraitFullscreen,
             hideSystemKeyboardBar =
                 p[HIDE_SYSTEM_KEYBOARD_BAR] ?: defaults.layoutBehavior.hideSystemKeyboardBar,
             extendEdgeKeys = p[EXTEND_EDGE_KEYS] ?: defaults.layoutBehavior.extendEdgeKeys,
@@ -23316,6 +23325,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setLandscapeFullscreen(value: Boolean) =
         editPrefs { it[LANDSCAPE_FULLSCREEN] = value }
+
+    suspend fun setPortraitFullscreen(value: Boolean) =
+        editPrefs { it[PORTRAIT_FULLSCREEN] = value }
 
     suspend fun setSpaceSwipeDownHide(value: Boolean) =
         editPrefs { it[SPACE_SWIPE_DOWN_HIDE] = value }
