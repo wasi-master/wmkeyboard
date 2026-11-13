@@ -4976,7 +4976,7 @@ private fun RowScope.StripOfferChips(
             // Stretched across the strip, there would be no far end to sit at.
             stretch = !otpShares && !state.settings.suggestionStrip.chipsAtEnd,
             modifier = if (otpShares || state.settings.suggestionStrip.chipsAtEnd) {
-                Modifier.widthIn(max = 180.dp).padding(horizontal = 4.dp)
+                Modifier.besideWords(suggestionsShowing).widthIn(max = 180.dp).padding(horizontal = 4.dp)
             } else {
                 Modifier.weight(1f).padding(horizontal = 4.dp)
             },
@@ -5004,7 +5004,7 @@ private fun RowScope.StripOfferChips(
             onDecline = { onStripOfferAction(StripOfferAction.DismissDeleteUndo) },
             stretch = !shares,
             modifier = if (shares) {
-                Modifier.widthIn(max = 200.dp).padding(horizontal = 4.dp)
+                Modifier.besideWords(suggestionsShowing).widthIn(max = 200.dp).padding(horizontal = 4.dp)
             } else {
                 Modifier.weight(1f).padding(horizontal = 4.dp)
             },
@@ -5032,6 +5032,7 @@ private fun RowScope.StripOfferChips(
             stretch = !offerShares && single,
             modifier = if (offerShares) {
                 Modifier
+                    .besideWords(suggestionsShowing)
                     .widthIn(max = if (single) 200.dp else 280.dp)
                     .padding(horizontal = 4.dp)
             } else {
@@ -5053,7 +5054,7 @@ private fun RowScope.StripOfferChips(
             onDecline = { onStripOfferAction(StripOfferAction.Decline) },
             stretch = !learnShares,
             modifier = if (learnShares) {
-                Modifier.widthIn(max = 210.dp).padding(horizontal = 4.dp)
+                Modifier.besideWords(suggestionsShowing).widthIn(max = 210.dp).padding(horizontal = 4.dp)
             } else {
                 Modifier.weight(1f).padding(horizontal = 4.dp)
             },
@@ -5080,7 +5081,7 @@ private fun RowScope.StripOfferChips(
             onExplain = { onStripOfferAction(StripOfferAction.Explain) },
             stretch = !sandboxShares,
             modifier = if (sandboxShares) {
-                Modifier.widthIn(max = 210.dp).padding(horizontal = 4.dp)
+                Modifier.besideWords(suggestionsShowing).widthIn(max = 210.dp).padding(horizontal = 4.dp)
             } else {
                 Modifier.weight(1f).padding(horizontal = 4.dp)
             },
@@ -5110,7 +5111,7 @@ private fun RowScope.StripOfferChips(
             onDecline = { onStripOfferAction(StripOfferAction.Decline) },
             stretch = !wordListShares,
             modifier = if (wordListShares) {
-                Modifier.widthIn(max = 260.dp).padding(horizontal = 4.dp)
+                Modifier.besideWords(suggestionsShowing).widthIn(max = 260.dp).padding(horizontal = 4.dp)
             } else {
                 Modifier.weight(1f).padding(horizontal = 4.dp)
             },
@@ -5144,7 +5145,7 @@ private fun RowScope.StripOfferChips(
             onDecline = { onStripOfferAction(StripOfferAction.Decline) },
             stretch = !packShares,
             modifier = if (packShares) {
-                Modifier.widthIn(max = 260.dp).padding(horizontal = 4.dp)
+                Modifier.besideWords(suggestionsShowing).widthIn(max = 260.dp).padding(horizontal = 4.dp)
             } else {
                 Modifier.weight(1f).padding(horizontal = 4.dp)
             },
@@ -5189,7 +5190,7 @@ private fun RowScope.StripOfferChips(
             onDecline = { onStripOfferAction(StripOfferAction.Decline) },
             stretch = !zawgyiShares,
             modifier = if (zawgyiShares) {
-                Modifier.widthIn(max = 260.dp).padding(horizontal = 4.dp)
+                Modifier.besideWords(suggestionsShowing).widthIn(max = 260.dp).padding(horizontal = 4.dp)
             } else {
                 Modifier.weight(1f).padding(horizontal = 4.dp)
             },
@@ -5523,7 +5524,7 @@ private fun RowScope.StripAnswerChips(
             )
         }
         if (clipChipShares) {
-            clipChip(Modifier.widthIn(max = 160.dp).padding(horizontal = 4.dp))
+            clipChip(Modifier.besideWords(suggestionsShowing).widthIn(max = 160.dp).padding(horizontal = 4.dp))
         } else {
             // Alone on the strip it still sizes to what it holds
             // (#519): a four-letter copy is a short pill, not a bar
@@ -5961,6 +5962,52 @@ internal fun stripShares(needs: List<Float>, total: Float): List<Float>? {
     return shares.toList()
 }
 
+/**
+ * At most [slots] word slots, fewer when [width] cannot give each of them
+ * [StripMinSlotWidth] (#1291). Chips beside the words had left three slots a
+ * sliver each, and every word in them came out as a letter and "…". One slot
+ * is always drawn.
+ */
+internal fun slotsWithRoom(slots: Int, width: Dp): Int {
+    if (slots <= 1) return slots
+    val fit = ((width + SuggestionDividerWidth) / (StripMinSlotWidth + SuggestionDividerWidth)).toInt()
+    return fit.coerceIn(1, slots)
+}
+
+/** The narrowest word slot worth drawing: a short word, whole (#1291). */
+internal val StripMinSlotWidth = 52.dp
+
+/** What a chip sharing the strip leaves the words beside it (#1291): about two slots. */
+private val StripWordsRoom = 110.dp
+
+/** The narrowest a chip sharing the strip is squeezed to: its icon and its ✕. */
+private val StripChipFloor = 72.dp
+
+/**
+ * A chip beside the words leaves them [room] (#1291). The strip's chips are
+ * measured before the weighted words, each against what the row still has, so
+ * two side by side (the paste chip and the backspace undo) could take all but
+ * a sliver of it. Never narrower than [floor], and only ever narrower than the
+ * chip's own limits, so a strip with room to spare looks as it did.
+ */
+private fun Modifier.leavesWordRoom(room: Dp = StripWordsRoom, floor: Dp = StripChipFloor): Modifier =
+    layout { measurable, constraints ->
+        val max = if (constraints.hasBoundedWidth) {
+            (constraints.maxWidth - room.roundToPx())
+                .coerceAtLeast(floor.roundToPx())
+                .coerceAtMost(constraints.maxWidth)
+        } else {
+            constraints.maxWidth
+        }
+        val placeable = measurable.measure(
+            constraints.copy(minWidth = minOf(constraints.minWidth, max), maxWidth = max),
+        )
+        layout(placeable.width, placeable.height) { placeable.place(0, 0) }
+    }
+
+/** [leavesWordRoom] while there are [words] beside the chip to leave room for. */
+private fun Modifier.besideWords(words: Boolean): Modifier = if (words) leavesWordRoom() else this
+
 private fun slotsThatFit(
     candidates: List<String>,
     slotCount: Int,
@@ -6224,7 +6271,7 @@ internal fun RowScope.LatinSuggestionChips(
             if (baseStyle.fontSize.isSpecified) baseStyle.fontSize else SuggestionFontSize
             ) * textScale
         // Short words make room for more of them (#970).
-        val slots = if (fitMore && !scrollable && !fixedSlots && candidates.size > slotCount) {
+        val wanted = if (fitMore && !scrollable && !fixedSlots && candidates.size > slotCount) {
             remember(candidates, slotCount, maxWidth, textPadding, baseSize, baseStyle, shiftState) {
                 slotsThatFit(candidates, slotCount, maxWidth, textPadding) { word ->
                     measurer.measure(
@@ -6238,6 +6285,10 @@ internal fun RowScope.LatinSuggestionChips(
         } else {
             slotCount
         }
+        // Chips beside the words can leave too little for every slot (#1291):
+        // fewer slots, each wide enough to read, rather than every word cut to
+        // a letter and "…".
+        val slots = if (scrollable) wanted else slotsWithRoom(wanted, maxWidth)
         // A scrolling strip runs on through every word it was given (#516);
         // a fixed one shows what fits its slots.
         val ranked = if (scrollable) candidates else candidates.take(slots)
@@ -6245,7 +6296,8 @@ internal fun RowScope.LatinSuggestionChips(
         // the runner-up on its left. The commit path still uses the engine's
         // order — this is display-only.
         val centerPrimary = centerPrimaryEnabled && ranked.size >= 2
-        val fixed = fixedSlots && !scrollable && ranked.isNotEmpty()
+        // Slots held in place only while there is room for all of them.
+        val fixed = fixedSlots && !scrollable && ranked.isNotEmpty() && slots == slotCount
         val arranged: List<String?> = when {
             fixed -> fixedSlotOrder(ranked, slotCount, if (centerPrimaryEnabled) primarySlot else 0)
             centerPrimary -> listOf(ranked[1], ranked[0]) + ranked.drop(2)
