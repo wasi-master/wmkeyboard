@@ -168,7 +168,7 @@ A snippet can insert a picture instead of text: a sticker you send a lot, a sign
 
 It fires the way any snippet does. Tap its card in the panel, where the card shows the picture under the name, or type its trigger. With [ask first](#ask-before-it-expands) on, the trigger puts a chip on the suggestion bar showing a thumbnail of the picture. The trigger you typed is taken out, and the picture goes to the app the way a picture from the [clipboard](/tools/clipboard/) does. Apps that take pictures from the keyboard, which covers most chat apps, get it straight away in a format they accept. Anywhere else the keyboard puts the picture on the clipboard and asks the field to paste it, which works in apps that take a pasted picture without saying so, and shows a short note when it doesn't.
 
-Pictures travel with the snippets section of a [config backup](#snippet-packs-and-backups), up to 12&nbsp;MB of them. A `.wmsnippets.json` export is text only, so a picture snippet arrives on the other phone without its picture, and inserts its text instead (often nothing). The same happens on this phone if the picture file goes missing.
+Pictures travel with the snippets section of a [config backup](#snippet-packs-and-backups) and with settings sync, and a `.wmsnippets.json` export carries them inside the file, up to 12&nbsp;MB of them each time. Past that, the remaining picture snippets arrive as their text, and one with no text is left out. If the picture file goes missing on this phone, the snippet inserts its text instead (often nothing).
 
 ## Template variables
 

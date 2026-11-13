@@ -1485,6 +1485,19 @@ class SnippetStore(private val storageFile: File?) {
         fun imageFile(filesDir: File, name: String?): File? =
             if (isImageName(name)) File(File(filesDir, IMAGES_DIR), name!!) else null
 
+        /**
+         * The picture files [snippets] use, read from [filesDir] by name, for an
+         * export to carry ([SnippetFile.encode]). Missing files are left out.
+         */
+        fun imageBytes(filesDir: File, snippets: List<Snippet>): Map<String, ByteArray> {
+            val out = LinkedHashMap<String, ByteArray>()
+            for (name in snippets.mapNotNull { it.image }.distinct()) {
+                val file = imageFile(filesDir, name)?.takeIf { it.isFile && it.length() <= MAX_IMAGE_BYTES } ?: continue
+                runCatching { file.readBytes() }.getOrNull()?.let { out[name] = it }
+            }
+            return out
+        }
+
         /** The MIME type a picture name's extension says, image/png when unsure. */
         fun imageMime(name: String): String = when (name.substringAfterLast('.').lowercase(Locale.ROOT)) {
             "jpg", "jpeg" -> "image/jpeg"

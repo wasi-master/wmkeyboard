@@ -56,7 +56,7 @@ class TabletExpansionCorpusTest {
 
     @Test
     fun `the corpus is the whole shipped set`() {
-        assertEquals("built-ins plus hand-authored assets", 39 + 1_145, handAuthored.size)
+        assertEquals("built-ins plus hand-authored assets", 39 + 1_147, handAuthored.size)
         assertTrue(
             "converted Keyman grids are missing from the corpus",
             corpus.size - handAuthored.size > 800,
@@ -143,6 +143,9 @@ class TabletExpansionCorpusTest {
                 "ckb_alt", "ckb_four_rows", "ckb_phonetic", "ckb_sorani",
                 // Samsung's alphabet-order Bangla grid has no shift key.
                 "bn_samsung",
+                // The honeycombs: their rows interlock half a cell apart, and
+                // keys added at the edges would knock them off their cells.
+                "en_hex_qwerty", "en_hex_abc",
             ) + keypads + oneRows,
             declined,
         )

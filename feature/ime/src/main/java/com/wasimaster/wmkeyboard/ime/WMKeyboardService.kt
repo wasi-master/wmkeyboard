@@ -1336,11 +1336,6 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var clipUndoSystemClip: android.content.ClipData? = null
     /**
-     * The text Undo is putting back on the system clipboard, so the copy
-     * listener does not record it as a new copy (see [restoreSystemClipOnUndo]).
-     */
-    private var restoringSystemClipText: String? = null
-    /**
      * The last copy Remove trackers from copied links changed (#762): the
      * copy as it came, and the clean text it became. Undo with the clean text
      * just pasted in front of the caret swaps the original back, in case the
@@ -4222,15 +4217,6 @@ open class WMKeyboardService : InputMethodService() {
         if (ClipboardWriteGate.consumeSelfWrite(ownWrite)) {
             ClipboardDiagnostics.onSelfWriteSkip()
             return@OnPrimaryClipChangedListener
-        }
-        restoringSystemClipText?.let { restoring ->
-            restoringSystemClipText = null
-            val back = runCatching {
-                (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-                    .primaryClip?.getItemAt(0)?.text?.toString()
-            }.getOrNull()
-            // Undo's own copy: the clip is already back in the history, where it was.
-            if (back == restoring) return@OnPrimaryClipChangedListener
         }
         val state = _uiState.value
         kdeClipboardChanged(state)
@@ -7501,18 +7487,26 @@ open class WMKeyboardService : InputMethodService() {
      *
      * And not when the user has turned it off (#883): a phone held sideways
      * then keeps the app in view above the keys.
+     *
+     * Upright, the platform never asks for it, but a user can (gap list item
+     * 50): [LayoutBehaviorSettings.portraitFullscreen] turns it on there too,
+     * under every exception above.
      */
-    override fun onEvaluateFullscreenMode(): Boolean =
+    override fun onEvaluateFullscreenMode(): Boolean {
+        val behavior = _uiState.value.settings.layoutBehavior
         if (floatingNow() || voiceBarShowing() ||
-            !_uiState.value.settings.layoutBehavior.landscapeFullscreen ||
             handwritingFullScreen(_uiState.value) ||
             (pinnedNow() && isNullField()) ||
             DeviceForm.of(resources.configuration.smallestScreenWidthDp).isTablet
         ) {
-            false
-        } else {
-            super.onEvaluateFullscreenMode()
+            return false
         }
+        return if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            behavior.landscapeFullscreen && super.onEvaluateFullscreenMode()
+        } else {
+            behavior.portraitFullscreen
+        }
+    }
 
     /**
      * The platform sizes the soft-input window here on every show. Its own
@@ -12883,7 +12877,10 @@ open class WMKeyboardService : InputMethodService() {
         // (#454), rather than landing as the bare key.
         val run = if (composesInCapture(state.composer)) liveCaptureComposition(state, before) else null
         if (text == " " && state.typesIntoTranslate() && translateCodesTyped(target, before, run)) return true
-        if (capturesComposingKey(state.composer, target, text, run)) {
+        // A page that types its key caps (the flick pad's ABC page, #1228)
+        // skips the composer here as in the app's field: the reading in
+        // progress settles below and the letter follows it as typed.
+        if (!typesKeyCaps(state) && capturesComposingKey(state.composer, target, text, run)) {
             rewriteCaptureComposition(state, target, before, run, run?.keys.orEmpty() + text)
             return true
         }
@@ -19785,6 +19782,12 @@ open class WMKeyboardService : InputMethodService() {
      * in the switcher instead, which is nearly always the same one.
      */
     private var secondaryBoardReturnId: String? = null
+        set(value) {
+            field = value
+            // Published for the spacebar's language swipe, which steps from it
+            // while the board is up, the way [cycleAnchor] does for 🌐.
+            _uiState.update { if (it.languageAnchorId == value) it else it.copy(languageAnchorId = value) }
+        }
 
     /**
      * Swaps the board pinned on the Secondary layout tool in, or, when it is
@@ -23801,6 +23804,19 @@ open class WMKeyboardService : InputMethodService() {
         state.layoutMode == LayoutMode.NAMED &&
             state.namedLayer?.let { state.layouts.named[it] }?.direct == true
 
+    /** [swapCaseBeforeCaret] for a keyboard-owned field. */
+    private fun swapCaseBeforeCaptureCaret(target: CaptureTarget, before: CaretText) {
+        if (before.hasSelection || before.at <= 0) return
+        val cp = before.text.codePointBefore(before.at)
+        val swapped = when {
+            Character.isUpperCase(cp) -> Character.toLowerCase(cp)
+            Character.isLowerCase(cp) -> Character.toUpperCase(cp)
+            else -> return
+        }
+        if (swapped == cp) return
+        captureWrite(target, before, before.deletedBackward(Character.charCount(cp)).typed(String(Character.toChars(swapped))))
+    }
+
     /**
      * Upper case for lower and lower for upper, on the one letter in front of
      * the caret. Anything that is not a cased letter, or a selection, is left
@@ -23833,6 +23849,11 @@ open class WMKeyboardService : InputMethodService() {
     private fun cycleCaptureKanaVariant(): Boolean {
         val state = _uiState.value
         val target = state.captureTarget() ?: return false
+        // The ABC page's a/A key (#1228), the same in a tool's field as in the app's.
+        if (typesKeyCaps(state)) {
+            swapCaseBeforeCaptureCaret(target, state.captureCaretText() ?: return true)
+            return true
+        }
         if (!composesInCapture(state.composer)) return true
         val before = state.captureCaretText() ?: return true
         val run = liveCaptureComposition(state, before) ?: return true
@@ -57540,7 +57561,7 @@ open class WMKeyboardService : InputMethodService() {
      * Private, the keyboard's own copy holds it and nothing reaches the
      * system clipboard. Otherwise it goes there with the echo marked as the
      * keyboard's own, so the copy listener does not file it again: text by
-     * [restoringSystemClipText], a picture by the keyboard's file provider,
+     * the write gate's self-write token, a picture by the keyboard's file provider,
      * which the listener already skips.
      */
     fun onClipboardPasteNext(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
@@ -57552,12 +57573,11 @@ open class WMKeyboardService : InputMethodService() {
     /** [onClipboardPasteNext] without the buzz and the toast; true when the paste keys now paste [item]. */
     private fun holdClipForPaste(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem): Boolean {
         if (item.sensitive) return false
-        val manager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         return when {
-            item.kind.isTextual -> KeyboardClipboard.holdForPaste(item.text) || runCatching {
-                restoringSystemClipText = item.text
-                manager.setPrimaryClip(android.content.ClipData.newPlainText(null, item.text))
-            }.isSuccess
+            // A self-write: the clip is already in the history, where it was,
+            // so the copy listener lets this one go by (#1215).
+            item.kind.isTextual -> KeyboardClipboard.holdForPaste(item.text) ||
+                ClipboardWriteGate.writeText(this, item.text, null, selfWrite = true)
             item.kind == ClipKind.IMAGE && !KeyboardClipboard.isPrivate &&
                 _uiState.value.settings.clipboard.stripMediaMetadata -> {
                 // The cleaned copy goes on the clipboard (#1179), made off the main thread.
@@ -57566,10 +57586,7 @@ open class WMKeyboardService : InputMethodService() {
                     val uri = runCatching {
                         FileProvider.getUriForFile(this, clipboardFileProviderAuthority, clean.file)
                     }.getOrNull()
-                    if (uri != null && runCatching {
-                            manager.setPrimaryClip(android.content.ClipData.newUri(contentResolver, "image", uri))
-                        }.isSuccess
-                    ) {
+                    if (uri != null && ClipboardWriteGate.writeUri(this, uri, "image")) {
                         heldImageClipId = item.id
                         toast(R.string.ime_clip_paste_next_toast)
                     }
@@ -57581,11 +57598,8 @@ open class WMKeyboardService : InputMethodService() {
             item.kind == ClipKind.IMAGE && !KeyboardClipboard.isPrivate -> {
                 val file = item.imagePath?.let(::File)?.takeIf { it.exists() }
                 val uri = file?.let { runCatching { FileProvider.getUriForFile(this, clipboardFileProviderAuthority, it) }.getOrNull() }
-                (
-                    uri != null && runCatching {
-                        manager.setPrimaryClip(android.content.ClipData.newUri(contentResolver, "image", uri))
-                    }.isSuccess
-                    ).also { if (it) heldImageClipId = item.id }
+                (uri != null && ClipboardWriteGate.writeUri(this, uri, "image"))
+                    .also { if (it) heldImageClipId = item.id }
             }
             else -> false
         }

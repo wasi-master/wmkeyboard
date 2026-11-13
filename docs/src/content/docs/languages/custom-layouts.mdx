@@ -169,6 +169,18 @@ Turn it off for a layout you've already laid out wide by hand, or one you want k
 
 Your phone grid is what the editor shows and what you're editing. The tablet keys are added on top of it at typing time, so there's no second grid to keep in step.
 
+### Honeycomb layouts
+
+Put `"grid": "hex"` on a layout, in the JSON editor or in its file, and the layers it writes itself are drawn as a honeycomb: every key a hexagon, every other row half a cell over, and the rows fitted into each other with no gaps. Widths are in cells, the same unit as any key width, and half cells are allowed. The two that ship under English, **Hex QWERTY** and **Hex ABC**, are the ones to copy from.
+
+Whether two rows fit together depends on where their keys meet. A row whose keys meet on whole cells (1, 2, 3 and so on from the left edge) interlocks with a row whose keys meet on half cells (1.5, 2.5 and so on), and the line between them becomes a zigzag. Two rows that meet on the same kind of edge keep a straight line between them, as on any layout. The keyboard reads this off each row's own keys, so a row of nine keys centred under a row of ten is already half a cell over. A key that ends half way through a cell takes that half of it, which is how Hex QWERTY squares off its sides: <KeyCap>Shift</KeyCap> and <KeyCap>Delete</KeyCap> each take the half cell at the edge of their row and one whole cell beside it, and so do <KeyCap>q</KeyCap> and <KeyCap>o</KeyCap> on the top row. That top row holds nine cells, so <KeyCap>p</KeyCap> sits at the end of the home row, straight below where it would have been.
+
+A touch goes to the cell whose centre is nearest. The point of a hexagon that reaches into the next row belongs to the key it's drawn on, and the board has no dead corners. Glide typing, Autopilot and the typo model read the same key centres. Where a letter's point meets <KeyCap>Shift</KeyCap>, <KeyCap>Delete</KeyCap> or another key that doesn't type a letter, the touch stays with the rectangle that key is laid out in, so a held Shift or a repeating Delete is never taken over half way.
+
+The keys are hexagons whatever [key shape](/themes/editor/#key-shapes) the theme sets, and the theme still colours, textures and outlines them. A [split keyboard](/typing/size-position/#splitting-the-keyboard-in-half) cuts each row near the middle on one of that row's own edges, so the two halves stay honeycombs, one for each thumb, with a stepped channel between them. The spacebar is cut in two, or kept whole across the gap with **Split the spacebar** off. Tablet keys are never added to a honeycomb, and a row span on one of its keys is ignored.
+
+One layer can differ from the rest: `"grid": "rect"` on a layer keeps that page in plain rows on a honeycomb layout, and `"grid": "hex"` on a layer makes that page alone a honeycomb. The symbols pages a layout borrows from the keyboard stay in rows. The grid editor opens a honeycomb and edits its keys, but its preview draws them as plain rows in the same places, and the grid kind itself is set in the JSON.
+
 ### Reaching the raw JSON
 
 "Edit as JSON" at the bottom of the grid editor opens the layout as text, for anything the grid editor has no control for: clipboard actions, or pasting in a grid you built elsewhere.

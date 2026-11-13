@@ -56,7 +56,7 @@ object SnippetPayload {
         val suggestedName: String,
         /**
          * Pictures the payload carried, by the [Snippet.image] name its
-         * snippets hold. Only an Espanso package has any; pass them to
+         * snippets hold: the app's own file or an Espanso package; pass them to
          * [SnippetStore.addAll] along with the snippets.
          */
         val images: Map<String, ByteArray> = emptyMap(),
@@ -134,6 +134,7 @@ object SnippetPayload {
                 notes = native.repairs,
                 source = Source.NATIVE,
                 suggestedName = fallbackName.substringBefore('.'),
+                images = native.images,
             )
         }
         GboardDictionary.read(text)?.let { return gboard(it) }
