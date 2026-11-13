@@ -221,8 +221,14 @@
     <string name="modes_key_sound_info">Key-press sound while this mode is active, whatever the global switch says.</string>
     <string name="modes_key_haptics_title">Key vibration</string>
     <string name="modes_key_haptics_info">Key-press vibration while this mode is active, whatever the global switch says.</string>
-    <string name="modes_enter_newline_title">Enter types a line break</string>
-    <string name="modes_enter_newline_info">On makes Enter a line break in every field this mode covers, even where the app labels it Done or Send. Hold the key for the app\'s own action.</string>
+    <string name="modes_enter_newline_title">Enter key</string>
+    <string name="modes_enter_newline_info">What Enter does in every field this mode covers, whatever the app labels it. Line break leaves the app\'s own action on the key\'s hold. Send, Search, Go, Next and Done make the key show and fire that action, for an app whose box never offers Send, say. Shift and Enter still types a line break.</string>
+    <string name="modes_enter_newline_label">Line break</string>
+    <string name="modes_enter_send_label">Send</string>
+    <string name="modes_enter_search_label">Search</string>
+    <string name="modes_enter_go_label">Go</string>
+    <string name="modes_enter_next_label">Next</string>
+    <string name="modes_enter_done_label">Done</string>
     <string name="modes_two_thumb_title">Two-thumb typing</string>
     <string name="modes_two_thumb_info">Off types each swipe as a word of its own, and a pause no longer ends a tapped word with a space you did not press. A word you are in the middle of is typed as it stands when the mode turns this off.</string>
     <string name="modes_layout_title">Layout</string>

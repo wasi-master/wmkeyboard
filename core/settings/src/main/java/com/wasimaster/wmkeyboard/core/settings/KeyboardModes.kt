@@ -356,6 +356,14 @@ data class KeyboardMode(
      * field's action stays on the key's hold.
      */
     val enterNewline: Boolean = false,
+    /**
+     * The action Enter fires while active, by [ModeEnterAction.id], whatever
+     * the field declares: Send in a chat app whose box never shows it, Search
+     * in a search box labelled Done (competitor gap list item 9, LeanType's
+     * per-app Enter). Null leaves it to the field; [enterNewline] wins when
+     * both are set. Shift+Enter still types a line break.
+     */
+    val enterAction: String? = null,
     /** The number row while active; null inherits (#1025). */
     val numberRow: Boolean? = null,
     /**
@@ -760,6 +768,20 @@ val DefaultKeyboardModes: List<KeyboardMode> = listOf(
  * so upgrades pick the new modes up — see
  * `SettingsRepository.seedNewDefaultModes`.
  */
+/** The editor actions a mode can make Enter fire ([KeyboardMode.enterAction]). */
+enum class ModeEnterAction(val id: String, val editorAction: Int) {
+    SEND("send", EditorInfo.IME_ACTION_SEND),
+    SEARCH("search", EditorInfo.IME_ACTION_SEARCH),
+    GO("go", EditorInfo.IME_ACTION_GO),
+    NEXT("next", EditorInfo.IME_ACTION_NEXT),
+    DONE("done", EditorInfo.IME_ACTION_DONE),
+    ;
+
+    companion object {
+        fun of(id: String?): ModeEnterAction? = entries.firstOrNull { it.id == id }
+    }
+}
+
 const val CurrentModeSeedVersion: Int = 4
 
 /**
@@ -1036,7 +1058,11 @@ fun KeyboardSettings.applyMode(mode: KeyboardMode?): KeyboardSettings {
         incognito = incognito || mode.incognito,
         sound = mode.keySound?.let { sound.copy(enabled = it) } ?: sound,
         haptics = mode.keyHaptics?.let { haptics.copy(enabled = it) } ?: haptics,
-        layoutBehavior = if (mode.enterNewline) layoutBehavior.copy(enterAlwaysNewline = true) else layoutBehavior,
+        layoutBehavior = when {
+            mode.enterNewline -> layoutBehavior.copy(enterAlwaysNewline = true)
+            else -> ModeEnterAction.of(mode.enterAction)
+                ?.let { layoutBehavior.copy(enterForcedAction = it.editorAction) } ?: layoutBehavior
+        },
         numberRow = mode.numberRow ?: numberRow,
         oneHandedMode = mode.oneHandedOverride ?: oneHandedMode,
         keyHeightDp = mode.keyHeightPercent?.let { keyHeightDp * it / 100 } ?: keyHeightDp,

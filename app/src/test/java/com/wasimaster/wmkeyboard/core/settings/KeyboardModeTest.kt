@@ -506,6 +506,19 @@ class KeyboardModeTest {
     }
 
     @Test
+    fun `a mode's enter action reaches the settings view, and a line break beats it`() {
+        val base = KeyboardSettings()
+        val send = base.applyMode(password.copy(enterAction = ModeEnterAction.SEND.id))
+        assertEquals(android.view.inputmethod.EditorInfo.IME_ACTION_SEND, send.layoutBehavior.enterForcedAction)
+        assertFalse(send.layoutBehavior.enterAlwaysNewline)
+        val both = base.applyMode(password.copy(enterNewline = true, enterAction = ModeEnterAction.SEND.id))
+        assertTrue(both.layoutBehavior.enterAlwaysNewline)
+        assertEquals(null, both.layoutBehavior.enterForcedAction)
+        // An id this build does not know leaves the field's own action.
+        assertEquals(null, base.applyMode(password.copy(enterAction = "teleport")).layoutBehavior.enterForcedAction)
+    }
+
+    @Test
     fun `autospace off silences all three automatic spaces`() {
         val base = KeyboardSettings(
             autoText = AutoTextSettings(capitalize = true, spaceAfterPunctuation = true),

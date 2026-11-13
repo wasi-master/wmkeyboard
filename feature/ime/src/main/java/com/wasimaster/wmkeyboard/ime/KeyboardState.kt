@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.ime
 
 import android.view.KeyEvent
+import android.view.inputmethod.EditorInfo
 import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtp
 import com.wasimaster.wmkeyboard.core.emoji.AnimatedEmoji
@@ -2464,6 +2465,17 @@ data class VocabDailyChip(val word: String, val slot: Int)
  */
 enum class EnterAction { DEFAULT, SEARCH, SEND, GO, NEXT, PREVIOUS, DONE, CUSTOM }
 
+/** The key face for a standard editor action; [EnterAction.DEFAULT] for any other id. */
+internal fun standardEnterFace(actionId: Int): EnterAction = when (actionId) {
+    EditorInfo.IME_ACTION_SEARCH -> EnterAction.SEARCH
+    EditorInfo.IME_ACTION_SEND -> EnterAction.SEND
+    EditorInfo.IME_ACTION_GO -> EnterAction.GO
+    EditorInfo.IME_ACTION_NEXT -> EnterAction.NEXT
+    EditorInfo.IME_ACTION_PREVIOUS -> EnterAction.PREVIOUS
+    EditorInfo.IME_ACTION_DONE -> EnterAction.DONE
+    else -> EnterAction.DEFAULT
+}
+
 /**
  * Typing-speed panel state. The prompt and the typed text live here rather
  * than in the panel so the service can run the clock and the per-second
@@ -4664,7 +4676,10 @@ data class KeyboardUiState(
         ) {
             EnterAction.DEFAULT
         } else {
-            enterAction
+            // A keyboard mode's Enter action (gap list item 9) outranks the
+            // field's, and the key draws what it will fire.
+            settings.layoutBehavior.enterForcedAction?.let(::standardEnterFace)
+                ?.takeIf { it != EnterAction.DEFAULT } ?: enterAction
         }
 
     /**

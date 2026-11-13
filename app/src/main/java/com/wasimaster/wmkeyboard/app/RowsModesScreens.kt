@@ -97,6 +97,7 @@ import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.layoutAfterFancy
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
+import com.wasimaster.wmkeyboard.core.settings.ModeEnterAction
 import com.wasimaster.wmkeyboard.core.settings.KeyboardModeCodec
 import com.wasimaster.wmkeyboard.core.settings.DefaultKeyboardModes
 import com.wasimaster.wmkeyboard.core.settings.ManualModeDuration
@@ -1935,16 +1936,36 @@ internal fun ModeEditor(
             ) { save(current().copy(keyHaptics = it)) }
         }
         item(level = SettingLevel.ADVANCED) {
+            // One choice over two fields: a line break ([KeyboardMode.enterNewline])
+            // or one of the actions ([KeyboardMode.enterAction], gap list item 9).
             ChoiceSetting(
                 title = R.string.modes_enter_newline_title,
                 info = stringResource(R.string.modes_enter_newline_info),
                 options = listOf(
-                    false to stringResource(R.string.modes_inherit_label),
-                    true to stringResource(CommonR.string.common_on),
+                    MODE_ENTER_INHERIT to stringResource(R.string.modes_inherit_label),
+                    MODE_ENTER_NEWLINE to stringResource(R.string.modes_enter_newline_label),
+                    ModeEnterAction.SEND.id to stringResource(R.string.modes_enter_send_label),
+                    ModeEnterAction.SEARCH.id to stringResource(R.string.modes_enter_search_label),
+                    ModeEnterAction.GO.id to stringResource(R.string.modes_enter_go_label),
+                    ModeEnterAction.NEXT.id to stringResource(R.string.modes_enter_next_label),
+                    ModeEnterAction.DONE.id to stringResource(R.string.modes_enter_done_label),
                 ),
-                selected = settings.watch { modeIn(it).enterNewline },
-                default = false,
-            ) { save(current().copy(enterNewline = it)) }
+                selected = settings.watch { mode ->
+                    val m = modeIn(mode)
+                    when {
+                        m.enterNewline -> MODE_ENTER_NEWLINE
+                        else -> ModeEnterAction.of(m.enterAction)?.id ?: MODE_ENTER_INHERIT
+                    }
+                },
+                default = MODE_ENTER_INHERIT,
+            ) { choice ->
+                save(
+                    current().copy(
+                        enterNewline = choice == MODE_ENTER_NEWLINE,
+                        enterAction = ModeEnterAction.of(choice)?.id,
+                    ),
+                )
+            }
         }
         item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(
@@ -2955,3 +2976,9 @@ private fun HintEditorDialog(onAdd: (String) -> Unit, onDismiss: () -> Unit) {
         },
     )
 }
+
+/** [KeyboardMode.enterNewline] and [KeyboardMode.enterAction] both unset. */
+private const val MODE_ENTER_INHERIT = "inherit"
+
+/** [KeyboardMode.enterNewline] on. */
+private const val MODE_ENTER_NEWLINE = "newline"

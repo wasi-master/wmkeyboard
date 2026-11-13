@@ -10186,6 +10186,12 @@ data class LayoutBehaviorSettings(
      */
     val enterAlwaysNewline: Boolean = false,
     /**
+     * The editor action (an `EditorInfo.IME_ACTION_*`) Enter fires and draws
+     * instead of the field's own. Never stored either: only a keyboard mode
+     * sets it ([KeyboardMode.enterAction], through [applyMode]).
+     */
+    val enterForcedAction: Int? = null,
+    /**
      * Whether the dedicated number row also shows while the symbols layer is up.
      * Only meaningful when [KeyboardSettings.numberRow] is on. On by default (the
      * long-standing behaviour); off keeps the digit row on the letters layer and

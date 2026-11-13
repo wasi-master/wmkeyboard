@@ -19289,7 +19289,10 @@ open class WMKeyboardService : InputMethodService() {
         // Same decoder that labels the key, so Enter always does what the
         // key is drawing — including an app's own actionId behind a custom
         // actionLabel. Null means "no action": type a real newline.
-        val fieldAction = appEnterAction ?: currentInputEditorInfo.editorActionId()
+        // A keyboard mode's Enter action (gap list item 9) is the user's own
+        // choice for this app, so it outranks the field and the app's command.
+        val fieldAction = state.settings.layoutBehavior.enterForcedAction
+            ?: appEnterAction ?: currentInputEditorInfo.editorActionId()
         val action = if (forceNewline) null else fieldAction
         // A line break on a list line carries the list on (#694); on an empty
         // item it ends the list, and that is all this Enter does.
@@ -61194,15 +61197,7 @@ open class WMKeyboardService : InputMethodService() {
         }
 
         /** The key face for a standard IME_ACTION_* id; DEFAULT for none or unknown. */
-        private fun standardEnterAction(actionId: Int): EnterAction = when (actionId) {
-            EditorInfo.IME_ACTION_SEARCH -> EnterAction.SEARCH
-            EditorInfo.IME_ACTION_SEND -> EnterAction.SEND
-            EditorInfo.IME_ACTION_GO -> EnterAction.GO
-            EditorInfo.IME_ACTION_NEXT -> EnterAction.NEXT
-            EditorInfo.IME_ACTION_PREVIOUS -> EnterAction.PREVIOUS
-            EditorInfo.IME_ACTION_DONE -> EnterAction.DONE
-            else -> EnterAction.DEFAULT
-        }
+        private fun standardEnterAction(actionId: Int): EnterAction = standardEnterFace(actionId)
 
         /**
          * The editor action to fire, or null when Enter should type a
