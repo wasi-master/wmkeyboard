@@ -26,6 +26,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -1085,8 +1087,8 @@ class ImportFileActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val uri = intent?.let(::sourceUri)
-        if (uri == null) {
+        val uris = intent?.let(::sourceUris).orEmpty()
+        if (uris.isEmpty()) {
             finish()
             return
         }
@@ -1100,11 +1102,22 @@ class ImportFileActivity : ComponentActivity() {
             val deviceForm = DeviceForm.of(LocalConfiguration.current.smallestScreenWidthDp)
             val settings = rememberLiveSettings(stored, deviceForm) ?: return@setContent
             AppTheme(settings) {
-                ImportFileDialog(repository, uri) { finish() }
+                // Several files shared at once (a batch of themes from a file
+                // manager, say) come one dialog after another, each read and
+                // confirmed as it would be alone.
+                var at by remember { mutableIntStateOf(0) }
+                key(at) {
+                    ImportFileDialog(repository, uris[at]) {
+                        if (at + 1 < uris.size) at++ else finish()
+                    }
+                }
             }
         }
     }
 }
+
+/** The most files one share brings in; the rest are left, as a pick of a whole folder would be a mistake. */
+private const val MAX_SHARED_FILES = 50
 
 /**
  * The file an intent points at.
@@ -1112,14 +1125,21 @@ class ImportFileActivity : ComponentActivity() {
  * An "open with" carries it as the data URI. A share sheet carries it as
  * `EXTRA_STREAM` instead, with no data URI at all, which is why the manifest's
  * `ACTION_SEND` filter would otherwise reach an activity that finishes on
- * arrival.
+ * arrival. `ACTION_SEND_MULTIPLE` carries a list of them, read up to
+ * [MAX_SHARED_FILES].
  */
-private fun sourceUri(intent: Intent): Uri? = intent.data
-    ?: if (intent.action == Intent.ACTION_SEND) {
-        IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)
-    } else {
-        null
+private fun sourceUris(intent: Intent): List<Uri> {
+    intent.data?.let { return listOf(it) }
+    return when (intent.action) {
+        Intent.ACTION_SEND ->
+            listOfNotNull(IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java))
+        Intent.ACTION_SEND_MULTIPLE ->
+            IntentCompat.getParcelableArrayListExtra(intent, Intent.EXTRA_STREAM, Uri::class.java).orEmpty()
+                .distinct()
+                .take(MAX_SHARED_FILES)
+        else -> emptyList()
     }
+}
 
 /**
  * The pending import, once the file has been read and named.
