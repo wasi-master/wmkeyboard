@@ -594,7 +594,7 @@ internal fun AiToolSettings(
             NavRow(
                 R.string.toolai_assistant_pick_title,
                 stringResource(R.string.toolai_assistant_pick_subtitle),
-            ) { openVoiceInputSettings(context) }
+            ) { openVoiceInputSettings(context, R.string.toolai_assistant_pick_hint) }
         }
     }
     SettingsGroup(stringResource(R.string.toolai_ai_actions_group_title)) {

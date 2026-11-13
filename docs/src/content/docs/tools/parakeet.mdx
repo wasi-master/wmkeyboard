@@ -50,7 +50,7 @@ The text arrives punctuated and capitalised by the model itself, and then goes t
 
 <SettingsPath path="Voice typing / Stop after a pause" />
 
-A phrase ends when you stop talking for as long as **Stop after a pause** says, heard by the **Phrase end detector** you picked (see [Hearing the end of a phrase](/tools/voice/#hearing-the-end-of-a-phrase)). Both are also in the **End of a phrase** group on Parakeet's own page, under its models. **Stop after a pause** is off by default; while it is off, a phrase only ends when you press the microphone or it reaches 50 seconds. Set it to a second or so and each phrase goes in at the pause, and with **Keep listening** on the next one starts by itself.
+A phrase ends when you stop talking for as long as **Stop after a pause** says, heard by the **Phrase end detector** you picked (see [Hearing the end of a phrase](/tools/voice/#hearing-the-end-of-a-phrase)). Both are also in the **End of a phrase** group on Parakeet's own page, under its models. **Stop after a pause** is off by default; while it is off, a phrase only ends when you press the microphone. A phrase that reaches 50 seconds, the longest the model reads at once, goes in and the next one starts on the same microphone, so a long dictation loses no words, whether **Keep listening** is on or off. Set it to a second or so and each phrase goes in at the pause, and with **Keep listening** on the next one starts by itself.
 
 Parakeet has no detector of its own, so **Auto** gives it Silero once ONNX Runtime and a Silero copy are on the phone, and loudness until then. Silero is the better choice in a noisy room, where loudness can keep a phrase open.
 

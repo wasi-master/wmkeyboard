@@ -497,6 +497,7 @@ import com.wasimaster.wmkeyboard.core.settings.LEARNED_CORRECTIONS_FILE
 import com.wasimaster.wmkeyboard.core.settings.PHONETIC_SCRIPT_CHOICES_FILE
 import com.wasimaster.wmkeyboard.core.settings.TAP_MODEL_FILE
 import com.wasimaster.wmkeyboard.core.perf.JankMonitor
+import com.wasimaster.wmkeyboard.core.text.AddressToken
 import com.wasimaster.wmkeyboard.core.text.EmojiGraphemes
 import com.wasimaster.wmkeyboard.core.text.Graphemes
 import com.wasimaster.wmkeyboard.core.text.SelectWordGrowth
@@ -800,6 +801,7 @@ import com.wasimaster.wmkeyboard.core.keyman.ProcessorResult
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.KeymanTarget
+import com.wasimaster.wmkeyboard.core.layout.SymbolsPage
 import com.wasimaster.wmkeyboard.core.layout.hasDigitRowOfItsOwn
 import com.wasimaster.wmkeyboard.core.layout.letterSet
 import com.wasimaster.wmkeyboard.core.layout.multitapKey
@@ -5547,6 +5549,7 @@ open class WMKeyboardService : InputMethodService() {
                             it.fieldKind,
                             form,
                             modeSettings.numberRow,
+                            modeSettings.layoutBehavior.symbolsPage,
                             modeSettings.customLayouts,
                         ),
                         activeModeId = mode?.id,
@@ -8816,6 +8819,7 @@ open class WMKeyboardService : InputMethodService() {
                     it.fieldKind,
                     deviceForm.value,
                     it.settings.numberRow,
+                    it.settings.layoutBehavior.symbolsPage,
                     it.settings.customLayouts,
                 ),
             )
@@ -9528,6 +9532,7 @@ open class WMKeyboardService : InputMethodService() {
                     fieldKind,
                     deviceForm.value,
                     modeSettings.numberRow,
+                    modeSettings.layoutBehavior.symbolsPage,
                     modeSettings.customLayouts,
                 ),
                 activeModeId = activeMode?.id,
@@ -11674,12 +11679,15 @@ open class WMKeyboardService : InputMethodService() {
         }
         // Any other key ends a multitap run; space decides for itself, because on
         // a Cheonjiin pad ending the run is what it is pressed for.
-        val cycles = key.multitap.isNotEmpty() && (key.action == KeyAction.Text || key.action is KeyAction.KeymanKey)
+        // Japanese "Flick only" (gap list item 17): the flick pad's tap cycles
+        // are off, so a second tap types the kana again.
+        val cycles = key.multitap.isNotEmpty() && (key.action == KeyAction.Text || key.action is KeyAction.KeymanKey) &&
+            !kanaCyclesOff()
         if (key.action != KeyAction.Space && !cycles) {
             multitap.end()
         }
         when (key.action) {
-            KeyAction.Text -> if (key.multitap.isNotEmpty()) onMultitapKey(key) else onTextKey(key)
+            KeyAction.Text -> if (cycles) onMultitapKey(key) else onTextKey(key)
             // A key of a converted Keyman layout, with no rule engine attached
             // yet. It types its own cap, which is what it would do anyway on a
             // device that has the layout but not the keyboard's rules — the
@@ -12084,6 +12092,12 @@ open class WMKeyboardService : InputMethodService() {
      * field changed under the run — the tap starts a new run instead of
      * deleting something the user did not type with this key.
      */
+    /** Whether "Flick only" is on for the Japanese layout in use: its kana keys type, not cycle. */
+    private fun kanaCyclesOff(): Boolean {
+        val state = _uiState.value
+        return state.settings.cjk.kanaFlickOnly && state.language.id == "ja"
+    }
+
     private fun onMultitapKey(key: Key) {
         val now = SystemClock.uptimeMillis()
         multitap.timeoutMs = _uiState.value.settings.layoutBehavior.multitapTimeoutMs.toLong()
@@ -17632,7 +17646,7 @@ open class WMKeyboardService : InputMethodService() {
             sendDownUpKeyEvents(KeyEvent.KEYCODE_FORWARD_DEL)
             return
         }
-        val after = ic.getTextAfterCursor(96, 0) ?: return
+        val after = ic.getTextAfterCursor(AddressToken.LOOKBACK, 0) ?: return
         val length = WordDelete.lengthAfter(after, deleteWordBreaks())
         if (length <= 0) return
         revision?.expectDelete(0, length)
@@ -18390,8 +18404,9 @@ open class WMKeyboardService : InputMethodService() {
             deleteSwipeText = (
                 if (forward) ic.getTextAfterCursor(DELETE_LINE_LOOKBACK, 0) else ic.getTextBeforeCursor(DELETE_LINE_LOOKBACK, 0)
                 ) ?: ""
+            requestDeleteSwipeWraps(ic, forward)
         }
-        val reach = DeleteLines.reach(deleteSwipeText, lines, forward)
+        val reach = DeleteLines.reach(deleteSwipeText, lines, forward, deleteSwipeWraps)
         val covered = reach.size
         if (covered == deleteSwipeUnits) return covered
         val length = reach.lastOrNull() ?: 0
@@ -18447,7 +18462,8 @@ open class WMKeyboardService : InputMethodService() {
             sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL)
             return
         }
-        val before = ic.getTextBeforeCursor(96, 0) ?: return
+        // Far enough back to see a whole address, which goes in one step.
+        val before = ic.getTextBeforeCursor(AddressToken.LOOKBACK, 0) ?: return
         // At the start of the field, the app's own backspace; see deleteFromField.
         if (before.isEmpty()) {
             sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL)
@@ -18648,6 +18664,71 @@ open class WMKeyboardService : InputMethodService() {
 
     /** How far into [deleteSwipeText] 1, 2, 3... units reach, in UTF-16 units. */
     private val deleteSwipeSteps = ArrayList<Int>()
+
+    /**
+     * Where the editor wrapped [deleteSwipeText] onto more lines, as offsets
+     * into it, so a delete-line swipe goes a drawn line at a time through a
+     * long paragraph (competitor gap list item 16). Empty until the editor
+     * answers, and on Android 13 and older, where lines are hard lines.
+     */
+    private var deleteSwipeWraps: List<Int> = emptyList()
+
+    /** Which swipe a text-bounds answer belongs to; a late answer for an old one is dropped. */
+    private var deleteSwipeWrapsAsk = 0
+
+    /**
+     * Asks the editor where it drew the lines on screen (Android 14's
+     * `requestTextBoundsInfo`) and, when it answers, reads the line starts
+     * that fall inside [deleteSwipeText] into [deleteSwipeWraps] and selects
+     * the preview again in drawn lines. The whole screen is the area asked
+     * about: the caret's line and its neighbours are what a swipe reaches, and
+     * lines scrolled out of view fall back to hard lines. An editor that does
+     * not answer, or answers with nothing, leaves hard lines as they were.
+     */
+    private fun requestDeleteSwipeWraps(ic: InputConnection, forward: Boolean) {
+        deleteSwipeWraps = emptyList()
+        val ask = ++deleteSwipeWrapsAsk
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return
+        val metrics = resources.displayMetrics
+        val screen = android.graphics.RectF(0f, 0f, metrics.widthPixels.toFloat(), metrics.heightPixels.toFloat())
+        val length = deleteSwipeText.length
+        val textStart = if (forward) deleteSwipeEnd else deleteSwipeBase - length
+        if (textStart < 0 || length == 0) return
+        runCatching {
+            ic.requestTextBoundsInfo(screen, mainExecutor) { result ->
+                if (ask != deleteSwipeWrapsAsk || !deleteSwipeActive || deleteSwipeForward != forward) {
+                    return@requestTextBoundsInfo
+                }
+                val info = result.textBoundsInfo
+                if (result.resultCode != android.view.inputmethod.TextBoundsInfoResult.CODE_SUCCESS || info == null) {
+                    return@requestTextBoundsInfo
+                }
+                val wraps = drawnLineStarts(info, textStart, length)
+                if (wraps.isEmpty()) return@requestTextBoundsInfo
+                deleteSwipeWraps = wraps
+                // The preview up now was measured in hard lines: the same
+                // number of drawn lines takes its place.
+                val shown = deleteSwipeUnits
+                if (shown > 0) {
+                    deleteSwipeUnits = -1
+                    onDeleteSwipeSelectLines(shown, forward)
+                }
+            }
+        }
+    }
+
+    /** The drawn-line starts [info] reports inside the [length] characters from [textStart], relative to it. */
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private fun drawnLineStarts(info: android.view.inputmethod.TextBoundsInfo, textStart: Int, length: Int): List<Int> {
+        val finder = info.lineSegmentFinder
+        val out = ArrayList<Int>()
+        var at = finder.nextStartBoundary(maxOf(textStart, info.startIndex - 1))
+        while (at != android.text.SegmentFinder.DONE && at < textStart + length && out.size < MAX_DRAWN_LINES) {
+            if (at > textStart) out += at - textStart
+            at = finder.nextStartBoundary(at)
+        }
+        return out
+    }
 
     /**
      * One step of a delete swipe that deletes as it goes (the preview turned
@@ -18964,6 +19045,8 @@ open class WMKeyboardService : InputMethodService() {
         deleteSwipeForward = false
         deleteSwipeText = ""
         deleteSwipeSteps.clear()
+        deleteSwipeWraps = emptyList()
+        deleteSwipeWrapsAsk++
     }
 
     private fun onSpace() {
@@ -19924,10 +20007,11 @@ open class WMKeyboardService : InputMethodService() {
         fieldKind: FieldKind,
         form: DeviceForm,
         numberRowShown: Boolean,
+        symbolsPage: SymbolsPage,
         customs: List<LayoutSpec>,
     ): LayoutSet {
         val landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        val key = LayoutSetKey(spec.id, fieldKind, form, numberRowShown, landscape)
+        val key = LayoutSetKey(spec.id, fieldKind, form, numberRowShown, symbolsPage, landscape)
         // The secondary grids ride along by reference, so an edit to one of
         // them — which re-decodes the custom list — misses the cache too.
         val secondaries = secondaryGrids(customs)
@@ -19939,7 +20023,7 @@ open class WMKeyboardService : InputMethodService() {
         val drawn = spec.landscapeLayoutId?.takeIf { landscape }
             ?.let { id -> resolveLayout(customs, id).takeIf { it.id == id } }
             ?: spec
-        val set = compileLayoutSet(drawn, fieldKind, form, numberRowShown, secondaries, television, landscape)
+        val set = compileLayoutSet(drawn, fieldKind, form, numberRowShown, secondaries, television, landscape, symbolsPage)
         layoutSetCache[key] = spec to set
         return set
     }
@@ -19957,6 +20041,8 @@ open class WMKeyboardService : InputMethodService() {
         val fieldKind: FieldKind,
         val form: DeviceForm,
         val numberRowShown: Boolean,
+        /** Which page a layout without its own symbols page borrows. */
+        val symbolsPage: SymbolsPage,
         val landscape: Boolean,
     )
 
@@ -20458,6 +20544,7 @@ open class WMKeyboardService : InputMethodService() {
                     it.fieldKind,
                     deviceForm.value,
                     it.settings.numberRow,
+                    it.settings.layoutBehavior.symbolsPage,
                     it.settings.customLayouts,
                 ),
                 layoutMode = LayoutMode.LETTERS,
@@ -21368,9 +21455,21 @@ open class WMKeyboardService : InputMethodService() {
         // look like a word glued to the buffer and the space would commit the
         // anchors in its place (issue #145).
         val fieldText = composedPreview(state, typed)
-        val gluedToWord = (fixApostrophes || autocorrect) &&
-            state.allowsTypingIntelligence && !state.composer.isTransliterating &&
-            ic.getTextBeforeCursor(fieldText.length + ELISION_LOOKBACK, 0)
+        // Read once for both tests below: far enough back for a whole address.
+        val behind = if (state.allowsTypingIntelligence && !state.composer.isTransliterating) {
+            ic.getTextBeforeCursor(maxOf(AddressToken.LOOKBACK, fieldText.length + ELISION_LOOKBACK), 0)
+        } else {
+            null
+        }
+        // The buffer ends a web or email address ("https://exampel",
+        // "example.com/pathh", "test@gmial"): a piece of an address is not a
+        // typo to correct, a word to learn or a revision to teach, so it goes
+        // in as typed, the same as a fragment glued onto a word. Not on an
+        // ambiguous board, whose buffer is anchor letters rather than the text.
+        val inAddress = behind != null && !state.layouts.ambiguousKeys && AddressToken.endsInAddress(behind)
+        val gluedToWord = inAddress || (fixApostrophes || autocorrect) && (
+            behind
+                ?.let { it.subSequence((it.length - fieldText.length - ELISION_LOOKBACK).coerceAtLeast(0), it.length) }
                 ?.takeIf { it.length > fieldText.length }
                 ?.let { before ->
                     val ahead = before.subSequence(0, before.length - fieldText.length)
@@ -21380,6 +21479,7 @@ open class WMKeyboardService : InputMethodService() {
                     isComposingWordChar(ahead[ahead.length - 1]) &&
                         Elisions.rulesFor(state.language.id)?.endsWithElidedPrefix(ahead) != true
                 } == true
+            )
         // Apostrophe restoration outranks autocorrect: "dont" is a known
         // contraction slip, not a typo for "font"/"done" to be guessed at.
         // Which route the language takes — English's table of contractions,
@@ -21681,8 +21781,9 @@ open class WMKeyboardService : InputMethodService() {
         pendingResolution = null
         // Refill the strip in the same frame the word commits. Blanking it
         // and waiting for the async refresh left it empty for a frame or
-        // two after every space, which read as a flicker.
-        val (nextWords, nextEmojis) = nextWordStrip()
+        // two after every space, which read as a flicker. Nothing follows a
+        // piece of an address but more of it.
+        val (nextWords, nextEmojis) = if (inAddress) emptyList<String>() to emptyList() else nextWordStrip()
         _uiState.update {
             it.copy(
                 composingPreview = "",
@@ -29219,6 +29320,20 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun refreshSuggestions() = trace(ImeTrace.REFRESH_SUGGESTIONS) { refreshStrip() }
 
+    /**
+     * Whether the caret sits in a web or email address ([AddressToken.caretIn]).
+     * The text after the caret is read only when the one before it could be
+     * part of one, so typing prose costs one short read.
+     */
+    private fun caretInAddress(state: KeyboardUiState): Boolean {
+        if (state.layouts.ambiguousKeys) return false
+        val ic = currentInputConnection ?: return false
+        val before = ic.getTextBeforeCursor(AddressToken.LOOKBACK, 0) ?: return false
+        if (before.isEmpty() || !AddressToken.isTokenChar(before[before.length - 1])) return false
+        val after = ic.getTextAfterCursor(ADDRESS_AFTER_LOOKAHEAD, 0) ?: ""
+        return AddressToken.caretIn(before, after)
+    }
+
     private fun refreshStrip() {
         // Whether a word is being typed, for the compact dictation bar, which
         // gives the strip back while one is (#910). Here because every
@@ -29295,6 +29410,25 @@ open class WMKeyboardService : InputMethodService() {
                         punctuationSuggestions = emptyList(),
                         inlineEmoji = true,
                     )
+                }
+            }
+            return
+        }
+
+        // The caret in a web or email address ("example.com/pa", "test@gm"):
+        // its pieces are not words, so the strip offers no completion,
+        // correction or next word for them, and nothing is resolved ahead for
+        // the commit, which leaves the piece as typed anyway. Email-field
+        // completion and the domain keys are drawn elsewhere and stay.
+        if (caretInAddress(state)) {
+            suggestionJob?.cancel()
+            resolutionJob?.cancel()
+            pendingResolution = null
+            _uiState.update {
+                if (it.suggestions.isEmpty() && it.emojiSuggestions.isEmpty() && it.octopus.isEmpty()) {
+                    it
+                } else {
+                    it.copy(suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap())
                 }
             }
             return
@@ -36960,8 +37094,14 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val sherpa = (onDevice as? OnDeviceVoice.Et)?.model?.engine?.onnx == true
-        val needsSpeechLibs = (onDevice is OnDeviceVoice.Whisper && onDevice.model.ggml) ||
-            onDevice == OnDeviceVoice.Whistle
+        val needsSpeechLibs = onDevice is OnDeviceVoice.Whisper && onDevice.model.ggml
+        // Whistle's library has a gate of its own on F-Droid's build, and is
+        // part of :feature:speech everywhere else ([WhistleEngine.gate]).
+        if (onDevice == OnDeviceVoice.Whistle && !WhistleEngine.gate.installed) {
+            if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) WhistleEngine.gate.requestInstall()
+            fail(VoiceStatus.ERROR, voiceModuleMissing(WhistleEngine.gate))
+            return
+        }
         if (needsSpeechLibs && !WhisperCpp.moduleReady) {
             // The same way where the libraries are fetched rather than
             // carried: whisper.cpp's and Whistle's are the :feature:speech part.
@@ -37612,11 +37752,12 @@ open class WMKeyboardService : InputMethodService() {
             else -> WhisperMel.CHUNK_SECONDS
         }
         // A clip that ends by itself leaves the microphone open for the next
-        // one (#957), unless the engine decodes the clip as it records. When
-        // the next clip is sure to follow, the window's last seconds end it
-        // at a pause, and nothing said after the window is lost, so there is
-        // nothing to count down to either.
-        val rolls = !live && voiceChains()
+        // one (#957), the live engines' too: words said while a clip is being
+        // transcribed are heard by the next. A clip that fills its window is
+        // never the end of the session, whatever "Keep listening" says, since
+        // the user is still talking ([onClipFull]); so the window's last
+        // seconds end it at a pause, between two words, and nothing is lost
+        // past it, which leaves nothing to count down to either.
         // An engine that decodes as it hears ends the clip by its own phrase
         // end detector (#976); the recorder's loudness stop would cut in
         // ahead of a model the user picked over it.
@@ -37626,13 +37767,13 @@ open class WMKeyboardService : InputMethodService() {
             mic = mic,
             maxSeconds = maxSeconds,
             silenceStopMs = silenceStopMs,
-            pauseCutSeconds = if (rolls) VOICE_PAUSE_CUT_SECONDS else 0,
+            pauseCutSeconds = VOICE_PAUSE_CUT_SECONDS,
             denoise = if (model != null) denoiseLevel else VoiceDenoise.OFF,
         )
         // The microphone the last clip left open, holding what was said while
         // that clip was transcribed. One that stopped meanwhile with nothing
         // worth transcribing is left for [startVoice] to shut.
-        val carried = carriedMic?.takeIf { !live && it.setup == setup }?.recorder
+        val carried = carriedMic?.takeIf { it.setup == setup }?.recorder
             ?.takeIf { it.isRecording || it.sampleCount >= VoiceClipGate.MIN_SAMPLES }
         if (carried != null) carriedMic = null
         // Reduce background noise in front of an on-device engine, never the
@@ -37658,13 +37799,10 @@ open class WMKeyboardService : InputMethodService() {
         val onLevel: (Float) -> Unit = level@{ level ->
             if (generation != voiceGeneration) return@level
             val quantized = (level * 8).toInt() / 8f
-            // The clip ends by itself when the window fills, and words said
-            // after that are lost, so its last seconds count down (#315).
-            val left = recorder.secondsLeft.takeIf { !rolls && it <= VOICE_COUNTDOWN_SECONDS } ?: 0
             val heard = recorder.heardSpeech
             _uiState.update {
-                if (it.voice.level == quantized && it.voice.secondsLeft == left && it.voice.clipHeard == heard) it
-                else it.copy(voice = it.voice.copy(level = quantized, secondsLeft = left, clipHeard = heard))
+                if (it.voice.level == quantized && it.voice.clipHeard == heard) it
+                else it.copy(voice = it.voice.copy(level = quantized, clipHeard = heard))
             }
         }
         // Buffer full (30 s, or longer for whisper.cpp), or a pause (#500),
@@ -37679,17 +37817,30 @@ open class WMKeyboardService : InputMethodService() {
                 if (generation == voiceGeneration && whisperRecorder === recorder) finishWhisper(userStopped = false)
             }
         }
+        // The window filled (50 s for Parakeet, 30 for a LiteRT Whisper
+        // graph, 120 for whisper.cpp) while the user was still talking: the
+        // session carries on into the next clip as a key on the rail would
+        // have it, and the microphone, carried over, misses nothing between
+        // the two. Only a pause, with "Keep listening" off, or a stop ends it.
+        val onClipFull: () -> Unit = {
+            serviceScope.launch(Dispatchers.Main) {
+                if (generation == voiceGeneration && whisperRecorder === recorder) {
+                    voiceResumeAfterClip = true
+                    finishWhisper(userStopped = false)
+                }
+            }
+        }
         val onLost: () -> Unit = { onWhisperCaptureLost(generation) }
-        recorder = carried?.also { it.resume(onLevel, onClipEnd, onLost, onClipEnd) } ?: WhisperRecorder(
+        recorder = carried?.also { it.resume(onLevel, onClipFull, onLost, onClipEnd) } ?: WhisperRecorder(
             onLevel = onLevel,
-            onMaxReached = onClipEnd,
+            onMaxReached = onClipFull,
             onLost = onLost,
             silenceStopMs = silenceStopMs,
             onSilence = onClipEnd,
             preferredDevice = VoiceMics.deviceFor(this, mic),
             maxSeconds = maxSeconds,
             denoise = denoise,
-            carryOver = !live,
+            carryOver = true,
             pauseCutSeconds = setup.pauseCutSeconds,
         )
         if (carried == null && !recorder.start()) {
@@ -53848,12 +53999,18 @@ open class WMKeyboardService : InputMethodService() {
         expectedSelEnd = end
     }
 
-    /** What ends a word for the delete keys' word steps (#662). */
+    /**
+     * What ends a word for the delete keys' word steps (#662). A web or email
+     * address is one word to them ([AddressToken]): a word-delete or one step
+     * of a delete-by-word swipe takes "example.com/path" whole instead of
+     * stopping at every dot and slash.
+     */
     private fun deleteWordBreaks(): WordBreaks = _uiState.value.settings.textEditing.let {
         WordBreaks(
             punctuation = it.deleteWordStopsAtPunctuation,
             capitals = it.deleteWordStopsAtCapitals,
             digits = it.deleteWordStopsAtDigits,
+            addresses = true,
         )
     }
 
@@ -60698,9 +60855,6 @@ open class WMKeyboardService : InputMethodService() {
          */
         private const val SANDBOX_SETTING = "typing_glide_sandbox_title"
 
-        /** How long before a clip's end the voice surfaces start counting down. */
-        private const val VOICE_COUNTDOWN_SECONDS = 5
-
         /**
          * The end of a clip in which a pause cuts it (#957) when the next one
          * follows on the same microphone, so the cut falls between words.
@@ -60971,6 +61125,9 @@ open class WMKeyboardService : InputMethodService() {
         private const val QWERTY_MIN_ROW = 6
 
         /** The most [clearWholeField] reads either side of the caret in one tap. */
+        /** Most drawn lines a delete-line swipe reads back from the editor: far past a screenful. */
+        private const val MAX_DRAWN_LINES = 400
+
         private const val CLEAR_FIELD_MAX_CHARS = 200_000
 
         /** How long a summoned keyboard keeps the floating button's panel through field reports (#1196). */
@@ -61211,6 +61368,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** Non-alphanumeric characters that are part of an email token. */
         private const val EMAIL_TOKEN_EXTRA = "._%+-@"
+
+        /** Characters [caretInAddress] reads past the caret for the rest of an address it sits in. */
+        private const val ADDRESS_AFTER_LOOKAHEAD = 128
 
         /**
          * Floor for the handwriting recognition pause in Bengali. Its

@@ -31,12 +31,12 @@ class BarRowListTest {
     fun `tools row is listed only when the tools have a row of their own`() {
         for (placement in listOf(ToolbarPlacement.ALWAYS_ROW, ToolbarPlacement.ON_DEMAND_ROW)) {
             assertEquals(
-                DefaultBarOrder,
+                DefaultBarOrder - BarRow.SECOND_TOOLBAR,
                 barRowsListed(DefaultBarOrder, settings(placement)),
             )
         }
         assertEquals(
-            DefaultBarOrder - BarRow.TOOLS,
+            DefaultBarOrder - BarRow.TOOLS - BarRow.SECOND_TOOLBAR,
             barRowsListed(DefaultBarOrder, settings(ToolbarPlacement.STRIP)),
         )
     }
@@ -74,6 +74,13 @@ class BarRowListTest {
         assertEquals(true, BarRow.RECENT in ownRow)
         val inline = KeyboardSettings(rows = RowSettings(recentWordPlacement = RecentWordPlacement.INLINE))
         assertEquals(ownRow - BarRow.RECENT, barRowsListed(DefaultBarOrder, inline))
+    }
+
+    @Test
+    fun `second toolbar is listed only while it is on`() {
+        val on = KeyboardSettings(toolbarBehavior = ToolbarBehavior(secondRow = true))
+        assertEquals(true, BarRow.SECOND_TOOLBAR in barRowsListed(DefaultBarOrder, on))
+        assertEquals(false, BarRow.SECOND_TOOLBAR in barRowsListed(DefaultBarOrder, KeyboardSettings()))
     }
 
     @Test

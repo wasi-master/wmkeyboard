@@ -143,6 +143,8 @@
     <string name="rows_bar_fancy_title">Fancy text styles</string>
     <string name="rows_bar_tools_title">Tools row</string>
     <string name="rows_bar_tools_button_subtitle">Behind the arrow button on the suggestion strip</string>
+    <!-- #1217: the row of tools picked apart from the toolbar's. -->
+    <string name="rows_bar_second_toolbar_title">Second toolbar</string>
     <string name="rows_bar_fancy_off_subtitle">Shown while Fancy text is on</string>
     <string name="rows_bar_emoji_off_subtitle">Off. Turn it on in Emoji settings</string>
     <string name="rows_bar_emoji_button_subtitle">Behind a toolbar button</string>

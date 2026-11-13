@@ -44,8 +44,27 @@ class DeleteSwipeCallbacks(
      * False when the field cannot be selected whole, and the swipe does nothing.
      */
     val onSelectAll: () -> Boolean = { false },
+    /**
+     * Select the [lines] lines a delete-line arm would take (#1248), going
+     * forward or back. Returns the lines covered, 0 when there is nothing to
+     * take, or -1 when no preview can be shown and the arm should delete as it
+     * always did. [onCommit] and [onCancel] end it as they end any preview.
+     */
+    val onSelectLines: (lines: Int, forward: Boolean) -> Int = { _, _ -> -1 },
     /** The finger lifted with a preview up: delete what it selected. */
     val onCommit: () -> Unit = {},
     /** The gesture ended with nothing selected: drop the preview, delete nothing. */
     val onCancel: () -> Unit = {},
 )
+
+/**
+ * Which way a delete-line key goes (#1162): true forward, false back, null
+ * for any other key. What tells the delete key's gesture that an arm it
+ * reached can show its lines first (#1248).
+ */
+internal fun com.wasimaster.wmkeyboard.core.layout.Key.deletesLinesForward(): Boolean? =
+    when ((action as? com.wasimaster.wmkeyboard.core.layout.KeyAction.Edit)?.op) {
+        com.wasimaster.wmkeyboard.core.settings.TextEditAction.DELETE_LINE -> false
+        com.wasimaster.wmkeyboard.core.settings.TextEditAction.DELETE_LINE_FORWARD -> true
+        else -> null
+    }

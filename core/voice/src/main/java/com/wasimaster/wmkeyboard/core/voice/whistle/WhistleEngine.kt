@@ -3,6 +3,8 @@ package com.wasimaster.wmkeyboard.core.voice.whistle
 import android.os.Build
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.GatedLibrary
+import com.wasimaster.wmkeyboard.core.modules.ModuleGate
+import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import java.io.File
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -12,18 +14,33 @@ import kotlinx.serialization.json.jsonPrimitive
  * Cactus Whistle, the third dictation engine (#548): one small model for seven
  * languages, run by Cactus's Needle engine through `native/whistle-jni`.
  *
- * The library ships in `src/whistle/jniLibs` for arm64 only, so F-Droid's
- * build (which deletes it) and other ABIs simply fail to load it and [available] is false; there
- * is no stub to keep in step. Play builds carry it in the on-demand
- * `:feature:speech` split with whisper.cpp and ExecuTorch, so [shipped] says
- * whether the build has it and [available] whether it is loaded. The engine is process-global and holds one
+ * The library ships in `src/whistle/jniLibs` for arm64 only, so other ABIs
+ * simply fail to load it and [available] is false; there is no stub to keep
+ * in step. Play builds carry it in the on-demand `:feature:speech` split with
+ * whisper.cpp and ExecuTorch, so [shipped] says whether the build has it and
+ * [available] whether it is loaded.
+ *
+ * F-Droid's build deletes it, since Cactus publishes Needle only as a binary
+ * and F-Droid builds everything from source. There it has a gate of its own,
+ * [FDROID_GATE], pinned from `fdroidPin` in native/gates.json: the user opts
+ * in to downloads and fetches it, or imports the file, the way the other
+ * feature libraries arrive, and offline Whisper alone never pulls it in. The engine is process-global and holds one
  * model, loaded on first use and kept: the C API has no unload.
  */
 object WhistleEngine {
 
     private val lock = Any()
 
-    private val library = GatedLibrary({ FeatureModules.speech }) {
+    /** The gate F-Droid's build delivers Whistle's library through. */
+    const val FDROID_GATE = "whistle"
+
+    /** The gate Whistle's library arrives through: its own on F-Droid, `:feature:speech` elsewhere. */
+    val gate: ModuleGate get() = NativeDelivery.gate(FDROID_GATE) ?: FeatureModules.speech
+
+    /** [gate]'s id in native/gates.json and pins.tsv. */
+    val gateId: String get() = if (NativeDelivery.gate(FDROID_GATE) != null) FDROID_GATE else "speech"
+
+    private val library = GatedLibrary({ gate }) {
         runCatching { FeatureModules.loadLibrary("wmwhistle") }.isSuccess
     }
 
@@ -36,7 +53,7 @@ object WhistleEngine {
      * the process's own ABI is the answer.
      */
     val shipped: Boolean
-        get() = library.shipped && (FeatureModules.speech.installed || Build.SUPPORTED_ABIS.firstOrNull() == "arm64-v8a")
+        get() = library.shipped && (gate.installed || Build.SUPPORTED_ABIS.firstOrNull() == "arm64-v8a")
 
     private var loadedModel: File? = null
 

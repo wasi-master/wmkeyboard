@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
+import com.wasimaster.wmkeyboard.core.layout.SymbolsPage
 import com.wasimaster.wmkeyboard.core.layout.forScreen
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
@@ -49,6 +50,8 @@ fun compileLayoutSet(
     secondaries: Map<String, KeyboardLayout>,
     television: Boolean,
     landscape: Boolean = false,
+    /** The page `?123` opens when [spec] has no symbols page of its own. */
+    symbolsPage: SymbolsPage = SymbolsPage.STANDARD,
 ): LayoutSet {
     val safe = spec.repair().spec
     val compiled = safe.compile(LayoutLayer.LETTERS).forScreen(landscape)
@@ -77,7 +80,7 @@ fun compileLayoutSet(
             gridWidth != null -> letters.expandForTablet(form, numberRowShown)
             else -> letters
         },
-        symbols = safe.compile(LayoutLayer.SYMBOLS).forScreen(landscape),
+        symbols = safe.compile(LayoutLayer.SYMBOLS, symbolsPage).forScreen(landscape),
         symbolsShifted = safe.compile(LayoutLayer.SYMBOLS_SHIFTED).forScreen(landscape),
         // Only when the layout actually defines one: compile() falls back
         // to the shipped grid for a missing layer, which would give every

@@ -54,6 +54,8 @@ internal class FeatureLibraryInfo(@StringRes val description: Int, val route: St
             "llamavulkan" to FeatureLibraryInfo(R.string.storage_lib_llama, AI),
             "llamanpu" to FeatureLibraryInfo(R.string.storage_lib_llama, AI),
             "whispervulkan" to FeatureLibraryInfo(R.string.storage_lib_speech, VOICE),
+            // F-Droid's build only: Whistle's library apart from :feature:speech.
+            "whistle" to FeatureLibraryInfo(R.string.storage_lib_whistle, VOICE),
             "docscan" to FeatureLibraryInfo(R.string.storage_lib_docscan, "tool/DOC_SCAN"),
             "zxing" to FeatureLibraryInfo(R.string.storage_lib_zxing, "tool/QR_SCAN"),
             "imagegen" to FeatureLibraryInfo(R.string.storage_lib_imagegen, "sticker_generator"),

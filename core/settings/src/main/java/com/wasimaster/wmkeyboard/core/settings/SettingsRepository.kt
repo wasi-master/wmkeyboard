@@ -83,12 +83,19 @@ import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.KeymanLayoutPack
 import com.wasimaster.wmkeyboard.core.layout.Key as LayoutKey
 import com.wasimaster.wmkeyboard.core.layout.KeyRowCodec
+import com.wasimaster.wmkeyboard.core.layout.SymbolsPage
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.DefaultFingerSwipes
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipe
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCodec
+import com.wasimaster.wmkeyboard.core.layout.DefaultPinchGestures
+import com.wasimaster.wmkeyboard.core.layout.PinchGesture
+import com.wasimaster.wmkeyboard.core.layout.PinchGestureCodec
 import com.wasimaster.wmkeyboard.core.layout.SpaceSwipeBindingCodec
+import com.wasimaster.wmkeyboard.core.layout.BottomRowPreset
+import com.wasimaster.wmkeyboard.core.layout.HoldActionsCodec
+import com.wasimaster.wmkeyboard.core.layout.HoldActionsKey
 import com.wasimaster.wmkeyboard.core.layout.SpaceSwipeSlot
 import com.wasimaster.wmkeyboard.core.layout.SymbolChordCodec
 import com.wasimaster.wmkeyboard.core.layout.FlickDirection
@@ -4196,6 +4203,8 @@ data class KeyboardSettings(
      * to the spacebar where a punctuation key belongs.
      */
     val swapCommaAndGlobe: Boolean = true,
+    /** The bottom row preset and the hold actions key (competitor gap list items 14, 15; see [BottomRowSettings]). */
+    val bottomRow: BottomRowSettings = BottomRowSettings(),
     /** History tab of the emoji panel: recently used, most used, or no tab at all. */
     val emojiTabMode: EmojiTabMode = EmojiTabMode.RECENTS,
     /** "Clear recents" button on the emoji panel's history tab. Off by default. */
@@ -6530,6 +6539,13 @@ data class CjkSettings(
      */
     val kanaLooseMarks: Boolean = true,
     /**
+     * Japanese: the flick pad's kana keys only flick, and a second tap types
+     * the same kana again instead of stepping あ → い → う (toggle input,
+     * keitai style; competitor gap list item 17, FUTO's "Flick only"). Off by
+     * default, so both work as on most Japanese phones.
+     */
+    val kanaFlickOnly: Boolean = false,
+    /**
      * The languages whose space bar types the ideographic space U+3000 (the
      * full-width 　) instead of an ASCII one, by language id (#341). Only a
      * press with nothing composing reaches it: a space mid-reading converts,
@@ -7180,6 +7196,36 @@ enum class TopRowHolds { AUTO, DIGITS, SYMBOLS, NONE }
  * apply to them.
  */
 enum class CursorWordSteps { APP, SPACES, PUNCTUATION }
+
+/**
+ * The bottom row drawn on every letters layout, and the key whose hold offers
+ * the user's own list of actions (competitor gap list items 15 and 14), grouped
+ * into their own object (see [CameraSettings] for why). DataStore keys stay
+ * flat.
+ */
+data class BottomRowSettings(
+    /**
+     * A whole bottom row for every letters layout in place of its own (ASK's
+     * common bottom row). [BottomRowPreset.AS_LAID_OUT] by default, which
+     * changes nothing. The 🌐 and comma settings act on the row it draws; a
+     * layer laid out by hand in the editor, a secondary layout, the expanded
+     * tablet grid and a layout whose bottom row is its own (12-key pads, kana
+     * and CJK boards) keep theirs.
+     */
+    val preset: BottomRowPreset = BottomRowPreset.AS_LAID_OUT,
+    /**
+     * The key whose long-press popup gains [holdActions]: enter, the comma or
+     * the 🌐 seat (FlorisBoard's Fn key, FUTO's enter hold menu).
+     */
+    val holdKey: HoldActionsKey = HoldActionsKey.ENTER,
+    /**
+     * Actions added, in this order, after whatever [holdKey]'s popup already
+     * offers, on every layout and layer that key is on. Empty by default, which
+     * leaves every popup as it was. Picked with the multi-finger swipes' own
+     * action picker, so it is anything a key can do.
+     */
+    val holdActions: List<KeyAlternate> = emptyList(),
+)
 
 /**
  * Text-editing tool and selection-editing settings, grouped into their own
@@ -9191,6 +9237,21 @@ data class GestureSettings(
      */
     val fingerSwipes: Map<FingerSwipe, KeyAlternate> = emptyMap(),
     /**
+     * Two fingers on the keys pinched together or stretched apart run an
+     * action instead of typing (gap list item 18, AnySoftKeyboard's pinch to
+     * merge and stretch to split). On by default: the pair has to land
+     * together and both fingers travel along the line between them before it
+     * is claimed, which neither two quick taps nor a multi-finger swipe does.
+     * Stands aside while [twoThumbGlide] is on, and on the floating keyboard.
+     */
+    val pinchGestures: Boolean = true,
+    /**
+     * The user's bindings for [pinchGestures], over [DefaultPinchGestures];
+     * read through [actionOf]. A slot bound to `KeyAction.None` is a default
+     * the user cleared.
+     */
+    val pinchBindings: Map<PinchGesture, KeyAlternate> = emptyMap(),
+    /**
      * Holding `?123` still and tapping a key runs the action bound to that key
      * instead of typing it (issue #754). On by default: a tap that lands while
      * `?123` is down has typed a letter off the wrong layer until now, and a
@@ -9832,6 +9893,13 @@ data class LayoutBehaviorSettings(
      * it by accident (#2778).
      */
     val symbolsTextEditKey: Boolean = false,
+    /**
+     * The page `?123` opens on a layout that has no symbols page of its own:
+     * the shipped one, or SwiftKey's arrangement with the digits as a phone
+     * keypad ([SymbolsPage.NUMBER_PAD]). A layout's own symbols page wins
+     * either way. Standard by default, the page everyone already knows.
+     */
+    val symbolsPage: SymbolsPage = SymbolsPage.STANDARD,
     /**
      * Key holds wait for Android's own "touch and hold delay" (Settings →
      * Accessibility) instead of the keyboard's own slider, so someone who
@@ -12204,6 +12272,8 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_TWO_THUMB_PAUSE_BAND = booleanPreferencesKey("gesture_two_thumb_pause_band")
         private val GESTURE_MULTI_FINGER = booleanPreferencesKey("gesture_multi_finger_swipes")
         private val GESTURE_FINGER_SWIPES = stringPreferencesKey("gesture_finger_swipes")
+        private val GESTURE_PINCH = booleanPreferencesKey("gesture_pinch")
+        private val GESTURE_PINCH_BINDINGS = stringPreferencesKey("gesture_pinch_bindings")
         private val GESTURE_SYMBOL_CHORDS = booleanPreferencesKey("gesture_symbol_chords")
         private val GESTURE_CHORDS = stringPreferencesKey("gesture_chords")
         private val GESTURE_KEY_SWIPES_ON = booleanPreferencesKey("gesture_key_swipes_on")
@@ -12283,6 +12353,7 @@ class SettingsRepository(private val context: Context) {
         private val SYMBOLS_LONGPRESS_NUMPAD = booleanPreferencesKey("symbols_longpress_numpad")
         private val SYMBOLS_NUMPAD_KEY = booleanPreferencesKey("symbols_numpad_key")
         private val SYMBOLS_TEXT_EDIT_KEY = booleanPreferencesKey("symbols_text_edit_key")
+        private val SYMBOLS_PAGE = stringPreferencesKey("symbols_page")
         private val LONG_PRESS_FOLLOWS_SYSTEM = booleanPreferencesKey("long_press_follows_system")
         private val MULTITAP_TIMEOUT = intPreferencesKey("multitap_timeout_ms")
         private val ENTER_LONGPRESS_EMOJI = booleanPreferencesKey("enter_longpress_emoji")
@@ -12549,6 +12620,7 @@ class SettingsRepository(private val context: Context) {
         private val HANJA_SUGGESTIONS = booleanPreferencesKey("hanja_suggestions")
         private val BRAILLE_TABLE = stringPreferencesKey("braille_table")
         private val KANA_LOOSE_MARKS = booleanPreferencesKey("kana_loose_marks")
+        private val KANA_FLICK_ONLY = booleanPreferencesKey("kana_flick_only")
         private val FULL_WIDTH_SPACE_LANGUAGES = stringSetPreferencesKey("full_width_space_languages")
         private val SPACE_STEPS_CANDIDATES_LANGUAGES =
             stringSetPreferencesKey("space_steps_candidates_languages")
@@ -12829,6 +12901,9 @@ class SettingsRepository(private val context: Context) {
         private val THEMES_PANEL_BUILTINS = stringSetPreferencesKey("themes_panel_builtins")
         private val COMMA_AS_EMOJI = booleanPreferencesKey("comma_as_emoji")
         private val SWAP_COMMA_GLOBE = booleanPreferencesKey("swap_comma_globe")
+        private val BOTTOM_ROW_PRESET = stringPreferencesKey("bottom_row_preset")
+        private val HOLD_ACTIONS_KEY = stringPreferencesKey("hold_actions_key")
+        private val HOLD_ACTIONS = stringPreferencesKey("hold_actions")
         private val EMOJI_TAB_MODE = stringPreferencesKey("emoji_tab_mode")
         private val EMOJI_CLEAR_RECENTS_BUTTON = booleanPreferencesKey("emoji_clear_recents_button")
         private val EMOJI_LONG_PRESS_NAME = booleanPreferencesKey("emoji_long_press_name")
@@ -13990,6 +14065,11 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.toolShape,
             commaAsEmoji = p[COMMA_AS_EMOJI] ?: defaults.commaAsEmoji,
             swapCommaAndGlobe = p[SWAP_COMMA_GLOBE] ?: defaults.swapCommaAndGlobe,
+            bottomRow = BottomRowSettings(
+                preset = p[BOTTOM_ROW_PRESET]?.let(BottomRowPreset::parse) ?: defaults.bottomRow.preset,
+                holdKey = p[HOLD_ACTIONS_KEY]?.let(HoldActionsKey::parse) ?: defaults.bottomRow.holdKey,
+                holdActions = p[HOLD_ACTIONS]?.let(HoldActionsCodec::decode) ?: defaults.bottomRow.holdActions,
+            ),
             emojiTabMode = p[EMOJI_TAB_MODE]
                 ?.let { runCatching { EmojiTabMode.valueOf(it) }.getOrNull() }
                 ?: defaults.emojiTabMode,
@@ -14472,6 +14552,9 @@ class SettingsRepository(private val context: Context) {
             multiFingerSwipes = p[GESTURE_MULTI_FINGER] ?: defaults.gesture.multiFingerSwipes,
             fingerSwipes = p[GESTURE_FINGER_SWIPES]?.let(FingerSwipeCodec::decode)
                 ?: defaults.gesture.fingerSwipes,
+            pinchGestures = p[GESTURE_PINCH] ?: defaults.gesture.pinchGestures,
+            pinchBindings = p[GESTURE_PINCH_BINDINGS]?.let(PinchGestureCodec::decode)
+                ?: defaults.gesture.pinchBindings,
             symbolChords = p[GESTURE_SYMBOL_CHORDS] ?: defaults.gesture.symbolChords,
             chords = p[GESTURE_CHORDS]?.let(SymbolChordCodec::decode) ?: defaults.gesture.chords,
             keySwipesOn = p[GESTURE_KEY_SWIPES_ON] ?: defaults.gesture.keySwipesOn,
@@ -14737,6 +14820,7 @@ class SettingsRepository(private val context: Context) {
             hanjaSuggestions = p[HANJA_SUGGESTIONS] ?: defaults.cjk.hanjaSuggestions,
             brailleTable = p[BRAILLE_TABLE] ?: defaults.cjk.brailleTable,
             kanaLooseMarks = p[KANA_LOOSE_MARKS] ?: defaults.cjk.kanaLooseMarks,
+            kanaFlickOnly = p[KANA_FLICK_ONLY] ?: defaults.cjk.kanaFlickOnly,
             fullWidthSpaceLanguages = p[FULL_WIDTH_SPACE_LANGUAGES] ?: defaults.cjk.fullWidthSpaceLanguages,
             spaceStepsCandidatesLanguages = p[SPACE_STEPS_CANDIDATES_LANGUAGES]
                 ?: defaults.cjk.spaceStepsCandidatesLanguages,
@@ -15218,6 +15302,9 @@ class SettingsRepository(private val context: Context) {
                 p[SYMBOLS_LONGPRESS_NUMPAD] ?: defaults.layoutBehavior.symbolsLongPressNumpad,
             symbolsNumpadKey = p[SYMBOLS_NUMPAD_KEY] ?: defaults.layoutBehavior.symbolsNumpadKey,
             symbolsTextEditKey = p[SYMBOLS_TEXT_EDIT_KEY] ?: defaults.layoutBehavior.symbolsTextEditKey,
+            symbolsPage = p[SYMBOLS_PAGE]
+                ?.let { runCatching { SymbolsPage.valueOf(it) }.getOrNull() }
+                ?: defaults.layoutBehavior.symbolsPage,
             longPressFollowsSystem =
                 p[LONG_PRESS_FOLLOWS_SYSTEM] ?: defaults.layoutBehavior.longPressFollowsSystem,
             multitapTimeoutMs = p[MULTITAP_TIMEOUT] ?: defaults.layoutBehavior.multitapTimeoutMs,
@@ -18361,6 +18448,20 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSwapCommaAndGlobe(value: Boolean) =
         editPrefs { it[SWAP_COMMA_GLOBE] = value }
+
+    /** The bottom row every letters layout draws (competitor gap list item 15). */
+    suspend fun setBottomRowPreset(value: BottomRowPreset) =
+        editPrefs { it[BOTTOM_ROW_PRESET] = value.name }
+
+    /** Which key's hold carries the hold actions (competitor gap list item 14). */
+    suspend fun setHoldActionsKey(value: HoldActionsKey) =
+        editPrefs { it[HOLD_ACTIONS_KEY] = value.name }
+
+    /** The hold actions, in order. An empty list removes the key, so the default reads again. */
+    suspend fun setHoldActions(value: List<KeyAlternate>) =
+        editPrefs {
+            if (value.isEmpty()) it.remove(HOLD_ACTIONS) else it[HOLD_ACTIONS] = HoldActionsCodec.encode(value)
+        }
 
     /**
      * Switches the active layout.
@@ -22745,6 +22846,21 @@ class SettingsRepository(private val context: Context) {
             else prefs[GESTURE_FINGER_SWIPES] = FingerSwipeCodec.encode(next)
         }
 
+    suspend fun setPinchGestures(value: Boolean) =
+        editPrefs { it[GESTURE_PINCH] = value }
+
+    /**
+     * Binds [gesture] to [binding] (gap list item 18). Null puts it back to
+     * its default; `KeyAction.None` clears it, default or not.
+     */
+    suspend fun setPinchGesture(gesture: PinchGesture, binding: KeyAlternate?) =
+        editPrefs { prefs ->
+            val current = PinchGestureCodec.decode(prefs[GESTURE_PINCH_BINDINGS])
+            val next = if (binding == null) current - gesture else current + (gesture to binding)
+            if (next.isEmpty()) prefs.remove(GESTURE_PINCH_BINDINGS)
+            else prefs[GESTURE_PINCH_BINDINGS] = PinchGestureCodec.encode(next)
+        }
+
     suspend fun setSymbolChords(value: Boolean) =
         editPrefs { it[GESTURE_SYMBOL_CHORDS] = value }
 
@@ -23099,6 +23215,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSymbolsTextEditKey(value: Boolean) =
         editPrefs { it[SYMBOLS_TEXT_EDIT_KEY] = value }
+
+    suspend fun setSymbolsPage(value: SymbolsPage) =
+        editPrefs { it[SYMBOLS_PAGE] = value.name }
 
     suspend fun setLongPressFollowsSystem(value: Boolean) =
         editPrefs { it[LONG_PRESS_FOLLOWS_SYSTEM] = value }
@@ -23917,6 +24036,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setKanaLooseMarks(value: Boolean) =
         editPrefs { it[KANA_LOOSE_MARKS] = value }
+
+    suspend fun setKanaFlickOnly(value: Boolean) =
+        editPrefs { it[KANA_FLICK_ONLY] = value }
 
     suspend fun setFullWidthSpace(languageId: String, value: Boolean) = editPrefs { p ->
         val current = p[FULL_WIDTH_SPACE_LANGUAGES] ?: emptySet()

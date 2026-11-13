@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -52,9 +53,14 @@ import kotlin.math.sqrt
  */
 @Composable
 fun BoardEffectLayer(effect: KbBoardEffect, modifier: Modifier = Modifier, still: Boolean = false) {
+    // Held to the board. A Canvas does not clip, and the keyboard's window
+    // reaches far above the board, so a colour
+    // pool centred near the top edge, whose radius is half the board's longer
+    // side, painted a red stain over the app above the keyboard.
+    val clipped = modifier.clipToBounds()
     // A press kind has no clock of its own: it draws the presses (PressEffects.kt).
     if (effect.kind.onPress) {
-        if (still) PressEffectSample(effect, modifier) else PressEffectOverlay(effect, modifier)
+        if (still) PressEffectSample(effect, clipped) else PressEffectOverlay(effect, clipped)
         return
     }
     var clock by remember { mutableFloatStateOf(STILL_CLOCK_S) }
@@ -81,7 +87,7 @@ fun BoardEffectLayer(effect: KbBoardEffect, modifier: Modifier = Modifier, still
     // A still frame has no touches to place, so it does not track where it
     // is: in a scrolling gallery that wrote state, and redrew the effect, on
     // every frame of every scroll.
-    Canvas(modifier = if (still) modifier else modifier.onGloballyPositioned { origin = it.positionInRoot() }) {
+    Canvas(modifier = if (still) clipped else clipped.onGloballyPositioned { origin = it.positionInRoot() }) {
         paintBoardEffect(effect, clock, energy, origin)
     }
 }
@@ -275,12 +281,18 @@ private class Painter(
      * started. Under glass keys they are what the glass has to show.
      */
     fun orbs() {
-        val n = (2 + (fx.density * 4).toInt()).coerceIn(2, 6)
+        // Placed by hand: one pool per spot, in the colour of the same index,
+        // swaying round its place rather than wandering from a random one.
+        val spots = fx.orbSpots
+        val n = if (spots.isNotEmpty()) spots.size else (2 + (fx.density * 4).toInt()).coerceIn(2, 6)
         val big = max(w, h)
         for (i in 0 until n) {
-            val r = big * (0.28f + 0.22f * rnd(i, 1)) * scale
-            val x = (rnd(i, 2) * 1.1f - 0.05f) * w + sin(t * 0.09f * (0.6f + rnd(i, 3)) + i * 2.1f) * w * 0.06f
-            val y = (rnd(i, 4) * 1.2f - 0.1f) * h + cos(t * 0.07f * (0.6f + rnd(i, 5)) + i * 1.3f) * h * 0.12f
+            val spot = spots.getOrNull(i)
+            val r = big * (spot?.radius ?: (0.28f + 0.22f * rnd(i, 1))) * scale
+            val baseX = spot?.x ?: (rnd(i, 2) * 1.1f - 0.05f)
+            val baseY = spot?.y ?: (rnd(i, 4) * 1.2f - 0.1f)
+            val x = baseX * w + sin(t * 0.09f * (0.6f + rnd(i, 3)) + i * 2.1f) * w * 0.06f
+            val y = baseY * h + cos(t * 0.07f * (0.6f + rnd(i, 5)) + i * 1.3f) * h * 0.12f
             val c = color(i)
             val center = Offset(x, y)
             d.drawCircle(
