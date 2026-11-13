@@ -1336,11 +1336,6 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var clipUndoSystemClip: android.content.ClipData? = null
     /**
-     * The text Undo is putting back on the system clipboard, so the copy
-     * listener does not record it as a new copy (see [restoreSystemClipOnUndo]).
-     */
-    private var restoringSystemClipText: String? = null
-    /**
      * The last copy Remove trackers from copied links changed (#762): the
      * copy as it came, and the clean text it became. Undo with the clean text
      * just pasted in front of the caret swaps the original back, in case the
@@ -4222,15 +4217,6 @@ open class WMKeyboardService : InputMethodService() {
         if (ClipboardWriteGate.consumeSelfWrite(ownWrite)) {
             ClipboardDiagnostics.onSelfWriteSkip()
             return@OnPrimaryClipChangedListener
-        }
-        restoringSystemClipText?.let { restoring ->
-            restoringSystemClipText = null
-            val back = runCatching {
-                (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-                    .primaryClip?.getItemAt(0)?.text?.toString()
-            }.getOrNull()
-            // Undo's own copy: the clip is already back in the history, where it was.
-            if (back == restoring) return@OnPrimaryClipChangedListener
         }
         val state = _uiState.value
         kdeClipboardChanged(state)
@@ -57523,7 +57509,7 @@ open class WMKeyboardService : InputMethodService() {
      * Private, the keyboard's own copy holds it and nothing reaches the
      * system clipboard. Otherwise it goes there with the echo marked as the
      * keyboard's own, so the copy listener does not file it again: text by
-     * [restoringSystemClipText], a picture by the keyboard's file provider,
+     * the write gate's self-write token, a picture by the keyboard's file provider,
      * which the listener already skips.
      */
     fun onClipboardPasteNext(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
@@ -57535,12 +57521,11 @@ open class WMKeyboardService : InputMethodService() {
     /** [onClipboardPasteNext] without the buzz and the toast; true when the paste keys now paste [item]. */
     private fun holdClipForPaste(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem): Boolean {
         if (item.sensitive) return false
-        val manager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         return when {
-            item.kind.isTextual -> KeyboardClipboard.holdForPaste(item.text) || runCatching {
-                restoringSystemClipText = item.text
-                manager.setPrimaryClip(android.content.ClipData.newPlainText(null, item.text))
-            }.isSuccess
+            // A self-write: the clip is already in the history, where it was,
+            // so the copy listener lets this one go by (#1215).
+            item.kind.isTextual -> KeyboardClipboard.holdForPaste(item.text) ||
+                ClipboardWriteGate.writeText(this, item.text, null, selfWrite = true)
             item.kind == ClipKind.IMAGE && !KeyboardClipboard.isPrivate &&
                 _uiState.value.settings.clipboard.stripMediaMetadata -> {
                 // The cleaned copy goes on the clipboard (#1179), made off the main thread.
@@ -57549,10 +57534,7 @@ open class WMKeyboardService : InputMethodService() {
                     val uri = runCatching {
                         FileProvider.getUriForFile(this, clipboardFileProviderAuthority, clean.file)
                     }.getOrNull()
-                    if (uri != null && runCatching {
-                            manager.setPrimaryClip(android.content.ClipData.newUri(contentResolver, "image", uri))
-                        }.isSuccess
-                    ) {
+                    if (uri != null && ClipboardWriteGate.writeUri(this, uri, "image")) {
                         heldImageClipId = item.id
                         toast(R.string.ime_clip_paste_next_toast)
                     }
@@ -57564,11 +57546,8 @@ open class WMKeyboardService : InputMethodService() {
             item.kind == ClipKind.IMAGE && !KeyboardClipboard.isPrivate -> {
                 val file = item.imagePath?.let(::File)?.takeIf { it.exists() }
                 val uri = file?.let { runCatching { FileProvider.getUriForFile(this, clipboardFileProviderAuthority, it) }.getOrNull() }
-                (
-                    uri != null && runCatching {
-                        manager.setPrimaryClip(android.content.ClipData.newUri(contentResolver, "image", uri))
-                    }.isSuccess
-                    ).also { if (it) heldImageClipId = item.id }
+                (uri != null && ClipboardWriteGate.writeUri(this, uri, "image"))
+                    .also { if (it) heldImageClipId = item.id }
             }
             else -> false
         }
