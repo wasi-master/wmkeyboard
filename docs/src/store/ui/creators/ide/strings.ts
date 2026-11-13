@@ -143,6 +143,10 @@ export const S = {
 	templateTodoDescription: 'A list with due dates and reminders, kept on this device with the storage and reminders permissions',
 	templateKitchenSinkName: 'Every widget',
 	templateKitchenSinkDescription: 'Each widget and each event in one panel, to copy from',
+	templateTextGeneratorName: 'Text generator',
+	templateTextGeneratorDescription: 'Placeholder words, sentences and paragraphs to insert. Written the API 5 way, with callbacks and plugin.state.',
+	templateWeatherName: 'Weather',
+	templateWeatherDescription: "Today's forecast from Open-Meteo: internet access to two listed websites, a setting, a timer and a header button.",
 	importTitle: 'Open a plugin file',
 	importSubtitle: 'Edit a .wmplugin file as a new draft. Nothing is installed.',
 	importNotAPlugin: 'This file is not a plugin',
@@ -227,6 +231,7 @@ export const S = {
 	copy: 'Copy',
 	paste: 'Paste',
 	insert: 'Insert',
+	more: 'More',
 	tabDefaultTitle: (n: number) => `Tab ${n}`,
 
 	// The plugin module's own words (core/plugins strings)

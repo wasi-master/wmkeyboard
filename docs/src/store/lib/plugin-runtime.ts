@@ -11,6 +11,7 @@
 import { signal, type Signal } from '@preact/signals';
 import { PySession } from './python';
 import { S } from '../ui/creators/ide/strings';
+import { makeBridge } from './plugin-host';
 
 export const MAIN_CHUNK = 'main.py';
 
@@ -46,7 +47,9 @@ export type PluginWidget =
 	| { kind: 'spacer'; height: number }
 	| { kind: 'divider' }
 	| { kind: 'progress' }
-	| { kind: 'tabs'; id: string; pages: { title: string; children: PluginWidget[] }[] };
+	| { kind: 'tabs'; id: string; pages: { title: string; children: PluginWidget[] }[] }
+	/** An API 5 widget, as the codec wrote it; [children] are its child widgets or list items, decoded. */
+	| { kind: 'v5'; type: string; data: Record<string, unknown>; children: PluginWidget[] };
 
 export type RepairCode = 'NOT_A_WIDGET' | 'TOO_DEEP' | 'TOO_MANY_WIDGETS' | 'NO_TYPE' | 'UNKNOWN_TYPE' | 'TABS_NO_PAGES' | 'TOO_MANY_TABS' | 'TEXT_BUDGET' | 'TEXT_SHORTENED';
 
@@ -59,6 +62,12 @@ export interface RenderedUi {
 export const EMPTY_UI: RenderedUi = { root: [], repairs: [], repairCodes: [] };
 
 type WireWidget = Record<string, unknown> & { type: string };
+
+/** API 5 trees keep every field: the codec already checked them, and the panel draws them as they are. */
+function widgetV5(w: WireWidget): PluginWidget {
+	const list = Array.isArray(w.children) ? w.children : Array.isArray(w.items) ? w.items : [];
+	return { kind: 'v5', type: w.type, data: w, children: (list as WireWidget[]).map(widgetV5) };
+}
 
 function widgetOf(w: WireWidget): PluginWidget | null {
 	const str = (k: string) => String(w[k] ?? '');
@@ -91,13 +100,14 @@ function repairText(code: RepairCode, arg: string | null): string {
 		case 'TOO_MANY_TABS': return S.repairTooManyTabs(Number(arg) || 8);
 		case 'TEXT_BUDGET': return S.repairTextBudget;
 		case 'TEXT_SHORTENED': return S.repairTextShortened;
+		default: return S.repairUnknownType(String(code).toLowerCase());
 	}
 }
 
 /** The finished tree the interpreter wrote, in the editor's terms. */
-export function uiOf(wire: { root: WireWidget[]; repairs: { code: RepairCode; arg: string | null }[] }): RenderedUi {
-	const root = wire.root.map(widgetOf).filter((x): x is PluginWidget => x !== null);
-	return { root, repairs: wire.repairs.map((r) => repairText(r.code, r.arg)), repairCodes: wire.repairs.map((r) => r.code) };
+export function uiOf(wire: { root: WireWidget[]; repairs: { code: RepairCode; arg: string | null }[] }, v5 = false): RenderedUi {
+	const root = v5 ? wire.root.map(widgetV5) : wire.root.map(widgetOf).filter((x): x is PluginWidget => x !== null);
+	return { root, repairs: wire.repairs.map((r) => repairText(r.code as RepairCode, r.arg)), repairCodes: wire.repairs.map((r) => r.code) };
 }
 
 export interface PluginTargets {
@@ -145,7 +155,19 @@ export type PluginEvent =
 	| { type: 'toggle'; id: string; value: boolean }
 	| { type: 'input_changed'; id: string; value: string }
 	| { type: 'tab_selected'; id: string; index: number }
-	| { type: 'date_changed'; id: string; value: number | null };
+	| { type: 'date_changed'; id: string; value: number | null }
+	/** API 5: what the panel's widgets, header and timers send (`wm._host` routes them). */
+	| { type: HostEventType; id?: string; value?: unknown; x?: number; y?: number; dx?: number; dy?: number; phase?: string; token?: string };
+
+export type HostEventType = 'change' | 'submit' | 'select' | 'tap' | 'drag' | 'press' | 'item_action' | 'command' | 'back' | 'result' | 'stream' | 'timer';
+
+/** What an API 5 plugin asked of the panel around its widgets. */
+export interface HostMeta {
+	title: string | null;
+	commands: { id: string; label: string; icon: string | null }[];
+	canBack: boolean;
+	timers: { id: string; seconds: number; repeat: boolean }[];
+}
 
 // ---------------------------------------------------------------------------
 // Dates (PluginDates.kt): what each button on a ui.date does, in local time
@@ -289,13 +311,21 @@ export interface PluginIdentity {
 	reminders?: boolean;
 	/** The manifest's apiVersion: 5 loads the wm package, anything lower the API 4 globals. */
 	apiVersion?: number;
+	/** API 5: every permission the manifest declares, and the hosts `http` may reach. */
+	permissions?: string[];
+	hosts?: string[];
+	/** API 5: the settings page's values, by key, as the script reads them. */
+	settings?: Record<string, unknown>;
 }
+
+const isV5 = (plugin: PluginIdentity) => (plugin.apiVersion ?? 0) >= 5;
 
 type AbortWire = 'steps' | 'deadline' | 'cancelled' | 'recursion' | 'container' | 'string';
 
 interface WireResult {
 	ok: boolean;
 	ui?: { root: WireWidget[]; repairs: { code: RepairCode; arg: string | null }[] };
+	host?: HostMeta;
 	error?: { kind: 'compile' | 'runtime' | 'abort' | 'no_render' | 'no_transform' | 'internal'; message: string; line: number | null; abort: AbortWire | null; exception: string | null };
 	log: string[];
 	inputs: [string, string][];
@@ -304,10 +334,17 @@ interface WireResult {
 }
 
 function configOf(plugin: PluginIdentity, storage: Record<string, string> | null): string {
-	const permissions = [...(plugin.storage ? ['storage'] : []), ...(plugin.reminders ? ['reminders'] : [])];
+	const permissions = isV5(plugin) && plugin.permissions
+		? plugin.permissions
+		: [...(plugin.storage ? ['storage'] : []), ...(plugin.reminders ? ['reminders'] : [])];
+	const dark = typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches;
 	return JSON.stringify({
 		id: plugin.id, version: plugin.version, permissions, mode: 'panel', storage: storage ?? {},
 		...(plugin.apiVersion ? { apiVersion: plugin.apiVersion } : {}),
+		...(isV5(plugin) ? {
+			settings: plugin.settings ?? {},
+			context: { locale: typeof navigator !== 'undefined' ? navigator.language : 'en', theme: dark ? 'dark' : 'light', surface: 'panel' },
+		} : {}),
 	});
 }
 
@@ -350,6 +387,8 @@ export interface PreviewState {
 	inputs: Record<string, string>;
 	consoleRevision: number;
 	runs: number;
+	/** API 5: the page title, header buttons and Back the plugin asked for; null for API 4. */
+	host: HostMeta | null;
 }
 
 export const MAX_CONSOLE = 500;
@@ -362,12 +401,15 @@ interface Session {
 	py: PySession;
 	storage: PreviewStorage | null;
 	loaded: boolean;
+	v5: boolean;
+	/** Running `@plugin.every` and `plugin.after` timers, by name. */
+	timers: Map<string, ReturnType<typeof setTimeout>>;
 }
 
 const PHASES: Record<string, Phase> = { load: 'LOAD', event: 'EVENT', render: 'RENDER' };
 
 export class PluginPreviewSession {
-	readonly state: Signal<PreviewState> = signal({ status: 'IDLE', draftId: null, ui: EMPTY_UI, busy: false, failure: null, usage: {}, targets: EMPTY_TARGETS, inputs: {}, consoleRevision: 0, runs: 0 });
+	readonly state: Signal<PreviewState> = signal({ status: 'IDLE', draftId: null, ui: EMPTY_UI, busy: false, failure: null, usage: {}, targets: EMPTY_TARGETS, inputs: {}, consoleRevision: 0, runs: 0, host: null });
 	private entries: ConsoleEntry[] = [];
 	private events: PluginEvent[] = [];
 	private runStartedAt = 0;
@@ -390,7 +432,7 @@ export class PluginPreviewSession {
 		const storage = plugin.storage ? this.storageOf(draftId) : null;
 		this.runStartedAt = performance.now();
 		this.lastRepairs = [];
-		this.update((s) => ({ status: 'RUNNING', draftId, failure: null, usage: {}, inputs: s.draftId === draftId ? s.inputs : {}, runs: s.runs + 1 }));
+		this.update((s) => ({ status: 'RUNNING', draftId, failure: null, usage: {}, inputs: s.draftId === draftId ? s.inputs : {}, runs: s.runs + 1, host: null }));
 		this.append({ at: 0, kind: 'STARTED', text: '' });
 		let py: PySession;
 		try {
@@ -400,8 +442,16 @@ export class PluginPreviewSession {
 			this.update({ status: 'FAILED' });
 			return;
 		}
-		const session: Session = { draftId, py, storage, loaded: false };
+		const session: Session = { draftId, py, storage, loaded: false, v5: isV5(plugin), timers: new Map() };
 		this.current = session;
+		if (session.v5) {
+			py.setBridge(makeBridge({
+				hosts: plugin.hosts ?? [],
+				// An answer that comes later goes in as an event, after the call that asked has returned.
+				deliver: (event) => setTimeout(() => this.send(event as PluginEvent), 0),
+				log: (text) => this.append({ at: this.elapsed(), kind: 'PRINT', text }),
+			}));
+		}
 		if (storage) storage.live = { set: (k, v) => py.storageSet(k, v), remove: (k) => py.storageRemove(k) };
 		this.call(session, 'LOAD', () => py.load(source));
 	}
@@ -435,6 +485,8 @@ export class PluginPreviewSession {
 	}
 
 	private release(session: Session) {
+		for (const t of session.timers.values()) clearTimeout(t);
+		session.timers.clear();
 		if (session.storage) session.storage.live = null;
 		try {
 			session.py.free();
@@ -512,7 +564,11 @@ export class PluginPreviewSession {
 		}
 		const error = result.error;
 		if (phase === 'LOAD') session.loaded = !error || error.kind === 'no_render' || result.phases.some((p) => p.phase === 'render');
-		if (result.ui) this.onUi(uiOf(result.ui));
+		if (result.ui) this.onUi(uiOf(result.ui, session.v5));
+		if (session.v5 && result.host) {
+			this.update({ host: result.host });
+			this.syncTimers(session, result.host.timers);
+		}
 		if (!error) return;
 		const failedIn = PHASES[result.phases[result.phases.length - 1]?.phase ?? ''] ?? phase;
 		switch (error.kind) {
@@ -534,6 +590,28 @@ export class PluginPreviewSession {
 			default:
 				this.update({ failure: { kind: 'UNEXPECTED', text: error.message, line: null, phase: failedIn } });
 				this.stopSession(session, S.stoppedUnexpected);
+		}
+	}
+
+	/** Runs the plugin's timers the way PluginRuntime does: only while this run is the current one. */
+	private syncTimers(session: Session, timers: HostMeta['timers']) {
+		const wanted = new Set(timers.map((t) => t.id));
+		for (const [id, handle] of session.timers) {
+			if (!wanted.has(id)) {
+				clearTimeout(handle);
+				session.timers.delete(id);
+			}
+		}
+		for (const t of timers) {
+			if (session.timers.has(t.id)) continue;
+			const ms = Math.max(1000, t.seconds * 1000);
+			const fire = () => {
+				if (this.current !== session) return;
+				if (t.repeat) session.timers.set(t.id, setTimeout(fire, ms));
+				else session.timers.delete(t.id);
+				this.send({ type: 'timer', id: t.id });
+			};
+			session.timers.set(t.id, setTimeout(fire, ms));
 		}
 	}
 
@@ -579,8 +657,12 @@ export function renderOnce(plugin: PluginIdentity, script: string): RenderedUi |
 	let py: PySession | null = null;
 	try {
 		py = new PySession(configOf(plugin, null));
+		// A thumbnail reaches nothing: every host call is refused, as an
+		// ungranted permission is on the phone, so the plugin draws its own
+		// "not allowed" state instead of failing.
+		if (isV5(plugin)) py.setBridge(() => JSON.stringify({ error: { kind: 'PermissionError', message: 'not in a thumbnail' } }));
 		const result = JSON.parse(py.load(script)) as WireResult;
-		return result.ok && result.ui ? uiOf(result.ui) : null;
+		return result.ok && result.ui ? uiOf(result.ui, isV5(plugin)) : null;
 	} catch {
 		return null;
 	} finally {

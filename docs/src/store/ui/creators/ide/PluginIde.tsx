@@ -21,6 +21,7 @@ import { CodeAccessoryRow, PYTHON_ACCESSORY_KEYS, arrangeKeys } from './CodeAcce
 import { ID_PATTERN, MAX_NAME, MAX_SCRIPT_BYTES, PERMISSIONS, REMINDERS_PERMISSION, STORAGE_PERMISSION, blankManifest, editorPrefs, fileNameOf, keyPrefs, sanitise, sanitised, takenIds, uniquePluginId, workspace, type PluginDraft, type PluginManifest, type PluginSnapshot, type SnapshotReason } from './ide-store';
 import { TEMPLATES, type PluginTemplate } from './templates';
 import { S, relativeTime } from './strings';
+import { V5Widget } from './V5Widgets';
 import './ide.css';
 
 const AUTOSAVE_MS = 400;
@@ -120,7 +121,12 @@ function ProjectsScreen({ onOpen }: { onOpen: (draftId: string) => void }) {
 
 	const create = (template: PluginTemplate, name: string) => {
 		setCreating(null);
-		const manifest: PluginManifest = { ...blankManifest(), id: uniquePluginId(name, takenIds()), name: sanitise(name, 'NAME'), pluginVersion: '0.1.0', permissions: [...template.permissions] };
+		const manifest: PluginManifest = {
+			...blankManifest(), id: uniquePluginId(name, takenIds()), name: sanitise(name, 'NAME'), pluginVersion: '0.1.0', permissions: [...template.permissions],
+			...(template.apiVersion ? { apiVersion: template.apiVersion } : {}),
+			...(template.hosts ? { hosts: [...template.hosts] } : {}),
+			...(template.settings ? { settings: template.settings.map((s) => ({ ...s })) } : {}),
+		};
 		const draft = workspace.create(manifest, template.script, `template:${template.id.toLowerCase()}`);
 		if (draft) onOpen(draft.draftId);
 		else showToast(S.newError);
@@ -213,7 +219,8 @@ function TemplateCard({ template, onClick }: { template: PluginTemplate; onClick
 		const idle = (cb: () => void) => ('requestIdleCallback' in window ? (window as Window & { requestIdleCallback: (cb: () => void) => number }).requestIdleCallback(cb) : setTimeout(cb, 0));
 		idle(() => {
 			if (!live) return;
-			setDrawn(renderOnce({ id: `template.${template.id.toLowerCase()}`, name: template.name, version: '0.1.0', storage: template.permissions.includes(STORAGE_PERMISSION), reminders: template.permissions.includes(REMINDERS_PERMISSION) }, template.script));
+			// A thumbnail never reaches the network: no bridge, so the Weather card draws its empty state.
+			setDrawn(renderOnce({ id: `template.${template.id.toLowerCase()}`, name: template.name, version: '0.1.0', storage: template.permissions.includes(STORAGE_PERMISSION), reminders: template.permissions.includes(REMINDERS_PERMISSION), apiVersion: template.apiVersion, permissions: template.permissions }, template.script));
 		});
 		return () => {
 			live = false;
@@ -340,7 +347,10 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 		}, PERIODIC_VERSION_MS);
 		return () => clearInterval(t);
 	}, [draftId, save, controller]);
-	const identity = useCallback(() => ({ id: sanitise(manifest.id, 'ID') || draftId, name: manifest.name, version: manifest.pluginVersion, storage, reminders, apiVersion: manifest.apiVersion }), [manifest, draftId, storage, reminders]);
+	const identity = useCallback(() => ({
+		id: sanitise(manifest.id, 'ID') || draftId, name: manifest.name, version: manifest.pluginVersion, storage, reminders,
+		apiVersion: manifest.apiVersion, permissions: manifest.permissions, hosts: manifest.hosts ?? [], settings: settingDefaults(manifest),
+	}), [manifest, draftId, storage, reminders]);
 	const runPlugin = useCallback(() => {
 		const current = controller.value?.text ?? savedText.current;
 		lastRun.current = current;
@@ -744,6 +754,15 @@ function PreviewPane({ preview, state, autoRun, onAutoRun, history, onCopied }: 
 			{state.usage.RENDER && <BudgetMeter usage={state.usage.RENDER} history={history} />}
 			{state.failure && <div class="wm-error-text" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">{state.failure.text.split('\n')[0]}</div>}
 			{state.ui.root.length === 0 && <div class="wm-caption" style="padding-top:8px">{S.previewEmpty}</div>}
+			{state.host && (state.host.canBack || state.host.title || state.host.commands.length > 0) && (
+				<div class="wm-w-row wm-w5-header">
+					{state.host.canBack && <button type="button" class="wm-w-button" aria-label={S.back} onClick={() => preview.send({ type: 'back' })}>‹</button>}
+					<span class="wm-w-label-title" style="flex:1">{state.host.title ?? ''}</span>
+					{state.host.commands.slice(0, 3).map((c) => (
+						<button key={c.id} type="button" class="wm-w-button" onClick={() => preview.send({ type: 'command', id: c.id })}>{c.label}</button>
+					))}
+				</div>
+			)}
 			<div class="wm-plugin-panel" style="padding-top:6px">
 				<PluginPanel widgets={state.ui.root} inputs={state.inputs} onEvent={(e) => preview.send(e)} onInsert={copy} onCopy={copy} />
 			</div>
@@ -867,6 +886,7 @@ function eventLabel(item: Injectable): string {
 		case 'tab_selected': return S.eventTab(e.id, e.index + 1);
 		case 'input_changed': return e.id;
 		case 'date_changed': return e.value === null ? S.eventDateClear(e.id) : S.eventDate(e.id, new Date(e.value * 1000).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }));
+		default: return `${e.type}${e.id ? ` ${e.id}` : ''}`;
 	}
 }
 
@@ -1026,10 +1046,21 @@ export function PluginPanel({ widgets, inputs, onEvent, onInsert, onCopy, still 
 	return <>{widgets.map((w, i) => <Widget key={i} w={w} inputs={inputs} onEvent={onEvent} onInsert={onInsert} onCopy={onCopy} still={!!still} />)}</>;
 }
 
+/** The values a plugin's settings page starts with, typed the way the app hands them to the script. */
+function settingDefaults(m: PluginManifest): Record<string, unknown> {
+	const out: Record<string, unknown> = {};
+	for (const s of m.settings ?? []) {
+		const raw = s.default ?? '';
+		out[s.key] = s.type === 'switch' ? raw.trim() === 'true' : s.type === 'number' ? (Number.isFinite(Number(raw)) && raw.trim() !== '' ? Number(raw) : null) : raw;
+	}
+	return out;
+}
+
 function Widget({ w, inputs, onEvent, onInsert, onCopy, still }: { w: PluginWidget; inputs: Record<string, string>; onEvent: (e: PluginEvent) => void; onInsert: (text: string) => void; onCopy: (text: string) => void; still: boolean }) {
 	const [tab, setTab] = useState(0);
 	const kids = (list: PluginWidget[]) => <PluginPanel widgets={list} inputs={inputs} onEvent={onEvent} onInsert={onInsert} onCopy={onCopy} still={still} />;
 	switch (w.kind) {
+		case 'v5': return <V5Widget w={w} inputs={inputs} onEvent={onEvent} onInsert={onInsert} onCopy={onCopy} still={still} />;
 		case 'column': return <div class="wm-w-column">{kids(w.children)}</div>;
 		case 'row': return <div class="wm-w-row">{kids(w.children)}</div>;
 		case 'label': return <div class={`wm-w-label ${w.style === 'TITLE' ? 'wm-w-label-title' : w.style === 'CAPTION' ? 'wm-w-label-caption' : ''}`}>{w.text}</div>;

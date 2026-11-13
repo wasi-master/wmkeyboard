@@ -394,6 +394,23 @@ html[data-theme='dark'] {
 .wm-w-toggle { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
 .wm-w-input { display: flex; flex-direction: column; gap: 4px; }
 .wm-w-input label { font-size: 0.78rem; color: var(--st-muted); }
+.wm-w5-header { border-bottom: 1px solid var(--st-card-border); padding-bottom: 6px; }
+.wm-w5-grid { display: grid; gap: 6px; }
+.wm-w5-card { border: 1px solid var(--st-card-border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.wm-w5-clickable { cursor: pointer; }
+.wm-w5-section { all: unset; font-weight: 600; font-size: 0.85rem; color: var(--st-muted); cursor: pointer; }
+.wm-w5-section:disabled { cursor: default; }
+.wm-w5-icon { display: inline-block; padding: 1px 5px; border-radius: 6px; background: color-mix(in oklab, var(--st-text) 8%, transparent); color: var(--st-muted); line-height: 1.4; vertical-align: middle; }
+.wm-w5-qr { background: #fff; border-radius: 8px; padding: 4px; }
+.wm-w5-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px; text-align: center; }
+.wm-w5-keys { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; }
+.wm-w5-list { display: flex; flex-direction: column; gap: 2px; }
+.wm-w5-item { border-radius: 8px; padding: 6px 8px; }
+.wm-w5-item-main { display: flex; align-items: center; gap: 8px; }
+.wm-w5-stat { display: flex; flex-direction: column; gap: 2px; }
+.wm-w5-chart svg { width: 100%; display: block; }
+.wm-w5-chart-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--st-muted); }
+.wm-w5-canvas { width: 100%; touch-action: none; border-radius: 8px; background: color-mix(in oklab, var(--st-text) 4%, transparent); }
 .wm-w-divider { border: 0; border-top: 1px solid var(--st-card-border); margin: 2px 0; }
 .wm-w-progress { height: 4px; border-radius: 2px; background: color-mix(in oklab, var(--st-text) 12%, transparent); overflow: hidden; }
 .wm-w-progress > i { display: block; width: 40%; height: 100%; background: var(--st-accent); animation: wm-shimmer 1.2s infinite; }

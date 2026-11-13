@@ -275,6 +275,13 @@ user did in your panel. Password fields and incognito refuse both.
 `plugin_test.session(mock={...})` gives you `load()`, `event(e)`, `render()`
 and `transform(text, id)`, each returning the result as a dict.
 
-The web editor's preview runs API 5 plugins too, but nothing answers host
-calls there: `http`, `ai`, `field` and the other host modules raise an error,
-so test those against a mock or on the phone.
+The web editor's preview runs API 5 plugins with every widget, header
+buttons, Back and timers. It answers what a browser can:
+
+- `http` reaches the hosts in your manifest, if the site lets other web pages
+  read its answers (many APIs do; the phone has no such limit).
+- `field` writes to a pretend text field, and the console shows what it holds.
+- `ui.toast`, `notify`, `share`, `device.speak` and `secrets` work or are
+  shown in the console. `ui.dialog` uses the browser's own OK and Cancel.
+- `ai`, `location`, `files`, `sensors`, `scan` and reading the clipboard raise
+  `NotImplementedError` there. Install the plugin to try them.

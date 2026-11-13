@@ -16,6 +16,10 @@ export interface PluginManifest {
 	language?: string;
 	entry: string;
 	permissions: string[];
+	/** API 5: the websites `http` may reach. */
+	hosts?: string[];
+	/** API 5: the plugin's settings page. */
+	settings?: { key: string; type: string; default?: string }[];
 }
 
 export type SnapshotReason = 'manual' | 'periodic' | 'before_restore' | 'publish' | 'import';
