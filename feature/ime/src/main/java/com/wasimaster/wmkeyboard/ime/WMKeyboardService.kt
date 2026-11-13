@@ -496,6 +496,7 @@ import com.wasimaster.wmkeyboard.core.settings.LEARNED_CORRECTIONS_FILE
 import com.wasimaster.wmkeyboard.core.settings.PHONETIC_SCRIPT_CHOICES_FILE
 import com.wasimaster.wmkeyboard.core.settings.TAP_MODEL_FILE
 import com.wasimaster.wmkeyboard.core.perf.JankMonitor
+import com.wasimaster.wmkeyboard.core.text.AddressToken
 import com.wasimaster.wmkeyboard.core.text.EmojiGraphemes
 import com.wasimaster.wmkeyboard.core.text.Graphemes
 import com.wasimaster.wmkeyboard.core.text.SelectWordGrowth
@@ -17609,7 +17610,7 @@ open class WMKeyboardService : InputMethodService() {
             sendDownUpKeyEvents(KeyEvent.KEYCODE_FORWARD_DEL)
             return
         }
-        val after = ic.getTextAfterCursor(96, 0) ?: return
+        val after = ic.getTextAfterCursor(AddressToken.LOOKBACK, 0) ?: return
         val length = WordDelete.lengthAfter(after, deleteWordBreaks())
         if (length <= 0) return
         revision?.expectDelete(0, length)
@@ -18424,7 +18425,8 @@ open class WMKeyboardService : InputMethodService() {
             sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL)
             return
         }
-        val before = ic.getTextBeforeCursor(96, 0) ?: return
+        // Far enough back to see a whole address, which goes in one step.
+        val before = ic.getTextBeforeCursor(AddressToken.LOOKBACK, 0) ?: return
         // At the start of the field, the app's own backspace; see deleteFromField.
         if (before.isEmpty()) {
             sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL)
@@ -21344,9 +21346,21 @@ open class WMKeyboardService : InputMethodService() {
         // look like a word glued to the buffer and the space would commit the
         // anchors in its place (issue #145).
         val fieldText = composedPreview(state, typed)
-        val gluedToWord = (fixApostrophes || autocorrect) &&
-            state.allowsTypingIntelligence && !state.composer.isTransliterating &&
-            ic.getTextBeforeCursor(fieldText.length + ELISION_LOOKBACK, 0)
+        // Read once for both tests below: far enough back for a whole address.
+        val behind = if (state.allowsTypingIntelligence && !state.composer.isTransliterating) {
+            ic.getTextBeforeCursor(maxOf(AddressToken.LOOKBACK, fieldText.length + ELISION_LOOKBACK), 0)
+        } else {
+            null
+        }
+        // The buffer ends a web or email address ("https://exampel",
+        // "example.com/pathh", "test@gmial"): a piece of an address is not a
+        // typo to correct, a word to learn or a revision to teach, so it goes
+        // in as typed, the same as a fragment glued onto a word. Not on an
+        // ambiguous board, whose buffer is anchor letters rather than the text.
+        val inAddress = behind != null && !state.layouts.ambiguousKeys && AddressToken.endsInAddress(behind)
+        val gluedToWord = inAddress || (fixApostrophes || autocorrect) && (
+            behind
+                ?.let { it.subSequence((it.length - fieldText.length - ELISION_LOOKBACK).coerceAtLeast(0), it.length) }
                 ?.takeIf { it.length > fieldText.length }
                 ?.let { before ->
                     val ahead = before.subSequence(0, before.length - fieldText.length)
@@ -21356,6 +21370,7 @@ open class WMKeyboardService : InputMethodService() {
                     isComposingWordChar(ahead[ahead.length - 1]) &&
                         Elisions.rulesFor(state.language.id)?.endsWithElidedPrefix(ahead) != true
                 } == true
+            )
         // Apostrophe restoration outranks autocorrect: "dont" is a known
         // contraction slip, not a typo for "font"/"done" to be guessed at.
         // Which route the language takes — English's table of contractions,
@@ -21657,8 +21672,9 @@ open class WMKeyboardService : InputMethodService() {
         pendingResolution = null
         // Refill the strip in the same frame the word commits. Blanking it
         // and waiting for the async refresh left it empty for a frame or
-        // two after every space, which read as a flicker.
-        val (nextWords, nextEmojis) = nextWordStrip()
+        // two after every space, which read as a flicker. Nothing follows a
+        // piece of an address but more of it.
+        val (nextWords, nextEmojis) = if (inAddress) emptyList<String>() to emptyList() else nextWordStrip()
         _uiState.update {
             it.copy(
                 composingPreview = "",
@@ -29024,6 +29040,20 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun refreshSuggestions() = trace(ImeTrace.REFRESH_SUGGESTIONS) { refreshStrip() }
 
+    /**
+     * Whether the caret sits in a web or email address ([AddressToken.caretIn]).
+     * The text after the caret is read only when the one before it could be
+     * part of one, so typing prose costs one short read.
+     */
+    private fun caretInAddress(state: KeyboardUiState): Boolean {
+        if (state.layouts.ambiguousKeys) return false
+        val ic = currentInputConnection ?: return false
+        val before = ic.getTextBeforeCursor(AddressToken.LOOKBACK, 0) ?: return false
+        if (before.isEmpty() || !AddressToken.isTokenChar(before[before.length - 1])) return false
+        val after = ic.getTextAfterCursor(ADDRESS_AFTER_LOOKAHEAD, 0) ?: ""
+        return AddressToken.caretIn(before, after)
+    }
+
     private fun refreshStrip() {
         // Whether a word is being typed, for the compact dictation bar, which
         // gives the strip back while one is (#910). Here because every
@@ -29100,6 +29130,25 @@ open class WMKeyboardService : InputMethodService() {
                         punctuationSuggestions = emptyList(),
                         inlineEmoji = true,
                     )
+                }
+            }
+            return
+        }
+
+        // The caret in a web or email address ("example.com/pa", "test@gm"):
+        // its pieces are not words, so the strip offers no completion,
+        // correction or next word for them, and nothing is resolved ahead for
+        // the commit, which leaves the piece as typed anyway. Email-field
+        // completion and the domain keys are drawn elsewhere and stay.
+        if (caretInAddress(state)) {
+            suggestionJob?.cancel()
+            resolutionJob?.cancel()
+            pendingResolution = null
+            _uiState.update {
+                if (it.suggestions.isEmpty() && it.emojiSuggestions.isEmpty() && it.octopus.isEmpty()) {
+                    it
+                } else {
+                    it.copy(suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap())
                 }
             }
             return
@@ -53638,12 +53687,18 @@ open class WMKeyboardService : InputMethodService() {
         expectedSelEnd = end
     }
 
-    /** What ends a word for the delete keys' word steps (#662). */
+    /**
+     * What ends a word for the delete keys' word steps (#662). A web or email
+     * address is one word to them ([AddressToken]): a word-delete or one step
+     * of a delete-by-word swipe takes "example.com/path" whole instead of
+     * stopping at every dot and slash.
+     */
     private fun deleteWordBreaks(): WordBreaks = _uiState.value.settings.textEditing.let {
         WordBreaks(
             punctuation = it.deleteWordStopsAtPunctuation,
             capitals = it.deleteWordStopsAtCapitals,
             digits = it.deleteWordStopsAtDigits,
+            addresses = true,
         )
     }
 
@@ -60970,6 +61025,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** Non-alphanumeric characters that are part of an email token. */
         private const val EMAIL_TOKEN_EXTRA = "._%+-@"
+
+        /** Characters [caretInAddress] reads past the caret for the rest of an address it sits in. */
+        private const val ADDRESS_AFTER_LOOKAHEAD = 128
 
         /**
          * Floor for the handwriting recognition pause in Bengali. Its

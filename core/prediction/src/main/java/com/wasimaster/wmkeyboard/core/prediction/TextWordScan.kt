@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.prediction
 
+import com.wasimaster.wmkeyboard.core.text.AddressToken
 import com.wasimaster.wmkeyboard.core.transliteration.Zawgyi
 
 /**
@@ -17,7 +18,8 @@ import com.wasimaster.wmkeyboard.core.transliteration.Zawgyi
  * [WordContext.isLearnableWord] accepts. What is skipped, and breaks the run of
  * words a pair can span:
  *  - a whitespace-separated chunk that looks like a link, an email address or a
- *    handle (`://`, `@`, `www.`): its pieces are not words anyone typed;
+ *    handle (`://`, `@`, `www.`, or a host with a known ending such as
+ *    `example.com/path`): its pieces are not words anyone typed;
  *  - a token that is not learnable, such as a number ("2024");
  *  - a token in a script written without spaces that has no segmenter here
  *    (Chinese, Japanese, Tibetan, Javanese), where a run of letters between
@@ -236,10 +238,19 @@ object TextWordScan {
 
     private fun letterOrDigit(c: Char): Boolean = WordContext.isWordChar(c) || c.isDigit()
 
-    /** A link, an email address or a handle: the chunk as a whole is not prose. */
+    /**
+     * A link, an email address or a handle: the chunk as a whole is not prose.
+     * A bare host such as "example.com/path" counts too, by the rule the
+     * keyboard uses for the caret ([AddressToken]), with the brackets and the
+     * full stop around it set aside.
+     */
     private fun looksLikeAddress(text: CharSequence, start: Int, end: Int): Boolean {
         val chunk = text.subSequence(start, end)
-        return chunk.contains("://") || chunk.contains('@') || chunk.startsWith("www.", ignoreCase = true)
+        if (chunk.contains("://") || chunk.contains('@') || chunk.startsWith("www.", ignoreCase = true)) return true
+        val core = chunk
+            .trimStart { !AddressToken.isTokenChar(it) }
+            .trimEnd { !AddressToken.isTokenChar(it) || it == '.' || it == ':' || it == '?' }
+        return AddressToken.isAddress(core)
     }
 
     /** What may sit between two letters of one word, as [WordContext.isLearnableWord] allows. */

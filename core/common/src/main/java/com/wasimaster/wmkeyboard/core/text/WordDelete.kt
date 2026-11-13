@@ -16,8 +16,19 @@ package com.wasimaster.wmkeyboard.core.text
  *
  * [digits]: a run of digits and a run of letters are separate words, so
  * "word1" is "word" and "1", and "mp3player" is three.
+ *
+ * [addresses]: a web or email address ([AddressToken]) is one word even while
+ * [punctuation] splits everything else at its marks, so a word step takes
+ * "https://example.com/path" or "test@pm.me" whole rather than stopping at
+ * every dot and slash. Only matters with [punctuation] on; with it off the
+ * address was one word already.
  */
-data class WordBreaks(val punctuation: Boolean, val capitals: Boolean, val digits: Boolean = false) {
+data class WordBreaks(
+    val punctuation: Boolean,
+    val capitals: Boolean,
+    val digits: Boolean = false,
+    val addresses: Boolean = false,
+) {
     companion object {
         /** What the delete keys have always used: punctuation, not capitals. */
         val DELETE_DEFAULT = WordBreaks(punctuation = true, capitals = false)
@@ -40,13 +51,18 @@ object WordDelete {
      *
      * With the default [breaks], punctuation runs count as their own word, so
      * a swipe never stalls on "..." — but a run of letters stops at the first
-     * mark rather than eating the whole line.
+     * mark rather than eating the whole line. With [WordBreaks.addresses] an
+     * address that ends at the word's end goes in one step.
      */
     fun lengthBefore(before: CharSequence, breaks: WordBreaks = WordBreaks.DELETE_DEFAULT): Int {
         if (before.isEmpty()) return 0
         var i = before.length
         while (i > 0 && before[i - 1].isWhitespace()) i--
         val end = i
+        if (breaks.addresses && breaks.punctuation) {
+            val address = AddressToken.startBefore(before, end)
+            if (address >= 0) return before.length - address
+        }
         while (i > 0) {
             val left = before[i - 1]
             if (left.isWhitespace()) break
@@ -71,6 +87,10 @@ object WordDelete {
         var i = 0
         while (i < after.length && after[i].isWhitespace()) i++
         val start = i
+        if (breaks.addresses && breaks.punctuation) {
+            val address = AddressToken.endAfter(after, start)
+            if (address >= 0) return address
+        }
         while (i < after.length) {
             val right = after[i]
             if (right.isWhitespace()) break
