@@ -98,7 +98,13 @@ and goes without: the Tesseract and Whistle libraries (under
 0.6.3 under `core/intelligence/src/tesseract/` and `core/voice/src/whistle/`),
 the Cactus archive
 Whistle links (`native/whistle-jni/prebuilt`, which has no source to build
-from), and the LLM module's ABI placeholders. The other directories,
+from), and the LLM module's ABI placeholders. Whistle can still reach an F-Droid
+install: `fdroidPin` in `native/gates.json` pins the GitHub build's
+`libwmwhistle.so` under a `whistle` gate of its own, which the app downloads
+from the data repository's `natives` release only after the user turns on
+feature library downloads (the same opt-in as everything fetched rather than
+built), or takes as an import. Nothing prebuilt enters the source tree F-Droid
+builds. The other directories,
 `src/main/jniLibs` of `:core:intelligence`, `:core:voice` and
 `:core:language`, hold what this build itself ships since 0.6.0: Harper's grammar
 engine, whisper.cpp for Offline Whisper, the selective ExecuTorch build behind

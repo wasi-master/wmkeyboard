@@ -36750,8 +36750,14 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val sherpa = (onDevice as? OnDeviceVoice.Et)?.model?.engine?.onnx == true
-        val needsSpeechLibs = (onDevice is OnDeviceVoice.Whisper && onDevice.model.ggml) ||
-            onDevice == OnDeviceVoice.Whistle
+        val needsSpeechLibs = onDevice is OnDeviceVoice.Whisper && onDevice.model.ggml
+        // Whistle's library has a gate of its own on F-Droid's build, and is
+        // part of :feature:speech everywhere else ([WhistleEngine.gate]).
+        if (onDevice == OnDeviceVoice.Whistle && !WhistleEngine.gate.installed) {
+            if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) WhistleEngine.gate.requestInstall()
+            fail(VoiceStatus.ERROR, voiceModuleMissing(WhistleEngine.gate))
+            return
+        }
         if (needsSpeechLibs && !WhisperCpp.moduleReady) {
             // The same way where the libraries are fetched rather than
             // carried: whisper.cpp's and Whistle's are the :feature:speech part.
