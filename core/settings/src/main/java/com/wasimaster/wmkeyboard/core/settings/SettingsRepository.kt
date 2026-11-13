@@ -22291,6 +22291,25 @@ class SettingsRepository(private val context: Context) {
         if (row.isNullOrEmpty()) prefs.remove(CUSTOM_ARROW_ROW) else prefs[CUSTOM_ARROW_ROW] = KeyRowCodec.encode(row)
     }
 
+    /**
+     * Changes the keyboard-wide number row ([arrow] false) or arrow row as it
+     * is stored at the moment of writing, [fallback] standing in while none
+     * is. Read and written in one edit, so two quick changes in the row
+     * editor both land: one that read the row before the other was saved
+     * used to write over it.
+     */
+    suspend fun updateCustomRow(
+        arrow: Boolean,
+        fallback: List<LayoutKey>,
+        transform: (List<LayoutKey>) -> List<LayoutKey>?,
+    ) = editPrefs { prefs ->
+        val key = if (arrow) CUSTOM_ARROW_ROW else CUSTOM_NUMBER_ROW
+        val current = prefs[key]?.let { runCatching { KeyRowCodec.decode(it) }.getOrNull() }
+            ?.takeIf { it.isNotEmpty() } ?: fallback
+        val row = transform(current)
+        if (row.isNullOrEmpty()) prefs.remove(key) else prefs[key] = KeyRowCodec.encode(row)
+    }
+
     suspend fun setBottomRowHeightDp(value: Int) =
         editPrefs { it[BOTTOM_ROW_HEIGHT] = value.coerceIn(0, BottomRowHeightRange.last) }
 
