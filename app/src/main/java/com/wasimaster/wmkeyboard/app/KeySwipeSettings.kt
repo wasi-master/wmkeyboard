@@ -297,6 +297,9 @@ private fun KeySwipePresetDialog(onDismiss: () -> Unit, onPick: (KeySwipePreset)
                             R.string.typing_key_swipe_preset_symbols to R.string.typing_key_swipe_preset_symbols_desc
                         KeySwipePreset.EDITING ->
                             R.string.typing_key_swipe_preset_editing to R.string.typing_key_swipe_preset_editing_desc
+                        KeySwipePreset.PUNCTUATION ->
+                            R.string.typing_key_swipe_preset_punctuation to
+                                R.string.typing_key_swipe_preset_punctuation_desc
                     }
                     ListItem(
                         headlineContent = { Text(stringResource(title)) },

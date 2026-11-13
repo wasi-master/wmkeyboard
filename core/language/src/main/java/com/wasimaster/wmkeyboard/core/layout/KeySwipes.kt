@@ -58,6 +58,13 @@ enum class KeySwipePreset {
 
     /** Select all, copy, paste, cut, undo and redo down-left on `a c v x z y`. */
     EDITING,
+
+    /**
+     * Fast punctuation on the period key: a comma to the left, a question mark
+     * up and an exclamation mark to the right, with the tap still a period
+     * (FUTO's quick period key; competitor gap list item 7).
+     */
+    PUNCTUATION,
     ;
 
     val arms: Map<String, KeySwipeArms>
@@ -72,6 +79,13 @@ enum class KeySwipePreset {
                 "z" to KeyAction.Tool(ToolbarTool.UNDO),
                 "y" to KeyAction.Tool(ToolbarTool.REDO),
             ).associate { (token, action) -> token to mapOf(FlickDirection.DOWN_LEFT to KeyAlternate(action)) }
+            PUNCTUATION -> mapOf(
+                "." to mapOf(
+                    FlickDirection.LEFT to KeyAlternate(KeyAction.Text, label = ","),
+                    FlickDirection.UP to KeyAlternate(KeyAction.Text, label = "?"),
+                    FlickDirection.RIGHT to KeyAlternate(KeyAction.Text, label = "!"),
+                ),
+            )
         }
 
     private fun topRow(texts: List<String>, direction: FlickDirection): Map<String, KeySwipeArms> =

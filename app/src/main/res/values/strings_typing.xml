@@ -1474,13 +1474,15 @@
     <string name="typing_key_swipe_key_title">Key to swipe from</string>
     <string name="typing_key_swipe_pad_hint">Tap a direction to choose what a short swipe that way does.</string>
     <string name="typing_key_swipe_preset_title">Add a preset</string>
-    <string name="typing_key_swipe_preset_subtitle">Numbers, symbols or editing shortcuts in one go</string>
+    <string name="typing_key_swipe_preset_subtitle">Numbers, symbols, editing shortcuts or quick punctuation in one go</string>
     <string name="typing_key_swipe_preset_numbers">Numbers</string>
     <string name="typing_key_swipe_preset_numbers_desc">1 to 0 up and to the right on the top row</string>
     <string name="typing_key_swipe_preset_symbols">Symbols</string>
     <string name="typing_key_swipe_preset_symbols_desc" formatted="false">! @ # $ % ^ &amp; * ( ) up and to the left on the top row</string>
     <string name="typing_key_swipe_preset_editing">Editing shortcuts</string>
     <string name="typing_key_swipe_preset_editing_desc">Select all, copy, paste, cut, undo and redo down and to the left on A, C, V, X, Z and Y</string>
+    <string name="typing_key_swipe_preset_punctuation">Quick punctuation</string>
+    <string name="typing_key_swipe_preset_punctuation_desc">On the period key: a comma to the left, a question mark up, an exclamation mark to the right</string>
     <string name="typing_key_swipes_reset_title">Remove all key swipes</string>
     <string name="typing_key_swipes_reset_subtitle">Take every swipe you added off the keys</string>
 </resources>

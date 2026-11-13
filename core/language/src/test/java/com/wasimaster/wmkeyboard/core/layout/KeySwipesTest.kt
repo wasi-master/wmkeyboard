@@ -73,6 +73,15 @@ class KeySwipesTest {
     }
 
     @Test
+    fun `the punctuation preset puts a comma, a question mark and an exclamation mark on the period`() {
+        val arms = KeySwipePreset.PUNCTUATION.arms.getValue(".")
+        assertEquals(",", arms.getValue(FlickDirection.LEFT).label)
+        assertEquals("?", arms.getValue(FlickDirection.UP).label)
+        assertEquals("!", arms.getValue(FlickDirection.RIGHT).label)
+        assertEquals(KeyAction.Text, arms.getValue(FlickDirection.UP).action)
+    }
+
+    @Test
     fun `clearing a key's last arm drops the key`() {
         val map = emptyMap<String, KeySwipeArms>().withKeySwipe("q", FlickDirection.UP, one)
         assertEquals(mapOf("q" to mapOf(FlickDirection.UP to one)), map)
