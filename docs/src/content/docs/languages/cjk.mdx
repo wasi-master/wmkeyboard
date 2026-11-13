@@ -452,6 +452,7 @@ A list you import for Chinese, Cantonese or Japanese goes into the candidates, n
 - **CC-CEDICT** and **CC-Canto** (`關係 关系 [guan1 xi4] /relation/`). Chinese takes the Simplified form, the one the Pinyin pack lists, and **Traditional characters** turns it into the other; Cantonese takes the Traditional form and the Jyutping in braces.
 - **Rime** dictionaries (`.dict.yaml`), such as Luna Pinyin: `word`, the spaced reading, then a count or a percentage. The YAML header is skipped.
 - **Mozc and Google Japanese Input** user dictionaries: `reading`, `word`, part of speech. A katakana reading is read as hiragana.
+- **Microsoft IME** and **ATOK** user dictionaries, exported as text from their dictionary tools: the same three columns. Microsoft IME writes UTF-16 and ATOK often Shift-JIS, and both are read as they are, with no converting first. The `!Microsoft IME Dictionary Tool` header line is skipped.
 - **Gboard's personal dictionary**, when you import it from the [personal dictionary](/reference/importing-other-keyboards/#gboards-personal-dictionary): its Japanese words filed under a kana reading land in a list called `Gboard.txt`.
 - The packs' own format, `reading`, `word`, `frequency`, one tab between each.
 - **Sogou's `.scel` cell dictionaries** (细胞词库), as Sogou publishes them: each word with its pinyin and Sogou's count.

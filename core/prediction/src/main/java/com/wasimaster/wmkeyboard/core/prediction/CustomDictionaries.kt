@@ -528,15 +528,18 @@ object CustomDictionaries {
 
     private fun textCandidate(item: ImportFile): ImportCandidate? {
         combinedCandidate(item)?.let { return it }
-        if (!looksLikeText(item.bytes)) return null
-        val words = runCatching { DictionaryLoader.loadEntries(item.bytes.inputStream()) }.getOrDefault(emptyList())
+        // UTF-16 (Microsoft IME's export) and Shift-JIS (ATOK) as UTF-8, the
+        // way every list is stored and read back; see [ImportText].
+        val bytes = ImportText.toUtf8(item.bytes)
+        if (!looksLikeText(bytes)) return null
+        val words = runCatching { DictionaryLoader.loadEntries(bytes.inputStream()) }.getOrDefault(emptyList())
         if (words.isEmpty()) return null
         if (isSwiftKeyVocabulary(item.name)) {
             return ImportCandidate(
-                "$SWIFTKEY_WORDS.txt", words, emptyList(), emptyList(), null, SWIFTKEY_WORDS, verbatim = item.bytes,
+                "$SWIFTKEY_WORDS.txt", words, emptyList(), emptyList(), null, SWIFTKEY_WORDS, verbatim = bytes,
             )
         }
-        return ImportCandidate(item.name, words, emptyList(), emptyList(), null, null, verbatim = item.bytes)
+        return ImportCandidate(item.name, words, emptyList(), emptyList(), null, null, verbatim = bytes)
     }
 
     /**
