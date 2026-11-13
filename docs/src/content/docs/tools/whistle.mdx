@@ -34,9 +34,15 @@ Pick Whistle when you dictate in its languages and want a small download and a q
 
 Add **Whistle** to the **Recognition engine** list and move it to the top. Press its row to open its screen, where the **Whistle model** group has one row: **Download** fetches the model, a cross pauses it, **Resume** carries on from where it stopped, and the bin deletes it. On a metered connection the download asks first, as every model download does (see [Data saver](/privacy/data-saver/)).
 
-The option is only offered where the engine can run: a 64-bit ARM phone, in any build but F-Droid's. The engine Cactus publishes for older 32-bit ARM phones cannot be built into an Android app, so those phones do not see Whistle at all.
+The option is only offered where the engine can run: a 64-bit ARM phone. The engine Cactus publishes for older 32-bit ARM phones cannot be built into an Android app, so those phones do not see Whistle at all. F-Droid's build offers it too, with one extra step; see [On the F-Droid build](#on-the-f-droid-build).
 
 Dictate without the model downloaded and the voice panel says there is no model yet, with the same two ways forward Whisper offers: open settings to download it, or switch to the system recognizer.
+
+## On the F-Droid build
+
+F-Droid builds every app from source, and Cactus publishes Whistle's engine, Needle, only as a finished library with no source to build it from. So F-Droid's build leaves the engine out of the app, and fetches it the way it fetches the other [feature libraries](/privacy/network/): only after you turn on **Download feature libraries** under Privacy, which says plainly that those files skip F-Droid's checks. Once that is on, Whistle's screen offers the engine's own download above the model: 0.6 MB from the project's data repository, the same file the GitHub build uses, checked against the SHA-256 the app ships with. Turning on the switch does not fetch it by itself, and offline Whisper never pulls it in.
+
+A phone that should not download it can import it instead. The banner on Whistle's screen links the file, and **About > Feature libraries** imports it like any other (see [Feature libraries](/privacy/offline/#feature-libraries)). Only that exact file is accepted.
 
 ## Languages
 
@@ -68,4 +74,4 @@ A phone that cannot download it can import it: fetch [`whistle.cact`](https://hu
 
 Transcription makes no network calls. The one network request Whistle causes is the model download from Hugging Face, made when you press **Download**. See [Network policy](/privacy/network/).
 
-The Needle engine and the Whistle model are Cactus Compute's, under the Apache 2.0 licence. The engine ships in the app as Cactus's own published build, behind a small bridge of the keyboard's own; F-Droid's build carries neither.
+The Needle engine and the Whistle model are Cactus Compute's, under the Apache 2.0 licence. The engine ships in the app as Cactus's own published build, behind a small bridge of the keyboard's own; F-Droid's build carries neither in the app and fetches both, as one 0.6 MB file, only after you opt in.

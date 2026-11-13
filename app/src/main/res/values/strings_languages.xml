@@ -731,6 +731,9 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
          Jyutping spelling and stays as it is. -->
     <string name="languages_cjk_lazy_subtitle">Match merged sounds: n↔l, ng↔∅, gw→g before -o, -ng↔-n, -k↔-t…</string>
     <string name="languages_cjk_loose_marks_title">Match kana without marks</string>
+    <string name="languages_cjk_flick_only_title">Flick only</string>
+    <string name="languages_cjk_flick_only_subtitle">On the flick pad, tapping a key again types it again instead of stepping to the next kana</string>
+    <string name="languages_cjk_flick_only_info">The flick pad takes both flicks and repeated taps, the way most Japanese phones do: tap あ twice for い, three times for う. With this on, the keys only flick, and two taps of あ type あ twice.</string>
     <!-- Only "also finds" needs translation. The rest is Japanese text and
          stays as it is. -->
     <string name="languages_cjk_loose_marks_subtitle">かつこう also finds 学校 (がっこう)</string>

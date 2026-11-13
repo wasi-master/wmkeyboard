@@ -106,6 +106,10 @@ class AssetLayoutsTest {
         assertEquals("い", a.flick[FlickDirection.LEFT])
         assertEquals("う", a.flick[FlickDirection.UP])
         assertEquals("お", a.flick[FlickDirection.DOWN])
+        // Tapping it again steps through the row too, the keitai way.
+        assertEquals(listOf("い", "う", "え", "お"), a.multitap.take(4))
+        // A flick types its arm alone, with no cycle left to step.
+        assertTrue(a.flickKey(FlickDirection.LEFT)!!.multitap.isEmpty())
         // The 小゛゜ key cycles small/dakuten forms.
         assertTrue(
             "the flick pad has no kana-variant key",

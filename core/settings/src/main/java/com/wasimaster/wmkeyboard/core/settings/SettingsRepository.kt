@@ -6532,6 +6532,13 @@ data class CjkSettings(
      */
     val kanaLooseMarks: Boolean = true,
     /**
+     * Japanese: the flick pad's kana keys only flick, and a second tap types
+     * the same kana again instead of stepping あ → い → う (toggle input,
+     * keitai style; competitor gap list item 17, FUTO's "Flick only"). Off by
+     * default, so both work as on most Japanese phones.
+     */
+    val kanaFlickOnly: Boolean = false,
+    /**
      * The languages whose space bar types the ideographic space U+3000 (the
      * full-width 　) instead of an ASCII one, by language id (#341). Only a
      * press with nothing composing reaches it: a space mid-reading converts,
@@ -12568,6 +12575,7 @@ class SettingsRepository(private val context: Context) {
         private val HANJA_SUGGESTIONS = booleanPreferencesKey("hanja_suggestions")
         private val BRAILLE_TABLE = stringPreferencesKey("braille_table")
         private val KANA_LOOSE_MARKS = booleanPreferencesKey("kana_loose_marks")
+        private val KANA_FLICK_ONLY = booleanPreferencesKey("kana_flick_only")
         private val FULL_WIDTH_SPACE_LANGUAGES = stringSetPreferencesKey("full_width_space_languages")
         private val SPACE_STEPS_CANDIDATES_LANGUAGES =
             stringSetPreferencesKey("space_steps_candidates_languages")
@@ -14759,6 +14767,7 @@ class SettingsRepository(private val context: Context) {
             hanjaSuggestions = p[HANJA_SUGGESTIONS] ?: defaults.cjk.hanjaSuggestions,
             brailleTable = p[BRAILLE_TABLE] ?: defaults.cjk.brailleTable,
             kanaLooseMarks = p[KANA_LOOSE_MARKS] ?: defaults.cjk.kanaLooseMarks,
+            kanaFlickOnly = p[KANA_FLICK_ONLY] ?: defaults.cjk.kanaFlickOnly,
             fullWidthSpaceLanguages = p[FULL_WIDTH_SPACE_LANGUAGES] ?: defaults.cjk.fullWidthSpaceLanguages,
             spaceStepsCandidatesLanguages = p[SPACE_STEPS_CANDIDATES_LANGUAGES]
                 ?: defaults.cjk.spaceStepsCandidatesLanguages,
@@ -23893,6 +23902,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setKanaLooseMarks(value: Boolean) =
         editPrefs { it[KANA_LOOSE_MARKS] = value }
+
+    suspend fun setKanaFlickOnly(value: Boolean) =
+        editPrefs { it[KANA_FLICK_ONLY] = value }
 
     suspend fun setFullWidthSpace(languageId: String, value: Boolean) = editPrefs { p ->
         val current = p[FULL_WIDTH_SPACE_LANGUAGES] ?: emptySet()

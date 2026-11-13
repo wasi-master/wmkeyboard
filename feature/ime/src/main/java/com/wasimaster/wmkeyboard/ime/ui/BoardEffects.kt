@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -52,9 +53,14 @@ import kotlin.math.sqrt
  */
 @Composable
 fun BoardEffectLayer(effect: KbBoardEffect, modifier: Modifier = Modifier, still: Boolean = false) {
+    // Held to the board. A Canvas does not clip, and the keyboard's window
+    // reaches far above the board, so a colour
+    // pool centred near the top edge, whose radius is half the board's longer
+    // side, painted a red stain over the app above the keyboard.
+    val clipped = modifier.clipToBounds()
     // A press kind has no clock of its own: it draws the presses (PressEffects.kt).
     if (effect.kind.onPress) {
-        if (still) PressEffectSample(effect, modifier) else PressEffectOverlay(effect, modifier)
+        if (still) PressEffectSample(effect, clipped) else PressEffectOverlay(effect, clipped)
         return
     }
     var clock by remember { mutableFloatStateOf(STILL_CLOCK_S) }
@@ -81,7 +87,7 @@ fun BoardEffectLayer(effect: KbBoardEffect, modifier: Modifier = Modifier, still
     // A still frame has no touches to place, so it does not track where it
     // is: in a scrolling gallery that wrote state, and redrew the effect, on
     // every frame of every scroll.
-    Canvas(modifier = if (still) modifier else modifier.onGloballyPositioned { origin = it.positionInRoot() }) {
+    Canvas(modifier = if (still) clipped else clipped.onGloballyPositioned { origin = it.positionInRoot() }) {
         paintBoardEffect(effect, clock, energy, origin)
     }
 }
