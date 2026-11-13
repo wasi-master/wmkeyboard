@@ -40,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -102,6 +103,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private val CONTENT_PAD = 10.dp
+
+/** The lines taken to be on screen before the first layout says. */
+private const val SCREEN_LINES_GUESS = 60
 private val FIELD_PAD = 10.dp
 private val CARET_PAD = 24.dp
 private val NUMBER_PAD = 10.dp
@@ -121,24 +125,79 @@ private const val FOLD_FLASH_ALPHA = 0.35f
 private const val MAX_SQUIGGLES = 200
 
 /**
- * Colours past this many are dropped and the file is shown plain.
+ * What colours cost, measured on the CPH2481 (2026-11-14) with Math Mode's own
+ * 61 KB source, the work the field repeats on every edit: put the spans on a
+ * SpannableString, then lay the whole document out.
  *
- * The field turns every colour into a span on an Android SpannableString, and
- * each span added there scans every span already on it, so the cost grows with
- * the square of the count. A large layout or backup JSON runs to tens of
- * thousands of tokens, and laying it out took the main thread long enough for
- * an "input dispatching timed out" ANR inside SpannableString.setSpan.
+ * - Plain layout is about 1 ms per KB and nothing here changes it.
+ * - Each span costs about 48 ns **per line of the document**: Android's
+ *   layout asks the SpannableString for spans once per line, and each ask
+ *   walks every span on it. 3,000 spans added 33 ms to a 400-line file and
+ *   240 ms to a 1,684-line one, so no single span count is safe.
+ * - Adding the spans is quadratic on its own (each scans those before it):
+ *   4 ms at 1,000, 32 ms at 3,000, 1.4 s at 20,000. Tens of thousands is how
+ *   a large layout JSON once hit an ANR inside SpannableString.setSpan.
+ *
+ * So colours are budgeted per edit: [SPAN_LINE_BUDGET] span-lines, about 50 ms
+ * on top of the plain layout, and never more than [MAX_HIGHLIGHT_SPANS]. A file
+ * that needs more is coloured around what is on screen ([highlightWindow]).
  */
-private const val MAX_HIGHLIGHT_SPANS = 4_000
+private const val SPAN_LINE_BUDGET = 1_000_000L
+private const val MAX_HIGHLIGHT_SPANS = 3_000
 
-/** Characters past which colouring is not even worked out: the spans would be dropped anyway. */
+/** Characters past which colouring is not even worked out: the window would be most of nothing. */
 private const val MAX_HIGHLIGHT_CHARS = 200_000
 
-/** [language]'s colours for [text], or [text] plain when there would be too many of them. */
+/** The most colours one layout of a [lines]-line document may carry. */
+internal fun highlightBudget(lines: Int): Int =
+    minOf(MAX_HIGHLIGHT_SPANS.toLong(), SPAN_LINE_BUDGET / lines.coerceAtLeast(1)).toInt()
+
+/** [language]'s colours for all of [text], or [text] plain when it is too long to colour at all. */
 internal fun boundedHighlight(language: CodeLanguage, text: String, colors: CodeColors): AnnotatedString {
     if (text.length > MAX_HIGHLIGHT_CHARS) return AnnotatedString(text)
-    val coloured = language.highlight(text, colors)
-    return if (coloured.spanStyles.size > MAX_HIGHLIGHT_SPANS) AnnotatedString(text) else coloured
+    return language.highlight(text, colors)
+}
+
+/**
+ * [full] with only the colours the budget allows: all of them when they fit,
+ * else those on the lines around [firstLine]..[lastLine] (what is on screen),
+ * grown evenly above and below for as long as the count stays within [budget].
+ */
+internal fun highlightWindow(full: AnnotatedString, lineStarts: List<Int>, firstLine: Int, lastLine: Int, budget: Int): AnnotatedString {
+    val spans = full.spanStyles
+    if (spans.size <= budget) return full
+    val sorted = if (spans.zipWithNext().all { (a, b) -> a.start <= b.start }) spans else spans.sortedBy { it.start }
+    val starts = IntArray(sorted.size) { sorted[it].start }
+    val lines = lineStarts.size.coerceAtLeast(1)
+    val first = firstLine.coerceIn(0, lines - 1)
+    val last = lastLine.coerceIn(first, lines - 1)
+    fun lineStart(line: Int): Int = if (line >= lines) full.length else lineStarts[line.coerceAtLeast(0)]
+    fun countFrom(from: Int, to: Int): Pair<Int, Int> {
+        val a = lowerBound(starts, from)
+        return a to (lowerBound(starts, to) - a)
+    }
+    // The widest margin of lines around the screen whose colours still fit.
+    var low = 0
+    var high = lines
+    while (low < high) {
+        val mid = (low + high + 1) / 2
+        if (countFrom(lineStart(first - mid), lineStart(last + 1 + mid)).second <= budget) low = mid else high = mid - 1
+    }
+    val (from, count) = countFrom(lineStart(first - low), lineStart(last + 1 + low))
+    // Even the screen alone is too dense: its first [budget] colours, from the top.
+    val kept = sorted.subList(from, from + minOf(count, budget))
+    return AnnotatedString(full.text, kept)
+}
+
+/** The first index in [sorted] whose value is at least [value]. */
+private fun lowerBound(sorted: IntArray, value: Int): Int {
+    var low = 0
+    var high = sorted.size
+    while (low < high) {
+        val mid = (low + high) ushr 1
+        if (sorted[mid] < value) low = mid + 1 else high = mid
+    }
+    return low
 }
 
 /**
@@ -255,7 +314,15 @@ internal fun CodeSurface(
     // caret, and it walks a list of offsets rather than the document.
     val brackets = remember(text, language) { language.brackets(text) }
     val match = remember(brackets, caret) { language.matchingBracket(text, brackets, caret) }
-    val coloured = remember(text, colors, language) { boundedHighlight(language, text, colors) }
+    val full = remember(text, colors, language) { boundedHighlight(language, text, colors) }
+    // The lines on screen, as of the last time scrolling stopped. Only a file
+    // whose colours are over budget reads it; for that one the colours follow
+    // the screen, and moving them costs a layout, so not on every scrolled pixel.
+    var onScreen by remember { mutableStateOf(0 to SCREEN_LINES_GUESS) }
+    val budget = highlightBudget(lineStarts.size)
+    val coloured = remember(full, budget, onScreen, lineStarts) {
+        highlightWindow(full, lineStarts, onScreen.first, onScreen.second, budget)
+    }
     // Folding. The field shows the document with folded blocks swapped for a
     // placeholder, through an offset mapping; everything drawn from the layout
     // below goes through the same mapping.
@@ -409,6 +476,26 @@ internal fun CodeSurface(
     }
     LaunchedEffect(caret, text, revealAgain) { revealCaret() }
     LaunchedEffect(frame.height) { if (focused) revealCaret() }
+
+    if (full.spanStyles.size > budget) {
+        val latestLineStarts by rememberUpdatedState(lineStarts)
+        val latestFoldMap0 by rememberUpdatedState(foldMap)
+        LaunchedEffect(vertical, frame.height, lineHeight) {
+            snapshotFlow { vertical.isScrollInProgress to vertical.value }.collect { (moving, y) ->
+                if (moving) return@collect
+                val top = with(density) { CONTENT_PAD.toPx() }
+                val row = with(density) { lineHeight.toPx() }.coerceAtLeast(1f)
+                val result = layout.value
+                fun lineAt(py: Float): Int {
+                    if (result == null) return ((py - top) / row).toInt().coerceAtLeast(0)
+                    val shown = result.getOffsetForPosition(Offset(0f, (py - top).coerceAtLeast(0f)))
+                    val original = latestFoldMap0?.transformedToOriginal(shown) ?: shown
+                    return lineOf(latestLineStarts, original)
+                }
+                onScreen = lineAt(y.toFloat()) to lineAt((y + frame.height).toFloat())
+            }
+        }
+    }
 
     // Keys. The handler is made once and reads the newest of everything through
     // these, so the field is not handed a new one on every change of the text.
