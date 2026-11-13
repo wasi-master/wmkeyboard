@@ -174,7 +174,21 @@ pub struct Reading {
     /// Which of the space taps around the buffer it read as a letter: 1 the
     /// one before its first letter, 2 the one after its last.
     pub edge: u8,
+    /// Of [`Reading::edits`], by kind: [`EDIT_OMIT`], [`EDIT_INSERT`],
+    /// [`EDIT_DOUBLE`], [`EDIT_SWAP`], [`EDIT_FAR`].
+    pub kinds: [u8; 5],
 }
+
+/// A letter of the word never tapped.
+pub const EDIT_OMIT: usize = 0;
+/// A tap that belongs to no letter.
+pub const EDIT_INSERT: usize = 1;
+/// A key tapped twice.
+pub const EDIT_DOUBLE: usize = 2;
+/// Two letters tapped the wrong way round.
+pub const EDIT_SWAP: usize = 3;
+/// A letter no slip of the finger reaches ("definately").
+pub const EDIT_FAR: usize = 4;
 
 /// What [`decode`] found.
 #[derive(Clone, Debug, Default)]
@@ -213,6 +227,7 @@ struct State {
     spaces: u32,
     lexical: f64,
     edge: u8,
+    kinds: [u8; 5],
 }
 
 /// Per-tap channel prices: `price[pos][key]` for every letter key, and the
@@ -427,6 +442,7 @@ impl Session {
                     spaces: 0,
                     lexical: 0.0,
                     edge: 0,
+                    kinds: [0; 5],
                 })
                 .collect()];
         }
@@ -588,6 +604,7 @@ impl Env<'_, '_> {
                 if let Some(add) = self.finish(s, child, &w) {
                     let mut t = s.clone();
                     t.edits += 1;
+                    t.kinds[EDIT_OMIT] = t.kinds[EDIT_OMIT].saturating_add(1);
                     finals.push(reading(&t, &w, s.score + params.ln_omit + add, add));
                 }
             }
@@ -636,6 +653,7 @@ impl Env<'_, '_> {
             if price <= params.ln_far {
                 t.edits_here += 1;
                 t.edits += 1;
+                t.kinds[EDIT_FAR] = t.kinds[EDIT_FAR].saturating_add(1);
             }
             next.push(t);
         }
@@ -656,6 +674,7 @@ impl Env<'_, '_> {
                     t.score += params.ln_omit + price;
                     t.edits_here += 1;
                     t.edits += 1;
+                    t.kinds[EDIT_OMIT] = t.kinds[EDIT_OMIT].saturating_add(1);
                     next.push(t);
                 }
             }
@@ -667,6 +686,8 @@ impl Env<'_, '_> {
                 t.score += if doubled { params.ln_double } else { params.ln_insert };
                 t.edits_here += 1;
                 t.edits += 1;
+                let kind = if doubled { EDIT_DOUBLE } else { EDIT_INSERT };
+                t.kinds[kind] = t.kinds[kind].saturating_add(1);
                 next.push(t);
             }
             // Swap: taps `pos` and `pos + 1` meant the next two letters
@@ -690,6 +711,7 @@ impl Env<'_, '_> {
                             t.score += params.ln_swap + price;
                             t.edits_here += 1;
                             t.edits += 1;
+                            t.kinds[EDIT_SWAP] = t.kinds[EDIT_SWAP].saturating_add(1);
                             after.push(t);
                         }
                     }
@@ -975,6 +997,7 @@ fn reading(s: &State, last: &str, score: f64, last_lexical: f64) -> Reading {
         lexical: s.lexical + last_lexical,
         model: 0.0,
         edge: s.edge,
+        kinds: s.kinds,
     }
 }
 
@@ -1296,24 +1319,24 @@ impl Gate {
 }
 
 /// One hidden layer of tanh on standardised features, a logistic out.
-fn net(
-    f: &[f64; GATE_FEATURES],
-    mean: &[f64; GATE_FEATURES],
-    scale: &[f64; GATE_FEATURES],
-    w1: &[[f64; GATE_FEATURES]],
+fn net<const N: usize>(
+    f: &[f64; N],
+    mean: &[f64; N],
+    scale: &[f64; N],
+    w1: &[[f64; N]],
     b1: &[f64],
     w2: &[f64],
     b2: f64,
 ) -> f64 {
-    let mut z = [0.0; GATE_FEATURES];
-    for i in 0..GATE_FEATURES {
+    let mut z = [0.0; N];
+    for i in 0..N {
         let s = if scale[i] > 0.0 { scale[i] } else { 1.0 };
         z[i] = (f[i] - mean[i]) / s;
     }
     let mut out = b2;
     for ((row, b), w) in w1.iter().zip(b1).zip(w2) {
         let mut h = *b;
-        for i in 0..GATE_FEATURES {
+        for i in 0..N {
             h += row[i] * z[i];
         }
         out += w * h.tanh();
@@ -1377,6 +1400,27 @@ pub const RECHECK_MARGIN: f64 = 3.0;
 /// The same, when what stands is the word as typed and a list holds it.
 pub const RECHECK_KNOWN_MARGIN: f64 = 5.0;
 
+/// What re-reading a committed buffer saw, before any verdict: the decode
+/// with the words after it weighed in, and where what was committed stands.
+#[derive(Clone, Debug, Default)]
+pub struct RecheckRead {
+    /// The readings, best first, each with the pairs it makes with the
+    /// words after it (and the context model, when blended) in its score.
+    pub decoded: Decoded,
+    /// The buffer's letters as typed.
+    pub typed: String,
+    /// What was committed: its score and its lexical and model parts.
+    pub own: f64,
+    pub own_lexical: f64,
+    pub own_model: f64,
+    /// Whether what was committed is the letters as typed.
+    pub own_literal: bool,
+    /// What the pairs with the words after gave the best reading and what
+    /// was committed.
+    pub best_right: f64,
+    pub own_right: f64,
+}
+
 /// Re-reads the taps of the buffer committed as `committed`, now that the
 /// words `after` it have landed: "I want to by a car" has `by` wrong once
 /// `a car` is in. `before` are the words before the buffer. The taps are
@@ -1384,9 +1428,10 @@ pub const RECHECK_KNOWN_MARGIN: f64 = 5.0;
 /// what the pairs say about the words after it, and, with `lm`, the context
 /// model's say over the reading followed by `after`. What was committed has
 /// to be among the readings or be the literal, or there is nothing to
-/// compare with.
+/// compare with, and `None` comes back; so it does when there is nothing
+/// after, or the keyboard put in an apostrophe the taps never typed.
 #[allow(clippy::too_many_arguments)]
-pub fn recheck(
+pub fn recheck_read(
     taps: &[Tap],
     geometry: &Geometry,
     sources: &[Source],
@@ -1397,11 +1442,9 @@ pub fn recheck(
     params: &Params,
     adjacent: &dyn Fn(u16, u16) -> bool,
     lm: Option<(f64, ModelSeq)>,
-    margin: f64,
-    known_margin: f64,
-) -> Recheck {
+) -> Option<RecheckRead> {
     if after.is_empty() || taps.is_empty() {
-        return Recheck::default();
+        return None;
     }
     let typed: String = String::from_utf16_lossy(&taps.iter().map(|t| t.typed).collect::<Vec<_>>());
     let typed = letters_of(&typed).to_string();
@@ -1409,7 +1452,7 @@ pub fn recheck(
     // rule's call; read again, the taps would price it as a letter left out
     // and hand "in" the win.
     if committed.contains('\'') && !typed.contains('\'') {
-        return Recheck::default();
+        return None;
     }
     let mut d = decode(taps, geometry, sources, context, before, params, adjacent, RECHECK_READINGS);
     // The pairs the words after a reading make with it.
@@ -1439,21 +1482,171 @@ pub fn recheck(
         let tail = after.join(" ");
         blend(&mut d, &typed, weight, |text| seq(&format!("{text} {tail}")));
     }
-    let own = d
-        .readings
-        .iter()
-        .find(|r| r.text == committed)
-        .map(|r| r.score)
-        .into_iter()
-        .chain((committed == typed).then_some(d.literal))
-        .reduce(f64::max);
-    let Some(own) = own else { return Recheck::default() };
+    let as_reading = d.readings.iter().find(|r| r.text == committed).map(|r| (r.score, r.lexical, r.model, false));
+    let as_literal = (committed == typed).then_some((d.literal, d.literal_lexical, d.literal_model, true));
+    let (own, own_lexical, own_model, own_literal) = match (as_reading, as_literal) {
+        (Some(a), Some(b)) => {
+            if b.0 >= a.0 {
+                b
+            } else {
+                a
+            }
+        }
+        (Some(a), None) | (None, Some(a)) => a,
+        (None, None) => return None,
+    };
+    let best_right = d.readings.first().map_or(0.0, |r| right(&r.text));
+    let own_right = right(committed);
+    Some(RecheckRead { decoded: d, typed, own, own_lexical, own_model, own_literal, best_right, own_right })
+}
+
+/// [`recheck_read`] judged at fixed bars: the best reading replaces what
+/// was committed when it leads by `margin` (`known_margin` when that is the
+/// word as typed and a list holds it), and is offered past [`OFFER_SHARE`].
+#[allow(clippy::too_many_arguments)]
+pub fn recheck(
+    taps: &[Tap],
+    geometry: &Geometry,
+    sources: &[Source],
+    context: &dyn Context,
+    before: &[&str],
+    committed: &str,
+    after: &[&str],
+    params: &Params,
+    adjacent: &dyn Fn(u16, u16) -> bool,
+    lm: Option<(f64, ModelSeq)>,
+    margin: f64,
+    known_margin: f64,
+) -> Recheck {
+    let Some(read) = recheck_read(taps, geometry, sources, context, before, committed, after, params, adjacent, lm) else {
+        return Recheck::default();
+    };
+    recheck_verdict(&read, committed, margin, known_margin)
+}
+
+/// The re-check's verdict as one probability, fitted on recorded taps and
+/// simulated sentences (`tools/autocorrect/fit_recheck.py`): that the best
+/// re-read is the text meant, given how far it leads what was committed and
+/// where that lead comes from, how much of it the words after gave, whether
+/// what stands is the word as typed and listed, and what the re-read
+/// changed. The fixed bars ([`recheck_verdict`]) treat every listed word
+/// alike, as the space's fixed bars did.
+pub struct RecheckGate;
+
+/// Features [`RecheckGate::features`] computes.
+pub const RECHECK_FEATURES: usize = 22;
+const RECHECK_GATE_HIDDEN: usize = 8;
+/// The slider's ratio is multiplied by this before it becomes the
+/// re-check gate's bar for a re-read the context model weighed, so the
+/// default ×4 asks for 0.8. A re-read that turns one wrong word into another
+/// changes nothing in the count but is a rewrite the user sees, and the fit
+/// weighs those at half. Fitted 2026-11-13 on Vertanen & Kristensson's dev
+/// set (weighted ten times) and simulated sentences (held-out words, words
+/// no list has), with and without the model. On rows held back, with the
+/// model, against the fixed bars: recorded taps 18 right words put back
+/// against 24, none broken against none, wrong words swapped for other
+/// wrong ones 4 against 12; simulated 241 put back against 206, 55 broken
+/// against 65, 38 wrong for wrong against 167.
+pub const RECHECK_CONFIDENCE_SCALE: f64 = 1.0;
+/// The same without the context model, so ×4 asks for 0.7: recorded taps 36
+/// put back against 37, 5 broken against 3, 7 wrong for wrong against 29;
+/// simulated 411 against 422, 83 broken against 153, 64 against 298.
+pub const RECHECK_PLAIN_CONFIDENCE_SCALE: f64 = 0.583;
+
+impl RecheckGate {
+    /// What the gate reads of a re-read `depth` commits back, or `None`
+    /// when the best reading is what was committed.
+    pub fn features(read: &RecheckRead, committed: &str, depth: usize) -> Option<[f64; RECHECK_FEATURES]> {
+        let d = &read.decoded;
+        let c = d.readings.first()?;
+        if c.text == committed {
+            return None;
+        }
+        let gap = d
+            .readings
+            .iter()
+            .skip(1)
+            .find(|r| r.text != committed)
+            .map_or(GATE_GAP_CAP, |r| (c.score - r.score).min(GATE_GAP_CAP))
+            .max(0.0);
+        Some([
+            c.score - read.own,
+            c.score - c.lexical,
+            c.lexical - c.model,
+            c.model,
+            read.own - read.own_lexical,
+            read.own_lexical - read.own_model,
+            read.own_model,
+            f64::from(u8::from(c.model != 0.0 || read.own_model != 0.0)),
+            f64::from(u8::from(read.own_literal)),
+            f64::from(u8::from(d.literal_listed)),
+            c.text.split(' ').count() as f64,
+            f64::from(c.edits),
+            f64::from(c.slips),
+            f64::from(c.spaces),
+            f64::from(c.kinds[EDIT_OMIT]),
+            f64::from(c.kinds[EDIT_INSERT]) + f64::from(c.kinds[EDIT_DOUBLE]),
+            f64::from(c.kinds[EDIT_SWAP]),
+            f64::from(c.kinds[EDIT_FAR]),
+            read.typed.encode_utf16().count() as f64,
+            gap,
+            read.best_right - read.own_right,
+            depth as f64,
+        ])
+    }
+
+    /// P(the best re-read is the text meant).
+    pub fn probability(f: &[f64; RECHECK_FEATURES]) -> f64 {
+        net(f, &RECHECK_GATE_MEAN, &RECHECK_GATE_SCALE, &RECHECK_GATE_W1, &RECHECK_GATE_B1, &RECHECK_GATE_W2, RECHECK_GATE_B2)
+    }
+
+    /// Replaces what was committed at `crate::confidence::apply_threshold`
+    /// of the slider's `confidence` times [`RECHECK_CONFIDENCE_SCALE`] (or
+    /// [`RECHECK_PLAIN_CONFIDENCE_SCALE`] without the context model), and
+    /// offers the re-read at the offer threshold of the same.
+    pub fn verdict(read: &RecheckRead, committed: &str, depth: usize, confidence: f64) -> Recheck {
+        let Some(f) = RecheckGate::features(read, committed, depth) else { return Recheck::default() };
+        let text = read.decoded.readings[0].text.clone();
+        let lead = f[0];
+        let p = RecheckGate::probability(&f);
+        let confidence = confidence * if f[7] > 0.5 { RECHECK_CONFIDENCE_SCALE } else { RECHECK_PLAIN_CONFIDENCE_SCALE };
+        if p >= crate::confidence::apply_threshold(confidence) {
+            Recheck { apply: Some(text), offer: None, lead }
+        } else if p >= crate::confidence::offer_threshold(confidence) {
+            Recheck { apply: None, offer: Some(text), lead }
+        } else {
+            Recheck { lead, ..Recheck::default() }
+        }
+    }
+}
+
+// RECHECK FIT BEGIN
+const RECHECK_GATE_MEAN: [f64; RECHECK_FEATURES] = [0.411078, -8.21234, -5.65126, -6.62181, -1.1506, -11.3725, -8.37336, 0.432416, 0.867847, 0.10965, 1.33908, 1.07246, 0.859496, 0.339081, 0.268636, 0.521497, 0.0946489, 0.187674, 6.29655, 2.41224, 0.842652, 1.0];
+const RECHECK_GATE_SCALE: [f64; RECHECK_FEATURES] = [6.71939, 5.24973, 5.5254, 9.12825, 3.07421, 7.13024, 11.1826, 0.495411, 0.338657, 0.312454, 0.624416, 0.753644, 0.953274, 0.624416, 0.466704, 0.692467, 0.30209, 0.410155, 3.40236, 2.22255, 1.43775, 1.0];
+const RECHECK_GATE_W1: [[f64; RECHECK_FEATURES]; RECHECK_GATE_HIDDEN] = [
+    [-0.330668, -0.365678, 0.347586, 0.0411522, 0.494205, 0.244767, -0.0596678, -0.214594, -0.018077, 0.109219, 0.0351723, 0.00228751, 0.138319, 0.0351726, -0.243006, 0.161368, -0.305652, 0.233771, 0.113438, -0.371452, -0.363976, -1.24273e-93],
+    [-0.172759, -0.069061, 0.475772, -0.113665, 0.225037, -0.160862, 0.254523, 0.0693712, -0.604657, 0.323304, -0.444577, 0.0504282, 0.0699699, -0.444581, -0.124447, 0.250308, 0.0505628, -0.226024, 0.356386, 0.446395, 0.0809062, 1.3668e-92],
+    [-0.297152, -0.195492, -0.0645392, 0.102844, 0.160623, 0.125123, 0.0148203, 0.0458045, -0.0979268, -0.385665, -0.148524, 0.0861487, -0.632057, -0.148527, -0.159104, 0.413542, 0.442137, -0.684064, -0.0876321, 0.0554859, -0.0988365, 1.1828e-92],
+    [-0.563395, 0.3231, -0.470158, -0.241456, -0.0341319, 0.337367, -0.145277, 0.310525, 0.0982794, 0.104309, -0.345926, 0.020126, -0.159931, -0.345917, 0.00314497, 0.0908599, -0.00429659, -0.116639, 0.268499, -0.064982, -0.368721, -8.80652e-16],
+    [0.183476, -0.204134, -0.060824, -0.046903, -0.0309783, -0.22104, -0.125309, -0.0463014, 0.285404, -0.124186, 0.0716177, 0.642784, -0.185919, 0.0716107, 0.192714, 0.583775, -0.647554, 0.454738, -0.177217, 0.189698, 0.12583, 6.98321e-93],
+    [-0.69371, 0.160371, 0.0983886, 0.0620903, -0.165411, 0.617981, 0.242713, -0.0407736, -0.183528, 0.180097, 0.122622, -0.0914568, 0.267073, 0.122618, -0.0475782, -0.169015, 0.0663787, 0.12258, 0.227442, 0.236132, -0.359147, 4.627e-93],
+    [0.538024, 0.504857, -0.227091, -0.00483276, -0.171647, 0.281544, -0.334491, 0.185689, 0.0241283, -0.0962335, -0.261262, 0.0513382, -0.210829, -0.261275, -0.0943924, 0.0895809, -0.0589074, 0.0932566, -0.496632, -0.00535258, 0.147407, 7.07e-94],
+    [-0.366078, -0.112709, 0.112309, -0.0881151, -0.264249, 0.31196, 0.0240571, -0.363669, -0.142744, 0.00214567, 0.144457, -0.135289, 0.00232086, 0.14446, -0.375521, 0.253953, 0.156446, -0.36473, -0.793823, -0.348938, 0.384191, 4.46388e-93],
+];
+const RECHECK_GATE_B1: [f64; RECHECK_GATE_HIDDEN] = [0.177655, 0.533604, -0.203326, -0.283072, 1.02324, 0.125106, -1.02621, -0.0437382];
+const RECHECK_GATE_W2: [f64; RECHECK_GATE_HIDDEN] = [-1.07181, 1.38045, -1.18201, -1.14162, -1.49827, -1.0678, 1.2453, -1.3704];
+const RECHECK_GATE_B2: f64 = -0.49807;
+// RECHECK FIT END
+
+/// The fixed bars of [`recheck`] on a reading already made.
+pub fn recheck_verdict(read: &RecheckRead, committed: &str, margin: f64, known_margin: f64) -> Recheck {
+    let d = &read.decoded;
     let Some(best) = d.readings.first() else { return Recheck::default() };
     if best.text == committed {
         return Recheck::default();
     }
-    let lead = best.score - own;
-    let bar = if committed == typed && d.literal_listed { known_margin } else { margin };
+    let lead = best.score - read.own;
+    let bar = if committed == read.typed && d.literal_listed { known_margin } else { margin };
     if lead >= bar {
         Recheck { apply: Some(best.text.clone()), offer: None, lead }
     } else if lead >= bar * OFFER_SHARE {
@@ -1466,6 +1659,101 @@ pub fn recheck(
 /// The context model's log-probability of a text's words in turn, `None`
 /// where it cannot read them; what [`recheck`] blends in.
 pub type ModelSeq<'a> = &'a mut dyn FnMut(&str) -> Option<f64>;
+
+/// How far a reading of two buffers as one word must lead what the field
+/// holds for them before it replaces both. Swept on the sentence harness's
+/// recorded taps (`REJOIN_MARGIN`).
+pub const REJOIN_MARGIN: f64 = 3.0;
+
+/// The price of reading `tap` as the space bar, relative to the best key for
+/// it, as the search prices it.
+pub fn bar_price(tap: &Tap, geometry: &Geometry, params: &Params) -> f64 {
+    let mut ch = Channel::default();
+    ch.push(tap, geometry, params, &|_, _| false);
+    ch.space[0]
+}
+
+/// Reads two buffers and the one space tap between them as one run of taps,
+/// in which that tap may have been a letter that landed on the bar:
+/// `feeli g` is *feeling* with its `n` on the bar, `u real` *unreal*. The
+/// decoder reads a space tap as a letter only at a buffer's edge, so a word
+/// broken in the middle stayed broken.
+///
+/// `prev` and `cur` are the letters' taps, `bar` the space tap between them,
+/// `standing` what the field holds for each, `before` the words before
+/// `prev`. What stands is priced as the search would price it: each buffer's
+/// reading (or its letters as typed) with the words before it, the bar tap
+/// read as a space, and the second word's cost. A reading of all the taps
+/// with fewer words than stand replaces them when it leads by `margin`, and
+/// is offered past [`OFFER_SHARE`] of that. With `lm`, the context model is
+/// blended into every reading, as at the space.
+#[allow(clippy::too_many_arguments)]
+pub fn rejoin(
+    prev: &[Tap],
+    bar: Tap,
+    cur: &[Tap],
+    geometry: &Geometry,
+    sources: &[Source],
+    context: &dyn Context,
+    before: &[&str],
+    standing: (&str, &str),
+    params: &Params,
+    adjacent: &dyn Fn(u16, u16) -> bool,
+    mut lm: Option<(f64, ModelSeq)>,
+    margin: f64,
+) -> Recheck {
+    if prev.is_empty() || cur.is_empty() || bar.at.is_none() {
+        return Recheck::default();
+    }
+    let text = |taps: &[Tap]| String::from_utf16_lossy(&taps.iter().map(|t| t.typed).collect::<Vec<_>>());
+    let (typed1, typed2) = (text(prev), text(cur));
+    // What a buffer's standing text scored when it was read alone.
+    let own = |d: &Decoded, typed: &str, standing: &str| -> Option<f64> {
+        d.readings
+            .iter()
+            .find(|r| r.text == standing)
+            .map(|r| r.score)
+            .into_iter()
+            .chain((standing == typed).then_some(d.literal))
+            .reduce(f64::max)
+    };
+    let mut d1 = decode(prev, geometry, sources, context, before, params, adjacent, RECHECK_READINGS);
+    let mut after1: Vec<&str> = before.to_vec();
+    after1.extend(standing.0.split(' '));
+    let mut d2 = decode(cur, geometry, sources, context, &after1, params, adjacent, RECHECK_READINGS);
+    let joined: Vec<Tap> = prev.iter().copied().chain(std::iter::once(bar)).chain(cur.iter().copied()).collect();
+    let mut d = decode(&joined, geometry, sources, context, before, params, adjacent, RECHECK_READINGS);
+    if let Some((weight, seq)) = lm.as_mut() {
+        blend(&mut d1, &typed1, *weight, |t| seq(t));
+        let head = standing.0.to_string();
+        blend(&mut d2, &typed2, *weight, |t| Some(seq(&format!("{head} {t}"))? - seq(&head)?));
+        blend(&mut d, &format!("{typed1} {typed2}"), *weight, |t| seq(t));
+    }
+    let (Some(o1), Some(o2)) = (own(&d1, &typed1, standing.0), own(&d2, &typed2, standing.1)) else {
+        return Recheck::default();
+    };
+    let stands = o1 + o2 + bar_price(&bar, geometry, params) + params.ln_extra_word;
+    let words = standing.0.split(' ').count() + standing.1.split(' ').count();
+    // A reading with fewer words that keeps every letter typed: one that
+    // drops the second buffer's taps as strays (`quest v` as *quest*) is not
+    // a word the bar broke but a word deleted.
+    let typed_letters = typed1.encode_utf16().count() + typed2.encode_utf16().count();
+    let Some(best) = d
+        .readings
+        .iter()
+        .find(|r| r.text.split(' ').count() < words && r.text.encode_utf16().filter(|&c| c != ' ' as u16).count() >= typed_letters)
+    else {
+        return Recheck::default();
+    };
+    let lead = best.score - stands;
+    if lead >= margin {
+        Recheck { apply: Some(best.text.clone()), offer: None, lead }
+    } else if lead >= margin * OFFER_SHARE {
+        Recheck { apply: None, offer: Some(best.text.clone()), lead }
+    } else {
+        Recheck { lead, ..Recheck::default() }
+    }
+}
 
 /// Readings a re-check weighs.
 const RECHECK_READINGS: usize = 8;
@@ -1654,11 +1942,18 @@ mod tests {
         ];
         let p = Gate::probability(&plain);
         assert!((p - 0.936585).abs() < 1e-3, "{p}");
+        // The re-check's gate (`fit_recheck.py --rust`).
+        let r = [
+            2.680, -1.827, -1.473, -8.658, 0.000, -2.900, -11.738, 1.000, 1.000, 1.000, 1.000, 0.000, 1.000, 0.000,
+            0.000, 0.000, 0.000, 0.000, 4.000, 8.000, 1.441, 1.000,
+        ];
+        let p = RecheckGate::probability(&r);
+        assert!((p - 0.950985).abs() < 1e-3, "{p}");
         // A decode's features come out in the fitter's order.
         let d = Decoded {
             readings: vec![
-                Reading { text: "hello".into(), score: -5.0, edits: 0, slips: 1, spaces: 0, lexical: -3.0, model: -2.0, edge: 0 },
-                Reading { text: "help".into(), score: -6.0, edits: 1, slips: 0, spaces: 0, lexical: -2.5, model: -1.5, edge: 0 },
+                Reading { text: "hello".into(), score: -5.0, edits: 0, slips: 1, spaces: 0, lexical: -3.0, model: -2.0, edge: 0, kinds: [0; 5] },
+                Reading { text: "help".into(), score: -6.0, edits: 1, slips: 0, spaces: 0, lexical: -2.5, model: -1.5, edge: 0, kinds: [1, 0, 0, 0, 0] },
             ],
             literal: -16.0,
             literal_listed: false,
@@ -1697,6 +1992,28 @@ mod tests {
         assert_eq!((best.text.as_str(), best.edge), ("call", 1));
         // The literal is the letters alone.
         assert_eq!(letters_of("  all "), "all");
+    }
+
+    #[test]
+    fn a_word_the_bar_broke_in_two() {
+        let g = qwerty();
+        let l = WordList::of(&[("feeling", 500), ("feel", 400), ("i", 900), ("go", 600), ("the", 1000), ("going", 450)]);
+        let rank = |f: i32| zipf(((1000 - f.min(1000)) / 50 + 1) as usize, 6);
+        let src = [Source { walker: l.dict(), prior: &rank }];
+        let typed = |w: &str| w.chars().map(|c| tap(&g, c, 0.0, 0.0)).collect::<Vec<_>>();
+        let none = |_: u16, _: u16| false;
+        let run = |a: &str, bar: Tap, b: &str| {
+            rejoin(&typed(a), bar, &typed(b), &g, &src, &NoContext, &[], (a, b), &Params::default(), &none, None, REJOIN_MARGIN)
+        };
+        // `feeling` with its `n` on the top edge of the bar: `feeli g`.
+        let n_low = Tap { typed: ' ' as u16, at: Some((6.5, 3.95)) };
+        assert_eq!(run("feeli", n_low, "g").apply.as_deref(), Some("feeling"));
+        // A reading that drops a buffer's letters as strays is no rejoin.
+        assert_eq!(run("the", n_low, "l").apply, None);
+        // Two words with a tap in the middle of the bar between them stay two.
+        assert_eq!(run("the", tap(&g, ' ', 0.0, 0.0), "go").apply, None);
+        // No position for the bar tap: nothing to read.
+        assert_eq!(run("feeli", Tap { typed: ' ' as u16, at: None }, "g"), Recheck::default());
     }
 
     #[test]

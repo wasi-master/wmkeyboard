@@ -47,7 +47,7 @@ use wm_engine::confidence::Confidence;
 use wm_engine::decoder::{self, Geometry, Pairs, Params, Ranks, Source, Tap};
 use wm_engine::fuzzy::TouchModel;
 use wm_engine::lm::{Lm, Session};
-use wm_engine::predict::{Predictor, SeedBigrams, WordList};
+use wm_engine::predict::{is_verb_form, Predictor, SeedBigrams, WordList};
 use wm_engine::proximity::KeyProximity;
 use wm_engine::wmng::{self, NgramPackBuilder, Pack};
 use wm_engine::wordlist;
@@ -343,6 +343,167 @@ fn words_of(text: &str) -> Option<(Vec<String>, char)> {
     (words.len() >= 3 && words.len() <= 20).then_some((words, end))
 }
 
+/// Words under three letters people text on purpose (`u` for *you*, `n` for
+/// *and*), which `SuggestionEngine.TEXTING_SHORT_FORMS` never rewrites; most
+/// are in no list, so a reading one slip away would beat them every time.
+const TEXTING_SHORT_FORMS: &[&str] = &[
+    "u", "r", "k", "n", "y", "c", "b", "x", "ur", "ya", "yo", "ok", "kk", "np", "ty", "bf", "gf", "ik", "ig", "rn",
+    "bc", "b4", "gn", "gm", "hb", "jk", "nm", "dm", "ft", "tf", "wb",
+];
+
+/// Letter-level edit distance.
+fn char_distance(a: &str, b: &str) -> usize {
+    let b: Vec<char> = b.chars().collect();
+    let mut prev: Vec<usize> = (0..=b.len()).collect();
+    for (i, ca) in a.chars().enumerate() {
+        let mut cur = vec![i + 1; b.len() + 1];
+        for j in 1..=b.len() {
+            cur[j] = (prev[j - 1] + usize::from(ca != b[j - 1])).min(prev[j] + 1).min(cur[j - 1] + 1);
+        }
+        prev = cur;
+    }
+    prev[b.len()]
+}
+
+/// How the buffers a sentence was typed in line up with the words meant.
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum Unit {
+    /// One buffer for one word.
+    One,
+    /// One buffer for several words: a space never landed.
+    Joined,
+    /// Two buffers for one word: a letter landed on the space bar.
+    Split,
+    /// A word with no buffer: never typed.
+    Skipped,
+    /// A buffer for no word.
+    Extra,
+}
+
+/// Lines up `bufs` with `words` (apostrophes dropped, since the hand types
+/// none) at the least letter edits, a join, split, skip or extra buffer
+/// costing a little more than the letters it explains. Each unit is its
+/// kind, the words it covers and the buffers it covers.
+fn align_units(words: &[String], bufs: &[String]) -> Vec<(Unit, std::ops::Range<usize>, std::ops::Range<usize>)> {
+    let w: Vec<String> = words.iter().map(|x| x.replace('\'', "")).collect();
+    let (n, m) = (w.len(), bufs.len());
+    // cost[i][j]: the best way to line up w[i..] with bufs[j..].
+    let mut cost = vec![vec![f64::INFINITY; m + 1]; n + 1];
+    let mut step: Vec<Vec<(Unit, usize, usize)>> = vec![vec![(Unit::Extra, 0, 0); m + 1]; n + 1];
+    cost[n][m] = 0.0;
+    for i in (0..=n).rev() {
+        for j in (0..=m).rev() {
+            if i == n && j == m {
+                continue;
+            }
+            let mut best = (f64::INFINITY, (Unit::Extra, i, j));
+            let try_step = |c: f64, ni: usize, nj: usize, u: Unit, best: &mut (f64, (Unit, usize, usize))| {
+                let total = c + cost[ni][nj];
+                if total < best.0 {
+                    *best = (total, (u, ni, nj));
+                }
+            };
+            if i < n && j < m {
+                for k in 1..=8 {
+                    if i + k <= n {
+                        let c = char_distance(&w[i..i + k].concat(), &bufs[j]) as f64 + 0.6 * (k - 1) as f64;
+                        try_step(c, i + k, j + 1, if k == 1 { Unit::One } else { Unit::Joined }, &mut best);
+                    }
+                }
+                if j + 2 <= m {
+                    let c = char_distance(&w[i], &format!("{}{}", bufs[j], bufs[j + 1])) as f64 + 0.6;
+                    try_step(c, i + 1, j + 2, Unit::Split, &mut best);
+                }
+            }
+            if i < n {
+                try_step(w[i].chars().count() as f64 + 0.5, i + 1, j, Unit::Skipped, &mut best);
+            }
+            if j < m {
+                try_step(bufs[j].chars().count() as f64 + 0.5, i, j + 1, Unit::Extra, &mut best);
+            }
+            cost[i][j] = best.0;
+            step[i][j] = best.1;
+        }
+    }
+    let (mut i, mut j) = (0, 0);
+    let mut out = Vec::new();
+    while i < n || j < m {
+        let (u, ni, nj) = step[i][j];
+        out.push((u, i..ni, j..nj));
+        i = ni;
+        j = nj;
+    }
+    out
+}
+
+/// Which word each letter of each buffer was meant for, from
+/// [`align_units`]: a joined buffer's letters shared out over its words by
+/// their lengths, both halves of a split word given to it, an extra
+/// buffer's letters to none.
+fn owners_of(units: &[(Unit, std::ops::Range<usize>, std::ops::Range<usize>)], words: &[String], bufs: &[String]) -> Vec<Vec<Option<usize>>> {
+    let mut out: Vec<Vec<Option<usize>>> = bufs.iter().map(|b| vec![None; b.chars().count()]).collect();
+    for (u, ws, bs) in units {
+        match u {
+            Unit::One | Unit::Split => {
+                for b in bs.clone() {
+                    out[b].iter_mut().for_each(|o| *o = Some(ws.start));
+                }
+            }
+            Unit::Joined => {
+                let b = bs.start;
+                let len = out[b].len();
+                let lengths: Vec<usize> = ws.clone().map(|i| words[i].replace('\'', "").chars().count().max(1)).collect();
+                let total: usize = lengths.iter().sum();
+                let mut cut = 0usize;
+                let mut acc = 0usize;
+                for (k, (wi, l)) in ws.clone().zip(&lengths).enumerate() {
+                    acc += l;
+                    let end = if k + 1 == lengths.len() { len } else { (acc * len + total / 2) / total };
+                    let end = end.clamp((cut + 1).min(len), len);
+                    for o in &mut out[b][cut..end] {
+                        *o = Some(wi);
+                    }
+                    cut = end;
+                }
+            }
+            Unit::Skipped | Unit::Extra => {}
+        }
+    }
+    out
+}
+
+/// For each word meant, whether the field holds it in its place (a
+/// word-level alignment), and the field words lined up with it.
+fn field_match(field: &[String], meant: &[String]) -> Vec<(bool, Option<usize>)> {
+    let (n, m) = (meant.len(), field.len());
+    let mut d = vec![vec![0usize; m + 1]; n + 1];
+    for (i, row) in d.iter_mut().enumerate() {
+        row[0] = i;
+    }
+    for j in 0..=m {
+        d[0][j] = j;
+    }
+    for i in 1..=n {
+        for j in 1..=m {
+            d[i][j] = (d[i - 1][j - 1] + usize::from(meant[i - 1] != field[j - 1])).min(d[i - 1][j] + 1).min(d[i][j - 1] + 1);
+        }
+    }
+    let mut out = vec![(false, None); n];
+    let (mut i, mut j) = (n, m);
+    while i > 0 && j > 0 {
+        if d[i][j] == d[i - 1][j - 1] + usize::from(meant[i - 1] != field[j - 1]) {
+            out[i - 1] = (meant[i - 1] == field[j - 1], Some(j - 1));
+            i -= 1;
+            j -= 1;
+        } else if d[i][j] == d[i - 1][j] + 1 {
+            i -= 1;
+        } else {
+            j -= 1;
+        }
+    }
+    out
+}
+
 /// Word-level edit distance.
 fn word_distance(a: &[String], b: &[String]) -> usize {
     let mut prev: Vec<usize> = (0..=b.len()).collect();
@@ -377,6 +538,13 @@ struct Tally {
     rechecks: usize,
     recheck_fixed: usize,
     recheck_broke: usize,
+    recheck_wrong: usize,
+    rejoins: usize,
+    rejoin_fixed: usize,
+    rejoin_broke: usize,
+    // Per unit of [`align_units`], after everything (the re-check
+    // included): how many, and how many the field ends up holding right.
+    finals: HashMap<&'static str, (usize, usize)>,
 }
 
 /// The buffer committed last, for `RECHECK`: its taps, where its words
@@ -385,6 +553,11 @@ struct Last {
     taps: Vec<Tap>,
     start: usize,
     want: String,
+    /// The letters' taps alone, the stroke index of the last of them, and
+    /// the words meant (indices into the sentence), for `REJOIN`.
+    letters: Vec<Tap>,
+    last_stroke: usize,
+    ids: Vec<usize>,
 }
 
 impl Tally {
@@ -408,6 +581,15 @@ impl Tally {
         self.rechecks += o.rechecks;
         self.recheck_fixed += o.recheck_fixed;
         self.recheck_broke += o.recheck_broke;
+        self.recheck_wrong += o.recheck_wrong;
+        self.rejoins += o.rejoins;
+        self.rejoin_fixed += o.rejoin_fixed;
+        self.rejoin_broke += o.rejoin_broke;
+        for (k, (n, right)) in &o.finals {
+            let e = self.finals.entry(k).or_default();
+            e.0 += n;
+            e.1 += right;
+        }
     }
 
     fn clone_counts(&self) -> Tally {
@@ -424,8 +606,14 @@ impl Tally {
             .iter()
             .map(|(k, (n, fixed))| format!("{k} {}/{} ({:.0}%)", fixed, n, 100.0 * *fixed as f64 / (*n).max(1) as f64))
             .collect();
+        let mut finals: Vec<_> = self.finals.iter().collect();
+        finals.sort_by_key(|(k, _)| *k);
+        let finals: Vec<String> = finals
+            .iter()
+            .map(|(k, (n, right))| format!("{k} {}/{} ({:.1}%)", right, n, 100.0 * *right as f64 / (*n).max(1) as f64))
+            .collect();
         format!(
-            "{label}: WER typed {:.2}% -> field {:.2}% | sentences clean {:.1}% | correct words changed {:.2}% ({}/{}) | new words changed {}/{} | fixed: {} | recheck {} changed, {} fixed, {} broke | {:.0} us/decide",
+            "{label}: WER typed {:.2}% -> field {:.2}% | sentences clean {:.1}% | correct words changed {:.2}% ({}/{}) | new words changed {}/{} | fixed: {} | final: {} | recheck {} changed, {} fixed, {} broke, {} wrong to wrong | rejoin {} changed, {} fixed, {} broke | {:.0} us/decide",
             100.0 * self.literal_errors as f64 / w,
             100.0 * self.errors as f64 / w,
             100.0 * self.clean_sentences as f64 / self.sentences.max(1) as f64,
@@ -435,9 +623,14 @@ impl Tally {
             self.new_changed,
             self.new_words,
             kinds.join(", "),
+            finals.join(", "),
             self.rechecks,
             self.recheck_fixed,
             self.recheck_broke,
+            self.recheck_wrong,
+            self.rejoins,
+            self.rejoin_fixed,
+            self.rejoin_broke,
             self.decide_us as f64 / self.decides.max(1) as f64,
         )
     }
@@ -478,6 +671,33 @@ fn main() {
         eprintln!("held out: {} words", held.len());
     }
     let entries: Vec<(String, i32)> = entries.into_iter().filter(|(w, _)| !held.contains(w)).collect();
+    // `LIST2=file`: a second list searched beside the first, each word on
+    // its own list's Zipf prior (a word in both takes the better).
+    let list2_words: Option<Vec<(String, i32)>> = std::env::var("LIST2").ok().map(|path| {
+        let words = wordlist::parse(&std::fs::read_to_string(path).expect("LIST2"));
+        words.into_iter().filter(|(w, _)| !held.contains(w)).collect()
+    });
+    // Every word a list the decoder reads holds: a word typed right that is
+    // not among them counts as a new word (a name, slang, a held-out word).
+    let listed_all: HashSet<String> =
+        entries.iter().chain(list2_words.iter().flatten()).map(|(w, _)| w.to_lowercase()).collect();
+    let is_listed = |w: &str| listed_all.contains(w) || listed_all.contains(&w.replace('\'', ""));
+    // `UNLISTED_ONLY=1`: only sentences holding a word no list holds, the
+    // real new words a correctly typed name or term stands for.
+    let unlisted_only = env::<i32>("UNLISTED_ONLY", 0) == 1;
+    // `NEW_CLEAN=1`: the simulated hand types such words right, every tap on
+    // its own key, so they test what autocorrect does to a new word typed
+    // right.
+    let new_clean = env::<i32>("NEW_CLEAN", 0) == 1;
+    // `PHONE=1`: what the keyboard does before it asks the decoder, as
+    // `SuggestionEngine.decideCorrection` does it: a word under three letters
+    // only gets its accents back (and its taps are not kept for the
+    // re-check), and an unlisted verb form of a listed verb stands.
+    let phone = env::<i32>("PHONE", 0) == 1;
+    // `PHONE_SHORT=1`: with `PHONE`, words under three letters go to the
+    // decoder too (their taps kept for the re-check), all but the texting
+    // forms `SuggestionEngine.TEXTING_SHORT_FORMS` leaves alone.
+    let phone_short = env::<i32>("PHONE_SHORT", 0) == 1;
     let count: usize = env("SENTENCES", 2000);
     let skip: usize = env("SKIP", 0);
     let raw = std::fs::read_to_string(&args[2]).expect("the sentences");
@@ -496,6 +716,7 @@ fn main() {
         .filter(|(ws, _)| {
             ws.iter().all(|w| w.chars().all(|c| c == '\'' || layout_keys.iter().any(|k| k.0 == key_of(c) as u16)))
         })
+        .filter(|(ws, _)| !unlisted_only || ws.iter().any(|w| !is_listed(w)))
         .skip(skip)
         .take(count)
         .collect();
@@ -539,7 +760,8 @@ fn main() {
     // `DUMP=file`: every buffer the field can be scored on, one word or
     // several: label, kind, meant, typed, taps, what the field got, then the
     // literal as `score,lexical,model,listed,unread` and the decoder's
-    // readings as `text:score:lexical:model:edits:slips:spaces:unread:edge`
+    // readings as `text:score:lexical:model:edits:slips:spaces:unread:edge:kinds`
+    // (kinds: left out, stray, doubled, swapped, far, comma-separated)
     // joined by `|`, best first. `unread`: a word the context model has no
     // token for (it scores it by its pieces, or not at all).
     let mut dump_out = std::env::var("DUMP").ok().map(|p| std::fs::File::create(p).expect("the dump file"));
@@ -582,14 +804,7 @@ fn main() {
     let dec_list = WordList::of(&entries);
     let ranks = Ranks::of(dec_list.dict());
     let dec_prior = |f: i32| ranks.prior(f);
-    // `LIST2=file`: a second list searched beside the first, each word on
-    // its own list's Zipf prior (a word in both takes the better).
-    let list2: Option<WordList> = std::env::var("LIST2")
-        .ok()
-        .map(|path| {
-            let words = wordlist::parse(&std::fs::read_to_string(path).expect("LIST2"));
-            WordList::of(&words.into_iter().filter(|(w, _)| !held.contains(w)).collect::<Vec<_>>())
-        });
+    let list2: Option<WordList> = list2_words.as_ref().map(|w| WordList::of(w));
     let ranks2 = list2.as_ref().map(|l| Ranks::of(l.dict())).unwrap_or_default();
     let prior2 = |f: i32| ranks2.prior(f);
     // `LEX=n`: a user lexicon learned from the n sentences after the test
@@ -667,6 +882,7 @@ fn main() {
     dec_params.ln_space_omit = env::<f64>("SPACE_OMIT", dec_params.ln_space_omit.exp()).ln();
     dec_params.ln_extra_word = env::<f64>("EXTRA_WORD", dec_params.ln_extra_word.exp()).ln();
     dec_params.beam = env("BEAM", dec_params.beam);
+    dec_params.max_words = env("MAX_WORDS", dec_params.max_words);
     dec_params.ln_far = env::<f64>("FAR", dec_params.ln_far.exp()).ln();
     dec_params.ln_swap = env::<f64>("SWAP", dec_params.ln_swap.exp()).ln();
     dec_params.ln_omit = env::<f64>("OMIT", dec_params.ln_omit.exp()).ln();
@@ -674,6 +890,10 @@ fn main() {
     dec_params.ln_double = env::<f64>("DOUBLE", dec_params.ln_double.exp()).ln();
     dec_params.ln_unknown_letter = env::<f64>("UNKNOWN_LETTER", dec_params.ln_unknown_letter.exp()).ln();
     let recheck_on = env::<i32>("RECHECK", 0) == 1;
+    // `REJOIN=1`: a buffer and the one before, one space tap apart, read as
+    // one run of taps in which that tap may be a letter ([`decoder::rejoin`]).
+    let rejoin_on = env::<i32>("REJOIN", 0) == 1;
+    let rejoin_margin: f64 = env("REJOIN_MARGIN", decoder::REJOIN_MARGIN);
     let recheck_margin: f64 = env("RECHECK_MARGIN", decoder::RECHECK_MARGIN);
     let recheck_known: f64 = env("RECHECK_KNOWN", decoder::RECHECK_KNOWN_MARGIN);
     let recheck_depth: usize = env("RECHECK_DEPTH", 1);
@@ -697,6 +917,9 @@ fn main() {
     // fixed bars, at the slider's `GATE_CONFIDENCE` (4).
     let gate_on = env::<i32>("GATE", 0) == 1;
     let gate_confidence: f64 = env("GATE_CONFIDENCE", 4.0);
+    // `RECHECK_GATE=1`: the re-check decides by its fitted gate
+    // ([`decoder::RecheckGate`]) at the same slider value.
+    let recheck_gate = env::<i32>("RECHECK_GATE", 0) == 1;
     dec_params.ln_double_space = env::<f64>("DOUBLE_SPACE", dec_params.ln_double_space.exp()).ln();
     let geometry = Geometry { keys: keys.clone(), space: Some((SPACE_X, 3.0 * ROW, SPACE_HALF_WIDTH, ROW / 2.0)) };
     let proximity = if layout == "qwerty" { KeyProximity::qwerty(false) } else { KeyProximity::of_rows(&layout_rows(&layout)) };
@@ -730,9 +953,15 @@ fn main() {
     // for, when known; `touch` replaces the old rules' touch model (a
     // recorded keyboard's own keys).
     #[allow(clippy::too_many_arguments)]
+    // `RECHECK_DUMP=file`: every re-check weighed, for fitting its verdict:
+    // label, depth, meant, committed, typed, then what was committed as
+    // `score,lexical,model,literal,listed,best_right,own_right`, the literal
+    // as `score,lexical,model`, and the readings as in `DUMP`.
+    let mut recheck_dump = std::env::var("RECHECK_DUMP").ok().map(|p| std::fs::File::create(p).expect("the re-check dump"));
+    let mut units_out = std::env::var("UNITS").ok().map(|p| std::fs::File::create(p).expect("the units file"));
     let mut type_sentence = |words: &[String],
                              strokes: &[Stroke],
-                             owner: Option<&[usize]>,
+                             owner: Option<&[Option<usize>]>,
                              kinds: &[&'static str],
                              geometry: &Geometry,
                              touch: Option<TouchModel>,
@@ -774,7 +1003,7 @@ fn main() {
                 }
                 buf.push(s.ch);
                 taps.push(Some(s.at));
-                owners.push(owner.map(|o| o[k]));
+                owners.push(owner.and_then(|o| o[k]));
                 typed_view.push(s.ch);
             }
             if (s.ch == ' ' || last) && !buf.is_empty() {
@@ -815,8 +1044,17 @@ fn main() {
                 // still goes to the decoder when two space taps follow it:
                 // the first may have been its last letter ("in").
                 let elided = p.elide(&buf);
+                let short_word = phone && buf.chars().count() < 3;
+                let texting = short_word && TEXTING_SHORT_FORMS.contains(&buf.as_str());
+                // Under three letters and held back from the decoder.
+                let short = short_word && (!phone_short || texting);
+                let verb_form = phone && !short && !is_listed(&buf) && is_verb_form(&buf, &|w| is_listed(w));
                 let out = if let (Some(fixed), false) = (elided.clone(), corrects && use_decoder && trail_pair) {
                     fixed
+                } else if corrects && use_decoder && (verb_form || (short && !trail_pair)) {
+                    // The phone's own answer before the decoder: the word
+                    // stands (English has no accent twins to put back).
+                    elided.clone().unwrap_or_else(|| buf.clone())
                 } else if corrects && use_decoder {
                     let mut src = vec![Source { walker: dec_list.dict(), prior: &dec_prior }];
                     if let Some(l2) = &list2 {
@@ -861,8 +1099,17 @@ fn main() {
                             .iter()
                             .map(|r| {
                                 format!(
-                                    "{}:{:.3}:{:.3}:{:.3}:{}:{}:{}:{}:{}",
-                                    r.text, r.score, r.lexical, r.model, r.edits, r.slips, r.spaces, unread(&r.text), r.edge
+                                    "{}:{:.3}:{:.3}:{:.3}:{}:{}:{}:{}:{}:{}",
+                                    r.text,
+                                    r.score,
+                                    r.lexical,
+                                    r.model,
+                                    r.edits,
+                                    r.slips,
+                                    r.spaces,
+                                    unread(&r.text),
+                                    r.edge,
+                                    r.kinds.iter().map(u8::to_string).collect::<Vec<_>>().join(",")
                                 )
                             })
                             .collect::<Vec<_>>()
@@ -877,15 +1124,23 @@ fn main() {
                     } else {
                         decoder::verdict_full(&d, &buf, apply_margin, known_margin, accent_margin, edge_margin)
                     };
-                    used_pair = v.apply.as_ref().is_some_and(|a| {
+                    // A short word reaches the decoder on the phone only
+                    // through the second space (`edgeLetterFix`), which only
+                    // takes the first space as its last letter.
+                    let apply = v.apply.filter(|a| {
+                        !short || d.readings.iter().any(|r| &r.text == a && r.edge & 2 != 0 && !r.text.contains(' '))
+                    });
+                    used_pair = apply.as_ref().is_some_and(|a| {
                         trail_pair && d.readings.iter().any(|r| &r.text == a && r.edge & 2 != 0)
                     });
-                    match v.apply {
+                    match apply {
                         Some(text) => p.elide(&text).unwrap_or(text),
                         None if elided.is_some() => elided.clone().unwrap(),
                         // `UNION=1`: the old rules get their turn when the
                         // decoder leaves the word alone, as on the phone.
-                        None if union => p.decide_touch(&buf, 1.0, Some(previous), &taps).apply.unwrap_or_else(|| buf.clone()),
+                        None if union && !short => {
+                            p.decide_touch(&buf, 1.0, Some(previous), &taps).apply.unwrap_or_else(|| buf.clone())
+                        }
                         None => buf.clone(),
                     }
                 } else if corrects {
@@ -935,7 +1190,7 @@ fn main() {
                     if !got_it {
                         t.damaged += 1;
                     }
-                    if held.contains(&want) {
+                    if !is_listed(&want) {
                         t.new_words += 1;
                         if !got_it {
                             t.new_changed += 1;
@@ -956,7 +1211,7 @@ fn main() {
                 if let (Some(f), true) = (dump_out.as_mut(), aligned) {
                     let pts: Vec<String> =
                         taps.iter().flatten().map(|(x, y)| format!("{x:.3},{y:.3}")).collect();
-                    let kind = if kind == "clean" && held.contains(&want) { "new" } else { kind };
+                    let kind = if kind == "clean" && !is_listed(&want) { "new" } else { kind };
                     writeln!(f, "{label}\t{kind}\t{want}\t{buf}\t{}\t{out}\t{}\t{}", pts.join(";"), dec_dump.0, dec_dump.1).unwrap();
                 }
                 if !got_it && aligned {
@@ -967,6 +1222,109 @@ fn main() {
                 let start = field.len();
                 field.extend(out.split(' ').map(str::to_lowercase));
                 commits.push((out.to_lowercase(), taps.iter().flatten().copied().collect()));
+                let letters: Vec<Tap> = buf.encode_utf16().zip(taps.iter()).map(|(c, at)| Tap { typed: c, at: *at }).collect();
+                let last_stroke = if s.ch == ' ' { k - 1 } else { k };
+                let mut ids: Vec<usize> = Vec::new();
+                for &o in &owners_u {
+                    if ids.last() != Some(&o) {
+                        ids.push(o);
+                    }
+                }
+                // `REJOIN=1`: this buffer and the one before as one word.
+                let mut rejoined: Option<Last> = None;
+                if rejoin_on && !used_pair && !short && buf_start >= 2 {
+                    if let Some(prev) = history.last() {
+                        let one_space = prev.last_stroke + 2 == buf_start && strokes[buf_start - 1].ch == ' ';
+                        // Only where a half reads as no word: one is under
+                        // three letters or in no list as typed.
+                        let prev_typed = String::from_utf16_lossy(&prev.letters.iter().map(|t| t.typed).collect::<Vec<_>>());
+                        let broken = [prev_typed.as_str(), buf.as_str()]
+                            .iter()
+                            .any(|h| h.chars().count() < 3 || !is_listed(h));
+                        if one_space && broken && !prev.letters.is_empty() && aligned {
+                            let bar = Tap { typed: ' ' as u16, at: Some(strokes[buf_start - 1].at) };
+                            let before: Vec<&str> = field[..prev.start].iter().map(String::as_str).collect();
+                            let first = field[prev.start..start].join(" ");
+                            let second = field[start..].join(" ");
+                            let mut src = vec![Source { walker: dec_list.dict(), prior: &dec_prior }];
+                            if let Some(l2) = &list2 {
+                                src.push(Source { walker: l2.dict(), prior: &prior2 });
+                            }
+                            if let Some(lx) = &lexicon {
+                                src.push(Source { walker: lx.dict(), prior: &lex_prior });
+                            }
+                            let started = Instant::now();
+                            let found = {
+                                let mut lm_guard = p.lm.as_ref().map(|l| l.borrow_mut());
+                                let prefix = p.lm_prefix;
+                                let mut seq = |text: &str| -> Option<f64> {
+                                    let lm = lm_guard.as_mut()?;
+                                    let mut ctx: Vec<&str> = before.clone();
+                                    let mut total = 0.0;
+                                    for w in text.split(' ') {
+                                        lm.set_context(prefix, &ctx);
+                                        total += lm.logprob(w)? as f64;
+                                        ctx.push(w);
+                                    }
+                                    Some(total)
+                                };
+                                let has_lm = p.lm.is_some();
+                                decoder::rejoin(
+                                    &prev.letters, bar, &letters, &geometry, &src, &dec_context, &before,
+                                    (&first, &second), &params_here, &adjacent,
+                                    if has_lm { Some((lm_w, &mut seq)) } else { None },
+                                    rejoin_margin,
+                                )
+                            };
+                            t.decide_us += started.elapsed().as_micros();
+                            if let Some(text) = found.apply {
+                                let text = p.elide(&text).unwrap_or(text).to_lowercase();
+                                let mut both = prev.ids.clone();
+                                for &i in &ids {
+                                    if both.last() != Some(&i) {
+                                        both.push(i);
+                                    }
+                                }
+                                let meant = both.iter().map(|&i| words[i].clone()).collect::<Vec<_>>().join(" ");
+                                let was = format!("{first} {second}");
+                                t.rejoins += 1;
+                                if text == meant && was != meant {
+                                    t.rejoin_fixed += 1;
+                                } else if was == meant && text != meant {
+                                    t.rejoin_broke += 1;
+                                }
+                                if let Some(f) = errors_out.as_mut() {
+                                    writeln!(f, "{label}\trejoin\t{meant}\t{was}\t{text}").unwrap();
+                                }
+                                let prev_start = prev.start;
+                                field.truncate(prev_start);
+                                field.extend(text.split(' ').map(str::to_string));
+                                let mut joined_taps = prev.letters.clone();
+                                joined_taps.push(bar);
+                                joined_taps.extend(letters.iter().copied());
+                                rejoined = Some(Last {
+                                    taps: joined_taps.clone(),
+                                    start: prev_start,
+                                    want: meant,
+                                    letters: joined_taps,
+                                    last_stroke,
+                                    ids: both,
+                                });
+                            }
+                        }
+                    }
+                }
+                if let Some(merged) = rejoined {
+                    history.pop();
+                    history.push(merged);
+                    buf.clear();
+                    taps.clear();
+                    owners.clear();
+                    if s.ch == ' ' {
+                        typed_view.push(' ');
+                    }
+                    continue;
+                }
                 // `RECHECK=1`: the buffer before this one, read again
                 // with this one's words after it; `RECHECK_DEPTH=2` the one
                 // before that too, with both buffers' words after it.
@@ -1005,12 +1363,57 @@ fn main() {
                                 Some(total)
                             };
                             let has_lm = p.lm.is_some();
-                            decoder::recheck(
+                            let read = decoder::recheck_read(
                                 &prev_taps, &geometry, &src, &dec_context, &before, &committed, &after, &params_here,
                                 &adjacent,
                                 if has_lm { Some((lm_w, &mut seq)) } else { None },
-                                margin_here, known_here,
-                            )
+                            );
+                            if let (Some(f), Some(r)) = (recheck_dump.as_mut(), read.as_ref()) {
+                                let d = &r.decoded;
+                                let reads = d
+                                    .readings
+                                    .iter()
+                                    .map(|x| {
+                                        format!(
+                                            "{}:{:.3}:{:.3}:{:.3}:{}:{}:{}:0:{}:{}",
+                                            x.text,
+                                            x.score,
+                                            x.lexical,
+                                            x.model,
+                                            x.edits,
+                                            x.slips,
+                                            x.spaces,
+                                            x.edge,
+                                            x.kinds.iter().map(u8::to_string).collect::<Vec<_>>().join(",")
+                                        )
+                                    })
+                                    .collect::<Vec<_>>()
+                                    .join("|");
+                                writeln!(
+                                    f,
+                                    "{label}\t{}\t{prev_want}\t{committed}\t{}\t{:.3},{:.3},{:.3},{},{},{:.3},{:.3}\t{:.3},{:.3},{:.3}\t{reads}",
+                                    back + 1,
+                                    r.typed,
+                                    r.own,
+                                    r.own_lexical,
+                                    r.own_model,
+                                    u8::from(r.own_literal),
+                                    u8::from(d.literal_listed),
+                                    r.best_right,
+                                    r.own_right,
+                                    d.literal,
+                                    d.literal_lexical,
+                                    d.literal_model,
+                                )
+                                .unwrap();
+                            }
+                            match read {
+                                Some(r) if recheck_gate => {
+                                    decoder::RecheckGate::verdict(&r, &committed, back + 1, gate_confidence)
+                                }
+                                Some(r) => decoder::recheck_verdict(&r, &committed, margin_here, known_here),
+                                None => decoder::Recheck::default(),
+                            }
                         };
                         t.decide_us += started.elapsed().as_micros();
                         let Some(text) = found.apply else { continue };
@@ -1025,6 +1428,8 @@ fn main() {
                             if let Some(f) = errors_out.as_mut() {
                                 writeln!(f, "{label}\trecheck-broke\t{prev_want}\t{committed}\t{text}").unwrap();
                             }
+                        } else if !was_right && !now_right {
+                            t.recheck_wrong += 1;
                         }
                         let new_words: Vec<String> = text.split(' ').map(str::to_string).collect();
                         let shift = new_words.len() as isize - (end - prev_start) as isize;
@@ -1035,7 +1440,10 @@ fn main() {
                         start = (start as isize + shift) as usize;
                     }
                 }
-                history.push(Last { taps: dtaps.clone(), start, want: want.clone() });
+                // The phone keeps no taps for a word under three letters.
+                let kept = if short { Vec::new() } else { dtaps.clone() };
+                let letters = if short { Vec::new() } else { letters };
+                history.push(Last { taps: kept, start, want: want.clone(), letters, last_stroke, ids });
                 if history.len() > 3 {
                     history.remove(0);
                 }
@@ -1056,6 +1464,52 @@ fn main() {
         t.errors += err;
         if err == 0 {
             t.clean_sentences += 1;
+        }
+        // Each unit of the alignment between what was typed and what was
+        // meant, scored on the field as it ends up.
+        let matched = field_match(&field, &reference);
+        for (unit, ws, bs) in align_units(&reference, &literal) {
+            let kind: &'static str = match unit {
+                Unit::Joined => "joined",
+                Unit::Split => "split",
+                Unit::Skipped => "skipped",
+                Unit::Extra => continue,
+                Unit::One => {
+                    let w = &reference[ws.start];
+                    let b = &literal[bs.start];
+                    if *b == w.replace('\'', "") {
+                        if w.contains('\'') {
+                            "apostrophe"
+                        } else if !is_listed(w) {
+                            "new"
+                        } else {
+                            "clean"
+                        }
+                    } else if *b == w.chars().map(key_of).collect::<String>() {
+                        "accent"
+                    } else if kinds[ws.start] != "clean" && kinds[ws.start] != "split" {
+                        kinds[ws.start]
+                    } else {
+                        "slipped"
+                    }
+                }
+            };
+            let right = ws.clone().all(|i| matched[i].0);
+            let e = t.finals.entry(kind).or_default();
+            e.0 += 1;
+            e.1 += usize::from(right);
+            if let Some(f) = units_out.as_mut() {
+                let got: Vec<&str> = ws.clone().filter_map(|i| matched[i].1).map(|j| field[j].as_str()).collect();
+                writeln!(
+                    f,
+                    "{label}\t{kind}\t{}\t{}\t{}\t{}",
+                    reference[ws.clone()].join(" "),
+                    literal[bs.clone()].join(" "),
+                    got.join(" "),
+                    u8::from(right)
+                )
+                .unwrap();
+            }
         }
         if show_it {
             println!("  meant: {}\n  typed: {typed_view}\n  field: {}\n", reference.join(" "), field.join(" "));
@@ -1136,25 +1590,46 @@ fn main() {
                 }
                 kept
             });
-            // Aligned when the bar splits the taps into one buffer a word.
-            let mut owner = Vec::with_capacity(strokes.len());
-            let mut buffers = 0usize;
+            // Which word each tap was meant for: the buffers the bar split
+            // the taps into, lined up with the words at the fewest edits, so
+            // a sentence with a joined or split word is scored too.
+            let mut bufs: Vec<String> = Vec::new();
             let mut open = false;
             for s in &strokes {
                 if s.ch == ' ' {
                     open = false;
-                    owner.push(buffers);
                 } else {
                     if !open {
-                        buffers += 1;
+                        bufs.push(String::new());
                         open = true;
                     }
-                    owner.push(buffers - 1);
+                    bufs.last_mut().unwrap().push(s.ch);
                 }
             }
-            let owner: Vec<usize> = owner.into_iter().map(|o| o.min(words.len().saturating_sub(1))).collect();
-            let aligned = buffers == words.len();
-            let kinds = vec!["clean"; words.len()];
+            let units = align_units(&words, &bufs);
+            let per_buf = owners_of(&units, &words, &bufs);
+            let mut owner: Vec<Option<usize>> = Vec::with_capacity(strokes.len());
+            let (mut b, mut at, mut open) = (0usize, 0usize, false);
+            for s in &strokes {
+                if s.ch == ' ' {
+                    if open {
+                        b += 1;
+                        at = 0;
+                        open = false;
+                    }
+                    owner.push(None);
+                } else {
+                    open = true;
+                    owner.push(per_buf.get(b).and_then(|o| o.get(at).copied().flatten()));
+                    at += 1;
+                }
+            }
+            let mut kinds = vec!["clean"; words.len()];
+            for (u, ws, _) in &units {
+                if *u == Unit::Split {
+                    kinds[ws.start] = "split";
+                }
+            }
             let learner = learners.entry(format!("{}|{}", f[2], f[3])).or_default();
             let keys_now = if personal { learner.shifted(&board.keys, k_global, k_key) } else { board.keys.clone() };
             let sigma = (personal && personal_spread).then(|| {
@@ -1166,7 +1641,7 @@ fn main() {
             let mut t = Tally::default();
             let mut commits = Vec::new();
             type_sentence(
-                &words, &strokes, aligned.then_some(&owner[..]), &kinds, &geometry, touch, &mut t, shown < show,
+                &words, &strokes, Some(&owner[..]), &kinds, &geometry, touch, &mut t, shown < show,
                 &format!("{study}|{}", f[3]), &mut commits, sigma,
             );
             shown += 1;
@@ -1214,6 +1689,26 @@ fn main() {
                     owner.push(wi);
                 }
                 let mut meant: Vec<char> = word.chars().filter(|c| *c != '\'').map(key_of).collect();
+                if new_clean && !is_listed(word) {
+                    // Typed right: each tap drawn again until it lands on
+                    // its own key, nothing left out or swapped.
+                    for &c in &meant {
+                        let mut s = tap_letter(&mut rng, &keys, &hand, c);
+                        for _ in 0..64 {
+                            if s.ch == c {
+                                break;
+                            }
+                            s = tap_letter(&mut rng, &keys, &hand, c);
+                        }
+                        if s.ch != c {
+                            let k = keys.iter().find(|k| k.0 == c as u16).unwrap();
+                            s = Stroke { ch: c, at: (k.1, k.2) };
+                        }
+                        strokes.push(s);
+                        owner.push(wi);
+                    }
+                    continue;
+                }
                 if let Some(options) = misspelled.get(word.as_str()) {
                     if rng.uniform() < p_misspell * 4.0 {
                         meant = options[rng.pick(options.len())].chars().collect();
@@ -1244,6 +1739,7 @@ fn main() {
                     i += 1;
                 }
             }
+            let owner: Vec<Option<usize>> = owner.into_iter().map(Some).collect();
             type_sentence(words, &strokes, Some(&owner), &kinds, &geometry, None, &mut t, si < show, &format!("{scale}"), &mut Vec::new(), None);
         }
         println!("{}", t.line(&format!("hand x{scale:.1}")));

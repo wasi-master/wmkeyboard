@@ -1,6 +1,6 @@
 """Fit the decoder's verdict gate on the sentence harness's dumps.
 
-usage: fit_gate.py --fit=dump.tsv[,dump.tsv...] --check=dump.tsv[,...]
+usage: fit_gate.py --fit=dump.tsv[:weight][,dump.tsv[:weight]...] --check=dump.tsv[,...]
                    [--hidden=8] [--l2=3e-3] [--steps=4000] [--new-weight=3]
                    [--confidence=4] [--rust=../../native/wm-engine/src/decoder.rs] [--plain]
 
@@ -54,7 +54,8 @@ def rows_of(path):
             p = r.split(":")
             reads.append(dict(text=p[0], score=float(p[1]), lex=float(p[2]), model=float(p[3]),
                               edits=int(p[4]), slips=int(p[5]), spaces=int(p[6]),
-                              edge=int(p[8]) if len(p) > 8 else 0))
+                              edge=int(p[8]) if len(p) > 8 else 0,
+                              kinds=[int(x) for x in p[9].split(",")] if len(p) > 9 else [0] * 5))
         out.append(dict(label=label, kind=kind, want=want, buf=buf, out=f[5].lower(), lit=lit, reads=reads,
                         edge=None))
     return out
@@ -159,20 +160,21 @@ def report(name, X, y, keep, decide):
           f" | right words changed {broke:4d} of {len(y) - pos:5d} | new words changed {broke_new}/{new}")
 
 
-def write_rust(path, model, plain=False):
+def write_rust(path, model, plain=False, pre=None, marker=None, features="GATE_FEATURES"):
     """Writes the weights between the gate's markers: `GATE_*` for readings
-    the context model weighed, `GATE_PLAIN_*` (``plain``) for the rest."""
+    the context model weighed, `GATE_PLAIN_*` (``plain``) for the rest, or
+    ``pre`` between ``marker`` BEGIN and END with ``features`` inputs."""
     mean, scale, P = model
     W1, b1, W2, b2 = P
-    pre = "GATE_PLAIN" if plain else "GATE"
+    pre = pre or ("GATE_PLAIN" if plain else "GATE")
     hidden = f"{pre}_HIDDEN"
-    marker = "GATE PLAIN FIT" if plain else "GATE FIT"
+    marker = marker or ("GATE PLAIN FIT" if plain else "GATE FIT")
     fmt = lambda a: ", ".join(f"{x:.6}" for x in a)
     body = [
         f"// {marker} BEGIN",
-        f"const {pre}_MEAN: [f64; GATE_FEATURES] = [{fmt(mean)}];",
-        f"const {pre}_SCALE: [f64; GATE_FEATURES] = [{fmt(scale)}];",
-        f"const {pre}_W1: [[f64; GATE_FEATURES]; {hidden}] = [",
+        f"const {pre}_MEAN: [f64; {features}] = [{fmt(mean)}];",
+        f"const {pre}_SCALE: [f64; {features}] = [{fmt(scale)}];",
+        f"const {pre}_W1: [[f64; {features}]; {hidden}] = [",
         *[f"    [{fmt(W1[:, j])}]," for j in range(W1.shape[1])],
         "];",
         f"const {pre}_B1: [f64; {hidden}] = [{fmt(b1)}];",
@@ -189,7 +191,13 @@ def write_rust(path, model, plain=False):
 
 def main():
     opts = dict(a.split("=", 1) for a in sys.argv[1:] if a.startswith("--") and "=" in a)
-    fit_rows = [r for p in opts["--fit"].split(",") for r in rows_of(p)]
+    # `file:weight` weighs that file's rows (recorded taps above simulated).
+    fit_rows = []
+    for spec in opts["--fit"].split(","):
+        path, _, weight = spec.partition(":")
+        for r in rows_of(path):
+            r["weight"] = float(weight or 1)
+            fit_rows.append(r)
     check_rows = [r for p in opts["--check"].split(",") for r in rows_of(p)]
     hidden = int(opts.get("--hidden", 8))
     l2 = float(opts.get("--l2", 3e-3))
@@ -197,7 +205,7 @@ def main():
     new_w = float(opts.get("--new-weight", 3))
     conf = float(opts.get("--confidence", 4))
     X, y, w, keep = labelled(fit_rows)
-    w = np.array([new_w if r["kind"] == "new" else 1.0 for r in keep])
+    w = np.array([(new_w if r["kind"] == "new" else 1.0) * r.get("weight", 1.0) for r in keep])
     print(f"fit rows {len(y)} (right {int(y.sum())}, new {sum(r['kind'] == 'new' for r in keep)})")
     model = fit(X, y, w, hidden, l2, steps)
     Xc, yc, _, keepc = labelled(check_rows)

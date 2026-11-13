@@ -461,7 +461,11 @@ class SuggestionEngine(
     @Volatile
     private var commits: List<Commit> = emptyList()
 
-    private class Commit(val word: String, val alternatives: List<String>, val taps: ReadTaps? = null)
+    private class Commit(val word: String, val alternatives: List<String>, val taps: ReadTaps? = null) {
+        /** Where the space that ended it landed ([noteSpaceAfter]), for [rejoinPrevious]. */
+        @Volatile
+        var spaceAfter: TouchPoint? = null
+    }
 
     /**
      * The taps of a buffer [wholeReading] read, kept so [recheckPrevious] can
@@ -481,6 +485,10 @@ class SuggestionEngine(
     /** The same for the look two commits back. */
     @Volatile
     private var recheckedCommit2: Commit? = null
+
+    /** The commit [rejoinPrevious] last read with the one before it. */
+    @Volatile
+    private var rejoinedCommit: Commit? = null
 
     /**
      * Hands the context model the sentence so far, oldest first, under the
@@ -512,6 +520,16 @@ class SuggestionEngine(
         commits = (commits + commit).takeLast(REVISION_DEPTH)
     }
 
+    /**
+     * The space that ended the word committed last landed at [point] (key
+     * widths, like the letters' taps): kept with that commit, so that once
+     * the next word lands the two can be read as one word whose letter hit
+     * the bar ([rejoinPrevious]).
+     */
+    fun noteSpaceAfter(point: TouchPoint) {
+        commits.lastOrNull()?.takeIf { it.taps != null }?.spaceAfter = point
+    }
+
     /** Forgets the remembered commits: a new field, a caret jump. */
     fun clearCommits() {
         commits = emptyList()
@@ -523,7 +541,14 @@ class SuggestionEngine(
      * wrong, its replacement, and the words after it. [sure] is a re-read
      * clear enough to put in place without asking.
      */
-    class Revision(val wrong: String, val replacement: String, val followers: List<String>, val sure: Boolean = false)
+    class Revision(
+        val wrong: String,
+        val replacement: String,
+        val followers: List<String>,
+        val sure: Boolean = false,
+        /** [replacement] stands for [wrong] and its followers together ([rejoinPrevious]). */
+        val join: Boolean = false,
+    )
 
     /**
      * The buffer committed before the newest one, its taps read again with
@@ -540,6 +565,7 @@ class SuggestionEngine(
      * with both buffers after it, and what it finds is only offered (on the
      * sentence harness's recorded taps the second look took the words left
      * wrong from 5.58% to 5.38% applied, breaking none more).
+
      *
      * Each commit is judged once at each depth. Null when [readWholePhrases] is off, the
      * primary language is not English, the buffer was not read whole (a
@@ -552,6 +578,7 @@ class SuggestionEngine(
         val commits = commits
         val sentence = sentence
         if (commits.size < 2) return null
+        rejoinPrevious(commits, sentence)?.let { return it }
         recheckAt(commits, sentence, 1)?.let { return it }
         // Two back, with both buffers after it in sight: offered on the chip,
         // never put in place, since the word has stood for two words already.
@@ -598,6 +625,11 @@ class SuggestionEngine(
                 call.lm?.sessionHandle ?: 0L, if (call.lm != null) WHOLE_READING_MODEL_WEIGHT else 0.0,
                 register.ordinal, contextField.ordinal, call.lm?.slotOf(primaryLanguageId) ?: 0,
                 RECHECK_MARGIN * call.scale, RECHECK_KNOWN_MARGIN * call.scale,
+                // The fixed margins: the fitted re-check gate
+                // (`decoder::RecheckGate`, the harness's `RECHECK_GATE`) cut
+                // re-reads that trade one wrong word for another but did not
+                // lower the words left wrong on recorded taps (2026-11-13).
+                back, 0.0,
             )
         } catch (_: UnsatisfiedLinkError) {
             return null
@@ -608,6 +640,64 @@ class SuggestionEngine(
         val apply = found.getOrNull(0)?.takeIf(::usable)
         val text = apply ?: found.getOrNull(1)?.takeIf(::usable) ?: return null
         return Revision(wrong, matchCase(wrong, displayForm(text)), followers, sure = apply != null)
+    }
+
+    /**
+     * The newest commit and the one before it, one space apart, read as one
+     * word whose letter landed on the bar (`decoder::rejoin`): "feeli g" is
+     * "feeling", "u real" "unreal". The decoder reads a space tap as a letter
+     * only at the edge of a buffer, so a word broken in the middle stayed
+     * broken; on recorded phone taps 67 of 71 such words did.
+     *
+     * Sure or nothing: a reading that replaces two words is never offered on
+     * the chip. Each pair is read once. Null when either commit was not read
+     * whole, the space's position is unknown, or the field no longer ends in
+     * the two.
+     */
+    private fun rejoinPrevious(commits: List<Commit>, sentence: List<String>): Revision? {
+        val second = commits.last()
+        val first = commits[commits.size - 2]
+        if (second === rejoinedCommit) return null
+        val bar = first.spaceAfter ?: return null
+        val taps1 = first.taps ?: return null
+        val taps2 = second.taps ?: return null
+        val points1 = taps1.points ?: return null
+        val points2 = taps2.points ?: return null
+        val w1 = first.word.trim()
+        val w2 = second.word.trim().trimEnd { !it.isLetterOrDigit() }
+        if (w1.isEmpty() || w2.isEmpty() || (w1 + w2).any { !it.isLetter() && it != ' ' && it != '\'' }) return null
+        val words1 = w1.split(' ').map { WordKey.of(it) }
+        val words2 = w2.split(' ').map { WordKey.of(it) }
+        val tailSize = words1.size + words2.size
+        if (sentence.size < tailSize) return null
+        if (sentence.takeLast(tailSize).map { WordKey.of(it) } != words1 + words2) return null
+        rejoinedCommit = second
+        // Only where a half reads as no word as typed: under three letters,
+        // or in no list.
+        if (listOf(taps1.typed, taps2.typed).none { it.length < 3 || !inDictionaries(it) }) return null
+        val before = sentence.dropLast(tailSize).takeLast(WHOLE_READING_CONTEXT).map { WordKey.of(it) }
+        val call = decoderCall(taps2.timingMultiplier) ?: return null
+        val model = touchModelField ?: return null
+        val typed = "${taps1.typed} ${taps2.typed}"
+        val found = try {
+            PredictionNative.decoderRejoin(
+                call.handles, call.kinds, typed,
+                model.keyOrder, model.centerPairs, points1 + floatArrayOf(bar.x, bar.y) + points2, null,
+                model.sigmaValue / KeyTouchModel.SIGMA, model.decoderSpread,
+                before.toTypedArray(), words1.joinToString(" "), words2.joinToString(" "), ngramPack.nativeHandles(),
+                call.seeds?.first, call.seeds?.second, call.seeds?.third,
+                call.lm?.sessionHandle ?: 0L, if (call.lm != null) WHOLE_READING_MODEL_WEIGHT else 0.0,
+                register.ordinal, contextField.ordinal, call.lm?.slotOf(primaryLanguageId) ?: 0,
+                REJOIN_MARGIN * call.scale,
+            )
+        } catch (_: UnsatisfiedLinkError) {
+            return null
+        }
+        val apply = found.getOrNull(0)?.takeIf { text ->
+            text.isNotEmpty() && text.split(' ').none { suppressed(it) } &&
+                correctionStats.penalty(typed, text) == CorrectionStats.Penalty.NONE
+        } ?: return null
+        return Revision(w1, matchCase(w1, displayForm(apply)), listOf(w2), sure = true, join = true)
     }
 
     /**
@@ -3322,6 +3412,12 @@ class SuggestionEngine(
         /** The same when the word stands as typed and a list holds it; `decoder::RECHECK_KNOWN_MARGIN`. */
         const val RECHECK_KNOWN_MARGIN = 5.0
 
+        /**
+         * How far two words read as one must lead what the field holds for
+         * them before [rejoinPrevious] puts the one in; `decoder::REJOIN_MARGIN`.
+         */
+        const val REJOIN_MARGIN = 3.0
+
         /** How much the context model counts when one is open; `decoder::MODEL_WEIGHT`. */
         const val WHOLE_READING_MODEL_WEIGHT = 0.7
 
@@ -3336,6 +3432,17 @@ class SuggestionEngine(
 
         /** Words of the sentence the whole reading's context sees. */
         private const val WHOLE_READING_CONTEXT = 6
+
+        /**
+         * Words under three letters people text on purpose (`u` for "you",
+         * `n` for "and"), which [shortWholeReading] never rewrites: most are
+         * in no list, so a reading one slip away (`u` as `i`) would beat them
+         * every time. The sentence harness's `TEXTING_SHORT_FORMS`.
+         */
+        private val TEXTING_SHORT_FORMS = setOf(
+            "u", "r", "k", "n", "y", "c", "b", "x", "ur", "ya", "yo", "ok", "kk", "np", "ty", "bf", "gf", "ik", "ig",
+            "rn", "bc", "b4", "gn", "gm", "hb", "jk", "nm", "dm", "ft", "tf", "wb",
+        )
 
         /**
          * The longest buffer read whole. Its cost grows with the taps, and a
@@ -5970,6 +6077,10 @@ class SuggestionEngine(
      *        number: up to [EAGER_DIGIT_SLIPS] digits may then be read as the
      *        letters under them ("y97" → "you"), and each digit fix counts as
      *        one slip rather than a full edit.
+     * @param ownCapital the user pressed shift for this word's capital
+     *        themselves, away from the start of a sentence. A word no list
+     *        or learned word holds, capitalised that way, is a name: what
+     *        would replace it is offered, never applied.
      */
     fun decideCorrection(
         word: String,
@@ -5978,6 +6089,23 @@ class SuggestionEngine(
         previousWord: String? = null,
         keys: KeySets? = null,
         fastTyping: Boolean = false,
+        ownCapital: Boolean = false,
+    ): CorrectionDecision {
+        val decision = decideCorrectionOf(word, touch, timingMultiplier, previousWord, keys, fastTyping)
+        val fixed = decision.apply ?: return decision
+        if (!ownCapital || word.firstOrNull()?.isUpperCase() != true) return decision
+        val lower = word.lowercase()
+        if (inDictionaries(lower) || userLexicon.isEstablished(lower, learnedWordMinCount)) return decision
+        return CorrectionDecision(offer = fixed)
+    }
+
+    private fun decideCorrectionOf(
+        word: String,
+        touch: List<TouchPoint?>?,
+        timingMultiplier: Double,
+        previousWord: String?,
+        keys: KeySets?,
+        fastTyping: Boolean,
     ): CorrectionDecision {
         val lower = word.lowercase()
         if (caseExact) {
@@ -5989,7 +6117,13 @@ class SuggestionEngine(
         // lowercase word — don't "correct" it away when the user asked us not to.
         if (lower.length < 3) {
             if (skipAllCapsAutocorrect && isAllCaps(word)) return NO_CORRECTION
-            return shortAccentFix(word, lower, touch)
+            // The taps read whole first (`pn` is `on`, `mr` is `me`), then the
+            // word's accents put back when the decoder found nothing to do.
+            val whole = shortWholeReading(word, lower, touch, timingMultiplier)
+            if (whole?.apply != null) return whole
+            val accent = shortAccentFix(word, lower, touch)
+            if (accent.apply != null || accent.offer != null) return accent
+            return whole ?: accent
         }
         if (skipAllCapsAutocorrect && isAllCaps(word)) return NO_CORRECTION
         val ordinary = decideOrdinary(word, lower, touch, timingMultiplier, keys, fastTyping)
@@ -6186,12 +6320,47 @@ class SuggestionEngine(
     }
 
     /**
-     * The one fix a word under three letters gets (#1182): its accents put
-     * back. Romanian writes `în` and `și` dozens of times a page, and with
-     * every two-letter word off limits `in` and `si` were never fixed.
+     * A word under three letters read whole by the decoder ([wholeReading]),
+     * in the languages it covers: `pn` is `on`, `tp` is `to`, `mr` after
+     * "call" is `me`. The edit rules never guessed at this length, since a
+     * slip in two letters reaches half the language; the decoder has where
+     * each tap landed and the words around it, and its gate holds a listed
+     * word to the same bar as a long one. On recorded phone taps 1,022 of
+     * 7,052 mistyped words were typed as one or two letters.
      *
-     * Nothing else is guessed at that length, since a slip in two letters
-     * reaches half the language. An accent twin spends every key as pressed,
+     * The taps are kept for [recheckPrevious] either way, so "I live on
+     * London" can still become "in" once "London" lands. Never a texting
+     * form ([TEXTING_SHORT_FORMS]), a contact or app name, or a word only the
+     * user's own dictionary holds. Null when the decoder does not run.
+     */
+    private fun shortWholeReading(
+        word: String,
+        lower: String,
+        touch: List<TouchPoint?>?,
+        timingMultiplier: Double,
+    ): CorrectionDecision? {
+        if (!readWholePhrases || lower.isEmpty() || lower.any { !it.isLetter() }) return null
+        noteTaps(lower, touch, timingMultiplier)
+        if (lower in TEXTING_SHORT_FORMS || contacts.contains(lower) || apps.contains(lower)) return null
+        if (!inDictionaries(lower) && userLexicon.isEstablished(lower, learnedWordMinCount)) return null
+        val whole = wholeReading(lower, touch, timingMultiplier) ?: return null
+        whole.apply?.let { fixed ->
+            return CorrectionDecision(
+                apply = matchCase(word, fixed),
+                certainty = whole.certainty,
+                complexity = if (' ' in fixed) 1.0 else complexityOfEdit(lower, fixed),
+            )
+        }
+        return whole.offer?.let { CorrectionDecision(offer = matchCase(word, it)) }
+    }
+
+    /**
+     * The fix a word under three letters gets when the decoder has none, or
+     * does not run for the language (#1182): its accents put back. Romanian
+     * writes `în` and `și` dozens of times a page, and with every two-letter
+     * word off limits `in` and `si` were never fixed.
+     *
+     * The edit rules guess nothing else at that length. An accent twin spends every key as pressed,
      * so it is safe: it applies when the typed spelling is no word of its own,
      * or is one only as the twin typed without its accents ([accentShadowed]).
      * Two twins within [ACCENT_SHADOW_RATIO] of each other are offered, not
@@ -7107,7 +7276,7 @@ class SuggestionEngine(
         // the others keep the rules.
         if (!readsWhole()) return null
         val model = touchModelField ?: return null
-        if (lower.length !in 2..WHOLE_READING_MAX_LENGTH || lower.any { !model.knows(it) }) return null
+        if (lower.length !in 1..WHOLE_READING_MAX_LENGTH || lower.any { !model.knows(it) }) return null
         val call = decoderCall(timingMultiplier) ?: return null
         val points = pointsOf(lower, touch)
         val scale = call.scale

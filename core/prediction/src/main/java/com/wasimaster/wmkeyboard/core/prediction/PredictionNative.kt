@@ -135,8 +135,10 @@ internal object PredictionNative {
     /**
      * The buffer [typed] (taps and sources as in [decoderDecide]) read again
      * now that the words [after] have landed behind it: it was committed as
-     * [committed] after the words [before]. Returns `[apply, offer, lead]`,
-     * apply and offer empty for none.
+     * [committed] after the words [before], [depth] commits back. A
+     * [confidence] above 0 hands the verdict to the fitted gate at that
+     * slider ratio; 0 keeps [margin] and [knownMargin]. Returns
+     * `[apply, offer, lead]`, apply and offer empty for none.
      */
     @Suppress("LongParameterList")
     external fun decoderRecheck(
@@ -163,6 +165,42 @@ internal object PredictionNative {
         lang: Int,
         margin: Double,
         knownMargin: Double,
+        depth: Int,
+        confidence: Double,
+    ): Array<String>
+
+    /**
+     * Two buffers committed one space apart, read as one run of taps in which
+     * the space tap may have been a letter that landed on the bar (`feeli g`
+     * is "feeling"). [typed] is the first buffer, a space and the second, with
+     * [touchPoints] an x, y for each, the space's included; [first] and
+     * [second] are what the field holds for each, after the words [before].
+     * Returns `[apply, offer, lead]`, apply and offer empty for none.
+     */
+    @Suppress("LongParameterList")
+    external fun decoderRejoin(
+        dicts: LongArray,
+        kinds: IntArray,
+        typed: String,
+        touchKeys: CharArray?,
+        touchCenters: FloatArray?,
+        touchPoints: FloatArray?,
+        space: FloatArray?,
+        sigmaScale: Double,
+        spread: FloatArray?,
+        before: Array<String>,
+        first: String,
+        second: String,
+        packs: LongArray,
+        seedFirst: Array<String>?,
+        seedSecond: Array<String>?,
+        seedCounts: IntArray?,
+        lmSession: Long,
+        lmWeight: Double,
+        register: Int,
+        field: Int,
+        lang: Int,
+        margin: Double,
     ): Array<String>
 
     // The user lexicon (UserLexicon). Words arrive folded (WordKey); the

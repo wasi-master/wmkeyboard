@@ -1,7 +1,9 @@
 //! The tap decoder (`wm-engine`'s `decoder`): `PredictionNative.decoderDecide`,
 //! which the Kotlin `SuggestionEngine` asks what a buffer of taps meant when
-//! a space or a mark is about to commit it, and `decoderRecheck`, which asks
-//! again about the buffer committed before once the next one has landed.
+//! a space or a mark is about to commit it, `decoderRecheck`, which asks
+//! again about the buffer committed before once the next one has landed,
+//! and `decoderRejoin`, which reads that buffer and the next as one word
+//! whose letter landed on the space bar.
 //!
 //! One crossing per commit. The word lists are the walk's own sources, named
 //! by handle and kind as in `fuzzy.rs`; a list's ranks (the prior's input)
@@ -439,13 +441,85 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     })
 }
 
+/// `decoderRejoin(dicts, kinds, typed, touchKeys, touchCenters, touchPoints,
+/// space, sigmaScale, spread, before, first, second, packs, seedFirst,
+/// seedSecond, seedCounts, lmSession, lmWeight, register, field, lang,
+/// margin)`: two buffers committed one space apart, read as one run of taps
+/// ([`decoder::rejoin`]). `typed` is the first buffer, a space and the
+/// second, with `touchPoints` an x, y for each, the space's included (it is
+/// the bar tap between them); `first` and `second` are what the field holds
+/// for each, `before` the words before the first. Returns `[apply, offer]`,
+/// each empty for none, and the lead as a third string.
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_decoderRejoin(
+    mut env: JNIEnv,
+    _class: JClass,
+    dicts: JLongArray,
+    kinds: JIntArray,
+    typed: JString,
+    touch_keys: JCharArray,
+    touch_centers: JFloatArray,
+    touch_points: JFloatArray,
+    space: JFloatArray,
+    sigma_scale: jdouble,
+    spread: JFloatArray,
+    before: JObjectArray,
+    first: JString,
+    second: JString,
+    packs: JLongArray,
+    seed_first: JObjectArray,
+    seed_second: JObjectArray,
+    seed_counts: JIntArray,
+    lm_session: jlong,
+    lm_weight: jdouble,
+    register: jint,
+    field: jint,
+    lang: jint,
+    margin: jdouble,
+) -> jobjectArray {
+    guarded(&mut env, null_mut(), |env| {
+        let inp = inputs(
+            env, &dicts, &kinds, &typed, &touch_keys, &touch_centers, &touch_points, &space, sigma_scale, &spread, &before,
+            &packs,
+            &seed_first, &seed_second, &seed_counts,
+        )?;
+        let first = read(env, &first)?;
+        let second = read(env, &second)?;
+        let space_unit = ' ' as u16;
+        let Some(cut) = inp.taps.iter().position(|t| t.typed == space_unit) else {
+            return give_all(env, vec![String::new(), String::new(), "0".to_string()]);
+        };
+        let (prev, rest) = inp.taps.split_at(cut);
+        let (bar, cur) = (rest[0], &rest[1..]);
+        let before_refs: Vec<&str> = inp.before.iter().map(String::as_str).collect();
+        let r = with_decoder(env, &inp, |sources, context, before| {
+            let run = |lm: Option<(f64, decoder::ModelSeq)>| {
+                decoder::rejoin(
+                    prev, bar, cur, &inp.geometry, sources, context, before, (&first, &second), &inp.params,
+                    &|_, _| false, lm, margin,
+                )
+            };
+            if lm_weight > 0.0 {
+                with_model(lm_session, register, field, lang, &before_refs, |seq| run(seq.map(|s| (lm_weight, s))))
+            } else {
+                run(None)
+            }
+        })?;
+        give_all(env, vec![r.apply.unwrap_or_default(), r.offer.unwrap_or_default(), r.lead.to_string()])
+    })
+}
+
 /// `decoderRecheck(dicts, kinds, typed, touchKeys, touchCenters,
 /// touchPoints, space, sigmaScale, spread, before, committed, after, packs,
 /// seedFirst, seedSecond, seedCounts, lmSession, lmWeight, register, field,
-/// lang, margin, knownMargin)`: the buffer `typed` (with its taps, as for
-/// [decoderDecide]) was committed as `committed` after the words `before`,
-/// and the words `after` have landed since. Returns `[apply, offer]`, each
-/// empty for none, and the lead as a third string.
+/// lang, margin, knownMargin, depth, confidence)`: the buffer `typed` (with
+/// its taps, as for [decoderDecide]) was committed as `committed` after the
+/// words `before`, and the words `after` have landed since, `depth` commits
+/// of them. `confidence` above 0 hands the verdict to the fitted gate
+/// ([`decoder::RecheckGate`]) at that confidence; 0 keeps the fixed margins.
+/// Returns `[apply, offer]`, each empty for none, and the lead as a third
+/// string.
 #[no_mangle]
 #[allow(clippy::too_many_arguments)]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_decoderRecheck(
@@ -474,6 +548,8 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     lang: jint,
     margin: jdouble,
     known_margin: jdouble,
+    depth: jint,
+    confidence: jdouble,
 ) -> jobjectArray {
     guarded(&mut env, null_mut(), |env| {
         let inp = inputs(
@@ -487,10 +563,17 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         let before_refs: Vec<&str> = inp.before.iter().map(String::as_str).collect();
         let r = with_decoder(env, &inp, |sources, context, before| {
             let run = |lm: Option<(f64, decoder::ModelSeq)>| {
-                decoder::recheck(
+                let read = decoder::recheck_read(
                     &inp.taps, &inp.geometry, sources, context, before, &committed, &after_refs, &inp.params,
-                    &|_, _| false, lm, margin, known_margin,
-                )
+                    &|_, _| false, lm,
+                );
+                match read {
+                    Some(r) if confidence > 0.0 => {
+                        decoder::RecheckGate::verdict(&r, &committed, depth.max(1) as usize, confidence)
+                    }
+                    Some(r) => decoder::recheck_verdict(&r, &committed, margin, known_margin),
+                    None => decoder::Recheck::default(),
+                }
             };
             if lm_weight > 0.0 {
                 with_model(lm_session, register, field, lang, &before_refs, |seq| run(seq.map(|s| (lm_weight, s))))

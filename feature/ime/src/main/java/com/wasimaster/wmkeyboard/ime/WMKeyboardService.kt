@@ -19185,6 +19185,9 @@ open class WMKeyboardService : InputMethodService() {
         if (typedWord && committed && spaceTouch != null) {
             lastSpaceTouch = spaceTouch
             lastSpaceTouchAt = now
+            // Kept with the word it ended, in case it was a letter of that
+            // word and the next one ("feeli g").
+            suggestionEngine?.noteSpaceAfter(spaceTouch)
         }
         // Only for a real space: the ideographic one is a character
         // [isComposingWordChar] may not treat as a break.
@@ -21492,6 +21495,7 @@ open class WMKeyboardService : InputMethodService() {
                         timingMultiplier = timingMultiplier(),
                         previousWord = previousWord,
                         fastTyping = keystrokeTiming.isFast(),
+                        ownCapital = composingCaseTrusted,
                     ) ?: SuggestionEngine.NO_CORRECTION
                 }
                 corrected = decision.apply?.takeIf { it != typed && !declinedHere }
@@ -24031,7 +24035,7 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         val follower = found.followers.joinToString(" ")
         if (found.sure && state.settings.correction.enabled) {
-            val (was, now) = rewriteBehind(found.wrong, follower, found.replacement) ?: return
+            val (was, now) = rewriteBehind(found.wrong, follower, found.replacement, join = found.join) ?: return
             if (state.settings.suggestionStrip.undoCorrectionChip) {
                 pushUndo(UndoableCorrection(was, now))
                 _uiState.update { it.copy(undoChips = it.undoChips.copy(correctionUndo = was)) }
@@ -24042,7 +24046,9 @@ open class WMKeyboardService : InputMethodService() {
             currentInputConnection?.let { syncPreviousWordFromField(it) }
             return
         }
-        if (!state.settings.suggestionStrip.contextRevision) return
+        // Two words read as one go in sure or not at all: the chip rewrites
+        // one word before its followers, never the followers too.
+        if (found.join || !state.settings.suggestionStrip.contextRevision) return
         if (state.revisionSuggestion != null || !revisionFirstOffer(found)) return
         revisionContext = found.wrong to follower
         _uiState.update { it.copy(revisionSuggestion = found.replacement) }
@@ -24086,9 +24092,16 @@ open class WMKeyboardService : InputMethodService() {
      * the case of [wrong]'s first letter; backspace right after takes it
      * back. Returns the word as the field held it and what replaced it, or
      * null with nothing rewritten when the field says otherwise or a word is
-     * being composed.
+     * being composed. With [join], [replacement] takes the place of [wrong],
+     * the separator and [follower] together (a word the space bar broke in
+     * two, [SuggestionEngine.noteSpaceAfter]).
      */
-    private fun rewriteBehind(wrong: String, follower: String, replacement: String): Pair<String, String>? {
+    private fun rewriteBehind(
+        wrong: String,
+        follower: String,
+        replacement: String,
+        join: Boolean = false,
+    ): Pair<String, String>? {
         if (composing.isNotEmpty()) return null
         val ic = currentInputConnection ?: return null
         ic.beginBatchEdit()
@@ -24120,19 +24133,19 @@ open class WMKeyboardService : InputMethodService() {
             } else {
                 replacement
             }
-            val committed = display + sep + followerActual + trailing
+            val committed = if (join) display + trailing else display + sep + followerActual + trailing
             ic.deleteSurroundingText(original.length, 0)
             ic.commitText(committed, 1)
             // Context: the revised word replaces the old one two words back,
             // when it was the word two back (one follower).
-            if (' ' !in follower) previousWord2 = replacement.lowercase()
+            if (!join && ' ' !in follower) previousWord2 = replacement.lowercase()
             lastRevertible = RevertibleCommit(
                 RevertibleCommit.Kind.REVISION, original = original, committed = committed,
             )
             armRevertGuard()
             invalidateRecentWords()
             invalidateExpectedSelection()
-            return wrongActual to display
+            return (if (join) wrongActual + sep + followerActual else wrongActual) to display
         } finally {
             ic.endBatchEdit()
         }
@@ -28969,6 +28982,7 @@ open class WMKeyboardService : InputMethodService() {
         val keys = composingKeyFrame()
         val timing = timingMultiplier()
         val fast = keystrokeTiming.isFast()
+        val ownCapital = composingCaseTrusted
         val pending = PendingResolution(typed)
         pendingResolution = pending
         resolutionJob = serviceScope.launch(resolutionDispatcher) {
@@ -28976,6 +28990,7 @@ open class WMKeyboardService : InputMethodService() {
             try {
                 val decision = engine.decideCorrection(
                     typed, touch = touch, timingMultiplier = timing, keys = keys, fastTyping = fast,
+                    ownCapital = ownCapital,
                 )
                 // Withdrawn meanwhile — a word blocked mid-walk, say — lands nothing.
                 if (pendingResolution !== pending) return@launch
