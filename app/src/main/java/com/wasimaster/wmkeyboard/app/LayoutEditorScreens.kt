@@ -190,6 +190,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -2770,7 +2771,7 @@ internal fun KeyLayoutEditorScreen(
     // keyboard, and the window panned up onto an empty grey strip where the
     // field and the key's settings should have been (#614). The grid comes
     // back the moment the keyboard goes.
-    val imeUp = WindowInsets.isImeVisible
+    val imeUp = imeShownNow()
     val previewScale = rememberPreviewScale(PreviewScaleSlot.LAYOUT_EDITOR)
     // The heading scrolls away over the pinned grid; see RegisterHidingHeader.
     RegisterHidingHeader()
@@ -9018,6 +9019,22 @@ internal fun InputMethodPickerDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_close)) }
         },
     )
+}
+
+/**
+ * Whether the keyboard is up, by Compose's insets and the window's own both
+ * (#1304). Compose's flag follows the insets animation, and on some phones a
+ * hide animation that never reports its end left it saying "up" with no
+ * keyboard on the screen: the editor then hid its layer tabs and preview
+ * until the app was restarted. The window's last insets are read on every
+ * composition, so opening the editor again finds the truth.
+ */
+@Composable
+private fun imeShownNow(): Boolean {
+    val composeSays = WindowInsets.isImeVisible
+    if (!composeSays) return false
+    val window = androidx.core.view.ViewCompat.getRootWindowInsets(LocalView.current) ?: return true
+    return window.isVisible(androidx.core.view.WindowInsetsCompat.Type.ime())
 }
 
 /** The blank grid a new secondary layout starts from: rows × columns of empty keys. */
