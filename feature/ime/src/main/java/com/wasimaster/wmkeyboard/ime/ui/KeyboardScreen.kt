@@ -718,6 +718,14 @@ import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 internal val LocalKeyPressFeedback = staticCompositionLocalOf<() -> Unit> { {} }
 
 /**
+ * Where a language swipe or the language list starts when the layout on screen
+ * is not in the cycle: the layout the pinned Secondary layout board
+ * interrupted (#1230). Held in a [State] read only when a swipe starts, so a
+ * board toggle recomposes nothing.
+ */
+internal val LocalLanguageAnchor = staticCompositionLocalOf<State<String?>> { mutableStateOf(null) }
+
+/**
  * The bottom padding under the key rows (see `bottomRoom` in
  * [DockedKeyboardFrame]). The bottom key row reaches down over it as touch area
  * (#649), and no further, into the navigation bar's inset; zero wherever the
@@ -1644,6 +1652,7 @@ fun KeyboardScreen(
             ),
             LocalSelectionTools provides selectionTools(bodyState, capture.onAiChat),
             LocalOctopusWords provides rememberUpdatedState(bodyState.octopus),
+            LocalLanguageAnchor provides rememberUpdatedState(bodyState.languageAnchorId),
             LocalLiveWpmPrivate provides rememberLiveWpmPrivate(bodyState),
             // Only while something is composing, so a list the service has not
             // cleared yet never outlives the reading it was for.
@@ -26671,6 +26680,7 @@ internal fun KeyButton(
                     spaceLongSwipe = settings.spaceLongSwipe,
                     enabledLayoutIds = settings.switchLayoutIds(),
                     currentLayoutId = layoutId,
+                    languageAnchor = LocalLanguageAnchor.current,
                     setPressed = { down ->
                         // Judged here rather than at the commit: every branch
                         // below reports the contact before it spends anything
@@ -28977,7 +28987,9 @@ private fun LanguageCarouselPopup(
     // so the centring below can aim at a chip whose width depends on its label.
     val chipBounds = remember(enabledLayoutIds) { mutableStateMapOf<Int, Pair<Int, Int>>() }
     var viewportWidth by remember { mutableIntStateOf(0) }
-    val currentIndex = enabledLayoutIds.indexOf(currentLayoutId).coerceAtLeast(0)
+    val anchor = LocalLanguageAnchor.current
+    val currentIndex = enabledLayoutIds.indexOf(currentLayoutId).takeIf { it >= 0 }
+        ?: enabledLayoutIds.indexOf(anchor.value).coerceAtLeast(0)
     val centreOn = highlightIndex ?: currentIndex
     // The first centring is a jump — the strip should open already looking at
     // the current layout — and every one after it slides, following the drag.
@@ -30615,6 +30627,8 @@ private fun Modifier.pointerInputKey(
     spaceLongSwipe: SpaceSwipeAction,
     enabledLayoutIds: List<String>,
     currentLayoutId: String,
+    /** Where the swipe starts when [currentLayoutId] is not in the cycle; see [LocalLanguageAnchor]. */
+    languageAnchor: State<String?>,
     setPressed: (Boolean) -> Unit,
     onKeyPress: () -> Unit,
     onKeySound: () -> Unit,
@@ -30816,7 +30830,8 @@ private fun Modifier.pointerInputKey(
                     // still travelling up from that swipe, and the caret should
                     // not take it as a line up. Cleared by a pause or a turn.
                     var padSettling = false
-                    var langIndex = enabledLayoutIds.indexOf(currentLayoutId).coerceAtLeast(0)
+                    var langIndex = enabledLayoutIds.indexOf(currentLayoutId).takeIf { it >= 0 }
+                        ?: enabledLayoutIds.indexOf(languageAnchor.value).coerceAtLeast(0)
                     // The stops the language swipe walks: the layouts, plus the
                     // switcher's extra stop (see [SwitcherExtraStop]), added once
                     // a hold puts the preview up or a swipe starts walking.

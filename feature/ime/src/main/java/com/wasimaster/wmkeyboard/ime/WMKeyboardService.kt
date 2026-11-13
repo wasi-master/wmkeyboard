@@ -19765,6 +19765,12 @@ open class WMKeyboardService : InputMethodService() {
      * in the switcher instead, which is nearly always the same one.
      */
     private var secondaryBoardReturnId: String? = null
+        set(value) {
+            field = value
+            // Published for the spacebar's language swipe, which steps from it
+            // while the board is up, the way [cycleAnchor] does for 🌐.
+            _uiState.update { if (it.languageAnchorId == value) it else it.copy(languageAnchorId = value) }
+        }
 
     /**
      * Swaps the board pinned on the Secondary layout tool in, or, when it is
