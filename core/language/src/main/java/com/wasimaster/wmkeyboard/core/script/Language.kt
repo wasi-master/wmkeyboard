@@ -158,6 +158,7 @@ object LanguageRegistry {
             layoutIds = listOf(
                 BuiltInLayouts.FRENCH_ID,
                 AssetLayouts.FR_BEPO_ID,
+                AssetLayouts.FR_ERGOL_ID,
                 AssetLayouts.FR_CANADIAN_ID,
                 AssetLayouts.FR_SWISS_ID,
                 AssetLayouts.FR_T9_ID,
@@ -178,6 +179,8 @@ object LanguageRegistry {
                 AssetLayouts.DE_NEO2_ID,
                 AssetLayouts.DE_DVORAK_ID,
                 AssetLayouts.DE_BONE_ID,
+                AssetLayouts.DE_ADNW_ID,
+                AssetLayouts.DE_KOY_ID,
                 AssetLayouts.DE_T9_ID,
                 AssetLayouts.DE_ONE_ROW_ID,
             ),
@@ -233,6 +236,7 @@ object LanguageRegistry {
                 AssetLayouts.RU_STUDENT_ID,
                 AssetLayouts.RU_YAZHERT_ID,
                 AssetLayouts.RU_YAVERT_ID,
+                AssetLayouts.RU_RULEMAK_ID,
                 AssetLayouts.RU_T9_ID,
                 AssetLayouts.RU_ONE_ROW_ID,
             ),
@@ -3784,6 +3788,19 @@ object LanguageRegistry {
             layoutIds = listOf(
                 AssetLayouts.NEW_NEWA_ROMANIZED_ID,
                 AssetLayouts.NEW_NEWA_TRADITIONAL_ID,
+            ),
+        ),
+        // Bribri, a Chibchan language of Costa Rica and Panama (gap K7):
+        // Spanish QWERTY with ñ, the vowels ë and ö, tone and nasal marks on
+        // hold, and the saltillo on its own key.
+        LanguageDef(
+            id = "bzd",
+            displayName = "Bribri",
+            englishName = "Bribri",
+            script = ScriptId.LATIN,
+            localeTag = "bzd",
+            layoutIds = listOf(
+                AssetLayouts.BZD_QWERTY_ID,
             ),
         ),
     )

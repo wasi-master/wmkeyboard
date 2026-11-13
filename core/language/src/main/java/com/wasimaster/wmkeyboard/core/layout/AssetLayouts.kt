@@ -992,6 +992,16 @@ object AssetLayouts {
     const val ZGH_TIFINAGH_ALT_ID = "asset_zgh_tifinagh_alt"
     const val ZGH_TIFINAGH_AZERTY_ID = "asset_zgh_tifinagh_azerty"
 
+    // Four layouts AnySoftKeyboard ships that WM did not (gap K7 of the
+    // 2026-11-13 comparison), laid out from their own specs: Ergo-L from
+    // ergol.org's ergol.toml, Rulemak from rulemak.klc (xkeyboard-config
+    // ru(rulemak)), AdNW and KOY from adnw.de, and Bribri's alphabet.
+    const val FR_ERGOL_ID = "asset_fr_ergol"
+    const val RU_RULEMAK_ID = "asset_ru_rulemak"
+    const val DE_ADNW_ID = "asset_de_adnw"
+    const val DE_KOY_ID = "asset_de_koy"
+    const val BZD_QWERTY_ID = "asset_bzd_qwerty"
+
     // One-row boards (QWERTY folded column by column, Minuum style), generated
     // from each language's main grid; see EN_ONE_ROW_ID.
     const val AS_PHONETIC_ONE_ROW_ID = "asset_as_phonetic_one_row"
