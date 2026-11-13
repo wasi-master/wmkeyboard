@@ -1391,16 +1391,39 @@ class SuggestionEngine(
         if (secondaryDictionaries.isEmpty() && !englishAsSecondary) emptySet() else languagesOwning(word.lowercase())
 
     private fun languagesOwning(lower: String): Set<String> {
-        val owners = HashSet<String>(4)
-        if (primaryLanguageId.isNotEmpty() &&
-            (activeDictionary.contains(lower) || customDictionary.contains(lower))
-        ) {
-            owners.add(primaryLanguageId)
+        // Each list that has the word, with the word's count as a share of
+        // that list's commonest: lists count on different scales, so only
+        // shares can be compared.
+        val listed = HashMap<String, Double>(4)
+        fun listedIn(langId: String, source: WordSource) {
+            val frequency = source.frequencyOf(lower)
+            if (frequency <= 0) return
+            val top = topFrequency(source)
+            // A flat list (an import, every word at 1) says nothing about how
+            // common the word is: it owns the word but can neither outrank
+            // another list's claim nor lose its own.
+            val share = if (top <= 1) FLAT_LIST_SHARE else frequency.toDouble() / top
+            listed.merge(langId, share, ::maxOf)
         }
-        if (englishAsSecondary && !englishSources && dictionary.contains(lower)) owners.add(EN)
-        for (t in secondaryDictionaries) if (t.source.contains(lower)) owners.add(t.langId)
+        if (primaryLanguageId.isNotEmpty()) {
+            listedIn(primaryLanguageId, activeDictionary)
+            listedIn(primaryLanguageId, customDictionary)
+        }
+        if (englishAsSecondary && !englishSources) listedIn(EN, dictionary)
+        for (t in secondaryDictionaries) listedIn(t.langId, t.source)
+        // A big list knows most of its neighbour's words at a count of a few:
+        // the Hinglish list has good, morning and you, the English one has
+        // hai and ki. Counted as owned by both, every English word typed in
+        // Hinglish voted Hinglish too, so the field could never lean English
+        // and English sank under Hinglish's completions (#1292). A list owns
+        // the word only where it is within OWNERSHIP_RATIO of the best share.
+        val best = listed.values.filter { it != FLAT_LIST_SHARE }.maxOrNull() ?: 0.0
+        val owners = HashSet<String>(4)
+        for ((langId, share) in listed) {
+            if (share == FLAT_LIST_SHARE || share * OWNERSHIP_RATIO >= best) owners.add(langId)
+        }
         userLexicon.languageOf(lower)?.let { owners.add(it) }
-        if (primaryLanguageId.isNotEmpty() && primaryLanguageId !in owners) {
+        if (primaryLanguageId.isNotEmpty() && primaryLanguageId !in owners && primaryLanguageId !in listed) {
             val backend = phoneticBackend(primaryLanguageId)
             when {
                 backend == null -> Unit
@@ -3006,12 +3029,14 @@ class SuggestionEngine(
         // The field mix takes every owner at once — an ambiguous word is
         // evidence for each of its languages and so moves the mix nowhere —
         // while the long-term confidence keeps its exclusive attribution.
-        fieldMix.record(languagesOwning(lower))
+        val owners = languagesOwning(lower)
+        fieldMix.record(owners)
+        // Same owners, so a word the primary's list holds only at a count of
+        // a few (Hinglish's `good`) credits the language it really belongs to.
         val langId = when {
-            activeDictionary.contains(lower) || customDictionary.contains(lower) ||
-                userLexicon.contains(lower) -> primaryLanguageId
-            englishAsSecondary && !englishSources && dictionary.contains(lower) -> EN
-            else -> secondaryDictionaries.firstOrNull { it.source.contains(lower) }?.langId
+            primaryLanguageId in owners -> primaryLanguageId
+            englishAsSecondary && !englishSources && EN in owners -> EN
+            else -> secondaryDictionaries.firstOrNull { it.langId in owners }?.langId
                 ?: primaryLanguageId
         }
         mixConfidence.record(langId)
@@ -3115,6 +3140,20 @@ class SuggestionEngine(
          * English as a secondary at [SECONDARY_ENGLISH_DIVISOR].
          */
         private const val SECONDARY_SCALE_SHARE = 0.5
+
+        /**
+         * How far below the best list's share a word may sit in another list
+         * and still count as that language's word ([languagesOwning]).
+         * Measured on Hinglish and English: `good` is 120 times commoner in
+         * English's list and goes to English alone; `me`, `is`, `the`, `to`,
+         * `office` and `file` stay within it and count for both; `hai`, `ki`
+         * and `bhai` go to Hinglish alone. 10 and 20 split the test sentences
+         * the same way.
+         */
+        private const val OWNERSHIP_RATIO = 20.0
+
+        /** [languagesOwning]'s share for a flat list, which takes no part in the comparison. */
+        private const val FLAT_LIST_SHARE = -1.0
 
         /**
          * The commonest word's frequency in the bundled English list: the

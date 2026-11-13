@@ -27,7 +27,7 @@ With only one language in the mix, or with the field still empty, nothing shifts
 
 ## How the field is read
 
-Every word committed in the field is credited to each language whose dictionary knows it. A word both languages know pushes neither ahead, which is what keeps names and shared loanwords from voting.
+Every word committed in the field is credited to each language whose dictionary knows it as a real word. A word both languages know pushes neither ahead, which is what keeps names and shared loanwords from voting. Downloaded lists are big enough to hold most of each other's common words a few times over: the Hinglish list has `good` and `you`, and the English one has `hai` and `ki`. So a word only counts for a language whose list has it at least a twentieth as often, relative to the list's commonest word, as the list that uses it most. `good` counts for English, `hai` for Hinglish, and `me`, `the` and `office` for both. An imported list with no counts can't make that comparison, so it counts for every word it has.
 
 Older words fade fast. Each new word decays the running tally to 70% of what it was, so roughly the last three words are in charge and a mid-sentence switch takes effect almost immediately. When you focus a field that already has text in it, the words already there are read in oldest-first, so the same decay leaves the words nearest your cursor in charge.
 

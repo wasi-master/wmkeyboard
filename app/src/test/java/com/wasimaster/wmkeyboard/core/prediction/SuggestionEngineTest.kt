@@ -1669,6 +1669,57 @@ class SuggestionEngineTest {
         assertTrue(engine().owningLanguages("hello").isEmpty())
     }
 
+    /**
+     * Hinglish with English under Also suggest from (#1292): each list holds
+     * the other's common words at a count of a few, the way the real ones do.
+     */
+    private fun hinglishEngine(mix: LanguageMixConfidence = LanguageMixConfidence()): SuggestionEngine {
+        val english = Trie().apply {
+            insert("you", 10_000)
+            insert("good", 6_100)
+            insert("the", 7_900)
+            insert("me", 2_200)
+            insert("hai", 1)
+        }
+        val hinglish = Trie().apply {
+            insert("hai", 24_000)
+            insert("ki", 14_000)
+            insert("me", 5_400)
+            insert("the", 2_100)
+            insert("good", 12)
+            insert("you", 12)
+        }
+        return SuggestionEngine(english, BengaliPhoneticIndex(emptyList()), UserLexicon(null), mixConfidence = mix)
+            .apply {
+                primaryLanguageId = "hi_rom"
+                englishSources = false
+                englishAsSecondary = true
+                customDictionary = hinglish
+                fieldDetectionShift = SuggestionEngine.FIELD_SHIFT_BALANCED
+            }
+    }
+
+    @Test fun `a word a list holds only at a few counts belongs to the other language`() {
+        val e = hinglishEngine()
+        assertEquals(setOf("en"), e.owningLanguages("good"))
+        assertEquals(setOf("en"), e.owningLanguages("you"))
+        assertEquals(setOf("hi_rom"), e.owningLanguages("hai"))
+        assertEquals(setOf("hi_rom"), e.owningLanguages("ki"))
+        // Common in both: says nothing about the sentence's language.
+        assertEquals(setOf("hi_rom", "en"), e.owningLanguages("me"))
+        assertEquals(setOf("hi_rom", "en"), e.owningLanguages("the"))
+    }
+
+    @Test fun `english typed on hinglish earns english its share`() {
+        val mix = LanguageMixConfidence()
+        val e = hinglishEngine(mix)
+        repeat(10) { e.recordUsage("good") }
+        repeat(10) { e.recordUsage("hai") }
+        // Credited to the primary only because its list had it, English
+        // used to sink to the floor however much of it was typed.
+        assertTrue(mix.confidenceFor("en") > LanguageMixConfidence.MIN_CONFIDENCE + 0.5)
+    }
+
     @Test fun `committed words swing the detection back mid-field`() {
         val e = banglishEngine()
         e.seedFieldContext(banglishWords)
