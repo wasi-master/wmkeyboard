@@ -75,7 +75,7 @@ const DOCS: &[(&str, &str)] = &[
     ("files.save", "Asks the user where to save data (bytes or text) as name; then(path) hears where it went. Needs the risky files permission."),
     ("http.Response", "What a request returns: status_code, ok, headers, text, content, json() and raise_for_status()."),
     ("http.get", "A GET request to one of your hosts; params= adds a query string. Returns a Response, or with then= calls then(response)."),
-    ("http.post", "A POST request: data= sends a form or bytes, json= sends JSON. Returns a Response."),
+    ("http.post", "A POST request: data= sends a form or bytes, json= sends JSON, files= sends a multipart upload form. Returns a Response."),
     ("http.put", "A PUT request, with data= or json= as for post."),
     ("http.patch", "A PATCH request, with data= or json= as for post."),
     ("http.delete", "A DELETE request. Returns a Response."),

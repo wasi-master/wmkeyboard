@@ -42595,14 +42595,18 @@ open class WMKeyboardService : InputMethodService() {
         val float = state.appletPanel == PanelMode.PLUGINS
         if (!float && state.panel != PanelMode.PLUGINS) return false
         val shown = isInputViewShown
-        if (!shown && (handoff.kind == PluginHandoff.Kind.QR || handoff.kind == PluginHandoff.Kind.TEXT)) return false
+        if (!shown && handoff.kind in CAMERA_HANDOFFS) return false
         pluginHandoff?.let(::cancelPluginHandoff)
         handoff.shown = running
         handoff.inputs = state.pluginInputs
         handoff.float = float
         when (handoff.kind) {
-            PluginHandoff.Kind.QR, PluginHandoff.Kind.TEXT -> {
-                handoff.panel = if (handoff.kind == PluginHandoff.Kind.QR) PanelMode.QR_SCAN else PanelMode.OCR
+            PluginHandoff.Kind.QR, PluginHandoff.Kind.TEXT, PluginHandoff.Kind.PHOTO -> {
+                handoff.panel = when (handoff.kind) {
+                    PluginHandoff.Kind.QR -> PanelMode.QR_SCAN
+                    PluginHandoff.Kind.TEXT -> PanelMode.OCR
+                    else -> PanelMode.CAMERA
+                }
                 pluginHandoff = handoff
                 onPanelChange(handoff.panel, haptic = false)
                 if (_uiState.value.panel != handoff.panel) {
@@ -42694,12 +42698,19 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** What the scanner read goes to the plugin that opened it, and the plugin comes back. */
-    private fun answerPluginScan(text: String): Boolean {
+    private fun answerPluginScan(text: String): Boolean = answerPluginCamera(text) {
+        it == PluginHandoff.Kind.QR || it == PluginHandoff.Kind.TEXT
+    }
+
+    /** A photo kept with Send goes to the plugin that opened the camera (`files.photo`), not into the field. */
+    private fun answerPluginPhoto(file: File): Boolean = answerPluginCamera(file) { it == PluginHandoff.Kind.PHOTO }
+
+    private fun answerPluginCamera(result: Any, kinds: (PluginHandoff.Kind) -> Boolean): Boolean {
         val handoff = pluginHandoff ?: return false
-        if (handoff.kind != PluginHandoff.Kind.QR && handoff.kind != PluginHandoff.Kind.TEXT) return false
+        if (!kinds(handoff.kind)) return false
         if (_uiState.value.panel != handoff.panel) return false
         vibrate()
-        handoff.answer(text)
+        handoff.answer(result)
         pluginHandoff = null
         if (handoff.float) {
             onPanelChange(handoff.panel, haptic = false)
@@ -47040,6 +47051,8 @@ open class WMKeyboardService : InputMethodService() {
      * with [search], search by it (#349).
      */
     fun onCameraSend(file: File, search: Boolean) {
+        // Opened by a plugin's files.photo: the picture is the plugin's, not the field's.
+        if (!search && answerPluginPhoto(file)) return
         if (search) {
             searchByPhoto(file)
             return
@@ -62454,6 +62467,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** The panels with a "Capture screen" button ([onCaptureScreen]). */
         private val SCREEN_CAPTURE_PANELS = setOf(PanelMode.OCR, PanelMode.CAMERA, PanelMode.AI_REPLY)
+
+        /** Plugin hand-offs the keyboard's camera answers; they need the keyboard on screen. */
+        private val CAMERA_HANDOFFS = setOf(PluginHandoff.Kind.QR, PluginHandoff.Kind.TEXT, PluginHandoff.Kind.PHOTO)
 
         /** How far back "just copied" and "just screenshotted" reach when the reply panel opens. */
         private const val REPLY_RECENT_WINDOW_SEC = 120L

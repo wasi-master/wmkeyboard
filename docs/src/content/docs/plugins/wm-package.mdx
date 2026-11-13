@@ -263,18 +263,21 @@ limit raises `ValueError`. [Guide](/plugins/guides/saving-and-settings/#storage)
 | `http.get(url, params=None, **options)` | |
 | `http.post(url, data=None, json=None, **options)` | also `put`, `patch` |
 | `http.delete(url, **options)` | |
-| `http.request(method, url, params=None, data=None, json=None, headers=None, timeout=15, binary=False, then=None, on_error=None)` | |
+| `http.request(method, url, params=None, data=None, json=None, headers=None, timeout=15, binary=False, then=None, on_error=None, files=None)` | |
 
 `data` is text, bytes, or a dict sent as a form. `json` is any value sent as
-JSON. With `then=fn` the call returns at once and `fn` gets the `Response`;
-`on_error=fn` gets any failure.
+JSON. `files` sends a multipart upload form: `{"field": (name, bytes, type)}`,
+`(name, bytes)`, plain bytes, or what `files.pick` and `files.photo` give,
+with a `data` dict as its text fields. Your own `Content-Type` header wins
+over the one the keyboard would pick. With `then=fn` the call returns at once
+and `fn` gets the `Response`; `on_error=fn` gets any failure.
 
 A `Response` has `status_code`, `ok`, `text`, `json()`, `content` (bytes),
 `headers` (lowercase names), `url`, `reason` and `raise_for_status()`, which
 raises `http.HTTPError` (an `OSError`, with `.response`) for 400 and up.
 
 https only, 15 seconds, 1 MB, 60 requests a minute, nothing while Data saver
-is on. With the risky `network.local`, the server the user typed into a `host`
+is on. Requests carry the User-Agent `WMKeyboard-Plugin <id>/<pluginVersion>`. With the risky `network.local`, the server the user typed into a `host`
 setting may also be on the local network, over http or https
 ([Permissions](/plugins/permissions/#networklocal)).
 [Guide](/plugins/guides/internet-and-ai/).
@@ -370,7 +373,9 @@ call without Android's location permission asks for it and raises
 `from wm import files`. Needs the risky `files`.
 `files.pick(kind="any", then=None, on_error=None)` gives
 `{"name", "mime", "data"}` with `data` as bytes; `kind` is `any`, `image`,
-`text`, `audio`, `video` or a MIME type. `files.save(name, data, mime=None, then=None, on_error=None)`
+`text`, `audio`, `video` or a MIME type. `files.photo(then=None, on_error=None)`
+opens the keyboard's camera and gives the picture the user keeps in the same
+shape, as a JPEG. `files.save(name, data, mime=None, then=None, on_error=None)`
 lets the user pick where, and `then` gets the name saved under. Both give `None`
 when the user backs out; files are up to 4 MB.
 

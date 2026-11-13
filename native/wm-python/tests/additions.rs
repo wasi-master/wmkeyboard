@@ -101,6 +101,18 @@ fn bytes_behave_like_a_sequence_of_ints() {
     assert_eq!("2", evaluate("len({'a'.encode(): 1, bytes([97]): 2, bytes(): 3})"));
 }
 
+#[test]
+fn bytes_methods_match_python() {
+    assert_eq!(
+        "[[b'a', b'b', b'', b'c'], b'x-y', 3, -1, 3, b'a;b;;c', b'hi', b'hi', [b'a', b'b'], True, True, b'AB', b'ab']",
+        evaluate(
+            "b = b'a,b,,c'\n[b.split(b','), b'-'.join([b'x', b'y']), b.find(b',,'), b.find(b'z'), b.count(b','), b.replace(b',', b';'), b'  hi \\n'.strip(), b'xxhixx'.strip(b'x'), b' a  b '.split(), b.startswith(b'a,'), b.endswith(b'c'), b'Ab'.upper(), b'Ab'.lower()]"
+        )
+    );
+    assert!(failure("b'ab'.index(b'z')").contains("ValueError"));
+    assert!(failure("b''.join(['x'])").contains("TypeError"));
+}
+
 // MARK: - time
 
 #[test]

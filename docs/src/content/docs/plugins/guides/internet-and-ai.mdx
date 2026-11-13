@@ -56,11 +56,22 @@ temp = r.json()["current"]["temperature_2m"]
 | `http.post(url, json=)` | a JSON body |
 | `http.post(url, data={"a": "1"})` | a form |
 | `http.post(url, data="text")` or `data=b"..."` | text or bytes as they are |
+| `http.post(url, data={"a": "1"}, files={"photo": ("front.jpg", jpeg, "image/jpeg")})` | a multipart form, the way a web page uploads a file |
 | `http.put`, `http.patch`, `http.delete` | the same, with that method |
 | `http.request(method, url, ...)` | any method |
 
 Every call also takes `headers=`, `timeout=` (15 seconds at most) and
-`binary=True` (keep the reply's bytes for a picture or a file).
+`binary=True` (keep the reply's bytes for a picture or a file). A
+`Content-Type` you put in `headers` is sent as it is, so `data=png_bytes` with
+`headers={"Content-Type": "image/png"}` uploads a picture.
+
+A value in `files` is `(name, bytes, type)`, `(name, bytes)`, plain bytes, or
+the dict that [`files.pick`](/plugins/guides/phone-features/#files) and
+`files.photo` give, so a picture the user took goes straight on:
+
+```python
+files.photo(then=lambda photo: http.post(UPLOAD, data={"code": code}, files={"image": photo}, then=sent))
+```
 
 What you get back is a `Response`:
 
@@ -139,6 +150,10 @@ builds this step by step.
 - Each request shows in the keyboard's Network activity under your plugin's
   name, so the user can see what you sent and where.
 - No cookies are kept between requests.
+- The User-Agent is `WMKeyboard-Plugin`, your plugin's id and its version,
+  such as `WMKeyboard-Plugin com.example.weather/1.0.0`. Services that ask
+  apps to name themselves, such as Open Food Facts, Nominatim and Wikipedia,
+  can tell your plugin apart. You cannot change it.
 
 ## API keys
 

@@ -166,6 +166,7 @@ internal class PluginKeyboardServices(
         }
         "location.get" -> location(call)
         "files.pick" -> pick(call)
+        "files.photo" -> photo(call)
         "files.save" -> save(call)
         "sensors.list" -> JsonArray(sensorKinds().map(::JsonPrimitive))
         "sensors.subscribe" -> subscribe(call)
@@ -255,11 +256,16 @@ internal class PluginKeyboardServices(
                 connection.connectTimeout = timeout
                 connection.readTimeout = timeout
                 connection.requestMethod = currentMethod
-                connection.setRequestProperty("User-Agent", USER_AGENT)
+                // Named after the plugin too: services such as Open Food Facts,
+                // Nominatim and Wikipedia ask each app to say who it is.
+                connection.setRequestProperty("User-Agent", "$USER_AGENT ${call.plugin.id}/${call.plugin.version}")
                 for ((k, v) in headers) connection.setRequestProperty(k, v)
                 if (body != null && currentMethod !in setOf("GET", "DELETE")) {
                     connection.doOutput = true
-                    body.second?.let { connection.setRequestProperty("Content-Type", it) }
+                    // The plugin's own type wins: a multipart form, a picture, XML.
+                    if (headers.keys.none { it.equals("Content-Type", ignoreCase = true) }) {
+                        body.second?.let { connection.setRequestProperty("Content-Type", it) }
+                    }
                     connection.outputStream.use { it.write(body.first) }
                     net.sent(body.first.size.toLong())
                 }
@@ -531,6 +537,40 @@ internal class PluginKeyboardServices(
     }
 
     /**
+     * A picture taken with the keyboard's camera, over the plugin: the user
+     * shoots, looks, and keeps it with Send, or closes the camera (null). A
+     * picture over [MAX_FILE] is made smaller until it fits.
+     */
+    private fun photo(call: PluginCall): JsonElement {
+        val file = handOff(call, PluginHandoff(call.plugin.id, PluginHandoff.Kind.PHOTO)) as? java.io.File ?: return JsonNull
+        val bytes = try {
+            if (file.length() <= MAX_FILE) file.readBytes() else smallerJpeg(file)
+        } catch (failure: IOException) {
+            throw PluginCallException("OSError", failure.message ?: "the picture could not be read")
+        }
+        return buildJsonObject {
+            put("name", file.name.takeIf { it.endsWith(".jpg", ignoreCase = true) } ?: "photo.jpg")
+            put("mime", "image/jpeg")
+            put("data", Base64.encodeToString(bytes, Base64.NO_WRAP))
+        }
+    }
+
+    /** [file] decoded at half size, then half again, until its JPEG fits in [MAX_FILE]. */
+    private fun smallerJpeg(file: java.io.File): ByteArray {
+        var sample = 2
+        while (sample <= MAX_PHOTO_SAMPLE) {
+            val options = android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }
+            val bitmap = android.graphics.BitmapFactory.decodeFile(file.path, options) ?: throw IOException("not a picture")
+            val out = ByteArrayOutputStream()
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, PHOTO_QUALITY, out)
+            bitmap.recycle()
+            if (out.size() <= MAX_FILE) return out.toByteArray()
+            sample *= 2
+        }
+        throw PluginCallException("ValueError", "the picture is larger than ${MAX_FILE / MB} MB")
+    }
+
+    /**
      * Android's save screen, where the user picks the folder and may change
      * the name. Its own screen writes the bytes, so the grant on the place
      * never leaves it. Answers the name saved under, or null.
@@ -737,6 +777,8 @@ internal class PluginKeyboardServices(
         private const val MB = 1024 * 1024
         private const val MAX_FILE = 4 * MB
         private const val MAX_FILE_NAME = 120
+        private const val MAX_PHOTO_SAMPLE = 16
+        private const val PHOTO_QUALITY = 90
 
         /** How long a scan or a pick may stay open before the plugin stops waiting. */
         private const val HANDOFF_TIMEOUT_MS = 10 * 60_000L

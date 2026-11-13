@@ -61,7 +61,7 @@ export const S = {
 		'clipboard.read': 'Read the clipboard, when you press something in its panel',
 		'clipboard.write': 'Copy text to the clipboard',
 		location: 'Find out where your phone is',
-		files: 'Open files you pick and save files where you choose',
+		files: 'Open files you pick and photos you take, and save files where you choose',
 		sensors: 'Read motion and light sensors while its panel is open',
 		scan: "Open the keyboard's QR code and text scanners",
 		device: 'Vibrate, turn on the flashlight and read text aloud',

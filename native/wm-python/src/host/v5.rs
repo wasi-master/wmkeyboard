@@ -32,7 +32,7 @@
 //! | `field.insert` `field.replace` `field.delete` `field.move` `field.action` `field.image` | field.write |
 //! | `clipboard.get` / `clipboard.set` | clipboard.read / clipboard.write |
 //! | `location.get` | location |
-//! | `files.pick` `files.save` | files |
+//! | `files.pick` `files.photo` `files.save` | files |
 //! | `sensors.subscribe` `sensors.unsubscribe` `sensors.list` | sensors |
 //! | `scan.qr` `scan.text` | scan |
 //! | `device.vibrate` `device.flashlight` `device.speak` `device.battery` | device |
@@ -122,7 +122,7 @@ pub fn permission_for(op: &str) -> Option<Option<&'static str>> {
         ("clipboard", "get") => Some("clipboard.read"),
         ("clipboard", "set") => Some("clipboard.write"),
         ("location", "get") => Some("location"),
-        ("files", "pick" | "save") => Some("files"),
+        ("files", "pick" | "photo" | "save") => Some("files"),
         ("sensors", "subscribe" | "unsubscribe" | "list") => Some("sensors"),
         ("scan", "qr" | "text") => Some("scan"),
         ("device", "vibrate" | "flashlight" | "speak" | "battery") => Some("device"),

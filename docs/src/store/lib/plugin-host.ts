@@ -85,12 +85,21 @@ function requestUrl(args: Args, hosts: string[]): URL | [string, string] {
 	return url;
 }
 
-function bodyOf(args: Args): { body: string | null; type: string | null } {
-	if (typeof args.body === 'string') return { body: args.body, type: null };
-	if (args.form && typeof args.form === 'object') {
-		return { body: new URLSearchParams(args.form as Record<string, string>).toString(), type: 'application/x-www-form-urlencoded' };
+function bodyOf(args: Args): { body: string | Uint8Array<ArrayBuffer> | null; type: string | null } {
+	let found: { body: string | Uint8Array<ArrayBuffer> | null; type: string | null } = { body: null, type: null };
+	if (typeof args.body === 'string') found = { body: args.body, type: null };
+	else if (args.form && typeof args.form === 'object') {
+		found = { body: new URLSearchParams(args.form as Record<string, string>).toString(), type: 'application/x-www-form-urlencoded' };
+	} else if (typeof args.bodyBytes === 'string') {
+		// Bytes, such as a multipart form made by files=, arrive as base64.
+		const raw = atob(args.bodyBytes);
+		const bytes = new Uint8Array(raw.length);
+		for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+		found = { body: bytes, type: 'application/octet-stream' };
 	}
-	return { body: null, type: null };
+	// The plugin's own Content-Type wins, as on the phone.
+	const own = Object.keys((args.headers as Record<string, string>) ?? {}).some((k) => k.toLowerCase() === 'content-type');
+	return own ? { body: found.body, type: null } : found;
 }
 
 function headersOf(xhr: XMLHttpRequest): Record<string, string> {
@@ -423,6 +432,11 @@ export function makeBridge(ctx: HostContext): Bridge {
 				}
 				ctx.log(`[files] the user "picked" ${file.name}`);
 				later(token, file, 500);
+				return reply(null);
+			}
+			case 'files.photo': {
+				ctx.log('[files] pretend photo from the camera');
+				later(token, { name: 'photo.png', mime: 'image/png', data: pretendImage() }, 700);
 				return reply(null);
 			}
 			case 'files.save':

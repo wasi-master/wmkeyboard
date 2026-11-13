@@ -307,6 +307,40 @@ def render():
 }
 
 #[test]
+fn files_send_a_multipart_form() {
+    big(|| {
+        let mut s = session(&["network"], json!({}));
+        let seen: Rc<RefCell<Vec<Json>>> = Rc::new(RefCell::new(Vec::new()));
+        let seen2 = seen.clone();
+        s.set_bridge(Some(Box::new(move |_op: &str, args: &str| {
+            seen2.borrow_mut().push(serde_json::from_str(args).unwrap());
+            json!({"value": {"status": 200, "text": "{}", "headers": {}}}).to_string()
+        })));
+        let src = r#"
+from wm import http, ui
+http.post("https://up.example.com/u", data={"code": "1"}, files={"img": ("a \"b\".jpg", b"\xff\xd8", "image/jpeg")},
+          headers={"content-type": "text/plain", "X-A": "1"})
+def render():
+    ui.label("x")
+"#;
+        let r = parse(s.load(src));
+        ok(&r);
+        let args = seen.borrow()[0].clone();
+        let kind = args["headers"]["Content-Type"].as_str().unwrap().to_string();
+        assert!(kind.starts_with("multipart/form-data; boundary=wmform"), "{kind}");
+        assert!(args["headers"].get("content-type").is_none());
+        assert_eq!(args["headers"]["X-A"], "1");
+        let boundary = kind.split("boundary=").nth(1).unwrap();
+        use base64::Engine;
+        let body = base64::engine::general_purpose::STANDARD.decode(args["bodyBytes"].as_str().unwrap()).unwrap();
+        let mut want = format!("--{boundary}\r\nContent-Disposition: form-data; name=\"code\"\r\n\r\n1\r\n--{boundary}\r\nContent-Disposition: form-data; name=\"img\"; filename=\"a %22b%22.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n").into_bytes();
+        want.extend_from_slice(&[0xff, 0xd8]);
+        want.extend_from_slice(format!("\r\n--{boundary}--\r\n").as_bytes());
+        assert_eq!(body, want);
+    });
+}
+
+#[test]
 fn raise_for_status_raises_http_error() {
     big(|| {
         let mut s = session(&["network"], json!({}));

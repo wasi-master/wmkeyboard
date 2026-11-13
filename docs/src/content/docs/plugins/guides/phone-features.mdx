@@ -18,7 +18,7 @@ sensor: the keyboard does the work and hands back only the result.
 | `scan` | `qr(then=)`, `text(then=)` | `scan` |
 | `sensors` | `subscribe(kind, on_reading=, hz=)`, `unsubscribe(token)`, `available()` | `sensors` |
 | `location` | `get(accuracy=, then=)` | risky `location` |
-| `files` | `pick(kind=, then=)`, `save(name, data)` | risky `files` |
+| `files` | `pick(kind=, then=)`, `photo(then=)`, `save(name, data)` | risky `files` |
 
 `scan` and `files` work from your panel or the floating box, not from a
 [selection action](/plugins/guides/text-and-selection/#buttons-over-selected-text): they need a screen to
@@ -143,6 +143,13 @@ files.save("notes.txt", "milk\neggs\n")   # the user picks where
 `kind` is `"any"`, `"image"`, `"text"`, `"audio"`, `"video"` or a MIME type.
 Your plugin never sees a path or a folder. A file can be up to 4 MB, both ways.
 
+`files.photo(then=got)` opens the keyboard's camera over your panel instead.
+The user takes a picture, looks at it, and keeps it with **Send**; your panel
+comes back and `got` hears the same dict as a pick, with `mime` set to
+`"image/jpeg"`. A picture over 4 MB is made smaller until it fits. Like `scan`,
+it needs the keyboard on screen, so it does not work from Android's own
+pickers or a selection action.
+
 `save` opens Android's save screen, where the user picks the folder and may
 change the name. With `then=`, your function gets the name the file was saved
 under. Either call gives `then` the value `None` if the user backs out.
@@ -162,6 +169,7 @@ The web editor answers every call on this page so you can run your code:
 | `sensors.subscribe` | pretend readings of a phone lying on a table |
 | `location.get` | a pretend place in Dhaka |
 | `files.pick` | a pretend picture, sound or text file of the kind you asked for |
+| `files.photo` | a pretend picture |
 | `files.save` | a line in the console with the name and size |
 
 The console marks each pretend answer, so you always know which ones were real.

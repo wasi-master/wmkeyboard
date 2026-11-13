@@ -48,8 +48,8 @@
     <string name="core_plugins_permission_clipboard_write_label">Copy text to the clipboard</string>
     <string name="core_plugins_permission_location_label">Find out where your phone is</string>
     <string name="core_plugins_permission_location_warning">This plugin can find out where your phone is while its panel is open.</string>
-    <string name="core_plugins_permission_files_label">Open files you pick and save files where you choose</string>
-    <string name="core_plugins_permission_files_warning">This plugin can read every file you pick for it, and can ask to save files.</string>
+    <string name="core_plugins_permission_files_label">Open files you pick and photos you take, and save files where you choose</string>
+    <string name="core_plugins_permission_files_warning">This plugin can read every file you pick and every photo you take for it, and can ask to save files.</string>
     <string name="core_plugins_permission_sensors_label">Read motion and light sensors while its panel is open</string>
     <string name="core_plugins_permission_scan_label">Open the keyboard\'s QR code and text scanners</string>
     <string name="core_plugins_permission_device_label">Vibrate, turn on the flashlight and read text aloud</string>

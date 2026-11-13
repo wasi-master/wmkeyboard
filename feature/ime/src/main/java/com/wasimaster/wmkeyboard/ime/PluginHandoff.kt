@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit
 
 /**
  * One of the keyboard's own screens answering an API 5 plugin: the QR
- * scanner, the text reader, a file pick, a place to save a file.
+ * scanner, the text reader, the camera, a file pick, a place to save a file.
  *
  * The plugin's call waits in [await] on the host's pool. The service puts the
  * screen up on the main thread and calls [answer] with what the user chose, or
@@ -22,7 +22,7 @@ internal class PluginHandoff(
     /** [Kind.SAVE]: the name offered in the picker. */
     val name: String = "",
 ) {
-    enum class Kind { QR, TEXT, PICK, SAVE }
+    enum class Kind { QR, TEXT, PHOTO, PICK, SAVE }
 
     /** The panel the plugin was in when it asked, to put back afterwards. Main thread. */
     var shown: PluginPanelUi.Running? = null
@@ -43,7 +43,10 @@ internal class PluginHandoff(
 
     val done: Boolean get() = latch.count == 0L
 
-    /** A [String] for a scan, a [Uri] for a pick or a save, null for "backed out". Only the first answer counts. */
+    /**
+     * A [String] for a scan, a [java.io.File] for a photo, a [Uri] for a pick
+     * or a save, null for "backed out". Only the first answer counts.
+     */
     @Synchronized
     fun answer(result: Any?) {
         if (done) return
