@@ -54358,6 +54358,13 @@ open class WMKeyboardService : InputMethodService() {
             location = { format -> locationTool.snippetLocation(format) },
             place = { name, format -> locationTool.snippetPlace(name, format) },
             homeAssistant = { id, attribute -> haTool.snippetValue(id, attribute) },
+            // A lambda, so the battery is asked only by a snippet that says {battery}.
+            battery = {
+                (getSystemService(BATTERY_SERVICE) as? android.os.BatteryManager)
+                    ?.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY)
+            },
+            language = _uiState.value.language.displayName,
+            languageTag = _uiState.value.language.localeTag,
         )
     }
 

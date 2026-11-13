@@ -193,12 +193,22 @@ A snippet's text can include any of these tokens. They're substituted the moment
 | `{app}` | Name of the app you're typing into |
 | `{package}` | That app's package name |
 | `{uuid}` | A fresh random UUID, different every time it's used |
+| `{greeting}` | Good morning, Good afternoon or Good evening by the time of day, in the keyboard language; see below |
+| `{battery}` | The battery charge, e.g. 85% |
+| `{language}` | The keyboard language you're typing in, by the name the language picker shows |
+| `{tab}` | A tab character |
+| `{bullets:3}` | Three lines that each start with a bullet, the cursor after the first. Any number from 1 to 50; `{bullets}` alone writes three |
+| `{list:3}` | The same with numbers: `1.`, `2.`, `3.` |
 | `{cursor}` | Not text; marks where the cursor lands after insertion |
 | `{random:a\|b\|c}` | One of the alternatives, picked fresh each insertion |
 | `{ask:Name}` | Whatever you type for it when the snippet expands; see [Fill-in fields](#fill-in-fields). `{ask:Name:Sam}` fills in Sam unless you type something else |
 | `{location}` | Where you are, from the [Location tool](/tools/location/#in-snippets), in its default format. `{location:link}`, `{location:address}`, `{location:coordinates}`, `{location:dms}`, `{location:plus_code}`, `{location:message}` or `{location:custom}` pick one |
 | `{place:Home}` | A place you saved in the Location tool, by its name in any case. A format can follow: `{place:Home:address}` |
 | `{ha:sensor.outside_temperature}` | A [smart home](/tools/home-assistant/) entity's state with its unit, as the keyboard last saw it, looked for in every home on the list; `{ha:home_key\|sensor.x}` names one. An attribute can follow: `{ha:light.kitchen:brightness}`. Empty when the tool is off |
+
+`{greeting}` says good morning from 04:00 until noon and good afternoon until 18:00, and good evening the rest of the night, since "good night" is a goodbye. It's in the language of the keyboard you're typing on for about thirty languages, among them Spanish, French, German, Portuguese, Russian, Arabic, Bengali, Hindi, Japanese, Korean and Chinese, and in English for the rest. A romanized keyboard such as Hinglish gets English rather than words in a script it doesn't type.
+
+`{bullets:N}` and `{list:N}` put the cursor in the first line so you can start typing at once. If the snippet has a `{cursor}` of its own, that one wins and the list is written out empty. Only the first list in a snippet takes the cursor. The two don't overlap with the `{clip:…}` modifiers or `{ask:…}` fields, so all of them can sit in one snippet.
 
 `{timezone}` is the one worth a second look. It writes the zone's long name, not an offset, so you get "Bangladesh Standard Time" or "Central European Summer Time" rather than GMT+06:00. An offset only shows up for a zone with no name of its own. The settings screen's reference card gives GMT+06:00 as its example, which is the fallback rather than the usual case, but the live preview next to it always shows what you'd actually get. If you want the offset itself, `{date:XXX}` or `{date:ZZZZ}` will give you one.
 

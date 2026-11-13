@@ -11,6 +11,9 @@
     <string name="expander_variables_title">Template variables</string>
     <!-- Meaning of the {date:…} variable, shown next to the token itself. -->
     <string name="expander_var_date_pattern_info">any date format that you want</string>
+    <string name="expander_var_bullets_info">that many bulleted lines, with the cursor in the first. {bullets} alone writes three</string>
+    <string name="expander_var_list_info">that many numbered lines, with the cursor in the first. {list} alone writes three</string>
+    <string name="expander_var_tab_sample">a tab, as the Tab key types</string>
     <string name="expander_var_location_info">where you are, from the location tool. Add :link, :address, :coordinates, :dms, :plus_code or :message for one format</string>
     <string name="expander_var_location_sample">📍 your street and a map link</string>
     <string name="expander_var_place_info">a place you saved in the location tool, by name. A format can follow, as for {location}</string>

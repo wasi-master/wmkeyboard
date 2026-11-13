@@ -414,6 +414,14 @@ internal fun SnippetSettings(
                 SnippetStore.expand("{date:EEE d MMM}"),
             )
             VariableRow(
+                "{bullets:3}", stringResource(R.string.expander_var_bullets_info),
+                SnippetStore.expand("{bullets:3}").replace(SnippetStore.CURSOR_MARKER, ""),
+            )
+            VariableRow(
+                "{list:3}", stringResource(R.string.expander_var_list_info),
+                SnippetStore.expand("{list:3}").replace(SnippetStore.CURSOR_MARKER, ""),
+            )
+            VariableRow(
                 "{location}", stringResource(R.string.expander_var_location_info),
                 stringResource(R.string.expander_var_location_sample),
             )
@@ -1615,6 +1623,8 @@ private val SNIPPET_PREVIEW_CONTEXT: SnippetStore.Companion.Context
         appName = stringResource(R.string.rows_snippet_preview_app_name),
         packageName = "com.example.app",
         selection = "…",
+        battery = { 85 },
+        language = "English",
     )
 /**
  * Example value for the reference card. Most variables can be expanded for
@@ -1628,6 +1638,9 @@ private fun sampleFor(variable: SnippetVariable): String = when (variable) {
     SnippetVariable.APP -> "Messages"
     SnippetVariable.PACKAGE -> "com.google.android.apps.messaging"
     SnippetVariable.CURSOR -> stringResource(R.string.rows_snippet_sample_cursor)
+    SnippetVariable.BATTERY -> "85%"
+    SnippetVariable.LANGUAGE -> "English"
+    SnippetVariable.TAB -> stringResource(R.string.expander_var_tab_sample)
     else -> SnippetStore.expand(variable.token)
 }
 /** One row in the template-variable reference card. */

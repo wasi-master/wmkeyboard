@@ -1294,6 +1294,15 @@ class SnippetStore(private val storageFile: File?) {
              * inserted, then fills them with [fillAsks].
              */
             val answers: Map<String, String>? = null,
+            /** `{battery}`: the charge in percent, read only when a snippet asks. */
+            val battery: (() -> Int?)? = null,
+            /** `{language}`: the keyboard language's name, as the language picker shows it. */
+            val language: String? = null,
+            /**
+             * The keyboard language's BCP 47 tag (`bn-BD`, `hi-Latn`), which
+             * picks the words `{greeting}` uses. Null means English.
+             */
+            val languageTag: String? = null,
         )
 
         /** Expanded text plus where the cursor should end up inside it. */
@@ -1316,6 +1325,19 @@ class SnippetStore(private val storageFile: File?) {
 
         /** `{ha:light.kitchen}` or `{ha:sensor.outside:unit_of_measurement}`. */
         private val HOME_ASSISTANT = Regex("""\{ha:([a-z0-9_]{1,40}\.[a-z0-9_]{1,80})(?::([a-z0-9_]{1,40}))?\}""")
+
+        /**
+         * `{bullets:3}` and `{list:3}`: that many bulleted or numbered lines.
+         * A keyword of their own, so they never meet the `{clip:…}` and
+         * `{selection:…}` modifiers or an `{ask:…}` field.
+         */
+        private val LIST = Regex("""\{(bullets|list)(?::(\d{1,3}))?\}""")
+
+        /** Most lines one `{bullets:N}` or `{list:N}` writes. */
+        const val MAX_LIST_LINES = 50
+
+        /** Lines a bare `{bullets}` or `{list}` writes. */
+        private const val DEFAULT_LIST_LINES = 3
 
         /** `{random:one|two|three}`, one alternative picked per insertion. */
         private val RANDOM = Regex("""\{random:([^}\n]{1,400})\}""")
@@ -1364,6 +1386,9 @@ class SnippetStore(private val storageFile: File?) {
                 val pattern = match.groupValues[2].ifEmpty { DEFAULT_DATE }
                 format(pattern, now + shift * 1000L)
             }
+            // Lists before {cursor} is resolved, so they can tell whether the
+            // snippet already chose where the caret goes.
+            out = expandLists(out)
             // The Location tool's places (#350). Before the plain tokens so an
             // address can never be read as one.
             out = LOCATION.replace(out) { match -> ctx.location?.invoke(match.groupValues[1].ifEmpty { null }).orEmpty() }
@@ -1390,6 +1415,97 @@ class SnippetStore(private val storageFile: File?) {
             ctx.answers?.let { out = fillAsks(out, it) }
             return out
         }
+
+        /**
+         * [text] with every `{bullets:N}` and `{list:N}` written out, one line
+         * each, joined by newlines and with nothing after the last.
+         *
+         * The caret goes after the first bullet of the first list, unless the
+         * snippet put a `{cursor}` of its own somewhere: that one wins, as it
+         * would anywhere else.
+         */
+        private fun expandLists(text: String): String {
+            if (!text.contains('{')) return text
+            var caretPlaced = text.contains(SnippetVariable.CURSOR.token) || text.contains(CURSOR_MARKER)
+            return LIST.replace(text) { match ->
+                val count = (match.groupValues[2].toIntOrNull() ?: DEFAULT_LIST_LINES).coerceIn(1, MAX_LIST_LINES)
+                val numbered = match.groupValues[1] == "list"
+                buildString {
+                    for (i in 1..count) {
+                        if (i > 1) append('\n')
+                        append(if (numbered) "$i. " else "• ")
+                        if (!caretPlaced) {
+                            append(CURSOR_MARKER)
+                            caretPlaced = true
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
+         * Good morning, afternoon or evening at [now], in the language [tag]
+         * names where this table has its words, otherwise in English.
+         *
+         * Morning runs from 04:00 to noon and afternoon to 18:00; the rest is
+         * evening, since "good night" is a goodbye rather than a greeting.
+         * A romanized keyboard (`hi-Latn`) gets English rather than words in
+         * a script the keyboard does not type.
+         */
+        fun greeting(now: Long, tag: String?): String {
+            val hour = java.util.Calendar.getInstance().apply { timeInMillis = now }
+                .get(java.util.Calendar.HOUR_OF_DAY)
+            val slot = when (hour) {
+                in 4..11 -> 0
+                in 12..17 -> 1
+                else -> 2
+            }
+            val lower = tag?.lowercase(Locale.ROOT).orEmpty()
+            val language = lower.substringBefore('-').substringBefore('_')
+            val words = GREETINGS[if (language == "no") "nb" else language]
+                ?.takeUnless { words -> isLatinOnly(lower) && words.any { !isLatinText(it) } }
+                ?: GREETINGS.getValue("en")
+            return words[slot]
+        }
+
+        private fun isLatinOnly(tag: String): Boolean =
+            tag.split('-', '_').any { it == "latn" } || tag.endsWith("_rom")
+
+        private fun isLatinText(text: String): Boolean = text.all { it.code < 0x250 }
+
+        /** Morning, afternoon and evening, by language subtag. */
+        private val GREETINGS: Map<String, List<String>> = mapOf(
+            "en" to listOf("Good morning", "Good afternoon", "Good evening"),
+            "es" to listOf("Buenos días", "Buenas tardes", "Buenas noches"),
+            "fr" to listOf("Bonjour", "Bonjour", "Bonsoir"),
+            "de" to listOf("Guten Morgen", "Guten Tag", "Guten Abend"),
+            "it" to listOf("Buongiorno", "Buon pomeriggio", "Buonasera"),
+            "pt" to listOf("Bom dia", "Boa tarde", "Boa noite"),
+            "nl" to listOf("Goedemorgen", "Goedemiddag", "Goedenavond"),
+            "sv" to listOf("God morgon", "God eftermiddag", "God kväll"),
+            "da" to listOf("God morgen", "God eftermiddag", "God aften"),
+            "nb" to listOf("God morgen", "God ettermiddag", "God kveld"),
+            "fi" to listOf("Hyvää huomenta", "Hyvää iltapäivää", "Hyvää iltaa"),
+            "pl" to listOf("Dzień dobry", "Dzień dobry", "Dobry wieczór"),
+            "cs" to listOf("Dobré ráno", "Dobré odpoledne", "Dobrý večer"),
+            "ro" to listOf("Bună dimineața", "Bună ziua", "Bună seara"),
+            "hu" to listOf("Jó reggelt", "Jó napot", "Jó estét"),
+            "tr" to listOf("Günaydın", "İyi günler", "İyi akşamlar"),
+            "id" to listOf("Selamat pagi", "Selamat siang", "Selamat malam"),
+            "ms" to listOf("Selamat pagi", "Selamat petang", "Selamat malam"),
+            "vi" to listOf("Chào buổi sáng", "Chào buổi chiều", "Chào buổi tối"),
+            "ru" to listOf("Доброе утро", "Добрый день", "Добрый вечер"),
+            "uk" to listOf("Доброго ранку", "Добрий день", "Добрий вечір"),
+            "el" to listOf("Καλημέρα", "Καλησπέρα", "Καλησπέρα"),
+            "he" to listOf("בוקר טוב", "צהריים טובים", "ערב טוב"),
+            "ar" to listOf("صباح الخير", "مساء الخير", "مساء الخير"),
+            "bn" to listOf("সুপ্রভাত", "শুভ অপরাহ্ন", "শুভ সন্ধ্যা"),
+            "hi" to listOf("सुप्रभात", "शुभ दोपहर", "शुभ संध्या"),
+            "th" to listOf("สวัสดีตอนเช้า", "สวัสดีตอนบ่าย", "สวัสดีตอนเย็น"),
+            "ja" to listOf("おはようございます", "こんにちは", "こんばんは"),
+            "ko" to listOf("좋은 아침이에요", "안녕하세요", "좋은 저녁이에요"),
+            "zh" to listOf("早上好", "下午好", "晚上好"),
+        )
 
         // ---- fill-in fields --------------------------------------------
 
@@ -1662,11 +1778,12 @@ enum class TriggerCasing {
  * The template variables a snippet may contain. Kept as an enum so the
  * expander and the settings screen's reference table can never drift apart.
  *
- * Two variables take an argument and so are handled separately in
+ * The variables that take an argument are handled separately in
  * [SnippetStore.expand] rather than listed here: `{date:pattern}` with any
  * SimpleDateFormat pattern and an optional seconds offset
- * (`{date+86400:dd/MM/yy}` is tomorrow), and `{random:one|two|three}`, which
- * picks one alternative per insertion.
+ * (`{date+86400:dd/MM/yy}` is tomorrow), `{random:one|two|three}`, which
+ * picks one alternative per insertion, and `{bullets:N}` / `{list:N}`, which
+ * write N bulleted or numbered lines with the caret in the first.
  */
 enum class SnippetVariable(
     val token: String,
@@ -1690,6 +1807,10 @@ enum class SnippetVariable(
     APP("{app}", R.string.core_content_snippet_var_app_info),
     PACKAGE("{package}", R.string.core_content_snippet_var_package_info),
     UUID("{uuid}", R.string.core_content_snippet_var_uuid_info),
+    GREETING("{greeting}", R.string.core_content_snippet_var_greeting_info),
+    BATTERY("{battery}", R.string.core_content_snippet_var_battery_info),
+    LANGUAGE("{language}", R.string.core_content_snippet_var_language_info),
+    TAB("{tab}", R.string.core_content_snippet_var_tab_info),
     CURSOR("{cursor}", R.string.core_content_snippet_var_cursor_info);
 
     internal fun value(
@@ -1714,6 +1835,10 @@ enum class SnippetVariable(
         APP -> context.appName.orEmpty()
         PACKAGE -> context.packageName.orEmpty()
         UUID -> java.util.UUID.randomUUID().toString()
+        GREETING -> SnippetStore.greeting(now, context.languageTag)
+        BATTERY -> context.battery?.invoke()?.takeIf { it in 0..100 }?.let { "$it%" }.orEmpty()
+        LANGUAGE -> context.language.orEmpty()
+        TAB -> "\t"
         CURSOR -> SnippetStore.CURSOR_MARKER
     }
 }

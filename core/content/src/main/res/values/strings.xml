@@ -59,6 +59,10 @@
     <string name="core_content_snippet_var_app_info">The name of the app you type in</string>
     <string name="core_content_snippet_var_package_info">The package name of that app</string>
     <string name="core_content_snippet_var_uuid_info">A new random UUID</string>
+    <string name="core_content_snippet_var_greeting_info">Good morning, afternoon or evening by the time, in the keyboard language</string>
+    <string name="core_content_snippet_var_battery_info">The battery charge, for example 85%</string>
+    <string name="core_content_snippet_var_language_info">The keyboard language you type in</string>
+    <string name="core_content_snippet_var_tab_info">A tab character</string>
     <string name="core_content_snippet_var_cursor_info">The place where the cursor lands</string>
 
     <!-- ================================================================== -->
