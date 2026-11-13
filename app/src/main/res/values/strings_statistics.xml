@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <!-- The Statistics screen, opened from About. -->
     <string name="statistics_title">Statistics</string>
@@ -155,6 +155,20 @@
     <string name="statistics_voice_phrases_label">Phrases</string>
     <string name="statistics_voice_time_label">Time speaking</string>
     <string name="statistics_voice_speed_label">Speaking speed</string>
+
+    <!-- The hidden keycap catcher game's section: shown only once the game has been found.
+         Its heading reuses egg_game_title. -->
+    <string name="statistics_game_info">Kept on this device apart from your typing statistics, so turning the counting off or deleting statistics leaves these alone.</string>
+    <string name="statistics_game_best_label">Best score</string>
+    <string name="statistics_game_level_label">Best level</string>
+    <string name="statistics_game_rounds_label">Rounds</string>
+    <string name="statistics_game_time_label">Time playing</string>
+    <string name="statistics_game_caught_label">Keys caught</string>
+    <string name="statistics_game_words_label">Words spelled</string>
+    <!-- Play time under a minute. %1$d is a number of seconds. -->
+    <string name="statistics_game_seconds"><xliff:g id="seconds" example="42">%1$d</xliff:g> s</string>
+    <!-- Row that opens the game again. -->
+    <string name="statistics_game_play_title">Play again</string>
 
     <!-- personal bests -->
 

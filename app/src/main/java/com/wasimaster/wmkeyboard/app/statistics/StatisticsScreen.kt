@@ -96,10 +96,11 @@ internal fun StatisticsScreen(
     repository: SettingsRepository,
     settings: LiveSettings,
     onOpenLearnedCorrections: () -> Unit = {},
+    onOpenEggGame: () -> Unit = {},
 ) {
     // The charts and figures fill in when the screen opens, and are simply
     // there when it is composed again for the same visit.
-    ChartIntroScope { StatisticsBody(repository, settings, onOpenLearnedCorrections) }
+    ChartIntroScope { StatisticsBody(repository, settings, onOpenLearnedCorrections, onOpenEggGame) }
 }
 
 /** What the learned corrections store has to say: the slips, and the pairs. */
@@ -113,6 +114,7 @@ private fun StatisticsBody(
     repository: SettingsRepository,
     settings: LiveSettings,
     onOpenLearnedCorrections: () -> Unit,
+    onOpenEggGame: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -165,6 +167,8 @@ private fun StatisticsBody(
         CaptionText(stringResource(R.string.statistics_empty_body))
     }
     if (lifetime == null || empty) {
+        // The game keeps its own figures, so it has a section with or without typing ones.
+        KeycapCatcherStats(onOpenEggGame)
         DeleteStatistics(enabled = false) { }
         return
     }
@@ -284,6 +288,8 @@ private fun StatisticsBody(
         )
         PunchCard(lifetime.weekHourHistogram)
     }
+
+    KeycapCatcherStats(onOpenEggGame)
 
     DeleteStatistics(enabled = true) { confirmDelete = true }
 

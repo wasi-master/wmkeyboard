@@ -187,6 +187,11 @@ private class GameWorld {
     var shake = 0f
     var time = 0f
 
+    // Lifetime figures not yet written to EggPrefs: flushed on pause, at
+    // game over and when the screen goes, not sixty times a second.
+    var unsavedPlayS = 0f
+    var unsavedCaught = 0L
+
     fun clear() {
         caps.clear()
         sparks.clear()
@@ -230,7 +235,25 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
     val bottomMargin = with(density) { 40.dp.toPx() }
     val depthPx = with(density) { 4.dp.toPx() }
 
+    // Opening the game is what finding it means: Statistics shows its section from now on.
+    LaunchedEffect(Unit) { eggPrefs.gameFound = true }
+
+    fun saveTally() {
+        if (world.unsavedPlayS > 0f) eggPrefs.gamePlayMs += (world.unsavedPlayS * 1000f).toLong()
+        if (world.unsavedCaught > 0L) eggPrefs.gameKeysCaught += world.unsavedCaught
+        world.unsavedPlayS = 0f
+        world.unsavedCaught = 0L
+    }
+
+    fun pause() {
+        phase = GamePhase.PAUSED
+        saveTally()
+    }
+
+    DisposableEffect(Unit) { onDispose { saveTally() } }
+
     fun start() {
+        eggPrefs.gameRounds += 1
         world.clear()
         score = 0
         lives = START_LIVES
@@ -263,6 +286,9 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
             }
             world.caps.clear()
             phase = GamePhase.OVER
+            saveTally()
+            val reached = 1 + score / POINTS_PER_LEVEL
+            if (reached > eggPrefs.gameBestLevel) eggPrefs.gameBestLevel = reached
             if (score > best) {
                 best = score
                 newBest = true
@@ -273,9 +299,9 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
 
     // Leaving the app, or Back mid-round, pauses rather than throwing the round away.
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) {
-        if (phase == GamePhase.PLAYING) phase = GamePhase.PAUSED
+        if (phase == GamePhase.PLAYING) pause()
     }
-    BackHandler(enabled = phase == GamePhase.PLAYING) { phase = GamePhase.PAUSED }
+    BackHandler(enabled = phase == GamePhase.PLAYING) { pause() }
 
     val letterFill = scheme.surfaceVariant
     val nextFill = scheme.primaryContainer
@@ -315,6 +341,7 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
             }
 
             if (playing) {
+                world.unsavedPlayS += dt
                 catcherX += (targetX - catcherX) * (dt * CATCHER_EASE).coerceAtMost(1f)
                 world.wideLeft = (world.wideLeft - dt).coerceAtLeast(0f)
                 val wantWidth = if (world.wideLeft > 0f) WIDE_FACTOR else 1f
@@ -381,6 +408,7 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
                                             }
                                             word = WORDS.filter { it != word }.random()
                                             spelled = 0
+                                            eggPrefs.gameWordsSpelled += 1
                                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                         }
                                     }
@@ -395,6 +423,7 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
                                     haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 }
                             }
+                            if (cap.kind != CapKind.BACKSPACE) world.unsavedCaught++
                             world.glow = 1f
                         }
                         cap.y - capPx / 2 > h -> {
@@ -564,7 +593,7 @@ private fun KeycapCatcherGame(onClose: () -> Unit, modifier: Modifier = Modifier
             word = word,
             spelled = spelled,
             showPause = phase == GamePhase.PLAYING,
-            onPause = { phase = GamePhase.PAUSED },
+            onPause = ::pause,
             onClose = onClose,
             modifier = Modifier
                 .align(Alignment.TopCenter)

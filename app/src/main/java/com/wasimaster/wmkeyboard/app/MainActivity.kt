@@ -3105,6 +3105,7 @@ private fun SettingsNavGraph(
                     repository,
                     settings,
                     onOpenLearnedCorrections = { navController.navigate("learnedcorrections") },
+                    onOpenEggGame = { navController.navigate("egg_game") },
                 )
             }
         }
