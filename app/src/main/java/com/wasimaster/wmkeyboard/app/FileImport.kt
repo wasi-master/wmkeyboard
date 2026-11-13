@@ -2276,7 +2276,7 @@ private fun rememberProposal(
                 // how a file's patterns, its ask-first flag and its folders get
                 // dropped on the floor with nothing to say so.
                 withContext(Dispatchers.IO) {
-                    store.addAll(state.snippets.snippets, state.snippets.folders)
+                    store.addAll(state.snippets.snippets, state.snippets.folders, images = state.snippets.images)
                     // The adds are in-memory only; save() is what writes the file.
                     store.save()
                 }

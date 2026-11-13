@@ -228,6 +228,7 @@ internal fun SnippetSettings(
                                 appVersion = BuildConfig.VERSION_CODE,
                                 appVersionName = BuildConfig.VERSION_NAME,
                                 folders = currentFolders,
+                                images = SnippetStore.imageBytes(context.filesDir, current),
                             ).toByteArray(),
                         )
                     } ?: error("no stream")
