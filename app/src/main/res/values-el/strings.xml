@@ -4324,9 +4324,6 @@
     <string name="langemoji_emoji_tone_override_info">Όταν αυτό είναι ενεργοποιημένο, και είναι ενεργοποιημένο από προεπιλογή, ένα emoji για το οποίο έχετε ήδη επιλέξει τόνο διατηρεί αυτόν τον τόνο παντού: στον πίνακα, στις προτάσεις και στην αναζήτηση. Επιλέγετε αυτόν τον τόνο από το αναδυόμενο παράθυρο παρατεταμένου πατήματος του emoji στον πίνακα. Το emoji δεν χρησιμοποιεί την παραπάνω προεπιλογή. Όταν αυτό είναι απενεργοποιημένο, ο προεπιλεγμένος τόνος δέρματος υπερισχύει πάντα.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Χρησιμοποιήστε τον τόνο που επιλέξατε τελευταία για ένα emoji, όχι τον προεπιλεγμένο</string>
     <string name="langemoji_emoji_tone_override_title">Παράκαμψη με τον τελευταίο χρησιμοποιημένο</string>
-    <string name="langemoji_emoji_toolbar_info">Το κουμπί emoji παραμένει ορατό στην επάνω γραμμή, ακόμη και όταν εμφανίζονται οι προτάσεις. Ο πίνακας emoji διαθέτει καρτέλα για κάθε κατηγορία. Μπορείτε να κάνετε αναζήτηση στα Αγγλικά και τα Βεγγαλικά, καθώς και σε οποιαδήποτε γλώσσα για την οποία έχετε προσθέσει πακέτο λέξεων-κλειδιών. Πατήστε παρατεταμένα ένα emoji για τις παραλλαγές τόνου δέρματος.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Ανοίξτε τα emoji με ένα πάτημα από την επάνω γραμμή</string>
-    <string name="langemoji_emoji_toolbar_title">Κουμπί Emoji στη γραμμή εργαλείων</string>
     <string name="langemoji_emoji_unicode_search_info">Πληκτρολογήστε τις λέξεις του ονόματος Unicode ενός χαρακτήρα στην αναζήτηση emoji και θα εμφανιστεί μετά το emoji: παύλα em, σύμβολο πνευματικών δικαιωμάτων, ελληνικό πεζό γράμμα λάμδα, λατινικό πεζό γράμμα a με ogonek. Καλύπτεται κάθε χαρακτήρας του Βασικού Πολύγλωσσου Επιπέδου, που περιλαμβάνει δεκάδες χιλιάδες γράμματα, σημεία και σύμβολα. Πατώντας ένα, εισάγεται. Αυτή η ρύθμιση είναι απενεργοποιημένη από προεπιλογή.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Η αναζήτηση emoji βρίσκει επίσης σύμβολα, γράμματα και σημάδια από τις λέξεις του ονόματός τους</string>
     <string name="langemoji_emoji_unicode_search_title">Βρείτε οποιονδήποτε χαρακτήρα από το όνομα Unicode του</string>
@@ -4501,17 +4498,12 @@
     <string name="langemoji_panel_height_subtitle">Πόσο πιο ψηλά από το πληκτρολόγιο ανοίγουν τα πάνελ emoji, GIF και αυτοκόλλητων</string>
     <string name="langemoji_panel_height_title">Ύψος πίνακα</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Τοποθετήστε αυτά τα κουμπιά μετά τις προτάσεις, στο άκρο της γραμμής</string>
-    <string name="langemoji_strip_at_end_title">Κουμπιά στα δεξιά</string>
     <string name="langemoji_strip_icon_size_subtitle">Πόσο μεγάλο είναι το εικονίδιο σε κάθε κουμπί δίπλα στις προτάσεις</string>
     <string name="langemoji_strip_icon_size_title">Μέγεθος εικονιδίου κουμπιού</string>
     <string name="langemoji_strip_own_size_subtitle">Ρυθμίστε το μέγεθος των κουμπιών δίπλα στις προτάσεις, εκτός από τα εργαλεία της γραμμής εργαλείων</string>
     <string name="langemoji_strip_own_size_title">Δικό τους μέγεθος για αυτά τα κουμπιά</string>
-    <string name="langemoji_strip_shortcut_subtitle">Το εργαλείο που παραμένει στην επάνω γραμμή ενώ εμφανίζονται οι προτάσεις</string>
-    <string name="langemoji_strip_shortcut_title">Κουμπί δίπλα στις προτάσεις</string>
     <string name="langemoji_strip_tool_width_subtitle">Πόσο πλατύ είναι κάθε κουμπί δίπλα στις προτάσεις</string>
     <string name="langemoji_strip_tool_width_title">Πλάτος κουμπιού</string>
-    <string name="langemoji_strip_toolbox_subtitle">Τοποθετήστε την εργαλειοθήκη πρώτη ανάμεσα σε αυτά τα κουμπιά, ώστε να είναι διαθέσιμη με ένα πάτημα κατά την εμφάνιση των προτάσεων</string>
     <string name="langemoji_strip_toolbox_title">Κουμπί εργαλειοθήκης</string>
     <string name="langemoji_strip_tools_add_value">Προσθήκη</string>
     <string name="langid_module_title">Ανίχνευση γλώσσας</string>

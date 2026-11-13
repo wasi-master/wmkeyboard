@@ -3543,6 +3543,12 @@ data class KeyboardUiState(
     /** The layout being typed on; what the 🌐 cycle steps through. */
     val layoutId: String = BuiltInLayouts.DEFAULT_ID,
     /**
+     * The layout the board pinned on the Secondary layout tool interrupted
+     * (#1230), or null. That board is not in the language cycle, so a spacebar
+     * language swipe or the language list starts from this one instead.
+     */
+    val languageAnchorId: String? = null,
+    /**
      * The layout's display name, for the spacebar label. Carried on the state
      * rather than looked up, because a custom layout has no [InputMode] of its
      * own to name it by — two layouts can share a base mode and still deserve

@@ -4327,9 +4327,6 @@
     <string name="langemoji_emoji_tone_override_info">Когато това е включено (което е настройката по подразбиране), емоджи, за което вече сте избрали тон на кожата, запазва този тон навсякъде: в панела, предложенията и търсенето. Избирате този тон от изскачащия прозорец при задържане на емоджито в панела. Емоджито не използва тона по подразбиране отгоре. Когато това е изключено, тонът на кожата по подразбиране винаги е с приоритет.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Използвайте тона, който последно сте избрали за емоджи, а не стандартния</string>
     <string name="langemoji_emoji_tone_override_title">Замяна с последно използвания</string>
-    <string name="langemoji_emoji_toolbar_info">Бутонът за емоджи остава видим в горната лента, дори когато се показват предложенията. Панелът с емоджи има раздел за всяка категория. Можете да търсите на английски и бенгалски, както и на всеки език, за който сте добавили пакет с ключови думи. Натиснете и задръжте емоджи за варианти на цвета на кожата.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Отваряне на емоджи с едно натискане от горната лента</string>
-    <string name="langemoji_emoji_toolbar_title">Бутон за емоджита в лентата с инструменти</string>
     <string name="langemoji_emoji_unicode_search_info">Въведете думите от Unicode името на символ в търсенето на емоджи и той ще се появи след емоджито: тире, знак за авторско право, гръцка малка буква ламбда, латинска малка буква a с огонек. Покрит е всеки символ от Основната многоезична равнина, което са десетки хиляди букви, знаци и символи. Докосването на един го вмъква. Тази настройка е изключена по подразбиране.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Търсенето на емоджита намира също символи, букви и знаци по думите от имената им</string>
     <string name="langemoji_emoji_unicode_search_title">Намиране на всеки знак по неговото Unicode име</string>
@@ -4504,17 +4501,12 @@
     <string name="langemoji_panel_height_subtitle">Колко по-високо от клавиатурата се отварят панелите за емоджита, GIF файлове и стикери</string>
     <string name="langemoji_panel_height_title">Височина на панела</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Поставете тези бутони след предложенията, в края на лентата</string>
-    <string name="langemoji_strip_at_end_title">Бутони отдясно</string>
     <string name="langemoji_strip_icon_size_subtitle">Колко голяма е иконата във всеки бутон до предложенията</string>
     <string name="langemoji_strip_icon_size_title">Размер на иконата на бутона</string>
     <string name="langemoji_strip_own_size_subtitle">Оразмерете бутоните до предложенията, различни от инструментите на лентата с инструменти</string>
     <string name="langemoji_strip_own_size_title">Собствен размер за тези бутони</string>
-    <string name="langemoji_strip_shortcut_subtitle">Инструментът, който остава в горната лента, докато се показват предложенията</string>
-    <string name="langemoji_strip_shortcut_title">Бутон до предложенията</string>
     <string name="langemoji_strip_tool_width_subtitle">Колко широк е всеки бутон до предложенията</string>
     <string name="langemoji_strip_tool_width_title">Ширина на бутона</string>
-    <string name="langemoji_strip_toolbox_subtitle">Поставете лентата с инструменти първа сред тези бутони, така че да бъде на едно докосване разстояние, докато предложенията се показват</string>
     <string name="langemoji_strip_toolbox_title">Бутон за лентата с инструменти</string>
     <string name="langemoji_strip_tools_add_value">Добави</string>
     <string name="langid_module_title">Откриване на език</string>

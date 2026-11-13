@@ -422,6 +422,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.WMKeyboard">
 
         <!--
@@ -484,6 +485,16 @@
             android:enableOnBackInvokedCallback="true"
             android:exported="true"
             android:launchMode="singleTop">
+            <!--
+                 The gear on the system's App info page for WM Keyboard
+                 (competitor gap list item 41). Android shows it for any app
+                 with an activity answering APPLICATION_PREFERENCES; it opens
+                 settings at their home screen.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
             <!--
                  Addon deep links: wmkeyboard://addons, wmkeyboard://repo?url=…
                  and wmkeyboard://addon?repo=…&id=…. A custom scheme rather than

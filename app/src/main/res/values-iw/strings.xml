@@ -4324,9 +4324,6 @@
     <string name="langemoji_emoji_tone_override_info">כאשר זה מופעל, וזה מופעל כברירת מחדל, אימוג\'י שכבר בחרת עבורו גוון שומר על הגוון הזה בכל מקום: בלוח, בהצעות ובחיפוש. אתה בוחר את הגוון הזה מהחלון הקופץ של לחיצה ארוכה על האימוג\'י בלוח. האימוג\'י לא משתמש בברירת המחדל שלמעלה. כאשר זה כבוי, גוון העור המוגדר כברירת מחדל תמיד מנצח.</string>
     <string name="langemoji_emoji_tone_override_subtitle">השתמש בגוון שבחרת לאחרונה עבור אימוג\'י, ולא בברירת המחדל</string>
     <string name="langemoji_emoji_tone_override_title">דרוס עם האחרון שנעשה בו שימוש</string>
-    <string name="langemoji_emoji_toolbar_info">כפתור האימוג\'י נשאר גלוי בסרגל העליון, גם בזמן שההצעות מוצגות. ללוח האימוג\'י יש כרטיסייה לכל קטגוריה. ניתן לחפש באנגלית ובבנגלית, ובכל שפה שעבורה הוספת חבילת מילות מפתח. לחץ והחזק אימוג\'י עבור וריאציות גוון עור.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">פתח אימוג\'י בלחיצה אחת מהסרגל העליון</string>
-    <string name="langemoji_emoji_toolbar_title">כפתור אימוג\'י בסרגל הכלים</string>
     <string name="langemoji_emoji_unicode_search_info">הקלד את המילים של שם ה-Unicode של תו בחיפוש האימוג\'י והוא יופיע אחרי האימוג\'י: מקף ארוך, סימן זכויות יוצרים, אות יוונית קטנה למדא, אות לטינית קטנה a עם ogonek. כל תו במישור הרב-לשוני הבסיסי מכוסה, מה שאומר עשרות אלפי אותיות, סימנים וסמלים. הקשה על אחד מהם תכניס אותו. הגדרה זו כבויה כברירת מחדל.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">חיפוש האימוג\'י מוצא גם סמלים, אותיות וסימנים לפי מילות השם שלהם</string>
     <string name="langemoji_emoji_unicode_search_title">מצא כל תו לפי שם ה-Unicode שלו</string>
@@ -4501,17 +4498,12 @@
     <string name="langemoji_panel_height_subtitle">כמה גבוה יותר מהמקלדת נפתחים פאנלי האימוג\'י, ה-GIF והמדבקות</string>
     <string name="langemoji_panel_height_title">גובה הלוח</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">שים כפתורים אלו אחרי ההצעות, בקצה הרצועה</string>
-    <string name="langemoji_strip_at_end_title">כפתורים בצד ימין</string>
     <string name="langemoji_strip_icon_size_subtitle">מהו הגודל של הסמל בכל לחצן לצד ההצעות</string>
     <string name="langemoji_strip_icon_size_title">גודל סמל הכפתור</string>
     <string name="langemoji_strip_own_size_subtitle">קבע את גודל הכפתורים לצד ההצעות בנפרד מכלי סרגל הכלים</string>
     <string name="langemoji_strip_own_size_title">גודל מותאם אישית ללחצנים אלה</string>
-    <string name="langemoji_strip_shortcut_subtitle">הכלי שנשאר בסרגל העליון בזמן שההצעות מוצגות</string>
-    <string name="langemoji_strip_shortcut_title">כפתור לצד ההצעות</string>
     <string name="langemoji_strip_tool_width_subtitle">מה הרוחב של כל כפתור לצד ההצעות</string>
     <string name="langemoji_strip_tool_width_title">רוחב כפתור</string>
-    <string name="langemoji_strip_toolbox_subtitle">שים את ארגז הכלים ראשון בין כפתורים אלו, כך שיהיה נגיש בלחיצה אחת בזמן שההצעות מוצגות</string>
     <string name="langemoji_strip_toolbox_title">כפתור ארגז כלים</string>
     <string name="langemoji_strip_tools_add_value">הוסף</string>
     <string name="langid_module_title">זיהוי שפה</string>

@@ -4321,9 +4321,6 @@
     <string name="langemoji_emoji_tone_override_info">Kun tämä on päällä (se on oletuksena päällä), emoji, jolle olet jo valinnut sävyn, säilyttää kyseisen sävyn kaikkialla: paneelissa, ehdotuksissa ja haussa. Valitset sävyn painamalla emojia pitkään paneelissa. Emoji ei käytä yllä olevaa oletusta. Kun tämä on pois päältä, oletusihonväri on aina käytössä.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Käytä emojille viimeksi valitsemaasi sävyä, älä oletusta</string>
     <string name="langemoji_emoji_tone_override_title">Korvaa viimeksi käytetyllä</string>
-    <string name="langemoji_emoji_toolbar_info">Emoji-painike pysyy näkyvissä yläpalkissa myös ehdotusten näkyessä. Emoji-paneelissa on välilehti jokaiselle kategorialle. Voit hakea englanniksi, bengaliksi ja millä tahansa kielellä, johon olet lisännyt avainsanapaketin. Paina ja pidä pohjassa emojia nähdäksesi ihonvärivaihtoehdot.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Avaa emoji yhdellä painalluksella yläpalkista</string>
-    <string name="langemoji_emoji_toolbar_title">Emoji-painike työkalupalkissa</string>
     <string name="langemoji_emoji_unicode_search_info">Kirjoita merkin Unicode-nimen sanat emoji-hakuun, niin se ilmestyy emojin jälkeen: ajatusviiva, tekijänoikeusmerkki, kreikkalainen pieni lambda-kirjain, latinalainen pieni a-kirjain ogonekilla. Jokainen Basic Multilingual Plane -tason merkki on katettu, mikä tarkoittaa kymmeniä tuhansia kirjaimia, merkkejä ja symboleita. Yhden napauttaminen lisää sen. Tämä asetus on oletuksena pois päältä.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Emoji-haku löytää myös symboleita, kirjaimia ja merkkejä niiden nimen sanoilla</string>
     <string name="langemoji_emoji_unicode_search_title">Etsi mikä tahansa merkki sen Unicode-nimellä</string>
@@ -4498,17 +4495,12 @@
     <string name="langemoji_panel_height_subtitle">Kuinka paljon emoji-, GIF- ja tarrapaneelit avautuvat näppäimistöä korkeammalle</string>
     <string name="langemoji_panel_height_title">Paneelin korkeus</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Aseta nämä painikkeet ehdotusten jälkeen, palkin kauimmaiseen päähän</string>
-    <string name="langemoji_strip_at_end_title">Painikkeet oikealla</string>
     <string name="langemoji_strip_icon_size_subtitle">Kuinka suuri kunkin ehdotusten vieressä olevan painikkeen kuvake on</string>
     <string name="langemoji_strip_icon_size_title">Painikkeen kuvakkeen koko</string>
     <string name="langemoji_strip_own_size_subtitle">Muuta ehdotusten vieressä olevien painikkeiden kokoa, lukuun ottamatta työkalupalkin työkaluja</string>
     <string name="langemoji_strip_own_size_title">Oma koko näille painikkeille</string>
-    <string name="langemoji_strip_shortcut_subtitle">Työkalu, joka pysyy yläpalkissa ehdotusten näkyessä</string>
-    <string name="langemoji_strip_shortcut_title">Painike ehdotusten vieressä</string>
     <string name="langemoji_strip_tool_width_subtitle">Kuinka leveitä ehdotusten vieressä olevat painikkeet ovat</string>
     <string name="langemoji_strip_tool_width_title">Painikkeen leveys</string>
-    <string name="langemoji_strip_toolbox_subtitle">Aseta työkalupakki näiden painikkeiden ensimmäiseksi, jotta se on yhden napautuksen päässä ehdotusten näkyessä</string>
     <string name="langemoji_strip_toolbox_title">Työkalupakin painike</string>
     <string name="langemoji_strip_tools_add_value">Lisää</string>
     <string name="langid_module_title">Kielen tunnistus</string>

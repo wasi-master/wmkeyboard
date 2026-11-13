@@ -32,6 +32,14 @@
     <string name="appearance_key_hint_size_subtitle">Scale of the small hint character in the corner of each key</string>
     <!-- "Press and hold hints" is the name of a setting on the Key press
          screen. Translate it as it is translated there. -->
+    <string name="appearance_key_hint_corner_title">Key hint corner</string>
+    <string name="appearance_key_hint_corner_subtitle">Which corner of the key the long-press hint sits in</string>
+    <string name="appearance_key_hint_corner_top_start">Top left</string>
+    <string name="appearance_key_hint_corner_top_center">Top middle</string>
+    <string name="appearance_key_hint_corner_top_end">Top right</string>
+    <string name="appearance_key_hint_corner_bottom_start">Bottom left</string>
+    <string name="appearance_key_hint_corner_bottom_center">Bottom middle</string>
+    <string name="appearance_key_hint_corner_bottom_end">Bottom right</string>
     <string name="appearance_key_hint_offset_title">Key hint position</string>
     <string name="appearance_key_hint_offset_subtitle">Distance of the corner hint from the top edge of the key</string>
     <!-- dp is the Android unit for screen size. Keep the two letters. -->
@@ -55,7 +63,7 @@
     <!-- One-of-three choice: where the pinned tools are drawn. -->
     <string name="appearance_toolbar_placement_title">Where the tools go</string>
     <string name="appearance_toolbar_placement_subtitle">Share the suggestion strip, or use a row above it</string>
-    <string name="appearance_toolbar_placement_info">With \"The strip\", the tools and the suggestions share one row. The tools rest there, the suggestions take the row while you type, and the arrow button changes between them. This costs no height. With \"A button\", the arrow button opens a row of tools above the suggestions, and the button closes it again. With \"Always\", that row of tools stays open. Both of these keep the tools in reach while you type, and both use the height of one more row. With \"On a swipe\", the tools share the strip again but only come when you ask: swipe up on the strip\'s toolbox button to bring them and down to put them away. Turn on Toolbox button under Emoji for the strip to have that button.</string>
+    <string name="appearance_toolbar_placement_info">With \"The strip\", the tools and the suggestions share one row. The tools rest there, the suggestions take the row while you type, and the arrow button changes between them. This costs no height. With \"A button\", the arrow button opens a row of tools above the suggestions, and the button closes it again. With \"Always\", that row of tools stays open. Both of these keep the tools in reach while you type, and both use the height of one more row. With \"On a swipe\", the tools share the strip again but only come when you ask: swipe up on the strip\'s toolbox button to bring them and down to put them away. Set Toolbox button under Beside the suggestions, further down this screen, for the strip to have that button.</string>
     <string name="appearance_toolbar_placement_strip_label">The strip</string>
     <string name="appearance_toolbar_placement_button_label">A button</string>
     <string name="appearance_toolbar_placement_always_label">Always</string>
@@ -65,7 +73,7 @@
     <string name="appearance_toolbar_bar_toolbox_subtitle">Off leaves the toolbox to the button beside the suggestions. An open tool still shows it</string>
     <string name="appearance_toolbar_tools_arrow_title">Arrow to the tools</string>
     <string name="appearance_toolbar_tools_arrow_subtitle">Off leaves opening and closing the tools to a swipe up and down on a toolbox button</string>
-    <string name="appearance_toolbar_needs_strip_toolbox">Needs the toolbox button beside the suggestions, under Emoji</string>
+    <string name="appearance_toolbar_needs_strip_toolbox">Needs the toolbox button beside the suggestions, further down this screen</string>
     <string name="appearance_toolbar_placement_strip_desc">The tools and the suggestions share one row, and the arrow flips between them</string>
     <string name="appearance_toolbar_placement_button_desc">The tools get a row of their own, opened and closed from the arrow</string>
     <string name="appearance_toolbar_show_strip_title">Suggestion strip</string>
@@ -75,6 +83,17 @@
     <string name="appearance_toolbar_strip_only_words_info">The opposite of the shared strip, where the tools give way to the words. Here the tools row is always there, and the suggestion row above or below it folds away while it is empty: before you start typing, in a field with no suggestions, or with a tool open. The first word to suggest, or a chip such as a one-time code or the paste chip, brings it back. The keyboard gets one row taller when it shows and one row shorter when it goes.</string>
     <string name="appearance_toolbar_show_strip_info">Turn this off to remove the suggestion row and keep only the row of tools. The keyboard gets one row shorter. Useful if you have turned suggestions off and the row sits empty. Everything else that appears in that row goes too: the paste chip for your last copy, one-time codes, snippet offers and other chips. Voice typing\'s compact bar still shows there while you dictate.</string>
     <string name="appearance_toolbar_placement_always_desc">The tools keep a row of their own, always open</string>
+    <!-- The tools kept on the suggestion strip (#462), moved here from the Emoji screen, each with its own side. -->
+    <string name="appearance_strip_buttons_section_title">Beside the suggestions</string>
+    <string name="appearance_strip_buttons_show_title">Buttons beside the suggestions</string>
+    <string name="appearance_strip_buttons_show_subtitle">Keep some tools in the top bar while the suggestions show</string>
+    <string name="appearance_strip_buttons_show_info">The buttons stay in the top bar, at its left end, its right end, or both. They stay while the words show, and they also stay when there are no words and the toolbar takes the bar. Emoji is the only button to begin with. Add any tool below and pick a side for each one. A tool that you also pinned on the toolbar shows one time only, in its place on the toolbar, while the toolbar shows.</string>
+    <string name="appearance_strip_buttons_add_title">Add a button</string>
+    <string name="appearance_strip_buttons_add_subtitle">Drag to change the order. Press Left or Right to move a button to the other end</string>
+    <string name="appearance_strip_buttons_side_left">Left</string>
+    <string name="appearance_strip_buttons_side_right">Right</string>
+    <string name="appearance_strip_buttons_side_desc">Side of %1$s: %2$s</string>
+    <string name="appearance_strip_buttons_toolbox_subtitle">A toolbox button among these buttons, so the toolbox is one press away while the suggestions show</string>
     <!-- #1217: a second row of tools, picked apart from the pinned ones. -->
     <string name="appearance_second_toolbar_section_title">Second toolbar</string>
     <string name="appearance_second_toolbar_title">Second toolbar</string>

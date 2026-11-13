@@ -4317,9 +4317,6 @@
     <string name="langemoji_emoji_tone_override_info">เมื่อเปิดใช้งาน (ซึ่งเป็นค่าเริ่มต้น) อีโมจิที่คุณเลือกโทนสีไว้แล้วจะคงโทนสีนั้นไว้ทุกที่ ไม่ว่าจะเป็นในแผงควบคุม คำแนะนำ และการค้นหา คุณสามารถเลือกโทนสีนั้นได้จากป๊อปอัปเมื่อกดค้างที่อีโมจิในแผงควบคุม อีโมจิจะไม่ใช้ค่าเริ่มต้นด้านบน เมื่อปิดใช้งาน โทนสีผิวเริ่มต้นจะถูกนำมาใช้เสมอ</string>
     <string name="langemoji_emoji_tone_override_subtitle">ใช้น้ำหนักสีผิวที่คุณเลือกไว้ล่าสุดสำหรับอีโมจิ แทนที่จะใช้ค่าเริ่มต้น</string>
     <string name="langemoji_emoji_tone_override_title">แทนที่ด้วยรายการที่ใช้ล่าสุด</string>
-    <string name="langemoji_emoji_toolbar_info">ปุ่มอีโมจิจะยังคงแสดงอยู่ในแถบด้านบน แม้ในขณะที่แสดงคำแนะนำ แผงอีโมจิจะมีแท็บสำหรับแต่ละหมวดหมู่ คุณสามารถค้นหาเป็นภาษาอังกฤษและภาษาเบงกาลี รวมถึงภาษาใดก็ได้ที่คุณเพิ่มชุดคำหลัก กดอีโมจิค้างไว้เพื่อดูตัวเลือกสีผิว</string>
-    <string name="langemoji_emoji_toolbar_subtitle">เปิดอีโมจิด้วยการกดเพียงครั้งเดียวจากแถบด้านบน</string>
-    <string name="langemoji_emoji_toolbar_title">ปุ่มอีโมจิในแถบเครื่องมือ</string>
     <string name="langemoji_emoji_unicode_search_info">พิมพ์คำที่เป็นชื่อ Unicode ของตัวอักษรในการค้นหาอีโมจิ แล้วมันจะปรากฏขึ้นหลังอีโมจิ เช่น em dash, copyright sign, greek small letter lambda, latin small letter a with ogonek ครอบคลุมทุกตัวอักษรของ Basic Multilingual Plane ซึ่งมีตัวอักษร เครื่องหมาย และสัญลักษณ์นับหมื่นตัว การแตะหนึ่งครั้งจะเป็นการแทรกตัวอักษรนั้น การตั้งค่านี้ถูกปิดไว้โดยค่าเริ่มต้น</string>
     <string name="langemoji_emoji_unicode_search_subtitle">การค้นหาอิโมจิยังสามารถค้นหาสัญลักษณ์ ตัวอักษร และเครื่องหมายต่างๆ ได้จากคำในชื่อของสิ่งนั้น</string>
     <string name="langemoji_emoji_unicode_search_title">ค้นหาอักขระใดๆ ด้วยชื่อ Unicode</string>
@@ -4494,17 +4491,12 @@
     <string name="langemoji_panel_height_subtitle">แผงอีโมจิ GIF และสติกเกอร์จะเปิดสูงกว่าแป้นพิมพ์เท่าใด</string>
     <string name="langemoji_panel_height_title">ความสูงของแผง</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">วางปุ่มเหล่านี้ไว้หลังคำแนะนำ ที่ส่วนท้ายสุดของแถบ</string>
-    <string name="langemoji_strip_at_end_title">ปุ่มอยู่ทางขวา</string>
     <string name="langemoji_strip_icon_size_subtitle">ขนาดของไอคอนในแต่ละปุ่มข้างคำแนะนำ</string>
     <string name="langemoji_strip_icon_size_title">ขนาดไอคอนปุ่ม</string>
     <string name="langemoji_strip_own_size_subtitle">ปรับขนาดปุ่มข้างคำแนะนำนอกเหนือจากเครื่องมือของแถบเครื่องมือ</string>
     <string name="langemoji_strip_own_size_title">ขนาดเฉพาะสำหรับปุ่มเหล่านี้</string>
-    <string name="langemoji_strip_shortcut_subtitle">เครื่องมือที่ค้างอยู่ในแถบด้านบนขณะที่แสดงคำแนะนำ</string>
-    <string name="langemoji_strip_shortcut_title">ปุ่มข้างคำแนะนำ</string>
     <string name="langemoji_strip_tool_width_subtitle">ความกว้างของแต่ละปุ่มข้างคำแนะนำ</string>
     <string name="langemoji_strip_tool_width_title">ความกว้างของปุ่ม</string>
-    <string name="langemoji_strip_toolbox_subtitle">วางแถบเครื่องมือไว้หน้าสุดของปุ่มเหล่านี้เพื่อให้เข้าถึงได้ด้วยการแตะเพียงครั้งเดียวในขณะที่แสดงคำแนะนำ</string>
     <string name="langemoji_strip_toolbox_title">ปุ่มกล่องเครื่องมือ</string>
     <string name="langemoji_strip_tools_add_value">เพิ่ม</string>
     <string name="langid_module_title">การตรวจหาภาษา</string>

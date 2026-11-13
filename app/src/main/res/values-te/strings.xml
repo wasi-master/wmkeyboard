@@ -4330,9 +4330,6 @@
     <string name="langemoji_emoji_tone_override_info">ఇది ఆన్‌లో ఉన్నప్పుడు (డిఫాల్ట్‌గా ఆన్‌లో ఉంటుంది), మీరు ఇప్పటికే టోన్‌ను ఎంచుకున్న ఎమోజి అన్ని చోట్లా అదే టోన్‌ను కలిగి ఉంటుంది: ప్యానెల్, సూచనలు మరియు శోధనలో. మీరు ప్యానెల్‌లోని ఎమోజిని నొక్కి పట్టుకోవడం ద్వారా ఆ టోన్‌ను ఎంచుకుంటారు. ఎమోజి పైన పేర్కొన్న డిఫాల్ట్ టోన్‌ను ఉపయోగించదు. ఇది ఆఫ్‌లో ఉన్నప్పుడు, డిఫాల్ట్ స్కిన్ టోన్ ఎల్లప్పుడూ వర్తిస్తుంది.</string>
     <string name="langemoji_emoji_tone_override_subtitle">డిఫాల్ట్‌కు బదులుగా, మీరు చివరిగా ఎంచుకున్న ఎమోజి టోన్‌ను ఉపయోగించండి</string>
     <string name="langemoji_emoji_tone_override_title">చివరిగా ఉపయోగించిన దానితో ఓవర్‌రైడ్ చేయండి</string>
-    <string name="langemoji_emoji_toolbar_info">సూచనలు కనిపిస్తున్నప్పుడు కూడా ఎమోజి బటన్ టాప్ బార్‌లో కనిపిస్తూనే ఉంటుంది. ఎమోజి ప్యానెల్‌లో ప్రతి వర్గానికి ఒక ట్యాబ్ ఉంటుంది. మీరు ఇంగ్లీష్ మరియు బెంగాలీలో, మరియు మీరు కీవర్డ్ ప్యాక్‌ను జోడించిన ఏ భాషలోనైనా శోధించవచ్చు. స్కిన్ టోన్ వేరియంట్ల కోసం ఎమోజిని నొక్కి పట్టుకోండి.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">ఎగువ బార్ నుండి ఒక ప్రెస్‌తో ఎమోజిని తెరవండి</string>
-    <string name="langemoji_emoji_toolbar_title">టూల్‌బార్‌లో ఎమోజి బటన్</string>
     <string name="langemoji_emoji_unicode_search_info">ఎమోజి సెర్చ్‌లో క్యారెక్టర్ యొక్క యూనికోడ్ పేరులోని పదాలను టైప్ చేయండి, అది ఎమోజి తర్వాత కనిపిస్తుంది: em dash, copyright sign, greek small letter lambda, latin small letter a with ogonek. బేసిక్ మల్టీలింగ్వల్ ప్లేన్‌లోని ప్రతి క్యారెక్టర్ కవర్ చేయబడింది, అంటే పదివేల అక్షరాలు, గుర్తులు మరియు చిహ్నాలు. ఒకదాన్ని నొక్కితే అది ఇన్సర్ట్ అవుతుంది. ఈ సెట్టింగ్ డిఫాల్ట్‌గా ఆఫ్ చేయబడి ఉంటుంది.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">ఎమోజి శోధన చిహ్నాలు, అక్షరాలు మరియు గుర్తులను కూడా వాటి పేరులోని పదాల ద్వారా కనుగొంటుంది</string>
     <string name="langemoji_emoji_unicode_search_title">ఏదైనా క్యారెక్టర్‌ను దాని యూనికోడ్ పేరు ద్వారా కనుగొనండి</string>
@@ -4507,17 +4504,12 @@
     <string name="langemoji_panel_height_subtitle">ఎమోజి, GIF మరియు స్టిక్కర్ ప్యానెల్‌లు కీబోర్డ్ కంటే ఎంత ఎత్తులో తెరుచుకుంటాయి</string>
     <string name="langemoji_panel_height_title">ప్యానెల్ ఎత్తు</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">ఈ బటన్‌లను సూచనల తర్వాత, స్ట్రిప్ చివరన ఉంచండి</string>
-    <string name="langemoji_strip_at_end_title">కుడి వైపున బటన్లు</string>
     <string name="langemoji_strip_icon_size_subtitle">సూచనల పక్కన ఉన్న ప్రతి బటన్‌లోని ఐకాన్ ఎంత పెద్దదిగా ఉండాలి</string>
     <string name="langemoji_strip_icon_size_title">బటన్ ఐకాన్ పరిమాణం</string>
     <string name="langemoji_strip_own_size_subtitle">టూల్‌బార్ సాధనాలు కాకుండా సూచనల పక్కన ఉన్న బటన్‌ల పరిమాణాన్ని మార్చండి</string>
     <string name="langemoji_strip_own_size_title">ఈ బటన్‌ల కోసం సొంత పరిమాణం</string>
-    <string name="langemoji_strip_shortcut_subtitle">సూచనలు కనిపిస్తున్నప్పుడు టాప్ బార్‌లో ఉండే సాధనం</string>
-    <string name="langemoji_strip_shortcut_title">సూచనల పక్కన ఉన్న బటన్</string>
     <string name="langemoji_strip_tool_width_subtitle">సూచనల పక్కన ఉన్న ప్రతి బటన్ ఎంత వెడల్పు ఉండాలి</string>
     <string name="langemoji_strip_tool_width_title">బటన్ వెడల్పు</string>
-    <string name="langemoji_strip_toolbox_subtitle">టూల్‌బాక్స్‌ను ఈ బటన్‌లలో మొదటి స్థానంలో ఉంచండి, తద్వారా సూచనలు కనిపించేటప్పుడు అది ఒక ట్యాప్ దూరంలో ఉంటుంది</string>
     <string name="langemoji_strip_toolbox_title">టూల్‌బాక్స్ బటన్</string>
     <string name="langemoji_strip_tools_add_value">జోడించు</string>
     <string name="langid_module_title">భాష గుర్తింపు</string>

@@ -26,27 +26,12 @@ The Emoji screen collects every setting behind emoji access, suggestions, the pa
 
 | Setting | Control | Options / range | Default |
 |---|---|---|---|
-| Emoji button in toolbar | Toggle | On / Off | On |
-| Buttons beside the suggestions *(shown only while Emoji button in toolbar is on)* | Tool picker + reorderable list | any tools, in any order | Emoji |
-| Toolbox button *(same condition)* | Toggle | On / Off | Off |
-| Buttons on the right *(same condition)* | Toggle | On / Off | Off |
-| Own size for these buttons *(same condition)* | Toggle | On / Off | Off |
-| Button width *(shown only while Own size for these buttons is on)* | Slider | 20–64 dp | 38 dp |
-| Button icon size *(same condition)* | Slider | 14–30 dp | 22 dp |
 | Full-screen emoji panel | Toggle | On / Off | On |
 | Panel layout | Nav row | n/a | opens the emoji panel's layout editor |
 | Emoji panel | Nav row | n/a | opens the [Emoji panel](#emoji-panel) page |
 | Emoji mixes | Nav row | n/a | opens the [Emoji mixes](/emoji/mixes/) page: its sources and where mixes show |
 
-**Emoji button in toolbar** keeps a one-tap emoji launcher in the top bar even while suggestions are showing.
-
-**Buttons beside the suggestions** picks which tools stay beside the suggestions, and how many. Emoji is the default. Tap **Add** to add Clipboard, Voice input or any other tool; the list under it holds the chosen buttons, where you drag the handle to change their order and tap the bin to take one off. A tool must be turned on under Tools to show. A tool that is also pinned on the toolbar slides between its two spots when the bar flips between the suggestions and the tools, the way the emoji button always has. With the tools on a row of their own, a button already on that open row is left off the strip.
-
-**Toolbox button** puts the toolbox launcher first among these buttons, so the toolbox is one tap away while the suggestions show, the same as from the toolbar. A swipe up on it brings the pinned tools and a swipe down puts them away. With it on, the toolbar can drop its own toolbox button and the strip its arrow, under [Toolbar](/reference/settings/appearance/#toolbar), and **Where the tools go** can be **On a swipe**.
-
-**Buttons on the right** moves these buttons from the strip's start, before the words, to its far end, after them. On a right-to-left layout (Arabic, Hebrew, Urdu) the words run from the right, but the buttons stay on the side and in the order you set, as the toolbar's tools do. Turn on **Reverse the order for right-to-left languages** under [Toolbar](/reference/settings/appearance/) to have both follow the script instead.
-
-**Own size for these buttons** sizes the buttons beside the suggestions apart from the toolbar's tools, with **Button width** and **Button icon size**. Off, they take the toolbar's [Tool width and Tool icon size](/reference/settings/appearance/), so a tool in both places looks the same in each. Turned on, it also brings the English words switch of a phonetic layout up to the same size, instead of the smaller button it otherwise uses.
+The emoji button on the suggestion strip, and any other tool you keep there, is set under [Appearance / Toolbar / Beside the suggestions](/reference/settings/appearance/#beside-the-suggestions). It used to be on this screen.
 
 **Full-screen emoji panel** makes the panel take over the whole keyboard: the toolbar, emoji row, and symbol row step aside, and the category tabs move into the row they leave behind, next to a back button. Turn it off to keep the toolbar within reach while picking emoji.
 
@@ -309,7 +294,7 @@ Each enabled language's own settings screen also carries a matching **Emoji** gr
 - **Installed and Custom emoji fonts each reveal their own extra controls.** A font list pulled from Addons for Installed, an import button for Custom, shows only while that choice is selected.
 - **Kaomoji and emoticons insert as plain text.** Tapping one types it directly. It counts for the Kaomoji tab's own Recent tag and never joins your emoji recents or most-used history.
 - **Power Saving mode can drop emoji suggestions independently of the toggle here.** See [Power saving](/typing/power-saving/) for its own emoji-prediction toggle.
-- **The toolbar's Emoji tool has its own mini-settings panel** with a duplicate "Emoji button in toolbar" toggle and an "All emoji settings" shortcut back to this screen. See [Tools](/tools/overview/) for toolbar-tool customization in general.
+- **The toolbar's Emoji tool has its own mini-settings panel** with an "All emoji settings" shortcut back to this screen. See [Tools](/tools/overview/) for toolbar-tool customization in general.
 - **The Emoji categories screen lists added emoji too.** They sit at the end of their category and can be dragged like the built-in ones.
 - **No build differences.** Every setting on this screen and its keyword sub-screen works the same in every build.
 

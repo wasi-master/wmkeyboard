@@ -4325,9 +4325,6 @@
     <string name="langemoji_emoji_tone_override_info">जेव्हा हे चालू असते, आणि ते डीफॉल्टनुसार चालू असते, तेव्हा ज्या इमोजीसाठी तुम्ही आधीच टोन निवडला आहे तो सर्वत्र तोच टोन ठेवतो: पॅनेलमध्ये, सूचनांमध्ये आणि शोधामध्ये. तुम्ही पॅनेलमध्ये इमोजीच्या प्रेस आणि होल्ड पॉपअपमधून तो टोन निवडता. इमोजी वरील डीफॉल्ट वापरत नाही. जेव्हा हे बंद असते, तेव्हा डीफॉल्ट स्किन टोन नेहमी जिंकतो.</string>
     <string name="langemoji_emoji_tone_override_subtitle">इमोजीसाठी तुम्ही शेवटची निवडलेली टोन वापरा, डीफॉल्ट नाही</string>
     <string name="langemoji_emoji_tone_override_title">शेवटच्या वापरलेल्या टोनसह ओव्हरराइड करा</string>
-    <string name="langemoji_emoji_toolbar_info">इमोजी बटण वरच्या बारमध्ये दृश्यमान राहते, सूचना दिसत असतानाही. इमोजी पॅनेलमध्ये प्रत्येक श्रेणीसाठी एक टॅब असतो. तुम्ही इंग्रजी आणि बंगालीमध्ये आणि ज्या भाषेसाठी तुम्ही कीवर्ड पॅक जोडला आहे त्या भाषेत शोधू शकता. स्किन टोन प्रकारांसाठी इमोजीवर दाबून धरा.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">वरच्या बारमधून एका दाबाने इमोजी उघडा</string>
-    <string name="langemoji_emoji_toolbar_title">टूलबारमधील इमोजी बटण</string>
     <string name="langemoji_emoji_unicode_search_info">इमोजी शोधामध्ये एखाद्या वर्णाच्या युनिकोड नावाचे शब्द टाईप करा आणि ते इमोजीनंतर दिसेल: एम डॅश, कॉपीराइट चिन्ह, ग्रीक स्मॉल लेटर लॅम्बडा, लॅटिन स्मॉल लेटर ए विथ ओगोनिक. बेसिक मल्टिलिंग्वल प्लेनचे प्रत्येक वर्ण कव्हर केले आहे, जे हजारो अक्षरे, चिन्हे आणि प्रतीके आहेत. एकावर टॅप केल्यास ते इन्सर्ट होते. हे सेटिंग डीफॉल्टनुसार बंद असते.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">इमोजी शोध चिन्हे, अक्षरे आणि खुणा देखील त्यांच्या नावाच्या शब्दांनुसार शोधतो</string>
     <string name="langemoji_emoji_unicode_search_title">कोणतेही वर्ण त्याच्या युनिकोड नावाने शोधा</string>
@@ -4502,17 +4499,12 @@
     <string name="langemoji_panel_height_subtitle">इमोजी, जीआयएफ आणि स्टिकर पॅनेल कीबोर्डपेक्षा किती उंच उघडतात</string>
     <string name="langemoji_panel_height_title">पॅनेलची उंची</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">ही बटणे सूचनांनंतर, स्ट्रिपच्या अगदी शेवटी ठेवा</string>
-    <string name="langemoji_strip_at_end_title">उजवीकडील बटणे</string>
     <string name="langemoji_strip_icon_size_subtitle">सूचनांच्या बाजूला असलेल्या प्रत्येक बटणातील आयकॉन किती मोठा आहे</string>
     <string name="langemoji_strip_icon_size_title">बटण आयकॉनचा आकार</string>
     <string name="langemoji_strip_own_size_subtitle">टूलबारच्या टूल्स व्यतिरिक्त सूचनांच्या बाजूला असलेल्या बटणांचा आकार ठरवा</string>
     <string name="langemoji_strip_own_size_title">या बटणांसाठी स्वतःचा आकार</string>
-    <string name="langemoji_strip_shortcut_subtitle">सूचना दिसत असताना टॉप बारमध्ये राहणारे साधन</string>
-    <string name="langemoji_strip_shortcut_title">सूचनांच्या शेजारील बटण</string>
     <string name="langemoji_strip_tool_width_subtitle">सूचनांच्या बाजूला असलेले प्रत्येक बटण किती रुंद आहे</string>
     <string name="langemoji_strip_tool_width_title">बटणाची रुंदी</string>
-    <string name="langemoji_strip_toolbox_subtitle">टूलबॉक्सला या बटणांमध्ये प्रथम ठेवा, जेणेकरून सूचना दिसत असताना तो एका टॅपच्या अंतरावर असेल</string>
     <string name="langemoji_strip_toolbox_title">टूलबॉक्स बटण</string>
     <string name="langemoji_strip_tools_add_value">जोडा</string>
     <string name="langid_module_title">भाषा ओळख</string>

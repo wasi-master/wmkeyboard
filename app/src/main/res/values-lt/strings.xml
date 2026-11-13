@@ -4326,9 +4326,6 @@
     <string name="langemoji_emoji_tone_override_info">Kai ši funkcija įjungta (o ji įjungta pagal numatytuosius nustatymus), jaustukas, kuriam jau pasirinkote toną, išlaiko tą toną visur: skydelyje, pasiūlymuose ir paieškoje. Tą toną pasirenkate paspaudę ir palaikę jaustuką skydelyje. Jaustukas nenaudoja aukščiau nurodyto numatytojo tono. Kai ši funkcija išjungta, visada naudojamas numatytasis odos tonas.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Naudokite toną, kurį paskutinį kartą pasirinkote jaustukui, o ne numatytąjį</string>
     <string name="langemoji_emoji_tone_override_title">Pakeisti paskutiniu naudotu</string>
-    <string name="langemoji_emoji_toolbar_info">Jaustukų mygtukas lieka matomas viršutinėje juostoje, net kai rodomi pasiūlymai. Jaustukų skydelyje yra skirtukas kiekvienai kategorijai. Galite ieškoti anglų ir bengalų kalbomis, bei bet kuria kalba, kuriai pridėjote raktinių žodžių paketą. Paspauskite ir palaikykite jaustuką, kad pamatytumėte odos atspalvių variantus.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Atidarykite jaustukus vienu paspaudimu iš viršutinės juostos</string>
-    <string name="langemoji_emoji_toolbar_title">Jaustukų mygtukas įrankių juostoje</string>
     <string name="langemoji_emoji_unicode_search_info">Įveskite simbolio „Unicode“ pavadinimo žodžius jaustukų paieškoje ir jis pasirodys po jaustuko: em brūkšnys, autorių teisių ženklas, graikiška mažoji raidė lambda, lotyniška mažoji raidė a su ogoneku. Apimtas kiekvienas pagrindinės daugiakalbės plokštumos simbolis, tai yra dešimtys tūkstančių raidžių, ženklų ir simbolių. Bakstelėjus vieną, jis įterpiamas. Šis nustatymas pagal numatytuosius nustatymus yra išjungtas.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Jaustukų paieška taip pat randa simbolius, raides ir ženklus pagal jų pavadinimo žodžius</string>
     <string name="langemoji_emoji_unicode_search_title">Raskite bet kokį simbolį pagal jo „Unicode“ pavadinimą</string>
@@ -4503,17 +4500,12 @@
     <string name="langemoji_panel_height_subtitle">Kiek aukščiau už klaviatūrą atsidaro jaustukų, GIF ir lipdukų skydeliai</string>
     <string name="langemoji_panel_height_title">Skydelio aukštis</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Dėti šiuos mygtukus po pasiūlymų, pačiame juostos gale</string>
-    <string name="langemoji_strip_at_end_title">Mygtukai dešinėje</string>
     <string name="langemoji_strip_icon_size_subtitle">Koks didelis yra piktogramos dydis kiekviename mygtuke šalia pasiūlymų</string>
     <string name="langemoji_strip_icon_size_title">Mygtuko piktogramos dydis</string>
     <string name="langemoji_strip_own_size_subtitle">Nustatyti mygtukų dydį šalia pasiūlymų, atskirai nuo įrankių juostos įrankių</string>
     <string name="langemoji_strip_own_size_title">Šių mygtukų dydis</string>
-    <string name="langemoji_strip_shortcut_subtitle">Įrankis, kuris lieka viršutinėje juostoje, kol rodomi pasiūlymai</string>
-    <string name="langemoji_strip_shortcut_title">Mygtukas šalia pasiūlymų</string>
     <string name="langemoji_strip_tool_width_subtitle">Koks platus yra kiekvienas mygtukas šalia pasiūlymų</string>
     <string name="langemoji_strip_tool_width_title">Mygtuko plotis</string>
-    <string name="langemoji_strip_toolbox_subtitle">Įrankių juostą tarp šių mygtukų įdėkite pirmoje vietoje, kad rodomų pasiūlymų metu ją būtų galima pasiekti vienu palietimu</string>
     <string name="langemoji_strip_toolbox_title">Įrankių juostos mygtukas</string>
     <string name="langemoji_strip_tools_add_value">Pridėti</string>
     <string name="langid_module_title">Kalbos aptikimas</string>

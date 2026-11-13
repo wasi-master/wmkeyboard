@@ -470,6 +470,7 @@ import com.wasimaster.wmkeyboard.core.settings.TextEditingSettings
 import com.wasimaster.wmkeyboard.core.prediction.OctopusWord
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticCandidateList
 import com.wasimaster.wmkeyboard.core.settings.ArrowKey
+import com.wasimaster.wmkeyboard.core.settings.HintCorner
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.OctopusPlacement
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
@@ -717,6 +718,14 @@ import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
  * not on release when the key's action commits.
  */
 internal val LocalKeyPressFeedback = staticCompositionLocalOf<() -> Unit> { {} }
+
+/**
+ * Where a language swipe or the language list starts when the layout on screen
+ * is not in the cycle: the layout the pinned Secondary layout board
+ * interrupted (#1230). Held in a [State] read only when a swipe starts, so a
+ * board toggle recomposes nothing.
+ */
+internal val LocalLanguageAnchor = staticCompositionLocalOf<State<String?>> { mutableStateOf(null) }
 
 /**
  * The bottom padding under the key rows (see `bottomRoom` in
@@ -1645,6 +1654,7 @@ fun KeyboardScreen(
             ),
             LocalSelectionTools provides selectionTools(bodyState, capture.onAiChat),
             LocalOctopusWords provides rememberUpdatedState(bodyState.octopus),
+            LocalLanguageAnchor provides rememberUpdatedState(bodyState.languageAnchorId),
             LocalLiveWpmPrivate provides rememberLiveWpmPrivate(bodyState),
             // Only while something is composing, so a list the service has not
             // cleared yet never outlives the reading it was for.
@@ -4545,6 +4555,10 @@ private fun TopBar(
             // exempting it left it popping in solid while every other tool faded,
             // which read as the handoff still playing for a button that was off.
             // Same condition the strip's copies are drawn under, below.
+            // The strip's own buttons that are not pinned here stay at their
+            // ends while the tools rest on the row, so a button kept beside the
+            // suggestions does not vanish the moment the words run out.
+            ToolbarStripTools(state, drag, onToolTap, onPinnedTools, onPanelChange, atEnd = false)
             ToolbarRow(
                 state, onPanelChange, onToolTap, drag, toolContentAlpha,
                 sharedTools = stripToolSet(state),
@@ -4572,6 +4586,7 @@ private fun TopBar(
                     }
                 }
             }
+            ToolbarStripTools(state, drag, onToolTap, onPinnedTools, onPanelChange, atEnd = true)
         } else {
             // The candidate surface, as a lambda of its own. It is most of the
             // bar, and written straight into the row it made the row's lambda
@@ -4579,10 +4594,11 @@ private fun TopBar(
             // which ART never compiles a method, for a function that runs on
             // every keystroke. Here it compiles separately.
             StripSlot {
-                // The tools kept beside the suggestions (#462), then the phonetic
-                // layouts' English-words switch. See [StripTools].
-                if (!stripToolsAtEnd(state)) {
-                    StripTools(state, toolsRowVisible, drag, onToolTap, onPinnedTools) { onPanelChange(PanelMode.TOOLBOX) }
+                // The tools kept beside the suggestions (#462) whose side is the
+                // strip's start, then the phonetic layouts' English-words switch.
+                // See [StripTools].
+                StripTools(state, toolsRowVisible, drag, onToolTap, onPinnedTools, atEnd = false) {
+                    onPanelChange(PanelMode.TOOLBOX)
                 }
                 StripChipsAndWords(state.settings.suggestionStrip.chipsAtEnd) {
                     if (StripOfferChips(
@@ -4669,10 +4685,9 @@ private fun TopBar(
                     if (aiAfterWords) aiChip()
                 }
             }
-            // The same buttons at the strip's far end instead, after the words,
-            // when the user put them there.
-            if (stripToolsAtEnd(state)) {
-                StripTools(state, toolsRowVisible, drag, onToolTap, onPinnedTools) { onPanelChange(PanelMode.TOOLBOX) }
+            // The buttons the user put at the strip's far end, after the words.
+            StripTools(state, toolsRowVisible, drag, onToolTap, onPinnedTools, atEnd = true) {
+                onPanelChange(PanelMode.TOOLBOX)
             }
         }
     }
@@ -8659,7 +8674,7 @@ private fun SymbolCell(
                 Text(
                     text = labels.first(),
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
+                        .align(hintAlignment(settings))
                         .hintPlacement(settings, end = 3.dp),
                     fontSize = (HintLabelSp * settings.layoutBehavior.hintFontScale).sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -11428,6 +11443,12 @@ private fun stripToolSet(state: KeyboardUiState): Set<ToolbarTool> {
  * [phoneticEnglishLanguage]), a step down in size from the user's own buttons
  * unless those have a size of their own, and lit while the switch is on.
  *
+ * Called twice, once for each end of the strip: [atEnd] picks the slot after
+ * the words, and the buttons drawn there are the ones whose side
+ * ([ToolbarBehavior.stripEndTools], [ToolbarBehavior.stripToolboxAtEnd]) lands
+ * on it. The switch added by itself goes by its own entry in that set, which
+ * is the start unless the old all-at-the-end switch put it there.
+ *
  * Its own composable: the strip's lambda sits near ART's 10,000-instruction
  * compile ceiling, and this loop would push it over.
  */
@@ -11438,21 +11459,38 @@ private fun StripTools(
     drag: ToolDragController,
     onToolTap: (ToolbarTool) -> Unit,
     onPinnedTools: (Boolean) -> Unit,
+    atEnd: Boolean,
+    onToolbar: Boolean = false,
     onToolbox: () -> Unit,
 ) {
+    val behavior = state.settings.toolbarBehavior
+    // The side the user picked that lands in this slot. A strip held LTR for
+    // its buttons ([stripToolsHeldLtr]) runs the other way, so the start the
+    // user picked is that row's end. The toolbar never runs that way: it
+    // mirrors only when its own setting says so, and then the sides follow.
+    val heldLtr = !onToolbar && stripToolsHeldLtr(state)
+    val side = atEnd != heldLtr
     val onRow = if (toolsRowVisible) visibleToolbarTools(state) else emptyList()
-    val tools = stripShortcutTools(state).filter { it !in onRow }
+    val allTools = stripShortcutTools(state).filter { it !in onRow }
+    val tools = allTools.filter { (it in behavior.stripEndTools) == side }
     val phonetic = ToolbarTool.PHONETIC_ENGLISH
-    val autoPhonetic = phonetic !in tools && phonetic !in onRow && phoneticEnglishLanguage(state) != null
+    // The switch added by itself belongs beside the words it decides, so not on
+    // the toolbar.
+    val autoPhonetic = !onToolbar && phonetic !in allTools && phonetic !in onRow &&
+        phoneticEnglishLanguage(state) != null && (phonetic in behavior.stripEndTools) == side
+    // The strip's toolbox button joins the toolbar only while the toolbar has
+    // none of its own, the one way into the toolbox there.
+    val toolbox = state.settings.emojiToolbar && behavior.stripToolbox && behavior.stripToolboxAtEnd == side &&
+        !(onToolbar && barToolboxShown(state))
     // Null is the toolbox button. Drawn in the order they read left to right,
     // whichever way the strip runs, unless the toolbar mirrors for this script
-    // too (see [stripToolsAtEnd]).
+    // too (see [stripToolsHeldLtr]).
     val order = buildList {
-        if (state.settings.emojiToolbar && state.settings.toolbarBehavior.stripToolbox) add(null)
+        if (toolbox) add(null)
         addAll(tools)
         if (autoPhonetic) add(phonetic)
     }
-    for (tool in if (stripToolsHeldLtr(state)) order.asReversed() else order) {
+    for (tool in if (heldLtr) order.asReversed() else order) {
         if (tool == null) {
             key("§toolbox") { StripToolboxButton(state, onPinnedTools, onToolbox) }
         } else {
@@ -11460,6 +11498,33 @@ private fun StripTools(
             val compact = autoPhonetic && tool == phonetic && !state.settings.toolbarBehavior.stripOwnSize
             key(tool) { StripToolButton(state, tool, drag, compact = compact, onToolTap) }
         }
+    }
+}
+
+/**
+ * The strip's buttons ([StripTools]) while the pinned tools hold the shared
+ * row, at the end [atEnd] picks: the ones the toolbar does not already pin
+ * (#462 follow-up: a button kept beside the suggestions went away whenever the
+ * strip had no words, because the toolbar takes the row exactly then). Only
+ * while no tool is open, when the bar is the resting toolbar rather than an
+ * open tool's header. A tool on both sits at the same spot either way, so the
+ * flip between the surfaces leaves it where it is.
+ *
+ * Its own composable so the bar's row lambda, near ART's compile ceiling,
+ * takes one call per end and no lambda.
+ */
+@Composable
+private fun ToolbarStripTools(
+    state: KeyboardUiState,
+    drag: ToolDragController,
+    onToolTap: (ToolbarTool) -> Unit,
+    onPinnedTools: (Boolean) -> Unit,
+    onPanelChange: (PanelMode) -> Unit,
+    atEnd: Boolean,
+) {
+    if (state.panel != PanelMode.NONE) return
+    StripTools(state, toolsRowVisible = true, drag, onToolTap, onPinnedTools, atEnd = atEnd, onToolbar = true) {
+        onPanelChange(PanelMode.TOOLBOX)
     }
 }
 
@@ -11473,14 +11538,6 @@ private fun StripTools(
 private fun stripToolsHeldLtr(state: KeyboardUiState): Boolean =
     state.script.direction == TextDirection.RTL && !toolbarReadsRtl(state) &&
         state.settings.suggestionStrip.rtlWordsFromRight
-
-/**
- * Whether [StripTools] goes after the words in the strip's own direction. A
- * strip held LTR for its buttons ([stripToolsHeldLtr]) runs the other way, so
- * the start the user picked is that row's end.
- */
-private fun stripToolsAtEnd(state: KeyboardUiState): Boolean =
-    state.settings.toolbarBehavior.stripShortcutsAtEnd != stripToolsHeldLtr(state)
 
 private const val ToolboxSwipeUpDp = 16
 
@@ -26725,6 +26782,7 @@ internal fun KeyButton(
                     spaceLongSwipe = settings.spaceLongSwipe,
                     enabledLayoutIds = settings.switchLayoutIds(),
                     currentLayoutId = layoutId,
+                    languageAnchor = LocalLanguageAnchor.current,
                     setPressed = { down ->
                         // Judged here rather than at the commit: every branch
                         // below reports the contact before it spends anything
@@ -29031,7 +29089,9 @@ private fun LanguageCarouselPopup(
     // so the centring below can aim at a chip whose width depends on its label.
     val chipBounds = remember(enabledLayoutIds) { mutableStateMapOf<Int, Pair<Int, Int>>() }
     var viewportWidth by remember { mutableIntStateOf(0) }
-    val currentIndex = enabledLayoutIds.indexOf(currentLayoutId).coerceAtLeast(0)
+    val anchor = LocalLanguageAnchor.current
+    val currentIndex = enabledLayoutIds.indexOf(currentLayoutId).takeIf { it >= 0 }
+        ?: enabledLayoutIds.indexOf(anchor.value).coerceAtLeast(0)
     val centreOn = highlightIndex ?: currentIndex
     // The first centring is a jump — the strip should open already looking at
     // the current layout — and every one after it slides, following the drag.
@@ -29466,7 +29526,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     contentDescription = null,
                     tint = visual.hintColor ?: contentColor.copy(alpha = 0.55f),
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
+                        .align(hintAlignment(settings))
                         .hintPlacement(settings)
                         .size(
                             (HintIconDp * fontScale * settings.layoutBehavior.hintFontScale).dp,
@@ -30030,7 +30090,7 @@ private fun BoxScope.KeyCornerHint(
             text = translit,
             modifier = Modifier
                 .clearAndSetSemantics {}
-                .align(Alignment.TopEnd)
+                .align(hintAlignment(settings))
                 .hintPlacement(settings, shift = shift),
             fontSize = (TranslitHintSp * fontScale * settings.layoutBehavior.hintFontScale).sp,
             color = hintColor,
@@ -30044,7 +30104,7 @@ private fun BoxScope.KeyCornerHint(
             contentDescription = null,
             tint = hintColor,
             modifier = hintMask
-                .align(Alignment.TopEnd)
+                .align(hintAlignment(settings))
                 .hintPlacement(settings, shift = shift)
                 .size((HintIconDp * fontScale * settings.layoutBehavior.hintFontScale).dp),
         )
@@ -30052,7 +30112,7 @@ private fun BoxScope.KeyCornerHint(
             text = hint,
             modifier = hintMask
                 .clearAndSetSemantics {}
-                .align(Alignment.TopEnd)
+                .align(hintAlignment(settings))
                 .hintPlacement(settings, shift = shift),
             fontSize = (HintLabelSp * fontScale * settings.layoutBehavior.hintFontScale).sp,
             color = hintColor,
@@ -30116,19 +30176,44 @@ internal fun Modifier.hintPlacement(
     end: Dp = HintEndPadding,
     shift: DpOffset = DpOffset.Zero,
 ): Modifier {
+    val corner = settings.layoutBehavior.hintCorner
     // A bigger font puts more empty line above the glyph, so the slider alone
     // walked the hint down the key (#970). Taken back, the glyph's top stays put.
-    val grown = (settings.layoutBehavior.hintFontScale - 1f) * HintLabelSp * HintGlyphTopGap
-    val top = settings.layoutBehavior.hintOffsetDp.dp - grown.dp + shift.y
+    // A hint at the bottom sits on its baseline's line box instead, so no take-back.
+    val grown = if (corner.bottom) 0f else (settings.layoutBehavior.hintFontScale - 1f) * HintLabelSp * HintGlyphTopGap
+    val vertical = settings.layoutBehavior.hintOffsetDp.dp - grown.dp + shift.y
     val side = end + settings.layoutBehavior.hintOffsetXDp.dp + shift.x
-    val padded = padding(top = top.coerceAtLeast(0.dp), end = side.coerceAtLeast(0.dp))
-    return if (top >= 0.dp && side >= 0.dp) {
-        padded
-    } else {
-        // Toward the end edge is +x in a left-to-right row; offset mirrors it
-        // for a right-to-left one, the way the end padding does.
-        padded.offset(x = -side.coerceAtMost(0.dp), y = top.coerceAtMost(0.dp))
+    // The offsets measure in from the hint's own corner (gap list item 21):
+    // from the bottom for a bottom corner, from the start for a start one. A
+    // centred hint has no side to keep clear of, so the side offset nudges it.
+    val inset = vertical.coerceAtLeast(0.dp)
+    val sideInset = side.coerceAtLeast(0.dp)
+    val padded = padding(
+        top = if (corner.bottom) 0.dp else inset,
+        bottom = if (corner.bottom) inset else 0.dp,
+        end = if (corner.side > 0) sideInset else 0.dp,
+        start = if (corner.side < 0) sideInset else 0.dp,
+    )
+    // What padding cannot take (a negative inset, or a centred hint's nudge)
+    // goes in as an offset. Toward the end edge is +x in a left-to-right row;
+    // offset mirrors it for a right-to-left one, the way the end padding does.
+    val dx = when {
+        corner.side > 0 -> -side.coerceAtMost(0.dp)
+        corner.side < 0 -> side.coerceAtMost(0.dp)
+        else -> -(settings.layoutBehavior.hintOffsetXDp.dp + shift.x)
     }
+    val dy = if (corner.bottom) -vertical.coerceAtMost(0.dp) else vertical.coerceAtMost(0.dp)
+    return if (dx == 0.dp && dy == 0.dp) padded else padded.offset(x = dx, y = dy)
+}
+
+/** The corner of the key the hint is aligned to ([LayoutBehaviorSettings.hintCorner]). */
+internal fun hintAlignment(settings: KeyboardSettings): Alignment = when (settings.layoutBehavior.hintCorner) {
+    HintCorner.TOP_START -> Alignment.TopStart
+    HintCorner.TOP_CENTER -> Alignment.TopCenter
+    HintCorner.TOP_END -> Alignment.TopEnd
+    HintCorner.BOTTOM_START -> Alignment.BottomStart
+    HintCorner.BOTTOM_CENTER -> Alignment.BottomCenter
+    HintCorner.BOTTOM_END -> Alignment.BottomEnd
 }
 
 /**
@@ -30644,6 +30729,8 @@ private fun Modifier.pointerInputKey(
     spaceLongSwipe: SpaceSwipeAction,
     enabledLayoutIds: List<String>,
     currentLayoutId: String,
+    /** Where the swipe starts when [currentLayoutId] is not in the cycle; see [LocalLanguageAnchor]. */
+    languageAnchor: State<String?>,
     setPressed: (Boolean) -> Unit,
     onKeyPress: () -> Unit,
     onKeySound: () -> Unit,
@@ -30845,7 +30932,8 @@ private fun Modifier.pointerInputKey(
                     // still travelling up from that swipe, and the caret should
                     // not take it as a line up. Cleared by a pause or a turn.
                     var padSettling = false
-                    var langIndex = enabledLayoutIds.indexOf(currentLayoutId).coerceAtLeast(0)
+                    var langIndex = enabledLayoutIds.indexOf(currentLayoutId).takeIf { it >= 0 }
+                        ?: enabledLayoutIds.indexOf(languageAnchor.value).coerceAtLeast(0)
                     // The stops the language swipe walks: the layouts, plus the
                     // switcher's extra stop (see [SwitcherExtraStop]), added once
                     // a hold puts the preview up or a swipe starts walking.

@@ -4342,9 +4342,6 @@
     <string name="langemoji_emoji_tone_override_info">এটি চালু থাকলে (যা ডিফল্টভাবে চালু থাকে), আপনি যে ইমোজির জন্য একটি টোন নির্বাচন করেছেন তা সব জায়গায় সেই টোনটিই বজায় রাখে: প্যানেলে, সাজেশনে এবং অনুসন্ধানে। আপনি প্যানেলে ইমোজিটি চেপে ধরে রাখা পপআপ থেকে সেই টোনটি নির্বাচন করেন। ইমোজিটি উপরের ডিফল্ট টোন ব্যবহার করে না। এটি বন্ধ থাকলে, ডিফল্ট স্কিন টোন সবসময় কার্যকর থাকে।</string>
     <string name="langemoji_emoji_tone_override_subtitle">ডিফল্ট নয়, ইমোজির জন্য আপনি শেষবার যে টোনটি নির্বাচন করেছিলেন তা ব্যবহার করুন</string>
     <string name="langemoji_emoji_tone_override_title">সর্বশেষ ব্যবহৃত দিয়ে ওভাররাইড করুন</string>
-    <string name="langemoji_emoji_toolbar_info">সাজেশন দেখানোর সময়ও ইমোজি বোতামটি উপরের বারে দৃশ্যমান থাকে। ইমোজি প্যানেলে প্রতিটি বিভাগের জন্য একটি ট্যাব রয়েছে। আপনি ইংরেজি এবং বাংলা ভাষায়, এবং যে ভাষার জন্য কিউয়ার্ড প্যাক যোগ করেছেন তাতে সার্চ করতে পারেন। স্কিন টোনের ভেরিয়েন্টের জন্য একটি ইমোজিতে প্রেস করে ধরে রাখুন।</string>
-    <string name="langemoji_emoji_toolbar_subtitle">উপরের বার থেকে এক চাপে ইমোজি খুলুন</string>
-    <string name="langemoji_emoji_toolbar_title">টুলবারে ইমোজি বোতাম</string>
     <string name="langemoji_emoji_unicode_search_info">ইমোজি অনুসন্ধানে কোনো অক্ষরের ইউনিকোড নামের শব্দগুলো টাইপ করুন এবং এটি ইমোজির পরে প্রদর্শিত হবে: এম ড্যাশ, কপিরাইট চিহ্ন, গ্রিক ছোট হাতের ল্যাম্বডা, ল্যাটিন ছোট হাতের এ উইথ ওগোনক। বেসিক মাল্টিলিঙ্গুয়াল প্লেনের প্রতিটি অক্ষর এর অন্তর্ভুক্ত, যা হাজার হাজার অক্ষর, চিহ্ন এবং প্রতীক। একটিতে ট্যাপ করলে তা ইনসার্ট হয়। এই সেটিংসটি ডিফল্টভাবে বন্ধ থাকে।</string>
     <string name="langemoji_emoji_unicode_search_subtitle">ইমোজি সার্চ তাদের নামের শব্দ দিয়ে প্রতীক, অক্ষর এবং চিহ্নও খুঁজে বের করে</string>
     <string name="langemoji_emoji_unicode_search_title">ইউনিকোড নাম দিয়ে যেকোনো ক্যারেক্টার খুঁজুন</string>
@@ -4519,17 +4516,12 @@
     <string name="langemoji_panel_height_subtitle">ইমোজি, GIF এবং স্টিকার প্যানেল কীবোর্ডের চেয়ে কতটা লম্বা হবে</string>
     <string name="langemoji_panel_height_title">প্যানেলের উচ্চতা</string>
     <string name="langemoji_panel_height_value">+%1$d ডিপি</string>
-    <string name="langemoji_strip_at_end_subtitle">এই বোতামগুলো সাজেশনের পরে, স্ট্রিপের একেবারে শেষে রাখুন</string>
-    <string name="langemoji_strip_at_end_title">ডানদিকের বাটনগুলো</string>
     <string name="langemoji_strip_icon_size_subtitle">সাজেশনের পাশে প্রতিটি বোতামের আইকন কতটা বড় হবে</string>
     <string name="langemoji_strip_icon_size_title">বোতামের আইকনের আকার</string>
     <string name="langemoji_strip_own_size_subtitle">টুলবারের টুলগুলো ছাড়া পরামর্শের পাশের বোতামগুলোর আকার নির্ধারণ করুন</string>
     <string name="langemoji_strip_own_size_title">এই বোতামগুলোর জন্য নিজস্ব আকার</string>
-    <string name="langemoji_strip_shortcut_subtitle">সাজেশন দেখানোর সময় যে টুলটি উপরের বারে থাকে</string>
-    <string name="langemoji_strip_shortcut_title">সাজেশনের পাশে বোতাম</string>
     <string name="langemoji_strip_tool_width_subtitle">সাজেশনের পাশে প্রতিটি বাটন কতটা চওড়া হবে</string>
     <string name="langemoji_strip_tool_width_title">বোতামের প্রস্থ</string>
-    <string name="langemoji_strip_toolbox_subtitle">টুলবক্সটিকে এই বোতামগুলোর মধ্যে সবার আগে রাখুন, যাতে পরামর্শগুলো দেখানোর সময় এটি এক ট্যাপের দূরত্বে থাকে।</string>
     <string name="langemoji_strip_toolbox_title">টুলবক্স বোতাম</string>
     <string name="langemoji_strip_tools_add_value">যোগ করুন</string>
     <string name="langid_module_title">ভাষা সনাক্তকরণ</string>

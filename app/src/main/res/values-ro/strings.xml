@@ -4327,9 +4327,6 @@
     <string name="langemoji_emoji_tone_override_info">Când aceasta este activată, și este activată implicit, un emoji pentru care ai selectat deja o nuanță păstrează acea nuanță peste tot: în panou, în sugestii și în căutare. Selectezi acea nuanță din fereastra pop-up care apare la apăsarea lungă a emoji-ului în panou. Emoji-ul nu folosește nuanța implicită de mai sus. Când aceasta este dezactivată, nuanța implicită a pielii câștigă întotdeauna.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Folosește tonul selectat ultima dată pentru un emoji, nu pe cel implicit</string>
     <string name="langemoji_emoji_tone_override_title">Suprascrie cu ultima utilizată</string>
-    <string name="langemoji_emoji_toolbar_info">Butonul emoji rămâne vizibil în bara de sus, chiar și în timp ce sugestiile sunt afișate. Panoul emoji are o filă pentru fiecare categorie. Poți căuta în engleză și bengaleză, precum și în orice limbă pentru care adaugi un pachet de cuvinte cheie. Apasă și menține apăsat un emoji pentru variantele de ton al pielii.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Deschide emoji-urile cu o singură apăsare din bara de sus</string>
-    <string name="langemoji_emoji_toolbar_title">Buton emoji în bara de instrumente</string>
     <string name="langemoji_emoji_unicode_search_info">Tastează cuvintele numelui Unicode al unui caracter în căutarea de emoji și acesta apare după emoji: cratimă, semnul copyright, literă mică grecească lambda, literă mică latină a cu ogonek. Fiecare caracter din Planul Multilingv de Bază este acoperit, ceea ce înseamnă zeci de mii de litere, semne și simboluri. Atingerea unuia îl inserează. Această setare este dezactivată implicit.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Căutarea de emoji găsește și simboluri, litere și semne după cuvintele din numele lor</string>
     <string name="langemoji_emoji_unicode_search_title">Găsiți orice caracter după numele său Unicode</string>
@@ -4504,17 +4501,12 @@
     <string name="langemoji_panel_height_subtitle">Cât de mult se deschid panourile de emoji, GIF și stickere față de tastatură</string>
     <string name="langemoji_panel_height_title">Înălțimea panoului</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Pune aceste butoane după sugestii, la capătul barei</string>
-    <string name="langemoji_strip_at_end_title">Butoane în dreapta</string>
     <string name="langemoji_strip_icon_size_subtitle">Cât de mare este pictograma din fiecare buton de lângă sugestii</string>
     <string name="langemoji_strip_icon_size_title">Dimensiunea pictogramei butonului</string>
     <string name="langemoji_strip_own_size_subtitle">Redimensionați butoanele de lângă sugestii, separat de instrumentele barei de instrumente</string>
     <string name="langemoji_strip_own_size_title">Dimensiune proprie pentru aceste butoane</string>
-    <string name="langemoji_strip_shortcut_subtitle">Instrumentul care rămâne în bara de sus în timp ce sugestiile sunt afișate</string>
-    <string name="langemoji_strip_shortcut_title">Buton lângă sugestii</string>
     <string name="langemoji_strip_tool_width_subtitle">Cât de lat este fiecare buton de lângă sugestii</string>
     <string name="langemoji_strip_tool_width_title">Lățimea butonului</string>
-    <string name="langemoji_strip_toolbox_subtitle">Pune setul de instrumente primul dintre aceste butoane, astfel încât să fie la o singură atingere distanță în timp ce sugestiile sunt afișate</string>
     <string name="langemoji_strip_toolbox_title">Buton set de instrumente</string>
     <string name="langemoji_strip_tools_add_value">Adaugă</string>
     <string name="langid_module_title">Detectarea limbii</string>

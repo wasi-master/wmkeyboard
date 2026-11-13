@@ -4333,9 +4333,6 @@
     <string name="langemoji_emoji_tone_override_info">Uma lokhu kuvuliwe, futhi kuvuliwe ngokuzenzakalelayo, i-emoji osuvele ukhethe ithoni yayo igcina leyo thoni kuyo yonke indawo: kuphaneli, eziphakamisweni nasekusesheni. Ukhetha leyo thoni kusuka kokuvela uma ucindezela ubambe i-emoji kuphaneli. I-emoji ayisebenzisi okuzenzakalelayo okungenhla. Uma lokhu kuvaliwe, ithoni yesikhumba ezenzakalelayo ihlale inqoba.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Sebenzisa ithoni oyikhethe okokugcina nge-emoji, hhayi eyenzakalelayo</string>
     <string name="langemoji_emoji_tone_override_title">Bhala phezu kokugcina okusetshenzisiwe</string>
-    <string name="langemoji_emoji_toolbar_info">Inkinobho ye-emoji ihlala ibonakala kubha engenhla, ngenkathi iziphakamiso zibonisa. Iphaneli ye-emoji inethebhu yesigaba ngasinye. Ungasesha ngesiNgisi nangesi-Bengali, nanoma yiluphi ulimi ongeza iphakethe lamagama angukhiye kulo. Cindezela ubambe i-emoji ukuze uthole izinhlobo zethoni yesikhumba.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Vula ama-emoji ngokucindezela kanye kusuka kubha engaphezulu</string>
-    <string name="langemoji_emoji_toolbar_title">Inkinobho ye-Emoji kubha yamathuluzi</string>
     <string name="langemoji_emoji_unicode_search_info">Thayipha amagama egama le-Unicode lomlingiswa ekusesheni kwe-emoji futhi lizovela ngemva kwe-emoji: em dash, copyright sign, greek small letter lambda, latin small letter a with ogonek. Wonke umlingiswa we-Basic Multilingual Plane uhlanganisiwe, okuyizinkulungwane zezinhlamvu, izimpawu nemifanekiso. Ukuthepha okukodwa kuyayifaka. Lesi silungiselelo sicishiwe ngokuzenzakalelayo.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Ukusesha kwe-emoji kubuye kuthole izimpawu, izinhlamvu namamaki ngamagama egama lazo</string>
     <string name="langemoji_emoji_unicode_search_title">Thola noma yiluphi uhlamvu ngegama lalo le-Unicode</string>
@@ -4510,17 +4507,12 @@
     <string name="langemoji_panel_height_subtitle">Ukuthi amaphaneli e-emoji, i-GIF kanye nezitika avuleka kangakanani kunekhibhodi</string>
     <string name="langemoji_panel_height_title">Ukuphakama kwepaneli</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Beka lezi zinkinobho ngemva kweziphakamiso, ekugcineni komugqa</string>
-    <string name="langemoji_strip_at_end_title">Izinkinobho ngakwesokudla</string>
     <string name="langemoji_strip_icon_size_subtitle">Ukuthi isithonjana esikunkinobho ngayinye eceleni kweziphakamiso sikhulu kangakanani</string>
     <string name="langemoji_strip_icon_size_title">Usayizi wesithonjana senkinobho</string>
     <string name="langemoji_strip_own_size_subtitle">Linganisela izinkinobho eziseceleni kweziphakamiso ngaphandle kwamathuluzi e-toolbar</string>
     <string name="langemoji_strip_own_size_title">Usayizi wazo walezi zinkinobho</string>
-    <string name="langemoji_strip_shortcut_subtitle">Ithuluzi elihlala kubha ephezulu ngenkathi iziphakamiso zibonisa</string>
-    <string name="langemoji_strip_shortcut_title">Inkinobho eseceleni kweziphakamiso</string>
     <string name="langemoji_strip_tool_width_subtitle">Ukuthi inkinobho ngayinye eceleni kweziphakamiso ibanzi kangakanani</string>
     <string name="langemoji_strip_tool_width_title">Ububanzi benkinobho</string>
-    <string name="langemoji_strip_toolbox_subtitle">Beka ibhokisi lamathuluzi kuqala phakathi kwalezi zinkinobho, ukuze kube ukuthepha okukodwa ngenkathi iziphakamiso ziboniswa</string>
     <string name="langemoji_strip_toolbox_title">Inkinobho yebhokisi lamathuluzi</string>
     <string name="langemoji_strip_tools_add_value">Engeza</string>
     <string name="langid_module_title">Ukuthola ulimi</string>

@@ -4328,9 +4328,6 @@
     <string name="langemoji_emoji_tone_override_info">Når dette er på, og det er på som standard, beholder en emoji du allerede har valgt en tone for, den tonen overalt: i panelet, i forslagene og i søket. Du velger den tonen fra popup-vinduet som vises når du trykker og holder på emojien i panelet. Emojien bruker ikke standardvalget ovenfor. Når dette er av, vinner alltid standard hudtone.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Bruk tonen du sist valgte for en emoji, ikke standardtonen</string>
     <string name="langemoji_emoji_tone_override_title">Overskriv med sist brukte</string>
-    <string name="langemoji_emoji_toolbar_info">Emojiknappen forblir synlig i topplinjen, også mens forslagene vises. Emojipanelet har en fane for hver kategori. Du kan søke på engelsk og bengali, og på alle språk du legger til en nøkkelordpakke for. Trykk og hold på en emoji for hudtonevarianter.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Åpne emoji med ett trykk fra topplinjen</string>
-    <string name="langemoji_emoji_toolbar_title">Emoji-knapp i verktøylinjen</string>
     <string name="langemoji_emoji_unicode_search_info">Skriv ordene fra et tegns Unicode-navn i emojisøket, så vises det etter emojien: tankestrek, copyright-tegn, gresk liten bokstav lambda, latinsk liten bokstav a med ogonek. Hvert tegn i Basic Multilingual Plane er dekket, noe som er titusenvis av bokstaver, merker og symboler. Ved å trykke på ett settes det inn. Denne innstillingen er av som standard.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Emoji-søket finner også symboler, bokstaver og tegn ved ordene i navnet deres</string>
     <string name="langemoji_emoji_unicode_search_title">Finn et hvilket som helst tegn ved dets Unicode-navn</string>
@@ -4506,17 +4503,12 @@
     <string name="langemoji_panel_height_subtitle">Hvor mye høyere enn tastaturet emoji-, GIF- og klistremerkepanelene åpnes</string>
     <string name="langemoji_panel_height_title">Panelhøyde</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Plasser disse knappene etter forslagene, helt til slutt i linjen</string>
-    <string name="langemoji_strip_at_end_title">Knapper til høyre</string>
     <string name="langemoji_strip_icon_size_subtitle">Hvor stort ikonet i hver knapp ved siden av forslagene er</string>
     <string name="langemoji_strip_icon_size_title">Ikonstørrelse for knapp</string>
     <string name="langemoji_strip_own_size_subtitle">Tilpass størrelsen på knappene ved siden av forslagene, uavhengig av verktøylinjen</string>
     <string name="langemoji_strip_own_size_title">Egen størrelse for disse knappene</string>
-    <string name="langemoji_strip_shortcut_subtitle">Verktøyet som forblir i topplinjen mens forslagene vises</string>
-    <string name="langemoji_strip_shortcut_title">Knapp ved siden av forslagene</string>
     <string name="langemoji_strip_tool_width_subtitle">Hvor brede knappene ved siden av forslagene er</string>
     <string name="langemoji_strip_tool_width_title">Knappebredde</string>
-    <string name="langemoji_strip_toolbox_subtitle">Plasser verktøykassen først blant disse knappene, slik at den er ett trykk unna mens forslagene vises</string>
     <string name="langemoji_strip_toolbox_title">Verktøykasse-knapp</string>
     <string name="langemoji_strip_tools_add_value">Legg til</string>
     <string name="langid_module_title">Spr¥kgregistrering</string>

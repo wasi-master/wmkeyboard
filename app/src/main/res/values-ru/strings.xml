@@ -4328,9 +4328,6 @@
     <string name="langemoji_emoji_tone_override_info">Когда эта функция включена (она включена по умолчанию), эмодзи, для которого вы уже выбрали тон кожи, сохраняет этот тон везде: на панели, в подсказках и при поиске. Вы выбираете этот тон в выпадающем меню при долгом нажатии на эмодзи на панели. Эмодзи не использует тон по умолчанию, указанный выше. Когда эта функция выключена, всегда используется тон кожи по умолчанию.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Использовать последний выбранный тон для эмодзи, а не стандартный</string>
     <string name="langemoji_emoji_tone_override_title">Заменять на последний использованный</string>
-    <string name="langemoji_emoji_toolbar_info">Кнопка эмодзи остается видимой на верхней панели, даже когда отображаются подсказки. Панель эмодзи имеет вкладку для каждой категории. Вы можете искать на английском и бенгальском языках, а также на любом языке, для которого вы добавили пакет ключевых слов. Нажмите и удерживайте эмодзи, чтобы выбрать вариант цвета кожи.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Открывайте эмодзи одним нажатием с верхней панели</string>
-    <string name="langemoji_emoji_toolbar_title">Кнопка эмодзи на панели инструментов</string>
     <string name="langemoji_emoji_unicode_search_info">Введите слова из названия символа в Юникоде в поиске эмодзи, и он появится после эмодзи: длинное тире, знак авторского права, греческая строчная лямбда, латинская строчная a с огонеком. Охвачен каждый символ Базовой многоязычной плоскости, что составляет десятки тысяч букв, знаков и символов. Нажатие на один из них вставляет его. Эта настройка по умолчанию выключена.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Поиск эмодзи также находит символы, буквы и знаки по словам из их названия</string>
     <string name="langemoji_emoji_unicode_search_title">Найти любой символ по его названию в Unicode</string>
@@ -4505,17 +4502,12 @@
     <string name="langemoji_panel_height_subtitle">Насколько выше клавиатуры открываются панели эмодзи, GIF и стикеров</string>
     <string name="langemoji_panel_height_title">Высота панели</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Разместить эти кнопки после подсказок, в самом конце полосы</string>
-    <string name="langemoji_strip_at_end_title">Кнопки справа</string>
     <string name="langemoji_strip_icon_size_subtitle">Размер значка в каждой кнопке рядом с подсказками</string>
     <string name="langemoji_strip_icon_size_title">Размер значка кнопки</string>
     <string name="langemoji_strip_own_size_subtitle">Измените размер кнопок рядом с подсказками, отдельно от инструментов панели инструментов</string>
     <string name="langemoji_strip_own_size_title">Собственный размер для этих кнопок</string>
-    <string name="langemoji_strip_shortcut_subtitle">Инструмент, который остается в верхней панели во время отображения подсказок</string>
-    <string name="langemoji_strip_shortcut_title">Кнопка рядом с подсказками</string>
     <string name="langemoji_strip_tool_width_subtitle">Насколько широка каждая кнопка рядом с подсказками</string>
     <string name="langemoji_strip_tool_width_title">Ширина кнопки</string>
-    <string name="langemoji_strip_toolbox_subtitle">Поместите панель инструментов первой среди этих кнопок, чтобы она была доступна в одно касание, пока отображаются подсказки</string>
     <string name="langemoji_strip_toolbox_title">Кнопка панели инструментов</string>
     <string name="langemoji_strip_tools_add_value">Добавить</string>
     <string name="langid_module_title">Определение языка</string>

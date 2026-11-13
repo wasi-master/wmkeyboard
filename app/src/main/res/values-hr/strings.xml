@@ -4331,9 +4331,6 @@
     <string name="langemoji_emoji_tone_override_info">Kada je ovo uključeno, a uključeno je prema zadanim postavkama, emoji za koji ste već odabrali ton zadržava taj ton svugdje: na ploči, u prijedlozima i u pretraživanju. Taj ton odabirete dugim pritiskom na emoji na ploči. Emoji ne koristi zadani ton naveden iznad. Kada je ovo isključeno, zadani ton kože uvijek ima prednost.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Koristi ton koji ste zadnji odabrali za emoji, a ne zadani</string>
     <string name="langemoji_emoji_tone_override_title">Nadjačaj s posljednjim korištenim</string>
-    <string name="langemoji_emoji_toolbar_info">Gumb za emojije ostaje vidljiv na gornjoj traci, čak i dok se prikazuju prijedlozi. Ploča s emojijima ima karticu za svaku kategoriju. Možete pretraživati na engleskom i bengalskom, te na bilo kojem jeziku za koji dodate paket ključnih riječi. Pritisnite i držite emoji za varijante boje kože.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Otvorite emojije jednim pritiskom s gornje trake</string>
-    <string name="langemoji_emoji_toolbar_title">Emoji gumb na alatnoj traci</string>
     <string name="langemoji_emoji_unicode_search_info">Upišite riječi Unicode naziva znaka u pretraživanje emojija i on se pojavljuje nakon emojija: crtica, znak autorskog prava, grčko malo slovo lambda, latinično malo slovo a s ogonekom. Obuhvaćen je svaki znak osnovne višejezične ravnine, što su deseci tisuća slova, oznaka i simbola. Dodirivanje jednog ga umeće. Ova postavka je isključena prema zadanim postavkama.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Pretraživanje emojija također pronalazi simbole, slova i oznake prema riječima njihovog naziva</string>
     <string name="langemoji_emoji_unicode_search_title">Pronađite bilo koji znak prema njegovom Unicode nazivu</string>
@@ -4509,17 +4506,12 @@
     <string name="langemoji_panel_height_subtitle">Koliko se više od tipkovnice otvaraju ploče s emojijima, GIF-ovima i naljepnicama</string>
     <string name="langemoji_panel_height_title">Visina ploče</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Postavi ove gumbe nakon prijedloga, na sam kraj trake</string>
-    <string name="langemoji_strip_at_end_title">Gumbi na desnoj strani</string>
     <string name="langemoji_strip_icon_size_subtitle">Koliko je velika ikona u svakom gumbu pored prijedloga</string>
     <string name="langemoji_strip_icon_size_title">Veličina ikone gumba</string>
     <string name="langemoji_strip_own_size_subtitle">Odredite veličinu gumba pored prijedloga, odvojeno od alata na alatnoj traci</string>
     <string name="langemoji_strip_own_size_title">Vlastita veličina za ove gumbe</string>
-    <string name="langemoji_strip_shortcut_subtitle">Alat koji ostaje na gornjoj traci dok se prikazuju prijedlozi</string>
-    <string name="langemoji_strip_shortcut_title">Gumb pored prijedloga</string>
     <string name="langemoji_strip_tool_width_subtitle">Koliko je širok svaki gumb pored prijedloga</string>
     <string name="langemoji_strip_tool_width_title">Širina gumba</string>
-    <string name="langemoji_strip_toolbox_subtitle">Stavite alatnu traku na prvo mjesto među ovim gumbima, tako da bude udaljena jedan dodir dok se prikazuju prijedlozi</string>
     <string name="langemoji_strip_toolbox_title">Gumb s alatima</string>
     <string name="langemoji_strip_tools_add_value">Dodaj</string>
     <string name="langid_module_title">Prepoznavanje jezika</string>

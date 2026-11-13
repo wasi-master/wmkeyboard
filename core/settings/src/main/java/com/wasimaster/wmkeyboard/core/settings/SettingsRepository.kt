@@ -2249,10 +2249,16 @@ data class ToolbarBehavior(
     /** Side of the glyph in each button beside the suggestions, in dp, under [stripOwnSize]. */
     val stripIconSizeDp: Int = 22,
     /**
-     * Whether the buttons beside the suggestions sit after the words, at the
-     * strip's far end, rather than before them at its start (the default).
+     * The buttons beside the suggestions that sit after the words, at the
+     * strip's far end; every other one sits before them, at its start (the
+     * default). Each tool picks its own side, so the emoji button can be on
+     * the left with the clipboard on the right. Before the side was per tool
+     * one switch moved them all: that switch, still stored, reads as every
+     * button at the end until a side is picked here.
      */
-    val stripShortcutsAtEnd: Boolean = false,
+    val stripEndTools: Set<ToolbarTool> = emptySet(),
+    /** The strip's toolbox button ([stripToolbox]) at the far end, after the words. */
+    val stripToolboxAtEnd: Boolean = false,
     /**
      * A toolbox button with the buttons beside the suggestions (#970), so the
      * toolbox is one tap away while the words show, without a row of pinned
@@ -2786,6 +2792,16 @@ data class HardwareKeyboardSettings(
      */
     val languageSwitchCtrlShift: Boolean = false,
     /**
+     * Alt+Space switches to the next language (competitor gap list item 39,
+     * AnySoftKeyboard). Off by default: some apps and launchers use the chord.
+     */
+    val languageSwitchAltSpace: Boolean = false,
+    /**
+     * Shift+Space switches to the next language. Off by default: on most
+     * keyboards Shift+Space is a space typed while Shift happens to be down.
+     */
+    val languageSwitchShiftSpace: Boolean = false,
+    /**
      * A physical keyboard's letter keys type the on-screen layout's letter in
      * the same place (#1128), rather than the character the phone's own
      * physical-keyboard layout gives the key. For a tablet whose keyboard is
@@ -3078,6 +3094,14 @@ data class AutocorrectSettings(
      * before anyone reads it. Space still corrects.
      */
     val onEnter: Boolean = true,
+    /**
+     * A corrected word carries the editor's correction mark: the underline or
+     * highlight it draws, and the tap that offers back what was typed
+     * (`markAutoCorrection`). Off commits the correction as plain text, for
+     * people who find the mark distracting (competitor gap list item 40,
+     * LeanType). The keyboard's own undo chip and backspace revert still work.
+     */
+    val markInField: Boolean = true,
     /**
      * Whether a mark that ends a word (. , ! ? ; : and the danda) corrects it
      * the way space does, so "teh!" lands as "the!" (#562). On since 0.6.7:
@@ -9851,6 +9875,12 @@ data class IconSettings(
     val themeIcons: Map<String, String> = emptyMap(),
 )
 
+/** Where a key's corner hint sits ([LayoutBehaviorSettings.hintCorner]). */
+enum class HintCorner(val bottom: Boolean, val side: Int) {
+    TOP_START(false, -1), TOP_CENTER(false, 0), TOP_END(false, 1),
+    BOTTOM_START(true, -1), BOTTOM_CENTER(true, 0), BOTTOM_END(true, 1),
+}
+
 /**
  * Assorted layout & gesture behaviours layered on top of the base keyboard,
  * grouped into their own class rather than sitting flat on [KeyboardSettings]
@@ -9952,6 +9982,13 @@ data class LayoutBehaviorSettings(
      * keys, as it does in portrait. Tablets never get it either way.
      */
     val landscapeFullscreen: Boolean = true,
+    /**
+     * The same full-screen editor with the phone upright (competitor gap list
+     * item 50, after AnySoftKeyboard). Off by default, which is Android's own
+     * behaviour; on, every field on a phone is typed into the platform's text
+     * box with a Done button, which some people find easier to read.
+     */
+    val portraitFullscreen: Boolean = false,
     /**
      * Asks Android to take away the bar it draws under the keyboard in gesture
      * navigation, with its hide-keyboard and switch-keyboard buttons (#582).
@@ -10133,6 +10170,14 @@ data class LayoutBehaviorSettings(
      * a large hint the label would otherwise cover.
      */
     val hintOffsetXDp: Int = 0,
+    /**
+     * Which corner of the key the hint sits in (competitor gap list item 21,
+     * FlorisBoard's and AnySoftKeyboard's hint placement). [hintOffsetDp] then
+     * measures from that corner's top or bottom edge and [hintOffsetXDp] from
+     * its side; a centred hint takes the side offset as a nudge. Top end, the
+     * long-standing place, by default.
+     */
+    val hintCorner: HintCorner = HintCorner.TOP_END,
     /**
      * The main label moved sideways and down from the key's centre, in dp
      * (#970): out of the way of a large corner hint. Negative moves it left
@@ -12114,6 +12159,7 @@ class SettingsRepository(private val context: Context) {
         private val AUTOCORRECT_SKIP_ALL_CAPS =
             booleanPreferencesKey("autocorrect_skip_all_caps")
         private val AUTOCORRECT_ON_ENTER = booleanPreferencesKey("autocorrect_on_enter")
+        private val AUTOCORRECT_MARK_IN_FIELD = booleanPreferencesKey("autocorrect_mark_in_field")
         private val AUTOCORRECT_ON_PUNCTUATION = booleanPreferencesKey("autocorrect_on_punctuation")
         private val AUTOCORRECT_OFF_LANGS = stringSetPreferencesKey("autocorrect_off_langs")
         private val DICTIONARY_CAPITALS = booleanPreferencesKey("dictionary_capitals")
@@ -12358,6 +12404,7 @@ class SettingsRepository(private val context: Context) {
         private val MULTITAP_TIMEOUT = intPreferencesKey("multitap_timeout_ms")
         private val ENTER_LONGPRESS_EMOJI = booleanPreferencesKey("enter_longpress_emoji")
         private val LANDSCAPE_FULLSCREEN = booleanPreferencesKey("landscape_fullscreen")
+        private val PORTRAIT_FULLSCREEN = booleanPreferencesKey("portrait_fullscreen")
         private val SPACE_SWIPE_DOWN_HIDE = booleanPreferencesKey("space_swipe_down_hide")
         private val EDGE_SWIPE_BACK = booleanPreferencesKey("edge_swipe_back")
         private val PANEL_OVER_KEYS_EXTRA_HEIGHT_DP = intPreferencesKey("panel_over_keys_extra_height_dp")
@@ -12377,6 +12424,7 @@ class SettingsRepository(private val context: Context) {
         private val HINT_FONT_SCALE = floatPreferencesKey("hint_font_scale")
         private val HINT_OFFSET = intPreferencesKey("hint_offset_dp")
         private val HINT_OFFSET_X = intPreferencesKey("hint_offset_x_dp")
+        private val HINT_CORNER = stringPreferencesKey("hint_corner")
         private val LABEL_OFFSET_X = intPreferencesKey("label_offset_x_dp")
         private val LABEL_OFFSET_Y = intPreferencesKey("label_offset_y_dp")
         private val FLICK_HINTS = booleanPreferencesKey("flick_hints")
@@ -12539,6 +12587,8 @@ class SettingsRepository(private val context: Context) {
         private val HW_MAC_SHORTCUTS = booleanPreferencesKey("hw_mac_shortcuts")
         private val HW_LANGUAGE_SWITCH_CHORD = booleanPreferencesKey("hw_language_switch_chord")
         private val HW_LANGUAGE_SWITCH_CTRL_SHIFT = booleanPreferencesKey("hw_language_switch_ctrl_shift")
+        private val HW_LANGUAGE_SWITCH_ALT_SPACE = booleanPreferencesKey("hw_language_switch_alt_space")
+        private val HW_LANGUAGE_SWITCH_SHIFT_SPACE = booleanPreferencesKey("hw_language_switch_shift_space")
         private val HW_FOLLOW_ON_SCREEN_LAYOUT = booleanPreferencesKey("hw_follow_on_screen_layout")
         private val HW_HINT_MODIFIER_WORDS = booleanPreferencesKey("hw_hint_modifier_words")
         private val HW_AUTO_SHOW_UI = booleanPreferencesKey("hw_auto_show_ui")
@@ -12891,7 +12941,10 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_STRIP_OWN_SIZE = booleanPreferencesKey("toolbar_strip_own_size")
         private val TOOLBAR_STRIP_TOOL_WIDTH = intPreferencesKey("toolbar_strip_tool_width")
         private val TOOLBAR_STRIP_ICON_SIZE = intPreferencesKey("toolbar_strip_icon_size")
+        /** The one switch that put every strip button at the end, before each had a side. */
         private val TOOLBAR_STRIP_AT_END = booleanPreferencesKey("toolbar_strip_at_end")
+        private val TOOLBAR_STRIP_END_TOOLS = stringPreferencesKey("toolbar_strip_end_tools")
+        private val TOOLBAR_STRIP_TOOLBOX_AT_END = booleanPreferencesKey("toolbar_strip_toolbox_at_end")
         private val TOOLBAR_STRIP_TOOLBOX = booleanPreferencesKey("toolbar_strip_toolbox")
         private val TOOLBAR_BAR_TOOLBOX = booleanPreferencesKey("toolbar_bar_toolbox")
         private val TOOLBAR_TOOLS_ARROW = booleanPreferencesKey("toolbar_tools_arrow")
@@ -14461,6 +14514,7 @@ class SettingsRepository(private val context: Context) {
             readWholePhrases = p[AUTOCORRECT_WHOLE_PHRASES] ?: defaults.correction.readWholePhrases,
             skipAllCaps = p[AUTOCORRECT_SKIP_ALL_CAPS] ?: defaults.correction.skipAllCaps,
             onEnter = p[AUTOCORRECT_ON_ENTER] ?: defaults.correction.onEnter,
+            markInField = p[AUTOCORRECT_MARK_IN_FIELD] ?: defaults.correction.markInField,
             onPunctuation = p[AUTOCORRECT_ON_PUNCTUATION] ?: defaults.correction.onPunctuation,
             dictionaryCapitals = p[DICTIONARY_CAPITALS] ?: defaults.correction.dictionaryCapitals,
             offLanguages = p[AUTOCORRECT_OFF_LANGS] ?: defaults.correction.offLanguages,
@@ -14683,6 +14737,10 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.hardwareKeyboard.languageSwitchChord,
             languageSwitchCtrlShift = p[HW_LANGUAGE_SWITCH_CTRL_SHIFT]
                 ?: defaults.hardwareKeyboard.languageSwitchCtrlShift,
+            languageSwitchAltSpace = p[HW_LANGUAGE_SWITCH_ALT_SPACE]
+                ?: defaults.hardwareKeyboard.languageSwitchAltSpace,
+            languageSwitchShiftSpace = p[HW_LANGUAGE_SWITCH_SHIFT_SPACE]
+                ?: defaults.hardwareKeyboard.languageSwitchShiftSpace,
             followOnScreenLayout = p[HW_FOLLOW_ON_SCREEN_LAYOUT]
                 ?: defaults.hardwareKeyboard.followOnScreenLayout,
             hintModifierWords = p[HW_HINT_MODIFIER_WORDS]
@@ -15314,6 +15372,7 @@ class SettingsRepository(private val context: Context) {
                 p[SPACE_SWIPE_DOWN_HIDE] ?: defaults.layoutBehavior.spaceSwipeDownHide,
             edgeSwipeBack = p[EDGE_SWIPE_BACK] ?: defaults.layoutBehavior.edgeSwipeBack,
             landscapeFullscreen = p[LANDSCAPE_FULLSCREEN] ?: defaults.layoutBehavior.landscapeFullscreen,
+            portraitFullscreen = p[PORTRAIT_FULLSCREEN] ?: defaults.layoutBehavior.portraitFullscreen,
             hideSystemKeyboardBar =
                 p[HIDE_SYSTEM_KEYBOARD_BAR] ?: defaults.layoutBehavior.hideSystemKeyboardBar,
             extendEdgeKeys = p[EXTEND_EDGE_KEYS] ?: defaults.layoutBehavior.extendEdgeKeys,
@@ -15345,6 +15404,8 @@ class SettingsRepository(private val context: Context) {
             hintFontScale = p[HINT_FONT_SCALE] ?: defaults.layoutBehavior.hintFontScale,
             hintOffsetDp = p[HINT_OFFSET]?.coerceIn(HintOffsetRange) ?: defaults.layoutBehavior.hintOffsetDp,
             hintOffsetXDp = p[HINT_OFFSET_X]?.coerceIn(HintOffsetRange) ?: defaults.layoutBehavior.hintOffsetXDp,
+            hintCorner = p[HINT_CORNER]?.let { name -> HintCorner.entries.firstOrNull { it.name == name } }
+                ?: defaults.layoutBehavior.hintCorner,
             labelOffsetXDp = p[LABEL_OFFSET_X]?.coerceIn(LabelOffsetRange) ?: defaults.layoutBehavior.labelOffsetXDp,
             labelOffsetYDp = p[LABEL_OFFSET_Y]?.coerceIn(LabelOffsetRange) ?: defaults.layoutBehavior.labelOffsetYDp,
             flickHints = p[FLICK_HINTS] ?: defaults.layoutBehavior.flickHints,
@@ -15536,22 +15597,13 @@ class SettingsRepository(private val context: Context) {
                 ?.mapNotNull { name -> runCatching { ToolbarTool.valueOf(name) }.getOrNull()?.takeIf { it.floats } }
                 ?.toSet()
                 .orEmpty(),
-            stripShortcuts = p[TOOLBAR_STRIP_SHORTCUTS]
-                ?.let { csv ->
-                    if (csv.isEmpty()) {
-                        emptyList()
-                    } else {
-                        csv.split(',').mapNotNull { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }.distinct()
-                    }
-                }
-                ?: p[TOOLBAR_STRIP_SHORTCUT]
-                    ?.let { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }
-                    ?.let { listOf(it) }
-                ?: defaults.toolbarBehavior.stripShortcuts,
+            stripShortcuts = readStripShortcuts(p) ?: defaults.toolbarBehavior.stripShortcuts,
             stripOwnSize = p[TOOLBAR_STRIP_OWN_SIZE] ?: defaults.toolbarBehavior.stripOwnSize,
             stripToolWidthDp = p[TOOLBAR_STRIP_TOOL_WIDTH] ?: defaults.toolbarBehavior.stripToolWidthDp,
             stripIconSizeDp = p[TOOLBAR_STRIP_ICON_SIZE] ?: defaults.toolbarBehavior.stripIconSizeDp,
-            stripShortcutsAtEnd = p[TOOLBAR_STRIP_AT_END] ?: defaults.toolbarBehavior.stripShortcutsAtEnd,
+            stripEndTools = readStripEndTools(p) ?: defaults.toolbarBehavior.stripEndTools,
+            stripToolboxAtEnd = p[TOOLBAR_STRIP_TOOLBOX_AT_END] ?: p[TOOLBAR_STRIP_AT_END]
+                ?: defaults.toolbarBehavior.stripToolboxAtEnd,
             stripToolbox = p[TOOLBAR_STRIP_TOOLBOX] ?: defaults.toolbarBehavior.stripToolbox,
             barToolbox = p[TOOLBAR_BAR_TOOLBOX] ?: defaults.toolbarBehavior.barToolbox,
             toolsArrow = p[TOOLBAR_TOOLS_ARROW] ?: defaults.toolbarBehavior.toolsArrow,
@@ -18387,8 +18439,47 @@ class SettingsRepository(private val context: Context) {
     suspend fun setStripIconSizeDp(value: Int) =
         editPrefs { it[TOOLBAR_STRIP_ICON_SIZE] = value.coerceIn(14, 30) }
 
-    suspend fun setStripShortcutsAtEnd(value: Boolean) =
-        editPrefs { it[TOOLBAR_STRIP_AT_END] = value }
+    /**
+     * Puts one of the strip's buttons after the words ([atEnd]) or before
+     * them. The first pick writes out every button's side, so a phone still
+     * on the old all-at-the-end switch keeps the others where they were.
+     */
+    suspend fun setStripToolAtEnd(tool: ToolbarTool, atEnd: Boolean) = editPrefs { prefs ->
+        val current = readStripEndTools(prefs).orEmpty()
+        val next = if (atEnd) current + tool else current - tool
+        prefs[TOOLBAR_STRIP_END_TOOLS] = next.joinToString(",") { it.name }
+    }
+
+    suspend fun setStripToolboxAtEnd(value: Boolean) =
+        editPrefs { it[TOOLBAR_STRIP_TOOLBOX_AT_END] = value }
+
+    /**
+     * The tools stored at the strip's end, or null with nothing stored. Under
+     * the old one switch ([TOOLBAR_STRIP_AT_END]) that is every button on the
+     * strip, read off the stored list so a button added later goes there too.
+     */
+    private fun readStripEndTools(p: Preferences): Set<ToolbarTool>? {
+        p[TOOLBAR_STRIP_END_TOOLS]?.let { csv ->
+            return csv.split(',').mapNotNull { name -> runCatching { ToolbarTool.valueOf(name) }.getOrNull() }.toSet()
+        }
+        if (p[TOOLBAR_STRIP_AT_END] != true) return null
+        val shortcuts = readStripShortcuts(p) ?: SettingsDefaults.toolbarBehavior.stripShortcuts
+        return shortcuts.toSet() + ToolbarTool.PHONETIC_ENGLISH
+    }
+
+    /** The strip's stored buttons, in order, or null with nothing stored. */
+    private fun readStripShortcuts(p: Preferences): List<ToolbarTool>? =
+        p[TOOLBAR_STRIP_SHORTCUTS]
+            ?.let { csv ->
+                if (csv.isEmpty()) {
+                    emptyList()
+                } else {
+                    csv.split(',').mapNotNull { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }.distinct()
+                }
+            }
+            ?: p[TOOLBAR_STRIP_SHORTCUT]
+                ?.let { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }
+                ?.let { listOf(it) }
 
     suspend fun setStripToolbox(value: Boolean) =
         editPrefs { it[TOOLBAR_STRIP_TOOLBOX] = value }
@@ -21931,6 +22022,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setAutocorrectOnEnter(value: Boolean) =
         editPrefs { it[AUTOCORRECT_ON_ENTER] = value }
 
+    suspend fun setAutocorrectMarkInField(value: Boolean) =
+        editPrefs { it[AUTOCORRECT_MARK_IN_FIELD] = value }
+
     suspend fun setAutocorrectOnPunctuation(value: Boolean) =
         editPrefs { it[AUTOCORRECT_ON_PUNCTUATION] = value }
 
@@ -22197,6 +22291,25 @@ class SettingsRepository(private val context: Context) {
         if (row.isNullOrEmpty()) prefs.remove(CUSTOM_ARROW_ROW) else prefs[CUSTOM_ARROW_ROW] = KeyRowCodec.encode(row)
     }
 
+    /**
+     * Changes the keyboard-wide number row ([arrow] false) or arrow row as it
+     * is stored at the moment of writing, [fallback] standing in while none
+     * is. Read and written in one edit, so two quick changes in the row
+     * editor both land: one that read the row before the other was saved
+     * used to write over it.
+     */
+    suspend fun updateCustomRow(
+        arrow: Boolean,
+        fallback: List<LayoutKey>,
+        transform: (List<LayoutKey>) -> List<LayoutKey>?,
+    ) = editPrefs { prefs ->
+        val key = if (arrow) CUSTOM_ARROW_ROW else CUSTOM_NUMBER_ROW
+        val current = prefs[key]?.let { runCatching { KeyRowCodec.decode(it) }.getOrNull() }
+            ?.takeIf { it.isNotEmpty() } ?: fallback
+        val row = transform(current)
+        if (row.isNullOrEmpty()) prefs.remove(key) else prefs[key] = KeyRowCodec.encode(row)
+    }
+
     suspend fun setBottomRowHeightDp(value: Int) =
         editPrefs { it[BOTTOM_ROW_HEIGHT] = value.coerceIn(0, BottomRowHeightRange.last) }
 
@@ -22279,6 +22392,7 @@ class SettingsRepository(private val context: Context) {
         it.remove(HINT_FONT_SCALE)
         it.remove(HINT_OFFSET)
         it.remove(HINT_OFFSET_X)
+        it.remove(HINT_CORNER)
         it.remove(LABEL_OFFSET_X)
         it.remove(LABEL_OFFSET_Y)
     }
@@ -23231,6 +23345,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setLandscapeFullscreen(value: Boolean) =
         editPrefs { it[LANDSCAPE_FULLSCREEN] = value }
 
+    suspend fun setPortraitFullscreen(value: Boolean) =
+        editPrefs { it[PORTRAIT_FULLSCREEN] = value }
+
     suspend fun setSpaceSwipeDownHide(value: Boolean) =
         editPrefs { it[SPACE_SWIPE_DOWN_HIDE] = value }
 
@@ -23290,6 +23407,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setHintOffsetXDp(value: Int) =
         editPrefs { it[HINT_OFFSET_X] = value.coerceIn(HintOffsetRange) }
+
+    suspend fun setHintCorner(value: HintCorner) =
+        editPrefs { it[HINT_CORNER] = value.name }
 
     suspend fun setLabelOffsetXDp(value: Int) =
         editPrefs { it[LABEL_OFFSET_X] = value.coerceIn(LabelOffsetRange) }
@@ -23646,6 +23766,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setHwLanguageSwitchCtrlShift(value: Boolean) =
         editPrefs { it[HW_LANGUAGE_SWITCH_CTRL_SHIFT] = value }
+
+    suspend fun setHwLanguageSwitchAltSpace(value: Boolean) =
+        editPrefs { it[HW_LANGUAGE_SWITCH_ALT_SPACE] = value }
+
+    suspend fun setHwLanguageSwitchShiftSpace(value: Boolean) =
+        editPrefs { it[HW_LANGUAGE_SWITCH_SHIFT_SPACE] = value }
 
     suspend fun setHwFollowOnScreenLayout(value: Boolean) =
         editPrefs { it[HW_FOLLOW_ON_SCREEN_LAYOUT] = value }

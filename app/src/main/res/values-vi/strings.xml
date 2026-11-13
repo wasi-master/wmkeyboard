@@ -4319,9 +4319,6 @@
     <string name="langemoji_emoji_tone_override_info">Khi tính năng này được bật (mặc định là bật), biểu tượng cảm xúc mà bạn đã chọn tông màu sẽ luôn giữ nguyên tông màu đó ở mọi nơi: trong bảng, phần gợi ý và tìm kiếm. Bạn chọn tông màu đó từ cửa sổ bật lên khi nhấn và giữ biểu tượng cảm xúc trong bảng. Biểu tượng cảm xúc sẽ không sử dụng tông màu mặc định ở trên. Khi tắt tính năng này, tông màu da mặc định sẽ luôn được ưu tiên.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Sử dụng tông màu bạn đã chọn gần nhất cho biểu tượng cảm xúc, thay vì mặc định</string>
     <string name="langemoji_emoji_tone_override_title">Ghi đè bằng tông màu sử dụng gần nhất</string>
-    <string name="langemoji_emoji_toolbar_info">Nút biểu tượng cảm xúc vẫn hiển thị trên thanh trên cùng, ngay cả khi các gợi ý đang hiển thị. Bảng biểu tượng cảm xúc có một tab cho mỗi danh mục. Bạn có thể tìm kiếm bằng tiếng Anh và tiếng Bengal, và bằng bất kỳ ngôn ngữ nào mà bạn đã thêm gói từ khóa. Nhấn và giữ một biểu tượng cảm xúc để xem các biến thể tông màu da.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Mở biểu tượng cảm xúc bằng một lần nhấn từ thanh trên cùng</string>
-    <string name="langemoji_emoji_toolbar_title">Nút biểu tượng cảm xúc trên thanh công cụ</string>
     <string name="langemoji_emoji_unicode_search_info">Nhập các từ trong tên Unicode của ký tự vào phần tìm kiếm biểu tượng cảm xúc và nó sẽ xuất hiện sau biểu tượng: dấu gạch ngang em, dấu bản quyền, chữ cái Hy Lạp lambda thường, chữ cái Latinh a thường với ogonek. Mọi ký tự của Mặt phẳng đa ngôn ngữ cơ bản đều được bao phủ, bao gồm hàng chục nghìn chữ cái, dấu và ký hiệu. Chạm vào một ký tự để chèn nó. Cài đặt này bị tắt theo mặc định.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Tính năng tìm kiếm biểu tượng cảm xúc cũng tìm thấy các ký hiệu, chữ cái và dấu bằng từ ngữ trong tên của chúng</string>
     <string name="langemoji_emoji_unicode_search_title">Tìm bất kỳ ký tự nào theo tên Unicode của nó</string>
@@ -4496,17 +4493,12 @@
     <string name="langemoji_panel_height_subtitle">Độ cao của bảng biểu tượng cảm xúc, GIF và nhãn dán so với bàn phím</string>
     <string name="langemoji_panel_height_title">Chiều cao bảng</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Đặt các nút này sau phần gợi ý, ở cuối dải</string>
-    <string name="langemoji_strip_at_end_title">Các nút ở bên phải</string>
     <string name="langemoji_strip_icon_size_subtitle">Kích thước biểu tượng trong mỗi nút bên cạnh các gợi ý</string>
     <string name="langemoji_strip_icon_size_title">Kích thước biểu tượng nút</string>
     <string name="langemoji_strip_own_size_subtitle">Thay đổi kích thước các nút bên cạnh gợi ý ngoài các công cụ của thanh công cụ</string>
     <string name="langemoji_strip_own_size_title">Kích thước riêng cho các nút này</string>
-    <string name="langemoji_strip_shortcut_subtitle">Công cụ nằm trên thanh trên cùng trong khi các gợi ý hiển thị</string>
-    <string name="langemoji_strip_shortcut_title">Nút bên cạnh các gợi ý</string>
     <string name="langemoji_strip_tool_width_subtitle">Độ rộng của mỗi nút bên cạnh các gợi ý</string>
     <string name="langemoji_strip_tool_width_title">Chiều rộng nút</string>
-    <string name="langemoji_strip_toolbox_subtitle">Đặt hộp công cụ lên đầu các nút này để có thể truy cập nhanh bằng một lần nhấn trong khi các gợi ý hiển thị</string>
     <string name="langemoji_strip_toolbox_title">Nút hộp công cụ</string>
     <string name="langemoji_strip_tools_add_value">Thêm</string>
     <string name="langid_module_title">Phát hiện ngôn ngữ</string>

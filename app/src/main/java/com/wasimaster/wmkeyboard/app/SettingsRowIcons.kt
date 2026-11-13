@@ -253,6 +253,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Schedule
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.School
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Science
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ScreenRotation
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StayCurrentPortrait
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DragHandle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
@@ -537,6 +538,7 @@ internal object SettingsRowIcons {
         put(R.string.appearance_key_corner_radius_title) { Icons.Outlined.RoundedCorner }
         put(R.string.appearance_key_label_size_title) { Icons.Outlined.FormatSize }
         put(R.string.appearance_key_hint_size_title) { Icons.Outlined.FormatSize }
+        put(R.string.appearance_key_hint_corner_title) { Icons.Outlined.SwapHoriz }
         put(R.string.appearance_key_hint_offset_title) { Icons.Outlined.SwapVert }
         put(R.string.appearance_key_hint_offset_x_title) { Icons.Outlined.SwapHoriz }
         put(R.string.appearance_key_label_offset_x_title) { Icons.Outlined.SwapHoriz }
@@ -703,10 +705,9 @@ internal object SettingsRowIcons {
         put(R.string.keypress_globe_drag_title) { Icons.Outlined.Gesture }
 
         // ---- Emoji ----
-        put(R.string.langemoji_emoji_toolbar_title) { Icons.Outlined.EmojiEmotions }
-        put(R.string.langemoji_strip_shortcut_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.appearance_strip_buttons_show_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.appearance_strip_buttons_add_title) { Icons.Outlined.SwapHoriz }
         put(R.string.langemoji_strip_toolbox_title) { Icons.Outlined.Apps }
-        put(R.string.langemoji_strip_at_end_title) { Icons.Outlined.SwapHoriz }
         put(R.string.langemoji_strip_own_size_title) { Icons.Outlined.PhotoSizeSelectSmall }
         put(R.string.langemoji_strip_tool_width_title) { Icons.Outlined.Straighten }
         put(R.string.langemoji_strip_icon_size_title) { Icons.Outlined.PhotoSizeSelectSmall }
@@ -851,6 +852,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_floating_title) { Icons.Outlined.PictureInPicture }
         put(R.string.layout_floating_landscape_title) { Icons.Outlined.ScreenRotation }
         put(R.string.layout_landscape_fullscreen_title) { Icons.Outlined.ScreenRotation }
+        put(R.string.layout_portrait_fullscreen_title) { Icons.Outlined.StayCurrentPortrait }
         put(R.string.layout_floating_handle_title) { Icons.Outlined.DragHandle }
         put(R.string.layout_floating_width_title) { Icons.Outlined.Straighten }
         put(R.string.layout_floating_height_title) { Icons.Outlined.Height }
@@ -1124,6 +1126,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_suggestion_expanded_grid_title) { Icons.Outlined.GridOn }
         put(R.string.typing_skip_all_caps_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.typing_autocorrect_on_enter_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
+        put(R.string.typing_autocorrect_mark_title) { Icons.Outlined.FormatUnderlined }
         put(R.string.typing_autocorrect_on_punctuation_title) { Icons.Outlined.Spellcheck }
         put(R.string.typing_dictionary_capitals_title) { Icons.Outlined.TextFields }
         put(R.string.typing_skip_typed_word_title) { Icons.Outlined.FilterList }
@@ -1369,6 +1372,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_hw_function_keys_title) { Icons.Outlined.Functions }
         put(R.string.typing_hw_lang_chord_title) { Icons.Outlined.Language }
         put(R.string.typing_hw_lang_ctrl_shift_title) { Icons.Outlined.Language }
+        put(R.string.typing_hw_lang_alt_space_title) { Icons.Outlined.Language }
+        put(R.string.typing_hw_lang_shift_space_title) { Icons.Outlined.Language }
         put(R.string.typing_hw_mac_title) { Icons.Outlined.KeyboardCommandKey }
         put(R.string.typing_hw_auto_show_title) { Icons.Outlined.Visibility }
 

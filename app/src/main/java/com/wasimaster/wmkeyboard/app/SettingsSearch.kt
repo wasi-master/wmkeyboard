@@ -421,6 +421,7 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_fix_several_slips_title, R.string.typing_fix_several_slips_subtitle),
         row(R.string.typing_skip_all_caps_title, R.string.typing_skip_all_caps_subtitle),
         row(R.string.typing_autocorrect_on_enter_title, R.string.typing_autocorrect_on_enter_subtitle),
+        row(R.string.typing_autocorrect_mark_title, R.string.typing_autocorrect_mark_subtitle),
         row(R.string.typing_autocorrect_on_punctuation_title, R.string.typing_autocorrect_on_punctuation_subtitle),
         row(R.string.typing_dictionary_capitals_title, R.string.typing_dictionary_capitals_subtitle),
         row(R.string.typing_block_offensive_title, R.string.typing_block_offensive_subtitle),
@@ -857,6 +858,8 @@ private fun SearchStrings.typingHardwareRows(): List<SettingsSearchEntry> {
         row(R.string.typing_hw_digit_chord_title, R.string.typing_hw_digit_chord_subtitle),
         row(R.string.typing_hw_lang_chord_title, R.string.typing_hw_lang_chord_subtitle),
         row(R.string.typing_hw_lang_ctrl_shift_title, R.string.typing_hw_lang_ctrl_shift_subtitle),
+        row(R.string.typing_hw_lang_alt_space_title, R.string.typing_hw_lang_alt_space_subtitle),
+        row(R.string.typing_hw_lang_shift_space_title, R.string.typing_hw_lang_shift_space_subtitle),
         row(R.string.typing_hw_follow_layout_title, R.string.typing_hw_follow_layout_subtitle),
         row(R.string.typing_hw_modifier_words_title, R.string.typing_hw_modifier_words_subtitle),
         row(R.string.typing_hw_picker_timeout_title, R.string.typing_hw_picker_timeout_subtitle),
@@ -1078,6 +1081,7 @@ private fun SearchStrings.appearanceRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_key_corner_radius_title, R.string.appearance_key_corner_radius_subtitle),
         row(R.string.appearance_key_label_size_title, R.string.appearance_key_label_size_subtitle),
         row(R.string.appearance_key_hint_size_title, R.string.appearance_key_hint_size_subtitle),
+        row(R.string.appearance_key_hint_corner_title, R.string.appearance_key_hint_corner_subtitle),
         row(R.string.appearance_key_hint_offset_title, R.string.appearance_key_hint_offset_subtitle),
         row(R.string.appearance_key_hint_offset_x_title, R.string.appearance_key_hint_offset_x_subtitle),
         row(R.string.appearance_key_label_offset_x_title, R.string.appearance_key_label_offset_x_subtitle),
@@ -1128,6 +1132,12 @@ private fun SearchStrings.appearanceToolbarRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_tool_height_title, R.string.appearance_tool_height_subtitle),
         row(R.string.appearance_tool_icon_size_title, R.string.appearance_tool_icon_size_subtitle),
         row(R.string.appearance_toolbar_reset_title, R.string.appearance_toolbar_reset_subtitle),
+        row(R.string.appearance_strip_buttons_show_title, R.string.appearance_strip_buttons_show_subtitle),
+        row(R.string.appearance_strip_buttons_add_title, R.string.appearance_strip_buttons_add_subtitle),
+        row(R.string.langemoji_strip_toolbox_title, R.string.appearance_strip_buttons_toolbox_subtitle),
+        row(R.string.langemoji_strip_own_size_title, R.string.langemoji_strip_own_size_subtitle),
+        row(R.string.langemoji_strip_tool_width_title, R.string.langemoji_strip_tool_width_subtitle),
+        row(R.string.langemoji_strip_icon_size_title, R.string.langemoji_strip_icon_size_subtitle),
     )
 }
 
@@ -1254,6 +1264,7 @@ private fun SearchStrings.layoutOnehandedRows(): List<SettingsSearchEntry> {
         row(R.string.layout_floating_title, R.string.layout_floating_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.layout_floating_landscape_title, R.string.layout_floating_landscape_subtitle),
         row(R.string.layout_landscape_fullscreen_title, R.string.layout_landscape_fullscreen_subtitle),
+        row(R.string.layout_portrait_fullscreen_title, R.string.layout_portrait_fullscreen_subtitle),
         row(R.string.layout_floating_handle_title, R.string.layout_floating_handle_subtitle),
         row(R.string.layout_floating_width_title, R.string.layout_floating_width_subtitle),
         row(R.string.layout_persistent_title, R.string.layout_persistent_subtitle, weight = EntryWeight.PRIMARY),
@@ -1409,13 +1420,6 @@ private fun SearchStrings.emojiRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) =
         entry(title, subtitle, R.string.home_emoji_title, "emoji", weight = weight)
     return listOf(
-        row(R.string.langemoji_emoji_toolbar_title, R.string.langemoji_emoji_toolbar_subtitle),
-        row(R.string.langemoji_strip_shortcut_title, R.string.langemoji_strip_shortcut_subtitle),
-        row(R.string.langemoji_strip_toolbox_title, R.string.langemoji_strip_toolbox_subtitle),
-        row(R.string.langemoji_strip_at_end_title, R.string.langemoji_strip_at_end_subtitle),
-        row(R.string.langemoji_strip_own_size_title, R.string.langemoji_strip_own_size_subtitle),
-        row(R.string.langemoji_strip_tool_width_title, R.string.langemoji_strip_tool_width_subtitle),
-        row(R.string.langemoji_strip_icon_size_title, R.string.langemoji_strip_icon_size_subtitle),
         row(R.string.langemoji_emoji_full_bleed_title, R.string.langemoji_emoji_full_bleed_subtitle),
         row(R.string.panel_layout_row_title, R.string.panel_layout_row_subtitle),
         row(R.string.langemoji_emoji_prediction_title, R.string.langemoji_emoji_prediction_subtitle),

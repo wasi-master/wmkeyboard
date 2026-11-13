@@ -4325,9 +4325,6 @@
     <string name="langemoji_emoji_tone_override_info">Kui see on sisse lülitatud (vaikimisi on), säilitab emotikon, millele olete tooni valinud, selle tooni kõikjal: paneelil, soovitustes ja otsingus. Valite selle tooni emotikoni paneelil all hoides. Emotikon ei kasuta ülaltoodud vaiketooni. Kui see on välja lülitatud, on alati kasutusel vaikenahatoon.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Kasuta emotikoni jaoks viimati valitud tooni, mitte vaikimisi tooni</string>
     <string name="langemoji_emoji_tone_override_title">Asenda viimati kasutatuga</string>
-    <string name="langemoji_emoji_toolbar_info">Emotikonide nupp jääb ülemisel ribal nähtavaks ka siis, kui kuvatakse soovitusi. Emotikonide paneelil on iga kategooria jaoks eraldi vahekaart. Saate otsida inglise ja bengali keeles ning mis tahes keeles, mille jaoks olete märksõnapaki lisanud. Hoidke emotikoni all, et näha nahatooni variante.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Ava emotikonid ühe vajutusega ülemiselt ribalt</string>
-    <string name="langemoji_emoji_toolbar_title">Emotikonide nupp tööriistaribal</string>
     <string name="langemoji_emoji_unicode_search_info">Sisestage emotikonide otsingusse märgi Unicode\'i nime sõnad ja see ilmub pärast emotikoni: em-kriips, autoriõiguse märk, kreeka väike täht lambda, ladina väike täht a ogoneekiga. Kaetud on iga Basic Multilingual Plane\'i märk, mis tähendab kümneid tuhandeid tähti, märke ja sümboleid. Ühele koputamine sisestab selle. See säte on vaikimisi välja lülitatud.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Emojide otsimine leiab ka sümboleid, tähti ja märke nende nimes olevate sõnade järgi</string>
     <string name="langemoji_emoji_unicode_search_title">Leia mis tahes märk selle Unicode\'i nime järgi</string>
@@ -4502,17 +4499,12 @@
     <string name="langemoji_panel_height_subtitle">Kui palju kõrgemalt kui klaviatuur avanevad emotikonide, GIF-ide ja kleebiste paneelid</string>
     <string name="langemoji_panel_height_title">Paneeli kõrgus</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Pane need nupud pärast soovitusi, riba lõppu</string>
-    <string name="langemoji_strip_at_end_title">Nupud paremal</string>
     <string name="langemoji_strip_icon_size_subtitle">Kui suur on ikoon igal nupul soovituste kõrval</string>
     <string name="langemoji_strip_icon_size_title">Nupu ikooni suurus</string>
     <string name="langemoji_strip_own_size_subtitle">Muuda soovituste kõrval olevate nuppude suurust, sõltumata tööriistariba tööriistadest</string>
     <string name="langemoji_strip_own_size_title">Nende nuppude oma suurus</string>
-    <string name="langemoji_strip_shortcut_subtitle">Tööriist, mis püsib ülaribal, kui kuvatakse soovitusi</string>
-    <string name="langemoji_strip_shortcut_title">Nupp soovituste kõrval</string>
     <string name="langemoji_strip_tool_width_subtitle">Kui laiad on soovituste kõrval olevad nupud</string>
     <string name="langemoji_strip_tool_width_title">Nupu laius</string>
-    <string name="langemoji_strip_toolbox_subtitle">Paigutage tööriistakast nende nuppude ette, nii et see oleks vaid ühe puudutuse kaugusel, kui soovitusi kuvatakse</string>
     <string name="langemoji_strip_toolbox_title">Tööriistakasti nupp</string>
     <string name="langemoji_strip_tools_add_value">Lisa</string>
     <string name="langid_module_title">Keeletuvastus</string>

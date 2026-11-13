@@ -4315,9 +4315,6 @@
     <string name="langemoji_emoji_tone_override_info">开启此项（默认开启）后，您已选择肤色的表情符号将在任何地方保持该肤色：面板、建议和搜索中。您可以通过在面板中长按表情符号来选择该肤色。该表情符号不会使用上述默认设置。关闭此项后，始终使用默认肤色。</string>
     <string name="langemoji_emoji_tone_override_subtitle">使用您上次为表情符号选择的肤色，而不是默认肤色</string>
     <string name="langemoji_emoji_tone_override_title">使用上次使用的肤色覆盖</string>
-    <string name="langemoji_emoji_toolbar_info">表情符号按钮会一直显示在顶部栏中，即使在显示建议时也是如此。表情符号面板为每个类别提供了一个选项卡。您可以使用英语、孟加拉语以及您添加了关键字包的任何语言进行搜索。按住表情符号可查看肤色变体。</string>
-    <string name="langemoji_emoji_toolbar_subtitle">从顶部栏一键打开表情符号</string>
-    <string name="langemoji_emoji_toolbar_title">工具栏中的表情符号按钮</string>
     <string name="langemoji_emoji_unicode_search_info">在表情符号搜索中输入字符的 Unicode 名称单词，它会出现在表情符号之后：长破折号、版权符号、希腊小写字母 lambda、带尾钩的拉丁小写字母 a。涵盖了基本多语言平面的每个字符，即数以万计的字母、标记和符号。点击即可插入。此设置默认关闭。</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Emoji 搜索还可以通过名称中的单词找到符号、字母和标记</string>
     <string name="langemoji_emoji_unicode_search_title">通过 Unicode 名称查找任何字符</string>
@@ -4492,17 +4489,12 @@
     <string name="langemoji_panel_height_subtitle">表情符号、GIF 和贴纸面板打开时比键盘高出多少</string>
     <string name="langemoji_panel_height_title">面板高度</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">将这些按钮放在建议之后，即工具栏的最末端</string>
-    <string name="langemoji_strip_at_end_title">右侧按钮</string>
     <string name="langemoji_strip_icon_size_subtitle">建议旁每个按钮内的图标大小</string>
     <string name="langemoji_strip_icon_size_title">按钮图标大小</string>
     <string name="langemoji_strip_own_size_subtitle">设置工具栏工具旁边的建议按钮大小</string>
     <string name="langemoji_strip_own_size_title">这些按钮的自定义大小</string>
-    <string name="langemoji_strip_shortcut_subtitle">显示建议时停留在顶部栏的工具</string>
-    <string name="langemoji_strip_shortcut_title">建议栏旁边的按钮</string>
     <string name="langemoji_strip_tool_width_subtitle">建议旁每个按钮的宽度</string>
     <string name="langemoji_strip_tool_width_title">按钮宽度</string>
-    <string name="langemoji_strip_toolbox_subtitle">将工具箱放在这些按钮的最前面，以便在显示建议时只需点击一下即可访问</string>
     <string name="langemoji_strip_toolbox_title">工具箱按钮</string>
     <string name="langemoji_strip_tools_add_value">添加</string>
     <string name="langid_module_title">语言检测</string>

@@ -463,6 +463,15 @@ internal fun TypingCorrectionsSettings(
             }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
+                    R.string.typing_autocorrect_mark_title,
+                    stringResource(R.string.typing_autocorrect_mark_subtitle),
+                    settings.watch { it.correction.markInField },
+                    info = stringResource(R.string.typing_autocorrect_mark_info),
+                    default = SettingsDefaults.correction.markInField,
+                ) { scope.launch { repository.setAutocorrectMarkInField(it) } }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
                     R.string.typing_autocorrect_on_punctuation_title,
                     stringResource(R.string.typing_autocorrect_on_punctuation_subtitle),
                     settings.watch { it.correction.onPunctuation },
@@ -3705,6 +3714,22 @@ internal fun TypingHardwareSettings(
                 info = stringResource(R.string.typing_hw_lang_ctrl_shift_info),
                 default = SettingsDefaults.hardwareKeyboard.languageSwitchCtrlShift,
             ) { scope.launch { repository.setHwLanguageSwitchCtrlShift(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_hw_lang_alt_space_title,
+                stringResource(R.string.typing_hw_lang_alt_space_subtitle),
+                settings.watch { it.hardwareKeyboard.languageSwitchAltSpace },
+                default = SettingsDefaults.hardwareKeyboard.languageSwitchAltSpace,
+            ) { scope.launch { repository.setHwLanguageSwitchAltSpace(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_hw_lang_shift_space_title,
+                stringResource(R.string.typing_hw_lang_shift_space_subtitle),
+                settings.watch { it.hardwareKeyboard.languageSwitchShiftSpace },
+                default = SettingsDefaults.hardwareKeyboard.languageSwitchShiftSpace,
+            ) { scope.launch { repository.setHwLanguageSwitchShiftSpace(it) } }
         }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(

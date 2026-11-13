@@ -4319,9 +4319,6 @@
     <string name="langemoji_emoji_tone_override_info">Ha ez be van kapcsolva (alapértelmezés szerint be van), egy emoji, amelyhez már kiválasztottál egy tónust, mindenhol megtartja azt a tónust: a panelen, a javaslatokban és a keresésben. A tónust az emoji hosszan nyomásával megjelenő felugró ablakban választhatod ki a panelen. Az emoji nem a fenti alapértelmezést használja. Ha ez ki van kapcsolva, mindig az alapértelmezett bőrszín érvényesül.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Az emojihoz utoljára kiválasztott tónust használja, ne az alapértelmezettet</string>
     <string name="langemoji_emoji_tone_override_title">Felülírás az utoljára használttal</string>
-    <string name="langemoji_emoji_toolbar_info">Az emoji gomb látható marad a felső sávban, akkor is, amikor a javaslatok megjelennek. Az emoji panel minden kategóriához külön füllel rendelkezik. Kereshet angolul és bengáli nyelven, valamint bármely olyan nyelven, amelyhez kulcsszócsomagot adott hozzá. Nyomja meg és tartsa lenyomva az emojit a bőrszínváltozatokért.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Emoji megnyitása egyetlen gombnyomással a felső sávból</string>
-    <string name="langemoji_emoji_toolbar_title">Emoji gomb az eszköztárban</string>
     <string name="langemoji_emoji_unicode_search_info">Írja be a karakter Unicode-nevének szavait az emojikeresőbe, és az megjelenik az emoji után: em-kötőjel, szerzői jog jel, görög kis lambda, latin kis a ogonekkel. Az Alapvető Többnyelvű Sík minden karaktere lefedett, ami több tízezer betűt, jelet és szimbólumot jelent. Egy koppintással beszúrható. Ez a beállítás alapértelmezés szerint ki van kapcsolva.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Az emojikereső a szimbólumokat, betűket és jeleket is megtalálja a nevük alapján</string>
     <string name="langemoji_emoji_unicode_search_title">Bármely karakter keresése Unicode-neve alapján</string>
@@ -4496,17 +4493,12 @@
     <string name="langemoji_panel_height_subtitle">Mennyivel nyíljanak magasabbra az emoji, GIF és matrica panelek a billentyűzetnél</string>
     <string name="langemoji_panel_height_title">Panel magassága</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Helyezd ezeket a gombokat a javaslatok után, a sáv legtávolabbi végére</string>
-    <string name="langemoji_strip_at_end_title">Gombok a jobb oldalon</string>
     <string name="langemoji_strip_icon_size_subtitle">Mekkora legyen az ikon a javaslatok melletti gombokban</string>
     <string name="langemoji_strip_icon_size_title">Gombikon mérete</string>
     <string name="langemoji_strip_own_size_subtitle">A javaslatok melletti gombok méretezése az eszköztár eszközeitől függetlenül</string>
     <string name="langemoji_strip_own_size_title">Egyedi méret ezekhez a gombokhoz</string>
-    <string name="langemoji_strip_shortcut_subtitle">Az az eszköz, amely a felső sávban marad, miközben a javaslatok látszanak</string>
-    <string name="langemoji_strip_shortcut_title">Gomb a javaslatok mellett</string>
     <string name="langemoji_strip_tool_width_subtitle">Milyen szélesek a javaslatok melletti gombok</string>
     <string name="langemoji_strip_tool_width_title">Gomb szélessége</string>
-    <string name="langemoji_strip_toolbox_subtitle">Tedd az eszköztárat a gombok közül az első helyre, hogy egyetlen koppintással elérhető legyen, miközben a javaslatok látszanak</string>
     <string name="langemoji_strip_toolbox_title">Eszköztár gomb</string>
     <string name="langemoji_strip_tools_add_value">Hozzáadás</string>
     <string name="langid_module_title">Nyelvfelismerés</string>

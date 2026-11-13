@@ -110,4 +110,46 @@ class SnippetImageTest {
         assertTrue(SnippetStore.newImageName(null, png).endsWith(".png"))
         assertEquals("image/webp", SnippetStore.imageMime("s_a.webp"))
     }
+
+    @Test fun aSnippetFileCarriesItsPicturesBothWays() {
+        val snippets = listOf(
+            Snippet(id = 1, label = "Cat", text = "", image = "s_cat.png"),
+            Snippet(id = 2, label = "Hi", text = "hello"),
+        )
+        val text = SnippetFile.encode(snippets, 1, "1", images = mapOf("s_cat.png" to png, "s_unused.png" to png))
+        assertFalse(text.contains("s_unused.png"))
+        val read = SnippetFile.decode(text)!!
+        // The picture-only snippet survives because its picture came along.
+        assertEquals(listOf("s_cat.png", null), read.snippets.map { it.image })
+        assertTrue(read.images.getValue("s_cat.png").contentEquals(png))
+        assertEquals(setOf("s_cat.png"), SnippetPayload.readText(text, "x")!!.images.keys)
+    }
+
+    @Test fun aPictureTheFileDidNotBringFallsBackToItsWords() {
+        val snippets = listOf(
+            Snippet(id = 1, label = "Cat", text = "a cat", image = "s_cat.png"),
+            Snippet(id = 2, label = "Dog", text = "", image = "s_dog.png"),
+        )
+        val read = SnippetFile.decode(SnippetFile.encode(snippets, 1, "1"))!!
+        assertEquals(listOf("Cat"), read.snippets.map { it.label })
+        assertNull(read.snippets.single().image)
+        assertTrue(read.images.isEmpty())
+    }
+
+    @Test fun aTextOnlyFileHasNoPicturesKey() {
+        val text = SnippetFile.encode(listOf(Snippet(id = 1, label = "Hi", text = "hello")), 1, "1")
+        assertFalse(text.contains("\"images\""))
+    }
+
+    @Test fun anExportReadsThePicturesItsSnippetsUse() {
+        val (_, files) = store()
+        val file = SnippetStore.imageFile(files, "s_cat.png")!!
+        file.parentFile!!.mkdirs()
+        file.writeBytes(png)
+        val bytes = SnippetStore.imageBytes(
+            files,
+            listOf(Snippet(id = 1, label = "Cat", text = "", image = "s_cat.png"), Snippet(id = 2, label = "x", text = "y", image = "s_gone.png")),
+        )
+        assertEquals(setOf("s_cat.png"), bytes.keys)
+    }
 }

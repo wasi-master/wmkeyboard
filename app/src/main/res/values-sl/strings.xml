@@ -4331,9 +4331,6 @@
     <string name="langemoji_emoji_tone_override_info">Ko je to vklopljeno (kar je privzeto), emoji, za katerega ste že izbrali ton, ohrani ta ton povsod: na plošči, v predlogih in pri iskanju. Ta ton izberete v pojavnem oknu, ki se prikaže ob dolgem pritisku na emoji na plošči. Emoji ne uporablja privzetega tona zgoraj. Ko je to izklopljeno, vedno prevlada privzeti ton kože.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Uporabi ton, ki ste ga nazadnje izbrali za emoji, namesto privzetega</string>
     <string name="langemoji_emoji_tone_override_title">Prepiši z nazadnje uporabljenim</string>
-    <string name="langemoji_emoji_toolbar_info">Gumb za emojije ostane viden v zgornji vrstici, tudi ko so prikazani predlogi. Plošča z emojiji ima zavihek za vsako kategorijo. Iščete lahko v angleščini in bengalščini ter v katerem koli jeziku, za katerega dodate paket ključnih besed. Pritisnite in pridržite emoji za različice barve kože.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Odprite emojije z enim pritiskom iz zgornje vrstice</string>
-    <string name="langemoji_emoji_toolbar_title">Gumb za emojije v orodni vrstici</string>
     <string name="langemoji_emoji_unicode_search_info">V iskanje emojijev vtipkajte besede Unicode imena znaka in pojavil se bo za emojijem: em pomišljaj, znak za avtorske pravice, grška mala črka lambda, latinska mala črka a z ogonikom. Zajet je vsak znak osnovne večjezične ravnine, kar pomeni več deset tisoč črk, oznak in simbolov. Če se ga dotaknete, ga vstavite. Ta nastavitev je privzeto izklopljena.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Iskanje emojijev najde tudi simbole, črke in oznake po besedah v njihovem imenu</string>
     <string name="langemoji_emoji_unicode_search_title">Poišči kateri koli znak po njegovem imenu Unicode</string>
@@ -4508,17 +4505,12 @@
     <string name="langemoji_panel_height_subtitle">Za koliko višje od tipkovnice se odprejo plošče z emojiji, GIF-i in nalepkami</string>
     <string name="langemoji_panel_height_title">Višina plošče</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Postavite te gumbe za predloge, na skrajni konec vrstice</string>
-    <string name="langemoji_strip_at_end_title">Gumbi na desni</string>
     <string name="langemoji_strip_icon_size_subtitle">Kako velika je ikona v vsakem gumbu poleg predlogov</string>
     <string name="langemoji_strip_icon_size_title">Velikost ikone gumba</string>
     <string name="langemoji_strip_own_size_subtitle">Določite velikost gumbov poleg predlogov, razen orodij v orodni vrstici</string>
     <string name="langemoji_strip_own_size_title">Lastna velikost za te gumbe</string>
-    <string name="langemoji_strip_shortcut_subtitle">Orodje, ki ostane v zgornji vrstici, medtem ko se prikazujejo predlogi</string>
-    <string name="langemoji_strip_shortcut_title">Gumb ob predlogih</string>
     <string name="langemoji_strip_tool_width_subtitle">Kako širok je vsak gumb poleg predlogov</string>
     <string name="langemoji_strip_tool_width_title">Širina gumba</string>
-    <string name="langemoji_strip_toolbox_subtitle">Postavite orodno vrstico na prvo mesto med temi gumbi, tako da je dostopna z enim dotikom, medtem ko so prikazani predlogi</string>
     <string name="langemoji_strip_toolbox_title">Gumb orodne vrstice</string>
     <string name="langemoji_strip_tools_add_value">Dodaj</string>
     <string name="langid_module_title">Zaznavanje jezika</string>

@@ -4336,9 +4336,6 @@
     <string name="langemoji_emoji_tone_override_info">ਜਦੋਂ ਇਹ ਚਾਲੂ ਹੁੰਦਾ ਹੈ, ਅਤੇ ਇਹ ਡਿਫੌਲਟ ਰੂਪ ਵਿੱਚ ਚਾਲੂ ਹੁੰਦਾ ਹੈ, ਤਾਂ ਇੱਕ ਇਮੋਜੀ ਜਿਸ ਲਈ ਤੁਸੀਂ ਪਹਿਲਾਂ ਹੀ ਇੱਕ ਟੋਨ ਚੁਣਿਆ ਹੈ, ਉਹ ਹਰ ਜਗ੍ਹਾ ਉਸ ਟੋਨ ਨੂੰ ਬਰਕਰਾਰ ਰੱਖਦਾ ਹੈ: ਪੈਨਲ ਵਿੱਚ, ਸੁਝਾਵਾਂ ਵਿੱਚ ਅਤੇ ਖੋਜ ਵਿੱਚ। ਤੁਸੀਂ ਪੈਨਲ ਵਿੱਚ ਇਮੋਜੀ ਨੂੰ ਦਬਾ ਕੇ ਅਤੇ ਹੋਲਡ ਕਰਕੇ ਉਹ ਟੋਨ ਚੁਣਦੇ ਹੋ। ਇਮੋਜੀ ਉੱਪਰ ਦਿੱਤੇ ਡਿਫੌਲਟ ਦੀ ਵਰਤੋਂ ਨਹੀਂ ਕਰਦਾ ਹੈ। ਜਦੋਂ ਇਹ ਬੰਦ ਹੁੰਦਾ ਹੈ, ਤਾਂ ਡਿਫੌਲਟ ਸਕਿਨ ਟੋਨ ਹਮੇਸ਼ਾ ਲਾਗੂ ਹੁੰਦਾ ਹੈ।</string>
     <string name="langemoji_emoji_tone_override_subtitle">ਇਮੋਜੀ ਲਈ ਡਿਫੌਲਟ ਦੀ ਬਜਾਏ ਉਹ ਟੋਨ ਵਰਤੋ ਜੋ ਤੁਸੀਂ ਆਖਰੀ ਵਾਰ ਚੁਣੀ ਸੀ</string>
     <string name="langemoji_emoji_tone_override_title">ਆਖਰੀ ਵਾਰ ਵਰਤੇ ਗਏ ਨਾਲ ਓਵਰਰਾਈਡ ਕਰੋ</string>
-    <string name="langemoji_emoji_toolbar_info">ਇਮੋਜੀ ਬਟਨ ਉੱਪਰਲੀ ਪੱਟੀ ਵਿੱਚ ਦਿਖਾਈ ਦਿੰਦਾ ਰਹਿੰਦਾ ਹੈ, ਉਦੋਂ ਵੀ ਜਦੋਂ ਸੁਝਾਅ ਦਿਖਾਈ ਦਿੰਦੇ ਹਨ। ਇਮੋਜੀ ਪੈਨਲ ਵਿੱਚ ਹਰੇਕ ਸ਼੍ਰੇਣੀ ਲਈ ਇੱਕ ਟੈਬ ਹੁੰਦੀ ਹੈ। ਤੁਸੀਂ ਅੰਗਰੇਜ਼ੀ ਅਤੇ ਬੰਗਾਲੀ ਵਿੱਚ, ਅਤੇ ਕਿਸੇ ਵੀ ਅਜਿਹੀ ਭਾਸ਼ਾ ਵਿੱਚ ਖੋਜ ਕਰ ਸਕਦੇ ਹੋ ਜਿਸ ਲਈ ਤੁਸੀਂ ਕੀਵਰਡ ਪੈਕ ਜੋੜਿਆ ਹੈ। ਸਕਿਨ ਟੋਨ ਵਿਕਲਪਾਂ ਲਈ ਇੱਕ ਇਮੋਜੀ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖੋ।</string>
-    <string name="langemoji_emoji_toolbar_subtitle">ਟਾਪ ਬਾਰ ਤੋਂ ਇੱਕ ਪ੍ਰੈਸ ਨਾਲ ਇਮੋਜੀ ਖੋਲ੍ਹੋ</string>
-    <string name="langemoji_emoji_toolbar_title">ਟੂਲਬਾਰ ਵਿੱਚ ਇਮੋਜੀ ਬਟਨ</string>
     <string name="langemoji_emoji_unicode_search_info">ਇਮੋਜੀ ਖੋਜ ਵਿੱਚ ਕਿਸੇ ਅੱਖਰ ਦੇ ਯੂਨੀਕੋਡ ਨਾਮ ਦੇ ਸ਼ਬਦ ਟਾਈਪ ਕਰੋ ਅਤੇ ਇਹ ਇਮੋਜੀ ਤੋਂ ਬਾਅਦ ਦਿਖਾਈ ਦਿੰਦਾ ਹੈ: em dash, copyright sign, greek small letter lambda, latin small letter a with ogonek। ਬੇਸਿਕ ਮਲਟੀਲਿੰਗੁਅਲ ਪਲੇਨ ਦਾ ਹਰ ਅੱਖਰ ਕਵਰ ਕੀਤਾ ਗਿਆ ਹੈ, ਜੋ ਕਿ ਹਜ਼ਾਰਾਂ ਅੱਖਰ, ਚਿੰਨ੍ਹ ਅਤੇ ਪ੍ਰਤੀਕ ਹਨ। ਇੱਕ ਨੂੰ ਟੈਪ ਕਰਨ ਨਾਲ ਇਹ ਇਨਸਰਟ ਹੋ ਜਾਂਦਾ ਹੈ। ਇਹ ਸੈਟਿੰਗ ਡਿਫੌਲਟ ਰੂਪ ਵਿੱਚ ਬੰਦ ਹੈ।</string>
     <string name="langemoji_emoji_unicode_search_subtitle">ਇਮੋਜੀ ਖੋਜ ਉਹਨਾਂ ਦੇ ਨਾਮ ਦੇ ਸ਼ਬਦਾਂ ਦੁਆਰਾ ਚਿੰਨ੍ਹ, ਅੱਖਰ ਅਤੇ ਨਿਸ਼ਾਨ ਵੀ ਲੱਭਦੀ ਹੈ</string>
     <string name="langemoji_emoji_unicode_search_title">ਕਿਸੇ ਵੀ ਅੱਖਰ ਨੂੰ ਉਸਦੇ ਯੂਨੀਕੋਡ ਨਾਮ ਦੁਆਰਾ ਲੱਭੋ</string>
@@ -4514,17 +4511,12 @@
     <string name="langemoji_panel_height_subtitle">ਇਮੋਜੀ, GIF ਅਤੇ ਸਟਿੱਕਰ ਪੈਨਲ ਕੀਬੋਰਡ ਨਾਲੋਂ ਕਿੰਨੇ ਉੱਚੇ ਖੁੱਲ੍ਹਦੇ ਹਨ</string>
     <string name="langemoji_panel_height_title">ਪੈਨਲ ਦੀ ਉਚਾਈ</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">ਇਹਨਾਂ ਬਟਨਾਂ ਨੂੰ ਸੁਝਾਵਾਂ ਤੋਂ ਬਾਅਦ, ਸਟ੍ਰਿਪ ਦੇ ਸਭ ਤੋਂ ਅਖੀਰ ਵਿੱਚ ਰੱਖੋ</string>
-    <string name="langemoji_strip_at_end_title">ਸੱਜੇ ਪਾਸੇ ਬਟਨ</string>
     <string name="langemoji_strip_icon_size_subtitle">ਸੁਝਾਵਾਂ ਦੇ ਨਾਲ ਵਾਲੇ ਹਰੇਕ ਬਟਨ ਵਿੱਚ ਆਈਕਨ ਕਿੰਨਾ ਵੱਡਾ ਹੈ</string>
     <string name="langemoji_strip_icon_size_title">ਬਟਨ ਆਈਕਨ ਦਾ ਆਕਾਰ</string>
     <string name="langemoji_strip_own_size_subtitle">ਟੂਲਬਾਰ ਦੇ ਟੂਲਾਂ ਤੋਂ ਇਲਾਵਾ ਸੁਝਾਵਾਂ ਦੇ ਨਾਲ ਵਾਲੇ ਬਟਨਾਂ ਦਾ ਆਕਾਰ ਨਿਰਧਾਰਤ ਕਰੋ</string>
     <string name="langemoji_strip_own_size_title">ਇਹਨਾਂ ਬਟਨਾਂ ਲਈ ਆਪਣਾ ਆਕਾਰ</string>
-    <string name="langemoji_strip_shortcut_subtitle">ਉਹ ਟੂਲ ਜੋ ਸੁਝਾਅ ਦਿਖਾਉਣ ਵੇਲੇ ਉੱਪਰਲੀ ਪੱਟੀ ਵਿੱਚ ਰਹਿੰਦਾ ਹੈ</string>
-    <string name="langemoji_strip_shortcut_title">ਸੁਝਾਵਾਂ ਦੇ ਨਾਲ ਬਟਨ</string>
     <string name="langemoji_strip_tool_width_subtitle">ਸੁਝਾਵਾਂ ਦੇ ਨਾਲ ਵਾਲਾ ਹਰੇਕ ਬਟਨ ਕਿੰਨਾ ਚੌੜਾ ਹੈ</string>
     <string name="langemoji_strip_tool_width_title">ਬਟਨ ਦੀ ਚੌੜਾਈ</string>
-    <string name="langemoji_strip_toolbox_subtitle">ਟੂਲਬਾਕਸ ਨੂੰ ਇਹਨਾਂ ਬਟਨਾਂ ਵਿੱਚ ਸਭ ਤੋਂ ਪਹਿਲਾਂ ਰੱਖੋ, ਤਾਂ ਜੋ ਸੁਝਾਅ ਦਿਖਾਈ ਦੇਣ ਵੇਲੇ ਇਹ ਇੱਕ ਟੈਪ ਦੀ ਦੂਰੀ \'ਤੇ ਹੋਵੇ</string>
     <string name="langemoji_strip_toolbox_title">ਟੂਲਬਾਕਸ ਬਟਨ</string>
     <string name="langemoji_strip_tools_add_value">ਸ਼ਾਮਲ ਕਰੋ</string>
     <string name="langid_module_title">ਭਾਸ਼ਾ ਪਛਾਣ</string>

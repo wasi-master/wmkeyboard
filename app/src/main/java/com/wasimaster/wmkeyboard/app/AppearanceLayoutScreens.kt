@@ -9,6 +9,7 @@ import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
 import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
 import com.wasimaster.wmkeyboard.core.layout.resolveLayoutLanguage
 import com.wasimaster.wmkeyboard.core.layout.resolveLayoutName
+import com.wasimaster.wmkeyboard.core.settings.HintCorner
 import com.wasimaster.wmkeyboard.core.settings.HintOffsetRange
 import com.wasimaster.wmkeyboard.core.settings.LabelOffsetRange
 import com.wasimaster.wmkeyboard.core.settings.ArrowKey
@@ -28,6 +29,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -256,6 +260,24 @@ internal fun AppearanceSettings(
                 disabledReason = pin,
                 default = SettingsDefaults.layoutBehavior.hintFontScale,
             ) { scope.launch { repository.setHintFontScale(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            // Gap list item 21: the corner the hint sits in. Six choices, so
+            // the row falls back to a sheet where segments would not fit.
+            ChoiceSetting(
+                R.string.appearance_key_hint_corner_title,
+                subtitle = stringResource(R.string.appearance_key_hint_corner_subtitle),
+                options = listOf(
+                    HintCorner.TOP_START to stringResource(R.string.appearance_key_hint_corner_top_start),
+                    HintCorner.TOP_CENTER to stringResource(R.string.appearance_key_hint_corner_top_center),
+                    HintCorner.TOP_END to stringResource(R.string.appearance_key_hint_corner_top_end),
+                    HintCorner.BOTTOM_START to stringResource(R.string.appearance_key_hint_corner_bottom_start),
+                    HintCorner.BOTTOM_CENTER to stringResource(R.string.appearance_key_hint_corner_bottom_center),
+                    HintCorner.BOTTOM_END to stringResource(R.string.appearance_key_hint_corner_bottom_end),
+                ),
+                selected = settings.watch { it.layoutBehavior.hintCorner },
+                default = SettingsDefaults.layoutBehavior.hintCorner,
+            ) { scope.launch { repository.setHintCorner(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
             SliderSetting(
@@ -833,6 +855,7 @@ internal fun AppearanceToolbarSettings(
             ) { scope.launch { repository.resetToolbar() } }
         }
     }
+    StripButtonsSettings(repository, settings)
     // A row of tools of its own (#1217), picked apart from the pinned ones.
     // Not gated on the toolbar: the row stays with the toolbar switched off.
     val secondOn = settings.watch { it.toolbarBehavior.secondRow }
@@ -903,6 +926,147 @@ internal fun AppearanceToolbarSettings(
                 onDelete = { tool -> scope.launch { repository.setSecondToolbarTools(tools - tool) } },
                 keepLast = false,
             )
+        }
+    }
+}
+
+/** Where the strip's toolbox button sits, as the one choice the screen offers. */
+private enum class StripToolboxSide { OFF, LEFT, RIGHT }
+
+/**
+ * The tools kept on the suggestion strip while the words show (#462). They
+ * lived on the Emoji screen while the emoji button was the only one, and
+ * stayed there after any tool could join it; they are toolbar buttons, so
+ * they are here. Each picks its own end of the strip. Not gated on the
+ * toolbar: the strip draws them with the toolbar switched off.
+ */
+@Composable
+private fun StripButtonsSettings(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    val dpFormat = stringResource(R.string.typing_value_dp)
+    val buttonsOn = settings.watch { it.emojiToolbar }
+    val stripOwnSize = settings.watch { it.toolbarBehavior.stripOwnSize }
+    SettingsGroup(stringResource(R.string.appearance_strip_buttons_section_title)) {
+        item {
+            ToggleSetting(
+                R.string.appearance_strip_buttons_show_title,
+                stringResource(R.string.appearance_strip_buttons_show_subtitle),
+                buttonsOn,
+                info = stringResource(R.string.appearance_strip_buttons_show_info),
+                default = SettingsDefaults.emojiToolbar,
+            ) { scope.launch { repository.setEmojiToolbar(it) } }
+        }
+        item(visible = buttonsOn) {
+            val shortcuts = settings.watch { it.toolbarBehavior.stripShortcuts }
+            var picking by remember { mutableStateOf(false) }
+            NavRow(
+                title = R.string.appearance_strip_buttons_add_title,
+                subtitle = stringResource(R.string.appearance_strip_buttons_add_subtitle),
+                value = stringResource(R.string.langemoji_strip_tools_add_value),
+            ) { picking = true }
+            if (picking) {
+                ToolPickerDialog(
+                    title = stringResource(R.string.appearance_strip_buttons_add_title),
+                    current = null,
+                    options = ToolbarTool.entries.filter { isSupportedTool(it) && it !in shortcuts },
+                    onDismiss = { picking = false },
+                    onPick = { picked ->
+                        picking = false
+                        if (picked != null) scope.launch { repository.setStripShortcuts(shortcuts + picked) }
+                    },
+                )
+            }
+        }
+        // The chosen buttons: drag to change their order, the bin to take one
+        // off, and the side button to send one to the other end of the strip.
+        item(visible = buttonsOn) {
+            val shortcuts = settings.watch { it.toolbarBehavior.stripShortcuts }
+            val endTools = settings.watch { it.toolbarBehavior.stripEndTools }
+            // Every tool's name, not only the chosen ones': the list adopts a
+            // change a frame after it lands, so a tool just taken off is still
+            // drawn once more by name.
+            val names = ToolbarTool.entries.associateWith { stringResource(toolTitle(it)) }
+            val left = stringResource(R.string.appearance_strip_buttons_side_left)
+            val right = stringResource(R.string.appearance_strip_buttons_side_right)
+            val sideDesc = stringResource(R.string.appearance_strip_buttons_side_desc)
+            ReorderableColumn(
+                items = shortcuts,
+                label = { names[it] ?: it.name },
+                onReorder = { order -> scope.launch { repository.setStripShortcuts(order) } },
+                onDelete = { tool -> scope.launch { repository.setStripShortcuts(shortcuts - tool) } },
+                keepLast = false,
+            ) { tool ->
+                val name = names[tool] ?: tool.name
+                val atEnd = tool in endTools
+                val sideName = if (atEnd) right else left
+                Text(
+                    name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(
+                    onClick = { scope.launch { repository.setStripToolAtEnd(tool, !atEnd) } },
+                    modifier = Modifier.semantics { contentDescription = sideDesc.format(name, sideName) },
+                ) { Text(sideName) }
+            }
+        }
+        item(visible = buttonsOn, level = SettingLevel.STANDARD) {
+            val side = settings.watch {
+                when {
+                    !it.toolbarBehavior.stripToolbox -> StripToolboxSide.OFF
+                    it.toolbarBehavior.stripToolboxAtEnd -> StripToolboxSide.RIGHT
+                    else -> StripToolboxSide.LEFT
+                }
+            }
+            ChoiceSetting(
+                title = R.string.langemoji_strip_toolbox_title,
+                subtitle = stringResource(R.string.appearance_strip_buttons_toolbox_subtitle),
+                options = listOf(
+                    StripToolboxSide.OFF to stringResource(CommonR.string.common_off),
+                    StripToolboxSide.LEFT to stringResource(R.string.appearance_strip_buttons_side_left),
+                    StripToolboxSide.RIGHT to stringResource(R.string.appearance_strip_buttons_side_right),
+                ),
+                selected = side,
+                default = StripToolboxSide.OFF,
+            ) { chosen ->
+                scope.launch {
+                    repository.setStripToolbox(chosen != StripToolboxSide.OFF)
+                    if (chosen != StripToolboxSide.OFF) repository.setStripToolboxAtEnd(chosen == StripToolboxSide.RIGHT)
+                }
+            }
+        }
+        // Their size, apart from the toolbar's tools (which the sliders above
+        // size). Off, a tool on both looks the same in either spot.
+        item(visible = buttonsOn, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.langemoji_strip_own_size_title,
+                stringResource(R.string.langemoji_strip_own_size_subtitle),
+                stripOwnSize,
+                default = SettingsDefaults.toolbarBehavior.stripOwnSize,
+            ) { scope.launch { repository.setStripOwnSize(it) } }
+        }
+        item(visible = buttonsOn && stripOwnSize, level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.langemoji_strip_tool_width_title,
+                subtitle = stringResource(R.string.langemoji_strip_tool_width_subtitle),
+                value = settings.watch { it.toolbarBehavior.stripToolWidthDp }.toFloat(),
+                // Down to 20 dp, a button about as wide as its icon (#970).
+                range = 20f..64f,
+                display = { dpFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.toolbarBehavior.stripToolWidthDp.toFloat(),
+            ) { scope.launch { repository.setStripToolWidthDp(it.roundToInt()) } }
+        }
+        item(visible = buttonsOn && stripOwnSize, level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.langemoji_strip_icon_size_title,
+                subtitle = stringResource(R.string.langemoji_strip_icon_size_subtitle),
+                value = settings.watch { it.toolbarBehavior.stripIconSizeDp }.toFloat(),
+                range = 14f..30f,
+                display = { dpFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.toolbarBehavior.stripIconSizeDp.toFloat(),
+            ) { scope.launch { repository.setStripIconSizeDp(it.roundToInt()) } }
         }
     }
 }
@@ -2348,6 +2512,16 @@ internal fun LayoutOneHandedSettings(
                 info = stringResource(R.string.layout_landscape_fullscreen_info),
                 default = SettingsDefaults.layoutBehavior.landscapeFullscreen,
             ) { scope.launch { repository.setLandscapeFullscreen(it) } }
+        }
+        // The same text box with the phone upright (gap list item 50).
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.layout_portrait_fullscreen_title,
+                stringResource(R.string.layout_portrait_fullscreen_subtitle),
+                settings.watch { it.layoutBehavior.portraitFullscreen },
+                info = stringResource(R.string.layout_portrait_fullscreen_info),
+                default = SettingsDefaults.layoutBehavior.portraitFullscreen,
+            ) { scope.launch { repository.setPortraitFullscreen(it) } }
         }
         item(visible = floating, level = SettingLevel.ADVANCED) {
             ChoiceSetting(

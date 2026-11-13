@@ -4332,9 +4332,6 @@
     <string name="langemoji_emoji_tone_override_info">Wakati hii imewashwa, na imewashwa kwa chaguo-msingi, emoji ambayo tayari umechagua toni yake huendelea kuwa na toni hiyo kila mahali: kwenye paneli, mapendekezo na utafutaji. Unachagua toni hiyo kutoka kwenye kidukizo cha kubonyeza na kushikilia cha emoji kwenye paneli. Emoji haitumii chaguo-msingi hapo juu. Wakati hii imezimwa, toni ya ngozi ya chaguo-msingi daima hushinda.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Tumia toni uliyochagua mara ya mwisho kwa emoji, si ile chaguo-msingi</string>
     <string name="langemoji_emoji_tone_override_title">Batilisha na iliyotumika mwisho</string>
-    <string name="langemoji_emoji_toolbar_info">Kitufe cha emoji kinabaki kuonekana kwenye upau wa juu, pia wakati mapendekezo yanaonyeshwa. Paneli ya emoji ina kichupo kwa kila kategoria. Unaweza kutafuta kwa Kiingereza na Kibengali, na katika lugha yoyote unayoongeza kifurushi cha maneno muhimu. Bonyeza na ushikilie emoji kwa ajili ya tofauti za rangi ya ngozi.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Fungua emoji kwa kubonyeza mara moja kutoka kwenye upau wa juu</string>
-    <string name="langemoji_emoji_toolbar_title">Kitufe cha emoji kwenye upau wa zana</string>
     <string name="langemoji_emoji_unicode_search_info">Andika maneno ya jina la Unicode la herufi katika utafutaji wa emoji na itaonekana baada ya emoji: em dash, alama ya hakimiliki, herufi ndogo ya kigiriki lambda, herufi ndogo ya kilatini a yenye ogonek. Kila herufi ya Basic Multilingual Plane imejumuishwa, ambayo ni makumi ya maelfu ya herufi, alama na ishara. Kugonga moja huiingiza. Mpangilio huu umezimwa kwa chaguo-msingi.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">Utafutaji wa emoji pia hupata alama, herufi na alama kwa maneno ya jina lao</string>
     <string name="langemoji_emoji_unicode_search_title">Tafuta herufi yoyote kwa jina lake la Unicode</string>
@@ -4510,17 +4507,12 @@
     <string name="langemoji_panel_height_subtitle">Jinsi paneli za emoji, GIF na vibandiko zinavyofunguka juu zaidi ya kibodi</string>
     <string name="langemoji_panel_height_title">Urefu wa paneli</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Weka vitufe hivi baada ya mapendekezo, mwishoni kabisa mwa upau</string>
-    <string name="langemoji_strip_at_end_title">Vitufe upande wa kulia</string>
     <string name="langemoji_strip_icon_size_subtitle">Ukubwa wa ikoni katika kila kitufe kando ya mapendekezo</string>
     <string name="langemoji_strip_icon_size_title">Ukubwa wa ikoni ya kitufe</string>
     <string name="langemoji_strip_own_size_subtitle">Badilisha ukubwa wa vitufe kando ya mapendekezo mbali na zana za upau wa zana</string>
     <string name="langemoji_strip_own_size_title">Ukubwa wa kipekee kwa vitufe hivi</string>
-    <string name="langemoji_strip_shortcut_subtitle">Zana inayokaa kwenye upau wa juu wakati mapendekezo yanaonyeshwa</string>
-    <string name="langemoji_strip_shortcut_title">Kitufe kando ya mapendekezo</string>
     <string name="langemoji_strip_tool_width_subtitle">Upana wa kila kitufe kando ya mapendekezo</string>
     <string name="langemoji_strip_tool_width_title">Upana wa kitufe</string>
-    <string name="langemoji_strip_toolbox_subtitle">Weka kisanduku cha zana kwanza kati ya vitufe hivi, ili kiweze kupatikana kwa mguso mmoja wakati mapendekezo yanapoonekana</string>
     <string name="langemoji_strip_toolbox_title">Kitufe cha kisanduku cha zana</string>
     <string name="langemoji_strip_tools_add_value">Ongeza</string>
     <string name="langid_module_title">Utambuzi wa lugha</string>

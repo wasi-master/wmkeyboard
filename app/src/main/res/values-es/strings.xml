@@ -4328,9 +4328,6 @@
     <string name="langemoji_emoji_tone_override_info">Cuando esto está activado, y lo está de forma predeterminada, un emoji para el que ya seleccionaste un tono mantiene ese tono en todas partes: en el panel, las sugerencias y la búsqueda. Seleccionas ese tono desde la ventana emergente al mantener presionado el emoji en el panel. El emoji no utiliza el valor predeterminado anterior. Cuando esto está desactivado, el tono de piel predeterminado siempre prevalece.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Usar el tono seleccionado por última vez para un emoji, no el predeterminado</string>
     <string name="langemoji_emoji_tone_override_title">Anular con el último utilizado</string>
-    <string name="langemoji_emoji_toolbar_info">El botón de emoji permanece visible en la barra superior, incluso mientras se muestran las sugerencias. El panel de emojis tiene una pestaña para cada categoría. Puedes buscar en inglés y bengalí, y en cualquier idioma para el que añadas un paquete de palabras clave. Mantén presionado un emoji para ver las variantes de tono de piel.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Abre los emojis con una pulsación desde la barra superior</string>
-    <string name="langemoji_emoji_toolbar_title">Botón de emoji en la barra de herramientas</string>
     <string name="langemoji_emoji_unicode_search_info">Escribe las palabras del nombre Unicode de un carácter en la búsqueda de emojis y aparecerá después del emoji: guion largo, signo de copyright, letra griega minúscula lambda, letra latina minúscula a con ogonek. Cada carácter del Plano Multilingüe Básico está cubierto, lo que supone decenas de miles de letras, marcas y símbolos. Tocar uno lo inserta. Este ajuste está desactivado por defecto.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">La búsqueda de emojis también encuentra símbolos, letras y marcas mediante las palabras de su nombre</string>
     <string name="langemoji_emoji_unicode_search_title">Encuentra cualquier carácter por su nombre Unicode</string>
@@ -4505,17 +4502,12 @@
     <string name="langemoji_panel_height_subtitle">Qué tan alto se abren los paneles de emoji, GIF y stickers sobre el teclado</string>
     <string name="langemoji_panel_height_title">Altura del panel</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Colocar estos botones después de las sugerencias, al final de la barra</string>
-    <string name="langemoji_strip_at_end_title">Botones a la derecha</string>
     <string name="langemoji_strip_icon_size_subtitle">El tamaño del icono en cada botón junto a las sugerencias</string>
     <string name="langemoji_strip_icon_size_title">Tamaño del icono del botón</string>
     <string name="langemoji_strip_own_size_subtitle">Ajustar el tamaño de los botones junto a las sugerencias, aparte de las herramientas de la barra de herramientas</string>
     <string name="langemoji_strip_own_size_title">Tamaño propio para estos botones</string>
-    <string name="langemoji_strip_shortcut_subtitle">La herramienta que permanece en la barra superior mientras se muestran las sugerencias</string>
-    <string name="langemoji_strip_shortcut_title">Botón al lado de las sugerencias</string>
     <string name="langemoji_strip_tool_width_subtitle">Qué tan ancho es cada botón al lado de las sugerencias</string>
     <string name="langemoji_strip_tool_width_title">Ancho del botón</string>
-    <string name="langemoji_strip_toolbox_subtitle">Coloca la caja de herramientas primero entre estos botones, para que esté a un toque de distancia mientras se muestran las sugerencias</string>
     <string name="langemoji_strip_toolbox_title">Botón de caja de herramientas</string>
     <string name="langemoji_strip_tools_add_value">Añadir</string>
     <string name="langid_module_title">Detección de idioma</string>

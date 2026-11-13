@@ -4325,9 +4325,6 @@
     <string name="langemoji_emoji_tone_override_info">Wanneer dit is ingeschakeld (standaard), behoudt een emoji waarvoor je al een huidskleur hebt geselecteerd die kleur overal: in het paneel, de suggesties en de zoekfunctie. Je selecteert die kleur via het pop-upmenu dat verschijnt als je de emoji in het paneel ingedrukt houdt. De emoji gebruikt dan niet de standaardkleur hierboven. Wanneer dit is uitgeschakeld, wint de standaardhuidskleur altijd.</string>
     <string name="langemoji_emoji_tone_override_subtitle">Gebruik de toon die je laatst voor een emoji hebt geselecteerd, niet de standaard</string>
     <string name="langemoji_emoji_tone_override_title">Overschrijven met laatst gebruikte</string>
-    <string name="langemoji_emoji_toolbar_info">De emojiknop blijft zichtbaar in de bovenbalk, ook terwijl de suggesties worden getoond. Het emojipaneel heeft een tabblad voor elke categorie. Je kunt zoeken in het Engels en Bengaals, en in elke taal waarvoor je een trefwoordenpakket toevoegt. Houd een emoji ingedrukt voor de huidskleurvarianten.</string>
-    <string name="langemoji_emoji_toolbar_subtitle">Open emoji met één druk op de bovenste balk</string>
-    <string name="langemoji_emoji_toolbar_title">Emoji-knop in werkbalk</string>
     <string name="langemoji_emoji_unicode_search_info">Typ de woorden van de Unicode-naam van een teken in de emoji-zoekopdracht en het verschijnt na de emoji: em-streepje, copyrightteken, Griekse kleine letter lambda, Latijnse kleine letter a met ogonek. Elk teken van het Basic Multilingual Plane is gedekt, wat tienduizenden letters, tekens en symbolen zijn. Tikken op een teken voegt het in. Deze instelling staat standaard uit.</string>
     <string name="langemoji_emoji_unicode_search_subtitle">De emoji-zoekfunctie vindt ook symbolen, letters en tekens op basis van de woorden van hun naam</string>
     <string name="langemoji_emoji_unicode_search_title">Zoek elk teken op zijn Unicode-naam</string>
@@ -4502,17 +4499,12 @@
     <string name="langemoji_panel_height_subtitle">Hoeveel hoger dan het toetsenbord de emoji-, GIF- en stickerpanelen openen</string>
     <string name="langemoji_panel_height_title">Paneelhoogte</string>
     <string name="langemoji_panel_height_value">+%1$d dp</string>
-    <string name="langemoji_strip_at_end_subtitle">Plaats deze knoppen na de suggesties, aan het uiteinde van de balk</string>
-    <string name="langemoji_strip_at_end_title">Knoppen aan de rechterkant</string>
     <string name="langemoji_strip_icon_size_subtitle">Hoe groot het icoon in elke knop naast de suggesties is</string>
     <string name="langemoji_strip_icon_size_title">Grootte knoppictogram</string>
     <string name="langemoji_strip_own_size_subtitle">Bepaal de grootte van de knoppen naast de suggesties, los van de tools in de werkbalk</string>
     <string name="langemoji_strip_own_size_title">Eigen grootte voor deze knoppen</string>
-    <string name="langemoji_strip_shortcut_subtitle">De tool die in de bovenste balk blijft staan terwijl de suggesties worden getoond</string>
-    <string name="langemoji_strip_shortcut_title">Knop naast de suggesties</string>
     <string name="langemoji_strip_tool_width_subtitle">Hoe breed elke knop naast de suggesties is</string>
     <string name="langemoji_strip_tool_width_title">Knopbreedte</string>
-    <string name="langemoji_strip_toolbox_subtitle">Plaats de gereedschapskist als eerste tussen deze knoppen, zodat deze met één tik bereikbaar is terwijl de suggesties worden getoond</string>
     <string name="langemoji_strip_toolbox_title">Gereedschapskist-knop</string>
     <string name="langemoji_strip_tools_add_value">Toevoegen</string>
     <string name="langid_module_title">Taaldetectie</string>

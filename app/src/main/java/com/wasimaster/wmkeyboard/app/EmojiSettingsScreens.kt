@@ -59,8 +59,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
-import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
-import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import kotlin.math.roundToInt
 import com.wasimaster.wmkeyboard.core.emoji.EmojiSearchExamples
 import com.wasimaster.wmkeyboard.core.fonts.FontFile
@@ -89,109 +87,8 @@ internal fun EmojiSettings(
     val predictionOn = settings.watch { it.emojiPrediction }
     val barMode = settings.watch { it.emojiBarMode }
     val emojiRowOverridden = settings.watch { it.modesOverridingRow(BarRow.EMOJI).isNotEmpty() }
-    val emojiButtonOn = settings.watch { it.emojiToolbar }
-    val stripOwnSize = settings.watch { it.toolbarBehavior.stripOwnSize }
-    val dpFormat = stringResource(R.string.typing_value_dp)
     val extensions = LocalExtensions.current
     SettingsGroup(stringResource(R.string.langemoji_emoji_access_title)) {
-        item {
-            ToggleSetting(
-                R.string.langemoji_emoji_toolbar_title,
-                stringResource(R.string.langemoji_emoji_toolbar_subtitle),
-                settings.watch { it.emojiToolbar },
-                info = stringResource(R.string.langemoji_emoji_toolbar_info),
-                default = SettingsDefaults.emojiToolbar,
-            ) { scope.launch { repository.setEmojiToolbar(it) } }
-        }
-        // Which tools stay beside the suggestions, in order (#462). Here, beside
-        // the switch that shows them, because this is the row people come to
-        // when they want the emoji button to be something else, or more.
-        item(visible = emojiButtonOn, level = SettingLevel.STANDARD) {
-            val shortcuts = settings.watch { it.toolbarBehavior.stripShortcuts }
-            var picking by remember { mutableStateOf(false) }
-            NavRow(
-                title = R.string.langemoji_strip_shortcut_title,
-                subtitle = stringResource(R.string.langemoji_strip_shortcut_subtitle),
-                value = stringResource(R.string.langemoji_strip_tools_add_value),
-            ) { picking = true }
-            if (picking) {
-                ToolPickerDialog(
-                    title = stringResource(R.string.langemoji_strip_shortcut_title),
-                    current = null,
-                    options = ToolbarTool.entries.filter { isSupportedTool(it) && it !in shortcuts },
-                    onDismiss = { picking = false },
-                    onPick = { picked ->
-                        picking = false
-                        if (picked != null) scope.launch { repository.setStripShortcuts(shortcuts + picked) }
-                    },
-                )
-            }
-        }
-        // The chosen buttons themselves: drag to change the order they sit in
-        // beside the suggestions, the bin to take one off.
-        item(visible = emojiButtonOn) {
-            val shortcuts = settings.watch { it.toolbarBehavior.stripShortcuts }
-            // Every tool's name, not only the chosen ones': the list adopts a
-            // change a frame after it lands, so a tool just taken off is still
-            // drawn once more by name.
-            val names = ToolbarTool.entries.associateWith { stringResource(toolTitle(it)) }
-            ReorderableColumn(
-                items = shortcuts,
-                label = { names[it] ?: it.name },
-                onReorder = { order -> scope.launch { repository.setStripShortcuts(order) } },
-                onDelete = { tool -> scope.launch { repository.setStripShortcuts(shortcuts - tool) } },
-                keepLast = false,
-            )
-        }
-        // The toolbox launcher among them (#970).
-        item(visible = emojiButtonOn, level = SettingLevel.STANDARD) {
-            ToggleSetting(
-                R.string.langemoji_strip_toolbox_title,
-                stringResource(R.string.langemoji_strip_toolbox_subtitle),
-                settings.watch { it.toolbarBehavior.stripToolbox },
-                default = SettingsDefaults.toolbarBehavior.stripToolbox,
-            ) { scope.launch { repository.setStripToolbox(it) } }
-        }
-        // Which end of the strip they sit at.
-        item(visible = emojiButtonOn, level = SettingLevel.ADVANCED) {
-            ToggleSetting(
-                R.string.langemoji_strip_at_end_title,
-                stringResource(R.string.langemoji_strip_at_end_subtitle),
-                settings.watch { it.toolbarBehavior.stripShortcutsAtEnd },
-                default = SettingsDefaults.toolbarBehavior.stripShortcutsAtEnd,
-            ) { scope.launch { repository.setStripShortcutsAtEnd(it) } }
-        }
-        // Their size, apart from the toolbar's tools (which the Toolbar page's
-        // sliders size). Off, a tool on both looks the same in either spot.
-        item(visible = emojiButtonOn, level = SettingLevel.ADVANCED) {
-            ToggleSetting(
-                R.string.langemoji_strip_own_size_title,
-                stringResource(R.string.langemoji_strip_own_size_subtitle),
-                settings.watch { it.toolbarBehavior.stripOwnSize },
-                default = SettingsDefaults.toolbarBehavior.stripOwnSize,
-            ) { scope.launch { repository.setStripOwnSize(it) } }
-        }
-        item(visible = emojiButtonOn && stripOwnSize, level = SettingLevel.ADVANCED) {
-            SliderSetting(
-                R.string.langemoji_strip_tool_width_title,
-                subtitle = stringResource(R.string.langemoji_strip_tool_width_subtitle),
-                value = settings.watch { it.toolbarBehavior.stripToolWidthDp }.toFloat(),
-                // Down to 20 dp, a button about as wide as its icon (#970).
-                range = 20f..64f,
-                display = { dpFormat.format(it.roundToInt()) },
-                default = SettingsDefaults.toolbarBehavior.stripToolWidthDp.toFloat(),
-            ) { scope.launch { repository.setStripToolWidthDp(it.roundToInt()) } }
-        }
-        item(visible = emojiButtonOn && stripOwnSize, level = SettingLevel.ADVANCED) {
-            SliderSetting(
-                R.string.langemoji_strip_icon_size_title,
-                subtitle = stringResource(R.string.langemoji_strip_icon_size_subtitle),
-                value = settings.watch { it.toolbarBehavior.stripIconSizeDp }.toFloat(),
-                range = 14f..30f,
-                display = { dpFormat.format(it.roundToInt()) },
-                default = SettingsDefaults.toolbarBehavior.stripIconSizeDp.toFloat(),
-            ) { scope.launch { repository.setStripIconSizeDp(it.roundToInt()) } }
-        }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.langemoji_emoji_full_bleed_title,
