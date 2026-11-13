@@ -7157,12 +7157,11 @@ class SuggestionEngine(
 
     /**
      * The confidence the decoder's fitted gate decides at (`decoder::Gate`),
-     * or 0 for its fixed margins: the gate under the learned-gate setting,
-     * and only with the context model open, since it was fitted on readings
-     * the model had weighed.
+     * or 0 for its fixed margins: the gate under the learned-gate setting. It
+     * carries one set of weights for readings the context model weighed and
+     * one for readings made without it, and picks between them itself.
      */
-    private fun gateConfidence(call: DecoderCall): Double =
-        if (learnedGate && call.lm != null) call.confidence else 0.0
+    private fun gateConfidence(call: DecoderCall): Double = if (learnedGate) call.confidence else 0.0
 
     /** A reading that spends slips and a real edit together. */
     private fun mixesSlips(c: FuzzyBeamSearch.ScoredCandidate): Boolean = c.slips > 0 && c.edits > c.slips

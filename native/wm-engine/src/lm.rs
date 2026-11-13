@@ -444,6 +444,8 @@ pub struct Session<B: AsRef<[u8]> = Vec<u8>> {
     /// Cleared whenever the context changes; a restore inside
     /// [`Session::logprob`] does not clear it.
     spelled: HashMap<String, Option<f32>>,
+    /// Words read as if the vocabulary lacked them ([`Session::mask`]).
+    masked: std::collections::HashSet<String>,
     // Scratch.
     x: Vec<f32>,
     h: Vec<f32>,
@@ -478,9 +480,27 @@ impl<B: AsRef<[u8]>> Session<B> {
             tmp: vec![0.0; d],
             xq: Vec::new(),
             spelled: HashMap::new(),
+            masked: std::collections::HashSet::new(),
             #[cfg(test)]
             steps: 0,
         }
+    }
+
+    /// Reads `words` (as [`token_key`] leaves them) as if the vocabulary did
+    /// not hold them: spelled in pieces, never listed, never ranked. For the
+    /// sentence harness, so a word taken out of the word lists to stand for a
+    /// name or a new word is one the model has not seen either.
+    pub fn mask(&mut self, words: std::collections::HashSet<String>) {
+        self.masked = words;
+        self.spelled.clear();
+    }
+
+    /// The vocabulary id of `key`, unless it is masked.
+    fn listed_id(&self, key: &str) -> Option<u32> {
+        if !self.masked.is_empty() && self.masked.contains(key) {
+            return None;
+        }
+        self.lm.id_of(key)
     }
 
     pub fn lm(&self) -> &Lm<B> {
@@ -662,7 +682,7 @@ impl<B: AsRef<[u8]>> Session<B> {
         if key == "<num>" {
             return None;
         }
-        if let Some(id) = self.lm.id_of(&key) {
+        if let Some(id) = self.listed_id(&key) {
             return Some(self.logprob_id(id));
         }
         // A glide preview asks the same pool on every frame of one stroke,
@@ -696,7 +716,7 @@ impl<B: AsRef<[u8]>> Session<B> {
         if key == "<num>" {
             return None;
         }
-        let id = self.lm.id_of(&key)?;
+        let id = self.listed_id(&key)?;
         Some(self.logprob_id(id))
     }
 
@@ -726,7 +746,7 @@ impl<B: AsRef<[u8]>> Session<B> {
     /// hold as one token. One pass over the vocabulary.
     pub fn rank_of(&mut self, word: &str) -> Option<u32> {
         let key = token_key(word)?;
-        let id = self.lm.id_of(&key)?;
+        let id = self.listed_id(&key)?;
         let lm = self.lm.clone();
         let dist = self.distribution();
         let own = dist[id as usize];

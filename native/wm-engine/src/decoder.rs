@@ -1198,13 +1198,23 @@ pub struct Gate;
 pub const GATE_FEATURES: usize = 17;
 const GATE_HIDDEN: usize = 8;
 /// The slider's ratio is multiplied by this before it becomes the gate's
-/// bar, so the default ×4 asks for 0.9. Fitted on Vertanen & Kristensson's
+/// bar, so the default ×4 asks for 0.85. Fitted on Vertanen & Kristensson's
 /// dev set and simulated sentences with 40% of the list's words below rank
-/// 1000 held out, checked on the test set and other sentences: at 0.9 the
-/// gate applied 316 more right fixes than the fixed bars, changed 4 fewer
-/// correctly typed words and one fewer held-out word; at 0.8 it applied 502
-/// more and changed 14 more correctly typed words.
-pub const GATE_CONFIDENCE_SCALE: f64 = 2.25;
+/// 1000 held out of the lists and of the context model's vocabulary (a word
+/// it has never seen is spelled in pieces, as on the phone), checked on the
+/// test set and other sentences. Against the fixed bars there: recorded
+/// test 10.13% of words left wrong to 9.66%, correct words changed 18 to 17;
+/// simulated 10.5/15.9/25.6% to 9.0/13.5/19.9%, held-out words changed 131
+/// to 27 of 407. The first fit, whose model knew the held-out words, scored
+/// 9.55% on the recorded test and changed 56 of them.
+pub const GATE_CONFIDENCE_SCALE: f64 = 1.42;
+/// The same for readings made without the context model, so the default ×4
+/// asks for 0.8. Fitted the same way on runs with no model: at 0.8 it applied
+/// 16 more right fixes on the recorded test set for one more correctly typed
+/// word changed, and on simulated sentences 129 more, changing 31 correctly
+/// typed words where the fixed bars changed 221 (23 held-out words against
+/// 211). At 0.9 it gave up 256 right fixes on the recorded taps.
+pub const GATE_PLAIN_CONFIDENCE_SCALE: f64 = 1.0;
 /// The gap to the next reading is capped at this, and taken as this when
 /// there is none.
 const GATE_GAP_CAP: f64 = 8.0;
@@ -1249,28 +1259,25 @@ impl Gate {
     }
 
     /// P(the candidate is the text meant).
+    ///
+    /// Two sets of weights: one for readings the context model weighed
+    /// (feature 7), fitted with the model open, and one fitted without it,
+    /// since without the model its two features are 0 and the lead is made of
+    /// priors and pairs alone, which the first set never saw.
     pub fn probability(f: &[f64; GATE_FEATURES]) -> f64 {
-        let mut z = [0.0; GATE_FEATURES];
-        for i in 0..GATE_FEATURES {
-            let s = if GATE_SCALE[i] > 0.0 { GATE_SCALE[i] } else { 1.0 };
-            z[i] = (f[i] - GATE_MEAN[i]) / s;
+        if f[7] > 0.5 {
+            net(f, &GATE_MEAN, &GATE_SCALE, &GATE_W1, &GATE_B1, &GATE_W2, GATE_B2)
+        } else {
+            net(f, &GATE_PLAIN_MEAN, &GATE_PLAIN_SCALE, &GATE_PLAIN_W1, &GATE_PLAIN_B1, &GATE_PLAIN_W2, GATE_PLAIN_B2)
         }
-        let mut out = GATE_B2;
-        for j in 0..GATE_HIDDEN {
-            let mut h = GATE_B1[j];
-            for i in 0..GATE_FEATURES {
-                h += GATE_W1[j][i] * z[i];
-            }
-            out += GATE_W2[j] * h.tanh();
-        }
-        1.0 / (1.0 + (-out).exp())
     }
 
     /// Applies the candidate at `crate::confidence::apply_threshold` of the
     /// slider's `confidence` times [`GATE_CONFIDENCE_SCALE`], offers it at the
     /// offer threshold of the same.
     pub fn verdict(decoded: &Decoded, typed: &str, confidence: f64) -> Verdict {
-        let confidence = confidence * GATE_CONFIDENCE_SCALE;
+        let modelled = Gate::features(decoded, typed).is_some_and(|(_, f)| f[7] > 0.5);
+        let confidence = confidence * if modelled { GATE_CONFIDENCE_SCALE } else { GATE_PLAIN_CONFIDENCE_SCALE };
         let Some((i, f)) = Gate::features(decoded, typed) else {
             let lead = decoded.readings.iter().find(|r| r.text != letters_of(typed)).map_or(0.0, |r| r.score - decoded.literal);
             return Verdict { lead, ..Verdict::default() };
@@ -1288,23 +1295,68 @@ impl Gate {
     }
 }
 
+/// One hidden layer of tanh on standardised features, a logistic out.
+fn net(
+    f: &[f64; GATE_FEATURES],
+    mean: &[f64; GATE_FEATURES],
+    scale: &[f64; GATE_FEATURES],
+    w1: &[[f64; GATE_FEATURES]],
+    b1: &[f64],
+    w2: &[f64],
+    b2: f64,
+) -> f64 {
+    let mut z = [0.0; GATE_FEATURES];
+    for i in 0..GATE_FEATURES {
+        let s = if scale[i] > 0.0 { scale[i] } else { 1.0 };
+        z[i] = (f[i] - mean[i]) / s;
+    }
+    let mut out = b2;
+    for ((row, b), w) in w1.iter().zip(b1).zip(w2) {
+        let mut h = *b;
+        for i in 0..GATE_FEATURES {
+            h += row[i] * z[i];
+        }
+        out += w * h.tanh();
+    }
+    1.0 / (1.0 + (-out).exp())
+}
+
 // GATE FIT BEGIN
-const GATE_MEAN: [f64; GATE_FEATURES] = [13.0477, -3.32291, -1.93191, -4.98418, -0.562198, -5.65504, -17.0694, 1.0, 0.0812767, 1.21134, 0.238236, 1.14898, 0.211336, 0.00370188, 5.70936, 5.47821, 0.0107766];
-const GATE_SCALE: [f64; GATE_FEATURES] = [8.26648, 3.3565, 1.32343, 3.37178, 1.16668, 3.25686, 8.15407, 1.0, 0.27326, 0.481654, 0.473905, 0.949411, 0.481654, 0.0607303, 3.12712, 2.67155, 0.103249];
+const GATE_MEAN: [f64; GATE_FEATURES] = [13.2718, -3.32522, -1.92539, -5.06327, -0.549551, -5.65714, -17.379, 1.0, 0.0811369, 1.21119, 0.241428, 1.14203, 0.211187, 0.00132199, 5.70858, 5.44827, 0.00941915];
+const GATE_SCALE: [f64; GATE_FEATURES] = [7.75069, 3.35509, 1.31941, 3.4978, 1.14649, 3.26311, 7.85297, 1.0, 0.273045, 0.481862, 0.475852, 0.94651, 0.481862, 0.0363351, 3.12714, 2.68342, 0.0965942];
 const GATE_W1: [[f64; GATE_FEATURES]; GATE_HIDDEN] = [
-    [0.527472, 0.0651673, 0.0906895, 0.0404258, -0.0843969, -0.390606, -0.308375, 4.0886e-93, 0.050597, 0.0400649, -0.0479314, 0.112874, 0.0400649, 0.0210348, -0.11255, 0.0128921, 0.0983211],
-    [0.57078, 0.185773, 0.149588, 0.138735, -0.0576366, -0.00761492, -0.40924, 9.91387e-93, -0.0281786, -0.063009, -0.0760009, -0.065663, -0.063009, 0.0190811, -0.213317, -0.0460129, 0.107847],
-    [-0.526665, 0.0349676, -0.046067, 0.0165406, 0.0517243, 0.368124, 0.393367, 1.13565e-92, 0.232383, -0.012544, -0.0642603, -0.0987854, -0.012544, -0.0176603, 0.053818, -0.0489796, -0.116406],
-    [0.570936, 0.185763, 0.149602, 0.138727, -0.0576921, -0.00771792, -0.409354, 9.82399e-93, -0.028214, -0.0629797, -0.0759857, -0.065594, -0.0629797, 0.0190843, -0.213274, -0.0459495, 0.107846],
-    [0.615025, -0.0428025, -0.0242191, -0.0292198, -0.0706812, -0.322874, -0.518057, -5.38232e-93, 0.341736, 0.0229973, 0.0266821, 0.0668562, 0.0229972, 0.0155091, -0.0243632, 0.0575666, 0.0933242],
-    [0.526928, 0.0651168, 0.0906637, 0.0404005, -0.0842918, -0.390456, -0.307948, 2.18421e-92, 0.0506005, 0.0400672, -0.0479898, 0.112883, 0.0400672, 0.0210209, -0.112581, 0.0128006, 0.0982994],
-    [0.52685, 0.0651103, 0.090659, 0.0403979, -0.0842768, -0.390434, -0.307887, -2.85919e-92, 0.0506035, 0.0400688, -0.0479994, 0.112886, 0.0400688, 0.0210189, -0.112583, 0.0127896, 0.0982956],
-    [0.526889, 0.0651139, 0.0906586, 0.0404009, -0.084285, -0.390436, -0.307921, 6.19746e-93, 0.0506028, 0.0400709, -0.0479967, 0.112886, 0.0400708, 0.0210198, -0.112573, 0.0128012, 0.0982948],
+    [0.447005, 0.0874779, 0.0991573, -0.00803999, -0.0817781, -0.388864, -0.217253, 4.0886e-93, 0.0468992, 0.041157, -0.0115419, 0.189695, 0.0411567, 0.0128304, -0.173145, 0.0388722, 0.0872277],
+    [0.559569, 0.150291, 0.191569, 0.396687, -0.0628201, -0.0419324, -0.252685, 9.91387e-93, 0.0445874, 0.0156074, 0.0877546, -0.00649934, 0.0156074, 0.00989838, -0.308022, -0.079892, 0.128978],
+    [-0.446135, -0.087336, -0.0990158, 0.00806559, 0.0815931, 0.388367, 0.216786, 1.13565e-92, -0.0472492, -0.040955, 0.0115485, -0.189582, -0.0409562, -0.0128026, 0.17294, -0.0388969, -0.087106],
+    [0.490612, 0.286712, 0.146086, 0.0605983, -0.0881117, -0.102106, -0.254994, 9.82399e-93, 0.00882223, -0.0531362, -0.221467, 0.0583966, -0.0531362, 0.00793998, -0.231043, -0.0576379, 0.0803226],
+    [0.444011, 0.0867603, 0.0985593, -0.00872994, -0.0814071, -0.387225, -0.215775, -5.38232e-93, 0.0467715, 0.0407763, -0.0117007, 0.189033, 0.0408239, 0.0127659, -0.171928, 0.0391877, 0.0870027],
+    [0.444652, 0.0869972, 0.0986102, -0.00852157, -0.0814697, -0.387674, -0.21608, 2.18421e-92, 0.0472064, 0.040734, -0.0116006, 0.189143, 0.040733, 0.0127869, -0.172304, 0.038984, 0.0870187],
+    [0.444081, 0.0867923, 0.0985688, -0.00865177, -0.0812763, -0.387176, -0.215793, -2.85919e-92, 0.0468508, 0.0405469, -0.0116712, 0.188961, 0.0405454, 0.0127747, -0.172126, 0.0391735, 0.087033],
+    [0.444174, 0.0868102, 0.0985581, -0.00865271, -0.0813231, -0.387265, -0.215847, 6.19746e-93, 0.0467754, 0.040677, -0.0115895, 0.189035, 0.0407293, 0.0127762, -0.172103, 0.0391003, 0.086989],
 ];
-const GATE_B1: [f64; GATE_HIDDEN] = [1.17195, 1.05663, -0.929857, 1.05731, 1.49486, 1.1702, 1.16996, 1.17011];
-const GATE_W2: [f64; GATE_HIDDEN] = [0.915101, 0.938312, -0.915154, 0.938363, 1.06852, 0.914621, 0.914546, 0.914553];
-const GATE_B2: f64 = 1.12389;
+const GATE_B1: [f64; GATE_HIDDEN] = [0.896073, 0.584484, -0.894454, 0.901296, 0.88609, 0.887911, 0.885938, 0.886408];
+const GATE_W2: [f64; GATE_HIDDEN] = [0.815304, 0.939196, -0.814105, 0.836974, 0.81142, 0.812294, 0.811366, 0.811509];
+const GATE_B2: f64 = 1.94972;
 // GATE FIT END
+
+const GATE_PLAIN_HIDDEN: usize = 8;
+// GATE PLAIN FIT BEGIN
+const GATE_PLAIN_MEAN: [f64; GATE_FEATURES] = [8.28968, -3.14464, -6.39072, 0.0, -0.537301, -17.2877, 0.0, 0.0, 0.0848547, 1.20408, 0.218565, 1.13028, 0.20408, 0.00102854, 5.70215, 5.15221, 0.0106283];
+const GATE_PLAIN_SCALE: [f64; GATE_FEATURES] = [4.74491, 3.19464, 4.39823, 1.0, 1.13621, 3.06888, 1.0, 1.0, 0.278665, 0.473438, 0.45134, 0.942687, 0.473438, 0.0320544, 3.11495, 2.51362, 0.102544];
+const GATE_PLAIN_W1: [[f64; GATE_FEATURES]; GATE_PLAIN_HIDDEN] = [
+    [0.20756, -0.0436694, 0.0123625, -1.04787e-92, -0.24019, -0.259718, -3.32482e-92, 4.0886e-93, 0.33769, -0.0086038, -0.308419, 0.470614, -0.00860348, 0.00717868, 0.128241, 0.179838, 0.0778694],
+    [0.295823, 0.0622363, 0.0322862, 3.59943e-11, -0.220092, -0.264776, -1.56092e-92, 9.91387e-93, 0.163174, 0.0398267, 0.117749, 0.341485, 0.0398267, 0.010326, -0.0510784, 0.218178, 0.0827133],
+    [-0.298231, -0.0632907, -0.0325399, 6.75199e-93, 0.220271, 0.266908, 4.81084e-93, 1.13565e-92, -0.165565, -0.0398453, -0.116493, -0.339033, -0.0398445, -0.0103231, 0.0535902, -0.21864, -0.08242],
+    [0.763927, 0.531006, 0.260746, -1.1458e-92, -0.0628143, -0.23147, 8.56503e-93, 9.82399e-93, 0.184512, -0.158277, 0.100256, -0.251588, -0.158277, 0.0177309, -0.475209, -0.0883923, 0.113211],
+    [0.235973, -0.0393538, 0.0583748, 4.47529e-93, -0.210577, -0.244193, -6.11841e-09, -5.38232e-93, 0.296356, -0.0369502, -0.400263, 0.420435, -0.0369503, 0.00663721, 0.0919501, 0.173426, 0.0735292],
+    [0.19058, -0.037066, 0.240114, 3.15764e-93, -0.0743063, 0.0383301, 8.52737e-93, 2.18421e-92, 0.204335, 0.302104, 0.0713355, 0.211235, 0.302104, 0.00422503, -0.087282, 0.227166, 0.0607755],
+    [0.313105, 0.0728242, -0.000954451, 1.79753e-92, -0.167423, -0.347677, 2.55278e-92, -2.85919e-92, 0.091617, -0.00996345, 0.141044, 0.0743788, -0.0099643, 0.0129942, 0.0331108, 0.370542, 0.0697958],
+    [0.330731, 0.0520865, 0.124489, 1.39247e-93, -0.0671678, -0.253858, 1.93571e-93, 6.19746e-93, -0.0709882, 0.342704, 0.0316579, 0.572091, 0.342704, 0.00765499, -0.62779, -0.0799019, 0.0669341],
+];
+const GATE_PLAIN_B1: [f64; GATE_PLAIN_HIDDEN] = [0.32056, 0.463426, -0.476984, 0.00662504, 0.415945, 0.904437, 0.846823, 1.39981];
+const GATE_PLAIN_W2: [f64; GATE_PLAIN_HIDDEN] = [0.910291, 0.777632, -0.778965, 1.25461, 0.899059, 0.671907, 0.761707, 1.1008];
+const GATE_PLAIN_B2: f64 = 1.61422;
+// GATE PLAIN FIT END
 
 /// What re-reading a committed buffer with the words after it found.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -1594,7 +1646,14 @@ mod tests {
             5.000, 1.000, 0.000,
         ];
         let p = Gate::probability(&f);
-        assert!((p - 0.998881).abs() < 1e-3, "{p}");
+        assert!((p - 0.996183).abs() < 1e-3, "{p}");
+        // And the set fitted without the context model (feature 7 is 0).
+        let plain = [
+            6.755, -2.056, -8.470, 0.000, 0.000, -17.281, 0.000, 0.000, 0.000, 1.000, 0.000, 1.000, 0.000, 0.000, 5.000,
+            3.145, 0.000,
+        ];
+        let p = Gate::probability(&plain);
+        assert!((p - 0.936585).abs() < 1e-3, "{p}");
         // A decode's features come out in the fitter's order.
         let d = Decoded {
             readings: vec![

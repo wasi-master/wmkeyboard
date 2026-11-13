@@ -2,7 +2,7 @@
 
 usage: fit_gate.py --fit=dump.tsv[,dump.tsv...] --check=dump.tsv[,...]
                    [--hidden=8] [--l2=3e-3] [--steps=4000] [--new-weight=3]
-                   [--confidence=4] [--rust=../../native/wm-engine/src/decoder.rs]
+                   [--confidence=4] [--rust=../../native/wm-engine/src/decoder.rs] [--plain]
 
 Dumps come from `sentence_eval ... DUMP=file` (recorded taps with `REPLAY`,
 or the simulated hand with `HOLDOUT` for correctly typed words the lists do
@@ -15,7 +15,9 @@ applying or not changes nothing there. Correctly typed held-out words (kind
 The features are the ones `decoder::Gate::features` computes from a decode;
 the two must agree, which `decoder.rs`'s fixed case checks. With `--rust`,
 the fitted constants replace those between `// GATE FIT BEGIN` and
-`// GATE FIT END`.
+`// GATE FIT END`; with `--plain` too, those between `// GATE PLAIN FIT
+BEGIN` and `// GATE PLAIN FIT END`, the set for readings made without the
+context model (fit it on dumps from runs with no model).
 """
 import math
 import re
@@ -157,27 +159,32 @@ def report(name, X, y, keep, decide):
           f" | right words changed {broke:4d} of {len(y) - pos:5d} | new words changed {broke_new}/{new}")
 
 
-def write_rust(path, model):
+def write_rust(path, model, plain=False):
+    """Writes the weights between the gate's markers: `GATE_*` for readings
+    the context model weighed, `GATE_PLAIN_*` (``plain``) for the rest."""
     mean, scale, P = model
     W1, b1, W2, b2 = P
+    pre = "GATE_PLAIN" if plain else "GATE"
+    hidden = f"{pre}_HIDDEN"
+    marker = "GATE PLAIN FIT" if plain else "GATE FIT"
     fmt = lambda a: ", ".join(f"{x:.6}" for x in a)
     body = [
-        "// GATE FIT BEGIN",
-        f"const GATE_MEAN: [f64; GATE_FEATURES] = [{fmt(mean)}];",
-        f"const GATE_SCALE: [f64; GATE_FEATURES] = [{fmt(scale)}];",
-        f"const GATE_W1: [[f64; GATE_FEATURES]; GATE_HIDDEN] = [",
+        f"// {marker} BEGIN",
+        f"const {pre}_MEAN: [f64; GATE_FEATURES] = [{fmt(mean)}];",
+        f"const {pre}_SCALE: [f64; GATE_FEATURES] = [{fmt(scale)}];",
+        f"const {pre}_W1: [[f64; GATE_FEATURES]; {hidden}] = [",
         *[f"    [{fmt(W1[:, j])}]," for j in range(W1.shape[1])],
         "];",
-        f"const GATE_B1: [f64; GATE_HIDDEN] = [{fmt(b1)}];",
-        f"const GATE_W2: [f64; GATE_HIDDEN] = [{fmt(W2)}];",
-        f"const GATE_B2: f64 = {b2[0]:.6};",
-        "// GATE FIT END",
+        f"const {pre}_B1: [f64; {hidden}] = [{fmt(b1)}];",
+        f"const {pre}_W2: [f64; {hidden}] = [{fmt(W2)}];",
+        f"const {pre}_B2: f64 = {b2[0]:.6};",
+        f"// {marker} END",
     ]
     src = open(path).read()
-    new = re.sub(r"// GATE FIT BEGIN.*?// GATE FIT END", "\n".join(body), src, flags=re.S)
-    new = re.sub(r"const GATE_HIDDEN: usize = \d+;", f"const GATE_HIDDEN: usize = {W1.shape[1]};", new)
+    new = re.sub(rf"// {marker} BEGIN.*?// {marker} END", lambda _: "\n".join(body), src, flags=re.S)
+    new = re.sub(rf"const {hidden}: usize = \d+;", f"const {hidden}: usize = {W1.shape[1]};", new)
     open(path, "w").write(new)
-    print("wrote", path)
+    print("wrote", path, pre)
 
 
 def main():
@@ -200,9 +207,11 @@ def main():
     for t in sorted({conf / (conf + 1), 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95}):
         report(f"gate p>={t:.2f}", Xc, yc, keepc, list(pc >= t))
     if "--rust" in opts:
-        write_rust(opts["--rust"], model)
+        write_rust(opts["--rust"], model, plain="--plain" in sys.argv[1:])
         i = 0
         print("fixed case features", ", ".join(f"{v:.3f}" for v in Xc[i]), "p", f"{pc[i]:.6f}")
+    else:
+        print("first check row", ", ".join(f"{v:.3f}" for v in Xc[0]), "p", f"{pc[0]:.6f}")
 
 
 if __name__ == "__main__":

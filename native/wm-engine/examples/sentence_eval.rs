@@ -566,7 +566,14 @@ fn main() {
         p.confidence = Some(Confidence::shipped());
     }
     if let Some(m) = &lm {
-        p.lm = Some(std::cell::RefCell::new(Session::new(m.clone())));
+        let mut session = Session::new(m.clone());
+        // A held-out word stands for a name or a new word: the context model
+        // must not know it either (`HOLDOUT_LM=0` lets it, as runs before
+        // 2026-11-13 did).
+        if env::<i32>("HOLDOUT_LM", 1) == 1 {
+            session.mask(held.clone());
+        }
+        p.lm = Some(std::cell::RefCell::new(session));
     }
 
     // The decoder, when asked for: the same list and pairs, read whole.
