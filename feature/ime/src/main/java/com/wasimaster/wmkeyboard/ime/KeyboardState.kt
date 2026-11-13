@@ -5335,7 +5335,8 @@ sealed interface PluginPanelUi {
         /** What an API 5 plugin asked of the panel: header buttons, a page title, whether Back goes back a page. */
         val host: com.wasimaster.wmkeyboard.core.plugins.PythonSession.HostState? = null,
         /** Risky permissions a call needed and the user has not granted; drawn as a banner with Allow. */
-        val needs: List<com.wasimaster.wmkeyboard.core.plugins.PluginPermission> = emptyList(),
+        // Spelled out: inside PluginPanelUi, a bare List is the List panel state above.
+        val needs: kotlin.collections.List<com.wasimaster.wmkeyboard.core.plugins.PluginPermission> = emptyList(),
     ) : PluginPanelUi
 }
 

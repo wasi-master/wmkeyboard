@@ -186,6 +186,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.VerticalDivider
+import com.wasimaster.wmkeyboard.core.plugins.displayName
 import com.wasimaster.wmkeyboard.core.tools.PhotoBackgroundManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
