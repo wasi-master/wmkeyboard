@@ -8463,6 +8463,12 @@ data class ClipboardSettings(
     /** Show user screenshots in the clipboard alongside copied text and images. */
     val userScreenshots: Boolean = false,
     /**
+     * Keep text alone in history (gap list item 25): a copied picture, video
+     * or file is left on the system clipboard and not stored, and screenshots
+     * are not added either. Off by default, which keeps everything as before.
+     */
+    val textOnly: Boolean = false,
+    /**
      * Delete a clip from history *and* from the system clipboard the moment it
      * is pasted into a password field. A password pasted out of a manager is
      * the single most sensitive thing the clipboard ever holds, and it would
@@ -12732,6 +12738,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_SEARCH_REGEX = booleanPreferencesKey("clipboard_search_regex")
         private val CLIPBOARD_SEARCH_NOTES = booleanPreferencesKey("clipboard_search_notes")
         private val CLIPBOARD_USER_SCREENSHOTS = booleanPreferencesKey("clipboard_user_screenshots")
+        private val CLIPBOARD_TEXT_ONLY = booleanPreferencesKey("clipboard_text_only")
         private val CLIPBOARD_CLEAR_AFTER_PASSWORD_PASTE =
             booleanPreferencesKey("clipboard_clear_after_password_paste")
         private val CLIPBOARD_DETECT_ENTITIES = booleanPreferencesKey("clipboard_detect_entities")
@@ -14929,6 +14936,7 @@ class SettingsRepository(private val context: Context) {
             searchRegex = p[CLIPBOARD_SEARCH_REGEX] ?: defaults.clipboard.searchRegex,
             searchNotes = p[CLIPBOARD_SEARCH_NOTES] ?: defaults.clipboard.searchNotes,
             userScreenshots = p[CLIPBOARD_USER_SCREENSHOTS] ?: defaults.clipboard.userScreenshots,
+            textOnly = p[CLIPBOARD_TEXT_ONLY] ?: defaults.clipboard.textOnly,
             clearAfterPasswordPaste = p[CLIPBOARD_CLEAR_AFTER_PASSWORD_PASTE]
                 ?: defaults.clipboard.clearAfterPasswordPaste,
             detectEntities = p[CLIPBOARD_DETECT_ENTITIES] ?: defaults.clipboard.detectEntities,
@@ -24322,6 +24330,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardUserScreenshots(value: Boolean) =
         editPrefs { it[CLIPBOARD_USER_SCREENSHOTS] = value }
+
+    suspend fun setClipboardTextOnly(value: Boolean) =
+        editPrefs { it[CLIPBOARD_TEXT_ONLY] = value }
 
     suspend fun setClipboardClearAfterPasswordPaste(value: Boolean) =
         editPrefs { it[CLIPBOARD_CLEAR_AFTER_PASSWORD_PASTE] = value }

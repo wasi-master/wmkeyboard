@@ -1622,6 +1622,7 @@ private fun SearchStrings.clipboardHistoryRows(): List<SettingsSearchEntry> {
         row(R.string.clipboard_pinned_last_title, R.string.clipboard_pinned_last_subtitle),
         row(R.string.clipboard_pinned_in_place_title, R.string.clipboard_pinned_in_place_subtitle),
         row(R.string.clipboard_pinned_folders_title, R.string.clipboard_pinned_folders_subtitle),
+        row(R.string.clipboard_text_only_title, R.string.clipboard_text_only_subtitle),
         row(R.string.clipboard_screenshots_title, R.string.clipboard_screenshots_subtitle)
             .takeIf { ChannelFeatures.SCREENSHOT_CLIPS },
         row(R.string.clipboard_track_source_title, R.string.clipboard_track_source_subtitle),

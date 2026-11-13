@@ -4288,6 +4288,11 @@ open class WMKeyboardService : InputMethodService() {
         val imageMime = uri?.let { u ->
             runCatching { contentResolver.getType(u) }.getOrNull()?.takeIf { it.startsWith("image/") }
         }
+        // Text only (gap list item 25): a picture, video or file stays on the
+        // system clipboard and out of history. One that also carries text
+        // falls through to the text path below and is stored as its text.
+        val textOnly = state.settings.clipboard.textOnly
+        if (textOnly && uri != null && item.text == null) return@OnPrimaryClipChangedListener
         // Non-image URIs are files, folders or videos copied from a file
         // manager or gallery; record them by reference (see [addFileClips])
         // rather than copying — a copied movie is routinely gigabytes.
@@ -4298,7 +4303,7 @@ open class WMKeyboardService : InputMethodService() {
                 return@OnPrimaryClipChangedListener
             }
         }
-        if (uri != null && imageMime != null) {
+        if (uri != null && imageMime != null && !textOnly) {
             // Copy the image out of the source app's content provider while the
             // clip's URI grant is valid; the store owns the file afterwards.
             serviceScope.launch(Dispatchers.IO) {
@@ -4563,7 +4568,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun refreshScreenshotObserver(settings: KeyboardSettings = _uiState.value.settings) {
         updateScreenshotObserver(
-            settings.clipboard.userScreenshots ||
+            (settings.clipboard.userScreenshots && !settings.clipboard.textOnly) ||
                 (_uiState.value.panel == PanelMode.AI_REPLY && settings.ai.reply.catchScreenshots),
         )
     }
@@ -4614,7 +4619,7 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         // Two users of one watcher: the clipboard (its setting, history on,
         // not paused) and the reply panel (open, not over a password field).
-        val forClipboard = state.settings.clipboard.userScreenshots &&
+        val forClipboard = state.settings.clipboard.userScreenshots && !state.settings.clipboard.textOnly &&
             state.settings.clipboard.history && !clipCapturePaused(state)
         val forReply = state.panel == PanelMode.AI_REPLY && !state.secureField &&
             state.settings.ai.reply.catchScreenshots
@@ -6581,8 +6586,10 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
         }
         linkPreviewsEnabled = settings.clipboard.linkPreviews
-        if (userScreenshotsEnabled != settings.clipboard.userScreenshots) {
-            userScreenshotsEnabled = settings.clipboard.userScreenshots
+        // Text only switches screenshots off too, so the watcher follows both.
+        val screenshotsWanted = settings.clipboard.userScreenshots && !settings.clipboard.textOnly
+        if (userScreenshotsEnabled != screenshotsWanted) {
+            userScreenshotsEnabled = screenshotsWanted
             refreshScreenshotObserver(settings)
         }
         if (!settings.floatingFor(landscapeNow())) floatingPanelBounds = null
@@ -10743,7 +10750,7 @@ open class WMKeyboardService : InputMethodService() {
         // so a photos grant that came after it (the toggle goes on first, the
         // permission second) or a start without one left it off until the
         // setting was toggled again (Telegram 5480). Each show looks again.
-        if (screenshotObserver == null && _uiState.value.settings.clipboard.userScreenshots) {
+        if (screenshotObserver == null && _uiState.value.settings.clipboard.let { it.userScreenshots && !it.textOnly }) {
             refreshScreenshotObserver()
         }
     }
@@ -35756,7 +35763,7 @@ open class WMKeyboardService : InputMethodService() {
         // Leaving the reply panel, by closing it or opening another: the
         // screenshot watcher goes back to what the clipboard setting says (#234).
         if (_uiState.value.panel == PanelMode.AI_REPLY) {
-            updateScreenshotObserver(_uiState.value.settings.clipboard.userScreenshots)
+            updateScreenshotObserver(_uiState.value.settings.clipboard.let { it.userScreenshots && !it.textOnly })
         }
         // Whatever the GIF/sticker panel was showing survives it closing.
         stashMediaSearch(_uiState.value)
