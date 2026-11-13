@@ -2611,6 +2611,19 @@ internal fun ModeEditor(
         }
         item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(
+                title = R.string.modes_dark_mode_title,
+                info = stringResource(R.string.modes_dark_mode_info),
+                options = listOf(
+                    null to stringResource(R.string.modes_condition_any),
+                    true to stringResource(R.string.modes_dark_mode_on),
+                    false to stringResource(R.string.modes_dark_mode_off),
+                ),
+                selected = settings.watch { modeIn(it).darkMode },
+                default = null,
+            ) { save(current().copy(darkMode = it)) }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
                 title = R.string.modes_bluetooth_title,
                 options = listOf(
                     null to stringResource(R.string.modes_condition_any),

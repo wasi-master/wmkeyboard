@@ -171,6 +171,8 @@ A mode's **apps** list, **field-type** chips and **field hints** combine as an A
 
 **Screen size**, **One-handed mode** and **Bluetooth audio** work the same way. A foldable counts as a tablet while it is open and as a phone while it is shut. **Bluetooth device names** narrows that to one device, so a mode can follow the car and not the earbuds. It only sees audio devices, by the name Android reports for them. Android doesn't tell a keyboard whether the app is in split screen or a floating window, so there's no condition for those.
 
+**Dark mode** follows the phone's own dark theme, however it turns on: by hand, on a schedule or at sunset. Set it to **On** with **Key sound** and **Key vibration** set to **Off**, and bind nothing else, and the keys go quiet whenever the phone is dark. The mode turns on and off the moment the phone switches, even with a field open. **Off** does the reverse, for a mode that only applies in light mode.
+
 **Field names** matches what an app calls the field, or the field's id number, and **Field languages** matches the languages it asks for. Few apps fill these in, so check on the app you have in mind. **Text in the field** and **Text starts with** read the field as you type, so a mode can switch on at the `/` of a chat command and off again when you delete it. These two look up to 64 characters back from the caret.
 
 **Incognito** turns incognito on for as long as the mode is active, for a work app or a browser on a shared phone. It can't turn off incognito you switched on yourself.

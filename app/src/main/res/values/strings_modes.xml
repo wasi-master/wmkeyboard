@@ -119,6 +119,10 @@
     <string name="modes_one_handed_title">One-handed mode</string>
     <string name="modes_one_handed_on">On</string>
     <string name="modes_one_handed_off">Off</string>
+    <string name="modes_dark_mode_title">Dark mode</string>
+    <string name="modes_dark_mode_info">Dark mode is the phone\'s setting, however it turns on: by hand, on a schedule or at sunset. To keep the keyboard quiet at night, select On here and set Key sound and Key vibration to Off. The mode needs no app or field type, and it follows the phone each time dark mode turns on or off.</string>
+    <string name="modes_dark_mode_on">On</string>
+    <string name="modes_dark_mode_off">Off</string>
     <string name="modes_bluetooth_title">Bluetooth audio</string>
     <string name="modes_bluetooth_on">Connected</string>
     <string name="modes_bluetooth_off">Not connected</string>

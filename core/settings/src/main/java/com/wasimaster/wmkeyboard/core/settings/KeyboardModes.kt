@@ -222,6 +222,8 @@ data class ModeContext(
     val appGroups: Set<AppGroup> = emptySet(),
     val tablet: Boolean = false,
     val oneHanded: Boolean = false,
+    /** Whether the phone is in dark mode: the night bit of the configuration's uiMode. */
+    val darkMode: Boolean = false,
     /** The Bluetooth audio outputs connected, by name; empty when no mode asks. */
     val bluetoothNames: List<String> = emptyList(),
     val fieldName: String? = null,
@@ -470,6 +472,14 @@ data class KeyboardMode(
     val screenSize: ModeScreenSize? = null,
     /** Only with one-handed mode on, or only with it off; null either way (#1025). */
     val oneHanded: Boolean? = null,
+    /**
+     * Only while the phone is in dark mode, or only while it is not; null
+     * either way. What the system's dark theme says, however it got there: by
+     * hand, on a schedule or at sunset. With [keySound] and [keyHaptics] off,
+     * this is a mode that keeps the keyboard quiet at night (competitor gap
+     * list item 22, AnySoftKeyboard's night mode) and needs no app or field.
+     */
+    val darkMode: Boolean? = null,
     /** Only with Bluetooth audio connected, or only without; null either way (#1025). */
     val bluetoothAudio: Boolean? = null,
     /**
@@ -538,8 +548,8 @@ data class KeyboardMode(
     /** Whether the device's state, the time or more of the field decides this mode. */
     val hasDeviceCondition: Boolean
         get() = orientation != null || hardwareKeyboard != null || (timeFrom != null && timeTo != null) ||
-            screenSize != null || oneHanded != null || readsBluetooth || fieldNames.isNotEmpty() ||
-            fieldLanguages.isNotEmpty() || readsFieldText
+            screenSize != null || oneHanded != null || darkMode != null || readsBluetooth ||
+            fieldNames.isNotEmpty() || fieldLanguages.isNotEmpty() || readsFieldText
 }
 
 private val modeJson = Json {
@@ -939,6 +949,7 @@ private fun KeyboardMode.matchesDevice(context: ModeContext): Boolean {
     if (hardwareKeyboard != null && hardwareKeyboard != context.hardwareKeyboard) return false
     if (screenSize != null && (screenSize == ModeScreenSize.TABLET) != context.tablet) return false
     if (oneHanded != null && oneHanded != context.oneHanded) return false
+    if (darkMode != null && darkMode != context.darkMode) return false
     if (bluetoothAudio != null && bluetoothAudio != context.bluetoothNames.isNotEmpty()) return false
     if (bluetoothNames.isNotEmpty() && context.bluetoothNames.none { device -> bluetoothNames.any { device.contains(it.trim(), ignoreCase = true) } }) {
         return false

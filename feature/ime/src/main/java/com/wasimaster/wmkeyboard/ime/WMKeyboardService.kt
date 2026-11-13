@@ -8826,7 +8826,8 @@ open class WMKeyboardService : InputMethodService() {
                 ),
             )
         }
-        // A mode kept to one way up, or to a hardware keyboard, follows it now.
+        // A mode kept to one way up, to a hardware keyboard, or to the phone's
+        // dark mode (a uiMode change lands here too) follows it now.
         if (baseSettings?.keyboardModes?.any { it.hasDeviceCondition } == true) applyManualMode(manualModeId)
         // Any configuration change can swap the ScreenVariant out from under
         // an open resize session, and its preview would then belong to the
@@ -41247,6 +41248,11 @@ open class WMKeyboardService : InputMethodService() {
         return com.wasimaster.wmkeyboard.core.settings.ModeContext(
             tablet = DeviceForm.of(resources.configuration.smallestScreenWidthDp).isTablet,
             oneHanded = base != null && base.oneHandedMode != com.wasimaster.wmkeyboard.core.settings.OneHandedMode.OFF,
+            // The phone's dark mode, not the keyboard's theme: a night mode
+            // follows the system. [onConfigurationChanged] re-picks the mode
+            // when it flips, since a dark-mode condition is a device one.
+            darkMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES,
             bluetoothNames = if (modes.any { it.readsBluetooth }) bluetoothAudioNames() else emptyList(),
             fieldName = currentFieldName,
             fieldId = currentFieldId,

@@ -96,6 +96,8 @@ The symbol row itself can switch **Symbol row** to Off for the mode it's showing
 
 **Field hints** is a list of words the field's placeholder text (the grey text of an empty box) has to contain, case ignored. One row per hint, each removable, and an **Add hint** row that opens a one-line dialog. Apps write that placeholder in their own language, so a hint added in English does not match when the app runs in another language.
 
+**Dark mode** (Any / On / Off) is one of the conditions further down the editor, with screen direction, time of day and the rest. It reads the phone's dark theme, so a mode set to On with key sound and key vibration off keeps the keyboard quiet at night with no app or field bound. See [Modes & the symbol row](/typing/modes/#how-a-mode-gets-picked).
+
 Below that is the app list. One row per bound app, resolved to its display name and falling back to the raw package name, each removable. An **Add app** row at the end opens a searchable picker of every launcher app on the device.
 
 Set apps, field types and hints together and all of them have to match, so a mode bound to your chat apps and the Text field type stays off their search boxes. Set only one and it matches on that alone. Set none and the mode is manual-only, reachable from the Modes tool. Notification replies is the single exception to the AND, as above, though a hint still has to hold. When several modes match at once, one that names a hint beats one that names a field type, which beats one that only names apps. A mode picked by hand from the Modes tool beats both, for as long as **A mode you pick by hand** says. See [How a mode gets picked](/typing/modes/#how-a-mode-gets-picked) for the full resolution order.
@@ -182,6 +184,7 @@ Keyboard modes are also a bundle on [Extensions](/reference/settings/extensions/
 | Custom symbol sets | Off, except Email/Browser/Writing/Coding |
 | Field types | Mode-specific |
 | Field hints | None on every built-in |
+| Dark mode | Any, on every built-in too |
 | Apps | Mode-specific |
 
 ## Linking to one mode

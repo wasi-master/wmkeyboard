@@ -2534,6 +2534,7 @@ internal object SettingsRowIcons {
         put(R.string.modes_hardware_keyboard_title) { Icons.Outlined.Keyboard }
         put(R.string.modes_screen_size_title) { Icons.Outlined.Devices }
         put(R.string.modes_one_handed_title) { SymbolIcons.MobileHandLeft }
+        put(R.string.modes_dark_mode_title) { Icons.Outlined.DarkMode }
         put(R.string.modes_bluetooth_title) { Icons.Outlined.Bluetooth }
         put(R.string.modes_field_empty_title) { Icons.Outlined.TextFields }
         put(R.string.modes_time_title) { Icons.Outlined.Schedule }
