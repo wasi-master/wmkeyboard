@@ -1488,33 +1488,6 @@ open class WMKeyboardService : InputMethodService() {
     private fun applyDeviceLoad(load: DeviceLoad) {
         deviceLoad = load
         ThemeFramePacing.budget = MotionBudget.of(load)
-        applyRefreshCap()
-    }
-
-    /**
-     * Asks for at most [LOADED_REFRESH_HZ] while the keyboard is up on a busy
-     * or low-end phone, through the window's preferred refresh rate.
-     *
-     * The keyboard's window sits above the app's, so its preference is the
-     * one the window manager finds first (see ScrollFrameRate.kt), and a
-     * 90 or 120 Hz panel then draws everything, the app behind included, at
-     * 60 for as long as the keyboard is up. Half the frames is half the work
-     * for the processor and the graphics chip, which is what a struggling
-     * phone needs most; nobody sees the difference while typing. Scrolling
-     * still asks for the fast mode by its own display mode request, which
-     * outranks this one, and touch boost stays on.
-     *
-     * One window update when the level changes, none per frame.
-     */
-    private fun applyRefreshCap() {
-        val imeWindow = window?.window ?: return
-        val cap = if (deviceLoad.budgetLevel != LoadLevel.NORMAL) LOADED_REFRESH_HZ else 0f
-        runCatching {
-            if (imeWindow.attributes.preferredRefreshRate == cap) return
-            val attrs = android.view.WindowManager.LayoutParams().apply { copyFrom(imeWindow.attributes) }
-            attrs.preferredRefreshRate = cap
-            imeWindow.attributes = attrs
-        }
     }
 
     /** Pending [scheduleWarmUps]. */
@@ -11161,8 +11134,6 @@ open class WMKeyboardService : InputMethodService() {
         onKeyguardGone()
         lifecycleOwner.onResume()
         jankMonitor.start(window.window)
-        // The refresh cap is a window attribute, set again for a fresh window.
-        applyRefreshCap()
         // The board's own frames are one of the load readings.
         if (_uiState.value.settings.powerSaving.adaptToLoad) loadGovernor.attach(window.window)
         // The screenshot watcher was only registered when the setting changed,
@@ -62006,9 +61977,6 @@ open class WMKeyboardService : InputMethodService() {
 
         /** The opening frames the warm-ups stay out of. */
         private const val WARM_UP_FIRST_FRAMES_MS = 300L
-
-        /** The refresh rate a busy or low-end phone draws at while the keyboard is up; see [applyRefreshCap]. */
-        private const val LOADED_REFRESH_HZ = 60f
 
         /**
          * How long a suggestion pass waits for IndicXlit, counted from the
