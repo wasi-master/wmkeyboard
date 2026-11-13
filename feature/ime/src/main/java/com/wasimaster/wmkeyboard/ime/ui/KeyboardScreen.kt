@@ -9,7 +9,13 @@ import android.view.View
 import android.view.WindowManager
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterExitState
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.Animatable
@@ -10964,7 +10970,7 @@ private fun Modifier.animateSharedPlacement(
  * nothing, so the flip only made them look swapped (#970).
  */
 @Composable
-private fun ToolGlyph(slot: String, description: String, modifier: Modifier, tint: Color, brush: Brush?) {
+private fun ToolGlyph(slot: String, description: String?, modifier: Modifier, tint: Color, brush: Brush?) {
     if (slot == UndoToolSlot || slot == RedoToolSlot) {
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             SlotIcon(slot, contentDescription = description, modifier = modifier, tint = tint, brush = brush)
@@ -10973,6 +10979,60 @@ private fun ToolGlyph(slot: String, description: String, modifier: Modifier, tin
         SlotIcon(slot, contentDescription = description, modifier = modifier, tint = tint, brush = brush)
     }
 }
+
+/**
+ * A [ToolGlyph] that turns into its next icon instead of swapping on one frame:
+ * the toolbox button becoming the way back while the toolbox is open (#1251).
+ *
+ * Not a path morph. The icons can come from a user's pack, as bitmaps or as
+ * vectors with nothing in common, so the motion is drawn around the glyphs
+ * rather than through them: the old one turns a quarter, shrinks and fades
+ * while the new one turns in from the other side and grows into place. The
+ * back arrow always arrives from, and leaves towards, the same side, so closing
+ * is the opening played backwards rather than a second, different spin.
+ */
+@Composable
+private fun ToolGlyphSwap(slot: String, description: String, modifier: Modifier, tint: Color, brush: Brush?) {
+    // The quarter turn runs towards reading start, the way the arrow points.
+    val turn = if (LocalLayoutDirection.current == LayoutDirection.Rtl) -ToolGlyphTurn else ToolGlyphTurn
+    AnimatedContent(
+        targetState = slot,
+        transitionSpec = {
+            val grow = tween<Float>(ToolGlyphMorphMs, easing = FastOutSlowInEasing)
+            // Out a little faster than in, so the two never sit at full
+            // strength over each other in the middle of the turn.
+            val leave = tween<Float>(ToolGlyphMorphMs * 2 / 3, easing = FastOutSlowInEasing)
+            (fadeIn(grow) + scaleIn(grow, initialScale = 0.4f))
+                .togetherWith(fadeOut(leave) + scaleOut(leave, targetScale = 0.4f))
+                .using(SizeTransform(clip = false))
+        },
+        contentAlignment = Alignment.Center,
+        label = "toolGlyphSwap",
+    ) { shown ->
+        // The back arrow lives on the + side of the turn and every other glyph
+        // on the - side, so whichever way the swap goes both turn the same way.
+        val side = if (shown == IconSlots.CHROME_PANEL_BACK) turn else -turn
+        val rotation by transition.animateFloat(
+            transitionSpec = { tween(ToolGlyphMorphMs, easing = FastOutSlowInEasing) },
+            label = "toolGlyphTurn",
+        ) { state -> if (state == EnterExitState.Visible) 0f else side }
+        ToolGlyph(
+            shown,
+            // Only the icon being arrived at names the button: the leaving one
+            // is still drawn for a few frames, and two names would be read out.
+            description.takeIf { shown == slot },
+            modifier = modifier.graphicsLayer { rotationZ = rotation },
+            tint = tint,
+            brush = brush,
+        )
+    }
+}
+
+/** How long [ToolGlyphSwap] takes; a touch over [ToolbarMotionMs], since the turn is what the eye is on. */
+private const val ToolGlyphMorphMs = 200
+
+/** The quarter turn [ToolGlyphSwap] spins its glyphs through, in degrees. */
+private const val ToolGlyphTurn = 90f
 
 private val UndoToolSlot = IconSlots.forTool(ToolbarTool.UNDO)
 private val RedoToolSlot = IconSlots.forTool(ToolbarTool.REDO)
@@ -11024,15 +11084,25 @@ internal fun ToolCircle(
     // The labelled button's widest, in dp: a longer name is cut short rather
     // than widening the button (#970). Null lets the name set the width.
     labelMaxWidthDp: Int? = null,
+    // A change of [slot] or [active] animates (see [ToolGlyphSwap]) instead of
+    // snapping: for the one button whose icon changes under the finger.
+    morph: Boolean = false,
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
     val shape = kb.toolShape()
-    val background = when {
+    val restingBackground = when {
         ghost -> kb.toolCircleActive.copy(alpha = 0.22f)
         active -> kb.toolCircleActive
         kb.toolRadiusDp > 0 -> kb.toolCircle
         else -> Color.Transparent
+    }
+    // Only a morphing button pays for the colour animation; the rest of the
+    // bar's buttons (and every grid of them) keep the plain value.
+    val background = if (morph) {
+        animateColorAsState(restingBackground, tween(ToolGlyphMorphMs), label = "toolFill").value
+    } else {
+        restingBackground
     }
     val outline = when {
         // The ghost's own dashed-out look wins: it is saying "will go here",
@@ -11065,9 +11135,21 @@ internal fun ToolCircle(
             )
         }
     }
-    val fullTint = if (active) kb.toolCircleActiveIcon else (tint ?: kb.toolbarIcon)
+    val restingTint = if (active) kb.toolCircleActiveIcon else (tint ?: kb.toolbarIcon)
+    val fullTint = if (morph) {
+        animateColorAsState(restingTint, tween(ToolGlyphMorphMs), label = "toolTint").value
+    } else {
+        restingTint
+    }
     val iconTint = if (ghost) fullTint.copy(alpha = 0.45f) else fullTint
     val iconBrush = if (active || ghost) null else tintBrush
+    val glyph: @Composable (Modifier) -> Unit = { glyphModifier ->
+        if (morph) {
+            ToolGlyphSwap(slot, description, glyphModifier, iconTint, iconBrush)
+        } else {
+            ToolGlyph(slot, description, glyphModifier, iconTint, iconBrush)
+        }
+    }
     if (label != null) {
         // Labelled variant (toolbar labels): icon in its circle, name beneath.
         Column(
@@ -11089,10 +11171,8 @@ internal fun ToolCircle(
                     .then(outline),
                 contentAlignment = Alignment.Center,
             ) {
-                ToolGlyph(
-                    slot,
-                    description,
-                    modifier = Modifier
+                glyph(
+                    Modifier
                         // Two under the Tool icon size setting and capped at 26:
                         // this box is 30 dp, not 38, because the name underneath
                         // has to fit in the same toolbar height. A bigger glyph
@@ -11103,8 +11183,6 @@ internal fun ToolCircle(
                         // Lifted, not shrunk, so the badge below has room inside
                         // a box whose size must not change (see [HintBadge]).
                         .offset(y = if (hint != null) -(HintBadgeHeight / 2) else 0.dp),
-                    tint = iconTint,
-                    brush = iconBrush,
                 )
                 // Under the icon, over the name: the badge is temporary and the
                 // name is what the labels setting was turned on for, so the
@@ -11148,10 +11226,8 @@ internal fun ToolCircle(
             .then(click),
         contentAlignment = Alignment.Center,
     ) {
-        ToolGlyph(
-            slot,
-            description,
-            modifier = Modifier
+        glyph(
+            Modifier
                 .size(
                     when {
                         compact -> CompactToolIconSize
@@ -11163,8 +11239,6 @@ internal fun ToolCircle(
                 // under it rather than across it. The button's own 38 dp box is
                 // untouched, so nothing on the bar moves.
                 .offset(y = if (hint != null) -(HintBadgeHeight / 2) else 0.dp),
-            tint = iconTint,
-            brush = iconBrush,
         )
         if (hint != null) {
             HintBadge(hint, modifier = Modifier.align(Alignment.BottomCenter))
@@ -12005,6 +12079,7 @@ private fun ToolsColumn(
             slot = if (toolboxIsBack) IconSlots.CHROME_PANEL_BACK else IconSlots.CHROME_TOOLBOX,
             description = toolboxDesc,
             active = customizing,
+            morph = motion,
             label = toolboxDesc.takeIf { labels },
             labelSizeSp = labelSize,
             labelMaxWidthDp = labelMaxWidth,
@@ -12386,6 +12461,8 @@ private fun RowScope.ToolbarRow(
                 slot = if (toolboxIsBack) IconSlots.CHROME_PANEL_BACK else IconSlots.CHROME_TOOLBOX,
                 description = toolboxButtonDesc,
                 active = customizing,
+                // Turns into the arrow rather than swapping on a frame.
+                morph = motion,
                 // The launcher wears its name alongside the tools it sits with:
                 // with labels on, one bare icon at the head of a row of named
                 // buttons reads as a button that forgot its own label, and it
