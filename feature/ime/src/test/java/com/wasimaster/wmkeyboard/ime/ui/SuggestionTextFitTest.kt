@@ -5,7 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** The width-fitting maths behind the suggestion strip's shrinking words. */
+/** The width-fitting maths behind the suggestion strip's squeezed and shrunk words. */
 class SuggestionTextFitTest {
 
     @Test
@@ -24,20 +24,20 @@ class SuggestionTextFitTest {
     }
 
     @Test
-    fun `mild overflow shrinks the font only`() {
-        // 20% too wide: 0.8 is still above the 0.68 font floor, so no condensing.
-        val fit = fitSuggestionText(measuredWidthPx = 150f, availableWidthPx = 120f)
-        assertEquals(0.8f, fit.fontScale, 0.001f)
-        assertEquals(1f, fit.scaleX, 0f)
-        assertFalse(fit.condensed)
+    fun `mild overflow condenses the glyphs only`() {
+        // 10% too wide: 0.91 is above the 0.8 squeeze floor, so the font keeps its size.
+        val fit = fitSuggestionText(measuredWidthPx = 132f, availableWidthPx = 120f)
+        assertEquals(120f / 132f, fit.scaleX, 0.001f)
+        assertEquals(1f, fit.fontScale, 0f)
+        assertTrue(fit.condensed)
     }
 
     @Test
-    fun `heavy overflow pins the font floor and condenses the rest`() {
-        // Needs 0.6; the font stops at 0.68, so the glyphs take 0.6 / 0.68.
+    fun `heavy overflow pins the squeeze floor and shrinks the rest`() {
+        // Needs 0.6; the glyphs stop at 0.8, so the font takes 0.6 / 0.8.
         val fit = fitSuggestionText(measuredWidthPx = 200f, availableWidthPx = 120f)
-        assertEquals(0.68f, fit.fontScale, 0.001f)
-        assertEquals(0.6f / 0.68f, fit.scaleX, 0.001f)
+        assertEquals(0.8f, fit.scaleX, 0.001f)
+        assertEquals(0.75f, fit.fontScale, 0.001f)
         assertTrue(fit.condensed)
     }
 

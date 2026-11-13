@@ -77,6 +77,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.plugins.PluginColorRole
 import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
 import com.wasimaster.wmkeyboard.core.plugins.PluginWidget
+import com.wasimaster.wmkeyboard.core.ui.FitText
 import com.wasimaster.wmkeyboard.plugins.R
 
 /** The theme colour for a [PluginColorRole]; null is the panel's text colour. */
@@ -524,14 +525,7 @@ private fun Segmented(options: List<PluginWidget.Option>, value: String?, onPick
                     .padding(horizontal = 12.dp),
             ) {
                 if (chosen) style.icon(ICON_CHECK, style.onAccentContainer, 16.dp)
-                Text(
-                    option.label,
-                    color = if (chosen) style.onAccentContainer else style.onSurface,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                FitText(option.label, BUTTON_LABEL, color = if (chosen) style.onAccentContainer else style.onSurface)
             }
         }
     }

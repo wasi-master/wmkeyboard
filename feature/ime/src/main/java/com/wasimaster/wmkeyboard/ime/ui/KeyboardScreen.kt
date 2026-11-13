@@ -432,7 +432,10 @@ import com.wasimaster.wmkeyboard.ime.AppColors
 import com.wasimaster.wmkeyboard.core.theme.keyShapeFor
 import com.wasimaster.wmkeyboard.core.theme.brush
 import com.wasimaster.wmkeyboard.core.theme.keyShapeKindOrNull
+import com.wasimaster.wmkeyboard.core.ui.MIN_TEXT_FONT_SCALE
+import com.wasimaster.wmkeyboard.core.ui.MIN_TEXT_SCALE_X
 import com.wasimaster.wmkeyboard.core.ui.ToolPaint
+import com.wasimaster.wmkeyboard.core.ui.fitTextWidth
 import com.wasimaster.wmkeyboard.core.ui.toolAccentPaint
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.handwriting.HwPoint
@@ -6959,19 +6962,6 @@ private val SuggestionTextPadding = 6.dp
 private val SuggestionFontSize = 16.sp
 
 /**
- * How small a suggestion's font may go, as a fraction of the base size — 16sp
- * down to about 11sp. Past this the word condenses horizontally instead, because
- * shrinking further costs legibility faster than it buys width.
- */
-private const val MinSuggestionFontScale = 0.68f
-
-/**
- * How far a suggestion may be squeezed horizontally. Below roughly 0.8 the
- * letterforms visibly distort, so anything still too long after this ellipsizes.
- */
-private const val MinSuggestionScaleX = 0.8f
-
-/**
  * How a suggestion word is scaled down to fit its slot.
  *
  * [fontScale] multiplies the base font size; [scaleX] condenses the glyphs
@@ -6984,27 +6974,21 @@ internal data class SuggestionTextFit(val fontScale: Float, val scaleX: Float) {
 }
 
 /**
- * Works out how to fit a suggestion of [measuredWidthPx] into [availableWidthPx].
- *
- * Two stages, in the order that costs the least legibility: shrink the point
- * size first (text width is near enough linear in font size, so the ratio of the
- * two widths *is* the scale), and only once that hits [MinSuggestionFontScale]
- * start condensing the glyphs. Together the two floors fit a word about 1.8× the
- * slot width; longer than that and the caller's ellipsis takes over.
+ * Works out how to fit a suggestion of [measuredWidthPx] into [availableWidthPx],
+ * the way Gboard does: condense the glyphs first, down to [minScaleX], so a long
+ * word stays as tall as its neighbours, and only then shrink the font, down to
+ * [minFontScale]. The shared [fitTextWidth] does the sums, so plugin buttons fit
+ * their labels the same way. Together the two floors fit a word about 1.8 times
+ * the slot width; longer than that and the caller's ellipsis takes over.
  */
 internal fun fitSuggestionText(
     measuredWidthPx: Float,
     availableWidthPx: Float,
-    minFontScale: Float = MinSuggestionFontScale,
-    minScaleX: Float = MinSuggestionScaleX,
+    minFontScale: Float = MIN_TEXT_FONT_SCALE,
+    minScaleX: Float = MIN_TEXT_SCALE_X,
 ): SuggestionTextFit {
-    if (availableWidthPx <= 0f || measuredWidthPx <= 0f || measuredWidthPx <= availableWidthPx) {
-        return SuggestionTextFit(1f, 1f)
-    }
-    val needed = availableWidthPx / measuredWidthPx
-    val fontScale = needed.coerceAtLeast(minFontScale)
-    val scaleX = (needed / fontScale).coerceIn(minScaleX, 1f)
-    return SuggestionTextFit(fontScale, scaleX)
+    val fit = fitTextWidth(measuredWidthPx, availableWidthPx, minScaleX = minScaleX, minFontScale = minFontScale)
+    return SuggestionTextFit(fit.fontScale, fit.scaleX)
 }
 
 /**

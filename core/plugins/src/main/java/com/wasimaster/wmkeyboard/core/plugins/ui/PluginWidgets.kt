@@ -69,6 +69,7 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginDates
 import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
 import com.wasimaster.wmkeyboard.core.plugins.PluginLabelStyle
 import com.wasimaster.wmkeyboard.core.plugins.PluginWidget
+import com.wasimaster.wmkeyboard.core.ui.FitText
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import com.wasimaster.wmkeyboard.plugins.R
 import kotlinx.coroutines.delay
@@ -257,14 +258,9 @@ internal fun PluginButton(
     ) {
         if (icon != null) style.icon(icon, content, 18.dp)
         if (label.isNotEmpty()) {
-            Text(
-                label,
-                color = content,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            // Squeezed, then shrunk, before an ellipsis: a short label beside
+            // an icon in a narrow cell reads whole rather than as "Ope…".
+            FitText(label, BUTTON_LABEL, color = content)
         }
     }
 }
@@ -861,6 +857,9 @@ private fun TabsWidget(
 }
 
 private val BUTTON_HEIGHT = 40.dp
+
+/** A button's label before [FitText] squeezes or shrinks it. */
+internal val BUTTON_LABEL = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium)
 private val FIELD_HEIGHT = 52.dp
 internal val ROW_HEIGHT = 48.dp
 private const val DISABLED_ALPHA = 0.38f

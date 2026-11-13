@@ -74,7 +74,7 @@ everything you created at the top level.
 | Widget | Use it for |
 |---|---|
 | `ui.column(...)` | Things top to bottom. The usual outer container. |
-| `ui.row(..., weights=[3, 1])` | Things side by side. A row of buttons splits the width evenly; next to a box, a button keeps its own width. `weights` shares out the width yourself. |
+| `ui.row(..., weights=[3, 1])` | Things side by side. A row of buttons splits the width evenly; next to a box, a button keeps its own width. `weights` shares out the width yourself. A label too long for its button narrows its letters first, then gets smaller, and is cut short with "…" only after both. |
 | `ui.grid(..., columns=3)` | A grid of equal cells: buttons, stats, pictures. |
 | `ui.card(..., title=, on_click=)` | A group that belongs together. Pressable with `on_click`. |
 | `ui.section(title, ..., collapsible=True)` | A titled part of a long panel that the user can fold. |
