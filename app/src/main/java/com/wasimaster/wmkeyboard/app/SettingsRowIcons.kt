@@ -368,6 +368,11 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension as ExtensionIcon
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ToggleOn
 import com.wasimaster.wmkeyboard.core.settings.Extension
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Blinds
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bookmark
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Forum
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PictureAsPdf
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sms
 import com.wasimaster.wmkeyboard.common.R as CommonR
 
 /**
@@ -2600,6 +2605,59 @@ internal object SettingsRowIcons {
         put(R.string.shell_access_spell_checker_title) { Icons.Outlined.Spellcheck }
         put(R.string.shell_access_reply_screen_title) { Icons.Outlined.Quickreply }
         put(R.string.shell_access_capture_title) { Icons.Outlined.Screenshot }
+
+        // ---- Feedback and settings-app display ----
+        put(R.string.feedback_open_title) { Icons.Outlined.Forum }
+        put(R.string.feedback_shake_title) { Icons.Outlined.Vibration }
+        put(R.string.feedback_screenshot_title) { Icons.Outlined.Screenshot }
+        put(R.string.feedback_telegram_route_title) { Icons.AutoMirrored.Outlined.Send }
+        put(R.string.settings_switched_off_rows_title) { Icons.Outlined.ToggleOn }
+        put(R.string.settings_also_under_title) { Icons.Outlined.AltRoute }
+
+        // ---- Layout and keys ----
+        put(R.string.layout_number_row_hints_title) { Icons.Outlined.Tag }
+        put(R.string.layout_full_height_window_title) { Icons.Outlined.Height }
+        put(R.string.custombuttons_title) { Icons.Outlined.SmartButton }
+        put(R.string.layout_editor_plugin_row_title) { Icons.Outlined.Extension }
+        put(R.string.typing_modifier_drag_title) { Icons.Outlined.OpenWith }
+        put(R.string.languages_legacy_font_title) { Icons.Outlined.FontDownload }
+        put(R.string.typing_hw_follow_layout_title) { Icons.Outlined.Keyboard }
+        put(R.string.typing_rank_marks_title) { Icons.Outlined.Bookmark }
+        put(R.string.typing_smart_contact_message_title) { Icons.Outlined.Sms }
+        put(R.string.floating_button_category_pack_icon_title) { Icons.Outlined.Category }
+
+        // ---- Immich and Paperless ----
+        put(R.string.gallery_immich_check_title) { Icons.Outlined.NetworkCheck }
+        put(R.string.paperless_check_title) { Icons.Outlined.NetworkCheck }
+        put(R.string.paperless_after_title) { Icons.Outlined.DocumentScanner }
+        put(R.string.paperless_tags_title) { Icons.Outlined.Sell }
+        put(R.string.paperless_correspondent_title) { Icons.Outlined.Person }
+        put(R.string.paperless_type_title) { Icons.Outlined.Description }
+        put(R.string.paperless_one_pdf_title) { Icons.Outlined.PictureAsPdf }
+        put(R.string.paperless_wifi_only_title) { Icons.Outlined.Wifi }
+        put(R.string.paperless_queue_title) { Icons.Outlined.CloudUpload }
+        put(R.string.paperless_queue_clear_title) { Icons.Outlined.DeleteSweep }
+
+        // ---- Clipboard, restore points, search shortcuts ----
+        put(R.string.clipboard_board_title) { Icons.Outlined.Folder }
+        put(R.string.restore_undo_ten_minutes_title) { Icons.AutoMirrored.Outlined.Undo }
+        put(R.string.restore_undo_hour_title) { Icons.AutoMirrored.Outlined.Undo }
+        put(R.string.restore_history_clear_title) { Icons.Outlined.DeleteSweep }
+        put(R.string.search_shortcuts_reset_title) { Icons.Outlined.Restore }
+
+        // ---- Tool pages and floating boxes ----
+        put(R.string.tooldetail_incognito_badge_title) { Icons.Outlined.VisibilityOff }
+        put(R.string.tooldetail_privacy_shade_on_title) { Icons.Outlined.Blinds }
+        put(R.string.tooldetail_privacy_shade_style_title) { Icons.Outlined.ColorLens }
+        put(R.string.tooldetail_privacy_shade_opacity_title) { Icons.Outlined.Opacity }
+        put(R.string.tooldetail_privacy_shade_touch_title) { Icons.Outlined.TouchApp }
+        put(R.string.tooldetail_translate_manual_title) { Icons.Outlined.Translate }
+        put(R.string.tooldetail_translate_live_delay_title) { Icons.Outlined.Timer }
+        put(R.string.files_tool_two_panes_title) { Icons.Outlined.VerticalSplit }
+        put(R.string.tooldetail_float_on_tap_title) { Icons.Outlined.PictureInPictureAlt }
+        put(R.string.tooldetail_box_close_outside_title) { Icons.Outlined.PictureInPictureAlt }
+        put(R.string.tools_box_gestures_title) { Icons.Outlined.Gesture }
+        put(R.string.tools_box_hold_to_move_title) { Icons.Outlined.OpenWith }
     }
 
     operator fun get(@StringRes id: Int): ImageVector? = map[id]?.invoke()
