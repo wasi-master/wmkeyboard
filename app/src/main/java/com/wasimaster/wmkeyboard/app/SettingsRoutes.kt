@@ -235,6 +235,7 @@ internal object SettingsRoutes {
         "storage",
         "storage/{category}",
         "resources",
+        "debug_info",
         "feature_libraries",
         "import_hub",
         "statistics",

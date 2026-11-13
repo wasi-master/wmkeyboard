@@ -2339,6 +2339,11 @@ private fun SettingsNavGraph(
         }
         // The custom Double Pinyin scheme (#502). Its own Scaffold, like the
         // layout JSON editor: the scheme is a page of text and needs the height.
+        // Every snippet as one text document (gap list item 33). Its own
+        // Scaffold, like the scheme editor below: it needs the height.
+        composable(SNIPPETS_TEXT_ROUTE) {
+            SnippetTextScreen(settings) { navController.popBackStack() }
+        }
         composable(DOUBLE_PINYIN_CUSTOM_ROUTE) {
             DoublePinyinSchemeScreen(repository, settings) { navController.popBackStack() }
         }
@@ -3026,6 +3031,7 @@ private fun SettingsNavGraph(
                     onOpenDebugLog = { navController.navigate("debug_log") },
                     onOpenStorage = { navController.navigate("storage") },
                     onOpenResources = { navController.navigate("resources") },
+                    onOpenDebugInfo = { navController.navigate("debug_info") },
                     onOpenImportHub = { navController.navigate("import_hub") },
                     onOpenStatistics = { navController.navigate("statistics") },
                     onOpenEggGame = { navController.navigate("egg_game") },
@@ -3064,6 +3070,15 @@ private fun SettingsNavGraph(
                 route = "resources",
             ) {
                 ResourcesScreen(useRoot = settings.watch { it.launcher.useRoot }) { navController.navigate(it) }
+            }
+        }
+        composable("debug_info") {
+            SettingsScreen(
+                stringResource(R.string.about_debug_info_title),
+                { navController.popBackStack() },
+                route = "debug_info",
+            ) {
+                DebugInfoScreen()
             }
         }
         composable("feature_libraries") {

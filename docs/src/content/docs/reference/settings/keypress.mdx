@@ -100,6 +100,8 @@ A theme can carry a key sound of its own, and where it does, it wins over everyt
 | Popup sideways shift *(same)* | Slider | −64–64 dp | 0 dp |
 | Popup shape | Nav row (shape picker) | the twelve key shapes | Rounded |
 | Popup corner radius | Slider | 0–40 dp | 12 dp |
+| Preview bubble width *(shown only while Key popup is on)* | Slider | ×0.60–×2.00 | ×1.00 |
+| Preview bubble corner radius *(same)* | Slider | Same as popups, or 0–40 dp | Same as popups |
 | Popup color *(shown only while Key popup is on)* | Color picker | any color, or Automatic | Automatic |
 | Popup text color *(same)* | Color picker | any color, or Automatic | Automatic |
 
@@ -114,6 +116,18 @@ A theme can carry a key sound of its own, and where it does, it wins over everyt
 **Popup color** and **Popup text color** are the bubble's background and the character inside it. Both read **Automatic** until you pick one, which means the bubble follows the keyboard theme. A color picked here wins over the theme, and the reset control on the row puts it back to Automatic. Unlike the shape and the radius, these two stop at the preview bubble: press-and-hold alternates, the language picker and the panel menus stay on the theme's popup color. A per-key style from a layout still overrides both.
 
 **Popup shape** and **Popup corner radius** reach past the preview bubble. They set the outline of every popup surface the keyboard draws, press-and-hold alternates, the language picker and the panel menus included. The radius applies only to the rounded and cut shapes. The rest size their corners off the popup itself. A theme can override either one.
+
+**Preview bubble width** and **Preview bubble corner radius** stop at the character bubble. At ×1.00 the width is what the bubble has always drawn: a little wider than the key in the on-key style, and just wide enough for the character when it floats. Above that the bubble grows in proportion to the key under it, in either style. Below it the bubble narrows by giving up the space on each side of the character first. The corner radius starts at **Same as popups**, which follows **Popup corner radius** (or the theme's popup radius); move it up and the bubble keeps a radius of its own while the alternates and menus keep the shared one. Like the shared radius, it only changes the rounded and cut shapes.
+
+### Pop text
+
+<SettingsPath path="Key press / Key popup / Pop text" />
+
+| Setting | Control | Options | Default |
+|---|---|---|---|
+| Pop text | Segmented choice | Never, Corrections, Words, Every key | Never |
+
+A decoration: what you type floats up out of the keyboard and fades. **Corrections** shows only a word that autocorrect changed, rising from the space bar. **Words** shows every word as you finish it. **Every key** also floats each character up from the key you pressed. Nothing shows while Reduce motion is on, or while [power saving](/typing/power-saving/) stops animations, whatever this is set to; the row says so then.
 
 <PhoneFrame side caption="Key popup and Timing groups, mid-screen.">
   <Shot id="reference/settings/keypress-popup-timing" alt="Key popup and Timing groups, mid-screen." />

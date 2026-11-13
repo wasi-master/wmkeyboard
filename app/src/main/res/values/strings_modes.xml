@@ -119,6 +119,10 @@
     <string name="modes_one_handed_title">One-handed mode</string>
     <string name="modes_one_handed_on">On</string>
     <string name="modes_one_handed_off">Off</string>
+    <string name="modes_dark_mode_title">Dark mode</string>
+    <string name="modes_dark_mode_info">Dark mode is the phone\'s setting, however it turns on: by hand, on a schedule or at sunset. To keep the keyboard quiet at night, select On here and set Key sound and Key vibration to Off. The mode needs no app or field type, and it follows the phone each time dark mode turns on or off.</string>
+    <string name="modes_dark_mode_on">On</string>
+    <string name="modes_dark_mode_off">Off</string>
     <string name="modes_bluetooth_title">Bluetooth audio</string>
     <string name="modes_bluetooth_on">Connected</string>
     <string name="modes_bluetooth_off">Not connected</string>
@@ -215,6 +219,9 @@
     <string name="modes_glide_info">Off makes every tap type exactly its key: a tap that drifts across the keys can no longer start a swipe. With autocorrect, suggestions and automatic spaces off too, this is a peck mode for codes, handles, slang and anything else the keyboard would try to fix.</string>
     <string name="modes_commit_as_typed_title">Commit every key</string>
     <string name="modes_commit_as_typed_info">On sends each key to the field the moment you press it, with no word held back. For terminals and code editors that show a word late. There is then no word for the strip to complete or autocorrect to fix.</string>
+    <string name="modes_word_chars_title">Characters inside words</string>
+    <string name="modes_word_chars_subtitle">None. A word stops at each symbol</string>
+    <string name="modes_word_chars_info">Type the symbols that stay inside a word in this mode, with nothing between them. For example, type %_ so that a Tasker variable such as %output_var stays one word. A word with one of these symbols goes in as you type it: there are no suggestions for it and autocorrect does not change it. Letters, digits and spaces are ignored.</string>
     <string name="modes_incognito_title">Incognito</string>
     <string name="modes_incognito_info">On turns incognito on while this mode is active, with whatever you have set it to pause. It can\'t turn off incognito you switched on yourself.</string>
     <string name="modes_key_sound_title">Key sound</string>

@@ -186,6 +186,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.VerticalDivider
+import com.wasimaster.wmkeyboard.core.plugins.displayName
 import com.wasimaster.wmkeyboard.core.tools.PhotoBackgroundManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -400,6 +401,8 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
 import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
 import com.wasimaster.wmkeyboard.core.clipboard.ClipSensitivity
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtp
+import com.wasimaster.wmkeyboard.core.emoji.EmojiDefaultFace
+import com.wasimaster.wmkeyboard.core.emoji.EmojiEntry
 import com.wasimaster.wmkeyboard.core.emoji.EmojiNames
 import com.wasimaster.wmkeyboard.core.emoji.EmojiVariantIndex
 import com.wasimaster.wmkeyboard.core.emoji.KaomojiLibrary
@@ -448,6 +451,8 @@ import com.wasimaster.wmkeyboard.core.settings.RecentWordPlacement
 import com.wasimaster.wmkeyboard.core.settings.RetypeButtonPlace
 import com.wasimaster.wmkeyboard.core.settings.SelectionMacroPlacement
 import com.wasimaster.wmkeyboard.core.settings.LatinAccents
+import com.wasimaster.wmkeyboard.core.settings.EmojiDefaultGender
+import com.wasimaster.wmkeyboard.core.settings.EmojiSettings
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarContent
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarCountRange
 import com.wasimaster.wmkeyboard.core.script.ScriptId
@@ -490,6 +495,10 @@ import com.wasimaster.wmkeyboard.core.settings.LayoutBehaviorSettings
 import com.wasimaster.wmkeyboard.core.settings.TopRowHolds
 import com.wasimaster.wmkeyboard.core.settings.OneHandedSide
 import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
+import com.wasimaster.wmkeyboard.core.settings.KeyLabelCase
+import com.wasimaster.wmkeyboard.core.settings.KeyPreviewRadiusRange
+import com.wasimaster.wmkeyboard.core.settings.KeyPreviewWidthScaleRange
+import com.wasimaster.wmkeyboard.core.settings.PopTextMode
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeUp
 import com.wasimaster.wmkeyboard.core.settings.pressedAction
@@ -620,6 +629,7 @@ import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCounts
 import com.wasimaster.wmkeyboard.core.layout.actionOf
 import com.wasimaster.wmkeyboard.core.layout.PinchGesture
+import com.wasimaster.wmkeyboard.core.layout.oneFingerActionOf
 import com.wasimaster.wmkeyboard.core.layout.effectiveChords
 import com.wasimaster.wmkeyboard.core.layout.PAD_SPACE_LABEL
 import com.wasimaster.wmkeyboard.core.layout.FlickArm
@@ -682,6 +692,8 @@ import com.wasimaster.wmkeyboard.core.layout.opensAlternatesPopup
 import com.wasimaster.wmkeyboard.core.layout.expandNumberRowForTablet
 import com.wasimaster.wmkeyboard.core.layout.gridWeightOf
 import com.wasimaster.wmkeyboard.core.layout.hasRowSpans
+import com.wasimaster.wmkeyboard.core.layout.HexBoard
+import com.wasimaster.wmkeyboard.core.layout.hexBoard
 import com.wasimaster.wmkeyboard.core.layout.KeySlot
 import com.wasimaster.wmkeyboard.core.layout.roleIn
 import com.wasimaster.wmkeyboard.core.layout.rowScaledKeyHeight
@@ -716,6 +728,14 @@ import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
  * not on release when the key's action commits.
  */
 internal val LocalKeyPressFeedback = staticCompositionLocalOf<() -> Unit> { {} }
+
+/**
+ * Where a language swipe or the language list starts when the layout on screen
+ * is not in the cycle: the layout the pinned Secondary layout board
+ * interrupted (#1230). Held in a [State] read only when a swipe starts, so a
+ * board toggle recomposes nothing.
+ */
+internal val LocalLanguageAnchor = staticCompositionLocalOf<State<String?>> { mutableStateOf(null) }
 
 /**
  * The bottom padding under the key rows (see `bottomRoom` in
@@ -1644,6 +1664,7 @@ fun KeyboardScreen(
             ),
             LocalSelectionTools provides selectionTools(bodyState, capture.onAiChat),
             LocalOctopusWords provides rememberUpdatedState(bodyState.octopus),
+            LocalLanguageAnchor provides rememberUpdatedState(bodyState.languageAnchorId),
             LocalLiveWpmPrivate provides rememberLiveWpmPrivate(bodyState),
             // Only while something is composing, so a list the service has not
             // cleared yet never outlives the reading it was for.
@@ -7399,11 +7420,13 @@ private fun ClipboardSuggestionChip(
     // A press and hold deletes the copy (#612); not a part of one, whose
     // clip is more than what the chip shows.
     val onDelete = LocalClipChipDelete.current?.takeIf { otp == null }
-    val tint = kb.accent
+    // The theme's own chip colours where it names them (gap list item 28),
+    // else the accent tint the chip always wore.
+    val tint = kb.clipChipInk()
     // The fragment chip is an outline, not a solid — same language as the
     // clipboard panel's own fragment chips, and unmistakably not the ordinary
     // "paste what you copied" pill.
-    val fill = if (otp != null) Color.Transparent else tint.copy(alpha = if (kb.dark) 0.20f else 0.11f)
+    val fill = if (otp != null) Color.Transparent else kb.clipChipFill()
 
     val bitmap by produceState<ImageBitmap?>(initialValue = null, clip.imagePath) {
         if (clip.kind == ClipKind.IMAGE && clip.imagePath != null) {
@@ -7526,7 +7549,7 @@ private fun ClipboardSuggestionChip(
                 // over the board. A theme whose keys invert the board — dark
                 // letters on cream caps over a near-black board — draws the
                 // key colour invisible here.
-                color = kb.suggestionText,
+                color = kb.clipChipText ?: kb.suggestionText,
                 fontSize = 13.sp,
                 fontWeight = if (otp != null) FontWeight.Medium else FontWeight.Normal,
                 maxLines = 1,
@@ -9467,6 +9490,8 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.RECENT_COPIES -> R.string.ime_tool_recent_copies
     ToolbarTool.LEAVE_FIELD -> R.string.ime_tool_leave_field
     ToolbarTool.QUICK_NOTE -> R.string.ime_tool_quick_note
+    ToolbarTool.DEBUG_INFO -> R.string.ime_tool_debug_info
+    ToolbarTool.HOMOPHONES -> R.string.ime_tool_homophones
     ToolbarTool.READ_BACK -> R.string.ime_tool_read_back
     ToolbarTool.SNIPPETS -> R.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> R.string.ime_tool_text_edit
@@ -9688,6 +9713,10 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD -> false
     // Takes the picture and is done.
     ToolbarTool.SCREENSHOT -> false
+    // Takes the report and opens it in the settings app.
+    ToolbarTool.DEBUG_INFO -> false
+    // Puts its list on the strip and is done.
+    ToolbarTool.HOMOPHONES -> false
     // Lit while the shade is up.
     ToolbarTool.PRIVACY_SHADE -> state.settings.privacyShade.on
     // Switches and is done, like the 🌐 key it stands in for.
@@ -17298,6 +17327,35 @@ internal class KeyRects {
     /** Every cell, in root space; a copy, for the same reason as [focusCells]. */
     fun cellRects(): List<Rect> = cells.keys.toList()
 
+    /** [key]'s cell, in root space, or null when this grid does not hold it. */
+    fun rectOf(key: Key): Rect? {
+        for ((rect, cell) in cells) {
+            if (cell === key) return rect
+        }
+        for ((rect, cell) in cells) {
+            if (cell == key) return rect
+        }
+        return null
+    }
+
+    /**
+     * The outline each key of a honeycomb is drawn in ([KeyVisual.faceShape]),
+     * by key; empty on every other board. Set by the grid as it composes, and
+     * read by the layers that paint over the keys (the key lighting, a press
+     * lit by a drag, Autopilot) so that they paint hexagons where the keys are
+     * hexagons.
+     */
+    var faceShapes: Map<Key, Shape> = emptyMap()
+
+    /** The face outline of the key whose cell is [rect], as [cellRects] gave it; null for the theme's. */
+    fun shapeAt(rect: Rect): Shape? = if (faceShapes.isEmpty()) null else cells[rect]?.let { faceShapes[it] }
+
+    /** The face outline of the key under [point], in root space; null for the theme's. */
+    fun shapeNear(point: Offset): Shape? = if (faceShapes.isEmpty()) null else keyAt(point)?.let { faceShapes[it] }
+
+    /** The face outline [key] is drawn in; null for the theme's. */
+    fun shapeOf(key: Key): Shape? = if (faceShapes.isEmpty()) null else faceShapes[key]
+
     /** The key whose cell holds [point], or null outside the grid. */
     fun keyAt(point: Offset): Key? {
         for ((rect, key) in cells) {
@@ -18139,9 +18197,14 @@ internal suspend fun PointerInputScope.detectLayerPeek(
  * recomposes.
  */
 @Composable
-internal fun BoxScope.LayerPeekHighlight(peek: LayerPeek, settings: KeyboardSettings) {
+internal fun BoxScope.LayerPeekHighlight(
+    peek: LayerPeek,
+    settings: KeyboardSettings,
+    rects: KeyRects? = null,
+    origin: Offset = Offset.Zero,
+) {
     if (peek.mode == null) return
-    GridPressHighlight(peek.pressRect, settings)
+    GridPressHighlight(peek.pressRect, settings, rects, origin)
 }
 
 /**
@@ -18245,7 +18308,13 @@ internal class ShiftHold {
  * of the very key it points at. It blends instead ([pressHighlightBlend]).
  */
 @Composable
-internal fun BoxScope.GridPressHighlight(pressRect: State<Rect?>, settings: KeyboardSettings) {
+internal fun BoxScope.GridPressHighlight(
+    pressRect: State<Rect?>,
+    settings: KeyboardSettings,
+    /** Where to ask a honeycomb key's own outline ([KeyRects.shapeNear]); [origin] is this box's place in root. */
+    rects: KeyRects? = null,
+    origin: Offset = Offset.Zero,
+) {
     val kbTheme = LocalKbTheme.current
     val gapH = keyGapH(settings)
     val gapV = keyGapV(settings)
@@ -18264,7 +18333,8 @@ internal fun BoxScope.GridPressHighlight(pressRect: State<Rect?>, settings: Keyb
             cell.height - gapV.toPx() * 2,
         )
         if (face.width <= 0f || face.height <= 0f) return@Canvas
-        val outline = faceShape.createOutline(face, layoutDirection, this)
+        val shape = rects?.shapeNear(cell.center + origin) ?: faceShape
+        val outline = shape.createOutline(face, layoutDirection, this)
         translate(cell.left + gapH.toPx(), cell.top + gapV.toPx()) {
             drawOutline(outline, fill, blendMode = blend)
         }
@@ -18481,6 +18551,13 @@ internal data class KeyPalette(
     val overrides: Map<String, KeyOverride> = emptyMap(),
     /** False when the theme's keys have no shape; see [KbTheme.keysHaveFaces]. */
     val keysHaveFaces: Boolean = true,
+    /**
+     * The function keys' and the action keys' own corner radii (gap list item
+     * 29); null follows the board's. Resolved into [KeyVisual.cornerRadiusDp]
+     * here, once per palette, rather than looked up per key at draw time.
+     */
+    val modifierRadiusDp: Int? = null,
+    val actionRadiusDp: Int? = null,
 )
 
 internal fun KbTheme.keyPalette(): KeyPalette = KeyPalette(
@@ -18495,6 +18572,8 @@ internal fun KbTheme.keyPalette(): KeyPalette = KeyPalette(
     hintText = hintText,
     overrides = keyOverrides,
     keysHaveFaces = keysHaveFaces,
+    modifierRadiusDp = modifierKeyRadiusDp,
+    actionRadiusDp = actionKeyRadiusDp,
 )
 
 /**
@@ -18628,6 +18707,12 @@ internal data class KeyVisual(
      * complaint (issue #18).
      */
     val fontScale: Float = 1f,
+    /**
+     * The outline this key's face is drawn in, over the theme's key shape and
+     * [shapeKind]: a honeycomb's hexagons ([HexFaceShape]). Null, every other
+     * board, follows the theme.
+     */
+    val faceShape: Shape? = null,
 )
 
 /**
@@ -18668,6 +18753,13 @@ private data class KeyBandVisual(
     val weight: Float,
     /** Key height in dp for each row of the band, top to bottom. */
     val rowHeights: List<Int>,
+    /**
+     * The honeycomb this band is, when the layout is one ([KeyboardLayout.hex]):
+     * what [hexTouchOwners] hit-tests against. Null for a band of spanning keys.
+     */
+    val hex: HexBoard? = null,
+    /** The deepest the honeycomb's zigzag may be, in dp; see [HexFaceShape]. */
+    val hexMaxAmplitudeDp: Float = 0f,
 )
 
 /** One key of a [KeyBandVisual], with where it sits and how far it reaches. */
@@ -18680,6 +18772,12 @@ private data class KeyBandSlot(
     /** First row of the band this key covers, and how many it covers. */
     val row: Int,
     val span: Int,
+    /**
+     * How much of the slot, as a fraction of its width, is a row's side gap the
+     * key takes as touch area rather than face (#530); see [KeyCell].
+     */
+    val edgeStart: Float = 0f,
+    val edgeEnd: Float = 0f,
 )
 
 /**
@@ -18796,7 +18894,11 @@ internal fun keyVisual(
         bold = override?.bold,
         stripLetter = stripLetter,
         shapeKind = overrideShape,
-        cornerRadiusDp = override?.cornerRadiusDp?.coerceIn(KEY_OVERRIDE_RADIUS_RANGE),
+        // A single-key style's radius first, then its class's (gap list item
+        // 29): Enter and space are the action keys, every key that types no
+        // text is a function key, and the letters follow the board.
+        cornerRadiusDp = override?.cornerRadiusDp?.coerceIn(KEY_OVERRIDE_RADIUS_RANGE)
+            ?: classRadiusDp(action, palette),
         faceGradient = override?.gradient
             ?.takeIf { it.colors.isNotEmpty() && (latch == null || latch == ModifierState.OFF) },
         glow = override?.glow?.let { Color(it.toInt()) }?.takeIf { it.alpha > 0f },
@@ -18836,6 +18938,27 @@ internal fun keyVisual(
         popupText = override?.popupText?.let { Color(it.toInt()) },
         fontScale = fontScale,
     )
+}
+
+/**
+ * What a key's pop text shows (gap list item 45): what it types, capitalised
+ * the way shift will type it.
+ */
+internal fun popKeyText(key: Key, shift: ShiftState): String {
+    val text = key.output ?: key.label
+    return if (shift != ShiftState.OFF && text.length == 1 && text[0].isLetter()) text.uppercase() else text
+}
+
+/**
+ * The corner radius [action]'s class of key draws with (gap list item 29),
+ * or null for the board's own: [KeyPalette.actionRadiusDp] for Enter and the
+ * space bar, [KeyPalette.modifierRadiusDp] for every other key that types no
+ * text, nothing for the letters.
+ */
+internal fun classRadiusDp(action: KeyAction, palette: KeyPalette): Int? = when (action) {
+    KeyAction.Text -> null
+    KeyAction.Enter, KeyAction.Space -> palette.actionRadiusDp
+    else -> palette.modifierRadiusDp
 }
 
 /**
@@ -19041,6 +19164,13 @@ private fun rememberKeyGrid(
                 else -> perRowHeight
             }
         }
+        // A honeycomb is one band whatever its keys say: its rows interlock, so
+        // no row of it can be drawn on its own (see [hexBandVisual]).
+        if (layout.hex && bodyRows.isNotEmpty()) {
+            return@remember digits to listOf(
+                KeyGridBlock.Band(hexBandVisual(bodyRows, gridWeight, heights, settings, state, palette, fontScale)),
+            )
+        }
         // Split mode cuts every row at its own midpoint, which a key belonging to
         // two rows cannot survive: the halves would part company under it. So a
         // split board draws spans as ordinary one-row keys — the arrangement the
@@ -19098,6 +19228,74 @@ private fun keyBandVisual(
         weight = weight,
         rowHeights = band.map { heights[it] },
     )
+}
+
+/**
+ * The body of a honeycomb layout ([KeyboardLayout.hex]) as one band: every key
+ * placed by [hexBoard] in the rectangle that takes its touches, its face cut to
+ * hexagons by a [HexFaceShape], and the board itself kept for the touches the
+ * hexagons' points take from the rectangles ([hexTouchOwners]).
+ *
+ * Split mode is the board's own here rather than [splitKeys]'s: each row is cut
+ * near the middle on one of its cell edges and the right half moved over, so
+ * the two halves stay honeycombs, two thumb clusters with a stepped channel
+ * between them.
+ */
+private fun hexBandVisual(
+    rows: List<List<Key>>,
+    gridWeight: Float,
+    heights: List<Int>,
+    settings: KeyboardSettings,
+    state: KeyboardUiState,
+    palette: KeyPalette,
+    fontScale: Float,
+): KeyBandVisual {
+    val gap = if (settings.splitKeyboard) gridWeight * settings.splitGapPercent / 100f else 0f
+    val board = hexBoard(
+        rows,
+        gridWeight,
+        splitGap = gap,
+        bridgeSpace = !settings.layoutBehavior.splitSpacebar,
+        extendEdges = settings.layoutBehavior.extendEdgeKeys,
+    )
+    val gapH = keyGapH(settings).value
+    // A third of the shortest row's pitch: deeper, and a wide, short key
+    // sideways would lose its straight sides.
+    val maxAmplitude = ((heights.minOrNull() ?: settings.keyHeightDp) + keyGapV(settings).value * 2f) / 3f
+    return KeyBandVisual(
+        slots = board.slots.map { slot ->
+            val shape = HexFaceShape(
+                widthCells = slot.width,
+                startPhase = board.startPhase(slot),
+                zigTop = board.joinedAbove(slot.row),
+                zigBottom = board.joinedBelow(slot.row),
+                gapDp = gapH,
+                maxAmplitudeDp = maxAmplitude,
+            )
+            val cell = slot.touchWidth.takeIf { it > 0f } ?: 1f
+            KeyBandSlot(
+                visual = keyVisual(slot.key, state, palette, fontScale).copy(faceShape = shape),
+                x = slot.touchX,
+                width = slot.touchWidth,
+                row = slot.row,
+                span = 1,
+                edgeStart = ((slot.x - slot.touchX) / cell).coerceAtLeast(0f),
+                edgeEnd = ((slot.touchEnd - slot.end) / cell).coerceAtLeast(0f),
+            )
+        },
+        weight = board.weight,
+        rowHeights = heights,
+        hex = board,
+        hexMaxAmplitudeDp = maxAmplitude,
+    )
+}
+
+/** Each key of a honeycomb band and the outline it is drawn in; empty for any other grid. */
+private fun hexFaceShapes(blocks: List<KeyGridBlock>): Map<Key, Shape> {
+    val band = (blocks.singleOrNull() as? KeyGridBlock.Band)?.band?.takeIf { it.hex != null } ?: return emptyMap()
+    val out = HashMap<Key, Shape>(band.slots.size)
+    for (slot in band.slots) slot.visual.faceShape?.let { out[slot.visual.key] = it }
+    return out
 }
 
 /** A key whose preview bubble is up, and where that key sits. */
@@ -19441,8 +19639,12 @@ private fun KeyPreviewBubble(
 ) {
     val kb = LocalKbTheme.current
     val density = LocalDensity.current
-    val shape = kb.popupShape()
+    // The bubble's own radius where the user set one (gap list item 30), else
+    // the radius every popup shares.
+    val shape = previewBubbleShape(kb, popup.previewCornerRadiusDp)
     val border = kb.popupSurfaceBorder()
+    val widthScale = popup.previewWidthScale.takeIf { it.isFinite() }?.coerceIn(KeyPreviewWidthScaleRange) ?: 1f
+    val keyWidth = with(density) { preview.size.width.toDp() }
     val labelColor = preview.popupText
         ?: popup.textColor?.let { Color(it.toInt()) }
         ?: kb.popupText
@@ -19468,13 +19670,13 @@ private fun KeyPreviewBubble(
             )
             .clip(shape)
             .height(with(density) { heightPx.toDp() })
-            .widthIn(
-                min = if (onKeyStyle) with(density) { preview.size.width.toDp() } + 8.dp else 0.dp,
-            )
+            .widthIn(min = previewBubbleMinWidth(keyWidth, onKeyStyle, widthScale))
             .popupTexture(LocalKeyTextures.current, shape)
             // Lit from below by the touch bloom, where the finger is.
             .touchBloomGlow(kb.liveTouchBloom)
-            .padding(horizontal = 14.dp),
+            // A narrower bubble gives up its side padding first, so the label
+            // still fits; a wider one is wide by its floor above.
+            .padding(horizontal = 14.dp * minOf(widthScale, 1f)),
         contentAlignment = if (onKeyStyle) Alignment.TopCenter else Alignment.Center,
     ) {
         // Through the overlay's cache: a bubble is composed for every press
@@ -19491,6 +19693,30 @@ private fun KeyPreviewBubble(
             cache = labelCache,
         )
     }
+}
+
+/**
+ * The preview bubble's outline: the popups' own shape, at [radiusDp] when the
+ * user set the bubble a radius of its own (gap list item 30), or at the
+ * shared popup radius when it is below zero.
+ */
+private fun previewBubbleShape(kb: KbTheme, radiusDp: Int): Shape =
+    if (radiusDp < 0) {
+        kb.popupShape()
+    } else {
+        keyShapeFor(kb.popupShapeKind, radiusDp.coerceIn(KeyPreviewRadiusRange))
+    }
+
+/**
+ * The narrowest the preview bubble may draw (gap list item 30). An on-key
+ * bubble is its key plus a little, scaled; a floating one is as wide as its
+ * label until [scale] asks for more, and then at least the key times it, so
+ * the setting widens a bubble in proportion to the keys it sits over.
+ */
+internal fun previewBubbleMinWidth(keyWidth: Dp, onKeyStyle: Boolean, scale: Float): Dp = when {
+    onKeyStyle -> (keyWidth + 8.dp) * scale
+    scale > 1f -> keyWidth * scale
+    else -> 0.dp
 }
 
 /**
@@ -20030,6 +20256,15 @@ private fun KeyRows(
         !(twoThumbOn && gestureEnabled) &&
         (state.panel == PanelMode.NONE || keysInBox || state.captureHandedToApp)
     val pinchMap = rememberUpdatedState(gesture.pinchBindings)
+    // One-finger swipes across the letters (gap list item 44). Never while a
+    // finger moving over the letters means anything else: glide in any of its
+    // forms (the keyboard's setting, a typing test's own glide, the swipe as
+    // handwriting or as slide-to-select all ride on it), a handwriting layout,
+    // or a typing test, whose taps are the score. The letters layer only.
+    val oneFingerOn = gesture.oneFingerSwipes && !state.settings.gestureTyping && !gestureEnabled &&
+        !state.typingTestActive && !state.layouts.handwriting && state.layoutMode == LayoutMode.LETTERS &&
+        (state.panel == PanelMode.NONE || keysInBox || state.captureHandedToApp)
+    val oneFingerMap = rememberUpdatedState(gesture.oneFingerBindings)
     val splitNow = rememberUpdatedState(state.settings.splitKeyboard)
     val boxSelection = rememberUpdatedState(
         if (keysInBox) LocalCaptureCaret.current.onSelectionAction else null,
@@ -20089,8 +20324,32 @@ private fun KeyRows(
     // What the drawn keys commit through: a letter tapped under a held shift
     // comes out a capital (issue #367). The grid's own gestures keep calling
     // [stampedOnKey] directly; a chord drag has already decided its key.
-    val keyTapOnKey = remember(stampedOnKey) {
-        { k: Key -> shiftHold.route(k)?.let(stampedOnKey); Unit }
+    // Pop text (gap list item 45): the service's field, or the grid's own
+    // where no service hosts it. The settings reach it here, not through the
+    // keys, so a pop never touches a key's parameters.
+    val popText = LocalPopText.current ?: remember { PopTextField() }
+    val popAnchor = remember(popText) {
+        { liveSpace.value.value?.center?.let { it + boxOrigin } }
+    }
+    val popOrigin = remember { { boxOrigin } }
+    SideEffect {
+        popText.mode = state.settings.popup.popText
+        popText.still = state.settings.reduceMotion
+        popText.wordAnchor = popAnchor
+    }
+    val keyTapOnKey = remember(stampedOnKey, popText) {
+        { k: Key ->
+            shiftHold.route(k)?.let { routed ->
+                stampedOnKey(routed)
+                // Every key: the character rises from the key that typed it.
+                if (popText.mode == PopTextMode.EVERY_KEY && routed.action == KeyAction.Text) {
+                    liveRects.value.rectOf(k)?.let { cell ->
+                        popText.key(popKeyText(routed, liveShift.value), cell.center)
+                    }
+                }
+            }
+            Unit
+        }
     }
     // A glide stroke that turned out to be a tap types its key as the key's own
     // lift would have, Autopilot remap included (#782). Read live by the glide
@@ -20310,6 +20569,56 @@ private fun KeyRows(
                     ) {
                         return@awaitEachGesture
                     }
+                    val inBox = boxSelection.value?.let { onBox -> binding.action.inCaptureBox()?.let { onBox to it } }
+                    if (inBox != null) {
+                        val (onBox, meant) = inBox
+                        if (meant is CaptureSwipe.Selection) onBox(meant.action)
+                        return@awaitEachGesture
+                    }
+                    if (hapticOn.value) pickerHaptic()
+                    if (binding.action == KeyAction.Text) {
+                        if (binding.label.isNotEmpty()) stampedOnText(binding.label)
+                    } else {
+                        stampedOnKey(Key(label = binding.label, action = binding.action))
+                    }
+                }
+            }
+            // Gap list item 44: one finger swiped across the letters runs the
+            // action bound to its direction, only ever with glide off (see
+            // [oneFingerOn]). Third in the chain and built like the two above:
+            // it starts only on a letter key without flick arms, consumes
+            // nothing until [OneFingerSwipeTracker] claims the finger, and the
+            // claim sets [fingerGate], so the key it left never types at the
+            // lift. A popup taking the finger, or another finger landing,
+            // gives the touch up. Draws nothing, so there is no motion here
+            // for reduceMotion to cut.
+            .pointerInput(oneFingerOn, stampedOnKey, stampedOnText) {
+                if (!oneFingerOn) return@pointerInput
+                val claimPx = OneFingerSwipeClaimDp.dp.toPx()
+                awaitEachGesture {
+                    val first = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                    val startKey = liveRects.value.keyAt(first.position + boxOrigin)
+                    if (startKey == null || !startsOneFingerSwipe(startKey)) return@awaitEachGesture
+                    val tracker = OneFingerSwipeTracker(claimPx, OneFingerSwipeWindowMs)
+                    tracker.track(first.id.value, first.position.x, first.position.y, pressed = true, uptimeMs = first.uptimeMillis)
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        // A multi-finger swipe or a pinch took the touch, or the
+                        // alternates popup has the finger.
+                        if (fingerGate.claimed && !tracker.claimed) tracker.abandon()
+                        if (alternatesGate.open && !tracker.claimed) tracker.abandon()
+                        for (change in event.changes) {
+                            val claimedNow = tracker.track(
+                                change.id.value, change.position.x, change.position.y, change.pressed, change.uptimeMillis,
+                            )
+                            if (claimedNow) fingerGate.claimed = true
+                        }
+                        if (tracker.abandoned) return@awaitEachGesture
+                        if (tracker.claimed) event.changes.forEach { it.consume() }
+                        if (event.changes.none { it.pressed }) break
+                    }
+                    val direction = tracker.result() ?: return@awaitEachGesture
+                    val binding = oneFingerMap.value.oneFingerActionOf(direction) ?: return@awaitEachGesture
                     val inBox = boxSelection.value?.let { onBox -> binding.action.inCaptureBox()?.let { onBox to it } }
                     if (inBox != null) {
                         val (onBox, meant) = inBox
@@ -21730,6 +22039,7 @@ private fun KeyRows(
                 it, keyRects::cellRects, { keyRects.revision }, kbTheme.keyRadiusDp.toFloat(),
                 behind = true, modifier = Modifier.matchParentSize(),
                 gapHDp = keyGapH(state.settings).value, gapVDp = keyGapV(state.settings).value,
+                shapeAt = keyRects::shapeAt,
             )
         }
         // The touch bloom's light, the full half: across the board under the keys.
@@ -21906,6 +22216,7 @@ private fun KeyRows(
                 onHandwritingStroke = onKeyboardHandwritingStroke,
                 onHandwritingUndo = onHandwritingUndo,
                 onHandwritingDownload = onHandwritingDownload,
+                keyRects = keyRects,
             )
         }
 
@@ -21930,6 +22241,7 @@ private fun KeyRows(
                 it, keyRects::cellRects, { keyRects.revision }, kbTheme.keyRadiusDp.toFloat(),
                 behind = false, modifier = Modifier.matchParentSize(),
                 gapHDp = keyGapH(state.settings).value, gapVDp = keyGapV(state.settings).value,
+                shapeAt = keyRects::shapeAt,
             )
         }
         // And its faint wash over the keys, for a theme whose keys hide the board.
@@ -21941,9 +22253,9 @@ private fun KeyRows(
         // screen says which symbol the lift is about to type. Composed only
         // while a peek is up — the rect inside it is read in the draw lambda,
         // so the finger crossing keys repaints and never recomposes.
-        LayerPeekHighlight(layerPeek, state.settings)
+        LayerPeekHighlight(layerPeek, state.settings, keyRects, boxOrigin)
         // The key a chord drag would fire on, lit for the same reason (#345).
-        if (chordDrag.active) GridPressHighlight(chordDrag.pressRect, state.settings)
+        if (chordDrag.active) GridPressHighlight(chordDrag.pressRect, state.settings, keyRects, boxOrigin)
 
         // Autopilot's drawn letters and the octopus words over the keys.
         KeyGridWordOverlays(
@@ -21961,11 +22273,22 @@ private fun KeyRows(
             kbTheme = kbTheme,
             pickerOpen = picker.words.isNotEmpty(),
             octopusRects = octopusRects,
+            keyRects = keyRects,
         )
 
         // The press bursts, over the decals and under the trail. Composed only
         // while particles live; the frame loop dies with them.
         KeyPressEffectsOverlay(particleField, particleGlyphs)
+
+        // Pop text (gap list item 45), over the bursts. Composed only while a
+        // pop is alive; see [PopTextField].
+        PopTextOverlay(
+            popText,
+            popOrigin,
+            keyColor = kbTheme.suggestionText,
+            wordColor = kbTheme.suggestionText,
+            correctionColor = kbTheme.accent,
+        )
 
         // Only a grid with no frame above it draws its own bubbles — see
         // [KeyPreviewOverlay] and [LocalKeyPreviewState].
@@ -22151,6 +22474,8 @@ private fun KeyGridRows(
     onHandwritingStroke: (HwStroke, IntSize) -> Unit,
     onHandwritingUndo: () -> Unit,
     onHandwritingDownload: () -> Unit,
+    /** The cell table, told which keys draw as hexagons; see [KeyRects.faceShapes]. */
+    keyRects: KeyRects? = null,
 ) {
     // Layers shorter than the reserved span (the symbols pages under a
     // six-row alphabet, a keypad under a five-row board) fill it the way
@@ -22177,6 +22502,7 @@ private fun KeyGridRows(
     val padLeft = padHeight - (stretchDp * stretchRows).dp
     val (numberRowVisual, bodyBlocks) =
         rememberKeyGrid(gridState, layout, bodyRows, extraRow, palette, gridWeight, stretchDp)
+    if (keyRects != null) keyRects.faceShapes = remember(bodyBlocks) { hexFaceShapes(bodyBlocks) }
     // Issue #649: the bottom row reaches down over this column's own
     // bottom padding and the board's room under it, so a tap under the
     // spacebar types a space, the way #530 lets a tap beside `a` type
@@ -22624,6 +22950,7 @@ private fun BoxScope.KeyGridWordOverlays(
     kbTheme: KbTheme,
     pickerOpen: Boolean,
     octopusRects: OctopusRects,
+    keyRects: KeyRects? = null,
 ) {
     // The expected letters and the promised word change with every key: read
     // live, so only this overlay recomposes for them (see [withLiveTyping]).
@@ -22653,6 +22980,8 @@ private fun BoxScope.KeyGridWordOverlays(
             showEffect = autopilotShow,
             visualScale = state.settings.layoutBehavior.autopilotVisualScale,
             outline = autopilotOutline,
+            // A honeycomb's letters grow as hexagons.
+            shapeOf = remember(letterKeys, keyRects) { { ch: Char -> letterKeys[ch]?.let { keyRects?.shapeOf(it) } } },
         )
     }
 
@@ -23329,7 +23658,18 @@ private fun KeyBand(
     val tops = IntArray(rowPitch.size + 1).also {
         for (i in rowPitch.indices) it[i + 1] = it[i] + rowPitch[i]
     }
+    // A honeycomb's keys commit the key whose hexagon the touch went down in,
+    // which in a point's corner is not the rectangle that took it.
+    val hex = band.hex
+    val hexOwners = remember { HashMap<PointerId, Key>() }
+    val resolve = if (hex == null) smartResolve else remember(smartResolve) { hexResolve(hexOwners, smartResolve) }
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     Layout(
+        modifier = if (hex == null) {
+            Modifier
+        } else {
+            Modifier.hexTouchOwners(hex, band.rowHeights, gap, band.hexMaxAmplitudeDp, rtl, hexOwners)
+        },
         content = {
             for (slot in band.slots) {
                 // heightDp is what this key would be on a row of its own; the
@@ -23349,8 +23689,10 @@ private fun KeyBand(
                     onLayoutSelect,
                     onKeyPositioned,
                     onSpacePositioned,
-                    smartResolve,
+                    resolve,
                     onBurst,
+                    edgeStart = slot.edgeStart,
+                    edgeEnd = slot.edgeEnd,
                     touchBelow = if (slot.row + slot.span >= band.rowHeights.size) touchBelow else 0.dp,
                 )
             }
@@ -26484,7 +26826,8 @@ internal fun KeyButton(
     // The gap is handed to the shape as the room a leaning outline may spill
     // into: a slanted key then leans across the gap rather than out of its own
     // width, and neighbouring keys interlock instead of thinning out.
-    val keyShape = kb.keyShape(bleedDp = keyGapH(settings).value, kind = visual.shapeKind, radiusDp = visual.cornerRadiusDp)
+    val keyShape = visual.faceShape
+        ?: kb.keyShape(bleedDp = keyGapH(settings).value, kind = visual.shapeKind, radiusDp = visual.cornerRadiusDp)
     // A key the theme gave its own shape re-runs the shadow guard for that
     // shape: a round enter key may cast one on a board whose own shape cannot.
     // Only an opaque face casts one: the platform shadow is a solid slab under
@@ -26672,6 +27015,7 @@ internal fun KeyButton(
                     spaceLongSwipe = settings.spaceLongSwipe,
                     enabledLayoutIds = settings.switchLayoutIds(),
                     currentLayoutId = layoutId,
+                    languageAnchor = LocalLanguageAnchor.current,
                     setPressed = { down ->
                         // Judged here rather than at the commit: every branch
                         // below reports the contact before it spends anything
@@ -26814,7 +27158,7 @@ internal fun KeyButton(
                     // The theme's shadow colour, where it has one; both halves
                     // of the platform shadow take it (Android 9 and up).
                     val shadow = kb.keyShadow ?: DefaultShadowColor
-                    Modifier.shadow(keyElevation, keyShape, clip = false, ambientColor = shadow, spotColor = shadow)
+                    Modifier.shadow(keyElevation, keyShape.forShadow(), clip = false, ambientColor = shadow, spotColor = shadow)
                 } else {
                     Modifier
                 }
@@ -28978,7 +29322,9 @@ private fun LanguageCarouselPopup(
     // so the centring below can aim at a chip whose width depends on its label.
     val chipBounds = remember(enabledLayoutIds) { mutableStateMapOf<Int, Pair<Int, Int>>() }
     var viewportWidth by remember { mutableIntStateOf(0) }
-    val currentIndex = enabledLayoutIds.indexOf(currentLayoutId).coerceAtLeast(0)
+    val anchor = LocalLanguageAnchor.current
+    val currentIndex = enabledLayoutIds.indexOf(currentLayoutId).takeIf { it >= 0 }
+        ?: enabledLayoutIds.indexOf(anchor.value).coerceAtLeast(0)
     val centreOn = highlightIndex ?: currentIndex
     // The first centring is a jump — the strip should open already looking at
     // the current layout — and every one after it slides, following the drag.
@@ -29724,11 +30070,14 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             } else {
                 null
             }
-            val hintMask = if (octopusHere == null) {
-                Modifier
-            } else {
-                Modifier.drawWithContent { if (!octopusHere.value) drawContent() }
-            }
+            // A honeycomb key's slanted top would cut through a hint in its corner.
+            val hintMask = (
+                if (octopusHere == null) {
+                    Modifier
+                } else {
+                    Modifier.drawWithContent { if (!octopusHere.value) drawContent() }
+                }
+                ).clearHexCorner(visual.faceShape)
             // An arm drawn in the top right corner (issue #410) owns it; the
             // character hint would sit on top of it. The alternates are still
             // one hold away, as with [Key.hideHint].
@@ -30248,6 +30597,23 @@ private fun rememberTransliterationPreview(state: KeyboardUiState): Transliterat
     }
 }
 
+/**
+ * [label] in the case the user asked the letter keys to be drawn in (gap list
+ * item 31). Only a letter key of a cased script is touched, and never the
+ * roman keys of a transliterating layout, where `t` and `T` write different
+ * letters and the drawn case is the only sign of which one a tap gives.
+ * What the key types still follows shift; this is the face alone.
+ */
+internal fun labelCased(label: String, key: Key, state: KeyboardUiState): String {
+    val case = state.settings.layoutBehavior.labelCase
+    if (case == KeyLabelCase.FOLLOW_SHIFT) return label
+    if (key.action != KeyAction.Text || label.isEmpty() || !label.all { it.isLetter() }) return label
+    if (!state.script.hasLetterCase || state.composer.isTransliterating || state.composer.isClusterShaping) {
+        return label
+    }
+    return if (case == KeyLabelCase.UPPER) label.uppercase() else label.lowercase()
+}
+
 private fun displayLabel(key: Key, state: KeyboardUiState): String {
     // Digit keys draw the chosen numeral system's glyphs (in every commit
     // scope, including display-only). The layout data stays ASCII; the swap
@@ -30276,7 +30642,7 @@ private fun displayLabel(key: Key, state: KeyboardUiState): String {
             key.label.singleOrNull()?.isLetter() == true ->
             key.label.uppercase()
         else -> key.label
-    }
+    }.let { label -> labelCased(label, key, state) }
     // Fixed Bengali layouts: vowel keys track the cursor context — the
     // independent letter (আ, ই …) at a word start, the kar (া, ি …) after a
     // consonant, the য়-glide (য়া) after a vowel — matching what the key
@@ -30616,6 +30982,8 @@ private fun Modifier.pointerInputKey(
     spaceLongSwipe: SpaceSwipeAction,
     enabledLayoutIds: List<String>,
     currentLayoutId: String,
+    /** Where the swipe starts when [currentLayoutId] is not in the cycle; see [LocalLanguageAnchor]. */
+    languageAnchor: State<String?>,
     setPressed: (Boolean) -> Unit,
     onKeyPress: () -> Unit,
     onKeySound: () -> Unit,
@@ -30817,7 +31185,8 @@ private fun Modifier.pointerInputKey(
                     // still travelling up from that swipe, and the caret should
                     // not take it as a line up. Cleared by a pause or a turn.
                     var padSettling = false
-                    var langIndex = enabledLayoutIds.indexOf(currentLayoutId).coerceAtLeast(0)
+                    var langIndex = enabledLayoutIds.indexOf(currentLayoutId).takeIf { it >= 0 }
+                        ?: enabledLayoutIds.indexOf(languageAnchor.value).coerceAtLeast(0)
                     // The stops the language swipe walks: the layouts, plus the
                     // switcher's extra stop (see [SwitcherExtraStop]), added once
                     // a hold puts the preview up or a swipe starts walking.
@@ -32759,9 +33128,14 @@ internal fun EmojiSearchField(
     val canDeleteField = LocalCanDeleteField.current
     val scope = rememberCoroutineScope()
     val vibrateOnRepeat = state.settings.feedback.vibrateOnRepeat
+    // The theme's own search-bar colours where it names them (gap list item
+    // 28), else the card colour and strip text the bar always drew with.
+    val kb = LocalKbTheme.current
+    val ink = kb.emojiSearchInk(MaterialTheme.colorScheme.onSurface)
+    val quietInk = kb.emojiSearchText?.copy(alpha = 0.7f) ?: MaterialTheme.colorScheme.onSurfaceVariant
     Row(
         modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(20.dp))
+            .background(kb.emojiSearchFill(MaterialTheme.colorScheme.surfaceContainer), RoundedCornerShape(20.dp))
             .clickable { onEmojiQueryTap() }
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -32770,15 +33144,15 @@ internal fun EmojiSearchField(
             Icons.Outlined.Search,
             contentDescription = null,
             modifier = Modifier.size(18.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = quietInk,
         )
         Box(modifier = Modifier.width(8.dp))
         SearchQueryText(
             query = state.emojiQuery,
             placeholder = stringResource(R.string.ime_emoji_search_hint),
             active = state.emojiSearchActive,
-            textColor = MaterialTheme.colorScheme.onSurface,
-            placeholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            textColor = ink,
+            placeholderColor = quietInk,
             fontSize = 14.sp,
             modifier = Modifier.weight(1f),
         )
@@ -32792,7 +33166,7 @@ internal fun EmojiSearchField(
                     .padding(start = 8.dp)
                     .size(18.dp)
                     .clickable { onClear() },
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = quietInk,
             )
         }
         // While searching, the keys type into the query — so an emoji just
@@ -32828,7 +33202,7 @@ internal fun EmojiSearchField(
                             },
                         )
                     },
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = quietInk,
             )
         }
     }
@@ -32836,17 +33210,41 @@ internal fun EmojiSearchField(
 
 /**
  * The face to show for an emoji [base] in the panel grid and in search: the
- * global default skin tone, or the last-used variant when that override is
- * enabled. Mirrors the IME's `applyEmojiTone`, so what is drawn is what a tap
- * commits.
+ * last-used variant when that override is enabled, else the default gender
+ * and then the default skin tone (either may be random, see
+ * [EmojiDefaultFace]). Mirrors the IME's `applyEmojiTone`, so what is drawn is
+ * what a tap commits.
  */
 internal fun emojiDisplay(state: KeyboardUiState, base: String): String {
     val emoji = state.settings.emoji
-    return state.emojiVariants.tonedDisplay(
+    if (emoji.toneOverrideByLastUsed) state.emojiVariantPrefs[base]?.let { return it }
+    return emojiDefaultFace(state.emojiCatalog, state.emojiVariants, emoji, base)
+}
+
+/**
+ * [base] with the default gender and skin tone of [emoji] applied, shared by
+ * the panel ([emojiDisplay]) and the service's suggestions.
+ */
+internal fun emojiDefaultFace(
+    catalog: List<EmojiEntry>,
+    variants: EmojiVariantIndex,
+    emoji: EmojiSettings,
+    base: String,
+): String {
+    val gender = emoji.defaultGender
+    val tone = emoji.defaultSkinTone.toneIndex
+    if (gender == EmojiDefaultGender.PERSON && tone == 0) return base
+    val children = if (gender == EmojiDefaultGender.PERSON) {
+        emptyList()
+    } else {
+        EmojiDefaultFace.children(catalog)[base].orEmpty()
+    }
+    return EmojiDefaultFace.resolve(
         base = base,
-        tone = emoji.defaultSkinTone.toneIndex,
-        preferred = state.emojiVariantPrefs[base],
-        overrideWithPreferred = emoji.toneOverrideByLastUsed,
+        children = children,
+        variants = variants,
+        gender = EmojiDefaultFace.Gender.valueOf(gender.name),
+        tone = tone,
     )
 }
 

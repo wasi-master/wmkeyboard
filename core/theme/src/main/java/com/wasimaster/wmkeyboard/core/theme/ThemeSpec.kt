@@ -440,6 +440,22 @@ data class ThemeSpec(
      * theme can keep the rule faint in a hue of its own.
      */
     val dividerColor: Long? = null,
+    /**
+     * Fill of the emoji panel's search bar (gap list item 28, HeliBoard's
+     * emoji search role). Null keeps the shared card colour,
+     * [chipBackground], which is what the bar always drew with.
+     */
+    val emojiSearchBackground: Long? = null,
+    /** Text and glyphs on that bar; null keeps [suggestionText]. */
+    val emojiSearchText: Long? = null,
+    /**
+     * Fill of the recently-copied chip on the suggestion strip (gap list item
+     * 28, HeliBoard's clipboard suggestion role). Null keeps the accent tint
+     * the chip always drew with.
+     */
+    val clipboardChipBackground: Long? = null,
+    /** Text and glyphs on that chip; null keeps [suggestionText]. */
+    val clipboardChipText: Long? = null,
     // Chips (tool-panel buttons, style strips, plugin buttons)
     /** Text on an unselected chip; null derives from the modifier-key text. */
     val chipText: Long? = null,
@@ -470,6 +486,15 @@ data class ThemeSpec(
     val cardShape: String? = null,
     // Radii overrides; null = follow the global appearance sliders
     val keyCornerRadiusDp: Int? = null,
+    /**
+     * Corner radius of the function keys (Shift, Delete, ?123, the arrows and
+     * the rest of the keys that type nothing), in dp; null follows
+     * [keyCornerRadiusDp] (gap list item 29, LeanType's radius per key class).
+     * A single-key style's own radius still wins over it.
+     */
+    val modifierKeyCornerRadiusDp: Int? = null,
+    /** Corner radius of Enter and the space bar, in dp; null follows [keyCornerRadiusDp]. */
+    val actionKeyCornerRadiusDp: Int? = null,
     val popupCornerRadiusDp: Int? = null,
     val toolCircleRadiusDp: Int? = null,
     /**

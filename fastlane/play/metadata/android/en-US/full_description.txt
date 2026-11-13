@@ -4,7 +4,7 @@ FREE AND OPEN SOURCE
 
 WM Keyboard is free, with no ads and nothing locked behind a payment. Its full source code is public under the MIT license at https://github.com/wasi-master/wmkeyboard. The in-app purchases are optional tips under About › Supporters, seven one-time amounts from US$0.99 to US$99.99 (Google Play shows your local price): a way to say thanks and support development. A tip is not a subscription and unlocks nothing, and every feature works the same whether you tip or not. If you like, your name goes on the public Supporters page.
 
-1,555 LANGUAGES, 3,388 LAYOUTS
+1,556 LANGUAGES, 3,388 LAYOUTS
 
 Native scripts, InScript variants, romanized entries, CJK and constructed languages, all from one data-driven registry. A fresh install starts in the languages your phone is already set to and suggests more from your system language list.
 

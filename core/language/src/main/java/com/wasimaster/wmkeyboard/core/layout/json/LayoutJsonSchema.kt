@@ -5,6 +5,7 @@ package com.wasimaster.wmkeyboard.core.layout.json
 import com.wasimaster.wmkeyboard.core.layout.AlternateColumnsRange
 import com.wasimaster.wmkeyboard.core.layout.CurrentLayoutSpecVersion
 import com.wasimaster.wmkeyboard.core.layout.CurrentPanelLayoutVersion
+import com.wasimaster.wmkeyboard.core.layout.HexGridKind
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.KeyAlternate
@@ -23,6 +24,7 @@ import com.wasimaster.wmkeyboard.core.layout.MaxRowHeightScale
 import com.wasimaster.wmkeyboard.core.layout.MinRowHeightScale
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
+import com.wasimaster.wmkeyboard.core.layout.RectGridKind
 import com.wasimaster.wmkeyboard.core.layout.layoutJson
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.PolymorphicKind
@@ -321,6 +323,10 @@ object LayoutJsonHints {
             // Written by the addon installer, never typed.
             "LayoutSpec.basedOn" to PropertyHint(hidden = true),
             "LayoutSpec.layers" to PropertyHint(keys = layerNames),
+            "LayoutSpec.grid" to PropertyHint(examples = listOf(JsonValueExample("\"$HexGridKind\""))),
+            "LayerSpec.grid" to PropertyHint(
+                examples = listOf(JsonValueExample("\"$HexGridKind\""), JsonValueExample("\"$RectGridKind\"")),
+            ),
             "LayerSpec.themeId" to PropertyHint(domain = JsonValueDomain.THEME),
             "LayerSpec.fontScale" to PropertyHint(examples = scale, range = LayoutFontScaleRange.toDoubles()),
             "LayerSpec.rowHeights" to PropertyHint(

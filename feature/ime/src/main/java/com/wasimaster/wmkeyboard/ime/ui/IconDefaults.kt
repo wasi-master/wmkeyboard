@@ -20,6 +20,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Sticky
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.TextSnippet
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.VolumeUp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BugReport
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.RecordVoiceOver
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Apps
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AspectRatio
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
@@ -149,6 +151,8 @@ object IconDefaults {
         ToolbarTool.SCREENSHOT -> Icons.Outlined.Screenshot
         ToolbarTool.PRIVACY_SHADE -> Icons.Outlined.Blinds
         ToolbarTool.QUICK_NOTE -> Icons.Outlined.EditNote
+        ToolbarTool.DEBUG_INFO -> Icons.Outlined.BugReport
+        ToolbarTool.HOMOPHONES -> Icons.Outlined.RecordVoiceOver
         ToolbarTool.SNIPPETS -> Icons.AutoMirrored.Outlined.TextSnippet
         ToolbarTool.TEXT_EDIT -> Icons.Outlined.EditNote
         ToolbarTool.TRACKPAD -> SymbolIcons.TrackpadInput

@@ -74,6 +74,9 @@
     <string name="typing_context_rerank_subtitle">Reorder suggestions by the words around them</string>
     <string name="typing_context_rerank_info">The keyboard reorders the top suggestions with the words you typed before them: your own word pairs, common English pairs, and words from the current conversation. The reorder applies only when there is real evidence, so the usual order stays for unfamiliar contexts. This never changes which word autocorrect applies.</string>
 
+    <string name="typing_lm_strength_title">Language model strength</string>
+    <string name="typing_lm_strength_subtitle">How much the context model moves the words offered for what you type</string>
+    <string name="typing_lm_strength_info" formatted="false">While you type a word, the context model reads the sentence so far and lifts the candidates that fit it, so \"by\" gives way to \"buy\" after \"want to\". This sets how far it may lift or sink a word. 100% is the default, measured on thousands of typed sentences. Lower trusts the keys and the dictionaries more, and 0% keeps the model out of ranking while it still predicts the next word. Higher lets the model overrule what the keys spelled more often, which can help with sloppy typing and can also pick a word you did not mean.</string>
     <string name="typing_neural_context_title">Context model</string>
     <string name="typing_neural_context_subtitle">Read the whole sentence to predict and rank words</string>
     <string name="typing_neural_context_info">A small language model, downloaded for your language, reads the sentence you have typed so far and says which words are likely to come next. It fills the next-word suggestions, helps order corrections, and backs the learned autocorrect gate. It runs on this device and needs no network once downloaded. A word it does not know, such as a name or a word you taught the keyboard, is left to your dictionary as before. Turning this off reads no model file.</string>
@@ -267,6 +270,25 @@
     <string name="typing_punctuation_suggestions_title">Punctuation suggestions</string>
     <string name="typing_punctuation_suggestions_subtitle">Chips for . , ? ! and \' beside the word candidates</string>
     <string name="typing_punctuation_suggestions_info">The keyboard adds a short row of common punctuation to the end of the suggestion strip while candidates show. A full stop or a comma is one press away, with no change to the symbols layout. A press acts the same as the key. When the keyboard offers an emoji prediction, the emoji takes the end of the strip instead.</string>
+
+    <string name="typing_next_words_title">Next-word suggestions</string>
+    <string name="typing_next_words_subtitle">What the strip offers after a space, before you type the next word</string>
+    <string name="typing_next_words_info">After you finish a word, the strip guesses the next one from your own phrases, your contacts, the context model and any word pairs downloaded for the language. Off leaves the strip empty until you type a letter. Words and punctuation also puts the punctuation marks beside those words, even with Punctuation suggestions off, so a comma or full stop after a finished word is one press away.</string>
+    <string name="typing_next_words_off">Off</string>
+    <string name="typing_next_words_off_desc">The strip waits for the first letter of the next word</string>
+    <string name="typing_next_words_words">Words only</string>
+    <string name="typing_next_words_words_desc">The words most likely to come next</string>
+    <string name="typing_next_words_punct">Words and punctuation</string>
+    <string name="typing_next_words_punct_desc">The likely next words, with the punctuation marks beside them</string>
+    <string name="typing_next_word_amount_title">How many next words</string>
+    <string name="typing_next_word_amount_subtitle">How eagerly the strip guesses the next word</string>
+    <string name="typing_next_word_amount_info">Fewer guesses only from what you have typed before, your contacts and the context model, so the strip stays quiet until it has learned your phrases. Normal adds the word pairs downloaded for the language and the built-in English pairs. More also keeps those guesses on the strip once you start typing the next word, so a likely word stays one press away after its first letter.</string>
+    <string name="typing_next_word_amount_fewer">Fewer</string>
+    <string name="typing_next_word_amount_fewer_desc">Only words you have typed after this one before, contacts and the context model</string>
+    <string name="typing_next_word_amount_normal">Normal</string>
+    <string name="typing_next_word_amount_normal_desc">Your own phrases first, then the language\'s word pairs</string>
+    <string name="typing_next_word_amount_more">More</string>
+    <string name="typing_next_word_amount_more_desc">Guesses also stay on the strip while you type the next word</string>
 
     <string name="typing_suggestions_all_fields_title">Suggestions in every field</string>
     <string name="typing_suggestions_all_fields_subtitle">Show the suggestion strip even where an app asks to hide it</string>
@@ -1471,6 +1493,17 @@
     <string name="typing_pinch_merge_value">Merge the keyboard</string>
     <string name="typing_pinch_reset_title">Reset pinch actions</string>
     <string name="typing_pinch_reset_subtitle">Put pinch and stretch back to splitting and merging</string>
+    <string name="typing_group_one_finger_title">One-finger swipes</string>
+    <string name="typing_one_finger_swipes_title">One-finger swipes</string>
+    <string name="typing_one_finger_swipes_subtitle">Swipe one finger across the letters to run an action</string>
+    <string name="typing_one_finger_glide_subtitle">Works only while glide typing is off</string>
+    <string name="typing_one_finger_swipes_info">With glide typing off, swipe one finger up, down, left or right across the letters. Instead of typing, the swipe runs the action you chose for that direction. Out of the box, up is Shift, down hides the keyboard, left deletes a word and right moves to your next language.\n\nThe swipe has to start on a letter, leave its key soon after you touch it and go well past it in a straight line. A tap that rolls onto the next key still types, and so does a press and hold. A key with swipes of its own keeps them.\n\nWhile glide typing is on, a finger moving across the letters writes a word, so these swipes do nothing. Use the multi-finger swipes above instead.</string>
+    <string name="typing_one_finger_up_title">Swipe up</string>
+    <string name="typing_one_finger_down_title">Swipe down</string>
+    <string name="typing_one_finger_left_title">Swipe left</string>
+    <string name="typing_one_finger_right_title">Swipe right</string>
+    <string name="typing_one_finger_reset_title">Reset one-finger swipes</string>
+    <string name="typing_one_finger_reset_subtitle">Put every one-finger swipe back to its default</string>
     <string name="typing_group_symbol_chords_title">Chords with ?123</string>
     <string name="typing_symbol_chords_title">Chords with ?123</string>
     <string name="typing_symbol_chords_subtitle">Hold ?123 still and tap a key to run an action</string>

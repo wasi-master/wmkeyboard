@@ -25,6 +25,7 @@ import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
 import com.wasimaster.wmkeyboard.core.voice.VoiceInputEngine
 import com.wasimaster.wmkeyboard.core.voice.VoiceMics
 import com.wasimaster.wmkeyboard.core.voice.VoicePunctuation
+import com.wasimaster.wmkeyboard.core.voice.VoiceSymbols
 import com.wasimaster.wmkeyboard.core.voice.VoiceSwearing
 import com.wasimaster.wmkeyboard.core.voice.VoiceStream
 import com.wasimaster.wmkeyboard.core.voice.WhisperRecorder
@@ -604,7 +605,11 @@ class AppDictation(
      */
     private suspend fun punctuated(model: EtModel, text: String): String {
         if (text.isBlank() || plain || !DictationPunctuation.needed(model) || !settings.whisper.punctuate) return text
-        val spoken = if (settings.voiceSpokenPunctuation) VoicePunctuation.apply(text, tag) else text
+        // The recognizer's own symbols first, so the said ones stay; the
+        // ending then leaves this phrase's alone.
+        val heard = withoutSymbols(text)
+        symbolsSettled = true
+        val spoken = if (settings.voiceSpokenPunctuation) VoicePunctuation.apply(heard, tag) else heard
         val choice = settings.whisper.punctuationModel
         return withContext(SherpaNative.dispatcher) {
             runCatching { DictationPunctuation.punctuate(filesDir, spoken, languageIds, choice) }.getOrDefault(spoken)
@@ -702,11 +707,22 @@ class AppDictation(
         // Said punctuation ("comma") as the keyboard types it. An engine that
         // went through [punctuated] has had it already; a second pass finds
         // nothing left to turn into a mark.
-        val spoken = if (settings.voiceSpokenPunctuation && !plain) VoicePunctuation.apply(text, tag) else text
+        // "Suppress symbols" on what the recognizer wrote, before the said
+        // symbols are made.
+        val heard = if (symbolsSettled) text else withoutSymbols(text)
+        val spoken = if (settings.voiceSpokenPunctuation && !plain) VoicePunctuation.apply(heard, tag) else heard
         // "Mask swear words": the engines with no filter of their own get one.
         listener.onResult(masked(spoken))
         scope.cancel()
     }
+
+    /** Set once [punctuated] has taken the recognizer's symbols out and made the said ones. */
+    @Volatile
+    private var symbolsSettled = false
+
+    /** [text] without the recognizer's symbols when "Suppress symbols" is on. */
+    private fun withoutSymbols(text: String): String =
+        if (settings.voiceBar.suppressSymbols) VoiceSymbols.strip(text) else text
 
     /** [text] with its swear words masked when "Mask swear words" is on. */
     private fun masked(text: String): String =

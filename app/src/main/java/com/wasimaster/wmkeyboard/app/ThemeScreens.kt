@@ -5500,6 +5500,44 @@ private fun ThemeEditorContent(
                 onChange = { update { t -> t.copy(dividerColor = it) } },
             )
         }
+        // Gap list item 28: the emoji search bar and the recently-copied chip
+        // can leave the shared card colour. Unset, each draws as it always did.
+        item(level = SettingLevel.ADVANCED) {
+            NullableColorRow(
+                R.string.theme_emoji_search_background_title,
+                look.watch { it.emojiSearchBackground },
+                fallback = look.watch { it.chipBackground ?: it.modifierKeyBackground },
+                supportsAlpha = true,
+                info = stringResource(R.string.theme_emoji_search_background_body),
+                onChange = { update { t -> t.copy(emojiSearchBackground = it) } },
+            )
+        }
+        item(level = SettingLevel.ADVANCED) {
+            NullableColorRow(
+                R.string.theme_emoji_search_text_title,
+                look.watch { it.emojiSearchText },
+                fallback = look.watch { it.suggestionText ?: it.keyText },
+                onChange = { update { t -> t.copy(emojiSearchText = it) } },
+            )
+        }
+        item(level = SettingLevel.ADVANCED) {
+            NullableColorRow(
+                R.string.theme_clip_chip_background_title,
+                look.watch { it.clipboardChipBackground },
+                fallback = look.watch { it.accent },
+                supportsAlpha = true,
+                info = stringResource(R.string.theme_clip_chip_background_body),
+                onChange = { update { t -> t.copy(clipboardChipBackground = it) } },
+            )
+        }
+        item(level = SettingLevel.ADVANCED) {
+            NullableColorRow(
+                R.string.theme_clip_chip_text_title,
+                look.watch { it.clipboardChipText },
+                fallback = look.watch { it.suggestionText ?: it.keyText },
+                onChange = { update { t -> t.copy(clipboardChipText = it) } },
+            )
+        }
     }
 
     SettingsGroup(
@@ -5614,6 +5652,7 @@ private fun ThemeEditorContent(
 
     // Decides which rows the group holds; each row reads its own radius.
     val hasCustomRadii = look.watch { it.keyCornerRadiusDp != null }
+    val sameAsLettersLabel = stringResource(R.string.theme_radius_same_as_letters)
     SettingsGroup(stringResource(R.string.theme_corners_section_title), foldKey = "theme/corners") {
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
@@ -5635,6 +5674,8 @@ private fun ThemeEditorContent(
                     } else {
                         t.copy(
                             keyCornerRadiusDp = null,
+                            modifierKeyCornerRadiusDp = null,
+                            actionKeyCornerRadiusDp = null,
                             popupCornerRadiusDp = null,
                             toolCircleRadiusDp = null,
                         )
@@ -5649,6 +5690,24 @@ private fun ThemeEditorContent(
                 range = 0f..28f,
                 display = { "${it.toInt()} dp" },
             ) { update { t -> t.copy(keyCornerRadiusDp = it.toInt()) } }
+        }
+        // Gap list item 29: function and action keys may round apart from the
+        // letters. The slider's bottom stop is "same as the letters" (null).
+        item(visible = hasCustomRadii, level = SettingLevel.ADVANCED) {
+            SliderRow(
+                R.string.theme_modifier_key_radius_title,
+                value = look.watch { it.modifierKeyCornerRadiusDp ?: -1 }.toFloat(),
+                range = -1f..28f,
+                display = { if (it < 0f) sameAsLettersLabel else "${it.toInt()} dp" },
+            ) { update { t -> t.copy(modifierKeyCornerRadiusDp = it.toInt().takeIf { r -> r >= 0 }) } }
+        }
+        item(visible = hasCustomRadii, level = SettingLevel.ADVANCED) {
+            SliderRow(
+                R.string.theme_action_key_radius_title,
+                value = look.watch { it.actionKeyCornerRadiusDp ?: -1 }.toFloat(),
+                range = -1f..28f,
+                display = { if (it < 0f) sameAsLettersLabel else "${it.toInt()} dp" },
+            ) { update { t -> t.copy(actionKeyCornerRadiusDp = it.toInt().takeIf { r -> r >= 0 }) } }
         }
         item(visible = hasCustomRadii, level = SettingLevel.ADVANCED) {
             SliderRow(

@@ -29,7 +29,10 @@ import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.settings.FlickDistanceRange
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeDistanceRange
 import com.wasimaster.wmkeyboard.core.settings.FlickReachRange
+import com.wasimaster.wmkeyboard.core.settings.LM_STRENGTH_MAX
 import com.wasimaster.wmkeyboard.core.settings.MAX_STOP_AFTER_DECLINES
+import com.wasimaster.wmkeyboard.core.settings.NextWordAmount
+import com.wasimaster.wmkeyboard.core.settings.NextWordSuggestions
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
@@ -323,6 +326,7 @@ internal fun TypingCorrectionsSettings(
     val undoChipOn = settings.watch { it.suggestionStrip.undoCorrectionChip }
     val detectionOn = settings.watch { it.suggestionStrip.languageDetection }
     val numberRowOn = settings.watch { it.numberRow }
+    val neuralOn = settings.watch { it.suggestionStrip.neuralContext }
     SettingsGroup(stringResource(R.string.typing_group_corrections_title)) {
         item {
             ToggleSetting(
@@ -553,6 +557,20 @@ internal fun TypingCorrectionsSettings(
                 info = stringResource(R.string.typing_neural_context_info),
                 default = SettingsDefaults.suggestionStrip.neuralContext,
             ) { scope.launch { repository.setNeuralContext(it) } }
+        }
+        // How much the model moves a word being typed: a factor on the
+        // engine's shipped blend, so 100% is exactly what it always did.
+        item(visible = neuralOn, level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.typing_lm_strength_title,
+                subtitle = stringResource(R.string.typing_lm_strength_subtitle),
+                value = settings.watch { it.suggestionStrip.lmStrength }.toFloat(),
+                range = 0f..LM_STRENGTH_MAX.toFloat(),
+                steps = LM_STRENGTH_MAX / 10 - 1,
+                display = { "${(it.toInt() + 5) / 10 * 10}%" },
+                info = stringResource(R.string.typing_lm_strength_info),
+                default = SettingsDefaults.suggestionStrip.lmStrength.toFloat(),
+            ) { scope.launch { repository.setLmStrength((it.toInt() + 5) / 10 * 10) } }
         }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
@@ -1000,6 +1018,7 @@ internal fun TypingSuggestionsSettings(
     // What decides which rows the group holds; each row reads its own value.
     val suggestionsOn = settings.watch { it.suggestions }
     val punctuationOn = settings.watch { it.suggestionStrip.punctuation }
+    val nextWords = settings.watch { it.suggestionStrip.nextWords }
     val autocorrectOn = settings.watch { it.correction.enabled }
     val askBeforeLearning = settings.watch { it.suggestionStrip.askBeforeLearning }
     val scrollable = settings.watch { it.suggestionStrip.scrollable }
@@ -1030,7 +1049,62 @@ internal fun TypingSuggestionsSettings(
                 default = SettingsDefaults.suggestionStrip.punctuation,
             ) { scope.launch { repository.setPunctuationSuggestions(it) } }
         }
-        item(visible = suggestionsOn && punctuationOn, level = SettingLevel.ADVANCED) {
+        // Next-word suggestions: one switch over the empty strip, and how
+        // eagerly it guesses (the engine's NextWordReach).
+        if (suggestionsOn) item {
+            ChoiceSetting(
+                R.string.typing_next_words_title,
+                subtitle = stringResource(R.string.typing_next_words_subtitle),
+                info = stringResource(R.string.typing_next_words_info),
+                options = listOf(
+                    NextWordSuggestions.OFF to stringResource(R.string.typing_next_words_off),
+                    NextWordSuggestions.WORDS to stringResource(R.string.typing_next_words_words),
+                    NextWordSuggestions.WORDS_AND_PUNCTUATION to stringResource(R.string.typing_next_words_punct),
+                ),
+                selected = nextWords,
+                default = SettingsDefaults.suggestionStrip.nextWords,
+                detail = { mode ->
+                    ChoiceDetail(
+                        stringResource(
+                            when (mode) {
+                                NextWordSuggestions.OFF -> R.string.typing_next_words_off_desc
+                                NextWordSuggestions.WORDS -> R.string.typing_next_words_words_desc
+                                NextWordSuggestions.WORDS_AND_PUNCTUATION -> R.string.typing_next_words_punct_desc
+                            },
+                        ),
+                    )
+                },
+            ) { scope.launch { repository.setNextWordSuggestions(it) } }
+        }
+        item(visible = suggestionsOn && nextWords != NextWordSuggestions.OFF, level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                R.string.typing_next_word_amount_title,
+                subtitle = stringResource(R.string.typing_next_word_amount_subtitle),
+                info = stringResource(R.string.typing_next_word_amount_info),
+                options = listOf(
+                    NextWordAmount.FEWER to stringResource(R.string.typing_next_word_amount_fewer),
+                    NextWordAmount.NORMAL to stringResource(R.string.typing_next_word_amount_normal),
+                    NextWordAmount.MORE to stringResource(R.string.typing_next_word_amount_more),
+                ),
+                selected = settings.watch { it.suggestionStrip.nextWordAmount },
+                default = SettingsDefaults.suggestionStrip.nextWordAmount,
+                detail = { level ->
+                    ChoiceDetail(
+                        stringResource(
+                            when (level) {
+                                NextWordAmount.FEWER -> R.string.typing_next_word_amount_fewer_desc
+                                NextWordAmount.NORMAL -> R.string.typing_next_word_amount_normal_desc
+                                NextWordAmount.MORE -> R.string.typing_next_word_amount_more_desc
+                            },
+                        ),
+                    )
+                },
+            ) { scope.launch { repository.setNextWordAmount(it) } }
+        }
+        item(
+            visible = suggestionsOn && (punctuationOn || nextWords == NextWordSuggestions.WORDS_AND_PUNCTUATION),
+            level = SettingLevel.ADVANCED,
+        ) {
             TextFieldSetting(
                 label = stringResource(R.string.typing_punctuation_marks_title),
                 value = settings.watch { it.suggestionStrip.punctuationChips },
@@ -3533,6 +3607,8 @@ internal fun TypingFlicksSettings(
     FingerSwipeSettings(repository, settings)
     // Gap list item 18: pinch and stretch on the keys, split and merge by default.
     PinchSettings(repository, settings)
+    // Gap list item 44: one finger swiped across the letters, glide off only.
+    OneFingerSwipeSettings(repository, settings)
     // Issue #754: hold ?123 still and tap a key to run an action.
     SymbolChordSettings(repository, settings)
     // Short swipes off keys, set here and laid over every layout.

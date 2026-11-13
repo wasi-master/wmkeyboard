@@ -10,6 +10,7 @@ import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
 import com.wasimaster.wmkeyboard.core.layout.resolveLayoutLanguage
 import com.wasimaster.wmkeyboard.core.layout.resolveLayoutName
 import com.wasimaster.wmkeyboard.core.settings.HintCorner
+import com.wasimaster.wmkeyboard.core.settings.KeyLabelCase
 import com.wasimaster.wmkeyboard.core.settings.HintOffsetRange
 import com.wasimaster.wmkeyboard.core.settings.LabelOffsetRange
 import com.wasimaster.wmkeyboard.core.settings.ArrowKey
@@ -245,6 +246,22 @@ internal fun AppearanceSettings(
                 disabledReason = pin,
                 default = SettingsDefaults.fontScale,
             ) { scope.launch { repository.setFontScale(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            // Gap list item 31: the case the letters are drawn in, whatever
+            // shift does to what they type.
+            ChoiceSetting(
+                R.string.appearance_key_label_case_title,
+                subtitle = stringResource(R.string.appearance_key_label_case_subtitle),
+                info = stringResource(R.string.appearance_key_label_case_info),
+                options = listOf(
+                    KeyLabelCase.FOLLOW_SHIFT to stringResource(R.string.appearance_key_label_case_follow),
+                    KeyLabelCase.LOWER to stringResource(R.string.appearance_key_label_case_lower),
+                    KeyLabelCase.UPPER to stringResource(R.string.appearance_key_label_case_upper),
+                ),
+                selected = settings.watch { it.layoutBehavior.labelCase },
+                default = SettingsDefaults.layoutBehavior.labelCase,
+            ) { scope.launch { repository.setKeyLabelCase(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
             val pin = themePin(settings) { it.hintFontScale }
@@ -2512,6 +2529,16 @@ internal fun LayoutOneHandedSettings(
                 info = stringResource(R.string.layout_landscape_fullscreen_info),
                 default = SettingsDefaults.layoutBehavior.landscapeFullscreen,
             ) { scope.launch { repository.setLandscapeFullscreen(it) } }
+        }
+        // The same text box with the phone upright (gap list item 50).
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.layout_portrait_fullscreen_title,
+                stringResource(R.string.layout_portrait_fullscreen_subtitle),
+                settings.watch { it.layoutBehavior.portraitFullscreen },
+                info = stringResource(R.string.layout_portrait_fullscreen_info),
+                default = SettingsDefaults.layoutBehavior.portraitFullscreen,
+            ) { scope.launch { repository.setPortraitFullscreen(it) } }
         }
         item(visible = floating, level = SettingLevel.ADVANCED) {
             ChoiceSetting(

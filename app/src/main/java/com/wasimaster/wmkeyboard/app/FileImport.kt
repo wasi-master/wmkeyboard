@@ -26,6 +26,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -77,6 +79,7 @@ import com.wasimaster.wmkeyboard.core.keyman.KeymanTouchLayoutReader
 import com.wasimaster.wmkeyboard.core.keyman.TouchLayoutConverter
 import com.wasimaster.wmkeyboard.core.layout.KeymanBinding
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
+import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelDownloadManager
 import com.wasimaster.wmkeyboard.core.keyman.KeymanPackage
 import com.wasimaster.wmkeyboard.core.layout.ConvertedLayout
 import com.wasimaster.wmkeyboard.core.layout.DesktopLayouts
@@ -245,6 +248,29 @@ object WMFileTypes {
      * and has no opinion about what a file is called.
      */
     const val KEYMAN_PACKAGE_EXTENSION = "kmp"
+
+    /** First four bytes of every `.wmlm` word language model (`lm.rs`'s `MAGIC`). */
+    private val WMLM_MAGIC = "WMLM".toByteArray(Charsets.US_ASCII)
+
+    /**
+     * The language a model's file name starts with (`de_context.wmlm`,
+     * `bn-rom.wmlm`) when this build knows it, else English: only a seed for
+     * the language row the dialog draws.
+     */
+    internal fun languageGuessFromName(name: String): String {
+        val parts = name.substringBefore('.').split('_', '-', ' ').filter { it.isNotEmpty() }
+        for (n in parts.size downTo 1) {
+            for (sep in listOf("_", "-")) {
+                val spelled = parts.take(n).joinToString(sep)
+                // As written ("pt_BR"), then with the language part in lower
+                // case ("DE_context" names German).
+                for (id in listOf(spelled, spelled.replaceFirst(parts[0], parts[0].lowercase())).distinct()) {
+                    if (LanguageRegistry.byId(id).id == id) return id
+                }
+            }
+        }
+        return "en"
+    }
 
     /** First four bytes of every ZIP local file header. */
     private val ZIP_MAGIC = byteArrayOf(0x50, 0x4B, 0x03, 0x04)
@@ -487,6 +513,15 @@ object WMFileTypes {
         /** An Anki deck or collection (`.apkg`, `.colpkg`), for the vocabulary tool. */
         data object AnkiDeck : Opened
 
+        /**
+         * A word language model (`.wmlm`) that is not one of the catalogue's
+         * (those arrive as [OfflineFiles], checked against their digest): a
+         * model the user trained or fetched elsewhere. Becomes the context
+         * model of the language they pick; [guessedLangId] seeds that choice
+         * from the file name.
+         */
+        data class LanguageModel(val guessedLangId: String) : Opened
+
         /** Not one of ours, and not something worth showing either. */
         data object Unrecognized : Opened
 
@@ -517,6 +552,11 @@ object WMFileTypes {
         }
         if (head.size >= ZIP_MAGIC.size && head.copyOf(ZIP_MAGIC.size).contentEquals(ZIP_MAGIC)) {
             return identifyArchive(context, uri)
+        }
+        // A word language model of the user's own: a catalogued one was
+        // claimed by its published name above.
+        if (head.size >= WMLM_MAGIC.size && head.copyOf(WMLM_MAGIC.size).contentEquals(WMLM_MAGIC)) {
+            return Opened.LanguageModel(languageGuessFromName(name))
         }
         // Before the text read below, which on a large encrypted bundle would
         // decode megabytes of ciphertext as UTF-8 to produce a string that
@@ -1086,8 +1126,8 @@ class ImportFileActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val uri = intent?.let(::sourceUri)
-        if (uri == null) {
+        val uris = intent?.let(::sourceUris).orEmpty()
+        if (uris.isEmpty()) {
             finish()
             return
         }
@@ -1101,11 +1141,22 @@ class ImportFileActivity : ComponentActivity() {
             val deviceForm = DeviceForm.of(LocalConfiguration.current.smallestScreenWidthDp)
             val settings = rememberLiveSettings(stored, deviceForm) ?: return@setContent
             AppTheme(settings) {
-                ImportFileDialog(repository, uri) { finish() }
+                // Several files shared at once (a batch of themes from a file
+                // manager, say) come one dialog after another, each read and
+                // confirmed as it would be alone.
+                var at by remember { mutableIntStateOf(0) }
+                key(at) {
+                    ImportFileDialog(repository, uris[at]) {
+                        if (at + 1 < uris.size) at++ else finish()
+                    }
+                }
             }
         }
     }
 }
+
+/** The most files one share brings in; the rest are left, as a pick of a whole folder would be a mistake. */
+private const val MAX_SHARED_FILES = 50
 
 /**
  * The file an intent points at.
@@ -1113,14 +1164,21 @@ class ImportFileActivity : ComponentActivity() {
  * An "open with" carries it as the data URI. A share sheet carries it as
  * `EXTRA_STREAM` instead, with no data URI at all, which is why the manifest's
  * `ACTION_SEND` filter would otherwise reach an activity that finishes on
- * arrival.
+ * arrival. `ACTION_SEND_MULTIPLE` carries a list of them, read up to
+ * [MAX_SHARED_FILES].
  */
-private fun sourceUri(intent: Intent): Uri? = intent.data
-    ?: if (intent.action == Intent.ACTION_SEND) {
-        IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)
-    } else {
-        null
+private fun sourceUris(intent: Intent): List<Uri> {
+    intent.data?.let { return listOf(it) }
+    return when (intent.action) {
+        Intent.ACTION_SEND ->
+            listOfNotNull(IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java))
+        Intent.ACTION_SEND_MULTIPLE ->
+            IntentCompat.getParcelableArrayListExtra(intent, Intent.EXTRA_STREAM, Uri::class.java).orEmpty()
+                .distinct()
+                .take(MAX_SHARED_FILES)
+        else -> emptyList()
     }
+}
 
 /**
  * The pending import, once the file has been read and named.
@@ -2136,6 +2194,35 @@ private fun rememberProposal(
             },
         )
 
+        is WMFileTypes.Opened.LanguageModel -> ImportProposal(
+            titleRes = R.string.import_name_title,
+            titleArg = WMFileTypes.displayName(context, uri),
+            body = context.getString(R.string.import_language_model_body),
+            language = state.guessedLangId,
+            applyWithLanguage = { langId ->
+                val name = LanguageRegistry.byId(langId).displayName
+                val copied = withContext(Dispatchers.IO) {
+                    val staging = File(context.cacheDir, "import-${System.currentTimeMillis()}.wmlm")
+                    try {
+                        context.contentResolver.requireInputStream(uri).use { input ->
+                            staging.outputStream().use { input.copyTo(it) }
+                        }
+                        ContextModelDownloadManager.install(context.filesDir, langId, staging, imported = true)
+                        true
+                    } catch (e: java.io.IOException) {
+                        false
+                    } finally {
+                        staging.delete()
+                    }
+                }
+                if (copied) {
+                    context.getString(R.string.import_language_model_done, name)
+                } else {
+                    context.getString(R.string.import_language_model_error)
+                }
+            },
+        )
+
         // Drawn by OfflineFilesDialog instead; never reaches here.
         is WMFileTypes.Opened.OfflineFiles -> ImportProposal(
             titleRes = state.kind.titleRes,
@@ -2277,7 +2364,7 @@ private fun rememberProposal(
                 // how a file's patterns, its ask-first flag and its folders get
                 // dropped on the floor with nothing to say so.
                 withContext(Dispatchers.IO) {
-                    store.addAll(state.snippets.snippets, state.snippets.folders)
+                    store.addAll(state.snippets.snippets, state.snippets.folders, images = state.snippets.images)
                     // The adds are in-memory only; save() is what writes the file.
                     store.save()
                 }
@@ -2411,11 +2498,18 @@ private fun foreignSnippetsProposal(
     context: android.content.Context,
 ): ImportProposal {
     val table = parsed.source == SnippetPayload.Source.CSV
+    val plain = parsed.source == SnippetPayload.Source.TEXT
     val folderName = parsed.suggestedName.trim()
     if (parsed.snippets.isEmpty()) {
         return ImportProposal(
             titleRes = R.string.import_espanso_title,
-            body = context.getString(if (table) R.string.import_csv_none else R.string.import_espanso_none),
+            body = context.getString(
+                when {
+                    plain -> R.string.import_text_none
+                    table -> R.string.import_csv_none
+                    else -> R.string.import_espanso_none
+                },
+            ),
             repairs = parsed.notes.map { it.resolve(context) },
             apply = null,
         )
@@ -2424,9 +2518,13 @@ private fun foreignSnippetsProposal(
         titlePluralRes = R.plurals.import_snippets_title,
         titleQuantity = parsed.snippets.size,
         body = context.getString(
-            if (table) R.string.import_csv_body else R.string.import_espanso_body,
+            when {
+                plain -> R.string.import_text_body
+                table -> R.string.import_csv_body
+                else -> R.string.import_espanso_body
+            },
             folderName.ifEmpty {
-                context.getString(if (table) R.string.import_csv_folder_fallback else R.string.import_espanso_folder_fallback)
+                context.getString(if (table || plain) R.string.import_csv_folder_fallback else R.string.import_espanso_folder_fallback)
             },
         ),
         repairs = parsed.notes.map { it.resolve(context) },

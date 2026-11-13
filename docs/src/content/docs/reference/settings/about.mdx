@@ -36,6 +36,8 @@ The **Feedback** group, under Community, is where a problem goes. It has three r
 
 Either way, take **Diagnostics** along. It names the exact build and device, and it never contains anything you typed. A phone with no mail app installed shows a toast with the address instead of opening anything.
 
+For a problem in one app's text field, add the [Debug info](#describing-a-text-field) report on that field.
+
 ### The feedback form
 
 **Send feedback** asks three things: whether it's a bug, an idea or a question, what you want to say, and, when the form was opened by a shake or a screenshot, whether to attach that screen. A picture of the screen comes with it, ticked, and you can untick it. Then pick where it goes:
@@ -73,6 +75,7 @@ The **App** group holds twelve rows:
 - **Resources** opens the [resources screen](#seeing-what-the-keyboard-holds-in-memory) below: memory, processor time and the models loaded right now, with a button to unload each.
 - **Statistics** opens [Statistics](/reference/settings/statistics/): your level and achievements, a heatmap of where you tap, how much you type day by day, plus the switch that turns the counting off.
 - **Diagnostics** opens the [diagnostics screen](#diagnosing-a-problem) covered below.
+- **Debug info** (Advanced) opens the report the keyboard's Debug info action takes on a text field; see [Describing a text field](#describing-a-text-field).
 - **How you set the keyboard up** shows the two answers you gave the setup wizard, as *depth · languages*. "A good middle · Several languages", for instance, or "Not answered" if you skipped it. Depth is one of Keep it simple, A good middle, or Show me everything, and languages is One language or Several languages. These aren't decoration. They still decide how many tools get pinned, how the theme gallery is laid out, how much of the settings app shows until you pick a depth yourself, and which pages the wizard would show you. Tapping the row opens the wizard at that first question.
 - **How many settings to show** is the settings depth: Simple, Standard or Everything. It starts from the setup wizard's answer above. See [Choosing how many settings you see](/reference/settings/#choosing-how-many-settings-you-see).
 - **Show where settings are hidden** (off by default) puts a **more settings** row at the end of every group the depth left something out of, and shows Home's left-out rows as a closed **More** group.
@@ -290,6 +293,17 @@ The **Report** group has three controls:
 If the app has crashed since it was last cleared, a **Crashes** group appears above the app log with the crash record and a **Clear crashes** button. It only shows up when there's something to show.
 
 The **app log** itself is a free-text filter field plus one level chip per severity (Debug, Info, Warn, Error). The chips pick one level at a time rather than combining, and the chosen one keeps every entry at or above it. Debug is selected when you arrive, which shows the lot. Entries list newest first, with a timestamp and tag above each monospaced message, colour-coded by severity. Pull down to re-read the log without leaving the screen. Turning on **Include the system log** above adds another group underneath showing that raw log: the third group on the screen if no Crashes section is showing, the fourth if one is. A **Clear app log** button sits at the very bottom, on its own.
+
+## Describing a text field
+
+A bug that only shows up in one app's field (Enter sends instead of making a new line, the strip never appears, the wrong keypad opens) usually comes down to what that field asked the keyboard for. **Debug info** reads it. It is an action rather than a toolbar button: put it on a key, a flick, a hold on a toolbar button or the floating button, where the tool list shows it under Other. Run it in the field in question and the settings app opens on a report:
+
+- **Field**: the app's package, the field's id, its input type in words (`text, short message, caps sentences, auto correct, multi line (0x2c041)`), its IME options (`action send, no personalized learning`), the Enter key's label, the capitals it starts with, its hint and label (cut to 80 characters), its private options, the names of any extras, the content types it accepts and its language hints.
+- **Keyboard**: the version, Android and the device, the language and layout, what the keyboard took the field for (a URL, an email address, a password), whether incognito and typing intelligence were on, and whether a hardware keyboard was attached.
+- **Screen**: size in dp and pixels, density, font scale, orientation and night mode.
+- **Memory**: the keyboard's total, its Java and native heaps, graphics, and the [models loaded](#seeing-what-the-keyboard-holds-in-memory) at that moment.
+
+**Copy** puts the whole report on the clipboard for an issue. The report never contains the field's text: not a character of it is read, only what the app declared about the field. It stays in memory until the keyboard restarts and is never written to a file. Opened from About before the action has run, the screen shows the version, device, screen and memory the app can see from there, and says how to take a full report.
 
 ## Options
 

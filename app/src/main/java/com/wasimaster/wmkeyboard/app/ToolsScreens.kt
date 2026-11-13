@@ -103,6 +103,8 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.SCREENSHOT -> ImeR.string.ime_tool_screenshot
     ToolbarTool.PRIVACY_SHADE -> ImeR.string.ime_tool_privacy_shade
     ToolbarTool.QUICK_NOTE -> ImeR.string.ime_tool_quick_note
+    ToolbarTool.DEBUG_INFO -> ImeR.string.ime_tool_debug_info
+    ToolbarTool.HOMOPHONES -> ImeR.string.ime_tool_homophones
     ToolbarTool.EMOJI_MIX -> ImeR.string.ime_tool_emoji_mix
     ToolbarTool.READ_BACK -> ImeR.string.ime_tool_read_back
     ToolbarTool.SNIPPETS -> ImeR.string.ime_tool_snippets
@@ -209,6 +211,8 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.SCREENSHOT -> R.string.fonts_tool_screenshot_desc
     ToolbarTool.PRIVACY_SHADE -> R.string.fonts_tool_privacy_shade_desc
     ToolbarTool.QUICK_NOTE -> R.string.fonts_tool_quick_note_desc
+    ToolbarTool.DEBUG_INFO -> R.string.fonts_tool_debug_info_desc
+    ToolbarTool.HOMOPHONES -> R.string.fonts_tool_homophones_desc
     ToolbarTool.EMOJI_MIX -> R.string.fonts_tool_emoji_mix_desc
     ToolbarTool.READ_BACK -> R.string.fonts_tool_read_back_desc
     ToolbarTool.SNIPPETS -> R.string.fonts_tool_snippets_desc
@@ -507,6 +511,14 @@ internal fun ToolsSettings(
         checked = settings.watch { it.summonButton.boxGestures },
         onChange = { scope.launch { repository.setFloatingBoxGestures(it) } },
         default = SettingsDefaults.summonButton.boxGestures,
+    )
+    // A hold, then a drag, moves the box from anywhere on it (#1263).
+    ToggleSetting(
+        title = R.string.tools_box_hold_to_move_title,
+        subtitle = stringResource(R.string.tools_box_hold_to_move_subtitle),
+        checked = settings.watch { it.summonButton.boxHoldToMove },
+        onChange = { scope.launch { repository.setFloatingBoxHoldToMove(it) } },
+        default = SettingsDefaults.summonButton.boxHoldToMove,
     )
     // Panels as one group or two (#759). Above the groups it reshapes, so
     // the switch and what it changes are on screen together.

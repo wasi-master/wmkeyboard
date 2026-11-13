@@ -410,6 +410,12 @@
     <string name="tooldetail_power_drop_warm_models_title">Loaded models</string>
     <string name="tooldetail_power_drop_warm_models_subtitle">Unload them 15 seconds after the keyboard hides, not 2 minutes</string>
     <string name="tooldetail_power_drop_warm_models_info">After the keyboard has been hidden for a while, it unloads the models that it loaded: the language model, voice typing, the translator, text scanning and the rest. This shortens that wait. A loaded model costs memory more than battery, and loading it again for the next field is the part that uses battery, so this is off unless memory is what you are short of. The Resources screen in About shows what is loaded now.</string>
+    <string name="tooldetail_power_dark_theme_title">Dark theme</string>
+    <string name="tooldetail_power_dark_theme_subtitle">Show Pitch black, a plain dark theme, while power saving is on</string>
+    <string name="tooldetail_power_dark_theme_info">Black keys on a black background use the least power on an OLED screen, and this theme has no image, blur or motion to draw. Your own theme and your light and dark pair are not changed. They come back when power saving stops. A Keyboard Mode that has its own theme keeps that theme. This setting is off by default and no bundle turns it on.</string>
+    <string name="tooldetail_power_drop_suggestions_title">Word suggestions</string>
+    <string name="tooldetail_power_drop_suggestions_subtitle">Hide the word suggestions in the strip</string>
+    <string name="tooldetail_power_drop_suggestions_info">The strip stops offering words to complete or predict, the same as the Suggestions switch in Typing set to off. This setting is off by default and no bundle turns it on.</string>
     <string name="tooldetail_power_drop_floating_button_title">Floating button</string>
     <string name="tooldetail_power_drop_floating_button_subtitle">Hide the button drawn over other apps</string>
     <string name="tooldetail_power_drop_floating_button_info">The floating button is a small window that Android draws over every app. It comes back where you left it when power saving ends. With this off, the button stays, and Animations still stops its quick menu from animating.</string>
@@ -688,6 +694,10 @@
     <string name="tooldetail_search_info">Web search and image search share everything here. They search the whole web. The Brave plan includes a free monthly credit of about a thousand searches. Brave asks for attribution, so the panel shows \"via Brave\".</string>
     <!-- Tavily is a brand name: keep it as it is. -->
     <string name="tooldetail_tavily_group">Tavily</string>
+    <string name="tooldetail_klipy_group">KLIPY</string>
+    <string name="tooldetail_klipy_memes_title">Memes chip</string>
+    <string name="tooldetail_klipy_memes_subtitle">KLIPY\'s memes in a tab of the GIF panel</string>
+    <string name="tooldetail_klipy_memes_info">Adds a Memes chip to the category row of the GIF panel, after Trending. It shows KLIPY\'s trending memes, which are still pictures with a caption, and while it is selected the search box searches the memes instead of the GIFs. Tap a meme to send it as a picture. Press Trending to go back to the GIFs. The chip only shows when KLIPY is on the GIF provider list, and it costs nothing until you press it.</string>
     <string name="tooldetail_tavily_key_label">Tavily API key</string>
     <string name="tooldetail_tavily_key_hint">From app.tavily.com, with 1,000 free credits a month</string>
     <string name="tooldetail_tavily_info">Another search service, made for AI tools. The free plan gives 1,000 credits a month, and each search uses one. With a key here, web search and image search use Tavily instead of Brave. Image search shows the pictures that Tavily found on the pages of its results, so it finds fewer pictures than Brave.</string>
@@ -1368,6 +1378,8 @@
     <string name="tooldetail_hold_settings_title">Settings page</string>
     <string name="tooldetail_hold_floating_title">In a floating box</string>
     <string name="tooldetail_hold_floating_subtitle">Opens the tool in a box over the app, which stays when the keyboard closes</string>
+    <string name="tooldetail_box_close_outside_title">Close its floating box on a tap outside</string>
+    <string name="tooldetail_box_close_outside_subtitle">For this tool only; the setting on the Tools screen covers the rest</string>
     <string name="tooldetail_float_on_tap_title">Open in a floating box</string>
     <string name="tooldetail_float_on_tap_subtitle">A tap on the tool\'s button opens it in a box over the app instead of in the keyboard</string>
     <string name="tooldetail_hold_settings_subtitle">Opens the settings of this tool, as the hold did before</string>

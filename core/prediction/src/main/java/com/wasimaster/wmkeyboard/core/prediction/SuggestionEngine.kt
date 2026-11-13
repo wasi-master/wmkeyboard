@@ -1248,6 +1248,25 @@ class SuggestionEngine(
     var learnedWordMinCount: Int = 1
 
     /**
+     * How far the strip reaches for the next word: off, the user's own
+     * followers only, everything (the default), or everything with the
+     * corpus followers carried into typed words too. Set from the user's
+     * next-word settings; see [NextWordReach].
+     */
+    @Volatile
+    var nextWordReach: NextWordReach = NextWordReach.NORMAL
+
+    /**
+     * The user's "Language model strength", a factor on [LM_BLEND] and
+     * [LM_BLEND_CAP] in [blendContextModel]: 1 is the shipped blend, 0 keeps
+     * the context model out of a typed word's ranking (it still predicts the
+     * next word and re-reads the last one), 2 doubles both its weight and the
+     * most it may move a word.
+     */
+    @Volatile
+    var lmStrength: Double = 1.0
+
+    /**
      * Autocorrect's memory of its own mistakes: per-pair revert penalties and
      * the fired/reverted ratio behind [adaptiveConfidence]. The default is a
      * memory-only instance (null file), so tests and locked-boot sessions get
@@ -3758,9 +3777,6 @@ class SuggestionEngine(
         /** How deep [carryFollowers] reads the follower list. */
         private const val FOLLOWER_POOL = 24
 
-        /** How many followers [carryFollowers] keeps on the strip. */
-        private const val FOLLOWER_CARRY = 3
-
         /** How far a carried follower sits above the best other candidate, in log-score. */
         private const val FOLLOWER_LEAD = 0.5
 
@@ -4417,6 +4433,11 @@ class SuggestionEngine(
     private fun blendContextModel(merged: HashMap<String, Double>, touch: List<TouchPoint?>?) {
         val model = contextModel ?: return
         if (merged.size < 2) return
+        // The user's strength at zero: the model has no say here at all, so
+        // it is not asked.
+        val strength = lmStrength
+        if (strength <= 0.0) return
+        val cap = LM_BLEND_CAP * strength
         val spread = touchModelField?.let { keys ->
             val distances = touch.orEmpty().mapNotNull { tap -> tap?.let(keys::nearestDistance) }
             if (distances.isEmpty()) null else distances.average()
@@ -4430,7 +4451,7 @@ class SuggestionEngine(
         // get there, so spelling it would buy nothing.
         val leading = merged.getValue(leader)
         val unlisted = words.indices
-            .filter { scores[it].isNaN() && leading - merged.getValue(words[it]) < LM_BLEND_CAP }
+            .filter { scores[it].isNaN() && leading - merged.getValue(words[it]) < cap }
             .sortedByDescending { merged.getValue(words[it]) }
             .take(LM_SPELLED)
         if (unlisted.isNotEmpty()) {
@@ -4447,7 +4468,7 @@ class SuggestionEngine(
         if (adapter != null) {
             adapter.disagreement = if (best >= 0 && words[best] != leader) words[best] to leader else null
         }
-        val base = LM_BLEND * (adapter?.weightFactor() ?: 1.0)
+        val base = LM_BLEND * strength * (adapter?.weightFactor() ?: 1.0)
         val weight = if (spread == null) {
             base
         } else {
@@ -4456,7 +4477,7 @@ class SuggestionEngine(
         for (i in words.indices) {
             val lp = scores[i]
             if (lp.isNaN()) continue
-            val shift = (weight * (lp - reference)).coerceIn(-LM_BLEND_CAP, LM_BLEND_CAP)
+            val shift = (weight * (lp - reference)).coerceIn(-cap, cap)
             if (shift != 0.0) merged[words[i]] = merged.getValue(words[i]) + shift
         }
     }
@@ -5837,7 +5858,9 @@ class SuggestionEngine(
         limit: Int,
         previousWord3: String? = null,
     ): List<String> {
-        val ordered = followerOrder(previousWord, previousWord2, previousWord3, limit)
+        val reach = nextWordReach
+        if (reach == NextWordReach.OFF) return emptyList()
+        val ordered = followerOrder(previousWord, previousWord2, previousWord3, limit, personal = reach.personalOnly)
         if (ordered.isEmpty()) return emptyList()
         var result = ordered.asSequence()
             .filterNot(::suppressed)
@@ -5956,10 +5979,11 @@ class SuggestionEngine(
      * alone, so a follower outside its top [WALK_K] never reached [merged],
      * and no context boost could bring back a word that was not there.
      *
-     * Up to [FOLLOWER_CARRY] of the first [FOLLOWER_POOL] followers that
-     * continue [lower] go in, in the followers' own order, [FOLLOWER_LEAD]
-     * above the best of the rest. Only the user's own pairs and triples,
-     * contacts and the context model are carried. On the typing harness the corpus pack's
+     * Up to [NextWordReach.carry] (3 by default) of the first
+     * [FOLLOWER_POOL] followers that continue [lower] go in, in the
+     * followers' own order, [FOLLOWER_LEAD] above the best of the rest. Only
+     * the user's own pairs and triples, contacts and the context model are
+     * carried, short of [NextWordReach.MORE]. On the typing harness the corpus pack's
      * followers, right about one time in eight, cost a new user up to 2 of
      * every 100 keystrokes the strip saved; the user's own saved up to 2 more
      * and cost nothing anywhere. A word typed in full that a list knows
@@ -5975,13 +5999,20 @@ class SuggestionEngine(
         previousWord3: String?,
     ) {
         if (previousWord == null) return
+        // The user's next-word reach moves the two knobs this has
+        // always had: how many followers carry, and whether the corpus pack's
+        // are among them. NORMAL is the measured default described above.
+        val reach = nextWordReach
+        if (reach.carry == 0) return
         val key = WordKey.of(lower)
         if (key.isEmpty()) return
-        val carried = followerOrder(previousWord, previousWord2, previousWord3, FOLLOWER_POOL, personal = true)
+        val carried = followerOrder(
+            previousWord, previousWord2, previousWord3, FOLLOWER_POOL, personal = reach.carryPersonalOnly,
+        )
             .asSequence()
             .filter { val k = WordKey.of(it); k.length > key.length && k.startsWith(key) }
             .filterNot { WordContext.isSentinel(it) || suppressed(it) }
-            .take(FOLLOWER_CARRY)
+            .take(reach.carry)
             .toList()
         if (carried.isEmpty()) return
         var typedScore = Double.NEGATIVE_INFINITY

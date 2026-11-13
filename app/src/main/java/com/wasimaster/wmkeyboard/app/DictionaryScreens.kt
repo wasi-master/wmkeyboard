@@ -2,6 +2,9 @@ package com.wasimaster.wmkeyboard.app
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import com.wasimaster.wmkeyboard.core.snippets.GboardDictionary
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -169,6 +172,32 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     var loads by remember { mutableIntStateOf(0) }
     val gboardLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         gboardFile = uri
+    }
+    // Export to a .txt (gap list item 32): which words, picked in a dialog
+    // first; [DictionaryExportScope] says which, and the launcher writes them.
+    var exportPicking by remember { mutableStateOf(false) }
+    var exportScope by remember { mutableStateOf<DictionaryExportScope?>(null) }
+    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+        val which = exportScope
+        exportScope = null
+        val lex = lexicon
+        if (uri == null || which == null || lex == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val written = withContext(Dispatchers.IO) {
+                runCatching {
+                    val body = dictionaryExportText(lex, which)
+                    context.contentResolver.openOutputStream(uri, "wt")?.use { it.write(body.second.toByteArray()) }
+                        ?: error("no stream")
+                    body.first
+                }.getOrNull()
+            }
+            val message = if (written == null) {
+                context.getString(R.string.backup_dictionary_export_failed)
+            } else {
+                context.resources.getQuantityString(R.plurals.backup_dictionary_export_done, written, written)
+            }
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun pinnedIn(lex: UserLexicon, all: List<Pair<String, Int>>): Set<String> =
@@ -349,6 +378,20 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
                 subtitle = stringResource(R.string.backup_gboard_import_subtitle),
                 icon = Icons.Outlined.Download,
                 onClick = { gboardLauncher.launch(arrayOf("application/zip", "text/plain", "application/octet-stream")) },
+            )
+        }
+        item(level = SettingLevel.STANDARD) {
+            WmRow(
+                title = stringResource(R.string.backup_dictionary_export_title),
+                subtitle = stringResource(R.string.backup_dictionary_export_subtitle),
+                icon = Icons.Outlined.Upload,
+                onClick = {
+                    if (words.isEmpty()) {
+                        Toast.makeText(context, R.string.backup_dictionary_export_empty, Toast.LENGTH_SHORT).show()
+                    } else {
+                        exportPicking = true
+                    }
+                },
             )
         }
     }
@@ -684,6 +727,26 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
         )
     }
 
+    if (exportPicking) {
+        DictionaryExportDialog(
+            words = words,
+            langs = langs,
+            enabled = enabledLanguages.map { it.id },
+            onDismiss = { exportPicking = false },
+            onPick = { picked ->
+                exportPicking = false
+                exportScope = picked
+                exportLauncher.launch(
+                    when (picked) {
+                        DictionaryExportScope.Everything -> "dictionary.txt"
+                        DictionaryExportScope.NoLanguage -> "dictionary-all-languages.txt"
+                        is DictionaryExportScope.Language -> "dictionary-${picked.id}.txt"
+                    },
+                )
+            },
+        )
+    }
+
     gboardFile?.let { uri ->
         ImportFileDialog(
             repository = repository,
@@ -1006,6 +1069,103 @@ private fun AndroidWordPickerDialog(
         },
     )
 }
+/** Which words a `.txt` export writes (gap list item 32). */
+private sealed interface DictionaryExportScope {
+    /** Every word, whatever it is filed under. */
+    data object Everything : DictionaryExportScope
+
+    /** The words filed under no language, the **All languages** group. */
+    data object NoLanguage : DictionaryExportScope
+
+    /** The words filed under language [id]. */
+    data class Language(val id: String) : DictionaryExportScope
+}
+
+/**
+ * The words [scope] covers, most used first, as Gboard's `dictionary.txt`
+ * (see [GboardDictionary.write]): a word, then the locale of the language it
+ * is filed under. The same file comes back in through **Import a Gboard
+ * dictionary**, languages and all, and Gboard's own Import reads it. Returns
+ * how many words went in with the text.
+ */
+private fun dictionaryExportText(lexicon: UserLexicon, scope: DictionaryExportScope): Pair<Int, String> {
+    val entries = lexicon.allWords()
+        .sortedWith(compareByDescending<Pair<String, Int>> { it.second }.thenBy { it.first })
+        .mapNotNull { (word, _) ->
+            val language = lexicon.languageOf(word)
+            val keep = when (scope) {
+                DictionaryExportScope.Everything -> true
+                DictionaryExportScope.NoLanguage -> language == null
+                is DictionaryExportScope.Language -> language == scope.id
+            }
+            if (!keep) return@mapNotNull null
+            GboardDictionary.Entry(shortcut = "", word = word, locale = language?.let(::exportLocale).orEmpty())
+        }
+    return entries.size to GboardDictionary.write(entries)
+}
+
+/** The locale written for language [id]: its BCP 47 tag, or the id of a language this build no longer has. */
+private fun exportLocale(id: String): String {
+    val language = LanguageRegistry.byId(id)
+    return if (language === LanguageRegistry.GENERIC) id else language.localeTag
+}
+
+/**
+ * Asks which words to export: all of them, the ones filed under no language,
+ * or one language's. Each choice says how many words it holds; languages the
+ * keyboard has on come first, in their order.
+ */
+@Composable
+private fun DictionaryExportDialog(
+    words: List<Pair<String, Int>>,
+    langs: Map<String, String>,
+    enabled: List<String>,
+    onDismiss: () -> Unit,
+    onPick: (DictionaryExportScope) -> Unit,
+) {
+    val counts = remember(words, langs) {
+        words.groupingBy { langs[it.first] }.eachCount()
+    }
+    val ordered = remember(counts, enabled) {
+        val present = counts.keys.filterNotNull()
+        enabled.filter { it in present } + present.filter { it !in enabled }.sorted()
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.backup_dictionary_export_dialog_title)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text(
+                    stringResource(R.string.backup_dictionary_export_dialog_body),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+                ExportChoice(stringResource(R.string.backup_dictionary_filter_everything), words.size) {
+                    onPick(DictionaryExportScope.Everything)
+                }
+                for (id in ordered) {
+                    ExportChoice(dictionaryLanguageName(id), counts[id] ?: 0) { onPick(DictionaryExportScope.Language(id)) }
+                }
+                counts[null]?.takeIf { it > 0 && ordered.isNotEmpty() }?.let { count ->
+                    ExportChoice(dictionaryLanguageName(null), count) { onPick(DictionaryExportScope.NoLanguage) }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) } },
+    )
+}
+
+@Composable
+private fun ExportChoice(label: String, count: Int, onClick: () -> Unit) {
+    Text(
+        pluralStringResource(R.plurals.backup_dictionary_export_choice, count, label, count),
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 12.dp),
+    )
+}
+
 /** The personal dictionary's language filter (#930): [languageId] null is the every-language group. */
 private data class LanguageFilter(val languageId: String?)
 

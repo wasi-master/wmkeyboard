@@ -87,6 +87,50 @@ class KlipyClientTest {
         assertEquals(1, KlipyClient.parse(body).size)
     }
 
+    /** The shape docs.klipy.com/memes-api/memes-trending-api shows: numeric ids, png and webp per size. */
+    @Test
+    fun `memes parse to a webp preview and a png to send`() {
+        val body = """
+            {"result":true,"data":{"data":[
+                {"id":4895743751814617,"slug":"3-am-video-game-meme","title":"3 Am Video Game Meme","file":{
+                    "hd":{"png":{"url":"https://k/hd.png","width":498,"height":467},"webp":{"url":"https://k/hd.webp","width":498,"height":467}},
+                    "sm":{"png":{"url":"https://k/sm.png","width":200,"height":100},"webp":{"url":"https://k/sm.webp","width":200,"height":100}}
+                }},
+                {"id":2,"slug":"no-file"}
+            ]}}
+        """.trimIndent()
+        val items = KlipyClient.parseMemes(body)
+        assertEquals(1, items.size)
+        val meme = items[0]
+        assertEquals("klipy_meme_4895743751814617", meme.id)
+        assertEquals("https://k/sm.webp", meme.previewUrl)
+        assertEquals("https://k/hd.png", meme.fullUrl)
+        assertEquals("image/png", meme.mime)
+        assertEquals(2f, meme.aspectRatio)
+        assertEquals(GifSource.KLIPY, meme.source)
+        assertEquals("3 Am Video Game Meme", meme.title)
+    }
+
+    @Test
+    fun `a meme with only webp sends the webp`() {
+        val body = """
+            {"result":true,"data":{"data":[
+                {"slug":"only-webp","file":{"md":{"webp":{"url":"https://k/md.webp"}}}}
+            ]}}
+        """.trimIndent()
+        val meme = KlipyClient.parseMemes(body).single()
+        assertEquals("klipy_meme_only-webp", meme.id)
+        assertEquals("image/webp", meme.mime)
+        assertTrue(KlipyClient.parseMemes("{}").isEmpty())
+    }
+
+    @Test
+    fun `the memes chip is the panel's own, not a search`() {
+        assertTrue(MediaCategories.isOwnChip(MediaCategories.MEMES))
+        assertTrue(!MediaCategories.isCollection(MediaCategories.MEMES))
+        assertEquals(MediaCategories.MEMES, MediaCategories.memes.term)
+    }
+
     @Test
     fun `missing data parses to empty list`() {
         assertTrue(KlipyClient.parse("{}").isEmpty())

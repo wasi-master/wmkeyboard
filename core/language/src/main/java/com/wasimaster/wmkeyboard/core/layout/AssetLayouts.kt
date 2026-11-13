@@ -904,6 +904,10 @@ object AssetLayouts {
     const val EN_KASROZ_ID = "asset_en_kasroz"
     /** QWERTY's columns laid end to end on one row, read like Minuum's strip. */
     const val EN_ONE_ROW_ID = "asset_en_one_row"
+    /** QWERTY on a honeycomb ([LayoutSpec.grid] `"hex"`), p moved down to the home row. */
+    const val EN_HEX_QWERTY_ID = "asset_en_hex_qwerty"
+    /** The alphabet in order on an eight-cell honeycomb, for big keys. */
+    const val EN_HEX_ABC_ID = "asset_en_hex_abc"
     const val EN_SHAVIAN_ID = "asset_en_shavian"
     const val EN_SHAVIAN_TWO_LAYER_ID = "asset_en_shavian_two_layer"
     const val ENF_CYRILLIC_ID = "asset_enf_cyrillic"
@@ -991,6 +995,16 @@ object AssetLayouts {
     const val ZGH_LATIN_QWERTZ_ID = "asset_zgh_latin_qwertz"
     const val ZGH_TIFINAGH_ALT_ID = "asset_zgh_tifinagh_alt"
     const val ZGH_TIFINAGH_AZERTY_ID = "asset_zgh_tifinagh_azerty"
+
+    // Four layouts AnySoftKeyboard ships that WM did not (gap K7 of the
+    // 2026-11-13 comparison), laid out from their own specs: Ergo-L from
+    // ergol.org's ergol.toml, Rulemak from rulemak.klc (xkeyboard-config
+    // ru(rulemak)), AdNW and KOY from adnw.de, and Bribri's alphabet.
+    const val FR_ERGOL_ID = "asset_fr_ergol"
+    const val RU_RULEMAK_ID = "asset_ru_rulemak"
+    const val DE_ADNW_ID = "asset_de_adnw"
+    const val DE_KOY_ID = "asset_de_koy"
+    const val BZD_QWERTY_ID = "asset_bzd_qwerty"
 
     // One-row boards (QWERTY folded column by column, Minuum style), generated
     // from each language's main grid; see EN_ONE_ROW_ID.

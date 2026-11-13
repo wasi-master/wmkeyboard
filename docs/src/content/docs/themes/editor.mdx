@@ -169,6 +169,8 @@ The shapes that ignore the slider aren't being lazy about it. Their whole look i
 
 Only the drawing changes. Touch targets stay rectangular for every shape, so the gap between two hexagons still belongs to one key or the other, and nothing gets harder to hit.
 
+A [honeycomb layout](/languages/custom-layouts/#honeycomb-layouts) is the exception. Its keys are always hexagons, fitted row into row, whichever shape is picked here, and a touch goes to the hexagon whose centre is nearest. The theme's colours, textures, borders, press colour and key lighting still apply to them, drawn on the hexagons.
+
 Slanted is the one shape that draws slightly outside its key. A parallelogram kept inside the key would lose about a third of the width at the top and the bottom, which on a phone-sized key reads as a row of thin straps. So it leans half its slant into the gap on each side instead. Every key stays exactly as wide as it would be with any other shape, and the gap between two keys keeps its width. The gap just runs on a diagonal. Where there is no gap to lean into, the lean is trimmed to fit.
 
 #### Key shadow
@@ -384,6 +386,8 @@ The **Suggestion strip** section:
 - **One-handed rail** and **One-handed rail icons** color the strip beside the keyboard in one-handed mode. It used to draw in the settings app's colors and ignore your keyboard theme entirely.
 - **Secondary text** colors the quieter text beside the main text: the second word of a suggestion, and the kind and time on a clipboard entry. Auto draws Suggestion text at 65% alpha, which is what it was before the row existed. Alpha works here.
 - **Dividers** colors the hairlines between the parts of a panel and between suggestions. Auto draws Suggestion text at 25% alpha. Alpha works here too, so you can keep the rule faint in a hue of its own.
+- **Emoji search bar** and **Emoji search text** color the search bar at the top of the emoji panel apart from the other cards. Auto keeps the card color and the suggestion text, which is what the bar always drew with. Alpha works on the bar.
+- **Copied-text chip** and **Copied-text chip text** color the chip on the suggestion strip that pastes what you just copied. Auto keeps the light accent tint and the suggestion text. The chip's icon and outline follow the text color once you set one. A [HeliBoard or LeanType](/themes/sharing/#from-a-heliboard-or-leantype-theme) theme that colors these two apart from its other chips lands here on import.
 - **Card shadow** lifts the panel cards off the panel.
 
 ### Chips & buttons
@@ -411,7 +415,7 @@ Both **Board** and **Keys** can carry an optional gradient, painted over their s
 
 ### Corners
 
-Off by default, so keys everywhere follow the global sliders (two under Appearance, one under Key press). Turning on **Corner radii for this theme** seeds three independent sliders for this theme alone, each starting at whatever its global counterpart is set to:
+Off by default, so keys everywhere follow the global sliders (two under Appearance, one under Key press). Turning on **Corner radii for this theme** seeds three independent sliders for this theme alone, each starting at whatever its global counterpart is set to, and adds two more for the keys that are not letters:
 
 <PhoneFrame side caption="Corner radii for this theme, with the Key, Popup, and Tool circle sliders.">
   ![Corner radii for this theme, with the Key, Popup, and Tool circle sliders.](@assets/screens/themes/editor-corners-animation.webp)
@@ -420,6 +424,10 @@ Off by default, so keys everywhere follow the global sliders (two under Appearan
 - **Key corner radius**: 0–28dp, seeded from the global Key corner radius slider (default 8dp) when you turn the switch on.
 - **Popup corner radius**: 0–40dp, seeded from the global **Popup corner radius** slider under <SettingsPath path="Key press" /> (default 12dp).
 - **Tool circle radius**: 0–20dp, where 0 draws no background behind the icon at all (the slider reads "Off" there), seeded from the global Tool circle radius slider (default 20dp).
+- **Function key corner radius**: 0–28dp for the keys that type no text, such as Shift, Delete, ?123, 🌐 and the arrows. At its lowest stop it reads "Same as letters" and follows Key corner radius.
+- **Enter and space corner radius**: the same, for Enter and the space bar. Round action keys on a grid of square letters is one slider away.
+
+A key's own corner radius under [Single-key styles](#single-key-styles) still wins over either. Like the key radius, both only change the rounded and cut shapes. Turning the switch off clears all five.
 
 ### Layout
 

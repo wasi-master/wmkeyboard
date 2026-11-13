@@ -176,6 +176,9 @@ internal class FloatingAppletState {
     var title by mutableStateOf("")
     var icon by mutableStateOf<ImageVector?>(null)
 
+    /** The tool the box shows, for its own settings (#1262); null when not known. */
+    var tool by mutableStateOf<ToolbarTool?>(null)
+
     /** Tucked into the left edge (true) or the right (false), as a tab; null while the box is out. */
     var tuckedLeft by mutableStateOf<Boolean?>(null)
 }
@@ -288,7 +291,7 @@ internal fun FloatingAppletFrame(
                     Modifier
                         .weight(1f)
                         .fillMaxWidth()
-                        .dragsWhereUnclaimed(onBodyDrag),
+                        .dragsWhereUnclaimed(state.settings.summonButton.boxHoldToMove, onBodyDrag),
                 ) {
                     // The tool's own text box takes the keyboard's caret handle,
                     // as it does inside the keyboard, while the keys are the box's.
@@ -366,15 +369,21 @@ private fun ResizeGrip(onResize: (MotionEvent) -> Boolean, modifier: Modifier = 
  * a finger past the touch slop with its moves still unclaimed is the box's.
  * Once it is, its moves are consumed, which cancels a button pressed under
  * it. Where the finger is on screen is the window's to say, not this.
+ *
+ * With [holdToMove] (#1263), a finger held still for a long press is the
+ * box's whatever is under it: from then on its moves are read ahead of the
+ * tool's (the initial pass) and consumed, so a list under it does not scroll.
  */
-private fun Modifier.dragsWhereUnclaimed(onDrag: (BodyDrag) -> Unit): Modifier = pointerInput(onDrag) {
+private fun Modifier.dragsWhereUnclaimed(holdToMove: Boolean, onDrag: (BodyDrag) -> Unit): Modifier = pointerInput(onDrag, holdToMove) {
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Main)
         val slop = viewConfiguration.touchSlop
+        val hold = viewConfiguration.longPressTimeoutMillis
         var travelled = Offset.Zero
         var dragging = false
+        var held = false
         while (true) {
-            val event = awaitPointerEvent(PointerEventPass.Main)
+            val event = awaitPointerEvent(if (held) PointerEventPass.Initial else PointerEventPass.Main)
             val change = event.changes.firstOrNull { it.id == down.id }
             // A second finger is the window's (two fingers move and pinch it).
             if (change == null || event.changes.size > 1) {
@@ -385,11 +394,18 @@ private fun Modifier.dragsWhereUnclaimed(onDrag: (BodyDrag) -> Unit): Modifier =
                 if (dragging) onDrag(BodyDrag.END)
                 break
             }
-            if (!dragging) {
+            if (!dragging && held) {
+                // Held, then moved: the box's from the first move.
+                dragging = true
+                change.consume()
+                onDrag(BodyDrag.START)
+            } else if (!dragging) {
                 // Taken by the tool: a scroll, a slider, a text handle.
                 if (change.isConsumed) break
                 travelled += change.positionChange()
-                if (travelled.getDistance() > slop) {
+                if (holdToMove && travelled.getDistance() <= slop && change.uptimeMillis - down.uptimeMillis >= hold) {
+                    held = true
+                } else if (travelled.getDistance() > slop) {
                     dragging = true
                     change.consume()
                     onDrag(BodyDrag.START)

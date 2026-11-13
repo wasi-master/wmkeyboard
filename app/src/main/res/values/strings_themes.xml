@@ -383,6 +383,12 @@
     <string name="theme_secondary_text_body">The quieter text beside the main text: the second word of a suggestion, and the kind and time of a clipboard entry.</string>
     <string name="theme_divider_title">Dividers</string>
     <string name="theme_divider_body">The thin lines between the parts of a panel, and between suggestions.</string>
+    <string name="theme_emoji_search_background_title">Emoji search bar</string>
+    <string name="theme_emoji_search_background_body">The search bar at the top of the emoji panel. Unset, it uses the colour of the cards and search bars.</string>
+    <string name="theme_emoji_search_text_title">Emoji search text</string>
+    <string name="theme_clip_chip_background_title">Copied-text chip</string>
+    <string name="theme_clip_chip_background_body">The chip on the suggestion strip that pastes what you just copied. Unset, it is a light tint of the accent colour.</string>
+    <string name="theme_clip_chip_text_title">Copied-text chip text</string>
 
     <!-- Theme editor: shadows, the popup selection and the one-handed rail. -->
     <string name="theme_key_elevation_title">Key shadow</string>
@@ -403,6 +409,9 @@
     <!-- "Appearance" is the name of another settings screen. -->
     <string name="theme_custom_radii_subtitle">Off: the theme follows the sliders in Appearance</string>
     <string name="theme_key_radius_title">Key corner radius</string>
+    <string name="theme_modifier_key_radius_title">Function key corner radius</string>
+    <string name="theme_action_key_radius_title">Enter and space corner radius</string>
+    <string name="theme_radius_same_as_letters">Same as letters</string>
     <string name="theme_popup_radius_title">Popup corner radius</string>
     <string name="theme_tool_circle_radius_title">Tool circle radius</string>
 

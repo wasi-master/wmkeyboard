@@ -28,6 +28,9 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LongState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
@@ -310,6 +313,12 @@ internal fun BoxScope.AutopilotOverlay(
     /** How much bigger than life [showEffect] draws a letter; 1.0 is true size. */
     visualScale: Float,
     outline: Boolean,
+    /**
+     * The outline a letter's key is drawn in when it is not the theme's (a
+     * honeycomb's hexagons, [HexFaceShape]), so the grown key is drawn as the
+     * same shape, larger. Null for the theme's shape.
+     */
+    shapeOf: (Char) -> Shape? = { null },
 ) {
     // Resolved here rather than by the caller so the live maps are read in this
     // leaf's own scope: a key reporting its position then invalidates the
@@ -343,6 +352,7 @@ internal fun BoxScope.AutopilotOverlay(
             kb = kb,
             showEffect = showEffect,
             outline = outline,
+            shapeOf = shapeOf,
         )
         return
     }
@@ -354,6 +364,7 @@ internal fun BoxScope.AutopilotOverlay(
     if (showEffect) {
         for ((ch, grown) in areas) {
             val area = grown.area
+            val keyShape = shapeOf(ch) ?: shape
             Box(
                 modifier = Modifier
                     // The real key underneath is what TalkBack reads: this is
@@ -366,13 +377,13 @@ internal fun BoxScope.AutopilotOverlay(
                         height = with(density) { area.height.toDp() },
                     )
                     .padding(horizontal = gapH, vertical = gapV)
-                    .background(palette.key, shape)
+                    .background(palette.key, keyShape)
                     .then(
                         // The theme's own key border, so a grown key is the same
                         // key drawn larger and not a plain slab over the board.
                         kb.keyBorder
                             ?.takeIf { kb.keyBorderWidthDp > 0f }
-                            ?.let { Modifier.border(kb.keyBorderWidthDp.dp, it, shape) }
+                            ?.let { Modifier.border(kb.keyBorderWidthDp.dp, it, keyShape) }
                             ?: Modifier,
                     ),
                 contentAlignment = Alignment.Center,
@@ -396,11 +407,17 @@ internal fun BoxScope.AutopilotOverlay(
             // lands on the drawn key's edge and not a gap outside it.
             val insetX = gapH.toPx()
             val insetY = gapV.toPx()
-            for (grown in areas.values) {
+            for ((ch, grown) in areas) {
                 val face = grown.area
                 val width = face.width - insetX * 2
                 val height = face.height - insetY * 2
                 if (width <= 0f || height <= 0f) continue
+                val keyShape = shapeOf(ch)
+                if (keyShape != null) {
+                    val drawn = keyShape.createOutline(Size(width, height), layoutDirection, this)
+                    translate(face.left + insetX, face.top + insetY) { drawOutline(drawn, kb.accent, style = stroke) }
+                    continue
+                }
                 drawRect(
                     color = kb.accent,
                     topLeft = Offset(face.left + insetX, face.top + insetY),
@@ -433,6 +450,7 @@ private fun AnimatedAutopilotAreas(
     kb: KbTheme,
     showEffect: Boolean,
     outline: Boolean,
+    shapeOf: (Char) -> Shape?,
 ) {
     val motion = remember { AutopilotMotion() }
     val shown = motion.settle(areas, instant)
@@ -442,6 +460,8 @@ private fun AnimatedAutopilotAreas(
     val shape = kb.keyShape(bleedDp = gapH.value)
     for (entry in shown) {
         key(entry.char) {
+            val keyShape = shapeOf(entry.char) ?: shape
+            val hex = keyShape !== shape
             val target = entry.target
             val leaving = entry.leaving
             val rect = animateRectAsState(
@@ -475,11 +495,11 @@ private fun AnimatedAutopilotAreas(
                     .then(
                         if (showEffect) {
                             Modifier
-                                .background(palette.key, shape)
+                                .background(palette.key, keyShape)
                                 .then(
                                     kb.keyBorder
                                         ?.takeIf { kb.keyBorderWidthDp > 0f }
-                                        ?.let { Modifier.border(kb.keyBorderWidthDp.dp, it, shape) }
+                                        ?.let { Modifier.border(kb.keyBorderWidthDp.dp, it, keyShape) }
                                         ?: Modifier,
                                 )
                         } else {
@@ -490,7 +510,12 @@ private fun AnimatedAutopilotAreas(
                         if (outline) {
                             Modifier.drawWithContent {
                                 drawContent()
-                                drawRect(color = kb.accent, style = Stroke(width = 1.dp.toPx()))
+                                val stroke = Stroke(width = 1.dp.toPx())
+                                if (hex) {
+                                    drawOutline(keyShape.createOutline(size, layoutDirection, this), kb.accent, style = stroke)
+                                } else {
+                                    drawRect(color = kb.accent, style = stroke)
+                                }
                             }
                         } else {
                             Modifier

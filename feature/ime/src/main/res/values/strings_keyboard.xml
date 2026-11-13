@@ -432,6 +432,12 @@
     <string name="ime_tool_recent_copies">Recent copies</string>
     <string name="ime_tool_leave_field">Leave field</string>
     <string name="ime_tool_quick_note">Quick note</string>
+    <string name="ime_tool_debug_info">Debug info</string>
+    <string name="ime_tool_homophones">Same sound</string>
+    <string name="ime_homophones_none_before">Type a Chinese or Japanese character first</string>
+    <!-- %1$s: the character, such as 是 -->
+    <string name="ime_homophones_none">Nothing on this phone sounds like %1$s. A language pack or a RIME schema adds the readings.</string>
+    <string name="ime_homophones_finish">Finish the word you are typing first</string>
     <string name="ime_tool_read_back">Read back</string>
     <string name="ime_tool_snippets">Snippets</string>
     <string name="ime_tool_text_edit">Text editing</string>
@@ -1041,6 +1047,7 @@
     <string name="ime_clip_undo_dismiss">Dismiss</string>
     <!-- Actions in the press-and-hold popup of a clip. -->
     <string name="ime_clip_open_link">Open link</string>
+    <string name="ime_clip_compose_email">Compose email</string>
     <string name="ime_clip_view_image">View</string>
     <string name="ime_clip_extract_text">Extract text</string>
     <string name="ime_clip_translate_image">Translate</string>
@@ -1048,6 +1055,7 @@
     <string name="ime_clip_extract_links">Links</string>
     <string name="ime_clip_extract_places">Places</string>
     <string name="ime_clip_extract_phones">Phone numbers</string>
+    <string name="ime_clip_extract_emails">Email addresses</string>
     <string name="ime_clip_extract_codes">One-time codes</string>
     <string name="ime_clip_entity_copied_toast">Copied to the clipboard</string>
     <string name="ime_clip_view_text">View full text</string>

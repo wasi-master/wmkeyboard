@@ -2,9 +2,14 @@ package com.wasimaster.wmkeyboard.core.snippets
 
 import com.wasimaster.wmkeyboard.content.R
 import com.wasimaster.wmkeyboard.core.content.ContentText
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 private data class SnippetEnvelope(
     val format: String = "",
@@ -13,6 +18,13 @@ private data class SnippetEnvelope(
     val appVersionName: String = "",
     val snippets: List<Snippet> = emptyList(),
     val folders: List<SnippetFolder> = emptyList(),
+    /**
+     * The pictures picture snippets insert, by [Snippet.image] name, as base64.
+     * Written only when there are some, so a file of text snippets stays
+     * byte-for-byte what it always was.
+     */
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val images: Map<String, String> = emptyMap(),
 )
 
 /**
@@ -31,6 +43,11 @@ data class ImportedSnippets(
     /** Version code of the build that wrote the file; 0 when unstated. */
     val fromAppVersion: Int,
     val folders: List<SnippetFolder> = emptyList(),
+    /**
+     * Pictures the file carried, by the [Snippet.image] name its snippets
+     * hold. Pass them to [SnippetStore.addAll] along with the snippets.
+     */
+    val images: Map<String, ByteArray> = emptyMap(),
 )
 
 /**
@@ -52,6 +69,10 @@ data class ImportedSnippets(
  * first and the default), `children` (ids of snippets it links to, meaningful
  * only within the file), `tags`, and `multiExpand`. A file written before those
  * existed simply has none of them.
+ *
+ * A picture snippet carries `image`, a file name, and the envelope carries the
+ * picture itself under `images` (`name: base64`). A name the file does not
+ * carry a picture for is dropped on import, and the snippet inserts its text.
  *
  * Same versioned envelope as [com.wasimaster.wmkeyboard.core.layout.LayoutFile]:
  * `format` is the one strict check, and everything past it is repaired and
@@ -96,6 +117,13 @@ object SnippetFile {
     /** Folders are a filing aid, not a data structure; a file past this is junk. */
     private const val MAX_FOLDERS = 100
 
+    /**
+     * Most bytes of pictures one file carries, the same as a config backup's
+     * snippets section. Past it the rest are left out of the file, and those
+     * snippets arrive as their words.
+     */
+    const val MAX_IMAGES_BYTES = 12L * 1024 * 1024
+
     // Values that do not fit their type are coerced to the default rather than
     // thrown: a single unrecognised enum word — one this build is older than —
     // would otherwise turn a whole file of good snippets into "not a snippet
@@ -116,12 +144,17 @@ object SnippetFile {
      * because a pack of thirty replies filed into four groups is a different
      * thing from thirty loose replies — and the reader can always drop the
      * grouping, while it can never invent it back.
+     *
+     * [images] are the picture files' bytes by [Snippet.image] name; only the
+     * ones a written snippet uses are kept, up to [MAX_IMAGES_BYTES].
      */
+    @OptIn(ExperimentalEncodingApi::class)
     fun encode(
         snippets: List<Snippet>,
         appVersion: Int,
         appVersionName: String,
         folders: List<SnippetFolder> = emptyList(),
+        images: Map<String, ByteArray> = emptyMap(),
     ): String =
         json.encodeToString(
             SnippetEnvelope(
@@ -133,8 +166,41 @@ object SnippetFile {
                 // Only the folders something is actually filed in: exporting a
                 // subset of a library must not carry its empty shelves along.
                 folders = folders.filter { folder -> snippets.any { it.folderId == folder.id } },
+                images = carried(snippets, images).mapValues { (_, bytes) -> Base64.encode(bytes) },
             ),
         )
+
+    /** The pictures [snippets] use, in their order, within [MAX_IMAGES_BYTES]. */
+    private fun carried(snippets: List<Snippet>, images: Map<String, ByteArray>): Map<String, ByteArray> {
+        if (images.isEmpty()) return emptyMap()
+        val out = LinkedHashMap<String, ByteArray>()
+        var total = 0L
+        for (name in snippets.mapNotNull { it.image }.distinct()) {
+            val bytes = images[name]?.takeIf { SnippetStore.isImageName(name) && it.isNotEmpty() } ?: continue
+            total += bytes.size
+            if (total > MAX_IMAGES_BYTES) break
+            out[name] = bytes
+        }
+        return out
+    }
+
+    /** The file's pictures this app will keep: safe names, sane sizes, within the cap. */
+    @OptIn(ExperimentalEncodingApi::class)
+    private fun keptImages(images: Map<String, String>): Map<String, ByteArray> {
+        if (images.isEmpty()) return emptyMap()
+        val out = HashMap<String, ByteArray>()
+        var total = 0L
+        for ((name, encoded) in images) {
+            if (!SnippetStore.isImageName(name)) continue
+            val bytes = runCatching { Base64.decode(encoded) }.getOrNull()
+                ?.takeIf { it.isNotEmpty() && it.size <= SnippetStore.MAX_IMAGE_BYTES }
+                ?: continue
+            total += bytes.size
+            if (total > MAX_IMAGES_BYTES) break
+            out[name] = bytes
+        }
+        return out
+    }
 
     /**
      * Parses [text], or returns null when it is not a snippet file at all.
@@ -157,6 +223,7 @@ object SnippetFile {
         // naming a snippet the file never carried would land on whatever this
         // user happens to have stored under that number.
         val declared = envelope.snippets.mapTo(HashSet()) { it.id }
+        val images = keptImages(envelope.images)
 
         for (snippet in envelope.snippets) {
             if (kept.size >= MAX_SNIPPETS) {
@@ -168,7 +235,10 @@ object SnippetFile {
                 break
             }
             val body = snippet.text
-            if (body.isBlank()) {
+            // A picture the file did not bring would point at nothing here,
+            // so the snippet falls back to its words.
+            val image = snippet.image?.takeIf { it in images }
+            if (body.isBlank() && image == null) {
                 repairs += ContentText(
                     R.string.core_content_snippet_repair_no_text,
                     args = listOf(snippet.label.take(30)),
@@ -187,7 +257,7 @@ object SnippetFile {
             }
             val label = snippet.label.ifBlank {
                 repairs += ContentText(R.string.core_content_snippet_repair_named_after_text)
-                trimmedBody.lineSequence().first().take(40)
+                trimmedBody.lineSequence().first().take(40).ifBlank { image.orEmpty() }
             }
             kept += snippet.copy(
                 label = label,
@@ -208,6 +278,7 @@ object SnippetFile {
                 // carried: the importer would have to invent a name for it, and
                 // an ungrouped snippet is a filing detail, not lost content.
                 folderId = snippet.folderId.takeIf { it in folderIds } ?: 0,
+                image = image,
             )
         }
 
@@ -219,6 +290,7 @@ object SnippetFile {
             // snippet was dropped for having no text would otherwise arrive as
             // an empty group nobody asked for.
             folders = folders.filter { folder -> kept.any { it.folderId == folder.id } },
+            images = images.filterKeys { name -> kept.any { it.image == name } },
         )
     }
 

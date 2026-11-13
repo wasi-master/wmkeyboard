@@ -86,6 +86,8 @@
     <string name="fonts_tool_recent_copies_desc">Show your latest copies in a row on the suggestion strip, until you type</string>
     <string name="fonts_tool_read_back_desc">Read the selection, or everything in the field, aloud in the keyboard\'s language. Tap again to stop</string>
     <string name="fonts_tool_leave_field_desc">Press Esc to leave the text field, then hide the keyboard. Works in apps that answer Esc, such as a browser\'s address bar</string>
+    <string name="fonts_tool_homophones_desc">List the characters that sound like the Chinese or Japanese character before the cursor, and swap it for one</string>
+    <string name="fonts_tool_debug_info_desc">What the field in front asked the keyboard for, and the keyboard\'s state, for a bug report. Never the text in it</string>
     <string name="fonts_tool_quick_note_desc">Start a new note with the keys already typing into it, or add to one of your latest notes</string>
     <string name="fonts_tool_snippets_desc">Insert saved text snippets</string>
     <string name="fonts_tool_text_edit_desc">Cursor, selection and clipboard controls</string>

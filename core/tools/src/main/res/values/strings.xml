@@ -111,6 +111,8 @@
 
     <!-- Short clips that answer somebody, such as a nod or applause. -->
     <string name="core_tools_media_category_reactions">Reactions</string>
+    <!-- The GIF panel's chip for KLIPY's memes: still pictures with a caption. -->
+    <string name="core_tools_media_category_memes">Memes</string>
     <string name="core_tools_media_category_love">Love</string>
     <string name="core_tools_media_category_happy">Happy</string>
     <string name="core_tools_media_category_sad">Sad</string>

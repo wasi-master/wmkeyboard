@@ -258,7 +258,7 @@ Japanese ships five typing layouts, all feeding the same composer, plus the hand
 - **Godan** (五段): romaji on five rows, with the vowels <KeyCap>a</KeyCap> <KeyCap>i</KeyCap> <KeyCap>u</KeyCap> <KeyCap>e</KeyCap> <KeyCap>o</KeyCap> down the left and the consonants beside them, the way Gboard draws it. Letters without a key of their own are flicks: <KeyCap>k</KeyCap> right for `g` and up for `q`, <KeyCap>s</KeyCap> for `z` and `j`, <KeyCap>t</KeyCap> for `d` and `c`, <KeyCap>h</KeyCap> for `b`, `f` and `p`, <KeyCap>m</KeyCap> up for `l`, <KeyCap>y</KeyCap> up for `x`, <KeyCap>w</KeyCap> up for `v`. Flick most keys down for a digit, <KeyCap>n</KeyCap> up for ん and <KeyCap>r</KeyCap> for 。？！、. Small kana are the usual `x` spellings, or tap <KeyCap>小゛゜</KeyCap>, which turns `ka` into が and `tsu` into っ.
 - **50 keys**: a key for every kana in gojūon order, with あ at the top right and the rows running leftward as a kana chart does. Hold a key for its marked and small forms: か for が, は for ば and ぱ, つ for っ and づ. <KeyCap>小゛゜</KeyCap> does the same to the kana you just typed.
 
-The two other pages of Flick keep the same columns, so switching never moves a key under your thumb. <KeyCap>ABC</KeyCap> is English on the same twelve keys: <KeyCap>@#/&_</KeyCap>, <KeyCap>ABC</KeyCap>, <KeyCap>DEF</KeyCap> down to <KeyCap>WXYZ</KeyCap>. Tap a key for its first letter and flick left, up and right for the next ones, so <KeyCap>ABC</KeyCap> is a, b and c and <KeyCap>PQRS</KeyCap> is p, q, r and s. Letters come out small; <KeyCap>a/A</KeyCap>, in the slot 小゛゜ has on the kana page, turns the letter before the cursor into a capital and back, and a flick that swipes out and back to the key gives the capital straight away. <KeyCap>'"()</KeyCap> and <KeyCap>.,?!</KeyCap> hold the punctuation English needs. These keys type the letters as they are: nothing is read as romaji, and a reading you were typing on the kana page goes in as kana when the first letter does. <KeyCap>☆123</KeyCap> is the number pad, each digit carrying its symbols on flicks: 1 for ☆ ♪ →, 2 for ¥ $ €, 3 for % ° #, 4 for ○ * ・, 5 for + × ÷, 6 for < = >, 7 for 「 」 :, 8 for 〒 々 〆, 9 for ^ | \, 0 for 〜 and …, with <KeyCap>()[]</KeyCap> and <KeyCap>.,-/</KeyCap> beside it. This pad replaced the earlier Flick layout under the same name, so it is the one in use wherever Flick was picked; a copy you edited in the layout editor stays as you left it.
+The two other pages of Flick keep the same columns, so switching never moves a key under your thumb. <KeyCap>ABC</KeyCap> is English on the same twelve keys: <KeyCap>@#/&_</KeyCap>, <KeyCap>ABC</KeyCap>, <KeyCap>DEF</KeyCap> down to <KeyCap>WXYZ</KeyCap>. Tap a key for its first letter and flick left, up and right for the next ones, so <KeyCap>ABC</KeyCap> is a, b and c and <KeyCap>PQRS</KeyCap> is p, q, r and s. Letters come out small; <KeyCap>a/A</KeyCap>, in the slot 小゛゜ has on the kana page, turns the letter before the cursor into a capital and back, and a flick that swipes out and back to the key gives the capital straight away. <KeyCap>'"()</KeyCap> and <KeyCap>.,?!</KeyCap> hold the punctuation English needs. These keys type the letters as they are: nothing is read as romaji, and a reading you were typing on the kana page goes in as kana when the first letter does. The same holds in the keyboard's own text boxes, such as a tool's search or Find and replace. <KeyCap>☆123</KeyCap> is the number pad, each digit carrying its symbols on flicks: 1 for ☆ ♪ →, 2 for ¥ $ €, 3 for % ° #, 4 for ○ * ・, 5 for + × ÷, 6 for < = >, 7 for 「 」 :, 8 for 〒 々 〆, 9 for ^ | \, 0 for 〜 and …, with <KeyCap>()[]</KeyCap> and <KeyCap>.,-/</KeyCap> beside it. This pad replaced the earlier Flick layout under the same name, so it is the one in use wherever Flick was picked; a copy you edited in the layout editor stays as you left it.
 
 <PhoneFrame caption="Japanese Flick: kana glyphs sit on the keys themselves, with directional flicks for the rest of the row.">
   <Shot id="languages/cjk-japanese-flick" alt="Japanese Flick: kana glyphs sit on the keys themselves, with directional flicks for the rest of the row." />
@@ -325,6 +325,22 @@ Hold a candidate in the strip or the grid and the strip turns into its menu: **E
 ### One character of a word
 
 The hold menu on a candidate of two or more characters also shows its first and its last character. Tap one to type only that character, for the whole reading the word covered: hold 选择 and tap 选. This is the quick way to a character that is hard to find under its own reading (以词定字, fcitx's <KeyCap>[</KeyCap> and <KeyCap>]</KeyCap>). Nothing is learned from it.
+
+### Same sound (homophone search)
+
+**Same sound** lists the characters that sound like the one before the caret, and a pick swaps it in. Type 是, run it, and the strip offers 事, 时, 市 and the rest of `shi`; tap 事 and it takes 是's place. The first chip is the character itself, which leaves it as it is. A character with two readings lists its usual one first, so 行 offers the `xing` characters before the `hang` ones.
+
+It is an action rather than a toolbar button: put it on an "Open a tool" key of your [own layout](/languages/custom-layouts/), a flick, a hold on a toolbar button or the floating button, where the tool list shows it under Other. It works on the one character right before the caret, after a conversion is finished; with a reading still composing it asks you to finish first.
+
+The readings come from what is installed for the language you are typing:
+
+| Language | Where the readings come from |
+| --- | --- |
+| Chinese, with any layout | The pinyin pack, whose readings carry no tones, so 妈, 马 and 骂 all sound like `ma`. Without it, the `.dict.yaml` sources of the RIME schemas you have |
+| Cantonese | The Jyutping pack, or without it RIME's Jyutping dictionary |
+| Japanese | The kana pack (`ja_kana`). A kana before the caret counts as its own reading, so か lists the kanji read か |
+
+The first search builds the list from the whole table and takes a moment on the kana pack, which has about a million rows; later ones are immediate until a pack changes. A character none of them knows shows a short message instead.
 
 ### What comes next (联想)
 

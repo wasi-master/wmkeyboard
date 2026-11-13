@@ -253,6 +253,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Schedule
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.School
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Science
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ScreenRotation
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StayCurrentPortrait
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DragHandle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
@@ -425,9 +426,12 @@ internal object SettingsRowIcons {
         put(R.string.customdict_emoji_import_action) { Icons.Outlined.FileOpen }
         put(R.string.backup_android_import_title) { Icons.Outlined.FileOpen }
         put(R.string.backup_gboard_import_title) { Icons.Outlined.FileOpen }
+        put(R.string.backup_dictionary_export_title) { Icons.Outlined.Upload }
+        put(R.string.expander_text_action) { Icons.Outlined.EditNote }
         put(R.string.backup_downloads_import_title) { Icons.Outlined.FileOpen }
         put(R.string.about_storage_title) { Icons.Outlined.PieChart }
         put(R.string.about_resources_title) { Icons.Outlined.Memory }
+        put(R.string.about_debug_info_title) { Icons.Outlined.BugReport }
         put(R.string.statistics_title) { Icons.Outlined.QueryStats }
         put(R.string.about_diagnostics_title) { Icons.AutoMirrored.Outlined.Article }
         put(R.string.about_persona_title) { Icons.Outlined.Person }
@@ -538,6 +542,12 @@ internal object SettingsRowIcons {
         put(R.string.appearance_key_label_size_title) { Icons.Outlined.FormatSize }
         put(R.string.appearance_key_hint_size_title) { Icons.Outlined.FormatSize }
         put(R.string.appearance_key_hint_corner_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.appearance_key_label_case_title) { Icons.Outlined.TextFormat }
+        put(R.string.keypress_preview_width_title) { Icons.Outlined.ChatBubbleOutline }
+        put(R.string.keypress_preview_radius_title) { Icons.Outlined.RoundedCorner }
+        put(R.string.keypress_pop_text_title) { Icons.Outlined.Animation }
+        put(R.string.typing_one_finger_swipes_title) { Icons.Outlined.Swipe }
+        put(R.string.typing_one_finger_reset_title) { Icons.Outlined.RestartAlt }
         put(R.string.appearance_key_hint_offset_title) { Icons.Outlined.SwapVert }
         put(R.string.appearance_key_hint_offset_x_title) { Icons.Outlined.SwapHoriz }
         put(R.string.appearance_key_label_offset_x_title) { Icons.Outlined.SwapHoriz }
@@ -745,6 +755,7 @@ internal object SettingsRowIcons {
         put(R.string.langemoji_emoji_font_title) { Icons.Outlined.FontDownload }
         put(R.string.langemoji_emoji_skin_tone_title) { Icons.Outlined.Colorize }
         put(R.string.langemoji_emoji_tone_override_title) { Icons.Outlined.Colorize }
+        put(R.string.langemoji_emoji_gender_title) { Icons.Outlined.Person }
         put(R.string.langemoji_emoji_close_after_insert_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.langemoji_media_switcher_title) { Icons.Outlined.SwapHoriz }
         put(R.string.langemoji_media_remember_title) { Icons.Outlined.History }
@@ -851,6 +862,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_floating_title) { Icons.Outlined.PictureInPicture }
         put(R.string.layout_floating_landscape_title) { Icons.Outlined.ScreenRotation }
         put(R.string.layout_landscape_fullscreen_title) { Icons.Outlined.ScreenRotation }
+        put(R.string.layout_portrait_fullscreen_title) { Icons.Outlined.StayCurrentPortrait }
         put(R.string.layout_floating_handle_title) { Icons.Outlined.DragHandle }
         put(R.string.layout_floating_width_title) { Icons.Outlined.Straighten }
         put(R.string.layout_floating_height_title) { Icons.Outlined.Height }
@@ -930,6 +942,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_editor_role_title) { Icons.Outlined.Tune }
         put(R.string.layout_editor_show_shift_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.layout_editor_tablet_expand_title) { Icons.Outlined.TabletAndroid }
+        put(R.string.layout_editor_hex_grid_title) { Icons.Outlined.Category }
         put(R.string.layout_editor_persist_title) { Icons.Outlined.PushPin }
         put(R.string.layout_editor_flick_hints_title) { Icons.Outlined.OpenWith }
         put(R.string.layout_editor_theme_title) { Icons.Outlined.Palette }
@@ -958,6 +971,7 @@ internal object SettingsRowIcons {
         put(R.string.modes_glide_title) { Icons.Outlined.Gesture }
         put(R.string.modes_two_thumb_title) { Icons.Outlined.TouchApp }
         put(R.string.modes_commit_as_typed_title) { Icons.Outlined.Terminal }
+        put(R.string.modes_word_chars_title) { Icons.Outlined.DataObject }
         put(R.string.modes_incognito_title) { Icons.Outlined.VisibilityOff }
         put(R.string.modes_key_sound_title) { Icons.AutoMirrored.Outlined.VolumeUp }
         put(R.string.modes_key_haptics_title) { Icons.Outlined.Vibration }
@@ -1097,6 +1111,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_register_priors_title) { Icons.Outlined.QuestionAnswer }
         put(R.string.typing_context_rerank_title) { Icons.Outlined.Psychology }
         put(R.string.typing_neural_context_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.typing_lm_strength_title) { Icons.Outlined.Tune }
         put(R.string.typing_shortcuts_converting_title) { Icons.Outlined.Bolt }
         put(R.string.typing_chips_at_end_title) { Icons.Outlined.AlignHorizontalRight }
         put(R.string.typing_context_revision_title) { Icons.Outlined.History }
@@ -1147,6 +1162,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_suggestions_title) { Icons.Outlined.Lightbulb }
         put(R.string.typing_suggestions_all_fields_title) { Icons.Outlined.Lightbulb }
         put(R.string.typing_punctuation_suggestions_title) { Icons.Outlined.MoreHoriz }
+        put(R.string.typing_next_words_title) { Icons.Outlined.Lightbulb }
+        put(R.string.typing_next_word_amount_title) { Icons.Outlined.Tune }
         put(R.string.typing_suggestions_first_title) { Icons.Outlined.VerticalAlignTop }
         put(R.string.typing_suggestion_slots_title) { Icons.Outlined.Numbers }
         put(R.string.typing_fit_more_words_title) { Icons.Outlined.ViewWeek }
@@ -1449,6 +1466,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_recent_chips_title) { Icons.Outlined.ContentPaste }
         put(R.string.clipboard_compact_paste_chip_title) { Icons.Outlined.ContentPaste }
         put(R.string.clipboard_phone_formats_title) { Icons.Outlined.Phone }
+        put(R.string.clipboard_text_only_title) { Icons.Outlined.TextFields }
         put(R.string.clipboard_screenshots_title) { Icons.Outlined.Screenshot }
         put(R.string.clipboard_track_source_title) { Icons.Outlined.Apps }
         put(R.string.clipboard_storage_permission_title) { Icons.Outlined.Folder }
@@ -1611,6 +1629,8 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_power_drop_stats_title) { Icons.Outlined.QueryStats }
         put(R.string.tooldetail_power_drop_media_pin_title) { Icons.Outlined.PushPin }
         put(R.string.tooldetail_power_drop_moving_themes_title) { Icons.Outlined.Wallpaper }
+        put(R.string.tooldetail_power_dark_theme_title) { Icons.Outlined.DarkMode }
+        put(R.string.tooldetail_power_drop_suggestions_title) { Icons.Outlined.Lightbulb }
         put(R.string.tooldetail_power_drop_floating_button_title) { Icons.Outlined.Adjust }
         put(R.string.tooldetail_power_drop_warm_models_title) { Icons.Outlined.Memory }
 
@@ -1731,6 +1751,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_search_answer_title) { Icons.Outlined.AutoAwesome }
         put(R.string.tooldetail_search_open_browser_title) { Icons.Outlined.OpenInBrowser }
         put(R.string.tooldetail_tavily_advanced_title) { Icons.Outlined.TravelExplore }
+        put(R.string.tooldetail_klipy_memes_title) { Icons.Outlined.Mood }
         put(R.string.tooldetail_searx_categories_title) { Icons.Outlined.Category }
         put(R.string.tooldetail_ocr_select_all_title) { Icons.Outlined.SelectAll }
         put(R.string.tooldetail_ocr_engine_title) { SymbolIcons.ConvertToText }
@@ -1755,6 +1776,7 @@ internal object SettingsRowIcons {
         put(R.string.voice_engine_languages_title) { Icons.Outlined.Translate }
         put(R.string.voice_ai_tidy_title) { Icons.Outlined.AutoAwesome }
         put(R.string.voice_mask_swearing_title) { Icons.Outlined.VisibilityOff }
+        put(R.string.voice_suppress_symbols_title) { Icons.Outlined.Block }
         put(R.string.voice_continuous_title) { Icons.Outlined.MicNone }
         put(R.string.voice_silence_stop_title) { Icons.Outlined.Timer }
         put(R.string.voice_keep_screen_on_title) { Icons.Outlined.Timer }
@@ -1961,6 +1983,8 @@ internal object SettingsRowIcons {
         put(R.string.theme_key_shadow_color_title) { Icons.Outlined.ColorLens }
         put(R.string.theme_texture_opacity_title) { Icons.Outlined.Texture }
         put(R.string.theme_key_radius_title) { Icons.Outlined.RoundedCorner }
+        put(R.string.theme_modifier_key_radius_title) { Icons.Outlined.RoundedCorner }
+        put(R.string.theme_action_key_radius_title) { Icons.Outlined.RoundedCorner }
         put(R.string.theme_key_height_title) { Icons.Outlined.Height }
         put(R.string.theme_key_gap_title) { Icons.Outlined.SpaceBar }
         put(R.string.theme_side_padding_left_title) { Icons.Outlined.Padding }
@@ -2006,6 +2030,10 @@ internal object SettingsRowIcons {
         put(R.string.theme_primary_suggestion_pill_title) { Icons.Outlined.FormatColorFill }
         put(R.string.theme_secondary_text_title) { Icons.Outlined.FormatColorText }
         put(R.string.theme_divider_title) { Icons.Outlined.HorizontalRule }
+        put(R.string.theme_emoji_search_background_title) { Icons.Outlined.Search }
+        put(R.string.theme_emoji_search_text_title) { Icons.Outlined.FormatColorText }
+        put(R.string.theme_clip_chip_background_title) { Icons.Outlined.ContentPaste }
+        put(R.string.theme_clip_chip_text_title) { Icons.Outlined.FormatColorText }
         put(R.string.theme_chip_shape_title) { Icons.Outlined.Category }
         put(R.string.theme_chip_radius_title) { Icons.Outlined.RoundedCorner }
         put(R.string.theme_chip_text_title) { Icons.Outlined.FormatColorText }
@@ -2535,6 +2563,7 @@ internal object SettingsRowIcons {
         put(R.string.modes_hardware_keyboard_title) { Icons.Outlined.Keyboard }
         put(R.string.modes_screen_size_title) { Icons.Outlined.Devices }
         put(R.string.modes_one_handed_title) { SymbolIcons.MobileHandLeft }
+        put(R.string.modes_dark_mode_title) { Icons.Outlined.DarkMode }
         put(R.string.modes_bluetooth_title) { Icons.Outlined.Bluetooth }
         put(R.string.modes_field_empty_title) { Icons.Outlined.TextFields }
         put(R.string.modes_time_title) { Icons.Outlined.Schedule }

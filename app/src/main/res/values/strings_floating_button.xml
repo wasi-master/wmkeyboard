@@ -82,6 +82,8 @@
     <string name="floating_button_category_icon_title">Icon</string>
     <string name="floating_button_category_icon_subtitle">The picture on the category in the menu</string>
     <string name="floating_button_category_icon_picker_title">Category icon</string>
+    <string name="floating_button_category_pack_icon_title">Icon from an icon pack</string>
+    <string name="floating_button_category_pack_icon_subtitle">Pick the category\'s icon out of an icon pack installed on the phone</string>
     <string name="floating_button_category_icon_none">Folder</string>
     <string name="floating_button_category_remove_subtitle">Takes it and its actions out of the quick menu</string>
     <string name="floating_button_category_done">Done</string>

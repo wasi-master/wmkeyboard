@@ -49,6 +49,7 @@ import com.wasimaster.wmkeyboard.core.settings.EmojiBarMode
 import com.wasimaster.wmkeyboard.core.settings.BarRow
 import com.wasimaster.wmkeyboard.core.settings.modesOverridingRow
 import com.wasimaster.wmkeyboard.core.settings.EmojiFontChoice
+import com.wasimaster.wmkeyboard.core.settings.EmojiDefaultGender
 import com.wasimaster.wmkeyboard.core.settings.EmojiSkinTone
 import com.wasimaster.wmkeyboard.core.util.PlayServices
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts
@@ -250,10 +251,26 @@ internal fun EmojiSettings(
                     EmojiSkinTone.MEDIUM to "✋🏽",
                     EmojiSkinTone.MEDIUM_DARK to "✋🏾",
                     EmojiSkinTone.DARK to "✋🏿",
+                    EmojiSkinTone.RANDOM to stringResource(R.string.langemoji_emoji_random_label),
                 ),
                 selected = settings.watch { it.emoji.defaultSkinTone },
                 default = SettingsDefaults.emoji.defaultSkinTone,
             ) { scope.launch { repository.setEmojiDefaultSkinTone(it) } }
+        }
+        item {
+            ChoiceSetting(
+                title = R.string.langemoji_emoji_gender_title,
+                subtitle = stringResource(R.string.langemoji_emoji_gender_subtitle),
+                info = stringResource(R.string.langemoji_emoji_gender_info),
+                options = listOf(
+                    EmojiDefaultGender.PERSON to stringResource(R.string.langemoji_emoji_gender_person),
+                    EmojiDefaultGender.WOMAN to stringResource(R.string.langemoji_emoji_gender_woman),
+                    EmojiDefaultGender.MAN to stringResource(R.string.langemoji_emoji_gender_man),
+                    EmojiDefaultGender.RANDOM to stringResource(R.string.langemoji_emoji_random_label),
+                ),
+                selected = settings.watch { it.emoji.defaultGender },
+                default = SettingsDefaults.emoji.defaultGender,
+            ) { scope.launch { repository.setEmojiDefaultGender(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(

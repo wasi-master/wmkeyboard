@@ -162,6 +162,15 @@ enum class ToolbarTool {
     // with a row of the latest notes under it to switch to one and add to it
     // (#864). Action-only, like [CLIPBOARD_SEARCH].
     QUICK_NOTE,
+    // The focused field's EditorInfo decoded, the keyboard's state, the screen
+    // and memory, for a bug report (FUTO U3), shown in the settings app with a
+    // Copy button. Never the field's text. Action-only, like [CLIPBOARD_SEARCH].
+    DEBUG_INFO,
+    // The characters that sound like the Chinese or Japanese character just
+    // typed, on the strip, a pick replacing it (AnySoftKeyboard's homophone
+    // search key). Action-only, like [CLIPBOARD_SEARCH]: meant for a key on
+    // a CJK layout, a flick or a hold.
+    HOMOPHONES,
     // A to-do list with steps under each task (#920), kept in the app's files
     // and shared with the settings app's list. Can sync with a CalDAV task
     // list through DAVx5's task app when the user sets that up. Reads
@@ -324,7 +333,7 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.LANGUAGE,
     ToolbarTool.RECENT_COPIES, ToolbarTool.READ_BACK, ToolbarTool.SCREENSHOT, ToolbarTool.PRIVACY_SHADE,
-    ToolbarTool.CLEAR_FIELD, ToolbarTool.TIMESTAMP,
+    ToolbarTool.CLEAR_FIELD, ToolbarTool.TIMESTAMP, ToolbarTool.HOMOPHONES,
     -> false
     // The cursor moves nudge the caret and nothing else, and the clipboard trio
     // acts on the selection in place.
@@ -366,7 +375,10 @@ val OptInOnlyTools: Set<ToolbarTool> = setOf(ToolbarTool.LEARN_FROM_TEXT)
  * regardless.
  */
 val ActionOnlyTools: Set<ToolbarTool> =
-    setOf(ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES, ToolbarTool.LEAVE_FIELD, ToolbarTool.QUICK_NOTE)
+    setOf(
+        ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES, ToolbarTool.LEAVE_FIELD, ToolbarTool.QUICK_NOTE,
+        ToolbarTool.DEBUG_INFO, ToolbarTool.HOMOPHONES,
+    )
 
 /**
  * The "Everything" preset, and the enabled-tools default before setup swaps
@@ -456,7 +468,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.SELECT_MODE,
     ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE, ToolbarTool.CLEAR_FIELD,
     ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES, ToolbarTool.LEAVE_FIELD,
-    ToolbarTool.QUICK_NOTE,
+    ToolbarTool.QUICK_NOTE, ToolbarTool.DEBUG_INFO, ToolbarTool.HOMOPHONES,
 )
 
 /**

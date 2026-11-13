@@ -2702,6 +2702,13 @@
   "keyman": false
  },
  {
+  "id": "bzd",
+  "name": "Bribri",
+  "english": "Bribri",
+  "script": "Latin",
+  "keyman": false
+ },
+ {
   "id": "ber",
   "name": "Tamaziɣt · Tamazight (Latin)",
   "english": "Tamazight (Latin)",

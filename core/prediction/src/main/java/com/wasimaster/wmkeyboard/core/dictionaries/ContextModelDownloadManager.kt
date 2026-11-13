@@ -38,7 +38,12 @@ object ContextModelDownloadManager {
     sealed interface DownloadStatus {
         data object NotDownloaded : DownloadStatus
         data class Downloading(val fraction: Float) : DownloadStatus
-        data class Downloaded(val sizeBytes: Long, val variant: ContextModelVariant = ContextModelVariant.STANDARD) : DownloadStatus
+        /** On the device; [imported] when the user brought their own file rather than a catalogued one. */
+        data class Downloaded(
+            val sizeBytes: Long,
+            val variant: ContextModelVariant = ContextModelVariant.STANDARD,
+            val imported: Boolean = false,
+        ) : DownloadStatus
         data object Failed : DownloadStatus
     }
 
@@ -46,6 +51,13 @@ object ContextModelDownloadManager {
 
     /** Holds the name of the [ContextModelVariant] the language has, or should get. */
     private const val VARIANT_NAME = "context.variant"
+
+    /**
+     * Marks a model the user imported from a file of their own (FUTO U12):
+     * no catalogue entry's size or digest describes it, so the automatic pass
+     * must neither judge it stale nor fetch over it.
+     */
+    private const val IMPORTED_NAME = "context.imported"
     private const val USER_AGENT = "WMKeyboard context model downloader"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -67,12 +79,15 @@ object ContextModelDownloadManager {
 
     fun refresh(filesDir: File) {
         _states.update { current ->
-            ContextModelCatalog.entries.map { it.languageId }.distinct().associateWith { langId ->
+            (ContextModelCatalog.entries.map { it.languageId } + importedLanguages(filesDir)).distinct().associateWith { langId ->
                 val live = current[langId]
                 when {
                     live is DownloadStatus.Downloading -> live
-                    isDownloaded(filesDir, langId) ->
-                        DownloadStatus.Downloaded(modelFile(filesDir, langId).length(), variantOf(filesDir, langId))
+                    isDownloaded(filesDir, langId) -> DownloadStatus.Downloaded(
+                        modelFile(filesDir, langId).length(),
+                        variantOf(filesDir, langId),
+                        imported = isImported(filesDir, langId),
+                    )
                     live == DownloadStatus.Failed -> live
                     else -> DownloadStatus.NotDownloaded
                 }
@@ -87,6 +102,7 @@ object ContextModelDownloadManager {
     fun isDownloaded(filesDir: File, langId: String): Boolean {
         val file = modelFile(filesDir, langId)
         if (!file.isFile) return false
+        if (isImported(filesDir, langId)) return true
         val entry = ContextModelCatalog.entry(langId, variantOf(filesDir, langId))
             ?: ContextModelCatalog.forLanguage(langId)
         // A file from an older catalog or a different build is re-fetched when
@@ -94,6 +110,16 @@ object ContextModelDownloadManager {
         // digest too.
         return entry == null || file.length() == entry.bytes
     }
+
+    /** Whether [langId]'s model is one the user imported rather than a catalogued one. */
+    fun isImported(filesDir: File, langId: String): Boolean =
+        File(langDir(filesDir, langId), IMPORTED_NAME).exists() && modelFile(filesDir, langId).isFile
+
+    /** Languages holding an imported model, catalogued or not. */
+    private fun importedLanguages(filesDir: File): List<String> =
+        File(filesDir, "dict").listFiles().orEmpty()
+            .filter { it.isDirectory && File(it, IMPORTED_NAME).exists() && File(it, ContextModel.FILE_NAME).isFile }
+            .map { it.name }
 
     /** The size the language has on disk, or is set to fetch: the marker, else standard. */
     fun variantOf(filesDir: File, langId: String): ContextModelVariant {
@@ -142,9 +168,10 @@ object ContextModelDownloadManager {
      * another size already on disk is replaced.
      */
     fun start(filesDir: File, langId: String, variant: ContextModelVariant? = null) {
-        if (variant != null && variant != variantOf(filesDir, langId)) {
+        if (variant != null && (variant != variantOf(filesDir, langId) || isImported(filesDir, langId))) {
             cancel(langId)
             modelFile(filesDir, langId).delete()
+            File(langDir(filesDir, langId), IMPORTED_NAME).delete()
             set(langId, DownloadStatus.NotDownloaded)
         }
         if (variant != null) rememberVariant(filesDir, langId, variant)
@@ -165,6 +192,7 @@ object ContextModelDownloadManager {
             val dir = langDir(filesDir, langId)
             modelFile(filesDir, langId).delete()
             File(dir, "${ContextModel.FILE_NAME}.part").delete()
+            File(dir, IMPORTED_NAME).delete()
             runCatching {
                 dir.mkdirs()
                 File(dir, DECLINED_NAME).createNewFile()
@@ -175,9 +203,11 @@ object ContextModelDownloadManager {
     /**
      * Installs a model file the user fetched some other way (an import):
      * copied into place when the reader accepts it. Runs on the caller's
-     * thread and throws when it is not a model this build reads.
+     * thread and throws when it is not a model this build reads. [imported]
+     * marks a file of the user's own, one no catalogue entry describes, so
+     * the automatic pass leaves it in place (see [IMPORTED_NAME]).
      */
-    fun install(filesDir: File, langId: String, source: File) {
+    fun install(filesDir: File, langId: String, source: File, imported: Boolean = false) {
         synchronized(jobs) { jobs[langId]?.cancel() }
         val target = modelFile(filesDir, langId)
         target.parentFile?.mkdirs()
@@ -190,8 +220,10 @@ object ContextModelDownloadManager {
         probe.close()
         if (!part.renameTo(target)) throw IOException("rename failed for $target")
         File(langDir(filesDir, langId), DECLINED_NAME).delete()
+        val marker = File(langDir(filesDir, langId), IMPORTED_NAME)
+        if (imported) marker.createNewFile() else marker.delete()
         synchronized(jobs) { givenUp.remove(langId) }
-        set(langId, DownloadStatus.Downloaded(target.length(), variantOf(filesDir, langId)))
+        set(langId, DownloadStatus.Downloaded(target.length(), variantOf(filesDir, langId), imported))
         _completions.tryEmit(langId)
     }
 
@@ -261,6 +293,7 @@ object ContextModelDownloadManager {
             val probe = ContextModel.open(part) ?: throw IOException("not a model this keyboard reads: $url")
             probe.close()
             if (!part.renameTo(target)) throw IOException("rename failed for $target")
+            File(langDir(filesDir, entry.languageId), IMPORTED_NAME).delete()
         } catch (t: Throwable) {
             part.delete()
             netCall.fail(t)

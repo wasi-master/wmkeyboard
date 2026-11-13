@@ -222,6 +222,8 @@ data class ModeContext(
     val appGroups: Set<AppGroup> = emptySet(),
     val tablet: Boolean = false,
     val oneHanded: Boolean = false,
+    /** Whether the phone is in dark mode: the night bit of the configuration's uiMode. */
+    val darkMode: Boolean = false,
     /** The Bluetooth audio outputs connected, by name; empty when no mode asks. */
     val bluetoothNames: List<String> = emptyList(),
     val fieldName: String? = null,
@@ -384,6 +386,17 @@ data class KeyboardMode(
      */
     val commitAsTyped: Boolean? = null,
     /**
+     * Extra characters that stay inside the composing word while active, as
+     * typed in the editor; empty adds none. `%_` keeps Tasker's `%output_var`
+     * one word instead of three pieces that commit apart and that the app's
+     * input filter rejects (competitor gap list item 34, LeanType's "allow
+     * symbol composing"). A word holding one goes in exactly as typed: it is a
+     * name the app defines, not a word to complete, correct or learn.
+     * Read through [modeWordChars], which drops what is already a word
+     * character or never could be one.
+     */
+    val wordChars: String = "",
+    /**
      * Incognito while active (#1025): no learning and whatever else incognito
      * pauses, for a mode bound to a work app or a shared device's browser. It can
      * only add: a mode that could switch off the incognito the user turned on by
@@ -470,6 +483,14 @@ data class KeyboardMode(
     val screenSize: ModeScreenSize? = null,
     /** Only with one-handed mode on, or only with it off; null either way (#1025). */
     val oneHanded: Boolean? = null,
+    /**
+     * Only while the phone is in dark mode, or only while it is not; null
+     * either way. What the system's dark theme says, however it got there: by
+     * hand, on a schedule or at sunset. With [keySound] and [keyHaptics] off,
+     * this is a mode that keeps the keyboard quiet at night (competitor gap
+     * list item 22, AnySoftKeyboard's night mode) and needs no app or field.
+     */
+    val darkMode: Boolean? = null,
     /** Only with Bluetooth audio connected, or only without; null either way (#1025). */
     val bluetoothAudio: Boolean? = null,
     /**
@@ -538,8 +559,8 @@ data class KeyboardMode(
     /** Whether the device's state, the time or more of the field decides this mode. */
     val hasDeviceCondition: Boolean
         get() = orientation != null || hardwareKeyboard != null || (timeFrom != null && timeTo != null) ||
-            screenSize != null || oneHanded != null || readsBluetooth || fieldNames.isNotEmpty() ||
-            fieldLanguages.isNotEmpty() || readsFieldText
+            screenSize != null || oneHanded != null || darkMode != null || readsBluetooth ||
+            fieldNames.isNotEmpty() || fieldLanguages.isNotEmpty() || readsFieldText
 }
 
 private val modeJson = Json {
@@ -939,6 +960,7 @@ private fun KeyboardMode.matchesDevice(context: ModeContext): Boolean {
     if (hardwareKeyboard != null && hardwareKeyboard != context.hardwareKeyboard) return false
     if (screenSize != null && (screenSize == ModeScreenSize.TABLET) != context.tablet) return false
     if (oneHanded != null && oneHanded != context.oneHanded) return false
+    if (darkMode != null && darkMode != context.darkMode) return false
     if (bluetoothAudio != null && bluetoothAudio != context.bluetoothNames.isNotEmpty()) return false
     if (bluetoothNames.isNotEmpty() && context.bluetoothNames.none { device -> bluetoothNames.any { device.contains(it.trim(), ignoreCase = true) } }) {
         return false
@@ -1014,6 +1036,16 @@ fun KeyboardSettings.modesOverridingRow(row: BarRow): List<KeyboardMode> {
         else -> emptyList()
     }
 }
+
+/**
+ * [raw], a mode's [KeyboardMode.wordChars] as typed, reduced to the characters
+ * it can add: each once, in the order typed, with letters, digits and
+ * whitespace dropped. Letters and digits already belong to a word, and a space
+ * that joined words would leave nothing to end one.
+ */
+fun modeWordChars(raw: String): String =
+    raw.filterNot { it.isLetterOrDigit() || it.isWhitespace() || it.isISOControl() }
+        .toList().distinct().joinToString("")
 
 /**
  * Manual pick meaning "no mode at all": the Modes tool's None row. Unlike a
@@ -1097,7 +1129,8 @@ fun KeyboardSettings.applyMode(mode: KeyboardMode?): KeyboardSettings {
         autoText = autoText
             .let { t -> mode.autoCapitalize?.let { t.copy(capitalize = it) } ?: t }
             .let { t -> mode.autoSpace?.let { t.copy(spaceAfterPunctuation = it) } ?: t }
-            .let { t -> mode.commitAsTyped?.let { t.copy(commitAsTyped = it) } ?: t },
+            .let { t -> mode.commitAsTyped?.let { t.copy(commitAsTyped = it) } ?: t }
+            .let { t -> modeWordChars(mode.wordChars).takeIf { it.isNotEmpty() }?.let { t.copy(wordChars = it) } ?: t },
         suggestions = mode.suggestions ?: suggestions,
         incognito = incognito || mode.incognito,
         sound = mode.keySound?.let { sound.copy(enabled = it) } ?: sound,

@@ -128,8 +128,10 @@ internal fun DictionariesGroup(
         ?: EmojiDictDownloadManager.DownloadStatus.NotDownloaded
     val pairStatus = pairsEntry?.let { pairStates[it.languageId] }
         ?: NgramPackDownloadManager.DownloadStatus.NotDownloaded
-    val modelStatus = modelEntries.firstOrNull()?.let { modelStates[it.languageId] }
-        ?: ContextModelDownloadManager.DownloadStatus.NotDownloaded
+    // Keyed by the language rather than a catalogue entry: a model the user
+    // imported may be for a language the catalogue has none for.
+    val modelStatus = modelStates[langId] ?: ContextModelDownloadManager.DownloadStatus.NotDownloaded
+    val modelImported = (modelStatus as? ContextModelDownloadManager.DownloadStatus.Downloaded)?.imported == true
     val emojiImported = remember(langId, emojiStatus) {
         EmojiKeywordPacks.packs(filesDir, langId).isNotEmpty()
     }
@@ -228,8 +230,8 @@ internal fun DictionariesGroup(
             }
         }
         // The neural context model: one file, one switch (Typing › Context
-        // model) shared by every language that has one.
-        if (modelEntries.isNotEmpty()) {
+        // model) shared by every language that has one, or an imported one.
+        if (modelEntries.isNotEmpty() || modelImported) {
             item {
                 ContextModelRow(langId = langId, entries = modelEntries, status = modelStatus)
             }
@@ -696,8 +698,10 @@ private fun ContextModelRow(
     status: ContextModelDownloadManager.DownloadStatus,
 ) {
     val filesDir = LocalContext.current.filesDir
-    val standard = entries.first()
-    val several = entries.size > 1
+    val standard = entries.firstOrNull()
+    val imported = (status as? ContextModelDownloadManager.DownloadStatus.Downloaded)?.imported == true
+    // An imported model offers every catalogued size to switch back to.
+    val several = entries.size > 1 || (imported && entries.isNotEmpty())
     var menu by remember { mutableStateOf(false) }
     // The build with no internet can't download one; the Language pack row's
     // Get the files lists it and Import takes it, so the row says that rather
@@ -705,7 +709,9 @@ private fun ContextModelRow(
     val offline = offlineBuild
     val supporting = when (status) {
         is ContextModelDownloadManager.DownloadStatus.Downloaded ->
-            if (several) {
+            if (status.imported) {
+                stringResource(R.string.languages_context_model_imported, formatBytes(status.sizeBytes))
+            } else if (several) {
                 stringResource(
                     R.string.languages_context_model_downloaded_variant,
                     variantLabel(status.variant), formatBytes(status.sizeBytes),
@@ -720,7 +726,10 @@ private fun ContextModelRow(
             offline -> stringResource(R.string.languages_context_model_offline)
             status == ContextModelDownloadManager.DownloadStatus.Failed ->
                 stringResource(R.string.languages_context_model_failed)
-            else -> stringResource(R.string.languages_context_model_download_size, formatBytes(standard.approxBytes))
+            else -> stringResource(
+                R.string.languages_context_model_download_size,
+                formatBytes(standard?.approxBytes ?: 0L),
+            )
         }
     }
     DictionaryItemRow(
@@ -747,7 +756,7 @@ private fun ContextModelRow(
                     }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                         for (entry in entries) {
-                            if (entry.variant == status.variant) continue
+                            if (entry.variant == status.variant && !status.imported) continue
                             DropdownMenuItem(
                                 text = {
                                     Text(

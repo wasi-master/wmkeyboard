@@ -260,6 +260,9 @@
     <!-- #499: each dictated phrase is cleaned up by the model of the AI tool. -->
     <string name="voice_ai_tidy_title">Tidy dictation with AI</string>
     <string name="voice_ai_tidy_subtitle">Remove filler words, repeats and spoken corrections from each phrase</string>
+    <string name="voice_suppress_symbols_title">Suppress symbols</string>
+    <string name="voice_suppress_symbols_subtitle">Leave out the symbols the recognizer writes, such as @ $ and %</string>
+    <string name="voice_suppress_symbols_info">Some recognizers write symbols of their own: an email address with @, a price with $, 50% for \"fifty percent\", or an emoji. With this on, the keyboard takes those out of each phrase and keeps the words, the digits and ordinary punctuation such as full stops, commas, question marks, quotes and brackets. A symbol you say by name with Spoken punctuation, such as \"at sign\" or \"dollar sign\", still goes in. Off by default.</string>
     <string name="voice_mask_swearing_title">Mask swear words</string>
     <string name="voice_mask_swearing_subtitle">Dictated swear words go in as f***</string>
     <string name="voice_mask_swearing_info">Off, the keyboard asks Google\'s speech recognition not to mask swear words, which it does by default on Android 13 and later. Some other recognizers ignore the request. On, swear words and slurs keep their first letter and the rest becomes asterisks, whichever engine heard them. Whisper, the other on-device engines and transcription servers have no filter of their own, so the keyboard uses a short list of its own for them, in English, Spanish, French, German, Italian and Portuguese. Dictation in another language is only masked when it goes through Google.</string>

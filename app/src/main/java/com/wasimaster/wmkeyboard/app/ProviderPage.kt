@@ -358,6 +358,7 @@ internal fun ProviderOwnSettings(
         ProviderTypes.DEEPL.id -> DeepLWriteSettingsGroup(repository, settings)
         // ---- Media, search and words: groups the tools' pages drew under their lists.
         ProviderTypes.OFFLINE_GIFS.id -> OfflineGifPacksGroup()
+        ProviderTypes.KLIPY.id -> if (tool == ProviderTool.GIF) KlipyMemesSettings(repository, settings)
         ProviderTypes.TAVILY.id -> TavilySettings(repository, settings)
         ProviderTypes.SEARXNG.id -> SearxSettings(repository, settings, row)
         ProviderTypes.VOCAB_PACKS.id -> SettingsGroup {
@@ -420,6 +421,23 @@ private fun TavilySettings(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.webSearch.tavilyDepth,
                 detail = { depth -> ChoiceDetail(stringResource(tavilyDepthDesc(depth))) },
             ) { scope.launch { repository.setSearchTavilyDepth(it) } }
+        }
+    }
+}
+
+/** KLIPY's memes, a chip of their own on the GIF panel (LeanType's memes category, item 38). */
+@Composable
+private fun KlipyMemesSettings(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    SettingsGroup(stringResource(R.string.tooldetail_klipy_group), level = SettingLevel.STANDARD) {
+        item {
+            ToggleSetting(
+                R.string.tooldetail_klipy_memes_title,
+                stringResource(R.string.tooldetail_klipy_memes_subtitle),
+                settings.watch { it.gif.klipyMemes },
+                info = stringResource(R.string.tooldetail_klipy_memes_info),
+                default = SettingsDefaults.gif.klipyMemes,
+            ) { scope.launch { repository.setKlipyMemes(it) } }
         }
     }
 }

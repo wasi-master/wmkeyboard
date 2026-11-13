@@ -335,8 +335,12 @@ The strip's section:
 | Cards & search bar | Color, alpha, Auto → Modifier keys | Auto |
 | Secondary text | Color, alpha, Auto → Suggestion text at 65% opacity | Auto |
 | Dividers | Color, alpha, Auto → Suggestion text at 25% opacity | Auto |
+| Emoji search bar | Color, alpha, Auto → Cards & search bar | Auto |
+| Emoji search text | Color, Auto → Suggestion text | Auto |
+| Copied-text chip | Color, alpha, Auto → Accent at 20% (dark) or 11% (light) | Auto |
+| Copied-text chip text | Color, Auto → Suggestion text (icon and outline: Accent) | Auto |
 
-"Cards & search bar" covers suggestion chips and the search bar surface across the tool panels. The strip's own colours moved to the strip's section under [Toolbar, strip and popups](#toolbar-strip-and-popups).
+"Cards & search bar" covers suggestion chips and the search bar surface across the tool panels. The emoji panel's search bar and the copied-text chip on the strip can take colours of their own with the four rows below it, and a HeliBoard theme's emoji search and clipboard suggestion colours land there on import. The strip's own colours moved to the strip's section under [Toolbar, strip and popups](#toolbar-strip-and-popups).
 
 Any row still on Auto shows an "Auto" label instead of a swatch; once you override it, its [color picker](/themes/editor/#the-color-picker) gains an **Auto** button next to Apply that clears the override again. See [Theme editor](/themes/editor/#options) for the exact fallback formula behind every Auto field.
 
@@ -367,8 +371,10 @@ The panels' own keypads are keys rather than chips (calculator, numpad, the conv
 | Key corner radius *(on)* | Slider | 0–28dp | seeded from <SettingsPath path="Appearance / Keys / Key corner radius" /> (8dp) |
 | Popup corner radius *(on)* | Slider | 0–40dp | seeded from <SettingsPath path="Key press / Key popup / Popup corner radius" /> (12dp) |
 | Tool circle radius *(on)* | Slider | 0–20dp, "off" at 0 | seeded from Appearance → Toolbar → Tool circle radius (20dp) |
+| Function key corner radius *(on)* | Slider | Same as letters, or 0–28dp | Same as letters |
+| Enter and space corner radius *(on)* | Slider | Same as letters, or 0–28dp | Same as letters |
 
-Off by default, so a theme follows the three global sliders: two under Appearance, and the popup one under Key press. Turning the switch on seeds all three radii from their global counterparts at once, and turning it off clears all three back to following the globals again.
+Off by default, so a theme follows the three global sliders: two under Appearance, and the popup one under Key press. Turning the switch on seeds the first three radii from their global counterparts at once, and turning it off clears all five back to following the globals again. The function key radius covers every key that types no text (Shift, Delete, ?123, 🌐, the arrows), and the Enter and space radius covers those two keys; on "Same as letters" each follows Key corner radius. A single-key style's own radius wins over both.
 
 ### Layout
 

@@ -112,6 +112,7 @@ import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.isUsableTool
 import com.wasimaster.wmkeyboard.core.settings.isOwnRow
 import com.wasimaster.wmkeyboard.core.settings.modesOverridingRow
+import com.wasimaster.wmkeyboard.core.settings.modeWordChars
 import com.wasimaster.wmkeyboard.core.settings.stripHidden
 import com.wasimaster.wmkeyboard.core.settings.AppGroup
 import com.wasimaster.wmkeyboard.core.settings.ModeField
@@ -1912,6 +1913,9 @@ internal fun ModeEditor(
             ) { save(current().copy(commitAsTyped = it)) }
         }
         item(level = SettingLevel.ADVANCED) {
+            ModeCharsSetting(settings.watch { modeIn(it).wordChars }) { save(current().copy(wordChars = it)) }
+        }
+        item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 title = R.string.modes_incognito_title,
                 info = stringResource(R.string.modes_incognito_info),
@@ -2611,6 +2615,19 @@ internal fun ModeEditor(
         }
         item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(
+                title = R.string.modes_dark_mode_title,
+                info = stringResource(R.string.modes_dark_mode_info),
+                options = listOf(
+                    null to stringResource(R.string.modes_condition_any),
+                    true to stringResource(R.string.modes_dark_mode_on),
+                    false to stringResource(R.string.modes_dark_mode_off),
+                ),
+                selected = settings.watch { modeIn(it).darkMode },
+                default = null,
+            ) { save(current().copy(darkMode = it)) }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
                 title = R.string.modes_bluetooth_title,
                 options = listOf(
                     null to stringResource(R.string.modes_condition_any),
@@ -2954,6 +2971,48 @@ private fun ModeListSetting(
             TextButton(onClick = {
                 editing = false
                 onChange(text.split(',').map { it.trim() }.filter { it.isNotEmpty() }.distinct())
+            }) { Text(stringResource(CommonR.string.common_save)) }
+        },
+        dismissButton = {
+            TextButton(onClick = { editing = false }) { Text(stringResource(CommonR.string.common_cancel)) }
+        },
+    )
+}
+
+/**
+ * A mode's extra in-word characters ([KeyboardMode.wordChars]), typed as they
+ * are with nothing between them: a comma is a character a mode can add, so
+ * this cannot be a [ModeListSetting]. Saved through [modeWordChars], so what
+ * the row shows is what the keyboard reads.
+ */
+@Composable
+private fun ModeCharsSetting(value: String, onChange: (String) -> Unit) {
+    var editing by remember { mutableStateOf(false) }
+    WmRow(
+        title = stringResource(R.string.modes_word_chars_title),
+        subtitle = value.ifEmpty { stringResource(R.string.modes_word_chars_subtitle) },
+        onClick = { editing = true },
+    )
+    if (!editing) return
+    var text by remember { mutableStateOf(value) }
+    AlertDialog(
+        onDismissRequest = { editing = false },
+        title = { Text(stringResource(R.string.modes_word_chars_title)) },
+        text = {
+            Column {
+                Text(stringResource(R.string.modes_word_chars_info))
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                editing = false
+                onChange(modeWordChars(text))
             }) { Text(stringResource(CommonR.string.common_save)) }
         },
         dismissButton = {

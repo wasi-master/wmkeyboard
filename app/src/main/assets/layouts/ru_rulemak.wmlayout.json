@@ -1,0 +1,187 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_ru_rulemak",
+    "name": "Рулемак (Rulemak)",
+    "langId": "ru",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "я"
+            },
+            {
+              "label": "ж"
+            },
+            {
+              "label": "ф"
+            },
+            {
+              "label": "п"
+            },
+            {
+              "label": "г"
+            },
+            {
+              "label": "й"
+            },
+            {
+              "label": "л"
+            },
+            {
+              "label": "у"
+            },
+            {
+              "label": "ы"
+            },
+            {
+              "label": "ю"
+            },
+            {
+              "label": "ш",
+              "longPress": [
+                "щ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "а"
+            },
+            {
+              "label": "р"
+            },
+            {
+              "label": "с"
+            },
+            {
+              "label": "т"
+            },
+            {
+              "label": "д"
+            },
+            {
+              "label": "ч"
+            },
+            {
+              "label": "н"
+            },
+            {
+              "label": "е",
+              "longPress": [
+                "ё"
+              ]
+            },
+            {
+              "label": "и"
+            },
+            {
+              "label": "о"
+            },
+            {
+              "label": "ь",
+              "longPress": [
+                "ъ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "з"
+            },
+            {
+              "label": "х"
+            },
+            {
+              "label": "ц"
+            },
+            {
+              "label": "в"
+            },
+            {
+              "label": "б"
+            },
+            {
+              "label": "к"
+            },
+            {
+              "label": "м"
+            },
+            {
+              "label": "щ"
+            },
+            {
+              "label": "э"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}
