@@ -1,21 +1,23 @@
 package com.wasimaster.wmkeyboard.core.transliteration
 
+import java.text.Normalizer
+
 /**
  * Unicode to the pre-Unicode font encodings South Asian print and design work
  * still runs on (#1252), where a glyph of the script sits on a Latin code
  * point and only looks right in its own font: Hindi in Kruti Dev is `fgUnh`.
  * Bengali's Bijoy encoding is [BijoyAnsi]; Burmese's Zawgyi is [Zawgyi].
  *
- * Every one comes from a permissively licensed converter (MIT or ISC), and
- * each was checked over thousands of real words of its language, against the
- * converter it was ported from and through an independent one back to
- * Unicode. GPL-only converters were left out, since the app is MIT: Kannada's
- * Nudi and Baraha, Odia's Akruti and Hindi's Walkman Chanakya have none other.
- * Left out on the evidence: Gujarati's Terafont (the only permissive table
- * gives one glyph to two letters, with nothing to check it against), and
- * Tamil's TSCII, TAB and TAM (Android-TamilUtil's TAM leaves Tamil letters
- * unconverted and its TSCII and TAB misread Grantha letters and கூ; open-tamil's
- * are GPL).
+ * Each was checked over thousands of real words of its language, against the
+ * converter it came from and through one written separately back to Unicode.
+ * Where the only converter is GPL (Nudi, Walkman Chanakya, TSCII), its glyph
+ * table is used as data and the code here is the app's own; that converter
+ * only reads the output back in the checks.
+ *
+ * Left out on the evidence: Gujarati's Terafont (the only table gives one
+ * glyph to two letters, with nothing to check it against), Odia's Akruti (the
+ * only converter's table contradicts itself on the reph), Tamil's TAB (no ூ
+ * for several letters) and TAM (leaves Tamil letters unconverted).
  *
  * The tables in [LegacyFontTables] are generated:
  *
@@ -27,8 +29,14 @@ package com.wasimaster.wmkeyboard.core.transliteration
  *   routine of anvaad-js (Khalis Foundation); the 4,967 Punjabi words of the
  *   app's translation round-trip through it unchanged.
  *
- * Four more are ported as code, since they reorder whole syllables:
+ * The rest are code, since they reorder whole syllables:
  *
+ * - **Walkman Chanakya** (Hindi): [ChanakyaEncoding].
+ * - **Nudi / Baraha** (Kannada): [KannadaNudiEncoding].
+ * - **TSCII 1.7** (Tamil): a longest match over open-tamil's syllable table
+ *   ([TsciiTable]), plus the Grantha u and uu signs (0xA4, 0xA5) that table
+ *   writes only after ஜ and க்ஷ; 15,144 of 15,162 Tamil words read back through
+ *   open-tamil, the other 18 being the ஸு and ஷூ its table has no entry for.
  * - **Bamini** (Tamil): [BaminiEncoding].
  * - **Preeti** (Nepali): [PreetiEncoding].
  * - **FM Abhaya** and the rest of the FM family (Sinhala): [FmAbhayaEncoding].
@@ -42,8 +50,11 @@ object LegacyFonts {
      */
     enum class Font(val id: String, val badge: String, val title: String) {
         KRUTI_DEV("krutidev", "KD", "Kruti Dev"),
+        CHANAKYA("chanakya", "WC", "Walkman Chanakya"),
         PREETI("preeti", "PR", "Preeti"),
         BAMINI("bamini", "BM", "Bamini"),
+        TSCII("tscii", "TS", "TSCII"),
+        NUDI("nudi", "NU", "Nudi"),
         ANMOL_LIPI("anmollipi", "AL", "AnmolLipi"),
         ML_TT("mltt", "ML", "ML-TT"),
         FML("fml", "FM", "FML"),
@@ -61,9 +72,10 @@ object LegacyFonts {
     /** The fonts offered for [languageId], in the order the settings list them. */
     fun fontsFor(languageId: String): List<Font> = when (languageId) {
         // Preeti is what Nepali is typed in; Kruti Dev reads Nepali too.
-        "ne" -> listOf(Font.PREETI, Font.KRUTI_DEV)
-        in DEVANAGARI_LANGUAGES -> listOf(Font.KRUTI_DEV)
-        "ta" -> listOf(Font.BAMINI)
+        "ne" -> listOf(Font.PREETI, Font.KRUTI_DEV, Font.CHANAKYA)
+        in DEVANAGARI_LANGUAGES -> listOf(Font.KRUTI_DEV, Font.CHANAKYA)
+        "ta" -> listOf(Font.BAMINI, Font.TSCII)
+        "kn" -> listOf(Font.NUDI)
         "pa" -> listOf(Font.ANMOL_LIPI)
         "ml" -> listOf(Font.ML_TT, Font.FML)
         "si" -> listOf(Font.FM_ABHAYA)
@@ -76,6 +88,9 @@ object LegacyFonts {
     /** Whether [c] is a character [font] changes. */
     fun converts(font: Font, c: Char): Boolean = when (font) {
         Font.KRUTI_DEV -> c in '\u0900'..'\u097F' || c in KRUTI_DEV_MARKS
+        Font.CHANAKYA -> c in '\u0900'..'\u097F' || c in ChanakyaEncoding.MARKS
+        Font.TSCII -> c in '\u0B80'..'\u0BFF' || c in TSCII_MARKS
+        Font.NUDI -> c in '\u0C80'..'\u0CFF'
         Font.PREETI -> c in '\u0900'..'\u097F' || c in PreetiEncoding.MARKS
         Font.BAMINI -> c in '\u0B80'..'\u0BFF' || c in BaminiEncoding.MARKS
         Font.ANMOL_LIPI -> c in '\u0A00'..'\u0A7F' || c == '\u0964' || c == '\u0965'
@@ -85,8 +100,9 @@ object LegacyFonts {
 
     /** A letter or sign of [font]'s script, or a joiner: what a word is made of. */
     fun isScriptChar(font: Font, c: Char): Boolean = c == '\u200C' || c == '\u200D' || when (font) {
-        Font.KRUTI_DEV, Font.PREETI -> c in '\u0900'..'\u0963' || c in '\u0966'..'\u097F'
-        Font.BAMINI -> c in '\u0B80'..'\u0BFF'
+        Font.KRUTI_DEV, Font.PREETI, Font.CHANAKYA -> c in '\u0900'..'\u0963' || c in '\u0966'..'\u097F'
+        Font.BAMINI, Font.TSCII -> c in '\u0B80'..'\u0BFF'
+        Font.NUDI -> c in '\u0C80'..'\u0CFF'
         Font.ANMOL_LIPI -> c in '\u0A00'..'\u0A7F'
         Font.ML_TT, Font.FML -> c in '\u0D00'..'\u0D7F'
         Font.FM_ABHAYA -> c in '\u0D80'..'\u0DFF'
@@ -98,7 +114,10 @@ object LegacyFonts {
         return when (font) {
             Font.KRUTI_DEV -> toKrutiDev(text)
             Font.PREETI -> PreetiEncoding.convert(text)
+            Font.CHANAKYA -> ChanakyaEncoding.convert(text)
             Font.BAMINI -> BaminiEncoding.convert(text)
+            Font.TSCII -> LegacyMatch.longest(Normalizer.normalize(text, Normalizer.Form.NFC), TsciiTable.GLYPHS, TSCII_LONGEST)
+            Font.NUDI -> KannadaNudiEncoding.convert(text)
             Font.ANMOL_LIPI -> toAnmolLipi(text)
             Font.ML_TT -> MalayalamAsciiEncoding.convert(text, fml = false)
             Font.FML -> MalayalamAsciiEncoding.convert(text, fml = true)
@@ -170,6 +189,15 @@ object LegacyFonts {
             }
         }
         return out.toString()
+    }
+
+    // ---- TSCII ----
+
+    private val TSCII_LONGEST by lazy { TsciiTable.GLYPHS.keys.maxOf { it.length } }
+
+    /** The marks outside the Tamil block TSCII writes differently. */
+    private val TSCII_MARKS: Set<Char> by lazy {
+        TsciiTable.GLYPHS.keys.filter { it.length == 1 && it[0] !in '\u0B80'..'\u0BFF' }.map { it[0] }.toSet()
     }
 
     // ---- AnmolLipi / Gurbani Akhar ----

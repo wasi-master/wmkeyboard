@@ -2636,6 +2636,9 @@ private fun readingOnSwitchDescRes(choice: ReadingOnSwitch): Int = when (choice)
 /** The name a legacy font goes by in the settings (#1252). */
 private fun legacyFontLabel(font: LegacyFonts.Font): Int = when (font) {
     LegacyFonts.Font.KRUTI_DEV -> R.string.languages_legacy_font_krutidev
+    LegacyFonts.Font.CHANAKYA -> R.string.languages_legacy_font_chanakya
+    LegacyFonts.Font.TSCII -> R.string.languages_legacy_font_tscii
+    LegacyFonts.Font.NUDI -> R.string.languages_legacy_font_nudi
     LegacyFonts.Font.PREETI -> R.string.languages_legacy_font_preeti
     LegacyFonts.Font.BAMINI -> R.string.languages_legacy_font_bamini
     LegacyFonts.Font.ANMOL_LIPI -> R.string.languages_legacy_font_anmollipi

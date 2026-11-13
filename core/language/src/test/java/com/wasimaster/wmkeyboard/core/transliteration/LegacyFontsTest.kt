@@ -8,7 +8,7 @@ import org.junit.Test
  * Goldens for [LegacyFonts] (#1252), taken from the converters its tables
  * come from: run on words of the app's own Hindi, Tamil and Punjabi strings,
  * Nepali Wikipedia, and the Sinhala and Malayalam word lists of
- * FrequencyWords and Kalkandam.
+ * FrequencyWords and Kalkandam, and the app's Kannada strings.
  */
 class LegacyFontsTest {
 
@@ -167,6 +167,88 @@ class LegacyFontsTest {
         for ((unicode, legacy) in words) assertEquals(unicode, legacy, LegacyFonts.convert(LegacyFonts.Font.ML_TT, unicode))
     }
 
+    /** What sanchaya's table gives in the order real Nudi text uses; aravindavk's knconverter reads them back. */
+    @Test
+    fun nudiMatchesTheReferenceConverter() {
+        val words = listOf(
+            "\u0C8E\u0C95\u0CCD\u0CB8\u0CBF\u0C9F\u0CBE\u0CB0\u0CCD\u0C9A\u0CCD" to "JQ\u00ECm\u00C1g\u00EFZ\u00EF",
+            "\u0CB5\u0CC8\u0CAC\u0CCD\u0CB0\u0CC6\u0C82\u0C9F\u0CCD" to "\u00AA\u00C9\u00CA\u00A8\u00C9\u00E6Am\u00EF",
+            "\u0CAA\u0CCD\u0CAF\u0CBE\u0CB0\u0CBF\u0CB8\u0CCD" to "\u00A5\u00C1\u00E5j\u00B8\u00EF",
+            "\u0C9C\u0CCB\u0CB0\u0CBE\u0C97\u0CBF\u0CB0\u0CC1\u0CB5" to "e\u00C9\u00C6\u00C3g\u00C1Vg\u00C0\u00C4\u00AA\u00C0",
+            "\u0CAA\u0CCD\u0CB0\u0CCA\u0CB5\u0CC8\u0CA1\u0CB0\u0CCD\u0CB8\u0CCD" to "\u00A5\u00C9\u00C6\u00E6\u00AA\u00C9\u00CAq\u00C0g\u00EF\u00B8\u00EF",
+            "\u0CB8\u0CCD\u0CB5\u0CC0\u0C95\u0CB0\u0CBF\u0CB8\u0CBF" to "\u00B9\u00E9\u00C3P\u00C0j\u00B9",
+            "\u0C85\u0C95\u0CCD\u0CB7\u0CB0\u0CB6\u0C83" to "CP\u00C0\u00EBg\u00C0\u00B1\u00C0B",
+            "\u0C95\u0CCD\u0CB7\u0CC7\u0CA4\u0CCD\u0CB0\u0CA6\u0CB2\u0CCD\u0CB2\u0CBF" to "P\u00C9\u00EB\u00C3v\u00C0\u00E6z\u00C0\u00B0\u00E8",
+            "\u0CB8\u0CBE\u0C97\u0CC1\u0CA4\u0CCD\u0CA4\u0CBF\u0CA6\u0CC6" to "\u00B8\u00C1U\u00C0\u00C4w\u00DBz\u00C9",
+            "\u0CAA\u0C82\u0C9A\u0CAD\u0CC1\u0C9C\u0CBE\u0C95\u0CC3\u0CA4\u0CBF" to "\u00A5\u00C0AZ\u00C0\u00A8s\u00C0\u00C4e\u00C1P\u00C0\u00C8w",
+            "\u0C86\u0CCD\u0CAF\u0CAA\u0CCD\u200C\u0CA8\u0CBF\u0C82\u0CA6" to "D\u00E5\u00A5\u00EF\u00A4Az\u00C0",
+            "\u0C97\u0CBE\u0CA4\u0CCD\u0CB0\u0C97\u0CB3\u0CC1" to "U\u00C1v\u00C0\u00E6U\u00C0\u00BC\u00C0\u00C4",
+            "\u0C87\u0CB2\u0CCD\u0CB2\u0CBF\u0CA6\u0CCD\u0CA6\u0CB0\u0CC6" to "E\u00B0\u00E8z\u00C0\u00DDg\u00C9",
+        )
+        for ((unicode, legacy) in words) assertEquals(unicode, legacy, LegacyFonts.convert(LegacyFonts.Font.NUDI, unicode))
+    }
+
+    /** Words from real Nudi and Baraha documents (aravindavk/ascii2unicode's samples). */
+    @Test
+    fun nudiWritesWhatRealDocumentsHold() {
+        assertEquals("\u00AA\u00C0\u00C4v\u00C0\u00C4\u00DB", LegacyFonts.convert(LegacyFonts.Font.NUDI, "\u0CAE\u0CA4\u0CCD\u0CA4\u0CC1"))
+        assertEquals("\u00A5\u00C0\u00E6w", LegacyFonts.convert(LegacyFonts.Font.NUDI, "\u0CAA\u0CCD\u0CB0\u0CA4\u0CBF"))
+        assertEquals(
+            "\u00BA\u00C9\u00C6\u00C3U\u00C0\u00C4v\u00C9\u00DB\u00C3\u00A3\u00C9",
+            LegacyFonts.convert(LegacyFonts.Font.NUDI, "\u0CB9\u0CCB\u0C97\u0CC1\u0CA4\u0CCD\u0CA4\u0CC7\u0CA8\u0CC6"),
+        )
+        assertEquals("123", LegacyFonts.convert(LegacyFonts.Font.NUDI, "\u0CE7\u0CE8\u0CE9"))
+    }
+
+    /** What IIT Delhi's table gives; its own converter reads each back unchanged. */
+    @Test
+    fun chanakyaMatchesTheReferenceConverter() {
+        val words = listOf(
+            "\u0930\u093F\u0938\u0930\u094D\u091A" to "fjlpZ",
+            "\u092A\u094D\u0930\u094B\u091F\u093E\u0928" to "\u00E7\u00A8Vku",
+            "\u0932\u0930\u094D\u0928\u093F\u0902\u0917" to "yfuaZx",
+            "\u092B\u093C\u094B\u0930\u092E" to "iQ+\u00A8je",
+            "\u092C\u0922\u093C\u093E\u090F\u0901\u0964" to "c<+k,\u00A1A",
+            "\u0939\u0949\u091F\u0935\u0930\u094D\u0921\u094D\u0938" to "g\u201AVoM~lZ",
+            "\u0932\u0915\u094D\u0937\u094D\u092F" to "y{;",
+            "\u0918\u094B\u0937\u0923\u093E\u092A\u0924\u094D\u0930" to "\u00C4\u00A8\"k.kki=k",
+            "\u0915\u0947\u0902\u0926\u094D\u0930\u093F\u0924" to "osQan~fjr",
+            "\u0938\u0930\u0932\u0940\u0915\u0943\u0924" to "ljyh\u2014r",
+            "\u092B\u0947\u0938\u094B\u0902" to "iQsl\u00A8a",
+            "\u091F\u094D\u0930\u0948\u0936" to "V\u00AAS'k",
+        )
+        for ((unicode, legacy) in words) assertEquals(unicode, legacy, LegacyFonts.convert(LegacyFonts.Font.CHANAKYA, unicode))
+    }
+
+    @Test
+    fun chanakyaWritesNasalisedESigns() {
+        // The converter's table also holds its own clean-up rules (ंे to ें); taken the other way they left ें unconverted.
+        assertEquals("jgsaxs", LegacyFonts.convert(LegacyFonts.Font.CHANAKYA, "\u0930\u0939\u0947\u0902\u0917\u0947"))
+        assertEquals("fgUnh", LegacyFonts.convert(LegacyFonts.Font.CHANAKYA, "\u0939\u093F\u0928\u094D\u0926\u0940"))
+    }
+
+    /** What open-tamil's tscii2utf8 table gives; the Grantha u signs are TSCII 0xA4 and 0xA5, as in its ஜு. */
+    @Test
+    fun tsciiMatchesTheReferenceConverter() {
+        val words = listOf(
+            "\u0BAA\u0BCD\u0BB0\u0BCA\u0B9C\u0BC6\u0B95\u0BCD\u0B9F\u0BB0\u0BCD" to "\u00F4\u00A6\u00C3\u00A1\u00A6\u0192\u00EC\u00BC\u00F7",
+            "\u0B95\u0BCB\u0B9F\u0BBE\u0B95\u0BC1\u0BAE\u0BCD" to "\u00A7\u00B8\u00A1\u00BC\u00A1\u00CC\u00F5",
+            "\u0BAE\u0BCC\u0BA9\u0BAE\u0BBE\u0B95" to "\u00A6\u00C1\u00AA\u00C9\u00C1\u00A1\u00B8",
+            "\u0B9A\u0BC2\u0BB4\u0BB2\u0BCD" to "\u00DD\u00C6\u00F8",
+            "\u0BAA\u0B9F\u0BBF\u0BB5\u0BA4\u0BCD\u0BA4\u0BC8\u0BAF\u0BC1\u0BAE\u0BCD" to "\u00C0\u00CA\u00C5\u00F2\u00A8\u00BE\u00D4\u00F5",
+            "\u0BAE\u0BC0\u0B9F\u0BCD\u0B9F\u0BB0\u0BBF\u0BB2\u0BCD" to "\u00C1\u00A3\u00F0\u00BC\u00C3\u00A2\u00F8",
+            "\u0B9F\u0BBF\u0B9F\u0BC6\u0B95\u0BCD\u0BB7\u0BA9\u0BCD" to "\u00CA\u00A6\u00BC\u2021\u00FD",
+            "\u0B9A\u0BC8\u0BB0\u0BA9\u0BCD\u0B95\u0BB3\u0BCD" to "\u00A8\u00BA\u00C3\u00FD\u00B8\u00FB",
+            "\u0BAA\u0BC7\u0B99\u0BCD\u0B95\u0BCD\u0BB2\u0BBF\u0BB7\u0BCD" to "\u00A7\u00C0\u00ED\u00EC\u00C4\u00A2\u2030",
+            "\u0B85\u0BB4\u0BC1\u0BA4\u0BCD\u0BA4\u0BBF" to "\u00AB\u00D8\u00F2\u00BE\u00A2",
+            "\u0B95\u0BA3\u0BBF\u0BA9\u0BBF\u0B95\u0BB3\u0BC8\u0BA4\u0BCD" to "\u00B8\u00BD\u00A2\u00C9\u00A2\u00B8\u00A8\u00C7\u00F2",
+            "\u0BB7\u0BBF\u0BB8\u0BC1\u0B95\u0BC1\u0BB5\u0BC8\u0BAA\u0BCD" to "\u201E\u00A2\u2026\u00A4\u00CC\u00A8\u00C5\u00F4",
+            "\u0B93\u0BB5\u0BB0\u0BCD\u0BB7\u0BC2\u0B9F\u0BCD" to "\u00B5\u00C5\u00F7\u201E\u00A5\u00F0",
+            "\u0B9C\u0BC1\u0BAF\u0BBF\u0BA9\u0BCD" to "\u0192\u00A4\u00C2\u00A2\u00FD",
+        )
+        for ((unicode, legacy) in words) assertEquals(unicode, legacy, LegacyFonts.convert(LegacyFonts.Font.TSCII, unicode))
+    }
+
     @Test
     fun preetiWritesTheReadmeExample() {
         assertEquals("g]kfn", LegacyFonts.convert(LegacyFonts.Font.PREETI, "\u0928\u0947\u092A\u093E\u0932"))
@@ -195,7 +277,9 @@ class LegacyFontsTest {
 
     @Test
     fun everyLanguageOffersItsFonts() {
-        assertEquals(listOf(LegacyFonts.Font.PREETI, LegacyFonts.Font.KRUTI_DEV), LegacyFonts.fontsFor("ne"))
+        assertEquals(listOf(LegacyFonts.Font.PREETI, LegacyFonts.Font.KRUTI_DEV, LegacyFonts.Font.CHANAKYA), LegacyFonts.fontsFor("ne"))
+        assertEquals(listOf(LegacyFonts.Font.BAMINI, LegacyFonts.Font.TSCII), LegacyFonts.fontsFor("ta"))
+        assertEquals(listOf(LegacyFonts.Font.NUDI), LegacyFonts.fontsFor("kn"))
         assertEquals(listOf(LegacyFonts.Font.ML_TT, LegacyFonts.Font.FML), LegacyFonts.fontsFor("ml"))
         assertEquals(listOf(LegacyFonts.Font.FM_ABHAYA), LegacyFonts.fontsFor("si"))
     }
