@@ -92,6 +92,8 @@ import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCodec
 import com.wasimaster.wmkeyboard.core.layout.DefaultPinchGestures
 import com.wasimaster.wmkeyboard.core.layout.PinchGesture
 import com.wasimaster.wmkeyboard.core.layout.PinchGestureCodec
+import com.wasimaster.wmkeyboard.core.layout.OneFingerSwipeCodec
+import com.wasimaster.wmkeyboard.core.layout.SwipeDirection
 import com.wasimaster.wmkeyboard.core.layout.SpaceSwipeBindingCodec
 import com.wasimaster.wmkeyboard.core.layout.BottomRowPreset
 import com.wasimaster.wmkeyboard.core.layout.HoldActionsCodec
@@ -469,6 +471,23 @@ data class KeyPopupSettings(
     val backgroundColor: Long? = null,
     /** Bubble label colour, as ARGB; null follows the theme. See [backgroundColor]. */
     val textColor: Long? = null,
+    /**
+     * How wide the preview bubble is against what it draws by default, as a
+     * multiple (gap list item 30, LeanType's bubble width). An on-key bubble
+     * is the key's width plus a little at 1; a floating one is its label plus
+     * padding, and above 1 at least the key's width times this. Below 1 trims
+     * the padding. Held to [KeyPreviewWidthScaleRange] where it is read.
+     */
+    val previewWidthScale: Float = 1f,
+    /**
+     * The preview bubble's own corner radius, in dp, or -1 to follow
+     * [cornerRadiusDp] (and a theme's popup radius) like every other popup.
+     * Only the bubble reads it: the alternates and the menus keep the shared
+     * radius. Read by the shapes that follow a radius. See [KeyPreviewRadiusRange].
+     */
+    val previewCornerRadiusDp: Int = -1,
+    /** What floats up off the keys as text is typed; see [PopTextMode]. */
+    val popText: PopTextMode = PopTextMode.NEVER,
     /**
      * Text size of the long-press alternates ("more keys"), as a multiplier.
      *
@@ -1398,6 +1417,44 @@ enum class SpacebarDisplay {
  *    so a long ring never turns a sideways gesture into a vertical one.
  */
 enum class LanguagePickerStyle { LIST, CAROUSEL }
+
+/**
+ * The case the letter keys are drawn in (gap list item 31, AnySoftKeyboard's
+ * letter-case override). Only the drawing: what a key types still follows
+ * shift, so [LOWER] with shift on draws `a` and types `A`.
+ *
+ *  - [FOLLOW_SHIFT] — lowercase, and capitals while shift or caps lock is on,
+ *    as every board has always drawn them.
+ *  - [LOWER] — always lowercase, the way some people find easier to read.
+ *  - [UPPER] — always capitals, the look of a physical keyboard's keycaps.
+ *
+ * Letters of a script with no case, and the roman keys of a transliterating
+ * layout (Avro's `t` and `T` write different letters), keep following shift.
+ */
+enum class KeyLabelCase { FOLLOW_SHIFT, LOWER, UPPER }
+
+/**
+ * What floats up off the keys as text is typed (gap list item 45,
+ * AnySoftKeyboard's "pop text"). Purely a decoration: nothing reads it but the
+ * overlay that draws it, and reduce motion or power saving's animation drop
+ * stills it whatever it is set to.
+ *
+ *  - [NEVER] — nothing; the default.
+ *  - [CORRECTIONS] — a word autocorrect changed, from the spacebar.
+ *  - [WORDS] — every word as it is finished, from the spacebar.
+ *  - [EVERY_KEY] — every character, from the key that typed it, and every
+ *    finished word as well.
+ */
+enum class PopTextMode { NEVER, CORRECTIONS, WORDS, EVERY_KEY }
+
+/** Bounds for [KeyPopupSettings.previewWidthScale]. */
+val KeyPreviewWidthScaleRange = 0.6f..2f
+
+/**
+ * Bounds for [KeyPopupSettings.previewCornerRadiusDp]. The bottom, -1, is
+ * "the popups' own radius", which is what the bubble always drew with.
+ */
+val KeyPreviewRadiusRange = -1..40
 
 /**
  * One more stop after the last layout in the spacebar's hold preview, for
@@ -9322,6 +9379,23 @@ data class GestureSettings(
      */
     val pinchBindings: Map<PinchGesture, KeyAlternate> = emptyMap(),
     /**
+     * One finger swiped up, down, left or right across the letters runs an
+     * action instead of typing (gap list item 44, AnySoftKeyboard's gesture
+     * map and LeanType's board swipe). Off by default, and never live while
+     * glide typing is on, where a finger moving across the letters is a word.
+     * The swipe has to start on a letter, leave its key within a moment of
+     * landing and travel well past it in a straight line, so a tap that
+     * rolls onto the next key still types.
+     */
+    val oneFingerSwipes: Boolean = false,
+    /**
+     * The user's bindings for [oneFingerSwipes], over
+     * [com.wasimaster.wmkeyboard.core.layout.DefaultOneFingerSwipes]; read
+     * through `oneFingerActionOf`. A direction bound to `KeyAction.None` is a
+     * default the user cleared.
+     */
+    val oneFingerBindings: Map<SwipeDirection, KeyAlternate> = emptyMap(),
+    /**
      * Holding `?123` still and tapping a key runs the action bound to that key
      * instead of typing it (issue #754). On by default: a tap that lands while
      * `?123` is down has typed a letter off the wrong layer until now, and a
@@ -10687,6 +10761,8 @@ data class LayoutBehaviorSettings(
      * See [FullBleedExtraHeightRange].
      */
     val fullBleedExtraHeightDp: Int = 0,
+    /** The case the letter keys are drawn in; see [KeyLabelCase]. */
+    val labelCase: KeyLabelCase = KeyLabelCase.FOLLOW_SHIFT,
 ) {
     /** The characters that spring the symbols layer back, with the default applied. */
     fun symbolsReturnCharSet(): String =
@@ -12167,6 +12243,9 @@ class SettingsRepository(private val context: Context) {
         private val KEY_POPUP_BACKGROUND = longPreferencesKey("key_popup_background")
         private val KEY_POPUP_TEXT_COLOR = longPreferencesKey("key_popup_text_color")
         private val KEY_POPUP_RADIUS = intPreferencesKey("key_popup_radius")
+        private val KEY_POPUP_PREVIEW_WIDTH = floatPreferencesKey("key_popup_preview_width_scale")
+        private val KEY_POPUP_PREVIEW_RADIUS = intPreferencesKey("key_popup_preview_radius")
+        private val KEY_POPUP_POP_TEXT = stringPreferencesKey("key_popup_pop_text")
         private val KEY_POPUP_SHAPE = stringPreferencesKey("key_popup_shape")
         private val ALTERNATES_FONT_SCALE = floatPreferencesKey("alternates_font_scale")
         private val ALTERNATES_PADDING = intPreferencesKey("alternates_padding")
@@ -12367,6 +12446,8 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_FINGER_SWIPES = stringPreferencesKey("gesture_finger_swipes")
         private val GESTURE_PINCH = booleanPreferencesKey("gesture_pinch")
         private val GESTURE_PINCH_BINDINGS = stringPreferencesKey("gesture_pinch_bindings")
+        private val GESTURE_ONE_FINGER = booleanPreferencesKey("gesture_one_finger_swipes")
+        private val GESTURE_ONE_FINGER_BINDINGS = stringPreferencesKey("gesture_one_finger_bindings")
         private val GESTURE_SYMBOL_CHORDS = booleanPreferencesKey("gesture_symbol_chords")
         private val GESTURE_CHORDS = stringPreferencesKey("gesture_chords")
         private val GESTURE_KEY_SWIPES_ON = booleanPreferencesKey("gesture_key_swipes_on")
@@ -12456,6 +12537,7 @@ class SettingsRepository(private val context: Context) {
         private val EDGE_SWIPE_BACK = booleanPreferencesKey("edge_swipe_back")
         private val PANEL_OVER_KEYS_EXTRA_HEIGHT_DP = intPreferencesKey("panel_over_keys_extra_height_dp")
         private val FULL_BLEED_EXTRA_HEIGHT_DP = intPreferencesKey("full_bleed_extra_height_dp")
+        private val KEY_LABEL_CASE = stringPreferencesKey("key_label_case")
         private val HIDE_SYSTEM_KEYBOARD_BAR = booleanPreferencesKey("hide_system_keyboard_bar")
         private val EXTEND_EDGE_KEYS = booleanPreferencesKey("extend_edge_keys")
         private val GLOBE_IN_ONE_PLACE = booleanPreferencesKey("globe_in_one_place")
@@ -14664,6 +14746,9 @@ class SettingsRepository(private val context: Context) {
             pinchGestures = p[GESTURE_PINCH] ?: defaults.gesture.pinchGestures,
             pinchBindings = p[GESTURE_PINCH_BINDINGS]?.let(PinchGestureCodec::decode)
                 ?: defaults.gesture.pinchBindings,
+            oneFingerSwipes = p[GESTURE_ONE_FINGER] ?: defaults.gesture.oneFingerSwipes,
+            oneFingerBindings = p[GESTURE_ONE_FINGER_BINDINGS]?.let(OneFingerSwipeCodec::decode)
+                ?: defaults.gesture.oneFingerBindings,
             symbolChords = p[GESTURE_SYMBOL_CHORDS] ?: defaults.gesture.symbolChords,
             chords = p[GESTURE_CHORDS]?.let(SymbolChordCodec::decode) ?: defaults.gesture.chords,
             keySwipesOn = p[GESTURE_KEY_SWIPES_ON] ?: defaults.gesture.keySwipesOn,
@@ -15439,6 +15524,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.layoutBehavior.panelOverKeysExtraHeightDp,
             fullBleedExtraHeightDp = p[FULL_BLEED_EXTRA_HEIGHT_DP]?.coerceIn(FullBleedExtraHeightRange)
                 ?: defaults.layoutBehavior.fullBleedExtraHeightDp,
+            labelCase = p[KEY_LABEL_CASE]?.let { name -> KeyLabelCase.entries.firstOrNull { it.name == name } }
+                ?: defaults.layoutBehavior.labelCase,
             hintFlick = p[HINT_FLICK] ?: defaults.layoutBehavior.hintFlick,
             capitalFlick = p[CAPITAL_FLICK] ?: defaults.layoutBehavior.capitalFlick,
             globeTypingGuardMs = p[GLOBE_TYPING_GUARD_MS]?.coerceIn(GlobeTypingGuardMsRange)
@@ -20120,6 +20207,12 @@ class SettingsRepository(private val context: Context) {
             backgroundColor = p[KEY_POPUP_BACKGROUND] ?: defaults.popup.backgroundColor,
             textColor = p[KEY_POPUP_TEXT_COLOR] ?: defaults.popup.textColor,
             cornerRadiusDp = p[KEY_POPUP_RADIUS] ?: defaults.popup.cornerRadiusDp,
+            previewWidthScale = p[KEY_POPUP_PREVIEW_WIDTH]?.takeIf { it.isFinite() }
+                ?.coerceIn(KeyPreviewWidthScaleRange) ?: defaults.popup.previewWidthScale,
+            previewCornerRadiusDp = p[KEY_POPUP_PREVIEW_RADIUS]?.coerceIn(KeyPreviewRadiusRange)
+                ?: defaults.popup.previewCornerRadiusDp,
+            popText = p[KEY_POPUP_POP_TEXT]?.let { name -> PopTextMode.entries.firstOrNull { it.name == name } }
+                ?: defaults.popup.popText,
             shape = p[KEY_POPUP_SHAPE]
                 ?.let { runCatching { KeyShapeKind.valueOf(it) }.getOrNull() }
                 ?: defaults.popup.shape,
@@ -21948,6 +22041,18 @@ class SettingsRepository(private val context: Context) {
     suspend fun setKeyPopupCornerRadiusDp(value: Int) =
         editPrefs { it[KEY_POPUP_RADIUS] = value.coerceIn(0, 40) }
 
+    /** See [KeyPopupSettings.previewWidthScale]. */
+    suspend fun setKeyPreviewWidthScale(value: Float) =
+        editPrefs { it[KEY_POPUP_PREVIEW_WIDTH] = value.coerceIn(KeyPreviewWidthScaleRange) }
+
+    /** See [KeyPopupSettings.previewCornerRadiusDp]; -1 follows the popups. */
+    suspend fun setKeyPreviewCornerRadiusDp(value: Int) =
+        editPrefs { it[KEY_POPUP_PREVIEW_RADIUS] = value.coerceIn(KeyPreviewRadiusRange) }
+
+    /** See [KeyPopupSettings.popText]. */
+    suspend fun setPopText(value: PopTextMode) =
+        editPrefs { it[KEY_POPUP_POP_TEXT] = value.name }
+
     suspend fun setKeyPopupShape(value: KeyShapeKind) =
         editPrefs { it[KEY_POPUP_SHAPE] = value.name }
 
@@ -23070,6 +23175,21 @@ class SettingsRepository(private val context: Context) {
             else prefs[GESTURE_PINCH_BINDINGS] = PinchGestureCodec.encode(next)
         }
 
+    suspend fun setOneFingerSwipes(value: Boolean) =
+        editPrefs { it[GESTURE_ONE_FINGER] = value }
+
+    /**
+     * Binds a one-finger swipe [direction] to [binding] (gap list item 44).
+     * Null puts it back to its default; `KeyAction.None` clears it.
+     */
+    suspend fun setOneFingerSwipe(direction: SwipeDirection, binding: KeyAlternate?) =
+        editPrefs { prefs ->
+            val current = OneFingerSwipeCodec.decode(prefs[GESTURE_ONE_FINGER_BINDINGS])
+            val next = if (binding == null) current - direction else current + (direction to binding)
+            if (next.isEmpty()) prefs.remove(GESTURE_ONE_FINGER_BINDINGS)
+            else prefs[GESTURE_ONE_FINGER_BINDINGS] = OneFingerSwipeCodec.encode(next)
+        }
+
     suspend fun setSymbolChords(value: Boolean) =
         editPrefs { it[GESTURE_SYMBOL_CHORDS] = value }
 
@@ -23456,6 +23576,10 @@ class SettingsRepository(private val context: Context) {
     /** See [LayoutBehaviorSettings.fullBleedExtraHeightDp]. */
     suspend fun setFullBleedExtraHeightDp(value: Int) =
         editPrefs { it[FULL_BLEED_EXTRA_HEIGHT_DP] = value.coerceIn(FullBleedExtraHeightRange) }
+
+    /** See [LayoutBehaviorSettings.labelCase]. */
+    suspend fun setKeyLabelCase(value: KeyLabelCase) =
+        editPrefs { it[KEY_LABEL_CASE] = value.name }
 
     suspend fun setHideSystemKeyboardBar(value: Boolean) =
         editPrefs { it[HIDE_SYSTEM_KEYBOARD_BAR] = value }

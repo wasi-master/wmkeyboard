@@ -3888,6 +3888,13 @@ open class WMKeyboardService : InputMethodService() {
     private var animatedEmojiJob: Job? = null
     private var webSearchJob: Job? = null
 
+    /**
+     * Pop text (gap list item 45): finished words float up off the space bar.
+     * The grid writes the setting into it, and it drops every call while the
+     * setting is off, so the commit below costs one check.
+     */
+    private val popText = com.wasimaster.wmkeyboard.ime.ui.PopTextField()
+
     /** The search panel's own actions (#879); see [com.wasimaster.wmkeyboard.ime.ui.SearchActions]. */
     private val searchActions by lazy {
         com.wasimaster.wmkeyboard.ime.ui.SearchActions(
@@ -6792,6 +6799,7 @@ open class WMKeyboardService : InputMethodService() {
                 com.wasimaster.wmkeyboard.ime.ui.LocalClipChipDelete provides ::onClipChipDelete,
                 com.wasimaster.wmkeyboard.ime.ui.LocalScreenCapture provides ::onCaptureScreen,
                 com.wasimaster.wmkeyboard.ime.ui.LocalSearchActions provides searchActions,
+                com.wasimaster.wmkeyboard.ime.ui.LocalPopText provides popText,
             ) {
                 ScrollFrameRateVote { ServiceKeyboardContent() }
             }
@@ -21788,6 +21796,9 @@ open class WMKeyboardService : InputMethodService() {
             },
             1,
         )
+        // Pop text (gap list item 45): the word floats up off the space bar,
+        // or only a corrected one, as the setting asks.
+        popText.word(output.trim(), corrected = corrected != null)
         // An autocorrected word was the engine's choice, not the user's —
         // it earns no personal-dictionary reinforcement, only the bigram.
         // Conversion-IME output (Hanzi/Kanji) is never learned into the lexicon,

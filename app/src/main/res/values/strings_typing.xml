@@ -1471,6 +1471,17 @@
     <string name="typing_pinch_merge_value">Merge the keyboard</string>
     <string name="typing_pinch_reset_title">Reset pinch actions</string>
     <string name="typing_pinch_reset_subtitle">Put pinch and stretch back to splitting and merging</string>
+    <string name="typing_group_one_finger_title">One-finger swipes</string>
+    <string name="typing_one_finger_swipes_title">One-finger swipes</string>
+    <string name="typing_one_finger_swipes_subtitle">Swipe one finger across the letters to run an action</string>
+    <string name="typing_one_finger_glide_subtitle">Works only while glide typing is off</string>
+    <string name="typing_one_finger_swipes_info">With glide typing off, swipe one finger up, down, left or right across the letters. Instead of typing, the swipe runs the action you chose for that direction. Out of the box, up is Shift, down hides the keyboard, left deletes a word and right moves to your next language.\n\nThe swipe has to start on a letter, leave its key soon after you touch it and go well past it in a straight line. A tap that rolls onto the next key still types, and so does a press and hold. A key with swipes of its own keeps them.\n\nWhile glide typing is on, a finger moving across the letters writes a word, so these swipes do nothing. Use the multi-finger swipes above instead.</string>
+    <string name="typing_one_finger_up_title">Swipe up</string>
+    <string name="typing_one_finger_down_title">Swipe down</string>
+    <string name="typing_one_finger_left_title">Swipe left</string>
+    <string name="typing_one_finger_right_title">Swipe right</string>
+    <string name="typing_one_finger_reset_title">Reset one-finger swipes</string>
+    <string name="typing_one_finger_reset_subtitle">Put every one-finger swipe back to its default</string>
     <string name="typing_group_symbol_chords_title">Chords with ?123</string>
     <string name="typing_symbol_chords_title">Chords with ?123</string>
     <string name="typing_symbol_chords_subtitle">Hold ?123 still and tap a key to run an action</string>

@@ -98,6 +98,7 @@ import com.wasimaster.wmkeyboard.core.theme.WINDOW_BLUR_RADIUS_RANGE
 import com.wasimaster.wmkeyboard.core.theme.KeyEffectColorMode
 import com.wasimaster.wmkeyboard.core.theme.KeyEffectKind
 import com.wasimaster.wmkeyboard.core.theme.KeyOverride
+import com.wasimaster.wmkeyboard.core.theme.KEY_OVERRIDE_RADIUS_RANGE
 import com.wasimaster.wmkeyboard.core.theme.ORB_SPOT_POSITION_RANGE
 import com.wasimaster.wmkeyboard.core.theme.ORB_SPOT_RADIUS_RANGE
 import com.wasimaster.wmkeyboard.core.theme.OrbSpot
@@ -310,7 +311,24 @@ data class KbTheme(
     val primarySuggestionPill: Color,
     val secondaryText: Color,
     val divider: Color,
+    /**
+     * The emoji search bar's fill and text, and the recently-copied chip's
+     * (gap list item 28); null draws each the way it always drew, off the
+     * card colour, the accent and the strip text. Read through
+     * [emojiSearchFill] and friends, which hold the fallbacks.
+     */
+    val emojiSearch: Color? = null,
+    val emojiSearchText: Color? = null,
+    val clipChip: Color? = null,
+    val clipChipText: Color? = null,
     val keyRadiusDp: Int,
+    /**
+     * The function keys' and the action keys' (Enter, space) own corner
+     * radii (gap list item 29); null follows [keyRadiusDp]. Carried into the
+     * grid by [KeyPalette], so a key's own radius is resolved once per palette.
+     */
+    val modifierKeyRadiusDp: Int? = null,
+    val actionKeyRadiusDp: Int? = null,
     val popupRadiusDp: Int,
     val popupShapeKind: KeyShapeKind,
     /** Shape of the list-menu popups; a safe derivative of the popup shape. */
@@ -638,6 +656,24 @@ fun KbTheme.toolShape() = keyShapeFor(toolShapeKind, toolRadiusDp)
  * drew before a theme could say otherwise.
  */
 fun KbTheme.chipShape() = keyShapeFor(chipShapeKind, chipRadiusDp)
+
+/**
+ * The emoji search bar's fill (gap list item 28): the theme's own, else
+ * [fallback], the card colour it always drew with.
+ */
+fun KbTheme.emojiSearchFill(fallback: Color): Color = emojiSearch ?: fallback
+
+/** Text on the emoji search bar; [fallback] is the strip text it always used. */
+fun KbTheme.emojiSearchInk(fallback: Color): Color = emojiSearchText ?: fallback
+
+/**
+ * The recently-copied chip's fill: the theme's own, else the accent tint the
+ * chip always drew with. A fragment chip is an outline and asks for no fill.
+ */
+fun KbTheme.clipChipFill(): Color = clipChip ?: accent.copy(alpha = if (dark) 0.20f else 0.11f)
+
+/** Text and glyphs on the recently-copied chip, and its outline's hue. */
+fun KbTheme.clipChipInk(): Color = clipChipText ?: accent
 
 /**
  * The resolved outline of the list-menu popups — the language picker, the
@@ -1213,7 +1249,13 @@ private fun specKbTheme(spec: ThemeSpec, settings: KeyboardSettings): KbTheme {
         ),
         secondaryText = spec.secondaryText?.let(::colorOf) ?: secondary,
         divider = spec.dividerColor?.let(::colorOf) ?: stripText.copy(alpha = 0.25f),
+        emojiSearch = spec.emojiSearchBackground?.let(::colorOf),
+        emojiSearchText = spec.emojiSearchText?.let(::colorOf),
+        clipChip = spec.clipboardChipBackground?.let(::colorOf),
+        clipChipText = spec.clipboardChipText?.let(::colorOf),
         keyRadiusDp = spec.keyCornerRadiusDp ?: settings.keyCornerRadiusDp,
+        modifierKeyRadiusDp = spec.modifierKeyCornerRadiusDp?.coerceIn(KEY_OVERRIDE_RADIUS_RANGE),
+        actionKeyRadiusDp = spec.actionKeyCornerRadiusDp?.coerceIn(KEY_OVERRIDE_RADIUS_RANGE),
         popupRadiusDp = spec.popupCornerRadiusDp ?: settings.popup.cornerRadiusDp,
         popupShapeKind = keyShapeKindOrNull(spec.popupShape) ?: settings.popup.shape,
         menuShapeKind = keyShapeKindOrNull(spec.menuShape)
@@ -1385,6 +1427,10 @@ private fun KbTheme.mapColors(f: (Color) -> Color): KbTheme = copy(
     primarySuggestionPill = f(primarySuggestionPill),
     secondaryText = f(secondaryText),
     divider = f(divider),
+    emojiSearch = emojiSearch?.let(f),
+    emojiSearchText = emojiSearchText?.let(f),
+    clipChip = clipChip?.let(f),
+    clipChipText = clipChipText?.let(f),
     keyOverrides = if (keyOverrides.isEmpty()) {
         keyOverrides
     } else {
@@ -1480,6 +1526,11 @@ internal fun KbTheme.accessibilityAdjusted(settings: KeyboardSettings): KbTheme 
             toolbarIcon = maxContrastOn(board),
             secondaryText = maxContrastOn(board).copy(alpha = 0.75f),
             divider = maxContrastOn(board).copy(alpha = 0.4f),
+            // Back to the chip and strip colours this mode has just made legible.
+            emojiSearch = null,
+            emojiSearchText = null,
+            clipChip = null,
+            clipChipText = null,
         )
     }
 
@@ -1976,6 +2027,14 @@ private fun lerpLong(a: Long, b: Long, t: Float): Long =
 
 private fun Color.toArgbLong(): Long = toArgb().toLong() and 0xFFFFFFFFL
 
+/**
+ * Two optional colours whose null means "the fallback", not "nothing": both
+ * set blend, and otherwise the side that holds at [t] wins, since a fallback
+ * is a colour this function cannot see.
+ */
+private fun lerpOptional(a: Color?, b: Color?, t: Float): Color? =
+    if (a != null && b != null) lerp(a, b, t) else if (t >= 0.5f) b else a
+
 private fun lerpColorOrNull(a: Color?, b: Color?, t: Float): Color? {
     // A null border means "no outline"; fade it in/out via a transparent stand-in.
     // Either elvis falling all the way through means both sides were absent.
@@ -2113,9 +2172,17 @@ private fun lerpKbTheme(a: KbTheme, b: KbTheme, t: Float): KbTheme {
         primarySuggestionPill = lerp(a.primarySuggestionPill, b.primarySuggestionPill, t),
         secondaryText = lerp(a.secondaryText, b.secondaryText, t),
         divider = lerp(a.divider, b.divider, t),
+        emojiSearch = lerpOptional(a.emojiSearch, b.emojiSearch, t),
+        emojiSearchText = lerpOptional(a.emojiSearchText, b.emojiSearchText, t),
+        clipChip = lerpOptional(a.clipChip, b.clipChip, t),
+        clipChipText = lerpOptional(a.clipChipText, b.clipChipText, t),
         oneHandedPanel = lerp(a.oneHandedPanel, b.oneHandedPanel, t),
         oneHandedPanelIcon = lerp(a.oneHandedPanelIcon, b.oneHandedPanelIcon, t),
         keyRadiusDp = lerpI(a.keyRadiusDp, b.keyRadiusDp, t),
+        modifierKeyRadiusDp = lerpI(a.modifierKeyRadiusDp ?: a.keyRadiusDp, b.modifierKeyRadiusDp ?: b.keyRadiusDp, t)
+            .takeIf { a.modifierKeyRadiusDp != null || b.modifierKeyRadiusDp != null },
+        actionKeyRadiusDp = lerpI(a.actionKeyRadiusDp ?: a.keyRadiusDp, b.actionKeyRadiusDp ?: b.keyRadiusDp, t)
+            .takeIf { a.actionKeyRadiusDp != null || b.actionKeyRadiusDp != null },
         popupRadiusDp = lerpI(a.popupRadiusDp, b.popupRadiusDp, t),
         popupShapeKind = if (past) b.popupShapeKind else a.popupShapeKind,
         menuShapeKind = if (past) b.menuShapeKind else a.menuShapeKind,

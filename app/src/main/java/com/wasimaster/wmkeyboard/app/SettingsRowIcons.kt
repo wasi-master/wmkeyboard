@@ -541,6 +541,12 @@ internal object SettingsRowIcons {
         put(R.string.appearance_key_label_size_title) { Icons.Outlined.FormatSize }
         put(R.string.appearance_key_hint_size_title) { Icons.Outlined.FormatSize }
         put(R.string.appearance_key_hint_corner_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.appearance_key_label_case_title) { Icons.Outlined.TextFormat }
+        put(R.string.keypress_preview_width_title) { Icons.Outlined.ChatBubbleOutline }
+        put(R.string.keypress_preview_radius_title) { Icons.Outlined.RoundedCorner }
+        put(R.string.keypress_pop_text_title) { Icons.Outlined.Animation }
+        put(R.string.typing_one_finger_swipes_title) { Icons.Outlined.Swipe }
+        put(R.string.typing_one_finger_reset_title) { Icons.Outlined.RestartAlt }
         put(R.string.appearance_key_hint_offset_title) { Icons.Outlined.SwapVert }
         put(R.string.appearance_key_hint_offset_x_title) { Icons.Outlined.SwapHoriz }
         put(R.string.appearance_key_label_offset_x_title) { Icons.Outlined.SwapHoriz }
@@ -1972,6 +1978,8 @@ internal object SettingsRowIcons {
         put(R.string.theme_key_shadow_color_title) { Icons.Outlined.ColorLens }
         put(R.string.theme_texture_opacity_title) { Icons.Outlined.Texture }
         put(R.string.theme_key_radius_title) { Icons.Outlined.RoundedCorner }
+        put(R.string.theme_modifier_key_radius_title) { Icons.Outlined.RoundedCorner }
+        put(R.string.theme_action_key_radius_title) { Icons.Outlined.RoundedCorner }
         put(R.string.theme_key_height_title) { Icons.Outlined.Height }
         put(R.string.theme_key_gap_title) { Icons.Outlined.SpaceBar }
         put(R.string.theme_side_padding_left_title) { Icons.Outlined.Padding }
@@ -2017,6 +2025,10 @@ internal object SettingsRowIcons {
         put(R.string.theme_primary_suggestion_pill_title) { Icons.Outlined.FormatColorFill }
         put(R.string.theme_secondary_text_title) { Icons.Outlined.FormatColorText }
         put(R.string.theme_divider_title) { Icons.Outlined.HorizontalRule }
+        put(R.string.theme_emoji_search_background_title) { Icons.Outlined.Search }
+        put(R.string.theme_emoji_search_text_title) { Icons.Outlined.FormatColorText }
+        put(R.string.theme_clip_chip_background_title) { Icons.Outlined.ContentPaste }
+        put(R.string.theme_clip_chip_text_title) { Icons.Outlined.FormatColorText }
         put(R.string.theme_chip_shape_title) { Icons.Outlined.Category }
         put(R.string.theme_chip_radius_title) { Icons.Outlined.RoundedCorner }
         put(R.string.theme_chip_text_title) { Icons.Outlined.FormatColorText }

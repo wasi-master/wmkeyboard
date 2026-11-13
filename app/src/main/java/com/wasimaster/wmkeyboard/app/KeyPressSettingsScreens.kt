@@ -18,6 +18,9 @@ import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.settings.AlternateGroup
+import com.wasimaster.wmkeyboard.core.settings.KeyPreviewRadiusRange
+import com.wasimaster.wmkeyboard.core.settings.KeyPreviewWidthScaleRange
+import com.wasimaster.wmkeyboard.core.settings.PopTextMode
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.settings.GboardHoldSymbols
@@ -1682,6 +1685,37 @@ internal fun KeyPressPopupSettings(
                 default = SettingsDefaults.popup.cornerRadiusDp.toFloat(),
             ) { scope.launch { repository.setKeyPopupCornerRadiusDp(it.toInt()) } }
         }
+        // Gap list item 30: the preview bubble's own width and corners, beside
+        // its height. These two stop at the bubble; the radius above is every
+        // popup's, and the bubble follows it until its own is set.
+        item(visible = popupOn, level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.keypress_preview_width_title,
+                subtitle = stringResource(R.string.keypress_preview_width_subtitle),
+                value = settings.watch { it.popup.previewWidthScale },
+                range = KeyPreviewWidthScaleRange,
+                display = { context.getString(R.string.keypress_value_multiplier, it) },
+                info = stringResource(R.string.keypress_preview_width_info),
+                default = SettingsDefaults.popup.previewWidthScale,
+            ) { scope.launch { repository.setKeyPreviewWidthScale(it) } }
+        }
+        item(visible = popupOn, level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.keypress_preview_radius_title,
+                subtitle = stringResource(R.string.keypress_preview_radius_subtitle),
+                value = settings.watch { it.popup.previewCornerRadiusDp }.toFloat(),
+                range = KeyPreviewRadiusRange.first.toFloat()..KeyPreviewRadiusRange.last.toFloat(),
+                display = {
+                    if (it < 0f) {
+                        context.getString(R.string.keypress_preview_radius_follow)
+                    } else {
+                        context.getString(R.string.keypress_value_dp, it.toInt())
+                    }
+                },
+                info = stringResource(R.string.keypress_preview_radius_info),
+                default = SettingsDefaults.popup.previewCornerRadiusDp.toFloat(),
+            ) { scope.launch { repository.setKeyPreviewCornerRadiusDp(it.toInt()) } }
+        }
         // Unlike shape and radius, these two stop at the preview bubble: the
         // alternates, the language picker and the panel menus keep the theme's
         // popup colour. Seeded from the settings app's own surface, which is
@@ -1704,6 +1738,28 @@ internal fun KeyPressPopupSettings(
                 fallback = MaterialTheme.colorScheme.onSurfaceVariant.argbLong(),
                 info = stringResource(R.string.keypress_popup_text_color_info),
             ) { scope.launch { repository.setKeyPopupTextColor(it) } }
+        }
+    }
+    // Gap list item 45: text floating up off the keys. Its own group, since
+    // it has nothing to do with the bubble and shows with the bubble off too.
+    SettingsGroup(stringResource(R.string.keypress_pop_text_group_title), level = SettingLevel.ADVANCED) {
+        item {
+            val still = settings.watch { it.reduceMotion }
+            ChoiceSetting(
+                R.string.keypress_pop_text_title,
+                subtitle = stringResource(
+                    if (still) R.string.keypress_pop_text_still_subtitle else R.string.keypress_pop_text_subtitle,
+                ),
+                info = stringResource(R.string.keypress_pop_text_info),
+                options = listOf(
+                    PopTextMode.NEVER to stringResource(R.string.keypress_pop_text_never),
+                    PopTextMode.CORRECTIONS to stringResource(R.string.keypress_pop_text_corrections),
+                    PopTextMode.WORDS to stringResource(R.string.keypress_pop_text_words),
+                    PopTextMode.EVERY_KEY to stringResource(R.string.keypress_pop_text_every_key),
+                ),
+                selected = settings.watch { it.popup.popText },
+                default = SettingsDefaults.popup.popText,
+            ) { scope.launch { repository.setPopText(it) } }
         }
     }
 }
