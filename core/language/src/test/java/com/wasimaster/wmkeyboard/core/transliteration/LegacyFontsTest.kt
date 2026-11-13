@@ -227,6 +227,29 @@ class LegacyFontsTest {
         assertEquals("fgUnh", LegacyFonts.convert(LegacyFonts.Font.CHANAKYA, "\u0939\u093F\u0928\u094D\u0926\u0940"))
     }
 
+    /** Words as Stiehl's manual for Itranslator 99 prints them in Sanskrit 99 (its ITX spelling after each). */
+    @Test
+    fun sanskrit99WritesWhatTheManualShows() {
+        assertEquals("s<Sk\u00ABtm!", LegacyFonts.convert(LegacyFonts.Font.SANSKRIT_99, "\u0938\u0902\u0938\u094D\u0915\u0943\u0924\u092E\u094D")) // saMskR^itam
+        assertEquals("AwR>", LegacyFonts.convert(LegacyFonts.Font.SANSKRIT_99, "\u0905\u0930\u094D\u0925\u0903")) // arthaH
+        assertEquals("k\u2026\u00E9-]e\u00C7m!", LegacyFonts.convert(LegacyFonts.Font.SANSKRIT_99, "\u0915\u0941\u0930\u0941-\u0915\u094D\u0937\u0947\u0924\u094D\u0930\u092E\u094D")) // kuru-kShetram
+        assertEquals("pZyit", LegacyFonts.convert(LegacyFonts.Font.SANSKRIT_99, "\u092A\u0936\u094D\u092F\u0924\u093F")) // pashyati
+        assertEquals(";q\u0153", LegacyFonts.convert(LegacyFonts.Font.SANSKRIT_99, "\u0937\u091F\u094D")) // SaT
+        assertEquals("DaT\u00C7>", LegacyFonts.convert(LegacyFonts.Font.SANSKRIT_99, "\u091B\u093E\u0924\u094D\u0924\u094D\u0930\u0903")) // ChAttraH
+        assertEquals("A\u00BC\u201AlI", LegacyFonts.convert(LegacyFonts.Font.SANSKRIT_99, "\u0905\u0919\u094D\u0917\u0941\u0932\u0940")) // aN^gulI
+        assertEquals("ij\u00FEa", LegacyFonts.convert(LegacyFonts.Font.SANSKRIT_99, "\u091C\u093F\u0939\u094D\u0935\u093E")) // jihvA
+        assertEquals("\\iTvk\u0153", LegacyFonts.convert(LegacyFonts.Font.SANSKRIT_99, "\u090B\u0924\u094D\u0935\u093F\u0915\u094D")) // R^itvik
+        assertEquals("t\u2022ha", LegacyFonts.convert(LegacyFonts.Font.SANSKRIT_99, "\u0924\u0931\u094D\u0939\u093E")) // taRhA
+        assertEquals("is\u02C6)R", LegacyFonts.convert(LegacyFonts.Font.SANSKRIT_99, "\u0938\u093F\u0930\u094D\u092B\u093C")) // sirfa
+    }
+
+    @Test
+    fun sanskrit99KeepsTheRaOfAClusterOutOfTheReph() {
+        // त्र्य is t, ra and ya: the ra under त, not a reph over य.
+        assertEquals("\u00C8ya", LegacyFonts.convert(LegacyFonts.Font.SANSKRIT_99, "\u0924\u094D\u0930\u094D\u092F\u093E"))
+        assertEquals("kIitR>", LegacyFonts.convert(LegacyFonts.Font.SANSKRIT_99, "\u0915\u0940\u0930\u094D\u0924\u093F\u0903"))
+    }
+
     /** What open-tamil's tscii2utf8 table gives; the Grantha u signs are TSCII 0xA4 and 0xA5, as in its ஜு. */
     @Test
     fun tsciiMatchesTheReferenceConverter() {
@@ -277,7 +300,9 @@ class LegacyFontsTest {
 
     @Test
     fun everyLanguageOffersItsFonts() {
-        assertEquals(listOf(LegacyFonts.Font.PREETI, LegacyFonts.Font.KRUTI_DEV, LegacyFonts.Font.CHANAKYA), LegacyFonts.fontsFor("ne"))
+        assertEquals(listOf(LegacyFonts.Font.PREETI, LegacyFonts.Font.KRUTI_DEV, LegacyFonts.Font.CHANAKYA, LegacyFonts.Font.SANSKRIT_99), LegacyFonts.fontsFor("ne"))
+        assertEquals(listOf(LegacyFonts.Font.SANSKRIT_99, LegacyFonts.Font.KRUTI_DEV, LegacyFonts.Font.CHANAKYA), LegacyFonts.fontsFor("sa"))
+        assertEquals(listOf(LegacyFonts.Font.KRUTI_DEV, LegacyFonts.Font.CHANAKYA, LegacyFonts.Font.SANSKRIT_99), LegacyFonts.fontsFor("hi"))
         assertEquals(listOf(LegacyFonts.Font.BAMINI, LegacyFonts.Font.TSCII), LegacyFonts.fontsFor("ta"))
         assertEquals(listOf(LegacyFonts.Font.NUDI), LegacyFonts.fontsFor("kn"))
         assertEquals(listOf(LegacyFonts.Font.ML_TT, LegacyFonts.Font.FML), LegacyFonts.fontsFor("ml"))

@@ -32,6 +32,7 @@ import java.text.Normalizer
  * The rest are code, since they reorder whole syllables:
  *
  * - **Walkman Chanakya** (Hindi): [ChanakyaEncoding].
+ * - **Sanskrit 99** (Sanskrit and the other Devanagari languages): [Sanskrit99Encoding].
  * - **Nudi / Baraha** (Kannada): [KannadaNudiEncoding].
  * - **TSCII 1.7** (Tamil): a longest match over open-tamil's syllable table
  *   ([TsciiTable]), plus the Grantha u and uu signs (0xA4, 0xA5) that table
@@ -51,6 +52,7 @@ object LegacyFonts {
     enum class Font(val id: String, val badge: String, val title: String) {
         KRUTI_DEV("krutidev", "KD", "Kruti Dev"),
         CHANAKYA("chanakya", "WC", "Walkman Chanakya"),
+        SANSKRIT_99("sanskrit99", "S9", "Sanskrit 99"),
         PREETI("preeti", "PR", "Preeti"),
         BAMINI("bamini", "BM", "Bamini"),
         TSCII("tscii", "TS", "TSCII"),
@@ -72,8 +74,10 @@ object LegacyFonts {
     /** The fonts offered for [languageId], in the order the settings list them. */
     fun fontsFor(languageId: String): List<Font> = when (languageId) {
         // Preeti is what Nepali is typed in; Kruti Dev reads Nepali too.
-        "ne" -> listOf(Font.PREETI, Font.KRUTI_DEV, Font.CHANAKYA)
-        in DEVANAGARI_LANGUAGES -> listOf(Font.KRUTI_DEV, Font.CHANAKYA)
+        "ne" -> listOf(Font.PREETI, Font.KRUTI_DEV, Font.CHANAKYA, Font.SANSKRIT_99)
+        // Sanskrit 99 has the conjuncts Sanskrit needs, so Sanskrit lists it first.
+        "sa" -> listOf(Font.SANSKRIT_99, Font.KRUTI_DEV, Font.CHANAKYA)
+        in DEVANAGARI_LANGUAGES -> listOf(Font.KRUTI_DEV, Font.CHANAKYA, Font.SANSKRIT_99)
         "ta" -> listOf(Font.BAMINI, Font.TSCII)
         "kn" -> listOf(Font.NUDI)
         "pa" -> listOf(Font.ANMOL_LIPI)
@@ -89,6 +93,7 @@ object LegacyFonts {
     fun converts(font: Font, c: Char): Boolean = when (font) {
         Font.KRUTI_DEV -> c in '\u0900'..'\u097F' || c in KRUTI_DEV_MARKS
         Font.CHANAKYA -> c in '\u0900'..'\u097F' || c in ChanakyaEncoding.MARKS
+        Font.SANSKRIT_99 -> c in '\u0900'..'\u097F'
         Font.TSCII -> c in '\u0B80'..'\u0BFF' || c in TSCII_MARKS
         Font.NUDI -> c in '\u0C80'..'\u0CFF'
         Font.PREETI -> c in '\u0900'..'\u097F' || c in PreetiEncoding.MARKS
@@ -100,7 +105,7 @@ object LegacyFonts {
 
     /** A letter or sign of [font]'s script, or a joiner: what a word is made of. */
     fun isScriptChar(font: Font, c: Char): Boolean = c == '\u200C' || c == '\u200D' || when (font) {
-        Font.KRUTI_DEV, Font.PREETI, Font.CHANAKYA -> c in '\u0900'..'\u0963' || c in '\u0966'..'\u097F'
+        Font.KRUTI_DEV, Font.PREETI, Font.CHANAKYA, Font.SANSKRIT_99 -> c in '\u0900'..'\u0963' || c in '\u0966'..'\u097F'
         Font.BAMINI, Font.TSCII -> c in '\u0B80'..'\u0BFF'
         Font.NUDI -> c in '\u0C80'..'\u0CFF'
         Font.ANMOL_LIPI -> c in '\u0A00'..'\u0A7F'
@@ -115,6 +120,7 @@ object LegacyFonts {
             Font.KRUTI_DEV -> toKrutiDev(text)
             Font.PREETI -> PreetiEncoding.convert(text)
             Font.CHANAKYA -> ChanakyaEncoding.convert(text)
+            Font.SANSKRIT_99 -> Sanskrit99Encoding.convert(text)
             Font.BAMINI -> BaminiEncoding.convert(text)
             Font.TSCII -> LegacyMatch.longest(Normalizer.normalize(text, Normalizer.Form.NFC), TsciiTable.GLYPHS, TSCII_LONGEST)
             Font.NUDI -> KannadaNudiEncoding.convert(text)
