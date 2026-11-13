@@ -225,6 +225,19 @@ jobs:
           --tests '*.prediction.eval.*' --tests '*.gesture.eval.*'
           -Pwmkb.skipBenchmarks=true --stacktrace
 
+  # The phone compiles regexes with ICU and the unit tests with the JDK, and
+  # ICU rejects some patterns the JDK takes (a bare `}`), so a regex can pass
+  # every test and crash on first use. Compiles every literal with the
+  # runner's own ICU. Python only, a few seconds.
+  icu-regexes:
+    name: Regexes compile under ICU
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - run: python3 scripts/check_icu_regexes.py
+
   docs:
     name: Docs build
     runs-on: ubuntu-latest
