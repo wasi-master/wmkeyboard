@@ -57,6 +57,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Explore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Fastfood
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FindReplace
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EditCalendar
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FolderOpen
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FirstPage
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashlightOn
@@ -218,6 +219,7 @@ object IconDefaults {
         ToolbarTool.SEND_FILES -> Icons.AutoMirrored.Outlined.Send
         // The open folder: Folder alone is the gallery's albums and the picker's rows.
         ToolbarTool.FILES -> Icons.Outlined.FolderOpen
+        ToolbarTool.TIMESTAMP -> Icons.Outlined.EditCalendar
         ToolbarTool.GALLERY -> Icons.Outlined.PhotoLibrary
         ToolbarTool.MEDIA_CONTROL -> Icons.Outlined.MusicNote
         // A waveform, not a note: the note is Media controls, and this one listens.

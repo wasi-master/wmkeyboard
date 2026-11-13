@@ -127,6 +127,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.HOME_ASSISTANT -> ImeR.string.ime_tool_home_assistant
     ToolbarTool.SEND_FILES -> ImeR.string.ime_tool_send_files
     ToolbarTool.FILES -> ImeR.string.ime_tool_files
+    ToolbarTool.TIMESTAMP -> ImeR.string.ime_tool_timestamp
     ToolbarTool.GALLERY -> ImeR.string.ime_tool_gallery
     ToolbarTool.CALENDAR -> ImeR.string.ime_tool_calendar
     ToolbarTool.INCOGNITO -> ImeR.string.ime_tool_incognito
@@ -295,6 +296,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.SELECT_ALL -> R.string.fonts_tool_select_all_desc
     ToolbarTool.CLEAR_FIELD -> R.string.fonts_tool_clear_field_desc
     ToolbarTool.FILES -> R.string.files_tool_desc
+    ToolbarTool.TIMESTAMP -> R.string.fonts_tool_timestamp_desc
     ToolbarTool.SELECT_MODE -> R.string.fonts_tool_select_mode_desc
     ToolbarTool.COPY -> R.string.fonts_tool_copy_desc
     ToolbarTool.CUT -> R.string.fonts_tool_cut_desc
@@ -745,7 +747,7 @@ private fun buildToolGroups(splitPanels: Boolean): List<Pair<Int, List<ToolbarTo
     add(
         R.string.tools_group_utilities_title to listOf(
             ToolbarTool.FLASHLIGHT, ToolbarTool.SCREENSHOT, ToolbarTool.COMPASS, ToolbarTool.LEVEL,
-            ToolbarTool.CALENDAR, ToolbarTool.CLOCK, ToolbarTool.WEATHER, ToolbarTool.LOCATION, ToolbarTool.HOME_ASSISTANT,
+            ToolbarTool.CALENDAR, ToolbarTool.CLOCK, ToolbarTool.TIMESTAMP, ToolbarTool.WEATHER, ToolbarTool.LOCATION, ToolbarTool.HOME_ASSISTANT,
             ToolbarTool.MOON_PHASE, ToolbarTool.PLUGINS,
         ),
     )

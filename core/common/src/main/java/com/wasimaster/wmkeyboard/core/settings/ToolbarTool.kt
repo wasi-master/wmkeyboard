@@ -202,6 +202,10 @@ enum class ToolbarTool {
     // folders added through Android's folder picker, which a Play build can
     // use too. Not over the lock screen.
     FILES,
+    // The date and time typed in one tap, in the format the Clock tool's
+    // insert sheet is set to (competitor gap list item 6, HeliBoard's
+    // timestamp key). The first Backspace after it takes it back whole.
+    TIMESTAMP,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -292,6 +296,8 @@ fun isDirectBootSafeTool(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.PRIVACY_SHADE,
     // Only touches the field the user is already typing in.
     ToolbarTool.CLEAR_FIELD,
+    // Reads the clock's format from device-protected preferences.
+    ToolbarTool.TIMESTAMP,
     -> true
     // The cursor moves only touch the input connection.
     else -> tool in CursorTools
@@ -318,7 +324,7 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.LANGUAGE,
     ToolbarTool.RECENT_COPIES, ToolbarTool.READ_BACK, ToolbarTool.SCREENSHOT, ToolbarTool.PRIVACY_SHADE,
-    ToolbarTool.CLEAR_FIELD,
+    ToolbarTool.CLEAR_FIELD, ToolbarTool.TIMESTAMP,
     -> false
     // The cursor moves nudge the caret and nothing else, and the clipboard trio
     // acts on the selection in place.
@@ -437,7 +443,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.LANGUAGE,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO, ToolbarTool.PRIVACY_SHADE,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,
-    ToolbarTool.EMOJI_MIX, ToolbarTool.MUSIC_ID, ToolbarTool.FILES,
+    ToolbarTool.EMOJI_MIX, ToolbarTool.MUSIC_ID, ToolbarTool.FILES, ToolbarTool.TIMESTAMP,
     ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.READ_BACK, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
     ToolbarTool.FLASHLIGHT, ToolbarTool.SCREENSHOT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     // The one-tap cursor moves last: useful, but they would otherwise push

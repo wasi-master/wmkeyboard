@@ -20881,6 +20881,31 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The Timestamp tool: now, typed in the format the Clock tool's insert
+     * sheet is set to, on the phone's own time zone. "Relative" would only
+     * ever say "now", so it types the date and time instead. Inserted as a
+     * block, so the first Backspace takes it back whole.
+     */
+    private fun insertTimestamp() {
+        val config = com.wasimaster.wmkeyboard.core.clock.ClockPrefs.get(this)
+        val format = com.wasimaster.wmkeyboard.core.clock.InsertFormat.of(config.insertFormat)
+            ?.takeIf { it != com.wasimaster.wmkeyboard.core.clock.InsertFormat.RELATIVE }
+            ?: com.wasimaster.wmkeyboard.core.clock.InsertFormat.DATE_TIME
+        val zone = TimeZone.getDefault()
+        val text = com.wasimaster.wmkeyboard.core.clock.ClockFormats.format(
+            format,
+            System.currentTimeMillis(),
+            zone,
+            hour24 = config.hour24 ?: android.text.format.DateFormat.is24HourFormat(this),
+            place = zone.id.substringAfterLast('/').replace('_', ' '),
+            relative = { "" },
+            discordStyle = com.wasimaster.wmkeyboard.core.clock.DiscordStyle.of(config.discordStyle)
+                ?: com.wasimaster.wmkeyboard.core.clock.DiscordStyle.LONG_DATE_TIME,
+        )
+        commitPastedToField(text)
+    }
+
+    /**
      * [commitToField] for a paste or a block of text a panel inserts whole: a
      * clip, a kaomoji, a tool's result. The first Backspace after it takes
      * it all back ([notePasted]).
@@ -35180,6 +35205,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.GALLERY -> openGalleryTool()
             ToolbarTool.SEND_FILES -> openSendTool()
             ToolbarTool.FILES -> openFilesTool()
+            ToolbarTool.TIMESTAMP -> insertTimestamp()
             ToolbarTool.MEDIA_CONTROL -> onPanelChange(PanelMode.MEDIA_CONTROL)
             ToolbarTool.KDE_CONNECT -> onPanelChange(PanelMode.KDE_CONNECT)
             ToolbarTool.PLUGINS -> onPanelChange(PanelMode.PLUGINS)

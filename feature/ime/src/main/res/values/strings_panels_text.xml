@@ -86,6 +86,7 @@
     <string name="ime_textedit_delete_line_desc">Delete line</string>
     <string name="ime_textedit_delete_line_forward_desc">Delete line forward</string>
     <string name="ime_tool_clear_field">Delete everything</string>
+    <string name="ime_tool_timestamp">Timestamp</string>
     <string name="ime_textedit_doc_end_desc">Move to the end of the text</string>
     <string name="ime_textedit_select_word_desc">Select the word</string>
     <string name="ime_textedit_select_line_desc">Select the line</string>
