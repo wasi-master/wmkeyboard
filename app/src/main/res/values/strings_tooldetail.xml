@@ -694,6 +694,10 @@
     <string name="tooldetail_search_info">Web search and image search share everything here. They search the whole web. The Brave plan includes a free monthly credit of about a thousand searches. Brave asks for attribution, so the panel shows \"via Brave\".</string>
     <!-- Tavily is a brand name: keep it as it is. -->
     <string name="tooldetail_tavily_group">Tavily</string>
+    <string name="tooldetail_klipy_group">KLIPY</string>
+    <string name="tooldetail_klipy_memes_title">Memes chip</string>
+    <string name="tooldetail_klipy_memes_subtitle">KLIPY\'s memes in a tab of the GIF panel</string>
+    <string name="tooldetail_klipy_memes_info">Adds a Memes chip to the category row of the GIF panel, after Trending. It shows KLIPY\'s trending memes, which are still pictures with a caption, and while it is selected the search box searches the memes instead of the GIFs. Tap a meme to send it as a picture. Press Trending to go back to the GIFs. The chip only shows when KLIPY is on the GIF provider list, and it costs nothing until you press it.</string>
     <string name="tooldetail_tavily_key_label">Tavily API key</string>
     <string name="tooldetail_tavily_key_hint">From app.tavily.com, with 1,000 free credits a month</string>
     <string name="tooldetail_tavily_info">Another search service, made for AI tools. The free plan gives 1,000 credits a month, and each search uses one. With a key here, web search and image search use Tavily instead of Brave. Image search shows the pictures that Tavily found on the pages of its results, so it finds fewer pictures than Brave.</string>

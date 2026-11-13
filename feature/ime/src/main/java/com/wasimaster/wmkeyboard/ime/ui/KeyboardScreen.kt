@@ -401,6 +401,8 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
 import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
 import com.wasimaster.wmkeyboard.core.clipboard.ClipSensitivity
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtp
+import com.wasimaster.wmkeyboard.core.emoji.EmojiDefaultFace
+import com.wasimaster.wmkeyboard.core.emoji.EmojiEntry
 import com.wasimaster.wmkeyboard.core.emoji.EmojiNames
 import com.wasimaster.wmkeyboard.core.emoji.EmojiVariantIndex
 import com.wasimaster.wmkeyboard.core.emoji.KaomojiLibrary
@@ -449,6 +451,8 @@ import com.wasimaster.wmkeyboard.core.settings.RecentWordPlacement
 import com.wasimaster.wmkeyboard.core.settings.RetypeButtonPlace
 import com.wasimaster.wmkeyboard.core.settings.SelectionMacroPlacement
 import com.wasimaster.wmkeyboard.core.settings.LatinAccents
+import com.wasimaster.wmkeyboard.core.settings.EmojiDefaultGender
+import com.wasimaster.wmkeyboard.core.settings.EmojiSettings
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarContent
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarCountRange
 import com.wasimaster.wmkeyboard.core.script.ScriptId
@@ -33205,17 +33209,41 @@ internal fun EmojiSearchField(
 
 /**
  * The face to show for an emoji [base] in the panel grid and in search: the
- * global default skin tone, or the last-used variant when that override is
- * enabled. Mirrors the IME's `applyEmojiTone`, so what is drawn is what a tap
- * commits.
+ * last-used variant when that override is enabled, else the default gender
+ * and then the default skin tone (either may be random, see
+ * [EmojiDefaultFace]). Mirrors the IME's `applyEmojiTone`, so what is drawn is
+ * what a tap commits.
  */
 internal fun emojiDisplay(state: KeyboardUiState, base: String): String {
     val emoji = state.settings.emoji
-    return state.emojiVariants.tonedDisplay(
+    if (emoji.toneOverrideByLastUsed) state.emojiVariantPrefs[base]?.let { return it }
+    return emojiDefaultFace(state.emojiCatalog, state.emojiVariants, emoji, base)
+}
+
+/**
+ * [base] with the default gender and skin tone of [emoji] applied, shared by
+ * the panel ([emojiDisplay]) and the service's suggestions.
+ */
+internal fun emojiDefaultFace(
+    catalog: List<EmojiEntry>,
+    variants: EmojiVariantIndex,
+    emoji: EmojiSettings,
+    base: String,
+): String {
+    val gender = emoji.defaultGender
+    val tone = emoji.defaultSkinTone.toneIndex
+    if (gender == EmojiDefaultGender.PERSON && tone == 0) return base
+    val children = if (gender == EmojiDefaultGender.PERSON) {
+        emptyList()
+    } else {
+        EmojiDefaultFace.children(catalog)[base].orEmpty()
+    }
+    return EmojiDefaultFace.resolve(
         base = base,
-        tone = emoji.defaultSkinTone.toneIndex,
-        preferred = state.emojiVariantPrefs[base],
-        overrideWithPreferred = emoji.toneOverrideByLastUsed,
+        children = children,
+        variants = variants,
+        gender = EmojiDefaultFace.Gender.valueOf(gender.name),
+        tone = tone,
     )
 }
 

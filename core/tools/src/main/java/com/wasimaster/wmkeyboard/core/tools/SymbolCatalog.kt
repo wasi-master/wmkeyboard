@@ -87,24 +87,64 @@ object SymbolCatalog {
                 " ", "​", "‍",
             ),
         ),
+        // The id stays "Shapes & stars" for the edits saved under it; the
+        // stars moved to their own topic (LeanType L16).
         SymbolCategory(
             "Shapes & stars", R.string.core_tools_symbol_category_shapes_label,
             listOf(
-                "★", "☆", "✦", "✧", "✪", "✯", "✶", "✳", "✴", "❋",
                 "■", "□", "▪", "▫", "▲", "△", "▼", "▽", "◆", "◇",
                 "●", "○", "◎", "◉", "◌", "◯", "▶", "◀", "▷", "◁",
                 "♠", "♣", "♥", "♦", "♤", "♧", "♡", "♢",
                 "✓", "✔", "✕", "✗", "✘", "☑", "☒", "☐",
             ),
         ),
+        // Stars, asterisks and florets.
+        SymbolCategory(
+            "Stars", R.string.core_tools_symbol_category_stars_label,
+            listOf(
+                "★", "☆", "✦", "✧", "✩", "✪", "✫", "✬", "✭", "✮", "✯",
+                "✰", "⋆", "✡", "⭑", "⭒", "⍟", "⚝", "✱", "✲", "✳", "✴",
+                "✵", "✶", "✷", "✸", "✹", "✺", "✻", "✼", "✽", "✾", "✿",
+                "❀", "❁", "❂", "❃", "❇", "❈", "❉", "❊", "❋", "⁂", "⁎",
+                "⁑", "⭐", "🌟", "✨", "💫", "🌠",
+            ),
+        ),
+        // Sun, cloud, rain, snow, the moon's phases and the temperature units.
+        SymbolCategory(
+            "Weather", R.string.core_tools_symbol_category_weather_label,
+            listOf(
+                "☀", "☼", "☁", "⛅", "⛆", "⛈", "☂", "☔", "☃", "⛄", "⛇",
+                "❄", "❅", "❆", "⚡", "☇", "☈", "☄", "☉", "☽", "☾", "🌙",
+                "🌞", "🌑", "🌓", "🌕", "🌗", "🌡", "🌤", "🌥", "🌦", "🌧", "🌨",
+                "🌩", "🌪", "🌫", "🌬", "🌀", "🌈", "💧", "🌊", "°", "℃", "℉",
+            ),
+        ),
+        // Notes, accidentals, clefs, barlines and rests from the Musical Symbols block.
+        SymbolCategory(
+            "Music", R.string.core_tools_symbol_category_music_label,
+            listOf(
+                "♩", "♪", "♫", "♬", "♭", "♮", "♯", "𝄞", "𝄢", "𝄡", "𝄪",
+                "𝄫", "𝄀", "𝄁", "𝄂", "𝄆", "𝄇", "𝄐", "𝄑", "𝄒", "𝄓", "𝄽",
+                "𝄾", "𝄿", "𝅀", "𝅝", "𝅗𝅥", "𝅘𝅥", "𝅘𝅥𝅮", "𝅘𝅥𝅯", "🎵", "🎶", "🎼",
+            ),
+        ),
+        // Keyboard keys, media controls and the Miscellaneous Technical block.
+        SymbolCategory(
+            "Technical", R.string.core_tools_symbol_category_technical_label,
+            listOf(
+                "⌘", "⌥", "⌃", "⇧", "⇪", "⎋", "⏎", "↵", "⌫", "⌦", "⌧",
+                "⇥", "⇤", "␣", "⏏", "⌨", "⭘", "⌚", "⌛", "⏱", "⏲", "⏰",
+                "⌗", "⌖", "⌂", "⌀", "⌁", "⌐", "⌬", "⎈", "⏚", "⎓", "⌇",
+                "⏦", "⏩", "⏪", "⏫", "⏬", "⏭", "⏮", "⏯", "⏸", "⏹", "⏺",
+                "⌕", "⎔", "⍰", "␀", "␛", "␡", "⎗", "⎘", "⎙", "⌤", "⎌",
+                "⎚", "⍾", "⏧", "⌲", "⚙",
+            ),
+        ),
         SymbolCategory(
             "Misc", R.string.core_tools_symbol_category_other_label,
             listOf(
-                "♩", "♪", "♫", "♬", "♭", "♮", "♯",
-                "☀", "☁", "☂", "☃", "☄", "☾", "☽", "☼",
-                "☎", "✆", "✉", "✎", "✏", "✂", "⌛", "⌚", "⌘", "⌥",
-                "⎋", "⏎", "⌫", "⇧", "␣", "♻", "⚠", "⚡", "☮", "☯",
-                "⚕", "⚖", "⚛", "♾", "☢", "☣", "⚓", "⚔", "⚙", "⚗",
+                "☎", "✆", "✉", "✎", "✏", "✂", "♻", "⚠", "☮", "☯",
+                "⚕", "⚖", "⚛", "♾", "☢", "☣", "⚓", "⚔", "⚗",
                 "♔", "♕", "♖", "♗", "♘", "♙", "♚", "♛", "♜", "♝", "♞", "♟",
             ),
         ),
@@ -123,7 +163,7 @@ object SymbolCatalog {
         "♠ ♤", "♣ ♧", "♥ ♡ ❤", "♦ ♢", "✓ ✔ ☑", "✗ ✘ ✕ ☒",
         "⁰ ₀", "¹ ₁", "² ₂", "³ ₃", "⁴ ₄", "⁵ ₅", "⁶ ₆", "⁷ ₇", "⁸ ₈", "⁹ ₉",
         "⁺ ₊", "⁻ ₋", "⁼ ₌", "⁽ ₍", "⁾ ₎",
-        "$ ¢", "♩ ♪ ♫ ♬",
+        "$ ¢", "♩ ♪ ♫ ♬", "♭ 𝄫", "♯ 𝄪", "☀ ☼ 🌞", "☁ ⛅ 🌥", "❄ ❅ ❆", "⌫ ⌦ ⌧", "⏎ ↵",
     ).associate { line ->
         val parts = line.split(' ')
         parts.first() to parts.drop(1)

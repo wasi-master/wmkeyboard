@@ -170,6 +170,7 @@ import com.wasimaster.wmkeyboard.core.tools.LiveTypingSpeed
 import com.wasimaster.wmkeyboard.core.tools.TypingStatsMath
 import com.wasimaster.wmkeyboard.ime.ui.LiveWpmReadout
 import com.wasimaster.wmkeyboard.core.tools.ContactPhones
+import com.wasimaster.wmkeyboard.core.emoji.EmojiDefaultFace
 import com.wasimaster.wmkeyboard.core.emoji.AnimatedEmoji
 import com.wasimaster.wmkeyboard.core.emoji.EmojiCatalog
 import com.wasimaster.wmkeyboard.core.emoji.EmojiEntry
@@ -890,6 +891,7 @@ import com.wasimaster.wmkeyboard.ime.ui.GlideVerdict
 import com.wasimaster.wmkeyboard.ime.ui.caseAt
 import com.wasimaster.wmkeyboard.ime.ui.IconDefaults
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts
+import com.wasimaster.wmkeyboard.ime.ui.emojiDefaultFace
 import com.wasimaster.wmkeyboard.ime.ui.emojiStickerJobId
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardScreen
 import com.wasimaster.wmkeyboard.ime.ui.InlineChipPalette
@@ -35885,10 +35887,16 @@ open class WMKeyboardService : InputMethodService() {
      * refiltered list.
      *
      * Typing also ends a category: the grid is about to answer the query, not
-     * the chip, so no chip should keep reading as the selected one.
+     * the chip, so no chip should keep reading as the selected one. The memes
+     * chip is the exception: it is a tab, and the query searches the memes.
      */
     private inline fun updateQuery(crossinline block: (KeyboardUiState) -> KeyboardUiState) {
-        _uiState.update { block(it).copy(panelFocus = null, mediaCategory = null) }
+        _uiState.update { state ->
+            block(state).copy(
+                panelFocus = null,
+                mediaCategory = state.mediaCategory?.takeIf { it == MediaCategories.MEMES },
+            )
+        }
     }
 
     /**
@@ -36228,7 +36236,11 @@ open class WMKeyboardService : InputMethodService() {
                 calendarTool.onPanelOpen(prefill)
                 if (prefill is ToolPrefill.Calendar || prefill is ToolPrefill.CalendarEvent) onToolPrefillConsumed()
             }
-            PanelMode.EMOJI -> if (_uiState.value.settings.emoji.kaomojiTabs) kaomojiTool.onPanelOpen()
+            PanelMode.EMOJI -> {
+                // A random default gender or tone draws a fresh set per opening.
+                EmojiDefaultFace.reroll()
+                if (_uiState.value.settings.emoji.kaomojiTabs) kaomojiTool.onPanelOpen()
+            }
             PanelMode.HOME_ASSISTANT -> {
                 haTool.onPanelOpen()
                 (_uiState.value.toolPrefill as? ToolPrefill.Assist)?.let { prefill ->
@@ -47268,6 +47280,16 @@ open class WMKeyboardService : InputMethodService() {
                 return
             }
         }
+        if (!sticker && state.mediaCategory == MediaCategories.MEMES) {
+            val klipy = memesTarget(settings)
+            if (klipy == null) {
+                // KLIPY left the list, or the chip was turned off: back to the GIFs.
+                _uiState.update { it.copy(mediaCategory = null) }
+            } else {
+                showMemes(klipy, query, settings, setUi)
+                return
+            }
+        }
         // The user's list for the tool, rows that are off or cannot be asked
         // left out. Stickers start with the user's own packs, which need no
         // key, so it is usually the GIF tool that can end up with nothing.
@@ -47446,7 +47468,7 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update { it.copy(mediaCategories = emptyList(), mediaCategory = null) }
             return
         }
-        _uiState.update { it.copy(mediaCategories = MediaCategories.bundled(sticker)) }
+        _uiState.update { it.copy(mediaCategories = withMemesChip(MediaCategories.bundled(sticker), settings, sticker)) }
         mediaCategoryJob?.cancel()
         val panel = state.panel
         mediaCategoryJob = serviceScope.launch {
@@ -47467,7 +47489,7 @@ open class WMKeyboardService : InputMethodService() {
             }.getOrNull()
             if (_uiState.value.panel != panel) return@launch
             _uiState.update {
-                it.copy(mediaCategories = MediaCategories.normalise(fetched.orEmpty(), sticker))
+                it.copy(mediaCategories = withMemesChip(MediaCategories.normalise(fetched.orEmpty(), sticker), settings, sticker))
             }
         }
     }
@@ -47502,13 +47524,75 @@ open class WMKeyboardService : InputMethodService() {
                 // The search pill reads back what the grid is showing, so a
                 // category shows as the search that it is. Favourites and
                 // recent are no search, so the box stays empty for them.
-                mediaQuery = next?.takeUnless(MediaCategories::isCollection).orEmpty(),
+                mediaQuery = next?.takeUnless(MediaCategories::isOwnChip).orEmpty(),
                 mediaSearchActive = false,
                 mediaAction = null,
                 panelFocus = null,
             )
         }
-        refreshMedia(next?.takeUnless(MediaCategories::isCollection).orEmpty())
+        refreshMedia(next?.takeUnless(MediaCategories::isOwnChip).orEmpty())
+    }
+
+    /**
+     * The KLIPY row the memes chip asks, or null when there is none on the GIF
+     * list or the chip is turned off. The first such row; a second KLIPY key
+     * comes along as its backup.
+     */
+    private fun memesTarget(settings: com.wasimaster.wmkeyboard.core.settings.KeyboardSettings): MediaTarget? =
+        if (!settings.gif.klipyMemes) null
+        else MediaProviders.targets(settings, sticker = false).firstOrNull { it.source == GifSource.KLIPY }
+
+    /** The category row with the memes chip in front when KLIPY can answer it. */
+    private fun withMemesChip(
+        categories: List<MediaCategory>,
+        settings: com.wasimaster.wmkeyboard.core.settings.KeyboardSettings,
+        sticker: Boolean,
+    ): List<MediaCategory> =
+        if (sticker || memesTarget(settings) == null) categories else listOf(MediaCategories.memes) + categories
+
+    /**
+     * KLIPY's memes for [query] (blank: trending), into the GIF grid. Its own
+     * fetch rather than a row of [refreshMedia]'s chain: the memes are KLIPY's
+     * alone, and KLIPY asks for them to stay in a tab of their own.
+     */
+    private fun showMemes(
+        target: MediaTarget,
+        query: String,
+        settings: com.wasimaster.wmkeyboard.core.settings.KeyboardSettings,
+        setUi: (MediaUi) -> Unit,
+    ) {
+        val decision = dataSaverStatus.decide(MeteredFeature.MEDIA_SEARCH)
+        if (decision != MeteredDecision.ALLOWED) {
+            mediaFetchJob?.cancel()
+            setUi(MediaUi.Metered(canAllow = decision == MeteredDecision.ASK))
+            return
+        }
+        mediaFetchJob?.cancel()
+        setUi(MediaUi.Loading)
+        val panel = _uiState.value.panel
+        mediaFetchJob = serviceScope.launch {
+            val outcome = withContext(Dispatchers.IO) {
+                ProviderRunner.fallback(
+                    target.withBackups,
+                    key = { it.key },
+                    isEmpty = { items: List<GifItem> -> items.isEmpty() },
+                ) { klipy ->
+                    KlipyClient.memes(query, klipy.apiKey, settings.gif.contentFilter, limit = settings.gif.resultLimit)
+                }
+            }
+            val now = _uiState.value
+            if (now.panel != panel || now.mediaCategory != MediaCategories.MEMES) return@launch
+            setUi(
+                when (outcome) {
+                    is ProviderRunner.Outcome.Found -> MediaUi.Ready(outcome.value, query)
+                    ProviderRunner.Outcome.NotFound -> MediaUi.Ready(emptyList(), query)
+                    is ProviderRunner.Outcome.Failed -> MediaUi.Error(
+                        outcome.error?.let { ToolHttp.friendlyMessage(this@WMKeyboardService, it) }
+                            ?: getString(R.string.ime_service_media_fetch_error),
+                    )
+                },
+            )
+        }
     }
 
     /**
@@ -54694,22 +54778,15 @@ open class WMKeyboardService : InputMethodService() {
     }.getOrDefault(pkg)
 
     /**
-     * Resolves the face to show for a suggested/searched emoji: the global
-     * default skin tone, unless the "override with last used" option is on and
-     * a variant was picked for this base (see [KeyboardSettings.emoji]).
+     * Resolves the face to show for a suggested/searched emoji: the variant
+     * last picked for this base when "override with last used" is on, else the
+     * default gender and skin tone (see [KeyboardSettings.emoji]).
      */
     private fun applyEmojiTone(emoji: String): String {
-        val emojiSettings = _uiState.value.settings.emoji
-        return _uiState.value.emojiVariants.tonedDisplay(
-            base = emoji,
-            tone = emojiSettings.defaultSkinTone.toneIndex,
-            preferred = if (emojiSettings.toneOverrideByLastUsed) {
-                emojiUsage.preferredVariant(emoji)
-            } else {
-                null
-            },
-            overrideWithPreferred = emojiSettings.toneOverrideByLastUsed,
-        )
+        val state = _uiState.value
+        val emojiSettings = state.settings.emoji
+        if (emojiSettings.toneOverrideByLastUsed) emojiUsage.preferredVariant(emoji)?.let { return it }
+        return emojiDefaultFace(state.emojiCatalog, state.emojiVariants, emojiSettings, emoji)
     }
 
     /**

@@ -101,7 +101,15 @@
     <string name="langemoji_emoji_skin_tone_group_title">Skin tone</string>
     <string name="langemoji_emoji_skin_tone_title">Default skin tone</string>
     <string name="langemoji_emoji_skin_tone_subtitle">For toned emoji in the panel, the suggestions and the search</string>
-    <string name="langemoji_emoji_skin_tone_info">The keyboard shows toned emoji (👍, 🙏, 🧑…) with this Fitzpatrick tone in the grid of the emoji panel, the suggestion strip and the emoji search results. It also inserts them with that tone. An emoji that you selected a tone for keeps your tone while \"Override with last used\" is on. The first option (✋) keeps the neutral yellow base.</string>
+    <string name="langemoji_emoji_skin_tone_info">The keyboard shows toned emoji (👍, 🙏, 🧑…) with this Fitzpatrick tone in the grid of the emoji panel, the suggestion strip and the emoji search results. It also inserts them with that tone. An emoji that you selected a tone for keeps your tone while \"Override with last used\" is on. The first option (✋) keeps the neutral yellow base, and Random gives each emoji a tone of its own, new each time that you open the panel.</string>
+    <!-- The last option of the default skin tone and default gender pickers. -->
+    <string name="langemoji_emoji_random_label">Random</string>
+    <string name="langemoji_emoji_gender_title">Default gender</string>
+    <string name="langemoji_emoji_gender_subtitle">For people emoji that come as a person, a woman and a man</string>
+    <string name="langemoji_emoji_gender_info">Many people emoji come in three forms: a person, a woman and a man (🏃 🏃‍♀️ 🏃‍♂️, 🧑‍⚕️ 👩‍⚕️ 👨‍⚕️). The panel, the suggestions and the search show the form that you choose here, and insert it, with the default skin tone on top. Random gives each emoji a form of its own, and a new set each time that you open the panel. An emoji that you selected a form for in its press and hold popup keeps that form while \"Override with last used\" is on.</string>
+    <string name="langemoji_emoji_gender_person">🧑 Person</string>
+    <string name="langemoji_emoji_gender_woman">👩 Woman</string>
+    <string name="langemoji_emoji_gender_man">👨 Man</string>
     <string name="langemoji_emoji_tone_override_title">Override with last used</string>
     <string name="langemoji_emoji_tone_override_subtitle">Use the tone that you selected last for an emoji, not the default</string>
     <string name="langemoji_emoji_tone_override_info">When this is on, and it is on by default, an emoji that you already selected a tone for keeps that tone everywhere: in the panel, the suggestions and the search. You select that tone from the press and hold popup of the emoji in the panel. The emoji does not use the default above. When this is off, the default skin tone always wins.</string>

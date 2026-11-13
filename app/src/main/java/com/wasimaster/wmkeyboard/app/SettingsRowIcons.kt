@@ -755,6 +755,7 @@ internal object SettingsRowIcons {
         put(R.string.langemoji_emoji_font_title) { Icons.Outlined.FontDownload }
         put(R.string.langemoji_emoji_skin_tone_title) { Icons.Outlined.Colorize }
         put(R.string.langemoji_emoji_tone_override_title) { Icons.Outlined.Colorize }
+        put(R.string.langemoji_emoji_gender_title) { Icons.Outlined.Person }
         put(R.string.langemoji_emoji_close_after_insert_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.langemoji_media_switcher_title) { Icons.Outlined.SwapHoriz }
         put(R.string.langemoji_media_remember_title) { Icons.Outlined.History }
@@ -1750,6 +1751,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_search_answer_title) { Icons.Outlined.AutoAwesome }
         put(R.string.tooldetail_search_open_browser_title) { Icons.Outlined.OpenInBrowser }
         put(R.string.tooldetail_tavily_advanced_title) { Icons.Outlined.TravelExplore }
+        put(R.string.tooldetail_klipy_memes_title) { Icons.Outlined.Mood }
         put(R.string.tooldetail_searx_categories_title) { Icons.Outlined.Category }
         put(R.string.tooldetail_ocr_select_all_title) { Icons.Outlined.SelectAll }
         put(R.string.tooldetail_ocr_engine_title) { SymbolIcons.ConvertToText }

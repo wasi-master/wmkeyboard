@@ -460,6 +460,70 @@ class AssetLayoutsTest {
         }
     }
 
+    /** The letter rows of [name], as their labels, skipping shift, delete and the bottom row. */
+    private fun letterRows(name: String): List<String> {
+        val file = layoutFiles.first { it.name == "$name.${LayoutFile.FILE_EXTENSION}" }
+        val rows = LayoutFile.decode(file.readText())!!.layout
+            .layers.getValue(LayoutLayer.LETTERS.key).rows
+        return rows.dropLast(1).map { row -> row.filter { it.action == KeyAction.Text }.joinToString(" ") { it.label } }
+    }
+
+    private fun holds(name: String): Map<String, List<String>> {
+        val file = layoutFiles.first { it.name == "$name.${LayoutFile.FILE_EXTENSION}" }
+        return LayoutFile.decode(file.readText())!!.layout
+            .layers.getValue(LayoutLayer.LETTERS.key).rows.flatten()
+            .associate { it.label to it.longPress }
+    }
+
+    /** Gap K7 of the 2026-11-13 comparison: the layouts AnySoftKeyboard ships that WM did not. */
+    @Test
+    fun `ergo-l, adnw, koy and rulemak follow their specs`() {
+        assertEquals(
+            listOf("q c o p w j m d ' y", "a s e n f l r t i u", "z x - v b . h g , k"),
+            letterRows("fr_ergol"),
+        )
+        assertEquals(
+            listOf("k u ü . ä v g c l j f", "h i e a o d t r n s ß", "x y ö , q b p w m z"),
+            letterRows("de_adnw"),
+        )
+        assertEquals(
+            listOf("k . o , y v g c l ß z", "h a e i u d t r n s f", "x q ä ü ö b p w m j"),
+            letterRows("de_koy"),
+        )
+        assertEquals(
+            listOf("я ж ф п г й л у ы ю ш", "а р с т д ч н е и о ь", "з х ц в б к м щ э"),
+            letterRows("ru_rulemak"),
+        )
+        // Rulemak's AltGr ъ and the usual ё stay a hold away.
+        assertEquals("ъ", holds("ru_rulemak")["ь"]?.firstOrNull())
+        assertEquals("ё", holds("ru_rulemak")["е"]?.firstOrNull())
+        // Ergo-L's shifted punctuation is the first hold on its keys.
+        assertEquals("?", holds("fr_ergol")["-"]?.firstOrNull())
+        assertEquals(":", holds("fr_ergol")["."]?.firstOrNull())
+        assertEquals(";", holds("fr_ergol")[","]?.firstOrNull())
+    }
+
+    @Test
+    fun `the bribri layout puts its vowels first and is grouped under bribri`() {
+        val held = holds("bzd_qwerty")
+        assertEquals("ë", held["e"]?.firstOrNull())
+        assertEquals("ö", held["o"]?.firstOrNull())
+        for (vowel in listOf("a", "e", "i", "o", "u")) {
+            assertTrue("$vowel should hold its nasal tilde", held[vowel].orEmpty().any { '\u0303' in java.text.Normalizer.normalize(it, java.text.Normalizer.Form.NFD) })
+        }
+        assertEquals("ꞌ", held["'"]?.firstOrNull())
+        assertEquals("bzd", LanguageRegistry.byId("bzd").id)
+        assertTrue(AssetLayouts.BZD_QWERTY_ID in LanguageRegistry.byId("bzd").layoutIds)
+        for ((lang, id) in listOf(
+            "fr" to AssetLayouts.FR_ERGOL_ID,
+            "de" to AssetLayouts.DE_ADNW_ID,
+            "de" to AssetLayouts.DE_KOY_ID,
+            "ru" to AssetLayouts.RU_RULEMAK_ID,
+        )) {
+            assertTrue("$id should be listed under $lang", id in LanguageRegistry.byId(lang).layoutIds)
+        }
+    }
+
     @Test
     fun `asset layout ids are unique and never shadow a built-in`() {
         val builtInIds = BuiltInLayouts.all.mapTo(HashSet()) { it.id }
