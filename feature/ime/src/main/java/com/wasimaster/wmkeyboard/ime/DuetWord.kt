@@ -48,6 +48,19 @@ internal const val DUET_STROKE_MIN_POINTS = 4
 private const val DUET_STROKE_MIN_KEYS = 0.5f
 
 /**
+ * Whether letters typed before a swipe that finished them (#595) are a word of
+ * their own after all (#1291): [head] is a word as typed, and the reading of
+ * the letters and the swipe together, [merged], has given those letters up. A
+ * tapped "I" and a swiped "play" were read as "upset", the "I" taken for the
+ * "u" beside it. A reading that keeps the letters ("a" and "bout" as "about")
+ * is the swipe finishing them, as #595 asks, and stays one word.
+ *
+ * The caller still has to find the swipe a word on its own before splitting.
+ */
+internal fun typedHeadStandsAlone(head: String?, merged: String?, isWord: (String) -> Boolean): Boolean =
+    !head.isNullOrEmpty() && merged != null && !merged.startsWith(head, ignoreCase = true) && isWord(head)
+
+/**
  * The part of [word] a swipe from [start] to [end] drew, for the hand model
  * to measure it against (#741): the run of two or more letters whose first
  * key is nearest where the swipe began and whose last is nearest where it

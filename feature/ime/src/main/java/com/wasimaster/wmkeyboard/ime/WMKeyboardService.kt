@@ -33680,6 +33680,13 @@ open class WMKeyboardService : InputMethodService() {
             !commit && twoThumb && backspaced == null && tokens.size >= 2 && tokens.last() is GlideToken.Swipe
         }?.also { it.removeLast() }
         val lastSwipe = tokens.lastOrNull() as? GlideToken.Swipe
+        // The letters a #595 swipe is finishing, when they are taps alone: a
+        // word of their own, read away by the merge, splits off (#1291).
+        val typedHead = if (commit && tokens.size >= 2 && lastSwipe != null) {
+            duetWord.copy().takeIf { it.removeLast() }?.typedText()
+        } else {
+            null
+        }
         val offerBack = backspaced?.takeIf { twoThumb && !commit }
         // The other thumb is still drawing a stroke, whose preview is on
         // screen: this tap joins the word under it, and the stroke's next
@@ -33722,14 +33729,23 @@ open class WMKeyboardService : InputMethodService() {
                     else -> null
                 }
             }
+            // A typed word the merged reading gave up, beside a swipe that is
+            // a word alone, is two words (#1291): "I" and "play", not "upset".
+            val merged = shown?.takeIf { it.complete }?.word
+            val headAlone = typedHead != null && lastSwipe != null && merged != null &&
+                withContext(Dispatchers.Default) {
+                    typedHeadStandsAlone(typedHead, merged, ::isKnownWord) &&
+                        !loneSwipeWord(lastSwipe.points, keys, keyWidthPx).isNullOrEmpty()
+                }
             if (generation != duetGeneration) return@launch
             duetSplit = split
             val ic = currentInputConnection ?: return@launch
-            if (commit && shown?.complete != true) {
+            if (commit && (shown?.complete != true || headAlone)) {
                 // #595 in ordinary glide, where the lift *is* the word's end:
                 // typed letters and a swipe that make no word together are two
                 // words after all, which is what ordinary glide would have made
-                // of them. A lone swipe that reads as nothing types nothing.
+                // of them. So are a typed word and a swipe the merge read away
+                // from it (#1291). A lone swipe that reads as nothing types nothing.
                 val last = tokens.lastOrNull() as? GlideToken.Swipe
                 duetWord.clear()
                 if (last == null || tokens.size < 2 || composing.isEmpty()) return@launch

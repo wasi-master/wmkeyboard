@@ -214,6 +214,8 @@ Retype through Backspace only clears the word at the cursor. It cannot clear an 
 
 You can also do this with one thumb. **Swipe finishes typed letters** (<SettingsPath path="Typing / Gestures" />, off by default) makes a swipe right after typed letters finish them as one word: type <KeyCap>t</KeyCap> <KeyCap>o</KeyCap>, then swipe <KeyCap>g</KeyCap> <KeyCap>e</KeyCap> <KeyCap>t</KeyCap> <KeyCap>h</KeyCap> <KeyCap>e</KeyCap> <KeyCap>r</KeyCap>, and "together" is typed with a space, as a glided word is. With the setting off, the typed letters are a word of their own and the swipe types the next one. Two-thumb typing always works this way, so the setting is only shown while two-thumb typing is off.
 
+Typed letters that are a word by themselves stay one when the joined reading would change them. Tap <KeyCap>I</KeyCap>, swipe "play", and you get "I play" rather than a word that starts with some other letter, such as "upset". A joined reading that keeps your letters as they are still wins: <KeyCap>a</KeyCap> and a swipe for "bout" make "about".
+
 A word you only put the caret back on doesn't count as typed letters. Tap at the end of "Hello" and swipe, and the swipe is a new word with its own space, with two-thumb typing on or off. Type or delete a letter in that word first and the swipe finishes it as usual. Up to 0.6.1 the swipe joined the word the caret landed on and came out glued to it.
 
 ## How it picks a word
