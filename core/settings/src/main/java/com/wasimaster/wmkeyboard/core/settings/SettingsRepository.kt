@@ -8871,6 +8871,13 @@ val MediaPanelExtraHeightRange = 0..400
  */
 val PanelOverKeysExtraHeightRange = 0..400
 
+/**
+ * How far from its own opening height a full-bleed tool may be dragged, in dp:
+ * taller up to the top end, shorter down to the bottom. The tool is fitted to
+ * the screen on top of this, and never shrinks past a floor of its own.
+ */
+val FullBleedExtraHeightRange = -400..400
+
 /** Bounds for [EmojiSettings.barCount]; the settings slider shares them. */
 val EmojiBarCountRange = 3..16
 
@@ -10368,10 +10375,10 @@ data class LayoutBehaviorSettings(
     val panelOverKeysExtraHeightDp: Int = 0,
     /**
      * How much taller than its own opening height a full-bleed tool opens, in
-     * dp: the AI, AI reply, translate, converter and other tools that take
-     * the keyboard's place. Set by dragging the bar on top of one. One value
-     * for all of them, like [panelOverKeysExtraHeightDp]. See
-     * [PanelOverKeysExtraHeightRange], which bounds both.
+     * dp, or shorter when negative: the AI, AI reply, translate, converter and
+     * other tools that take the keyboard's place. Set by dragging the bar on
+     * top of one. One value for all of them, like [panelOverKeysExtraHeightDp].
+     * See [FullBleedExtraHeightRange].
      */
     val fullBleedExtraHeightDp: Int = 0,
 ) {
@@ -15053,7 +15060,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.layoutBehavior.globeTool,
             panelOverKeysExtraHeightDp = p[PANEL_OVER_KEYS_EXTRA_HEIGHT_DP]?.coerceIn(PanelOverKeysExtraHeightRange)
                 ?: defaults.layoutBehavior.panelOverKeysExtraHeightDp,
-            fullBleedExtraHeightDp = p[FULL_BLEED_EXTRA_HEIGHT_DP]?.coerceIn(PanelOverKeysExtraHeightRange)
+            fullBleedExtraHeightDp = p[FULL_BLEED_EXTRA_HEIGHT_DP]?.coerceIn(FullBleedExtraHeightRange)
                 ?: defaults.layoutBehavior.fullBleedExtraHeightDp,
             hintFlick = p[HINT_FLICK] ?: defaults.layoutBehavior.hintFlick,
             capitalFlick = p[CAPITAL_FLICK] ?: defaults.layoutBehavior.capitalFlick,
@@ -22821,7 +22828,7 @@ class SettingsRepository(private val context: Context) {
 
     /** See [LayoutBehaviorSettings.fullBleedExtraHeightDp]. */
     suspend fun setFullBleedExtraHeightDp(value: Int) =
-        editPrefs { it[FULL_BLEED_EXTRA_HEIGHT_DP] = value.coerceIn(PanelOverKeysExtraHeightRange) }
+        editPrefs { it[FULL_BLEED_EXTRA_HEIGHT_DP] = value.coerceIn(FullBleedExtraHeightRange) }
 
     suspend fun setHideSystemKeyboardBar(value: Boolean) =
         editPrefs { it[HIDE_SYSTEM_KEYBOARD_BAR] = value }

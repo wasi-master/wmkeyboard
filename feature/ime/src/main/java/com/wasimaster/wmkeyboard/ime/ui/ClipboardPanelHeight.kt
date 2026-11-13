@@ -100,9 +100,9 @@ internal class ClipPanelResize(private val headroom: RowRevealHeadroom?) {
     }
 
     /** [dyDp] as the finger moved it: up, negative, makes the panel taller. */
-    fun drag(dyDp: Float, maxDp: Float) {
+    fun drag(dyDp: Float, minDp: Float, maxDp: Float) {
         travelDp += dyDp
-        liveDp = (startDp - travelDp).coerceIn(0f, maxDp)
+        liveDp = (startDp - travelDp).coerceIn(minDp, maxDp)
     }
 
     fun end(onCommit: (Int) -> Unit) {
@@ -156,9 +156,10 @@ internal fun Modifier.clipPanelHeightProbe(resize: ClipPanelResize): Modifier = 
 /**
  * The bar itself: a short pill across the top of the panel, the whole band
  * its hit target. [extra] is the height over the keyboard's the panel has now,
- * [maxExtra] the most the screen allows; a screen reader gets Taller and
- * Shorter, a row's worth at a time, in place of the drag. The GIF and sticker
- * panels wear the same bar for their own height, [description] naming it.
+ * [maxExtra] the most the screen allows and [minExtra] the least, 0 for every
+ * panel that cannot go below its opening height; a screen reader gets Taller
+ * and Shorter, a row's worth at a time, in place of the drag. The GIF and
+ * sticker panels wear the same bar for their own height, [description] naming it.
  */
 @Composable
 internal fun ClipPanelHeightBar(
@@ -167,10 +168,12 @@ internal fun ClipPanelHeightBar(
     maxExtra: Dp,
     onCommit: (Int) -> Unit,
     description: String = stringResource(R.string.ime_clipboard_height_desc),
+    minExtra: Dp = 0.dp,
 ) {
     val kb = LocalKbTheme.current
     val current by rememberUpdatedState(extra.value)
     val max by rememberUpdatedState(maxExtra.value)
+    val min by rememberUpdatedState(minExtra.value)
     val commit by rememberUpdatedState(onCommit)
     val taller = stringResource(R.string.ime_clipboard_height_taller)
     val shorter = stringResource(R.string.ime_clipboard_height_shorter)
@@ -185,18 +188,18 @@ internal fun ClipPanelHeightBar(
                         commit((current + ClipPanelHeightStepDp).coerceAtMost(max).roundToInt()); true
                     },
                     CustomAccessibilityAction(shorter) {
-                        commit((current - ClipPanelHeightStepDp).coerceAtLeast(0f).roundToInt()); true
+                        commit((current - ClipPanelHeightStepDp).coerceAtLeast(min).roundToInt()); true
                     },
                 )
             }
             .pointerInput(resize) {
                 detectVerticalDragGestures(
-                    onDragStart = { resize.begin(current.coerceIn(0f, max)) },
+                    onDragStart = { resize.begin(current.coerceIn(min, max)) },
                     onDragEnd = { resize.end(commit) },
                     onDragCancel = { resize.end(commit) },
                 ) { change, dy ->
                     change.consume()
-                    resize.drag(dy.toDp().value, max)
+                    resize.drag(dy.toDp().value, min, max)
                 }
             },
         contentAlignment = Alignment.Center,
@@ -281,9 +284,15 @@ internal val LocalFullBleedHeight = staticCompositionLocalOf<(Int) -> Unit> { {}
 
 /**
  * The height of a full-bleed tool — AI, AI reply, translate and the rest —
- * with the bar on top that drags it taller: the [wanted] height it has always
- * opened at, plus the shared [LayoutBehaviorSettings.fullBleedExtraHeightDp],
- * fitted to the screen and never below [floor].
+ * with the bar on top that drags it taller or shorter: the [wanted] height it
+ * has always opened at, plus the shared
+ * [LayoutBehaviorSettings.fullBleedExtraHeightDp], fitted to the screen.
+ *
+ * [floor] holds for the opening height only. Dragged shorter, a tool goes
+ * below it (and below the keyboard's own height, so opening one then shrinks
+ * the window) down to [FullBleedMinHeight]: the header, the bar and a strip of
+ * the tool. Before, the bar only ever added height, and a drag down on a tool
+ * nobody had made taller did nothing at all.
  *
  * The bar's band comes out of the panel rather than being added to it, so a
  * tool that was never dragged opens exactly as tall as it always did, and
@@ -300,16 +309,23 @@ internal fun fullBleedSize(state: KeyboardUiState, wanted: Dp, floor: Dp): Panel
         floor = base,
     )
     val maxExtra = (maxPanel - base).coerceAtLeast(0.dp)
+    val minExtra = (minOf(base, FullBleedMinHeight) - base).coerceAtMost(0.dp)
     val probe = remember(resize) { Modifier.clipPanelHeightProbe(resize) }
-    if (maxExtra < 1.dp) return PanelOverKeysSize(base, null, probe)
-    val extra = resize.shownDp(setting).dp.coerceIn(0.dp, maxExtra)
+    if (maxExtra < 1.dp && minExtra > (-1).dp) return PanelOverKeysSize(base, null, probe)
+    val extra = resize.shownDp(setting).dp.coerceIn(minExtra, maxExtra)
     val maxPanelPx = with(LocalDensity.current) { maxPanel.roundToPx() }
     SideEffect { resize.maxPanelPx = maxPanelPx }
     val onCommit = LocalFullBleedHeight.current
     val description = stringResource(R.string.ime_full_bleed_height_desc)
     return PanelOverKeysSize(
         height = base + extra,
-        bar = { ClipPanelHeightBar(resize, extra, maxExtra, onCommit, description) },
+        bar = { ClipPanelHeightBar(resize, extra, maxExtra, onCommit, description, minExtra) },
         probe = probe,
     )
 }
+
+/**
+ * The shortest a full-bleed tool can be dragged: its header, the bar over it
+ * and room for a line or two of the tool under them.
+ */
+internal val FullBleedMinHeight = 140.dp

@@ -312,4 +312,17 @@ class ResizeMathTest {
         assertEquals(0, headroom.pendingPx)
         assertEquals(0, headroom.windowPx)
     }
+
+    @Test
+    fun `a tool's height drag goes below its opening height down to its floor`() {
+        val resize = ClipPanelResize(null)
+        resize.begin(0f)
+        resize.drag(dyDp = 50f, minDp = -120f, maxDp = 300f)
+        assertEquals(-50f, resize.liveDp)
+        resize.drag(dyDp = 500f, minDp = -120f, maxDp = 300f)
+        assertEquals(-120f, resize.liveDp)
+        var landed: Int? = null
+        resize.end { landed = it }
+        assertEquals(-120, landed)
+    }
 }
