@@ -1694,6 +1694,7 @@ private fun SearchStrings.expanderRows(): List<SettingsSearchEntry> {
         // and it appears nowhere else in the index.
         row(R.string.expander_import_source_title, R.string.expander_source_espanso_body),
         row(R.string.expander_export_target_title, R.string.expander_target_espanso_body),
+        row(R.string.expander_text_action, R.string.expander_source_text_body),
     )
 }
 
@@ -3214,6 +3215,7 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
         under(R.string.customdict_emoji_import_action, 0, R.string.typing_custom_dictionaries_title, "customdictionaries"),
         under(R.string.backup_android_import_title, R.string.backup_android_import_subtitle, R.string.typing_personal_dictionary_title, "dictionary"),
         under(R.string.backup_gboard_import_title, R.string.backup_gboard_import_subtitle, R.string.typing_personal_dictionary_title, "dictionary"),
+        under(R.string.backup_dictionary_export_title, R.string.backup_dictionary_export_subtitle, R.string.typing_personal_dictionary_title, "dictionary"),
         under(R.string.backup_downloads_import_title, R.string.backup_downloads_import_subtitle, R.string.home_backup_title, "backup"),
         // The kaomoji library hangs off the emoji panel's page, beside the
         // switch that shows its tab.

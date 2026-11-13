@@ -425,6 +425,8 @@ internal object SettingsRowIcons {
         put(R.string.customdict_emoji_import_action) { Icons.Outlined.FileOpen }
         put(R.string.backup_android_import_title) { Icons.Outlined.FileOpen }
         put(R.string.backup_gboard_import_title) { Icons.Outlined.FileOpen }
+        put(R.string.backup_dictionary_export_title) { Icons.Outlined.Upload }
+        put(R.string.expander_text_action) { Icons.Outlined.EditNote }
         put(R.string.backup_downloads_import_title) { Icons.Outlined.FileOpen }
         put(R.string.about_storage_title) { Icons.Outlined.PieChart }
         put(R.string.about_resources_title) { Icons.Outlined.Memory }
