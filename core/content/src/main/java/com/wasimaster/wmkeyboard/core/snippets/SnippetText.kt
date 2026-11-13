@@ -250,7 +250,7 @@ object SnippetText {
         var i = start + 1
         while (i < end && lines[i].startsWith("@")) {
             val match = SETTING.find(lines[i])
-            val name = match?.groupValues?.get(1)?.lowercase(Locale.ROOT)
+            val name = match?.groupValues?.get(1)?.lowercase(Locale.ROOT).orEmpty()
             if (match == null || name !in KNOWN) {
                 problems += Problem(
                     i + 1,
