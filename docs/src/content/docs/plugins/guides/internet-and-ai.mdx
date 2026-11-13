@@ -149,23 +149,23 @@ in backups or the storage inspector. `secrets` needs the `storage` permission.
 ```python
 from wm import plugin, ui, http, secrets
 
-state = plugin.state(key=secrets.get("api_key", ""))
+state = plugin.state(api_key=secrets.get("api_key", ""))
 
 
 def save_key(text):
     secrets.set("api_key", text.strip())
-    state.key = text.strip()
+    state.api_key = text.strip()
 
 
 def render():
-    if not state.key:
+    if not state.api_key:
         ui.input(label="Your API key", kind="password", on_submit=save_key)
         return
     ...
 
 
 def search(q):
-    return http.get(URL, params={"q": q}, headers={"Authorization": "Bearer " + state.key})
+    return http.get(URL, params={"q": q}, headers={"Authorization": "Bearer " + state.api_key})
 ```
 
 ## The user's own server

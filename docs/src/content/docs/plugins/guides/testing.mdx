@@ -125,6 +125,8 @@ runs it:
 | `event(e)` | sends one event, then draws |
 | `transform(text, id)` | runs a selection action |
 | `storage()` | what the plugin saved, as a dict |
+| `settle()` | answers every waiting `then=` call from the mock, then any calls those answers started, and gives back the last result |
+| `calls()` | every host call so far, as `{"op", "args"}` dicts, to check what the plugin sent |
 
 Each gives back a dict: `ok`, the drawn `ui`, any `error`, and the `host`
 block (timers, header buttons, how many `then=` answers are waiting).
@@ -148,6 +150,46 @@ every `plugin.after`) in the session: the first look-up is `"http:1"`, and an
 ```python
 s["event"]({"type": "click", "id": "button:Look up"})
 r = s["event"]({"type": "result", "token": "http:1", "value": mock["http.request"]})
+```
+
+`settle()` saves you counting tokens. It answers each waiting call the way the
+mock would answer it, so a click that starts a look-up, whose answer starts a
+second request, is one `event` and one `settle`:
+
+```python
+s["event"]({"type": "click", "id": "button:Look up"})
+r = s["settle"]()
+```
+
+### A different answer for each address
+
+A plugin that talks to one service often calls several of its addresses. Give
+an op a list of routes instead of one answer. The first route whose `when`
+fits the call answers it:
+
+```python
+mock = {
+    "http.request": [
+        {"when": {"method": "GET", "url": "https://example.com/api/stock"},
+         "reply": {"status": 200, "text": "[]"}},
+        {"when": {"method": "POST", "url": "https://example.com/api/*"},
+         "reply": {"status": 200, "text": "{}"}},
+    ],
+    "secrets.get": [{"when": {"name": "api_key"}, "reply": "test-key"}],
+}
+```
+
+`when` is checked against the call's arguments. Text must be equal, or start
+the same when the pattern ends in `*`. A dict such as `"params": {"q": "milk"}`
+fits when each of its keys does. A route with no `when` fits every call, and a
+call that no route fits raises `NotImplementedError` naming the address.
+
+To check what was sent, look through `calls()`. For a request, `args` holds
+`method`, `url`, `params`, `headers` and the `body` as text:
+
+```python
+posts = [c["args"] for c in s["calls"]() if c["op"] == "http.request" and c["args"]["method"] == "POST"]
+assert json.loads(posts[0]["body"]) == {"amount": 2}
 ```
 
 `plugin_test.read(name)` reads a file from the plugin's folder, which is

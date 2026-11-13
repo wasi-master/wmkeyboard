@@ -76,3 +76,67 @@ fn bad_usage_exits_two() {
     assert_eq!(2, cli(&["nope"]).0);
     assert_eq!(2, cli(&["frobnicate", "."]).0);
 }
+
+const API5_MANIFEST: &str = r#"{"id": "com.example.shop", "version": "1.0.0", "apiVersion": 5, "permissions": ["network", "storage"]}"#;
+
+const API5_MAIN: &str = r#"from wm import plugin, ui, http, secrets
+
+state = plugin.state(stock="", added="", token=secrets.get("key", ""))
+
+
+def got_stock(r):
+    state.stock = str(len(r.json()))
+    http.post("https://shop.example.com/api/add", json={"amount": 2}, headers={"K": state.token}, then=added)
+
+
+def added(r):
+    state.added = r.json()["ok"]
+
+
+def failed(e):
+    state.added = "failed: " + str(e)
+
+
+def load():
+    http.get("https://shop.example.com/api/stock", then=got_stock, on_error=failed)
+
+
+def render():
+    ui.button("Load", on_click=load)
+    ui.label("stock " + state.stock)
+    ui.label("added " + str(state.added))
+"#;
+
+#[test]
+fn routed_mocks_settle_then_calls_and_log_them() {
+    let test = r#"import json
+mock = {
+    "secrets.get": [{"when": {"name": "key"}, "reply": "s3cret"}],
+    "http.request": [
+        {"when": {"method": "GET", "url": "https://shop.example.com/api/stock"}, "reply": {"status": 200, "text": "[1, 2, 3]"}},
+        {"when": {"method": "POST", "url": "https://shop.example.com/api/*"}, "reply": {"status": 200, "text": "{\"ok\": \"yes\"}"}},
+    ],
+}
+s = plugin_test.session(mock=mock)
+assert s["load"]()["ok"]
+s["event"]({"type": "click", "id": "button:Load"})
+r = s["settle"]()
+text = json.dumps(r["ui"])
+assert "stock 3" in text, text
+assert "added yes" in text, text
+calls = [c for c in s["calls"]() if c["op"] == "http.request"]
+assert len(calls) == 2, calls
+assert json.loads(calls[1]["args"]["body"]) == {"amount": 2}, calls[1]
+assert calls[1]["args"]["headers"]["K"] == "s3cret", calls[1]
+
+bad = plugin_test.session(mock={"secrets.get": "k", "http.request": [{"when": {"url": "https://other.example.com/*"}, "reply": {"status": 200}}]})
+bad["load"]()
+bad["event"]({"type": "click", "id": "button:Load"})
+text = json.dumps(bad["settle"]()["ui"])
+assert "no mock route for http.request GET https://shop.example.com/api/stock" in text, text
+print("routed ok")
+"#;
+    let dir = plugin("routes", &[("plugin.json", API5_MANIFEST), ("main.py", API5_MAIN), ("test.py", test)]);
+    let (code, out, err) = cli(&["test", dir.to_str().unwrap()]);
+    assert_eq!((code, out.as_str(), err.as_str()), (0, "routed ok\n", ""));
+}

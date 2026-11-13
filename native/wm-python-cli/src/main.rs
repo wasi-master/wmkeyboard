@@ -10,7 +10,10 @@
 //! mock file, `{"http.request": {"status": 200, "text": "..."}, ...}`: each
 //! op's value is the reply, and a value that is only `{"error": {"kind",
 //! "message"}}` raises that error; an op not in the file raises
-//! NotImplementedError.
+//! NotImplementedError. An op's value may instead be a list of routes,
+//! `[{"when": {"method": "GET", "url": "https://h/api/*"}, "reply": ...}]`,
+//! the first whose `when` fits the call's args answering (strings exactly or
+//! as a prefix before a trailing `*`, dicts key by key).
 //!
 //! `test.py` runs with the plugin host's `wm` and `ui` globals (a panel, every
 //! permission, storage and reminders in memory) and one extra module,
@@ -26,11 +29,14 @@
 //!   keyboard runs it (API 5 or not), with [mock] answering host calls as the
 //!   mock file does. It returns a dict of functions, each giving back the
 //!   result as a dict: `load()`, `render()`, `event(e)`, `transform(text, id)`,
-//!   plus `storage()`.
+//!   plus `storage()`, `calls()` (every host call so far, `{"op", "args"}`)
+//!   and `settle()`, which answers each waiting `then=` call from the mock as
+//!   its `result` event, round after round until none waits.
 //!
 //! A test fails by raising. Its budget is generous (500M steps, 10 minutes)
 //! because one run drives a whole corpus of cases.
 
+use std::cell::RefCell;
 use std::path::{Component, Path, PathBuf};
 use std::process::ExitCode;
 use std::rc::Rc;
@@ -130,15 +136,102 @@ fn session_config(dir: &Path, m: &Manifest, settings: serde_json::Value) -> serd
     })
 }
 
-/// Answers host calls from [mock]: `{op: reply value}`. A reply that is
-/// only `{"error": {"kind": "TimeoutError", "message": "..."}}` raises that
-/// error in the plugin instead, so a test can walk the failure paths.
-fn mock_bridge(mock: serde_json::Value) -> wm_python::host::Bridge {
-    Box::new(move |op: &str, _args: &str| match mock.get(op) {
-        Some(v) if v.as_object().is_some_and(|o| o.len() == 1 && o.get("error").is_some_and(|e| e.is_object())) => v.to_string(),
-        Some(v) => serde_json::json!({"value": v}).to_string(),
-        None => serde_json::json!({"error": {"kind": "NotImplementedError", "message": format!("no mock reply for {op}")}}).to_string(),
-    })
+/// The mock behind a session: its answers, every call the plugin made, and
+/// the `then=` calls still waiting for [settle](session_value).
+struct Mock {
+    answers: serde_json::Value,
+    calls: RefCell<Vec<serde_json::Value>>,
+    /// `(token, op, args)` of each async call not yet answered.
+    waiting: RefCell<Vec<(String, String, serde_json::Value)>>,
+}
+
+impl Mock {
+    fn new(answers: serde_json::Value) -> Rc<Mock> {
+        Rc::new(Mock { answers, calls: RefCell::new(Vec::new()), waiting: RefCell::new(Vec::new()) })
+    }
+
+    /// The reply JSON for one call: `{"value": v}` or `{"error": {...}}`.
+    ///
+    /// An op's answer is the reply itself, or a list of routes
+    /// `{"when": {arg: pattern}, "reply": v}` picked by the call's args (the
+    /// first whose `when` matches; no `when` matches anything). A reply that
+    /// is only `{"error": {"kind", "message"}}` raises that error instead.
+    fn reply(&self, op: &str, args: &serde_json::Value) -> serde_json::Value {
+        let missing = |what: String| serde_json::json!({"error": {"kind": "NotImplementedError", "message": what}});
+        let answer = match self.answers.get(op) {
+            None => return missing(format!("no mock reply for {op}")),
+            Some(v) if is_routes(v) => {
+                let routes = v.as_array().map(Vec::as_slice).unwrap_or(&[]);
+                match routes.iter().find(|r| r.get("when").is_none_or(|w| matches(w, Some(args)))) {
+                    Some(route) => &route["reply"],
+                    None => return missing(format!("no mock route for {op} {}", summary(args))),
+                }
+            }
+            Some(v) => v,
+        };
+        if answer.as_object().is_some_and(|o| o.len() == 1 && o.get("error").is_some_and(|e| e.is_object())) {
+            answer.clone()
+        } else {
+            serde_json::json!({"value": answer})
+        }
+    }
+
+    fn bridge(self: &Rc<Self>) -> wm_python::host::Bridge {
+        let mock = self.clone();
+        Box::new(move |op: &str, args: &str| {
+            let args: serde_json::Value = serde_json::from_str(args).unwrap_or(serde_json::Value::Null);
+            mock.calls.borrow_mut().push(serde_json::json!({"op": op, "args": args}));
+            if let Some(token) = args.get("async").and_then(|t| t.as_str()) {
+                // Answered by settle(), or by the test's own `result` event.
+                mock.waiting.borrow_mut().push((token.to_string(), op.to_string(), args.clone()));
+                return serde_json::json!({"value": null}).to_string();
+            }
+            mock.reply(op, &args).to_string()
+        })
+    }
+}
+
+/// Whether an op's mock answer is a list of routes rather than a list reply
+/// (such as `sensors.list`'s): every item a dict with a `reply`.
+fn is_routes(v: &serde_json::Value) -> bool {
+    v.as_array().is_some_and(|a| !a.is_empty() && a.iter().all(|r| r.get("reply").is_some()))
+}
+
+/// Whether [arg] fits [pattern]: a string exactly, or as a prefix when the
+/// pattern ends in `*`; a dict when each of its keys fits; anything else by
+/// equality, with `null` also matching an absent arg.
+fn matches(pattern: &serde_json::Value, arg: Option<&serde_json::Value>) -> bool {
+    use serde_json::Value as J;
+    match (pattern, arg) {
+        (J::Null, None) => true,
+        (J::String(p), Some(J::String(a))) => match p.strip_suffix('*') {
+            Some(prefix) => a.starts_with(prefix),
+            None => a == p,
+        },
+        (J::Object(p), Some(J::Object(_))) => p.iter().all(|(k, v)| matches(v, arg.and_then(|a| a.get(k)))),
+        (p, Some(a)) => p == a,
+        _ => false,
+    }
+}
+
+/// A call's args in a line, for a missing-route message: `GET https://...`
+/// for a request, else the JSON.
+fn summary(args: &serde_json::Value) -> String {
+    match (args.get("method").and_then(|m| m.as_str()), args.get("url").and_then(|u| u.as_str())) {
+        (Some(m), Some(u)) => format!("{m} {u}"),
+        _ => {
+            let mut text = args.to_string();
+            if text.len() > 200 {
+                let mut cut = 200;
+                while !text.is_char_boundary(cut) {
+                    cut -= 1;
+                }
+                text.truncate(cut);
+                text.push('…');
+            }
+            text
+        }
+    }
 }
 
 /// A file inside [dir], or why not: absolute paths and `..` are refused, and
@@ -207,10 +300,11 @@ fn test(dir: &Path) -> u8 {
             let source = read_inside(&d3, &m.entry)?;
             let config = session_config(&d3, m, settings);
             let mut session = Session::new(&config.to_string()).map_err(|e| PyError::new(e, "ValueError"))?;
-            if !mock.is_null() {
-                session.set_bridge(Some(mock_bridge(mock)));
+            let mock = (!mock.is_null()).then(|| Mock::new(mock));
+            if let Some(mock) = &mock {
+                session.set_bridge(Some(mock.bridge()));
             }
-            Ok(session_value(session, source))
+            Ok(session_value(session, source, mock))
         });
         module.define("read", move |call| {
             let name: String = call.arg(0, Some("name"))?;
@@ -234,15 +328,50 @@ fn test(dir: &Path) -> u8 {
     }
 }
 
+/// Most rounds [settle](session_value) answers before giving up: a plugin
+/// whose every answer starts another call would otherwise never stop.
+const MAX_SETTLE_ROUNDS: usize = 64;
+
 /// A session as the dict `plugin_test.session()` returns.
-fn session_value(session: Session, source: String) -> Value {
-    use std::cell::RefCell;
+fn session_value(session: Session, source: String, mock: Option<Rc<Mock>>) -> Value {
     use wm_python::interp::HostFunction;
     let s = Rc::new(RefCell::new(session));
     let decode = |text: String| -> Result<Value, PyError> {
         let json: serde_json::Value = serde_json::from_str(&text).map_err(|e| PyError::new(e.to_string(), "ValueError"))?;
         Ok(wm_python::host::json_to_value(&json))
     };
+    let (s6, m6, m7) = (s.clone(), mock.clone(), mock);
+    // Answer every waiting then= call from the mock, round after round,
+    // since an answer's callback may start the next call.
+    let settle = HostFunction::new("settle", move |_| {
+        let Some(mock) = m6.as_ref() else {
+            return Err(PyError::new("settle() needs a session made with mock=", "ValueError"));
+        };
+        let mut last = None;
+        for _ in 0..MAX_SETTLE_ROUNDS {
+            let waiting = std::mem::take(&mut *mock.waiting.borrow_mut());
+            if waiting.is_empty() {
+                return match last {
+                    Some(text) => decode(text),
+                    None => decode(s6.borrow_mut().render()),
+                };
+            }
+            for (token, op, args) in waiting {
+                let reply = mock.reply(&op, &args);
+                let value = match reply.get("error") {
+                    Some(_) => reply,
+                    None => reply.get("value").cloned().unwrap_or(serde_json::Value::Null),
+                };
+                let event = serde_json::json!({"type": "result", "token": token, "value": value});
+                last = Some(s6.borrow_mut().event(&event.to_string()));
+            }
+        }
+        Err(PyError::new(format!("settle(): calls still waiting after {MAX_SETTLE_ROUNDS} rounds"), "RuntimeError"))
+    });
+    let calls = HostFunction::new("calls", move |_| {
+        let list = m7.as_ref().map(|m| m.calls.borrow().clone()).unwrap_or_default();
+        Ok(wm_python::host::json_to_value(&serde_json::Value::Array(list)))
+    });
     let (s1, s2, s3, s4, s5) = (s.clone(), s.clone(), s.clone(), s.clone(), s.clone());
     let load = HostFunction::new("load", move |_| decode(s1.borrow_mut().load(&source)));
     let render = HostFunction::new("render", move |_| decode(s2.borrow_mut().render()));
@@ -263,6 +392,8 @@ fn session_value(session: Session, source: String) -> Value {
         ("event", Value::HostFunction(event)),
         ("transform", Value::HostFunction(transform)),
         ("storage", Value::HostFunction(storage)),
+        ("settle", Value::HostFunction(settle)),
+        ("calls", Value::HostFunction(calls)),
     ])
 }
 
@@ -292,7 +423,7 @@ fn run(dir: &Path, mock: Option<&Path>) -> u8 {
     if let Some(path) = mock {
         let parsed = std::fs::read_to_string(path).map_err(|e| e.to_string()).and_then(|t| serde_json::from_str(&t).map_err(|e| e.to_string()));
         match parsed {
-            Ok(v) => session.set_bridge(Some(mock_bridge(v))),
+            Ok(v) => session.set_bridge(Some(Mock::new(v).bridge())),
             Err(e) => {
                 eprintln!("{}: {e}", path.display());
                 return 2;
