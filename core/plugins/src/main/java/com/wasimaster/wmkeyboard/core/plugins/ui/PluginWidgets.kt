@@ -135,7 +135,7 @@ class PluginPanelStyle(
      * What a raised surface (a button, a card, a field) wears under its fill.
      * The keyboard's glass themes blur the board through it; elsewhere nothing.
      */
-    val glass: (Modifier, Shape) -> Modifier = { modifier, _ -> modifier },
+    val glass: @Composable (Modifier, Shape) -> Modifier = { modifier, _ -> modifier },
 )
 
 /** The style [PluginWidgetList] draws with. A host must provide one. */

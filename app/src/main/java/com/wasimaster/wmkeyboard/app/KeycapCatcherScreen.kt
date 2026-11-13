@@ -1,8 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
-import android.app.Activity
 import android.content.Context
-import android.content.ContextWrapper
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -29,7 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Pause
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Pause
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -133,12 +131,6 @@ private fun ImmersiveWhileShown() {
             view.keepScreenOn = false
         }
     }
-}
-
-private tailrec fun Context.hostActivity(): Activity? = when (this) {
-    is Activity -> this
-    is ContextWrapper -> baseContext.hostActivity()
-    else -> null
 }
 
 private enum class GamePhase { READY, PLAYING, PAUSED, OVER }
