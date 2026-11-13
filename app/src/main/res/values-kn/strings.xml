@@ -4671,7 +4671,7 @@
     <string name="languages_fancy_fonts_empty">ಇನ್ನೂ ನಿಮ್ಮ ಸ್ವಂತ ಯಾವುದೇ ಫಾಂಟ್‌ಗಳಿಲ್ಲ.</string>
     <string name="languages_fancy_fonts_full">50 ಫಾಂಟ್‌ಗಳಿಗೆ ಜಾಗವಿದೆ. ಮತ್ತೊಂದನ್ನು ಸೇರಿಸಲು ಒಂದನ್ನು ಅಳಿಸಿ.</string>
     <string name="languages_fancy_fonts_group">ನಿಮ್ಮ ಫಾಂಟ್‌ಗಳು</string>
-    <string name="languages_fancy_fonts_info">ಯಾವುದೇ ಅಕ್ಲೆರ್ಶೆನ್ನಿನಿಂದ ಒಂದು ಶಿಲಿಯನ್ನು ರ್ಯಿಸಿ: ವಿಶಿಷ್ಟ ತಲಶೆಸ್್ಟ್ ವೆಬ್ಸೈಟ್ಿನಿಂದ ಫಣ್ಠ್‌ನ ಅಸ್ರ್ಷ್ಗಳನ್ನು ಕಪ್ಯಿ ಮಾಡಿ ಮತ್ತು ಅವನ್ನು ಪೆಸ್ಟ್ ಮಾಡಿ.</string>
+    <string name="languages_fancy_fonts_info">ಯಾವುದೇ ವರ್ಣಮಾಲೆಯಿಂದ ಒಂದು ಶೈಲಿಯನ್ನು ರಚಿಸಿ: ಫ್ಯಾನ್ಸಿ-ಟೆಕ್ಸ್ಟ್ ವೆಬ್‌ಸೈಟ್‌ನಿಂದ ಫಾಂಟ್‌ನ ಅಕ್ಷರಗಳನ್ನು ನಕಲಿಸಿ ಇಲ್ಲಿ ಅಂಟಿಸಿ. ನಿಮ್ಮ ಫಾಂಟ್‌ಗಳು ಅಂತರ್ನಿರ್ಮಿತ ಶೈಲಿಗಳ ನಂತರ ಕೀಲಿಗಳ ಮೇಲಿನ ಪಟ್ಟಿಯಲ್ಲಿ ಸೇರುತ್ತವೆ. ನೀವು ಬಿಟ್ಟ ಅಕ್ಷರಗಳು ಸಾಮಾನ್ಯವಾಗಿಯೇ ಟೈಪ್ ಆಗುತ್ತವೆ. ಒಂದು ಅಕ್ಷರಕ್ಕೆ ಹಲವು ಚಿಹ್ನೆಗಳನ್ನು ನೀಡಲು ಅಕ್ಷರಗಳನ್ನು ಸ್ಪೇಸ್‌ಗಳಿಂದ ಬೇರ್ಪಡಿಸಿ, ಉದಾಹರಣೆಗೆ (a) (b) (c).</string>
     <string name="languages_fancy_fonts_lower_hint">%1$d ರಲ್ಲಿ 26. a ನಿಂದ z, ಅಥವಾ a ನಿಂದ z, A ಯಿಂದ Z ಮತ್ತು 0 ಯಿಂದ 9 ಅನ್ನು ಒಮ್ಮೆಗೆ ಅಂಟಿಸಿ.</string>
     <string name="languages_fancy_fonts_lower_label">ಚಿಕ್ಕ ಅಕ್ಷರಗಳು, a ನಿಂದ z</string>
     <string name="languages_fancy_fonts_name_label">ಹೆಸರು</string>
@@ -12895,7 +12895,7 @@
     <string name="typing_smart_punctuation_comma_title">ಅಲ್ಪವಿರಾಮವನ್ನು ಸಹ ನೀಡಿ</string>
     <string name="typing_smart_punctuation_failed">ಮಾದರಿಯನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಲು ಸ್ವಿಚ್ ಅನ್ನು ಆಫ್ ಮಾಡಿ ಮತ್ತು ಆನ್ ಮಾಡಿ</string>
     <string name="typing_smart_punctuation_info">ΓΓΓ</string>
-    <string name="typing_smart_punctuation_ready">ಆನ್ ಆಗಿದೆ. ನೀವು ಟೈಪ್ ಮಾಡಿದಂತೆ ಕೀಲಿಯು ವಾಕ್್ಯವನ್ನು ಓದುತ್ತದೆ; ಇತರ ಗುರುತುಗಳಿಗಾಗಿ ಅದನ್ನು ಹಿಡಿದುಕೊಳ್ಳಿ</string>
+    <string name="typing_smart_punctuation_ready">ಆನ್ ಆಗಿದೆ. ನೀವು ಟೈಪ್ ಮಾಡಿದಂತೆ ಕೀಲಿಯು ವಾಕ್ಯವನ್ನು ಓದುತ್ತದೆ; ಇತರ ಗುರುತುಗಳಿಗಾಗಿ ಅದನ್ನು ಹಿಡಿದುಕೊಳ್ಳಿ</string>
     <string name="typing_smart_punctuation_size_info">ಪ್ರಮಾಣಿತವಾದದ್ದು ಸ್ವಿಚ್ ಸ್ವತಃ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿಕೊಳ್ಳುವಂತಹದ್ದಾಗಿದೆ. ದೊಡ್ಡದು ಸರಿಸುಮಾರು ಎರಡು ಪಟ್ಟು ಗಾತ್ರ ಮತ್ತು ಆಳವಾಗಿದೆ, ಪ್ರಸ್ತುತ ತರಬೇತಿ ಪಠ್ಯದಲ್ಲಿ ಪ್ರಮಾಣಿತವಾದಷ್ಟೇ ಚೆನ್ನಾಗಿ ವಾಕ್ಯವನ್ನು ಓದುತ್ತದೆ ಮತ್ತು ಪ್ರತಿ ಕೀಸ್ಟ್ರೋಕ್‌ನಲ್ಲಿ ಸುಮಾರು ಎರಡು ಪಟ್ಟು ಹೆಚ್ಚು ಸಮಯ ತೆಗೆದುಕೊಳ್ಳುತ್ತದೆ, ಒಂದು ಅಥವಾ ಎರಡು ಮಿಲಿಸೆಕೆಂಡುಗಳು. ಇನ್ನೊಂದು ಗಾತ್ರವನ್ನು ಆಯ್ಕೆ ಮಾಡುವುದರಿಂದ ಅದನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿಕೊಳ್ಳುತ್ತದೆ ಮತ್ತು ಫೋನ್‌ನಲ್ಲಿರುವದನ್ನು ಬದಲಾಯಿಸುತ್ತದೆ.</string>
     <string name="typing_smart_punctuation_size_large">ದೊಡ್ಡದು (%1$s)</string>
     <string name="typing_smart_punctuation_size_standard">ಪ್ರಮಾಣಿತ (%1$s)</string>
