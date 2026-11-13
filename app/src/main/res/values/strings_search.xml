@@ -150,6 +150,7 @@
     <string name="search_kw_languages_cjk_lazy">cantonese jyutping</string>
     <string name="search_kw_languages_cjk_space_steps">japanese chinese select highlight arrow keys convert henkan fcitx mozc hardware physical keyboard</string>
     <string name="search_kw_languages_cjk_full_width_space">japanese chinese zenkaku ideographic double wide u3000</string>
+    <string name="search_kw_languages_cjk_flick_only">japanese flick toggle input keitai multitap repeated taps kana</string>
     <string name="search_kw_languages_cjk_loose_marks">japanese flick dakuten handakuten sokuon modifier insensitive</string>
     <string name="search_kw_languages_cjk_traditional">taiwan hong kong hanzi</string>
     <string name="search_kw_languages_rime_engine">librime trime weasel squirrel 中州韻 deploy</string>

@@ -11664,12 +11664,15 @@ open class WMKeyboardService : InputMethodService() {
         }
         // Any other key ends a multitap run; space decides for itself, because on
         // a Cheonjiin pad ending the run is what it is pressed for.
-        val cycles = key.multitap.isNotEmpty() && (key.action == KeyAction.Text || key.action is KeyAction.KeymanKey)
+        // Japanese "Flick only" (gap list item 17): the flick pad's tap cycles
+        // are off, so a second tap types the kana again.
+        val cycles = key.multitap.isNotEmpty() && (key.action == KeyAction.Text || key.action is KeyAction.KeymanKey) &&
+            !kanaCyclesOff()
         if (key.action != KeyAction.Space && !cycles) {
             multitap.end()
         }
         when (key.action) {
-            KeyAction.Text -> if (key.multitap.isNotEmpty()) onMultitapKey(key) else onTextKey(key)
+            KeyAction.Text -> if (cycles) onMultitapKey(key) else onTextKey(key)
             // A key of a converted Keyman layout, with no rule engine attached
             // yet. It types its own cap, which is what it would do anyway on a
             // device that has the layout but not the keyboard's rules — the
@@ -12074,6 +12077,12 @@ open class WMKeyboardService : InputMethodService() {
      * field changed under the run — the tap starts a new run instead of
      * deleting something the user did not type with this key.
      */
+    /** Whether "Flick only" is on for the Japanese layout in use: its kana keys type, not cycle. */
+    private fun kanaCyclesOff(): Boolean {
+        val state = _uiState.value
+        return state.settings.cjk.kanaFlickOnly && state.language.id == "ja"
+    }
+
     private fun onMultitapKey(key: Key) {
         val now = SystemClock.uptimeMillis()
         multitap.timeoutMs = _uiState.value.settings.layoutBehavior.multitapTimeoutMs.toLong()
