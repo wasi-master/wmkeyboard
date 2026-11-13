@@ -210,7 +210,7 @@ class ImapClient(input: InputStream, output: OutputStream) {
 
     companion object {
         private val CRLF = byteArrayOf('\r'.code.toByte(), '\n'.code.toByte())
-        private val LITERAL_AT_END = Regex("\\{(\\d+)\\+?}$")
+        private val LITERAL_AT_END = Regex("\\{(\\d+)\\+?\\}$")
         private val CAPABILITY = Regex("CAPABILITY ([^\\]]+)", RegexOption.IGNORE_CASE)
         private val EXISTS = Regex("^\\* (\\d+) EXISTS", RegexOption.IGNORE_CASE)
         private val APPENDUID = Regex("\\[APPENDUID \\d+ (\\d+)]", RegexOption.IGNORE_CASE)
