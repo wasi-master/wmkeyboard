@@ -316,6 +316,8 @@
     <string name="ime_floating_pair_missing">One of the two apps is no longer installed</string>
     <!-- A slot that opens a ring of its own (#923), named here only when it has no name. -->
     <string name="ime_floating_category_label">Category</string>
+    <!-- A floating button slot that opens one of the installed plugins, named by the plugin once it is installed. -->
+    <string name="ime_floating_plugin_label">Plugin</string>
     <string name="ime_floating_category_empty">This category is empty. Add actions to it in the floating button settings.</string>
     <string name="ime_floating_back_menu">Back to the quick menu</string>
 

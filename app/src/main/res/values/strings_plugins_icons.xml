@@ -38,7 +38,7 @@
     <string name="plugins_fact_never_background">Run while none of its panels is open, apart from the moment you tap one of its actions</string>
     <!-- The segmented choice on a plugin's page that makes it a tool of its own. -->
     <string name="plugins_tile_title">Show as a tool</string>
-    <string name="plugins_tile_info">A plugin can have its own button, like any other tool. Tap it to open the plugin straight away, without going through the Plugins panel. The button also shows in Custom buttons, where you can move it.</string>
+    <string name="plugins_tile_info">A plugin can be a tool like any other, with its own icon. Pinned to the toolbar or in the toolbox, it drags into place, goes into folders, turns up in the toolbox search and opens the plugin straight away.</string>
     <string name="plugins_tile_none">Panel only</string>
     <string name="plugins_tile_toolbar">Toolbar</string>
     <string name="plugins_tile_toolbox">Toolbox</string>

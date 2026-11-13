@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.settings.builtinTools
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -93,7 +94,7 @@ internal fun ToolPickerOverlay(
                 rows = cheatSheetRows(
                     letters = config.toolByLetter,
                     enabled = usableTools(state.settings),
-                    toolbarTools = visibleToolbarTools(state),
+                    toolbarTools = visibleToolbarTools(state).builtinTools(),
                     digitChord = config.toolbarDigitChord,
                     altSuggestionDigits =
                         config.suggestionHotkeys == SuggestionHotkeyMode.ALT_DIGIT,

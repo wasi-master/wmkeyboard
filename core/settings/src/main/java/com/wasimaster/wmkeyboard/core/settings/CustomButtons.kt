@@ -32,7 +32,7 @@ data class CustomButton(
      * `ls:<profile serial>:<package>/<shortcut id>`; for
      * [CustomButtonKind.SETTING], a [CustomToggle] name; for
      * [CustomButtonKind.PAGE], a [CustomPage] name; for
-     * [CustomButtonKind.PLUGIN], an installed plugin's id.
+     * [CustomButtonKind.PLUGIN] (read only to migrate it), a plugin's id.
      */
     val target: String,
     /** The name it shows. Blank: the catalogue's own name for a switch or a page. */
@@ -56,11 +56,17 @@ data class CustomButton(
             CustomButtonKind.SHORTCUT -> target.isNotBlank()
             CustomButtonKind.SETTING -> toggle != null
             CustomButtonKind.PAGE -> page != null
-            CustomButtonKind.PLUGIN -> target.isNotBlank()
+            // A tool of its own now ([ToolKey.Plugin]); the button is only
+            // read to be moved there, by SettingsRepository.migratePluginTiles.
+            CustomButtonKind.PLUGIN -> false
         }
 }
 
-/** [PLUGIN] opens an installed plugin's panel: its tile on the toolbar, in the toolbox and on the floating button. */
+/**
+ * [PLUGIN] was a plugin's tile, before plugins became tools of their own
+ * ([ToolKey.Plugin]). Kept so a stored one still decodes and can be migrated;
+ * nothing makes one any more.
+ */
 enum class CustomButtonKind { SHORTCUT, SETTING, PAGE, PLUGIN }
 
 /**
@@ -167,36 +173,6 @@ fun List<CustomButton>.moved(button: String, by: Int): List<CustomButton> {
     val to = (from + by).coerceIn(0, size - 1)
     if (to == from) return this
     return toMutableList().apply { add(to, removeAt(from)) }
-}
-
-/** Where a plugin's tile is: on the toolbar, in the toolbox, or nowhere. */
-enum class PluginTilePlace { NONE, TOOLBAR, TOOLBOX }
-
-/** Where the tile for plugin [pluginId] sits now. */
-fun List<CustomButton>.pluginTilePlace(pluginId: String): PluginTilePlace {
-    val tile = firstOrNull { it.kind == CustomButtonKind.PLUGIN && it.target == pluginId } ?: return PluginTilePlace.NONE
-    return if (tile.onToolbar) PluginTilePlace.TOOLBAR else PluginTilePlace.TOOLBOX
-}
-
-/**
- * [this] with plugin [pluginId]'s tile moved to [place]: added at the end,
- * moved between the bar and the box, or removed. Unchanged when the list is
- * full and the plugin has no tile yet. What the plugin menus in settings and
- * in the keyboard call, so a plugin is a tool like any other.
- */
-fun List<CustomButton>.withPluginTile(pluginId: String, place: PluginTilePlace): List<CustomButton> {
-    val existing = indexOfFirst { it.kind == CustomButtonKind.PLUGIN && it.target == pluginId }
-    return when {
-        place == PluginTilePlace.NONE -> filterNot { it.kind == CustomButtonKind.PLUGIN && it.target == pluginId }
-        existing >= 0 -> toMutableList().apply { this[existing] = this[existing].copy(onToolbar = place == PluginTilePlace.TOOLBAR) }
-        size >= MAX_CUSTOM_BUTTONS -> this
-        else -> this + CustomButton(
-            id = nextCustomButtonId(),
-            kind = CustomButtonKind.PLUGIN,
-            target = pluginId,
-            onToolbar = place == PluginTilePlace.TOOLBAR,
-        )
-    }
 }
 
 private fun cleanLabel(label: String): String =

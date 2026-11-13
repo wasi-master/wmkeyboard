@@ -223,7 +223,10 @@ object AddonInstaller {
             AddonType.Sound -> uninstallSound(context, record.localRef)
             AddonType.SoundPack -> uninstallSoundPack(context, record.localRef)
             // Deletes the plugin's whole directory: script, stored data and log.
-            AddonType.Plugin -> PluginStore.get(context).delete(record.localRef)
+            AddonType.Plugin -> {
+                PluginStore.get(context).delete(record.localRef)
+                SettingsRepository(context).removePluginTool(record.localRef)
+            }
             AddonType.Unknown -> Unit
         }
         notifyContentChanged(context, record.type)
@@ -263,7 +266,7 @@ object AddonInstaller {
      * which is not a thing an install should do on its own — so the plugin does
      * not even appear in the panel until the user says yes to [AddonApply].
      */
-    private fun installPlugin(context: Context, payload: File): Outcome {
+    private suspend fun installPlugin(context: Context, payload: File): Outcome {
         val store = PluginStore.get(context)
         // The master switch gates installing as well as running. Someone who
         // has not turned plugins on should not end up with one on disk because
@@ -282,6 +285,11 @@ object AddonInstaller {
                 // a file the user opened by hand and wrong for one that arrived
                 // from a repository — that one is offered, not switched on.
                 store.setEnabled(result.plugin.id, false)
+                // A plugin that asks to be a tool joins the toolbox, where it
+                // shows once the user switches it on.
+                if (!result.replaced && result.plugin.panel && result.plugin.tool.tile) {
+                    SettingsRepository(context).offerPluginTool(result.plugin.id)
+                }
                 Outcome.Installed(result.plugin.id)
             }
             is PluginImportResult.Rejected -> Outcome.Rejected(result.reasonText.toAddonText())

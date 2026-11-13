@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.docshots
 
+import com.wasimaster.wmkeyboard.core.settings.toolKeysOf
 import android.app.Application
 import android.content.ContentProvider
 import android.content.ContentValues
@@ -586,7 +587,7 @@ internal val MORE_KB_SHOTS: List<KbShot> = listOf(
     }),
     KbShot("tools/flashlight-toggled-on", seed = { flashCamera() }, steps = { panel(PanelMode.TOOLBOX); tap("Flashlight") }),
     KbShot("typing/power-saving-toolbar-toggle", seed = {
-        repo.setToolbarTools(listOf(ToolbarTool.POWER_SAVING, ToolbarTool.CLIPBOARD, ToolbarTool.EMOJI, ToolbarTool.VOICE))
+        repo.setToolbarTools(toolKeysOf(ToolbarTool.POWER_SAVING, ToolbarTool.CLIPBOARD, ToolbarTool.EMOJI, ToolbarTool.VOICE))
     }, steps = { tool(ToolbarTool.POWER_SAVING) }),
 
     // ------------------------------------------------------------ layouts

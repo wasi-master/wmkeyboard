@@ -8,10 +8,11 @@ import org.junit.Test
 /** [ToolboxFolder] helpers (#709): merge, take out, dissolve, and the stored form. */
 class ToolboxFoldersTest {
 
-    private val d = ToolbarTool.DICTIONARY
-    private val g = ToolbarTool.GRAMMAR
-    private val t = ToolbarTool.TRANSLATE
-    private val c = ToolbarTool.CLIPBOARD
+    private val d = ToolbarTool.DICTIONARY.key
+    private val g = ToolbarTool.GRAMMAR.key
+    private val t = ToolbarTool.TRANSLATE.key
+    private val c = ToolbarTool.CLIPBOARD.key
+    private val grocy = pluginToolKey("com.example.grocy")
 
     @Test
     fun droppingAToolOnAnotherMakesAFolderOfTheTwo() {
@@ -67,5 +68,21 @@ class ToolboxFoldersTest {
         // f1 is down to one tool; f3 loses TRANSLATE to f2, which had it first.
         assertEquals(listOf(ToolboxFolder("f2", "B", listOf(g, t))), decodeToolboxFolders(raw))
         assertTrue(decodeToolboxFolders("not json").isEmpty())
+    }
+
+    @Test
+    fun aPluginFilesIntoAFolderAndTheStoredFormKeepsIt() {
+        val folders = emptyList<ToolboxFolder>().withMerge(dropped = grocy, target = c, newName = "Kitchen")
+        assertEquals(listOf(ToolboxFolder("f1", "Kitchen", listOf(c, grocy))), folders)
+        assertTrue("\"plugin:com.example.grocy\"" in encodeToolboxFolders(folders)!!)
+        assertEquals(folders, decodeToolboxFolders(encodeToolboxFolders(folders)))
+    }
+
+    @Test
+    fun uninstallingAPluginTakesItOutOfItsFolder() {
+        val start = listOf(ToolboxFolder("f1", "Kitchen", listOf(c, grocy, t)))
+        assertEquals(listOf(ToolboxFolder("f1", "Kitchen", listOf(c, t))), start.withoutPlugin("com.example.grocy"))
+        // Down to one tool, the folder goes.
+        assertTrue(listOf(ToolboxFolder("f1", "K", listOf(c, grocy))).withoutPlugin("com.example.grocy").isEmpty())
     }
 }

@@ -27,9 +27,9 @@ class KeyboardModeTest {
     private val chat = KeyboardMode(
         id = "chat", name = "Chat",
         emojiBarMode = EmojiBarMode.ALWAYS,
-        toolbarTools = listOf(ToolbarTool.GIF, ToolbarTool.STICKER),
+        toolbarTools = toolKeysOf(ToolbarTool.GIF, ToolbarTool.STICKER),
         toolbarToolsAppend = true,
-        toolboxOrder = listOf(ToolbarTool.GIF, ToolbarTool.STICKER),
+        toolboxOrder = toolKeysOf(ToolbarTool.GIF, ToolbarTool.STICKER),
         apps = listOf("com.whatsapp"),
         fieldKinds = listOf(ModeField.TEXT),
     )
@@ -392,12 +392,12 @@ class KeyboardModeTest {
     @Test
     fun `append mode adds to the user's pins without duplicating them`() {
         val base = KeyboardSettings(
-            toolbarTools = listOf(ToolbarTool.EMOJI, ToolbarTool.GIF),
+            toolbarTools = toolKeysOf(ToolbarTool.EMOJI, ToolbarTool.GIF),
             enabledTools = listOf(ToolbarTool.EMOJI, ToolbarTool.GIF),
         )
         val applied = base.applyMode(chat)
         assertEquals(
-            listOf(ToolbarTool.EMOJI, ToolbarTool.GIF, ToolbarTool.STICKER),
+            toolKeysOf(ToolbarTool.EMOJI, ToolbarTool.GIF, ToolbarTool.STICKER),
             applied.toolbarTools,
         )
         // A pinned tool the user had switched off is enabled while active.
@@ -413,18 +413,18 @@ class KeyboardModeTest {
         // inherits that list must not read it as "the mode pins this" and turn
         // it back on: Voice came back in every chat app that way.
         val base = KeyboardSettings(
-            toolbarTools = listOf(ToolbarTool.EMOJI, ToolbarTool.VOICE),
+            toolbarTools = toolKeysOf(ToolbarTool.EMOJI, ToolbarTool.VOICE),
             enabledTools = listOf(ToolbarTool.EMOJI),
         )
         val applied = base.applyMode(browser)
-        assertEquals(listOf(ToolbarTool.EMOJI, ToolbarTool.VOICE), applied.toolbarTools)
+        assertEquals(toolKeysOf(ToolbarTool.EMOJI, ToolbarTool.VOICE), applied.toolbarTools)
         assertEquals(listOf(ToolbarTool.EMOJI), applied.enabledTools)
     }
 
     @Test
     fun `an appending mode enables only what it pins itself`() {
         val base = KeyboardSettings(
-            toolbarTools = listOf(ToolbarTool.EMOJI, ToolbarTool.VOICE),
+            toolbarTools = toolKeysOf(ToolbarTool.EMOJI, ToolbarTool.VOICE),
             enabledTools = listOf(ToolbarTool.EMOJI),
         )
         val applied = base.applyMode(chat)
@@ -436,19 +436,19 @@ class KeyboardModeTest {
 
     @Test
     fun `replace mode swaps the pins outright`() {
-        val base = KeyboardSettings(toolbarTools = listOf(ToolbarTool.EMOJI, ToolbarTool.GIF))
+        val base = KeyboardSettings(toolbarTools = toolKeysOf(ToolbarTool.EMOJI, ToolbarTool.GIF))
         val applied = base.applyMode(chat.copy(toolbarToolsAppend = false))
-        assertEquals(listOf(ToolbarTool.GIF, ToolbarTool.STICKER), applied.toolbarTools)
+        assertEquals(toolKeysOf(ToolbarTool.GIF, ToolbarTool.STICKER), applied.toolbarTools)
     }
 
     @Test
     fun `mode toolbox order leads, the rest keeps its global rank`() {
         val base = KeyboardSettings(
-            toolboxOrder = listOf(ToolbarTool.CLIPBOARD, ToolbarTool.STICKER, ToolbarTool.VOICE),
+            toolboxOrder = toolKeysOf(ToolbarTool.CLIPBOARD, ToolbarTool.STICKER, ToolbarTool.VOICE),
         )
         val applied = base.applyMode(chat)
         assertEquals(
-            listOf(
+            toolKeysOf(
                 ToolbarTool.GIF, ToolbarTool.STICKER, ToolbarTool.CLIPBOARD, ToolbarTool.VOICE,
             ),
             applied.toolboxOrder,
@@ -459,6 +459,18 @@ class KeyboardModeTest {
     fun `mode list round-trips through the codec`() {
         val decoded = KeyboardModeCodec.decodeList(KeyboardModeCodec.encodeList(modes))
         assertEquals(modes, decoded)
+    }
+
+    @Test
+    fun `a mode keeps a plugin among its tools, and loses only an unknown tool`() {
+        val grocy = pluginToolKey("com.example.grocy")
+        val mode = chat.copy(toolbarTools = listOf(ToolbarTool.EMOJI.key, grocy), toolboxOrder = listOf(grocy))
+        val decoded = KeyboardModeCodec.decodeList(KeyboardModeCodec.encodeList(listOf(mode)))
+        assertEquals(listOf(mode), decoded)
+        // A tool a later build retired drops on its own; the mode stays.
+        val stored = KeyboardModeCodec.encodeList(listOf(mode)).replace("\"EMOJI\"", "\"RETIRED_TOOL\"")
+        assertEquals(listOf(grocy), KeyboardModeCodec.decodeList(stored).single().toolbarTools)
+        assertEquals(null, mode.withoutPlugin("com.example.grocy").toolboxOrder?.firstOrNull())
     }
 
     @Test

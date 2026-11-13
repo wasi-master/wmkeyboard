@@ -313,9 +313,11 @@ data class KeyboardMode(
     val themeId: String? = null,
     /**
      * Pinned toolbar tools while active; null inherits the user's toolbar.
-     * Replaces the toolbar unless [toolbarToolsAppend] is on.
+     * Replaces the toolbar unless [toolbarToolsAppend] is on. Plugins shown
+     * as tools are entries like any other ([ToolKey]).
      */
-    val toolbarTools: List<ToolbarTool>? = null,
+    @Serializable(with = ToolKeyListSerializer::class)
+    val toolbarTools: List<ToolKey>? = null,
     /**
      * When true, [toolbarTools] are added after the user's own pinned tools
      * instead of replacing them — the mode contributes its specialty tools
@@ -327,7 +329,8 @@ data class KeyboardMode(
      * inherits the user's order. A partial list is enough — anything not
      * named keeps its global rank behind these.
      */
-    val toolboxOrder: List<ToolbarTool>? = null,
+    @Serializable(with = ToolKeyListSerializer::class)
+    val toolboxOrder: List<ToolKey>? = null,
     /** Symbol row on/off while active; null inherits. */
     val symbolRowEnabled: Boolean? = null,
     /**
@@ -705,10 +708,10 @@ val DefaultKeyboardModes: List<KeyboardMode> = listOf(
         emojiBarMode = EmojiBarMode.OFF,
         // The one mode that deliberately *replaces* the toolbar: nothing
         // that opens a network panel belongs next to a password box.
-        toolbarTools = listOf(
+        toolbarTools = toolKeysOf(
             ToolbarTool.PASSWORD_GEN, ToolbarTool.CLIPBOARD, ToolbarTool.SETTINGS,
         ),
-        toolboxOrder = listOf(
+        toolboxOrder = toolKeysOf(
             ToolbarTool.PASSWORD_GEN, ToolbarTool.CLIPBOARD, ToolbarTool.SNIPPETS,
             ToolbarTool.NUMPAD, ToolbarTool.SYMBOLS, ToolbarTool.SETTINGS,
         ),
@@ -725,7 +728,7 @@ val DefaultKeyboardModes: List<KeyboardMode> = listOf(
         id = "mode_email",
         icon = "mail",
         name = "Email",
-        toolboxOrder = listOf(
+        toolboxOrder = toolKeysOf(
             ToolbarTool.CLIPBOARD, ToolbarTool.SNIPPETS, ToolbarTool.TEXT_EDIT,
             ToolbarTool.VOICE, ToolbarTool.SYMBOLS,
         ),
@@ -740,7 +743,7 @@ val DefaultKeyboardModes: List<KeyboardMode> = listOf(
         id = "mode_browser",
         icon = "web",
         name = "Browser",
-        toolboxOrder = listOf(
+        toolboxOrder = toolKeysOf(
             ToolbarTool.CLIPBOARD, ToolbarTool.WEB_SEARCH, ToolbarTool.SNIPPETS,
             ToolbarTool.QR_SCAN, ToolbarTool.VOICE, ToolbarTool.INCOGNITO,
         ),
@@ -756,11 +759,11 @@ val DefaultKeyboardModes: List<KeyboardMode> = listOf(
         emojiBarMode = EmojiBarMode.ALWAYS,
         // What you reach for mid-sentence. Grammar is a once-per-message
         // check, so it leads the toolbox instead of taking toolbar space.
-        toolbarTools = listOf(
+        toolbarTools = toolKeysOf(
             ToolbarTool.EMOJI, ToolbarTool.GIF, ToolbarTool.STICKER, ToolbarTool.VOICE,
         ),
         toolbarToolsAppend = true,
-        toolboxOrder = listOf(
+        toolboxOrder = toolKeysOf(
             ToolbarTool.GRAMMAR, ToolbarTool.TRANSLATE, ToolbarTool.CAMERA,
             ToolbarTool.IMAGE_SEARCH, ToolbarTool.CLIPBOARD, ToolbarTool.SNIPPETS,
             // The pinned four, ranked in case the user unpins one — the
@@ -784,12 +787,12 @@ val DefaultKeyboardModes: List<KeyboardMode> = listOf(
         // and edit with AI, the caret tools, dictation), then the everyday
         // paste-and-insert pins. AI drops out on its own in a build without
         // it (see isSupportedTool), leaving the rest of the bar untouched.
-        toolbarTools = listOf(
+        toolbarTools = toolKeysOf(
             ToolbarTool.AI, ToolbarTool.TEXT_EDIT, ToolbarTool.VOICE,
             ToolbarTool.CLIPBOARD, ToolbarTool.EMOJI,
         ),
         toolbarToolsAppend = false,
-        toolboxOrder = listOf(
+        toolboxOrder = toolKeysOf(
             // Polish the draft, then pull material into it, then the
             // reference and history tools.
             ToolbarTool.GRAMMAR, ToolbarTool.DICTIONARY, ToolbarTool.VOCABULARY,
@@ -809,7 +812,7 @@ val DefaultKeyboardModes: List<KeyboardMode> = listOf(
         id = "mode_coding",
         icon = "code",
         name = "Coding",
-        toolboxOrder = listOf(
+        toolboxOrder = toolKeysOf(
             ToolbarTool.SNIPPETS, ToolbarTool.CLIPBOARD, ToolbarTool.TEXT_EDIT,
             ToolbarTool.TRACKPAD, ToolbarTool.SYMBOLS, ToolbarTool.CALCULATOR, ToolbarTool.NUMPAD,
             ToolbarTool.UNDO, ToolbarTool.REDO,
@@ -1009,7 +1012,7 @@ fun KeyboardSettings.withoutModes(): KeyboardSettings =
     } else {
         copy(
             keyboardModes = emptyList(),
-            toolbarTools = toolbarTools - ToolbarTool.MODES,
+            toolbarTools = toolbarTools - ToolbarTool.MODES.key,
             enabledTools = enabledTools - ToolbarTool.MODES,
         )
     }
@@ -1088,8 +1091,8 @@ fun resolveKeyboardMode(
  * inheriting it untouched. Appending keeps the user's own pins first and
  * drops duplicates so a tool never shows up twice.
  */
-private fun KeyboardMode.pinnedOver(base: List<ToolbarTool>): List<ToolbarTool> {
-    val tools = toolbarTools?.filter(::isSupportedTool) ?: return base
+private fun KeyboardMode.pinnedOver(base: List<ToolKey>): List<ToolKey> {
+    val tools = toolbarTools?.filter { it.isSupported() } ?: return base
     return if (toolbarToolsAppend) base + (tools - base.toSet()) else tools
 }
 
@@ -1102,7 +1105,7 @@ fun KeyboardSettings.applyMode(mode: KeyboardMode?): KeyboardSettings {
     // list would switch every tool they had turned off back on for as long as
     // any mode was active — a tool stays pinned when it is disabled, so Voice
     // came back in every chat app the moment the chat mode matched.
-    val modePinned = mode.toolbarTools?.filter(::isSupportedTool).orEmpty()
+    val modePinned = mode.toolbarTools?.builtinTools()?.filter(::isSupportedTool).orEmpty()
     return copy(
         emojiBarMode = mode.emojiBarMode ?: emojiBarMode,
         keyboardThemeId = mode.themeId ?: keyboardThemeId,
@@ -1169,4 +1172,25 @@ fun KeyboardSettings.applyMode(mode: KeyboardMode?): KeyboardSettings {
         // keyboard to something that cannot be drawn.
         activeLayoutId = mode.layoutId?.takeIf { it in enabledLayoutIds } ?: activeLayoutId,
     )
+}
+
+/** This mode with plugin [pluginId] out of its own bar and order; see [SettingsRepository.removePluginTool]. */
+fun KeyboardMode.withoutPlugin(pluginId: String): KeyboardMode = copy(
+    toolbarTools = toolbarTools?.withoutPlugin(pluginId),
+    toolboxOrder = toolboxOrder?.withoutPlugin(pluginId),
+)
+
+/**
+ * A mode's tool list as the tokens [ToolKey] stores: enum names and
+ * `plugin:<id>`. Unknown entries are dropped one by one on the way in, where
+ * the enum's own serializer failed the whole mode over one name a later
+ * build retired.
+ */
+object ToolKeyListSerializer : kotlinx.serialization.KSerializer<List<ToolKey>> {
+    private val strings = kotlinx.serialization.builtins.ListSerializer(kotlinx.serialization.serializer<String>())
+    override val descriptor: kotlinx.serialization.descriptors.SerialDescriptor = strings.descriptor
+    override fun serialize(encoder: kotlinx.serialization.encoding.Encoder, value: List<ToolKey>) =
+        strings.serialize(encoder, value.map { it.token })
+    override fun deserialize(decoder: kotlinx.serialization.encoding.Decoder): List<ToolKey> =
+        strings.deserialize(decoder).mapNotNull { ToolKey.of(it) }.distinct()
 }

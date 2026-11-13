@@ -74,7 +74,7 @@
     <string name="plugin_ide_details_hosts_label">Websites it may connect to, separated by commas</string>
     <!-- The word the user types after @ to open this plugin. -->
     <string name="plugin_ide_details_keyword_label">Keyword</string>
-    <string name="plugin_ide_details_tile_label">Offer a tile for the toolbar</string>
+    <string name="plugin_ide_details_tile_label">Put it in the toolbox on install</string>
 
     <!-- ================================================================== -->
     <!-- The panel under the code: the preview and the console.             -->

@@ -3089,6 +3089,9 @@ private fun pluginProposal(context: android.content.Context, uri: Uri): ImportPr
                         .use { PluginFile.import(it, store) }
                 }.getOrDefault(PluginImportResult.Failed)
             }
+            if (result is PluginImportResult.Imported && !result.replaced && result.plugin.panel && result.plugin.tool.tile) {
+                SettingsRepository(context).offerPluginTool(result.plugin.id)
+            }
             when (result) {
                 is PluginImportResult.Imported ->
                     if (result.replaced) {

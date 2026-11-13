@@ -26,7 +26,8 @@ import kotlinx.serialization.json.jsonPrimitive
 data class ToolboxFolder(
     val id: String,
     val name: String,
-    val tools: List<ToolbarTool>,
+    /** Built-in tools and plugins alike (see [ToolKey]). */
+    val tools: List<ToolKey>,
     val pinned: Boolean = false,
     /**
      * On the toolbar a tap runs the folder's first tool and a hold opens the
@@ -42,7 +43,7 @@ const val TOOLBOX_FOLDER_NAME_MAX = 40
 const val TOOLBOX_FOLDER_MIN_TOOLS = 2
 
 /** The folder [tool] is filed in, or null. A tool is in one folder at most. */
-fun List<ToolboxFolder>.folderOf(tool: ToolbarTool): ToolboxFolder? = firstOrNull { tool in it.tools }
+fun List<ToolboxFolder>.folderOf(tool: ToolKey): ToolboxFolder? = firstOrNull { tool in it.tools }
 
 /** The folder with this [id], or null. */
 fun List<ToolboxFolder>.folderById(id: String?): ToolboxFolder? =
@@ -65,8 +66,8 @@ fun List<ToolboxFolder>.nextFolderId(): String {
  * on a tool it already shares a folder with, changes nothing.
  */
 fun List<ToolboxFolder>.withMerge(
-    dropped: ToolbarTool,
-    target: ToolbarTool,
+    dropped: ToolKey,
+    target: ToolKey,
     newName: String,
 ): List<ToolboxFolder> {
     if (dropped == target) return this
@@ -85,7 +86,7 @@ fun List<ToolboxFolder>.withMerge(
 }
 
 /** [dropped] let go over the folder [folderId]: filed at the end of it. */
-fun List<ToolboxFolder>.withAdded(dropped: ToolbarTool, folderId: String): List<ToolboxFolder> {
+fun List<ToolboxFolder>.withAdded(dropped: ToolKey, folderId: String): List<ToolboxFolder> {
     val folder = folderById(folderId) ?: return this
     if (dropped in folder.tools) return this
     return withoutTool(dropped).map { if (it.id == folderId) it.copy(tools = it.tools + dropped) else it }
@@ -95,7 +96,7 @@ fun List<ToolboxFolder>.withAdded(dropped: ToolbarTool, folderId: String): List<
  * [tool] taken out of its folder, back to a cell of its own. A folder left with
  * fewer than [TOOLBOX_FOLDER_MIN_TOOLS] dissolves, its last tool with it.
  */
-fun List<ToolboxFolder>.withoutTool(tool: ToolbarTool): List<ToolboxFolder> =
+fun List<ToolboxFolder>.withoutTool(tool: ToolKey): List<ToolboxFolder> =
     mapNotNull { folder ->
         if (tool !in folder.tools) return@mapNotNull folder
         val rest = folder.tools - tool
@@ -109,7 +110,7 @@ fun List<ToolboxFolder>.withoutTool(tool: ToolbarTool): List<ToolboxFolder> =
  * version retired cannot leave a folder of one.
  */
 fun List<ToolboxFolder>.normalizedFolders(): List<ToolboxFolder> {
-    val seen = HashSet<ToolbarTool>()
+    val seen = HashSet<ToolKey>()
     val ids = HashSet<String>()
     return mapNotNull { folder ->
         if (!ids.add(folder.id)) return@mapNotNull null
@@ -119,7 +120,8 @@ fun List<ToolboxFolder>.normalizedFolders(): List<ToolboxFolder> {
 }
 
 /**
- * The stored form: a JSON array of `{"id", "name", "tools": [names], "pinned"}`.
+ * The stored form: a JSON array of `{"id", "name", "tools": [tokens], "pinned"}`,
+ * each token a [ToolKey.token].
  * Empty encodes as null, so the preference is removed rather than kept empty.
  */
 fun encodeToolboxFolders(folders: List<ToolboxFolder>): String? {
@@ -130,7 +132,7 @@ fun encodeToolboxFolders(folders: List<ToolboxFolder>): String? {
                 buildJsonObject {
                     put("id", JsonPrimitive(folder.id))
                     put("name", JsonPrimitive(folder.name))
-                    put("tools", JsonArray(folder.tools.map { JsonPrimitive(it.name) }))
+                    put("tools", JsonArray(folder.tools.map { JsonPrimitive(it.token) }))
                     if (folder.pinned) put("pinned", JsonPrimitive(true))
                     if (folder.firstIsMain) put("firstIsMain", JsonPrimitive(true))
                 },
@@ -148,7 +150,7 @@ fun decodeToolboxFolders(raw: String?): List<ToolboxFolder> {
             val obj = element.jsonObject
             val id = obj["id"]?.jsonPrimitive?.contentOrNull ?: return@runCatching null
             val tools = obj["tools"]?.jsonArray.orEmpty().mapNotNull { tool ->
-                tool.jsonPrimitive.contentOrNull?.let { name -> ToolbarTool.entries.firstOrNull { it.name == name } }
+                tool.jsonPrimitive.contentOrNull?.let(ToolKey::of)
             }
             ToolboxFolder(
                 id = id,
@@ -160,3 +162,6 @@ fun decodeToolboxFolders(raw: String?): List<ToolboxFolder> {
         }.getOrNull()
     }.normalizedFolders()
 }
+
+/** [this] with plugin [pluginId] taken out of every folder, which can dissolve one. */
+fun List<ToolboxFolder>.withoutPlugin(pluginId: String): List<ToolboxFolder> = withoutTool(pluginToolKey(pluginId))

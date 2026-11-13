@@ -125,6 +125,10 @@ import com.wasimaster.wmkeyboard.core.tools.SymbolSet
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.ToolKey
+import com.wasimaster.wmkeyboard.core.settings.pluginToolKey
+import com.wasimaster.wmkeyboard.core.settings.shownWith
+import com.wasimaster.wmkeyboard.core.settings.toolKeys
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.PlaylistAdd
@@ -1503,9 +1507,11 @@ internal fun <T> ReorderSetting(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ToolChips(
-    tools: List<ToolbarTool>,
-    selected: List<ToolbarTool>,
-    onToggle: (ToolbarTool) -> Unit,
+    tools: List<ToolKey>,
+    selected: List<ToolKey>,
+    /** The names of the plugins shown as tools, by id; see [rememberPluginToolNames]. */
+    pluginNames: Map<String, String>,
+    onToggle: (ToolKey) -> Unit,
 ) {
     FlowRow(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
@@ -1515,7 +1521,7 @@ private fun ToolChips(
             FilterChip(
                 selected = tool in selected,
                 onClick = { onToggle(tool) },
-                label = { Text(stringResource(toolTitle(tool)), maxLines = 1) },
+                label = { Text(toolKeyTitle(tool, pluginNames), maxLines = 1) },
             )
         }
     }
@@ -2209,14 +2215,17 @@ internal fun ModeEditor(
                 }
             }
             item(level = SettingLevel.STANDARD) {
+                // A mode can pin a plugin's tool too, after the built-in ones.
+                val pluginNames = rememberPluginToolNames()
                 ToolChips(
                     tools = settings.watch { s ->
                         ToolbarTool.entries.filter {
                             it in s.enabledTools && isSupportedTool(it) &&
                                 isUsableTool(it, s)
-                        }
-                    },
+                        }.toolKeys()
+                    } + pluginNames.keys.map(::pluginToolKey),
                     selected = pinned,
+                    pluginNames = pluginNames,
                 ) { tool ->
                     save(
                         current().copy(
@@ -2228,9 +2237,10 @@ internal fun ModeEditor(
             item(level = SettingLevel.STANDARD) {
                 // toolTitle() hands back a resource id, and the reorder dialog
                 // takes a plain (T) -> String, so the names are resolved here.
-                val toolNames = mutableMapOf<ToolbarTool, String>()
+                val pluginNames = rememberPluginToolNames()
+                val toolNames = mutableMapOf<ToolKey, String>()
                 for (tool in pinned) {
-                    toolNames[tool] = stringResource(toolTitle(tool))
+                    toolNames[tool] = toolKeyTitle(tool, pluginNames)
                 }
                 ReorderableColumn(
                     pinned,
@@ -2251,14 +2261,17 @@ internal fun ModeEditor(
         }
         if (order != null) {
             item(level = SettingLevel.ADVANCED) {
+                val pluginNames = rememberPluginToolNames()
                 ToolChips(
                     tools = settings.watch { s ->
-                        s.toolboxOrder.filter {
-                            it in s.enabledTools && isSupportedTool(it) &&
-                                isUsableTool(it, s)
+                        s.toolboxOrder.filter { key ->
+                            key.shownWith(pluginNames.keys) {
+                                it in s.enabledTools && isSupportedTool(it) && isUsableTool(it, s)
+                            }
                         }
                     },
                     selected = order,
+                    pluginNames = pluginNames,
                 ) { tool ->
                     save(
                         current().copy(
@@ -2268,9 +2281,10 @@ internal fun ModeEditor(
                 }
             }
             item(level = SettingLevel.ADVANCED) {
-                val toolNames = mutableMapOf<ToolbarTool, String>()
+                val pluginNames = rememberPluginToolNames()
+                val toolNames = mutableMapOf<ToolKey, String>()
                 for (tool in order) {
-                    toolNames[tool] = stringResource(toolTitle(tool))
+                    toolNames[tool] = toolKeyTitle(tool, pluginNames)
                 }
                 ReorderableColumn(
                     order,

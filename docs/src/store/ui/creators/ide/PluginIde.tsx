@@ -6,7 +6,7 @@
 import { signal, useSignal } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
-import { readPlugin } from '../../../lib/payloads';
+import { PLUGIN_ICON_PATTERN, readPlugin } from '../../../lib/payloads';
 import { writeZip } from '../../../lib/zip';
 import { CopyButton } from '../../common';
 import { fmtBytes } from '../../../lib/net';
@@ -79,7 +79,7 @@ export function manifestProblems(m: PluginManifest): string[] {
 	if (badHost !== undefined) out.push(S.rejectBadHost(badHost, name));
 	else if (hosts.length > MAX_HOSTS) out.push(S.rejectTooManyHosts(name));
 	const tool = m.tool ?? {};
-	if ((tool.keyword?.trim() && !/^[a-z0-9]{1,16}$/.test(tool.keyword.trim())) || !/^[a-z0-9_]{0,48}$/.test((tool.icon ?? '').trim())) out.push(S.rejectBadTool(name));
+	if ((tool.keyword?.trim() && !/^[a-z0-9]{1,16}$/.test(tool.keyword.trim())) || !PLUGIN_ICON_PATTERN.test((tool.icon ?? '').trim())) out.push(S.rejectBadTool(name));
 	return out;
 }
 
@@ -1111,6 +1111,16 @@ function DetailsPane({ manifest, script, onManifest, onExport }: { manifest: Plu
 				{field(S.detailsAuthor, 'author')}
 			</div>
 			<label class="st-field"><span>{S.detailsDescription}</span><textarea class="st-input" rows={2} value={draft.description} onInput={(e) => commit({ ...draft, description: (e.target as HTMLTextAreaElement).value })} /></label>
+			<label class="st-field">
+				<span>{S.detailsIcon}</span>
+				<input class="st-input" style="font-family:var(--wmc-mono)" placeholder="extension" value={draft.tool?.icon ?? ''} onInput={(e) => {
+					const icon = (e.target as HTMLInputElement).value;
+					const { icon: _old, ...rest } = draft.tool ?? {};
+					const tool = icon.trim() ? { ...rest, icon } : rest;
+					commit({ ...draft, tool: Object.keys(tool).length ? tool : undefined });
+				}} />
+			</label>
+			<div class="wm-caption">{S.detailsIconHint} <a href={`https://fonts.google.com/icons${draft.tool?.icon?.trim() ? `?icon.query=${encodeURIComponent(draft.tool.icon.trim())}` : ''}`} target="_blank" rel="noopener noreferrer">Material Symbols</a></div>
 			<PermissionFields manifest={draft} onChange={commit} />
 			{problems.map((p, i) => <div key={i} class="wm-error-text">{p}</div>)}
 			<ManifestJson manifest={draft} onChange={commit} />

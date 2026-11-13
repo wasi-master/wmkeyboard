@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.settings.DefaultToolbarKeys
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -135,7 +136,7 @@ private fun ResetPinnedToolsSetting(repository: SettingsRepository, scope: Corou
             confirmButton = {
                 TextButton(onClick = {
                     confirm = false
-                    scope.launch { repository.setToolbarTools(DefaultToolbarTools) }
+                    scope.launch { repository.setToolbarTools(DefaultToolbarKeys) }
                 }) { Text(stringResource(CommonR.string.common_reset)) }
             },
             dismissButton = {

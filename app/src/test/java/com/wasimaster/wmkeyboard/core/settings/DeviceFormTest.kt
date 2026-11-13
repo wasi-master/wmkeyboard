@@ -51,7 +51,7 @@ class DeviceFormTest {
     @Test fun aTabletWithNothingLeftToDefaultAlsoGetsTheSameInstance() {
         val settings = KeyboardSettings(
             numberRow = true,
-            toolbarTools = listOf(ToolbarTool.EMOJI),
+            toolbarTools = toolKeysOf(ToolbarTool.EMOJI),
             layoutBehavior = LayoutBehaviorSettings(
                 numberRowUntouched = false,
                 keyHeightUntouched = false,
@@ -65,12 +65,12 @@ class DeviceFormTest {
         assertTrue(applied.numberRow)
         assertEquals(44, applied.keyHeightDp)
         assertEquals(38, applied.numberRowHeightDp)
-        assertEquals(LargeTabletToolbarTools, applied.toolbarTools)
+        assertEquals(LargeTabletToolbarTools.toolKeys(), applied.toolbarTools)
 
         val small = KeyboardSettings().applyDeviceForm(DeviceForm.SMALL_TABLET)
         assertEquals(46, small.keyHeightDp)
         assertEquals(40, small.numberRowHeightDp)
-        assertEquals(SmallTabletToolbarTools, small.toolbarTools)
+        assertEquals(SmallTabletToolbarTools.toolKeys(), small.toolbarTools)
     }
 
     /**
@@ -95,7 +95,7 @@ class DeviceFormTest {
     }
 
     @Test fun aRearrangedToolbarIsLeftAlone() {
-        val pinned = listOf(ToolbarTool.CLIPBOARD, ToolbarTool.SETTINGS)
+        val pinned = toolKeysOf(ToolbarTool.CLIPBOARD, ToolbarTool.SETTINGS)
         val applied = KeyboardSettings(toolbarTools = pinned)
             .applyDeviceForm(DeviceForm.LARGE_TABLET)
         assertEquals(pinned, applied.toolbarTools)
@@ -155,7 +155,7 @@ class DeviceFormTest {
             .restrictedToDirectBoot()
         assertTrue(
             "credential-backed tools survived direct boot: ${locked.toolbarTools}",
-            locked.toolbarTools.all { isDirectBootSafeTool(it) },
+            locked.toolbarTools.all { it.tool?.let(::isDirectBootSafeTool) == true },
         )
     }
 }

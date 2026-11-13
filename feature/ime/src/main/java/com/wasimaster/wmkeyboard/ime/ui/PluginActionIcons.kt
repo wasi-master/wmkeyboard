@@ -26,9 +26,10 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
 /**
  * The glyph for a plugin's selection action, from the name its manifest gave.
  *
- * Two vocabularies meet here. A Lua plugin names an icon the way a layout key
+ * Two vocabularies meet here. A plugin names an icon the way a layout key
  * does, so [KeyIcons.byName] answers first and the documented key icon names
- * work unchanged. A Clink action names an SF Symbol (`textformat.size.larger`,
+ * work unchanged, then any Material Symbols name the build carries
+ * ([com.wasimaster.wmkeyboard.core.icons.SymbolNames]). A Clink action names an SF Symbol (`textformat.size.larger`,
  * `arrow.left.arrow.right`), which has no Android counterpart, so the common
  * ones are matched by prefix onto the nearest Material Symbol. Anything else,
  * blank included, gets the plugin glyph: a chip with a picture is easier to
@@ -38,6 +39,8 @@ fun pluginActionIcon(name: String): ImageVector {
     val trimmed = name.trim()
     if (trimmed.isEmpty()) return Icons.Outlined.Extension
     KeyIcons.byName(trimmed)?.let { return it }
+    // Every Material Symbols glyph this build carries, by its Symbols name.
+    com.wasimaster.wmkeyboard.core.icons.SymbolNames.byName(trimmed)?.let { return it }
     val lower = trimmed.lowercase()
     return SfSymbolPrefixes.firstOrNull { (prefix, _) -> lower.startsWith(prefix) }?.second?.invoke()
         ?: Icons.Outlined.Extension

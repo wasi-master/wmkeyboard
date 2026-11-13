@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.settings.key
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import android.content.ComponentName
 import android.content.Context
@@ -3846,9 +3847,9 @@ internal fun ToolDetailSettings(
             ToggleSetting(
                 R.string.tooldetail_show_in_toolbox_title,
                 stringResource(R.string.tooldetail_show_in_toolbox_subtitle),
-                settings.watch { tool !in it.toolbox.hiddenTools },
-                default = tool !in SettingsDefaults.toolbox.hiddenTools,
-            ) { scope.launch { repository.setToolHiddenInToolbox(tool, !it) } }
+                settings.watch { tool.key !in it.toolbox.hiddenTools },
+                default = tool.key !in SettingsDefaults.toolbox.hiddenTools,
+            ) { scope.launch { repository.setToolHiddenInToolbox(tool.key, !it) } }
         }
         // Recolour just this tool's icon. Only meaningful while the global
         // "Colorful tool icons" switch is on, since it's what paints them.

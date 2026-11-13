@@ -570,6 +570,9 @@ import com.wasimaster.wmkeyboard.ime.ui.ScrollFrameRateVote
 import com.wasimaster.wmkeyboard.ime.ui.suggestionDisplayOrder
 import com.wasimaster.wmkeyboard.ime.ui.visibleEmojiBarItems
 import com.wasimaster.wmkeyboard.ime.ui.visibleToolbarTools
+import com.wasimaster.wmkeyboard.core.settings.builtinTools
+import com.wasimaster.wmkeyboard.core.settings.key
+import com.wasimaster.wmkeyboard.core.settings.pluginToolKey
 import com.wasimaster.wmkeyboard.ime.ui.hardwareKeysToggleable
 import com.wasimaster.wmkeyboard.core.tools.page
 import com.wasimaster.wmkeyboard.core.tools.step
@@ -5377,7 +5380,11 @@ open class WMKeyboardService : InputMethodService() {
 
         // Tops up an upgraded install's stored mode list with modes added
         // since it was first seeded. No-op once it has run.
-        if (userUnlocked) serviceScope.launch { settingsRepository.seedNewDefaultModes() }
+        if (userUnlocked) {
+            serviceScope.launch { settingsRepository.seedNewDefaultModes() }
+            serviceScope.launch { settingsRepository.migratePluginTiles() }
+            watchPluginTools()
+        }
 
         // Installs that enabled a romanized pair (English + Banglish) before
         // auto-pairing shipped get the cross-suggestions wired up once here;
@@ -6228,6 +6235,8 @@ open class WMKeyboardService : InputMethodService() {
         loadedDictToken = Int.MIN_VALUE
         loadDictionariesAndEmoji()
         serviceScope.launch { settingsRepository.seedNewDefaultModes() }
+        serviceScope.launch { settingsRepository.migratePluginTiles() }
+        watchPluginTools()
         // An enabled-subtype list written before the unlock only lived until
         // this moment, so the switcher would quietly fall back to one language.
         // Forcing the signature stale re-writes it — once now, and again if the
@@ -8254,6 +8263,7 @@ open class WMKeyboardService : InputMethodService() {
             is FloatingAction.Applet -> openFloatingApplet(action.tool)
             is FloatingAction.System -> pressSystemButton(action.button)
             is FloatingAction.Custom -> onCustomButtonTap(action.id)
+            is FloatingAction.Plugin -> runPluginFromFloatingButton(action.id)
             // The button answers these itself.
             FloatingAction.Menu, FloatingAction.Hide, FloatingAction.None, is FloatingAction.Category -> Unit
         }
@@ -8848,7 +8858,7 @@ open class WMKeyboardService : InputMethodService() {
             tool,
         )
         if (!opened) return
-        toolUsage.record(tool)
+        toolUsage.record(tool.key)
         appletTool = tool
         if (panel in BoxSearchPanels && previous != panel) openAppletSearch(panel, fromKeyboard)
         _uiState.update {
@@ -9066,6 +9076,23 @@ open class WMKeyboardService : InputMethodService() {
         floatingPendingTool = tool
         floatingPendingAt = SystemClock.uptimeMillis()
         summonKeyboard()
+    }
+
+    /**
+     * A plugin's slot on the floating button: its panel, the keyboard brought
+     * up first when it is down. Rides the Plugins tool the way a plugin
+     * carried in from the floating box does ([pluginCarry]), so the panel
+     * opens on the plugin once the keyboard is there.
+     */
+    private fun runPluginFromFloatingButton(id: String) {
+        if (id !in _uiState.value.pluginTools) return
+        if (windowOnScreen) {
+            onPluginToolTap(id)
+            return
+        }
+        toolUsage.record(com.wasimaster.wmkeyboard.core.settings.pluginToolKey(id))
+        pluginCarry = id
+        runToolFromFloatingButton(ToolbarTool.PLUGINS)
     }
 
     /** A tool waiting for the keyboard a floating button press summoned; see [runToolFromFloatingButton]. */
@@ -27427,9 +27454,8 @@ open class WMKeyboardService : InputMethodService() {
                     )
                 }
             }
-            // A plugin's tile: the Plugins panel, straight into that plugin.
-            // One the user since removed or switched off lands on the list,
-            // which says why.
+            // Migrated to a tool of its own (SettingsRepository.migratePluginTiles);
+            // one read before the migration ran still opens its plugin.
             com.wasimaster.wmkeyboard.core.settings.CustomButtonKind.PLUGIN -> openPluginById(button.target)
         }
     }
@@ -36024,6 +36050,14 @@ open class WMKeyboardService : InputMethodService() {
         runTool(tool)
     }
 
+    /** [onToolTap] for any toolbox entry: a built-in tool, or a plugin's panel. */
+    fun onToolKeyTap(tool: com.wasimaster.wmkeyboard.core.settings.ToolKey) {
+        when (tool) {
+            is com.wasimaster.wmkeyboard.core.settings.ToolKey.Builtin -> onToolTap(tool.tool)
+            is com.wasimaster.wmkeyboard.core.settings.ToolKey.Plugin -> onPluginToolTap(tool.pluginId)
+        }
+    }
+
     /**
      * A tool fired by something that is not the toolbar: a key bound to
      * [KeyAction.Tool], or one of its long-press alternates.
@@ -36080,7 +36114,7 @@ open class WMKeyboardService : InputMethodService() {
         if (!isSupportedTool(tool)) return
         val settings = _uiState.value.settings
         if (!isUsableTool(tool, settings)) return
-        toolUsage.record(tool)
+        toolUsage.record(tool.key)
         when (tool) {
             ToolbarTool.EMOJI -> onPanelChange(emojiOpenerTarget())
             ToolbarTool.CLIPBOARD -> {
@@ -46916,7 +46950,61 @@ open class WMKeyboardService : InputMethodService() {
         onAddToFolder = ::onToolboxAddToFolder,
         onTakeOut = ::onToolboxFolderTakeOut,
         onFolderOrder = ::onToolboxFolderOrder,
+        onPluginTool = ::onPluginToolTap,
+        onPluginSettings = { id -> openRoute("plugin/$id") },
     )
+
+    // ---- plugins as tools ----
+
+    /** Whether [watchPluginTools] is already following the plugin store. */
+    private var pluginToolsWatched = false
+
+    /**
+     * Follows the plugin store, so a plugin installed, switched off or removed
+     * in Settings joins or leaves the toolbar and the toolbox at once (see
+     * [KeyboardUiState.pluginTools]). Once per service, after the unlock: the
+     * plugins live under the app's files.
+     */
+    private fun watchPluginTools() {
+        if (pluginToolsWatched) return
+        pluginToolsWatched = true
+        val store = PluginStore.get(this)
+        serviceScope.launch {
+            store.revision.collect { refreshPluginTools() }
+        }
+    }
+
+    /**
+     * Reads the plugins that can be tools now, builds their icons off the main
+     * thread (an SVG is a file to read), then publishes them. Icons first, so
+     * a cell never draws before its picture is ready.
+     */
+    private fun refreshPluginTools() {
+        serviceScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val faces = com.wasimaster.wmkeyboard.ime.ui.livePluginTools(PluginStore.get(this@WMKeyboardService))
+            com.wasimaster.wmkeyboard.ime.ui.PluginToolIcons.warm(this@WMKeyboardService, faces.values)
+            _uiState.update { if (it.pluginTools == faces) it else it.copy(pluginTools = faces) }
+        }
+    }
+
+    /**
+     * A plugin's tool tapped, on the toolbar, in the toolbox, in a folder or
+     * from a search: its panel, as the Plugins tool would open it, or the
+     * keys again when that plugin is the one already open. Counted for the
+     * toolbox's orders by use like any tool.
+     */
+    fun onPluginToolTap(id: String) {
+        val state = _uiState.value
+        if (id !in state.pluginTools) return
+        val running = (state.plugins as? PluginPanelUi.Running)?.plugin?.id
+        if (state.panel == PanelMode.PLUGINS && running == id) {
+            onPanelChange(PanelMode.PLUGINS)
+            return
+        }
+        toolUsage.record(com.wasimaster.wmkeyboard.core.settings.pluginToolKey(id))
+        vibrate()
+        openPluginById(id)
+    }
 
     /** The toolbox's search tapped (#687): route keys into [ToolboxUi.query], or close and clear it. */
     fun onToolboxSearchToggle() {
@@ -46934,11 +47022,12 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Enter in the toolbox search: close it and run the first tool it lists. */
     private fun onToolboxSearchEnter() {
-        val first = com.wasimaster.wmkeyboard.ime.ui.toolboxSearchMatches(_uiState.value) { tool ->
-            getString(com.wasimaster.wmkeyboard.ime.ui.toolLabelRes(tool))
+        val state = _uiState.value
+        val first = com.wasimaster.wmkeyboard.ime.ui.toolboxSearchMatches(state) { tool ->
+            com.wasimaster.wmkeyboard.ime.ui.toolKeyName(this, tool, state)
         }.firstOrNull() ?: return
         _uiState.update { it.copy(toolboxView = ToolboxUi(), panelFocus = null) }
-        onToolTap(first)
+        onToolKeyTap(first)
     }
 
     /**
@@ -47018,7 +47107,7 @@ open class WMKeyboardService : InputMethodService() {
      * folder, or [dropped] joins [target]'s. The drag has already unpinned a
      * tool that came off the toolbar.
      */
-    fun onToolboxMerge(dropped: ToolbarTool, target: ToolbarTool) {
+    fun onToolboxMerge(dropped: com.wasimaster.wmkeyboard.core.settings.ToolKey, target: com.wasimaster.wmkeyboard.core.settings.ToolKey) {
         val name = getString(R.string.ime_toolbox_folder_default_name)
         placeToolboxToolAfter(dropped, target)
         serviceScope.launch {
@@ -47027,7 +47116,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** A tool dropped on a folder's cell: filed at the end of that folder. */
-    fun onToolboxAddToFolder(dropped: ToolbarTool, folderId: String) {
+    fun onToolboxAddToFolder(dropped: com.wasimaster.wmkeyboard.core.settings.ToolKey, folderId: String) {
         val folder = _uiState.value.settings.toolbox.folders.folderById(folderId) ?: return
         placeToolboxToolAfter(dropped, folder.tools.last())
         serviceScope.launch { settingsRepository.updateToolboxFolders { it.withAdded(dropped, folderId) } }
@@ -47039,7 +47128,10 @@ open class WMKeyboardService : InputMethodService() {
      * one it was dropped on would carry the whole folder up to its own old
      * place, away from where the finger let go.
      */
-    private fun placeToolboxToolAfter(tool: ToolbarTool, anchor: ToolbarTool) {
+    private fun placeToolboxToolAfter(
+        tool: com.wasimaster.wmkeyboard.core.settings.ToolKey,
+        anchor: com.wasimaster.wmkeyboard.core.settings.ToolKey,
+    ) {
         val order = _uiState.value.settings.toolboxOrder
         val next = order.toMutableList().apply {
             remove(tool)
@@ -47050,7 +47142,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** A tool dragged out of the open folder onto its header: back to a cell of its own. */
-    fun onToolboxFolderTakeOut(tool: ToolbarTool) {
+    fun onToolboxFolderTakeOut(tool: com.wasimaster.wmkeyboard.core.settings.ToolKey) {
         vibrate()
         val folders = _uiState.value.settings.toolbox.folders
         val folder = folders.folderOf(tool) ?: return
@@ -47063,7 +47155,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** The open folder's tools rearranged by a drag inside it. */
-    fun onToolboxFolderOrder(id: String, tools: List<ToolbarTool>) {
+    fun onToolboxFolderOrder(id: String, tools: List<com.wasimaster.wmkeyboard.core.settings.ToolKey>) {
         vibrate()
         serviceScope.launch {
             settingsRepository.updateToolboxFolders { folders ->
@@ -55534,8 +55626,11 @@ open class WMKeyboardService : InputMethodService() {
         // By the names the grid shows, so the order follows the keyboard's
         // language; a collator, so "Échange" files under E, not after Z.
         val collator = java.text.Collator.getInstance(resources.configuration.locales[0])
-        val alphabetical = ToolbarTool.entries.sortedWith(
-            compareBy(collator) { tool: ToolbarTool -> getString(com.wasimaster.wmkeyboard.ime.ui.toolLabelRes(tool)) },
+        val state = _uiState.value
+        val alphabetical = (ToolbarTool.entries.map { it.key } + state.pluginTools.keys.map(::pluginToolKey)).sortedWith(
+            compareBy(collator) { tool: com.wasimaster.wmkeyboard.core.settings.ToolKey ->
+                com.wasimaster.wmkeyboard.ime.ui.toolKeyName(this, tool, state)
+            },
         )
         _uiState.update { it.copy(toolsRecent = recent, toolsMostUsed = mostUsed, toolsAlphabetical = alphabetical) }
     }
@@ -59193,7 +59288,7 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch { settingsRepository.setModeToolOrderHintSeen(true) }
     }
 
-    fun onToolbarToolsChange(tools: List<ToolbarTool>) {
+    fun onToolbarToolsChange(tools: List<com.wasimaster.wmkeyboard.core.settings.ToolKey>) {
         vibrate()
         val mode = toolOrderOwner()
         serviceScope.launch {
@@ -59203,7 +59298,7 @@ open class WMKeyboardService : InputMethodService() {
         if (mode != null) noteModeToolOrder(mode)
     }
 
-    fun onToolboxOrderChange(order: List<ToolbarTool>) {
+    fun onToolboxOrderChange(order: List<com.wasimaster.wmkeyboard.core.settings.ToolKey>) {
         vibrate()
         val mode = toolOrderOwner()
         serviceScope.launch {
@@ -59683,7 +59778,7 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         val slot = functionKeyToolbarSlot(keyCode, event.metaState)
         if (slot >= 0 && functionKeysPressToolbar(state)) {
-            val action = toolbarHintButtons(visibleToolbarTools(state)).getOrNull(slot)
+            val action = toolbarHintButtons(visibleToolbarTools(state).builtinTools()).getOrNull(slot)
             if (action != null && runHintAction(action)) return consumeOneShotKey(keyCode)
         }
         if (!state.hardwarePickMode) return null
@@ -59802,7 +59897,7 @@ open class WMKeyboardService : InputMethodService() {
             } else {
                 -1
             }
-            val action = toolbarHintButtons(visibleToolbarTools(_uiState.value)).getOrNull(slot)
+            val action = toolbarHintButtons(visibleToolbarTools(_uiState.value).builtinTools()).getOrNull(slot)
             if (action != null && runHintAction(action)) return consumeHardwareKey(keyCode)
         }
 

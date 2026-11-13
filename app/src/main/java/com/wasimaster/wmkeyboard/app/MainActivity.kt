@@ -362,6 +362,8 @@ class MainActivity : FragmentActivity() {
         // Modes added since this install was first seeded — the settings
         // screen should list them even if the keyboard has not run yet.
         lifecycleScope.launch { repository.seedNewDefaultModes() }
+        // Plugin tiles made as custom buttons become tools of their own.
+        lifecycleScope.launch { repository.migratePluginTiles() }
         val nav = navFor(intent)
         pendingNav.value = nav
         // A rotation rebuilds the activity from the same intent. The dialog
@@ -2576,6 +2578,7 @@ private fun SettingsNavGraph(
                 ToolsSettings(
                     repository, settings, query,
                     onCustomButtons = { navController.navigate(CustomButtons.ROUTE) },
+                    onOpenRoute = { navController.navigate(it) },
                 ) { tool -> navController.navigate("tool/${tool.name}") }
             }
         }

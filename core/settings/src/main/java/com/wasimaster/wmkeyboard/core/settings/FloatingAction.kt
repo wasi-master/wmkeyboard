@@ -110,6 +110,14 @@ sealed interface FloatingAction {
         override val token get() = "$CUSTOM_PREFIX$id"
     }
 
+    /**
+     * Opens an installed plugin's panel, the way its tool in the toolbox does,
+     * by its id. A plugin since uninstalled or switched off does nothing.
+     */
+    data class Plugin(val id: String) : FloatingAction {
+        override val token get() = PLUGIN_TOOL_PREFIX + id
+    }
+
     companion object {
         private const val TOOL_PREFIX = "tool:"
         private const val APP_PREFIX = "app:"
@@ -144,6 +152,9 @@ sealed interface FloatingAction {
                 token.startsWith(PAIR_PREFIX) -> token.removePrefix(PAIR_PREFIX).split(PAIR_JOIN)
                     .takeIf { it.size == 2 && it.all { name -> name.isPackageName() } }
                     ?.let { AppPair(it[0], it[1]) }
+                token.startsWith(PLUGIN_TOOL_PREFIX) -> token.removePrefix(PLUGIN_TOOL_PREFIX)
+                    .takeIf(::isPluginToolId)
+                    ?.let(::Plugin)
                 token.startsWith(CUSTOM_PREFIX) -> token.removePrefix(CUSTOM_PREFIX)
                     .takeIf { it.isNotEmpty() && it.all { c -> c.isLetterOrDigit() } }
                     ?.let(::Custom)

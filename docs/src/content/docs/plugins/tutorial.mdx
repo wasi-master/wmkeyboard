@@ -461,7 +461,7 @@ reach:
 
 - A **keyword**: typing `@define rain` offers a chip on the suggestion strip.
   Pressing it opens the plugin and looks `rain` up.
-- A **tile**: the plugin can go on the toolbar.
+- A **tile**: the plugin joins the toolbox as a tool, with its own icon.
 - A **header button** that clears the history.
 
 And one **setting**, so the user can hide the example sentences.
@@ -502,7 +502,7 @@ like this, and press **Apply**:
 }
 ```
 
-The phone editor has **Keyword** and **Offer a tile for the toolbar** in
+The phone editor has **Keyword** and **Put it in the toolbox on install** in
 **Name and permissions**. It cannot add settings yet, so leave out the
 `examples` lines below if you build on the phone.
 
@@ -603,10 +603,11 @@ What is new:
   names.
 - `plugin.settings.examples` is the user's value for the `examples` setting.
   The app draws the settings page from the manifest; your code only reads it.
-- `"tile": true` lets the user put the plugin on the toolbar from
-  [Custom buttons](/tools/custom-buttons/). Any plugin can also go on a key,
-  through the [layout editor](/languages/custom-layouts/)'s **Open a plugin**
-  action.
+- `"tile": true` puts the plugin in the toolbox as a
+  [tool](/tools/overview/#plugins-as-tools) when it is installed, drawn with
+  the `dictionary` symbol from `"icon"`. From there it drags onto the toolbar
+  like any tool. Any plugin can also go on a key, through the
+  [layout editor](/languages/custom-layouts/)'s **Open a plugin** action.
 
 ## Step 8: Share it
 

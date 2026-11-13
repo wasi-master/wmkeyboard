@@ -55,4 +55,7 @@
     <string name="tools_needs_mix_source_subtitle">Add a source under Emoji › Emoji mixes first.</string>
     <string name="tools_needs_music_provider_subtitle">Needs a song recogniser with your key. Press this row to set one up.</string>
     <string name="tools_needs_layout_subtitle">Needs a layout to show. Press this row to select one of your layouts, or make a secondary layout under Key layouts.</string>
+    <!-- The Tools screen's group of installed plugins that can be tools of their own. -->
+    <string name="tools_plugins_group_title">Plugins</string>
+    <string name="tools_plugins_group_info">An installed plugin can be a tool like the ones above, with its own icon: in the toolbox, where it drags into place, goes into folders and turns up in the search, or pinned to the toolbar. Switch one on to put it in the toolbox; tap it for its page, which can pin it too.</string>
 </resources>

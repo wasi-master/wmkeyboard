@@ -39,7 +39,7 @@ fun KeyboardSettings.applyDeviceForm(form: DeviceForm): KeyboardSettings {
     // Exactly the shipped three is the free test for "never rearranged". A user
     // who dragged their bar back to precisely that gets their screen's default,
     // which is also what keeps "Reset pinned tools" from looking like a no-op.
-    val pins = if (toolbarTools == DefaultToolbarTools) tabletToolbarTools(form) else null
+    val pins = if (toolbarTools == DefaultToolbarKeys) tabletToolbarTools(form)?.toolKeys() else null
 
     if (sizing == null && !digits && pins == null) return this
     return copy(

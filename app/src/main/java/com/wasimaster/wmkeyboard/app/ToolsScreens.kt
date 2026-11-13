@@ -1,5 +1,13 @@
 package com.wasimaster.wmkeyboard.app
 
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.wasimaster.wmkeyboard.ime.ui.PluginIcon
+import com.wasimaster.wmkeyboard.core.plugins.displayName
+import com.wasimaster.wmkeyboard.core.plugins.PluginStore
+import com.wasimaster.wmkeyboard.core.settings.pluginToolPlaceIn
+import com.wasimaster.wmkeyboard.core.settings.PluginToolPlace
+import com.wasimaster.wmkeyboard.core.settings.ToolKey
 import android.content.res.Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -383,6 +391,8 @@ internal fun ToolsSettings(
     settings: LiveSettings,
     query: String,
     onCustomButtons: () -> Unit = {},
+    /** Opens a settings route: a plugin's page, from its row in the Plugins group. */
+    onOpenRoute: (String) -> Unit = {},
     onOpenTool: (ToolbarTool) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -576,6 +586,8 @@ internal fun ToolsSettings(
             }
         }
     }
+    // Plugins that can be tools, after the built-in ones (see ToolKey).
+    PluginToolsGroup(repository, settings, onOpenRoute)
 }
 
 /**
@@ -784,4 +796,83 @@ internal fun ToolGlyph(tool: ToolbarTool, brush: Brush? = null) {
         modifier = Modifier.size(HeaderGlyphSize),
         brush = brush,
     )
+}
+
+/**
+ * The installed plugins that draw a panel, by id, with their names in the
+ * user's language: the plugins that can be tools. Follows the plugin store, so
+ * one installed or removed on another screen shows here at once. Empty while
+ * plugins are off.
+ */
+@Composable
+internal fun rememberPluginToolNames(): Map<String, String> {
+    val context = LocalContext.current
+    val store = remember(context) { PluginStore.get(context) }
+    val revision by store.revision.collectAsStateWithLifecycle()
+    return remember(revision) {
+        if (!store.subsystemEnabled()) emptyMap() else store.panelPlugins().associate { it.id to it.displayName }
+    }
+}
+
+/** A toolbox entry's name in Settings: a built-in tool's title, or its plugin's name. */
+@Composable
+internal fun toolKeyTitle(tool: ToolKey, pluginNames: Map<String, String>): String = when (tool) {
+    is ToolKey.Builtin -> stringResource(toolTitle(tool.tool))
+    is ToolKey.Plugin -> pluginNames[tool.pluginId] ?: tool.pluginId
+}
+
+/**
+ * The plugins that can be tools, each with its own icon, where it is (pinned,
+ * in the toolbox, or panel only) and a switch that puts it in the toolbox or
+ * takes it out of every list. A tap opens the plugin's page, which says more.
+ * Nothing while there are none.
+ */
+@Composable
+private fun PluginToolsGroup(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    onOpenRoute: (String) -> Unit,
+) {
+    val context = LocalContext.current
+    val store = remember(context) { PluginStore.get(context) }
+    val revision by store.revision.collectAsStateWithLifecycle()
+    val plugins = remember(revision) { if (store.subsystemEnabled()) store.panelPlugins() else emptyList() }
+    if (plugins.isEmpty()) return
+    val scope = rememberCoroutineScope()
+    val lists = settings.watch { Triple(it.toolbarTools, it.toolboxOrder, it.toolbox.folders) }
+    SettingsGroup(
+        stringResource(R.string.tools_plugins_group_title),
+        info = stringResource(R.string.tools_plugins_group_info),
+    ) {
+        for (plugin in plugins) {
+            item(key = "plugin:${plugin.id}") {
+                val place = pluginToolPlaceIn(lists.first, lists.second, lists.third, plugin.id)
+                WmRow(
+                    title = plugin.displayName,
+                    subtitle = stringResource(
+                        when (place) {
+                            PluginToolPlace.NONE -> R.string.plugins_tile_none
+                            PluginToolPlace.TOOLBAR -> R.string.plugins_tile_toolbar
+                            PluginToolPlace.TOOLBOX -> R.string.plugins_tile_toolbox
+                        },
+                    ),
+                    leading = { PluginIcon(plugin, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                    trailing = {
+                        Switch(
+                            checked = place != PluginToolPlace.NONE,
+                            onCheckedChange = { on ->
+                                scope.launch {
+                                    repository.setPluginToolPlace(
+                                        plugin.id,
+                                        if (on) PluginToolPlace.TOOLBOX else PluginToolPlace.NONE,
+                                    )
+                                }
+                            },
+                        )
+                    },
+                    onClick = { onOpenRoute(pluginRoute(plugin.id)) },
+                )
+            }
+        }
+    }
 }

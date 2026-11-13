@@ -37,6 +37,20 @@ A keyboard [mode](/typing/modes/) can carry its own pinned toolbar, separate fro
 
 Beside the tools, the toolbar and the toolbox can hold buttons you make yourself: another app's shortcut, a switch over one of the keyboard's settings, or a jump to a settings page. See [Custom buttons](/tools/custom-buttons/).
 
+## Plugins as tools
+
+An installed [plugin](/plugins/overview/) can be a tool like Calculator, drawn with its own icon. In the toolbox it drags into place, goes into folders, turns up in the search and moves up the grid under **Most used** or **Recently used**; drag it onto the toolbar and it is pinned. A tap opens its panel, and a tap while it is open closes it. Hold it for the plugin's page in Settings.
+
+There are three ways to make one a tool:
+
+- Under <SettingsPath path="Tools" />, the **Plugins** group at the end lists every plugin with a panel. Its switch puts the plugin in the toolbox or takes it out.
+- Hold the plugin in the keyboard's Plugins list and pick **Add to toolbar** or **Add to toolbox**.
+- On the plugin's page, choose under **Show as a tool**.
+
+A plugin whose author asked for it joins the end of the toolbox when you install it; an update leaves it wherever you put it. Switch a plugin off and its tool disappears until you switch it back on, in the same place. Uninstall it and it is gone from the toolbar, the toolbox, its folder and every [mode](/typing/modes/)'s own row. The [floating button](/reference/settings/floating-button/#gestures) can open one too, from its **Plugins** group.
+
+Plugin tools never get a hint number in the toolbar's hint mode or a hardware leader-key letter; those stay with the built-in tools.
+
 ## Hold a tool for a second action
 
 <SettingsPath path="Tools / (any tool) / Press and hold on the toolbar" />
@@ -187,7 +201,7 @@ All 91 tools have a settings screen under `Settings → Tools`, each with its ow
 
 **Colorful tool icons** sits at the top of that screen and is on by default. It tints each tool's icon with the tool's own accent color, in the toolbox grid and down this settings list. The pinned row on the keyboard itself is the exception: those icons take the theme's toolbar-icon color, so the bar stays one color whatever this is set to, unless you turn on **Color the pinned tools** under [Toolbar](/reference/settings/appearance/). Turn the setting off and the toolbox falls back to that same plain foreground color.
 
-Below that, the list is grouped by what the tools do: **Panels**, **Scanners**, **Online tools**, **Create and convert**, **Keyboard modes**, **Cursor**, **Quick actions**, and **Utilities**. Any tool a future group forgets to claim lands in an **Other** catch-all, so nothing goes invisible.
+Below that, the list is grouped by what the tools do: **Panels**, **Scanners**, **Online tools**, **Create and convert**, **Keyboard modes**, **Cursor**, **Quick actions**, and **Utilities**. Any tool a future group forgets to claim lands in an **Other** catch-all, so nothing goes invisible. With plugins on, a **Plugins** group comes last: see [Plugins as tools](#plugins-as-tools).
 
 A row's switch enables or disables the tool everywhere at once: toolbar, toolbox, and hardware leader key. Tapping the row itself opens that tool's own settings.
 

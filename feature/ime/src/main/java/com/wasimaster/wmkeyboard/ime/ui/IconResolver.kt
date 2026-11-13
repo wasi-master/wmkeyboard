@@ -160,7 +160,8 @@ private fun builtinIcon(slot: String): ImageVector? =
     if (slot == PhoneticEnglishSlot && LocalPhoneticIndic.current) {
         SymbolIcons.TranslateIndic
     } else {
-        IconDefaults.forSlot(slot)
+        // A plugin's tool wears its own icon (see [PluginToolIcons]).
+        IconDefaults.forSlot(slot) ?: PluginToolIcons.forSlot(slot)
     }
 
 /**

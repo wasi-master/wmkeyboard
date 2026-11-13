@@ -849,7 +849,14 @@ private fun FloatingActionGlyph(
     categories: List<FloatingCategory> = emptyList(),
 ) {
     val app = rememberFloatingAppIcon(action as? FloatingAction.App, 24) ?: rememberCustomButtonIcon(action, 24)
-    if (app != null) {
+    // A plugin wears its own icon, read from its archive when it is a drawing.
+    val plugin = (action as? FloatingAction.Plugin)?.let { a ->
+        val context = androidx.compose.ui.platform.LocalContext.current
+        remember(a.id) { com.wasimaster.wmkeyboard.core.plugins.PluginStore.get(context).plugin(a.id) }
+    }
+    if (plugin != null) {
+        com.wasimaster.wmkeyboard.ime.ui.PluginIcon(plugin, modifier = modifier, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+    } else if (app != null) {
         androidx.compose.foundation.Image(app, contentDescription = null, modifier = modifier)
     } else {
         Icon(
@@ -1293,6 +1300,21 @@ private fun FloatingActionPicker(
                 onPick = { onPick(action) },
             )
         }
+    // Plugins, each opening its own panel, as its tool in the toolbox does.
+    val pluginNames = rememberPluginToolNames()
+    val pluginRows = pluginNames.keys
+        .map { FloatingAction.Plugin(it) }
+        .filter { offered(it) }
+        .map { action ->
+            PickerRow(
+                key = action.token,
+                title = pluginNames[action.id] ?: action.id,
+                subtitle = stringResource(R.string.floating_button_pick_plugin_subtitle),
+                selected = current == action,
+                leading = { FloatingActionGlyph(action, Modifier.size(24.dp)) },
+                onPick = { onPick(action) },
+            )
+        }
     // A tool straight into a floating box over the app (#1155).
     val appletRows = AppletTools
         .filter { isSupportedTool(it) && offered(FloatingAction.Applet(it)) }
@@ -1319,6 +1341,9 @@ private fun FloatingActionPicker(
         }
         if (appletRows.isNotEmpty()) {
             add(PickerGroup("applets", stringResource(R.string.floating_button_pick_group_applets), appletRows))
+        }
+        if (pluginRows.isNotEmpty()) {
+            add(PickerGroup("plugins", stringResource(R.string.tools_plugins_group_title), pluginRows))
         }
         for ((titleRes, tools) in grouped) {
             if (tools.isEmpty()) continue

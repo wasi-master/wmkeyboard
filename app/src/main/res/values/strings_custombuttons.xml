@@ -22,7 +22,7 @@
     <string name="custombuttons_kind_page">Settings page</string>
     <string name="custombuttons_kind_plugin">Plugin</string>
     <string name="custombuttons_add_plugin_title">Plugin</string>
-    <string name="custombuttons_add_plugin_subtitle">Opens one of your plugins in the keyboard</string>
+    <string name="custombuttons_add_plugin_subtitle">Pins one of your plugins to the toolbar as a tool of its own</string>
     <string name="custombuttons_no_plugins">No plugins to add. Turn plugins on and install one first.</string>
     <string name="custombuttons_on_toolbar">on the toolbar</string>
     <string name="custombuttons_in_toolbox">in the toolbox</string>
@@ -47,6 +47,7 @@
 
     <!-- Floating button picker. -->
     <string name="floating_button_pick_group_custom">Your buttons</string>
+    <string name="floating_button_pick_plugin_subtitle">Opens this plugin in the keyboard</string>
     <string name="floating_button_pick_custom_subtitle">One of your custom buttons</string>
 
     <string name="search_kw_custombuttons">custom button, own button, app shortcut, launcher shortcut, toggle, setting switch, bookmarks, favourites button, one tap</string>

@@ -31,12 +31,12 @@ class DirectBootSettingsTest {
     @Test
     fun `the toolbar and toolbox shrink to the same set`() {
         val settings = KeyboardSettings(
-            toolbarTools = listOf(ToolbarTool.CLIPBOARD, ToolbarTool.EMOJI),
-            toolboxOrder = listOf(ToolbarTool.GIF, ToolbarTool.LEVEL),
+            toolbarTools = toolKeysOf(ToolbarTool.CLIPBOARD, ToolbarTool.EMOJI),
+            toolboxOrder = toolKeysOf(ToolbarTool.GIF, ToolbarTool.LEVEL),
         ).restrictedToDirectBoot()
 
-        assertEquals(listOf(ToolbarTool.EMOJI), settings.toolbarTools)
-        assertEquals(listOf(ToolbarTool.LEVEL), settings.toolboxOrder)
+        assertEquals(toolKeysOf(ToolbarTool.EMOJI), settings.toolbarTools)
+        assertEquals(toolKeysOf(ToolbarTool.LEVEL), settings.toolboxOrder)
     }
 
     @Test

@@ -3984,10 +3984,10 @@ data class KeyboardUiState(
      * first, and most runs first. Published as the toolbox opens, so a tool
      * tapped inside it never moves its neighbours under the finger.
      */
-    val toolsRecent: List<ToolbarTool> = emptyList(),
-    val toolsMostUsed: List<ToolbarTool> = emptyList(),
+    val toolsRecent: List<com.wasimaster.wmkeyboard.core.settings.ToolKey> = emptyList(),
+    val toolsMostUsed: List<com.wasimaster.wmkeyboard.core.settings.ToolKey> = emptyList(),
     /** Every tool by its name in the keyboard's language, for the toolbox's A to Z order. */
-    val toolsAlphabetical: List<ToolbarTool> = emptyList(),
+    val toolsAlphabetical: List<com.wasimaster.wmkeyboard.core.settings.ToolKey> = emptyList(),
     /** Palette-grid base emoji → the skin-tone/gender variant it renders as. */
     val emojiVariantPrefs: Map<String, String> = emptyMap(),
     /**
@@ -4488,6 +4488,14 @@ data class KeyboardUiState(
     val gifFavouriteIds: Set<String> = emptySet(),
     /** What the Plugins panel is showing: the list, a running plugin, or a failure. */
     val plugins: PluginPanelUi = PluginPanelUi.List(emptyList()),
+    /**
+     * The plugins that can be tools right now, by id: installed, switched on,
+     * drawing a panel, with the plugin system on. A plugin entry in the tool
+     * lists ([com.wasimaster.wmkeyboard.core.settings.ToolKey.Plugin]) is drawn
+     * only while its id is here, so one uninstalled or switched off leaves the
+     * toolbar and the toolbox at once. Refreshed from the plugin store.
+     */
+    val pluginTools: Map<String, com.wasimaster.wmkeyboard.ime.ui.PluginToolFace> = emptyMap(),
     /**
      * Text in each of the running plugin's input widgets, by widget id.
      *

@@ -1,5 +1,8 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.settings.PluginToolPlace
+import com.wasimaster.wmkeyboard.core.settings.pluginIds
+import com.wasimaster.wmkeyboard.ime.ui.PluginIcon
 import android.app.Activity
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -91,6 +94,8 @@ internal fun CustomButtonsScreen(repository: SettingsRepository, settings: LiveS
     var picking by rememberSaveable { mutableStateOf<CustomPick?>(null) }
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
     val full = buttons.size >= MAX_CUSTOM_BUTTONS
+    // The plugins already tools, pinned or in the toolbox, which the picker leaves out.
+    val toolPlugins = settings.watch { (it.toolbarTools + it.toolboxOrder).pluginIds().toSet() }
 
     fun add(kind: CustomButtonKind, target: String, label: String = "", pkg: String = "", icon: android.graphics.drawable.Drawable? = null) {
         scope.launch {
@@ -176,15 +181,14 @@ internal fun CustomButtonsScreen(repository: SettingsRepository, settings: LiveS
                 icon = Icons.Outlined.Bookmarks,
             ) { if (!full) picking = CustomPick.PAGE }
         }
+        // A plugin is a tool of its own now, not a button: picked here, it is
+        // pinned to the toolbar, and counts against nothing.
         item {
             NavRow(
                 title = R.string.custombuttons_add_plugin_title,
-                subtitle = stringResource(
-                    if (full) R.string.custombuttons_full else R.string.custombuttons_add_plugin_subtitle,
-                    MAX_CUSTOM_BUTTONS,
-                ),
+                subtitle = stringResource(R.string.custombuttons_add_plugin_subtitle),
                 icon = Icons.Outlined.Extension,
-            ) { if (!full) picking = CustomPick.PLUGIN }
+            ) { picking = CustomPick.PLUGIN }
         }
     }
 
@@ -223,11 +227,11 @@ internal fun CustomButtonsScreen(repository: SettingsRepository, settings: LiveS
             add(CustomButtonKind.PAGE, page.name)
         }
         CustomPick.PLUGIN -> PluginTilePicker(
-            taken = buttons.filter { it.kind == CustomButtonKind.PLUGIN }.mapTo(HashSet()) { it.target },
+            taken = toolPlugins,
             onDismiss = { picking = null },
         ) { plugin ->
             picking = null
-            add(CustomButtonKind.PLUGIN, plugin)
+            scope.launch { repository.setPluginToolPlace(plugin, PluginToolPlace.TOOLBAR) }
         }
         null -> Unit
     }
@@ -494,7 +498,7 @@ private fun PluginTilePicker(taken: Set<String>, onDismiss: () -> Unit, onPick: 
             key = plugin.id,
             title = plugin.displayName,
             subtitle = plugin.displayDescription.takeIf { it.isNotBlank() },
-            leading = { Icon(Icons.Outlined.Extension, contentDescription = null) },
+            leading = { PluginIcon(plugin) },
             onPick = { onPick(plugin.id) },
         )
     }

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.floating
 
+import com.wasimaster.wmkeyboard.core.plugins.displayName
 import android.content.Context
 import android.os.Build
 import androidx.compose.animation.core.Animatable
@@ -159,6 +160,10 @@ fun floatingActionIcon(
         ?: com.wasimaster.wmkeyboard.ime.ui.IconDefaults.forSlot(com.wasimaster.wmkeyboard.ime.ui.CUSTOM_SHORTCUT_SLOT)
         ?: Icons.Outlined.OpenInNew
     is FloatingAction.Category -> ModeIcons.iconOrNull(categories.categoryById(action.id)?.icon) ?: Icons.Outlined.Folder
+    // The plugin's own icon, once the keyboard has read it; the jigsaw until then.
+    is FloatingAction.Plugin -> com.wasimaster.wmkeyboard.ime.ui.PluginToolIcons.forSlot(
+        com.wasimaster.wmkeyboard.ime.ui.PluginToolIcons.slot(action.id),
+    ) ?: Icons.Outlined.OpenInNew
 }
 
 /** The glyph of one of Android's system buttons (#1170). */
@@ -218,6 +223,8 @@ fun floatingActionName(
     is FloatingAction.Category -> categories.categoryById(action.id)?.name?.takeIf { it.isNotBlank() }
     is FloatingAction.Custom -> com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.byId(action.id)
         ?.let { com.wasimaster.wmkeyboard.ime.ui.CustomButtonFaces.name(context, it) }
+    is FloatingAction.Plugin -> com.wasimaster.wmkeyboard.core.plugins.PluginStore.get(context).plugin(action.id)
+        ?.displayName
     else -> null
 } ?: context.getString(floatingActionLabelRes(action, keyboardUp))
 
@@ -235,6 +242,7 @@ internal fun floatingActionLabelRes(action: FloatingAction, keyboardUp: Boolean)
     is FloatingAction.System -> systemButtonLabelRes(action.button)
     is FloatingAction.Category -> R.string.ime_floating_category_label
     is FloatingAction.Custom -> R.string.ime_custom_button_label
+    is FloatingAction.Plugin -> R.string.ime_floating_plugin_label
 }
 
 /**

@@ -125,9 +125,19 @@ data class PluginManifest(
  */
 @Serializable
 data class PluginToolSpec(
-    /** A Material Symbols name for the tile and the panel header. */
+    /**
+     * The tool's icon, on the toolbar, in the toolbox, on the floating button
+     * and on the plugin's rows: a Material Symbols name the app carries
+     * (`kitchen`, `directions_transit`), or `assets/<file>.svg`, a one-colour
+     * 24×24 drawing in the archive that is tinted like every tool icon. Blank,
+     * or a name the app does not carry, is the jigsaw.
+     */
     val icon: String = "",
-    /** Offer a tile for the toolbar, the toolbox and the floating button. */
+    /**
+     * Put the plugin in the toolbox as a tool when it is installed. The user
+     * can pin it, file it in a folder, or take it out like any tool, and any
+     * plugin with a panel can be made a tool from its page whatever this says.
+     */
     val tile: Boolean = false,
     /** The panel may open in a floating box. */
     val float: Boolean = false,
@@ -324,7 +334,8 @@ object PluginManifestCodec {
     private const val MAX_SETTING_TEXT = 64
     private val SETTING_KEY = Regex("^[a-z_][a-z0-9_]{0,31}$")
     private val KEYWORD = Regex("^[a-z0-9]{1,16}$")
-    private val ICON = Regex("^[a-z0-9_]{0,48}$")
+    /** A Material Symbols name, or an SVG in the archive's `assets/` folder; see [PluginToolSpec.icon]. */
+    private val ICON = Regex("^([a-z0-9_]{0,48}|assets/[a-z0-9][a-z0-9_.-]{0,59}\\.svg)$")
 
     /**
      * A host name, or `*.` and one: letters, digits and dashes in dot-separated
@@ -459,7 +470,11 @@ object PluginManifestCodec {
                     (s.type.trim() == PluginSettingSpec.TYPE_SECRET && PluginPermission.Storage !in permissions)
             }
         if (badSetting) out += Problem(Field.SETTINGS, PluginText.of(R.string.core_plugins_reject_bad_setting, name))
-        val usesPackageFields = hosts.isNotEmpty() || settings.isNotEmpty() || tool != PluginToolSpec()
+        // A symbol name for the icon is the one tool field older plugins may
+        // carry: it only draws their row, and needs nothing from the wm package.
+        // An SVG icon is a file in `assets/`, which only API 5 archives ship.
+        val iconOnly = tool.copy(icon = "") == PluginToolSpec() && !tool.icon.trim().startsWith("assets/")
+        val usesPackageFields = hosts.isNotEmpty() || settings.isNotEmpty() || (tool != PluginToolSpec() && !iconOnly)
         if (usesPackageFields && level < PACKAGE_API) {
             out += Problem(Field.API_VERSION, PluginText.of(R.string.core_plugins_reject_permission_needs_api_5, "hosts/tool/settings", name))
         }

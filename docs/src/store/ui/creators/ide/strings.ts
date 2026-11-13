@@ -46,6 +46,8 @@ export const S = {
 	detailsVersion: 'Version',
 	detailsAuthor: 'Author',
 	detailsDescription: 'Description',
+	detailsIcon: 'Tool icon',
+	detailsIconHint: 'A Material Symbols name, such as kitchen or ballot: what the keyboard draws on the plugin\'s tool. Blank is the jigsaw. Find one in',
 	permissionStorage: 'Save data on your device',
 	permissionReminders: 'Show reminders at times that you set in it',
 	/** core_plugins_permission_*_label, by wire name. */

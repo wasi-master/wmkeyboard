@@ -23,8 +23,9 @@ fun KeyboardSettings.restrictedToDirectBoot(): KeyboardSettings {
     val tools = enabledTools.filter(::isDirectBootSafeTool)
     return copy(
         enabledTools = tools,
-        toolbarTools = toolbarTools.filter(::isDirectBootSafeTool),
-        toolboxOrder = toolboxOrder.filter(::isDirectBootSafeTool),
+        // Plugins keep their files under filesDir, so none of them is here.
+        toolbarTools = toolbarTools.filter { it.tool?.let(::isDirectBootSafeTool) == true },
+        toolboxOrder = toolboxOrder.filter { it.tool?.let(::isDirectBootSafeTool) == true },
         // A custom theme's background image is an absolute path under filesDir.
         // Drop the path and the theme still renders — as its own colors, with
         // no image behind them — instead of the loader failing per frame. The

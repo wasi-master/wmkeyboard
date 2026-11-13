@@ -37,7 +37,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
@@ -91,10 +90,10 @@ internal fun toolbarAppsTrailing(state: KeyboardUiState): List<String> {
  * centres are heights; along a row that reads right to left, a tool is before
  * the finger when its centre is to the right.
  */
-internal fun appSlotAt(
+internal fun <T> appSlotAt(
     at: Offset,
-    tools: List<ToolbarTool>,
-    centres: Map<ToolbarTool, Float>,
+    tools: List<T>,
+    centres: Map<T, Float>,
     vertical: Boolean,
     rtl: Boolean,
 ): Int = when {

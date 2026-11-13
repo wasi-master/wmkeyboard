@@ -14,17 +14,14 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import android.widget.Toast
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Handyman
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PowerSettingsNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Widgets
-import com.wasimaster.wmkeyboard.core.settings.MAX_CUSTOM_BUTTONS
-import com.wasimaster.wmkeyboard.core.settings.PluginTilePlace
+import com.wasimaster.wmkeyboard.core.settings.PluginToolPlace
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
-import com.wasimaster.wmkeyboard.core.settings.pluginTilePlace
-import com.wasimaster.wmkeyboard.core.settings.withPluginTile
+import com.wasimaster.wmkeyboard.core.settings.pluginToolPlaceIn
 import com.wasimaster.wmkeyboard.core.ui.SwipeAction
 import com.wasimaster.wmkeyboard.core.ui.SwipeTone
 import kotlinx.coroutines.launch
@@ -150,20 +147,15 @@ private fun PluginList(
     val repository = remember(context) { SettingsRepository(context.applicationContext) }
     val scope = rememberCoroutineScope()
     val haptics = LocalHapticFeedback.current
-    val tiles = state.settings.toolbox.customButtons
     // Turned off from here: gone at once, though the service built the list
     // before. The next time the panel opens, the store leaves it out itself.
     var hidden by remember(panel) { mutableStateOf(emptySet<String>()) }
     // The one row whose options are showing, or null.
     var expanded by remember(panel) { mutableStateOf<String?>(null) }
-    fun place(pluginId: String, where: PluginTilePlace) {
-        scope.launch {
-            var full = false
-            repository.updateCustomButtons { list ->
-                list.withPluginTile(pluginId, where).also { full = where != PluginTilePlace.NONE && it.pluginTilePlace(pluginId) == PluginTilePlace.NONE }
-            }
-            if (full) Toast.makeText(context, context.getString(R.string.ime_plugin_tiles_full, MAX_CUSTOM_BUTTONS), Toast.LENGTH_LONG).show()
-        }
+    // A plugin is a tool like Calculator: pinned, in the toolbox grid, or
+    // neither (its panel is still here).
+    fun place(pluginId: String, where: PluginToolPlace) {
+        scope.launch { repository.setPluginToolPlace(pluginId, where) }
     }
     // The ring walks the rows and ends on Manage.
     PanelFocusTarget(
@@ -225,8 +217,13 @@ private fun PluginList(
             for ((index, plugin) in panel.plugins.withIndex()) {
                 if (plugin.id in hidden) continue
                 key(plugin.id) {
-                    val where = tiles.pluginTilePlace(plugin.id)
-                    val onBar = where == PluginTilePlace.TOOLBAR
+                    val where = pluginToolPlaceIn(
+                        state.settings.toolbarTools,
+                        state.settings.toolboxOrder,
+                        state.settings.toolbox.folders,
+                        plugin.id,
+                    )
+                    val onBar = where == PluginToolPlace.TOOLBAR
                     val toolbarLabel = stringResource(if (onBar) R.string.ime_plugin_action_toolbar_remove else R.string.ime_plugin_action_toolbar_add)
                     val settingsLabel = stringResource(R.string.ime_plugin_action_settings)
                     // The two a thumb wants most; the rest are behind a hold or ⋮,
@@ -234,7 +231,7 @@ private fun PluginList(
                     KbSwipeActionsRow(
                         actions = listOf(
                             SwipeAction(Icons.Outlined.Widgets, toolbarLabel, SwipeTone.ACCENT) {
-                                place(plugin.id, if (onBar) PluginTilePlace.NONE else PluginTilePlace.TOOLBAR)
+                                place(plugin.id, if (onBar) PluginToolPlace.TOOLBOX else PluginToolPlace.TOOLBAR)
                             },
                             SwipeAction(Icons.Outlined.Settings, settingsLabel) { onOpenRoute("plugin/${plugin.id}") },
                         ),
@@ -317,12 +314,18 @@ private fun PluginRow(
             }
         },
         leading = {
-            Text(
-                pluginInitial(plugin.displayName),
-                color = kb.chipActiveText,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Medium,
-            )
+            // Its own icon when its manifest names one (`tool.icon`), the
+            // picture its tool wears; otherwise its initial.
+            if (plugin.tool.icon.isNotBlank()) {
+                PluginIcon(plugin, tint = kb.chipActiveText, modifier = Modifier.size(22.dp))
+            } else {
+                Text(
+                    pluginInitial(plugin.displayName),
+                    color = kb.chipActiveText,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
         },
         leadingFill = kb.chipActive,
         focused = focused,
@@ -408,9 +411,9 @@ private fun ListRow(
  */
 @Composable
 private fun PluginOptions(
-    place: PluginTilePlace,
+    place: PluginToolPlace,
     onSettings: () -> Unit,
-    onPlace: (PluginTilePlace) -> Unit,
+    onPlace: (PluginToolPlace) -> Unit,
     onTurnOff: () -> Unit,
 ) {
     Row(
@@ -421,18 +424,20 @@ private fun PluginOptions(
             .padding(start = 8.dp, end = 8.dp, bottom = 6.dp),
     ) {
         OptionChip(Icons.Outlined.Settings, stringResource(R.string.ime_plugin_action_settings), onClick = onSettings)
-        val onBar = place == PluginTilePlace.TOOLBAR
+        // Off the bar, a pinned tool goes back to its cell in the toolbox, as a
+        // built-in tool dragged off the bar does.
+        val onBar = place == PluginToolPlace.TOOLBAR
         OptionChip(
             Icons.Outlined.Widgets,
             stringResource(if (onBar) R.string.ime_plugin_action_toolbar_remove else R.string.ime_plugin_action_toolbar_add),
             selected = onBar,
-        ) { onPlace(if (onBar) PluginTilePlace.NONE else PluginTilePlace.TOOLBAR) }
-        val inBox = place == PluginTilePlace.TOOLBOX
+        ) { onPlace(if (onBar) PluginToolPlace.TOOLBOX else PluginToolPlace.TOOLBAR) }
+        val inBox = place == PluginToolPlace.TOOLBOX
         OptionChip(
             Icons.Outlined.Handyman,
             stringResource(if (inBox) R.string.ime_plugin_action_toolbox_remove else R.string.ime_plugin_action_toolbox_add),
             selected = inBox,
-        ) { onPlace(if (inBox) PluginTilePlace.NONE else PluginTilePlace.TOOLBOX) }
+        ) { onPlace(if (inBox) PluginToolPlace.NONE else PluginToolPlace.TOOLBOX) }
         OptionChip(Icons.Outlined.PowerSettingsNew, stringResource(R.string.ime_plugin_action_turn_off), onClick = onTurnOff)
     }
 }

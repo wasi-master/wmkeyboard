@@ -673,6 +673,11 @@ export interface PluginRead {
 		language: string;
 		actions: { id: string; name: string }[];
 		hosts: string[];
+		/**
+		 * The tool block's icon (PluginToolSpec.icon): a Material Symbols name,
+		 * or `assets/<file>.svg`, whose source is [iconSvg] when the archive has it.
+		 */
+		tool: { icon: string; tile: boolean; iconSvg: string | null };
 	};
 	files: { name: string; bytes: number; text: string | null }[];
 	problems: string[];
@@ -693,6 +698,8 @@ export const PLUGIN_RISKY_PERMISSIONS = ['network', 'network.local', 'ai', 'fiel
 const PLUGIN_HOST = /^(\*\.)?([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 const PLUGIN_ACTION_ID = /^[a-z0-9_-]{1,32}$/;
 export const PLUGIN_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{2,63}$/;
+/** PluginManifestCodec's ICON: a Material Symbols name, or an SVG under assets/. */
+export const PLUGIN_ICON_PATTERN = /^([a-z0-9_]{0,48}|assets\/[a-z0-9][a-z0-9_.-]{0,59}\.svg)$/;
 
 export function readPlugin(bytes: Uint8Array): PluginRead {
 	const entries = readZip(bytes, 128);
@@ -740,6 +747,22 @@ export function readPlugin(bytes: Uint8Array): PluginRead {
 	if (actions.some((a) => a?.input !== undefined && a.input !== 'selection' && a.input !== 'none')) problems.push('An action\'s "input" is not "selection" or "none".');
 	const entry = String(raw.entry || 'main.py');
 	if (!entries.some((e) => e.name === entry)) problems.push(`Entry "${entry}" is not in the archive.`);
+	// The tool block's icon: a Material Symbols name (any API level), or the
+	// plugin's own SVG (API 5, which ships assets/).
+	const tool = raw.tool && typeof raw.tool === 'object' ? raw.tool : {};
+	const icon = String(tool.icon ?? '').trim();
+	let iconSvg: string | null = null;
+	if (apiVersion < 5 && Object.keys(tool).some((k) => k !== 'icon')) problems.push('A "tool" block beyond "icon" needs "apiVersion": 5.');
+	if (!PLUGIN_ICON_PATTERN.test(icon)) {
+		problems.push(`"tool.icon": ${JSON.stringify(tool.icon)} is neither a Material Symbols name (lowercase, underscores) nor "assets/<file>.svg"; the app refuses it.`);
+	} else if (icon.startsWith('assets/') && apiVersion < 5) {
+		problems.push(`"tool.icon" names ${icon}; an SVG icon needs "apiVersion": 5.`);
+	} else if (icon.startsWith('assets/')) {
+		const svgEntry = entries.find((e) => e.name === icon);
+		if (!svgEntry) problems.push(`"tool.icon" names ${icon}, which is not in the archive; the tool shows the jigsaw.`);
+		else if (svgEntry.data.byteLength > 256 * 1024) problems.push(`${icon} is over 256 KB; the tool shows the jigsaw.`);
+		else iconSvg = textOf(svgEntry);
+	}
 	// PluginFile: API 5 archives hold modules and assets/.
 	if (entries.length > 64) problems.push(`${entries.length} entries; the app caps at 64.`);
 	const totalBytes = entries.reduce((n, e) => n + e.data.byteLength, 0);
@@ -759,6 +782,7 @@ export function readPlugin(bytes: Uint8Array): PluginRead {
 			id, name: String(raw.name ?? ''), pluginVersion: String(raw.pluginVersion ?? ''), author: String(raw.author ?? ''), description: String(raw.description ?? ''), apiVersion, entry, permissions,
 			language, actions: actions.map((a) => ({ id: String(a?.id ?? ''), name: String(a?.name ?? '') })),
 			hosts,
+			tool: { icon, tile: tool.tile === true, iconSvg },
 		},
 		files,
 		problems,

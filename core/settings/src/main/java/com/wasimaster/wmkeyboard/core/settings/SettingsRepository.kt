@@ -2677,9 +2677,10 @@ data class ToolboxSettings(
      * ways and would rather the grid were one cell shorter. Empty by default.
      *
      * Separate from [KeyboardSettings.enabledTools], which turns a tool off
-     * outright. A hidden tool that is pinned stays on the bar.
+     * outright. A hidden tool that is pinned stays on the bar. Plugins shown
+     * as tools are hidden the same way (see [ToolKey]).
      */
-    val hiddenTools: Set<ToolbarTool> = emptySet(),
+    val hiddenTools: Set<ToolKey> = emptySet(),
     /**
      * Named groups of toolbox tools (#709), made by dropping one tool on
      * another in the grid. See [ToolboxFolder]. Shared by every mode: a mode
@@ -4289,7 +4290,8 @@ data class KeyboardSettings(
     /** Which glyph each customisable icon draws (see [IconSettings]). */
     val icons: IconSettings = IconSettings(),
     val incognito: Boolean = false,
-    val toolbarTools: List<ToolbarTool> = DefaultToolbarTools,
+    /** The pinned tools, plugins among them (see [ToolKey]), in the order the bar draws them. */
+    val toolbarTools: List<ToolKey> = DefaultToolbarKeys,
     /** Toolbar enable/behaviour/layout switches (see [ToolbarBehavior]). */
     val toolbarBehavior: ToolbarBehavior = ToolbarBehavior(),
     /**
@@ -4348,9 +4350,11 @@ data class KeyboardSettings(
      * Every tool's position in the toolbox grid, most-used-first by default;
      * the user rearranges it by dragging tools around the toolbox. Always a
      * complete ordering over all tools — pinned/disabled ones keep their
-     * rank so they come back where they belong.
+     * rank so they come back where they belong. Plugins shown as tools sit in
+     * it too, as [ToolKey.Plugin] entries; a plugin that is not in it, nor
+     * pinned, is not a tool and stays in the Plugins panel only.
      */
-    val toolboxOrder: List<ToolbarTool> = DefaultToolOrder,
+    val toolboxOrder: List<ToolKey> = DefaultToolOrderKeys,
     /** The toolbox drag hint was dismissed; after that it only rarely reappears. */
     val toolboxHintDismissed: Boolean = false,
     /** How the toolbox draws and pages its tools (see [ToolboxSettings]). */
@@ -15833,11 +15837,8 @@ class SettingsRepository(private val context: Context) {
             overrides = IconOverrides.decode(p[ICON_OVERRIDES]),
         )
 
-    private fun readToolbarTools(p: Preferences, defaults: KeyboardSettings) =
-        p[TOOLBAR_TOOLS]?.let { csv ->
-            if (csv.isEmpty()) emptyList()
-            else csv.split(',').mapNotNull { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }
-        } ?: defaults.toolbarTools
+    private fun readToolbarTools(p: Preferences, defaults: KeyboardSettings): List<ToolKey> =
+        p[TOOLBAR_TOOLS]?.let(::decodeToolKeys) ?: defaults.toolbarTools
 
     private fun readToolbarBehavior(p: Preferences, defaults: KeyboardSettings) =
         ToolbarBehavior(
@@ -16012,7 +16013,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.toolbox.pageSize,
             labelSizeSp = p[TOOLBOX_LABEL_SIZE] ?: defaults.toolbox.labelSizeSp,
             cellSpacingDp = p[TOOLBOX_CELL_SPACING]?.coerceIn(0, 16) ?: defaults.toolbox.cellSpacingDp,
-            hiddenTools = decodeToolNames(p[TOOLBOX_HIDDEN_TOOLS]).toSet(),
+            hiddenTools = decodeToolKeys(p[TOOLBOX_HIDDEN_TOOLS]).toSet(),
             folders = decodeToolboxFolders(p[TOOLBOX_FOLDERS]),
             searchButton = p[TOOLBOX_SEARCH_BUTTON] ?: defaults.toolbox.searchButton,
             searchAtEnd = p[TOOLBOX_SEARCH_AT_END] ?: defaults.toolbox.searchAtEnd,
@@ -16950,12 +16951,114 @@ class SettingsRepository(private val context: Context) {
      * Leaves one tool out of the toolbox grid, or puts it back, without
      * touching whether it is on. See [ToolboxSettings.hiddenTools].
      */
-    suspend fun setToolHiddenInToolbox(tool: ToolbarTool, hidden: Boolean) =
+    suspend fun setToolHiddenInToolbox(tool: ToolKey, hidden: Boolean) =
         editPrefs { prefs ->
-            val current = decodeToolNames(prefs[TOOLBOX_HIDDEN_TOOLS])
+            val current = decodeToolKeys(prefs[TOOLBOX_HIDDEN_TOOLS])
             val next = if (hidden) (current + tool).distinct() else current - tool
             if (next.isEmpty()) prefs.remove(TOOLBOX_HIDDEN_TOOLS)
-            else prefs[TOOLBOX_HIDDEN_TOOLS] = next.joinToString(",") { it.name }
+            else prefs[TOOLBOX_HIDDEN_TOOLS] = encodeToolKeys(next)
+        }
+
+    /**
+     * Where plugin [pluginId] is a tool: pinned to the toolbar, in the
+     * toolbox, or neither (its panel is still in the Plugins tool). Read from
+     * the global lists; a mode's own order only decides where it sits.
+     */
+    fun pluginToolPlace(settings: KeyboardSettings, pluginId: String): PluginToolPlace =
+        pluginToolPlaceIn(settings.toolbarTools, settings.toolboxOrder, settings.toolbox.folders, pluginId)
+
+    /**
+     * Makes plugin [pluginId] a tool at [place], or no tool at all. Pinning
+     * adds it to the end of the bar; the toolbox adds it to the end of the
+     * grid, or keeps the place it already had there. [PluginToolPlace.NONE]
+     * takes it out of every list, the modes' and the folders' included. What
+     * the plugin menus in Settings and in the keyboard call.
+     */
+    suspend fun setPluginToolPlace(pluginId: String, place: PluginToolPlace) {
+        if (!isPluginToolId(pluginId)) return
+        if (place == PluginToolPlace.NONE) return removePluginTool(pluginId)
+        editPrefs { prefs ->
+            val key = pluginToolKey(pluginId)
+            val bar = prefs[TOOLBAR_TOOLS]?.let(::decodeToolKeys) ?: DefaultToolbarKeys
+            val order = completedToolOrder(decodeToolKeys(prefs[TOOLBOX_ORDER]))
+            val (nextBar, nextOrder) = withPluginToolPlace(bar, order, key, place)
+            prefs[TOOLBAR_TOOLS] = encodeToolKeys(nextBar)
+            prefs[TOOLBOX_ORDER] = encodeToolKeys(nextOrder)
+            // Shown again: a hide from the grid was for the tool it was then.
+            val hidden = decodeToolKeys(prefs[TOOLBOX_HIDDEN_TOOLS])
+            if (key in hidden) {
+                val rest = hidden - key
+                if (rest.isEmpty()) prefs.remove(TOOLBOX_HIDDEN_TOOLS) else prefs[TOOLBOX_HIDDEN_TOOLS] = encodeToolKeys(rest)
+            }
+        }
+    }
+
+    /**
+     * What installing plugin [pluginId] for the first time does when its
+     * manifest's `tool.tile` asks to be a tool: it joins the end of the
+     * toolbox, unless the user already placed it. An update never moves it, so
+     * a plugin the user took out of the toolbox stays out.
+     */
+    suspend fun offerPluginTool(pluginId: String) {
+        if (!isPluginToolId(pluginId)) return
+        val key = pluginToolKey(pluginId)
+        editPrefs { prefs ->
+            val bar = prefs[TOOLBAR_TOOLS]?.let(::decodeToolKeys) ?: DefaultToolbarKeys
+            val order = completedToolOrder(decodeToolKeys(prefs[TOOLBOX_ORDER]))
+            if (key in bar || key in order) return@editPrefs
+            prefs[TOOLBOX_ORDER] = encodeToolKeys(order + key)
+        }
+    }
+
+    /**
+     * Takes plugin [pluginId] out of every list a tool can be in: the bar, the
+     * toolbox order, the hidden tools, the folders, each mode's own bar and
+     * order, and an old plugin tile among the custom buttons. Uninstalling a
+     * plugin calls it, so no tool is left pointing at a plugin that is gone. A
+     * floating button slot naming it stays, and does nothing, the way a slot
+     * for an uninstalled app does.
+     */
+    suspend fun removePluginTool(pluginId: String) =
+        editPrefs { prefs ->
+            fun rewrite(pref: Preferences.Key<String>) {
+                val raw = prefs[pref] ?: return
+                val kept = decodeToolKeys(raw).withoutPlugin(pluginId)
+                prefs[pref] = encodeToolKeys(kept)
+            }
+            rewrite(TOOLBAR_TOOLS)
+            rewrite(TOOLBOX_ORDER)
+            val hidden = decodeToolKeys(prefs[TOOLBOX_HIDDEN_TOOLS]).withoutPlugin(pluginId)
+            if (hidden.isEmpty()) prefs.remove(TOOLBOX_HIDDEN_TOOLS) else prefs[TOOLBOX_HIDDEN_TOOLS] = encodeToolKeys(hidden)
+            val folders = decodeToolboxFolders(prefs[TOOLBOX_FOLDERS]).withoutPlugin(pluginId)
+            val encodedFolders = encodeToolboxFolders(folders)
+            if (encodedFolders == null) prefs.remove(TOOLBOX_FOLDERS) else prefs[TOOLBOX_FOLDERS] = encodedFolders
+            prefs[KEYBOARD_MODES]?.let { KeyboardModeCodec.decodeList(it) }?.let { modes ->
+                prefs[KEYBOARD_MODES] = KeyboardModeCodec.encodeList(modes.map { it.withoutPlugin(pluginId) })
+            }
+            val buttons = decodeCustomButtons(prefs[CUSTOM_BUTTONS])
+                .filterNot { it.kind == CustomButtonKind.PLUGIN && it.target == pluginId }
+            val encodedButtons = encodeCustomButtons(buttons)
+            if (encodedButtons == null) prefs.remove(CUSTOM_BUTTONS) else prefs[CUSTOM_BUTTONS] = encodedButtons
+        }
+
+    /**
+     * Moves the plugin tiles made before plugins were tools of their own
+     * (custom buttons of the Plugin kind) into the tool lists: one on the bar
+     * is pinned at the end of it, one in the toolbox joins the end of the
+     * grid, and the buttons go. Idempotent: with no such button left it
+     * writes nothing. Run on every start, beside [seedNewDefaultModes].
+     */
+    suspend fun migratePluginTiles() =
+        editPrefs { prefs ->
+            val buttons = decodeCustomButtons(prefs[CUSTOM_BUTTONS])
+            if (buttons.none { it.kind == CustomButtonKind.PLUGIN }) return@editPrefs
+            val bar = prefs[TOOLBAR_TOOLS]?.let(::decodeToolKeys) ?: DefaultToolbarKeys
+            val order = completedToolOrder(decodeToolKeys(prefs[TOOLBOX_ORDER]))
+            val (nextBar, nextOrder, rest) = migratedPluginTiles(buttons, bar, order)
+            prefs[TOOLBAR_TOOLS] = encodeToolKeys(nextBar)
+            prefs[TOOLBOX_ORDER] = encodeToolKeys(nextOrder)
+            val encoded = encodeCustomButtons(rest)
+            if (encoded == null) prefs.remove(CUSTOM_BUTTONS) else prefs[CUSTOM_BUTTONS] = encoded
         }
 
     /**
@@ -16989,9 +17092,9 @@ class SettingsRepository(private val context: Context) {
                 (ToolbarTool.entries - enabled.toSet()).joinToString(",") { it.name }
         }
 
-    suspend fun setToolboxOrder(order: List<ToolbarTool>) =
+    suspend fun setToolboxOrder(order: List<ToolKey>) =
         editPrefs {
-            it[TOOLBOX_ORDER] = order.distinct().joinToString(",") { tool -> tool.name }
+            it[TOOLBOX_ORDER] = encodeToolKeys(order)
         }
 
     suspend fun setToolboxHintDismissed(value: Boolean) =
@@ -17027,25 +17130,7 @@ class SettingsRepository(private val context: Context) {
      * very end. So a newly shipped tool lands somewhere sensible (e.g. next to
      * its peers) instead of always dead last, while nothing ever vanishes.
      */
-    private fun decodeToolOrder(csv: String?): List<ToolbarTool> {
-        val stored = csv?.split(',')
-            ?.mapNotNull { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }
-            ?.distinct()
-            .orEmpty()
-        if (stored.isEmpty()) return DefaultToolOrder
-        val storedSet = stored.toSet()
-        val result = stored.toMutableList()
-        // Walk the default order so multiple new tools keep their relative rank;
-        // each anchors after the last already-placed tool that outranks it.
-        for (tool in DefaultToolOrder) {
-            if (tool in storedSet) continue
-            val rank = DefaultToolOrder.indexOf(tool)
-            val anchor = DefaultToolOrder.take(rank).lastOrNull { it in result }
-            val at = if (anchor == null) 0 else result.indexOf(anchor) + 1
-            result.add(at, tool)
-        }
-        return result
-    }
+    private fun decodeToolOrder(csv: String?): List<ToolKey> = completedToolOrder(decodeToolKeys(csv))
 
     suspend fun setLauncherSortOrder(value: AppSortOrder) =
         editPrefs { it[LAUNCHER_SORT] = value.name }
@@ -17108,9 +17193,12 @@ class SettingsRepository(private val context: Context) {
     /**
      * Puts the toolbox grid back to [DefaultToolOrder]. "Reset pinned tools"
      * restored the bar and nothing restored the grid, so a bad drag session
-     * there had no way back.
+     * there had no way back. Plugins shown as tools stay tools, at the end.
      */
-    suspend fun resetToolboxOrder() = editPrefs { it.remove(TOOLBOX_ORDER) }
+    suspend fun resetToolboxOrder() = editPrefs { prefs ->
+        val plugins = decodeToolKeys(prefs[TOOLBOX_ORDER]).filterIsInstance<ToolKey.Plugin>()
+        if (plugins.isEmpty()) prefs.remove(TOOLBOX_ORDER) else prefs[TOOLBOX_ORDER] = encodeToolKeys(DefaultToolOrderKeys + plugins)
+    }
 
     /** Records a launch at the head of the recents, newest first, capped. */
     suspend fun addLauncherRecent(packageName: String) =
@@ -18632,9 +18720,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setEmojiRowAboveToolbar(value: Boolean) =
         editPrefs { it[EMOJI_ROW_ABOVE_TOOLBAR] = value }
 
-    suspend fun setToolbarTools(tools: List<ToolbarTool>) =
+    suspend fun setToolbarTools(tools: List<ToolKey>) =
         editPrefs {
-            it[TOOLBAR_TOOLS] = tools.distinct().joinToString(",") { tool -> tool.name }
+            it[TOOLBAR_TOOLS] = encodeToolKeys(tools)
         }
 
     suspend fun setToolbarGreedy(value: Boolean) =
@@ -18908,12 +18996,8 @@ class SettingsRepository(private val context: Context) {
         editPrefs { prefs ->
             prefs[COMMA_AS_EMOJI] = value
             if (value) {
-                val current = prefs[TOOLBAR_TOOLS]
-                    ?.split(',')
-                    ?.mapNotNull { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }
-                    ?: KeyboardSettings().toolbarTools
-                prefs[TOOLBAR_TOOLS] = current.filter { it != ToolbarTool.EMOJI }
-                    .joinToString(",") { it.name }
+                val current = prefs[TOOLBAR_TOOLS]?.let(::decodeToolKeys) ?: DefaultToolbarKeys
+                prefs[TOOLBAR_TOOLS] = encodeToolKeys(current.filter { it != ToolbarTool.EMOJI.key })
             }
         }
 
@@ -26118,7 +26202,7 @@ class SettingsRepository(private val context: Context) {
      * dragged arrangement is the whole bar the user just laid out, and
      * re-appending would shuffle it behind the global pins.
      */
-    suspend fun setModeToolbarTools(modeId: String, tools: List<ToolbarTool>) =
+    suspend fun setModeToolbarTools(modeId: String, tools: List<ToolKey>) =
         editPrefs { prefs ->
             val modes = prefs[KEYBOARD_MODES]?.let { KeyboardModeCodec.decodeList(it) }
                 ?: DefaultKeyboardModes
@@ -26138,7 +26222,7 @@ class SettingsRepository(private val context: Context) {
      * floats to the front, so the full dragged order is stored as-is and the
      * global order stays the tiebreaker for anything the mode never names.
      */
-    suspend fun setModeToolboxOrder(modeId: String, order: List<ToolbarTool>) =
+    suspend fun setModeToolboxOrder(modeId: String, order: List<ToolKey>) =
         editPrefs { prefs ->
             val modes = prefs[KEYBOARD_MODES]?.let { KeyboardModeCodec.decodeList(it) }
                 ?: DefaultKeyboardModes

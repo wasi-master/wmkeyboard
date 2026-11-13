@@ -90,6 +90,22 @@ class PluginApi5ManifestTest {
     }
 
     @Test
+    fun `a tool icon is a symbol name or an svg in assets`() {
+        assertTrue(problems(manifest(tool = PluginToolSpec(icon = "directions_transit"))).isEmpty())
+        assertTrue(problems(manifest(tool = PluginToolSpec(icon = "assets/icon.svg"))).isEmpty())
+        assertFalse(problems(manifest(tool = PluginToolSpec(icon = "assets/icon.png"))).isEmpty())
+        assertFalse(problems(manifest(tool = PluginToolSpec(icon = "../icon.svg"))).isEmpty())
+        assertFalse(problems(manifest(tool = PluginToolSpec(icon = "Kitchen"))).isEmpty())
+    }
+
+    @Test
+    fun `an API 4 plugin may name a symbol for its icon and nothing else`() {
+        assertTrue(problems(manifest(apiVersion = 4, tool = PluginToolSpec(icon = "key"))).isEmpty())
+        assertFalse(problems(manifest(apiVersion = 4, tool = PluginToolSpec(icon = "assets/icon.svg"))).isEmpty())
+        assertFalse(problems(manifest(apiVersion = 4, tool = PluginToolSpec(icon = "key", tile = true))).isEmpty())
+    }
+
+    @Test
     fun `an archive carries modules and assets`() {
         val out = ByteArrayOutputStream()
         val m = manifest()

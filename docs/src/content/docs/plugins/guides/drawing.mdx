@@ -155,7 +155,9 @@ presses one. This is how Python works everywhere, not only here.
   (`"assets/logo.png"`) or bytes you made. See
   [Sharing your plugin](/plugins/guides/sharing/#several-files) for bundling.
 - `ui.icon(name)` shows a [Material Symbols](https://fonts.google.com/icons)
-  icon by name, such as `cloud`, `delete` or `history`.
+  icon by name, such as `cloud`, `delete` or `history`. The icon the keyboard
+  draws for your plugin itself, on its tool, is set in the manifest instead:
+  see [Your icon](/plugins/guides/pages-and-timers/#your-icon).
 - `ui.qr(text)` draws a QR code.
 - `ui.stat(label, value, caption=)` shows one big number. `ui.ring(0.7, label=)`
   shows a share as a ring.

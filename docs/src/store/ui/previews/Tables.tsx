@@ -154,6 +154,31 @@ export function VocabularyPreview({ read }: { read: { pack: Record<string, unkno
 	);
 }
 
+/**
+ * A plugin's tool icon as the keyboard draws it: its own SVG in one colour,
+ * tinted like every tool icon (a mask over the text colour, so a drawing that
+ * leans on its own colours shows how it will really look), or the Material
+ * Symbols name it picks, with a link to look the symbol up.
+ */
+function PluginToolIcon({ icon, svg }: { icon: string; svg: string | null }) {
+	if (icon.startsWith('assets/')) {
+		if (!svg) return <span class="st-muted">{icon} (missing: the jigsaw shows instead)</span>;
+		const url = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
+		return (
+			<span class="st-row" style="gap:0.5rem;align-items:center">
+				<span aria-hidden="true" style={`display:inline-block;width:24px;height:24px;background:currentColor;-webkit-mask:${url} center/contain no-repeat;mask:${url} center/contain no-repeat`} />
+				<code>{icon}</code>
+			</span>
+		);
+	}
+	return (
+		<span>
+			<code>{icon}</code>{' '}
+			<a class="st-small" href={`https://fonts.google.com/icons?icon.query=${encodeURIComponent(icon)}`} target="_blank" rel="noopener noreferrer">Material Symbols</a>
+		</span>
+	);
+}
+
 export function PluginPreview({ read }: { read: PluginRead }) {
 	const m = read.manifest;
 	const textFiles = read.files.filter((f) => f.text != null);
@@ -172,6 +197,7 @@ export function PluginPreview({ read }: { read: PluginRead }) {
 					<dt>Version</dt><dd>{m.pluginVersion} <span class="st-muted">· API {m.apiVersion}</span></dd>
 					{m.author && <><dt>Author</dt><dd>{m.author}</dd></>}
 					{m.description && <><dt>About</dt><dd>{m.description}</dd></>}
+					{m.tool.icon && <><dt>Tool icon</dt><dd><PluginToolIcon icon={m.tool.icon} svg={m.tool.iconSvg} /></dd></>}
 					<dt>Entry</dt><dd><code>{m.entry}</code></dd>
 					<dt>Files</dt><dd>{read.files.map((f) => `${f.name} (${fmtBytes(f.bytes)})`).join(', ')}</dd>
 				</dl>
