@@ -6978,7 +6978,7 @@ internal data class SuggestionTextFit(val fontScale: Float, val scaleX: Float) {
  * the way Gboard does: condense the glyphs first, down to [minScaleX], so a long
  * word stays as tall as its neighbours, and only then shrink the font, down to
  * [minFontScale]. The shared [fitTextWidth] does the sums, so plugin buttons fit
- * their labels the same way. Together the two floors fit a word about 1.8 times
+ * their labels the same way. Together the two floors fit a word about twice
  * the slot width; longer than that and the caller's ellipsis takes over.
  */
 internal fun fitSuggestionText(

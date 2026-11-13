@@ -43,10 +43,11 @@ data class TextFit(val fontScale: Float, val scaleX: Float) {
 }
 
 /**
- * How far a label may be squeezed horizontally. Below about 0.8 the letterforms
- * visibly distort.
+ * How far a label may be squeezed horizontally. At 0.7 a word still reads
+ * easily, about as narrow as a condensed typeface; much below that the round
+ * letters turn into ovals.
  */
-const val MIN_TEXT_SCALE_X = 0.8f
+const val MIN_TEXT_SCALE_X = 0.7f
 
 /** How small the font may go, as a fraction of its size: 16sp down to about 11sp. */
 const val MIN_TEXT_FONT_SCALE = 0.68f
@@ -56,7 +57,7 @@ const val MIN_TEXT_FONT_SCALE = 0.68f
  * Gboard does: condense the glyphs first, which keeps the letters as tall as
  * their neighbours, and only once that reaches [minScaleX] shrink the font.
  * Text width is near enough linear in both, so the ratio of the two widths is
- * the scale needed. The floors together fit a label about 1.8 times the width;
+ * the scale needed. The floors together fit a label about twice the width;
  * past that the caller's ellipsis takes over.
  */
 fun fitTextWidth(

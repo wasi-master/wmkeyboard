@@ -25,7 +25,7 @@ class SuggestionTextFitTest {
 
     @Test
     fun `mild overflow condenses the glyphs only`() {
-        // 10% too wide: 0.91 is above the 0.8 squeeze floor, so the font keeps its size.
+        // 10% too wide: 0.91 is above the 0.7 squeeze floor, so the font keeps its size.
         val fit = fitSuggestionText(measuredWidthPx = 132f, availableWidthPx = 120f)
         assertEquals(120f / 132f, fit.scaleX, 0.001f)
         assertEquals(1f, fit.fontScale, 0f)
@@ -34,10 +34,10 @@ class SuggestionTextFitTest {
 
     @Test
     fun `heavy overflow pins the squeeze floor and shrinks the rest`() {
-        // Needs 0.6; the glyphs stop at 0.8, so the font takes 0.6 / 0.8.
+        // Needs 0.6; the glyphs stop at 0.7, so the font takes 0.6 / 0.7.
         val fit = fitSuggestionText(measuredWidthPx = 200f, availableWidthPx = 120f)
-        assertEquals(0.8f, fit.scaleX, 0.001f)
-        assertEquals(0.75f, fit.fontScale, 0.001f)
+        assertEquals(0.7f, fit.scaleX, 0.001f)
+        assertEquals(0.6f / 0.7f, fit.fontScale, 0.001f)
         assertTrue(fit.condensed)
     }
 
@@ -45,14 +45,14 @@ class SuggestionTextFitTest {
     fun `an unfittable word bottoms out at both floors`() {
         val fit = fitSuggestionText(measuredWidthPx = 1000f, availableWidthPx = 120f)
         assertEquals(0.68f, fit.fontScale, 0.001f)
-        assertEquals(0.8f, fit.scaleX, 0.001f)
+        assertEquals(0.7f, fit.scaleX, 0.001f)
     }
 
     @Test
-    fun `the two floors together fit a word about 1_8x the slot`() {
+    fun `the two floors together fit a word about twice the slot`() {
         val fit = fitSuggestionText(measuredWidthPx = 1000f, availableWidthPx = 120f)
         val widest = 1f / (fit.fontScale * fit.scaleX)
-        assertEquals(1.84f, widest, 0.02f)
+        assertEquals(2.1f, widest, 0.02f)
     }
 
     @Test
