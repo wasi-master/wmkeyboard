@@ -57,9 +57,18 @@ internal class PickerRow(
  * A run of [rows] under one heading. A null [title] is a group with no heading
  * that cannot be folded: the answers that are not a tool or an action, such as
  * "Default" or "Does nothing", which belong at the top whatever else is shut.
+ *
+ * A [searchOnly] group is never listed, only searched: the second answer an
+ * entry leads to, such as each tool behind "Open a tool", so a search for
+ * "settings shortcut" finds it and picks both at once (#1298).
  */
 @Immutable
-internal class PickerGroup(val key: String, val title: String?, val rows: List<PickerRow>)
+internal class PickerGroup(
+    val key: String,
+    val title: String?,
+    val rows: List<PickerRow>,
+    val searchOnly: Boolean = false,
+)
 
 /**
  * What each picker looked like when it was last closed, by the caller's
@@ -183,6 +192,7 @@ private fun ActionPickerContent(
                     return@LazyColumn
                 }
                 for (group in groups) {
+                    if (group.searchOnly) continue
                     val title = group.title
                     if (title != null) {
                         val shut = group.key in folded
@@ -205,6 +215,7 @@ private fun ActionPickerContent(
 private fun initialRowIndex(groups: List<PickerGroup>, folded: Set<String>): Int {
     var index = 0
     for (group in groups) {
+        if (group.searchOnly) continue
         if (group.title != null) index++
         if (group.title != null && group.key in folded) continue
         val at = group.rows.indexOfFirst { it.selected }

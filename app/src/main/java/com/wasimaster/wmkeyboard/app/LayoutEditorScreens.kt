@@ -6558,6 +6558,10 @@ internal fun KeyEditSheet(
                 if (action is KeyAction.EditSequence) pickingSequence = true
                 if (action is KeyAction.Field) pickingField = true
             },
+            onPickTool = { tool ->
+                onChange { it.withEditedAction(KeyAction.Tool(tool), key.action !is KeyAction.Tool) }
+                pickingAction = false
+            },
             onDismiss = { pickingAction = false },
         )
     }
@@ -7194,6 +7198,10 @@ private fun FlickFields(
                     else -> setArm(direction, KeyAlternate(action))
                 }
             },
+            onPickTool = { tool ->
+                picking = null
+                finishArm(direction, KeyAction.Tool(tool))
+            },
             onDismiss = { picking = null },
         )
     }
@@ -7751,6 +7759,17 @@ private fun ActionAlternatesRows(
                 if (action is KeyAction.Edit) pickingEditAt = landsAt
                 if (action is KeyAction.EditSequence) pickingSequenceAt = landsAt
                 if (action is KeyAction.SwitchInputMethod) pickingImeAt = landsAt
+            },
+            onPickTool = { tool ->
+                val action = KeyAction.Tool(tool)
+                onChange(
+                    if (index in alternates.indices) {
+                        alternates.mapIndexed { i, a -> if (i == index) a.copy(action = action) else a }
+                    } else {
+                        alternates + KeyAlternate(action)
+                    },
+                )
+                editing = null
             },
             onDismiss = { editing = null },
         )
@@ -9012,10 +9031,16 @@ internal fun KeyActionPickerDialog(
     onDismiss: () -> Unit,
     /** Narrowed by the popup-alternates picker, which cannot use them all. */
     options: List<KeyActionOption> = KeyActionCatalog,
+    /**
+     * A tool found by searching (#1298): "Open a tool" and which one, in one
+     * answer, so the caller skips the second question. Null leaves the tools
+     * out of the search.
+     */
+    onPickTool: ((ToolbarTool) -> Unit)? = null,
 ) {
     // A page of its own now (#665): the groups fold, a field searches every
     // action's name and description, and the page reopens the way it was left.
-    val groups = options.groupBy { it.groupRes }.map { (groupRes, inGroup) ->
+    val actionGroups = options.groupBy { it.groupRes }.map { (groupRes, inGroup) ->
         PickerGroup(
             key = "group-$groupRes",
             title = stringResource(groupRes),
@@ -9029,6 +9054,29 @@ internal fun KeyActionPickerDialog(
                 )
             },
         )
+    }
+    // Every tool behind "Open a tool", found by its own name but never listed:
+    // the list keeps one entry for them, and the search reaches past it.
+    val toolEntry = options.firstOrNull { it.matches(KeyAction.Tool()) }
+    val groups = if (onPickTool != null && toolEntry != null) {
+        val openATool = stringResource(toolEntry.titleRes)
+        val currentTool = (current as? KeyAction.Tool)?.tool
+        actionGroups + PickerGroup(
+            key = "tools-search",
+            title = openATool,
+            searchOnly = true,
+            rows = ToolbarTool.entries.filter(::isSupportedTool).map { tool ->
+                PickerRow(
+                    key = "tool-${tool.name}",
+                    title = stringResource(toolTitle(tool)),
+                    subtitle = openATool + " · " + stringResource(toolDescription(tool)),
+                    selected = tool == currentTool,
+                    onPick = { onPickTool(tool) },
+                )
+            },
+        )
+    } else {
+        actionGroups
     }
     ActionPickerPage(
         memoryKey = if (options === KeyActionCatalog) "key-actions" else "key-actions-${options.size}",
