@@ -137,6 +137,10 @@ Lists are additive, so several can sit under one language, and for English and B
 
 Words the keyboard must never suggest or autocorrect to, listed alphabetically with a trash icon per row. **Add word** opens the same single-field dialog shape as the personal dictionary; whatever you type is stored trimmed and lowercased, so capitalization and stray spaces don't create duplicate entries. The list is empty by default, and nothing is blacklisted until you add something yourself. Once it has entries, a **Clear the blacklist** row appears above them and empties the lot behind a confirmation. Clearing only unblocks the words; nothing you've taught the keyboard is touched. Words also arrive here from the keyboard: **Never suggest** on a held suggestion, and **Delete** on a word that is still in a read-only word list.
 
+The dialog's **Pattern (regular expression)** switch adds a pattern instead of a word, also written as `/lo+l/` between slashes. A pattern hides every word it matches from start to end, ignoring case, and its row reads **Pattern**. A pattern the keyboard would refuse (bad syntax, over 200 characters, a backreference, a group repeated inside a repeat, too slow to check, or matching every word) turns **Add** off with the reason under the field.
+
+**Import from a file** and **Export to a file** move the list as a plain-text file, one entry per line, `#` for comments, and ` @en` at the end of a line for an entry blocked in one language. Import adds and never removes, drops repeats, and leaves out refused patterns; a message counts all three. Export appears once the list has entries. See [Suggestion blacklist](/smart/blacklist/#patterns) for the pattern rules and the file format.
+
 <PhoneFrame caption="The Suggestion blacklist editor, empty until you add a word.">
   <Shot id="reference/settings/dictionary-blacklist" alt="The Suggestion blacklist editor, empty until you add a word." />
 </PhoneFrame>

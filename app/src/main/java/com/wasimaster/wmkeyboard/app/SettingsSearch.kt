@@ -600,6 +600,16 @@ private fun SearchStrings.blacklistRows(): List<SettingsSearchEntry> = listOf(
         R.string.typing_blacklist_title, "blacklist",
         screenParent = R.string.typing_group_suggestions_title, screenRoot = R.string.home_typing_title,
     ),
+    entry(
+        R.string.backup_blacklist_import_title, R.string.backup_blacklist_import_subtitle,
+        R.string.typing_blacklist_title, "blacklist",
+        screenParent = R.string.typing_group_suggestions_title, screenRoot = R.string.home_typing_title,
+    ),
+    entry(
+        R.string.backup_blacklist_export_title, R.string.backup_blacklist_export_subtitle,
+        R.string.typing_blacklist_title, "blacklist",
+        screenParent = R.string.typing_group_suggestions_title, screenRoot = R.string.home_typing_title,
+    ),
 )
 
 /** Rows on the typing/chips page, in screen order. */
@@ -1568,6 +1578,7 @@ private fun SearchStrings.clipboardRows(): List<SettingsSearchEntry> {
         row(R.string.clipboard_hold_paste_title, R.string.clipboard_hold_paste_subtitle),
         row(R.string.clipboard_type_out_title, R.string.clipboard_type_out_subtitle),
         row(R.string.clipboard_bump_on_paste_title, R.string.clipboard_bump_on_paste_subtitle),
+        row(R.string.clipboard_backspace_undoes_paste_title, R.string.clipboard_backspace_undoes_paste_subtitle),
         row(R.string.clipboard_type_tags_title, R.string.clipboard_type_tags_subtitle),
         row(R.string.clipboard_keep_rich_text_title, R.string.clipboard_keep_rich_text_subtitle),
         row(R.string.clipboard_swipe_delete_title, R.string.clipboard_swipe_delete_subtitle),

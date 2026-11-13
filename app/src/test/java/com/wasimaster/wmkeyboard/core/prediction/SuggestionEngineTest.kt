@@ -538,6 +538,35 @@ class SuggestionEngineTest {
         assertTrue("They" !in e.suggest("Th", previousWord = null))
     }
 
+    @Test fun aBlacklistPatternHidesEveryWordItMatchesWhole() {
+        val e = engine().apply { blacklist = setOf("/the[ym]/") }
+        val suggestions = e.suggest("th", previousWord = null)
+        assertTrue("they" !in suggestions)
+        assertTrue("them" !in suggestions)
+        // Matched against the whole word: "the" is not "the" plus y or m.
+        assertTrue("the" in suggestions)
+    }
+
+    @Test fun aBlacklistPatternIgnoresCase() {
+        val e = engine().apply { blacklist = setOf("/THE[YM]/") }
+        val suggestions = e.suggest("Th", previousWord = null)
+        assertTrue("They" !in suggestions)
+        assertTrue("The" in suggestions)
+    }
+
+    @Test fun aBlacklistPatternIsNotAnAutocorrectTarget() {
+        val e = engine().apply { blacklist = setOf("/w.rld/") }
+        assertNull(e.shouldAutocorrect("wprld"))
+    }
+
+    @Test fun aRefusedBlacklistPatternHidesNothing() {
+        // A backreference never compiles onto the list; the words stay.
+        val e = engine().apply { blacklist = setOf("/(th)\\1/", "/(e+)+/") }
+        val suggestions = e.suggest("th", previousWord = null)
+        assertTrue("they" in suggestions)
+        assertTrue("the" in suggestions)
+    }
+
     @Test fun rejectedCorrectionNeverFiresAgain() {
         // Backspacing over a correction is the user saying they meant what they
         // typed; repeating it on the next space leaves them no way to type the

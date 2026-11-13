@@ -1018,9 +1018,21 @@ class SuggestionEngine(
      * whose lowercase form is in here is dropped from the strip and never used
      * as an autocorrect target. This only suppresses *suggesting* the word —
      * the user can still type and commit it. Empty by default.
+     *
+     * An entry between slashes is a pattern ([BlacklistPatterns]), matched
+     * against the whole candidate. Setting the list builds [blacklistMatcher]
+     * once, so a keystroke never compiles anything.
      */
     @Volatile
     var blacklist: Set<String> = emptySet()
+        set(value) {
+            field = value
+            blacklistMatcher = BlacklistMatcher.of(value)
+        }
+
+    /** [blacklist] split into a word set and compiled patterns; see [BlacklistMatcher]. */
+    @Volatile
+    private var blacklistMatcher: BlacklistMatcher = BlacklistMatcher.NONE
 
     /**
      * American spellings English's word list in use has respelled (#999): set
@@ -1253,9 +1265,9 @@ class SuggestionEngine(
 
     private val emptyTrie: WordSource = PackedTrie.EMPTY
 
-    /** True when [word] is on the suggestion blacklist (case-insensitive). */
+    /** True when [word] is on the suggestion blacklist, as a word or by a pattern (case-insensitive). */
     private fun blacklisted(word: String): Boolean =
-        blacklist.isNotEmpty() && word.lowercase() in blacklist
+        blacklist.isNotEmpty() && blacklistMatcher.matches(word.lowercase())
 
     /** True when the offensive filter is on and [word] is a blocked word. */
     private fun offensive(word: String): Boolean {

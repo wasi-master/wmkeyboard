@@ -60,6 +60,9 @@ import com.wasimaster.wmkeyboard.core.input.composer.PinyinFuzzy
 import com.wasimaster.wmkeyboard.core.gesture.GlideBeam
 import com.wasimaster.wmkeyboard.core.gesture.GlideShapeStore
 import com.wasimaster.wmkeyboard.core.gesture.GlideTolerances
+import com.wasimaster.wmkeyboard.core.prediction.BlacklistFile
+import com.wasimaster.wmkeyboard.core.prediction.BlacklistMatcher
+import com.wasimaster.wmkeyboard.core.prediction.BlacklistPatterns
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticStripSource
@@ -3336,16 +3339,38 @@ data class SuggestionSourceSettings(
         return if (own.isNullOrEmpty()) blacklist else blacklist + own
     }
 
-    /** True when [word] is blocked while [languageId] is being typed (case-insensitive). */
+    /**
+     * The global list compiled once per settings value: its pattern entries
+     * (`/…/`, see [BlacklistPatterns]) are what the word lookups below miss.
+     */
+    private val globalMatcher by lazy(LazyThreadSafetyMode.PUBLICATION) { BlacklistMatcher.of(blacklist) }
+
+    /** True when [word] is blocked while [languageId] is being typed (case-insensitive), as a word or by a pattern. */
     fun blacklisted(word: String, languageId: String): Boolean {
         val lower = word.lowercase()
-        return lower in blacklist || blacklistByLanguage[languageId]?.contains(lower) == true
+        if (lower in blacklist || blacklistByLanguage[languageId]?.contains(lower) == true) return true
+        if (globalMatcher.hasPatterns && globalMatcher.matchesPattern(lower)) return true
+        val own = blacklistByLanguage[languageId] ?: return false
+        return BlacklistMatcher.of(own).let { it.hasPatterns && it.matchesPattern(lower) }
     }
 
-    /** True when [word] is blocked anywhere — globally or in any one language. */
+    /** True when [word] is blocked anywhere — globally or in any one language, as a word or by a pattern. */
     fun blacklistedAnywhere(word: String): Boolean {
         val lower = word.lowercase()
-        return lower in blacklist || blacklistByLanguage.values.any { lower in it }
+        if (lower in blacklist || blacklistByLanguage.values.any { lower in it }) return true
+        if (globalMatcher.hasPatterns && globalMatcher.matchesPattern(lower)) return true
+        return blacklistByLanguage.values.any { own -> BlacklistMatcher.of(own).let { it.hasPatterns && it.matchesPattern(lower) } }
+    }
+
+    /**
+     * True when [word] is blocked while [languageId] is being typed only by a
+     * pattern, not as a word of its own: removing the word cannot unblock it,
+     * so "Suggest again" has to say so rather than look broken.
+     */
+    fun blacklistedByPatternOnly(word: String, languageId: String): Boolean {
+        val lower = word.lowercase()
+        if (lower in blacklist || blacklistByLanguage[languageId]?.contains(lower) == true) return false
+        return blacklisted(word, languageId)
     }
 
     /** How many entries the blacklist holds in all, counting a word once per list it is on. */
@@ -8512,6 +8537,18 @@ data class ClipboardSettings(
      */
     val bumpOnPaste: Boolean = false,
     /**
+     * The first Backspace after a paste takes the whole pasted text back,
+     * not its last character (FUTO's "Delete pasted/inserted text on
+     * backspace"). Covers the Paste key and tool, a clip tapped in the panel
+     * or on the strip, and text a panel inserts whole: a kaomoji, a tool's
+     * result. Only while the caret is still at the paste's end and nothing
+     * was typed since; any other key, a caret move or a new field and
+     * Backspace deletes one character again. On by default, like
+     * [GestureSettings.backspaceUndoesGlide]: a paste in the wrong place is
+     * usually wrong as a whole.
+     */
+    val backspaceUndoesPaste: Boolean = true,
+    /**
      * The small "Rich text" tag under a clip that carries formatting (#414).
      * On by default. Off, the tag goes, and with it the footer row of a card
      * that had nothing else to show there, the same as the buttons toggle.
@@ -12566,6 +12603,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_CARD_BUTTONS = booleanPreferencesKey("clipboard_card_buttons")
         private val CLIPBOARD_TYPE_OUT_PASTES = booleanPreferencesKey("clipboard_type_out_pastes")
         private val CLIPBOARD_BUMP_ON_PASTE = booleanPreferencesKey("clipboard_bump_on_paste")
+        private val CLIPBOARD_BACKSPACE_UNDOES_PASTE = booleanPreferencesKey("clipboard_backspace_undoes_paste")
         private val CLIPBOARD_TYPE_TAGS = booleanPreferencesKey("clipboard_type_tags")
         private val CLIPBOARD_KEEP_RICH_TEXT = booleanPreferencesKey("clipboard_keep_rich_text")
         /** Read only, to carry the old right-swipe switch across to [CLIPBOARD_SWIPE_PIN]. */
@@ -14748,6 +14786,8 @@ class SettingsRepository(private val context: Context) {
             cardButtons = p[CLIPBOARD_CARD_BUTTONS] ?: defaults.clipboard.cardButtons,
             typeOutPastes = p[CLIPBOARD_TYPE_OUT_PASTES] ?: defaults.clipboard.typeOutPastes,
             bumpOnPaste = p[CLIPBOARD_BUMP_ON_PASTE] ?: defaults.clipboard.bumpOnPaste,
+            backspaceUndoesPaste = p[CLIPBOARD_BACKSPACE_UNDOES_PASTE]
+                ?: defaults.clipboard.backspaceUndoesPaste,
             typeTags = p[CLIPBOARD_TYPE_TAGS] ?: defaults.clipboard.typeTags,
             keepRichText = p[CLIPBOARD_KEEP_RICH_TEXT] ?: defaults.clipboard.keepRichText,
             swipePin = p[CLIPBOARD_SWIPE_PIN]
@@ -22432,19 +22472,44 @@ class SettingsRepository(private val context: Context) {
     /**
      * Adds a word to the never-suggest blacklist (lowercased, trimmed): the
      * global list, or [languageId]'s own list when one is named (#136).
+     *
+     * A `/…/` entry is a pattern and is kept as written (L8). One the guards
+     * refuse ([BlacklistPatterns.check]) is not added; the editor shows why
+     * before it ever gets here.
      */
     suspend fun addSuggestionBlacklistWord(word: String, languageId: String? = null) {
-        val normalized = word.trim().lowercase()
-        if (normalized.isEmpty()) return
+        val normalized = BlacklistPatterns.normalize(word) ?: return
+        if (BlacklistPatterns.check(normalized) != null) return
         val key = languageId?.let(::blacklistLanguageKey) ?: SUGGESTION_BLACKLIST
         editPrefs { it[key] = (it[key].orEmpty() + normalized) }
     }
 
     /** [addSuggestionBlacklistWord] for a whole list at once, in one write. */
     suspend fun addSuggestionBlacklistWords(words: Collection<String>) {
-        val normalized = words.map { it.trim().lowercase() }.filter { it.isNotEmpty() }
+        val normalized = words.mapNotNull(BlacklistPatterns::normalize).filter { BlacklistPatterns.check(it) == null }
         if (normalized.isEmpty()) return
         editPrefs { it[SUGGESTION_BLACKLIST] = it[SUGGESTION_BLACKLIST].orEmpty() + normalized }
+    }
+
+    /**
+     * Adds what a blacklist file held ([BlacklistFile.parse]) in one write,
+     * each entry onto its language's list or the global one. Returns how many
+     * were not already there.
+     */
+    suspend fun importSuggestionBlacklist(entries: Collection<BlacklistFile.Entry>): Int {
+        if (entries.isEmpty()) return 0
+        var added = 0
+        editPrefs { prefs ->
+            added = 0
+            for ((language, group) in entries.groupBy { it.languageId }) {
+                val key = language?.let(::blacklistLanguageKey) ?: SUGGESTION_BLACKLIST
+                val before = prefs[key].orEmpty()
+                val next = before + group.map { it.entry }
+                added += next.size - before.size
+                if (next.size != before.size) prefs[key] = next
+            }
+        }
+        return added
     }
 
     /**
@@ -22452,7 +22517,7 @@ class SettingsRepository(private val context: Context) {
      * from [languageId]'s own list when one is named.
      */
     suspend fun removeSuggestionBlacklistWord(word: String, languageId: String? = null) {
-        val normalized = word.trim().lowercase()
+        val normalized = BlacklistPatterns.normalize(word) ?: return
         val key = languageId?.let(::blacklistLanguageKey) ?: SUGGESTION_BLACKLIST
         editPrefs { prefs ->
             val next = prefs[key].orEmpty() - normalized
@@ -24004,6 +24069,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardBumpOnPaste(value: Boolean) =
         editPrefs { it[CLIPBOARD_BUMP_ON_PASTE] = value }
+
+    suspend fun setClipboardBackspaceUndoesPaste(value: Boolean) =
+        editPrefs { it[CLIPBOARD_BACKSPACE_UNDOES_PASTE] = value }
 
     suspend fun setClipboardTypeTags(value: Boolean) =
         editPrefs { it[CLIPBOARD_TYPE_TAGS] = value }

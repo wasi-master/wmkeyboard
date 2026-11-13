@@ -269,6 +269,7 @@ internal val SettingsSearchKeywords: Map<Int, Int> = buildMap {
     put(R.string.voice_engine_title, R.string.search_kw_voice_engine)
     put(R.string.semantic_mode_title, R.string.search_kw_semantic)
     put(R.string.clipboard_strip_media_title, R.string.search_kw_strip_media)
+    put(R.string.clipboard_backspace_undoes_paste_title, R.string.search_kw_backspace_paste)
     put(R.string.gallery_strip_location_title, R.string.search_kw_strip_location)
     put(R.string.gallery_strip_all_title, R.string.search_kw_strip_camera)
 }

@@ -147,6 +147,9 @@
     <!-- Menu item that takes a word back off the never-suggest list. %1$s is
          the word the user held. -->
     <string name="ime_word_menu_allow_again">Suggest \"<xliff:g id="word" example="mary">%1$s</xliff:g>\" again</string>
+    <!-- Shown after "Suggest again" when a pattern on the suggestion blacklist
+         (an entry written between slashes) still hides the word. %1$s is the word. -->
+    <string name="ime_suggestion_pattern_still_hides">A blacklist pattern still hides \"<xliff:g id="word" example="looool">%1$s</xliff:g>\". Edit it under Suggestion blacklist.</string>
     <!-- Menu item that adds the word being typed to the personal dictionary.
          %1$s is that word, as typed. -->
     <string name="ime_word_menu_add">Add \"<xliff:g id="word" example="Wasi">%1$s</xliff:g>\"</string>

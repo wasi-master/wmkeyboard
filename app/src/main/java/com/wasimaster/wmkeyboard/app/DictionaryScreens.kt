@@ -62,6 +62,8 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
+import androidx.compose.ui.text.font.FontFamily
+import com.wasimaster.wmkeyboard.core.util.readTextCapped
 import kotlinx.coroutines.withContext
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -80,6 +82,8 @@ import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryStore
 import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
+import com.wasimaster.wmkeyboard.core.prediction.BlacklistFile
+import com.wasimaster.wmkeyboard.core.prediction.BlacklistPatterns
 import com.wasimaster.wmkeyboard.core.prediction.CorrectionMemory
 import com.wasimaster.wmkeyboard.core.prediction.CorrectionStats
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
@@ -1208,8 +1212,8 @@ private fun EditWordDialog(
 // ---- suggestion blacklist ----
 
 /**
- * One row of the blacklist editor: a word and the language it is blocked in,
- * or null for the list that applies everywhere (#136).
+ * One row of the blacklist editor: a word (or a `/…/` pattern, L8) and the
+ * language it is blocked in, or null for the list that applies everywhere (#136).
  */
 private data class BlacklistEntry(val word: String, val languageId: String?)
 
@@ -1223,6 +1227,11 @@ private data class BlacklistEntry(val word: String, val languageId: String?)
  * saying so under the word, and the Add dialog asks which list a new word
  * goes on. The choice row at the top is for the keyboard's own "Never
  * suggest", which cannot ask.
+ *
+ * An entry can also be a pattern (L8), written between slashes or with the
+ * dialog's switch on. The dialog runs [BlacklistPatterns.check] as the user
+ * types and refuses one that fails, saying why. The whole list goes to and
+ * from a plain-text file of its own ([BlacklistFile]).
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -1240,6 +1249,50 @@ internal fun BlacklistSettings(repository: SettingsRepository, settings: LiveSet
         }.sortedWith(compareBy({ it.word }, { it.languageId.orEmpty() }))
     }
     var showAdd by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val importLauncher = rememberLauncherForActivityResult(OpenDocumentAt(PickerPlaces.BLACKLIST_IMPORT)) { uri ->
+        PickerPlaces.remember(context, PickerPlaces.BLACKLIST_IMPORT, uri)
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            // Parsing runs every pattern's probes, so it stays off the main thread too.
+            val parsed = withContext(Dispatchers.IO) {
+                runCatching { context.contentResolver.readTextCapped(uri)?.let(BlacklistFile::parse) }.getOrNull()
+            }
+            if (parsed == null) {
+                Toast.makeText(context, R.string.backup_blacklist_import_failed, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            val added = repository.importSuggestionBlacklist(parsed.entries)
+            val already = parsed.entries.size - added + parsed.duplicates
+            val res = context.resources
+            val message = buildList {
+                add(res.getQuantityString(R.plurals.backup_blacklist_import_added_toast, added, added))
+                if (already > 0) add(res.getQuantityString(R.plurals.backup_blacklist_import_duplicates_toast, already, already))
+                val refused = parsed.rejected.size
+                if (refused > 0) add(res.getQuantityString(R.plurals.backup_blacklist_import_refused_toast, refused, refused))
+            }.joinToString(" ")
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
+    }
+    val exportLauncher = rememberLauncherForActivityResult(
+        CreateDocumentAt(BlacklistFile.MIME_TYPE, PickerPlaces.BLACKLIST_EXPORT),
+    ) { uri ->
+        PickerPlaces.remember(context, PickerPlaces.BLACKLIST_EXPORT, uri)
+        if (uri == null) return@rememberLauncherForActivityResult
+        val body = BlacklistFile.write(blacklist, blacklistByLanguage)
+        scope.launch {
+            val written = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.openOutputStream(uri, "wt")?.use { it.write(body.toByteArray()) } != null
+                }.getOrDefault(false)
+            }
+            Toast.makeText(
+                context,
+                if (written) R.string.backup_blacklist_exported else R.string.backup_blacklist_export_failed,
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+    }
 
     RegisterAddFab(stringResource(R.string.backup_add_word_action)) { showAdd = true }
     SettingsGroup {
@@ -1268,6 +1321,28 @@ internal fun BlacklistSettings(repository: SettingsRepository, settings: LiveSet
                     )
                 },
             ) { scope.launch { repository.setSuggestionBlacklistScope(it) } }
+        }
+    }
+    // The list as a file of its own (L8), apart from the full backup.
+    SettingsGroup {
+        item(level = SettingLevel.STANDARD) {
+            WmRow(
+                title = stringResource(R.string.backup_blacklist_import_title),
+                subtitle = stringResource(R.string.backup_blacklist_import_subtitle),
+                icon = Icons.Outlined.Download,
+                // Plain text, but providers call a .txt many things.
+                onClick = { importLauncher.launch(arrayOf("text/*", "application/octet-stream")) },
+            )
+        }
+        if (entries.isNotEmpty()) {
+            item(level = SettingLevel.STANDARD) {
+                WmRow(
+                    title = stringResource(R.string.backup_blacklist_export_title),
+                    subtitle = stringResource(R.string.backup_blacklist_export_subtitle),
+                    icon = Icons.Outlined.Upload,
+                    onClick = { exportLauncher.launch(BlacklistFile.FILE_NAME) },
+                )
+            }
         }
     }
     // Same shape as the personal dictionary above it: a search box once the
@@ -1333,12 +1408,8 @@ internal fun BlacklistSettings(repository: SettingsRepository, settings: LiveSet
                 WmRow(
                     title = word,
                     // A language-bound word says so; a global one needs no line.
-                    subtitle = entry.languageId?.let { id ->
-                        stringResource(
-                            R.string.backup_blacklist_language_word_subtitle,
-                            LanguageRegistry.byId(id).displayName,
-                        )
-                    },
+                    // A pattern says it is one, so "/lo+l/" does not read as a typo.
+                    subtitle = blacklistRowSubtitle(BlacklistPatterns.isPattern(word), entry.languageId),
                     swipeActions = listOf(
                         deleteSwipeAction(stringResource(R.string.backup_delete_word_desc, word)) {
                             scope.launch { repository.removeSuggestionBlacklistWord(word, entry.languageId) }
@@ -1369,6 +1440,13 @@ internal fun BlacklistSettings(repository: SettingsRepository, settings: LiveSet
         // typing in; a word for a language not in the list has no strip to
         // stay out of.
         var language by remember { mutableStateOf<String?>(null) }
+        // A pattern (L8): with the switch on the field holds the expression
+        // alone; typed between slashes it is one either way.
+        var asPattern by remember { mutableStateOf(false) }
+        val typed = input.trim()
+        val candidate = if (asPattern && !BlacklistPatterns.isPattern(typed)) BlacklistPatterns.entryOf(typed) else typed
+        val isPattern = BlacklistPatterns.isPattern(candidate)
+        val problem = remember(candidate) { if (typed.isEmpty()) null else BlacklistPatterns.check(candidate) }
         AlertDialog(
             onDismissRequest = { showAdd = false },
             title = { Text(stringResource(R.string.backup_add_word_title)) },
@@ -1377,9 +1455,40 @@ internal fun BlacklistSettings(repository: SettingsRepository, settings: LiveSet
                     OutlinedTextField(
                         value = input,
                         onValueChange = { input = it },
-                        label = { Text(stringResource(R.string.backup_word_field_label)) },
+                        label = {
+                            Text(
+                                stringResource(
+                                    if (asPattern) R.string.backup_blacklist_pattern_field_label else R.string.backup_word_field_label,
+                                ),
+                            )
+                        },
                         singleLine = true,
+                        isError = problem != null,
+                        textStyle = if (isPattern) {
+                            MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace)
+                        } else {
+                            MaterialTheme.typography.bodyLarge
+                        },
+                        supportingText = when {
+                            problem != null -> { { Text(blacklistProblemText(problem)) } }
+                            isPattern || asPattern -> { { Text(stringResource(R.string.backup_blacklist_pattern_body)) } }
+                            else -> null
+                        },
                     )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { asPattern = !asPattern }
+                            .padding(vertical = 4.dp),
+                    ) {
+                        Text(
+                            stringResource(R.string.backup_blacklist_pattern_label),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Switch(checked = asPattern, onCheckedChange = { asPattern = it })
+                    }
                     Spacer(Modifier.height(12.dp))
                     Text(
                         stringResource(R.string.backup_blacklist_language_label),
@@ -1404,10 +1513,11 @@ internal fun BlacklistSettings(repository: SettingsRepository, settings: LiveSet
             },
             confirmButton = {
                 TextButton(
-                    enabled = input.isNotBlank(),
+                    enabled = typed.isNotEmpty() && problem == null,
                     onClick = {
                         val target = language
-                        scope.launch { repository.addSuggestionBlacklistWord(input, target) }
+                        val entry = candidate
+                        scope.launch { repository.addSuggestionBlacklistWord(entry, target) }
                         showAdd = false
                     },
                 ) { Text(stringResource(CommonR.string.common_add)) }
@@ -1419,6 +1529,37 @@ internal fun BlacklistSettings(repository: SettingsRepository, settings: LiveSet
             },
         )
     }
+}
+/** The line under a blacklist row: pattern or not, and the one language it is limited to, if any. */
+@Composable
+private fun blacklistRowSubtitle(pattern: Boolean, languageId: String?): String? {
+    val language = languageId?.let { LanguageRegistry.byId(it).displayName }
+    return when {
+        pattern && language != null -> stringResource(R.string.backup_blacklist_pattern_language_subtitle, language)
+        pattern -> stringResource(R.string.backup_blacklist_pattern_subtitle)
+        language != null -> stringResource(R.string.backup_blacklist_language_word_subtitle, language)
+        else -> null
+    }
+}
+
+/**
+ * Why the blacklist will not take a pattern, in words. A syntax error adds
+ * `java.util.regex`'s own description, which says more than this screen could
+ * and is not translated (config/i18n/STRINGS.md).
+ */
+@Composable
+private fun blacklistProblemText(problem: BlacklistPatterns.Problem): String = when (problem.fault) {
+    BlacklistPatterns.Fault.EMPTY -> stringResource(R.string.backup_blacklist_pattern_empty_error)
+    BlacklistPatterns.Fault.TOO_LONG ->
+        stringResource(R.string.backup_blacklist_pattern_too_long_error, BlacklistPatterns.MAX_PATTERN_LENGTH)
+    BlacklistPatterns.Fault.SYNTAX -> {
+        val reason = stringResource(R.string.backup_blacklist_pattern_syntax_error)
+        problem.description?.let { "$reason $it" } ?: reason
+    }
+    BlacklistPatterns.Fault.BACKREFERENCE -> stringResource(R.string.backup_blacklist_pattern_backreference_error)
+    BlacklistPatterns.Fault.NESTED_QUANTIFIER -> stringResource(R.string.backup_blacklist_pattern_nested_error)
+    BlacklistPatterns.Fault.RUNAWAY -> stringResource(R.string.backup_blacklist_pattern_runaway_error)
+    BlacklistPatterns.Fault.MATCHES_EVERYTHING -> stringResource(R.string.backup_blacklist_pattern_everything_error)
 }
 // ---- clipboard phone formats ----
 

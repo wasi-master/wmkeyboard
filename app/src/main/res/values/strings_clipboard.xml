@@ -116,6 +116,9 @@
     <string name="clipboard_card_buttons_info">With this setting off, press and hold a clip to pin or delete it from its popup. A card also loses the row the buttons sat on, unless the row still shows the clip\'s number, its time or a rich text tag, so more clips fit in the panel. This setting is on by default.</string>
     <string name="clipboard_bump_on_paste_title">Move a pasted clip to the top</string>
     <string name="clipboard_bump_on_paste_subtitle">A clip you paste from the history goes first in it, and back on the system clipboard</string>
+    <string name="clipboard_backspace_undoes_paste_title">Backspace removes a paste</string>
+    <string name="clipboard_backspace_undoes_paste_subtitle">One backspace after a paste deletes all of the pasted text</string>
+    <string name="clipboard_backspace_undoes_paste_info">This setting is on by default. Right after you paste, one backspace deletes everything you pasted. This works for the Paste key and tool, a clip from the clipboard panel or the suggestion strip, and a kaomoji or other text a keyboard panel puts in. Once you type, move the cursor or change text boxes, backspace deletes one character again. It does not work for a paste from the app\'s own menu, or in a terminal.</string>
     <string name="clipboard_type_out_title">Type out pasted clips</string>
     <string name="clipboard_type_out_subtitle">Paste a clip one character at a time, as if typed</string>
     <string name="clipboard_type_out_info">The text appears letter by letter, the way a one-time code goes into a row of code boxes. A clip longer than 200 characters is pasted all at once. Codes are typed out either way, from the One-time codes setting. This setting is off by default.</string>

@@ -593,6 +593,8 @@ internal object SettingsRowIcons {
         put(R.string.backup_section_statistics_label) { Icons.Outlined.QueryStats }
         put(R.string.backup_section_vocab_label) { Icons.Outlined.AutoStories }
         put(R.string.backup_blacklist_clear_title) { Icons.Outlined.DeleteSweep }
+        put(R.string.backup_blacklist_import_title) { Icons.Outlined.FileOpen }
+        put(R.string.backup_blacklist_export_title) { Icons.Outlined.Upload }
         put(R.string.backup_include_secrets_title) { Icons.Outlined.Key }
         put(R.string.backup_sync_title) { Icons.Outlined.Sync }
         put(R.string.restore_screen_title) { Icons.Outlined.History }
@@ -1409,6 +1411,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_hold_paste_title) { Icons.Outlined.ContentPaste }
         put(R.string.clipboard_type_out_title) { Icons.Outlined.Keyboard }
         put(R.string.clipboard_bump_on_paste_title) { Icons.Outlined.VerticalAlignTop }
+        put(R.string.clipboard_backspace_undoes_paste_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.clipboard_type_tags_title) { Icons.AutoMirrored.Outlined.Label }
         put(R.string.clipboard_keep_rich_text_title) { Icons.Outlined.FormatBold }
         put(R.string.clipboard_swipe_pin_title) { Icons.Outlined.SwipeRight }
