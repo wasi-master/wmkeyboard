@@ -57361,6 +57361,7 @@ open class WMKeyboardService : InputMethodService() {
         onUndoDismiss = ::onClipboardUndoDismiss,
         onClearUnpinned = ::onClipboardClearUnpinned,
         onOpenLink = ::onClipboardOpenLink,
+        onComposeEmail = ::onClipboardComposeEmail,
         onViewImage = ::onClipboardViewImage,
         onShareImage = ::onClipboardShareImage,
         onExtractText = ::onClipboardExtractText,
@@ -57447,6 +57448,23 @@ open class WMKeyboardService : InputMethodService() {
         vibrate()
         val opened = runCatching {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }.isSuccess
+        if (!opened) toast(R.string.ime_selection_macro_no_app_toast)
+    }
+
+    /**
+     * A held clip's Compose email (gap list item 26): the mail app, a new
+     * message to [address]. The address alone goes in the mailto, never the
+     * rest of the clip.
+     */
+    fun onClipboardComposeEmail(address: String) {
+        if (!isClipboardAccessible()) return
+        vibrate()
+        val opened = runCatching {
+            startActivity(
+                Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:" + Uri.encode(address, "@.+-_")))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
         }.isSuccess
         if (!opened) toast(R.string.ime_selection_macro_no_app_toast)
     }

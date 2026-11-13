@@ -1654,6 +1654,7 @@ private fun clipHoldActionLabels(): Map<ClipHoldAction, String> = ClipHoldAction
             ClipHoldAction.WEB_SEARCH -> ImeR.string.ime_clip_search_web
             ClipHoldAction.WIKIPEDIA -> ImeR.string.ime_clip_search_wikipedia
             ClipHoldAction.OPEN_LINK -> ImeR.string.ime_clip_open_link
+            ClipHoldAction.COMPOSE_EMAIL -> ImeR.string.ime_clip_compose_email
             ClipHoldAction.EXTRACT -> ImeR.string.ime_clip_extract_parts
             ClipHoldAction.PIN -> ImeR.string.ime_clip_pin
             ClipHoldAction.DELETE -> CommonR.string.common_delete

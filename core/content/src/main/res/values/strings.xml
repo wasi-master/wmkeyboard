@@ -26,6 +26,10 @@
     <!-- Tag drawn on the chip. The app prints it in capital letters. -->
     <string name="core_content_clip_entity_phone_tag">PHONE</string>
 
+    <string name="core_content_clip_entity_email_label">Email address</string>
+    <!-- Tag drawn on the chip. The app prints it in capital letters. -->
+    <string name="core_content_clip_entity_email_tag">EMAIL</string>
+
     <string name="core_content_clip_entity_url_label">Link</string>
     <!-- Tag drawn on the chip. The app prints it in capital letters. -->
     <string name="core_content_clip_entity_url_tag">LINK</string>

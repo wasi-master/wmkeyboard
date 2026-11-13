@@ -8272,6 +8272,9 @@ enum class ClipHoldAction {
     WEB_SEARCH,
     WIKIPEDIA,
     OPEN_LINK,
+
+    /** A clip with an email address in it: a new email to that address (gap list item 26). */
+    COMPOSE_EMAIL,
     EXTRACT,
     PIN,
     DELETE,
