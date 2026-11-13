@@ -74,6 +74,56 @@ object ClockNotifications {
                 it !in wanted
         }
             .forEach { WmNotifications.cancel(context, it) }
+        // From what is wanted, not from the shade: a post made a moment ago
+        // need not be listed there yet. A missed alarm stays until swiped
+        // away, so the shade is what says whether one is still there.
+        val missed = active.any { NotificationIds.isMissedAlarm(it) }
+        syncSummary(context, Summary.TIMERS, data.timers.isNotEmpty())
+        syncSummary(context, Summary.STOPWATCH, !data.stopwatch.isReset)
+        syncSummary(context, Summary.ALARMS, missed || wanted.any { NotificationIds.isAlarmNotice(it) })
+    }
+
+    /**
+     * The clock's three groups, each with a summary of its own (#970). Android
+     * 16 bundles every notification whose group has no summary into one for
+     * the whole app, which is what One UI 8.5 showed: the timer, the stopwatch
+     * and an alarm under a single icon, where other clock apps keep them
+     * apart. A summary is what a group needs to stand on its own.
+     */
+    private enum class Summary(
+        val group: String,
+        val id: Int,
+        val icon: Int,
+        val title: Int,
+        val tab: String,
+        val channel: NotificationSubChannel?,
+    ) {
+        TIMERS(GROUP_TIMERS, NotificationIds.CLOCK_TIMERS_SUMMARY, R.drawable.core_tools_ic_timer, R.string.core_tools_clock_timer, "timers", null),
+        STOPWATCH(
+            GROUP_STOPWATCH, NotificationIds.CLOCK_STOPWATCH_SUMMARY, R.drawable.core_tools_ic_stopwatch,
+            R.string.core_tools_clock_stopwatch, "stopwatch", NotificationSubChannel.CLOCK_STOPWATCH,
+        ),
+        ALARMS(
+            GROUP_ALARMS, NotificationIds.CLOCK_ALARMS_SUMMARY, R.drawable.core_tools_ic_alarm,
+            R.string.core_tools_clock_alarm, "alarms", NotificationSubChannel.CLOCK_ALARMS,
+        ),
+    }
+
+    /** Posts [summary] while its group has [children], and takes it down once it has none. */
+    private fun syncSummary(context: Context, summary: Summary, children: Boolean) {
+        if (!children) {
+            WmNotifications.cancel(context, summary.id)
+            return
+        }
+        WmNotifications.post(context, NotificationKind.CLOCK, summary.id, summary.channel) {
+            setSmallIcon(summary.icon)
+            setGroup(summary.group)
+            setGroupSummary(true)
+            setContentTitle(context.getString(summary.title))
+            setOnlyAlertOnce(true)
+            setSilent(true)
+            setContentIntent(openClock(context, summary.tab))
+        }
     }
 
     /**
@@ -135,6 +185,7 @@ object ClockNotifications {
             setAutoCancel(true)
             setContentIntent(openClock(context, "history"))
         }
+        syncSummary(context, Summary.ALARMS, children = true)
     }
 
     private fun postTimer(context: Context, t: RunningTimer, id: Int) {

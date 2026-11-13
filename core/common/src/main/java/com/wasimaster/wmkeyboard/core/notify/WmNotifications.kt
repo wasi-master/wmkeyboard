@@ -298,6 +298,11 @@ object NotificationIds {
     /** Alarms set, and an update took the full-screen grant the ring screen needs (#1287). */
     const val CLOCK_FULL_SCREEN_LOST = 102
 
+    /** The summaries over the clock's three groups (#970): timers, the stopwatch, alarms. */
+    const val CLOCK_TIMERS_SUMMARY = 103
+    const val CLOCK_STOPWATCH_SUMMARY = 104
+    const val CLOCK_ALARMS_SUMMARY = 105
+
     /** The Send files tool's upload in flight, then its finished link. */
     const val SEND_UPLOAD = 7
 
@@ -331,6 +336,9 @@ object NotificationIds {
 
     /** One per alarm for a ring nobody answered, apart from [forAlarmNotice] so a snooze does not take it down. */
     fun forMissedAlarm(id: Long): Int = CLOCK_MISSED_BASE + Math.floorMod(id, CLOCK_ALARM_SPAN.toLong()).toInt()
+
+    /** Whether [id] is one of [forMissedAlarm]'s. */
+    fun isMissedAlarm(id: Int): Boolean = id in CLOCK_MISSED_BASE until CLOCK_MISSED_BASE + CLOCK_ALARM_SPAN
 
     private const val CLOCK_NOTICE_BASE = 600
     private const val CLOCK_MISSED_BASE = 800
