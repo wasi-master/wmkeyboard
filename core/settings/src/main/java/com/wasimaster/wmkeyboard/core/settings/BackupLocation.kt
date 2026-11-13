@@ -84,6 +84,16 @@ data class BackupLocation(
     val mega: MegaConfig = MegaConfig(),
     val icloud: ICloudConfig = ICloudConfig(),
     val proton: ProtonConfig = ProtonConfig(),
+    /**
+     * This location's own schedule for the automatic backup, or null to
+     * follow the one on the Automatic backup screen. See [LocationSchedule].
+     */
+    val schedule: LocationSchedule? = null,
+    /**
+     * What the automatic backup writes here, or null for the same as
+     * everywhere else. See [LocationContents].
+     */
+    val contents: LocationContents? = null,
 ) {
 
     /**
@@ -276,6 +286,24 @@ data class BackupLocation(
                 mega = o.serialized("mega", MegaConfig.serializer(), MegaConfig()),
                 icloud = o.serialized("icloud", ICloudConfig.serializer(), ICloudConfig()),
                 proton = o.serialized("proton", ProtonConfig.serializer(), ProtonConfig()),
+                schedule = o.section("schedule")?.let {
+                    LocationSchedule(
+                        intervalHours = it.int("interval", LocationSchedule.DEFAULT_INTERVAL_HOURS),
+                        keep = it.int("keep", LocationSchedule.DEFAULT_KEEP),
+                        staggered = it.flag("staggered", false),
+                        requireCharging = it.flag("charging", true),
+                        requireUnmetered = it.flag("unmetered", true),
+                    )
+                },
+                contents = o.section("contents")?.let { c ->
+                    LocationContents(
+                        sections = runCatching {
+                            c["sections"]?.jsonArray?.mapNotNullTo(LinkedHashSet()) { it.jsonPrimitive.contentOrNull }
+                        }.getOrNull() ?: AutoBackupSettings.DEFAULT_SECTIONS,
+                        encrypt = c.flag("encrypt", false),
+                        includeSecrets = c.flag("keys", false),
+                    )
+                },
             )
         }
 
@@ -285,6 +313,28 @@ data class BackupLocation(
             if (l.name.isNotEmpty()) put("name", JsonPrimitive(l.name))
             put("enabled", JsonPrimitive(l.enabled))
             put("backup", JsonPrimitive(l.backup))
+            l.schedule?.let { sch ->
+                put(
+                    "schedule",
+                    buildJsonObject {
+                        put("interval", JsonPrimitive(sch.intervalHours))
+                        put("keep", JsonPrimitive(sch.keep))
+                        put("staggered", JsonPrimitive(sch.staggered))
+                        put("charging", JsonPrimitive(sch.requireCharging))
+                        put("unmetered", JsonPrimitive(sch.requireUnmetered))
+                    },
+                )
+            }
+            l.contents?.let { c ->
+                put(
+                    "contents",
+                    buildJsonObject {
+                        put("sections", JsonArray(c.sections.sorted().map { JsonPrimitive(it) }))
+                        put("encrypt", JsonPrimitive(c.encrypt))
+                        put("keys", JsonPrimitive(c.includeSecrets))
+                    },
+                )
+            }
             when (l.type) {
                 BackupDestination.FOLDER -> put("folderUri", JsonPrimitive(l.folderUri))
                 BackupDestination.WEBDAV -> {
@@ -426,6 +476,78 @@ data class BackupLocation(
         }
     }
 }
+
+/**
+ * One location's own schedule for the automatic backup: how often it gets a
+ * copy, how many it keeps, and what the phone waits for before sending one.
+ * The same five things the Automatic backup screen sets for every location;
+ * a location without one ([BackupLocation.schedule] null) follows that screen.
+ *
+ * The phone runs one job, as often as the most frequent location asks, and
+ * each run writes only to the locations that are due and whose conditions
+ * hold (see [AutoBackupRunner]). A slow NAS once a week and a phone folder
+ * every hour is then one job, not two.
+ */
+data class LocationSchedule(
+    /** Wall-clock hours between copies here, from [AutoBackupIntervals]. */
+    val intervalHours: Int = DEFAULT_INTERVAL_HOURS,
+    /** How many of this location's backups survive rotation. */
+    val keep: Int = DEFAULT_KEEP,
+    /** [AutoBackupSettings.staggered], for this location. */
+    val staggered: Boolean = false,
+    /** Whether a copy here waits for the charger. */
+    val requireCharging: Boolean = true,
+    /** Whether a copy here waits for Wi-Fi. Ignored where no network is needed. */
+    val requireUnmetered: Boolean = true,
+) {
+    companion object {
+        const val DEFAULT_INTERVAL_HOURS = 24
+        const val DEFAULT_KEEP = 5
+
+        /** A location's own schedule, started from the shared one so turning it on changes nothing yet. */
+        fun from(auto: AutoBackupSettings) = LocationSchedule(
+            intervalHours = auto.intervalHours,
+            keep = auto.keep,
+            staggered = auto.staggered,
+            requireCharging = auto.requireCharging,
+            requireUnmetered = auto.requireUnmetered,
+        )
+    }
+}
+
+/**
+ * What the automatic backup writes to one location, when that differs from
+ * the rest: its own list of parts, its own encryption switch, its own choice
+ * about API keys. The passphrase stays the shared one: one more secret per
+ * location is one more thing to lose.
+ */
+data class LocationContents(
+    /** [ConfigBackup.Section] ids. */
+    val sections: Set<String> = AutoBackupSettings.DEFAULT_SECTIONS,
+    /** Encrypted under [AutoBackupSettings.passphrase]; ignored while that is empty. */
+    val encrypt: Boolean = false,
+    val includeSecrets: Boolean = false,
+) {
+    val sectionSet: Set<ConfigBackup.Section>
+        get() = ConfigBackup.Section.entries.filterTo(LinkedHashSet()) { it.id in sections }
+
+    companion object {
+        /** Started from the shared choices, as [LocationSchedule.from] is. */
+        fun from(auto: AutoBackupSettings) = LocationContents(
+            sections = auto.sections,
+            encrypt = auto.encrypt,
+            includeSecrets = auto.backupIncludeSecrets,
+        )
+    }
+}
+
+/** The schedule [location] runs on: its own, or the shared one. */
+fun AutoBackupSettings.scheduleOf(location: BackupLocation): LocationSchedule =
+    location.schedule ?: LocationSchedule.from(this)
+
+/** What goes to [location]: its own choice, or the shared one. */
+fun AutoBackupSettings.contentsOf(location: BackupLocation): LocationContents =
+    location.contents ?: LocationContents.from(this)
 
 /**
  * How the last backup and the last sync went at one location. Per install,

@@ -613,7 +613,7 @@
     <!-- %1$s is the location's backup state, such as "Last backup: 2 hours ago". -->
     <string name="backup_location_state_syncs"><xliff:g id="state">%1$s</xliff:g>. Syncs here.</string>
     <string name="backup_auto_targets_title">Back up to</string>
-    <string name="backup_auto_targets_info">Each automatic backup goes to every location that you tick here. A location that you untick keeps its settings, and gets no backups until you tick it again.</string>
+    <string name="backup_auto_targets_info">Each automatic backup goes to every location that you tick here. A location that you untick keeps its settings, and gets no backups until you tick it again. Tap a location to give it a schedule or contents of its own.</string>
     <string name="backup_auto_targets_none">Add a location on the Backup &amp; restore screen first.</string>
     <string name="backup_sync_targets_title">Sync through</string>
     <string name="backup_sync_targets_info">Your devices must share at least one of these locations. If you tick more than one, the app writes the sync file to each of them, so sync keeps working while one service is down. That uses a little more data.</string>

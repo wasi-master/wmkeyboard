@@ -19,6 +19,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.zIndex
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -55,6 +56,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.selection.ColourCodes
+import com.wasimaster.wmkeyboard.core.tools.CodeSniff
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.filled.PushPin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
@@ -2598,6 +2600,11 @@ private fun ClipFullTextPopup(
     val kb = LocalKbTheme.current
     val chunks = remember(item.text) { clipTextChunks(item.text) }
     val length = item.text.length
+    // Code and Markdown open formatted, with a button for the other view:
+    // Markdown's source (coloured), or code as the plain text it is.
+    val shape = remember(item.text, plainLinks) { if (plainLinks) null else CodeSniff.of(item.text) }
+    var formatted by remember(item.id) { mutableStateOf(true) }
+    val renderMarkdown = shape == CodeSniff.Markdown && length <= ClipMarkdownRenderMax
     Popup(
         popupPositionProvider = rememberAboveAnchorPopup(),
         onDismissRequest = onDismiss,
@@ -2615,20 +2622,88 @@ private fun ClipFullTextPopup(
                     .fillMaxWidth()
                     .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
             ) {
-                Column(modifier = Modifier.padding(top = 10.dp)) {
-                    Text(
-                        pluralStringResource(R.plurals.ime_clip_character_count, length, length),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = kb.popupText.copy(alpha = 0.6f),
-                        modifier = Modifier.padding(horizontal = 14.dp),
-                    )
+                Column(modifier = Modifier.padding(top = if (shape == null) 10.dp else 2.dp)) {
+                    Row(
+                        modifier = Modifier.padding(start = 14.dp, end = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        val dim = kb.popupText.copy(alpha = 0.6f)
+                        val count = pluralStringResource(R.plurals.ime_clip_character_count, length, length)
+                        val name = shape?.let {
+                            clipShapeName(it, stringResource(R.string.ime_clip_shape_markdown), stringResource(R.string.ime_clip_shape_code))
+                        }
+                        Text(
+                            if (name == null) count else "$name · $count",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = dim,
+                            maxLines = 1,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                        Spacer(Modifier.weight(1f))
+                        // Code with no language to colour and Markdown too long to
+                        // draw have only one view, so no button.
+                        val switchable = when (shape) {
+                            null -> false
+                            CodeSniff.Markdown -> renderMarkdown
+                            is CodeSniff.Code -> true
+                        }
+                        if (switchable) {
+                            TextButton(
+                                onClick = { formatted = !formatted },
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
+                            ) {
+                                Text(
+                                    stringResource(if (formatted) R.string.ime_clip_show_raw else R.string.ime_clip_show_formatted),
+                                    fontSize = 12.sp,
+                                    color = kb.accent,
+                                )
+                            }
+                        }
+                    }
+                    val dark = kb.popupText.luminance() > 0.5f
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(max = ClipFullTextMaxHeight),
                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
                     ) {
+                        if (renderMarkdown && formatted) {
+                            // this.item: the lambda's own `item` is the clip.
+                            this.item {
+                                ChatMarkdown(
+                                    item.text,
+                                    ChatMarkdownColors(
+                                        text = kb.popupText,
+                                        dim = kb.popupText.copy(alpha = 0.6f),
+                                        codeBackground = kb.popupText.copy(alpha = 0.08f),
+                                        link = kb.accent,
+                                    ),
+                                    fontSize = 13.sp,
+                                )
+                            }
+                            return@LazyColumn
+                        }
+                        // Markdown's source, coloured; or code, in either view.
+                        val language = when {
+                            shape == CodeSniff.Markdown -> "markdown"
+                            shape is CodeSniff.Code && formatted -> shape.language
+                            else -> null
+                        }
+                        val mono = shape == CodeSniff.Markdown || (shape is CodeSniff.Code && formatted)
+                        if (mono) {
+                            items(chunks) { chunk ->
+                                val shown = remember(chunk, language, dark) { clipCodeText(chunk, language, dark) }
+                                Text(
+                                    shown,
+                                    fontSize = 12.sp,
+                                    lineHeight = 17.sp,
+                                    fontFamily = codeFontFamily(),
+                                    color = kb.popupText,
+                                )
+                            }
+                            return@LazyColumn
+                        }
                         items(chunks) { chunk ->
                             // Links in the accent colour (#472), so an address
                             // stands out of a long clip.
@@ -2823,6 +2898,16 @@ private fun ClipBody(item: ClipItem, maxLines: Int, hold: ClipHold) {
             // anything over 40 characters before reading it, so a long clip
             // costs nothing here.
             val colour = remember(item.text) { ColourCodes.parse(item.text) }
+            // Code in monospace, coloured when its language is known, and
+            // Markdown formatted; not with Keep formatting off, which asks for
+            // every clip as the plain text it is.
+            val shape = remember(item.text, hold.plainLinks) {
+                if (hold.plainLinks || colour != null) null else CodeSniff.of(item.text)
+            }
+            if (shape != null) {
+                ClipFormattedBody(item, shape, maxLines, hold)
+                return
+            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (colour != null) ClipColourSwatch(colour.argb, Modifier.padding(end = 6.dp))
                 // Cut before layout: a paragraph is measured whole however few lines
@@ -2840,6 +2925,36 @@ private fun ClipBody(item: ClipItem, maxLines: Int, hold: ClipHold) {
             }
         }
     }
+}
+
+/**
+ * A code or Markdown clip's card body: [maxLines] of it, cut before layout
+ * like plain text. Code keeps its lines whole and clips them at the card's
+ * edge rather than wrapping where the language never would.
+ */
+@Composable
+private fun ClipFormattedBody(item: ClipItem, shape: CodeSniff.Shape, maxLines: Int, hold: ClipHold) {
+    val ink = MaterialTheme.colorScheme.onSurface
+    val dark = ink.luminance() > 0.5f
+    val accent = LocalKbTheme.current.accent
+    val text = remember(item.text, maxLines, shape, dark, accent) {
+        val preview = clipPreviewText(item.text, maxLines)
+        when (shape) {
+            CodeSniff.Markdown -> markdownPreview(preview, accent, ink.copy(alpha = 0.6f), ink.copy(alpha = 0.08f), codeFontFamily())
+            is CodeSniff.Code -> clipCodeText(preview, shape.language, dark)
+        }
+    }
+    val code = shape is CodeSniff.Code
+    Text(
+        text = text,
+        maxLines = maxLines,
+        overflow = if (code) TextOverflow.Clip else TextOverflow.Ellipsis,
+        softWrap = !code,
+        fontSize = if (code) 12.sp else 13.sp,
+        fontFamily = if (code) codeFontFamily() else null,
+        lineHeight = hold.lineHeight,
+        color = ink,
+    )
 }
 
 /**

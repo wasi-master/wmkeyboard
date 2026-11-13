@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- One backup location's own page: its schedule and contents, or the shared ones from the Automatic backup screen. -->
+    <string name="backup_location_page_title">Backup settings</string>
+    <string name="backup_location_page_subtitle">How often this place gets a backup and what goes in, or the same as everywhere else</string>
+    <string name="backup_location_page_open">Open the settings for %1$s</string>
+    <string name="backup_location_page_gone">This location has been removed.</string>
+    <string name="backup_location_backup_here_title">Back up here</string>
+    <string name="backup_location_backup_here_subtitle">Automatic backups go to this location</string>
+
+    <string name="backup_location_schedule_group">Schedule</string>
+    <string name="backup_location_schedule_info">Off, this location follows the schedule on the Automatic backup screen. On, it keeps its own: a phone folder every hour and a slow server once a week, for example. The phone checks as often as the most frequent location asks and writes only where a backup is due.</string>
+    <string name="backup_location_own_schedule_title">Own schedule</string>
+    <string name="backup_location_own_schedule_on">Set here, for this location only</string>
+    <string name="backup_location_own_schedule_off">Same as Automatic backup: %1$s</string>
+
+    <string name="backup_location_contents_group">What goes in</string>
+    <string name="backup_location_contents_info">Off, this location gets the same file as every other one. On, it gets its own, with the parts you tick here: everything to your own server, say, and only the settings to a shared folder. The passphrase is the one on the Automatic backup screen.</string>
+    <string name="backup_location_own_contents_title">Own contents</string>
+    <string name="backup_location_own_contents_on">Set here, for this location only</string>
+    <string name="backup_location_own_contents_off">Same as Automatic backup</string>
+    <string name="backup_location_own_contents_short">own contents</string>
+    <string name="backup_location_encrypt_needs_passphrase">Set a passphrase on the Automatic backup screen first</string>
+
+    <!-- A row on the "Back up to" list. %1$s: "Every day, 5 kept", "own contents", or both. -->
+    <string name="backup_location_own_summary">Own settings: %1$s</string>
+    <string name="backup_location_shared_summary">Same schedule and contents as this screen</string>
+</resources>

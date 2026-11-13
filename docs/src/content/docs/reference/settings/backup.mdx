@@ -86,7 +86,7 @@ This page writes a backup on a timer to the locations you tick. It stays inert u
 | Keep older backups spread out | Toggle | Off | Back up automatically on |
 | Only while charging | Toggle | On | Back up automatically on |
 | Only on Wi-Fi | Toggle | On | Same, and only while a ticked location needs a connection (anything but a Folder) |
-| **Back up to** | A tick box per location | On for every location | always |
+| **Back up to** | A tick box per location; tap the row for its own page | On for every location | always |
 | Protect with a passphrase | Toggle | Off | always |
 | Passphrase | Password field | empty | Protect with a passphrase on |
 | **What goes in a backup** | The same switches as the export list, with their own settings | Same defaults as the export list | always |
@@ -98,6 +98,25 @@ This page writes a backup on a timer to the locations you tick. It stays inert u
 **Frequent backup** adds a second automatic backup beside this one, for what changes often and is small. Turn on **Also back up often** and it gets its own **How often, frequent backup** (the same 1 hour to 7 days, 1 hour to start with), **Frequent backups to keep** (5), **Encrypt frequent backups** and **What goes in a frequent backup** (Settings, Themes and Snippets to start with). So the hourly copy can be your settings in plain text while the daily one carries the clipboard and the stickers under a passphrase. It goes to the same ticked locations, waits for the same charging and Wi-Fi conditions, needs **Back up automatically** on, and stops while backups are paused. Its files start `wmkeyboard-quick-` rather than `wmkeyboard-auto-`, so each schedule deletes only its own old copies, and **Restore from a location** lists both. It never carries API keys. **Encrypt frequent backups** uses the passphrase under **Protect with a passphrase**, and stays off until there is one. **Back up now** takes a main backup.
 
 Each backup goes to every ticked location. A location you untick keeps its settings and gets no backups until you tick it again. One passphrase covers the automatic backups and the sync files, so use the same one on every device that syncs.
+
+#### One location's own settings
+
+Tap a location under **Back up to**, or pick **Backup settings** in its menu on the Locations card, to open its own page. Each row there reads "Same schedule and contents as this screen" until you change something, then "Own settings:" and what differs.
+
+| Setting | Type | Default | Shown when |
+| --- | --- | --- | --- |
+| Back up here | Toggle | On | always (the same tick as on **Back up to**) |
+| **Schedule**: Own schedule | Toggle | Off | always |
+| How often | Slider, the same 1 hour to 7 days | The automatic backup's | Own schedule on |
+| Backups to keep | Slider, 1–100 | The automatic backup's | Own schedule on |
+| Keep older backups spread out | Toggle | The automatic backup's | Own schedule on |
+| Only while charging | Toggle | The automatic backup's | Own schedule on |
+| Only on Wi-Fi | Toggle | The automatic backup's | Own schedule on, and the location needs a connection |
+| **What goes in**: Own contents | Toggle | Off | always |
+| Encrypt backups | Toggle | The automatic backup's | Own contents on; needs the passphrase on the Automatic backup page |
+| The section switches, and Include API keys | Toggles | The automatic backup's | Own contents on |
+
+Turning **Own schedule** or **Own contents** on copies the automatic backup's current values, so nothing changes until you move one; turning it off goes back to following that page. A weekly server and an hourly phone folder can then sit side by side: the phone checks as often as the most frequent location asks, and each run writes only to the locations that are due, and whose own charging and Wi-Fi conditions hold. A location's interval counts from its own last good backup, which its card shows. Locations that share the same contents share one file, built and checked once; a location with contents of its own gets a file built for it. **Back up now** writes to every ticked location at once, whatever their schedules. The frequent backup keeps its own interval and count everywhere, and follows each location's charging and Wi-Fi conditions.
 
 **Include API keys** under **What goes in a backup** is yours to turn on. Without a passphrase, its subtitle strongly suggests turning one on first, and turning it on asks you to confirm, because anyone who can open the location could then read your keys. It doesn't refuse.
 

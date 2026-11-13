@@ -204,21 +204,34 @@ object AutoBackupRunner {
         // periodic job still fires (see BackupPause), and each of those
         // firings should cost one settings read.
         if (!force && settings.paused(nowMs)) return Outcome.Skipped
-        val targets = settings.backupTargets
+        val all = settings.backupTargets
 
         if (!force && !settings.enabled) return Outcome.Skipped
         if (frequent && !settings.frequent.enabled) return Outcome.Skipped
+        if (all.isEmpty()) return Outcome.Skipped
+        if (!force && frequent && !isDue(settings.frequent.lastRunAtMs, settings.frequent.intervalHours, nowMs)) {
+            return Outcome.Skipped
+        }
+        // Each location on its own schedule: the job fires as often as the
+        // most frequent one asks, and a run writes only where a copy is due
+        // and the location's own conditions hold. "Back up now" writes
+        // everywhere, as it always did.
+        val targets = if (force) {
+            all
+        } else {
+            val conditions = Conditions.read(appContext, settings)
+            all.filter { location ->
+                (frequent || isDue(settings, location, nowMs)) && conditions.allow(settings, location)
+            }
+        }
         if (targets.isEmpty()) return Outcome.Skipped
-        val due = if (frequent) isDue(settings.frequent.lastRunAtMs, settings.frequent.intervalHours, nowMs) else isDue(settings, nowMs)
-        if (!force && !due) return Outcome.Skipped
         // Before anything else. A locked device cannot produce a real bundle,
         // and an unreal one is worse than none.
         if (!DirectBoot.isUserUnlocked(appContext)) return Outcome.Locked
 
         BackupLog.d("run force=$force frequent=$frequent locations=${targets.map { "${it.type.id}:${it.id}" }}")
-        val plan = if (frequent) Plan.frequent(settings) else Plan.main(settings)
         val outcome = runCancellable {
-            backUp(appContext, repository, targets, settings, plan, nowMs, announce = !force)
+            backUp(appContext, repository, targets, settings, frequent, nowMs, announce = !force)
         }
         return outcome.getOrElse { failure ->
             fail(appContext, repository, failure, nowMs, announce = !force, location = null, frequent = frequent)
@@ -226,25 +239,67 @@ object AutoBackupRunner {
     }
 
     /**
-     * What one run writes: the main schedule's choices, or the frequent
-     * one's (#970). The two share the locations, the passphrase and the
-     * staging; everything here is what differs.
+     * What the phone is doing now, for a location whose own schedule waits
+     * for more than the job did. Read once per run.
+     *
+     * Only a condition the job did not already wait for is checked here: one
+     * the job holds out for is true when the job runs, and reading it again
+     * could only disagree in the corner cases (a VPN that calls Wi-Fi
+     * metered) and stop a backup that ran before.
+     */
+    private class Conditions(
+        private val jobCharging: Boolean,
+        private val jobUnmetered: Boolean,
+        private val plugged: () -> Boolean,
+        private val unmetered: () -> Boolean,
+    ) {
+        private val pluggedNow by lazy(plugged)
+        private val unmeteredNow by lazy(unmetered)
+
+        fun allow(settings: AutoBackupSettings, location: BackupLocation): Boolean {
+            val schedule = settings.scheduleOf(location)
+            if (schedule.requireCharging && !jobCharging && !pluggedNow) return false
+            if (location.type.needsNetwork && schedule.requireUnmetered && !jobUnmetered && !unmeteredNow) return false
+            return true
+        }
+
+        companion object {
+            fun read(context: Context, settings: AutoBackupSettings) = Conditions(
+                jobCharging = AutoBackupScheduler.jobRequiresCharging(settings),
+                jobUnmetered = AutoBackupScheduler.networkTypeFor(settings) == android.app.job.JobInfo.NETWORK_TYPE_UNMETERED,
+                plugged = {
+                    runCatching {
+                        context.registerReceiver(null, android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED))
+                            ?.getIntExtra(android.os.BatteryManager.EXTRA_PLUGGED, 0) != 0
+                    }.getOrDefault(true)
+                },
+                unmetered = {
+                    runCatching {
+                        val cm = context.getSystemService(android.net.ConnectivityManager::class.java)
+                        cm != null && cm.activeNetwork != null && !cm.isActiveNetworkMetered
+                    }.getOrDefault(true)
+                },
+            )
+        }
+    }
+
+    /**
+     * What one bundle holds: the main schedule's choices for a set of
+     * locations that share them, or the frequent one's (#970). Locations with
+     * contents of their own get a bundle of their own; the passphrase and the
+     * staging are shared by all of them.
      */
     private data class Plan(
         val sections: Set<ConfigBackup.Section>,
         val encrypt: Boolean,
         val includeSecrets: Boolean,
-        val keep: Int,
-        val staggered: Boolean,
         val frequent: Boolean,
     ) {
         companion object {
-            fun main(settings: AutoBackupSettings) = Plan(
-                sections = settings.sectionSet,
-                encrypt = settings.encrypt && settings.passphrase.isNotEmpty(),
-                includeSecrets = settings.backupIncludeSecrets,
-                keep = settings.keep,
-                staggered = settings.staggered,
+            fun of(settings: AutoBackupSettings, contents: LocationContents) = Plan(
+                sections = contents.sectionSet,
+                encrypt = contents.encrypt && settings.passphrase.isNotEmpty(),
+                includeSecrets = contents.includeSecrets,
                 frequent = false,
             )
 
@@ -253,8 +308,6 @@ object AutoBackupRunner {
                 sections = settings.frequent.sectionSet,
                 encrypt = settings.frequent.encrypt && settings.passphrase.isNotEmpty(),
                 includeSecrets = false,
-                keep = settings.frequent.keep,
-                staggered = false,
                 frequent = true,
             )
         }
@@ -392,6 +445,24 @@ object AutoBackupRunner {
     fun isDue(settings: AutoBackupSettings, nowMs: Long): Boolean =
         isDue(settings.lastRunAtMs, settings.intervalHours, nowMs)
 
+    /**
+     * Whether [location] is due a copy from the main schedule: its own
+     * interval, or the shared one, since its own last good backup.
+     *
+     * A location on a slower schedule than the job's is only looked at when
+     * the job fires, and periodic jobs drift inside their window; half a job
+     * period of slack keeps a weekly location from slipping a whole firing
+     * because the run came a few minutes early.
+     */
+    fun isDue(settings: AutoBackupSettings, location: BackupLocation, nowMs: Long): Boolean {
+        val interval = settings.scheduleOf(location).intervalHours.coerceAtLeast(1)
+        val last = settings.locationStatus[location.id]?.backupAtMs ?: 0L
+        if (last <= 0L || last > nowMs) return true
+        val jobHours = AutoBackupScheduler.jobIntervalHours(settings)
+        val slackMs = if (interval > jobHours) jobHours * 60L * 60L * 1000L / 2 else 0L
+        return nowMs - last + slackMs >= interval * 60L * 60L * 1000L
+    }
+
     /** [isDue] for any schedule: its last good run and its interval. */
     fun isDue(last: Long, intervalHours: Int, nowMs: Long): Boolean {
         // A last-run time in the future is a clock that moved, or a bundle from
@@ -406,13 +477,71 @@ object AutoBackupRunner {
         repository: SettingsRepository,
         targets: List<BackupLocation>,
         settings: AutoBackupSettings,
-        plan: Plan,
+        frequent: Boolean,
         nowMs: Long,
         announce: Boolean,
     ): Outcome {
+        // One bundle per distinct choice of contents, in the locations' order:
+        // most installs have one, and it is built and checked once however
+        // many places get it.
+        val plans: Map<Plan, List<BackupLocation>> = if (frequent) {
+            mapOf(Plan.frequent(settings) to targets)
+        } else {
+            targets.groupBy { Plan.of(settings, settings.contentsOf(it)) }
+        }
+        var firstName: String? = null
+        val skipped = LinkedHashSet<ConfigBackup.Section>()
+        val failed = LinkedHashMap<String, SinkError>()
+        for ((plan, locations) in plans) {
+            val written = backUpPlan(appContext, repository, locations, settings, plan, nowMs, announce, failed)
+                ?: continue
+            if (firstName == null) firstName = written.first
+            skipped += written.second
+        }
+
+        val landed = firstName
+        if (landed == null) {
+            if (failed.isEmpty()) return Outcome.Skipped
+            return fail(
+                appContext,
+                repository,
+                BackupSinkException(failed.values.first()),
+                nowMs,
+                announce = false,
+                location = null,
+                frequent = frequent,
+            )
+        }
+        // The run counts as done when any location has it: the schedule is
+        // about whether a recent copy exists somewhere, and the failures are
+        // recorded per location for the screen to show.
+        if (frequent) {
+            repository.setFrequentBackupOutcome(ranAtMs = nowMs, error = "")
+        } else {
+            repository.setAutoBackupOutcome(ranAtMs = nowMs, error = "")
+        }
+        BackupLog.d("done $landed skipped=$skipped failed=$failed")
+        return Outcome.Done(landed, skipped, failed)
+    }
+
+    /**
+     * Builds one bundle of [plan] and copies it to [locations]. The name it
+     * got at the first location that took it and the sections it left out,
+     * or null when none took it; failures go into [failed] by location id.
+     */
+    private suspend fun backUpPlan(
+        appContext: Context,
+        repository: SettingsRepository,
+        locations: List<BackupLocation>,
+        settings: AutoBackupSettings,
+        plan: Plan,
+        nowMs: Long,
+        announce: Boolean,
+        failed: MutableMap<String, SinkError>,
+    ): Pair<String, Set<ConfigBackup.Section>>? {
         val encrypt = plan.encrypt
         val requested = plan.sections
-        if (requested.isEmpty()) return Outcome.Skipped
+        if (requested.isEmpty()) return null
 
         // Drop the bulky sections before building anything, not after: the
         // failure being avoided is an allocation, so noticing it in the
@@ -421,7 +550,7 @@ object AutoBackupRunner {
             repository.embeddedByteEstimate(setOf(section))
         }
         val sections = requested - skipped
-        if (sections.isEmpty()) return Outcome.Skipped
+        if (sections.isEmpty()) return null
 
         val version = appVersion(appContext)
 
@@ -449,7 +578,8 @@ object AutoBackupRunner {
         }
         try {
             if (!verify(staged, settings, encrypt)) {
-                return Outcome.Failed(SinkError.IO)
+                for (location in locations) failed[location.id] = SinkError.IO
+                return null
             }
             val installId = BackupInstall.id(appContext)
             val name = AutoBackupNaming.name(
@@ -464,13 +594,18 @@ object AutoBackupRunner {
                 if (encrypt) ConfigBackup.ENCRYPTED_MIME_TYPE else ConfigBackup.MIME_TYPE
 
             var firstName: String? = null
-            val failed = LinkedHashMap<String, SinkError>()
-            for (location in targets) {
-                val written = copyTo(appContext, location, name, mime, staged, plan.keep, plan.staggered, installId, plan.frequent)
+            for (location in locations) {
+                // The frequent schedule keeps its own count everywhere; the
+                // main one keeps what each location asks for.
+                val schedule = settings.scheduleOf(location)
+                val keep = if (plan.frequent) settings.frequent.keep else schedule.keep
+                val staggered = !plan.frequent && schedule.staggered
+                val written = copyTo(appContext, location, name, mime, staged, keep, staggered, installId, plan.frequent)
                 written.onSuccess { entry ->
                     if (firstName == null) firstName = entry.name
                     // A location's status is the main schedule's: what the
-                    // screen calls its last backup is the whole one.
+                    // screen calls its last backup is the whole one, and what
+                    // its own interval counts from.
                     if (!plan.frequent) {
                         repository.setLocationStatus(location.id) { it.copy(backupAtMs = nowMs, backupError = "") }
                     }
@@ -484,27 +619,8 @@ object AutoBackupRunner {
                     }
                 }
             }
-
-            val landed = firstName
-                ?: return fail(
-                    appContext,
-                    repository,
-                    BackupSinkException(failed.values.firstOrNull() ?: SinkError.IO),
-                    nowMs,
-                    announce = false,
-                    location = null,
-                    frequent = plan.frequent,
-                )
-            // The run counts as done when any location has it: the schedule is
-            // about whether a recent copy exists somewhere, and the failures are
-            // recorded per location for the screen to show.
-            if (plan.frequent) {
-                repository.setFrequentBackupOutcome(ranAtMs = nowMs, error = "")
-            } else {
-                repository.setAutoBackupOutcome(ranAtMs = nowMs, error = "")
-            }
-            BackupLog.d("done $landed (${staged.length()} B) skipped=$skipped failed=$failed")
-            return Outcome.Done(landed, skipped, failed)
+            BackupLog.d("bundle ${staged.length()} B to ${locations.size} location(s), first ${firstName ?: "none"}")
+            return firstName?.let { it to skipped }
         } finally {
             staged.delete()
         }

@@ -1430,6 +1430,22 @@ private fun SettingsNavGraph(
                 BackupSyncSettings(repository, settings)
             }
         }
+        // One location's own schedule and contents, from its row on the
+        // Automatic backup screen or its menu on the Locations card.
+        composable(BACKUP_LOCATION_ROUTE) { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id").orEmpty()
+            val place = settings.watch { s -> s.autoBackup.locations.firstOrNull { it.id == id } }
+            val context = LocalContext.current
+            SettingsScreen(
+                place?.title(context) ?: stringResource(R.string.backup_location_page_title),
+                { navController.popBackStack() },
+                route = backupLocationRoute(id),
+                accent = routeAccent("backup/auto"),
+                subtitle = stringResource(R.string.backup_location_page_subtitle),
+            ) {
+                BackupLocationSettings(repository, settings, id)
+            }
+        }
         composable("backup/history") {
             SettingsScreen(
                 stringResource(R.string.restore_screen_title),

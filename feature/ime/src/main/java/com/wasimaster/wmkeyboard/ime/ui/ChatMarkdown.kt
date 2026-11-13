@@ -629,7 +629,7 @@ internal fun Modifier.scrollHint(state: ScrollState, color: Color): Modifier = t
 internal val SCROLL_HINT_ROOM = 6.dp
 
 /** A code block's text with its tokens coloured; [dark] is a light-on-dark reader. */
-private fun highlight(code: String, language: String, dark: Boolean): AnnotatedString = buildAnnotatedString {
+internal fun highlight(code: String, language: String, dark: Boolean): AnnotatedString = buildAnnotatedString {
     append(code)
     val palette = if (dark) SYNTAX_DARK else SYNTAX_LIGHT
     for (token in CodeHighlight.tokens(code, language)) {
@@ -648,7 +648,7 @@ private fun highlight(code: String, language: String, dark: Boolean): AnnotatedS
  * theme is on, so code would lose its columns; the file underneath is still
  * there, so it is loaded directly when it can be.
  */
-private fun codeFontFamily(): FontFamily = CODE_FONT
+internal fun codeFontFamily(): FontFamily = CODE_FONT
 
 private val CODE_FONT: FontFamily by lazy {
     runCatching {

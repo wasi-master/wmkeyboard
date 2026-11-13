@@ -38,8 +38,13 @@ object CodeHighlight {
             "True False None"
         ).split(' ').toHashSet()
 
+    private val TRIPLE = mapOf('"' to "\"\"\"", '\'' to "'''")
+
     fun tokens(code: String, language: String): List<Token> {
         val lang = language.lowercase()
+        if (lang == "markdown" || lang == "md") return markdownTokens(code)
+        // A key is set apart from a value: the names are what a reader scans for.
+        val keyed = lang == "json" || lang == "jsonc" || lang == "json5"
         val hash = lang in HASH_COMMENTS
         val dash = lang in DASH_COMMENTS
         val slash = lang !in SLASH_COMMENTS_OFF
@@ -78,6 +83,13 @@ object CodeHighlight {
                         i++
                         continue
                     }
+                    // Python's docstrings and Kotlin's raw strings run to
+                    // their closing triple, across lines.
+                    if (c != '`' && code.startsWith(TRIPLE.getValue(c), i)) {
+                        i = code.indexOf(TRIPLE.getValue(c), i + 3).let { if (it < 0) n else it + 3 }
+                        out += Token(start, i, Kind.STRING)
+                        continue
+                    }
                     i++
                     while (i < n && code[i] != c) {
                         if (code[i] == '\\') i++
@@ -86,7 +98,9 @@ object CodeHighlight {
                         i++
                     }
                     if (i < n && code[i] == c) i++
-                    out += Token(start, i, Kind.STRING)
+                    var colon = i
+                    while (colon < n && (code[colon] == ' ' || code[colon] == '\t')) colon++
+                    out += Token(start, i, if (keyed && colon < n && code[colon] == ':') Kind.TYPE else Kind.STRING)
                 }
                 c.isDigit() && (i == 0 || !code[i - 1].isLetterOrDigit() && code[i - 1] != '_') -> {
                     i++
@@ -106,6 +120,38 @@ object CodeHighlight {
                 else -> i++
             }
         }
+        return out
+    }
+
+    private val MD_HEADING = Regex("""(?m)^#{1,6} .*$""")
+    private val MD_FENCE = Regex("""(?ms)^ {0,3}```.*?(?:^ {0,3}```[ \t]*$|\z)""")
+    private val MD_CODE_SPAN = Regex("""`[^`\n]+`""")
+    private val MD_STRONG = Regex("""(\*\*|__)(?=\S).+?(?<=\S)\1|(?<![\w*])\*(?=\S)[^*\n]+?(?<=\S)\*(?!\*)|~~[^~\n]+~~""")
+    private val MD_LINK_TARGET = Regex("""(?<=\])\([^)\s]+(?: "[^"]*")?\)|<https?://[^>\s]+>""")
+    private val MD_MARKER = Regex("""(?m)^\s{0,6}(?:[-*+]|\d{1,3}[.)]|>)(?= )|^\s*\|?(?:\s*:?-{3,}:?\s*\|?)+\s*$""")
+
+    /**
+     * Markdown's source, coloured by its marks rather than by words: headings
+     * as keywords, emphasis as types, code as strings, link targets as numbers
+     * and list, quote and table markers as comments. A word like "if" in a
+     * sentence stays the text colour.
+     */
+    private fun markdownTokens(code: String): List<Token> {
+        val out = ArrayList<Token>()
+        val taken = BooleanArray(code.length)
+        fun add(range: IntRange, kind: Kind) {
+            if (range.isEmpty() || (range.first until range.last + 1).any { taken[it] }) return
+            for (k in range) taken[k] = true
+            out += Token(range.first, range.last + 1, kind)
+        }
+        // Code first: nothing inside a fence or a code span is Markdown.
+        MD_FENCE.findAll(code).forEach { add(it.range, Kind.STRING) }
+        MD_CODE_SPAN.findAll(code).forEach { add(it.range, Kind.STRING) }
+        MD_HEADING.findAll(code).forEach { add(it.range, Kind.KEYWORD) }
+        MD_LINK_TARGET.findAll(code).forEach { add(it.range, Kind.NUMBER) }
+        MD_STRONG.findAll(code).forEach { add(it.range, Kind.TYPE) }
+        MD_MARKER.findAll(code).forEach { add(it.range, Kind.COMMENT) }
+        out.sortBy { it.start }
         return out
     }
 }

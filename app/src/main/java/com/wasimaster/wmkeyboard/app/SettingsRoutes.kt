@@ -97,6 +97,7 @@ internal object SettingsRoutes {
         "backup",
         "backup/auto",
         "backup/sync",
+        "backup/location/{id}",
         "backup/history",
         "backup/contents",
         "customdictionaries",

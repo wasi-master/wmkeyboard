@@ -71,14 +71,39 @@ object AutoBackupScheduler {
      * A network destination with "Wi-Fi only" off still waits for *some*
      * network. Without that the job ran offline, the token refresh failed, and
      * the run was recorded against the destination.
+     *
+     * Locations with a schedule of their own may differ: the job waits for
+     * Wi-Fi only when every network location does, and the run checks the
+     * rest one by one (see [AutoBackupRunner]).
      */
-    fun networkTypeFor(settings: AutoBackupSettings): Int = when {
-        // Mixed locations wait for the network: a run is one pass over all of
-        // them, and the folder copy costs nothing to delay.
-        settings.backupTargets.none { it.type.needsNetwork } -> JobInfo.NETWORK_TYPE_NONE
-        settings.requireUnmetered -> JobInfo.NETWORK_TYPE_UNMETERED
-        else -> JobInfo.NETWORK_TYPE_ANY
+    fun networkTypeFor(settings: AutoBackupSettings): Int {
+        val online = settings.backupTargets.filter { it.type.needsNetwork }
+        return when {
+            // Mixed locations wait for the network: a run is one pass over all
+            // of them, and the folder copy costs nothing to delay.
+            online.isEmpty() -> JobInfo.NETWORK_TYPE_NONE
+            online.all { settings.scheduleOf(it).requireUnmetered } -> JobInfo.NETWORK_TYPE_UNMETERED
+            else -> JobInfo.NETWORK_TYPE_ANY
+        }
     }
+
+    /**
+     * Whether the job waits for the charger: only when every location's
+     * schedule does. With none ticked, the shared switch.
+     */
+    fun jobRequiresCharging(settings: AutoBackupSettings): Boolean {
+        val targets = settings.backupTargets
+        if (targets.isEmpty()) return settings.requireCharging
+        return targets.all { settings.scheduleOf(it).requireCharging }
+    }
+
+    /**
+     * Hours between the main job's firings: the shortest interval any
+     * location asks for. Each run then writes only where a copy is due.
+     */
+    fun jobIntervalHours(settings: AutoBackupSettings): Int =
+        settings.backupTargets.minOfOrNull { settings.scheduleOf(it).intervalHours.coerceAtLeast(1) }
+            ?: settings.intervalHours.coerceAtLeast(1)
 
     /**
      * Backs up once, as soon as the ticked locations' network rule allows, whether
@@ -130,7 +155,7 @@ object AutoBackupScheduler {
     fun sync(context: Context, settings: AutoBackupSettings) {
         val scheduler = context.getSystemService(JobScheduler::class.java) ?: return
         val on = settings.enabled && settings.backupTargets.isNotEmpty()
-        syncJob(context, scheduler, settings, JOB_ID, on, settings.intervalHours, frequent = false)
+        syncJob(context, scheduler, settings, JOB_ID, on, jobIntervalHours(settings), frequent = false)
         syncJob(
             context, scheduler, settings, JOB_ID_FREQUENT,
             on && settings.frequent.enabled, settings.frequent.intervalHours, frequent = true,
@@ -162,7 +187,7 @@ object AutoBackupScheduler {
         // see — the worst shape a settings bug takes.
         if (pending != null &&
             pending.intervalMillis == intervalMs &&
-            pending.isRequireCharging == settings.requireCharging &&
+            pending.isRequireCharging == jobRequiresCharging(settings) &&
             pending.networkType == networkType
         ) {
             return
@@ -173,7 +198,7 @@ object AutoBackupScheduler {
             // Deliberately without `setRequiresDeviceIdle`. Idle plus charging
             // is what makes the platform's own backups so hard to predict, and
             // the work here is a few seconds of file copying.
-            .setRequiresCharging(settings.requireCharging)
+            .setRequiresCharging(jobRequiresCharging(settings))
             .setRequiredNetworkType(networkType)
             .setBackoffCriteria(BACKOFF_MS, JobInfo.BACKOFF_POLICY_LINEAR)
             .apply {

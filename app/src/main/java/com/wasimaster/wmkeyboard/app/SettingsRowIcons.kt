@@ -2640,6 +2640,10 @@ internal object SettingsRowIcons {
 
         // ---- Clipboard, restore points, search shortcuts ----
         put(R.string.clipboard_board_title) { Icons.Outlined.Folder }
+        put(R.string.clipboard_board_group) { Icons.Outlined.ContentPaste }
+        put(R.string.backup_location_backup_here_title) { Icons.Outlined.CloudUpload }
+        put(R.string.backup_location_own_schedule_title) { Icons.Outlined.Schedule }
+        put(R.string.backup_location_own_contents_title) { Icons.Outlined.Inventory2 }
         put(R.string.restore_undo_ten_minutes_title) { Icons.AutoMirrored.Outlined.Undo }
         put(R.string.restore_undo_hour_title) { Icons.AutoMirrored.Outlined.Undo }
         put(R.string.restore_history_clear_title) { Icons.Outlined.DeleteSweep }

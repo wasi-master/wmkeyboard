@@ -524,6 +524,18 @@ private fun LocationRow(
                     )
                 }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    // Its own schedule and contents, or the shared ones. A
+                    // link only syncs, so it has none.
+                    if (!location.type.isLink) {
+                        val navigate = LocalSettingsNavigate.current
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.backup_location_page_title)) },
+                            onClick = {
+                                menu = false
+                                navigate(backupLocationRoute(location.id))
+                            },
+                        )
+                    }
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.backup_location_restore, title)) },
                         enabled = location.configured && !location.type.isLink,

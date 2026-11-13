@@ -1597,7 +1597,8 @@ private fun SearchStrings.clipboardRows(): List<SettingsSearchEntry> {
         entry(title, subtitle, R.string.home_clipboard_title, "clipboard", weight = weight)
     return listOf(
         row(R.string.clipboard_history_title, R.string.clipboard_history_subtitle, weight = EntryWeight.PRIMARY),
-        row(R.string.clipboard_board_title, R.string.clipboard_board_subtitle),
+        // The board itself is set on Backup & restore; this row points there.
+        row(R.string.clipboard_board_group, R.string.clipboard_board_link_off),
         row(R.string.panel_layout_row_title, R.string.panel_layout_row_subtitle),
         row(R.string.clipboard_full_bleed_title, R.string.clipboard_full_bleed_subtitle),
         row(R.string.clipboard_panel_height_title, R.string.clipboard_panel_height_subtitle),
@@ -2714,6 +2715,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         // Where backups go: the Locations card on the main Backup screen. Each
         // kind of place is findable by name, and all of them land on the card.
         backupHub(R.string.backup_locations_title, R.string.backup_location_add_subtitle),
+        backupHub(R.string.clipboard_board_title, R.string.clipboard_board_subtitle),
         backupHub(R.string.backup_auto_folder_title, R.string.backup_auto_dest_folder_desc),
         backupHub(R.string.backup_auto_dest_webdav, R.string.backup_auto_dest_webdav_desc),
         backupHub(R.string.backup_auto_drive_title, R.string.backup_auto_dest_drive_desc),
