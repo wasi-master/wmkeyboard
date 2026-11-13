@@ -1,0 +1,42 @@
+<keyboard3 xmlns="https://schemas.unicode.org/cldr/45/keyboard3" conformsTo="45" locale="de">
+    <!-- Hand-written for WM Keyboard's tests in FlorisBoard's dialect of keyboard3. -->
+    <info author="WM Keyboard tests" name="Test QWERTZ" />
+    <displays>
+        <display keyId="base-to-shift" display="@fl:icon/shift" />
+        <display keyId="symbol-1" display="${symbol_display}" />
+    </displays>
+    <keys>
+        <import base="cldr" path="45/keys-Zyyy-punctuation.xml" />
+        <import path="flex://org.florisboard.k3.foundation/keys-implied.xml" />
+        <import path="flex://test.extension/extra-keys.xml" />
+        <key id="base" layerId="base" width="1.5" />
+        <key id="base-to-shift" layerId="shift" width="1.5" />
+        <key id="shift-to-base" layerId="base" width="1.5" />
+        <key id="symbol-1" layerId="symbol-1" width="1.5" />
+        <key id="bksp" output="@k3:action/backspace" stretch="true" />
+        <key id="enter" output="@k3:action/enter" width="1.6" />
+        <key id="a" output="a" longPressKeyIds="a-umlaut" />
+    </keys>
+    <layers formId="touch" minDeviceWidth="1">
+        <import path="flex://org.florisboard.k3.foundation/layers-touch.xml" />
+        <layer id="base">
+            <row keys="q w e r t z u i o p" />
+            <row keys="a s d f g h j k l" />
+            <row keys="base-to-shift y x c v b n m bksp" />
+            <row keys="symbol-1 comma fn-key space period enter" />
+        </layer>
+        <layer id="shift">
+            <row keys="Q W E R T Z U I O P" />
+            <row keys="A S D F G H J K L" />
+            <row keys="shift-to-base Y X C V B N M bksp" />
+            <row keys="symbol-1 comma fn-key space period enter" />
+        </layer>
+        <layer id="symbol-1">
+            <row keys="1 2 3 4 5 6 7 8 9 0" />
+            <row keys="base comma space period enter" />
+        </layer>
+    </layers>
+    <variables>
+        <string id="symbol_display" value="?123" />
+    </variables>
+</keyboard3>

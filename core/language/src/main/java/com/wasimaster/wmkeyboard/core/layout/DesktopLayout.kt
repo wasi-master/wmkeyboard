@@ -212,6 +212,7 @@ object DesktopLayouts {
             DesktopFormat.KLC -> ForeignSource.WINDOWS_KLC
             DesktopFormat.MAC_KEYLAYOUT -> ForeignSource.MAC_KEYLAYOUT
             DesktopFormat.XKB -> ForeignSource.XKB_SYMBOLS
+            DesktopFormat.KEYBOARD3 -> ForeignSource.KEYBOARD3
         }
         val converted = ForeignLayouts.assemble(
             rows = grid,
@@ -279,10 +280,10 @@ object DesktopLayouts {
     }
 
     /**
-     * The language a `.klc` states, when this app has it. `lt-LT` is tried
+     * The language a `.klc` or a keyboard3 file states, when this app has it. `lt-LT` is tried
      * whole, then as `lt-LT` with its region, then `lt`.
      */
-    private fun declaredLanguage(tag: String?): String? {
+    internal fun declaredLanguage(tag: String?): String? {
         val clean = tag?.trim()?.replace('_', '-')?.ifEmpty { null } ?: return null
         val parts = clean.split('-')
         val lang = parts.first()

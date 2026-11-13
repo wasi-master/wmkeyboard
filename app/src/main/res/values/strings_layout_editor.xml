@@ -98,6 +98,8 @@
     <string name="layout_editor_foreign_from_klc">The app read this file as a Windows layout made in MSKLC. The letter keys keep their places. The characters that AltGr and the dead keys type are on press and hold of the letters, and the symbol keys stay the ones you have.</string>
     <string name="layout_editor_foreign_from_keylayout">The app read this file as a Mac layout (.keylayout). The letter keys keep their places. The characters that Option and the dead keys type are on press and hold of the letters, and the symbol keys stay the ones you have.</string>
     <string name="layout_editor_foreign_from_xkb">The app read this file as a Linux XKB layout. The letter keys keep their places. The characters that AltGr and the dead keys type are on press and hold of the letters, and the symbol keys stay the ones you have.</string>
+    <!-- CLDR keyboard3 is the Unicode keyboard file format (LDML). FlorisBoard is another keyboard app. -->
+    <string name="layout_editor_foreign_from_keyboard3">The app read this file as a CLDR keyboard3 layout, the format FlorisBoard uses. Its pages, swipes and press-and-hold letters came across. Rules that change text as you type became dead keys or press-and-hold letters where they could.</string>
     <!-- Unexpected Keyboard and CleverKeys are the names of other keyboard apps; leave them as they are. -->
     <string name="layout_editor_foreign_from_unexpected">The app read this as an Unexpected Keyboard or CleverKeys layout. The swipes to the corners of each key come across as swipes, and you can also hold the key to get them. The app adds its own bottom row unless the layout has its own.</string>
     <!-- The language a converted layout types in. The file does not say, so the

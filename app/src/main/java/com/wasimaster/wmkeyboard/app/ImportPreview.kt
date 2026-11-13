@@ -101,6 +101,9 @@ internal fun ImportFilePreview(state: WMFileTypes.Opened, uri: Uri) {
         // The first variant: the dialog lists the rest by name.
         is WMFileTypes.Opened.DesktopLayoutFile -> state.layouts.firstOrNull()?.let { LayoutFilePreview(it.layout) }
 
+        // The first layout of an extension: the dialog lists the rest by name.
+        is WMFileTypes.Opened.Keyboard3LayoutFile -> state.layouts.firstOrNull()?.let { LayoutFilePreview(it.layout) }
+
         // The first layout, or the theme when the text holds no layout: a
         // settings export's dialog already says how many of each it holds.
         is WMFileTypes.Opened.MultilingFile -> {

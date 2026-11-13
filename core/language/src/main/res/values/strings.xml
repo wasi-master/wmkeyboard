@@ -275,6 +275,46 @@
         <item quantity="other">The file builds on %1$d other files (<xliff:g id="files" example="in(eng), latin">%2$s</xliff:g>) that you did not open. Keys that only those files set are missing.</item>
     </plurals>
 
+    <!-- A CLDR keyboard3 (Unicode LDML) layout can carry rules that change the
+         text as you type: a key, then a letter, becomes one accented letter.
+         This keyboard runs no such rules, so each one is turned into the
+         nearest thing it has, or left out. %1$d is the number of rules, and
+         picks the wording. A dead key types nothing by itself and puts an
+         accent on the next letter. -->
+    <plurals name="core_lang_foreign_k3_transforms_dead_keys">
+        <item quantity="one">%1$d rule puts an accent on the next letter. Here, the key that starts it is a dead key.</item>
+        <item quantity="other">%1$d rules put an accent on the next letter. Here, the keys that start them are dead keys.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_on_hold">
+        <item quantity="one">%1$d rule turns a key and the next one into another character. Here, that character is on press and hold of the first key.</item>
+        <item quantity="other">%1$d rules turn a key and the next one into another character. Here, those characters are on press and hold of the first key.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_transforms_dropped">
+        <item quantity="one">The app left out %1$d rule that changes text as you type. No key here starts it, or it matches more text than a key can type.</item>
+        <item quantity="other">The app left out %1$d rules that change text as you type. No key here starts them, or they match more text than a key can type.</item>
+    </plurals>
+    <!-- Reorder rules put the marks of a syllable in the order they are
+         written in, whatever order they were typed in. -->
+    <plurals name="core_lang_foreign_k3_reorder_dropped">
+        <item quantity="one">The app left out %1$d rule that puts marks in their written order. This keyboard writes marks in the order you type them.</item>
+        <item quantity="other">The app left out %1$d rules that put marks in their written order. This keyboard writes marks in the order you type them.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_k3_backspace_dropped">
+        <item quantity="one">The app left out %1$d rule that changes what delete removes. Delete works the way it does on every layout here.</item>
+        <item quantity="other">The app left out %1$d rules that change what delete removes. Delete works the way it does on every layout here.</item>
+    </plurals>
+    <!-- Pages of a computer layout for a key such as Caps Lock or Ctrl. -->
+    <plurals name="core_lang_foreign_k3_layers_dropped">
+        <item quantity="one">The app left out %1$d page for a key such as Caps Lock or Ctrl. This keyboard has no page for that key.</item>
+        <item quantity="other">The app left out %1$d pages for keys such as Caps Lock or Ctrl. This keyboard has no page for those keys.</item>
+    </plurals>
+    <!-- A swipe that goes one way and then another, such as up-right then
+         down. Swipes on this keyboard go one way. -->
+    <plurals name="core_lang_foreign_k3_flick_paths_dropped">
+        <item quantity="one">The app removed %1$d swipe that changes direction. Swipes on this keyboard go one way.</item>
+        <item quantity="other">The app removed %1$d swipes that change direction. Swipes on this keyboard go one way.</item>
+    </plurals>
+
     <!-- ================================================================== -->
     <!-- Numerals. Settings > Languages > a language > Numerals picks which  -->
     <!-- digits a language draws; Settings > Layout and size > Numerals      -->

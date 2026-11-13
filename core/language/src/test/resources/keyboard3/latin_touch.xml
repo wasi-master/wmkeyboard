@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Hand-written for WM Keyboard's tests in the CLDR keyboard3 format. -->
+<!DOCTYPE keyboard3 SYSTEM "../dtd/ldmlKeyboard3.dtd">
+<keyboard3 xmlns="https://schemas.unicode.org/cldr/45/keyboard3" locale="fr-t-k0-test" conformsTo="45">
+    <info name="Test AZERTY" author="WM Keyboard tests" layout="AZERTY" />
+    <displays>
+        <display keyId="numeric" display="${numeric_label}" />
+        <display keyId="base" display="@" />
+        <display output="\u{0301}" display="´" />
+    </displays>
+    <keys>
+        <import base="cldr" path="45/keys-Zyyy-punctuation.xml" />
+        <import base="cldr" path="45/keys-Zyyy-currency.xml" />
+        <key id="shift" layerId="shift" width="1.5" />
+        <key id="base" layerId="base" width="1.5" />
+        <key id="numeric" layerId="numeric" width="1.5" />
+        <key id="e-acute" output="é" />
+        <key id="e-grave" output="è" />
+        <key id="e-caret" output="ê" />
+        <key id="E-acute" output="É" />
+        <key id="acute" output="\u{0301}" />
+        <key id="super-2" output="²" multiTapKeyIds="sub-2 2" />
+        <key id="sub-2" output="₂" />
+        <key id="e" output="e" longPressKeyIds="e-grave e-acute e-caret" longPressDefaultKeyId="e-acute" />
+        <key id="a" output="a" flickId="a-arms" />
+        <key id="kana" output="\u{3042}" />
+    </keys>
+    <flicks>
+        <flick id="a-arms">
+            <flickSegment directions="n" keyId="at" />
+            <flickSegment directions="s" keyId="numeric" />
+            <flickSegment directions="ne s" keyId="e-acute" />
+        </flick>
+    </flicks>
+    <layers formId="touch" minDeviceWidth="150">
+        <layer id="base">
+            <row keys="q w e r t y u i o p" />
+        </layer>
+    </layers>
+    <layers formId="touch" minDeviceWidth="1">
+        <layer id="base">
+            <row keys="a z e r t y u i o p" />
+            <row keys="q s d f g h j k l m" />
+            <row keys="shift gap w x c v b n acute" />
+            <row keys="numeric comma space period" />
+        </layer>
+        <layer id="shift">
+            <row keys="A Z E R T Y U I O P" />
+            <row keys="Q S D F G H J K L M" />
+            <row keys="base W X C V B N E-acute" />
+            <row keys="numeric comma space period" />
+        </layer>
+        <layer id="numeric">
+            <row keys="1 2 3 4 5 6 7 8 9 0" />
+            <row keys="super-2 at hash dollar percent amp hyphen plus open-paren close-paren" />
+            <row keys="base comma space period" />
+        </layer>
+    </layers>
+    <variables>
+        <string id="numeric_label" value="?12" />
+    </variables>
+</keyboard3>

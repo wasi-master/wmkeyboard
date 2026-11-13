@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Hand-written for WM Keyboard's tests in the CLDR keyboard3 format. -->
+<keyboard3 xmlns="https://schemas.unicode.org/cldr/46/keyboard3" locale="mt-t-k0-test" conformsTo="46">
+    <info name="Layers and transforms" />
+    <keys>
+        <key id="dead-grave" output="\m{grave}" />
+        <key id="dead-cur" output="\m{cur}" />
+        <key id="h-bar" output="ħ" />
+        <key id="H-bar" output="Ħ" />
+        <key id="to-symbols" layerId="sym" />
+        <key id="to-more" layerId="more" />
+        <key id="to-base" layerId="base" />
+        <key id="to-pad" layerId="pad" />
+        <key id="bksp" output="@k3:action/backspace" stretch="true" />
+        <key id="enter" output="@k3:action/enter" width="1.5" />
+        <key id="sparkle" output="@fl:action/toggle_actions_overflow" />
+    </keys>
+    <layers formId="touch">
+        <layer id="base">
+            <row keys="q w e r t y u i o p" />
+            <row keys="a s d f g h j k l h-bar" />
+            <row keys="dead-grave z x c v b n m dead-cur bksp" />
+            <row keys="to-symbols comma space period enter" />
+        </layer>
+        <layer id="shift">
+            <row keys="Q W E R T Y U I O P" />
+            <row keys="A S D F G H J K L" />
+            <row keys="Z X C V B N M" />
+            <row keys="to-symbols comma space period enter" />
+        </layer>
+        <layer id="sym">
+            <row keys="1 2 3 4 5 6 7 8 9 0" />
+            <row keys="to-more at hash amp to-pad sparkle bksp" />
+            <row keys="to-base comma space period enter" />
+        </layer>
+        <layer id="more">
+            <row keys="tilde grave pipe backslash" />
+            <row keys="to-base space enter" />
+        </layer>
+        <layer id="pad">
+            <row keys="7 8 9" />
+            <row keys="to-base 0 bksp" />
+        </layer>
+        <layer id="unreached">
+            <row keys="x y z" />
+        </layer>
+    </layers>
+    <variables>
+        <set id="vowel" value="a e i o u" />
+        <set id="curfrom" value="e l y" />
+        <set id="curto" value="€ ₤ ¥" />
+        <uset id="all" value="[a-c]" />
+    </variables>
+    <transforms type="simple">
+        <transformGroup>
+            <transform from="\m{grave}($[vowel])" to="$1\u{0300}" />
+            <transform from="\m{grave}n" to="ǹ" />
+            <transform from="\m{grave}2" to="²" />
+            <transform from="\m{cur}($[curfrom])" to="$[1:curto]" />
+            <transform from="\m{cur}($[all])" to="¤" />
+            <transform from="q(u)?x" to="Q" />
+            <transform from="ab+" to="X" />
+            <transform from="\m{nothere}a" to="Z" />
+        </transformGroup>
+        <transformGroup>
+            <transform from="\m{.}(.)" to="$1" />
+        </transformGroup>
+        <transformGroup>
+            <reorder from="\u{0300}" order="10" />
+            <reorder from="\u{0301}" order="20" />
+        </transformGroup>
+    </transforms>
+    <transforms type="backspace">
+        <transformGroup>
+            <transform from="ħ\u{0300}" />
+        </transformGroup>
+    </transforms>
+</keyboard3>

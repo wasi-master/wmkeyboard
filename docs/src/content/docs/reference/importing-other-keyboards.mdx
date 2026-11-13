@@ -1,6 +1,6 @@
 ---
 title: "Importing from other keyboards"
-description: "Bring layouts, themes, dictionaries, input methods and whole settings backups over from FlorisBoard, HeliBoard, LeanType, FUTO, CleverKeys, Unexpected Keyboard, AnySoftKeyboard, Samsung Keyboard (Keys Cafe), Multiling O, Kinetica, Clink, Gboard, gcin, OpenVanilla, Rime and m17n, plus layouts made for Windows, macOS and Linux: what converts, what doesn't, and why."
+description: "Bring layouts, themes, dictionaries, input methods and whole settings backups over from FlorisBoard (old JSON and new CLDR keyboard3 layouts), HeliBoard, LeanType, FUTO, CleverKeys, Unexpected Keyboard, AnySoftKeyboard, Samsung Keyboard (Keys Cafe), Multiling O, Kinetica, Clink, Gboard, gcin, OpenVanilla, Rime and m17n, plus layouts made for Windows, macOS and Linux: what converts, what doesn't, and why."
 sidebar:
   order: 6
 ---
@@ -8,7 +8,7 @@ sidebar:
 import SettingsPath from '@components/SettingsPath.astro';
 import KeyCap from '@components/KeyCap.astro';
 
-Switching keyboards usually means leaving your layouts, themes and dictionaries behind. WM Keyboard reads FlorisBoard, HeliBoard, LeanType, FUTO, Unexpected Keyboard, CleverKeys, Samsung Keyboard (Keys Cafe), Multiling O, Kinetica and Clink files directly and converts them into its own, so the grid you built, the theme you picked and the word list you collected come with you. It also reads the layout files people make for computers (Windows `.klc`, macOS `.keylayout` and Linux XKB), which is where a lot of layouts for smaller languages live.
+Switching keyboards usually means leaving your layouts, themes and dictionaries behind. WM Keyboard reads FlorisBoard, HeliBoard, LeanType, FUTO, Unexpected Keyboard, CleverKeys, Samsung Keyboard (Keys Cafe), Multiling O, Kinetica and Clink files directly and converts them into its own, so the grid you built, the theme you picked and the word list you collected come with you. It also reads the layout files people make for computers (Windows `.klc`, macOS `.keylayout` and Linux XKB), which is where a lot of layouts for smaller languages live, and the Unicode CLDR keyboard3 format that CLDR's own keyboards and FlorisBoard's current layouts are written in.
 
 Conversion is honest about being lossy. A layout import always ends on a confirm dialog that lists what changed and what could not be carried, and nothing is written until you accept it. A `.flex` theme opened from a file manager gets the same treatment. The **FlorisBoard** button inside Settings is the one route without a confirm step: it saves the theme straight away and then tells you what it saved. Saved is not switched on, so you still get to look first.
 
@@ -22,6 +22,8 @@ Conversion is honest about being lossy. A layout import always ends on a confirm
 | `.kcf` layout | Samsung Keyboard, shared from Keys Cafe | A custom layout, kept exactly as it was laid out |
 | DIY or DIY+ layout text, or a settings export | Multiling O Keyboard | A custom layout with its symbols and AltGr pages, or every layout in the export |
 | `.xml` layout | Unexpected Keyboard, CleverKeys | A custom layout that keeps the swipes to each key's corners |
+| `.xml` keyboard3 layout | CLDR's keyboards, FlorisBoard since it dropped its JSON layouts | A custom layout with its pages, swipes and press-and-hold letters: see [CLDR keyboard3](#cldr-keyboard3-and-florisboard-layouts) |
+| `.flex` keyboard extension | FlorisBoard | Every keyboard3 layout inside, each a custom layout |
 | `.klc` layout | Windows, made in Microsoft Keyboard Layout Creator | A custom layout, with AltGr and dead-key letters on press and hold |
 | `.keylayout` layout | macOS, made in Ukelele | A custom layout, with Option and dead-key letters on press and hold |
 | XKB `symbols` file | Linux | A custom layout for each variant in the file |
@@ -47,7 +49,7 @@ Conversion is honest about being lossy. A layout import always ends on a confirm
 | Backup `.backup` | FUTO Keyboard | The same list |
 | `AnySoftKeyboardPrefs.xml`, or a CleverKeys settings `.json` | AnySoftKeyboard, CleverKeys | The same list, settings only |
 
-HeliBoard's JSON layouts use FlorisBoard's format, so one reader handles both. LeanType is a HeliBoard fork, so its layouts and themes are HeliBoard's.
+HeliBoard's JSON layouts use FlorisBoard's old format, so one reader handles both. FlorisBoard itself now writes its layouts in CLDR keyboard3 XML instead, which has a reader of its own; its old JSON files still import. LeanType is a HeliBoard fork, so its layouts and themes are HeliBoard's.
 
 Keyman is a different case. 862 Keyman key grids are already built into the app, so for most of them there's nothing to import. You can still open a `.keyman-touch-layout` file or a full `.kmp` package yourself, which is how you'd add a keyboard that isn't bundled or one you're writing. A `.kmp` brings its typing rules with it; a touch layout file does not. See [Keyman layouts](/languages/keyman/).
 
@@ -286,6 +288,30 @@ Unexpected Keyboard has no layout editor of its own: a custom layout is a block 
 - **Gaps and widths follow the file.** A key's `shift` becomes a gap to its left, and a row that starts with one stays aligned to the left, as it was. Row heights come across too.
 - **`<shift a="i" b="İ"/>`** in the `modmap` becomes that key's shifted form. The Fn and Ctrl mappings have no place here and are left out.
 - **The language** is the one a CleverKeys layout names in its `language` attribute, or in a backup the one you set for it there. Otherwise the picker starts from the letters on the keys.
+
+### CLDR keyboard3 and FlorisBoard layouts
+
+keyboard3 is the keyboard format the Unicode Consortium publishes as part of CLDR (LDML Part 7, from CLDR 45). CLDR keeps its own keyboards in it, and FlorisBoard dropped its JSON layouts for it, so a layout made for a current FlorisBoard is one of these. A file is XML whose top element is `<keyboard3>`, and that element is how the app recognizes it, whatever the file is called. Pick it with the same **Import from another keyboard** button, or open or share it to the app. A FlorisBoard keyboard extension, the `.flex` that holds a set of these files, opens the same way, and the dialog lists every layout in it and adds them all at once.
+
+- **The touch layers come first.** A file can hold touch layers and computer layers (`iso`, `us`, `jis` and the other hardware forms). The touch ones are read when there are any, and of several touch sets the one meant for a phone-sized screen. A file with only computer layers is folded the way a [computer layout](#layouts-made-for-a-computer-windows-macos-linux) is: Shift, AltGr and Shift with AltGr become the key's shifted form and its press and hold.
+- **Layers become pages.** The `base` layer is the letters. A layer named `shift`, or one holding the capitals of the base in the same places, becomes each key's shifted form, and the key that opened it becomes <KeyCap>⇧</KeyCap>. The first layer the base reaches becomes the symbols page, and the first one that page reaches becomes the second symbols page. Any other layer a key reaches is a page of the layout, opened by the same key. A shift layer laid out differently from the base keeps plain capitals, and the dialog counts it. Layers for Caps Lock, Ctrl and the other modifiers this keyboard has no page for are left out and counted.
+- **Keys keep their widths and gaps.** `width` is in key widths, as it is here, a `gap` is an empty slot, and a key set to `stretch` takes what its row leaves.
+- **Press and hold, multi-tap and swipes come across.** `longPressKeyIds` become the key's press-and-hold letters, with `longPressDefaultKeyId` first. `multiTapKeyIds` become [multi-tap](/languages/custom-layouts/), so a second tap types the next one. A flick with one direction becomes that key's [flick arm](/typing/gestures/#flick-keys). A flick that changes direction on the way, such as north-east then south, has no form here, so it is removed and counted.
+- **Labels come from the file's displays.** A `display` for a key or for what a key types is that key's label.
+- **The bottom row** is this app's, as [above](#it-adds-the-shift-key-and-the-bottom-row), keeping the file's own comma and full stop.
+- **The language** is the one the file states in its `locale`, when this app has it. Otherwise the picker starts from the letters on the keys.
+
+FlorisBoard adds a few names of its own, and those are read too. `@k3:action/backspace`, `@k3:action/delete` and `@k3:action/enter` are the delete, forward delete and enter keys. Its `@fl:action/…` keys become the matching key here (the arrows, copy, cut, paste, select all, undo, redo, the clipboard, voice input, the language switch) or are removed and named when there is none. Its `fn-key` slot is left to this app's bottom row, its icon displays to this app's icons, and its number and phone pads to this app's own. A file that imports another file from the same extension gets it when you open the whole `.flex`; on its own, the dialog names the file it could not read. CLDR's own key imports (the Latin letters, the digits, punctuation and currency) are built in.
+
+#### Transforms
+
+A keyboard3 layout can carry rules that change the text before the cursor as you type: a key then a letter becomes one accented letter, or a key then a digit a superscript digit. This keyboard runs no such rules for a layout, so each rule becomes the nearest thing it has, and the dialog counts the rules under what they became:
+
+- **A dead key.** When the rules a key starts all put one accent on the next letter, as French layouts do for `à`, `ê` and the rest, that key becomes a dead key: it types nothing by itself and puts its accent on the next letter you type. Unicode composes the two, so every letter that takes the accent works, not only the ones the file listed.
+- **Press and hold.** The characters the other rules make are on press and hold of the key that starts them. A key that types nothing of its own and only starts rules, such as a "more characters" key, types the first of them and holds the rest. On a computer layout the characters go on press and hold of the letter they are built on, as a `.klc` file's dead keys do.
+- **Left out.** A rule that no key on the grid starts, or that matches more text than a key can type (`.`, `*`, `+` and counts like `{2,3}`), is left out. So is every reorder rule, which puts the marks of a syllable in their written order: here marks go in the order you type them. Rules for what delete removes are left out too, and delete works the way it does on every layout here.
+
+A rule that only removes the markers a key leaves behind needs nothing: markers never reach the text here.
 
 ### Layouts made for a computer (Windows, macOS, Linux)
 

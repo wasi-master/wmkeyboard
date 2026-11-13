@@ -82,6 +82,7 @@ import com.wasimaster.wmkeyboard.core.layout.ConvertedLayout
 import com.wasimaster.wmkeyboard.core.layout.DesktopLayouts
 import com.wasimaster.wmkeyboard.core.layout.FutoLayouts
 import com.wasimaster.wmkeyboard.core.layout.ImportedLayout
+import com.wasimaster.wmkeyboard.core.layout.Keyboard3Layouts
 import com.wasimaster.wmkeyboard.core.layout.KeysCafeLayouts
 import com.wasimaster.wmkeyboard.core.layout.LayoutFile
 import com.wasimaster.wmkeyboard.core.layout.MultilingLayouts
@@ -294,6 +295,14 @@ object WMFileTypes {
          * a list because of the XKB variants.
          */
         data class DesktopLayoutFile(val layouts: List<ConvertedLayout>) : Opened
+
+        /**
+         * CLDR keyboard3 (LDML) layouts, already converted: one XML file of
+         * CLDR's or FlorisBoard's, or every layout in a FlorisBoard keyboard
+         * extension (`.flex`). Its own case for the reason [FutoLayout] is,
+         * and a list because of the extensions.
+         */
+        data class Keyboard3LayoutFile(val layouts: List<ConvertedLayout>) : Opened
 
         /**
          * Text from Multiling O Keyboard, already converted: one layout, or a
@@ -758,6 +767,14 @@ object WMFileTypes {
             if (layouts.isNotEmpty() || theme != null) return Opened.MultilingFile(layouts, theme)
         }
 
+        // A CLDR keyboard3 (LDML) layout: CLDR's own keyboards, and
+        // FlorisBoard's since it dropped its JSON layouts. XML whose root is
+        // `<keyboard3>`, which no other format here writes. Ahead of the two
+        // XML readers below, which look for elements of their own.
+        if (Keyboard3Layouts.looksLikeKeyboard3(text)) {
+            Keyboard3Layouts.convert(text, name)?.let { return Opened.Keyboard3LayoutFile(listOf(it)) }
+        }
+
         // A computer keyboard's layout. A `.klc` is told by its section
         // words, a `.keylayout` by its `<keyMapSet>`, an XKB file by its
         // `xkb_symbols "name" {` blocks; no other format here has any of them.
@@ -866,6 +883,14 @@ object WMFileTypes {
                 context.contentResolver.requireInputStream(uri).use { KeymanPackage.read(it) }
             }.getOrNull()
             return if (contents != null) Opened.KeymanPackageFile(contents) else Opened.Unrecognized
+        }
+        // A FlorisBoard keyboard extension: its layouts are keyboard3 XML
+        // under `keyboard/`, and may import files from elsewhere in it.
+        if (Keyboard3Layouts.isExtensionManifest(manifest)) {
+            val layouts = runCatching {
+                context.contentResolver.requireInputStream(uri).use { Keyboard3Layouts.convertArchive(it) }
+            }.getOrDefault(emptyList())
+            return if (layouts.isNotEmpty()) Opened.Keyboard3LayoutFile(layouts) else Opened.Unrecognized
         }
         if (manifest.contains("\"${FlexLanguagePack.FORMAT}\"")) {
             val schemas = runCatching {
@@ -978,8 +1003,9 @@ object WMFileTypes {
      * Whether a manifest is a FlorisBoard theme extension's.
      *
      * The tag, never the file name: `extension.json` is a name plenty of things
-     * use, and FlorisBoard has other extension kinds — language packs, keyboard
-     * extensions — that carry the same manifest and nothing this app can read.
+     * use, and FlorisBoard has other extension kinds that carry the same
+     * manifest: language packs and keyboard extensions, each read by its own
+     * branch in [identifyArchive].
      */
     internal fun isFlexManifest(manifest: String): Boolean =
         manifest.contains("\"${FlexTheme.FORMAT}\"")
@@ -1608,6 +1634,54 @@ private fun desktopProposal(
 }
 
 /**
+ * What a CLDR keyboard3 file or a FlorisBoard keyboard extension offers.
+ *
+ * One layout goes through the language step like every other foreign layout;
+ * the picker starts from the language the file states. An extension holding
+ * several adds them all at once, each in its own stated or guessed language,
+ * the way an XKB file's variants are. Nothing is turned on.
+ */
+private fun keyboard3Proposal(
+    layouts: List<ConvertedLayout>,
+    repository: SettingsRepository,
+    context: android.content.Context,
+): ImportProposal {
+    val single = layouts.singleOrNull()
+    if (single != null) {
+        return ImportProposal(
+            titleRes = R.string.import_name_title,
+            titleArg = single.layout.name,
+            body = context.getString(R.string.import_keyboard3_body),
+            repairs = single.notes.map { it.format(context.resources) },
+            language = single.guessedLangId,
+            applyWithLanguage = { langId ->
+                repository.upsertCustomLayout(
+                    single.withLanguage(langId).copy(id = "custom_${System.currentTimeMillis()}"),
+                )
+                context.getString(R.string.import_done_name, single.layout.name)
+            },
+        )
+    }
+    val count = layouts.size
+    return ImportProposal(
+        titleRes = R.string.import_keyboard3_title,
+        body = context.resources.getQuantityString(R.plurals.import_keyboard3_layouts_body, count, count) +
+            layouts.joinToString(separator = "\n", prefix = "\n\n") { "• ${it.layout.name}" },
+        apply = {
+            // One stamp for the batch with the position after it: the loop is
+            // faster than the clock.
+            val stamp = System.currentTimeMillis()
+            layouts.forEachIndexed { index, converted ->
+                repository.upsertCustomLayout(
+                    converted.withLanguage(converted.guessedLangId).copy(id = "custom_${stamp}_$index"),
+                )
+            }
+            context.resources.getQuantityString(R.plurals.import_multiling_layouts_done, count, count)
+        },
+    )
+}
+
+/**
  * A font opened from outside the app. An emoji font is switched on at once,
  * as the emoji screen's own import does; any other font is added to the list
  * the font pickers offer, since which script it should draw is the user's
@@ -1846,6 +1920,8 @@ private fun rememberProposal(
         is WMFileTypes.Opened.MultilingFile -> multilingProposal(state, repository, context)
 
         is WMFileTypes.Opened.DesktopLayoutFile -> desktopProposal(state.layouts, repository, context)
+
+        is WMFileTypes.Opened.Keyboard3LayoutFile -> keyboard3Proposal(state.layouts, repository, context)
 
         // Drawn by ForeignBackupDialog before this is reached; here only so the
         // list stays exhaustive.

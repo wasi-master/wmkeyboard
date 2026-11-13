@@ -61,6 +61,15 @@
         <item quantity="one">The file has %1$d layout. The app adds it as a layout of yours, in the language its letters suggest. It stays off. To type with it, turn it on in Languages.</item>
         <item quantity="other">The file has %1$d layouts. The app adds them as layouts of yours, each in the language its letters suggest. They stay off. To type with one, turn it on in Languages.</item>
     </plurals>
+    <!-- CLDR keyboard3 is the Unicode Consortium's keyboard file format
+         (LDML); FlorisBoard is the name of another keyboard app. Leave both
+         as they are. Languages is the name of a screen in the settings app. -->
+    <string name="import_keyboard3_body">This is a CLDR keyboard3 layout, the Unicode keyboard format that FlorisBoard also uses. The app adds its keys and pages as a layout of yours, with its swipes and press-and-hold letters. Rules that change text as you type become dead keys or press-and-hold letters where they can; the list below says what did not come across. The layout stays off. To type with it, turn it on in Languages.</string>
+    <string name="import_keyboard3_title">From a FlorisBoard keyboard extension</string>
+    <plurals name="import_keyboard3_layouts_body">
+        <item quantity="one">The extension has %1$d layout. The app adds it as a layout of yours, in the language it states. It stays off. To type with it, turn it on in Languages.</item>
+        <item quantity="other">The extension has %1$d layouts. The app adds them as layouts of yours, each in the language it states. They stay off. To type with one, turn it on in Languages.</item>
+    </plurals>
     <string name="import_unexpected_body">This is an Unexpected Keyboard or CleverKeys layout. The app adds it as a layout of yours. The swipes to the corners of each key stay swipes; the symbol keys stay the ones you have. The layout stays off. To type with it, turn it on in Languages.</string>
 
     <!-- ==== Backup files. ==== -->

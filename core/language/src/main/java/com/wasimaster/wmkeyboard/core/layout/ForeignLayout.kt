@@ -99,6 +99,12 @@ enum class ForeignSource {
 
     /** A Linux XKB `symbols` file, one layout per variant. Read by [DesktopLayouts]. */
     XKB_SYMBOLS,
+
+    /**
+     * A CLDR keyboard3 (LDML) file: CLDR's own keyboards, and FlorisBoard's
+     * layouts since it dropped its JSON. Read by [Keyboard3Layouts].
+     */
+    KEYBOARD3,
 }
 
 /** A foreign layout after conversion, with everything that was lost on the way. */
@@ -1106,6 +1112,20 @@ internal class Report(
     val unknownSymbols: MutableList<String> = mutableListOf(),
     /** Other XKB files a variant builds on, which one file cannot bring along. */
     val missingIncludes: MutableList<String> = mutableListOf(),
+    /** keyboard3 rewrite rules that became this keyboard's dead keys. */
+    var transformsAsDeadKeys: Int = 0,
+    /** keyboard3 rewrite rules whose results went on press and hold. */
+    var transformsOnHold: Int = 0,
+    /** keyboard3 rewrite rules with nothing here to run them. */
+    var transformsDropped: Int = 0,
+    /** keyboard3 rules that put marks in their written order. */
+    var reorderDropped: Int = 0,
+    /** keyboard3 rules for what backspace deletes. */
+    var backspaceDropped: Int = 0,
+    /** Pages for a modifier this keyboard has no level for: Caps Lock, Ctrl. */
+    var layersDropped: Int = 0,
+    /** Swipes that change direction on the way, which arms here cannot. */
+    var flickPathsDropped: Int = 0,
 ) {
     fun notes(scaled: Boolean): List<LayoutMessage> = buildList {
         if (droppedLabels.isNotEmpty()) {
@@ -1236,6 +1256,13 @@ internal class Report(
                 ),
             )
         }
+        addCount(R.plurals.core_lang_foreign_k3_transforms_dead_keys, transformsAsDeadKeys)
+        addCount(R.plurals.core_lang_foreign_k3_transforms_on_hold, transformsOnHold)
+        addCount(R.plurals.core_lang_foreign_k3_transforms_dropped, transformsDropped)
+        addCount(R.plurals.core_lang_foreign_k3_reorder_dropped, reorderDropped)
+        addCount(R.plurals.core_lang_foreign_k3_backspace_dropped, backspaceDropped)
+        addCount(R.plurals.core_lang_foreign_k3_layers_dropped, layersDropped)
+        addCount(R.plurals.core_lang_foreign_k3_flick_paths_dropped, flickPathsDropped)
         if (numberRowDropped) {
             add(LayoutMessage(stringRes = R.string.core_lang_foreign_number_row_dropped))
         }
@@ -1243,6 +1270,11 @@ internal class Report(
             add(LayoutMessage(stringRes = R.string.core_lang_foreign_number_row_kept))
         }
         if (scaled) add(LayoutMessage(stringRes = R.string.core_lang_foreign_widths_scaled))
+    }
+
+    /** A note whose only argument is its own count, when there is anything to count. */
+    private fun MutableList<LayoutMessage>.addCount(plural: Int, n: Int) {
+        if (n > 0) add(LayoutMessage(pluralsRes = plural, quantity = n, args = listOf(n)))
     }
 }
 

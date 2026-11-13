@@ -220,6 +220,30 @@ class FileImportSniffTest {
         assertEquals("Mac Mine", (opened as WMFileTypes.Opened.DesktopLayoutFile).layouts.single().layout.name)
     }
 
+    @Test
+    fun `a CLDR keyboard3 file is its own layout kind, ahead of the other XML readers`() {
+        // It has <key> elements too, which the Unexpected Keyboard sniff looks for.
+        val xml = """<?xml version="1.0" encoding="UTF-8"?>
+            |<!DOCTYPE keyboard3 SYSTEM "../dtd/ldmlKeyboard3.dtd">
+            |<keyboard3 xmlns="https://schemas.unicode.org/cldr/45/keyboard3" locale="de" conformsTo="45">
+            |  <info name="Mein QWERTZ" />
+            |  <keys><key id="ss" output="ß" /></keys>
+            |  <layers formId="touch">
+            |    <layer id="base">
+            |      <row keys="q w e r t z u i o p" />
+            |      <row keys="a s d f g h j k l ss" />
+            |      <row keys="y x c v b n m" />
+            |    </layer>
+            |  </layers>
+            |</keyboard3>
+        """.trimMargin()
+        val opened = WMFileTypes.textKindFor(xml, "mine.xml")
+        assertTrue("a keyboard3 file was not recognised", opened is WMFileTypes.Opened.Keyboard3LayoutFile)
+        val layout = (opened as WMFileTypes.Opened.Keyboard3LayoutFile).layouts.single()
+        assertEquals("Mein QWERTZ", layout.layout.name)
+        assertEquals("de", layout.guessedLangId)
+    }
+
     // ---- Clink ----
 
     @Test

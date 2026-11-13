@@ -108,6 +108,7 @@ import com.wasimaster.wmkeyboard.core.layout.DesktopLayouts
 import com.wasimaster.wmkeyboard.core.layout.ForeignLayouts
 import com.wasimaster.wmkeyboard.core.layout.FutoLayouts
 import com.wasimaster.wmkeyboard.core.layout.ForeignSource
+import com.wasimaster.wmkeyboard.core.layout.Keyboard3Layouts
 import com.wasimaster.wmkeyboard.core.layout.KeysCafeLayouts
 import com.wasimaster.wmkeyboard.core.layout.MultilingLayouts
 import com.wasimaster.wmkeyboard.core.layout.UnexpectedLayouts
@@ -348,9 +349,12 @@ private val FOREIGN_LAYOUT_MIME_TYPES = arrayOf(
     "application/yaml",
     "text/yaml",
     "text/x-yaml",
-    // Unexpected Keyboard and CleverKeys layouts are XML.
+    // Unexpected Keyboard and CleverKeys layouts are XML, and so are CLDR
+    // keyboard3 layouts.
     "text/xml",
     "application/xml",
+    // A FlorisBoard keyboard extension (`.flex`) is a ZIP of keyboard3 files.
+    "application/zip",
 )
 
 /** Largest foreign layout worth reading. The whole file is decoded as one string. */
@@ -740,6 +744,11 @@ internal fun KeyLayoutsScreen(
                     }
                     if (bytes.size > MAX_FOREIGN_LAYOUT_BYTES) {
                         emptyList<ConvertedLayout>()
+                    } else if (bytes.size > 2 && bytes[0] == 'P'.code.toByte() && bytes[1] == 'K'.code.toByte()) {
+                        // A ZIP: the one archive this picker reads is a
+                        // FlorisBoard keyboard extension, whose layouts are
+                        // keyboard3 files.
+                        Keyboard3Layouts.convertArchive(bytes.inputStream())
                     } else {
                         // Keyman first: its files are JSON too, and the
                         // FlorisBoard reader would take one and return null
@@ -758,6 +767,13 @@ internal fun KeyLayoutsScreen(
                         // a layout per variant.
                         if (DesktopLayouts.looksLikeDesktopLayout(text)) {
                             return@runCatching DesktopLayouts.convertAll(text, name)
+                        }
+                        // CLDR keyboard3 (FlorisBoard's layouts now): its
+                        // `<keyboard3>` root is no other reader's, and its
+                        // `<key>`s would otherwise reach the Unexpected
+                        // Keyboard sniff below.
+                        if (Keyboard3Layouts.looksLikeKeyboard3(text)) {
+                            return@runCatching listOfNotNull(Keyboard3Layouts.convert(text, name))
                         }
                         // Keys Cafe before everything: its file is base64 text,
                         // which none of the readers below could take for theirs.
@@ -1352,18 +1368,31 @@ internal fun KeyLayoutsScreen(
     }
 
     confirmMultiling?.let { layouts ->
-        // The other file that holds several layouts: an XKB file, one per variant.
-        val desktop = layouts.first().source == ForeignSource.XKB_SYMBOLS
+        // The other files that hold several layouts: an XKB file, one per
+        // variant, and a FlorisBoard keyboard extension.
+        val source = layouts.first().source
         AlertDialog(
             onDismissRequest = { confirmMultiling = null },
             title = {
-                Text(stringResource(if (desktop) R.string.import_desktop_title else R.string.import_multiling_title))
+                Text(
+                    stringResource(
+                        when (source) {
+                            ForeignSource.XKB_SYMBOLS -> R.string.import_desktop_title
+                            ForeignSource.KEYBOARD3 -> R.string.import_keyboard3_title
+                            else -> R.string.import_multiling_title
+                        },
+                    ),
+                )
             },
             text = {
                 Column {
                     Text(
                         pluralStringResource(
-                            if (desktop) R.plurals.import_desktop_layouts_body else R.plurals.import_multiling_layouts_body,
+                            when (source) {
+                                ForeignSource.XKB_SYMBOLS -> R.plurals.import_desktop_layouts_body
+                                ForeignSource.KEYBOARD3 -> R.plurals.import_keyboard3_layouts_body
+                                else -> R.plurals.import_multiling_layouts_body
+                            },
                             layouts.size,
                             layouts.size,
                         ),
@@ -1425,6 +1454,7 @@ internal fun KeyLayoutsScreen(
                                 ForeignSource.WINDOWS_KLC -> R.string.layout_editor_foreign_from_klc
                                 ForeignSource.MAC_KEYLAYOUT -> R.string.layout_editor_foreign_from_keylayout
                                 ForeignSource.XKB_SYMBOLS -> R.string.layout_editor_foreign_from_xkb
+                                ForeignSource.KEYBOARD3 -> R.string.layout_editor_foreign_from_keyboard3
                             },
                         ),
                     )

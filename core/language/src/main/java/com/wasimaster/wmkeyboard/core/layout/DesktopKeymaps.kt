@@ -21,7 +21,14 @@ import java.text.Normalizer
  */
 
 /** Which desktop format a [DesktopKeymap] was read from. */
-internal enum class DesktopFormat { KLC, MAC_KEYLAYOUT, XKB }
+internal enum class DesktopFormat {
+    KLC,
+    MAC_KEYLAYOUT,
+    XKB,
+
+    /** A keyboard3 file with only hardware layers, read by [Keyboard3Layouts]. */
+    KEYBOARD3,
+}
 
 /**
  * A key on a PC keyboard, by the name XKB gives it, which is the one name all
