@@ -77,6 +77,7 @@ import com.wasimaster.wmkeyboard.core.voice.vad.VoiceVad
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCompute
 import com.wasimaster.wmkeyboard.prediction.R as PredictionR
 import com.wasimaster.wmkeyboard.core.snippets.MultiExpandMode
+import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.core.layout.AlternateColumnsRange
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.KeymanLayoutPack
@@ -20356,6 +20357,63 @@ class SettingsRepository(private val context: Context) {
         }.getOrDefault(false)
     }
 
+    /** The key picture snippets' files ride under inside the snippets section. */
+    private val SNIPPET_IMAGES_KEY = "images"
+
+    /**
+     * Most bytes of pictures the snippets section carries. Past it the rest
+     * are left out and those snippets restore as their words; the section is
+     * not one of the heavy ones the automatic backup may drop whole, so it
+     * must stay small enough never to need dropping.
+     */
+    private val SNIPPET_IMAGES_MAX_BYTES = 12L * 1024 * 1024
+
+    /**
+     * The snippets file with the pictures its snippets insert beside it, as
+     * `images: { name: base64 }`, the way sticker packs carry theirs. A build
+     * that predates picture snippets ignores the key and restores the rest.
+     */
+    private fun withSnippetImages(store: JsonElement): JsonElement {
+        val obj = store as? JsonObject ?: return store
+        val names = (obj["snippets"] as? JsonArray).orEmpty().mapNotNull { row ->
+            ((row as? JsonObject)?.get("image") as? JsonPrimitive)?.contentOrNull
+        }.distinct()
+        if (names.isEmpty()) return store
+        var total = 0L
+        val files = buildJsonObject {
+            for (name in names) {
+                val file = SnippetStore.imageFile(context.filesDir, name)?.takeIf { it.isFile } ?: continue
+                total += file.length()
+                if (total > SNIPPET_IMAGES_MAX_BYTES) break
+                val bytes = runCatching { file.readBytes() }.getOrNull() ?: continue
+                put(name, JsonPrimitive(Base64.encodeToString(bytes, Base64.NO_WRAP)))
+            }
+        }
+        if (files.isEmpty()) return store
+        return JsonObject(obj + (SNIPPET_IMAGES_KEY to files))
+    }
+
+    /**
+     * Writes a backup's snippet pictures back. Only names this app could have
+     * given a picture ([SnippetStore.isImageName]), so a key from a file
+     * someone else wrote cannot name a place outside the pictures' folder.
+     */
+    private fun restoreSnippetImages(images: JsonObject) {
+        val dir = File(context.filesDir, SnippetStore.IMAGES_DIR)
+        for ((name, value) in images) {
+            val target = SnippetStore.imageFile(context.filesDir, name) ?: continue
+            if (target.parentFile?.canonicalPath != dir.canonicalPath) continue
+            val bytes = (value as? JsonPrimitive)?.contentOrNull
+                ?.let { runCatching { Base64.decode(it, Base64.DEFAULT) }.getOrNull() }
+                ?.takeIf { it.isNotEmpty() && it.size <= SnippetStore.MAX_IMAGE_BYTES }
+                ?: continue
+            runCatching {
+                dir.mkdirs()
+                target.writeBytes(bytes)
+            }
+        }
+    }
+
     /** Relative path of the icon-pack manifest, the one file that isn't binary. */
     private val iconManifestPath = "${IconPackStore.DIR_NAME}/packs.json"
 
@@ -20883,7 +20941,7 @@ class SettingsRepository(private val context: Context) {
             readStore("clipboard/history.json")?.let { out[ConfigBackup.Section.CLIPBOARD] = portableClipboard(it) }
         }
         if (ConfigBackup.Section.SNIPPETS in sections) {
-            readStore("snippets/snippets.json")?.let { out[ConfigBackup.Section.SNIPPETS] = it }
+            readStore("snippets/snippets.json")?.let { out[ConfigBackup.Section.SNIPPETS] = withSnippetImages(it) }
         }
         if (ConfigBackup.Section.STICKERS in sections) {
             stickerSection()?.let { out[ConfigBackup.Section.STICKERS] = it }
@@ -21163,7 +21221,11 @@ class SettingsRepository(private val context: Context) {
             }
         }
         (parsed.sections[ConfigBackup.Section.SNIPPETS] as? JsonObject)?.let { obj ->
-            if (writeStore("snippets/snippets.json", obj)) restored.add(ConfigBackup.Section.SNIPPETS)
+            // The pictures first, so no restored snippet points at nothing.
+            (obj[SNIPPET_IMAGES_KEY] as? JsonObject)?.let(::restoreSnippetImages)
+            if (writeStore("snippets/snippets.json", JsonObject(obj - SNIPPET_IMAGES_KEY))) {
+                restored.add(ConfigBackup.Section.SNIPPETS)
+            }
         }
         (parsed.sections[ConfigBackup.Section.STICKERS] as? JsonObject)?.let { obj ->
             if (restoreStickers(obj)) restored.add(ConfigBackup.Section.STICKERS)

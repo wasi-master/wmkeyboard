@@ -38,10 +38,6 @@
         <item quantity="one">Aplikácia preskočila %1$d úryvok, ktorý nemá čo vložiť.</item>
         <item quantity="other">Aplikácia preskočila %1$d úryvkov, ktoré nemajú čo vložiť.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d úryvok vás žiada o vyplnenie formulára. Aplikácia vloží formulár ako text s kurzorom v prvom prázdnom poli.</item>
-        <item quantity="other">%1$d úryvkov vás žiada o vyplnenie formulára. Aplikácia vloží každý formulár ako text s kurzorom v prvom prázdnom poli.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Aplikácia preskočila %1$d úryvok, ktorý vkladá obrázok.</item>
         <item quantity="other">Aplikácia preskočila %1$d úryvkov, ktoré vkladajú obrázky.</item>

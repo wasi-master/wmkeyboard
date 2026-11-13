@@ -494,7 +494,13 @@ object AddonInstaller {
             ?: return Outcome.Rejected(
                 AddonText.of(R.string.faddons_install_error_not_an_espanso_pack),
             )
-        return storeSnippets(context, entry, imported.snippets, imported.notes.map { it.resolve(context) })
+        return storeSnippets(
+            context,
+            entry,
+            imported.snippets,
+            imported.notes.map { it.resolve(context) },
+            images = imported.images,
+        )
     }
 
     /** The half of a snippet install that does not care where the file came from. */
@@ -503,6 +509,7 @@ object AddonInstaller {
         entry: AddonEntry,
         snippets: List<Snippet>,
         repairs: List<String>,
+        images: Map<String, ByteArray> = emptyMap(),
     ): Outcome {
         if (snippets.isEmpty()) {
             return Outcome.Rejected(
@@ -524,7 +531,7 @@ object AddonInstaller {
         // The localRef stays the comma-joined snippet ids it has always been.
         // The folder is found back from them at uninstall, which keeps every
         // record written by an older build readable by this one.
-        val added = store.addAll(snippets, fallbackFolderId = folder.id).map { it.id }
+        val added = store.addAll(snippets, fallbackFolderId = folder.id, images = images).map { it.id }
         // The adds only mutate the in-memory list; save() is what writes the file.
         store.save()
         return Outcome.Installed(added.joinToString(","), repairs)

@@ -38,10 +38,6 @@
         <item quantity="one">La aplicación omitió %1$d fragmento que no tiene nada que insertar.</item>
         <item quantity="other">La aplicación omitió %1$d fragmentos que no tienen nada que insertar.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d fragmento te pide que rellenes un formulario. La aplicación inserta el formulario como texto, con el cursor en el primer espacio en blanco.</item>
-        <item quantity="other">%1$d fragmentos te piden que rellenes un formulario. La aplicación inserta cada formulario como texto, con el cursor en el primer espacio en blanco.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">La aplicación omitió %1$d fragmento que inserta una imagen.</item>
         <item quantity="other">La aplicación omitió %1$d fragmentos que insertan imágenes.</item>

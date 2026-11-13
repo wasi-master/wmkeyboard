@@ -38,10 +38,6 @@
         <item quantity="one">L\'aplicació ha omès %1$d fragment que no té res per inserir.</item>
         <item quantity="other">L\'aplicació ha omès %1$d fragments que no tenen res per inserir.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d fragment us demana que ompliu un formulari. L\'aplicació insereix el formulari com a text, amb el cursor al primer espai en blanc.</item>
-        <item quantity="other">%1$d fragments us demanen que ompliu un formulari. L\'aplicació insereix cada formulari com a text, amb el cursor al primer espai en blanc.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">L\'aplicació ha omès %1$d fragment que insereix una imatge.</item>
         <item quantity="other">L\'aplicació ha omès %1$d fragments que insereixen imatges.</item>

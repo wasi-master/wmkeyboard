@@ -38,10 +38,6 @@
         <item quantity="one">Rakendus jättis vahele %1$d väljalõike, millel pole midagi sisestada.</item>
         <item quantity="other">Rakendus jättis vahele %1$d väljalõiget, millel pole midagi sisestada.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d tekstilõik palub sul vormi täita. Rakendus sisestab vormi tekstina, kursor on esimeses tühikus.</item>
-        <item quantity="other">%1$d tekstilõiku paluvad sul vormi täita. Rakendus sisestab iga vormi tekstina, kursor on esimeses tühikus.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Rakendus jättis vahele %1$d väljavõtte, mis lisab pildi.</item>
         <item quantity="other">Rakendus jättis vahele %1$d väljavõtet, mis lisavad pilte.</item>

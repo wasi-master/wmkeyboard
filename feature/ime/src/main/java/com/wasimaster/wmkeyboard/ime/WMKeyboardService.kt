@@ -450,6 +450,7 @@ import com.wasimaster.wmkeyboard.core.settings.resolveKeyboardMode
 import com.wasimaster.wmkeyboard.core.settings.imeActionFields
 import com.wasimaster.wmkeyboard.core.settings.textShapeFields
 import com.wasimaster.wmkeyboard.core.snippets.Snippet
+import com.wasimaster.wmkeyboard.core.snippets.SnippetAsk
 import com.wasimaster.wmkeyboard.core.snippets.SnippetCandidate
 import com.wasimaster.wmkeyboard.core.snippets.SnippetMatch
 import com.wasimaster.wmkeyboard.core.snippets.SnippetMatcher
@@ -9506,6 +9507,10 @@ open class WMKeyboardService : InputMethodService() {
         // GIFs and stickers queued in the last field don't follow the user
         // into this one; a restart is still the same field, so they go on.
         if (!restarting) mediaSendQueue.clear()
+        // Nor does a snippet waiting on its fill-in row: its text was going
+        // in at a caret in the last field. Nothing is put back there either,
+        // since that field is no longer the one the keyboard can write to.
+        if (!restarting) pendingSnippetAsk = null
         _uiState.update {
             it.copy(
                 settings = modeSettings,
@@ -9569,7 +9574,12 @@ open class WMKeyboardService : InputMethodService() {
                 fieldIncognito = fieldIncognito,
                 emojiSearchActive = restarting && it.emojiSearchActive,
                 emojiQuery = if (restarting) it.emojiQuery else "",
-                toolText = it.toolText.copy(kaomoji = if (restarting) it.kaomojiText else null),
+                // A snippet's fill-in row belongs to the field it was going
+                // into; another field drops it (see pendingSnippetAsk above).
+                toolText = it.toolText.copy(
+                    kaomoji = if (restarting) it.kaomojiText else null,
+                    snippetAsk = if (restarting) it.toolText.snippetAsk else null,
+                ),
                 // As does the dictionary in the floating box (#1265).
                 dictionarySearchActive = it.dictionarySearchActive &&
                     (restarting || (it.appletPanel == PanelMode.DICTIONARY && it.panel == PanelMode.NONE)),
@@ -13320,6 +13330,8 @@ open class WMKeyboardService : InputMethodService() {
                     runMediaSearch()
                 }
             CaptureTarget.EMOJI_SEARCH, CaptureTarget.CLIPBOARD_SEARCH, CaptureTarget.SNIPPET_SEARCH -> Unit
+            // The next field, or the snippet in with every answer.
+            CaptureTarget.SNIPPET_ASK -> onSnippetAskNext()
             // Searching notes filters as you type; Enter has nothing to run.
             CaptureTarget.NOTE_SEARCH -> Unit
             // A title is one line: Enter moves on to the body.
@@ -13821,6 +13833,17 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.LEARN_EDIT -> learnEdit { text }
             CaptureTarget.CALC -> calcEdit { text }
             CaptureTarget.CONVERTER -> converterEdit { text }
+            // One line per answer: a newline would end the field, and Enter
+            // already means "next".
+            CaptureTarget.SNIPPET_ASK -> _uiState.update { state ->
+                state.copy(
+                    toolText = state.toolText.copy(
+                        snippetAsk = state.toolText.snippetAsk?.copy(
+                            text = text.replace("\n", " ").take(SnippetAskEntry.MAX_ANSWER),
+                        ),
+                    ),
+                )
+            }
             else -> return false
         }
         return true
@@ -21289,6 +21312,7 @@ open class WMKeyboardService : InputMethodService() {
                     context = snippetContext(ic),
                     casing = SnippetStore.casingFor(snippet, typed),
                 )
+                if (takeOverSnippet(ic, snippet.image, expanded, typed)) return true
                 commitSplitAtCaret(ic, expanded.text, expanded.cursorOffset)
                 afterSnippetExpansion(
                     inserted = expanded.text,
@@ -21769,6 +21793,138 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The two kinds of snippet that cannot simply be committed as text: a
+     * picture snippet ([image]), and one whose [expanded] text still holds
+     * `{ask:Name}` fields to fill. Returns true when it took the insertion
+     * over, false for an ordinary snippet, which the caller then commits as it
+     * always has.
+     *
+     * Every insertion path calls this at the one point they share: the
+     * snippet is known, its text expanded, and nothing in the field touched
+     * yet. [consumed] is what the snippet replaces (the trigger as typed, or
+     * nothing for a tap), [deleteChars] how much of the field that is.
+     *
+     * The trigger is taken out at once in both cases. A picture then goes in
+     * through commitContent, as a picture clip does, and to the clipboard and
+     * the field's own Paste when the field takes none. Fields to fill open the
+     * fill-in row, and the text waits for the answers; Cancel puts [consumed]
+     * back. The key that ended the trigger is spent here either way: a space
+     * in front of a picture, or typed ahead of text still being filled in,
+     * would land where nobody wants it.
+     *
+     * A picture whose file has gone missing is not taken over, so the caller
+     * inserts the snippet's words in its place.
+     */
+    private fun takeOverSnippet(
+        ic: InputConnection,
+        image: String?,
+        expanded: SnippetStore.Companion.Expanded,
+        consumed: String,
+        deleteChars: Int = consumed.length,
+    ): Boolean {
+        val picture = image?.let { SnippetStore.imageFile(filesDir, it) }?.takeIf { it.isFile }
+        val asks = if (picture == null) SnippetStore.asks(expanded.text) else emptyList()
+        if (picture == null && asks.isEmpty()) return false
+        stopVoiceForManualInput()
+        lastRevertible = null
+        ic.beginBatchEdit()
+        // Same reason as [tryPatternExpansion]: a live composing region and
+        // deleteSurroundingText disagree about which characters they mean.
+        ic.finishComposingText()
+        revision = null
+        composing = StringBuilder()
+        if (deleteChars > 0) ic.deleteSurroundingText(deleteChars, 0)
+        ic.endBatchEdit()
+        invalidateExpectedSelection()
+        invalidateRecentWords()
+        clearSnippetOffer()
+        swallowTerminatorAfterCommit = true
+        _uiState.update {
+            it.copy(composingPreview = "", suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap())
+        }
+        if (picture != null) {
+            commitImageFile(picture, SnippetStore.imageMime(picture.name), refused = ::pasteRefusedImageClip)
+        } else {
+            openSnippetAsk(asks, expanded, consumed)
+        }
+        return true
+    }
+
+    /** The text a fill-in row is gathering answers for, and what it replaced. */
+    private class PendingSnippetAsk(val expanded: SnippetStore.Companion.Expanded, val original: String)
+
+    /** Set while the fill-in row is up; see [takeOverSnippet]. */
+    private var pendingSnippetAsk: PendingSnippetAsk? = null
+
+    /** Opens the fill-in row on the first of [asks], its default selected. */
+    private fun openSnippetAsk(asks: List<SnippetAsk>, expanded: SnippetStore.Companion.Expanded, original: String) {
+        pendingSnippetAsk = PendingSnippetAsk(expanded, original)
+        showSnippetAsk(SnippetAskEntry(asks))
+    }
+
+    /** Puts [entry] in the row, with what it holds selected so typing replaces it. */
+    private fun showSnippetAsk(entry: SnippetAskEntry) {
+        _uiState.update {
+            it.copy(
+                // The row is the strip's now; a panel left open would hold
+                // the keys' room and hide the row the keys type into.
+                panel = PanelMode.NONE,
+                snippetPicker = null,
+                toolText = it.toolText.copy(snippetAsk = entry),
+                captureCaret = CaptureCaret(CaptureTarget.SNIPPET_ASK.name, entry.text.length, entry.text, anchor = 0),
+            )
+        }
+    }
+
+    /**
+     * Enter or the row's arrow: keeps this answer and asks the next field, or,
+     * on the last, inserts the snippet with every answer filled in. A field
+     * left empty takes its default.
+     */
+    fun onSnippetAskNext() {
+        val entry = _uiState.value.toolText.snippetAsk ?: return
+        val pending = pendingSnippetAsk ?: return cancelSnippetAsk(restore = false)
+        vibrate()
+        entry.next()?.let {
+            showSnippetAsk(it)
+            return
+        }
+        val filled = SnippetStore.fillAsks(pending.expanded, entry.answerMap())
+        closeSnippetAsk()
+        val ic = currentInputConnection ?: return
+        ic.beginBatchEdit()
+        commitSplitAtCaret(ic, filled.text, filled.cursorOffset)
+        ic.endBatchEdit()
+        afterSnippetExpansion(
+            inserted = filled.text,
+            // One backspace puts the trigger back, as for any expansion.
+            original = pending.original.takeIf { it.isNotEmpty() },
+            caretParked = false,
+        )
+    }
+
+    /**
+     * The row's ✕, or the field going away: nothing is inserted. With
+     * [restore] the trigger the snippet would have replaced goes back where
+     * it was, so the text reads as it did before it fired.
+     */
+    private fun cancelSnippetAsk(restore: Boolean) {
+        val pending = pendingSnippetAsk
+        if (pending == null && _uiState.value.toolText.snippetAsk == null) return
+        closeSnippetAsk()
+        if (!restore || pending == null || pending.original.isEmpty()) return
+        val ic = currentInputConnection ?: return
+        ic.commitText(pending.original, 1)
+        invalidateExpectedSelection()
+        invalidateRecentWords()
+    }
+
+    private fun closeSnippetAsk() {
+        pendingSnippetAsk = null
+        _uiState.update { it.copy(toolText = it.toolText.copy(snippetAsk = null)) }
+    }
+
+    /**
      * A trigger typed into a field where nothing composes (#471): a browser's
      * address bar asks for no suggestions, so its letters go straight into the
      * field and [commitComposing] never sees a word to match. The trigger is
@@ -21835,6 +21991,7 @@ open class WMKeyboardService : InputMethodService() {
             casing = SnippetStore.casingFor(snippet, consumed),
         )
         if (!snippetFitsField(expanded.text, state.fieldKind)) return false
+        if (takeOverSnippet(ic, snippet.image, expanded, consumed)) return true
         stopVoiceForManualInput()
         ic.beginBatchEdit()
         ic.deleteSurroundingText(consumed.length, 0)
@@ -21886,6 +22043,7 @@ open class WMKeyboardService : InputMethodService() {
             context = snippetContext(ic),
             casing = SnippetStore.casingFor(hit.snippet, consumed),
         )
+        if (takeOverSnippet(ic, hit.snippet.image, expanded, consumed)) return true
         lastRevertible = null
         ic.beginBatchEdit()
         ic.deleteSurroundingText(consumed.length, 0)
@@ -21958,6 +22116,11 @@ open class WMKeyboardService : InputMethodService() {
             casing = SnippetStore.casingFor(hit.snippet, consumed),
         )
         if (!snippetFitsField(expanded.text, state.fieldKind)) return false
+        if (takeOverSnippet(ic, hit.snippet.image, expanded, consumed)) {
+            // No terminator was typed: the trigger's own last letter fired it.
+            swallowTerminatorAfterCommit = false
+            return true
+        }
         stopVoiceForManualInput()
         lastRevertible = null
         ic.beginBatchEdit()
@@ -22050,6 +22213,7 @@ open class WMKeyboardService : InputMethodService() {
             // apart from "Gr db".
             casing = SnippetStore.casingFor(hit.snippet, consumed),
         )
+        if (takeOverSnippet(ic, hit.snippet.image, expanded, consumed)) return true
         ic.beginBatchEdit()
         // Same reason as [tryPatternExpansion]: a live composing region and
         // deleteSurroundingText disagree about which characters they mean.
@@ -22127,6 +22291,17 @@ open class WMKeyboardService : InputMethodService() {
         ) ?: return false
         // Text a backspace just restored must not expand straight back.
         if (hit.consumedText == patternMutedAfter) return false
+        val taken = takeOverSnippet(
+            ic,
+            hit.snippet.image,
+            SnippetStore.Companion.Expanded(hit.text, hit.cursorOffset),
+            hit.consumedText,
+            deleteChars = hit.consumedChars,
+        )
+        if (taken) {
+            patternFiredAtCommit = true
+            return true
+        }
         ic.beginBatchEdit()
         // The composing region has to be finished before the delete. With one
         // alive, deleteSurroundingText skips the composing text and takes the
@@ -22224,6 +22399,7 @@ open class WMKeyboardService : InputMethodService() {
         text = candidate.text,
         cursorOffset = candidate.cursorOffset,
         drillable = candidate.drillable,
+        image = candidate.image,
     )
 
     /**
@@ -22962,8 +23138,12 @@ open class WMKeyboardService : InputMethodService() {
         }
         stopVoiceForManualInput()
         vibrate()
-        val inserted = chip.text + tail
-        val marker = chip.cursorOffset.takeIf { it < chip.text.length }
+        // A swap replaces text already in the field and keeps the chips up
+        // for the next swap, so it has no moment to ask in: fill-in fields
+        // take their defaults here.
+        val swapped = SnippetStore.fillAsks(SnippetStore.Companion.Expanded(chip.text, chip.cursorOffset), emptyMap())
+        val inserted = swapped.text + tail
+        val marker = swapped.cursorOffset.takeIf { it < swapped.text.length }
         ic.beginBatchEdit()
         ic.finishComposingText()
         revision = null
@@ -23025,6 +23205,21 @@ open class WMKeyboardService : InputMethodService() {
                     clearSnippetOffer()
                     return
                 }
+        }
+        val taken = takeOverSnippet(
+            ic,
+            chip.image,
+            SnippetStore.Companion.Expanded(chip.text, chip.cursorOffset),
+            offer.consumed + tail,
+            // A composed span is the composing region and nothing after it.
+            deleteChars = offer.consumed.length + tail.length,
+        )
+        if (taken) {
+            vibrate()
+            // Tapped, so no terminator is on its way in behind it.
+            swallowTerminatorAfterCommit = false
+            clearSnippetOffer()
+            return
         }
         stopVoiceForManualInput()
         vibrate()
@@ -34586,6 +34781,14 @@ open class WMKeyboardService : InputMethodService() {
         !state.composer.isTransliterating && !state.composer.isConversion
 
     /** The snippet a glided [word] fires, or null. A snippet that asks first never fires on a glide. */
+    /**
+     * What [glidedExpansion] answers when a picture or a fill-in row took the
+     * snippet over: nothing typed, and a caret "inside" it, so neither caller
+     * adds the space that follows a glided word. That space would land in
+     * front of text still waiting for its answers.
+     */
+    private val GLIDE_TAKEN_OVER = SnippetStore.Companion.Expanded("", -1)
+
     private fun glidedSnippet(word: String): Snippet? =
         snippetStore.matchTrigger(word)?.takeIf { !snippetStore.offers(it) }
             // A glide's lift is the keystroke an immediate trigger waits for.
@@ -34706,6 +34909,13 @@ open class WMKeyboardService : InputMethodService() {
             shortcut != null -> casedLikeTrigger(shortcut, word)
                 .let { SnippetStore.Companion.Expanded(it, it.length) }
             else -> return null
+        }
+        // Nothing of the stroke is in the field yet, so nothing to delete;
+        // Cancel on the fill-in row types the glided word instead.
+        if (snippet != null && takeOverSnippet(ic, snippet.image, expanded, word, deleteChars = 0)) {
+            // A glide pressed no space to swallow.
+            swallowTerminatorAfterCommit = false
+            return GLIDE_TAKEN_OVER
         }
         commitSplitAtCaret(ic, expanded.text, expanded.cursorOffset)
         // Never arms the terminator swallow: that exists for the space that
@@ -53756,6 +53966,8 @@ open class WMKeyboardService : InputMethodService() {
             onPickerDrill = ::onSnippetPickerDrill,
             onPickerBack = ::onSnippetPickerBack,
             onSearchToggle = ::onSnippetSearchToggle,
+            onAskNext = ::onSnippetAskNext,
+            onAskCancel = { cancelSnippetAsk(restore = true) },
         )
     }
 
@@ -53824,7 +54036,7 @@ open class WMKeyboardService : InputMethodService() {
     fun onSnippetPickerPick(index: Int) {
         val picker = _uiState.value.snippetPicker ?: return
         val chip = picker.rows.getOrNull(index) ?: return
-        insertSnippetText(chip.text, chip.cursorOffset)
+        insertSnippetText(chip.text, chip.cursorOffset, chip.image)
     }
 
     /** Shows what the linked snippet in row [index] offers. */
@@ -53890,17 +54102,44 @@ open class WMKeyboardService : InputMethodService() {
             text = expanded.text
             caret = expanded.cursorOffset
         }
-        insertSnippetText(text, caret)
+        insertSnippetText(text, caret, snippet.image)
     }
 
     /**
      * Puts an already-expanded snippet in the field and closes the panel, or
      * leaves it open on the grid when the user asked for that (#970).
+     *
+     * A picture snippet ([image]) and one with `{ask:}` fields go through
+     * [takeOverSnippet] instead, which closes the panel either way: the
+     * fill-in row needs the strip and the keys.
      */
-    private fun insertSnippetText(text: String, caret: Int) {
+    private fun insertSnippetText(rawText: String, rawCaret: Int, image: String? = null) {
+        val target = _uiState.value.captureTarget()
+        val boxField = _uiState.value.panel == PanelMode.SNIPPETS && target?.movableCaret == true
+        currentInputConnection?.takeUnless { boxField }?.let { ic ->
+            if (image == null && !SnippetStore.hasAsks(rawText)) return@let
+            ic.beginBatchEdit()
+            // As below: a word still composing is the user's, not the snippet's.
+            if (!hasSelection(ic)) commitComposing(ic, autocorrect = false)
+            ic.endBatchEdit()
+            if (takeOverSnippet(ic, image, SnippetStore.Companion.Expanded(rawText, rawCaret), consumed = "")) {
+                // Tapped, so no key is on its way in behind it.
+                swallowTerminatorAfterCommit = false
+                // A picture leaves the grid up when asked to (#970); the
+                // fill-in row has already put the panel away.
+                val stays = _uiState.value.settings.suggestionStrip.snippetPanelStays &&
+                    _uiState.value.toolText.snippetAsk == null
+                _uiState.update { it.copy(panel = if (stays) it.panel else PanelMode.NONE, snippetPicker = null) }
+                return
+            }
+        }
+        // A floating box's note has no fill-in row of its own, so the fields
+        // take their defaults there; so does a picture whose file is gone.
+        val filled = SnippetStore.fillAsks(SnippetStore.Companion.Expanded(rawText, rawCaret), emptyMap())
+        val text = filled.text
+        val caret = filled.cursorOffset
         // A note or task open in the floating box takes it (#1241).
-        val boxed = _uiState.value.panel == PanelMode.SNIPPETS &&
-            _uiState.value.captureTarget()?.movableCaret == true && captureTyped(text)
+        val boxed = boxField && captureTyped(text)
         val ic = currentInputConnection.takeUnless { boxed }
         if (ic != null) {
             ic.beginBatchEdit()
@@ -57802,7 +58041,7 @@ open class WMKeyboardService : InputMethodService() {
         // where nothing it does costs the board a recomposition), so it is
         // asked about here rather than in [topLayerDismissal]'s `when`.
         panelFocus.keyGrid.alternatesOpen ||
-            ((state.panel != PanelMode.NONE || state.voice.strip) &&
+            ((state.panel != PanelMode.NONE || state.voice.strip || state.toolText.snippetAsk != null) &&
                 topLayerDismissal(state, fromBack = true) != null)
 
     /**
@@ -57822,6 +58061,8 @@ open class WMKeyboardService : InputMethodService() {
             // closes it first rather than the panel underneath it.
             state.mediaAction != null -> ::onMediaActionDismiss
             state.voice.strip -> ::closeVoiceStrip
+            // A snippet waiting on its fill-in row: Back is its Cancel.
+            state.toolText.snippetAsk != null -> ({ cancelSnippetAsk(restore = true) })
             // The spelling bar is the innermost layer of all: back leaves the
             // respelling and puts the word card that opened it up again.
             state.wordSpellActive -> ({ cancelWordSpell() })

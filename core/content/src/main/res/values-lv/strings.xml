@@ -38,10 +38,6 @@
         <item quantity="one">Lietotne izlaida %1$d fragmentu, kurā nav ko ievietot.</item>
         <item quantity="other">Lietotne izlaida %1$d fragmentus, kuros nav ko ievietot.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d fragments lūdz aizpildīt veidlapu. Lietotne ievieto veidlapu kā tekstu ar kursoru pirmajā tukšajā laukā.</item>
-        <item quantity="other">%1$d fragmenti lūdz aizpildīt veidlapu. Lietotne ievieto katru veidlapu kā tekstu ar kursoru pirmajā tukšajā laukā.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Lietotne izlaida %1$d fragmentu, kas ievieto attēlu.</item>
         <item quantity="other">Lietotne izlaida %1$d fragmentus, kas ievieto attēlus.</item>

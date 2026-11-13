@@ -38,10 +38,6 @@
         <item quantity="one">Aplikacija je preskočila %1$d isječak koji nema ništa za umetanje.</item>
         <item quantity="other">Aplikacija je preskočila %1$d isječaka koji nemaju ništa za umetanje.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d isječak traži da ispunite obrazac. Aplikacija umeće obrazac kao tekst, s kursorom u prvom praznom polju.</item>
-        <item quantity="other">%1$d isječaka traži da ispunite obrazac. Aplikacija umeće svaki obrazac kao tekst, s kursorom u prvom praznom polju.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Aplikacija je preskočila %1$d isječak koji umeće sliku.</item>
         <item quantity="other">Aplikacija je preskočila %1$d isječaka koji umeću slike.</item>

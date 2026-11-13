@@ -38,10 +38,6 @@
         <item quantity="one">ऐप ने %1$d स्निपेट छोड़ दिया जिसमें डालने के लिए कुछ नहीं है।</item>
         <item quantity="other">ऐप ने %1$d स्निपेट्स छोड़ दिए जिनमें डालने के लिए कुछ नहीं है।</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d स्निपेट आपसे एक फ़ॉर्म भरने के लिए कहता है। ऐप फ़ॉर्म को टेक्स्ट के रूप में सम्मिलित करता है, कर्सर पहले रिक्त स्थान में होता है।</item>
-        <item quantity="other">%1$d स्निपेट आपसे फ़ॉर्म भरने के लिए कहते हैं। ऐप प्रत्येक फ़ॉर्म को टेक्स्ट के रूप में सम्मिलित करता है, कर्सर पहले रिक्त स्थान में होता है।</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">ऐप ने %1$d स्निपेट छोड़ दिया जो एक चित्र सम्मिलित करता है।</item>
         <item quantity="other">ऐप ने %1$d स्निपेट छोड़ दिए जो चित्र सम्मिलित करते हैं।</item>

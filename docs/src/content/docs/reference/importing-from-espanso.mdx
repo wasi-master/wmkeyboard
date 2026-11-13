@@ -43,6 +43,8 @@ An Espanso pack can also be served from an [addon repository](/development/addon
 | `vars` of type `date` | `{date:…}`, with the offset kept |
 | `vars` of type `random` | `{random:…}` |
 | A `replace` that is nothing but one `choice` variable | A snippet with [several expansions](/tools/snippets/#several-expansions), offered as chips |
+| `form`, and a `form` variable's `{{form1.name}}` | [Fill-in fields](/tools/snippets/#fill-in-fields): each `[[name]]` becomes `{ask:name}`, asked for when the snippet expands, with a field's `default` kept |
+| `image_path`, in a package `.zip` that holds the picture | A [picture snippet](/tools/snippets/#picture-snippets) |
 | `global_vars` | Resolved into each snippet that uses them |
 
 Espanso trigger words nearly always start with a colon or a semicolon, and that is exactly why this works at all: those triggers get their own matching path in WM Keyboard, because the keyboard's word buffer never holds punctuation. Multi-word triggers like `gr db` come in through the same path, for the same reason. See [Triggers with punctuation or spaces in them](/tools/snippets/#triggers-with-punctuation-or-spaces-in-them).
@@ -65,9 +67,9 @@ So `:shrug` from a Hub package turns into the shrug as soon as you type the `g`,
 Every one of these is reported in the import dialog with a count, so you know what a package lost before you accept it.
 
 - **Commands.** A `shell` or `script` variable runs a program on a computer. It is read, discarded and never run, in either direction. A snippet that was only a command comes in with that part empty.
-- **Forms.** A `form` match keeps its layout as ordinary text, with the cursor parked in the first blank and the remaining `[[fields]]` left visible so you can see what belongs where.
+- **Pick-one form fields.** A form field of type `choice` or `list` becomes a typed fill-in field with the first value as its default, since the row above the keys has no list to pick from. Ordinary text fields carry across whole, `default` included. Espanso shows every field of a form in one window; the keyboard asks for them one after another, in the order they appear.
 - **Rich text.** A `markdown` or `html` match keeps its words and loses its formatting, because a snippet goes into the field you are typing in as plain characters.
-- **Pictures.** An `image_path` match is skipped.
+- **Pictures that aren't there.** An `image_path` names a file on the computer the package was written on. Inside a package `.zip` the picture is looked for among the archive's own files by its file name, and a PNG, JPEG, GIF or WebP up to 8&nbsp;MB that turns up there becomes a picture snippet. A lone `.yml` has nothing beside it to look in, so its image matches are skipped, and so is one whose file the archive doesn't hold.
 - **App filters.** `apps` and `exclude_apps` name desktop windows and executables, which mean nothing to an Android app, so they are ignored rather than half-translated.
 - **`right_word` on its own.** It lets a trigger start in the middle of a word as long as a space or punctuation follows it. WM Keyboard waits for the space the same way, but wants a word boundary in front of a trigger that starts with a letter or a digit, so such a trigger works as a whole word only. A trigger starting with punctuation is unaffected, since the punctuation is its own boundary. Every other combination maps across exactly; see [when a trigger fires](#when-a-trigger-fires).
 - **Pick-from-a-list inside a sentence.** A `choice` variable that sits in the middle of longer text becomes a random pick, because only part of what gets typed would be up for choosing. A match that is nothing but the choice keeps its list: it becomes a snippet with several expansions, and the suggestion bar asks the same question Espanso would have.
@@ -88,6 +90,10 @@ One more case: a snippet whose text already contains something in braces that th
 Going out, each trigger says when it fires, so it behaves the same on both devices: `word: true` on one that waits for the space, `left_word: true` on one that expands immediately at a word start, and nothing on one that expands immediately inside words too, since that is Espanso's default.
 
 A snippet with [several expansions](/tools/snippets/#several-expansions) goes out as a `choice` variable when every one of them is plain text, which is Espanso's own way of asking you to pick. When one of them holds a date, the clipboard or a capture reference, a choice cannot carry it, so only the default is written and the export says so. [Linked snippets](/tools/snippets/#linked-snippets) have no Espanso equivalent at all and are reported rather than half-translated.
+
+[Fill-in fields](/tools/snippets/#fill-in-fields) go out as one Espanso form named `wmform`: each `{ask:Name}` becomes `{{wmform.Name}}`, the form's layout lists every field once, and a default becomes the field's `default`. Espanso then asks for all of them in one window. A field name keeps only its letters, digits and underscores, so `{ask:First name}` comes back from a round trip as `{ask:First_name}`.
+
+A [picture snippet](/tools/snippets/#picture-snippets) goes out as its text alone, because a match file holds no pictures, and the export says so.
 
 Four more things are written out as they stand, with a note afterwards: `{uuid}`, `{app}`, `{package}` and `{selection}`. So is **Ask before it expands**, which Espanso cannot say, so those snippets expand on their own there. A folder that is switched off is still exported, since Espanso has no folder switch and silently dropping the snippets would be worse.
 

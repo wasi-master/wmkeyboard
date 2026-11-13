@@ -38,10 +38,6 @@
         <item quantity="one">ایپ نے %1$d اسنیپٹ کو چھوڑ دیا جس میں داخل کرنے کے لیے کچھ نہیں ہے۔</item>
         <item quantity="other">ایپ نے %1$d اسنیپٹس کو چھوڑ دیا جن میں داخل کرنے کے لیے کچھ نہیں ہے۔</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d اسنیپٹ آپ سے فارم پُر کرنے کو کہتا ہے۔ ایپ فارم کو متن کے طور پر داخل کرتی ہے، کرسر پہلے خالی جگہ پر ہوتا ہے۔</item>
-        <item quantity="other">%1$d اسنیپٹس آپ سے فارم پُر کرنے کو کہتے ہیں۔ ایپ ہر فارم کو متن کے طور پر داخل کرتی ہے، کرسر پہلے خالی جگہ پر ہوتا ہے۔</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">ایپ نے %1$d اسنیپٹ کو چھوڑ دیا جو تصویر داخل کرتا ہے۔</item>
         <item quantity="other">ایپ نے %1$d اسنیپٹس کو چھوڑ دیا جو تصاویر داخل کرتے ہیں۔</item>

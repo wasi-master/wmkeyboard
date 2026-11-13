@@ -38,10 +38,6 @@
         <item quantity="one">Ứng dụng đã bỏ qua %1$d đoạn mã không có nội dung để chèn.</item>
         <item quantity="other">Ứng dụng đã bỏ qua %1$d đoạn mã không có nội dung để chèn.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d đoạn mã yêu cầu bạn điền vào biểu mẫu. Ứng dụng sẽ chèn biểu mẫu dưới dạng văn bản, với con trỏ ở ô trống đầu tiên.</item>
-        <item quantity="other">%1$d đoạn mã yêu cầu bạn điền vào biểu mẫu. Ứng dụng sẽ chèn từng biểu mẫu dưới dạng văn bản, với con trỏ ở ô trống đầu tiên.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Ứng dụng đã bỏ qua %1$d đoạn mã chèn hình ảnh.</item>
         <item quantity="other">Ứng dụng đã bỏ qua %1$d đoạn mã chèn hình ảnh.</item>

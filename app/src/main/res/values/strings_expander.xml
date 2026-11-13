@@ -15,6 +15,8 @@
     <string name="expander_var_location_sample">📍 your street and a map link</string>
     <string name="expander_var_place_info">a place you saved in the location tool, by name. A format can follow, as for {location}</string>
     <string name="expander_var_place_sample">📍 Home and a map link</string>
+    <string name="expander_var_ask_info">asks you for a value when the snippet expands, in a row above the keys. {ask:Name:Sam} fills in Sam unless you type something else. The same name twice asks once</string>
+    <string name="expander_var_ask_sample">whatever you type</string>
     <!-- The braces and the words inside them are code. Do not translate them. -->
     <string name="expander_variables_info">A variable expands at the moment that you insert the snippet, not when you save it. Because of this, {date} always gives the current date. {date:…} takes a pattern, for example {date:EEEE} or {date:dd/MM/yy}.</string>
 

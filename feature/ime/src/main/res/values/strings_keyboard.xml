@@ -326,6 +326,16 @@
     <!-- Screen reader text for the chip that offers a snippet the user marked
          "ask first". %1$s is the name that the user gave the snippet. -->
     <string name="ime_snippet_offer_desc">Insert the snippet %1$s</string>
+    <!-- The fill-in row of a snippet with {ask:Name} fields: the ✕, the arrow to the next field, the tick on the last. -->
+    <string name="ime_snippet_ask_cancel_desc">Cancel the snippet</string>
+    <string name="ime_snippet_ask_next_desc">Next field</string>
+    <string name="ime_snippet_ask_done_desc">Insert the snippet</string>
+    <!-- Placeholder in the fill-in row's box; %1$s is the field's name, such as "Name". -->
+    <string name="ime_snippet_ask_hint">Type the %1$s</string>
+    <!-- The fill-in row's label when a snippet asks several things: "Name 1/3". -->
+    <string name="ime_snippet_ask_step_label">%1$s %2$d/%3$d</string>
+    <!-- Spoken name of a picture snippet's thumbnail on a chip or a tile; %1$s is the snippet's name. -->
+    <string name="ime_snippet_image_desc">Picture snippet %1$s</string>
     <!-- Screen reader text for a chip that replaces text a snippet has already
          put in, with one of the snippet's other expansions. %1$s is the name
          the user gave the snippet the expansion belongs to. -->

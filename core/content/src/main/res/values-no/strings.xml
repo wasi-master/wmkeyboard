@@ -38,10 +38,6 @@
         <item quantity="one">Appen hoppet over %1$d tekstbit som ikke har noe å sette inn.</item>
         <item quantity="other">Appen hoppet over %1$d tekstbiter som ikke har noe å sette inn.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d tekstsnutt ber deg fylle ut et skjema. Appen setter inn skjemaet som tekst, med markøren i det første feltet.</item>
-        <item quantity="other">%1$d tekstsnutter ber deg fylle ut et skjema. Appen setter inn hvert skjema som tekst, med markøren i det første feltet.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Appen hoppet over %1$d tekstsnutt som setter inn et bilde.</item>
         <item quantity="other">Appen hoppet over %1$d tekstsnutter som setter inn bilder.</item>

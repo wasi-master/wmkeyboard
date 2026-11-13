@@ -295,4 +295,25 @@ class EspansoWriterTest {
         assertFalse(written.text.contains("type: script"))
         assertNull(EspansoFile.read(written.text, "x.yml")!!.snippets.firstOrNull { it.text.contains("cmd:") })
     }
+
+    @Test
+    fun `fill-in fields go out as one form and come back as fields`() {
+        val written = EspansoWriter.encodeMatchFile(
+            listOf(snippet(text = "Dear {ask:Name:Sam}, re {ask:Topic}. Thanks, {ask:name}")),
+        )
+        assertTrue(written.text.contains("type: form"))
+        assertTrue(written.text.contains("{{wmform.Name}}"))
+        assertTrue(written.text.contains("[[Topic]]"))
+        val back = EspansoFile.read(written.text, "out.yml")!!.snippets.single()
+        assertEquals("Dear {ask:Name:Sam}, re {ask:Topic}. Thanks, {ask:Name:Sam}", back.text)
+    }
+
+    @Test
+    fun `a picture snippet goes out as its words and says so`() {
+        val written = EspansoWriter.encodeMatchFile(
+            listOf(snippet(text = "a cat").copy(image = "s_cat.png")),
+        )
+        assertTrue(written.notes.any { it.pluralsRes == EspansoNote.PICTURE_EXPORT.pluralsRes })
+        assertFalse(written.text.contains("s_cat.png"))
+    }
 }

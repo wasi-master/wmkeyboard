@@ -38,10 +38,6 @@
         <item quantity="one">Appen hoppade över %1$d kodavsnitt som inte har något att infoga.</item>
         <item quantity="other">Appen hoppade över %1$d kodavsnitt som inte har något att infoga.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d kodavsnitt ber dig fylla i ett formulär. Appen infogar formuläret som text, med markören i det första tomma fältet.</item>
-        <item quantity="other">%1$d kodavsnitt ber dig fylla i ett formulär. Appen infogar varje formulär som text, med markören i det första tomma fältet.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Appen hoppade över %1$d kodavsnitt som infogar en bild.</item>
         <item quantity="other">Appen hoppade över %1$d kodavsnitt som infogar bilder.</item>

@@ -46,6 +46,14 @@
 
     <!-- The list of texts one snippet can insert. The first is the default. -->
     <string name="rows_snippet_expansions_label">Expansions</string>
+    <!-- Snippet editor: a snippet can insert a picture instead of text. -->
+    <string name="rows_snippet_picture_label">Picture</string>
+    <string name="rows_snippet_picture_body">Insert a picture instead of text. Apps that take pictures from the keyboard get it straight away. In other apps, the keyboard copies it and pastes it.</string>
+    <string name="rows_snippet_picture_pick">Choose a picture</string>
+    <string name="rows_snippet_picture_change">Change</string>
+    <string name="rows_snippet_picture_remove">Remove</string>
+    <string name="rows_snippet_picture_desc">The snippet\'s picture</string>
+    <string name="rows_snippet_picture_failed">That picture could not be used. Pick one under 8 MB in PNG, JPEG, GIF or WebP.</string>
     <string name="rows_snippet_expansions_body">The first one is the default. Add more and the keyboard offers all of them on the suggestion bar.</string>
     <string name="rows_snippet_expansion_default_label">Default</string>
     <string name="rows_snippet_expansion_empty_label">Empty</string>

@@ -38,10 +38,6 @@
         <item quantity="one">Programu iliruka kijisehemu %1$d ambacho hakina cha kuingiza.</item>
         <item quantity="other">Programu iliruka vijisehemu %1$d ambavyo havina cha kuingiza.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">Kipande %1$d kinakuomba ujaze fomu. Programu huingiza fomu kama maandishi, huku kishale kikiwa kwenye nafasi ya kwanza tupu.</item>
-        <item quantity="other">Vipande %1$d vinakuomba ujaze fomu. Programu huingiza kila fomu kama maandishi, huku kishale kikiwa kwenye nafasi ya kwanza tupu.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Programu imeruka kijisehemu %1$d kinachoingiza picha.</item>
         <item quantity="other">Programu imeruka vijisehemu %1$d vinavyoingiza picha.</item>

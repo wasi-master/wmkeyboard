@@ -111,4 +111,23 @@ class SnippetPayloadTest {
         assertTrue(huge.length > com.wasimaster.wmkeyboard.core.snippets.espanso.EspansoFile.MAX_BYTES)
         assertNull(SnippetPayload.read(file("big.yml", huge), "big.yml"))
     }
+
+    @Test
+    fun `a package brings the pictures its image matches name`() {
+        val png = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 7, 7)
+        val bytes = java.io.ByteArrayOutputStream().also { out ->
+            java.util.zip.ZipOutputStream(out).use { zip ->
+                zip.putNextEntry(java.util.zip.ZipEntry("cats/0.1.0/images/Cat.PNG"))
+                zip.write(png)
+                zip.closeEntry()
+                zip.putNextEntry(java.util.zip.ZipEntry("cats/0.1.0/package.yml"))
+                zip.write("matches:\n  - trigger: \":cat\"\n    image_path: \"/home/me/.config/espanso/cat.png\"\n".toByteArray())
+                zip.closeEntry()
+            }
+        }.toByteArray()
+        val parsed = SnippetPayload.read(file("cats.zip", bytes), "cats.zip")!!
+        val snippet = parsed.snippets.single()
+        val name = snippet.image!!
+        assertTrue(parsed.images.getValue(name).contentEquals(png))
+    }
 }

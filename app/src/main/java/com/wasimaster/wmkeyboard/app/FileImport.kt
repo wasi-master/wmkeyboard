@@ -2354,7 +2354,8 @@ private fun foreignSnippetsProposal(
                 // Whole snippets, not a handful of named fields, and fresh ids
                 // from the store: importing the same pack twice gives two
                 // independent sets rather than silently overwriting the first.
-                store.addAll(parsed.snippets, parsed.folders, fallbackFolderId = target)
+                // An Espanso package's pictures come too (its image matches).
+                store.addAll(parsed.snippets, parsed.folders, fallbackFolderId = target, images = parsed.images)
                 // The adds are in-memory only; save() is what writes the file.
                 store.save()
             }

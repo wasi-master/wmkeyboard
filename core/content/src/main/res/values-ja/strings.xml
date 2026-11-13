@@ -38,10 +38,6 @@
         <item quantity="one">挿入内容がないため、スニペットを1件スキップしました。</item>
         <item quantity="other">挿入内容がないため、スニペットを%1$d件スキップしました。</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d 個のスニペットがフォームへの入力を求めています。アプリはフォームをテキストとして挿入し、最初の空欄にカーソルを置きます。</item>
-        <item quantity="other">%1$d 個のスニペットがフォームへの入力を求めています。アプリは各フォームをテキストとして挿入し、最初の空欄にカーソルを置きます。</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">アプリは画像を挿入するスニペットを%1$d個スキップしました。</item>
         <item quantity="other">アプリは画像を挿入するスニペットを%1$d個スキップしました。</item>

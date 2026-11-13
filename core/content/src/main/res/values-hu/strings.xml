@@ -38,10 +38,6 @@
         <item quantity="one">Az alkalmazás kihagyott %1$d kódrészletet, amelyben nincs beszúrható tartalom.</item>
         <item quantity="other">Az alkalmazás kihagyott %1$d kódrészletet, amelyekben nincs beszúrható tartalom.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d kódrészlet arra kér, hogy tölts ki egy űrlapot. Az alkalmazás szövegként szúrja be az űrlapot, a kurzor az első üres mezőben áll.</item>
-        <item quantity="other">%1$d kódrészlet arra kér, hogy tölts ki egy űrlapot. Az alkalmazás minden űrlapot szövegként szúr be, a kurzor az első üres mezőben áll.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Az alkalmazás kihagyott %1$d kódrészletet, amely képet szúr be.</item>
         <item quantity="other">Az alkalmazás kihagyott %1$d kódrészletet, amely képeket szúr be.</item>

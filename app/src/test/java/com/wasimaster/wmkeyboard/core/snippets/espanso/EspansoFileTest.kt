@@ -434,7 +434,7 @@ class EspansoFileTest {
     }
 
     @Test
-    fun `a form keeps its layout with the caret in the first blank`() {
+    fun `a form's fields become fill-in fields`() {
         val import = read(
             """
             matches:
@@ -442,11 +442,38 @@ class EspansoFileTest {
                 form: |
                   Hey [[name]],
                   [[message]]
+                form_fields:
+                  name:
+                    default: "Sam"
             """,
         )!!
         val text = import.snippets.single().text
-        assertTrue(text.startsWith("Hey ${SnippetVariable.CURSOR.token},"))
-        assertTrue(text.contains("[[message]]"))
+        assertEquals("Hey {ask:name:Sam},\n{ask:message}", text.trimEnd())
+        assertEquals(listOf("name", "message"), SnippetStore.asks(text).map { it.name })
+        // Plain fields carry across whole: nothing to report.
+        assertEquals(0, noteCount(import, EspansoNote.FORM))
+    }
+
+    @Test
+    fun `a verbose form's references become fill-in fields`() {
+        val import = read(
+            """
+            matches:
+              - trigger: ":hey"
+                replace: "Hey {{form1.name}}, see you {{form1.day}}"
+                vars:
+                  - name: form1
+                    type: form
+                    params:
+                      layout: "Name: [[name]] Day: [[day]]"
+                      fields:
+                        day:
+                          type: choice
+                          values: ["Monday", "Friday"]
+            """,
+        )!!
+        assertEquals("Hey {ask:name}, see you {ask:day:Monday}", import.snippets.single().text)
+        // A pick-one field lost its list, and says so.
         assertEquals(1, noteCount(import, EspansoNote.FORM))
     }
 
@@ -464,6 +491,41 @@ class EspansoFileTest {
         assertEquals("bold and a link (https://example.com)", import.snippets[0].text)
         assertEquals("one\ntwo & three", import.snippets[1].text)
         assertEquals(2, noteCount(import, EspansoNote.RICH_TEXT))
+    }
+
+    @Test
+    fun `an image match becomes a picture snippet when the file is in reach`() {
+        val png = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 1, 2, 3)
+        val import = EspansoFile.read(
+            """
+            matches:
+              - trigger: ":cat"
+                image_path: "${'$'}CONFIG/images/cat.png"
+            """.trimIndent(),
+            "pack.yml",
+        ) { path -> if (path.endsWith("cat.png")) png else null }!!
+        val snippet = import.snippets.single()
+        assertEquals(":cat", snippet.trigger)
+        assertEquals("cat", snippet.label)
+        val name = snippet.image!!
+        assertTrue(SnippetStore.isImageName(name))
+        assertTrue(name.endsWith(".png"))
+        assertTrue(import.images.getValue(name).contentEquals(png))
+        assertEquals(0, noteCount(import, EspansoNote.IMAGE))
+    }
+
+    @Test
+    fun `an image match whose file is not a picture is skipped`() {
+        val import = EspansoFile.read(
+            """
+            matches:
+              - trigger: ":cat"
+                image_path: "cat.png"
+            """.trimIndent(),
+            "pack.yml",
+        ) { "not a picture".toByteArray() }!!
+        assertTrue(import.snippets.isEmpty())
+        assertEquals(1, noteCount(import, EspansoNote.IMAGE))
     }
 
     @Test

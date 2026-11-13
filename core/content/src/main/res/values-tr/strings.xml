@@ -38,10 +38,6 @@
         <item quantity="one">Uygulama, eklenecek hiçbir şeyi olmayan %1$d snippet\'i atladı.</item>
         <item quantity="other">Uygulama, eklenecek hiçbir şeyi olmayan %1$d snippet\'i atladı.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d kod parçacığı bir form doldurmanızı istiyor. Uygulama formu metin olarak, imleç ilk boşlukta olacak şekilde ekler.</item>
-        <item quantity="other">%1$d kod parçacığı form doldurmanızı istiyor. Uygulama her formu metin olarak, imleç ilk boşlukta olacak şekilde ekler.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Uygulama, resim ekleyen %1$d snippet\'i atladı.</item>
         <item quantity="other">Uygulama, resim ekleyen %1$d snippet\'i atladı.</item>

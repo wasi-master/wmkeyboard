@@ -38,10 +38,6 @@
         <item quantity="one">ਐਪ ਨੇ %1$d ਸਨਿੱਪਟ ਛੱਡ ਦਿੱਤਾ ਜਿਸ ਵਿੱਚ ਪਾਉਣ ਲਈ ਕੁਝ ਨਹੀਂ ਹੈ।</item>
         <item quantity="other">ਐਪ ਨੇ %1$d ਸਨਿੱਪਟ ਛੱਡ ਦਿੱਤੇ ਜਿਨ੍ਹਾਂ ਵਿੱਚ ਪਾਉਣ ਲਈ ਕੁਝ ਨਹੀਂ ਹੈ।</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d ਸਨਿੱਪਟ ਤੁਹਾਨੂੰ ਫਾਰਮ ਭਰਨ ਲਈ ਕਹਿੰਦਾ ਹੈ। ਐਪ ਫਾਰਮ ਨੂੰ ਟੈਕਸਟ ਦੇ ਰੂਪ ਵਿੱਚ ਪਾਉਂਦੀ ਹੈ, ਕਰਸਰ ਪਹਿਲੇ ਖਾਲੀ ਸਥਾਨ ਵਿੱਚ ਹੁੰਦਾ ਹੈ।</item>
-        <item quantity="other">%1$d ਸਨਿੱਪਟ ਤੁਹਾਨੂੰ ਫਾਰਮ ਭਰਨ ਲਈ ਕਹਿੰਦੇ ਹਨ। ਐਪ ਹਰੇਕ ਫਾਰਮ ਨੂੰ ਟੈਕਸਟ ਦੇ ਰੂਪ ਵਿੱਚ ਪਾਉਂਦੀ ਹੈ, ਕਰਸਰ ਪਹਿਲੇ ਖਾਲੀ ਸਥਾਨ ਵਿੱਚ ਹੁੰਦਾ ਹੈ।</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">ਐਪ ਨੇ %1$d ਸਨਿੱਪਟ ਨੂੰ ਛੱਡ ਦਿੱਤਾ ਹੈ ਜੋ ਇੱਕ ਤਸਵੀਰ ਪਾਉਂਦਾ ਹੈ।</item>
         <item quantity="other">ਐਪ ਨੇ %1$d ਸਨਿੱਪਟਾਂ ਨੂੰ ਛੱਡ ਦਿੱਤਾ ਹੈ ਜੋ ਤਸਵੀਰਾਂ ਪਾਉਂਦੇ ਹਨ।</item>

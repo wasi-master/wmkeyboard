@@ -54,6 +54,12 @@ object SnippetPayload {
         val notes: List<ContentText>,
         val source: Source,
         val suggestedName: String,
+        /**
+         * Pictures the payload carried, by the [Snippet.image] name its
+         * snippets hold. Only an Espanso package has any; pass them to
+         * [SnippetStore.addAll] along with the snippets.
+         */
+        val images: Map<String, ByteArray> = emptyMap(),
     ) {
 
         /** True when this came from Espanso, in either of its two shapes. */
@@ -113,6 +119,7 @@ object SnippetPayload {
                 notes = archive.notes,
                 source = Source.ESPANSO_PACKAGE,
                 suggestedName = archive.folderName,
+                images = archive.images,
             )
         }
         readText(payload.decodeToString(), fallbackName, expectTable)

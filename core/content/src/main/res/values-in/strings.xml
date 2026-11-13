@@ -38,10 +38,6 @@
         <item quantity="one">Aplikasi melewatkan %1$d cuplikan yang tidak memiliki apa pun untuk disisipkan.</item>
         <item quantity="other">Aplikasi melewatkan %1$d cuplikan yang tidak memiliki apa pun untuk disisipkan.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d cuplikan meminta Anda mengisi formulir. Aplikasi akan menyisipkan formulir sebagai teks, dengan kursor di bagian kosong pertama.</item>
-        <item quantity="other">%1$d cuplikan meminta Anda mengisi formulir. Aplikasi akan menyisipkan setiap formulir sebagai teks, dengan kursor di bagian kosong pertama.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">Aplikasi melewatkan %1$d cuplikan yang menyisipkan gambar.</item>
         <item quantity="other">Aplikasi melewatkan %1$d cuplikan yang menyisipkan gambar.</item>

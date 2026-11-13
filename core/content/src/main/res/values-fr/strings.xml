@@ -38,10 +38,6 @@
         <item quantity="one">L\'application a ignoré %1$d extrait qui n\'a rien à insérer.</item>
         <item quantity="other">L\'application a ignoré %1$d extraits qui n\'ont rien à insérer.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">%1$d extrait vous demande de remplir un formulaire. L\'application insère le formulaire sous forme de texte, avec le curseur dans le premier champ vide.</item>
-        <item quantity="other">%1$d extraits vous demandent de remplir un formulaire. L\'application insère chaque formulaire sous forme de texte, avec le curseur dans le premier champ vide.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">L\'application a ignoré %1$d extrait qui insère une image.</item>
         <item quantity="other">L\'application a ignoré %1$d extraits qui insèrent des images.</item>

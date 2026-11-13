@@ -38,10 +38,6 @@
         <item quantity="one">تخطى التطبيق %1$d مقتطف لا يحتوي على شيء لإدراجه.</item>
         <item quantity="other">تخطى التطبيق %1$d مقتطفات لا تحتوي على شيء لإدراجه.</item>
     </plurals>
-    <plurals name="core_content_espanso_note_form">
-        <item quantity="one">قصاصة %1$d تطلب منك ملء نموذج. يدرج التطبيق النموذج كنص، مع وضع المؤشر في الفراغ الأول.</item>
-        <item quantity="other">%1$d قصاصات تطلب منك ملء نموذج. يدرج التطبيق كل نموذج كنص، مع وضع المؤشر في الفراغ الأول.</item>
-    </plurals>
     <plurals name="core_content_espanso_note_image">
         <item quantity="one">تخطى التطبيق قصاصة %1$d تدرج صورة.</item>
         <item quantity="other">تخطى التطبيق %1$d قصاصات تدرج صوراً.</item>

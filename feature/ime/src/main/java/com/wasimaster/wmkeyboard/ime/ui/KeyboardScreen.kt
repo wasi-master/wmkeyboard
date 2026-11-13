@@ -7766,7 +7766,18 @@ private fun SnippetOfferChip(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Box(
+            // A picture snippet shows its picture where the others show the
+            // snippets glyph: what is about to go in, as the text chips do.
+            val image = chip.image
+            if (image != null) {
+                SnippetImageThumb(
+                    image = image,
+                    label = chip.label,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(RoundedCornerShape(6.dp)),
+                )
+            } else Box(
                 modifier = Modifier
                     .size(22.dp)
                     .clip(CircleShape)
@@ -15221,6 +15232,10 @@ private fun KeyboardBody(
                 ) {
                     when (row) {
                         BarRow.TOPBAR -> when {
+                            // A snippet waiting for its {ask:} answers holds
+                            // the keys, so its row is what has to be seen.
+                            state.toolText.snippetAsk != null ->
+                                SnippetAskBar(state, snippetPanel.onAskNext, snippetPanel.onAskCancel)
                             // Before every other case, the toolbar's own
                             // visibility included: the word card has handed
                             // the keys to this bar, so it is the only thing
@@ -33550,6 +33565,10 @@ data class SnippetPanelCallbacks(
     val onPickerBack: () -> Unit = {},
     /** The header's search was tapped: open it, or close and clear it (#471). */
     val onSearchToggle: () -> Unit = {},
+    /** The fill-in row's arrow or tick: keep this answer and move on, or insert. */
+    val onAskNext: () -> Unit = {},
+    /** The fill-in row's ✕: the snippet inserts nothing. */
+    val onAskCancel: () -> Unit = {},
 )
 
 /**
@@ -33873,6 +33892,20 @@ private fun SnippetTile(
                     )
                 }
             }
+        }
+        val image = snippet.image
+        if (image != null) {
+            // The picture is the snippet; its name is already above it.
+            SnippetImageThumb(
+                image = image,
+                label = snippet.label,
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .fillMaxWidth()
+                    .height(if (titleOnly) 28.dp else 48.dp)
+                    .clip(RoundedCornerShape(6.dp)),
+            )
+            return@Column
         }
         if (titleOnly) return@Column
         Text(
