@@ -158,9 +158,35 @@ builds this step by step.
 ## API keys
 
 Some services need a key. Never put yours in the plugin: anyone can unzip a
-`.wmplugin` and read it. Let the user paste their own, and keep it in
-`secrets`, which is encrypted like the keyboard's own API keys and never shown
-in backups or the storage inspector. `secrets` needs the `storage` permission.
+`.wmplugin` and read it. Let the user paste their own.
+
+The simplest way is a `secret` setting. The app draws the row on your
+plugin's page with a hidden box, and you read the key like any other setting:
+
+```json title="plugin.json (excerpt)"
+"permissions": ["network", "storage"],
+"settings": [
+  {"key": "api_key", "type": "secret", "label": "API key"}
+]
+```
+
+```python
+from wm import plugin, ui, http
+
+
+def render():
+    if not plugin.settings.api_key:
+        ui.empty("Add your API key on this plugin's settings page.", icon="key")
+        return
+    ...
+```
+
+The key is kept in `secrets`, which never appears in backups or the storage
+inspector. `secrets` needs the `storage` permission.
+
+You can also ask for the key inside your panel and save it with `secrets`
+yourself. Saved under the same name as a `secret` setting, it shows on the
+page as saved:
 
 ```python
 from wm import plugin, ui, http, secrets

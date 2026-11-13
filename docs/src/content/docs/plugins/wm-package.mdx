@@ -121,8 +121,10 @@ has more detail on the built-in modules, strings and dicts.
 
 | | |
 |---|---|
-| `plugin.settings.key` | The user's value for a manifest setting. `switch` gives `True`/`False`, `number` a number, the rest text. Read-only. An undeclared key raises `AttributeError`. |
+| `plugin.settings.key` | The value of a manifest setting. `switch` gives `True`/`False`, `number` a number, `secret` the saved text or `None`, the rest text. An undeclared key raises `AttributeError`. |
 | `plugin.settings.get(key, default=None)` | The same, with a default. |
+| `plugin.settings.set(key, value)` | Change one of your settings; saved at once and shown on the page. A value that does not fit the row raises `ValueError`, a `host` setting `PermissionError`. |
+| `plugin.settings.reset(key)` | Back to the manifest's default; a `secret` is forgotten. |
 | `plugin.id`, `plugin.version` | From the manifest. |
 | `plugin.permissions` | The declared permissions, as a tuple. |
 | `plugin.locale` | The user's language, such as `"bn-BD"`. |

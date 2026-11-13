@@ -59,6 +59,7 @@ import com.wasimaster.wmkeyboard.core.plugins.displayDescription
 import com.wasimaster.wmkeyboard.core.plugins.displayName
 import com.wasimaster.wmkeyboard.core.plugins.label
 import com.wasimaster.wmkeyboard.core.plugins.PluginPermission
+import com.wasimaster.wmkeyboard.core.plugins.PluginSecrets
 import com.wasimaster.wmkeyboard.core.plugins.PluginSettingSpec
 import com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms
 import com.wasimaster.wmkeyboard.core.plugins.PluginReminders
@@ -852,10 +853,16 @@ private fun PluginPermissionsGroup(store: PluginStore, plugin: InstalledPlugin, 
     }
 }
 
-/** The plugin's own settings page, drawn from its manifest: switches, boxes, numbers, choices and websites. */
+/** The plugin's own settings page, drawn from its manifest: switches, boxes, numbers, choices, websites and keys. */
 @Composable
 private fun PluginSettingsGroup(store: PluginStore, plugin: InstalledPlugin) {
     var editing by remember { mutableStateOf<PluginSettingSpec?>(null) }
+    val revision by store.revision.collectAsStateWithLifecycle()
+    // Which secret rows hold a value. Read from the plugin's secrets file, never shown.
+    val savedSecrets = remember(revision, plugin.id) {
+        val secrets = store.secrets(plugin.id)
+        plugin.settings.filter { it.type == PluginSettingSpec.TYPE_SECRET && secrets?.get(it.key) != null }.map { it.key }.toSet()
+    }
     SettingsGroup(stringResource(R.string.plugins_settings_title)) {
         for (setting in plugin.settings) {
             item(key = "setting:${setting.key}") {
@@ -883,6 +890,17 @@ private fun PluginSettingsGroup(store: PluginStore, plugin: InstalledPlugin) {
                         },
                     )
 
+                    PluginSettingSpec.TYPE_SECRET -> WmRow(
+                        title = plugin.label("@setting.${setting.key}", setting.label),
+                        subtitle = if (setting.key in savedSecrets) {
+                            stringResource(R.string.plugins_setting_secret_saved)
+                        } else {
+                            plugin.label("@setting.${setting.key}.summary", setting.summary)
+                                .ifBlank { stringResource(R.string.plugins_setting_secret_empty) }
+                        },
+                        onClick = { editing = setting },
+                    )
+
                     else -> WmRow(
                         title = plugin.label("@setting.${setting.key}", setting.label),
                         subtitle = value.ifBlank { plugin.label("@setting.${setting.key}.summary", setting.summary) },
@@ -893,19 +911,33 @@ private fun PluginSettingsGroup(store: PluginStore, plugin: InstalledPlugin) {
         }
     }
     editing?.let { setting ->
-        var text by remember(setting.key) { mutableStateOf(plugin.settingValues[setting.key] ?: setting.default) }
+        val secret = setting.type == PluginSettingSpec.TYPE_SECRET
+        // A secret box starts empty: the saved key is never put back on screen.
+        var text by remember(setting.key) { mutableStateOf(if (secret) "" else plugin.settingValues[setting.key] ?: setting.default) }
         AlertDialog(
             onDismissRequest = { editing = null },
             title = { Text(plugin.label("@setting.${setting.key}", setting.label)) },
             text = {
                 androidx.compose.material3.OutlinedTextField(
                     value = text,
-                    onValueChange = { text = it.take(PLUGIN_SETTING_MAX) },
+                    onValueChange = { text = it.take(if (secret) PluginSecrets.MAX_VALUE else PLUGIN_SETTING_MAX) },
                     singleLine = true,
+                    placeholder = if (secret && setting.key in savedSecrets) {
+                        { Text(stringResource(R.string.plugins_setting_secret_replace_hint)) }
+                    } else {
+                        null
+                    },
+                    visualTransformation = if (secret) {
+                        androidx.compose.ui.text.input.PasswordVisualTransformation()
+                    } else {
+                        androidx.compose.ui.text.input.VisualTransformation.None
+                    },
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        autoCorrectEnabled = !secret,
                         keyboardType = when (setting.type) {
                             PluginSettingSpec.TYPE_NUMBER -> androidx.compose.ui.text.input.KeyboardType.Number
                             PluginSettingSpec.TYPE_HOST -> androidx.compose.ui.text.input.KeyboardType.Uri
+                            PluginSettingSpec.TYPE_SECRET -> androidx.compose.ui.text.input.KeyboardType.Password
                             else -> androidx.compose.ui.text.input.KeyboardType.Text
                         },
                     ),
@@ -913,15 +945,20 @@ private fun PluginSettingsGroup(store: PluginStore, plugin: InstalledPlugin) {
             },
             confirmButton = {
                 TextButton({
-                    store.setSettingValue(plugin.id, setting.key, text)
+                    // An empty secret box leaves the saved key alone; Remove forgets it.
+                    if (!secret || text.isNotEmpty()) store.setSettingValue(plugin.id, setting.key, if (secret) text.trim() else text)
                     editing = null
                 }) { Text(stringResource(CommonR.string.common_ok)) }
             },
             dismissButton = {
-                TextButton({
-                    store.setSettingValue(plugin.id, setting.key, null)
-                    editing = null
-                }) { Text(stringResource(R.string.plugins_setting_default_reset)) }
+                if (!secret || setting.key in savedSecrets) {
+                    TextButton({
+                        store.setSettingValue(plugin.id, setting.key, null)
+                        editing = null
+                    }) {
+                        Text(stringResource(if (secret) R.string.plugins_setting_secret_remove else R.string.plugins_setting_default_reset))
+                    }
+                }
             },
         )
     }

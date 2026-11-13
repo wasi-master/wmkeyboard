@@ -102,6 +102,9 @@ object PluginHost {
     const val MAX_REQUESTS_PER_MINUTE = 60
     const val MAX_PENDING = 16
 
+    /** Longest text a script may write into a setting; the store keeps the same. */
+    const val MAX_SETTING_TEXT = 1024
+
     /** One running session's link to the keyboard. */
     class Binding(
         val plugin: InstalledPlugin,
@@ -304,7 +307,49 @@ object PluginHost {
 
     private fun run(binding: Binding, op: String, args: JsonObject, emit: (JsonElement) -> Unit = {}): JsonElement {
         val call = PluginCall(binding.plugin, op, args, binding.surface, emit) { binding.active }
+        val store = binding.store
+        if (op == "settings.set" && store != null) return setSetting(store, binding.plugin, args)
         return binding.services.call(call)
+    }
+
+    /**
+     * `plugin.settings.set(key, value)`: the script writes one of its own rows.
+     * `value` null puts the default back (removes a secret). Answers the value
+     * as the session reads it, so the prelude can update `plugin.settings`.
+     *
+     * A host row is refused: the server a plugin may reach is the user's to
+     * type, and a plugin writing one would widen its own network access.
+     */
+    fun setSetting(store: PluginStore, plugin: InstalledPlugin, args: JsonObject): JsonElement {
+        val key = (args["key"] as? JsonPrimitive)?.contentOrNull.orEmpty()
+        val spec = plugin.settings.firstOrNull { it.key == key }
+            ?: throw PluginCallException("ValueError", "the manifest declares no setting '$key'")
+        if (spec.type == PluginSettingSpec.TYPE_HOST) {
+            throw PluginCallException("PermissionError", "a plugin can't change its own host settings: only the user types a server address")
+        }
+        val raw = args["value"]
+        val text = if (raw == null || raw is JsonNull) {
+            null
+        } else {
+            spec.storedText(raw)
+                ?: throw PluginCallException("ValueError", settingMismatch(spec))
+        }
+        if (text != null && spec.type == PluginSettingSpec.TYPE_SECRET && text.length > PluginSecrets.MAX_VALUE) {
+            throw PluginCallException("ValueError", "a secret can't be longer than ${PluginSecrets.MAX_VALUE} characters")
+        }
+        if (text != null && spec.type != PluginSettingSpec.TYPE_SECRET && text.length > MAX_SETTING_TEXT) {
+            throw PluginCallException("ValueError", "a setting can't be longer than $MAX_SETTING_TEXT characters")
+        }
+        store.setSettingValue(plugin.id, key, text, fromPlugin = true)
+        val after = store.plugin(plugin.id) ?: plugin
+        return after.settingsJson()[key] ?: JsonNull
+    }
+
+    private fun settingMismatch(spec: PluginSettingSpec): String = when (spec.type) {
+        PluginSettingSpec.TYPE_SWITCH -> "setting '${spec.key}' is a switch: give True or False"
+        PluginSettingSpec.TYPE_NUMBER -> "setting '${spec.key}' is a number"
+        PluginSettingSpec.TYPE_CHOICE -> "setting '${spec.key}' is one of ${spec.options.joinToString(", ") { "'$it'" }}"
+        else -> "setting '${spec.key}' takes text"
     }
 
     private fun async(binding: Binding, op: String, args: JsonObject, token: String) {

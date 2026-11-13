@@ -119,6 +119,14 @@
     <string name="plugins_new_since_update">The last update added: %1$s. They are off until you turn them on.</string>
     <string name="plugins_settings_title">Settings</string>
     <string name="plugins_setting_default_reset">Use the default</string>
+    <!-- A plugin's API key or token row, when one is saved. The value itself is never shown. -->
+    <string name="plugins_setting_secret_saved">Saved. Tap to replace it</string>
+    <!-- A plugin's API key or token row, when none is saved yet. -->
+    <string name="plugins_setting_secret_empty">Not set</string>
+    <!-- Button in the dialog for a plugin's API key or token: forgets the saved one. -->
+    <string name="plugins_setting_secret_remove">Remove</string>
+    <!-- Hint in the empty box of the dialog for a plugin's API key or token, when one is already saved. -->
+    <string name="plugins_setting_secret_replace_hint">Type a new one to replace it</string>
     <!-- A header over permissions the plugin cannot use until the user turns them on. -->
     <string name="plugins_install_risky_intro">If you turn them on later, it can also:</string>
     <!-- Heading over the buttons a plugin adds to the bar over selected text. -->

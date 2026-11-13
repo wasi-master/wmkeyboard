@@ -246,6 +246,13 @@ class PluginRuntime(
         ),
     )
 
+    /** The user changed a setting of the open plugin: its `@plugin.setting_changed` hooks hear the new value. */
+    private val settingListener: (String, String) -> Unit = { id, key ->
+        if (session?.plugin?.id == id) {
+            settingChanged(key, store.plugin(id)?.settingsJson()?.get(key) ?: kotlinx.serialization.json.JsonNull)
+        }
+    }
+
     /** A value on the plugin's settings page changed. */
     fun settingChanged(key: String, value: kotlinx.serialization.json.JsonElement) = dispatch(
         PythonSession.hostEvent("setting", mapOf("key" to kotlinx.serialization.json.JsonPrimitive(key), "value" to value)),
@@ -269,6 +276,7 @@ class PluginRuntime(
     fun close() {
         val current = session ?: return
         session = null
+        store.removeSettingListener(settingListener)
         current.revoked = true
         current.python?.cancel()
         current.watch?.cancel(false)
@@ -301,6 +309,7 @@ class PluginRuntime(
     private fun start(draft: Draft) {
         val fresh = Session(draft.plugin, draft.log, draft.recordStrikes)
         session = fresh
+        store.addSettingListener(settingListener)
         fresh.watch = watchdog.scheduleWithFixedDelay(
             { patrol(fresh) },
             limits.watchdogPeriodMillis,

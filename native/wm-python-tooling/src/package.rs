@@ -218,8 +218,37 @@ pub fn entries(leak: &dyn Fn(String) -> &'static str) -> Vec<ApiEntry> {
             });
         }
     }
+    // Methods of objects the scan does not look inside.
+    for (path, signature, doc) in MEMBERS {
+        out.push(ApiEntry {
+            path: leak(format!("{ROOT}.{path}")),
+            kind: ApiKind::Function,
+            signature: Some(signature),
+            permission: None,
+            doc,
+        });
+    }
     out
 }
+
+/// `(path under wm, signature, doc)` for methods on module-level objects.
+const MEMBERS: &[(&str, &str, &str)] = &[
+    (
+        "plugin.settings.get",
+        "get(name, default=None)",
+        "The value of setting name, or default when it is not declared or a secret is not set.",
+    ),
+    (
+        "plugin.settings.set",
+        "set(key, value)",
+        "Changes your own setting key: True/False for a switch, a number, one of a choice's options, or text. Saved at once and shown on the settings page. A host setting raises PermissionError.",
+    ),
+    (
+        "plugin.settings.reset",
+        "reset(key)",
+        "Puts setting key back to the manifest's default. A secret setting is forgotten.",
+    ),
+];
 
 struct Item {
     name: String,

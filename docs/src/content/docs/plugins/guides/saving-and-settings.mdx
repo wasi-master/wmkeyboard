@@ -100,21 +100,30 @@ You never draw a settings screen yourself:
   {"key": "examples", "type": "switch", "label": "Show examples", "default": "true"},
   {"key": "count", "type": "number", "label": "How many results", "default": "5"},
   {"key": "greeting", "type": "text", "label": "Greeting", "summary": "Said when the panel opens"},
-  {"key": "server", "type": "host", "label": "Your server"}
+  {"key": "server", "type": "host", "label": "Your server"},
+  {"key": "token", "type": "secret", "label": "API token"}
 ]
 ```
 
 | Field | |
 |---|---|
 | `key` | The name you read it by: lowercase letters, digits and `_`, starting with a letter or `_`, up to 32 characters. |
-| `type` | `switch`, `text`, `number`, `choice` or `host`. |
+| `type` | `switch`, `text`, `number`, `choice`, `host` or `secret`. |
 | `label` | The row's title. |
 | `summary` | One line under the title. Optional. |
-| `default` | The starting value, always written as text: `"true"`, `"5"`, `"metric"`. |
+| `default` | The starting value, always written as text: `"true"`, `"5"`, `"metric"`. A `secret` has none. |
 | `options` | For `choice`: the values to pick from. |
 
 Up to 24 settings. A `host` setting adds the website the user types to your
 `hosts`; see [the user's own server](/plugins/guides/internet-and-ai/#the-users-own-server).
+
+A `secret` setting is for an API key or token. The page shows only whether
+one is saved, never the key itself, and the box the user types it into hides
+what they type. The value is kept in your plugin's [`secrets`](#secrets) under
+the setting's key, so `plugin.settings.token` and `secrets.get("token")` read
+the same thing, and `secrets.set("token", ...)` from your panel changes what
+the page shows. It needs the `storage` permission. While no key is saved it
+reads as `None`.
 
 Read the values in code as attributes. A switch reads as `True` or `False`
 and a number as a number:
@@ -127,8 +136,26 @@ if plugin.settings.examples:
 limit = plugin.settings.get("count", 5)
 ```
 
-`plugin.settings` is read-only. Reading a key the manifest does not declare
-raises `AttributeError`; `plugin.settings.get(key, default)` does not.
+Reading a key the manifest does not declare raises `AttributeError`;
+`plugin.settings.get(key, default)` does not.
+
+Your plugin can change its own settings too, for a "Remember this" button or
+a choice made in the panel:
+
+```python
+plugin.settings.set("units", "imperial")
+plugin.settings.reset("units")   # back to the manifest's default
+```
+
+The value has to fit the row: `True` or `False` for a switch, a number for a
+number, one of the options for a choice, and text for `text` and `secret`.
+Anything else raises `ValueError`. The change is saved at once and the
+settings page shows it. Resetting a `secret` forgets the key.
+
+A `host` setting is the one your plugin cannot write. Setting it raises
+`PermissionError`: the server a plugin may reach is the user's to type, and a
+plugin that could write it would widen its own access to the internet.
+`@plugin.setting_changed` hooks do not run for your own changes.
 
 To react when the user changes a setting while the panel is open:
 

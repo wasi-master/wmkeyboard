@@ -11,7 +11,7 @@
 import { signal, type Signal } from '@preact/signals';
 import { PySession } from './python';
 import { S } from '../ui/creators/ide/strings';
-import { type Bridge, makeBridge } from './plugin-host';
+import { type Bridge, type SettingSpec, makeBridge } from './plugin-host';
 
 export const MAIN_CHUNK = 'main.py';
 
@@ -316,6 +316,8 @@ export interface PluginIdentity {
 	hosts?: string[];
 	/** API 5: the settings page's values, by key, as the script reads them. */
 	settings?: Record<string, unknown>;
+	/** API 5: the manifest's settings rows, which `plugin.settings.set` checks against. */
+	settingSpecs?: SettingSpec[];
 }
 
 const isV5 = (plugin: PluginIdentity) => (plugin.apiVersion ?? 0) >= 5;
@@ -449,6 +451,7 @@ export class PluginPreviewSession {
 		if (session.v5) {
 			session.bridge = makeBridge({
 				hosts: plugin.hosts ?? [],
+				settings: plugin.settingSpecs ?? [],
 				// An answer that comes later goes in as an event, after the call that asked has returned.
 				deliver: (event) => setTimeout(() => this.send(event as PluginEvent), 0),
 				log: (text) => this.append({ at: this.elapsed(), kind: 'PRINT', text }),

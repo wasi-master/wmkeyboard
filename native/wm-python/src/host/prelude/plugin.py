@@ -126,26 +126,63 @@ def _save_states():
 # MARK: - settings
 
 class _Settings:
-    """The values the user set on the plugin's settings page, by key, as the
-    manifest's `settings` list declares them. Read-only."""
+    """The values on the plugin's settings page, by key, as the manifest's
+    `settings` list declares them. A `secret` row reads as its saved text,
+    or None. Change one with `set(key, value)`; host rows are the user's."""
+
+    def _read(self, name):
+        v = _wm.settings[name]
+        if isinstance(v, dict) and v.get("$secret"):
+            return _core.call("secrets.get", {"name": name})
+        return v
 
     def __getattr__(self, name):
-        values = _wm.settings
-        if name in values:
-            return values[name]
+        if name in _wm.settings:
+            return self._read(name)
         raise AttributeError(f"the manifest declares no setting '{name}'")
 
     def __getitem__(self, name):
         return self.__getattr__(name)
 
     def get(self, name, default=None):
-        return _wm.settings.get(name, default)
+        if name not in _wm.settings:
+            return default
+        v = self._read(name)
+        return default if v is None else v
+
+    def set(self, key, value):
+        """Change setting [key] to [value]: True or False for a switch, a
+        number, one of a choice's options, or text. Saved at once and shown
+        on the settings page. A host setting raises PermissionError: only
+        the user types a server address."""
+        key = str(key)
+        if key not in _wm.settings:
+            raise AttributeError(f"the manifest declares no setting '{key}'")
+        if value is None:
+            raise ValueError("use plugin.settings.reset(key) to put the default back")
+        self._store(key, _core.call("settings.set", {"key": key, "value": value}))
+
+    def reset(self, key):
+        """Put setting [key] back to the manifest's default. A secret is
+        forgotten."""
+        key = str(key)
+        if key not in _wm.settings:
+            raise AttributeError(f"the manifest declares no setting '{key}'")
+        self._store(key, _core.call("settings.set", {"key": key, "value": None}))
+
+    def _store(self, key, v):
+        # The keyboard answers the value as a fresh session would read it.
+        _wm.settings[key] = v
 
     def __contains__(self, name):
         return name in _wm.settings
 
     def __repr__(self):
-        return f"plugin.settings({_wm.settings})"
+        shown = {}
+        for k in _wm.settings:
+            v = _wm.settings[k]
+            shown[k] = "***" if isinstance(v, dict) and v.get("$secret") else v
+        return f"plugin.settings({shown})"
 
 
 settings = _Settings()

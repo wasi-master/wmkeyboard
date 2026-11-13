@@ -125,6 +125,8 @@ def _route(kind, e):
         c["fn"]()
         return True
     if kind == "setting":
+        if e.get("key") in _wm.settings:
+            _wm.settings[e.get("key")] = e.get("value")
         for fn in plugin._setting_hooks.get(e.get("key"), []):
             _core.call_back(fn, e.get("value"))
         return True

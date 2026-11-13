@@ -117,6 +117,8 @@ data class InstalledPlugin(
                 PluginSettingSpec.TYPE_NUMBER -> raw.trim().toDoubleOrNull()?.let { n ->
                     if (n == Math.floor(n) && kotlin.math.abs(n) < 1e15) kotlinx.serialization.json.JsonPrimitive(n.toLong()) else kotlinx.serialization.json.JsonPrimitive(n)
                 } ?: kotlinx.serialization.json.JsonNull
+                // Never in the session config: the prelude asks secrets.get for it when read.
+                PluginSettingSpec.TYPE_SECRET -> PluginSettingSpec.SECRET_MARKER
                 else -> kotlinx.serialization.json.JsonPrimitive(raw)
             }
             put(setting.key, value)
@@ -388,17 +390,48 @@ class PluginStore(
         save()
     }
 
-    /** Stores the user's value for setting [key] of [id]; null puts the default back. */
+    /** Told `(pluginId, key)` after the user changes a setting, so an open panel hears it. */
+    private val settingListeners = java.util.concurrent.CopyOnWriteArrayList<(String, String) -> Unit>()
+
+    fun addSettingListener(listener: (String, String) -> Unit) {
+        settingListeners.addIfAbsent(listener)
+    }
+
+    fun removeSettingListener(listener: (String, String) -> Unit) {
+        settingListeners.remove(listener)
+    }
+
+    /**
+     * Stores the value for setting [key] of [id]; null puts the default back.
+     * A secret row is not stored here: it goes to [secrets] instead, so the
+     * value never sits in `plugins.json` or a backup of it.
+     *
+     * [fromPlugin] is true for the plugin's own `plugin.settings.set`, which
+     * its `@plugin.setting_changed` hooks do not hear. The listeners are told
+     * outside the store's lock: they reach the runtime, which takes its own.
+     */
+    fun setSettingValue(id: String, key: String, value: String?, fromPlugin: Boolean = false) {
+        if (storeSettingValue(id, key, value) && !fromPlugin) settingListeners.forEach { it(id, key) }
+    }
+
+    /** Whether anything changed. */
     @Synchronized
-    fun setSettingValue(id: String, key: String, value: String?) {
+    private fun storeSettingValue(id: String, key: String, value: String?): Boolean {
         val index = pluginList.indexOfFirst { it.id == id }
-        if (index < 0) return
+        if (index < 0) return false
         val plugin = pluginList[index]
-        if (plugin.settings.none { it.key == key }) return
+        val spec = plugin.settings.firstOrNull { it.key == key } ?: return false
+        if (spec.type == PluginSettingSpec.TYPE_SECRET) {
+            val secrets = secrets(id) ?: return false
+            if (value.isNullOrEmpty()) secrets.remove(key) else secrets.set(key, value)
+            _revision.value++
+            return true
+        }
         val values = if (value == null) plugin.settingValues - key else plugin.settingValues + (key to value.take(MAX_SETTING_VALUE))
-        if (values == plugin.settingValues) return
+        if (values == plugin.settingValues) return false
         pluginList[index] = plugin.copy(settingValues = values)
         save()
+        return true
     }
 
     /** The plugin's page has shown what the last update added. */
@@ -718,12 +751,16 @@ class PluginStore(
         parkedList.removeAll { it.id == id }
     }
 
+    /** Plugin [id]'s secrets, `wm.secrets` and its secret settings rows; null without a folder. */
+    fun secrets(id: String): PluginSecrets? =
+        baseDir?.parentFile?.let { files -> PluginSecrets(File(files, PluginSecrets.DIR_NAME), id) }
+
     /** Removes the plugin and everything it owns, including its storage, log and secrets. */
     @Synchronized
     fun delete(id: String) {
         val removed = pluginList.removeAll { it.id == id }
         dirFor(id)?.let { dir -> runCatching { dir.deleteRecursively() } }
-        baseDir?.parentFile?.let { files -> PluginSecrets(File(files, PluginSecrets.DIR_NAME), id).forget() }
+        secrets(id)?.forget()
         if (removed) save()
     }
 

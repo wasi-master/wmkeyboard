@@ -13,6 +13,7 @@ import { fmtBytes } from '../../../lib/net';
 import { sha256Hex, slugify } from '../../../lib/util';
 import { saveBytes } from '../shared';
 import { PluginPreviewSession, renderOnce, type ConsoleEntry, type PluginEvent, type PluginTargets, type PluginWidget, type PreviewState, type RenderedUi, type Usage, PreviewStorage, Dates, targetsEmpty } from '../../../lib/plugin-runtime';
+import { settingValue } from '../../../lib/plugin-host';
 import * as Py from '../../../lib/python';
 import type { PyCompletionItem, PyCompletions, PyDiagnostic, PyHost, PyOutlineItem, RenameProblem } from '../../../lib/python';
 import { E, CodeSurface, SHORTCUT, type CodeDecorations, type CodeEditorController, type ScreenCommand, type Severity, NO_DECORATIONS } from './CodeSurface';
@@ -448,6 +449,7 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 	const identity = useCallback(() => ({
 		id: sanitise(manifest.id, 'ID') || draftId, name: manifest.name, version: manifest.pluginVersion, storage, reminders,
 		apiVersion: manifest.apiVersion, permissions: manifest.permissions, hosts: manifest.hosts ?? [], settings: settingDefaults(manifest),
+		settingSpecs: (manifest.settings ?? []).map((s) => ({ key: s.key, type: s.type?.trim() ?? 'text', default: s.default, options: s.options })),
 	}), [manifest, draftId, storage, reminders]);
 	const runPlugin = useCallback(() => {
 		const current = controller.value?.text ?? savedText.current;
@@ -1134,10 +1136,7 @@ export function PluginPanel({ widgets, inputs, onEvent, onInsert, onCopy, still 
 /** The values a plugin's settings page starts with, typed the way the app hands them to the script. */
 function settingDefaults(m: PluginManifest): Record<string, unknown> {
 	const out: Record<string, unknown> = {};
-	for (const s of m.settings ?? []) {
-		const raw = s.default ?? '';
-		out[s.key] = s.type === 'switch' ? raw.trim() === 'true' : s.type === 'number' ? (Number.isFinite(Number(raw)) && raw.trim() !== '' ? Number(raw) : null) : raw;
-	}
+	for (const s of m.settings ?? []) out[s.key] = settingValue({ key: s.key, type: s.type?.trim() ?? 'text' }, s.default ?? '');
 	return out;
 }
 

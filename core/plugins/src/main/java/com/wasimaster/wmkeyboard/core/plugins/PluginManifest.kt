@@ -5,7 +5,12 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.plugins.R
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.doubleOrNull
 
 /**
  * A line of text for the user that this module cannot put into words itself.
@@ -141,15 +146,34 @@ data class PluginToolSpec(
 @Serializable
 data class PluginSettingSpec(
     val key: String = "",
-    /** [TYPES]: a switch, a text box, a number, one of [options], or a website the user types. */
+    /** [TYPES]: a switch, a text box, a number, one of [options], a website the user types, or a hidden key. */
     val type: String = TYPE_TEXT,
     val label: String = "",
     val summary: String = "",
-    /** As text: "true", "12", "metric". */
+    /** As text: "true", "12", "metric". Ignored for [TYPE_SECRET]. */
     val default: String = "",
     /** For [TYPE_CHOICE]: the values, shown as written. */
     val options: List<String> = emptyList(),
 ) {
+    /**
+     * What the page stores for [value], a value the script passed to
+     * `plugin.settings.set`, or null when it does not fit this row: a switch
+     * takes a bool, a number a number, a choice one of [options], text and a
+     * secret a string. A [TYPE_HOST] row is never written by the script.
+     */
+    fun storedText(value: JsonElement): String? {
+        val p = value as? JsonPrimitive ?: return null
+        return when (type) {
+            TYPE_SWITCH -> p.booleanOrNull?.takeIf { !p.isString }?.toString()
+            TYPE_NUMBER -> p.doubleOrNull?.takeIf { !p.isString && it.isFinite() }?.let { n ->
+                if (n == Math.floor(n) && kotlin.math.abs(n) < 1e15) n.toLong().toString() else n.toString()
+            }
+            TYPE_CHOICE -> p.contentOrNull?.takeIf { p.isString && it in options }
+            TYPE_TEXT, TYPE_SECRET -> p.contentOrNull?.takeIf { p.isString }
+            else -> null
+        }
+    }
+
     companion object {
         const val TYPE_SWITCH = "switch"
         const val TYPE_TEXT = "text"
@@ -160,9 +184,20 @@ data class PluginSettingSpec(
          * A website the user adds to the plugin's hosts: their own server, say.
          * The value is read as a server address (`https://money.example.com:8443/app`),
          * and only its host joins the list; see [PluginManifestCodec.serverHost].
+         * Only the user writes it: a plugin setting one would widen its own reach.
          */
         const val TYPE_HOST = "host"
-        val TYPES = setOf(TYPE_SWITCH, TYPE_TEXT, TYPE_NUMBER, TYPE_CHOICE, TYPE_HOST)
+
+        /**
+         * An API key or token. The page shows whether one is set, never the
+         * value, and keeps it in the plugin's [PluginSecrets] under the setting's
+         * key, so `secrets.get(key)` reads it too. Needs `storage`.
+         */
+        const val TYPE_SECRET = "secret"
+        val TYPES = setOf(TYPE_SWITCH, TYPE_TEXT, TYPE_NUMBER, TYPE_CHOICE, TYPE_HOST, TYPE_SECRET)
+
+        /** What the session sees for a secret row; the prelude reads the value through `secrets.get`. */
+        val SECRET_MARKER: JsonObject = JsonObject(mapOf("\$secret" to JsonPrimitive(true)))
     }
 }
 
@@ -420,7 +455,8 @@ object PluginManifestCodec {
                 !SETTING_KEY.matches(s.key.trim()) ||
                     displayText(s.label, MAX_SETTING_TEXT).isEmpty() ||
                     s.type.trim() !in PluginSettingSpec.TYPES ||
-                    (s.type.trim() == PluginSettingSpec.TYPE_CHOICE && (s.options.isEmpty() || s.options.size > MAX_SETTING_OPTIONS))
+                    (s.type.trim() == PluginSettingSpec.TYPE_CHOICE && (s.options.isEmpty() || s.options.size > MAX_SETTING_OPTIONS)) ||
+                    (s.type.trim() == PluginSettingSpec.TYPE_SECRET && PluginPermission.Storage !in permissions)
             }
         if (badSetting) out += Problem(Field.SETTINGS, PluginText.of(R.string.core_plugins_reject_bad_setting, name))
         val usesPackageFields = hosts.isNotEmpty() || settings.isNotEmpty() || tool != PluginToolSpec()

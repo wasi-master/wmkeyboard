@@ -718,6 +718,8 @@ export function readPlugin(bytes: Uint8Array): PluginRead {
 	for (const h of hosts) if (!PLUGIN_HOST.test(h) || h === 'localhost') problems.push(`Host ${JSON.stringify(h)} is not a host name (no scheme, port, path or IP address).`);
 	const hostSetting = Array.isArray(raw.settings) && raw.settings.some((s: { type?: unknown }) => s?.type === 'host');
 	if (permissions.includes('network') && !hosts.length && !hostSetting) problems.push('"network" without any "hosts" (or a "host" setting); the app refuses it.');
+	const secretSetting = Array.isArray(raw.settings) && raw.settings.some((s: { type?: unknown }) => s?.type === 'secret');
+	if (secretSetting && !permissions.includes('storage')) problems.push('A "secret" setting without the "storage" permission; the app refuses it.');
 	// PluginManifestCodec (API 4): "language" may be left out, and the only one
 	// the app runs is Python. A manifest that says Lua, or leaves the language
 	// out at API 3 or lower, is a Lua plugin.

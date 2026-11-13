@@ -136,6 +136,8 @@ pub fn permission_for(op: &str) -> Option<Option<&'static str>> {
         ("notify", "show" | "cancel") => Some("notifications"),
         ("secrets", "get" | "set" | "remove") => Some("storage"),
         ("ui", "toast" | "dialog") | ("plugin", "close" | "refresh") => None,
+        // plugin.settings.set: the plugin's own rows; the keyboard refuses host rows.
+        ("settings", "set") => None,
         _ => return None,
     })
 }

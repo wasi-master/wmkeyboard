@@ -19,6 +19,30 @@ export interface HostContext {
 	deliver: (event: Record<string, unknown>) => void;
 	/** A line in the editor's console. */
 	log: (text: string) => void;
+	/** The manifest's settings rows, for `plugin.settings.set`. */
+	settings?: SettingSpec[];
+}
+
+/** One row of the manifest's `settings`, as `plugin.settings.set` checks a value against it. */
+export interface SettingSpec { key: string; type: string; default?: string; options?: string[] }
+
+/** The value a session reads for [spec] holding [raw] text: PluginStore.settingsJson. */
+export function settingValue(spec: SettingSpec, raw: string): unknown {
+	if (spec.type === 'secret') return { $secret: true };
+	if (spec.type === 'switch') return raw.trim() === 'true';
+	if (spec.type === 'number') return raw.trim() !== '' && Number.isFinite(Number(raw)) ? Number(raw) : null;
+	return raw;
+}
+
+/** PluginSettingSpec.storedText: the text kept for [value], or null when it does not fit the row. */
+function storedText(spec: SettingSpec, value: unknown): string | null {
+	switch (spec.type) {
+		case 'switch': return typeof value === 'boolean' ? String(value) : null;
+		case 'number': return typeof value === 'number' && Number.isFinite(value) ? String(value) : null;
+		case 'choice': return typeof value === 'string' && (spec.options ?? []).includes(value) ? value : null;
+		case 'text': case 'secret': return typeof value === 'string' ? value : null;
+		default: return null;
+	}
 }
 
 type Args = Record<string, unknown>;
@@ -543,6 +567,20 @@ export function makeBridge(ctx: HostContext): Bridge {
 			case 'secrets.remove':
 				secrets.delete(String(args.name));
 				return reply(null);
+			case 'settings.set': {
+				const key = String(args.key ?? '');
+				const spec = (ctx.settings ?? []).find((s) => s.key === key);
+				if (!spec) return fail('ValueError', `the manifest declares no setting '${key}'`);
+				if (spec.type === 'host') return fail('PermissionError', "a plugin can't change its own host settings: only the user types a server address");
+				const value = args.value ?? null;
+				const text = value === null ? null : storedText(spec, value);
+				if (value !== null && text === null) return fail('ValueError', `setting '${key}' doesn't take ${JSON.stringify(value)}`);
+				if (spec.type === 'secret') {
+					if (text) secrets.set(key, text); else secrets.delete(key);
+				}
+				ctx.log(`[settings] ${key} = ${spec.type === 'secret' ? (text ? '(saved)' : '(removed)') : text ?? `${spec.default ?? ''} (default)`}`);
+				return reply(settingValue(spec, text ?? spec.default ?? ''));
+			}
 			case 'ai.available':
 				return reply(true);
 			default: {

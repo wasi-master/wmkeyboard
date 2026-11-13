@@ -159,6 +159,8 @@ impl Mock {
     fn reply(&self, op: &str, args: &serde_json::Value) -> serde_json::Value {
         let missing = |what: String| serde_json::json!({"error": {"kind": "NotImplementedError", "message": what}});
         let answer = match self.answers.get(op) {
+            // The keyboard answers a plugin's own setting write with the value it saved.
+            None if op == "settings.set" => return serde_json::json!({"value": args.get("value").cloned().unwrap_or(serde_json::Value::Null)}),
             None => return missing(format!("no mock reply for {op}")),
             Some(v) if is_routes(v) => {
                 let routes = v.as_array().map(Vec::as_slice).unwrap_or(&[]);
