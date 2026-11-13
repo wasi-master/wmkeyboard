@@ -53,6 +53,19 @@ object MediaCategories {
     /** Whether [term] is one of the panel's own lists rather than a search. */
     fun isCollection(term: String?): Boolean = term == FAVOURITES || term == RECENT
 
+    /**
+     * KLIPY's memes chip on the GIF panel: a tab rather than a search, so the
+     * search box searches the memes while it is selected. Shown only when a
+     * KLIPY row is on the GIF list.
+     */
+    const val MEMES = "\u0000memes"
+
+    /** The memes chip, for the start of the category row. */
+    val memes: MediaCategory = MediaCategory(term = MEMES, labelRes = R.string.core_tools_media_category_memes)
+
+    /** Whether [term] is a chip of the panel's own rather than a word to search for. */
+    fun isOwnChip(term: String?): Boolean = isCollection(term) || term == MEMES
+
     val bundledGif: List<MediaCategory> = listOf(
         bundled("reactions", R.string.core_tools_media_category_reactions),
         bundled("love", R.string.core_tools_media_category_love),

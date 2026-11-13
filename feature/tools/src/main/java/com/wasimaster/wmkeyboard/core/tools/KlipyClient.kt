@@ -43,6 +43,88 @@ object KlipyClient {
     }
 
     /**
+     * KLIPY's memes (`/static-memes/`, docs.klipy.com/memes-api): still images
+     * in their own tab of the GIF panel, as KLIPY's integration rules want
+     * them kept apart from the GIFs. Blocking; call on an IO dispatcher.
+     * Empty [query] returns trending. The memes endpoints take
+     * `content_filter` (off, low, medium, high) where the GIF ones take a
+     * rating.
+     */
+    fun memes(
+        query: String,
+        apiKey: String,
+        filter: GifContentFilter,
+        limit: Int = 24,
+    ): List<GifItem> {
+        val endpoint = if (query.isBlank()) "trending" else "search"
+        val url = buildString {
+            append("${ServiceEndpoints.base(ServiceEndpoint.KLIPY)}/api/v1/${ToolHttp.encode(apiKey)}/static-memes/$endpoint")
+            append("?page=1&per_page=${limit.coerceIn(1, MEMES_PER_PAGE_MAX)}&content_filter=${contentFilter(filter)}")
+            if (query.isNotBlank()) append("&q=${ToolHttp.encode(query.trim())}")
+        }
+        return parseMemes(ToolHttp.get(url, source = NetSource.GIF, route = "/api/v1/{key}/static-memes/$endpoint"))
+    }
+
+    /** The memes endpoints' own cap on `per_page`. */
+    private const val MEMES_PER_PAGE_MAX = 50
+
+    private fun contentFilter(filter: GifContentFilter): String = when (filter) {
+        GifContentFilter.HIGH -> "high"
+        GifContentFilter.MEDIUM -> "medium"
+        GifContentFilter.LOW -> "low"
+        GifContentFilter.OFF -> "off"
+    }
+
+    /**
+     * Same envelope as [parse]; a meme's `file.<size>` holds `png` and `webp`
+     * (`jpg` on some). The grid previews the small WebP; a tap sends the PNG,
+     * which every app that takes images reads, where a WebP may be taken for
+     * a sticker.
+     */
+    internal fun parseMemes(body: String): List<GifItem> {
+        val data = Json.parseToJsonElement(body).jsonObject["data"] ?: return emptyList()
+        val items = when (data) {
+            is JsonArray -> data
+            is JsonObject -> data["data"]?.jsonArray ?: return emptyList()
+            else -> return emptyList()
+        }
+        return items.mapNotNull { element ->
+            val result = element as? JsonObject ?: return@mapNotNull null
+            val file = result["file"] as? JsonObject ?: return@mapNotNull null
+            val preview = file.variant("sm", "webp")
+                ?: file.variant("sm", "png")
+                ?: file.variant("sm", "jpg")
+                ?: file.variant("md", "webp")
+                ?: file.variant("xs", "webp")
+                ?: file.variant("md", "png")
+            val full = file.variant("hd", "png")
+                ?: file.variant("md", "png")
+                ?: file.variant("hd", "jpg")
+                ?: file.variant("md", "jpg")
+                ?: file.variant("hd", "webp")
+                ?: file.variant("md", "webp")
+                ?: preview
+            if (preview == null || full == null) return@mapNotNull null
+            GifItem(
+                id = "klipy_meme_" + (result.text("id") ?: result.text("slug") ?: return@mapNotNull null),
+                previewUrl = preview.url,
+                fullUrl = full.url,
+                mime = imageMime(full.url),
+                aspectRatio = preview.aspectRatio,
+                source = GifSource.KLIPY,
+                title = result.text("title") ?: result.text("slug").orEmpty(),
+            )
+        }
+    }
+
+    private fun imageMime(url: String): String = when (url.substringBefore('?').substringAfterLast('.').lowercase()) {
+        "png" -> "image/png"
+        "webp" -> "image/webp"
+        "jpg", "jpeg" -> "image/jpeg"
+        else -> "image/gif"
+    }
+
+    /**
      * Categories to browse, for the panel's default view. Blocking; call on
      * an IO dispatcher.
      *

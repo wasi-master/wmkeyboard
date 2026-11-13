@@ -3674,6 +3674,12 @@ data class GifSettings(
      * rather than reactions, and it has no content rating for the filter.
      */
     val gifCities: Boolean = false,
+    /**
+     * A Memes chip at the start of the GIF panel's category row, for KLIPY's
+     * memes, when a KLIPY row is on the GIF list. On by default: it costs
+     * nothing until it is pressed. Set on KLIPY's own provider page.
+     */
+    val klipyMemes: Boolean = true,
 )
 
 /** Bounds for [GifSettings.gifPerRow] and [GifSettings.stickerPerRow]; the settings sliders share them. */
@@ -13416,6 +13422,7 @@ class SettingsRepository(private val context: Context) {
         private val MEDIA_HIDE_HEADER_ON_SCROLL = booleanPreferencesKey("media_hide_header_on_scroll")
         private val MEDIA_REMEMBER_SEARCH = booleanPreferencesKey("media_remember_search")
         private val GIF_RECENT = booleanPreferencesKey("gif_recent")
+        private val GIF_KLIPY_MEMES = booleanPreferencesKey("gif_klipy_memes")
         private val GIF_FAVOURITES_OFFLINE = booleanPreferencesKey("gif_favourites_offline")
         private val GIF_CITIES = booleanPreferencesKey("gif_cities")
         private val SEARCH_SAFE = booleanPreferencesKey("search_safe")
@@ -15967,6 +15974,7 @@ class SettingsRepository(private val context: Context) {
             hideHeaderOnScroll = p[MEDIA_HIDE_HEADER_ON_SCROLL] ?: defaults.gif.hideHeaderOnScroll,
             rememberSearch = p[MEDIA_REMEMBER_SEARCH] ?: defaults.gif.rememberSearch,
             recentGifs = p[GIF_RECENT] ?: defaults.gif.recentGifs,
+            klipyMemes = p[GIF_KLIPY_MEMES] ?: defaults.gif.klipyMemes,
             favouritesOffline = p[GIF_FAVOURITES_OFFLINE] ?: defaults.gif.favouritesOffline,
             gifCities = p[GIF_CITIES] ?: defaults.gif.gifCities,
         )
@@ -25418,6 +25426,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setRecentGifs(value: Boolean) =
         editPrefs { it[GIF_RECENT] = value }
+
+    suspend fun setKlipyMemes(value: Boolean) =
+        editPrefs { it[GIF_KLIPY_MEMES] = value }
 
     suspend fun setGifCities(value: Boolean) =
         editPrefs { it[GIF_CITIES] = value }

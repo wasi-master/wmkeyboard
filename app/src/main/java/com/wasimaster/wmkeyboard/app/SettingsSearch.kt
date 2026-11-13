@@ -2304,6 +2304,8 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     // On Tavily's own screen, opened from its row on the list.
     providerEntry(ProviderTool.SEARCH, ProviderTypes.TAVILY, R.string.tooldetail_tavily_advanced_title, R.string.tooldetail_tavily_advanced_subtitle),
     providerEntry(ProviderTool.SEARCH, ProviderTypes.SEARXNG, R.string.tooldetail_searx_categories_title, R.string.tooldetail_searx_categories_subtitle),
+    // On KLIPY's own screen under the GIF list (item 38).
+    providerEntry(ProviderTool.GIF, ProviderTypes.KLIPY, R.string.tooldetail_klipy_memes_title, R.string.tooldetail_klipy_memes_subtitle),
     toolEntry(ToolbarTool.OCR, R.string.tooldetail_ocr_select_all_title, R.string.tooldetail_ocr_select_all_subtitle),
     toolEntry(ToolbarTool.OCR, R.string.tooldetail_ocr_engine_title),
     toolEntry(ToolbarTool.OCR, R.string.tooldetail_ocr_packs_header),
