@@ -188,7 +188,7 @@ sealed interface FloatingAction {
  * list them.
  *
  * The clipboard, calendar, media controls, dictionary, Wikipedia and web
- * search joined them in #1265. Left out on purpose: the panels that are keys
+ * search joined them in #1265, and plugins with API 5. Left out on purpose: the panels that are keys
  * themselves (emoji, the number pad, handwriting, the trackpad), the AI chat,
  * whose composer, model and replies live and die with its panel, and find and
  * replace, which edits the app's field through the keyboard's own connection.
@@ -207,6 +207,7 @@ val AppletTools: List<ToolbarTool> = listOf(
     ToolbarTool.DICTIONARY,
     ToolbarTool.WIKIPEDIA,
     ToolbarTool.WEB_SEARCH,
+    ToolbarTool.PLUGINS,
 )
 
 /** Whether [this] opens in a floating box (#1155). */

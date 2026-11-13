@@ -60,7 +60,7 @@ class PluginRuntime(
     /** What API 5 host calls reach: the IME's field and clipboard, the app's network and AI. */
     private val services: PluginServices = PluginServices.NONE,
     /** Where this runtime's panel is drawn: "panel" or "float". */
-    private val surface: String = PythonSession.Config.PANEL,
+    private val surface: () -> String = { PythonSession.Config.PANEL },
     /** Whether the keyboard is dark right now, for `plugin.theme`. */
     private val dark: () -> Boolean = { false },
 ) {
@@ -326,7 +326,7 @@ class PluginRuntime(
                 strings = draft.strings,
                 locale = PluginLocales.preferred().firstOrNull()?.toLanguageTag() ?: java.util.Locale.getDefault().toLanguageTag(),
                 dark = dark(),
-                surface = surface,
+                surface = surface(),
             ),
         )
         if (python == null) {
@@ -340,7 +340,7 @@ class PluginRuntime(
             // A draft is the author's own code in the editor: its grants come
             // with the draft, and the global risky switch is not asked.
             val gate = if (current.recordStrikes) store else null
-            val binding = PluginHost.Binding(current.plugin, gate, services, surface) { event ->
+            val binding = PluginHost.Binding(current.plugin, gate, services, surface()) { event ->
                 synchronized(this) { if (session === current) enqueue(current, event) }
             }
             current.binding = binding

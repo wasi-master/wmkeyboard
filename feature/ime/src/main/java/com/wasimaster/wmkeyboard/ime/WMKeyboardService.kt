@@ -8106,6 +8106,8 @@ open class WMKeyboardService : InputMethodService() {
                 override fun appletClosed(panel: PanelMode) = appletLeft(panel)
                 override fun appletToKeyboard(panel: PanelMode) {
                     val tool = appletTool
+                    // A running plugin opens again in the keyboard's panel.
+                    if (panel == PanelMode.PLUGINS) pluginCarry = (_uiState.value.plugins as? PluginPanelUi.Running)?.plugin?.id
                     // Translate's text and translation move in with it, and
                     // web search's and Wikipedia's text with them (#1265).
                     if (panel in BoxSearchPanels) {
@@ -8128,6 +8130,20 @@ open class WMKeyboardService : InputMethodService() {
 
     /** The tool the box shows, for "open in the keyboard". */
     private var appletTool: ToolbarTool? = null
+
+    /**
+     * A plugin moving between the box and the keyboard's panel: its id, opened
+     * again on the other side. The session itself does not move; state the
+     * plugin keeps with persist=True does.
+     */
+    private var pluginCarry: String? = null
+
+    /** A plugin's text box tapped in the box: the keys are the keyboard's, so the plugin moves there. */
+    private fun pluginBoxToKeyboard() {
+        pluginCarry = (_uiState.value.plugins as? PluginPanelUi.Running)?.plugin?.id
+        if (floatingAppletDelegate.isInitialized()) floatingApplet.close()
+        runToolFromFloatingButton(ToolbarTool.PLUGINS)
+    }
 
     /**
      * The box's Translate, web search or Wikipedia text (#1265) while one of
@@ -8181,6 +8197,13 @@ open class WMKeyboardService : InputMethodService() {
             onCaretTap = ::onCaptureCaretTap,
             onSelect = ::onCaptureSelect,
             onSelectionAction = ::onCaptureSelectionAction,
+            plugins = com.wasimaster.wmkeyboard.ime.floating.AppletPluginCallbacks(
+                onOpen = ::onPluginOpen,
+                onEvent = ::onPluginEvent,
+                onBack = ::onPluginBack,
+                onToKeyboard = ::pluginBoxToKeyboard,
+                onCopy = ::onPluginCopy,
+            ),
             box = com.wasimaster.wmkeyboard.ime.floating.AppletToolCallbacks(
                 clipboard = com.wasimaster.wmkeyboard.ime.ui.ClipboardFieldCallbacks(
                     onItem = ::onAppletClip,
@@ -8357,6 +8380,9 @@ open class WMKeyboardService : InputMethodService() {
         // so do web search and Wikipedia (#1265).
         val fromKeyboard = _uiState.value.takeIf { panel in BoxSearchPanels && it.panel == panel }
             ?.let { TranslateCarry(it.mediaQuery, it.translate, panel) }
+        // A plugin running in the keyboard opens again in the box.
+        val carriedPlugin = (_uiState.value.plugins as? PluginPanelUi.Running)?.plugin?.id
+            ?.takeIf { panel == PanelMode.PLUGINS && _uiState.value.panel == PanelMode.PLUGINS }
         if (_uiState.value.panel == panel) onPanelChange(panel, haptic = false)
         val previous = _uiState.value.appletPanel
         if (previous != null && previous != panel) appletLeft(previous, closeBox = false)
@@ -8395,6 +8421,10 @@ open class WMKeyboardService : InputMethodService() {
                 fetchLinkPreviews()
             }
             PanelMode.CALENDAR -> calendarTool.onPanelOpen(null)
+            PanelMode.PLUGINS -> {
+                openPluginList()
+                carriedPlugin?.let(::onPluginOpen)
+            }
             // With the keyboard down the search waits for a tap on its box,
             // which brings the keyboard up, rather than summoning it now.
             PanelMode.DICTIONARY -> if (windowOnScreen) openDictionary()
@@ -8457,6 +8487,11 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.update { it.copy(toolText = it.toolText.copy(calendar = null)) }
             }
             PanelMode.DICTIONARY -> _uiState.update { it.copy(dictionarySearchActive = false) }
+            // The box was the plugin's only surface: its session ends, as leaving the panel ends it.
+            PanelMode.PLUGINS -> if (_uiState.value.panel != PanelMode.PLUGINS) {
+                pluginRuntime?.close()
+                _uiState.update { it.copy(plugins = PluginPanelUi.List(emptyList()), pluginInputs = emptyMap(), pluginFocusedInput = null) }
+            }
             else -> Unit
         }
         if (!closeBox) return
@@ -35227,7 +35262,8 @@ open class WMKeyboardService : InputMethodService() {
                 // panel was routing, the next state has nowhere to route to.
                 pluginFocusedInput = null,
                 pluginInputs = if (next == PanelMode.PLUGINS) it.pluginInputs else emptyMap(),
-                plugins = if (next == PanelMode.PLUGINS) it.plugins else PluginPanelUi.List(emptyList()),
+                // The floating box keeps a plugin it shows (API 5) while the keyboard changes panels.
+                plugins = if (next == PanelMode.PLUGINS || it.appletPanel == PanelMode.PLUGINS) it.plugins else PluginPanelUi.List(emptyList()),
                 // The drill-down never outlives the panel: reopening the tool
                 // lands on the grid, not on whatever app was open last time.
                 launcherDetail = if (next == PanelMode.APP_LAUNCHER) it.launcherDetail else null,
@@ -35250,7 +35286,7 @@ open class WMKeyboardService : InputMethodService() {
         // backgrounded: the Globals are dropped and the thread is shut down, so
         // after this there is no plugin left in the process to receive
         // anything the user types.
-        if (_uiState.value.panel != PanelMode.PLUGINS) pluginRuntime?.close()
+        if (_uiState.value.panel != PanelMode.PLUGINS && _uiState.value.appletPanel != PanelMode.PLUGINS) pluginRuntime?.close()
         // Either direction is a history surface changing hands — the emoji
         // panel's grids coming up, or the emoji row it hid coming back — so
         // this is where a ranking moved by earlier taps lands.
@@ -35413,6 +35449,11 @@ open class WMKeyboardService : InputMethodService() {
             }
             PanelMode.PLUGINS -> {
                 openPluginList()
+                // A plugin coming in from the floating box opens where it was.
+                pluginCarry?.let {
+                    pluginCarry = null
+                    onPluginOpen(it)
+                }
                 // "@weather dhaka" from the strip: straight into that plugin,
                 // which hears the words through its keyword callback.
                 (_uiState.value.toolPrefill as? ToolPrefill.Plugin)?.let { prefill ->
@@ -41173,6 +41214,8 @@ open class WMKeyboardService : InputMethodService() {
             post = { body -> serviceScope.launch { body() } },
             onRemindersChanged = { PluginReminderAlarms.requestRearm(this) },
             services = pluginServices(),
+            // "float" while the plugin is in the floating box, read as each session starts.
+            surface = { if (_uiState.value.appletPanel == PanelMode.PLUGINS) "float" else PythonSession.Config.PANEL },
             dark = {
                 (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
                     Configuration.UI_MODE_NIGHT_YES
@@ -41427,7 +41470,9 @@ open class WMKeyboardService : InputMethodService() {
      * which is the single failure this whole design exists to prevent.
      */
     private fun stopPlugins() {
-        pluginRuntime?.close()
+        // A plugin in the floating box keeps running over the app: the box is
+        // its panel, and none of its boxes ever has the keys there.
+        if (_uiState.value.appletPanel != PanelMode.PLUGINS) pluginRuntime?.close()
         if (_uiState.value.pluginFocusedInput == null && _uiState.value.pluginInputs.isEmpty()) return
         _uiState.update { it.copy(pluginFocusedInput = null, pluginInputs = emptyMap()) }
     }

@@ -74,7 +74,7 @@ The third gesture is optional too. **Rearrange by dragging**, under <SettingsPat
 
 ## Tools in a floating box
 
-Some tools can open in a box of their own that floats over whatever app you're in and stays there when the keyboard closes: **Calculator**, **Unit converter**, **Currency converter**, **Clock**, **To-do list**, **Notes**, **Translate**, **Clipboard**, **Calendar**, **Media controls**, **Dictionary**, **Wikipedia** and **Web search**. The box shows the same panel the tool has in the keyboard, with the same sums, timers, tasks, notes and clips, since it's the same tool.
+Some tools can open in a box of their own that floats over whatever app you're in and stays there when the keyboard closes: **Calculator**, **Unit converter**, **Currency converter**, **Clock**, **To-do list**, **Notes**, **Translate**, **Clipboard**, **Calendar**, **Media controls**, **Dictionary**, **Wikipedia**, **Web search** and **Plugins**. The box shows the same panel the tool has in the keyboard, with the same sums, timers, tasks, notes and clips, since it's the same tool.
 
 Tools whose panel is a set of keys, such as emoji, the number pad, handwriting and the trackpad, can't float. Neither can the AI chat, whose conversation and model are tied to its panel, or Find and replace, which works on the app's text field through the keyboard.
 
@@ -102,6 +102,7 @@ The other tools that float work like this in the box:
 - **Clipboard** shows your history, with its tabs, pins and the long-press menu. Tapping a clip with the keyboard open pastes it into the app's field, so you can fill a form one clip after another. With the keyboard closed, it puts the clip on the clipboard for the app's own Paste. Searching the history stays in the keyboard's panel; editing a clip or combining clips moves the clipboard into the keyboard first, since those need the keys.
 - **Media controls** keep showing what's playing, with the keyboard closed too.
 - **Calendar**, **Dictionary**, **Wikipedia** and **Web search** type into their own boxes the way notes do: tap the box and the keys type there. **Insert**, a result's link, a dictionary word and a Wikipedia passage go into the app's field while the keyboard is open and onto the clipboard while it's closed. A picture result opens its page in the browser while the keyboard is closed.
+- **Plugins** shows the list of your plugins, or the one you opened, with its own buttons along the top and a back arrow that goes back a page and then to the list. A plugin keeps running in the box while the keyboard is closed, and its timers keep ticking, until you close the box. A plugin's text box is the one thing that needs the keys: tapping it moves the plugin into the keyboard, where you can type. A plugin can tell it's in the box (`plugin.surface` is `"float"`) and draw a smaller panel there.
 
 <SettingsPath path="Tools / Floating box gestures instead of buttons" />
 

@@ -48,6 +48,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronLeft
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DragHandle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInFull
@@ -116,6 +117,21 @@ internal class AppletCallbacks(
     val onSelectionAction: (CaptureSelectionAction) -> Unit,
     /** The tools that joined the box in #1265. */
     val box: AppletToolCallbacks,
+    val plugins: AppletPluginCallbacks,
+)
+
+/**
+ * A plugin in the box: the keyboard's own plugin calls. A plugin's text box
+ * wants the keys, which are the keyboard's, so tapping one moves the plugin
+ * into the keyboard ([onToKeyboard]) rather than typing over the app.
+ */
+@Immutable
+internal class AppletPluginCallbacks(
+    val onOpen: (String) -> Unit,
+    val onEvent: (com.wasimaster.wmkeyboard.core.plugins.PluginEvent) -> Unit,
+    val onBack: () -> Unit,
+    val onToKeyboard: () -> Unit,
+    val onCopy: (String) -> Unit,
 )
 
 /**
@@ -545,6 +561,45 @@ private fun AppletPanel(panel: PanelMode, state: KeyboardUiState, callbacks: App
                         )
                     }
                 }
+            }
+        }
+        PanelMode.PLUGINS -> Column(Modifier.fillMaxSize()) {
+            val running = state.plugins as? com.wasimaster.wmkeyboard.ime.PluginPanelUi.Running
+            if (running != null) {
+                // The keyboard's panel header, which the box does not have:
+                // Back (a page, then the list), the page title, the plugin's buttons.
+                Row(
+                    Modifier.fillMaxWidth().height(40.dp).padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    IconButton(onClick = callbacks.plugins.onBack) {
+                        Icon(
+                            Icons.Outlined.ChevronLeft,
+                            contentDescription = stringResource(R.string.ime_applet_back),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Text(
+                        running.host?.title.orEmpty(),
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    com.wasimaster.wmkeyboard.ime.ui.PluginHeaderActions(running, callbacks.plugins.onEvent)
+                }
+            }
+            Box(Modifier.weight(1f).fillMaxWidth()) {
+                com.wasimaster.wmkeyboard.ime.ui.PluginPanel(
+                    state = state,
+                    onOpenPlugin = callbacks.plugins.onOpen,
+                    onEvent = callbacks.plugins.onEvent,
+                    onInputFocus = { if (it != null) callbacks.plugins.onToKeyboard() },
+                    onToolInsert = callbacks.onInsert,
+                    onCopy = callbacks.plugins.onCopy,
+                    onPaste = { callbacks.plugins.onToKeyboard() },
+                    onManage = { callbacks.onOpenRoute("plugins") },
+                )
             }
         }
         else -> Unit

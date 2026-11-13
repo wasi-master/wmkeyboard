@@ -137,7 +137,9 @@ Rules that hold whatever was granted:
   on, and every request appears in the keyboard's Network activity under your
   plugin's name.
 - **Only while open.** Timers, sensors and streams stop when your panel or
-  floating box closes.
+  floating box closes. In the floating box a plugin keeps running over the
+  app with the keyboard closed, until the user closes the box; its text boxes
+  never type there, because tapping one moves the plugin into the keyboard.
 
 When a plugin can read something of the user's *and* send data away (for
 example `field.read` with `network`), the install screen says so in plain

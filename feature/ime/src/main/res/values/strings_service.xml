@@ -303,6 +303,7 @@
     <string name="ime_floating_system_notifications">Notifications</string>
     <string name="ime_floating_system_quick_settings">Quick settings</string>
     <string name="ime_floating_system_failed">Android did not press that button</string>
+    <string name="ime_applet_back">Back</string>
     <string name="ime_applet_close">Close the box</string>
     <string name="ime_applet_open_in_keyboard">Open in the keyboard</string>
     <string name="ime_applet_pop_out">Open in a floating box</string>
