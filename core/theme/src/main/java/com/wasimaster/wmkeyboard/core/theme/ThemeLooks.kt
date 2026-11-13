@@ -390,7 +390,43 @@ data class BoardEffectSpec(
     /** How much typing drives it, 0..1; 0 ignores the keys. */
     val reactive: Float = 0f,
     val halfLifeMs: Int = 1200,
+    /**
+     * Where the [BoardEffectKind.ORBS] pools sit, one spot per colour in
+     * [colors] by index. Empty scatters them as the effect always has; set,
+     * the pools rest at these places and [speed] only sways them round there.
+     * Other kinds ignore it.
+     */
+    val orbSpots: List<OrbSpot> = emptyList(),
 )
+
+/**
+ * One colour pool's place on the board: its centre as fractions of the
+ * board's width and height (a little past either edge is allowed, so a pool
+ * can hang off the board), and its radius as a fraction of the board's longer
+ * side. Held to [ORB_SPOT_POSITION_RANGE] and [ORB_SPOT_RADIUS_RANGE].
+ */
+@Serializable
+data class OrbSpot(
+    val x: Float = 0.5f,
+    val y: Float = 0.5f,
+    val radius: Float = 0.3f,
+)
+
+val ORB_SPOT_POSITION_RANGE = -0.2f..1.2f
+val ORB_SPOT_RADIUS_RANGE = 0.05f..0.8f
+
+/**
+ * Spots for [count] pools spread across the board, the starting point the
+ * editor hands out when the user first places them by hand.
+ */
+fun defaultOrbSpots(count: Int): List<OrbSpot> = List(count.coerceIn(1, MAX_BOARD_EFFECT_COLORS)) { i ->
+    val n = count.coerceIn(1, MAX_BOARD_EFFECT_COLORS)
+    OrbSpot(
+        x = (i + 0.5f) / n,
+        y = if (i % 2 == 0) 0.3f else 0.7f,
+        radius = 0.35f,
+    )
+}
 
 val BOARD_EFFECT_DENSITY_RANGE = 0f..1f
 val BOARD_EFFECT_SPEED_RANGE = 0f..3f

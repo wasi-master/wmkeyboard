@@ -560,6 +560,13 @@
     <string name="theme_key_override_shape_title">Key shape</string>
     <string name="theme_key_override_bold_label">Bold label</string>
     <string name="theme_key_override_label_size_title">Label size</string>
+    <string name="theme_key_override_gradient_title">Gradient face</string>
+    <string name="theme_key_override_gradient_start_title">Gradient start</string>
+    <string name="theme_key_override_gradient_end_title">Gradient end</string>
+    <string name="theme_key_override_gradient_angle_title">Gradient angle</string>
+    <string name="theme_key_override_glow_title">Glow</string>
+    <string name="theme_key_override_glow_size_title">Glow reach</string>
+    <string name="theme_key_override_radius_title">Corner radius</string>
     <string name="theme_key_background_title">Key background</string>
     <string name="theme_key_override_pick_action">Pick on keyboard</string>
 
@@ -807,6 +814,13 @@
     <string name="theme_board_effect_reactive_body">How much typing drives the effect. Each key press makes it move faster and glow brighter for a moment. At 0 the effect ignores the keys.</string>
     <string name="theme_board_effect_color_title">First colour</string>
     <string name="theme_board_effect_color2_title">Second colour</string>
+    <string name="theme_board_effect_color3_title">Third colour</string>
+    <string name="theme_board_effect_color4_title">Fourth colour</string>
+    <string name="theme_board_effect_orb_spots_title">Place the pools by hand</string>
+    <string name="theme_board_effect_orb_spots_body">Each colour gets one pool that stays where you put it, instead of pools scattered at random. The pools still sway a little when Speed is above 0.</string>
+    <string name="theme_board_effect_orb_x_title">Pool %1$d across</string>
+    <string name="theme_board_effect_orb_y_title">Pool %1$d down</string>
+    <string name="theme_board_effect_orb_size_title">Pool %1$d size</string>
     <string name="theme_lighting_section_title">Key lighting</string>
     <string name="theme_lighting_section_body">Light on the keys, like a backlit keyboard. Some patterns run on their own. Others light up from the key you press and fade when you stop typing. It stops when Reduce motion or power saving is on.</string>
     <string name="theme_lighting_title">Pattern</string>

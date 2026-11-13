@@ -35,7 +35,9 @@ There are three ways a theme gets imported, and they don't all behave the same w
 
 <SettingsPath path="Appearance / Keyboard themes" />
 
-The **Import** button, first of the row above the cards, opens a file picker scoped to JSON-ish files. It's intentionally permissive about the exact MIME type, since file providers report a `.json` file as `text/plain` or `application/octet-stream` about as often as they get it right. Pick a `.wmtheme.json` file and it's added to Your themes under a freshly generated ID. The ID stored inside the file itself is discarded, so importing the same file twice creates two separate custom themes rather than updating one in place. Any embedded background image is written back out to local storage as part of the import.
+The **Import** button, first of the row above the cards, opens a file picker scoped to JSON-ish files. It's intentionally permissive about the exact MIME type, since file providers report a `.json` file as `text/plain` or `application/octet-stream` about as often as they get it right. Pick a `.wmtheme.json` file and it's added to Your themes under a freshly generated ID.
+
+A JSON theme in no format at all also imports here: the kind a chat assistant writes when asked for "a keyboard theme", or a file made for some other keyboard. The app reads it for the colours it names (`background`, `keyText`, `keys.enter.background`, `accent` and the like), along with gradients, a pill or rounded key and its corner radius, key opacity, glass keys, a jelly press, glows on single keys and placed colour pools. Anything it has no name for is left out. A file that names no board colour and no key colour isn't treated as a theme at all. The same file also opens from a file manager when no other format claims it. The ID stored inside the file itself is discarded, so importing the same file twice creates two separate custom themes rather than updating one in place. Any embedded background image is written back out to local storage as part of the import.
 
 Importing this way both adds the theme and switches the keyboard to it immediately: there's no separate confirmation step for "use it now."
 

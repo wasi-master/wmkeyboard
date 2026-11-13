@@ -411,6 +411,10 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import com.wasimaster.wmkeyboard.core.theme.KEY_OVERRIDE_LABEL_SCALE_RANGE
+import com.wasimaster.wmkeyboard.core.theme.DEFAULT_KEY_GLOW_DP
+import com.wasimaster.wmkeyboard.core.theme.GradientSpec
+import com.wasimaster.wmkeyboard.core.theme.KEY_GLOW_RANGE
+import com.wasimaster.wmkeyboard.core.theme.KEY_OVERRIDE_RADIUS_RANGE
 import com.wasimaster.wmkeyboard.core.theme.KeyOverride
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
@@ -18511,6 +18515,17 @@ internal data class KeyVisual(
      * family of imported themes is built on (issue #266).
      */
     val shapeKind: KeyShapeKind? = null,
+    /** This one key's corner radius from the theme; null follows the board's. */
+    val cornerRadiusDp: Int? = null,
+    /**
+     * The theme's gradient for this key's resting face, drawn over
+     * [background]; null paints the solid colour alone. Not drawn while a
+     * modifier is latched, for the reason a per-key background is not.
+     */
+    val faceGradient: GradientSpec? = null,
+    /** A halo behind this key, and how far it reaches in dp; null draws none. */
+    val glow: Color? = null,
+    val glowDp: Float = DEFAULT_KEY_GLOW_DP,
     /**
      * The roman this key feeds a transliterating layout's buffer, shift
      * included ([transliterationRoman]), for the corner to ask the composer
@@ -18714,6 +18729,11 @@ internal fun keyVisual(
         bold = override?.bold,
         stripLetter = stripLetter,
         shapeKind = overrideShape,
+        cornerRadiusDp = override?.cornerRadiusDp?.coerceIn(KEY_OVERRIDE_RADIUS_RANGE),
+        faceGradient = override?.gradient
+            ?.takeIf { it.colors.isNotEmpty() && (latch == null || latch == ModifierState.OFF) },
+        glow = override?.glow?.let { Color(it.toInt()) }?.takeIf { it.alpha > 0f },
+        glowDp = override?.glowDp?.takeIf { it.isFinite() }?.coerceIn(KEY_GLOW_RANGE) ?: DEFAULT_KEY_GLOW_DP,
         transliterationRoman = transliterationRoman(key, state),
         alternatesShifted = key.longPress.isNotEmpty() && state.shiftCasesText(),
         flickShiftOn = key.hasFlicks() && state.shiftState != ShiftState.OFF,
@@ -23407,7 +23427,7 @@ private fun ReadingColumnKey(
     val picking = readings.isNotEmpty()
     val entries = if (picking) readings else key.longPress
     val kb = LocalKbTheme.current
-    val keyShape = kb.keyShape(bleedDp = keyGapH(settings).value, kind = visual.shapeKind)
+    val keyShape = kb.keyShape(bleedDp = keyGapH(settings).value, kind = visual.shapeKind, radiusDp = visual.cornerRadiusDp)
     val onPress = LocalKeyRoleFeedback.current
     val listState = rememberLazyListState()
     LaunchedEffect(entries) { listState.scrollToItem(0) }
@@ -26371,7 +26391,7 @@ internal fun KeyButton(
     // The gap is handed to the shape as the room a leaning outline may spill
     // into: a slanted key then leans across the gap rather than out of its own
     // width, and neighbouring keys interlock instead of thinning out.
-    val keyShape = kb.keyShape(bleedDp = keyGapH(settings).value, kind = visual.shapeKind)
+    val keyShape = kb.keyShape(bleedDp = keyGapH(settings).value, kind = visual.shapeKind, radiusDp = visual.cornerRadiusDp)
     // A key the theme gave its own shape re-runs the shadow guard for that
     // shape: a round enter key may cast one on a board whose own shape cannot.
     // Only an opaque face casts one: the platform shadow is a solid slab under
@@ -26730,6 +26750,19 @@ internal fun KeyButton(
                 val sheen = kb.keyGradient
                     ?.takeIf { faces && key.action == KeyAction.Text }
                     ?.brush()
+                // This key's own gradient face, which a theme names outright
+                // and so draws whether or not the board's keys have faces.
+                val faceBrush = visual.faceGradient?.brush()
+                // Its halo, as rings stepping outwards from the face the way
+                // the GLOW key lighting draws one: cheaper than a blur and
+                // close enough at the width of a key gap.
+                val glowColor = visual.glow
+                val glowReach = visual.glowDp * density
+                val glowCorner = when (visual.shapeKind ?: kb.keyShapeKind) {
+                    KeyShapeKind.PILL, KeyShapeKind.CIRCLE -> size.minDimension / 2f
+                    KeyShapeKind.SHARP -> 0f
+                    else -> (visual.cornerRadiusDp ?: kb.keyRadiusDp) * density
+                }
                 // The theme's texture for this key class, prepared here so the
                 // press-path draw below only picks between ready-made values.
                 // The clip path and tile brush depend on size/shape alone —
@@ -26750,7 +26783,7 @@ internal fun KeyButton(
                 val frost = kb.frost?.takeIf { faces && it.has(frostSurfaceFor(key.action)) }
                 val glass = frost?.let {
                     val lensKind = visual.shapeKind ?: kb.keyShapeKind
-                    val lensRadius = lensRadiusPx(lensKind, kb.keyRadiusDp, size, this)
+                    val lensRadius = lensRadiusPx(lensKind, visual.cornerRadiusDp ?: kb.keyRadiusDp, size, this)
                     GlassPaint.of(
                         backdrop, outline, keyBounds.value.topLeft, it, size, lensRadius, kb.boardFill,
                         pxPerDp = density, withPress = true,
@@ -26775,6 +26808,18 @@ internal fun KeyButton(
                 }
                 onDrawBehind {
                     val down = pressed.value
+                    if (glowColor != null) {
+                        val steps = 4
+                        for (step in steps downTo 1) {
+                            val grow = glowReach * step / steps
+                            drawRoundRect(
+                                glowColor.copy(alpha = glowColor.alpha * 0.3f * (1f - (step - 1f) / steps)),
+                                Offset(-grow, -grow),
+                                Size(size.width + grow * 2, size.height + grow * 2),
+                                CornerRadius(glowCorner + grow),
+                            )
+                        }
+                    }
                     glass?.draw(this, down)
                     if (skin != null) {
                         skin.draw(this, down)
@@ -26791,6 +26836,7 @@ internal fun KeyButton(
                             drawOutline(outline, visual.pressedBackground.copy(alpha = 0.5f))
                         }
                     }
+                    if (faceBrush != null && !down) drawOutline(outline, faceBrush)
                     if (sheen != null && !down) drawOutline(outline, sheen)
                     material?.drawOver(this, down)
                     rim?.draw(this)

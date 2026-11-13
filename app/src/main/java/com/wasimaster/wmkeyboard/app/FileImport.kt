@@ -114,6 +114,7 @@ import com.wasimaster.wmkeyboard.core.theme.FlexTheme
 import com.wasimaster.wmkeyboard.core.theme.FutoTheme
 import com.wasimaster.wmkeyboard.core.theme.FutoThemeResult
 import com.wasimaster.wmkeyboard.core.theme.FutoThemeUnsupported
+import com.wasimaster.wmkeyboard.core.theme.LooseTheme
 import com.wasimaster.wmkeyboard.core.theme.dynamicSnyggPalette
 import com.wasimaster.wmkeyboard.core.fonts.FontFile
 import com.wasimaster.wmkeyboard.core.fonts.FontImportResult
@@ -802,6 +803,13 @@ object WMFileTypes {
         SnippetPayload.readText(text, name)
             ?.takeIf { it.isForeign }
             ?.let { return Opened.ForeignSnippets(it) }
+        // Last of all, a theme in no format at all: the JSON a chat assistant
+        // writes when asked for a keyboard theme, or another keyboard's one-off
+        // schema. Every real format has turned the text down by now, and the
+        // reader still wants a board colour and a key colour by name, so a JSON
+        // file of some other kind comes back unrecognised as before.
+        LooseTheme.read(text, name.substringBefore('.').ifBlank { LooseTheme.FALLBACK_NAME })
+            ?.let { return Opened.Theme(it) }
         return Opened.Unrecognized
     }
 

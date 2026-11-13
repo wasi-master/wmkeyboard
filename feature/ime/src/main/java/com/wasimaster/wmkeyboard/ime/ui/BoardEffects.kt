@@ -281,12 +281,18 @@ private class Painter(
      * started. Under glass keys they are what the glass has to show.
      */
     fun orbs() {
-        val n = (2 + (fx.density * 4).toInt()).coerceIn(2, 6)
+        // Placed by hand: one pool per spot, in the colour of the same index,
+        // swaying round its place rather than wandering from a random one.
+        val spots = fx.orbSpots
+        val n = if (spots.isNotEmpty()) spots.size else (2 + (fx.density * 4).toInt()).coerceIn(2, 6)
         val big = max(w, h)
         for (i in 0 until n) {
-            val r = big * (0.28f + 0.22f * rnd(i, 1)) * scale
-            val x = (rnd(i, 2) * 1.1f - 0.05f) * w + sin(t * 0.09f * (0.6f + rnd(i, 3)) + i * 2.1f) * w * 0.06f
-            val y = (rnd(i, 4) * 1.2f - 0.1f) * h + cos(t * 0.07f * (0.6f + rnd(i, 5)) + i * 1.3f) * h * 0.12f
+            val spot = spots.getOrNull(i)
+            val r = big * (spot?.radius ?: (0.28f + 0.22f * rnd(i, 1))) * scale
+            val baseX = spot?.x ?: (rnd(i, 2) * 1.1f - 0.05f)
+            val baseY = spot?.y ?: (rnd(i, 4) * 1.2f - 0.1f)
+            val x = baseX * w + sin(t * 0.09f * (0.6f + rnd(i, 3)) + i * 2.1f) * w * 0.06f
+            val y = baseY * h + cos(t * 0.07f * (0.6f + rnd(i, 5)) + i * 1.3f) * h * 0.12f
             val c = color(i)
             val center = Offset(x, y)
             d.drawCircle(

@@ -2016,6 +2016,13 @@ internal object SettingsRowIcons {
         put(R.string.theme_effect_duration_title) { Icons.Outlined.Timer }
         put(R.string.theme_key_override_shape_title) { Icons.Outlined.Category }
         put(R.string.theme_key_override_label_size_title) { Icons.Outlined.FormatSize }
+        put(R.string.theme_key_override_gradient_title) { Icons.Outlined.Gradient }
+        put(R.string.theme_key_override_gradient_start_title) { Icons.Outlined.Palette }
+        put(R.string.theme_key_override_gradient_end_title) { Icons.Outlined.Palette }
+        put(R.string.theme_key_override_gradient_angle_title) { Icons.Outlined.Architecture }
+        put(R.string.theme_key_override_glow_title) { Icons.Outlined.LightMode }
+        put(R.string.theme_key_override_glow_size_title) { Icons.Outlined.BlurOn }
+        put(R.string.theme_key_override_radius_title) { Icons.Outlined.RoundedCorner }
         put(R.string.theme_decal_x_title) { Icons.Outlined.SwapHoriz }
         put(R.string.theme_decal_y_title) { Icons.Outlined.SwapVert }
         put(R.string.theme_decal_size_title) { Icons.Outlined.PhotoSizeSelectLarge }
@@ -2477,6 +2484,7 @@ internal object SettingsRowIcons {
         put(R.string.theme_board_effect_intensity_title) { Icons.Outlined.Tune }
         put(R.string.theme_board_effect_scale_title) { Icons.Outlined.ZoomOutMap }
         put(R.string.theme_board_effect_reactive_title) { Icons.Outlined.TouchApp }
+        put(R.string.theme_board_effect_orb_spots_title) { Icons.Outlined.Tune }
         put(R.string.theme_lighting_color_title) { Icons.Outlined.ColorLens }
         put(R.string.theme_lighting_intensity_title) { Icons.Outlined.LightMode }
         put(R.string.theme_lighting_size_title) { Icons.Outlined.BlurOn }

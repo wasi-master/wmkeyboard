@@ -98,6 +98,9 @@ import com.wasimaster.wmkeyboard.core.theme.WINDOW_BLUR_RADIUS_RANGE
 import com.wasimaster.wmkeyboard.core.theme.KeyEffectColorMode
 import com.wasimaster.wmkeyboard.core.theme.KeyEffectKind
 import com.wasimaster.wmkeyboard.core.theme.KeyOverride
+import com.wasimaster.wmkeyboard.core.theme.ORB_SPOT_POSITION_RANGE
+import com.wasimaster.wmkeyboard.core.theme.ORB_SPOT_RADIUS_RANGE
+import com.wasimaster.wmkeyboard.core.theme.OrbSpot
 import com.wasimaster.wmkeyboard.core.theme.keyEffectKindOrNull
 import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
 import com.wasimaster.wmkeyboard.core.theme.MAX_DECALS
@@ -381,6 +384,8 @@ data class KbBoardEffect(
      * colour of its own instead of the fallback.
      */
     val ownColors: Boolean = true,
+    /** The ORBS pools' own places, held to their ranges; empty scatters them. See [BoardEffectSpec.orbSpots]. */
+    val orbSpots: List<OrbSpot> = emptyList(),
 )
 
 /** A [KeyLightingSpec] resolved the same way. */
@@ -416,8 +421,17 @@ internal fun resolveBoardEffect(spec: BoardEffectSpec, accent: Color, keyText: C
         reactive = spec.reactive.coerceIn(BOARD_EFFECT_REACTIVE_RANGE),
         halfLifeMs = spec.halfLifeMs.coerceIn(BOARD_EFFECT_HALF_LIFE_RANGE),
         ownColors = spec.colors.isNotEmpty(),
+        orbSpots = spec.orbSpots.take(MAX_BOARD_EFFECT_COLORS).map {
+            OrbSpot(
+                x = it.x.finiteOr(0.5f).coerceIn(ORB_SPOT_POSITION_RANGE),
+                y = it.y.finiteOr(0.5f).coerceIn(ORB_SPOT_POSITION_RANGE),
+                radius = it.radius.finiteOr(0.3f).coerceIn(ORB_SPOT_RADIUS_RANGE),
+            )
+        },
     )
 }
+
+private fun Float.finiteOr(fallback: Float): Float = if (isFinite()) this else fallback
 
 /** A [TouchBloomSpec] resolved the same way. */
 @Immutable
@@ -588,9 +602,11 @@ data class KbMotion(
  * [bleedDp] is how far a leaning shape may spill into the gap around the key —
  * pass the horizontal gap where there is one, so a slanted key keeps its full
  * width; leave it at zero where the key has no gap of its own to lean into.
+ * [radiusDp] is one key's own radius (`KeyOverride.cornerRadiusDp`); null
+ * takes the board's.
  */
-fun KbTheme.keyShape(bleedDp: Float = 0f, kind: KeyShapeKind? = null) =
-    keyShapeFor(kind ?: keyShapeKind, keyRadiusDp, bleedDp)
+fun KbTheme.keyShape(bleedDp: Float = 0f, kind: KeyShapeKind? = null, radiusDp: Int? = null) =
+    keyShapeFor(kind ?: keyShapeKind, radiusDp ?: keyRadiusDp, bleedDp)
 
 /**
  * Whether a key at rest draws a face at all. False only when the theme's key
@@ -1327,6 +1343,8 @@ private fun KeyOverride.mapColors(f: (Color) -> Color): KeyOverride {
         popupBackground = map(popupBackground),
         popupText = map(popupText),
         hint = map(hint),
+        gradient = gradient?.mapColors(f),
+        glow = map(glow),
     )
 }
 
