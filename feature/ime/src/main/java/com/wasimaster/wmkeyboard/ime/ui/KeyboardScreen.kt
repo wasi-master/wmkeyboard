@@ -9708,7 +9708,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.IMAGE_SEARCH -> state.panel == PanelMode.WEB_SEARCH && state.searchTab == SearchTab.IMAGES
     ToolbarTool.OCR -> state.panel == PanelMode.OCR
     ToolbarTool.QR_SCAN -> state.panel == PanelMode.QR_SCAN
-    ToolbarTool.DOC_SCAN -> false
+    ToolbarTool.DOC_SCAN -> state.panel == PanelMode.DOC_SCAN
     // Opens the settings app, like Settings: nothing on the keyboard to stay lit for.
     ToolbarTool.STATISTICS -> false
     ToolbarTool.FIND_REPLACE -> state.panel == PanelMode.FIND_REPLACE
@@ -14532,7 +14532,7 @@ private fun PageDots(count: Int, current: Int) {
  * hopping to another tool mid-use — sensors, reference views, converters.
  */
 private val FullBleedPanels = setOf(
-    PanelMode.OCR, PanelMode.QR_SCAN, PanelMode.CALCULATOR, PanelMode.CURRENCY,
+    PanelMode.OCR, PanelMode.QR_SCAN, PanelMode.DOC_SCAN, PanelMode.CALCULATOR, PanelMode.CURRENCY,
     PanelMode.UNIT_CONVERT, PanelMode.CALENDAR, PanelMode.AI,
     PanelMode.TRANSLATE, PanelMode.WEB_SEARCH, PanelMode.IMAGE_SEARCH,
     PanelMode.DICTIONARY, PanelMode.SYMBOLS, PanelMode.MEDIA_CONTROL, PanelMode.KDE_CONNECT,
@@ -15945,6 +15945,15 @@ private fun KeyboardBody(
                         onTranslate = toolHold.photo.onTranslateText,
                     )
                 }
+                PanelMode.DOC_SCAN -> DocScanPanel(
+                    state = state,
+                    onRequestPermission = onCameraPermissionRequest,
+                    onClose = { onPanelChange(PanelMode.DOC_SCAN) },
+                    // The rail over the viewfinder only: over the corners and the page it would cover handles.
+                    cameraFrame = { content ->
+                        CameraModeHost(state, CameraMode.DOCUMENT, onPanelChange, toolHold.onHoldAction, content)
+                    },
+                )
                 PanelMode.QR_SCAN -> CameraModeHost(state, CameraMode.QR, onPanelChange, toolHold.onHoldAction) {
                     QrScanPanel(
                         state = state,

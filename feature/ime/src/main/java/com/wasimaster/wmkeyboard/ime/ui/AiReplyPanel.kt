@@ -271,7 +271,10 @@ private fun ReplyGather(state: KeyboardUiState, callbacks: ReplyCallbacks) {
         ToolPanelChip(stringResource(R.string.ime_reply_add_shot)) { callbacks.onPickShots(true) }
         if (state.screenCapture) {
             val capture = LocalScreenCapture.current
-            ToolPanelChip(stringResource(R.string.ime_reply_capture_screen)) { capture(ScreenCaptureTarget.REPLY) }
+            ToolPanelChip(
+                stringResource(if (state.capturingScreen) R.string.ime_screen_capture_progress else R.string.ime_reply_capture_screen),
+                selected = state.capturingScreen,
+            ) { capture(ScreenCaptureTarget.REPLY) }
         }
         ToolPanelChip(stringResource(R.string.ime_reply_add_typed), selected = reply.typing) {
             callbacks.onTypeFocus(!reply.typing)

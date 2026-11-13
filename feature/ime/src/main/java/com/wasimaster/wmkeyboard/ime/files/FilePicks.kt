@@ -70,6 +70,13 @@ sealed interface FilePickRequest {
         override fun systemIntent(context: Context) = GalleryPickActivity.ocrIntent(context)
     }
 
+    /** A photo of a page for the keyboard's document scanner to flatten. */
+    data object DocPicture : FilePickRequest {
+        override val mimes: List<String> get() = listOf("image/*")
+        override val limit: Int get() = 1
+        override fun systemIntent(context: Context) = GalleryPickActivity.docIntent(context)
+    }
+
     data object CameraPicture : FilePickRequest {
         override val mimes: List<String> get() = listOf("image/*")
         override val limit: Int get() = 1

@@ -2366,6 +2366,7 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     // A choice only where Google's scanner can run; elsewhere the built-in one is all there is.
     toolEntry(ToolbarTool.DOC_SCAN, R.string.tooldetail_doc_scan_builtin_title, R.string.tooldetail_doc_scan_builtin_subtitle)
         .takeIf { googleDocScanner },
+    toolEntry(ToolbarTool.DOC_SCAN, R.string.tooldetail_doc_scan_in_keyboard_title, R.string.tooldetail_doc_scan_in_keyboard_subtitle),
     toolEntry(ToolbarTool.DOC_SCAN, R.string.tooldetail_doc_scan_gallery_title, R.string.tooldetail_doc_scan_gallery_subtitle),
     // #1198: Paperless-ngx.
     toolEntry(ToolbarTool.DOC_SCAN, R.string.paperless_url_title, R.string.paperless_info),

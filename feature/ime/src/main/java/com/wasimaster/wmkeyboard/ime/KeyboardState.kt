@@ -915,6 +915,14 @@ enum class PanelMode {
      * see `ime.share.ShareUi`; the search box types into [KeyboardUiState.mediaQuery].
      */
     SHARE,
+
+    /**
+     * The built-in document scanner in place of the keys, where the user has
+     * not asked for it full screen (`ScannerSettings.docInKeyboard`). Its
+     * pages so far live in `ui.InlineDocScan`, so a photo picked through the
+     * keyboard's file manager comes back to them.
+     */
+    DOC_SCAN,
 }
 
 /**
@@ -1130,6 +1138,9 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     // nobody, and the shutter is a pointer affordance.
     PanelMode.CAMERA, PanelMode.QR_SCAN -> listOf(FocusRegion.ACTIONS)
     PanelMode.OCR -> listOf(FocusRegion.ACTIONS, FocusRegion.RESULTS)
+    // The document scanner is a viewfinder and a corner editor: pointer work
+    // from end to end, with no [PanelFocusTarget] to ring.
+    PanelMode.DOC_SCAN -> emptyList()
     // The tab chips, then the result card's insert chips.
     PanelMode.MUSIC_ID -> listOf(FocusRegion.CHIPS, FocusRegion.ACTIONS)
     // The search, Copy/Open/More, the pinned and recent row, then every app.
@@ -3460,6 +3471,12 @@ data class PictureUi(
      * [WMKeyboardService.onPanelChange].
      */
     val screenCapture: Boolean = false,
+    /**
+     * A "Capture screen" press is under way: `screencap` through Shizuku or
+     * root takes a second or two, and the button shows a spinner meanwhile
+     * rather than looking as if the press did nothing.
+     */
+    val capturingScreen: Boolean = false,
 )
 
 /** The strip's two undo chips: an autocorrection to take back and a run of backspaces to put back. */
@@ -4597,6 +4614,7 @@ data class KeyboardUiState(
     val cameraImage: String? get() = pictures.cameraImage
     val pictureFromScreen: Boolean get() = pictures.pictureFromScreen
     val screenCapture: Boolean get() = pictures.screenCapture
+    val capturingScreen: Boolean get() = pictures.capturingScreen
     val correctionUndo: String? get() = undoChips.correctionUndo
     val deletionUndo: DeletionChip? get() = undoChips.deletionUndo
 

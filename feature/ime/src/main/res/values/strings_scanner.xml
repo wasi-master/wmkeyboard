@@ -95,6 +95,10 @@
 
     <!-- Document scanner trampoline (DocScanActivity). -->
     <!-- The built-in document scanner (PageScanActivity), used where Google's is missing. -->
+    <plurals name="ime_docscan_pages_album">
+        <item quantity="one">The page opens in the app\'s share screen</item>
+        <item quantity="other">This app takes one picture at a time here, so the <xliff:g id="count" example="3">%d</xliff:g> pages open together in its share screen, to send as one album</item>
+    </plurals>
     <plurals name="ime_docscan_pages_shared">
         <item quantity="one">The app did not take the last page here, so it opens in the app\'s share screen</item>
         <item quantity="other">The app did not take <xliff:g id="count" example="3">%d</xliff:g> pages here, so they open together in the app\'s share screen</item>
@@ -137,5 +141,6 @@
     <string name="ime_docscan_unavailable_error">The document scanner is not available. It needs Google Play services.</string>
 
     <string name="ime_screen_capture_desc">Capture the screen</string>
+    <string name="ime_screen_capture_progress">Capturing the screen…</string>
     <string name="ime_screen_capture_failed">Could not capture the screen. Check Shizuku or your root manager.</string>
 </resources>

@@ -608,7 +608,14 @@ private fun OcrContent(
         }
 
         Text(
-            stringResource(if (clipImage != null) R.string.ime_scanner_ocr_image_hint else R.string.ime_scanner_ocr_hint),
+            stringResource(
+                when {
+                    // The capture takes a second or two through Shizuku or root; say so where the eye is.
+                    state.capturingScreen -> R.string.ime_screen_capture_progress
+                    clipImage != null -> R.string.ime_scanner_ocr_image_hint
+                    else -> R.string.ime_scanner_ocr_hint
+                },
+            ),
             color = Color.White,
             fontSize = 12.sp,
             textAlign = TextAlign.Center,
@@ -652,6 +659,7 @@ private fun OcrContent(
                     icon = Icons.Outlined.Screenshot,
                     description = stringResource(R.string.ime_screen_capture_desc),
                     active = false,
+                    busy = state.capturingScreen,
                 ) {
                     capture(ScreenCaptureTarget.OCR)
                 }

@@ -7010,6 +7010,7 @@ open class WMKeyboardService : InputMethodService() {
                 com.wasimaster.wmkeyboard.ime.ui.LocalSplitGapReport provides ::onSplitGaps,
                 com.wasimaster.wmkeyboard.ime.ui.LocalClipChipDelete provides ::onClipChipDelete,
                 com.wasimaster.wmkeyboard.ime.ui.LocalScreenCapture provides ::onCaptureScreen,
+                com.wasimaster.wmkeyboard.ime.ui.LocalDocScanPages provides ::onDocScanPages,
                 com.wasimaster.wmkeyboard.ime.ui.LocalSearchActions provides searchActions,
                 com.wasimaster.wmkeyboard.ime.ui.LocalPopText provides popText,
             ) {
@@ -44233,6 +44234,9 @@ open class WMKeyboardService : InputMethodService() {
      * A floating keyboard has no edge to cut at and may be in the picture.
      */
     fun onCaptureScreen(target: com.wasimaster.wmkeyboard.ime.ui.ScreenCaptureTarget) {
+        // One at a time: a second press while the first is still capturing
+        // would only take the same screen again.
+        if (_uiState.value.pictures.capturingScreen) return
         vibrate()
         if (!canCaptureScreen()) {
             _uiState.update { it.copy(pictures = it.pictures.copy(screenCapture = false)) }
@@ -44241,11 +44245,16 @@ open class WMKeyboardService : InputMethodService() {
         val panel = _uiState.value.panel
         val boardTop = boardTopOnScreen()
         val forReply = target == com.wasimaster.wmkeyboard.ime.ui.ScreenCaptureTarget.REPLY
+        _uiState.update { it.copy(pictures = it.pictures.copy(capturingScreen = true)) }
         serviceScope.launch {
-            val file = com.wasimaster.wmkeyboard.core.shell.ScreenCapture.capture(
-                this@WMKeyboardService,
-                cropBottomPx = if (forReply) null else boardTop,
-            )
+            val file = try {
+                com.wasimaster.wmkeyboard.core.shell.ScreenCapture.capture(
+                    this@WMKeyboardService,
+                    cropBottomPx = if (forReply) null else boardTop,
+                )
+            } finally {
+                _uiState.update { it.copy(pictures = it.pictures.copy(capturingScreen = false)) }
+            }
             if (_uiState.value.panel != panel) {
                 file?.delete()
                 return@launch
@@ -47236,19 +47245,28 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * Doc-scan tool: hand off to a full-screen scanner activity. ML Kit's
-     * (edge detection, crop, filters — all Google's UI) where Play services
-     * can run it and the user has not picked the built-in one; the built-in
-     * OpenCV scanner ([com.wasimaster.wmkeyboard.app.PageScanActivity])
-     * everywhere else. Either way the
-     * scanned pages come back through [DocScanActivity.consumePendingPages]
+     * Doc-scan tool. ML Kit's scanner (edge detection, crop, filters, all
+     * Google's UI) where Play services can run it and the user has not picked
+     * the built-in one; it is an activity of its own. Everywhere else the
+     * built-in OpenCV scanner: in the keyboard ([PanelMode.DOC_SCAN]), whose
+     * pages go straight into the field through [onDocScanPages], unless the
+     * user turned that off or Paperless asks after a scan, whose card needs a
+     * screen; then full screen ([com.wasimaster.wmkeyboard.app.PageScanActivity]).
+     * The activities' pages come back through [DocScanActivity.consumePendingPages]
      * in [onStartInputView], once the target app has focus again.
      */
     fun onDocScanStart() {
+        val scanner = _uiState.value.settings.scanner
+        val google = BuildConfig.ENABLE_ML_KIT_SCANNERS && PlayServices.available && !scanner.docBuiltIn
+        if (!google && scanner.docInKeyboard &&
+            com.wasimaster.wmkeyboard.ime.paperless.PaperlessHandoff.route(scanner.paperless) !=
+            com.wasimaster.wmkeyboard.ime.paperless.PaperlessHandoff.Route.ASK
+        ) {
+            onPanelChange(PanelMode.DOC_SCAN)
+            return
+        }
         vibrate()
         _uiState.update { it.copy(panel = PanelMode.NONE) }
-        val google = BuildConfig.ENABLE_ML_KIT_SCANNERS && PlayServices.available &&
-            !_uiState.value.settings.scanner.docBuiltIn
         startActivity(
             if (google) {
                 Intent(this, DocScanActivity::class.java).apply {
@@ -47263,6 +47281,28 @@ open class WMKeyboardService : InputMethodService() {
                 )
             },
         )
+    }
+
+    /**
+     * The keyboard's document scanner is done: its pages into the field it is
+     * open over, or to Paperless as **After a scan** says (never "ask": that
+     * route scans full screen). The panel closes first, so a chat app's send
+     * screen opening on the first page finds the keys already down.
+     */
+    fun onDocScanPages(pages: List<File>) {
+        onPanelChange(PanelMode.NONE, haptic = false)
+        if (pages.isEmpty()) return
+        val paperless = _uiState.value.settings.scanner.paperless
+        val handoff = com.wasimaster.wmkeyboard.ime.paperless.PaperlessHandoff
+        if (handoff.route(paperless) != com.wasimaster.wmkeyboard.ime.paperless.PaperlessHandoff.Route.AUTO) {
+            commitScanPages(pages)
+            return
+        }
+        val (choice, toField) = handoff.auto(paperless)
+        serviceScope.launch {
+            handoff.deliver(this@WMKeyboardService, pages, choice, toField = false)
+            if (toField) commitScanPages(pages)
+        }
     }
 
     /** OCR/QR tools: insert recognized text like a (long) key press. */
@@ -57777,6 +57817,12 @@ open class WMKeyboardService : InputMethodService() {
      * What the field did not take goes to that app's share screen together,
      * where WhatsApp sends the pages as one album; with no app to aim at, the
      * system's share sheet.
+     *
+     * WhatsApp itself is not asked one page at a time at all. Its send screen
+     * could open on the first page while the next was already on its way into
+     * a field about to close, and that page went nowhere; and even when the
+     * rest reached the share screen, the first stood alone on a send screen
+     * of its own. All of them go to its share screen at once, as one album.
      */
     private fun commitScanPages(pages: List<File>) {
         if (pages.isEmpty()) return
@@ -57788,10 +57834,17 @@ open class WMKeyboardService : InputMethodService() {
         }
         fun field() = currentInputEditorInfo?.let { it.packageName to it.fieldId }
         val asked = field()
+        val app = asked?.first
+        if (app != null && app in ONE_PICTURE_CHATS) {
+            sharePages(pages, app, album = true)
+            return
+        }
         serviceScope.launch {
             for ((index, page) in pages.withIndex()) {
+                // The keyboard gone means the field went with it, even before
+                // the next field's info replaces this one's.
                 if (index > 0) delay(MEDIA_QUEUE_GAP_MS)
-                if (field() != asked || !tryCommit(page, MediaMime.JPEG)) {
+                if (!keyboardVisible || field() != asked || !tryCommit(page, MediaMime.JPEG)) {
                     sharePages(pages.subList(index, pages.size), asked?.first)
                     return@launch
                 }
@@ -57799,8 +57852,11 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    /** [files] (JPEGs) on [app]'s share screen, or the share sheet; a toast says how many went. */
-    private fun sharePages(files: List<File>, app: String?) {
+    /**
+     * [files] (JPEGs) on [app]'s share screen, or the share sheet; a toast says
+     * how many went. [album]: sent there on purpose rather than left over.
+     */
+    private fun sharePages(files: List<File>, app: String?, album: Boolean = false) {
         val uris = files.mapNotNull {
             runCatching { FileProvider.getUriForFile(this, clipboardFileProviderAuthority, it) }.getOrNull()
         }
@@ -57817,8 +57873,8 @@ open class WMKeyboardService : InputMethodService() {
         val shared = (app != null && runCatching { startActivity(Intent(intent).setPackage(app)) }.isSuccess) ||
             shareVia(intent)
         if (shared) {
-            val text = resources.getQuantityString(R.plurals.ime_docscan_pages_shared, uris.size, uris.size)
-            Toast.makeText(this, text, Toast.LENGTH_LONG).show()
+            val plural = if (album) R.plurals.ime_docscan_pages_album else R.plurals.ime_docscan_pages_shared
+            Toast.makeText(this, resources.getQuantityString(plural, uris.size, uris.size), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -63255,6 +63311,13 @@ private const val LATIN_EXTENDED_END = 0x24F
 
 /** WhatsApp, and the business build that registers its own package. */
 private val WHATSAPP_PACKAGES = listOf("com.whatsapp", "com.whatsapp.w4b")
+
+/**
+ * Chat apps that turn a picture put into their message box into a send
+ * screen of their own, one picture at a time: several scanned pages go to
+ * their share screen together instead ([WMKeyboardService.commitScanPages]).
+ */
+private val ONE_PICTURE_CHATS = WHATSAPP_PACKAGES.toSet()
 
 /** The apostrophe's two spellings, as code points: what a glide counts as a letter where it is one. */
 private val APOSTROPHE_LETTERS: Set<Int> = setOf('\''.code, '’'.code)

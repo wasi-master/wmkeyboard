@@ -3629,6 +3629,13 @@ data class ScannerSettings(
      * built-in one is the only one and this is not asked.
      */
     val docBuiltIn: Boolean = false,
+    /**
+     * The built-in scanner opens in the keyboard, in place of the keys, like
+     * the text and QR scanners, rather than full screen. Google's scanner is
+     * always full screen; so is the built-in one when Paperless is set to ask
+     * after a scan, since its card needs a screen of its own.
+     */
+    val docInKeyboard: Boolean = true,
     /** Copy generated QR codes into Pictures/WM Keyboard. */
     val qrSaveToGallery: Boolean = false,
     /** How generated QR codes are sent. */
@@ -13399,6 +13406,7 @@ class SettingsRepository(private val context: Context) {
         private val CAMERA_SEARCH_CUSTOM_FIELD = stringPreferencesKey("camera_search_custom_field")
         private val DOC_SCAN_SAVE_TO_GALLERY = booleanPreferencesKey("doc_scan_save_to_gallery")
         private val DOC_SCAN_BUILT_IN = booleanPreferencesKey("doc_scan_built_in")
+        private val DOC_SCAN_IN_KEYBOARD = booleanPreferencesKey("doc_scan_in_keyboard")
         private val QR_SAVE_TO_GALLERY = booleanPreferencesKey("qr_save_to_gallery")
         private val STICKER_SEND_MODE = stringPreferencesKey("sticker_send_mode")
         private val GIF_SEND_MODE = stringPreferencesKey("gif_send_mode")
@@ -16158,6 +16166,7 @@ class SettingsRepository(private val context: Context) {
             docSaveToGallery = p[DOC_SCAN_SAVE_TO_GALLERY]
                 ?: defaults.scanner.docSaveToGallery,
             docBuiltIn = p[DOC_SCAN_BUILT_IN] ?: defaults.scanner.docBuiltIn,
+            docInKeyboard = p[DOC_SCAN_IN_KEYBOARD] ?: defaults.scanner.docInKeyboard,
             qrSaveToGallery = p[QR_SAVE_TO_GALLERY] ?: defaults.scanner.qrSaveToGallery,
             qrSendMode = p[QR_SEND_MODE]
                 ?.let { runCatching { MediaSendMode.valueOf(it) }.getOrNull() }
@@ -17995,6 +18004,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDocScanBuiltIn(value: Boolean) =
         editPrefs { it[DOC_SCAN_BUILT_IN] = value }
+
+    suspend fun setDocScanInKeyboard(value: Boolean) =
+        editPrefs { it[DOC_SCAN_IN_KEYBOARD] = value }
 
     suspend fun setQrSaveToGallery(value: Boolean) =
         editPrefs { it[QR_SAVE_TO_GALLERY] = value }

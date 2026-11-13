@@ -3130,6 +3130,17 @@ internal fun ToolDetailSettings(
                         ) { scope.launch { repository.setDocScanBuiltIn(it) } }
                     }
                 }
+                // Only the built-in scanner can run in the keyboard; Google's is its own screen.
+                if (!googleDocScanner || builtIn) {
+                    item {
+                        ToggleSetting(
+                            R.string.tooldetail_doc_scan_in_keyboard_title,
+                            stringResource(R.string.tooldetail_doc_scan_in_keyboard_subtitle),
+                            settings.watch { it.scanner.docInKeyboard },
+                            default = SettingsDefaults.scanner.docInKeyboard,
+                        ) { scope.launch { repository.setDocScanInKeyboard(it) } }
+                    }
+                }
                 item {
                     ToggleSetting(
                         R.string.tooldetail_doc_scan_gallery_title,

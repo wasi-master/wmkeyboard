@@ -1157,6 +1157,7 @@ private fun CameraContent(
                         icon = Icons.Outlined.Screenshot,
                         description = stringResource(R.string.ime_screen_capture_desc),
                         active = false,
+                        busy = state.capturingScreen,
                     ) {
                         capture(ScreenCaptureTarget.TRANSLATE)
                     }
@@ -1248,6 +1249,8 @@ internal fun CameraChipButton(
     active: Boolean,
     label: String? = null,
     focused: Boolean = false,
+    /** Working on the press (a screen capture under way): a spinner in place of the icon, and taps wait. */
+    busy: Boolean = false,
     onClick: () -> Unit,
 ) {
     Box(
@@ -1258,6 +1261,14 @@ internal fun CameraChipButton(
             .focusRing(focused, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
+        if (busy) {
+            androidx.compose.material3.CircularProgressIndicator(
+                modifier = Modifier.size(18.dp).semantics { contentDescription = description },
+                color = Color.White,
+                strokeWidth = 2.dp,
+            )
+            return@Box
+        }
         IconButton(onClick = onClick, modifier = Modifier.fillMaxSize()) {
             // Flash off → auto → on and the timer's steps cross-fade from
             // one face to the next; the button and its tap stay where they are.

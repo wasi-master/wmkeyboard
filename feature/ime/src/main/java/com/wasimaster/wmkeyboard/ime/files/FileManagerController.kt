@@ -432,6 +432,7 @@ internal class FileManagerController(
                 if (KdeConnectHub.send(app, request.deviceId, uris, null) == 0) host.kdeSendFailed()
             FilePickRequest.QrPicture -> GalleryPickActivity.offerQr(uris.first())
             FilePickRequest.OcrPicture -> GalleryPickActivity.offerOcr(uris.first())
+            FilePickRequest.DocPicture -> GalleryPickActivity.offerDoc(uris.first())
             FilePickRequest.CameraPicture -> GalleryPickActivity.offerCamera(uris.first())
             is FilePickRequest.PluginFile -> com.wasimaster.wmkeyboard.ime.PluginFilePicks.deliver(uris.first())
         }

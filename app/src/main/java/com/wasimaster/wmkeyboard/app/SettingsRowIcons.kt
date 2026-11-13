@@ -2367,6 +2367,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_qr_gen_ecc_header) { Icons.Outlined.Healing }
         put(R.string.tooldetail_qr_scan_zxing_title) { Icons.Outlined.QrCodeScanner }
         put(R.string.tooldetail_doc_scan_builtin_title) { Icons.Outlined.DocumentScanner }
+        put(R.string.tooldetail_doc_scan_in_keyboard_title) { Icons.Outlined.Keyboard }
         put(R.string.tooldetail_media_filter_header) { Icons.Outlined.FilterAlt }
         put(R.string.tooldetail_image_search_moved_title) { Icons.Outlined.TravelExplore }
         put(R.string.tooldetail_sticker_suggest_magnify_title) { Icons.Outlined.ZoomIn }

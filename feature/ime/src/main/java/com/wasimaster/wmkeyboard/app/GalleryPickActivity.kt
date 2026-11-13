@@ -33,8 +33,9 @@ import kotlin.concurrent.thread
  * parked in a queue of its own ([consumeQr]) so the gallery tool, which
  * sends whatever lands in [consume], never sees it. The camera tool does the
  * same to translate or search a photo already on the phone (#807), in its
- * own queue too ([consumeCamera]), and the text reader to read one (#869),
- * in a third ([consumeOcr]).
+ * own queue too ([consumeCamera]), the text reader to read one (#869),
+ * in a third ([consumeOcr]), and the keyboard's document scanner to flatten
+ * one, in a fourth ([consumeDoc]).
  *
  * An API 5 plugin's `files.pick` and `files.save` come here too when the
  * keyboard's own file manager cannot answer: the pick or the place goes
@@ -57,6 +58,7 @@ class GalleryPickActivity : ComponentActivity() {
         private const val EXTRA_QR = "qr"
         private const val EXTRA_CAMERA = "camera"
         private const val EXTRA_OCR = "ocr"
+        private const val EXTRA_DOC = "doc"
         private const val EXTRA_PLUGIN_PICK = "plugin_pick"
         private const val EXTRA_PLUGIN_SAVE = "plugin_save"
 
@@ -70,6 +72,19 @@ class GalleryPickActivity : ComponentActivity() {
 
         @Volatile
         private var ocrPending: Uri? = null
+
+        @Volatile
+        private var docPending: Uri? = null
+
+        /** Hands over (and clears) the picture last picked for the keyboard's document scanner. */
+        fun consumeDoc(): Uri? = synchronized(pending) { docPending.also { docPending = null } }
+
+        /** One photo of a page for the keyboard's document scanner; see [consumeDoc]. */
+        fun docIntent(context: Context): Intent =
+            Intent(context, GalleryPickActivity::class.java)
+                .putExtra(EXTRA_DOC, true)
+                .putExtra(EXTRA_LIMIT, 1)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
         /** Hands over (and clears) the picture last picked for the text reader. */
         fun consumeOcr(): Uri? = synchronized(pending) { ocrPending.also { ocrPending = null } }
@@ -139,6 +154,9 @@ class GalleryPickActivity : ComponentActivity() {
         /** Queues a picture for the text reader. */
         internal fun offerOcr(uri: Uri) = synchronized(pending) { ocrPending = uri }
 
+        /** Queues a picture for the keyboard's document scanner. */
+        internal fun offerDoc(uri: Uri) = synchronized(pending) { docPending = uri }
+
         /** What [uri] says about itself: its name, its size and its type. */
         internal fun describe(context: Context, uri: Uri): Picked {
             var name = ""
@@ -204,7 +222,7 @@ class GalleryPickActivity : ComponentActivity() {
                 intent.getBooleanExtra(EXTRA_PLUGIN_SAVE, false) ->
                     saveAs?.let { pluginCreate?.launch(it.first) } ?: error("nothing to save")
                 intent.getBooleanExtra(EXTRA_QR, false) || intent.getBooleanExtra(EXTRA_CAMERA, false) ||
-                    intent.getBooleanExtra(EXTRA_OCR, false) ->
+                    intent.getBooleanExtra(EXTRA_OCR, false) || intent.getBooleanExtra(EXTRA_DOC, false) ->
                     single.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 intent.getBooleanExtra(EXTRA_FILES, false) -> documents.launch(arrayOf("*/*"))
                 multiple != null -> multiple?.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
@@ -267,6 +285,11 @@ class GalleryPickActivity : ComponentActivity() {
         }
         if (intent.getBooleanExtra(EXTRA_OCR, false)) {
             uris.firstOrNull()?.let(::offerOcr)
+            finish()
+            return
+        }
+        if (intent.getBooleanExtra(EXTRA_DOC, false)) {
+            uris.firstOrNull()?.let(::offerDoc)
             finish()
             return
         }

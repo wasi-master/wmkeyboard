@@ -28,8 +28,9 @@ import com.wasimaster.wmkeyboard.ime.R
 /**
  * The camera's modes (#1156): the photo camera and the three scanners, each
  * still a tool of its own, reached from one another by a rail down the side.
- * [panel] is the panel the mode is; the document scanner has none, since it
- * runs as an activity over the keyboard.
+ * [panel] is the panel the mode is; the document scanner has none here, since
+ * its tool decides between Google's full-screen scanner and the built-in one
+ * in the keyboard ([PanelMode.DOC_SCAN]), so the rail goes through the tool.
  */
 internal enum class CameraMode(val tool: ToolbarTool, val panel: PanelMode?) {
     PHOTO(ToolbarTool.CAMERA, PanelMode.CAMERA),

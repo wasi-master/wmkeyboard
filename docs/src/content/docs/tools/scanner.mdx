@@ -60,7 +60,7 @@ If your device has no camera, the panel shows a message instead of a blank viewf
 
 To read a photo that's already on your phone, such as a screenshot, tap the picture button in the top-right corner of the camera view. The keyboard's [file manager](/tools/files/) opens, or Android's photo picker in the Play Store build, and the photo you choose is read in the language on the chip, then lands on the same chips as a capture. It is shown whole rather than cropped to the viewfinder.
 
-To read what's on the screen itself, tap the screenshot button beside it. It's only there in the F-Droid and GitHub builds, with **Capture the screen** on under <SettingsPath path="Privacy / Permissions / Shizuku or root" /> and Shizuku or root ready. The keyboard captures everything above its own top edge, with no screen recording prompt, and reads it like a picture you picked. Back stays in the scanner.
+To read what's on the screen itself, tap the screenshot button beside it. It's only there in the F-Droid and GitHub builds, with **Capture the screen** on under <SettingsPath path="Privacy / Permissions / Shizuku or root" /> and Shizuku or root ready. The keyboard captures everything above its own top edge, with no screen recording prompt, and reads it like a picture you picked. The capture takes a second or two, so the button turns into a spinner and the line over the viewfinder says **Capturing the screen…** until the picture is in. Back stays in the scanner.
 
 A picture you copied can be read the same way, with no camera at all: press and hold it in the [clipboard panel](/tools/clipboard/) and tap **Extract text**. The scanner opens on the picture and reads it at once, and its back button returns to the clipboard. **Scan again** shows the picture with the language chip and the shutter, so you can read it again in another language. The button is only there while Text scan is on in your tools.
 
@@ -131,10 +131,12 @@ One row for each download the languages you type in need, with its size, a **Dow
 
 ## Scanning a document
 
-**Document scanner** has two scanners behind it, and both work the same way from the keyboard's side: the scan runs full screen, outside the keyboard (an IME can't host that kind of flow itself), and the pages come back as JPEGs. They go into the field you scanned for, one after another. Some chat apps take only the first: WhatsApp opens its own send screen on it. Whatever pages the field didn't take then open together in that app's share screen, so WhatsApp sends them all as one album, and a toast says how many went that way.
+**Document scanner** has two scanners behind it. Google's runs full screen, outside the keyboard. The built-in one runs in the keyboard itself, in place of the keys, like Text scan and the QR scanner, so the app you're typing in keeps its text box the whole time. Either way the pages come out as JPEGs and go into the field you scanned for, one after another.
+
+WhatsApp turns each picture put into its message box into a send screen of its own, so a scan of several pages doesn't go there one page at a time. All the pages open together in WhatsApp's share screen instead, where you pick the chat and they go as one album. Other apps that stop taking pages partway through get the same treatment for whatever they didn't take, and a toast says how many went that way.
 
 - **Google's scanner** is the default on a phone with Google Play services. Edge detection, cropping and cleanup happen in Google's own UI, and gallery import is allowed alongside the camera.
-- **The built-in scanner** is the keyboard's own, built on [OpenCV](https://opencv.org/). It is what the F-Droid build and phones without Google Play services use, and on any other phone you can pick it with **Use the built-in scanner**. If Google's scanner fails to start, the built-in one opens in its place.
+- **The built-in scanner** is the keyboard's own, built on [OpenCV](https://opencv.org/). It is what the F-Droid build and phones without Google Play services use, and on any other phone you can pick it with **Use the built-in scanner**. If Google's scanner fails to start, the built-in one opens in its place, full screen.
 
 <PhoneFrame caption="Document scanner: Google's scan UI for capturing and cropping a page.">
   {/* shot: tools/doc-scan-capture */}
@@ -142,19 +144,20 @@ One row for each download the languages you type in need, with its size, a **Dow
 
 The built-in scanner goes through three steps:
 
-1. **Capture.** The camera outlines the page it sees as you aim. Press the shutter, or the photo button to pick a picture you already have. The light button turns on the flash as a torch.
+1. **Capture.** The camera outlines the page it sees as you aim, and a line at the top says which page this will be. Press the shutter, or the photo button to pick a picture you already have. The light button turns on the flash as a torch. Once you've kept a page, **Done** with the page count sends what you have.
 2. **Corners.** The scanner places the four corners on the page it found. Drag any that missed; a magnifier shows the spot under your finger while you drag. When it finds no page, the corners start just inside the edges of the picture. The button beside the tick swaps between the corners it found and the whole picture. A red outline means the corners cross over each other, and the tick waits until they don't.
-3. **Page.** The flattened page, with four looks: **Original**, **Colour** (the default: paper turned white and shadows lifted, ink and coloured areas kept), **Grey**, and **Black and white**. The turn button rotates it a quarter turn at a time. **Add page** keeps it and goes back to the camera for the next one; **Done** keeps it and sends every page.
+3. **Page.** The flattened page, with four looks: **Original**, **Colour** (the default: paper turned white and shadows lifted, ink and coloured areas kept), **Grey**, and **Black and white**. The turn button rotates it a quarter turn at a time. **Add page** keeps it and goes back to the camera for the next one; **Send** (**Done** full screen) keeps it and sends every page.
 
-Back steps back through those three. Leaving the camera with pages kept asks whether to send or discard them. The camera's permission is asked for on the scanner's own screen; without it, the photo button still works.
+The back button steps back through those three. Leaving the camera with pages kept asks whether to send or discard them. In the keyboard, the camera rail is on the capture step only, so it never sits over the corners. Pages you've kept stay kept if you pick a photo through the keyboard's file manager in between, or close the scanner and come back to it. Without the camera permission, the photo button still works.
 
 The built-in scanner needs its library, about 2.5 MB. Builds that don't carry it fetch it the first time you scan (or from the banner on the tool's settings page), the same way as the keyboard's other feature libraries: from Google Play on the Play build, and from GitHub elsewhere, which on F-Droid's build waits until you turn on [Download feature libraries](/reference/settings/privacy/#downloads). Everything runs on your device.
 
-Once you're back in your app, each captured page is inserted exactly like a Camera-tool photo, sent to the field one page at a time.
+Each page is inserted exactly like a Camera-tool photo, sent to the field one page at a time: straight away from the keyboard, or once you're back in your app from the full-screen scanners.
 
 <SettingsPath path="Tools / Document scanner / Options" />
 
 - **Use the built-in scanner**: off by default, and shown only where Google's scanner can run. Scans with the keyboard's own scanner instead.
+- **Scan in the keyboard**: on by default, and shown whenever the built-in scanner is the one in use. It opens in place of the keys. Off, it opens full screen as its own screen. It also opens full screen while Paperless-ngx is set to **Ask each time**, because the scan card below needs a screen of its own.
 - **Save to the gallery**: off by default. Also keeps scanned pages in the **WM Keyboard** album under Pictures.
 
 ### Sending scans to Paperless-ngx
@@ -182,7 +185,7 @@ Each upload goes to `/api/documents/post_document/` on your server with the toke
 
 ## Details & edge cases
 
-- **Camera permission** works differently across the three tools. OCR and QR/barcode check for it themselves, and when it isn't granted they offer an **Allow the camera** button. That opens the same disclosure-then-system-prompt trampoline the [Camera tool](/tools/camera/#granting-camera-access) uses, and returns you to the panel. The document scanner skips that prompt: Google's scanner manages its own camera permission, and the built-in one asks on its own screen.
+- **Camera permission** works differently across the three tools. OCR and QR/barcode check for it themselves, and when it isn't granted they offer an **Allow the camera** button. That opens the same disclosure-then-system-prompt trampoline the [Camera tool](/tools/camera/#granting-camera-access) uses, and returns you to the panel. The document scanner differs: Google's scanner manages its own camera permission; the built-in one offers the same button in the keyboard, and asks on its own screen when it runs full screen.
 - None of the three scanners work before you've unlocked your device once after a restart (no direct-boot support), unlike some other tools that do work at the lock screen.
 - The trigger words in [Options](#options) are what make a standalone `ocr`, `scan` or `docscan` surface a chip into the matching tool. [Smart chips](/smart/chips/) covers that mechanism in full.
 - Open any of the three from Settings → **Tools** → **Scanners**, or by typing its keyword as described above.
