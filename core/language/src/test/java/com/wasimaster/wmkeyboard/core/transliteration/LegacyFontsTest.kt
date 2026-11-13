@@ -279,6 +279,21 @@ class LegacyFontsTest {
         assertEquals("pSjfbI", LegacyFonts.convert(LegacyFonts.Font.of("drchatrik")!!, "\u0A2A\u0A70\u0A1C\u0A3E\u0A2C\u0A40")) // drchatrik
     }
 
+    /** Akruti Ori Sarala: the reph goes in by its own glyph, a dead ra at a word's end as ra and virama. */
+    @Test
+    fun akrutiOriWritesTheRephAndADeadRaApart() {
+        assertEquals("IW\u00FF\u00F2@\u00FB", LegacyFonts.convert(LegacyFonts.Font.AKRUTI_ORI, "\u0B13\u0B21\u0B3C\u0B3F\u0B06"))
+        assertEquals("]c\u00F0", LegacyFonts.convert(LegacyFonts.Font.AKRUTI_ORI, "\u0B27\u0B30\u0B4D\u0B2E"))
+        assertEquals("i\u00FBe\u00FE", LegacyFonts.convert(LegacyFonts.Font.AKRUTI_ORI, "\u0B38\u0B3E\u0B30\u0B4D"))
+    }
+
+    @Test
+    fun everyGlyphTableFontHasItsTable() {
+        for (font in LegacyFonts.Font.entries.filter { it.block != 0 }) {
+            assertEquals(font.id, true, GlyphFontTables.encoding(font.id) != null)
+        }
+    }
+
     @Test
     fun glyphTableFontsLeaveOtherScriptsAlone() {
         assertEquals("abc \u0939\u093F", LegacyFonts.convert(LegacyFonts.Font.VAKIL, "abc \u0939\u093F"))

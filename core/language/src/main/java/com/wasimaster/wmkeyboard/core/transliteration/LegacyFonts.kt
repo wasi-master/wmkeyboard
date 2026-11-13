@@ -15,8 +15,8 @@ import java.text.Normalizer
  * only reads the output back in the checks.
  *
  * Left out on the evidence: Gujarati's Terafont (the only table gives one
- * glyph to two letters, with nothing to check it against), Odia's Akruti, ORTT,
- * Aprant and Shreelipi (at best 94% of words read back), Tamil's TAB (no ூ for
+ * glyph to two letters, with nothing to check it against), Odia's ORTT, Aprant
+ * and Shreelipi (their tables give one glyph to two syllables), Tamil's TAB (no ூ for
  * several letters) and TAM (leaves Tamil letters unconverted), Kannada's
  * Shree-Kan and Nandi (they need Nudi's letter order), the Anandabazar Bengali
  * fonts (no anusvara in their table) and Padma's fonts under 99%.
@@ -47,7 +47,9 @@ import java.text.Normalizer
  * - The newspaper and DTP fonts with a [Font.block] (DV-TT, Shree Lipi's, Shusha,
  *   Vakil, Eenadu, Manorama, DrChatrik and the rest): [GlyphTableEncoding] over
  *   Padma's glyph tables ([GlyphFontTables]), each reading back through Padma
- *   unchanged for at least 99% of the app's own words in its language.
+ *   unchanged for at least 99% of the app's own words in its language; Odia's
+ *   Akruti Ori Sarala the same way from Odia Wikimedia's converter, over Odia
+ *   Wikipedia.
  */
 object LegacyFonts {
 
@@ -95,6 +97,7 @@ object LegacyFonts {
         PANCHAMI("panchami", "PC", "Panchami", 0xD00),
         KALAKAUMUDI("kalakaumudi", "KK", "Kalakaumudi", 0xD00),
         DR_CHATRIK("drchatrik", "DC", "DrChatrik", 0xA00),
+        AKRUTI_ORI("akrutiori", "AK", "Akruti Ori Sarala", 0xB00),
         ;
 
         companion object {
@@ -121,6 +124,7 @@ object LegacyFonts {
         "mr" -> listOf(Font.KRUTI_DEV) + DEVANAGARI_GLYPH_FONTS + listOf(Font.CHANAKYA, Font.SANSKRIT_99)
         in DEVANAGARI_LANGUAGES -> listOf(Font.KRUTI_DEV, Font.CHANAKYA, Font.SANSKRIT_99) + DEVANAGARI_GLYPH_FONTS
         "gu" -> listOf(Font.VAKIL)
+        "or" -> listOf(Font.AKRUTI_ORI)
         "te" -> listOf(Font.SHREE_TEL_900, Font.TELUGU_LIPI, Font.EENADU, Font.VAARTHA, Font.VIKAAS)
         "ta" -> listOf(Font.BAMINI, Font.TSCII, Font.SHREE_TAM_802, Font.ELANGO, Font.AMUDHAM)
         "kn" -> listOf(Font.NUDI)

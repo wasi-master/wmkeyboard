@@ -70,7 +70,7 @@ internal class GlyphTableEncoding(private val spec: Spec) {
 
     private fun isConsonant(c: Char): Boolean {
         val o = c.code - b
-        return o in 0x15..0x39 || (!malayalam && o in 0x58..0x5F)
+        return o in 0x15..0x39 || (!malayalam && o in 0x58..0x5F) || (b == 0xB00 && o == 0x71)
     }
 
     private fun isSign(c: Char): Boolean {
@@ -92,6 +92,11 @@ internal class GlyphTableEncoding(private val spec: Spec) {
         val visarga = (b + 3).toChar()
         if (visarga.toString() !in glyphs && colonFree) w = w.replace(visarga, ':')
         if ("\u0972" !in glyphs) w = w.replace("\u0972", "\u0905\u0945")
+        // A vowel letter the font only has as its short letter and the aa sign (Odia's \u0B06 is \u0B05 and \u0B3E).
+        val longA = (b + 6).toChar().toString()
+        if (longA !in glyphs && (b + 5).toChar().toString() in glyphs && (b + 0x3E).toChar().toString() in glyphs) {
+            w = w.replace(longA, (b + 5).toChar().toString() + (b + 0x3E).toChar())
+        }
         if (malayalam) {
             for ((atomic, letter) in CHILLUS) {
                 if (atomic.toString() !in glyphs) w = w.replace(atomic.toString(), "$letter\u0D4D\u200D")
@@ -179,6 +184,8 @@ internal class GlyphTableEncoding(private val spec: Spec) {
             for (p in 1 until chars.size) if (chars[p] == nukta) { chars[p] = chars[p - 1]; chars[p - 1] = nukta }
             s = String(chars)
         }
+        // Where the table keeps its reph glyph apart from a dead ra, the reph goes in by that key.
+        if (reph.isNotEmpty() && REPH_KEY in glyphs) reph = REPH_KEY
         if (reph.isNotEmpty() && pre.isNotEmpty()) {
             when (spec.rephWithPreBase) {
                 RephWithPreBase.BEFORE_CLUSTER -> return head + pre + reph + core + mods
@@ -226,6 +233,9 @@ internal class GlyphTableEncoding(private val spec: Spec) {
         val EXTRA_SPLIT = mapOf("\u0949" to "\u093E\u0945", "\u094A" to "\u093E\u0946")
 
         val CHILLUS = listOf('\u0D7A' to '\u0D23', '\u0D7B' to '\u0D28', '\u0D7C' to '\u0D30', '\u0D7D' to '\u0D32', '\u0D7E' to '\u0D33', '\u0D7F' to '\u0D15')
+
+        /** The key a table keeps its reph glyph under, where a dead ra has glyphs of its own. */
+        const val REPH_KEY = "\uE0FF"
 
         // The cluster's last letter, with its nukta, after the virama and nukta are swapped for these stand-ins.
         const val VIRAMA = '\uE010'
