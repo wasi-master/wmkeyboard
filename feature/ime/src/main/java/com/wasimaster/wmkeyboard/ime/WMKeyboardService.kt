@@ -12368,6 +12368,15 @@ open class WMKeyboardService : InputMethodService() {
         // Compose field.
         val ctrlHeld = modifiers.ctrl != ModifierState.OFF ||
             ((explicit?.meta ?: 0) and KeyEvent.META_CTRL_ON) != 0
+        // The keyboard's own Ctrl+V pastes what its own paste keys would
+        // (#970): with a private clip held, Paste next's pick or the last
+        // private copy, never Android's clipboard under it. Ahead of the raw
+        // route and of the no-text test below, both of which send the real
+        // Ctrl+V and so read the system clipboard.
+        if (ctrlHeld && KeyboardClipboard.held != null && clipboardShortcutFor(key) == ClipboardKeyAction.PASTE) {
+            onClipboardKey(ClipboardKeyAction.PASTE)
+            return true
+        }
         if (ctrlHeld && !state.settings.rawClipboardShortcuts) {
             // A picture can't go through the text route, and a page with its
             // own paste handler is waiting for the real Ctrl+V (#1052).
