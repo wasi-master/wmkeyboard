@@ -53953,6 +53953,18 @@ open class WMKeyboardService : InputMethodService() {
             trackForwardDeletion { deleteLine(forward = true) }
             return
         }
+        // Everything before the caret or after it (#1296), on the undo chip
+        // the same way.
+        if (action == TextEditAction.DELETE_TO_START) {
+            if (haptic) vibrate()
+            trackDeletion { deleteToTextEdge(forward = false) }
+            return
+        }
+        if (action == TextEditAction.DELETE_TO_END) {
+            if (haptic) vibrate()
+            trackForwardDeletion { deleteToTextEdge(forward = true) }
+            return
+        }
         // Before the composing text is committed below: the word still being
         // typed is the one it ends without a space (#851).
         if (action == TextEditAction.NO_SPACE) {
@@ -54070,7 +54082,7 @@ open class WMKeyboardService : InputMethodService() {
             TextEditAction.NO_SPACE, TextEditAction.NO_SPACE_NEXT,
             TextEditAction.DELETE_WORD, TextEditAction.DELETE_WORD_FORWARD,
             TextEditAction.DELETE_LINE, TextEditAction.DELETE_LINE_FORWARD,
-            TextEditAction.CLEAR_FIELD,
+            TextEditAction.CLEAR_FIELD, TextEditAction.DELETE_TO_START, TextEditAction.DELETE_TO_END,
             -> Unit
             // Ctrl+Home / Ctrl+End are the editor's whole-text moves, the same
             // way Ctrl+Arrow is its word move; with select mode on they carry
@@ -58144,6 +58156,32 @@ open class WMKeyboardService : InputMethodService() {
         val before = ic.getTextBeforeCursor(CLEAR_FIELD_MAX_CHARS, 0)?.length ?: 0
         val after = ic.getTextAfterCursor(CLEAR_FIELD_MAX_CHARS, 0)?.length ?: 0
         if (before > 0 || after > 0) ic.deleteSurroundingText(before, after)
+        ic.endBatchEdit()
+        invalidateExpectedSelection()
+        lastGestureWord = null
+        syncPreviousWordFromField(ic)
+        refreshSuggestions()
+    }
+
+    /**
+     * Deletes everything before the caret, or everything after it (#1296),
+     * as [clearWholeField] reads the field: in chunks up to the same cap. A
+     * selection goes first, as any delete takes it.
+     */
+    private fun deleteToTextEdge(forward: Boolean) {
+        val ic = currentInputConnection ?: return
+        if (refuseNullFieldCopy()) return
+        dropComposingForSelectionEdit(ic)
+        ic.beginBatchEdit()
+        if (hasSelection(ic)) ic.commitText("", 1)
+        val count = if (forward) {
+            ic.getTextAfterCursor(CLEAR_FIELD_MAX_CHARS, 0)?.length ?: 0
+        } else {
+            ic.getTextBeforeCursor(CLEAR_FIELD_MAX_CHARS, 0)?.length ?: 0
+        }
+        if (count > 0) {
+            if (forward) ic.deleteSurroundingText(0, count) else ic.deleteSurroundingText(count, 0)
+        }
         ic.endBatchEdit()
         invalidateExpectedSelection()
         lastGestureWord = null

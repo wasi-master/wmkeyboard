@@ -62,6 +62,11 @@ enum class TextEditAction {
     // Issue #1194. Everything in the field, in one press: for the fields with
     // no clear button of their own. A key, a flick or the toolbar's tool.
     CLEAR_FIELD,
+
+    // Issue #1296. Everything before the caret, or everything after it, not
+    // only the rest of the line: what Delete line does at the edges of the
+    // field, in one press.
+    DELETE_TO_START, DELETE_TO_END,
 }
 
 /**
