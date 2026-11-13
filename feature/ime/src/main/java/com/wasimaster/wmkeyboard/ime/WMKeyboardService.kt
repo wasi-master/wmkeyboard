@@ -742,6 +742,7 @@ import com.wasimaster.wmkeyboard.core.voice.StrongDenoise
 import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
 import com.wasimaster.wmkeyboard.core.voice.VoiceStream
 import com.wasimaster.wmkeyboard.core.voice.VoicePunctuation
+import com.wasimaster.wmkeyboard.core.voice.VoiceSymbols
 import com.wasimaster.wmkeyboard.core.voice.VoiceCasing
 import com.wasimaster.wmkeyboard.core.voice.VoiceSpacing
 import com.wasimaster.wmkeyboard.core.voice.VoiceTidy
@@ -37240,7 +37241,7 @@ open class WMKeyboardService : InputMethodService() {
 
                 override fun onPartial(text: String) {
                     if (generation != voiceGeneration) return
-                    val shown = romanizedVoiceText(text)
+                    val shown = romanizedVoiceText(withoutVoiceSymbols(text))
                     // Interactive voice typing never writes a partial into the
                     // field. A partial is cumulative — the next one rewrites
                     // the whole composing region — so keeping one there is
@@ -37530,12 +37531,24 @@ open class WMKeyboardService : InputMethodService() {
      */
     private suspend fun punctuateDictation(model: EtModel, text: String, languages: List<String>, tag: String): String {
         if (text.isBlank() || !voicePunctuates(model)) return text
-        val spoken = if (_uiState.value.settings.voiceSpokenPunctuation) VoicePunctuation.apply(text, tag) else text
+        // The recognizer's own symbols go before the said ones are made, as
+        // at the commit, which leaves this phrase's alone ([commitVoiceUtterance]).
+        val heard = withoutVoiceSymbols(text)
+        val spoken = if (_uiState.value.settings.voiceSpokenPunctuation) VoicePunctuation.apply(heard, tag) else heard
         val choice = _uiState.value.settings.whisper.punctuationModel
         return withContext(SherpaNative.dispatcher) {
-            runCatching { DictationPunctuation.punctuate(filesDir, spoken, languages, choice) }.getOrDefault(text)
+            runCatching { DictationPunctuation.punctuate(filesDir, spoken, languages, choice) }.getOrDefault(heard)
         }
     }
+
+    /**
+     * [text] without the symbols the recognizer wrote, when "Suppress
+     * symbols" is on ([VoiceSymbols]); as it is otherwise. Only ever on what
+     * was heard: run after spoken punctuation it would take out the symbols
+     * the user said by name.
+     */
+    private fun withoutVoiceSymbols(text: String): String =
+        if (_uiState.value.settings.voiceBar.suppressSymbols) VoiceSymbols.strip(text) else text
 
     /**
      * Names in a punctuated phrase spelled the way the keyboard's word lists
@@ -38182,7 +38195,7 @@ open class WMKeyboardService : InputMethodService() {
                     .map { if (detected) WhisperScript.rescueAmong(it.trim(), languages) else it.trim() }
                     .map { VoiceClipGate.clean(it, faint) }
                     .map { if (punctuated) withListCapitals(it) else it }
-                    .onSuccess { commitWhisperResult(it, tag, userStopped) }
+                    .onSuccess { commitWhisperResult(it, tag, userStopped, symbolsSettled = punctuated) }
                     .onFailure { e ->
                         // The session stops on the error, so nothing hears
                         // the microphone left open for the next clip.
@@ -38336,7 +38349,7 @@ open class WMKeyboardService : InputMethodService() {
                 heard
                     .map { VoiceClipGate.clean(it, faint) }
                     .map { if (punctuated) withListCapitals(it) else it }
-                    .onSuccess { commitWhisperResult(it, tag, userStopped) }
+                    .onSuccess { commitWhisperResult(it, tag, userStopped, symbolsSettled = punctuated) }
                     .onFailure { e ->
                         dropCarriedMic()
                         typeVoiceKeysAfterClip()
@@ -38374,7 +38387,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** Commits a finished Whisper transcription and continues or ends the session. */
-    private fun commitWhisperResult(text: String, tag: String, userStopped: Boolean) {
+    private fun commitWhisperResult(text: String, tag: String, userStopped: Boolean, symbolsSettled: Boolean = false) {
         val resume = voiceResumeAfterClip
         voiceResumeAfterClip = false
         val chain = (resume || (!userStopped && voiceChains())) &&
@@ -38404,7 +38417,7 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         voiceSilentRetries = 0
-        val landed = commitVoiceUtterance(text, tag)
+        val landed = commitVoiceUtterance(text, tag, symbolsSettled)
         tidyVoiceThen(landed) {
             typeVoiceKeysAfterClip()
             afterWhisperCommit(chain)
@@ -38496,12 +38509,17 @@ open class WMKeyboardService : InputMethodService() {
      * Returns what went into the app's field, for [tidyVoiceThen] to rewrite,
      * or null when nothing did.
      */
-    private fun commitVoiceUtterance(text: String, tag: String): VoiceLanding? {
+    private fun commitVoiceUtterance(text: String, tag: String, symbolsSettled: Boolean = false): VoiceLanding? {
         val settings = _uiState.value.settings
         val plain = settings.voiceBar.plainTyping()
+        // Suppress symbols first, on what the recognizer wrote, so a symbol
+        // said by name survives the spoken punctuation below. A phrase the
+        // punctuation model added marks to has been through both already
+        // ([symbolsSettled]), and its said symbols must stay.
+        val raw = if (symbolsSettled) text else withoutVoiceSymbols(text)
         // Spoken punctuation is read in the language heard, before its words
         // go into Latin letters (#948).
-        val heard = if (!plain && settings.voiceSpokenPunctuation) VoicePunctuation.apply(text, tag) else text
+        val heard = if (!plain && settings.voiceSpokenPunctuation) VoicePunctuation.apply(raw, tag) else raw
         val processed = romanizedVoiceText(heard)
         if (voiceSessionForField) {
             commitFieldVoice(processed)

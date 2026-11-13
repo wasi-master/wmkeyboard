@@ -6909,6 +6909,16 @@ data class VoiceBarSettings(
      */
     val maskSwearing: Boolean = false,
     /**
+     * "Suppress symbols": the symbols a recognizer writes on its own (`@ $
+     * % #`, maths, emoji) are taken out of each phrase, leaving words and the
+     * punctuation sentences are written with (`VoiceSymbols`). Run on what
+     * was heard, before spoken punctuation, so a symbol said by name still
+     * goes in. Off by default, because spoken punctuation is how this
+     * keyboard's users ask for symbols, and a formatting recognizer's `50%`
+     * would lose its mark.
+     */
+    val suppressSymbols: Boolean = false,
+    /**
      * The surface the bar's expand button goes back to — whichever of
      * [MODE_PANEL] or [MODE_STRIP] the user collapsed from, defaulting to the
      * panel when the bar was chosen in settings instead.
@@ -13170,6 +13180,7 @@ class SettingsRepository(private val context: Context) {
         private val VOICE_BY_LANG = stringPreferencesKey("voice_by_lang")
         private val VOICE_AI_TIDY = booleanPreferencesKey("voice_ai_tidy")
         private val VOICE_MASK_SWEARING = booleanPreferencesKey("voice_mask_swearing")
+        private val VOICE_SUPPRESS_SYMBOLS = booleanPreferencesKey("voice_suppress_symbols")
         private val VOICE_UI_RETURN_MODE = stringPreferencesKey("voice_ui_return_mode")
         private val VOICE_BAR_INLINE = booleanPreferencesKey("voice_bar_inline")
         private val VOICE_CONTINUOUS = booleanPreferencesKey("voice_continuous")
@@ -15882,6 +15893,7 @@ class SettingsRepository(private val context: Context) {
             enginePicker = p[VOICE_ENGINE_PICKER] ?: defaults.voiceBar.enginePicker,
             aiTidy = p[VOICE_AI_TIDY] ?: defaults.voiceBar.aiTidy,
             maskSwearing = p[VOICE_MASK_SWEARING] ?: defaults.voiceBar.maskSwearing,
+            suppressSymbols = p[VOICE_SUPPRESS_SYMBOLS] ?: defaults.voiceBar.suppressSymbols,
             returnMode = p[VOICE_UI_RETURN_MODE] ?: defaults.voiceBar.returnMode,
             inline = p[VOICE_BAR_INLINE] ?: defaults.voiceBar.inline,
         )
@@ -17569,6 +17581,10 @@ class SettingsRepository(private val context: Context) {
     /** [VoiceBarSettings.maskSwearing]. */
     suspend fun setVoiceMaskSwearing(value: Boolean) =
         editPrefs { it[VOICE_MASK_SWEARING] = value }
+
+    /** [VoiceBarSettings.suppressSymbols]. */
+    suspend fun setVoiceSuppressSymbols(value: Boolean) =
+        editPrefs { it[VOICE_SUPPRESS_SYMBOLS] = value }
 
     suspend fun setVoiceBarActive(value: Boolean) =
         editPrefs { it[VOICE_BAR_ACTIVE] = value }

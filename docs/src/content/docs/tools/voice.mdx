@@ -276,6 +276,12 @@ Google's speech recognition masks swear words by default, so a dictated "fuck" a
 
 Turn **Mask swear words** on and the keyboard masks them itself, keeping the first letter and replacing the rest with asterisks. That covers the engines with no filter of their own: Whisper, Whistle, Asr4All, Parakeet, Moonshine, Sherpa, Omnilingual, Vosk and transcription servers. Their words are checked against a short list of swear words and slurs in English, Spanish, French, German, Italian and Portuguese, kept apart from the much longer lists behind [Block offensive words](/smart/blacklist/), which hide suggestions and carry everyday words such as "kill" that no one wants masked in speech. In other languages only Google's recognizer masks. The words shown while you are still speaking are masked too, and the setting applies to [voice input for other apps](#voice-input-for-other-apps) as well.
 
+## Symbols
+
+Some recognizers write symbols on their own: a recognizer that formats its output can turn "fifty percent" into `50%` and a spoken address into one with `@`. **Suppress symbols** (Advanced, off) takes those out of every phrase, whichever engine heard it, and keeps the words, the digits and the punctuation sentences are written with: full stops, commas, question and exclamation marks (the danda, the Arabic and the CJK ones too), colons, semicolons, apostrophes, quotes, brackets, dashes and the ellipsis. `$`, `@`, `#`, `%`, `&`, `*`, `/`, `_`, maths, arrows and emoji go, so `50%` arrives as `50` and `john@example.com` as `johnexample.com`.
+
+The filter reads what the recognizer wrote, before [spoken punctuation](#spoken-punctuation) turns words into marks, so a symbol you say by name ("at sign", "dollar sign") still goes in. That is why it is off by default: on this keyboard you ask for a symbol by saying it. The words under the microphone are filtered too, so nothing shows that the phrase will not keep. Whisper models run by whisper.cpp already leave out their captions for sounds, such as `[Music]`, `(laughs)` and `♪`, whatever this is set to. The setting does not reach into any model's decoding, only into the text it hands back.
+
 ## Language and engine
 
 <SettingsPath path="Voice typing / Voice typing language" />
@@ -379,6 +385,7 @@ Everything below lives on the Voice typing screen, under Features on the setting
 | Spoken punctuation | On | Saying "comma", "question mark" or "দাঁড়ি" types the mark. |
 | Add punctuation and capitals | On | Full stops, commas, question marks and sentence capitals for Sherpa, Omnilingual and Vosk, which write bare words. Needs its 151 MB model, downloaded from the row under it. See [Adding punctuation and capitals](#adding-punctuation-and-capitals). |
 | Tidy dictation with AI | Off | Sends each phrase to the AI tool's model to take out filler words, repeats and spoken corrections. Hidden in plain text mode. See [Tidying dictation with AI](#tidying-dictation-with-ai). |
+| Suppress symbols | Off | Leaves out the symbols a recognizer writes on its own, such as `@ $ %` and emoji. Said symbols still go in. See [Symbols](#symbols). |
 | Mask swear words | Off | Swear words go in as `f***`. Off also asks Google's recognizer to stop masking them. See [Swear words](#swear-words). |
 | Voice input for other apps | Off | Puts WM Keyboard on Android's list of voice input apps, so other apps' microphone buttons can use these engines. See [Voice input for other apps](#voice-input-for-other-apps). |
 

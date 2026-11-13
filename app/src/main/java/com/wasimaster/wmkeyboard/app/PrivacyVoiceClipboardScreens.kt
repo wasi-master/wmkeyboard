@@ -529,6 +529,15 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.voiceBar.maskSwearing,
             ) { scope.launch { repository.setVoiceMaskSwearing(it) } }
         }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.voice_suppress_symbols_title,
+                stringResource(R.string.voice_suppress_symbols_subtitle),
+                settings.watch { it.voiceBar.suppressSymbols },
+                info = stringResource(R.string.voice_suppress_symbols_info),
+                default = SettingsDefaults.voiceBar.suppressSymbols,
+            ) { scope.launch { repository.setVoiceSuppressSymbols(it) } }
+        }
     }
     // The keyboard's engines for every other app's microphone (#1142).
     SettingsGroup(stringResource(R.string.voice_other_apps_group)) {

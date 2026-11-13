@@ -1540,6 +1540,7 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         row(R.string.voice_auto_punctuation_title, R.string.voice_auto_punctuation_subtitle),
         row(R.string.voice_ai_tidy_title, R.string.voice_ai_tidy_subtitle),
         row(R.string.voice_mask_swearing_title, R.string.voice_mask_swearing_subtitle),
+        row(R.string.voice_suppress_symbols_title, R.string.voice_suppress_symbols_subtitle),
         row(R.string.voice_system_input_title, R.string.voice_system_input_subtitle),
         row(R.string.voice_system_input_pick_title, R.string.voice_system_input_pick_subtitle),
         // On the engines' own screens, opened from their rows on the list.
