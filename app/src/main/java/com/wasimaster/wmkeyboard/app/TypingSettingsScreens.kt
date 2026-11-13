@@ -463,6 +463,15 @@ internal fun TypingCorrectionsSettings(
             }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
+                    R.string.typing_autocorrect_mark_title,
+                    stringResource(R.string.typing_autocorrect_mark_subtitle),
+                    settings.watch { it.correction.markInField },
+                    info = stringResource(R.string.typing_autocorrect_mark_info),
+                    default = SettingsDefaults.correction.markInField,
+                ) { scope.launch { repository.setAutocorrectMarkInField(it) } }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
                     R.string.typing_autocorrect_on_punctuation_title,
                     stringResource(R.string.typing_autocorrect_on_punctuation_subtitle),
                     settings.watch { it.correction.onPunctuation },

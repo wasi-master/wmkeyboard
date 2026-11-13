@@ -2888,6 +2888,8 @@ open class WMKeyboardService : InputMethodService() {
         if (end == 0 || original.isEmpty() || original.equals(text.take(end), ignoreCase = true)) {
             return text
         }
+        // "Underline corrected words" off (gap list item 40): plain text.
+        if (!_uiState.value.settings.correction.markInField) return text
         return try {
             SpannableString(text).apply {
                 setSpan(

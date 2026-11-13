@@ -3095,6 +3095,14 @@ data class AutocorrectSettings(
      */
     val onEnter: Boolean = true,
     /**
+     * A corrected word carries the editor's correction mark: the underline or
+     * highlight it draws, and the tap that offers back what was typed
+     * (`markAutoCorrection`). Off commits the correction as plain text, for
+     * people who find the mark distracting (competitor gap list item 40,
+     * LeanType). The keyboard's own undo chip and backspace revert still work.
+     */
+    val markInField: Boolean = true,
+    /**
      * Whether a mark that ends a word (. , ! ? ; : and the danda) corrects it
      * the way space does, so "teh!" lands as "the!" (#562). On since 0.6.7:
      * the last word of every sentence is followed by a mark, and leaving it
@@ -12144,6 +12152,7 @@ class SettingsRepository(private val context: Context) {
         private val AUTOCORRECT_SKIP_ALL_CAPS =
             booleanPreferencesKey("autocorrect_skip_all_caps")
         private val AUTOCORRECT_ON_ENTER = booleanPreferencesKey("autocorrect_on_enter")
+        private val AUTOCORRECT_MARK_IN_FIELD = booleanPreferencesKey("autocorrect_mark_in_field")
         private val AUTOCORRECT_ON_PUNCTUATION = booleanPreferencesKey("autocorrect_on_punctuation")
         private val AUTOCORRECT_OFF_LANGS = stringSetPreferencesKey("autocorrect_off_langs")
         private val DICTIONARY_CAPITALS = booleanPreferencesKey("dictionary_capitals")
@@ -14497,6 +14506,7 @@ class SettingsRepository(private val context: Context) {
             readWholePhrases = p[AUTOCORRECT_WHOLE_PHRASES] ?: defaults.correction.readWholePhrases,
             skipAllCaps = p[AUTOCORRECT_SKIP_ALL_CAPS] ?: defaults.correction.skipAllCaps,
             onEnter = p[AUTOCORRECT_ON_ENTER] ?: defaults.correction.onEnter,
+            markInField = p[AUTOCORRECT_MARK_IN_FIELD] ?: defaults.correction.markInField,
             onPunctuation = p[AUTOCORRECT_ON_PUNCTUATION] ?: defaults.correction.onPunctuation,
             dictionaryCapitals = p[DICTIONARY_CAPITALS] ?: defaults.correction.dictionaryCapitals,
             offLanguages = p[AUTOCORRECT_OFF_LANGS] ?: defaults.correction.offLanguages,
@@ -22002,6 +22012,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutocorrectOnEnter(value: Boolean) =
         editPrefs { it[AUTOCORRECT_ON_ENTER] = value }
+
+    suspend fun setAutocorrectMarkInField(value: Boolean) =
+        editPrefs { it[AUTOCORRECT_MARK_IN_FIELD] = value }
 
     suspend fun setAutocorrectOnPunctuation(value: Boolean) =
         editPrefs { it[AUTOCORRECT_ON_PUNCTUATION] = value }

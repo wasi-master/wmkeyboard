@@ -171,6 +171,9 @@
     <string name="typing_dictionary_capitals_subtitle">Write a word with the capital letter that its word list gives it</string>
     <string name="typing_dictionary_capitals_info">Some word lists spell words with a capital letter, such as the nouns in German and the names of places. When you type or swipe one of these words in small letters, the keyboard writes it with its capital letter. A word that the list also spells in small letters stays as you typed it. Backspace immediately after the word puts back what you typed. This uses the word list that you downloaded for the language. For the built-in English list, the keyboard carries the capitals of days, months, places, names, acronyms and the word I itself.</string>
     <string name="typing_autocorrect_on_enter_title">Correct the word before Enter</string>
+    <string name="typing_autocorrect_mark_title">Underline corrected words</string>
+    <string name="typing_autocorrect_mark_subtitle">The app underlines a word autocorrect changed, and a tap on it offers what you typed</string>
+    <string name="typing_autocorrect_mark_info">A corrected word carries a mark the app draws as an underline or highlight, and tapping the word there offers back what you typed. Off, corrections go in as plain text with no mark. The keyboard\'s own ways to undo a correction, the chip on the strip and Backspace straight after, still work.</string>
     <string name="typing_autocorrect_on_enter_subtitle">Enter corrects the last word, as space does</string>
     <string name="typing_autocorrect_on_enter_info">Enter ends a word the same way space does, so autocorrect can change the word before it. In a search box or a chat, Enter also sends the text, and you cannot see the correction before it goes. Turn this off to send the last word as you typed it. Space still corrects words.</string>
     <string name="typing_autocorrect_on_punctuation_title">Correct the word before punctuation</string>
