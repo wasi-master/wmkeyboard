@@ -281,6 +281,21 @@ impl WordList {
         self.codes.get().map_or(0, Vec::len)
     }
 
+    /// The count of the `rank`-th commonest word, by stored code; 0 when the
+    /// list holds no more than `rank` words (the phone's
+    /// `RankFloorCache.countAtRank`).
+    pub fn frequency_at_rank(&self, rank: usize) -> i32 {
+        if rank == 0 {
+            return 0;
+        }
+        let _ = self.rank_of_frequency(1);
+        let codes = self.codes.get().map_or(&[][..], Vec::as_slice);
+        if codes.len() <= rank {
+            return 0;
+        }
+        freq_codec::decode(codes[codes.len() - rank])
+    }
+
     /// 1 + how many words rank above `frequency`, by stored code.
     pub fn rank_of_frequency(&self, frequency: i32) -> usize {
         if frequency <= 0 {
@@ -805,7 +820,7 @@ fn scaled_weight(top: i32, weight: f64, target: f64) -> f64 {
 fn rank_scale_of(list: &WordList) -> RankScale {
     let top = list.top();
     if top as f64 > REFERENCE_TOP_FREQUENCY * SCALE_TOLERANCE {
-        RankScale::log_line(top, REFERENCE_TOP_FREQUENCY)
+        RankScale::anchored(top, list.frequency_at_rank(RankScale::ANCHOR_RANK), REFERENCE_TOP_FREQUENCY)
     } else {
         RankScale::RAW
     }

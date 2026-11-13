@@ -71,6 +71,23 @@ internal class RankFloorCache(
         return above + 1
     }
 
+    /**
+     * [frequencyAtRank] answered from the kept histogram, without touching
+     * the one-rank cache the vocabulary cap relies on: the ranking scale's
+     * anchor ([RankScale.anchored]) asks a rank of its own on every list.
+     */
+    fun countAtRank(rank: Int): Int {
+        if (rank <= 0) return 0
+        val counts = histogram()
+        if (counts.words <= rank) return 0
+        var seen = 0
+        for (code in counts.byCode.indices.reversed()) {
+            seen += counts.byCode[code]
+            if (seen >= rank) return FrequencyCodec.decode(code)
+        }
+        return 0
+    }
+
     /** Words with a frequency, i.e. the size of the vocabulary being ranked. */
     fun vocabularySize(): Int = histogram().words
 

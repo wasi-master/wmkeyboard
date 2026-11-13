@@ -257,7 +257,10 @@ class BeamWorkspace(initialCapacity: Int = 256)
  *
  * On the line, a count at or above [floor] reads `1 + perNat * ln(f / floor)`
  * and one below it `f / floor`, which keeps the rarest words in order rather
- * than flattening them onto 1. [RAW] reads counts as stored.
+ * than flattening them onto 1. The line is pinned by rank ([anchored]): the
+ * list's commonest word lands where the bundled list's does, and its word at
+ * [ANCHOR_RANK] where the bundled list's word at that rank is; the counts set
+ * the spacing. [RAW] reads counts as stored.
  */
 class RankScale(val floor: Double, val perNat: Double) {
 
@@ -298,5 +301,42 @@ class RankScale(val floor: Double, val perNat: Double) {
          */
         fun logLine(top: Int, reference: Double): RankScale =
             RankScale(top / DYNAMIC_RANGE, (reference - 1.0) / ln(DYNAMIC_RANGE))
+
+        /** The rank [anchored]'s second point is taken at. */
+        const val ANCHOR_RANK = 2_000
+
+        /**
+         * The bundled English list's number at [ANCHOR_RANK]
+         * (`app/dictionaries-src/en.txt`, sorted). Moves only if that list is
+         * renumbered.
+         */
+        const val REFERENCE_AT_ANCHOR = 3_077.0
+
+        /**
+         * The line through two points: the list's commonest count [top] at
+         * [reference] and its count at [ANCHOR_RANK], [atAnchor], at
+         * [REFERENCE_AT_ANCHOR] (`wm-engine`'s `RankScale::anchored`).
+         *
+         * [logLine] assumed every list spans the bundled list's range, which
+         * the large corpus lists nearly do and a small one does not: the
+         * Banglish list tops out at 31,465, and on the assumed line its rare
+         * words read as common as mid-list English ones. Typing harness,
+         * strip top-1 careful / fast / sloppy: Banglish .655 / .522 / .381
+         * assumed, .658 / .573 / .457 anchored; AOSP English .846 / .779 /
+         * .699 and .847 / .780 / .693; German .766 / .677 / .574 and .758 /
+         * .677 / .579.
+         *
+         * [logLine] where the list has no count at the anchor (fewer words,
+         * or a trie that cannot rank) or one equal to its top. The stretch
+         * stays within half and twice the assumed line's, so a head that is
+         * one long tie cannot blow it up.
+         */
+        fun anchored(top: Int, atAnchor: Int, reference: Double): RankScale {
+            val line = logLine(top, reference)
+            if (atAnchor <= 0 || atAnchor >= top) return line
+            val perNat = ((reference - REFERENCE_AT_ANCHOR) / ln(top.toDouble() / atAnchor))
+                .coerceIn(line.perNat / 2.0, line.perNat * 2.0)
+            return RankScale(top * StrictMath.pow(Math.E, -(reference - 1.0) / perNat), perNat)
+        }
     }
 }

@@ -1498,15 +1498,22 @@ class SuggestionEngine(
             english = topFrequency(dictionary),
             secondary = secondaryDictionaries.associate { it.langId to topFrequency(it.source) },
         )
+        val anchors = SourceTops(
+            active = countAtAnchor(activeDictionary),
+            custom = countAtAnchor(customDictionary),
+            english = countAtAnchor(dictionary),
+            secondary = secondaryDictionaries.associate { it.langId to countAtAnchor(it.source) },
+        )
         val raw = weightsFor(tops)
         val ranked = weightsFor(tops.map(::rankedTop))
         return SourceScales(
             active = raw.active, custom = raw.custom, english = raw.english, secondary = raw.secondary,
             activeRank = ranked.active, customRank = ranked.custom, englishRank = ranked.english,
             secondaryRank = ranked.secondary,
-            activeScale = rankScaleOf(tops.active), customScale = rankScaleOf(tops.custom),
-            englishScale = rankScaleOf(tops.english),
-            secondaryScale = tops.secondary.mapValues { rankScaleOf(it.value) },
+            activeScale = rankScaleOf(tops.active, anchors.active),
+            customScale = rankScaleOf(tops.custom, anchors.custom),
+            englishScale = rankScaleOf(tops.english, anchors.english),
+            secondaryScale = tops.secondary.mapValues { (langId, top) -> rankScaleOf(top, anchors.secondary[langId] ?: 0) },
         ).also { sourceScalesCache = gen to it }
     }
 
@@ -1543,22 +1550,30 @@ class SuggestionEngine(
     }
 
     /**
-     * How the walk reads a list whose commonest count is [top] ([RankScale]):
-     * on the bundled list's log line when that lands above the reference the
-     * engine is tuned on, which is every list that carries corpus counts, and
-     * as stored otherwise: the bundled list itself, a flat list, an import
-     * already on the reference scale.
+     * How the walk reads a list whose commonest count is [top] and whose
+     * count at [RankScale.ANCHOR_RANK] is [atAnchor] ([RankScale]): on a log
+     * line pinned to the bundled list's by rank when its top lands above the
+     * reference the engine is tuned on, which is every list that carries
+     * corpus counts, and as stored otherwise: the bundled list itself, a flat
+     * list, a list whose counts top out under the reference.
      */
-    private fun rankScaleOf(top: Int): RankScale =
+    private fun rankScaleOf(top: Int, atAnchor: Int): RankScale =
         if (top > REFERENCE_TOP_FREQUENCY * SCALE_TOLERANCE) {
-            RankScale.logLine(top, REFERENCE_TOP_FREQUENCY)
+            RankScale.anchored(top, atAnchor, REFERENCE_TOP_FREQUENCY)
         } else {
             RankScale.RAW
         }
 
-    /** [top] as the walk reads it: the reference itself on the log line. */
+    /**
+     * [source]'s count at [RankScale.ANCHOR_RANK], read from the walker that
+     * holds its commonest word; 0 when it has none to give.
+     */
+    private fun countAtAnchor(source: WordSource): Int =
+        source.walkers().maxByOrNull { it.maxSubtree(it.root) }?.countAtRank(RankScale.ANCHOR_RANK) ?: 0
+
+    /** [top] as the walk reads it: the reference itself on any log line. */
     private fun rankedTop(top: Int): Int =
-        if (rankScaleOf(top).isRaw) top else REFERENCE_TOP_FREQUENCY.toInt()
+        if (top > REFERENCE_TOP_FREQUENCY * SCALE_TOLERANCE) REFERENCE_TOP_FREQUENCY.toInt() else top
 
     @Volatile
     private var sourceScalesCache: Pair<Long, SourceScales>? = null

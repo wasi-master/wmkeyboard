@@ -16,6 +16,10 @@ class CorpusTypoTest {
      * [words] behind 60,000 commoner filler words, which is what puts them
      * where a big download has its typos: past the Small list's 50,000. The
      * filler starts with `qx`, so none of it is one edit from anything here.
+     * Its counts fall off as a real list's do (count proportional to 1 /
+     * rank), because ranking reads a list's spacing off its count at rank
+     * 2,000 ([RankScale.anchored]); a filler all at one count put that
+     * anchor two decades low and squeezed `where` against `whee`.
      */
     private fun engine(vararg words: Pair<String, Int>, filler: Int = 60_000): SuggestionEngine {
         val entries = ArrayList<Pair<String, Int>>(filler + words.size)
@@ -26,7 +30,7 @@ class CorpusTypoTest {
                 sb.append('a' + n % 26)
                 n /= 26
             }
-            entries.add(sb.toString() to 1_000)
+            entries.add(sb.toString() to maxOf(1_000, 22_761_659 / (i + 2)))
         }
         entries.addAll(words)
         return SuggestionEngine(PackedTrie.of(entries), BengaliPhoneticIndex(emptyList()), UserLexicon(null))

@@ -70,6 +70,8 @@ class PackedTrie internal constructor(
 
     override fun vocabularySize(): Int = rankFloors.vocabularySize()
 
+    override fun countAtRank(rank: Int): Int = rankFloors.countAtRank(rank)
+
     /** Node reached by walking [word] from the root, or -1 if absent. */
     private fun nodeFor(word: String): Int {
         var node = 0

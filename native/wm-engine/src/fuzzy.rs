@@ -304,10 +304,15 @@ impl WalkSource<'_> {
 /// against the bundled list's .859 / .787 / .679; on the log line, .837 /
 /// .777 / .700.
 ///
-/// So such a list is read on that line: a count `f` at or above `floor` is
-/// `1 + per_nat * ln(f / floor)`, one below it `f / floor`, which keeps the
-/// order of the rarest words instead of flattening them onto 1. The default
-/// reads counts as stored, bit for bit what the walk always did.
+/// So such a list is read on a log line of its own: a count `f` at or above
+/// `floor` is `1 + per_nat * ln(f / floor)`, one below it `f / floor`, which
+/// keeps the order of the rarest words instead of flattening them onto 1.
+/// The line is pinned by rank ([`RankScale::anchored`]): the list's commonest
+/// word lands where the bundled list's does, and its word at
+/// [`RankScale::ANCHOR_RANK`] where the bundled list's word at that rank is.
+/// The counts set the spacing between and beyond; the ranks only decide the
+/// stretch, so a list's own range is measured rather than assumed. The
+/// default reads counts as stored, bit for bit what the walk always did.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct RankScale {
     pub floor: f64,
@@ -321,6 +326,45 @@ impl RankScale {
     /// The bundled list's ratio from its commonest word to its floor:
     /// 28,787,591 / 1,000 on the OpenSubtitles counts it was rescaled from.
     pub const DYNAMIC_RANGE: f64 = 28_787.591;
+
+    /// The rank the second point of [`RankScale::anchored`] is taken at.
+    pub const ANCHOR_RANK: usize = 2_000;
+
+    /// The bundled English list's number at [`RankScale::ANCHOR_RANK`]
+    /// (`app/dictionaries-src/en.txt`, sorted). Moves only if that list is
+    /// renumbered.
+    pub const REFERENCE_AT_ANCHOR: f64 = 3_077.0;
+
+    /// The line through two points: the list's commonest count `top` at
+    /// `reference` (the bundled list's top) and its count at
+    /// [`RankScale::ANCHOR_RANK`], `at_anchor`, at
+    /// [`RankScale::REFERENCE_AT_ANCHOR`].
+    ///
+    /// [`RankScale::log_line`] assumed every list spans the bundled list's
+    /// range, which the large corpus lists nearly do and a small one does
+    /// not: the Banglish list's counts top out at 31,465, and read on the
+    /// assumed line its rare words came out as common as mid-list English
+    /// ones. Measured in the typing harness (strip top-1, careful / fast /
+    /// sloppy), Banglish .655 / .522 / .381 on the assumed line and .658 /
+    /// .573 / .457 anchored; AOSP English .846 / .779 / .699 and .847 / .780
+    /// / .693; German .766 / .677 / .574 and .758 / .677 / .579.
+    ///
+    /// Falls back to [`RankScale::log_line`] where the list has no count at
+    /// the anchor (fewer words than that, or a trie that cannot rank) or
+    /// one equal to its top. The stretch is held within half and twice the
+    /// assumed line's, so a list whose head is one long tie cannot blow it up.
+    pub fn anchored(top: i32, at_anchor: i32, reference: f64) -> RankScale {
+        let line = RankScale::log_line(top, reference);
+        if at_anchor <= 0 || at_anchor >= top {
+            return line;
+        }
+        let per_nat = ((reference - RankScale::REFERENCE_AT_ANCHOR) / ln(top as f64 / at_anchor as f64))
+            .clamp(line.per_nat / 2.0, line.per_nat * 2.0);
+        RankScale {
+            floor: top as f64 * strict_math::pow(std::f64::consts::E, -(reference - 1.0) / per_nat),
+            per_nat,
+        }
+    }
 
     /// The line that puts a list whose commonest word is `top` where the
     /// bundled list's is, at `reference` (10,000), with the floor the same
@@ -1300,6 +1344,16 @@ mod tests {
         // Below the floor, rarer still reads lower: no flattening onto 1.
         assert!(line.read(500) < line.read(999));
         assert!(line.read(500) > 0.0);
+    }
+
+    #[test]
+    fn the_anchored_line_passes_through_both_anchors() {
+        let line = RankScale::anchored(31_465, 127, 10_000.0);
+        assert!((line.read(31_465) - 10_000.0).abs() < 1e-6);
+        assert!((line.read(127) - RankScale::REFERENCE_AT_ANCHOR).abs() < 1e-6);
+        // A list with no count at the anchor keeps the assumed line.
+        assert_eq!(RankScale::log_line(31_465, 10_000.0), RankScale::anchored(31_465, 0, 10_000.0));
+        assert_eq!(RankScale::log_line(5, 10_000.0), RankScale::anchored(5, 5, 10_000.0));
     }
 
     #[test]

@@ -162,6 +162,8 @@ class MappedTrie private constructor(
 
     override fun vocabularySize(): Int = rankFloors.vocabularySize()
 
+    override fun countAtRank(rank: Int): Int = rankFloors.countAtRank(rank)
+
     /** Edge index of [node]'s child labelled [ch], or -1. Binary search — the
      * edges of a node are contiguous and sorted by label. */
     private fun childEdge(node: Int, ch: Char): Int {

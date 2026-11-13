@@ -55,6 +55,14 @@ interface TrieWalker {
 
     /** How many words [rankOfFrequency] ranks among; 0 when it ranks none. */
     fun vocabularySize(): Int = 0
+
+    /**
+     * [frequencyAtRank]'s answer read off [rankOfFrequency]'s kept histogram
+     * rather than its one-rank cache, so asking it does not evict the
+     * vocabulary cap's floor. 0 where [frequencyAtRank] would be. Read by
+     * [RankScale.anchored] for the count at its anchor.
+     */
+    fun countAtRank(rank: Int): Int = 0
 }
 
 /** Caller-owned growable parallel buffers for [TrieWalker.childrenInto]. */
