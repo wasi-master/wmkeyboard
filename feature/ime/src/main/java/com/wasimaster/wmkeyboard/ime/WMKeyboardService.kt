@@ -21998,6 +21998,7 @@ open class WMKeyboardService : InputMethodService() {
             // user cannot see.
             atFieldStart = before.length < SnippetMatcher.MAX_WINDOW,
             context = snippetContext(ic, withSelection = false),
+            isName = ::readsAsName,
         ) ?: return false
         // Text a backspace just restored must not expand straight back.
         if (hit.consumedText == patternMutedAfter) return false
@@ -22411,6 +22412,7 @@ open class WMKeyboardService : InputMethodService() {
                 atFieldStart = window.length < SnippetMatcher.MAX_WINDOW,
                 context = snippetContext(ic, withSelection = false),
                 confirm = true,
+                isName = ::readsAsName,
             )
             publishSnippetOffer(
                 hit?.let {
@@ -24812,6 +24814,24 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun isKnownWord(word: String): Boolean =
         suggestionEngine?.isKnownWord(word) ?: userLexicon.contains(word)
+
+    /**
+     * Whether [word] reads as a name, for a snippet pattern's `(?<name>…)`
+     * group (#1291): typed with a capital, a contact's, a word the keyboard
+     * does not know at all (most names are in no list), or one its lists spell
+     * with a capital ("John"). A word they hold in small letters ("am",
+     * "there") is not, so "hello am" is no greeting for someone called Am.
+     */
+    private fun readsAsName(word: String): Boolean {
+        if (word.isEmpty()) return false
+        if (Character.isUpperCase(word.codePointAt(0))) return true
+        val lower = word.lowercase()
+        if (contactNames.contains(lower)) return true
+        val engine = suggestionEngine ?: return true
+        if (!engine.isKnownWord(lower)) return true
+        val listed = engine.displayOf(lower)
+        return listed.isNotEmpty() && Character.isUpperCase(listed.codePointAt(0))
+    }
 
     /**
      * A word the keyboard already recognises has been committed.

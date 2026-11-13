@@ -982,7 +982,8 @@ class SnippetStore(private val storageFile: File?) {
         now: Long = System.currentTimeMillis(),
         context: Companion.Context = Companion.Context(),
         confirm: Boolean = false,
-    ): SnippetMatch? = index().matchPattern(window, atFieldStart, now, context, confirm)
+        isName: ((String) -> Boolean)? = null,
+    ): SnippetMatch? = index().matchPattern(window, atFieldStart, now, context, confirm, isName)
 
     /** True when any snippet carries a pattern, so the keyboard need not look. */
     fun hasPatterns(): Boolean = index().hasPatterns

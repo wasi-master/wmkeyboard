@@ -426,4 +426,51 @@ class SnippetMatcherTest {
             asks.matchPattern("hello Jo", atFieldStart = true, confirm = true)?.text,
         )
     }
+
+    // ---- name groups (#1291) ----
+
+    @Test
+    fun `name groups are numbered as the pattern counts them`() {
+        assertTrue(SnippetMatcher.nameGroupsOf("^hello (.+)$").isEmpty())
+        assertEquals(listOf(1), SnippetMatcher.nameGroupsOf("^hello (?<name>.+)$").toList())
+        assertEquals(listOf(2), SnippetMatcher.nameGroupsOf("^(hi|hey) (?<name2>.+)$").toList())
+        // Lookbehinds, non-capturing groups and escaped brackets open no group.
+        assertEquals(
+            listOf(2),
+            SnippetMatcher.nameGroupsOf("^(?:meet) (?<=t )(\\d+) \\((?<name>[a-z(]+)$").toList(),
+        )
+        // Another named group is a group like any other.
+        assertEquals(listOf(2), SnippetMatcher.nameGroupsOf("^(?<when>\\d+) (?<name>.+)$").toList())
+    }
+
+    @Test
+    fun `a name group only takes what reads as a name`() {
+        val names = setOf("john", "priya")
+        val isName: (String) -> Boolean = { it.first().isUpperCase() || it.lowercase() in names }
+        val greet = index(snip("^hello (?<name>.+)$", "Hello, \$1! Nice to meet you."))
+        assertNull(greet.matchPattern("hello am", atFieldStart = true, isName = isName))
+        assertEquals(
+            "Hello, john! Nice to meet you.",
+            greet.matchPattern("hello john", atFieldStart = true, isName = isName)?.text,
+        )
+        assertEquals(
+            "Hello, Am! Nice to meet you.",
+            greet.matchPattern("hello Am", atFieldStart = true, isName = isName)?.text,
+        )
+        // Every word of a longer capture has to be one.
+        assertNull(greet.matchPattern("hello john there", atFieldStart = true, isName = isName))
+        assertNotNull(greet.matchPattern("hello Priya Rao", atFieldStart = true, isName = isName))
+    }
+
+    @Test
+    fun `with nothing to ask, a name group takes any word`() {
+        val greet = index(snip("^hello (?<name>.+)$", "Hi \$1"))
+        assertEquals("Hi am", greet.matchPattern("hello am", atFieldStart = true)?.text)
+    }
+
+    @Test
+    fun `an ordinary group is never asked`() {
+        val greet = index(snip("^hello (.+)$", "Hi \$1"))
+        assertEquals("Hi am", greet.matchPattern("hello am", atFieldStart = true, isName = { false })?.text)
+    }
 }

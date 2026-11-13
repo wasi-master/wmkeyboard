@@ -100,6 +100,7 @@ Some details:
 - **Matching is case-insensitive** by default, so `HELLO John` works too. Start the pattern with `(?-i)` if you want it to care.
 - **`^` and `$` are optional.** The pattern always has to fill the whole span it's matched against, so `hello (.+)` behaves exactly like `^hello (.+)$`. Most people write the anchors anyway, and the examples here follow suit.
 - **Words to match** caps how far back a pattern can reach: three words by default, up to eight. It's there because names are short. With a cap of three, `^hello (.+)$` can turn "hello John Smith" into a greeting but will leave a whole sentence alone.
+- **A capture can insist on a name.** Write it as `(?<name>.+)` instead of `(.+)` and the pattern only fits when every word it caught reads as a name: typed with a capital, one of your contacts, a word the dictionary only knows with a capital ("John"), or one it doesn't know at all. `^hello (?<name>.+)$` greets "hello John" and "hello Priya", and leaves "hello am" and "hello there" as you typed them. It is still `$1` in the text. A group called `name2`, `name3` and so on works the same way. The tester on the editor screen has no dictionary to ask, so it lets any word through.
 - **A pattern never reaches across a line break**, so a snippet can't swallow the paragraph above the one you're writing.
 - **The shortest match wins.** If two patterns both fit, the one that eats fewer of your words is the one that runs. A plain word trigger always beats a pattern.
 - **A pattern can start on the space in front of a word.** `\s+([.,?!:;])` with the text `$1` pulls a stray space back out from in front of a full stop or a comma. The space and the word after it count as one word for the words-to-match cap.
@@ -118,7 +119,7 @@ Every snippet has an **Ask before it expands** switch on its editor screen. Turn
 The chip arrives as soon as the trigger is typed. There's no need to press space first, and that goes for both kinds of trigger:
 
 - A **word** trigger offers itself while you're still typing the word. Type `brb` and the chip is there before you reach the space bar. Press space instead of tapping and you get a literal "brb."
-- A **pattern** offers itself mid-phrase, and keeps up as you type. With `^hello (.+)$`, typing "hello Jo" already shows a chip reading "Hello, Jo!". The next letter re-reads it as "Hello, Jon!", and so on. The offer survives the space that ends the word, so you can finish the phrase and then decide.
+- A **pattern** offers itself mid-phrase, and keeps up as you type. With `^hello (.+)$`, typing "hello Jo" already shows a chip reading "Hello, Jo!". With `(?<name>.+)` in its place, "hello am" shows no chip, since "am" is no name. The next letter re-reads it as "Hello, Jon!", and so on. The offer survives the space that ends the word, so you can finish the phrase and then decide.
 
 Tapping the chip swaps the words it matched for the expansion and keeps any trailing space. What the chip shows is exactly what goes in.
 

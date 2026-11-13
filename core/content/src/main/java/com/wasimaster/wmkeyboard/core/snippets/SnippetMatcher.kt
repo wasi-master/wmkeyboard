@@ -265,6 +265,54 @@ object SnippetMatcher {
     internal fun compile(source: String): Pattern =
         Pattern.compile(source, Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE)
 
+    /**
+     * The numbers of [source]'s groups that may only hold a name (#1291): the
+     * named groups called `name`, or `name` and a number (`name2`), as in
+     * `^hello (?<name>.+)$`. Such a group still counts as `$1` in the text.
+     *
+     * `^hello (.+)$` turned "hello am" into "Hello, Am! Nice to meet you."; a
+     * name group makes the keyboard ask whether each word it caught reads as a
+     * name first (see [SnippetIndex.matchPattern]).
+     *
+     * Counted off the source rather than asked of the pattern, because
+     * `Matcher.group(String)` arrived on Android only at API 26. Escapes and
+     * character classes are skipped; any other `(?` opens no group, except
+     * `(?<` followed by a letter, which is a named one.
+     */
+    fun nameGroupsOf(source: String): IntArray {
+        if (!source.contains("(?<")) return NO_GROUPS
+        val found = ArrayList<Int>(2)
+        var count = 0
+        var inClass = false
+        var i = 0
+        while (i < source.length) {
+            val c = source[i]
+            when {
+                c == '\\' -> i++
+                inClass -> if (c == ']') inClass = false
+                c == '[' -> inClass = true
+                c == '(' && source.getOrNull(i + 1) != '?' -> count++
+                c == '(' && source.getOrNull(i + 2) == '<' && source.getOrNull(i + 3)?.isLetter() == true -> {
+                    count++
+                    val close = source.indexOf('>', startIndex = i + 3)
+                    if (close > 0 && isNameGroup(source.substring(i + 3, close))) found += count
+                }
+            }
+            i++
+        }
+        return found.toIntArray()
+    }
+
+    /** True for a group name that asks for a name: `name`, or `name` and digits. */
+    private fun isNameGroup(group: String): Boolean =
+        group.startsWith(NAME_GROUP, ignoreCase = true) &&
+            group.drop(NAME_GROUP.length).all { it in '0'..'9' }
+
+    /** What a group is called when it may only hold a name. */
+    const val NAME_GROUP = "name"
+
+    private val NO_GROUPS = IntArray(0)
+
     /** True when [source] refers back to an earlier group. */
     private fun hasBackreference(source: String): Boolean {
         var i = 0
@@ -532,6 +580,8 @@ internal class CompiledSnippet(
     val head: String?,
     /** Words behind the cursor this snippet may reach across. */
     val words: Int,
+    /** Groups that may only hold a name (#1291); see [SnippetMatcher.nameGroupsOf]. */
+    val nameGroups: IntArray = IntArray(0),
 )
 
 /**
@@ -817,6 +867,11 @@ class SnippetIndex private constructor(
      * for at different moments and one must never answer for the other — a
      * pattern that expands by itself has no business appearing as a chip
      * mid-word, and one that asks first must not fire on the space.
+     *
+     * [isName] says whether one word reads as a name, for the groups a pattern
+     * names `name` (#1291): a match whose name group holds a word that does
+     * not is no match, and the search goes on. Null lets any word through, as
+     * the settings screen's tester does, having no dictionary to ask.
      */
     fun matchPattern(
         window: CharSequence,
@@ -824,6 +879,7 @@ class SnippetIndex private constructor(
         now: Long = System.currentTimeMillis(),
         context: SnippetStore.Companion.Context = SnippetStore.Companion.Context(),
         confirm: Boolean = false,
+        isName: ((String) -> Boolean)? = null,
     ): SnippetMatch? {
         if (if (confirm) !hasConfirmPatterns else !hasAutoPatterns) return null
         val whole = window.toString()
@@ -849,7 +905,7 @@ class SnippetIndex private constructor(
         // says about the field.
         val cutAtCap = trimmed.length < line.length
         val anchored = !cutAtCap && (atFieldStart || line.length < whole.length)
-        return search(w, spanStarts(w), anchored, now, context, confirm)
+        return search(w, spanStarts(w), anchored, now, context, confirm, isName)
     }
 
     /**
@@ -889,6 +945,7 @@ class SnippetIndex private constructor(
         now: Long,
         context: SnippetStore.Companion.Context,
         confirm: Boolean,
+        isName: ((String) -> Boolean)?,
     ): SnippetMatch? {
         var attempts = 0
         for (candidate in starts) {
@@ -909,7 +966,7 @@ class SnippetIndex private constructor(
                         continue
                     }
                     if (attempts++ >= SnippetMatcher.MAX_ATTEMPTS) return null
-                    val hit = run(compiled, span, w.length - start, now, context)
+                    val hit = run(compiled, span, w.length - start, now, context, isName)
                     if (hit != null) return hit
                 }
             }
@@ -924,6 +981,7 @@ class SnippetIndex private constructor(
         consumed: Int,
         now: Long,
         context: SnippetStore.Companion.Context,
+        isName: ((String) -> Boolean)?,
     ): SnippetMatch? {
         val matcher = compiled.pattern.matcher(StepBudget(span, SnippetMatcher.MAX_STEPS))
         val matched = try {
@@ -933,6 +991,15 @@ class SnippetIndex private constructor(
             return null
         }
         if (!matched) return null
+        // A name group holding a word that is no name: "hello am" is not a
+        // greeting for someone called Am (#1291).
+        if (isName != null) {
+            for (index in compiled.nameGroups) {
+                if (index > matcher.groupCount()) continue
+                val caught = matcher.group(index) ?: continue
+                if (!isNameText(caught, isName)) return null
+            }
+        }
         val groups = minOf(matcher.groupCount(), SnippetMatcher.MAX_GROUPS)
         // Read out now, while the matcher still holds the match. The snippet's
         // other expansions are templated with exactly these, so every chip on
@@ -951,6 +1018,22 @@ class SnippetIndex private constructor(
             consumedText = span,
             groups = captured,
         )
+    }
+
+    /**
+     * Whether every word in [text] reads as a name to [isName], with the
+     * punctuation around each word left out ("John," is John). Text with no
+     * word in it is no name.
+     */
+    private fun isNameText(text: String, isName: (String) -> Boolean): Boolean {
+        var any = false
+        for (raw in text.split(' ', '\t')) {
+            val word = raw.trim { !SnippetMatcher.isTriggerWordChar(it) && it != '-' }
+            if (word.isEmpty()) continue
+            any = true
+            if (!isName(word)) return false
+        }
+        return any
     }
 
     companion object {
@@ -1027,6 +1110,7 @@ class SnippetIndex private constructor(
                     head = SnippetMatcher.headOf(source),
                     words = snippet.triggerWords.takeIf { it in 1..SnippetMatcher.MAX_WORDS }
                         ?: SnippetMatcher.DEFAULT_WORDS,
+                    nameGroups = SnippetMatcher.nameGroupsOf(source),
                 )
                 val head = compiled.head
                 if (head == null) {
