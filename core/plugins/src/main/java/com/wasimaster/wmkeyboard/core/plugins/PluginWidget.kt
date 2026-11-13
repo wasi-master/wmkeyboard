@@ -229,6 +229,10 @@ sealed interface PluginWidget {
         val shapes: List<Shape>,
         val tappable: Boolean,
         val draggable: Boolean,
+        /** A long press sends [PluginEvent.Held]. */
+        val holdable: Boolean = false,
+        /** A drag starts only after a long press, so a plain swipe scrolls the panel. */
+        val dragAfterHold: Boolean = false,
     ) : PluginWidget {
         sealed interface Shape {
             val color: PluginColorRole
@@ -335,6 +339,9 @@ sealed interface PluginEvent {
     data class ItemAction(override val id: String, val label: String) : PluginEvent
 
     data class Tapped(override val id: String, val x: Float, val y: Float) : PluginEvent
+
+    /** A long press on a canvas, in its own units. */
+    data class Held(override val id: String, val x: Float, val y: Float) : PluginEvent
 
     /** [phase] is "start", "move" or "end". */
     data class Dragged(override val id: String, val x: Float, val y: Float, val dx: Float, val dy: Float, val phase: String) : PluginEvent

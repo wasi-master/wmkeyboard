@@ -146,9 +146,16 @@ function Canvas({ w, onEvent }: { w: V5; onEvent: Send }) {
 	const shapes = (Array.isArray(d.shapes) ? d.shapes : []) as Record<string, unknown>[];
 	const ref = useRef<SVGSVGElement>(null);
 	const drag = useRef<{ x: number; y: number } | null>(null);
+	/** A press waiting to become a hold: where it began, its timer, and whether it fired. */
+	const press = useRef<{ x: number; y: number; px: number; py: number; timer: number; held: boolean } | null>(null);
+	const afterHold = d.dragAfterHold === true && d.draggable === true;
 	const at = (e: PointerEvent) => {
 		const r = ref.current!.getBoundingClientRect();
 		return { x: ((e.clientX - r.left) / r.width) * width, y: ((e.clientY - r.top) / r.height) * height };
+	};
+	const startDrag = (p: { x: number; y: number }) => {
+		drag.current = p;
+		onEvent({ type: 'drag', id, x: p.x, y: p.y, dx: 0, dy: 0, phase: 'start' });
 	};
 	return (
 		<svg
@@ -158,13 +165,26 @@ function Canvas({ w, onEvent }: { w: V5; onEvent: Send }) {
 			style={{ aspectRatio: `${width} / ${height}` }}
 			onPointerDown={(e) => {
 				const p = at(e);
-				if (d.draggable) {
-					drag.current = p;
-					(e.target as Element).setPointerCapture?.(e.pointerId);
-					onEvent({ type: 'drag', id, x: p.x, y: p.y, dx: 0, dy: 0, phase: 'start' });
+				(e.target as Element).setPointerCapture?.(e.pointerId);
+				if (d.draggable && !afterHold) startDrag(p);
+				if (afterHold || d.holdable) {
+					// A hold is half a second without moving, as on the phone.
+					const timer = window.setTimeout(() => {
+						const q = press.current;
+						if (!q) return;
+						q.held = true;
+						if (afterHold) startDrag({ x: q.x, y: q.y });
+						else onEvent({ type: 'hold', id, x: q.x, y: q.y });
+					}, 500);
+					press.current = { x: p.x, y: p.y, px: e.clientX, py: e.clientY, timer, held: false };
 				}
 			}}
 			onPointerMove={(e) => {
+				const q = press.current;
+				if (q && !q.held && Math.hypot(e.clientX - q.px, e.clientY - q.py) > 8) {
+					window.clearTimeout(q.timer);
+					press.current = null;
+				}
 				if (!drag.current) return;
 				const p = at(e);
 				onEvent({ type: 'drag', id, x: p.x, y: p.y, dx: p.x - drag.current.x, dy: p.y - drag.current.y, phase: 'move' });
@@ -172,11 +192,14 @@ function Canvas({ w, onEvent }: { w: V5; onEvent: Send }) {
 			}}
 			onPointerUp={(e) => {
 				const p = at(e);
+				const q = press.current;
+				press.current = null;
+				if (q) window.clearTimeout(q.timer);
 				if (drag.current) {
 					onEvent({ type: 'drag', id, x: p.x, y: p.y, dx: 0, dy: 0, phase: 'end' });
 					drag.current = null;
 				}
-				if (d.tappable) onEvent({ type: 'tap', id, x: p.x, y: p.y });
+				if (d.tappable && !q?.held) onEvent({ type: 'tap', id, x: p.x, y: p.y });
 			}}
 		>
 			{shapes.map((s, i) => {
@@ -186,7 +209,8 @@ function Canvas({ w, onEvent }: { w: V5; onEvent: Send }) {
 					case 'rect': return <rect key={i} x={num(s, 'x')} y={num(s, 'y')} width={num(s, 'w')} height={num(s, 'h')} rx={num(s, 'radius')} fill={fill} stroke={c} />;
 					case 'circle': return <circle key={i} cx={num(s, 'x')} cy={num(s, 'y')} r={num(s, 'r')} fill={fill} stroke={c} />;
 					case 'line': return <line key={i} x1={num(s, 'x')} y1={num(s, 'y')} x2={num(s, 'x2')} y2={num(s, 'y2')} stroke={c} stroke-width={num(s, 'width', 1)} />;
-					case 'text': return <text key={i} x={num(s, 'x')} y={num(s, 'y')} font-size={num(s, 'size', 12)} fill={c}>{str(s, 'text')}</text>;
+					// The phone draws text from its top-left corner, so the preview hangs it from y too.
+					case 'text': return <text key={i} x={num(s, 'x')} y={num(s, 'y')} font-size={Math.min(96, Math.max(4, num(s, 'size', 12)))} dominant-baseline="hanging" fill={c}>{str(s, 'text')}</text>;
 					default: return null;
 				}
 			})}

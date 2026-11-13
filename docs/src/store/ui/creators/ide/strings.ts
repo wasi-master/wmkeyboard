@@ -67,6 +67,8 @@ export const S = {
 		device: 'Vibrate, turn on the flashlight and read text aloud',
 		share: 'Share text and open links, after you confirm',
 		notifications: 'Show notifications',
+		calendar: 'Read your calendar and add events to it',
+		todo: 'Read and change your To-do list',
 	} as Record<string, string>,
 	permissionRiskyNote: 'Off after install until the user turns it on',
 	detailsApi5: 'Use API 5 (the wm package)',

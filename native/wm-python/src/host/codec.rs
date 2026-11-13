@@ -64,7 +64,7 @@
 //! {"type":"ring","id":s,"value":0..1,"label":s,"caption":s}
 //! {"type":"progress","value":0..1|null}
 //! {"type":"chart","id":s,"kind":"line"|"bar"|"spark","series":[{"name":s,"values":[num]}],"labels":[s],"height":int|null}
-//! {"type":"canvas","id":s,"width":num,"height":num,"shapes":[shape],"tappable":b,"draggable":b}
+//! {"type":"canvas","id":s,"width":num,"height":num,"shapes":[shape],"tappable":b,"draggable":b,"holdable":b,"dragAfterHold":b}
 //! ```
 //!
 //! A role is one of primary, secondary, muted, danger, success, warning,
@@ -570,6 +570,7 @@ impl Walk {
         json!({
             "type": "canvas", "id": id(d), "width": num(d, "width", 100.0).clamp(1.0, 10_000.0), "height": num(d, "height", 100.0).clamp(1.0, 10_000.0),
             "shapes": shapes, "tappable": has(d, "on_tap"), "draggable": has(d, "on_drag"),
+            "holdable": has(d, "on_hold"), "dragAfterHold": flag(d, "drag_after_hold", false),
         })
     }
 }

@@ -145,6 +145,24 @@ sealed class PluginPermission(
         warningRes = R.string.core_plugins_permission_files_warning,
     )
 
+    /** The phone's calendars: events read with `wm.calendar`, and new ones added. Android's calendar permissions too. */
+    data object Calendar : PluginPermission(
+        "calendar",
+        R.string.core_plugins_permission_calendar_label,
+        Tier.RISKY,
+        sinceApi = 5,
+        warningRes = R.string.core_plugins_permission_calendar_warning,
+    )
+
+    /** The keyboard's own To-do list through `wm.todo`: read, add, tick, change and delete. */
+    data object Todo : PluginPermission(
+        "todo",
+        R.string.core_plugins_permission_todo_label,
+        Tier.RISKY,
+        sinceApi = 5,
+        warningRes = R.string.core_plugins_permission_todo_warning,
+    )
+
     data object Sensors : PluginPermission("sensors", R.string.core_plugins_permission_sensors_label, Tier.LISTED, sinceApi = 5)
 
     /** The keyboard's own QR and text scanners; the plugin gets the result only. */
@@ -165,7 +183,7 @@ sealed class PluginPermission(
         val all: List<PluginPermission> by lazy {
             listOf(
                 Storage, Reminders, SelectedText, FieldWrite, ClipboardWrite, Sensors, Scan, Device, Share,
-                Notifications, Network, NetworkLocal, Ai, FieldRead, ClipboardRead, Location, Files,
+                Notifications, Network, NetworkLocal, Ai, FieldRead, ClipboardRead, Location, Files, Calendar, Todo,
             )
         }
 
@@ -179,7 +197,7 @@ sealed class PluginPermission(
         val EGRESS: Set<PluginPermission> by lazy { setOf(Network, NetworkLocal, Ai) }
 
         /** Permissions that read something the user has. */
-        val READS: Set<PluginPermission> by lazy { setOf(SelectedText, FieldRead, ClipboardRead, Files, Location) }
+        val READS: Set<PluginPermission> by lazy { setOf(SelectedText, FieldRead, ClipboardRead, Files, Location, Calendar, Todo) }
 
         /**
          * Whether [permissions] together need the stronger warning: something
@@ -195,6 +213,8 @@ sealed class PluginPermission(
             "field" -> if (op.substringAfter('.') in FIELD_READS) FieldRead else FieldWrite
             "clipboard" -> if (op == "clipboard.get") ClipboardRead else ClipboardWrite
             "location" -> Location
+            "calendar" -> Calendar
+            "todo" -> Todo
             "files" -> Files
             "sensors" -> Sensors
             "scan" -> Scan

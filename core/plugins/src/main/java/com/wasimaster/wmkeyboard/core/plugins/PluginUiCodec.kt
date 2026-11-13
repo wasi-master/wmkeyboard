@@ -347,6 +347,8 @@ object PluginUiCodec {
                 shapes = shapes,
                 tappable = node.bool("tappable") ?: false,
                 draggable = node.bool("draggable") ?: false,
+                holdable = node.bool("holdable") ?: false,
+                dragAfterHold = node.bool("dragAfterHold") ?: false,
             )
         }
 

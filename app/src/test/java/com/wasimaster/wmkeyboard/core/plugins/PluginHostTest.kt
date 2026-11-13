@@ -219,6 +219,10 @@ class PluginHostTest {
         assertEquals(PluginPermission.ClipboardRead, PluginPermission.forOp("clipboard.get"))
         assertEquals(PluginPermission.ClipboardWrite, PluginPermission.forOp("clipboard.set"))
         assertEquals(PluginPermission.Storage, PluginPermission.forOp("secrets.get"))
+        assertEquals(PluginPermission.Calendar, PluginPermission.forOp("calendar.events"))
+        assertEquals(PluginPermission.Calendar, PluginPermission.forOp("calendar.add"))
+        assertEquals(PluginPermission.Todo, PluginPermission.forOp("todo.update"))
+        assertTrue(PluginPermission.Calendar.isRisky && PluginPermission.Todo.isRisky)
         assertNull(PluginPermission.forOp("ui.toast"))
     }
 

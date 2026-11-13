@@ -32,6 +32,8 @@
 //! | `field.insert` `field.replace` `field.delete` `field.move` `field.action` `field.image` | field.write |
 //! | `clipboard.get` / `clipboard.set` | clipboard.read / clipboard.write |
 //! | `location.get` | location |
+//! | `calendar.events` `calendar.calendars` `calendar.add` | calendar |
+//! | `todo.list` `todo.add` `todo.update` `todo.remove` | todo |
 //! | `files.pick` `files.photo` `files.save` | files |
 //! | `sensors.subscribe` `sensors.unsubscribe` `sensors.list` | sensors |
 //! | `scan.qr` `scan.text` | scan |
@@ -43,7 +45,7 @@
 //!
 //! `field.selection`, `field.before`, `field.after` and `clipboard.get` are
 //! refused outside an event the user caused in the panel (a click, a change,
-//! a submit, a choice, a tap, a key, a keyword or a header command), and
+//! a submit, a choice, a tap, a hold, a key, a keyword or a header command), and
 //! every `field.*` op outside a panel.
 
 use std::cell::RefCell;
@@ -71,6 +73,7 @@ pub const PRELUDE: &[(&str, &str, bool)] = &[
     ("wm._host", include_str!("prelude/_host.py"), false),
     ("wm._storage", include_str!("prelude/_storage.py"), false),
     ("wm.ai", include_str!("prelude/ai.py"), false),
+    ("wm.calendar", include_str!("prelude/calendar.py"), false),
     ("wm.clipboard", include_str!("prelude/clipboard.py"), false),
     ("wm.device", include_str!("prelude/device.py"), false),
     ("wm.field", include_str!("prelude/field.py"), false),
@@ -85,11 +88,12 @@ pub const PRELUDE: &[(&str, &str, bool)] = &[
     ("wm.secrets", include_str!("prelude/secrets.py"), false),
     ("wm.sensors", include_str!("prelude/sensors.py"), false),
     ("wm.share", include_str!("prelude/share.py"), false),
+    ("wm.todo", include_str!("prelude/todo.py"), false),
     ("wm.ui", include_str!("prelude/ui.py"), false),
 ];
 
 /// Event types that count as the user acting in the panel.
-pub const USER_EVENTS: &[&str] = &["click", "change", "submit", "select", "tap", "drag", "press", "item_action", "keyword", "command"];
+pub const USER_EVENTS: &[&str] = &["click", "change", "submit", "select", "tap", "drag", "hold", "press", "item_action", "keyword", "command"];
 
 /// Ops that read what the user typed elsewhere: only while answering them.
 const USER_ONLY: &[&str] = &["field.selection", "field.before", "field.after", "clipboard.get"];
@@ -122,6 +126,8 @@ pub fn permission_for(op: &str) -> Option<Option<&'static str>> {
         ("clipboard", "get") => Some("clipboard.read"),
         ("clipboard", "set") => Some("clipboard.write"),
         ("location", "get") => Some("location"),
+        ("calendar", "events" | "calendars" | "add") => Some("calendar"),
+        ("todo", "list" | "add" | "update" | "remove") => Some("todo"),
         ("files", "pick" | "photo" | "save") => Some("files"),
         ("sensors", "subscribe" | "unsubscribe" | "list") => Some("sensors"),
         ("scan", "qr" | "text") => Some("scan"),

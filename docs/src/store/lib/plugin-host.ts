@@ -8,7 +8,7 @@
  * https requests to the manifest's hosts (if the site allows other pages to
  * read it), a pretend text field, toasts, dialogs, speech and sharing.
  * What only a phone has (the AI model, location, files, sensors, the
- * scanners, the clipboard's contents) gets a pretend answer of the same
+ * scanners, the calendar, the To-do list, the clipboard's contents) gets a pretend answer of the same
  * shape, marked in the console, so a plugin's code paths can run here.
  */
 
@@ -268,10 +268,43 @@ function pretendReading(kind: string, t: number, n: number): Record<string, numb
 	}
 }
 
+/** Pretend calendar: a stand-up each weekday and lunch on Wednesdays, in the browser's time zone. */
+function pretendEvents(start: number, end: number): Record<string, unknown>[] {
+	const out: Record<string, unknown>[] = [];
+	const day = new Date(start * 1000);
+	day.setHours(0, 0, 0, 0);
+	for (let n = 0; n < 62 && day.getTime() / 1000 < end; n++) {
+		const at = (h: number, m: number) => new Date(day.getFullYear(), day.getMonth(), day.getDate(), h, m).getTime() / 1000;
+		const wd = day.getDay();
+		if (wd >= 1 && wd <= 5) out.push({ id: 1000 + n * 2, title: 'Stand-up', start: at(9, 30), end: at(9, 45), all_day: false, location: null, calendar: 1, recurring: true });
+		if (wd === 3) out.push({ id: 1001 + n * 2, title: 'Lunch with Sam', start: at(13, 0), end: at(14, 0), all_day: false, location: 'Cafe', calendar: 1, recurring: false });
+		day.setDate(day.getDate() + 1);
+	}
+	return out.filter((e) => (e.end as number) > start && (e.start as number) < end);
+}
+
+interface PretendTask { id: number; text: string; done: boolean; due: number | null; all_day: boolean; parent: number | null }
+
+/** The pretend To-do list's tasks, top-level ones with their steps, as `todo.list` answers. */
+function todoTree(tasks: PretendTask[], withDone: boolean): Record<string, unknown>[] {
+	const shape = (t: PretendTask) => ({ id: t.id, text: t.text, done: t.done, due: t.due, all_day: t.all_day });
+	return tasks
+		.filter((t) => t.parent === null && (withDone || !t.done))
+		.map((t) => ({ ...shape(t), steps: tasks.filter((c) => c.parent === t.id).map(shape) }));
+}
+
 export function makeBridge(ctx: HostContext): Bridge {
 	const field = new PreviewField();
 	const secrets = new Map<string, string>();
 	const sensors = new Map<string, ReturnType<typeof setInterval>>();
+	const tasks: PretendTask[] = [
+		{ id: 1, text: 'Reply to the landlord', done: false, due: null, all_day: false, parent: null },
+		{ id: 2, text: 'Plan the trip', done: false, due: null, all_day: false, parent: null },
+		{ id: 3, text: 'Book the train', done: true, due: null, all_day: false, parent: 2 },
+		{ id: 4, text: 'Find a hotel', done: false, due: null, all_day: false, parent: 2 },
+	];
+	let nextTask = 5;
+	let nextEvent = 5000;
 	const later = (token: string | null, value: unknown, ms: number) => {
 		if (token) setTimeout(() => ctx.deliver({ type: 'result', token, value }), ms);
 	};
@@ -423,6 +456,57 @@ export function makeBridge(ctx: HostContext): Bridge {
 					return reply(null);
 				}
 				return reply(here);
+			}
+			case 'calendar.events': {
+				const start = Number(args.start) || 0;
+				const end = Number(args.end) || 0;
+				if (end - start > 62 * 86400) return fail('ValueError', 'ask for at most 62 days of events at a time');
+				const events = pretendEvents(start, end);
+				ctx.log(`[calendar] ${events.length} pretend events`);
+				if (token) {
+					later(token, events, 200);
+					return reply(null);
+				}
+				return reply(events);
+			}
+			case 'calendar.calendars':
+				return reply([{ id: 1, name: 'Personal', account: 'you@example.com', primary: true }]);
+			case 'calendar.add':
+				ctx.log(`[calendar] would add “${String(args.title ?? '')}” to the phone's calendar`);
+				return reply(nextEvent++);
+			case 'todo.list':
+				return reply(todoTree(tasks, args.done !== false));
+			case 'todo.add': {
+				const text = String(args.text ?? '').trim();
+				if (!text) return fail('ValueError', 'a task needs text');
+				const parentId = typeof args.parent === 'number' ? args.parent : null;
+				const parent = parentId === null ? null : tasks.find((t) => t.id === parentId);
+				if (parentId !== null && !parent) return fail('ValueError', `no task ${parentId}`);
+				const task: PretendTask = { id: nextTask++, text, done: false, due: typeof args.due === 'number' ? args.due : null, all_day: args.all_day === true, parent: parent ? parent.parent ?? parent.id : null };
+				tasks.push(task);
+				ctx.log(`[todo] added “${text}” to the pretend list`);
+				return reply({ id: task.id, text: task.text, done: task.done, due: task.due, all_day: task.all_day, steps: [] });
+			}
+			case 'todo.update': {
+				const task = tasks.find((t) => t.id === args.id);
+				if (!task) return reply(null);
+				if (typeof args.text === 'string' && args.text.trim()) task.text = args.text.trim();
+				if (typeof args.done === 'boolean') {
+					task.done = args.done;
+					if (task.parent === null) for (const c of tasks) if (c.parent === task.id && args.done) c.done = true;
+				}
+				if ('due' in args) {
+					task.due = typeof args.due === 'number' ? args.due : null;
+					task.all_day = args.all_day === true;
+				}
+				return reply(todoTree(tasks, true).find((t) => t.id === task.id) ?? { id: task.id, text: task.text, done: task.done, due: task.due, all_day: task.all_day, steps: [] });
+			}
+			case 'todo.remove': {
+				const i = tasks.findIndex((t) => t.id === args.id);
+				if (i < 0) return reply(false);
+				const id = tasks[i]!.id;
+				for (let j = tasks.length - 1; j >= 0; j--) if (tasks[j]!.id === id || tasks[j]!.parent === id) tasks.splice(j, 1);
+				return reply(true);
 			}
 			case 'files.pick': {
 				const file = pretendFile(String(args.kind ?? 'any'));

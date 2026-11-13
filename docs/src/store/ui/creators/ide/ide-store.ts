@@ -60,12 +60,12 @@ export const REMINDERS_PERMISSION = 'reminders';
 /** Every permission the app knows, in the order the manifest form lists them (PluginPermission.all). */
 export const PERMISSIONS = [
 	STORAGE_PERMISSION, REMINDERS_PERMISSION, 'selection', 'field.write', 'clipboard.write', 'sensors', 'scan', 'device', 'share',
-	'notifications', 'network', 'network.local', 'ai', 'field.read', 'clipboard.read', 'location', 'files',
+	'notifications', 'network', 'network.local', 'ai', 'field.read', 'clipboard.read', 'location', 'files', 'calendar', 'todo',
 ];
 /** The ones API 4 knows; the rest need `"apiVersion": 5`. */
 export const API4_PERMISSIONS = [STORAGE_PERMISSION, REMINDERS_PERMISSION, 'selection'];
 /** Off after install until the user turns them on (PluginPermission.Tier.RISKY). */
-export const RISKY_PERMISSIONS = ['network', 'network.local', 'ai', 'field.read', 'clipboard.read', 'location', 'files'];
+export const RISKY_PERMISSIONS = ['network', 'network.local', 'ai', 'field.read', 'clipboard.read', 'location', 'files', 'calendar', 'todo'];
 export const MAX_HOSTS = 16;
 export const ID_PATTERN = /^[a-z0-9][a-z0-9._-]{2,63}$/;
 export const MAX_NAME = 40;

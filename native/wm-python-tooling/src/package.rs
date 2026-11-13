@@ -14,6 +14,7 @@ use crate::api::{ApiEntry, ApiKind};
 const SOURCES: &[(&str, &str)] = &[
     ("", include_str!("../../wm-python/src/host/prelude/__init__.py")),
     ("ai", include_str!("../../wm-python/src/host/prelude/ai.py")),
+    ("calendar", include_str!("../../wm-python/src/host/prelude/calendar.py")),
     ("clipboard", include_str!("../../wm-python/src/host/prelude/clipboard.py")),
     ("device", include_str!("../../wm-python/src/host/prelude/device.py")),
     ("field", include_str!("../../wm-python/src/host/prelude/field.py")),
@@ -28,6 +29,7 @@ const SOURCES: &[(&str, &str)] = &[
     ("secrets", include_str!("../../wm-python/src/host/prelude/secrets.py")),
     ("sensors", include_str!("../../wm-python/src/host/prelude/sensors.py")),
     ("share", include_str!("../../wm-python/src/host/prelude/share.py")),
+    ("todo", include_str!("../../wm-python/src/host/prelude/todo.py")),
     ("ui", include_str!("../../wm-python/src/host/prelude/ui.py")),
 ];
 
@@ -37,6 +39,8 @@ fn permission(module: &str) -> Option<&'static str> {
         "http" => "network",
         "ai" => "ai",
         "location" => "location",
+        "calendar" => "calendar",
+        "todo" => "todo",
         "files" => "files",
         "sensors" => "sensors",
         "scan" => "scan",

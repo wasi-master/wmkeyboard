@@ -48,6 +48,7 @@ What a callback gets depends on the widget:
 | `on_press` | keys | the key's label |
 | `on_tap` | canvas | `x` and `y`, as two arguments |
 | `on_drag` | canvas | a dict: `x`, `y`, `dx`, `dy` and `phase` |
+| `on_hold` | canvas | `x` and `y`, as two arguments, after a long press |
 
 A function that takes no arguments works for any widget: the keyboard leaves
 the value out. So `on_change=refresh` works with a `def refresh():` that takes

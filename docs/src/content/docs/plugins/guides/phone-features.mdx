@@ -1,6 +1,6 @@
 ---
 title: "Phone features"
-description: "Vibrate, speak, share, notify, scan, sensors, location and files: what each call needs and what it answers."
+description: "Vibrate, speak, share, notify, scan, sensors, location, files, the calendar and the To-do list: what each call needs and what it answers."
 sidebar:
   label: "Phone features"
   order: 5.07
@@ -19,6 +19,8 @@ sensor: the keyboard does the work and hands back only the result.
 | `sensors` | `subscribe(kind, on_reading=, hz=)`, `unsubscribe(token)`, `available()` | `sensors` |
 | `location` | `get(accuracy=, then=)` | risky `location` |
 | `files` | `pick(kind=, then=)`, `photo(then=)`, `save(name, data)` | risky `files` |
+| `calendar` | `events(start, end)`, `calendars()`, `add(title, start, end)` | risky `calendar` |
+| `todo` | `list()`, `add(text)`, `update(id, ...)`, `remove(id)` | risky `todo` |
 
 `scan` and `files` work from your panel or the floating box, not from a
 [selection action](/plugins/guides/text-and-selection/#buttons-over-selected-text): they need a screen to
@@ -154,6 +156,52 @@ pickers or a selection action.
 change the name. With `then=`, your function gets the name the file was saved
 under. Either call gives `then` the value `None` if the user backs out.
 
+## calendar
+
+A risky permission. Your plugin reads the events in the phone's calendars, the
+ones the keyboard's Calendar tool shows, and can add new ones:
+
+```python
+import time
+from wm import calendar
+
+now = time.time()
+for event in calendar.events(now, now + 7 * 86400):
+    print(event["title"], event["start"], event["all_day"])
+
+calendar.add("Focus time", now + 3600, now + 7200)
+```
+
+Times are seconds since 1970. One call reads at most 62 days. A repeating
+event comes once for each time it happens, with `recurring` set. An all-day
+event's `start` and `end` are the local midnights around its dates.
+
+`calendar.calendars()` lists the calendars an event can go in, primary ones
+first, and `add(..., calendar=id)` picks one. The keyboard needs Android's
+calendar permission too: the first call without it shows Android's question
+and raises `PermissionError`, and the next call works.
+
+## todo
+
+A risky permission. Your plugin works with the keyboard's own
+[To-do list](/tools/todo/), so a task added in the plugin shows in the To-do
+tool, and one ticked in the tool is ticked for the plugin:
+
+```python
+from wm import todo
+
+for task in todo.list(done=False):
+    print(task["text"], [s["text"] for s in task["steps"]])
+
+task = todo.add("Pack for the trip")
+todo.add("Charger", parent=task["id"])
+todo.update(task["id"], done=True)
+```
+
+Each task has `id`, `text`, `done`, `due` (seconds since 1970, or `None`),
+`all_day` and `steps`. Steps go one level deep, as in the To-do tool: a step
+asked for under a step goes under its task. Ticking a task ticks its steps.
+
 ## In the web editor
 
 The web editor answers every call on this page so you can run your code:
@@ -171,5 +219,8 @@ The web editor answers every call on this page so you can run your code:
 | `files.pick` | a pretend picture, sound or text file of the kind you asked for |
 | `files.photo` | a pretend picture |
 | `files.save` | a line in the console with the name and size |
+| `calendar.events` | a pretend stand-up each weekday and a lunch on Wednesdays |
+| `calendar.add` | a line in the console |
+| `todo.*` | a pretend list of a few tasks, which your calls change until the preview restarts |
 
 The console marks each pretend answer, so you always know which ones were real.

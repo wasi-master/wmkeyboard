@@ -66,13 +66,14 @@ _CALLBACK_FOR = {
     "select": "on_select",
     "tap": "on_tap",
     "drag": "on_drag",
+    "hold": "on_hold",
     "press": "on_press",
 }
 
 
 def _value_of(e):
     kind = e.get("type")
-    if kind == "tap":
+    if kind in ("tap", "hold"):
         return (e.get("x", 0), e.get("y", 0))
     if kind == "drag":
         return {"x": e.get("x", 0), "y": e.get("y", 0), "dx": e.get("dx", 0), "dy": e.get("dy", 0),
@@ -159,7 +160,7 @@ def _route(kind, e):
         ui._shown_values[wid] = str(value)
     if kind == "click":
         _core.call_back(fn)
-    elif kind == "tap":
+    elif kind in ("tap", "hold"):
         _core.call_back(fn, value[0], value[1])
     else:
         _core.call_back(fn, value)

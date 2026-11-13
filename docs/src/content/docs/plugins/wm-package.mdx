@@ -24,7 +24,8 @@ The editors complete these names as you type and show what each one does.
 [`ai`](#ai) · [`field`](#field) · [`clipboard`](#clipboard) ·
 [`device`](#device) · [`share`](#share) · [`notify`](#notify) ·
 [`reminders`](#reminders) · [`scan`](#scan) · [`sensors`](#sensors) ·
-[`location`](#location) · [`files`](#files) · [translations](#translations) ·
+[`location`](#location) · [`files`](#files) · [`calendar`](#calendar) ·
+[`todo`](#todo) · [translations](#translations) ·
 [`wm` itself](#wm-itself) · [errors](#errors) · [limits](#limits)
 
 ## The manifest
@@ -221,11 +222,11 @@ Most widgets take `key=`, a stable id for when two widgets would look alike.
 | `ui.progress(value=None)` | a bar from 0 to 1; `None` only says "working" |
 | `ui.chart(data, kind="line", labels=None, height=None)` | `kind` is `line`, `bar` or `spark`; `data` is a list, or a dict of series |
 | `ui.empty(text, icon=None, action=None, on_click=None)` | an empty screen's message and button |
-| `ui.canvas(width, height, shapes, on_tap=None, on_drag=None)` | `on_tap(x, y)`; `on_drag({"x", "y", "dx", "dy", "phase"})` |
+| `ui.canvas(width, height, shapes, on_tap=None, on_drag=None, on_hold=None, drag_after_hold=False)` | `on_tap(x, y)`; `on_drag({"x", "y", "dx", "dy", "phase"})`; `on_hold(x, y)` on a long press. With `drag_after_hold=True` a drag starts only after a long press, so a plain swipe scrolls the panel |
 | `ui.rect(x, y, w, h, color="primary", radius=0, fill=True)` | a shape for the canvas |
 | `ui.circle(x, y, r, color="primary", fill=True)` | |
 | `ui.line(x1, y1, x2, y2, color="primary", width=1)` | |
-| `ui.text_at(x, y, text, color="primary", size=12)` | |
+| `ui.text_at(x, y, text, color="primary", size=12)` | `x, y` is the text's top-left corner; `size` is in the canvas's units, from 4 to 96 |
 
 ### Messages
 
@@ -378,6 +379,29 @@ opens the keyboard's camera and gives the picture the user keeps in the same
 shape, as a JPEG. `files.save(name, data, mime=None, then=None, on_error=None)`
 lets the user pick where, and `then` gets the name saved under. Both give `None`
 when the user backs out; files are up to 4 MB.
+
+## calendar
+
+`from wm import calendar`. Needs the risky `calendar`. The first call without
+Android's calendar permission asks for it and raises `PermissionError`.
+
+| | |
+|---|---|
+| `calendar.events(start, end, then=None, on_error=None)` | events from `start` to `end` (seconds since 1970, at most 62 days apart), soonest first: `{"id", "title", "start", "end", "all_day", "location", "calendar", "recurring"}`. A repeating event comes once per occurrence; an all-day one runs from local midnight to local midnight |
+| `calendar.calendars()` | the calendars an event can go in: `{"id", "name", "account", "primary"}`, primary ones first |
+| `calendar.add(title, start, end, all_day=False, calendar=None, location=None, notes=None)` | adds an event and returns its id. `calendar` is an id from `calendars()`; `None` is the first one listed |
+
+## todo
+
+`from wm import todo`. Needs the risky `todo`. The keyboard's own
+[To-do list](/tools/todo/), the one its To-do tool shows.
+
+| | |
+|---|---|
+| `todo.list(done=True)` | the tasks in the list's order: `{"id", "text", "done", "due", "all_day", "steps"}`, where `steps` holds the task's steps in the same shape. `due` is seconds since 1970 or `None`. `done=False` leaves out finished tasks |
+| `todo.add(text, parent=None, due=None, all_day=False)` | adds a task, or a step of the task `parent`, and returns it |
+| `todo.update(id, text=None, done=None, due=..., all_day=False)` | changes the text, the tick or the date; `due=None` clears the date and leaving it out keeps it. Returns the task, or `None` when there is none. Ticking a task ticks its steps |
+| `todo.remove(id)` | deletes the task and its steps; `True` when there was one |
 
 ## Translations
 

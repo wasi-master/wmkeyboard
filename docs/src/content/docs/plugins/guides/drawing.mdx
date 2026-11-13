@@ -163,10 +163,13 @@ presses one. This is how Python works everywhere, not only here.
   "working".
 - `ui.chart([3, 5, 2], kind="bar", labels=[...])` draws a line, bar or spark
   chart. Pass a dict for several series.
-- `ui.canvas(width, height, shapes, on_tap=, on_drag=)` draws shapes made with
-  `ui.rect`, `ui.circle`, `ui.line` and `ui.text_at`. Coordinates are in your
-  own units, scaled to fit. See the [Tap the dot](/plugins/examples/#tap-the-dot)
-  example.
+- `ui.canvas(width, height, shapes, on_tap=, on_drag=, on_hold=)` draws shapes
+  made with `ui.rect`, `ui.circle`, `ui.line` and `ui.text_at`. Coordinates are
+  in your own units, scaled to fit. See the
+  [Tap the dot](/plugins/examples/#tap-the-dot) example. A canvas that takes
+  drags also takes the swipes that would scroll the panel; pass
+  `drag_after_hold=True` and a drag starts only after a long press, the way
+  events move in the Calendar tool's Day view.
 - `ui.empty(text, action=, on_click=)` fills an empty screen with a message and
   a button, like "No notes yet. Add one".
 

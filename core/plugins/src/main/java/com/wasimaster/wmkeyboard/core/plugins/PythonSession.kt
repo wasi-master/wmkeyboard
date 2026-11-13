@@ -276,6 +276,11 @@ class PythonSession private constructor(@Volatile private var handle: Long, priv
                     put("x", event.x)
                     put("y", event.y)
                 }
+                is PluginEvent.Held -> {
+                    put("type", "hold")
+                    put("x", event.x)
+                    put("y", event.y)
+                }
                 is PluginEvent.Dragged -> {
                     put("type", "drag")
                     put("x", event.x)

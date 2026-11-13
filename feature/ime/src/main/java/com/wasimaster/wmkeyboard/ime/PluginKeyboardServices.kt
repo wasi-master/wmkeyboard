@@ -18,7 +18,10 @@ import android.os.Looper
 import android.provider.OpenableColumns
 import android.util.Base64
 import android.view.inputmethod.InputConnection
+import com.wasimaster.wmkeyboard.app.CalendarPermissionActivity
+import com.wasimaster.wmkeyboard.app.CalendarWritePermissionActivity
 import com.wasimaster.wmkeyboard.app.LocationPermissionActivity
+import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
 import com.wasimaster.wmkeyboard.core.location.LocationAccess
 import com.wasimaster.wmkeyboard.core.location.LocationFix
 import com.wasimaster.wmkeyboard.core.location.LocationFixer
@@ -33,6 +36,10 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginSecrets
 import com.wasimaster.wmkeyboard.core.plugins.PluginServices
 import com.wasimaster.wmkeyboard.core.plugins.displayName
 import com.wasimaster.wmkeyboard.core.settings.AiSettings
+import com.wasimaster.wmkeyboard.core.todo.TodoReminders
+import com.wasimaster.wmkeyboard.core.todo.TodoStore
+import com.wasimaster.wmkeyboard.core.todo.TodoTask
+import com.wasimaster.wmkeyboard.core.tools.DeviceCalendar
 import com.wasimaster.wmkeyboard.core.tools.AiClient
 import com.wasimaster.wmkeyboard.core.tools.AiThinking
 import kotlinx.coroutines.runBlocking
@@ -48,6 +55,7 @@ import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.put
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -176,6 +184,15 @@ internal class PluginKeyboardServices(
         }
         "scan.qr" -> scan(call, PluginHandoff.Kind.QR)
         "scan.text" -> scan(call, PluginHandoff.Kind.TEXT)
+        "calendar.events" -> calendarEvents(call)
+        "calendar.calendars" -> calendars()
+        "calendar.add" -> calendarAdd(call)
+        "todo.list" -> todoList(call)
+        "todo.add" -> todoAdd(call)
+        "todo.update" -> todoUpdate(call)
+        "todo.remove" -> todo(change = true) { store ->
+            JsonPrimitive(store.delete(id(call)).isNotEmpty())
+        }
         else -> throw PluginCallException("NotImplementedError", "${call.op} is not available in this version of the keyboard yet")
     }
 
@@ -599,6 +616,199 @@ internal class PluginKeyboardServices(
         else -> if ('/' in k) listOf(k) else emptyList()
     }
 
+    // ---- the calendar ----------------------------------------------------
+
+    /**
+     * Android's calendar permission, asked through the same screen the
+     * Calendar tool uses the first time. Like the location, the call that
+     * asks fails, and the next one works.
+     */
+    private fun needCalendar(write: Boolean) {
+        val missing = when {
+            !DeviceCalendar.canRead(context) -> CalendarPermissionActivity::class.java
+            write && !DeviceCalendar.canWrite(context) -> CalendarWritePermissionActivity::class.java
+            else -> return
+        }
+        onMain { context.startActivity(Intent(context, missing).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+        throw PluginCallException(
+            "PermissionError",
+            if (write) "Android has not let the keyboard add calendar events yet: allow it, then try again"
+            else "Android has not let the keyboard read your calendar yet: allow it, then try again",
+        )
+    }
+
+    /** Events from `start` to `end`, seconds since 1970; an all-day one runs between local midnights. */
+    private fun calendarEvents(call: PluginCall): JsonElement {
+        val start = seconds(call, "start") ?: throw PluginCallException("ValueError", "calendar.events needs a start")
+        val end = seconds(call, "end") ?: throw PluginCallException("ValueError", "calendar.events needs an end")
+        if (end - start > MAX_CALENDAR_SPAN_S) throw PluginCallException("ValueError", "ask for at most 62 days of events at a time")
+        needCalendar(write = false)
+        if (end <= start) return JsonArray(emptyList())
+        val events = DeviceCalendar.eventsBetween(context, (start * 1000).toLong(), (end * 1000).toLong())
+            .sortedBy { if (it.allDay) localMidnightOf(it.begin) else it.begin }
+            .take(MAX_EVENTS)
+        return JsonArray(
+            events.map { e ->
+                buildJsonObject {
+                    put("id", e.id)
+                    put("title", e.title.take(MAX_EVENT_TEXT))
+                    put("start", (if (e.allDay) localMidnightOf(e.begin) else e.begin) / 1000.0)
+                    put("end", (if (e.allDay) localMidnightOf(e.end) else e.end) / 1000.0)
+                    put("all_day", e.allDay)
+                    put("location", e.location?.take(MAX_EVENT_TEXT))
+                    put("calendar", e.calendarId)
+                    put("recurring", e.recurring)
+                }
+            },
+        )
+    }
+
+    private fun calendars(): JsonElement {
+        needCalendar(write = false)
+        return JsonArray(
+            DeviceCalendar.writableCalendars(context).map { c ->
+                buildJsonObject {
+                    put("id", c.id)
+                    put("name", c.name)
+                    put("account", c.account)
+                    put("primary", c.primary)
+                }
+            },
+        )
+    }
+
+    /** One new event, in the calendar the plugin named or the first primary one. Answers its id. */
+    private fun calendarAdd(call: PluginCall): JsonElement {
+        val title = call.string("title").orEmpty().trim().take(MAX_EVENT_TEXT)
+        if (title.isEmpty()) throw PluginCallException("ValueError", "an event needs a title")
+        val start = seconds(call, "start") ?: throw PluginCallException("ValueError", "calendar.add needs a start")
+        val end = seconds(call, "end") ?: throw PluginCallException("ValueError", "calendar.add needs an end")
+        if (end < start) throw PluginCallException("ValueError", "an event cannot end before it starts")
+        needCalendar(write = true)
+        val writable = DeviceCalendar.writableCalendars(context)
+        val asked = (call.args["calendar"] as? JsonPrimitive)?.contentOrNull?.toDoubleOrNull()?.toLong()
+        val calendar = if (asked != null) {
+            writable.firstOrNull { it.id == asked } ?: throw PluginCallException("ValueError", "there is no calendar $asked to add events to")
+        } else {
+            writable.firstOrNull() ?: throw PluginCallException("RuntimeError", "this phone has no calendar to add events to")
+        }
+        val allDay = call.string("all_day") == "true"
+        val (begin, finish) = if (allDay) {
+            val first = utcMidnightOfLocalDate((start * 1000).toLong())
+            val last = utcMidnightOfLocalDate((end * 1000).toLong())
+            first to if (last > first) last else first + DAY_MS
+        } else {
+            (start * 1000).toLong() to (end * 1000).toLong()
+        }
+        val id = DeviceCalendar.insertEvent(
+            context, calendar.id, title, begin, finish, allDay,
+            call.string("location")?.take(MAX_EVENT_TEXT), call.string("notes")?.take(MAX_EVENT_NOTES),
+        ) ?: throw PluginCallException("RuntimeError", "the calendar did not take the event")
+        return JsonPrimitive(id)
+    }
+
+    private fun seconds(call: PluginCall, key: String): Double? =
+        (call.args[key] as? JsonPrimitive)?.doubleOrNull?.takeIf { it.isFinite() }
+
+    /** The local midnight of the date a UTC midnight names, as an all-day event stores it. */
+    private fun localMidnightOf(utcMidnight: Long): Long {
+        val utc = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply { timeInMillis = utcMidnight }
+        return java.util.Calendar.getInstance().apply {
+            clear()
+            set(utc.get(java.util.Calendar.YEAR), utc.get(java.util.Calendar.MONTH), utc.get(java.util.Calendar.DAY_OF_MONTH), 0, 0, 0)
+        }.timeInMillis
+    }
+
+    /** The UTC midnight naming the local date [millis] falls on. */
+    private fun utcMidnightOfLocalDate(millis: Long): Long {
+        val local = java.util.Calendar.getInstance().apply { timeInMillis = millis }
+        return java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
+            clear()
+            set(local.get(java.util.Calendar.YEAR), local.get(java.util.Calendar.MONTH), local.get(java.util.Calendar.DAY_OF_MONTH), 0, 0, 0)
+        }.timeInMillis
+    }
+
+    // ---- the To-do list --------------------------------------------------
+
+    private val todoLock = Any()
+
+    /**
+     * Runs [body] on the To-do tool's own list, read fresh from its file;
+     * a [change] is saved and moves the list's reminders, as the To-do panel
+     * does. The panel reads the file again the next time it opens.
+     */
+    private fun <T> todo(change: Boolean, body: (TodoStore) -> T): T {
+        val app = context.applicationContext
+        if (!DirectBoot.isUserUnlocked(app)) throw PluginCallException("RuntimeError", "the To-do list opens once the phone is unlocked")
+        synchronized(todoLock) {
+            val store = TodoStore(File(app.filesDir, TodoStore.FILE_PATH))
+            val out = body(store)
+            if (change) {
+                store.save()
+                TodoReminders.rearm(app)
+            }
+            return out
+        }
+    }
+
+    private fun id(call: PluginCall): Long =
+        (call.args["id"] as? JsonPrimitive)?.contentOrNull?.toDoubleOrNull()?.toLong()
+            ?: throw PluginCallException("ValueError", "which task? pass its id")
+
+    /** A task as `wm.todo` gives it: seconds, and an all-day date as that day's local midnight. */
+    private fun taskJson(task: TodoTask, steps: List<TodoTask>?): JsonObject = buildJsonObject {
+        put("id", task.id)
+        put("text", task.text)
+        put("done", task.done)
+        val due = task.due
+        put("due", if (due == null) null else (if (task.dueAllDay) localMidnightOf(due) else due) / 1000.0)
+        put("all_day", task.dueAllDay)
+        if (steps != null) put("steps", JsonArray(steps.map { taskJson(it, null) }))
+    }
+
+    private fun treeJson(store: TodoStore, task: TodoTask): JsonObject =
+        taskJson(task, if (task.parentId == null) store.subtasks(task.id) else null)
+
+    private fun todoList(call: PluginCall): JsonElement = todo(change = false) { store ->
+        val withDone = call.string("done") != "false"
+        JsonArray(store.topLevel(hideDone = !withDone).take(MAX_TODO_LIST).map { treeJson(store, it) })
+    }
+
+    /** `due` from the script: millis, and for an all-day date the UTC midnight the list keeps. */
+    private fun dueOf(call: PluginCall): Pair<Long?, Boolean> {
+        val due = seconds(call, "due") ?: return null to false
+        val allDay = call.string("all_day") == "true"
+        val millis = (due * 1000).toLong()
+        return (if (allDay) utcMidnightOfLocalDate(millis) else millis) to allDay
+    }
+
+    private fun todoAdd(call: PluginCall): JsonElement = todo(change = true) { store ->
+        val parent = (call.args["parent"] as? JsonPrimitive)?.contentOrNull?.toDoubleOrNull()?.toLong()
+        val (due, allDay) = dueOf(call)
+        val added = store.add(call.string("text").orEmpty(), parentId = parent, due = due, dueAllDay = allDay)
+            ?: throw PluginCallException(
+                "ValueError",
+                when {
+                    call.string("text").isNullOrBlank() -> "a task needs text"
+                    parent != null && store.item(parent) == null -> "there is no task $parent"
+                    else -> "the To-do list is full"
+                },
+            )
+        treeJson(store, added)
+    }
+
+    private fun todoUpdate(call: PluginCall): JsonElement = todo(change = true) { store ->
+        val id = id(call)
+        if (store.item(id) == null) return@todo JsonNull
+        call.string("text")?.let { store.setText(id, it) }
+        call.string("done")?.let { store.setDone(id, it == "true") }
+        if ("due" in call.args) {
+            val (due, allDay) = dueOf(call)
+            store.setDue(id, due, allDay)
+        }
+        store.item(id)?.let { treeJson(store, it) } ?: JsonNull
+    }
+
     // ---- the scanners ----------------------------------------------------
 
     /** The keyboard's QR scanner or text reader, over the plugin. The text the user took, or null. */
@@ -777,6 +987,14 @@ internal class PluginKeyboardServices(
         private const val MB = 1024 * 1024
         private const val MAX_FILE = 4 * MB
         private const val MAX_FILE_NAME = 120
+
+        /** The longest span `calendar.events` reads at once, in seconds: 62 days. */
+        private const val MAX_CALENDAR_SPAN_S = 62.0 * 24 * 60 * 60
+        private const val MAX_EVENTS = 500
+        private const val MAX_EVENT_TEXT = 500
+        private const val MAX_EVENT_NOTES = 4000
+        private const val DAY_MS = 24L * 60 * 60 * 1000
+        private const val MAX_TODO_LIST = 1000
         private const val MAX_PHOTO_SAMPLE = 16
         private const val PHOTO_QUALITY = 90
 

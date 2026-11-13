@@ -159,7 +159,7 @@ export type PluginEvent =
 	/** API 5: what the panel's widgets, header and timers send (`wm._host` routes them). */
 	| { type: HostEventType; id?: string; value?: unknown; x?: number; y?: number; dx?: number; dy?: number; phase?: string; token?: string };
 
-export type HostEventType = 'change' | 'submit' | 'select' | 'tap' | 'drag' | 'press' | 'item_action' | 'command' | 'back' | 'result' | 'stream' | 'timer';
+export type HostEventType = 'change' | 'submit' | 'select' | 'tap' | 'drag' | 'hold' | 'press' | 'item_action' | 'command' | 'back' | 'result' | 'stream' | 'timer';
 
 /** What an API 5 plugin asked of the panel around its widgets. */
 export interface HostMeta {

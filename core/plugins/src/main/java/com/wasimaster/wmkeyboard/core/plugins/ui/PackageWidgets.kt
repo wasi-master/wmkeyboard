@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -51,6 +52,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -630,9 +632,10 @@ private fun ChartWidget(widget: PluginWidget.Chart) {
 }
 
 /**
- * A plugin's drawing, scaled to the panel's width. Taps and drags come back in
- * the drawing's own units. A drag sends its start and end, and at most one
- * move every [DRAG_EVENT_MILLIS].
+ * A plugin's drawing, scaled to the panel's width. Taps, holds and drags come
+ * back in the drawing's own units. A drag sends its start and end, and at most
+ * one move every [DRAG_EVENT_MILLIS]; with [PluginWidget.Canvas.dragAfterHold]
+ * it starts only after a long press, so a plain swipe scrolls the panel.
  */
 @Composable
 private fun CanvasWidget(widget: PluginWidget.Canvas, onEvent: (PluginEvent) -> Unit) {
@@ -645,23 +648,37 @@ private fun CanvasWidget(widget: PluginWidget.Canvas, onEvent: (PluginEvent) -> 
         .aspectRatio(widget.width / widget.height)
         .clip(style.cardShape)
         .background(style.surface)
-    if (widget.tappable) {
-        modifier = modifier.pointerInput(widget.id) {
-            detectTapGestures { at -> onEvent(PluginEvent.Tapped(widget.id, at.x / scale, at.y / scale)) }
+    val afterHold = widget.draggable && widget.dragAfterHold
+    // A hold that starts a drag is the drag's own start, never a Held as well.
+    val holds = widget.holdable && !afterHold
+    if (widget.tappable || holds) {
+        modifier = modifier.pointerInput(widget.id, widget.tappable, holds, afterHold) {
+            detectTapGestures(
+                onLongPress = when {
+                    holds -> { at: Offset -> onEvent(PluginEvent.Held(widget.id, at.x / scale, at.y / scale)) }
+                    // The hold belongs to the drag: lifting after it is not a tap.
+                    afterHold -> { _: Offset -> }
+                    else -> null
+                },
+                onTap = if (widget.tappable) {
+                    { at: Offset -> onEvent(PluginEvent.Tapped(widget.id, at.x / scale, at.y / scale)) }
+                } else {
+                    null
+                },
+            )
         }
     }
     if (widget.draggable) {
-        modifier = modifier.pointerInput(widget.id) {
+        modifier = modifier.pointerInput(widget.id, afterHold) {
             var x = 0f
             var y = 0f
-            detectDragGestures(
-                onDragStart = { at ->
-                    x = at.x / scale
-                    y = at.y / scale
-                    onEvent(PluginEvent.Dragged(widget.id, x, y, 0f, 0f, "start"))
-                },
-                onDragEnd = { onEvent(PluginEvent.Dragged(widget.id, x, y, 0f, 0f, "end")) },
-            ) { change, amount ->
+            val onStart = { at: Offset ->
+                x = at.x / scale
+                y = at.y / scale
+                onEvent(PluginEvent.Dragged(widget.id, x, y, 0f, 0f, "start"))
+            }
+            val onEnd = { onEvent(PluginEvent.Dragged(widget.id, x, y, 0f, 0f, "end")) }
+            val onMove = { change: PointerInputChange, amount: Offset ->
                 change.consume()
                 x += amount.x / scale
                 y += amount.y / scale
@@ -670,6 +687,11 @@ private fun CanvasWidget(widget: PluginWidget.Canvas, onEvent: (PluginEvent) -> 
                     last = now
                     onEvent(PluginEvent.Dragged(widget.id, x, y, amount.x / scale, amount.y / scale, "move"))
                 }
+            }
+            if (afterHold) {
+                detectDragGesturesAfterLongPress(onDragStart = onStart, onDragEnd = onEnd, onDragCancel = onEnd, onDrag = onMove)
+            } else {
+                detectDragGestures(onDragStart = onStart, onDragEnd = onEnd, onDrag = onMove)
             }
         }
     }

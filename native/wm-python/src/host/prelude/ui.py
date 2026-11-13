@@ -347,11 +347,14 @@ def chart(data, kind="line", labels=None, height=None, key=None):
 
 # MARK: - drawing
 
-def canvas(width, height, shapes=None, on_tap=None, on_drag=None, key=None):
+def canvas(width, height, shapes=None, on_tap=None, on_drag=None, on_hold=None, drag_after_hold=False, key=None):
     """A drawing `width` by `height` units, scaled to the panel. `shapes` are
-    made with ui.rect, ui.circle, ui.line and ui.text_at."""
+    made with ui.rect, ui.circle, ui.line and ui.text_at. on_hold(x, y) hears
+    a long press. With drag_after_hold=True a drag starts only after a long
+    press, so a plain swipe still scrolls the panel."""
     shapes = _pylist(shapes or [])
-    return Widget("canvas", id=key, width=width, height=height, shapes=shapes, on_tap=on_tap, on_drag=on_drag)
+    return Widget("canvas", id=key, width=width, height=height, shapes=shapes, on_tap=on_tap, on_drag=on_drag,
+                  on_hold=on_hold, drag_after_hold=bool(drag_after_hold))
 
 
 def rect(x, y, w, h, color="primary", radius=0, fill=True):
@@ -386,7 +389,7 @@ def dialog(title, text=None, buttons=("OK",), on_result=None):
 
 # MARK: - render bookkeeping (called by wm._host)
 
-_CALLBACKS = ("on_click", "on_change", "on_submit", "on_select", "on_tap", "on_drag", "on_press")
+_CALLBACKS = ("on_click", "on_change", "on_submit", "on_select", "on_tap", "on_drag", "on_hold", "on_press")
 
 
 def _begin():
