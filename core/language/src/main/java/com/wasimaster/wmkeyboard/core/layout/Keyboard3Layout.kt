@@ -1228,9 +1228,9 @@ object Keyboard3Layouts {
     private val RootOpen = Regex("""<keyboard3[\s>]""")
     private val Doctype = Regex("""<!DOCTYPE""", RegexOption.IGNORE_CASE)
     private val Whitespace = Regex("""\s+""")
-    private val SetRef = Regex("""\$\[(\w+)]""")
-    private val MarkersOnly = Regex("""(?:\\m\{[^}]+})+""")
-    private val AnyMarkerThenChar = Regex("""\\m\{\.}(?:\(\.\)|\.)?""")
+    private val SetRef = Regex("""\$\[(\w+)\]""")
+    private val MarkersOnly = Regex("""(?:\\m\{[^}]+\})+""")
+    private val AnyMarkerThenChar = Regex("""\\m\{\.\}(?:\(\.\)|\.)?""")
     private val FlorisReference = Regex("""@[a-z0-9]+:[a-z_]+/.+""")
 
     private const val ROOT = "keyboard3"

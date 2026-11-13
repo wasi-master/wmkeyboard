@@ -52,7 +52,7 @@ class ContextModel private constructor(
      */
     fun setContext(words: List<String>, register: Register = Register.NEUTRAL, field: ContextField = ContextField.OTHER, lang: Int = 0) {
         if (closed) return
-        PredictionNative.lmSetContext(session, register.ordinal, field.ordinal, lang, words.toTypedArray())
+        live(Unit) { PredictionNative.lmSetContext(session, register.ordinal, field.ordinal, lang, words.toTypedArray()) }
     }
 
     /**
@@ -62,7 +62,7 @@ class ContextModel private constructor(
      */
     fun scores(words: List<String>): FloatArray {
         if (closed || words.isEmpty()) return FloatArray(words.size) { Float.NaN }
-        return PredictionNative.lmScores(session, words.toTypedArray())
+        return live(FloatArray(words.size) { Float.NaN }) { PredictionNative.lmScores(session, words.toTypedArray()) }
     }
 
     /**
@@ -75,7 +75,7 @@ class ContextModel private constructor(
     fun scoresSpelled(words: List<String>): FloatArray {
         if (closed || words.isEmpty()) return FloatArray(words.size) { Float.NaN }
         return try {
-            PredictionNative.lmScoresSpelled(session, words.toTypedArray())
+            live(FloatArray(words.size) { Float.NaN }) { PredictionNative.lmScoresSpelled(session, words.toTypedArray()) }
         } catch (_: UnsatisfiedLinkError) {
             scores(words)
         }
@@ -91,7 +91,7 @@ class ContextModel private constructor(
      */
     fun gateView(typed: String): GateView? {
         if (closed) return null
-        val out = PredictionNative.lmGateView(session, typed)
+        val out = live(null) { PredictionNative.lmGateView(session, typed) } ?: return null
         if (out.size < 4) return null
         return GateView(out[0], if (out[1].isNaN()) -1 else out[1].toInt(), out[2], out[3])
     }
@@ -99,7 +99,7 @@ class ContextModel private constructor(
     /** The [k] likeliest next words above [minLogprob], best first, with their log-probabilities. */
     fun topWords(k: Int, minLogprob: Float = NEXT_WORD_FLOOR): List<Pair<String, Float>> {
         if (closed || k <= 0) return emptyList()
-        val out = PredictionNative.lmTop(session, k, minLogprob)
+        val out = live(null) { PredictionNative.lmTop(session, k, minLogprob) } ?: return emptyList()
         @Suppress("UNCHECKED_CAST")
         val words = out[0] as Array<String>
         val scores = out[1] as FloatArray
@@ -113,7 +113,7 @@ class ContextModel private constructor(
      */
     fun phrase(maxWords: Int = 3, minProb: Float = PHRASE_MIN_PROB): Pair<List<String>, Float> {
         if (closed || maxWords <= 0) return emptyList<String>() to 0f
-        val out = PredictionNative.lmGenerate(session, maxWords, minProb)
+        val out = live(null) { PredictionNative.lmGenerate(session, maxWords, minProb) } ?: return emptyList<String>() to 0f
         @Suppress("UNCHECKED_CAST")
         val words = out[0] as Array<String>
         val joint = (out[1] as FloatArray).firstOrNull() ?: 0f
@@ -135,14 +135,30 @@ class ContextModel private constructor(
         lang: Int = 0,
     ): FloatArray {
         if (closed || candidates.isEmpty()) return FloatArray(candidates.size) { Float.NaN }
-        return PredictionNative.lmRevise(
-            session, register.ordinal, field.ordinal, lang,
-            context.toTypedArray(), candidates.toTypedArray(), followers.toTypedArray(),
-        )
+        return live(FloatArray(candidates.size) { Float.NaN }) {
+            PredictionNative.lmRevise(
+                session, register.ordinal, field.ordinal, lang,
+                context.toTypedArray(), candidates.toTypedArray(), followers.toTypedArray(),
+            )
+        }
     }
 
     /** Whether the vocabulary holds [word]. */
-    fun knows(word: String): Boolean = !closed && PredictionNative.lmKnows(model, word)
+    fun knows(word: String): Boolean = !closed && live(false) { PredictionNative.lmKnows(model, word) }
+
+    /**
+     * Runs a native call, answering [whenClosed] when [close] ran on another
+     * thread between the `closed` check and the call: the idle release frees
+     * the engines from the main thread while the suggestion worker is still
+     * mid-word, and the engine then throws for the dropped handle. A throw
+     * while still open is a real fault and is let through.
+     */
+    private inline fun <T> live(whenClosed: T, call: () -> T): T =
+        try {
+            call()
+        } catch (e: IllegalStateException) {
+            if (closed) whenClosed else throw e
+        }
 
     fun close() {
         if (closed) return

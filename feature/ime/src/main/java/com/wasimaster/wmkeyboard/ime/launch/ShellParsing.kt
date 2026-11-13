@@ -13,7 +13,7 @@ package com.wasimaster.wmkeyboard.ime.launch
  */
 object ShellParsing {
 
-    private val TASK = Regex("""\*\s*Task(?:Record)?\{[0-9a-f]+ #(\d+)([^}]*)}""")
+    private val TASK = Regex("""\*\s*Task(?:Record)?\{[0-9a-f]+ #(\d+)([^}]*)\}""")
     private val AFFINITY = Regex("""\bA=(?:\d+:)?([A-Za-z0-9_.]+)""")
     private val INTENT = Regex("""\bI=([A-Za-z0-9_.]+)/""")
 
