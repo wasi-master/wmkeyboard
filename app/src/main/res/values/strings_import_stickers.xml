@@ -154,7 +154,7 @@
     <!-- Stands in for the folder name when the file has no name to use. It
          goes into import_csv_body. -->
     <string name="import_csv_folder_fallback">Imported</string>
-    <string name="import_text_body">This is a text file of snippets. The app adds them to yours, each in the folder its block names, and the rest in a folder called <xliff:g id="folder_name" example="Replies">%1$s</xliff:g>.</string>
+    <string name="import_snippet_text_body">This is a text file of snippets. The app adds them to yours, each in the folder its block names, and the rest in a folder called <xliff:g id="folder_name" example="Replies">%1$s</xliff:g>.</string>
     <string name="import_text_none">This is a text file of snippets, but no block could be read.</string>
     <string name="import_csv_none">This is a table, but no row has text for a snippet.</string>
 

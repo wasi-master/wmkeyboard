@@ -2519,7 +2519,7 @@ private fun foreignSnippetsProposal(
         titleQuantity = parsed.snippets.size,
         body = context.getString(
             when {
-                plain -> R.string.import_text_body
+                plain -> R.string.import_snippet_text_body
                 table -> R.string.import_csv_body
                 else -> R.string.import_espanso_body
             },
