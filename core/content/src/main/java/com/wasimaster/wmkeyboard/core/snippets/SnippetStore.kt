@@ -1284,6 +1284,13 @@ class SnippetStore(private val storageFile: File?) {
             out = PLACE.replace(out) { match ->
                 ctx.place?.invoke(match.groupValues[1].trim(), match.groupValues[2].ifEmpty { null }).orEmpty()
             }
+            // {clip:clean:singleline} and {selection:snake}: the plain tokens
+            // reshaped on the way in. Before the plain tokens, which would
+            // otherwise never see the colon form at all.
+            out = TextModifiers.TOKEN.replace(out) { match ->
+                val source = if (match.groupValues[1] == "clip") ctx.clipboard else ctx.selection
+                TextModifiers.apply(source.orEmpty(), match.groupValues[2])
+            }
             val fmt: (String) -> String = { format(it, now) }
             for (variable in SnippetVariable.entries) {
                 if (!out.contains(variable.token)) continue

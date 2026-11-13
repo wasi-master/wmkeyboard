@@ -193,6 +193,24 @@ A snippet's text can include any of these tokens. They're substituted the moment
 
 `{timezone}` is the one worth a second look. It writes the zone's long name, not an offset, so you get "Bangladesh Standard Time" or "Central European Summer Time" rather than GMT+06:00. An offset only shows up for a zone with no name of its own. The settings screen's reference card gives GMT+06:00 as its example, which is the fallback rather than the usual case, but the live preview next to it always shows what you'd actually get. If you want the offset itself, `{date:XXX}` or `{date:ZZZZ}` will give you one.
 
+### Reshaping the clipboard and the selection
+
+`{clip}` and `{selection}` can take modifiers after a colon, applied left to right, so `{clip:clean:singleline}` strips the reference marks first and then joins the lines:
+
+| Modifier | Does |
+|---|---|
+| `clean` | Takes out Wikipedia-style reference marks such as `[1]`, `[a]`, `[note 2]` and `[citation needed]`, and tidies the spaces they leave |
+| `singleline` | Joins all the lines into one, dropping blank lines |
+| `trim` | Removes spaces and line breaks from both ends |
+| `upper`, `lower`, `title` | UPPER CASE, lower case, Title Case |
+| `camel`, `snake`, `kebab`, `constant` | `helloWorld`, `hello_world`, `hello-world`, `HELLO_WORLD` |
+| `slug` | The same as `kebab`, for a URL or a file name |
+| `unquote` | Takes off one pair of quotes around the whole text, straight or curly |
+| `nourl` | Removes web addresses |
+| `replace(old,new)` | Swaps every `old` for `new`. Plain text, not a pattern, and a colon inside the brackets is fine: `{clip:replace(:,h)}` |
+
+A modifier the keyboard doesn't know is skipped, so a typo leaves the text as it was instead of breaking the snippet.
+
 `{date:pattern}` takes any date pattern you like, for example `` {date:EEEE 'week' w} `` or `` {date:dd/MM/yy} ``. A `+` or `-` and a number of seconds before the colon shifts it: `{date+86400:dd/MM/yy}` is tomorrow, `{date-86400}` was yesterday, and a bare `{date+3600}` is an hour from now in the usual format. It's checked before the plain `{date}` token, so a literal pattern can't be partly swallowed by it. A malformed pattern quietly expands to nothing instead of breaking the rest of the snippet. Tokens the expander doesn't recognize, like `{nope}`, are left untouched. A variable with nothing to draw on expands to an empty string rather than leaving the raw token behind, which is what you get from `{app}` outside the keyboard or `{clip}` with an empty clipboard.
 
 ## Managing snippets
