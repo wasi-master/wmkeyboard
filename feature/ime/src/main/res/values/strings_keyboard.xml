@@ -432,6 +432,7 @@
     <string name="ime_tool_recent_copies">Recent copies</string>
     <string name="ime_tool_leave_field">Leave field</string>
     <string name="ime_tool_quick_note">Quick note</string>
+    <string name="ime_tool_debug_info">Debug info</string>
     <string name="ime_tool_read_back">Read back</string>
     <string name="ime_tool_snippets">Snippets</string>
     <string name="ime_tool_text_edit">Text editing</string>

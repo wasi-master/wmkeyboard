@@ -3003,6 +3003,10 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             R.string.home_about_title, "debug_log", keywords = R.string.search_kw_diagnostics,
         ),
         entry(
+            R.string.about_debug_info_title, R.string.about_debug_info_subtitle,
+            R.string.home_about_title, "debug_info", keywords = R.string.search_kw_debug_info,
+        ),
+        entry(
             R.string.about_replay_onboarding_title, R.string.about_replay_onboarding_subtitle,
             R.string.home_about_title, "about", keywords = R.string.search_kw_replay_onboarding,
         ),

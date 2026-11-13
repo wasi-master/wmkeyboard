@@ -43,6 +43,7 @@
 		"custom_buttons": "0.6.7",
 		"customdictionaries": "0.5.3",
 		"datasaver": "0.5.3",
+		"debug_info": "0.6.7",
 		"debug_log": "0.5.3",
 		"dictionary": "0.5.3",
 		"double_pinyin_custom": "0.5.14",
@@ -176,6 +177,7 @@
 	},
 	"settings": {
 		"about_app_language_title": "0.5.12",
+		"about_debug_info_title": "0.6.7",
 		"about_diagnostics_title": "0.5.3",
 		"about_dictionaries_title": "0.5.3",
 		"about_email_developer_title": "0.5.3",

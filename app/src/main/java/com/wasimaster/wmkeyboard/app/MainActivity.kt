@@ -3014,6 +3014,7 @@ private fun SettingsNavGraph(
                     onOpenDebugLog = { navController.navigate("debug_log") },
                     onOpenStorage = { navController.navigate("storage") },
                     onOpenResources = { navController.navigate("resources") },
+                    onOpenDebugInfo = { navController.navigate("debug_info") },
                     onOpenImportHub = { navController.navigate("import_hub") },
                     onOpenStatistics = { navController.navigate("statistics") },
                     onOpenEggGame = { navController.navigate("egg_game") },
@@ -3052,6 +3053,15 @@ private fun SettingsNavGraph(
                 route = "resources",
             ) {
                 ResourcesScreen(useRoot = settings.watch { it.launcher.useRoot }) { navController.navigate(it) }
+            }
+        }
+        composable("debug_info") {
+            SettingsScreen(
+                stringResource(R.string.about_debug_info_title),
+                { navController.popBackStack() },
+                route = "debug_info",
+            ) {
+                DebugInfoScreen()
             }
         }
         composable("feature_libraries") {

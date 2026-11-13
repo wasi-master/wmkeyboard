@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BugReport
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
 import com.wasimaster.wmkeyboard.app.share.ShareSheetRoute
 import androidx.annotation.StringRes
@@ -865,6 +866,7 @@ internal object SettingsRouteIcons {
         "import_hub" to { Icons.Outlined.FileOpen },
         "storage" to { Icons.Outlined.PieChart },
         "resources" to { Icons.Outlined.Memory },
+        "debug_info" to { Icons.Outlined.BugReport },
         "feature_libraries" to { Icons.Outlined.Extension },
         "statistics" to { Icons.Outlined.QueryStats },
         "licenses" to { Icons.Outlined.Gavel },

@@ -4,6 +4,18 @@
     <!-- The Resources screen (#1163), opened from About beside Storage. -->
     <string name="about_resources_title">Resources</string>
     <string name="about_resources_subtitle">Memory, processor time and loaded models, and unload what you don\'t need</string>
+    <!-- About › Debug info: the keyboard's report on the field in front, for bug reports. -->
+    <string name="about_debug_info_title">Debug info</string>
+    <string name="about_debug_info_subtitle">What the field in front asked the keyboard for, to paste into a bug report</string>
+    <string name="search_kw_debug_info">editorinfo input type ime options troubleshoot diagnose</string>
+    <string name="debug_info_from_keyboard">From the keyboard</string>
+    <string name="debug_info_from_app">From the app</string>
+    <string name="debug_info_info">The Debug info action reads what the app you were typing in declared about its text field: the kind of field, the Enter key it wants, its options, the app\'s package and the field\'s hint. It adds the keyboard\'s own state, the screen and memory. It never reads the text in the field. The report stays in memory until you copy it, and is gone when the keyboard restarts.</string>
+    <!-- %1$s: how long ago, such as "2 minutes ago" -->
+    <string name="debug_info_taken_at">Taken in the field you were typing in, %1$s.</string>
+    <string name="debug_info_how">To describe a text field, open it, then run Debug info from the keyboard. Bind it to a key, a flick or a hold on a toolbar button; the action pickers list it under Other. Until then, this is what the app can tell from here.</string>
+    <string name="debug_info_copy">Copy</string>
+    <string name="debug_info_copied">Debug info copied</string>
     <string name="search_kw_about_resources">memory ram cpu battery process monitor task manager unload model</string>
 
     <string name="resources_memory_group">Memory now</string>

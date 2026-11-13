@@ -418,6 +418,8 @@ import com.wasimaster.wmkeyboard.core.settings.SystemMotion
 import com.wasimaster.wmkeyboard.core.settings.underPowerSaving
 import com.wasimaster.wmkeyboard.core.settings.idleReleaseMs
 import com.wasimaster.wmkeyboard.ime.resources.ResidentModels
+import com.wasimaster.wmkeyboard.core.debug.FieldDebugInfo
+import com.wasimaster.wmkeyboard.core.debug.KeyboardDebugSnapshot
 import com.wasimaster.wmkeyboard.core.settings.withSystemMotion
 import com.wasimaster.wmkeyboard.core.settings.DataSaverSettings
 import com.wasimaster.wmkeyboard.core.settings.DataSaverStatus
@@ -8069,6 +8071,99 @@ open class WMKeyboardService : InputMethodService() {
      * picture.
      */
     private var hidingForScreenshot = false
+
+    /**
+     * The Debug info action (FUTO U3): the report [debugInfoReport] takes,
+     * kept for the settings app's Debug info screen (same process, memory
+     * only) and opened there, where it can be copied into a bug report.
+     */
+    private fun showDebugInfo() {
+        KeyboardDebugSnapshot.last = KeyboardDebugSnapshot.Taken(debugInfoReport(), System.currentTimeMillis())
+        openRoute(DEBUG_INFO_ROUTE)
+    }
+
+    /**
+     * What the field in front declared (its EditorInfo, decoded), what the
+     * keyboard is doing, the screen and this process's memory, as the text
+     * the Debug info screen shows. Never the field's text: not a character of
+     * it is read, only what the app said about the field, and the hint and
+     * label are cut short.
+     */
+    private fun debugInfoReport(): String {
+        val info = currentInputEditorInfo
+        val state = _uiState.value
+        val settings = state.settings
+        val config = resources.configuration
+        val metrics = resources.displayMetrics
+        val field = if (info == null) {
+            listOf("Field" to "none in front")
+        } else {
+            buildList {
+                add("Package" to info.packageName.orEmpty())
+                add("Field id" to "${info.fieldId}" + (info.fieldName?.let { " ($it)" } ?: ""))
+                add("Input type" to FieldDebugInfo.decodeInputType(info.inputType))
+                add("IME options" to FieldDebugInfo.decodeImeOptions(info.imeOptions))
+                add("Action label" to FieldDebugInfo.oneLine(info.actionLabel).ifEmpty { "none" } + " (id ${info.actionId})")
+                add("Initial caps" to FieldDebugInfo.decodeCapsMode(info.initialCapsMode))
+                add("Initial selection" to "${info.initialSelStart}–${info.initialSelEnd}")
+                add("Hint" to FieldDebugInfo.oneLine(info.hintText).ifEmpty { "none" })
+                add("Label" to FieldDebugInfo.oneLine(info.label).ifEmpty { "none" })
+                add("Private options" to FieldDebugInfo.oneLine(info.privateImeOptions).ifEmpty { "none" })
+                add("Extras" to (info.extras?.keySet()?.sorted()?.joinToString(", ")?.ifEmpty { null } ?: "none"))
+                add("Content types" to (info.contentMimeTypes?.joinToString(", ")?.ifEmpty { null } ?: "none"))
+                add("Hint locales" to (info.hintLocales?.toLanguageTags()?.ifEmpty { null } ?: "none"))
+                if (Build.VERSION.SDK_INT >= 34) {
+                    add("Stylus handwriting" to info.isStylusHandwritingEnabled.toString())
+                }
+            }
+        }
+        val version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull()
+        val keyboard = listOf(
+            "App version" to (version ?: "unknown"),
+            "Android" to "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})",
+            "Device" to "${Build.MANUFACTURER} ${Build.MODEL}",
+            "Language" to state.language.id,
+            "Layout" to "${state.layoutId} (${state.layoutMode})",
+            "Composer" to state.composer::class.simpleName.orEmpty(),
+            "Panel" to state.panel.name,
+            "Field kind" to state.fieldKind.name,
+            "Secure field" to state.secureField.toString(),
+            "Incognito" to state.incognitoOn.toString(),
+            "Typing intelligence" to state.allowsTypingIntelligence.toString(),
+            "Suggestions" to settings.suggestions.toString(),
+            "Autocorrect" to settings.correction.enabled.toString(),
+            "Glide typing" to settings.gestureTyping.toString(),
+            "Hardware keyboard" to (config.keyboard != Configuration.KEYBOARD_NOKEYS).toString(),
+            "Fullscreen" to isFullscreenMode.toString(),
+        )
+        val screen = listOf(
+            "Size" to "${config.screenWidthDp}×${config.screenHeightDp} dp, ${metrics.widthPixels}×${metrics.heightPixels} px",
+            "Smallest width" to "${config.smallestScreenWidthDp} dp",
+            "Density" to "${metrics.density} (${metrics.densityDpi} dpi)",
+            "Font scale" to config.fontScale.toString(),
+            "Orientation" to if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) "landscape" else "portrait",
+            "Night mode" to ((config.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES).toString(),
+        )
+        val memoryInfo = android.os.Debug.MemoryInfo().also { android.os.Debug.getMemoryInfo(it) }
+        fun stat(key: String) = memoryInfo.getMemoryStat("summary.$key")?.toLongOrNull() ?: 0L
+        val runtime = Runtime.getRuntime()
+        val models = runCatching { ResidentModels.loaded(this) }.getOrDefault(emptyList())
+        val memory = listOf(
+            "Total PSS" to "${(stat("total-pss").takeIf { it > 0 } ?: memoryInfo.totalPss.toLong()) / 1024} MB",
+            "Java heap" to "${(runtime.totalMemory() - runtime.freeMemory()) shr 20} of ${runtime.maxMemory() shr 20} MB",
+            "Native heap" to "${android.os.Debug.getNativeHeapAllocatedSize() shr 20} MB",
+            "Graphics" to "${stat("graphics") / 1024} MB",
+            "Loaded models" to models.joinToString(", ") { it.name ?: it.id }.ifEmpty { "none" },
+        )
+        return FieldDebugInfo.render(
+            listOf(
+                FieldDebugInfo.Section("Field", field),
+                FieldDebugInfo.Section("Keyboard", keyboard),
+                FieldDebugInfo.Section("Screen", screen),
+                FieldDebugInfo.Section("Memory", memory),
+            ),
+        )
+    }
 
     /**
      * The Screenshot tool (#1148), from the toolbar, a key or the floating
@@ -35484,6 +35579,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.RECENT_COPIES -> onRecentClipsToggle()
             ToolbarTool.LEAVE_FIELD -> onLeaveField()
             ToolbarTool.SCREENSHOT -> takeScreenshot()
+            ToolbarTool.DEBUG_INFO -> showDebugInfo()
             ToolbarTool.PRIVACY_SHADE -> onPrivacyShadeToggle()
             ToolbarTool.QUICK_NOTE -> onQuickNote()
             ToolbarTool.READ_BACK -> toggleReadBack()
@@ -62054,6 +62150,9 @@ private const val BRAILLE_PATTERNS_BASE = 0x2800
 
 /** How deep the pages of suggestions go (#385). */
 private const val SUGGEST_PAGES_POOL = 24
+
+/** The settings app's Debug info screen, which shows [KeyboardDebugSnapshot]. */
+private const val DEBUG_INFO_ROUTE = "debug_info"
 
 /** The most words the swipe-up popup over the strip offers: four rows of three at the default slot count. */
 private const val MORE_SUGGESTIONS_MAX = 12

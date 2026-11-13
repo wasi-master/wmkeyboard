@@ -1546,6 +1546,7 @@ internal fun AboutSettings(
     onOpenDebugLog: () -> Unit = {},
     onOpenStorage: () -> Unit = {},
     onOpenResources: () -> Unit = {},
+    onOpenDebugInfo: () -> Unit = {},
     onOpenImportHub: () -> Unit = {},
     onOpenStatistics: () -> Unit = {},
     onOpenEggGame: () -> Unit = {},
@@ -1863,6 +1864,14 @@ internal fun AboutSettings(
                 stringResource(R.string.about_diagnostics_subtitle),
                 route = "debug_log",
                 onClick = onOpenDebugLog,
+            )
+        }
+        item(level = SettingLevel.ADVANCED) {
+            NavRow(
+                R.string.about_debug_info_title,
+                stringResource(R.string.about_debug_info_subtitle),
+                route = "debug_info",
+                onClick = onOpenDebugInfo,
             )
         }
         item(level = SettingLevel.STANDARD) {
