@@ -81,6 +81,32 @@ class DictionaryCatalogTest {
     }
 
     @Test
+    fun sizesPromiseWhatTheDownloadKeeps() {
+        // Hindi's list is 242,911 lines, but the download stops at its first
+        // word counted once. The picker used to promise Medium 150,000 and
+        // Large 242,911, and all three sizes fetched the same 81,453 words.
+        val hi = DictionaryCatalog.byId("hi")!!
+        assertEquals(81_453, DictionaryCatalog.keptWords(hi))
+        assertEquals(50_000, DictionaryCatalog.wordCap(hi, DictionaryCatalog.DictionarySize.SMALL))
+        assertEquals(81_453, DictionaryCatalog.wordCap(hi, DictionaryCatalog.DictionarySize.MEDIUM))
+        assertEquals(81_453, DictionaryCatalog.wordCap(hi, DictionaryCatalog.DictionarySize.ALL))
+        assertEquals(179_459, DictionaryCatalog.keptWords(DictionaryCatalog.byId("hi_rom")!!))
+        // A list with no counts is taken whole whatever the size, so every
+        // size has to say so.
+        val ta = DictionaryCatalog.byId("ta")!!
+        for (size in DictionaryCatalog.DictionarySize.entries) {
+            assertEquals(DictionaryCatalog.keptWords(ta), DictionaryCatalog.wordCap(ta, size))
+        }
+        // The quote for a size scales with the words it keeps, and never
+        // passes the whole file.
+        for (entry in DictionaryCatalog.entries) {
+            val small = DictionaryCatalog.approxBytes(entry, DictionaryCatalog.DictionarySize.SMALL)
+            val all = DictionaryCatalog.approxBytes(entry, DictionaryCatalog.DictionarySize.ALL)
+            assertTrue(entry.id, small in 1..all)
+        }
+    }
+
+    @Test
     fun everyAospListHasACountedListBesideIt() {
         // "Use ours instead" has to be possible wherever AOSP is the default.
         val aosp = DictionaryCatalog.entries.filter { it.source == WordlistSource.AOSP }

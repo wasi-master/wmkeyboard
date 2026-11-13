@@ -91,8 +91,8 @@ object DictionaryCatalog {
 
     /**
      * User-selectable download size: how many of the most frequent words to
-     * keep. [ALL] takes the list whole, however long it is — its cap is the
-     * entry's own [DictionaryEntry.totalWordCount], not a number chosen here.
+     * keep. [ALL] takes every word the list yields, however many that is — its
+     * cap is the entry's own [keptWords], not a number chosen here.
      */
     enum class DictionarySize(@StringRes val labelRes: Int, val wordCap: Int) {
         SMALL(R.string.core_pred_wordlist_size_small_label, 50_000),
@@ -101,9 +101,36 @@ object DictionaryCatalog {
         ALL(R.string.core_pred_wordlist_size_all_label, Int.MAX_VALUE),
     }
 
-    /** Words [size] actually keeps of [entry] — never more than the list holds. */
-    fun wordCap(entry: DictionaryEntry, size: DictionarySize): Int =
-        minOf(size.wordCap, entry.totalWordCount)
+    /**
+     * The most words a download of [entry] can keep: its line count less the
+     * noise tail the downloader cuts (every word counted once) and the lines
+     * that are not one word. Hindi's list has 242,911 lines and yields 81,289.
+     * From [DictionaryKeptCounts]; the line count for a list not measured yet.
+     */
+    fun keptWords(entry: DictionaryEntry): Int =
+        DictionaryKeptCounts.of(entry)?.words ?: entry.totalWordCount
+
+    /**
+     * Words [size] actually keeps of [entry]: never more than the list yields,
+     * and all of it at every size for a list with no counts to rank by, which
+     * the downloader takes whole (see [WordlistDownloadManager]).
+     */
+    fun wordCap(entry: DictionaryEntry, size: DictionarySize): Int {
+        val kept = DictionaryKeptCounts.of(entry)
+        return if (kept?.flat == true) kept.words else minOf(size.wordCap, keptWords(entry))
+    }
+
+    /**
+     * Roughly what [entry] transfers at [size]. A capped download stops partway
+     * through the file, so this scales what the whole kept list costs by the
+     * share of it read.
+     */
+    fun approxBytes(entry: DictionaryEntry, size: DictionarySize): Long {
+        val kept = DictionaryKeptCounts.of(entry)
+        val words = kept?.words ?: entry.totalWordCount
+        val bytes = kept?.bytes ?: entry.approxGzBytes
+        return bytes * wordCap(entry, size) / words.coerceAtLeast(1)
+    }
 
     private fun entry(
         id: String,

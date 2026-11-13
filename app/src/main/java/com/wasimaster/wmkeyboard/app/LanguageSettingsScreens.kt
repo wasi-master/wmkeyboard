@@ -514,13 +514,9 @@ internal fun requiredCjkPacks(langId: String): List<CjkDictPack> =
         .flatMap { CjkDictCatalog.withCompanions(it) }
         .distinctBy { it.id }
 
-/**
- * Roughly what [entry] transfers at [size]. The catalogue sizes the whole
- * file, and a capped download stops partway through it, so this scales by the
- * share of the list actually read.
- */
+/** Roughly what [entry] transfers at [size]; see [DictionaryCatalog.approxBytes]. */
 internal fun entryBytes(entry: DictionaryEntry, size: DictionaryCatalog.DictionarySize): Long =
-    entry.approxGzBytes * DictionaryCatalog.wordCap(entry, size) / entry.totalWordCount.coerceAtLeast(1)
+    DictionaryCatalog.approxBytes(entry, size)
 
 /** Everything downloadable for [langId], sized for a prompt. */
 internal fun languageData(langId: String): LanguageData {

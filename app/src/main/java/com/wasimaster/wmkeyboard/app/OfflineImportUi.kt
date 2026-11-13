@@ -97,7 +97,9 @@ internal fun OfflineImportRow(
         title = title,
         supporting = { Text(subtitle) },
         trailing = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            // One above the other: side by side the pair took half the row's
+            // width and squeezed its title and subtitle into a narrow column.
+            Column(horizontalAlignment = Alignment.End) {
                 if (links.isNotEmpty()) {
                     TextButton(onClick = { showLinks = true }) {
                         Text(stringResource(R.string.offline_import_get_action))

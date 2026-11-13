@@ -98,7 +98,7 @@ object WordlistDownloadManager {
     /** Frequencies below this are subtitle/scrape noise, not vocabulary. */
     private const val MIN_FREQUENCY = 2
 
-    /** Smallest array a flat list grows to, for a cap that clamped to almost nothing. */
+    /** Smallest array a parse starts with, for a list measured at almost nothing. */
     private const val MIN_GROWTH = 1024
 
     /** Guards against pathological lines masquerading as words. */
@@ -239,9 +239,10 @@ object WordlistDownloadManager {
         activeJob = scope.launch {
             val part = DictionaryStore.partFile(filesDir, entry.languageId)
             try {
-                // Clamped here, not inside: ALL's cap is Int.MAX_VALUE, which
-                // would ask the free-space check for 137 GB.
-                val list = fetchEntries(entry, DictionaryCatalog.wordCap(entry, size), part)
+                // The tier's own cap, not the catalogue's clamp of it: the
+                // catalogue measured the list as it was, and a list rebuilt
+                // longer since should still fill the size asked for.
+                val list = fetchEntries(entry, size.wordCap, part)
                 set(entry.id, DownloadStatus.Processing)
                 val trie = pack(filesDir, entry.languageId, list, part)
                 val final = DictionaryStore.downloadedFile(filesDir, entry.languageId)
@@ -331,7 +332,7 @@ object WordlistDownloadManager {
         try {
             set(entry.id, DownloadStatus.Processing)
             val list = openList(file).use { input ->
-                parse(entry, DictionaryCatalog.wordCap(entry, size), input) {}
+                parse(entry, size.wordCap, input) {}
             }
             val trie = pack(filesDir, entry.languageId, list, part)
             val final = DictionaryStore.downloadedFile(filesDir, entry.languageId)
@@ -604,7 +605,10 @@ object WordlistDownloadManager {
     ): Wordlist {
         part.parentFile?.mkdirs()
         val free = StatFs(part.parentFile!!.path).availableBytes
-        if (free < wordCap * BYTES_PER_WORD + SPACE_MARGIN_BYTES) {
+        // What the list can yield, not the cap: ALL's is Int.MAX_VALUE, which
+        // would ask for 137 GB.
+        val expected = minOf(wordCap, DictionaryCatalog.keptWords(entry)).toLong()
+        if (free < expected * BYTES_PER_WORD + SPACE_MARGIN_BYTES) {
             throw FailedException(FailReason.NO_SPACE, R.string.core_pred_wordlist_no_space_error)
         }
 
@@ -652,12 +656,18 @@ object WordlistDownloadManager {
      * The first [wordCap] usable entries of an inflated `word count` list, the
      * way [fetchEntries] and [install] both read it. [onLine] runs once per
      * line, for progress and cancellation.
+     *
+     * What this keeps is what the size dialog promises, through
+     * [DictionaryCatalog.wordCap] and the table tools/wordlists/kept_counts.py
+     * measures by replaying this function: change a rule here and rerun it.
      */
     private inline fun parse(entry: DictionaryEntry, wordCap: Int, input: InputStream, onLine: () -> Unit): Wordlist {
-        // wordCap is already clamped to the list's length, and a sorted
-        // list stops at it, so only a flat one (below) ever grows these.
-        var words = arrayOfNulls<String>(wordCap)
-        var frequencies = IntArray(wordCap)
+        // Sized for what the catalogue says the list yields, so a sorted list
+        // allocates once. They still grow: a flat list (below) is read whole,
+        // and a list rebuilt longer than it was measured reads to its cap.
+        val initial = minOf(wordCap, DictionaryCatalog.keptWords(entry)).coerceAtLeast(MIN_GROWTH)
+        var words = arrayOfNulls<String>(initial)
+        var frequencies = IntArray(initial)
         var count = 0
         // Whether the noise cut below applies at all, decided by the first
         // usable line. A few repo lists are bare wordlists wearing the
@@ -702,9 +712,9 @@ object WordlistDownloadManager {
                 words[count] = word
                 frequencies[count] = frequency
                 count++
+                if ((ranked == true || aosp) && count >= wordCap) break
                 if (count >= words.size) {
-                    if (ranked == true || aosp) break
-                    words = words.copyOf(maxOf(words.size * 2, MIN_GROWTH))
+                    words = words.copyOf(minOf(words.size.toLong() * 2, Int.MAX_VALUE - 8L).toInt())
                     frequencies = frequencies.copyOf(words.size)
                 }
             }

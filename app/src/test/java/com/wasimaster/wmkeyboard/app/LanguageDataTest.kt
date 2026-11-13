@@ -36,8 +36,8 @@ class LanguageDataTest {
         val list = data.wordlist!!
         // The prompt fetches the Large tier, so it pays for that share of the
         // published file rather than all of it.
-        val cap = DictionaryCatalog.wordCap(list, DictionaryCatalog.DictionarySize.LARGE)
-        val wordlistBytes = list.approxGzBytes * cap / list.totalWordCount.coerceAtLeast(1)
+        val wordlistBytes = DictionaryCatalog.approxBytes(list, DictionaryCatalog.DictionarySize.LARGE)
+        assertTrue(wordlistBytes in 1..list.approxGzBytes)
         // The size on the dialog is what the user agrees to spend, so a pack
         // left out of the total is a download they were never asked about.
         assertEquals(
