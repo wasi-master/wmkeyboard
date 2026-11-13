@@ -42,7 +42,7 @@
 //! | `share.text` `share.open` | share |
 //! | `notify.show` `notify.cancel` | notifications |
 //! | `secrets.get` `secrets.set` `secrets.remove` | storage |
-//! | `ui.toast` `ui.dialog` `plugin.close` `plugin.refresh` `plugin.open_settings` `time.zone` | none |
+//! | `ui.toast` `ui.dialog` `plugin.close` `plugin.refresh` `plugin.open_settings` `keyboard.use` `keyboard.restore` `time.zone` | none |
 //!
 //! `field.selection`, `field.before`, `field.after`, `clipboard.get` and
 //! `plugin.open_settings` are refused outside an event the user caused in the panel (a click, a change,
@@ -82,6 +82,7 @@ pub const PRELUDE: &[(&str, &str, bool)] = &[
     ("wm.files", include_str!("prelude/files.py"), false),
     ("wm.http", include_str!("prelude/http.py"), false),
     ("wm.i18n", include_str!("prelude/i18n.py"), false),
+    ("wm.keyboard", include_str!("prelude/keyboard.py"), false),
     ("wm.location", include_str!("prelude/location.py"), false),
     ("wm.notify", include_str!("prelude/notify.py"), false),
     ("wm.plugin", include_str!("prelude/plugin.py"), false),
@@ -139,7 +140,7 @@ pub fn permission_for(op: &str) -> Option<Option<&'static str>> {
         ("share", "text" | "open") => Some("share"),
         ("notify", "show" | "cancel") => Some("notifications"),
         ("secrets", "get" | "set" | "remove") => Some("storage"),
-        ("ui", "toast" | "dialog") | ("plugin", "close" | "refresh" | "open_settings") | ("time", "zone") => None,
+        ("ui", "toast" | "dialog") | ("plugin", "close" | "refresh" | "open_settings") | ("keyboard", "use" | "restore") | ("time", "zone") => None,
         // plugin.settings.set: the plugin's own rows; the keyboard refuses host rows.
         ("settings", "set") => None,
         _ => return None,

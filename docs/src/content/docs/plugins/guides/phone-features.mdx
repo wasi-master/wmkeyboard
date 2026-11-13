@@ -22,6 +22,7 @@ sensor: the keyboard does the work and hands back only the result.
 | `files` | `pick(kind=, then=)`, `photo(then=)`, `save(name, data)` | risky `files` |
 | `calendar` | `events(start, end)`, `calendars()`, `add(title, start, end)` | risky `calendar` |
 | `todo` | `list()`, `add(text)`, `update(id, ...)`, `remove(id)` | risky `todo` |
+| `keyboard` | `use_language(language)`, `restore()` | none |
 
 `scan` and `files` work from your panel or the floating box, not from a
 [selection action](/plugins/guides/text-and-selection/#buttons-over-selected-text): they need a screen to
@@ -226,6 +227,26 @@ Each task has `id`, `text`, `done`, `due` (seconds since 1970, or `None`),
 `all_day` and `steps`. Steps go one level deep, as in the To-do tool: a step
 asked for under a step goes under its task. Ticking a task ticks its steps.
 
+## keyboard
+
+The keys under your panel. A drill that asks for an answer in Japanese can
+put the Japanese keys up while the user types it into your box:
+
+```python
+from wm import keyboard
+
+name = keyboard.use_language("ja")   # "Japanese Romaji", or None
+...
+keyboard.restore()                   # the user's own layout again
+```
+
+The keyboard uses the user's own layout for the language when they added
+one, and the language's default layout otherwise, so a learner needs nothing
+set up first. It puts the user's layout back by itself when your panel closes,
+another plugin opens or the field changes, and leaves alone a layout the user
+picked themselves in between. Only your panel in the keyboard can do this; the
+floating box has no keys under it.
+
 ## In the web editor
 
 The web editor answers every call on this page so you can run your code:
@@ -247,5 +268,6 @@ The web editor answers every call on this page so you can run your code:
 | `calendar.events` | a pretend stand-up each weekday and a lunch on Wednesdays |
 | `calendar.add` | a line in the console |
 | `todo.*` | a pretend list of a few tasks, which your calls change until the preview restarts |
+| `keyboard.use_language` | the language's name, and a line in the console |
 
 The console marks each pretend answer, so you always know which ones were real.

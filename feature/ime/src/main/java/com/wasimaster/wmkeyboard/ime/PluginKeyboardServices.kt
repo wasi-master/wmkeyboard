@@ -101,6 +101,15 @@ internal class PluginKeyboardServices(
     private val startHandoff: (PluginHandoff) -> Boolean,
     /** The plugin's call stopped waiting on [PluginHandoff], answered or not. Main thread. */
     private val handoffDone: (PluginHandoff) -> Unit,
+    /**
+     * Shows the keys of a language under the plugin on screen, as
+     * `keyboard.use_language` asks: the layout's name, or null when the
+     * keyboard has no layout for it or that plugin is not the one on screen.
+     * Main thread.
+     */
+    private val useLanguage: (pluginId: String, language: String) -> String?,
+    /** Puts back the layout the user had before [useLanguage]. Main thread. */
+    private val restoreLayout: (pluginId: String) -> Unit,
     /** Opens the plugin's own page in Settings, as `plugin.open_settings()` asks. Main thread. */
     private val openSettings: (pluginId: String) -> Unit,
 ) : PluginServices {
@@ -193,6 +202,11 @@ internal class PluginKeyboardServices(
         }
         "scan.qr" -> scan(call, PluginHandoff.Kind.QR)
         "scan.text" -> scan(call, PluginHandoff.Kind.TEXT)
+        "keyboard.use" -> keyboardUse(call)
+        "keyboard.restore" -> {
+            onMain { restoreLayout(call.plugin.id) }
+            JsonNull
+        }
         "calendar.events" -> calendarEvents(call)
         "calendar.calendars" -> calendars()
         "calendar.add" -> calendarAdd(call)
@@ -938,6 +952,25 @@ internal class PluginKeyboardServices(
         }
     }
 
+    // ---- the keyboard ----------------------------------------------------
+
+    /**
+     * Another language's keys under the panel, until the plugin restores them,
+     * its panel closes or another plugin opens. Only from the keyboard's own
+     * panel: the floating box has no keys under it, and a selection action
+     * no panel at all.
+     */
+    private fun keyboardUse(call: PluginCall): JsonElement {
+        if (call.surface != "panel") {
+            throw PluginCallException("RuntimeError", "keyboard.use_language works only from the plugin's panel in the keyboard")
+        }
+        val language = call.string("language").orEmpty().trim().take(MAX_LANGUAGE_TAG)
+        if (language.isEmpty()) {
+            throw PluginCallException("ValueError", "keyboard.use_language needs a language tag, such as \"ja\"")
+        }
+        return onMain { useLanguage(call.plugin.id, language) }?.let(::JsonPrimitive) ?: JsonNull
+    }
+
     // ---- sensors ---------------------------------------------------------
 
     /** Open subscriptions, by the call's token: count one down to end it. */
@@ -1094,6 +1127,7 @@ internal class PluginKeyboardServices(
 
         /** Shortest time between two alarms or timers from one plugin. */
         private const val CLOCK_GAP_MS = 3_000L
+        private const val MAX_LANGUAGE_TAG = 35
 
         /** The longest span `calendar.events` reads at once, in seconds: 62 days. */
         private const val MAX_CALENDAR_SPAN_S = 62.0 * 24 * 60 * 60

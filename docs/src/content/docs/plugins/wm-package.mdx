@@ -25,7 +25,7 @@ The editors complete these names as you type and show what each one does.
 [`device`](#device) · [`share`](#share) · [`notify`](#notify) ·
 [`reminders`](#reminders) · [`clock`](#clock) · [`scan`](#scan) · [`sensors`](#sensors) ·
 [`location`](#location) · [`files`](#files) · [`calendar`](#calendar) ·
-[`todo`](#todo) · [translations](#translations) ·
+[`todo`](#todo) · [`keyboard`](#keyboard) · [translations](#translations) ·
 [`wm` itself](#wm-itself) · [errors](#errors) · [limits](#limits)
 
 ## The manifest
@@ -418,6 +418,21 @@ Android's calendar permission asks for it and raises `PermissionError`.
 | `todo.add(text, parent=None, due=None, all_day=False)` | adds a task, or a step of the task `parent`, and returns it |
 | `todo.update(id, text=None, done=None, due=..., all_day=False)` | changes the text, the tick or the date; `due=None` clears the date and leaving it out keeps it. Returns the task, or `None` when there is none. Ticking a task ticks its steps |
 | `todo.remove(id)` | deletes the task and its steps; `True` when there was one |
+
+## keyboard
+
+`from wm import keyboard`. Needs no permission. The keys under your panel,
+for drills and tools that want the user to type in another language.
+
+| | |
+|---|---|
+| `keyboard.use_language(language)` | shows the keys of `language`, a tag such as `"ja"`, `"ko"` or `"pt-BR"`: the user's own layout for that language when they added one, else the keyboard's default for it. Returns the layout's name, or `None` when the keyboard has no layout for that language |
+| `keyboard.restore()` | back to the user's own layout |
+
+The user's layout comes back by itself when your panel closes, another plugin
+opens or the text field changes. If the user picks a layout themselves in the
+meantime, theirs stays. Works from the keyboard's panel only: in the floating
+box and in a selection action it raises `RuntimeError`.
 
 ## Translations
 

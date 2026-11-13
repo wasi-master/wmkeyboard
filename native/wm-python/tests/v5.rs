@@ -496,6 +496,36 @@ def render():
 }
 
 #[test]
+fn keyboard_language_needs_no_permission_and_answers_the_layout() {
+    big(|| {
+        let mut s = session(&[], json!({}));
+        let seen = Rc::new(RefCell::new(Vec::<String>::new()));
+        let log = seen.clone();
+        s.set_bridge(Some(Box::new(move |op: &str, args: &str| {
+            log.borrow_mut().push(format!("{op} {args}"));
+            let name = if op == "keyboard.use" { json!("Japanese Romaji") } else { json!(null) };
+            json!({"value": name}).to_string()
+        })));
+        let src = r#"
+from wm import keyboard, plugin, ui
+got = plugin.state(name="")
+def drill():
+    got.name = keyboard.use_language("ja")
+def render():
+    ui.label(got.name or "-")
+    ui.button("Drill", on_click=drill, key="d")
+    ui.button("Done", on_click=keyboard.restore, key="r")
+"#;
+        ok(&parse(s.load(src)));
+        let r = parse(s.event(&json!({"type": "click", "id": "d"}).to_string()));
+        ok(&r);
+        assert_eq!(find(&r["ui"], "label").unwrap()["text"], "Japanese Romaji");
+        ok(&parse(s.event(&json!({"type": "click", "id": "r"}).to_string())));
+        assert_eq!(*seen.borrow(), vec![r#"keyboard.use {"language":"ja"}"#.to_string(), "keyboard.restore {}".to_string()]);
+    });
+}
+
+#[test]
 fn async_calls_answer_later_as_result_events() {
     big(|| {
         let mut s = session(&["ai"], json!({}));

@@ -36536,6 +36536,8 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.panel != PanelMode.PLUGINS && _uiState.value.appletPanel != PanelMode.PLUGINS && !handoffHolds) {
             pluginRuntime?.close()
         }
+        // Keys a plugin borrowed go back with its panel.
+        if (_uiState.value.panel != PanelMode.PLUGINS && !handoffHolds) restorePluginLayout()
         // Either direction is a history surface changing hands — the emoji
         // panel's grids coming up, or the emoji row it hid coming back — so
         // this is where a ranking moved by earlier taps lands.
@@ -42574,8 +42576,62 @@ open class WMKeyboardService : InputMethodService() {
             closePanel = { openPluginList() },
             startHandoff = ::startPluginHandoff,
             handoffDone = ::pluginHandoffDone,
+            useLanguage = ::pluginUseLanguage,
+            restoreLayout = { pluginId -> restorePluginLayout(pluginId) },
             openSettings = { pluginId -> openRoute("plugin/$pluginId") },
         ).also { pluginServicesOrNull = it }
+
+    /**
+     * Keys a plugin borrowed with `keyboard.use_language`: which plugin, the
+     * layout it put up, and the user's layout to put back. Main thread.
+     */
+    private class PluginLayoutLoan(val pluginId: String, val lent: String, val returnTo: String)
+
+    private var pluginLayoutLoan: PluginLayoutLoan? = null
+
+    /**
+     * Puts up the keys of [tag]'s language for the plugin on screen: the
+     * user's own layout for it when they have one, else the language's first
+     * shipped layout. The layout's name, or null when there is none, or
+     * [pluginId] is not the plugin in the keyboard's panel.
+     */
+    private fun pluginUseLanguage(pluginId: String, tag: String): String? {
+        val state = _uiState.value
+        val running = state.plugins as? PluginPanelUi.Running ?: return null
+        if (state.panel != PanelMode.PLUGINS || running.plugin.id != pluginId || pluginRuntime?.activePluginId != pluginId) return null
+        val layoutId = layoutForLanguageTag(state.settings, tag) ?: return null
+        // A second call from the same plugin keeps the first one's way back.
+        val loan = pluginLayoutLoan?.takeIf { it.pluginId == pluginId && it.lent == state.layoutId }
+        val returnTo = loan?.returnTo ?: state.layoutId
+        if (layoutId != state.layoutId) onLayoutSelected(layoutId, recordRecent = false)
+        val now = _uiState.value.layoutId
+        pluginLayoutLoan = if (now == returnTo) null else PluginLayoutLoan(pluginId, now, returnTo)
+        return _uiState.value.layoutName
+    }
+
+    /** [tag]'s language, by id ("ja", "sr_latn") or BCP-47 tag ("pt-BR"), as one of the user's layouts or a shipped one. */
+    private fun layoutForLanguageTag(settings: KeyboardSettings, tag: String): String? {
+        val id = tag.trim().replace('-', '_').lowercase()
+        val language = LanguageRegistry.byId(id).takeIf { it.id == id } ?: LanguageRegistry.byLocale(tag) ?: return null
+        settings.enabledLayoutIds
+            .firstOrNull { com.wasimaster.wmkeyboard.core.layout.resolveLayoutLanguage(settings.customLayouts, it).id == language.id }
+            ?.let { return it }
+        return language.layoutIds.firstOrNull { com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId(it) }
+    }
+
+    /**
+     * Gives the keys back after `keyboard.use_language`: when the plugin asks,
+     * when its panel closes, another plugin opens or the field changes. Only
+     * [pluginId]'s loan when one is named. A layout the user picked since
+     * stays: theirs beats the plugin's way back.
+     */
+    private fun restorePluginLayout(pluginId: String? = null) {
+        val loan = pluginLayoutLoan ?: return
+        if (pluginId != null && loan.pluginId != pluginId) return
+        pluginLayoutLoan = null
+        if (_uiState.value.layoutId != loan.lent) return
+        onLayoutSelected(loan.returnTo, recordRecent = false)
+    }
 
     /**
      * A plugin waiting on one of the keyboard's own screens: a scanner, the
@@ -42795,6 +42851,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         pluginReturn = null
         pluginRuntime?.close()
+        restorePluginLayout()
         val store = PluginStore.get(this)
         store.reconcile()
         // The subsystem is off until the user asks for it, so the panel says so
@@ -42870,6 +42927,7 @@ open class WMKeyboardService : InputMethodService() {
         val store = PluginStore.get(this)
         if (!store.subsystemEnabled()) return openPluginList()
         val plugin = store.plugin(pluginId) ?: return openPluginList()
+        restorePluginLayout()
         _uiState.update {
             it.copy(
                 plugins = PluginPanelUi.Running(plugin),
@@ -42943,6 +43001,8 @@ open class WMKeyboardService : InputMethodService() {
         // its panel, and none of its boxes ever has the keys there. So does
         // one waiting on Android's picker, which hides the keyboard to show.
         if (_uiState.value.appletPanel != PanelMode.PLUGINS && pluginHandoff == null) pluginRuntime?.close()
+        // The next field opens on the user's own layout, not a plugin's.
+        if (pluginHandoff == null) restorePluginLayout()
         if (_uiState.value.pluginFocusedInput == null && _uiState.value.pluginInputs.isEmpty()) return
         _uiState.update { it.copy(pluginFocusedInput = null, pluginInputs = emptyMap()) }
     }

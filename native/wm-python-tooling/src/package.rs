@@ -22,6 +22,7 @@ const SOURCES: &[(&str, &str)] = &[
     ("files", include_str!("../../wm-python/src/host/prelude/files.py")),
     ("http", include_str!("../../wm-python/src/host/prelude/http.py")),
     ("i18n", include_str!("../../wm-python/src/host/prelude/i18n.py")),
+    ("keyboard", include_str!("../../wm-python/src/host/prelude/keyboard.py")),
     ("location", include_str!("../../wm-python/src/host/prelude/location.py")),
     ("notify", include_str!("../../wm-python/src/host/prelude/notify.py")),
     ("plugin", include_str!("../../wm-python/src/host/prelude/plugin.py")),

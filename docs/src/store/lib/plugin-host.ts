@@ -451,7 +451,11 @@ export function makeBridge(ctx: HostContext): Bridge {
 				navigator.vibrate?.(Number(args.ms) || 30);
 				return reply(null);
 			case 'device.speak':
-				if ('speechSynthesis' in window) window.speechSynthesis.speak(new SpeechSynthesisUtterance(String(args.text ?? '')));
+				if ('speechSynthesis' in window) {
+					const utterance = new SpeechSynthesisUtterance(String(args.text ?? ''));
+					if (typeof args.language === 'string' && args.language) utterance.lang = args.language;
+					window.speechSynthesis.speak(utterance);
+				}
 				return reply(null);
 			case 'device.battery':
 				return reply({ level: 76, charging: false });
@@ -506,6 +510,23 @@ export function makeBridge(ctx: HostContext): Bridge {
 			case 'plugin.open_settings':
 				// No settings page here: the preview runs on each setting's default.
 				ctx.log('[opened the plugin\'s settings page; the preview uses the defaults in plugin.json]');
+				return reply(null);
+			case 'keyboard.use': {
+				// The preview has no keys to change: it names the layout the
+				// keyboard would show, as the phone answers.
+				const tag = String(args.language ?? '').trim();
+				if (!tag) return fail('ValueError', 'keyboard.use_language needs a language tag, such as "ja"');
+				let name = tag;
+				try {
+					name = new Intl.DisplayNames(['en'], { type: 'language' }).of(tag) ?? tag;
+				} catch {
+					// Not a tag the browser knows: keep it as typed.
+				}
+				ctx.log(`[keyboard] ${name} keys while the panel is open`);
+				return reply(name);
+			}
+			case 'keyboard.restore':
+				ctx.log('[keyboard] back to your own layout');
 				return reply(null);
 			case 'sensors.list':
 				return reply(PRETEND_SENSORS);
