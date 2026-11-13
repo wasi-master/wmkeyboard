@@ -25,6 +25,29 @@ def timestamp(year, month, day, hour=12, minute=0, second=0):
     return _wm.timestamp(year, month, day, hour, minute, second)
 
 
+_zones = {}
+
+
+def zone_offset(zone=None, seconds=None):
+    """The UTC offset in seconds of the time zone [zone] (an IANA name such
+    as "Asia/Tokyo", or None for the phone's own) at [seconds] since 1970,
+    now by default. Summer time is counted. Raises ValueError for a zone
+    the keyboard does not know."""
+    import time as _time
+    key = "" if zone is None else str(zone)
+    rows = _zones.get(key)
+    if rows is None:
+        rows = _wm.call("time.zone", {"zone": key})["rows"]
+        _zones[key] = rows
+    at = _time.time() if seconds is None else seconds
+    offset = 0
+    for start, value in rows:
+        if start > at:
+            break
+        offset = value
+    return offset
+
+
 from wm._storage import Storage as _Storage
 
 storage = _Storage()

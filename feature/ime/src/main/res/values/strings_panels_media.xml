@@ -372,6 +372,10 @@
     <string name="ime_plugin_more">More options for <xliff:g id="plugin" example="Math Mode">%1$s</xliff:g></string>
     <string name="ime_plugin_tiles_full" tools:ignore="PluralsCandidate">You already have <xliff:g id="count" example="24">%1$d</xliff:g> custom buttons, the most there can be. Remove one in Custom buttons first.</string>
     <string name="ime_plugin_version_label">Version <xliff:g id="version" example="1.2.0">%1$s</xliff:g></string>
+    <!-- Toast when a plugin sets an alarm in the keyboard's Clock tool. -->
+    <string name="ime_plugin_clock_alarm_set"><xliff:g id="plugin" example="Transit Planner">%1$s</xliff:g> set an alarm for <xliff:g id="time" example="8:05 AM">%2$s</xliff:g> in Clock</string>
+    <!-- Toast when a plugin starts a timer in the keyboard's Clock tool. -->
+    <string name="ime_plugin_clock_timer_set"><xliff:g id="plugin" example="Transit Planner">%1$s</xliff:g> started a <xliff:g id="duration" example="25:00">%2$s</xliff:g> timer in Clock</string>
 
     <!-- The chooser of providers in a panel, for a list in pick mode (#727) -->
     <string name="ime_provider_choose_desc">Choose the provider</string>

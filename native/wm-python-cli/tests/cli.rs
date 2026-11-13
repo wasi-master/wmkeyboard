@@ -160,3 +160,14 @@ fn an_api_5_test_imports_the_plugins_own_modules() {
     let (code, out, err) = cli(&["test", dir.to_str().unwrap()]);
     assert_eq!((code, out.as_str(), err.as_str()), (0, "ok\n", ""));
 }
+
+#[test]
+fn an_api_5_test_imports_the_plugins_own_modules() {
+    let manifest = r#"{"id": "com.example.fares", "pluginVersion": "1.0.0", "apiVersion": 5}"#;
+    let main = "from wm import ui\nimport fares\ndef render():\n    ui.label(str(fares.total([2, 3])))\n";
+    let fares = "def total(xs):\n    return sum(xs)\n";
+    let test = "import fares\nassert fares.total([2.5, 1]) == 3.5\nprint('ok')\n";
+    let dir = plugin("modules", &[("plugin.json", manifest), ("main.py", main), ("fares.py", fares), ("test.py", test)]);
+    let (code, out, err) = cli(&["test", dir.to_str().unwrap()]);
+    assert_eq!((code, out.as_str(), err.as_str()), (0, "ok\n", ""));
+}

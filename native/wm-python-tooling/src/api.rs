@@ -147,6 +147,7 @@ pub const WM_PACKAGE: &[&str] = &[
     "plugin", "ui", "http", "ai", "field", "clipboard", "location", "files", "sensors", "scan", "device", "share",
     "notify", "secrets", "reminders", "storage", "log", "timestamp", "i18n", "_", "gettext", "ngettext", "calendar",
     "todo",
+    "clock", "zone_offset",
 ];
 
 /// Names that do not exist here but have a counterpart that does.

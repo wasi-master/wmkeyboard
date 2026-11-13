@@ -684,7 +684,7 @@ export const PLUGIN_LUA_REFUSAL = 'This plugin is written in Lua, which WM Keybo
 export const PLUGIN_PERMISSIONS = [
 	'storage', 'reminders', 'selection',
 	'network', 'network.local', 'ai', 'field.read', 'field.write', 'clipboard.read', 'clipboard.write',
-	'location', 'files', 'sensors', 'scan', 'device', 'share', 'notifications', 'calendar', 'todo',
+	'location', 'files', 'sensors', 'scan', 'device', 'share', 'notifications', 'calendar', 'todo', 'clock',
 ] as const;
 /** The permissions API 5 added (PluginPermission.sinceApi); a lower manifest may not declare them. */
 const PLUGIN_API_5_PERMISSIONS = new Set(PLUGIN_PERMISSIONS.slice(3));

@@ -317,6 +317,54 @@ function todoTree(tasks: PretendTask[], withDone: boolean): Record<string, unkno
 		.map((t) => ({ ...shape(t), steps: tasks.filter((c) => c.parent === t.id).map(shape) }));
 }
 
+/** A zone's UTC offset in seconds at [t] (seconds since 1970), read from the browser's own zone data. */
+function zoneOffset(format: Intl.DateTimeFormat, t: number): number {
+	const parts: Record<string, number> = {};
+	for (const p of format.formatToParts(new Date(t * 1000))) if (p.type !== 'literal') parts[p.type] = Number(p.value);
+	const wall = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour % 24, parts.minute, parts.second) / 1000;
+	return Math.round((wall - Math.floor(t)) / 60) * 60;
+}
+
+/**
+ * `[[from, offset], ...]` for a time zone, as the phone answers `time.zone`:
+ * two years back to five ahead, each change found to the minute. The
+ * phone's own zone when [name] is empty; null for a name the browser does not know.
+ */
+function zoneRows(name: string): [number, number][] | null {
+	let format: Intl.DateTimeFormat;
+	try {
+		format = new Intl.DateTimeFormat('en-US', {
+			timeZone: name || undefined, hourCycle: 'h23',
+			year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric',
+		});
+	} catch {
+		return null;
+	}
+	const day = 86400;
+	const now = Math.floor(Date.now() / 1000);
+	let at = now - 2 * 366 * day;
+	let offset = zoneOffset(format, at);
+	const rows: [number, number][] = [[-62135596800, offset]];
+	const until = now + 5 * 366 * day;
+	while (at < until) {
+		const next = at + day;
+		const nextOffset = zoneOffset(format, next);
+		if (nextOffset !== offset) {
+			let low = at;
+			let high = next;
+			while (high - low > 60) {
+				const mid = Math.floor((low + high) / 2);
+				if (zoneOffset(format, mid) === offset) low = mid;
+				else high = mid;
+			}
+			rows.push([high, nextOffset]);
+			offset = nextOffset;
+		}
+		at = next;
+	}
+	return rows;
+}
+
 export function makeBridge(ctx: HostContext): Bridge {
 	const field = new PreviewField();
 	const secrets = new Map<string, string>();
@@ -419,6 +467,26 @@ export function makeBridge(ctx: HostContext): Bridge {
 				if (!url.startsWith('https://')) return fail('ValueError', 'only https addresses');
 				window.open(url, '_blank', 'noopener');
 				return reply(null);
+			}
+			case 'clock.alarm': {
+				const at = Number(args.at);
+				if (!Number.isFinite(at)) return fail('ValueError', 'at must be a number of seconds');
+				const now = Date.now() / 1000;
+				if (at < now + 60) return fail('ValueError', 'an alarm must be at least a minute away');
+				if (at > now + 86400) return fail('ValueError', 'an alarm rings within the next 24 hours; use reminders for later');
+				const when = new Date(at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+				ctx.log(`[clock] alarm at ${when}${args.label ? `: ${String(args.label)}` : ''} (the phone adds it to its Clock)`);
+				return reply(null);
+			}
+			case 'clock.timer': {
+				const seconds = Number(args.seconds);
+				if (!Number.isFinite(seconds) || seconds < 1 || seconds > 86400) return fail('ValueError', 'a timer runs from 1 second to 24 hours');
+				ctx.log(`[clock] ${Math.round(seconds)} s timer${args.label ? `: ${String(args.label)}` : ''} (the phone starts it in its Clock)`);
+				return reply(null);
+			}
+			case 'time.zone': {
+				const rows = zoneRows(String(args.zone ?? ''));
+				return rows ? reply({ zone: String(args.zone ?? ''), rows }) : fail('ValueError', `unknown time zone: ${String(args.zone).slice(0, 64)}`);
 			}
 			case 'notify.show':
 				ctx.log(`[notification] ${args.title ? `${String(args.title)}: ` : ''}${String(args.text ?? '')}`);

@@ -15,6 +15,7 @@ sensor: the keyboard does the work and hands back only the result.
 | `device` | `vibrate(ms)`, `flashlight(on)`, `speak(text, language=)`, `battery()` | `device` |
 | `share` | `text(text)`, `open(url)` | `share` |
 | `notify` | `show(text, title=, id=)`, `cancel(id)` | `notifications` |
+| `clock` | `alarm(seconds, label=)`, `timer(seconds, label=)` | `clock` |
 | `scan` | `qr(then=)`, `text(then=)` | `scan` |
 | `sensors` | `subscribe(kind, on_reading=, hz=)`, `unsubscribe(token)`, `available()` | `sensors` |
 | `location` | `get(accuracy=, then=)` | risky `location` |
@@ -64,6 +65,29 @@ keyboard's name, and showing the same `id` again replaces the notification.
 It uses the same channel as reminders, so if the user turned notifications off
 for the keyboard, `show` raises `PermissionError`. For a notification at a later time, when your panel is
 closed, use a [reminder](/plugins/guides/saving-and-settings/#reminders).
+
+## clock
+
+A reminder is a quiet notification. When the user must not miss the moment,
+set an alarm or a timer in the keyboard's own [Clock](/tools/clock/) instead.
+It rings with the user's alarm sound, even with the keyboard closed:
+
+```python
+import time
+from wm import clock
+
+clock.alarm(train - 10 * 60, "Train to Tokyo")   # seconds since 1970
+clock.timer(25 * 60, "Get off at Shibuya")       # seconds from now
+```
+
+An alarm rings once, at the minute of the time you give, which must be one
+minute to 24 hours away; for anything later, use a reminder. A timer runs from
+1 second to 24 hours. One plugin can set one every 3 seconds; a call sooner
+raises `ValueError`.
+
+Each time, the keyboard shows a message naming your plugin, and the alarm or
+timer is the user's from then on: it shows in Clock, and they change or delete
+it there. Your plugin cannot read, change or remove the user's alarms.
 
 ## scan
 
@@ -213,6 +237,7 @@ The web editor answers every call on this page so you can run your code:
 | `device.battery` | 76%, not charging |
 | `share.text`, `share.open` | the browser's share sheet, and a new tab |
 | `notify.show`, `device.flashlight` | a line in the console |
+| `clock.alarm`, `clock.timer` | a line in the console |
 | `scan.qr`, `scan.text` | a pretend link, and a pretend line of text |
 | `sensors.subscribe` | pretend readings of a phone lying on a table |
 | `location.get` | a pretend place in Dhaka |

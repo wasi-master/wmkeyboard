@@ -60,7 +60,7 @@ export const REMINDERS_PERMISSION = 'reminders';
 /** Every permission the app knows, in the order the manifest form lists them (PluginPermission.all). */
 export const PERMISSIONS = [
 	STORAGE_PERMISSION, REMINDERS_PERMISSION, 'selection', 'field.write', 'clipboard.write', 'sensors', 'scan', 'device', 'share',
-	'notifications', 'network', 'network.local', 'ai', 'field.read', 'clipboard.read', 'location', 'files', 'calendar', 'todo',
+	'notifications', 'clock', 'network', 'network.local', 'ai', 'field.read', 'clipboard.read', 'location', 'files', 'calendar', 'todo',
 ];
 /** The ones API 4 knows; the rest need `"apiVersion": 5`. */
 export const API4_PERMISSIONS = [STORAGE_PERMISSION, REMINDERS_PERMISSION, 'selection'];

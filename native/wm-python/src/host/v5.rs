@@ -32,6 +32,7 @@
 //! | `field.insert` `field.replace` `field.delete` `field.move` `field.action` `field.image` | field.write |
 //! | `clipboard.get` / `clipboard.set` | clipboard.read / clipboard.write |
 //! | `location.get` | location |
+//! | `clock.alarm` `clock.timer` | clock |
 //! | `calendar.events` `calendar.calendars` `calendar.add` | calendar |
 //! | `todo.list` `todo.add` `todo.update` `todo.remove` | todo |
 //! | `files.pick` `files.photo` `files.save` | files |
@@ -41,7 +42,7 @@
 //! | `share.text` `share.open` | share |
 //! | `notify.show` `notify.cancel` | notifications |
 //! | `secrets.get` `secrets.set` `secrets.remove` | storage |
-//! | `ui.toast` `ui.dialog` `plugin.close` `plugin.refresh` `plugin.open_settings` | none |
+//! | `ui.toast` `ui.dialog` `plugin.close` `plugin.refresh` `plugin.open_settings` `time.zone` | none |
 //!
 //! `field.selection`, `field.before`, `field.after`, `clipboard.get` and
 //! `plugin.open_settings` are refused outside an event the user caused in the panel (a click, a change,
@@ -75,6 +76,7 @@ pub const PRELUDE: &[(&str, &str, bool)] = &[
     ("wm.ai", include_str!("prelude/ai.py"), false),
     ("wm.calendar", include_str!("prelude/calendar.py"), false),
     ("wm.clipboard", include_str!("prelude/clipboard.py"), false),
+    ("wm.clock", include_str!("prelude/clock.py"), false),
     ("wm.device", include_str!("prelude/device.py"), false),
     ("wm.field", include_str!("prelude/field.py"), false),
     ("wm.files", include_str!("prelude/files.py"), false),
@@ -127,6 +129,7 @@ pub fn permission_for(op: &str) -> Option<Option<&'static str>> {
         ("clipboard", "get") => Some("clipboard.read"),
         ("clipboard", "set") => Some("clipboard.write"),
         ("location", "get") => Some("location"),
+        ("clock", "alarm" | "timer") => Some("clock"),
         ("calendar", "events" | "calendars" | "add") => Some("calendar"),
         ("todo", "list" | "add" | "update" | "remove") => Some("todo"),
         ("files", "pick" | "photo" | "save") => Some("files"),
@@ -136,7 +139,7 @@ pub fn permission_for(op: &str) -> Option<Option<&'static str>> {
         ("share", "text" | "open") => Some("share"),
         ("notify", "show" | "cancel") => Some("notifications"),
         ("secrets", "get" | "set" | "remove") => Some("storage"),
-        ("ui", "toast" | "dialog") | ("plugin", "close" | "refresh" | "open_settings") => None,
+        ("ui", "toast" | "dialog") | ("plugin", "close" | "refresh" | "open_settings") | ("time", "zone") => None,
         // plugin.settings.set: the plugin's own rows; the keyboard refuses host rows.
         ("settings", "set") => None,
         _ => return None,

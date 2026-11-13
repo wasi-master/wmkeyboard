@@ -423,7 +423,7 @@ class PythonSession private constructor(@Volatile private var handle: Long, priv
  * `TimeZone` a day apart and narrowing each change to the second; a few
  * milliseconds, and a few dozen rows for a zone with summer time.
  */
-internal object ZoneTable {
+object ZoneTable {
 
     @Volatile
     private var cached: Pair<String, JsonArray>? = null

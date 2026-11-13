@@ -176,6 +176,13 @@ sealed class PluginPermission(
 
     data object Notifications : PluginPermission("notifications", R.string.core_plugins_permission_notifications_label, Tier.LISTED, sinceApi = 5)
 
+    /**
+     * Alarms and timers in the keyboard's own Clock through `wm.clock`. Write
+     * only: the plugin never sees the user's alarms, and each one it sets is
+     * announced on screen and is the user's to change or delete.
+     */
+    data object Clock : PluginPermission("clock", R.string.core_plugins_permission_clock_label, Tier.LISTED, sinceApi = 5)
+
     val isRisky: Boolean get() = tier == Tier.RISKY
 
     companion object {
@@ -183,7 +190,7 @@ sealed class PluginPermission(
         val all: List<PluginPermission> by lazy {
             listOf(
                 Storage, Reminders, SelectedText, FieldWrite, ClipboardWrite, Sensors, Scan, Device, Share,
-                Notifications, Network, NetworkLocal, Ai, FieldRead, ClipboardRead, Location, Files, Calendar, Todo,
+                Notifications, Clock, Network, NetworkLocal, Ai, FieldRead, ClipboardRead, Location, Files, Calendar, Todo,
             )
         }
 
@@ -221,6 +228,7 @@ sealed class PluginPermission(
             "device" -> Device
             "share" -> Share
             "notify" -> Notifications
+            "clock" -> Clock
             "secrets" -> Storage
             else -> null
         }

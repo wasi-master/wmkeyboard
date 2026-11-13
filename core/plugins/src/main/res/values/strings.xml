@@ -59,6 +59,7 @@
     <string name="core_plugins_permission_device_label">Vibrate, turn on the flashlight and read text aloud</string>
     <string name="core_plugins_permission_share_label">Share text and open links, after you confirm</string>
     <string name="core_plugins_permission_notifications_label">Show notifications</string>
+    <string name="core_plugins_permission_clock_label">Set alarms and timers in the keyboard\'s Clock</string>
     <!-- Shown under the permission list when a plugin can both read something
          of the user's and send data away. %1$s is a list of websites. -->
     <string name="core_plugins_permission_combination_warning">This plugin can read text or files you give it and send them to %1$s.</string>

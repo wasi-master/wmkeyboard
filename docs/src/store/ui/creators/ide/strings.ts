@@ -67,6 +67,7 @@ export const S = {
 		device: 'Vibrate, turn on the flashlight and read text aloud',
 		share: 'Share text and open links, after you confirm',
 		notifications: 'Show notifications',
+		clock: "Set alarms and timers in the keyboard's Clock",
 		calendar: 'Read your calendar and add events to it',
 		todo: 'Read and change your To-do list',
 	} as Record<string, string>,

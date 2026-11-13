@@ -179,6 +179,9 @@ internal class PluginKeyboardServices(
             JsonNull
         }
         "location.get" -> location(call)
+        "clock.alarm" -> clockAlarm(call)
+        "clock.timer" -> clockTimer(call)
+        "time.zone" -> zoneRows(call)
         "files.pick" -> pick(call)
         "files.photo" -> photo(call)
         "files.save" -> save(call)
@@ -200,6 +203,95 @@ internal class PluginKeyboardServices(
             JsonPrimitive(store.delete(id(call)).isNotEmpty())
         }
         else -> throw PluginCallException("NotImplementedError", "${call.op} is not available in this version of the keyboard yet")
+    }
+
+    // ---- the Clock and time zones -----------------------------------------
+
+    /** When each plugin last set an alarm or a timer, so one cannot flood the Clock. */
+    private val lastClockSet = ConcurrentHashMap<String, Long>()
+
+    private fun clockSeconds(call: PluginCall, key: String): Double =
+        (call.args[key] as? JsonPrimitive)?.doubleOrNull?.takeIf { it.isFinite() }
+            ?: throw PluginCallException("ValueError", "$key must be a number of seconds")
+
+    private fun clockGate(call: PluginCall) {
+        val now = System.currentTimeMillis()
+        val last = lastClockSet[call.plugin.id]
+        if (last != null && now - last < CLOCK_GAP_MS) {
+            throw PluginCallException("ValueError", "one alarm or timer every ${CLOCK_GAP_MS / 1000} seconds at most")
+        }
+        lastClockSet[call.plugin.id] = now
+    }
+
+    /**
+     * A one-off alarm in the keyboard's Clock at the minute of `at`, which
+     * must be one minute to 24 hours away: a Clock alarm is an hour and a
+     * minute, ringing at the next one. Announced with a toast that names the
+     * plugin, and from then on the user's own.
+     */
+    private fun clockAlarm(call: PluginCall): JsonElement {
+        val at = (clockSeconds(call, "at") * 1000).toLong()
+        val now = System.currentTimeMillis()
+        if (at < now + MINUTE_MS) throw PluginCallException("ValueError", "an alarm must be at least a minute away")
+        if (at > now + DAY_MS) throw PluginCallException("ValueError", "an alarm rings within the next 24 hours; use reminders for later")
+        clockGate(call)
+        val label = call.string("label").orEmpty().trim().take(MAX_CLOCK_LABEL)
+        val time = java.util.Calendar.getInstance().apply { timeInMillis = at }
+        val template = com.wasimaster.wmkeyboard.core.clock.Alarm(
+            id = 0,
+            hour = time.get(java.util.Calendar.HOUR_OF_DAY),
+            minute = time.get(java.util.Calendar.MINUTE),
+            label = label,
+        )
+        com.wasimaster.wmkeyboard.core.clock.ClockEngine.update(context) { data ->
+            com.wasimaster.wmkeyboard.core.clock.ClockActions.addAlarm(data, template).second
+        }
+        val shown = android.text.format.DateFormat.getTimeFormat(context).format(java.util.Date(at))
+        onMain { toast(context.getString(R.string.ime_plugin_clock_alarm_set, call.plugin.displayName, shown)) }
+        return JsonNull
+    }
+
+    /** A running timer in the keyboard's Clock, 1 second to 24 hours. */
+    private fun clockTimer(call: PluginCall): JsonElement {
+        val ms = (clockSeconds(call, "seconds") * 1000).toLong()
+        if (ms < 1000 || ms > DAY_MS) throw PluginCallException("ValueError", "a timer runs from 1 second to 24 hours")
+        clockGate(call)
+        val label = call.string("label").orEmpty().trim().take(MAX_CLOCK_LABEL)
+        val now = System.currentTimeMillis()
+        com.wasimaster.wmkeyboard.core.clock.ClockEngine.update(context) { data ->
+            com.wasimaster.wmkeyboard.core.clock.ClockActions.startTimer(data, label, ms, now).second
+        }
+        val shown = android.text.format.DateUtils.formatElapsedTime(ms / 1000)
+        onMain { toast(context.getString(R.string.ime_plugin_clock_timer_set, call.plugin.displayName, shown)) }
+        return JsonNull
+    }
+
+    /** Built zone tables, by zone id: twenty years of rows each, built once a process. */
+    private val zoneTables = ConcurrentHashMap<String, JsonArray>()
+
+    /**
+     * `{"rows": [[from, offset], ...]}` for the IANA zone `zone` (the phone's
+     * own when empty): the plugin looks up any instant in it, as the
+     * interpreter does for the phone's zone. ValueError for a zone Android
+     * does not know.
+     */
+    private fun zoneRows(call: PluginCall): JsonElement {
+        val name = call.string("zone").orEmpty().trim()
+        val zone = if (name.isEmpty()) {
+            java.util.TimeZone.getDefault()
+        } else {
+            val id = try {
+                java.time.ZoneId.of(name).id
+            } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
+                throw PluginCallException("ValueError", "unknown time zone: ${name.take(MAX_ZONE_NAME)}")
+            }
+            java.util.TimeZone.getTimeZone(id)
+        }
+        val rows = zoneTables.getOrPut(zone.id) { com.wasimaster.wmkeyboard.core.plugins.ZoneTable.build(zone) }
+        return buildJsonObject {
+            put("zone", zone.id)
+            put("rows", rows)
+        }
     }
 
     // ---- the field -------------------------------------------------------
@@ -995,6 +1087,13 @@ internal class PluginKeyboardServices(
         private const val MB = 1024 * 1024
         private const val MAX_FILE = 4 * MB
         private const val MAX_FILE_NAME = 120
+        private const val MAX_CLOCK_LABEL = 100
+        private const val MAX_ZONE_NAME = 64
+        private const val MINUTE_MS = 60_000L
+        private const val DAY_MS = 24 * 60 * 60_000L
+
+        /** Shortest time between two alarms or timers from one plugin. */
+        private const val CLOCK_GAP_MS = 3_000L
 
         /** The longest span `calendar.events` reads at once, in seconds: 62 days. */
         private const val MAX_CALENDAR_SPAN_S = 62.0 * 24 * 60 * 60

@@ -16,7 +16,8 @@
 //! as a prefix before a trailing `*`, dicts key by key).
 //!
 //! `test.py` runs with the plugin host's `wm` and `ui` globals (a panel, every
-//! permission, storage and reminders in memory) and one extra module,
+//! permission, storage and reminders in memory), an API 5 plugin's other
+//! `.py` files as modules it can import, and one extra module,
 //! `plugin_test`, a global that `import plugin_test` also reaches:
 //!
 //! * `plugin_test.read(name)`: the UTF-8 text of a file inside the plugin folder
@@ -288,6 +289,15 @@ fn test(dir: &Path) -> u8 {
         panel: true,
     };
     api::install(&mut rt, &info, Some(Storage::new(None)), Some(Reminders::new(None)), Rc::new(SystemClock::default()));
+    if m.api >= 5 {
+        // An API 5 plugin's other modules, so the test (and files it loads)
+        // can `import helpers` to test them on their own.
+        for (file, text) in modules(dir, &m.entry) {
+            if let (Some((name, package)), Some(text)) = (wm_python::host::v5::module_name(&file), text.as_str()) {
+                rt.add_source_module(&name, text, package);
+            }
+        }
+    }
     // The test's output goes straight to stdout, wm.log and print alike.
     rt.set_on_print(Some(Box::new(|line| println!("{line}"))));
     rt.set_deadline(Some(std::time::Instant::now() + std::time::Duration::from_secs(600)));

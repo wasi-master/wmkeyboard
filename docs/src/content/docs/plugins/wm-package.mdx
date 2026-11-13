@@ -23,7 +23,7 @@ The editors complete these names as you type and show what each one does.
 [`storage`](#storage) · [`secrets`](#secrets) · [`http`](#http) ·
 [`ai`](#ai) · [`field`](#field) · [`clipboard`](#clipboard) ·
 [`device`](#device) · [`share`](#share) · [`notify`](#notify) ·
-[`reminders`](#reminders) · [`scan`](#scan) · [`sensors`](#sensors) ·
+[`reminders`](#reminders) · [`clock`](#clock) · [`scan`](#scan) · [`sensors`](#sensors) ·
 [`location`](#location) · [`files`](#files) · [`calendar`](#calendar) ·
 [`todo`](#todo) · [translations](#translations) ·
 [`wm` itself](#wm-itself) · [errors](#errors) · [limits](#limits)
@@ -350,6 +350,18 @@ where `seconds` is a time since 1970 such as `time.time() + 3600`;
 `reminders.cancel(id)`; `reminders.list()`. Up to 64. Setting an id again
 moves that reminder.
 
+## clock
+
+`from wm import clock`. Needs `clock`. Rings in the keyboard's own Clock,
+even with the keyboard closed. `clock.alarm(seconds, label=None)` sets a
+one-off alarm at that time since 1970, to the minute, from one minute to 24
+hours ahead. `clock.timer(seconds, label=None)` starts a timer that rings
+after `seconds`, 1 second to 24 hours. Both raise `ValueError` outside those
+bounds, or when called again within 3 seconds. The keyboard shows a message
+naming your plugin each time; after that the alarm or timer belongs to the
+user, who changes or deletes it in Clock. A plugin cannot read the user's
+alarms. [Guide](/plugins/guides/phone-features/#clock).
+
 ## scan
 
 `from wm import scan`. Needs `scan`. `scan.qr(then, on_error=None)` (also
@@ -424,8 +436,21 @@ Files go in `locales/<tag>.json`. [Guide](/plugins/guides/translations/).
 
 `import wm` gives `wm.log(*values)` (a line in the plugin's log, like
 `print`), `wm.timestamp(year, month, day, hour=12, minute=0, second=0)` (that
-moment in the phone's time zone, in seconds since 1970), `wm.plugin_id`,
-`wm.plugin_version` and `wm.api_version`.
+moment in the phone's time zone, in seconds since 1970),
+`wm.zone_offset(zone=None, seconds=None)` (the UTC offset in seconds of a
+time zone such as `"Asia/Tokyo"` at that moment, now by default, summer time
+included; `None` is the phone's own zone; `ValueError` for a zone the keyboard
+does not know), `wm.plugin_id`, `wm.plugin_version` and `wm.api_version`.
+
+`zone_offset` is for showing a time where it happens: a train in Tokyo leaves
+at Tokyo's 08:00 even when the phone is set to Dhaka.
+
+```python
+import wm
+
+local = departure + wm.zone_offset("Asia/Tokyo", departure)
+print(f"{local // 3600 % 24:02d}:{local // 60 % 60:02d}")
+```
 
 ## Errors
 

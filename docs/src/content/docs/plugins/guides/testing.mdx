@@ -197,7 +197,17 @@ assert json.loads(posts[0]["body"]) == {"amount": 2}
 ```
 
 `plugin_test.read(name)` reads a file from the plugin's folder, which is
-handy for a long mock reply kept in its own file.
+handy for a long mock reply kept in its own file. Files under `tests/` stay
+out of the plugin's archive, so that is a good place for them.
+
+An API 5 plugin's other `.py` files are modules `test.py` can import, to
+test them on their own without a session:
+
+```python
+import fares          # fares.py beside main.py
+
+assert fares.total([2.9, 1.0]) == 3.9
+```
 
 ## Reading an error
 
