@@ -202,6 +202,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.Key
+import com.wasimaster.wmkeyboard.core.layout.keyUppercase
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.KeyAlternate
 import com.wasimaster.wmkeyboard.core.layout.PanelFieldKind
@@ -5425,7 +5426,7 @@ internal fun EditorKeyCell(
     ) {
         // Shown verbatim rather than uppercased the way the real keyboard does
         // under shift: the stored label is the thing being edited.
-        val primary = if (showShift) key.shiftLabel ?: key.label.uppercase() else key.label
+        val primary = if (showShift) key.shiftLabel ?: keyUppercase(key.label) else key.label
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,

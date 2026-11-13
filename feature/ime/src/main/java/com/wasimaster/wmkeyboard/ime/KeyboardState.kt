@@ -14,6 +14,7 @@ import com.wasimaster.wmkeyboard.core.layout.BuiltInPanelLayouts
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.Key
+import com.wasimaster.wmkeyboard.core.layout.keyUppercase
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.ModifierKey
 import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
@@ -81,7 +82,7 @@ fun KeyboardUiState.shiftCasesText(): Boolean =
     shiftState != ShiftState.OFF && !composer.isClusterShaping
 
 /** [text] as a key with no shift label of its own types it: see [shiftCasesText]. */
-fun shiftCased(text: String, shifted: Boolean): String = if (shifted) text.uppercase() else text
+fun shiftCased(text: String, shifted: Boolean): String = if (shifted) keyUppercase(text) else text
 
 /**
  * Re-cases a suggestion for display/commit to follow the live [shift] state, so

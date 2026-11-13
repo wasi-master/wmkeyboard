@@ -820,6 +820,7 @@ import com.wasimaster.wmkeyboard.core.keyman.KeymanRuleStore
 import com.wasimaster.wmkeyboard.core.keyman.ProcessorKey
 import com.wasimaster.wmkeyboard.core.keyman.ProcessorResult
 import com.wasimaster.wmkeyboard.core.layout.Key
+import com.wasimaster.wmkeyboard.core.layout.keyUppercase
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.KeymanTarget
 import com.wasimaster.wmkeyboard.core.layout.SymbolsPage
@@ -60652,7 +60653,7 @@ open class WMKeyboardService : InputMethodService() {
         val key = rows.getOrNull(row)?.getOrNull(column) ?: return null
         val shifted = event.isShiftPressed != event.isCapsLockOn
         val text = key.output ?: key.label
-        return if (shifted) key.shiftLabel ?: text.uppercase() else text
+        return if (shifted) key.shiftLabel ?: keyUppercase(text) else text
     }
 
     private fun hardwareIntercepts(state: KeyboardUiState): Boolean {

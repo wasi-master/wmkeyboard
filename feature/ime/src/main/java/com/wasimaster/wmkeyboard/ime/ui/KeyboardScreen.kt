@@ -673,6 +673,7 @@ import com.wasimaster.wmkeyboard.core.layout.withModeNames
 import com.wasimaster.wmkeyboard.core.layout.clipboardAlternate
 import com.wasimaster.wmkeyboard.core.layout.FlickDirection
 import com.wasimaster.wmkeyboard.core.layout.Key
+import com.wasimaster.wmkeyboard.core.layout.keyUppercase
 import com.wasimaster.wmkeyboard.core.theme.slotFor
 import com.wasimaster.wmkeyboard.core.feedback.KeySoundPhase
 import com.wasimaster.wmkeyboard.core.feedback.KeySoundRole
@@ -17589,7 +17590,7 @@ internal fun chordKey(target: Key, meta: Int): Key? {
  */
 internal fun shiftChordKey(target: Key): Key? = when (target.action) {
     KeyAction.Text -> target.copy(
-        output = target.shiftLabel ?: (target.output ?: target.label).uppercase(),
+        output = target.shiftLabel ?: keyUppercase(target.output ?: target.label),
     )
     else -> chordKey(target, KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON)
 }
@@ -17709,7 +17710,7 @@ private fun slideSelectPreview(target: Key, cell: Rect, enabled: Boolean, shift:
     val label = if (shift == ShiftState.OFF) {
         target.label
     } else {
-        target.shiftLabel ?: (target.output ?: target.label).uppercase()
+        target.shiftLabel ?: keyUppercase(target.output ?: target.label)
     }
     return KeyPreview(
         token = ChordPreviewToken,
@@ -17916,7 +17917,7 @@ internal fun Key.capitalFlickText(): String? {
     val base = output ?: label
     if (base.isEmpty()) return null
     shiftLabel?.takeIf { it.isNotEmpty() && it != base }?.let { return it }
-    return base.uppercase().takeIf { it != base }
+    return keyUppercase(base).takeIf { it != base }
 }
 
 /**
@@ -19036,7 +19037,7 @@ internal fun keyVisual(
  */
 internal fun popKeyText(key: Key, shift: ShiftState): String {
     val text = key.output ?: key.label
-    return if (shift != ShiftState.OFF && text.length == 1 && text[0].isLetter()) text.uppercase() else text
+    return if (shift != ShiftState.OFF && text.length == 1 && text[0].isLetter()) keyUppercase(text) else text
 }
 
 /**
@@ -24830,7 +24831,7 @@ internal fun shiftedAlternate(key: Key, twin: Key? = null): String? {
     val base = key.output ?: key.label
     val shifted = key.shiftLabel
         ?: twin?.takeIf { it.action == KeyAction.Text }?.let { it.output ?: it.label }
-        ?: base.takeIf { it.length == 1 && it[0].isLetter() }?.uppercase()
+        ?: base.takeIf { it.length == 1 && it[0].isLetter() }?.let(::keyUppercase)
         ?: return null
     return shifted.takeIf { it.isNotBlank() && it != base && it !in key.longPress }
 }
@@ -30696,7 +30697,7 @@ private fun transliterationRoman(key: Key, state: KeyboardUiState): String? {
     val shiftLabel = key.shiftLabel
     return when {
         state.shiftState != ShiftState.OFF && shiftLabel != null -> shiftLabel
-        state.shiftState != ShiftState.OFF -> base.uppercase()
+        state.shiftState != ShiftState.OFF -> keyUppercase(base)
         else -> base
     }
 }
@@ -30805,7 +30806,7 @@ private fun displayLabel(key: Key, state: KeyboardUiState): String {
             !state.composer.isClusterShaping &&
             (state.script.hasLetterCase || state.composer.isTransliterating) &&
             key.label.singleOrNull()?.isLetter() == true ->
-            key.label.uppercase()
+            keyUppercase(key.label)
         else -> key.label
     }.let { label -> labelCased(label, key, state) }
     // Fixed Bengali layouts: vowel keys track the cursor context — the
