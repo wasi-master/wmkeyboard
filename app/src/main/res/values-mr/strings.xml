@@ -9913,7 +9913,6 @@
     <string name="theme_font_sound_section_body">थीम स्वतःचा की फॉन्ट आणि की साऊंड आणू शकते. जर डिव्हाइसमध्ये ते नसतील, तर कीबोर्ड तुमच्या जागतिक निवडी वापरतो. फॉन्ट आणि साऊंड ॲड-ऑन्स म्हणून इन्स्टॉल होतात, त्यामुळे तुम्ही ते इतर थीम्ससोबतही वापरू शकता.</string>
     <string name="theme_font_sound_section_title">फॉन्ट आणि ध्वनी</string>
     <string name="theme_font_title">की फॉन्ट</string>
-    <string name="theme_gallery_auto_on_body">ऑटो थीम चालू आहे, त्यामुळे या निवडीचा काहीही परिणाम होत नाही. स्वतः एक थीम निवडण्यासाठी ती वर बंद करा.</string>
     <string name="theme_gallery_section_title">थीम्स</string>
     <string name="theme_gallery_style_auto_desc">सेटअप प्रश्नांमध्ये तुम्ही दिलेल्या उत्तराचे अनुसरण करते</string>
     <string name="theme_gallery_style_auto_label">ऑटो</string>

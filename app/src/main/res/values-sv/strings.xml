@@ -9919,7 +9919,6 @@
     <string name="theme_font_sound_section_body">Temat kan ha ett eget teckensnitt och ljud för tangenter. Om enheten inte har dessa använder tangentbordet dina globala val. Teckensnitt och ljud installeras som tillägg, så du kan även använda dem med andra teman.</string>
     <string name="theme_font_sound_section_title">Typsnitt och ljud</string>
     <string name="theme_font_title">Tangenttypsnitt</string>
-    <string name="theme_gallery_auto_on_body">Autotema är på, så galleriet visar bara hur det skulle se ut.</string>
     <string name="theme_gallery_section_title">Teman</string>
     <string name="theme_gallery_style_auto_desc">Följer svaret du gav i konfigurationsfrågorna</string>
     <string name="theme_gallery_style_auto_label">Auto</string>

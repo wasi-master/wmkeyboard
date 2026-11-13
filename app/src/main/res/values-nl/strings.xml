@@ -9912,7 +9912,6 @@
     <string name="theme_font_sound_section_body">Het thema kan een eigen lettertype en toetsgeluid hebben. Als het apparaat deze niet heeft, gebruikt het toetsenbord je algemene voorkeuren. Lettertypen en geluiden worden geïnstalleerd als add-ons, dus je kunt ze ook met andere thema\'s gebruiken.</string>
     <string name="theme_font_sound_section_title">Lettertype en geluid</string>
     <string name="theme_font_title">Toetslettertype</string>
-    <string name="theme_gallery_auto_on_body">Automatisch thema staat aan, dus de galerij toont alleen hoe het eruit zou zien.</string>
     <string name="theme_gallery_section_title">Thema\'s</string>
     <string name="theme_gallery_style_auto_desc">Volgt het antwoord dat je gaf bij de instellingsvragen</string>
     <string name="theme_gallery_style_auto_label">Auto</string>

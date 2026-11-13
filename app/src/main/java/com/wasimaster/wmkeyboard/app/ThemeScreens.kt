@@ -340,6 +340,7 @@ import com.wasimaster.wmkeyboard.core.theme.ThemeCodec
 import com.wasimaster.wmkeyboard.core.theme.FutoTheme
 import com.wasimaster.wmkeyboard.core.theme.FutoThemeResult
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
+import com.wasimaster.wmkeyboard.core.theme.findThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.alphaFraction
 import com.wasimaster.wmkeyboard.core.theme.withAlphaFraction
 import com.wasimaster.wmkeyboard.core.theme.brush
@@ -711,6 +712,11 @@ private fun ThemePickerChoiceRow(
     onClick: () -> Unit,
     multiSelect: Boolean = false,
     enabled: Boolean = true,
+    /**
+     * Drawn small beside the name (#1306): two copies of one theme, or a
+     * family's looks, read the same by name alone. Null draws the name only.
+     */
+    theme: ThemeSpec? = null,
 ) {
     Row(
         modifier = Modifier
@@ -725,9 +731,18 @@ private fun ThemePickerChoiceRow(
             RadioButton(selected = selected, onClick = onClick)
         }
         Spacer(Modifier.width(8.dp))
-        Text(name)
+        if (theme != null) {
+            Box(modifier = Modifier.width(ThemePickerThumbWidth)) {
+                ThemePreview(theme, animatedBadge = false, cached = true)
+            }
+            Spacer(Modifier.width(12.dp))
+        }
+        Text(name, modifier = Modifier.weight(1f))
     }
 }
+
+/** How wide a theme's thumbnail is in the pickers' rows. */
+private val ThemePickerThumbWidth = 72.dp
 
 /**
  * The list of every selectable theme, for one half of the auto pair.
@@ -750,6 +765,7 @@ private fun ThemePickerDialog(
     onDismiss: () -> Unit,
 ) {
     val rows = themePickerRows(settings)
+    val customs = settings.watch { it.customThemes }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
@@ -793,6 +809,7 @@ private fun ThemePickerDialog(
                                 name = row.name,
                                 selected = if (randomOn) inPool else row.id == selectedId,
                                 indented = row.indented,
+                                theme = remember(row.id, customs) { findThemeSpec(row.id, customs) },
                                 multiSelect = randomOn,
                                 // The set cannot be emptied: a half that selects
                                 // at random from nothing has nothing to show.
@@ -1855,7 +1872,7 @@ fun ThemesScreen(
         // Not a sentence telling the user where to go: the card carries the
         // switch that makes the gallery live again.
         StateBanner(
-            text = stringResource(R.string.theme_gallery_auto_on_body),
+            text = stringResource(R.string.theme_gallery_auto_on_picks_body),
             action = stringResource(CommonR.string.common_disable),
         ) { scope.launch { repository.setAutoThemeEnabled(false) } }
     }

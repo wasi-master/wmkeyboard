@@ -9914,7 +9914,6 @@
     <string name="theme_font_sound_section_body">Temaet kan medbringe sin egen tast-font og tast-lyd. Hvis enheden ikke har dem, bruger tastaturet dine globale valg. Fonte og lyde installeres som tilføjelser, så du kan også bruge dem med andre temaer.</string>
     <string name="theme_font_sound_section_title">Skrifttype og lyd</string>
     <string name="theme_font_title">Tastskrifttype</string>
-    <string name="theme_gallery_auto_on_body">Autotema er slået til, så galleriet viser kun, hvordan det ville se ud.</string>
     <string name="theme_gallery_section_title">Temaer</string>
     <string name="theme_gallery_style_auto_desc">Følger det svar, du gav i opsætningsspørgsmålene</string>
     <string name="theme_gallery_style_auto_label">Auto</string>

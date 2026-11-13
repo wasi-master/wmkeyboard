@@ -9903,7 +9903,6 @@
     <string name="theme_font_sound_section_body">테마는 자체 키 글꼴과 키 소리를 포함할 수 있습니다. 기기에 해당 항목이 없는 경우 키보드는 사용자의 전역 설정을 사용합니다. 글꼴과 소리는 애드온으로 설치되므로 다른 테마와 함께 사용할 수도 있습니다.</string>
     <string name="theme_font_sound_section_title">글꼴 및 소리</string>
     <string name="theme_font_title">키 글꼴</string>
-    <string name="theme_gallery_auto_on_body">자동 테마가 켜져 있어 이 선택은 아무런 효과가 없습니다. 직접 테마를 선택하려면 위에서 자동 테마를 끄세요.</string>
     <string name="theme_gallery_section_title">테마</string>
     <string name="theme_gallery_style_auto_desc">설정 질문에서 선택한 답변을 따릅니다</string>
     <string name="theme_gallery_style_auto_label">자동</string>

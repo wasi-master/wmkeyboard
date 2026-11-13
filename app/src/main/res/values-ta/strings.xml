@@ -9910,7 +9910,6 @@
     <string name="theme_font_sound_section_body">தீம் அதன் சொந்த விசை எழுத்துரு மற்றும் விசை ஒலியைக் கொண்டு வர முடியும். சாதனத்தில் அவை இல்லையென்றால், விசைப்பலகை உங்கள் உலகளாவிய தேர்வுகளைப் பயன்படுத்தும். எழுத்துருக்கள் மற்றும் ஒலிகள் ஆட்-ஆன்களாக நிறுவப்படுகின்றன, எனவே அவற்றை மற்ற தீம்களுடனும் நீங்கள் பயன்படுத்தலாம்.</string>
     <string name="theme_font_sound_section_title">எழுத்துரு மற்றும் ஒலி</string>
     <string name="theme_font_title">விசை எழுத்துரு</string>
-    <string name="theme_gallery_auto_on_body">தானியங்கி தீம் ஆன் செய்யப்பட்டுள்ளது, எனவே இந்தத் தேர்வு எதையும் செய்யாது. நீங்களே ஒரு தீமைத் தேர்ந்தெடுக்க மேலே உள்ளதை ஆஃப் செய்யவும்.</string>
     <string name="theme_gallery_section_title">தீம்கள்</string>
     <string name="theme_gallery_style_auto_desc">அமைப்பு கேள்விகளில் நீங்கள் அளித்த பதிலைப் பின்பற்றுகிறது</string>
     <string name="theme_gallery_style_auto_label">தானியங்கி</string>

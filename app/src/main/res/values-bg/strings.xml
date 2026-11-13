@@ -9914,7 +9914,6 @@
     <string name="theme_font_sound_section_body">Темата може да има собствен шрифт и звук за клавишите. Ако устройството ги няма, клавиатурата използва вашите глобални настройки. Шрифтовете и звуците се инсталират като добавки, така че можете да ги използвате и с други теми.</string>
     <string name="theme_font_sound_section_title">Шрифт и звук</string>
     <string name="theme_font_title">Шрифт на клавишите</string>
-    <string name="theme_gallery_auto_on_body">Автоматичната тема е включена, така че галерията показва само как би изглеждала тя.</string>
     <string name="theme_gallery_section_title">Теми</string>
     <string name="theme_gallery_style_auto_desc">Следва отговора, който дадохте в настройките</string>
     <string name="theme_gallery_style_auto_label">Автоматично</string>

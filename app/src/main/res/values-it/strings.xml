@@ -9905,7 +9905,6 @@
     <string name="theme_font_sound_section_body">Il tema può includere il proprio font e suono per i tasti. Se il dispositivo non li possiede, la tastiera utilizza le tue scelte globali. Font e suoni si installano come componenti aggiuntivi, quindi puoi usarli anche con altri temi.</string>
     <string name="theme_font_sound_section_title">Carattere e suono</string>
     <string name="theme_font_title">Carattere dei tasti</string>
-    <string name="theme_gallery_auto_on_body">Il tema automatico è attivo, quindi questa selezione non ha effetto. Disattivalo sopra per selezionare tu stesso un tema.</string>
     <string name="theme_gallery_section_title">Temi</string>
     <string name="theme_gallery_style_auto_desc">Segue la risposta data nelle domande di configurazione</string>
     <string name="theme_gallery_style_auto_label">Automatico</string>

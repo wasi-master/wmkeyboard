@@ -9899,7 +9899,6 @@
     <string name="theme_font_sound_section_body">主题可以自带按键字体和按键音效。如果设备没有这些资源，键盘将使用您的全局设置。字体和音效以插件形式安装，因此您也可以将它们与其他主题搭配使用。</string>
     <string name="theme_font_sound_section_title">字体和声音</string>
     <string name="theme_font_title">按键字体</string>
-    <string name="theme_gallery_auto_on_body">自动主题已开启，因此此选择无效。请在上方将其关闭，以便自行选择主题。</string>
     <string name="theme_gallery_section_title">主题</string>
     <string name="theme_gallery_style_auto_desc">遵循您在设置问题中给出的答案</string>
     <string name="theme_gallery_style_auto_label">自动</string>

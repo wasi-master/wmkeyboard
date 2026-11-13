@@ -9910,7 +9910,6 @@
     <string name="theme_font_sound_section_body">O tema pode trazer sua própria fonte e som de tecla. Se o dispositivo não os tiver, o teclado usará suas escolhas globais. Fontes e sons são instalados como complementos, então você também pode usá-los com outros temas.</string>
     <string name="theme_font_sound_section_title">Fonte e som</string>
     <string name="theme_font_title">Fonte das teclas</string>
-    <string name="theme_gallery_auto_on_body">O tema automático está ativado, portanto esta seleção não faz nada. Desative-o acima para selecionar um tema você mesmo.</string>
     <string name="theme_gallery_section_title">Temas</string>
     <string name="theme_gallery_style_auto_desc">Segue a resposta que você deu nas perguntas de configuração</string>
     <string name="theme_gallery_style_auto_label">Automático</string>

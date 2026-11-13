@@ -9904,7 +9904,6 @@
     <string name="theme_font_sound_section_body">ธีมสามารถมาพร้อมกับฟอนต์และเสียงของปุ่มเฉพาะได้ หากอุปกรณ์ไม่มีฟอนต์หรือเสียงเหล่านั้น แป้นพิมพ์จะใช้การตั้งค่าส่วนกลางของคุณ ฟอนต์และเสียงจะถูกติดตั้งเป็นส่วนเสริม ดังนั้นคุณจึงสามารถใช้ร่วมกับธีมอื่นได้เช่นกัน</string>
     <string name="theme_font_sound_section_title">แบบอักษรและเสียง</string>
     <string name="theme_font_title">แบบอักษรของแป้น</string>
-    <string name="theme_gallery_auto_on_body">ธีมอัตโนมัติเปิดอยู่ ดังนั้นการเลือกนี้จะไม่มีผล ให้ปิดด้านบนเพื่อเลือกธีมด้วยตัวคุณเอง</string>
     <string name="theme_gallery_section_title">ธีม</string>
     <string name="theme_gallery_style_auto_desc">เป็นไปตามคำตอบที่คุณให้ไว้ในคำถามตั้งค่า</string>
     <string name="theme_gallery_style_auto_label">อัตโนมัติ</string>

@@ -9914,7 +9914,6 @@
     <string name="theme_font_sound_section_body">Téma môže priniesť vlastné písmo a zvuk kláves. Ak ich zariadenie nemá, klávesnica použije vaše globálne nastavenia. Písma a zvuky sa inštalujú ako doplnky, takže ich môžete použiť aj s inými témami.</string>
     <string name="theme_font_sound_section_title">Písmo a zvuk</string>
     <string name="theme_font_title">Písmo klávesov</string>
-    <string name="theme_gallery_auto_on_body">Automatická téma je zapnutá, takže galéria zobrazuje iba to, ako by vyzerala.</string>
     <string name="theme_gallery_section_title">Motívy</string>
     <string name="theme_gallery_style_auto_desc">Nasleduje odpoveď, ktorú ste uviedli v úvodných otázkach</string>
     <string name="theme_gallery_style_auto_label">Automaticky</string>

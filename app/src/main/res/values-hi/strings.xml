@@ -9921,7 +9921,6 @@
     <string name="theme_font_sound_section_body">थीम अपना खुद का मुख्य फ़ॉन्ट और मुख्य ध्वनि ला सकती है। यदि डिवाइस में वे नहीं हैं, तो कीबोर्ड आपके वैश्विक विकल्पों का उपयोग करता है। फ़ॉन्ट और ध्वनियाँ ऐड-ऑन के रूप में इंस्टॉल होती हैं, इसलिए आप उन्हें अन्य थीम के साथ भी उपयोग कर सकते हैं।</string>
     <string name="theme_font_sound_section_title">फ़ॉन्ट और ध्वनि</string>
     <string name="theme_font_title">की फ़ॉन्ट</string>
-    <string name="theme_gallery_auto_on_body">ऑटो थीम चालू है, इसलिए यह चयन कुछ नहीं करता है। स्वयं एक थीम चुनने के लिए ऊपर इसे बंद करें।</string>
     <string name="theme_gallery_section_title">थीम्स</string>
     <string name="theme_gallery_style_auto_desc">सेटअप प्रश्नों में आपके द्वारा दिए गए उत्तर का पालन करता है</string>
     <string name="theme_gallery_style_auto_label">ऑटो</string>

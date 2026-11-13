@@ -9910,7 +9910,6 @@
     <string name="theme_font_sound_section_body">Тема може мати власний шрифт і звук клавіш. Якщо на пристрої їх немає, клавіатура використовує ваші глобальні налаштування. Шрифти та звуки встановлюються як доповнення, тому ви можете використовувати їх і з іншими темами.</string>
     <string name="theme_font_sound_section_title">Шрифт і звук</string>
     <string name="theme_font_title">Шрифт клавіш</string>
-    <string name="theme_gallery_auto_on_body">Автоматична тема увімкнена, тому цей вибір нічого не змінює. Вимкніть її вище, щоб вибрати тему самостійно.</string>
     <string name="theme_gallery_section_title">Теми</string>
     <string name="theme_gallery_style_auto_desc">Відповідає відповіді, яку ви дали під час налаштування</string>
     <string name="theme_gallery_style_auto_label">Авто</string>

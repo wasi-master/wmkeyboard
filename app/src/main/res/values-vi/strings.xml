@@ -9904,7 +9904,6 @@
     <string name="theme_font_sound_section_body">Chủ đề có thể mang theo phông chữ và âm thanh phím riêng. Nếu thiết bị không có các thành phần này, bàn phím sẽ sử dụng các lựa chọn chung của bạn. Phông chữ và âm thanh được cài đặt dưới dạng tiện ích bổ sung, vì vậy bạn cũng có thể sử dụng chúng với các chủ đề khác.</string>
     <string name="theme_font_sound_section_title">Phông chữ và âm thanh</string>
     <string name="theme_font_title">Phông chữ phím</string>
-    <string name="theme_gallery_auto_on_body">Chủ đề tự động đang bật, vì vậy lựa chọn này không có tác dụng. Hãy tắt nó ở trên để tự chọn một chủ đề.</string>
     <string name="theme_gallery_section_title">Chủ đề</string>
     <string name="theme_gallery_style_auto_desc">Tuân theo câu trả lời bạn đã chọn trong phần thiết lập</string>
     <string name="theme_gallery_style_auto_label">Tự động</string>

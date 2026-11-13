@@ -9919,7 +9919,6 @@
     <string name="theme_font_sound_section_body">Tema lahko prinese svojo pisavo in zvok tipk. Če jih naprava nima, tipkovnica uporabi vaše globalne nastavitve. Pisave in zvoki se namestijo kot dodatki, zato jih lahko uporabljate tudi z drugimi temami.</string>
     <string name="theme_font_sound_section_title">Pisava in zvok</string>
     <string name="theme_font_title">Pisava tipk</string>
-    <string name="theme_gallery_auto_on_body">Samodejna tema je vklopljena, zato galerija prikazuje le, kako bi bila videti.</string>
     <string name="theme_gallery_section_title">Teme</string>
     <string name="theme_gallery_style_auto_desc">Sledi odgovoru, ki ste ga podali v nastavitvenih vprašanjih</string>
     <string name="theme_gallery_style_auto_label">Samodejno</string>

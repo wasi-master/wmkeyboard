@@ -9909,7 +9909,6 @@
     <string name="theme_font_sound_section_body">El tema pot portar la seva pròpia font i so de tecla. Si el dispositiu no els té, el teclat utilitza les teves opcions globals. Les fonts i els sons s\'instal·len com a complements, així que també els pots utilitzar amb altres temes.</string>
     <string name="theme_font_sound_section_title">Tipus de lletra i so</string>
     <string name="theme_font_title">Tipus de lletra de les tecles</string>
-    <string name="theme_gallery_auto_on_body">El tema automàtic està activat, així que la galeria només mostra com quedaria.</string>
     <string name="theme_gallery_section_title">Temes</string>
     <string name="theme_gallery_style_auto_desc">Segueix la resposta que heu donat a les preguntes de configuració</string>
     <string name="theme_gallery_style_auto_label">Automàtic</string>

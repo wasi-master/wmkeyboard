@@ -9919,7 +9919,6 @@
     <string name="theme_font_sound_section_body">തീമിന് അതിന്റേതായ കീ ഫോണ്ടും കീ സൗണ്ടും കൊണ്ടുവരാൻ കഴിയും. ഉപകരണത്തിൽ അവ ഇല്ലെങ്കിൽ, കീബോർഡ് നിങ്ങളുടെ ആഗോള ക്രമീകരണങ്ങൾ ഉപയോഗിക്കുന്നു. ഫോണ്ടുകളും ശബ്ദങ്ങളും ആഡ്-ഓണുകളായി ഇൻസ്റ്റാൾ ചെയ്യുന്നതിനാൽ, മറ്റ് തീമുകൾക്കൊപ്പവും നിങ്ങൾക്ക് അവ ഉപയോഗിക്കാം.</string>
     <string name="theme_font_sound_section_title">ഫോണ്ടും ശബ്ദവും</string>
     <string name="theme_font_title">കീ ഫോണ്ട്</string>
-    <string name="theme_gallery_auto_on_body">ഓട്ടോ തീം ഓണാണ്, അതിനാൽ ഈ തിരഞ്ഞെടുപ്പ് പ്രവർത്തിക്കില്ല. നിങ്ങൾക്ക് സ്വന്തമായി ഒരു തീം തിരഞ്ഞെടുക്കാൻ മുകളിൽ അത് ഓഫ് ചെയ്യുക.</string>
     <string name="theme_gallery_section_title">തീമുകൾ</string>
     <string name="theme_gallery_style_auto_desc">സെറ്റപ്പ് ചോദ്യങ്ങളിൽ നിങ്ങൾ നൽകിയ ഉത്തരങ്ങൾ പിന്തുടരുന്നു</string>
     <string name="theme_gallery_style_auto_label">ഓട്ടോ</string>

@@ -9907,7 +9907,6 @@
     <string name="theme_font_sound_section_body">Þemað getur haft sitt eigið lykla-letur og lykla-hljóð. Ef tækið hefur þau ekki, notar lyklaborðið almennar stillingar þínar. Leturgerðir og hljóð eru sett upp sem viðbætur, svo þú getur líka notað þau með öðrum þemum.</string>
     <string name="theme_font_sound_section_title">Leturgerð og hljóð</string>
     <string name="theme_font_title">Letur takka</string>
-    <string name="theme_gallery_auto_on_body">Sjálfvirkt þema er virkt, svo galleríið sýnir aðeins hvernig það myndi líta út.</string>
     <string name="theme_gallery_section_title">Þemu</string>
     <string name="theme_gallery_style_auto_desc">Fylgir svarinu sem þú gafst í uppsetningarspurningunum</string>
     <string name="theme_gallery_style_auto_label">Sjálfvirkt</string>

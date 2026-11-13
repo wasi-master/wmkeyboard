@@ -9917,7 +9917,6 @@
     <string name="theme_font_sound_section_body">Teema võib kaasa tuua oma klahvifondi ja klahviheli. Kui seadmel neid pole, kasutab klaviatuur teie globaalseid valikuid. Fondid ja helid installitakse lisandmoodulitena, seega saate neid kasutada ka teiste teemadega.</string>
     <string name="theme_font_sound_section_title">Font ja heli</string>
     <string name="theme_font_title">Klahvi font</string>
-    <string name="theme_gallery_auto_on_body">Automaatne teema on sisse lülitatud, seega näitab galerii ainult seda, kuidas see välja näeks.</string>
     <string name="theme_gallery_section_title">Teemad</string>
     <string name="theme_gallery_style_auto_desc">Järgib vastust, mille andsite seadistusküsimustes</string>
     <string name="theme_gallery_style_auto_label">Automaatne</string>

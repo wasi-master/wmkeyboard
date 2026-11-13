@@ -115,7 +115,7 @@
 
     <!-- Themes screen: the gallery of themes. -->
     <string name="theme_gallery_section_title">Themes</string>
-    <string name="theme_gallery_auto_on_body">Auto theme is on, so the gallery only shows what it would look like.</string>
+    <string name="theme_gallery_auto_on_picks_body">Auto theme is on, so a theme you pick here becomes the light or the dark theme, whichever is showing now.</string>
     <string name="theme_high_contrast_on_body">High contrast keys is on, so the keyboard uses its own key, background and hint colors instead of the colors of this theme.</string>
     <!-- Notice on the themes screen and the theme editor when a layout, one of
          its pages or a panel keeps a theme of its own (issue #806). The

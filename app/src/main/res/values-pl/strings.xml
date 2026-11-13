@@ -9915,7 +9915,6 @@
     <string name="theme_font_sound_section_body">Motyw może przynieść własną czcionkę i dźwięk klawiszy. Jeśli urządzenie ich nie posiada, klawiatura używa Twoich globalnych wyborów. Czcionki i dźwięki instalują się jako dodatki, więc możesz ich używać również z innymi motywami.</string>
     <string name="theme_font_sound_section_title">Czcionka i dźwięk</string>
     <string name="theme_font_title">Czcionka klawiszy</string>
-    <string name="theme_gallery_auto_on_body">Motyw automatyczny jest włączony, więc galeria pokazuje tylko podgląd wyglądu.</string>
     <string name="theme_gallery_section_title">Motywy</string>
     <string name="theme_gallery_style_auto_desc">Zgodnie z odpowiedzią udzieloną w pytaniach konfiguracyjnych</string>
     <string name="theme_gallery_style_auto_label">Auto</string>

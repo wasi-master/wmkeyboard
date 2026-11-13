@@ -9905,7 +9905,6 @@
     <string name="theme_font_sound_section_body">テーマ独自のキーフォントやキーサウンドを設定できます。デバイスにそれらがない場合、キーボードはグローバル設定を使用します。フォントとサウンドはアドオンとしてインストールされるため、他のテーマでも使用できます。</string>
     <string name="theme_font_sound_section_title">フォントとサウンド</string>
     <string name="theme_font_title">キーフォント</string>
-    <string name="theme_gallery_auto_on_body">自動テーマがオンになっているため、この選択は無効です。自分でテーマを選択するには、上記でオフにしてください。</string>
     <string name="theme_gallery_section_title">テーマ</string>
     <string name="theme_gallery_style_auto_desc">セットアップ時の回答に基づいて設定されます</string>
     <string name="theme_gallery_style_auto_label">自動</string>

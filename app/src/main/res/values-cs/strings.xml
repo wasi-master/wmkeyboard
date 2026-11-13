@@ -9907,7 +9907,6 @@
     <string name="theme_font_sound_section_body">Motiv může přinést vlastní písmo a zvuk kláves. Pokud je zařízení nemá, klávesnice použije vaše globální nastavení. Písma a zvuky se instalují jako doplňky, takže je můžete používat i s jinými motivy.</string>
     <string name="theme_font_sound_section_title">Písmo a zvuk</string>
     <string name="theme_font_title">Písmo kláves</string>
-    <string name="theme_gallery_auto_on_body">Automatický motiv je zapnutý, takže galerie zobrazuje pouze náhled toho, jak by vypadal.</string>
     <string name="theme_gallery_section_title">Motivy</string>
     <string name="theme_gallery_style_auto_desc">Řídí se odpovědí, kterou jste uvedli v úvodním nastavení</string>
     <string name="theme_gallery_style_auto_label">Automaticky</string>

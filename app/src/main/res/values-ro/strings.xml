@@ -9914,7 +9914,6 @@
     <string name="theme_font_sound_section_body">Tema poate aduce propriul font și sunet pentru taste. Dacă dispozitivul nu le are, tastatura folosește alegerile tale globale. Fonturile și sunetele se instalează ca add-on-uri, deci le poți folosi și cu alte teme.</string>
     <string name="theme_font_sound_section_title">Font și sunet</string>
     <string name="theme_font_title">Font taste</string>
-    <string name="theme_gallery_auto_on_body">Tema automată este activată, deci galeria arată doar cum ar arăta.</string>
     <string name="theme_gallery_section_title">Teme</string>
     <string name="theme_gallery_style_auto_desc">Urmează răspunsul pe care l-ai dat în întrebările de configurare</string>
     <string name="theme_gallery_style_auto_label">Auto</string>

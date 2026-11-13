@@ -9933,7 +9933,6 @@
     <string name="theme_font_sound_section_body">থিমটি তার নিজস্ব কী ফন্ট এবং কী সাউন্ড আনতে পারে। যদি ডিভাইসে সেগুলো না থাকে, তবে কীবোর্ড আপনার গ্লোবাল পছন্দগুলো ব্যবহার করে। ফন্ট এবং সাউন্ড অ্যাড-অন হিসেবে ইনস্টল হয়, তাই আপনি সেগুলো অন্যান্য থিমের সাথেও ব্যবহার করতে পারেন।</string>
     <string name="theme_font_sound_section_title">ফন্ট এবং সাউন্ড</string>
     <string name="theme_font_title">কী ফন্ট</string>
-    <string name="theme_gallery_auto_on_body">অটো থিম চালু আছে, তাই এই নির্বাচনটি কোনো কাজ করবে না। নিজে একটি থিম নির্বাচন করতে উপরের অপশনটি বন্ধ করুন।</string>
     <string name="theme_gallery_section_title">থিম</string>
     <string name="theme_gallery_style_auto_desc">সেটআপ প্রশ্নে আপনার দেওয়া উত্তর অনুসরণ করে</string>
     <string name="theme_gallery_style_auto_label">অটো</string>

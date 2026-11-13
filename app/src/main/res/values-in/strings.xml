@@ -9910,7 +9910,6 @@
     <string name="theme_font_sound_section_body">Tema dapat membawa font tombol dan suara tombolnya sendiri. Jika perangkat tidak memilikinya, papan ketik menggunakan pilihan global Anda. Font dan suara diinstal sebagai add-on, sehingga Anda juga dapat menggunakannya dengan tema lain.</string>
     <string name="theme_font_sound_section_title">Font dan suara</string>
     <string name="theme_font_title">Font tombol</string>
-    <string name="theme_gallery_auto_on_body">Tema otomatis aktif, jadi pilihan ini tidak berpengaruh. Matikan di atas untuk memilih satu tema sendiri.</string>
     <string name="theme_gallery_section_title">Tema</string>
     <string name="theme_gallery_style_auto_desc">Mengikuti jawaban yang Anda berikan dalam pertanyaan pengaturan</string>
     <string name="theme_gallery_style_auto_label">Otomatis</string>

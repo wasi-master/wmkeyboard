@@ -9906,7 +9906,6 @@
     <string name="theme_font_sound_section_body">Le thème peut inclure sa propre police et son propre son de touche. Si l\'appareil ne les possède pas, le clavier utilise vos choix globaux. Les polices et les sons s\'installent en tant qu\'extensions, vous pouvez donc également les utiliser avec d\'autres thèmes.</string>
     <string name="theme_font_sound_section_title">Police et son</string>
     <string name="theme_font_title">Police de caractères</string>
-    <string name="theme_gallery_auto_on_body">Le thème automatique est activé, cette sélection n\'a donc aucun effet. Désactivez-le ci-dessus pour choisir vous-même un thème.</string>
     <string name="theme_gallery_section_title">Thèmes</string>
     <string name="theme_gallery_style_auto_desc">Suit la réponse que vous avez donnée lors de la configuration</string>
     <string name="theme_gallery_style_auto_label">Auto</string>

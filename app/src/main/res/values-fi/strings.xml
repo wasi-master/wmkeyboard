@@ -9905,7 +9905,6 @@
     <string name="theme_font_sound_section_body">Teema voi tuoda oman näppäinfontin ja -äänen. Jos laitteessa ei ole niitä, näppäimistö käyttää yleisiä valintojasi. Fontit ja äänet asennetaan lisäosina, joten voit käyttää niitä myös muiden teemojen kanssa.</string>
     <string name="theme_font_sound_section_title">Fontti ja ääni</string>
     <string name="theme_font_title">Näppäinten fontti</string>
-    <string name="theme_gallery_auto_on_body">Automaattinen teema on päällä, joten galleria näyttää vain miltä se näyttäisi.</string>
     <string name="theme_gallery_section_title">Teemat</string>
     <string name="theme_gallery_style_auto_desc">Noudattaa asetuskysymyksissä antamaasi vastausta</string>
     <string name="theme_gallery_style_auto_label">Automaattinen</string>

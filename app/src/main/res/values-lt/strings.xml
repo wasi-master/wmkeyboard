@@ -9912,7 +9912,6 @@
     <string name="theme_font_sound_section_body">Tema gali turėti savo šriftą ir garsą. Jei įrenginys jų neturi, klaviatūra naudoja jūsų pasirinktus visuotinius nustatymus. Šriftai ir garsai diegiami kaip priedai, todėl galite juos naudoti ir su kitomis temomis.</string>
     <string name="theme_font_sound_section_title">Šriftas ir garsas</string>
     <string name="theme_font_title">Klavišų šriftas</string>
-    <string name="theme_gallery_auto_on_body">Automatinė tema įjungta, todėl galerijoje rodoma tik tai, kaip ji atrodytų.</string>
     <string name="theme_gallery_section_title">Temos</string>
     <string name="theme_gallery_style_auto_desc">Atsižvelgiama į atsakymus, pateiktus sąrankos klausimuose</string>
     <string name="theme_gallery_style_auto_label">Automatinis</string>

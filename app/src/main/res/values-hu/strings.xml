@@ -9905,7 +9905,6 @@
     <string name="theme_font_sound_section_body">A téma saját betűtípust és billentyűhangot használhat. Ha az eszközön ezek nem találhatók meg, a billentyűzet az Ön globális beállításait használja. A betűtípusok és hangok kiegészítőként telepíthetők, így más témákkal is használhatja őket.</string>
     <string name="theme_font_sound_section_title">Betűtípus és hang</string>
     <string name="theme_font_title">Billentyűzet betűtípusa</string>
-    <string name="theme_gallery_auto_on_body">Az automatikus téma be van kapcsolva, így a galéria csak azt mutatja, hogyan nézne ki.</string>
     <string name="theme_gallery_section_title">Témák</string>
     <string name="theme_gallery_style_auto_desc">A beállítási kérdésekre adott válaszai alapján</string>
     <string name="theme_gallery_style_auto_label">Automatikus</string>

@@ -9917,7 +9917,6 @@
     <string name="theme_font_sound_section_body">Tēma var izmantot savu taustiņu fontu un skaņu. Ja ierīcē to nav, tastatūra izmanto jūsu globālās izvēles. Fonti un skaņas tiek instalēti kā papildinājumi, tāpēc varat tos izmantot arī ar citām tēmām.</string>
     <string name="theme_font_sound_section_title">Fonts un skaņa</string>
     <string name="theme_font_title">Taustiņu fonts</string>
-    <string name="theme_gallery_auto_on_body">Automātiskā tēma ir ieslēgta, tāpēc galerijā tiek rādīts tikai tas, kā tā izskatītos.</string>
     <string name="theme_gallery_section_title">Motīvi</string>
     <string name="theme_gallery_style_auto_desc">Sekot atbildei, ko sniedzāt iestatīšanas jautājumos</string>
     <string name="theme_gallery_style_auto_label">Automātiski</string>

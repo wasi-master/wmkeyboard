@@ -9905,7 +9905,6 @@
     <string name="theme_font_sound_section_body">Tema kendi tuş yazı tipini ve tuş sesini getirebilir. Cihazda bunlar yoksa, klavye genel tercihlerinizi kullanır. Yazı tipleri ve sesler eklenti olarak yüklenir, böylece bunları diğer temalarla da kullanabilirsiniz.</string>
     <string name="theme_font_sound_section_title">Yazı tipi ve ses</string>
     <string name="theme_font_title">Tuş yazı tipi</string>
-    <string name="theme_gallery_auto_on_body">Otomatik tema açık, bu yüzden bu seçim hiçbir şey yapmaz. Kendiniz bir tema seçmek için yukarıdan kapatın.</string>
     <string name="theme_gallery_section_title">Temalar</string>
     <string name="theme_gallery_style_auto_desc">Kurulum sorularında verdiğiniz cevabı takip eder</string>
     <string name="theme_gallery_style_auto_label">Otomatik</string>

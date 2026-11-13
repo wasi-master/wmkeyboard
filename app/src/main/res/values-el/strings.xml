@@ -9913,7 +9913,6 @@
     <string name="theme_font_sound_section_body">Το θέμα μπορεί να φέρει τη δική του γραμματοσειρά και ήχο πλήκτρων. Εάν η συσκευή δεν τα διαθέτει, το πληκτρολόγιο χρησιμοποιεί τις καθολικές επιλογές σας. Οι γραμματοσειρές και οι ήχοι εγκαθίστανται ως πρόσθετα, ώστε να μπορείτε να τα χρησιμοποιείτε και με άλλα θέματα.</string>
     <string name="theme_font_sound_section_title">Γραμματοσειρά και ήχος</string>
     <string name="theme_font_title">Γραμματοσειρά πλήκτρων</string>
-    <string name="theme_gallery_auto_on_body">Το αυτόματο θέμα είναι ενεργοποιημένο, οπότε η συλλογή δείχνει μόνο πώς θα έμοιαζε.</string>
     <string name="theme_gallery_section_title">Θέματα</string>
     <string name="theme_gallery_style_auto_desc">Ακολουθεί την απάντηση που δώσατε στις ερωτήσεις ρύθμισης</string>
     <string name="theme_gallery_style_auto_label">Αυτόματο</string>

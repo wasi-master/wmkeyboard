@@ -9918,7 +9918,6 @@
     <string name="theme_font_sound_section_body">يمكن للسمة أن تجلب خط مفاتيح وصوت مفاتيح خاصين بها. إذا لم يكن الجهاز يحتوي عليهما، تستخدم لوحة المفاتيح خياراتك العامة. يتم تثبيت الخطوط والأصوات كإضافات، لذا يمكنك استخدامها أيضًا مع سمات أخرى.</string>
     <string name="theme_font_sound_section_title">الخط والصوت</string>
     <string name="theme_font_title">الخط الرئيسي</string>
-    <string name="theme_gallery_auto_on_body">السمة التلقائية مفعلة، لذا فإن هذا الاختيار لا يفعل شيئاً. قم بإيقاف تشغيلها أعلاه لاختيار سمة بنفسك.</string>
     <string name="theme_gallery_section_title">السمات</string>
     <string name="theme_gallery_style_auto_desc">يتبع الإجابة التي قدمتها في أسئلة الإعداد</string>
     <string name="theme_gallery_style_auto_label">تلقائي</string>

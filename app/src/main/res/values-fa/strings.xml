@@ -9919,7 +9919,6 @@
     <string name="theme_font_sound_section_body">تم می‌تواند فونت و صدای کلید مخصوص خود را داشته باشد. اگر دستگاه آن‌ها را نداشته باشد، صفحه‌کلید از انتخاب‌های کلی شما استفاده می‌کند. فونت‌ها و صداها به عنوان افزونه نصب می‌شوند، بنابراین می‌توانید از آن‌ها با تم‌های دیگر نیز استفاده کنید.</string>
     <string name="theme_font_sound_section_title">قلم و صدا</string>
     <string name="theme_font_title">قلم کلیدها</string>
-    <string name="theme_gallery_auto_on_body">تم خودکار روشن است، بنابراین این انتخاب تأثیری ندارد. برای انتخاب دستی یک تم، آن را در بالا خاموش کنید.</string>
     <string name="theme_gallery_section_title">تم‌ها</string>
     <string name="theme_gallery_style_auto_desc">پاسخی که در سوالات راه‌اندازی دادید را دنبال می‌کند</string>
     <string name="theme_gallery_style_auto_label">خودکار</string>

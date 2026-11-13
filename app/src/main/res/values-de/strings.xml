@@ -9912,7 +9912,6 @@
     <string name="theme_font_sound_section_body">Das Design kann eine eigene Tastenschriftart und einen eigenen Tastenton mitbringen. Wenn das Gerät diese nicht hat, verwendet die Tastatur Ihre globalen Einstellungen. Schriftarten und Töne werden als Add-ons installiert, sodass Sie sie auch mit anderen Designs verwenden können.</string>
     <string name="theme_font_sound_section_title">Schriftart und Ton</string>
     <string name="theme_font_title">Tastenschriftart</string>
-    <string name="theme_gallery_auto_on_body">Das automatische Design ist aktiviert, daher hat diese Auswahl keine Auswirkung. Deaktivieren Sie es oben, um selbst ein Design auszuwählen.</string>
     <string name="theme_gallery_section_title">Designs</string>
     <string name="theme_gallery_style_auto_desc">Folgt der Antwort, die Sie in den Einrichtungsfragen gegeben haben</string>
     <string name="theme_gallery_style_auto_label">Auto</string>

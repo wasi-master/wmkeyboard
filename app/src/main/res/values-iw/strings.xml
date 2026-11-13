@@ -9912,7 +9912,6 @@
     <string name="theme_font_sound_section_body">ערכת הנושא יכולה להביא גופן וצליל מקשים משלה. אם למכשיר אין אותם, המקלדת משתמשת בבחירות הגלובליות שלך. גופנים וצלילים מותקנים כתוספים, כך שניתן להשתמש בהם גם עם ערכות נושא אחרות.</string>
     <string name="theme_font_sound_section_title">גופן וצליל</string>
     <string name="theme_font_title">גופן מפתח</string>
-    <string name="theme_gallery_auto_on_body">ערכת נושא אוטומטית מופעלת, לכן הגלריה מציגה רק איך זה ייראה.</string>
     <string name="theme_gallery_section_title">ערכות נושא</string>
     <string name="theme_gallery_style_auto_desc">עוקב אחר התשובה שנתת בשאלות ההגדרה</string>
     <string name="theme_gallery_style_auto_label">אוטומטי</string>
