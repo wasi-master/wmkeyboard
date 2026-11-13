@@ -19,6 +19,7 @@ import com.wasimaster.wmkeyboard.core.settings.LoadLevel
 import com.wasimaster.wmkeyboard.core.settings.LoadLevelTracker
 import com.wasimaster.wmkeyboard.core.settings.classifyDevice
 import com.wasimaster.wmkeyboard.core.settings.frameLoad
+import com.wasimaster.wmkeyboard.core.settings.isTelevision
 import com.wasimaster.wmkeyboard.core.settings.workLoad
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -59,6 +60,7 @@ class LoadGovernor(private val context: Context) {
     private val lock = Any()
     private val tracker = LoadLevelTracker()
     private var deviceClass = DeviceClass.MID
+    private var television = false
 
     @Volatile
     private var enabled = true
@@ -272,7 +274,7 @@ class LoadGovernor(private val context: Context) {
 
     private fun publish() {
         val next = if (enabled) {
-            synchronized(lock) { DeviceLoad(tracker.level, deviceClass) }
+            synchronized(lock) { DeviceLoad(tracker.level, deviceClass, television) }
         } else {
             DeviceLoad()
         }
@@ -289,6 +291,7 @@ class LoadGovernor(private val context: Context) {
                 File("/sys/devices/system/cpu/cpu$core/cpufreq/cpuinfo_max_freq").readText().trim().toInt()
             }.getOrDefault(0)
         } ?: 0
+        val tv = runCatching { context.isTelevision() }.getOrDefault(false)
         val performanceClass = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             Build.VERSION.MEDIA_PERFORMANCE_CLASS
         } else {
@@ -300,8 +303,12 @@ class LoadGovernor(private val context: Context) {
             cores = cores,
             maxCpuMhz = maxKhz / KHZ_PER_MHZ,
             mediaPerformanceClass = performanceClass,
+            television = tv,
         )
-        synchronized(lock) { deviceClass = found }
+        synchronized(lock) {
+            deviceClass = found
+            television = tv
+        }
         publish()
     }
 

@@ -425,6 +425,7 @@ import com.wasimaster.wmkeyboard.core.debug.KeyboardDebugSnapshot
 import com.wasimaster.wmkeyboard.core.settings.withSystemMotion
 import com.wasimaster.wmkeyboard.core.settings.DataSaverSettings
 import com.wasimaster.wmkeyboard.core.settings.DataSaverStatus
+import com.wasimaster.wmkeyboard.core.settings.DeviceClass
 import com.wasimaster.wmkeyboard.core.settings.DeviceLoad
 import com.wasimaster.wmkeyboard.core.settings.DevicePowerState
 import com.wasimaster.wmkeyboard.core.settings.LoadLevel
@@ -5439,10 +5440,11 @@ open class WMKeyboardService : InputMethodService() {
                 deviceForm,
                 networkWatcher.state,
                 settingsRepository.panelLayouts,
-                // Only whether the phone is struggling: that is all the
-                // settings view reads, and a settings pass for every change
-                // of the lighter budgets would be work of its own.
-                loadGovernor.state.map { it.level == LoadLevel.HEAVY }.distinctUntilChanged(),
+                // Only whether the phone is struggling (always, on a low-memory
+                // television): that is all the settings view reads, and a
+                // settings pass for every change of the lighter budgets would
+                // be work of its own.
+                loadGovernor.state.map { it.viewLevel == LoadLevel.HEAVY }.distinctUntilChanged(),
             ) { inputs ->
                 @Suppress("UNCHECKED_CAST")
                 val stored = inputs[0] as KeyboardSettings
@@ -11514,8 +11516,15 @@ open class WMKeyboardService : InputMethodService() {
         ThemePreviewCache.trim(level)
         // A phone short of memory is a phone under load.
         loadGovernor.noteTrimMemory(level)
+        // A low-memory device lets go already when the system says memory
+        // is running low for the app in front: on a 1 GB television box that
+        // app is usually a video player, and the background-only levels come
+        // too late to keep it, or the keyboard, alive.
+        val tight = deviceLoad.deviceClass == DeviceClass.LOW
         @Suppress("DEPRECATION")
-        if (level >= ComponentCallbacks2.TRIM_MEMORY_MODERATE) {
+        if (level >= ComponentCallbacks2.TRIM_MEMORY_MODERATE ||
+            (tight && level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW)
+        ) {
             releaseHeavyEngines(onScreen = true)
         }
     }
@@ -11645,7 +11654,11 @@ open class WMKeyboardService : InputMethodService() {
         idleReleaseJob?.cancel()
         // Power saving's "Loaded models" drop shortens the wait (#1163).
         val state = _uiState.value
-        val waitMs = state.settings.powerSaving.idleReleaseMs(state.powerSavingOn, IDLE_RELEASE_MS)
+        val waitMs = minOf(
+            state.settings.powerSaving.idleReleaseMs(state.powerSavingOn, IDLE_RELEASE_MS),
+            // Sooner on a phone or television short of memory (DeviceLoad.idleReleaseMs).
+            deviceLoad.idleReleaseMs(IDLE_RELEASE_MS),
+        )
         idleReleaseJob = serviceScope.launch {
             delay(waitMs)
             releaseHeavyEngines(onScreen = false)
@@ -26752,9 +26765,9 @@ open class WMKeyboardService : InputMethodService() {
      * screen of the grid and all of its scrollback.
      */
     private val launcherIconCache = object : android.util.LruCache<String, ImageBitmap>(
-        (Runtime.getRuntime().maxMemory() / 32)
-            .coerceIn(LAUNCHER_ICON_MIN_BUDGET, LAUNCHER_ICON_MAX_BUDGET)
-            .toInt(),
+        // Half on a low-memory phone or television (see DeviceMemory).
+        com.wasimaster.wmkeyboard.core.perf.DeviceMemory
+            .cacheBudget(32, LAUNCHER_ICON_MIN_BUDGET, LAUNCHER_ICON_MAX_BUDGET),
     ) {
         override fun sizeOf(key: String, value: ImageBitmap): Int = value.width * value.height * 4
     }

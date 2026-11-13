@@ -63,9 +63,9 @@ object BackgroundBitmapCache {
     private const val MAX_BUDGET_BYTES = 24 * 1024 * 1024
 
     private val cache: LruCache<Key, Bitmap> = run {
-        val budget = (Runtime.getRuntime().maxMemory() / 16)
-            .coerceIn(MIN_BUDGET_BYTES.toLong(), MAX_BUDGET_BYTES.toLong())
-            .toInt()
+        // Half on a low-memory phone or television (see DeviceMemory).
+        val budget = com.wasimaster.wmkeyboard.core.perf.DeviceMemory
+            .cacheBudget(16, MIN_BUDGET_BYTES.toLong(), MAX_BUDGET_BYTES.toLong())
         object : LruCache<Key, Bitmap>(budget) {
             override fun sizeOf(key: Key, value: Bitmap): Int = value.byteCount
 

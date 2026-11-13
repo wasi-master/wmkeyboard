@@ -47,6 +47,8 @@ open class WMApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Before anything sizes a cache: a 1 GB television box gets smaller ones.
+        com.wasimaster.wmkeyboard.core.perf.DeviceMemory.init(this)
         // The crash screen runs in its own process and must not get a handler:
         // a failure while showing a crash report would launch another crash
         // report, forever. See CrashReportActivity.

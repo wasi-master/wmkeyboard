@@ -70,6 +70,16 @@ Three more are *defaults* rather than overrides, so a number you choose on the T
 
 Change any of them under <SettingsPath path="Layout & size" /> and your choice sticks.
 
+## Lighter on cheaper boxes
+
+Many TV boxes and sticks have 1 or 2 GB of memory, shared with the video they play, and a chip that drives a screen many times a phone's size. The keyboard takes that into account by itself:
+
+- **On every television**, a moving theme draws at most 30 frames a second, and the suggestion strip waits a little longer for a run of key presses to end. A remote types a key at a time, so nothing feels slower.
+- **On a box with under about 4.5 GB, or a slow chip**, the theme's motion holds still, the blur behind a glass theme and the panel animations are off, and the models the keyboard loaded (voice typing, the translator and the like) are let go 15 seconds after the keyboard hides instead of 2 minutes.
+- When the system says memory is running low for the app on screen, usually the video player, the keyboard lets go of its models straight away rather than waiting until it is in the background.
+
+All of that is part of **Adapt to the phone's load** under <SettingsPath path="Tools / Power saving" />; switch it off and the box behaves like any other device. Two savings stay either way: on a box that short of memory the keyboard's picture caches hold half as much, and a theme's photo is always decoded for the card's width rather than the whole screen's. See [When the phone is busy](/typing/power-saving/#when-the-phone-is-busy).
+
 ## The board floats over the app
 
 On a television the keyboard is a card rather than a strip across the bottom of the screen: rounded top corners, a soft shadow, your theme painted inside it, and the app still visible on both sides. Make the board wider or narrower under <SettingsPath path="Layout & size" /> and the card follows; at full width it spans the screen the way it does on a phone.

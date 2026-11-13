@@ -46,15 +46,51 @@ enum class DeviceClass { LOW, MID, HIGH }
 data class DeviceLoad(
     val level: LoadLevel = LoadLevel.NORMAL,
     val deviceClass: DeviceClass = DeviceClass.MID,
+    /**
+     * Drawing on a television. Its chip is a phone's from years back driving
+     * a screen many times the size, it shares its memory with a video
+     * decoder, and it is typed on a key at a time with a remote: nothing on
+     * it needs a background drawn at 60 frames a second.
+     */
+    val television: Boolean = false,
 ) {
     /**
      * The level the invisible budgets run at: [level], but never below
      * [LoadLevel.ELEVATED] on a [DeviceClass.LOW] phone, which has no spare
-     * core to give a moving background or a back-to-back preview.
+     * core to give a moving background or a back-to-back preview, nor on a
+     * television.
      */
     val budgetLevel: LoadLevel
-        get() = if (deviceClass == DeviceClass.LOW && level < LoadLevel.ELEVATED) LoadLevel.ELEVATED else level
+        get() = if ((deviceClass == DeviceClass.LOW || television) && level < LoadLevel.ELEVATED) {
+            LoadLevel.ELEVATED
+        } else {
+            level
+        }
+
+    /**
+     * The level the settings view ([underLoad]) runs at: [level], but always
+     * [LoadLevel.HEAVY] on a [DeviceClass.LOW] television. A 1 or 2 GB box
+     * has nothing to spare for a moving theme, a blur or a panel animation at
+     * any time, and its remote gives nobody a reason to miss them.
+     */
+    val viewLevel: LoadLevel
+        get() = if (television && deviceClass == DeviceClass.LOW) LoadLevel.HEAVY else level
+
+    /**
+     * How long the keyboard waits, once hidden, before it lets go of its
+     * loaded models: [normalMs], shortened on a phone short of memory and
+     * more so on a low-memory television, where the next field is usually a
+     * search box minutes away and the memory is wanted by the video.
+     */
+    fun idleReleaseMs(normalMs: Long): Long = when {
+        deviceClass != DeviceClass.LOW -> normalMs
+        television -> minOf(normalMs, LOW_TV_IDLE_RELEASE_MS)
+        else -> minOf(normalMs, LOW_IDLE_RELEASE_MS)
+    }
 }
+
+private const val LOW_IDLE_RELEASE_MS = 45_000L
+private const val LOW_TV_IDLE_RELEASE_MS = 15_000L
 
 /**
  * Frame rate caps for a theme's moving parts, in frames per second; 0 means
@@ -149,9 +185,15 @@ fun classifyDevice(
     cores: Int,
     maxCpuMhz: Int,
     mediaPerformanceClass: Int,
+    television: Boolean = false,
 ): DeviceClass = when {
     lowRamDevice || totalMemMb in 1 until LOW_MEM_MB || cores in 1..LOW_CORES ||
         maxCpuMhz in 1 until LOW_CPU_MHZ -> DeviceClass.LOW
+    // A television's memory is shared with the video it plays, and its chip
+    // drives a far bigger screen than a phone's: a box a phone of the same
+    // figures would call mid-range is a low one here, and none is high.
+    television && (totalMemMb in 1 until LOW_TV_MEM_MB || maxCpuMhz in 1 until LOW_TV_CPU_MHZ) -> DeviceClass.LOW
+    television -> DeviceClass.MID
     mediaPerformanceClass >= HIGH_PERFORMANCE_CLASS ||
         (totalMemMb >= HIGH_MEM_MB && maxCpuMhz >= HIGH_CPU_MHZ) -> DeviceClass.HIGH
     else -> DeviceClass.MID
@@ -160,6 +202,8 @@ fun classifyDevice(
 private const val LOW_MEM_MB = 3_500L
 private const val LOW_CORES = 4
 private const val LOW_CPU_MHZ = 2_000
+private const val LOW_TV_MEM_MB = 4_500L
+private const val LOW_TV_CPU_MHZ = 2_200
 private const val HIGH_MEM_MB = 7_500L
 private const val HIGH_CPU_MHZ = 2_800
 

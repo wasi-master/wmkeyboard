@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.Density
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
+import com.wasimaster.wmkeyboard.core.perf.DeviceMemory
 import com.wasimaster.wmkeyboard.core.settings.AppUiSettings
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import com.wasimaster.wmkeyboard.core.settings.FloatingHandlePosition
@@ -110,7 +111,8 @@ internal object LayoutPreviewCache {
      * bitmaps and do not sit on the heap this is a share of.
      */
     private fun memoryBudget(): Int =
-        (Runtime.getRuntime().maxMemory() / 8).coerceAtMost(96L shl 20).toInt()
+        // Half on a low-memory phone or television (see DeviceMemory).
+        DeviceMemory.cacheBudget(8, min = 4L shl 20, max = 96L shl 20)
 
     fun get(key: String): ImageBitmap? = memory.get(key)
 

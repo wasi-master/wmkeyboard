@@ -9,6 +9,7 @@ import android.util.LruCache
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.wasimaster.wmkeyboard.core.perf.DeviceMemory
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.WallpaperBackdrop
 import kotlinx.coroutines.CoroutineScope
@@ -82,7 +83,8 @@ internal object ThemePreviewCache {
      * the heap at all.
      */
     private fun memoryBudget(): Int =
-        (Runtime.getRuntime().maxMemory() / 20).coerceAtMost(24L shl 20).toInt()
+        // Half on a low-memory phone or television (see DeviceMemory).
+        DeviceMemory.cacheBudget(20, min = 2L shl 20, max = 24L shl 20)
 
     private fun slot(theme: ThemeSpec, image: String?, landscape: Boolean, widthPx: Int) =
         "${theme.id}\u0000${image.orEmpty()}\u0000$landscape\u0000$widthPx"

@@ -2312,7 +2312,11 @@ private const val BOARD_HEIGHT_SHARE = 0.6f
  * through). FLOW/HUE_CYCLE animate the board layer.
  */
 @Composable
-fun BoxScope.BoardBackground(kb: KbTheme) {
+fun BoxScope.BoardBackground(
+    kb: KbTheme,
+    /** The share of the screen's width the board takes, for sizing the photo's decode. */
+    widthShare: Float = 1f,
+) {
     // In landscape prefer the theme's landscape image, falling back to the
     // portrait one when it has none — so a theme with a single image still
     // shows it in both orientations, exactly as before this split existed.
@@ -2325,7 +2329,7 @@ fun BoxScope.BoardBackground(kb: KbTheme) {
     // font-scale nudge or a floating-resize drag does not throw the decode
     // away. Over-estimating costs a little memory; under-estimating costs
     // sharpness, so the board is assumed to be a generous share of the screen.
-    val targetW = with(density) { configuration.screenWidthDp.dp.roundToPx() }
+    val targetW = with(density) { (configuration.screenWidthDp * widthShare.coerceIn(0.1f, 1f)).dp.roundToPx() }
     val targetH = with(density) { (configuration.screenHeightDp * BOARD_HEIGHT_SHARE).dp.roundToPx() }
     // Under a picture, the board's own colour at full strength (#1222). The
     // colour layer drawn over the picture is a scrim, and picking a photo

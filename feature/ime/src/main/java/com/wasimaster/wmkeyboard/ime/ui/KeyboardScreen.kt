@@ -2668,7 +2668,10 @@ private fun DockedKeyboardFrame(
                             Spacer(modifier = Modifier.weight(arrangement.leftSlack))
                         }
                         if (card) {
-                            TelevisionCard(modifier = Modifier.weight(arrangement.widthFraction)) {
+                            TelevisionCard(
+                                modifier = Modifier.weight(arrangement.widthFraction),
+                                widthShare = arrangement.widthFraction,
+                            ) {
                                 Column(modifier = Modifier.fillMaxWidth().then(bottomRoom)) {
                                     revealingBody(state)
                                 }
@@ -3009,10 +3012,12 @@ private const val IncognitoWatermarkAlpha = 0.14f
  * The theme's navigation-bar colour is left out: a TV draws no bar.
  */
 @Composable
-private fun TelevisionCard(modifier: Modifier, content: @Composable () -> Unit) {
+private fun TelevisionCard(modifier: Modifier, widthShare: Float, content: @Composable () -> Unit) {
     val shape = RoundedCornerShape(topStart = TelevisionCardCorner, topEnd = TelevisionCardCorner)
     Box(modifier = modifier.shadow(TelevisionCardElevation, shape, clip = true)) {
-        BoardBackground(LocalKbTheme.current)
+        // The card is half the screen wide by default: its photo is decoded
+        // for that, not for the whole 1080p width a cheap box can ill spare.
+        BoardBackground(LocalKbTheme.current, widthShare = widthShare)
         content()
     }
 }

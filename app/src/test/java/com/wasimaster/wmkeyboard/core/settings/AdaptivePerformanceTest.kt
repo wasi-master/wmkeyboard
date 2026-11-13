@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.settings
 
+import com.wasimaster.wmkeyboard.core.perf.DeviceMemory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
@@ -143,5 +144,42 @@ class AdaptivePerformanceTest {
         assertEquals(LoadLevel.NORMAL, workLoad(40L))
         assertEquals(LoadLevel.ELEVATED, workLoad(120L))
         assertEquals(LoadLevel.HEAVY, workLoad(300L))
+    }
+
+    @Test
+    fun `televisions are classed against their own bar`() {
+        // A 2 GB Amlogic box with A55 cores at 1.9 GHz.
+        assertEquals(DeviceClass.LOW, classifyDevice(false, 2_000, 4, 1_900, 0, television = true))
+        // 3 GB and 2 GHz would be a mid phone, but is a low television.
+        assertEquals(DeviceClass.MID, classifyDevice(false, 3_800, 8, 2_000, 0))
+        assertEquals(DeviceClass.LOW, classifyDevice(false, 3_800, 8, 2_000, 0, television = true))
+        // A big box is mid at best: no television is high.
+        assertEquals(DeviceClass.MID, classifyDevice(false, 8_000, 8, 3_000, 33, television = true))
+    }
+
+    @Test
+    fun `a low television always runs the heavy view and tight budgets`() {
+        val box = DeviceLoad(LoadLevel.NORMAL, DeviceClass.LOW, television = true)
+        assertEquals(LoadLevel.HEAVY, box.viewLevel)
+        assertEquals(LoadLevel.ELEVATED, box.budgetLevel)
+        assertEquals(15_000L, box.idleReleaseMs(120_000L))
+        // A mid television: lighter budgets, nothing visible taken away.
+        val mid = DeviceLoad(LoadLevel.NORMAL, DeviceClass.MID, television = true)
+        assertEquals(LoadLevel.NORMAL, mid.viewLevel)
+        assertEquals(LoadLevel.ELEVATED, mid.budgetLevel)
+        assertEquals(120_000L, mid.idleReleaseMs(120_000L))
+        // A low phone keeps its look but lets models go sooner.
+        val phone = DeviceLoad(LoadLevel.NORMAL, DeviceClass.LOW)
+        assertEquals(LoadLevel.NORMAL, phone.viewLevel)
+        assertEquals(45_000L, phone.idleReleaseMs(120_000L))
+    }
+
+    @Test
+    fun `memory is tight on low-RAM phones and on televisions up to more RAM`() {
+        assertTrue(DeviceMemory.isTight(lowRamDevice = true, totalMb = 8_000, television = false))
+        assertTrue(DeviceMemory.isTight(lowRamDevice = false, totalMb = 2_000, television = false))
+        assertFalse(DeviceMemory.isTight(lowRamDevice = false, totalMb = 4_000, television = false))
+        assertTrue(DeviceMemory.isTight(lowRamDevice = false, totalMb = 4_000, television = true))
+        assertFalse(DeviceMemory.isTight(lowRamDevice = false, totalMb = 0, television = true))
     }
 }
