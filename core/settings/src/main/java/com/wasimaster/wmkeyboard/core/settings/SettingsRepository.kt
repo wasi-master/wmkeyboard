@@ -1938,10 +1938,20 @@ enum class EmojiInsertMode { REPLACE, APPEND }
  * Default Fitzpatrick skin tone applied to toned emoji in the suggestion
  * strip and emoji search. [NONE] leaves the neutral yellow base; the five
  * others map to 🏻..🏿, i.e. tone indices 1..5 in [EmojiVariantIndex].
+ * [RANDOM] (-1, `EmojiDefaultFace.RANDOM_TONE`) gives each emoji a tone of
+ * its own, drawn again each time the emoji panel opens.
  */
 enum class EmojiSkinTone(val toneIndex: Int) {
-    NONE(0), LIGHT(1), MEDIUM_LIGHT(2), MEDIUM(3), MEDIUM_DARK(4), DARK(5),
+    NONE(0), LIGHT(1), MEDIUM_LIGHT(2), MEDIUM(3), MEDIUM_DARK(4), DARK(5), RANDOM(-1),
 }
+
+/**
+ * Which gender a people emoji shows by default when it has woman and man
+ * variants (🏃 🏃‍♀️ 🏃‍♂️). [PERSON] keeps the gender-neutral base; [RANDOM]
+ * picks one of the three per emoji, drawn again each time the emoji panel
+ * opens. Names match `EmojiDefaultFace.Gender`.
+ */
+enum class EmojiDefaultGender { PERSON, WOMAN, MAN, RANDOM }
 
 /**
  * How the keyboard exposes itself to TalkBack. [OFF] leaves the keys as raw
@@ -8762,6 +8772,12 @@ data class EmojiSettings(
      */
     val defaultSkinTone: EmojiSkinTone = EmojiSkinTone.NONE,
     /**
+     * Default gender for people emoji with woman and man variants, applied
+     * before [defaultSkinTone]. A variant picked for an emoji from its popup
+     * still wins while [toneOverrideByLastUsed] is on.
+     */
+    val defaultGender: EmojiDefaultGender = EmojiDefaultGender.PERSON,
+    /**
      * Let the tone last picked for an emoji (from the panel's long-press
      * popup) override [defaultSkinTone]. On by default: a tone picked for one
      * emoji is a deliberate, more specific choice than the global default.
@@ -12957,6 +12973,7 @@ class SettingsRepository(private val context: Context) {
         private val EMOJI_BAR_CONTENT = stringPreferencesKey("emoji_bar_content")
         private val EMOJI_INSERT_MODE = stringPreferencesKey("emoji_insert_mode")
         private val EMOJI_DEFAULT_SKIN_TONE = stringPreferencesKey("emoji_default_skin_tone")
+        private val EMOJI_DEFAULT_GENDER = stringPreferencesKey("emoji_default_gender")
         private val EMOJI_TONE_OVERRIDE_LAST_USED =
             booleanPreferencesKey("emoji_tone_override_last_used")
         private val EMOJI_CLOSE_AFTER_INSERT = booleanPreferencesKey("emoji_close_after_insert")
@@ -15616,6 +15633,9 @@ class SettingsRepository(private val context: Context) {
             defaultSkinTone = p[EMOJI_DEFAULT_SKIN_TONE]
                 ?.let { runCatching { EmojiSkinTone.valueOf(it) }.getOrNull() }
                 ?: defaults.emoji.defaultSkinTone,
+            defaultGender = p[EMOJI_DEFAULT_GENDER]
+                ?.let { runCatching { EmojiDefaultGender.valueOf(it) }.getOrNull() }
+                ?: defaults.emoji.defaultGender,
             toneOverrideByLastUsed = p[EMOJI_TONE_OVERRIDE_LAST_USED]
                 ?: defaults.emoji.toneOverrideByLastUsed,
             closeAfterInsert = p[EMOJI_CLOSE_AFTER_INSERT] ?: defaults.emoji.closeAfterInsert,
@@ -25139,6 +25159,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setEmojiDefaultSkinTone(value: EmojiSkinTone) =
         editPrefs { it[EMOJI_DEFAULT_SKIN_TONE] = value.name }
+
+    suspend fun setEmojiDefaultGender(value: EmojiDefaultGender) =
+        editPrefs { it[EMOJI_DEFAULT_GENDER] = value.name }
 
     suspend fun setEmojiToneOverrideByLastUsed(value: Boolean) =
         editPrefs { it[EMOJI_TONE_OVERRIDE_LAST_USED] = value }

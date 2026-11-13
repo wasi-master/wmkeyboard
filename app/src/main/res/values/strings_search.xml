@@ -143,6 +143,7 @@
     <string name="search_kw_langemoji_emoji_continuous">continuous vertical sections pages headers</string>
     <string name="search_kw_langemoji_panel_height">size expand bigger grow</string>
     <string name="search_kw_langemoji_emoji_skin_tone">fitzpatrick diversity complexion</string>
+    <string name="search_kw_langemoji_emoji_gender">female male sex feminine masculine neutral</string>
     <string name="search_kw_langemoji_emoji_sticker">sticker png</string>
     <string name="search_kw_langemoji_lang_os_switcher">ime subtype</string>
     <string name="search_kw_languages_cjk_jianpin">mandarin abbreviated pinyin initials shorthand</string>

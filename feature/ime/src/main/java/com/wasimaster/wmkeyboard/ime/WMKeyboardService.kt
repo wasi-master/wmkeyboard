@@ -170,6 +170,7 @@ import com.wasimaster.wmkeyboard.core.tools.LiveTypingSpeed
 import com.wasimaster.wmkeyboard.core.tools.TypingStatsMath
 import com.wasimaster.wmkeyboard.ime.ui.LiveWpmReadout
 import com.wasimaster.wmkeyboard.core.tools.ContactPhones
+import com.wasimaster.wmkeyboard.core.emoji.EmojiDefaultFace
 import com.wasimaster.wmkeyboard.core.emoji.AnimatedEmoji
 import com.wasimaster.wmkeyboard.core.emoji.EmojiCatalog
 import com.wasimaster.wmkeyboard.core.emoji.EmojiEntry
@@ -885,6 +886,7 @@ import com.wasimaster.wmkeyboard.ime.ui.GlideVerdict
 import com.wasimaster.wmkeyboard.ime.ui.caseAt
 import com.wasimaster.wmkeyboard.ime.ui.IconDefaults
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts
+import com.wasimaster.wmkeyboard.ime.ui.emojiDefaultFace
 import com.wasimaster.wmkeyboard.ime.ui.emojiStickerJobId
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardScreen
 import com.wasimaster.wmkeyboard.ime.ui.InlineChipPalette
@@ -35972,7 +35974,11 @@ open class WMKeyboardService : InputMethodService() {
                 calendarTool.onPanelOpen(prefill)
                 if (prefill is ToolPrefill.Calendar || prefill is ToolPrefill.CalendarEvent) onToolPrefillConsumed()
             }
-            PanelMode.EMOJI -> if (_uiState.value.settings.emoji.kaomojiTabs) kaomojiTool.onPanelOpen()
+            PanelMode.EMOJI -> {
+                // A random default gender or tone draws a fresh set per opening.
+                EmojiDefaultFace.reroll()
+                if (_uiState.value.settings.emoji.kaomojiTabs) kaomojiTool.onPanelOpen()
+            }
             PanelMode.HOME_ASSISTANT -> {
                 haTool.onPanelOpen()
                 (_uiState.value.toolPrefill as? ToolPrefill.Assist)?.let { prefill ->
@@ -54409,22 +54415,15 @@ open class WMKeyboardService : InputMethodService() {
     }.getOrDefault(pkg)
 
     /**
-     * Resolves the face to show for a suggested/searched emoji: the global
-     * default skin tone, unless the "override with last used" option is on and
-     * a variant was picked for this base (see [KeyboardSettings.emoji]).
+     * Resolves the face to show for a suggested/searched emoji: the variant
+     * last picked for this base when "override with last used" is on, else the
+     * default gender and skin tone (see [KeyboardSettings.emoji]).
      */
     private fun applyEmojiTone(emoji: String): String {
-        val emojiSettings = _uiState.value.settings.emoji
-        return _uiState.value.emojiVariants.tonedDisplay(
-            base = emoji,
-            tone = emojiSettings.defaultSkinTone.toneIndex,
-            preferred = if (emojiSettings.toneOverrideByLastUsed) {
-                emojiUsage.preferredVariant(emoji)
-            } else {
-                null
-            },
-            overrideWithPreferred = emojiSettings.toneOverrideByLastUsed,
-        )
+        val state = _uiState.value
+        val emojiSettings = state.settings.emoji
+        if (emojiSettings.toneOverrideByLastUsed) emojiUsage.preferredVariant(emoji)?.let { return it }
+        return emojiDefaultFace(state.emojiCatalog, state.emojiVariants, emojiSettings, emoji)
     }
 
     /**

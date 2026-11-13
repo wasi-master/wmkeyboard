@@ -1429,6 +1429,7 @@ private fun SearchStrings.emojiRows(): List<SettingsSearchEntry> {
         row(R.string.langemoji_emoji_bar_scroll_title, R.string.langemoji_emoji_bar_scroll_subtitle),
         row(R.string.langemoji_emoji_font_title, R.string.langemoji_emoji_font_subtitle),
         row(R.string.langemoji_emoji_skin_tone_title, R.string.langemoji_emoji_skin_tone_subtitle, weight = EntryWeight.PRIMARY),
+        row(R.string.langemoji_emoji_gender_title, R.string.langemoji_emoji_gender_subtitle),
         row(R.string.langemoji_emoji_tone_override_title, R.string.langemoji_emoji_tone_override_subtitle),
         // One title in every configuration now: an emoji the chosen font lacks
         // is drawn in the phone's own font rather than hidden, so the toggle is

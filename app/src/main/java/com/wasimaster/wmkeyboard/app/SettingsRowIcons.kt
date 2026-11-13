@@ -745,6 +745,7 @@ internal object SettingsRowIcons {
         put(R.string.langemoji_emoji_font_title) { Icons.Outlined.FontDownload }
         put(R.string.langemoji_emoji_skin_tone_title) { Icons.Outlined.Colorize }
         put(R.string.langemoji_emoji_tone_override_title) { Icons.Outlined.Colorize }
+        put(R.string.langemoji_emoji_gender_title) { Icons.Outlined.Person }
         put(R.string.langemoji_emoji_close_after_insert_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.langemoji_media_switcher_title) { Icons.Outlined.SwapHoriz }
         put(R.string.langemoji_media_remember_title) { Icons.Outlined.History }
