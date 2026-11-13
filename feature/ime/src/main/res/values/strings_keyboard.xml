@@ -1144,6 +1144,11 @@
     <string name="ime_clip_not_picked_desc">Not selected</string>
     <!-- Joining the picked clips into one clip (#612). -->
     <string name="ime_clip_combine">Combine</string>
+    <!-- Over a clip that is code or Markdown, in the popup with its whole text: switches between drawn formatted and its source/plain text. -->
+    <string name="ime_clip_show_raw">Show raw</string>
+    <string name="ime_clip_show_formatted">Show formatted</string>
+    <string name="ime_clip_shape_markdown">Markdown</string>
+    <string name="ime_clip_shape_code">Code</string>
     <plurals name="ime_clip_combine_title">
         <item quantity="one">Combine %1$d clip</item>
         <item quantity="other">Combine %1$d clips</item>
