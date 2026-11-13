@@ -153,8 +153,22 @@ class WorkLane(
 
         @RequiresApi(Build.VERSION_CODES.TIRAMISU)
         fun loadUp(lane: WorkLane) {
+            val (send, hint) = loadUpHint ?: return
             val session = sessionOf(lane) ?: return
-            runCatching { session.sendHint(PerformanceHintManager.Session.CPU_LOAD_UP) }
+            runCatching { send.invoke(session, hint) }
+        }
+
+        /**
+         * `Session.sendHint` and its `CPU_LOAD_UP`, which the public SDK
+         * leaves out (android-37's stubs carry neither, so a direct call does
+         * not compile). Looked up once; a phone whose platform hides them
+         * from apps gets no load-up hint and keeps the duration reports.
+         */
+        private val loadUpHint: Pair<java.lang.reflect.Method, Int>? by lazy {
+            runCatching {
+                val type = PerformanceHintManager.Session::class.java
+                type.getMethod("sendHint", Int::class.javaPrimitiveType) to type.getField("CPU_LOAD_UP").getInt(null)
+            }.getOrNull()
         }
 
         fun close(lane: WorkLane) {
