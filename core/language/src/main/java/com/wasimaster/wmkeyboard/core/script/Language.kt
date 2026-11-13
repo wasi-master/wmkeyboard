@@ -112,6 +112,8 @@ object LanguageRegistry {
                 BuiltInLayouts.T9_ID,
                 BuiltInLayouts.COMPACT_ID,
                 AssetLayouts.EN_ONE_ROW_ID,
+                AssetLayouts.EN_HEX_QWERTY_ID,
+                AssetLayouts.EN_HEX_ABC_ID,
                 AssetLayouts.EN_COLEMAK_DH_ID,
                 AssetLayouts.EN_NALMY_ID,
                 AssetLayouts.EN_SANGALINE_ID,

@@ -681,6 +681,8 @@ import com.wasimaster.wmkeyboard.core.layout.opensAlternatesPopup
 import com.wasimaster.wmkeyboard.core.layout.expandNumberRowForTablet
 import com.wasimaster.wmkeyboard.core.layout.gridWeightOf
 import com.wasimaster.wmkeyboard.core.layout.hasRowSpans
+import com.wasimaster.wmkeyboard.core.layout.HexBoard
+import com.wasimaster.wmkeyboard.core.layout.hexBoard
 import com.wasimaster.wmkeyboard.core.layout.KeySlot
 import com.wasimaster.wmkeyboard.core.layout.roleIn
 import com.wasimaster.wmkeyboard.core.layout.rowScaledKeyHeight
@@ -18580,6 +18582,12 @@ internal data class KeyVisual(
      * complaint (issue #18).
      */
     val fontScale: Float = 1f,
+    /**
+     * The outline this key's face is drawn in, over the theme's key shape and
+     * [shapeKind]: a honeycomb's hexagons ([HexFaceShape]). Null, every other
+     * board, follows the theme.
+     */
+    val faceShape: Shape? = null,
 )
 
 /**
@@ -18620,6 +18628,13 @@ private data class KeyBandVisual(
     val weight: Float,
     /** Key height in dp for each row of the band, top to bottom. */
     val rowHeights: List<Int>,
+    /**
+     * The honeycomb this band is, when the layout is one ([KeyboardLayout.hex]):
+     * what [hexTouchOwners] hit-tests against. Null for a band of spanning keys.
+     */
+    val hex: HexBoard? = null,
+    /** The deepest the honeycomb's zigzag may be, in dp; see [HexFaceShape]. */
+    val hexMaxAmplitudeDp: Float = 0f,
 )
 
 /** One key of a [KeyBandVisual], with where it sits and how far it reaches. */
@@ -18632,6 +18647,12 @@ private data class KeyBandSlot(
     /** First row of the band this key covers, and how many it covers. */
     val row: Int,
     val span: Int,
+    /**
+     * How much of the slot, as a fraction of its width, is a row's side gap the
+     * key takes as touch area rather than face (#530); see [KeyCell].
+     */
+    val edgeStart: Float = 0f,
+    val edgeEnd: Float = 0f,
 )
 
 /**
@@ -18992,6 +19013,13 @@ private fun rememberKeyGrid(
                 else -> perRowHeight
             }
         }
+        // A honeycomb is one band whatever its keys say: its rows interlock, so
+        // no row of it can be drawn on its own (see [hexBandVisual]).
+        if (layout.hex && bodyRows.isNotEmpty()) {
+            return@remember digits to listOf(
+                KeyGridBlock.Band(hexBandVisual(bodyRows, gridWeight, heights, settings, state, palette, fontScale)),
+            )
+        }
         // Split mode cuts every row at its own midpoint, which a key belonging to
         // two rows cannot survive: the halves would part company under it. So a
         // split board draws spans as ordinary one-row keys — the arrangement the
@@ -19048,6 +19076,66 @@ private fun keyBandVisual(
         },
         weight = weight,
         rowHeights = band.map { heights[it] },
+    )
+}
+
+/**
+ * The body of a honeycomb layout ([KeyboardLayout.hex]) as one band: every key
+ * placed by [hexBoard] in the rectangle that takes its touches, its face cut to
+ * hexagons by a [HexFaceShape], and the board itself kept for the touches the
+ * hexagons' points take from the rectangles ([hexTouchOwners]).
+ *
+ * Split mode is the board's own here rather than [splitKeys]'s: each row is cut
+ * near the middle on one of its cell edges and the right half moved over, so
+ * the two halves stay honeycombs, two thumb clusters with a stepped channel
+ * between them.
+ */
+private fun hexBandVisual(
+    rows: List<List<Key>>,
+    gridWeight: Float,
+    heights: List<Int>,
+    settings: KeyboardSettings,
+    state: KeyboardUiState,
+    palette: KeyPalette,
+    fontScale: Float,
+): KeyBandVisual {
+    val gap = if (settings.splitKeyboard) gridWeight * settings.splitGapPercent / 100f else 0f
+    val board = hexBoard(
+        rows,
+        gridWeight,
+        splitGap = gap,
+        bridgeSpace = !settings.layoutBehavior.splitSpacebar,
+        extendEdges = settings.layoutBehavior.extendEdgeKeys,
+    )
+    val gapH = keyGapH(settings).value
+    // A third of the shortest row's pitch: deeper, and a wide, short key
+    // sideways would lose its straight sides.
+    val maxAmplitude = ((heights.minOrNull() ?: settings.keyHeightDp) + keyGapV(settings).value * 2f) / 3f
+    return KeyBandVisual(
+        slots = board.slots.map { slot ->
+            val shape = HexFaceShape(
+                widthCells = slot.width,
+                startPhase = board.startPhase(slot),
+                zigTop = board.joinedAbove(slot.row),
+                zigBottom = board.joinedBelow(slot.row),
+                gapDp = gapH,
+                maxAmplitudeDp = maxAmplitude,
+            )
+            val cell = slot.touchWidth.takeIf { it > 0f } ?: 1f
+            KeyBandSlot(
+                visual = keyVisual(slot.key, state, palette, fontScale).copy(faceShape = shape),
+                x = slot.touchX,
+                width = slot.touchWidth,
+                row = slot.row,
+                span = 1,
+                edgeStart = ((slot.x - slot.touchX) / cell).coerceAtLeast(0f),
+                edgeEnd = ((slot.touchEnd - slot.end) / cell).coerceAtLeast(0f),
+            )
+        },
+        weight = board.weight,
+        rowHeights = heights,
+        hex = board,
+        hexMaxAmplitudeDp = maxAmplitude,
     )
 }
 
@@ -23280,7 +23368,18 @@ private fun KeyBand(
     val tops = IntArray(rowPitch.size + 1).also {
         for (i in rowPitch.indices) it[i + 1] = it[i] + rowPitch[i]
     }
+    // A honeycomb's keys commit the key whose hexagon the touch went down in,
+    // which in a point's corner is not the rectangle that took it.
+    val hex = band.hex
+    val hexOwners = remember { HashMap<PointerId, Key>() }
+    val resolve = if (hex == null) smartResolve else remember(smartResolve) { hexResolve(hexOwners, smartResolve) }
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     Layout(
+        modifier = if (hex == null) {
+            Modifier
+        } else {
+            Modifier.hexTouchOwners(hex, band.rowHeights, gap, band.hexMaxAmplitudeDp, rtl, hexOwners)
+        },
         content = {
             for (slot in band.slots) {
                 // heightDp is what this key would be on a row of its own; the
@@ -23300,8 +23399,10 @@ private fun KeyBand(
                     onLayoutSelect,
                     onKeyPositioned,
                     onSpacePositioned,
-                    smartResolve,
+                    resolve,
                     onBurst,
+                    edgeStart = slot.edgeStart,
+                    edgeEnd = slot.edgeEnd,
                     touchBelow = if (slot.row + slot.span >= band.rowHeights.size) touchBelow else 0.dp,
                 )
             }
@@ -26435,7 +26536,8 @@ internal fun KeyButton(
     // The gap is handed to the shape as the room a leaning outline may spill
     // into: a slanted key then leans across the gap rather than out of its own
     // width, and neighbouring keys interlock instead of thinning out.
-    val keyShape = kb.keyShape(bleedDp = keyGapH(settings).value, kind = visual.shapeKind, radiusDp = visual.cornerRadiusDp)
+    val keyShape = visual.faceShape
+        ?: kb.keyShape(bleedDp = keyGapH(settings).value, kind = visual.shapeKind, radiusDp = visual.cornerRadiusDp)
     // A key the theme gave its own shape re-runs the shadow guard for that
     // shape: a round enter key may cast one on a board whose own shape cannot.
     // Only an opaque face casts one: the platform shadow is a solid slab under
