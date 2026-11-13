@@ -10,10 +10,12 @@ package com.wasimaster.wmkeyboard.core.dictionaries
  * A counted list stops at its first word seen once, so it keeps far fewer
  * words than it has lines (Hindi 242,911 lines, 81,289 words), and a size
  * above that number fetches the same list as the size below it. [Kept.flat]
- * marks a list with no counts, which is taken whole at any size.
+ * marks a list with no counts, which is taken whole at any size. [Kept.ranked]
+ * is, for a list with [DictionaryEntry.unseenCount], the words before that
+ * unranked tail: all a size short of Everything keeps.
  */
 internal object DictionaryKeptCounts {
-    class Kept(val words: Int, val bytes: Long, val flat: Boolean = false)
+    class Kept(val words: Int, val bytes: Long, val flat: Boolean = false, val ranked: Int? = null)
 
     fun of(entry: DictionaryEntry): Kept? = table[entry.fileName]
 
@@ -79,7 +81,7 @@ internal object DictionaryKeptCounts {
         "blk_full.txt.gz" to Kept(65109, 589824L),
         "blo_full.txt.gz" to Kept(873, 8902L),
         "bm_full_v2.txt.gz" to Kept(45506, 203813L),
-        "bn_full_v2.txt.gz" to Kept(451348, 2308065L),
+        "bn_full_v2.txt.gz" to Kept(451348, 2308065L, ranked = 247966),
         "bn_rom_v2.txt.gz" to Kept(130934, 439995L),
         "bo_full_v2.txt.gz" to Kept(24280, 352881L),
         "bpy_full.txt.gz" to Kept(24861, 181959L),

@@ -91,6 +91,11 @@ class DictionaryCatalogTest {
         assertEquals(81_453, DictionaryCatalog.wordCap(hi, DictionaryCatalog.DictionarySize.MEDIUM))
         assertEquals(81_453, DictionaryCatalog.wordCap(hi, DictionaryCatalog.DictionarySize.ALL))
         assertEquals(179_459, DictionaryCatalog.keptWords(DictionaryCatalog.byId("hi_rom")!!))
+        // Bangla's words its corpus never used are tied and alphabetical, so
+        // Large took অ to ক of them. A capped size now takes none of them.
+        val bn = DictionaryCatalog.byId("bn")!!
+        assertEquals(247_966, DictionaryCatalog.wordCap(bn, DictionaryCatalog.DictionarySize.LARGE))
+        assertEquals(451_348, DictionaryCatalog.wordCap(bn, DictionaryCatalog.DictionarySize.ALL))
         // A list with no counts is taken whole whatever the size, so every
         // size has to say so.
         val ta = DictionaryCatalog.byId("ta")!!

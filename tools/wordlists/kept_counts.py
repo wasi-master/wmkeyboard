@@ -50,6 +50,7 @@ def calls(source):
 def entries():
     source = open(CATALOG, encoding="utf-8").read()
     constants = dict(re.findall(r'private const val (\w+) = "([^"]+)"', source))
+    numbers = {k: int(v) for k, v in re.findall(r"private const val (\w+) = (\d+)\n", source)}
     out = []
     for kind, args in calls(source):
         strings = re.findall(r'"([^"]*)"', args)
@@ -62,7 +63,10 @@ def entries():
             name = stem.group(1) or constants[stem.group(2)]
         else:
             name = f"{repo}_{suffix.group(1) if suffix else ('aosp' if kind == 'aosp' else 'full')}"
-        out.append((repo, name + ".txt.gz", kind == "aosp"))
+        unseen = re.search(r"unseenCount = (\d+|\w+)", args)
+        if unseen:
+            unseen = int(unseen.group(1)) if unseen.group(1).isdigit() else numbers[unseen.group(1)]
+        out.append((repo, name + ".txt.gz", kind == "aosp", unseen))
     return out
 
 
@@ -79,8 +83,9 @@ class Counting(io.RawIOBase):
         return n
 
 
-def kept(repo, file, aosp):
-    """(words kept with no cap, compressed bytes read for them, flat)."""
+def kept(repo, file, aosp, unseen):
+    """(words kept with no cap, compressed bytes read for them, flat, words
+    before the unseen tail when the list has one)."""
     request = urllib.request.Request(RAW.format(repo=repo, file=file), headers={"User-Agent": "wordlist-counts"})
     with urllib.request.urlopen(request, timeout=60) as response:
         counting = Counting(response)
@@ -88,6 +93,7 @@ def kept(repo, file, aosp):
         text = io.TextIOWrapper(stream, encoding="utf-8", errors="replace", newline=None)
         ranked = False if aosp else None
         count = 0
+        ranked_words = None
         for line in text:
             t = line.strip()
             if not t or t.startswith("#"):
@@ -104,10 +110,12 @@ def kept(repo, file, aosp):
                 ranked = frequency >= MIN_FREQUENCY
             if ranked and frequency < MIN_FREQUENCY:
                 break
+            if unseen is not None and ranked_words is None and frequency <= unseen:
+                ranked_words = count
             if len(word.encode("utf-16-le")) // 2 > MAX_WORD_LENGTH or " " in word:
                 continue
             count += 1
-        return count, counting.read_bytes, ranked is False and not aosp
+        return count, counting.read_bytes, ranked is False and not aosp, ranked_words
 
 
 def main():
@@ -116,15 +124,16 @@ def main():
     with concurrent.futures.ThreadPoolExecutor(8) as pool:
         jobs = {pool.submit(kept, *f): f for f in files}
         for job in concurrent.futures.as_completed(jobs):
-            repo, file, _ = jobs[job]
+            repo, file = jobs[job][:2]
             try:
                 results[file] = job.result()
             except Exception as e:  # noqa: BLE001 - reported, the table keeps going
                 print(f"{repo}/{file}: {e}", file=sys.stderr)
             print(f"{len(results)}/{len(files)} {file} {results.get(file)}", file=sys.stderr)
     rows = "\n".join(
-        f'        "{file}" to Kept({n}, {b}L{", flat = true" if flat else ""}),'
-        for file, (n, b, flat) in sorted(results.items())
+        f'        "{file}" to Kept({n}, {b}L'
+        f'{", flat = true" if flat else ""}{f", ranked = {r}" if r is not None else ""}),'
+        for file, (n, b, flat, r) in sorted(results.items())
     )
     with open(OUT, "w", encoding="utf-8") as out:
         out.write(
@@ -140,10 +149,12 @@ def main():
  * A counted list stops at its first word seen once, so it keeps far fewer
  * words than it has lines (Hindi 242,911 lines, 81,289 words), and a size
  * above that number fetches the same list as the size below it. [Kept.flat]
- * marks a list with no counts, which is taken whole at any size.
+ * marks a list with no counts, which is taken whole at any size. [Kept.ranked]
+ * is, for a list with [DictionaryEntry.unseenCount], the words before that
+ * unranked tail: all a size short of Everything keeps.
  */
 internal object DictionaryKeptCounts {{
-    class Kept(val words: Int, val bytes: Long, val flat: Boolean = false)
+    class Kept(val words: Int, val bytes: Long, val flat: Boolean = false, val ranked: Int? = null)
 
     fun of(entry: DictionaryEntry): Kept? = table[entry.fileName]
 

@@ -693,6 +693,7 @@ object WordlistDownloadManager {
         // the trie ends a few thousand words under the cap; it merges them by
         // the larger count, which is the ranking the two halves earn together.
         val respell = RomanianSpelling.appliesTo(entry.languageId)
+        val unseen = entry.unseenCount
         var ranked: Boolean? = if (aosp) false else null
         input.bufferedReader().useLines { lines ->
             for (line in lines) {
@@ -708,6 +709,11 @@ object WordlistDownloadManager {
                 if (ranked == null) ranked = frequency >= MIN_FREQUENCY
                 // Sorted desc, so on a ranked list only noise follows.
                 if (ranked == true && frequency < MIN_FREQUENCY) break
+                // The words the source never used: tied and alphabetical, so a
+                // cap landing among them took an alphabet slice (Bangla's Large
+                // kept অ to ক of them and none from খ on). A capped size takes
+                // none of them; Everything takes them all.
+                if (unseen != null && wordCap != Int.MAX_VALUE && frequency <= unseen) break
                 if (word.length > MAX_WORD_LENGTH || ' ' in word) continue
                 words[count] = word
                 frequencies[count] = frequency
