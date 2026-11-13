@@ -275,6 +275,11 @@ const END_LOOP_REACH: f32 = 0.5;
 pub const MAX_POPS: usize = 4000;
 pub const RESULT_K: usize = 8;
 const EPS: f64 = 1e-9;
+/// How much cheaper than its parent's best cell a child's is allowed to
+/// come out, in cost units, before `search_one` trusts the parent's to
+/// prune the child unbuilt: far above the rounding of two `f32` sums over
+/// costs in the hundreds, far below any difference a score could rest on.
+const SKIP_SLACK: f32 = 1e-3;
 /// `GlideShapeStore.QUANT`.
 pub const SHAPE_QUANT: f32 = 10.0;
 
@@ -347,11 +352,44 @@ pub struct Decoder {
     /// The same for the trailing samples, the walk down to the bar from a
     /// chained stroke's earlier word.
     pub open_tail: usize,
+    /// What the last [`Decoder::decode_ranked`] did: states popped, and
+    /// column cells the band kernel read. For measuring a change to the walk
+    /// (`examples/glide_latency`); nothing reads them in the keyboard.
+    pub pops: usize,
+    pub cells: u64,
+    /// Cells the remaining-cost table read, once per decode.
+    pub remain_cells: u64,
+    /// Children never advanced: their frequency could not carry the
+    /// parent's cost past the floor.
+    pub skipped: u64,
+}
+
+/// What `advance` needs to drop a column cell no word through it can
+/// lift above the walk's floor: the same bound `search_one` holds a whole
+/// state to, asked of each cell. `head` is the source weight plus the
+/// child's frequency term, `charge` its join charges, `extra` its extra
+/// cost; a cell is dropped when `head - shape_weight * (cell + extra) -
+/// charge` falls under `floor_eps`, in that order of arithmetic, so a cell
+/// is dropped exactly when a state whose best cell it was would be.
+#[derive(Clone, Copy)]
+struct Keep {
+    head: f64,
+    shape_weight: f64,
+    charge: f64,
+    extra: f32,
+    floor_eps: f64,
+}
+
+impl Keep {
+    #[inline(always)]
+    fn drops(&self, cell: f32) -> bool {
+        self.head - self.shape_weight * (cell + self.extra) as f64 - self.charge < self.floor_eps
+    }
 }
 
 impl Decoder {
     pub fn new(tuning: Tuning) -> Decoder {
-        Decoder { tuning, ws: Workspace::new(), scan: LoopScan::default(), open_head: 0, open_tail: 0 }
+        Decoder { tuning, ws: Workspace::new(), scan: LoopScan::default(), open_head: 0, open_tail: 0, pops: 0, cells: 0, remain_cells: 0, skipped: 0 }
     }
 
     /// `decode`, all of it: when the caller has its learned shapes at hand.
@@ -403,6 +441,9 @@ impl Decoder {
         self.build_loops(path, key_width, keys);
         self.build_remain(keys);
         self.ws.max_states = self.tuning.max_states.clamp(1, workspace::MAX_STATES);
+        self.pops = 0;
+        self.cells = 0;
+        self.skipped = 0;
 
         let k = (limit * 2).max(RESULT_K);
         let mut results: HashMap<Vec<u16>, Candidate> = HashMap::new();
@@ -686,6 +727,7 @@ impl Decoder {
                 break;
             }
             pops += 1;
+            self.pops += 1;
 
             let node = self.ws.node[s];
             let length = self.ws.length[s];
@@ -810,20 +852,43 @@ impl Decoder {
 
                 let min_col: f32;
                 let mut child_extra = extra;
+                let head = src.log_weight + tuning.freq_weight * ln1p(lm_cap(part_freq, subtree));
                 if repeat {
                     min_col = self.ws.floor_cost[s];
                     child_extra += self.repeat_charge(last_key as usize);
                 } else {
-                    let prev_column = if length == 0 { None } else { Some(self.ws.column_of(s)) };
-                    min_col = self.advance(prev_column, key as usize, last_key, keys);
+                    // A letter can only add to what the stroke must still
+                    // cost (the remainder table is a lower bound on every
+                    // way on), so the child's best cell is never cheaper
+                    // than its parent's. A child whose frequency cannot
+                    // carry even the parent's cost past the floor is
+                    // pruned by the bound below whatever its column says:
+                    // skip building the column. `SKIP_SLACK` keeps the test
+                    // on the safe side of the two sums' rounding.
+                    if floor > f64::NEG_INFINITY
+                        && head - tuning.shape_weight * (self.ws.floor_cost[s] - SKIP_SLACK + child_extra).max(0.0) as f64 - charge
+                            < floor - EPS
+                    {
+                        self.skipped += 1;
+                        continue;
+                    }
+                    // Only once a floor stands, and never while guesses are
+                    // being collected: a guess is read off a finished
+                    // prefix's terminal cell whatever its score, so a cell
+                    // under the floor can still be what one stands on.
+                    let keep = if floor > f64::NEG_INFINITY && ahead.is_none() {
+                        Some(Keep { head, shape_weight: tuning.shape_weight, charge, extra: child_extra, floor_eps: floor - EPS })
+                    } else {
+                        None
+                    };
+                    let prev = if length == 0 { None } else { Some(s) };
+                    min_col = self.advance(prev, key as usize, last_key, keys, keep);
                     if min_col >= UNREACHABLE {
                         continue;
                     }
                 }
 
-                let bound = src.log_weight + tuning.freq_weight * ln1p(lm_cap(part_freq, subtree))
-                    - tuning.shape_weight * (min_col + child_extra) as f64
-                    - charge;
+                let bound = head - tuning.shape_weight * (min_col + child_extra) as f64 - charge;
                 if bound < floor - EPS {
                     continue;
                 }
@@ -919,29 +984,50 @@ impl Decoder {
         }
     }
 
-    fn advance(&mut self, prev_column: Option<usize>, key: usize, prev_key: i32, keys: &KeyMap) -> f32 {
+    /// The column of the state that places `key` next after `prev` (the
+    /// root for `None`) into `scratch`, and the least the word can still
+    /// cost from it: the cell plus what the rest of the stroke must cost at
+    /// best. With a [`Keep`], a cell no word through it can lift above the
+    /// floor is left [`UNREACHABLE`]; such a cell could only ever feed words
+    /// the walk would throw away, and every column built from this one
+    /// reads past it. The band is read only over the stretch of `prev`'s
+    /// column that is reachable, and only samples that stretch can reach
+    /// are filled: the rest are unreachable either way.
+    fn advance(&mut self, prev: Option<usize>, key: usize, prev_key: i32, keys: &KeyMap, keep: Option<Keep>) -> f32 {
         let n = self.ws.samples;
         let key_count = keys.key_count();
-        let Some(prev_column) = prev_column else {
+        let Some(prev) = prev else {
             // The first letter stands on the first sample, or on any sample
             // of an open head (#968): the walk up from the spacebar before
             // it is nobody's letter.
             let head_to = self.ws.open_head_to;
             let mut best = UNREACHABLE;
+            let (mut first, mut last) = (n, 0);
             for j in 0..n {
+                let mut at = UNREACHABLE;
                 if j <= head_to {
-                    let at = self.ws.point_cost[j * key_count + key];
-                    self.ws.scratch[j] = at;
+                    at = self.ws.point_cost[j * key_count + key];
                     let remain = self.ws.remain[j * key_count + key];
-                    if remain < UNREACHABLE && at + remain < best {
-                        best = at + remain;
+                    if remain < UNREACHABLE {
+                        if at + remain < best {
+                            best = at + remain;
+                        }
+                        if keep.is_some_and(|k| k.drops(at + remain)) {
+                            at = UNREACHABLE;
+                        }
                     }
-                } else {
-                    self.ws.scratch[j] = UNREACHABLE;
+                }
+                self.ws.scratch[j] = at;
+                if at < UNREACHABLE {
+                    first = first.min(j);
+                    last = j;
                 }
             }
+            self.set_scratch_span(first, last);
             return best;
         };
+        let prev_column = self.ws.column_of(prev);
+        let (pf, pl) = (self.ws.col_first[prev] as usize, self.ws.col_last[prev] as usize);
         let step = self.ws.arc_step;
         let span = keys.distance(prev_key as usize, key);
         let expected = span / step;
@@ -949,10 +1035,40 @@ impl Decoder {
         let hi = lo.max((expected + self.tuning.gap_window) as i32 + 1) + self.ws.collapsed_samples;
         let lead = self.anchor_lead(0, prev_key, self.tuning.start_slack(), keys);
         let tail = self.anchor_lead(n - 1, key as i32, self.tuning.end_slack(), keys);
+        // Sample 0 reaches every sample past the band's near edge (the
+        // stroke's first end is open, #886), so it cuts nothing; any other
+        // first cell reaches no sample before `pf + lo`, and the last cell
+        // none after `pl + hi` but the last sample, whose band is open too.
+        let sample0 = pf == 0 && self.ws.cols[prev_column] < UNREACHABLE;
+        let low = if pf > pl {
+            n
+        } else if sample0 {
+            lo as usize
+        } else {
+            (pf + lo as usize).max(1)
+        };
+        let high = if sample0 {
+            n - 1
+        } else if pf > pl {
+            0
+        } else {
+            (pl + hi as usize).min(n - 1)
+        };
 
-        self.ws.scratch[0] = UNREACHABLE;
         let mut best = UNREACHABLE;
-        for j in 1..n {
+        let (mut first, mut last) = (n, 0);
+        for j in 0..n {
+            self.ws.scratch[j] = UNREACHABLE;
+        }
+        let mut j = low.max(1);
+        while j < n {
+            // Past the band's far edge only the last sample is left.
+            if j > high && j != n - 1 {
+                j = n - 1;
+                if j < low {
+                    break;
+                }
+            }
             // The stroke's two ends are open past the band (#886): the first
             // letter may stand any distance before the next and the last any
             // distance after the one before, the extra travel paying the gap
@@ -963,23 +1079,22 @@ impl Decoder {
             let arc_j = self.ws.arc_at[j];
             let ease_j = if j == n - 1 { tail } else { 0.0 };
             let mut best_prev = UNREACHABLE;
-            let mut i = from;
             // Sample 0 eases by the lead too; the rest of the band is one
             // kernel call (kernels::band, the same arithmetic four at a time).
-            if 0 <= to {
+            if 0 <= to && sample0 {
                 let at = self.ws.cols[prev_column];
-                if at < UNREACHABLE {
-                    let travelled = arc_j - self.ws.arc_at[0];
-                    let gap = travelled - span;
-                    let v = at + self.gap_charge(gap, lead + ease_j);
-                    if v < best_prev {
-                        best_prev = v;
-                    }
+                let travelled = arc_j - self.ws.arc_at[0];
+                let gap = travelled - span;
+                let v = at + self.gap_charge(gap, lead + ease_j);
+                if v < best_prev {
+                    best_prev = v;
                 }
-                i = i.max(1);
             }
-            if i <= to {
-                let (a, b) = (i as usize, to as usize + 1);
+            let a = from.max(1).max(pf as i32);
+            let b = to.min(pl as i32);
+            if a <= b {
+                let (a, b) = (a as usize, b as usize + 1);
+                self.cells += (b - a) as u64;
                 let v = band::min_arc(
                     &self.ws.cols[prev_column + a..prev_column + b],
                     &self.ws.arc_at[a..b],
@@ -993,17 +1108,43 @@ impl Decoder {
                     best_prev = v;
                 }
             }
-            let value = if best_prev >= UNREACHABLE { UNREACHABLE } else { best_prev + self.ws.point_cost[j * key_count + key] };
-            self.ws.scratch[j] = value;
-            let rest = self.ws.remain[j * key_count + key];
-            if value < UNREACHABLE && rest < UNREACHABLE && value + rest < best {
-                best = value + rest;
+            if best_prev < UNREACHABLE {
+                let mut value = best_prev + self.ws.point_cost[j * key_count + key];
+                let rest = self.ws.remain[j * key_count + key];
+                if value < UNREACHABLE && rest < UNREACHABLE {
+                    if value + rest < best {
+                        best = value + rest;
+                    }
+                    if keep.is_some_and(|k| k.drops(value + rest)) {
+                        value = UNREACHABLE;
+                    }
+                }
+                self.ws.scratch[j] = value;
+                if value < UNREACHABLE {
+                    first = first.min(j);
+                    last = j;
+                }
             }
+            j += 1;
         }
+        self.set_scratch_span(first, last);
         best
     }
 
+    /// Records the reachable stretch of `scratch`; an empty one as
+    /// `first > last`.
+    fn set_scratch_span(&mut self, first: usize, last: usize) {
+        if first > last {
+            self.ws.scratch_first = 1;
+            self.ws.scratch_last = 0;
+        } else {
+            self.ws.scratch_first = first as u16;
+            self.ws.scratch_last = last as u16;
+        }
+    }
+
     fn build_remain(&mut self, keys: &KeyMap) {
+        self.remain_cells = 0;
         let n = self.ws.samples;
         let key_count = keys.key_count();
         let step = self.ws.arc_step;
@@ -1064,6 +1205,7 @@ impl Decoder {
                     let last = if end == n as i32 - 1 { end - 1 } else { end };
                     if start <= last {
                         let (a, b) = (start as usize, last as usize + 1);
+                        self.remain_cells += (b - a) as u64;
                         let row = to * SAMPLE_POINTS;
                         let v = band::min_ahead(
                             &self.ws.point_cost_t[row + a..row + b],

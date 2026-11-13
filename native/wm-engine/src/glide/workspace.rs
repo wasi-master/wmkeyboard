@@ -73,6 +73,11 @@ pub struct Workspace {
     pub join_penalty: Vec<f64>,
     pub samples: usize,
     pub cols: Vec<f32>,
+    /// The first and last sample of each state's column that is not
+    /// [`UNREACHABLE`]: every cell outside them is. What lets `advance` read
+    /// only the stretch of a column a letter can still be placed on.
+    pub col_first: Vec<u16>,
+    pub col_last: Vec<u16>,
     heap: Vec<u32>,
 
     pub path_x: [f32; SAMPLE_POINTS],
@@ -123,6 +128,9 @@ pub struct Workspace {
     pub look_ahead_children: Vec<(u16, u32)>,
     pub score_scratch: Vec<f64>,
     pub scratch: [f32; SAMPLE_POINTS],
+    /// [`Workspace::col_first`] and [`Workspace::col_last`] for `scratch`.
+    pub scratch_first: u16,
+    pub scratch_last: u16,
     pub drawn_shape_x: [f32; SHAPE_POINTS],
     pub drawn_shape_y: [f32; SHAPE_POINTS],
     pub drawn_shape8: [i8; 2 * SHAPE_POINTS],
@@ -160,6 +168,8 @@ impl Workspace {
             join_penalty: Vec::new(),
             samples: SHORT_SAMPLES,
             cols: Vec::new(),
+            col_first: Vec::new(),
+            col_last: Vec::new(),
             heap: Vec::new(),
             path_x: [0.0; SAMPLE_POINTS],
             path_y: [0.0; SAMPLE_POINTS],
@@ -198,6 +208,8 @@ impl Workspace {
             look_ahead_children: Vec::new(),
             score_scratch: Vec::new(),
             scratch: [0.0; SAMPLE_POINTS],
+            scratch_first: 0,
+            scratch_last: 0,
             drawn_shape_x: [0.0; SHAPE_POINTS],
             drawn_shape_y: [0.0; SHAPE_POINTS],
             drawn_shape8: [0; 2 * SHAPE_POINTS],
@@ -228,6 +240,8 @@ impl Workspace {
         self.part_from.clear();
         self.joins.clear();
         self.join_penalty.clear();
+        self.col_first.clear();
+        self.col_last.clear();
         self.heap.clear();
         self.saturated = false;
     }
@@ -289,6 +303,9 @@ impl Workspace {
         self.extra.push(extra);
         self.floor_cost.push(floor_cost);
         self.bound.push(bound);
+        // Every sample, until `store_scratch` or `copy_column` says better.
+        self.col_first.push(0);
+        self.col_last.push(self.samples.max(1) as u16 - 1);
         if parent >= 0 {
             let p = parent as usize;
             self.part_freq.push(self.part_freq[p]);
@@ -325,11 +342,15 @@ impl Workspace {
     pub fn store_scratch(&mut self, id: usize) {
         let n = self.samples;
         self.cols[id * n..id * n + n].copy_from_slice(&self.scratch[..n]);
+        self.col_first[id] = self.scratch_first;
+        self.col_last[id] = self.scratch_last;
     }
 
     pub fn copy_column(&mut self, from: usize, to: usize) {
         let n = self.samples;
         self.cols.copy_within(from * n..from * n + n, to * n);
+        self.col_first[to] = self.col_first[from];
+        self.col_last[to] = self.col_last[from];
     }
 
     pub fn pop_best(&mut self) -> usize {
