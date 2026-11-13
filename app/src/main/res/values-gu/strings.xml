@@ -7258,10 +7258,6 @@
     <string name="plugins_detail_no_description">કોઈ વર્ણન નથી.</string>
     <string name="plugins_detail_stopped_subtitle">એપ્લિકેશે આ પ્લગિન બંધ કરી દીધું છે કારણ કે તે બે વાર પ્રતિસાદ આપવામાં નિષ્ફળ ગયું હતું</string>
     <string name="plugins_detail_subsystem_off_subtitle">જ્યારે \'પ્લગિન્સને મંજૂરી આપો\' બંધ હોય, ત્યારે કોઈ પ્લગિન ચાલતું નથી, ટૂલ્સ હેઠળ પછી પ્લગિન્સ</string>
-    <string name="plugins_fact_no_typing">તે તમે શું ટાઇપ કરો છો તે જોઈ શકતું નથી</string>
-    <string name="plugins_fact_own_panel">તે પોતાની પેનલ દોરી શકે છે અને પોતાની ગણતરી કરી શકે છે</string>
-    <string name="plugins_fact_own_storage">તે તેનો પોતાનો ડેટા સાચવી શકે છે, જો તે તમને ઇન્સ્ટોલ કરતા પહેલા જણાવે તો</string>
-    <string name="plugins_fact_reminders">જો તે તમને ઇન્સ્ટોલ કરતા પહેલા જણાવે, તો તે તમે સેટ કરેલા સમયે રિમાઇન્ડર બતાવી શકે છે</string>
     <string name="plugins_facts_title">પ્લગિન શું કરી શકે અને શું ન કરી શકે</string>
     <string name="plugins_icons_export_done_message">એપે %1$s સેવ કર્યું.</string>
     <string name="plugins_icons_export_failed_message">એપ તે ફાઇલ લખી શકી નથી.</string>

@@ -7262,10 +7262,6 @@
     <string name="plugins_detail_no_description">Kirjeldus puudub.</string>
     <string name="plugins_detail_stopped_subtitle">Rakendus lülitas selle pistikprogrammi välja, kuna see lakkas kaks korda vastamast</string>
     <string name="plugins_detail_subsystem_off_subtitle">Ükski plugin ei tööta, kui „Luba pluginad“ on välja lülitatud (jaotises Tööriistad -&gt; Pluginad)</string>
-    <string name="plugins_fact_no_typing">See ei näe, mida sa kirjutad</string>
-    <string name="plugins_fact_own_panel">See saab joonistada oma paneeli ja teha oma arvutusi</string>
-    <string name="plugins_fact_own_storage">See saab salvestada oma andmeid, kui see teavitab sind enne installimist</string>
-    <string name="plugins_fact_reminders">See võib näidata meeldetuletust teie määratud ajal, kui see teavitab teid enne installimist</string>
     <string name="plugins_facts_title">Mida pistikprogramm saab ja ei saa teha</string>
     <string name="plugins_icons_export_done_message">Rakendus salvestas %1$s.</string>
     <string name="plugins_icons_export_failed_message">Rakendus ei saanud seda faili kirjutada.</string>

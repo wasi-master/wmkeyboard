@@ -7253,10 +7253,6 @@
     <string name="plugins_detail_no_description">Không có mô tả.</string>
     <string name="plugins_detail_stopped_subtitle">Ứng dụng đã tắt plugin này vì nó ngừng phản hồi hai lần</string>
     <string name="plugins_detail_subsystem_off_subtitle">Không có plugin nào chạy khi \"Cho phép plugin\" bị tắt, trong Công cụ rồi đến Plugin</string>
-    <string name="plugins_fact_no_typing">Nó không thể nhìn thấy những gì bạn nhập</string>
-    <string name="plugins_fact_own_panel">Nó có thể tự vẽ bảng điều khiển và tự thực hiện các phép tính</string>
-    <string name="plugins_fact_own_storage">Nó có thể lưu dữ liệu riêng nếu thông báo cho bạn trước khi cài đặt</string>
-    <string name="plugins_fact_reminders">Nó có thể hiển thị lời nhắc vào thời điểm bạn đặt, nếu nó thông báo cho bạn trước khi bạn cài đặt</string>
     <string name="plugins_facts_title">Những gì một plugin có thể và không thể làm</string>
     <string name="plugins_icons_export_done_message">Ứng dụng đã lưu %1$s.</string>
     <string name="plugins_icons_export_failed_message">Ứng dụng không thể ghi tệp đó.</string>

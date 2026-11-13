@@ -7262,10 +7262,6 @@
     <string name="plugins_detail_no_description">Bez popisu.</string>
     <string name="plugins_detail_stopped_subtitle">Aplikácia tento doplnok vypla, pretože dvakrát prestal reagovať</string>
     <string name="plugins_detail_subsystem_off_subtitle">Žiadny doplnok nie je spustený, kým je vypnutá možnosť „Povoliť doplnky“ v časti Nástroje -&gt; Doplnky</string>
-    <string name="plugins_fact_no_typing">Nevidí, čo píšete</string>
-    <string name="plugins_fact_own_panel">Môže vykresliť vlastný panel a vykonávať vlastné výpočty</string>
-    <string name="plugins_fact_own_storage">Môže ukladať vlastné údaje, ak vás na to upozorní pred inštaláciou</string>
-    <string name="plugins_fact_reminders">Môže zobraziť pripomienku v čase, ktorý si nastavíte, ak vás na to upozorní pred inštaláciou</string>
     <string name="plugins_facts_title">Čo doplnok dokáže a čo nie</string>
     <string name="plugins_icons_export_done_message">Aplikácia uložila %1$s.</string>
     <string name="plugins_icons_export_failed_message">Aplikácia nedokázala zapísať tento súbor.</string>

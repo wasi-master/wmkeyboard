@@ -2088,7 +2088,7 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = "plugins",
             ) {
-                PluginsScreen { route -> navController.navigate(route) }
+                PluginsScreen(repository, settings) { route -> navController.navigate(route) }
             }
         }
         composable("plugin/{pluginId}") { entry ->
@@ -2098,7 +2098,7 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = pluginRoute(pluginId),
             ) {
-                PluginDetailScreen(pluginId, onNavigate = { route -> navController.navigate(route) }) {
+                PluginDetailScreen(pluginId, repository, settings, onNavigate = { route -> navController.navigate(route) }) {
                     navController.popBackStack()
                 }
             }

@@ -7269,10 +7269,6 @@
     <string name="plugins_detail_no_description">Hakuna maelezo.</string>
     <string name="plugins_detail_stopped_subtitle">Programu imezima plagi-in hii kwa sababu imeacha kujibu mara mbili</string>
     <string name="plugins_detail_subsystem_off_subtitle">Hakuna programu-jalizi inayofanya kazi wakati “Ruhusu programu-jalizi” imezimwa, chini ya Zana kisha Programu-jalizi</string>
-    <string name="plugins_fact_no_typing">Haiwezi kuona unachochapa</string>
-    <string name="plugins_fact_own_panel">Inaweza kuchora paneli yake yenyewe na kufanya hesabu zake yenyewe</string>
-    <string name="plugins_fact_own_storage">Inaweza kuhifadhi data yake yenyewe, ikiwa itakuambia kabla ya kuiweka</string>
-    <string name="plugins_fact_reminders">Inaweza kuonyesha kikumbusho kwa wakati ulioweka ndani yake, ikiwa itakuambia kabla ya kuisakinisha</string>
     <string name="plugins_facts_title">Kile ambacho programu-jalizi inaweza na haiwezi kufanya</string>
     <string name="plugins_icons_export_done_message">Programu imehifadhi %1$s.</string>
     <string name="plugins_icons_export_failed_message">Programu haikuweza kuandika faili hilo.</string>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <!-- Shared by several in-keyboard tool panels (search box, settings link, insert). -->
     <string name="ime_media_search_active_hint">Type to search…</string>
@@ -360,6 +360,17 @@
     <string name="ime_plugin_allow_action">Allow…</string>
     <string name="ime_plugin_access_mark">This plugin can use the internet or read what you write</string>
     <!-- Second line of a plugin row when the plugin gives no description. %1$s is its version. -->
+    <!-- A plugin's options, behind a hold or a swipe on its row, in the keyboard's Plugins panel and in Settings. -->
+    <string name="ime_plugin_action_settings">Settings and permissions</string>
+    <string name="ime_plugin_action_toolbar_add">Add to toolbar</string>
+    <string name="ime_plugin_action_toolbar_remove">Remove from toolbar</string>
+    <string name="ime_plugin_action_toolbox_add">Add to toolbox</string>
+    <string name="ime_plugin_action_toolbox_remove">Remove from toolbox</string>
+    <string name="ime_plugin_action_turn_off">Turn off</string>
+    <string name="ime_plugin_action_turn_on">Turn on</string>
+    <!-- What TalkBack reads for the button that opens a plugin's options. -->
+    <string name="ime_plugin_more">More options for <xliff:g id="plugin" example="Math Mode">%1$s</xliff:g></string>
+    <string name="ime_plugin_tiles_full" tools:ignore="PluralsCandidate">You already have <xliff:g id="count" example="24">%1$d</xliff:g> custom buttons, the most there can be. Remove one in Custom buttons first.</string>
     <string name="ime_plugin_version_label">Version <xliff:g id="version" example="1.2.0">%1$s</xliff:g></string>
 
     <!-- The chooser of providers in a panel, for a list in pick mode (#727) -->

@@ -76,4 +76,27 @@ class CustomButtonsTest {
         assertTrue(CustomToggle.NUMBER_ROW.isOn(on))
         assertEquals(false, CustomToggle.NUMBER_ROW.isOn(on.copy(numberRow = false)))
     }
+    @Test
+    fun `a plugin tile is added, moved between bar and box, and removed`() {
+        val start = listOf(shortcut, numberRow)
+        assertEquals(PluginTilePlace.NONE, start.pluginTilePlace("com.example.notes"))
+
+        val onBar = start.withPluginTile("com.example.notes", PluginTilePlace.TOOLBAR)
+        assertEquals(3, onBar.size)
+        assertEquals(PluginTilePlace.TOOLBAR, onBar.pluginTilePlace("com.example.notes"))
+        assertEquals("c3", onBar.last().id)
+
+        val inBox = onBar.withPluginTile("com.example.notes", PluginTilePlace.TOOLBOX)
+        assertEquals(3, inBox.size)
+        assertEquals(PluginTilePlace.TOOLBOX, inBox.pluginTilePlace("com.example.notes"))
+        assertEquals("c3", inBox.last().id)
+
+        assertEquals(start, inBox.withPluginTile("com.example.notes", PluginTilePlace.NONE))
+    }
+
+    @Test
+    fun `a full list takes no new plugin tile`() {
+        val full = (1..MAX_CUSTOM_BUTTONS).map { CustomButton("c$it", CustomButtonKind.PAGE, CustomPage.HOME.name) }
+        assertEquals(full, full.withPluginTile("com.example.notes", PluginTilePlace.TOOLBAR))
+    }
 }

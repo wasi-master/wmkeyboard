@@ -7257,10 +7257,6 @@
     <string name="plugins_detail_no_description">Sense descripció.</string>
     <string name="plugins_detail_stopped_subtitle">L\'aplicació ha desactivat aquest connector perquè ha deixat de respondre dues vegades</string>
     <string name="plugins_detail_subsystem_off_subtitle">No s\'executa cap connector mentre “Permet connectors” estigui desactivat, a Eines i després Connectors</string>
-    <string name="plugins_fact_no_typing">No pot veure el que escriviu</string>
-    <string name="plugins_fact_own_panel">Pot dibuixar el seu propi panell i fer els seus propis càlculs</string>
-    <string name="plugins_fact_own_storage">Pot desar les seves pròpies dades, si t\'ho comunica abans que l\'instal·lis</string>
-    <string name="plugins_fact_reminders">Pot mostrar un recordatori en el moment que hi configureu, si us ho indica abans d\'instal·lar-lo</string>
     <string name="plugins_facts_title">Què pot i què no pot fer un connector</string>
     <string name="plugins_icons_export_done_message">L\'aplicació ha desat %1$s.</string>
     <string name="plugins_icons_export_failed_message">L\'aplicació no ha pogut escriure el fitxer.</string>

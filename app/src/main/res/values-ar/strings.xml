@@ -7264,10 +7264,6 @@
     <string name="plugins_detail_no_description">لا يوجد وصف.</string>
     <string name="plugins_detail_stopped_subtitle">أوقف التطبيق هذه الإضافة لأنها توقفت عن الاستجابة مرتين</string>
     <string name="plugins_detail_subsystem_off_subtitle">لا يتم تشغيل أي إضافة أثناء إيقاف \"السماح بالإضافات\"، ضمن الأدوات ثم الإضافات</string>
-    <string name="plugins_fact_no_typing">لا يمكنه رؤية ما تكتبه</string>
-    <string name="plugins_fact_own_panel">يمكنه رسم لوحته الخاصة وإجراء حساباته الخاصة</string>
-    <string name="plugins_fact_own_storage">يمكنه حفظ بياناته الخاصة، إذا أخبرك بذلك قبل تثبيته</string>
-    <string name="plugins_fact_reminders">يمكنه عرض تذكير في الوقت الذي تحدده، إذا أخبرك بذلك قبل تثبيته</string>
     <string name="plugins_facts_title">ما يمكن للإضافة القيام به وما لا يمكنها القيام به</string>
     <string name="plugins_icons_export_done_message">حفظ التطبيق %1$s.</string>
     <string name="plugins_icons_export_failed_message">تعذر على التطبيق كتابة هذا الملف.</string>

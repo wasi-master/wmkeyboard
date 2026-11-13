@@ -7263,10 +7263,6 @@
     <string name="plugins_detail_no_description">Ayikho incazelo.</string>
     <string name="plugins_detail_stopped_subtitle">Uhlelo lokusebenza luyicimile le plugin ngoba iyekile ukuphendula kabili</string>
     <string name="plugins_detail_subsystem_off_subtitle">Ayikho i-plugin esebenzayo ngenkathi “Vumela ama-plugin” icishiwe, ngaphansi kwe-Tools bese kuba ama-Plugins</string>
-    <string name="plugins_fact_no_typing">Ayikwazi ukubona lokho okuthayiphayo</string>
-    <string name="plugins_fact_own_panel">Ingadweba iphaneli yayo futhi yenze izibalo zayo</string>
-    <string name="plugins_fact_own_storage">Ingagcina idatha yayo, uma ikutshela ngaphambi kokuba uyifake</string>
-    <string name="plugins_fact_reminders">Ingabonisa isikhumbuzi ngesikhathi osibekile kuso, uma ikutshela ngaphambi kokuba usifake</string>
     <string name="plugins_facts_title">Lokho i-plugin engakwenza nalokho engakwazi ukukwenza</string>
     <string name="plugins_icons_export_done_message">Uhlelo lokusebenza lulondoloze %1$s.</string>
     <string name="plugins_icons_export_failed_message">Uhlelo lokusebenza alukwazanga ukubhala lelo fayela.</string>

@@ -7263,10 +7263,6 @@
     <string name="plugins_detail_no_description">Ingen beskrivelse.</string>
     <string name="plugins_detail_stopped_subtitle">Appen slo av denne modulen fordi den sluttet å svare to ganger</string>
     <string name="plugins_detail_subsystem_off_subtitle">Ingen utvidelser kjører mens «Tillat utvidelser» er av, under Verktøy og deretter Utvidelser</string>
-    <string name="plugins_fact_no_typing">Den kan ikke se hva du skriver</string>
-    <string name="plugins_fact_own_panel">Den kan tegne sitt eget panel og utføre egne beregninger</string>
-    <string name="plugins_fact_own_storage">Den kan lagre sine egne data, hvis den informerer deg om det før du installerer den</string>
-    <string name="plugins_fact_reminders">Den kan vise en påminnelse på et tidspunkt du angir, hvis den gir deg beskjed før du installerer den</string>
     <string name="plugins_facts_title">Hva et tillegg kan og ikke kan gjøre</string>
     <string name="plugins_icons_export_done_message">Appen lagret %1$s.</string>
     <string name="plugins_icons_export_failed_message">Appen kunne ikke skrive den filen.</string>

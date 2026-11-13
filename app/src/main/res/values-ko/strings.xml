@@ -7252,10 +7252,6 @@
     <string name="plugins_detail_no_description">설명 없음.</string>
     <string name="plugins_detail_stopped_subtitle">이 플러그인이 두 번 응답하지 않아 앱이 플러그인을 껐습니다.</string>
     <string name="plugins_detail_subsystem_off_subtitle">도구 &gt; 플러그인에서 \"플러그인 허용\"이 꺼져 있으면 플러그인이 실행되지 않습니다</string>
-    <string name="plugins_fact_no_typing">사용자가 입력하는 내용을 볼 수 없습니다.</string>
-    <string name="plugins_fact_own_panel">자체 패널을 그리고 자체 계산을 수행할 수 있습니다</string>
-    <string name="plugins_fact_own_storage">설치 전에 사용자에게 알리는 경우 자체 데이터를 저장할 수 있습니다.</string>
-    <string name="plugins_fact_reminders">설치 전 안내에 따라 설정한 시간에 알림을 표시할 수 있습니다.</string>
     <string name="plugins_facts_title">플러그인이 할 수 있는 것과 할 수 없는 것</string>
     <string name="plugins_icons_export_done_message">앱이 %1$s을(를) 저장했습니다.</string>
     <string name="plugins_icons_export_failed_message">앱에서 해당 파일을 쓸 수 없습니다.</string>

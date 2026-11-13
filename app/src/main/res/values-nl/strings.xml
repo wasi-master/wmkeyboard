@@ -7260,10 +7260,6 @@
     <string name="plugins_detail_no_description">Geen beschrijving.</string>
     <string name="plugins_detail_stopped_subtitle">De app heeft deze plug-in uitgeschakeld omdat deze twee keer niet meer reageerde</string>
     <string name="plugins_detail_subsystem_off_subtitle">Er worden geen plug-ins uitgevoerd terwijl “Plug-ins toestaan” is uitgeschakeld, onder Extra en vervolgens Plug-ins</string>
-    <string name="plugins_fact_no_typing">Het kan niet zien wat je typt</string>
-    <string name="plugins_fact_own_panel">Het kan zijn eigen paneel tekenen en zijn eigen berekeningen uitvoeren</string>
-    <string name="plugins_fact_own_storage">Het kan zijn eigen gegevens opslaan, als het je daarover informeert voordat je het installeert</string>
-    <string name="plugins_fact_reminders">Het kan een herinnering tonen op een door jou ingesteld tijdstip, mits het dit aangeeft voordat je het installeert</string>
     <string name="plugins_facts_title">Wat een plugin wel en niet kan</string>
     <string name="plugins_icons_export_done_message">De app heeft %1$s opgeslagen.</string>
     <string name="plugins_icons_export_failed_message">De app kon dat bestand niet schrijven.</string>

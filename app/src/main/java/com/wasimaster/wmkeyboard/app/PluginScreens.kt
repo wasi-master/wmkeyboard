@@ -7,7 +7,27 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowForward
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Code
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteSweep
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Handyman
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PowerSettingsNew
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ToggleOn
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Widgets
+import com.wasimaster.wmkeyboard.core.settings.MAX_CUSTOM_BUTTONS
+import com.wasimaster.wmkeyboard.core.settings.PluginTilePlace
+import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.pluginTilePlace
+import com.wasimaster.wmkeyboard.core.settings.withPluginTile
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -76,7 +96,7 @@ internal fun pluginRoute(pluginId: String): String = "plugin/$pluginId"
  * because the sandbox has no API for reading text, the clipboard or the network.
  */
 @Composable
-internal fun PluginsScreen(onNavigate: (String) -> Unit) {
+internal fun PluginsScreen(repository: SettingsRepository, settings: LiveSettings, onNavigate: (String) -> Unit) {
     val context = LocalContext.current
     val store = remember { PluginStore.get(context) }
     val revision by store.revision.collectAsStateWithLifecycle()
@@ -85,6 +105,8 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
     val allowRisky = remember(revision) { store.allowRisky() }
     var confirmRisky by remember { mutableStateOf(false) }
     val plugins = remember(revision) { store.plugins() }
+    val customButtons = settings.watch { it.toolbox.customButtons }
+    var uninstalling by remember { mutableStateOf<InstalledPlugin?>(null) }
     val retired = remember(revision) { store.retiredNames() }
     val parked = remember(revision) { store.parked() }
     var importMessage by remember { mutableStateOf<String?>(null) }
@@ -169,19 +191,7 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
         )
     }
 
-    SettingsGroup(
-        stringResource(R.string.plugins_facts_title),
-        info = stringResource(R.string.plugins_facts_info_v5),
-        level = SettingLevel.STANDARD,
-    ) {
-        item { PluginFact(stringResource(R.string.plugins_fact_no_typing), allowed = false) }
-        item { PluginFact(stringResource(R.string.plugins_fact_risky_off), allowed = false) }
-        item { PluginFact(stringResource(R.string.plugins_fact_field_tap), allowed = false) }
-        item { PluginFact(stringResource(R.string.plugins_fact_background), allowed = false) }
-        item { PluginFact(stringResource(R.string.plugins_fact_own_panel), allowed = true) }
-        item { PluginFact(stringResource(R.string.plugins_fact_own_storage), allowed = true) }
-        item { PluginFact(stringResource(R.string.plugins_fact_reminders), allowed = true) }
-    }
+    PluginFactsGroups()
 
     // Outside the master switch on purpose: writing and previewing a plugin runs
     // nothing in the keyboard, and a plugin can be written before plugins are on.
@@ -227,19 +237,13 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
                             else -> stringResource(R.string.plugins_row_version, plugin.version)
                         }
                         HighlightableItem(plugin.id) {
-                            WmRow(
-                                title = plugin.displayName,
+                            PluginListRow(
+                                plugin = plugin,
                                 subtitle = subtitle,
-                                trailing = {
-                                    Icon(
-                                        Icons.AutoMirrored.Outlined.ArrowForward,
-                                        contentDescription = null,
-                                    )
-                                },
-                                // The arrow promises a tap opens it. It used to
-                                // sit above a separate "Manage" button and do
-                                // nothing.
-                                onClick = { onNavigate("plugin/${plugin.id}") },
+                                place = customButtons.pluginTilePlace(plugin.id),
+                                onPlace = { place -> setPluginTile(context, repository, scope, plugin.id, place) },
+                                onNavigate = onNavigate,
+                                onUninstall = { uninstalling = plugin },
                             )
                         }
                     }
@@ -275,6 +279,14 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
             },
             scope = scope,
         )
+    }
+
+    uninstalling?.let { plugin ->
+        UninstallPluginDialog(plugin, onDismiss = { uninstalling = null }) {
+            scope.launch { repository.updateCustomButtons { it.withPluginTile(plugin.id, PluginTilePlace.NONE) } }
+            store.delete(plugin.id)
+            uninstalling = null
+        }
     }
 
     importMessage?.let { message ->
@@ -366,26 +378,202 @@ internal fun pluginCombinationWarning(
     }
 }
 
+/**
+ * What a plugin can and cannot do, built from [PluginPermission.all] so the
+ * list cannot drift from what the sandbox enforces: what every plugin may do,
+ * what one may do if it lists it before install, what waits for the user's
+ * switch, and what none may do whatever it lists.
+ */
 @Composable
-private fun PluginFact(text: String, allowed: Boolean) {
+private fun PluginFactsGroups() {
+    val listed = PluginPermission.all.filter { !it.isRisky }
+    val risky = PluginPermission.all.filter { it.isRisky }
+    val yes = MaterialTheme.colorScheme.primary
+    SettingsGroup(
+        stringResource(R.string.plugins_facts_title),
+        info = stringResource(R.string.plugins_facts_info_v5),
+        level = SettingLevel.STANDARD,
+    ) {
+        item { PluginFact(stringResource(R.string.plugins_fact_always_panel), Icons.Outlined.CheckCircle, yes) }
+        item { PluginFact(stringResource(R.string.plugins_fact_always_tile), Icons.Outlined.CheckCircle, yes) }
+    }
+    SettingsGroup(stringResource(R.string.plugins_facts_listed_title), level = SettingLevel.STANDARD) {
+        for (permission in listed) {
+            item(key = "fact:${permission.wire}") { PluginFact(stringResource(permission.labelRes), Icons.Outlined.CheckCircle, yes) }
+        }
+    }
+    SettingsGroup(stringResource(R.string.plugins_facts_granted_title), level = SettingLevel.STANDARD) {
+        for (permission in risky) {
+            item(key = "fact:${permission.wire}") {
+                PluginFact(stringResource(permission.labelRes), Icons.Outlined.ToggleOn, MaterialTheme.colorScheme.tertiary)
+            }
+        }
+    }
+    SettingsGroup(stringResource(R.string.plugins_facts_never_title), level = SettingLevel.STANDARD) {
+        for (res in NeverFacts) {
+            item(key = "never:$res") { PluginFact(stringResource(res), Icons.Outlined.Block, MaterialTheme.colorScheme.error) }
+        }
+    }
+}
+
+private val NeverFacts = listOf(
+    R.string.plugins_fact_never_typing,
+    R.string.plugins_fact_never_watch,
+    R.string.plugins_fact_never_private,
+    R.string.plugins_fact_never_background,
+    R.string.plugins_fact_never_code,
+)
+
+@Composable
+private fun PluginFact(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: androidx.compose.ui.graphics.Color) {
     WmRow(
         title = text,
-        leading = {
-            Text(
-                if (allowed) "✓" else "✕",
-                color = if (allowed) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.error
-                },
-            )
-        },
+        leading = { Icon(icon, contentDescription = null, tint = tint) },
+    )
+}
+
+/**
+ * An installed plugin in the list. A tap opens its page; a hold or the ⋮
+ * button opens everything else (toolbar, toolbox, on or off, the code, its
+ * data, uninstall), and a swipe toward the start shows the three most used.
+ * Every swipe action is also in the menu, which is what TalkBack reaches.
+ */
+@Composable
+private fun PluginListRow(
+    plugin: InstalledPlugin,
+    subtitle: String,
+    place: PluginTilePlace,
+    onPlace: (PluginTilePlace) -> Unit,
+    onNavigate: (String) -> Unit,
+    onUninstall: () -> Unit,
+) {
+    val context = LocalContext.current
+    val store = remember { PluginStore.get(context) }
+    val scope = rememberCoroutineScope()
+    var menu by remember { mutableStateOf(false) }
+    val onToolbar = place == PluginTilePlace.TOOLBAR
+    val swipes = listOf(
+        SwipeAction(
+            Icons.Outlined.Widgets,
+            stringResource(if (onToolbar) ImeR.string.ime_plugin_action_toolbar_remove else ImeR.string.ime_plugin_action_toolbar_add),
+            SwipeTone.ACCENT,
+        ) { onPlace(if (onToolbar) PluginTilePlace.NONE else PluginTilePlace.TOOLBAR) },
+        SwipeAction(
+            Icons.Outlined.PowerSettingsNew,
+            stringResource(if (plugin.enabled) ImeR.string.ime_plugin_action_turn_off else ImeR.string.ime_plugin_action_turn_on),
+        ) { store.setEnabled(plugin.id, !plugin.enabled) },
+        SwipeAction(Icons.Outlined.Delete, stringResource(CommonR.string.common_uninstall), SwipeTone.DESTRUCTIVE, onUninstall),
+    )
+    androidx.compose.foundation.layout.Box {
+        WmRow(
+            title = plugin.displayName,
+            subtitle = subtitle,
+            swipeActions = swipes,
+            trailing = {
+                IconButton(onClick = { menu = true }) {
+                    Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(ImeR.string.ime_plugin_more, plugin.displayName))
+                }
+            },
+            onLongClick = { menu = true },
+            onClick = { onNavigate(pluginRoute(plugin.id)) },
+        )
+        androidx.compose.material3.DropdownMenu(
+            expanded = menu,
+            onDismissRequest = { menu = false },
+            offset = androidx.compose.ui.unit.DpOffset(x = 16.dp, y = 0.dp),
+        ) {
+            @Composable
+            fun entry(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, destructive: Boolean = false, action: () -> Unit) {
+                androidx.compose.material3.DropdownMenuItem(
+                    text = { Text(label, color = if (destructive) MaterialTheme.colorScheme.error else androidx.compose.ui.graphics.Color.Unspecified) },
+                    leadingIcon = { Icon(icon, contentDescription = null, tint = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant) },
+                    onClick = {
+                        menu = false
+                        action()
+                    },
+                )
+            }
+            entry(stringResource(ImeR.string.ime_plugin_action_settings), Icons.Outlined.Settings) { onNavigate(pluginRoute(plugin.id)) }
+            entry(
+                stringResource(if (onToolbar) ImeR.string.ime_plugin_action_toolbar_remove else ImeR.string.ime_plugin_action_toolbar_add),
+                Icons.Outlined.Widgets,
+            ) { onPlace(if (onToolbar) PluginTilePlace.NONE else PluginTilePlace.TOOLBAR) }
+            entry(
+                stringResource(if (place == PluginTilePlace.TOOLBOX) ImeR.string.ime_plugin_action_toolbox_remove else ImeR.string.ime_plugin_action_toolbox_add),
+                Icons.Outlined.Handyman,
+            ) { onPlace(if (place == PluginTilePlace.TOOLBOX) PluginTilePlace.NONE else PluginTilePlace.TOOLBOX) }
+            entry(
+                stringResource(if (plugin.enabled) ImeR.string.ime_plugin_action_turn_off else ImeR.string.ime_plugin_action_turn_on),
+                Icons.Outlined.PowerSettingsNew,
+            ) { store.setEnabled(plugin.id, !plugin.enabled) }
+            entry(stringResource(R.string.plugin_ide_edit_title), Icons.Outlined.Code) {
+                scope.launch { openPluginCode(context, store, plugin.id, onNavigate) }
+            }
+            entry(stringResource(R.string.plugins_storage_clear_action), Icons.Outlined.DeleteSweep) {
+                PluginStorage(store.storageFile(plugin.id), PluginStorage.Quota.forApi(plugin.apiVersion)).clear()
+            }
+            entry(stringResource(CommonR.string.common_uninstall), Icons.Outlined.Delete, destructive = true, action = onUninstall)
+        }
+    }
+}
+
+/** Opens [pluginId]'s code in the editor, as a draft made from the installed copy. */
+private suspend fun openPluginCode(context: android.content.Context, store: PluginStore, pluginId: String, onNavigate: (String) -> Unit) {
+    val draftId = withContext(Dispatchers.IO) { draftForInstalled(PluginWorkspace.get(context), store, pluginId) }
+    if (draftId != null) {
+        onNavigate("plugin_ide/$draftId")
+    } else {
+        android.widget.Toast.makeText(context, context.getString(R.string.plugin_ide_edit_error), android.widget.Toast.LENGTH_LONG).show()
+    }
+}
+
+/**
+ * Puts plugin [pluginId]'s tile on the toolbar, in the toolbox, or takes it
+ * away. A tile is a custom button of the plugin kind, the same one the
+ * Custom buttons page makes, so it moves and goes like any other there.
+ */
+internal fun setPluginTile(
+    context: android.content.Context,
+    repository: SettingsRepository,
+    scope: CoroutineScope,
+    pluginId: String,
+    place: PluginTilePlace,
+) {
+    scope.launch {
+        var full = false
+        repository.updateCustomButtons { list ->
+            list.withPluginTile(pluginId, place).also { full = place != PluginTilePlace.NONE && it.pluginTilePlace(pluginId) == PluginTilePlace.NONE }
+        }
+        if (full) {
+            android.widget.Toast.makeText(
+                context,
+                context.getString(ImeR.string.ime_plugin_tiles_full, MAX_CUSTOM_BUTTONS),
+                android.widget.Toast.LENGTH_LONG,
+            ).show()
+        }
+    }
+}
+
+@Composable
+private fun UninstallPluginDialog(plugin: InstalledPlugin, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.plugins_uninstall_confirm_title, plugin.displayName)) },
+        text = { Text(stringResource(R.string.plugins_uninstall_confirm_body)) },
+        confirmButton = { TextButton(onConfirm) { Text(stringResource(CommonR.string.common_uninstall)) } },
+        dismissButton = { TextButton(onDismiss) { Text(stringResource(CommonR.string.common_cancel)) } },
     )
 }
 
 /** One plugin: what it may do, what it has stored, its log, and how to remove it. */
 @Composable
-internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, onBack: () -> Unit) {
+internal fun PluginDetailScreen(
+    pluginId: String,
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    onNavigate: (String) -> Unit,
+    onBack: () -> Unit,
+) {
     val context = LocalContext.current
     val store = remember { PluginStore.get(context) }
     val revision by store.revision.collectAsStateWithLifecycle()
@@ -393,7 +581,7 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
     var refresh by remember { mutableIntStateOf(0) }
     var confirmUninstall by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val editError = stringResource(R.string.plugin_ide_edit_error)
+    val place = settings.watch { it.toolbox.customButtons.pluginTilePlace(pluginId) }
 
     if (plugin == null) {
         Column { CaptionText(stringResource(R.string.plugins_detail_missing)) }
@@ -454,19 +642,31 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
                 icon = SettingsRowIcons[R.string.plugin_ide_edit_title],
                 subtitle = stringResource(R.string.plugin_ide_edit_subtitle_python),
                 trailing = { Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null) },
-                onClick = {
-                    scope.launch {
-                        val draftId = withContext(Dispatchers.IO) {
-                            draftForInstalled(PluginWorkspace.get(context), store, pluginId)
-                        }
-                        if (draftId != null) {
-                            onNavigate("plugin_ide/$draftId")
-                        } else {
-                            android.widget.Toast.makeText(context, editError, android.widget.Toast.LENGTH_LONG).show()
-                        }
-                    }
-                },
+                onClick = { scope.launch { openPluginCode(context, store, pluginId, onNavigate) } },
             )
+        }
+    }
+
+    // A plugin with a panel can be a tool of its own: a tile on the toolbar
+    // or in the toolbox that opens it straight away.
+    if (plugin.panel) {
+        SettingsGroup(stringResource(R.string.plugins_tile_title), info = stringResource(R.string.plugins_tile_info)) {
+            item {
+                SingleChoiceSegmentedButtonRow(modifier = androidx.compose.ui.Modifier.fillMaxWidth()) {
+                    val choices = listOf(
+                        PluginTilePlace.NONE to R.string.plugins_tile_none,
+                        PluginTilePlace.TOOLBAR to R.string.plugins_tile_toolbar,
+                        PluginTilePlace.TOOLBOX to R.string.plugins_tile_toolbox,
+                    )
+                    choices.forEachIndexed { index, (choice, label) ->
+                        SegmentedButton(
+                            selected = place == choice,
+                            onClick = { setPluginTile(context, repository, scope, pluginId, choice) },
+                            shape = SegmentedButtonDefaults.itemShape(index, choices.size),
+                        ) { Text(stringResource(label), maxLines = 1) }
+                    }
+                }
+            }
         }
     }
 
@@ -556,6 +756,7 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
             text = { Text(stringResource(R.string.plugins_uninstall_confirm_body)) },
             confirmButton = {
                 TextButton({
+                    scope.launch { repository.updateCustomButtons { it.withPluginTile(pluginId, PluginTilePlace.NONE) } }
                     store.delete(pluginId)
                     confirmUninstall = false
                     onBack()

@@ -7257,10 +7257,6 @@
     <string name="plugins_detail_no_description">விளக்கம் இல்லை.</string>
     <string name="plugins_detail_stopped_subtitle">இந்தச் செருகுநிரல் இரண்டு முறை பதிலளிக்கத் தவறியதால், ஆப்ஸ் அதை முடக்கியது</string>
     <string name="plugins_detail_subsystem_off_subtitle">கருவிகள் மற்றும் செருகுநிரல்களின் கீழ் “செருகுநிரல்களை அனுமதி” முடக்கப்பட்டிருக்கும் போது எந்த செருகுநிரலும் இயங்காது</string>
-    <string name="plugins_fact_no_typing">நீங்கள் தட்டச்சு செய்வதை இதால் பார்க்க முடியாது</string>
-    <string name="plugins_fact_own_panel">இது சொந்தமாக பேனலை வரையவும் கணக்கீடுகளைச் செய்யவும் முடியும்</string>
-    <string name="plugins_fact_own_storage">நீங்கள் நிறுவும் முன் அது உங்களுக்குத் தெரிவித்தால், அது அதன் சொந்தத் தரவைச் சேமிக்க முடியும்</string>
-    <string name="plugins_fact_reminders">நீங்கள் நிறுவுவதற்கு முன்பே அது உங்களுக்குத் தெரிவித்தால், நீங்கள் அமைக்கும் நேரத்தில் அது நினைவூட்டலைக் காட்ட முடியும்</string>
     <string name="plugins_facts_title">ஒரு செருகுநிரல் என்ன செய்ய முடியும் மற்றும் என்ன செய்ய முடியாது</string>
     <string name="plugins_icons_export_done_message">ஆப் %1$s-ஐச் சேமித்தது.</string>
     <string name="plugins_icons_export_failed_message">பயன்பாட்டால் அந்தக் கோப்பை எழுத முடியவில்லை.</string>

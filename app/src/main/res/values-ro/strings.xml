@@ -7263,10 +7263,6 @@
     <string name="plugins_detail_no_description">Fără descriere.</string>
     <string name="plugins_detail_stopped_subtitle">Aplicația a oprit acest plugin deoarece a încetat să răspundă de două ori</string>
     <string name="plugins_detail_subsystem_off_subtitle">Niciun plugin nu rulează cât timp „Permite pluginuri” este dezactivat, sub Instrumente apoi Pluginuri</string>
-    <string name="plugins_fact_no_typing">Nu poate vedea ce scrieți</string>
-    <string name="plugins_fact_own_panel">Poate să-și deseneze propriul panou și să-și facă propriile calcule</string>
-    <string name="plugins_fact_own_storage">Poate să își salveze propriile date, dacă vă informează înainte de instalare</string>
-    <string name="plugins_fact_reminders">Poate afișa un memento la o oră setată de tine, dacă te informează înainte de instalare</string>
     <string name="plugins_facts_title">Ce poate și ce nu poate face un plugin</string>
     <string name="plugins_icons_export_done_message">Aplicația a salvat %1$s.</string>
     <string name="plugins_icons_export_failed_message">Aplicația nu a putut scrie acel fișier.</string>

@@ -7272,10 +7272,6 @@
     <string name="plugins_detail_no_description">ಯಾವುದೇ ವಿವರಣೆಯಿಲ್ಲ.</string>
     <string name="plugins_detail_stopped_subtitle">ಈ ಪ್ಲಗಿನ್ ಎರಡು ಬಾರಿ ಪ್ರತಿಕ್ರಿಯಿಸುವುದನ್ನು ನಿಲ್ಲಿಸಿದ್ದರಿಂದ ಅಪ್ಲಿಕೇಶನ್ ಅದನ್ನು ಆಫ್ ಮಾಡಿದೆ</string>
     <string name="plugins_detail_subsystem_off_subtitle">ಟೂಲ್ಸ್ ನಂತರ ಪ್ಲಗಿನ್‌ಗಳ ಅಡಿಯಲ್ಲಿ “ಪ್ಲಗಿನ್‌ಗಳನ್ನು ಅನುಮತಿಸಿ” ಆಫ್ ಆಗಿರುವಾಗ ಯಾವುದೇ ಪ್ಲಗಿನ್ ಕಾರ್ಯನಿರ್ವಹಿಸುವುದಿಲ್ಲ</string>
-    <string name="plugins_fact_no_typing">ನೀವು ಏನು ಟೈಪ್ ಮಾಡುತ್ತಿದ್ದೀರಿ ಎಂದು ಅದಕ್ಕೆ ನೋಡಲು ಸಾಧ್ಯವಿಲ್ಲ</string>
-    <string name="plugins_fact_own_panel">ಇದು ತನ್ನದೇ ಆದ ಪ್ಯಾನೆಲ್ ಅನ್ನು ಸೆಳೆಯಬಲ್ಲದು ಮತ್ತು ತನ್ನದೇ ಆದ ಗಣಿತವನ್ನು ಮಾಡಬಲ್ಲದು</string>
-    <string name="plugins_fact_own_storage">ನೀವು ಅದನ್ನು ಸ್ಥಾಪಿಸುವ ಮೊದಲು ಅದು ನಿಮಗೆ ತಿಳಿಸಿದರೆ, ಅದು ತನ್ನದೇ ಆದ ಡೇಟಾವನ್ನು ಉಳಿಸಬಹುದು</string>
-    <string name="plugins_fact_reminders">ನೀವು ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡುವ ಮುನ್ನವೇ ಅದು ತಿಳಿಸಿದರೆ, ನೀವು ನಿಗದಿಪಡಿಸಿದ ಸಮಯದಲ್ಲಿ ಅದು ಜ್ಞಾಪನೆಯನ್ನು ತೋರಿಸಬಹುದು</string>
     <string name="plugins_facts_title">ಪ್ಲಗಿನ್ ಏನು ಮಾಡಬಹುದು ಮತ್ತು ಏನು ಮಾಡಬಾರದು</string>
     <string name="plugins_icons_export_done_message">ಅಪ್ಲಿಕೇಶನ್ %1$s ಅನ್ನು ಉಳಿಸಿದೆ.</string>
     <string name="plugins_icons_export_failed_message">ಆ್ಯಪ್ ಆ ಫೈಲ್ ಅನ್ನು ಬರೆಯಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.</string>

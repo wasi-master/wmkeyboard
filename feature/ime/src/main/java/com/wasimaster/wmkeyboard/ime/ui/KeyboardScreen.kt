@@ -16004,7 +16004,7 @@ private fun KeyboardBody(
                         onToolInsert = onToolInsert,
                         onCopy = onPluginCopy,
                         onPaste = onPluginPaste,
-                        onManage = { onOpenRoute("plugins") },
+                        onOpenRoute = onOpenRoute,
                     )
                 }
                 PanelMode.APP_LAUNCHER -> FullBleedTool(

@@ -7257,10 +7257,6 @@
     <string name="plugins_detail_no_description">کوئی تفصیل نہیں۔</string>
     <string name="plugins_detail_stopped_subtitle">ایپ نے اس پلگ ان کو بند کر دیا کیونکہ اس نے دو بار جواب دینا بند کر دیا تھا</string>
     <string name="plugins_detail_subsystem_off_subtitle">جب تک ٹولز کے تحت پلگ انز میں \"پلگ انز کی اجازت دیں\" بند ہے، کوئی پلگ ان نہیں چلے گا</string>
-    <string name="plugins_fact_no_typing">یہ نہیں دیکھ سکتا کہ آپ کیا ٹائپ کر رہے ہیں</string>
-    <string name="plugins_fact_own_panel">یہ اپنا پینل ڈرا کر سکتا ہے اور اپنا حساب کتاب کر سکتا ہے</string>
-    <string name="plugins_fact_own_storage">یہ اپنا ڈیٹا محفوظ کر سکتا ہے، اگر یہ آپ کو انسٹال کرنے سے پہلے بتا دے</string>
-    <string name="plugins_fact_reminders">اگر یہ آپ کو انسٹال کرنے سے پہلے بتائے تو یہ آپ کے سیٹ کردہ وقت پر یاد دہانی دکھا سکتا ہے</string>
     <string name="plugins_facts_title">ایک پلگ ان کیا کر سکتا ہے اور کیا نہیں کر سکتا</string>
     <string name="plugins_icons_export_done_message">ایپ نے %1$s کو محفوظ کر لیا ہے۔</string>
     <string name="plugins_icons_export_failed_message">ایپ وہ فائل نہیں لکھ سکی۔</string>

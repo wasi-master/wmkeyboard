@@ -7259,10 +7259,6 @@
     <string name="plugins_detail_no_description">אין תיאור.</string>
     <string name="plugins_detail_stopped_subtitle">האפליקציה כיבתה את התוסף הזה מכיוון שהוא הפסיק להגיב פעמיים</string>
     <string name="plugins_detail_subsystem_off_subtitle">שום תוסף לא פועל בזמן ש\"אפשר תוספים\" כבוי, תחת כלים ואז תוספים</string>
-    <string name="plugins_fact_no_typing">הוא לא יכול לראות מה אתה מקליד</string>
-    <string name="plugins_fact_own_panel">הוא יכול לצייר לוח משלו ולבצע חישובים משלו</string>
-    <string name="plugins_fact_own_storage">הוא יכול לשמור נתונים משלו, אם הוא מודיע לך לפני שאתה מתקין אותו</string>
-    <string name="plugins_fact_reminders">הוא יכול להציג תזכורת בזמן שתגדיר בו, אם הוא מודיע לך על כך לפני ההתקנה</string>
     <string name="plugins_facts_title">מה תוסף יכול ומה אינו יכול לעשות</string>
     <string name="plugins_icons_export_done_message">האפליקציה שמרה את %1$s.</string>
     <string name="plugins_icons_export_failed_message">האפליקציה לא הצליחה לכתוב את הקובץ הזה.</string>

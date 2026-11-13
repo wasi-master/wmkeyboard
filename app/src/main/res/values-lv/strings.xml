@@ -7263,10 +7263,6 @@
     <string name="plugins_detail_no_description">Nav apraksta.</string>
     <string name="plugins_detail_stopped_subtitle">Lietotne izslēdza šo spraudni, jo tas divas reizes pārstāja reaģēt</string>
     <string name="plugins_detail_subsystem_off_subtitle">Neviens spraudnis nedarbojas, kamēr ir izslēgta opcija \"Atļaut spraudņus\" sadaļā Rīki -&gt; Spraudņi</string>
-    <string name="plugins_fact_no_typing">Tas nevar redzēt, ko jūs rakstāt</string>
-    <string name="plugins_fact_own_panel">Tas var uzzīmēt savu paneli un veikt savus aprēķinus</string>
-    <string name="plugins_fact_own_storage">Tas var saglabāt savus datus, ja tas jūs par to informē pirms instalēšanas</string>
-    <string name="plugins_fact_reminders">Tas var parādīt atgādinājumu jūsu iestatītajā laikā, ja tas jūs brīdina pirms instalēšanas</string>
     <string name="plugins_facts_title">Ko spraudnis var un ko nevar darīt</string>
     <string name="plugins_icons_export_done_message">Lietotne saglabāja %1$s.</string>
     <string name="plugins_icons_export_failed_message">Lietotne nevarēja ierakstīt šo failu.</string>

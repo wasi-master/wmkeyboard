@@ -7263,10 +7263,6 @@
     <string name="plugins_detail_no_description">Ingen beskrivning.</string>
     <string name="plugins_detail_stopped_subtitle">Appen stängde av detta insticksprogram eftersom det slutade svara två gånger</string>
     <string name="plugins_detail_subsystem_off_subtitle">Inga plugins körs medan “Tillåt plugins” är avstängt, under Verktyg och sedan Plugins</string>
-    <string name="plugins_fact_no_typing">Det kan inte se vad du skriver</string>
-    <string name="plugins_fact_own_panel">Den kan rita sin egen panel och göra sina egna beräkningar</string>
-    <string name="plugins_fact_own_storage">Den kan spara sin egen data, om den informerar dig innan du installerar den</string>
-    <string name="plugins_fact_reminders">Den kan visa en påminnelse vid en tidpunkt som du ställer in i den, om den informerar dig innan du installerar den</string>
     <string name="plugins_facts_title">Vad ett plugin kan och inte kan göra</string>
     <string name="plugins_icons_export_done_message">Appen sparade %1$s.</string>
     <string name="plugins_icons_export_failed_message">Appen kunde inte skriva den filen.</string>

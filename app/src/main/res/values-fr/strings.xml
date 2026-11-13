@@ -7252,10 +7252,6 @@
     <string name="plugins_detail_no_description">Aucune description.</string>
     <string name="plugins_detail_stopped_subtitle">L\'application a désactivé ce plugin car il a cessé de répondre à deux reprises</string>
     <string name="plugins_detail_subsystem_off_subtitle">Aucun plugin ne s\'exécute lorsque \"Autoriser les plugins\" est désactivé, sous Outils puis Plugins</string>
-    <string name="plugins_fact_no_typing">Il ne peut pas voir ce que vous tapez</string>
-    <string name="plugins_fact_own_panel">Il peut dessiner son propre panneau et faire ses propres calculs</string>
-    <string name="plugins_fact_own_storage">Il peut enregistrer ses propres données, s\'il vous en informe avant l\'installation</string>
-    <string name="plugins_fact_reminders">Il peut afficher un rappel à une heure que vous avez définie, s\'il vous en informe avant que vous ne l\'installiez</string>
     <string name="plugins_facts_title">Ce qu\'un plugin peut et ne peut pas faire</string>
     <string name="plugins_icons_export_done_message">L\'application a enregistré %1$s.</string>
     <string name="plugins_icons_export_failed_message">L\'application n\'a pas pu écrire ce fichier.</string>

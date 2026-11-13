@@ -7260,10 +7260,6 @@
     <string name="plugins_detail_no_description">Nėra aprašymo.</string>
     <string name="plugins_detail_stopped_subtitle">Programa išjungė šį papildinį, nes jis du kartus nustojo reaguoti</string>
     <string name="plugins_detail_subsystem_off_subtitle">Joks papildinys neveikia, kai „Leisti papildinius“ yra išjungta, skiltyje Įrankiai, tada Papildiniai</string>
-    <string name="plugins_fact_no_typing">Ji nemato, ką rašote</string>
-    <string name="plugins_fact_own_panel">Jis gali nupiešti savo skydelį ir atlikti savo skaičiavimus</string>
-    <string name="plugins_fact_own_storage">Ji gali išsaugoti savo duomenis, jei apie tai praneša prieš įdiegiant</string>
-    <string name="plugins_fact_reminders">Ji gali rodyti priminimą jūsų nustatytu laiku, jei apie tai praneša prieš įdiegiant</string>
     <string name="plugins_facts_title">Ką papildinys gali ir ko negali daryti</string>
     <string name="plugins_icons_export_done_message">Programa išsaugojo %1$s.</string>
     <string name="plugins_icons_export_failed_message">Programai nepavyko įrašyti to failo.</string>

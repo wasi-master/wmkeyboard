@@ -7271,10 +7271,6 @@
     <string name="plugins_detail_no_description">ਕੋਈ ਵੇਰਵਾ ਨਹੀਂ।</string>
     <string name="plugins_detail_stopped_subtitle">ਐਪ ਨੇ ਇਸ ਪਲੱਗਇਨ ਨੂੰ ਬੰਦ ਕਰ ਦਿੱਤਾ ਹੈ ਕਿਉਂਕਿ ਇਹ ਦੋ ਵਾਰ ਜਵਾਬ ਦੇਣਾ ਬੰਦ ਕਰ ਗਿਆ ਸੀ</string>
     <string name="plugins_detail_subsystem_off_subtitle">ਜਦੋਂ \"Allow plugins\" ਬੰਦ ਹੁੰਦਾ ਹੈ, ਤਾਂ ਕੋਈ ਪਲੱਗਇਨ ਨਹੀਂ ਚੱਲਦਾ, ਟੂਲਸ ਦੇ ਅਧੀਨ ਫਿਰ ਪਲੱਗਇਨ</string>
-    <string name="plugins_fact_no_typing">ਇਹ ਨਹੀਂ ਦੇਖ ਸਕਦਾ ਕਿ ਤੁਸੀਂ ਕੀ ਟਾਈਪ ਕਰਦੇ ਹੋ</string>
-    <string name="plugins_fact_own_panel">ਇਹ ਆਪਣਾ ਪੈਨਲ ਖਿੱਚ ਸਕਦਾ ਹੈ ਅਤੇ ਆਪਣਾ ਗਣਿਤ ਕਰ ਸਕਦਾ ਹੈ</string>
-    <string name="plugins_fact_own_storage">ਇਹ ਆਪਣਾ ਡੇਟਾ ਸੁਰੱਖਿਅਤ ਕਰ ਸਕਦਾ ਹੈ, ਜੇਕਰ ਇਹ ਤੁਹਾਨੂੰ ਇੰਸਟਾਲ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਦੱਸਦਾ ਹੈ</string>
-    <string name="plugins_fact_reminders">ਇਹ ਤੁਹਾਡੇ ਦੁਆਰਾ ਨਿਰਧਾਰਤ ਕੀਤੇ ਸਮੇਂ \'ਤੇ ਇੱਕ ਰੀਮਾਈਂਡਰ ਦਿਖਾ ਸਕਦਾ ਹੈ, ਜੇਕਰ ਇਹ ਤੁਹਾਨੂੰ ਇਸਨੂੰ ਸਥਾਪਿਤ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਦੱਸਦਾ ਹੈ</string>
     <string name="plugins_facts_title">ਇੱਕ ਪਲੱਗਇਨ ਕੀ ਕਰ ਸਕਦਾ ਹੈ ਅਤੇ ਕੀ ਨਹੀਂ ਕਰ ਸਕਦਾ</string>
     <string name="plugins_icons_export_done_message">ਐਪ ਨੇ %1$s ਨੂੰ ਸੁਰੱਖਿਅਤ ਕੀਤਾ।</string>
     <string name="plugins_icons_export_failed_message">ਐਪ ਉਸ ਫਾਈਲ ਨੂੰ ਲਿਖ ਨਹੀਂ ਸਕੀ।</string>

@@ -7268,10 +7268,6 @@
     <string name="plugins_detail_no_description">വിവരണം ലഭ്യമല്ല.</string>
     <string name="plugins_detail_stopped_subtitle">രണ്ടുതവണ പ്രതികരിക്കാത്തതിനെത്തുടർന്ന് ആപ്പ് ഈ പ്ലഗിൻ ഓഫാക്കി</string>
     <string name="plugins_detail_subsystem_off_subtitle">ടൂൾസ് എന്നതിലെ പ്ലഗിനുകൾക്ക് കീഴിൽ “പ്ലഗിനുകൾ അനുവദിക്കുക” ഓഫായിരിക്കുമ്പോൾ പ്ലഗിനുകളൊന്നും പ്രവർത്തിക്കില്ല</string>
-    <string name="plugins_fact_no_typing">നിങ്ങൾ ടൈപ്പ് ചെയ്യുന്നത് ഇതിന് കാണാൻ കഴിയില്ല</string>
-    <string name="plugins_fact_own_panel">ഇതിന് സ്വന്തമായി പാനൽ വരയ്ക്കാനും സ്വന്തമായി കണക്കുകൂട്ടലുകൾ നടത്താനും കഴിയും</string>
-    <string name="plugins_fact_own_storage">ഇൻസ്റ്റാൾ ചെയ്യുന്നതിന് മുൻപ് നിങ്ങളെ അറിയിക്കുകയാണെങ്കിൽ, ഇതിന് സ്വന്തമായി ഡാറ്റ സേവ് ചെയ്യാൻ സാധിക്കും</string>
-    <string name="plugins_fact_reminders">നിങ്ങൾ ഇൻസ്റ്റാൾ ചെയ്യുന്നതിന് മുൻപ് അത് നിങ്ങളോട് പറയുകയാണെങ്കിൽ, നിങ്ങൾ സജ്ജമാക്കിയ സമയത്ത് അത് ഒരു ഓർമ്മപ്പെടുത്തൽ കാണിക്കും</string>
     <string name="plugins_facts_title">ഒരു പ്ലഗിന് ചെയ്യാൻ കഴിയുന്നതും കഴിയാത്തതുമായ കാര്യങ്ങൾ</string>
     <string name="plugins_icons_export_done_message">ആപ്പ് %1$s സേവ് ചെയ്തു.</string>
     <string name="plugins_icons_export_failed_message">ആപ്പിന് ആ ഫയൽ എഴുതാൻ കഴിഞ്ഞില്ല.</string>

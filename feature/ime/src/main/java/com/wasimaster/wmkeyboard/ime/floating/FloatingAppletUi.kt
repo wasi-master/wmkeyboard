@@ -614,7 +614,7 @@ private fun AppletPanel(panel: PanelMode, state: KeyboardUiState, callbacks: App
                     onToolInsert = callbacks.onInsert,
                     onCopy = callbacks.plugins.onCopy,
                     onPaste = { callbacks.plugins.onToKeyboard() },
-                    onManage = { callbacks.onOpenRoute("plugins") },
+                    onOpenRoute = callbacks.onOpenRoute,
                 )
             }
         }

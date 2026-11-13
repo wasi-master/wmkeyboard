@@ -7254,10 +7254,6 @@
     <string name="plugins_detail_no_description">Açıklama yok.</string>
     <string name="plugins_detail_stopped_subtitle">Uygulama, iki kez yanıt vermeyi durdurduğu için bu eklentiyi kapattı</string>
     <string name="plugins_detail_subsystem_off_subtitle">Araçlar ve ardından Eklentiler altındaki “Eklentilere izin ver” kapalıyken hiçbir eklenti çalışmaz</string>
-    <string name="plugins_fact_no_typing">Yazdıklarınızı göremez</string>
-    <string name="plugins_fact_own_panel">Kendi panelini çizebilir ve kendi hesaplamalarını yapabilir</string>
-    <string name="plugins_fact_own_storage">Yüklemeden önce size bildirirse kendi verilerini kaydedebilir</string>
-    <string name="plugins_fact_reminders">Yüklemeden önce size bildirirse, içinde ayarladığınız bir zamanda hatırlatıcı gösterebilir</string>
     <string name="plugins_facts_title">Bir eklentinin yapabilecekleri ve yapamayacakları</string>
     <string name="plugins_icons_export_done_message">Uygulama %1$s kaydedildi.</string>
     <string name="plugins_icons_export_failed_message">Uygulama bu dosyayı yazamadı.</string>

@@ -7267,10 +7267,6 @@
     <string name="plugins_detail_no_description">Nema opisa.</string>
     <string name="plugins_detail_stopped_subtitle">Aplikacija je isključila ovaj dodatak jer je dvaput prestao odgovarati</string>
     <string name="plugins_detail_subsystem_off_subtitle">Nijedan dodatak ne radi dok je opcija „Dopusti dodatke” isključena, pod Alati pa Dodaci</string>
-    <string name="plugins_fact_no_typing">Ne može vidjeti što tipkate</string>
-    <string name="plugins_fact_own_panel">Može nacrtati vlastitu ploču i obavljati vlastite izračune</string>
-    <string name="plugins_fact_own_storage">Može spremiti vlastite podatke, ako vas o tome obavijesti prije instalacije</string>
-    <string name="plugins_fact_reminders">Može prikazati podsjetnik u vrijeme koje postavite, ako vas o tome obavijesti prije instalacije</string>
     <string name="plugins_facts_title">Što dodatak može, a što ne može učiniti</string>
     <string name="plugins_icons_export_done_message">Aplikacija je spremila %1$s.</string>
     <string name="plugins_icons_export_failed_message">Aplikacija nije mogla zapisati tu datoteku.</string>

@@ -7266,10 +7266,6 @@
     <string name="plugins_detail_no_description">कोई विवरण नहीं।</string>
     <string name="plugins_detail_stopped_subtitle">ऐप ने इस प्लगइन को बंद कर दिया क्योंकि यह दो बार प्रतिक्रिया देने में विफल रहा</string>
     <string name="plugins_detail_subsystem_off_subtitle">जब \'प्लगइन्स की अनुमति दें\' बंद हो, तो कोई प्लगइन नहीं चलता, यह \'टूल्स\' के अंतर्गत \'प्लगइन्स\' में होता है</string>
-    <string name="plugins_fact_no_typing">यह नहीं देख सकता कि आप क्या टाइप करते हैं</string>
-    <string name="plugins_fact_own_panel">यह अपना खुद का पैनल बना सकता है और अपनी खुद की गणना कर सकता है</string>
-    <string name="plugins_fact_own_storage">यह अपना डेटा सहेज सकता है, यदि यह आपको इंस्टॉल करने से पहले बता दे</string>
-    <string name="plugins_fact_reminders">यह आपके द्वारा सेट किए गए समय पर रिमाइंडर दिखा सकता है, यदि यह आपको इंस्टॉल करने से पहले बताता है</string>
     <string name="plugins_facts_title">एक प्लगइन क्या कर सकता है और क्या नहीं कर सकता</string>
     <string name="plugins_icons_export_done_message">ऐप ने %1$s को सहेज लिया है।</string>
     <string name="plugins_icons_export_failed_message">ऐप उस फ़ाइल को लिख नहीं सका।</string>

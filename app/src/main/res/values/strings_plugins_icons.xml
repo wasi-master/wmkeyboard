@@ -19,21 +19,30 @@
     <!-- ================================================================== -->
 
     <string name="plugins_allow_title">Allow plugins</string>
-    <string name="plugins_allow_subtitle">A plugin is a small tool that other people write. It runs inside a sandbox on this keyboard. This setting is not the Plugins tool on the toolbar, which only sets where the panel appears.</string>
+    <string name="plugins_allow_subtitle">A plugin is a small tool that other people write. It runs inside a sandbox on this keyboard, in the Plugins panel or as its own button on the toolbar.</string>
 
     <string name="plugins_auto_disable_title">Switch off a plugin that hangs</string>
     <string name="plugins_auto_disable_subtitle">Turn a plugin off after it stops responding twice</string>
     <string name="plugins_auto_disable_info">A plugin gets a short time to answer. When it runs past that, the keyboard abandons its thread and counts a strike. At two strikes the keyboard switches the plugin off, so that a broken script cannot keep freezing the panel. Turn this off if you write plugins, or if your device is slow enough to be the real cause, because the keyboard cannot tell a script that hangs from a device that was busy. The keyboard still counts the strikes and still shows them, so you keep the evidence and give up only the switching off. This setting is on by default.</string>
 
     <string name="plugins_facts_title">What a plugin can and cannot do</string>
-    <!-- Six list rows. Each one has a tick or a cross beside it. -->
-    <string name="plugins_fact_no_typing">It cannot see what you type</string>
-    <string name="plugins_fact_risky_off">It cannot use the internet, your AI model, the text you write, your clipboard, your location or your files unless you turn that on for it</string>
-    <string name="plugins_fact_field_tap">Even then, it reads the text you write or your clipboard only when you tap something in its panel, and never in password fields or incognito</string>
-    <string name="plugins_fact_background">It runs only while its panel is open</string>
-    <string name="plugins_fact_own_panel">It can draw its own panel and do its own maths</string>
-    <string name="plugins_fact_own_storage">It can save its own data, if it tells you before you install it</string>
-    <string name="plugins_fact_reminders">It can show a reminder at a time that you set in it, if it tells you before you install it</string>
+    <!-- Headings of the lists that follow "What a plugin can and cannot do": what a plugin may do if it lists it, what waits for the user's switch, and what none may do. -->
+    <string name="plugins_facts_listed_title">If it says so before you install it</string>
+    <string name="plugins_facts_granted_title">Only after you turn it on for that plugin</string>
+    <string name="plugins_facts_never_title">No plugin can</string>
+    <string name="plugins_fact_always_panel">Every plugin can draw its own panel in your keyboard\'s theme and work things out on this phone</string>
+    <string name="plugins_fact_always_tile">Every plugin with a panel can be a button on your toolbar or in your toolbox, if you put it there</string>
+    <string name="plugins_fact_never_typing">See your keystrokes, or anything you type outside its own boxes</string>
+    <string name="plugins_fact_never_watch">Read the text you write or your clipboard by itself: only while you tap something in its panel</string>
+    <string name="plugins_fact_never_private">Read or change a password field, incognito text or a private clip</string>
+    <string name="plugins_fact_never_background">Run while none of its panels is open, apart from the moment you tap one of its actions</string>
+    <!-- The segmented choice on a plugin's page that makes it a tool of its own. -->
+    <string name="plugins_tile_title">Show as a tool</string>
+    <string name="plugins_tile_info">A plugin can have its own button, like any other tool. Tap it to open the plugin straight away, without going through the Plugins panel. The button also shows in Custom buttons, where you can move it.</string>
+    <string name="plugins_tile_none">Panel only</string>
+    <string name="plugins_tile_toolbar">Toolbar</string>
+    <string name="plugins_tile_toolbox">Toolbox</string>
+    <string name="plugins_fact_never_code">Download new code and run it, or reach the rest of your phone beyond the things listed above</string>
     <!-- Insert is the button inside a plugin panel that sends a result to the text field. -->
     <string name="plugins_facts_info_v5">A plugin lists what it can do before you install it. Some things, like the internet or reading the text you write, stay off until you turn them on for that plugin, on its page. Nothing turns on by itself.</string>
 

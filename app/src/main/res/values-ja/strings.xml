@@ -7255,10 +7255,6 @@
     <string name="plugins_detail_no_description">説明はありません。</string>
     <string name="plugins_detail_stopped_subtitle">このプラグインが2回応答を停止したため、アプリによって無効化されました</string>
     <string name="plugins_detail_subsystem_off_subtitle">「ツール」＞「プラグイン」で「プラグインを許可」がオフになっている間は、プラグインは実行されません</string>
-    <string name="plugins_fact_no_typing">入力内容は読み取られません</string>
-    <string name="plugins_fact_own_panel">独自のパネルを描画し、独自の計算を実行できます</string>
-    <string name="plugins_fact_own_storage">インストール前に通知があれば、独自のデータを保存できます</string>
-    <string name="plugins_fact_reminders">インストール前に許可を求めれば、設定した時間にリマインダーを表示できます。</string>
     <string name="plugins_facts_title">プラグインでできること、できないこと</string>
     <string name="plugins_icons_export_done_message">アプリは%1$sを保存しました。</string>
     <string name="plugins_icons_export_failed_message">ファイルを書き込めませんでした。</string>

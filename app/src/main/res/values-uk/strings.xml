@@ -7257,10 +7257,6 @@
     <string name="plugins_detail_no_description">Немає опису.</string>
     <string name="plugins_detail_stopped_subtitle">Додаток вимкнув цей плагін, оскільки він двічі перестав відповідати</string>
     <string name="plugins_detail_subsystem_off_subtitle">Жоден плагін не працює, поки вимкнено «Дозволити плагіни» в розділі Інструменти, а потім Плагіни</string>
-    <string name="plugins_fact_no_typing">Він не бачить, що ви друкуєте</string>
-    <string name="plugins_fact_own_panel">Він може малювати власну панель і виконувати власні обчислення</string>
-    <string name="plugins_fact_own_storage">Він може зберігати власні дані, якщо повідомить вас про це перед встановленням</string>
-    <string name="plugins_fact_reminders">Він може показати нагадування в установлений вами час, якщо повідомить про це до встановлення</string>
     <string name="plugins_facts_title">Що плагін може і чого не може робити</string>
     <string name="plugins_icons_export_done_message">Додаток зберіг %1$s.</string>
     <string name="plugins_icons_export_failed_message">Додаток не зміг записати цей файл.</string>

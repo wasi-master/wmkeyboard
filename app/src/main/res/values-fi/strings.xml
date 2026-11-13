@@ -7254,10 +7254,6 @@
     <string name="plugins_detail_no_description">Ei kuvausta.</string>
     <string name="plugins_detail_stopped_subtitle">Sovellus kytki tämän laajennuksen pois päältä, koska se lakkasi vastaamasta kahdesti</string>
     <string name="plugins_detail_subsystem_off_subtitle">Mikään laajennus ei toimi, kun \"Salli laajennukset\" on pois päältä kohdassa Työkalut -&gt; Laajennukset</string>
-    <string name="plugins_fact_no_typing">Se ei näe, mitä kirjoitat</string>
-    <string name="plugins_fact_own_panel">Se voi piirtää oman paneelin ja suorittaa omia laskutoimituksia</string>
-    <string name="plugins_fact_own_storage">Se voi tallentaa omia tietojaan, jos se ilmoittaa siitä ennen asennusta</string>
-    <string name="plugins_fact_reminders">Se voi näyttää muistutuksen asettamanasi aikana, jos se ilmoittaa siitä ennen asennusta</string>
     <string name="plugins_facts_title">Mitä liitännäinen voi ja ei voi tehdä</string>
     <string name="plugins_icons_export_done_message">Sovellus tallensi kohteen %1$s.</string>
     <string name="plugins_icons_export_failed_message">Sovellus ei voinut kirjoittaa kyseistä tiedostoa.</string>

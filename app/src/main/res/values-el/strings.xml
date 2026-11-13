@@ -7257,10 +7257,6 @@
     <string name="plugins_detail_no_description">Καμία περιγραφή.</string>
     <string name="plugins_detail_stopped_subtitle">Η εφαρμογή απενεργοποίησε αυτό το πρόσθετο επειδή σταμάτησε να αποκρίνεται δύο φορές</string>
     <string name="plugins_detail_subsystem_off_subtitle">Κανένα πρόσθετο δεν εκτελείται όσο η επιλογή «Να επιτρέπονται τα πρόσθετα» είναι απενεργοποιημένη, στα Εργαλεία και μετά στα Πρόσθετα</string>
-    <string name="plugins_fact_no_typing">Δεν μπορεί να δει τι πληκτρολογείτε</string>
-    <string name="plugins_fact_own_panel">Μπορεί να σχεδιάσει το δικό του πάνελ και να κάνει τους δικούς του υπολογισμούς</string>
-    <string name="plugins_fact_own_storage">Μπορεί να αποθηκεύσει τα δικά του δεδομένα, αν σας ενημερώσει πριν την εγκατάσταση</string>
-    <string name="plugins_fact_reminders">Μπορεί να εμφανίσει μια υπενθύμιση την ώρα που ορίζετε, αν σας ενημερώσει πριν την εγκατάσταση</string>
     <string name="plugins_facts_title">Τι μπορεί και τι δεν μπορεί να κάνει ένα πρόσθετο</string>
     <string name="plugins_icons_export_done_message">Η εφαρμογή αποθήκευσε το %1$s.</string>
     <string name="plugins_icons_export_failed_message">Η εφαρμογή δεν μπόρεσε να γράψει αυτό το αρχείο.</string>

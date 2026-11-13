@@ -7251,10 +7251,6 @@
     <string name="plugins_detail_no_description">ไม่มีคำอธิบาย</string>
     <string name="plugins_detail_stopped_subtitle">แอปปิดปลั๊กอินนี้เนื่องจากหยุดตอบสนองสองครั้ง</string>
     <string name="plugins_detail_subsystem_off_subtitle">ไม่มีปลั๊กอินทำงานในขณะที่ปิด \"อนุญาตปลั๊กอิน\" อยู่ โดยสามารถตั้งค่าได้ที่ เครื่องมือ แล้วเลือก ปลั๊กอิน</string>
-    <string name="plugins_fact_no_typing">มันไม่สามารถมองเห็นสิ่งที่คุณพิมพ์ได้</string>
-    <string name="plugins_fact_own_panel">สามารถวาดแผงควบคุมของตัวเองและคำนวณค่าต่างๆ ได้เอง</string>
-    <string name="plugins_fact_own_storage">สามารถบันทึกข้อมูลของตัวเองได้ หากแจ้งให้คุณทราบก่อนที่คุณจะติดตั้ง</string>
-    <string name="plugins_fact_reminders">สามารถแสดงการแจ้งเตือนตามเวลาที่คุณตั้งไว้ หากมีการแจ้งให้คุณทราบก่อนการติดตั้ง</string>
     <string name="plugins_facts_title">สิ่งที่ปลั๊กอินทำได้และทำไม่ได้</string>
     <string name="plugins_icons_export_done_message">แอปบันทึก %1$s แล้ว</string>
     <string name="plugins_icons_export_failed_message">แอปไม่สามารถเขียนไฟล์นั้นได้</string>

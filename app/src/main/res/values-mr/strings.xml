@@ -7260,10 +7260,6 @@
     <string name="plugins_detail_no_description">कोणतेही वर्णन नाही.</string>
     <string name="plugins_detail_stopped_subtitle">ॲपने हे प्लगइन बंद केले कारण ते दोनदा प्रतिसाद देण्यात अयशस्वी ठरले</string>
     <string name="plugins_detail_subsystem_off_subtitle">जेव्हा \'प्लगइन्सना अनुमती द्या\' बंद असते, तेव्हा कोणतेही प्लगइन चालत नाही, टूल्स आणि नंतर प्लगइन्स अंतर्गत</string>
-    <string name="plugins_fact_no_typing">तुम्ही काय टाईप करता हे ते पाहू शकत नाही</string>
-    <string name="plugins_fact_own_panel">हे स्वतःचे पॅनेल काढू शकते आणि स्वतःचे गणित करू शकते</string>
-    <string name="plugins_fact_own_storage">हे स्वतःचा डेटा सेव्ह करू शकते, जर ते तुम्हाला इन्स्टॉल करण्यापूर्वी सांगत असेल तर</string>
-    <string name="plugins_fact_reminders">जर ते तुम्हाला इन्स्टॉल करण्यापूर्वी सांगत असेल, तर ते तुम्ही सेट केलेल्या वेळी रिमाइंडर दाखवू शकते</string>
     <string name="plugins_facts_title">प्लगइन काय करू शकते आणि काय करू शकत नाही</string>
     <string name="plugins_icons_export_done_message">ॲपने %1$s सेव्ह केले आहे.</string>
     <string name="plugins_icons_export_failed_message">ॲप ती फाइल लिहू शकले नाही.</string>

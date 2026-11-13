@@ -7263,10 +7263,6 @@
     <string name="plugins_detail_no_description">Sin descripción.</string>
     <string name="plugins_detail_stopped_subtitle">La aplicación desactivó este complemento porque dejó de responder dos veces</string>
     <string name="plugins_detail_subsystem_off_subtitle">Ningún complemento se ejecuta mientras \"Permitir complementos\" esté desactivado, en Herramientas y luego Complementos</string>
-    <string name="plugins_fact_no_typing">No puede ver lo que escribes</string>
-    <string name="plugins_fact_own_panel">Puede dibujar su propio panel y realizar sus propios cálculos</string>
-    <string name="plugins_fact_own_storage">Puede guardar sus propios datos, si te lo indica antes de instalarlo</string>
-    <string name="plugins_fact_reminders">Puede mostrar un recordatorio a la hora que establezcas, si te lo indica antes de instalarlo</string>
     <string name="plugins_facts_title">Lo que un complemento puede y no puede hacer</string>
     <string name="plugins_icons_export_done_message">La aplicación guardó %1$s.</string>
     <string name="plugins_icons_export_failed_message">La aplicación no pudo escribir ese archivo.</string>

@@ -7260,10 +7260,6 @@
     <string name="plugins_detail_no_description">Keine Beschreibung.</string>
     <string name="plugins_detail_stopped_subtitle">Die App hat dieses Plugin deaktiviert, da es zweimal nicht mehr reagierte</string>
     <string name="plugins_detail_subsystem_off_subtitle">Kein Plugin wird ausgeführt, während „Plugins erlauben“ unter Tools &gt; Plugins deaktiviert ist</string>
-    <string name="plugins_fact_no_typing">Es kann nicht sehen, was Sie tippen</string>
-    <string name="plugins_fact_own_panel">Es kann seinen eigenen Bereich zeichnen und eigene Berechnungen durchführen</string>
-    <string name="plugins_fact_own_storage">Es kann eigene Daten speichern, wenn es dich vor der Installation darüber informiert</string>
-    <string name="plugins_fact_reminders">Es kann zu einer von Ihnen festgelegten Zeit eine Erinnerung anzeigen, sofern es Sie vor der Installation darüber informiert.</string>
     <string name="plugins_facts_title">Was ein Plugin kann und was nicht</string>
     <string name="plugins_icons_export_done_message">Die App hat %1$s gespeichert.</string>
     <string name="plugins_icons_export_failed_message">Die App konnte die Datei nicht schreiben.</string>

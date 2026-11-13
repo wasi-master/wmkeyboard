@@ -7265,10 +7265,6 @@
     <string name="plugins_detail_no_description">Ni opisa.</string>
     <string name="plugins_detail_stopped_subtitle">Aplikacija je izklopila ta vtičnik, ker se je dvakrat prenehal odzivati</string>
     <string name="plugins_detail_subsystem_off_subtitle">Noben vtičnik ne deluje, ko je možnost »Dovoli vtičnike« izklopljena v razdelku Orodja in nato Vtičniki</string>
-    <string name="plugins_fact_no_typing">Ne more videti, kaj tipkate</string>
-    <string name="plugins_fact_own_panel">Lahko nariše svojo ploščo in opravi svoje izračune</string>
-    <string name="plugins_fact_own_storage">Lahko shrani lastne podatke, če vas o tem obvesti pred namestitvijo</string>
-    <string name="plugins_fact_reminders">Opomnik lahko prikaže ob času, ki ga nastavite v njem, če vas o tem obvesti pred namestitvijo</string>
     <string name="plugins_facts_title">Kaj vtičnik lahko in česa ne more</string>
     <string name="plugins_icons_export_done_message">Aplikacija je shranila %1$s.</string>
     <string name="plugins_icons_export_failed_message">Aplikacija ni mogla zapisati te datoteke.</string>

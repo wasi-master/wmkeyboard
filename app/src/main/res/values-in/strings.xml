@@ -7257,10 +7257,6 @@
     <string name="plugins_detail_no_description">Tidak ada deskripsi.</string>
     <string name="plugins_detail_stopped_subtitle">Aplikasi mematikan plugin ini karena berhenti merespons dua kali</string>
     <string name="plugins_detail_subsystem_off_subtitle">Tidak ada plugin yang berjalan saat “Izinkan plugin” mati, di bawah Alat lalu Plugin</string>
-    <string name="plugins_fact_no_typing">Ini tidak dapat melihat apa yang Anda ketik</string>
-    <string name="plugins_fact_own_panel">Dapat menggambar panelnya sendiri dan melakukan perhitungannya sendiri</string>
-    <string name="plugins_fact_own_storage">Aplikasi ini dapat menyimpan datanya sendiri, jika memberi tahu Anda sebelum Anda menginstalnya</string>
-    <string name="plugins_fact_reminders">Ini dapat menampilkan pengingat pada waktu yang Anda atur di dalamnya, jika diberitahukan sebelum Anda menginstalnya</string>
     <string name="plugins_facts_title">Apa yang bisa dan tidak bisa dilakukan plugin</string>
     <string name="plugins_icons_export_done_message">Aplikasi telah menyimpan %1$s.</string>
     <string name="plugins_icons_export_failed_message">Aplikasi tidak dapat menulis file tersebut.</string>

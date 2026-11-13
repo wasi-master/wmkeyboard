@@ -7253,10 +7253,6 @@
     <string name="plugins_detail_no_description">Nessuna descrizione.</string>
     <string name="plugins_detail_stopped_subtitle">L\'app ha disattivato questo plugin perché ha smesso di rispondere due volte</string>
     <string name="plugins_detail_subsystem_off_subtitle">Nessun plugin è in esecuzione mentre \"Consenti plugin\" è disattivato, sotto Strumenti e poi Plugin</string>
-    <string name="plugins_fact_no_typing">Non può vedere ciò che scrivi</string>
-    <string name="plugins_fact_own_panel">Può disegnare il proprio pannello ed eseguire i propri calcoli</string>
-    <string name="plugins_fact_own_storage">Può salvare i propri dati, se ti avvisa prima dell\'installazione</string>
-    <string name="plugins_fact_reminders">Può mostrare un promemoria in un momento impostato, se te lo comunica prima dell\'installazione</string>
     <string name="plugins_facts_title">Cosa può e non può fare un plugin</string>
     <string name="plugins_icons_export_done_message">L\'app ha salvato %1$s.</string>
     <string name="plugins_icons_export_failed_message">L\'app non è riuscita a scrivere il file.</string>

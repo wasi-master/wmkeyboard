@@ -4,6 +4,30 @@ import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import android.widget.Toast
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Handyman
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PowerSettingsNew
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Widgets
+import com.wasimaster.wmkeyboard.core.settings.MAX_CUSTOM_BUTTONS
+import com.wasimaster.wmkeyboard.core.settings.PluginTilePlace
+import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.pluginTilePlace
+import com.wasimaster.wmkeyboard.core.settings.withPluginTile
+import com.wasimaster.wmkeyboard.core.ui.SwipeAction
+import com.wasimaster.wmkeyboard.core.ui.SwipeTone
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.heightIn
@@ -95,10 +119,11 @@ internal fun PluginPanel(
     onToolInsert: (String) -> Unit,
     onCopy: (String) -> Unit,
     onPaste: (String) -> Unit,
-    onManage: () -> Unit,
+    /** Opens a settings route: `plugins` for Manage, `plugin/<id>` for one plugin's page. */
+    onOpenRoute: (String) -> Unit,
 ) {
     when (val panel = state.plugins) {
-        is PluginPanelUi.List -> PluginList(state, panel, onOpenPlugin, onManage)
+        is PluginPanelUi.List -> PluginList(state, panel, onOpenPlugin, onOpenRoute)
         is PluginPanelUi.Running -> RunningPlugin(
             state = state,
             panel = panel,
@@ -116,9 +141,30 @@ private fun PluginList(
     state: KeyboardUiState,
     panel: PluginPanelUi.List,
     onOpenPlugin: (String) -> Unit,
-    onManage: () -> Unit,
+    onOpenRoute: (String) -> Unit,
 ) {
     val kb = LocalKbTheme.current
+    val onManage = { onOpenRoute("plugins") }
+    val context = LocalContext.current
+    val store = remember(context) { PluginStore.get(context) }
+    val repository = remember(context) { SettingsRepository(context.applicationContext) }
+    val scope = rememberCoroutineScope()
+    val haptics = LocalHapticFeedback.current
+    val tiles = state.settings.toolbox.customButtons
+    // Turned off from here: gone at once, though the service built the list
+    // before. The next time the panel opens, the store leaves it out itself.
+    var hidden by remember(panel) { mutableStateOf(emptySet<String>()) }
+    // The one row whose options are showing, or null.
+    var expanded by remember(panel) { mutableStateOf<String?>(null) }
+    fun place(pluginId: String, where: PluginTilePlace) {
+        scope.launch {
+            var full = false
+            repository.updateCustomButtons { list ->
+                list.withPluginTile(pluginId, where).also { full = where != PluginTilePlace.NONE && it.pluginTilePlace(pluginId) == PluginTilePlace.NONE }
+            }
+            if (full) Toast.makeText(context, context.getString(R.string.ime_plugin_tiles_full, MAX_CUSTOM_BUTTONS), Toast.LENGTH_LONG).show()
+        }
+    }
     // The ring walks the rows and ends on Manage.
     PanelFocusTarget(
         panel = PanelMode.PLUGINS,
@@ -177,7 +223,46 @@ private fun PluginList(
                 }
             }
             for ((index, plugin) in panel.plugins.withIndex()) {
-                PluginRow(plugin, focused = index == focused) { onOpenPlugin(plugin.id) }
+                if (plugin.id in hidden) continue
+                key(plugin.id) {
+                    val where = tiles.pluginTilePlace(plugin.id)
+                    val onBar = where == PluginTilePlace.TOOLBAR
+                    val toolbarLabel = stringResource(if (onBar) R.string.ime_plugin_action_toolbar_remove else R.string.ime_plugin_action_toolbar_add)
+                    val settingsLabel = stringResource(R.string.ime_plugin_action_settings)
+                    // The two a thumb wants most; the rest are behind a hold or ⋮,
+                    // where every swipe action also is, for TalkBack.
+                    KbSwipeActionsRow(
+                        actions = listOf(
+                            SwipeAction(Icons.Outlined.Widgets, toolbarLabel, SwipeTone.ACCENT) {
+                                place(plugin.id, if (onBar) PluginTilePlace.NONE else PluginTilePlace.TOOLBAR)
+                            },
+                            SwipeAction(Icons.Outlined.Settings, settingsLabel) { onOpenRoute("plugin/${plugin.id}") },
+                        ),
+                        reduceMotion = state.settings.reduceMotion,
+                    ) {
+                        PluginRow(
+                            plugin,
+                            focused = index == focused,
+                            showingOptions = expanded == plugin.id,
+                            onOptions = {
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                expanded = if (expanded == plugin.id) null else plugin.id
+                            },
+                        ) { onOpenPlugin(plugin.id) }
+                    }
+                    if (expanded == plugin.id) {
+                        PluginOptions(
+                            place = where,
+                            onSettings = { onOpenRoute("plugin/${plugin.id}") },
+                            onPlace = { place(plugin.id, it) },
+                            onTurnOff = {
+                                store.setEnabled(plugin.id, false)
+                                hidden = hidden + plugin.id
+                                expanded = null
+                            },
+                        )
+                    }
+                }
             }
             ListRow(
                 title = stringResource(R.string.ime_plugin_manage_action),
@@ -196,13 +281,41 @@ private fun PluginList(
  * the row opens something.
  */
 @Composable
-private fun PluginRow(plugin: InstalledPlugin, focused: Boolean = false, onClick: () -> Unit) {
+private fun PluginRow(
+    plugin: InstalledPlugin,
+    focused: Boolean = false,
+    showingOptions: Boolean = false,
+    onOptions: (() -> Unit)? = null,
+    onClick: () -> Unit,
+) {
     val kb = LocalKbTheme.current
     // Read outside ifBlank: that lambda is not a composable one.
     val versionLabel = stringResource(R.string.ime_plugin_version_label, plugin.version)
+    val moreLabel = stringResource(R.string.ime_plugin_more, plugin.displayName)
     ListRow(
         title = plugin.displayName,
         subtitle = plugin.displayDescription.ifBlank { versionLabel },
+        onLongClick = onOptions,
+        trailing = onOptions?.let { open ->
+            {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(if (showingOptions) kb.chipActive else Color.Transparent)
+                        .clickable(onClick = open)
+                        .semantics { contentDescription = moreLabel },
+                ) {
+                    Icon(
+                        Icons.Outlined.MoreVert,
+                        contentDescription = null,
+                        tint = if (showingOptions) kb.chipActiveText else kb.secondaryText,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
+        },
         leading = {
             Text(
                 pluginInitial(plugin.displayName),
@@ -234,6 +347,9 @@ private fun ListRow(
     leading: @Composable () -> Unit,
     focused: Boolean,
     leadingFill: Color? = null,
+    /** Drawn in place of the chevron, such as a plugin's ⋮ options button. */
+    trailing: (@Composable () -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
@@ -249,8 +365,8 @@ private fun ListRow(
             .background(kb.chip)
             .chipBorder(kb, shape)
             .focusRing(focused, shape)
-            .clickable(onClick = onClick)
-            .padding(start = 12.dp, end = 8.dp, top = 10.dp, bottom = 10.dp),
+            .combinedClickable(onLongClick = onLongClick, onClick = onClick)
+            .padding(start = 12.dp, end = if (trailing != null) 4.dp else 8.dp, top = 10.dp, bottom = 10.dp),
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -275,7 +391,72 @@ private fun ListRow(
                 )
             }
         }
-        Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = kb.secondaryText, modifier = Modifier.size(20.dp))
+        if (trailing != null) {
+            trailing()
+        } else {
+            Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = kb.secondaryText, modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
+/**
+ * A plugin's options, opened under its row by a hold or its ⋮ button: its
+ * settings page, a tile on the toolbar or in the toolbox, and turning it off.
+ * Inline rather than a popup: apps may refuse touches through a keyboard's
+ * popup window. Uninstalling and its code are in settings, behind a page that
+ * can ask first.
+ */
+@Composable
+private fun PluginOptions(
+    place: PluginTilePlace,
+    onSettings: () -> Unit,
+    onPlace: (PluginTilePlace) -> Unit,
+    onTurnOff: () -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(start = 8.dp, end = 8.dp, bottom = 6.dp),
+    ) {
+        OptionChip(Icons.Outlined.Settings, stringResource(R.string.ime_plugin_action_settings), onClick = onSettings)
+        val onBar = place == PluginTilePlace.TOOLBAR
+        OptionChip(
+            Icons.Outlined.Widgets,
+            stringResource(if (onBar) R.string.ime_plugin_action_toolbar_remove else R.string.ime_plugin_action_toolbar_add),
+            selected = onBar,
+        ) { onPlace(if (onBar) PluginTilePlace.NONE else PluginTilePlace.TOOLBAR) }
+        val inBox = place == PluginTilePlace.TOOLBOX
+        OptionChip(
+            Icons.Outlined.Handyman,
+            stringResource(if (inBox) R.string.ime_plugin_action_toolbox_remove else R.string.ime_plugin_action_toolbox_add),
+            selected = inBox,
+        ) { onPlace(if (inBox) PluginTilePlace.NONE else PluginTilePlace.TOOLBOX) }
+        OptionChip(Icons.Outlined.PowerSettingsNew, stringResource(R.string.ime_plugin_action_turn_off), onClick = onTurnOff)
+    }
+}
+
+/** An icon and a word, in the keyboard's chip colours; [selected] lit as a selected chip is. */
+@Composable
+private fun OptionChip(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, selected: Boolean = false, onClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val shape = kb.chipShape()
+    val content = if (selected) kb.chipActiveText else kb.chipText
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier
+            .heightIn(min = 36.dp)
+            .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
+            .background(if (selected) kb.chipActive else kb.chip)
+            .chipBorder(kb, shape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp),
+    ) {
+        Icon(icon, contentDescription = null, tint = content, modifier = Modifier.size(18.dp))
+        Text(label, color = content, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1)
     }
 }
 

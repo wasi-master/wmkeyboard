@@ -7264,10 +7264,6 @@
     <string name="plugins_detail_no_description">వివరణ లేదు.</string>
     <string name="plugins_detail_stopped_subtitle">ఈ ప్లగిన్ రెండుసార్లు స్పందించడం ఆపివేసినందున యాప్ దీనిని ఆఫ్ చేసింది</string>
     <string name="plugins_detail_subsystem_off_subtitle">టూల్స్ ఆపై ప్లగిన్‌ల కింద “ప్లగిన్‌లను అనుమతించు” ఆఫ్‌లో ఉన్నప్పుడు ఏ ప్లగిన్ రన్ అవ్వదు</string>
-    <string name="plugins_fact_no_typing">మీరు ఏమి టైప్ చేస్తున్నారో ఇది చూడలేదు</string>
-    <string name="plugins_fact_own_panel">ఇది దాని స్వంత ప్యానెల్‌ను గీయగలదు మరియు దాని స్వంత గణనలను చేయగలదు</string>
-    <string name="plugins_fact_own_storage">మీరు ఇన్‌స్టాల్ చేసే ముందు అది మీకు చెబితే, అది దాని స్వంత డేటాను సేవ్ చేయగలదు</string>
-    <string name="plugins_fact_reminders">మీరు ఇన్‌స్టాల్ చేసే ముందు అది మీకు చెబితే, మీరు సెట్ చేసిన సమయంలో ఇది రిమైండర్‌ను చూపగలదు</string>
     <string name="plugins_facts_title">ప్లగిన్ ఏమి చేయగలదు మరియు ఏమి చేయలేదు</string>
     <string name="plugins_icons_export_done_message">యాప్ %1$sని సేవ్ చేసింది.</string>
     <string name="plugins_icons_export_failed_message">యాప్ ఆ ఫైల్‌ను వ్రాయలేకపోయింది.</string>

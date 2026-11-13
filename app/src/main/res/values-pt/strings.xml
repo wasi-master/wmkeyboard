@@ -7257,10 +7257,6 @@
     <string name="plugins_detail_no_description">Sem descrição.</string>
     <string name="plugins_detail_stopped_subtitle">O aplicativo desativou este plugin porque ele parou de responder duas vezes</string>
     <string name="plugins_detail_subsystem_off_subtitle">Nenhum plugin é executado enquanto “Permitir plugins” estiver desativado, em Ferramentas e depois Plugins</string>
-    <string name="plugins_fact_no_typing">Não consegue ver o que digita</string>
-    <string name="plugins_fact_own_panel">Ele pode desenhar seu próprio painel e fazer seus próprios cálculos</string>
-    <string name="plugins_fact_own_storage">Ele pode salvar seus próprios dados, se informar você antes da instalação</string>
-    <string name="plugins_fact_reminders">Pode mostrar um lembrete em um horário que você definir nele, se ele lhe informar antes de você instalá-lo</string>
     <string name="plugins_facts_title">O que um plugin pode e não pode fazer</string>
     <string name="plugins_icons_export_done_message">O aplicativo salvou %1$s.</string>
     <string name="plugins_icons_export_failed_message">O aplicativo não pôde gravar esse arquivo.</string>

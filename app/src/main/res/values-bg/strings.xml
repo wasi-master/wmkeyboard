@@ -7261,10 +7261,6 @@
     <string name="plugins_detail_no_description">Няма описание.</string>
     <string name="plugins_detail_stopped_subtitle">Приложението изключи тази добавка, защото спря да отговаря два пъти</string>
     <string name="plugins_detail_subsystem_off_subtitle">Нито един плъгин не работи, докато „Разрешаване на плъгини“ е изключено, под Инструменти, след това Плъгини</string>
-    <string name="plugins_fact_no_typing">Не може да вижда какво пишете</string>
-    <string name="plugins_fact_own_panel">Може да начертае собствен панел и да извършва собствени изчисления</string>
-    <string name="plugins_fact_own_storage">Може да записва собствени данни, ако ви уведоми, преди да го инсталирате</string>
-    <string name="plugins_fact_reminders">Може да показва напомняне в зададено от вас време, ако ви информира за това преди инсталирането му</string>
     <string name="plugins_facts_title">Какво може и какво не може да прави един плъгин</string>
     <string name="plugins_icons_export_done_message">Приложението запази %1$s.</string>
     <string name="plugins_icons_export_failed_message">Приложението не успя да запише този файл.</string>
