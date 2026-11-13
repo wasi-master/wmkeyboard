@@ -1442,6 +1442,15 @@ class SuggestionEngine(
         (sourceScales().secondary[langId] ?: SECONDARY_WORD_WEIGHT.toDouble()) *
             mixConfidence.confidenceFor(langId) * fieldFactorFor(langId)
 
+    /** [englishSecondaryFactor] for the list's counts as the walk reads them ([RankScale]). */
+    private fun englishSecondaryRankFactor(): Double =
+        sourceScales().englishRank * mixConfidence.confidenceFor(EN) * fieldFactorFor(EN)
+
+    /** [secondaryWeightOf] for the list's counts as the walk reads them ([RankScale]). */
+    private fun secondaryRankWeightOf(langId: String): Double =
+        (sourceScales().secondaryRank[langId] ?: SECONDARY_WORD_WEIGHT.toDouble()) *
+            mixConfidence.confidenceFor(langId) * fieldFactorFor(langId)
+
     /**
      * The multiplier each word list is read at, before the mix adapts it.
      *
@@ -1469,37 +1478,87 @@ class SuggestionEngine(
         val custom: Double,
         val english: Double,
         val secondary: Map<String, Double>,
+        /** The same multipliers for the counts as the walk reads them, through [RankScale]. */
+        val activeRank: Double = active,
+        val customRank: Double = custom,
+        val englishRank: Double = english,
+        val secondaryRank: Map<String, Double> = secondary,
+        val activeScale: RankScale = RankScale.RAW,
+        val customScale: RankScale = RankScale.RAW,
+        val englishScale: RankScale = RankScale.RAW,
+        val secondaryScale: Map<String, RankScale> = emptyMap(),
     )
 
     private fun sourceScales(): SourceScales {
         val gen = generation.get()
         sourceScalesCache?.let { (cachedGen, scales) -> if (cachedGen == gen) return scales }
-        val activeTop = topFrequency(activeDictionary)
-        val customTop = topFrequency(customDictionary)
-        val active = scaledWeight(activeTop, 1.0, REFERENCE_TOP_FREQUENCY)
-        val custom = scaledWeight(customTop, CUSTOM_WORD_WEIGHT.toDouble(), REFERENCE_TOP_FREQUENCY)
-        val primaryTop = maxOf(activeTop * active, customTop * custom)
+        val tops = SourceTops(
+            active = topFrequency(activeDictionary),
+            custom = topFrequency(customDictionary),
+            english = topFrequency(dictionary),
+            secondary = secondaryDictionaries.associate { it.langId to topFrequency(it.source) },
+        )
+        val raw = weightsFor(tops)
+        val ranked = weightsFor(tops.map(::rankedTop))
+        return SourceScales(
+            active = raw.active, custom = raw.custom, english = raw.english, secondary = raw.secondary,
+            activeRank = ranked.active, customRank = ranked.custom, englishRank = ranked.english,
+            secondaryRank = ranked.secondary,
+            activeScale = rankScaleOf(tops.active), customScale = rankScaleOf(tops.custom),
+            englishScale = rankScaleOf(tops.english),
+            secondaryScale = tops.secondary.mapValues { rankScaleOf(it.value) },
+        ).also { sourceScalesCache = gen to it }
+    }
+
+    /** Each word list's commonest count: what its multiplier is worked out from. */
+    private class SourceTops(
+        val active: Int,
+        val custom: Int,
+        val english: Int,
+        val secondary: Map<String, Int>,
+    ) {
+        fun map(f: (Int) -> Int) = SourceTops(f(active), f(custom), f(english), secondary.mapValues { f(it.value) })
+    }
+
+    /** [SourceScales]' multipliers for lists whose commonest counts are [tops]. */
+    private fun weightsFor(tops: SourceTops): SourceScales {
+        val active = scaledWeight(tops.active, 1.0, REFERENCE_TOP_FREQUENCY)
+        val custom = scaledWeight(tops.custom, CUSTOM_WORD_WEIGHT.toDouble(), REFERENCE_TOP_FREQUENCY)
+        val primaryTop = maxOf(tops.active * active, tops.custom * custom)
             .takeIf { it > 0.0 } ?: REFERENCE_TOP_FREQUENCY
         val english = if (englishAsSecondary && !englishSources) {
             scaledWeight(
-                topFrequency(dictionary),
+                tops.english,
                 1.0 / SECONDARY_ENGLISH_DIVISOR,
                 REFERENCE_TOP_FREQUENCY / SECONDARY_ENGLISH_DIVISOR,
             )
         } else {
             1.0 / SECONDARY_ENGLISH_DIVISOR
         }
-        val secondary = HashMap<String, Double>(secondaryDictionaries.size * 2)
-        for (t in secondaryDictionaries) {
-            secondary[t.langId] = scaledWeight(
-                topFrequency(t.source),
-                SECONDARY_WORD_WEIGHT.toDouble(),
-                primaryTop * SECONDARY_SCALE_SHARE,
-            )
+        val secondary = HashMap<String, Double>(tops.secondary.size * 2)
+        for ((langId, top) in tops.secondary) {
+            secondary[langId] = scaledWeight(top, SECONDARY_WORD_WEIGHT.toDouble(), primaryTop * SECONDARY_SCALE_SHARE)
         }
         return SourceScales(active, custom, english, secondary)
-            .also { sourceScalesCache = gen to it }
     }
+
+    /**
+     * How the walk reads a list whose commonest count is [top] ([RankScale]):
+     * on the bundled list's log line when that lands above the reference the
+     * engine is tuned on, which is every list that carries corpus counts, and
+     * as stored otherwise: the bundled list itself, a flat list, an import
+     * already on the reference scale.
+     */
+    private fun rankScaleOf(top: Int): RankScale =
+        if (top > REFERENCE_TOP_FREQUENCY * SCALE_TOLERANCE) {
+            RankScale.logLine(top, REFERENCE_TOP_FREQUENCY)
+        } else {
+            RankScale.RAW
+        }
+
+    /** [top] as the walk reads it: the reference itself on the log line. */
+    private fun rankedTop(top: Int): Int =
+        if (rankScaleOf(top).isRaw) top else REFERENCE_TOP_FREQUENCY.toInt()
 
     @Volatile
     private var sourceScalesCache: Pair<Long, SourceScales>? = null
@@ -2880,27 +2939,40 @@ class SuggestionEngine(
      */
     private fun dictionarySources(onlyLang: String?): List<FuzzyBeamSearch.WalkSource> {
         val sources = ArrayList<FuzzyBeamSearch.WalkSource>()
-        fun add(wordSource: WordSource, logWeight: Double) {
+        fun add(wordSource: WordSource, logWeight: Double, rankWeight: Double, scale: RankScale) {
             for (walker in wordSource.walkers()) {
-                sources.add(FuzzyBeamSearch.WalkSource(walker, logWeight, FuzzyBeamSearch.Tier.DICTIONARY))
+                sources.add(
+                    FuzzyBeamSearch.WalkSource(walker, logWeight, FuzzyBeamSearch.Tier.DICTIONARY, rankWeight, scale),
+                )
             }
         }
         // ln(1.0) = 0 while the field mix is neutral, keeping the primary's
         // weights bit-identical to the pre-detection engine.
         val primaryShift = ln(fieldFactorFor(primaryLanguageId))
+        val scales = sourceScales()
         if (onlyLang == null || onlyLang == primaryLanguageId) {
-            val scales = sourceScales()
-            add(activeDictionary, ln(scales.active) + primaryShift)
-            add(customDictionary, ln(scales.custom) + primaryShift)
+            add(
+                activeDictionary, ln(scales.active) + primaryShift, ln(scales.activeRank) + primaryShift,
+                scales.activeScale,
+            )
+            add(
+                customDictionary, ln(scales.custom) + primaryShift, ln(scales.customRank) + primaryShift,
+                scales.customScale,
+            )
         }
         if (englishAsSecondary && !englishSources && (onlyLang == null || onlyLang == EN)) {
             val factor = englishSecondaryFactor()
-            if (factor > 0) add(dictionary, ln(factor))
+            if (factor > 0) add(dictionary, ln(factor), ln(englishSecondaryRankFactor()), scales.englishScale)
         }
         for (t in secondaryDictionaries) {
             if (onlyLang != null && t.langId != onlyLang) continue
             val weight = secondaryWeightOf(t.langId)
-            if (weight > 0) add(t.source, ln(weight))
+            if (weight > 0) {
+                add(
+                    t.source, ln(weight), ln(secondaryRankWeightOf(t.langId)),
+                    scales.secondaryScale[t.langId] ?: RankScale.RAW,
+                )
+            }
         }
         return sources
     }
@@ -3121,7 +3193,7 @@ class SuggestionEngine(
         checker.suggestions(composing, SPELL_SUGGESTIONS).forEachIndexed { i, spelling ->
             // A split ("Donau dampfschiff") only where the user wants splits offered at all.
             if (' ' in spelling && !autocorrectSplits) return@forEachIndexed
-            val listed = dictionaryScore(spelling.lowercase(), sources)
+            val listed = rankedDictionaryScore(spelling.lowercase(), sources)
             val score = (if (listed.isFinite()) listed - FuzzyBeamSearch.COST_SUB_FAR else unlisted) -
                 i * SPELL_SUGGESTION_STEP
             merged.merge(spelling, score, ::maxOf)
@@ -4194,7 +4266,7 @@ class SuggestionEngine(
             // A whole Klingon word: its likeliest endings, below the list's own
             // words for it and in the case it was typed (see [KlingonSuffixes]).
             if (known && primaryLanguageId == KlingonSuffixes.LANGUAGE) {
-                val root = dictionaryScore(lower)
+                val root = rankedDictionaryScore(lower)
                 if (root.isFinite()) {
                     KlingonSuffixes.offers(composing, KLINGON_SUFFIX_OFFERS) { inDictionaries(WordKey.of(it)) }
                         .forEachIndexed { i, word ->
@@ -4452,7 +4524,7 @@ class SuggestionEngine(
                 if (node < 0) break
             }
             if (node >= 0 && walker.isWord(node)) {
-                best = maxOf(best, src.logWeight + ln(1.0 + walker.frequency(node)))
+                best = maxOf(best, src.rankScore(walker.frequency(node)))
             }
         }
         return best.takeIf { it.isFinite() }
@@ -4495,7 +4567,7 @@ class SuggestionEngine(
     ): Pair<String, Double>? {
         walked.firstOrNull { it.edits == 0 && it.completedChars == 0 && it.accents > 0 && !suppressed(it.word) }
             ?.let { return it.word to it.score }
-        val (word, score) = accentedLookup(lower) ?: return null
+        val (word, score) = accentedLookup(lower, ranked = true) ?: return null
         if (word == lower || word.length != lower.length || suppressed(word)) return null
         val accents = word.indices.count { word[it] != lower[it] }
         return word to score - accents * FuzzyBeamSearch.COST_ACCENT
@@ -4795,7 +4867,7 @@ class SuggestionEngine(
                 // The beam's own shape, so a filler word from the personal
                 // lexicon outranks a rarer one from the bundled list for the
                 // same reason it would in a walk.
-                val score = source.logWeight + ln(1.0 + found.frequency.toDouble())
+                val score = source.rankScore(found.frequency)
                 best.merge(found.word, score, ::maxOf)
             }
         }
@@ -6517,11 +6589,11 @@ class SuggestionEngine(
         val twins = rankedFor(lower, FuzzyBeamSearch.AUTOCORRECT_K / 2, touch)
             .filter { it.edits == 0 && it.completedChars == 0 && it.accents > 0 && !suppressed(it.word) }
             .filter { correctionStats.penalty(lower, it.word) != CorrectionStats.Penalty.BLOCKED }
-            .sortedByDescending { it.dictScore + it.accents * FuzzyBeamSearch.COST_ACCENT }
+            .sortedByDescending { rawDictScore(it) + it.accents * FuzzyBeamSearch.COST_ACCENT }
         val best = twins.firstOrNull() ?: return NO_CORRECTION
         val fixed = matchCase(word, best.word)
-        val bestScore = best.dictScore + best.accents * FuzzyBeamSearch.COST_ACCENT
-        val rival = twins.getOrNull(1)?.let { it.dictScore + it.accents * FuzzyBeamSearch.COST_ACCENT }
+        val bestScore = rawDictScore(best) + best.accents * FuzzyBeamSearch.COST_ACCENT
+        val rival = twins.getOrNull(1)?.let { rawDictScore(it) + it.accents * FuzzyBeamSearch.COST_ACCENT }
         val clear = rival == null || bestScore - rival >= ln(ACCENT_SHADOW_RATIO)
         if (!clear || correctionStats.penalty(lower, best.word) != CorrectionStats.Penalty.NONE) {
             return CorrectionDecision(offer = fixed)
@@ -6555,7 +6627,7 @@ class SuggestionEngine(
             .filter { it.edits == 0 && it.completedChars == 0 && it.accents > 0 }
             // The accent price given back, so the ratio is between the two
             // frequencies alone.
-            .maxOfOrNull { it.dictScore + it.accents * FuzzyBeamSearch.COST_ACCENT }
+            .maxOfOrNull { rawDictScore(it) + it.accents * FuzzyBeamSearch.COST_ACCENT }
             ?: return false
         // Read from the lists directly. A stand-in is rare next to its twin,
         // and the walk's top ranks fill with the twin's own inflections long
@@ -6608,7 +6680,7 @@ class SuggestionEngine(
         val fix = rankedFor(lower, FuzzyBeamSearch.AUTOCORRECT_K / 2, touch, keys)
             .take(FuzzyBeamSearch.AUTOCORRECT_K)
             .filter { it.edits == 1 && it.completedChars == 0 && !suppressed(it.word) }
-            .maxOfOrNull { it.dictScore }
+            .maxOfOrNull { rawDictScore(it) }
             ?: return false
         if (fix - typed < ln(ratio)) return false
         // Last, because the first rank asked of a list builds its histogram.
@@ -6744,12 +6816,39 @@ class SuggestionEngine(
         dictionarySources(langId)
 
     /**
-     * [lower]'s best score in the dictionary-tier walk sources, on the walk's
-     * own scale; NEGATIVE_INFINITY when no list holds it.
+     * [lower]'s best score in the dictionary-tier walk sources on their
+     * counts as stored ([FuzzyBeamSearch.WalkSource.rawScore]); NEGATIVE_INFINITY
+     * when no list holds it. What the rules measured as "N times commoner" on
+     * raw counts compare; a score put on the strip beside the walk's own
+     * words is [rankedDictionaryScore].
      */
     private fun dictionaryScore(lower: String): Double = dictionaryScore(lower, walkSources())
 
-    private fun dictionaryScore(lower: String, sources: List<FuzzyBeamSearch.WalkSource>): Double {
+    /** [dictionaryScore] on the walk's ranking scale ([RankScale]): what a reading put on the strip scores. */
+    private fun rankedDictionaryScore(
+        lower: String,
+        sources: List<FuzzyBeamSearch.WalkSource> = walkSources(),
+    ): Double = dictionaryScore(lower, sources, ranked = true)
+
+    /**
+     * A walk candidate's dictionary score with its list's counts read as
+     * stored, for the rules measured on raw counts (the typo and accent
+     * shadows): the walk's frequency term swapped for the raw one, every
+     * price it paid kept. The candidate's own score when every list is read
+     * as stored, which is the bundled list's case.
+     */
+    private fun rawDictScore(c: FuzzyBeamSearch.ScoredCandidate): Double {
+        if (!c.dictScore.isFinite()) return c.dictScore
+        val sources = walkSources()
+        if (sources.all { it.scale.isRaw && it.rankWeight == it.logWeight }) return c.dictScore
+        return c.dictScore - dictionaryScore(c.word, sources, ranked = true) + dictionaryScore(c.word, sources)
+    }
+
+    private fun dictionaryScore(
+        lower: String,
+        sources: List<FuzzyBeamSearch.WalkSource>,
+        ranked: Boolean = false,
+    ): Double {
         var best = Double.NEGATIVE_INFINITY
         for (src in sources) {
             if (src.tier != FuzzyBeamSearch.Tier.DICTIONARY) continue
@@ -6760,7 +6859,8 @@ class SuggestionEngine(
                 if (node < 0) break
             }
             if (node >= 0 && walker.isWord(node)) {
-                best = maxOf(best, src.logWeight + ln(1.0 + walker.frequency(node)))
+                val frequency = walker.frequency(node)
+                best = maxOf(best, if (ranked) src.rankScore(frequency) else src.rawScore(frequency))
             }
         }
         return best
@@ -6777,6 +6877,7 @@ class SuggestionEngine(
     private fun accentedLookup(
         lower: String,
         sources: List<FuzzyBeamSearch.WalkSource> = walkSources(),
+        ranked: Boolean = false,
     ): Pair<String, Double>? {
         var bestWord: String? = null
         var best = Double.NEGATIVE_INFINITY
@@ -6788,7 +6889,8 @@ class SuggestionEngine(
             fun descend(node: Int, pos: Int) {
                 if (pos == lower.length) {
                     if (!walker.isWord(node)) return
-                    val score = src.logWeight + ln(1.0 + walker.frequency(node))
+                    val frequency = walker.frequency(node)
+                    val score = if (ranked) src.rankScore(frequency) else src.rawScore(frequency)
                     if (score > best) {
                         best = score
                         bestWord = spelled.toString()
@@ -6859,7 +6961,15 @@ class SuggestionEngine(
             if (typed != Double.NEGATIVE_INFINITY && score - typed < ln(HYPHEN_SHADOW_RATIO)) continue
             if (best == null || score > best.second) best = compound to score
         }
-        return best
+        // The ratio on the counts as stored; the strip's score on its own
+        // scale, the same distance from the typed spelling's as the counts put it.
+        val (compound, score) = best ?: return null
+        val shown = if (typed == Double.NEGATIVE_INFINITY) {
+            rankedDictionaryScore(compound)
+        } else {
+            rankedDictionaryScore(lower) + (score - typed)
+        }
+        return compound to shown
     }
 
     /**
@@ -7014,8 +7124,9 @@ class SuggestionEngine(
      */
     private fun declaredReading(lower: String, fixed: String? = Apostrophes.offer(lower)): ElisionReading? {
         if (fixed == null) return null
-        val typed = dictionaryScore(lower)
-        val own = dictionaryScore(fixed.lowercase())
+        // Strip scores, beside the walk's own words.
+        val typed = rankedDictionaryScore(lower)
+        val own = rankedDictionaryScore(fixed.lowercase())
         if (typed == Double.NEGATIVE_INFINITY) {
             if (own == Double.NEGATIVE_INFINITY) return null
             return ElisionReading(fixed, own, shadowed = false)
@@ -7025,9 +7136,9 @@ class SuggestionEngine(
         return ElisionReading(fixed, score, shadowed = false, typedScore = standing.takeIf { it > typed })
     }
 
-    /** [dictionaryScore] with an unknown word's negative infinity read as zero. */
+    /** [rankedDictionaryScore] with an unknown word's negative infinity read as zero. */
     private fun finiteScore(word: String): Double =
-        dictionaryScore(word).takeIf { it > Double.NEGATIVE_INFINITY } ?: 0.0
+        rankedDictionaryScore(word).takeIf { it > Double.NEGATIVE_INFINITY } ?: 0.0
 
     /**
      * [lower] read as an elision typed without its apostrophe (#215): the
@@ -7054,6 +7165,7 @@ class SuggestionEngine(
         val own = languageSources(langId)
         if (own.isEmpty()) return null
         val typed = dictionaryScore(lower)
+        val typedRank = rankedDictionaryScore(lower)
         val price = ln(ELISION_SHADOW_RATIO)
         var best: ElisionReading? = null
         for (split in splits) {
@@ -7072,9 +7184,18 @@ class SuggestionEngine(
             // split at all: `quand` is not shown *qu'and* because a list has
             // an English "and" in it somewhere.
             if (known && typed - score > ln(ELISION_OFFER_FLOOR)) continue
+            // The ratios above on the counts as stored. On the strip, the
+            // reading stands as far from the typed spelling as the counts put
+            // it, so a spelling the ratio rewrites still leads and a real word
+            // that splits still trails; unknown, it scores as its word does.
+            val shown = if (known) {
+                typedRank + (score - typed) - price
+            } else {
+                dictionaryScore(word.lowercase(), own, ranked = true).takeIf { it.isFinite() } ?: score
+            }
             val reading = ElisionReading(
                 spelling = split.spell(word),
-                score = if (known) score - price else score,
+                score = shown,
                 shadowed = !known || score - typed >= price,
             )
             if (best == null || reading.score > best.score) best = reading

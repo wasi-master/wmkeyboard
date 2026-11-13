@@ -56,11 +56,11 @@ class KotlinFuzzyBeamSearch {
             sources
         } else {
             sources.sortedByDescending {
-                it.logWeight + ln1p(it.walker.maxSubtree(it.walker.root))
+                it.rankScore(it.walker.maxSubtree(it.walker.root))
             }
         }
         for (src in ordered) {
-            val rootBound = src.logWeight + ln1p(src.walker.maxSubtree(src.walker.root))
+            val rootBound = src.rankScore(src.walker.maxSubtree(src.walker.root))
             if (rootBound < floor - EPS) continue
             floor = searchOne(
                 src, typed, proximity, edits, k, results, floor, workspace, touch, habits, keys,
@@ -93,7 +93,7 @@ class KotlinFuzzyBeamSearch {
         ws.pushState(
             node = walker.root, pos = 0, cost = 0.0, editSpend = 0.0, edits = 0, comp = 0, accents = 0,
             slips = 0, parent = -1, viaLabel = KotlinBeamWorkspace.NO_LABEL,
-            bound = src.logWeight + ln1p(walker.maxSubtree(walker.root)),
+            bound = src.rankScore(walker.maxSubtree(walker.root)),
         )
         var pops = 0
         while (ws.heapSize > 0 && pops < MAX_POPS) {
@@ -111,7 +111,7 @@ class KotlinFuzzyBeamSearch {
 
             if (pos == n) {
                 if (walker.isWord(node)) {
-                    val score = src.logWeight + ln1p(walker.frequency(node)) - cost
+                    val score = src.rankScore(walker.frequency(node)) - cost
                     if (score > floor - EPS || results.size < k) {
                         emit(ws.materialize(s), score, editSpend, edits, comp, accents, slips, src.tier, results)
                         if (results.size >= k) floor = kthBest(results, k, ws)
@@ -422,7 +422,7 @@ class KotlinFuzzyBeamSearch {
         parent: Int,
         viaLabel: Char,
     ) {
-        val bound = src.logWeight + ln1p(walker.maxSubtree(node)) - cost
+        val bound = src.rankScore(walker.maxSubtree(node)) - cost
         if (bound < floor - EPS) return
         ws.pushState(node, pos, cost, editSpend, edits, comp, accents, slips, parent, viaLabel, bound)
     }

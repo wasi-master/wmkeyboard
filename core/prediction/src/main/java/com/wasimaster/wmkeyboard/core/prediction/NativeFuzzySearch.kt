@@ -44,6 +44,8 @@ internal object NativeFuzzySearch {
         val handles = LongArray(sources.size)
         val kinds = IntArray(sources.size)
         val weights = DoubleArray(sources.size)
+        val floors = DoubleArray(sources.size)
+        val perNats = DoubleArray(sources.size)
         val tiers = IntArray(sources.size)
         var count = 0
         val scratch = ChildBuffer()
@@ -54,7 +56,10 @@ internal object NativeFuzzySearch {
             if (handle == 0L) return null
             handles[count] = handle
             kinds[count] = kindOf(walker)
-            weights[count] = src.logWeight
+            // The walk ranks on the list's ranking scale ([RankScale]).
+            weights[count] = src.rankWeight
+            floors[count] = src.scale.floor
+            perNats[count] = src.scale.perNat
             tiers[count] = if (src.tier == FuzzyBeamSearch.Tier.USER) 1 else 0
             count++
         }
@@ -73,7 +78,8 @@ internal object NativeFuzzySearch {
             }
         }
         val words = PredictionNative.fuzzySearch(
-            handles.copyOf(count), kinds.copyOf(count), weights.copyOf(count), tiers.copyOf(count),
+            handles.copyOf(count), kinds.copyOf(count), weights.copyOf(count),
+            floors.copyOf(count), perNats.copyOf(count), tiers.copyOf(count),
             typed, proximity.nativeHandle, limit, maxEdits, habits.nativeHandle,
             model?.keyOrder, model?.centerPairs, model?.sigmaValue ?: KeyTouchModel.SIGMA,
             model?.slipRadius ?: 0.0, points,

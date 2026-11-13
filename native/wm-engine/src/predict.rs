@@ -17,7 +17,7 @@ pub use crate::confidence::{self, Case, Confidence};
 pub use crate::correction_memory::{CorrectionMemory, LearnedHabits};
 pub use crate::correction_stats::{CorrectionStats, Penalty, UndoMemory};
 use crate::freq_codec;
-use crate::fuzzy::{self, EditHabits, ScoredCandidate, Tier, TouchModel, TouchScoring, WalkSource, Workspace};
+use crate::fuzzy::{self, EditHabits, RankScale, ScoredCandidate, Tier, TouchModel, TouchScoring, WalkSource, Workspace};
 pub use crate::lm::{Prefix as LmPrefix, Session as LmSession};
 pub use crate::language_mix::{AppLanguageMix, FieldLanguageMix, Prior};
 use crate::proximity::KeyProximity;
@@ -799,6 +799,28 @@ fn scaled_weight(top: i32, weight: f64, target: f64) -> f64 {
     }
 }
 
+/// How `list`'s counts are read for ranking: on the bundled list's log line
+/// when its commonest word lands above the reference, as stored otherwise
+/// (see [`RankScale`]).
+fn rank_scale_of(list: &WordList) -> RankScale {
+    let top = list.top();
+    if top as f64 > REFERENCE_TOP_FREQUENCY * SCALE_TOLERANCE {
+        RankScale::log_line(top, REFERENCE_TOP_FREQUENCY)
+    } else {
+        RankScale::RAW
+    }
+}
+
+/// `list`'s commonest word as ranking reads it: the reference itself on the
+/// log line.
+fn ranked_top(list: &WordList) -> i32 {
+    if rank_scale_of(list).is_raw() {
+        list.top()
+    } else {
+        REFERENCE_TOP_FREQUENCY as i32
+    }
+}
+
 fn scaled(frequency: i32, weight: f64) -> i32 {
     if frequency <= 0 || weight <= 0.0 {
         0
@@ -821,9 +843,12 @@ impl Predictor {
 
     // ---- sources ----
 
-    fn scales(&self) -> Scales {
-        let active_top = self.dictionary.as_ref().map_or(0, WordList::top);
-        let custom_top = self.custom.as_ref().map_or(0, WordList::top);
+    /// Each list's multiplier: on its counts as stored, or, `ranked`, on the
+    /// scale the walk reads them at ([`rank_scale_of`]).
+    fn scales(&self, ranked: bool) -> Scales {
+        let top_of = |list: &WordList| if ranked { ranked_top(list) } else { list.top() };
+        let active_top = self.dictionary.as_ref().map_or(0, top_of);
+        let custom_top = self.custom.as_ref().map_or(0, top_of);
         let active = scaled_weight(active_top, 1.0, REFERENCE_TOP_FREQUENCY);
         let custom = scaled_weight(custom_top, CUSTOM_WORD_WEIGHT, REFERENCE_TOP_FREQUENCY);
         let primary_top = (active_top as f64 * active).max(custom_top as f64 * custom);
@@ -837,7 +862,7 @@ impl Predictor {
             .iter()
             .map(|(lang, list)| {
                 scaled_weight(
-                    list.top(),
+                    top_of(list),
                     SECONDARY_WORD_WEIGHT,
                     primary_top * SECONDARY_SCALE_SHARE,
                 ) * self.secondary_confidence.get(lang).copied().unwrap_or(1.0)
@@ -852,20 +877,31 @@ impl Predictor {
 
     /// Every dictionary-tier list with its multiplier.
     fn dictionary_tier(&self) -> Vec<(&WordList, f64)> {
-        let s = self.scales();
+        self.tier(false).into_iter().map(|(list, w, _)| (list, w)).collect()
+    }
+
+    /// [`Predictor::dictionary_tier`] as the walk ranks it: each list with
+    /// its multiplier on the scale it is read at, and that scale.
+    fn rank_tier(&self) -> Vec<(&WordList, f64, RankScale)> {
+        self.tier(true)
+    }
+
+    fn tier(&self, ranked: bool) -> Vec<(&WordList, f64, RankScale)> {
+        let s = self.scales(ranked);
+        let scale = |list: &WordList| if ranked { rank_scale_of(list) } else { RankScale::RAW };
         let factors = self.field_factors();
         let factor = |lang: &str| factors.get(lang).copied().unwrap_or(1.0);
         let primary = factor(&self.primary_language);
         let mut out = Vec::new();
         if let Some(d) = &self.dictionary {
-            out.push((d, s.active * primary));
+            out.push((d, s.active * primary, scale(d)));
         }
         if let Some(c) = &self.custom {
-            out.push((c, s.custom * primary));
+            out.push((c, s.custom * primary, scale(c)));
         }
         for ((lang, list), w) in self.secondaries.iter().zip(s.secondary) {
             if w > 0.0 {
-                out.push((list, w * factor(lang)));
+                out.push((list, w * factor(lang), scale(list)));
             }
         }
         out
@@ -992,12 +1028,13 @@ impl Predictor {
 
     fn walk_sources(&self) -> Vec<WalkSource<'_>> {
         let mut out: Vec<WalkSource> = self
-            .dictionary_tier()
+            .rank_tier()
             .into_iter()
-            .map(|(list, w)| WalkSource {
+            .map(|(list, w, scale)| WalkSource {
                 walker: list.dict(),
                 log_weight: w.ln(),
                 tier: Tier::Dictionary,
+                scale,
             })
             .collect();
         if let Some(t) = &self.lexicon.trie {
@@ -1005,6 +1042,7 @@ impl Predictor {
                 walker: t.dict(),
                 log_weight: USER_WORD_WEIGHT.ln(),
                 tier: Tier::User,
+                scale: RankScale::RAW,
             });
         }
         out
@@ -1041,6 +1079,31 @@ impl Predictor {
             }
         }
         best
+    }
+
+    /// [`Predictor::dictionary_score`] on the walk's ranking scale: what a
+    /// reading put on the strip beside the walk's own words scores.
+    fn rank_score(&self, lower: &str) -> f64 {
+        let mut best = f64::NEG_INFINITY;
+        for (list, w, scale) in self.rank_tier() {
+            if let Some(node) = list.dict().node_for(lower) {
+                if list.dict().is_word(node) {
+                    best = best.max(w.ln() + scale.ln1p(list.dict().frequency(node)));
+                }
+            }
+        }
+        best
+    }
+
+    /// A walk candidate's dictionary score with its list's counts read as
+    /// stored, for the rules measured as "N times commoner" on raw counts
+    /// (the typo and accent shadows): the walk's frequency term swapped for
+    /// the raw one, every price it paid kept.
+    fn raw_dict_score(&self, c: &ScoredCandidate) -> f64 {
+        if !c.dict_score.is_finite() || self.rank_tier().iter().all(|(_, _, scale)| scale.is_raw()) {
+            return c.dict_score;
+        }
+        c.dict_score - self.rank_score(&c.word) + self.dictionary_score(&c.word)
     }
 
     fn suppressed(&self, word: &str) -> bool {
@@ -1221,7 +1284,7 @@ impl Predictor {
             .into_iter()
             .take(fuzzy::AUTOCORRECT_K)
             .filter(|c| c.edits == 1 && c.completed_chars == 0 && !self.suppressed(&c.word))
-            .map(|c| c.dict_score)
+            .map(|c| self.raw_dict_score(&c))
             .fold(f64::NEG_INFINITY, f64::max);
         if fix == f64::NEG_INFINITY || fix - typed < TYPO_SHADOW_RATIO.ln() {
             return false;
@@ -1237,7 +1300,7 @@ impl Predictor {
             .ranked(lower, fuzzy::AUTOCORRECT_K / 2)
             .into_iter()
             .filter(|c| c.edits == 0 && c.completed_chars == 0 && c.accents > 0)
-            .map(|c| c.dict_score + c.accents as f64 * fuzzy::cost_accent())
+            .map(|c| self.raw_dict_score(&c) + c.accents as f64 * fuzzy::cost_accent())
             .fold(f64::NEG_INFINITY, f64::max);
         if twin == f64::NEG_INFINITY {
             return false;
@@ -1947,7 +2010,7 @@ impl Predictor {
             return self.declared_reading(lower, Some(fixed));
         }
         let finite = |w: &str| {
-            let s = self.dictionary_score(w);
+            let s = self.rank_score(w);
             if s.is_finite() {
                 s
             } else {
@@ -1960,8 +2023,8 @@ impl Predictor {
 
     fn declared_reading(&self, lower: &str, fixed: Option<String>) -> Option<(String, f64, bool)> {
         let fixed = fixed?;
-        let typed = self.dictionary_score(lower);
-        let own = self.dictionary_score(&fixed.to_lowercase());
+        let typed = self.rank_score(lower);
+        let own = self.rank_score(&fixed.to_lowercase());
         let score = if typed == f64::NEG_INFINITY {
             own
         } else {

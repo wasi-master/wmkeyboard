@@ -15,7 +15,7 @@ use jni::objects::{JCharArray, JClass, JDoubleArray, JFloatArray, JIntArray, JLo
 use jni::sys::{jdouble, jint, jlong, jobjectArray};
 use jni::JNIEnv;
 
-use wm_engine::fuzzy::{self, HabitTables, KeySets, Tier, TouchModel, TouchScoring, WalkSource, Workspace};
+use wm_engine::fuzzy::{self, HabitTables, KeySets, RankScale, Tier, TouchModel, TouchScoring, WalkSource, Workspace};
 use wm_engine::proximity::KeyProximity;
 
 use crate::guard::{give_all_units, guarded, object, read_units, throw_state};
@@ -154,6 +154,8 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     dicts: JLongArray,
     kinds: JIntArray,
     weights: JDoubleArray,
+    scale_floors: JDoubleArray,
+    scale_per_nats: JDoubleArray,
     tiers: JIntArray,
     typed: JString,
     proximity: jlong,
@@ -175,6 +177,11 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         let mut handles = vec![0i64; count];
         env.get_long_array_region(&dicts, 0, &mut handles).ok()?;
         let weights = doubles(env, &weights)?;
+        let floors = doubles(env, &scale_floors)?;
+        let per_nats = doubles(env, &scale_per_nats)?;
+        if floors.len() < count || per_nats.len() < count || weights.len() < count {
+            return throw_state(env, "wm-engine: a weight and a rank scale per source");
+        }
         let mut tier_codes = vec![0i32; count];
         env.get_int_array_region(&tiers, 0, &mut tier_codes).ok()?;
         let mut kind_codes = vec![0i32; count];
@@ -231,6 +238,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
                     walker,
                     log_weight: weights[i],
                     tier: if tier_codes[i] == 1 { Tier::User } else { Tier::Dictionary },
+                    scale: RankScale { floor: floors[i], per_nat: per_nats[i] },
                 })
                 .collect();
             WORKSPACE.with_borrow_mut(|ws| {

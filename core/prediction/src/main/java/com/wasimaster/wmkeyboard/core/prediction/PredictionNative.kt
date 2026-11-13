@@ -61,7 +61,9 @@ internal object PredictionNative {
     /**
      * One walk over the tries behind [dicts]: each a dictionary handle when
      * its [kinds] entry is 0, a user lexicon ([lexNew]) when 1. Tiers are 0
-     * (dictionary) or 1 (user); [habits] is 0 for none. The touch frame is absent when
+     * (dictionary) or 1 (user); [habits] is 0 for none. Each source's counts
+     * are read through the `RankScale` its [scaleFloors] and [scalePerNats]
+     * entries make, a zero per-nat reading them as stored. The touch frame is absent when
      * [touchKeys] is null: [touchCenters] holds an x, y per key and
      * [touchPoints] an x, y per typed character, NaN where unknown;
      * [slipRadius] is how far a tap reaches for a slip, 0 for none.
@@ -75,6 +77,8 @@ internal object PredictionNative {
         dicts: LongArray,
         kinds: IntArray,
         weights: DoubleArray,
+        scaleFloors: DoubleArray,
+        scalePerNats: DoubleArray,
         tiers: IntArray,
         typed: String,
         proximity: Long,

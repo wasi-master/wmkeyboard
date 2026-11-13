@@ -16,7 +16,10 @@ class SpellCheckerEngineTest {
 
     private val german = listOf(
         "schiff" to 20_000,
-        "schiffe" to 8_000,
+        // Far under `schiff`: read on the bundled list's log line, as the walk
+        // reads a list of corpus counts, two fixes 2.5x apart are a close call
+        // the list alone leaves open, and the tests here need it to answer.
+        "schiffe" to 80,
         "haus" to 50_000,
         "boot" to 12_000,
         "dampfer" to 2_000,

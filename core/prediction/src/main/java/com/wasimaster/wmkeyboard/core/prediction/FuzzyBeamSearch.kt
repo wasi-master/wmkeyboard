@@ -38,12 +38,28 @@ private fun ln(x: Double): Double = StrictMath.log(x)
 
 class FuzzyBeamSearch {
 
-    /** One weighted trie participating in a search. */
+    /**
+     * One weighted trie participating in a search.
+     *
+     * [logWeight] is the weight for the list's counts as stored: what glide
+     * reads, and what the rules measured as "N times commoner" on raw counts
+     * compare (the typo, accent, hyphen and elision shadows). The typing walk
+     * reads the counts through [scale] at [rankWeight] instead ([RankScale]),
+     * which for a list already on the bundled list's scale is the same thing.
+     */
     class WalkSource(
         val walker: TrieWalker,
         val logWeight: Double,
         val tier: Tier,
-    )
+        val rankWeight: Double = logWeight,
+        val scale: RankScale = RankScale.RAW,
+    ) {
+        /** The walk's frequency term for a stored count: `rankWeight + ln(1 + scale.read(f))`. */
+        fun rankScore(frequency: Int): Double = rankWeight + scale.ln1p(frequency)
+
+        /** The same term on the counts as stored: `logWeight + ln(1 + f)`. */
+        fun rawScore(frequency: Int): Double = logWeight + ln(1.0 + frequency)
+    }
 
     enum class Tier { DICTIONARY, USER }
 
@@ -223,3 +239,64 @@ class FuzzyBeamSearch {
  */
 @Suppress("UNUSED_PARAMETER")
 class BeamWorkspace(initialCapacity: Int = 256)
+
+/**
+ * How a list's stored counts enter the typing walk's score (`wm-engine`'s
+ * `fuzzy::RankScale`, which this matches bit for bit).
+ *
+ * Every weight the engine carries was tuned on the bundled English list,
+ * whose numbers are `973.83 * ln(count / 1000) + 1` on corpus counts (#792):
+ * the commonest word is 10,000 and `threat` is 2,962. A downloaded list
+ * carries the counts themselves, and shrunk in proportion to the same top,
+ * `threat` was 6, about six nats under where the weights expect a word that
+ * common. A word typed once, the context model's lift or a two-edit reading
+ * of a common word then beat it: `tdreat` offered `treat`, `great` and a
+ * learned `dewar`, never `threat`. Measured on the AOSP English list (strip
+ * top-1, careful / fast / sloppy): .746 / .687 / .639 as stored, .837 / .777
+ * / .700 on this line, the bundled list .859 / .787 / .679.
+ *
+ * On the line, a count at or above [floor] reads `1 + perNat * ln(f / floor)`
+ * and one below it `f / floor`, which keeps the rarest words in order rather
+ * than flattening them onto 1. [RAW] reads counts as stored.
+ */
+class RankScale(val floor: Double, val perNat: Double) {
+
+    val isRaw: Boolean get() = perNat <= 0.0
+
+    /** A stored count read through this scale. */
+    fun read(frequency: Int): Double {
+        val f = frequency.toDouble()
+        return when {
+            isRaw -> f
+            f < floor -> f / floor
+            else -> 1.0 + perNat * ln(f / floor)
+        }
+    }
+
+    /** `ln(1 + read(f))`. */
+    fun ln1p(frequency: Int): Double = ln(1.0 + read(frequency))
+
+    override fun equals(other: Any?): Boolean =
+        other is RankScale && other.floor == floor && other.perNat == perNat
+
+    override fun hashCode(): Int = 31 * floor.hashCode() + perNat.hashCode()
+
+    companion object {
+        /** Counts as stored. */
+        val RAW = RankScale(0.0, 0.0)
+
+        /**
+         * The bundled list's ratio from its commonest word to its floor:
+         * 28,787,591 / 1,000 on the OpenSubtitles counts it was rescaled from.
+         */
+        const val DYNAMIC_RANGE = 28_787.591
+
+        /**
+         * The line that puts a list whose commonest word is [top] where the
+         * bundled list's is, at [reference], with its floor the same ratio
+         * below it.
+         */
+        fun logLine(top: Int, reference: Double): RankScale =
+            RankScale(top / DYNAMIC_RANGE, (reference - 1.0) / ln(DYNAMIC_RANGE))
+    }
+}

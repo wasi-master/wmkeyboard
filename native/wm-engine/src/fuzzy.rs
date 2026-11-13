@@ -275,6 +275,93 @@ pub struct WalkSource<'a> {
     pub walker: &'a dyn Walker,
     pub log_weight: f64,
     pub tier: Tier,
+    /// How the trie's stored counts are read: as they are, or on the bundled
+    /// English list's log line ([`RankScale`]).
+    pub scale: RankScale,
+}
+
+impl WalkSource<'_> {
+    /// `log_weight + ln(1 + f)` with `f` read through [`WalkSource::scale`]:
+    /// the walk's whole frequency term.
+    fn lift(&self, frequency: i32) -> f64 {
+        self.log_weight + self.scale.ln1p(frequency)
+    }
+}
+
+/// How a list's stored counts enter the walk's score.
+///
+/// Every weight the engine carries (an edit's price, a learned word's x500,
+/// the context model's cap, autocorrect's margins) was tuned on the bundled
+/// English list, whose numbers are `973.83 * ln(count / 1000) + 1` on corpus
+/// counts: the log of a count, so the commonest word is 10,000 and `threat`
+/// is 2,962 (#792). A downloaded list carries the counts themselves. Shrunk
+/// in proportion to the same top, `threat` was 6, about six nats under where
+/// the weights expect a word that common, and anything with a fixed price
+/// beat it: a word typed once, the context model's lift, a two-edit reading
+/// of a common word. `tdreat` offered `treat`, `great` and a learned `dewar`,
+/// never `threat` one letter off. The typing harness measured strip top-1
+/// on the AOSP English list at .746 / .687 / .639 (careful / fast / sloppy)
+/// against the bundled list's .859 / .787 / .679; on the log line, .837 /
+/// .777 / .700.
+///
+/// So such a list is read on that line: a count `f` at or above `floor` is
+/// `1 + per_nat * ln(f / floor)`, one below it `f / floor`, which keeps the
+/// order of the rarest words instead of flattening them onto 1. The default
+/// reads counts as stored, bit for bit what the walk always did.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct RankScale {
+    pub floor: f64,
+    pub per_nat: f64,
+}
+
+impl RankScale {
+    /// Counts as stored.
+    pub const RAW: RankScale = RankScale { floor: 0.0, per_nat: 0.0 };
+
+    /// The bundled list's ratio from its commonest word to its floor:
+    /// 28,787,591 / 1,000 on the OpenSubtitles counts it was rescaled from.
+    pub const DYNAMIC_RANGE: f64 = 28_787.591;
+
+    /// The line that puts a list whose commonest word is `top` where the
+    /// bundled list's is, at `reference` (10,000), with the floor the same
+    /// ratio below it.
+    pub fn log_line(top: i32, reference: f64) -> RankScale {
+        RankScale {
+            floor: top as f64 / RankScale::DYNAMIC_RANGE,
+            per_nat: (reference - 1.0) / ln(RankScale::DYNAMIC_RANGE),
+        }
+    }
+
+    pub fn is_raw(&self) -> bool {
+        self.per_nat <= 0.0
+    }
+
+    /// A stored count read through this scale.
+    pub fn read(&self, frequency: i32) -> f64 {
+        let f = frequency as f64;
+        if self.is_raw() {
+            f
+        } else if f < self.floor {
+            f / self.floor
+        } else {
+            1.0 + self.per_nat * ln(f / self.floor)
+        }
+    }
+
+    /// `ln(1 + read(f))`; on [`RankScale::RAW`] exactly the walk's old `ln1p`.
+    pub fn ln1p(&self, frequency: i32) -> f64 {
+        if self.is_raw() {
+            ln1p(frequency)
+        } else {
+            ln(1.0 + self.read(frequency))
+        }
+    }
+}
+
+impl Default for RankScale {
+    fn default() -> RankScale {
+        RankScale::RAW
+    }
 }
 
 /// A candidate with its word as UTF-16, as the phone holds it.
@@ -645,7 +732,7 @@ pub fn search_units(
 }
 
 fn root_bound(src: &WalkSource) -> f64 {
-    src.log_weight + ln1p(src.walker.max_subtree(src.walker.root()))
+    src.lift(src.walker.max_subtree(src.walker.root()))
 }
 
 /// One search's fixed inputs.
@@ -721,14 +808,14 @@ impl Walk<'_> {
         let n = typed.len();
         ws.reset();
         let root = w.root();
-        ws.state(root, 0, 0.0, 0.0, 0, 0, 0, 0, -1, NO_LABEL, src.log_weight + ln1p(w.max_subtree(root)));
+        ws.state(root, 0, 0.0, 0.0, 0, 0, 0, 0, -1, NO_LABEL, src.lift(w.max_subtree(root)));
         let mut pops = 0;
         let mut children = std::mem::take(&mut ws.children);
         macro_rules! push {
             ($node:expr, $pos:expr, $cost:expr, $edit:expr, $edits:expr, $comp:expr, $acc:expr, $slips:expr, $parent:expr, $via:expr) => {{
                 let node = $node;
                 let cost = $cost;
-                let bound = src.log_weight + ln1p(w.max_subtree(node)) - cost;
+                let bound = src.lift(w.max_subtree(node)) - cost;
                 if !(bound < floor - EPS) {
                     ws.state(node, $pos, cost, $edit, $edits, $comp, $acc, $slips, $parent, $via, bound);
                 }
@@ -752,7 +839,7 @@ impl Walk<'_> {
 
             if pos == n {
                 if w.is_word(node) {
-                    let score = src.log_weight + ln1p(w.frequency(node)) - cost;
+                    let score = src.lift(w.frequency(node)) - cost;
                     if score > floor - EPS || results.len() < self.k {
                         emit(ws.materialize(s), score, edit, edits, comp, acc, slips, src.tier, results);
                         if results.len() >= self.k {
@@ -1015,6 +1102,7 @@ mod tests {
             walker: d,
             log_weight: w,
             tier: Tier::Dictionary,
+            scale: RankScale::RAW,
         }
     }
 
@@ -1195,6 +1283,44 @@ mod tests {
     }
 
     #[test]
+    fn raw_rank_scale_reads_counts_as_the_walk_always_did() {
+        for f in [0, 1, 7, 2_962, 28_787_591] {
+            assert_eq!(ln1p(f), RankScale::RAW.ln1p(f));
+        }
+    }
+
+    #[test]
+    fn the_log_line_puts_a_corpus_list_on_the_bundled_scale() {
+        // The bundled list's own line: its top at 10,000, count 1,000 at 1.
+        let line = RankScale::log_line(28_787_591, 10_000.0);
+        assert!((line.read(28_787_591) - 10_000.0).abs() < 1e-6);
+        assert!((line.read(1_000) - 1.0).abs() < 1e-6);
+        // `threat` lands where the bundled list has it (2,962).
+        assert!((line.read(20_913) - 2_962.0).abs() < 1.0);
+        // Below the floor, rarer still reads lower: no flattening onto 1.
+        assert!(line.read(500) < line.read(999));
+        assert!(line.read(500) > 0.0);
+    }
+
+    #[test]
+    fn a_corpus_list_on_the_log_line_lets_a_one_edit_fix_beat_a_learned_far_word() {
+        // `tdreat`: on raw counts shrunk to a 10,000 top, `threat` fell
+        // under a word learned once and a commoner word two edits off.
+        let counts = [("the", 18_700_000), ("great", 65_911), ("threat", 11_166), ("treat", 4_982)];
+        let d = dict(&counts);
+        let line = RankScale::log_line(18_700_000, 10_000.0);
+        let user = dict(&[("dewar", 1)]);
+        let sources = [
+            WalkSource { walker: &d, log_weight: 0.0, tier: Tier::Dictionary, scale: line },
+            WalkSource { walker: &user, log_weight: 500f64.ln(), tier: Tier::User, scale: RankScale::RAW },
+        ];
+        let r = run(&sources, "tdreat", 4, None);
+        let at = |w: &str| r.iter().position(|c| c.word == w);
+        assert!(at("threat").is_some(), "threat walked: {r:?}");
+        assert!(at("dewar").is_none_or(|d| at("threat").unwrap() < d), "threat over dewar: {r:?}");
+    }
+
+    #[test]
     fn max_merge_across_sources_keeps_best_score_and_tier() {
         let d = dict(&[("hello", 10)]);
         let user = dict(&[("hello", 10)]);
@@ -1205,6 +1331,7 @@ mod tests {
                     walker: &user,
                     log_weight: 500f64.ln(),
                     tier: Tier::User,
+                    scale: RankScale::RAW,
                 },
             ],
             "hello",

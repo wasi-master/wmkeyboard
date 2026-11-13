@@ -1131,15 +1131,19 @@ class SuggestionEngineTest {
     @Test fun `a downloaded secondary with real counts does not bury the typed primary word`() {
         // #653: bundled English on its 0..10000 scale, Italian downloaded with
         // corpus counts in the millions. "visit" typed in full stays first.
+        // The real counts: the bundled list's `visit` and the Italian
+        // download's (it_full, `e` at the top). The test once had `visita` at
+        // 4.7% of the top word's count, fifty times its real share, which only
+        // a linear reading of the counts let `visit` at 238 beat.
         val dictionary = Trie().apply {
-            insert("the", 10_000)
-            insert("visit", 238)
+            insert("the", 9_771)
+            insert("visit", 3_915)
         }
         val italian = Trie().apply {
-            insert("di", 19_000_000)
-            insert("visita", 900_000)
-            insert("visitare", 400_000)
-            insert("visite", 300_000)
+            insert("e", 7_389_373)
+            insert("visita", 18_631)
+            insert("visite", 5_069)
+            insert("visitare", 3_634)
         }
         val e = SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), UserLexicon(null)).apply {
             primaryLanguageId = "en"
@@ -1176,10 +1180,15 @@ class SuggestionEngineTest {
         // #403: a Greek list with corpus counts in the millions read at its raw
         // scale cleared the lone-candidate floor by ten nats, so any unknown
         // word one slip from a rare listed one was replaced.
+        // `kalimera` sits under the list's floor (its top over 28,788, as the
+        // bundled list's count-1000 floor sits under its top), where the
+        // walk reads counts as the bundled list's rarest words. At 5,000 of
+        // 19 million it read as a word as common as the bundled list's mid
+        // range, which that list corrects to as well.
         val greek = Trie().apply {
             insert("kai", 19_000_000)
             insert("einai", 10_000_000)
-            insert("kalimera", 5_000)
+            insert("kalimera", 300)
         }
         val e = SuggestionEngine(Trie(), BengaliPhoneticIndex(emptyList()), UserLexicon(null)).apply {
             englishSources = false
@@ -1442,6 +1451,30 @@ class SuggestionEngineTest {
         val s = e.suggest("tnr", previousWord = null)
         assertEquals("tnr", s.first())
         assertTrue("tmr offered in $s", "tmr" in s)
+    }
+
+    @Test fun `a list of corpus counts ranks a one-letter fix over a two-edit common word`() {
+        // The AOSP English list's counts for `tdreat`'s neighbours. Shrunk in
+        // proportion to the bundled list's 10,000 top, `threat` read as 6 and
+        // fell behind `great`, two edits off; on the bundled list's log line
+        // it reads as the bundled list has it.
+        val aosp = PackedTrie.of(
+            listOf("the" to 18_700_000, "great" to 65_911, "threat" to 11_166, "treat" to 4_982),
+        )
+        val e = SuggestionEngine(aosp, BengaliPhoneticIndex(emptyList()), UserLexicon(null))
+        val s = e.suggest("tdreat", previousWord = null)
+        assertTrue("threat offered in $s", "threat" in s)
+        assertTrue("threat before great in $s", "great" !in s || s.indexOf("threat") < s.indexOf("great"))
+    }
+
+    @Test fun `a list already on the bundled scale is read exactly as before`() {
+        val bundled = Trie().apply {
+            insert("great", 6_138)
+            insert("threat", 2_962)
+            insert("treat", 3_589)
+        }
+        val e = SuggestionEngine(bundled, BengaliPhoneticIndex(emptyList()), UserLexicon(null))
+        assertEquals(listOf("treat", "threat", "great"), e.suggest("tdreat", previousWord = null).take(3))
     }
 
     @Test fun `a romanized list's slip of a far commoner word one key over is not a word`() {

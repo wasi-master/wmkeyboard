@@ -178,8 +178,8 @@ internal object OneEditWords {
             }
             if (!walker.isWord(node)) return
             val word = head + typed.substring(from)
-            // StrictMath, as the walk's own scores: one ulp can reorder two chips.
-            val score = src.logWeight + StrictMath.log(1.0 + walker.frequency(node)) - cost
+            // The walk's own frequency term, scale and all ([RankScale]).
+            val score = src.rankScore(walker.frequency(node)) - cost
             found.merge(word, score, ::maxOf)
         }
     }
