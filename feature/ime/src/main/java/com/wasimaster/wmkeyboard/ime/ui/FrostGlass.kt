@@ -96,6 +96,15 @@ class FrostBackdrop {
      */
     var boardScreenOrigin by mutableStateOf(Offset.Zero)
 
+    /**
+     * How much a layer above the board scales it: 1 on the keyboard itself,
+     * the zoom on the theme editor's miniature, which shrinks the keyboard
+     * with a placement layer (#1299). [boardBounds] and every pane's origin
+     * are measured through that layer, while a pane draws in its own
+     * unscaled space, so [GlassPaint.of] divides them by this first.
+     */
+    var boardScale by mutableStateOf(1f)
+
     /** [screen] (a point on the screen) in the board root's coordinates. */
     fun toBoardRoot(screen: Offset): Offset = screen - boardScreenOrigin + boardBounds.topLeft
 }
@@ -176,8 +185,13 @@ internal fun FrostBackdropLoader(
 /** Records where the board is, for the surfaces to sample the backdrop against. */
 internal fun Modifier.frostBoardBounds(backdrop: FrostBackdrop): Modifier =
     onGloballyPositioned {
-        backdrop.boardBounds = it.boundsInRoot()
+        val bounds = it.boundsInRoot()
+        backdrop.boardBounds = bounds
         backdrop.boardScreenOrigin = it.positionOnScreen()
+        // Measured unclipped, unlike the bounds: a miniature half scrolled
+        // out of view is still the same size.
+        val across = it.localToRoot(Offset(it.size.width.toFloat(), 0f)).x - it.localToRoot(Offset.Zero).x
+        backdrop.boardScale = if (it.size.width > 0 && across > 0f) across / it.size.width else 1f
     }
 
 /**
@@ -246,12 +260,26 @@ class GlassPaint private constructor(
             withPress: Boolean = false,
         ): GlassPaint? {
             val bitmap = backdrop.bitmap ?: return null
-            val board = backdrop.boardBounds
+            // Back into the unscaled space the pane draws in (#1299).
+            val layerScale = backdrop.boardScale.takeIf { it > 0f } ?: 1f
+            val board = backdrop.boardBounds.let { measured ->
+                if (layerScale == 1f) {
+                    measured
+                } else {
+                    Rect(
+                        measured.left / layerScale,
+                        measured.top / layerScale,
+                        measured.right / layerScale,
+                        measured.bottom / layerScale,
+                    )
+                }
+            }
+            val origin = if (layerScale == 1f) originInRoot else originInRoot / layerScale
             if (board.isEmpty || bitmap.width == 0 || bitmap.height == 0) return null
             // Centre-crop, the way the board itself draws the image.
             val scale = max(board.width / bitmap.width, board.height / bitmap.height)
-            val dx = board.left + (board.width - bitmap.width * scale) / 2f - originInRoot.x
-            val dy = board.top + (board.height - bitmap.height * scale) / 2f - originInRoot.y
+            val dx = board.left + (board.width - bitmap.width * scale) / 2f - origin.x
+            val dy = board.top + (board.height - bitmap.height * scale) / 2f - origin.y
             val slice = ImageShader(bitmap, TileMode.Clamp, TileMode.Clamp)
             // Bilinear, not nearest: drawn straight a Paint filters the
             // bitmap, but sampled as a runtime shader's child it is read
@@ -269,7 +297,7 @@ class GlassPaint private constructor(
             // A picture-on-keys theme's board colour is the colour of the
             // gaps, not a scrim over the picture: laid over the slice it
             // would hide the very picture the keys are there to show.
-            val fill = if (frost?.cutout == true) null else fillBrush(boardFill, board, originInRoot)
+            val fill = if (frost?.cutout == true) null else fillBrush(boardFill, board, origin)
             if (!lensed || frost == null) {
                 return GlassPaint(outline, ShaderBrush(slice), fill, null, false)
             }
@@ -744,6 +772,7 @@ private class FrostGlassNode(
             backdrop.bitmap
             backdrop.boardBounds
             backdrop.boardScreenOrigin
+            backdrop.boardScale
         }
     }
 
