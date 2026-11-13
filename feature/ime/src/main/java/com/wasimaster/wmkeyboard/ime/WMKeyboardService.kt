@@ -59134,6 +59134,18 @@ open class WMKeyboardService : InputMethodService() {
             return if (cycleLanguageWithHud()) consumeHardwareKey(keyCode) else null
         }
 
+        // Alt+Space and Shift+Space (gap list item 39): a one-step switch, each
+        // behind its own switch, with nothing else held. One layout: the
+        // chord stays the app's, and Shift+Space is a space again.
+        if (keyCode == KeyEvent.KEYCODE_SPACE && event.repeatCount == 0) {
+            val held = event.metaState and
+                (KeyEvent.META_CTRL_ON or KeyEvent.META_ALT_ON or KeyEvent.META_SHIFT_ON or KeyEvent.META_META_ON)
+            val hw = hardwareShortcutSettings()
+            val switches = (held == (held and KeyEvent.META_ALT_ON) && held != 0 && hw.languageSwitchAltSpace) ||
+                (held == (held and KeyEvent.META_SHIFT_ON) && held != 0 && hw.languageSwitchShiftSpace)
+            if (switches) return if (cycleLanguageWithHud()) consumeHardwareKey(keyCode) else null
+        }
+
         if (hardwareShortcutSettings().languageSwitchChord) {
             languageSwitchDelta(keyCode, event.metaState)?.let { delta ->
                 // One layout enabled: the chord stays the app's (IDE autocomplete).

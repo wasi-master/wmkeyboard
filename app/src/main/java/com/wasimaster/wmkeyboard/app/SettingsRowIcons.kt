@@ -1370,6 +1370,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_hw_function_keys_title) { Icons.Outlined.Functions }
         put(R.string.typing_hw_lang_chord_title) { Icons.Outlined.Language }
         put(R.string.typing_hw_lang_ctrl_shift_title) { Icons.Outlined.Language }
+        put(R.string.typing_hw_lang_alt_space_title) { Icons.Outlined.Language }
+        put(R.string.typing_hw_lang_shift_space_title) { Icons.Outlined.Language }
         put(R.string.typing_hw_mac_title) { Icons.Outlined.KeyboardCommandKey }
         put(R.string.typing_hw_auto_show_title) { Icons.Outlined.Visibility }
 

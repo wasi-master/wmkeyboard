@@ -3706,6 +3706,22 @@ internal fun TypingHardwareSettings(
                 default = SettingsDefaults.hardwareKeyboard.languageSwitchCtrlShift,
             ) { scope.launch { repository.setHwLanguageSwitchCtrlShift(it) } }
         }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_hw_lang_alt_space_title,
+                stringResource(R.string.typing_hw_lang_alt_space_subtitle),
+                settings.watch { it.hardwareKeyboard.languageSwitchAltSpace },
+                default = SettingsDefaults.hardwareKeyboard.languageSwitchAltSpace,
+            ) { scope.launch { repository.setHwLanguageSwitchAltSpace(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_hw_lang_shift_space_title,
+                stringResource(R.string.typing_hw_lang_shift_space_subtitle),
+                settings.watch { it.hardwareKeyboard.languageSwitchShiftSpace },
+                default = SettingsDefaults.hardwareKeyboard.languageSwitchShiftSpace,
+            ) { scope.launch { repository.setHwLanguageSwitchShiftSpace(it) } }
+        }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.typing_hw_follow_layout_title,

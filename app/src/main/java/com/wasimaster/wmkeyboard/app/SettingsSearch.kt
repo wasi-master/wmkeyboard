@@ -857,6 +857,8 @@ private fun SearchStrings.typingHardwareRows(): List<SettingsSearchEntry> {
         row(R.string.typing_hw_digit_chord_title, R.string.typing_hw_digit_chord_subtitle),
         row(R.string.typing_hw_lang_chord_title, R.string.typing_hw_lang_chord_subtitle),
         row(R.string.typing_hw_lang_ctrl_shift_title, R.string.typing_hw_lang_ctrl_shift_subtitle),
+        row(R.string.typing_hw_lang_alt_space_title, R.string.typing_hw_lang_alt_space_subtitle),
+        row(R.string.typing_hw_lang_shift_space_title, R.string.typing_hw_lang_shift_space_subtitle),
         row(R.string.typing_hw_follow_layout_title, R.string.typing_hw_follow_layout_subtitle),
         row(R.string.typing_hw_modifier_words_title, R.string.typing_hw_modifier_words_subtitle),
         row(R.string.typing_hw_picker_timeout_title, R.string.typing_hw_picker_timeout_subtitle),

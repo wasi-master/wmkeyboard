@@ -2786,6 +2786,16 @@ data class HardwareKeyboardSettings(
      */
     val languageSwitchCtrlShift: Boolean = false,
     /**
+     * Alt+Space switches to the next language (competitor gap list item 39,
+     * AnySoftKeyboard). Off by default: some apps and launchers use the chord.
+     */
+    val languageSwitchAltSpace: Boolean = false,
+    /**
+     * Shift+Space switches to the next language. Off by default: on most
+     * keyboards Shift+Space is a space typed while Shift happens to be down.
+     */
+    val languageSwitchShiftSpace: Boolean = false,
+    /**
      * A physical keyboard's letter keys type the on-screen layout's letter in
      * the same place (#1128), rather than the character the phone's own
      * physical-keyboard layout gives the key. For a tablet whose keyboard is
@@ -12554,6 +12564,8 @@ class SettingsRepository(private val context: Context) {
         private val HW_MAC_SHORTCUTS = booleanPreferencesKey("hw_mac_shortcuts")
         private val HW_LANGUAGE_SWITCH_CHORD = booleanPreferencesKey("hw_language_switch_chord")
         private val HW_LANGUAGE_SWITCH_CTRL_SHIFT = booleanPreferencesKey("hw_language_switch_ctrl_shift")
+        private val HW_LANGUAGE_SWITCH_ALT_SPACE = booleanPreferencesKey("hw_language_switch_alt_space")
+        private val HW_LANGUAGE_SWITCH_SHIFT_SPACE = booleanPreferencesKey("hw_language_switch_shift_space")
         private val HW_FOLLOW_ON_SCREEN_LAYOUT = booleanPreferencesKey("hw_follow_on_screen_layout")
         private val HW_HINT_MODIFIER_WORDS = booleanPreferencesKey("hw_hint_modifier_words")
         private val HW_AUTO_SHOW_UI = booleanPreferencesKey("hw_auto_show_ui")
@@ -14698,6 +14710,10 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.hardwareKeyboard.languageSwitchChord,
             languageSwitchCtrlShift = p[HW_LANGUAGE_SWITCH_CTRL_SHIFT]
                 ?: defaults.hardwareKeyboard.languageSwitchCtrlShift,
+            languageSwitchAltSpace = p[HW_LANGUAGE_SWITCH_ALT_SPACE]
+                ?: defaults.hardwareKeyboard.languageSwitchAltSpace,
+            languageSwitchShiftSpace = p[HW_LANGUAGE_SWITCH_SHIFT_SPACE]
+                ?: defaults.hardwareKeyboard.languageSwitchShiftSpace,
             followOnScreenLayout = p[HW_FOLLOW_ON_SCREEN_LAYOUT]
                 ?: defaults.hardwareKeyboard.followOnScreenLayout,
             hintModifierWords = p[HW_HINT_MODIFIER_WORDS]
@@ -23667,6 +23683,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setHwLanguageSwitchCtrlShift(value: Boolean) =
         editPrefs { it[HW_LANGUAGE_SWITCH_CTRL_SHIFT] = value }
+
+    suspend fun setHwLanguageSwitchAltSpace(value: Boolean) =
+        editPrefs { it[HW_LANGUAGE_SWITCH_ALT_SPACE] = value }
+
+    suspend fun setHwLanguageSwitchShiftSpace(value: Boolean) =
+        editPrefs { it[HW_LANGUAGE_SWITCH_SHIFT_SPACE] = value }
 
     suspend fun setHwFollowOnScreenLayout(value: Boolean) =
         editPrefs { it[HW_FOLLOW_ON_SCREEN_LAYOUT] = value }

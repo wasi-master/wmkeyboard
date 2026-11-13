@@ -1143,6 +1143,10 @@
     <string name="typing_hw_mac_info">For a keyboard made for a Mac. Command is the key next to the space bar.\n\nCommand+C, Command+V, Command+X and Command+A copy, paste, cut and select all. Command+Z is undo and Command+Shift+Z is redo. Command+Left and Command+Right go to the start and the end of the line. Option+Left and Option+Right move one word. Option+Backspace deletes one word, and Command+Backspace deletes to the start of the line. Hold Shift with a move to select.\n\nCtrl keeps its usual behaviour, and every other Command shortcut goes to the app. Some devices keep a small number of Command shortcuts for the system, and those do not reach the keyboard.</string>
     <string name="typing_hw_lang_chord_title">Ctrl+Space changes the language</string>
     <string name="typing_hw_lang_ctrl_shift_title">Ctrl+Shift changes the language</string>
+    <string name="typing_hw_lang_alt_space_title">Alt+Space changes the language</string>
+    <string name="typing_hw_lang_alt_space_subtitle">Alt and Space together switch to the next language</string>
+    <string name="typing_hw_lang_shift_space_title">Shift+Space changes the language</string>
+    <string name="typing_hw_lang_shift_space_subtitle">Shift and Space together switch to the next language instead of typing a space</string>
     <string name="typing_hw_follow_layout_title">Letter keys follow the on-screen layout</string>
     <string name="typing_hw_follow_layout_subtitle">The physical keys type the letters of the language you switch to</string>
     <string name="typing_hw_follow_layout_info">Each letter key on the physical keyboard types the letter in the same place on the keyboard\'s current layout: Q types the first letter of the top row, A the first of the middle row, and so on. Switch language with Ctrl+Space or Ctrl+Shift and the keys switch with it. For tablets whose keyboard only types the phone\'s system language, such as Huawei MatePad keyboards. Digits, symbols and shortcuts with Ctrl or Alt keep the phone\'s own layout. Off by default.</string>
