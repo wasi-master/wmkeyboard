@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
