@@ -74,11 +74,11 @@
     <string name="appearance_toolbar_placement_button_label">A button</string>
     <string name="appearance_toolbar_placement_always_label">Always</string>
     <string name="appearance_toolbar_placement_swipe_label">On a swipe</string>
-    <string name="appearance_toolbar_placement_swipe_desc">The tools share the strip, and come up when you swipe up on its toolbox button</string>
+    <string name="appearance_toolbar_placement_swipe_desc">The tools share the strip, and come up when you swipe up on it</string>
     <string name="appearance_toolbar_bar_toolbox_title">Toolbox button before the tools</string>
     <string name="appearance_toolbar_bar_toolbox_subtitle">Off leaves the toolbox to the button beside the suggestions. An open tool still shows it</string>
     <string name="appearance_toolbar_tools_arrow_title">Arrow to the tools</string>
-    <string name="appearance_toolbar_tools_arrow_subtitle">Off leaves opening and closing the tools to a swipe up and down on a toolbox button</string>
+    <string name="appearance_toolbar_tools_arrow_subtitle">Off leaves opening and closing the tools to a swipe up and down on the strip</string>
     <string name="appearance_toolbar_needs_strip_toolbox">Needs the toolbox button beside the suggestions, further down this screen</string>
     <string name="appearance_toolbar_placement_strip_desc">The tools and the suggestions share one row, and the arrow flips between them</string>
     <string name="appearance_toolbar_placement_button_desc">The tools get a row of their own, opened and closed from the arrow</string>

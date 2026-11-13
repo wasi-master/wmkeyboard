@@ -517,9 +517,9 @@ internal fun AppearanceToolbarSettings(
                     default = SettingsDefaults.toolbarBehavior.stripOnlyWithWords,
                 ) { scope.launch { repository.setToolbarStripOnlyWithWords(it) } }
             }
-            // The toolbox button before the pinned tools, and the strip's arrow
-            // to them (#970): both can go once the strip has a toolbox button
-            // of its own, whose swipe up and down opens and closes the tools.
+            // The toolbox button before the pinned tools (#970) can go once the
+            // strip has a toolbox button of its own. The strip's arrow can go
+            // any time: a swipe up anywhere on the strip opens the tools.
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.appearance_toolbar_bar_toolbox_title,
@@ -534,9 +534,7 @@ internal fun AppearanceToolbarSettings(
                 ToggleSetting(
                     R.string.appearance_toolbar_tools_arrow_title,
                     stringResource(R.string.appearance_toolbar_tools_arrow_subtitle),
-                    settings.watch { it.toolbarBehavior.toolsArrow || !it.stripToolboxSwipes() },
-                    enabled = stripSwipes,
-                    disabledReason = DisabledReason(stringResource(R.string.appearance_toolbar_needs_strip_toolbox)),
+                    settings.watch { it.toolbarBehavior.toolsArrow },
                     default = SettingsDefaults.toolbarBehavior.toolsArrow,
                 ) { scope.launch { repository.setToolbarToolsArrow(it) } }
             }

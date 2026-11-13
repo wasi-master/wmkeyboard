@@ -4359,6 +4359,13 @@ private fun TopBar(
         state.settings.toolbarBehavior.showStrip && placement == ToolbarPlacement.ALWAYS_ROW &&
         state.settings.toolbarBehavior.enabled && !hasSuggestions && emptySettled &&
         !state.voiceStripShown()
+    // With the arrow off (#970), a swipe up anywhere on the strip brings the
+    // pinned tools and a swipe down anywhere on them puts them away, so the
+    // arrow can go without a toolbox button taking its place at one end and
+    // the words keep the whole strip, centred.
+    val swipeTools = (placement == ToolbarPlacement.ON_SWIPE || !state.settings.toolbarBehavior.toolsArrow) &&
+        !toolsColumn && placement != ToolbarPlacement.ALWAYS_ROW && state.settings.toolbarBehavior.enabled
+    val toolsSwiped = rememberUpdatedState(onPinnedTools)
     Box(
         Modifier
             .fillMaxWidth()
@@ -4379,7 +4386,7 @@ private fun TopBar(
             // so the two don't collide. See [stripSwipes].
             .then(
                 if (state.settings.toolbarBehavior.swipeDownHide || state.settings.suggestionStrip.swipeForMore ||
-                    state.settings.suggestionStrip.swipeUpForMore
+                    state.settings.suggestionStrip.swipeUpForMore || swipeTools
                 ) {
                     // Read at the moment of the swipe, not when the detector
                     // was installed: whether there are words to page through
@@ -4391,7 +4398,20 @@ private fun TopBar(
                     )
                     val pagesOpen = rememberUpdatedState(state.panel == PanelMode.CANDIDATES)
                     val hide = rememberUpdatedState(state.settings.toolbarBehavior.swipeDownHide)
-                    Modifier.stripSwipes(pages, more, pagesOpen, hide, moreHold, suggestionHold, onSwipeDownHide)
+                    val toolsUp = rememberUpdatedState(
+                        swipeTools && state.panel == PanelMode.NONE &&
+                            !(if (toolsOwnRow) toolsRowOpen else wantToolbar),
+                    )
+                    // Swipe down to hide keeps its flick; the toolbar's own
+                    // toolbox button still puts the tools away then.
+                    val toolsDown = rememberUpdatedState(
+                        swipeTools && !state.settings.toolbarBehavior.swipeDownHide &&
+                            (if (toolsOwnRow) toolsRowOpen else toolbarOverride),
+                    )
+                    Modifier.stripSwipes(
+                        pages, more, pagesOpen, hide, toolsUp, toolsDown, toolsSwiped,
+                        moreHold, suggestionHold, onSwipeDownHide,
+                    )
                 } else {
                     Modifier
                 },
@@ -4526,12 +4546,10 @@ private fun TopBar(
         // emoji then slid right, was handed to the strip, and slid back left
         // past where it started. One decision, and the row moves once, when the
         // surface it belongs to arrives.
-        // The arrow can go (#970) where a toolbox button on screen does its
-        // job by a swipe: the strip's own while the strip shows, the bar's
-        // while the toolbar covers the strip. Without that button the arrow
-        // stays, as the only way in or out.
-        val swipeInstead = (placement == ToolbarPlacement.ON_SWIPE || !state.settings.toolbarBehavior.toolsArrow) &&
-            if (showToolbar) barToolboxShown(state) else state.settings.stripToolboxSwipes()
+        // The arrow can go (#970): a swipe up anywhere on the strip does its
+        // job, and a swipe down on the tools or the toolbar's toolbox button
+        // undoes it ([swipeTools]).
+        val swipeInstead = swipeTools
         AnimatedVisibility(
             visible = !toolsColumn && !swipeInstead && when (placement) {
                 // The row is always there; there is nothing for a chevron to do.
@@ -11340,6 +11358,9 @@ private fun Modifier.stripSwipes(
     more: State<Boolean>,
     pagesOpen: State<Boolean>,
     hide: State<Boolean>,
+    toolsUp: State<Boolean>,
+    toolsDown: State<Boolean>,
+    onTools: State<(Boolean) -> Unit>,
     hold: MoreSuggestionsHold,
     suggestionHold: SuggestionHoldCallbacks,
     onSwipeDownHide: () -> Unit,
@@ -11398,9 +11419,12 @@ private fun Modifier.stripSwipes(
                         }
                         // Words to page through win the swipe; the keyboard
                         // hides from an idle strip.
+                        // The tools on show put away first: they are what the
+                        // finger is on, not the words behind them.
                         total.y > threshold -> {
                             fired = true
-                            if (pages.value) suggestionHold.onPagesToggle(true)
+                            if (toolsDown.value) onTools.value(false)
+                            else if (pages.value) suggestionHold.onPagesToggle(true)
                             else if (hide.value) onSwipeDownHide()
                         }
                         total.y < -threshold && more.value -> {
@@ -11408,6 +11432,11 @@ private fun Modifier.stripSwipes(
                             opened = true
                             hold.reset()
                             suggestionHold.onMorePopup(true)
+                        }
+                        // With the arrow off, the tools (#970).
+                        total.y < -threshold && toolsUp.value -> {
+                            fired = true
+                            onTools.value(true)
                         }
                     }
                 }

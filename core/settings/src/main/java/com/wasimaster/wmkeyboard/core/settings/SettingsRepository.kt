@@ -2349,9 +2349,8 @@ data class ToolbarBehavior(
     val barToolbox: Boolean = true,
     /**
      * The arrow on the suggestion strip that opens and closes the pinned tools
-     * (#970). Off counts only while the strip has its own toolbox button
-     * ([stripToolboxSwipes]), whose swipe up and down does the same; without
-     * one the arrow stays, as the only way in.
+     * (#970). Off, a swipe up anywhere on the strip opens them and a swipe
+     * down on them, or on a toolbox button ([stripToolboxSwipes]), closes them.
      */
     val toolsArrow: Boolean = true,
     /**
