@@ -125,7 +125,7 @@ runs it:
 | `event(e)` | sends one event, then draws |
 | `transform(text, id)` | runs a selection action |
 | `storage()` | what the plugin saved, as a dict |
-| `settle()` | answers every waiting `then=` call from the mock, then any calls those answers started, and gives back the last result |
+| `settle()` | answers every waiting `then=` call from the mock, then any calls those answers started, and gives back the last result, or the first one that failed |
 | `calls()` | every host call so far, as `{"op", "args"}` dicts, to check what the plugin sent |
 
 Each gives back a dict: `ok`, the drawn `ui`, any `error`, and the `host`
@@ -160,6 +160,10 @@ second request, is one `event` and one `settle`:
 s["event"]({"type": "click", "id": "button:Look up"})
 r = s["settle"]()
 ```
+
+`ui.toast` and `ui.dialog` are calls to the keyboard too. A plugin that shows a
+toast from a callback needs an answer for it in the mock, such as
+`"ui.toast": None`, or the callback stops with `NotImplementedError`.
 
 ### A different answer for each address
 

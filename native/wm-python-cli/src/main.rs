@@ -347,11 +347,14 @@ fn session_value(session: Session, source: String, mock: Option<Rc<Mock>>) -> Va
         let Some(mock) = m6.as_ref() else {
             return Err(PyError::new("settle() needs a session made with mock=", "ValueError"));
         };
+        // The last answer's result, unless one along the way failed: that
+        // one, so an error in an early callback is not hidden by later ones.
         let mut last = None;
+        let mut first_failure = None;
         for _ in 0..MAX_SETTLE_ROUNDS {
             let waiting = std::mem::take(&mut *mock.waiting.borrow_mut());
             if waiting.is_empty() {
-                return match last {
+                return match first_failure.or(last) {
                     Some(text) => decode(text),
                     None => decode(s6.borrow_mut().render()),
                 };
@@ -363,7 +366,12 @@ fn session_value(session: Session, source: String, mock: Option<Rc<Mock>>) -> Va
                     None => reply.get("value").cloned().unwrap_or(serde_json::Value::Null),
                 };
                 let event = serde_json::json!({"type": "result", "token": token, "value": value});
-                last = Some(s6.borrow_mut().event(&event.to_string()));
+                let result = s6.borrow_mut().event(&event.to_string());
+                let failed = serde_json::from_str::<serde_json::Value>(&result).ok().is_some_and(|v| v["ok"] == serde_json::Value::Bool(false));
+                if failed && first_failure.is_none() {
+                    first_failure = Some(result.clone());
+                }
+                last = Some(result);
             }
         }
         Err(PyError::new(format!("settle(): calls still waiting after {MAX_SETTLE_ROUNDS} rounds"), "RuntimeError"))

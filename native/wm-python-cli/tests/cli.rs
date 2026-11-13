@@ -134,9 +134,29 @@ bad["load"]()
 bad["event"]({"type": "click", "id": "button:Load"})
 text = json.dumps(bad["settle"]()["ui"])
 assert "no mock route for http.request GET https://shop.example.com/api/stock" in text, text
+
+# A callback that fails along the way is what settle() gives back.
+s = plugin_test.session(mock={"secrets.get": "k", "http.request": [
+    {"when": {"method": "GET"}, "reply": {"status": 200, "text": "not json"}},
+]})
+s["load"]()
+s["event"]({"type": "click", "id": "button:Load"})
+r = s["settle"]()
+assert not r["ok"] and "JSON" in json.dumps(r["error"]), r
 print("routed ok")
 "#;
     let dir = plugin("routes", &[("plugin.json", API5_MANIFEST), ("main.py", API5_MAIN), ("test.py", test)]);
     let (code, out, err) = cli(&["test", dir.to_str().unwrap()]);
     assert_eq!((code, out.as_str(), err.as_str()), (0, "routed ok\n", ""));
+}
+
+#[test]
+fn an_api_5_test_imports_the_plugins_own_modules() {
+    let manifest = r#"{"id": "com.example.fares", "pluginVersion": "1.0.0", "apiVersion": 5}"#;
+    let main = "from wm import ui\nimport fares\ndef render():\n    ui.label(str(fares.total([2, 3])))\n";
+    let fares = "def total(xs):\n    return sum(xs)\n";
+    let test = "import fares\nassert fares.total([2.5, 1]) == 3.5\nprint('ok')\n";
+    let dir = plugin("modules", &[("plugin.json", manifest), ("main.py", main), ("fares.py", fares), ("test.py", test)]);
+    let (code, out, err) = cli(&["test", dir.to_str().unwrap()]);
+    assert_eq!((code, out.as_str(), err.as_str()), (0, "ok\n", ""));
 }
