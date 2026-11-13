@@ -9468,6 +9468,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.LEAVE_FIELD -> R.string.ime_tool_leave_field
     ToolbarTool.QUICK_NOTE -> R.string.ime_tool_quick_note
     ToolbarTool.DEBUG_INFO -> R.string.ime_tool_debug_info
+    ToolbarTool.HOMOPHONES -> R.string.ime_tool_homophones
     ToolbarTool.READ_BACK -> R.string.ime_tool_read_back
     ToolbarTool.SNIPPETS -> R.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> R.string.ime_tool_text_edit
@@ -9691,6 +9692,8 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.SCREENSHOT -> false
     // Takes the report and opens it in the settings app.
     ToolbarTool.DEBUG_INFO -> false
+    // Puts its list on the strip and is done.
+    ToolbarTool.HOMOPHONES -> false
     // Lit while the shade is up.
     ToolbarTool.PRIVACY_SHADE -> state.settings.privacyShade.on
     // Switches and is done, like the 🌐 key it stands in for.

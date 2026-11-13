@@ -154,6 +154,7 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     // A manila folder's amber.
     ToolbarTool.FILES -> Color(0xFFFFA000)
     ToolbarTool.LANGUAGE -> Color(0xFF26A69A)
+    ToolbarTool.HOMOPHONES -> Color(0xFF26A69A)
 }
 
 /**

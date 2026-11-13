@@ -829,6 +829,8 @@ import com.wasimaster.wmkeyboard.core.input.composer.CjkConfig
 import com.wasimaster.wmkeyboard.core.input.composer.CjkContext
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictionaries
+import com.wasimaster.wmkeyboard.core.input.composer.HomophoneIndex
+import com.wasimaster.wmkeyboard.core.input.composer.Homophones
 import com.wasimaster.wmkeyboard.core.input.composer.CjkNgrams
 import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyinScheme
 import com.wasimaster.wmkeyboard.core.input.composer.PinyinComposer
@@ -8071,6 +8073,90 @@ open class WMKeyboardService : InputMethodService() {
      * picture.
      */
     private var hidingForScreenshot = false
+
+    /**
+     * The characters on the strip that sound like the one before the caret,
+     * offered in its place ([homophoneOffer]); [character] first, so a tap on
+     * it keeps what is there.
+     */
+    private class HomophoneOffer(val character: String, val shown: List<String>)
+
+    /**
+     * The homophone list the strip shows right now, if it does. Only good
+     * while the strip still holds exactly that list and the character is
+     * still before the caret: any key, pick or caret move puts something else
+     * on the strip and so retires it.
+     */
+    private var homophoneOffer: HomophoneOffer? = null
+
+    /**
+     * The homophone search (AnySoftKeyboard's key): the characters that share
+     * a reading with the Chinese or Japanese character before the caret, read
+     * backwards out of the installed tables ([Homophones]), go on the strip,
+     * and a pick replaces the character ([takeHomophone]). The index is built
+     * off the main thread the first time, which on the kana pack takes a
+     * moment.
+     */
+    private fun showHomophones() {
+        val ic = currentInputConnection ?: return
+        val state = _uiState.value
+        if (state.secureField) return
+        if (composing.isNotEmpty()) {
+            toast(R.string.ime_homophones_finish)
+            return
+        }
+        val before = ic.getTextBeforeCursor(2, 0)?.toString().orEmpty()
+        val character = before.takeIf { it.isNotEmpty() }?.let { text ->
+            val start = text.offsetByCodePoints(text.length, -1)
+            text.substring(start)
+        }
+        if (character == null || !HomophoneIndex.isSearchable(character)) {
+            toast(R.string.ime_homophones_none_before)
+            return
+        }
+        val langId = state.language.id
+        val dir = filesDir.takeIf { userUnlocked }
+        serviceScope.launch {
+            val found = withContext(Dispatchers.Default) { Homophones.of(dir, langId, character) }
+            val current = currentInputConnection ?: return@launch
+            // Moved on meanwhile: nothing to replace any more.
+            if (composing.isNotEmpty() || current.getTextBeforeCursor(character.length, 0)?.toString() != character) {
+                return@launch
+            }
+            if (found.isEmpty()) {
+                toast(getString(R.string.ime_homophones_none, character))
+                return@launch
+            }
+            val shown = listOf(character) + found
+            homophoneOffer = HomophoneOffer(character, shown)
+            _uiState.update { it.copy(suggestions = shown, emojiSuggestions = emptyList()) }
+        }
+    }
+
+    /**
+     * A pick off the strip while it shows [homophoneOffer]: the character
+     * before the caret becomes [candidate]. False, leaving the pick to its
+     * usual path, when the offer is not what the strip shows any more.
+     */
+    private fun takeHomophone(candidate: String): Boolean {
+        val offer = homophoneOffer ?: return false
+        homophoneOffer = null
+        if (_uiState.value.suggestions !== offer.shown || composing.isNotEmpty() || candidate !in offer.shown) return false
+        val ic = currentInputConnection ?: return false
+        if (ic.getTextBeforeCursor(offer.character.length, 0)?.toString() != offer.character) return false
+        vibrate()
+        if (candidate != offer.character) {
+            ic.beginBatchEdit()
+            ic.deleteSurroundingText(offer.character.length, 0)
+            ic.commitText(candidate, 1)
+            ic.endBatchEdit()
+        }
+        if (_uiState.value.panel == PanelMode.CANDIDATES) {
+            _uiState.update { it.copy(panel = PanelMode.NONE, expandedCandidates = emptyList()) }
+        }
+        _uiState.update { it.copy(suggestions = emptyList()) }
+        return true
+    }
 
     /**
      * The Debug info action (FUTO U3): the report [debugInfoReport] takes,
@@ -30506,6 +30592,7 @@ open class WMKeyboardService : InputMethodService() {
             onSuggestionPagesToggle(false)
             return
         }
+        if (takeHomophone(candidate)) return
         val ic = currentInputConnection ?: return
         val composer = _uiState.value.composer
         if (!composer.isConversion) {
@@ -30695,6 +30782,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     fun onSuggestionTapped(suggestion: String) {
+        if (takeHomophone(suggestion)) return
         noSpaceEndToArm()
         replacedGlideShape = null
         stopVoiceForManualInput()
@@ -35580,6 +35668,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.LEAVE_FIELD -> onLeaveField()
             ToolbarTool.SCREENSHOT -> takeScreenshot()
             ToolbarTool.DEBUG_INFO -> showDebugInfo()
+            ToolbarTool.HOMOPHONES -> showHomophones()
             ToolbarTool.PRIVACY_SHADE -> onPrivacyShadeToggle()
             ToolbarTool.QUICK_NOTE -> onQuickNote()
             ToolbarTool.READ_BACK -> toggleReadBack()

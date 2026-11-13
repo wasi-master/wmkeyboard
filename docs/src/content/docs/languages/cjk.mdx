@@ -326,6 +326,22 @@ Hold a candidate in the strip or the grid and the strip turns into its menu: **E
 
 The hold menu on a candidate of two or more characters also shows its first and its last character. Tap one to type only that character, for the whole reading the word covered: hold 选择 and tap 选. This is the quick way to a character that is hard to find under its own reading (以词定字, fcitx's <KeyCap>[</KeyCap> and <KeyCap>]</KeyCap>). Nothing is learned from it.
 
+### Same sound (homophone search)
+
+**Same sound** lists the characters that sound like the one before the caret, and a pick swaps it in. Type 是, run it, and the strip offers 事, 时, 市 and the rest of `shi`; tap 事 and it takes 是's place. The first chip is the character itself, which leaves it as it is. A character with two readings lists its usual one first, so 行 offers the `xing` characters before the `hang` ones.
+
+It is an action rather than a toolbar button: put it on an "Open a tool" key of your [own layout](/languages/custom-layouts/), a flick, a hold on a toolbar button or the floating button, where the tool list shows it under Other. It works on the one character right before the caret, after a conversion is finished; with a reading still composing it asks you to finish first.
+
+The readings come from what is installed for the language you are typing:
+
+| Language | Where the readings come from |
+| --- | --- |
+| Chinese, with any layout | The pinyin pack, whose readings carry no tones, so 妈, 马 and 骂 all sound like `ma`. Without it, the `.dict.yaml` sources of the RIME schemas you have |
+| Cantonese | The Jyutping pack, or without it RIME's Jyutping dictionary |
+| Japanese | The kana pack (`ja_kana`). A kana before the caret counts as its own reading, so か lists the kanji read か |
+
+The first search builds the list from the whole table and takes a moment on the kana pack, which has about a million rows; later ones are immediate until a pack changes. A character none of them knows shows a short message instead.
+
 ### What comes next (联想)
 
 <SettingsPath path="Languages & layouts / (a CJK language) / (language) options / Next-word suggestions (联想)" />
