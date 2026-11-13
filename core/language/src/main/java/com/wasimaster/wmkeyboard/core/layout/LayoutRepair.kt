@@ -592,6 +592,8 @@ private fun Key.leavesCycledLayer(layer: LayoutLayer): Boolean =
 private fun Key.leavesSecondaryLayout(): Boolean = when (action) {
     KeyAction.Letters, KeyAction.Symbols, KeyAction.LanguageSwitch -> true
     is KeyAction.Layout, is KeyAction.Tool, KeyAction.Toolbox -> true
+    // A plugin opens in a panel, which covers the grid as a tool's does.
+    is KeyAction.Plugin -> true
     // A page key leaves for one of the layout's own grids, which is off the
     // secondary one either way.
     is KeyAction.LayerSwitch -> true

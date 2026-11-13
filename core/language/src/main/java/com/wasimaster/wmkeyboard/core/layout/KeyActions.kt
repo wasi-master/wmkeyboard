@@ -260,6 +260,15 @@ sealed interface KeyAction {
     @Serializable @SerialName("mode") data class Mode(val id: String = "") : KeyAction
 
     /**
+     * Opens one of the user's plugins, by its manifest [id], in the Plugins
+     * panel (plugin API 5), the way its tile on the toolbar does. A key naming
+     * a plugin that has since been removed or switched off opens the plugin
+     * list, which says why. A blank [id] is the editor's placeholder while the
+     * picker is open, and what an older build's file coerces to.
+     */
+    @Serializable @SerialName("plugin") data class Plugin(val id: String = "") : KeyAction
+
+    /**
      * Latches a modifier for the next key, the way [Shift] latches case: tap to
      * arm, tap again to lock, a third tap to clear.
      *
@@ -604,6 +613,8 @@ fun KeyAction.fallbackLabel(): String = when (this) {
     // The board draws the mode's current name over this (#821, see
     // modeBindingLabel); the glyph is for a face drawn without the modes to hand.
     is KeyAction.Mode -> "◐"
+    // The editor writes the plugin's name onto the key when it is picked.
+    is KeyAction.Plugin -> "⧉"
     is KeyAction.SwitchInputMethod -> "⌨"
     // A field is not a key: the cell draws its component, and the editor draws
     // the component's name from a string resource.
@@ -783,6 +794,7 @@ fun KeyAction.canRepeatOnHold(): Boolean = when (this) {
     is KeyAction.SwitchInputMethod -> false
     is KeyAction.Mod, is KeyAction.Layout, is KeyAction.Tool -> false
     is KeyAction.LayerSwitch, is KeyAction.Mode -> false
+    is KeyAction.Plugin -> false
     is KeyAction.Unknown -> false
     // A list, not a key: nothing presses it as a whole.
     KeyAction.ReadingColumn -> false

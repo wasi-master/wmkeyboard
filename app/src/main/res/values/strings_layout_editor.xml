@@ -283,6 +283,10 @@
     <string name="layout_editor_mode_row_title">Mode</string>
     <string name="layout_editor_mode_row_subtitle">The keyboard mode this key turns on and off</string>
     <string name="layout_editor_mode_row_unset">Not set</string>
+    <string name="layout_editor_plugin_row_title">Plugin</string>
+    <string name="layout_editor_plugin_row_subtitle">The plugin this key opens</string>
+    <string name="layout_editor_plugin_picker_title">Which plugin</string>
+    <string name="layout_editor_plugin_picker_empty">No plugins to open. Turn plugins on and install one with a panel first.</string>
     <string name="layout_editor_mode_picker_title">Which mode</string>
     <string name="layout_editor_mode_picker_empty">No keyboard modes yet. Make one under Modes first.</string>
 
@@ -584,6 +588,8 @@
     <string name="layout_editor_action_layout_title">Open a layout</string>
     <string name="layout_editor_action_layout_detail">Shows one of your secondary layouts over the letters. Press the key again, or an ABC key, to go back. Pick the layout below</string>
     <string name="layout_editor_action_mode_title">Toggle a keyboard mode</string>
+    <string name="layout_editor_action_plugin_title">Open a plugin</string>
+    <string name="layout_editor_action_plugin_detail">Opens one of your plugins in the keyboard, the way its button on the toolbar does. Pick the plugin below</string>
     <string name="layout_editor_action_mode_detail">Turns one of your keyboard modes on, the way picking it from the Modes tool does. Press it again to go back to automatic. Pick the mode below</string>
     <string name="layout_editor_action_tool_title">Open a tool</string>
     <string name="layout_editor_action_tool_detail">Opens one of the keyboard tools, such as voice typing or the editing pad. Pick the tool below</string>

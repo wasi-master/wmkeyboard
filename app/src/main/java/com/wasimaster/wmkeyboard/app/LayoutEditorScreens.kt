@@ -259,6 +259,7 @@ import com.wasimaster.wmkeyboard.core.layout.spanBands
 import com.wasimaster.wmkeyboard.core.layout.spanRowWidths
 import com.wasimaster.wmkeyboard.core.layout.spanSlots
 import com.wasimaster.wmkeyboard.core.layout.validateLayout
+import com.wasimaster.wmkeyboard.core.plugins.displayName
 import com.wasimaster.wmkeyboard.core.script.ComposerType
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
@@ -5693,6 +5694,13 @@ internal val KeyActionCatalog: List<KeyActionOption> = listOf(
         R.string.layout_editor_action_mode_detail,
         { KeyAction.Mode() }, { it is KeyAction.Mode },
     ),
+    // And the plugin picker (plugin API 5).
+    KeyActionOption(
+        R.string.layout_editor_action_plugin_title,
+        R.string.layout_editor_action_group_layers,
+        R.string.layout_editor_action_plugin_detail,
+        { KeyAction.Plugin() }, { it is KeyAction.Plugin },
+    ),
     KeyActionOption(
         R.string.layout_editor_action_ctrl_title,
         R.string.layout_editor_action_group_modifiers,
@@ -5904,6 +5912,8 @@ internal fun KeyEditSheet(
     var pickingLayout by remember { mutableStateOf(false) }
     // Which keyboard mode it toggles, for a mode action.
     var pickingMode by remember { mutableStateOf(false) }
+    // Which plugin it opens, for a plugin action.
+    var pickingPlugin by remember { mutableStateOf(false) }
     // Which other keyboard app it switches to, for a switch-keyboard action.
     var pickingIme by remember { mutableStateOf(false) }
     // Which operation an edit key runs, and which component a field cell hosts.
@@ -6020,6 +6030,17 @@ internal fun KeyEditSheet(
                     value = secondaryLayouts.firstOrNull { it.id == layoutAction.id }?.name
                         ?: stringResource(R.string.layout_editor_layout_row_unset),
                 ) { pickingLayout = true }
+            }
+        }
+        // A plugin key carries which plugin it opens.
+        (key.action as? KeyAction.Plugin)?.let { pluginAction ->
+            item {
+                val plugins = rememberKeyPlugins()
+                NavRow(
+                    title = R.string.layout_editor_plugin_row_title,
+                    subtitle = stringResource(R.string.layout_editor_plugin_row_subtitle),
+                    value = plugins.keyName(pluginAction.id) ?: stringResource(R.string.layout_editor_mode_row_unset),
+                ) { pickingPlugin = true }
             }
         }
         // A mode key carries which keyboard mode it toggles.
@@ -6326,6 +6347,7 @@ internal fun KeyEditSheet(
                 if (action is KeyAction.Tool) pickingTool = true
                 if (action is KeyAction.Layout) pickingLayout = true
                 if (action is KeyAction.Mode) pickingMode = true
+                if (action is KeyAction.Plugin) pickingPlugin = true
                 if (action is KeyAction.SwitchInputMethod) pickingIme = true
                 if (action is KeyAction.Edit) pickingEdit = true
                 if (action is KeyAction.EditSequence) pickingSequence = true
@@ -6351,6 +6373,18 @@ internal fun KeyEditSheet(
                         label = it.label.ifBlank { picked.name },
                     )
                 }
+            },
+        )
+    }
+
+    if (pickingPlugin) {
+        PluginKeyPickerDialog(
+            current = (key.action as? KeyAction.Plugin)?.id,
+            onDismiss = { pickingPlugin = false },
+            onPick = { picked ->
+                pickingPlugin = false
+                // The plugin's name lands as the label unless the author wrote one.
+                onChange { it.copy(action = KeyAction.Plugin(picked.id), label = it.label.ifBlank { picked.displayName }) }
             },
         )
     }
@@ -6788,6 +6822,7 @@ private fun FlickFields(
     var pickingToolAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
     var pickingLayoutAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
     var pickingModeAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
+    var pickingPluginAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
     if (!open) {
         WmRow(
             title = stringResource(R.string.layout_editor_flick_add_action),
@@ -6950,6 +6985,7 @@ private fun FlickFields(
                     is KeyAction.Tool -> pickingToolAt = direction
                     is KeyAction.Layout -> pickingLayoutAt = direction
                     is KeyAction.Mode -> pickingModeAt = direction
+                    is KeyAction.Plugin -> pickingPluginAt = direction
                     else -> setArm(direction, KeyAlternate(action))
                 }
             },
@@ -7012,6 +7048,17 @@ private fun FlickFields(
             onPick = { picked ->
                 pickingModeAt = null
                 finishArm(direction, KeyAction.Mode(picked.id)) { it.unlessModeName(keyboardModes) }
+            },
+        )
+    }
+
+    pickingPluginAt?.let { direction ->
+        PluginKeyPickerDialog(
+            current = (key.flickActions[direction]?.action as? KeyAction.Plugin)?.id,
+            onDismiss = { pickingPluginAt = null },
+            onPick = { picked ->
+                pickingPluginAt = null
+                finishArm(direction, KeyAction.Plugin(picked.id)) { it.ifBlank { picked.displayName } }
             },
         )
     }
@@ -7437,6 +7484,8 @@ private fun ActionAlternatesRows(
     var pickingLayoutAt by remember { mutableStateOf<Int?>(null) }
     // Same for a keyboard mode.
     var pickingModeAt by remember { mutableStateOf<Int?>(null) }
+    // Same for a plugin.
+    var pickingPluginAt by remember { mutableStateOf<Int?>(null) }
     // Same for a text-editing operation (#630): without it every one landed as Left.
     var pickingEditAt by remember { mutableStateOf<Int?>(null) }
     var pickingSequenceAt by remember { mutableStateOf<Int?>(null) }
@@ -7493,6 +7542,7 @@ private fun ActionAlternatesRows(
                 if (action is KeyAction.Tool) pickingToolAt = landsAt
                 if (action is KeyAction.Layout) pickingLayoutAt = landsAt
                 if (action is KeyAction.Mode) pickingModeAt = landsAt
+                if (action is KeyAction.Plugin) pickingPluginAt = landsAt
                 if (action is KeyAction.Edit) pickingEditAt = landsAt
                 if (action is KeyAction.EditSequence) pickingSequenceAt = landsAt
                 if (action is KeyAction.SwitchInputMethod) pickingImeAt = landsAt
@@ -7515,6 +7565,21 @@ private fun ActionAlternatesRows(
                         } else {
                             a
                         }
+                    },
+                )
+            },
+        )
+    }
+
+    pickingPluginAt?.let { index ->
+        PluginKeyPickerDialog(
+            current = (alternates.getOrNull(index)?.action as? KeyAction.Plugin)?.id,
+            onDismiss = { pickingPluginAt = null },
+            onPick = { picked ->
+                pickingPluginAt = null
+                onChange(
+                    alternates.mapIndexed { i, a ->
+                        if (i == index) a.copy(action = KeyAction.Plugin(picked.id), label = a.label.ifBlank { picked.displayName }) else a
                     },
                 )
             },
@@ -7637,6 +7702,10 @@ internal fun actionAlternateName(
     if (action is KeyAction.Mode) {
         return keyboardModes.firstOrNull { it.id == action.id }?.name
             ?: alternate.label.ifBlank { stringResource(R.string.layout_editor_action_mode_title) }
+    }
+    if (action is KeyAction.Plugin) {
+        return rememberKeyPlugins().keyName(action.id)
+            ?: alternate.label.ifBlank { stringResource(R.string.layout_editor_action_plugin_title) }
     }
     if (action is KeyAction.Edit) return stringResource(textEditActionTitle(action.op))
     if (action is KeyAction.EditSequence) {
@@ -8305,7 +8374,7 @@ internal val SpecialKeyPresets: List<KeyActionOption> by lazy {
     KeyActionCatalog.filter { option ->
         when (val action = option.build()) {
             is KeyAction.Edit, is KeyAction.EditSequence, is KeyAction.Tool, is KeyAction.Layout, is KeyAction.Mode,
-            is KeyAction.SwitchInputMethod, is KeyAction.Broadcast, is KeyAction.BrailleDot,
+            is KeyAction.Plugin, is KeyAction.SwitchInputMethod, is KeyAction.Broadcast, is KeyAction.BrailleDot,
             -> false
             else -> action !in skipped
         }

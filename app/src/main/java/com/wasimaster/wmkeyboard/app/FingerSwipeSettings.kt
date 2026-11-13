@@ -20,6 +20,7 @@ import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.SwipeDirection
 import com.wasimaster.wmkeyboard.core.layout.actionOf
 import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
+import com.wasimaster.wmkeyboard.core.plugins.displayName
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
 import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -140,7 +141,7 @@ internal fun KeyBindingPicker(
             onPick = { picked ->
                 // Half an answer until it names its text, tool, layout, mode or keyboard.
                 val needsMore = picked == KeyAction.Text || picked is KeyAction.Tool ||
-                    picked is KeyAction.Edit || picked is KeyAction.Layout || picked is KeyAction.Mode ||
+                    picked is KeyAction.Edit || picked is KeyAction.Layout || picked is KeyAction.Mode || picked is KeyAction.Plugin ||
                     picked is KeyAction.SwitchInputMethod || picked is KeyAction.Broadcast
                 if (needsMore) followUp = picked else onBind(KeyAlternate(picked))
             },
@@ -171,6 +172,11 @@ internal fun KeyBindingPicker(
             options = modes,
             onDismiss = onDismiss,
             onPick = { picked -> onBind(KeyAlternate(KeyAction.Mode(picked.id), label = picked.name)) },
+        )
+        is KeyAction.Plugin -> PluginKeyPickerDialog(
+            current = (current?.action as? KeyAction.Plugin)?.id,
+            onDismiss = onDismiss,
+            onPick = { picked -> onBind(KeyAlternate(KeyAction.Plugin(picked.id), label = picked.displayName)) },
         )
         is KeyAction.SwitchInputMethod -> InputMethodPickerDialog(
             current = (current?.action as? KeyAction.SwitchInputMethod)?.id,

@@ -18684,6 +18684,7 @@ internal fun keyOverrideIds(key: Key): List<String> = when (val action = key.act
     is KeyAction.LayerSwitch -> parameterisedIds("LAYERSWITCH", action.layer)
     is KeyAction.Layout -> parameterisedIds("LAYOUT", action.id)
     is KeyAction.Mode -> parameterisedIds("MODE", action.id)
+    is KeyAction.Plugin -> parameterisedIds("PLUGIN", action.id)
     is KeyAction.BrailleDot -> listOf("BRAILLEDOT_${action.dot}", "BRAILLEDOT")
     else -> listOfNotNull(action::class.simpleName?.uppercase())
 }

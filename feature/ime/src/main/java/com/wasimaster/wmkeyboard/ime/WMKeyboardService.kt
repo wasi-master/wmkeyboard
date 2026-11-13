@@ -8138,6 +8138,22 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var pluginCarry: String? = null
 
+    /**
+     * The Plugins panel, straight into plugin [id]: from its custom button and
+     * from a layout key. One the user since removed or switched off lands on
+     * the list, which says why. A plugin in the floating box is raised there.
+     */
+    private fun openPluginById(id: String) {
+        if (id.isBlank()) return onPanelChange(PanelMode.PLUGINS)
+        if (_uiState.value.appletPanel == PanelMode.PLUGINS) {
+            if (floatingAppletDelegate.isInitialized()) floatingApplet.raise()
+            onPluginOpen(id)
+            return
+        }
+        if (_uiState.value.panel != PanelMode.PLUGINS) onPanelChange(PanelMode.PLUGINS, haptic = false)
+        onPluginOpen(id)
+    }
+
     /** A plugin's text box tapped in the box: the keys are the keyboard's, so the plugin moves there. */
     private fun pluginBoxToKeyboard() {
         pluginCarry = (_uiState.value.plugins as? PluginPanelUi.Running)?.plugin?.id
@@ -11704,6 +11720,8 @@ open class WMKeyboardService : InputMethodService() {
             // One of the user's keyboard modes, the Modes panel's pick in one
             // press; a second press goes back to automatic.
             is KeyAction.Mode -> onModeKey((key.action as KeyAction.Mode).id)
+            // One of the user's plugins, straight into its panel (API 5).
+            is KeyAction.Plugin -> openPluginById((key.action as KeyAction.Plugin).id)
             is KeyAction.Mod -> onModifier((key.action as KeyAction.Mod).key)
             KeyAction.KanaVariant -> cycleKanaVariant()
             // The 나랏글 pad's 획추가 and 쌍자음 keys (#599).
@@ -26392,10 +26410,7 @@ open class WMKeyboardService : InputMethodService() {
             // A plugin's tile: the Plugins panel, straight into that plugin.
             // One the user since removed or switched off lands on the list,
             // which says why.
-            com.wasimaster.wmkeyboard.core.settings.CustomButtonKind.PLUGIN -> {
-                if (_uiState.value.panel != PanelMode.PLUGINS) onPanelChange(PanelMode.PLUGINS, haptic = false)
-                onPluginOpen(button.target)
-            }
+            com.wasimaster.wmkeyboard.core.settings.CustomButtonKind.PLUGIN -> openPluginById(button.target)
         }
     }
 
