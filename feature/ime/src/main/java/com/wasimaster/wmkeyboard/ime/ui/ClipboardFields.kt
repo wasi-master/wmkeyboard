@@ -151,6 +151,7 @@ import androidx.compose.foundation.shape.CircleShape
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Password
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Phone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mail
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Place
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
 import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
@@ -217,6 +218,8 @@ data class ClipboardPanelActions(
     val onClearUnpinned: () -> Unit = {},
     /** A link clip's Open link: the address in the browser (#371). */
     val onOpenLink: (ClipItem) -> Unit = {},
+    /** Compose email on a clip with an address in it: the mail app, writing to it (gap list item 26). */
+    val onComposeEmail: (String) -> Unit = {},
     /** An image clip's View: the picture full screen (#371). */
     val onViewImage: (ClipItem) -> Unit = {},
     /** An image clip's Share: Android's share sheet (#1178). */
@@ -2355,6 +2358,10 @@ private fun ClipHoldPopup(
     val image = item.kind == ClipKind.IMAGE
     // Not a secret's: the panel never shows one's text, and the browser would.
     val link = item.kind.isTextual && !item.sensitive && ClipLinks.asUrl(item.text) != null
+    // The first address in the clip, the whole clip included (gap list item 26).
+    val email = remember(item.text, item.kind, item.sensitive) {
+        if (item.kind.isTextual && !item.sensitive) ClipEntities.emailIn(item.text) else null
+    }
     // One part is simply that part; more open the picker (#472).
     val extractParts: (() -> Unit)? = when (hold.entities.size) {
         0 -> null
@@ -2410,6 +2417,7 @@ private fun ClipHoldPopup(
                 onOpenLink = if (link) {
                     { onDismiss(); callbacks.actions.onOpenLink(item) }
                 } else null,
+                onComposeEmail = email?.let { address -> { onDismiss(); callbacks.actions.onComposeEmail(address) } },
                 onExtractParts = extractParts,
                 onTogglePin = if (hold.holdPin) {
                     { onDismiss(); callbacks.onPin(item) }
@@ -2498,6 +2506,8 @@ private class ClipTextActions(
     val onWikipedia: (() -> Unit)? = null,
     val onEdit: (() -> Unit)? = null,
     val onOpenLink: (() -> Unit)? = null,
+    /** A new email to the first address in the clip (gap list item 26). */
+    val onComposeEmail: (() -> Unit)? = null,
     val onExtractParts: (() -> Unit)? = null,
     val onTogglePin: (() -> Unit)? = null,
     val onDelete: (() -> Unit)? = null,
@@ -2641,6 +2651,9 @@ private fun ClipTextActionButton(action: ClipHoldAction, item: ClipItem, actions
         }
         ClipHoldAction.OPEN_LINK -> actions.onOpenLink?.let {
             ClipTextActionIcon(Icons.AutoMirrored.Outlined.OpenInNew, stringResource(R.string.ime_clip_open_link), tint, it)
+        }
+        ClipHoldAction.COMPOSE_EMAIL -> actions.onComposeEmail?.let {
+            ClipTextActionIcon(Icons.Outlined.Mail, stringResource(R.string.ime_clip_compose_email), tint, it)
         }
         ClipHoldAction.EXTRACT -> actions.onExtractParts?.let {
             ClipTextActionIcon(Icons.Outlined.ContentCut, stringResource(R.string.ime_clip_extract_parts), tint, it)
@@ -3043,6 +3056,7 @@ private fun ClipEntityIcons(entities: List<ClipEntity>, callbacks: ClipboardFiel
 internal fun clipEntityIcon(kind: ClipEntityKind): ImageVector = when (kind) {
     ClipEntityKind.OTP -> Icons.Outlined.Password
     ClipEntityKind.PHONE -> Icons.Outlined.Phone
+    ClipEntityKind.EMAIL -> Icons.Outlined.Mail
     ClipEntityKind.URL -> Icons.Outlined.Link
     ClipEntityKind.PLACE -> Icons.Outlined.Place
 }
@@ -3075,7 +3089,7 @@ private fun ClipExtractPopup(entities: List<ClipEntity>, onPick: (ClipEntity) ->
             ) {
                 // Links first, then numbers, then codes: the order the request
                 // names them in, and the order they are looked at.
-                val sections = listOf(ClipEntityKind.URL, ClipEntityKind.PLACE, ClipEntityKind.PHONE, ClipEntityKind.OTP)
+                val sections = listOf(ClipEntityKind.URL, ClipEntityKind.EMAIL, ClipEntityKind.PLACE, ClipEntityKind.PHONE, ClipEntityKind.OTP)
                     .mapNotNull { kind -> entities.filter { it.kind == kind }.takeIf { it.isNotEmpty() }?.let { kind to it } }
                 for ((kind, ofKind) in sections) {
                     item(key = "header-${kind.name}") {
@@ -3122,6 +3136,7 @@ private val ClipEntityKind.sectionRes: Int
     get() = when (this) {
         ClipEntityKind.URL -> R.string.ime_clip_extract_links
         ClipEntityKind.PHONE -> R.string.ime_clip_extract_phones
+        ClipEntityKind.EMAIL -> R.string.ime_clip_extract_emails
         ClipEntityKind.OTP -> R.string.ime_clip_extract_codes
         ClipEntityKind.PLACE -> R.string.ime_clip_extract_places
     }

@@ -1160,6 +1160,7 @@ internal fun ClipboardHistorySettings(
     // What decides which rows the groups hold; each row reads its own value.
     val historyOn = settings.watch { it.clipboard.history }
     val userScreenshots = settings.watch { it.clipboard.userScreenshots }
+    val textOnly = settings.watch { it.clipboard.textOnly }
     val trackSource = settings.watch { it.clipboard.trackSource }
     val numberFormat = stringResource(R.string.values_number)
     val hoursFormat = stringResource(R.string.values_hours)
@@ -1263,6 +1264,16 @@ internal fun ClipboardHistorySettings(
     // Nothing is stored with history off, so there is nothing for these to
     // ride along with; the group goes rather than standing empty.
     if (historyOn) SettingsGroup(stringResource(R.string.clipboard_sources_group)) {
+        // Text only (gap list item 25): pictures, videos and files stay on the
+        // system clipboard and out of history, screenshots included.
+        if (historyOn) item {
+            ToggleSetting(
+                R.string.clipboard_text_only_title,
+                stringResource(R.string.clipboard_text_only_subtitle),
+                textOnly,
+                default = SettingsDefaults.clipboard.textOnly,
+            ) { on -> scope.launch { repository.setClipboardTextOnly(on) } }
+        }
         // Screenshots, the source app and the paste chip are all read as a
         // clip is being stored, and nothing is stored with history off. The
         // Play build has no photos permission to ask for, so no screenshots.
@@ -1271,7 +1282,9 @@ internal fun ClipboardHistorySettings(
             ToggleSetting(
                 R.string.clipboard_screenshots_title,
                 stringResource(R.string.clipboard_screenshots_subtitle),
-                userScreenshots,
+                userScreenshots && !textOnly,
+                enabled = !textOnly,
+                disabledReason = if (textOnly) DisabledReason(stringResource(R.string.clipboard_screenshots_text_only)) else null,
                 default = SettingsDefaults.clipboard.userScreenshots,
             ) { on ->
                 scope.launch { repository.setClipboardUserScreenshots(on) }
@@ -1285,7 +1298,7 @@ internal fun ClipboardHistorySettings(
         // The guard sits outside item {} on purpose: an item whose body
         // draws nothing still gets its own card, which showed up as a
         // sliver of empty surface once the permission was granted.
-        if (historyOn && userScreenshots && ChannelFeatures.SCREENSHOT_CLIPS &&
+        if (historyOn && userScreenshots && !textOnly && ChannelFeatures.SCREENSHOT_CLIPS &&
             !screenshotsGranted
         ) {
             item {
@@ -1641,6 +1654,7 @@ private fun clipHoldActionLabels(): Map<ClipHoldAction, String> = ClipHoldAction
             ClipHoldAction.WEB_SEARCH -> ImeR.string.ime_clip_search_web
             ClipHoldAction.WIKIPEDIA -> ImeR.string.ime_clip_search_wikipedia
             ClipHoldAction.OPEN_LINK -> ImeR.string.ime_clip_open_link
+            ClipHoldAction.COMPOSE_EMAIL -> ImeR.string.ime_clip_compose_email
             ClipHoldAction.EXTRACT -> ImeR.string.ime_clip_extract_parts
             ClipHoldAction.PIN -> ImeR.string.ime_clip_pin
             ClipHoldAction.DELETE -> CommonR.string.common_delete

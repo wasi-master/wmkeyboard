@@ -167,6 +167,9 @@ private operator fun List<List<Key>>.get(at: Pair<Int, Int>): Key = this[at.firs
 @Suppress("ReturnCount")
 private fun locate(layout: KeyboardLayout, form: DeviceForm): Plan? {
     if (!form.isTablet) return null
+    // A honeycomb's rows interlock half a cell apart; keys added at their
+    // edges would knock every row off its cells.
+    if (layout.hex) return null
     val rows = layout.rows
     // Four rows is what the rebuild rewrites, counting up from the bottom.
     // Anything above is left verbatim, which is how five-row Indic and Arabic

@@ -278,6 +278,9 @@ object EspansoWriter {
         SnippetVariable.APP,
         SnippetVariable.PACKAGE,
         SnippetVariable.SELECTION,
+        SnippetVariable.GREETING,
+        SnippetVariable.BATTERY,
+        SnippetVariable.LANGUAGE,
     )
 
     private val CUSTOM_DATE = Regex("""\{date([+-]\d{1,9})?(?::([^}\n]{1,40}))?\}""")
@@ -288,7 +291,7 @@ object EspansoWriter {
      * Snippet text as an Espanso replacement, and the variables it needs.
      *
      * Every `{token}` this app knows becomes a `{{name}}` reference plus a `vars`
-     * entry, except the four that describe the phone rather than the moment:
+     * entry, except the ones that describe the phone rather than the moment:
      * there is no Espanso equivalent for the app being typed into, so those are
      * written out literally and noted.
      */
@@ -319,6 +322,7 @@ object EspansoWriter {
             if (!out.contains(variable.token)) continue
             when {
                 variable == SnippetVariable.CURSOR -> out = out.replace(variable.token, "\$|\$")
+                variable == SnippetVariable.TAB -> out = out.replace(variable.token, "\t")
                 variable == SnippetVariable.CLIP -> {
                     val name = nextName()
                     vars += variable(name, "clipboard")

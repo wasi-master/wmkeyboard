@@ -2092,7 +2092,7 @@ impl Predictor {
                 };
                 shape
                     && !self.suppressed(&c.word)
-                    && (digits == 0 || digit_sub_shape(lower, &c.word))
+                    && (digits == 0 || digit_sub_shape(lower, &c.word, &self.proximity))
             })
             .map(|mut c| {
                 // A one-letter completion is the old insert-at-end edit.
@@ -2367,13 +2367,18 @@ fn complexity_of(lower: &str, edit_cost: f64) -> f64 {
 }
 
 /// `candidate` is `typed` with its one digit swapped for a letter.
-fn digit_sub_shape(typed: &str, candidate: &str) -> bool {
+/// `candidate` is `typed` with each digit swapped for a letter next to it on
+/// the number row and nothing else changed. Next to it, because the reading
+/// is a claim about where a thumb landed: `3` is the `w`, `e` or `r` under
+/// it, never a `y` four keys over, which let `tony` crowd `tone` out of
+/// `ton3` (#1107, the phone's `digitSubShape`).
+fn digit_sub_shape(typed: &str, candidate: &str, proximity: &KeyProximity) -> bool {
     let t: Vec<char> = typed.chars().collect();
     let c: Vec<char> = candidate.chars().collect();
     t.len() == c.len()
         && t.iter().zip(&c).all(|(t, c)| {
             if t.is_ascii_digit() {
-                !c.is_ascii_digit()
+                !c.is_ascii_digit() && proximity.are_adjacent(*t as u16, *c as u16)
             } else {
                 t == c
             }
@@ -2974,6 +2979,15 @@ mod tests {
         assert_eq!(None, e.should_autocorrect("h3lp4"));
         e.digit_slips = false;
         assert_eq!(None, e.should_autocorrect("h3lp"));
+    }
+
+    #[test]
+    fn a_digit_is_only_the_letters_beside_it() {
+        // #1107: `tony` is a `y` four keys from the `3`, so only `tone` reads.
+        let mut e = with(&[("tone", 50_000), ("tony", 40_000)]);
+        e.digit_slips = true;
+        e.proximity = KeyProximity::qwerty(true);
+        assert_eq!(Some("tone".into()), e.should_autocorrect("ton3"));
     }
 
     #[test]

@@ -71,6 +71,20 @@
     <!-- Gboard is Google's keyboard; do not translate the name. -->
     <string name="backup_gboard_import_title">Import a Gboard dictionary</string>
     <string name="backup_gboard_import_subtitle">The PersonalDictionary.zip from Gboard\'s Export. Its words come here, and its shortcuts become snippets</string>
+    <string name="backup_dictionary_export_title">Export to a text file</string>
+    <string name="backup_dictionary_export_subtitle">Your words, all of them or one language\'s, as a .txt file that Gboard and this screen can import again</string>
+    <string name="backup_dictionary_export_dialog_title">Which words?</string>
+    <string name="backup_dictionary_export_dialog_body">Each word goes on its own line, with the language it is filed under.</string>
+    <string name="backup_dictionary_export_empty">There are no words to export yet</string>
+    <string name="backup_dictionary_export_failed">Could not write the file</string>
+    <plurals name="backup_dictionary_export_choice">
+        <item quantity="one"><xliff:g id="group" example="English">%1$s</xliff:g> · %2$d word</item>
+        <item quantity="other"><xliff:g id="group" example="English">%1$s</xliff:g> · %2$d words</item>
+    </plurals>
+    <plurals name="backup_dictionary_export_done">
+        <item quantity="one">Exported %1$d word</item>
+        <item quantity="other">Exported %1$d words</item>
+    </plurals>
     <string name="backup_android_import_dialog_title">Words from Android</string>
     <string name="backup_android_export_dialog_title">Words to copy to Android</string>
     <string name="backup_android_nothing_to_import_body">Every word in Android\'s dictionary is already in your personal dictionary.</string>

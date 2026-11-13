@@ -864,6 +864,11 @@ data class KeyboardLayout(
      * because the renderer asks on every frame.
      */
     val digitPad: Boolean = false,
+    /**
+     * Whether this grid is drawn as a honeycomb ([LayoutSpec.grid] `"hex"`,
+     * resolved against the layer's own [LayerSpec.grid]); see [hexBoard].
+     */
+    val hex: Boolean = false,
 )
 
 /**

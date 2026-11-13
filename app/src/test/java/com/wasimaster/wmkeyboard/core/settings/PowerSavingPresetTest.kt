@@ -39,6 +39,19 @@ class PowerSavingPresetTest {
     }
 
     @Test
+    fun `no bundle touches the dark theme or the suggestions, and the bundle still reads`() {
+        val opted = PowerSavingSettings(darkTheme = true, dropSuggestions = true)
+        assertEquals(PowerSavingPreset.BALANCED, opted.preset)
+        for (preset in listOf(PowerSavingPreset.LIGHT, PowerSavingPreset.BALANCED, PowerSavingPreset.AGGRESSIVE)) {
+            val set = opted.withPreset(preset)
+            assertTrue(set.darkTheme)
+            assertTrue(set.dropSuggestions)
+            assertFalse(PowerSavingSettings().withPreset(preset).darkTheme)
+            assertFalse(PowerSavingSettings().withPreset(preset).dropSuggestions)
+        }
+    }
+
+    @Test
     fun `a bundle leaves the triggers alone`() {
         val armed = PowerSavingSettings(manual = true, trigger = PowerSavingTrigger.EITHER, batteryPercent = 33)
         val set = armed.withPreset(PowerSavingPreset.AGGRESSIVE)

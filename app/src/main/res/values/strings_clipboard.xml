@@ -186,6 +186,9 @@
     <string name="clipboard_link_previews_subtitle">Get the page title of a copied link and show it in the panel. This contacts the linked site</string>
     <string name="clipboard_screenshots_title">Your screenshots</string>
     <string name="clipboard_screenshots_subtitle">Show your screenshots in the clipboard next to copied text and images</string>
+    <string name="clipboard_text_only_title">Text only</string>
+    <string name="clipboard_text_only_subtitle">Keep copied pictures, videos and files out of history. They stay on the clipboard for the next paste</string>
+    <string name="clipboard_screenshots_text_only">Text only is on, so screenshots are not added</string>
     <string name="clipboard_storage_permission_title">The app needs the storage permission</string>
     <string name="clipboard_storage_permission_subtitle">Open the system settings to give the permission</string>
     <string name="clipboard_track_source_title">Show the source app</string>

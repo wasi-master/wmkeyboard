@@ -74,6 +74,9 @@ object LayoutJsonDocs {
         "LayoutSpec.strip" to
             "A one-row strip of letters, Minuum style: the letters row keeps one key's height, so the keyboard is short, and " +
             "its letters are drawn without key faces, at one size. The other layers keep their own height.",
+        "LayoutSpec.grid" to
+            "\"hex\" lays this layout's own layers out as a honeycomb: every other row half a cell over, keys drawn as hexagons " +
+            "whatever the theme's key shape, a touch going to the nearest cell. Leave it out for plain rows.",
         "LayoutSpec.themeId" to "A theme of this layout's own, used while the layout is on screen. A layer's themeId beats it.",
         "LayoutSpec.version" to "The revision of the layout format. The app brings an older one up to date when it reads it.",
         "LayoutSpec.basedOn" to "The repository addon this layout was installed from, so a copy edited from it still credits the original when shared. Set by the app.",
@@ -98,6 +101,9 @@ object LayoutJsonDocs {
         "LayerSpec.afterConsonant" to
             "On the letters layer of an Indic layout, the page of vowel signs to show after a consonant. Its keys show the " +
             "consonant with each sign, and a tap replaces the vowel sign already there.",
+        "LayerSpec.grid" to
+            "This layer's own grid, over the layout's: \"hex\" for a honeycomb, \"rect\" for plain rows on a honeycomb layout. " +
+            "Leave it out to follow the layout.",
         "LayerSpec.direct" to
             "Keys on this layer type exactly what they say, past the layout's composer: an ABC page on a Japanese kana pad " +
             "types a, not あ. A reading still being typed is committed first.",

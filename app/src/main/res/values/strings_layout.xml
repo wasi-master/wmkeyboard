@@ -210,6 +210,9 @@
     <string name="layout_floating_landscape_subtitle">Float the keyboard while the phone is sideways</string>
     <string name="layout_landscape_fullscreen_title">Full-screen typing in landscape</string>
     <string name="layout_landscape_fullscreen_subtitle">Type into a text box that covers the app</string>
+    <string name="layout_portrait_fullscreen_title">Full-screen typing upright</string>
+    <string name="layout_portrait_fullscreen_subtitle">Use the same text box with the phone upright</string>
+    <string name="layout_portrait_fullscreen_info">Android only uses the large text box with a Done button when the phone is sideways. Turn this on to type into it with the phone upright too, which shows what you write in big, plain text away from the app. Floating, handwriting and tablets never use it. This setting is off by default.</string>
     <string name="layout_landscape_fullscreen_info">When you hold the phone sideways, Android normally replaces the app with a large text box and a Done button while you type, because the keyboard leaves little room. Turn this off to keep the app in view above the keyboard, as in portrait. Some apps turn the text box off on their own. Tablets and unfolded phones never use it. This setting is on by default.</string>
     <string name="layout_floating_landscape_info">Turn this on and off on its own to float the keyboard sideways and keep it docked upright, or the other way round. The keyboard changes as soon as you turn the phone. Until you change one of the two, landscape follows the portrait switch.</string>
     <string name="layout_floating_handle_title">Handle bar position</string>

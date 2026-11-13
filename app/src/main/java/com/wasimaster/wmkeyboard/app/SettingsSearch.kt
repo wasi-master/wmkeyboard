@@ -1221,6 +1221,12 @@ private fun SearchStrings.layoutRows(): List<SettingsSearchEntry> {
             R.string.home_keymaps_title,
             "keymaps",
         ),
+        entry(
+            R.string.layout_editor_hex_grid_title,
+            R.string.layout_editor_hex_grid_subtitle,
+            R.string.home_keymaps_title,
+            "keymaps",
+        ),
     )
 }
 
@@ -1274,6 +1280,7 @@ private fun SearchStrings.layoutOnehandedRows(): List<SettingsSearchEntry> {
         row(R.string.layout_floating_title, R.string.layout_floating_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.layout_floating_landscape_title, R.string.layout_floating_landscape_subtitle),
         row(R.string.layout_landscape_fullscreen_title, R.string.layout_landscape_fullscreen_subtitle),
+        row(R.string.layout_portrait_fullscreen_title, R.string.layout_portrait_fullscreen_subtitle),
         row(R.string.layout_floating_handle_title, R.string.layout_floating_handle_subtitle),
         row(R.string.layout_floating_width_title, R.string.layout_floating_width_subtitle),
         row(R.string.layout_persistent_title, R.string.layout_persistent_subtitle, weight = EntryWeight.PRIMARY),
@@ -1632,6 +1639,7 @@ private fun SearchStrings.clipboardHistoryRows(): List<SettingsSearchEntry> {
         row(R.string.clipboard_pinned_last_title, R.string.clipboard_pinned_last_subtitle),
         row(R.string.clipboard_pinned_in_place_title, R.string.clipboard_pinned_in_place_subtitle),
         row(R.string.clipboard_pinned_folders_title, R.string.clipboard_pinned_folders_subtitle),
+        row(R.string.clipboard_text_only_title, R.string.clipboard_text_only_subtitle),
         row(R.string.clipboard_screenshots_title, R.string.clipboard_screenshots_subtitle)
             .takeIf { ChannelFeatures.SCREENSHOT_CLIPS },
         row(R.string.clipboard_track_source_title, R.string.clipboard_track_source_subtitle),
@@ -1703,6 +1711,7 @@ private fun SearchStrings.expanderRows(): List<SettingsSearchEntry> {
         // and it appears nowhere else in the index.
         row(R.string.expander_import_source_title, R.string.expander_source_espanso_body),
         row(R.string.expander_export_target_title, R.string.expander_target_espanso_body),
+        row(R.string.expander_text_action, R.string.expander_source_text_body),
     )
 }
 
@@ -2048,6 +2057,16 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         ToolbarTool.POWER_SAVING,
         R.string.tooldetail_power_drop_warm_models_title,
         R.string.tooldetail_power_drop_warm_models_subtitle,
+    ),
+    toolEntry(
+        ToolbarTool.POWER_SAVING,
+        R.string.tooldetail_power_dark_theme_title,
+        R.string.tooldetail_power_dark_theme_subtitle,
+    ),
+    toolEntry(
+        ToolbarTool.POWER_SAVING,
+        R.string.tooldetail_power_drop_suggestions_title,
+        R.string.tooldetail_power_drop_suggestions_subtitle,
     ),
     toolEntry(
         ToolbarTool.MEDIA_CONTROL,
@@ -3223,6 +3242,7 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
         under(R.string.customdict_emoji_import_action, 0, R.string.typing_custom_dictionaries_title, "customdictionaries"),
         under(R.string.backup_android_import_title, R.string.backup_android_import_subtitle, R.string.typing_personal_dictionary_title, "dictionary"),
         under(R.string.backup_gboard_import_title, R.string.backup_gboard_import_subtitle, R.string.typing_personal_dictionary_title, "dictionary"),
+        under(R.string.backup_dictionary_export_title, R.string.backup_dictionary_export_subtitle, R.string.typing_personal_dictionary_title, "dictionary"),
         under(R.string.backup_downloads_import_title, R.string.backup_downloads_import_subtitle, R.string.home_backup_title, "backup"),
         // The kaomoji library hangs off the emoji panel's page, beside the
         // switch that shows its tab.

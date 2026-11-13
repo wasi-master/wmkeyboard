@@ -175,6 +175,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -261,6 +262,9 @@ import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
 import com.wasimaster.wmkeyboard.core.layout.shippedLayoutRank
 import com.wasimaster.wmkeyboard.core.layout.sidePadFor
 import com.wasimaster.wmkeyboard.core.layout.spanBands
+import com.wasimaster.wmkeyboard.core.layout.HexGridKind
+import com.wasimaster.wmkeyboard.core.layout.hexBoard
+import com.wasimaster.wmkeyboard.core.layout.isHexGrid
 import com.wasimaster.wmkeyboard.core.layout.spanRowWidths
 import com.wasimaster.wmkeyboard.core.layout.spanSlots
 import com.wasimaster.wmkeyboard.core.layout.validateLayout
@@ -274,6 +278,7 @@ import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.ime.ui.KbTheme
+import com.wasimaster.wmkeyboard.ime.ui.HexFaceShape
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardThemeProvider
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
@@ -3854,6 +3859,15 @@ internal fun KeyLayoutEditorScreen(
             ) { on -> edit { it.copy(tabletExpand = on) } }
         }
         item(level = SettingLevel.ADVANCED) {
+            // The layout's own grid kind; a layer's own `grid` in the JSON still
+            // beats it, which only the JSON can set.
+            ToggleSetting(
+                R.string.layout_editor_hex_grid_title,
+                stringResource(R.string.layout_editor_hex_grid_subtitle),
+                edited.watch { isHexGrid(it.grid) },
+            ) { on -> edit { it.copy(grid = if (on) HexGridKind else null) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.layout_editor_json_title,
                 subtitle = stringResource(R.string.layout_editor_json_subtitle),
@@ -4720,7 +4734,25 @@ internal fun EditorGrid(
                         } else {
                             emptyList()
                         }
-                        for (band in spanBands(layout.rows)) {
+                        // A honeycomb is one block, as on the keyboard: its rows
+                        // interlock, so none of them can be drawn on its own.
+                        if (layout.hex && layout.rows.isNotEmpty()) {
+                            EditorHexBand(
+                                rows = layout.rows,
+                                kb = kb,
+                                gridWeight = gridWeight,
+                                heights = layout.rows.indices.map { heightOf(it) },
+                                selection = selection,
+                                multiSelection = multiSelection,
+                                showShift = showShift,
+                                fontScale = fontScale,
+                                onSelect = onSelect,
+                                cellModifier = cellModifier,
+                                glideActive = glideActive,
+                                face = KeyFace(enterSlot, spaceText, hintsOn),
+                            )
+                        }
+                        for (band in if (layout.hex) emptyList() else spanBands(layout.rows)) {
                             if (band.first != band.last) {
                                 EditorBand(
                                     slots = slots.filter { it.row in band },
@@ -5236,6 +5268,98 @@ internal fun EditorBand(
     }
 }
 
+/**
+ * The preview's honeycomb ([KeyboardLayout.hex]): every row placed the way the
+ * keyboard places it ([hexBoard]) and every key drawn as its hexagons
+ * ([HexFaceShape]), in one block as on the keyboard. Taps and drags pick keys
+ * by the rectangle each is laid out in, which is all the editor needs: a key is
+ * chosen, not typed.
+ *
+ * Placed like [EditorBand]: the 4dp between rows is each row's trailing gap, and
+ * 1.5dp each side is each cell's inset, which the hexagons take as their gap.
+ */
+@Composable
+private fun EditorHexBand(
+    rows: List<List<Key>>,
+    kb: KbTheme,
+    gridWeight: Float,
+    heights: List<Int>,
+    selection: KeyRef?,
+    showShift: Boolean,
+    fontScale: Float,
+    onSelect: (KeyRef) -> Unit,
+    multiSelection: Set<KeyRef>,
+    cellModifier: (KeyRef) -> Modifier,
+    glideActive: () -> Boolean,
+    face: KeyFace,
+) {
+    // The keyboard's own placement, without the touch areas a short row's end
+    // keys take: the preview draws faces, and taps go to what is drawn.
+    val board = remember(rows, gridWeight) { hexBoard(rows, gridWeight, extendEdges = false) }
+    val gapDp = 4
+    val gap = with(LocalDensity.current) { gapDp.dp.roundToPx() }
+    val pitch = with(LocalDensity.current) { heights.map { it.dp.roundToPx() + gap } }
+    val tops = IntArray(pitch.size + 1).also {
+        for (i in pitch.indices) it[i + 1] = it[i] + pitch[i]
+    }
+    // A third of the shortest row's pitch, as the keyboard caps it.
+    val maxAmplitude = ((heights.minOrNull() ?: 0) + gapDp) / 3f
+    Layout(
+        content = {
+            for (slot in board.slots) {
+                val ref = KeyRef(slot.row, slot.col)
+                key(slot.key) {
+                    EditorKeyCell(
+                        key = slot.key,
+                        kb = kb,
+                        heightDp = heights[slot.row],
+                        selected = selection == ref || ref in multiSelection,
+                        showShift = showShift,
+                        fontScale = fontScale,
+                        face = face,
+                        faceShape = HexFaceShape(
+                            widthCells = slot.width,
+                            startPhase = board.startPhase(slot),
+                            zigTop = board.joinedAbove(slot.row),
+                            zigBottom = board.joinedBelow(slot.row),
+                            gapDp = EditorCellInsetDp,
+                            maxAmplitudeDp = maxAmplitude,
+                        ),
+                        modifier = Modifier
+                            .padding(horizontal = EditorCellInsetDp.dp)
+                            .then(cellModifier(ref))
+                            .seatGlide(glideActive),
+                    ) { onSelect(ref) }
+                }
+            }
+        },
+    ) { measurables, constraints ->
+        val width = constraints.maxWidth
+        val unit = if (board.weight > 0f) width / board.weight else 0f
+        val lefts = IntArray(measurables.size)
+        val placeables = measurables.mapIndexed { index, measurable ->
+            val slot = board.slots[index]
+            val left = (unit * slot.x).roundToInt()
+            val right = (unit * slot.end).roundToInt()
+            lefts[index] = left
+            measurable.measure(
+                Constraints.fixed(
+                    width = (right - left).coerceIn(0, width),
+                    height = (tops[slot.row + 1] - tops[slot.row] - gap).coerceAtLeast(0),
+                ),
+            )
+        }
+        layout(width, (tops.last() - gap).coerceAtLeast(0)) {
+            placeables.forEachIndexed { index, placeable ->
+                placeable.placeRelative(lefts[index], tops[board.slots[index].row])
+            }
+        }
+    }
+}
+
+/** Half the 3dp the preview's rows put between neighbours, taken by each cell. */
+private const val EditorCellInsetDp = 1.5f
+
 @Composable
 internal fun EditorKeyCell(
     key: Key,
@@ -5247,6 +5371,12 @@ internal fun EditorKeyCell(
     fontScale: Float,
     modifier: Modifier = Modifier,
     face: KeyFace = KeyFace(),
+    /**
+     * The outline the face is drawn in, over the theme's: a honeycomb's
+     * hexagons. Painted rather than clipped, because the hexagon's points
+     * reach past the cell into the rows above and below.
+     */
+    faceShape: Shape? = null,
     onClick: () -> Unit,
 ) {
     // A panel component's cell: no key face, a hatched stand-in for the live
@@ -5275,11 +5405,16 @@ internal fun EditorKeyCell(
     Box(
         modifier = modifier
             .height(height)
-            .clip(kb.keyShape())
-            .background(background)
+            .then(
+                if (faceShape == null) {
+                    Modifier.clip(kb.keyShape()).background(background)
+                } else {
+                    Modifier.background(background, faceShape)
+                },
+            )
             .then(
                 if (selected) {
-                    Modifier.border(2.dp, kb.accent, kb.keyShape())
+                    Modifier.border(2.dp, kb.accent, faceShape ?: kb.keyShape())
                 } else {
                     Modifier
                 },

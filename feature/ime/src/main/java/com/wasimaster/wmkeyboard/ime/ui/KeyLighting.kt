@@ -18,7 +18,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
@@ -59,12 +63,15 @@ internal fun KeyLightingLayer(
     modifier: Modifier = Modifier,
     gapHDp: Float = 0f,
     gapVDp: Float = 0f,
+    /** A honeycomb key's own outline, by its cell; null lights the theme's rounded face. */
+    shapeAt: (Rect) -> Shape? = { null },
 ) {
     val glow = lighting.target == KeyLightingTarget.GLOW
     if (glow != behind) return
     var now by remember { mutableLongStateOf(SystemClock.uptimeMillis()) }
     var origin by remember { mutableStateOf(Offset.Zero) }
     val kit = remember(lighting) { LightingKit(lighting) }
+    val outlines = remember { FaceOutlines() }
     val reactive = lighting.pattern.reactive
     val pulse = if (reactive) ThemePulse.revision else 0
     // A steady light has nothing to animate: it repaints when the keys move.
@@ -78,7 +85,7 @@ internal fun KeyLightingLayer(
     }
     Canvas(modifier = modifier.onGloballyPositioned { origin = it.positionInRoot() }) {
         cellsRevision()
-        paintLighting(lighting, kit, cells(), now, origin, radiusDp, gapHDp * density, gapVDp * density)
+        paintLighting(lighting, kit, cells(), now, origin, radiusDp, gapHDp * density, gapVDp * density, shapeAt, outlines)
     }
 }
 
@@ -155,6 +162,8 @@ private fun DrawScope.paintLighting(
     radiusDp: Float,
     gapH: Float,
     gapV: Float,
+    shapeAt: (Rect) -> Shape?,
+    outlines: FaceOutlines,
 ) {
     if (cells.isEmpty()) return
     val t = now / 1000f * lighting.speed
@@ -196,6 +205,14 @@ private fun DrawScope.paintLighting(
         // still lights its key); the light itself goes on the face.
         val face = Rect(cell.left + gapH, cell.top + gapV, cell.right - gapH, cell.bottom - gapV)
         if (face.width <= 0f || face.height <= 0f) continue
+        val shape = shapeAt(cellRoot)
+        if (shape != null) {
+            val outline = outlines.of(cellRoot, shape, face.size, layoutDirection, this)
+            translate(face.left, face.top) {
+                lightHexKey(lighting, kit, outline, face.size, index, pick, color, a, reach, now)
+            }
+            continue
+        }
         lightKey(lighting, kit, face, index, pick, color, a, radius, reach, now)
     }
 }
@@ -266,6 +283,64 @@ internal fun DrawScope.lightKey(
             }
         }
         KeyLightingTarget.GLITTER -> glitter(kit.sparkles[pick], cell, index, now, a)
+    }
+}
+
+/**
+ * [lightKey] for a honeycomb key ([HexFaceShape]): the same lights, laid on its
+ * hexagons rather than on a rounded rectangle, in the face's own space ([size]
+ * is the face, [outline] its hexagons, which reach a little past it into the
+ * neighbouring rows' notches).
+ */
+private fun DrawScope.lightHexKey(
+    lighting: KbLighting,
+    kit: LightingKit,
+    outline: Outline,
+    size: Size,
+    index: Int,
+    pick: Int,
+    color: Color,
+    a: Float,
+    reach: Float,
+    now: Long,
+) {
+    when (lighting.target) {
+        KeyLightingTarget.FACE -> drawOutline(outline, color.copy(alpha = a * 0.55f), blendMode = BlendMode.Screen)
+        KeyLightingTarget.EDGE -> drawOutline(outline, color.copy(alpha = a), style = kit.edgeFor(lighting, density))
+        KeyLightingTarget.GLOW -> {
+            // The rings of [lightKey], as strokes round the hexagons.
+            val steps = 4
+            for (s in steps downTo 1) {
+                val grow = reach * s / steps
+                drawOutline(
+                    outline,
+                    color.copy(alpha = a * 0.22f * (1f - (s - 1f) / steps)),
+                    style = Stroke(width = grow * 2f),
+                )
+            }
+        }
+        KeyLightingTarget.FILL -> drawOutline(outline, color.copy(alpha = a * 0.8f))
+        KeyLightingTarget.GRADIENT -> {
+            val bounds = outline.bounds
+            val path = (outline as? Outline.Generic)?.path
+            if (path != null && bounds.width > 0f && bounds.height > 0f) {
+                clipPath(path) {
+                    translate(bounds.left, bounds.top) {
+                        scale(bounds.width, bounds.height, pivot = Offset.Zero) {
+                            drawRect(kit.gradients[pick], Offset.Zero, Size(1f, 1f), alpha = a * 0.85f)
+                        }
+                    }
+                }
+            }
+        }
+        KeyLightingTarget.GLITTER -> {
+            val path = (outline as? Outline.Generic)?.path
+            if (path == null) {
+                glitter(kit.sparkles[pick], Rect(Offset.Zero, size), index, now, a)
+            } else {
+                clipPath(path) { glitter(kit.sparkles[pick], Rect(Offset.Zero, size), index, now, a) }
+            }
+        }
     }
 }
 
