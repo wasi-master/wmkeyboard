@@ -2,7 +2,6 @@ package com.wasimaster.wmkeyboard.ime.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
