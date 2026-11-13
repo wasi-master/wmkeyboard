@@ -10,7 +10,11 @@ import com.wasimaster.wmkeyboard.core.notify.WmNotifications
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupLog
 import com.wasimaster.wmkeyboard.core.settings.sink.SafFolderSink
 import com.wasimaster.wmkeyboard.settings.R
+import java.io.File
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.first
 
 /** One line of the export log. [sections] are section ids, [sender] a package or empty. */
@@ -119,17 +123,33 @@ object AutomationExport {
         sections: Set<ConfigBackup.Section>,
     ) {
         require(folder.isNotEmpty())
-        val data = repository.exportSections(
-            sections,
-            includeSecrets = false,
-            excludeKeys = setOf(SettingsBackup.AUTO_BACKUP_LOCATIONS),
-        )
         val info = context.packageManager.getPackageInfo(context.packageName, 0)
         @Suppress("DEPRECATION")
         val versionCode = info.versionCode
-        SafFolderSink(context, Uri.parse(folder)).write(FILE_NAME, ConfigBackup.MIME_TYPE) { out ->
-            ConfigBackup.encodeTo(out, versionCode, info.versionName.orEmpty(), data)
-        }.getOrThrow()
+        // One section at a time, each written out before the next is read
+        // in, as the backups do (#1080): a large dictionary and statistics
+        // together were held whole before the first byte went out. Staged in
+        // the cache, since the folder's writer takes a plain block.
+        val staged = withContext(Dispatchers.IO) { File.createTempFile("automation-export", ".json", context.cacheDir) }
+        try {
+            withContext(Dispatchers.IO) {
+                staged.outputStream().buffered().use { out ->
+                    repository.exportConfigTo(
+                        out,
+                        sections,
+                        includeSecrets = false,
+                        appVersion = versionCode,
+                        appVersionName = info.versionName.orEmpty(),
+                        excludeKeys = setOf(SettingsBackup.AUTO_BACKUP_LOCATIONS),
+                    )
+                }
+            }
+            SafFolderSink(context, Uri.parse(folder)).write(FILE_NAME, ConfigBackup.MIME_TYPE) { out ->
+                staged.inputStream().use { it.copyTo(out) }
+            }.getOrThrow()
+        } finally {
+            withContext(NonCancellable + Dispatchers.IO) { staged.delete() }
+        }
     }
 
     private fun notify(context: Context) {
