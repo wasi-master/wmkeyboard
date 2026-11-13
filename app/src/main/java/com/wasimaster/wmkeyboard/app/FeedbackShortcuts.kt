@@ -24,6 +24,8 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -69,13 +71,14 @@ import kotlin.math.sqrt
 
 /**
  * The settings app's feedback form (#1242): what kind of report, a few words,
- * and the screen it was about, sent as a GitHub issue or to the Telegram
- * group, or both one after the other.
+ * and the screen it was about, sent as a GitHub issue, to the Telegram group
+ * or by email, or more than one of those one after the other.
  *
  * Opened from About › Feedback › Send feedback, and, when the user turns them
  * on there, by shaking the phone or taking a screenshot while this app is in
  * front. Nothing is sent from here: every route hands the report to another
- * app (the browser, Telegram) where the user reads it before it goes.
+ * app (the browser, Telegram, a mail app) where the user reads it before it
+ * goes.
  */
 internal object FeedbackForm {
     /** The form to open, with the screen it was opened over; null while closed. */
@@ -240,6 +243,7 @@ private fun captureWindow(activity: Activity, onDone: (File?) -> Unit) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FeedbackDialog(
     request: FeedbackRequest,
@@ -309,12 +313,15 @@ private fun FeedbackDialog(
                     }
                 }
                 CaptionText(stringResource(R.string.feedback_send_note))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick = { sendToGitHub(context, kind, text, picture) }) {
                         Text(stringResource(R.string.feedback_send_github))
                     }
                     OutlinedButton(onClick = { sendToTelegram(context, kind, text, picture, currentRoute) }) {
                         Text(stringResource(R.string.feedback_send_telegram))
+                    }
+                    OutlinedButton(onClick = { sendByEmail(context, kind, text, picture) }) {
+                        Text(stringResource(R.string.feedback_send_email))
                     }
                 }
             }
@@ -429,6 +436,43 @@ private fun sendToTelegram(
                 Toast.makeText(context, context.getString(R.string.feedback_no_browser), Toast.LENGTH_LONG).show()
             }
         }
+    }
+}
+
+/**
+ * A draft to [Support.EMAIL] in the user's mail app, for a report they would
+ * rather not post publicly. ACTION_SEND so the picture can go as an
+ * attachment, with a `mailto:` selector so the chooser offers mail apps only.
+ */
+private fun sendByEmail(context: Context, kind: FeedbackKind, text: String, screenshot: File?) {
+    val label = context.getString(kind.labelRes)
+    val subject = "WM Keyboard feedback ($label): " + titleOf(text)
+    val body = text.trim() + "\n\n---- build ----\n" + Support.environment() +
+        "\n\nSent from the app's feedback form."
+    val send = Intent(Intent.ACTION_SEND).apply {
+        putExtra(Intent.EXTRA_EMAIL, arrayOf(Support.EMAIL))
+        putExtra(Intent.EXTRA_SUBJECT, subject)
+        putExtra(Intent.EXTRA_TEXT, body)
+        if (screenshot != null) {
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.clipboard", screenshot)
+            type = "image/png"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            clipData = ClipData.newRawUri(null, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        } else {
+            type = "text/plain"
+        }
+        selector = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"))
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    val opened = runCatching { context.startActivity(send) }.isSuccess ||
+        Support.email(context, subject, body)
+    if (!opened) {
+        Toast.makeText(
+            context,
+            context.getString(R.string.about_no_email_app_error, Support.EMAIL),
+            Toast.LENGTH_LONG,
+        ).show()
     }
 }
 

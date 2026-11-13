@@ -390,9 +390,10 @@
     <string name="feedback_text_hint_question">What do you want to know?</string>
     <string name="feedback_attach_screenshot">Attach this screen</string>
     <string name="feedback_screenshot_desc">The screen the report is about</string>
-    <string name="feedback_send_note">Nothing is sent from here. GitHub or Telegram opens with your report filled in, and you send it there. Your build, Android version and phone model go with it.</string>
+    <string name="feedback_send_note">Nothing is sent from here. GitHub, Telegram or your mail app opens with your report filled in, and you send it there. Your build, Android version and phone model go with it.</string>
     <string name="feedback_send_github">GitHub issue</string>
     <string name="feedback_send_telegram">Telegram</string>
+    <string name="feedback_send_email">Email</string>
     <string name="feedback_screenshot_saved">The screen is saved in your gallery, in Pictures › WM Keyboard. Attach it to the issue from there.</string>
     <string name="feedback_screenshot_not_saved">The screen could not be saved on this Android version. Take a screenshot to attach it yourself.</string>
     <string name="feedback_topic_copied">Your report is copied. Paste it in the topic that opens.</string>
