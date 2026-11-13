@@ -8512,6 +8512,18 @@ data class ClipboardSettings(
      */
     val bumpOnPaste: Boolean = false,
     /**
+     * The first Backspace after a paste takes the whole pasted text back,
+     * not its last character (FUTO's "Delete pasted/inserted text on
+     * backspace"). Covers the Paste key and tool, a clip tapped in the panel
+     * or on the strip, and text a panel inserts whole: a kaomoji, a tool's
+     * result. Only while the caret is still at the paste's end and nothing
+     * was typed since; any other key, a caret move or a new field and
+     * Backspace deletes one character again. On by default, like
+     * [GestureSettings.backspaceUndoesGlide]: a paste in the wrong place is
+     * usually wrong as a whole.
+     */
+    val backspaceUndoesPaste: Boolean = true,
+    /**
      * The small "Rich text" tag under a clip that carries formatting (#414).
      * On by default. Off, the tag goes, and with it the footer row of a card
      * that had nothing else to show there, the same as the buttons toggle.
@@ -12557,6 +12569,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_CARD_BUTTONS = booleanPreferencesKey("clipboard_card_buttons")
         private val CLIPBOARD_TYPE_OUT_PASTES = booleanPreferencesKey("clipboard_type_out_pastes")
         private val CLIPBOARD_BUMP_ON_PASTE = booleanPreferencesKey("clipboard_bump_on_paste")
+        private val CLIPBOARD_BACKSPACE_UNDOES_PASTE = booleanPreferencesKey("clipboard_backspace_undoes_paste")
         private val CLIPBOARD_TYPE_TAGS = booleanPreferencesKey("clipboard_type_tags")
         private val CLIPBOARD_KEEP_RICH_TEXT = booleanPreferencesKey("clipboard_keep_rich_text")
         /** Read only, to carry the old right-swipe switch across to [CLIPBOARD_SWIPE_PIN]. */
@@ -14736,6 +14749,8 @@ class SettingsRepository(private val context: Context) {
             cardButtons = p[CLIPBOARD_CARD_BUTTONS] ?: defaults.clipboard.cardButtons,
             typeOutPastes = p[CLIPBOARD_TYPE_OUT_PASTES] ?: defaults.clipboard.typeOutPastes,
             bumpOnPaste = p[CLIPBOARD_BUMP_ON_PASTE] ?: defaults.clipboard.bumpOnPaste,
+            backspaceUndoesPaste = p[CLIPBOARD_BACKSPACE_UNDOES_PASTE]
+                ?: defaults.clipboard.backspaceUndoesPaste,
             typeTags = p[CLIPBOARD_TYPE_TAGS] ?: defaults.clipboard.typeTags,
             keepRichText = p[CLIPBOARD_KEEP_RICH_TEXT] ?: defaults.clipboard.keepRichText,
             swipePin = p[CLIPBOARD_SWIPE_PIN]
@@ -23995,6 +24010,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardBumpOnPaste(value: Boolean) =
         editPrefs { it[CLIPBOARD_BUMP_ON_PASTE] = value }
+
+    suspend fun setClipboardBackspaceUndoesPaste(value: Boolean) =
+        editPrefs { it[CLIPBOARD_BACKSPACE_UNDOES_PASTE] = value }
 
     suspend fun setClipboardTypeTags(value: Boolean) =
         editPrefs { it[CLIPBOARD_TYPE_TAGS] = value }
