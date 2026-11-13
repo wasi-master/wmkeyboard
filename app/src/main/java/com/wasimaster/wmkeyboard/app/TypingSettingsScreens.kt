@@ -134,6 +134,10 @@ import com.wasimaster.wmkeyboard.core.settings.RetypeButtonPlace
 import com.wasimaster.wmkeyboard.core.settings.stripHidden
 import com.wasimaster.wmkeyboard.core.settings.SuggestionOverflow
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeAction
+import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeUp
+import com.wasimaster.wmkeyboard.core.layout.SpaceSwipeSlot
+import com.wasimaster.wmkeyboard.core.layout.bindingOf
+import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
 import com.wasimaster.wmkeyboard.core.settings.WordMenuItem
 import com.wasimaster.wmkeyboard.core.settings.LanguagePickerStyle
 import com.wasimaster.wmkeyboard.core.settings.SpacebarDisplay
@@ -146,7 +150,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FiberManualRecord
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardTab
 import androidx.compose.ui.graphics.vector.ImageVector
 
-/** One spacebar-swipe slot (quick or hold+swipe): nothing / language / cursor. */
+/** One spacebar-swipe slot (quick or hold+swipe): nothing, language, cursor, … or another action. */
 @Composable
 private fun SpaceSwipeSetting(
     @StringRes title: Int,
@@ -162,6 +166,7 @@ private fun SpaceSwipeSetting(
     val numpad = stringResource(R.string.home_space_swipe_numpad_label)
     val keyboards = stringResource(R.string.home_space_swipe_keyboards_label)
     val secondary = stringResource(R.string.home_space_swipe_secondary_label)
+    val other = stringResource(R.string.home_space_swipe_action_label)
     ChoiceSetting(
         title = title,
         subtitle = subtitle,
@@ -174,6 +179,7 @@ private fun SpaceSwipeSetting(
                 SpaceSwipeAction.NUMPAD -> numpad
                 SpaceSwipeAction.KEYBOARDS -> keyboards
                 SpaceSwipeAction.SECONDARY_LAYOUT -> secondary
+                SpaceSwipeAction.ACTION -> other
             }
         },
         selected = value,
@@ -3031,7 +3037,27 @@ internal fun TypingSpacebarSettings(
     // What decides which rows the groups hold; each row reads its own value.
     val spaceCursor = settings.watch {
         it.spaceShortSwipe == SpaceSwipeAction.CURSOR || it.spaceLongSwipe == SpaceSwipeAction.CURSOR ||
-            it.textEditing.spaceSwipeUpTouchpad
+            it.textEditing.spaceSwipeUp == SpaceSwipeUp.TOUCHPAD
+    }
+    // Competitor gap list item 3: a slot set to another action gets a row
+    // under it naming the action, and picking "Another action" opens the
+    // multi-finger swipes' own picker straight away.
+    val shortSwipe = settings.watch { it.spaceShortSwipe }
+    val longSwipe = settings.watch { it.spaceLongSwipe }
+    val upSwipe = settings.watch { it.textEditing.spaceSwipeUp }
+    val swipeBindings = settings.watch { it.textEditing.spaceSwipeActions }
+    val pickLayouts = secondaryLayouts(settings.watch { it.customLayouts })
+    val pickModes = settings.watch { it.keyboardModes }
+    var pickingSlot by remember { mutableStateOf<SpaceSwipeSlot?>(null) }
+    @Composable
+    fun SwipeActionRow(slot: SpaceSwipeSlot, @StringRes swipeName: Int) {
+        val binding = swipeBindings.bindingOf(slot)
+        NavRow(
+            title = stringResource(R.string.typing_space_swipe_action_row_title, stringResource(swipeName)),
+            icon = SettingsRowIcons[R.string.typing_space_swipe_action_row_title],
+            value = binding?.let { fingerSwipeBindingName(it, pickLayouts, pickModes) }
+                ?: stringResource(R.string.typing_finger_swipe_nothing_value),
+        ) { pickingSlot = slot }
     }
     val spaceLanguage = settings.watch {
         it.spaceShortSwipe == SpaceSwipeAction.LANGUAGE || it.spaceLongSwipe == SpaceSwipeAction.LANGUAGE
@@ -3044,18 +3070,34 @@ internal fun TypingSpacebarSettings(
                 title = R.string.typing_space_short_swipe_title,
                 subtitle = stringResource(R.string.typing_space_short_swipe_subtitle),
                 info = stringResource(R.string.typing_space_short_swipe_info),
-                value = settings.watch { it.spaceShortSwipe },
+                value = shortSwipe,
                 default = SettingsDefaults.spaceShortSwipe,
-            ) { scope.launch { repository.setSpaceShortSwipe(it) } }
+            ) {
+                scope.launch { repository.setSpaceShortSwipe(it) }
+                if (it == SpaceSwipeAction.ACTION && swipeBindings.bindingOf(SpaceSwipeSlot.SHORT) == null) {
+                    pickingSlot = SpaceSwipeSlot.SHORT
+                }
+            }
+        }
+        item(visible = shortSwipe == SpaceSwipeAction.ACTION, key = "space_action_short") {
+            SwipeActionRow(SpaceSwipeSlot.SHORT, R.string.typing_space_swipe_action_short)
         }
         item(level = SettingLevel.STANDARD) {
             SpaceSwipeSetting(
                 title = R.string.typing_space_long_swipe_title,
                 subtitle = stringResource(R.string.typing_space_long_swipe_subtitle),
                 info = stringResource(R.string.typing_space_long_swipe_info),
-                value = settings.watch { it.spaceLongSwipe },
+                value = longSwipe,
                 default = SettingsDefaults.spaceLongSwipe,
-            ) { scope.launch { repository.setSpaceLongSwipe(it) } }
+            ) {
+                scope.launch { repository.setSpaceLongSwipe(it) }
+                if (it == SpaceSwipeAction.ACTION && swipeBindings.bindingOf(SpaceSwipeSlot.LONG) == null) {
+                    pickingSlot = SpaceSwipeSlot.LONG
+                }
+            }
+        }
+        item(visible = longSwipe == SpaceSwipeAction.ACTION, key = "space_action_long", level = SettingLevel.STANDARD) {
+            SwipeActionRow(SpaceSwipeSlot.LONG, R.string.typing_space_swipe_action_long)
         }
         // Issue #1088: a thumb that slides a little on its way to a space.
         item(level = SettingLevel.ADVANCED) {
@@ -3069,24 +3111,36 @@ internal fun TypingSpacebarSettings(
                 default = SettingsDefaults.textEditing.spaceSwipeDistanceDp.toFloat(),
             ) { scope.launch { repository.setSpaceSwipeDistanceDp(it.roundToInt()) } }
         }
-        // Issue #444: a swipe up is the touchpad, beside the sideways slots.
-        item(level = SettingLevel.ADVANCED) {
-            ToggleSetting(
-                R.string.typing_space_swipe_up_touchpad_title,
-                stringResource(R.string.typing_space_swipe_up_touchpad_subtitle),
-                settings.watch { it.textEditing.spaceSwipeUpTouchpad },
-                info = stringResource(R.string.typing_space_swipe_up_touchpad_info),
-                default = SettingsDefaults.textEditing.spaceSwipeUpTouchpad,
-            ) { scope.launch { repository.setSpaceSwipeUpTouchpad(it) } }
-        }
+        // A swipe up, beside the sideways slots: the touchpad (#444), the
+        // number pad, or another action (competitor gap list item 3). One
+        // answer where there were two switches.
         item(level = SettingLevel.STANDARD) {
-            ToggleSetting(
-                R.string.typing_space_swipe_up_numpad_title,
-                stringResource(R.string.typing_space_swipe_up_numpad_subtitle),
-                settings.watch { it.textEditing.spaceSwipeUpNumpad },
-                info = stringResource(R.string.typing_space_swipe_up_numpad_info),
-                default = SettingsDefaults.textEditing.spaceSwipeUpNumpad,
-            ) { scope.launch { repository.setSpaceSwipeUpNumpad(it) } }
+            ChoiceSetting(
+                title = R.string.typing_space_swipe_up_title,
+                subtitle = stringResource(R.string.typing_space_swipe_up_subtitle),
+                info = stringResource(R.string.typing_space_swipe_up_info),
+                options = SpaceSwipeUp.entries.map { up ->
+                    up to stringResource(
+                        when (up) {
+                            SpaceSwipeUp.NONE -> R.string.home_space_swipe_none_label
+                            SpaceSwipeUp.TOUCHPAD -> R.string.typing_space_swipe_up_touchpad_label
+                            SpaceSwipeUp.NUMPAD -> R.string.home_space_swipe_numpad_label
+                            SpaceSwipeUp.ACTION -> R.string.home_space_swipe_action_label
+                        },
+                    )
+                },
+                selected = upSwipe,
+                default = SettingsDefaults.textEditing.spaceSwipeUp,
+                detail = { up -> ChoiceDetail(stringResource(spaceSwipeUpDescRes(up))) },
+            ) {
+                scope.launch { repository.setSpaceSwipeUp(it) }
+                if (it == SpaceSwipeUp.ACTION && swipeBindings.bindingOf(SpaceSwipeSlot.UP) == null) {
+                    pickingSlot = SpaceSwipeSlot.UP
+                }
+            }
+        }
+        item(visible = upSwipe == SpaceSwipeUp.ACTION, key = "space_action_up", level = SettingLevel.STANDARD) {
+            SwipeActionRow(SpaceSwipeSlot.UP, R.string.typing_space_swipe_action_up)
         }
         // 2-D cursor pad only makes sense once a slide is set to cursor control.
         if (spaceCursor) {
@@ -3316,6 +3370,18 @@ internal fun TypingSpacebarSettings(
                 info = stringResource(R.string.typing_spacebar_live_wpm_info),
                 default = SettingsDefaults.spacebarLiveWpm,
             ) { scope.launch { repository.setSpacebarLiveWpm(it) } }
+        }
+    }
+
+    pickingSlot?.let { slot ->
+        KeyBindingPicker(
+            current = swipeBindings.bindingOf(slot),
+            layouts = pickLayouts,
+            modes = pickModes,
+            onDismiss = { pickingSlot = null },
+        ) { binding ->
+            pickingSlot = null
+            scope.launch { repository.setSpaceSwipeAction(slot, binding) }
         }
     }
 }
@@ -4131,6 +4197,14 @@ private fun HardwareShortcutRow(
             )
 }
 
+/** What the swipe up does under each answer, for the sheet. */
+private fun spaceSwipeUpDescRes(up: SpaceSwipeUp): Int = when (up) {
+    SpaceSwipeUp.NONE -> R.string.typing_space_swipe_up_none_desc
+    SpaceSwipeUp.TOUCHPAD -> R.string.typing_space_swipe_up_touchpad_desc
+    SpaceSwipeUp.NUMPAD -> R.string.typing_space_swipe_up_numpad_desc
+    SpaceSwipeUp.ACTION -> R.string.typing_space_swipe_action_desc
+}
+
 /** What one spacebar swipe slot does under each answer, for the sheet. */
 private fun spaceSwipeDescRes(action: SpaceSwipeAction): Int = when (action) {
     SpaceSwipeAction.NONE -> R.string.typing_space_swipe_none_desc
@@ -4139,6 +4213,7 @@ private fun spaceSwipeDescRes(action: SpaceSwipeAction): Int = when (action) {
     SpaceSwipeAction.NUMPAD -> R.string.typing_space_swipe_numpad_desc
     SpaceSwipeAction.KEYBOARDS -> R.string.typing_space_swipe_keyboards_desc
     SpaceSwipeAction.SECONDARY_LAYOUT -> R.string.typing_space_swipe_secondary_desc
+    SpaceSwipeAction.ACTION -> R.string.typing_space_swipe_action_desc
 }
 
 /**

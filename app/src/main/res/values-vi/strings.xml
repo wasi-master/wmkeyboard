@@ -12957,12 +12957,6 @@
     <string name="typing_space_swipe_language_desc">Chuyển sang ngôn ngữ tiếp theo của bạn</string>
     <string name="typing_space_swipe_none_desc">Thao tác vuốt không thực hiện gì cả</string>
     <string name="typing_space_swipe_numpad_desc">Mở bàn phím số</string>
-    <string name="typing_space_swipe_up_numpad_info">Vuốt lên từ phím cách ở bất kỳ tốc độ nào, bàn phím số sẽ mở ra giống như cách SwiftKey thực hiện. Thao tác vuốt cần đi lên một khoảng ngắn trước, vì vậy nếu chỉ chạm và trượt nhẹ thì vẫn sẽ gõ dấu cách. Vuốt sang ngang vẫn giữ nguyên các thao tác đã thiết lập ở trên. Nếu tùy chọn Vuốt lên để mở bàn di chuột cũng đang bật, thì bàn di chuột sẽ được ưu tiên. Cài đặt này mặc định bị tắt.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Vuốt lên từ phím cách để mở bàn phím số</string>
-    <string name="typing_space_swipe_up_numpad_title">Vuốt lên để mở bàn phím số</string>
-    <string name="typing_space_swipe_up_touchpad_info">Vuốt lên từ phím cách, sau đó giữ ngón tay và di chuyển: con trỏ sẽ di chuyển trái, phải, lên và xuống, giống như bàn di chuột 2D, cho đến khi bạn nhấc tay ra. Thao tác vuốt cần đi một đoạn ngắn lên trước, vì vậy một lần nhấn trượt nhẹ vẫn sẽ gõ dấu cách. Các thao tác vuốt sang bên vẫn giữ nguyên các hành động đã cài đặt ở trên, giúp bạn vuốt nhanh để đổi ngôn ngữ mà không cần phải giữ phím cách trước. Khi cả hai tùy chọn \'Giữ di chuyển trong khi nhấn\' và \'Toàn bộ bàn phím làm bàn di chuột\' đều bật, con trỏ sẽ tiếp tục di chuyển khi ngón tay của bạn chạm đến bất kỳ cạnh nào của bàn phím: các cạnh bên di chuyển dọc theo dòng, cạnh trên và dưới di chuyển giữa các dòng. Cài đặt này mặc định bị tắt.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Vuốt lên từ phím cách để di chuyển con trỏ theo mọi hướng</string>
-    <string name="typing_space_swipe_up_touchpad_title">Vuốt lên để mở bàn di chuột</string>
     <string name="typing_spacebar_display_both_label">Cả hai</string>
     <string name="typing_spacebar_display_info">Ngôn ngữ hiển thị tên của ngôn ngữ hiện tại. Bố cục hiển thị tên của bố cục hiện tại. Cả hai hiển thị \"Ngôn ngữ (Bố cục)\". Khi một ngôn ngữ có nhiều hơn một bố cục được bật, bàn phím sẽ thêm tên bố cục để bạn có thể thấy sự khác biệt.</string>
     <string name="typing_spacebar_display_language_label">Ngôn ngữ</string>

@@ -209,6 +209,7 @@ Full detail on all three (plus the floating panel's drag pill and resize grip) i
 |---|---|---|
 | Comma key opens emoji | Toggle | Off |
 | 1234 key on the symbol pages | Toggle | Off |
+| Text editing key on the symbol pages | Toggle | Off |
 | Show the 🌐 key | Toggle | On |
 | Emoji key instead of 🌐 | Toggle | On |
 | Key in place of 🌐 *(shown while Emoji key instead of 🌐 is on)* | Tool picker | Emoji |
@@ -223,6 +224,8 @@ Full detail on all three (plus the floating panel's drag pill and resize grip) i
 **Emoji key instead of 🌐** is on by default. The bottom-row <KeyCap>🌐</KeyCap> key opens the emoji panel instead of switching language, and language switching moves to a spacebar swipe (Language, by default). **Key in place of 🌐** picks what that key opens: the emoji panel, or any tool, such as Stickers, Clipboard or Translate, whose icon the key then wears. **Comma key opens emoji** takes over the comma key the same way, with comma demoted to a long-press alternate. Turning it on also removes the emoji tool from the toolbar, since the key is meant to replace it.
 
 **1234 key on the symbol pages** is off by default. Turn it on and both symbol pages get a <KeyCap>1234</KeyCap> key straight after <KeyCap>ABC</KeyCap>, as in Gboard, which opens the [number pad](/tools/text-editing/#the-numeric-keypad) over the current field. The spacebar gives up one key's width to make room, so the row keeps its length. A layout that already has a number pad key, a symbol page you arranged by hand in the layout editor, and a spacebar too narrow to give up the width are all left as they are.
+
+**Text editing key on the symbol pages** is off by default. Turn it on and both symbol pages get a key that opens the [text editing panel](/tools/text-editing/), the arrows, select, copy, cut, paste, undo and redo. It wears the tool's own icon and sits straight after the 1234 key when that is on, otherwise straight after <KeyCap>ABC</KeyCap>. The spacebar gives up one key's width, as it does for the 1234 key. It stays off by default because a new key on a bottom row people know by touch gets pressed by accident; HeliBoard added a switch to hide its own version for that reason. A spacebar swipe set to Another action can open the same panel without a key.
 
 **Swap the comma and 🌐 keys** is on by default. Without it the bottom row reads `?123` · `,` · 🌐 · space · `.` · ⏎; with it the two keys either side of the spacebar trade places, so it reads `?123` · 🌐 · `,` · space · `.` · ⏎. It's a straight positional swap and it runs after the emoji rewrites, so whichever of the two you turned into an emoji key travels with its slot. On the default settings that puts the emoji key in the outer position and the comma next to the spacebar. It applies to every layout, imported and custom ones included, and to the symbol layers too, so the row doesn't reshuffle on the way into `?123`.
 

@@ -12970,12 +12970,6 @@
     <string name="typing_space_swipe_language_desc">Mudar para o seu próximo idioma</string>
     <string name="typing_space_swipe_none_desc">O deslize não faz nada</string>
     <string name="typing_space_swipe_numpad_desc">Abrir o teclado numérico</string>
-    <string name="typing_space_swipe_up_numpad_info">Deslize para cima a partir da barra de espaço, em qualquer velocidade, e o teclado numérico abrirá, da mesma forma que o SwiftKey faz. O deslize precisa subir um pouco primeiro, para que um toque que deslize levemente ainda digite um espaço. Deslizes laterais mantêm as ações definidas acima. Se o deslize para cima para o touchpad também estiver ativado, o touchpad tem prioridade. Esta configuração está desativada por padrão.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Deslizar para cima a partir da barra de espaço abre o teclado numérico</string>
-    <string name="typing_space_swipe_up_numpad_title">Deslize para cima para o teclado numérico</string>
-    <string name="typing_space_swipe_up_touchpad_info">Deslize para cima a partir da barra de espaço, depois mantenha o dedo pressionado e mova-o: o cursor segue para a esquerda, direita, para cima e para baixo, como o touchpad do cursor 2D, até você soltar. O deslize precisa subir um pouco primeiro, então um toque que desliza um pouco ainda digita um espaço. Deslizes laterais mantêm as ações definidas acima, então um deslize rápido ainda pode alternar o idioma e você não precisa segurar a barra de espaço primeiro. Com \"Continuar movendo enquanto pressionado\" e \"Teclado inteiro como touchpad\" ambos ativados, o cursor continua se movendo quando seu dedo atinge qualquer borda do teclado: as laterais o movem ao longo da linha, o topo e a parte inferior o movem entre as linhas. Esta configuração está desativada por padrão.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Deslizar para cima a partir da barra de espaço move o cursor em todas as direções</string>
-    <string name="typing_space_swipe_up_touchpad_title">Deslize para cima para o touchpad</string>
     <string name="typing_spacebar_display_both_label">Ambos</string>
     <string name="typing_spacebar_display_info">Idioma mostra o nome do idioma atual. Layout mostra o nome do layout atual. Ambos mostram \"Idioma (Layout)\". Quando um idioma tem mais de um layout ativado, o teclado adiciona o nome do layout para que você possa ver a diferença.</string>
     <string name="typing_spacebar_display_language_label">Idioma</string>

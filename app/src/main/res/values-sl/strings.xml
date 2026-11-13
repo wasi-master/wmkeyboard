@@ -12981,12 +12981,6 @@
     <string name="typing_space_swipe_language_desc">Preklopi na naslednji jezik</string>
     <string name="typing_space_swipe_none_desc">Povlek ne naredi ničesar</string>
     <string name="typing_space_swipe_numpad_desc">Odprite številčnico</string>
-    <string name="typing_space_swipe_up_numpad_info">Povlecite navzgor s preslednice, pri kateri koli hitrosti, in odpre se številčnica, tako kot pri SwiftKey. Poteg mora najprej iti malo navzgor, tako da dotik, ki malo zdrsne, še vedno vpiše preslednico. Stranski potegi ohranijo zgoraj nastavljena dejanja. Če je vklopljen tudi poteg navzgor za sledilno ploščico, ima sledilna ploščica prednost. Ta nastavitev je privzeto izklopljena.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Poteg navzgor od preslednice odpre številčnico</string>
-    <string name="typing_space_swipe_up_numpad_title">Povlecite navzgor za številčnico</string>
-    <string name="typing_space_swipe_up_touchpad_info">Povlecite navzgor s preslednice, nato držite prst in ga premikajte: kazalec sledi levo, desno, gor in dol, kot pri 2D sledilni ploščici, dokler ga ne dvignete. Poteg mora najprej iti malo navzgor, tako da tapkanje, ki malo zdrsne, še vedno vpiše preslednico. Stranski potegi ohranijo zgoraj nastavljena dejanja, tako da lahko hiter poteg še vedno preklopi jezik in vam ni treba najprej držati preslednice. Če sta vklopljeni možnosti \"Nadaljuj premikanje med držanjem\" in \"Celotna tipkovnica kot sledilna ploščica\", se kazalec premika naprej, ko prst doseže kateri koli rob tipkovnice: stranice ga premikajo vzdolž vrstice, vrh in dno pa med vrsticami. Ta nastavitev je privzeto izklopljena.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Povlek navzgor s preslednice premakne kazalec v vse smeri</string>
-    <string name="typing_space_swipe_up_touchpad_title">Povlecite navzgor za sledilno ploščico</string>
     <string name="typing_spacebar_display_both_label">Oboje</string>
     <string name="typing_spacebar_display_info">Jezik prikazuje ime trenutnega jezika. Razporeditev prikazuje ime trenutne razporeditve. Oboje prikazuje \"Jezik (Razporeditev)\". Ko ima en jezik vklopljeno več kot eno razporeditev, tipkovnica doda ime razporeditve, da lahko vidite razliko.</string>
     <string name="typing_spacebar_display_language_label">Jezik</string>

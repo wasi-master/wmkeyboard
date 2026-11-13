@@ -12985,12 +12985,6 @@
     <string name="typing_space_swipe_language_desc">Shintshela olimini lwakho olulandelayo</string>
     <string name="typing_space_swipe_none_desc">Ukuslayida akwenzi lutho</string>
     <string name="typing_space_swipe_numpad_desc">Vula iphedi yezinombolo</string>
-    <string name="typing_space_swipe_up_numpad_info">Swayiphela phezulu kusuka kubha yesikhala, nganoma yisiphi isivinini, bese ikhiphedi yezinombolo ivuleka, ngendlela i-SwiftKey eyenza ngayo. Ukuswayipha kufanele kuqale kancane phezulu, ngakho ukuthepha okuslayida kancane kusathayipha isikhala. Ukuswayipha eceleni kugcina izenzo ezibekwe ngenhla. Uma ukuswayiphela phezulu kwephedi yokuthinta kuvuliwe futhi, iphedi yokuthinta iyawina. Lesi silungiselelo sivaliwe ngokuzenzakalelayo.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Ukuswayipha phezulu kusuka kubha yesikhala kuvula iphedi yezinombolo</string>
-    <string name="typing_space_swipe_up_numpad_title">Swayiphela phezulu ukuze uthole iphedi yezinombolo</string>
-    <string name="typing_space_swipe_up_touchpad_info">Swayipha phezulu usuka kubha yesikhala, bese ubamba umunwe wakho phansi uwuhambise: isikhombisi silandela kwesobunxele, kwesokudla, phezulu naphansi, njenge-touchpad yesikhombisi se-2-D, uze uphakamise umunwe. Ukuswayipha kumele kuqale kancane phezulu, ngakho ukuthepha okushelelayo kancane kusabhalela isikhala. Ukuswayipha eceleni kugcina izenzo ezibekwe ngenhla, ngakho ukuswayipha okusheshayo kusengashintsha ulimi futhi akudingeki ubambe ibha yesikhala kuqala. Uma i-Keep moving while held kanye ne-Whole keyboard as touchpad zombili zivuliwe, isikhombisi siyaqhubeka lapho umunwe wakho ufika kunoma yimuphi umphetho wekhibhodi: izinhlangothi zikuhambisa emgqeni, phezulu naphansi zikuhambisa phakathi kwemigqa. Lesi silungiselelo sivaliwe ngokuzenzakalelayo.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Ukuhlephula phezulu kusuka kubha yesikhala kuhambisa isikhombisi kuzo zonke izinkomba</string>
-    <string name="typing_space_swipe_up_touchpad_title">Swayiphela phezulu ukuze uthole i-touchpad</string>
     <string name="typing_spacebar_display_both_label">Kokubili</string>
     <string name="typing_spacebar_display_info">Ulimi lubonisa igama lolimi lwamanje. Isakhiwo sibonisa igama lesakhiwo samanje. Zombili zibonisa \"Ulimi (Isakhiwo)\". Uma ulimi olulodwa lunokwedlula isakhiwo esisodwa, ikhibhodi yengeza igama lesakhiwo, ukuze ubone umehluko.</string>
     <string name="typing_spacebar_display_language_label">Ulimi</string>

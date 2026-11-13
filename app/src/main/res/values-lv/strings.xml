@@ -12979,12 +12979,6 @@
     <string name="typing_space_swipe_language_desc">Pārslēgties uz nākamo valodu</string>
     <string name="typing_space_swipe_none_desc">Pārvilkšana neko nedara</string>
     <string name="typing_space_swipe_numpad_desc">Atvērt ciparu tastatūru</string>
-    <string name="typing_space_swipe_up_numpad_info">Pārvelciet uz augšu no atstarpes taustiņa, jebkurā ātrumā, un atvērsies ciparu tastatūra, tāpat kā to dara SwiftKey. Pārvilkšanai vispirms ir jābūt nedaudz uz augšu, tāpēc pieskāriens, kas nedaudz paslīd, joprojām ievada atstarpi. Pārvilkšana uz sāniem saglabā iepriekš iestatītās darbības. Ja ir ieslēgta arī pārvilkšana uz augšu skārienpaliktnim, skārienpaliktnis iegūst prioritāti. Šis iestatījums pēc noklusējuma ir izslēgts.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Vilkšana uz augšu no atstarpes taustiņa atver ciparu tastatūru</string>
-    <string name="typing_space_swipe_up_numpad_title">Pārvelciet uz augšu, lai atvērtu ciparu tastatūru</string>
-    <string name="typing_space_swipe_up_touchpad_info">Pārvelciet uz augšu no atstarpes taustiņa, pēc tam turiet pirkstu nospiestu un pārvietojiet to: kursors seko pa kreisi, pa labi, uz augšu un uz leju, līdzīgi kā 2D kursora skārienpaliktnī, līdz atlaižat pirkstu. Pārvilkšanai vispirms ir jābūt nedaudz uz augšu, tāpēc pieskāriens, kas nedaudz paslīd, joprojām ievada atstarpi. Pārvilkšana uz sāniem saglabā iepriekš iestatītās darbības, tāpēc ātra pārvilkšana joprojām var mainīt valodu, un jums nav vispirms jātur atstarpes taustiņš. Ja ir ieslēgti gan \"Turpināt kustību, kamēr turat\", gan \"Visa tastatūra kā skārienpaliktnis\", kursors turpina kustēties, kad pirksts sasniedz jebkuru tastatūras malu: sāni pārvieto to pa līniju, augšdaļa un apakšdaļa pārvieto to starp līnijām. Šis iestatījums pēc noklusējuma ir izslēgts.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Pārvelkot uz augšu no atstarpes taustiņa, kursors pārvietojas visos virzienos</string>
-    <string name="typing_space_swipe_up_touchpad_title">Pārvelciet uz augšu, lai atvērtu skārienpaliktni</string>
     <string name="typing_spacebar_display_both_label">Abi</string>
     <string name="typing_spacebar_display_info">Valoda rāda pašreizējās valodas nosaukumu. Izkārtojums rāda pašreizējā izkārtojuma nosaukumu. Abi rāda \"Valoda (Izkārtojums)\". Kad vienai valodai ir ieslēgts vairāk nekā viens izkārtojums, tastatūra pievieno izkārtojuma nosaukumu, lai jūs varētu redzēt atšķirību.</string>
     <string name="typing_spacebar_display_language_label">Valoda</string>

@@ -12983,12 +12983,6 @@
     <string name="typing_space_swipe_language_desc">Byt till ditt nästa språk</string>
     <string name="typing_space_swipe_none_desc">Svepet gör ingenting</string>
     <string name="typing_space_swipe_numpad_desc">Öppna siffertangentbordet</string>
-    <string name="typing_space_swipe_up_numpad_info">Svep uppåt från mellanslagstangenten, oavsett hastighet, så öppnas siffertangentbordet, på samma sätt som SwiftKey gör det. Svepet måste gå en kort bit uppåt först, så ett tryck som glider lite skriver fortfarande ett mellanslag. Svep åt sidan behåller åtgärderna som ställts in ovan. Om Svep uppåt för pekplattan också är aktiverat, vinner pekplattan. Denna inställning är avstängd som standard.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Ett svep uppåt från mellanslagstangenten öppnar siffertangentbordet</string>
-    <string name="typing_space_swipe_up_numpad_title">Svep uppåt för siffertangentbordet</string>
-    <string name="typing_space_swipe_up_touchpad_info">Svep uppåt från mellanslagstangenten, håll sedan fingret nere och flytta det: markören följer med åt vänster, höger, uppåt och nedåt, precis som en 2D-pekplatta, tills du lyfter fingret. Svepet måste gå en kort bit uppåt först, så ett tryck som glider lite fortfarande skriver ett mellanslag. Svep åt sidorna behåller åtgärderna som ställts in ovan, så ett snabbt svep kan fortfarande byta språk och du behöver inte hålla in mellanslagstangenten först. Med både \"Fortsätt flytta medan den hålls nedtryckt\" och \"Hela tangentbordet som pekplatta\" aktiverade, fortsätter markören att röra sig när fingret når kanten på tangentbordet: sidorna flyttar den längs raden, toppen och botten flyttar den mellan rader. Denna inställning är avstängd som standard.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Ett svep uppåt från mellanslagstangenten flyttar markören i alla riktningar</string>
-    <string name="typing_space_swipe_up_touchpad_title">Svep uppåt för pekplattan</string>
     <string name="typing_spacebar_display_both_label">Båda</string>
     <string name="typing_spacebar_display_info">Språk visar namnet på det aktuella språket. Layout visar namnet på den aktuella layouten. Båda visar \"Språk (Layout)\". När ett språk har mer än en layout aktiverad lägger tangentbordet till layoutnamnet så att du kan se skillnaden.</string>
     <string name="typing_spacebar_display_language_label">Språk</string>

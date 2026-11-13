@@ -12971,12 +12971,6 @@
     <string name="typing_space_swipe_language_desc">Schimbați la următoarea limbă</string>
     <string name="typing_space_swipe_none_desc">Glisarea nu face nimic</string>
     <string name="typing_space_swipe_numpad_desc">Deschide tastatura numerică</string>
-    <string name="typing_space_swipe_up_numpad_info">Glisați în sus de pe bara de spațiu, la orice viteză, și se va deschide tastatura numerică, exact cum face SwiftKey. Glisarea trebuie să parcurgă mai întâi o distanță scurtă în sus, astfel încât o atingere care alunecă puțin să scrie în continuare un spațiu. Glisările laterale păstrează acțiunile setate mai sus. Dacă este activată și glisarea în sus pentru touchpad, touchpad-ul are prioritate. Această setare este dezactivată implicit.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">O glisare în sus de pe bara de spațiu deschide tastatura numerică</string>
-    <string name="typing_space_swipe_up_numpad_title">Glisați în sus pentru tastatura numerică</string>
-    <string name="typing_space_swipe_up_touchpad_info">Glisați în sus de pe bara de spațiu, apoi mențineți degetul apăsat și mișcați-l: cursorul urmează stânga, dreapta, sus și jos, ca un touchpad cu cursor 2D, până când ridicați degetul. Glisarea trebuie să parcurgă mai întâi o distanță scurtă în sus, astfel încât o atingere care alunecă puțin să scrie în continuare un spațiu. Glisările laterale păstrează acțiunile setate mai sus, astfel încât o glisare rapidă poate schimba în continuare limba fără a fi nevoie să țineți apăsată bara de spațiu mai întâi. Cu opțiunile „Continuă mișcarea în timp ce este ținut apăsat” și „Întreaga tastatură ca touchpad” activate, cursorul continuă să se miște când degetul ajunge la orice margine a tastaturii: părțile laterale îl mișcă de-a lungul liniei, sus și jos îl mișcă între linii. Această setare este dezactivată implicit.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">O glisare în sus de pe bara de spațiu mută cursorul în orice direcție</string>
-    <string name="typing_space_swipe_up_touchpad_title">Glisați în sus pentru touchpad</string>
     <string name="typing_spacebar_display_both_label">Ambele</string>
     <string name="typing_spacebar_display_info">Limbă afișează numele limbii curente. Aspect afișează numele aspectului curent. Ambele afișează „Limbă (Aspect)”. Când o limbă are mai mult de un aspect activat, tastatura adaugă numele aspectului, astfel încât să poți vedea diferența.</string>
     <string name="typing_spacebar_display_language_label">Limbă</string>

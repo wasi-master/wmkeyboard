@@ -57,6 +57,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Autorenew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BatteryAlert
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BatterySaver
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bolt
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mouse
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CalendarMonth
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Celebration
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Collections
@@ -157,6 +159,7 @@ import com.wasimaster.wmkeyboard.core.settings.SensitiveClipHandling
 import com.wasimaster.wmkeyboard.core.settings.LanguagePickerStyle
 import com.wasimaster.wmkeyboard.core.settings.SwitcherExtraStop
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeAction
+import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeUp
 import com.wasimaster.wmkeyboard.core.settings.SpacebarDisplay
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
 import com.wasimaster.wmkeyboard.core.settings.ThemeGalleryStyle
@@ -367,6 +370,12 @@ internal object ChoiceOptionIcons {
         put(SpaceSwipeAction.NUMPAD) { Icons.Outlined.Dialpad }
         put(SpaceSwipeAction.KEYBOARDS) { Icons.Outlined.Keyboard }
         put(SpaceSwipeAction.SECONDARY_LAYOUT) { Icons.Outlined.GridView }
+        put(SpaceSwipeAction.ACTION) { Icons.Outlined.Bolt }
+
+        put(SpaceSwipeUp.NONE) { Icons.Outlined.Block }
+        put(SpaceSwipeUp.TOUCHPAD) { Icons.Outlined.Mouse }
+        put(SpaceSwipeUp.NUMPAD) { Icons.Outlined.Dialpad }
+        put(SpaceSwipeUp.ACTION) { Icons.Outlined.Bolt }
 
         put(SpacebarDisplay.LANGUAGE) { Icons.Outlined.Language }
         put(SpacebarDisplay.LAYOUT) { Icons.Outlined.Keyboard }

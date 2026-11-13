@@ -123,6 +123,7 @@
     <string name="search_kw_keypress_popup">preview flyout magnifier</string>
     <string name="search_kw_keypress_symbols_numpad">numpad keypad dialpad</string>
     <string name="search_kw_layout_symbols_numpad_key">numpad keypad dialpad gboard</string>
+    <string name="search_kw_layout_symbols_text_edit_key">dpad arrows cursor select copy paste heliboard</string>
     <string name="search_kw_keypress_enter_emoji">return smiley emoticon longpress</string>
     <string name="search_kw_langemoji_emoji_animated">gif live</string>
     <string name="search_kw_langemoji_emoji_font">noto twemoji blob style</string>
@@ -236,6 +237,8 @@
     <string name="search_kw_layout_extend_edge_keys">hitbox hit box touch area target gap margin</string>
     <string name="search_kw_typing_smart_hit_detection">hit detection hitbox proximity targeting</string>
     <string name="search_kw_typing_smart_contacts">phone dial sms message</string>
+    <string name="search_kw_typing_space_swipe_up">touchpad trackpad numpad number pad action tool gesture</string>
+    <string name="search_kw_typing_space_swipe_slot">gesture action tool shortcut text editing cursor language</string>
     <string name="search_kw_typing_smart_repeats">repeating spam duplicate again hahaha</string>
     <string name="search_kw_typing_smart_numbers">thousands separator comma</string>
     <string name="search_kw_typing_smart_replies">canned responses</string>

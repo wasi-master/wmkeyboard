@@ -12960,12 +12960,6 @@
     <string name="typing_space_swipe_language_desc">Skipta yfir á næsta tungumál</string>
     <string name="typing_space_swipe_none_desc">Strýk gerir ekkert</string>
     <string name="typing_space_swipe_numpad_desc">Opna talnaborðið</string>
-    <string name="typing_space_swipe_up_numpad_info">Strjúktu upp frá bilslánni, á hvaða hraða sem er, og talnaborðið opnast, eins og í SwiftKey. Strjúkið þarf að fara stutta leið upp fyrst, svo pikki sem rennur aðeins til slær samt inn bil. Strjúk til hliðar halda aðgerðunum sem settar voru upp fyrir ofan. Ef Strjúka upp fyrir snertiborð er líka kveikt, vinnur snertiborðið. Þessi stilling er sjálfgefið slökkt.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Strjúka upp frá bilslánni opnar talnaborðið</string>
-    <string name="typing_space_swipe_up_numpad_title">Strjúktu upp fyrir talnaborð</string>
-    <string name="typing_space_swipe_up_touchpad_info">Strjúktu upp frá bilslánni, haltu fingrinum niðri og hreyfðu hann: bendillinn fylgir til vinstri, hægri, upp og niður, eins og á 2D snertiborði, þar til þú lyftir fingrinum. Strjúkið þarf að fara stutta leið upp fyrst, svo að snerting sem rennur aðeins til skrifar samt bil. Strjúk til hliðanna halda aðgerðunum sem settar eru upp hér að ofan, svo fljótt strjúk getur samt skipt um tungumál og þú þarft ekki að halda bilslánni fyrst. Með „Haltu áfram að hreyfa á meðan haldið er“ og „Allt lyklaborðið sem snertiborð“ bæði virk, heldur bendillinn áfram þegar fingurinn nær hvaða brún lyklaborðsins sem er: hliðarnar færa hann eftir línunni, efst og neðst færa hann á milli lína. Þessi stilling er óvirk sjálfgefið.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Strjúk upp frá bilslánni færir bendilinn í allar áttir</string>
-    <string name="typing_space_swipe_up_touchpad_title">Strjúktu upp fyrir snertiborð</string>
     <string name="typing_spacebar_display_both_label">Bæði</string>
     <string name="typing_spacebar_display_info">Tungumál sýnir nafn núverandi tungumáls. Skipulag sýnir nafn núverandi skipulags. Bæði sýnir \"Tungumál (Skipulag)\". Þegar eitt tungumál hefur fleiri en eitt skipulag virkt, bætir lyklaborðið við nafni skipulagsins svo þú getir séð muninn.</string>
     <string name="typing_spacebar_display_language_label">Tungumál</string>

@@ -12975,12 +12975,6 @@
     <string name="typing_space_swipe_language_desc">Bytt til ditt neste språk</string>
     <string name="typing_space_swipe_none_desc">Sveipet gjør ingenting</string>
     <string name="typing_space_swipe_numpad_desc">Åpne talltastaturet</string>
-    <string name="typing_space_swipe_up_numpad_info">Sveip opp fra mellomromstasten, i hvilken som helst hastighet, så åpnes talltastaturet, slik SwiftKey gjør det. Sveipet må gå et kort stykke opp først, så et trykk som sklir litt, skriver fortsatt et mellomrom. Sveip til sidene beholder handlingene satt ovenfor. Hvis «Sveip opp for styreflate» også er på, vinner styreflaten. Denne innstillingen er av som standard.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Et sveip opp fra mellomromstasten åpner talltastaturet</string>
-    <string name="typing_space_swipe_up_numpad_title">Sveip opp for talltastaturet</string>
-    <string name="typing_space_swipe_up_touchpad_info">Sveip opp fra mellomromstasten, hold fingeren nede og flytt den: markøren følger til venstre, høyre, opp og ned, som 2D-markør-styreflaten, helt til du løfter fingeren. Sveipet må gå et lite stykke opp først, slik at et trykk som glir litt fortsatt skriver et mellomrom. Sveip til siden beholder handlingene angitt ovenfor, slik at et raskt sveip fortsatt kan bytte språk og du ikke trenger å holde mellomromstasten først. Med både Fortsett å flytte mens den holdes og Hele tastaturet som styreflate på, fortsetter markøren å bevege seg når fingeren når kanten av tastaturet: sidene flytter den langs linjen, toppen og bunnen flytter den mellom linjer. Denne innstillingen er av som standard.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Et sveip opp fra mellomromstasten flytter markøren i alle retninger</string>
-    <string name="typing_space_swipe_up_touchpad_title">Sveip opp for styreflaten</string>
     <string name="typing_spacebar_display_both_label">Begge</string>
     <string name="typing_spacebar_display_info">Språk viser navnet på gjeldende språk. Oppsett viser navnet på gjeldende oppsett. Begge viser \"Språk (Oppsett)\". Når ett språk har mer enn ett oppsett aktivert, legger tastaturet til navnet på oppsettet, slik at du kan se forskjellen.</string>
     <string name="typing_spacebar_display_language_label">Språk</string>

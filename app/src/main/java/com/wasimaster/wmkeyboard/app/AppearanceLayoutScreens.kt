@@ -1370,6 +1370,16 @@ internal fun LayoutSettings(
                 default = SettingsDefaults.layoutBehavior.symbolsNumpadKey,
             ) { scope.launch { repository.setSymbolsNumpadKey(it) } }
         }
+        item(level = SettingLevel.ADVANCED) {
+            // Competitor gap list item 3: HeliBoard's D-pad key, opt-in.
+            ToggleSetting(
+                R.string.layout_symbols_text_edit_key_title,
+                stringResource(R.string.layout_symbols_text_edit_key_subtitle),
+                settings.watch { it.layoutBehavior.symbolsTextEditKey },
+                info = stringResource(R.string.layout_symbols_text_edit_key_info),
+                default = SettingsDefaults.layoutBehavior.symbolsTextEditKey,
+            ) { scope.launch { repository.setSymbolsTextEditKey(it) } }
+        }
         item {
             ToggleSetting(
                 R.string.layout_show_globe_title,

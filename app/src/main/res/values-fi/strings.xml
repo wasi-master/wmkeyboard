@@ -12963,12 +12963,6 @@
     <string name="typing_space_swipe_language_desc">Vaihda seuraavaan kieleesi</string>
     <string name="typing_space_swipe_none_desc">Pyyhkäisy ei tee mitään</string>
     <string name="typing_space_swipe_numpad_desc">Avaa numeronäppäimistö</string>
-    <string name="typing_space_swipe_up_numpad_info">Pyyhkäise ylös välilyöntinäppäimeltä millä tahansa nopeudella, niin numeronäppäimistö avautuu, kuten SwiftKeyssä. Pyyhkäisyn on mentävä ensin lyhyt matka ylöspäin, joten pieni liukuminen napautuksessa kirjoittaa edelleen välilyönnin. Sivuttaiset pyyhkäisyt säilyttävät yllä asetetut toiminnot. Jos pyyhkäisy ylös kosketuslevylle on myös päällä, kosketuslevy voittaa. Tämä asetus on oletuksena pois päältä.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Pyyhkäisy ylöspäin välilyöntinäppäimeltä avaa numeronäppäimistön</string>
-    <string name="typing_space_swipe_up_numpad_title">Pyyhkäise ylös numeronäppäimistöä varten</string>
-    <string name="typing_space_swipe_up_touchpad_info">Pyyhkäise ylöspäin välilyöntinäppäimeltä ja pidä sormi alhaalla liikkuessasi: kohdistin seuraa vasemmalle, oikealle, ylös ja alas, kuten 2D-kosketuslevyssä, kunnes nostat sormen. Pyyhkäisyn on ensin kuljettava lyhyt matka ylöspäin, joten pieni liukuma napautuksessa kirjoittaa silti välilyönnin. Sivuttaiset pyyhkäisyt säilyttävät yllä asetetut toiminnot, joten nopea pyyhkäisy voi silti vaihtaa kieltä ilman, että välilyöntiä tarvitsee pitää pohjassa. Kun asetukset \"Jatka liikettä painettaessa\" ja \"Koko näppäimistö kosketuslevynä\" ovat päällä, kohdistin jatkaa liikkumistaan, kun sormi saavuttaa näppäimistön reunan: sivut liikuttavat sitä riviä pitkin, ylä- ja alareuna liikuttavat sitä rivien välillä. Tämä asetus on oletuksena pois päältä.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Pyyhkäisy ylöspäin välilyöntinäppäimeltä liikuttaa kohdistinta joka suuntaan</string>
-    <string name="typing_space_swipe_up_touchpad_title">Pyyhkäise ylös kosketuslevyä varten</string>
     <string name="typing_spacebar_display_both_label">Molemmat</string>
     <string name="typing_spacebar_display_info">Kieli näyttää nykyisen kielen nimen. Asettelu näyttää nykyisen asettelun nimen. Molemmat näyttää \"Kieli (Asettelu)\". Kun yhdellä kielellä on käytössä useampi kuin yksi asettelu, näppäimistö lisää asettelun nimen, jotta näet eron.</string>
     <string name="typing_spacebar_display_language_label">Kieli</string>

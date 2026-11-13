@@ -12960,12 +12960,6 @@
     <string name="typing_space_swipe_language_desc">Bir sonraki dilinize geçin</string>
     <string name="typing_space_swipe_none_desc">Kaydırma hiçbir şey yapmaz</string>
     <string name="typing_space_swipe_numpad_desc">Sayı tuş takımını aç</string>
-    <string name="typing_space_swipe_up_numpad_info">Boşluk tuşundan yukarıya doğru herhangi bir hızda kaydırın; SwiftKey\'de olduğu gibi sayı tuş takımı açılır. Kaydırma işleminin önce biraz yukarı doğru gitmesi gerekir, böylece hafifçe kayan bir dokunuş yine de boşluk bırakır. Yana doğru yapılan kaydırmalar yukarıda ayarlanan eylemleri korur. Dokunmatik yüzey için yukarı kaydırma özelliği de açıksa, dokunmatik yüzey önceliklidir. Bu ayar varsayılan olarak kapalıdır.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Boşluk çubuğundan yukarı kaydırma sayı tuş takımını açar</string>
-    <string name="typing_space_swipe_up_numpad_title">Sayı tuş takımı için yukarı kaydırın</string>
-    <string name="typing_space_swipe_up_touchpad_info">Boşluk tuşundan yukarı kaydırın, ardından parmağınızı basılı tutarak hareket ettirin: imleç, siz parmağınızı kaldırana kadar 2 boyutlu imleç dokunmatik yüzeyi gibi sola, sağa, yukarı ve aşağı hareket eder. Kaydırma işleminin önce biraz yukarı doğru olması gerekir, böylece hafifçe kayan bir dokunuş yine de boşluk karakteri yazar. Yana doğru kaydırmalar yukarıda ayarlanan eylemleri korur, böylece hızlı bir kaydırma yine de dili değiştirebilir ve önce boşluk tuşunu basılı tutmanız gerekmez. \'Basılı tutarken hareket etmeye devam et\' ve \'Tüm klavye dokunmatik yüzey olsun\' seçenekleri açıkken, parmağınız klavyenin herhangi bir kenarına ulaştığında imleç hareket etmeye devam eder: kenarlar onu satır boyunca hareket ettirir, üst ve alt kısımlar ise satırlar arasında hareket ettirir. Bu ayar varsayılan olarak kapalıdır.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Boşluk tuşundan yukarı kaydırma, imleci her yöne hareket ettirir</string>
-    <string name="typing_space_swipe_up_touchpad_title">Dokunmatik yüzey için yukarı kaydırın</string>
     <string name="typing_spacebar_display_both_label">Her ikisi</string>
     <string name="typing_spacebar_display_info">Dil, mevcut dilin adını gösterir. Düzen, mevcut düzenin adını gösterir. Her ikisi de \"Dil (Düzen)\" şeklinde gösterir. Bir dilin birden fazla düzeni açık olduğunda, klavye düzen adını ekler, böylece farkı görebilirsiniz.</string>
     <string name="typing_spacebar_display_language_label">Dil</string>

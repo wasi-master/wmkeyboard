@@ -12974,12 +12974,6 @@
     <string name="typing_space_swipe_language_desc">Vaheta järgmisele keelele</string>
     <string name="typing_space_swipe_none_desc">Libistamine ei tee midagi</string>
     <string name="typing_space_swipe_numpad_desc">Ava numbriklaviatuur</string>
-    <string name="typing_space_swipe_up_numpad_info">Libistage tühikuklahvil suvalise kiirusega üles ja numbriklaviatuur avaneb, täpselt nagu SwiftKey puhul. Libistamine peab alguses natuke ülespoole minema, nii et väike libisev puudutus tipib endiselt tühiku. Külgsuunas libistamised säilitavad ülal määratud toimingud. Kui puuteplaadi jaoks on sisse lülitatud ka üleslibistamine, on puuteplaat ülimuslik. See seade on vaikimisi välja lülitatud.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Tühikuklahvil üles libistamine avab numbriklaviatuuri</string>
-    <string name="typing_space_swipe_up_numpad_title">Numbriklaviatuuri jaoks nipsa üles</string>
-    <string name="typing_space_swipe_up_touchpad_info">Libistage tühikuklahvilt üles, seejärel hoidke sõrme all ja liigutage seda: kursor järgneb vasakule, paremale, üles ja alla, nagu 2D-kursori puuteplaadil, kuni tõstate sõrme. Libistamine peab esmalt minema veidi üles, nii et väike libisev puudutus sisestab ikkagi tühiku. Külgsuunalised libistamised säilitavad ülaltoodud toimingud, nii et kiire libistamine saab ikkagi keelt vahetada ja te ei pea tühikuklahvi esmalt all hoidma. Kui valikud „Jätka liikumist allhoidmisel“ ja „Kogu klaviatuur puuteplaadina“ on mõlemad sisse lülitatud, jätkab kursor liikumist, kui sõrm jõuab klaviatuuri mis tahes servani: küljed liigutavad seda piki rida, üla- ja alaosa liigutavad seda ridade vahel. See säte on vaikimisi välja lülitatud.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Tühikuklahvilt ülespoole libistamine liigutab kursorit igas suunas</string>
-    <string name="typing_space_swipe_up_touchpad_title">Puuteplaadi jaoks libistage üles</string>
     <string name="typing_spacebar_display_both_label">Mõlemad</string>
     <string name="typing_spacebar_display_info">Keel näitab praeguse keele nime. Paigutus näitab praeguse paigutuse nime. Mõlemad näitavad „Keel (Paigutus)“. Kui ühel keelel on rohkem kui üks paigutus sisse lülitatud, lisab klaviatuur paigutuse nime, et näeksid erinevust.</string>
     <string name="typing_spacebar_display_language_label">Keel</string>

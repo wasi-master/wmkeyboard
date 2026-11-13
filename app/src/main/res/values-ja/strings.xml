@@ -12963,12 +12963,6 @@
     <string name="typing_space_swipe_language_desc">次の言語に切り替えます</string>
     <string name="typing_space_swipe_none_desc">スワイプしても何も起こりません</string>
     <string name="typing_space_swipe_numpad_desc">テンキーを開く</string>
-    <string name="typing_space_swipe_up_numpad_info">SwiftKeyのように、スペースバーから上にスワイプするとテンキーが開きます。スワイプは最初に少し上に移動する必要があるため、少しスライドするタップはスペースとして入力されます。横方向のスワイプは上記の設定されたアクションを維持します。タッチパッド用のスワイプアップもオンになっている場合は、タッチパッドが優先されます。この設定はデフォルトでオフになっています。</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">スペースバーを上にスワイプするとテンキーが開きます</string>
-    <string name="typing_space_swipe_up_numpad_title">上にスワイプしてテンキーを表示</string>
-    <string name="typing_space_swipe_up_touchpad_info">スペースバーから上にスワイプし、指を離さずに動かすと、2Dカーソルタッチパッドのようにカーソルが上下左右に追従します。スワイプは少し上に動かす必要があるため、軽くスライドさせるタップ操作ではスペースが入力されます。横方向のスワイプは上記のアクションを維持するため、素早いスワイプで言語を切り替えることができ、スペースバーを先に長押しする必要はありません。「長押し中に移動を継続」と「キーボード全体をタッチパッドとして使用」の両方がオンの場合、指がキーボードの端に達してもカーソルは動き続けます。端では行に沿って移動し、上下端では行間を移動します。この設定はデフォルトでオフになっています。</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">スペースキーを上にスワイプすると、カーソルを全方向に移動できます</string>
-    <string name="typing_space_swipe_up_touchpad_title">上にスワイプしてタッチパッドを表示</string>
     <string name="typing_spacebar_display_both_label">両方</string>
     <string name="typing_spacebar_display_info">[言語]は現在の言語名を表示します。[レイアウト]は現在のレイアウト名を表示します。[両方]は「言語（レイアウト）」と表示します。1つの言語で複数のレイアウトが有効になっている場合、キーボードはレイアウト名を追加して違いがわかるようにします。</string>
     <string name="typing_spacebar_display_language_label">言語</string>

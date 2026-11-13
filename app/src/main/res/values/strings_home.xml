@@ -167,6 +167,7 @@
     <string name="home_space_swipe_numpad_label">Numpad</string>
     <string name="home_space_swipe_keyboards_label">Keyboards</string>
     <string name="home_space_swipe_secondary_label">Secondary layout</string>
+    <string name="home_space_swipe_action_label">Another action</string>
 
     <!-- The word-of-the-day card. -->
     <string name="home_vocab_title">Word of the day</string>

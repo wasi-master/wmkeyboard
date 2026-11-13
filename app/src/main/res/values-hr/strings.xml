@@ -12985,12 +12985,6 @@
     <string name="typing_space_swipe_language_desc">Promijeni na sljedeći jezik</string>
     <string name="typing_space_swipe_none_desc">Povlačenje ne radi ništa</string>
     <string name="typing_space_swipe_numpad_desc">Otvori brojčanu tipkovnicu</string>
-    <string name="typing_space_swipe_up_numpad_info">Povucite prema gore s razmaknice, bilo kojom brzinom, i otvorit će se brojčana tipkovnica, na način na koji to radi SwiftKey. Potez prvo mora ići malo prema gore, tako da dodir koji malo sklizne i dalje upisuje razmak. Potezi u stranu zadržavaju radnje postavljene iznad. Ako je uključeno i povlačenje prema gore za dodirnu pločicu, dodirna pločica ima prednost. Ova je postavka prema zadanim postavkama isključena.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Povlačenje prema gore s razmaknice otvara brojčanu tipkovnicu</string>
-    <string name="typing_space_swipe_up_numpad_title">Povucite prema gore za brojčanu tipkovnicu</string>
-    <string name="typing_space_swipe_up_touchpad_info">Povucite prema gore s razmaknice, zatim držite prst dolje i pomičite ga: kursor prati lijevo, desno, gore i dolje, poput 2D dodirne plohe kursora, dok ne podignete prst. Potez prvo mora ići malo prema gore, tako da dodir koji malo klizne i dalje upisuje razmak. Bočni potezi zadržavaju gore postavljene radnje, tako da brzi potez i dalje može promijeniti jezik i ne morate prvo držati razmaknicu. S uključenim opcijama \"Nastavi kretanje dok je pritisnuto\" i \"Cijela tipkovnica kao dodirna ploha\", kursor se nastavlja kretati kada vaš prst dosegne bilo koji rub tipkovnice: strane ga pomiču duž retka, a vrh i dno ga pomiču između redaka. Ova je postavka prema zadanim postavkama isključena.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Povlačenje prema gore s razmaknice pomiče kursor u svim smjerovima</string>
-    <string name="typing_space_swipe_up_touchpad_title">Povucite prema gore za dodirnu pločicu</string>
     <string name="typing_spacebar_display_both_label">Oboje</string>
     <string name="typing_spacebar_display_info">Jezik prikazuje naziv trenutnog jezika. Raspored prikazuje naziv trenutnog rasporeda. Oboje prikazuje \"Jezik (Raspored)\". Kada jedan jezik ima uključen više od jednog rasporeda, tipkovnica dodaje naziv rasporeda kako biste mogli vidjeti razliku.</string>
     <string name="typing_spacebar_display_language_label">Jezik</string>

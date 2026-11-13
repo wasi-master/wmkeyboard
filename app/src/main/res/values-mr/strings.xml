@@ -12974,12 +12974,6 @@
     <string name="typing_space_swipe_language_desc">तुमच्या पुढील भाषेत बदला</string>
     <string name="typing_space_swipe_none_desc">स्वाइप काहीही करत नाही</string>
     <string name="typing_space_swipe_numpad_desc">नंबर पॅड उघडा</string>
-    <string name="typing_space_swipe_up_numpad_info">स्पेसबारवरून वरच्या दिशेला स्वाइप करा, कोणत्याही वेगाने, आणि नंबर पॅड उघडेल, जसे SwiftKey मध्ये होते. स्वाइप आधी थोडा वर गेला पाहिजे, जेणेकरून थोडा सरकणारा टॅप अजूनही स्पेस टाईप करेल. बाजूला स्वाइप केल्यास वरील कृती कायम राहतात. जर टचपॅडसाठी स्वाइप अप देखील चालू असेल, तर टचपॅड प्राधान्य घेते. हे सेटिंग डीफॉल्टनुसार बंद आहे.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">स्पेसबारवरून वर स्वाइप केल्यास नंबर पॅड उघडतो</string>
-    <string name="typing_space_swipe_up_numpad_title">नंबर पॅडसाठी वर स्वाइप करा</string>
-    <string name="typing_space_swipe_up_touchpad_info">स्पेसबारवरून वर स्वाइप करा, नंतर तुमचे बोट खाली ठेवा आणि हलवा: कर्सर डावीकडे, उजवीकडे, वर आणि खाली सरकतो, जसे की २-डी कर्सर टचपॅड, जोपर्यंत तुम्ही बोट उचलत नाही. स्वाइपला आधी थोड्या अंतरापर्यंत वर जावे लागते, जेणेकरून थोडा स्लाइड होणारा टॅप अजूनही स्पेस टाईप करेल. बाजूला स्वाइप केल्याने वरील क्रिया सेट राहतात, त्यामुळे जलद स्वाइप अजूनही भाषा बदलू शकतो आणि तुम्हाला आधी स्पेसबार दाबून धरण्याची गरज नाही. \'Keep moving while held\' आणि \'Whole keyboard as touchpad\' दोन्ही चालू असताना, तुमचे बोट कीबोर्डच्या कोणत्याही कडेला पोहोचल्यावर कर्सर चालू राहतो: बाजू त्याला ओळीने हलवतात, वर आणि खालची बाजू त्याला ओळींच्या दरम्यान हलवतात. हे सेटिंग डीफॉल्टनुसार बंद असते.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">स्पेसबारवरून वर स्वाइप केल्यास कर्सर सर्व दिशांना हलतो</string>
-    <string name="typing_space_swipe_up_touchpad_title">टचपॅडसाठी वर स्वाइप करा</string>
     <string name="typing_spacebar_display_both_label">दोन्ही</string>
     <string name="typing_spacebar_display_info">भाषा सध्याच्या भाषेचे नाव दर्शवते. लेआउट सध्याच्या लेआउटचे नाव दर्शवते. दोन्ही \"भाषा (लेआउट)\" दर्शवते. जेव्हा एका भाषेत एकापेक्षा जास्त लेआउट चालू असतात, तेव्हा कीबोर्ड लेआउटचे नाव जोडतो, जेणेकरून तुम्हाला फरक पाहता येईल.</string>
     <string name="typing_spacebar_display_language_label">भाषा</string>

@@ -12964,12 +12964,6 @@
     <string name="typing_space_swipe_language_desc">Změnit na další jazyk</string>
     <string name="typing_space_swipe_none_desc">Přejetí nic neudělá</string>
     <string name="typing_space_swipe_numpad_desc">Otevřít číselnou klávesnici</string>
-    <string name="typing_space_swipe_up_numpad_info">Přejetím nahoru od mezerníku, libovolnou rychlostí, se otevře číselná klávesnice, podobně jako ve SwiftKey. Přejetí musí nejprve vést krátkou cestu nahoru, takže klepnutí, které trochu sklouzne, stále napíše mezeru. Přejetí do stran zachovává akce nastavené výše. Pokud je zapnuto i přejetí nahoru pro touchpad, má přednost touchpad. Toto nastavení je ve výchozím stavu vypnuto.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Přejetí prstem nahoru z mezerníku otevře číselnou klávesnici</string>
-    <string name="typing_space_swipe_up_numpad_title">Přejeďte nahoru pro číselnou klávesnici</string>
-    <string name="typing_space_swipe_up_touchpad_info">Přejeďte prstem nahoru z mezerníku, poté jej nechte přiložený a pohybujte jím: kurzor bude následovat pohyb doleva, doprava, nahoru a dolů, jako u 2D touchpadu, dokud prst nezvednete. Gesto musí nejprve vést kousek nahoru, takže klepnutí, které se trochu posune, stále napíše mezeru. Přejetí do stran zachovává výše uvedené akce, takže rychlým přejetím lze stále přepínat jazyk a nemusíte nejprve držet mezerník. Pokud jsou zapnuty volby „Pokračovat v pohybu při držení“ a „Celá klávesnice jako touchpad“, kurzor se pohybuje dál, i když prst dosáhne okraje klávesnice: strany jej posouvají podél řádku, horní a dolní okraj jej posouvají mezi řádky. Toto nastavení je ve výchozím stavu vypnuto.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Přejetí prstem nahoru z mezerníku pohybuje kurzorem ve všech směrech</string>
-    <string name="typing_space_swipe_up_touchpad_title">Přejetím nahoru aktivujete touchpad</string>
     <string name="typing_spacebar_display_both_label">Obojí</string>
     <string name="typing_spacebar_display_info">Jazyk zobrazuje název aktuálního jazyka. Rozložení zobrazuje název aktuálního rozložení. Obojí zobrazuje „Jazyk (Rozložení)“. Pokud má jeden jazyk zapnuto více než jedno rozložení, klávesnice přidá název rozložení, abyste viděli rozdíl.</string>
     <string name="typing_spacebar_display_language_label">Jazyk</string>

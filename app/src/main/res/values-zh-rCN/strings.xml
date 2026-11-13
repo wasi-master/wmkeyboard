@@ -12952,12 +12952,6 @@
     <string name="typing_space_swipe_language_desc">切换到下一种语言</string>
     <string name="typing_space_swipe_none_desc">滑动无任何操作</string>
     <string name="typing_space_swipe_numpad_desc">打开数字键盘</string>
-    <string name="typing_space_swipe_up_numpad_info">以任何速度从空格键向上滑动，数字键盘就会打开，就像 SwiftKey 那样。滑动必须先向上移动一小段距离，因此轻微滑动的点击仍会输入空格。侧向滑动保持上述设置的操作。如果同时开启了“向上滑动以使用触摸板”，则触摸板优先。此设置默认关闭。</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">从空格键向上滑动可打开数字键盘</string>
-    <string name="typing_space_swipe_up_numpad_title">向上滑动以打开数字键盘</string>
-    <string name="typing_space_swipe_up_touchpad_info">从空格键向上滑动，然后按住手指并移动：光标会像二维触摸板一样跟随手指左右、上下移动，直到松开手指。滑动必须先向上移动一小段距离，因此轻微滑动的点击仍会输入空格。侧向滑动保持上述设置的操作，因此快速滑动仍可切换语言，无需先按住空格键。当“按住时持续移动”和“整个键盘作为触摸板”同时开启时，当手指到达键盘边缘时，光标会继续移动：侧边沿行移动，顶部和底部在行间移动。此设置默认关闭。</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">从空格键向上滑动可在各个方向移动光标</string>
-    <string name="typing_space_swipe_up_touchpad_title">向上滑动以使用触摸板</string>
     <string name="typing_spacebar_display_both_label">两者</string>
     <string name="typing_spacebar_display_info">“语言”显示当前语言名称。“布局”显示当前布局名称。两者都显示为“语言（布局）”。当一种语言启用了多个布局时，键盘会添加布局名称，以便您区分它们。</string>
     <string name="typing_spacebar_display_language_label">语言</string>

@@ -233,6 +233,9 @@
     <string name="layout_symbols_numpad_key_title">1234 key on the symbol pages</string>
     <string name="layout_symbols_numpad_key_subtitle">A key after ABC that opens the number pad</string>
     <string name="layout_symbols_numpad_key_info">The symbol pages get a 1234 key directly after the ABC key, as in Gboard. Press it to open the number pad panel over the current field. The spacebar gets narrower by one key to make room. A layout that already has a number pad key, or a symbol page you arranged by hand in the layout editor, does not change.</string>
+    <string name="layout_symbols_text_edit_key_title">Text editing key on the symbol pages</string>
+    <string name="layout_symbols_text_edit_key_subtitle">A key after ABC, or after 1234, that opens the text editing panel</string>
+    <string name="layout_symbols_text_edit_key_info">The symbol pages get a key that opens the text editing panel: arrows, select, copy, cut, paste, undo and redo. It sits after the 1234 key when that key is on, otherwise directly after the ABC key. The spacebar gets narrower by one key to make room. This setting is off by default, because a new key on the bottom row is easy to press by accident. A layout that already has a text editing key, or a symbol page you arranged by hand in the layout editor, does not change.</string>
     <string name="layout_comma_emoji_info">The comma key on the bottom row becomes an emoji key, and the comma moves into the press and hold alternates. This also deletes the emoji tool from the toolbar, because the key replaces it. Drag the tool out of the toolbox again if you want both.</string>
     <!-- 🌐 is the globe key that changes the language. Keep the emoji. -->
     <string name="layout_globe_emoji_title">Emoji key instead of 🌐</string>

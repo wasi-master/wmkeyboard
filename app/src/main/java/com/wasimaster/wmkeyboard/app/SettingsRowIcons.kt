@@ -906,6 +906,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_reset_sizing_title) { Icons.Outlined.Restore }
         put(R.string.layout_comma_emoji_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.layout_symbols_numpad_key_title) { Icons.Outlined.Dialpad }
+        put(R.string.layout_symbols_text_edit_key_title) { Icons.Outlined.EditNote }
         put(R.string.layout_show_globe_title) { Icons.Outlined.Language }
         put(R.string.layout_globe_recent_title) { Icons.Outlined.History }
         put(R.string.layout_globe_guard_title) { Icons.Outlined.Timer }
@@ -1309,8 +1310,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_space_cursor_direct_title) { Icons.Outlined.SwapHoriz }
         put(R.string.typing_space_cursor_edge_repeat_title) { Icons.Outlined.FastForward }
         put(R.string.typing_space_cursor_whole_keyboard_title) { Icons.Outlined.TouchApp }
-        put(R.string.typing_space_swipe_up_touchpad_title) { Icons.Outlined.SwipeUp }
-        put(R.string.typing_space_swipe_up_numpad_title) { Icons.Outlined.SwipeUp }
+        put(R.string.typing_space_swipe_up_title) { Icons.Outlined.SwipeUp }
+        put(R.string.typing_space_swipe_action_row_title) { Icons.Outlined.Bolt }
         put(R.string.typing_space_cursor_top_speed_title) { Icons.Outlined.Speed }
         put(R.string.typing_space_cursor_magnifier_title) { Icons.Outlined.ZoomIn }
         put(R.string.typing_magnifier_follows_title) { Icons.Outlined.ZoomIn }

@@ -83,6 +83,8 @@ import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.DefaultFingerSwipes
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipe
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCodec
+import com.wasimaster.wmkeyboard.core.layout.SpaceSwipeBindingCodec
+import com.wasimaster.wmkeyboard.core.layout.SpaceSwipeSlot
 import com.wasimaster.wmkeyboard.core.layout.SymbolChordCodec
 import com.wasimaster.wmkeyboard.core.layout.FlickDirection
 import com.wasimaster.wmkeyboard.core.layout.KeySwipeArms
@@ -1342,6 +1344,16 @@ enum class SpaceSwipeAction {
      * cannot toggle again. Does nothing until a layout can be shown.
      */
     SECONDARY_LAYOUT,
+
+    /**
+     * Runs the action picked for this slot (`TextEditingSettings.spaceSwipeActions`,
+     * competitor gap list item 3): anything a multi-finger swipe can run, a
+     * tool such as the text-editing panel, an edit, a layer or a keyboard.
+     * Discrete, and it fires once when the finger lifts, so a panel it opens
+     * does not take the key out from under the finger mid-swipe. Nothing bound
+     * does nothing.
+     */
+    ACTION,
 }
 
 /**
@@ -7342,13 +7354,26 @@ data class TextEditingSettings(
      * swipe up on the spacebar has done nothing until now, and a flick that
      * lands on the row above should not start moving the caret unasked.
      */
-    val spaceSwipeUpTouchpad: Boolean = false,
     /**
-     * A swipe up from the spacebar opens the number pad, as SwiftKey's does
-     * (Telegram group): an ordinary swipe, where a flick arm needs a quick
-     * one. [spaceSwipeUpTouchpad] wins when both are on. Off by default.
+     * What a swipe up from the spacebar does: nothing (the default), the 2-D
+     * cursor touchpad for that drag (#444), the number pad as SwiftKey's does
+     * (Telegram group), or the action bound to [SpaceSwipeSlot.UP] in
+     * [spaceSwipeActions]. Whatever the two sideways slots hold and whether
+     * [LayoutBehaviorSettings.spaceCursor2d] is on, so a sideways swipe keeps
+     * switching the language and no hold is needed first.
+     *
+     * Stored as `space_swipe_up`; before that it was two switches,
+     * `space_swipe_up_touchpad` and `space_swipe_up_numpad`, still read by
+     * [spaceSwipeUpOf] until the first change writes the new key.
      */
-    val spaceSwipeUpNumpad: Boolean = false,
+    val spaceSwipeUp: SpaceSwipeUp = SpaceSwipeUp.NONE,
+    /**
+     * What each spacebar swipe set to "another action" runs (competitor gap
+     * list item 3): [SpaceSwipeAction.ACTION] on the quick or the hold slot,
+     * [SpaceSwipeUp.ACTION] on the swipe up. Any binding a multi-finger swipe
+     * can take. Stored as one JSON object, `space_swipe_actions`.
+     */
+    val spaceSwipeActions: Map<SpaceSwipeSlot, KeyAlternate> = emptyMap(),
     /**
      * A magnifier over the caret while a spacebar cursor swipe moves it
      * (discussion #303): the line around the caret, enlarged, in a bubble over
@@ -9750,6 +9775,14 @@ data class LayoutBehaviorSettings(
      * know by touch, and the pad has a hold on ?123 and a tool already.
      */
     val symbolsNumpadKey: Boolean = false,
+    /**
+     * A key on the symbols pages that opens the text-editing panel, after the
+     * 1234 key when that is on, else after ABC (competitor gap list item 3,
+     * HeliBoard's D-pad key). It takes one key's width off the spacebar. Off by
+     * default: HeliBoard had to add a switch to hide its key after people hit
+     * it by accident (#2778).
+     */
+    val symbolsTextEditKey: Boolean = false,
     /**
      * Holding the enter key offers the emoji panel, the way SwiftKey's enter
      * key does, for a layout whose bottom row has no emoji key of its own.
@@ -12176,6 +12209,7 @@ class SettingsRepository(private val context: Context) {
         private val SPACEBAR_LIVE_WPM = booleanPreferencesKey("spacebar_live_wpm")
         private val SYMBOLS_LONGPRESS_NUMPAD = booleanPreferencesKey("symbols_longpress_numpad")
         private val SYMBOLS_NUMPAD_KEY = booleanPreferencesKey("symbols_numpad_key")
+        private val SYMBOLS_TEXT_EDIT_KEY = booleanPreferencesKey("symbols_text_edit_key")
         private val ENTER_LONGPRESS_EMOJI = booleanPreferencesKey("enter_longpress_emoji")
         private val LANDSCAPE_FULLSCREEN = booleanPreferencesKey("landscape_fullscreen")
         private val SPACE_SWIPE_DOWN_HIDE = booleanPreferencesKey("space_swipe_down_hide")
@@ -13000,8 +13034,11 @@ class SettingsRepository(private val context: Context) {
         private val SPACE_CURSOR_DIRECT = booleanPreferencesKey("space_cursor_direct")
         private val SPACE_CURSOR_EDGE_REPEAT = booleanPreferencesKey("space_cursor_edge_repeat")
         private val SPACE_CURSOR_WHOLE_KEYBOARD = booleanPreferencesKey("space_cursor_whole_keyboard")
+        // Legacy switches, read only through spaceSwipeUpOf until SPACE_SWIPE_UP is written.
         private val SPACE_SWIPE_UP_TOUCHPAD = booleanPreferencesKey("space_swipe_up_touchpad")
         private val SPACE_SWIPE_UP_NUMPAD = booleanPreferencesKey("space_swipe_up_numpad")
+        private val SPACE_SWIPE_UP = stringPreferencesKey("space_swipe_up")
+        private val SPACE_SWIPE_ACTIONS = stringPreferencesKey("space_swipe_actions")
         private val SPACE_CURSOR_TOP_SPEED = intPreferencesKey("space_cursor_top_speed")
         private val BACKSPACE_WORD_STEP_DP = intPreferencesKey("backspace_word_step_dp")
         private val BACKSPACE_SWIPE_UNIT = stringPreferencesKey("backspace_swipe_unit")
@@ -15091,6 +15128,7 @@ class SettingsRepository(private val context: Context) {
             symbolsLongPressNumpad =
                 p[SYMBOLS_LONGPRESS_NUMPAD] ?: defaults.layoutBehavior.symbolsLongPressNumpad,
             symbolsNumpadKey = p[SYMBOLS_NUMPAD_KEY] ?: defaults.layoutBehavior.symbolsNumpadKey,
+            symbolsTextEditKey = p[SYMBOLS_TEXT_EDIT_KEY] ?: defaults.layoutBehavior.symbolsTextEditKey,
             enterLongPressEmoji =
                 p[ENTER_LONGPRESS_EMOJI] ?: defaults.layoutBehavior.enterLongPressEmoji,
             spaceSwipeDownHide =
@@ -15745,9 +15783,9 @@ class SettingsRepository(private val context: Context) {
             spaceCursorEdgeRepeat = p[SPACE_CURSOR_EDGE_REPEAT] ?: defaults.textEditing.spaceCursorEdgeRepeat,
             spaceCursorWholeKeyboard = p[SPACE_CURSOR_WHOLE_KEYBOARD]
                 ?: defaults.textEditing.spaceCursorWholeKeyboard,
-            spaceSwipeUpTouchpad = p[SPACE_SWIPE_UP_TOUCHPAD]
-                ?: defaults.textEditing.spaceSwipeUpTouchpad,
-            spaceSwipeUpNumpad = p[SPACE_SWIPE_UP_NUMPAD] ?: defaults.textEditing.spaceSwipeUpNumpad,
+            spaceSwipeUp = spaceSwipeUpOf(p[SPACE_SWIPE_UP], p[SPACE_SWIPE_UP_TOUCHPAD], p[SPACE_SWIPE_UP_NUMPAD]),
+            spaceSwipeActions = p[SPACE_SWIPE_ACTIONS]?.let(SpaceSwipeBindingCodec::decode)
+                ?: defaults.textEditing.spaceSwipeActions,
             spaceCursorTopSpeed = p[SPACE_CURSOR_TOP_SPEED]
                 ?: defaults.textEditing.spaceCursorTopSpeed,
             backspaceWordStepDp = p[BACKSPACE_WORD_STEP_DP]
@@ -17515,11 +17553,29 @@ class SettingsRepository(private val context: Context) {
     suspend fun setSpaceCursorWholeKeyboard(value: Boolean) =
         editPrefs { it[SPACE_CURSOR_WHOLE_KEYBOARD] = value }
 
-    suspend fun setSpaceSwipeUpTouchpad(value: Boolean) =
-        editPrefs { it[SPACE_SWIPE_UP_TOUCHPAD] = value }
+    /**
+     * Writes the swipe-up answer and drops the two switches it replaced, so
+     * the stored state has one source and a later restore of an old backup
+     * (which carries only the switches) is read through [spaceSwipeUpOf] again.
+     */
+    suspend fun setSpaceSwipeUp(value: SpaceSwipeUp) =
+        editPrefs {
+            it[SPACE_SWIPE_UP] = value.name
+            it.remove(SPACE_SWIPE_UP_TOUCHPAD)
+            it.remove(SPACE_SWIPE_UP_NUMPAD)
+        }
 
-    suspend fun setSpaceSwipeUpNumpad(value: Boolean) =
-        editPrefs { it[SPACE_SWIPE_UP_NUMPAD] = value }
+    /**
+     * Binds a spacebar swipe [slot] to [binding] (competitor gap list item 3).
+     * Null clears the slot.
+     */
+    suspend fun setSpaceSwipeAction(slot: SpaceSwipeSlot, binding: KeyAlternate?) =
+        editPrefs { prefs ->
+            val current = SpaceSwipeBindingCodec.decode(prefs[SPACE_SWIPE_ACTIONS])
+            val next = if (binding == null) current - slot else current + (slot to binding)
+            if (next.isEmpty()) prefs.remove(SPACE_SWIPE_ACTIONS)
+            else prefs[SPACE_SWIPE_ACTIONS] = SpaceSwipeBindingCodec.encode(next)
+        }
 
     suspend fun setSpaceCursorTopSpeed(value: Int) =
         editPrefs { it[SPACE_CURSOR_TOP_SPEED] = value.coerceIn(2, 16) }
@@ -22857,6 +22913,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSymbolsNumpadKey(value: Boolean) =
         editPrefs { it[SYMBOLS_NUMPAD_KEY] = value }
+
+    suspend fun setSymbolsTextEditKey(value: Boolean) =
+        editPrefs { it[SYMBOLS_TEXT_EDIT_KEY] = value }
 
     suspend fun setEnterLongPressEmoji(value: Boolean) =
         editPrefs { it[ENTER_LONGPRESS_EMOJI] = value }

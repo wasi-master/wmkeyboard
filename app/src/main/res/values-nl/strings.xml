@@ -12973,12 +12973,6 @@
     <string name="typing_space_swipe_language_desc">Wissel naar je volgende taal</string>
     <string name="typing_space_swipe_none_desc">Het vegen doet niets</string>
     <string name="typing_space_swipe_numpad_desc">Open het numeriek toetsenblok</string>
-    <string name="typing_space_swipe_up_numpad_info">Veeg omhoog vanaf de spatiebalk, op elke snelheid, en het numerieke toetsenblok opent, zoals SwiftKey dat doet. De veegbeweging moet eerst een klein stukje omhoog gaan, zodat een tik die een beetje schuift nog steeds een spatie typt. Zijwaartse veegbewegingen behouden de hierboven ingestelde acties. Als \'Omhoog vegen voor touchpad\' ook aan staat, wint het touchpad. Deze instelling staat standaard uit.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Omhoog vegen vanaf de spatiebalk opent het numerieke toetsenblok</string>
-    <string name="typing_space_swipe_up_numpad_title">Veeg omhoog voor het numeriek toetsenbord</string>
-    <string name="typing_space_swipe_up_touchpad_info">Veeg omhoog vanaf de spatiebalk, houd je vinger daarna op het scherm en beweeg: de cursor volgt naar links, rechts, omhoog en omlaag, zoals het 2D-cursor-touchpad, totdat je je vinger optilt. De veegbeweging moet eerst een klein stukje omhoog gaan, zodat een tik die een beetje verschuift nog steeds een spatie typt. Zijwaartse veegbewegingen behouden de hierboven ingestelde acties, dus een snelle veegbeweging kan nog steeds de taal wijzigen en je hoeft de spatiebalk niet eerst ingedrukt te houden. Met zowel \"Blijven bewegen terwijl ingedrukt\" als \"Volledig toetsenbord als touchpad\" ingeschakeld, blijft de cursor bewegen wanneer je vinger een rand van het toetsenbord bereikt: de zijkanten verplaatsen hem langs de lijn, de boven- en onderkant verplaatsen hem tussen lijnen. Deze instelling staat standaard uit.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Veeg omhoog vanaf de spatiebalk om de cursor in alle richtingen te verplaatsen</string>
-    <string name="typing_space_swipe_up_touchpad_title">Veeg omhoog voor het touchpad</string>
     <string name="typing_spacebar_display_both_label">Beide</string>
     <string name="typing_spacebar_display_info">Taal toont de naam van de huidige taal. Indeling toont de naam van de huidige indeling. Beide toont \"Taal (Indeling)\". Wanneer één taal meer dan één indeling heeft ingeschakeld, voegt het toetsenbord de naam van de indeling toe, zodat u het verschil kunt zien.</string>
     <string name="typing_spacebar_display_language_label">Taal</string>

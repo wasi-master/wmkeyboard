@@ -1147,6 +1147,44 @@ class CurrentLayoutTest {
         assertTrue(currentLayout(s).keys().none { it.action == KeyAction.Numpad })
     }
 
+    private fun withTextEditKey(base: KeyboardSettings): KeyboardSettings =
+        base.copy(layoutBehavior = base.layoutBehavior.copy(symbolsTextEditKey = true))
+
+    private val textEditTool = KeyAction.Tool(ToolbarTool.TEXT_EDIT)
+
+    /** Competitor gap list item 3: off by default, after HeliBoard's #2778. */
+    @Test
+    fun `the symbols page has no text editing key until asked`() {
+        assertTrue(currentLayout(symbolsState(plain())).keys().none { it.action == textEditTool })
+    }
+
+    /** On, it sits straight after ABC and the row keeps its length. */
+    @Test
+    fun `the setting puts a text editing key after ABC on the symbols pages`() {
+        for (mode in listOf(LayoutMode.SYMBOLS, LayoutMode.SYMBOLS_SHIFTED)) {
+            val before = currentLayout(symbolsState(plain()).copy(layoutMode = mode)).rows.last()
+            val after = currentLayout(symbolsState(withTextEditKey(plain())).copy(layoutMode = mode)).rows.last()
+            val letters = after.indexOfFirst { it.action == KeyAction.Letters }
+            assertEquals(textEditTool, after[letters + 1].action)
+            assertEquals(before.sumOf { it.width.toDouble() }, after.sumOf { it.width.toDouble() }, 0.001)
+        }
+    }
+
+    /** With the 1234 key on too, the order is ABC, 1234, then the text editing key. */
+    @Test
+    fun `the text editing key follows the 1234 key`() {
+        val row = currentLayout(symbolsState(withTextEditKey(withNumpadKey(plain())))).rows.last()
+        val letters = row.indexOfFirst { it.action == KeyAction.Letters }
+        assertEquals(KeyAction.Numpad, row[letters + 1].action)
+        assertEquals(textEditTool, row[letters + 2].action)
+    }
+
+    @Test
+    fun `the text editing key stays off the letters page`() {
+        val s = state(settings = withTextEditKey(plain()))
+        assertTrue(currentLayout(s).keys().none { it.action == textEditTool })
+    }
+
     private fun withSymbolsAlternates(s: KeyboardUiState): KeyboardUiState {
         val letters = s.layouts.letters
         val rows = letters.rows.map { row ->

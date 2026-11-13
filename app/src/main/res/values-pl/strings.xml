@@ -12974,12 +12974,6 @@
     <string name="typing_space_swipe_language_desc">Zmień na następny język</string>
     <string name="typing_space_swipe_none_desc">Przesunięcie nie wykonuje żadnej akcji</string>
     <string name="typing_space_swipe_numpad_desc">Otwórz klawiaturę numeryczną</string>
-    <string name="typing_space_swipe_up_numpad_info">Przeciągnij w górę z klawisza spacji z dowolną prędkością, aby otworzyć klawiaturę numeryczną, tak jak w SwiftKey. Przeciągnięcie musi najpierw przebyć niewielki dystans w górę, dzięki czemu lekkie muśnięcie przy pisaniu nadal wpisze spację. Przeciągnięcia w bok zachowują akcje ustawione powyżej. Jeśli włączone jest również \"Przeciągnij w górę dla touchpada\", touchpad ma pierwszeństwo. To ustawienie jest domyślnie wyłączone.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Przesunięcie w górę od spacji otwiera klawiaturę numeryczną</string>
-    <string name="typing_space_swipe_up_numpad_title">Przesuń w górę, aby otworzyć klawiaturę numeryczną</string>
-    <string name="typing_space_swipe_up_touchpad_info">Przesuń palcem w górę od spacji, a następnie trzymaj palec na ekranie i przesuwaj go: kursor podąża w lewo, prawo, górę i dół, jak na touchpadzie 2D, dopóki nie podniesiesz palca. Przesunięcie musi najpierw przejść krótki dystans w górę, więc dotknięcie, które lekko się przesuwa, nadal wpisuje spację. Przesunięcia w bok zachowują ustawione powyżej akcje, więc szybkie przesunięcie nadal może zmienić język bez konieczności wcześniejszego przytrzymania spacji. Gdy włączone są opcje „Kontynuuj ruch podczas przytrzymania” oraz „Cała klawiatura jako touchpad”, kursor porusza się dalej, gdy palec dotrze do krawędzi klawiatury: boki przesuwają go wzdłuż linii, a góra i dół między liniami. To ustawienie jest domyślnie wyłączone.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Przesunięcie w górę od spacji przesuwa kursor w każdym kierunku</string>
-    <string name="typing_space_swipe_up_touchpad_title">Przesuń w górę, aby użyć panelu dotykowego</string>
     <string name="typing_spacebar_display_both_label">Oba</string>
     <string name="typing_spacebar_display_info">Język pokazuje nazwę bieżącego języka. Układ pokazuje nazwę bieżącego układu. Obydwa pokazują „Język (Układ)”. Gdy jeden język ma włączony więcej niż jeden układ, klawiatura dodaje nazwę układu, aby można było zobaczyć różnicę.</string>
     <string name="typing_spacebar_display_language_label">Język</string>

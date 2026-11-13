@@ -988,6 +988,7 @@
     <string name="typing_space_swipe_cursor_desc">Move the cursor through the text</string>
     <string name="typing_space_swipe_numpad_desc">Open the number pad</string>
     <string name="typing_space_swipe_keyboards_desc">Open the Android list of keyboards, to change to a different keyboard app. On the press and hold setting, the hold alone opens it.</string>
+    <string name="typing_space_swipe_action_desc">Run an action you pick, once, when you lift your finger: a tool such as the text editing panel, an edit such as select all or paste, a layer, a layout, another keyboard, or some text to type. The same list as the multi-finger swipes.</string>
     <string name="typing_space_swipe_secondary_desc">Switch to the layout selected for the Secondary layout tool, and back on the next swipe. On the press and hold setting, the hold alone switches. Does nothing until a layout is selected on the tool\'s page or a secondary layout exists.</string>
 
     <string name="typing_edge_swipe_back_title">Swipe in from the edge to go back</string>
@@ -1259,12 +1260,18 @@
     <string name="typing_space_cursor_edge_repeat_title">Keep moving while held</string>
     <string name="typing_space_cursor_edge_repeat_subtitle">A cursor swipe held still, or past the end of the spacebar, keeps going</string>
     <string name="typing_space_cursor_edge_repeat_info">The spacebar is shorter than a long line of text. With this setting on, a cursor swipe keeps going by itself, about eight characters a second: at once when your finger is past either end of the spacebar, and after a short pause when you hold your finger still away from where the swipe began. Move your finger again, or lift it, to stop. Short swipes and fine adjustments near where you started are not affected. This setting is off by default.</string>
-    <string name="typing_space_swipe_up_touchpad_title">Swipe up for the touchpad</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">A swipe up from the spacebar moves the cursor in every direction</string>
-    <string name="typing_space_swipe_up_touchpad_info">Swipe up from the spacebar, then keep your finger down and move it: the cursor follows left, right, up and down, like the 2-D cursor touchpad, until you lift. The swipe has to go a short way up first, so a tap that slides a little still types a space. Sideways swipes keep the actions set above, so a quick swipe can still switch the language and you do not have to hold the spacebar first. With Keep moving while held and Whole keyboard as touchpad both on, the cursor keeps going when your finger reaches any edge of the keyboard: the sides move it along the line, the top and bottom move it between lines. This setting is off by default.</string>
-    <string name="typing_space_swipe_up_numpad_title">Swipe up for the number pad</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">A swipe up from the spacebar opens the number pad</string>
-    <string name="typing_space_swipe_up_numpad_info">Swipe up from the spacebar, at any speed, and the number pad opens, the way SwiftKey does it. The swipe has to go a short way up first, so a tap that slides a little still types a space. Sideways swipes keep the actions set above. If Swipe up for the touchpad is on as well, the touchpad wins. This setting is off by default.</string>
+    <string name="typing_space_swipe_up_title">Swipe up on the spacebar</string>
+    <string name="typing_space_swipe_up_subtitle">What a swipe up from the spacebar does</string>
+    <string name="typing_space_swipe_up_info">A swipe up has to go a short way up first, so a tap that slides a little still types a space. Sideways swipes keep the actions set above, so a quick swipe can still switch the language. \"Touchpad\": keep your finger down after the swipe and move it, and the cursor follows left, right, up and down, like the 2-D cursor touchpad, until you lift. With Keep moving while held and Whole keyboard as touchpad both on, the cursor keeps going when your finger reaches any edge of the keyboard. \"Number pad\" opens the number pad at once, the way SwiftKey does it. \"Another action\" runs the action you pick when you lift your finger. This setting is Nothing by default.</string>
+    <string name="typing_space_swipe_up_none_desc">The swipe up does nothing</string>
+    <string name="typing_space_swipe_up_touchpad_desc">Move the cursor in every direction until you lift</string>
+    <string name="typing_space_swipe_up_numpad_desc">Open the number pad</string>
+    <string name="typing_space_swipe_up_touchpad_label">Touchpad</string>
+    <!-- The row under a spacebar swipe set to "Another action": %1$s names the swipe, as in "Quick swipe". -->
+    <string name="typing_space_swipe_action_row_title">Action for %1$s</string>
+    <string name="typing_space_swipe_action_short">the quick swipe</string>
+    <string name="typing_space_swipe_action_long">press and hold, then swipe</string>
+    <string name="typing_space_swipe_action_up">the swipe up</string>
     <string name="typing_space_cursor_whole_keyboard_title">Whole keyboard as touchpad</string>
     <string name="typing_space_cursor_whole_keyboard_subtitle">A cursor swipe can use the whole keyboard, and the other keys pause</string>
     <string name="typing_space_cursor_whole_keyboard_info">Once a spacebar swipe starts moving the cursor, the whole keyboard becomes its touchpad. The keys dim, and touching them with another finger types nothing until you lift. With Keep moving while held on, the cursor keeps going when your finger reaches either side of the keyboard rather than the end of the spacebar. Your finger can always leave the spacebar during a swipe; this setting stops the other keys from reacting while it does. This setting is off by default.</string>

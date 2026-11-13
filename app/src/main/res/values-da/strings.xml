@@ -12977,12 +12977,6 @@
     <string name="typing_space_swipe_language_desc">Skift til dit næste sprog</string>
     <string name="typing_space_swipe_none_desc">Swipet gør intet</string>
     <string name="typing_space_swipe_numpad_desc">Åbn det numeriske tastatur</string>
-    <string name="typing_space_swipe_up_numpad_info">Stryg op fra mellemrumstasten i enhver hastighed for at åbne det numeriske tastatur, ligesom i SwiftKey. Stryget skal først gå et lille stykke op, så et tryk, der glider en lille smule, stadig skriver et mellemrum. Stryg til siden bevarer de handlinger, der er indstillet ovenfor. Hvis \"Stryg op for touchpad\" også er aktiveret, vinder touchpad\'en. Denne indstilling er som standard slået fra.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Et swipe op fra mellemrumstasten åbner det numeriske tastatur</string>
-    <string name="typing_space_swipe_up_numpad_title">Stryg op for at få talpaden</string>
-    <string name="typing_space_swipe_up_touchpad_info">Stryg op fra mellemrumstasten, hold derefter fingeren nede og flyt den: markøren følger med til venstre, højre, op og ned, ligesom 2D-markørens touchpad, indtil du løfter fingeren. Stryget skal først gå et lille stykke op, så et tryk, der glider lidt, stadig skriver et mellemrum. Stryg til siden bevarer de handlinger, der er indstillet ovenfor, så et hurtigt stryg stadig kan skifte sprog, og du behøver ikke at holde mellemrumstasten nede først. Med både \"Fortsæt bevægelse mens holdt\" og \"Hele tastaturet som touchpad\" slået til, fortsætter markøren, når din finger når en kant af tastaturet: siderne flytter den langs linjen, toppen og bunden flytter den mellem linjer. Denne indstilling er slået fra som standard.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Et swipe op fra mellemrumstasten flytter markøren i alle retninger</string>
-    <string name="typing_space_swipe_up_touchpad_title">Swipe op for touchpad</string>
     <string name="typing_spacebar_display_both_label">Begge</string>
     <string name="typing_spacebar_display_info">Sprog viser navnet på det aktuelle sprog. Layout viser navnet på det aktuelle layout. Begge viser \"Sprog (Layout)\". Når et sprog har mere end ét layout aktiveret, tilføjer tastaturet layoutnavnet, så du kan se forskellen.</string>
     <string name="typing_spacebar_display_language_label">Sprog</string>

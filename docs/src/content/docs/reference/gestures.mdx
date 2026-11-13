@@ -33,9 +33,12 @@ Which action a spacebar swipe runs depends on *when* the drag starts relative to
 | Slot = Language, swipe sideways | Spacebar | Steps through enabled layouts (a flick moves one; a continued swipe steps every 44&nbsp;dp after a 200&nbsp;ms pause, 110&nbsp;dp to wrap past either end) | Either slot set to Language |
 | Slot = Cursor, swipe sideways | Spacebar | Moves the text cursor one character per 16&nbsp;dp of drag | Either slot set to Cursor |
 | Same, dragging vertically | Spacebar | Also steps the cursor a line at a time | 2-D cursor touchpad (Off) |
-| Swipe up at least 80&nbsp;dp, more up than sideways, then keep moving | Spacebar | Opens the 2-D touchpad for that drag: the cursor follows in every direction until you lift. The cursor holds still for the long-press delay after it opens, and up and down count once the finger pauses or turns, so the opening swipe never jumps a line | Swipe up for the touchpad (Off) |
+| Swipe up at least 80&nbsp;dp, more up than sideways, then keep moving | Spacebar | Opens the 2-D touchpad for that drag: the cursor follows in every direction until you lift. The cursor holds still for the long-press delay after it opens, and up and down count once the finger pauses or turns, so the opening swipe never jumps a line | Swipe up on the spacebar set to Touchpad (default Nothing) |
+| Swipe up at least 80&nbsp;dp, more up than sideways | Spacebar | Opens the number pad at once | Swipe up on the spacebar set to Number pad |
+| Swipe up at least 80&nbsp;dp, more up than sideways, then lift | Spacebar | Runs the action picked for the swipe up, once, at the lift; types no space | Swipe up on the spacebar set to Another action |
 | Same, while the drag moves the cursor | Spacebar | Shows the text at the cursor, enlarged, in a bubble over the text | Cursor magnifier (On) |
 | Slot = Numpad, cross the initial slop | Spacebar | Opens the numeric keypad (one-shot, so the rest of the drag does nothing) | Either slot set to Numpad |
+| Slot = Another action, cross the initial slop, then lift | Spacebar | Runs the action picked for that slot (a tool such as Text editing, an edit, a layer, a layout, another keyboard, text), once, at the lift; types no space | Either slot set to Another action |
 | Straight downward drag, steeper than it is wide | Spacebar | Dismisses the keyboard | Swipe down to hide the keyboard (Off) |
 | Swipe in from the left or right edge, at least 40&nbsp;dp, more across than up or down | Any key within 16&nbsp;dp of the side | Back: closes the open panel, or the keyboard | Swipe in from the edge to go back (Off) |
 | Press and hold (~250&nbsp;ms, or your press-and-hold delay if shorter), with two or more layouts enabled | Spacebar | Opens the inline language preview or a scrollable picker list | None |
@@ -211,7 +214,7 @@ Every default on this page, gathered in one place. "Where" is the settings scree
 | Quick swipe on the spacebar | Typing → Gestures | Language |
 | Press and hold, then swipe | Typing → Gestures | Cursor |
 | 2-D cursor touchpad | Typing → Gestures | Off |
-| Swipe up for the touchpad | Typing → Gestures | Off |
+| Swipe up on the spacebar | Typing → Gestures | Nothing |
 | Cursor magnifier | Typing → Gestures | On |
 | Swipe in from the edge to go back | Typing → Gestures | Off |
 | Swipe down to hide the keyboard | Typing → Gestures | Off |

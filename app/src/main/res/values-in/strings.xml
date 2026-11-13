@@ -12965,12 +12965,6 @@
     <string name="typing_space_swipe_language_desc">Ubah ke bahasa Anda berikutnya</string>
     <string name="typing_space_swipe_none_desc">Gesekan tidak melakukan apa pun</string>
     <string name="typing_space_swipe_numpad_desc">Buka papan angka</string>
-    <string name="typing_space_swipe_up_numpad_info">Geser ke atas dari bilah spasi, dengan kecepatan berapa pun, dan papan angka akan terbuka, seperti cara SwiftKey melakukannya. Geseran harus bergerak sedikit ke atas terlebih dahulu, sehingga ketukan yang sedikit bergeser tetap mengetik spasi. Geseran ke samping tetap mempertahankan tindakan yang ditetapkan di atas. Jika Geser ke atas untuk touchpad juga aktif, touchpad yang akan menang. Pengaturan ini nonaktif secara default.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Geser ke atas dari bilah spasi untuk membuka papan angka</string>
-    <string name="typing_space_swipe_up_numpad_title">Usap ke atas untuk papan angka</string>
-    <string name="typing_space_swipe_up_touchpad_info">Geser ke atas dari bilah spasi, lalu tahan jari Anda dan gerakkan: kursor akan mengikuti ke kiri, kanan, atas, dan bawah, seperti panel sentuh kursor 2-D, sampai Anda melepas jari. Geseran harus melewati jarak pendek ke atas terlebih dahulu, jadi ketukan yang sedikit bergeser tetap akan mengetik spasi. Geseran ke samping tetap menjalankan tindakan yang diatur di atas, sehingga geseran cepat masih dapat mengganti bahasa dan Anda tidak perlu menahan bilah spasi terlebih dahulu. Dengan \'Tetap bergerak saat ditahan\' dan \'Seluruh papan ketik sebagai panel sentuh\' aktif, kursor terus bergerak saat jari Anda mencapai tepi papan ketik: sisi samping menggerakkannya di sepanjang baris, sisi atas dan bawah memindahkannya antar baris. Pengaturan ini nonaktif secara default.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Geser ke atas dari bilah spasi untuk memindahkan kursor ke segala arah</string>
-    <string name="typing_space_swipe_up_touchpad_title">Geser ke atas untuk panel sentuh</string>
     <string name="typing_spacebar_display_both_label">Keduanya</string>
     <string name="typing_spacebar_display_info">Bahasa menampilkan nama bahasa saat ini. Tata letak menampilkan nama tata letak saat ini. Keduanya menampilkan \"Bahasa (Tata Letak)\". Ketika satu bahasa memiliki lebih dari satu tata letak yang aktif, papan ketik menambahkan nama tata letak agar Anda dapat melihat perbedaannya.</string>
     <string name="typing_spacebar_display_language_label">Bahasa</string>

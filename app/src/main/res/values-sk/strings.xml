@@ -12969,12 +12969,6 @@
     <string name="typing_space_swipe_language_desc">Zmeniť na váš ďalší jazyk</string>
     <string name="typing_space_swipe_none_desc">Potiahnutie neurobí nič</string>
     <string name="typing_space_swipe_numpad_desc">Otvoriť číselnú klávesnicu</string>
-    <string name="typing_space_swipe_up_numpad_info">Potiahnutím nahor od medzerníka, akoukoľvek rýchlosťou, sa otvorí numerická klávesnica, podobne ako v aplikácii SwiftKey. Potiahnutie musí najprv viesť kúsok nahor, takže klepnutie s jemným posunom stále napíše medzeru. Pohyby do strán zachovávajú akcie nastavené vyššie. Ak je zároveň zapnutá funkcia Potiahnutie nahor pre touchpad, má prednosť touchpad. Toto nastavenie je v predvolenom stave vypnuté.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">Potiahnutie nahor z medzerníka otvorí číselník</string>
-    <string name="typing_space_swipe_up_numpad_title">Potiahnutím nahor zobrazíte číselnú klávesnicu</string>
-    <string name="typing_space_swipe_up_touchpad_info">Potiahnite prstom nahor z medzerníka, potom držte prst na obrazovke a pohybujte ním: kurzor sa pohybuje doľava, doprava, nahor a nadol, podobne ako na 2D touchpade, až kým prst nezdvihnete. Potiahnutie musí najprv prejsť krátku vzdialenosť nahor, takže klepnutie, ktoré sa trochu posunie, stále napíše medzeru. Potiahnutia do strán zachovávajú vyššie nastavené akcie, takže rýchlym potiahnutím môžete stále prepínať jazyk bez toho, aby ste museli najprv podržať medzerník. Keď sú zapnuté možnosti „Pohybovať pri podržaní“ a „Celá klávesnica ako touchpad“, kurzor sa pohybuje ďalej, aj keď prst dosiahne okraj klávesnice: strany ho posúvajú pozdĺž riadku, horná a dolná časť ho posúvajú medzi riadkami. Toto nastavenie je predvolene vypnuté.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">Švihnutie nahor z medzerníka posúva kurzor všetkými smermi</string>
-    <string name="typing_space_swipe_up_touchpad_title">Potiahnutím nahor pre touchpad</string>
     <string name="typing_spacebar_display_both_label">Oboje</string>
     <string name="typing_spacebar_display_info">Jazyk zobrazuje názov aktuálneho jazyka. Rozloženie zobrazuje názov aktuálneho rozloženia. Obe zobrazujú „Jazyk (Rozloženie)“. Keď má jeden jazyk zapnutých viacero rozložení, klávesnica pridá názov rozloženia, aby ste videli rozdiel.</string>
     <string name="typing_spacebar_display_language_label">Jazyk</string>

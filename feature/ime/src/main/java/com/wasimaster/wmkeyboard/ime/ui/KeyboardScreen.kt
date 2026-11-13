@@ -486,6 +486,10 @@ import com.wasimaster.wmkeyboard.core.settings.TopRowHolds
 import com.wasimaster.wmkeyboard.core.settings.OneHandedSide
 import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeAction
+import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeUp
+import com.wasimaster.wmkeyboard.core.settings.pressedAction
+import com.wasimaster.wmkeyboard.core.settings.spaceSwipeBinding
+import com.wasimaster.wmkeyboard.core.layout.SpaceSwipeSlot
 import com.wasimaster.wmkeyboard.core.settings.switchLayoutIds
 import com.wasimaster.wmkeyboard.core.settings.SpacebarDisplay
 import com.wasimaster.wmkeyboard.core.settings.SwitcherExtraStop
@@ -24425,10 +24429,17 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // Issue #423: Gboard's 1234 key beside ABC on the symbols pages, opt-in.
     val symbolsPage = state.layoutMode == LayoutMode.SYMBOLS ||
         state.layoutMode == LayoutMode.SYMBOLS_SHIFTED
-    val base = if (state.settings.layoutBehavior.symbolsNumpadKey && symbolsPage && !laidOut) {
+    val withNumpad = if (state.settings.layoutBehavior.symbolsNumpadKey && symbolsPage && !laidOut) {
         arranged.withNumpadKey()
     } else {
         arranged
+    }
+    // HeliBoard's D-pad key (competitor gap list item 3), opt-in for the same
+    // reason: a new key on a row people know by touch gets hit by accident.
+    val base = if (state.settings.layoutBehavior.symbolsTextEditKey && symbolsPage && !laidOut) {
+        withNumpad.withTextEditKey()
+    } else {
+        withNumpad
     }
     // Issue #423: a ?123 key whose layout gave it alternates holds them, not
     // the number pad, so the pad joins that popup instead of being lost.
@@ -25085,6 +25096,31 @@ internal fun KeyboardLayout.withNumpadKey(): KeyboardLayout {
 }
 
 private const val NumpadKeyWidth = 1f
+
+/**
+ * This symbols page with a key that opens the text-editing panel (competitor
+ * gap list item 3, HeliBoard's D-pad key), after the 1234 key when
+ * [withNumpadKey] put one there, else straight after ABC. Drawn with the
+ * tool's own icon, as any tool key with no label is.
+ *
+ * Paid for the way the 1234 key is: one standard width off the spacebar, and
+ * left out when the page already has such a key, has no ABC key or spacebar on
+ * its bottom row, or has a spacebar too narrow to give the width up.
+ */
+internal fun KeyboardLayout.withTextEditKey(): KeyboardLayout {
+    val textEdit = KeyAction.Tool(ToolbarTool.TEXT_EDIT)
+    if (rows.any { row -> row.any { it.action == textEdit } }) return this
+    val bottom = rows.lastOrNull() ?: return this
+    val letters = bottom.indexOfFirst { it.action == KeyAction.Letters }
+    val space = bottom.indexOfFirst { it.action == KeyAction.Space }
+    if (letters < 0 || space < 0 || bottom[space].width - NumpadKeyWidth < MinSpaceAfterNumpadKey) return this
+    val numpad = bottom.indexOfFirst { it.action == KeyAction.Numpad }
+    val after = if (numpad == letters + 1) numpad else letters
+    val row = bottom.toMutableList()
+    row[space] = row[space].copy(width = row[space].width - NumpadKeyWidth)
+    row.add(after + 1, Key(label = "", action = textEdit, width = NumpadKeyWidth))
+    return copy(rows = rows.dropLast(1) + listOf(row))
+}
 
 /** The narrowest spacebar [withNumpadKey] leaves: still two keys wide. */
 private const val MinSpaceAfterNumpadKey = 2f
@@ -30277,15 +30313,13 @@ private fun CoroutineScope.noSpaceArmHold(
 }
 
 /**
- * The key a discrete spacebar action ([SpaceSwipeAction.KEYBOARDS],
- * [SpaceSwipeAction.SECONDARY_LAYOUT]) presses, once per gesture.
+ * The key a discrete spacebar swipe presses, once per gesture: the number pad,
+ * the keyboard list, the secondary layout, or the action bound to the slot
+ * (see [pressedAction]). A bound action's label rides along, which is what a
+ * swipe that types text types.
  */
-internal fun spaceDiscreteAction(action: SpaceSwipeAction): KeyAction =
-    if (action == SpaceSwipeAction.SECONDARY_LAYOUT) {
-        KeyAction.Tool(ToolbarTool.CUSTOM_LAYOUT)
-    } else {
-        KeyAction.InputMethodPicker
-    }
+internal fun spaceSwipeKey(press: KeyAlternate): Key =
+    Key(label = press.label.ifEmpty { " " }, action = press.action)
 
 /**
  * Whether a plain hold on the spacebar may open the language chooser.
@@ -30461,7 +30495,7 @@ private fun Modifier.pointerInputKey(
 ): Modifier = this.then(
     if (key.action == KeyAction.Space &&
         (spaceShortSwipe != SpaceSwipeAction.NONE || spaceLongSwipe != SpaceSwipeAction.NONE ||
-            spaceSwipeDownHide || textEditing.spaceSwipeUpTouchpad || textEditing.spaceSwipeUpNumpad ||
+            spaceSwipeDownHide || textEditing.spaceSwipeUp != SpaceSwipeUp.NONE ||
             key.hasFlicks())
     ) {
         Modifier.pointerInput(
@@ -30624,6 +30658,11 @@ private fun Modifier.pointerInputKey(
                         (spaceLongSwipe == SpaceSwipeAction.KEYBOARDS ||
                             spaceLongSwipe == SpaceSwipeAction.SECONDARY_LAYOUT)
                     var keyboardsOpened = false
+                    // A swipe set to another action (competitor gap list item
+                    // 3) has resolved: what it runs, held until the finger
+                    // lifts, so a panel it opens never pulls the key out from
+                    // under a finger still on it. The press goes inert meanwhile.
+                    var pendingPress: KeyAlternate? = null
                     // Issue #533: with both slots set to nothing, this gesture is
                     // here only for the swipe down to hide, and the hold keeps the
                     // space repeat it has with that switch off. Any movement (the
@@ -30646,7 +30685,7 @@ private fun Modifier.pointerInputKey(
                                     keyboardsOpened = true
                                     hidden = true
                                     if (hapticOnLongPress) onKeyPress()
-                                    onKey(Key(label = " ", action = spaceDiscreteAction(spaceLongSwipe)))
+                                    spaceLongSwipe.pressedAction(null)?.let { onKey(spaceSwipeKey(it)) }
                                     return@launch
                                 }
                                 // List for a long ring (> 4, unless the user keeps
@@ -30767,7 +30806,8 @@ private fun Modifier.pointerInputKey(
                             continue
                         }
                         // The keyboard list is up: nothing left for this finger to do.
-                        if (keyboardsOpened) {
+                        // Nor once a bound action waits for the lift.
+                        if (keyboardsOpened || pendingPress != null) {
                             change.consume()
                             continue
                         }
@@ -30888,9 +30928,11 @@ private fun Modifier.pointerInputKey(
                             // A swipe up for the number pad, SwiftKey's way:
                             // discrete like the NUMPAD slot below, past the
                             // same debounce the touchpad waits for.
-                            if (textEditing.spaceSwipeUpNumpad && !textEditing.spaceSwipeUpTouchpad &&
-                                -totalDy > abs(totalDx)
-                            ) {
+                            // Or the action bound to the swipe up (competitor gap
+                            // list item 3), the same distance, run at the lift.
+                            val upPress = textEditing.spaceSwipeUp
+                                .pressedAction(textEditing.spaceSwipeBinding(SpaceSwipeSlot.UP))
+                            if (upPress != null && -totalDy > abs(totalDx)) {
                                 if (-totalDy > swipeUpPx) {
                                     if (holdPreviewShown) {
                                         holdPreviewShown = false
@@ -30898,14 +30940,17 @@ private fun Modifier.pointerInputKey(
                                         setPreviewExtraStop(false)
                                     }
                                     onKeyHaptic()
-                                    onKey(Key(label = " ", action = KeyAction.Numpad))
-                                    hidden = true
                                     change.consume()
-                                    break
+                                    if (textEditing.spaceSwipeUp == SpaceSwipeUp.NUMPAD) {
+                                        onKey(Key(label = " ", action = KeyAction.Numpad))
+                                        hidden = true
+                                        break
+                                    }
+                                    pendingPress = upPress
                                 }
                                 continue
                             }
-                            if (textEditing.spaceSwipeUpTouchpad && -totalDy > abs(totalDx)) {
+                            if (textEditing.spaceSwipeUp == SpaceSwipeUp.TOUCHPAD && -totalDy > abs(totalDx)) {
                                 if (-totalDy > swipeUpPx) {
                                     touchpadActivatedAt = change.uptimeMillis
                                     action = SpaceSwipeAction.CURSOR
@@ -30956,10 +31001,24 @@ private fun Modifier.pointerInputKey(
                                     // Discrete, like the numpad below: the list
                                     // opens (or the secondary layout toggles)
                                     // once and the gesture goes inert.
-                                    onKey(Key(label = " ", action = spaceDiscreteAction(action)))
+                                    action.pressedAction(null)?.let { onKey(spaceSwipeKey(it)) }
                                     hidden = true
                                     change.consume()
                                     break
+                                }
+                                if (action == SpaceSwipeAction.ACTION) {
+                                    // The slot's bound action, once, at the lift.
+                                    // Nothing bound: as inert as NONE. Which slot
+                                    // by the same hold time that chose candidate.
+                                    val slot = if (change.uptimeMillis - down.uptimeMillis < spaceHoldMs) {
+                                        SpaceSwipeSlot.SHORT
+                                    } else {
+                                        SpaceSwipeSlot.LONG
+                                    }
+                                    pendingPress = action.pressedAction(textEditing.spaceSwipeBinding(slot))
+                                    if (pendingPress != null) onKeyHaptic()
+                                    change.consume()
+                                    continue
                                 }
                                 if (action == SpaceSwipeAction.NUMPAD) {
                                     // Discrete action (A39): open the numeric panel once
@@ -31251,7 +31310,12 @@ private fun Modifier.pointerInputKey(
                     setLanguagePreview(null)
                     setPreviewExtraStop(false)
                     val armKey = arm?.let { key.flickKey(it) }
+                    val press = pendingPress
                     when {
+                        // A swipe bound to an action runs it now the finger is
+                        // up, and types no space. A cancelled pointer (no lift)
+                        // runs nothing.
+                        press != null -> if (liftAt > 0L) onKey(spaceSwipeKey(press))
                         // A swipe-down already dismissed the keyboard: the finger
                         // lifting must not also type a space.
                         hidden -> {}

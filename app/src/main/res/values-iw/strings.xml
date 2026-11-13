@@ -12968,12 +12968,6 @@
     <string name="typing_space_swipe_language_desc">עבור לשפה הבאה שלך</string>
     <string name="typing_space_swipe_none_desc">החלקה ללא פעולה</string>
     <string name="typing_space_swipe_numpad_desc">פתח את לוח המספרים</string>
-    <string name="typing_space_swipe_up_numpad_info">החלק למעלה ממקש הרווח, בכל מהירות, ולוח המספרים ייפתח, כפי שזה עובד ב-SwiftKey. ההחלקה צריכה לעבור מרחק קצר למעלה תחילה, כך שהקשה שמחליקה מעט עדיין תקליד רווח. החלקות לצדדים שומרות על הפעולות שהוגדרו למעלה. אם \'החלקה למעלה עבור משטח המגע\' מופעלת גם היא, משטח המגע יקבל עדיפות. הגדרה זו כבויה כברירת מחדל.</string>
-    <string name="typing_space_swipe_up_numpad_subtitle">החלקה למעלה ממקש הרווח פותחת את לוח המספרים</string>
-    <string name="typing_space_swipe_up_numpad_title">החלק למעלה עבור לוח המספרים</string>
-    <string name="typing_space_swipe_up_touchpad_info">החלק למעלה ממקש הרווח, לאחר מכן השאר את האצבע למטה והזז אותה: הסמן עוקב שמאלה, ימינה, למעלה ולמטה, כמו משטח מגע דו-ממדי, עד שתרים את האצבע. ההחלקה צריכה לעלות מעט למעלה תחילה, כך שהקשה שמחליקה מעט עדיין תקליד רווח. החלקות הצידה שומרות על הפעולות שהוגדרו לעיל, כך שהחלקה מהירה עדיין יכולה להחליף את השפה ואין צורך להחזיק את מקש הרווח תחילה. כאשר \'המשך תנועה בזמן החזקה\' ו\'כל המקלדת כמשטח מגע\' מופעלים, הסמן ממשיך לנוע כשהאצבע מגיעה לקצה המקלדת: הצדדים מזיזים אותו לאורך השורה, והחלק העליון והתחתון מזיזים אותו בין שורות. הגדרה זו כבויה כברירת מחדל.</string>
-    <string name="typing_space_swipe_up_touchpad_subtitle">החלקה למעלה ממקש הרווח מזיזה את הסמן לכל כיוון</string>
-    <string name="typing_space_swipe_up_touchpad_title">החלק למעלה עבור משטח המגע</string>
     <string name="typing_spacebar_display_both_label">שניהם</string>
     <string name="typing_spacebar_display_info">שפה מציגה את שם השפה הנוכחית. פריסה מציגה את שם הפריסה הנוכחית. \'שניהם\' מציג \"שפה (פריסה)\". כאשר לשפה אחת יש יותר מפריסה אחת פעילה, המקלדת מוסיפה את שם הפריסה, כדי שתוכל לראות את ההבדל.</string>
     <string name="typing_spacebar_display_language_label">שפה</string>
