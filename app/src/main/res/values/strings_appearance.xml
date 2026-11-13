@@ -93,7 +93,7 @@
     <string name="appearance_strip_buttons_section_title">Beside the suggestions</string>
     <string name="appearance_strip_buttons_show_title">Buttons beside the suggestions</string>
     <string name="appearance_strip_buttons_show_subtitle">Keep some tools in the top bar while the suggestions show</string>
-    <string name="appearance_strip_buttons_show_info">The buttons stay in the top bar, at its left end, its right end, or both. They stay while the words show, and they also stay when there are no words and the toolbar takes the bar. Emoji is the only button to begin with. Add any tool below and pick a side for each one. A tool that you also pinned on the toolbar shows one time only, in its place on the toolbar, while the toolbar shows.</string>
+    <string name="appearance_strip_buttons_show_info">The buttons stay on the suggestion strip, at its left end, its right end, or both, while the words show. Emoji is the only button to begin with. Add any tool below and pick a side for each one. A tool that you also pinned on the toolbar slides between its two places when the bar changes between the words and the tools.</string>
     <string name="appearance_strip_buttons_add_title">Add a button</string>
     <string name="appearance_strip_buttons_add_subtitle">Drag to change the order. Press Left or Right to move a button to the other end</string>
     <string name="appearance_strip_buttons_side_left">Left</string>

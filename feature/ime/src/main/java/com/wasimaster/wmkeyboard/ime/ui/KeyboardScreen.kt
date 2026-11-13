@@ -4609,10 +4609,6 @@ private fun TopBar(
             // exempting it left it popping in solid while every other tool faded,
             // which read as the handoff still playing for a button that was off.
             // Same condition the strip's copies are drawn under, below.
-            // The strip's own buttons that are not pinned here stay at their
-            // ends while the tools rest on the row, so a button kept beside the
-            // suggestions does not vanish the moment the words run out.
-            ToolbarStripTools(state, drag, onToolTap, onPinnedTools, onPanelChange, atEnd = false)
             ToolbarRow(
                 state, onPanelChange, onToolTap, drag, toolContentAlpha,
                 sharedTools = stripToolSet(state),
@@ -4640,7 +4636,6 @@ private fun TopBar(
                     }
                 }
             }
-            ToolbarStripTools(state, drag, onToolTap, onPinnedTools, onPanelChange, atEnd = true)
         } else {
             // The candidate surface, as a lambda of its own. It is most of the
             // bar, and written straight into the row it made the row's lambda
@@ -11526,37 +11521,28 @@ private fun StripTools(
     onToolTap: (ToolbarTool) -> Unit,
     onPinnedTools: (Boolean) -> Unit,
     atEnd: Boolean,
-    onToolbar: Boolean = false,
     onToolbox: () -> Unit,
 ) {
     val behavior = state.settings.toolbarBehavior
     // The side the user picked that lands in this slot. A strip held LTR for
     // its buttons ([stripToolsHeldLtr]) runs the other way, so the start the
-    // user picked is that row's end. The toolbar never runs that way: it
-    // mirrors only when its own setting says so, and then the sides follow.
-    val heldLtr = !onToolbar && stripToolsHeldLtr(state)
-    val side = atEnd != heldLtr
+    // user picked is that row's end.
+    val side = atEnd != stripToolsHeldLtr(state)
     val onRow = if (toolsRowVisible) visibleToolbarTools(state) else emptyList()
     val allTools = stripShortcutTools(state).filter { it !in onRow }
     val tools = allTools.filter { (it in behavior.stripEndTools) == side }
     val phonetic = ToolbarTool.PHONETIC_ENGLISH
-    // The switch added by itself belongs beside the words it decides, so not on
-    // the toolbar.
-    val autoPhonetic = !onToolbar && phonetic !in allTools && phonetic !in onRow &&
-        phoneticEnglishLanguage(state) != null && (phonetic in behavior.stripEndTools) == side
-    // The strip's toolbox button joins the toolbar only while the toolbar has
-    // none of its own, the one way into the toolbox there.
-    val toolbox = state.settings.emojiToolbar && behavior.stripToolbox && behavior.stripToolboxAtEnd == side &&
-        !(onToolbar && barToolboxShown(state))
+    val autoPhonetic = phonetic !in allTools && phonetic !in onRow && phoneticEnglishLanguage(state) != null &&
+        (phonetic in behavior.stripEndTools) == side
     // Null is the toolbox button. Drawn in the order they read left to right,
     // whichever way the strip runs, unless the toolbar mirrors for this script
     // too (see [stripToolsHeldLtr]).
     val order = buildList {
-        if (toolbox) add(null)
+        if (state.settings.emojiToolbar && behavior.stripToolbox && behavior.stripToolboxAtEnd == side) add(null)
         addAll(tools)
         if (autoPhonetic) add(phonetic)
     }
-    for (tool in if (heldLtr) order.asReversed() else order) {
+    for (tool in if (stripToolsHeldLtr(state)) order.asReversed() else order) {
         if (tool == null) {
             key("§toolbox") { StripToolboxButton(state, onPinnedTools, onToolbox) }
         } else {
@@ -11564,33 +11550,6 @@ private fun StripTools(
             val compact = autoPhonetic && tool == phonetic && !state.settings.toolbarBehavior.stripOwnSize
             key(tool) { StripToolButton(state, tool, drag, compact = compact, onToolTap) }
         }
-    }
-}
-
-/**
- * The strip's buttons ([StripTools]) while the pinned tools hold the shared
- * row, at the end [atEnd] picks: the ones the toolbar does not already pin
- * (#462 follow-up: a button kept beside the suggestions went away whenever the
- * strip had no words, because the toolbar takes the row exactly then). Only
- * while no tool is open, when the bar is the resting toolbar rather than an
- * open tool's header. A tool on both sits at the same spot either way, so the
- * flip between the surfaces leaves it where it is.
- *
- * Its own composable so the bar's row lambda, near ART's compile ceiling,
- * takes one call per end and no lambda.
- */
-@Composable
-private fun ToolbarStripTools(
-    state: KeyboardUiState,
-    drag: ToolDragController,
-    onToolTap: (ToolbarTool) -> Unit,
-    onPinnedTools: (Boolean) -> Unit,
-    onPanelChange: (PanelMode) -> Unit,
-    atEnd: Boolean,
-) {
-    if (state.panel != PanelMode.NONE) return
-    StripTools(state, toolsRowVisible = true, drag, onToolTap, onPinnedTools, atEnd = atEnd, onToolbar = true) {
-        onPanelChange(PanelMode.TOOLBOX)
     }
 }
 
