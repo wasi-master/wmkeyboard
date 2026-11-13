@@ -7806,7 +7806,6 @@
     <string name="py_diag_mixed_indentation">Esta indentação mistura tabulações e espaços.</string>
     <string name="py_diag_module_not_imported">“%1$s” é um módulo. Adicione “import %1$s” no topo primeiro.</string>
     <string name="py_diag_name_typo">\"%1$s\" não está definido. Queria dizer \"%2$s\"?</string>
-    <string name="py_diag_never_in_api">“%1$s” não existe: plugins não podem ler texto digitado, a área de transferência, arquivos ou a rede.</string>
     <string name="py_diag_on_event_signature">on_event é chamado com um argumento, o evento.</string>
     <string name="py_diag_panel_only">“%1$s” só funciona em um plugin com painel.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders precisa da permissão de lembretes em plugin.json.</string>

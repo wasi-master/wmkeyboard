@@ -7812,7 +7812,6 @@
     <string name="py_diag_mixed_indentation">Šajā atkāpē ir sajauktas tabulācijas un atstarpes.</string>
     <string name="py_diag_module_not_imported">“%1$s” ir modulis. Vispirms augšpusē pievienojiet “import %1$s”.</string>
     <string name="py_diag_name_typo">“%1$s” nav definēts. Vai jūs domājāt “%2$s”?</string>
-    <string name="py_diag_never_in_api">“%1$s” neeksistē: spraudņi nevar nolasīt ierakstītu tekstu, starpliktuvi, failus vai tīklu.</string>
     <string name="py_diag_on_event_signature">on_event tiek izsaukts ar vienu argumentu — notikumu.</string>
     <string name="py_diag_panel_only">“%1$s” darbojas tikai spraudnī ar paneli.</string>
     <string name="py_diag_reminders_not_declared">Failam wm.reminders ir nepieciešama atļautība \"reminders\" iekš plugin.json.</string>

@@ -7827,7 +7827,6 @@
     <string name="py_diag_mixed_indentation">এই ইনডেন্টেশনে ট্যাব এবং স্পেস মিশে আছে।</string>
     <string name="py_diag_module_not_imported">“%1$s” একটি মডিউল। প্রথমে উপরে “import %1$s” যোগ করুন।</string>
     <string name="py_diag_name_typo">“%1$s” সংজ্ঞায়িত করা হয়নি। আপনি কি “%2$s” বোঝাতে চেয়েছেন?</string>
-    <string name="py_diag_never_in_api">“%1$s” বিদ্যমান নেই: প্লাগইনগুলি টাইপ করা পাঠ্য, ক্লিপবোর্ড, ফাইল বা নেটওয়ার্ক পড়তে পারে না।</string>
     <string name="py_diag_on_event_signature">on_event একটি আর্গুমেন্ট, ইভেন্ট সহ কল করা হয়।</string>
     <string name="py_diag_panel_only">“%1$s” শুধুমাত্র একটি প্যানেল সহ প্লাগইনে কাজ করে।</string>
     <string name="py_diag_reminders_not_declared">plugin.json-এ wm.reminders-এর জন্য রিমাইন্ডার অনুমতি প্রয়োজন।</string>

@@ -7805,7 +7805,6 @@
     <string name="py_diag_mixed_indentation">Цей відступ містить суміш табуляцій і пробілів.</string>
     <string name="py_diag_module_not_imported">«%1$s» є модулем. Спочатку додайте «import %1$s» на початку.</string>
     <string name="py_diag_name_typo">«%1$s» не визначено. Ви мали на увазі «%2$s»?</string>
-    <string name="py_diag_never_in_api">—%1$s— не існує: плагіни не можуть читати введений текст, буфер обҼіну, файли або мережу.</string>
     <string name="py_diag_on_event_signature">on_event викликається з одним аргументом — подією.</string>
     <string name="py_diag_panel_only">“%1$s” працює лише в плагіні з панеллю.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders потребує дозволу на нагадування в plugin.json.</string>

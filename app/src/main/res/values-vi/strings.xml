@@ -7801,7 +7801,6 @@
     <string name="py_diag_mixed_indentation">Khoảng thụt lề này trộn lẫn tab và khoảng trắng.</string>
     <string name="py_diag_module_not_imported">“%1$s” là một mô-đun. Hãy thêm “import %1$s” ở đầu trước.</string>
     <string name="py_diag_name_typo">“%1$s” chưa được định nghĩa. Ý bạn là “%2$s” phải không?</string>
-    <string name="py_diag_never_in_api">“%1$s” không tồn tại: tiện ích bổ sung không thể đọc văn bản đã gõ, bảng nhớ tạm, tệp hoặc mạng.</string>
     <string name="py_diag_on_event_signature">on_event được gọi với một đối số, sự kiện.</string>
     <string name="py_diag_panel_only">“%1$s” chỉ hoạt động trong một plugin có bảng điều khiển.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders cần quyền nhắc nhở trong plugin.json.</string>

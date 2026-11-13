@@ -7812,7 +7812,6 @@
     <string name="py_diag_mixed_indentation">Denna indragning blandar tabbar och mellanslag.</string>
     <string name="py_diag_module_not_imported">\"%1$s\" är en modul. Lägg till \"import %1$s\" längst upp först.</string>
     <string name="py_diag_name_typo">\"%1$s\" är inte definierad. Menade du \"%2$s\"?</string>
-    <string name="py_diag_never_in_api">”%1$s” finns inte: tillägg kan inte läsa inmatad text, urklipp, filer eller nätverket.</string>
     <string name="py_diag_on_event_signature">on_event anropas med ett argument, händelsen.</string>
     <string name="py_diag_panel_only">\"%1$s\" fungerar bara i en insticksmodul med en panel.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders behöver behörigheten reminders i plugin.json.</string>

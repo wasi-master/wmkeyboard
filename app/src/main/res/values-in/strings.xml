@@ -7806,7 +7806,6 @@
     <string name="py_diag_mixed_indentation">Penjarangan ini mencampur tab dan spasi.</string>
     <string name="py_diag_module_not_imported">\"%1$s\" adalah sebuah modul. Tambahkan \"import %1$s\" di bagian atas terlebih dahulu.</string>
     <string name="py_diag_name_typo">“%1$s” tidak didefinisikan. Maksud Anda “%2$s”?</string>
-    <string name="py_diag_never_in_api">\"%1$s\" tidak ada: plugin tidak dapat membaca teks yang diketik, papan klip, file, atau jaringan.</string>
     <string name="py_diag_on_event_signature">on_event dipanggil dengan satu argumen, yaitu event.</string>
     <string name="py_diag_panel_only">“%1$s” hanya berfungsi di plugin dengan panel.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders memerlukan izin pengingat di plugin.json.</string>

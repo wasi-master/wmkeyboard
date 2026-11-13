@@ -7806,7 +7806,6 @@
     <string name="py_diag_mixed_indentation">Αυτή η εσοχή αναμιγνύει στηλοθέτες (tabs) και διαστήματα.</string>
     <string name="py_diag_module_not_imported">Το «%1$s» είναι ένα άρθρωμα. Προσθέστε το «import %1$s» στην κορυφή πρώτα.</string>
     <string name="py_diag_name_typo">Το «%1$s» δεν έχει οριστεί. Εννοούσατε το «%2$s»;</string>
-    <string name="py_diag_never_in_api">Το \"%1$s\" δεν υπάρχει: τα πρόσθετα δεν μπορούν να διαβάσουν πληκτρολογημένο κείμενο, το πρόχειρο, αρχεία ή το δίκτυο.</string>
     <string name="py_diag_on_event_signature">Το on_event καλείται με ένα όρισμα, το συμβάν.</string>
     <string name="py_diag_panel_only">Το «%1$s» λειτουργεί μόνο σε πρόσθετο με πίνακα.</string>
     <string name="py_diag_reminders_not_declared">Το wm.reminders χρειάζεται την άδεια reminders στο plugin.json.</string>

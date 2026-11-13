@@ -7809,7 +7809,6 @@
     <string name="py_diag_mixed_indentation">Deze inspringing combineert tabs en spaties.</string>
     <string name="py_diag_module_not_imported">„%1$s” is een module. Voeg eerst „import %1$s” toe bovenaan.</string>
     <string name="py_diag_name_typo">\"%1$s\" is niet gedefinieerd. Bedoelde je \"%2$s\"?</string>
-    <string name="py_diag_never_in_api">“%1$s” bestaat niet: plug-ins kunnen geen getypte tekst, klembord, bestanden of netwerk lezen.</string>
     <string name="py_diag_on_event_signature">on_event wordt aangeroepen met één argument, het evenement.</string>
     <string name="py_diag_panel_only">“%1$s” werkt alleen in een plug-in met een paneel.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders heeft de herinneringsmachtiging nodig in plugin.json.</string>

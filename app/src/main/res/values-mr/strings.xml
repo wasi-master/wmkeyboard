@@ -7809,7 +7809,6 @@
     <string name="py_diag_mixed_indentation">या इंडेन्टेशनमध्ये टॅब आणि स्पेसेस एकत्र आहेत.</string>
     <string name="py_diag_module_not_imported">“%1$s” हा एक मॉड्यूल आहे. प्रथम वर “import %1$s” जोडा.</string>
     <string name="py_diag_name_typo">“%1$s” परिभाषित केलेले नाही. तुमचा अर्थ “%2$s” असा होता का?</string>
-    <string name="py_diag_never_in_api">“%1$s” अस्तित्वात नाही: प्लगइन टाईप केलेला मजकूर, क्लिपबोर्ड, फाइल्स կամ नेटवर्क वाचू शकत नाहीत.</string>
     <string name="py_diag_on_event_signature">on_event एका युक्तिवादासह कॉल केले जाते, इव्हेंट.</string>
     <string name="py_diag_panel_only">“%1$s” केवळ पॅनेल असलेल्या प्लगइनमध्ये कार्य करते.</string>
     <string name="py_diag_reminders_not_declared">plugin.json मध्ये wm.reminders ला रिमाइन्डर परवानगी आवश्यक आहे.</string>

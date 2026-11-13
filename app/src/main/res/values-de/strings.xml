@@ -7809,7 +7809,6 @@
     <string name="py_diag_mixed_indentation">Diese Einrückung mischt Tabs und Leerzeichen.</string>
     <string name="py_diag_module_not_imported">„%1$s“ ist ein Modul. Füge zuerst „import %1$s“ ganz oben hinzu.</string>
     <string name="py_diag_name_typo">„%1$s“ ist nicht definiert. Meintest du „%2$s“?</string>
-    <string name="py_diag_never_in_api">„%1$s“ existiert nicht: Plugins können keinen getippten Text, die Zwischenablage, Dateien oder das Netzwerk lesen.</string>
     <string name="py_diag_on_event_signature">on_event wird mit einem Argument, dem Ereignis, aufgerufen.</string>
     <string name="py_diag_panel_only">„%1$s“ funktioniert nur in einem Plugin mit einem Panel.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders benötigt die Berechtigung für Erinnerungen in plugin.json.</string>

@@ -7805,7 +7805,6 @@
     <string name="py_diag_mixed_indentation">Aquesta sagnia barreja tabuladors i espais.</string>
     <string name="py_diag_module_not_imported">“%1$s” és un mòdul. Afegiu “import %1$s” primer a la part superior.</string>
     <string name="py_diag_name_typo">\"%1$s\" no està definit. Volíeu dir \"%2$s\"?</string>
-    <string name="py_diag_never_in_api">«%1$s» no existeix: els connectors no poden llegir text escrit, el porta-retalls, fitxers ni la xarxa.</string>
     <string name="py_diag_on_event_signature">on_event es crida amb un argument, l\'esdeveniment.</string>
     <string name="py_diag_panel_only">“%1$s” només funciona en un connector amb un tauler.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders necessita el permís de recordatoris a plugin.json.</string>

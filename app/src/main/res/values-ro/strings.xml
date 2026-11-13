@@ -7811,7 +7811,6 @@
     <string name="py_diag_mixed_indentation">Această indentare combină tabulatori și spații.</string>
     <string name="py_diag_module_not_imported">„%1$s” este un modul. Adăugați mai întâi „import %1$s” în partea de sus.</string>
     <string name="py_diag_name_typo">„%1$s” nu este definit. Ai vrut să spui „%2$s”?</string>
-    <string name="py_diag_never_in_api">„%1$s” nu există: pluginurile nu potc citi textul tastat, clipboardul, fișierele sau rețeaua.</string>
     <string name="py_diag_on_event_signature">on_event este apelat cu un singur argument, evenimentul.</string>
     <string name="py_diag_panel_only">„%1$s” funcționează numai într-un modul cu un panou.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders are nevoie de permisiunea de memento-uri în plugin.json.</string>

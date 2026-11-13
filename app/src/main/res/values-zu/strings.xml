@@ -7813,7 +7813,6 @@
     <string name="py_diag_mixed_indentation">Lokhu kungenisa amathebhu nezikhala.</string>
     <string name="py_diag_module_not_imported">“%1$s” liyimoduli. Engeza “import %1$s” phezulu kuqala.</string>
     <string name="py_diag_name_typo">“%1$s” ayichaziwe. Ubumasho ukuthi “%2$s”?</string>
-    <string name="py_diag_never_in_api">“%1$s” ayikho: ama-plugin awakwazi ukufunda umbhalo otholakele, ibhodlela lezinto ezikopishiwe, amafayela noma inethiwekhi.</string>
     <string name="py_diag_on_event_signature">I-on_event ibizwa ngempikiswano eyodwa, umcimbi.</string>
     <string name="py_diag_panel_only">“%1$s” isebenza kuphela ku-plugin enepaneli.</string>
     <string name="py_diag_reminders_not_declared">I-wm.reminders idinga imvume yezikhumbuzo ku-plugin.json.</string>

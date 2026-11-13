@@ -7796,7 +7796,6 @@
     <string name="py_diag_mixed_indentation">此缩进混合使用了制表符和空格。</string>
     <string name="py_diag_module_not_imported">“%1$s”是一个模块。请先在顶部添加“import %1$s”。</string>
     <string name="py_diag_name_typo">“%1$s”未定义。您是指“%2$s”吗？</string>
-    <string name="py_diag_never_in_api">“%1$s”不存在：插件无法读取输入的文本、剪贴板、文件或网络。</string>
     <string name="py_diag_on_event_signature">调用 on_event 时带有一个参数，即事件本身。</string>
     <string name="py_diag_panel_only">“%1$s”只能在带有面板的插件中运行。</string>
     <string name="py_diag_reminders_not_declared">wm.reminders 需要 plugin.json 中的 reminders 权限。</string>

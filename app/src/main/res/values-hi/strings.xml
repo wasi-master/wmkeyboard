@@ -7816,7 +7816,6 @@
     <string name="py_diag_mixed_indentation">इस इंडेंटेशन में टैब और स्पेस दोनों का उपयोग किया गया है।</string>
     <string name="py_diag_module_not_imported">“%1$s” एक मॉड्यूल है। पहले शीर्ष पर “import %1$s” जोड़ें।</string>
     <string name="py_diag_name_typo">“%1$s” परिभाषित नहीं है। क्या आपका मतलब “%2$s” से था?</string>
-    <string name="py_diag_never_in_api">“%1$s” मौजूद नहीं है: प्लगइन्स टाइप्ड टेक्स्ट, क्लिपबोर्ड, फ़ाइलों या नेटवर्क को नहीं पढ़ सकते हैं।</string>
     <string name="py_diag_on_event_signature">on_event को एक तर्क, यानी इवेंट के साथ कॉल किया जाता है।</string>
     <string name="py_diag_panel_only">“%1$s” केवल पैनल वाले प्लगइन में काम करता है।</string>
     <string name="py_diag_reminders_not_declared">plugin.json में wm.reminders को रिमाइंडर अनुमति की आवश्यकता है।</string>

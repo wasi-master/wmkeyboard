@@ -7802,7 +7802,6 @@
     <string name="py_diag_mixed_indentation">このインデントはタブとスペースが混在しています。</string>
     <string name="py_diag_module_not_imported">“%1$s” はモジュールです。最初に先頭に “import %1$s” を追加してください。</string>
     <string name="py_diag_name_typo">‘%1$s’ は定義されていません。もしかして ‘%2$s’ でしたか？</string>
-    <string name="py_diag_never_in_api">「%1$s」は存在しません。プラグインは、入力されたテキスト、クリップボード、ファイル、ネットワークを読み取ることはできません。</string>
     <string name="py_diag_on_event_signature">on_event は引数を 1 つ（イベント）取って呼び出されます。</string>
     <string name="py_diag_panel_only">「%1$s」はパネル付きのプラグインでのみ動作します。</string>
     <string name="py_diag_reminders_not_declared">wm.reminders には plugin.json でのリマインダー権限の宣言が必要です。</string>

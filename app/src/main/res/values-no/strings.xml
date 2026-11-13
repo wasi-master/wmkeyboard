@@ -7808,7 +7808,6 @@
     <string name="py_diag_mixed_indentation">Denne innrykkstypen blander tabulatorer og mellomrom.</string>
     <string name="py_diag_module_not_imported">«%1$s» er en modul. Legg til «import %1$s» øverst først.</string>
     <string name="py_diag_name_typo">“%1$s” er ikke definert. Mente du “%2$s”?</string>
-    <string name="py_diag_never_in_api">«%1$s» finnes ikke: utvidelser kan ikke lese skrevet tekst, utklippstavlen, filer eller nettverket.</string>
     <string name="py_diag_on_event_signature">on_event kalles med ett argument, hendelsen.</string>
     <string name="py_diag_panel_only">“%1$s” fungerer bare i et utvidelsesmodul med et panel.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders trenger påminnelsestillatelsen i plugin.json.</string>

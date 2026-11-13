@@ -7818,7 +7818,6 @@
     <string name="py_diag_mixed_indentation">Uwekaji huu wa nafasi unachanganya vichupo na nafasi.</string>
     <string name="py_diag_module_not_imported">“%1$s” ni moduli. Ongeza “import %1$s” juu kwanza.</string>
     <string name="py_diag_name_typo">“%1$s” haijafafanuliwa. Je, ulimaanisha “%2$s”?</string>
-    <string name="py_diag_never_in_api">“%1$s” haipo: programu-jalizi haziwezi kusoma maandishi yaliyoandikwa, ubao klipu, faili au mtandao.</string>
     <string name="py_diag_on_event_signature">on_event inaitwa na hoja moja, tukio hilo.</string>
     <string name="py_diag_panel_only">\"%1$s\" inafanya kazi tu katika programu-jalizi yenye paneli.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders inahitaji ruhusa ya vikumbusho katika plugin.json.</string>

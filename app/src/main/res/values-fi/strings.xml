@@ -7802,7 +7802,6 @@
     <string name="py_diag_mixed_indentation">Tämä sisennys sekoittaa sarkaimia ja välilyöntejä.</string>
     <string name="py_diag_module_not_imported">”%1$s” on moduuli. Lisää aluksi ”import %1$s” tiedoston alkuun.</string>
     <string name="py_diag_name_typo">”%1$s” ei ole määritetty. Tarkoitoitko ”%2$s”?</string>
-    <string name="py_diag_never_in_api">%1$s ei ole olemassa: lisäosat eivät voi lukea kirjoitettua tekstiä, leikepöytää, tiedostoja tai verkkoa.</string>
     <string name="py_diag_on_event_signature">on_eventia kutsutaan yhdellä argumentilla, joka on tapahtuma.</string>
     <string name="py_diag_panel_only">\"%1$s\" toimii vain laajennuksessa, jossa on paneeli.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders tarvitsee reminders-luvan tiedostossa plugin.json.</string>

@@ -7813,7 +7813,6 @@
     <string name="py_diag_mixed_indentation">هذه المسافة البادئة تخلط بين علامات التبويب والمسافات.</string>
     <string name="py_diag_module_not_imported">“%1$s” هو وحدة برمجية. أضف “import %1$s” في الأعلى أولاً.</string>
     <string name="py_diag_name_typo">“%1$s” غير معرف. هل تقصد “%2$s”؟</string>
-    <string name="py_diag_never_in_api">“%1$s” غير موجود: لا يمكن للإضافات قراءة النص المكتوب أو الحافظة أو الملفات أو الشبكة.</string>
     <string name="py_diag_on_event_signature">يتم استدعاء on_event باستخدام وسيطة واحدة، وهي الحدث.</string>
     <string name="py_diag_panel_only">“%1$s” يعمل فقط في مكون إضافي يحتوي على لوحة.</string>
     <string name="py_diag_reminders_not_declared">تتطلب wm.reminders إذن التذكيرات في plugin.json.</string>

@@ -7810,7 +7810,6 @@
     <string name="py_diag_mixed_indentation">Toto odsadenie kombinuje tabulátory a medzery.</string>
     <string name="py_diag_module_not_imported">„%1$s“ je modul. Najprv pridajte „import %1$s“ na začiatok.</string>
     <string name="py_diag_name_typo">„%1$s“ nie je definované. Mysleli ste „%2$s“?</string>
-    <string name="py_diag_never_in_api">„%1$s“ neexistuje: doplnky nemôžu čítať napísaný text, schránku, súbory ani sieť.</string>
     <string name="py_diag_on_event_signature">on_event sa volá s jedným argumentom, ktorým je udalosť.</string>
     <string name="py_diag_panel_only">„%1$s“ funguje iba v doplnku s panelom.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders vyžaduje oprávnenie na pripomienky v plugin.json.</string>

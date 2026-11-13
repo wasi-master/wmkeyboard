@@ -7801,7 +7801,6 @@
     <string name="py_diag_mixed_indentation">Ez a behúzás tabulátorokat és szóközöket is tartalmaz.</string>
     <string name="py_diag_module_not_imported">A(z) „%1$s” egy modul. Először adja hozzá az „import %1$s” sort a tetejére.</string>
     <string name="py_diag_name_typo">A(z) „%1$s” nincs definiálva. Erre gondolt: „%2$s”?</string>
-    <string name="py_diag_never_in_api">A(z) „%1$s” nem létezik: a bővítmények nem olvashatják a begépelt szöveget, a vágólapot, a fájlokat vagy a hálózatot.</string>
     <string name="py_diag_on_event_signature">Az on_event meghívása egyetlen argumentummal, az eseménnyel történik.</string>
     <string name="py_diag_panel_only">A(z) „%1$s” csak panellel rendelkező bővítményben működik.</string>
     <string name="py_diag_reminders_not_declared">A wm.reminders a reminders engedélyt igényli a plugin.json fájlban.</string>

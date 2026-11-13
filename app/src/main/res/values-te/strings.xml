@@ -7813,7 +7813,6 @@
     <string name="py_diag_mixed_indentation">ఈ ఇండెంటేషన్‌లో ట్యాబ్‌లు మరియు స్పేస్‌లు కలిపి ఉన్నాయి.</string>
     <string name="py_diag_module_not_imported">“%1$s” అనేది ఒక మాడ్యూల్. ముందుగా పైన “import %1$s” అని జోడించండి.</string>
     <string name="py_diag_name_typo">“%1$s” నిర్వచించబడలేదు. మీరు “%2$s”ని ఉద్దేశించారా?</string>
-    <string name="py_diag_never_in_api">“%1$s” లేదు: ప్లగిన్‌లు టైప్ చేసిన టెక్స్ట్, క్లిప్‌బోర్డ్, ఫైళ్లు లేదా నెట్‌వర్క్‌ను చదవలేవు.</string>
     <string name="py_diag_on_event_signature">on_event ఒక ఆర్గ్యుమెంట్‌తో పిలువబడుతుంది, అదే ఈవెంట్.</string>
     <string name="py_diag_panel_only">“%1$s” ప్యానెల్ ఉన్న ప్లగిన్‌లో మాత్రమే పనిచేస్తుంది.</string>
     <string name="py_diag_reminders_not_declared">plugin.json లో wm.reminders కు రిమైండర్‌ల అనుమతి అవసరం.</string>

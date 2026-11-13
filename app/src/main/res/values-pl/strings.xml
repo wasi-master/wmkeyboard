@@ -7812,7 +7812,6 @@
     <string name="py_diag_mixed_indentation">To wcięcie miesza tabulatory i spacje.</string>
     <string name="py_diag_module_not_imported">„%1$s” to moduł. Najpierw dodaj „import %1$s” na górze.</string>
     <string name="py_diag_name_typo">„%1$s” nie jest zdefiniowane. Czy chodziło Ci o „%2$s”?</string>
-    <string name="py_diag_never_in_api">Element „%1$s” nie istnieje: wtyczki nie mogą odczytywać wpisanego tekstu, schowka, plików ani sieci.</string>
     <string name="py_diag_on_event_signature">on_event jest wywoływane z jednym argumentem, którym jest zdarzenie.</string>
     <string name="py_diag_panel_only">„%1$s” działa tylko w wtyczce z panelem.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders wymaga uprawnienia do przypomnień w pliku plugin.json.</string>

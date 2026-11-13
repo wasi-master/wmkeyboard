@@ -7813,7 +7813,6 @@
     <string name="py_diag_mixed_indentation">Ta zamik meša tabulatorje in presledke.</string>
     <string name="py_diag_module_not_imported">»%1$s« je modul. Najprej na vrh dodajte »import %1$s«.</string>
     <string name="py_diag_name_typo">»%1$s« ni definiran. Ali ste mislili »%2$s«?</string>
-    <string name="py_diag_never_in_api">»%1$s« ne obstaja: vtičniki ne morejo brati vtipkanega besedila, odložišča, datotek ali omrežja.</string>
     <string name="py_diag_on_event_signature">on_event se kliče z enim argumentom, dogodkom.</string>
     <string name="py_diag_panel_only">»%1$s« deluje samo v vtičniku s ploščo.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders zahteva dovoljenje za opomnike v datoteki plugin.json.</string>

@@ -7802,7 +7802,6 @@
     <string name="py_diag_mixed_indentation">Þessi inndráttur blandar saman dálkmerkjum og bilum.</string>
     <string name="py_diag_module_not_imported">„%1$s“ er eining. Bættu við „import %1$s“ efst fyrst.</string>
     <string name="py_diag_name_typo">„%1$s“ er ekki skilgreint. Áttirðu við „%2$s“?</string>
-    <string name="py_diag_never_in_api">„%1$s“ er ekki til: viðbætur geta ekki lesið vélritað texta, klippiborðið, skrár eða netið.</string>
     <string name="py_diag_on_event_signature">on_event er kallað með einu viðfangi, atburðinum.</string>
     <string name="py_diag_panel_only">„%1$s“ virkar aðeins í viðbót með spjaldi.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders þarfnast áminningarheimildar í plugin.json.</string>

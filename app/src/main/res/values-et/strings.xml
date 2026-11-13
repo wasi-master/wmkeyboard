@@ -7812,7 +7812,6 @@
     <string name="py_diag_mixed_indentation">See taane segab tabulatooriume ja tühikuid.</string>
     <string name="py_diag_module_not_imported">„%1$s“ on moodul. Lisa esmalt kõige üles „import %1$s“.</string>
     <string name="py_diag_name_typo">„%1$s“ on defineerimata. Kas pidasite silmas „%2$s“?</string>
-    <string name="py_diag_never_in_api">„%1$s“ ei ole olemas: pluginad ei saa lugeda tipitud teksti, lõikelaualt, faile ega võrku.</string>
     <string name="py_diag_on_event_signature">on_eventi kutsutakse ühe argumendiga, milleks on sündmus.</string>
     <string name="py_diag_panel_only">—%1$s— töötab ainul paneliga pluginas.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders vajab failis plugin.json meeldetuletuste õigust.</string>

@@ -7808,7 +7808,6 @@
     <string name="py_diag_mixed_indentation">הזחה זו מערבבת טאבים ורווחים.</string>
     <string name="py_diag_module_not_imported">“%1$s” הוא מודול. הוסף “import %1$s” בראש הדף תחילה.</string>
     <string name="py_diag_name_typo">“%1$s” אינו מוגדר. האם התכוונת ל-“%2$s”?</string>
-    <string name="py_diag_never_in_api">“%1$s” אינו קיים: תוספים אינם יכולים לקרוא טקסט שהוקלד, את לוח הגזירים, קבצים או את הרשת.</string>
     <string name="py_diag_on_event_signature">הפונקציה on_event נקראת עם ארגומנט אחד, האירוע.</string>
     <string name="py_diag_panel_only">“%1$s” פועל רק בתוסף עם לוח.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders דורש את הרשאת התזכורות ב-plugin.json.</string>

@@ -7802,7 +7802,6 @@
     <string name="py_diag_mixed_indentation">Bu girinti sekme ve boşlukları karıştırıyor.</string>
     <string name="py_diag_module_not_imported">\"%1$s\" bir modüldür. Önce en üste \"import %1$s\" ekleyin.</string>
     <string name="py_diag_name_typo">\"%1$s\" tanımlanmamış. Şunu mu demek istediniz: \"%2$s\"?</string>
-    <string name="py_diag_never_in_api">“%1$s” mevcut değil: eklentiler yazılan metni, panoyu, dosyaları veya ağı okuyamaz.</string>
     <string name="py_diag_on_event_signature">on_event, tek bir argümanla, yani olayla çağrılır.</string>
     <string name="py_diag_panel_only">“%1$s” yalnızca paneli olan bir eklentide çalışır.</string>
     <string name="py_diag_reminders_not_declared">plugin.json dosyasında wm.reminders için hatırlatıcılar izni gerekiyor.</string>

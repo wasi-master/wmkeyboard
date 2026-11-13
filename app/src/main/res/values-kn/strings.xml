@@ -7822,7 +7822,6 @@
     <string name="py_diag_mixed_indentation">ಈ ಇಂಡೆಂಟೇಶನ್ ಟ್ಯಾಬ್‌ಗಳು ಮತ್ತು ಸ್ಪೇಸ್‌ಗಳನ್ನು ಮಿಶ್ರಣ ಮಾಡುತ್ತದೆ.</string>
     <string name="py_diag_module_not_imported">“%1$s” ಒಂದು ಮಾಡ್ಯೂಲ್ ಆಗಿದೆ. ಮೊದಲು ಮೇಲ್ಭಾಗದಲ್ಲಿ “import %1$s” ಅನ್ನು ಸೇರಿಸಿ.</string>
     <string name="py_diag_name_typo">“%1$s” ಅನ್ನು ವ್ಯಾಖ್ಯಾನಿಸಲಾಗಿಲ್ಲ. ನಿಮ್ಮ ಉದ್ದೇಶ “%2$s” ಎಂದಿತ್ತೇ?</string>
-    <string name="py_diag_never_in_api">\"%1$s\" ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ: ಪ್ಲಗಿನ್‌ಗಳು ಟೈಪ್ ಮಾಡಿದ ಪಠ್ಯ, ಕ್ಲಿಪ್‌ಬೋರ್ಡ್, ಫೈಲ್‌ಗಳು ಅಥವಾ ನೆಟ್‌ವರ್ಕ್ ಅನ್ನು ಓದಲು ಸಾಧ್ಯವಿಲ್ಲ.</string>
     <string name="py_diag_on_event_signature">on_event ಅನ್ನು ಒಂದು ಆರ್ಗ್ಯುಮೆಂಟ್‌ನೊಂದಿಗೆ ಕರೆಯಲಾಗುತ್ತದೆ, ಅದೇ ಈವೆಂಟ್.</string>
     <string name="py_diag_panel_only">“%1$s” ಕೇವಲ ಪ್ಯಾನೆಲ್ ಇರುವ ಪ್ಲಗಿನ್‌ನಲ್ಲಿ ಮಾತ್ರ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ.</string>
     <string name="py_diag_reminders_not_declared">plugin.json ನಲ್ಲಿ wm.reminders ಗೆ ಜ್ಞಾಪನೆಗಳ ಅನುಮತಿಯ ಅಗತ್ಯವಿದೆ.</string>

@@ -7809,7 +7809,6 @@
     <string name="py_diag_mixed_indentation">Този отстъп смесва табулации и интервали.</string>
     <string name="py_diag_module_not_imported">„%1$s“ е модул. Първо добавете „import %1$s“ в горната част.</string>
     <string name="py_diag_name_typo">„%1$s“ не е дефинирано. Дали имахте предвид „%2$s“?</string>
-    <string name="py_diag_never_in_api">„%1$s“ не съществува: плъгините не могат да четат въведен текст, клипборда, файлове или мрежата.</string>
     <string name="py_diag_on_event_signature">on_event се извиква с един аргумент - събитието.</string>
     <string name="py_diag_panel_only">“%1$s” работи само в плъгин с панел.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders се нуждае от разрешение за напомняния в plugin.json.</string>

@@ -7800,7 +7800,6 @@
     <string name="py_diag_mixed_indentation">การเยื้องนี้ใช้ทั้งแท็บและเว้นวรรคปะปนกัน</string>
     <string name="py_diag_module_not_imported">“%1$s” เป็นโมดูล เพิ่ม “import %1$s” ที่ด้านบนก่อน</string>
     <string name="py_diag_name_typo">“%1$s” ไม่ได้ถูกกำหนดไว้ คุณหมายถึง “%2$s” หรือไม่?</string>
-    <string name="py_diag_never_in_api">“%1$s” ไม่มีอยู่: ปลั๊กอินไม่สามารถอ่านข้อความที่พิมพ์ คลิปบอร์ด ไฟล์ หรือเครือข่ายได้</string>
     <string name="py_diag_on_event_signature">on_event ถูกเรียกด้วยอาร์กิวเมนต์หนึ่งตัว คือ อีเวนต์</string>
     <string name="py_diag_panel_only">“%1$s” ใช้ได้ในปลั๊กอินที่มีแผงควบคุมเท่านั้น</string>
     <string name="py_diag_reminders_not_declared">wm.reminders ต้องการสิทธิ์ reminders ใน plugin.json</string>

@@ -7808,7 +7808,6 @@
     <string name="py_diag_mixed_indentation">Šioje įtraukoje maišomi tabuliatoriai ir tarpai.</string>
     <string name="py_diag_module_not_imported">„%1$s“ yra modulis. Pirmiausia pridėkite „import %1$s“ viršuje.</string>
     <string name="py_diag_name_typo">„%1$s“ neapibrėžta. Ar turėjote omenyje „%2$s“?</string>
-    <string name="py_diag_never_in_api">„%1$s“ neegzistuoja: papildiniai negali skaityti įvesto teksto, iškarpinės, failų ar tinklo.</string>
     <string name="py_diag_on_event_signature">„on_event“ iškviečiamas su vienu argumentu – įvykiu.</string>
     <string name="py_diag_panel_only">„%1$s“ veikia tik papildinyje su skydeliu.</string>
     <string name="py_diag_reminders_not_declared">„wm.reminders“ faile „plugin.json“ reikalingas priminimų leidimas.</string>

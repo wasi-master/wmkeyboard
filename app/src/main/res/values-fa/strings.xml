@@ -7814,7 +7814,6 @@
     <string name="py_diag_mixed_indentation">این تورفتگی ترکیبی از تب‌ها و فاصلهها است.</string>
     <string name="py_diag_module_not_imported">«%1$s» یک ماژول است. ابتدا «import %1$s» را در بالا اضافه کنید.</string>
     <string name="py_diag_name_typo">«%1$s» تعریف نشده است. آیا منظورتان «%2$s» بود؟</string>
-    <string name="py_diag_never_in_api">«%1$s» وجود ندارد: افزونه‌ها نمی‌توانند متن تایپ‌شده، کلیپ‌بورد، فایل‌ها یا شبکه را بخوانند.</string>
     <string name="py_diag_on_event_signature">on_event با یک آرگومان یعنی رویداد فراخوانی می‌شود.</string>
     <string name="py_diag_panel_only">«%1$s» فقط در یک افزونه دارای پنل کار می‌کند.</string>
     <string name="py_diag_reminders_not_declared">wm.reminders به مجوز reminders در plugin.json نیاز دارد.</string>
