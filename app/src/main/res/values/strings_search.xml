@@ -120,6 +120,10 @@
     <string name="search_kw_keypress_shifted_popup">uppercase majuscule case layer page second</string>
     <string name="search_kw_keypress_long_press_delay">timeout duration</string>
     <string name="search_kw_appearance_key_hint_corner">hint placement position bottom top left right middle corner long press label</string>
+    <string name="search_kw_appearance_key_label_case">uppercase lowercase capital small letters caps keycap label anysoftkeyboard</string>
+    <string name="search_kw_keypress_preview_width">bubble popup wide narrow size preview leantype</string>
+    <string name="search_kw_keypress_preview_radius">bubble popup rounded corners round preview leantype</string>
+    <string name="search_kw_keypress_pop_text">animation float rise fade word effect anysoftkeyboard</string>
     <string name="search_kw_keypress_long_press_system">system accessibility touch and hold delay long press timeout motor</string>
     <string name="search_kw_keypress_multitap_timeout">multitap multi tap cycle timeout cheonjiin t9 keypad feature phone</string>
     <string name="search_kw_keypress_long_press_hints">secondary labels marks</string>
@@ -212,6 +216,7 @@
     <string name="search_kw_typing_pinch_gestures">zoom two finger gesture split merge spread anysoftkeyboard</string>
     <string name="search_kw_typing_stretch_row">spread zoom out split keyboard apart</string>
     <string name="search_kw_typing_pinch_row">squeeze zoom in merge join keyboard together</string>
+    <string name="search_kw_typing_one_finger_swipes">gesture map single finger swipe board shortcut action anysoftkeyboard leantype</string>
     <string name="search_kw_typing_block_offensive">swear curse cuss censor nsfw</string>
     <string name="search_kw_typing_contact_names">address book phonebook people</string>
     <string name="search_kw_typing_double_space">period full</string>

@@ -311,7 +311,12 @@ fun KeyboardSettings.underPowerSaving(): KeyboardSettings {
         popup = if (ps.dropKeyPopup) popup.copy(enabled = false) else popup,
         // A zero-opacity trail is never drawn, so the gesture keeps working
         // while the per-frame overlay stops.
-        gesture = if (ps.dropGlideTrail) gesture.copy(trailOpacity = 0f) else gesture,
+        gesture = (if (ps.dropGlideTrail) gesture.copy(trailOpacity = 0f) else gesture).let {
+            // Glide dropped for power saving is still glide to the user: the
+            // one-finger swipe map (gap list item 44) is for people who never
+            // glide, and must not wake on the letters the moment it drops.
+            if (ps.dropGestureTyping && gestureTyping && it.oneFingerSwipes) it.copy(oneFingerSwipes = false) else it
+        },
         gestureTyping = if (ps.dropGestureTyping) false else gestureTyping,
         octopus = if (ps.dropOctopus) octopus.copy(enabled = false) else octopus,
         emojiPrediction = if (ps.dropEmojiPrediction) false else emojiPrediction,

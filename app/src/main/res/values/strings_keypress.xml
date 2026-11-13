@@ -131,6 +131,24 @@
     <string name="keypress_popup_radius_subtitle">How round the corners of a popup are</string>
     <string name="keypress_popup_radius_info">This is the corner radius of every popup. A value of 0 gives square corners. A high value makes the corners fully round.\n\nOnly the rounded and the cut popup shapes use this value. A theme can carry its own radius, and it wins over this setting.</string>
 
+    <string name="keypress_preview_width_title">Preview bubble width</string>
+    <string name="keypress_preview_width_subtitle">How wide the character bubble is, against its usual width</string>
+    <string name="keypress_preview_width_info">At ×1.00 the bubble is as wide as it has always been: a little wider than the key when it covers the key, and just wide enough for the character when it floats. A larger value makes it wider, in proportion to the key. A smaller value makes it narrower and takes away the space on each side of the character first.</string>
+    <string name="keypress_preview_radius_title">Preview bubble corner radius</string>
+    <string name="keypress_preview_radius_subtitle">How round the character bubble is, apart from the other popups</string>
+    <string name="keypress_preview_radius_info">At the lowest value the bubble uses the popup corner radius above, like every other popup. Move the slider up to give the character bubble a corner radius of its own. The alternate keys and the menus keep the popup corner radius.\n\nOnly the rounded and the cut popup shapes use this value.</string>
+    <string name="keypress_preview_radius_follow">Same as popups</string>
+
+    <string name="keypress_pop_text_group_title">Pop text</string>
+    <string name="keypress_pop_text_title">Pop text</string>
+    <string name="keypress_pop_text_subtitle">Typed text floats up from the keys and fades</string>
+    <string name="keypress_pop_text_still_subtitle">Off while Reduce motion or power saving stills animations</string>
+    <string name="keypress_pop_text_info">A small decoration: what you type floats up out of the keyboard and fades away. With "Corrections", a word that autocorrect changed floats up from the space bar. With "Words", every word you finish does. With "Every key", each character also floats up from the key you pressed.\n\nIt never shows while Reduce motion is on, or while power saving stops animations.</string>
+    <string name="keypress_pop_text_never">Never</string>
+    <string name="keypress_pop_text_corrections">Corrections</string>
+    <string name="keypress_pop_text_words">Words</string>
+    <string name="keypress_pop_text_every_key">Every key</string>
+
     <!-- Key press settings screen, "Alternate keys" group. These size and arrange the
          press and hold popup, which is a different popup from the preview bubble above. -->
     <string name="keypress_alternates_group_title">Alternate keys</string>

@@ -833,6 +833,12 @@ private fun SearchStrings.typingFlicksRows(): List<SettingsSearchEntry> {
         row(R.string.typing_stretch_row_title),
         row(R.string.typing_pinch_row_title),
         row(R.string.typing_pinch_reset_title, R.string.typing_pinch_reset_subtitle),
+        row(R.string.typing_one_finger_swipes_title, R.string.typing_one_finger_swipes_subtitle),
+        row(R.string.typing_one_finger_up_title),
+        row(R.string.typing_one_finger_down_title),
+        row(R.string.typing_one_finger_left_title),
+        row(R.string.typing_one_finger_right_title),
+        row(R.string.typing_one_finger_reset_title, R.string.typing_one_finger_reset_subtitle),
         row(R.string.typing_symbol_chords_title, R.string.typing_symbol_chords_subtitle),
         row(R.string.typing_symbol_chord_add_title, R.string.typing_symbol_chord_add_subtitle),
         row(R.string.typing_symbol_chords_reset_title, R.string.typing_symbol_chords_reset_subtitle),
@@ -975,6 +981,9 @@ private fun SearchStrings.keypressPopupRows(): List<SettingsSearchEntry> {
         row(R.string.keypress_popup_text_color_title, R.string.keypress_popup_text_color_subtitle),
         row(R.string.keypress_popup_shape_title, R.string.keypress_popup_shape_subtitle),
         row(R.string.keypress_popup_radius_title, R.string.keypress_popup_radius_subtitle),
+        row(R.string.keypress_preview_width_title, R.string.keypress_preview_width_subtitle),
+        row(R.string.keypress_preview_radius_title, R.string.keypress_preview_radius_subtitle),
+        row(R.string.keypress_pop_text_title, R.string.keypress_pop_text_subtitle),
     )
 }
 
@@ -1080,6 +1089,7 @@ private fun SearchStrings.appearanceRows(): List<SettingsSearchEntry> {
         icon(R.string.plugins_icons_library_title, R.string.plugins_icons_library_subtitle_empty),
         row(R.string.appearance_key_corner_radius_title, R.string.appearance_key_corner_radius_subtitle),
         row(R.string.appearance_key_label_size_title, R.string.appearance_key_label_size_subtitle),
+        row(R.string.appearance_key_label_case_title, R.string.appearance_key_label_case_subtitle),
         row(R.string.appearance_key_hint_size_title, R.string.appearance_key_hint_size_subtitle),
         row(R.string.appearance_key_hint_corner_title, R.string.appearance_key_hint_corner_subtitle),
         row(R.string.appearance_key_hint_offset_title, R.string.appearance_key_hint_offset_subtitle),

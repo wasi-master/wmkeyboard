@@ -490,6 +490,10 @@ import com.wasimaster.wmkeyboard.core.settings.LayoutBehaviorSettings
 import com.wasimaster.wmkeyboard.core.settings.TopRowHolds
 import com.wasimaster.wmkeyboard.core.settings.OneHandedSide
 import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
+import com.wasimaster.wmkeyboard.core.settings.KeyLabelCase
+import com.wasimaster.wmkeyboard.core.settings.KeyPreviewRadiusRange
+import com.wasimaster.wmkeyboard.core.settings.KeyPreviewWidthScaleRange
+import com.wasimaster.wmkeyboard.core.settings.PopTextMode
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeUp
 import com.wasimaster.wmkeyboard.core.settings.pressedAction
@@ -620,6 +624,7 @@ import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCounts
 import com.wasimaster.wmkeyboard.core.layout.actionOf
 import com.wasimaster.wmkeyboard.core.layout.PinchGesture
+import com.wasimaster.wmkeyboard.core.layout.oneFingerActionOf
 import com.wasimaster.wmkeyboard.core.layout.effectiveChords
 import com.wasimaster.wmkeyboard.core.layout.PAD_SPACE_LABEL
 import com.wasimaster.wmkeyboard.core.layout.FlickArm
@@ -7399,11 +7404,13 @@ private fun ClipboardSuggestionChip(
     // A press and hold deletes the copy (#612); not a part of one, whose
     // clip is more than what the chip shows.
     val onDelete = LocalClipChipDelete.current?.takeIf { otp == null }
-    val tint = kb.accent
+    // The theme's own chip colours where it names them (gap list item 28),
+    // else the accent tint the chip always wore.
+    val tint = kb.clipChipInk()
     // The fragment chip is an outline, not a solid — same language as the
     // clipboard panel's own fragment chips, and unmistakably not the ordinary
     // "paste what you copied" pill.
-    val fill = if (otp != null) Color.Transparent else tint.copy(alpha = if (kb.dark) 0.20f else 0.11f)
+    val fill = if (otp != null) Color.Transparent else kb.clipChipFill()
 
     val bitmap by produceState<ImageBitmap?>(initialValue = null, clip.imagePath) {
         if (clip.kind == ClipKind.IMAGE && clip.imagePath != null) {
@@ -7526,7 +7533,7 @@ private fun ClipboardSuggestionChip(
                 // over the board. A theme whose keys invert the board — dark
                 // letters on cream caps over a near-black board — draws the
                 // key colour invisible here.
-                color = kb.suggestionText,
+                color = kb.clipChipText ?: kb.suggestionText,
                 fontSize = 13.sp,
                 fontWeight = if (otp != null) FontWeight.Medium else FontWeight.Normal,
                 maxLines = 1,
@@ -17298,6 +17305,17 @@ internal class KeyRects {
     /** Every cell, in root space; a copy, for the same reason as [focusCells]. */
     fun cellRects(): List<Rect> = cells.keys.toList()
 
+    /** [key]'s cell, in root space, or null when this grid does not hold it. */
+    fun rectOf(key: Key): Rect? {
+        for ((rect, cell) in cells) {
+            if (cell === key) return rect
+        }
+        for ((rect, cell) in cells) {
+            if (cell == key) return rect
+        }
+        return null
+    }
+
     /** The key whose cell holds [point], or null outside the grid. */
     fun keyAt(point: Offset): Key? {
         for ((rect, key) in cells) {
@@ -18481,6 +18499,13 @@ internal data class KeyPalette(
     val overrides: Map<String, KeyOverride> = emptyMap(),
     /** False when the theme's keys have no shape; see [KbTheme.keysHaveFaces]. */
     val keysHaveFaces: Boolean = true,
+    /**
+     * The function keys' and the action keys' own corner radii (gap list item
+     * 29); null follows the board's. Resolved into [KeyVisual.cornerRadiusDp]
+     * here, once per palette, rather than looked up per key at draw time.
+     */
+    val modifierRadiusDp: Int? = null,
+    val actionRadiusDp: Int? = null,
 )
 
 internal fun KbTheme.keyPalette(): KeyPalette = KeyPalette(
@@ -18495,6 +18520,8 @@ internal fun KbTheme.keyPalette(): KeyPalette = KeyPalette(
     hintText = hintText,
     overrides = keyOverrides,
     keysHaveFaces = keysHaveFaces,
+    modifierRadiusDp = modifierKeyRadiusDp,
+    actionRadiusDp = actionKeyRadiusDp,
 )
 
 /**
@@ -18795,7 +18822,11 @@ internal fun keyVisual(
         bold = override?.bold,
         stripLetter = stripLetter,
         shapeKind = overrideShape,
-        cornerRadiusDp = override?.cornerRadiusDp?.coerceIn(KEY_OVERRIDE_RADIUS_RANGE),
+        // A single-key style's radius first, then its class's (gap list item
+        // 29): Enter and space are the action keys, every key that types no
+        // text is a function key, and the letters follow the board.
+        cornerRadiusDp = override?.cornerRadiusDp?.coerceIn(KEY_OVERRIDE_RADIUS_RANGE)
+            ?: classRadiusDp(action, palette),
         faceGradient = override?.gradient
             ?.takeIf { it.colors.isNotEmpty() && (latch == null || latch == ModifierState.OFF) },
         glow = override?.glow?.let { Color(it.toInt()) }?.takeIf { it.alpha > 0f },
@@ -18835,6 +18866,27 @@ internal fun keyVisual(
         popupText = override?.popupText?.let { Color(it.toInt()) },
         fontScale = fontScale,
     )
+}
+
+/**
+ * What a key's pop text shows (gap list item 45): what it types, capitalised
+ * the way shift will type it.
+ */
+internal fun popKeyText(key: Key, shift: ShiftState): String {
+    val text = key.output ?: key.label
+    return if (shift != ShiftState.OFF && text.length == 1 && text[0].isLetter()) text.uppercase() else text
+}
+
+/**
+ * The corner radius [action]'s class of key draws with (gap list item 29),
+ * or null for the board's own: [KeyPalette.actionRadiusDp] for Enter and the
+ * space bar, [KeyPalette.modifierRadiusDp] for every other key that types no
+ * text, nothing for the letters.
+ */
+internal fun classRadiusDp(action: KeyAction, palette: KeyPalette): Int? = when (action) {
+    KeyAction.Text -> null
+    KeyAction.Enter, KeyAction.Space -> palette.actionRadiusDp
+    else -> palette.modifierRadiusDp
 }
 
 /**
@@ -19440,8 +19492,12 @@ private fun KeyPreviewBubble(
 ) {
     val kb = LocalKbTheme.current
     val density = LocalDensity.current
-    val shape = kb.popupShape()
+    // The bubble's own radius where the user set one (gap list item 30), else
+    // the radius every popup shares.
+    val shape = previewBubbleShape(kb, popup.previewCornerRadiusDp)
     val border = kb.popupSurfaceBorder()
+    val widthScale = popup.previewWidthScale.takeIf { it.isFinite() }?.coerceIn(KeyPreviewWidthScaleRange) ?: 1f
+    val keyWidth = with(density) { preview.size.width.toDp() }
     val labelColor = preview.popupText
         ?: popup.textColor?.let { Color(it.toInt()) }
         ?: kb.popupText
@@ -19467,13 +19523,13 @@ private fun KeyPreviewBubble(
             )
             .clip(shape)
             .height(with(density) { heightPx.toDp() })
-            .widthIn(
-                min = if (onKeyStyle) with(density) { preview.size.width.toDp() } + 8.dp else 0.dp,
-            )
+            .widthIn(min = previewBubbleMinWidth(keyWidth, onKeyStyle, widthScale))
             .popupTexture(LocalKeyTextures.current, shape)
             // Lit from below by the touch bloom, where the finger is.
             .touchBloomGlow(kb.liveTouchBloom)
-            .padding(horizontal = 14.dp),
+            // A narrower bubble gives up its side padding first, so the label
+            // still fits; a wider one is wide by its floor above.
+            .padding(horizontal = 14.dp * minOf(widthScale, 1f)),
         contentAlignment = if (onKeyStyle) Alignment.TopCenter else Alignment.Center,
     ) {
         // Through the overlay's cache: a bubble is composed for every press
@@ -19490,6 +19546,30 @@ private fun KeyPreviewBubble(
             cache = labelCache,
         )
     }
+}
+
+/**
+ * The preview bubble's outline: the popups' own shape, at [radiusDp] when the
+ * user set the bubble a radius of its own (gap list item 30), or at the
+ * shared popup radius when it is below zero.
+ */
+private fun previewBubbleShape(kb: KbTheme, radiusDp: Int): Shape =
+    if (radiusDp < 0) {
+        kb.popupShape()
+    } else {
+        keyShapeFor(kb.popupShapeKind, radiusDp.coerceIn(KeyPreviewRadiusRange))
+    }
+
+/**
+ * The narrowest the preview bubble may draw (gap list item 30). An on-key
+ * bubble is its key plus a little, scaled; a floating one is as wide as its
+ * label until [scale] asks for more, and then at least the key times it, so
+ * the setting widens a bubble in proportion to the keys it sits over.
+ */
+internal fun previewBubbleMinWidth(keyWidth: Dp, onKeyStyle: Boolean, scale: Float): Dp = when {
+    onKeyStyle -> (keyWidth + 8.dp) * scale
+    scale > 1f -> keyWidth * scale
+    else -> 0.dp
 }
 
 /**
@@ -20029,6 +20109,15 @@ private fun KeyRows(
         !(twoThumbOn && gestureEnabled) &&
         (state.panel == PanelMode.NONE || keysInBox || state.captureHandedToApp)
     val pinchMap = rememberUpdatedState(gesture.pinchBindings)
+    // One-finger swipes across the letters (gap list item 44). Never while a
+    // finger moving over the letters means anything else: glide in any of its
+    // forms (the keyboard's setting, a typing test's own glide, the swipe as
+    // handwriting or as slide-to-select all ride on it), a handwriting layout,
+    // or a typing test, whose taps are the score. The letters layer only.
+    val oneFingerOn = gesture.oneFingerSwipes && !state.settings.gestureTyping && !gestureEnabled &&
+        !state.typingTestActive && !state.layouts.handwriting && state.layoutMode == LayoutMode.LETTERS &&
+        (state.panel == PanelMode.NONE || keysInBox || state.captureHandedToApp)
+    val oneFingerMap = rememberUpdatedState(gesture.oneFingerBindings)
     val splitNow = rememberUpdatedState(state.settings.splitKeyboard)
     val boxSelection = rememberUpdatedState(
         if (keysInBox) LocalCaptureCaret.current.onSelectionAction else null,
@@ -20088,8 +20177,32 @@ private fun KeyRows(
     // What the drawn keys commit through: a letter tapped under a held shift
     // comes out a capital (issue #367). The grid's own gestures keep calling
     // [stampedOnKey] directly; a chord drag has already decided its key.
-    val keyTapOnKey = remember(stampedOnKey) {
-        { k: Key -> shiftHold.route(k)?.let(stampedOnKey); Unit }
+    // Pop text (gap list item 45): the service's field, or the grid's own
+    // where no service hosts it. The settings reach it here, not through the
+    // keys, so a pop never touches a key's parameters.
+    val popText = LocalPopText.current ?: remember { PopTextField() }
+    val popAnchor = remember(popText) {
+        { liveSpace.value.value?.center?.let { it + boxOrigin } }
+    }
+    val popOrigin = remember { { boxOrigin } }
+    SideEffect {
+        popText.mode = state.settings.popup.popText
+        popText.still = state.settings.reduceMotion
+        popText.wordAnchor = popAnchor
+    }
+    val keyTapOnKey = remember(stampedOnKey, popText) {
+        { k: Key ->
+            shiftHold.route(k)?.let { routed ->
+                stampedOnKey(routed)
+                // Every key: the character rises from the key that typed it.
+                if (popText.mode == PopTextMode.EVERY_KEY && routed.action == KeyAction.Text) {
+                    liveRects.value.rectOf(k)?.let { cell ->
+                        popText.key(popKeyText(routed, liveShift.value), cell.center)
+                    }
+                }
+            }
+            Unit
+        }
     }
     // A glide stroke that turned out to be a tap types its key as the key's own
     // lift would have, Autopilot remap included (#782). Read live by the glide
@@ -20309,6 +20422,56 @@ private fun KeyRows(
                     ) {
                         return@awaitEachGesture
                     }
+                    val inBox = boxSelection.value?.let { onBox -> binding.action.inCaptureBox()?.let { onBox to it } }
+                    if (inBox != null) {
+                        val (onBox, meant) = inBox
+                        if (meant is CaptureSwipe.Selection) onBox(meant.action)
+                        return@awaitEachGesture
+                    }
+                    if (hapticOn.value) pickerHaptic()
+                    if (binding.action == KeyAction.Text) {
+                        if (binding.label.isNotEmpty()) stampedOnText(binding.label)
+                    } else {
+                        stampedOnKey(Key(label = binding.label, action = binding.action))
+                    }
+                }
+            }
+            // Gap list item 44: one finger swiped across the letters runs the
+            // action bound to its direction, only ever with glide off (see
+            // [oneFingerOn]). Third in the chain and built like the two above:
+            // it starts only on a letter key without flick arms, consumes
+            // nothing until [OneFingerSwipeTracker] claims the finger, and the
+            // claim sets [fingerGate], so the key it left never types at the
+            // lift. A popup taking the finger, or another finger landing,
+            // gives the touch up. Draws nothing, so there is no motion here
+            // for reduceMotion to cut.
+            .pointerInput(oneFingerOn, stampedOnKey, stampedOnText) {
+                if (!oneFingerOn) return@pointerInput
+                val claimPx = OneFingerSwipeClaimDp.dp.toPx()
+                awaitEachGesture {
+                    val first = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                    val startKey = liveRects.value.keyAt(first.position + boxOrigin)
+                    if (startKey == null || !startsOneFingerSwipe(startKey)) return@awaitEachGesture
+                    val tracker = OneFingerSwipeTracker(claimPx, OneFingerSwipeWindowMs)
+                    tracker.track(first.id.value, first.position.x, first.position.y, pressed = true, uptimeMs = first.uptimeMillis)
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        // A multi-finger swipe or a pinch took the touch, or the
+                        // alternates popup has the finger.
+                        if (fingerGate.claimed && !tracker.claimed) tracker.abandon()
+                        if (alternatesGate.open && !tracker.claimed) tracker.abandon()
+                        for (change in event.changes) {
+                            val claimedNow = tracker.track(
+                                change.id.value, change.position.x, change.position.y, change.pressed, change.uptimeMillis,
+                            )
+                            if (claimedNow) fingerGate.claimed = true
+                        }
+                        if (tracker.abandoned) return@awaitEachGesture
+                        if (tracker.claimed) event.changes.forEach { it.consume() }
+                        if (event.changes.none { it.pressed }) break
+                    }
+                    val direction = tracker.result() ?: return@awaitEachGesture
+                    val binding = oneFingerMap.value.oneFingerActionOf(direction) ?: return@awaitEachGesture
                     val inBox = boxSelection.value?.let { onBox -> binding.action.inCaptureBox()?.let { onBox to it } }
                     if (inBox != null) {
                         val (onBox, meant) = inBox
@@ -21965,6 +22128,16 @@ private fun KeyRows(
         // The press bursts, over the decals and under the trail. Composed only
         // while particles live; the frame loop dies with them.
         KeyPressEffectsOverlay(particleField, particleGlyphs)
+
+        // Pop text (gap list item 45), over the bursts. Composed only while a
+        // pop is alive; see [PopTextField].
+        PopTextOverlay(
+            popText,
+            popOrigin,
+            keyColor = kbTheme.suggestionText,
+            wordColor = kbTheme.suggestionText,
+            correctionColor = kbTheme.accent,
+        )
 
         // Only a grid with no frame above it draws its own bubbles — see
         // [KeyPreviewOverlay] and [LocalKeyPreviewState].
@@ -30247,6 +30420,23 @@ private fun rememberTransliterationPreview(state: KeyboardUiState): Transliterat
     }
 }
 
+/**
+ * [label] in the case the user asked the letter keys to be drawn in (gap list
+ * item 31). Only a letter key of a cased script is touched, and never the
+ * roman keys of a transliterating layout, where `t` and `T` write different
+ * letters and the drawn case is the only sign of which one a tap gives.
+ * What the key types still follows shift; this is the face alone.
+ */
+internal fun labelCased(label: String, key: Key, state: KeyboardUiState): String {
+    val case = state.settings.layoutBehavior.labelCase
+    if (case == KeyLabelCase.FOLLOW_SHIFT) return label
+    if (key.action != KeyAction.Text || label.isEmpty() || !label.all { it.isLetter() }) return label
+    if (!state.script.hasLetterCase || state.composer.isTransliterating || state.composer.isClusterShaping) {
+        return label
+    }
+    return if (case == KeyLabelCase.UPPER) label.uppercase() else label.lowercase()
+}
+
 private fun displayLabel(key: Key, state: KeyboardUiState): String {
     // Digit keys draw the chosen numeral system's glyphs (in every commit
     // scope, including display-only). The layout data stays ASCII; the swap
@@ -30275,7 +30465,7 @@ private fun displayLabel(key: Key, state: KeyboardUiState): String {
             key.label.singleOrNull()?.isLetter() == true ->
             key.label.uppercase()
         else -> key.label
-    }
+    }.let { label -> labelCased(label, key, state) }
     // Fixed Bengali layouts: vowel keys track the cursor context — the
     // independent letter (আ, ই …) at a word start, the kar (া, ি …) after a
     // consonant, the য়-glide (য়া) after a vowel — matching what the key
@@ -32758,9 +32948,14 @@ internal fun EmojiSearchField(
     val canDeleteField = LocalCanDeleteField.current
     val scope = rememberCoroutineScope()
     val vibrateOnRepeat = state.settings.feedback.vibrateOnRepeat
+    // The theme's own search-bar colours where it names them (gap list item
+    // 28), else the card colour and strip text the bar always drew with.
+    val kb = LocalKbTheme.current
+    val ink = kb.emojiSearchInk(MaterialTheme.colorScheme.onSurface)
+    val quietInk = kb.emojiSearchText?.copy(alpha = 0.7f) ?: MaterialTheme.colorScheme.onSurfaceVariant
     Row(
         modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(20.dp))
+            .background(kb.emojiSearchFill(MaterialTheme.colorScheme.surfaceContainer), RoundedCornerShape(20.dp))
             .clickable { onEmojiQueryTap() }
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -32769,15 +32964,15 @@ internal fun EmojiSearchField(
             Icons.Outlined.Search,
             contentDescription = null,
             modifier = Modifier.size(18.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = quietInk,
         )
         Box(modifier = Modifier.width(8.dp))
         SearchQueryText(
             query = state.emojiQuery,
             placeholder = stringResource(R.string.ime_emoji_search_hint),
             active = state.emojiSearchActive,
-            textColor = MaterialTheme.colorScheme.onSurface,
-            placeholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            textColor = ink,
+            placeholderColor = quietInk,
             fontSize = 14.sp,
             modifier = Modifier.weight(1f),
         )
@@ -32791,7 +32986,7 @@ internal fun EmojiSearchField(
                     .padding(start = 8.dp)
                     .size(18.dp)
                     .clickable { onClear() },
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = quietInk,
             )
         }
         // While searching, the keys type into the query — so an emoji just
@@ -32827,7 +33022,7 @@ internal fun EmojiSearchField(
                             },
                         )
                     },
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = quietInk,
             )
         }
     }
