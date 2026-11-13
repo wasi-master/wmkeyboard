@@ -1257,6 +1257,16 @@ class SuggestionEngine(
     var nextWordReach: NextWordReach = NextWordReach.NORMAL
 
     /**
+     * The user's "Language model strength", a factor on [LM_BLEND] and
+     * [LM_BLEND_CAP] in [blendContextModel]: 1 is the shipped blend, 0 keeps
+     * the context model out of a typed word's ranking (it still predicts the
+     * next word and re-reads the last one), 2 doubles both its weight and the
+     * most it may move a word.
+     */
+    @Volatile
+    var lmStrength: Double = 1.0
+
+    /**
      * Autocorrect's memory of its own mistakes: per-pair revert penalties and
      * the fired/reverted ratio behind [adaptiveConfidence]. The default is a
      * memory-only instance (null file), so tests and locked-boot sessions get
@@ -4423,6 +4433,11 @@ class SuggestionEngine(
     private fun blendContextModel(merged: HashMap<String, Double>, touch: List<TouchPoint?>?) {
         val model = contextModel ?: return
         if (merged.size < 2) return
+        // The user's strength at zero: the model has no say here at all, so
+        // it is not asked.
+        val strength = lmStrength
+        if (strength <= 0.0) return
+        val cap = LM_BLEND_CAP * strength
         val spread = touchModelField?.let { keys ->
             val distances = touch.orEmpty().mapNotNull { tap -> tap?.let(keys::nearestDistance) }
             if (distances.isEmpty()) null else distances.average()
@@ -4436,7 +4451,7 @@ class SuggestionEngine(
         // get there, so spelling it would buy nothing.
         val leading = merged.getValue(leader)
         val unlisted = words.indices
-            .filter { scores[it].isNaN() && leading - merged.getValue(words[it]) < LM_BLEND_CAP }
+            .filter { scores[it].isNaN() && leading - merged.getValue(words[it]) < cap }
             .sortedByDescending { merged.getValue(words[it]) }
             .take(LM_SPELLED)
         if (unlisted.isNotEmpty()) {
@@ -4453,7 +4468,7 @@ class SuggestionEngine(
         if (adapter != null) {
             adapter.disagreement = if (best >= 0 && words[best] != leader) words[best] to leader else null
         }
-        val base = LM_BLEND * (adapter?.weightFactor() ?: 1.0)
+        val base = LM_BLEND * strength * (adapter?.weightFactor() ?: 1.0)
         val weight = if (spread == null) {
             base
         } else {
@@ -4462,7 +4477,7 @@ class SuggestionEngine(
         for (i in words.indices) {
             val lp = scores[i]
             if (lp.isNaN()) continue
-            val shift = (weight * (lp - reference)).coerceIn(-LM_BLEND_CAP, LM_BLEND_CAP)
+            val shift = (weight * (lp - reference)).coerceIn(-cap, cap)
             if (shift != 0.0) merged[words[i]] = merged.getValue(words[i]) + shift
         }
     }

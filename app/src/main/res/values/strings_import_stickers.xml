@@ -394,6 +394,9 @@
     <string name="import_emoji_keywords_title">Import emoji keywords?</string>
     <string name="import_emoji_keywords_body">This file names emoji and the words that find them. The app adds it to emoji search for the language below.</string>
     <string name="import_anki_title">Import flashcards?</string>
+    <string name="import_language_model_body">This is a word language model, the kind of file the keyboard downloads as a language\'s context model. Pick the language it predicts: it replaces that language\'s context model, and the language\'s screen shows it as your own. It is used while Context model is on, under Typing, Automatic corrections.</string>
+    <string name="import_language_model_done">Context model for <xliff:g id="language" example="German">%1$s</xliff:g> imported</string>
+    <string name="import_language_model_error">The keyboard can\'t read this model. It may be from a newer version of the keyboard, or damaged.</string>
     <string name="import_anki_body">This is an Anki deck. The app turns it into a vocabulary pack.</string>
 
     <!-- ==== The preview above the confirm dialog. ==== -->

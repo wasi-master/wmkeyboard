@@ -29,6 +29,7 @@ import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.settings.FlickDistanceRange
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeDistanceRange
 import com.wasimaster.wmkeyboard.core.settings.FlickReachRange
+import com.wasimaster.wmkeyboard.core.settings.LM_STRENGTH_MAX
 import com.wasimaster.wmkeyboard.core.settings.MAX_STOP_AFTER_DECLINES
 import com.wasimaster.wmkeyboard.core.settings.NextWordAmount
 import com.wasimaster.wmkeyboard.core.settings.NextWordSuggestions
@@ -325,6 +326,7 @@ internal fun TypingCorrectionsSettings(
     val undoChipOn = settings.watch { it.suggestionStrip.undoCorrectionChip }
     val detectionOn = settings.watch { it.suggestionStrip.languageDetection }
     val numberRowOn = settings.watch { it.numberRow }
+    val neuralOn = settings.watch { it.suggestionStrip.neuralContext }
     SettingsGroup(stringResource(R.string.typing_group_corrections_title)) {
         item {
             ToggleSetting(
@@ -555,6 +557,20 @@ internal fun TypingCorrectionsSettings(
                 info = stringResource(R.string.typing_neural_context_info),
                 default = SettingsDefaults.suggestionStrip.neuralContext,
             ) { scope.launch { repository.setNeuralContext(it) } }
+        }
+        // How much the model moves a word being typed: a factor on the
+        // engine's shipped blend, so 100% is exactly what it always did.
+        item(visible = neuralOn, level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.typing_lm_strength_title,
+                subtitle = stringResource(R.string.typing_lm_strength_subtitle),
+                value = settings.watch { it.suggestionStrip.lmStrength }.toFloat(),
+                range = 0f..LM_STRENGTH_MAX.toFloat(),
+                steps = LM_STRENGTH_MAX / 10 - 1,
+                display = { "${(it.toInt() + 5) / 10 * 10}%" },
+                info = stringResource(R.string.typing_lm_strength_info),
+                default = SettingsDefaults.suggestionStrip.lmStrength.toFloat(),
+            ) { scope.launch { repository.setLmStrength((it.toInt() + 5) / 10 * 10) } }
         }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(

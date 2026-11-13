@@ -10792,6 +10792,9 @@ enum class NextWordSuggestions { OFF, WORDS, WORDS_AND_PUNCTUATION }
  */
 enum class NextWordAmount { FEWER, NORMAL, MORE }
 
+/** The top of [SuggestionStripSettings.lmStrength], in percent of the shipped blend. */
+const val LM_STRENGTH_MAX = 200
+
 /**
  * The languages a picked suggestion commits bare in until the user says
  * otherwise (#986): Bangla, whose words take case markers and suffixes straight
@@ -11117,6 +11120,14 @@ data class SuggestionStripSettings(
      * no model file.
      */
     val neuralContext: Boolean = true,
+    /**
+     * How much say the context model has in ranking a word being typed, as
+     * a percentage of the shipped blend (`SuggestionEngine.LM_BLEND`): 100
+     * is the measured default, 0 leaves ranking to the dictionaries while
+     * the model still predicts next words, 200 doubles its weight and the
+     * most it may move a word. Stepped by ten.
+     */
+    val lmStrength: Int = 100,
     /**
      * Whether the word before the one just committed is re-read with that
      * word in sight, and a reading the context model finds clearly better
@@ -12230,6 +12241,7 @@ class SettingsRepository(private val context: Context) {
         private val BLOCK_OFFENSIVE_WORDS = booleanPreferencesKey("block_offensive_words")
         private val CONTEXT_RERANK = booleanPreferencesKey("context_rerank")
         private val NEURAL_CONTEXT = booleanPreferencesKey("neural_context")
+        private val LM_STRENGTH = intPreferencesKey("lm_strength")
         private val CONTEXT_REVISION = booleanPreferencesKey("context_revision")
         private val SHORTCUTS_WHILE_CONVERTING = booleanPreferencesKey("shortcuts_while_converting")
         private val STRIP_CHIPS_AT_END = booleanPreferencesKey("strip_chips_at_end")
@@ -15205,6 +15217,7 @@ class SettingsRepository(private val context: Context) {
             contextRerank = p[CONTEXT_RERANK]
                 ?: defaults.suggestionStrip.contextRerank,
             neuralContext = p[NEURAL_CONTEXT] ?: defaults.suggestionStrip.neuralContext,
+            lmStrength = p[LM_STRENGTH]?.coerceIn(0, LM_STRENGTH_MAX) ?: defaults.suggestionStrip.lmStrength,
             contextRevision = p[CONTEXT_REVISION] ?: defaults.suggestionStrip.contextRevision,
             shortcutsWhileConverting = p[SHORTCUTS_WHILE_CONVERTING] ?: defaults.suggestionStrip.shortcutsWhileConverting,
             chipsAtEnd = p[STRIP_CHIPS_AT_END] ?: defaults.suggestionStrip.chipsAtEnd,
@@ -22159,6 +22172,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setNeuralContext(value: Boolean) =
         editPrefs { it[NEURAL_CONTEXT] = value }
+
+    suspend fun setLmStrength(value: Int) =
+        editPrefs { it[LM_STRENGTH] = value.coerceIn(0, LM_STRENGTH_MAX) }
 
     suspend fun setContextRevision(value: Boolean) =
         editPrefs { it[CONTEXT_REVISION] = value }

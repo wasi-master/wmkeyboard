@@ -468,6 +468,7 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_context_model_download_size">Sentence-aware predictions, <xliff:g id="size" example="4.9 MB">%1$s</xliff:g> to download</string>
     <string name="languages_context_model_downloaded">Sentence-aware predictions, <xliff:g id="size" example="4.9 MB">%1$s</xliff:g></string>
     <string name="languages_context_model_offline">Not on this phone. This is the offline build: Get the files on the Language pack row lists it, and Import there takes it. Or install the standard build over this one from the same release page, which downloads it by itself.</string>
+    <string name="languages_context_model_imported">Sentence-aware predictions, your own model, <xliff:g id="size" example="4.9 MB">%1$s</xliff:g></string>
     <string name="languages_context_model_failed">The download failed. Try again.</string>
     <string name="languages_context_model_delete_desc">Delete the context model</string>
     <string name="languages_context_model_variant_standard">Standard</string>

@@ -36,6 +36,7 @@ WM Keyboard writes several file formats: themes, layouts, snippet packs, sticker
 | `.wmconfig.json` | A full settings-and-data backup | **Data / Backup & restore** → export |
 | `.wmconfig.enc` | The same bundle, encrypted under a passphrase | Only the automatic backup writes this, and only with encryption switched on |
 | `.wmsettings.json` | A settings-only backup (legacy) | No export path anymore; still accepted on import |
+| `.wmlm` | A word language model, the context model a language downloads | Never exported. A model of your own opens as an import and becomes the context model of the language you pick; see [The context model](/smart/suggestions/#the-context-model) |
 | `.wmdict` | A compiled binary dictionary | Never exported; internal to the app, see [below](#wmdict-the-one-format-you-never-touch) |
 | `.txt` word lists, `.tsv` emoji keywords | Custom dictionaries and keyword packs | Import-only; not produced by the app |
 | `suggestion-blacklist.txt` | The suggestion blacklist: one word or `/pattern/` per line, ` @en` for one language | **Typing / Suggestions / Suggestion blacklist** → Export to a file. See [Suggestion blacklist](/smart/blacklist/#importing-and-exporting-a-file) |

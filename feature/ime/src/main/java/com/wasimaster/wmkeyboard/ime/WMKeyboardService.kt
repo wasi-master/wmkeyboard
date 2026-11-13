@@ -5619,6 +5619,7 @@ open class WMKeyboardService : InputMethodService() {
                 suggestionEngine?.learnedWordMinCount =
                     settings.suggestionStrip.learnedWordMinCount
                 suggestionEngine?.nextWordReach = settings.suggestionStrip.nextWordReach()
+                suggestionEngine?.lmStrength = settings.suggestionStrip.lmStrength / 100.0
                 emojiUsage.maxRecents = settings.emoji.recentsLimit
                 // The snippet index partitions on this — which snippets rewrite
                 // text and which only offer to — so the store has to be told
@@ -6212,6 +6213,7 @@ open class WMKeyboardService : InputMethodService() {
                 learnedWordMinCount =
                     _uiState.value.settings.suggestionStrip.learnedWordMinCount
                 nextWordReach = _uiState.value.settings.suggestionStrip.nextWordReach()
+                lmStrength = _uiState.value.settings.suggestionStrip.lmStrength / 100.0
                 autocorrectSplits = _uiState.value.settings.suggestionStrip.autocorrectSplits
                 digitSlipCorrections = digitSlipsOn(_uiState.value.settings)
                 apostropheFixes = _uiState.value.settings.autoText.apostrophe

@@ -1097,6 +1097,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_register_priors_title) { Icons.Outlined.QuestionAnswer }
         put(R.string.typing_context_rerank_title) { Icons.Outlined.Psychology }
         put(R.string.typing_neural_context_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.typing_lm_strength_title) { Icons.Outlined.Tune }
         put(R.string.typing_shortcuts_converting_title) { Icons.Outlined.Bolt }
         put(R.string.typing_chips_at_end_title) { Icons.Outlined.AlignHorizontalRight }
         put(R.string.typing_context_revision_title) { Icons.Outlined.History }

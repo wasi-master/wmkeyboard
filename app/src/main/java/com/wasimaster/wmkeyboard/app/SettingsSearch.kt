@@ -427,6 +427,7 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_block_offensive_title, R.string.typing_block_offensive_subtitle),
         row(R.string.typing_context_rerank_title, R.string.typing_context_rerank_subtitle),
         row(R.string.typing_neural_context_title, R.string.typing_neural_context_subtitle),
+        row(R.string.typing_lm_strength_title, R.string.typing_lm_strength_subtitle),
         row(R.string.typing_context_revision_title, R.string.typing_context_revision_subtitle),
         row(R.string.typing_shortcuts_converting_title, R.string.typing_shortcuts_converting_subtitle),
         row(R.string.typing_chips_at_end_title, R.string.typing_chips_at_end_subtitle),

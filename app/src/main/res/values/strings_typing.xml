@@ -74,6 +74,9 @@
     <string name="typing_context_rerank_subtitle">Reorder suggestions by the words around them</string>
     <string name="typing_context_rerank_info">The keyboard reorders the top suggestions with the words you typed before them: your own word pairs, common English pairs, and words from the current conversation. The reorder applies only when there is real evidence, so the usual order stays for unfamiliar contexts. This never changes which word autocorrect applies.</string>
 
+    <string name="typing_lm_strength_title">Language model strength</string>
+    <string name="typing_lm_strength_subtitle">How much the context model moves the words offered for what you type</string>
+    <string name="typing_lm_strength_info" formatted="false">While you type a word, the context model reads the sentence so far and lifts the candidates that fit it, so \"by\" gives way to \"buy\" after \"want to\". This sets how far it may lift or sink a word. 100% is the default, measured on thousands of typed sentences. Lower trusts the keys and the dictionaries more, and 0% keeps the model out of ranking while it still predicts the next word. Higher lets the model overrule what the keys spelled more often, which can help with sloppy typing and can also pick a word you did not mean.</string>
     <string name="typing_neural_context_title">Context model</string>
     <string name="typing_neural_context_subtitle">Read the whole sentence to predict and rank words</string>
     <string name="typing_neural_context_info">A small language model, downloaded for your language, reads the sentence you have typed so far and says which words are likely to come next. It fills the next-word suggestions, helps order corrections, and backs the learned autocorrect gate. It runs on this device and needs no network once downloaded. A word it does not know, such as a name or a word you taught the keyboard, is left to your dictionary as before. Turning this off reads no model file.</string>
