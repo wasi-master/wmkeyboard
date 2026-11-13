@@ -87,6 +87,9 @@ import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.DefaultFingerSwipes
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipe
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCodec
+import com.wasimaster.wmkeyboard.core.layout.DefaultPinchGestures
+import com.wasimaster.wmkeyboard.core.layout.PinchGesture
+import com.wasimaster.wmkeyboard.core.layout.PinchGestureCodec
 import com.wasimaster.wmkeyboard.core.layout.SpaceSwipeBindingCodec
 import com.wasimaster.wmkeyboard.core.layout.SpaceSwipeSlot
 import com.wasimaster.wmkeyboard.core.layout.SymbolChordCodec
@@ -9190,6 +9193,21 @@ data class GestureSettings(
      */
     val fingerSwipes: Map<FingerSwipe, KeyAlternate> = emptyMap(),
     /**
+     * Two fingers on the keys pinched together or stretched apart run an
+     * action instead of typing (gap list item 18, AnySoftKeyboard's pinch to
+     * merge and stretch to split). On by default: the pair has to land
+     * together and both fingers travel along the line between them before it
+     * is claimed, which neither two quick taps nor a multi-finger swipe does.
+     * Stands aside while [twoThumbGlide] is on, and on the floating keyboard.
+     */
+    val pinchGestures: Boolean = true,
+    /**
+     * The user's bindings for [pinchGestures], over [DefaultPinchGestures];
+     * read through [actionOf]. A slot bound to `KeyAction.None` is a default
+     * the user cleared.
+     */
+    val pinchBindings: Map<PinchGesture, KeyAlternate> = emptyMap(),
+    /**
      * Holding `?123` still and tapping a key runs the action bound to that key
      * instead of typing it (issue #754). On by default: a tap that lands while
      * `?123` is down has typed a letter off the wrong layer until now, and a
@@ -12203,6 +12221,8 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_TWO_THUMB_PAUSE_BAND = booleanPreferencesKey("gesture_two_thumb_pause_band")
         private val GESTURE_MULTI_FINGER = booleanPreferencesKey("gesture_multi_finger_swipes")
         private val GESTURE_FINGER_SWIPES = stringPreferencesKey("gesture_finger_swipes")
+        private val GESTURE_PINCH = booleanPreferencesKey("gesture_pinch")
+        private val GESTURE_PINCH_BINDINGS = stringPreferencesKey("gesture_pinch_bindings")
         private val GESTURE_SYMBOL_CHORDS = booleanPreferencesKey("gesture_symbol_chords")
         private val GESTURE_CHORDS = stringPreferencesKey("gesture_chords")
         private val GESTURE_KEY_SWIPES_ON = booleanPreferencesKey("gesture_key_swipes_on")
@@ -14471,6 +14491,9 @@ class SettingsRepository(private val context: Context) {
             multiFingerSwipes = p[GESTURE_MULTI_FINGER] ?: defaults.gesture.multiFingerSwipes,
             fingerSwipes = p[GESTURE_FINGER_SWIPES]?.let(FingerSwipeCodec::decode)
                 ?: defaults.gesture.fingerSwipes,
+            pinchGestures = p[GESTURE_PINCH] ?: defaults.gesture.pinchGestures,
+            pinchBindings = p[GESTURE_PINCH_BINDINGS]?.let(PinchGestureCodec::decode)
+                ?: defaults.gesture.pinchBindings,
             symbolChords = p[GESTURE_SYMBOL_CHORDS] ?: defaults.gesture.symbolChords,
             chords = p[GESTURE_CHORDS]?.let(SymbolChordCodec::decode) ?: defaults.gesture.chords,
             keySwipesOn = p[GESTURE_KEY_SWIPES_ON] ?: defaults.gesture.keySwipesOn,
@@ -22681,6 +22704,21 @@ class SettingsRepository(private val context: Context) {
             val next = if (binding == null) current - swipe else current + (swipe to binding)
             if (next.isEmpty()) prefs.remove(GESTURE_FINGER_SWIPES)
             else prefs[GESTURE_FINGER_SWIPES] = FingerSwipeCodec.encode(next)
+        }
+
+    suspend fun setPinchGestures(value: Boolean) =
+        editPrefs { it[GESTURE_PINCH] = value }
+
+    /**
+     * Binds [gesture] to [binding] (gap list item 18). Null puts it back to
+     * its default; `KeyAction.None` clears it, default or not.
+     */
+    suspend fun setPinchGesture(gesture: PinchGesture, binding: KeyAlternate?) =
+        editPrefs { prefs ->
+            val current = PinchGestureCodec.decode(prefs[GESTURE_PINCH_BINDINGS])
+            val next = if (binding == null) current - gesture else current + (gesture to binding)
+            if (next.isEmpty()) prefs.remove(GESTURE_PINCH_BINDINGS)
+            else prefs[GESTURE_PINCH_BINDINGS] = PinchGestureCodec.encode(next)
         }
 
     suspend fun setSymbolChords(value: Boolean) =

@@ -319,6 +319,31 @@ The swipes also work on the keys under a tool that types into a box of its own, 
 
 Fast typing is never mistaken for a swipe. Nothing is decided until every finger on the keys has travelled about 28&nbsp;dp, all of them the same way. A typist rolling from one key to the next lifts long before that, and the keys type as they always did. Lifting any finger before the swipe is recognised hands the whole touch back to the keys.
 
+## Pinch and stretch
+
+<SettingsPath path="Typing / Gestures / Pinch and stretch" />
+
+Put two fingers on the keys at the same time and spread them apart to split the keyboard in two, or pinch them together to put it back. The split is the same one the **Split** tool and the [split keyboard](/typing/size-position/#splitting-the-keyboard-in-half) setting give you. A stretch on a board that is already split does nothing, and so does a pinch on one that is whole, so a stray gesture never undoes the last one.
+
+| Gesture | Does out of the box |
+| --- | --- |
+| Stretch (two fingers apart) | Splits the keyboard |
+| Pinch (two fingers together) | Merges the keyboard |
+
+Tap **Stretch** or **Pinch** to bind it to something else from the same list a [multi-finger swipe](#swiping-with-several-fingers) uses: one-handed mode, a tool, a text-editing step, a layer, another keyboard app, a piece of text. **No action** turns that gesture off and leaves the other one working. **Reset pinch actions** puts both back to split and merge.
+
+The action runs when both fingers have lifted, so the keyboard never changes shape under them. Nothing is drawn while you pinch.
+
+A pinch has to be clearly a pinch before it takes the touch, so typing with two thumbs, gliding and multi-finger swipes work as before:
+
+- Both fingers land within about 0.3&nbsp;s of each other, before the first has moved. A thumb already holding a key, gliding or moving the cursor on the spacebar is doing something else.
+- The gap between them grows or shrinks by at least 40&nbsp;dp and by at least a quarter.
+- Each finger travels at least 14&nbsp;dp, heading roughly toward the other (pinch) or away from it (stretch). One still finger and one moving finger is a held key and a glide, not a stretch.
+- The two fingers do not drift together as a pair. Two thumbs tracing two words wander; a pinch stays roughly where it began.
+- No third finger, no finger lifted first, and no key typed since the first finger landed.
+
+It stands aside on the [floating keyboard](/typing/size-position/#floating-the-keyboard), whose own pinch resizes it, and while [two-thumb typing](/typing/glide-typing/) is on, where two thumbs moving apart are two words.
+
 ## Chords with ?123
 
 <SettingsPath path="Typing / Gestures / Chords with ?123" />
@@ -431,6 +456,8 @@ A printable table of every gesture on one page lives at [Gesture cheat sheet](/r
 | Multi-finger swipes | On |
 | Two fingers up / left / right / down | Select all / Undo / Redo / Paste |
 | Three and four fingers, any direction | Nothing |
+| Pinch and stretch | On |
+| Stretch / Pinch | Split the keyboard / Merge the keyboard |
 | Chords with ?123 | On |
 | ?123 + L | Next language |
 | Swipes on keys | On, with no keys set |
@@ -451,7 +478,8 @@ Open the **Typing** tile in settings, or search "Gestures", "Delete keys" or "Vo
 - **A multi-finger swipe takes the whole touch once it is recognised.** A word you had started gliding with the first finger is dropped, a key press under any of the fingers types nothing, and a chord or layer drag fires nothing at the lift. The swipe is counted by the most fingers that were down at once, so a third finger that lands a moment late still makes it a three-finger swipe.
 - **Not inside a typing test, and not over a panel without typing keys.** The test counts every keystroke in order, so it keeps the keys to itself; a panel such as emoji or the numpad has no letters to swipe on.
 - **Two-finger swipes stand aside while [two-thumb typing](/typing/glide-typing/) is on.** There two thumbs moving together are two halves of a word, so only three and four finger swipes run. The two-finger rows say so.
-- **A swipe that leans more than about 35° off straight up, down, left or right is no swipe at all**, and neither is one where the fingers head different ways, such as a pinch. Those fall through to the keys.
+- **A swipe that leans more than about 35° off straight up, down, left or right is no swipe at all**, and neither is one where the fingers head different ways. Two fingers moving apart or together along the line between them are a [pinch or stretch](#pinch-and-stretch) instead; anything else falls through to the keys.
+- **A pinch or stretch takes the whole touch once it is recognised**, the same way a multi-finger swipe does: neither finger's key types, and a glide either finger had begun is dropped. A third finger before then makes it a multi-finger swipe, never a pinch.
 - **Volume-key cursor control re-checks "is audio playing" on every key press**, not once at the start of the drag, so control passes back and forth live as playback starts and stops.
 - **A drag off <KeyCap>?123</KeyCap> or <KeyCap>ABC</KeyCap> is never read as a word either**, for the same reason as a modifier drag: <KeyCap>?123</KeyCap> sits against the bottom row beside the spacebar, and a touch that starts there belongs to the layer drag.
 - **A drag off a modifier or Shift key is never read as a word.** Glide typing and handwriting both measure where your finger landed, and a touch that started on one of those keys belongs to the chord drag. Shift is the one you may notice: it sits against the bottom letter row, so a glide that used to be startable from its inner edge now capitalizes instead. Start the word one key further in.
