@@ -279,9 +279,10 @@ internal class PluginKeyboardServices(
                 connection.connectTimeout = timeout
                 connection.readTimeout = timeout
                 connection.requestMethod = currentMethod
-                // Named after the plugin too: services such as Open Food Facts,
-                // Nominatim and Wikipedia ask each app to say who it is.
-                connection.setRequestProperty("User-Agent", "$USER_AGENT ${call.plugin.id}/${call.plugin.version}")
+                // Named after the plugin too, with a way to reach us: services
+                // such as Open Food Facts, Nominatim, Wikipedia and Transitous
+                // ask each app to say who it is and how to contact it.
+                connection.setRequestProperty("User-Agent", "$USER_AGENT ${call.plugin.id}/${call.plugin.version} ($CONTACT)")
                 for ((k, v) in headers) connection.setRequestProperty(k, v)
                 if (body != null && currentMethod !in setOf("GET", "DELETE")) {
                     connection.doOutput = true
@@ -973,6 +974,7 @@ internal class PluginKeyboardServices(
         /** Headers a plugin may not set: who the request is from, and how it is routed. */
         private val FORBIDDEN_HEADERS = setOf("host", "cookie", "user-agent", "proxy-authorization", "connection", "content-length")
         private const val USER_AGENT = "WMKeyboard-Plugin"
+        private const val CONTACT = "+https://wmkeyboard.pages.dev"
         private const val MAX_REDIRECTS = 5
         private const val MAX_REPLY = 1024 * 1024
         private const val BUFFER = 8 * 1024

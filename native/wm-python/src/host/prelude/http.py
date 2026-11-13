@@ -13,7 +13,7 @@ Data saver is on.
 Pass then=fn to get the answer later instead of waiting for it: the call
 returns at once and fn receives the Response (on_error=fn hears a failure).
 
-files= sends a multipart form, the way an upload form does:
+Pass files= for a multipart form, the way a web page uploads a file:
 
     http.post(url, data={"code": "123"}, files={"photo": ("front.jpg", jpeg, "image/jpeg")})
 """
