@@ -1,0 +1,287 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_ar_legacy",
+    "name": "العربية (Arabic legacy, SwiftKey)",
+    "langId": "ar",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ض",
+              "longPress": [
+                "١"
+              ]
+            },
+            {
+              "label": "ص",
+              "longPress": [
+                "٢"
+              ]
+            },
+            {
+              "label": "ث",
+              "longPress": [
+                "٣"
+              ]
+            },
+            {
+              "label": "ق",
+              "longPress": [
+                "٤",
+                "ڨ"
+              ]
+            },
+            {
+              "label": "ف",
+              "longPress": [
+                "٥",
+                "ڤ"
+              ]
+            },
+            {
+              "label": "غ",
+              "longPress": [
+                "٦"
+              ]
+            },
+            {
+              "label": "ع",
+              "longPress": [
+                "٧"
+              ]
+            },
+            {
+              "label": "ه",
+              "longPress": [
+                "٨",
+                "ه‍"
+              ]
+            },
+            {
+              "label": "خ",
+              "longPress": [
+                "٩"
+              ]
+            },
+            {
+              "label": "ح",
+              "longPress": [
+                "٠"
+              ]
+            },
+            {
+              "label": "ج",
+              "longPress": [
+                "$",
+                "چ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ش",
+              "longPress": [
+                "@"
+              ]
+            },
+            {
+              "label": "س",
+              "longPress": [
+                "#"
+              ]
+            },
+            {
+              "label": "ي",
+              "longPress": [
+                "ى",
+                "ئ"
+              ]
+            },
+            {
+              "label": "ب",
+              "longPress": [
+                "&",
+                "پ"
+              ]
+            },
+            {
+              "label": "ل",
+              "longPress": [
+                "(",
+                "لا",
+                "لأ",
+                "لإ",
+                "لآ"
+              ]
+            },
+            {
+              "label": "ا",
+              "longPress": [
+                "أ",
+                "إ",
+                "آ",
+                "ٱ"
+              ]
+            },
+            {
+              "label": "ت",
+              "longPress": [
+                ")"
+              ]
+            },
+            {
+              "label": "ن",
+              "longPress": [
+                "-"
+              ]
+            },
+            {
+              "label": "م",
+              "longPress": [
+                "+"
+              ]
+            },
+            {
+              "label": "ك",
+              "longPress": [
+                "\"",
+                "گ",
+                "ک"
+              ]
+            },
+            {
+              "label": "ة",
+              "longPress": [
+                "/"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "؛",
+              "longPress": [
+                ":",
+                ";"
+              ]
+            },
+            {
+              "label": "ظ",
+              "longPress": [
+                "_"
+              ]
+            },
+            {
+              "label": "ط",
+              "longPress": [
+                "گ"
+              ]
+            },
+            {
+              "label": "ذ",
+              "longPress": [
+                "ئ"
+              ]
+            },
+            {
+              "label": "د",
+              "longPress": [
+                "ء"
+              ]
+            },
+            {
+              "label": "ز",
+              "longPress": [
+                "!",
+                "ژ"
+              ]
+            },
+            {
+              "label": "ر",
+              "longPress": [
+                "آ"
+              ]
+            },
+            {
+              "label": "و",
+              "longPress": [
+                "ؤ"
+              ]
+            },
+            {
+              "label": "◌َ",
+              "output": "َ",
+              "longPress": [
+                "ِ",
+                "ُ",
+                "ْ",
+                "ّ",
+                "ً",
+                "ٍ",
+                "ٌ",
+                "ٰ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 2.0
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "،",
+              "longPress": [
+                ",",
+                "؛"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "؟",
+                "!",
+                "…",
+                ":"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

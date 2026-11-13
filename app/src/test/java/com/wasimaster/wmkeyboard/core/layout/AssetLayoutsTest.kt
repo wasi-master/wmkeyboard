@@ -524,6 +524,23 @@ class AssetLayoutsTest {
         }
     }
 
+    /** SwiftKey's "Arabic (legacy)": 11 + 11 + 9 letters, the held character drawn as each key's hint. */
+    @Test
+    fun `arabic legacy follows swiftkey's rows`() {
+        assertEquals(
+            listOf("ض ص ث ق ف غ ع ه خ ح ج", "ش س ي ب ل ا ت ن م ك ة", "؛ ظ ط ذ د ز ر و ◌َ"),
+            letterRows("ar_legacy"),
+        )
+        val held = holds("ar_legacy")
+        assertEquals("١", held["ض"]?.firstOrNull())
+        assertEquals("$", held["ج"]?.firstOrNull())
+        assertEquals("ى", held["ي"]?.firstOrNull())
+        assertEquals("أ", held["ا"]?.firstOrNull())
+        assertEquals("ؤ", held["و"]?.firstOrNull())
+        assertEquals("\u0650", held["◌َ"]?.firstOrNull())
+        assertTrue(AssetLayouts.AR_LEGACY_ID in LanguageRegistry.byId("ar").layoutIds)
+    }
+
     @Test
     fun `asset layout ids are unique and never shadow a built-in`() {
         val builtInIds = BuiltInLayouts.all.mapTo(HashSet()) { it.id }

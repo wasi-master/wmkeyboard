@@ -880,6 +880,7 @@ object AssetLayouts {
     const val AGX_CYRILLIC_ID = "asset_agx_cyrillic"
     const val AK_LETTERS_ID = "asset_ak_letters"
     const val ALT_LETTER_ROW_ID = "asset_alt_letter_row"
+    const val AR_LEGACY_ID = "asset_ar_legacy"
     const val AR_LETTERS_ID = "asset_ar_letters"
     const val AR_LULUA_ID = "asset_ar_lulua"
     const val BA_LETTER_ROW_ID = "asset_ba_letter_row"

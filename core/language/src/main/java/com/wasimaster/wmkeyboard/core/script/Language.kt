@@ -253,6 +253,7 @@ object LanguageRegistry {
                 BuiltInLayouts.ARABIC_ID,
                 BuiltInLayouts.ARABIC_PHONETIC_ID,
                 AssetLayouts.AR_HIJAI_ID,
+                AssetLayouts.AR_LEGACY_ID,
                 AssetLayouts.AR_LETTERS_ID,
                 AssetLayouts.AR_LULUA_ID,
                 AssetLayouts.AR_T9_ID,
