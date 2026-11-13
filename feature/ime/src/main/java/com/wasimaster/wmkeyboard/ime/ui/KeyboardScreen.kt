@@ -4486,23 +4486,36 @@ private fun TopBar(
                     // on the shared strip. With a row of their own the tools open
                     // above or below this one, so the chevron points that way and
                     // turns to face back once the row is out.
-                    Icon(
+                    val chevronDesc = stringResource(
                         when {
-                            !toolsOwnRow -> Icons.Outlined.ChevronRight
-                            toolsRowAbove -> Icons.Outlined.KeyboardArrowUp
-                            else -> Icons.Outlined.KeyboardArrowDown
+                            toolsOwnRow && toolsRowOpen -> R.string.ime_toolbar_hide_desc
+                            toolsOwnRow -> R.string.ime_toolbar_show_desc
+                            showToolbar -> R.string.ime_suggestions_show_desc
+                            else -> R.string.ime_toolbar_show_desc
                         },
-                        contentDescription = stringResource(
-                            when {
-                                toolsOwnRow && toolsRowOpen -> R.string.ime_toolbar_hide_desc
-                                toolsOwnRow -> R.string.ime_toolbar_show_desc
-                                showToolbar -> R.string.ime_suggestions_show_desc
-                                else -> R.string.ime_toolbar_show_desc
-                            },
-                        ),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.graphicsLayer { rotationZ = chevronTurn },
                     )
+                    if (!toolsOwnRow) {
+                        // The shared strip's arrow is the Show tools icon slot,
+                        // so a pick in Icons reaches it (Telegram 8802). Only
+                        // the shipped chevron turns: an icon the user chose
+                        // stays the way up they chose it.
+                        val ownIcon = LocalIconSet.current.resolve(IconSlots.CHROME_SUGGESTIONS_EXPAND) != null
+                        SlotIcon(
+                            IconSlots.CHROME_SUGGESTIONS_EXPAND,
+                            contentDescription = chevronDesc,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .graphicsLayer { if (!ownIcon) rotationZ = chevronTurn },
+                        )
+                    } else {
+                        Icon(
+                            if (toolsRowAbove) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
+                            contentDescription = chevronDesc,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.graphicsLayer { rotationZ = chevronTurn },
+                        )
+                    }
                 }
             }
         }
