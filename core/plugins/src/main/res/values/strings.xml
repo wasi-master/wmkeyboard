@@ -35,6 +35,8 @@
     <string name="core_plugins_permission_network_label">Connect to the internet, to the websites it lists</string>
     <string name="core_plugins_permission_network_warning">This plugin can send data to the websites it lists, and those websites can see your IP address. Anything you give the plugin, it can send there.</string>
     <!-- AI: the AI model the user set up in the keyboard's settings. -->
+    <string name="core_plugins_permission_network_local_label">Reach the server you type in its settings on your home network</string>
+    <string name="core_plugins_permission_network_local_warning">This plugin can connect to the server you type into its settings when that server is on your local network: an address like 192.168.1.20, a one-word name, or a name ending in .local, .lan or .home.arpa. It can use plain http there, and on plain http anyone else on that network can read what is sent, including passwords and tokens.</string>
     <string name="core_plugins_permission_ai_label">Ask the AI model you set up in the keyboard</string>
     <string name="core_plugins_permission_ai_warning">This plugin can send text to the AI model you set up. If that model runs online, the text leaves your phone and the provider\'s terms apply.</string>
     <!-- The text field is the box in another app that the user is typing into. -->

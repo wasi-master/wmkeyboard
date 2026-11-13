@@ -819,11 +819,11 @@ private fun PluginPermissionsGroup(store: PluginStore, plugin: InstalledPlugin, 
                 ) { on -> if (on) asking = permission else store.setGranted(plugin.id, permission, false) }
             }
         }
-        if (plugin.declares(PluginPermission.Network) && plugin.allowedHosts.isNotEmpty()) {
+        if (plugin.declares(PluginPermission.Network) && (plugin.allowedHosts + plugin.localHosts).isNotEmpty()) {
             item {
                 WmRow(
                     title = stringResource(R.string.plugins_hosts_title),
-                    subtitle = plugin.allowedHosts.joinToString("\n"),
+                    subtitle = (plugin.allowedHosts + plugin.localHosts).joinToString("\n"),
                 )
             }
         }
@@ -834,7 +834,11 @@ private fun PluginPermissionsGroup(store: PluginStore, plugin: InstalledPlugin, 
             title = { Text(stringResource(R.string.plugins_permission_grant_title, stringResource(permission.labelRes))) },
             text = {
                 val warning = permission.warningRes?.let { stringResource(it) }.orEmpty()
-                val hosts = if (permission == PluginPermission.Network) "\n\n" + plugin.allowedHosts.joinToString("\n") else ""
+                val hosts = when (permission) {
+                    PluginPermission.Network -> "\n\n" + plugin.allowedHosts.joinToString("\n")
+                    PluginPermission.NetworkLocal -> "\n\n" + plugin.localHosts.joinToString("\n")
+                    else -> ""
+                }
                 Text(warning + hosts)
             },
             confirmButton = {

@@ -47,17 +47,39 @@ export function hostAllowed(host: string, hosts: string[]): boolean {
 	});
 }
 
-function requestUrl(args: Args, hosts: string[]): URL | string {
+/**
+ * PluginManifestCodec.isLocalHost: a server on the local network, which only
+ * `network.local` reaches, and only when the user typed it into a host setting.
+ */
+export function isLocalHost(host: string): boolean {
+	const h = host.toLowerCase().replace(/\.$/, '');
+	if (!h || h.startsWith('[') || h.includes(':') || h === 'localhost' || h.endsWith('.localhost')) return false;
+	const parts = h.split('.');
+	if (parts.length === 4 && parts.every((p) => /^\d{1,3}$/.test(p))) {
+		const n = parts.map(Number);
+		if (n.some((x) => x > 255)) return false;
+		return n[0] === 10 || (n[0] === 172 && n[1] >= 16 && n[1] <= 31) || (n[0] === 192 && n[1] === 168) || (n[0] === 100 && n[1] >= 64 && n[1] <= 127) || (n[0] === 169 && n[1] === 254);
+	}
+	if (!parts.every((p) => /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/.test(p))) return false;
+	if (parts.length === 1) return !/^\d+$/.test(h);
+	return ['local', 'lan', 'home', 'home.arpa', 'internal', 'localdomain'].some((s) => h.endsWith('.' + s));
+}
+
+const LOCAL_IN_PREVIEW = 'is on a local network, which the web preview cannot reach (browsers block it). Install the plugin to try it on the phone, with "network.local" turned on.';
+
+/** The address to fetch, or why not as [error kind, message]. */
+function requestUrl(args: Args, hosts: string[]): URL | [string, string] {
 	let url: URL;
 	try {
 		url = new URL(String(args.url ?? ''));
 	} catch {
-		return 'not a web address';
+		return ['ValueError', 'not a web address'];
 	}
-	if (url.protocol !== 'https:') return 'only https addresses';
-	if (url.username || url.password) return 'no user name in the address';
-	if (/^[\d.]+$/.test(url.hostname) || url.hostname.includes(':') || url.hostname === 'localhost') return 'no IP addresses or localhost';
-	if (!hostAllowed(url.hostname, hosts)) return `${url.hostname} is not in the manifest's "hosts"`;
+	if ((url.protocol === 'http:' || url.protocol === 'https:') && isLocalHost(url.hostname)) return ['ConnectionError', `${url.hostname} ${LOCAL_IN_PREVIEW}`];
+	if (url.protocol !== 'https:') return ['ValueError', 'only https addresses (plain http only on a local network)'];
+	if (url.username || url.password) return ['ValueError', 'no user name in the address'];
+	if (/^[\d.]+$/.test(url.hostname) || url.hostname.includes(':') || url.hostname === 'localhost') return ['ValueError', 'no IP addresses or localhost'];
+	if (!hostAllowed(url.hostname, hosts)) return ['PermissionError', `${url.hostname} is not in the manifest's "hosts"`];
 	const params = args.params as Record<string, string> | undefined;
 	if (params) for (const [k, v] of Object.entries(params)) url.searchParams.append(k, String(v));
 	return url;
@@ -255,7 +277,7 @@ export function makeBridge(ctx: HostContext): Bridge {
 		switch (op) {
 			case 'http.request': {
 				const url = requestUrl(args, ctx.hosts);
-				if (typeof url === 'string') return fail('PermissionError', url);
+				if (Array.isArray(url)) return fail(url[0], url[1]);
 				return token ? httpAsync(args, url, token, ctx) : httpSync(args, url);
 			}
 			case 'ui.toast':

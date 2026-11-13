@@ -156,7 +156,11 @@ data class PluginSettingSpec(
         const val TYPE_NUMBER = "number"
         const val TYPE_CHOICE = "choice"
 
-        /** A website the user adds to the plugin's hosts: their own server, say. */
+        /**
+         * A website the user adds to the plugin's hosts: their own server, say.
+         * The value is read as a server address (`https://money.example.com:8443/app`),
+         * and only its host joins the list; see [PluginManifestCodec.serverHost].
+         */
         const val TYPE_HOST = "host"
         val TYPES = setOf(TYPE_SWITCH, TYPE_TEXT, TYPE_NUMBER, TYPE_CHOICE, TYPE_HOST)
     }
@@ -445,6 +449,61 @@ object PluginManifestCodec {
             }
         }
     }
+
+    /**
+     * The host of a server address the user typed into a `host` setting:
+     * `money.example.com`, `https://money.example.com:8443/firefly`,
+     * `http://192.168.1.20:8080` or `nas`. Scheme, port and path are dropped;
+     * the plugin reads the whole value itself. Null when there is no usable
+     * host: a user name in it, a scheme other than http(s), loopback, or an
+     * IP address that is not on a local network.
+     */
+    fun serverHost(raw: String): String? {
+        val text = raw.trim()
+        if (text.isEmpty()) return null
+        val uri = runCatching { java.net.URI(if ("://" in text) text else "https://$text") }.getOrNull() ?: return null
+        val scheme = uri.scheme?.lowercase()
+        if (scheme != "https" && scheme != "http") return null
+        if (uri.rawUserInfo != null) return null
+        val host = addressHost(uri.host ?: return null) ?: return null
+        return host.takeIf { isLocalHost(it) || isValidHost(it) }
+    }
+
+    /** [raw] as a host name to compare: lowercase ASCII, no trailing dot. Null if it cannot be one. */
+    fun addressHost(raw: String): String? =
+        runCatching { java.net.IDN.toASCII(raw.trim()).lowercase().trimEnd('.') }.getOrNull()?.takeIf { it.isNotEmpty() }
+
+    /**
+     * Whether [host] is a server on the local network, which `wm.http` reaches
+     * only with `network.local` and only when the user typed it: an IPv4
+     * address in 10/8, 172.16/12, 192.168/16, 100.64/10 (Tailscale and other
+     * carrier-grade NAT) or 169.254/16; a one-word name (`nas`); or a name
+     * under one of [LOCAL_SUFFIXES]. Loopback (`localhost`, 127/8, `::1`) is
+     * never local here: it is the phone itself, and stays refused.
+     */
+    fun isLocalHost(host: String): Boolean {
+        val h = host.lowercase().trimEnd('.')
+        if (h.isEmpty() || h.startsWith("[") || ':' in h) return false
+        if (h == "localhost" || h.endsWith(".localhost")) return false
+        val parts = h.split('.')
+        if (parts.size == 4 && parts.all { p -> p.isNotEmpty() && p.length <= 3 && p.all(Char::isDigit) }) {
+            val n = parts.map { it.toInt() }
+            if (n.any { it > 255 }) return false
+            return n[0] == 10 ||
+                (n[0] == 172 && n[1] in 16..31) ||
+                (n[0] == 192 && n[1] == 168) ||
+                (n[0] == 100 && n[1] in 64..127) ||
+                (n[0] == 169 && n[1] == 254)
+        }
+        if (!parts.all { LABEL.matches(it) }) return false
+        if (parts.size == 1) return !h.all(Char::isDigit)
+        return LOCAL_SUFFIXES.any { suffix -> h.endsWith(".$suffix") }
+    }
+
+    /** Name endings that never resolve on the public internet. */
+    val LOCAL_SUFFIXES = listOf("local", "lan", "home", "home.arpa", "internal", "localdomain")
+
+    private val LABEL = Regex("^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$")
 
     fun sanitiseSetting(setting: PluginSettingSpec): PluginSettingSpec = setting.copy(
         key = setting.key.trim(),

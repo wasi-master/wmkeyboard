@@ -33,10 +33,13 @@ user granted.
    refused there, and clips marked private are never handed to a plugin.
 4. **The network is off until you allow it, and then only to listed sites.**
    A plugin with `network` reaches https addresses on the hosts its manifest
-   lists, nothing else: no IP addresses, no `localhost`, no other ports. You
-   see the hosts before install and again when you grant it. Data saver stops
-   it, and every request shows in Network activity under the plugin's name.
-5. **Every risky permission is off until you turn it on.** `network`, `ai`,
+   lists, or the server you typed into its settings, nothing else: no IP
+   addresses, no `localhost`. The one exception is a server on your local
+   network that you typed in yourself, which also needs `network.local` turned
+   on and may then use plain http. You see the hosts before install and again
+   when you grant it. Data saver stops it, and every request shows in Network
+   activity under the plugin's name.
+5. **Every risky permission is off until you turn it on.** `network`, `network.local`, `ai`,
    `field.read`, `clipboard.read`, `location` and `files` each need a switch on
    the plugin's page, behind a warning, and the global
    <SettingsPath path="Tools / Plugins / Allow risky permissions" /> switch, which

@@ -61,7 +61,7 @@ The editors complete these names as you type and show what each one does.
 | `permissions` | no | See [Permissions](/plugins/permissions/). |
 | `hosts` | with `network` | Websites `http` may reach, up to 16. [More](/plugins/guides/internet-and-ai/#asking-for-the-internet). |
 | `tool` | no | Where the plugin opens from: `icon`, `tile`, `float`, `keyword`, `chip`, `height`. [More](/plugins/guides/pages-and-timers/#where-a-plugin-opens-from). |
-| `settings` | no | Rows on the plugin's settings page, up to 24. [More](/plugins/guides/saving-and-settings/#a-settings-page). |
+| `settings` | no | Rows on the plugin's settings page, up to 24. A `host` setting adds the server the user types to `hosts`. [More](/plugins/guides/saving-and-settings/#a-settings-page). |
 | `actions` | with `selection` | Buttons over selected text, up to 16. [More](/plugins/guides/text-and-selection/#buttons-over-selected-text). |
 | `panel` | no | `false` for a plugin made only of selection actions. |
 
@@ -274,7 +274,10 @@ A `Response` has `status_code`, `ok`, `text`, `json()`, `content` (bytes),
 raises `http.HTTPError` (an `OSError`, with `.response`) for 400 and up.
 
 https only, 15 seconds, 1 MB, 60 requests a minute, nothing while Data saver
-is on. [Guide](/plugins/guides/internet-and-ai/).
+is on. With the risky `network.local`, the server the user typed into a `host`
+setting may also be on the local network, over http or https
+([Permissions](/plugins/permissions/#networklocal)).
+[Guide](/plugins/guides/internet-and-ai/).
 
 ## ai
 

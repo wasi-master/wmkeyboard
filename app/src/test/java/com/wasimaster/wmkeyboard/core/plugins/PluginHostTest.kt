@@ -144,6 +144,52 @@ class PluginHostTest {
     }
 
     @Test
+    fun `a local server needs the typed host and network local`() {
+        val server = PluginSettingSpec(key = "server", type = PluginSettingSpec.TYPE_HOST, label = "Server")
+        val typed = plugin(listOf("network", "network.local"), granted = listOf("network"), hosts = emptyList())
+            .copy(settings = listOf(server), settingValues = mapOf("server" to "http://192.168.1.20:8080/firefly/"))
+        assertEquals(listOf("192.168.1.20"), typed.localHosts)
+        assertEquals(emptyList<String>(), typed.allowedHosts)
+        bind(typed)
+        val refused = call("http.request", """{"url": "http://192.168.1.20:8080/firefly/api/v1/about"}""")
+        assertEquals("PermissionError", refused.errorKind())
+        assertEquals("network.local", refused.needs())
+        PluginHost.unbind(handle)
+
+        bind(typed.copy(granted = listOf("network", "network.local")))
+        assertNull(call("http.request", """{"url": "http://192.168.1.20:8080/firefly/api/v1/about"}""").errorKind())
+        assertNull(call("http.request", """{"url": "https://192.168.1.20/api/v1/about"}""").errorKind())
+        // Local, but not the server the user typed.
+        for (url in listOf("http://192.168.1.21/", "http://10.0.0.1/", "http://nas/")) {
+            assertEquals(url, "PermissionError", call("http.request", """{"url": "$url"}""").errorKind())
+        }
+        // Never: loopback, a public address, plain http to the internet.
+        for (url in listOf("http://127.0.0.1/", "http://localhost:8080/", "http://8.8.8.8/", "http://api.example.com/")) {
+            assertEquals(url, "ValueError", call("http.request", """{"url": "$url"}""").errorKind())
+        }
+    }
+
+    @Test
+    fun `server addresses typed into a host setting are read for their host`() {
+        assertEquals("money.example.com", PluginManifestCodec.serverHost("https://Money.example.com:8443/firefly/"))
+        assertEquals("money.example.com", PluginManifestCodec.serverHost("money.example.com"))
+        assertEquals("192.168.1.20", PluginManifestCodec.serverHost("http://192.168.1.20:8080"))
+        assertEquals("nas", PluginManifestCodec.serverHost("nas:9283"))
+        assertEquals("firefly.local", PluginManifestCodec.serverHost("firefly.local"))
+        assertNull(PluginManifestCodec.serverHost("http://8.8.8.8/"))
+        assertNull(PluginManifestCodec.serverHost("http://localhost:8080/"))
+        assertNull(PluginManifestCodec.serverHost("http://127.0.0.1/"))
+        assertNull(PluginManifestCodec.serverHost("https://me@money.example.com/"))
+        assertNull(PluginManifestCodec.serverHost("ftp://money.example.com/"))
+        assertTrue(PluginManifestCodec.isLocalHost("172.20.0.5"))
+        assertTrue(PluginManifestCodec.isLocalHost("100.101.102.103"))
+        assertTrue(PluginManifestCodec.isLocalHost("grocy.home.arpa"))
+        assertFalse(PluginManifestCodec.isLocalHost("172.32.0.5"))
+        assertFalse(PluginManifestCodec.isLocalHost("example.com"))
+        assertFalse(PluginManifestCodec.isLocalHost("1234"))
+    }
+
+    @Test
     fun `data saver stops requests`() {
         bind(plugin(listOf("network"), granted = listOf("network")))
         services.saver = true

@@ -116,6 +116,7 @@ same page.
 | Permission | Gives you | Warning the user reads |
 |---|---|---|
 | `network` | [`http`](/plugins/wm-package/#http): https requests to the hosts in `hosts` | Data you give the plugin can go to those websites, which see your IP address. |
+| `network.local` | With `network`: the server the user typed into a `host` setting may be on the local network, over http or https. [More](#networklocal) | The plugin can connect to the server you type into its settings on your local network, and use plain http there, where anyone else on that network can read what is sent, including passwords and tokens. |
 | `ai` | [`ai`](/plugins/wm-package/#ai): the AI model the user set up | Text goes to that model, online or on the phone. |
 | `field.read` | `field.selection()`, `field.text_before()`, `field.text_after()`, `field.info()` | The plugin can read what you are writing, each time you tap something in its panel. |
 | `clipboard.read` | `clipboard.get()` | The plugin can read what you copied, each time you tap something in its panel. |
@@ -132,7 +133,9 @@ Rules that hold whatever was granted:
   private are refused.
 - **Network rules.** https only, to a host your manifest lists (exactly, or
   under a `*.` entry) or one the user typed into a `host` setting. No IP
-  addresses or `localhost`. Every redirect is checked again. Replies up to 1 MB,
+  addresses or `localhost`, except a server on the local network that the user
+  typed in, with [`network.local`](#networklocal). Every redirect is checked
+  again. Replies up to 1 MB,
   15 seconds at most, 60 requests a minute. Nothing is sent while Data saver is
   on, and every request appears in the keyboard's Network activity under your
   plugin's name.
@@ -159,6 +162,38 @@ server:
 ```
 
 At most 16. Host names only: no scheme, port or path.
+
+The user can type a whole address into a `host` setting, such as
+`https://money.example.com:8443/firefly`. Only the host joins your list; your
+script reads the setting and builds its own addresses from it.
+
+### `network.local`
+
+Self-hosted services often live at `http://192.168.1.20:8080` or
+`http://nas:9283`, with no https and no public name. `network.local` lets a
+plugin reach such a server, under three conditions:
+
+- The plugin also has `network` and a `host` setting.
+- The server is the one the user typed into that setting. A plugin can never
+  reach a local address its manifest names, or one the user did not type.
+- The user turned `network.local` on, after its own warning.
+
+A local address is an IPv4 address in `10.0.0.0/8`, `172.16.0.0/12`,
+`192.168.0.0/16`, `100.64.0.0/10` (Tailscale and other carrier-grade NAT) or
+`169.254.0.0/16`; a one-word name such as `nas`; or a name ending in `.local`,
+`.lan`, `.home`, `.home.arpa`, `.internal` or `.localdomain`. Requests there
+may use http or https. `localhost`, `127.0.0.1` and every public IP address
+stay refused, with or without the grant, and plain http to anywhere else is
+still refused.
+
+Without the grant, a request to the typed server raises `PermissionError` and
+the panel offers **Allow**, as for any risky permission.
+
+:::caution[Plain http on a shared network]
+On plain http, anyone on the same network can read the request, including
+the token the plugin sends. Suggest https to your users where their server
+has it, or a private network such as Tailscale.
+:::
 
 ## What no permission allows
 

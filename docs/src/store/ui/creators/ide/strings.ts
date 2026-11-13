@@ -54,6 +54,7 @@ export const S = {
 		reminders: 'Show reminders at times that you set in it',
 		selection: 'Change text you select, when you press one of its actions',
 		network: 'Connect to the internet, to the websites it lists',
+		'network.local': 'Reach the server you type in its settings on your home network',
 		ai: 'Ask the AI model you set up in the keyboard',
 		'field.read': 'Read the text around the cursor and the text you selected, when you press something in its panel',
 		'field.write': 'Type, replace and delete text in the field you are typing in',

@@ -28,7 +28,6 @@ import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.plugins.PluginCall
 import com.wasimaster.wmkeyboard.core.plugins.PluginCallException
 import com.wasimaster.wmkeyboard.core.plugins.PluginHost
-import com.wasimaster.wmkeyboard.core.plugins.PluginManifestCodec
 import com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms
 import com.wasimaster.wmkeyboard.core.plugins.PluginSecrets
 import com.wasimaster.wmkeyboard.core.plugins.PluginServices
@@ -247,10 +246,7 @@ internal class PluginKeyboardServices(
         val body = body(call)
         var currentMethod = method
         repeat(MAX_REDIRECTS + 1) {
-            val host = PluginHost.requestHost(url) ?: throw PluginCallException("ValueError", "only https addresses can be requested: $url")
-            if (!PluginManifestCodec.hostAllowed(host, call.plugin.allowedHosts)) {
-                throw PluginCallException("PermissionError", "this plugin is not allowed to connect to $host")
-            }
+            PluginHost.requestTarget(call.plugin, url)
             val net = NetLog.call(NetSource.PLUGINS, currentMethod, url, route = "/" + call.plugin.id, background = call.surface == "action")
             val connection = (URL(url).openConnection() as HttpURLConnection)
             try {

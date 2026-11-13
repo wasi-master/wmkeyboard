@@ -89,7 +89,9 @@ interface PluginServices {
  *    panel ([Binding.userEvent]);
  * 3. `http.request` only to https on a host [InstalledPlugin.allowedHosts]
  *    covers, never an IP address, never with Data saver on, and at most
- *    [MAX_REQUESTS_PER_MINUTE] a minute.
+ *    [MAX_REQUESTS_PER_MINUTE] a minute. The one exception is a server on the
+ *    local network that the user typed into a host setting, with
+ *    `network.local` granted: http or https there ([requestTarget]).
  *
  * A call that carries `"async": token` runs on the host's pool and answers as
  * the event `{"type": "result", "token", "value"}` (`stream` for each piece),
@@ -218,9 +220,9 @@ object PluginHost {
             throw PluginCallException("ConnectionError", "Data saver is on, so plugins cannot use the internet")
         }
         val url = (args["url"] as? JsonPrimitive)?.contentOrNull.orEmpty()
-        val host = requestHost(url) ?: throw PluginCallException("ValueError", "only https addresses with a host name can be requested: $url")
-        if (!PluginManifestCodec.hostAllowed(host, binding.plugin.allowedHosts)) {
-            throw PluginCallException("PermissionError", "this plugin is not allowed to connect to $host")
+        val host = requestTarget(binding.plugin, url)
+        if (PluginManifestCodec.isLocalHost(host) && binding.store?.allowRisky() == false) {
+            throw PluginCallException("PermissionError", "risky permissions are turned off for all plugins", needs = PluginPermission.NetworkLocal.wire)
         }
         val now = System.currentTimeMillis()
         synchronized(binding.requests) {
@@ -233,8 +235,60 @@ object PluginHost {
     }
 
     /**
+     * The host [url] may be requested from for [plugin], lowercase ASCII, or
+     * the refusal as a [PluginCallException]. Checked again on every redirect.
+     *
+     * * https to a host the plugin's list covers ([InstalledPlugin.allowedHosts]);
+     * * http or https to a local server ([PluginManifestCodec.isLocalHost]) the
+     *   user typed into a host setting ([InstalledPlugin.localHosts]), with
+     *   `network.local` granted;
+     * * nothing else: no plain http to the internet, no IP address outside a
+     *   local network, no loopback, no user name in the address.
+     */
+    fun requestTarget(plugin: InstalledPlugin, url: String): String {
+        val uri = runCatching { URI(url.trim()) }.getOrNull()
+        val scheme = uri?.scheme?.lowercase()
+        val raw = uri?.host
+        if (uri == null || (scheme != "https" && scheme != "http") || uri.rawUserInfo != null || raw.isNullOrEmpty()) {
+            throw PluginCallException("ValueError", "only https addresses with a host name can be requested: $url")
+        }
+        val host = PluginManifestCodec.addressHost(raw)
+            ?: throw PluginCallException("ValueError", "only https addresses with a host name can be requested: $url")
+        if (PluginManifestCodec.isLocalHost(host)) {
+            if (host !in plugin.localHosts) {
+                throw PluginCallException(
+                    "PermissionError",
+                    "$host is on the local network: a plugin can reach only the server the user typed into its settings there",
+                )
+            }
+            if (!plugin.declares(PluginPermission.NetworkLocal)) {
+                throw PluginCallException("PermissionError", "$host is on the local network, which needs the 'network.local' permission in the manifest")
+            }
+            if (!plugin.grants(PluginPermission.NetworkLocal)) {
+                throw PluginCallException(
+                    "PermissionError",
+                    "the user has not turned on 'network.local' for this plugin, which $host needs",
+                    needs = PluginPermission.NetworkLocal.wire,
+                )
+            }
+            return host
+        }
+        if (scheme != "https") {
+            throw PluginCallException("ValueError", "only https addresses can be requested (plain http only on the local network): $url")
+        }
+        if (!PluginManifestCodec.isValidHost(host)) {
+            throw PluginCallException("ValueError", "only https addresses with a host name can be requested: $url")
+        }
+        if (!PluginManifestCodec.hostAllowed(host, plugin.allowedHosts)) {
+            throw PluginCallException("PermissionError", "this plugin is not allowed to connect to $host")
+        }
+        return host
+    }
+
+    /**
      * The host [url] names, lowercase and in ASCII, when it is https and a
-     * name rather than an address. Null for anything else.
+     * name rather than an address. Null for anything else. For links handed
+     * to other apps; requests go through [requestTarget].
      */
     fun requestHost(url: String): String? {
         val uri = runCatching { URI(url.trim()) }.getOrNull() ?: return null

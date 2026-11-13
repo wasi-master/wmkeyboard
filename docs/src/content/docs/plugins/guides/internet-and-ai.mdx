@@ -131,7 +131,8 @@ builds this step by step.
 
 ## The rules every request follows
 
-- https only. No IP addresses and no `localhost`.
+- https only. No IP addresses and no `localhost`, except the user's own
+  server on the local network ([below](#a-server-on-the-local-network)).
 - Every redirect is checked against `hosts` again.
 - Replies up to 1 MB. 15 seconds at most. 60 requests a minute.
 - Nothing is sent while Data saver is on.
@@ -181,10 +182,43 @@ plugin's page, and the website the user types there is added to your `hosts`:
 ]
 ```
 
+The user may type a bare name (`money.example.com`) or a whole address with a
+port and a path (`https://money.example.com:8443/firefly`). Only the host is
+checked, so build your addresses from what they typed:
+
 ```python
-base = "https://" + plugin.settings.server
-r = http.get(base + "/api/items")
+def base_url():
+    text = plugin.settings.server.strip().rstrip("/")
+    if "://" not in text:
+        text = "https://" + text
+    return text
+
+
+r = http.get(base_url() + "/api/items")
 ```
+
+### A server on the local network
+
+Many self-hosted services are reached at home as `http://192.168.1.20:8080`
+or `http://nas:9283`. Add `network.local` to reach a server like that:
+
+```json title="plugin.json (excerpt)"
+"permissions": ["network", "network.local"],
+"settings": [
+  {"key": "server", "type": "host", "label": "Your server",
+   "summary": "Like https://money.example.com or http://192.168.1.20:8080"}
+]
+```
+
+It is a [risky permission](/plugins/permissions/#networklocal) with its own
+warning, and it covers only the server the user typed: a private IP address,
+a one-word name, or a name ending in `.local`, `.lan`, `.home`, `.home.arpa`,
+`.internal` or `.localdomain`. There, plain http works too. Until the user
+turns it on, a request to that server raises `PermissionError`.
+
+The web editor cannot reach local servers, because browsers block a page
+from doing so; a request there raises `ConnectionError`. Test those on the
+phone, or with mock answers in [automatic tests](/plugins/guides/testing/#automatic-tests).
 
 ## The AI model
 

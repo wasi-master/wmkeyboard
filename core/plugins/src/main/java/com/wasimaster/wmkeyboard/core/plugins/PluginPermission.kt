@@ -81,6 +81,21 @@ sealed class PluginPermission(
         warningRes = R.string.core_plugins_permission_network_warning,
     )
 
+    /**
+     * On top of [Network]: the server the user typed into a `host` setting may
+     * be on the local network (a private IPv4 address, a one-word name, or a
+     * name under `.local`, `.lan`, `.home`, `.home.arpa`, `.internal`), over
+     * http or https. Never a host the manifest lists, never loopback. See
+     * [PluginHost.requestTarget].
+     */
+    data object NetworkLocal : PluginPermission(
+        "network.local",
+        R.string.core_plugins_permission_network_local_label,
+        Tier.RISKY,
+        sinceApi = 5,
+        warningRes = R.string.core_plugins_permission_network_local_warning,
+    )
+
     /** `wm.ai`: the AI model the user set up in the keyboard. */
     data object Ai : PluginPermission(
         "ai",
@@ -150,7 +165,7 @@ sealed class PluginPermission(
         val all: List<PluginPermission> by lazy {
             listOf(
                 Storage, Reminders, SelectedText, FieldWrite, ClipboardWrite, Sensors, Scan, Device, Share,
-                Notifications, Network, Ai, FieldRead, ClipboardRead, Location, Files,
+                Notifications, Network, NetworkLocal, Ai, FieldRead, ClipboardRead, Location, Files,
             )
         }
 
@@ -161,7 +176,7 @@ sealed class PluginPermission(
         }
 
         /** Permissions that can send data off the phone. */
-        val EGRESS: Set<PluginPermission> by lazy { setOf(Network, Ai) }
+        val EGRESS: Set<PluginPermission> by lazy { setOf(Network, NetworkLocal, Ai) }
 
         /** Permissions that read something the user has. */
         val READS: Set<PluginPermission> by lazy { setOf(SelectedText, FieldRead, ClipboardRead, Files, Location) }

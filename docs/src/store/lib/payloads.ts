@@ -683,13 +683,13 @@ export const PLUGIN_API_VERSION = 5;
 export const PLUGIN_LUA_REFUSAL = 'This plugin is written in Lua, which WM Keyboard no longer runs; look for its Python version.';
 export const PLUGIN_PERMISSIONS = [
 	'storage', 'reminders', 'selection',
-	'network', 'ai', 'field.read', 'field.write', 'clipboard.read', 'clipboard.write',
+	'network', 'network.local', 'ai', 'field.read', 'field.write', 'clipboard.read', 'clipboard.write',
 	'location', 'files', 'sensors', 'scan', 'device', 'share', 'notifications',
 ] as const;
 /** The permissions API 5 added (PluginPermission.sinceApi); a lower manifest may not declare them. */
 const PLUGIN_API_5_PERMISSIONS = new Set(PLUGIN_PERMISSIONS.slice(3));
 /** Off after install until the user turns each on (PluginPermission.Tier.RISKY). */
-export const PLUGIN_RISKY_PERMISSIONS = ['network', 'ai', 'field.read', 'clipboard.read', 'location', 'files'] as const;
+export const PLUGIN_RISKY_PERMISSIONS = ['network', 'network.local', 'ai', 'field.read', 'clipboard.read', 'location', 'files'] as const;
 const PLUGIN_HOST = /^(\*\.)?([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 const PLUGIN_ACTION_ID = /^[a-z0-9_-]{1,32}$/;
 export const PLUGIN_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{2,63}$/;

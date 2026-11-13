@@ -89,13 +89,24 @@ data class InstalledPlugin(
     fun grants(permission: PluginPermission): Boolean =
         declares(permission) && (!permission.isRisky || permission.wire in granted)
 
-    /** The hosts `wm.http` may reach: the manifest's, and any the user typed into a host setting. */
+    /** The hosts of the server addresses the user typed into host settings. */
+    private val typedHosts: List<String>
+        get() = settings.filter { it.type == PluginSettingSpec.TYPE_HOST }
+            .mapNotNull { setting -> settingValues[setting.key]?.let(PluginManifestCodec::serverHost) }
+
+    /**
+     * The hosts `wm.http` may reach over https: the manifest's, and any public
+     * one the user typed into a host setting.
+     */
     val allowedHosts: List<String>
-        get() = (
-            hosts + settings.filter { it.type == PluginSettingSpec.TYPE_HOST }
-                .mapNotNull { setting -> settingValues[setting.key]?.let(PluginManifestCodec::normaliseHost) }
-                .filter(PluginManifestCodec::isValidHost)
-            ).distinct()
+        get() = (hosts + typedHosts.filterNot(PluginManifestCodec::isLocalHost)).distinct()
+
+    /**
+     * Servers on the local network the user typed into host settings, which
+     * `wm.http` reaches (over http too) only with `network.local` granted.
+     */
+    val localHosts: List<String>
+        get() = typedHosts.filter(PluginManifestCodec::isLocalHost).distinct()
 
     /** The value of every setting, the user's or the default, typed as JSON for the session. */
     fun settingsJson(): kotlinx.serialization.json.JsonObject = kotlinx.serialization.json.buildJsonObject {
