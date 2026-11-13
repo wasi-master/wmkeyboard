@@ -84,8 +84,10 @@ values there while you test.
 ## secrets
 
 For keys and tokens: `secrets.get(name, default)`, `secrets.set(name, value)`
-and `secrets.remove(name)`. Values are text, encrypted like the keyboard's own
-API keys, and never appear in a backup or the storage inspector. See
+and `secrets.remove(name)`. Values are text, kept apart from `storage` in the
+keyboard's private files, where other apps cannot read them. They never appear
+in a backup or the storage inspector, and uninstalling the plugin deletes
+them. They are not encrypted on the phone. See
 [API keys](/plugins/guides/internet-and-ai/#api-keys).
 
 ## A settings page

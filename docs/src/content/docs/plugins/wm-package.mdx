@@ -254,7 +254,7 @@ limit raises `ValueError`. [Guide](/plugins/guides/saving-and-settings/#storage)
 
 ## secrets
 
-`from wm import secrets`. Needs `storage`. Encrypted text values for API keys:
+`from wm import secrets`. Needs `storage`. Text values for API keys, kept apart from `storage`, out of backups and the storage inspector:
 `secrets.get(name, default=None)`, `secrets.set(name, value)`,
 `secrets.remove(name)`.
 

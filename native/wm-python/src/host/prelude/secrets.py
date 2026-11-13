@@ -1,6 +1,6 @@
-"""Keys and tokens the plugin needs for a service, kept encrypted like the
-keyboard's own API keys and never shown in the storage inspector or a
-backup. Needs `storage`.
+"""Keys and tokens the plugin needs for a service, kept apart from
+storage in the keyboard's private files, and never shown in the storage
+inspector or a backup. Needs `storage`.
 
     token = secrets.get("api_token")
 """

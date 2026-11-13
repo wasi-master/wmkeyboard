@@ -42,8 +42,9 @@ Gives you [`storage`](/plugins/wm-package/#storage), and `secrets` for API keys.
   update leaves it alone.
 - API 4: 128 keys, 64 characters per key, 8 KB per value, 64 KB in total.
   API 5: 512 keys, 64 KB per value, 1 MB in total.
-- Values in `secrets` are encrypted like the keyboard's own API keys and never
-  appear in the storage inspector or a backup.
+- Values in `secrets` are kept in a file of their own in the keyboard's private
+  storage, which other apps cannot read. They never appear in the storage
+  inspector or a backup. They are not encrypted on the phone.
 
 :::caution[Handle quota errors]
 Writing raises `ValueError` when you are over quota. Catch it and say something.
