@@ -13445,6 +13445,14 @@ class SettingsRepository(private val context: Context) {
         private val NOTES_SAVE_SELECTION_APPENDS = booleanPreferencesKey("notes_save_selection_appends")
         private val NOTES_TRASH_DAYS = intPreferencesKey("notes_trash_days")
         private val NOTES_KEEP_TOOLBAR = booleanPreferencesKey("notes_keep_toolbar")
+        private val NOTES_ASSIST = booleanPreferencesKey("notes_assist")
+        private val NOTES_ASSIST_HEADINGS = booleanPreferencesKey("notes_assist_headings")
+        private val NOTES_ASSIST_SUMMARIES = booleanPreferencesKey("notes_assist_summaries")
+        private val NOTES_ASSIST_SUMMARY_WORDS = intPreferencesKey("notes_assist_summary_words")
+        private val NOTES_ASSIST_HIGHLIGHTS = booleanPreferencesKey("notes_assist_highlights")
+        private val NOTES_ASSIST_REMINDERS = booleanPreferencesKey("notes_assist_reminders")
+        private val NOTES_ASSIST_RELATED = booleanPreferencesKey("notes_assist_related")
+        private val NOTES_ASSIST_DECKS = booleanPreferencesKey("notes_assist_decks")
         private val NOTES_VERSION = intPreferencesKey("notes_version")
         private val DOUBLE_SPACE_WINDOW_MS = intPreferencesKey("double_space_window_ms")
         private val HIDE_COMPOSING_UNDERLINE = booleanPreferencesKey("hide_composing_underline")
@@ -16319,6 +16327,18 @@ class SettingsRepository(private val context: Context) {
             saveSelectionAppends = p[NOTES_SAVE_SELECTION_APPENDS] ?: defaults.notes.saveSelectionAppends,
             trashDays = p[NOTES_TRASH_DAYS]?.coerceIn(0, NotesSettings.MAX_TRASH_DAYS) ?: defaults.notes.trashDays,
             keepToolbar = p[NOTES_KEEP_TOOLBAR] ?: defaults.notes.keepToolbar,
+            assist = NotesAssistSettings(
+                enabled = p[NOTES_ASSIST] ?: defaults.notes.assist.enabled,
+                headings = p[NOTES_ASSIST_HEADINGS] ?: defaults.notes.assist.headings,
+                summaries = p[NOTES_ASSIST_SUMMARIES] ?: defaults.notes.assist.summaries,
+                summaryWords = p[NOTES_ASSIST_SUMMARY_WORDS]
+                    ?.coerceIn(NotesAssistSettings.MIN_SUMMARY_WORDS, NotesAssistSettings.MAX_SUMMARY_WORDS)
+                    ?: defaults.notes.assist.summaryWords,
+                highlights = p[NOTES_ASSIST_HIGHLIGHTS] ?: defaults.notes.assist.highlights,
+                reminders = p[NOTES_ASSIST_REMINDERS] ?: defaults.notes.assist.reminders,
+                related = p[NOTES_ASSIST_RELATED] ?: defaults.notes.assist.related,
+                decks = p[NOTES_ASSIST_DECKS] ?: defaults.notes.assist.decks,
+            ),
             version = p[NOTES_VERSION] ?: defaults.notes.version,
         )
 
@@ -18211,6 +18231,36 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[NOTES_TRASH_DAYS] = value.coerceIn(0, NotesSettings.MAX_TRASH_DAYS) }
 
     suspend fun setNotesKeepToolbar(value: Boolean) = editPrefs { it[NOTES_KEEP_TOOLBAR] = value }
+
+    /**
+     * One change to the notes assistant's settings (#1293), applied to what
+     * is stored, so two quick toggles cannot undo each other. Only the keys
+     * that changed are written.
+     */
+    suspend fun updateNotesAssist(change: (NotesAssistSettings) -> NotesAssistSettings) = editPrefs { p ->
+        val defaults = storedDefaults.notes.assist
+        val old = NotesAssistSettings(
+            enabled = p[NOTES_ASSIST] ?: defaults.enabled,
+            headings = p[NOTES_ASSIST_HEADINGS] ?: defaults.headings,
+            summaries = p[NOTES_ASSIST_SUMMARIES] ?: defaults.summaries,
+            summaryWords = p[NOTES_ASSIST_SUMMARY_WORDS] ?: defaults.summaryWords,
+            highlights = p[NOTES_ASSIST_HIGHLIGHTS] ?: defaults.highlights,
+            reminders = p[NOTES_ASSIST_REMINDERS] ?: defaults.reminders,
+            related = p[NOTES_ASSIST_RELATED] ?: defaults.related,
+            decks = p[NOTES_ASSIST_DECKS] ?: defaults.decks,
+        )
+        val new = change(old)
+        if (new.enabled != old.enabled) p[NOTES_ASSIST] = new.enabled
+        if (new.headings != old.headings) p[NOTES_ASSIST_HEADINGS] = new.headings
+        if (new.summaries != old.summaries) p[NOTES_ASSIST_SUMMARIES] = new.summaries
+        if (new.summaryWords != old.summaryWords) {
+            p[NOTES_ASSIST_SUMMARY_WORDS] = new.summaryWords.coerceIn(NotesAssistSettings.MIN_SUMMARY_WORDS, NotesAssistSettings.MAX_SUMMARY_WORDS)
+        }
+        if (new.highlights != old.highlights) p[NOTES_ASSIST_HIGHLIGHTS] = new.highlights
+        if (new.reminders != old.reminders) p[NOTES_ASSIST_REMINDERS] = new.reminders
+        if (new.related != old.related) p[NOTES_ASSIST_RELATED] = new.related
+        if (new.decks != old.decks) p[NOTES_ASSIST_DECKS] = new.decks
+    }
 
     /**
      * One change to the gallery tool's settings (#708), applied to what is

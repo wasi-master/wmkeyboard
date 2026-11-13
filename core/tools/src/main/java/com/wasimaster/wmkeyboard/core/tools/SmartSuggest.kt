@@ -36,6 +36,8 @@ sealed interface ToolPrefill {
         val end: Long,
         val allDay: Boolean,
         val zoneId: String,
+        /** Repeats every year: a birthday the notes assistant found (#1293). */
+        val yearly: Boolean = false,
     ) : ToolPrefill
 
     /** A term the dictionary or Wikipedia panel looks up as it opens. */

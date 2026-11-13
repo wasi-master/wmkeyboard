@@ -1192,6 +1192,7 @@ internal fun NotesToolSettings(
             ) { scope.launch { repository.setNotesSaveSelectionAppends(it) } }
         }
     }
+    NotesAssistSettingsGroup(repository, settings, onNavigate)
     SettingsGroup {
         item(level = SettingLevel.STANDARD) {
             ActionRow(

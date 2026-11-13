@@ -2258,6 +2258,15 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_notes_trash_days_title) { Icons.Outlined.HourglassBottom }
         put(R.string.tooldetail_notes_save_selection_title) { Icons.Outlined.HighlightAlt }
         put(R.string.tooldetail_notes_clear_title) { Icons.Outlined.DeleteForever }
+        put(R.string.tooldetail_notes_assist_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.tooldetail_notes_assist_model_title) { Icons.Outlined.Download }
+        put(R.string.tooldetail_notes_assist_headings_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.tooldetail_notes_assist_summaries_title) { Icons.AutoMirrored.Outlined.ShortText }
+        put(R.string.tooldetail_notes_assist_summary_words_title) { Icons.Outlined.Straighten }
+        put(R.string.tooldetail_notes_assist_highlights_title) { Icons.Outlined.Bolt }
+        put(R.string.tooldetail_notes_assist_reminders_title) { Icons.Outlined.NotificationsActive }
+        put(R.string.tooldetail_notes_assist_related_title) { Icons.Outlined.Hub }
+        put(R.string.tooldetail_notes_assist_decks_title) { Icons.Outlined.School }
         put(R.string.tooldetail_todo_list_title) { Icons.Outlined.Checklist }
 
         // ---- Music, speed test, location ----

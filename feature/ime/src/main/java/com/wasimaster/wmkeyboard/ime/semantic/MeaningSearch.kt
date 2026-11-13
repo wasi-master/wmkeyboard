@@ -203,6 +203,37 @@ internal class MeaningSearch(private val context: Context, private val scope: Co
     }
 
     /**
+     * The items of each of [targets] closest in meaning to the item [key] of
+     * [space] (#1293: a note's related notes and pinned clips), from the
+     * vectors already in the indexes, so no model runs. [key] itself is left
+     * out, and [accept] narrows the rest. [onHits] runs on the main thread,
+     * with nothing when the feature is off or [key] is not indexed yet.
+     */
+    fun neighbours(
+        space: MeaningSpace,
+        key: String,
+        targets: List<MeaningSpace>,
+        accept: (MeaningSpace, String) -> Boolean,
+        onHits: (Map<MeaningSpace, List<String>>) -> Unit,
+    ) {
+        if (!enabled) {
+            onHits(emptyMap())
+            return
+        }
+        scope.launch {
+            val found = withContext(worker) {
+                val vector = indexOf(space).vectorOf(key) ?: return@withContext emptyMap()
+                targets.associateWith { target ->
+                    indexOf(target)
+                        .search(vector, MeaningRank.TEXT) { k -> !(target == space && k == key) && accept(target, k) }
+                        .map { it.key }
+                }
+            }
+            onHits(found)
+        }
+    }
+
+    /**
      * Gives every untagged sticker in [untagged] (keys `"<packId>/<stickerId>"`)
      * the emoji whose names sit closest to its picture, and those names'
      * words, for the trigger index to offer it by. Needs the sticker and emoji

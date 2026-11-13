@@ -155,5 +155,43 @@
         <item quantity="one">%1$d file skipped: not a text file</item>
         <item quantity="other">%1$d files skipped: not text files</item>
     </plurals>
+    <!-- The notes assistant in the note editor (#1293) -->
+    <string name="notes_assist_heading_busy">Thinking of a heading…</string>
+    <string name="notes_assist_heading_suggestion">Heading: %1$s</string>
+    <string name="notes_assist_heading_use_action">Use</string>
+    <string name="notes_assist_heading_dismiss_action">No thanks</string>
+    <string name="notes_assist_heading_action">Suggest a heading</string>
+    <string name="notes_assist_summary_label">Summary</string>
+    <string name="notes_assist_summarize_action">Summarize</string>
+    <string name="notes_assist_summarize_again_action">Summarize again</string>
+    <string name="notes_assist_summary_busy">Summarizing on your phone…</string>
+    <string name="notes_assist_needs_model">Summaries and headings need an on-device AI model. Download one under AI › On-device models.</string>
+    <string name="notes_assist_reminders_label">Coming up</string>
+    <string name="notes_assist_remind_chip">Remind me: %1$s · %2$s</string>
+    <string name="notes_assist_details_label">Key details</string>
+    <string name="notes_assist_related_label">Related notes and pinned clips</string>
+    <string name="notes_assist_deck_action">Make a study deck</string>
+    <plurals name="notes_assist_deck_action_count">
+        <item quantity="one">Make a study deck (%d card)</item>
+        <item quantity="other">Make a study deck (%d cards)</item>
+    </plurals>
+    <string name="notes_assist_deck_title">Study deck</string>
+    <plurals name="notes_assist_deck_count">
+        <item quantity="one">%1$d card for the deck \"%2$s\":</item>
+        <item quantity="other">%1$d cards for the deck \"%2$s\":</item>
+    </plurals>
+    <string name="notes_assist_deck_card">%1$s: %2$s</string>
+    <string name="notes_assist_deck_none">This note has no terms with meanings written out, like \"term: meaning\" or a two-column table.</string>
+    <string name="notes_assist_deck_busy">Writing cards on your phone…</string>
+    <string name="notes_assist_deck_model_action">Ask the on-device model for cards</string>
+    <string name="notes_assist_deck_make_action">Make deck</string>
+    <string name="notes_assist_deck_open_action">Open Vocabulary</string>
+    <plurals name="notes_assist_deck_made">
+        <item quantity="one">Made \"%2$s\" with %1$d card. It is in Vocabulary with your own lists.</item>
+        <item quantity="other">Made \"%2$s\" with %1$d cards. It is in Vocabulary with your own lists.</item>
+    </plurals>
+    <string name="notes_assist_deck_error">The deck could not be saved</string>
+    <string name="notes_assist_no_app">No app on this phone opens that</string>
+    <string name="notes_assist_copied">Copied</string>
 
 </resources>

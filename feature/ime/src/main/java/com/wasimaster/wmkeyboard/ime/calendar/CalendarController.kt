@@ -27,6 +27,7 @@ import com.wasimaster.wmkeyboard.core.tools.calendar.EventTimes
 import com.wasimaster.wmkeyboard.core.tools.calendar.EventWrites
 import com.wasimaster.wmkeyboard.core.tools.calendar.Guest
 import com.wasimaster.wmkeyboard.core.tools.calendar.RRule
+import com.wasimaster.wmkeyboard.core.tools.calendar.Recurrence
 import com.wasimaster.wmkeyboard.core.tools.calendar.SeriesInfo
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.calendar.invite.InviteFlow
@@ -677,7 +678,11 @@ internal class CalendarController(
 
     private fun draftFromPrefill(p: ToolPrefill.CalendarEvent): EventDraft {
         val zone = TimeZone.getTimeZone(p.zoneId)
-        val base = newDraft(EventDate.of(p.start, zone)).copy(title = p.title.take(TITLE_MAX), zoneId = zone.id)
+        val base = newDraft(EventDate.of(p.start, zone)).copy(
+            title = p.title.take(TITLE_MAX),
+            zoneId = zone.id,
+            recurrence = if (p.yearly) Recurrence.yearly() else null,
+        )
         return if (p.allDay) {
             val last = EventDate.of(p.end - 1, zone)
             base.withAllDay(true).copy(endDate = if (last < base.startDate) base.startDate else last)

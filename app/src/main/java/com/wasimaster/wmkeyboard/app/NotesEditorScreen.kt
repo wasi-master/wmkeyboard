@@ -90,7 +90,13 @@ import kotlinx.coroutines.withContext
  * kept, so a tap on Add followed by Back leaves nothing behind.
  */
 @Composable
-internal fun NoteEditorScreen(settings: LiveSettings, noteId: Long, onDone: () -> Unit) {
+internal fun NoteEditorScreen(
+    settings: LiveSettings,
+    noteId: Long,
+    onOpenNote: (Long) -> Unit = {},
+    onNavigate: (String) -> Unit = {},
+    onDone: () -> Unit,
+) {
     RegisterHidingHeader()
     val state = rememberNotesState(settings) ?: return
     val initial = remember(state.active, state.archived, state.trash, noteId) {
@@ -108,7 +114,7 @@ internal fun NoteEditorScreen(settings: LiveSettings, noteId: Long, onDone: () -
         LockedNoteGate(onUnlocked = { unlocked = true }, onCancel = onDone)
         return
     }
-    NoteEditorForm(settings, state, initial, onDone)
+    NoteEditorForm(settings, state, initial, onOpenNote, onNavigate, onDone)
 }
 
 /** The fingerprint ask in front of a locked note opened by its route. */
@@ -153,12 +159,21 @@ private enum class NoteEditorMode { EDIT, PREVIEW }
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 @Suppress("LongMethod")
-private fun NoteEditorForm(settings: LiveSettings, state: NotesScreenState, initial: Note?, onDone: () -> Unit) {
+private fun NoteEditorForm(
+    settings: LiveSettings,
+    state: NotesScreenState,
+    initial: Note?,
+    onOpenNote: (Long) -> Unit,
+    onNavigate: (String) -> Unit,
+    onDone: () -> Unit,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val appLock = LocalAppLock.current
     val lockStatus by appLock.status.collectAsStateWithLifecycle()
     val renderMarkdown = settings.watch { it.notes.renderMarkdown }
+    val assist = settings.watch { it.notes.assist }
+    val ai = settings.watch { it.ai }
     var id by remember { mutableLongStateOf(initial?.id ?: 0L) }
     var title by rememberSaveable { mutableStateOf(initial?.title.orEmpty()) }
     var body by rememberSaveable { mutableStateOf(initial?.body.orEmpty()) }
@@ -296,6 +311,20 @@ private fun NoteEditorForm(settings: LiveSettings, state: NotesScreenState, init
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
         )
         Spacer(Modifier.height(8.dp))
+        // The notes assistant (#1293): a heading for an untitled note, the summary at the top of a long one, and the rest.
+        NoteAssistCard(
+            assist = assist,
+            ai = ai,
+            state = state,
+            noteId = id,
+            title = title,
+            body = body,
+            updatedAt = stored?.updatedAt ?: 0L,
+            locked = stored?.locked == true,
+            onUseHeading = { heading -> title = heading.take(NoteStore.MAX_TITLE_LENGTH) },
+            onOpenNote = onOpenNote,
+            onNavigate = onNavigate,
+        )
         if (mode == NoteEditorMode.PREVIEW && renderMarkdown) {
             Surface(tonalElevation = 1.dp, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
                 Box(Modifier.padding(12.dp)) {

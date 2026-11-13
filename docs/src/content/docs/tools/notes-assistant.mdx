@@ -1,0 +1,96 @@
+---
+title: "Notes assistant"
+description: "Headings, summaries, key details, reminders, related notes and pinned clips, and study decks for your notes, worked out on the phone with nothing sent anywhere."
+sidebar:
+  order: 17.75
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+The notes assistant reads your [notes](/tools/notes/) and your pinned [clips](/tools/clipboard/) and points out what matters in them: a heading for a note that has none, a summary at the top of a long one, the deadlines, dates, amounts and numbers inside, a "remind me" for a deadline or a birthday, the other notes and pinned clips about the same thing, and a study deck made from a note of terms and meanings. All of it happens on the phone. Nothing is uploaded, and nothing needs an internet connection.
+
+It is off until you turn it on:
+
+<SettingsPath path="Tools / Notes / Notes assistant" />
+
+That one switch covers everything on this page. Off, the keyboard and the app show none of it, and every heading and summary the assistant kept is deleted. On, a switch for each part appears under it, all of them on to begin with.
+
+## Two kinds of work
+
+Most of the assistant is rules: patterns for dates and money, the clipboard's own detection of numbers, addresses and links, and word counting for related notes. Rules need nothing downloaded and cost a few milliseconds.
+
+Headings and summaries need a language model. The assistant uses the on-device model from the [AI tool's local models](/tools/ai/#local-models), the one picked there or the only one on the phone. It never uses a cloud provider, even when the AI tool is set to one, so a note's text stays on the phone either way. Until a model is downloaded, the heading and summary switches are greyed out, and a **Download an on-device model** row takes you to the list. Everything else works without one.
+
+Locked notes are never read, by the rules or the model. Notes in the trash are left alone too.
+
+## Where it shows
+
+In the keyboard, open a note from the [Notes panel](/tools/notes/#reading-a-note). The assistant's part sits between the title and the note: the suggested heading, the summary, and rows of chips. In the settings app it is a card under the title field of the note editor.
+
+## Headings
+
+<SettingsPath path="Tools / Notes / Suggest headings" />
+
+A note with no title of its own, and at least six words, gets a suggested heading: **Heading: Weekend shopping**, with **Use** and a ✕. **Use** makes it the note's title. The ✕ waves it away, and it is not suggested again until the note changes. A note with no title is still named after its first line in every list, as before; the assistant only offers something better.
+
+## Summaries
+
+<SettingsPath path="Tools / Notes / Summarize long notes" />
+
+A note of 250 words or more gets a short summary at its top: two to four sentences, or a few bullet points when the note is a list of separate things. The model is told to keep names, dates, amounts and deadlines exactly as the note writes them, and to add nothing of its own. Change what counts as long under <SettingsPath path="Tools / Notes / Long means" />: 150, 250, 400 or 800 words.
+
+The heading and the summary are written once, the first time you open the note, and kept. They are written again only when the note changes, or when you tap **Again**. A small spinner shows while the model works; the note is readable the whole time. On a phone, a summary of a long note takes from a few seconds to a minute, depending on the model.
+
+## Key details
+
+<SettingsPath path="Tools / Notes / Key details" />
+
+A row of chips picks out:
+
+- **Deadlines**, in red: a date with *due*, *deadline*, *submit*, *apply*, *by*, *before*, *until*, *expires*, *renew*, *pay* or a word like them in front of it on the same line.
+- **Birthdays**: a date on a line that says *birthday*, *anniversary* or *date of birth*.
+- **Other dates**: `3 Dec`, `December 3rd, 2026`, `2026-12-03`, `03/12/2026` in your phone's date order, `tomorrow`, `next friday at 5pm`.
+- **Amounts**: a currency sign or code beside a number, like `$1,200.50`, `৳500` or `40 USD`.
+- **Phone numbers, email addresses, links and places**, found the way the clipboard [finds them in clips](/tools/clipboard/#pulling-codes-and-links-out-of-a-clip). A code-shaped number is not picked out, since a note is not where codes arrive.
+
+A date without a year, or a word like *tomorrow*, is read from the day the note was last edited, so "tomorrow" in a note written last week means last week's tomorrow. In the keyboard, tapping a chip types it into the field you are in. In the app, a number opens the dialer, an address the mail app, a link the browser, and the rest is copied.
+
+## Reminders
+
+<SettingsPath path="Tools / Notes / Reminders" />
+
+Under **Coming up**, a deadline that is still ahead, up to four months out, gets a **Remind me** chip with its date. A birthday gets one too, for the next time it comes round, whatever year the note gives.
+
+Nothing is set by itself. A tap opens the [Calendar tool's](/tools/calendar/) new event with the note's line as its title and the date filled in, all day unless the note gave a time, and with your usual reminder. A birthday's event repeats every year. If you set the Calendar tool to save through your calendar app, or the tool is off, the calendar app's own new-event screen opens instead. In the settings app it is always the calendar app.
+
+The same chips come up for **pinned clips** in the clipboard panel, ahead of the parts found in your clips, so a pinned "Form closes 30 Nov" carries its reminder with it. A clip's dates are read from the day it was copied, and a clip marked as a secret is never read.
+
+## Related notes and pinned clips
+
+<SettingsPath path="Tools / Notes / Related notes and clips" />
+
+Under **Related**, a note lists up to six other notes and pinned clips that are about the same thing, wherever they are in your lists and whatever tag they carry. Two texts count as related when they share their unusual words (common words like *the* or *need* count for nothing), or when both hold the same phone number, email address or link: a note about the flat and a pinned clip with the landlord's number belong together even if they share no other word.
+
+With [search by meaning](/smart/search-by-meaning/) on, notes and pinned clips about the same thing in different words join the list too. That uses the index search by meaning already keeps and runs no model of its own.
+
+Tap a related note to open it. Tap a related pinned clip to paste it in the keyboard, or to copy it in the app.
+
+## Study decks
+
+<SettingsPath path="Tools / Notes / Study decks" />
+
+**Make a study deck** turns a note into flashcards for the [Vocabulary tool](/tools/vocabulary/#learning). The chip counts the cards the note spells out, from lines like these:
+
+- `photosynthesis: how plants make food`
+- `mitochondria - powerhouse of the cell`
+- `**osmosis** water moving through a membrane`
+- a table with the term in its first column
+- a `Q:` line followed by an `A:` line
+
+Headings, sentences, links and times are skipped. The deck is saved as one of your own lists under <SettingsPath path="Tools / Vocabulary / My lists" />, named after the note, and the Review tab schedules it like any other list.
+
+A note written as prose has no such lines. With an on-device model, the keyboard then asks the model to write cards from the note, and the app's deck dialog has **Ask the on-device model for cards**. Read what it wrote before you study it: a small model can get a definition wrong.
+
+## Privacy
+
+The assistant sends nothing anywhere. The model runs on the phone, the rules are code in the app, and the related list compares texts on the phone. The headings and summaries it kept live in a file of their own that is not part of any backup, since they can be written again from the notes, and turning the assistant off deletes the file. Making a deck, setting a reminder or opening a related note only happens when you tap it.

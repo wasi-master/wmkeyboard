@@ -148,6 +148,12 @@ data class NotesPanelUi(
     val quick: Boolean = false,
     /** What the quick row offers, newest first; empty unless [quick]. */
     val recent: List<Note> = emptyList(),
+    /**
+     * The notes assistant's view of the open note (#1293): null with the
+     * assistant off, no note open, or the open one locked. Drawn only while
+     * its [NoteAssistUi.noteId] is the open note's.
+     */
+    val assist: NoteAssistUi? = null,
 ) {
     /** The open note, as the list currently has it, or null when it is not in view. */
     fun openNote(): Note? = open?.let { id -> items.firstOrNull { it.id == id } }

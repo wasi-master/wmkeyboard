@@ -471,6 +471,11 @@ import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.core.notes.Note
 import com.wasimaster.wmkeyboard.core.notes.NoteChecklist
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
+import com.wasimaster.wmkeyboard.core.notes.assist.NoteHighlight
+import com.wasimaster.wmkeyboard.core.notes.assist.NoteReminder
+import com.wasimaster.wmkeyboard.core.notes.assist.NoteStudyCards
+import com.wasimaster.wmkeyboard.core.notes.assist.RelatedHit
+import com.wasimaster.wmkeyboard.core.notes.assist.RelatedKind
 import com.wasimaster.wmkeyboard.core.settings.NotesPanelStart
 import com.wasimaster.wmkeyboard.core.stickers.StickerAddResult
 import com.wasimaster.wmkeyboard.core.support.Support
@@ -1394,6 +1399,10 @@ open class WMKeyboardService : InputMethodService() {
     private var notesAutosaveJob: Job? = null
     private var notesUndoJob: Job? = null
     private var notesConfirmJob: Job? = null
+    /** The notes assistant (#1293); made on first use, which needs its switch on. */
+    private val noteAssist by lazy { NoteAssistController(applicationContext, serviceScope, noteAssistHost) }
+    /** Whether the assistant's switch was on at the last settings pass, to see it turned off. */
+    private var noteAssistWasOn = false
     /**
      * The text clip a panel delete took off the system clipboard (#442), kept
      * while the Undo bar is up so Undo can put it back there too.
@@ -6950,6 +6959,12 @@ open class WMKeyboardService : InputMethodService() {
         // The strip's faces need the library before the tab is ever opened.
         if (settings.emoji.kaomojiTabs || settings.emoji.kaomoji.suggest) kaomojiTool.ensureLoaded()
         noteStore.trashRetentionMillis = settings.notes.trashDays * DAY_MS
+        // The notes assistant (#1293): turned off, it forgets what it kept;
+        // any change of its settings works the open note out again.
+        val assistOn = settings.notes.assist.enabled
+        if (noteAssistWasOn && !assistOn) noteAssist.disable()
+        noteAssistWasOn = assistOn
+        syncNoteAssist()
     }
 
     override fun onCreateInputView(): View = trace(ImeTrace.CREATE_INPUT_VIEW) { createInputView() }
@@ -51208,6 +51223,13 @@ open class WMKeyboardService : InputMethodService() {
         onUndo = ::onNotesUndo,
         onUndoDismiss = ::onNotesUndoDismiss,
         onQuickPick = ::onNotesQuickPick,
+        onAssistHeading = ::onNoteAssistHeading,
+        onAssistHeadingDismiss = ::onNoteAssistHeadingDismiss,
+        onAssistSummarize = ::onNoteAssistSummarize,
+        onAssistDetail = ::onNoteAssistDetail,
+        onAssistRemind = ::onNoteAssistRemind,
+        onAssistRelated = ::onNoteAssistRelated,
+        onAssistDeck = ::onNoteAssistDeck,
     )
 
     /**
@@ -51246,6 +51268,14 @@ open class WMKeyboardService : InputMethodService() {
                 clipboardNotes = noteStore.items(com.wasimaster.wmkeyboard.core.notes.NoteFilter(includeLocked = false)).filterNot { it.locked },
             )
         }
+        syncNoteAssist()
+    }
+
+    /** The assistant catches up with the note open to read; nothing is made while its switch is off. */
+    private fun syncNoteAssist() {
+        val state = _uiState.value
+        if (!state.settings.notes.assist.enabled && state.notes.assist == null) return
+        noteAssist.sync(state.notes.open, editing = state.notes.editing != null)
     }
 
     /** Writes the notes file on [persistDispatcher]; the store encodes outside its lock. */
@@ -51839,6 +51869,140 @@ open class WMKeyboardService : InputMethodService() {
             delay(clipUndoTimeoutMillis())
             notesUndoJob = null
             _uiState.update { it.copy(notes = it.notes.copy(undo = null)) }
+        }
+    }
+
+    // ---- Notes assistant (#1293) ----
+
+    private val noteAssistHost = object : NoteAssistController.Host {
+        override fun settings(): KeyboardSettings = _uiState.value.settings
+
+        // The on-device model only: the notes never go to a cloud provider from here.
+        override fun modelFile(): java.io.File? = effectiveLocalModelFile(_uiState.value.settings)
+
+        override fun note(id: Long): Note? = noteStore.item(id)
+
+        override fun readableNotes(): List<Note> =
+            noteStore.items(com.wasimaster.wmkeyboard.core.notes.NoteFilter(includeLocked = false)).filterNot { it.locked }
+
+        override fun pinnedClips(): List<com.wasimaster.wmkeyboard.core.clipboard.ClipItem> =
+            _uiState.value.clipboardItems.filter { it.pinned && !it.sensitive && it.kind.isTextual && it.text.isNotBlank() }
+
+        override fun meaningNeighbours(noteId: Long, onHits: (notes: List<Long>, clips: List<Long>) -> Unit) {
+            val notes = readableNotes().mapTo(HashSet()) { it.id.toString() }
+            val clips = pinnedClips().mapTo(HashSet()) { it.id.toString() }
+            meaningSearch.neighbours(
+                MeaningSpace.NOTES,
+                noteId.toString(),
+                listOf(MeaningSpace.NOTES, MeaningSpace.CLIPS),
+                accept = { space, key -> if (space == MeaningSpace.NOTES) key in notes else key in clips },
+            ) { hits ->
+                onHits(
+                    hits[MeaningSpace.NOTES].orEmpty().mapNotNull { it.toLongOrNull() },
+                    hits[MeaningSpace.CLIPS].orEmpty().mapNotNull { it.toLongOrNull() },
+                )
+            }
+        }
+
+        override fun publish(ui: NoteAssistUi?) {
+            _uiState.update { it.copy(notes = it.notes.copy(assist = ui)) }
+        }
+    }
+
+    /** The suggested heading becomes the note's title. */
+    fun onNoteAssistHeading(id: Long) {
+        val heading = _uiState.value.notes.assist?.takeIf { it.noteId == id }?.heading ?: return
+        val note = noteStore.item(id) ?: return
+        if (note.locked || note.title.isNotBlank()) return
+        vibrate()
+        noteStore.update(note.copy(title = heading.take(NoteStore.MAX_TITLE_LENGTH)))
+        saveNotesSoon()
+        publishNotes()
+    }
+
+    fun onNoteAssistHeadingDismiss(id: Long) {
+        val note = noteStore.item(id) ?: return
+        vibrate()
+        noteAssist.dismissHeading(note)
+    }
+
+    /** Summarise (again): the model reads the note now, whatever is kept. */
+    fun onNoteAssistSummarize(id: Long) {
+        val note = noteStore.item(id) ?: return
+        vibrate()
+        noteAssist.runModel(note, force = true)
+    }
+
+    /** A key detail tapped: it is typed into the field, as a clipboard fragment chip does. */
+    fun onNoteAssistDetail(detail: NoteHighlight) {
+        vibrate()
+        val ic = currentInputConnection ?: return
+        commitComposing(ic, autocorrect = false)
+        ic.commitText(detail.text, 1)
+    }
+
+    /** A related note opens; a related pinned clip pastes, as a tap on it in the clipboard does. */
+    fun onNoteAssistRelated(hit: RelatedHit) {
+        when (hit.kind) {
+            RelatedKind.NOTE -> onNoteOpen(hit.id)
+            RelatedKind.CLIP -> _uiState.value.clipboardItems.firstOrNull { it.id == hit.id }?.let(::onClipboardItemTapped)
+        }
+    }
+
+    /**
+     * "Remind me" for a deadline or a birthday, from a note or a pinned clip:
+     * the Calendar tool's composer, filled in, or the calendar app's.
+     */
+    fun onNoteAssistRemind(reminder: NoteReminder) {
+        vibrate()
+        openNewCalendarEvent(
+            title = reminder.title,
+            start = reminder.startMillis,
+            end = reminder.endMillis,
+            allDay = reminder.allDay,
+            zoneId = reminder.zoneId,
+            zoneNamed = false,
+            yearly = reminder.yearly,
+        )
+    }
+
+    /**
+     * Make a study deck: the note's cards as a Vocabulary list of the user's
+     * own, named after the note. Written off the main thread; the model is
+     * only asked when the note itself spells out too few cards.
+     */
+    fun onNoteAssistDeck(id: Long) {
+        val note = noteStore.item(id) ?: return
+        if (note.locked) {
+            toast(R.string.ime_notes_locked_toast)
+            return
+        }
+        vibrate()
+        toast(R.string.ime_notes_assist_deck_working_toast)
+        val name = note.displayTitle().ifEmpty { getString(R.string.ime_notes_untitled) }
+        serviceScope.launch {
+            val made = withContext(Dispatchers.IO) {
+                runCatching {
+                    val cards = noteAssist.deckCards(note)
+                    if (cards.isEmpty()) {
+                        null
+                    } else {
+                        val pack = NoteStudyCards.toPack(cards, name)
+                        VocabPacks.write(filesDir, pack, 0, "")
+                        pack.words.size
+                    }
+                }
+            }
+            made.fold(
+                onSuccess = { count ->
+                    if (count == null) {
+                        toast(R.string.ime_notes_assist_deck_empty_toast)
+                    } else {
+                        toast(resources.getQuantityString(R.plurals.ime_notes_assist_deck_made_toast, count, count, name))
+                    }
+                },
+                onFailure = { toast(it.message ?: getString(R.string.ime_notes_assist_deck_empty_toast)) },
+            )
         }
     }
 
@@ -53935,20 +54099,43 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun addCalendarEvent(offer: SelectionMacroOffer) {
         val hit = offer.content.dateTime ?: return
+        openNewCalendarEvent(
+            title = offer.text,
+            start = hit.startMillis,
+            end = hit.endMillis,
+            allDay = hit.allDay,
+            zoneId = hit.zoneId,
+            zoneNamed = hit.zoneNamed,
+        )
+    }
+
+    /**
+     * A new event, filled in: in the keyboard's own composer, unless the user
+     * set Save to hand events to the calendar app (or the Calendar tool is
+     * off). [yearly] repeats it every year (#1293's birthdays).
+     */
+    private fun openNewCalendarEvent(
+        title: String,
+        start: Long,
+        end: Long,
+        allDay: Boolean,
+        zoneId: String,
+        zoneNamed: Boolean,
+        yearly: Boolean = false,
+    ) {
         val settings = _uiState.value.settings
-        // In the keyboard's own composer, filled in, unless the user set Save to
-        // hand events to the calendar app (or the Calendar tool is off).
         if (settings.calendarTool.saveMode == com.wasimaster.wmkeyboard.core.settings.CalendarSaveMode.KEYBOARD &&
             ToolbarTool.CALENDAR in settings.enabledTools
         ) {
             _uiState.update {
                 it.copy(
                     toolPrefill = ToolPrefill.CalendarEvent(
-                        title = offer.text.take(MAX_EVENT_TITLE),
-                        start = hit.startMillis,
-                        end = hit.endMillis,
-                        allDay = hit.allDay,
-                        zoneId = hit.zoneId,
+                        title = title.take(MAX_EVENT_TITLE),
+                        start = start,
+                        end = end,
+                        allDay = allDay,
+                        zoneId = zoneId,
+                        yearly = yearly,
                     ),
                 )
             }
@@ -53963,13 +54150,14 @@ open class WMKeyboardService : InputMethodService() {
         }
         val intent = Intent(Intent.ACTION_INSERT)
             .setData(CalendarContract.Events.CONTENT_URI)
-            .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, hit.startMillis)
-            .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, hit.endMillis)
-            .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, hit.allDay)
-            .putExtra(CalendarContract.Events.TITLE, offer.text.take(MAX_EVENT_TITLE))
+            .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, start)
+            .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, end)
+            .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, allDay)
+            .putExtra(CalendarContract.Events.TITLE, title.take(MAX_EVENT_TITLE))
+        if (yearly) intent.putExtra(CalendarContract.Events.RRULE, "FREQ=YEARLY")
         // The zone the text named is the zone the event is in; otherwise the
         // calendar's own default is the right one.
-        if (hit.zoneNamed) intent.putExtra(CalendarContract.Events.EVENT_TIMEZONE, hit.zoneId)
+        if (zoneNamed) intent.putExtra(CalendarContract.Events.EVENT_TIMEZONE, zoneId)
         if (!startMacroActivity(intent)) toast(R.string.ime_selection_macro_no_app_toast)
     }
 
@@ -58038,6 +58226,7 @@ open class WMKeyboardService : InputMethodService() {
         onOpenLink = ::onClipboardOpenLink,
         onComposeEmail = ::onClipboardComposeEmail,
         onViewImage = ::onClipboardViewImage,
+        onRemind = ::onNoteAssistRemind,
         onShareImage = ::onClipboardShareImage,
         onExtractText = ::onClipboardExtractText,
         onTranslateImage = ::onClipboardTranslateImage,

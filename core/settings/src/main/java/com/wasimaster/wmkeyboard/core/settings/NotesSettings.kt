@@ -52,6 +52,8 @@ data class NotesSettings(
      * panel takes the whole keyboard, the toolbar's row included.
      */
     val keepToolbar: Boolean = false,
+    /** The on-device assistant over notes and pinned clips (#1293); off until turned on. */
+    val assist: NotesAssistSettings = NotesAssistSettings(),
     /**
      * Bumped by a restore or a sync that rewrote `notes.json`, so the running
      * keyboard reloads instead of saving its memory over the file. Not a
@@ -66,5 +68,40 @@ data class NotesSettings(
 
         /** The retention choices the settings screen offers, in days; 0 is "until I delete them". */
         val TRASH_DAY_CHOICES: List<Int> = listOf(7, 30, 90, 0)
+    }
+}
+
+/**
+ * The notes assistant (#1293): headings, summaries, key details, reminders,
+ * related notes and pinned clips, and study decks, all worked out on the
+ * phone. [enabled] is the one switch over all of it, off by default and
+ * until the user turns it on (asked for on the issue); the rest choose
+ * among its parts and do nothing while it is off. The parts that need a
+ * model ([headings], [summaries], and the model's half of [decks]) also do
+ * nothing until an on-device model is installed; the rest are rules.
+ */
+data class NotesAssistSettings(
+    val enabled: Boolean = false,
+    /** Suggest a heading for a note that has none (model). */
+    val headings: Boolean = true,
+    /** A summary at the top of a note of [summaryWords] words or more (model). */
+    val summaries: Boolean = true,
+    val summaryWords: Int = DEFAULT_SUMMARY_WORDS,
+    /** Deadlines, dates, amounts, numbers and links picked out of a note (rules). */
+    val highlights: Boolean = true,
+    /** "Remind me" for deadlines and birthdays in notes and pinned clips (rules). */
+    val reminders: Boolean = true,
+    /** Notes and pinned clips that belong with the open note, wherever they are in the list. */
+    val related: Boolean = true,
+    /** "Make a study deck" turns a note into Vocabulary flashcards. */
+    val decks: Boolean = true,
+) {
+    /** Whether [part] runs: the master switch and its own. */
+    fun on(part: Boolean): Boolean = enabled && part
+
+    companion object {
+        const val DEFAULT_SUMMARY_WORDS = 250
+        const val MIN_SUMMARY_WORDS = 50
+        const val MAX_SUMMARY_WORDS = 5_000
     }
 }

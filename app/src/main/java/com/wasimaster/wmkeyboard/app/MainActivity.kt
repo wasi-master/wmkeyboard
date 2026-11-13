@@ -1965,7 +1965,12 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = noteEditRoute(noteId),
             ) {
-                NoteEditorScreen(settings, noteId) { navController.popBackStack() }
+                NoteEditorScreen(
+                    settings,
+                    noteId,
+                    onOpenNote = { other -> navController.navigate(noteEditRoute(other)) },
+                    onNavigate = { route -> navController.navigate(route) },
+                ) { navController.popBackStack() }
             }
         }
         composable("notes/tags") {

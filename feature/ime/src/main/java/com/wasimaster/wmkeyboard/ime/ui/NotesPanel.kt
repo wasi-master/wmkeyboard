@@ -106,6 +106,9 @@ import com.wasimaster.wmkeyboard.core.notes.NoteChecklist
 import com.wasimaster.wmkeyboard.core.notes.NoteSort
 import com.wasimaster.wmkeyboard.core.notes.NoteTag
 import com.wasimaster.wmkeyboard.core.notes.NoteTagPalette
+import com.wasimaster.wmkeyboard.core.notes.assist.NoteHighlight
+import com.wasimaster.wmkeyboard.core.notes.assist.NoteReminder
+import com.wasimaster.wmkeyboard.core.notes.assist.RelatedHit
 import com.wasimaster.wmkeyboard.core.settings.NotesPanelLayout
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.ui.SwipeAction
@@ -186,6 +189,20 @@ data class NotesCallbacks(
     val onUndoDismiss: () -> Unit = {},
     /** A chip on the Quick note row (#864): a note to add to, or null for a new one. */
     val onQuickPick: (Long?) -> Unit = {},
+    /** The assistant's suggested heading becomes the note's title (#1293). */
+    val onAssistHeading: (Long) -> Unit = {},
+    /** The suggested heading waved away. */
+    val onAssistHeadingDismiss: (Long) -> Unit = {},
+    /** Summarise the note now, or again. */
+    val onAssistSummarize: (Long) -> Unit = {},
+    /** A key detail tapped: typed into the field. */
+    val onAssistDetail: (NoteHighlight) -> Unit = {},
+    /** "Remind me" for a deadline or a birthday. */
+    val onAssistRemind: (NoteReminder) -> Unit = {},
+    /** A related note opens; a related pinned clip pastes. */
+    val onAssistRelated: (RelatedHit) -> Unit = {},
+    /** Make a study deck out of the note. */
+    val onAssistDeck: (Long) -> Unit = {},
 )
 
 /** Settings routes the panel links to; `SettingsRoutesTest` scans these constants. */
@@ -1684,6 +1701,9 @@ private fun NotesReadView(
                 )
             }
             Spacer(Modifier.height(6.dp))
+            state.notes.assist?.takeIf { it.noteId == note.id && !note.locked && !note.inTrash }?.let { assist ->
+                NoteAssistSection(state, note, assist, callbacks)
+            }
             when {
                 note.locked -> Column(
                     Modifier.fillMaxWidth().padding(vertical = 16.dp),

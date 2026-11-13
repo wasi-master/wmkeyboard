@@ -222,6 +222,8 @@ data class ClipboardPanelActions(
     val onComposeEmail: (String) -> Unit = {},
     /** An image clip's View: the picture full screen (#371). */
     val onViewImage: (ClipItem) -> Unit = {},
+    /** "Remind me" for a deadline or a birthday in a pinned clip (#1293): the calendar, filled in. */
+    val onRemind: (com.wasimaster.wmkeyboard.core.notes.assist.NoteReminder) -> Unit = {},
     /** An image clip's Share: Android's share sheet (#1178). */
     val onShareImage: (ClipItem) -> Unit = {},
     /** An image clip's Extract text: the OCR panel, reading the picture (#371). */
@@ -582,6 +584,8 @@ internal class ClipboardPanelSession(
      * under a kind filter notes are not.
      */
     val notePassages: List<NotePassageHit> = emptyList(),
+    /** "Remind me" for the deadlines and birthdays in pinned clips (#1293), with the notes assistant on. */
+    val reminders: List<com.wasimaster.wmkeyboard.core.notes.assist.NoteReminder> = emptyList(),
 ) {
     /** The question is on screen: asked, and there is still something to delete. */
     val confirmingClear: Boolean get() = showClear && clearAsking.value
@@ -756,6 +760,21 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     } else {
         allEntities.filter { query.isEmpty() || it.value.contains(query, ignoreCase = true) }
     }
+    // The notes assistant's reminders for pinned clips (#1293): rules only, so no model is needed.
+    val assist = state.settings.notes.assist
+    val reminders = if (assist.on(assist.reminders) && !state.clipboardSearchActive) {
+        remember(state.clipboardItems) {
+            com.wasimaster.wmkeyboard.core.notes.assist.NoteReminders.forTexts(
+                state.clipboardItems
+                    .filter { it.pinned && !it.sensitive && it.kind.isTextual && it.text.isNotBlank() }
+                    .map { it.text to it.timestamp },
+                System.currentTimeMillis(),
+                limit = CLIP_REMINDERS_MAX,
+            )
+        }
+    } else {
+        emptyList()
+    }
     val gridState = rememberLazyStaggeredGridState()
     val searchGridState = rememberLazyStaggeredGridState()
     val tidy = state.settings.clipboard.copyRules.any { it.enabled } || state.settings.clipboard.plainLetters
@@ -773,7 +792,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     return remember(
         shownItems, entities, showSearch, query, gridState, list, numbers,
         tabbed, pinnedCount, unpinnedCount, showClear, ocr, perClip, entityIcons, confirmPinned,
-        hiddenFragments, regexSearch, tidy, pinsInPlace, allTags, gridItems, folders, inFolder, notePassages, active,
+        hiddenFragments, regexSearch, tidy, pinsInPlace, allTags, gridItems, folders, inFolder, notePassages, active, reminders,
     ) {
         ClipboardPanelSession(
             shownItems, entities, showSearch, query, gridState, list, numbers,
@@ -800,6 +819,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
             folders = folders,
             inFolder = inFolder,
             notePassages = notePassages,
+            reminders = reminders,
         )
     }
 }
@@ -1079,16 +1099,57 @@ private fun ClipboardEntitiesField(
         columns = entities.size.coerceAtLeast(1),
         onActivate = { index -> entities.getOrNull(index)?.let(callbacks.onEntity) },
     )
-    if (entities.isEmpty()) return
-    Box(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(0.dp))) {
-        ClipEntityStrip(
-            entities = entities,
-            focused = state.focusedIndex(FocusRegion.CHIPS),
-            onPaste = callbacks.onEntity,
-            onHide = { callbacks.actions.onEntityStripHidden(true) },
-        )
+    val reminders = session.reminders
+    if (entities.isEmpty() && reminders.isEmpty()) return
+    Row(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(0.dp)), verticalAlignment = Alignment.CenterVertically) {
+        if (reminders.isNotEmpty()) {
+            ClipReminderChips(reminders, callbacks.actions.onRemind, Modifier.then(if (entities.isEmpty()) Modifier.weight(1f) else Modifier))
+        }
+        if (entities.isNotEmpty()) {
+            Box(Modifier.weight(1f)) {
+                ClipEntityStrip(
+                    entities = entities,
+                    focused = state.focusedIndex(FocusRegion.CHIPS),
+                    onPaste = callbacks.onEntity,
+                    onHide = { callbacks.actions.onEntityStripHidden(true) },
+                )
+            }
+        }
     }
 }
+
+/**
+ * "Remind me" chips for the deadlines and birthdays in pinned clips (#1293),
+ * ahead of the fragment chips: a tap opens the calendar on the event, filled
+ * in. Solid rather than dashed, since they are not parts to paste.
+ */
+@Composable
+private fun ClipReminderChips(
+    reminders: List<com.wasimaster.wmkeyboard.core.notes.assist.NoteReminder>,
+    onRemind: (com.wasimaster.wmkeyboard.core.notes.assist.NoteReminder) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    Row(
+        modifier = modifier.horizontalScroll(rememberScrollState()).padding(start = 8.dp, end = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        for (reminder in reminders) {
+            var flags = android.text.format.DateUtils.FORMAT_SHOW_DATE or android.text.format.DateUtils.FORMAT_ABBREV_MONTH
+            if (!reminder.allDay) flags = flags or android.text.format.DateUtils.FORMAT_SHOW_TIME
+            val whenText = android.text.format.DateUtils.formatDateTime(context, reminder.startMillis, flags)
+            ToolPanelChip(
+                stringResource(R.string.ime_notes_assist_remind_chip, reminder.title.take(CLIP_REMINDER_TITLE), whenText),
+                selected = true,
+            ) { onRemind(reminder) }
+        }
+    }
+}
+
+/** Reminders the clipboard offers at once, and how much of each one's line its chip shows. */
+private const val CLIP_REMINDERS_MAX = 3
+private const val CLIP_REMINDER_TITLE = 28
 
 /**
  * The history, with the Undo bar over its bottom edge after a delete. The bar
