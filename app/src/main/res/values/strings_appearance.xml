@@ -241,6 +241,31 @@
     <string name="appearance_suggestion_text_size_title">Suggestion text size</string>
     <string name="appearance_suggestion_text_size_subtitle">How large the words in the suggestion strip are</string>
     <string name="appearance_suggestion_text_size_info">Key labels have their own size setting and the suggestions above them did not, so large keys could still come with small suggestions. This also sizes the candidate row for Chinese, Japanese and Cantonese input, since it is the same row in a different mode. This setting is 100% by default.</string>
+    <string name="appearance_long_words_title">Long words</string>
+    <string name="appearance_long_words_subtitle">What a word does when it is too long for its space</string>
+    <string name="appearance_long_words_info">A word that does not fit its space in the suggestion strip can narrow its letters, get smaller, do both, or be cut short with an ellipsis straight away. Narrowing first keeps a long word as tall as the words beside it. Buttons in plugins fit their labels the same way. While Scroll the suggestions is on, words keep their natural size and this does nothing in the strip. This setting is Narrow, then shrink by default.</string>
+    <!-- Option for Long words: the letters get narrower first, and only then does the text get smaller. -->
+    <string name="appearance_long_words_narrow_then_shrink">Narrow, then shrink</string>
+    <!-- Option for Long words: the text gets smaller first, and only then do the letters get narrower. -->
+    <string name="appearance_long_words_shrink_then_narrow">Shrink, then narrow</string>
+    <!-- Option for Long words: only the letters get narrower; the text size stays. -->
+    <string name="appearance_long_words_narrow_only">Narrow only</string>
+    <!-- Option for Long words: only the text size drops; the letters keep their width. -->
+    <string name="appearance_long_words_shrink_only">Shrink only</string>
+    <!-- Option for Long words: the word is cut short with "…" without being narrowed or shrunk. -->
+    <string name="appearance_long_words_cut_off">Cut off</string>
+    <string name="appearance_narrowest_letters_title">Narrowest letters</string>
+    <string name="appearance_narrowest_letters_subtitle">How narrow a long word\'s letters may get</string>
+    <string name="appearance_narrowest_letters_info">How far a long word may narrow its letters, as a share of their normal width. Lower fits longer words before they get smaller or cut off; below about 60% the round letters start to look squashed. This setting is 70% by default.</string>
+    <string name="appearance_smallest_text_title">Smallest text</string>
+    <string name="appearance_smallest_text_subtitle">How small a long word may get</string>
+    <string name="appearance_smallest_text_info">How far a long word may shrink, as a share of the suggestion text size. Lower fits longer words before they are cut off, in smaller type. This setting is 68% by default.</string>
+    <!-- Content description of the sample suggestion strip under the Long words settings. -->
+    <string name="appearance_long_words_preview_description">Sample suggestion strip showing how long words fit</string>
+    <!-- Sample words in the Long words preview strip: a short one, a medium one and one too long for its space. Use words of your language with about those lengths. -->
+    <string name="appearance_long_words_preview_short">fit</string>
+    <string name="appearance_long_words_preview_medium">keyboard</string>
+    <string name="appearance_long_words_preview_long">internationalization</string>
 
     <string name="appearance_suggestion_spacing_title">Suggestion spacing</string>
     <string name="appearance_suggestion_spacing_subtitle">The gap on each side of a word in the suggestion strip</string>

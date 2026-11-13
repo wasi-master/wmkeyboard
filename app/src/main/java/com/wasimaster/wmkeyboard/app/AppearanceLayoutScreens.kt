@@ -1,7 +1,17 @@
 package com.wasimaster.wmkeyboard.app
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.layout.SymbolsPage
 import com.wasimaster.wmkeyboard.core.layout.BottomRowPreset
 import com.wasimaster.wmkeyboard.core.layout.HoldActionsKey
@@ -53,6 +63,9 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarPaddingRange
 import com.wasimaster.wmkeyboard.core.settings.stripToolboxSwipes
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
+import com.wasimaster.wmkeyboard.core.ui.FitText
+import com.wasimaster.wmkeyboard.core.ui.LongWordFit
+import com.wasimaster.wmkeyboard.core.ui.TextFitting
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts
 import com.wasimaster.wmkeyboard.ime.ui.arrowRowKey
 import com.wasimaster.wmkeyboard.ime.ui.gestureBarAtBottom
@@ -397,6 +410,12 @@ internal fun AppearanceToolbarSettings(
     val stripShown = settings.watch { it.toolbarBehavior.showStrip }
     val overTheme = settings.watch { it.toolbarBehavior.sizeOverTheme }
     val widthPinned = themePin(settings) { it.toolWidthDp }
+    val longWords = settings.watch { it.suggestionStrip.longWords }
+    val narrowest = settings.watch { it.suggestionStrip.narrowestLetters }
+    val smallest = settings.watch { it.suggestionStrip.smallestText }
+    // While a slider is held, the preview follows the thumb; a new saved value clears it.
+    var narrowestDraft by remember(narrowest) { mutableStateOf<Float?>(null) }
+    var smallestDraft by remember(smallest) { mutableStateOf<Float?>(null) }
     val toolbarMoved = settings.watch { s ->
         val d = SettingsDefaults
         // Without the second toolbar (#1217), which the reset leaves alone.
@@ -408,6 +427,9 @@ internal fun AppearanceToolbarSettings(
             s.toolbarLabels != d.toolbarLabels ||
             s.toolbarLabelSize != d.toolbarLabelSize ||
             s.suggestionStrip.textScale != d.suggestionStrip.textScale ||
+            s.suggestionStrip.longWords != d.suggestionStrip.longWords ||
+            s.suggestionStrip.narrowestLetters != d.suggestionStrip.narrowestLetters ||
+            s.suggestionStrip.smallestText != d.suggestionStrip.smallestText ||
             s.suggestionStrip.chipPadding != d.suggestionStrip.chipPadding ||
             s.suggestionStrip.primaryColor != d.suggestionStrip.primaryColor ||
             s.suggestionStrip.newWordColor != d.suggestionStrip.newWordColor ||
@@ -739,6 +761,54 @@ internal fun AppearanceToolbarSettings(
                 info = stringResource(R.string.appearance_suggestion_text_size_info),
                 default = SettingsDefaults.suggestionStrip.textScale,
             ) { scope.launch { repository.setSuggestionTextScale(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                R.string.appearance_long_words_title,
+                subtitle = stringResource(R.string.appearance_long_words_subtitle),
+                info = stringResource(R.string.appearance_long_words_info),
+                options = listOf(
+                    LongWordFit.NARROW_THEN_SHRINK to stringResource(R.string.appearance_long_words_narrow_then_shrink),
+                    LongWordFit.SHRINK_THEN_NARROW to stringResource(R.string.appearance_long_words_shrink_then_narrow),
+                    LongWordFit.NARROW_ONLY to stringResource(R.string.appearance_long_words_narrow_only),
+                    LongWordFit.SHRINK_ONLY to stringResource(R.string.appearance_long_words_shrink_only),
+                    LongWordFit.CUT_OFF to stringResource(R.string.appearance_long_words_cut_off),
+                ),
+                selected = longWords,
+                default = SettingsDefaults.suggestionStrip.longWords,
+            ) { scope.launch { repository.setSuggestionLongWords(it) } }
+        }
+        item(visible = longWords.narrows, level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.appearance_narrowest_letters_title,
+                subtitle = stringResource(R.string.appearance_narrowest_letters_subtitle),
+                value = narrowest,
+                range = 0.5f..1f,
+                display = { percentFormat.format((it * 100).roundToInt()) },
+                info = stringResource(R.string.appearance_narrowest_letters_info),
+                default = SettingsDefaults.suggestionStrip.narrowestLetters,
+                preview = { narrowestDraft = it },
+            ) { scope.launch { repository.setSuggestionNarrowestLetters(it) } }
+        }
+        item(visible = longWords.shrinks, level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.appearance_smallest_text_title,
+                subtitle = stringResource(R.string.appearance_smallest_text_subtitle),
+                value = smallest,
+                range = 0.5f..1f,
+                display = { percentFormat.format((it * 100).roundToInt()) },
+                info = stringResource(R.string.appearance_smallest_text_info),
+                default = SettingsDefaults.suggestionStrip.smallestText,
+                preview = { smallestDraft = it },
+            ) { scope.launch { repository.setSuggestionSmallestText(it) } }
+        }
+        // What the three rows above do, on words that need it, redrawn as they
+        // change. Part of the page, so it scrolls away with it.
+        item(level = SettingLevel.ADVANCED) {
+            LongWordsPreview(
+                fitting = TextFitting(longWords, narrowestDraft ?: narrowest, smallestDraft ?: smallest),
+                textScale = settings.watch { it.suggestionStrip.textScale },
+            )
         }
         item(level = SettingLevel.ADVANCED) {
             SliderSetting(
@@ -2706,3 +2776,55 @@ private fun bottomRowPresetDesc(preset: BottomRowPreset): Int = when (preset) {
     BottomRowPreset.MINIMAL -> R.string.layout_bottom_row_preset_minimal_desc
     BottomRowPreset.WITH_EMOJI -> R.string.layout_bottom_row_preset_with_emoji_desc
 }
+
+/** Whether [this] way of fitting narrows the letters, so the Narrowest letters row matters. */
+private val LongWordFit.narrows: Boolean
+    get() = this == LongWordFit.NARROW_THEN_SHRINK || this == LongWordFit.SHRINK_THEN_NARROW || this == LongWordFit.NARROW_ONLY
+
+/** Whether [this] way of fitting shrinks the text, so the Smallest text row matters. */
+private val LongWordFit.shrinks: Boolean
+    get() = this == LongWordFit.NARROW_THEN_SHRINK || this == LongWordFit.SHRINK_THEN_NARROW || this == LongWordFit.SHRINK_ONLY
+
+/**
+ * A sample suggestion strip under the Long words rows: a short word, a medium
+ * one and one too long for its slot, fitted with [fitting] at the strip's own
+ * text size, in three equal slots the way the strip lays them out.
+ */
+@Composable
+private fun LongWordsPreview(fitting: TextFitting, textScale: Float) {
+    val words = listOf(
+        stringResource(R.string.appearance_long_words_preview_short),
+        stringResource(R.string.appearance_long_words_preview_medium),
+        stringResource(R.string.appearance_long_words_preview_long),
+    )
+    val description = stringResource(R.string.appearance_long_words_preview_description)
+    val style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp * textScale, letterSpacing = 0.5.sp)
+    val divider = MaterialTheme.colorScheme.outlineVariant
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .height(44.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .semantics { contentDescription = description },
+    ) {
+        words.forEachIndexed { index, word ->
+            if (index > 0) {
+                Box(
+                    Modifier.width(1.dp).height(20.dp).background(divider),
+                )
+            }
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.weight(1f).padding(horizontal = 6.dp),
+            ) {
+                CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
+                    FitText(word, style, fitting = fitting)
+                }
+            }
+        }
+    }
+}
+

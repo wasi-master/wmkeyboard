@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.core.ui
 
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -52,25 +53,76 @@ const val MIN_TEXT_SCALE_X = 0.7f
 /** How small the font may go, as a fraction of its size: 16sp down to about 11sp. */
 const val MIN_TEXT_FONT_SCALE = 0.68f
 
+/** What a word too long for its space does before it is cut short with "…". */
+enum class LongWordFit {
+    /** The letters narrow first, then the text gets smaller. Gboard's way, and the default. */
+    NARROW_THEN_SHRINK,
+
+    /** The text gets smaller first, then the letters narrow. */
+    SHRINK_THEN_NARROW,
+
+    /** Only the letters narrow; the size stays. */
+    NARROW_ONLY,
+
+    /** Only the size drops; the letters keep their width. */
+    SHRINK_ONLY,
+
+    /** Neither: the word is cut short with "…" straight away. */
+    CUT_OFF,
+}
+
 /**
- * How to fit a label of [measuredWidthPx] into [availableWidthPx], the way
- * Gboard does: condense the glyphs first, which keeps the letters as tall as
- * their neighbours, and only once that reaches [minScaleX] shrink the font.
- * Text width is near enough linear in both, so the ratio of the two widths is
- * the scale needed. The floors together fit a label about twice the width;
- * past that the caller's ellipsis takes over.
+ * How labels are fitted: [mode], and how far each step may go. [minScaleX] is
+ * the narrowest the letters may get as a share of their width, [minFontScale]
+ * the smallest the text may get as a share of its size.
+ */
+data class TextFitting(
+    val mode: LongWordFit = LongWordFit.NARROW_THEN_SHRINK,
+    val minScaleX: Float = MIN_TEXT_SCALE_X,
+    val minFontScale: Float = MIN_TEXT_FONT_SCALE,
+) {
+    companion object {
+        val DEFAULT = TextFitting()
+    }
+}
+
+/**
+ * The fitting [FitText] uses unless told otherwise. The keyboard provides the
+ * user's choice (Appearance › Toolbar › Long words) around its panels, so
+ * plugin buttons fit their labels the way the suggestion strip fits words.
+ */
+val LocalTextFitting = compositionLocalOf { TextFitting.DEFAULT }
+
+/**
+ * How to fit a label of [measuredWidthPx] into [availableWidthPx] under
+ * [fitting]. Text width is near enough linear in both the letter width and the
+ * font size, so the ratio of the two widths is the scale needed, and the first
+ * step takes all of it it may before the second takes the rest. With both
+ * steps at their defaults a label about twice the width still fits; past what
+ * the steps allow, the caller's ellipsis takes over.
  */
 fun fitTextWidth(
     measuredWidthPx: Float,
     availableWidthPx: Float,
-    minScaleX: Float = MIN_TEXT_SCALE_X,
-    minFontScale: Float = MIN_TEXT_FONT_SCALE,
+    fitting: TextFitting = TextFitting.DEFAULT,
 ): TextFit {
     if (availableWidthPx <= 0f || measuredWidthPx <= 0f || measuredWidthPx <= availableWidthPx) return TextFit.NONE
     val needed = availableWidthPx / measuredWidthPx
-    val scaleX = needed.coerceIn(minScaleX, 1f)
-    val fontScale = (needed / scaleX).coerceIn(minFontScale, 1f)
-    return TextFit(fontScale, scaleX)
+    val narrowest = fitting.minScaleX.coerceIn(0f, 1f)
+    val smallest = fitting.minFontScale.coerceIn(0f, 1f)
+    return when (fitting.mode) {
+        LongWordFit.NARROW_THEN_SHRINK -> {
+            val scaleX = needed.coerceIn(narrowest, 1f)
+            TextFit(fontScale = (needed / scaleX).coerceIn(smallest, 1f), scaleX = scaleX)
+        }
+        LongWordFit.SHRINK_THEN_NARROW -> {
+            val fontScale = needed.coerceIn(smallest, 1f)
+            TextFit(fontScale = fontScale, scaleX = (needed / fontScale).coerceIn(narrowest, 1f))
+        }
+        LongWordFit.NARROW_ONLY -> TextFit(fontScale = 1f, scaleX = needed.coerceIn(narrowest, 1f))
+        LongWordFit.SHRINK_ONLY -> TextFit(fontScale = needed.coerceIn(smallest, 1f), scaleX = 1f)
+        LongWordFit.CUT_OFF -> TextFit.NONE
+    }
 }
 
 /** [style] drawn with [fit] applied: condensed glyphs lose their tracking too, which is dead width by then. */
@@ -87,7 +139,8 @@ fun TextStyle.fitted(fit: TextFit): TextStyle = if (fit == TextFit.NONE) {
 /**
  * One line of text that squeezes, then shrinks, before it ellipsizes, so a
  * short label such as "Open" in a narrow button reads whole instead of "Ope…".
- * [style] needs a font size for the shrinking step.
+ * [style] needs a font size for the shrinking step. [fitting] says which
+ * steps run and how far; the keyboard sets it from the user's choice.
  *
  * A plain [Layout] rather than BoxWithConstraints: it answers intrinsic
  * measurements (a subcompose layout throws on them) and costs no subcomposition.
@@ -98,8 +151,7 @@ fun FitText(
     style: TextStyle,
     modifier: Modifier = Modifier,
     color: Color = Color.Unspecified,
-    minScaleX: Float = MIN_TEXT_SCALE_X,
-    minFontScale: Float = MIN_TEXT_FONT_SCALE,
+    fitting: TextFitting = LocalTextFitting.current,
 ) {
     val measurer = rememberTextMeasurer()
     // Written by measure, read by draw: a new layout at the same size still redraws.
@@ -113,7 +165,7 @@ fun FitText(
             override fun MeasureScope.measure(measurables: List<Measurable>, constraints: Constraints): MeasureResult {
                 val natural = measurer.measure(text, style, maxLines = 1, softWrap = false)
                 val fit = if (constraints.hasBoundedWidth) {
-                    fitTextWidth(natural.size.width.toFloat(), constraints.maxWidth.toFloat(), minScaleX, minFontScale)
+                    fitTextWidth(natural.size.width.toFloat(), constraints.maxWidth.toFloat(), fitting)
                 } else {
                     TextFit.NONE
                 }
@@ -139,7 +191,7 @@ fun FitText(
                 measurer.measure(text, style, maxLines = 1, softWrap = false).size.width
 
             override fun IntrinsicMeasureScope.minIntrinsicWidth(measurables: List<IntrinsicMeasurable>, height: Int): Int =
-                (maxIntrinsicWidth(measurables, height) * minScaleX * minFontScale).toInt()
+                (maxIntrinsicWidth(measurables, height) * fitting.minScaleX * fitting.minFontScale).toInt()
 
             override fun IntrinsicMeasureScope.minIntrinsicHeight(measurables: List<IntrinsicMeasurable>, width: Int): Int =
                 measurer.measure(text, style, maxLines = 1, softWrap = false).size.height

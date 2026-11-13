@@ -31,6 +31,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Security
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SmartButton
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SmartToy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StickyNote2
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextDecrease
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TimerOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Update
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Warning
@@ -586,6 +587,9 @@ internal object SettingsRowIcons {
         put(R.string.appearance_toolbox_sort_title) { Icons.AutoMirrored.Outlined.Sort }
         put(R.string.appearance_toolbox_search_sort_title) { Icons.AutoMirrored.Outlined.Sort }
         put(R.string.appearance_suggestion_text_size_title) { Icons.Outlined.FormatSize }
+        put(R.string.appearance_long_words_title) { Icons.Outlined.TextFields }
+        put(R.string.appearance_narrowest_letters_title) { Icons.Outlined.Compress }
+        put(R.string.appearance_smallest_text_title) { Icons.Outlined.TextDecrease }
         put(R.string.appearance_suggestion_spacing_title) { Icons.Outlined.SpaceBar }
         put(R.string.appearance_suggestion_primary_color_title) { Icons.Outlined.Colorize }
         put(R.string.appearance_suggestion_new_word_color_title) { Icons.Outlined.Spellcheck }

@@ -432,8 +432,8 @@ import com.wasimaster.wmkeyboard.ime.AppColors
 import com.wasimaster.wmkeyboard.core.theme.keyShapeFor
 import com.wasimaster.wmkeyboard.core.theme.brush
 import com.wasimaster.wmkeyboard.core.theme.keyShapeKindOrNull
-import com.wasimaster.wmkeyboard.core.ui.MIN_TEXT_FONT_SCALE
-import com.wasimaster.wmkeyboard.core.ui.MIN_TEXT_SCALE_X
+import com.wasimaster.wmkeyboard.core.ui.LocalTextFitting
+import com.wasimaster.wmkeyboard.core.ui.TextFitting
 import com.wasimaster.wmkeyboard.core.ui.ToolPaint
 import com.wasimaster.wmkeyboard.core.ui.fitTextWidth
 import com.wasimaster.wmkeyboard.core.ui.toolAccentPaint
@@ -1657,6 +1657,9 @@ fun KeyboardScreen(
         // rest is provided once, around [KeyboardScreenFrame] below.
         CompositionLocalProvider(
             LocalIconSet provides iconSet,
+            // How a word too long for its space fits (Appearance › Toolbar ›
+            // Long words): the strip's words and plugin button labels alike.
+            LocalTextFitting provides bodyState.settings.suggestionStrip.fitting,
             LocalPhoneticIndic provides phoneticIsIndic(bodyState.composer.phoneticLanguage),
             // Where the caret sits in the keyboard's own focused field, for the
             // nine panels that draw one (#161).
@@ -6356,6 +6359,8 @@ internal fun RowScope.LatinSuggestionChips(
     tinted: Boolean = false,
 ) {
     val kb = LocalKbTheme.current
+    // Appearance › Toolbar › Long words: how a word too long for its slot fits.
+    val fitting = LocalTextFitting.current
     // The theme's pill fills (#510): its own colours, or the accent washed thin.
     val pills = kb.suggestionPill to kb.primarySuggestionPill
     // The word a long press is asking about, or null while no menu is up. Held
@@ -6677,7 +6682,7 @@ internal fun RowScope.LatinSuggestionChips(
                 val fit = if (scrollable) {
                     // Natural width: nothing to fit, the row scrolls instead.
                     SuggestionTextFit(1f, 1f)
-                } else remember(label, family, weight, slotTextWidth, slotSize, baseStyle) {
+                } else remember(label, family, weight, slotTextWidth, slotSize, baseStyle, fitting) {
                     val measured = measurer.measure(
                         text = label,
                         style = baseStyle.merge(
@@ -6693,6 +6698,7 @@ internal fun RowScope.LatinSuggestionChips(
                     fitSuggestionText(
                         measuredWidthPx = measured.toFloat(),
                         availableWidthPx = with(density) { slotTextWidth.toPx() },
+                        fitting = fitting,
                     )
                 }
                 CachedTextLine(
@@ -6974,20 +6980,19 @@ internal data class SuggestionTextFit(val fontScale: Float, val scaleX: Float) {
 }
 
 /**
- * Works out how to fit a suggestion of [measuredWidthPx] into [availableWidthPx],
- * the way Gboard does: condense the glyphs first, down to [minScaleX], so a long
- * word stays as tall as its neighbours, and only then shrink the font, down to
- * [minFontScale]. The shared [fitTextWidth] does the sums, so plugin buttons fit
- * their labels the same way. Together the two floors fit a word about twice
+ * Works out how to fit a suggestion of [measuredWidthPx] into [availableWidthPx]
+ * the way the user chose under Appearance › Toolbar › Long words ([fitting]).
+ * By default that is Gboard's: condense the glyphs first, so a long word stays
+ * as tall as its neighbours, and only then shrink the font. The shared
+ * [fitTextWidth] does the sums, so plugin buttons fit their labels the same way. Together the two floors fit a word about twice
  * the slot width; longer than that and the caller's ellipsis takes over.
  */
 internal fun fitSuggestionText(
     measuredWidthPx: Float,
     availableWidthPx: Float,
-    minFontScale: Float = MIN_TEXT_FONT_SCALE,
-    minScaleX: Float = MIN_TEXT_SCALE_X,
+    fitting: TextFitting = TextFitting.DEFAULT,
 ): SuggestionTextFit {
-    val fit = fitTextWidth(measuredWidthPx, availableWidthPx, minScaleX = minScaleX, minFontScale = minFontScale)
+    val fit = fitTextWidth(measuredWidthPx, availableWidthPx, fitting)
     return SuggestionTextFit(fit.fontScale, fit.scaleX)
 }
 

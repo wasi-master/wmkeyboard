@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.ui.LongWordFit
+import com.wasimaster.wmkeyboard.core.ui.TextFitting
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -65,6 +67,41 @@ class SuggestionTextFitTest {
             assertTrue("width=$width went back up", effective <= previous + 1e-6f)
             previous = effective
         }
+    }
+
+    @Test
+    fun `shrink first takes the font down before narrowing`() {
+        val fitting = TextFitting(LongWordFit.SHRINK_THEN_NARROW)
+        val mild = fitSuggestionText(measuredWidthPx = 132f, availableWidthPx = 120f, fitting = fitting)
+        assertEquals(120f / 132f, mild.fontScale, 0.001f)
+        assertEquals(1f, mild.scaleX, 0f)
+        val heavy = fitSuggestionText(measuredWidthPx = 200f, availableWidthPx = 120f, fitting = fitting)
+        assertEquals(0.68f, heavy.fontScale, 0.001f)
+        assertEquals(0.6f / 0.68f, heavy.scaleX, 0.001f)
+    }
+
+    @Test
+    fun `one-step modes stop at their own floor`() {
+        val narrow = fitSuggestionText(1000f, 120f, TextFitting(LongWordFit.NARROW_ONLY, minScaleX = 0.6f))
+        assertEquals(1f, narrow.fontScale, 0f)
+        assertEquals(0.6f, narrow.scaleX, 0.001f)
+        val shrink = fitSuggestionText(1000f, 120f, TextFitting(LongWordFit.SHRINK_ONLY, minFontScale = 0.5f))
+        assertEquals(0.5f, shrink.fontScale, 0.001f)
+        assertEquals(1f, shrink.scaleX, 0f)
+    }
+
+    @Test
+    fun `cut off never scales`() {
+        val fit = fitSuggestionText(1000f, 120f, TextFitting(LongWordFit.CUT_OFF))
+        assertEquals(1f, fit.fontScale, 0f)
+        assertEquals(1f, fit.scaleX, 0f)
+    }
+
+    @Test
+    fun `the user's floors replace the defaults`() {
+        val fit = fitSuggestionText(1000f, 120f, TextFitting(minScaleX = 0.5f, minFontScale = 0.9f))
+        assertEquals(0.5f, fit.scaleX, 0.001f)
+        assertEquals(0.9f, fit.fontScale, 0.001f)
     }
 
     @Test

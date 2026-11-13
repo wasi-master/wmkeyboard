@@ -188,6 +188,10 @@ import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedCardLayout
 import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedCardSize
 import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedCardStyle
 import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedUnit
+import com.wasimaster.wmkeyboard.core.ui.LongWordFit
+import com.wasimaster.wmkeyboard.core.ui.MIN_TEXT_FONT_SCALE
+import com.wasimaster.wmkeyboard.core.ui.MIN_TEXT_SCALE_X
+import com.wasimaster.wmkeyboard.core.ui.TextFitting
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.trySendBlocking
@@ -11010,6 +11014,17 @@ data class SuggestionStripSettings(
      */
     val textScale: Float = 1f,
     /**
+     * What a word too long for its slot does before it is cut short with "…":
+     * narrow its letters, shrink it, both in either order, or neither.
+     * Narrowing first is Gboard's way and keeps a long word as tall as its
+     * neighbours. Plugin button labels follow it too ([TextFitting]).
+     */
+    val longWords: LongWordFit = LongWordFit.NARROW_THEN_SHRINK,
+    /** The narrowest [longWords] may make the letters, as a share of their width: 0.5 to 1. */
+    val narrowestLetters: Float = MIN_TEXT_SCALE_X,
+    /** The smallest [longWords] may make the text, as a share of its size: 0.5 to 1. */
+    val smallestText: Float = MIN_TEXT_FONT_SCALE,
+    /**
      * Let the strip scroll sideways instead of squeezing every candidate into
      * an equal share of the width.
      *
@@ -11763,6 +11778,9 @@ data class SuggestionStripSettings(
      */
     val learnFromTextPairs: Boolean = true,
 ) {
+    /** [longWords] and its two limits as one value, built once per settings change. */
+    val fitting: TextFitting = TextFitting(longWords, narrowestLetters, smallestText)
+
     /** Whether a word picked from the strip while typing [langId] gets a space after it. */
     fun autoSpaceAfterSuggestionFor(langId: String): Boolean =
         autoSpaceAfterSuggestion && langId !in spaceAfterSuggestionOffLangs
@@ -13586,6 +13604,9 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBOX_BACK_LOWERS_KEYS = booleanPreferencesKey("toolbox_back_lowers_keys")
         private val CUSTOM_BUTTONS = stringPreferencesKey("custom_buttons")
         private val SUGGESTION_TEXT_SCALE = floatPreferencesKey("suggestion_text_scale")
+        private val SUGGESTION_LONG_WORDS = stringPreferencesKey("suggestion_long_words")
+        private val SUGGESTION_NARROWEST_LETTERS = floatPreferencesKey("suggestion_narrowest_letters")
+        private val SUGGESTION_SMALLEST_TEXT = floatPreferencesKey("suggestion_smallest_text")
         private val LEARNED_WORD_MIN_COUNT = intPreferencesKey("learned_word_min_count")
         private val NEW_WORD_SIGHTINGS = intPreferencesKey("new_word_sightings")
         private val ASK_BEFORE_LEARNING = booleanPreferencesKey("ask_before_learning")
@@ -15368,6 +15389,10 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.punctuationChips,
             slotCount = p[SUGGESTION_SLOT_COUNT] ?: defaults.suggestionStrip.slotCount,
             textScale = p[SUGGESTION_TEXT_SCALE] ?: defaults.suggestionStrip.textScale,
+            longWords = p[SUGGESTION_LONG_WORDS]?.let { name -> LongWordFit.entries.firstOrNull { it.name == name } }
+                ?: defaults.suggestionStrip.longWords,
+            narrowestLetters = p[SUGGESTION_NARROWEST_LETTERS] ?: defaults.suggestionStrip.narrowestLetters,
+            smallestText = p[SUGGESTION_SMALLEST_TEXT] ?: defaults.suggestionStrip.smallestText,
             scrollable = p[SUGGESTION_SCROLLABLE] ?: defaults.suggestionStrip.scrollable,
             moreArrow = p[SUGGESTION_MORE_ARROW] ?: defaults.suggestionStrip.moreArrow,
             emojiTakesSlot = p[SUGGESTION_EMOJI_TAKES_SLOT] ?: defaults.suggestionStrip.emojiTakesSlot,
@@ -18518,6 +18543,15 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSuggestionTextScale(value: Float) =
         editPrefs { it[SUGGESTION_TEXT_SCALE] = value.coerceIn(0.8f, 1.6f) }
+
+    suspend fun setSuggestionLongWords(value: LongWordFit) =
+        editPrefs { it[SUGGESTION_LONG_WORDS] = value.name }
+
+    suspend fun setSuggestionNarrowestLetters(value: Float) =
+        editPrefs { it[SUGGESTION_NARROWEST_LETTERS] = value.coerceIn(0.5f, 1f) }
+
+    suspend fun setSuggestionSmallestText(value: Float) =
+        editPrefs { it[SUGGESTION_SMALLEST_TEXT] = value.coerceIn(0.5f, 1f) }
 
     suspend fun setLearnedWordMinCount(value: Int) =
         editPrefs { it[LEARNED_WORD_MIN_COUNT] = value.coerceIn(1, 5) }
@@ -22784,6 +22818,9 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOLBAR_LABELS)
         it.remove(TOOLBAR_LABEL_SIZE)
         it.remove(SUGGESTION_TEXT_SCALE)
+        it.remove(SUGGESTION_LONG_WORDS)
+        it.remove(SUGGESTION_NARROWEST_LETTERS)
+        it.remove(SUGGESTION_SMALLEST_TEXT)
         it.remove(SUGGESTION_CHIP_PADDING)
         it.remove(SUGGESTION_PRIMARY_COLOR)
         it.remove(SUGGESTION_NEW_WORD_COLOR)
