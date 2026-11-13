@@ -3618,6 +3618,21 @@ class SuggestionEngine(
         private const val TYPO_SHADOW_MIN_RANK = 50_000
 
         /**
+         * How many times commoner a word one key over must be, in the same
+         * romanized list, before [romanizedSlipShadowed] reads a spelling as
+         * its slip. On the Banglish list 993 of 130,606 words fall under it;
+         * of a random 30, about two in three were plain slips (`eltu`,
+         * `dekbe`, `oira`), the rest rare spellings no other list held.
+         */
+        private const val ROMANIZED_SLIP_RATIO = 100.0
+
+        /** Two letters are too often a whole abbreviation to read as a slip. */
+        private const val ROMANIZED_SLIP_MIN_LENGTH = 3
+
+        /** The language-id ending of a romanized list (`bn_rom`, `hi_rom`). */
+        private const val ROMANIZED_SUFFIX = "_rom"
+
+        /**
          * How many times commoner the word after an elided prefix must be
          * than the fused spelling before that spelling stops counting as a
          * word of its own and reads as the elision (#215); see
@@ -4090,7 +4105,8 @@ class SuggestionEngine(
         // A word the spelling checker accepts is known too, which is what
         // keeps a made-up German compound from being offered corrections.
         val known = !ambiguous && (
-            (inDictionaries(lower) || userLexicon.contains(lower)) && !typoShadowed(lower, touch, keys) ||
+            (inDictionaries(lower) || userLexicon.contains(lower)) && !typoShadowed(lower, touch, keys) &&
+                !romanizedSlipShadowed(lower) ||
                 knownCompound(lower) || spellAccepted(composing)
             )
         val merged = HashMap<String, Double>()
@@ -6600,6 +6616,93 @@ class SuggestionEngine(
     }
 
     /**
+     * Whether a romanized list holds [lower] only as a slip of a far commoner
+     * word one key over: `tnr` in the Banglish list, 67 times against `tmr`'s
+     * 10,130, `n` next to `m`.
+     *
+     * [typoShadowed] cannot see these. It trusts every word above the Small
+     * download's 50,000, which suits a language with a standard spelling: on
+     * the English lists a word 100 times rarer than its neighbour one key over
+     * is still a word (`hood` and `good`, `bet` and `get`, `worm` and `work`).
+     * A romanized list is counted from chat, which has no standard spelling
+     * and plenty of slips, and they rank high in it: `aki` for `ami`, `kote`
+     * for `kore` and `tnr` all sit in the Banglish list's first 4,000. Read
+     * the same way over that list, the rule's first 40 hits are mostly such
+     * slips.
+     *
+     * So in a `_rom` list a word stops counting as known when a word one
+     * adjacent key away in the same list is [ROMANIZED_SLIP_RATIO] times
+     * commoner. Every other list that holds it must leave it unprotected too:
+     * one with a standard spelling protects it within its first
+     * [TYPO_SHADOW_MIN_RANK] words, so `bit`, `far` and `ate` stay words
+     * whatever the Banglish list says of them. A word the user added by hand,
+     * one in Android's personal dictionary and a romanized spelling the
+     * language's own spelling map lists all stand.
+     */
+    private fun romanizedSlipShadowed(lower: String): Boolean {
+        if (lower.length < ROMANIZED_SLIP_MIN_LENGTH) return false
+        val lists = wordListsByLanguage()
+        if (lists.none { (langId, _) -> langId.endsWith(ROMANIZED_SUFFIX) }) return false
+        var shadowed = false
+        for ((langId, source) in lists) {
+            for (walker in source.walkers()) {
+                var node = walker.root
+                for (ch in lower) {
+                    node = walker.child(node, ch)
+                    if (node < 0) break
+                }
+                if (node < 0 || !walker.isWord(node)) continue
+                val frequency = walker.frequency(node)
+                if (langId.endsWith(ROMANIZED_SUFFIX)) {
+                    val slip = commonestKeySlip(walker, lower)
+                    if (slip < ROMANIZED_SLIP_RATIO * (frequency + 1.0)) return false
+                    shadowed = true
+                } else if (walker.rankOfFrequency(frequency) <= TYPO_SHADOW_MIN_RANK) {
+                    return false
+                }
+            }
+        }
+        if (!shadowed) return false
+        if (systemDictionary.contains(lower) || userLexicon.isAddedByHand(lower)) return false
+        val backends = (phoneticSecondaries + primaryLanguageId).mapNotNull(::phoneticBackend)
+        return backends.none { it.spellings.contains(lower) }
+    }
+
+    /** Every dictionary-tier list with the language it is for; see [dictionarySources]. */
+    private fun wordListsByLanguage(): List<Pair<String, WordSource>> = buildList {
+        add(primaryLanguageId to activeDictionary)
+        add(primaryLanguageId to customDictionary)
+        if (englishAsSecondary && !englishSources) add(EN to dictionary)
+        for (t in secondaryDictionaries) add(t.langId to t.source)
+    }
+
+    /**
+     * The highest count in [walker] among the words [lower] becomes when one
+     * letter is swapped for a key next to it; 0 when there is none.
+     */
+    private fun commonestKeySlip(walker: TrieWalker, lower: String): Int {
+        val buffer = ChildBuffer()
+        var best = 0
+        var node = walker.root
+        for (pos in lower.indices) {
+            val count = walker.childrenInto(node, buffer)
+            for (i in 0 until count) {
+                val label = buffer.labels[i]
+                if (label == lower[pos] || !proximity.areAdjacent(lower[pos], label)) continue
+                var at = buffer.nodes[i]
+                for (rest in pos + 1 until lower.length) {
+                    at = walker.child(at, lower[rest])
+                    if (at < 0) break
+                }
+                if (at >= 0 && walker.isWord(at)) best = maxOf(best, walker.frequency(at))
+            }
+            node = walker.child(node, lower[pos])
+            if (node < 0) break
+        }
+        return best
+    }
+
+    /**
      * The fix to ask about for a listed spelling too near a typo to rewrite and
      * too near one to wave through: `verg` for `very`, rarer than [typoShadowed]
      * needs by a tenth of its ratio (#1047). The word stands, so `cress` and
@@ -7033,7 +7136,9 @@ class SuggestionEngine(
         // Kept for [recheckPrevious] whatever happens below: a real word typed
         // for another ("on" for "in") is exactly what the next word gives away.
         if (readWholePhrases) noteTaps(lower, touch, timingMultiplier)
-        if (known && !accentShadowed(lower, touch) && !typoShadowed(lower, touch, keys)) {
+        if (known && !accentShadowed(lower, touch) && !typoShadowed(lower, touch, keys) &&
+            !romanizedSlipShadowed(lower)
+        ) {
             val rare = rareSpellingFix(word, lower, touch, keys)
             // A listed word is read whole too, held to the decoder's far higher
             // bar for a word a list holds: the last word of a message has no

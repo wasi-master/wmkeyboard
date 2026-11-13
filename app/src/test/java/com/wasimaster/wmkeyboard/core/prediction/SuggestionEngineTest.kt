@@ -1444,6 +1444,32 @@ class SuggestionEngineTest {
         assertTrue("tmr offered in $s", "tmr" in s)
     }
 
+    @Test fun `a romanized list's slip of a far commoner word one key over is not a word`() {
+        // The Banglish list's own counts: `tnr` is `tmr` with `n` for `m`.
+        val banglish = Trie().apply {
+            insert("tmr", 10_130)
+            insert("tnr", 67)
+        }
+        val e = engine().apply { secondaryDictionaries = listOf(SecondaryDictionary("bn_rom", banglish)) }
+        assertEquals("tmr", e.suggest("tnr", previousWord = null).first())
+    }
+
+    @Test fun `a word a standard list ranks high stays a word whatever a romanized list says`() {
+        val english = Trie().apply {
+            insert("but", 5_000)
+            insert("bit", 1_000)
+        }
+        val banglish = Trie().apply {
+            insert("but", 4_465)
+            insert("bit", 43)
+        }
+        val e = SuggestionEngine(english, BengaliPhoneticIndex(emptyList()), UserLexicon(null)).apply {
+            secondaryDictionaries = listOf(SecondaryDictionary("bn_rom", banglish))
+        }
+        assertEquals("bit", e.suggest("bit", previousWord = null).first())
+        assertNull(e.shouldAutocorrect("bit"))
+    }
+
     @Test fun `a secondary word one slip from a primary word reaches the strip`() {
         val primary = Trie().apply { insert("kalb", 5_000) }
         val secondary = Trie().apply { insert("kelb", 5_000) }
