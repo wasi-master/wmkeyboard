@@ -89,6 +89,17 @@ extensions.getByType(ApplicationAndroidComponentsExtension::class.java).onVarian
             }
         }
         ownLibraries.set(own)
+        // Prebuilt libraries F-Droid deletes but may fetch (Whistle): pinned
+        // from the table there, checked against the committed file elsewhere.
+        fdroidPins.set(
+            table.ownLibraries.mapNotNull { (_, library) -> library.fdroidPin?.let { library to it } }
+                .flatMap { (library, pin) ->
+                    pin.byAbi.filterKeys { it in pinAbis }.map { (abi, value) ->
+                        listOf(pin.gate, abi, library.name, value.first, value.second.toString()).joinToString("\t")
+                    }
+                },
+        )
+        fdroid.set(fdroidChannel)
         abis.set(pinAbis)
         mavenLibraries.set(dependencySpecs.map { (name, dep) -> listOf(name, dep.gate, dep.module, dep.licence).joinToString("\t") })
         // The raw AARs of this variant's own runtime classpath: the exact

@@ -736,7 +736,10 @@ fun Key.flickKey(direction: FlickDirection): Key? {
             val target = (action as? KeyAction.KeymanKey)?.flick?.get(direction)
             // The arm's own shift form, never the centre's: under Shift the
             // flick used to type the tap's shiftLabel, whatever arm it took.
-                ?: return copy(output = arm.text, shiftLabel = flickShift[direction])
+                // The cycle stays with the tap: a flicked kana is its own text,
+                // so two quick flicks to い type いい rather than stepping い's
+                // tap cycle (the flick pad's toggle input, gap list item 17).
+                ?: return copy(output = arm.text, shiftLabel = flickShift[direction], multitap = emptyList())
             return Key(label = arm.text, output = target.text, action = target.toAction())
         }
     }

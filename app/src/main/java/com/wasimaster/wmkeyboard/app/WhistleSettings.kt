@@ -27,6 +27,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
+import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager.Status
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
@@ -55,7 +56,7 @@ internal fun WhistleModelManager(settings: LiveSettings) {
     }
 
     // Play: the engine itself is an on-demand part, shared with whisper.cpp.
-    SpeechModuleBanner(settings)
+    SpeechModuleBanner(settings, WhistleEngine.gate, WhistleEngine.gateId)
 
     val title = stringResource(R.string.voice_whistle_model_title)
     SettingsGroup(

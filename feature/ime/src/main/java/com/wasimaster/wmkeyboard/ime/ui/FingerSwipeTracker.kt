@@ -141,6 +141,12 @@ internal const val FingerSwipeClaimDp = 28f
  */
 internal class FingerSwipeGate {
     var claimed = false
+
+    /**
+     * The claim is a pinch or stretch (gap list item 18), not a swipe: the
+     * swipe's own loop gives the touch up, and the pinch's loop owns it.
+     */
+    var pinched = false
 }
 
 /**

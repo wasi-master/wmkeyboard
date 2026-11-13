@@ -613,6 +613,7 @@ import com.wasimaster.wmkeyboard.core.layout.BottomRowRules
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCounts
 import com.wasimaster.wmkeyboard.core.layout.actionOf
+import com.wasimaster.wmkeyboard.core.layout.PinchGesture
 import com.wasimaster.wmkeyboard.core.layout.effectiveChords
 import com.wasimaster.wmkeyboard.core.layout.PAD_SPACE_LABEL
 import com.wasimaster.wmkeyboard.core.layout.FlickArm
@@ -19935,6 +19936,14 @@ private fun KeyRows(
     val fingerSwipesOn = gesture.multiFingerSwipes && !state.typingTestActive &&
         (state.panel == PanelMode.NONE || keysInBox || state.captureHandedToApp)
     val fingerSwipeMap = rememberUpdatedState(gesture.fingerSwipes)
+    // Pinch and stretch (gap list item 18): the same places, but never on the
+    // floating keyboard, whose own pinch resizes it, and never under two-thumb
+    // glide, where two thumbs moving apart are two words.
+    val pinchOn = gesture.pinchGestures && !state.typingTestActive && !state.settings.floatingKeyboard &&
+        !(twoThumbOn && gestureEnabled) &&
+        (state.panel == PanelMode.NONE || keysInBox || state.captureHandedToApp)
+    val pinchMap = rememberUpdatedState(gesture.pinchBindings)
+    val splitNow = rememberUpdatedState(state.settings.splitKeyboard)
     val boxSelection = rememberUpdatedState(
         if (keysInBox) LocalCaptureCaret.current.onSelectionAction else null,
     )
@@ -20102,6 +20111,7 @@ private fun KeyRows(
                 awaitEachGesture {
                     val first = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
                     fingerGate.claimed = false
+                    fingerGate.pinched = false
                     val tracker = FingerSwipeTracker(claimPx, thumbsGlide)
                     tracker.track(first.id.value, first.position.x, first.position.y, pressed = true)
                     // Which trail each finger draws in, given at the claim.
@@ -20114,6 +20124,8 @@ private fun KeyRows(
                             }
                         }
                         if (tracker.abandoned) return@awaitEachGesture
+                        // A pinch took the pair (gap list item 18): it is not a swipe.
+                        if (fingerGate.pinched) return@awaitEachGesture
                         if (tracker.claimed) {
                             for (change in event.changes) {
                                 change.consume()
@@ -20147,6 +20159,70 @@ private fun KeyRows(
                     for (slot in slots.values) fingerTrails[slot].release()
                     val swipe = tracker.result() ?: return@awaitEachGesture
                     val binding = fingerSwipeMap.value.actionOf(swipe) ?: return@awaitEachGesture
+                    val inBox = boxSelection.value?.let { onBox -> binding.action.inCaptureBox()?.let { onBox to it } }
+                    if (inBox != null) {
+                        val (onBox, meant) = inBox
+                        if (meant is CaptureSwipe.Selection) onBox(meant.action)
+                        return@awaitEachGesture
+                    }
+                    if (hapticOn.value) pickerHaptic()
+                    if (binding.action == KeyAction.Text) {
+                        if (binding.label.isNotEmpty()) stampedOnText(binding.label)
+                    } else {
+                        stampedOnKey(Key(label = binding.label, action = binding.action))
+                    }
+                }
+            }
+            // Gap list item 18: two fingers stretched apart or pinched together
+            // on the keys run the action bound to that gesture, split and merge
+            // out of the box. Second in the chain, after the multi-finger swipe,
+            // and built the same way: nothing is consumed until [PinchTracker]
+            // claims the pair, so taps, glides and swipes are untouched, and the
+            // claim sets [fingerGate] so every other loop stands down at its lift.
+            // A touch a swipe has claimed, or one on which a key has already
+            // typed, is given up. The action runs once every finger is up, so
+            // the board never changes shape under fingers still on it, and it
+            // draws nothing, so there is no motion for reduceMotion to cut.
+            .pointerInput(pinchOn, stampedOnKey, stampedOnText) {
+                if (!pinchOn) return@pointerInput
+                val spanPx = PinchSpanDp.dp.toPx()
+                val fingerPx = PinchFingerDp.dp.toPx()
+                val landSlopPx = PinchLandSlopDp.dp.toPx()
+                awaitEachGesture {
+                    val first = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                    fingerGate.claimed = false
+                    fingerGate.pinched = false
+                    val since = first.uptimeMillis
+                    val tracker = PinchTracker(spanPx, fingerPx, landSlopPx)
+                    tracker.track(first.id.value, first.position.x, first.position.y, pressed = true, uptimeMs = since)
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        if (fingerGate.claimed && !fingerGate.pinched) tracker.abandon()
+                        if (lastKeyPressTime.longValue >= since) tracker.abandon()
+                        if (tracker.abandoned) return@awaitEachGesture
+                        for (change in event.changes) {
+                            val claimedNow = tracker.track(
+                                change.id.value, change.position.x, change.position.y, change.pressed, change.uptimeMillis,
+                            )
+                            if (claimedNow) {
+                                fingerGate.claimed = true
+                                fingerGate.pinched = true
+                            }
+                        }
+                        if (tracker.abandoned) return@awaitEachGesture
+                        if (tracker.claimed != null) event.changes.forEach { it.consume() }
+                        if (event.changes.none { it.pressed }) break
+                    }
+                    val pinch = tracker.result() ?: return@awaitEachGesture
+                    val binding = pinchMap.value.actionOf(pinch) ?: return@awaitEachGesture
+                    // The split toggle runs one way per gesture: a stretch only
+                    // splits and a pinch only merges, so a second stretch on a
+                    // split board does not put it back together.
+                    if ((binding.action as? KeyAction.Tool)?.tool == ToolbarTool.SPLIT &&
+                        splitNow.value == (pinch == PinchGesture.STRETCH)
+                    ) {
+                        return@awaitEachGesture
+                    }
                     val inBox = boxSelection.value?.let { onBox -> binding.action.inCaptureBox()?.let { onBox to it } }
                     if (inBox != null) {
                         val (onBox, meant) = inBox
