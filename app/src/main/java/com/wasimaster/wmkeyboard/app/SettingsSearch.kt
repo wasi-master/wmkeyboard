@@ -882,12 +882,21 @@ private fun SearchStrings.typingHardwareRows(): List<SettingsSearchEntry> {
     )
 }
 
-/** Rows on the Key press screen. */
-private fun SearchStrings.keyPressRows(): List<SettingsSearchEntry> {
+/** A row on one of the pages Key press opens (#1318): [screen] at [route]. */
+private fun SearchStrings.keyPressPageRow(
+    @StringRes screen: Int,
+    route: String,
+    @StringRes title: Int,
+    @StringRes subtitle: Int = 0,
+    weight: EntryWeight = EntryWeight.NORMAL,
+) = entry(title, subtitle, screen, route, screenParent = R.string.home_keypress_title, weight = weight)
+
+/** Rows on Key press › Delete keys, in screen order. */
+private fun SearchStrings.keypressDeleteRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) =
-        entry(title, subtitle, R.string.home_keypress_title, "keypress", weight = weight)
+        keyPressPageRow(R.string.typing_group_backspace_title, "keypress/delete", title, subtitle, weight)
     return listOf(
-        // The Backspace group, moved here from Typing (#136): a key's
+        // The Backspace group, moved to Key press from Typing (#136): a key's
         // gestures are a key-press matter, not a typing-engine one.
         row(R.string.typing_backspace_swipe_title, R.string.typing_backspace_swipe_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.typing_backspace_unit_title, R.string.typing_backspace_unit_subtitle),
@@ -901,34 +910,32 @@ private fun SearchStrings.keyPressRows(): List<SettingsSearchEntry> {
         row(R.string.typing_forward_delete_swipe_title, R.string.typing_forward_delete_swipe_subtitle),
         row(R.string.typing_modifier_drag_title, R.string.typing_modifier_drag_subtitle),
         row(R.string.typing_web_backspace_key_title, R.string.typing_web_backspace_key_subtitle),
+    )
+}
+
+/** Rows on Key press › Alternate keys, in screen order. */
+private fun SearchStrings.keypressAlternatesRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) =
+        keyPressPageRow(R.string.keypress_alternates_group_title, "keypress/alternates", title, subtitle)
+    return listOf(
         row(R.string.keypress_alternates_size_title, R.string.keypress_alternates_size_subtitle),
-        row(
-            R.string.keypress_alternates_padding_title,
-            R.string.keypress_alternates_padding_subtitle,
-        ),
-        row(
-            R.string.keypress_alternates_columns_title,
-            R.string.keypress_alternates_columns_subtitle,
-        ),
-        row(
-            R.string.keypress_alternates_balanced_title,
-            R.string.keypress_alternates_balanced_subtitle,
-        ),
-        row(
-            R.string.keypress_alternates_nearest_title,
-            R.string.keypress_alternates_nearest_subtitle,
-        ),
-        row(
-            R.string.keypress_alternates_centred_title,
-            R.string.keypress_alternates_centred_subtitle,
-        ),
-        row(
-            R.string.keypress_remember_punctuation_title,
-            R.string.keypress_remember_punctuation_subtitle,
-        ),
+        row(R.string.keypress_alternates_padding_title, R.string.keypress_alternates_padding_subtitle),
+        row(R.string.keypress_alternates_columns_title, R.string.keypress_alternates_columns_subtitle),
+        row(R.string.keypress_alternates_balanced_title, R.string.keypress_alternates_balanced_subtitle),
+        row(R.string.keypress_alternates_nearest_title, R.string.keypress_alternates_nearest_subtitle),
+        row(R.string.keypress_alternates_centred_title, R.string.keypress_alternates_centred_subtitle),
+        row(R.string.keypress_remember_punctuation_title, R.string.keypress_remember_punctuation_subtitle),
         row(R.string.keypress_alternates_order_title, R.string.keypress_alternates_order_subtitle),
-        row(R.string.keypress_long_press_delay_title, R.string.keypress_long_press_delay_subtitle, weight = EntryWeight.PRIMARY),
+    )
+}
+
+/** Rows on Key press › Timing, in screen order. */
+private fun SearchStrings.keypressTimingRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) =
+        keyPressPageRow(R.string.keypress_timing_group_title, "keypress/timing", title, subtitle, weight)
+    return listOf(
         row(R.string.keypress_long_press_system_title, R.string.keypress_long_press_system_subtitle),
+        row(R.string.keypress_long_press_delay_title, R.string.keypress_long_press_delay_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.keypress_multitap_timeout_title, R.string.keypress_multitap_timeout_subtitle),
         row(R.string.keypress_delete_repeat_title, R.string.keypress_delete_repeat_subtitle),
         row(R.string.keypress_hold_words_title, R.string.keypress_hold_words_subtitle),
@@ -1069,8 +1076,11 @@ private fun SearchStrings.appearanceRows(): List<SettingsSearchEntry> {
         screenParent = R.string.home_appearance_title,
         weight = weight,
     )
-    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) =
-        entry(title, subtitle, R.string.home_appearance_title, "appearance", weight = weight)
+    // The key rows have a page of their own since #1318.
+    fun keys(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.appearance_keys_section_title, "appearance/keys",
+        screenParent = R.string.home_appearance_title,
+    )
     return listOf(
         // Keyboard themes, Keyboard font and Icons are rows here, but each
         // opens its own screen. They are indexed once in sectionRows,
@@ -1092,15 +1102,15 @@ private fun SearchStrings.appearanceRows(): List<SettingsSearchEntry> {
         icon(R.string.plugins_icons_import_title, R.string.plugins_icons_import_subtitle),
         icon(R.string.plugins_icons_reset_title, R.string.plugins_icons_reset_subtitle),
         icon(R.string.plugins_icons_library_title, R.string.plugins_icons_library_subtitle_empty),
-        row(R.string.appearance_key_corner_radius_title, R.string.appearance_key_corner_radius_subtitle),
-        row(R.string.appearance_key_label_size_title, R.string.appearance_key_label_size_subtitle),
-        row(R.string.appearance_key_label_case_title, R.string.appearance_key_label_case_subtitle),
-        row(R.string.appearance_key_hint_size_title, R.string.appearance_key_hint_size_subtitle),
-        row(R.string.appearance_key_hint_corner_title, R.string.appearance_key_hint_corner_subtitle),
-        row(R.string.appearance_key_hint_offset_title, R.string.appearance_key_hint_offset_subtitle),
-        row(R.string.appearance_key_hint_offset_x_title, R.string.appearance_key_hint_offset_x_subtitle),
-        row(R.string.appearance_key_label_offset_x_title, R.string.appearance_key_label_offset_x_subtitle),
-        row(R.string.appearance_key_label_offset_y_title, R.string.appearance_key_label_offset_y_subtitle),
+        keys(R.string.appearance_key_corner_radius_title, R.string.appearance_key_corner_radius_subtitle),
+        keys(R.string.appearance_key_label_size_title, R.string.appearance_key_label_size_subtitle),
+        keys(R.string.appearance_key_label_case_title, R.string.appearance_key_label_case_subtitle),
+        keys(R.string.appearance_key_hint_size_title, R.string.appearance_key_hint_size_subtitle),
+        keys(R.string.appearance_key_hint_corner_title, R.string.appearance_key_hint_corner_subtitle),
+        keys(R.string.appearance_key_hint_offset_title, R.string.appearance_key_hint_offset_subtitle),
+        keys(R.string.appearance_key_hint_offset_x_title, R.string.appearance_key_hint_offset_x_subtitle),
+        keys(R.string.appearance_key_label_offset_x_title, R.string.appearance_key_label_offset_x_subtitle),
+        keys(R.string.appearance_key_label_offset_y_title, R.string.appearance_key_label_offset_y_subtitle),
     )
 }
 
@@ -3254,6 +3264,22 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.home_keypress_title, "keypress/shortcuts",
         ),
         under(
+            R.string.typing_group_backspace_title, R.string.keypress_delete_page_subtitle,
+            R.string.home_keypress_title, "keypress/delete",
+        ),
+        under(
+            R.string.keypress_alternates_group_title, R.string.keypress_alternates_page_subtitle,
+            R.string.home_keypress_title, "keypress/alternates",
+        ),
+        under(
+            R.string.keypress_timing_group_title, R.string.keypress_timing_page_subtitle,
+            R.string.home_keypress_title, "keypress/timing",
+        ),
+        under(
+            R.string.appearance_keys_section_title, R.string.appearance_keys_page_subtitle,
+            R.string.home_appearance_title, "appearance/keys",
+        ),
+        under(
             R.string.appearance_toolbar_section_title, R.string.appearance_toolbar_section_subtitle,
             R.string.home_appearance_title, "appearance/toolbar",
         ),
@@ -3700,7 +3726,9 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         typingSpacebarRows() +
         typingFlicksRows() +
         typingHardwareRows() +
-        keyPressRows() +
+        keypressDeleteRows() +
+        keypressAlternatesRows() +
+        keypressTimingRows() +
         keypressHapticsRows() +
         keypressPopupRows() +
         keypressShortcutsRows() +

@@ -196,6 +196,10 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatSize
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Interests
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Apps
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreHoriz
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.RoundedCorner
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Timer
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Backspace
 import androidx.compose.foundation.lazy.rememberLazyListState
 import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.ui.RailBucket
@@ -781,8 +785,12 @@ internal object SettingsRouteIcons {
         "keypress/haptics" to { Icons.Outlined.Vibration },
         "keypress/popup" to { Icons.Outlined.Preview },
         "keypress/shortcuts" to { Icons.Outlined.Shortcut },
+        "keypress/delete" to { Icons.AutoMirrored.Outlined.Backspace },
+        "keypress/alternates" to { Icons.Outlined.MoreHoriz },
+        "keypress/timing" to { Icons.Outlined.Timer },
         "languages" to { Icons.Outlined.Language },
         "appearance" to { Icons.Outlined.Palette },
+        "appearance/keys" to { Icons.Outlined.RoundedCorner },
         "appearance/toolbar" to { Icons.Outlined.ViewDay },
         "appearance/toolbox" to { Icons.Outlined.Apps },
         "themes" to { Icons.Outlined.Palette },

@@ -1392,6 +1392,33 @@ private fun SettingsNavGraph(
                 )
             }
         }
+        composable("keypress/delete") {
+            SettingsScreen(
+                stringResource(R.string.typing_group_backspace_title),
+                { navController.popBackStack() },
+                route = "keypress/delete",
+            ) {
+                KeyPressDeleteSettings(repository, settings)
+            }
+        }
+        composable("keypress/alternates") {
+            SettingsScreen(
+                stringResource(R.string.keypress_alternates_group_title),
+                { navController.popBackStack() },
+                route = "keypress/alternates",
+            ) {
+                KeyPressAlternatesSettings(repository, settings)
+            }
+        }
+        composable("keypress/timing") {
+            SettingsScreen(
+                stringResource(R.string.keypress_timing_group_title),
+                { navController.popBackStack() },
+                route = "keypress/timing",
+            ) {
+                KeyPressTimingSettings(repository, settings)
+            }
+        }
         composable("keypress/shortcuts") {
             SettingsScreen(
                 stringResource(R.string.keypress_shortcuts_group_title),
@@ -1667,6 +1694,15 @@ private fun SettingsNavGraph(
                     onOpenIcons = { navController.navigate("icons") },
                     onNavigate = { route -> navController.navigate(route) },
                 )
+            }
+        }
+        composable("appearance/keys") {
+            SettingsScreen(
+                stringResource(R.string.appearance_keys_section_title),
+                { navController.popBackStack() },
+                route = "appearance/keys",
+            ) {
+                AppearanceKeysSettings(repository, settings)
             }
         }
         composable("appearance/toolbar") {

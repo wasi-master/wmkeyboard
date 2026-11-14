@@ -842,14 +842,9 @@ internal fun KeyPressSettings(
     settings: LiveSettings,
     onNavigate: (String) -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-    // What decides which rows the groups hold; each row reads its own value.
-    val swipeDelete = settings.watch { it.backspaceSwipeDelete }
-    val lineSwipes = settings.watch { it.textEditing.deleteLineSwipes }
-    val upClears = settings.watch { it.textEditing.backspaceSwipeUpClears }
-    val swipeUnit = settings.watch { it.textEditing.backspaceSwipeUnit }
-    val holdDeletesWords = settings.watch { it.textEditing.deleteHoldDeletesWords }
+    // A hub of pages, like Appearance (#1318): the delete keys, the alternates
+    // and the timing used to be laid out under these three rows, and reaching
+    // the last of them was a long scroll past everything else.
     SettingsGroup {
         item {
             NavRow(
@@ -878,10 +873,49 @@ internal fun KeyPressSettings(
                 onNavigate("keypress/shortcuts")
             }
         }
+        item {
+            NavRow(
+                R.string.typing_group_backspace_title,
+                stringResource(R.string.keypress_delete_page_subtitle),
+                route = "keypress/delete",
+            ) {
+                onNavigate("keypress/delete")
+            }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            NavRow(
+                R.string.keypress_alternates_group_title,
+                stringResource(R.string.keypress_alternates_page_subtitle),
+                route = "keypress/alternates",
+            ) {
+                onNavigate("keypress/alternates")
+            }
+        }
+        item {
+            NavRow(
+                R.string.keypress_timing_group_title,
+                stringResource(R.string.keypress_timing_page_subtitle),
+                route = "keypress/timing",
+            ) {
+                onNavigate("keypress/timing")
+            }
+        }
     }
+}
 
-
-
+/** Key press › Delete keys: what a swipe or a hold on the delete key does. */
+@Composable
+internal fun KeyPressDeleteSettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    // What decides which rows the group holds; each row reads its own value.
+    val swipeDelete = settings.watch { it.backspaceSwipeDelete }
+    val lineSwipes = settings.watch { it.textEditing.deleteLineSwipes }
+    val upClears = settings.watch { it.textEditing.backspaceSwipeUpClears }
+    val swipeUnit = settings.watch { it.textEditing.backspaceSwipeUnit }
     // Moved here from Typing (#136): a swipe on the backspace key is a thing a
     // key does, and this is the screen for what keys do. The string names
     // keep their typing_ prefix so nothing that links to them by name breaks.
@@ -1026,12 +1060,21 @@ internal fun KeyPressSettings(
             ) { scope.launch { repository.setWebBackspaceKeyEvents(it) } }
         }
     }
+}
 
+/** Key press › Alternate keys: the popup a long press opens. */
+@Composable
+internal fun KeyPressAlternatesSettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     // The alternates ("more keys") get their own group rather than joining the
     // bubble's: they are a different popup, sized against a grid instead of a
     // fixed box, and sharing the bubble's font slider was what kept them small
     // (issue #64).
-    SettingsGroup(stringResource(R.string.keypress_alternates_group_title), level = SettingLevel.ADVANCED) {
+    SettingsGroup(stringResource(R.string.keypress_alternates_group_title)) {
         item {
             SliderSetting(
                 R.string.keypress_alternates_size_title,
@@ -1140,7 +1183,21 @@ internal fun KeyPressSettings(
             ) { scope.launch { repository.setAlternatesHoldToSelect(it) } }
         }
     }
+}
 
+/** Key press › Timing: how long a press is held, and how fast keys repeat. */
+@Composable
+internal fun KeyPressTimingSettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    // The word-stop rows serve the backspace swipe too (#662), so they read
+    // the Delete keys page's two switches.
+    val swipeDelete = settings.watch { it.backspaceSwipeDelete }
+    val swipeUnit = settings.watch { it.textEditing.backspaceSwipeUnit }
+    val holdDeletesWords = settings.watch { it.textEditing.deleteHoldDeletesWords }
     SettingsGroup(stringResource(R.string.keypress_timing_group_title)) {
         item {
             ToggleSetting(
@@ -1297,7 +1354,6 @@ internal fun KeyPressSettings(
             ) { scope.launch { repository.setShiftCapsLockMs(it.toInt()) } }
         }
     }
-
 }
 
 @Composable

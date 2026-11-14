@@ -1942,6 +1942,11 @@ internal object SettingsRowIcons {
         put(R.string.keypress_haptics_page_title) { Icons.Outlined.Vibration }
         put(R.string.keypress_popup_group_title) { Icons.Outlined.Preview }
         put(R.string.keypress_shortcuts_group_title) { Icons.Outlined.Shortcut }
+        // The pages #1318 split off Key press and Appearance.
+        put(R.string.typing_group_backspace_title) { Icons.AutoMirrored.Outlined.Backspace }
+        put(R.string.keypress_alternates_group_title) { Icons.Outlined.MoreHoriz }
+        put(R.string.keypress_timing_group_title) { Icons.Outlined.Timer }
+        put(R.string.appearance_keys_section_title) { Icons.Outlined.RoundedCorner }
         put(R.string.languages_translit_hints_row_title) { Icons.Outlined.Translate }
         put(R.string.languages_phonetic_strip_fixed_title) { Icons.Outlined.PushPin }
         put(R.string.languages_raw_keys_chip_title) { Icons.Outlined.Keyboard }
@@ -2112,6 +2117,8 @@ internal object SettingsRowIcons {
         put(R.string.panel_name_trackpad) { SymbolIcons.TrackpadInput }
         put(R.string.panel_name_numpad) { Icons.Outlined.Dialpad }
         put(R.string.panel_name_handwriting) { Icons.Outlined.Draw }
+        // Was missing, so the last panel row drew without a tile (#1318).
+        put(R.string.panel_name_emoji_mix) { Icons.Outlined.Interests }
 
         // ---- Layout & size: per screen and per orientation ----
         put(SettingsR.string.core_settings_screen_variant_landscape_label) { Icons.Outlined.StayCurrentLandscape }

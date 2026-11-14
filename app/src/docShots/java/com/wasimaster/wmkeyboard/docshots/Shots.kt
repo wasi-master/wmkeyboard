@@ -328,7 +328,7 @@ val SHOTS: List<Shot> = listOf(
 
     // appearance
     Shot("reference/settings/appearance-overview", "appearance", setting = "appearance_style_section_title"),
-    Shot("reference/settings/appearance-keys", "appearance", setting = "appearance_keys_section_title"),
+    Shot("reference/settings/appearance-keys", "appearance/keys", setting = "appearance_keys_section_title"),
     Shot("reference/settings/appearance-toolbar", "appearance/toolbar", steps = { tap("Show the toolbar") }),
     Shot("reference/settings/fonts-english-section", "fonts"),
     same("themes/font-picker-english", Shot("x", "fonts")),

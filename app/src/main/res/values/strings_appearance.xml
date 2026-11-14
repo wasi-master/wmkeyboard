@@ -20,6 +20,7 @@
 
     <!-- Appearance screen, Keys group: the size and the shape of the keys. -->
     <string name="appearance_keys_section_title">Keys</string>
+    <string name="appearance_keys_page_subtitle">Corners, labels and hints</string>
     <string name="appearance_key_corner_radius_title">Key corner radius</string>
     <string name="appearance_key_corner_radius_subtitle">How round the corners of the keys are</string>
     <string name="appearance_key_corner_radius_info">0 gives square keys. 28 gives keys with a full pill shape.</string>

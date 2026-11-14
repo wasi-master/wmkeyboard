@@ -71,7 +71,9 @@ class SettingsSearchRankingTest {
         first("key sound", "hardware_sound_key_title"),
         first("double space", "typing_double_space_title"),
         screen("space", "typing/gestures/spacebar"),
-        first("delete", "typing_backspace_swipe_title"),
+        // A page of its own since #1318, so the word names the page now, as
+        // "haptics" and "popup" do theirs; the switch is in the first three.
+        screen("delete", "keypress/delete"),
         first("emoji row", "langemoji_emoji_row_title"),
         first("add language", "langemoji_lang_add_title"),
         first("incognito", "privacy_incognito_title"),
@@ -139,6 +141,7 @@ class SettingsSearchRankingTest {
         first("volume", "hardware_sound_volume_title"),
         first("keyboard height", "layout_key_height_title"),
         first("backspace", "typing_backspace_swipe_title"),
+        first("delete", "typing_backspace_swipe_title"),
         // Four rows start with Shift now; the recase ones (#662) sit on a
         // deeper screen and lead, Shift and Enter after them.
         first("shift", "typing_shift_recase_title"),

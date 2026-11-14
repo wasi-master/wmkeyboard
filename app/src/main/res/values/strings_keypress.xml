@@ -195,6 +195,9 @@
 
     <!-- Key press settings screen, "Timing" group. -->
     <string name="keypress_timing_group_title">Timing</string>
+    <string name="keypress_timing_page_subtitle">Hold delay and key repeat</string>
+    <string name="keypress_alternates_page_subtitle">Keys a long press offers</string>
+    <string name="keypress_delete_page_subtitle">Swipes on the delete key</string>
 
     <string name="keypress_long_press_delay_title">Press and hold delay</string>
     <string name="keypress_long_press_delay_subtitle">How long you hold a key before the alternate characters appear</string>

@@ -150,6 +150,7 @@ private fun ResetPinnedToolsSetting(repository: SettingsRepository, scope: Corou
 // ---- appearance ----
 
 @Composable
+@Suppress("UnusedParameter")
 internal fun AppearanceSettings(
     repository: SettingsRepository,
     settings: LiveSettings,
@@ -158,23 +159,6 @@ internal fun AppearanceSettings(
     onOpenIcons: () -> Unit,
     onNavigate: (String) -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    // Slider readouts are plain lambdas, so their format strings are resolved
-    // here and captured. The format also puts the number through the locale,
-    // which is what gives Bengali or Arabic digits.
-    val dpFormat = stringResource(R.string.typing_value_dp)
-    val multiplierFormat = stringResource(R.string.keypress_value_multiplier)
-    // What decides which rows the groups hold; each row reads its own value.
-    val appearanceMoved = settings.watch { s ->
-        val d = SettingsDefaults
-        s.keyCornerRadiusDp != d.keyCornerRadiusDp ||
-            s.fontScale != d.fontScale ||
-            s.layoutBehavior.hintFontScale != d.layoutBehavior.hintFontScale ||
-            s.layoutBehavior.hintOffsetDp != d.layoutBehavior.hintOffsetDp ||
-            s.layoutBehavior.hintOffsetXDp != d.layoutBehavior.hintOffsetXDp ||
-            s.layoutBehavior.labelOffsetXDp != d.layoutBehavior.labelOffsetXDp ||
-            s.layoutBehavior.labelOffsetYDp != d.layoutBehavior.labelOffsetYDp
-    }
     // Turning the toolbar off is guarded — it hides suggestions and every tool.
     SettingsGroup(stringResource(R.string.appearance_style_section_title)) {
         item {
@@ -232,6 +216,64 @@ internal fun AppearanceSettings(
         }
     }
 
+    SettingsGroup {
+        // The key rows have a page of their own (#1318), beside the toolbar's
+        // and the toolbox's: nine sliders laid out here pushed those two doors
+        // to the bottom of a long scroll.
+        item(level = SettingLevel.STANDARD) {
+            NavRow(
+                R.string.appearance_keys_section_title,
+                stringResource(R.string.appearance_keys_page_subtitle),
+                route = "appearance/keys",
+            ) {
+                onNavigate("appearance/keys")
+            }
+        }
+        item(level = SettingLevel.STANDARD) {
+            NavRow(
+                R.string.appearance_toolbar_section_title,
+                stringResource(R.string.appearance_toolbar_section_subtitle),
+                route = "appearance/toolbar",
+            ) {
+                onNavigate("appearance/toolbar")
+            }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            NavRow(
+                R.string.appearance_toolbox_section_title,
+                stringResource(R.string.appearance_toolbox_section_subtitle),
+                route = "appearance/toolbox",
+            ) {
+                onNavigate("appearance/toolbox")
+            }
+        }
+    }
+
+}
+
+/** Appearance › Keys: the corners of the keys, and where and how big their labels are. */
+@Composable
+internal fun AppearanceKeysSettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+) {
+    val scope = rememberCoroutineScope()
+    // Slider readouts are plain lambdas, so their format strings are resolved
+    // here and captured. The format also puts the number through the locale,
+    // which is what gives Bengali or Arabic digits.
+    val dpFormat = stringResource(R.string.typing_value_dp)
+    val multiplierFormat = stringResource(R.string.keypress_value_multiplier)
+    // What decides which rows the groups hold; each row reads its own value.
+    val appearanceMoved = settings.watch { s ->
+        val d = SettingsDefaults
+        s.keyCornerRadiusDp != d.keyCornerRadiusDp ||
+            s.fontScale != d.fontScale ||
+            s.layoutBehavior.hintFontScale != d.layoutBehavior.hintFontScale ||
+            s.layoutBehavior.hintOffsetDp != d.layoutBehavior.hintOffsetDp ||
+            s.layoutBehavior.hintOffsetXDp != d.layoutBehavior.hintOffsetXDp ||
+            s.layoutBehavior.labelOffsetXDp != d.layoutBehavior.labelOffsetXDp ||
+            s.layoutBehavior.labelOffsetYDp != d.layoutBehavior.labelOffsetYDp
+    }
     SettingsGroup(stringResource(R.string.appearance_keys_section_title)) {
         item(level = SettingLevel.STANDARD) {
             SliderSetting(
@@ -364,28 +406,6 @@ internal fun AppearanceSettings(
             ) { scope.launch { repository.resetAppearance() } }
         }
     }
-
-    SettingsGroup {
-        item(level = SettingLevel.STANDARD) {
-            NavRow(
-                R.string.appearance_toolbar_section_title,
-                stringResource(R.string.appearance_toolbar_section_subtitle),
-                route = "appearance/toolbar",
-            ) {
-                onNavigate("appearance/toolbar")
-            }
-        }
-        item(level = SettingLevel.ADVANCED) {
-            NavRow(
-                R.string.appearance_toolbox_section_title,
-                stringResource(R.string.appearance_toolbox_section_subtitle),
-                route = "appearance/toolbox",
-            ) {
-                onNavigate("appearance/toolbox")
-            }
-        }
-    }
-
 }
 
 @Composable
