@@ -79,6 +79,17 @@ class GlideKeyMap private constructor(
      * [of], and a key that can spell nothing is not part of the grid's top.
      */
     val topEdge: Float by lazy {
+        var top = Float.POSITIVE_INFINITY
+        for (key in keyOf.toHashSet()) top = minOf(top, keyY[key])
+        top - rowPitch / 2f
+    }
+
+    /**
+     * The gap from the grid's top row down to the next, in key widths: the
+     * row pitch [topEdge] and [GlideOverhang.escaped] measure in. NaN on a
+     * grid of one row.
+     */
+    val rowPitch: Float by lazy {
         val owned = keyOf.toHashSet()
         var top = Float.POSITIVE_INFINITY
         for (key in owned) top = minOf(top, keyY[key])
@@ -87,7 +98,7 @@ class GlideKeyMap private constructor(
             val y = keyY[key]
             if (y > top + ROW_TOLERANCE && y < next) next = y
         }
-        if (next.isInfinite()) Float.NaN else top - (next - top) / 2f
+        if (next.isInfinite()) Float.NaN else next - top
     }
 
     /** True when [codePoint] is somewhere on the grid. */

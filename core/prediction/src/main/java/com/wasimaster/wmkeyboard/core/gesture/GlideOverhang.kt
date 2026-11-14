@@ -45,4 +45,25 @@ object GlideOverhang {
         if (path.none { it.y < edgePx }) return path
         return path.map { if (it.y < edgePx) it.copy(y = edgePx) else it }
     }
+
+    /**
+     * Whether [path] lifts well clear of the letters, past the number row's
+     * height above the top row: the way out of a glide begun on the wrong
+     * word (#1310). The finger is taken up off the keyboard and lifted there,
+     * and nothing is typed. [fold] reads an overshoot onto the number row as
+     * the top row, which is a slip of a few millimetres; a lift a whole row
+     * pitch above the top row's edge is past anything that fold was measured
+     * on, so it is the escape it was before the fold. Only the lift counts:
+     * a stroke that rises above the keys and comes back down is still a word.
+     */
+    fun escaped(path: List<GesturePoint>, keys: GlideKeyMap, keyWidth: Float): Boolean {
+        val last = path.lastOrNull() ?: return false
+        val edge = keys.topEdge
+        val pitch = keys.rowPitch
+        if (edge.isNaN() || pitch.isNaN() || keyWidth <= 0f) return false
+        return last.y < (edge - pitch * ESCAPE_ROWS) * keyWidth
+    }
+
+    /** How far above the top row's edge, in row pitches, a lift is an escape: a number row's height. */
+    const val ESCAPE_ROWS = 1f
 }

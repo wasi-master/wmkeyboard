@@ -35280,7 +35280,10 @@ open class WMKeyboardService : InputMethodService() {
         if (!glideAllowed(state)) return
         if (keys.isEmpty()) return
         syncGlideTriggers(state)
-        if (verdict is GlideVerdict.Cancel) {
+        // Lifted well above the keys: the way out of a wrong word (#1310).
+        if (verdict is GlideVerdict.Cancel ||
+            com.wasimaster.wmkeyboard.core.gesture.GlideOverhang.escaped(points, rawKeyMapFor(keys, keyWidthPx), keyWidthPx)
+        ) {
             cancelGlide()
             return
         }
@@ -35916,7 +35919,10 @@ open class WMKeyboardService : InputMethodService() {
         if (!glideAllowed(state)) return
         if (keys.isEmpty() || segments.isEmpty()) return
         syncGlideTriggers(state)
-        if (verdict is GlideVerdict.Cancel) {
+        if (verdict is GlideVerdict.Cancel || com.wasimaster.wmkeyboard.core.gesture.GlideOverhang.escaped(
+                segments.last(), rawKeyMapFor(keys, keyWidthPx), keyWidthPx,
+            )
+        ) {
             cancelGlide()
             return
         }
