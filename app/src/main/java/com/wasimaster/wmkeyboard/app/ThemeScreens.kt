@@ -7925,6 +7925,9 @@ private fun DecalDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.theme_decal_section_title)) },
         text = {
+            // The dialog's own width, not the screen's: the slider rows put a
+            // short name beside the slider only where it fits (#1324).
+            RowsAtOwnWidth {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 ThemePreview(theme, animatedBadge = false)
                 Spacer(Modifier.height(8.dp))
@@ -7958,6 +7961,7 @@ private fun DecalDialog(
                     range = 0.1f..1f,
                     display = { "${(it * 100).toInt()}%" },
                 ) { onChange(decal.copy(opacity = (it * 100).toInt() / 100f)) }
+            }
             }
         },
         confirmButton = {

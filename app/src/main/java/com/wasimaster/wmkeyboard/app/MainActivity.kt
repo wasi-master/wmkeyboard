@@ -4701,7 +4701,26 @@ private val GROUP_CARD_INSET = 32.dp
  */
 @Composable
 private fun settingsRowWidth(): Dp =
-    LocalConfiguration.current.screenWidthDp.dp - GROUP_CARD_INSET
+    LocalSettingsRowWidth.current ?: (LocalConfiguration.current.screenWidthDp.dp - GROUP_CARD_INSET)
+
+/**
+ * How wide the rows are where that is not the settings list's card: the rows
+ * of a dialog, set by [RowsAtOwnWidth]. Null in the list itself.
+ */
+internal val LocalSettingsRowWidth = compositionLocalOf<Dp?> { null }
+
+/**
+ * Settings rows in [content] budget their line against the width they are
+ * given rather than the screen's (#1324). A dialog is narrower than the list,
+ * and a slider row that measured the screen put its name beside the slider
+ * there and squeezed it to a letter a line.
+ */
+@Composable
+internal fun RowsAtOwnWidth(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    BoxWithConstraints(modifier) {
+        CompositionLocalProvider(LocalSettingsRowWidth provides maxWidth) { content() }
+    }
+}
 
 /**
  * Whether [text], drawn in [style], fits beside a row's title once the row has
