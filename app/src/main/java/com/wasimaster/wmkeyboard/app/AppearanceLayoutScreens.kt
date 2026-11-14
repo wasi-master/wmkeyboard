@@ -60,6 +60,7 @@ import com.wasimaster.wmkeyboard.core.settings.SidePadScaleRange
 import com.wasimaster.wmkeyboard.core.settings.ToolHeightRange
 import com.wasimaster.wmkeyboard.core.settings.ToolWidthRange
 import com.wasimaster.wmkeyboard.core.settings.ToolbarHeightRange
+import com.wasimaster.wmkeyboard.core.settings.KeepToolsMinutesRange
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPaddingRange
 import com.wasimaster.wmkeyboard.core.settings.stripToolboxSwipes
 import com.wasimaster.wmkeyboard.core.addons.AddonType
@@ -429,6 +430,7 @@ internal fun AppearanceToolbarSettings(
     val placement = settings.watch { it.toolbarBehavior.placement }
     val stripSwipes = settings.watch { it.stripToolboxSwipes() }
     val labelsOn = settings.watch { it.toolbarLabels }
+    val keepTools = settings.watch { it.toolbarBehavior.keepToolsAcrossApps }
     val toolCircleOn = settings.watch { it.toolCircleRadiusDp > 0 }
     val stripShown = settings.watch { it.toolbarBehavior.showStrip }
     val overTheme = settings.watch { it.toolbarBehavior.sizeOverTheme }
@@ -741,10 +743,21 @@ internal fun AppearanceToolbarSettings(
             ToggleSetting(
                 R.string.appearance_toolbar_keep_tools_title,
                 stringResource(R.string.appearance_toolbar_keep_tools_subtitle),
-                settings.watch { it.toolbarBehavior.keepToolsAcrossApps },
+                keepTools,
                 info = stringResource(R.string.appearance_toolbar_keep_tools_info),
                 default = SettingsDefaults.toolbarBehavior.keepToolsAcrossApps,
             ) { scope.launch { repository.setKeepToolsAcrossApps(it) } }
+        }
+        item(visible = keepTools) {
+            val minutesFormat = stringResource(R.string.values_minutes)
+            SliderSetting(
+                R.string.appearance_toolbar_keep_tools_minutes_title,
+                subtitle = stringResource(R.string.appearance_toolbar_keep_tools_minutes_subtitle),
+                value = settings.watch { it.toolbarBehavior.keepToolsMinutes }.toFloat(),
+                range = KeepToolsMinutesRange.first.toFloat()..KeepToolsMinutesRange.last.toFloat(),
+                display = { minutesFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.toolbarBehavior.keepToolsMinutes.toFloat(),
+            ) { scope.launch { repository.setKeepToolsMinutes(it.roundToInt()) } }
         }
         if (toolbarOn) item {
             ToggleSetting(

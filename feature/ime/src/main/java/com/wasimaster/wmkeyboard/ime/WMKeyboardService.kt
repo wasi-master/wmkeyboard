@@ -20369,7 +20369,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * A new field in [info]'s app: its parked tool comes back when the user
-     * left the app and returned within [PARKED_TOOL_MS], the field is no
+     * left the app and returned within the minutes the setting allows, the field is no
      * password or incognito one ([blocked]), and nothing else already holds
      * the panel. Taken either way: a tool comes back once.
      */
@@ -20379,7 +20379,8 @@ open class WMKeyboardService : InputMethodService() {
         dropParkedTool(pkg)
         val state = _uiState.value
         if (blocked || !parked.left || !state.settings.toolbarBehavior.keepToolsAcrossApps) return
-        if (System.currentTimeMillis() - parked.at !in 0..PARKED_TOOL_MS) return
+        val wait = state.settings.toolbarBehavior.keepToolsMinutes * 60_000L
+        if (System.currentTimeMillis() - parked.at !in 0..wait) return
         if (state.panel != PanelMode.NONE || parked.panel == state.appletPanel) return
         if (parked.panel == PanelMode.CLIPBOARD && !isClipboardAccessible()) return
         reopenParkedTool(parked)
@@ -62697,9 +62698,6 @@ open class WMKeyboardService : InputMethodService() {
 
         /** How long a summoned keyboard keeps the floating button's panel through field reports (#1196). */
         private const val FLOATING_TOOL_KEEP_MS = 1_500L
-
-        /** How long a tool left open in an app waits for the user to come back to it. */
-        private const val PARKED_TOOL_MS = 30L * 60 * 1000
 
         /** Apps whose open tool is remembered at once, in memory. */
         private const val PARKED_TOOLS_MAX = 4
