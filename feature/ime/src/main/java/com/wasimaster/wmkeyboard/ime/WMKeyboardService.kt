@@ -10943,8 +10943,16 @@ open class WMKeyboardService : InputMethodService() {
             // a late one would put back chips the platform already withdrew,
             // whose surfaces are dead and draw blank (#398).
             if (generation != inlineResponseGeneration) return@inflateAll
+            // The manager answered this field itself (#1330): its own chip
+            // fills the login, where the keyboard's chip could only open the
+            // app, so the keyboard's stays down for the rest of the field,
+            // and does not take the place of the manager's once that goes.
             _uiState.update {
-                it.copy(autofillChips = chips.autofill, smartReplyChips = chips.platform)
+                it.copy(
+                    autofillChips = chips.autofill,
+                    smartReplyChips = chips.platform,
+                    passwordManagerApp = it.passwordManagerApp.takeIf { _ -> chips.autofill.isEmpty() },
+                )
             }
         }
         return true
