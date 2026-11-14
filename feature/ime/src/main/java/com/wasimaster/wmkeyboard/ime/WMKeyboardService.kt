@@ -54721,6 +54721,7 @@ open class WMKeyboardService : InputMethodService() {
                 notePasted(pasted)
                 purgeAfterPasswordPaste()
             }
+            TextEditAction.TYPE_CLIPBOARD -> typeClipboard(ic)
             // Handled above, before the composing text was committed.
             TextEditAction.BACKSPACE, TextEditAction.FORWARD_DELETE, TextEditAction.RETYPE_WORD,
             TextEditAction.NO_SPACE, TextEditAction.NO_SPACE_NEXT,
@@ -54811,6 +54812,38 @@ open class WMKeyboardService : InputMethodService() {
      * editor pastes from the system clipboard as usual: the keyboard reads
      * nothing there itself, the app does.
      */
+    /**
+     * The clipboard's text typed out rather than pasted (#1314): a site that
+     * refuses a paste into its login fields, or answers the keyboard's paste
+     * and not the system menu's, takes it as typing. Each character goes as
+     * the key press that makes it on a virtual keyboard, the way a hardware
+     * key reaches the page; one no key makes, and a line break, goes in as
+     * typed text. The private clip, Paste next's pick, comes first, as on
+     * the paste keys. Capped at [TYPE_CLIPBOARD_MAX] characters.
+     */
+    private fun typeClipboard(ic: InputConnection) {
+        if (!isClipboardAccessible()) return
+        releaseUserShift()
+        val text = KeyboardClipboard.held ?: runCatching {
+            (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip
+                ?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(this)?.toString()
+        }.getOrNull()
+        if (text.isNullOrEmpty()) return
+        val keys = runCatching { KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD) }.getOrNull()
+        ic.beginBatchEdit()
+        var at = 0
+        val end = minOf(text.length, TYPE_CLIPBOARD_MAX)
+        while (at < end) {
+            val step = Character.charCount(text.codePointAt(at))
+            val piece = text.substring(at, at + step)
+            val events = if (piece == "\n" || step > 1) null else keys?.getEvents(piece.toCharArray())
+            if (events.isNullOrEmpty()) ic.commitText(piece, 1) else events.forEach { ic.sendKeyEvent(it) }
+            at += step
+        }
+        ic.endBatchEdit()
+        purgeAfterPasswordPaste()
+    }
+
     private fun privatePaste(ic: InputConnection): Boolean {
         val held = KeyboardClipboard.held ?: return false
         ic.commitText(held, 1)
@@ -54903,7 +54936,7 @@ open class WMKeyboardService : InputMethodService() {
             TextEditAction.WORD_LEFT -> captureWordStep(back = true, extend = extend)
             TextEditAction.WORD_RIGHT -> captureWordStep(back = false, extend = extend)
             TextEditAction.BACKSPACE -> captureBackspace()
-            TextEditAction.PASTE -> capturePaste()
+            TextEditAction.PASTE, TextEditAction.TYPE_CLIPBOARD -> capturePaste()
             // The selection keys and their flicks and holds (#612): Select
             // all, Copy and Cut did nothing in the clip editor or Combine's
             // boxes, or reached the app behind the panel, where nothing showed.
@@ -62102,6 +62135,9 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     companion object {
+        /** The most characters Type the clipboard types out (#1314): a login, not a document. */
+        private const val TYPE_CLIPBOARD_MAX = 2_000
+
         /**
          * Key codes that come from no keyboard and never type or edit:
          * fingerprint-sensor gestures, power, wake, assistant and camera

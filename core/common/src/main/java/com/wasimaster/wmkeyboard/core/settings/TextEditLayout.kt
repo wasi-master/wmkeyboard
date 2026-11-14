@@ -67,6 +67,10 @@ enum class TextEditAction {
     // only the rest of the line: what Delete line does at the edges of the
     // field, in one press.
     DELETE_TO_START, DELETE_TO_END,
+
+    // Issue #1314. The clipboard typed out key by key rather than pasted: a
+    // site that refuses a paste into its login fields takes it as typing.
+    TYPE_CLIPBOARD,
 }
 
 /**

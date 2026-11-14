@@ -872,6 +872,7 @@ private fun TextEditAction.fallbackGlyph(): String = when (this) {
     TextEditAction.CLEAR_FIELD -> "⌫⌫"
     TextEditAction.DELETE_TO_START -> "⇱⌫"
     TextEditAction.DELETE_TO_END -> "⇲⌦"
+    TextEditAction.TYPE_CLIPBOARD -> "⌨📋"
 }
 
 /**

@@ -87,6 +87,7 @@
     <string name="ime_textedit_delete_line_forward_desc">Delete line after the cursor</string>
     <string name="ime_textedit_delete_to_start_desc">Delete to the start</string>
     <string name="ime_textedit_delete_to_end_desc">Delete to the end</string>
+    <string name="ime_textedit_type_clipboard_desc">Type the clipboard</string>
     <string name="ime_tool_clear_field">Delete everything</string>
     <string name="ime_tool_timestamp">Timestamp</string>
     <string name="ime_textedit_doc_end_desc">Move to the end of the text</string>
