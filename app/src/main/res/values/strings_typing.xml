@@ -5,6 +5,8 @@
     <!-- ==== Typing settings screen: group headings ==== -->
     <string name="typing_group_corrections_title">Automatic corrections</string>
     <string name="typing_group_suggestions_title">Suggestions</string>
+    <string name="typing_strip_look_title">How the strip looks</string>
+    <string name="typing_strip_look_subtitle">Text size, spacing and colours, under Appearance › Toolbar</string>
     <string name="typing_group_smart_chips_title">Smart chips</string>
     <string name="typing_group_gestures_title">Gestures</string>
     <string name="typing_group_glide_title">Glide typing</string>

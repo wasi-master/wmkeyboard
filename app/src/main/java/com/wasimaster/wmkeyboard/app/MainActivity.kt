@@ -1268,6 +1268,10 @@ private fun SettingsNavGraph(
                     onOpenBlacklist = { navController.navigate("blacklist") },
                     onOpenAutopilot = { navController.navigate("typing/autopilot") },
                     onOpenOctopus = { navController.navigate("typing/octopus") },
+                    onOpenStripLook = {
+                        SettingsHighlight.request(R.string.appearance_suggestion_text_size_title)
+                        navController.navigate("appearance/toolbar")
+                    },
                 )
             }
         }

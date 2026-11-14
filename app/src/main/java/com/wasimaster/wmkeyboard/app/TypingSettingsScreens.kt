@@ -1022,6 +1022,7 @@ internal fun TypingSuggestionsSettings(
     onOpenBlacklist: () -> Unit,
     onOpenAutopilot: () -> Unit,
     onOpenOctopus: () -> Unit,
+    onOpenStripLook: () -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     // What decides which rows the group holds; each row reads its own value.
@@ -1046,6 +1047,17 @@ internal fun TypingSuggestionsSettings(
                 info = stringResource(R.string.typing_suggestions_info),
                 default = SettingsDefaults.suggestions,
             ) { scope.launch { repository.setSuggestions(it) } }
+        }
+        // How the strip looks is set beside the toolbar it shares a bar with,
+        // which is not where anyone tuning suggestions looks first (#1318).
+        // A door to those rows, landing on the first of them.
+        item(level = SettingLevel.STANDARD) {
+            NavRow(
+                R.string.typing_strip_look_title,
+                stringResource(R.string.typing_strip_look_subtitle),
+                route = "appearance/toolbar",
+                onClick = onOpenStripLook,
+            )
         }
         // The strip refresh returns before it reads any of this while
         // suggestions are off, so the chips never get built.
