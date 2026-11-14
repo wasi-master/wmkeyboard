@@ -850,6 +850,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_hide_system_keyboard_bar_title) { Icons.Outlined.VisibilityOff }
         put(R.string.layout_board_corner_top_title) { Icons.Outlined.RoundedCorner }
         put(R.string.layout_board_corner_bottom_title) { Icons.Outlined.RoundedCorner }
+        put(R.string.layout_board_inverse_corner_title) { Icons.Outlined.RoundedCorner }
         put(R.string.layout_board_corners_title) { Icons.Outlined.CropFree }
         put(R.string.layout_keyboard_width_title) { Icons.Outlined.Straighten }
         put(R.string.layout_full_width_bars_title) { Icons.Outlined.Straighten }

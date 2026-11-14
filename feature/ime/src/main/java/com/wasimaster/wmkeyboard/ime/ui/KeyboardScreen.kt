@@ -2489,6 +2489,30 @@ private fun DockedKeyboardFrame(
     val previewHeadroomPx =
         if (bandMode == KeyPreviewBandMode.WINDOW) wantedHeadroomPx else 0
     val previewBand = remember { KeyPreviewBand() }
+    // Inverse top corners (#1325): concave ears in the board's colour, drawn
+    // in a band of their own just above the board, so the app above looks
+    // rounded at the bottom. Window, like the preview band: the band is held
+    // out of the app's insets, and the docked touchable area starts at the
+    // board's top, so a tap on an ear is the app's. Only for a host with a
+    // window behind the frame, not while resizing (whose outline runs to the
+    // corners), not on a television, and not under a glass theme's blur,
+    // which would blur the strip of app the ears sit in.
+    val earBehavior = state.settings.layoutBehavior
+    val earLeft = BoardCorner.TOP_LEFT in earBehavior.boardCorners
+    val earRight = BoardCorner.TOP_RIGHT in earBehavior.boardCorners
+    val earsOn = earBehavior.boardInverseCornerDp > 0 && (earLeft || earRight) && resize == null &&
+        !state.television && LocalKeyPreviewBand.current == KeyPreviewBandMode.WINDOW &&
+        !LocalKeyboardPreviewHost.current && !windowFrostLive(LocalKbTheme.current)
+    val earPx = if (earsOn) {
+        with(density) { earBehavior.boardInverseCornerDp.coerceIn(BoardCornerRadiusRange).dp.roundToPx() }
+    } else {
+        0
+    }
+    val earBand = remember { KeyPreviewBand() }
+    val earColor = boardTopEdgeColor(LocalKbTheme.current)
+    val earsModifier = remember(earPx, earLeft, earRight, earColor) {
+        if (earPx <= 0) Modifier else Modifier.inverseCornerEars(earPx.toFloat(), earLeft, earRight, earColor)
+    }
     var frameOrigin by remember { mutableStateOf(Offset.Zero) }
     var frameSize by remember { mutableStateOf(IntSize.Zero) }
     val configuration = LocalConfiguration.current
@@ -2537,9 +2561,9 @@ private fun DockedKeyboardFrame(
     // sees the write from the layout pass that made it and delivers after the
     // frame, which is also where the service's requestLayout belongs. Resize
     // mode's frame holds its own band in place of the rows' (issue #643).
-    LaunchedEffect(revealHeadroom, previewBand, onWindowHeadroom, resize) {
+    LaunchedEffect(revealHeadroom, previewBand, earBand, onWindowHeadroom, resize) {
         snapshotFlow {
-            previewBand.heldPx + (resize?.windowBandPx() ?: revealHeadroom.windowPx)
+            previewBand.heldPx + earBand.heldPx + (resize?.windowBandPx() ?: revealHeadroom.windowPx)
         }.collect { onWindowHeadroom(it) }
     }
     // Two boxes: the frame proper under its band, and the bubbles over the
@@ -2565,7 +2589,7 @@ private fun DockedKeyboardFrame(
                 frameSize = it.size
             }
     }
-    val innerFrameModifier = remember(previewHeadroomPx, previewBand, resize, revealHeadroom) {
+    val innerFrameModifier = remember(previewHeadroomPx, previewBand, resize, revealHeadroom, earPx, earBand) {
         Modifier
             .fillMaxWidth()
             .keyPreviewHeadroom(previewHeadroomPx, previewBand)
@@ -2576,6 +2600,9 @@ private fun DockedKeyboardFrame(
                     Modifier.resizeHeadroom(resize)
                 },
             )
+            // Innermost, so the ears' band sits right on the board's top
+            // edge, under a bar row's held band and the bubbles' band.
+            .keyPreviewHeadroom(earPx, earBand)
     }
     Box(modifier = outerFrameModifier) {
         Box(modifier = innerFrameModifier) {
@@ -2587,8 +2614,8 @@ private fun DockedKeyboardFrame(
             // through them. Not on a television, whose card rounds itself, and
             // not while resizing, whose outline chrome runs to the corners.
             val behavior = state.settings.layoutBehavior
-            val boardShape = remember(behavior.boardCornerTopDp, behavior.boardCornerBottomDp, behavior.boardCorners) {
-                boardCornerShape(behavior)
+            val boardShape = remember(behavior.boardCornerTopDp, behavior.boardCornerBottomDp, behavior.boardCorners, earsOn) {
+                boardCornerShape(behavior, squareTop = earsOn)
             }.takeUnless {
                 resize != null || (state.television && state.settings.oneHandedModeFor(landscape) == OneHandedMode.OFF)
             }
@@ -2602,6 +2629,9 @@ private fun DockedKeyboardFrame(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
+                    // Before the clip, which would cut away anything drawn
+                    // above the board's own top edge.
+                    .then(earsModifier)
                     .then(if (boardShape == null) Modifier else Modifier.clip(boardShape))
                     .then(popupBlur)
                     .then(gapHoles)
@@ -3089,10 +3119,12 @@ private fun TelevisionCard(modifier: Modifier, widthShare: Float, content: @Comp
  * The docked board's outline from its corner settings, or null while every
  * corner is square, so the default board takes no clip at all. Left and right
  * are the screen's, whatever the language's direction, since the corners are
- * where the screen's are.
+ * where the screen's are. [squareTop] while the inverse corners' ears sit on
+ * the top edge (#1325): a convex corner under a concave ear would open a
+ * notch of app between the two.
  */
-internal fun boardCornerShape(behavior: LayoutBehaviorSettings): Shape? {
-    val top = behavior.boardCornerTopDp.coerceIn(BoardCornerRadiusRange)
+internal fun boardCornerShape(behavior: LayoutBehaviorSettings, squareTop: Boolean = false): Shape? {
+    val top = if (squareTop) 0 else behavior.boardCornerTopDp.coerceIn(BoardCornerRadiusRange)
     val bottom = behavior.boardCornerBottomDp.coerceIn(BoardCornerRadiusRange)
     fun radius(corner: BoardCorner, dp: Int): Int = if (corner in behavior.boardCorners) dp else 0
     val topLeft = radius(BoardCorner.TOP_LEFT, top)
@@ -3107,6 +3139,50 @@ internal fun boardCornerShape(behavior: LayoutBehaviorSettings): Shape? {
         bottomLeft = bottomLeft.dp,
     )
 }
+
+/**
+ * The flat colour the inverse corners' ears are painted in (#1325): the
+ * board's top edge, which for a gradient is its first stop (the default sweep
+ * runs from the top left). Opaque, since an ear over the app is the board's
+ * silhouette, not a tint of the app.
+ */
+internal fun boardTopEdgeColor(kb: KbTheme): Color {
+    val board = kb.boardGradient?.colors?.firstOrNull()?.let { Color(it.toInt()) } ?: kb.board
+    return board.compositeOver(kb.board.copy(alpha = 1f)).copy(alpha = 1f)
+}
+
+/**
+ * Draws the inverse corners' ears (#1325) above the node's top edge, in the
+ * band [keyPreviewHeadroom] holds for them: for each side, the square of
+ * [radiusPx] on the board's top corner minus a quarter circle, so the edge
+ * the app shows against curves from the screen's side down onto the board.
+ * Drawn behind the node and outside it, so it must sit before any clip.
+ * The bottom edge reaches a pixel into the board, under the board's own
+ * paint, so no hairline of app shows at the seam.
+ */
+private fun Modifier.inverseCornerEars(radiusPx: Float, left: Boolean, right: Boolean, color: Color): Modifier =
+    drawWithCache {
+        val r = radiusPx.coerceAtMost(size.width / 2f)
+        val seam = 1f
+        val w = size.width
+        val path = Path()
+        if (left) {
+            path.moveTo(0f, seam)
+            path.lineTo(r, seam)
+            path.lineTo(r, 0f)
+            // Centre (r, -r): from straight below it round to straight left of it.
+            path.arcTo(Rect(0f, -2f * r, 2f * r, 0f), 90f, 90f, false)
+            path.close()
+        }
+        if (right) {
+            path.moveTo(w, seam)
+            path.lineTo(w - r, seam)
+            path.lineTo(w - r, 0f)
+            path.arcTo(Rect(w - 2f * r, -2f * r, w, 0f), 90f, -90f, false)
+            path.close()
+        }
+        onDrawBehind { drawPath(path, color) }
+    }
 
 /** Corner radius of [TelevisionCard]'s two top corners. */
 private val TelevisionCardCorner = 12.dp

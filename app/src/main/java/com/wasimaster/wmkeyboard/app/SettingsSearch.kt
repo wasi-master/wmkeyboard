@@ -1260,6 +1260,7 @@ private fun SearchStrings.layoutSizeRows(): List<SettingsSearchEntry> {
         row(R.string.layout_full_height_window_title, R.string.layout_full_height_window_subtitle),
         row(R.string.layout_board_corner_top_title, R.string.layout_board_corner_top_subtitle),
         row(R.string.layout_board_corner_bottom_title, R.string.layout_board_corner_bottom_subtitle),
+        row(R.string.layout_board_inverse_corner_title, R.string.layout_board_inverse_corner_subtitle),
         row(R.string.layout_keyboard_width_title, R.string.layout_keyboard_width_subtitle),
         row(R.string.layout_full_width_bars_title, R.string.layout_full_width_bars_subtitle),
         row(R.string.layout_toolbar_height_title, R.string.layout_toolbar_height_subtitle),

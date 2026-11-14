@@ -10299,6 +10299,16 @@ data class LayoutBehaviorSettings(
     /** Which of the four corners [boardCornerTopDp] and [boardCornerBottomDp] round. All four by default. */
     val boardCorners: Set<BoardCorner> = BoardCorner.entries.toSet(),
     /**
+     * Inverse top corners (#1325), in dp (0 = off, the default): concave
+     * "ears" in the board's colour drawn in the window band just above the
+     * docked keyboard's top edge, so the app above looks rounded at the
+     * bottom. The ears are window, not keyboard: they are kept out of the
+     * app's insets and take no touches. Only the top two of [boardCorners]
+     * get one, and while they are on the board's own top corners stay square.
+     * See [BoardCornerRadiusRange].
+     */
+    val boardInverseCornerDp: Int = 0,
+    /**
      * Turn the spacebar cursor slide into a 2-D touchpad: a vertical drag moves
      * the caret up and down as well as left and right. Only applies while a
      * spacebar swipe slot is set to cursor control; when on it also claims the
@@ -12695,6 +12705,7 @@ class SettingsRepository(private val context: Context) {
         private val BOARD_CORNER_TOP = intPreferencesKey("board_corner_top")
         private val BOARD_CORNER_BOTTOM = intPreferencesKey("board_corner_bottom")
         private val BOARD_CORNERS = stringSetPreferencesKey("board_corners")
+        private val BOARD_INVERSE_CORNER = intPreferencesKey("board_inverse_corner")
         private val SPACE_CURSOR_2D = booleanPreferencesKey("space_cursor_2d")
         private val HINT_FONT_SCALE = floatPreferencesKey("hint_font_scale")
         private val HINT_OFFSET = intPreferencesKey("hint_offset_dp")
@@ -15722,6 +15733,8 @@ class SettingsRepository(private val context: Context) {
             boardCorners = p[BOARD_CORNERS]
                 ?.mapNotNullTo(mutableSetOf()) { name -> BoardCorner.entries.firstOrNull { it.name == name } }
                 ?: defaults.layoutBehavior.boardCorners,
+            boardInverseCornerDp = p[BOARD_INVERSE_CORNER]?.coerceIn(BoardCornerRadiusRange)
+                ?: defaults.layoutBehavior.boardInverseCornerDp,
             spaceCursor2d = p[SPACE_CURSOR_2D] ?: defaults.layoutBehavior.spaceCursor2d,
             spaceHoldKeys = p[SPACE_HOLD_KEYS]
                 ?.split('\n')?.filter { it.isNotEmpty() }
@@ -23975,6 +23988,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setBoardCorners(value: Set<BoardCorner>) =
         editPrefs { prefs -> prefs[BOARD_CORNERS] = value.mapTo(mutableSetOf()) { it.name } }
+
+    suspend fun setBoardInverseCornerDp(value: Int) =
+        editPrefs { it[BOARD_INVERSE_CORNER] = value.coerceIn(BoardCornerRadiusRange) }
 
     suspend fun setSpaceCursor2d(value: Boolean) =
         editPrefs { it[SPACE_CURSOR_2D] = value }

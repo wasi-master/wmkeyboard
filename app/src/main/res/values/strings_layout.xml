@@ -130,8 +130,13 @@
     <string name="layout_board_corner_info">The corners are cut out of the whole keyboard, and the app shows through them. Set the top and the bottom separately, and choose the corners under Which corners. Round bottom corners suit gesture navigation and a phone with round screen corners. This does not change the floating keyboard, which has round corners of its own. Both are square by default.</string>
     <!-- Slider readout when a corner radius is zero. -->
     <string name="layout_board_corner_square">Square</string>
+    <string name="layout_board_inverse_corner_title">Inverse top corners</string>
+    <string name="layout_board_inverse_corner_subtitle">Curve the bottom of the app into the keyboard</string>
+    <string name="layout_board_inverse_corner_info">Draws two small curves in the keyboard\'s colour just above its top corners, so the app above it looks rounded at the bottom, like the corners of a card sitting on the keyboard. The curves cover only a thin strip of the app, and a tap on them still goes to the app. While they are on, the keyboard\'s own top corners stay square, whatever Round top corners says. Which corners picks the side, left or right or both. The floating keyboard and resize mode do not draw them, and neither does a glass theme that blurs the app. Off by default.</string>
+    <!-- Slider readout when the inverse corner radius is zero. -->
+    <string name="layout_board_inverse_corner_off">Off</string>
     <string name="layout_board_corners_title">Which corners</string>
-    <string name="layout_board_corners_subtitle">The corners that the two settings above make round</string>
+    <string name="layout_board_corners_subtitle">The corners that the settings above make round</string>
     <string name="layout_keyboard_width_title">Keyboard width</string>
     <string name="layout_keyboard_width_subtitle">Make the keyboard narrower</string>
     <string name="layout_keyboard_width_info">Below 100 percent the keyboard does not fill the whole screen. Select the edge that it sits at below. This helps on very wide screens. One-handed mode below is a quick preset, and it replaces this value while it is on.</string>

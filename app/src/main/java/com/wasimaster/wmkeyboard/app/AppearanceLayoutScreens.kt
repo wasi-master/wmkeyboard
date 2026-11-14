@@ -1892,7 +1892,8 @@ internal fun LayoutSizeSettings(
     val autoBottomPadding = autoBottomPaddingDp(gestureBarAtBottom())
     // What decides which rows the groups hold; each row reads its own value.
     val cornersRound = settings.watch {
-        it.layoutBehavior.boardCornerTopDp > 0 || it.layoutBehavior.boardCornerBottomDp > 0
+        it.layoutBehavior.boardCornerTopDp > 0 || it.layoutBehavior.boardCornerBottomDp > 0 ||
+            it.layoutBehavior.boardInverseCornerDp > 0
     }
     val narrowed = settings.watch { it.keyboardWidthPercent < 100 }
     // The keys narrower than the window, by width or by either edge pad: the
@@ -2136,6 +2137,18 @@ internal fun LayoutSizeSettings(
                 info = stringResource(R.string.layout_board_corner_info),
                 default = SettingsDefaults.layoutBehavior.boardCornerBottomDp.toFloat(),
             ) { scope.launch { repository.setBoardCornerBottomDp(it.roundToInt()) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            val off = stringResource(R.string.layout_board_inverse_corner_off)
+            SliderSetting(
+                R.string.layout_board_inverse_corner_title,
+                subtitle = stringResource(R.string.layout_board_inverse_corner_subtitle),
+                value = settings.watch { it.layoutBehavior.boardInverseCornerDp }.toFloat(),
+                range = BoardCornerRadiusRange.first.toFloat()..BoardCornerRadiusRange.last.toFloat(),
+                display = { if (it.roundToInt() == 0) off else dpFormat.format(it.roundToInt()) },
+                info = stringResource(R.string.layout_board_inverse_corner_info),
+                default = SettingsDefaults.layoutBehavior.boardInverseCornerDp.toFloat(),
+            ) { scope.launch { repository.setBoardInverseCornerDp(it.roundToInt()) } }
         }
         // Which corners only matters once one of the two is round.
         if (cornersRound) {

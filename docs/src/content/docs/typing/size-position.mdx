@@ -64,6 +64,8 @@ Each padding is claimed at its own edge before **Keyboard position** gets a say,
 
 **Round top corners** and **Round bottom corners** cut rounded corners out of the docked keyboard, from square (the default) up to 40dp, and the app shows through the cut. The top and bottom are set apart, and **Which corners**, shown once either one is round, picks which of the four corners they apply to. All four by default, so rounding only the top two means leaving the bottom at Square. Round bottom corners suit gesture navigation and a phone whose screen corners are round too. With the older three-button navigation bar, the bar sits below the keyboard and the bottom corners open onto the app above it. The floating keyboard and the television card have round corners of their own and ignore these.
 
+**Inverse top corners** turns the top corners inside out. It draws two small concave curves in the keyboard's colour just above its top corners, so the app above looks rounded at the bottom, as if it were a card resting on the keyboard. The slider sets the curve's radius, from Off (the default) up to 40dp. The curves cover a thin strip of the app's bottom edge but are not part of the keyboard: the app is laid out down to the keys as before, and a tap on a curve still goes to the app. **Which corners** picks the side, so leaving out Top left or Top right draws only the other one. While the curves are on, the keyboard's own top corners stay square whatever **Round top corners** says, since a rounded corner under a curve would leave a notch of app between them. The curves take the board's flat colour (the first colour of a gradient theme), so over a photo background they show that theme's board colour rather than the picture. They are not drawn on the floating keyboard, in resize mode, on a television, or with a glass theme that blurs the app, whose blur would spread into the strip they sit in.
+
 ## Sizing each screen shape
 
 <SettingsPath path="Layout & size / Size and position / Per screen" />
@@ -263,6 +265,7 @@ Two Quick Settings tiles cover the same ground with no notification and no permi
 | Bottom padding | 32 dp (Android 15+ with gesture navigation) / 8 dp (three-button navigation, or older) |
 | Round top corners | Square (0 dp) |
 | Round bottom corners | Square (0 dp) |
+| Inverse top corners | Off (0 dp) |
 | Which corners | All four |
 | Keyboard width | 100% |
 | Keyboard position | Centre |
