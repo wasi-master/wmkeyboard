@@ -1193,7 +1193,7 @@ private fun SearchStrings.appearanceToolboxRows(): List<SettingsSearchEntry> {
     )
 }
 
-/** Rows on Layout & size, plus the two rows that moved off it. */
+/** Rows on Layout & size, plus the rows on Key layouts. */
 private fun SearchStrings.layoutRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) =
         entry(title, subtitle, R.string.home_layout_title, "layout", weight = weight)
@@ -1231,8 +1231,11 @@ private fun SearchStrings.layoutRows(): List<SettingsSearchEntry> {
         row(R.string.layout_hold_actions_title, R.string.layout_hold_actions_subtitle),
         row(R.string.layout_swap_comma_globe_title, R.string.layout_swap_comma_globe_subtitle),
         row(R.string.layout_globe_in_one_place_title, R.string.layout_globe_in_one_place_subtitle),
-        entry(R.string.layout_editor_import_title, R.string.layout_editor_import_subtitle, R.string.home_keymaps_title, "keymaps"),
-        entry(R.string.panel_layouts_title, R.string.panel_layouts_subtitle, R.string.home_keymaps_title, "keymaps"),
+        // The import and export rows moved here from Key layouts (#1318).
+        row(R.string.layout_editor_import_title, R.string.layout_editor_import_subtitle),
+        row(R.string.layout_editor_bundle_title, R.string.layout_editor_bundle_subtitle),
+        row(R.string.layout_editor_foreign_title, R.string.layout_editor_foreign_subtitle),
+        row(R.string.layout_editor_im_title, R.string.layout_editor_im_subtitle),
         entry(
             R.string.layout_editor_tablet_expand_title,
             R.string.layout_editor_tablet_expand_subtitle,
@@ -3291,6 +3294,10 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
         under(
             R.string.layout_one_handed_group_title, R.string.layout_one_handed_page_subtitle,
             R.string.home_layout_title, "layout/onehanded",
+        ),
+        under(
+            R.string.panel_layouts_title, R.string.panel_layouts_nav_subtitle,
+            R.string.home_layout_title, "layout/panels",
         ),
         under(
             R.string.langemoji_emoji_panel_title, R.string.langemoji_emoji_panel_subtitle,

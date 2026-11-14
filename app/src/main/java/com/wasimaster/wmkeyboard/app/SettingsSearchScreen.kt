@@ -197,6 +197,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Interests
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Apps
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreHoriz
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dashboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.RoundedCorner
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Timer
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Backspace
@@ -803,6 +804,7 @@ internal object SettingsRouteIcons {
         "layout" to { Icons.Outlined.AspectRatio },
         "layout/size" to { Icons.Outlined.FormatSize },
         "layout/onehanded" to { SymbolIcons.MobileHandLeft },
+        "layout/panels" to { Icons.Outlined.Dashboard },
         "keymaps" to { Icons.Outlined.GridOn },
         "rows" to { Icons.Outlined.ViewAgenda },
         "rows/symbol" to { Icons.Outlined.Tag },

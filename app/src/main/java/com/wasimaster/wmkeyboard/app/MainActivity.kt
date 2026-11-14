@@ -1748,6 +1748,15 @@ private fun SettingsNavGraph(
                 )
             }
         }
+        composable("layout/panels") {
+            SettingsScreen(
+                stringResource(R.string.panel_layouts_title),
+                { navController.popBackStack() },
+                route = PANEL_LAYOUTS_ROUTE,
+            ) {
+                PanelLayoutsScreen(repository) { route -> navController.navigate(route) }
+            }
+        }
         composable("layout/onehanded") {
             SettingsScreen(
                 stringResource(R.string.layout_one_handed_group_title),
@@ -4944,13 +4953,43 @@ internal fun ToggleNavRow(
     default: Boolean? = null,
     onChange: (Boolean) -> Unit,
     onOpen: () -> Unit,
+) = ToggleNavRow(
+    title = stringResource(title),
+    subtitle = subtitle,
+    checked = checked,
+    route = route,
+    info = info,
+    default = default,
+    icon = SettingsRowIcons[title],
+    highlightKey = title,
+    onChange = onChange,
+    onOpen = onOpen,
+)
+
+/**
+ * [ToggleNavRow] for a row named at run time: a layout of the user's own on
+ * Layout & size (#1318), whose switch turns it on and whose row opens it in
+ * the editor.
+ */
+@Composable
+internal fun ToggleNavRow(
+    title: String,
+    subtitle: String?,
+    checked: Boolean,
+    route: String,
+    info: String? = null,
+    default: Boolean? = null,
+    icon: ImageVector? = null,
+    @StringRes highlightKey: Int = 0,
+    onChange: (Boolean) -> Unit,
+    onOpen: () -> Unit,
 ) {
-    val name = stringResource(title)
-    HighlightableRow(name, title, info = info) {
+    val name = title
+    HighlightableRow(name, highlightKey, info = info) {
         WmRow(
             title = name,
             subtitle = subtitle,
-            icon = SettingsRowIcons[title],
+            icon = icon,
             flightTo = route,
             trailingOnTitleLine = true,
             titleReflows = default != null,

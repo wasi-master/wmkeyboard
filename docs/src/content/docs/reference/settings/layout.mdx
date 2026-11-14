@@ -22,19 +22,32 @@ You can reach this screen from the home screen's **Layout & size** tile, from Ac
 
 <SettingsPath path="Layout & size" />
 
-Size and position (with the per-screen overrides) and One-handed, split and floating are pages of their own; Your layouts, Number row, Arrow keys row, Symbols layer, Numerals and Bottom-row keys stay on the hub. Key height, key spacing and side padding here apply to every layout. A layout can carry its own, set in its [layout editor](/languages/custom-layouts/), and those win on that layout.
+Size and position (with the per-screen overrides), One-handed, split and floating, and Panel layouts are pages of their own; Your layouts, Import and export, Number row, Arrow keys row, Symbols layer, Numerals and Bottom-row keys stay on the hub. Key height, key spacing and side padding here apply to every layout. A layout can carry its own, set in its [layout editor](/languages/custom-layouts/), and those win on that layout.
 
 ### Your layouts
 
 <SettingsPath path="Layout & size / Your layouts" />
 
-One toggle per layout you've made or installed yourself, each subtitled with the dictionary it types with, for example "Types with the English · QWERTY dictionary". It's your own layouts specifically: an edited copy of a shipped layout stays attached to its original language instead of showing here twice, and a secondary layout is left out too, since it can't be switched on at all. Turning one on is gated on it validating; switching one off never is. On a fresh install, with nothing of your own yet, the group has no toggles.
+One row per layout you've made or installed yourself, each subtitled with the dictionary it types with, for example "Types with the English · QWERTY dictionary". The switch on a row turns the layout on or off; a tap anywhere else on the row opens it in the [layout editor](/reference/settings/keymaps/#editing-a-layout). A layout installed from an add-on repository is the exception: its row is a switch only, since the next update of the add-on would throw an edit away. It's your own layouts specifically: an edited copy of a shipped layout stays attached to its original language instead of showing here twice, and a secondary layout is left out too, since it can't be switched on at all. Turning one on is gated on it validating; switching one off never is. On a fresh install, with nothing of your own yet, the group has no toggles.
 
-A **Key layouts** row follows, opening <SettingsPath path="Layout & size / Key layouts" />, documented in full on [Custom layouts & the layout editor](/languages/custom-layouts/). Its subtitle reads "Make your own key grid, or start from a built-in one" before you've built anything, and "Edit, add and delete layouts" after. A **Download more** row closes the group, opening the layout add-on repositories.
+A **Key layouts** row follows, opening <SettingsPath path="Layout & size / Key layouts" />, documented in full on [Custom layouts & the layout editor](/languages/custom-layouts/). Its subtitle reads "Make your own key grid, or start from a built-in one" before you've built anything, and "Edit, add and delete layouts" after. **Panel layouts** opens <SettingsPath path="Layout & size / Panel layouts" />, the shared grids of the emoji, clipboard, text editing and other panels (see [Panel layouts](/languages/custom-layouts/#panel-layouts)). A **Download more** row closes the group. It opens the add-on screen filtered to layouts, which lists the add-on repositories and the community repository together, so layouts other people shared are found there too.
 
 :::note[Two "Your layouts" groups]
-The Key layouts screen has its own, differently scoped **Your layouts** section: layouts you've made or edited there, each with its own edit button. Layout & size's Your layouts group above is enable/disable toggles only, for any custom layout, addon-installed ones included. See [Key layouts](/reference/settings/keymaps/) for the distinction in full.
+The Key layouts screen has its own, differently scoped **Your layouts** section: layouts you've made or edited there, each with its own buttons for export, copy and delete. Layout & size's Your layouts group above is for turning layouts on and opening them, for any custom layout, addon-installed ones included. See [Key layouts](/reference/settings/keymaps/) for the distinction in full.
 :::
+
+### Import and export
+
+<SettingsPath path="Layout & size / Import a layout" />
+
+Four rows under Your layouts bring layouts in from a file or send the ones in use out to one. They used to sit at the foot of Key layouts.
+
+- **Import a layout** opens a `.wmlayout.json` file, or a `.wmlayouts.json` file of several.
+- **Export layouts in use** writes every layout that is on, and every one of your own, to one file.
+- **Import from another keyboard** reads a layout from FlorisBoard, HeliBoard, FUTO, Samsung Keyboard (Keys Cafe), Multiling O, Unexpected Keyboard or a computer's keyboard layout file. See [Importing from other keyboards](/reference/importing-other-keyboards/).
+- **Import an input method** reads a `.cin` table, a Rime schema with its dictionaries, or an m17n `.mim` file.
+
+What each import asks before it adds anything is described on [Key layouts](/reference/settings/keymaps/#managing-your-layouts).
 
 ### Number row
 

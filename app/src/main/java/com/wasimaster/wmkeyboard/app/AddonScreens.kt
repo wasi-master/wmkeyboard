@@ -362,11 +362,11 @@ private fun Color.luminanceIsDark(): Boolean =
  * as one more setting.
  */
 @Composable
-internal fun AddonStoreRow(type: AddonType, onNavigate: (String) -> Unit) {
+internal fun AddonStoreRow(type: AddonType, onNavigate: (String) -> Unit, subtitle: String? = null) {
     val label = stringResource(type.labelRes)
     WmRow(
         title = stringResource(R.string.addon_get_more_title),
-        subtitle = stringResource(R.string.addon_get_more_subtitle, label),
+        subtitle = subtitle ?: stringResource(R.string.addon_get_more_subtitle, label),
         icon = type.icon,
         accent = tintFor(type),
         trailing = {

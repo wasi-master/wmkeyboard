@@ -63,6 +63,8 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarHeightRange
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPaddingRange
 import com.wasimaster.wmkeyboard.core.settings.stripToolboxSwipes
 import com.wasimaster.wmkeyboard.core.addons.AddonType
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.wasimaster.wmkeyboard.core.addons.AddonStore
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.core.ui.FitText
 import com.wasimaster.wmkeyboard.core.ui.LongWordFit
@@ -1424,6 +1426,17 @@ internal fun LayoutSettings(
     // Turning a layout on is gated on it validating; switching one off never is,
     // or a layout broken while enabled would be impossible to put away.
     val enableGate = rememberLayoutEnableGate(settings)
+    // Layouts that came from an add-on repository: switched on here, but not
+    // edited, since the next update of the add-on would throw the edit away.
+    // Their rows stay a plain switch; every other row opens its editor.
+    val context = LocalContext.current
+    val addonStore = remember { AddonStore.get(context) }
+    val addonRevision by addonStore.revision.collectAsStateWithLifecycle()
+    val addonLayoutIds = remember(addonRevision) {
+        addonStore.installed().values
+            .filter { it.type == AddonType.Layout }
+            .mapTo(HashSet()) { it.localRef }
+    }
     SettingsGroup(stringResource(R.string.langemoji_lang_your_layouts_title)) {
         for (layout in customs) {
             item {
@@ -1431,15 +1444,13 @@ internal fun LayoutSettings(
                 // what finishes the install, so its addon's Use button lands
                 // here — on the layout's own row, not on the group.
                 HighlightableItem(layout.id) {
-                    ToggleSetting(
-                        layout.name,
-                        stringResource(
-                            R.string.langemoji_lang_custom_layout_subtitle,
-                            baseModeTitle(layout),
-                        ),
-                        settings.watch { layout.id in it.enabledLayoutIds },
-                        default = layout.id in SettingsDefaults.enabledLayoutIds,
-                    ) { enable ->
+                    val subtitle = stringResource(
+                        R.string.langemoji_lang_custom_layout_subtitle,
+                        baseModeTitle(layout),
+                    )
+                    val checked = settings.watch { layout.id in it.enabledLayoutIds }
+                    val default = layout.id in SettingsDefaults.enabledLayoutIds
+                    val change: (Boolean) -> Unit = { enable ->
                         fun write() {
                             scope.launch {
                                 val enabledIds = settings.value.enabledLayoutIds
@@ -1452,6 +1463,23 @@ internal fun LayoutSettings(
                             }
                         }
                         if (enable) enableGate(layout.id) { write() } else write()
+                    }
+                    if (layout.id in addonLayoutIds) {
+                        ToggleSetting(layout.name, subtitle, checked, default = default, onChange = change)
+                    } else {
+                        // The row opens the layout's editor and the switch
+                        // stays a switch (#1318): going through Key layouts to
+                        // edit a layout listed right here was a tap for nothing.
+                        val route = "keymap_edit/${layout.id}"
+                        ToggleNavRow(
+                            title = layout.name,
+                            subtitle = subtitle,
+                            checked = checked,
+                            route = route,
+                            default = default,
+                            onChange = change,
+                            onOpen = { onNavigate(route) },
+                        )
                     }
                 }
             }
@@ -1469,10 +1497,33 @@ internal fun LayoutSettings(
                 onNavigate("keymaps")
             }
         }
+        // The emoji, clipboard and other panels are layouts too (#63), but no
+        // language's: they have a page of their own beside Key layouts
+        // (#1318) rather than a group at the foot of it.
+        item(level = SettingLevel.STANDARD) {
+            NavRow(
+                R.string.panel_layouts_title,
+                stringResource(R.string.panel_layouts_nav_subtitle),
+                route = PANEL_LAYOUTS_ROUTE,
+            ) {
+                onNavigate(PANEL_LAYOUTS_ROUTE)
+            }
+        }
         // "Make one" and "get one" are the same question answered two ways.
-        item { AddonStoreRow(AddonType.Layout, onNavigate) }
-        item { CommunityAddonsRow(AddonType.Layout, onNavigate) }
+        // One row for getting one (#1318): the community repository is one of
+        // the stores the add-on screen lists, so a second row for it only
+        // split the same catalogue in two.
+        item {
+            AddonStoreRow(
+                AddonType.Layout,
+                onNavigate,
+                subtitle = stringResource(R.string.layout_get_more_subtitle),
+            )
+        }
     }
+    // Bringing a layout in from a file, or sending the ones in use out to one
+    // (#1318): beside the layouts they add to, not a screen further in.
+    LayoutImportsGroup(repository, settings)
     SettingsGroup(stringResource(R.string.layout_number_row_title)) {
         item {
             ToggleSetting(

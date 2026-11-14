@@ -127,6 +127,7 @@ internal object SettingsRoutes {
         "layout",
         "layout/size",
         "layout/onehanded",
+        "layout/panels",
         "fonts",
         "fonts/{script}",
         "icons",

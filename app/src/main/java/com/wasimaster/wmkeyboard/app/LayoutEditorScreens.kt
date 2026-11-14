@@ -589,27 +589,7 @@ internal fun KeyLayoutsScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var confirmDelete by remember { mutableStateOf<LayoutSpec?>(null) }
-    var confirmImport by remember { mutableStateOf<ImportedLayout?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
-
-    // A layout converted from another keyboard, waiting on a language. Neither
-    // FlorisBoard nor HeliBoard states one in a layout file, and a layout stored
-    // without one is silently read back as English — with an English dictionary
-    // and Latin shift behaviour on, say, a Georgian grid.
-    var confirmForeign by remember { mutableStateOf<ConvertedLayout?>(null) }
-    // A Multiling O settings export: every layout its user made, each filed
-    // under the language it was made for, so there is no language to ask.
-    var confirmMultiling by remember { mutableStateOf<List<ConvertedLayout>?>(null) }
-    var foreignLangId by remember { mutableStateOf("") }
-    var pickingLanguage by remember { mutableStateOf(false) }
-
-    // An input method read out of another IME's files (.cin, Rime, m17n),
-    // waiting on a language like a foreign layout does: it becomes a layout
-    // too, and a layout stored without a language is read back as English.
-    var confirmMethod by remember { mutableStateOf<ConvertedMethod?>(null) }
-    var methodLangId by remember { mutableStateOf("") }
-    var pickingMethodLanguage by remember { mutableStateOf(false) }
-    var methodBusy by remember { mutableStateOf(false) }
 
     // CreateDocument cannot carry a payload, so the layout waiting to be written
     // is parked here between launching the picker and its result.
@@ -672,187 +652,6 @@ internal fun KeyLayoutsScreen(
                 context.resources.getQuantityString(R.plurals.layout_editor_bundle_done_message, bundle.size, bundle.size)
             } else {
                 context.getString(R.string.layout_editor_export_error)
-            }
-        }
-    }
-    // A file of several layouts, read and waiting on the user's answer.
-    var confirmBundle by remember { mutableStateOf<List<ImportedLayout>?>(null) }
-
-    // Several files at once: each is read as a layout or a file of several, and
-    // all of them go to the one question the file of several asks. The names of
-    // files that are neither are said after.
-    fun importLayoutFiles(uris: List<android.net.Uri>) {
-        scope.launch {
-            val read = ArrayList<ImportedLayout>()
-            val failed = ArrayList<String>()
-            for (uri in uris) {
-                val text = withContext(Dispatchers.IO) {
-                    runCatching { context.contentResolver.readTextCapped(uri) }.getOrNull()
-                }
-                val one = text?.let { LayoutFile.decode(it) }
-                val several = if (one == null) text?.let { LayoutFile.decodeBundle(it) } else null
-                when {
-                    one != null -> read += one
-                    !several.isNullOrEmpty() -> read += several
-                    else -> failed += withContext(Dispatchers.IO) { WMFileTypes.displayName(context, uri) }
-                }
-            }
-            if (failed.isNotEmpty()) {
-                message = context.getString(R.string.pick_import_failed_files, failed.joinToString(", "))
-            }
-            if (read.isNotEmpty()) confirmBundle = read
-        }
-    }
-
-    val importLauncher = rememberLauncherForActivityResult(
-        OpenMultipleDocumentsAt(PickerPlaces.LAYOUT_IMPORT),
-    ) { uris ->
-        if (uris.isEmpty()) return@rememberLauncherForActivityResult
-        PickerPlaces.remember(context, PickerPlaces.LAYOUT_IMPORT, uris.first())
-        if (uris.size > 1) {
-            importLayoutFiles(uris)
-            return@rememberLauncherForActivityResult
-        }
-        val uri = uris.single()
-        scope.launch {
-            val text = withContext(Dispatchers.IO) {
-                runCatching {
-                    context.contentResolver.readTextCapped(uri)
-                }.getOrNull()
-            }
-            val parsed = text?.let { LayoutFile.decode(it) }
-            if (parsed == null) {
-                // Or a file of several, from Export layouts in use (#970).
-                val bundle = text?.let { LayoutFile.decodeBundle(it) }
-                if (bundle != null) {
-                    confirmBundle = bundle
-                } else {
-                    message = context.getString(R.string.layout_editor_import_wrong_file_error)
-                }
-                return@launch
-            }
-            // Read first, ask, then write. Importing a layout is not something
-            // to discover you have done — and it never activates it either.
-            confirmImport = parsed
-        }
-    }
-
-    val foreignLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
-    ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        scope.launch {
-            val name = WMFileTypes.displayName(context, uri)
-            val converted = withContext(Dispatchers.IO) {
-                runCatching {
-                    // Capped, unlike the native import: this file was written by
-                    // another app and picked by extension, so it can be anything
-                    // the picker let through. The cap matches what an add-on
-                    // repository will download for a layout, and no real grid is
-                    // within two orders of magnitude of it.
-                    val bytes = context.contentResolver.requireInputStream(uri).use { input ->
-                        input.readBytes(MAX_FOREIGN_LAYOUT_BYTES + 1)
-                    }
-                    if (bytes.size > MAX_FOREIGN_LAYOUT_BYTES) {
-                        emptyList<ConvertedLayout>()
-                    } else if (bytes.size > 2 && bytes[0] == 'P'.code.toByte() && bytes[1] == 'K'.code.toByte()) {
-                        // A ZIP: the one archive this picker reads is a
-                        // FlorisBoard keyboard extension, whose layouts are
-                        // keyboard3 files.
-                        Keyboard3Layouts.convertArchive(bytes.inputStream())
-                    } else {
-                        // Keyman first: its files are JSON too, and the
-                        // FlorisBoard reader would take one and return null
-                        // rather than deferring, so order is the dispatch.
-                        // UTF-16 is read as such: MSKLC saves every `.klc` that way.
-                        val text = DesktopLayouts.decodeText(bytes)
-                        // Multiling O first: its markers and its `onScreen`
-                        // object are its own, and a settings export can hold
-                        // a dozen layouts where every other format holds one.
-                        if (MultilingLayouts.looksLikeMultiling(text)) {
-                            return@runCatching MultilingLayouts.convertAll(text, name)
-                        }
-                        // A computer keyboard's layout (.klc, .keylayout, XKB),
-                        // before the Unexpected Keyboard reader below, whose
-                        // XML test a .keylayout passes too. An XKB file holds
-                        // a layout per variant.
-                        if (DesktopLayouts.looksLikeDesktopLayout(text)) {
-                            return@runCatching DesktopLayouts.convertAll(text, name)
-                        }
-                        // CLDR keyboard3 (FlorisBoard's layouts now): its
-                        // `<keyboard3>` root is no other reader's, and its
-                        // `<key>`s would otherwise reach the Unexpected
-                        // Keyboard sniff below.
-                        if (Keyboard3Layouts.looksLikeKeyboard3(text)) {
-                            return@runCatching listOfNotNull(Keyboard3Layouts.convert(text, name))
-                        }
-                        // Keys Cafe before everything: its file is base64 text,
-                        // which none of the readers below could take for theirs.
-                        // The sniff can pass a HeliBoard text layout of plain
-                        // letters by accident, so a refusal falls through.
-                        val single = KeysCafeLayouts.takeIf { it.looksLikeKcf(text) }?.convert(text, name) ?: when {
-                            // Unexpected Keyboard and CleverKeys write XML,
-                            // which none of the readers below would take.
-                            UnexpectedLayouts.looksLikeUnexpected(text) ->
-                                UnexpectedLayouts.convert(text, name)
-                            KeymanImport.looksLikeTouchLayout(text) ->
-                                KeymanImport.convert(text, name)
-                            // FUTO before the JSON reader for the same reason:
-                            // a YAML parser accepts a JSON document happily, so
-                            // asking it last would be fine but asking it first
-                            // would swallow every FlorisBoard layout. This test
-                            // is on the document's own shape, not the parser.
-                            FutoLayouts.looksLikeFutoLayout(text) ->
-                                FutoLayouts.convert(text, name)
-                            else -> ForeignLayouts.convert(text, name)
-                        }
-                        listOfNotNull(single)
-                    }
-                }.getOrNull().orEmpty()
-            }
-            if (converted.isEmpty()) {
-                message = context.getString(R.string.layout_editor_foreign_wrong_file_error)
-                return@launch
-            }
-            if (converted.size > 1) {
-                confirmMultiling = converted
-                return@launch
-            }
-            foreignLangId = converted.single().guessedLangId
-            confirmForeign = converted.single()
-        }
-    }
-
-    // Several files at once: a Rime schema names its dictionary, which names
-    // the tables it imports, and an m17n method may include another.
-    val methodLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenMultipleDocuments(),
-    ) { uris ->
-        if (uris.isEmpty()) return@rememberLauncherForActivityResult
-        methodBusy = true
-        scope.launch {
-            val conversion = withContext(Dispatchers.IO) {
-                runCatching {
-                    var total = 0L
-                    val files = uris.map { uri ->
-                        val bytes = context.contentResolver.requireInputStream(uri).use { input ->
-                            input.readCapped(InputMethodImport.MAX_FILE_BYTES)
-                        } ?: return@runCatching null
-                        total += bytes.size
-                        if (total > InputMethodImport.MAX_TOTAL_BYTES) return@runCatching null
-                        SourceFile(WMFileTypes.displayName(context, uri), bytes)
-                    }
-                    InputMethodImport.read(files)
-                }.getOrElse { Conversion.Refused(ImportRefusal.BROKEN, it.message.orEmpty()) }
-            }
-            methodBusy = false
-            when (conversion) {
-                null -> message = context.getString(R.string.layout_editor_im_too_large)
-                is Conversion.Refused -> message = InputMethodImport.refusal(conversion).format(context.resources)
-                is Conversion.Ready -> {
-                    methodLangId = InputMethodImport.guessLanguage(conversion.method)
-                    confirmMethod = conversion.method
-                }
             }
         }
     }
@@ -1204,10 +1003,319 @@ internal fun KeyLayoutsScreen(
         }
     }
 
-    // The panels that are layouts now (issue #63), under the user's own grids:
-    // one row per panel, edited in place, reset to the shipped one.
-    val customPanels by repository.customPanelLayouts.collectAsStateWithLifecycle(emptyList())
-    PanelLayoutsGroup(customPanels, onNavigate)
+
+    message?.let { text ->
+        AlertDialog(
+            onDismissRequest = { message = null },
+            text = { Text(text) },
+            confirmButton = {
+                TextButton(onClick = { message = null }) {
+                    Text(stringResource(CommonR.string.common_ok))
+                }
+            },
+        )
+    }
+
+    confirmDelete?.let { layout ->
+        val reset = layout.id in shippedIds
+        AlertDialog(
+            onDismissRequest = { confirmDelete = null },
+            title = {
+                Text(
+                    if (reset) {
+                        stringResource(R.string.layout_editor_reset_confirm_title, layout.name)
+                    } else {
+                        stringResource(R.string.layout_editor_delete_confirm_title, layout.name)
+                    },
+                )
+            },
+            text = {
+                Text(
+                    if (reset) {
+                        stringResource(R.string.layout_editor_reset_confirm_body)
+                    } else {
+                        stringResource(R.string.layout_editor_delete_confirm_body)
+                    },
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val others = customLayouts
+                    scope.launch {
+                        repository.deleteCustomLayout(layout.id)
+                        // An imported input method's data goes with the last
+                        // layout that types it.
+                        withContext(Dispatchers.IO) { InputMethodImport.forget(context.filesDir, layout, others) }
+                    }
+                    confirmDelete = null
+                }) {
+                    Text(
+                        stringResource(
+                            if (reset) CommonR.string.common_reset else CommonR.string.common_delete,
+                        ),
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = null }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
+    }
+}
+
+/**
+ * The rows that bring layouts in from a file and send the ones in use out to
+ * one, with every picker and question they open. A group of their own so
+ * Layout & size can carry them beside the layouts they add to (#1318); they
+ * used to sit at the foot of Key layouts, one screen further in.
+ */
+@Composable
+internal fun LayoutImportsGroup(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var message by remember { mutableStateOf<String?>(null) }
+    var confirmImport by remember { mutableStateOf<ImportedLayout?>(null) }
+    // A layout converted from another keyboard, waiting on a language. Neither
+    // FlorisBoard nor HeliBoard states one in a layout file, and a layout stored
+    // without one is silently read back as English — with an English dictionary
+    // and Latin shift behaviour on, say, a Georgian grid.
+    var confirmForeign by remember { mutableStateOf<ConvertedLayout?>(null) }
+    // A Multiling O settings export: every layout its user made, each filed
+    // under the language it was made for, so there is no language to ask.
+    var confirmMultiling by remember { mutableStateOf<List<ConvertedLayout>?>(null) }
+    var foreignLangId by remember { mutableStateOf("") }
+    var pickingLanguage by remember { mutableStateOf(false) }
+
+    // An input method read out of another IME's files (.cin, Rime, m17n),
+    // waiting on a language like a foreign layout does: it becomes a layout
+    // too, and a layout stored without a language is read back as English.
+    var confirmMethod by remember { mutableStateOf<ConvertedMethod?>(null) }
+    var methodLangId by remember { mutableStateOf("") }
+    var pickingMethodLanguage by remember { mutableStateOf(false) }
+    var methodBusy by remember { mutableStateOf(false) }
+
+    // What Export layouts in use writes: the shipped layouts that are on, in
+    // shipped order, then every grid of the user's own — Key layouts' list.
+    val enabledIds = settings.watch { it.enabledLayoutIds }
+    val customLayouts = settings.watch { it.customLayouts }
+    val layouts = enabledIds
+        .filter(::isShippedLayoutId)
+        .distinct()
+        .sortedBy(::shippedLayoutRank)
+        .mapNotNull { findLayout(customLayouts, it) } +
+        customLayouts.filter { !isShippedLayoutId(it.id) }
+
+    // Every layout in use, in one file (#970), parked here between launching
+    // the picker and its result.
+    var pendingBundle by remember { mutableStateOf<List<LayoutSpec>?>(null) }
+    val bundleLauncher = rememberLauncherForActivityResult(
+        CreateDocumentAt(LayoutFile.MIME_TYPE, PickerPlaces.LAYOUT_EXPORT),
+    ) { uri ->
+        val bundle = pendingBundle
+        pendingBundle = null
+        if (uri == null || bundle == null) return@rememberLauncherForActivityResult
+        PickerPlaces.remember(context, PickerPlaces.LAYOUT_EXPORT, uri)
+        scope.launch {
+            val ok = runCancellable {
+                val icons = withContext(Dispatchers.IO) { layoutIconsFor(context, bundle) }
+                val text = LayoutFile.encodeBundle(bundle, BuildConfig.VERSION_CODE, BuildConfig.VERSION_NAME, icons)
+                withContext(Dispatchers.IO) {
+                    context.contentResolver.requireOutputStream(uri).use { it.write(text.toByteArray()) }
+                }
+            }.isSuccess
+            message = if (ok) {
+                context.resources.getQuantityString(R.plurals.layout_editor_bundle_done_message, bundle.size, bundle.size)
+            } else {
+                context.getString(R.string.layout_editor_export_error)
+            }
+        }
+    }
+    // A file of several layouts, read and waiting on the user's answer.
+    var confirmBundle by remember { mutableStateOf<List<ImportedLayout>?>(null) }
+
+    // Several files at once: each is read as a layout or a file of several, and
+    // all of them go to the one question the file of several asks. The names of
+    // files that are neither are said after.
+    fun importLayoutFiles(uris: List<android.net.Uri>) {
+        scope.launch {
+            val read = ArrayList<ImportedLayout>()
+            val failed = ArrayList<String>()
+            for (uri in uris) {
+                val text = withContext(Dispatchers.IO) {
+                    runCatching { context.contentResolver.readTextCapped(uri) }.getOrNull()
+                }
+                val one = text?.let { LayoutFile.decode(it) }
+                val several = if (one == null) text?.let { LayoutFile.decodeBundle(it) } else null
+                when {
+                    one != null -> read += one
+                    !several.isNullOrEmpty() -> read += several
+                    else -> failed += withContext(Dispatchers.IO) { WMFileTypes.displayName(context, uri) }
+                }
+            }
+            if (failed.isNotEmpty()) {
+                message = context.getString(R.string.pick_import_failed_files, failed.joinToString(", "))
+            }
+            if (read.isNotEmpty()) confirmBundle = read
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        OpenMultipleDocumentsAt(PickerPlaces.LAYOUT_IMPORT),
+    ) { uris ->
+        if (uris.isEmpty()) return@rememberLauncherForActivityResult
+        PickerPlaces.remember(context, PickerPlaces.LAYOUT_IMPORT, uris.first())
+        if (uris.size > 1) {
+            importLayoutFiles(uris)
+            return@rememberLauncherForActivityResult
+        }
+        val uri = uris.single()
+        scope.launch {
+            val text = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.readTextCapped(uri)
+                }.getOrNull()
+            }
+            val parsed = text?.let { LayoutFile.decode(it) }
+            if (parsed == null) {
+                // Or a file of several, from Export layouts in use (#970).
+                val bundle = text?.let { LayoutFile.decodeBundle(it) }
+                if (bundle != null) {
+                    confirmBundle = bundle
+                } else {
+                    message = context.getString(R.string.layout_editor_import_wrong_file_error)
+                }
+                return@launch
+            }
+            // Read first, ask, then write. Importing a layout is not something
+            // to discover you have done — and it never activates it either.
+            confirmImport = parsed
+        }
+    }
+
+    val foreignLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val name = WMFileTypes.displayName(context, uri)
+            val converted = withContext(Dispatchers.IO) {
+                runCatching {
+                    // Capped, unlike the native import: this file was written by
+                    // another app and picked by extension, so it can be anything
+                    // the picker let through. The cap matches what an add-on
+                    // repository will download for a layout, and no real grid is
+                    // within two orders of magnitude of it.
+                    val bytes = context.contentResolver.requireInputStream(uri).use { input ->
+                        input.readBytes(MAX_FOREIGN_LAYOUT_BYTES + 1)
+                    }
+                    if (bytes.size > MAX_FOREIGN_LAYOUT_BYTES) {
+                        emptyList<ConvertedLayout>()
+                    } else if (bytes.size > 2 && bytes[0] == 'P'.code.toByte() && bytes[1] == 'K'.code.toByte()) {
+                        // A ZIP: the one archive this picker reads is a
+                        // FlorisBoard keyboard extension, whose layouts are
+                        // keyboard3 files.
+                        Keyboard3Layouts.convertArchive(bytes.inputStream())
+                    } else {
+                        // Keyman first: its files are JSON too, and the
+                        // FlorisBoard reader would take one and return null
+                        // rather than deferring, so order is the dispatch.
+                        // UTF-16 is read as such: MSKLC saves every `.klc` that way.
+                        val text = DesktopLayouts.decodeText(bytes)
+                        // Multiling O first: its markers and its `onScreen`
+                        // object are its own, and a settings export can hold
+                        // a dozen layouts where every other format holds one.
+                        if (MultilingLayouts.looksLikeMultiling(text)) {
+                            return@runCatching MultilingLayouts.convertAll(text, name)
+                        }
+                        // A computer keyboard's layout (.klc, .keylayout, XKB),
+                        // before the Unexpected Keyboard reader below, whose
+                        // XML test a .keylayout passes too. An XKB file holds
+                        // a layout per variant.
+                        if (DesktopLayouts.looksLikeDesktopLayout(text)) {
+                            return@runCatching DesktopLayouts.convertAll(text, name)
+                        }
+                        // CLDR keyboard3 (FlorisBoard's layouts now): its
+                        // `<keyboard3>` root is no other reader's, and its
+                        // `<key>`s would otherwise reach the Unexpected
+                        // Keyboard sniff below.
+                        if (Keyboard3Layouts.looksLikeKeyboard3(text)) {
+                            return@runCatching listOfNotNull(Keyboard3Layouts.convert(text, name))
+                        }
+                        // Keys Cafe before everything: its file is base64 text,
+                        // which none of the readers below could take for theirs.
+                        // The sniff can pass a HeliBoard text layout of plain
+                        // letters by accident, so a refusal falls through.
+                        val single = KeysCafeLayouts.takeIf { it.looksLikeKcf(text) }?.convert(text, name) ?: when {
+                            // Unexpected Keyboard and CleverKeys write XML,
+                            // which none of the readers below would take.
+                            UnexpectedLayouts.looksLikeUnexpected(text) ->
+                                UnexpectedLayouts.convert(text, name)
+                            KeymanImport.looksLikeTouchLayout(text) ->
+                                KeymanImport.convert(text, name)
+                            // FUTO before the JSON reader for the same reason:
+                            // a YAML parser accepts a JSON document happily, so
+                            // asking it last would be fine but asking it first
+                            // would swallow every FlorisBoard layout. This test
+                            // is on the document's own shape, not the parser.
+                            FutoLayouts.looksLikeFutoLayout(text) ->
+                                FutoLayouts.convert(text, name)
+                            else -> ForeignLayouts.convert(text, name)
+                        }
+                        listOfNotNull(single)
+                    }
+                }.getOrNull().orEmpty()
+            }
+            if (converted.isEmpty()) {
+                message = context.getString(R.string.layout_editor_foreign_wrong_file_error)
+                return@launch
+            }
+            if (converted.size > 1) {
+                confirmMultiling = converted
+                return@launch
+            }
+            foreignLangId = converted.single().guessedLangId
+            confirmForeign = converted.single()
+        }
+    }
+
+    // Several files at once: a Rime schema names its dictionary, which names
+    // the tables it imports, and an m17n method may include another.
+    val methodLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenMultipleDocuments(),
+    ) { uris ->
+        if (uris.isEmpty()) return@rememberLauncherForActivityResult
+        methodBusy = true
+        scope.launch {
+            val conversion = withContext(Dispatchers.IO) {
+                runCatching {
+                    var total = 0L
+                    val files = uris.map { uri ->
+                        val bytes = context.contentResolver.requireInputStream(uri).use { input ->
+                            input.readCapped(InputMethodImport.MAX_FILE_BYTES)
+                        } ?: return@runCatching null
+                        total += bytes.size
+                        if (total > InputMethodImport.MAX_TOTAL_BYTES) return@runCatching null
+                        SourceFile(WMFileTypes.displayName(context, uri), bytes)
+                    }
+                    InputMethodImport.read(files)
+                }.getOrElse { Conversion.Refused(ImportRefusal.BROKEN, it.message.orEmpty()) }
+            }
+            methodBusy = false
+            when (conversion) {
+                null -> message = context.getString(R.string.layout_editor_im_too_large)
+                is Conversion.Refused -> message = InputMethodImport.refusal(conversion).format(context.resources)
+                is Conversion.Ready -> {
+                    methodLangId = InputMethodImport.guessLanguage(conversion.method)
+                    confirmMethod = conversion.method
+                }
+            }
+        }
+    }
 
     SettingsGroup {
         item {
@@ -1646,54 +1754,6 @@ internal fun KeyLayoutsScreen(
             confirmButton = {
                 TextButton(onClick = { message = null }) {
                     Text(stringResource(CommonR.string.common_ok))
-                }
-            },
-        )
-    }
-
-    confirmDelete?.let { layout ->
-        val reset = layout.id in shippedIds
-        AlertDialog(
-            onDismissRequest = { confirmDelete = null },
-            title = {
-                Text(
-                    if (reset) {
-                        stringResource(R.string.layout_editor_reset_confirm_title, layout.name)
-                    } else {
-                        stringResource(R.string.layout_editor_delete_confirm_title, layout.name)
-                    },
-                )
-            },
-            text = {
-                Text(
-                    if (reset) {
-                        stringResource(R.string.layout_editor_reset_confirm_body)
-                    } else {
-                        stringResource(R.string.layout_editor_delete_confirm_body)
-                    },
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    val others = customLayouts
-                    scope.launch {
-                        repository.deleteCustomLayout(layout.id)
-                        // An imported input method's data goes with the last
-                        // layout that types it.
-                        withContext(Dispatchers.IO) { InputMethodImport.forget(context.filesDir, layout, others) }
-                    }
-                    confirmDelete = null
-                }) {
-                    Text(
-                        stringResource(
-                            if (reset) CommonR.string.common_reset else CommonR.string.common_delete,
-                        ),
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { confirmDelete = null }) {
-                    Text(stringResource(CommonR.string.common_cancel))
                 }
             },
         )

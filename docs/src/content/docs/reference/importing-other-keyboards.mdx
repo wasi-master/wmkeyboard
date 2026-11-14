@@ -141,7 +141,7 @@ HeliBoard keeps the words you add by hand in Android's own personal dictionary, 
 
 ## Layouts
 
-<SettingsPath path="Layout & size / Key layouts / Import from another keyboard" />
+<SettingsPath path="Layout & size / Import from another keyboard" />
 
 Pick the file. The app reads it, then puts one dialog in front of you before it saves anything. Only one thing on that dialog needs an answer: the language. Everything else tells you what the conversion did, and the Import button is your confirmation.
 
@@ -410,7 +410,7 @@ Pick the wrong `.flex` and the app says so rather than failing: a theme file is 
 
 ## Input methods: .cin, Rime and m17n
 
-<SettingsPath path="Layout & size / Key layouts / Import an input method" />
+<SettingsPath path="Layout & size / Import an input method" />
 
 Many input methods are shared as data files rather than as apps: a `.cin` table for gcin or OpenVanilla, a Rime schema and its dictionaries, an m17n `.mim` file for ibus. WM Keyboard reads all three and makes each one a keyboard layout of its own. The method's data is kept with the app, and the layout types through it.
 
@@ -701,7 +701,7 @@ They also travel with the theme rather than with the keyboard. Switch theme and 
 - **A Gboard `.zip` opens from a file manager by what is inside it.** `.zip` is far too common to claim by name, but the app is offered for ZIP files by type, and one with a Gboard `metadata.json` or an Rboard `pack.meta` at its root is recognised. A pack opened that way has no list to pick from, so Import adds every theme in it.
 - **Size caps.** A theme or pack is read up to 48 MB inflated, 4 MB per picture, 128 themes per pack; a downloaded Rboard pack is refused past 32 MB. Entry names are only ever looked up, never used as paths.
 - **A whole backup opens from a file manager by what is inside it.** HeliBoard, LeanType, FlorisBoard and CleverKeys backups are `.zip` files and FUTO's is a ZIP named `.backup`. Neither extension is claimed, but a ZIP holding one of their settings files is recognised however it is named. Each part is read up to 32 MB, and a backup is refused past 128 MB of the parts the app keeps; FUTO's language models are counted and skipped, never read into memory.
-- **Foreign layout files are not auto-detected from a file manager.** They carry no marker that identifies them, so they go through <SettingsPath path="Layout & size / Key layouts / Import from another keyboard" />, where you have already said what the file is. This app's own `.wmlayout.json` files do open from a file manager, because they carry a format tag.
+- **Foreign layout files are not auto-detected from a file manager.** They carry no marker that identifies them, so they go through <SettingsPath path="Layout & size / Import from another keyboard" />, where you have already said what the file is. This app's own `.wmlayout.json` files do open from a file manager, because they carry a format tag.
 - **A foreign layout over 4 MB is refused.** The whole file is decoded as one string, so there is a cap, and the cap is 4 MB. Past it you get the same "The app cannot read that file as a layout" message an unreadable file gets, with nothing to say the size was the problem. No real grid is anywhere near it, so in practice this only catches a file that is not a layout at all.
 - **Input method files are capped** at 48 MB each and 128 MB together, and a table is cut at 500,000 rows for a `.cin` and 1,500,000 across a Rime dictionary and its imports. The confirm dialog says when a table was cut. `.cin` files in Big5 or GB18030 are read as well as UTF-8.
 - **Add-on repositories stay native.** Repository payloads are always WM Keyboard's own formats; conversion applies to files you pick yourself.

@@ -1947,6 +1947,7 @@ internal object SettingsRowIcons {
         put(R.string.keypress_alternates_group_title) { Icons.Outlined.MoreHoriz }
         put(R.string.keypress_timing_group_title) { Icons.Outlined.Timer }
         put(R.string.appearance_keys_section_title) { Icons.Outlined.RoundedCorner }
+        put(R.string.panel_layouts_title) { Icons.Outlined.Dashboard }
         put(R.string.languages_translit_hints_row_title) { Icons.Outlined.Translate }
         put(R.string.languages_phonetic_strip_fixed_title) { Icons.Outlined.PushPin }
         put(R.string.languages_raw_keys_chip_title) { Icons.Outlined.Keyboard }

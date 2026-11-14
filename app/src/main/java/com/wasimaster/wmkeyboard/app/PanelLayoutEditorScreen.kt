@@ -94,6 +94,20 @@ import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
  */
 internal fun panelEditRoute(kind: PanelKind): String = "panel_edit/${kind.name}"
 
+/** The Panel layouts page under Layout & size (#1318). */
+internal const val PANEL_LAYOUTS_ROUTE = "layout/panels"
+
+/**
+ * Layout & size › Panel layouts: one row per panel, opening its editor. The
+ * group sat at the foot of Key layouts until #1318, under every grid of the
+ * user's own, where a panel was the last thing anyone looked for.
+ */
+@Composable
+internal fun PanelLayoutsScreen(repository: SettingsRepository, onNavigate: (String) -> Unit) {
+    val customPanels by repository.customPanelLayouts.collectAsStateWithLifecycle(emptyList())
+    PanelLayoutsGroup(customPanels, onNavigate)
+}
+
 /**
  * The panel layouts (issue #63): the emoji, clipboard and text-editing panels
  * as grids the user rearranges in the key layout editor's own controls.

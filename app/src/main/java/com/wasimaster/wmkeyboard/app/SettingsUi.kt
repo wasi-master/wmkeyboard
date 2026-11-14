@@ -399,6 +399,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "layout" to Color(0xFF5C6BC0),
     "layout/size" to Color(0xFF5C6BC0),
     "layout/onehanded" to Color(0xFF5C6BC0),
+    "layout/panels" to Color(0xFF5C6BC0),
     "keymaps" to Color(0xFF26C6DA),
     "rows" to Color(0xFF26A69A),
     "rows/symbol" to Color(0xFF26A69A),
