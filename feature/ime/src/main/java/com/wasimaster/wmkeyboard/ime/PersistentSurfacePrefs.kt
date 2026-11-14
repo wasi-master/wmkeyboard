@@ -66,11 +66,48 @@ class PersistentSurfacePrefs(context: Context) {
         prefs.edit { putString(KEY_VOICE, voice) }
     }
 
+    /**
+     * The tool left open in an app the user switched away from, for a keyboard
+     * that comes back as a new process: the app's package, the `PanelMode`
+     * name, the plugin that was running in it, and when (wall clock). Only the
+     * latest one; the ones before it live in memory alone.
+     */
+    data class ParkedTool(val packageName: String, val panel: String, val pluginId: String?, val at: Long)
+
+    val parkedTool: ParkedTool?
+        get() {
+            val pkg = prefs.getString(KEY_PARKED_PACKAGE, null) ?: return null
+            val panel = prefs.getString(KEY_PARKED_PANEL, null) ?: return null
+            return ParkedTool(pkg, panel, prefs.getString(KEY_PARKED_PLUGIN, null), prefs.getLong(KEY_PARKED_AT, 0L))
+        }
+
+    /** Records [parkedTool], or clears it with null. */
+    fun saveParkedTool(tool: ParkedTool?) {
+        if (tool == null && !prefs.contains(KEY_PARKED_PACKAGE)) return
+        prefs.edit {
+            if (tool == null) {
+                remove(KEY_PARKED_PACKAGE)
+                remove(KEY_PARKED_PANEL)
+                remove(KEY_PARKED_PLUGIN)
+                remove(KEY_PARKED_AT)
+            } else {
+                putString(KEY_PARKED_PACKAGE, tool.packageName)
+                putString(KEY_PARKED_PANEL, tool.panel)
+                putString(KEY_PARKED_PLUGIN, tool.pluginId)
+                putLong(KEY_PARKED_AT, tool.at)
+            }
+        }
+    }
+
     private companion object {
         const val FILE_NAME = "persistent_surface"
         const val KEY_PANEL = "panel"
         const val KEY_LAYER = "layer"
         const val KEY_SECONDARY = "secondary"
         const val KEY_VOICE = "voice"
+        const val KEY_PARKED_PACKAGE = "parked_package"
+        const val KEY_PARKED_PANEL = "parked_panel"
+        const val KEY_PARKED_PLUGIN = "parked_plugin"
+        const val KEY_PARKED_AT = "parked_at"
     }
 }

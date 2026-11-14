@@ -9449,6 +9449,8 @@ open class WMKeyboardService : InputMethodService() {
         }
         // A field of WM Pass's own may offer its buttons on the strip; any other drops them.
         readWmPassChips(attribute)
+        // Another app has the keys: a tool left open in any other is one the user left.
+        markParkedToolsLeft(stayingIn = attribute?.packageName)
         if (!restarting) {
             // The address seen in the last field was remembered as it closed,
             // or that field was never one to remember.
@@ -10153,6 +10155,9 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         if (deviceLocked) watchKeyguard()
+        // Back in an app that was left with a tool open: the tool comes back
+        // as it was, never in a password or incognito field or over the lock screen.
+        if (!restarting) restoreParkedTool(info, blocked = secure || fieldIncognito || deviceLocked)
         // Left with voice typing on screen: it opens again here, listening (#699).
         resumeVoiceSurface()
         // Chord and morse state belongs to the field it was typed over.
@@ -11266,6 +11271,8 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.aiChatShown) AiChatController.declineRenameAsk()
         syncSummonButton()
         KeyboardControls.setUpOverOwnApp(false)
+        // The keyboard went away with a tool open: it may come back now.
+        markParkedToolsLeft()
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
@@ -11337,6 +11344,10 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.aiChat.composing) {
             _uiState.update { it.copy(aiChat = it.aiChat.copy(composing = false)) }
         }
+        // The tool open over this field, for the app's next one once the user
+        // has been somewhere else and come back. Before the note editor closes
+        // below, so the copy still has it.
+        parkTool()
         // The note editor gives the keys back with the window too (#560); its
         // draft is written first, so nothing typed is lost.
         if (_uiState.value.notes.editing != null) notesFlushEdit(leaveEditor = true)
@@ -20275,6 +20286,154 @@ open class WMKeyboardService : InputMethodService() {
     private fun panelLayoutPersists(state: KeyboardUiState): Boolean {
         val kind = state.panel.layoutKind ?: return false
         return state.panelLayout(kind).grid.persistent
+    }
+
+    /**
+     * A tool left open in an app the user then left, for the keyboard to put
+     * back when it next comes up in that app ("Keep a tool open when you
+     * switch apps"). [state] is the whole UI state as the keyboard hid —
+     * immutable, so holding it costs a reference — and [reopenParkedTool]
+     * copies only the tool's own parts out of it. Null when the record came
+     * off disk after the process was stopped: then only the panel, and the
+     * plugin in it, come back.
+     *
+     * [left] turns true once the user really went somewhere: the window hid,
+     * or another app took the keys. Until then the next field in the same app
+     * is a change of field inside it, where a panel still dies with the field
+     * it was opened over.
+     */
+    private class ParkedTool(
+        val panel: PanelMode,
+        val pluginId: String?,
+        val state: KeyboardUiState?,
+        val at: Long,
+        var left: Boolean = false,
+    )
+
+    /**
+     * The parked tools by app, oldest first; [PARKED_TOOLS_MAX] at most. Seeded
+     * from disk once per process with the last one parked, which is the case
+     * that matters: the system stops a hidden keyboard's process freely.
+     */
+    private val parkedTools: LinkedHashMap<String, ParkedTool> by lazy {
+        LinkedHashMap<String, ParkedTool>().also { map ->
+            val stored = persistentSurface.parkedTool ?: return@also
+            val panel = PanelMode.entries.firstOrNull { it.name == stored.panel } ?: return@also
+            map[stored.packageName] = ParkedTool(panel, stored.pluginId, state = null, at = stored.at, left = true)
+        }
+    }
+
+    /**
+     * The keyboard is leaving a field: the tool open over it is set aside for
+     * the app's next field, or the app's old one is dropped when none is open
+     * (the user closed it, so an older one must not come back). Never for a
+     * password or incognito field, nor for the tools that run a camera or a
+     * microphone, hold WM Pass's words, or work on the field's own text.
+     */
+    private fun parkTool() {
+        val pkg = currentInputEditorInfo?.packageName ?: return
+        val state = _uiState.value
+        val keep = state.settings.toolbarBehavior.keepToolsAcrossApps &&
+            state.panel != PanelMode.NONE &&
+            state.panel !in UnparkedPanels &&
+            state.panel != state.appletPanel &&
+            !state.fieldIncognito &&
+            !state.secureField &&
+            !state.deviceLocked &&
+            !panelLayoutPersists(state)
+        if (!keep) {
+            dropParkedTool(pkg)
+            return
+        }
+        // The draft goes into the store first, so the copy holds the id it was saved under.
+        if (state.notes.editing != null) notesFlushEdit()
+        val parked = _uiState.value
+        val pluginId = (parked.plugins as? PluginPanelUi.Running)?.plugin?.id?.takeIf { parked.panel == PanelMode.PLUGINS }
+        val now = System.currentTimeMillis()
+        parkedTools.remove(pkg)
+        parkedTools[pkg] = ParkedTool(parked.panel, pluginId, parked, now)
+        while (parkedTools.size > PARKED_TOOLS_MAX) parkedTools.remove(parkedTools.keys.first())
+        persistentSurface.saveParkedTool(PersistentSurfacePrefs.ParkedTool(pkg, parked.panel.name, pluginId, now))
+    }
+
+    private fun dropParkedTool(pkg: String) {
+        parkedTools.remove(pkg) ?: return
+        if (persistentSurface.parkedTool?.packageName == pkg) persistentSurface.saveParkedTool(null)
+    }
+
+    /** The user went somewhere else: every parked tool but [stayingIn]'s may come back now. */
+    private fun markParkedToolsLeft(stayingIn: String? = null) {
+        if (parkedTools.isEmpty()) return
+        for ((pkg, parked) in parkedTools) if (pkg != stayingIn) parked.left = true
+    }
+
+    /**
+     * A new field in [info]'s app: its parked tool comes back when the user
+     * left the app and returned within [PARKED_TOOL_MS], the field is no
+     * password or incognito one ([blocked]), and nothing else already holds
+     * the panel. Taken either way: a tool comes back once.
+     */
+    private fun restoreParkedTool(info: EditorInfo?, blocked: Boolean) {
+        val pkg = info?.packageName ?: return
+        val parked = parkedTools[pkg] ?: return
+        dropParkedTool(pkg)
+        val state = _uiState.value
+        if (blocked || !parked.left || !state.settings.toolbarBehavior.keepToolsAcrossApps) return
+        if (System.currentTimeMillis() - parked.at !in 0..PARKED_TOOL_MS) return
+        if (state.panel != PanelMode.NONE || parked.panel == state.appletPanel) return
+        if (parked.panel == PanelMode.CLIPBOARD && !isClipboardAccessible()) return
+        reopenParkedTool(parked)
+    }
+
+    private fun reopenParkedTool(parked: ParkedTool) {
+        DebugLog.i("ime", "reopening ${parked.panel} left open in this app")
+        onPanelChange(parked.panel, haptic = false)
+        if (_uiState.value.panel != parked.panel) return
+        // A plugin starts again, from what it saved: none runs while the
+        // keyboard is away, so there is no session to come back to.
+        if (parked.panel == PanelMode.PLUGINS) {
+            parked.pluginId?.let(::runPlugin)
+            return
+        }
+        val s = parked.state ?: return
+        _uiState.update {
+            when (parked.panel) {
+                PanelMode.CLIPBOARD -> it.copy(
+                    clipboardSearchActive = s.clipboardSearchActive,
+                    clipboardQuery = s.clipboardQuery,
+                    clipEdit = s.clipEdit,
+                    clipCombine = s.clipCombine,
+                    clipboardWithKeys = s.clipboardWithKeys,
+                )
+                PanelMode.SNIPPETS -> it.copy(
+                    snippetSearchActive = s.snippetSearchActive,
+                    snippetQuery = s.snippetQuery,
+                    snippetFolderOpen = s.snippetFolderOpen,
+                )
+                PanelMode.TOOLBOX -> it.copy(toolboxView = s.toolboxView)
+                PanelMode.APP_LAUNCHER -> it.copy(launcherView = s.launcherView, launcherDetail = s.launcherDetail)
+                PanelMode.CALCULATOR -> it.copy(calcExpression = s.calcExpression)
+                PanelMode.UNIT_CONVERT, PanelMode.CURRENCY -> it.copy(converterValue = s.converterValue)
+                PanelMode.TRANSLATE -> it.copy(translate = s.translate, mediaQuery = s.mediaQuery, mediaSearchActive = s.mediaSearchActive)
+                PanelMode.WEB_SEARCH, PanelMode.WIKIPEDIA, PanelMode.QR_GEN ->
+                    it.copy(mediaQuery = s.mediaQuery, mediaSearchActive = s.mediaSearchActive)
+                else -> it
+            }
+        }
+        if (parked.panel == PanelMode.NOTES) {
+            // The editor comes back on the note it was writing, unless that
+            // was a new note left blank (thrown away as the keyboard hid) or
+            // a locked one, which opens to its lock again.
+            val edit = s.notes.editing?.takeUnless { (it.isNew && it.blank) || it.original.locked }
+            publishNotes { notes ->
+                notes.copy(
+                    open = edit?.id ?: notes.open,
+                    editing = edit,
+                    searchActive = s.notes.searchActive && edit == null,
+                    query = if (edit == null) s.notes.query else "",
+                )
+            }
+        }
     }
 
     /** Where the user was when the keyboard last went away — see the class. */
@@ -43105,6 +43264,11 @@ open class WMKeyboardService : InputMethodService() {
     /** Loads and runs a plugin, replacing whatever was open. */
     fun onPluginOpen(pluginId: String) {
         vibrate()
+        runPlugin(pluginId)
+    }
+
+    /** [onPluginOpen] without the tap's buzz: a plugin put back on a return to its app. */
+    private fun runPlugin(pluginId: String) {
         val store = PluginStore.get(this)
         if (!store.subsystemEnabled()) return openPluginList()
         val plugin = store.plugin(pluginId) ?: return openPluginList()
@@ -62533,6 +62697,24 @@ open class WMKeyboardService : InputMethodService() {
 
         /** How long a summoned keyboard keeps the floating button's panel through field reports (#1196). */
         private const val FLOATING_TOOL_KEEP_MS = 1_500L
+
+        /** How long a tool left open in an app waits for the user to come back to it. */
+        private const val PARKED_TOOL_MS = 30L * 60 * 1000
+
+        /** Apps whose open tool is remembered at once, in memory. */
+        private const val PARKED_TOOLS_MAX = 4
+
+        /**
+         * Tools that never come back by themselves on a return to the app: a
+         * camera or microphone that would switch itself on, WM Pass's words,
+         * and the ones that work on the text of the field they were opened
+         * over. Voice has its own way back (#699).
+         */
+        private val UnparkedPanels = setOf(
+            PanelMode.VOICE, PanelMode.CAMERA, PanelMode.OCR, PanelMode.QR_SCAN, PanelMode.DOC_SCAN,
+            PanelMode.MUSIC_ID, PanelMode.WM_PASS, PanelMode.FIND_REPLACE, PanelMode.LEARN_FROM_TEXT,
+            PanelMode.SHARE, PanelMode.TYPING_TEST, PanelMode.CANDIDATES, PanelMode.IMAGE_SEARCH,
+        )
 
         /**
          * How long Leave field (#626) gives the app to act on its first Esc

@@ -32,6 +32,9 @@ Each time the panel opens, your file runs from the top: imports, constants,
 `plugin.state(...)`. Then `on_open` runs, then `render()`. So values in a
 `plugin.state` without `persist=True` start over at each opening, and saved
 ones come back. When the panel closes, `on_close` runs and the plugin stops.
+The keyboard hiding counts as a close, switching apps included. When the user
+comes back to that app with your panel still open, the keyboard opens it again
+and your file runs from the top, so only saved values carry over.
 
 A few values describe where the plugin is running:
 

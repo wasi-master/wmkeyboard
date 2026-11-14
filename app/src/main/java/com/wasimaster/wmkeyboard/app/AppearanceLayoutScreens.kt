@@ -737,6 +737,15 @@ internal fun AppearanceToolbarSettings(
                 default = SettingsDefaults.toolbarBehavior.hideWhenLocked,
             ) { scope.launch { repository.setToolbarHideWhenLocked(it) } }
         }
+        item {
+            ToggleSetting(
+                R.string.appearance_toolbar_keep_tools_title,
+                stringResource(R.string.appearance_toolbar_keep_tools_subtitle),
+                settings.watch { it.toolbarBehavior.keepToolsAcrossApps },
+                info = stringResource(R.string.appearance_toolbar_keep_tools_info),
+                default = SettingsDefaults.toolbarBehavior.keepToolsAcrossApps,
+            ) { scope.launch { repository.setKeepToolsAcrossApps(it) } }
+        }
         if (toolbarOn) item {
             ToggleSetting(
                 R.string.appearance_toolbar_labels_title,

@@ -2192,6 +2192,14 @@ data class ToolbarBehavior(
      */
     val hideWhenLocked: Boolean = false,
     /**
+     * A tool left open in an app comes back when the user returns to that app
+     * within half an hour: switching to another app and back no longer closes
+     * it and loses what was half done in it. Never in a password or incognito
+     * field. On by default: a tool closing behind the user's back read as a
+     * bug. Off, every new field opens on the keys, as it always did.
+     */
+    val keepToolsAcrossApps: Boolean = true,
+    /**
      * Width of each pinned tool's background on the bar. 38 is the classic
      * circle; wider stretches it into a pill (pairs best with a low corner
      * radius and the scrollable bar for a Gboard-style strip). The background
@@ -13212,6 +13220,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_HEIGHT = intPreferencesKey("toolbar_height")
         private val TOOLBAR_SCROLLABLE = booleanPreferencesKey("toolbar_scrollable")
         private val TOOLBAR_HIDE_WHEN_LOCKED = booleanPreferencesKey("toolbar_hide_when_locked")
+        private val TOOLS_KEEP_ACROSS_APPS = booleanPreferencesKey("tools_keep_across_apps")
         private val TOOLBAR_LABELS = booleanPreferencesKey("toolbar_labels")
         private val TOOLBAR_LABEL_SIZE = intPreferencesKey("toolbar_label_size")
         private val TOOL_CIRCLE_RADIUS = intPreferencesKey("tool_circle_radius")
@@ -15913,6 +15922,7 @@ class SettingsRepository(private val context: Context) {
             greedy = p[TOOLBAR_GREEDY] ?: defaults.toolbarBehavior.greedy,
             scrollable = p[TOOLBAR_SCROLLABLE] ?: defaults.toolbarBehavior.scrollable,
             hideWhenLocked = p[TOOLBAR_HIDE_WHEN_LOCKED] ?: defaults.toolbarBehavior.hideWhenLocked,
+            keepToolsAcrossApps = p[TOOLS_KEEP_ACROSS_APPS] ?: defaults.toolbarBehavior.keepToolsAcrossApps,
             toolWidthDp = p[TOOLBAR_TOOL_WIDTH] ?: defaults.toolbarBehavior.toolWidthDp,
             iconSizeDp = p[TOOLBAR_ICON_SIZE] ?: defaults.toolbarBehavior.iconSizeDp,
             toolHeightDp = p[TOOLBAR_TOOL_HEIGHT] ?: defaults.toolbarBehavior.toolHeightDp,
@@ -18845,6 +18855,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setToolbarHideWhenLocked(value: Boolean) =
         editPrefs { it[TOOLBAR_HIDE_WHEN_LOCKED] = value }
+
+    suspend fun setKeepToolsAcrossApps(value: Boolean) =
+        editPrefs { it[TOOLS_KEEP_ACROSS_APPS] = value }
 
     suspend fun setToolbarLabels(value: Boolean) =
         editPrefs { it[TOOLBAR_LABELS] = value }
@@ -22972,6 +22985,7 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOLBAR_HEIGHT)
         it.remove(TOOLBAR_SCROLLABLE)
         it.remove(TOOLBAR_HIDE_WHEN_LOCKED)
+        it.remove(TOOLS_KEEP_ACROSS_APPS)
         it.remove(TOOLBAR_LABELS)
         it.remove(TOOLBAR_LABEL_SIZE)
         it.remove(SUGGESTION_TEXT_SCALE)
