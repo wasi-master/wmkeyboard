@@ -25,6 +25,7 @@ import com.wasimaster.wmkeyboard.core.clock.Span
 import com.wasimaster.wmkeyboard.core.clock.ZoneEntry
 import com.wasimaster.wmkeyboard.core.clock.ZoneCatalog
 import com.wasimaster.wmkeyboard.core.notify.WmNotifications
+import com.wasimaster.wmkeyboard.core.script.DeviceLocales
 import com.wasimaster.wmkeyboard.ime.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -67,7 +68,9 @@ internal class ClockController(
     private var watch: Job? = null
 
     /** The zone list, built on the first search: about 420 zones, a few ms. */
-    private val catalog: ZoneCatalog by lazy { ZoneCatalog(IcuZoneNames()) }
+    private val catalog: ZoneCatalog by lazy {
+        ZoneCatalog(IcuZoneNames(viewerRegion = DeviceLocales.read(app).regionCodes.firstOrNull()))
+    }
 
     fun onPanelOpen() {
         if (watch == null) {

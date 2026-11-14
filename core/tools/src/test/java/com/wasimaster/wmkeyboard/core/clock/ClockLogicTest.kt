@@ -307,6 +307,23 @@ class ClockLogicTest {
         assertEquals(catalog.entries.size, catalog.entries.map { it.key }.toSet().size)
     }
 
+    @Test
+    fun jerusalemFollowsThePhonesRegion() {
+        assertEquals("PS", ContestedRegions.regionCode("Asia/Jerusalem", "IL", "BD"))
+        assertEquals("PS", ContestedRegions.regionCode("Asia/Jerusalem", "IL", "ie"))
+        assertEquals("IL", ContestedRegions.regionCode("Asia/Jerusalem", "IL", "IL"))
+        assertEquals("IL", ContestedRegions.regionCode("Asia/Jerusalem", "IL", null))
+        assertEquals("IN", ContestedRegions.regionCode("Asia/Kolkata", "IN", "BD"))
+        // Tel Aviv shares the zone but keeps Israel's name.
+        val catalog = ZoneCatalog(object : ZoneNames {
+            override fun city(id: String): String? = null
+            override fun region(id: String): String? = if (id == "Asia/Jerusalem") "Palestine" else null
+            override fun country(code: String): String? = if (code == "IL") "Israel" else null
+        })
+        assertEquals("Israel", catalog.search("tel aviv").first().region)
+        assertEquals("Palestine", catalog.search("jerusalem").first().region)
+    }
+
     // ---- Planner and dates ----------------------------------------------
 
     @Test

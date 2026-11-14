@@ -20,6 +20,8 @@ internal class ExtraCity(
     val latitude: Double,
     val longitude: Double,
     val also: String = "",
+    /** ISO region when it is not the zone's: Tel Aviv stays Israel's wherever Jerusalem is listed. */
+    val region: String? = null,
 )
 
 /** The names of the cities that live under [zoneId], for a search over tz ids. */
@@ -54,7 +56,7 @@ internal val EXTRA_CITIES: List<ExtraCity> = listOf(
     ExtraCity("Mecca", "Asia/Riyadh", 21.39, 39.86, "Makkah"),
     ExtraCity("Medina", "Asia/Riyadh", 24.47, 39.61, "Madinah"),
     ExtraCity("Jeddah", "Asia/Riyadh", 21.49, 39.19, "Jiddah"),
-    ExtraCity("Tel Aviv", "Asia/Jerusalem", 32.09, 34.78),
+    ExtraCity("Tel Aviv", "Asia/Jerusalem", 32.09, 34.78, region = "IL"),
     ExtraCity("Ankara", "Europe/Istanbul", 39.93, 32.86),
     ExtraCity("Saint Petersburg", "Europe/Moscow", 59.93, 30.34, "St Petersburg"),
     ExtraCity("Barcelona", "Europe/Madrid", 41.39, 2.17),

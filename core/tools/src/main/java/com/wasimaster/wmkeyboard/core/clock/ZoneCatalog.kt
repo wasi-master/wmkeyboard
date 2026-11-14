@@ -74,7 +74,13 @@ class ZoneCatalog(private val names: ZoneNames, now: Long = System.currentTimeMi
         val byId = zones.associateBy { it.id }
         EXTRA_CITIES.mapNotNull { c ->
             val zone = byId[c.zoneId] ?: byCanonical[names.canonical(c.zoneId)] ?: return@mapNotNull null
-            zone.copy(city = c.name, extra = true, latitude = c.latitude, longitude = c.longitude) to c.also
+            zone.copy(
+                city = c.name,
+                region = c.region?.let(names::country) ?: zone.region,
+                extra = true,
+                latitude = c.latitude,
+                longitude = c.longitude,
+            ) to c.also
         }
     }
 
@@ -187,6 +193,9 @@ class ZoneCatalog(private val names: ZoneNames, now: Long = System.currentTimeMi
 interface ZoneNames {
     fun city(id: String): String?
     fun region(id: String): String?
+
+    /** The name of the ISO region [code]: "IL" -> "Israel". */
+    fun country(code: String): String? = null
 
     /** The current id for a zone that has been renamed; the id itself otherwise. */
     fun canonical(id: String): String = id

@@ -75,6 +75,7 @@ import com.wasimaster.wmkeyboard.core.clock.WorldZone
 import com.wasimaster.wmkeyboard.core.clock.ZoneCatalog
 import com.wasimaster.wmkeyboard.core.clock.ZoneEntry
 import com.wasimaster.wmkeyboard.core.clock.utcOffsetLabel
+import com.wasimaster.wmkeyboard.core.script.DeviceLocales
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Pause
@@ -600,7 +601,10 @@ private fun ClocksSection(zones: List<WorldZone>, stored: List<WorldZone>, hour2
 @Composable
 private fun ZonePickerDialog(onDismiss: () -> Unit, onPick: (ZoneEntry) -> Unit) {
     var query by remember { mutableStateOf("") }
-    val catalog = remember { ZoneCatalog(IcuZoneNames()) }
+    val context = LocalContext.current
+    val catalog = remember {
+        ZoneCatalog(IcuZoneNames(viewerRegion = DeviceLocales.read(context).regionCodes.firstOrNull()))
+    }
     val results = remember(query) { catalog.search(query) }
     AlertDialog(
         onDismissRequest = onDismiss,
