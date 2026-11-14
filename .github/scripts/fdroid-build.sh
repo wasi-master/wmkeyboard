@@ -125,7 +125,7 @@ cp "${maps[0]}" "/src/dist/fdroid-mapping-$abi.txt"
 # The libraries F-Droid's build compiled from source and left out of the APK
 # (native delivery), for the data repository's natives release: an F-Droid
 # install that opts in to library downloads fetches these exact bytes.
-(cd "$home_vagrant/build/$appid" && bash /src/.github/scripts/collect-natives.sh "$apk" "/src/dist/fdroid-natives-$abi")
+(cd "$home_vagrant/build/$appid" && NATIVES_FALLBACK_ROOT=/src bash /src/.github/scripts/collect-natives.sh "$apk" "/src/dist/fdroid-natives-$abi")
 chmod -R a+r /src/dist
 
 [ "$extra" = en ] || exit 0
