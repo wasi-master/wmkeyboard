@@ -11220,9 +11220,18 @@ private fun ToolGlyph(slot: String, description: String?, modifier: Modifier, ti
  * while the new one turns in from the other side and grows into place. The
  * back arrow always arrives from, and leaves towards, the same side, so closing
  * is the opening played backwards rather than a second, different spin.
+ *
+ * The stock pair is the exception: with neither glyph replaced, the grid turns
+ * into the chevron through [ToolboxBackMorph].
  */
 @Composable
 private fun ToolGlyphSwap(slot: String, description: String, modifier: Modifier, tint: Color, brush: Brush?) {
+    // The stock toolbox and back glyphs get a motion drawn for them: the grid
+    // folds into the chevron rather than spinning past it.
+    if (toolboxMorphAvailable(slot)) {
+        ToolboxBackMorph(slot == IconSlots.CHROME_PANEL_BACK, description, modifier, tint, brush)
+        return
+    }
     // The quarter turn runs towards reading start, the way the arrow points.
     val turn = if (LocalLayoutDirection.current == LayoutDirection.Rtl) -ToolGlyphTurn else ToolGlyphTurn
     AnimatedContent(
