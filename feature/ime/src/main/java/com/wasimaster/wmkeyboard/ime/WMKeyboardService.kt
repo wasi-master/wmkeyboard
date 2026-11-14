@@ -1869,7 +1869,13 @@ open class WMKeyboardService : InputMethodService() {
             // Longer under load: the model is a read per pause in typing,
             // and on a busy phone the pause has to be a real one.
             delay(SMART_PUNCTUATION_DEBOUNCE_MS * deviceLoad.backgroundWorkStretch())
-            val mark = PunctuationModel.markFor(model.predict(words, languageId), allowComma)
+            // A language the model never learned asks with its question
+            // words (#1316): one in the sentence is the question mark.
+            val mark = if (QuestionWords.asks(languageId, words)) {
+                PunctuationModel.QUESTION
+            } else {
+                PunctuationModel.markFor(model.predict(words, languageId), allowComma)
+            }
             val glyph = mark?.let { SmartPunctuation.glyph(it, script) }
             ask.glyph = glyph
             punctuationAsked = ask
