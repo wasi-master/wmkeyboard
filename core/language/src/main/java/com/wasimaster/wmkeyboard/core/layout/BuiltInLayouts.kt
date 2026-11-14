@@ -1222,7 +1222,9 @@ private val arabicRows = listOf(
     ),
     listOf(
         Key("⇧", action = KeyAction.Shift, width = 1.5f),
-        Key("ذ"), Key("د"), Key("ز"), Key("ر"), Key("و", longPress = listOf("ؤ")),
+        // ظ gets a key of its own, beside ز as on Arabic 101. Reached only as
+        // ط's shift plane, it read as missing from the board (Play review).
+        Key("ذ"), Key("د"), Key("ز"), Key("ظ"), Key("ر"), Key("و", longPress = listOf("ؤ")),
         Key("ة", shiftLabel = "ه"), Key("ى", shiftLabel = "ي"),
         Key("ء", longPress = listOf("أ", "إ", "ؤ", "ئ")),
         Key("⌫", action = KeyAction.Delete, width = 1.5f),
