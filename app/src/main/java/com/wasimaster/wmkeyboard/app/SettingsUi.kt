@@ -67,6 +67,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Restore
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
@@ -2283,8 +2284,11 @@ private val SubtitleBand = 24.dp
  */
 private const val SubtitleLineLimit = 3
 
-/** Width the collapsed pose keeps clear for the navigation icon and actions. */
-private val CollapsedFurnitureWidth = 112.dp
+/**
+ * Width the collapsed pose keeps clear for the navigation icon and actions:
+ * the back arrow, search and the favourites star (#1317), and a little air.
+ */
+private val CollapsedFurnitureWidth = 160.dp
 
 /** The size the title settles at once the bar is collapsed. */
 private const val CollapsedTitleSp = 20f
@@ -3061,6 +3065,22 @@ private fun WmScreenFrame(
     val entry = currentCrumbEntry()
     val crumbOpened = rememberCrumbOpened()
     RegisterSettingsCrumb(crumbTitle ?: title, route)
+    // Kept among the recent pages once it has been open a moment (#1317):
+    // any screen a link can name, but the home list and search, which are
+    // where every walk starts.
+    val linkRoute = if (trail != null) currentLinkRoute() else null
+    val recentLink = remember(linkRoute) {
+        linkRoute?.let { SettingsRoutes.resolve(it) }
+            ?.takeIf { it != HomeRoute && it != SearchRoute }
+            ?.let { SettingsFavourites.screenLink(it) }
+    }
+    RecordRecentPage(recentLink) {
+        SettingsFavourite(
+            recentLink.orEmpty(),
+            crumbTitle ?: title,
+            SettingLinks.path(trail?.path.orEmpty(), entry?.id, null).dropLast(1),
+        )
+    }
     val slots = remember { ScreenSlots() }
     val preview = LocalKeyboardPreview.current?.takeIf { slots.dock == null }
     val chatFab = LocalAiChatFab.current
@@ -3161,6 +3181,7 @@ private fun WmScreenFrame(
                                 actions = {
                                     // Ahead of the screen's own, so an overflow
                                     // menu keeps the bar's last place (#898).
+                                    SettingsSearchButton(route)
                                     FavouritesButton(crumbTitle ?: title)
                                     actions()
                                 },
@@ -3253,6 +3274,25 @@ private fun WmScreenFrame(
         }
     }
 }
+
+/**
+ * Settings search from any screen (#1317), beside the favourites star: no
+ * walking back to the home list to look for a setting. Not on the home list,
+ * whose heading has a search button of its own, nor outside the settings
+ * graph, where there is nowhere to open it.
+ */
+@Composable
+private fun SettingsSearchButton(route: String?) {
+    if (route == null || route == HomeRoute || route == SearchRoute) return
+    if (LocalSettingsCrumbTrail.current == null) return
+    val navigate = LocalSettingsNavigate.current
+    IconButton(onClick = { navigate(SearchRoute) }) {
+        Icon(Icons.Outlined.Search, contentDescription = stringResource(R.string.home_search_desc))
+    }
+}
+
+/** The settings search screen's route. */
+private const val SearchRoute = "search"
 
 /**
  * How wide a settings screen's own column is allowed to get.

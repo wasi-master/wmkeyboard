@@ -9,6 +9,8 @@
     <string name="shell_search_empty">No setting matches \"<xliff:g id="query" example="haptic">%1$s</xliff:g>\".</string>
     <!-- Heading over the settings opened from search before, shown while the field is empty. -->
     <string name="shell_search_recent_title">Recent</string>
+    <!-- #1317: heading over the settings pages visited lately, shown on the search screen while the field is empty. -->
+    <string name="shell_search_recent_pages_title">Recent pages</string>
     <!-- Heading over the results that only carry the search words in their description or their path, not in their name. -->
     <string name="shell_search_mentions_title">Mentioned in the description</string>
     <!-- Name of the ranked results on the index beside a long list of results. Kept to one word: it is drawn in a small bubble beside the reader's finger. -->
@@ -42,6 +44,8 @@
     <string name="shell_breadcrumb_open_desc">Go to <xliff:g id="screen" example="Appearance">%1$s</xliff:g></string>
     <!-- Screen reader label for the last step of the path strip, the screen being shown. Pressing it scrolls the screen back to its top. -->
     <string name="shell_breadcrumb_top_desc">Back to the top</string>
+    <!-- #1317: what a long press on a step of the path strip does, read out by TalkBack. -->
+    <string name="shell_breadcrumb_siblings_desc">List the pages beside this one</string>
     <!-- Under the path strip, on a screen the user has reached before by another path in this session. %1$s = that other path, e.g. "Home › Emoji". -->
     <string name="shell_breadcrumb_also_under">Also under <xliff:g id="path" example="Home › Emoji">%1$s</xliff:g></string>
 

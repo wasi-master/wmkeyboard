@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.icons.symbols.filled.Star
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bookmarks
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StarBorder
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
@@ -218,9 +219,25 @@ internal fun FavouritesSheet(here: (() -> SettingsFavourite)?, onDismiss: () -> 
     val scope = rememberCoroutineScope()
     var editing by remember { mutableStateOf(false) }
     val items = favourites.items
+    // The pages visited lately (#1317), under the pins: not the screen the
+    // sheet was opened on, and not a page that is pinned already.
+    val hereLink = remember(here) { here?.invoke()?.link }
+    val visited = rememberRecentPages()
+    val recent = remember(visited, items, hereLink) {
+        visited.filter { page -> page.link != hereLink && items.none { it.link == page.link } }
+            .take(RecentPages.SHOWN)
+    }
     // Looked up once per list: a screen's name comes out of the search index.
-    val titles = remember(items, links, context) {
-        items.associate { it.link to SettingsFavourites.title(it, links, context.resources, context.packageName) }
+    val titles = remember(items, recent, links, context) {
+        (items + recent).associate { it.link to SettingsFavourites.title(it, links, context.resources, context.packageName) }
+    }
+    fun openLink(link: String) {
+        // Away first, so the screen it opens is not drawn under a sheet on
+        // its way out.
+        scope.launch { sheetState.hide() }.invokeOnCompletion {
+            onDismiss()
+            open?.invoke(link)
+        }
     }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         ScrollRail(state = rememberScrollRailState(), fadeColor = BottomSheetDefaults.ContainerColor) {
@@ -280,14 +297,30 @@ internal fun FavouritesSheet(here: (() -> SettingsFavourite)?, onDismiss: () -> 
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                             modifier = Modifier
                                 .padding(horizontal = 8.dp)
-                                .clickable {
-                                    // Away first, so the screen it opens is not
-                                    // drawn under a sheet on its way out.
-                                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                        onDismiss()
-                                        open?.invoke(item.link)
-                                    }
-                                },
+                                .clickable { openLink(item.link) },
+                        )
+                    }
+                }
+            }
+            if (!editing && recent.isNotEmpty()) {
+                Text(
+                    stringResource(R.string.favourites_recent_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 4.dp),
+                )
+                for (page in recent) {
+                    key("recent:" + page.link) {
+                        ListItem(
+                            headlineContent = { Text(titles[page.link].orEmpty()) },
+                            supportingContent = page.path.takeIf { it.isNotEmpty() }?.let { path ->
+                                { Text(path.joinToString(PathSeparator)) }
+                            },
+                            leadingContent = { Icon(Icons.Outlined.History, contentDescription = null) },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .clickable { openLink(page.link) },
                         )
                     }
                 }

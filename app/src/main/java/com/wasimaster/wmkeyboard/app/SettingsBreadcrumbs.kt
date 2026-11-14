@@ -13,7 +13,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +31,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Home
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,6 +45,9 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
@@ -52,6 +57,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -61,9 +70,13 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavBackStackEntry
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /*
  * The path strip: "Home › Appearance › Themes" under the heading of every
@@ -520,6 +533,33 @@ internal fun SettingsBreadcrumbBar(
     // A short path still sits at the start, because the row is only as wide
     // as its pills and the box lays it out from the start.
     val scroll = rememberScrollState()
+    // A long press on a step lists the pages beside it (#1317). Picking one
+    // goes back to the step's parent and opens it from there, so the stack,
+    // and with it this strip, reads as if it had been walked to.
+    val navigate = LocalSettingsNavigate.current
+    val extensions = LocalExtensions.current
+    val resources = LocalContext.current.resources
+    val homeTitle = stringResource(R.string.shell_breadcrumb_home)
+    val rootTitle = stringResource(CommonR.string.common_settings)
+    fun jump(path: List<String>, parent: SettingsCrumb?, self: () -> Unit): SiblingJump? {
+        parent ?: return null
+        return SiblingJump(
+            load = {
+                withContext(Dispatchers.Default) {
+                    crumbSiblings(path, CrumbSiblingIndex.of(resources), homeTitle, rootTitle)
+                        .withExtensions(extensions)
+                }
+            },
+            onPick = { route, isSelf ->
+                if (isSelf) {
+                    self()
+                } else {
+                    trail.goTo(parent)
+                    navigate(route)
+                }
+            },
+        )
+    }
     Column(modifier = modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
@@ -539,13 +579,16 @@ internal fun SettingsBreadcrumbBar(
                     .padding(horizontal = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                crumbs.forEach { crumb ->
+                crumbs.forEachIndexed { i, crumb ->
                     Crumb(
                         crumb = crumb,
                         here = crumbAccent(from = if (crumb.entryId == wasHere) 1f else 0f, to = 0f),
                         accent = accent,
                         onOpen = if (crumb.seeded && crumb.route == null) null
                         else ({ trail.goTo(crumb) }),
+                        siblings = jump(crumbs.take(i + 1).map { it.title }, crumbs.getOrNull(i - 1)) {
+                            trail.goTo(crumb)
+                        },
                     )
                     CrumbSeparator(crumb.entryId)
                 }
@@ -559,6 +602,7 @@ internal fun SettingsBreadcrumbBar(
                     here = crumbAccent(from = 0f, to = 1f),
                     accent = accent,
                     onTop = onCurrent,
+                    siblings = jump(crumbs.map { it.title } + currentTitle, crumbs.lastOrNull(), onCurrent),
                 )
             }
         }
@@ -835,20 +879,97 @@ private fun CrumbSeparator(entryId: String) {
  * reads as a thing to press without shouting over the heading above.
  */
 @Composable
-private fun Crumb(crumb: SettingsCrumb, here: Float, accent: Color, onOpen: (() -> Unit)?) {
-    CrumbPill(
-        title = crumb.title,
-        route = crumb.route,
-        here = here,
-        accent = accent,
-        flight = crumbKey(crumb.entryId),
-        // A seeded step the index cannot address goes nowhere, so it is a
-        // label and not a button: it still says where the screen sits.
-        modifier = if (onOpen == null) Modifier else Modifier.clickable(
-            onClickLabel = stringResource(R.string.shell_breadcrumb_open_desc, crumb.title),
-            onClick = onOpen,
-        ),
-    )
+private fun Crumb(
+    crumb: SettingsCrumb,
+    here: Float,
+    accent: Color,
+    onOpen: (() -> Unit)?,
+    siblings: SiblingJump?,
+) {
+    CrumbWithSiblings(crumb.route, siblings) { onLongClick ->
+        CrumbPill(
+            title = crumb.title,
+            route = crumb.route,
+            here = here,
+            accent = accent,
+            flight = crumbKey(crumb.entryId),
+            // A seeded step the index cannot address goes nowhere, so it is a
+            // label and not a button: it still says where the screen sits.
+            modifier = if (onOpen == null) Modifier else Modifier.combinedClickable(
+                onClickLabel = stringResource(R.string.shell_breadcrumb_open_desc, crumb.title),
+                onClick = onOpen,
+                onLongClickLabel = onLongClick?.let { stringResource(R.string.shell_breadcrumb_siblings_desc) },
+                onLongClick = onLongClick,
+            ),
+        )
+    }
+}
+
+/**
+ * What a long press on a step needs (#1317): [load] reads the pages beside
+ * it, off the main thread the first time, and [onPick] goes to one; its
+ * second argument says the pick is the step itself.
+ */
+private class SiblingJump(
+    val load: suspend () -> List<SettingsSearchEntry>,
+    val onPick: (route: String, isSelf: Boolean) -> Unit,
+)
+
+/**
+ * A step with its sibling menu: [pill] is handed the long press, or null when
+ * the step has nothing beside it to list (the home step), and the menu drops
+ * from under it. The step's own page is in the list too, in bold, so the
+ * list reads as the level the step is on rather than as everything but it.
+ */
+@Composable
+private fun CrumbWithSiblings(
+    route: String?,
+    siblings: SiblingJump?,
+    pill: @Composable (onLongClick: (() -> Unit)?) -> Unit,
+) {
+    if (siblings == null) {
+        pill(null)
+        return
+    }
+    val scope = rememberCoroutineScope()
+    val haptics = LocalHapticFeedback.current
+    var shown by remember { mutableStateOf<List<SettingsSearchEntry>?>(null) }
+    Box {
+        pill {
+            scope.launch {
+                val found = siblings.load()
+                // One page alone is no choice to offer.
+                if (found.size > 1) {
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    shown = found
+                }
+            }
+        }
+        DropdownMenu(expanded = shown != null, onDismissRequest = { shown = null }) {
+            shown.orEmpty().forEach { entry ->
+                val self = entry.route == route
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            entry.title,
+                            fontWeight = if (self) FontWeight.Bold else null,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                    leadingIcon = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CrumbGlyph(entry.route, MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    },
+                    onClick = {
+                        shown = null
+                        siblings.onPick(entry.route, self)
+                    },
+                )
+            }
+        }
+    }
 }
 
 /**
@@ -864,20 +985,25 @@ private fun CurrentCrumb(
     here: Float,
     accent: Color,
     onTop: () -> Unit,
+    siblings: SiblingJump?,
 ) {
-    CrumbPill(
-        title = title,
-        route = route,
-        here = here,
-        accent = accent,
-        // The same key the next screen will draw this step under, once it is a
-        // step behind: that is what carries the accent off it as it goes.
-        flight = crumbKey(entryId),
-        modifier = Modifier.clickable(
-            onClickLabel = stringResource(R.string.shell_breadcrumb_top_desc),
-            onClick = onTop,
-        ),
-    )
+    CrumbWithSiblings(route, siblings) { onLongClick ->
+        CrumbPill(
+            title = title,
+            route = route,
+            here = here,
+            accent = accent,
+            // The same key the next screen will draw this step under, once it is a
+            // step behind: that is what carries the accent off it as it goes.
+            flight = crumbKey(entryId),
+            modifier = Modifier.combinedClickable(
+                onClickLabel = stringResource(R.string.shell_breadcrumb_top_desc),
+                onClick = onTop,
+                onLongClickLabel = onLongClick?.let { stringResource(R.string.shell_breadcrumb_siblings_desc) },
+                onLongClick = onLongClick,
+            ),
+        )
+    }
 }
 
 /**

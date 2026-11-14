@@ -114,6 +114,7 @@ Off by default, because these tools are for getting text out fast. Reduce motion
     <string name="favourites_button_subtitle">A star at the top of every settings screen that lists your favourite settings</string>
     <string name="favourites_button_info">Tap the star at the top of any settings screen to see your favourites, and tap one to go there. In the list, Add this screen pins the screen you are on. To pin one setting, touch and hold it and choose Add to favourites.\n\nThe star is filled on a screen that is already a favourite. Turn this off if you don\'t want the button. Your favourites are kept and come back when you turn it on again.</string>
     <string name="favourites_title">Favourites</string>
+    <string name="favourites_recent_title">Recent pages</string>
     <string name="favourites_empty">Nothing here yet. Add the screen you are on, or touch and hold a setting and choose Add to favourites.</string>
     <string name="favourites_edit">Edit</string>
     <string name="favourites_done">Done</string>

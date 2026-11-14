@@ -1032,6 +1032,20 @@ internal fun SettingsSearchScreen(
         history.recent(RECENT_PICKS_SHOWN).mapNotNull(searchByKey::get)
             .filter { assistant || !SettingsAssistantGate.opensAssistant(it) }
     }
+    // The pages visited lately (#1317), each as the index's own entry for
+    // that screen, so it draws and opens like any result. A page the index
+    // has no destination for (a language's page, say) is left out.
+    val visitedPages = rememberRecentPages()
+    val recentPages = remember(visitedPages, searchIndex, corpus, extensions) {
+        val index = (searchIndex ?: corpus?.index)?.withExtensions(extensions) ?: return@remember emptyList()
+        val screens = index.filter { it.weight == EntryWeight.SECTION || it.weight == EntryWeight.TOOL }
+        val byRoute = screens.groupBy { it.route }.mapValues { (_, entries) ->
+            entries.firstOrNull { it.weight == EntryWeight.SECTION } ?: entries.first()
+        }
+        visitedPages.mapNotNull { page ->
+            SettingsDeepLink.parse(page.link)?.route?.let { byRoute[it] }
+        }.distinctBy { it.route }.take(RecentPages.SHOWN)
+    }
     // Whether this is the screen being come back to from a result rather than
     // opened. A plain array rather than state: it is read once, here, and its
     // only job is to be `true` in the bundle the screen is saved into.
@@ -1056,6 +1070,14 @@ internal fun SettingsSearchScreen(
     fun open(entry: SettingsSearchEntry) {
         keyboard?.hide()
         picks.record(query, entry.key)
+        (searchIndex ?: corpus?.index)?.let { trail?.seed(settingsCrumbSeed(entry, it, homeTitle)) }
+        onOpen(entry)
+    }
+
+    // A recent page opens like a result, but is not a pick: nothing was
+    // searched for, so there is nothing for the ranking to learn.
+    fun openPage(entry: SettingsSearchEntry) {
+        keyboard?.hide()
         (searchIndex ?: corpus?.index)?.let { trail?.seed(settingsCrumbSeed(entry, it, homeTitle)) }
         onOpen(entry)
     }
@@ -1155,14 +1177,17 @@ internal fun SettingsSearchScreen(
             when (shown) {
                 SearchStage.PICKS -> RecentPicks(
                     recent = recent,
+                    pages = recentPages,
                     settings = settings,
                     reduceMotion = reduceMotion,
                     arrive = arrive,
                     onOpen = ::open,
+                    onOpenPage = ::openPage,
                     onClear = {
                         picks.clear()
                         historyText = picks.history.encode()
                     },
+                    onClearPages = { RecentPagesStore.get(context).clear() },
                 )
                 SearchStage.LOADING -> GroupSkeleton(
                     rowCount = SEARCH_SKELETON_ROWS,
@@ -1300,37 +1325,68 @@ private const val SEARCH_SKELETON_ROWS = 6
 @Composable
 private fun RecentPicks(
     recent: List<SettingsSearchEntry>,
+    pages: List<SettingsSearchEntry>,
     settings: LiveSettings,
     reduceMotion: Boolean,
     arrive: Boolean,
     onOpen: (SettingsSearchEntry) -> Unit,
+    onOpenPage: (SettingsSearchEntry) -> Unit,
     onClear: () -> Unit,
+    onClearPages: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val reveal = rememberSearchReveal(reduceMotion || !arrive)
+    // A page opened from search is a pick as well as a visit: listed once,
+    // with the pages, since two rows of one result would also share the
+    // result's flight key.
+    val picked = remember(recent, pages) { recent.filterNot { pick -> pages.any { it.key == pick.key } } }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
-        if (recent.isEmpty()) return@LazyColumn
+        // The pages visited lately (#1317), over the settings searched for.
+        if (pages.isNotEmpty()) {
+            item(key = "pages") {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = searchItemMotion(reduceMotion)
+                        .searchReveal(reveal, 0)
+                        .fillMaxWidth(),
+                ) {
+                    ResultsHeading(stringResource(R.string.shell_search_recent_pages_title), Modifier.weight(1f))
+                    TextButton(onClick = onClearPages) { Text(stringResource(CommonR.string.common_clear)) }
+                }
+            }
+            itemsIndexed(pages, key = { _, it -> "page:" + it.key }) { index, entry ->
+                ResultRow(
+                    entry,
+                    settings,
+                    emptyList(),
+                    modifier = searchItemMotion(reduceMotion).searchReveal(reveal, index + 1),
+                ) { onOpenPage(entry) }
+            }
+        }
+        if (picked.isEmpty()) return@LazyColumn
+        // The wave carries on from the pages above, rather than starting over.
+        val after = if (pages.isEmpty()) 0 else pages.size + 1
         item(key = "recent") {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = searchItemMotion(reduceMotion)
-                    .searchReveal(reveal, 0)
+                    .searchReveal(reveal, after)
                     .fillMaxWidth(),
             ) {
                 ResultsHeading(stringResource(R.string.shell_search_recent_title), Modifier.weight(1f))
                 TextButton(onClick = onClear) { Text(stringResource(CommonR.string.common_clear)) }
             }
         }
-        itemsIndexed(recent, key = { _, it -> it.key }) { index, entry ->
+        itemsIndexed(picked, key = { _, it -> it.key }) { index, entry ->
             ResultRow(
                 entry,
                 settings,
                 emptyList(),
-                modifier = searchItemMotion(reduceMotion).searchReveal(reveal, index + 1),
+                modifier = searchItemMotion(reduceMotion).searchReveal(reveal, after + index + 1),
             ) { onOpen(entry) }
         }
     }
