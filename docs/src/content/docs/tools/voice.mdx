@@ -153,6 +153,10 @@ The model detectors run on ONNX Runtime, the runtime Sherpa uses. A detector tha
 
 **Smart Turn**, off by default, adds a second opinion at each pause. [Smart Turn v3.2](https://huggingface.co/pipecat-ai/smart-turn-v3) listens to the last 8 seconds and judges from your voice, not your words, whether you finished what you were saying or stopped mid-thought: the falling voice at the end of a sentence, a word left hanging, an "um". When you sound finished, the phrase ends after a short pause (0.3 seconds, or 0.5 for Omnilingual, which waits that long to cut a phrase anyway); when you don't, it waits out the whole **Stop after a pause**. You can then set a long pause for thinking and still not wait at the end of every sentence. It was trained on 23 languages, downloads 8.7 MB from the row under the switch, and runs on ONNX Runtime. Until its model is on the phone, every pause is waited out as without it.
 
+**Only ever wait longer**, under Smart Turn and off by default, turns it around for anyone who would rather wait than be cut off. Smart Turn then never ends a phrase sooner than the pause would: when you sound finished, the whole **Stop after a pause** is still waited out, and when you sound mid-thought, the wait doubles.
+
+**Grace after the end**, off by default and up to 3 seconds, keeps the microphone open that much longer once the end has been decided, however it was decided. The engine gets time to hear your last sound out, and if you start talking again inside it, the phrase simply carries on.
+
 Whisper, Whistle, Moonshine and the transcription server record a whole clip and keep the recorder's own loudness stop; the detector does not apply to them.
 
 **Reduce background noise**, below it, cleans the microphone's audio before an offline engine hears it: Whisper, Whistle, Asr4All, Parakeet, Moonshine, Sherpa, Omnilingual and Vosk. The system recognizer and the transcription server get the microphone as it is. It has three settings, and Off is the default.
@@ -381,7 +385,9 @@ Everything below lives on the Voice typing screen, under Features on the setting
 | Stop after a pause | Off | Ends a phrase by itself once you have said something and then gone quiet for this long, from 0.5 to 4 seconds. See [Continuous mode](#continuous-mode). |
 | Phrase end detector | Auto | How Asr4All, Sherpa, Omnilingual and Vosk hear that pause: **Auto**, **Silero VAD**, **FireRedVAD**, **Loudness only** or **Your own model**. See [Hearing the end of a phrase](#hearing-the-end-of-a-phrase). |
 | Speech threshold | 50% | How sure the phrase end detector must be that a moment is speech. |
+| Grace after the end | Off | Keeps listening this long after the end is heard, up to 3 seconds; speech in it carries the phrase on. |
 | Smart Turn | Off | At each pause, ends the phrase early when you sound finished, and waits out the whole pause when you don't. Needs its 8.7 MB model. |
+| Only ever wait longer *(shown while Smart Turn is on)* | Off | Smart Turn only lengthens the wait: finished still waits the whole pause, unfinished waits twice it. |
 | Spoken punctuation | On | Saying "comma", "question mark" or "দাঁড়ি" types the mark. |
 | Add punctuation and capitals | On | Full stops, commas, question marks and sentence capitals for Sherpa, Omnilingual and Vosk, which write bare words. Needs its 151 MB model, downloaded from the row under it. See [Adding punctuation and capitals](#adding-punctuation-and-capitals). |
 | Tidy dictation with AI | Off | Sends each phrase to the AI tool's model to take out filler words, repeats and spoken corrections. Hidden in plain text mode. See [Tidying dictation with AI](#tidying-dictation-with-ai). |

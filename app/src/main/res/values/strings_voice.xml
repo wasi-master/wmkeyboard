@@ -139,9 +139,16 @@
     <string name="voice_vad_threshold_info">How sure the detector must be that a moment is speech. Lower keeps listening through soft or distant speech, but noise can hold the phrase open. Higher ends the phrase sooner in a noisy room, but a quiet voice can be taken for silence. For Loudness only it sets how loud counts as speech: 50% is the level the pause stop has always used. 50% by default.</string>
     <!-- Slider readout: the threshold as a percentage, e.g. "50%". -->
     <string name="voice_vad_threshold_value">%1$d%%</string>
+    <string name="voice_vad_grace_title">Grace after the end</string>
+    <string name="voice_vad_grace_subtitle">Keep listening a moment after the end of speech is heard</string>
+    <string name="voice_vad_grace_info">Once the phrase end detector (and Smart Turn, if it is on) decides you have stopped, the microphone stays open this much longer before the dictation ends. The engine gets time to hear your last sound out, and if you speak again within it, the phrase carries on as if the pause had been shorter. It is added to every end, however it was decided. Off by default; up to 3 seconds.</string>
+    <string name="voice_vad_grace_off">Off</string>
     <string name="voice_smart_turn_title">Smart Turn</string>
     <string name="voice_smart_turn_subtitle">End sooner when you sound finished, wait longer when you do not</string>
     <string name="voice_smart_turn_info">At each pause, Smart Turn v3.2 listens to the last 8 seconds and judges whether you finished what you were saying or stopped mid-thought, from how you said it: the falling voice at the end of a sentence, a word left hanging, an \"um\". When you sound finished, the phrase ends after a short pause; when you do not, it waits out the whole pause set in Stop after a pause. So you can set a long pause and still not wait at the end of every sentence. It was trained on 23 languages and is an 8.7 MB download that runs on ONNX Runtime. Off by default.</string>
+    <string name="voice_smart_turn_conservative_title">Only ever wait longer</string>
+    <string name="voice_smart_turn_conservative_subtitle">Never end sooner than the pause; wait twice the pause when you sound unfinished</string>
+    <string name="voice_smart_turn_conservative_info">Ending a phrase too soon cuts off your last words, while ending it late only costs a moment. With this on, Smart Turn can only make the wait longer: when you sound finished, the phrase still waits out the whole pause set in Stop after a pause, and when you sound mid-thought, it waits twice that pause. Off by default, which lets Smart Turn end a finished sentence after a short pause.</string>
     <string name="voice_smart_turn_model_title">Smart Turn model</string>
     <!-- %1$s is a file size, e.g. "8.7 MB". -->
     <string name="voice_smart_turn_model_missing"><xliff:g id="size" example="8.7 MB">%1$s</xliff:g> to download. Until then every pause is waited out</string>

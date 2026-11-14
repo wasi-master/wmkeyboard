@@ -471,7 +471,10 @@ class AppDictation(
     }
 
     private fun newLiveStream(model: EtModel, words: List<String>): VoiceStream {
-        val vad = VoiceVad.Setup(settings.whisper.vad, settings.whisper.vadThreshold, settings.whisper.smartTurn)
+        val vad = VoiceVad.Setup(
+            settings.whisper.vad, settings.whisper.vadThreshold, settings.whisper.smartTurn,
+            conservative = settings.whisper.smartTurnConservative, graceMs = settings.whisper.vadGraceMs,
+        )
         return when (model.engine) {
             EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, pauseMs, words, vad)
             EtEngine.OMNILINGUAL -> OmnilingualEngine.newStream(filesDir, model, pauseMs, languageIds, vad)

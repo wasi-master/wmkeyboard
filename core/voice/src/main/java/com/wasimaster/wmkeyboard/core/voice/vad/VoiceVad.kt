@@ -70,6 +70,10 @@ object VoiceVad {
         val choice: String = AUTO,
         val threshold: Float = DEFAULT_THRESHOLD,
         val smartTurn: Boolean = false,
+        /** Smart Turn may only lengthen the wait (#1319); see [PhraseEnd]. */
+        val conservative: Boolean = false,
+        /** Quiet waited on top of the end, in ms (#1320); see [PhraseEnd]. */
+        val graceMs: Int = 0,
     ) {
         companion object {
             val DEFAULT = Setup()
@@ -110,7 +114,10 @@ object VoiceVad {
         if (pauseMs <= 0) return null
         val hang = minOf(HANG_SECONDS, pauseMs / 1000f)
         val detector = detector(filesDir, setup, ownSilero, hang, cuts = false, maxPhraseSeconds = NO_CUT_SECONDS)
-        return PhraseEnd(detector, quietAfter(pauseMs, hang), smartTurnDir(filesDir, setup))
+        return PhraseEnd(
+            detector, quietAfter(pauseMs, hang), smartTurnDir(filesDir, setup),
+            graceSamples = graceSamples(setup), conservative = setup.conservative,
+        )
     }
 
     /**
@@ -128,8 +135,21 @@ object VoiceVad {
     ): PhraseEnd {
         val detector = detector(filesDir, setup, ownSilero, hangSeconds, cuts = true, maxPhraseSeconds = maxPhraseSeconds)
         val quiet = if (pauseMs > 0) quietAfter(pauseMs, hangSeconds) else -1
-        return PhraseEnd(detector, quiet, smartTurnDir(filesDir, setup).takeIf { pauseMs > 0 })
+        return PhraseEnd(
+            detector, quiet, smartTurnDir(filesDir, setup).takeIf { pauseMs > 0 },
+            graceSamples = graceSamples(setup), conservative = setup.conservative,
+        )
     }
+
+    /** [Setup.graceMs] in samples. */
+    private fun graceSamples(setup: Setup): Int =
+        (setup.graceMs.coerceIn(GRACE_RANGE_MS).toLong() * SAMPLE_RATE / 1000).toInt()
+
+    /** The grace setting's range, in ms (#1320). */
+    val GRACE_RANGE_MS = 0..3_000
+
+    /** How many times the pause a speaker conservative Smart Turn hears as unfinished waits (#1319). */
+    const val UNFINISHED_PAUSE_FACTOR = 2
 
     /** [inner] ending itself by [end]; for an engine with no ear of its own (Asr4All). */
     fun endpointed(inner: VoiceStream, end: PhraseEnd?): VoiceStream = if (end == null) inner else Endpointed(inner, end)

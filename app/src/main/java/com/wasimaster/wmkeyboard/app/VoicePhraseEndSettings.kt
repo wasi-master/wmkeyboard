@@ -78,6 +78,9 @@ internal fun VoicePhraseEndGroup(repository: SettingsRepository, settings: LiveS
 /** The pause slider's step, as on the Voice typing screen. */
 private const val PAUSE_STEP_MS = 250f
 
+/** The grace slider's step. */
+private const val GRACE_STEP_MS = 100f
+
 /**
  * Phrase end detector (#976), for the engines that decode while the user
  * speaks: Auto, Silero, FireRedVAD, loudness only, or a model the user
@@ -147,6 +150,21 @@ internal fun VoicePhraseEndSetting(repository: SettingsRepository, settings: Liv
             info = stringResource(R.string.voice_vad_threshold_info),
             default = SettingsDefaults.whisper.vadThreshold,
         ) { picked -> scope.launch { repository.setVoiceVadThreshold((picked * 20f).roundToInt() / 20f) } }
+        // A fixed wait on top of the end (#1320), in tenths of a second.
+        val graceOff = stringResource(R.string.voice_vad_grace_off)
+        val graceSeconds = stringResource(R.string.voice_silence_stop_seconds)
+        SliderSetting(
+            R.string.voice_vad_grace_title,
+            subtitle = stringResource(R.string.voice_vad_grace_subtitle),
+            value = settings.watch { it.whisper.vadGraceMs }.toFloat(),
+            range = VoiceVad.GRACE_RANGE_MS.first.toFloat()..VoiceVad.GRACE_RANGE_MS.last.toFloat(),
+            display = { picked ->
+                val ms = (picked / GRACE_STEP_MS).roundToInt() * GRACE_STEP_MS.toInt()
+                if (ms == 0) graceOff else graceSeconds.format(ms / 1000f)
+            },
+            info = stringResource(R.string.voice_vad_grace_info),
+            default = SettingsDefaults.whisper.vadGraceMs.toFloat(),
+        ) { picked -> scope.launch { repository.setVoiceVadGraceMs((picked / GRACE_STEP_MS).roundToInt() * GRACE_STEP_MS.toInt()) } }
         if (onnx) {
             val smartTurn = settings.watch { it.whisper.smartTurn }
             ToggleSetting(
@@ -157,6 +175,13 @@ internal fun VoicePhraseEndSetting(repository: SettingsRepository, settings: Liv
                 default = SettingsDefaults.whisper.smartTurn,
             ) { scope.launch { repository.setVoiceSmartTurn(it) } }
             if (smartTurn) {
+                ToggleSetting(
+                    R.string.voice_smart_turn_conservative_title,
+                    stringResource(R.string.voice_smart_turn_conservative_subtitle),
+                    settings.watch { it.whisper.smartTurnConservative },
+                    info = stringResource(R.string.voice_smart_turn_conservative_info),
+                    default = SettingsDefaults.whisper.smartTurnConservative,
+                ) { scope.launch { repository.setVoiceSmartTurnConservative(it) } }
                 VadDownloadRow(
                     settings,
                     VadModels.SMART_TURN,

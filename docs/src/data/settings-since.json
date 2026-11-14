@@ -2051,6 +2051,7 @@
 		"voice_resume_title": "0.6.2",
 		"voice_server_language_title": "0.5.11",
 		"voice_silence_stop_title": "0.5.14",
+		"voice_smart_turn_conservative_title": "0.6.7",
 		"voice_smart_turn_title": "0.6.4",
 		"voice_strip_language_title": "0.6.0",
 		"voice_suppress_symbols_title": "0.6.7",
@@ -2060,6 +2061,7 @@
 		"voice_translate_title": "0.5.3",
 		"voice_typing_title": "0.5.3",
 		"voice_ui_title": "0.5.3",
+		"voice_vad_grace_title": "0.6.7",
 		"voice_vad_threshold_title": "0.6.4",
 		"voice_vad_title": "0.6.4"
 	},

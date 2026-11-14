@@ -20,6 +20,17 @@ class PhraseEnd internal constructor(
     val detector: SpeechDetector,
     private val quietToEnd: Int,
     private val smartTurnDir: File?,
+    /**
+     * Quiet waited past the end on top of everything else (#1320): the
+     * engine hears the last sound out, and speech in it carries on.
+     */
+    private val graceSamples: Int = 0,
+    /**
+     * Smart Turn only ever waits longer (#1319): finished still waits out
+     * [quietToEnd], unfinished waits [VoiceVad.UNFINISHED_PAUSE_FACTOR]
+     * times it. Never ends sooner than it would with Smart Turn off.
+     */
+    private val conservative: Boolean = false,
 ) : AutoCloseable {
 
     /** Speech has been heard since the dictation began. */
@@ -31,7 +42,9 @@ class PhraseEnd internal constructor(
         private set
 
     private var quiet = 0
-    private var finished = false
+
+    /** Smart Turn's word on the last stop: null unasked, true finished, false not. */
+    private var verdict: Boolean? = null
 
     // The last 8 s fed, as a ring, for Smart Turn.
     private val recent = if (smartTurnDir != null) FloatArray(SmartTurn.WINDOW_SAMPLES) else null
@@ -47,16 +60,28 @@ class PhraseEnd internal constructor(
         if (now) {
             heardSpeech = true
             quiet = 0
-            finished = false
+            verdict = null
         } else {
             quiet += count
         }
-        if (stopped && smartTurnDir != null && quietToEnd > 0) finished = SmartTurn.finished(smartTurnDir, recentAudio())
+        if (stopped && smartTurnDir != null && quietToEnd > 0) verdict = SmartTurn.finished(smartTurnDir, recentAudio())
     }
 
-    /** The speaker has stopped: words, then the pause, or a short pause Smart Turn calls finished. */
+    /**
+     * The speaker has stopped: words, then the pause, or a short pause Smart
+     * Turn calls finished; then the grace on top. Conservative, Smart Turn
+     * can only stretch the pause.
+     */
     val ended: Boolean
-        get() = quietToEnd >= 0 && heardSpeech && !speaking && (finished || quiet >= quietToEnd)
+        get() {
+            if (quietToEnd < 0 || !heardSpeech || speaking) return false
+            val pause = when (verdict) {
+                null -> quietToEnd
+                true -> if (conservative) quietToEnd else 0
+                false -> if (conservative) quietToEnd * VoiceVad.UNFINISHED_PAUSE_FACTOR else quietToEnd
+            }
+            return quiet >= pause + graceSamples
+        }
 
     override fun close() {
         detector.close()

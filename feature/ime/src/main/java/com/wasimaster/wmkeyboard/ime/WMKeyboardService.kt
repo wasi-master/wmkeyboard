@@ -38169,7 +38169,10 @@ open class WMKeyboardService : InputMethodService() {
     private fun newLiveStream(model: EtModel, words: List<String>): VoiceStream {
         val settings = _uiState.value.settings
         val pauseMs = settings.voiceBar.silenceStopMs
-        val vad = VoiceVad.Setup(settings.whisper.vad, settings.whisper.vadThreshold, settings.whisper.smartTurn)
+        val vad = VoiceVad.Setup(
+            settings.whisper.vad, settings.whisper.vadThreshold, settings.whisper.smartTurn,
+            conservative = settings.whisper.smartTurnConservative, graceMs = settings.whisper.vadGraceMs,
+        )
         return when (model.engine) {
             EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, pauseMs, words, vad)
             EtEngine.OMNILINGUAL -> OmnilingualEngine.newStream(filesDir, model, pauseMs, voiceLanguageIds(), vad)
