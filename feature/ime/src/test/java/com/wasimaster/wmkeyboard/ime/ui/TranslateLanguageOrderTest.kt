@@ -40,4 +40,12 @@ class TranslateLanguageOrderTest {
             arrange(keep = setOf("bn", "fr"), first = true, short = true),
         )
     }
+
+    @Test
+    fun `recent and own languages lead, in their order, then the rest (#1308)`() {
+        assertEquals(
+            listOf("fr", "ML", "en", "de", "bn", "af").map { it.lowercase() },
+            arrangeTranslateLanguages(codes, { it in ready }, { false }, true, false, pinned = listOf("fr", "ML", "xx", "fr")),
+        )
+    }
 }

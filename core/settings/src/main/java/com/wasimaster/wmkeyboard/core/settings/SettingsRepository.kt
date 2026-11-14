@@ -4537,6 +4537,12 @@ data class KeyboardSettings(
     val toolboxColumns: Int = 4,
     /** ISO 639-1 code the translate tool translates into (source is auto-detected). */
     val translateTargetLang: String = "en",
+    /**
+     * The languages last picked in the translate tool's menus, newest first
+     * (#1308): what both menus list at the top, so going back and forth
+     * between a few is one tap and no search.
+     */
+    val translateRecentLangs: List<String> = emptyList(),
     /** Which engine the translate tool uses (see [TranslateSettings]). */
     val translate: TranslateSettings = TranslateSettings(),
     /** English dialect the offline grammar tool checks against. */
@@ -13663,6 +13669,10 @@ class SettingsRepository(private val context: Context) {
         private val CORRECTIONS_VERSION = intPreferencesKey("corrections_version")
         private val EMOJI_ROW_ABOVE_TOOLBAR = booleanPreferencesKey("emoji_row_above_toolbar")
         private val TRANSLATE_TARGET_LANG = stringPreferencesKey("translate_target_lang")
+        private val TRANSLATE_RECENT_LANGS = stringPreferencesKey("translate_recent_langs")
+
+        /** How many recent translate languages are kept. */
+        private const val TRANSLATE_RECENT_MAX = 5
         private val TRANSLATE_ENGINE = stringPreferencesKey("translate_engine")
         private val TRANSLATE_DOWNLOADED_FIRST = booleanPreferencesKey("translate_downloaded_first")
         private val TRANSLATE_ONLY_DOWNLOADED = booleanPreferencesKey("translate_only_downloaded")
@@ -14542,6 +14552,8 @@ class SettingsRepository(private val context: Context) {
             compoundUnits = p[COMPOUND_UNITS] ?: defaults.compoundUnits,
             toolboxColumns = p[TOOLBOX_COLUMNS] ?: defaults.toolboxColumns,
             translateTargetLang = p[TRANSLATE_TARGET_LANG] ?: defaults.translateTargetLang,
+            translateRecentLangs = p[TRANSLATE_RECENT_LANGS]?.split(',')?.filter { it.isNotBlank() }
+                ?: defaults.translateRecentLangs,
             translate = readTranslate(p, defaults),
             grammarDialect = p[GRAMMAR_DIALECT]
                 ?.let { runCatching { GrammarDialect.valueOf(it) }.getOrNull() }
@@ -25888,6 +25900,16 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTranslateTargetLang(value: String) =
         editPrefs { it[TRANSLATE_TARGET_LANG] = value }
+
+    /** Puts [code] first among the translate menus' recent languages, keeping the newest few (#1308). */
+    suspend fun noteTranslateLanguage(code: String) {
+        if (code.isBlank() || ',' in code) return
+        editPrefs { p ->
+            val kept = p[TRANSLATE_RECENT_LANGS]?.split(',')?.filter { it.isNotBlank() }.orEmpty()
+            p[TRANSLATE_RECENT_LANGS] = (listOf(code) + kept.filterNot { it.equals(code, ignoreCase = true) })
+                .take(TRANSLATE_RECENT_MAX).joinToString(",")
+        }
+    }
 
     suspend fun setTranslateEngine(value: TranslateEngine) =
         editPrefs { it[TRANSLATE_ENGINE] = value.name }

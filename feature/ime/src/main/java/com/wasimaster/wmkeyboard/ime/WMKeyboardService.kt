@@ -49438,7 +49438,10 @@ open class WMKeyboardService : InputMethodService() {
 
     fun onTranslateTargetChange(code: String) {
         vibrate()
-        serviceScope.launch { settingsRepository.setTranslateTargetLang(code) }
+        serviceScope.launch {
+            settingsRepository.setTranslateTargetLang(code)
+            settingsRepository.noteTranslateLanguage(code)
+        }
         // Asked-only keeps the result to insert, marked out of date (#1226).
         if (!_uiState.value.settings.translate.manual) _uiState.update { it.copy(translate = it.translate.cleared()) }
         // The settings flow updates asynchronously; pass the new target
@@ -49453,6 +49456,7 @@ open class WMKeyboardService : InputMethodService() {
             val kept = if (it.settings.translate.manual) it.translate else it.translate.cleared()
             it.copy(translate = kept.copy(sourceOverride = code))
         }
+        if (code.isNotBlank()) serviceScope.launch { settingsRepository.noteTranslateLanguage(code) }
         scheduleTranslate(immediate = true, force = true)
     }
 

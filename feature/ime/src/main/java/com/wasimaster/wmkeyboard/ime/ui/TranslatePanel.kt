@@ -990,11 +990,17 @@ internal fun arrangeTranslateLanguages(
     keep: (String) -> Boolean,
     downloadedFirst: Boolean,
     shortList: Boolean,
+    /**
+     * Codes to lead the menu, in this order (#1308): the languages last
+     * picked, then the ones the keyboard types in. Only those on [codes].
+     */
+    pinned: List<String> = emptyList(),
 ): List<String> {
     val shown = if (shortList) codes.filter { ready(it) || keep(it) } else codes
-    if (!downloadedFirst) return shown
-    val (top, rest) = shown.partition(ready)
-    return top + rest
+    val ordered = if (downloadedFirst) shown.partition(ready).let { (top, rest) -> top + rest } else shown
+    if (pinned.isEmpty()) return ordered
+    val lead = pinned.mapNotNull { pin -> ordered.firstOrNull { it.equals(pin, ignoreCase = true) } }.distinct()
+    return lead + ordered.filterNot { it in lead }
 }
 
 @Composable
@@ -1050,6 +1056,10 @@ private fun translateMenuRows(
         keep = { code -> code.equals(selected, ignoreCase = true) || code.lowercase() in typed },
         downloadedFirst = showModels && settings.translate.downloadedFirst,
         shortList = shortList,
+        // The few the user goes between, then the languages they type in.
+        pinned = settings.translateRecentLangs + settings.enabledLanguages.mapNotNull {
+            TranslateClient.pickerCode(it.id.replace('_', '-'))
+        },
     )
     val languages = arranged.map { code ->
         val onDevice = supported(code)
