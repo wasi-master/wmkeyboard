@@ -9,8 +9,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -272,15 +274,26 @@ internal fun GroupRows(
         ledger.gone.retainAll { k -> pass.rows.any { it.leaving && it.entry.key == k } }
     }
     val rows = pass.rows
-    val firstShown = rows.indexOfFirst { it.shows }
-    val lastShown = rows.indexOfLast { it.shows }
+    // A row can take itself out from inside (a greyed-out row whose setting
+    // waits on another one, see [LocalRowSlot]); it then counts as not shown
+    // for the corners and gaps of the rows around it.
+    var plainCounted = 0
+    val slotKeys = rows.map { it.entry.key ?: PlainRow(plainCounted++) }
+    val slots = remember { HashMap<Any, RowSlot>() }
+    val withdrawn = slotKeys.map { slots[it]?.withdrawn == true }
+    SideEffect { slots.keys.retainAll(slotKeys.toSet()) }
+    val firstShown = rows.indices.firstOrNull { rows[it].shows && !withdrawn[it] } ?: -1
+    val lastShown = rows.indices.lastOrNull { rows[it].shows && !withdrawn[it] } ?: -1
     var plainSeen = 0
+    var cardAbove = false
     rows.forEachIndexed { index, row ->
         val entry = row.entry
-        val gapAbove = index > 0
+        val gapAbove = !withdrawn[index] && cardAbove
+        if (!withdrawn[index]) cardAbove = true
         val first = if (row.leaving) firstShown < 0 || index < firstShown else index == firstShown
         val last = if (row.leaving) index > lastShown else index == lastShown
         val rowKey = entry.key
+        val slot = slots.getOrPut(slotKeys[index]) { RowSlot() }
         // Every row is keyed here, outside the branch below, and that is what
         // lets a keyed row move (#665). The compiler wraps each branch of an
         // `if` in a group of its own, so a `key` inside one has no siblings to
@@ -289,46 +302,78 @@ internal fun GroupRows(
         // added. Unkeyed rows are named by their order among themselves, which
         // is how planRows matches them and how they were composed before.
         key(rowKey ?: PlainRow(plainSeen++)) {
-            if (rowKey == null) {
-                when {
-                    !entry.conditional -> card(Modifier, gapAbove, first, last, entry.content)
-                    // Reduced motion has no still version of a reveal, so the row
-                    // is or is not there.
-                    still -> if (entry.visible) card(Modifier, gapAbove, first, last, entry.content)
-                    else -> AnimatedVisibility(
-                        visible = entry.visible,
-                        enter = expandVertically() + fadeIn(),
-                        exit = shrinkVertically() + fadeOut(),
-                    ) {
-                        card(Modifier, gapAbove, first, last, entry.content)
-                    }
-                }
-            } else {
-                val leaving = row.leaving
-                // Decided once, in the pass that brings the row in, so a row
-                // that is going to open draws its first frame closed rather
-                // than flashing in at full height first.
-                val presence = remember { RowPresence(shown = !pass.animateArrivals) }
-                val moving = leaving || presence.partial
-                if (moving) {
-                    LaunchedEffect(leaving) {
-                        if (leaving) {
-                            presence.amount.animateTo(0f, RowPresenceSpec)
-                            ledger.depart(rowKey)
-                        } else {
-                            // Arriving, or brought back (an undo) while still closing.
-                            presence.amount.animateTo(1f, RowPresenceSpec)
+            CompositionLocalProvider(LocalRowSlot provides slot) {
+                if (rowKey == null) {
+                    when {
+                        !entry.conditional -> card(Modifier, gapAbove, first, last, entry.content)
+                        // Reduced motion has no still version of a reveal, so the row
+                        // is or is not there.
+                        still -> if (entry.visible) card(Modifier, gapAbove, first, last, entry.content)
+                        else -> AnimatedVisibility(
+                            visible = entry.visible,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut(),
+                        ) {
+                            card(Modifier, gapAbove, first, last, entry.content)
                         }
                     }
+                } else {
+                    val leaving = row.leaving
+                    // Decided once, in the pass that brings the row in, so a row
+                    // that is going to open draws its first frame closed rather
+                    // than flashing in at full height first.
+                    val presence = remember { RowPresence(shown = !pass.animateArrivals) }
+                    val moving = leaving || presence.partial
+                    if (moving) {
+                        LaunchedEffect(leaving) {
+                            if (leaving) {
+                                presence.amount.animateTo(0f, RowPresenceSpec)
+                                ledger.depart(rowKey)
+                            } else {
+                                // Arriving, or brought back (an undo) while still closing.
+                                presence.amount.animateTo(1f, RowPresenceSpec)
+                            }
+                        }
+                    }
+                    card(
+                        if (moving) Modifier.rowPresence(presence, leaving) else Modifier,
+                        gapAbove,
+                        first,
+                        last,
+                        entry.content,
+                    )
                 }
-                card(
-                    if (moving) Modifier.rowPresence(presence, leaving) else Modifier,
-                    gapAbove,
-                    first,
-                    last,
-                    entry.content,
-                )
             }
         }
     }
 }
+
+/**
+ * A group row's say over whether it is drawn at all, for the one thing only
+ * the row itself knows: that it is greyed out by another setting and the
+ * user would rather not see such rows (see `HighlightableRow`). Every named
+ * row inside the entry checks in with [enter], hidden or not, so an entry
+ * holding two rows stays while one of them is still drawn. Read by
+ * [GroupRows] for the corners and gaps around it.
+ */
+@Stable
+internal class RowSlot {
+    private var rows by mutableIntStateOf(0)
+    private var hidden by mutableIntStateOf(0)
+
+    /** True once every row inside has hidden itself. */
+    val withdrawn: Boolean get() = hidden > 0 && hidden == rows
+
+    fun enter(hides: Boolean) {
+        rows++
+        if (hides) hidden++
+    }
+
+    fun leave(hides: Boolean) {
+        rows--
+        if (hides) hidden--
+    }
+}
+
+/** The [RowSlot] of the group row being composed, or null outside a group. */
+internal val LocalRowSlot = compositionLocalOf<RowSlot?> { null }

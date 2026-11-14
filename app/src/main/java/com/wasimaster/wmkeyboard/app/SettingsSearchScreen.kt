@@ -146,6 +146,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -466,6 +468,23 @@ internal fun HighlightableRow(
         val depthReveal = LocalDepthReveal.current
         SideEffect { depthReveal?.landedOn = revealedAt }
     }
+    // A row greyed out by another setting (a switch it waits on, a theme
+    // layout that pins it: a reason that names a setting) is not drawn at
+    // all unless Show switched-off settings is on, the same choice as for a row whose switch is off. A row
+    // the user was sent to is drawn regardless, so a search or a link still
+    // lands somewhere. Each named row tells its group whether it is drawn, so
+    // an entry left with nothing in it leaves no card or gap ([RowSlot]).
+    val depthControl = LocalSettingsDepth.current
+    val hides = !coarse && !disabledReason?.setting.isNullOrEmpty() && !requested &&
+        !depthControl.switchedOffRows && !(LocalDepthReveal.current?.arrived ?: SettingsHighlight.pending)
+    val slot = if (coarse) null else LocalRowSlot.current
+    if (slot != null) {
+        DisposableEffect(slot, hides) {
+            slot.enter(hides)
+            onDispose { slot.leave(hides) }
+        }
+    }
+    if (hides) return
     // The same two names are what a row's link is made of (#646), so the row
     // publishes them for its link button, and a plain row takes the long
     // press here: its link and its place in favourites (#898). A group's
@@ -479,7 +498,7 @@ internal fun HighlightableRow(
         LocalRowLinkKey provides RowLinkKey(title, highlightKey),
         LocalRowTouch provides touch,
     ) {
-        val bare = LocalSettingsDepth.current.depth == SettingsDepth.SIMPLE
+        val bare = depthControl.depth == SettingsDepth.SIMPLE
         val whatIsThis = if (info != null && bare) remember(title, info) { RowInfo(title.orEmpty(), info) } else null
         val hold = if (coarse) null else rememberRowHold(disabledReason, whatIsThis)
         // A row an update brought wears a gold border until the user puts the
@@ -519,27 +538,37 @@ private fun Modifier.armRowTouch(touch: RowTouch): Modifier = pointerInput(touch
 
 /**
  * A row drawn only because the new settings walk pointed at it: the setting
- * that would show it is off. Dimmed like a disabled row, and every touch on
- * it stops here, since its switch or slider would change something that has
- * no effect until that other setting allows it. The gold border stays at full
- * strength around it.
+ * that would show it is off. Dimmed like a disabled row, and its controls are
+ * out of reach behind a [RowShield], since its switch or slider would change
+ * something that has no effect until that other setting allows it. The gold
+ * border stays at full strength around it.
  */
 @Composable
 private fun PeekedContent(content: @Composable () -> Unit) {
     Box(Modifier.semantics { disabled() }) {
         Box(Modifier.alpha(0.38f)) { content() }
-        Box(
-            Modifier
-                .matchParentSize()
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            awaitPointerEvent(PointerEventPass.Initial).changes.forEach { it.consume() }
-                        }
-                    }
-                },
-        )
+        RowShield()
     }
+}
+
+/**
+ * Laid over a greyed-out row as the last child of a [Box] around it, so the
+ * controls underneath never see a touch: a pointer goes to the topmost sibling
+ * it lands on, not to the ones beneath. Nothing is consumed, so the list the
+ * row sits in still scrolls with a drag that starts on it, and a long press
+ * watched by a wrapper outside the Box (a peeked row's hold menu) still fires.
+ */
+@Composable
+internal fun BoxScope.RowShield() {
+    Box(
+        Modifier
+            .matchParentSize()
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) awaitPointerEvent()
+                }
+            },
+    )
 }
 
 /**

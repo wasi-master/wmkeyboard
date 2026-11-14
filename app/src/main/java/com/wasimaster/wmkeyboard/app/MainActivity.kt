@@ -6161,21 +6161,17 @@ internal fun <T> MultiChoiceSetting(
 
 /**
  * A row drawn while the setting it depends on is off (#1112): faded, its
- * touches swallowed, and read out as unavailable.
+ * controls out of reach, and read out as unavailable.
+ *
+ * The controls are shielded by [RowShield], a sibling laid over them, rather
+ * than by consuming the row's touches: a consumed move is one the list around
+ * the row cannot scroll with either, and a finger that came down on a greyed
+ * row could not move the page.
  */
 @Composable
 private fun SwitchedOffRow(content: @Composable () -> Unit) {
-    androidx.compose.foundation.layout.Box(
-        Modifier
-            .alpha(0.38f)
-            .semantics(mergeDescendants = false) { disabled() }
-            .pointerInput(Unit) {
-                awaitPointerEventScope {
-                    while (true) {
-                        awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
-                            .changes.forEach { it.consume() }
-                    }
-                }
-            },
-    ) { content() }
+    androidx.compose.foundation.layout.Box(Modifier.semantics(mergeDescendants = false) { disabled() }) {
+        androidx.compose.foundation.layout.Box(Modifier.alpha(0.38f)) { content() }
+        RowShield()
+    }
 }
