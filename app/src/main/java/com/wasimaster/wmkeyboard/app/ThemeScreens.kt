@@ -1,5 +1,8 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.fonts.FontFile
+import com.wasimaster.wmkeyboard.core.fonts.FontImportResult
+import com.wasimaster.wmkeyboard.content.R as ContentR
 import androidx.compose.runtime.collectAsState
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.LocalContentColor
@@ -7065,6 +7068,35 @@ internal fun ThemeFontPickerDialog(
         script == null -> KeyboardFonts.googleFonts
         else -> KeyboardFonts.scriptFontChoices(script)?.fonts.orEmpty()
     }
+    // A font from a file, without leaving the editor for the Fonts screen
+    // (#1328): into the shared library, then picked here at once.
+    val scope = rememberCoroutineScope()
+    val importFont = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.requireInputStream(uri).use {
+                        FontFile.import(it, FontStore.get(context), name = fontFileLabel(context, uri))
+                    }
+                }.getOrElse { FontImportResult.Failed(ContentR.string.core_content_font_error_read) }
+            }
+            when (result) {
+                is FontImportResult.Imported -> onPick(FontStore.fontIdFor(result.font.id))
+                is FontImportResult.NotAFont -> Toast.makeText(context, result.messageRes, Toast.LENGTH_LONG).show()
+                FontImportResult.TooManyFonts -> Toast.makeText(
+                    context,
+                    context.resources.getQuantityString(R.plurals.fonts_import_limit_message, FontStore.MAX_FONTS, FontStore.MAX_FONTS),
+                    Toast.LENGTH_LONG,
+                ).show()
+                is FontImportResult.Failed -> Toast.makeText(
+                    context,
+                    context.getString(result.messageRes, *result.messageArgs.toTypedArray()),
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
+        }
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
@@ -7075,6 +7107,11 @@ internal fun ThemeFontPickerDialog(
                     family = null,
                     selected = current == null,
                 ) { onPick(null) }
+                ThemeFontChoiceRow(
+                    label = stringResource(R.string.fonts_import_action),
+                    family = null,
+                    selected = false,
+                ) { importFont.launch(FONT_MIME_TYPES) }
                 for (font in installed) {
                     val id = FontStore.fontIdFor(font.id)
                     ThemeFontChoiceRow(

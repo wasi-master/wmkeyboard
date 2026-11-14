@@ -7,16 +7,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileOpen
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -332,6 +331,19 @@ private fun FontPickerSection(
     // rather than sit there doing nothing. The system default, the imported
     // file and the font library are all this app's own and stay.
     val googleFontNames = if (PlayServices.hasFontProvider(context)) googleNames else emptyList()
+    // Import first (#1329): under twenty stock faces it took a scroll to the
+    // very end to reach, and it is the one row here that adds something.
+    if (onImport != null) {
+        SettingsGroup {
+            item {
+                WmRow(
+                    title = stringResource(R.string.fonts_import_action),
+                    icon = Icons.Outlined.FileOpen,
+                    onClick = { importFont.launch(FONT_MIME_TYPES) },
+                )
+            }
+        }
+    }
     if (relevant.isNotEmpty()) {
         SettingsGroup(installedTitle) {
             for (font in relevant) {
@@ -385,14 +397,6 @@ private fun FontPickerSection(
                     sample = sample,
                     selected = selectedId == customId,
                 ) { onSelect(customId) }
-            }
-        }
-        if (onImport != null) {
-            item {
-                OutlinedButton(
-                    onClick = { importFont.launch(FONT_MIME_TYPES) },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                ) { Text(stringResource(R.string.fonts_import_action)) }
             }
         }
     }
