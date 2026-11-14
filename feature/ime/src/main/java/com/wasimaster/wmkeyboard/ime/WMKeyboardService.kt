@@ -12441,6 +12441,21 @@ open class WMKeyboardService : InputMethodService() {
             onClipboardKey(ClipboardKeyAction.PASTE)
             return true
         }
+        // Android's own Paste, Copy and Cut keys, which imported layouts and a
+        // Send key binding carry (#970): sent raw, the app pasted Android's
+        // clipboard over Paste next's pick, and a copy went past the private
+        // clipboard onto Android's. While the clipboard is private they are the
+        // keyboard's own clipboard keys.
+        val clipKey = when (explicit?.takeIf { (it.meta and KeyEvent.META_CTRL_ON) == 0 }?.keyCode) {
+            KeyEvent.KEYCODE_PASTE -> ClipboardKeyAction.PASTE
+            KeyEvent.KEYCODE_COPY -> ClipboardKeyAction.COPY
+            KeyEvent.KEYCODE_CUT -> ClipboardKeyAction.CUT
+            else -> null
+        }
+        if (clipKey != null && (KeyboardClipboard.isPrivate || (clipKey == ClipboardKeyAction.PASTE && heldImageClipId != null))) {
+            onClipboardKey(clipKey)
+            return true
+        }
         if (ctrlHeld && !state.settings.rawClipboardShortcuts) {
             // A picture can't go through the text route, and a page with its
             // own paste handler is waiting for the real Ctrl+V (#1052).
