@@ -60686,6 +60686,11 @@ open class WMKeyboardService : InputMethodService() {
     private fun handleHardwareKeyDown(event: KeyEvent): Boolean {
         val ic = currentInputConnection ?: return false
         val keyCode = event.keyCode
+        // Not a key of any keyboard: a fingerprint sensor's swipe (#1326),
+        // the power or assistant button, a key the device never named. Handed
+        // straight back, and the word being typed stays open: committing it
+        // here finished "finger" the moment a thumb rested on the sensor.
+        if (keyCode in NOT_TYPING_KEYS) return false
 
         // Bare modifier presses latch in the system (Shift for a capital, Ctrl
         // to open a chord). Never consumed, and never a commit trigger — a
@@ -62072,6 +62077,20 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     companion object {
+        /**
+         * Key codes that come from no keyboard and never type or edit:
+         * fingerprint-sensor gestures, power, wake, assistant and camera
+         * buttons, and the unnamed code a sensor driver may send (#1326).
+         */
+        private val NOT_TYPING_KEYS = setOf(
+            KeyEvent.KEYCODE_UNKNOWN,
+            KeyEvent.KEYCODE_SYSTEM_NAVIGATION_UP, KeyEvent.KEYCODE_SYSTEM_NAVIGATION_DOWN,
+            KeyEvent.KEYCODE_SYSTEM_NAVIGATION_LEFT, KeyEvent.KEYCODE_SYSTEM_NAVIGATION_RIGHT,
+            KeyEvent.KEYCODE_POWER, KeyEvent.KEYCODE_WAKEUP, KeyEvent.KEYCODE_SLEEP,
+            KeyEvent.KEYCODE_ASSIST, KeyEvent.KEYCODE_VOICE_ASSIST,
+            KeyEvent.KEYCODE_CAMERA, KeyEvent.KEYCODE_FOCUS, KeyEvent.KEYCODE_NOTIFICATION,
+        )
+
         /** Minimum spacing between haptic clicks so rapid presses stay distinct. */
         private const val MIN_HAPTIC_GAP_MS = 45L
 
