@@ -1218,6 +1218,13 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "https://github.com/tdd-ai/hunspell-tr",
     ))
     add(Attribution(
+        "Ayaspell",
+        R.string.about_pack_ayaspell_used,
+        "Copyright Mohamed Kebdani and Taha Zerrouki",
+        "MPL-2.0", "mpl-2.0-ayaspell.txt",
+        "https://github.com/linuxscout/ayaspell",
+    ))
+    add(Attribution(
         "CATT",
         R.string.about_pack_catt_used,
         "Copyright Abjad AI",

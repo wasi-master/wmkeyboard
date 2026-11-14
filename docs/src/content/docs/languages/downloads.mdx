@@ -54,6 +54,7 @@ Downloads you ask for queue up rather than cancel each other. Adding two languag
 | Furigana readings | Languages → Japanese → Japanese options | About 24 MB |
 | Words with ё | Languages → Russian → Russian options | About 865 KB |
 | Turkish spelling rules | Languages → Turkish → Turkish options | About 15 MB, 38 MB unpacked |
+| Arabic spelling dictionary | Languages → Arabic → Arabic options | About 1.5 MB, 7.3 MB unpacked |
 
 The keyboard reads a Pinyin, Jyutping or kana table once and keeps a faster copy of it next to the download, so these take a little over twice their size in storage: about 90 MB for the kana table. Deleting the table deletes the copy.
 
@@ -62,6 +63,10 @@ Pressing the button is the consent, and nothing here starts on its own. That inc
 ### Turkish spelling
 
 A Turkish word can take suffix after suffix, so no word list holds them all and a correct `evlerimizden` can look like a typo. **Turkish spelling rules** fixes that: with them the keyboard checks Turkish with Hunspell and [hunspell-tr](https://github.com/tdd-ai/hunspell-tr), leaves a correctly suffixed word alone and suggests `geliyorum` for `gelyorum`. Download the rules under **Languages → Turkish → Turkish options**, plus the spelling library if it isn't on the phone yet.
+
+### Arabic spelling
+
+An Arabic word carries its conjunction, preposition, article and pronouns with it, so `وبالمدرسة` and `مدرستنا` are each one word, and no list holds every combination. **Arabic spelling dictionary** checks Arabic with Hunspell and [Ayaspell](https://github.com/linuxscout/ayaspell), the dictionary LibreOffice and Firefox use: it leaves a correctly built word alone and suggests `المدرسة` for `المدرسه` and `ذهبت` for `ذهبث`. Tashkeel doesn't count against a word, so `كَتَبَ` is checked as `كتب`. Download it under **Languages → Arabic → Arabic options**, plus the spelling library if it isn't on the phone yet. Ayaspell misses some long verb forms, such as `سيكتبونها`; a word your word list knows is still accepted.
 
 ### Japanese furigana
 

@@ -717,6 +717,10 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_hunspell_tr_library_title">Spelling library</string>
     <string name="languages_hunspell_tr_library_ready">On this phone. Turkish is checked by the rules above once they are downloaded.</string>
     <string name="languages_hunspell_tr_library_missing">The rules above need this.</string>
+    <string name="languages_ar_download_info">Download CATT to add tashkeel to Arabic text: select it and tap Add tashkeel. Download the spelling dictionary to have Arabic checked by its rules, which know a word with its prefixes and suffixes. Both work offline after the download.</string>
+    <string name="languages_hunspell_ar_download_info">Download a spelling dictionary for Arabic. It knows a word with its prefixes and suffixes, which no word list can hold. It works offline after the download.</string>
+    <string name="languages_hunspell_ar_library_ready">On this phone. Arabic is checked by the dictionary above once it is downloaded.</string>
+    <string name="languages_hunspell_ar_library_missing">The spelling dictionary above needs this.</string>
     <string name="languages_ru_yo_download_info">Download the list of words with ё, then select Russian text and tap Restore ё. It works offline after the download.</string>
     <string name="languages_nikud_library_title">ONNX Runtime</string>
     <string name="languages_nikud_library_ready">On this phone. Select Hebrew text and tap Add niqqud.</string>

@@ -30,6 +30,8 @@
     <string name="core_input_cjk_pack_tashkeel_subtitle">CATT, for adding tashkeel to selected Arabic text.</string>
     <string name="core_input_cjk_pack_hunspell_tr_title">Turkish spelling rules</string>
     <string name="core_input_cjk_pack_hunspell_tr_subtitle">hunspell-tr, so words with any suffix are known and typos in them get fixed.</string>
+    <string name="core_input_cjk_pack_hunspell_ar_title">Arabic spelling dictionary</string>
+    <string name="core_input_cjk_pack_hunspell_ar_subtitle">Ayaspell, so a word with its prefixes and suffixes is known and a typo in it gets fixed.</string>
     <string name="core_input_cjk_pack_furigana_title">Furigana readings</string>
     <string name="core_input_cjk_pack_furigana_subtitle">Readings for words with kanji, for adding furigana to selected Japanese text.</string>
     <string name="core_input_cjk_pack_ru_yo_title">Words with ё</string>

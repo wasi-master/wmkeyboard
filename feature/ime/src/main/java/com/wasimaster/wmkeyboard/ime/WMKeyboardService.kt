@@ -866,7 +866,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.HanjaConversion
 import com.wasimaster.wmkeyboard.core.input.composer.ArabicTashkeel
 import com.wasimaster.wmkeyboard.core.input.composer.HebrewNikud
 import com.wasimaster.wmkeyboard.core.input.composer.JapaneseFurigana
-import com.wasimaster.wmkeyboard.core.input.composer.TurkishSpelling
+import com.wasimaster.wmkeyboard.core.input.composer.HunspellRulesPack
 import com.wasimaster.wmkeyboard.core.input.composer.KoreanSpacing
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.input.composer.HanLevels
@@ -20800,7 +20800,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * Gives [engine] the spelling checkers for [langId]: Hunspell over its
-     * imported `.aff` and `.dic`, and the GiellaLT speller downloaded or
+     * imported `.aff` and `.dic` plus a downloaded [HunspellRulesPack], and the GiellaLT speller downloaded or
      * imported for it, either, both (one [WordChecker.of] the two) or none.
      * A language with a Voikko dictionary (Finnish) is checked with Voikko in
      * Hunspell's place: Hunspell is not even opened then.
@@ -20825,7 +20825,7 @@ open class WMKeyboardService : InputMethodService() {
                     else -> VoikkoRuntime.open(filesDir, langId)?.let { voikkoSignature to it }
                 }
                 val files = if (userUnlocked && voikko == null) {
-                    val rules = if (langId == "tr") TurkishSpelling.files(filesDir) else null
+                    val rules = HunspellRulesPack.forLang(langId)?.files(filesDir)
                     CustomDictionaries.hunspellFiles(filesDir, langId) +
                         listOfNotNull(rules?.let { (aff, dic) -> CustomDictionaries.HunspellFiles(aff, dic) })
                 } else {

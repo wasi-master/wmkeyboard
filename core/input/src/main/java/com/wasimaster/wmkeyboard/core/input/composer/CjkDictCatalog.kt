@@ -258,6 +258,17 @@ object CjkDictCatalog {
             sha256 = "78ededf6f375d3dd98aa89f9797b91b7d292ab25dbf9b731789fc214a65ad399",
             fileName = "hunspell-tr-1.1.1.zip",
         ),
+        // Another, for [ArabicSpelling]: Ayaspell's ar.aff and ar.dic as LibreOffice ships them.
+        CjkDictPack(
+            id = ArabicSpelling.PACK_ID,
+            langId = "ar",
+            displayNameRes = R.string.core_input_cjk_pack_hunspell_ar_title,
+            descriptionRes = R.string.core_input_cjk_pack_hunspell_ar_subtitle,
+            path = "cjk/hunspell/ayaspell-ar-3.5.zip",
+            sizeBytes = 1537544L,
+            sha256 = "0bf5ad37060ef3eab1ee46ea34d8243fcdf68f00c4dbc749a4889dbf4e2e703e",
+            fileName = "ayaspell-ar-3.5.zip",
+        ),
         // Not a conversion table either: liblouis's, for [BrailleContracted].
         CjkDictPack(
             id = BrailleContracted.PACK_ID,

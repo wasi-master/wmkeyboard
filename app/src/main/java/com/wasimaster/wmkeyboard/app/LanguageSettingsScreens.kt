@@ -74,6 +74,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.FlexLanguagePack
 import com.wasimaster.wmkeyboard.core.input.BrailleContracted
 import com.wasimaster.wmkeyboard.core.input.composer.ArabicTashkeel
 import com.wasimaster.wmkeyboard.core.input.composer.HebrewNikud
+import com.wasimaster.wmkeyboard.core.input.composer.HunspellRulesPack
 import com.wasimaster.wmkeyboard.core.input.composer.KoreanSpacing
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
@@ -1906,7 +1907,7 @@ private fun CjkDictPackManager(
             when (langId) {
                 "braille" -> R.string.languages_braille_download_info
                 "he" -> R.string.languages_nikud_download_info
-                "ar" -> R.string.languages_tashkeel_download_info
+                "ar" -> if (ArabicTashkeel.supported) R.string.languages_ar_download_info else R.string.languages_hunspell_ar_download_info
                 "tr" -> R.string.languages_hunspell_tr_download_info
                 "ru" -> R.string.languages_ru_yo_download_info
                 else -> R.string.languages_cjk_download_info
@@ -2115,16 +2116,18 @@ private fun CjkDictPackManager(
             ) { on -> scope.launch { repository.setHanjaSuggestions(on) } }
         }
 
-        // Turkish-only: the library that reads the rules, beside their row above.
-        item(visible = langId == "tr" && HunspellRuntime.shipped) {
+        // Turkish and Arabic: the library that reads their Hunspell pack, beside its row above.
+        item(visible = HunspellRulesPack.forLang(langId) != null && HunspellRuntime.shipped) {
             val module by HunspellRuntime.moduleState.collectAsState()
             WmRow(
                 title = stringResource(R.string.languages_hunspell_tr_library_title),
                 subtitle = stringResource(
                     when (module) {
-                        ModuleState.Installed -> R.string.languages_hunspell_tr_library_ready
+                        ModuleState.Installed ->
+                            if (langId == "ar") R.string.languages_hunspell_ar_library_ready else R.string.languages_hunspell_tr_library_ready
                         is ModuleState.Installing -> R.string.languages_kiwi_library_installing
-                        is ModuleState.Missing -> R.string.languages_hunspell_tr_library_missing
+                        is ModuleState.Missing ->
+                            if (langId == "ar") R.string.languages_hunspell_ar_library_missing else R.string.languages_hunspell_tr_library_missing
                     },
                 ),
                 trailing = {
