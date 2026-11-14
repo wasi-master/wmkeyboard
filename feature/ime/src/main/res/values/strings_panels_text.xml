@@ -83,8 +83,8 @@
     <!-- Deletes the word before / after the cursor, the way Ctrl+Backspace and Ctrl+Delete do (#980). -->
     <string name="ime_textedit_delete_word_desc">Delete word</string>
     <string name="ime_textedit_delete_word_forward_desc">Delete word forward</string>
-    <string name="ime_textedit_delete_line_desc">Delete line</string>
-    <string name="ime_textedit_delete_line_forward_desc">Delete line forward</string>
+    <string name="ime_textedit_delete_line_desc">Delete line before the cursor</string>
+    <string name="ime_textedit_delete_line_forward_desc">Delete line after the cursor</string>
     <string name="ime_textedit_delete_to_start_desc">Delete to the start</string>
     <string name="ime_textedit_delete_to_end_desc">Delete to the end</string>
     <string name="ime_tool_clear_field">Delete everything</string>

@@ -825,8 +825,8 @@
     <string name="textedit_action_forward_delete">Forward delete</string>
     <string name="textedit_action_delete_word">Delete word</string>
     <string name="textedit_action_delete_word_forward">Delete word forward</string>
-    <string name="textedit_action_delete_line">Delete line</string>
-    <string name="textedit_action_delete_line_forward">Delete line forward</string>
+    <string name="textedit_action_delete_line">Delete line before the cursor</string>
+    <string name="textedit_action_delete_line_forward">Delete line after the cursor</string>
     <string name="textedit_action_clear_field">Delete everything</string>
     <string name="textedit_action_delete_to_start">Delete everything before the cursor</string>
     <string name="textedit_action_delete_to_end">Delete everything after the cursor</string>
