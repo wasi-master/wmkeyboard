@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.prediction.PunctuationModel
+import com.wasimaster.wmkeyboard.ime.SmartPunctuation
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
@@ -108,8 +110,20 @@ internal fun VoiceUi.transcribingLabelRes(): Int =
 /**
  * The punctuation column beside the panel's action rail (#758): the marks a
  * dictation most often needs put in by hand, the keys being out of sight.
+ * In the keyboard language's own writing (#1321): `。，？！` for Chinese,
+ * `。、？！` for Japanese, a danda for Hindi and Bengali, the reversed comma
+ * and question mark for Arabic-script languages, the same marks the smart
+ * punctuation key shows.
  */
-private val VoicePanelMarks = listOf(".", ",", "?", "!")
+internal fun voicePanelMarks(state: KeyboardUiState): List<String> {
+    when (state.language.id.substringBefore('_').substringBefore('-')) {
+        "zh", "yue" -> return listOf("。", "，", "？", "！")
+        "ja" -> return listOf("。", "、", "？", "！")
+    }
+    return listOf(
+        PunctuationModel.PERIOD, PunctuationModel.COMMA, PunctuationModel.QUESTION, PunctuationModel.EXCLAIM,
+    ).map { SmartPunctuation.glyph(it, state.script) }
+}
 
 /**
  * Voice input panel: a large mic button with a level-driven pulse ring and
@@ -475,7 +489,7 @@ internal fun VoicePanel(
                 .width(48.dp)
                 .fillMaxHeight(),
         ) {
-            for (mark in VoicePanelMarks) {
+            for (mark in voicePanelMarks(state)) {
                 VoiceRailKey(
                     description = mark,
                     label = mark,
