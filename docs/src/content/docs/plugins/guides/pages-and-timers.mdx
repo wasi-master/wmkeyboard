@@ -76,6 +76,11 @@ def render():
 - `plugin.set_title(text)` changes the header text of the main page.
 - Pages stack: push from a pushed page and Back walks them in order.
 
+`ui.tabs` remembers its page for you. The next time the panel opens, the
+tabs show the page the user left them on, and your `on_change` hears that
+index as if it had been tapped, so a `state.tab` you keep yourself follows
+along. Pushed pages are not remembered: the panel opens on the main page.
+
 ## Header buttons
 
 `@plugin.command` adds a button to the panel's header, next to the title. Use
@@ -129,21 +134,25 @@ block in the manifest offers more places:
 ```json title="plugin.json (excerpt)"
 "tool": {
   "icon": "dictionary",
+  "color": "#5C6BC0",
   "tile": true,
   "float": true,
   "keyword": "define",
-  "chip": true
+  "chip": true,
+  "fullBleed": true
 }
 ```
 
 | Field | What it adds |
 |---|---|
 | `icon` | Your plugin's icon, on its tool, on the floating button and on its rows in Settings. See [Your icon](#your-icon). |
+| `color` | The icon's colour, as `"#RRGGBB"`. See [Your icon](#your-icon). |
 | `tile` | The plugin joins the toolbox as a [tool](/tools/overview/#plugins-as-tools) when it is installed. Users can make any plugin with a panel a tool whatever this says; it only decides where a new install starts. |
 | `float` | The panel may open in the [floating box](/tools/overview/#tools-in-a-floating-box), over the app, with the keyboard closed. |
 | `keyword` | A word the user types as `@define`. 1 to 16 lowercase letters or digits. |
 | `chip` | With a keyword: typing `@define rain` offers your plugin on the suggestion strip, while [Search shortcuts](/smart/chips/#search-shortcuts) are on. |
 | `height` | The panel's height in dp. Leave it out for the keyboard's own. |
+| `fullBleed` | `true` gives the panel the toolbar's rows too, as the scanners and Notes do, with a back arrow in its header. Worth it for a tall panel, such as a planner, a form or a long list. Leave it out and the toolbar stays above your panel. |
 
 For a keyword, mark the function that hears what followed it:
 
@@ -181,6 +190,12 @@ You don't need to do anything for that.
 </svg>
 ```
 
+`color` paints the icon in its own colour, as each of the keyboard's own tools
+has one: in the toolbox (while the user keeps **Colorful tool icons** on),
+in the **Plugins** list and on its rows in Settings. Pick a mid-tone that reads on both light and dark themes, such as
+`#1E88E5` or `#43A047`. Leave it out and the icon takes the theme's icon
+colour; a value that is not `#RRGGBB` is ignored the same way.
+
 A name the app doesn't carry, a file that won't draw, or no `icon` at all shows
 the jigsaw piece every plugin used to wear. The [web editor](/plugins/getting-started/)
 shows your icon in the plugin's preview, and the addon store's validator warns
@@ -188,5 +203,6 @@ about a name the app lacks or a drawing in more than one colour. A stroke
 width of 2 matches the weight of the icons around yours.
 
 An `apiVersion` 4 plugin may carry a `tool` block with only a symbol name in
-`icon`, for app versions 45 and later. The rest of the block, and an SVG icon,
-need `apiVersion` 5.
+`icon`, for app versions 45 and later, and `color` and `fullBleed` from the
+release after 0.6.6. The rest of the block, and an SVG icon, need
+`apiVersion` 5.

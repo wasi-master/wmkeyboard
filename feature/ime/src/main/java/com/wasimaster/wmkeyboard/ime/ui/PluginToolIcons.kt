@@ -34,13 +34,19 @@ data class PluginToolFace(
     val name: String,
     val icon: String,
     val version: String,
+    /** The manifest's `tool.color` as ARGB, or null for the theme's icon colour. */
+    val color: Long? = null,
 ) {
-    val stamp: String get() = "$version|$icon"
+    val stamp: String get() = "$version|$icon|$color"
 }
 
 /** The face of [plugin] for the tool lists. */
 fun pluginToolFace(plugin: InstalledPlugin): PluginToolFace =
-    PluginToolFace(plugin.id, plugin.displayName, plugin.tool.icon, plugin.version)
+    PluginToolFace(plugin.id, plugin.displayName, plugin.tool.icon, plugin.version, plugin.tool.colorArgb)
+
+/** [plugin]'s own icon colour from its manifest, or null for the theme's. */
+val InstalledPlugin.toolColor: Color?
+    get() = tool.colorArgb?.let { Color(it.toInt()) }
 
 /**
  * The plugins that can be tools right now, by id: on, drawing a panel, with
@@ -68,6 +74,12 @@ object PluginToolIcons {
     private class Entry(val stamp: String, val vector: ImageVector)
 
     private val built = ConcurrentHashMap<String, Entry>()
+
+    /** Each plugin's `tool.color`, kept by [warm] for the toolbar and toolbox to paint with. */
+    private val colors = ConcurrentHashMap<String, Long>()
+
+    /** The colour the plugin a slot or id names asked for, or null for the theme's. */
+    fun colorOf(pluginId: String): Color? = colors[pluginId]?.let { Color(it.toInt()) }
 
     /** The icon slot a plugin's tool draws through, so [SlotIcon] finds it. */
     fun slot(pluginId: String): String = SLOT_PREFIX + pluginId
@@ -101,6 +113,7 @@ object PluginToolIcons {
     fun warm(context: Context, faces: Collection<PluginToolFace>) {
         val store = PluginStore.get(context)
         for (face in faces) {
+            if (face.color != null) colors[face.id] = face.color else colors.remove(face.id)
             if (built[face.id]?.stamp == face.stamp) continue
             built[face.id] = Entry(face.stamp, build(store, face.id, face.icon))
         }
@@ -109,6 +122,7 @@ object PluginToolIcons {
     /** [plugin]'s icon, built now. Reads a file for an SVG: call it off the main thread. */
     fun load(context: Context, plugin: InstalledPlugin): ImageVector {
         val face = pluginToolFace(plugin)
+        if (face.color != null) colors[face.id] = face.color else colors.remove(face.id)
         built[face.id]?.takeIf { it.stamp == face.stamp }?.let { return it.vector }
         val vector = build(PluginStore.get(context), face.id, face.icon)
         built[face.id] = Entry(face.stamp, vector)

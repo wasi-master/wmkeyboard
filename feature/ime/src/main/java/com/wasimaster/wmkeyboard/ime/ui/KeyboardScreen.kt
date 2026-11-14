@@ -14742,7 +14742,10 @@ private val FullBleedPanels = setOf(
  * for emoji, the search box for media — so the setting is on by default but
  * can be turned off by anyone who wants the toolbar within reach.
  */
-private fun isFullBleedPanel(panel: PanelMode, settings: KeyboardSettings): Boolean = when (panel) {
+private fun isFullBleedPanel(panel: PanelMode, settings: KeyboardSettings, plugins: PluginPanelUi? = null): Boolean = when (panel) {
+    // The list takes the whole keyboard; a running plugin does when its
+    // manifest asks (`tool.fullBleed`), as a tall one such as a planner does.
+    PanelMode.PLUGINS -> (plugins as? PluginPanelUi.Running)?.plugin?.tool?.fullBleed ?: true
     PanelMode.EMOJI -> settings.emojiFullBleed
     PanelMode.GIF, PanelMode.STICKER, PanelMode.EMOJI_MIX -> settings.mediaFullBleed
     PanelMode.CLIPBOARD -> settings.clipboard.fullBleed
@@ -26574,7 +26577,7 @@ internal fun clipboardStacked(state: KeyboardUiState): Boolean =
 
 /** A panel is claiming the strip's height, so the rows above the keys are gone. */
 internal fun barFullBleed(state: KeyboardUiState): Boolean =
-    (isFullBleedPanel(state.panel, state.settings) || toolboxSearchBleeds(state)) && !barClipboardSearching(state)
+    (isFullBleedPanel(state.panel, state.settings, state.plugins) || toolboxSearchBleeds(state)) && !barClipboardSearching(state)
 
 /** The toolbox's search takes the whole keyboard, with its own way back (#687). */
 private fun toolboxSearchBleeds(state: KeyboardUiState): Boolean =
@@ -26646,8 +26649,18 @@ private fun toolActive(tool: ToolKey, state: KeyboardUiState): Boolean = when (t
 }
 
 /** A built-in tool's colours; a plugin wears the theme's own tool colour. */
-private fun toolAccentPaint(tool: ToolKey, settings: KeyboardSettings): ToolPaint? =
-    tool.tool?.let { toolAccentPaint(it, settings) }
+private fun toolAccentPaint(tool: ToolKey, settings: KeyboardSettings): ToolPaint? = when (tool) {
+    is ToolKey.Builtin -> toolAccentPaint(tool.tool, settings)
+    // A plugin wears the colour its manifest names (`tool.color`), under the
+    // same "Colorful tool icons" and gradient switches as the built-in tools.
+    is ToolKey.Plugin -> if (!settings.coloredToolIcons) {
+        null
+    } else {
+        PluginToolIcons.colorOf(tool.pluginId)?.let { color ->
+            ToolPaint(color, if (settings.toolIconGradients) com.wasimaster.wmkeyboard.core.ui.toolGradientEnd(color) else null)
+        }
+    }
+}
 
 /**
  * Whether the toolbar's small incognito badge shows. Not while the Incognito

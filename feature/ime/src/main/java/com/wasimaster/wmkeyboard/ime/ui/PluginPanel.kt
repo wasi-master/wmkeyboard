@@ -322,19 +322,23 @@ private fun PluginRow(
         },
         leading = {
             // Its own icon when its manifest names one (`tool.icon`), the
-            // picture its tool wears; otherwise its initial.
+            // picture its tool wears; otherwise its initial. In the colour its
+            // manifest gives (`tool.color`), as in the toolbox; otherwise the
+            // toolbar's icon colour, on the toolbox's circle rather than the
+            // selected-chip pair, whose two blues were hard to tell apart.
+            val ink = plugin.toolColor ?: kb.toolbarIcon
             if (plugin.tool.icon.isNotBlank()) {
-                PluginIcon(plugin, tint = kb.chipActiveText, modifier = Modifier.size(22.dp))
+                PluginIcon(plugin, tint = ink, modifier = Modifier.size(22.dp))
             } else {
                 Text(
                     pluginInitial(plugin.displayName),
-                    color = kb.chipActiveText,
+                    color = ink,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Medium,
                 )
             }
         },
-        leadingFill = kb.chipActive,
+        leadingFill = kb.toolCircle,
         focused = focused,
         onClick = onClick,
     )
@@ -649,12 +653,13 @@ private fun androidx.compose.foundation.layout.BoxScope.PermissionDialog(
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.size(44.dp).clip(CircleShape).background(kb.chipActive),
+                    modifier = Modifier.size(44.dp).clip(CircleShape).background(kb.toolCircle),
                 ) {
+                    val ink = plugin.toolColor ?: kb.toolbarIcon
                     if (plugin.tool.icon.isNotBlank()) {
-                        PluginIcon(plugin, tint = kb.chipActiveText, modifier = Modifier.size(24.dp))
+                        PluginIcon(plugin, tint = ink, modifier = Modifier.size(24.dp))
                     } else {
-                        Icon(Icons.Outlined.Extension, contentDescription = null, tint = kb.chipActiveText, modifier = Modifier.size(24.dp))
+                        Icon(Icons.Outlined.Extension, contentDescription = null, tint = ink, modifier = Modifier.size(24.dp))
                     }
                 }
                 Text(

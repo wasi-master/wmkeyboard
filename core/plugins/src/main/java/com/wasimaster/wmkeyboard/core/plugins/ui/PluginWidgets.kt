@@ -849,8 +849,18 @@ private fun TabsWidget(
     val style = LocalPluginPanelStyle.current
     // Which tab is showing is the host's business, kept in the panel's own
     // saved state so it survives a recomposition without the script having to
-    // track it or the service having to store it.
-    var selected by rememberSaveable(widget.id) { mutableIntStateOf(0) }
+    // track it, and remembered per plugin so it opens on the page it was
+    // left on. A script that keeps its own idea of the page hears the
+    // restored one as if it had been tapped.
+    val pluginId = LocalPluginId.current
+    val context = LocalContext.current
+    val restored = remember(pluginId, widget.id) {
+        pluginId?.let { PluginTabMemory.get(context, it, widget.id) }?.takeIf { it in widget.pages.indices } ?: 0
+    }
+    var selected by rememberSaveable(widget.id) { mutableIntStateOf(restored) }
+    LaunchedEffect(pluginId, widget.id) {
+        if (restored != 0) onEvent(PluginEvent.TabSelected(widget.id, restored))
+    }
     val index = selected.coerceIn(0, widget.pages.lastIndex)
     val fixed = widget.pages.size <= FIXED_TABS
     val tabFitting = TextFitting.DEFAULT
@@ -873,6 +883,7 @@ private fun TabsWidget(
                             .clip(RoundedCornerShape(8.dp))
                             .clickable(role = Role.Tab) {
                                 selected = i
+                                pluginId?.let { PluginTabMemory.set(context, it, widget.id, i) }
                                 onEvent(PluginEvent.TabSelected(widget.id, i))
                             }
                             // Shared tabs keep a little room each and narrow

@@ -214,6 +214,9 @@ fun toolAccentEndColor(
 fun toolAccentEndColorArgb(tool: ToolbarTool, starts: Map<ToolbarTool, Long>): Long =
     shiftForGradient(toolAccentColor(tool, starts)).toArgb().toLong() and 0xFFFFFFFFL
 
+/** The far end of a gradient that starts at [color], as a built-in tool's is derived: for a plugin's own colour. */
+fun toolGradientEnd(color: Color): Color = shiftForGradient(color)
+
 private fun shiftForGradient(color: Color): Color {
     val hsv = FloatArray(3)
     android.graphics.Color.colorToHSV(color.toArgb(), hsv)

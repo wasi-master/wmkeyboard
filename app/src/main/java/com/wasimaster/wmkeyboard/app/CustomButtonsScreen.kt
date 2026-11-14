@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.app
 import com.wasimaster.wmkeyboard.core.settings.PluginToolPlace
 import com.wasimaster.wmkeyboard.core.settings.pluginIds
 import com.wasimaster.wmkeyboard.ime.ui.PluginIcon
+import com.wasimaster.wmkeyboard.ime.ui.toolColor
 import android.app.Activity
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -498,7 +499,7 @@ private fun PluginTilePicker(taken: Set<String>, onDismiss: () -> Unit, onPick: 
             key = plugin.id,
             title = plugin.displayName,
             subtitle = plugin.displayDescription.takeIf { it.isNotBlank() },
-            leading = { PluginIcon(plugin) },
+            leading = { PluginIcon(plugin, tint = plugin.toolColor ?: androidx.compose.material3.LocalContentColor.current) },
             onPick = { onPick(plugin.id) },
         )
     }

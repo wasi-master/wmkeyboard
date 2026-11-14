@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.app
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wasimaster.wmkeyboard.ime.ui.PluginIcon
+import com.wasimaster.wmkeyboard.ime.ui.toolColor
 import com.wasimaster.wmkeyboard.core.plugins.displayName
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.settings.pluginToolPlaceIn
@@ -856,7 +857,7 @@ private fun PluginToolsGroup(
                             PluginToolPlace.TOOLBOX -> R.string.plugins_tile_toolbox
                         },
                     ),
-                    leading = { PluginIcon(plugin, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                    leading = { PluginIcon(plugin, tint = plugin.toolColor ?: MaterialTheme.colorScheme.onSurfaceVariant) },
                     trailing = {
                         Switch(
                             checked = place != PluginToolPlace.NONE,

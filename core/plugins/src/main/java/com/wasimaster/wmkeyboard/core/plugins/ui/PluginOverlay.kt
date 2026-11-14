@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.plugins.ui
 
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.fadeIn
@@ -76,6 +77,30 @@ internal class OverlayMenu(val anchor: Rect, val content: @Composable () -> Unit
 /** The layer the widget being drawn may open a menu in; null outside a [PluginOverlayBox]. */
 val LocalPluginOverlay = compositionLocalOf<PluginOverlay?> { null }
 
+/** Whose widgets are being drawn, for what the host remembers per plugin; null in a preview. */
+val LocalPluginId = compositionLocalOf<String?> { null }
+
+/**
+ * Which page each plugin's tabs last showed, so a plugin opens where it was
+ * left rather than on its first tab. Kept across panel openings and restarts;
+ * a page number is all it holds. Plugins run only once the phone is unlocked,
+ * so the ordinary (credential) storage is the place.
+ */
+object PluginTabMemory {
+    private const val FILE = "plugin_tabs"
+
+    private fun prefs(context: Context) = context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+
+    private fun key(pluginId: String, tabsId: String) = "$pluginId|$tabsId"
+
+    fun get(context: Context, pluginId: String, tabsId: String): Int =
+        runCatching { prefs(context).getInt(key(pluginId, tabsId), 0) }.getOrDefault(0)
+
+    fun set(context: Context, pluginId: String, tabsId: String, index: Int) {
+        runCatching { prefs(context).edit().putInt(key(pluginId, tabsId), index).apply() }
+    }
+}
+
 /**
  * Hosts a plugin's widgets with the overlay layer over them: an open
  * dropdown, and any dialog [pluginId] asked for with `ui.dialog`.
@@ -86,7 +111,7 @@ fun PluginOverlayBox(pluginId: String?, modifier: Modifier = Modifier, content: 
     val asking by PluginDialogs.current.collectAsState()
     val dialog = asking?.takeIf { pluginId != null && it.pluginId == pluginId }
     Box(modifier.onGloballyPositioned { overlay.origin = it.positionInRoot() }) {
-        CompositionLocalProvider(LocalPluginOverlay provides overlay) { content() }
+        CompositionLocalProvider(LocalPluginOverlay provides overlay, LocalPluginId provides pluginId) { content() }
         overlay.menu?.let { menu -> MenuLayer(overlay, menu) }
         if (dialog != null) DialogLayer(dialog)
     }

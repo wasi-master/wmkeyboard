@@ -22,6 +22,7 @@ import com.wasimaster.wmkeyboard.core.settings.PluginToolPlace
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.pluginToolPlaceIn
 import com.wasimaster.wmkeyboard.ime.ui.PluginIcon
+import com.wasimaster.wmkeyboard.ime.ui.toolColor
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -474,7 +475,7 @@ private fun PluginListRow(
             title = plugin.displayName,
             subtitle = subtitle,
             // The icon its tool wears on the toolbar and in the toolbox.
-            leading = { PluginIcon(plugin, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+            leading = { PluginIcon(plugin, tint = plugin.toolColor ?: MaterialTheme.colorScheme.onSurfaceVariant) },
             swipeActions = swipes,
             trailing = {
                 IconButton(onClick = { menu = true }) {
@@ -589,7 +590,7 @@ internal fun PluginDetailScreen(
             WmRow(
                 title = plugin.displayName,
                 subtitle = plugin.displayDescription.ifBlank { noDescription } + "\n\n" + versionLine,
-                leading = { PluginIcon(plugin, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                leading = { PluginIcon(plugin, tint = plugin.toolColor ?: MaterialTheme.colorScheme.onSurfaceVariant) },
             )
         }
         item {

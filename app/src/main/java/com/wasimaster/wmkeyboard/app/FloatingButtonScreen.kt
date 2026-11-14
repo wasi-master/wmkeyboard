@@ -110,6 +110,7 @@ import com.wasimaster.wmkeyboard.ime.floating.floatingRings
 import com.wasimaster.wmkeyboard.ime.floating.rememberFloatingAppIcon
 import com.wasimaster.wmkeyboard.ime.ui.ModeIcons
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
+import com.wasimaster.wmkeyboard.ime.ui.toolColor
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
@@ -867,7 +868,7 @@ private fun FloatingActionGlyph(
         remember(a.id) { com.wasimaster.wmkeyboard.core.plugins.PluginStore.get(context).plugin(a.id) }
     }
     if (plugin != null) {
-        com.wasimaster.wmkeyboard.ime.ui.PluginIcon(plugin, modifier = modifier, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        com.wasimaster.wmkeyboard.ime.ui.PluginIcon(plugin, modifier = modifier, tint = plugin.toolColor ?: MaterialTheme.colorScheme.onSurfaceVariant)
     } else if (app != null) {
         androidx.compose.foundation.Image(app, contentDescription = null, modifier = modifier)
     } else {

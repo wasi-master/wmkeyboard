@@ -150,7 +150,27 @@ data class PluginToolSpec(
     val chip: Boolean = false,
     /** The panel's preferred height in dp, 0 for the keyboard's own. */
     val height: Int = 0,
-)
+    /**
+     * The icon's colour, `#RRGGBB`: on the plugin's rows, in the toolbox and
+     * on the toolbar, as each built-in tool wears its own. Blank, or anything
+     * else, is the theme's icon colour.
+     */
+    val color: String = "",
+    /**
+     * The panel takes the whole keyboard, the toolbar's rows included, as
+     * Notes and the scanners do: for a plugin taller than it is wide, such as
+     * a planner or a form. Off, the toolbar stays above the panel.
+     */
+    val fullBleed: Boolean = false,
+) {
+    /** [color] as ARGB, or null when it is blank or not `#RRGGBB`. */
+    val colorArgb: Long?
+        get() = color.trim().takeIf { TOOL_COLOR.matches(it) }?.let { 0xFF000000L or it.drop(1).toLong(16) }
+
+    private companion object {
+        val TOOL_COLOR = Regex("^#[0-9A-Fa-f]{6}$")
+    }
+}
 
 /**
  * One row of a plugin's settings page. The app draws it and stores the value;
@@ -399,7 +419,12 @@ object PluginManifestCodec {
             panel = raw.panel,
             actions = raw.actions.map { sanitiseAction(it) },
             hosts = raw.hosts.map { normaliseHost(it) }.distinct(),
-            tool = raw.tool.copy(icon = raw.tool.icon.trim(), keyword = raw.tool.keyword.trim(), height = raw.tool.height.coerceIn(0, MAX_TOOL_HEIGHT)),
+            tool = raw.tool.copy(
+                icon = raw.tool.icon.trim(),
+                keyword = raw.tool.keyword.trim(),
+                height = raw.tool.height.coerceIn(0, MAX_TOOL_HEIGHT),
+                color = raw.tool.color.trim().takeIf { raw.tool.colorArgb != null }.orEmpty(),
+            ),
             settings = raw.settings.map { sanitiseSetting(it) },
         )
         return PluginManifestResult.Ok(manifest, permissions)
@@ -479,10 +504,11 @@ object PluginManifestCodec {
                     (s.type.trim() == PluginSettingSpec.TYPE_SECRET && PluginPermission.Storage !in permissions)
             }
         if (badSetting) out += Problem(Field.SETTINGS, PluginText.of(R.string.core_plugins_reject_bad_setting, name))
-        // A symbol name for the icon is the one tool field older plugins may
-        // carry: it only draws their row, and needs nothing from the wm package.
-        // An SVG icon is a file in `assets/`, which only API 5 archives ship.
-        val iconOnly = tool.copy(icon = "") == PluginToolSpec() && !tool.icon.trim().startsWith("assets/")
+        // A symbol name for the icon, its colour and full-bleed are the tool
+        // fields older plugins may carry: they only change how the keyboard
+        // draws them, and need nothing from the wm package. An SVG icon is a
+        // file in `assets/`, which only API 5 archives ship.
+        val iconOnly = tool.copy(icon = "", color = "", fullBleed = false) == PluginToolSpec() && !tool.icon.trim().startsWith("assets/")
         val usesPackageFields = hosts.isNotEmpty() || settings.isNotEmpty() || (tool != PluginToolSpec() && !iconOnly)
         if (usesPackageFields && level < PACKAGE_API) {
             out += Problem(Field.API_VERSION, PluginText.of(R.string.core_plugins_reject_permission_needs_api_5, "hosts/tool/settings", name))
