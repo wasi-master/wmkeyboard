@@ -432,6 +432,7 @@ import com.wasimaster.wmkeyboard.ime.AppColors
 import com.wasimaster.wmkeyboard.core.theme.keyShapeFor
 import com.wasimaster.wmkeyboard.core.theme.brush
 import com.wasimaster.wmkeyboard.core.theme.keyShapeKindOrNull
+import com.wasimaster.wmkeyboard.core.ui.FitWordsText
 import com.wasimaster.wmkeyboard.core.ui.LocalTextFitting
 import com.wasimaster.wmkeyboard.core.ui.TextFitting
 import com.wasimaster.wmkeyboard.core.ui.ToolPaint
@@ -13940,14 +13941,14 @@ private fun ToolboxGrid(
                                 hint = hint,
                             ) {}
                         }
-                        Text(
+                        FitWordsText(
                             toolLabel(shown, state),
                             // The name is what the grid is actually read by —
                             // the icons are close cousins of one another and
                             // the words are not — so it carries the same
                             // weight as a suggestion chip rather than the
                             // caption size it used to have.
-                            fontSize = toolboxLabelSize(state),
+                            style = LocalTextStyle.current.copy(fontSize = toolboxLabelSize(state)),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                 .copy(alpha = if (ghost) 0.5f else 1f),
                             textAlign = TextAlign.Center,
@@ -13960,9 +13961,9 @@ private fun ToolboxGrid(
                             // and a tap landed on the tool below — further out
                             // the further down you were, until the index ran off
                             // the end and the last tools stopped opening at all.
-                            minLines = 2,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
+                            // Breaks only between words: a word too wide for
+                            // the cell narrows rather than splitting mid-word.
+                            lines = 2,
                             onTextLayout = nameAnchor::onTextLayout,
                             modifier = Modifier
                                 .padding(top = 4.dp, start = 2.dp, end = 2.dp)
@@ -14395,15 +14396,13 @@ private fun ToolboxFolderCell(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         FolderFace(cell.tools, state, ghost)
-        Text(
+        FitWordsText(
             cell.folder.name,
-            fontSize = toolboxLabelSize(state),
+            style = LocalTextStyle.current.copy(fontSize = toolboxLabelSize(state)),
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = fade),
             textAlign = TextAlign.Center,
             // Two lines exactly, as every tool's name is: see the tool cell.
-            minLines = 2,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
+            lines = 2,
             onTextLayout = nameAnchor::onTextLayout,
             modifier = Modifier
                 .padding(top = 4.dp, start = 2.dp, end = 2.dp)

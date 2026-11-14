@@ -23,6 +23,7 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextGeometricTransform
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
@@ -201,3 +202,80 @@ fun FitText(
         },
     )
 }
+
+/**
+ * A label of exactly [lines] lines that breaks only between words. A word too
+ * wide for one line on its own, "Appearance" in a narrow toolbox cell, is
+ * fitted the way [FitText] fits a label (narrowed, then smaller) instead of
+ * being split into "Appeara" and "nce". The height is always [lines] lines, so
+ * cells in a grid stay one size whatever their names; [onTextLayout] gets the
+ * layout as drawn.
+ */
+@Composable
+fun FitWordsText(
+    text: String,
+    style: TextStyle,
+    modifier: Modifier = Modifier,
+    color: Color = Color.Unspecified,
+    textAlign: TextAlign = TextAlign.Unspecified,
+    lines: Int = 2,
+    onTextLayout: (TextLayoutResult) -> Unit = {},
+    fitting: TextFitting = LocalTextFitting.current,
+) {
+    val measurer = rememberTextMeasurer()
+    val drawn = remember { mutableStateOf<TextLayoutResult?>(null) }
+    val ink = color.takeOrElse { style.color.takeOrElse { LocalContentColor.current } }
+    val aligned = if (textAlign == TextAlign.Unspecified) style else style.copy(textAlign = textAlign)
+    val words = remember(text) { text.split(WORD_GAP).filter { it.isNotEmpty() } }
+    val placeholder = remember(lines) { List(lines.coerceAtLeast(1)) { "A" }.joinToString("\n") }
+    Layout(
+        modifier = modifier
+            .semantics { this.text = AnnotatedString(text) }
+            .drawBehind { drawn.value?.let { drawText(it, color = ink) } },
+        measurePolicy = object : MeasurePolicy {
+            override fun MeasureScope.measure(measurables: List<Measurable>, constraints: Constraints): MeasureResult {
+                val fit = if (constraints.hasBoundedWidth && words.isNotEmpty()) {
+                    val widest = words.maxOf { measurer.measure(it, aligned, maxLines = 1, softWrap = false).size.width }
+                    fitTextWidth(widest.toFloat(), constraints.maxWidth.toFloat(), fitting)
+                } else {
+                    TextFit.NONE
+                }
+                val fitted = aligned.fitted(fit)
+                val result = measurer.measure(
+                    text,
+                    fitted,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = lines,
+                    constraints = if (constraints.hasBoundedWidth) {
+                        Constraints(minWidth = constraints.minWidth, maxWidth = constraints.maxWidth)
+                    } else {
+                        Constraints()
+                    },
+                )
+                drawn.value = result
+                onTextLayout(result)
+                // Measured at the unfitted size: a narrowed name keeps the cell's height.
+                val tall = measurer.measure(placeholder, aligned, maxLines = lines).size.height
+                val width = result.size.width.coerceIn(constraints.minWidth, constraints.maxWidth)
+                val height = maxOf(result.size.height, tall).coerceIn(constraints.minHeight, constraints.maxHeight)
+                return layout(width, height) {}
+            }
+
+            override fun IntrinsicMeasureScope.maxIntrinsicWidth(measurables: List<IntrinsicMeasurable>, height: Int): Int =
+                measurer.measure(text, aligned, maxLines = 1, softWrap = false).size.width
+
+            override fun IntrinsicMeasureScope.minIntrinsicWidth(measurables: List<IntrinsicMeasurable>, height: Int): Int {
+                val widest = words.maxOfOrNull { measurer.measure(it, aligned, maxLines = 1, softWrap = false).size.width } ?: 0
+                return (widest * fitting.minScaleX * fitting.minFontScale).toInt()
+            }
+
+            override fun IntrinsicMeasureScope.minIntrinsicHeight(measurables: List<IntrinsicMeasurable>, width: Int): Int =
+                measurer.measure(placeholder, aligned, maxLines = lines).size.height
+
+            override fun IntrinsicMeasureScope.maxIntrinsicHeight(measurables: List<IntrinsicMeasurable>, width: Int): Int =
+                minIntrinsicHeight(measurables, width)
+        },
+    )
+}
+
+private val WORD_GAP = Regex("\\s+")
