@@ -387,7 +387,8 @@ impl Walk {
             "column" | "row" => {
                 let mut o = json!({"type": ty, "children": self.kids(d, depth), "gap": opt_int(d, "gap", 0, 64), "align": short(&field(d, "align"), 16)});
                 if ty == "row" {
-                    let weights = field(d, "weights").as_items().map(|w| w.iter().map(|x| number(x).filter(|n| n.is_finite() && *n > 0.0).unwrap_or(1.0)).collect::<Vec<_>>());
+                    // 0 is a real weight: that child keeps its own width (`weights=[1, 0]`).
+                    let weights = field(d, "weights").as_items().map(|w| w.iter().map(|x| number(x).filter(|n| n.is_finite() && *n >= 0.0).unwrap_or(1.0)).collect::<Vec<_>>());
                     o["weights"] = json!(weights);
                 }
                 o
