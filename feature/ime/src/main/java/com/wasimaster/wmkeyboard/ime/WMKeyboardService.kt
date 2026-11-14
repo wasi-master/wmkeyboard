@@ -19642,7 +19642,7 @@ open class WMKeyboardService : InputMethodService() {
             // selection after the caret, so a trigger typed there always
             // arrives with one. The expansion replaces it the way the space
             // would have.
-            if (tryUncomposedTrigger(ic, state, endedBySpace = true)) {
+            if (tryUncomposedTrigger(ic, state, endedBySpace = true) || tryUncomposedPattern(ic, state)) {
                 if (swallowTerminatorAfterCommit) {
                     swallowTerminatorAfterCommit = false
                 } else {
@@ -19754,7 +19754,7 @@ open class WMKeyboardService : InputMethodService() {
             autocorrect = state.settings.correction.enabledFor(state.language.id),
             fixApostrophes = state.settings.autoText.apostrophe,
             expandPatterns = true,
-        ) || tryUncomposedTrigger(ic, state, endedBySpace = true)
+        ) || tryUncomposedTrigger(ic, state, endedBySpace = true) || tryUncomposedPattern(ic, state)
         if (!committed) noteUncomposedRecentWord(ic, state)
         // The expansion left the caret inside itself, at its {cursor} marker.
         // A space committed there lands in the middle of the text the snippet
@@ -19926,7 +19926,7 @@ open class WMKeyboardService : InputMethodService() {
                 state.settings.correction.onEnter,
             fixApostrophes = state.settings.autoText.apostrophe,
             expandPatterns = true,
-        ) || tryUncomposedTrigger(ic, state)
+        ) || tryUncomposedTrigger(ic, state) || tryUncomposedPattern(ic, state)
         // The word is over, however this key ends up reaching the field. What
         // follows hands the field to the app, so the caret update that comes
         // back must not re-compose the word this just finished (#236).
@@ -22643,6 +22643,18 @@ open class WMKeyboardService : InputMethodService() {
      * snippet expands there only when its text is what the field takes
      * ([snippetFitsField]); one with letters in it is left as typed.
      */
+    /**
+     * [tryPatternExpansion] for a field where nothing composes (#1315): a
+     * browser's address bar, read when the space or Enter that ends the word
+     * lands, the way [tryUncomposedTrigger] reads a trigger there. Never in a
+     * password field or a field with no editor behind it.
+     */
+    private fun tryUncomposedPattern(ic: InputConnection, state: KeyboardUiState): Boolean {
+        if (composing.isNotEmpty() || secureFieldRefusesSnippets(state) || state.nullField) return false
+        if (state.composer.isTransliterating || state.composer.isConversion || state.composesWords) return false
+        return tryPatternExpansion(ic, "", state, uncomposed = true)
+    }
+
     private fun tryUncomposedTrigger(
         ic: InputConnection,
         state: KeyboardUiState,
@@ -22952,7 +22964,12 @@ open class WMKeyboardService : InputMethodService() {
      * out from in front of a full stop) gets to see it. The window then is
      * simply the text behind the caret.
      */
-    private fun tryPatternExpansion(ic: InputConnection, typed: String, state: KeyboardUiState): Boolean {
+    private fun tryPatternExpansion(
+        ic: InputConnection,
+        typed: String,
+        state: KeyboardUiState,
+        uncomposed: Boolean = false,
+    ): Boolean {
         // Only the patterns that expand on their own are this path's business.
         // The ones that ask first are offered by [refreshSnippetOffer] while the
         // words are still being typed, and firing one here would answer for the
@@ -22963,10 +22980,15 @@ open class WMKeyboardService : InputMethodService() {
         // window of the field. Both are reasons to stay out of the fields the
         // keyboard keeps its hands off. The composing gate already excludes
         // them, but that is an accident of how composing works, not a decision.
-        if (!state.allowsTypingIntelligence || state.secureField || state.fieldNoSuggestions) {
-            return false
-        }
-        if (!patternGateOpen(typed)) return false
+        // A field where nothing composes (#1315), a browser's address bar
+        // above all, asks for no suggestions and is a URL field, and those are
+        // where a pattern such as `^/gh (\S+)$` is meant to work. There the
+        // pattern is read off the field the way [tryUncomposedTrigger] reads a
+        // trigger, and the word memory the gate keeps from composing is not
+        // asked.
+        if (state.secureField) return false
+        if (!uncomposed && (!state.allowsTypingIntelligence || state.fieldNoSuggestions)) return false
+        if (!uncomposed && !patternGateOpen(typed)) return false
         val before = ic.getTextBeforeCursor(SnippetMatcher.MAX_WINDOW, 0) ?: return false
         // Composing text is part of the field's own text, so the window
         // normally ends with the word being committed. An editor that
