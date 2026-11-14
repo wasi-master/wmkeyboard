@@ -38188,7 +38188,7 @@ open class WMKeyboardService : InputMethodService() {
             )
             // Its model carries no Silero; the detector picks from what is here.
             else -> VoiceVad.endpointed(
-                Asr4AllEngine.newStream(filesDir, model),
+                Asr4AllEngine.newStream(filesDir, model, settings.whisper.asr4allTier),
                 VoiceVad.phraseEnd(filesDir, vad, null, pauseMs),
             )
         }

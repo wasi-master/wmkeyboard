@@ -303,6 +303,17 @@
     <!-- The Offline Asr4All models (#289). Asr4All is a name.              -->
     <!-- ================================================================== -->
     <string name="voice_asr4all_group">Asr4All models</string>
+    <string name="voice_asr4all_tier_group">Streaming</string>
+    <string name="voice_asr4all_tier_title">Streaming tier</string>
+    <string name="voice_asr4all_tier_subtitle">Wait longer for the first words, and get them right more often</string>
+    <string name="voice_asr4all_tier_info">Asr4All reads ahead of the word it writes. The lowest tier, its default, shows your first words about 1.7 seconds after you start and is made for live dictation. Each later tier reads further ahead: the first words come seconds later, and they come out more accurately. Highest accuracy waits about 18 seconds for its first words, so it suits a long dictation you read at the end more than one you watch as you speak. A model that lacks the tier runs its default.</string>
+    <string name="voice_asr4all_tier_default">Model default</string>
+    <string name="voice_asr4all_tier_c16r4">Lowest latency (1.7 s)</string>
+    <string name="voice_asr4all_tier_c32r8">3.3 s</string>
+    <string name="voice_asr4all_tier_c64r16">6.5 s</string>
+    <string name="voice_asr4all_tier_c128r24">11 s</string>
+    <string name="voice_asr4all_tier_c256r32">Highest accuracy (18 s)</string>
+    <string name="voice_asr4all_tier_c512r8">Long audio (22.5 s)</string>
     <string name="voice_asr4all_model_info">Asr4All is an English speech recognition model that runs on this phone and listens as you speak: the words appear while you talk, and a second pass adds punctuation and capitals. Of the sizes you download, the largest is used. Small is quickest, Large the most accurate. While a layout in another language is in use, dictation uses the system recognizer instead. The models come from Hugging Face once, under their own licence, which allows dictation; after that no audio leaves the phone.</string>
 
     <!-- ================================================================== -->

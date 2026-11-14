@@ -45,6 +45,8 @@ The words go into the field as they are recognised, underlined and without punct
 
 In **Type while you speak** (see [Typing while you dictate](/tools/voice/#typing-while-you-dictate)), nothing goes into the field until the phrase is finished, so there the words are on the line under the microphone only.
 
+**How far it reads ahead.** Asr4All writes a word only once it has heard a little past it. **Streaming tier**, on its page under the models, sets how much. The default, the model's lowest-latency tier, shows the first words about 1.7 seconds in. The later tiers read further ahead and get more words right, at the cost of waiting: 3.3, 6.5 and 11 seconds for the first words, then **Highest accuracy** at about 18 and **Long audio** at 22.5, the one built for throughput. On the models' own test sets the spread between the fastest and the most accurate tier is under one word in a hundred. A model that lacks a tier runs its default.
+
 **Where a phrase ends.** The model has no ear for pauses of its own. With **Stop after a pause** set, the **Phrase end detector** on the Voice typing screen listens for it: by default loudness, the way Whisper's clips end, and Silero instead once ONNX Runtime and Silero's 1.8 MB file are on the phone. FireRedVAD, a model of your own and **Smart Turn** work here too; see [Hearing the end of a phrase](/tools/voice/#hearing-the-end-of-a-phrase).
 
 On a desktop, its output matched the model makers' own reference decoder word for word, punctuation included. Speed and accuracy on a phone are not yet measured by this project.

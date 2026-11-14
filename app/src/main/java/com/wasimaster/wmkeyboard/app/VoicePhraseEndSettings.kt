@@ -31,6 +31,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Waves
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.VoiceSilenceStopRange
+import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.vad.VadModels
 import com.wasimaster.wmkeyboard.core.voice.vad.VoiceVad
@@ -72,6 +73,32 @@ internal fun VoicePhraseEndGroup(repository: SettingsRepository, settings: LiveS
             }
         }
         item { VoicePhraseEndSetting(repository, settings, scope) }
+    }
+}
+
+/**
+ * Asr4All's streaming tier (#1322): how far the model looks ahead before it
+ * writes a word. The lowest latency is its default; a later tier shows its
+ * first words seconds later and gets them right more often.
+ */
+@Composable
+internal fun Asr4AllTierGroup(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    val labels = listOf(
+        R.string.voice_asr4all_tier_c16r4, R.string.voice_asr4all_tier_c32r8, R.string.voice_asr4all_tier_c64r16,
+        R.string.voice_asr4all_tier_c128r24, R.string.voice_asr4all_tier_c256r32, R.string.voice_asr4all_tier_c512r8,
+    ).map { stringResource(it) }
+    SettingsGroup(stringResource(R.string.voice_asr4all_tier_group)) {
+        item {
+            ChoiceSetting(
+                R.string.voice_asr4all_tier_title,
+                subtitle = stringResource(R.string.voice_asr4all_tier_subtitle),
+                info = stringResource(R.string.voice_asr4all_tier_info),
+                options = listOf("" to stringResource(R.string.voice_asr4all_tier_default)) + Asr4AllEngine.TIERS.zip(labels),
+                selected = settings.watch { it.whisper.asr4allTier }.takeIf { it in Asr4AllEngine.TIERS }.orEmpty(),
+                default = SettingsDefaults.whisper.asr4allTier,
+            ) { scope.launch { repository.setVoiceAsr4AllTier(it) } }
+        }
     }
 }
 

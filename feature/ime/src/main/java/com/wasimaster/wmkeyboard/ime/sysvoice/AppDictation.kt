@@ -487,7 +487,7 @@ class AppDictation(
                 VoiceVad.phraseEnd(filesDir, vad, null, pauseMs),
             )
             else -> VoiceVad.endpointed(
-                Asr4AllEngine.newStream(filesDir, model),
+                Asr4AllEngine.newStream(filesDir, model, settings.whisper.asr4allTier),
                 VoiceVad.phraseEnd(filesDir, vad, null, pauseMs),
             )
         }

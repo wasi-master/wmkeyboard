@@ -7199,6 +7199,13 @@ data class WhisperSettings(
      */
     val vadGraceMs: Int = 0,
     /**
+     * Asr4All's streaming tier (#1322), a method name such as
+     * `stream_c256r32`; empty for the model's own default, the lowest
+     * latency. A later tier waits longer for its first words and reads them
+     * more accurately. A model without the tier runs its default.
+     */
+    val asr4allTier: String = "",
+    /**
      * Add punctuation and capitals: full stops, commas, question marks and
      * sentence capitals for the offline engines that write bare words
      * (`DictationPunctuation` in `:core:voice`). On by default; it only acts
@@ -13416,6 +13423,7 @@ class SettingsRepository(private val context: Context) {
         private val VOICE_SMART_TURN = booleanPreferencesKey("voice_smart_turn")
         private val VOICE_SMART_TURN_CONSERVATIVE = booleanPreferencesKey("voice_smart_turn_conservative")
         private val VOICE_VAD_GRACE_MS = intPreferencesKey("voice_vad_grace_ms")
+        private val VOICE_ASR4ALL_TIER = stringPreferencesKey("voice_asr4all_tier")
         private val VOICE_PUNCTUATE = booleanPreferencesKey("voice_punctuate")
         private val VOICE_PUNCTUATION_MODEL = stringPreferencesKey("voice_punctuation_model")
         private val VOICE_SERVER_URL = stringPreferencesKey("voice_server_url")
@@ -16166,6 +16174,7 @@ class SettingsRepository(private val context: Context) {
             smartTurn = p[VOICE_SMART_TURN] ?: defaults.whisper.smartTurn,
             smartTurnConservative = p[VOICE_SMART_TURN_CONSERVATIVE] ?: defaults.whisper.smartTurnConservative,
             vadGraceMs = p[VOICE_VAD_GRACE_MS]?.coerceIn(VoiceVad.GRACE_RANGE_MS) ?: defaults.whisper.vadGraceMs,
+            asr4allTier = p[VOICE_ASR4ALL_TIER] ?: defaults.whisper.asr4allTier,
             punctuate = p[VOICE_PUNCTUATE] ?: defaults.whisper.punctuate,
             punctuationModel = p[VOICE_PUNCTUATION_MODEL]?.takeIf { it in PunctuationChoice.CHOICES }
                 ?: defaults.whisper.punctuationModel,
@@ -18047,6 +18056,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVoiceVadGraceMs(value: Int) =
         editPrefs { it[VOICE_VAD_GRACE_MS] = value.coerceIn(VoiceVad.GRACE_RANGE_MS) }
+
+    suspend fun setVoiceAsr4AllTier(value: String) =
+        editPrefs { it[VOICE_ASR4ALL_TIER] = value }
 
     suspend fun setVoicePunctuate(value: Boolean) =
         editPrefs { it[VOICE_PUNCTUATE] = value }

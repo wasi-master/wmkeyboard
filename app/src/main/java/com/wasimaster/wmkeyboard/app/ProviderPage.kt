@@ -347,6 +347,8 @@ internal fun ProviderOwnSettings(
         -> EtEngine.byId(type.id)?.takeIf { it.runtimeShipped }?.let {
             EtModelManager(it, settings)
             if (it == EtEngine.SHERPA) SherpaCustomModels(settings)
+            // How long Asr4All looks ahead before it writes (#1322).
+            if (it == EtEngine.ASR4ALL) Asr4AllTierGroup(repository, settings)
             // Where the engine's phrase ends, next to the engine (#1174).
             if (it.live) VoicePhraseEndGroup(repository, settings)
         }

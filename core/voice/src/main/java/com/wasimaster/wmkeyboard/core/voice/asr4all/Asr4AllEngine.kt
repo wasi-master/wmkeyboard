@@ -27,8 +27,12 @@ object Asr4AllEngine {
         newStream(filesDir, model)
     }
 
-    /** A fresh utterance on [model], opening it first if need be. On [EtNative.dispatcher] only. */
-    fun newStream(filesDir: File, model: EtModel): Asr4AllStream {
+    /**
+     * A fresh utterance on [model], opening it first if need be, at [tier]
+     * (#1322) when the model has it and at its default otherwise. On
+     * [EtNative.dispatcher] only.
+     */
+    fun newStream(filesDir: File, model: EtModel, tier: String = ""): Asr4AllStream {
         require(model.engine == EtEngine.ASR4ALL)
         val program = EtNative.programs(listOf(EtStore.file(filesDir, model, PROGRAM))).single()
         val metaFile = EtStore.file(filesDir, model, METADATA)
@@ -37,6 +41,14 @@ object Asr4AllEngine {
                 metadata = it
                 metadataPath = metaFile.path
             }
-        return Asr4AllStream(program, meta)
+        val picked = tier.takeIf { name -> name.isNotEmpty() && meta.tiers.any { it.name == name } } ?: meta.defaultTier
+        return Asr4AllStream(program, meta, tierName = picked)
     }
+
+    /**
+     * The tiers the asr4all bundles export (#1322), lowest latency first:
+     * commit frames and lookahead frames at 25 a second. See the models'
+     * README; [newStream] falls back to a model's default for one it lacks.
+     */
+    val TIERS = listOf("stream_c16r4", "stream_c32r8", "stream_c64r16", "stream_c128r24", "stream_c256r32", "stream_c512r8")
 }
