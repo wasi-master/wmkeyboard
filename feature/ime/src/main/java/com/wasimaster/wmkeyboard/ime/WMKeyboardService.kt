@@ -368,6 +368,7 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginActionResult
 import com.wasimaster.wmkeyboard.core.plugins.PluginActionRunner
 import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
 import com.wasimaster.wmkeyboard.ime.ui.ALLOW_EVENT
+import com.wasimaster.wmkeyboard.ime.ui.DENY_EVENT
 import com.wasimaster.wmkeyboard.core.plugins.PluginPermission
 import com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms
 import com.wasimaster.wmkeyboard.core.plugins.PluginRuntime
@@ -42736,6 +42737,8 @@ open class WMKeyboardService : InputMethodService() {
             useLanguage = ::pluginUseLanguage,
             restoreLayout = { pluginId -> restorePluginLayout(pluginId) },
             openSettings = { pluginId -> openRoute("plugin/$pluginId") },
+            commitImage = { file, mime -> commitImageFile(file, mime) },
+            localModel = { effectiveLocalModelFile(_uiState.value.settings) },
         ).also { pluginServicesOrNull = it }
 
     /**
@@ -42822,9 +42825,11 @@ open class WMKeyboardService : InputMethodService() {
                     else -> PanelMode.CAMERA
                 }
                 pluginHandoff = handoff
+                PluginScanWait.active = handoff.kind == PluginHandoff.Kind.QR
                 onPanelChange(handoff.panel, haptic = false)
                 if (_uiState.value.panel != handoff.panel) {
                     pluginHandoff = null
+                    PluginScanWait.active = false
                     return false
                 }
             }
@@ -42858,10 +42863,12 @@ open class WMKeyboardService : InputMethodService() {
     /** The plugin stopped waiting on [handoff]. One that Android's own screen answered ends here. */
     private fun pluginHandoffDone(handoff: PluginHandoff) {
         if (pluginHandoff !== handoff) return
+        PluginScanWait.active = false
         if (handoff.panel == PanelMode.PLUGINS || pluginRuntime?.activePluginId != handoff.pluginId) pluginHandoff = null
     }
 
     private fun cancelPluginHandoff(handoff: PluginHandoff) {
+        PluginScanWait.active = false
         com.wasimaster.wmkeyboard.ime.PluginFilePicks.cancel(handoff)
         handoff.answer(null)
     }
@@ -42881,7 +42888,11 @@ open class WMKeyboardService : InputMethodService() {
         cancelPluginHandoff(handoff)
         if (handoff.float || now != PanelMode.NONE || handoff.panel == PanelMode.PLUGINS) return false
         pluginReturn = handoff
-        serviceScope.launch {
+        // Dispatched, not immediate: serviceScope runs on Main.immediate, and
+        // this runs inside the panel change closing the scanner. Run at once,
+        // it reopened the plugin in the middle of that change, whose own last
+        // step then found the return spent and put the plugin list up instead.
+        serviceScope.launch(Dispatchers.Main) {
             if (_uiState.value.panel == PanelMode.NONE && pluginReturn === handoff) {
                 onPanelChange(PanelMode.PLUGINS, haptic = false)
             } else if (pluginReturn === handoff) {
@@ -42926,6 +42937,7 @@ open class WMKeyboardService : InputMethodService() {
         vibrate()
         handoff.answer(result)
         pluginHandoff = null
+        PluginScanWait.active = false
         if (handoff.float) {
             onPanelChange(handoff.panel, haptic = false)
         } else {
@@ -43061,10 +43073,22 @@ open class WMKeyboardService : InputMethodService() {
      * turned on. Opens the plugin's page in settings, where each one is a
      * switch behind its warning; nothing is granted from the keyboard.
      */
-    private fun onPluginAllow() {
+    /**
+     * The permission dialog's Allow: the user tapped it on the keyboard's own
+     * dialog, which names the plugin and each permission with its warning, as
+     * Android's permission prompt does. Grants what the plugin asked for, and
+     * the risky-permissions switch with it when that was off (the dialog said
+     * so). The plugin's next call goes through; nothing is replayed for it.
+     */
+    private fun onPluginAllow(granted: Boolean) {
         val running = _uiState.value.plugins as? PluginPanelUi.Running ?: return
-        _uiState.update { it.copy(plugins = running.copy(needs = emptyList())) }
-        openRoute("plugin/${running.plugin.id}")
+        if (granted) {
+            val store = PluginStore.get(this)
+            if (!store.allowRisky()) store.setAllowRisky(true)
+            for (permission in running.needs) store.setGranted(running.plugin.id, permission, true)
+        }
+        val fresh = if (granted) PluginStore.get(this).plugin(running.plugin.id) ?: running.plugin else running.plugin
+        _uiState.update { it.copy(plugins = running.copy(plugin = fresh, needs = emptyList())) }
     }
 
     /** Enter in a plugin's box: an API 5 plugin hears the text as a submit, then the keys go back to the field. */
@@ -43099,8 +43123,8 @@ open class WMKeyboardService : InputMethodService() {
     fun onPluginEvent(event: PluginEvent) {
         // The permission banner's Allow is the keyboard's, not the plugin's:
         // it never reaches the script.
-        if (event is PluginEvent.Host && event.type == ALLOW_EVENT) {
-            onPluginAllow()
+        if (event is PluginEvent.Host && (event.type == ALLOW_EVENT || event.type == DENY_EVENT)) {
+            onPluginAllow(granted = event.type == ALLOW_EVENT)
             return
         }
         vibrate()

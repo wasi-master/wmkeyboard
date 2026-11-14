@@ -358,6 +358,10 @@
     <string name="ime_plugin_manage_action">Manage plugins</string>
     <string name="ime_plugin_needs_permission">This plugin asked for something you have not allowed: <xliff:g id="permissions" example="Internet access">%1$s</xliff:g>.</string>
     <string name="ime_plugin_allow_action">Allow…</string>
+    <string name="ime_plugin_permission_title">Allow <xliff:g id="plugin" example="Open Food Facts">%1$s</xliff:g> to:</string>
+    <string name="ime_plugin_permission_allow">Allow</string>
+    <string name="ime_plugin_permission_deny">Don\'t allow</string>
+    <string name="ime_plugin_permission_risky_note">This also turns on risky permissions for plugins. You can turn either off again on the plugin\'s page in Settings.</string>
     <string name="ime_plugin_access_mark">This plugin can use the internet or read what you write</string>
     <!-- Second line of a plugin row when the plugin gives no description. %1$s is its version. -->
     <!-- A plugin's options, behind a hold or a swipe on its row, in the keyboard's Plugins panel and in Settings. -->

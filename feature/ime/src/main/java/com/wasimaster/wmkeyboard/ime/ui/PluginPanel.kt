@@ -28,6 +28,9 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -75,6 +78,7 @@ import com.wasimaster.wmkeyboard.core.plugins.displayName
 import com.wasimaster.wmkeyboard.core.plugins.resolve
 import com.wasimaster.wmkeyboard.core.plugins.ui.LocalPluginPanelStyle
 import com.wasimaster.wmkeyboard.core.plugins.ui.PluginInputHost
+import com.wasimaster.wmkeyboard.core.plugins.ui.PluginOverlayBox
 import com.wasimaster.wmkeyboard.core.plugins.ui.PluginPanelStyle
 import com.wasimaster.wmkeyboard.core.plugins.ui.PluginWidgetList
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronRight
@@ -171,10 +175,13 @@ private fun PluginList(
     // Material's line height for small text is 24 sp, which double-spaces a
     // two-line description; a line in proportion to the font instead.
     CompositionLocalProvider(LocalTextStyle provides LocalTextStyle.current.merge(TextStyle(lineHeight = 1.35.em))) {
+        // Back from a plugin, the list is where it was left, and the next
+        // plugin opened from it starts at its own top.
+        androidx.compose.runtime.LaunchedEffect(Unit) { PluginPanelScroll.forgetRunning() }
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(PluginPanelScroll.list)
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
@@ -524,6 +531,7 @@ private fun RunningPlugin(
     val host = remember(state, onInputFocus, onPaste, reclaim) { KeyboardInputHost(state, onInputFocus, onPaste, reclaim) }
     // The focus switch for the box taking the keys sits in the header
     // ([PluginHeaderActions]), not on a row of its own above the plugin.
+    Box(Modifier.fillMaxSize()) {
     Column(modifier = Modifier.fillMaxSize()) {
         if (panel.busy) {
             LinearProgressIndicator(
@@ -543,9 +551,6 @@ private fun RunningPlugin(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
             )
         }
-        if (panel.needs.isNotEmpty()) {
-            PermissionBanner(panel.needs, onAllow = { onEvent(PythonSession.hostEvent(ALLOW_EVENT)) })
-        }
         for (line in panel.ui.repairs) {
             Text(
                 line.resolve(context),
@@ -555,69 +560,150 @@ private fun RunningPlugin(
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
-        Column(
+        // The overlay layer covers the visible panel, not the scrolled
+        // content: a dropdown opens over the widgets, a dialog over all of it.
+        CompositionLocalProvider(LocalPluginPanelStyle provides style) {
+            PluginOverlayBox(panel.plugin.id, Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(PluginPanelScroll.running(panel.plugin.id))
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    PluginWidgetList(
+                        widgets = panel.ui.root,
+                        host = host,
+                        onEvent = onEvent,
+                        onInsert = onToolInsert,
+                        onCopy = onCopy,
+                        ringed = ringed,
+                    )
+                }
+            }
+        }
+    }
+        // Over the whole panel, so the plugin can't be used past it: the
+        // question is answered before anything else.
+        PermissionDialog(
+            plugin = panel.plugin,
+            needs = panel.needs,
+            onAllow = { onEvent(PythonSession.hostEvent(ALLOW_EVENT)) },
+            onDeny = { onEvent(PythonSession.hostEvent(DENY_EVENT)) },
+        )
+    }
+}
+
+/**
+ * The permission dialog's two answers. The service takes them before the
+ * plugin could: Allow grants what the plugin asked for, Don't allow puts the
+ * dialog away. Neither reaches the script.
+ */
+internal const val ALLOW_EVENT = "wm.allow"
+internal const val DENY_EVENT = "wm.deny"
+
+/**
+ * A call needed a risky permission the user has not turned on. Asked the way
+ * Android asks for one: a dialog over the plugin with its icon and name, what
+ * it wants and what that lets it do, and Allow or Don't allow. Drawn by the
+ * keyboard, never by the plugin, and over the whole panel so it is answered
+ * before the plugin can be used further.
+ */
+@Composable
+private fun androidx.compose.foundation.layout.BoxScope.PermissionDialog(
+    plugin: InstalledPlugin,
+    needs: List<PluginPermission>,
+    onAllow: () -> Unit,
+    onDeny: () -> Unit,
+) {
+    val kb = LocalKbTheme.current
+    val context = LocalContext.current
+    val riskyOff = remember(needs) { needs.isNotEmpty() && !PluginStore.get(context).allowRisky() }
+    androidx.compose.animation.AnimatedVisibility(
+        visible = needs.isNotEmpty(),
+        enter = androidx.compose.animation.fadeIn(),
+        exit = androidx.compose.animation.fadeOut(),
+        modifier = Modifier.matchParentSize(),
+    ) {
+        // The last list asked for, kept while the dialog fades out.
+        val shown = remember { mutableStateOf(needs) }
+        if (needs.isNotEmpty()) shown.value = needs
+        Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+                .background(Color.Black.copy(alpha = 0.4f))
+                .clickable(interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null) {},
         ) {
-            CompositionLocalProvider(LocalPluginPanelStyle provides style) {
-                PluginWidgetList(
-                    widgets = panel.ui.root,
-                    host = host,
-                    onEvent = onEvent,
-                    onInsert = onToolInsert,
-                    onCopy = onCopy,
-                    ringed = ringed,
+            val shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+                modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                    .widthIn(max = 380.dp)
+                    .clip(shape)
+                    .background(kb.panelSurfaceOpaque())
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(44.dp).clip(CircleShape).background(kb.chipActive),
+                ) {
+                    if (plugin.tool.icon.isNotBlank()) {
+                        PluginIcon(plugin, tint = kb.chipActiveText, modifier = Modifier.size(24.dp))
+                    } else {
+                        Icon(Icons.Outlined.Extension, contentDescription = null, tint = kb.chipActiveText, modifier = Modifier.size(24.dp))
+                    }
+                }
+                Text(
+                    stringResource(R.string.ime_plugin_permission_title, plugin.displayName),
+                    color = kb.keyText,
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center,
                 )
+                for (permission in shown.value) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
+                        Text(context.getString(permission.labelRes), color = kb.keyText, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                        permission.warningRes?.let { Text(context.getString(it), color = kb.secondaryText, fontSize = 13.sp) }
+                    }
+                }
+                if (riskyOff) {
+                    Text(stringResource(R.string.ime_plugin_permission_risky_note), color = kb.secondaryText, fontSize = 12.sp)
+                }
+                // Stacked full-width answers, as Android's own permission prompt has them.
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                    PermissionAnswer(stringResource(R.string.ime_plugin_permission_allow), primary = true, onClick = onAllow)
+                    PermissionAnswer(stringResource(R.string.ime_plugin_permission_deny), primary = false, onClick = onDeny)
+                }
             }
         }
     }
 }
 
-/**
- * The event the banner's Allow sends. The service takes it before the plugin
- * could: it opens the plugin's page in settings, where each risky permission
- * is a switch behind its warning. Nothing is granted from the keyboard.
- */
-internal const val ALLOW_EVENT = "wm.allow"
-
-/**
- * A call needed a risky permission the user has not turned on. Names each
- * one, so the user knows what the plugin wanted before deciding.
- */
 @Composable
-private fun PermissionBanner(needs: List<PluginPermission>, onAllow: () -> Unit) {
+private fun PermissionAnswer(label: String, primary: Boolean, onClick: () -> Unit) {
     val kb = LocalKbTheme.current
-    val context = LocalContext.current
-    val names = needs.joinToString { context.getString(it.labelRes) }
-    val shape = kb.cardShape()
-    Row(
+    val shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+    Box(
+        contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .heightIn(min = 44.dp)
             .clip(shape)
-            .frostGlass(kb, shape, FrostSurface.CHIPS)
-            .background(kb.chip)
-            .chipBorder(kb, shape)
-            .padding(start = 14.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .background(if (primary) kb.chipActive else kb.chip)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
     ) {
-        Icon(Icons.Outlined.Info, contentDescription = null, tint = kb.accent, modifier = Modifier.size(20.dp))
-        Text(
-            stringResource(R.string.ime_plugin_needs_permission, names),
-            color = kb.chipText,
-            fontSize = 13.sp,
-            lineHeight = 18.sp,
-            maxLines = 3,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
-        ToolPanelChip(label = stringResource(R.string.ime_plugin_allow_action), selected = true, onClick = onAllow)
+        Text(label, color = if (primary) kb.chipActiveText else kb.chipText, fontSize = 15.sp, fontWeight = FontWeight.Medium)
     }
 }
+
+/** The theme's chip colour made opaque, so the panel doesn't show through the dialog. */
+private fun KbTheme.panelSurfaceOpaque(): Color =
+    if (chip.alpha >= 1f) chip else lerp(if (keyText.luminance() > 0.5f) Color(0xFF202124) else Color(0xFFF8F9FA), chip.copy(alpha = 1f), chip.alpha)
 
 /**
  * Whether the header should carry the access mark: the plugin may reach the
@@ -726,4 +812,22 @@ private class KeyboardInputHost(
     override fun onPaste(id: String) = paste(id)
 
     override val onValueChange: ((String, String) -> Unit)? = null
+}
+
+/**
+ * Where the Plugins panel's list and the open plugin were scrolled to. Held
+ * outside the composition: the panel leaves it for a scanner or a picker the
+ * plugin asked for, and for its list a plugin opened from it, and both came
+ * back at the top. Main thread.
+ */
+internal object PluginPanelScroll {
+    val list = androidx.compose.foundation.ScrollState(0)
+
+    private val open = HashMap<String, androidx.compose.foundation.ScrollState>()
+
+    fun running(pluginId: String): androidx.compose.foundation.ScrollState =
+        open.getOrPut(pluginId) { androidx.compose.foundation.ScrollState(0) }
+
+    /** The list is showing: the next plugin opened from it starts at its top. */
+    fun forgetRunning() = open.clear()
 }

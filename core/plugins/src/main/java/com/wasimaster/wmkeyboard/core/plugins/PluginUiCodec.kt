@@ -132,7 +132,7 @@ object PluginUiCodec {
                 "row" -> PluginWidget.Row(
                     children(node["children"], depth + 1),
                     node.int("gap")?.coerceIn(0, MAX_GAP),
-                    (node["weights"] as? JsonArray)?.map { ((it as? JsonPrimitive)?.floatOrNull ?: 1f).coerceIn(MIN_WEIGHT, MAX_WEIGHT) },
+                    (node["weights"] as? JsonArray)?.map { ((it as? JsonPrimitive)?.floatOrNull ?: 1f).coerceIn(0f, MAX_WEIGHT) },
                 )
                 "label" -> PluginWidget.Label(text(node, "text"), style(node.string("style")), PluginColorRole.of(node.string("color")))
                 "output" -> PluginWidget.Output(
@@ -388,7 +388,6 @@ object PluginUiCodec {
 
     private val INPUT_KINDS = setOf("text", "number", "email", "url", "password", "phone")
     private const val MAX_GAP = 64
-    private const val MIN_WEIGHT = 0.05f
     private const val MAX_WEIGHT = 20f
     private const val MAX_COLUMNS = 6
     private const val MIN_HEIGHT = 40

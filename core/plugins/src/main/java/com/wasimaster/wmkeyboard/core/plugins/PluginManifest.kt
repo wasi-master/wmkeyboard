@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.plugins.R
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonTransformingSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -160,7 +163,13 @@ data class PluginSettingSpec(
     val type: String = TYPE_TEXT,
     val label: String = "",
     val summary: String = "",
-    /** As text: "true", "12", "metric". Ignored for [TYPE_SECRET]. */
+    /**
+     * As text: "true", "12", "metric". Ignored for [TYPE_SECRET]. A bare
+     * `true` or `12` is read as its text: written either way, a manifest
+     * installs, where a typed default used to fail the whole decode and the
+     * file read as "not a plugin".
+     */
+    @Serializable(with = SettingDefaultSerializer::class)
     val default: String = "",
     /** For [TYPE_CHOICE]: the values, shown as written. */
     val options: List<String> = emptyList(),
@@ -685,5 +694,14 @@ object PluginManifestCodec {
         -> false
 
         else -> true
+    }
+}
+
+/** A setting's default as text, whether the manifest wrote `"true"` or `true`. */
+internal object SettingDefaultSerializer : JsonTransformingSerializer<String>(String.serializer()) {
+    override fun transformDeserialize(element: JsonElement): JsonElement = when {
+        element is JsonNull -> JsonPrimitive("")
+        element is JsonPrimitive && !element.isString -> JsonPrimitive(element.content)
+        else -> element
     }
 }

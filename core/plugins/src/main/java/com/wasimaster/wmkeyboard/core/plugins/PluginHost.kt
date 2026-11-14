@@ -191,7 +191,9 @@ object PluginHost {
 
     /** Throws when [op] may not run for [binding] right now. */
     internal fun check(binding: Binding, op: String, args: JsonObject) {
-        val plugin = binding.plugin
+        // Grants read fresh: one the user gave on the panel's permission
+        // dialog counts for the session already running.
+        val plugin = binding.store?.plugin(binding.plugin.id) ?: binding.plugin
         val permission = PluginPermission.forOp(op)
         if (permission != null) {
             if (!plugin.declares(permission)) {

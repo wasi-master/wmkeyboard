@@ -138,7 +138,9 @@ internal fun QrScanPanel(
                 onShare = onShare,
                 onOpenUrl = onOpenUrl,
                 haptics = state.settings.scanner.qrScanHaptics,
-                autoInsert = state.settings.scanner.qrScanAutoInsert,
+                // A plugin's scan.qr: the user opened the scanner for the
+                // plugin, so the first code read goes straight back to it.
+                autoInsert = state.settings.scanner.qrScanAutoInsert || com.wasimaster.wmkeyboard.ime.PluginScanWait.active,
                 linkPreviews = state.settings.scanner.qrScanLinkPreviews,
             )
         } else {

@@ -1153,18 +1153,21 @@ private fun PreviewPane(
                 modifier = Modifier.padding(top = 8.dp),
             )
         }
-        Column(
-            modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()).padding(top = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            CompositionLocalProvider(LocalPluginPanelStyle provides style) {
-                PluginWidgetList(
-                    widgets = state.ui.root,
-                    host = host,
-                    onEvent = preview::send,
-                    onInsert = { copyText(context, it, copied) },
-                    onCopy = { copyText(context, it, copied) },
-                )
+        CompositionLocalProvider(LocalPluginPanelStyle provides style) {
+            // Dropdowns open over the preview, as they do over the keyboard's panel.
+            com.wasimaster.wmkeyboard.core.plugins.ui.PluginOverlayBox(null, Modifier.fillMaxWidth().weight(1f)) {
+                Column(
+                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = 6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    PluginWidgetList(
+                        widgets = state.ui.root,
+                        host = host,
+                        onEvent = preview::send,
+                        onInsert = { copyText(context, it, copied) },
+                        onCopy = { copyText(context, it, copied) },
+                    )
+                }
             }
         }
     }

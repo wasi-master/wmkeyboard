@@ -2,6 +2,14 @@ package com.wasimaster.wmkeyboard.core.plugins.ui
 
 import android.graphics.BitmapFactory
 import android.util.Base64
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -44,6 +52,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -266,7 +277,9 @@ internal fun PackageWidgetView(
         ) { style.qr(widget.text, (widget.size ?: DEFAULT_QR).dp) }
 
         is PluginWidget.Stat -> CardBox(clickable = false, onClick = {}) {
-            Text(widget.label, color = style.secondaryText, fontSize = 13.sp)
+            // One line, narrowed to fit: "Green-Score" in a third of the panel
+            // broke as "Green-Scor / e".
+            FitText(widget.label, STAT_LABEL, color = style.secondaryText)
             Text(widget.value, color = style.onSurface, fontSize = 26.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (widget.caption.isNotEmpty()) Text(widget.caption, color = style.secondaryText, fontSize = 12.sp)
         }
@@ -439,9 +452,20 @@ private fun SelectWidget(widget: PluginWidget.Select, onEvent: (PluginEvent) -> 
         if (widget.segmented) {
             Segmented(widget.options, widget.value) { onEvent(PluginEvent.ValueChanged(widget.id, it)) }
         } else {
-            var open by remember(widget.id) { mutableStateOf(false) }
+            // The options open over the panel when the host has a layer for
+            // them (the keyboard, the editor's preview); inline otherwise.
+            val overlay = LocalPluginOverlay.current
+            var inlineOpen by remember(widget.id) { mutableStateOf(false) }
+            var anchor by remember { mutableStateOf(androidx.compose.ui.geometry.Rect.Zero) }
+            val menuOpen = overlay?.menu?.let { it.anchor == anchor && anchor != androidx.compose.ui.geometry.Rect.Zero } == true
+            val open = inlineOpen || menuOpen
             val current = widget.options.firstOrNull { it.value == widget.value }?.label ?: "—"
             val shape = style.cardShape
+            val pick = { value: String ->
+                inlineOpen = false
+                overlay?.close()
+                onEvent(PluginEvent.ValueChanged(widget.id, value))
+            }
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -455,36 +479,28 @@ private fun SelectWidget(widget: PluginWidget.Select, onEvent: (PluginEvent) -> 
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 52.dp)
-                        .clickable(role = Role.DropdownList) { open = !open }
+                        .onGloballyPositioned { anchor = it.boundsInRoot() }
+                        .clickable(role = Role.DropdownList) {
+                            when {
+                                overlay == null -> inlineOpen = !inlineOpen
+                                menuOpen -> overlay.close()
+                                else -> overlay.menu = OverlayMenu(anchor) {
+                                    for (option in widget.options) {
+                                        MenuOption(option.label, option.value == widget.value) { pick(option.value) }
+                                    }
+                                }
+                            }
+                        }
                         .padding(start = 16.dp, end = 12.dp),
                 ) {
-                    Text(current, color = style.onSurface, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                    style.icon(if (open) ICON_COLLAPSE else ICON_EXPAND, style.secondaryText, 22.dp)
+                    FitText(current, FIELD_VALUE, color = style.onSurface, modifier = Modifier.weight(1f))
+                    val turn by androidx.compose.animation.core.animateFloatAsState(if (open) 180f else 0f, label = "dropdown arrow")
+                    Box(Modifier.graphicsLayer { rotationZ = turn }) { style.icon(ICON_EXPAND, style.secondaryText, 22.dp) }
                 }
-                if (open) {
+                if (inlineOpen) {
                     Box(Modifier.fillMaxWidth().height(1.dp).background(style.divider))
                     for (option in widget.options) {
-                        val chosen = option.value == widget.value
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = ROW_HEIGHT)
-                                .clickable {
-                                    open = false
-                                    onEvent(PluginEvent.ValueChanged(widget.id, option.value))
-                                }
-                                .padding(start = 16.dp, end = 12.dp),
-                        ) {
-                            Text(
-                                option.label,
-                                color = if (chosen) style.accent else style.onSurface,
-                                fontSize = 15.sp,
-                                fontWeight = if (chosen) FontWeight.Medium else FontWeight.Normal,
-                                modifier = Modifier.weight(1f),
-                            )
-                            if (chosen) style.icon(ICON_CHECK, style.accent, 20.dp)
-                        }
+                        MenuOption(option.label, option.value == widget.value) { pick(option.value) }
                     }
                 }
             }
@@ -501,6 +517,13 @@ private fun Segmented(options: List<PluginWidget.Option>, value: String?, onPick
     val style = LocalPluginPanelStyle.current
     val shape = style.buttonShape
     val fixed = options.size <= MAX_FIXED_SEGMENTS
+    // Shares in proportion to each label's own width (plus room for the
+    // check), not equal thirds: "English → Bengali" beside "Progress" gets
+    // the room the short one doesn't use, rather than squeezing next to it.
+    val measurer = rememberTextMeasurer()
+    val shares = remember(options, measurer) {
+        options.map { measurer.measure(it.label, BUTTON_LABEL, maxLines = 1, softWrap = false).size.width.toFloat() + SEGMENT_ROOM }
+    }
     Row(
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         modifier = Modifier
@@ -512,20 +535,30 @@ private fun Segmented(options: List<PluginWidget.Option>, value: String?, onPick
             .then(style.cardBorder(Modifier, shape))
             .padding(3.dp),
     ) {
-        for (option in options) {
+        options.forEachIndexed { index, option ->
             val chosen = option.value == value
+            // The fill, the words' colour and the check move together, so a
+            // choice slides into place rather than snapping.
+            val fill by animateColorAsState(if (chosen) style.accentContainer else Color.Transparent, label = "segment fill")
+            val ink by animateColorAsState(if (chosen) style.onAccentContainer else style.onSurface, label = "segment ink")
             Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = (if (fixed) Modifier.weight(1f) else Modifier)
+                modifier = (if (fixed) Modifier.weight(shares[index].coerceAtLeast(1f)) else Modifier)
                     .heightIn(min = 36.dp)
                     .clip(shape)
-                    .background(if (chosen) style.accentContainer else Color.Transparent)
+                    .background(fill)
                     .clickable(role = Role.RadioButton) { onPick(option.value) }
-                    .padding(horizontal = 12.dp),
+                    .padding(horizontal = if (fixed) 4.dp else 12.dp),
             ) {
-                if (chosen) style.icon(ICON_CHECK, style.onAccentContainer, 16.dp)
-                FitText(option.label, BUTTON_LABEL, color = if (chosen) style.onAccentContainer else style.onSurface)
+                AnimatedVisibility(
+                    visible = chosen,
+                    enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn() + scaleIn(),
+                    exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut() + scaleOut(),
+                ) {
+                    Box(Modifier.padding(end = 6.dp)) { style.icon(ICON_CHECK, style.onAccentContainer, 16.dp) }
+                }
+                FitText(option.label, BUTTON_LABEL, color = ink)
             }
         }
     }
@@ -778,6 +811,11 @@ private const val MAX_AXIS_LABELS = 12
 private const val MAX_SLIDER_STEPS = 100
 private const val DRAG_EVENT_MILLIS = 50L
 private const val MAX_FIXED_SEGMENTS = 4
+private val STAT_LABEL = TextStyle(fontSize = 13.sp)
+private val FIELD_VALUE = TextStyle(fontSize = 15.sp)
+
+/** What a segment needs besides its label, in px-ish units of the share: the check and the padding. */
+private const val SEGMENT_ROOM = 80f
 private const val SELECTED_ALPHA = 0.35f
 private const val TICK_ALPHA = 0.6f
 private val KEY_HEIGHT = 44.dp

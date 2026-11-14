@@ -1,6 +1,13 @@
 package com.wasimaster.wmkeyboard.core.plugins.ui
 
 import android.text.format.DateFormat
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -70,6 +77,7 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
 import com.wasimaster.wmkeyboard.core.plugins.PluginLabelStyle
 import com.wasimaster.wmkeyboard.core.plugins.PluginWidget
 import com.wasimaster.wmkeyboard.core.ui.FitText
+import com.wasimaster.wmkeyboard.core.ui.TextFitting
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import com.wasimaster.wmkeyboard.plugins.R
 import kotlinx.coroutines.delay
@@ -152,6 +160,9 @@ val LocalPluginPanelStyle = staticCompositionLocalOf<PluginPanelStyle> {
  */
 internal val LocalFillCell = compositionLocalOf { false }
 
+/** True for a row's child that keeps its own width: a button there must not stretch over its neighbours. */
+internal val LocalOwnWidth = compositionLocalOf { false }
+
 /**
  * Where a plugin's input widgets get their text, and where their taps go.
  *
@@ -209,7 +220,7 @@ internal fun PluginWidgetColumnContent(
     onCopy: (String) -> Unit,
     ringed: PluginWidget?,
 ) {
-    CompositionLocalProvider(LocalFillCell provides false) {
+    CompositionLocalProvider(LocalFillCell provides false, LocalOwnWidth provides false) {
         PluginWidgetList(widgets, host, onEvent, onInsert, onCopy, ringed)
     }
 }
@@ -254,13 +265,18 @@ internal fun PluginButton(
             .background(fill)
             .then(if (kind == ButtonKind.TONAL) style.cardBorder(Modifier, shape) else Modifier)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .padding(horizontal = if (kind == ButtonKind.TEXT) 12.dp else 18.dp, vertical = 8.dp),
+            // Padding is room the label can't use: kept small, so a label in
+            // a narrow share squeezes only when it has to.
+            .padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
         if (icon != null) style.icon(icon, content, 18.dp)
         if (label.isNotEmpty()) {
             // Squeezed, then shrunk, before an ellipsis: a short label beside
             // an icon in a narrow cell reads whole rather than as "Ope…".
-            FitText(label, BUTTON_LABEL, color = content)
+            // A one-character label is a symbol key (a palette of α, ∫, ≤):
+            // drawn at a size a symbol can be read at.
+            val symbol = icon == null && label.codePointCount(0, label.length) == 1
+            FitText(label, if (symbol) SYMBOL_LABEL else BUTTON_LABEL, color = content)
         }
     }
 }
@@ -337,14 +353,17 @@ private fun PluginWidgetView(
                 modifier = style.ring(Modifier, widget === ringed),
             ) { onEvent(PluginEvent.Click(widget.id)) }
         } else {
-            val fill = LocalFillCell.current
+            // In a row's share it fills the share; on a line of its own it
+            // runs the width too, centred, rather than a pill stranded at the
+            // left with the rest of the line empty (LocalFillCell false there
+            // means "drawn alone", since a row's own-width child is wrapped).
             PluginButton(
                 label = widget.text,
                 kind = if (widget.primary) ButtonKind.FILLED else ButtonKind.TONAL,
                 enabled = widget.enabled,
                 icon = widget.icon,
                 tint = widget.color?.let { style.colorOf(it) },
-                modifier = style.ring(if (fill) Modifier.fillMaxWidth() else Modifier, widget === ringed),
+                modifier = style.ring(if (LocalOwnWidth.current) Modifier else Modifier.fillMaxWidth(), widget === ringed),
             ) { onEvent(PluginEvent.Click(widget.id)) }
         }
 
@@ -441,12 +460,12 @@ private fun RowWidget(
             }
             if (share != null && share > 0f) {
                 Box(Modifier.weight(share), contentAlignment = Alignment.CenterStart) {
-                    CompositionLocalProvider(LocalFillCell provides true) {
+                    CompositionLocalProvider(LocalFillCell provides true, LocalOwnWidth provides false) {
                         PluginWidgetList(listOf(child), host, onEvent, onInsert, onCopy, ringed)
                     }
                 }
             } else {
-                CompositionLocalProvider(LocalFillCell provides false) {
+                CompositionLocalProvider(LocalFillCell provides false, LocalOwnWidth provides true) {
                     PluginWidgetList(listOf(child), host, onEvent, onInsert, onCopy, ringed)
                 }
             }
@@ -481,6 +500,7 @@ private fun OutputWidget(
 ) {
     val style = LocalPluginPanelStyle.current
     val shape = style.cardShape
+    val actions = widget.text.isNotEmpty() && (widget.insertable || widget.copyable)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -488,17 +508,12 @@ private fun OutputWidget(
             .then(style.glass(Modifier, shape))
             .background(style.surface)
             .then(style.cardBorder(Modifier, shape))
-            .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 6.dp),
+            .padding(start = 16.dp, end = 8.dp, top = if (actions) 6.dp else 12.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Text(
-            widget.text,
-            color = style.onSurface,
-            fontSize = 15.sp,
-            fontFamily = if (widget.mono) FontFamily.Monospace else FontFamily.Default,
-            modifier = Modifier.padding(end = 8.dp, bottom = if (widget.insertable || widget.copyable) 0.dp else 6.dp),
-        )
-        if (widget.text.isNotEmpty() && (widget.insertable || widget.copyable)) {
+        // Copy and Insert above the text, so a long result can be taken
+        // without scrolling past it first.
+        if (actions) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
                 verticalAlignment = Alignment.CenterVertically,
@@ -516,6 +531,13 @@ private fun OutputWidget(
                 }
             }
         }
+        Text(
+            widget.text,
+            color = style.onSurface,
+            fontSize = 15.sp,
+            fontFamily = if (widget.mono) FontFamily.Monospace else FontFamily.Default,
+            modifier = Modifier.padding(end = 8.dp),
+        )
     }
 }
 
@@ -601,22 +623,23 @@ internal fun InputWidget(widget: PluginWidget.Input, host: PluginInputHost, onEv
                     style.icon(ICON_SEARCH, style.secondaryText, 20.dp)
                     Spacer(Modifier.width(10.dp))
                 }
+                // One line scrolls sideways to keep the end in view, as a
+                // field does, instead of cutting the text with "…".
+                val sideways = rememberScrollState()
+                if (!widget.multiline) {
+                    // The hint reads from its start; only typed text keeps its end in view.
+                    LaunchedEffect(value, focused) { sideways.scrollTo(if (value.isEmpty()) 0 else sideways.maxValue) }
+                }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f).padding(vertical = 12.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .then(if (widget.multiline) Modifier else Modifier.horizontalScroll(sideways, enabled = false))
+                        .padding(vertical = 12.dp),
                 ) {
-                    Text(
-                        // A password box in the keyboard shows dots, like any other.
-                        if (widget.kind == "password" && value.isNotEmpty()) "•".repeat(value.length) else value.ifEmpty { widget.placeholder },
-                        color = if (value.isEmpty()) style.secondaryText else style.onSurface,
-                        fontSize = 15.sp,
-                        maxLines = if (widget.multiline) MULTILINE_LINES else 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false),
-                    )
-                    // The caret, so the box that is taking the keys says so
-                    // even before the first one lands.
-                    if (focused) {
+                    val caret = @Composable {
+                        // The caret, so the box that is taking the keys says so
+                        // even before the first one lands.
                         Box(
                             Modifier
                                 .padding(start = if (value.isEmpty()) 0.dp else 1.dp)
@@ -624,6 +647,31 @@ internal fun InputWidget(widget: PluginWidget.Input, host: PluginInputHost, onEv
                                 .height(20.dp)
                                 .background(style.accent),
                         )
+                    }
+                    if (value.isEmpty()) {
+                        // The caret goes where typing starts, before the hint,
+                        // and the hint is faint so it never reads as text.
+                        if (focused) caret()
+                        Text(
+                            widget.placeholder,
+                            color = style.secondaryText.copy(alpha = style.secondaryText.alpha * HINT_ALPHA),
+                            fontSize = 15.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(start = if (focused) 2.dp else 0.dp),
+                        )
+                    } else {
+                        Text(
+                            // A password box in the keyboard shows dots, like any other.
+                            if (widget.kind == "password") "•".repeat(value.length) else value,
+                            color = style.onSurface,
+                            fontSize = 15.sp,
+                            maxLines = if (widget.multiline) MULTILINE_LINES else 1,
+                            softWrap = widget.multiline,
+                            overflow = if (widget.multiline) TextOverflow.Ellipsis else TextOverflow.Clip,
+                            modifier = if (widget.multiline) Modifier.weight(1f, fill = false) else Modifier,
+                        )
+                        if (focused) caret()
                     }
                 }
                 PluginIconButton(ICON_PASTE, pasteLabel) { host.onPaste(widget.id) }
@@ -805,6 +853,7 @@ private fun TabsWidget(
     var selected by rememberSaveable(widget.id) { mutableIntStateOf(0) }
     val index = selected.coerceIn(0, widget.pages.lastIndex)
     val fixed = widget.pages.size <= FIXED_TABS
+    val tabFitting = TextFitting.DEFAULT
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -816,6 +865,8 @@ private fun TabsWidget(
                 widget.pages.forEachIndexed { i, page ->
                     val title = page.title.ifEmpty { stringResource(R.string.core_plugins_ui_tab_default_title, i + 1) }
                     val on = i == index
+                    val ink by animateColorAsState(if (on) style.accent else style.secondaryText, label = "tab ink")
+                    val bar by animateColorAsState(if (on) style.accent else Color.Transparent, label = "tab bar")
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = (if (fixed) Modifier.weight(1f) else Modifier)
@@ -824,25 +875,20 @@ private fun TabsWidget(
                                 selected = i
                                 onEvent(PluginEvent.TabSelected(widget.id, i))
                             }
-                            .padding(horizontal = 16.dp)
+                            // Shared tabs keep a little room each and narrow
+                            // their words to fit, as the suggestion strip does.
+                            .padding(horizontal = if (fixed) 4.dp else 16.dp)
                             .padding(top = 10.dp),
                     ) {
                         Column(Modifier.width(IntrinsicSize.Max), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                title,
-                                color = if (on) style.accent else style.secondaryText,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
+                            FitText(title, TAB_LABEL, color = ink, fitting = tabFitting)
                             Spacer(Modifier.height(10.dp))
                             Box(
                                 Modifier
                                     .fillMaxWidth()
                                     .height(3.dp)
                                     .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
-                                    .background(if (on) style.accent else Color.Transparent),
+                                    .background(bar),
                             )
                         }
                     }
@@ -850,8 +896,18 @@ private fun TabsWidget(
             }
             Box(Modifier.fillMaxWidth().height(1.dp).background(style.divider))
         }
-        Column(verticalArrangement = Arrangement.spacedBy(DEFAULT_GAP.dp), modifier = Modifier.fillMaxWidth()) {
-            PluginWidgetColumnContent(widget.pages[index].children, host, onEvent, onInsert, onCopy, null)
+        AnimatedContent(
+            targetState = index,
+            transitionSpec = {
+                val forward = targetState > initialState
+                (fadeIn() + slideInHorizontally { w -> if (forward) w / TAB_SLIDE else -w / TAB_SLIDE }) togetherWith
+                    (fadeOut() + slideOutHorizontally { w -> if (forward) -w / TAB_SLIDE else w / TAB_SLIDE })
+            },
+            label = "tab page",
+        ) { page ->
+            Column(verticalArrangement = Arrangement.spacedBy(DEFAULT_GAP.dp), modifier = Modifier.fillMaxWidth()) {
+                PluginWidgetColumnContent(widget.pages[page.coerceIn(0, widget.pages.lastIndex)].children, host, onEvent, onInsert, onCopy, null)
+            }
         }
     }
 }
@@ -860,12 +916,21 @@ private val BUTTON_HEIGHT = 40.dp
 
 /** A button's label before [FitText] squeezes or shrinks it. */
 internal val BUTTON_LABEL = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium)
+
+/** A one-character button's label: a symbol, larger than a word. */
+private val SYMBOL_LABEL = TextStyle(fontSize = 20.sp)
 private val FIELD_HEIGHT = 52.dp
 internal val ROW_HEIGHT = 48.dp
 private const val DISABLED_ALPHA = 0.38f
 private const val DIVIDER_ALPHA = 0.2f
 private const val MULTILINE_LINES = 4
-private const val FIXED_TABS = 4
+
+/** How faint a box's hint is, against the panel's secondary text. */
+private const val HINT_ALPHA = 0.6f
+/** Up to this many tabs share the width, their words narrowed to fit; more scroll. */
+private const val FIXED_TABS = 6
+private const val TAB_SLIDE = 8
+private val TAB_LABEL = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium)
 internal const val DEFAULT_GAP = 8
 
 // Icon names the renderer asks its host for. Every host's icon set has these.

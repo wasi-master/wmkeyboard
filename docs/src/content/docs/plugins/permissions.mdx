@@ -117,8 +117,13 @@ Each of these is off after install. The user turns it on, one plugin at a time,
 on the plugin's page in
 <SettingsPath path="Tools / Plugins / Manage plugins / your plugin" />, after a
 warning that says what it allows. A call before that raises `PermissionError`,
-and the panel shows the permission with an **Allow** button that leads to the
-same page.
+and the keyboard asks over your panel, the way Android asks for an app's
+permission: your plugin's icon and name, each permission it needs with its
+warning, and **Allow** or **Don't allow**. The panel can't be used until the
+user answers. **Allow** turns the permission on for your plugin (and the
+risky-permissions switch, when it was off, which the dialog says), and your
+plugin's next call goes through; nothing is retried for you. The same switches
+stay on the plugin's page, where the user can turn them off again.
 
 | Permission | Gives you | Warning the user reads |
 |---|---|---|
@@ -196,7 +201,7 @@ stay refused, with or without the grant, and plain http to anywhere else is
 still refused.
 
 Without the grant, a request to the typed server raises `PermissionError` and
-the panel offers **Allow**, as for any risky permission.
+the keyboard asks for it over the panel, as for any risky permission.
 
 :::caution[Plain http on a shared network]
 On plain http, anyone on the same network can read the request, including

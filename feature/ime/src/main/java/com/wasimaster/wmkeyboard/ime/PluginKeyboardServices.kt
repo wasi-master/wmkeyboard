@@ -112,6 +112,13 @@ internal class PluginKeyboardServices(
     private val restoreLayout: (pluginId: String) -> Unit,
     /** Opens the plugin's own page in Settings, as `plugin.open_settings()` asks. Main thread. */
     private val openSettings: (pluginId: String) -> Unit,
+    /** Sends a picture file into the field the way a sticker goes, as `field.insert_image` asks. Main thread. */
+    private val commitImage: (file: File, mime: String) -> Unit,
+    /**
+     * The phone's own model, when the AI in use is the on-device one: the
+     * downloaded model file, or null when none is. Called off the main thread.
+     */
+    private val localModel: () -> File?,
 ) : PluginServices {
 
     private val main = Handler(Looper.getMainLooper())
@@ -137,6 +144,7 @@ internal class PluginKeyboardServices(
         }
         "field.move" -> edit { ic -> moveCursor(ic, (call.args["by"] as? JsonPrimitive)?.intOrNull ?: 0) }
         "field.action" -> edit { ic -> ic.performEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_UNSPECIFIED) }
+        "field.image" -> fieldImage(call)
         "clipboard.get" -> JsonPrimitive(onMain { clipboardText() }.orEmpty())
         "clipboard.set" -> {
             val text = text(call).take(MAX_CLIP)
@@ -148,6 +156,7 @@ internal class PluginKeyboardServices(
             onMain { toast("${call.plugin.displayName}: $text") }
             JsonNull
         }
+        "ui.dialog" -> dialog(call)
         "plugin.close" -> {
             onMain { closePanel() }
             JsonNull
@@ -217,6 +226,32 @@ internal class PluginKeyboardServices(
             JsonPrimitive(store.delete(id(call)).isNotEmpty())
         }
         else -> throw PluginCallException("NotImplementedError", "${call.op} is not available in this version of the keyboard yet")
+    }
+
+    // ---- dialogs ---------------------------------------------------------
+
+    /**
+     * A question over the plugin's own panel, which names the plugin above
+     * the title: the label tapped, or None when the user dismissed it, the
+     * panel closed or ten minutes passed.
+     */
+    private fun dialog(call: PluginCall): JsonElement {
+        if (call.surface == "action") {
+            throw PluginCallException("RuntimeError", "ui.dialog works only from the plugin's panel")
+        }
+        val buttons = (call.args["buttons"] as? JsonArray).orEmpty()
+            .mapNotNull { (it as? JsonPrimitive)?.contentOrNull?.trim()?.take(MAX_DIALOG_BUTTON) }
+            .filter { it.isNotEmpty() }
+            .take(MAX_DIALOG_BUTTONS)
+            .ifEmpty { listOf(context.getString(android.R.string.ok)) }
+        val request = com.wasimaster.wmkeyboard.core.plugins.ui.PluginDialogRequest(
+            pluginId = call.plugin.id,
+            pluginName = call.plugin.displayName,
+            title = call.string("title").orEmpty().trim().take(MAX_DIALOG_TITLE),
+            text = call.string("text")?.take(MAX_DIALOG_TEXT),
+            buttons = buttons,
+        )
+        return com.wasimaster.wmkeyboard.core.plugins.ui.PluginDialogs.ask(request, call.isActive)?.let(::JsonPrimitive) ?: JsonNull
     }
 
     // ---- the Clock and time zones -----------------------------------------
@@ -328,6 +363,30 @@ internal class PluginKeyboardServices(
             true
         }
         if (done != true) throw PluginCallException("RuntimeError", "there is no text field in front right now")
+        return JsonNull
+    }
+
+    /**
+     * A picture into the field, sent as the keyboard sends a sticker: the
+     * field's own image types first, the clipboard when it takes none.
+     */
+    private fun fieldImage(call: PluginCall): JsonElement {
+        val mime = call.string("mime")?.trim()?.lowercase()?.takeIf { it in IMAGE_TYPES }
+            ?: throw PluginCallException("ValueError", "mime must be one of ${IMAGE_TYPES.joinToString()}")
+        val data = call.string("data").orEmpty()
+        if (data.length > MAX_FILE / 3 * 4 + 4) throw PluginCallException("ValueError", "a picture may be at most ${MAX_FILE / MB} MB")
+        val bytes = runCatching { Base64.decode(data, Base64.DEFAULT) }.getOrNull()?.takeIf { it.isNotEmpty() }
+            ?: throw PluginCallException("ValueError", "data is not a picture's bytes")
+        val dir = File(context.cacheDir, "media").apply { mkdirs() }
+        val file = File(dir, "plugin_${call.plugin.id.hashCode().toUInt()}_${System.currentTimeMillis()}.${mime.substringAfter('/')}")
+        try {
+            file.writeBytes(bytes)
+        } catch (failure: IOException) {
+            throw PluginCallException("OSError", failure.message ?: "the picture could not be written")
+        }
+        if (onMain { if (connection() == null) false else { commitImage(file, mime); true } } != true) {
+            throw PluginCallException("RuntimeError", "there is no text field in front right now")
+        }
         return JsonNull
     }
 
@@ -480,11 +539,38 @@ internal class PluginKeyboardServices(
         if (!AiClient.isConfigured(settings)) {
             throw PluginCallException("RuntimeError", "no AI model is set up in the keyboard's settings")
         }
-        if (dataSaver()) throw PluginCallException("ConnectionError", "Data saver is on, so plugins cannot use the internet")
         val prompt = call.string("prompt").orEmpty().take(MAX_PROMPT)
         val system = call.string("system").orEmpty().take(MAX_PROMPT)
         val stream = call.op == "ai.stream"
         var sent = 0
+        // The phone's own model answers on the phone, as it does for the
+        // keyboard's AI tools: no HTTP, so Data saver doesn't stop it.
+        if (settings.provider == com.wasimaster.wmkeyboard.core.settings.AiProvider.ON_DEVICE) {
+            val model = localModel()
+                ?: throw PluginCallException("RuntimeError", "the on-device model has not been downloaded yet")
+            val text = try {
+                synchronized(localLock) {
+                    com.wasimaster.wmkeyboard.core.localllm.LocalLlmEngine.generate(
+                        context = context.applicationContext,
+                        modelFile = model,
+                        backend = settings.localBackend,
+                        contextTokens = settings.localContextTokens,
+                        system = system,
+                        user = prompt,
+                        onPartial = { partial ->
+                            if (stream && partial.length > sent && call.isActive()) {
+                                call.emit(JsonPrimitive(partial.substring(sent)))
+                                sent = partial.length
+                            }
+                        },
+                    )
+                }
+            } catch (failure: IOException) {
+                throw PluginCallException("RuntimeError", failure.message ?: "the on-device model could not answer")
+            }
+            return buildJsonObject { put("text", AiThinking.stripped(text)) }
+        }
+        if (dataSaver()) throw PluginCallException("ConnectionError", "Data saver is on, so plugins cannot use the internet")
         val answer = AiClient.completeStreaming(
             config = AiClient.config(settings),
             system = system,
@@ -501,6 +587,9 @@ internal class PluginKeyboardServices(
         ).text
         return buildJsonObject { put("text", AiThinking.stripped(answer)) }
     }
+
+    /** One plugin request at a time on the phone's model. */
+    private val localLock = Any()
 
     // ---- the phone -------------------------------------------------------
 
@@ -1095,6 +1184,7 @@ internal class PluginKeyboardServices(
 
     companion object {
         private val METHODS = setOf("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD")
+        private val IMAGE_TYPES = setOf("image/png", "image/jpeg", "image/gif", "image/webp")
 
         /** Headers a plugin may not set: who the request is from, and how it is routed. */
         private val FORBIDDEN_HEADERS = setOf("host", "cookie", "user-agent", "proxy-authorization", "connection", "content-length")
@@ -1108,6 +1198,10 @@ internal class PluginKeyboardServices(
         private const val MAX_READ = 10_000
         private const val MAX_CLIP = 64 * 1024
         private const val MAX_TOAST = 200
+        private const val MAX_DIALOG_TITLE = 100
+        private const val MAX_DIALOG_TEXT = 2000
+        private const val MAX_DIALOG_BUTTON = 40
+        private const val MAX_DIALOG_BUTTONS = 3
         private const val MAX_SPEAK = 4000
         private const val MAX_SHARE = 64 * 1024
         private const val MAX_HINT = 200

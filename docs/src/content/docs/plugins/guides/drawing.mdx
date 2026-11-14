@@ -74,7 +74,7 @@ everything you created at the top level.
 | Widget | Use it for |
 |---|---|
 | `ui.column(...)` | Things top to bottom. The usual outer container. |
-| `ui.row(..., weights=[3, 1])` | Things side by side. A row of buttons splits the width evenly; next to a box, a button keeps its own width. `weights` shares out the width yourself. A label too long for its button narrows its letters first, then gets smaller, and is cut short with "…" only after both; the user can change that under Appearance › Toolbar › Long words. |
+| `ui.row(..., weights=[3, 1])` | Things side by side. A row of buttons splits the width evenly; next to a box, a button keeps its own width. `weights` shares out the width yourself; a weight of `0` keeps that child at its own width, as `weights=[1, 0]` does for a box with an icon button beside it. A button on a line of its own runs the panel's width. A one-character label (a symbol palette's `∫`, `≤`) is drawn larger than a word. A label too long for its button narrows its letters first, then gets smaller, and is cut short with "…" only after both; the user can change that under Appearance › Toolbar › Long words. |
 | `ui.grid(..., columns=3)` | A grid of equal cells: buttons, stats, pictures. |
 | `ui.card(..., title=, on_click=)` | A group that belongs together. Pressable with `on_click`. |
 | `ui.section(title, ..., collapsible=True)` | A titled part of a long panel that the user can fold. |
@@ -119,6 +119,17 @@ app. Three things about text boxes:
   and pass it back as `value=`, or the box empties on the next draw.
 - `kind="number"`, `"email"`, `"url"` or `"password"` changes the keys the
   keyboard offers. A password box shows dots and is never logged.
+- A long line scrolls sideways to keep its end in view, as an app's text field
+  does. The `placeholder` is drawn faint, with the caret before it.
+
+A `select` drawn as a dropdown opens its options over the panel, under the box
+(or above it, near the bottom), and a tap anywhere else closes them; nothing
+below is pushed down. With `style="segmented"`, the chosen segment's fill and
+check slide in. Tabs share the width, up to six of them, with their titles
+narrowed to fit, and a page slides in from the side of the tab tapped.
+
+An `output` puts its Copy and Insert buttons above the text, so a long result
+can be taken without scrolling past it.
 
 Options for `select` and `chips` are a list of values, or of
 `(value, label)` pairs when the text shown differs:
@@ -193,7 +204,9 @@ plugin from imitating a system warning. Anything else raises `ValueError`.
 
 - `ui.toast(text)` shows a short message over the panel.
 - `ui.dialog(title, text, buttons=("Delete", "Cancel"), on_result=fn)` asks a
-  question. `fn` gets the label the user pressed, or `None` if they closed it.
+  question over the panel, with your plugin's name above the title. Up to three
+  buttons; list the answer first, as in `("Delete", "Cancel")`: it is drawn filled at the right, where Android puts an alert's confirming button. `fn` gets the label the user
+  pressed, or `None` if they tapped outside it or the panel closed.
 
 ```python
 def ask_to_clear():
